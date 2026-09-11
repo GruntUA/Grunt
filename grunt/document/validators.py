@@ -28,14 +28,12 @@ import importlib.util
 import inspect
 from typing import TYPE_CHECKING
 
-import structlog
-
+from grunt.log import log
 from grunt.validators.base import Validator
 
 if TYPE_CHECKING:
     from pathlib import Path
 
-logger = structlog.get_logger()
 
 # name → Validator instance (singleton per class)
 _REGISTRY: dict[str, Validator] = {}
@@ -47,7 +45,7 @@ def register_validator(validator: type[Validator] | Validator) -> None:
     if not getattr(instance, "name", None) or not getattr(instance, "label", None):
         raise ValueError(f"Validator {type(instance).__name__} must define 'name' and 'label'")
     _REGISTRY[instance.name] = instance
-    logger.debug("validator.registered", name=instance.name)
+    log.debug("validator.registered", name=instance.name)
 
 
 def get_validator(name: str) -> Validator | None:
@@ -95,7 +93,7 @@ def load_from_dir(directory: Path) -> int:
             mod = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(mod)  # type: ignore[union-attr]
         except Exception as exc:
-            logger.warning("validator.load_error", file=str(py_file), error=str(exc))
+            log.warning("validator.load_error", file=str(py_file), error=str(exc))
             continue
 
         for _attr_name, obj in inspect.getmembers(mod, inspect.isclass):
@@ -110,7 +108,7 @@ def load_from_dir(directory: Path) -> int:
                 register_validator(obj)
                 loaded += 1
             except Exception as exc:
-                logger.warning(
+                log.warning(
                     "validator.register_error",
                     cls=obj.__name__,
                     file=str(py_file),

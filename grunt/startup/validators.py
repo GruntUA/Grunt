@@ -9,9 +9,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import structlog
-
-logger = structlog.get_logger()
+from grunt.log import log
 
 _GRUNT_ROOT = Path(__file__).parent.parent  # grunt/startup/ → grunt/
 
@@ -57,8 +55,8 @@ def load_validators() -> int:
     for validator_dir in _find_validator_dirs():
         count = load_from_dir(validator_dir)
         if count:
-            logger.info("validators.loaded", dir=str(validator_dir), count=count)
+            log.info("validators.loaded", dir=str(validator_dir), count=count)
         total += count
 
-    logger.info("validators.total", count=total)
+    log.info("validators.total", count=total)
     return total

@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-import structlog
 from sqlalchemy import (
     JSON,
     Column,
@@ -17,6 +16,7 @@ from sqlalchemy import (
 )
 
 from grunt.db.types import UtcDateTime
+from grunt.log import log
 from grunt.metadata.field import NON_PHYSICAL_FIELDS
 from grunt.utils.strings import to_snake_case
 
@@ -33,8 +33,6 @@ SA_METADATA = MetaData()
 # Avoids rebuilding Column objects on every call to compile_doctype_to_table().
 # Invalidated via invalidate_table_cache() when a DocType is updated or deleted.
 _TABLE_CACHE: dict[str, Table] = {}
-
-logger = structlog.get_logger()
 
 
 class DuplicateDataError(Exception):
@@ -257,7 +255,7 @@ def _sync_columns(insp: Any, connection: Any, table: Table) -> None:
             connection.execute(
                 text(f'ALTER TABLE "{table.name}" ADD COLUMN "{col.name}" {col_type} NULL')
             )
-            logger.info("compiler.column_added", table=table.name, column=col.name)
+            log.info("compiler.column_added", table=table.name, column=col.name)
 
         elif connection.dialect.name != "sqlite" and _type_changed(
             col.type, existing_col_map[col.name], connection.dialect
@@ -275,7 +273,7 @@ def _sync_columns(insp: Any, connection: Any, table: Table) -> None:
                 )
                 col_length = getattr(col.type, "length", None)
                 if col_length is not None and max_stored > col_length:
-                    logger.warning(
+                    log.warning(
                         "compiler.skip_varchar_reduction",
                         table=table.name,
                         column=col.name,
@@ -288,7 +286,7 @@ def _sync_columns(insp: Any, connection: Any, table: Table) -> None:
             connection.execute(
                 text(f'ALTER TABLE "{table.name}" ALTER COLUMN "{col.name}" TYPE {desired_type}')
             )
-            logger.info(
+            log.info(
                 "compiler.column_altered",
                 table=table.name,
                 column=col.name,
@@ -314,9 +312,7 @@ def _sync_unique_constraints(insp: Any, connection: Any, table: Table) -> None:
             cols_sql = ", ".join(f'"{c}"' for c in uq_cols)
             # Partial index: uniqueness applies only to non-NULL, non-empty values.
             # Empty strings are treated the same as NULL (not provided).
-            where_nonempty = " AND ".join(
-                f'("{c}" IS NOT NULL AND "{c}" != \'\')' for c in uq_cols
-            )
+            where_nonempty = " AND ".join(f'("{c}" IS NOT NULL AND "{c}" != \'\')' for c in uq_cols)
 
             # Safety: raise with details if non-empty data has duplicates
             dup_rows = connection.execute(
@@ -346,7 +342,7 @@ def _sync_unique_constraints(insp: Any, connection: Any, table: Table) -> None:
                     f"WHERE {where_nonempty}"
                 )
             )
-            logger.info("compiler.unique_added", table=table.name, constraint=name)
+            log.info("compiler.unique_added", table=table.name, constraint=name)
 
     # Drop stale per-field unique indexes (those with our naming prefix only)
     for name in existing_uq:
@@ -361,7 +357,7 @@ def _sync_unique_constraints(insp: Any, connection: Any, table: Table) -> None:
                     connection.execute(
                         text(f'ALTER TABLE "{table.name}" DROP CONSTRAINT IF EXISTS "{name}"')
                     )
-            logger.info("compiler.unique_dropped", table=table.name, constraint=name)
+            log.info("compiler.unique_dropped", table=table.name, constraint=name)
 
 
 def _sync_indexes(insp: Any, connection: Any, table: Table) -> None:
@@ -370,7 +366,7 @@ def _sync_indexes(insp: Any, connection: Any, table: Table) -> None:
     for index in table.indexes:
         if index.name and index.name not in existing_indexes:
             index.create(connection)
-            logger.info("compiler.index_created", table=table.name, index=index.name)
+            log.info("compiler.index_created", table=table.name, index=index.name)
 
 
 async def sync_table(
@@ -393,7 +389,7 @@ async def sync_table(
     opening a new one (avoids SQLite "database is locked" errors).
     """
     if doctype.is_virtual:
-        logger.debug("compiler.skip_virtual", doctype=doctype.name)
+        log.debug("compiler.skip_virtual", doctype=doctype.name)
         return
 
     table = compile_doctype_to_table(doctype)
@@ -402,7 +398,7 @@ async def sync_table(
         insp = inspect(connection)
         if not insp.has_table(table.name):
             SA_METADATA.create_all(connection, tables=[table])
-            logger.info("compiler.table_created", table=table.name)
+            log.info("compiler.table_created", table=table.name)
             return
 
         _sync_columns(insp, connection, table)

@@ -8,12 +8,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-import structlog
+from grunt.log import log
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
-
-logger = structlog.get_logger()
 
 
 async def _register_app_if_new(app_name: str, app_meta: dict) -> bool:
@@ -34,7 +32,7 @@ async def _register_app_if_new(app_name: str, app_meta: dict) -> bool:
                 "modules": app_meta.get("modules", []),
             },
         )
-        logger.info("startup.app_registered", app=app_name)
+        log.info("startup.app_registered", app=app_name)
     return is_first_install
 
 
@@ -68,9 +66,7 @@ async def _register_app_doctypes(
                 if dt_name not in doctype_registry._doctypes:
                     async with session.begin_nested():
                         await doctype_registry.register(dt_obj, session, eng)
-                    logger.info(
-                        "startup.app_doctype_registered", app=app_name, doctype=dt_name
-                    )
+                    log.info("startup.app_doctype_registered", app=app_name, doctype=dt_name)
                 else:
                     existing_dt = doctype_registry._doctypes[dt_name]
                     if existing_dt.app and existing_dt.app != app_name:
@@ -79,7 +75,7 @@ async def _register_app_doctypes(
                         # overwrite it, and whichever app's sync runs last
                         # would "win" on every migrate. Refuse instead: the
                         # colliding app must rename its doctype.
-                        logger.error(
+                        log.error(
                             "startup.app_doctype_name_collision",
                             app=app_name,
                             doctype=dt_name,
@@ -89,11 +85,9 @@ async def _register_app_doctypes(
                     if existing_dt.model_dump(mode="json") != dt_obj.model_dump(mode="json"):
                         async with session.begin_nested():
                             await doctype_registry.update(dt_obj, session, eng)
-                        logger.info(
-                            "startup.app_doctype_updated", app=app_name, doctype=dt_name
-                        )
+                        log.info("startup.app_doctype_updated", app=app_name, doctype=dt_name)
             except Exception as e:
-                logger.warning(
+                log.warning(
                     "startup.app_doctype_register_failed",
                     app=app_name,
                     file=dt_file.name,
@@ -136,20 +130,16 @@ async def _apply_app_fixtures(
                     continue
 
                 await _apply_doctype_fixture(fx_doctype, records, session, eng)
-                logger.info("startup.fixture_applied", app=app_name, file=fx_file.name)
+                log.info("startup.fixture_applied", app=app_name, file=fx_file.name)
             except Exception as e:
-                logger.warning(
-                    "startup.fixture_failed", app=app_name, file=fx_file.name, error=str(e)
-                )
+                log.warning("startup.fixture_failed", app=app_name, file=fx_file.name, error=str(e))
 
     for fx_file, records in deferred_menus:
         try:
             workspace_from_fixture = await _apply_workspace_fixture(records, app_name, app_meta)
-            logger.info("startup.fixture_applied", app=app_name, file=fx_file.name)
+            log.info("startup.fixture_applied", app=app_name, file=fx_file.name)
         except Exception as e:
-            logger.warning(
-                "startup.fixture_failed", app=app_name, file=fx_file.name, error=str(e)
-            )
+            log.warning("startup.fixture_failed", app=app_name, file=fx_file.name, error=str(e))
 
     return workspace_from_fixture
 
@@ -198,17 +188,13 @@ async def _sync_app_print_formats(
                             )
                     if exists:
                         await session.commit()
-                        logger.info(
-                            "startup.print_format_synced", app=app_name, name=pf_name
-                        )
+                        log.info("startup.print_format_synced", app=app_name, name=pf_name)
                         continue
 
                 await _apply_doctype_fixture("PrintFormat", [data], session, eng)
-                logger.info(
-                    "startup.print_format_registered", app=app_name, name=data.get("name")
-                )
+                log.info("startup.print_format_registered", app=app_name, name=data.get("name"))
             except Exception as e:
-                logger.warning(
+                log.warning(
                     "startup.print_format_failed",
                     app=app_name,
                     file=pf_meta.name,
@@ -238,9 +224,9 @@ async def _run_after_install_hook(
         install_mod = load_app_hook_module(app_dir, app_name)
         if install_mod is not None and hasattr(install_mod, "after_install"):
             await install_mod.after_install(session, site_name)
-            logger.info("startup.after_install_ok", app=app_name)
+            log.info("startup.after_install_ok", app=app_name)
     except Exception as e:
-        logger.warning("startup.after_install_failed", app=app_name, error=str(e))
+        log.warning("startup.after_install_failed", app=app_name, error=str(e))
 
 
 async def sync_installed_apps(session: AsyncSession, site_name: str) -> None:
@@ -277,7 +263,7 @@ async def sync_installed_apps(session: AsyncSession, site_name: str) -> None:
             app_dir = site_manager.bench_dir / "apps" / app_name
             app_meta = _load_app_meta(app_dir)
             if app_meta is None:
-                logger.warning("startup.app_meta_not_found", app=app_name)
+                log.warning("startup.app_meta_not_found", app=app_name)
                 continue
 
             is_first_install = await _register_app_if_new(app_name, app_meta)
@@ -295,4 +281,4 @@ async def sync_installed_apps(session: AsyncSession, site_name: str) -> None:
             if is_first_install:
                 await _run_after_install_hook(session, site_name, app_dir, app_name)
 
-            logger.info("startup.app_workspace_seeded", app=app_name)
+            log.info("startup.app_workspace_seeded", app=app_name)

@@ -16,12 +16,11 @@ import time
 from typing import TYPE_CHECKING, Any
 
 import httpx
-import structlog
+
+from grunt.log import log
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
-
-logger = structlog.get_logger()
 
 
 class WebhookService:
@@ -71,7 +70,7 @@ class WebhookService:
                     if not simple_eval(wh["condition"], names={"doc": doc}):
                         continue
                 except Exception:
-                    logger.warning(
+                    log.warning(
                         "webhook.condition_eval_error",
                         webhook=str(wh.get("name") or ""),
                         condition=wh["condition"],
@@ -161,7 +160,7 @@ class WebhookService:
                 if isinstance(extra, dict):
                     headers.update({str(k): str(v) for k, v in extra.items()})
             except Exception:
-                logger.exception("suppressed_error")
+                log.exception("suppressed_error")
 
         status_code: int | None = None
         response_body: str = ""
@@ -175,10 +174,10 @@ class WebhookService:
                 status_code = resp.status_code
                 response_body = resp.text[:4000]
                 success = 200 <= resp.status_code < 300
-                logger.info("webhook.fired", url=url, status=resp.status_code, is_test=is_test)
+                log.info("webhook.fired", url=url, status=resp.status_code, is_test=is_test)
         except Exception as exc:
             error = str(exc)
-            logger.warning("webhook.fire_failed", url=url, error=error, is_test=is_test)
+            log.warning("webhook.fire_failed", url=url, error=error, is_test=is_test)
 
         duration_ms = int((time.monotonic() - start) * 1000)
 
@@ -200,7 +199,7 @@ class WebhookService:
                 async with grunt.system_context(session):
                     await grunt.new_doc("WebhookLog", log_entry)
             except Exception:
-                logger.warning("webhook_log.write_failed", webhook_id=webhook_id)
+                log.warning("webhook_log.write_failed", webhook_id=webhook_id)
 
         return {**log_entry, "success": success}
 

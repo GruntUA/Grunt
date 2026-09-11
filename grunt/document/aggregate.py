@@ -19,10 +19,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-import structlog
 from sqlalchemy import func, select
 
 from grunt.document.meta import Meta
+from grunt.log import log
 from grunt.metadata.compiler import compile_doctype_to_table
 from grunt.metadata.registry import doctype_registry
 
@@ -30,8 +30,6 @@ if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
     from grunt.metadata.doctype import DocType
-
-logger = structlog.get_logger()
 
 
 async def compute_aggregations(
@@ -59,7 +57,7 @@ async def compute_aggregations(
         child_col = field.aggregate_field
 
         if not table_fieldname:
-            logger.warning(
+            log.warning(
                 "aggregate.missing_table",
                 doctype=dt.name,
                 fieldname=field.fieldname,
@@ -69,7 +67,7 @@ async def compute_aggregations(
         # Find the TABLE field in the parent DocType to get child doctype name
         table_field = meta.get_field(table_fieldname)
         if table_field is None or table_field.fieldtype != "Table" or not table_field.options:
-            logger.warning(
+            log.warning(
                 "aggregate.table_field_not_found",
                 doctype=dt.name,
                 aggregate_table=table_fieldname,
@@ -79,7 +77,7 @@ async def compute_aggregations(
         try:
             child_dt = await doctype_registry.get(table_field.options)
         except Exception:
-            logger.warning(
+            log.warning(
                 "aggregate.child_doctype_not_found",
                 doctype=dt.name,
                 child_doctype=table_field.options,
@@ -97,7 +95,7 @@ async def compute_aggregations(
             )
         else:
             if not child_col or child_col not in child_table.c:
-                logger.warning(
+                log.warning(
                     "aggregate.child_column_not_found",
                     doctype=dt.name,
                     child_doctype=table_field.options,
@@ -114,7 +112,7 @@ async def compute_aggregations(
             }.get(func_name)
 
             if agg_func is None:
-                logger.warning(
+                log.warning(
                     "aggregate.unknown_function",
                     function=func_name,
                     fieldname=field.fieldname,
@@ -127,7 +125,7 @@ async def compute_aggregations(
             row = (await session.execute(stmt)).one()
             value = row[0]
         except Exception:
-            logger.exception(
+            log.exception(
                 "aggregate.query_error",
                 doctype=dt.name,
                 fieldname=field.fieldname,

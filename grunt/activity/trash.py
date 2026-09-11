@@ -15,11 +15,8 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import Any
 
-import structlog
-
 from grunt.app import grunt
-
-logger = structlog.get_logger()
+from grunt.log import log
 
 # Ніколи не знімкуємо: системний шум, самі себе, та інші журнали. Відновлювати
 # їх немає сенсу, а обсяг — величезний.
@@ -111,6 +108,4 @@ async def snapshot_deleted_document(event: str, **kwargs: Any) -> None:
                 },
             )
     except Exception as e:  # noqa: BLE001
-        logger.warning(
-            "trash.snapshot_failed", error=str(e), doctype=doctype, doc_id=doc.get("name")
-        )
+        log.warning("trash.snapshot_failed", error=str(e), doctype=doctype, doc_id=doc.get("name"))

@@ -13,7 +13,6 @@ from __future__ import annotations
 import re
 from typing import TYPE_CHECKING, Any
 
-import structlog
 from sqlalchemy import (
     Column,
     DateTime,
@@ -30,12 +29,13 @@ from sqlalchemy import (
 from sqlalchemy.dialects.mysql import insert as mysql_insert
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
+from grunt.log import log
+
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
     from grunt.metadata.doctype import DocType
 
-logger = structlog.get_logger()
 
 _INDEX_TABLE_NAME = "grunt_search_index"
 _INDEX_META = MetaData()
@@ -183,9 +183,7 @@ class SearchIndexService:
 
             await session.execute(stmt)
         except Exception as e:
-            logger.warning(
-                "search_index.index_failed", doctype=doctype, doc_id=doc_id, error=str(e)
-            )
+            log.warning("search_index.index_failed", doctype=doctype, doc_id=doc_id, error=str(e))
 
     async def remove_document(
         self,
@@ -200,7 +198,7 @@ class SearchIndexService:
                 delete(_search_index_table).where(_search_index_table.c.idx_id == idx_id)
             )
         except Exception:
-            logger.warning("search_index.remove_failed", doctype=doctype, doc_id=doc_id)
+            log.warning("search_index.remove_failed", doctype=doctype, doc_id=doc_id)
 
     async def remove_documents(
         self,
@@ -222,7 +220,7 @@ class SearchIndexService:
                     delete(_search_index_table).where(_search_index_table.c.idx_id.in_(idx_ids))
                 )
         except Exception:
-            logger.warning("search_index.remove_bulk_failed", doctype=doctype, count=len(doc_ids))
+            log.warning("search_index.remove_bulk_failed", doctype=doctype, count=len(doc_ids))
 
     async def search(
         self,
@@ -286,7 +284,7 @@ class SearchIndexService:
             return [dict(r._mapping) for r in rows]
 
         except Exception:
-            logger.exception("search_index.search_failed", q=q)
+            log.exception("search_index.search_failed", q=q)
             return []
 
     async def reindex_all(
@@ -314,7 +312,7 @@ class SearchIndexService:
                     await self.index_document(session, dt.name, dt, doc)
                     count += 1
             except Exception:
-                logger.warning("search_index.reindex_doctype_failed", doctype=dt.name)
+                log.warning("search_index.reindex_doctype_failed", doctype=dt.name)
 
         await session.flush()
         return count

@@ -19,15 +19,13 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
-import structlog
+from grunt.log import log
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable
     from pathlib import Path
 
     from fastapi import FastAPI
-
-logger = structlog.get_logger()
 
 
 @dataclass(frozen=True, slots=True)
@@ -115,7 +113,7 @@ def _io_exporters(value: list, ctx: LoadContext) -> None:
 
     for exp in value:
         register_exporter(exp)
-        logger.info("io.exporter.registered", id=exp.id, app=ctx.app_name)
+        log.info("io.exporter.registered", id=exp.id, app=ctx.app_name)
 
 
 @consumer("io_importers")
@@ -124,7 +122,7 @@ def _io_importers(value: list, ctx: LoadContext) -> None:
 
     for imp in value:
         register_importer(imp)
-        logger.info("io.importer.registered", id=imp.id, app=ctx.app_name)
+        log.info("io.importer.registered", id=imp.id, app=ctx.app_name)
 
 
 @consumer("website_block_types")
@@ -135,7 +133,7 @@ def _website_block_types(value: list[dict], ctx: LoadContext) -> None:
     website_registry.add_template_source("grunt", ctx.app_dir / "www")
     for bt in value:
         register_block_type(bt["name"], bt["template"], bt.get("fields"))
-        logger.info("website.block_type.registered", name=bt["name"], app=ctx.app_name)
+        log.info("website.block_type.registered", name=bt["name"], app=ctx.app_name)
 
 
 @consumer("tree_title_resolvers")
@@ -145,11 +143,9 @@ def _tree_title_resolvers(value: dict[str, str], ctx: LoadContext) -> None:
     for doctype, path in value.items():
         try:
             register_tree_title_resolver(doctype, _resolve(path))
-            logger.info("tree.title_resolver.registered", doctype=doctype, app=ctx.app_name)
+            log.info("tree.title_resolver.registered", doctype=doctype, app=ctx.app_name)
         except Exception as e:
-            logger.warning(
-                "tree.title_resolver.error", doctype=doctype, handler=path, error=str(e)
-            )
+            log.warning("tree.title_resolver.error", doctype=doctype, handler=path, error=str(e))
 
 
 @consumer("doc_actions")

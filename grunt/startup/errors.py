@@ -8,7 +8,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-import structlog
 from fastapi import HTTPException, Request
 from fastapi.responses import JSONResponse
 from pydantic import ValidationError
@@ -16,11 +15,10 @@ from pydantic import ValidationError
 from grunt.api.messages import ApplicationError
 from grunt.config import settings
 from grunt.errors import GruntError, error_body
+from grunt.log import log
 
 if TYPE_CHECKING:
     from fastapi import FastAPI
-
-logger = structlog.get_logger()
 
 
 async def _validation_error(request: Request, exc: ValidationError) -> JSONResponse:
@@ -105,13 +103,13 @@ async def _persist_error_log(request: Request, exc: Exception) -> None:
             request_id=getattr(request.state, "request_id", None),
         )
     except Exception:  # noqa: BLE001 — the 500 response must go out regardless
-        logger.debug("error_log.http_persist_failed", exc_info=True)
+        log.debug("error_log.http_persist_failed", exc_info=True)
 
 
 async def _generic_exception(request: Request, exc: Exception) -> JSONResponse:
     import traceback as _tb
 
-    logger.exception("unhandled_error", error=str(exc))
+    log.exception("unhandled_error", error=str(exc))
     await _persist_error_log(request, exc)
 
     if not settings.debug:
@@ -148,7 +146,7 @@ async def _generic_exception(request: Request, exc: Exception) -> JSONResponse:
             if orig:
                 debug_info["db_error"] = str(orig)
     except Exception:
-        logger.exception("suppressed_error")
+        log.exception("suppressed_error")
 
     return JSONResponse(
         status_code=500,

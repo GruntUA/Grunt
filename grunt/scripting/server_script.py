@@ -33,8 +33,7 @@ import io
 from datetime import UTC
 from typing import TYPE_CHECKING, Any, TypeVar
 
-import structlog
-
+from grunt.log import log
 from grunt.scripting.safe_globals import build_safe_globals, compile_script, validate_script
 
 if TYPE_CHECKING:
@@ -42,7 +41,6 @@ if TYPE_CHECKING:
 
     from sqlalchemy.ext.asyncio import AsyncSession
 
-logger = structlog.get_logger()
 
 _T = TypeVar("_T")
 
@@ -420,9 +418,7 @@ class ScriptContext:
 
             grunt.notify(["user@example.com"], "Order ready", "Your order is ready.")
         """
-        return self._run_or_default(
-            self._notify_impl(users, subject, message, doctype, doc_id), []
-        )
+        return self._run_or_default(self._notify_impl(users, subject, message, doctype, doc_id), [])
 
     async def _notify_impl(
         self,
@@ -502,7 +498,7 @@ class ServerScriptRunner:
             scripts.extend(get_file_doctype_scripts(doctype, event))
         except ImportError:
             # File-based server scripts are optional; ignore if support module is not available.
-            logger.debug(
+            log.debug(
                 "Optional file-based DocType scripts module not available; skipping.",
                 doctype=doctype,
                 event=event,
@@ -651,7 +647,7 @@ class ServerScriptRunner:
                 error=str(e),
             )
         except Exception as e:
-            logger.warning(
+            log.warning(
                 "server_script.error",
                 error=str(e),
                 error_type=type(e).__name__,
@@ -682,7 +678,7 @@ class ServerScriptRunner:
                 user_email=user_email,
             )
             if not result.success:
-                logger.warning(
+                log.warning(
                     "server_script.event_error",
                     script=s["name"],
                     doctype=doctype,

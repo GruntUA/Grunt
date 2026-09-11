@@ -5,14 +5,11 @@ import inspect
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-import structlog
-
+from grunt.log import log
 from grunt.utils.strings import to_snake_case
 
 if TYPE_CHECKING:
     from grunt.document.base import Document
-
-logger = structlog.get_logger()
 
 
 class DocumentRegistry:
@@ -34,7 +31,7 @@ class DocumentRegistry:
     def register(self, doctype: str, controller: type[Document]) -> None:
         """Register an already-imported controller class."""
         self._controllers[doctype] = controller
-        logger.debug("document.registered", doctype=doctype, controller=controller.__name__)
+        log.debug("document.registered", doctype=doctype, controller=controller.__name__)
 
     def register_overrides(self, overrides: dict[str, str]) -> None:
         """Register controller overrides (mapping: DocType -> 'module.ClassName').
@@ -84,10 +81,10 @@ class DocumentRegistry:
                 controller_cls = getattr(module, class_name, None)
                 if controller_cls and _is_controller(controller_cls):
                     self.register(doctype, controller_cls)
-                    logger.info("document.lazy_loaded", doctype=doctype, controller=module_path)
+                    log.info("document.lazy_loaded", doctype=doctype, controller=module_path)
                     return
             except ImportError as e:
-                logger.warning(
+                log.warning(
                     "document.lazy_load_failed", doctype=doctype, module=mod_path, error=str(e)
                 )
                 return
@@ -98,10 +95,10 @@ class DocumentRegistry:
             for _name, obj in inspect.getmembers(module):
                 if _is_controller(obj) and obj.__module__ == module.__name__:
                     self.register(doctype, obj)
-                    logger.debug("document.lazy_loaded", doctype=doctype, controller=_name)
+                    log.debug("document.lazy_loaded", doctype=doctype, controller=_name)
                     return
         except ImportError as e:
-            logger.warning(
+            log.warning(
                 "document.lazy_load_failed", doctype=doctype, module=module_path, error=str(e)
             )
 
@@ -132,7 +129,7 @@ class DocumentRegistry:
                     self._index[pascal] = module_path
                     count += 1
 
-        logger.debug("document.core_indexed", count=count)
+        log.debug("document.core_indexed", count=count)
 
     def index_external_app_controllers(self, app_dir: str | Path) -> None:
         """Index controllers from a single external app (bench/apps/{app}/)."""
@@ -165,6 +162,7 @@ class DocumentRegistry:
                     self._index[pascal] = module_path
                     count += 1
 
-        logger.debug("document.ext_app_indexed", app=app_name, count=count)
+        log.debug("document.ext_app_indexed", app=app_name, count=count)
+
 
 document_registry = DocumentRegistry()

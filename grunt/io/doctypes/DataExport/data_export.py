@@ -9,12 +9,9 @@ from __future__ import annotations
 import json
 from typing import Any
 
-import structlog
-
 from grunt.document.base import Document
 from grunt.io.doctypes.DataImport.data_import import DataImport
-
-logger = structlog.get_logger()
+from grunt.log import log
 
 
 class DataExport(Document):
@@ -67,7 +64,7 @@ class DataExport(Document):
             self.error = ""
 
         except Exception as exc:
-            logger.exception("data_export.failed", doctype=self.doctype_name)
+            log.exception("data_export.failed", doctype=self.doctype_name)
             self.status = "Failed"
             self.error = f"{type(exc).__name__}: {exc}"
 

@@ -5,9 +5,8 @@ from __future__ import annotations
 from collections.abc import Awaitable, Callable, Sequence
 from typing import TYPE_CHECKING, Any, cast
 
-import structlog
-
 from grunt.app import grunt as grunt_app
+from grunt.log import log
 
 if TYPE_CHECKING:
     from grunt.auth.doctypes.User.user import User
@@ -15,7 +14,6 @@ if TYPE_CHECKING:
 
 ProgressCallback = Callable[[int, int, int], Awaitable[None]]
 
-logger = structlog.get_logger()
 
 # Records per loop iteration when deleting all matching docs.
 # Small enough to avoid huge IN() queries; large enough to be efficient.
@@ -82,7 +80,7 @@ class BulkDeleteTask:
                 },
             )
         except Exception as e:
-            logger.exception("bulk_delete.failed", doctype=doctype, error=str(e))
+            log.exception("bulk_delete.failed", doctype=doctype, error=str(e))
             await self._manager.send_to_user(
                 user_email,
                 {
@@ -123,7 +121,7 @@ class BulkDeleteTask:
         except Exception:
             grand_total = 0
 
-        logger.info(
+        log.info(
             "bulk_delete_all.started",
             doctype=doctype,
             grand_total=grand_total,
@@ -174,7 +172,7 @@ class BulkDeleteTask:
                     },
                 )
 
-                logger.info(
+                log.info(
                     "bulk_delete_all.batch",
                     doctype=doctype,
                     batch=len(ids),
@@ -185,7 +183,7 @@ class BulkDeleteTask:
                 if deleted == 0:
                     # No progress made — all docs in this batch failed (e.g. blocked
                     # by a before_delete hook).  Stop to avoid an infinite loop.
-                    logger.warning(
+                    log.warning(
                         "bulk_delete_all.no_progress",
                         doctype=doctype,
                         batch_errors=len(errors),
@@ -207,7 +205,7 @@ class BulkDeleteTask:
                     },
                 },
             )
-            logger.info(
+            log.info(
                 "bulk_delete_all.done",
                 doctype=doctype,
                 total_deleted=total_deleted,
@@ -215,7 +213,7 @@ class BulkDeleteTask:
             )
 
         except Exception as e:
-            logger.exception("bulk_delete_all.failed", doctype=doctype, error=str(e))
+            log.exception("bulk_delete_all.failed", doctype=doctype, error=str(e))
             await self._manager.send_to_user(
                 user_email,
                 {
@@ -326,11 +324,11 @@ class BulkDeleteTask:
                         )
                     )
                 except Exception:
-                    logger.warning("fast_delete.activity_log_failed", doctype=doctype)
+                    log.warning("fast_delete.activity_log_failed", doctype=doctype)
 
                 await session.flush()
 
-            logger.info("fast_delete.done", doctype=doctype, deleted=deleted, user=user_email)
+            log.info("fast_delete.done", doctype=doctype, deleted=deleted, user=user_email)
             await self._manager.send_to_user(
                 user_email,
                 {
@@ -340,7 +338,7 @@ class BulkDeleteTask:
             )
 
         except Exception as e:
-            logger.exception("fast_delete.failed", doctype=doctype, error=str(e))
+            log.exception("fast_delete.failed", doctype=doctype, error=str(e))
             await self._manager.send_to_user(
                 user_email,
                 {

@@ -13,9 +13,9 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
 
-import structlog
 from sqlalchemy import select, update
 
+from grunt.log import log
 from grunt.naming.patterns import (
     build_prefix,
     format_name,
@@ -26,8 +26,6 @@ from grunt.naming.patterns import (
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
-
-logger = structlog.get_logger()
 
 
 class NamingService:
@@ -82,9 +80,7 @@ class NamingService:
         counter = await self._next_counter(prefix, session)
         name = format_name(parts, counter=counter, now=now)
 
-        logger.debug(
-            "naming.generated", pattern=autoname, prefix=prefix, counter=counter, name=name
-        )
+        log.debug("naming.generated", pattern=autoname, prefix=prefix, counter=counter, name=name)
         return name
 
     async def _next_counter(self, prefix: str, session: AsyncSession) -> int:

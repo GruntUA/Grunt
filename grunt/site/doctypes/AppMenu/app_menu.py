@@ -8,12 +8,9 @@ from __future__ import annotations
 import json
 from typing import Any, cast
 
-import structlog
-
 from grunt.app import grunt
 from grunt.document.base import Document
-
-logger = structlog.get_logger()
+from grunt.log import log
 
 
 class AppMenu(Document):
@@ -33,14 +30,14 @@ class AppMenu(Document):
     # Maps sidebar item type → doctype name used by DynamicLink for search.
     # Empty string means no link picker (DynamicLink falls back to plain text).
     _LINK_DOCTYPE: dict[str, str] = {
-        'DocType': 'DocType',
-        'Report': 'Report',
-        'Page': 'Page',
+        "DocType": "DocType",
+        "Report": "Report",
+        "Page": "Page",
     }
 
     async def on_load(self) -> None:
-        for item in self.get('sidebar_items', []):
-            item['link_doctype'] = self._LINK_DOCTYPE.get(item.get('type', ''), '')
+        for item in self.get("sidebar_items", []):
+            item["link_doctype"] = self._LINK_DOCTYPE.get(item.get("type", ""), "")
 
     async def get_counts(self) -> dict[str, int]:
         """Get document counts for sidebar items that have show_count=true.
@@ -77,7 +74,7 @@ class AppMenu(Document):
                     link_to, filters=filters or None, respect_permissions=True
                 )
             except Exception as e:  # table not built yet
-                logger.warning("workspace.count_error", doctype=link_to, error=str(e))
+                log.warning("workspace.count_error", doctype=link_to, error=str(e))
 
         return counts
 
@@ -89,7 +86,7 @@ class AppMenu(Document):
         try:
             data = json.loads(raw)
             return data if isinstance(data, dict) else {}
-        except (json.JSONDecodeError, ValueError):
+        except json.JSONDecodeError, ValueError:
             return {}
 
     def _generate_count_key(self, doctype: str, filters: dict[str, Any]) -> str:
@@ -103,13 +100,14 @@ class AppMenu(Document):
         """Fetch count for a Virtual DocType by calling its controller."""
         from grunt.document.registry import document_registry  # noqa: PLC0415
         from grunt.metadata.virtual import VirtualDocType  # noqa: PLC0415
+
         try:
-            ctrl_cls = cast('type[VirtualDocType]', document_registry.get(doctype))
+            ctrl_cls = cast("type[VirtualDocType]", document_registry.get(doctype))
             ctrl = ctrl_cls(doctype, user=self.user)
             if hasattr(ctrl, "get_count"):
                 return await ctrl.get_count(filters=filters)
         except Exception as e:
-            logger.warning("workspace.virtual_count_error", doctype=doctype, error=str(e))
+            log.warning("workspace.virtual_count_error", doctype=doctype, error=str(e))
         return 0
 
     def has_access(self, user: Any) -> bool:

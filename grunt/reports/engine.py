@@ -5,9 +5,10 @@ from __future__ import annotations
 import time
 from typing import TYPE_CHECKING, Any, cast
 
-import structlog
 from fastapi import HTTPException
 from sqlalchemy import func, select, text
+
+from grunt.log import log
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -16,8 +17,6 @@ if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
     from grunt.auth.doctypes.User.user import User
-
-logger = structlog.get_logger()
 
 
 class ReportEngine:
@@ -90,7 +89,7 @@ class ReportEngine:
                 if stmt_type not in ("SELECT", None):
                     raise HTTPException(400, detail="Дозволено тільки SELECT")
         except ImportError:
-            logger.debug("suppressed_expected_error", exc_info=True)
+            log.debug("suppressed_expected_error", exc_info=True)
 
         forbidden = ["drop", "delete", "update", "insert", "create", "alter", "truncate"]
         query_lower = query_str.lower()
@@ -107,13 +106,8 @@ class ReportEngine:
         # A caller (e.g. a Script report that only *picked* the SQL) may declare
         # column metadata — labels, fieldtypes, `total` flag. Match it to the
         # SQL result keys by fieldname; fall back to a plain text column.
-        declared = {
-            c["fieldname"]: c for c in (declared_columns or []) if c.get("fieldname")
-        }
-        columns = [
-            declared.get(k, {"fieldname": k, "label": k, "fieldtype": "Text"})
-            for k in keys
-        ]
+        declared = {c["fieldname"]: c for c in (declared_columns or []) if c.get("fieldname")}
+        columns = [declared.get(k, {"fieldname": k, "label": k, "fieldtype": "Text"}) for k in keys]
         return {
             "columns": columns,
             "data": rows,
@@ -189,7 +183,7 @@ class ReportEngine:
             except HTTPException:
                 raise
             except Exception as exc:
-                logger.error("report.script_error", error=str(exc))
+                log.error("report.script_error", error=str(exc))
                 raise HTTPException(500, detail=f"Помилка виконання скрипту: {exc}") from exc
             elapsed = int((time.time() - start) * 1000)
 
@@ -390,9 +384,7 @@ class ReportEngine:
             for ci, col in enumerate(columns, 1):
                 fn = col["fieldname"]
                 if fn in total_fields:
-                    value: Any = sum(
-                        row.get(fn) or 0 for row in data
-                    )
+                    value: Any = sum(row.get(fn) or 0 for row in data)
                 elif ci == 1:
                     value = "Разом"
                 else:

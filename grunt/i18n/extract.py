@@ -23,10 +23,6 @@ import time
 from pathlib import Path
 from typing import Any
 
-import structlog
-
-logger = structlog.get_logger()
-
 _PY_FUNCS = {"_", "gettext", "pgettext", "ngettext"}
 _TS_CALL = re.compile(r"(?<![\w$])\$?t\(\s*(['\"])(.+?)\1")
 # tn('1 apple', '{n} apples', n) — the frontend plural helper.
@@ -34,8 +30,18 @@ _TS_PLURAL = re.compile(r"(?<![\w$])tn\(\s*(['\"])(.+?)\1\s*,\s*(['\"])(.+?)\3")
 # "10", "1.5", "30d", "365d", "50%" — codes / magnitudes, nothing to translate.
 _NUMERIC_TOKEN = re.compile(r"^\d+(?:[.,]\d+)?[a-z%]{0,3}$")
 _SKIP_DIRS = {
-    "node_modules", ".venv", "venv", "__pycache__", ".git", "dist", "build",
-    ".mypy_cache", ".ruff_cache", ".pytest_cache", "tests", "test",
+    "node_modules",
+    ".venv",
+    "venv",
+    "__pycache__",
+    ".git",
+    "dist",
+    "build",
+    ".mypy_cache",
+    ".ruff_cache",
+    ".pytest_cache",
+    "tests",
+    "test",
 }
 
 # ── in-process cache ────────────────────────────────────────────────────────
@@ -116,7 +122,7 @@ def extract_all(
             suffix = path.suffix.lower()
             try:
                 text = path.read_text(encoding="utf-8")
-            except (OSError, UnicodeDecodeError):
+            except OSError, UnicodeDecodeError:
                 continue
             if suffix == ".py":
                 _scan_python(text, rel, origin, add)
@@ -125,10 +131,7 @@ def extract_all(
             elif suffix == ".json" and f"{path.parent.name}.json" == path.name:
                 _scan_doctype_json(text, rel, origin, add)
 
-    return [
-        {**row, "occurrences": ", ".join(row["occurrences"][:20])}
-        for row in found.values()
-    ]
+    return [{**row, "occurrences": ", ".join(row["occurrences"][:20])} for row in found.values()]
 
 
 def _iter_files(root: Path):

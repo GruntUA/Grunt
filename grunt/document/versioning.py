@@ -9,13 +9,13 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
 
-import structlog
 from sqlalchemy import func, select
+
+from grunt.log import log
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
-logger = structlog.get_logger()
 
 # Fields that should not be tracked in version diffs
 _SKIP_FIELDS = frozenset({"modified_at", "modified_by"})
@@ -84,7 +84,7 @@ class VersionService:
         )
         await session.flush()
 
-        logger.info(
+        log.info(
             "version.created",
             doctype=doctype,
             doc_id=doc_id,

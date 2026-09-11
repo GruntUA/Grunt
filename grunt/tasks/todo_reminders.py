@@ -11,13 +11,10 @@ from collections import defaultdict
 from datetime import UTC, date, datetime
 from typing import Any
 
-import structlog
-
 from grunt.app import grunt
+from grunt.log import log
 from grunt.site.manager import site_manager
 from grunt.tasks.broker import retryable_task
-
-logger = structlog.get_logger()
 
 _OPEN_STATES = ["Open", "In Progress"]
 
@@ -46,7 +43,7 @@ async def send_due_reminders() -> None:
         )
         todos = [t for t in todos if (t.get("assigned_to") or "").strip()]
         if not todos:
-            logger.info("todo_reminders.none_due")
+            log.info("todo_reminders.none_due")
             return
 
         from grunt.document.titles import resolve_reference_titles
@@ -63,9 +60,8 @@ async def send_due_reminders() -> None:
 
         for user, items in by_user.items():
             overdue = sum(1 for t in items if _as_date(t.get("due_date")) < today)
-            subject = (
-                f"Нагадування: {len(items)} завд. з терміном"
-                + (f" ({overdue} прострочено)" if overdue else "")
+            subject = f"Нагадування: {len(items)} завд. з терміном" + (
+                f" ({overdue} прострочено)" if overdue else ""
             )
             message = "\n".join(_line(t, titles, today) for t in _sorted(items))
             try:
@@ -79,12 +75,10 @@ async def send_due_reminders() -> None:
                     email=True,
                 )
             except Exception:
-                logger.exception("todo_reminders.notify_failed", user=user)
+                log.exception("todo_reminders.notify_failed", user=user)
 
         await session.commit()
-        logger.info(
-            "todo_reminders.sent", users=len(by_user), tasks=len(todos)
-        )
+        log.info("todo_reminders.sent", users=len(by_user), tasks=len(todos))
 
 
 def _as_date(value: Any) -> date:
@@ -104,9 +98,9 @@ def _sorted(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 
 def _line(t: dict[str, Any], titles: dict[tuple[str, str], str], today: date) -> str:
-    ref = titles.get(
-        (t.get("reference_doctype") or "", t.get("reference_id") or "")
-    ) or (t.get("reference_id") or "")
+    ref = titles.get((t.get("reference_doctype") or "", t.get("reference_id") or "")) or (
+        t.get("reference_id") or ""
+    )
     due = _as_date(t.get("due_date"))
     mark = "⚠ прострочено" if due < today else "сьогодні"
     note = (t.get("description") or "").strip() or ref or t["name"]

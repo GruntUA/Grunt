@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-import structlog
 from sqlalchemy import Table, false, or_
 
+from grunt.log import log
 from grunt.permissions.access import RoleAccess
 from grunt.permissions.match import PermissionMatch
 
@@ -15,8 +15,6 @@ if TYPE_CHECKING:
 
     from grunt.auth.doctypes.User.user import User
     from grunt.metadata.doctype import DocType
-
-logger = structlog.get_logger()
 
 
 async def apply_permission_filter(
@@ -52,9 +50,7 @@ async def apply_permission_filter(
         if condition is not None:
             conditions.append(condition)
         else:
-            logger.warning(
-                "permissions.match_unparseable", doctype=doctype.name, match=match_expr
-            )
+            log.warning("permissions.match_unparseable", doctype=doctype.name, match=match_expr)
 
     if not conditions:
         # Either no read rule matched this user's roles, or every matching

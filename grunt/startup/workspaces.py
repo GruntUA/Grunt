@@ -9,12 +9,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-import structlog
+from grunt.log import log
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
-logger = structlog.get_logger()
 
 _FIXTURES_DIR = __import__("pathlib").Path(__file__).parent.parent / "fixtures"
 
@@ -94,7 +93,7 @@ async def seed_grunt_workspace(session: AsyncSession, eng: Any) -> None:
 
     fixture_file = _FIXTURES_DIR / "grunt_workspace.json"
     if not fixture_file.exists():
-        logger.warning("startup.grunt_workspace_fixture_missing", path=str(fixture_file))
+        log.warning("startup.grunt_workspace_fixture_missing", path=str(fixture_file))
         return
 
     data: dict[str, Any] = json.loads(fixture_file.read_text(encoding="utf-8"))
@@ -112,7 +111,7 @@ async def seed_grunt_workspace(session: AsyncSession, eng: Any) -> None:
                     "modules": ["core"],
                 },
             )
-            logger.info("startup.grunt_app_registered")
+            log.info("startup.grunt_app_registered")
 
         updated = await _upsert_workspace(
             ws_name,
@@ -138,9 +137,9 @@ async def seed_grunt_workspace(session: AsyncSession, eng: Any) -> None:
             sidebar_rows=_sidebar_rows_from_items(data.get("sidebar_items", [])),
         )
         if updated:
-            logger.info("startup.grunt_workspace_updating")
+            log.info("startup.grunt_workspace_updating")
 
-    logger.info("startup.grunt_workspace_seeded")
+    log.info("startup.grunt_workspace_seeded")
 
 
 async def _apply_workspace_fixture(

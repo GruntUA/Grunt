@@ -11,7 +11,8 @@ from typing import TYPE_CHECKING, Any
 
 import anyio.to_thread
 import bcrypt
-import structlog
+
+from grunt.log import log
 
 if TYPE_CHECKING:
     from fastapi import Request
@@ -19,8 +20,6 @@ if TYPE_CHECKING:
 import grunt
 from grunt.document.base import Document
 from grunt.document.schema import Schema
-
-logger = structlog.get_logger()
 
 _MAX_ATTEMPTS = 10
 _LOCKOUT_MINUTES = 30
@@ -138,9 +137,7 @@ class User(Document):
                 limit=100,
             )
             submitted = {
-                r.get("role_name")
-                for r in (self.data.get("roles") or [])
-                if isinstance(r, dict)
+                r.get("role_name") for r in (self.data.get("roles") or []) if isinstance(r, dict)
             }
             if submitted != {r["role_name"] for r in stored}:
                 grunt.throw("Недостатньо прав для зміни ролей", "FORBIDDEN")
@@ -250,7 +247,7 @@ def _hash_password_sync(plain: str) -> str:
 def _verify_password_sync(plain: str, hashed: str) -> bool:
     try:
         return bcrypt.checkpw(plain.encode(), hashed.encode())
-    except (AttributeError, ValueError):
+    except AttributeError, ValueError:
         return False
 
 
@@ -349,7 +346,7 @@ async def create_user(
             is_superadmin=is_superadmin,
             is_active=True,
         )
-        logger.info("user.created", email=email, superadmin=is_superadmin)
+        log.info("user.created", email=email, superadmin=is_superadmin)
 
     user = await get_user_by_email(email)
     assert user is not None
@@ -415,9 +412,7 @@ async def authenticate(email: str, password: str) -> User | None:
         raise ValueError("locked")
 
     async with grunt.system_context(require_session()):
-        valid = bool(user.hashed_password) and await verify_password(
-            password, user.hashed_password
-        )
+        valid = bool(user.hashed_password) and await verify_password(password, user.hashed_password)
 
     if not valid:
         await register_failed_attempt(user)
@@ -456,7 +451,7 @@ async def _track_login_session(
 
         await create_session(user_id, ip_address, user_agent)
     except Exception:
-        logger.exception("suppressed_error")
+        log.exception("suppressed_error")
 
 
 async def _guard_registration() -> None:
@@ -517,12 +512,10 @@ async def _apply_signup_approval(user: User) -> bool:
 
     assert user.id is not None
     async with grunt.system_context(require_session()):
-        await grunt.db.set_value(
-            "User", user.id, {"signup_state": "pending", "is_active": False}
-        )
+        await grunt.db.set_value("User", user.id, {"signup_state": "pending", "is_active": False})
     user.data["signup_state"] = "pending"
     user.data["is_active"] = False
-    logger.info("user.pending_approval", email=user.email)
+    log.info("user.pending_approval", email=user.email)
     return True
 
 
@@ -613,13 +606,11 @@ async def mfa_login_api(
     try:
         await check_mfa_code(user, code)
     except Exception as exc:
-        logger.error("auth.mfa_verify_error", error=str(exc))
+        log.error("auth.mfa_verify_error", error=str(exc))
         raise
 
     # honor_mfa=False: the second factor has just been proven here.
-    return await issue_login(
-        user, ip_address=ip_address, user_agent=user_agent, honor_mfa=False
-    )
+    return await issue_login(user, ip_address=ip_address, user_agent=user_agent, honor_mfa=False)
 
 
 @grunt.whitelist()
@@ -718,7 +709,7 @@ async def logout_api() -> bool:
 
         await terminate_all_user_sessions(user.id)
     except Exception:
-        logger.exception("suppressed_error")
+        log.exception("suppressed_error")
 
     return True
 
@@ -746,7 +737,7 @@ async def stop_impersonation_api() -> bool:
     user = await grunt.get_current_user()
     imp = user.data.get("_impersonator") if hasattr(user, "data") else None
     if imp:
-        logger.warning(
+        log.warning(
             "auth.impersonation.stop",
             actor=imp.get("email"),
             target=user.email,
@@ -804,7 +795,7 @@ async def _set_signup_state(user_id: str, state: str) -> bool:
         user.id,
         {"signup_state": state, "is_active": state == "approved"},
     )
-    logger.info("user.signup_state_changed", email=user.email, state=state)
+    log.info("user.signup_state_changed", email=user.email, state=state)
     return True
 
 
@@ -917,13 +908,10 @@ async def disable_mfa() -> bool:
 @grunt.whitelist(allow_guest=True)
 async def forgot_password_api(email: str, request: Request | None = None) -> bool:
     """Queue a password reset email if the user exists (always returns success)."""
-    import structlog
-
     from grunt.auth.service import create_password_reset_token
     from grunt.context import require_session
     from grunt.utils.http import public_base_url
 
-    log = structlog.get_logger()
     user = await get_user_by_email(email)
     if user is None or not user.id:
         return True
@@ -960,9 +948,7 @@ async def forgot_password_api(email: str, request: Request | None = None) -> boo
     except Exception:
         # Stay silent to the caller (anti-enumeration), but keep the traceback —
         # a swallowed warning here left us blind when a request landed mid-reload.
-        log.warning(
-            "auth.forgot_password_email_queue_failed", email=user.email, exc_info=True
-        )
+        log.warning("auth.forgot_password_email_queue_failed", email=user.email, exc_info=True)
 
     return True
 

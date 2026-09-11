@@ -10,14 +10,11 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
 
-import structlog
-
 from grunt.app import grunt
+from grunt.log import log
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
-
-logger = structlog.get_logger()
 
 
 class NotificationService:
@@ -90,7 +87,7 @@ class NotificationService:
 
         if count > 0:
             await session.flush()
-            logger.info(
+            log.info(
                 "notification.sent",
                 event=event,
                 doctype=doctype,
@@ -222,7 +219,7 @@ class NotificationService:
 
             await webpush_service.send_push(user, subject, message)
         except Exception:
-            logger.exception("suppressed_error")
+            log.exception("suppressed_error")
 
         return notif_name
 
@@ -311,7 +308,7 @@ class NotificationService:
                         emails.append(user_rows[0]["email"])
                 return emails
         except Exception:
-            logger.warning("notification.role_resolution_failed", roles=role_names)
+            log.warning("notification.role_resolution_failed", roles=role_names)
             return []
 
     def _format_template(
@@ -336,7 +333,7 @@ class NotificationService:
 
         try:
             return template.format(**context)
-        except (KeyError, IndexError):
+        except KeyError, IndexError:
             return template
 
     def _eval_condition(self, condition: str, doc: dict[str, Any], user: str) -> bool:
@@ -366,7 +363,7 @@ class NotificationService:
                 body=message,
             )
         except Exception:
-            logger.warning("notification.email_queue_error", recipient=recipient)
+            log.warning("notification.email_queue_error", recipient=recipient)
 
     async def _broadcast_ws(
         self,
@@ -392,7 +389,7 @@ class NotificationService:
                     },
                 )
             except Exception:
-                logger.warning("notification.ws_send_error", recipient=recipient)
+                log.warning("notification.ws_send_error", recipient=recipient)
 
 
 notification_service = NotificationService()

@@ -4,12 +4,9 @@ from __future__ import annotations
 
 from typing import Any
 
-import structlog
-
+from grunt.log import log
 from grunt.site.manager import site_manager
 from grunt.tasks.broker import task
-
-logger = structlog.get_logger()
 
 
 @task
@@ -33,14 +30,14 @@ async def _run_doc_method(
         async with grunt.context(session):
             user = await get_user_by_email(user_email)
         if user is None:
-            logger.error(
+            log.error(
                 "enqueue_doc.user_not_found", email=user_email, doctype=doctype, doc_id=doc_id
             )
             return
 
         async with grunt.context(session, engine, user):
             try:
-                logger.info("enqueue_doc.started", doctype=doctype, doc_id=doc_id, method=method)
+                log.info("enqueue_doc.started", doctype=doctype, doc_id=doc_id, method=method)
                 doc = await grunt.get_doc_instance(doctype, doc_id)
                 handler = getattr(doc, method, None)
                 if handler is None:
@@ -48,11 +45,9 @@ async def _run_doc_method(
                 result = handler(**kwargs)
                 if hasattr(result, "__await__"):
                     await result
-                logger.info("enqueue_doc.finished", doctype=doctype, doc_id=doc_id, method=method)
+                log.info("enqueue_doc.finished", doctype=doctype, doc_id=doc_id, method=method)
             except Exception:
-                logger.exception(
-                    "enqueue_doc.failed", doctype=doctype, doc_id=doc_id, method=method
-                )
+                log.exception("enqueue_doc.failed", doctype=doctype, doc_id=doc_id, method=method)
                 raise
 
 

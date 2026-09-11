@@ -5,10 +5,9 @@ from __future__ import annotations
 import json
 from typing import Any
 
-import structlog
 from fastapi import APIRouter, Query, WebSocket, WebSocketDisconnect
 
-logger = structlog.get_logger()
+from grunt.log import log
 
 router = APIRouter()
 
@@ -45,14 +44,14 @@ class ConnectionManager:
         self._connections.setdefault(channel, []).append(ws)
         await self.ensure_redis_listener()
         total = self._total_connections()
-        logger.debug("ws.connect", channel=channel, total=total)
+        log.debug("ws.connect", channel=channel, total=total)
         try:
             from grunt.monitoring.metrics import ws_connections_active
 
             if ws_connections_active is not None:
                 ws_connections_active.set(total)
         except Exception:
-            logger.exception("suppressed_error")
+            log.exception("suppressed_error")
 
     def disconnect(self, ws: WebSocket, channel: str) -> None:
         conns = self._connections.get(channel, [])
@@ -65,7 +64,7 @@ class ConnectionManager:
             if ws_connections_active is not None:
                 ws_connections_active.set(total)
         except Exception:
-            logger.exception("suppressed_error")
+            log.exception("suppressed_error")
 
     async def _send(self, channel: str, message: str) -> None:
         """Send a message to all connections on a channel, removing dead ones."""
@@ -93,7 +92,7 @@ class ConnectionManager:
             await r.publish(f"grunt:ws:{channel}", message)
             await r.aclose()
         except Exception:
-            logger.exception("suppressed_error")
+            log.exception("suppressed_error")
 
     async def ensure_redis_listener(self) -> None:
         """Start the Redis subscriber background task (once per process)."""
@@ -109,7 +108,7 @@ class ConnectionManager:
             self._redis_listener_started = True
             asyncio.create_task(self._redis_listener_loop())
         except Exception:
-            logger.exception("suppressed_error")
+            log.exception("suppressed_error")
 
     async def _redis_listener_loop(self) -> None:
         """Subscribe to grunt:ws:* and relay messages to local connections."""
@@ -279,7 +278,7 @@ async def _run_simple_channel(websocket: WebSocket, channel: str) -> None:
                 if msg.get("action") == "ping":
                     await websocket.send_text('{"event":"pong"}')
             except json.JSONDecodeError:
-                logger.debug("ws.invalid_json", raw=raw)
+                log.debug("ws.invalid_json", raw=raw)
     except WebSocketDisconnect:
         manager.disconnect(websocket, channel)
 
@@ -364,7 +363,7 @@ async def ws_document(
             try:
                 msg = json.loads(raw)
             except json.JSONDecodeError:
-                logger.debug("ws.invalid_json", raw=raw)
+                log.debug("ws.invalid_json", raw=raw)
                 continue
 
             action = msg.get("action")
@@ -417,6 +416,6 @@ async def ws_list(
                 if msg.get("action") == "ping":
                     await websocket.send_text('{"event":"pong"}')
             except json.JSONDecodeError:
-                logger.warning("json_decode_error_suppressed", exc_info=True)
+                log.warning("json_decode_error_suppressed", exc_info=True)
     except WebSocketDisconnect:
         manager.disconnect(websocket, channel)

@@ -25,14 +25,12 @@ from contextvars import ContextVar, Token
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-import structlog
-
 from grunt.i18n.plurals import plural_index
+from grunt.log import log
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-logger = structlog.get_logger()
 
 # Directory containing locale files (uk/LC_MESSAGES/grunt.po)
 _LOCALE_DIR = Path(__file__).parent / "locales"
@@ -78,7 +76,7 @@ def _load_translations(lang: str) -> _gettext.GNUTranslations | _gettext.NullTra
                 f
             )
             _translations[lang] = trans
-            logger.debug("i18n.loaded_mo", lang=lang)
+            log.debug("i18n.loaded_mo", lang=lang)
             return trans
 
     # Fall back to parsing .po file manually
@@ -87,7 +85,7 @@ def _load_translations(lang: str) -> _gettext.GNUTranslations | _gettext.NullTra
         catalog = _parse_po_file(po_path)
         trans = _DictTranslations(catalog, lang)
         _translations[lang] = trans
-        logger.debug("i18n.loaded_po", lang=lang, entries=len(catalog))
+        log.debug("i18n.loaded_po", lang=lang, entries=len(catalog))
         return trans
 
     # No translation file — return NullTranslations (passthrough)
@@ -213,7 +211,7 @@ def _app_catalog(lang: str) -> dict[str, str]:
         try:
             merged.update(_flatten_catalog(_parse_po_file(po)))
         except Exception:
-            logger.warning("i18n.app_po_parse_error", path=str(po))
+            log.warning("i18n.app_po_parse_error", path=str(po))
     _app_catalogs[lang] = merged
     return merged
 
@@ -228,7 +226,7 @@ def _provider_catalog(lang: str) -> dict[str, str]:
     try:
         result = dict(_provider(lang) or {})
     except Exception:
-        logger.exception("i18n.provider_error", lang=lang)
+        log.exception("i18n.provider_error", lang=lang)
         result = {}
     _provider_cache[lang] = result
     return result
@@ -350,7 +348,7 @@ class TranslationService:
         _provider = fn
         _provider_cache.clear()
         self._bump_version()
-        logger.info("i18n.provider_registered", provider=getattr(fn, "__qualname__", repr(fn)))
+        log.info("i18n.provider_registered", provider=getattr(fn, "__qualname__", repr(fn)))
 
     def invalidate(self, lang: str | None = None) -> None:
         """Drop cached provider/app catalogs (all locales, or just *lang*)."""
@@ -386,7 +384,7 @@ class TranslationService:
         if new != _supported:
             _supported = new
             self._bump_version()
-            logger.info("i18n.supported_langs", langs=sorted(_supported))
+            log.info("i18n.supported_langs", langs=sorted(_supported))
 
     def reload(self) -> None:
         """Clear every cache (forces reload from files / provider)."""

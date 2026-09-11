@@ -26,9 +26,7 @@ from abc import ABC, abstractmethod
 from datetime import date
 from pathlib import Path
 
-import structlog
-
-logger = structlog.get_logger()
+from grunt.log import log
 
 # MIME type allowlist
 ALLOWED_MIME_TYPES: set[str] = {
@@ -93,7 +91,7 @@ class LocalStorageBackend(StorageBackend):
         path = abs_dir / unique_name
         await asyncio.to_thread(path.write_bytes, content)
         rel_path = str(rel_dir / unique_name)
-        logger.debug("storage.local.saved", path=rel_path)
+        log.debug("storage.local.saved", path=rel_path)
         return rel_path
 
     async def get(self, path: str) -> bytes:
@@ -154,7 +152,7 @@ class S3StorageBackend(StorageBackend):
                 Body=content,
                 ContentType=content_type,
             )
-        logger.debug("storage.s3.saved", key=key, bucket=self._bucket)
+        log.debug("storage.s3.saved", key=key, bucket=self._bucket)
         return key
 
     async def get(self, path: str) -> bytes:
@@ -200,7 +198,7 @@ def get_storage_backend() -> StorageBackend:
                 access_key_id=settings.aws_access_key_id or None,
                 secret_access_key=settings.aws_secret_access_key or None,
             )
-            logger.info("storage.backend", type="s3", bucket=settings.s3_bucket)
+            log.info("storage.backend", type="s3", bucket=settings.s3_bucket)
         return _s3_backend
 
     from grunt.site.manager import current_site
@@ -210,6 +208,6 @@ def get_storage_backend() -> StorageBackend:
 
     if upload_dir not in _backends:
         _backends[upload_dir] = LocalStorageBackend(upload_dir)
-        logger.info("storage.backend", type="local", site=site, dir=upload_dir)
+        log.info("storage.backend", type="local", site=site, dir=upload_dir)
 
     return _backends[upload_dir]

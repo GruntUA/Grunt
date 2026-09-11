@@ -14,9 +14,8 @@ from __future__ import annotations
 import json
 from typing import TYPE_CHECKING
 
-import structlog
-
 from grunt.document.base import SYS_FIELDS
+from grunt.log import log
 from grunt.site.manager import site_manager
 
 if TYPE_CHECKING:
@@ -24,8 +23,6 @@ if TYPE_CHECKING:
 
     from grunt.metadata.doctype import DocType
     from grunt.metadata.field import DocField
-
-logger = structlog.get_logger()
 
 
 def _build_scaffold_context(doctype_name: str, fields: list[DocField]) -> dict:
@@ -127,7 +124,7 @@ def export_doctype_files(dt: DocType, app_name: str | None = None) -> str | None
 
     app_dir = _find_app_dir(dt.module, app_name=app_name)
     if not app_dir:
-        logger.warning(
+        log.warning(
             "scaffold.export_skip",
             doctype=dt.name,
             reason=f"module '{dt.module}' not found in apps",
@@ -178,5 +175,5 @@ def export_doctype_files(dt: DocType, app_name: str | None = None) -> str | None
             encoding="utf-8",
         )
 
-    logger.info("scaffold.exported", doctype=dt.name, path=str(dt_dir))
+    log.info("scaffold.exported", doctype=dt.name, path=str(dt_dir))
     return str(json_file.resolve())

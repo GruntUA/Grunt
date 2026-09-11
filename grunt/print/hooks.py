@@ -1,12 +1,9 @@
 import json
 from typing import Any
 
-import structlog
-
 from grunt.hooks import on_doc
+from grunt.log import log
 from grunt.site.manager import site_manager
-
-logger = structlog.get_logger()
 
 
 @on_doc("PrintFormat", "after_save")
@@ -17,9 +14,7 @@ async def save_print_format_to_app(doc: dict[str, Any], **kwargs: Any) -> None:
 
     app_name = doc.get("app")
     if not app_name:
-        logger.warning(
-            "print.save_to_app_failed", error="App is not specified", name=doc.get("name")
-        )
+        log.warning("print.save_to_app_failed", error="App is not specified", name=doc.get("name"))
         return
 
     # Find app directory
@@ -27,7 +22,7 @@ async def save_print_format_to_app(doc: dict[str, Any], **kwargs: Any) -> None:
     app_dir = bench_dir / "apps" / app_name
 
     if not app_dir.exists():
-        logger.error("print.save_to_app_failed", error="App directory not found", path=str(app_dir))
+        log.error("print.save_to_app_failed", error="App directory not found", path=str(app_dir))
         return
 
     # We assume the module name matches the app name (common pattern in Grunt)
@@ -38,7 +33,7 @@ async def save_print_format_to_app(doc: dict[str, Any], **kwargs: Any) -> None:
         if subdirs:
             module_dir = subdirs[0]
         else:
-            logger.error(
+            log.error(
                 "print.save_to_app_failed",
                 error="No module found in app directory",
                 path=str(app_dir),
@@ -62,7 +57,7 @@ async def save_print_format_to_app(doc: dict[str, Any], **kwargs: Any) -> None:
             # wired up in PrintFormatBuilder.vue), so there's no real docx
             # content/path convention to copy from here. Skip the template
             # file rather than silently claim success below.
-            logger.warning(
+            log.warning(
                 "print.save_to_app_skipped_docx",
                 name=doc.get("name"),
                 reason="docx app-export not implemented",
@@ -85,6 +80,6 @@ async def save_print_format_to_app(doc: dict[str, Any], **kwargs: Any) -> None:
         }
         meta_path.write_text(json.dumps(meta_data, indent=2, ensure_ascii=False), encoding="utf-8")
 
-        logger.info("print.saved_to_app", app=app_name, path=str(file_path))
+        log.info("print.saved_to_app", app=app_name, path=str(file_path))
     except Exception as e:
-        logger.exception("print.save_to_app_error", name=doc.get("name"), error=str(e))
+        log.exception("print.save_to_app_error", name=doc.get("name"), error=str(e))

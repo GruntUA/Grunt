@@ -15,12 +15,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-import structlog
+from grunt.log import log
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
-
-logger = structlog.get_logger()
 
 
 async def seed_system_settings(session: AsyncSession, engine: AsyncEngine) -> None:
@@ -43,4 +41,4 @@ async def seed_system_settings(session: AsyncSession, engine: AsyncEngine) -> No
             },
         )
 
-    logger.info("startup.system_settings_seeded")
+    log.info("startup.system_settings_seeded")

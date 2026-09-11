@@ -26,12 +26,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-import structlog
 from fastapi import HTTPException, status
 from sqlalchemy import literal, select
 
 from grunt.document.meta import Meta
 from grunt.document.registry import document_registry
+from grunt.log import log
 from grunt.metadata.compiler import compile_doctype_to_table
 from grunt.metadata.registry import doctype_registry
 
@@ -42,7 +42,6 @@ if TYPE_CHECKING:
 
     from grunt.auth.doctypes.User.user import User
 
-logger = structlog.get_logger()
 
 # doctype -> async fn(session, nodes, as_of_date) -> {node_id: display_title}
 #
@@ -328,9 +327,7 @@ class TreeService:
                 if col is not None:
                     search_cols.append(col)
                     seen.add(fname)
-            filtered_q = filtered_q.where(
-                or_(*(col.ilike(f"%{search}%") for col in search_cols))
-            )
+            filtered_q = filtered_q.where(or_(*(col.ilike(f"%{search}%") for col in search_cols)))
 
         # Controller hook: list_filter_extra — allows DocType controllers
         # (e.g. in app code) to inject extra WHERE clauses without touching
@@ -447,7 +444,7 @@ class TreeService:
         if not row:
             raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Node not found")
 
-        logger.info("tree.node_moved", doctype=doctype, node=node_id, new_parent=new_parent_id)
+        log.info("tree.node_moved", doctype=doctype, node=node_id, new_parent=new_parent_id)
         return dict(row._mapping)
 
     # ──────────────────────────────────────────────────────────────────

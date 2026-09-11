@@ -11,12 +11,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-import structlog
+from grunt.log import log
 
 if TYPE_CHECKING:
     from grunt.auth.doctypes.User.user import User
 
-logger = structlog.get_logger()
 
 #: How long an impersonation access token stays valid.
 IMPERSONATION_TTL_MINUTES = 30
@@ -45,7 +44,7 @@ async def start_impersonation(actor: User, target_user_id: str) -> dict[str, Any
     if not target.is_active:
         throw("Обліковий запис вимкнено.", "VALIDATION_ERROR")
 
-    logger.warning(
+    log.warning(
         "auth.impersonation.start",
         actor=actor.email,
         actor_id=actor.id,
@@ -53,9 +52,7 @@ async def start_impersonation(actor: User, target_user_id: str) -> dict[str, Any
         target_id=target.id,
     )
 
-    token = create_access_token(
-        target, IMPERSONATION_TTL_MINUTES, impersonator=actor
-    )
+    token = create_access_token(target, IMPERSONATION_TTL_MINUTES, impersonator=actor)
     return {
         "access_token": token,
         "token_type": "bearer",

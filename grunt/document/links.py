@@ -10,15 +10,13 @@ from __future__ import annotations
 from datetime import UTC
 from typing import TYPE_CHECKING, Any
 
-import structlog
 from sqlalchemy import and_, delete, func, select
 
+from grunt.log import log
 from grunt.metadata.registry import doctype_registry
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
-
-logger = structlog.get_logger()
 
 
 def _child_owner_map(all_dts: list[Any]) -> dict[str, str]:
@@ -99,7 +97,7 @@ class LinkService:
 
         if count:
             await session.flush()
-            logger.debug("links.synced", doctype=doctype, doc_id=doc_id, links=count)
+            log.debug("links.synced", doctype=doctype, doc_id=doc_id, links=count)
 
         return count
 
@@ -185,9 +183,10 @@ class LinkService:
                 # dangling reference — skip self-references within the batch.
                 if other_dt.name == doctype and "name" in ref_table.c:
                     where.append(ref_table.c.name.notin_(ids))
-                count = await session.scalar(
-                    select(func.count()).select_from(ref_table).where(*where)
-                ) or 0
+                count = (
+                    await session.scalar(select(func.count()).select_from(ref_table).where(*where))
+                    or 0
+                )
                 if not count:
                     continue
                 total += int(count)
@@ -206,15 +205,18 @@ class LinkService:
         # MultiLink references pointing at any of the ids.
         from grunt.metadata.compiler import MULTI_LINK_TABLE
 
-        ml_count = await session.scalar(
-            select(func.count())
-            .select_from(MULTI_LINK_TABLE)
-            .where(
-                MULTI_LINK_TABLE.c.link_doctype == doctype,
-                MULTI_LINK_TABLE.c.link_name.in_(ids),
-                MULTI_LINK_TABLE.c.parent_name.notin_(ids),
+        ml_count = (
+            await session.scalar(
+                select(func.count())
+                .select_from(MULTI_LINK_TABLE)
+                .where(
+                    MULTI_LINK_TABLE.c.link_doctype == doctype,
+                    MULTI_LINK_TABLE.c.link_name.in_(ids),
+                    MULTI_LINK_TABLE.c.parent_name.notin_(ids),
+                )
             )
-        ) or 0
+            or 0
+        )
         if ml_count:
             total += int(ml_count)
             groups.append(

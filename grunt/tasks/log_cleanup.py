@@ -11,14 +11,11 @@ from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
 
-import structlog
-
 from grunt.app import grunt
+from grunt.log import log
 from grunt.metadata.registry import doctype_registry
 from grunt.site.manager import site_manager
 from grunt.tasks.broker import retryable_task
-
-logger = structlog.get_logger()
 
 DEFAULT_LOG_RETENTION_DAYS = 30
 
@@ -46,7 +43,7 @@ async def purge_old_logs() -> None:
             try:
                 deleted = await grunt.db.delete(dt.name, {"created_at__lt": cutoff})
                 if deleted:
-                    logger.info(
+                    log.info(
                         "log_cleanup.purged",
                         doctype=dt.name,
                         deleted=deleted,
@@ -54,9 +51,9 @@ async def purge_old_logs() -> None:
                     )
                 total_deleted += deleted
             except Exception as e:
-                logger.warning("log_cleanup.purge_failed", doctype=dt.name, error=str(e))
+                log.warning("log_cleanup.purge_failed", doctype=dt.name, error=str(e))
 
         await session.commit()
-        logger.info(
+        log.info(
             "log_cleanup.done", doctypes_checked=len(log_doctypes), total_deleted=total_deleted
         )

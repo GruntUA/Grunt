@@ -32,14 +32,12 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
 
-import structlog
-
 from grunt.document.meta import NUMERIC_FIELDTYPES, Meta
+from grunt.log import log
 
 if TYPE_CHECKING:
     from grunt.metadata.doctype import DocType
 
-logger = structlog.get_logger()
 
 _SAFE_BUILTINS: dict[str, Any] = {
     "__builtins__": {},
@@ -133,7 +131,7 @@ async def _evaluate_formulas(dt: DocType, row: dict[str, Any], attr: str) -> dic
                 else coerced
             )
         except Exception as exc:
-            logger.warning(
+            log.warning(
                 "formula.eval_error",
                 doctype=dt.name,
                 field=field.fieldname,

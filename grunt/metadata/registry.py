@@ -17,12 +17,12 @@ from __future__ import annotations
 import re
 from typing import TYPE_CHECKING
 
-import structlog
 from fastapi import HTTPException, status
 from sqlalchemy import delete, insert, select, update
 from sqlalchemy.exc import IntegrityError
 
 from grunt.db.system_tables import GruntMetaDoctype
+from grunt.log import log
 from grunt.metadata.compiler import invalidate_table_cache, sync_table
 from grunt.metadata.doctype import DocType
 from grunt.metadata.field import DocField
@@ -31,7 +31,6 @@ from grunt.permissions.rbac import invalidate_permission_cache
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
-logger = structlog.get_logger()
 
 _FIELDNAME_RE = re.compile(r"^[a-z][a-z0-9_]*$")
 _MAX_FIELDNAME_LEN = 64
@@ -140,7 +139,7 @@ class DocTypeRegistry:
 
         self._doctypes.clear()
         self._lower_index.clear()
-        logger.info("registry.cache_cleared")
+        log.info("registry.cache_cleared")
 
     # ── Read ─────────────────────────────────────────────────────────────
 
@@ -157,7 +156,7 @@ class DocTypeRegistry:
         self._known_names = all_names - set(self._doctypes)
         # Rebuild the known-names index in one pass
         self._known_lower = {n.lower(): n for n in self._known_names}
-        logger.info(
+        log.info(
             "registry.names_prefetched",
             core=len(self._doctypes),
             lazy=len(self._known_names),
@@ -190,8 +189,8 @@ class DocTypeRegistry:
                 self._known_names.discard(dt.name)
                 self._known_index_remove(dt.name)
             except Exception:
-                logger.warning("registry.skip_invalid", name=row.name)
-        logger.info("registry.loaded", count=len(self._doctypes))
+                log.warning("registry.skip_invalid", name=row.name)
+        log.info("registry.loaded", count=len(self._doctypes))
 
     async def _lazy_load(self, name: str) -> DocType | None:
         """Load a single DocType from the DB and cache it.
@@ -237,7 +236,7 @@ class DocTypeRegistry:
         try:
             dt = DocType.model_validate(row["data"])
         except Exception:
-            logger.warning("registry.lazy_load_invalid", name=name)
+            log.warning("registry.lazy_load_invalid", name=name)
             return None
 
         invalidate_table_cache(dt.name)
@@ -245,7 +244,7 @@ class DocTypeRegistry:
         self._index_add(dt.name)
         self._known_names.discard(dt.name)
         self._known_index_remove(dt.name)
-        logger.debug("registry.lazy_loaded", name=dt.name)
+        log.debug("registry.lazy_loaded", name=dt.name)
         return dt
 
     async def get(self, name: str) -> DocType:
@@ -297,7 +296,7 @@ class DocTypeRegistry:
                 async with maker() as session:
                     await self.load_all(session)
             except Exception as exc:
-                logger.warning("registry.list_all_lazy_failed", error=str(exc))
+                log.warning("registry.list_all_lazy_failed", error=str(exc))
 
         return list(self._doctypes.values())
 
@@ -366,7 +365,7 @@ class DocTypeRegistry:
                 active_dt = DocType.model_validate(existing["data"])
             except Exception:
                 # Stored data is invalid — fall back to JSON and repair.
-                logger.warning(
+                log.warning(
                     "registry.core_stored_invalid",
                     name=doctype.name,
                     action="falling_back_to_json",
@@ -390,7 +389,7 @@ class DocTypeRegistry:
                 if [p.model_dump() for p in doctype.permissions] != [
                     p.model_dump() for p in active_dt.permissions
                 ]:
-                    logger.warning(
+                    log.warning(
                         "registry.core_permissions_drifted",
                         name=doctype.name,
                         hint=f"run `grunt doctype sync {doctype.name}` to apply",
@@ -401,7 +400,7 @@ class DocTypeRegistry:
                 if new_fields:
                     active_dt.fields.extend(new_fields)
                     if sync_db:
-                        logger.info(
+                        log.info(
                             "registry.core_fields_merged",
                             name=doctype.name,
                             added=[f.fieldname for f in new_fields],
@@ -420,7 +419,7 @@ class DocTypeRegistry:
                         )
                         await session.flush()
                     except Exception as _upd_err:
-                        logger.warning(
+                        log.warning(
                             "registry.core_metadata_update_failed",
                             name=doctype.name,
                             error=str(_upd_err),
@@ -441,9 +440,9 @@ class DocTypeRegistry:
         self._doctypes[active_dt.name] = active_dt
         self._index_add(active_dt.name)
         if sync_db:
-            logger.info("registry.core_injected", name=active_dt.name)
+            log.info("registry.core_injected", name=active_dt.name)
         else:
-            logger.info("registry.core_loaded", name=active_dt.name)
+            log.info("registry.core_loaded", name=active_dt.name)
 
     async def register(
         self,
@@ -491,7 +490,7 @@ class DocTypeRegistry:
         self._index_add(doctype.name)
         self._known_names.discard(doctype.name)
         self._known_index_remove(doctype.name)
-        logger.info("registry.registered", name=doctype.name)
+        log.info("registry.registered", name=doctype.name)
 
     async def update(
         self,
@@ -527,7 +526,7 @@ class DocTypeRegistry:
         await sync_table(doctype, async_engine, session=session)
         self._doctypes[doctype.name] = doctype
         self._index_add(doctype.name)
-        logger.info("registry.updated", name=doctype.name)
+        log.info("registry.updated", name=doctype.name)
 
     async def delete(self, name: str, session: AsyncSession) -> None:
         """Remove DocType from registry and DB. Physical table is NOT dropped."""
@@ -544,7 +543,7 @@ class DocTypeRegistry:
         self._known_index_remove(name)
         invalidate_table_cache(name)
         invalidate_permission_cache(name)
-        logger.info("registry.deleted", name=name)
+        log.info("registry.deleted", name=name)
 
     # ── Validation helpers ───────────────────────────────────────────────
 

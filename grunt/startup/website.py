@@ -17,16 +17,15 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-import structlog
 from fastapi import HTTPException, Request
 from fastapi.staticfiles import StaticFiles
 
+from grunt.log import log
 from grunt.website import make_website_handler, robots_txt, sitemap_xml, website_registry
 
 if TYPE_CHECKING:
     from fastapi import FastAPI
 
-logger = structlog.get_logger()
 
 _GRUNT_PKG = Path(__file__).resolve().parent.parent  # grunt/startup/website.py -> grunt/
 _CORE_WEBSITE_DIR = _GRUNT_PKG / "website"
@@ -102,6 +101,6 @@ async def _website_catch_all(request: Request):
             )
             return HTMLResponse(content=html)
         except Exception as _exc:
-            logger.warning("website.spa_fallback.error", path=request.url.path, error=str(_exc))
+            log.warning("website.spa_fallback.error", path=request.url.path, error=str(_exc))
 
     raise HTTPException(status_code=404, detail="Сторінку не знайдено")

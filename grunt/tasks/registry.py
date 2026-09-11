@@ -3,9 +3,7 @@ from __future__ import annotations
 import importlib
 from pathlib import Path
 
-import structlog
-
-logger = structlog.get_logger()
+from grunt.log import log
 
 
 def discover_tasks(apps_path: str | Path) -> None:
@@ -38,6 +36,6 @@ def discover_tasks(apps_path: str | Path) -> None:
 def _load_module(module_name: str) -> None:
     try:
         importlib.import_module(module_name)
-        logger.debug("tasks.module_loaded", module=module_name)
+        log.debug("tasks.module_loaded", module=module_name)
     except ImportError as e:
-        logger.warning("tasks.load_failed", module=module_name, error=str(e))
+        log.warning("tasks.load_failed", module=module_name, error=str(e))

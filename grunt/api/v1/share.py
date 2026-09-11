@@ -5,11 +5,8 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import Any
 
-import structlog
-
 import grunt
-
-logger = structlog.get_logger()
+from grunt.log import log
 
 
 @grunt.whitelist(allow_guest=True)
@@ -57,7 +54,7 @@ async def get_shared_document(token: str) -> dict[str, Any]:
         current = int(share.get("view_count") or 0)
         await grunt.set_value("DocumentShare", share["name"], "view_count", current + 1)
     except Exception:
-        logger.exception("suppressed_error")
+        log.exception("suppressed_error")
 
     from grunt.document.meta import Meta
 

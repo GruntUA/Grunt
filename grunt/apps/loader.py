@@ -24,16 +24,14 @@ import sys
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-import structlog
-
 from grunt.apps.consumers import HOOK_CONSUMERS, LoadContext, _resolve
+from grunt.log import log
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
 
     from fastapi import FastAPI
 
-logger = structlog.get_logger()
 
 CORE_APP = "grunt"
 _GRUNT_PKG = Path(__file__).resolve().parent.parent  # grunt/apps/loader.py -> grunt/
@@ -161,7 +159,7 @@ async def reload_app(app_name: str, fastapi_app: FastAPI | None = None) -> None:
 
     app_dir = site_manager.bench_dir / "apps" / app_name
     if not app_dir.is_dir():
-        logger.warning("apps.reload.not_found", app=app_name)
+        log.warning("apps.reload.not_found", app=app_name)
         return
 
     ctx = LoadContext(app_name=app_name, app_dir=app_dir, fastapi_app=fastapi_app)
@@ -169,7 +167,7 @@ async def reload_app(app_name: str, fastapi_app: FastAPI | None = None) -> None:
         reloaded = importlib.reload(sys.modules[hooks_mod.__name__])
         _apply_hooks_module(reloaded, ctx)
         await _run_on_startup(reloaded, ctx)
-        logger.info("apps.reloaded", module=reloaded.__name__)
+        log.info("apps.reloaded", module=reloaded.__name__)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -197,9 +195,9 @@ def _iter_hooks_modules(app_dir: Path) -> Iterator[object]:
         try:
             mod = importlib.import_module(import_path)
         except Exception as e:  # noqa: BLE001 - one bad app must not break the rest
-            logger.warning("hooks.load_error", module=import_path, error=str(e))
+            log.warning("hooks.load_error", module=import_path, error=str(e))
             continue
-        logger.info("hooks.loaded", module=import_path)
+        log.info("hooks.loaded", module=import_path)
         yield mod
 
 
@@ -215,7 +213,7 @@ def _apply_hooks_module(mod: object, ctx: LoadContext) -> None:
         try:
             hook_consumer.apply(getattr(mod, key), ctx)
         except Exception:
-            logger.exception("apps.consumer_error", app=ctx.app_name, hook_key=key)
+            log.exception("apps.consumer_error", app=ctx.app_name, hook_key=key)
 
 
 async def _run_on_startup(mod: object, ctx: LoadContext) -> None:
@@ -225,11 +223,9 @@ async def _run_on_startup(mod: object, ctx: LoadContext) -> None:
             result = _resolve(path)()
             if inspect.isawaitable(result):
                 await result
-            logger.info("apps.on_startup.called", app=ctx.app_name, handler=path)
+            log.info("apps.on_startup.called", app=ctx.app_name, handler=path)
         except Exception as e:  # noqa: BLE001 - one bad handler must not stop the rest
-            logger.warning(
-                "apps.on_startup.error", app=ctx.app_name, handler=path, error=str(e)
-            )
+            log.warning("apps.on_startup.error", app=ctx.app_name, handler=path, error=str(e))
 
 
 def _include_app_routers(ctx: LoadContext) -> None:
@@ -245,11 +241,11 @@ def _include_app_routers(ctx: LoadContext) -> None:
         try:
             mod = importlib.import_module(import_path)
         except Exception as e:  # noqa: BLE001
-            logger.warning("app_router.load_error", path=import_path, error=str(e))
+            log.warning("app_router.load_error", path=import_path, error=str(e))
             continue
         if hasattr(mod, "router"):
             ctx.fastapi_app.include_router(mod.router, prefix=f"/api/v1/app/{ctx.app_name}")
-            logger.info("app_router.registered", app=ctx.app_name, module=module_name)
+            log.info("app_router.registered", app=ctx.app_name, module=module_name)
 
 
 def _mount_app_static(ctx: LoadContext) -> None:
@@ -265,7 +261,7 @@ def _mount_app_static(ctx: LoadContext) -> None:
         StaticFiles(directory=str(public_dir)),
         name=f"assets_{ctx.app_name}",
     )
-    logger.info("www.assets.mounted", app=ctx.app_name)
+    log.info("www.assets.mounted", app=ctx.app_name)
 
 
 def _register_app_pages(ctx: LoadContext) -> None:

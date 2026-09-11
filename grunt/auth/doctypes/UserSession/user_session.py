@@ -6,11 +6,8 @@ import uuid
 from datetime import UTC, datetime
 from typing import Any
 
-import structlog
-
 import grunt
-
-logger = structlog.get_logger()
+from grunt.log import log
 
 
 async def create_session(
@@ -38,7 +35,7 @@ async def create_session(
                 },
             )
     except Exception:
-        logger.debug("user_session.create_failed", user=user_id)
+        log.debug("user_session.create_failed", user=user_id)
 
     return session_key
 
@@ -64,7 +61,7 @@ async def touch_session(session_key: str) -> None:
                     datetime.now(UTC).isoformat(),
                 )
     except Exception:
-        logger.exception("suppressed_error")
+        log.exception("suppressed_error")
 
 
 async def terminate_session(session_id: str, requesting_user: str) -> bool:

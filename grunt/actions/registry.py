@@ -11,14 +11,12 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
-import structlog
-
+from grunt.log import log
 from grunt.metadata.dynamic_options import register_option
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
 
-logger = structlog.get_logger()
 
 DOC_ACTION_SOURCE = "grunt.doc_action"
 
@@ -67,10 +65,10 @@ class DocAction:
 def register_doc_action(action: DocAction) -> None:
     """Register (or replace) *action* by key and expose its key to the dropdown."""
     if action.key in _REGISTRY:
-        logger.warning("doc_action.override", key=action.key, module=action.module)
+        log.warning("doc_action.override", key=action.key, module=action.module)
     _REGISTRY[action.key] = action
     register_option(DOC_ACTION_SOURCE, action.key)
-    logger.debug("doc_action.registered", key=action.key, doctypes=action.doctypes)
+    log.debug("doc_action.registered", key=action.key, doctypes=action.doctypes)
 
 
 def get_doc_action(key: str) -> DocAction | None:

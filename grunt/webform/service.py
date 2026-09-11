@@ -8,16 +8,14 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-import structlog
-
 from grunt.app import grunt
 from grunt.document.meta import Meta
+from grunt.log import log
 from grunt.metadata.registry import doctype_registry
 
 if TYPE_CHECKING:
     from grunt.auth.doctypes.User.user import User
 
-logger = structlog.get_logger()
 
 # Guest user identifier for anonymous submissions
 GUEST_USER = "guest@grunt.local"
@@ -159,7 +157,7 @@ class WebFormService:
 
         doc_id = doc["name"]
 
-        logger.info(
+        log.info(
             "webform.submitted",
             form=form["name"],
             doctype=form["doctype"],

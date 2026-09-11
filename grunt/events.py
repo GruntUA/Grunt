@@ -25,15 +25,12 @@ import inspect
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
-import structlog
-
 from grunt.context import _bootstrap_ctx
 from grunt.hooks import dispatch as _dispatch_hooks
+from grunt.log import log
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable, Iterable
-
-logger = structlog.get_logger()
 
 
 @dataclass(frozen=True, slots=True)
@@ -62,7 +59,7 @@ def register_subscriber(sub: EventSubscriber) -> None:
         [s for s in SUBSCRIBERS if s.name != sub.name] + [sub],
         key=lambda s: s.priority,
     )
-    logger.debug("event.subscriber_registered", subscriber=sub.name, priority=sub.priority)
+    log.debug("event.subscriber_registered", subscriber=sub.name, priority=sub.priority)
 
 
 def unsubscribe(name: str) -> None:
@@ -78,8 +75,8 @@ def subscribe(
 ) -> Callable:
     """Decorator form of :func:`register_subscriber`.
 
-        @subscribe("audit_export", events={"after_insert", "after_delete"})
-        async def _push(doctype, doc, **kwargs): ...
+    @subscribe("audit_export", events={"after_insert", "after_delete"})
+    async def _push(doctype, doc, **kwargs): ...
     """
 
     def decorator(fn: Callable) -> Callable:
@@ -103,7 +100,7 @@ async def fire(event: str, **kwargs: Any) -> None:
     registry first, then every matching subscriber in priority order.
     """
     if _bootstrap_ctx.get():
-        logger.debug("event.skipped", reason="bootstrap", hook_event=event)
+        log.debug("event.skipped", reason="bootstrap", hook_event=event)
         return
 
     kwargs["event"] = event
@@ -118,7 +115,7 @@ async def fire(event: str, **kwargs: Any) -> None:
             if inspect.isawaitable(result):
                 await result
         except Exception:
-            logger.exception("event.subscriber_error", subscriber=sub.name, hook_event=event)
+            log.exception("event.subscriber_error", subscriber=sub.name, hook_event=event)
 
 
 # ─────────────────────────────────────────────────────────────────────────────

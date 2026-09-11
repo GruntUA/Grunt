@@ -6,12 +6,11 @@ from datetime import UTC
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-import structlog
+from grunt.log import log
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
-logger = structlog.get_logger()
 
 _GRUNT_ROOT = Path(__file__).parent.parent  # grunt/startup/../ = grunt/
 
@@ -33,9 +32,9 @@ async def load_core_fixtures(session: AsyncSession, eng: AsyncEngine) -> None:
                 if not fx_doctype or not records:
                     continue
                 await _apply_doctype_fixture(fx_doctype, records, session, eng)
-                logger.info("startup.core_fixture_applied", file=fx_file.name, doctype=fx_doctype)
+                log.info("startup.core_fixture_applied", file=fx_file.name, doctype=fx_doctype)
             except Exception as e:
-                logger.warning("startup.core_fixture_failed", file=fx_file.name, error=str(e))
+                log.warning("startup.core_fixture_failed", file=fx_file.name, error=str(e))
 
 
 def _load_app_meta(app_dir: Path) -> dict | None:
@@ -77,7 +76,7 @@ def _load_app_meta(app_dir: Path) -> dict | None:
                 }
             )
         except Exception:
-            logger.exception("suppressed_error")
+            log.exception("suppressed_error")
 
     if app_json.exists():
         try:
@@ -95,7 +94,7 @@ def _load_app_meta(app_dir: Path) -> dict | None:
                 if key in app_data:
                     result[key] = app_data[key]
         except Exception:
-            logger.exception("suppressed_error")
+            log.exception("suppressed_error")
 
     return result
 
@@ -155,7 +154,7 @@ async def _apply_doctype_fixture(
     try:
         dt = await doctype_registry.get(doctype_name)
     except Exception:
-        logger.warning("startup.fixture_doctype_not_found", doctype=doctype_name)
+        log.warning("startup.fixture_doctype_not_found", doctype=doctype_name)
         return
 
     physical_fields = Meta(dt).get_physical_fields()

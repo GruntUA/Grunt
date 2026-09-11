@@ -5,7 +5,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 import jwt
-import structlog
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer
 
@@ -16,12 +15,12 @@ from grunt.auth.doctypes.User.user import (
 )
 from grunt.config import settings
 from grunt.db.session import get_engine, get_session
+from grunt.log import log
 
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator
 
     from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
-logger = structlog.get_logger()
 oauth2_scheme = OAuth2PasswordBearer(
     tokenUrl="/api/v1/method/grunt.auth.doctypes.User.user.login_api"
 )
@@ -187,7 +186,7 @@ async def grunt_context(
                 try:
                     await manager.send_to_user(user.email, {"event": "msgprint", "data": msg})
                 except Exception:
-                    logger.warning("auth.msgprint_send_error", user=user.email)
+                    log.warning("auth.msgprint_send_error", user=user.email)
         clear_messages()
         grunt.reset_context(tokens)
 

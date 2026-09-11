@@ -12,12 +12,12 @@ from typing import TYPE_CHECKING, Any
 
 import aioimaplib
 import aiosmtplib
-import structlog
+
+from grunt.log import log
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
-logger = structlog.get_logger()
 
 # Placeholder returned instead of a stored SMTP password on every non-superadmin
 # read (see grunt.email.hooks.mask_smtp_password). Saving the account back with
@@ -37,7 +37,7 @@ async def _kick_queue() -> None:
 
         await process_email_queue.kiq()
     except Exception:
-        logger.warning("email.queue_kick_failed", exc_info=True)
+        log.warning("email.queue_kick_failed", exc_info=True)
 
 
 def _kick_queue_after_commit(session: AsyncSession) -> None:
@@ -157,12 +157,12 @@ class EmailService:
                     await smtp.login(username, password)
                 await smtp.send_message(msg)
 
-            logger.info(
+            log.info(
                 "email.sent", recipient=message.get("recipient"), subject=message.get("subject")
             )
             await EmailService._log_outgoing(account, message, msg, status="Надіслано")
         except Exception as e:
-            logger.error("email.send_failed", error=str(e), recipient=message.get("recipient"))
+            log.error("email.send_failed", error=str(e), recipient=message.get("recipient"))
             await EmailService._log_outgoing(
                 account, message, msg, status="Помилка", error=str(e), dedup=False
             )
@@ -251,13 +251,13 @@ class EmailService:
                     try:
                         await imap.store(num_str, "+FLAGS", "\\Seen")
                     except Exception:
-                        logger.warning("email.imap_mark_seen_failed", num=num_str)
+                        log.warning("email.imap_mark_seen_failed", num=num_str)
 
             await imap.logout()
-            logger.info("email.pulled", count=len(emails), account=username)
+            log.info("email.pulled", count=len(emails), account=username)
 
         except Exception as e:
-            logger.error("email.pull_failed", error=str(e), account=username)
+            log.error("email.pull_failed", error=str(e), account=username)
 
         return emails
 
@@ -303,7 +303,9 @@ class EmailService:
                     html_body = text
         else:
             payload = msg.get_payload(decode=True)
-            text = payload.decode(msg.get_content_charset() or "utf-8", "replace") if payload else ""
+            text = (
+                payload.decode(msg.get_content_charset() or "utf-8", "replace") if payload else ""
+            )
             if msg.get_content_type() == "text/html":
                 html_body = text
             else:
@@ -420,7 +422,11 @@ class EmailService:
                     a = (bf.get("action") or "").lower()
                     if not a:
                         continue
-                    action, diag, dstat = a, bf.get("diagnostic-code") or diag, bf.get("status") or dstat
+                    action, diag, dstat = (
+                        a,
+                        bf.get("diagnostic-code") or diag,
+                        bf.get("status") or dstat,
+                    )
                     if a == "failed":
                         break
             status_map = {
@@ -466,7 +472,7 @@ class EmailService:
 
         orig = (report.get("orig_message_id") or "").strip()
         if not orig:
-            logger.warning("email.report_no_orig", kind=report.get("kind"))
+            log.warning("email.report_no_orig", kind=report.get("kind"))
             return
 
         async with grunt.system_context(sess):
@@ -477,7 +483,7 @@ class EmailService:
                 as_dict=True,
             )
             if not row:
-                logger.info("email.report_unmatched", orig=orig, kind=report.get("kind"))
+                log.info("email.report_unmatched", orig=orig, kind=report.get("kind"))
                 return
 
             cur = row.get("status")
@@ -493,9 +499,11 @@ class EmailService:
                         updates["delivered_at"] = now
             else:  # dsn
                 new_status = report.get("status")
-                if new_status == "Не доставлено":
-                    updates["status"] = new_status
-                elif new_status == "Відкладено" and cur == "Надіслано":
+                if (
+                    new_status == "Не доставлено"
+                    or new_status == "Відкладено"
+                    and cur == "Надіслано"
+                ):
                     updates["status"] = new_status
                 elif new_status == "Доставлено" and cur in ("Надіслано", "Відкладено"):
                     updates["status"] = new_status
@@ -505,7 +513,7 @@ class EmailService:
 
             if updates:
                 await grunt.save_doc("EmailMessage", row["name"], updates)
-                logger.info(
+                log.info(
                     "email.report_applied",
                     name=row["name"],
                     kind=report.get("kind"),
@@ -540,7 +548,7 @@ class EmailService:
             await grunt.db.set_value("File", fid, {"file_url": url})
             return url
         except Exception:
-            logger.exception("email.store_bytes_failed")
+            log.exception("email.store_bytes_failed")
             return None
 
     @staticmethod
@@ -573,7 +581,7 @@ class EmailService:
 
             sess = session or require_session()
         except Exception:
-            logger.warning("email.record_no_session")
+            log.warning("email.record_no_session")
             return None
 
         mid = (message_id or "").strip() or None
@@ -602,9 +610,7 @@ class EmailService:
                         "request_receipt": bool(request_receipt),
                         "has_attachments": bool(att_rows),
                         "is_read": (
-                            bool(is_read)
-                            if is_read is not None
-                            else (direction == "Вихідний")
+                            bool(is_read) if is_read is not None else (direction == "Вихідний")
                         ),
                         "attachments": [
                             {
@@ -619,7 +625,7 @@ class EmailService:
                 )
             return doc.get("name")
         except Exception:
-            logger.exception("email.record_failed")
+            log.exception("email.record_failed")
             return None
 
     @staticmethod
@@ -682,7 +688,7 @@ class EmailService:
                 if re.sub(r"<[^>]+>", "", raw_footer).strip():
                     footer = raw_footer
         except Exception:
-            logger.exception("suppressed_error")
+            log.exception("suppressed_error")
 
         is_html = bool(html_body)
         html_content = html_body or ""
@@ -721,7 +727,7 @@ class EmailService:
                     },
                 )
         except Exception:
-            logger.warning("email.queue_doctype_missing")
+            log.warning("email.queue_doctype_missing")
             return ""
 
         _kick_queue_after_commit(session)

@@ -5,11 +5,8 @@ from __future__ import annotations
 import json
 from typing import Any
 
-import structlog
-
 from grunt.app import grunt
-
-logger = structlog.get_logger()
+from grunt.log import log
 
 
 class AssignmentService:
@@ -34,7 +31,7 @@ class AssignmentService:
             await self.apply_matching_rules(doctype, rules, doc)
 
         except Exception as exc:
-            logger.exception("assignment.evaluate_error", doctype=doctype, exc_info=exc)
+            log.exception("assignment.evaluate_error", doctype=doctype, exc_info=exc)
 
     async def apply_matching_rules(
         self,
@@ -157,7 +154,7 @@ class AssignmentService:
 
             return rules
         except Exception as exc:
-            logger.exception("assignment.load_rules_error", doctype=doctype, exc_info=exc)
+            log.exception("assignment.load_rules_error", doctype=doctype, exc_info=exc)
             return []
 
     async def _assign_to_user(
@@ -181,11 +178,11 @@ class AssignmentService:
                 assignment_method="user",
                 status="Success",
             )
-            logger.info(
+            log.info(
                 "assignment.assigned_user", doctype=doctype, doc_id=doc.get("name"), user=user_email
             )
         except Exception as exc:
-            logger.exception(
+            log.exception(
                 "assignment.assign_user_error",
                 doctype=doctype,
                 user=user_email,
@@ -216,7 +213,7 @@ class AssignmentService:
 
             user_ids = [r["parent_name"] for r in ur_rows]
             if not user_ids:
-                logger.info("assignment.no_users_in_role", doctype=doctype, role=role)
+                log.info("assignment.no_users_in_role", doctype=doctype, role=role)
                 return
 
             for user_id in user_ids:
@@ -234,7 +231,7 @@ class AssignmentService:
                     status="Success",
                 )
 
-            logger.info(
+            log.info(
                 "assignment.assigned_role",
                 doctype=doctype,
                 doc_id=doc.get("name"),
@@ -242,9 +239,7 @@ class AssignmentService:
                 user_count=len(user_ids),
             )
         except Exception as exc:
-            logger.exception(
-                "assignment.assign_role_error", doctype=doctype, role=role, exc_info=exc
-            )
+            log.exception("assignment.assign_role_error", doctype=doctype, role=role, exc_info=exc)
 
     async def _create_todo(self, doctype: str, doc: dict[str, Any], owner_email: str) -> None:
         """Assign *doc* to *owner_email* via a ToDo row (idempotent per doc+user).
@@ -280,5 +275,6 @@ class AssignmentService:
                     "status": "Open",
                 },
             )
+
 
 assignment_service = AssignmentService()

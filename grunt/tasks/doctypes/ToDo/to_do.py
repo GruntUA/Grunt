@@ -16,11 +16,8 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import Any
 
-import structlog
-
 from grunt.document.base import Document
-
-logger = structlog.get_logger()
+from grunt.log import log
 
 _DONE_STATES = ("Closed", "Cancelled")
 
@@ -143,7 +140,7 @@ class ToDo(Document):
                 note or f"Вас призначено відповідальним за {target}.",
             )
         except Exception:
-            logger.exception("todo.notify_assignee_failed", assignee=assignee)
+            log.exception("todo.notify_assignee_failed", assignee=assignee)
 
     async def _notify_completion(self) -> None:
         """Tell whoever created the assignment that it is done."""
@@ -160,4 +157,4 @@ class ToDo(Document):
                 f"{self._task_note() or target}",
             )
         except Exception:
-            logger.exception("todo.notify_completion_failed", recipient=recipient)
+            log.exception("todo.notify_completion_failed", recipient=recipient)

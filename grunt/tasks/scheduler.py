@@ -4,14 +4,14 @@ import importlib
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
-import structlog
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
+
+from grunt.log import log
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
-logger = structlog.get_logger()
 
 # Global scheduler instance
 scheduler = AsyncIOScheduler()
@@ -61,7 +61,7 @@ def register_scheduler_events(events: dict[str, list[str | dict]]) -> None:
                 cron_expr = item.get("expression") if isinstance(item, dict) else None
 
             if not cron_expr or not path:
-                logger.warning("scheduler.invalid_task", event_type=event_type, item=item)
+                log.warning("scheduler.invalid_task", event_type=event_type, item=item)
                 continue
 
             _add_scheduled_job(path, cron_expr)
@@ -77,7 +77,7 @@ def _add_scheduled_job(path: str, cron_expr: str) -> None:
         # This assumes the function is decorated with @task (wrapped in TaskIQ task)
 
         async def trigger_task():
-            logger.info("scheduler.triggering_task", path=path)
+            log.info("scheduler.triggering_task", path=path)
             if hasattr(task_fn, "kiq"):
                 # TaskIQ-decorated task — send to worker
                 await task_fn.kiq()
@@ -91,16 +91,16 @@ def _add_scheduled_job(path: str, cron_expr: str) -> None:
             id=path,
             replace_existing=True,
         )
-        logger.info("scheduler.job_added", path=path, cron=cron_expr)
+        log.info("scheduler.job_added", path=path, cron=cron_expr)
 
     except (ImportError, AttributeError, ValueError) as e:
-        logger.warning("scheduler.register_failed", path=path, error=str(e))
+        log.warning("scheduler.register_failed", path=path, error=str(e))
 
 
 async def start_scheduler() -> None:
     if not scheduler.running:
         scheduler.start()
-        logger.info("scheduler.started")
+        log.info("scheduler.started")
     _register_framework_jobs()
     await _register_server_script_jobs()
 
@@ -136,7 +136,7 @@ def _register_framework_jobs() -> None:
     _add_scheduled_job("grunt.tasks.log_cleanup.purge_old_logs", "0 3 * * *")  # daily at 03:00
     _add_scheduled_job("grunt.tasks.todo_reminders.send_due_reminders", "0 8 * * *")  # daily 08:00
 
-    logger.info("scheduler.framework_jobs_registered")
+    log.info("scheduler.framework_jobs_registered")
 
 
 async def _register_server_script_jobs() -> None:
@@ -156,9 +156,9 @@ async def _register_server_script_jobs() -> None:
             _register_server_script_cron(script_name, script_code, cron_expr)
 
         if scripts:
-            logger.info("scheduler.server_scripts_loaded", count=len(scripts))
+            log.info("scheduler.server_scripts_loaded", count=len(scripts))
     except Exception as exc:
-        logger.warning("scheduler.server_scripts_load_failed", error=str(exc))
+        log.warning("scheduler.server_scripts_load_failed", error=str(exc))
 
 
 def _register_server_script_cron(name: str, script: str, cron_expr: str) -> None:
@@ -167,7 +167,7 @@ def _register_server_script_cron(name: str, script: str, cron_expr: str) -> None
     from grunt.scripting.server_script import ServerScriptRunner
 
     async def _run() -> None:
-        logger.info("scheduler.server_script_run", name=name)
+        log.info("scheduler.server_script_run", name=name)
         started_at = datetime.now(UTC)
 
         async with async_session_factory() as session:
@@ -186,14 +186,14 @@ def _register_server_script_cron(name: str, script: str, cron_expr: str) -> None
                     script, session=session, trusted=True, user_email="system"
                 )
             if result.output:
-                logger.debug("scheduler.server_script_output", name=name, output=result.output)
+                log.debug("scheduler.server_script_output", name=name, output=result.output)
 
             if log_id:
                 async with async_session_factory() as session:
                     await _update_job_log(session, log_id=log_id, status="Success")
 
         except Exception as exc:
-            logger.error("scheduler.server_script_error", name=name, error=str(exc))
+            log.error("scheduler.server_script_error", name=name, error=str(exc))
             if log_id:
                 async with async_session_factory() as session:
                     await _update_job_log(
@@ -207,9 +207,9 @@ def _register_server_script_cron(name: str, script: str, cron_expr: str) -> None
             id=f"server_script:{name}",
             replace_existing=True,
         )
-        logger.info("scheduler.server_script_registered", name=name, cron=cron_expr)
+        log.info("scheduler.server_script_registered", name=name, cron=cron_expr)
     except Exception as exc:
-        logger.warning("scheduler.server_script_register_failed", name=name, error=str(exc))
+        log.warning("scheduler.server_script_register_failed", name=name, error=str(exc))
 
 
 async def _write_job_log(
@@ -236,7 +236,7 @@ async def _write_job_log(
             )
             return str(doc.get("name", ""))
     except Exception as exc:
-        logger.warning("scheduler.log_write_failed", job_name=job_name, error=str(exc))
+        log.warning("scheduler.log_write_failed", job_name=job_name, error=str(exc))
         return None
 
 
@@ -258,10 +258,10 @@ async def _update_job_log(
         async with grunt.system_context(session):
             await grunt.db.set_value("ScheduledJobLog", log_id, values)
     except Exception as exc:
-        logger.warning("scheduler.log_update_failed", log_id=log_id, error=str(exc))
+        log.warning("scheduler.log_update_failed", log_id=log_id, error=str(exc))
 
 
 async def stop_scheduler() -> None:
     if scheduler.running:
         scheduler.shutdown()
-        logger.info("scheduler.stopped")
+        log.info("scheduler.stopped")

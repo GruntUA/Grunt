@@ -16,12 +16,11 @@ from __future__ import annotations
 import traceback as _tb
 from typing import TYPE_CHECKING, Any
 
-import structlog
+from grunt.log import log
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
-logger = structlog.get_logger()
 
 _TITLE_MAX = 200
 _MESSAGE_MAX = 8000
@@ -146,5 +145,5 @@ async def record_error(
 
         return await _write_row(payload, session)
     except Exception as log_exc:  # noqa: BLE001 — logging must never raise
-        logger.warning("error_log.write_failed", error=str(log_exc))
+        log.warning("error_log.write_failed", error=str(log_exc))
         return None

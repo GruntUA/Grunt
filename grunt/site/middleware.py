@@ -2,15 +2,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-import structlog
 from starlette.middleware.base import BaseHTTPMiddleware
 
+from grunt.log import log
 from grunt.site.manager import current_site, site_manager
 
 if TYPE_CHECKING:
     from fastapi import Request
-
-logger = structlog.get_logger()
 
 
 async def _apply_hot_reload_if_triggered(site: str) -> None:
@@ -37,7 +35,7 @@ async def _apply_hot_reload_if_triggered(site: str) -> None:
     try:
         reload_file.unlink()
     except Exception:
-        logger.exception("suppressed_error")
+        log.exception("suppressed_error")
 
 
 class SiteContextMiddleware(BaseHTTPMiddleware):
@@ -67,7 +65,7 @@ class SiteContextMiddleware(BaseHTTPMiddleware):
                 site = fallback
                 await _apply_hot_reload_if_triggered(fallback)
             except Exception:
-                logger.warning("site.fallback_resolve_failed", host=host_header)
+                log.warning("site.fallback_resolve_failed", host=host_header)
 
         # 4. Set site context var (or leave unset if still unknown).
         token = current_site.set(site) if site else None

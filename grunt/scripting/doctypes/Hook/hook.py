@@ -72,9 +72,9 @@ async def _collect_server_scripts() -> list[dict[str, Any]]:
             limit=1000,
         )
     except Exception:
-        import structlog
+        from grunt.log import log
 
-        structlog.get_logger().exception("hook.server_scripts_failed")
+        log.exception("hook.server_scripts_failed")
         return rows
 
     for s in scripts:

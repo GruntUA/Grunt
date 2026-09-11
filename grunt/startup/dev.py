@@ -4,14 +4,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-import structlog
-
 from grunt.config import settings
+from grunt.log import log
 
 if TYPE_CHECKING:
     from fastapi import FastAPI
 
-logger = structlog.get_logger()
 
 VITE_SERVER_URL = "http://localhost:5173"
 
@@ -60,5 +58,5 @@ def register_dev_proxy(app: FastAPI) -> None:
                     headers=dict(v_res.headers),
                 )
             except Exception as e:
-                logger.warning("vite.proxy.error", url=target_url, error=str(e))
+                log.warning("vite.proxy.error", url=target_url, error=str(e))
                 raise HTTPException(status_code=502, detail="Vite server unreachable") from e

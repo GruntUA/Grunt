@@ -3,13 +3,10 @@ from __future__ import annotations
 import asyncio
 from typing import Any
 
-import structlog
-
 from grunt.db.session import async_session_factory
+from grunt.log import log
 from grunt.notification.service import notification_service
 from grunt.tasks.broker import task
-
-logger = structlog.get_logger()
 
 
 @task
@@ -34,6 +31,6 @@ async def evaluate_notification_rules_task(
             )
             await session.commit()
     except asyncio.CancelledError:
-        logger.debug("notification.task_cancelled", trigger_event=event, doctype=doctype)
+        log.debug("notification.task_cancelled", trigger_event=event, doctype=doctype)
     except Exception:
-        logger.error("notification.task_error", exc_info=True, trigger_event=event, doctype=doctype)
+        log.error("notification.task_error", exc_info=True, trigger_event=event, doctype=doctype)

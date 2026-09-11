@@ -29,11 +29,8 @@ import re
 from pathlib import Path
 from typing import Any
 
-import structlog
-
+from grunt.log import log
 from grunt.utils.strings import to_snake_case
-
-logger = structlog.get_logger()
 
 # ── Registries ────────────────────────────────────────────────────────────
 
@@ -182,12 +179,12 @@ def _load_doctype_dir_scripts(dt_dir: Path, app_name: str) -> None:
             entry_dict["api_method"] = method
             entry_dict["allow_guest"] = meta.get("allow_guest", "").lower() == "true"
             FILE_SCRIPT_REGISTRY[("api", method)] = entry_dict
-            logger.info("file_scripts.server_loaded", app=app_name, type="API", method=method)
+            log.info("file_scripts.server_loaded", app=app_name, type="API", method=method)
         elif script_type in ("doctype_event", "doctype event"):
             event = meta.get("event")
             if event:
                 FILE_SCRIPT_REGISTRY[("doctype_event", doctype, event)] = entry_dict
-                logger.info(
+                log.info(
                     "file_scripts.server_loaded",
                     app=app_name,
                     type="DocType Event",
@@ -200,9 +197,7 @@ def _load_doctype_dir_scripts(dt_dir: Path, app_name: str) -> None:
             entry_dict["api_method"] = method
             entry_dict["allow_guest"] = False
             FILE_SCRIPT_REGISTRY[("api", method)] = entry_dict
-            logger.info(
-                "file_scripts.server_loaded", app=app_name, type="API (auto)", method=method
-            )
+            log.info("file_scripts.server_loaded", app=app_name, type="API (auto)", method=method)
 
 
 # ── Lookup helpers (used by ServerScriptRunner) ──────────────────────────
@@ -233,7 +228,7 @@ def get_file_client_scripts(doctype: str) -> list[dict[str, str]]:
     _client_script_scanned.add(doctype)
     results: list[dict[str, str]] = []
 
-    logger.debug("file_scripts.scan_start", doctype=doctype, dirs_count=len(_client_script_dirs))
+    log.debug("file_scripts.scan_start", doctype=doctype, dirs_count=len(_client_script_dirs))
 
     for app_name, doctypes_dir in _client_script_dirs:
         if app_name == "grunt":
@@ -248,9 +243,7 @@ def get_file_client_scripts(doctype: str) -> list[dict[str, str]]:
 
         # Try exact match first (e.g. HromsStaffingTable/HromsStaffingTable.js)
         js_file = doctypes_dir / doctype / f"{doctype}.js"
-        logger.debug(
-            "file_scripts.try_path", app=app_name, path=str(js_file), exists=js_file.exists()
-        )
+        log.debug("file_scripts.try_path", app=app_name, path=str(js_file), exists=js_file.exists())
 
         if not js_file.exists():
             # Try first-letter-capitalized (e.g. hromsStaffingTable → HromsStaffingTable)
@@ -281,7 +274,7 @@ def get_file_client_scripts(doctype: str) -> list[dict[str, str]]:
         if js_file.exists():
             source = js_file.read_text(encoding="utf-8")
             results.append({"name": f"{app_name}:{doctype}.js", "script": source})
-            logger.debug(
+            log.debug(
                 "file_scripts.client_loaded", app=app_name, doctype=doctype, file=str(js_file)
             )
 
@@ -289,4 +282,3 @@ def get_file_client_scripts(doctype: str) -> list[dict[str, str]]:
         # Cache result (including empty — to avoid repeated disk reads)
         FILE_CLIENT_SCRIPT_REGISTRY[doctype] = results
     return results
-

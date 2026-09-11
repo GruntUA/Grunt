@@ -25,12 +25,11 @@ from contextvars import ContextVar
 from dataclasses import asdict, dataclass, field
 from typing import TYPE_CHECKING, Any, TypeVar
 
-import structlog
+from grunt.log import log
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine
 
-logger = structlog.get_logger()
 
 F = TypeVar("F", bound=Callable[..., Any])
 
@@ -201,7 +200,7 @@ def finish_request(
         _request_buffer.appendleft(profile)
 
     if is_slow:
-        logger.warning(
+        log.warning(
             "slow_request",
             request_id=request_id,
             method=method,
@@ -216,7 +215,7 @@ def finish_request(
 
     # N+1 detector: warn if more SQL queries than the threshold fired for one request
     if len(queries) > _settings.n1_threshold:
-        logger.warning(
+        log.warning(
             "n1_suspect",
             request_id=request_id,
             method=method,
@@ -324,7 +323,7 @@ def attach_query_profiler(engine: AsyncEngine, threshold_ms: float = 200.0) -> N
         # Only warn about slow queries within an HTTP request context;
         # background tasks inherit low thresholds but run outside requests.
         if is_slow and req_id is not None:
-            logger.warning(
+            log.warning(
                 "slow_query",
                 duration_ms=record.duration_ms,
                 threshold_ms=threshold,

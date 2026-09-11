@@ -6,11 +6,10 @@ import copy
 from datetime import UTC
 from typing import TYPE_CHECKING, Any, overload
 
-import structlog
-
 from grunt.config import settings
 from grunt.context import require_engine, require_session, require_user
 from grunt.db.profiler import profile
+from grunt.log import log
 from grunt.metadata.registry import doctype_registry
 from grunt.permissions.guards import (
     apply_hidden_fields_to_doc,
@@ -23,8 +22,6 @@ if TYPE_CHECKING:
     from grunt.cache.query_cache import QueryCache
     from grunt.db import GruntDB
     from grunt.document.base import Document, DocumentList
-
-logger = structlog.get_logger()
 
 
 class DocumentAPI:
@@ -64,7 +61,7 @@ class DocumentAPI:
         try:
             await cache.invalidate_doctype(doctype)
         except Exception as exc:
-            logger.warning("query_cache.invalidate_failed", doctype=doctype, error=str(exc))
+            log.warning("query_cache.invalidate_failed", doctype=doctype, error=str(exc))
 
     def _doc(self):
         """Build a session/engine-bound host document to run single-doc pipeline methods on."""
@@ -286,8 +283,13 @@ class DocumentAPI:
         engine = require_engine()
 
         deleted, errors = await collection.bulk_delete(
-            session, engine, doctype, ids, user,
-            replace_with=replace_with, progress_cb=progress_cb,
+            session,
+            engine,
+            doctype,
+            ids,
+            user,
+            replace_with=replace_with,
+            progress_cb=progress_cb,
         )
 
         if deleted > 0:
@@ -483,7 +485,7 @@ class DocumentAPI:
             rows.append(row)
 
         await self.db.insert_many(doctype, rows)
-        logger.info("grunt.bulk_insert", doctype=doctype, count=len(rows))
+        log.info("grunt.bulk_insert", doctype=doctype, count=len(rows))
         await self._invalidate_list_cache(doctype)
         return names
 
@@ -503,7 +505,7 @@ class DocumentAPI:
         update_values["modified_by"] = user.email
 
         row_count = await self.db.bulk_update(doctype, filters, update_values)
-        logger.info("grunt.bulk_update", doctype=doctype, rows=row_count)
+        log.info("grunt.bulk_update", doctype=doctype, rows=row_count)
         await self._invalidate_list_cache(doctype)
         return row_count
 

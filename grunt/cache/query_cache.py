@@ -11,7 +11,7 @@ import time
 from contextlib import asynccontextmanager
 from typing import TYPE_CHECKING, Any
 
-import structlog
+from grunt.log import log
 
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator
@@ -20,8 +20,6 @@ if TYPE_CHECKING:
 
 from grunt.config import settings
 from grunt.document.base import DocumentList
-
-logger = structlog.get_logger()
 
 
 class QueryCache:
@@ -105,7 +103,7 @@ class QueryCache:
                 raw = await r.get(key)
         except Exception as exc:
             self._redis_failed = True
-            logger.warning("query_cache.redis_get_failed", error=str(exc))
+            log.warning("query_cache.redis_get_failed", error=str(exc))
             return None
         if not raw:
             return None
@@ -121,7 +119,7 @@ class QueryCache:
                 await r.setex(key, self._ttl_seconds, json.dumps(payload, separators=(",", ":")))
         except Exception as exc:
             self._redis_failed = True
-            logger.warning("query_cache.redis_set_failed", error=str(exc))
+            log.warning("query_cache.redis_set_failed", error=str(exc))
 
     async def get_list(self, key: str) -> DocumentList | None:
         payload = self._get_memory(key)
@@ -162,7 +160,7 @@ class QueryCache:
                     await r.delete(*keys)
         except Exception as exc:
             self._redis_failed = True
-            logger.warning("query_cache.redis_invalidate_failed", error=str(exc), doctype=doctype)
+            log.warning("query_cache.redis_invalidate_failed", error=str(exc), doctype=doctype)
 
     def clear(self) -> None:
         self._memory.clear()

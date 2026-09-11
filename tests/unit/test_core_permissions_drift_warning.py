@@ -17,9 +17,10 @@ import pytest
 async def test_inject_core_warns_on_permissions_drift_but_does_not_overwrite(
     ctx, db_session, engine, monkeypatch
 ):
+    from grunt.log import log
     from grunt.metadata.doctype import DocType
     from grunt.metadata.permission import DocPermission
-    from grunt.metadata.registry import doctype_registry, logger
+    from grunt.metadata.registry import doctype_registry
 
     # Seed a "core" doctype the way _inject_core's first-run branch would,
     # with an initial permissions set (stands in for "already installed").
@@ -35,7 +36,7 @@ async def test_inject_core_warns_on_permissions_drift_but_does_not_overwrite(
 
     warnings: list[dict] = []
     monkeypatch.setattr(
-        logger,
+        log,
         "warning",
         lambda event, **kw: warnings.append({"event": event, **kw}),
     )
@@ -63,9 +64,10 @@ async def test_inject_core_warns_on_permissions_drift_but_does_not_overwrite(
 
 @pytest.mark.asyncio
 async def test_inject_core_silent_when_permissions_match(ctx, db_session, engine, monkeypatch):
+    from grunt.log import log
     from grunt.metadata.doctype import DocType
     from grunt.metadata.permission import DocPermission
-    from grunt.metadata.registry import doctype_registry, logger
+    from grunt.metadata.registry import doctype_registry
 
     same_perms = [DocPermission(role="System Manager", read=True)]
     stored = DocType(
@@ -76,7 +78,7 @@ async def test_inject_core_silent_when_permissions_match(ctx, db_session, engine
 
     warnings: list[dict] = []
     monkeypatch.setattr(
-        logger,
+        log,
         "warning",
         lambda event, **kw: warnings.append({"event": event, **kw}),
     )

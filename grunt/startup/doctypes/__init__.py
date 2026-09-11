@@ -6,15 +6,14 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-import structlog
 from sqlalchemy import select
+
+from grunt.log import log
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 from grunt.metadata.compiler import DuplicateDataError, compile_doctype_to_table
-
-logger = structlog.get_logger()
 
 _GRUNT_ROOT = Path(__file__).parent.parent.parent  # grunt/startup/doctypes/ → grunt/
 
@@ -46,7 +45,7 @@ async def apply_doctype_overrides(session: AsyncSession, engine: AsyncEngine) ->
     for doctype_name, spec in DOCTYPE_OVERRIDES.items():
         dt = doctype_registry._doctypes.get(doctype_name)
         if dt is None:
-            logger.warning("startup.override_doctype_not_found", doctype=doctype_name)
+            log.warning("startup.override_doctype_not_found", doctype=doctype_name)
             continue
 
         existing_fieldnames = {f.fieldname for f in dt.fields}
@@ -61,7 +60,7 @@ async def apply_doctype_overrides(session: AsyncSession, engine: AsyncEngine) ->
                 existing_fieldnames.add(fname)
                 added.append(fname)
             except Exception as e:
-                logger.warning(
+                log.warning(
                     "startup.override_field_invalid",
                     doctype=doctype_name,
                     field=fname,
@@ -69,7 +68,7 @@ async def apply_doctype_overrides(session: AsyncSession, engine: AsyncEngine) ->
                 )
 
         if added:
-            logger.info(
+            log.info(
                 "startup.doctype_overrides_applied",
                 doctype=doctype_name,
                 added_fields=added,
@@ -100,9 +99,9 @@ async def load_core_doctypes(session: AsyncSession, sync_db: bool = False) -> No
                 dt_obj.app = "grunt"
             await doctype_registry._inject_core(dt_obj, session, sync_db=sync_db)
             if sync_db:
-                logger.info("startup.core_doctype_injected", doctype=dt_name)
+                log.info("startup.core_doctype_injected", doctype=dt_name)
         except Exception as e:
-            logger.warning("startup.core_doctype_failed", file=dt_file.name, error=str(e))
+            log.warning("startup.core_doctype_failed", file=dt_file.name, error=str(e))
 
 
 async def populate_system_doctypes(
@@ -117,7 +116,7 @@ async def populate_system_doctypes(
 
     dt_def = doctype_registry._doctypes.get("DocType")
     if dt_def is None:
-        logger.warning("startup.doctype_def_missing")
+        log.warning("startup.doctype_def_missing")
         return
     table = compile_doctype_to_table(dt_def)
 
@@ -195,8 +194,8 @@ async def populate_system_doctypes(
         await conn.execute(table.delete().where(table.c.name == name))
 
     if stale:
-        logger.info("startup.doctype_table_cleaned", removed=sorted(stale))
-    logger.info("startup.doctype_table_synced", count=len(all_doctypes))
+        log.info("startup.doctype_table_cleaned", removed=sorted(stale))
+    log.info("startup.doctype_table_synced", count=len(all_doctypes))
 
 
 async def sync_all_doctypes(session: AsyncSession, engine: AsyncEngine) -> None:
@@ -216,6 +215,6 @@ async def sync_all_doctypes(session: AsyncSession, engine: AsyncEngine) -> None:
         try:
             await sync_table(dt, engine, session=session)
         except DuplicateDataError as e:
-            logger.warning("startup.sync_doctype_duplicates", name=dt.name, detail=str(e))
+            log.warning("startup.sync_doctype_duplicates", name=dt.name, detail=str(e))
         except Exception as e:
-            logger.warning("startup.sync_doctype_failed", name=dt.name, error=str(e))
+            log.warning("startup.sync_doctype_failed", name=dt.name, error=str(e))

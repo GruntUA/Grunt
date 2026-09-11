@@ -76,8 +76,6 @@ def _validate_data(
                 log.warning("field.invalid_regex", fieldname=field.fieldname, pattern=field.regex)
             else:
                 if not matched:
-                    errors.append(
-                        f"{field.fieldname}: Поле '{field.label}' не відповідає формату"
-                    )
+                    errors.append(f"{field.fieldname}: Поле '{field.label}' не відповідає формату")
 
     return errors

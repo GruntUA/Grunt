@@ -12,9 +12,8 @@ from datetime import UTC, datetime
 from itertools import islice
 from typing import TYPE_CHECKING, Any
 
-import structlog
-
 from grunt.document.serde import audit_fields
+from grunt.log import log
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
@@ -26,8 +25,6 @@ ProgressCallback = Callable[[int], Awaitable[None]]
 # SQLite allows at most 999 host parameters per statement (SQLITE_LIMIT_VARIABLE_NUMBER).
 # We use 900 as a safe upper bound; PostgreSQL supports far more.
 _IN_CHUNK = 900
-
-logger = structlog.get_logger()
 
 
 async def record_update_changes(
@@ -57,7 +54,7 @@ async def record_update_changes(
                 user=user.email,
             )
         except Exception:
-            logger.exception("version.create_error", doctype=doctype_name, doc_id=real_id)
+            log.exception("version.create_error", doctype=doctype_name, doc_id=real_id)
 
     if diff_changes:
         try:
@@ -77,7 +74,7 @@ async def record_update_changes(
                     details={"changed_fields": changed_fields} if changed_fields else None,
                 )
         except Exception:
-            logger.warning("activity_log.update_failed", doctype=doctype_name, doc_id=real_id)
+            log.warning("activity_log.update_failed", doctype=doctype_name, doc_id=real_id)
 
 
 async def fire_update_services(
@@ -318,13 +315,13 @@ async def write_bulk_delete_activity_log(
             await session.execute(t_log.insert(), [_make_row(doc_id) for doc_id in chunk])
 
         await session.flush()
-        logger.info(
+        log.info(
             "bulk_delete.activity_log_written",
             doctype=doctype_name,
             count=len(doc_ids),
         )
     except Exception:
-        logger.warning(
+        log.warning(
             "bulk_delete.activity_log_failed",
             doctype=doctype_name,
             count=len(doc_ids),

@@ -31,9 +31,7 @@ import json
 import time
 from typing import Any
 
-import structlog
-
-logger = structlog.get_logger()
+from grunt.log import log
 
 _MAX_PAYLOAD = 5 * 1024 * 1024  # 5 MB
 
@@ -89,7 +87,7 @@ class IncomingWebhookService:
                         break
 
             if not self._verify_signature(raw_body, secret, sig_type, provided_sig):
-                logger.warning("incoming_webhook.signature_rejected", slug=slug)
+                log.warning("incoming_webhook.signature_rejected", slug=slug)
                 await self._write_log(
                     webhook_id=webhook_id,
                     slug=slug,
@@ -123,7 +121,7 @@ class IncomingWebhookService:
         except Exception as exc:
             status = "error"
             error_msg = f"{type(exc).__name__}: {exc}"
-            logger.exception("incoming_webhook.dispatch_error", slug=slug)
+            log.exception("incoming_webhook.dispatch_error", slug=slug)
 
         duration_ms = int((time.monotonic() - start) * 1000)
 
@@ -139,7 +137,7 @@ class IncomingWebhookService:
             duration_ms=duration_ms,
         )
 
-        logger.info(
+        log.info(
             "incoming_webhook.received",
             slug=slug,
             status=status,
@@ -321,7 +319,7 @@ class IncomingWebhookService:
             async with grunt.system_context(require_session()):
                 await grunt.new_doc("IncomingWebhookLog", log_data)
         except Exception:
-            logger.warning("incoming_webhook_log.write_failed", slug=slug)
+            log.warning("incoming_webhook_log.write_failed", slug=slug)
 
 
 def _resolve_path(data: dict[str, Any], path: str) -> Any:

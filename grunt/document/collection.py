@@ -13,7 +13,6 @@ import math
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
-import structlog
 from fastapi import HTTPException, status
 from sqlalchemy import and_, func, select, update
 
@@ -33,6 +32,7 @@ from grunt.document.update_side_effects import (
     run_bulk_delete_writes,
 )
 from grunt.document.virtual import is_virtual_routed, virtual_list
+from grunt.log import log
 from grunt.metadata.registry import doctype_registry
 
 if TYPE_CHECKING:
@@ -40,7 +40,6 @@ if TYPE_CHECKING:
 
     from grunt.auth.doctypes.User.user import User
 
-logger = structlog.get_logger()
 
 _CURSOR_SEP = "||"  # separator unlikely to appear in sort values
 
@@ -192,7 +191,7 @@ def _apply_pagination(
                 )
             query = query.where(keyset)
         except Exception:
-            logger.warning("list_documents.invalid_cursor", cursor=cursor)
+            log.warning("list_documents.invalid_cursor", cursor=cursor)
 
     query = query.limit(per_page)
     if not cursor:
@@ -207,16 +206,12 @@ async def _finalize_rows(
     try:
         await _resolve_link_labels(session, dt, rows)
     except Exception as exc:
-        logger.warning(
-            "list_documents.link_labels_failed", doctype=doctype_name, error=str(exc)
-        )
+        log.warning("list_documents.link_labels_failed", doctype=doctype_name, error=str(exc))
 
     try:
         await _resolve_attach_labels(session, dt, rows)
     except Exception as exc:
-        logger.warning(
-            "list_documents.attach_labels_failed", doctype=doctype_name, error=str(exc)
-        )
+        log.warning("list_documents.attach_labels_failed", doctype=doctype_name, error=str(exc))
 
     for doc_row in rows:
         serialize_datetimes(doc_row)
@@ -278,9 +273,7 @@ async def list_documents(
 
     up_conds = await build_conditions(table, user, dt)
 
-    query = await _apply_where(
-        query, table, dt, filters, search, extra_clause, user, up_conds
-    )
+    query = await _apply_where(query, table, dt, filters, search, extra_clause, user, up_conds)
 
     count_q = await _apply_where(
         select(func.count()).select_from(table),
@@ -579,7 +572,7 @@ async def _rename_system_refs(session: AsyncSession, old_id: str, new_id: str) -
                     .values(**{sys_fieldname: new_id})
                 )
         except Exception as exc:
-            logger.warning(
+            log.warning(
                 "document.rename_system_ref_failed",
                 doctype=sys_dt_name,
                 field=sys_fieldname,
@@ -702,5 +695,5 @@ async def rename_document(
     new_doc = await _load(new_id)
     await search_index_service.index_document(session, doctype_name, dt, new_doc)
 
-    logger.info("document.renamed", doctype=doctype_name, old=old_id, new=new_id)
+    log.info("document.renamed", doctype=doctype_name, old=old_id, new=new_id)
     return new_doc

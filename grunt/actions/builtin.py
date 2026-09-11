@@ -11,12 +11,8 @@ from __future__ import annotations
 
 from typing import Any
 
-import structlog
-
 import grunt
 from grunt.actions.registry import doc_action
-
-logger = structlog.get_logger()
 
 
 @doc_action(

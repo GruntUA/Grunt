@@ -551,9 +551,7 @@ async def test_get_list_injects_link_field_labels_and_extras(ctx, link_label_doc
 
 
 @pytest.mark.asyncio
-async def test_get_list_link_label_falls_back_to_raw_id_for_dangling_link(
-    ctx, link_label_doctypes
-):
+async def test_get_list_link_label_falls_back_to_raw_id_for_dangling_link(ctx, link_label_doctypes):
     """A Link value pointing at a non-existent target still gets a __label (itself)."""
     await ctx.new_doc("LinkLabelSource", {"target": "does-not-exist"})
     await ctx.db._session().commit()
@@ -756,14 +754,10 @@ async def test_link_search_returns_all_search_fields(ctx):
 async def test_copy_doc(ctx, setup_doctype):
     """copy_doc clones every field but id/name/created_at, applies overrides,
     and inserts a fresh document."""
-    original = await ctx.new_doc(
-        "TestItem", {"title": "Original", "status": "Active", "count": 7}
-    )
+    original = await ctx.new_doc("TestItem", {"title": "Original", "status": "Active", "count": 7})
     await ctx.db._session().commit()
 
-    copy = await ctx.copy_doc(
-        "TestItem", original["name"], overrides={"status": "Draft"}
-    )
+    copy = await ctx.copy_doc("TestItem", original["name"], overrides={"status": "Draft"})
     await ctx.db._session().commit()
 
     assert copy["name"] != original["name"]

@@ -9,12 +9,11 @@ import inspect
 from pathlib import Path
 from typing import Any
 
-import structlog
 from fastapi import Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse, PlainTextResponse, Response
 from jinja2 import ChoiceLoader, Environment, FileSystemLoader, select_autoescape
 
-logger = structlog.get_logger()
+from grunt.log import log
 
 # Grunt-level base templates directory (apps can extend _base.html from here)
 _GRUNT_WWW_TEMPLATES_DIR = Path(__file__).parent / "templates"
@@ -101,7 +100,7 @@ class WebsiteRegistry:
             page = WebsitePage(html_file, www_dir, app_name, url_pattern)
             self._pages.append(page)
             discovered.append(page)
-            logger.info("website.page.discovered", app=app_name, url=url_pattern)
+            log.info("website.page.discovered", app=app_name, url=url_pattern)
 
         return discovered
 
@@ -186,7 +185,7 @@ async def render_page(
                         if isinstance(result, dict):
                             context.update(result)
             except Exception as e:
-                logger.warning("website.controller.error", file=str(page.py_file), error=str(e))
+                log.warning("website.controller.error", file=str(page.py_file), error=str(e))
 
     env = website_registry.get_env(page.app)
     if env is None:
@@ -233,9 +232,9 @@ async def render_page_by_route(
     except HTTPException as exc:
         if exc.status_code == 404 and "DocType 'WebPage' not found" in str(exc.detail):
             return None
-        logger.warning("website.db_page.error", route=path, error=str(exc))
+        log.warning("website.db_page.error", route=path, error=str(exc))
     except Exception as e:
-        logger.warning("website.db_page.error", route=path, error=str(e))
+        log.warning("website.db_page.error", route=path, error=str(e))
 
     return None
 

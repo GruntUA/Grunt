@@ -18,14 +18,13 @@ import secrets
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
-import structlog
+from grunt.log import log
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
     from grunt.auth.doctypes.User.user import User
 
-logger = structlog.get_logger()
 
 _KEY_PREFIX = "grnt_"
 _KEY_BYTES = 32  # 64 hex chars
@@ -98,7 +97,7 @@ async def authenticate_api_key(
             break
 
     if not matched_row:
-        logger.warning("api_key.invalid_secret", prefix=key_prefix)
+        log.warning("api_key.invalid_secret", prefix=key_prefix)
         return None
 
     # Check expiry
@@ -112,7 +111,7 @@ async def authenticate_api_key(
         if exp.tzinfo is None:
             exp = exp.replace(tzinfo=UTC)
         if exp < datetime.now(UTC):
-            logger.info("api_key.expired", prefix=key_prefix)
+            log.info("api_key.expired", prefix=key_prefix)
             return None
 
     # Check IP allowlist
@@ -120,7 +119,7 @@ async def authenticate_api_key(
     if allowed_ips_raw and client_ip:
         allowed = {ip.strip() for ip in allowed_ips_raw.split(",") if ip.strip()}
         if not _ip_allowed(client_ip, allowed):
-            logger.warning("api_key.ip_rejected", prefix=key_prefix, ip=client_ip)
+            log.warning("api_key.ip_rejected", prefix=key_prefix, ip=client_ip)
             return None
 
     # Load user
@@ -136,9 +135,9 @@ async def authenticate_api_key(
                 "ApiKey", matched_row["name"], "last_used_at", datetime.now(UTC)
             )
     except Exception:
-        logger.exception("suppressed_error")
+        log.exception("suppressed_error")
 
-    logger.info("api_key.authenticated", prefix=key_prefix, user=user.email)
+    log.info("api_key.authenticated", prefix=key_prefix, user=user.email)
     return user
 
 

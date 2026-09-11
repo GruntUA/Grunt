@@ -59,8 +59,6 @@ from __future__ import annotations
 import contextlib
 from typing import TYPE_CHECKING, Any, ClassVar
 
-import structlog
-
 from grunt.context import require_engine, require_session, require_user
 from grunt.document.mixins.collaboration_rpc import DocumentCollaborationRPCMixin
 from grunt.document.mixins.export_rpc import DocumentExportRPCMixin
@@ -70,6 +68,7 @@ from grunt.document.mixins.meta_rpc import DocumentMetaRPCMixin
 from grunt.document.mixins.tree_rpc import DocumentTreeRPCMixin
 from grunt.document.mixins.workflow_rpc import DocumentWorkflowRPCMixin
 from grunt.document.mixins.write import DocumentWriteMixin
+from grunt.log import log
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
@@ -77,7 +76,6 @@ if TYPE_CHECKING:
     from grunt.app import GruntApp
     from grunt.auth.doctypes.User.user import User
 
-logger = structlog.get_logger()
 
 # Fields that are stored as real instance attributes (not routed into self.data)
 _RESERVED = frozenset({"doctype", "data", "user", "session", "engine"})
@@ -646,7 +644,7 @@ class Document(
                     payload,
                 )
         except Exception:
-            logger.exception("suppressed_error")
+            log.exception("suppressed_error")
 
     # ── Repr ──────────────────────────────────────────────────────────────
 

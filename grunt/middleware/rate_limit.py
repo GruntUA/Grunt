@@ -20,19 +20,18 @@ from collections import defaultdict
 from typing import TYPE_CHECKING, Any
 
 import jwt
-import structlog
 from fastapi import status
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from grunt.config import settings
 from grunt.errors import error_body
+from grunt.log import log
 
 if TYPE_CHECKING:
     from starlette.requests import Request
     from starlette.responses import Response
 
-logger = structlog.get_logger()
 
 # Paths that are always exempt from rate limiting (public assets, health checks)
 _EXEMPT_PREFIXES = ("/api/docs", "/api/redoc", "/openapi.json", "/health")
@@ -137,7 +136,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             strict_key = f"auth:{path}:{ip}"
             allowed, remaining, reset_in = await self._check(strict_key, strict_limit)
             if not allowed:
-                logger.warning("rate_limit.auth_exceeded", path=path, ip=ip)
+                log.warning("rate_limit.auth_exceeded", path=path, ip=ip)
                 return JSONResponse(
                     status_code=status.HTTP_429_TOO_MANY_REQUESTS,
                     content=error_body(
@@ -171,7 +170,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         allowed, remaining, reset_in = await self._check(key, limit)
 
         if not allowed:
-            logger.warning(
+            log.warning(
                 "rate_limit.exceeded",
                 key=key,
                 limit=limit,

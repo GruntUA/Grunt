@@ -4,13 +4,11 @@ import json
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
-import structlog
 from taskiq import TaskiqMessage, TaskiqMiddleware, TaskiqResult
 
 from grunt.app import grunt
+from grunt.log import log
 from grunt.site.manager import site_manager
-
-logger = structlog.get_logger()
 
 
 class BackgroundTaskLoggingMiddleware(TaskiqMiddleware):
@@ -45,9 +43,7 @@ class BackgroundTaskLoggingMiddleware(TaskiqMiddleware):
                 self.log_ids[message.task_id] = result["name"]
 
         except Exception as e:
-            logger.error(
-                "tasks.middleware.pre_execute_failed", error=str(e), task=message.task_name
-            )
+            log.error("tasks.middleware.pre_execute_failed", error=str(e), task=message.task_name)
 
         return message
 
@@ -72,7 +68,7 @@ class BackgroundTaskLoggingMiddleware(TaskiqMiddleware):
                 await session.commit()
 
         except Exception as e:
-            logger.error("tasks.middleware.post_execute_failed", error=str(e), log_id=log_id)
+            log.error("tasks.middleware.post_execute_failed", error=str(e), log_id=log_id)
         finally:
             self.log_ids.pop(message.task_id, None)
 
@@ -110,7 +106,7 @@ class BackgroundTaskLoggingMiddleware(TaskiqMiddleware):
                 next_attempt = datetime.now(UTC) + timedelta(seconds=delay)
                 update_data["status"] = "Retrying"
                 update_data["next_attempt_at"] = next_attempt
-                logger.info(
+                log.info(
                     "tasks.retry_scheduled",
                     task=message.task_name,
                     attempt=attempt,
@@ -136,7 +132,7 @@ class BackgroundTaskLoggingMiddleware(TaskiqMiddleware):
                 await session.commit()
 
         except Exception:
-            logger.error(
+            log.error(
                 "tasks.error_logging_failed",
                 task_id=message.task_id,
                 task=message.task_name,

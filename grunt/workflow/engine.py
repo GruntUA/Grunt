@@ -6,16 +6,15 @@ import contextlib
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-import structlog
 from fastapi import HTTPException, status
+
+from grunt.log import log
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
     from grunt.auth.doctypes.User.user import User
     from grunt.metadata.doctype import DocType, WorkflowState, WorkflowTransition
-
-logger = structlog.get_logger()
 
 
 class WorkflowEngine:
@@ -109,7 +108,7 @@ class WorkflowEngine:
         try:
             await controller.after_save()
         except Exception:
-            logger.exception("workflow.controller_after_save_error", doctype=doctype.name)
+            log.exception("workflow.controller_after_save_error", doctype=doctype.name)
 
         # Fire on_transition hooks
         from grunt.events import fire as fire_hook
@@ -126,7 +125,7 @@ class WorkflowEngine:
                 session=session,
             )
         except Exception:
-            logger.exception("hook.on_transition_error")
+            log.exception("hook.on_transition_error")
 
         # Fire after_save / after_update hooks (so doc_events work for transitions too)
         try:
@@ -138,7 +137,7 @@ class WorkflowEngine:
                 session=session,
             )
         except Exception:
-            logger.exception("hook.after_save_on_transition_error")
+            log.exception("hook.after_save_on_transition_error")
 
         # Log activity
         with contextlib.suppress(Exception):
@@ -200,7 +199,7 @@ class WorkflowEngine:
             )
             return bool(result)
         except Exception:
-            logger.warning("workflow.condition_eval_failed", condition=condition, user=user)
+            log.warning("workflow.condition_eval_failed", condition=condition, user=user)
             return True  # Don't block on error
 
 

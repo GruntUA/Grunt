@@ -5,11 +5,11 @@ from __future__ import annotations
 import re
 from typing import TYPE_CHECKING, Any
 
-import structlog
 from sqlalchemy import select
 
 from grunt.document.meta import Meta
 from grunt.document.serde import audit_fields, serialize_datetimes
+from grunt.log import log
 from grunt.metadata.registry import doctype_registry
 
 if TYPE_CHECKING:
@@ -20,7 +20,6 @@ if TYPE_CHECKING:
     from grunt.auth.doctypes.User.user import User
     from grunt.metadata.doctype import DocType
 
-logger = structlog.get_logger()
 
 # Target-doctype fields auto-injected alongside a Link field's __label (as
 # __color/__icon) when the target defines them — list-cell badges and map
@@ -73,7 +72,7 @@ async def _inject_link_field_labels(
     try:
         target_dt = await doctype_registry.get(lf.options)
     except Exception as exc:
-        logger.warning("link_labels.target_doctype_error", doctype=lf.options, error=str(exc))
+        log.warning("link_labels.target_doctype_error", doctype=lf.options, error=str(exc))
         return
 
     target_meta = Meta(target_dt)
@@ -96,7 +95,7 @@ async def _inject_link_field_labels(
             result = await session.execute(q)
             linked_rows = result.mappings().all()
     except Exception as exc:
-        logger.warning(
+        log.warning(
             "link_labels.fetch_error", doctype=lf.options, field=lf.fieldname, error=str(exc)
         )
         return
@@ -116,9 +115,7 @@ def _link_display_columns(
         cols_to_fetch.append(target_table.c[title_field])
 
     extra_to_fetch = [
-        fname
-        for fname in _EXTRA_INJECT
-        if target_meta.has_field(fname) and fname in target_table.c
+        fname for fname in _EXTRA_INJECT if target_meta.has_field(fname) and fname in target_table.c
     ]
     for fname in extra_to_fetch:
         cols_to_fetch.append(target_table.c[fname])
@@ -230,7 +227,7 @@ async def _inject_attach_field_labels(
     try:
         file_dt = await doctype_registry.get("File")
     except Exception as exc:
-        logger.warning("attach_labels.file_doctype_error", error=str(exc))
+        log.warning("attach_labels.file_doctype_error", error=str(exc))
         return
 
     file_table = Meta(file_dt).table
@@ -245,7 +242,7 @@ async def _inject_attach_field_labels(
             )
             name_map = {str(r.name): r.file_name for r in result.all()}
     except Exception as exc:
-        logger.warning("attach_labels.fetch_error", field=af.fieldname, error=str(exc))
+        log.warning("attach_labels.fetch_error", field=af.fieldname, error=str(exc))
         return
 
     label_key = f"{af.fieldname}__label"
@@ -341,7 +338,7 @@ async def _load_child_tables(
             await _resolve_attach_labels(session, child_dt, rows)
             doc[field.fieldname] = rows
         except Exception:
-            logger.exception("child_table.load_error", doctype=dt.name, field=field.fieldname)
+            log.exception("child_table.load_error", doctype=dt.name, field=field.fieldname)
             doc[field.fieldname] = []
 
 

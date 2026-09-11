@@ -8,12 +8,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-import structlog
+from grunt.log import log
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
-
-logger = structlog.get_logger()
 
 
 async def get_client_scripts(
@@ -43,14 +41,14 @@ async def get_client_scripts(
     scripts: list[dict[str, Any]] = [
         {"name": str(r.get("name") or ""), "script": str(r.get("script") or "")} for r in rows
     ]
-    logger.info("client_scripts.db_scripts", doctype=doctype, count=len(scripts))
+    log.info("client_scripts.db_scripts", doctype=doctype, count=len(scripts))
 
     # Append file-based client scripts (from app directories)
     try:
         from grunt.scripting.file_scripts import get_file_client_scripts
 
         file_scripts = get_file_client_scripts(doctype)
-        logger.info(
+        log.info(
             "client_scripts.file_scripts",
             doctype=doctype,
             count=len(file_scripts),
@@ -58,11 +56,11 @@ async def get_client_scripts(
         )
         scripts.extend(file_scripts)
     except ImportError:
-        logger.debug(
+        log.debug(
             "Optional file-based client scripts module not available; "
             "continuing with database-backed scripts only.",
             doctype=doctype,
         )
 
-    logger.info("client_scripts.total", doctype=doctype, total=len(scripts))
+    log.info("client_scripts.total", doctype=doctype, total=len(scripts))
     return scripts

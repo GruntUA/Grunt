@@ -23,7 +23,7 @@ from __future__ import annotations
 import re
 from typing import TYPE_CHECKING
 
-import structlog
+from grunt.log import log
 
 if TYPE_CHECKING:
     from sqlalchemy import Table
@@ -32,7 +32,6 @@ if TYPE_CHECKING:
     from grunt.auth.doctypes.User.user import User
     from grunt.metadata.doctype import DocType
 
-logger = structlog.get_logger()
 
 # "<field> == <value>" / "<field> != <value>".
 #   <field>  a document field, or "<link_field>.<target_field>" for a single
@@ -152,9 +151,7 @@ class PermissionMatch:
         field, op, raw_value = self._parsed
         ok, value = _operand(raw_value, user)
         if not ok:
-            logger.warning(
-                "permissions.match_eval_error", doctype=doctype.name, match=self.expr
-            )
+            log.warning("permissions.match_eval_error", doctype=doctype.name, match=self.expr)
             return False
 
         link_fn, sub_fn = field.split(".", 1)
@@ -165,9 +162,7 @@ class PermissionMatch:
 
         resolved = await _resolve_link_target(doctype, link_fn)
         if resolved is None:
-            logger.warning(
-                "permissions.match_eval_error", doctype=doctype.name, match=self.expr
-            )
+            log.warning("permissions.match_eval_error", doctype=doctype.name, match=self.expr)
             return False
         target_name, _target_table = resolved
 
@@ -176,9 +171,7 @@ class PermissionMatch:
         try:
             actual = await grunt.db.get_value(target_name, link_val, sub_fn)
         except RuntimeError:
-            logger.warning(
-                "permissions.match_eval_error", doctype=doctype.name, match=self.expr
-            )
+            log.warning("permissions.match_eval_error", doctype=doctype.name, match=self.expr)
             return False
         return actual == value if op == "==" else actual != value
 
@@ -204,14 +197,10 @@ class PermissionMatch:
             }
             return bool(simple_eval(self.expr, names=names))
         except Exception:
-            logger.warning(
-                "permissions.match_eval_error", doctype=doctype_name, match=self.expr
-            )
+            log.warning("permissions.match_eval_error", doctype=doctype_name, match=self.expr)
             return False
 
-    def _evaluate_narrow(
-        self, doc: dict, user: User, *, doctype_name: str = ""
-    ) -> bool | None:
+    def _evaluate_narrow(self, doc: dict, user: User, *, doctype_name: str = "") -> bool | None:
         """Fast path for the same narrow ``field (==|!=) (user|'literal')``
         form ``to_sql`` handles, evaluated the same structural way: *field*
         always names a document field, *value* is resolved from the
@@ -245,9 +234,7 @@ class PermissionMatch:
             return None  # numeric/bare-name literals etc. — outside this form
 
         if field not in doc:
-            logger.warning(
-                "permissions.match_eval_error", doctype=doctype_name, match=self.expr
-            )
+            log.warning("permissions.match_eval_error", doctype=doctype_name, match=self.expr)
             return False
 
         actual = doc.get(field)

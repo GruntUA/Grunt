@@ -5,10 +5,11 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
 
-import structlog
 from fastapi import HTTPException, status
 from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
+
+from grunt.log import log
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine
@@ -44,8 +45,6 @@ from grunt.document.virtual import (
 from grunt.errors import GruntError
 from grunt.events import fire
 from grunt.metadata.registry import doctype_registry
-
-logger = structlog.get_logger()
 
 PROTECTED_FIELDS = frozenset({"name", "owner", "created_at", "docstatus"})
 
@@ -194,7 +193,7 @@ class DocumentWriteMixin(DocumentReadMixin):
         await self._apply_aggregations(dt, table, doc_id, row)
         await self._sync_multi_links(dt, doctype_name, doc_id, data)
 
-        logger.info("document.created", doctype=doctype_name, id=doc_id)
+        log.info("document.created", doctype=doctype_name, id=doc_id)
         await self._run_lifecycle_hooks(doc, "after_insert", "after_save")
 
     async def _insert_row(self, table: Any, row: dict[str, Any]) -> None:
@@ -491,7 +490,7 @@ class DocumentWriteMixin(DocumentReadMixin):
                 existing,
                 user,
             )
-            logger.info("document.updated", doctype=doctype_name, id=real_id)
+            log.info("document.updated", doctype=doctype_name, id=real_id)
 
             result = await self._build_update_result(doctype_name, real_id, dt, merged)
             await record_update_changes(

@@ -7,7 +7,6 @@ from pathlib import Path
 from types import SimpleNamespace
 from typing import TYPE_CHECKING, Any, ClassVar
 
-import structlog
 from pydantic import BaseModel
 from sqlalchemy import JSON as SAJSON
 from sqlalchemy import Boolean, Column, Date, Integer, String, Text, Time
@@ -15,13 +14,13 @@ from sqlalchemy import Float as SAFloat
 from sqlalchemy.dialects.postgresql import JSONB
 
 from grunt.db.types import UtcDateTime
+from grunt.log import log
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
     from sqlalchemy.types import TypeEngine
 
-logger = structlog.get_logger()
 
 # sa_type_name (column_spec's first tuple element) -> SQLAlchemy column type
 # builder. Shared by every DocField.to_sa_column() call instead of being
@@ -203,7 +202,7 @@ def discover_field_types() -> None:
                         if hasattr(module, "register"):
                             module.register()
                 except Exception:
-                    logger.exception("suppressed_error")
+                    log.exception("suppressed_error")
 
 
 # Runs once, as an import-time side effect: plain `import grunt.metadata.field`

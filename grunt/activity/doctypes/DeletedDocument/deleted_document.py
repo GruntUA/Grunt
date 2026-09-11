@@ -11,12 +11,9 @@ import json
 from datetime import UTC, datetime
 from typing import Any
 
-import structlog
-
 import grunt
 from grunt.document.base import Document
-
-logger = structlog.get_logger()
+from grunt.log import log
 
 # Ключі знімка, які не можна передавати в insert відновлюваного документа:
 # per-user "seen" стан і аудит-поля (ядро проставляє власні).
@@ -106,9 +103,7 @@ async def restore(name: str, allow_rename: bool = False) -> dict[str, Any]:
             },
         )
 
-    logger.info(
-        "trash.restored", doctype=target_dt, from_snapshot=name, restored_to=created["name"]
-    )
+    log.info("trash.restored", doctype=target_dt, from_snapshot=name, restored_to=created["name"])
     return created
 
 

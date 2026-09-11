@@ -4,15 +4,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, NoReturn
 
-import structlog
-
 from grunt.errors import GruntError
+from grunt.log import log
 from grunt.utils.templates import render_template as _render_template
 
 if TYPE_CHECKING:
     from grunt.document.meta import Meta
-
-logger = structlog.get_logger()
 
 
 class UtilityAPI:
@@ -59,8 +56,8 @@ class UtilityAPI:
         raise GruntError(message, title=title)
 
     def log(self, *args: Any) -> None:
-        """Log a message via structlog (also captured in server script output)."""
-        logger.info("grunt.log", message=" ".join(str(a) for a in args))
+        """Log a message via grunt.log (also captured in server script output)."""
+        log.info("grunt.log", message=" ".join(str(a) for a in args))
 
     def _(self, source: str) -> str:
         """Translate a string using the current request language."""

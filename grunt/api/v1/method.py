@@ -4,18 +4,17 @@ import importlib
 from inspect import iscoroutinefunction
 from typing import TYPE_CHECKING, Any
 
-import structlog
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 
 from grunt.app import grunt as grunt_app
 from grunt.auth.dependencies import _oauth2_scheme_optional, optional_user
 from grunt.db.session import get_engine as get_engine_dep
 from grunt.db.session import get_session
+from grunt.log import log
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
-logger = structlog.get_logger()
 router = APIRouter()
 
 
@@ -30,7 +29,7 @@ def _string_params(method: Any) -> set[str]:
 
     try:
         params = inspect.signature(method).parameters.values()
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         return set()
     # ``from __future__ import annotations`` leaves the annotation as the string
     # "str"; a live import gives the ``str`` type. Accept both.
@@ -56,7 +55,7 @@ def _process_params(params: dict[str, str], method: Any = None) -> dict[str, Any
             except Exception:
                 # Looked JSON-ish but wasn't — fall through and keep it as a
                 # plain string below. Routine, not an error: debug, not exception.
-                logger.debug("method.param_not_json", key=key)
+                log.debug("method.param_not_json", key=key)
 
         if val.isdigit():
             args[key] = int(val)
@@ -93,7 +92,7 @@ def get_whitelisted_method(method_path: str) -> Any:
                 obj = getattr(obj, attr)
             method = obj  # only assign when all attrs resolved successfully
             break
-        except (ImportError, AttributeError):
+        except ImportError, AttributeError:
             continue
 
     if not method:
@@ -104,7 +103,7 @@ def get_whitelisted_method(method_path: str) -> Any:
     # Check if method is whitelisted
     is_whitelisted = getattr(method, "_whitelisted", False)
     if not is_whitelisted:
-        logger.warning("method.not_whitelisted", method_path=method_path)
+        log.warning("method.not_whitelisted", method_path=method_path)
         from grunt.errors import forbidden
 
         raise forbidden(f"Method {method_path} is not whitelisted")
@@ -215,7 +214,7 @@ async def run_method_post(
         except Exception:
             # No JSON body and no form body — routine for GET-like whitelisted
             # calls made via POST with no payload, not an error: debug, not exception.
-            logger.debug("method.no_body_or_form", path=path)
+            log.debug("method.no_body_or_form", path=path)
 
     result = await _invoke_with_context(method, args, request, session, engine, token)
     if isinstance(result, Response):

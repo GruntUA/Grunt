@@ -14,10 +14,9 @@ from __future__ import annotations
 from contextlib import asynccontextmanager
 from typing import TYPE_CHECKING
 
-import structlog
-
 from grunt.apps import load_external_apps
 from grunt.config import settings
+from grunt.log import log
 from grunt.metadata.registry import doctype_registry
 from grunt.site.manager import current_site, site_manager
 from grunt.tasks.broker import broker
@@ -25,8 +24,6 @@ from grunt.tasks.scheduler import start_scheduler, stop_scheduler
 
 if TYPE_CHECKING:
     from fastapi import FastAPI
-
-logger = structlog.get_logger()
 
 
 def _configure() -> None:
@@ -40,7 +37,7 @@ def _configure() -> None:
         log_to_file=settings.log_to_file,
         debug=settings.debug,
     )
-    logger.info("grunt.startup", version="0.1.0")
+    log.info("grunt.startup", version="0.1.0")
     load_validators()
 
 
@@ -49,12 +46,12 @@ async def _bring_up_sites() -> None:
 
     sites = site_manager.get_sites()
     if not sites:
-        logger.warning("grunt.startup.no_sites")
+        log.warning("grunt.startup.no_sites")
 
     for site in sites:
         token = current_site.set(site)
         try:
-            logger.info("grunt.site.startup", site=site)
+            log.info("grunt.site.startup", site=site)
             eng = site_manager.get_engine(site)
             maker = site_manager.get_session_maker(site)
 
@@ -73,7 +70,7 @@ async def _bring_up_sites() -> None:
                 await apply_doctype_overrides(session, eng)
                 await session.commit()
         except Exception as e:
-            logger.error("grunt.site.startup_error", site=site, error=str(e))
+            log.error("grunt.site.startup_error", site=site, error=str(e))
         finally:
             current_site.reset(token)
 
@@ -99,7 +96,7 @@ async def _seed_supported_languages() -> None:
                 )
             codes.update(r["code"] for r in rows if r.get("code"))
         except Exception as e:  # noqa: BLE001 - table may not exist yet
-            logger.debug("i18n.seed_languages_skipped", site=site, error=str(e))
+            log.debug("i18n.seed_languages_skipped", site=site, error=str(e))
         finally:
             current_site.reset(token)
 
@@ -121,9 +118,9 @@ def _init_observability() -> None:
             integrations=[FastApiIntegration(), SqlalchemyIntegration()],
             traces_sample_rate=0.1,
         )
-        logger.info("sentry.initialized", environment=settings.sentry_environment)
+        log.info("sentry.initialized", environment=settings.sentry_environment)
     except ImportError:
-        logger.warning("sentry.not_installed", hint="pip install sentry-sdk[fastapi]")
+        log.warning("sentry.not_installed", hint="pip install sentry-sdk[fastapi]")
 
 
 @asynccontextmanager
@@ -153,4 +150,4 @@ async def lifespan(app: FastAPI):
     await broker.shutdown()
     for eng in site_manager.engines.values():
         await eng.dispose()
-    logger.info("grunt.shutdown")
+    log.info("grunt.shutdown")

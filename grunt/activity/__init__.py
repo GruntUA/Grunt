@@ -3,13 +3,10 @@ from __future__ import annotations
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
-import structlog
-
 import grunt as _grunt
 from grunt.app import grunt
 from grunt.document.versioning import _SKIP_FIELDS
-
-logger = structlog.get_logger()
+from grunt.log import log
 
 # Doctypes that must NEVER be logged anywhere — high-frequency system churn
 # (sessions, queued mail, webhook/profiler/scheduler traffic). Recording these
@@ -118,7 +115,7 @@ async def record_activity(
                 },
             )
     except Exception as e:
-        logger.warning("activity.log_failed", error=str(e), doctype=doctype, doc_id=doc_id)
+        log.warning("activity.log_failed", error=str(e), doctype=doctype, doc_id=doc_id)
         return
 
     if broadcast:
@@ -151,7 +148,7 @@ async def _broadcast_activity(
             },
         )
     except Exception:
-        logger.debug("activity.broadcast_failed", doctype=doctype, doc_id=doc_id)
+        log.debug("activity.broadcast_failed", doctype=doctype, doc_id=doc_id)
 
 
 async def log_activity(event: str, **kwargs) -> None:
@@ -227,7 +224,7 @@ async def record_view(event: str, **kwargs: Any) -> None:
                     await grunt.db.set_value(doctype, str(doc_id), "_seen", seen)
                 doc["_seen"] = seen
             except Exception as e:
-                logger.warning("view.seen_failed", error=str(e), doctype=doctype, doc_id=doc_id)
+                log.warning("view.seen_failed", error=str(e), doctype=doctype, doc_id=doc_id)
 
     if getattr(dt, "track_views", False):
         try:
@@ -254,7 +251,7 @@ async def record_view(event: str, **kwargs: Any) -> None:
                         },
                     )
         except Exception as e:
-            logger.warning("view.log_failed", error=str(e), doctype=doctype, doc_id=doc_id)
+            log.warning("view.log_failed", error=str(e), doctype=doctype, doc_id=doc_id)
 
 
 @_grunt.whitelist()

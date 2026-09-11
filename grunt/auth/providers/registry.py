@@ -9,12 +9,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-import structlog
+from grunt.log import log
 
 if TYPE_CHECKING:
     from grunt.auth.providers.base import AuthProvider
 
-logger = structlog.get_logger()
 
 _PROVIDERS: dict[str, AuthProvider] = {}
 _BOOTSTRAPPED = False
@@ -23,7 +22,7 @@ _BOOTSTRAPPED = False
 def register(provider: AuthProvider) -> None:
     """Add (or replace) a provider. Idempotent per ``provider.name``."""
     _PROVIDERS[provider.name] = provider
-    logger.debug("auth.provider.registered", provider=provider.name)
+    log.debug("auth.provider.registered", provider=provider.name)
 
 
 def _bootstrap() -> None:

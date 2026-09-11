@@ -26,7 +26,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-import structlog
 from sqlalchemy import and_, false, or_
 
 import grunt
@@ -38,7 +37,6 @@ if TYPE_CHECKING:
     from grunt.auth.doctypes.User.user import User
     from grunt.metadata.doctype import DocType
 
-logger = structlog.get_logger()
 
 # {user_email: {allow_doctype: {scope: set(for_value)}}}  scope = "*" | applicable_for
 _UP_CACHE: dict[str, dict[str, dict[str, set[str]]]] = {}
@@ -248,9 +246,7 @@ async def get_active_restrictions(doctype: str) -> list[dict[str, Any]]:
         for fn in _link_fieldnames(dt, allow):
             label = "ID" if fn == "name" else meta.get_label(fn)
             for value in sorted(values):
-                out.append(
-                    {"field": label, "fieldname": fn, "allow": allow, "value": value}
-                )
+                out.append({"field": label, "fieldname": fn, "allow": allow, "value": value})
     return out
 
 

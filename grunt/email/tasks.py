@@ -2,15 +2,12 @@ from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
 
-import structlog
-
 from grunt.app import grunt
 from grunt.auth.doctypes.User.user import SYSTEM_USER
 from grunt.email.service import EmailService, email_service
+from grunt.log import log
 from grunt.site.manager import site_manager
 from grunt.tasks.broker import retryable_task
-
-logger = structlog.get_logger()
 
 
 @retryable_task()
@@ -33,7 +30,7 @@ async def process_email_queue():
             )
             if reopened:
                 await session.commit()
-                logger.warning("email.queue_reopened_stale", count=reopened)
+                log.warning("email.queue_reopened_stale", count=reopened)
 
             queue_items = await grunt.get_list(
                 "EmailQueue", filters={"status": "Pending"}, limit=100
@@ -42,12 +39,12 @@ async def process_email_queue():
             if not queue_items:
                 return
 
-            logger.info("email.processing_queue", count=len(queue_items))
+            log.info("email.processing_queue", count=len(queue_items))
 
             for item in queue_items:
                 account_id = item.get("email_account")
                 if not account_id:
-                    logger.warning("email.no_account_for_item", id=item["name"])
+                    log.warning("email.no_account_for_item", id=item["name"])
                     continue
 
                 # Atomically claim the row: flip Pending → Sending and bail if a
@@ -77,7 +74,7 @@ async def process_email_queue():
                     await session.commit()
 
         except Exception as e:
-            logger.error("email.queue_processing_failed", error=str(e))
+            log.error("email.queue_processing_failed", error=str(e))
             raise
 
 
@@ -116,7 +113,7 @@ async def pull_from_accounts():
                         try:
                             await EmailService.apply_report(report, session=session)
                         except Exception:
-                            logger.exception("email.apply_report_failed")
+                            log.exception("email.apply_report_failed")
                         await session.commit()
                         continue
 
@@ -153,12 +150,12 @@ async def pull_from_accounts():
                             session=session,
                         )
                     except Exception:
-                        logger.exception("email.record_inbound_failed")
+                        log.exception("email.record_inbound_failed")
 
                     await session.commit()
 
         except Exception as e:
-            logger.error("email.pull_from_accounts_failed", error=str(e))
+            log.error("email.pull_from_accounts_failed", error=str(e))
             raise
 
 
@@ -235,7 +232,7 @@ async def send_notification_digest(period: str = "daily") -> None:
                     )
                     sent += 1
                 except Exception:
-                    logger.warning("digest.email_queue_failed", user=user_email)
+                    log.warning("digest.email_queue_failed", user=user_email)
 
         await session.commit()
-        logger.info("digest.sent", period=period, users=sent)
+        log.info("digest.sent", period=period, users=sent)

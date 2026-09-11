@@ -34,12 +34,10 @@ import inspect
 from collections import defaultdict
 from typing import TYPE_CHECKING, Any, TypedDict
 
-import structlog
+from grunt.log import log
 
 if TYPE_CHECKING:
     from collections.abc import Callable
-
-logger = structlog.get_logger()
 
 
 class HookDefinition(TypedDict):
@@ -67,7 +65,7 @@ def on(event: str, priority: int = 10) -> Callable:
     def decorator(fn: Callable) -> Callable:
         HOOK_REGISTRY[event].append({"handler": fn, "priority": priority})
         HOOK_REGISTRY[event].sort(key=lambda x: x["priority"])
-        logger.debug("hook.registered", event_name=event, fn=fn.__qualname__, priority=priority)
+        log.debug("hook.registered", event_name=event, fn=fn.__qualname__, priority=priority)
         return fn
 
     return decorator
@@ -79,7 +77,7 @@ def on_doc(doctype: str, event: str, priority: int = 10) -> Callable:
     def decorator(fn: Callable) -> Callable:
         DOC_EVENT_REGISTRY[doctype][event].append({"handler": fn, "priority": priority})
         DOC_EVENT_REGISTRY[doctype][event].sort(key=lambda x: x["priority"])
-        logger.debug(
+        log.debug(
             "hook.doc_registered",
             doctype=doctype,
             event_name=event,
@@ -126,9 +124,7 @@ async def _call_hook(fn: Callable, event_name: str, **kwargs: Any) -> None:
         else:
             fn(**kwargs)
     except Exception:
-        logger.exception(
-            "hook.error", hook_event=event_name, fn=getattr(fn, "__qualname__", str(fn))
-        )
+        log.exception("hook.error", hook_event=event_name, fn=getattr(fn, "__qualname__", str(fn)))
 
 
 def register_doctype_overrides(overrides: dict[str, dict]) -> None:
@@ -156,7 +152,7 @@ def register_doctype_overrides(overrides: dict[str, dict]) -> None:
         for field_def in spec.get("add_fields", []):
             if field_def.get("fieldname") not in existing_fieldnames:
                 DOCTYPE_OVERRIDES[doctype_name].setdefault("add_fields", []).append(field_def)
-        logger.debug("hooks.doctype_overrides_registered", doctype=doctype_name)
+        log.debug("hooks.doctype_overrides_registered", doctype=doctype_name)
 
 
 def register_doc_events(events: dict[str, dict[str, str | list[str | dict]]]) -> None:
@@ -187,7 +183,7 @@ def register_doc_events(events: dict[str, dict[str, str | list[str | dict]]]) ->
                     DOC_EVENT_REGISTRY[doctype][event].append({"handler": fn, "priority": priority})
                     DOC_EVENT_REGISTRY[doctype][event].sort(key=lambda x: x["priority"])
                 except (ImportError, AttributeError, ValueError) as e:
-                    logger.warning(
+                    log.warning(
                         "hook.register_failed",
                         path=path,
                         doctype=doctype,

@@ -35,9 +35,7 @@ from __future__ import annotations
 
 from typing import Any, Literal
 
-import structlog
-
-logger = structlog.get_logger()
+from grunt.log import log
 
 MessageType = Literal["success", "error", "info", "warning"]
 
@@ -101,7 +99,7 @@ async def notify(
                 },
             )
 
-    logger.info("publish.notify", users=users, subject=subject, count=len(ids))
+    log.info("publish.notify", users=users, subject=subject, count=len(ids))
     return ids
 
 
@@ -140,7 +138,7 @@ async def publish(
     try:
         await manager.send_to_user(user, payload)
     except Exception:
-        logger.debug("publish.ws_send_failed", user=user, ws_event=event)
+        log.debug("publish.ws_send_failed", user=user, ws_event=event)
 
 
 async def broadcast(
@@ -173,7 +171,7 @@ async def broadcast(
     try:
         await manager.broadcast_all_users(payload)
     except Exception:
-        logger.debug("publish.broadcast_failed", ws_event=event)
+        log.debug("publish.broadcast_failed", ws_event=event)
 
 
 async def publish_channel(
@@ -206,7 +204,7 @@ async def publish_channel(
     try:
         await manager.broadcast(full_channel, event, data or {})
     except Exception:
-        logger.debug("publish.channel_failed", channel=channel, ws_event=event)
+        log.debug("publish.channel_failed", channel=channel, ws_event=event)
 
 
 async def msgprint(

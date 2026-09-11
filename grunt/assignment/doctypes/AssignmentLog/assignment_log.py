@@ -4,13 +4,10 @@ from __future__ import annotations
 
 from typing import Any
 
-import structlog
-
 import grunt
 from grunt.app import grunt as grunt_app
 from grunt.document.base import Document
-
-logger = structlog.get_logger()
+from grunt.log import log
 
 
 class AssignmentLog(Document):
@@ -60,7 +57,7 @@ class AssignmentLog(Document):
             async with grunt_app.system_context(require_session()):
                 await grunt_app.bulk_insert("AssignmentLog", [log_doc])
         except Exception as exc:
-            logger.exception("assignment.log_error", exc_info=exc)
+            log.exception("assignment.log_error", exc_info=exc)
 
 
 # ------------------------------------------------------------------

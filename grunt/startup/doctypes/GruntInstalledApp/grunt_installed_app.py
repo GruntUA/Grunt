@@ -4,14 +4,11 @@ import shutil
 from pathlib import Path
 from typing import Any
 
-import structlog
-
 import grunt
 from grunt.api.context import whitelist
 from grunt.app import grunt as grunt_app
 from grunt.document.base import Document
-
-logger = structlog.get_logger(__name__)
+from grunt.log import log
 
 
 class GruntInstalledApp(Document):
@@ -25,7 +22,7 @@ class GruntInstalledApp(Document):
 
         # Refuse to physically delete core framework
         if name == "grunt":
-            logger.warning(
+            log.warning(
                 "Attempted to delete core 'grunt' app files from disk, blocked by safety check."
             )
             return
@@ -35,16 +32,16 @@ class GruntInstalledApp(Document):
 
         if app_path.exists() and app_path.is_dir():
             shutil.rmtree(app_path)
-            logger.info(f"Physically deleted app files for '{name}' at {app_path}")
+            log.info(f"Physically deleted app files for '{name}' at {app_path}")
 
         # Clean up associated Workspaces
         workspaces = await grunt_app.get_list("AppMenu", filters={"app": name})
         for ws in workspaces:
             try:
                 await grunt_app.delete_doc("AppMenu", ws["name"])
-                logger.info(f"Deleted workspace {ws['name']} associated with app {name}")
+                log.info(f"Deleted workspace {ws['name']} associated with app {name}")
             except Exception as e:
-                logger.error(f"Failed to delete workspace {ws['name']}: {e}")
+                log.error(f"Failed to delete workspace {ws['name']}: {e}")
 
 
 @whitelist()

@@ -13,15 +13,14 @@ import os
 from typing import TYPE_CHECKING
 
 import pyotp
-import structlog
 from fastapi import HTTPException
 
 from grunt.app import grunt as grunt_app
+from grunt.log import log
 
 if TYPE_CHECKING:
     from grunt.auth.doctypes.User.user import User
 
-logger = structlog.get_logger()
 
 _APP_NAME = "Grunt"
 _BACKUP_CODE_COUNT = 8
@@ -114,7 +113,7 @@ async def begin_mfa_setup(user: User) -> dict:
 
     secret = generate_mfa_secret()
     await grunt_app.db.set_value("User", user.id, {"mfa_secret": secret, "mfa_enabled": False})
-    logger.info("mfa.setup_started", user=user.email)
+    log.info("mfa.setup_started", user=user.email)
     return {
         "secret": secret,
         "qr_svg": get_qr_code_svg(secret, user.email),
@@ -148,7 +147,7 @@ async def confirm_mfa_setup(user: User, code: str) -> list[str]:
             "mfa_backup_codes": json.dumps(backup_hashes),
         },
     )
-    logger.info("mfa.enabled", user=user.email)
+    log.info("mfa.enabled", user=user.email)
     return backup_codes
 
 
@@ -163,7 +162,7 @@ async def disable_mfa(user: User) -> None:
             "mfa_backup_codes": None,
         },
     )
-    logger.info("mfa.disabled", user=user.email)
+    log.info("mfa.disabled", user=user.email)
 
 
 async def check_mfa_code(user: User, code: str, session: object | None = None) -> None:
@@ -211,7 +210,7 @@ async def check_mfa_code(user: User, code: str, session: object | None = None) -
             await grunt_app.db.set_value(
                 "User", user.id, {"mfa_backup_codes": json.dumps(remaining)}
             )
-            logger.info("mfa.backup_code_used", user=user.email, remaining=len(remaining))
+            log.info("mfa.backup_code_used", user=user.email, remaining=len(remaining))
             return
 
         raise HTTPException(401, detail="Невірний код MFA")

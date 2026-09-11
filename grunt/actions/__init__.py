@@ -39,8 +39,6 @@ bare string (treated as ``{"message": ...}``), or nothing.
 
 from __future__ import annotations
 
-import structlog
-
 import grunt
 from grunt.actions.registry import (
     DOC_ACTION_SOURCE,
@@ -50,8 +48,7 @@ from grunt.actions.registry import (
     get_doc_action,
     register_doc_action,
 )
-
-logger = structlog.get_logger()
+from grunt.log import log
 
 __all__ = [
     "DOC_ACTION_SOURCE",
@@ -78,9 +75,9 @@ def load_app_doc_actions(module_paths: list[str], *, app: str | None = None) -> 
     for mod_path in module_paths:
         try:
             importlib.import_module(mod_path)
-            logger.info("doc_actions.module_loaded", module=mod_path, app=app)
+            log.info("doc_actions.module_loaded", module=mod_path, app=app)
         except Exception as exc:  # pragma: no cover - defensive, mirrors hooks loader
-            logger.warning("doc_actions.module_error", module=mod_path, app=app, error=str(exc))
+            log.warning("doc_actions.module_error", module=mod_path, app=app, error=str(exc))
 
 
 def enrich_doctype_actions(data: dict) -> None:
@@ -188,7 +185,7 @@ async def run(doctype: str, action: str, doc_id: str, args: dict | None = None) 
     doc.setdefault("doctype", doctype)
     doc.setdefault("name", doc_id)
 
-    logger.info("doc_action.run", doctype=doctype, action=action, doc_id=doc_id)
+    log.info("doc_action.run", doctype=doctype, action=action, doc_id=doc_id)
     result = await spec.run(doc, args=args or {})
 
     if result is None:

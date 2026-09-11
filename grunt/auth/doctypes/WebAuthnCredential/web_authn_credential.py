@@ -11,12 +11,9 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import Any
 
-import structlog
-
 import grunt
 from grunt.document.base import Document
-
-logger = structlog.get_logger()
+from grunt.log import log
 
 
 class WebAuthnCredential(Document):
@@ -97,7 +94,7 @@ async def delete_passkey(name: str) -> bool:
     assert current.id is not None
     target = await _owned_passkey(name, current.id)
     await grunt.delete_doc("WebAuthnCredential", target)
-    logger.info("webauthn.passkey_removed", user=current.email, credential=target)
+    log.info("webauthn.passkey_removed", user=current.email, credential=target)
     return True
 
 

@@ -11,9 +11,7 @@ from __future__ import annotations
 
 import json
 
-import structlog
-
-logger = structlog.get_logger()
+from grunt.log import log
 
 _VAPID_PRIVATE_KEY_FIELD = "webpush_vapid_private"
 _VAPID_PUBLIC_KEY_FIELD = "webpush_vapid_public"
@@ -63,7 +61,7 @@ class WebPushService:
         import importlib.util
 
         if importlib.util.find_spec("py_vapid") is None:
-            logger.warning("webpush.pywebpush_not_installed")
+            log.warning("webpush.pywebpush_not_installed")
             return None
 
         from grunt.app import grunt
@@ -85,10 +83,10 @@ class WebPushService:
                 "SystemSettings", "SystemSettings", _VAPID_PUBLIC_KEY_FIELD, public_b64
             )
 
-            logger.info("webpush.vapid_keys_generated")
+            log.info("webpush.vapid_keys_generated")
             return public_b64
         except Exception as exc:
-            logger.warning("webpush.ensure_keys_failed", error=str(exc))
+            log.warning("webpush.ensure_keys_failed", error=str(exc))
             return None
 
     async def save_subscription(
@@ -168,7 +166,7 @@ class WebPushService:
                     vapid_claims={"sub": _VAPID_CLAIMS_SUB, "aud": sub["endpoint"].split("/")[2]},
                 )
             except Exception as exc:
-                logger.warning("webpush.send_failed", user=user, error=str(exc))
+                log.warning("webpush.send_failed", user=user, error=str(exc))
 
 
 webpush_service = WebPushService()

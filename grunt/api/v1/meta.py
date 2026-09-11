@@ -4,16 +4,13 @@ from __future__ import annotations
 
 from typing import Any
 
-import structlog
-
 import grunt
+from grunt.log import log
 from grunt.metadata.compiler import DuplicateDataError, get_table_name, sync_table
 from grunt.metadata.doctype import DocType
 from grunt.metadata.dynamic_options import get_schemas, resolve_field_options
 from grunt.metadata.registry import doctype_registry
 from grunt.metadata.scaffold import export_doctype_files
-
-logger = structlog.get_logger()
 
 
 async def _dump_doctype(dt: DocType, *, translate: bool = False) -> dict[str, Any]:
@@ -165,9 +162,7 @@ def _compaction_footprint_bytes(conn: Any, table_name: str, dialect: str) -> int
         return page_count * page_size
     if dialect == "postgresql":
         return int(
-            conn.execute(
-                sa.text("SELECT pg_total_relation_size(:t)"), {"t": table_name}
-            ).scalar()
+            conn.execute(sa.text("SELECT pg_total_relation_size(:t)"), {"t": table_name}).scalar()
             or 0
         )
     if dialect in ("mysql", "mariadb"):
@@ -259,7 +254,7 @@ async def compact_table(name: str) -> dict[str, Any]:
         aconn = await aconn.execution_options(isolation_level="AUTOCOMMIT")
         await aconn.run_sync(_run)
 
-    logger.info(
+    log.info(
         "meta.compact_table",
         doctype=dt.name,
         table=table_name,
@@ -310,9 +305,7 @@ async def table_info(name: str) -> dict[str, Any]:
         if not conn.dialect.has_table(conn, table_name):
             return
         info["exists"] = True
-        info["row_count"] = conn.execute(
-            sa.text(f'SELECT COUNT(*) FROM "{table_name}"')
-        ).scalar()
+        info["row_count"] = conn.execute(sa.text(f'SELECT COUNT(*) FROM "{table_name}"')).scalar()
 
         if dialect == "sqlite":
             try:
@@ -321,16 +314,14 @@ async def table_info(name: str) -> dict[str, Any]:
                     r[0]
                     for r in conn.execute(
                         sa.text(
-                            "SELECT name FROM sqlite_master "
-                            "WHERE type = 'index' AND tbl_name = :t"
+                            "SELECT name FROM sqlite_master WHERE type = 'index' AND tbl_name = :t"
                         ),
                         {"t": table_name},
                     )
                 ]
                 rows = conn.execute(
                     sa.text(
-                        "SELECT name, SUM(pgsize) FROM dbstat "
-                        "WHERE name IN :names GROUP BY name"
+                        "SELECT name, SUM(pgsize) FROM dbstat WHERE name IN :names GROUP BY name"
                     ).bindparams(sa.bindparam("names", expanding=True)),
                     {"names": [table_name, *idx_names]},
                 ).all()
@@ -346,12 +337,11 @@ async def table_info(name: str) -> dict[str, Any]:
                 info["reclaimable_bytes"] = freelist * page_size
                 info["reclaim_scope"] = "database"
             except Exception:
-                logger.debug("table_info.dbstat_unavailable", table=table_name)
+                log.debug("table_info.dbstat_unavailable", table=table_name)
         elif dialect == "postgresql":
             row = conn.execute(
                 sa.text(
-                    "SELECT pg_table_size(:t), pg_indexes_size(:t), "
-                    "pg_total_relation_size(:t)"
+                    "SELECT pg_table_size(:t), pg_indexes_size(:t), pg_total_relation_size(:t)"
                 ),
                 {"t": table_name},
             ).one()
@@ -413,7 +403,7 @@ async def search_meta(q: str, limit: int = 20) -> list[dict[str, Any]]:
         for r in reports:
             results.append({"doctype": "Report", "name": r["name"], "display_title": r["name"]})
     except Exception:
-        logger.exception("suppressed_error")
+        log.exception("suppressed_error")
     return results[: int(limit)]
 
 
@@ -516,7 +506,7 @@ async def fix_link_uuids(doctype: str | None = None) -> dict[str, Any]:
                 n = result.rowcount or 0
                 if n:
                     count += n
-                    logger.info(
+                    log.info(
                         "fix_link_uuids.fixed",
                         doctype=dt.name,
                         field=fieldname,
@@ -532,7 +522,7 @@ async def fix_link_uuids(doctype: str | None = None) -> dict[str, Any]:
     async with engine.connect() as aconn:
         await aconn.run_sync(_fix_all)
 
-    logger.info("fix_link_uuids.done", total=updated_total)
+    log.info("fix_link_uuids.done", total=updated_total)
     return {"total_rows_fixed": updated_total, "details": report}
 
 

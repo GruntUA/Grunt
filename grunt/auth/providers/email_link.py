@@ -26,18 +26,16 @@ import secrets
 from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING, Any, ClassVar
 
-import structlog
-
 from grunt.api.messages import throw
 from grunt.auth.providers.base import AuthFlowContext, AuthProvider
 from grunt.auth.providers.registry import register
 from grunt.auth.service import create_challenge_token, verify_challenge_token
 from grunt.config import settings
+from grunt.log import log
 
 if TYPE_CHECKING:
     from grunt.auth.doctypes.User.user import User
 
-logger = structlog.get_logger()
 
 _CODE_PURPOSE = "email-login-code"
 _LINK_PURPOSE = "email-login-link"
@@ -129,9 +127,7 @@ class EmailLoginProvider(AuthProvider):
             if await is_account_locked(user):
                 throw("Забагато невдалих спроб. Спробуйте пізніше.", "RATE_LIMITED")
 
-        if not hmac.compare_digest(
-            str(row.get("code_hash") or ""), _hash_code(email, code)
-        ):
+        if not hmac.compare_digest(str(row.get("code_hash") or ""), _hash_code(email, code)):
             if user is not None:
                 await register_failed_attempt(user)
             # A wrong guess does NOT burn the token — the user can retry.
@@ -244,7 +240,7 @@ class EmailLoginProvider(AuthProvider):
                 {"code": code, "login_url": login_url, "ttl_minutes": _TTL_MINUTES},
             )
         except Exception:
-            logger.warning("auth.email_login.template_failed")
+            log.warning("auth.email_login.template_failed")
             html_body = None
 
         session = require_session()
@@ -262,9 +258,9 @@ class EmailLoginProvider(AuthProvider):
         )
         await session.flush()
         if not queued:
-            logger.warning("auth.email_login.queue_failed", email=email)
+            log.warning("auth.email_login.queue_failed", email=email)
         else:
-            logger.info("auth.email_login.sent", email=email)
+            log.info("auth.email_login.sent", email=email)
 
 
 def register_provider() -> None:

@@ -23,22 +23,18 @@ from __future__ import annotations
 
 from typing import Any
 
-import structlog
 from sqlalchemy import distinct, func, select
 
 import grunt
 from grunt.document.meta import Meta
+from grunt.log import log
 from grunt.metadata.doctype import DocTypeLink
 from grunt.metadata.registry import doctype_registry
-
-logger = structlog.get_logger()
 
 _PREVIEW_LIMIT = 5
 
 
-async def _child_link_stats(
-    link: DocTypeLink, doc_name: str
-) -> tuple[int, list[dict[str, Any]]]:
+async def _child_link_stats(link: DocTypeLink, doc_name: str) -> tuple[int, list[dict[str, Any]]]:
     """Count + preview for a via-child-table link."""
     from grunt.app import grunt as grunt_app
 
@@ -56,16 +52,12 @@ async def _child_link_stats(
     parents_subq = select(distinct(child_table.c.parent_name)).where(*where)
     total = await session.scalar(select(func.count()).select_from(parents_subq.subquery())) or 0
 
-    parent_names = (
-        (await session.execute(parents_subq.limit(_PREVIEW_LIMIT))).scalars().all()
-    )
+    parent_names = (await session.execute(parents_subq.limit(_PREVIEW_LIMIT))).scalars().all()
     preview = await _resolve_titles(link.link_doctype, list(parent_names))
     return int(total), preview
 
 
-async def _direct_link_stats(
-    link: DocTypeLink, doc_name: str
-) -> tuple[int, list[dict[str, Any]]]:
+async def _direct_link_stats(link: DocTypeLink, doc_name: str) -> tuple[int, list[dict[str, Any]]]:
     """Count + preview for a direct reverse-Link link."""
     filters = {link.link_fieldname: doc_name}
     total = await grunt.count(link.link_doctype, filters=filters)
@@ -81,10 +73,7 @@ async def _direct_link_stats(
         order_by="modified_at",
         order="desc",
     )
-    preview = [
-        {"name": r["name"], "title": r.get(title_field) or r["name"]}
-        for r in rows
-    ]
+    preview = [{"name": r["name"], "title": r.get(title_field) or r["name"]} for r in rows]
     return int(total), preview
 
 
@@ -135,9 +124,7 @@ async def get_connections(doctype: str, doc_id: str) -> dict[str, Any]:
             else:
                 count, preview = await _direct_link_stats(link, doc_name)
         except Exception:
-            logger.exception(
-                "connections.link_error", doctype=doctype, link_doctype=link.link_doctype
-            )
+            log.exception("connections.link_error", doctype=doctype, link_doctype=link.link_doctype)
             continue
 
         link_dt = await doctype_registry.get(link.link_doctype)
@@ -152,8 +139,4 @@ async def get_connections(doctype: str, doc_id: str) -> dict[str, Any]:
             }
         )
 
-    return {
-        "groups": [
-            {"name": name, "links": items} for name, items in groups.items()
-        ]
-    }
+    return {"groups": [{"name": name, "links": items} for name, items in groups.items()]}

@@ -6,9 +6,7 @@ accepted-language set in sync with the ``geo.Language`` table.
 
 from __future__ import annotations
 
-import structlog
-
-logger = structlog.get_logger()
+from grunt.log import log
 
 
 async def refresh_supported_languages(**_kwargs: object) -> None:
@@ -25,7 +23,7 @@ async def refresh_supported_languages(**_kwargs: object) -> None:
             "Language", filters={"is_active": True}, fields=["code"], limit=None
         )
     except Exception as e:  # noqa: BLE001
-        logger.debug("i18n.refresh_languages_skipped", error=str(e))
+        log.debug("i18n.refresh_languages_skipped", error=str(e))
         return
 
     codes = {r["code"] for r in rows if r.get("code")}

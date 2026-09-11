@@ -5,8 +5,7 @@ from __future__ import annotations
 from contextlib import asynccontextmanager
 from typing import TYPE_CHECKING
 
-import structlog
-
+from grunt.log import log
 from grunt.site.manager import site_manager
 
 if TYPE_CHECKING:
@@ -16,9 +15,6 @@ if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 
-logger = structlog.get_logger()
-
-
 def _bind_session_context(session: AsyncSession) -> None:
     """Set *session* in the Grunt API context (lazy import to avoid cycles)."""
     try:
@@ -26,7 +22,7 @@ def _bind_session_context(session: AsyncSession) -> None:
 
         _set(session)
     except ImportError:
-        logger.debug("suppressed_expected_error", exc_info=True)
+        log.debug("suppressed_expected_error", exc_info=True)
 
 
 def _clear_session_context() -> None:
@@ -35,7 +31,7 @@ def _clear_session_context() -> None:
 
         _clear()
     except ImportError:
-        logger.debug("suppressed_expected_error", exc_info=True)
+        log.debug("suppressed_expected_error", exc_info=True)
 
 
 @asynccontextmanager
@@ -83,7 +79,7 @@ async def get_engine() -> AsyncEngine:
 
         _set(engine)
     except ImportError:
-        logger.debug("suppressed_expected_error", exc_info=True)
+        log.debug("suppressed_expected_error", exc_info=True)
 
     return engine
 

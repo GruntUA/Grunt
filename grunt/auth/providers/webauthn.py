@@ -14,7 +14,6 @@ from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any, ClassVar
 from urllib.parse import urlparse
 
-import structlog
 import webauthn
 
 from grunt.api.messages import throw
@@ -22,11 +21,11 @@ from grunt.auth.providers.base import AuthFlowContext, AuthProvider
 from grunt.auth.providers.registry import register
 from grunt.auth.service import create_challenge_token, verify_challenge_token
 from grunt.config import settings
+from grunt.log import log
 
 if TYPE_CHECKING:
     from grunt.auth.doctypes.User.user import User
 
-logger = structlog.get_logger()
 
 _AUTH_PURPOSE = "webauthn-auth"
 _REG_PURPOSE = "webauthn-reg"
@@ -78,7 +77,7 @@ def _resolve_rp(request: Any) -> tuple[str, str]:
         and "localhost" not in origin
         and "127.0.0.1" not in origin
     ):
-        logger.warning(
+        log.warning(
             "webauthn.insecure_origin",
             origin=origin,
             hint="WebAuthn requires HTTPS — set WEBAUTHN_ORIGIN / serve over TLS",
@@ -221,7 +220,7 @@ class WebAuthnProvider(AuthProvider):
                 require_user_verification=False,
             )
         except Exception as exc:  # library raises InvalidAuthenticationResponse
-            logger.warning("webauthn.verify_failed", error=str(exc))
+            log.warning("webauthn.verify_failed", error=str(exc))
             throw("Passkey verification failed", "UNAUTHORIZED")
 
         async with grunt.system_context(grunt._require_session()):
@@ -320,16 +319,14 @@ class WebAuthnProvider(AuthProvider):
                 require_user_verification=False,
             )
         except Exception as exc:
-            logger.warning("webauthn.register_failed", error=str(exc))
+            log.warning("webauthn.register_failed", error=str(exc))
             throw("Passkey registration failed", "VALIDATION_ERROR")
 
         credential_id = webauthn.helpers.bytes_to_base64url(reg.credential_id)
         if await _credential_by_id(credential_id):
             throw("This passkey is already registered", "CONFLICT")
 
-        transports = ",".join(
-            (response.get("response") or {}).get("transports") or []
-        )
+        transports = ",".join((response.get("response") or {}).get("transports") or [])
         async with grunt.system_context(require_session()):
             doc = await grunt.new_doc(
                 _CRED,
@@ -345,7 +342,7 @@ class WebAuthnProvider(AuthProvider):
                     "last_used_at": datetime.now(UTC),
                 },
             )
-        logger.info("webauthn.registered", user=user.email, credential=doc["name"])
+        log.info("webauthn.registered", user=user.email, credential=doc["name"])
         return {"name": doc["name"], "label": label}
 
 

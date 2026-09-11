@@ -5,12 +5,10 @@ from __future__ import annotations
 from typing import Any
 
 import aiosmtplib
-import structlog
 
 import grunt
 from grunt.email.service import SMTP_PASSWORD_MASK, EmailService, smtp_connect_kwargs
-
-logger = structlog.get_logger()
+from grunt.log import log
 
 
 def _mask_password(account: dict[str, Any]) -> dict[str, Any]:
@@ -35,9 +33,7 @@ async def test_smtp_connection(
     back).
     """
     if account_id and (not smtp_password or smtp_password == SMTP_PASSWORD_MASK):
-        smtp_password = await grunt.db.get_value(
-            "EmailAccount", account_id, "smtp_password"
-        )
+        smtp_password = await grunt.db.get_value("EmailAccount", account_id, "smtp_password")
     try:
         async with aiosmtplib.SMTP(
             timeout=10,
@@ -66,11 +62,12 @@ async def send_test_email(account_id: str, recipient: str) -> dict[str, Any]:
         return {"success": False, "error": "Для цього облікового запису вимкнена вихідна пошта."}
 
     # Reads mask the password — pull the real one straight from the column.
-    account["smtp_password"] = await grunt.db.get_value(
-        "EmailAccount", account_id, "smtp_password"
-    )
+    account["smtp_password"] = await grunt.db.get_value("EmailAccount", account_id, "smtp_password")
     if not account["smtp_password"]:
-        return {"success": False, "error": "Пароль SMTP не збережено. Збережіть обліковий запис із паролем."}
+        return {
+            "success": False,
+            "error": "Пароль SMTP не збережено. Збережіть обліковий запис із паролем.",
+        }
 
     try:
         await EmailService.send_now(
@@ -87,7 +84,7 @@ async def send_test_email(account_id: str, recipient: str) -> dict[str, Any]:
         )
         return {"success": True}
     except Exception as e:
-        logger.warning("email.test_send_failed", account=account_id, error=str(e))
+        log.warning("email.test_send_failed", account=account_id, error=str(e))
         return {"success": False, "error": str(e)}
 
 

@@ -9,11 +9,8 @@ import re
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
-import structlog
-
 import grunt
-
-logger = structlog.get_logger()
+from grunt.log import log
 
 _TIMESPAN_DAYS = {
     "last_week": 7,
@@ -79,8 +76,8 @@ def _widget_filters(widget: Any) -> dict[str, Any]:
     elif isinstance(raw, str):
         try:
             parsed = json.loads(raw)
-        except (TypeError, ValueError):
-            logger.warning("dashboard.bad_filters", filters=raw)
+        except TypeError, ValueError:
+            log.warning("dashboard.bad_filters", filters=raw)
             return {}
     else:
         return {}
@@ -92,7 +89,7 @@ def _widget_filters(widget: Any) -> dict[str, Any]:
 
 
 def _log_widget_failed(doctype_name: str, widget_type: str) -> None:
-    logger.warning(
+    log.warning(
         "dashboard.widget_failed",
         doctype=doctype_name,
         widget_type=widget_type,
@@ -106,7 +103,7 @@ def _as_number(value: Any) -> float:
         return float(value)
     try:
         return float(str(value))
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         return 0.0
 
 
@@ -216,12 +213,9 @@ async def _widget_chart(widget, dt, doctype_name, since, until, days, base_filte
             )
             # build lookup: (date, group) -> count
             lookup: dict[tuple[str, str], int] = {
-                (str(r.get(date_expr)), str(r.get(group_by))): int(r.get("cnt") or 0)
-                for r in rows
+                (str(r.get(date_expr)), str(r.get(group_by))): int(r.get("cnt") or 0) for r in rows
             }
-            groups = {
-                gv: [lookup.get((lbl, gv), 0) for lbl in all_labels] for gv in group_values
-            }
+            groups = {gv: [lookup.get((lbl, gv), 0) for lbl in all_labels] for gv in group_values}
             return {"labels": all_labels, "groups": groups}
         else:
             rows = await grunt.db.aggregate(
@@ -330,9 +324,7 @@ async def _widget_heatmap(widget, dt, doctype_name, since, until, days, base_fil
             order="asc",
         )
         return {
-            "entries": [
-                {"date": str(r.get(group_by_expr)), "count": r.get("cnt")} for r in rows
-            ]
+            "entries": [{"date": str(r.get(group_by_expr)), "count": r.get("cnt")} for r in rows]
         }
     except Exception:
         _log_widget_failed(doctype_name, "heatmap")
@@ -475,7 +467,7 @@ async def _compute_widget_data(
         try:
             dt = await doctype_registry.get(doctype_name)
         except Exception:
-            logger.warning("dashboard.unknown_doctype", doctype=doctype_name, exc_info=True)
+            log.warning("dashboard.unknown_doctype", doctype=doctype_name, exc_info=True)
             return None
 
     period_key = widget.get("period") or "last_month"
@@ -537,7 +529,7 @@ async def _get_widget_data(
                 w_dict, global_since=global_since, global_until=global_until
             )
         except Exception:
-            logger.warning(
+            log.warning(
                 "dashboard.widget_compute_failed",
                 widget=w_dict.get("name"),
                 exc_info=True,

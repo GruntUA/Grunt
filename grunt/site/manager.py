@@ -5,7 +5,6 @@ from pathlib import Path
 from typing import Any
 
 import dotenv
-import structlog
 from sqlalchemy import event
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
@@ -15,6 +14,7 @@ from sqlalchemy.ext.asyncio import (
 )
 
 from grunt.config import settings
+from grunt.log import log
 
 _UK_ALPHABET = "абвгґдеєжзиіїйклмнопрстуфхцчшщьюя"
 _UK_ORDER = {ch: i for i, ch in enumerate(_UK_ALPHABET)}
@@ -38,8 +38,6 @@ def _uk_sort_key(s: str) -> str:
             out.append(ch)
     return "".join(out)
 
-
-logger = structlog.get_logger()
 
 # Context variable to hold the name of the currently active site
 current_site: ContextVar[str] = ContextVar("current_site", default="")
@@ -84,7 +82,7 @@ class SiteManager:
             # guess two levels up from cwd (matches apps/<app>/ as cwd, the
             # common case when running a bench command from an app dir).
             bench_dir = Path.cwd().parent.parent.resolve()
-            logger.warning(
+            log.warning(
                 "site_manager.bench_dir_guessed",
                 cwd=str(Path.cwd()),
                 guessed=str(bench_dir),
@@ -129,7 +127,7 @@ class SiteManager:
         try:
             config = json.loads(site_file.read_text(encoding="utf-8"))
         except (OSError, ValueError) as exc:
-            logger.error("site_manager.config_read_error", site=site_name, error=str(exc))
+            log.error("site_manager.config_read_error", site=site_name, error=str(exc))
             return []
         return list(config.get("installed_apps", []))
 
@@ -153,7 +151,7 @@ class SiteManager:
         try:
             return dotenv.dotenv_values(env_path)
         except Exception as e:
-            logger.error("site_manager.env_read_error", site=site_name, error=str(e))
+            log.error("site_manager.env_read_error", site=site_name, error=str(e))
             return {}
 
     def get_database_url(self, site_name: str) -> str:
@@ -228,7 +226,7 @@ class SiteManager:
             )
             # Safe logging: avoid logging password
             safe_url = db_url.split("@")[-1] if "@" in db_url else db_url
-            logger.info("site_manager.engine_created", site=site_name, db_url=safe_url)
+            log.info("site_manager.engine_created", site=site_name, db_url=safe_url)
 
         return self.engines[site_name]
 

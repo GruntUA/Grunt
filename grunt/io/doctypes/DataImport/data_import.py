@@ -2,13 +2,10 @@ import json
 from pathlib import Path
 from typing import Any
 
-import structlog
-
 from grunt.document.base import Document
 from grunt.document.meta import Meta
+from grunt.log import log
 from grunt.metadata.registry import doctype_registry
-
-logger = structlog.get_logger()
 
 
 class DataImport(Document):
@@ -178,7 +175,7 @@ class DataImport(Document):
                 },
             )
         except Exception:
-            logger.exception("suppressed_error")
+            log.exception("suppressed_error")
 
     async def _resolve_file_path(self) -> Path:
         """Resolve the attached file reference to an absolute Path.

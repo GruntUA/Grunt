@@ -2,8 +2,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, ParamSpec, TypeVar
 
-import structlog
 from taskiq import AsyncBroker, AsyncTaskiqDecoratedTask, InMemoryBroker, SmartRetryMiddleware
+
+from grunt.log import log
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -15,7 +16,6 @@ from grunt.tasks.middleware import BackgroundTaskLoggingMiddleware
 _P = ParamSpec("_P")
 _R = TypeVar("_R")
 
-logger = structlog.get_logger()
 
 # Default retry configuration
 _DEFAULT_MAX_RETRIES = 3
@@ -35,14 +35,14 @@ if settings.redis_url:
         BackgroundTaskLoggingMiddleware(),
         _retry_middleware,
     )
-    logger.info("tasks.broker_initialized", type="redis_stream", url=settings.redis_url)
+    log.info("tasks.broker_initialized", type="redis_stream", url=settings.redis_url)
 else:
     # Fallback to In-Memory broker for local dev without Redis
     broker = InMemoryBroker().with_middlewares(
         BackgroundTaskLoggingMiddleware(),
         _retry_middleware,
     )
-    logger.warning("tasks.broker_initialized", type="in_memory", reason="REDIS_URL not set")
+    log.warning("tasks.broker_initialized", type="in_memory", reason="REDIS_URL not set")
 
 
 def task(*args, **kwargs):

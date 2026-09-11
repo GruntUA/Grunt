@@ -6,9 +6,7 @@ turn a raw document reference into a display label without one query per row.
 
 from __future__ import annotations
 
-import structlog
-
-logger = structlog.get_logger()
+from grunt.log import log
 
 
 async def resolve_reference_titles(
@@ -32,7 +30,7 @@ async def resolve_reference_titles(
         try:
             dt = await doctype_registry.get(dt_name)
         except Exception:
-            logger.debug("titles.doctype_not_found", doctype=dt_name)
+            log.debug("titles.doctype_not_found", doctype=dt_name)
             continue
         title_field = dt.title_field
         if not title_field or title_field == "name":
@@ -45,7 +43,7 @@ async def resolve_reference_titles(
                 limit=len(ids),
             )
         except Exception:
-            logger.debug("titles.title_lookup_failed", doctype=dt_name)
+            log.debug("titles.title_lookup_failed", doctype=dt_name)
             continue
         for r in rows:
             if r.get(title_field):
