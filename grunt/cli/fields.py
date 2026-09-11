@@ -38,9 +38,9 @@ def fields_group() -> None:
 def sync_manifests(check: bool) -> None:
     """Sync each field type's storage_class in its frontend manifest.json.
 
-    storage_class mirrors FieldType.sa_factory (grunt/metadata/field.py) so the
+    storage_class mirrors FieldType.column_spec (grunt/metadata/field.py) so the
     DocType «Конструктор» can warn about DB retypes without a backend round-trip.
-    Run this after adding a field type or changing its sa_factory, so manifest.json
+    Run this after adding a field type or changing its column_spec, so manifest.json
     never has to be hand-edited to match.
     """
     from grunt.metadata.field import get_registered_fieldtypes, get_storage_class

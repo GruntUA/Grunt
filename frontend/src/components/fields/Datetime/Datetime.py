@@ -5,7 +5,7 @@ from grunt.metadata.field import FieldType, register_field_type_class
 
 class DatetimeField(FieldType):
     name = "Datetime"
-    sa_factory = staticmethod(lambda f: ("DateTime",))
+    column_spec = staticmethod(lambda f: ("DateTime",))
     empty_as_null = True
     python_type = "datetime | None"
 

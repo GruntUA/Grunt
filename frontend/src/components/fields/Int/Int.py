@@ -3,7 +3,7 @@ from grunt.metadata.field import FieldType, register_field_type_class
 
 class IntField(FieldType):
     name = "Int"
-    sa_factory = staticmethod(lambda f: ("Integer",))
+    column_spec = staticmethod(lambda f: ("Integer",))
     empty_as_null = True
     python_type = "int | None"
 

@@ -30,7 +30,7 @@ class FieldType:
     """
 
     name: ClassVar[str] = ""
-    sa_factory: ClassVar[Any] = None  # Callable[[DocField], tuple] | None
+    column_spec: ClassVar[Any] = None  # Callable[[DocField], tuple] | None
     searchable: ClassVar[bool] = True
     empty_as_null: ClassVar[bool] = False
     python_type: ClassVar[str] = "Any | None"
@@ -51,7 +51,7 @@ class FieldType:
 
 # ── Registry ──────────────────────────────────────────────────────────────────
 
-# The FieldType class registry is the single source of truth — sa_factory/
+# The FieldType class registry is the single source of truth — column_spec/
 # searchable/empty_as_null/python_type are read straight off the registered
 # class (falling back to FieldType's own class-level defaults for unknown
 # types), instead of mirroring them into parallel dicts that a new FieldType
@@ -77,7 +77,7 @@ def get_registered_fieldtypes() -> list[str]:
     return list(_FIELD_TYPE_REGISTRY.keys())
 
 
-# sa_factory's first tuple element (the SQLAlchemy type family) collapsed to the
+# column_spec's first tuple element (the SQLAlchemy type family) collapsed to the
 # coarse storage class the DocType «Конструктор» warns about on a fieldtype
 # change — see get_storage_class().
 _SA_TYPE_STORAGE_CLASS: dict[str, str] = {
@@ -96,17 +96,17 @@ _SA_TYPE_STORAGE_CLASS: dict[str, str] = {
 def get_storage_class(fieldtype: str) -> str:
     """Return the coarse storage class ('text', 'int', ..., 'none') for *fieldtype*.
 
-    Derived from ``sa_factory`` — the same source :meth:`DocField.to_sa_column` uses
-    to build the real column — so it can't drift from it. ``sa_factory`` only needs
+    Derived from ``column_spec`` — the same source :meth:`DocField.to_sa_column` uses
+    to build the real column — so it can't drift from it. ``column_spec`` only needs
     an object with the DocField attributes it reads (e.g. ``max_length``); none of
     them affect the resulting SQLAlchemy type family, so a bare stand-in is enough.
     Consumed by ``grunt fields sync-manifests`` to keep each field type's frontend
     manifest.json in sync instead of that mapping being hand-copied there.
     """
     cls = get_field_type_class(fieldtype)
-    if cls.sa_factory is None:
+    if cls.column_spec is None:
         return "none"
-    sa_type_name = cls.sa_factory(SimpleNamespace(max_length=None))[0]
+    sa_type_name = cls.column_spec(SimpleNamespace(max_length=None))[0]
     return _SA_TYPE_STORAGE_CLASS.get(sa_type_name, "text")
 
 
@@ -197,13 +197,13 @@ discover_field_types()
 # ── Convenience predicates ────────────────────────────────────────────────────
 
 NON_PHYSICAL_FIELDS: frozenset[str] = frozenset(
-    name for name, cls in _FIELD_TYPE_REGISTRY.items() if cls.sa_factory is None
+    name for name, cls in _FIELD_TYPE_REGISTRY.items() if cls.column_spec is None
 )
 
 
 def is_physical_fieldtype(fieldtype: str) -> bool:
     """Return True if *fieldtype* produces a column in the database."""
-    return get_field_type_class(fieldtype).sa_factory is not None
+    return get_field_type_class(fieldtype).column_spec is not None
 
 
 def is_empty_as_null_fieldtype(fieldtype: str) -> bool:
@@ -343,16 +343,15 @@ class DocField(BaseModel):
 
         from grunt.db.types import UtcDateTime
 
-        factory = get_field_type_class(self.fieldtype).sa_factory
-        if factory is None:
+        column_spec = get_field_type_class(self.fieldtype).column_spec
+        if column_spec is None:
             raise ValueError(
                 f"Field type '{self.fieldtype}' is virtual"
                 if self.is_virtual
                 else f"Field type '{self.fieldtype}' is non-physical or has no SA mapping"
             )
 
-        spec = factory(self)
-        sa_type_name, *args = spec
+        sa_type_name, *args = column_spec(self)
 
         _types = {
             "String": lambda a: String(a[0]) if a else String(255),

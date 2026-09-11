@@ -13,7 +13,7 @@ class PasswordField(FieldType):
     """
 
     name = "Password"
-    sa_factory = staticmethod(
+    column_spec = staticmethod(
         lambda f: ("String", max(_MIN_VARCHAR, min(f.max_length or 255, _MAX_VARCHAR)))
     )
     python_type = "str | None"

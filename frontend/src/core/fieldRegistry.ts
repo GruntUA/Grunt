@@ -28,7 +28,7 @@ import { defineAsyncComponent, type Component } from 'vue'
 /**
  * Storage-class hints for the DocType «Конструктор».
  *
- * Mirrors the backend `sa_factory` column mapping (grunt/metadata/field.py) closely
+ * Mirrors the backend `column_spec` column mapping (grunt/metadata/field.py) closely
  * enough to tell the user, when they change a field's `fieldtype` in the builder,
  * whether the underlying database column will be retyped — or added / dropped —
  * during the next `doctype sync`. Declared per field type in its own manifest.json,

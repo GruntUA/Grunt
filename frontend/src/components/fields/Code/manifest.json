@@ -1,1 +1,17 @@
-{"type": "Code", "label": "Code", "icon": "code", "category": "Текст", "non_groupable": true, "propertySections": ["core", "flags", "display", "text", "default", "options", "fetch_from"], "storage_class": "text"}
+{
+    "type": "Code",
+    "label": "Code",
+    "icon": "code",
+    "category": "Текст",
+    "non_groupable": true,
+    "propertySections": [
+        "core",
+        "flags",
+        "display",
+        "text",
+        "default",
+        "options",
+        "fetch_from"
+    ],
+    "storage_class": "text"
+}
