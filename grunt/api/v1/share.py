@@ -61,19 +61,49 @@ async def get_shared_document(token: str) -> dict[str, Any]:
 
     from grunt.document.meta import Meta
 
+    meta = Meta(dt)
     visible_fields = [
         {"fieldname": f.fieldname, "label": f.label, "fieldtype": f.fieldtype}
-        for f in Meta(dt).get_visible_fields()
+        for f in meta.get_visible_fields()
     ]
+
+    doc_out = {k: (str(v) if v is not None else None) for k, v in doc.items()}
+    await _inject_top_level_link_labels(meta, doc_out)
 
     return {
         "doctype": doctype_name,
         "doctype_label": dt.label,
         "doc_id": doc_id,
         "expires_at": share.get("expires_at"),
-        "doc": {k: (str(v) if v is not None else None) for k, v in doc.items()},
+        "doc": doc_out,
         "fields": visible_fields,
     }
+
+
+async def _inject_top_level_link_labels(meta: Any, doc: dict[str, Any]) -> None:
+    """Add ``fieldname__label`` for every Link field present on *doc*.
+
+    The share page is rendered server-side with no client JS to resolve link
+    labels itself (unlike the app's ``Link`` field component), so it needs the
+    display label baked into the response.
+    """
+    from grunt.document.meta import Meta
+    from grunt.metadata.registry import doctype_registry
+
+    link_fields = [f for f in meta.doc.fields if f.fieldtype == "Link" and f.options]
+    for lf in link_fields:
+        raw = doc.get(lf.fieldname)
+        if not raw:
+            continue
+        try:
+            target_dt = await doctype_registry.get(lf.options)
+        except Exception:
+            continue
+
+        title_field = Meta(target_dt).get_title_field()
+        row = await grunt.db.get_values(lf.options, raw, [title_field])
+        if row:
+            doc[f"{lf.fieldname}__label"] = str(row.get(title_field) or raw)
 
 
 @grunt.whitelist()

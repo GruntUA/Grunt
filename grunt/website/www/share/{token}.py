@@ -28,13 +28,17 @@ def _fmt_dt(raw: Any) -> str:
     return raw[:16].replace("T", " ") if isinstance(raw, str) and len(raw) >= 16 else (raw or "")
 
 
-def _row(label: str, fieldtype: str, raw: Any, description: str | None) -> dict[str, Any]:
+def _row(
+    label: str, fieldtype: str, raw: Any, description: str | None, display: Any = None
+) -> dict[str, Any]:
     if _is_image_value(fieldtype, raw):
         return {"label": label, "image_url": raw, "description": description}
     if raw in (None, ""):
         value = "—"
     elif fieldtype == "Check":
         value = "Так" if str(raw) in ("1", "true", "True") else "Ні"
+    elif fieldtype == "Link" and display not in (None, ""):
+        value = display
     else:
         value = raw
     return {
@@ -75,7 +79,13 @@ def _build_tabs(all_fields: list[Any], exposed: set[str], doc: dict[str, Any]) -
             if exposed and f.fieldname not in exposed:
                 continue
             section["cols"][-1].append(
-                _row(f.label or f.fieldname, ftype, doc.get(f.fieldname), f.description)
+                _row(
+                    f.label or f.fieldname,
+                    ftype,
+                    doc.get(f.fieldname),
+                    f.description,
+                    doc.get(f"{f.fieldname}__label"),
+                )
             )
 
     # Drop empty columns / sections / tabs so the layout has no hollow chrome.
