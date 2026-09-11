@@ -95,7 +95,7 @@ async def _resolve_titles(doctype: str, names: list[str]) -> list[dict[str, Any]
     title_field = dt.title_field or "name"
     fields = ["name"] if title_field == "name" else ["name", title_field]
     rows = await grunt.get_list(
-        doctype, filters={"name": ["in", names]}, fields=fields, limit=len(names)
+        doctype, filters={"name__in": names}, fields=fields, limit=len(names)
     )
     by_name = {r["name"]: (r.get(title_field) or r["name"]) for r in rows}
     return [{"name": n, "title": by_name.get(n, n)} for n in names]
