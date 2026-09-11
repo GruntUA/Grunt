@@ -169,6 +169,17 @@ function toggleFilter(event: Event) {
   filterAnchorEl.value = event.currentTarget as HTMLElement
   isFilterOpen.value = true
 }
+
+/**
+ * Link/MultiLink filter inputs teleport their result dropdown to <body>, outside
+ * this popover's DOM subtree — without this, clicking a result reads as an
+ * "outside" interaction and closes the whole filter popover before the click
+ * can register.
+ */
+function keepOpenForLinkDropdown(e: CustomEvent<{ originalEvent?: Event }>) {
+  const target = (e.detail?.originalEvent?.target ?? e.target) as HTMLElement | null
+  if (target?.closest?.('[data-link-dropdown]')) e.preventDefault()
+}
 </script>
 
 <template>
@@ -189,7 +200,11 @@ function toggleFilter(event: Event) {
 
     <Popover :open="isFilterOpen" @update:open="(v: boolean) => { isFilterOpen = v }">
       <PopoverAnchor :reference="filterAnchorEl ?? undefined" />
-      <PopoverContent class="w-[440px] p-3" align="start">
+      <PopoverContent
+        class="w-[440px] p-3" align="start"
+        @pointer-down-outside="keepOpenForLinkDropdown"
+        @focus-outside="keepOpenForLinkDropdown"
+      >
         <div class="space-y-2 max-h-72 overflow-y-auto">
           <div v-for="(row, i) in draftRows" :key="i" class="flex items-center gap-1.5">
             <Select :model-value="row.fieldname" @update:model-value="(v: unknown) => onFieldChange(row, String(v))">

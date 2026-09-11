@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, onUnmounted, useId } from 'vue'
 import { X, Loader2 } from '@lucide/vue'
 import type { DocField } from '@/types'
 import type { LinkSearchItem } from '@/core/api/docs'
@@ -7,6 +7,8 @@ import { docsApi, metaApi } from '@/core/api'
 import type { TreeNode } from '@/components/ui/tree-select'
 import { Input } from '@/components/ui/input'
 import { TreeSelect } from '@/components/ui/tree-select'
+import { escapeHtml } from '@/lib/utils'
+import { useAnchoredDropdown } from '@/core/composables/useAnchoredDropdown'
 
 const props = defineProps<{
   field: DocField
@@ -21,10 +23,16 @@ const emit = defineEmits<{
   'submit': []
 }>()
 
-const linkQuery = ref(props.displayValue || props.modelValue)
-const linkResults = ref<LinkSearchItem[]>([])
-const linkLoading = ref(false)
-const _suppressClear = ref(false)
+const query = ref(props.displayValue || props.modelValue)
+const results = ref<LinkSearchItem[]>([])
+const isLoading = ref(false)
+const isOpen = ref(false)
+const activeIdx = ref(-1)
+
+const anchorRef = ref<HTMLElement | null>(null)
+const { dropdownStyle, reposition } = useAnchoredDropdown(isOpen, anchorRef)
+const listboxId = useId()
+const optionId = (i: number) => `${listboxId}-opt-${i}`
 
 // Tree mode
 const isTree = ref(false)
@@ -32,15 +40,17 @@ const treeNodes = ref<TreeNode[]>([])
 const treeLoading = ref(false)
 const titleField = ref('name')
 
+let debounceTimer: ReturnType<typeof setTimeout>
+let blurTimer: ReturnType<typeof setTimeout>
+let searchSeq = 0
+
 watch(() => props.field.options, async (doctype) => {
   if (!doctype) return
   try {
     const meta = await metaApi.get(doctype)
     isTree.value = !!meta.is_tree
     titleField.value = meta.title_field || 'name'
-    if (isTree.value) {
-      loadTree()
-    }
+    if (isTree.value) loadTree()
   } catch {
     isTree.value = false
   }
@@ -74,7 +84,6 @@ function onTreeSelect(id: string | null) {
     return
   }
   emit('update:modelValue', id)
-  // Resolve display label for filter tag
   function findTitle(nodes: TreeNode[]): string | null {
     for (const n of nodes) {
       if (n.key === id) return n.label ?? null
@@ -88,101 +97,170 @@ function onTreeSelect(id: string | null) {
   emit('update:displayValue', findTitle(treeNodes.value) || id)
 }
 
-// Sync query when parent sets displayValue (e.g. when editing an existing filter)
+// Sync query when parent sets displayValue from outside (e.g. applying a saved preset)
 watch(() => props.displayValue, (v) => {
-  if (v && v !== linkQuery.value) {
-    _suppressClear.value = true
-    linkQuery.value = v
-    setTimeout(() => { _suppressClear.value = false }, 0)
-  }
+  if (v && v !== query.value) query.value = v
 })
 
-let debounce: ReturnType<typeof setTimeout>
-watch(linkQuery, (q) => {
-  if (_suppressClear.value || isTree.value) return
-  clearTimeout(debounce)
-  emit('update:modelValue', '')
-  emit('update:displayValue', '')
-  if (!q.trim()) { linkResults.value = []; return }
-  debounce = setTimeout(() => search(q), 280)
-})
-
-async function search(q: string) {
+async function search(val: string) {
   const linkedDoctype = props.field.options
   if (!linkedDoctype || typeof linkedDoctype !== 'string') return
-  linkLoading.value = true
+  const seq = ++searchSeq
+  isLoading.value = true
   try {
-    linkResults.value = await docsApi.linkSearch(linkedDoctype, q)
+    const hits = await docsApi.linkSearch(linkedDoctype, val)
+    if (seq !== searchSeq) return
+    results.value = hits
+    activeIdx.value = -1
+    isOpen.value = true
   } catch {
-    linkResults.value = []
+    if (seq === searchSeq) results.value = []
   } finally {
-    linkLoading.value = false
+    if (seq === searchSeq) isLoading.value = false
   }
+}
+
+function onInput(val: string) {
+  query.value = val
+  if (isTree.value) return
+  emit('update:modelValue', '')
+  emit('update:displayValue', '')
+  clearTimeout(debounceTimer)
+  debounceTimer = setTimeout(() => search(val), val ? 300 : 0)
+}
+
+function onFocus() {
+  clearTimeout(blurTimer)
+  reposition()
+  if (!isOpen.value) search(query.value)
+}
+
+function onBlur() {
+  blurTimer = setTimeout(() => { isOpen.value = false }, 150)
 }
 
 function selectItem(item: LinkSearchItem) {
   emit('update:modelValue', item.name)
   emit('update:displayValue', item.title || item.name)
-  linkQuery.value = item.title || item.name
-  linkResults.value = []
+  query.value = item.title || item.name
+  isOpen.value = false
 }
 
 function clear() {
   emit('update:modelValue', '')
   emit('update:displayValue', '')
-  linkQuery.value = ''
+  query.value = ''
+  results.value = []
 }
+
+function onKeydown(e: KeyboardEvent) {
+  if (!isOpen.value) return
+  if (e.key === 'ArrowDown') {
+    e.preventDefault()
+    activeIdx.value = Math.min(activeIdx.value + 1, results.value.length - 1)
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault()
+    activeIdx.value = Math.max(activeIdx.value - 1, -1)
+  } else if (e.key === 'Enter') {
+    e.preventDefault()
+    const item = results.value[activeIdx.value] ?? results.value[0]
+    if (item) selectItem(item)
+  } else if (e.key === 'Escape') {
+    e.preventDefault()
+    isOpen.value = false
+  }
+}
+
+function highlight(text: string): string {
+  const safe = escapeHtml(text ?? '')
+  if (!query.value.trim()) return safe
+  const esc = query.value.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  return safe.replace(
+    new RegExp(`(${esc})`, 'gi'),
+    '<mark class="bg-primary/20 text-foreground rounded-sm">$1</mark>',
+  )
+}
+
+onUnmounted(() => {
+  clearTimeout(debounceTimer)
+  clearTimeout(blurTimer)
+})
 </script>
 
 <template>
-  <div class="space-y-1.5">
-    <!-- Tree mode -->
-    <div v-if="isTree" class="relative">
-      <TreeSelect
-        :model-value="modelValue || null"
-        :options="treeNodes"
-        :loading="treeLoading"
-        :placeholder="`Оберіть ${field.options}...`"
-        class="w-full text-xs"
-        @update:model-value="onTreeSelect"
-      />
-    </div>
+  <!-- Tree mode -->
+  <TreeSelect
+    v-if="isTree"
+    :model-value="modelValue || null"
+    :options="treeNodes"
+    :loading="treeLoading"
+    :placeholder="`Оберіть ${field.options}...`"
+    class="w-full text-xs"
+    @update:model-value="onTreeSelect"
+  />
 
-    <!-- Regular mode -->
-    <template v-else>
-      <div class="relative">
-        <Input
-          v-model="linkQuery"
-          class="h-8 text-xs pr-7 w-full"
-          :placeholder="`Пошук ${field.options}...`"
-          @keydown.enter.prevent="linkResults[0] && selectItem(linkResults[0])"
-        />
-        <Loader2 v-if="linkLoading" class="absolute right-2 top-1/2 -translate-y-1/2 size-3.5 animate-spin text-muted-foreground" />
-      </div>
+  <!-- Regular mode -->
+  <div v-else ref="anchorRef" class="relative">
+    <Input
+      :model-value="query"
+      class="h-8 text-xs w-full pr-7"
+      :placeholder="`Пошук ${field.options}...`"
+      autocomplete="off"
+      role="combobox"
+      aria-autocomplete="list"
+      :aria-expanded="isOpen"
+      :aria-controls="listboxId"
+      :aria-activedescendant="isOpen && activeIdx >= 0 ? optionId(activeIdx) : undefined"
+      @update:model-value="onInput(String($event))"
+      @focus="onFocus"
+      @blur="onBlur"
+      @keydown="onKeydown"
+    />
+    <Loader2 v-if="isLoading" class="absolute right-2 top-1/2 -translate-y-1/2 size-3.5 animate-spin text-muted-foreground" />
+    <button
+      v-else-if="modelValue"
+      type="button"
+      class="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
+      aria-label="Очистити"
+      @mousedown.prevent="clear"
+    >
+      <X class="size-3.5" />
+    </button>
 
-      <div v-if="linkResults.length" class="border border-border rounded-md overflow-hidden max-h-40 overflow-y-auto divide-y divide-border/60">
-        <button
-          v-for="item in linkResults"
-          :key="item.id"
-          type="button"
-          class="w-full px-3 py-2 text-left hover:bg-primary/5 transition-colors flex items-center gap-2"
-          :class="modelValue === item.name ? 'bg-primary/10' : ''"
-          @click="selectItem(item)"
-        >
-          <span class="font-medium text-foreground truncate flex-1">{{ item.title || item.name }}</span>
-          <span v-if="item.subtitle" class="text-muted-foreground/60 shrink-0 truncate max-w-[80px]">{{ item.subtitle }}</span>
-        </button>
+    <Teleport to="body">
+      <div
+        v-if="isOpen"
+        :id="listboxId"
+        data-link-dropdown
+        role="listbox"
+        :style="dropdownStyle"
+        class="overflow-hidden rounded-lg border border-border bg-popover text-xs shadow-md"
+      >
+        <div v-if="results.length" class="max-h-52 overflow-y-auto py-1">
+          <button
+            v-for="(item, i) in results"
+            :id="optionId(i)"
+            :key="item.id"
+            type="button"
+            role="option"
+            :aria-selected="i === activeIdx"
+            :class="[
+              'flex w-full flex-col gap-0.5 px-3 py-1.5 text-left transition-colors',
+              i === activeIdx || modelValue === item.name ? 'bg-accent text-accent-foreground' : 'hover:bg-accent/50',
+            ]"
+            @mousedown.prevent="selectItem(item)"
+            @mouseover="activeIdx = i"
+          >
+            <span class="truncate font-medium" v-html="highlight(item.title || item.name)" />
+            <span v-if="item.subtitle" class="truncate text-muted-foreground/70" v-html="highlight(item.subtitle)" />
+          </button>
+        </div>
+        <div v-else class="px-3 py-3 text-center text-muted-foreground">
+          <span v-if="isLoading">Пошук...</span>
+          <span v-else-if="query">Нічого не знайдено</span>
+          <span v-else>Немає записів</span>
+        </div>
       </div>
-      <p v-else-if="linkQuery && !linkLoading && !modelValue" class="text-muted-foreground/60 italic px-1">
-        Нічого не знайдено
-      </p>
-
-      <div v-if="modelValue" class="flex items-center gap-1.5 px-2 py-1 bg-primary/5 border border-primary/20 rounded-md text-primary">
-        <span class="truncate flex-1">{{ displayValue || modelValue }}</span>
-        <button type="button" class="shrink-0 hover:text-destructive" @click="clear">
-          <X class="size-3" />
-        </button>
-      </div>
-    </template>
+    </Teleport>
   </div>
 </template>
