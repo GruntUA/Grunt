@@ -773,3 +773,34 @@ async def test_copy_doc(ctx, setup_doctype):
     # original untouched
     again = await ctx.get_doc("TestItem", original["name"])
     assert again["status"] == "Active"
+
+
+@pytest.mark.asyncio
+async def test_create_rejects_value_over_max_length(ctx):
+    """A Data value longer than max_length → 422, even on SQLite where the
+    underlying VARCHAR column itself would silently accept it."""
+    from fastapi import HTTPException
+
+    from grunt.api.v1.meta import save_doctype
+
+    await save_doctype(
+        doctype_data={
+            "name": "MaxLenItem",
+            "label": "Max Len Item",
+            "module": "core",
+            "fields": [
+                {"fieldname": "code", "label": "Code", "fieldtype": "Data", "max_length": 100},
+            ],
+            "__is_new": True,
+        }
+    )
+    await ctx.db._session().commit()
+
+    with pytest.raises(HTTPException) as exc:
+        await ctx.new_doc("MaxLenItem", {"code": "x" * 150})
+    assert exc.value.status_code == 422
+    assert "100" in exc.value.detail[0]
+
+    ok = await ctx.new_doc("MaxLenItem", {"code": "x" * 100})
+    await ctx.db._session().commit()
+    assert ok["code"] == "x" * 100

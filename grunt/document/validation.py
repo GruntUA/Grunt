@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 from grunt.document.validators import validate_field_value
-from grunt.metadata.field import is_physical_fieldtype
+from grunt.metadata.field import get_field_type_class, is_physical_fieldtype
 
 if TYPE_CHECKING:
     from grunt.metadata.doctype import DocType
@@ -37,5 +37,18 @@ def _validate_data(
             )
             if error:
                 errors.append(f"{field.fieldname}: {error}")
+
+        if value is not None and value != "":
+            column_spec = get_field_type_class(field.fieldtype).column_spec
+            if column_spec is not None:
+                sa_type_name, *args = column_spec(field)
+                # SQLite doesn't enforce VARCHAR length — check it ourselves so a
+                # value that "fits" in dev doesn't fail only once deployed on
+                # Postgres/MySQL, where VARCHAR(n) is a hard limit.
+                if sa_type_name == "String" and args and len(str(value)) > args[0]:
+                    errors.append(
+                        f"{field.fieldname}: Поле '{field.label}' занадто довге "
+                        f"(максимум {args[0]} символів)"
+                    )
 
     return errors

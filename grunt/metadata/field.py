@@ -9,11 +9,35 @@ from typing import TYPE_CHECKING, Any, ClassVar
 
 import structlog
 from pydantic import BaseModel
+from sqlalchemy import JSON as SAJSON
+from sqlalchemy import Boolean, Column, Date, Integer, String, Text, Time
+from sqlalchemy import Float as SAFloat
+from sqlalchemy.dialects.postgresql import JSONB
+
+from grunt.db.types import UtcDateTime
 
 if TYPE_CHECKING:
-    from sqlalchemy import Column
+    from collections.abc import Callable
+
+    from sqlalchemy.types import TypeEngine
 
 logger = structlog.get_logger()
+
+# sa_type_name (column_spec's first tuple element) -> SQLAlchemy column type
+# builder. Shared by every DocField.to_sa_column() call instead of being
+# rebuilt on each one.
+_SA_TYPE_BUILDERS: dict[str, Callable[[list[Any]], TypeEngine]] = {
+    "String": lambda a: String(a[0]) if a else String(255),
+    "Text": lambda a: Text(),
+    "Integer": lambda a: Integer(),
+    "Float": lambda a: SAFloat(precision=a[0]) if a else SAFloat(),
+    "Boolean": lambda a: Boolean(),
+    "Date": lambda a: Date(),
+    "DateTime": lambda a: UtcDateTime(),
+    "Time": lambda a: Time(),
+    # JSONB on Postgres — indexable/queryable; SQLite and MySQL keep plain JSON.
+    "JSON": lambda a: SAJSON().with_variant(JSONB(), "postgresql"),
+}
 
 
 # ── FieldType base class ──────────────────────────────────────────────────────
@@ -325,24 +349,6 @@ class DocField(BaseModel):
 
     def to_sa_column(self) -> Column:
         """Return a SQLAlchemy :class:`Column` for this field."""
-        from sqlalchemy import (
-            JSON as SAJSON,
-        )
-        from sqlalchemy import (
-            Boolean,
-            Column,
-            Date,
-            Integer,
-            String,
-            Text,
-            Time,
-        )
-        from sqlalchemy import (
-            Float as SAFloat,
-        )
-
-        from grunt.db.types import UtcDateTime
-
         column_spec = get_field_type_class(self.fieldtype).column_spec
         if column_spec is None:
             raise ValueError(
@@ -352,17 +358,5 @@ class DocField(BaseModel):
             )
 
         sa_type_name, *args = column_spec(self)
-
-        _types = {
-            "String": lambda a: String(a[0]) if a else String(255),
-            "Text": lambda a: Text(),
-            "Integer": lambda a: Integer(),
-            "Float": lambda a: SAFloat(precision=a[0]) if a else SAFloat(),
-            "Boolean": lambda a: Boolean(),
-            "Date": lambda a: Date(),
-            "DateTime": lambda a: UtcDateTime(),
-            "Time": lambda a: Time(),
-            "JSON": lambda a: SAJSON(),
-        }
-        sa_type = _types[sa_type_name](args)
+        sa_type = _SA_TYPE_BUILDERS[sa_type_name](args)
         return Column(self.fieldname, sa_type)  # type: ignore[arg-type]
