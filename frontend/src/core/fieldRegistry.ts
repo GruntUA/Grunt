@@ -25,6 +25,29 @@
 
 import { defineAsyncComponent, type Component } from 'vue'
 
+/**
+ * Storage-class hints for the DocType «Конструктор».
+ *
+ * Mirrors the backend `sa_factory` column mapping (grunt/metadata/field.py) closely
+ * enough to tell the user, when they change a field's `fieldtype` in the builder,
+ * whether the underlying database column will be retyped — or added / dropped —
+ * during the next `doctype sync`. Declared per field type in its own manifest.json,
+ * same as `is_layout` — not in a separate lookup table.
+ *
+ * This is a UI heads-up only. Nothing here mutates the field: existing values
+ * are kept as-is and the authoritative migration still runs on sync.
+ */
+export type StorageClass =
+  | 'text' // String / Text column
+  | 'int' // Integer column
+  | 'float' // Float / Numeric column
+  | 'bool' // Boolean column
+  | 'date'
+  | 'datetime'
+  | 'time'
+  | 'json' // JSON blob column
+  | 'none' // no column of its own (layout, Table, MultiLink, Button, …)
+
 // Keep in sync with the sections registered in
 // pages/studio/builder/sections/index.ts
 export type PropSection =
@@ -78,6 +101,8 @@ export interface FieldDefinition {
   propertySections: PropSection[]
   /** If true, this field cannot be used as a 'Group By' criterion in lists. Default: false */
   non_groupable?: boolean
+  /** How this field's value is stored in the DB column. Unknown / plugin types default to 'text'. */
+  storage_class?: StorageClass
 }
 
 // ── Internal registry ────────────────────────────────────────────────────────
@@ -129,6 +154,11 @@ export function getLayoutTypeSet(): Set<string> {
 /** Layout types + non-physical container types (Table, MultiLink) that have no DB column. */
 export function getNonPhysicalTypeSet(): Set<string> {
   return new Set([...getLayoutTypeSet(), 'Table', 'MultiLink'])
+}
+
+/** Storage class for a field type. Unknown / plugin types are assumed text. */
+export function getStorageClass(type: string): StorageClass {
+  return getFieldDef(type)?.storage_class ?? 'text'
 }
 
 /**

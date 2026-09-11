@@ -1,1 +1,1 @@
-{"type": "MultiSelect", "label": "Multi Select", "icon": "list-checks", "category": "Вибір і зв'язки", "propertySections": ["core", "flags", "display", "text", "default", "options", "fetch_from"]}
+{"type": "MultiSelect", "label": "Multi Select", "icon": "list-checks", "category": "Вибір і зв'язки", "propertySections": ["core", "flags", "display", "text", "default", "options", "fetch_from"], "storage_class": "json"}

@@ -1,1 +1,1 @@
-{"type": "Rating", "label": "\u0420\u0435\u0439\u0442\u0438\u043d\u0433", "icon": "star", "category": "\u0411\u0430\u0437\u043e\u0432\u0456", "propertySections": ["core", "flags", "display", "default", "number", "validation", "fetch_from"]}
+{"type": "Rating", "label": "Рейтинг", "icon": "star", "category": "Базові", "propertySections": ["core", "flags", "display", "default", "number", "validation", "fetch_from"], "storage_class": "float"}

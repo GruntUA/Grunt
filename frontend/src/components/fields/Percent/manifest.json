@@ -1,0 +1,1 @@
+{"type": "Percent", "label": "Percent", "icon": "percent", "category": "Базові", "propertySections": ["core", "flags", "display", "text", "formula", "default", "number", "validation", "fetch_from"], "storage_class": "float"}

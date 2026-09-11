@@ -1,13 +1,1 @@
-{
-  "type": "Table",
-  "label": "Table",
-  "icon": "table-2",
-  "category": "Таблиці",
-  "propertySections": [
-    "core",
-    "flags",
-    "display",
-    "text",
-    "table"
-  ]
-}
+{"type": "Table", "label": "Table", "icon": "table-2", "category": "Таблиці", "propertySections": ["core", "flags", "display", "text", "table"], "storage_class": "none"}

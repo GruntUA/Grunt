@@ -1,1 +1,1 @@
-{"type": "EmbeddedForm", "label": "Вбудована форма", "icon": "layout-template", "category": "Таблиці", "propertySections": ["core", "flags", "display", "options"]}
+{"type": "EmbeddedForm", "label": "Вбудована форма", "icon": "layout-template", "category": "Таблиці", "propertySections": ["core", "flags", "display", "options"], "storage_class": "json"}

@@ -1,0 +1,1 @@
+{"type": "Duration", "label": "Duration", "icon": "timer", "category": "Базові", "propertySections": ["core", "flags", "display", "text", "formula", "default", "number", "validation", "fetch_from"], "storage_class": "float"}

@@ -1,1 +1,1 @@
-{"type": "Datetime", "label": "Datetime", "icon": "calendar-clock", "category": "\u0414\u0430\u0442\u0430 \u0456 \u0447\u0430\u0441", "propertySections": ["core", "flags", "display", "text", "default", "fetch_from"]}
+{"type": "Datetime", "label": "Datetime", "icon": "calendar-clock", "category": "Дата і час", "propertySections": ["core", "flags", "display", "text", "default", "fetch_from"], "storage_class": "datetime"}

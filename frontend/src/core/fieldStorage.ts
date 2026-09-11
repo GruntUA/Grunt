@@ -1,74 +1,22 @@
 /**
- * Storage-class hints for the DocType «Конструктор».
+ * Type-change advisory for the DocType «Конструктор».
  *
- * Mirrors the backend `sa_factory` column mapping (grunt/metadata/field types)
- * closely enough to tell the user, when they change a field's `fieldtype` in the
- * builder, whether the underlying database column will be retyped — or added /
- * dropped — during the next `doctype sync`.
+ * Tells the user, when they change a field's `fieldtype` in the builder, whether
+ * the underlying database column will be retyped — or added / dropped — during
+ * the next `doctype sync`. Storage class itself is declared per field type in its
+ * own manifest.json (see fieldRegistry.ts) rather than mirrored here.
  *
  * This is a UI heads-up only. Nothing here mutates the field: existing values
  * are kept as-is and the authoritative migration still runs on sync.
  */
 
-export type StorageClass =
-  | 'text' // String / Text column
-  | 'int' // Integer column
-  | 'float' // Float / Numeric column
-  | 'bool' // Boolean column
-  | 'date'
-  | 'datetime'
-  | 'time'
-  | 'json' // JSON blob column
-  | 'none' // no column of its own (layout, Table, MultiLink, Button, …)
+import { getStorageClass, type StorageClass } from './fieldRegistry'
 
-const STORAGE_CLASS: Record<string, StorageClass> = {
-  // ── String / Text columns ──
-  Data: 'text',
-  Text: 'text',
-  LongText: 'text',
-  RichText: 'text',
-  HTMLEditor: 'text',
-  Code: 'text',
-  Signature: 'text',
-  Select: 'text',
-  Link: 'text',
-  DynamicLink: 'text',
-  Attach: 'text',
-  Image: 'text',
-  Icon: 'text',
-  Color: 'text',
-  BarCode: 'text',
-  Password: 'text',
-  // ── Numeric ──
-  Int: 'int',
-  Check: 'bool',
-  Float: 'float',
-  Duration: 'float',
-  Percent: 'float',
-  Rating: 'float',
-  // ── Temporal ──
-  Date: 'date',
-  Datetime: 'datetime',
-  Time: 'time',
-  // ── JSON blobs ──
-  JSON: 'json',
-  Geolocation: 'json',
-  ColumnMapping: 'json',
-  EmbeddedForm: 'json',
-  MultiSelect: 'json',
-  // ── No column of their own ──
-  Button: 'none',
-  Default: 'none',
-  Section: 'none',
-  Column: 'none',
-  Tab: 'none',
-  Table: 'none',
-  MultiLink: 'none',
-}
+export type { StorageClass }
 
 /** Storage class for a field type. Unknown / plugin types are assumed text. */
 export function storageClassOf(fieldtype: string): StorageClass {
-  return STORAGE_CLASS[fieldtype] ?? 'text'
+  return getStorageClass(fieldtype)
 }
 
 export type TypeChangeSeverity = 'info' | 'danger'

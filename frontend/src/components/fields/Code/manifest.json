@@ -1,1 +1,1 @@
-{"type": "Code", "label": "Code", "icon": "code", "category": "\u0422\u0435\u043a\u0441\u0442", "non_groupable": true, "propertySections": ["core", "flags", "display", "text", "default", "options", "fetch_from"]}
+{"type": "Code", "label": "Code", "icon": "code", "category": "Текст", "non_groupable": true, "propertySections": ["core", "flags", "display", "text", "default", "options", "fetch_from"], "storage_class": "text"}

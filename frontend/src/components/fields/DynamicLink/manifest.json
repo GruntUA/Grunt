@@ -1,1 +1,1 @@
-{"type": "DynamicLink", "label": "Dynamic Link", "icon": "link-2", "category": "\u0412\u0438\u0431\u0456\u0440 \u0456 \u0437\u0432'\u044f\u0437\u043a\u0438", "propertySections": ["core", "flags", "display", "default", "link", "fetch_from"]}
+{"type": "DynamicLink", "label": "Dynamic Link", "icon": "link-2", "category": "Вибір і зв'язки", "propertySections": ["core", "flags", "display", "default", "link", "fetch_from"], "storage_class": "text"}

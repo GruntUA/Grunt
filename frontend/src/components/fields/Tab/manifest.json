@@ -1,13 +1,1 @@
-{
-  "type": "Tab",
-  "label": "Tab",
-  "icon": "layout-template",
-  "category": "",
-  "is_layout": true,
-  "non_groupable": true,
-  "propertySections": [
-    "core",
-    "icon",
-    "tab"
-  ]
-}
+{"type": "Tab", "label": "Tab", "icon": "layout-template", "category": "", "is_layout": true, "non_groupable": true, "propertySections": ["core", "icon", "tab"], "storage_class": "none"}

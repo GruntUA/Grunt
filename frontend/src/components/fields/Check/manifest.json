@@ -1,1 +1,1 @@
-{"type": "Check", "label": "Checkbox", "icon": "square-check", "category": "\u0411\u0430\u0437\u043e\u0432\u0456", "propertySections": ["core", "flags", "display", "text", "default", "fetch_from"]}
+{"type": "Check", "label": "Checkbox", "icon": "square-check", "category": "Базові", "propertySections": ["core", "flags", "display", "text", "default", "fetch_from"], "storage_class": "bool"}
