@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import importlib.util
 from pathlib import Path
+from types import SimpleNamespace
 from typing import TYPE_CHECKING, Any, ClassVar
 
 import structlog
@@ -69,6 +70,44 @@ def get_field_type_class(fieldtype: str) -> type[FieldType]:
     Falls back to the base :class:`FieldType` for unknown / plugin types.
     """
     return _FIELD_TYPE_REGISTRY.get(fieldtype, FieldType)
+
+
+def get_registered_fieldtypes() -> list[str]:
+    """Return every registered field type name, in registration order."""
+    return list(_FIELD_TYPE_REGISTRY.keys())
+
+
+# sa_factory's first tuple element (the SQLAlchemy type family) collapsed to the
+# coarse storage class the DocType «Конструктор» warns about on a fieldtype
+# change — see get_storage_class().
+_SA_TYPE_STORAGE_CLASS: dict[str, str] = {
+    "String": "text",
+    "Text": "text",
+    "Integer": "int",
+    "Float": "float",
+    "Boolean": "bool",
+    "Date": "date",
+    "DateTime": "datetime",
+    "Time": "time",
+    "JSON": "json",
+}
+
+
+def get_storage_class(fieldtype: str) -> str:
+    """Return the coarse storage class ('text', 'int', ..., 'none') for *fieldtype*.
+
+    Derived from ``sa_factory`` — the same source :meth:`DocField.to_sa_column` uses
+    to build the real column — so it can't drift from it. ``sa_factory`` only needs
+    an object with the DocField attributes it reads (e.g. ``max_length``); none of
+    them affect the resulting SQLAlchemy type family, so a bare stand-in is enough.
+    Consumed by ``grunt fields sync-manifests`` to keep each field type's frontend
+    manifest.json in sync instead of that mapping being hand-copied there.
+    """
+    cls = get_field_type_class(fieldtype)
+    if cls.sa_factory is None:
+        return "none"
+    sa_type_name = cls.sa_factory(SimpleNamespace(max_length=None))[0]
+    return _SA_TYPE_STORAGE_CLASS.get(sa_type_name, "text")
 
 
 def get_python_type(fieldtype: str) -> str:
