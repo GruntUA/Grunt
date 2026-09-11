@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import re
 from typing import TYPE_CHECKING, Any
 
 from grunt.document.validators import validate_field_value
+from grunt.log import log
 from grunt.metadata.field import get_field_type_class, is_physical_fieldtype
 
 if TYPE_CHECKING:
@@ -49,6 +51,33 @@ def _validate_data(
                     errors.append(
                         f"{field.fieldname}: Поле '{field.label}' занадто довге "
                         f"(максимум {args[0]} символів)"
+                    )
+
+        if (field.min_value is not None or field.max_value is not None) and (
+            value is not None and value != ""
+        ):
+            number = field.coerce(value)
+            if isinstance(number, int | float) and not isinstance(number, bool):
+                if field.min_value is not None and number < field.min_value:
+                    errors.append(
+                        f"{field.fieldname}: Поле '{field.label}' має бути не менше "
+                        f"{field.min_value}"
+                    )
+                if field.max_value is not None and number > field.max_value:
+                    errors.append(
+                        f"{field.fieldname}: Поле '{field.label}' має бути не більше "
+                        f"{field.max_value}"
+                    )
+
+        if field.regex and value is not None and value != "":
+            try:
+                matched = re.match(field.regex, str(value))
+            except re.error:
+                log.warning("field.invalid_regex", fieldname=field.fieldname, pattern=field.regex)
+            else:
+                if not matched:
+                    errors.append(
+                        f"{field.fieldname}: Поле '{field.label}' не відповідає формату"
                     )
 
     return errors

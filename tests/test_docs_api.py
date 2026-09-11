@@ -804,3 +804,77 @@ async def test_create_rejects_value_over_max_length(ctx):
     ok = await ctx.new_doc("MaxLenItem", {"code": "x" * 100})
     await ctx.db._session().commit()
     assert ok["code"] == "x" * 100
+
+
+@pytest.mark.asyncio
+async def test_create_rejects_value_outside_min_max(ctx):
+    """An Int value outside [min_value, max_value] → 422."""
+    from fastapi import HTTPException
+
+    from grunt.api.v1.meta import save_doctype
+
+    await save_doctype(
+        doctype_data={
+            "name": "RangeItem",
+            "label": "Range Item",
+            "module": "core",
+            "fields": [
+                {
+                    "fieldname": "score",
+                    "label": "Score",
+                    "fieldtype": "Int",
+                    "min_value": 0,
+                    "max_value": 100,
+                },
+            ],
+            "__is_new": True,
+        }
+    )
+    await ctx.db._session().commit()
+
+    with pytest.raises(HTTPException) as exc:
+        await ctx.new_doc("RangeItem", {"score": 150})
+    assert exc.value.status_code == 422
+    assert "100" in exc.value.detail[0]
+
+    with pytest.raises(HTTPException) as exc:
+        await ctx.new_doc("RangeItem", {"score": -1})
+    assert exc.value.status_code == 422
+
+    ok = await ctx.new_doc("RangeItem", {"score": 42})
+    await ctx.db._session().commit()
+    assert ok["score"] == 42
+
+
+@pytest.mark.asyncio
+async def test_create_rejects_value_not_matching_regex(ctx):
+    """A Data value that doesn't match the field's regex → 422."""
+    from fastapi import HTTPException
+
+    from grunt.api.v1.meta import save_doctype
+
+    await save_doctype(
+        doctype_data={
+            "name": "RegexItem",
+            "label": "Regex Item",
+            "module": "core",
+            "fields": [
+                {
+                    "fieldname": "code",
+                    "label": "Code",
+                    "fieldtype": "Data",
+                    "regex": r"^[A-Z]{3}-\d{4}$",
+                },
+            ],
+            "__is_new": True,
+        }
+    )
+    await ctx.db._session().commit()
+
+    with pytest.raises(HTTPException) as exc:
+        await ctx.new_doc("RegexItem", {"code": "not-a-match"})
+    assert exc.value.status_code == 422
+
+    ok = await ctx.new_doc("RegexItem", {"code": "ABC-1234"})
+    await ctx.db._session().commit()
+    assert ok["code"] == "ABC-1234"
