@@ -131,7 +131,7 @@ async def _apply_where(
     if filters:
         query = _apply_filters(query, table, filters)
     if search:
-        query = _apply_search(query, table, dt, search)
+        query = await _apply_search(query, table, dt, search)
     return query
 
 

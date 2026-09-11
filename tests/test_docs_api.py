@@ -101,6 +101,52 @@ async def test_list_search(ctx, setup_doctype):
 
 
 @pytest.mark.asyncio
+async def test_list_search_by_link_field_title(ctx, setup_doctype):
+    """get_list?search=<linked doc's title> should match through a Link field,
+    not just the raw id it stores."""
+    from grunt.api.v1.meta import save_doctype
+
+    await save_doctype(
+        doctype_data={
+            "name": "TestOwner",
+            "label": "Test Owner",
+            "module": "core",
+            "fields": [{"fieldname": "full_name", "label": "Full Name", "fieldtype": "Data"}],
+            "title_field": "full_name",
+            "__is_new": True,
+        }
+    )
+    await save_doctype(
+        doctype_data={
+            "name": "TestAsset",
+            "label": "Test Asset",
+            "module": "core",
+            "fields": [
+                {"fieldname": "asset_name", "label": "Asset Name", "fieldtype": "Data"},
+                {
+                    "fieldname": "owner_link",
+                    "label": "Owner",
+                    "fieldtype": "Link",
+                    "options": "TestOwner",
+                },
+            ],
+            "search_fields": ["asset_name", "owner_link"],
+            "__is_new": True,
+        }
+    )
+    await ctx.db._session().commit()
+
+    owner = await ctx.new_doc("TestOwner", {"full_name": "Сисоєнко Іван"})
+    await ctx.new_doc("TestAsset", {"asset_name": "Ноутбук", "owner_link": owner["name"]})
+    await ctx.new_doc("TestAsset", {"asset_name": "Монітор"})
+    await ctx.db._session().commit()
+
+    data = await ctx.get_list("TestAsset", search="Сисо")
+    assert len(data) == 1
+    assert data[0]["asset_name"] == "Ноутбук"
+
+
+@pytest.mark.asyncio
 async def test_list_pagination(ctx, setup_doctype):
     """get_list?page=2&limit=2 (direct call)."""
     from grunt.api.v1.documents import get_list, new_doc

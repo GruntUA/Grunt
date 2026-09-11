@@ -83,14 +83,67 @@ async def _expand_child_of_filters(
     return result
 
 
-def _apply_search(query: Any, table: Any, dt: DocType, search: str) -> Any:
-    """Apply full-text search conditions to a statement."""
-    search_cols = [table.c.name]
+async def _link_field_search_condition(dt: DocType, field: Any, table: Any, search: str) -> Any | None:
+    """Build a search condition for a Link field: match by the *linked*
+    document's title/search fields, not the raw id stored in the column.
+
+    Returns ``None`` if the linked DocType can't be resolved (e.g. options
+    missing) — the caller then falls back to matching the raw column.
+    """
+    linked_doctype = getattr(field, "options", None)
+    if not linked_doctype:
+        return None
+
+    from grunt.metadata.compiler import compile_doctype_to_table
+    from grunt.metadata.registry import doctype_registry
+
+    try:
+        linked_dt = await doctype_registry.get(linked_doctype)
+    except Exception:
+        return None
+
+    linked_table = compile_doctype_to_table(linked_dt)
+    linked_cols = [linked_table.c.name]
+    title_field = linked_dt.title_field
+    if title_field and title_field != "name":
+        col = linked_table.c.get(title_field)
+        if col is not None:
+            linked_cols.append(col)
+    for fname in linked_dt.search_fields or []:
+        col = linked_table.c.get(fname)
+        if col is not None and col.name not in {c.name for c in linked_cols}:
+            linked_cols.append(col)
+
+    like = f"%{search}%"
+    subquery = select(linked_table.c.name).where(or_(*[c.ilike(like) for c in linked_cols]))
+    return table.c[field.fieldname].in_(subquery)
+
+
+async def _apply_search(query: Any, table: Any, dt: DocType, search: str) -> Any:
+    """Apply full-text search conditions to a statement.
+
+    Link fields in ``search_fields`` are matched against the *linked*
+    document's title/search fields rather than the raw id stored in the
+    column, since a user searching a list types the person/item's name,
+    not its internal id.
+    """
+    from grunt.document.meta import Meta
+
+    meta = Meta(dt)
+    conditions = [table.c.name.ilike(f"%{search}%")]
     if dt.search_fields:
         for fname in dt.search_fields:
+            if fname == "name":
+                continue
             col = table.c.get(fname)
-            if col is not None and col.name != "name":
-                search_cols.append(col)
+            if col is None:
+                continue
+            field = meta.get_field(fname)
+            if field is not None and field.fieldtype == "Link":
+                link_condition = await _link_field_search_condition(dt, field, table, search)
+                if link_condition is not None:
+                    conditions.append(link_condition)
+                    continue
+            conditions.append(col.ilike(f"%{search}%"))
 
-    conditions = [col.ilike(f"%{search}%") for col in search_cols]
     return query.where(or_(*conditions))
