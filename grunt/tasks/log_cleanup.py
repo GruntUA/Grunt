@@ -1,7 +1,7 @@
 """Retention-based cleanup for is_log DocTypes (BackgroundTaskLog, ActivityLog, etc.).
 
-Mirrors Frappe's Log Settings pattern: every DocType flagged ``is_log: true``
-accumulates rows forever unless something purges old ones. Retention is
+Every DocType flagged ``is_log: true`` accumulates rows forever unless
+something purges old ones. Retention is
 per-DocType (``log_retention_days`` in its JSON), falling back to the
 site-wide ``SystemSettings.log_retention_days``, and finally to
 DEFAULT_LOG_RETENTION_DAYS when neither is set.

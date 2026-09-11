@@ -216,7 +216,7 @@ async def msgprint(
     title: str | None = None,
     indicator: str | None = None,
 ) -> None:
-    """Show a message dialog to the user (like frappe.msgprint).
+    """Show a message dialog to the user (mirrors the client-side `grunt.msgprint`).
 
     Args:
         user: User email.
@@ -241,7 +241,7 @@ async def show_alert(
     message: str,
     type: MessageType = "info",
 ) -> None:
-    """Show a non-blocking toast alert (like frappe.show_alert).
+    """Show a non-blocking toast alert (mirrors the client-side `grunt.show_alert`).
 
     Args:
         user: User email.
@@ -260,7 +260,7 @@ async def show_progress(
     description: str | None = None,
     task_id: str | None = None,
 ) -> None:
-    """Show/update a progress bar for the user (like frappe.show_progress).
+    """Show/update a progress bar for the user (mirrors the client-side `grunt.show_progress`).
 
     Args:
         user: User email.
@@ -290,7 +290,7 @@ async def throw(
     message: str,
     title: str | None = None,
 ) -> None:
-    """Show an error dialog to the user (like frappe.throw but without exception).
+    """Show an error dialog to the user (mirrors the client-side `grunt.throw`, without raising).
 
     Args:
         user: User email.

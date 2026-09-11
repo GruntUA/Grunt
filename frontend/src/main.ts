@@ -14,7 +14,6 @@ import './assets/main.css'
 import 'vue-sonner/style.css'
 // Expose globally for client scripts (JS controllers)
 window.grunt = grunt
-window.frappe = grunt // Frappe-compatible alias
 
 const pinia = createPinia()
 const app = createApp(App)

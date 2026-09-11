@@ -157,8 +157,8 @@ The form shows related documents grouped in a panel with live counts and a
 Counts and previews come from `grunt.document.connections.get_connections`.
 
 **Placement:** set **Показувати панель «Зв'язки» в цій вкладці** on a `Tab`
-field to render the panel at the top of that tab (Frappe's "Show Dashboard"
-flag). If no tab opts in, it renders at the top of the first tab.
+field to render the panel at the top of that tab. If no tab opts in, it
+renders at the top of the first tab.
 
 ## Adding background tasks
 

@@ -1,7 +1,7 @@
 """``AttrDict`` — a dict whose keys are also accessible as attributes.
 
-Mirrors Frappe's ``frappe._dict``: ``d.key`` is equivalent to ``d.get("key")``
-and returns ``None`` for missing keys (so optional fields read cleanly). Used as
+``d.key`` is equivalent to ``d.get("key")`` and returns ``None`` for missing
+keys (so optional fields read cleanly). Used as
 the ``as_dict`` return type of :meth:`grunt.db.api.GruntDB.get_value`.
 """
 

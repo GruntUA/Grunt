@@ -122,8 +122,7 @@ class GruntDB:
     ) -> Any:
         """Return field value(s) from the first document matching *filters*.
 
-        *filters* may be a document name (``str``) or a filter dict. Mirrors
-        Frappe's ``get_value``::
+        *filters* may be a document name (``str``) or a filter dict::
 
             # single value
             subject = await grunt.db.get_value("Task", "TASK00002", "subject")

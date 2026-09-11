@@ -30,7 +30,7 @@ async def render_template(
         enable_async=True,
     )
 
-    # Globals available in every grunt template — mirrors Frappe's Jinja API.
+    # Globals available in every grunt template.
     env.globals["grunt"] = app
     env.globals["session"] = app.session
     env.globals["_"] = app._

@@ -45,13 +45,13 @@ def load_doctype_from_file(doctype: str) -> dict[str, Any]:
     with open(file_path, encoding="utf-8") as f:
         txt = json.loads(f.read())
 
-    # Add doctype classification for fields and permissions, like Frappe
+    # Add doctype classification for fields and permissions
     for d in txt.get("fields", []):
         d["doctype"] = "DocField"
 
     for d in txt.get("permissions", []):
         d["doctype"] = "DocPerm"
 
-    # In Frappe they map to BaseDocument here, but raw dicts map better
-    # to Grunt's Pydantic workflow when used directly.
+    # Kept as raw dicts rather than mapped to a model class here — that maps
+    # better to Grunt's Pydantic workflow when used directly.
     return txt

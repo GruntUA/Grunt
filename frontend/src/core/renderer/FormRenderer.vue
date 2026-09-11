@@ -49,8 +49,7 @@ const layout = computed(() => parseLayout(props.doctype.fields))
 const hasTabs = computed(() => layout.value.length > 1 || (layout.value[0]?.label !== '' && layout.value[0]?.label !== 'Main'))
 
 // The "Зв'язки" panel is placed inside whichever Tab has `show_connections`
-// set (Frappe's "Show Dashboard" flag), falling back to the first tab. Only
-// shown for a saved, non-child doc.
+// set, falling back to the first tab. Only shown for a saved, non-child doc.
 const connectionsEnabled = computed(
   () => !props.doctype.is_child && !!props.modelValue?.name,
 )
@@ -175,7 +174,7 @@ function getVisibleSections(tab: LayoutTab): LayoutSection[] {
         <div v-for="(section, si) in getVisibleSections(tab)" :key="si"
           :class="[section.label ? 'form-section' : '', 'mb-3 last:mb-0']">
 
-          <!-- Section header (Frappe-style card header) -->
+          <!-- Section header -->
           <div v-if="section.label" class="form-section-header"
             :class="{ 'cursor-pointer select-none': section.collapsible }" @click="toggleSection(section)">
             <ChevronDown v-if="section.collapsible"

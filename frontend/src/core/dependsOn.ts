@@ -1,7 +1,7 @@
 /**
  * Evaluate a field/section `depends_on` expression against the current document.
  *
- * Accepts the Frappe-style `eval:` prefix (optional). Returns `true` when there
+ * Accepts an optional `eval:` prefix. Returns `true` when there
  * is no expression, and — deliberately — also when the expression throws, so a
  * broken rule fails open (the field stays visible) rather than hiding content.
  */

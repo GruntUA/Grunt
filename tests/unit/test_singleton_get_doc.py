@@ -19,7 +19,7 @@ async def test_get_doc_singleton_without_id(ctx):
     await _clear_system_settings(ctx)
     await ctx.new_doc("SystemSettings", {"app_name": "Acme"})
 
-    # No id at all — Frappe-style `get_doc('System Settings')`.
+    # No id at all — `get_doc('System Settings')`.
     doc = await ctx.get_doc("SystemSettings")
     assert doc["app_name"] == "Acme"
 

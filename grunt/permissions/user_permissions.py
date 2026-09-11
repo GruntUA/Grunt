@@ -1,4 +1,4 @@
-"""User Permissions — per-user, record-level access restrictions (Frappe-style).
+"""User Permissions — per-user, record-level access restrictions.
 
 A ``UserPermission`` row {user, allow, for_value} means *user* may only see /
 touch documents that link (via a Link field) to *for_value* of DocType *allow*.

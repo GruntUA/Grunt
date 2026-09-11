@@ -16,7 +16,7 @@ export interface ReportListColumn {
 }
 
 /**
- * Report view model — a Frappe-style "Report" grid over the list query.
+ * Report view model — a "Report" grid over the list query.
  *
  * Pure logic only: which columns are shown, an optional single-level group-by,
  * a per-column aggregate function, and the derived grouped rows + subtotal /

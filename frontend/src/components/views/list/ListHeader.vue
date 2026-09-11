@@ -56,7 +56,7 @@ const emit = defineEmits<{
   (e: 'customize-quick-filters'): void
 }>()
 
-// ── View switcher (Frappe-style "List View ▾" dropdown) ─────────────────────
+// ── View switcher ("List View ▾" dropdown) ───────────────────────────────────
 
 const availableViews = computed(() =>
   getRegisteredViews().filter((def) => {

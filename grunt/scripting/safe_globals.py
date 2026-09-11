@@ -18,8 +18,8 @@ This was verified as a working exploit (real shell command execution)
 against the old implementation — see
 ``tests/unit/test_scripting_sandbox.py``, which must never pass again.
 
-RestrictedPython (used by Zope/Plone, and by Frappe for this exact feature)
-fixes this at two levels:
+RestrictedPython (used by Zope/Plone for this exact feature) fixes this at
+two levels:
 
 - Compile-time: the AST transformer rejects any identifier or attribute
   name starting with ``"_"`` and disallows dangerous syntax outright — so

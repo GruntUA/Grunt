@@ -1,4 +1,4 @@
-"""Soft-delete snapshots — Ґрунтів аналог Frappe ``Deleted Document``.
+"""Soft-delete snapshots — Ґрунтів кошик видалених документів.
 
 Коли документ видаляється, ядро (:class:`~grunt.document.mixins.write.DocumentWriteMixin`)
 робить повний ``get_document`` знімок (скаляри + дочірні таблиці + MultiLink) і

@@ -53,6 +53,5 @@ declare global {
   }
 
   const grunt: GruntClientGlobal
-  const frappe: GruntClientGlobal
   const __: (text: string) => string
 }

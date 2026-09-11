@@ -2,7 +2,7 @@ import { Table2 } from '@lucide/vue'
 import type { ViewDefinition } from '@/core/viewRegistry'
 
 /**
- * Report view — a dense, Frappe-style "Report" grid over the current list query.
+ * Report view — a dense "Report" grid over the current list query.
  *
  * Adds on top of the plain list: freely add / remove / reorder columns, an
  * optional single-level group-by with per-group subtotals, a per-column

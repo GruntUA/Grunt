@@ -45,7 +45,7 @@ def register_scheduler_events(events: dict[str, list[str | dict]]) -> None:
         for item in tasks:
             path = item if isinstance(item, str) else item.get("handler")
 
-            # Map standard Frappe-like event names to Cron
+            # Map standard event names to Cron
             cron_expr = None
             if event_type == "all":
                 cron_expr = "*/1 * * * *"  # Every minute (or as configured)

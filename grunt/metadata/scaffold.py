@@ -78,7 +78,7 @@ def _find_app_dir(module: str, app_name: str | None = None) -> Path | None:
     If *app_name* is given, we look for ``bench_dir/apps/{app_name}`` directly.
 
     Otherwise scans all app directories for:
-    1. apps/{app}/{module}  — module-based structure (Frappe style)
+    1. apps/{app}/{module}  — module-based structure
     2. apps/{app}           — flat structure where app == module
     """
     apps_dir = site_manager.bench_dir / "apps"

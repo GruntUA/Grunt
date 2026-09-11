@@ -106,7 +106,7 @@
 
 | # | Статус | Ідея | Опис |
 |---|--------|------|------|
-| 9.1 | 💡 | **App Marketplace** | Каталог готових grunt-apps (CRM, HR, Склад) з встановленням через `grunt install-app <url>`. Аналог Frappe Cloud Apps. |
+| 9.1 | 💡 | **App Marketplace** | Каталог готових grunt-apps (CRM, HR, Склад) з встановленням через `grunt install-app <url>`. |
 | 9.2 | ✅ | **grunt scaffold** | Реалізовано: `grunt doctype scaffold MyName` — генерує `.json` + `.py` controller + JavaScript client script за шаблоном. |
 | 9.3 | 💡 | **VS Code Extension** | Підсвічування JSON-схеми DocType, автодоповнення fieldtype/options, команда "Open in Studio". |
 | 9.4 | 💡 | **DocType Import/Export** | Експорт DocType (і його даних-фікстур) в ZIP → імпорт на іншому сайті. `grunt export-doctype MyApp` / `grunt import-doctype myapp.zip`. |

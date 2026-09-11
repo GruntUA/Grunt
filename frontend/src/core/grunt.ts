@@ -59,8 +59,8 @@ export const grunt = {
   },
 
   /**
-   * Frappe-style "select from a list" dialog. Resolves with the picked row(s),
-   * or null if cancelled.
+   * "Select from a list" dialog. Resolves with the picked row(s), or null if
+   * cancelled.
    *
    * @example
    * const rows = await grunt.select({

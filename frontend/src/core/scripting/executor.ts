@@ -6,7 +6,7 @@
  *
  * Available in scripts:
  * - `cur_frm` / `frm` — current form proxy (get_value, set_value, add_button, etc.)
- * - `grunt` / `frappe` — framework helpers (call, throw, confirm, msgprint, show_alert)
+ * - `grunt` — framework helpers (call, throw, confirm, msgprint, show_alert)
  */
 
 import client from '@/core/api/client'
@@ -179,7 +179,7 @@ export interface GruntProxy {
    *
    * Both signatures are supported:
    * ```js
-   * // Frappe-style
+   * // Positional
    * grunt.call('hrm.hrm.api.get_positions_by_department', { department: doc.department })
    *
    * // Object-style
@@ -204,7 +204,7 @@ export interface GruntProxy {
   prompt: (labelOrOpts: string | { label: string; fieldtype?: string; title?: string }, title?: string) => Promise<string | null>
   warn: (title: string, message: string, primaryLabel?: string) => Promise<boolean>
   form: (opts: { title: string; fields: unknown[]; primaryLabel?: string; size?: DialogSize; buttons?: unknown[] }) => Promise<Record<string, unknown> | null>
-  /** Frappe-style selectable list/table dialog. Resolves with picked row(s) or null. */
+  /** Selectable list/table dialog. Resolves with picked row(s) or null. */
   select: (opts: {
     title: string
     columns: { key: string; label: string; width?: string; align?: 'left' | 'right' | 'center' }[]
@@ -855,14 +855,13 @@ export async function executeClientScripts(
         'cur_frm',
         'frm',
         'grunt',
-        'frappe',
         `${entry.script};\n` +
         `if (typeof ${event} === 'function') {\n` +
         `  return ${event}(cur_frm${event === 'on_change' ? `, '${changedField ?? ''}'` : ''});\n` +
         `}`
       )
 
-      const result = await fn(frm, frm, gruntProxy, gruntProxy)
+      const result = await fn(frm, frm, gruntProxy)
 
       // For validate event, false = cancel
       if (event === 'validate' && result === false) {
@@ -933,11 +932,10 @@ export async function executeListSetup(
       const fn = new Function(
         'listview',
         'grunt',
-        'frappe',
         `${entry.script};\n` +
         `if (typeof setup_list === 'function') { return setup_list(listview); }`,
       )
-      await fn(listview, gruntProxy, gruntProxy)
+      await fn(listview, gruntProxy)
     } catch (err) {
       console.warn(`[ClientScript] Error in "${entry.name}" (setup_list):`, err)
     }
@@ -970,12 +968,11 @@ export async function executeListQuickFilterOnChange(
       const fn = new Function(
         'listview',
         'grunt',
-        'frappe',
         'change',
         `${entry.script};\n` +
         `if (typeof on_quick_filter_change === 'function') { return on_quick_filter_change(listview, change); }`,
       )
-      await fn(listview, gruntProxy, gruntProxy, change)
+      await fn(listview, gruntProxy, change)
     } catch (err) {
       console.warn(`[ClientScript] Error in "${entry.name}" (on_quick_filter_change):`, err)
     }

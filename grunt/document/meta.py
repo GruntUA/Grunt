@@ -1,4 +1,4 @@
-"""Meta class — wrapper over raw DocType metadata (similar to frappe.model.meta.Meta).
+"""Meta class — wrapper over raw DocType metadata.
 
 Provides convenient access and caching for metadata operations.
 """

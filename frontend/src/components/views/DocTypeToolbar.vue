@@ -104,7 +104,7 @@ const toolbarControlsEvents = computed(() =>
       </div>
 
       <!-- Right: active view's toolbar controls (columns, grouping, sort, etc.) -->
-      <!-- View mode switcher itself lives in ListHeader.vue (Frappe-style "View ▾" dropdown) -->
+      <!-- View mode switcher itself lives in ListHeader.vue ("View ▾" dropdown) -->
       <div v-if="toolbarControlsComponent" class="flex items-center gap-2">
         <component
           :is="toolbarControlsComponent"

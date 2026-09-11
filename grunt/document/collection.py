@@ -1,8 +1,8 @@
 """Collection-level document operations.
 
-Frappe-aligned module functions that act on *sets* of documents (list, bulk
-delete) or cross-document concerns (rename cascade) rather than a single
-stateful document. Single-document CRUD lives on
+Module functions that act on *sets* of documents (list, bulk delete) or
+cross-document concerns (rename cascade) rather than a single stateful
+document. Single-document CRUD lives on
 :class:`~grunt.document.base.Document`.
 """
 

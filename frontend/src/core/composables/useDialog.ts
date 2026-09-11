@@ -273,8 +273,6 @@ export function useDialog() {
    * Open a form dialog with one or more fields.
    * Resolves with the submitted values dict, or null if cancelled.
    *
-   * Mirrors `frappe.ui.Dialog` / `frappe.prompt` with multiple fields.
-   *
    * @example
    * const values = await dialog.form({
    *   title: 'Новий клієнт',
@@ -303,8 +301,8 @@ export function useDialog() {
   }
 
   /**
-   * Open a dialog that shows a selectable list/table (Frappe `MultiSelectDialog`
-   * style). Resolves with the selected row(s), or null if cancelled.
+   * Open a dialog that shows a selectable list/table. Resolves with the
+   * selected row(s), or null if cancelled.
    *
    * @example
    * const picked = await dialog.select({
