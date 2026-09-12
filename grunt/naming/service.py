@@ -91,9 +91,7 @@ class NamingService:
         from grunt.metadata.compiler import compile_doctype_to_table
         from grunt.metadata.registry import doctype_registry
 
-        ns_dt = doctype_registry._doctypes.get("NamingSeries") or await doctype_registry.get(
-            "NamingSeries"
-        )
+        ns_dt = await doctype_registry.get("NamingSeries")
         table = compile_doctype_to_table(ns_dt)
 
         # Try to get existing row with lock

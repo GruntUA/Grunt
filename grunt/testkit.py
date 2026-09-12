@@ -42,10 +42,11 @@ from grunt.db.session import get_engine as _get_engine_dep
 from grunt.db.session import get_session
 from grunt.document.registry import document_registry
 from grunt.main import app
-from grunt.metadata.compiler import MULTI_LINK_TABLE, SA_METADATA, compile_doctype_to_table
+from grunt.metadata.compiler import SA_METADATA, compile_doctype_to_table, get_compiled_metadata
 from grunt.metadata.doctype import DocType
 from grunt.metadata.registry import doctype_registry
 from grunt.search.service import search_index_service
+from grunt.site.manager import current_site
 from grunt.startup.doctypes import _find_doctype_dirs
 
 if TYPE_CHECKING:
@@ -54,6 +55,12 @@ if TYPE_CHECKING:
 settings.rate_limit_enabled = False
 
 logger = logging.getLogger(__name__)
+
+# Fixed DocType-registry key for the whole test process — set explicitly via
+# the same ContextVar production code uses, rather than relying on
+# SiteManager.get_active_site()'s file-based fallback (see conftest.py's
+# identical _TEST_SITE for the full rationale).
+_TEST_SITE = "__pytest__"
 
 
 def _app_doctype_dirs(app_dir: Path, app_name: str) -> list[Path]:
@@ -113,50 +120,50 @@ def make_app_fixtures(app_dir: Path, app_name: str) -> dict[str, Any]:
         transitively by db_session/engine/ctx/client below — request one of
         those (or setup_db itself) in tests that need the database.
         """
-        async with test_engine.begin() as conn:
-            await conn.run_sync(metadata.drop_all)
-            await conn.run_sync(metadata.create_all)
-        doctype_registry._doctypes.clear()
+        site_token = current_site.set(_TEST_SITE)
+        try:
+            async with test_engine.begin() as conn:
+                await conn.run_sync(metadata.drop_all)
+                await conn.run_sync(metadata.create_all)
+            doctype_registry.reset()
 
-        _static_tables = {MULTI_LINK_TABLE.name}
-        to_remove = [
-            t for t in SA_METADATA.tables if t.startswith("grunt_") and t not in _static_tables
-        ]
-        for name in to_remove:
-            if name in SA_METADATA.tables:
-                SA_METADATA.remove(SA_METADATA.tables[name])
+            compiled_metadata = get_compiled_metadata()
+            to_remove = [t for t in compiled_metadata.tables if t.startswith("grunt_")]
+            for name in to_remove:
+                compiled_metadata.remove(compiled_metadata.tables[name])
 
-        dt_dirs = [*_find_doctype_dirs(), *_app_doctype_dirs(app_dir, app_name)]
-        dt_files = sorted(f for d in dt_dirs for f in d.glob("**/*.json"))
-        for dt_file in dt_files:
-            try:
-                dt_data = json.loads(dt_file.read_text(encoding="utf-8"))
-                dt_obj = DocType.model_validate(dt_data)
-                if not dt_obj.app:
-                    dt_obj.app = app_name if dt_file.is_relative_to(app_dir) else "grunt"
-                compile_doctype_to_table(dt_obj)
-                doctype_registry._doctypes[dt_obj.name] = dt_obj
-            except Exception as exc:
-                logger.warning("Failed to load or compile doctype from %s: %s", dt_file, exc)
+            dt_dirs = [*_find_doctype_dirs(), *_app_doctype_dirs(app_dir, app_name)]
+            dt_files = sorted(f for d in dt_dirs for f in d.glob("**/*.json"))
+            for dt_file in dt_files:
+                try:
+                    dt_data = json.loads(dt_file.read_text(encoding="utf-8"))
+                    dt_obj = DocType.model_validate(dt_data)
+                    if not dt_obj.app:
+                        dt_obj.app = app_name if dt_file.is_relative_to(app_dir) else "grunt"
+                    compile_doctype_to_table(dt_obj)
+                    doctype_registry._doctypes[dt_obj.name] = dt_obj
+                except Exception as exc:
+                    logger.warning("Failed to load or compile doctype from %s: %s", dt_file, exc)
 
-        document_registry.index_external_app_controllers(app_dir)
+            document_registry.index_external_app_controllers(app_dir)
 
-        async with test_engine.begin() as conn:
-            await conn.run_sync(SA_METADATA.create_all)
-        await search_index_service.ensure_table(test_engine)
+            async with test_engine.begin() as conn:
+                await conn.run_sync(SA_METADATA.create_all)
+                await conn.run_sync(compiled_metadata.create_all)
+            await search_index_service.ensure_table(test_engine)
 
-        yield
+            yield
 
-        async with test_engine.begin() as conn:
-            await conn.run_sync(SA_METADATA.drop_all)
-            await conn.run_sync(metadata.drop_all)
+            async with test_engine.begin() as conn:
+                await conn.run_sync(compiled_metadata.drop_all)
+                await conn.run_sync(SA_METADATA.drop_all)
+                await conn.run_sync(metadata.drop_all)
 
-        to_remove = [
-            t for t in SA_METADATA.tables if t.startswith("grunt_") and t not in _static_tables
-        ]
-        for name in to_remove:
-            if name in SA_METADATA.tables:
-                SA_METADATA.remove(SA_METADATA.tables[name])
+            to_remove = [t for t in compiled_metadata.tables if t.startswith("grunt_")]
+            for name in to_remove:
+                compiled_metadata.remove(compiled_metadata.tables[name])
+        finally:
+            current_site.reset(site_token)
 
     @pytest_asyncio.fixture
     async def db_session(setup_db):

@@ -53,7 +53,7 @@ class VersionService:
         from grunt.metadata.compiler import compile_doctype_to_table
         from grunt.metadata.registry import doctype_registry
 
-        table = compile_doctype_to_table(doctype_registry._doctypes["DocVersion"])
+        table = compile_doctype_to_table(await doctype_registry.get("DocVersion"))
 
         # Get next version number
         stmt = (
@@ -103,7 +103,7 @@ class VersionService:
         from grunt.metadata.compiler import compile_doctype_to_table
         from grunt.metadata.registry import doctype_registry
 
-        table = compile_doctype_to_table(doctype_registry._doctypes["DocVersion"])
+        table = compile_doctype_to_table(await doctype_registry.get("DocVersion"))
         stmt = (
             select(table)
             .where(table.c.doctype == doctype)
@@ -133,7 +133,7 @@ class VersionService:
         from grunt.metadata.compiler import compile_doctype_to_table
         from grunt.metadata.registry import doctype_registry
 
-        table = compile_doctype_to_table(doctype_registry._doctypes["DocVersion"])
+        table = compile_doctype_to_table(await doctype_registry.get("DocVersion"))
         stmt = select(table).where(table.c.name == version_id)
         result = await session.execute(stmt)
         row = result.mappings().first()

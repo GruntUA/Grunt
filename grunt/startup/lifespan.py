@@ -4,7 +4,8 @@ Kept out of :mod:`grunt.main` so the entry point stays a thin assembly of
 ``FastAPI(...)`` + middleware + route wiring. The startup sequence:
 
 1. configure logging, load validators
-2. bring every site up (system tables, core DocTypes, field overrides)
+2. bring every site up (search index table, DocType *names* only — full
+   definitions and schema sync are `grunt db migrate`'s job, not boot's)
 3. load external apps installed on at least one site
 4. optional Sentry, then the task broker and the scheduler
 """
@@ -42,8 +43,6 @@ def _configure() -> None:
 
 
 async def _bring_up_sites() -> None:
-    from grunt.startup import apply_doctype_overrides, load_core_doctypes
-
     sites = site_manager.get_sites()
     if not sites:
         log.warning("grunt.startup.no_sites")
@@ -61,13 +60,11 @@ async def _bring_up_sites() -> None:
             await search_index_service.ensure_table(eng)
 
             async with maker() as session:
-                # Core DocType definitions into the registry — no table sync
-                # (that is `grunt migrate`).
-                await load_core_doctypes(session)
-                # Names of user-created DocTypes, for lazy loading.
+                # Only names — for both core and user-created DocTypes. Full
+                # definitions load lazily on first `doctype_registry.get()`.
+                # All schema/definition merging (core JSON -> DB) happens
+                # exclusively via `grunt db migrate`, never at boot.
                 await doctype_registry.prefetch_names(session)
-                # In-memory field extensions from app hooks — no table sync.
-                await apply_doctype_overrides(session, eng)
                 await session.commit()
         except Exception as e:
             log.error("grunt.site.startup_error", site=site, error=str(e))

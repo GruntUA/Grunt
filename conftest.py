@@ -19,12 +19,21 @@ from grunt.db.base import metadata
 from grunt.db.session import get_engine as _get_engine_dep
 from grunt.db.session import get_session
 from grunt.main import app
-from grunt.metadata.compiler import MULTI_LINK_TABLE, SA_METADATA, compile_doctype_to_table
+from grunt.metadata.compiler import SA_METADATA, compile_doctype_to_table, get_compiled_metadata
 from grunt.metadata.registry import doctype_registry
 from grunt.search.service import search_index_service
+from grunt.site.manager import current_site
 
 # Disable rate limiting for tests
 settings.rate_limit_enabled = False
+
+# Fixed DocType-registry key for the whole test process. Set explicitly via
+# the same ContextVar production code uses (see grunt.metadata.registry),
+# rather than relying on SiteManager.get_active_site()'s file-based fallback
+# — several tests monkeypatch site_manager.bench_dir/sites_dir mid-test to
+# simulate a different site, which would otherwise change which registry
+# instance resolves and silently "lose" whatever setup_db just loaded.
+_TEST_SITE = "__pytest__"
 
 # ── Single shared test engine ─────────────────────────────────────────────
 # Override via env to test against PostgreSQL or MySQL:
@@ -60,96 +69,96 @@ app.dependency_overrides[_get_engine_dep] = override_get_engine
 @pytest.fixture(autouse=True)
 async def setup_db():
     """Create tables before each test, drop after. Clear registry."""
-    async with test_engine.begin() as conn:
-        await conn.run_sync(metadata.drop_all)
-        await conn.run_sync(metadata.create_all)
-    doctype_registry._doctypes.clear()
-
-    from grunt.workflow.registry import clear_cache as _clear_workflow_cache
-
-    _clear_workflow_cache()
-
-    # Remove previously compiled dynamic doctype tables from SA_METADATA
-    # Preserve static tables (e.g. grunt_core_multi_link) defined at module level
-    _static_tables = {MULTI_LINK_TABLE.name}
-    to_remove = [
-        t for t in SA_METADATA.tables if t.startswith("grunt_") and t not in _static_tables
-    ]
-    for name in to_remove:
-        if name in SA_METADATA.tables:
-            SA_METADATA.remove(SA_METADATA.tables[name])
-
-    # Compile and create core doctype tables from JSON files, and register in doctype_registry
-    import json
-
-    from grunt.metadata.doctype import DocType as _DocType
-    from grunt.startup.doctypes import _find_doctype_dirs
-
-    _dt_files = sorted(f for d in _find_doctype_dirs() for f in d.glob("**/*.json"))
-    for _dt_file in _dt_files:
-        try:
-            _dt_data = json.loads(_dt_file.read_text(encoding="utf-8"))
-            _dt_obj = _DocType.model_validate(_dt_data)
-            compile_doctype_to_table(_dt_obj)
-            doctype_registry._doctypes[_dt_obj.name] = _dt_obj
-        except Exception as exc:
-            # Log and continue so a single bad doctype file does not break all tests.
-            logging.getLogger(__name__).warning(
-                "Failed to load or compile doctype from %s: %s", _dt_file, exc
-            )
-    async with test_engine.begin() as conn:
-        await conn.run_sync(SA_METADATA.create_all)
-    await search_index_service.ensure_table(test_engine)
-
-    # Seed a permissive SystemSettings row so the production password /
-    # registration policy (grunt/auth/password_policy.py, register gate) does
-    # not block unrelated tests. Tests that exercise the policy set strict
-    # values themselves and call grunt.site.settings.clear_settings_cache().
-    from datetime import UTC, datetime
-
-    from grunt.site.settings import clear_settings_cache
-
-    clear_settings_cache()
+    site_token = current_site.set(_TEST_SITE)
     try:
-        _ss = compile_doctype_to_table(doctype_registry._doctypes["SystemSettings"])
-        _now = datetime.now(UTC)
         async with test_engine.begin() as conn:
-            await conn.execute(
-                _ss.insert().values(
-                    name="SystemSettings",
-                    owner="system@grunt.local",
-                    created_at=_now,
-                    modified_at=_now,
-                    modified_by="system@grunt.local",
-                    docstatus=0,
-                    allow_user_registration=True,
-                    password_min_length=1,
-                    password_require_uppercase=False,
-                    password_require_lowercase=False,
-                    password_require_numbers=False,
-                    password_require_symbols=False,
-                    enable_web_push=False,
+            await conn.run_sync(metadata.drop_all)
+            await conn.run_sync(metadata.create_all)
+        doctype_registry.reset()
+
+        from grunt.workflow.registry import clear_cache as _clear_workflow_cache
+
+        _clear_workflow_cache()
+
+        # Remove previously compiled dynamic doctype tables from this test
+        # process's compiled-table MetaData (kept separate from SA_METADATA,
+        # which only ever holds fixed-shape infra tables like MULTI_LINK_TABLE).
+        compiled_metadata = get_compiled_metadata()
+        to_remove = [t for t in compiled_metadata.tables if t.startswith("grunt_")]
+        for name in to_remove:
+            compiled_metadata.remove(compiled_metadata.tables[name])
+
+        # Compile and create core doctype tables from JSON files, and register in doctype_registry
+        import json
+
+        from grunt.metadata.doctype import DocType as _DocType
+        from grunt.startup.doctypes import _find_doctype_dirs
+
+        _dt_files = sorted(f for d in _find_doctype_dirs() for f in d.glob("**/*.json"))
+        for _dt_file in _dt_files:
+            try:
+                _dt_data = json.loads(_dt_file.read_text(encoding="utf-8"))
+                _dt_obj = _DocType.model_validate(_dt_data)
+                compile_doctype_to_table(_dt_obj)
+                doctype_registry._doctypes[_dt_obj.name] = _dt_obj
+            except Exception as exc:
+                # Log and continue so a single bad doctype file does not break all tests.
+                logging.getLogger(__name__).warning(
+                    "Failed to load or compile doctype from %s: %s", _dt_file, exc
                 )
-            )
-    except Exception as exc:  # pragma: no cover - defensive
-        logging.getLogger(__name__).warning("SystemSettings test seed failed: %s", exc)
-    clear_settings_cache()
+        async with test_engine.begin() as conn:
+            await conn.run_sync(SA_METADATA.create_all)
+            await conn.run_sync(compiled_metadata.create_all)
+        await search_index_service.ensure_table(test_engine)
 
-    yield
+        # Seed a permissive SystemSettings row so the production password /
+        # registration policy (grunt/auth/password_policy.py, register gate) does
+        # not block unrelated tests. Tests that exercise the policy set strict
+        # values themselves and call grunt.site.settings.clear_settings_cache().
+        from datetime import UTC, datetime
 
-    async with test_engine.begin() as conn:
-        await conn.run_sync(SA_METADATA.drop_all)
-        await conn.run_sync(metadata.drop_all)
+        from grunt.site.settings import clear_settings_cache
 
-    # Remove dynamic doctype tables; preserve static tables (e.g. grunt_core_multi_link)
-    # so they stay in SA_METADATA and get re-created by the next test's create_all.
-    _static_tables = {MULTI_LINK_TABLE.name}
-    to_remove = [
-        t for t in SA_METADATA.tables if t.startswith("grunt_") and t not in _static_tables
-    ]
-    for name in to_remove:
-        if name in SA_METADATA.tables:
-            SA_METADATA.remove(SA_METADATA.tables[name])
+        clear_settings_cache()
+        try:
+            _ss = compile_doctype_to_table(doctype_registry._doctypes["SystemSettings"])
+            _now = datetime.now(UTC)
+            async with test_engine.begin() as conn:
+                await conn.execute(
+                    _ss.insert().values(
+                        name="SystemSettings",
+                        owner="system@grunt.local",
+                        created_at=_now,
+                        modified_at=_now,
+                        modified_by="system@grunt.local",
+                        docstatus=0,
+                        allow_user_registration=True,
+                        password_min_length=1,
+                        password_require_uppercase=False,
+                        password_require_lowercase=False,
+                        password_require_numbers=False,
+                        password_require_symbols=False,
+                        enable_web_push=False,
+                    )
+                )
+        except Exception as exc:  # pragma: no cover - defensive
+            logging.getLogger(__name__).warning("SystemSettings test seed failed: %s", exc)
+        clear_settings_cache()
+
+        yield
+
+        async with test_engine.begin() as conn:
+            await conn.run_sync(compiled_metadata.drop_all)
+            await conn.run_sync(SA_METADATA.drop_all)
+            await conn.run_sync(metadata.drop_all)
+
+        # Remove dynamic doctype tables from the compiled-table MetaData; next
+        # test's setup_db rebuilds them from scratch.
+        to_remove = [t for t in compiled_metadata.tables if t.startswith("grunt_")]
+        for name in to_remove:
+            compiled_metadata.remove(compiled_metadata.tables[name])
+    finally:
+        current_site.reset(site_token)
 
 
 @pytest.fixture

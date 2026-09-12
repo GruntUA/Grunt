@@ -116,7 +116,7 @@ class DocTypeController(VirtualDocType):
         session = self._session()
         engine = grunt._require_engine()
 
-        if dt.name in doctype_registry._doctypes:
+        if await doctype_registry.get_or_none(dt.name) is not None:
             raise ValueError(f"DocType '{dt.name}' already exists")
 
         await doctype_registry.register(dt, session, engine)

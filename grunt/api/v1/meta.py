@@ -107,7 +107,7 @@ async def save_doctype(doctype_data: dict[str, Any]) -> dict[str, Any]:
     engine = grunt_app._require_engine()
 
     try:
-        if dt.name in doctype_registry._doctypes:
+        if await doctype_registry.get_or_none(dt.name) is not None:
             if doctype_data.get("__is_new"):
                 grunt.throw(f"DocType '{dt.name}' already exists", "CONFLICT")
             await doctype_registry.update(dt, session, engine)

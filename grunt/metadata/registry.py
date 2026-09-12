@@ -141,18 +141,45 @@ class DocTypeRegistry:
         self._lower_index.clear()
         log.info("registry.cache_cleared")
 
+    def reset(self) -> None:
+        """Discard ALL in-memory state — loaded DocTypes and the known-names
+        index alike.
+
+        Test-harness use only: unlike :meth:`clear_cache` (which demotes
+        loaded DocTypes to "known, reload from DB on next :meth:`get`"),
+        fixtures that repopulate the registry directly (bypassing the DB —
+        parsing JSON files straight into ``_doctypes``) need every index
+        wiped, not demoted, or a name reused across tests can resolve
+        through a stale ``_lower_index``/``_known_lower`` entry left over
+        from a previous test's state.
+        """
+        self._doctypes.clear()
+        self._known_names.clear()
+        self._lower_index.clear()
+        self._known_lower.clear()
+
     # ── Read ─────────────────────────────────────────────────────────────
 
     async def prefetch_names(self, session: AsyncSession) -> None:
-        """Record names of all user-created DocTypes without loading their data.
+        """Record names of ALL DocTypes (core and user-created alike) without
+        loading their data.
 
-        Call this at startup instead of :meth:`load_all`. Core/system DocTypes
-        are already in ``_doctypes``; their names are excluded from
-        ``_known_names`` so they are never lazy-loaded (their definition is
-        already in memory).
+        Call this at startup instead of :meth:`load_all`. Full definitions —
+        core or user — are loaded lazily from ``grunt_meta_doctype`` on first
+        :meth:`get`. Schema/definition merging from bundled core JSON only
+        happens via ``grunt db migrate``, which persists the merged result
+        into ``grunt_meta_doctype`` so the server never needs to touch the
+        JSON files at runtime.
+
+        Swallows a missing/not-yet-migrated ``grunt_meta_doctype`` table so a
+        brand-new site can still boot before its first ``grunt db migrate``.
         """
-        result = await session.execute(select(GruntMetaDoctype.c.name))
-        all_names = {row[0] for row in result}
+        try:
+            result = await session.execute(select(GruntMetaDoctype.c.name))
+            all_names = {row[0] for row in result}
+        except Exception:
+            log.info("registry.prefetch_names_table_missing", hint="run `grunt db migrate` first")
+            all_names = set()
         self._known_names = all_names - set(self._doctypes)
         # Rebuild the known-names index in one pass
         self._known_lower = {n.lower(): n for n in self._known_names}
@@ -218,17 +245,22 @@ class DocTypeRegistry:
         else:
             from grunt.site.manager import site_manager
 
+            # Fail closed on ANY failure in this path — not just resolving
+            # site_name/maker, but opening the connection and running the
+            # query too (engine creation is lazy, so a nonexistent/misconfigured
+            # site only fails once actually connected). A background task
+            # with no ambient session must return None, never crash, on a
+            # bad site resolution.
             try:
                 site_name = site_manager.get_active_site()
                 maker = site_manager.get_session_maker(site_name)
+                async with maker() as session:
+                    result = await session.execute(
+                        select(GruntMetaDoctype).where(GruntMetaDoctype.c.name == name)
+                    )
+                    row = result.mappings().one_or_none()
             except Exception:
                 return None
-
-            async with maker() as session:
-                result = await session.execute(
-                    select(GruntMetaDoctype).where(GruntMetaDoctype.c.name == name)
-                )
-                row = result.mappings().one_or_none()
 
         if row is None:
             return None
@@ -269,7 +301,12 @@ class DocTypeRegistry:
         # 2. Case-insensitive match against loaded doctypes — O(1)
         canonical = self._lower_index.get(name_lower)
         if canonical:
-            return self._doctypes[canonical]
+            cached = self._doctypes.get(canonical)
+            if cached is not None:
+                return cached
+            # Stale index entry (points at a name no longer in _doctypes) —
+            # self-heal rather than KeyError, and fall through to lazy-load.
+            self._index_remove(canonical)
 
         # 3. Resolve against lazy known-names index — O(1)
         candidate = name if name in self._known_names else self._known_lower.get(name_lower)
@@ -283,6 +320,19 @@ class DocTypeRegistry:
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"DocType '{name}' not found",
         )
+
+    async def get_or_none(self, name: str) -> DocType | None:
+        """Like :meth:`get`, but returns ``None`` instead of raising 404.
+
+        For call sites that need an existence check or an optional lookup
+        without eagerly assuming the DocType is already in memory (core
+        DocTypes are no longer guaranteed to be warm at boot — see
+        :meth:`prefetch_names`).
+        """
+        try:
+            return await self.get(name)
+        except HTTPException:
+            return None
 
     async def list_all(self) -> list[DocType]:
         """Return all registered DocTypes, loading any that are still lazy."""
@@ -583,5 +633,76 @@ class DocTypeRegistry:
                 )
 
 
-# Module-level singleton
-doctype_registry = DocTypeRegistry()
+# ── Per-site resolution ──────────────────────────────────────────────────
+#
+# One process can serve multiple sites (tenants), selected per-request via
+# the ``current_site`` ContextVar (set by SiteContextMiddleware from the Host
+# header). A DocType registry must never be shared across sites — the same
+# name can mean a different definition per site. Instead of threading a site
+# argument through every one of the ~70 call sites that do
+# ``doctype_registry.get(...)``/``.list_all()``/``._doctypes...``, resolve
+# the *instance* transparently through a proxy, keyed off the same
+# ``current_site`` mechanism already used everywhere else (SiteManager's
+# engines/session makers).
+
+_registries: dict[str, DocTypeRegistry] = {}
+_DEFAULT_KEY = "__no_site__"  # process has no ambient site concept at all
+
+
+def _resolve_site_key() -> str:
+    from grunt.site.manager import current_site, site_manager
+
+    site = current_site.get()
+    if site:
+        return site
+    try:
+        return site_manager.get_active_site()
+    except Exception:
+        return _DEFAULT_KEY
+
+
+def get_registry(site: str | None = None) -> DocTypeRegistry:
+    """Return the DocTypeRegistry for *site* (or the ambient current site).
+
+    Created lazily and cached, mirroring ``SiteManager.get_engine()``.
+    """
+    key = site or _resolve_site_key()
+    reg = _registries.get(key)
+    if reg is None:
+        reg = DocTypeRegistry()
+        _registries[key] = reg
+    return reg
+
+
+class _DocTypeRegistryProxy:
+    """Forwards every attribute access to the current site's DocTypeRegistry.
+
+    Keeps ``doctype_registry`` importable exactly as before at every existing
+    call site — ``doctype_registry.get(...)``, ``.list_all()``, even direct
+    ``._doctypes.clear()``/``[name] = x`` — while resolving which per-site
+    instance backs the call freshly on every access.
+
+    ``__delattr__`` forwards too, for the same reason ``__setattr__`` does:
+    ``unittest.mock.patch("...doctype_registry.get", ...)`` sets the mock via
+    ``setattr`` (forwarded onto the real registry instance, shadowing its
+    class method) but decides at teardown — based on whether "get" was ever
+    in *this proxy's own* ``__dict__``, which it never is — to restore via
+    ``delattr`` rather than ``setattr``. Without forwarding that delete too,
+    teardown raises ``AttributeError`` on the proxy instead of removing the
+    shadowing attribute from the real registry object.
+    """
+
+    def __getattr__(self, item):
+        return getattr(get_registry(), item)
+
+    def __delattr__(self, item):
+        delattr(get_registry(), item)
+
+    def __setattr__(self, item, value):
+        setattr(get_registry(), item, value)
+
+    def __repr__(self) -> str:
+        return f"<doctype_registry proxy -> {get_registry()!r}>"
+
+
+doctype_registry = _DocTypeRegistryProxy()

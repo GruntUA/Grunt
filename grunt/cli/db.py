@@ -35,7 +35,7 @@ def db_migrate(dry_run: bool, site: str | None, no_alembic: bool) -> None:
         from grunt.db.base import metadata
         from grunt.metadata.compiler import SA_METADATA, sync_table
         from grunt.metadata.registry import doctype_registry
-        from grunt.site.manager import site_manager
+        from grunt.site.manager import current_site, site_manager
         from grunt.startup import (
             apply_doctype_overrides,
             load_core_doctypes,
@@ -60,82 +60,89 @@ def db_migrate(dry_run: bool, site: str | None, no_alembic: bool) -> None:
 
             for site_name in sites:
                 click.echo(f"\n── Сайт: {site_name} ──")
-                eng = site_manager.get_engine(site_name)
-                maker = site_manager.get_session_maker(site_name)
+                token = current_site.set(site_name)
+                try:
+                    eng = site_manager.get_engine(site_name)
+                    maker = site_manager.get_session_maker(site_name)
 
-                # 1. System ORM tables
-                click.echo("  [1/5] System tables (metadata.create_all)...")
-                async with eng.begin() as conn:
-                    await conn.run_sync(metadata.create_all)
+                    # 1. System ORM tables
+                    click.echo("  [1/5] System tables (metadata.create_all)...")
+                    async with eng.begin() as conn:
+                        await conn.run_sync(metadata.create_all)
 
-                # 2. Shared infrastructure tables (MultiLink junction, etc.)
-                click.echo("  [2/5] Infrastructure tables (SA_METADATA)...")
-                async with eng.begin() as conn:
-                    await conn.run_sync(SA_METADATA.create_all)
+                    # 2. Shared infrastructure tables (MultiLink junction, etc.)
+                    click.echo("  [2/5] Infrastructure tables (SA_METADATA)...")
+                    async with eng.begin() as conn:
+                        await conn.run_sync(SA_METADATA.create_all)
 
-                # 3. Alembic history — schema patches on top of create_all.
-                #    Fresh site → stamp head; existing → upgrade. Not
-                #    offline-previewable, so --dry-run skips it.
-                if no_alembic or dry_run:
-                    why = "--no-alembic" if no_alembic else "dry-run"
-                    click.echo(f"  [3/5] Alembic — пропущено ({why}).")
-                else:
-                    from grunt.db.alembic_utils import sync_site
+                    # 3. Alembic history — schema patches on top of create_all.
+                    #    Fresh site → stamp head; existing → upgrade. Not
+                    #    offline-previewable, so --dry-run skips it.
+                    if no_alembic or dry_run:
+                        why = "--no-alembic" if no_alembic else "dry-run"
+                        click.echo(f"  [3/5] Alembic — пропущено ({why}).")
+                    else:
+                        from grunt.db.alembic_utils import sync_site
 
-                    db_url = site_manager.get_database_url(site_name)
-                    outcome = await asyncio.to_thread(sync_site, db_url)
-                    click.echo(f"  [3/5] Alembic — {outcome}.")
+                        db_url = site_manager.get_database_url(site_name)
+                        outcome = await asyncio.to_thread(sync_site, db_url)
+                        click.echo(f"  [3/5] Alembic — {outcome}.")
 
-                # 4. DocType tables
-                click.echo("  [4/5] DocType tables (sync_table)...")
-                async with maker() as session:
-                    await load_core_doctypes(session, sync_db=True)
-                    await apply_doctype_overrides(session, eng)
-                    await populate_system_doctypes(session, eng)
-
-                    all_dts = await doctype_registry.list_all()
-
-                    synced = 0
-                    skipped = 0
-                    for dt in all_dts:
-                        try:
-                            if dt.is_virtual:
-                                skipped += 1
-                                continue
-                            if dry_run:
-                                click.echo(f"    [dry-run] would sync: {dt.name}")
-                            else:
-                                await sync_table(dt, eng, session=session)
-                                click.echo(f"    synced: {dt.name}")
-                            synced += 1
-                        except Exception as e:
-                            click.echo(f"    [error] {dt.name}: {e}", err=True)
-
-                    await session.commit()
-
-                click.echo(f"  Done: {synced} synced, {skipped} skipped (virtual).")
-
-                # 4. Seed fixtures (skip on dry-run)
-                if dry_run:
-                    click.echo("  [5/5] Seed fixtures — пропущено (dry-run).")
-                else:
-                    click.echo("  [5/5] Seed fixtures...")
+                    # 4. DocType tables
+                    click.echo("  [4/5] DocType tables (sync_table)...")
                     async with maker() as session:
-                        await seed_system_settings(session, eng)
-                        await load_core_fixtures(session, eng)
-                        await seed_grunt_workspace(session, eng)
+                        await load_core_doctypes(session, sync_db=True)
+                        await apply_doctype_overrides(session, eng, sync_db=True)
+                        # Hydrate Studio-created DocTypes too — list_all()'s
+                        # lazy branch only fires once _known_names is populated.
+                        await doctype_registry.load_all(session)
+                        await populate_system_doctypes(session, eng)
+
+                        all_dts = await doctype_registry.list_all()
+
+                        synced = 0
+                        skipped = 0
+                        for dt in all_dts:
+                            try:
+                                if dt.is_virtual:
+                                    skipped += 1
+                                    continue
+                                if dry_run:
+                                    click.echo(f"    [dry-run] would sync: {dt.name}")
+                                else:
+                                    await sync_table(dt, eng, session=session)
+                                    click.echo(f"    synced: {dt.name}")
+                                synced += 1
+                            except Exception as e:
+                                click.echo(f"    [error] {dt.name}: {e}", err=True)
+
                         await session.commit()
 
-                    async with maker() as session:
-                        await sync_installed_apps(session, site_name)
-                        await session.commit()
+                    click.echo(f"  Done: {synced} synced, {skipped} skipped (virtual).")
 
-                    click.echo("  Fixtures applied.")
+                    # 4. Seed fixtures (skip on dry-run)
+                    if dry_run:
+                        click.echo("  [5/5] Seed fixtures — пропущено (dry-run).")
+                    else:
+                        click.echo("  [5/5] Seed fixtures...")
+                        async with maker() as session:
+                            await seed_system_settings(session, eng)
+                            await load_core_fixtures(session, eng)
+                            await seed_grunt_workspace(session, eng)
+                            await session.commit()
 
-                # 5. Trigger hot-reload for running servers
-                reload_file = site_manager.sites_dir / site_name / ".reload_meta"
-                reload_file.touch()
-                click.echo("  Hot-reload triggered.")
+                        async with maker() as session:
+                            await sync_installed_apps(session, site_name)
+                            await session.commit()
+
+                        click.echo("  Fixtures applied.")
+
+                    # 5. Trigger hot-reload for running servers
+                    reload_file = site_manager.sites_dir / site_name / ".reload_meta"
+                    reload_file.touch()
+                    click.echo("  Hot-reload triggered.")
+                finally:
+                    current_site.reset(token)
         finally:
             if broker_started:
                 if isinstance(broker, InMemoryBroker):
@@ -164,12 +171,11 @@ def db_trim_tables(doctype: str | None, dry_run: bool, quiet: bool, site: str | 
     """Видалити колонки з таблиць, яких немає в метаданих (DocType)."""
     import asyncio
 
-    from grunt.site.manager import site_manager
+    from grunt.site.manager import current_site, site_manager
 
     async def _run() -> None:
         from grunt.app import grunt
         from grunt.metadata.registry import doctype_registry
-        from grunt.startup import load_core_doctypes
 
         sites = [site] if site else site_manager.get_sites()
         if not sites:
@@ -179,26 +185,31 @@ def db_trim_tables(doctype: str | None, dry_run: bool, quiet: bool, site: str | 
         for site_name in sites:
             if not quiet:
                 click.echo(f"\n── Сайт: {site_name} ──")
-            eng = site_manager.get_engine(site_name)
-            maker = site_manager.get_session_maker(site_name)
+            token = current_site.set(site_name)
+            try:
+                eng = site_manager.get_engine(site_name)
+                maker = site_manager.get_session_maker(site_name)
 
-            async with maker() as session:
-                # Eagerly load doctypes so we can iterate them
-                await load_core_doctypes(session)
+                async with maker() as session:
+                    # Hydrate every DocType (core + Studio) from the DB so we
+                    # can iterate them — reads only, no schema/JSON merge here.
+                    await doctype_registry.load_all(session)
 
-                # Fetch target Meta(s)
-                grunt.session.set_context(session, eng)
-                if doctype:
-                    metas = [await grunt.get_meta(doctype)]
-                else:
-                    from grunt.document.meta import Meta
+                    # Fetch target Meta(s)
+                    grunt.session.set_context(session, eng)
+                    if doctype:
+                        metas = [await grunt.get_meta(doctype)]
+                    else:
+                        from grunt.document.meta import Meta
 
-                    all_dts = await doctype_registry.list_all()
-                    metas = [Meta(dt) for dt in all_dts]
+                        all_dts = await doctype_registry.list_all()
+                        metas = [Meta(dt) for dt in all_dts]
 
-                # Trim them
-                for m in metas:
-                    await m.trim_table(engine=eng, dry_run=dry_run, quiet=quiet)
+                    # Trim them
+                    for m in metas:
+                        await m.trim_table(engine=eng, dry_run=dry_run, quiet=quiet)
+            finally:
+                current_site.reset(token)
 
         if not quiet:
             click.echo("\nОчистку колонок завершено.")

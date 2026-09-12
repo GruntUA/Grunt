@@ -52,11 +52,13 @@ async def test_select_only_user_can_search_link(ctx, setup_catalog, db_session, 
 
     async with grunt.context(db_session, engine, _picker("p@example.com")):
         hits = await Document.link_search("LSCatalog", search="Bet")
-        assert [h["title"] for h in hits] == ["Beta"]
+        assert any(h["title"] == "Beta" for h in hits)
 
-        # search field also works
+        # search field also works — assert by presence, not position: the
+        # search also matches against `name` (an unpredictable autoname), so
+        # another row's generated id could coincidentally also contain "C2".
         hits = await Document.link_search("LSCatalog", search="C2")
-        assert [h["name"] for h in hits][:1] and hits[0]["title"] == "Gamma"
+        assert any(h["title"] == "Gamma" for h in hits)
 
         # ...but list and full read stay denied
         with pytest.raises(HTTPException) as e:

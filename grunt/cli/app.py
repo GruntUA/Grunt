@@ -78,7 +78,10 @@ async def _do_install(name: str, site: str | None = None) -> None:
             await conn.run_sync(SA_METADATA.create_all)
 
         async with maker() as session:
-            await load_core_doctypes(session, eng)
+            # New app: seed its core DocTypes into grunt_meta_doctype so the
+            # server can lazy-load them without ever touching the JSON files
+            # again (sync_db=True — same as `grunt db migrate`).
+            await load_core_doctypes(session, sync_db=True)
             await doctype_registry.load_all(session)
             async with grunt.system_context(session, eng):
                 await sync_installed_apps(session, target_site)
@@ -208,7 +211,6 @@ async def _do_uninstall(
     from grunt.app import grunt
     from grunt.metadata.registry import doctype_registry
     from grunt.site.manager import current_site, site_manager
-    from grunt.startup import load_core_doctypes
 
     _sites = site_manager.get_sites()
     target_site = site or (_sites[0] if _sites else None)
@@ -251,7 +253,9 @@ async def _do_uninstall(
         plan: list = []
 
         async with maker() as session:
-            await load_core_doctypes(session, eng)
+            # Uninstalling: the app's DocTypes already exist in
+            # grunt_meta_doctype from when it was installed — hydrate from
+            # there, no need to re-parse its JSON files.
             await doctype_registry.load_all(session)
 
             app_doctypes = [

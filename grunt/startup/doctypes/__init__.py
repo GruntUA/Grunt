@@ -24,17 +24,25 @@ def _find_doctype_dirs(_root=None):
     return [p for p in root.glob("*/doctypes") if p.is_dir()]
 
 
-async def apply_doctype_overrides(session: AsyncSession, engine: AsyncEngine) -> None:
+async def apply_doctype_overrides(
+    session: AsyncSession, engine: AsyncEngine, sync_db: bool = False
+) -> None:
     """Apply field extensions registered by apps via ``doctype_overrides`` in hooks.py.
 
     For each DocType listed in ``hooks.DOCTYPE_OVERRIDES``, new fields that are
-    not yet present are appended to the in-memory DocType definition.
+    not yet present are appended to the DocType definition.
 
     Physical table changes (ALTER TABLE) are NOT applied here — run
     ``grunt migrate`` to synchronise DB schema with DocType definitions.
 
-    Must be called after all DocTypes are loaded into the registry.
+    Only called from ``grunt db migrate`` (with ``sync_db=True``, so the
+    merged result is persisted into ``grunt_meta_doctype`` — the server never
+    re-runs this merge at boot, so without persistence the added fields would
+    be lost the moment the DocType is next lazy-loaded from a fresh process).
     """
+    from sqlalchemy import update
+
+    from grunt.db.system_tables import GruntMetaDoctype
     from grunt.hooks import DOCTYPE_OVERRIDES
     from grunt.metadata.field import DocField
     from grunt.metadata.registry import doctype_registry
@@ -43,7 +51,7 @@ async def apply_doctype_overrides(session: AsyncSession, engine: AsyncEngine) ->
         return
 
     for doctype_name, spec in DOCTYPE_OVERRIDES.items():
-        dt = doctype_registry._doctypes.get(doctype_name)
+        dt = await doctype_registry.get_or_none(doctype_name)
         if dt is None:
             log.warning("startup.override_doctype_not_found", doctype=doctype_name)
             continue
@@ -73,6 +81,13 @@ async def apply_doctype_overrides(session: AsyncSession, engine: AsyncEngine) ->
                 doctype=doctype_name,
                 added_fields=added,
             )
+            if sync_db:
+                await session.execute(
+                    update(GruntMetaDoctype)
+                    .where(GruntMetaDoctype.c.name == doctype_name)
+                    .values(data=dt.model_dump())
+                )
+                await session.flush()
 
 
 async def load_core_doctypes(session: AsyncSession, sync_db: bool = False) -> None:

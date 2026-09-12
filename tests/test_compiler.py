@@ -8,8 +8,8 @@ from sqlalchemy.ext.asyncio import create_async_engine
 
 from grunt.metadata.compiler import (
     MULTI_LINK_TABLE,
-    SA_METADATA,
     compile_doctype_to_table,
+    get_compiled_metadata,
     get_table_name,
     invalidate_table_cache,
     sync_table,
@@ -44,8 +44,8 @@ async def async_engine():
     """SQLite in-memory engine for tests."""
     engine = create_async_engine("sqlite+aiosqlite://", echo=False)
     yield engine
-    # Clean up SA_METADATA so tables don't leak between tests
-    SA_METADATA.clear()
+    # Clean up the compiled-table metadata so tables don't leak between tests
+    get_compiled_metadata().clear()
     await engine.dispose()
 
 
@@ -138,9 +138,10 @@ async def test_sync_table_adds_new_column(async_engine):
 
     # Add a new field
     dt.fields.append(DocField(fieldname="extra_col", label="Extra", fieldtype="Text"))
-    # Must clear both the SA_METADATA Table object and the compile cache so
+    # Must clear both the compiled Table object and the compile cache so
     # sync_table rebuilds the Table with the new column.
-    SA_METADATA.remove(SA_METADATA.tables["grunt_test_sync_alter"])
+    compiled_metadata = get_compiled_metadata()
+    compiled_metadata.remove(compiled_metadata.tables["grunt_test_sync_alter"])
     invalidate_table_cache("SyncAlter")
     await sync_table(dt, async_engine)
 

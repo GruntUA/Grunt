@@ -266,7 +266,7 @@ class IncomingWebhookService:
         from grunt.context import require_session
         from grunt.metadata.registry import doctype_registry
 
-        if not doctype_registry._doctypes.get("IncomingWebhook"):
+        if await doctype_registry.get_or_none("IncomingWebhook") is None:
             return None
 
         async with grunt.system_context(require_session()):
@@ -294,7 +294,7 @@ class IncomingWebhookService:
         from grunt.context import require_session
         from grunt.metadata.registry import doctype_registry
 
-        if not doctype_registry._doctypes.get("IncomingWebhookLog"):
+        if await doctype_registry.get_or_none("IncomingWebhookLog") is None:
             return
 
         payload_str = raw_body[:_MAX_PAYLOAD].decode(errors="replace")

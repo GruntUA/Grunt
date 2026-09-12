@@ -247,7 +247,7 @@ def _run_migrate_for_site(site_name: str) -> None:
         from grunt.db.base import metadata
         from grunt.metadata.compiler import SA_METADATA, sync_table
         from grunt.metadata.registry import doctype_registry
-        from grunt.site.manager import site_manager
+        from grunt.site.manager import current_site, site_manager
         from grunt.startup import (
             apply_doctype_overrides,
             load_core_doctypes,
@@ -257,37 +257,45 @@ def _run_migrate_for_site(site_name: str) -> None:
             sync_installed_apps,
         )
 
-        eng = site_manager.get_engine(site_name)
-        maker = site_manager.get_session_maker(site_name)
+        token = current_site.set(site_name)
+        try:
+            eng = site_manager.get_engine(site_name)
+            maker = site_manager.get_session_maker(site_name)
 
-        async with eng.begin() as conn:
-            await conn.run_sync(metadata.create_all)
+            async with eng.begin() as conn:
+                await conn.run_sync(metadata.create_all)
 
-        async with eng.begin() as conn:
-            await conn.run_sync(SA_METADATA.create_all)
+            async with eng.begin() as conn:
+                await conn.run_sync(SA_METADATA.create_all)
 
-        async with maker() as session:
-            await load_core_doctypes(session)
-            await apply_doctype_overrides(session, eng)
-            await populate_system_doctypes(session, eng)
+            async with maker() as session:
+                # New site: seed core DocTypes into grunt_meta_doctype so the
+                # server can lazy-load them without ever touching the JSON
+                # files again (sync_db=True — same as `grunt db migrate`).
+                await load_core_doctypes(session, sync_db=True)
+                await apply_doctype_overrides(session, eng, sync_db=True)
+                await doctype_registry.load_all(session)
+                await populate_system_doctypes(session, eng)
 
-            for dt in await doctype_registry.list_all():
-                try:
-                    if not dt.is_virtual:
-                        await sync_table(dt, eng, session=session)
-                except Exception as e:
-                    click.echo(f"  [warn] {dt.name}: {e}", err=True)
+                for dt in await doctype_registry.list_all():
+                    try:
+                        if not dt.is_virtual:
+                            await sync_table(dt, eng, session=session)
+                    except Exception as e:
+                        click.echo(f"  [warn] {dt.name}: {e}", err=True)
 
-            await session.commit()
+                await session.commit()
 
-        async with maker() as session:
-            await seed_system_settings(session, eng)
-            await seed_grunt_workspace(session, eng)
-            await session.commit()
+            async with maker() as session:
+                await seed_system_settings(session, eng)
+                await seed_grunt_workspace(session, eng)
+                await session.commit()
 
-        async with maker() as session:
-            await sync_installed_apps(session, site_name)
-            await session.commit()
+            async with maker() as session:
+                await sync_installed_apps(session, site_name)
+                await session.commit()
+        finally:
+            current_site.reset(token)
 
     asyncio.run(_migrate())
     click.echo("  ✓ Міграцію завершено")

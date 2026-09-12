@@ -26,13 +26,36 @@ if TYPE_CHECKING:
     from grunt.metadata.doctype import DocType
 
 
-# Shared SA MetaData for all dynamically compiled tables
+# SA MetaData for fixed-shape infrastructure tables that never vary by
+# DocType or by site (currently just MULTI_LINK_TABLE below). Kept as a
+# single shared MetaData/name since nothing here is ever tenant-specific.
 SA_METADATA = MetaData()
 
-# Module-level Table cache keyed by DocType name.
-# Avoids rebuilding Column objects on every call to compile_doctype_to_table().
+# Per-site MetaData for *compiled DocType* tables, keyed by site (the same
+# key grunt.metadata.registry._resolve_site_key() resolves). One process can
+# serve multiple sites; a compiled Table's shape (columns) depends entirely
+# on that site's DocType definition, so it must never be shared across sites
+# — a stale/foreign Table object would build SQL against columns that don't
+# exist in the site actually being queried (extend_existing=True only adds
+# columns, it never removes them).
+_SA_METADATA: dict[str, MetaData] = {}
+
+# Table cache keyed by site, then by DocType name. Avoids rebuilding Column
+# objects on every call to compile_doctype_to_table().
 # Invalidated via invalidate_table_cache() when a DocType is updated or deleted.
-_TABLE_CACHE: dict[str, Table] = {}
+_TABLE_CACHE: dict[str, dict[str, Table]] = {}
+
+
+def get_compiled_metadata(site: str | None = None) -> MetaData:
+    """Return the MetaData holding compiled per-DocType tables for *site*.
+
+    Defaults to the ambient current site (see
+    ``grunt.metadata.registry._resolve_site_key``). Created lazily and cached.
+    """
+    from grunt.metadata.registry import _resolve_site_key
+
+    key = site or _resolve_site_key()
+    return _SA_METADATA.setdefault(key, MetaData())
 
 
 class DuplicateDataError(Exception):
@@ -69,7 +92,9 @@ class DuplicateDataError(Exception):
 
 def invalidate_table_cache(doctype_name: str) -> None:
     """Remove a cached Table for the given DocType (call on update/delete)."""
-    _TABLE_CACHE.pop(doctype_name, None)
+    from grunt.metadata.registry import _resolve_site_key
+
+    _TABLE_CACHE.get(_resolve_site_key(), {}).pop(doctype_name, None)
 
 
 # ── MultiLink junction table ─────────────────────────────────────────────
@@ -147,13 +172,18 @@ def compile_doctype_to_table(doctype: DocType) -> Table:
     The table includes system columns (``id``, ``name``, ``owner``, timestamps)
     plus one column per physical field.
 
-    Results are cached by DocType name; call :func:`invalidate_table_cache`
-    after updating or deleting a DocType so the new definition is picked up.
+    Results are cached by (site, DocType name); call
+    :func:`invalidate_table_cache` after updating or deleting a DocType so
+    the new definition is picked up.
     """
-    cached = _TABLE_CACHE.get(doctype.name)
-    # Guard against stale entries: if SA_METADATA no longer holds the Table
-    # (e.g. dropped during tests or hot-reload), rebuild and re-cache.
-    if cached is not None and cached.name in SA_METADATA.tables:
+    metadata = get_compiled_metadata()
+    from grunt.metadata.registry import _resolve_site_key
+
+    cache = _TABLE_CACHE.setdefault(_resolve_site_key(), {})
+    cached = cache.get(doctype.name)
+    # Guard against stale entries: if the site's MetaData no longer holds the
+    # Table (e.g. dropped during tests or hot-reload), rebuild and re-cache.
+    if cached is not None and cached.name in metadata.tables:
         return cached
 
     table_name = doctype.table_name or get_table_name(doctype.module, doctype.name)
@@ -236,8 +266,8 @@ def compile_doctype_to_table(doctype: DocType) -> Table:
         if field.index and not field.unique:
             constraints.append(Index(f"ix_{table_name}_{field.fieldname}", field.fieldname))
 
-    table = Table(table_name, SA_METADATA, *columns, *constraints, extend_existing=True)
-    _TABLE_CACHE[doctype.name] = table
+    table = Table(table_name, metadata, *columns, *constraints, extend_existing=True)
+    cache[doctype.name] = table
     return table
 
 
@@ -397,7 +427,7 @@ async def sync_table(
     def _sync(connection):
         insp = inspect(connection)
         if not insp.has_table(table.name):
-            SA_METADATA.create_all(connection, tables=[table])
+            table.metadata.create_all(connection, tables=[table])
             log.info("compiler.table_created", table=table.name)
             return
 

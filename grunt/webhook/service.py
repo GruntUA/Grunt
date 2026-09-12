@@ -35,7 +35,7 @@ class WebhookService:
         from grunt.app import grunt
         from grunt.metadata.registry import doctype_registry
 
-        if not doctype_registry._doctypes.get("OutgoingWebhook"):
+        if await doctype_registry.get_or_none("OutgoingWebhook") is None:
             return
 
         try:
@@ -194,7 +194,7 @@ class WebhookService:
         }
 
         # Write WebhookLog best-effort
-        if doctype_registry._doctypes.get("WebhookLog"):
+        if await doctype_registry.get_or_none("WebhookLog") is not None:
             try:
                 async with grunt.system_context(session):
                     await grunt.new_doc("WebhookLog", log_entry)
