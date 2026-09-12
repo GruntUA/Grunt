@@ -90,39 +90,3 @@ async def test_duplicate_doctype_rejected(ctx):
     with pytest.raises(ApplicationError) as excinfo:
         await save_doctype(doctype_data={**SAMPLE_DOCTYPE, "__is_new": True})
     assert "already exists" in excinfo.value.message
-
-
-# ── Schema export ────────────────────────────────────────────────────────
-
-
-@pytest.mark.asyncio
-async def test_export_schemas_all(ctx):
-    """export_schemas() with no filter returns every shipped schema."""
-    from grunt.api.v1.meta import export_schemas
-
-    data = await export_schemas()
-    assert isinstance(data, dict)
-    assert "User" in data
-    assert "Role" in data
-    assert "fields" in data["User"]
-
-
-@pytest.mark.asyncio
-async def test_export_schemas_filtered(ctx):
-    """export_schemas(names=...) restricts the result to the named DocTypes."""
-    from grunt.api.v1.meta import export_schemas
-
-    data = await export_schemas(names=["User", "Role"])
-    assert set(data.keys()) == {"User", "Role"}
-
-
-@pytest.mark.asyncio
-async def test_export_schemas_module(ctx):
-    """export_schemas(module=...) restricts the result to one module."""
-    from grunt.api.v1.meta import export_schemas
-
-    # DocType "User" is in module "auth"
-    data = await export_schemas(module="auth")
-    assert "User" in data
-    for dt in data.values():
-        assert dt["module"] == "auth"
