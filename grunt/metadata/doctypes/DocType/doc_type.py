@@ -26,9 +26,7 @@ def _row_to_doc(row: RowMapping) -> dict[str, Any]:
     # so the read-only "Назва таблиці" field isn't a dead empty box in the form.
     # Virtual DocTypes have no table of their own — leave it blank.
     if not data.get("is_virtual"):
-        data["table_name"] = data.get("table_name") or get_table_name(
-            row["module"], row["name"]
-        )
+        data["table_name"] = data.get("table_name") or get_table_name(row["module"], row["name"])
     created_at = row.get("created_at")
     modified_at = row.get("modified_at")
     data["created_at"] = created_at.isoformat() if created_at else None

@@ -36,16 +36,16 @@ the same helper; there is no second token-minting code path.
 
 ```python
 class AuthProvider(ABC):
-    name: str            # "webauthn"
-    label: str           # "Passkey"
-    kind: str            # "redirect" | "challenge"
+    name: str  # "webauthn"
+    label: str  # "Passkey"
+    kind: str  # "redirect" | "challenge"
     icon: str | None
-    requires_identifier: bool = False   # begin() needs an email
-    supports_enrollment: bool = False   # can enrol the factor for a user
+    requires_identifier: bool = False  # begin() needs an email
+    supports_enrollment: bool = False  # can enrol the factor for a user
 
-    def is_configured(self) -> bool: ...          # hidden from /methods if False
-    async def begin(self, ctx) -> dict: ...       # → JSON for the frontend
-    async def complete(self, ctx) -> User: ...    # → the authenticated User
+    def is_configured(self) -> bool: ...  # hidden from /methods if False
+    async def begin(self, ctx) -> dict: ...  # → JSON for the frontend
+    async def complete(self, ctx) -> User: ...  # → the authenticated User
 
     # optional, only when supports_enrollment
     async def enroll_begin(self, ctx) -> dict: ...
@@ -83,6 +83,7 @@ class TelegramProvider(AuthProvider):
 
     def is_configured(self) -> bool:
         from grunt.config import settings
+
         return bool(settings.telegram_bot_token)
 
     async def begin(self, ctx):
@@ -91,6 +92,7 @@ class TelegramProvider(AuthProvider):
     async def complete(self, ctx):
         data = verify_telegram_hash(ctx.data)  # or throw("bad hash", "UNAUTHORIZED")
         from grunt.auth.login import find_or_create_external_user
+
         return await find_or_create_external_user(data["email"], data["name"])
 
 

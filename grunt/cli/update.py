@@ -497,9 +497,7 @@ def deps(upgrade: bool, python_only: bool, npm_only: bool) -> None:
                 console.print("  [yellow]⚠[/yellow]  uv sync завершився з помилкою")
         else:
             console.print("  [dim]uv не знайдено, використовую pip...[/dim]")
-            result = subprocess.run(
-                _pip_install_cmd(upgrade), cwd=str(app_dir), check=False
-            )
+            result = subprocess.run(_pip_install_cmd(upgrade), cwd=str(app_dir), check=False)
             if result.returncode == 0:
                 console.print("  [green]✓[/green] Python пакети встановлені")
             else:

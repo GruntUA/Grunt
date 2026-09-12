@@ -119,8 +119,13 @@ def test_flip_module_dry_run_reports_unmapped(flip_pkg):
 def test_flip_module_apply_rewrites_json_and_fills_uk_po(flip_pkg):
     import json as _json
 
-    mapping = {"Віджет": "Widget", "Назва": "Name", "Статус": "Status",
-               "Чернетка": "Draft", "Готово": "Done"}
+    mapping = {
+        "Віджет": "Widget",
+        "Назва": "Name",
+        "Статус": "Status",
+        "Чернетка": "Draft",
+        "Готово": "Done",
+    }
     r = po.flip_module("demo", mapping, apply=True)
     assert r["unmapped"] == []
     assert r["entries"] == 5

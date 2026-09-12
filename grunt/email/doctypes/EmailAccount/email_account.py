@@ -45,7 +45,5 @@ class EmailAccount(Document):
 
         stored = None
         if self.name:
-            stored = await self.grunt.db.get_value(
-                "EmailAccount", self.name, "smtp_password"
-            )
+            stored = await self.grunt.db.get_value("EmailAccount", self.name, "smtp_password")
         self.smtp_password = stored

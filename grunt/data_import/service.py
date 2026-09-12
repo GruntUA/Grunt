@@ -8,7 +8,6 @@ if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 
-
 class DataImportService:
     def __init__(self, session: AsyncSession, engine: AsyncEngine) -> None:
         self._session = session

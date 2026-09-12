@@ -42,9 +42,7 @@ _CONTROLLER = textwrap.dedent(
 
 
 def _fields(n: int) -> list[dict]:
-    return [
-        {"fieldname": f"f{i}", "fieldtype": "Data", "label": f"Label {i}"} for i in range(n)
-    ]
+    return [{"fieldname": f"f{i}", "fieldtype": "Data", "label": f"Label {i}"} for i in range(n)]
 
 
 def test_repeated_sync_does_not_creep_indentation(tmp_path):

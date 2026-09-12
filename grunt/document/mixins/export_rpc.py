@@ -184,9 +184,7 @@ class DocumentExportRPCMixin:
             pf = await get_print_format_template(session, doctype, print_format)
             if pf and pf[1] == "html":
                 with contextlib.suppress(Exception):
-                    html = render_from_string(
-                        pf[0], doc, doctype_label=dt.label, fields=dt.fields
-                    )
+                    html = render_from_string(pf[0], doc, doctype_label=dt.label, fields=dt.fields)
 
             # 2. Standard template (auto-generated from fields)
             if html is None:

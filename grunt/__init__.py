@@ -97,6 +97,7 @@ if TYPE_CHECKING:
         (e.g. a workflow/task operating on a caller-supplied doctype name) —
         prefer `get_doc(SomeClass, id)` when the class is known statically."""
         ...
+
     async def new_doc(
         doctype: str,
         data: dict[str, Any],

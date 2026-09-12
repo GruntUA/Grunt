@@ -59,11 +59,9 @@ def _translate_select_options(field: dict[str, Any], ctx: str, lang: str) -> Non
     options = field.get("options")
     if isinstance(options, str):
         field["options"] = "\n".join(
-            _tr(ctx, line, lang) if line.strip() else line
-            for line in options.split("\n")
+            _tr(ctx, line, lang) if line.strip() else line for line in options.split("\n")
         )
     elif isinstance(options, list):
         field["options"] = [
-            _tr(ctx, opt, lang) if isinstance(opt, str) and opt.strip() else opt
-            for opt in options
+            _tr(ctx, opt, lang) if isinstance(opt, str) and opt.strip() else opt for opt in options
         ]

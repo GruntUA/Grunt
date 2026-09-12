@@ -148,9 +148,7 @@ async def test_chart_widget_sourced_from_report(ctx, widget_source):
 async def test_report_sourced_widget_missing_report_is_empty(ctx, widget_source):
     from grunt.api.v1.dashboard import _compute_widget_data
 
-    result = await _compute_widget_data(
-        _widget("donut", doctype="", report="No Such Report")
-    )
+    result = await _compute_widget_data(_widget("donut", doctype="", report="No Such Report"))
     assert result == {"labels": [], "values": []}
 
 

@@ -24,7 +24,6 @@ from grunt.document.base import Document
 
 
 class ClientScript(Document):
-
     # begin: auto-generated types
     # This code is auto-generated. Do not modify anything in this block.
 

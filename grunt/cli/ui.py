@@ -113,9 +113,7 @@ def ui_update(components: tuple[str, ...]) -> None:
     targets = list(components) if components else _installed_components(ui_dir)
 
     if not targets:
-        click.echo(
-            click.style(f"  Компонентів не знайдено у {ui_dir}", fg="yellow")
-        )
+        click.echo(click.style(f"  Компонентів не знайдено у {ui_dir}", fg="yellow"))
         return
 
     click.echo(f"── Оновлення {len(targets)} компонент(ів): {', '.join(targets)}")

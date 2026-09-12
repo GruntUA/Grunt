@@ -18,7 +18,6 @@ if TYPE_CHECKING:
     from grunt.auth.doctypes.User.user import User
 
 
-
 # ── JWT ───────────────────────────────────────────────────────────────────
 
 # Fallback when SystemSettings has no session_timeout value (very early boot).
@@ -37,7 +36,7 @@ async def session_ttl_minutes() -> int:
     minutes = await get_setting("session_timeout", settings.access_token_expire_minutes)
     try:
         return max(1, int(minutes))
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         return settings.access_token_expire_minutes
 
 
@@ -183,9 +182,7 @@ async def rotate_refresh_token(token: str) -> tuple[str, User] | None:
     """
     from grunt.context import require_session
 
-    user_data = await _find_and_invalidate_token(
-        "refresh_token", "refresh_token_expires_at", token
-    )
+    user_data = await _find_and_invalidate_token("refresh_token", "refresh_token_expires_at", token)
     if user_data is None:
         return None
 

@@ -28,6 +28,7 @@ SOURCE_LOCALE = "en"
 def _has_cyrillic(s: str) -> bool:
     return any("Ѐ" <= ch <= "ӿ" for ch in s or "")
 
+
 _PLURAL_EXPR = {
     2: "nplurals=2; plural=(n != 1);",
     3: (
@@ -46,10 +47,7 @@ def po_path(locale: str) -> Path:
 
 
 def existing_locales() -> list[str]:
-    return sorted(
-        p.parent.parent.name
-        for p in _LOCALE_DIR.glob("*/LC_MESSAGES/grunt.po")
-    )
+    return sorted(p.parent.parent.name for p in _LOCALE_DIR.glob("*/LC_MESSAGES/grunt.po"))
 
 
 def _occurrences(row: dict) -> list[tuple[str, str]]:
@@ -75,9 +73,7 @@ def _entry(row: dict, locale: str) -> polib.POEntry:
     return polib.POEntry(**kw)
 
 
-def build_pot(
-    origins: tuple[str, ...] = ("grunt",), bench_dir: Path | None = None
-) -> polib.POFile:
+def build_pot(origins: tuple[str, ...] = ("grunt",), bench_dir: Path | None = None) -> polib.POFile:
     pot = polib.POFile(check_for_duplicates=False)
     pot.metadata = {
         "Project-Id-Version": "Grunt",
@@ -185,9 +181,11 @@ def _walk_slots(dt: dict):
             lines = fld["options"].split("\n")
             for i, line in enumerate(lines):
                 if line.strip():
+
                     def _set_line(new, _lines=lines, _i=i, _fld=fld):
                         _lines[_i] = new
                         _fld["options"] = "\n".join(_lines)
+
                     yield _set_line, f"select:{name}.{fn}", line
 
     for si in dt.get("status_indicators") or []:
@@ -223,9 +221,7 @@ def flip_module(module: str, mapping: dict[str, str], *, apply: bool = False) ->
                 changed = True
         if changed:
             touched.append(str(path.relative_to(_GRUNT_PKG.parent)))
-            path.write_text(
-                json.dumps(dt, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
-            )
+            path.write_text(json.dumps(dt, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
     if apply and po_entries:
         _merge_uk_entries(po_entries)

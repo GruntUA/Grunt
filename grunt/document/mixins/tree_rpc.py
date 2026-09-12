@@ -37,9 +37,7 @@ async def _tree_read_gate(doctype: str) -> tuple[Any, list[str] | None]:
     # ``read`` that check(user, dt, "read") would otherwise wave through.
     if not access.has_unrestricted_read and access.has_explicit_select:
         parent_field = getattr(dt, "tree_parent_field", None) or "parent"
-        title_field = getattr(dt, "tree_title_field", None) or getattr(
-            dt, "title_field", None
-        )
+        title_field = getattr(dt, "tree_title_field", None) or getattr(dt, "title_field", None)
         allowed = ["name", parent_field]
         if title_field and title_field not in allowed:
             allowed.append(title_field)

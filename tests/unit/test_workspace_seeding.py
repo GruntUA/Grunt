@@ -104,15 +104,14 @@ async def test_auto_seed_workspace_creates_from_doctypes(ctx):
 @pytest.mark.asyncio
 async def test_auto_seed_workspace_update_only_touches_title_fields(ctx):
     """The _auto_seed_workspace update path only ever sends label/icon/color/description."""
+
     class _FakeDocType:
         def __init__(self, name: str, label: str) -> None:
             self.name = name
             self.label = label
 
     await _auto_seed_workspace("my_app", {"title": "First"}, [_FakeDocType("Widget", "Віджет")])
-    await _auto_seed_workspace(
-        "my_app", {"title": "Second"}, [_FakeDocType("Gadget", "Гаджет")]
-    )
+    await _auto_seed_workspace("my_app", {"title": "Second"}, [_FakeDocType("Gadget", "Гаджет")])
 
     ws = await ctx.get_list("AppMenu", filters={"name": "my_app"}, fields=["label"])
     assert ws[0]["label"] == "Second"

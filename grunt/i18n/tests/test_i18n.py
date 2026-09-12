@@ -105,8 +105,7 @@ class TestRuntimeProvider:
         assert translation_service.translate("Brand new string", lang="uk") == "З провайдера"
         # PO still wins where the provider is silent
         assert (
-            translation_service.translate("Document not found", lang="uk")
-            == "Документ не знайдено"
+            translation_service.translate("Document not found", lang="uk") == "Документ не знайдено"
         )
 
     def test_provider_context_key(self):

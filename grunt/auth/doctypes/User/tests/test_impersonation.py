@@ -32,9 +32,7 @@ async def people(ctx):
         boss = await create_user("boss@grunt.example.com", "Str0ngPass", "Boss", "Root", None)
         member = await create_user("member@grunt.example.com", "Str0ngPass", "Mem", "Ber", None)
         await ctx.save_doc("User", member.id, {"roles": [{"role_name": "Кадровик"}]})
-        other_admin = await create_user(
-            "admin2@grunt.example.com", "Str0ngPass", "Ad", "Min", None
-        )
+        other_admin = await create_user("admin2@grunt.example.com", "Str0ngPass", "Ad", "Min", None)
         await ctx.db.set_value("User", other_admin.id, "is_superadmin", True)
         await ctx.db._session().commit()
         return {"boss": boss.id, "member": member.id, "other_admin": other_admin.id}
@@ -55,9 +53,7 @@ async def test_superadmin_views_as_member(ctx, client: AsyncClient, people):
     assert data["user"]["email"] == "member@grunt.example.com"
     assert data["impersonated_by"]["email"] == "boss@grunt.example.com"
 
-    me = await client.get(
-        _WHOAMI, headers={"Authorization": f"Bearer {data['access_token']}"}
-    )
+    me = await client.get(_WHOAMI, headers={"Authorization": f"Bearer {data['access_token']}"})
     body = me.json()["data"]
     assert body["email"] == "member@grunt.example.com"
     assert body["roles"] == ["Кадровик"]

@@ -91,9 +91,7 @@ class OIDCProvider(AuthProvider):
             scope=self.scope,
         )
         try:
-            await oa.fetch_token(
-                oidc["token_endpoint"], code=code, grant_type="authorization_code"
-            )
+            await oa.fetch_token(oidc["token_endpoint"], code=code, grant_type="authorization_code")
             resp = await oa.get(oidc["userinfo_endpoint"])
             resp.raise_for_status()
             profile = resp.json()
@@ -102,12 +100,8 @@ class OIDCProvider(AuthProvider):
 
         email = profile.get("email", "")
         if not email:
-            throw(
-                "OAuth provider did not return an email address", "VALIDATION_ERROR"
-            )
-        full_name = (
-            profile.get("name") or profile.get("given_name") or email.split("@")[0]
-        )
+            throw("OAuth provider did not return an email address", "VALIDATION_ERROR")
+        full_name = profile.get("name") or profile.get("given_name") or email.split("@")[0]
         return await find_or_create_external_user(email, full_name)
 
 

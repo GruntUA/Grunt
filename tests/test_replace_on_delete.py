@@ -58,9 +58,7 @@ async def test_delete_with_replacement_repoints_links(ctx, rpl_doctypes):
     """A replacement id repoints the top-level Link and the child-table Link."""
     a = await ctx.new_doc("RplTarget", {"title": "A"})
     b = await ctx.new_doc("RplTarget", {"title": "B"})
-    src = await ctx.new_doc(
-        "RplSource", {"ref": a["name"], "lines": [{"ref": a["name"]}]}
-    )
+    src = await ctx.new_doc("RplSource", {"ref": a["name"], "lines": [{"ref": a["name"]}]})
     await ctx.db._session().commit()
 
     await ctx.delete_doc("RplTarget", a["name"], b["name"])
@@ -120,9 +118,7 @@ async def test_get_delete_impact_counts(ctx, rpl_doctypes):
     await ctx.new_doc("RplSource", {"ref": a["name"]})
     await ctx.db._session().commit()
 
-    impact = await link_service.get_delete_impact(
-        ctx.db._session(), "RplTarget", [a["name"]]
-    )
+    impact = await link_service.get_delete_impact(ctx.db._session(), "RplTarget", [a["name"]])
     assert impact["total"] == 3
     by_key = {(g["doctype"], g["field"]): g for g in impact["groups"]}
     assert by_key[("RplSource", "ref")]["count"] == 2

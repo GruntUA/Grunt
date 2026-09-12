@@ -16,7 +16,6 @@ if TYPE_CHECKING:
     from fastapi import Request
 
 
-
 def parse_query_filters(request: Request) -> dict[str, str]:
     """Merge ``quick_filter[field__op]=value`` and ``filter[field__op]=value`` query params.
 

@@ -341,4 +341,3 @@ class DocType(BaseModel):
         self.actions = [a for a in self.actions if a.action.strip()]
         self.links = [link for link in self.links if link.link_doctype.strip()]
         return self
-

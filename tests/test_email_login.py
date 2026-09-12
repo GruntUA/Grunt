@@ -26,9 +26,7 @@ def captured_mail(monkeypatch):
     from grunt.email.service import EmailService, email_service
 
     monkeypatch.setattr(email_service, "queue_email", _fake_queue_email)
-    monkeypatch.setattr(
-        EmailService, "resolve_outgoing_account_id", staticmethod(_fake_resolve)
-    )
+    monkeypatch.setattr(EmailService, "resolve_outgoing_account_id", staticmethod(_fake_resolve))
     return sent
 
 
@@ -71,9 +69,7 @@ async def test_code_flow_signs_in_and_provisions_user(client, captured_mail):
     assert captured_mail[0]["to"] == "newby@grunt.example.com"  # normalised
     code = _code_from(captured_mail[0]["body"])
 
-    resp = await client.post(
-        _COMPLETE, json={"challenge_token": challenge_token, "code": code}
-    )
+    resp = await client.post(_COMPLETE, json={"challenge_token": challenge_token, "code": code})
     assert resp.status_code == 200, resp.text
     data = resp.json()["data"]
     assert data["access_token"]
@@ -86,15 +82,11 @@ async def test_wrong_code_is_rejected_but_does_not_burn_the_token(client, captur
     challenge_token = begin.json()["data"]["challenge_token"]
     code = _code_from(captured_mail[0]["body"])
 
-    bad = await client.post(
-        _COMPLETE, json={"challenge_token": challenge_token, "code": "000001"}
-    )
+    bad = await client.post(_COMPLETE, json={"challenge_token": challenge_token, "code": "000001"})
     assert bad.status_code == 401
 
     # A wrong guess must not invalidate the code — the real one still works.
-    ok = await client.post(
-        _COMPLETE, json={"challenge_token": challenge_token, "code": code}
-    )
+    ok = await client.post(_COMPLETE, json={"challenge_token": challenge_token, "code": code})
     assert ok.status_code == 200, ok.text
 
 
@@ -127,9 +119,7 @@ async def test_link_is_dead_after_code_login(client, captured_mail):
     code = _code_from(body)
     link_token = _link_token_from(body)
 
-    used = await client.post(
-        _COMPLETE, json={"challenge_token": challenge_token, "code": code}
-    )
+    used = await client.post(_COMPLETE, json={"challenge_token": challenge_token, "code": code})
     assert used.status_code == 200, used.text
 
     dead = await client.post(_COMPLETE, json={"token": link_token})
@@ -147,14 +137,10 @@ async def test_new_request_invalidates_the_previous_code(client, captured_mail):
     new_code = _code_from(captured_mail[1]["body"])
 
     # The first code's token row was dropped by the second request.
-    stale = await client.post(
-        _COMPLETE, json={"challenge_token": old_challenge, "code": old_code}
-    )
+    stale = await client.post(_COMPLETE, json={"challenge_token": old_challenge, "code": old_code})
     assert stale.status_code == 401
 
-    fresh = await client.post(
-        _COMPLETE, json={"challenge_token": new_challenge, "code": new_code}
-    )
+    fresh = await client.post(_COMPLETE, json={"challenge_token": new_challenge, "code": new_code})
     assert fresh.status_code == 200, fresh.text
 
 
@@ -186,10 +172,7 @@ async def test_magic_link_points_at_request_origin_not_app_url(client, captured_
         json={"email": "host@grunt.example.com"},
         headers={"origin": "https://dev2.example.com"},
     )
-    assert (
-        "https://dev2.example.com/login#email_login_token="
-        in captured_mail[0]["body"]
-    )
+    assert "https://dev2.example.com/login#email_login_token=" in captured_mail[0]["body"]
 
 
 @pytest.mark.asyncio
@@ -204,9 +187,7 @@ async def test_existing_user_signs_in_without_registration(client, captured_mail
     challenge_token = begin.json()["data"]["challenge_token"]
     code = _code_from(captured_mail[0]["body"])
 
-    resp = await client.post(
-        _COMPLETE, json={"challenge_token": challenge_token, "code": code}
-    )
+    resp = await client.post(_COMPLETE, json={"challenge_token": challenge_token, "code": code})
     assert resp.status_code == 200, resp.text
     assert resp.json()["data"]["user"]["email"] == "member@grunt.example.com"
 

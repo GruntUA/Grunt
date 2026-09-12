@@ -12,9 +12,7 @@ from grunt.email.service import email_service
 
 
 async def _queue_one(ctx) -> str:
-    await ctx.new_doc(
-        "EmailAccount", {"email_address": "out@example.com", "enable_outgoing": True}
-    )
+    await ctx.new_doc("EmailAccount", {"email_address": "out@example.com", "enable_outgoing": True})
     await ctx.db._session().commit()
     rid = await email_service.queue_email(
         session=ctx.db._session(),
@@ -98,9 +96,7 @@ async def test_process_email_queue_double_run_sends_once(ctx, monkeypatch):
 
     import conftest as _cf
 
-    monkeypatch.setattr(
-        email_tasks.site_manager, "get_active_site", lambda: "test", raising=False
-    )
+    monkeypatch.setattr(email_tasks.site_manager, "get_active_site", lambda: "test", raising=False)
     monkeypatch.setattr(
         email_tasks.site_manager,
         "get_session_maker",

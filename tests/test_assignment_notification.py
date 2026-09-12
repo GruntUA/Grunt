@@ -24,8 +24,8 @@ async def _mails_for(ctx, recipient: str) -> list[dict]:
         limit=10,
     )
 
-@pytest.mark.asyncio
 
+@pytest.mark.asyncio
 async def test_assigning_a_todo_notifies_the_assignee(ctx):
     async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
         await ctx.new_doc(
@@ -215,9 +215,7 @@ async def test_todo_complete_action_closes_and_stamps(ctx):
             },
         )
         res = await run_action("ToDo", "todo.complete", todo["name"])
-        row = await ctx.db.get_value(
-            "ToDo", todo["name"], ["status", "completed_on"], as_dict=True
-        )
+        row = await ctx.db.get_value("ToDo", todo["name"], ["status", "completed_on"], as_dict=True)
 
     assert res["ok"] is True
     assert row["status"] == "Closed"
@@ -229,18 +227,30 @@ async def test_is_overdue_virtual_field(ctx):
     async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
         past = await ctx.new_doc(
             "ToDo",
-            {"description": "Старе", "assigned_to": ASSIGNEE, "status": "Open",
-             "due_date": "2020-01-01"},
+            {
+                "description": "Старе",
+                "assigned_to": ASSIGNEE,
+                "status": "Open",
+                "due_date": "2020-01-01",
+            },
         )
         future = await ctx.new_doc(
             "ToDo",
-            {"description": "Майбутнє", "assigned_to": ASSIGNEE, "status": "Open",
-             "due_date": "2999-01-01"},
+            {
+                "description": "Майбутнє",
+                "assigned_to": ASSIGNEE,
+                "status": "Open",
+                "due_date": "2999-01-01",
+            },
         )
         done = await ctx.new_doc(
             "ToDo",
-            {"description": "Закрите", "assigned_to": ASSIGNEE, "status": "Open",
-             "due_date": "2020-01-01"},
+            {
+                "description": "Закрите",
+                "assigned_to": ASSIGNEE,
+                "status": "Open",
+                "due_date": "2020-01-01",
+            },
         )
         await ctx.save_doc("ToDo", done["name"], {"status": "Closed"})
 
@@ -264,18 +274,32 @@ async def test_due_reminder_sends_one_digest_per_assignee(ctx, monkeypatch):
         )
         await ctx.new_doc(
             "ToDo",
-            {"description": "Прострочене", "assigned_to": ASSIGNEE, "reference_doctype": "User",
-             "reference_id": "a1", "status": "Open", "due_date": "2020-01-01"},
+            {
+                "description": "Прострочене",
+                "assigned_to": ASSIGNEE,
+                "reference_doctype": "User",
+                "reference_id": "a1",
+                "status": "Open",
+                "due_date": "2020-01-01",
+            },
         )
         await ctx.new_doc(
             "ToDo",
-            {"description": "Не термінове", "assigned_to": ASSIGNEE, "status": "Open",
-             "due_date": "2999-01-01"},
+            {
+                "description": "Не термінове",
+                "assigned_to": ASSIGNEE,
+                "status": "Open",
+                "due_date": "2999-01-01",
+            },
         )
         await ctx.new_doc(
             "ToDo",
-            {"description": "Вже закрите", "assigned_to": ASSIGNEE, "status": "Closed",
-             "due_date": "2020-01-01"},
+            {
+                "description": "Вже закрите",
+                "assigned_to": ASSIGNEE,
+                "status": "Closed",
+                "due_date": "2020-01-01",
+            },
         )
         await ctx.db._session().commit()
 
@@ -283,9 +307,7 @@ async def test_due_reminder_sends_one_digest_per_assignee(ctx, monkeypatch):
     monkeypatch.setattr(
         tr.site_manager, "get_session_maker", lambda _s: _cf.TestSessionLocal, raising=False
     )
-    monkeypatch.setattr(
-        tr.site_manager, "get_engine", lambda _s: _cf.test_engine, raising=False
-    )
+    monkeypatch.setattr(tr.site_manager, "get_engine", lambda _s: _cf.test_engine, raising=False)
 
     await tr.send_due_reminders()
 
@@ -310,13 +332,23 @@ async def test_sidebar_shows_in_progress_and_overdue_assignees(ctx):
 
         await ctx.new_doc(
             "ToDo",
-            {**ref, "description": "В роботі й прострочене", "assigned_to": ASSIGNEE,
-             "status": "In Progress", "priority": "High", "due_date": "2020-01-01"},
+            {
+                **ref,
+                "description": "В роботі й прострочене",
+                "assigned_to": ASSIGNEE,
+                "status": "In Progress",
+                "priority": "High",
+                "due_date": "2020-01-01",
+            },
         )
         await ctx.new_doc(
             "ToDo",
-            {**ref, "description": "Вже закрите", "assigned_to": "x@example.com",
-             "status": "Closed"},
+            {
+                **ref,
+                "description": "Вже закрите",
+                "assigned_to": "x@example.com",
+                "status": "Closed",
+            },
         )
 
         bundle = await Document.get_sidebar("Role", role["name"])

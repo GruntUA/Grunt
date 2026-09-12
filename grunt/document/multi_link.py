@@ -13,7 +13,6 @@ if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
 
-
 class MultiLinkService:
     """Handles CRUD for MultiLink field values stored in grunt_core_multi_link."""
 

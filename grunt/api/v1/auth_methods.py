@@ -68,9 +68,7 @@ async def complete(
     provider = auth_providers.get(name)
     ctx = _ctx(request, payload, user)
     authed = await provider.complete(ctx)
-    return ok(
-        await issue_login(authed, ip_address=ctx.ip_address, user_agent=ctx.user_agent)
-    )
+    return ok(await issue_login(authed, ip_address=ctx.ip_address, user_agent=ctx.user_agent))
 
 
 @router.post("/{name}/enroll/begin")

@@ -15,7 +15,10 @@ def i18n_group() -> None:
 
 @i18n_group.command("extract")
 @click.option(
-    "--locale", "-l", "locales", multiple=True,
+    "--locale",
+    "-l",
+    "locales",
+    multiple=True,
     help="msgmerge grunt.pot into these locale catalogs (keeps translations, "
     "marks removed strings obsolete). Omit to only regenerate grunt.pot.",
 )
@@ -38,7 +41,9 @@ def extract_cmd(locales: tuple[str, ...]) -> None:
 @click.option("--locale", "-l", "locales", multiple=True)
 @click.option("--show-missing", is_flag=True, help="List untranslated strings.")
 @click.option(
-    "--fail-under", type=float, default=None,
+    "--fail-under",
+    type=float,
+    default=None,
     help="Exit non-zero if the worst locale is below this percentage.",
 )
 def stats_cmd(locales: tuple[str, ...], show_missing: bool, fail_under: float | None) -> None:
@@ -71,8 +76,12 @@ def stats_cmd(locales: tuple[str, ...], show_missing: bool, fail_under: float | 
 
 @i18n_group.command("flip")
 @click.argument("module")
-@click.option("--map", "map_path", type=click.Path(exists=True, dir_okay=False),
-              help="JSON object {ukrainian: english}.")
+@click.option(
+    "--map",
+    "map_path",
+    type=click.Path(exists=True, dir_okay=False),
+    help="JSON object {ukrainian: english}.",
+)
 @click.option("--apply", is_flag=True, help="Write the changes (default: dry-run).")
 def flip_cmd(module: str, map_path: str | None, apply: bool) -> None:
     """Flip a module's DocType JSON to English; move Ukrainian into uk/grunt.po.

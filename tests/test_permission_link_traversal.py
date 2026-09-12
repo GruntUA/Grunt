@@ -67,12 +67,10 @@ def _employee(email: str) -> User:
 async def gear(ctx, setup_doctypes):
     alice_h = (await ctx.new_doc("PermTestHolder", {"login": "alice@example.com"}))["name"]
     bob_h = (await ctx.new_doc("PermTestHolder", {"login": "bob@example.com"}))["name"]
-    alice_g = (
-        await ctx.new_doc("PermTestGear", {"title": "Alice's laptop", "holder": alice_h})
-    )["name"]
-    bob_g = (
-        await ctx.new_doc("PermTestGear", {"title": "Bob's laptop", "holder": bob_h})
-    )["name"]
+    alice_g = (await ctx.new_doc("PermTestGear", {"title": "Alice's laptop", "holder": alice_h}))[
+        "name"
+    ]
+    bob_g = (await ctx.new_doc("PermTestGear", {"title": "Bob's laptop", "holder": bob_h}))["name"]
     orphan_g = (await ctx.new_doc("PermTestGear", {"title": "Unassigned"}))["name"]
     await ctx.db._session().commit()
     return {"alice_g": alice_g, "bob_g": bob_g, "orphan_g": orphan_g}

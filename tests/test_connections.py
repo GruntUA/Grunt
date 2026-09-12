@@ -108,9 +108,7 @@ async def test_hidden_link_is_skipped(ctx, conn_doctypes):
     from grunt.document.connections import get_connections
 
     data = await get_doctype("ConnAsset")
-    data["links"] = [
-        {"link_doctype": "ConnOrder", "link_fieldname": "asset", "hidden": True}
-    ]
+    data["links"] = [{"link_doctype": "ConnOrder", "link_fieldname": "asset", "hidden": True}]
     await save_doctype(doctype_data=data)
     await ctx.db._session().commit()
 

@@ -102,9 +102,7 @@ async def test_restrictions_popup_payload(ctx, setup, db_session, engine):
 
     async with grunt.context(db_session, engine, _employee("alice@example.com")):
         restrictions = await get_active_restrictions("UPTestPost")
-    assert restrictions == [
-        {"field": "Team", "fieldname": "team", "allow": "Role", "value": "Red"}
-    ]
+    assert restrictions == [{"field": "Team", "fieldname": "team", "allow": "Role", "value": "Red"}]
 
 
 @pytest.mark.asyncio

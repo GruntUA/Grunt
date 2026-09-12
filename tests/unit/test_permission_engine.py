@@ -38,7 +38,11 @@ _TABLE = Table(
 )
 
 
-def _user(email: str = "user@example.com", roles: list[str] | None = None, is_superadmin: bool = False) -> User:
+def _user(
+    email: str = "user@example.com",
+    roles: list[str] | None = None,
+    is_superadmin: bool = False,
+) -> User:
     return make_user(email, roles=roles or [], is_superadmin=is_superadmin)
 
 
@@ -62,22 +66,31 @@ class TestPermissionMatchToSql:
         assert "alice@example.com" in str(cond.compile(compile_kwargs={"literal_binds": True}))
 
     async def test_status_eq_literal(self):
-        cond = await PermissionMatch("status == 'Published'").to_sql(_TABLE, _user("alice@example.com"))
+        cond = await PermissionMatch("status == 'Published'").to_sql(
+            _TABLE, _user("alice@example.com")
+        )
         assert cond is not None
         assert "Published" in str(cond.compile(compile_kwargs={"literal_binds": True}))
 
     async def test_not_equal(self):
-        assert await PermissionMatch("status != 'Archived'").to_sql(_TABLE, _user("alice@example.com")) is not None
+        cond = await PermissionMatch("status != 'Archived'").to_sql(
+            _TABLE, _user("alice@example.com")
+        )
+        assert cond is not None
 
     async def test_unknown_field_is_none(self):
-        assert await PermissionMatch("nonexistent == user").to_sql(_TABLE, _user("alice@example.com")) is None
+        cond = await PermissionMatch("nonexistent == user").to_sql(
+            _TABLE, _user("alice@example.com")
+        )
+        assert cond is None
 
     async def test_boolean_logic_is_unparseable(self):
         m = PermissionMatch("owner == user and status == 'Open'")
         assert await m.to_sql(_TABLE, _user("alice@example.com")) is None
 
     async def test_numeric_literal_is_unparseable(self):
-        assert await PermissionMatch("status == 5").to_sql(_TABLE, _user("alice@example.com")) is None
+        cond = await PermissionMatch("status == 5").to_sql(_TABLE, _user("alice@example.com"))
+        assert cond is None
 
     async def test_dotted_path_without_doctype_is_none(self):
         """A ``link.field`` expression can't be translated without the DocType

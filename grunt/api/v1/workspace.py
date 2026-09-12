@@ -197,6 +197,7 @@ async def get_document_stats() -> dict[str, int]:
     _doc_stats_cache[cache_key] = (now, stats)
     return stats
 
+
 @grunt.whitelist()
 async def get_my_work() -> dict[str, Any]:
     """Return the current user's personal work items for the home page:

@@ -65,9 +65,7 @@ class DocumentMetaRPCMixin:
 
         from grunt.document.links import link_service
 
-        return await link_service.get_delete_impact(
-            grunt_app._require_session(), doctype, ids
-        )
+        return await link_service.get_delete_impact(grunt_app._require_session(), doctype, ids)
 
     @staticmethod
     @grunt.whitelist()
@@ -175,10 +173,7 @@ class DocumentMetaRPCMixin:
                 }
                 for r in shares
             ],
-            "tags": [
-                {"name": str(r["name"]), "tag": r.get("tag")}
-                for r in tags
-            ],
+            "tags": [{"name": str(r["name"]), "tag": r.get("tag")} for r in tags],
             "backlinks": backlinks,
             "bookmark": bookmark,
             "people": people,

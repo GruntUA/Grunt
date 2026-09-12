@@ -11,7 +11,7 @@ def test_extracts_python_calls(tmp_path):
     pkg = tmp_path / "apps" / "grunt" / "grunt"
     pkg.mkdir(parents=True)
     (pkg / "x.py").write_text(
-        'from grunt.i18n import _, pgettext, ngettext\n'
+        "from grunt.i18n import _, pgettext, ngettext\n"
         '_("Hello")\n'
         'pgettext("button", "Save")\n'
         'ngettext("%(n)d item", "%(n)d items", n)\n',

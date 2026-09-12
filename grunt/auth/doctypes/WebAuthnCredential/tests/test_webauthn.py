@@ -65,9 +65,7 @@ async def test_begin_authentication_returns_signed_challenge(client: AsyncClient
 
 
 @pytest.mark.asyncio
-async def test_cross_device_begin_is_discoverable_with_hybrid_hint(
-    ctx, client: AsyncClient
-):
+async def test_cross_device_begin_is_discoverable_with_hybrid_hint(ctx, client: AsyncClient):
     """`mode=cross-device` (sign in with a phone / QR) must be a discoverable
     request — never scoped to a credential list — and carry the hybrid hint."""
     await _access_token(ctx, client, "cd@grunt.example.com")  # user with no passkey
@@ -102,9 +100,7 @@ async def test_cross_device_enroll_asks_for_a_roaming_authenticator(ctx, client:
 async def test_oauth_callback_redirects_into_spa(client: AsyncClient):
     """A callback without a code bounces back to the SPA with an error fragment
     instead of rendering JSON in the address bar."""
-    resp = await client.get(
-        "/api/v1/oauth/google/callback", follow_redirects=False
-    )
+    resp = await client.get("/api/v1/oauth/google/callback", follow_redirects=False)
     assert resp.status_code == 302
     assert "/login#" in resp.headers["location"]
     assert "error=missing_code" in resp.headers["location"]
@@ -132,9 +128,7 @@ async def test_full_passkey_register_then_login(ctx, client: AsyncClient, monkey
     monkeypatch.setattr(webauthn, "verify_registration_response", lambda **_: _Reg())
 
     # ── enrol ────────────────────────────────────────────────────────────
-    begin = await client.post(
-        "/api/v1/auth/webauthn/enroll/begin", json={}, headers=auth_headers
-    )
+    begin = await client.post("/api/v1/auth/webauthn/enroll/begin", json={}, headers=auth_headers)
     assert begin.status_code == 200, begin.text
     reg_challenge = begin.json()["data"]["challenge_token"]
 

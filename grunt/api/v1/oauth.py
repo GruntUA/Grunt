@@ -75,9 +75,7 @@ async def oauth_callback(
             user_agent=request.headers.get("user-agent"),
         )
         user = await prov.complete(ctx)
-        payload = await issue_login(
-            user, ip_address=ctx.ip_address, user_agent=ctx.user_agent
-        )
+        payload = await issue_login(user, ip_address=ctx.ip_address, user_agent=ctx.user_agent)
     except ApplicationError as exc:
         return _spa_redirect({"error": exc.code})
 

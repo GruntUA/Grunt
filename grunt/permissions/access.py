@@ -55,9 +55,7 @@ class RoleAccess:
         """
         if self.is_unrestricted:
             return True
-        return any(
-            getattr(perm, "select", False) for perm in self.matching_permissions()
-        )
+        return any(getattr(perm, "select", False) for perm in self.matching_permissions())
 
     @property
     def is_unrestricted(self) -> bool:

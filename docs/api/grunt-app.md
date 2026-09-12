@@ -24,10 +24,10 @@ Pass a doctype name for a plain dict, or a `Document` subclass for a typed
 controller instance — same fields as the class declares, with autocomplete:
 
 ```python
-invoice = await grunt.get_doc("Invoice", "INV-0001")   # dict
+invoice = await grunt.get_doc("Invoice", "INV-0001")  # dict
 print(invoice["amount"])
 
-invoice = await grunt.get_doc(Invoice, "INV-0001")      # typed Invoice instance
+invoice = await grunt.get_doc(Invoice, "INV-0001")  # typed Invoice instance
 print(invoice.amount)
 ```
 
@@ -60,11 +60,14 @@ await doc.after_save()
 Create a new document and return it (runs all lifecycle hooks).
 
 ```python
-order = await grunt.new_doc("Order", {
-    "customer": "CUST-001",
-    "status": "Draft",
-    "amount": 1500.0,
-})
+order = await grunt.new_doc(
+    "Order",
+    {
+        "customer": "CUST-001",
+        "status": "Draft",
+        "amount": 1500.0,
+    },
+)
 ```
 
 ### `grunt.save_doc(doctype, id_or_name, data)`
@@ -105,20 +108,17 @@ alternative to `get_list`/`db.get_all` for controller and script code:
 from grunt.auth.doctypes.User.user import User
 
 active_admins = await (
-    User.objects
-        .filter(is_active=True, is_superadmin=True)
-        .order_by("-created_at")
-        .limit(20)
-        .all()
+    User.objects.filter(is_active=True, is_superadmin=True).order_by("-created_at").limit(20).all()
 )
 
-user = await User.objects.filter(email=email).first()   # None if no match
+user = await User.objects.filter(email=email).first()  # None if no match
 total = await User.objects.filter(is_active=True).count()
 taken = await User.objects.filter(email=email).exists()
 
 created = await User.objects.create(email=email, first_name="A", last_name="B")
 user, was_created = await User.objects.get_or_create(
-    email=email, defaults={"first_name": "A", "last_name": "B"},
+    email=email,
+    defaults={"first_name": "A", "last_name": "B"},
 )
 ```
 
@@ -139,10 +139,13 @@ total = await grunt.count("Order", filters={"status": "Open"})
 Create multiple documents in a single DB round-trip (no hooks).
 
 ```python
-ids = await grunt.bulk_insert("LogEntry", [
-    {"level": "info", "message": "Started"},
-    {"level": "info", "message": "Done"},
-])
+ids = await grunt.bulk_insert(
+    "LogEntry",
+    [
+        {"level": "info", "message": "Started"},
+        {"level": "info", "message": "Done"},
+    ],
+)
 ```
 
 ### `grunt.bulk_update(doctype, filters, values)`
@@ -279,9 +282,9 @@ Every JSON response — success or error — uses the helpers in
 ```python
 from grunt.api.v1.schemas.response import ok, ok_list
 
-return ok(doc)                              # {"success": true, "data": doc}
-return ok_list(items, total=n, page=p, per_page=pp)   # + "meta": {...}
-return ok(message="Done")                   # {"success": true, "message": "Done"}
+return ok(doc)  # {"success": true, "data": doc}
+return ok_list(items, total=n, page=p, per_page=pp)  # + "meta": {...}
+return ok(message="Done")  # {"success": true, "message": "Done"}
 ```
 
 Errors go through `grunt.errors.error_body`/`APIError` —
@@ -345,13 +348,16 @@ of rebuilding the same dict literal in every endpoint:
 ```python
 from grunt.document.schema import Schema
 
+
 class UserPublic(Schema):
     fields = ("name", "email", "full_name", "roles", "is_superadmin")
+
 
 @grunt.whitelist()
 async def whoami() -> dict:
     user = await grunt.get_current_user()
     return UserPublic.dump(user)
+
 
 @grunt.whitelist(roles=["superadmin"])
 async def list_users_api() -> list[dict]:
@@ -402,10 +408,10 @@ Broadcast to ALL connected users.
 ## Session info (`grunt.session`)
 
 ```python
-grunt.session.user          # current user email
-grunt.session.full_name     # current user full name
-grunt.session.roles         # list of role names
-grunt.session.is_superadmin # bool
+grunt.session.user  # current user email
+grunt.session.full_name  # current user full name
+grunt.session.roles  # list of role names
+grunt.session.is_superadmin  # bool
 grunt.session.has_role("Manager", "Accountant")  # bool
 ```
 
@@ -436,6 +442,7 @@ method) shouldn't take `session` as its own parameter at all. Read it via
 ```python
 from grunt.context import require_session
 
+
 async def get_user_by_email(email: str) -> User | None:
     async with grunt.system_context(require_session()):
         return await User.objects.filter(email=email).first()
@@ -455,8 +462,8 @@ get `grunt.context` activated automatically for the whole request — no manual
 ```python
 from grunt.api.router import GruntRouter
 
-router = GruntRouter()                      # requires an authenticated user
-router = GruntRouter(optional_auth=True)    # guests allowed; context still set up
+router = GruntRouter()  # requires an authenticated user
+router = GruntRouter(optional_auth=True)  # guests allowed; context still set up
 ```
 
 Routes that still need a *real* user even on an `optional_auth=True` router

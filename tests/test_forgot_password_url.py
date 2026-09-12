@@ -35,9 +35,7 @@ def _patched_user(monkeypatch):
         return "TOK123"
 
     monkeypatch.setattr(user_mod, "get_user_by_email", _get_user_by_email)
-    monkeypatch.setattr(
-        "grunt.auth.service.create_password_reset_token", _make_token
-    )
+    monkeypatch.setattr("grunt.auth.service.create_password_reset_token", _make_token)
 
 
 async def _queued_bodies(ctx) -> tuple[str, str]:
@@ -77,9 +75,7 @@ async def test_reset_url_uses_host_and_forwarded_proto(ctx, _patched_user):
         )
         await ctx.db._session().commit()
 
-        req = _StubRequest(
-            {"host": "dev2.itmlt.win", "x-forwarded-proto": "https"}
-        )
+        req = _StubRequest({"host": "dev2.itmlt.win", "x-forwarded-proto": "https"})
         assert await user_mod.forgot_password_api(_User.email, request=req) is True
 
         _, text = await _queued_bodies(ctx)

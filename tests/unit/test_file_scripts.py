@@ -24,9 +24,7 @@ from grunt.scripting.file_scripts import (
 def _make_doctype_dir(tmp_path, doctype_name: str, controller_filename: str, extra_files=None):
     dt_dir = tmp_path / "doctypes" / doctype_name
     dt_dir.mkdir(parents=True)
-    (dt_dir / f"{controller_filename}.py").write_text(
-        f"class {doctype_name}:\n    pass\n"
-    )
+    (dt_dir / f"{controller_filename}.py").write_text(f"class {doctype_name}:\n    pass\n")
     for name, content in (extra_files or {}).items():
         (dt_dir / f"{name}.py").write_text(content)
     return dt_dir
@@ -76,7 +74,9 @@ def test_discover_file_scripts_finds_nested_package_doctypes(tmp_path):
     app_dir = tmp_path / "bench" / "apps" / "grunt"
     dt_dir = app_dir / "metadata" / "doctypes" / "DocType"
     dt_dir.mkdir(parents=True)
-    (dt_dir / "DocType.js").write_text("function on_load(frm) { frm.add_menu_item('Test', () => {}); }\n")
+    (dt_dir / "DocType.js").write_text(
+        "function on_load(frm) { frm.add_menu_item('Test', () => {}); }\n"
+    )
 
     discover_file_scripts(app_dir.parent)
     scripts = get_file_client_scripts("DocType")

@@ -119,7 +119,7 @@ share-посилання й позначив як дірку. Виявилось
 ```python
 filters: dict[str, Any] = {"user_id": user.id}
 if not user.is_superadmin:
-    filters["user_id"] = user.id   # та сама умова, той самий результат
+    filters["user_id"] = user.id  # та сама умова, той самий результат
 ```
 
 Обидві гілки ставили однакове значення — суперадмін ніколи не бачив чужих

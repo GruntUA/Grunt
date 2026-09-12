@@ -37,9 +37,7 @@ async def setup_catalog(ctx):
 
     await save_doctype(doctype_data={**CATALOG, "__is_new": True})
     for i, t in enumerate(["Alpha", "Beta", "Gamma"]):
-        await ctx.new_doc(
-            "LSCatalog", {"title": t, "code": f"C{i}", "secret": f"top{i}"}
-        )
+        await ctx.new_doc("LSCatalog", {"title": t, "code": f"C{i}", "secret": f"top{i}"})
     await ctx.db._session().commit()
 
 
@@ -122,9 +120,7 @@ async def test_explicit_select_beats_row_scoped_read(ctx, setup_mixed, db_sessio
 
 
 @pytest.mark.asyncio
-async def test_row_scoped_read_without_select_still_filters(
-    ctx, setup_mixed, db_session, engine
-):
+async def test_row_scoped_read_without_select_still_filters(ctx, setup_mixed, db_session, engine):
     """No ``select`` grant → the picker keeps the legacy row-filtered "read"
     path (no 403, just the caller's own subset — empty here)."""
     from grunt.app import grunt
@@ -154,8 +150,8 @@ LSTREE = {
 
 @pytest.mark.asyncio
 async def test_select_only_user_can_load_tree_picker(ctx, db_session, engine):
-    from grunt.app import grunt
     from grunt.api.v1.meta import save_doctype
+    from grunt.app import grunt
     from grunt.document.base import Document
 
     await save_doctype(doctype_data={**LSTREE, "__is_new": True})

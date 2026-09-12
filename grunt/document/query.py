@@ -83,7 +83,9 @@ async def _expand_child_of_filters(
     return result
 
 
-async def _link_field_search_condition(dt: DocType, field: Any, table: Any, search: str) -> Any | None:
+async def _link_field_search_condition(
+    dt: DocType, field: Any, table: Any, search: str
+) -> Any | None:
     """Build a search condition for a Link field: match by the *linked*
     document's title/search fields, not the raw id stored in the column.
 

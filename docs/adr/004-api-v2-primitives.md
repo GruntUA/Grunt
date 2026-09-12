@@ -40,8 +40,8 @@ whitelisted-методи — накопичив шаблонний код, як�
 `document_registry`, тому повернений тип гарантовано збігається з переданим класом):
 
 ```python
-order = await grunt.get_doc(Order, order_id)     # -> Order, typed
-order = await grunt.get_doc("Order", order_id)    # -> dict, як і раніше
+order = await grunt.get_doc(Order, order_id)  # -> Order, typed
+order = await grunt.get_doc("Order", order_id)  # -> dict, як і раніше
 ```
 
 `find_doc(...)` — той самий шлях, але ловить `HTTPException(404)` і повертає `None`
@@ -119,6 +119,7 @@ CRUD-пайплайна). Це два різні, обидва потрібні 
 ```python
 class UserPublic(Schema):
     fields = ("name", "email", "full_name", "roles", "is_superadmin")
+
 
 return UserPublic.dump(user)
 ```

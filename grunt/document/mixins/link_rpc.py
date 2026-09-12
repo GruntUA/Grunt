@@ -163,9 +163,7 @@ class DocumentLinkRPCMixin:
                 search=query or None,
             )
         else:
-            rows = await _identifier_search(
-                dt, cols_needed, query, extra_filters, per_page
-            )
+            rows = await _identifier_search(dt, cols_needed, query, extra_filters, per_page)
 
         # ── Shape response ────────────────────────────────────────────────
         items = []

@@ -16,12 +16,8 @@ async def test_session_lifecycle(ctx, client: AsyncClient):
     from grunt.auth.doctypes.User.user import create_user
 
     async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
-        user = await create_user(
-            "admin@grunt.example.com", "Str0ngPass", "Admin", "Root", None
-        )
-        await ctx.db.set_value(
-            "User", user.id, {"language": "en", "timezone": "Europe/Warsaw"}
-        )
+        user = await create_user("admin@grunt.example.com", "Str0ngPass", "Admin", "Root", None)
+        await ctx.db.set_value("User", user.id, {"language": "en", "timezone": "Europe/Warsaw"})
         await ctx.db._session().commit()
 
     login = await client.post(
@@ -36,9 +32,7 @@ async def test_session_lifecycle(ctx, client: AsyncClient):
 
     headers = {"Authorization": f"Bearer {body['access_token']}"}
     me = (
-        await client.get(
-            "/api/v1/method/grunt.auth.doctypes.User.user.whoami", headers=headers
-        )
+        await client.get("/api/v1/method/grunt.auth.doctypes.User.user.whoami", headers=headers)
     ).json()["data"]
     assert me["email"] == "admin@grunt.example.com"
     assert me["full_name"] == "Root Admin"
@@ -156,9 +150,7 @@ async def test_first_user_superadmin_and_registration_gate(ctx):
     async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
         # First user: allowed even with registration disabled, gets superadmin.
         await _set_settings(ctx, allow_user_registration=False, default_role=None)
-        await register(
-            email="one@grunt.example.com", password="x", first_name="One", last_name="U"
-        )
+        await register(email="one@grunt.example.com", password="x", first_name="One", last_name="U")
         await ctx.db._session().commit()
 
         u1 = await get_user_by_email("one@grunt.example.com")

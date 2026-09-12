@@ -20,7 +20,6 @@ if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
 
-
 class ResolvedWorkflow:
     """The active ``Workflow`` document for one target DocType, with children resolved."""
 

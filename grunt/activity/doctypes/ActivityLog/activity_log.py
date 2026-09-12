@@ -128,11 +128,7 @@ async def _attach_titles(entries: list[dict[str, Any]]) -> None:
     """
     from grunt.document.titles import resolve_reference_titles
 
-    refs = [
-        (e["doctype"], e["doc_id"])
-        for e in entries
-        if e.get("doctype") and e.get("doc_id")
-    ]
+    refs = [(e["doctype"], e["doc_id"]) for e in entries if e.get("doctype") and e.get("doc_id")]
     titles = await resolve_reference_titles(refs)
 
     for e in entries:

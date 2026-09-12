@@ -140,7 +140,7 @@ class VirtualDocType:
                         else:
                             try:
                                 match = float(raw) <= float(val or 0)
-                            except (TypeError, ValueError):
+                            except TypeError, ValueError:
                                 match = str(raw) <= str(val)
                     elif op == "in":
                         match = str(raw) in [v.strip() for v in str(val).split(",")]
@@ -152,7 +152,7 @@ class VirtualDocType:
                             if str(val).lower() in ("true", "1")
                             else (raw is not None)
                         )
-                except (TypeError, ValueError):
+                except TypeError, ValueError:
                     match = False
                 if match:
                     result.append(r)

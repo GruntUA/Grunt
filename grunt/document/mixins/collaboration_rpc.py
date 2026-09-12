@@ -61,9 +61,7 @@ class DocumentCollaborationRPCMixin:
 
         content = (content or "").strip()
         if not content:
-            raise HTTPException(
-                status.HTTP_422_UNPROCESSABLE_CONTENT, detail="content is required"
-            )
+            raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, detail="content is required")
 
         await grunt_app.get_doc(doctype, doc_id)  # permission check
 

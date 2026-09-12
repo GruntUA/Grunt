@@ -130,9 +130,7 @@ async def test_plain_user_write_is_scoped_to_own_row():
     dt = _load("User")
     attacker = _plain_user("victim@example.com")
     assert (
-        await permission_checker.check(
-            attacker, dt, "write", {"name": "someone-else@example.com"}
-        )
+        await permission_checker.check(attacker, dt, "write", {"name": "someone-else@example.com"})
         is False
     )
     assert (

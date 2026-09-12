@@ -29,7 +29,12 @@ SHARE_PAGE_DOCTYPE = {
         {"fieldname": "main_tab", "label": "Overview", "fieldtype": "Tab"},
         {"fieldname": "sec_a", "label": "Summary", "fieldtype": "Section"},
         {"fieldname": "title", "label": "Title", "fieldtype": "Text"},
-        {"fieldname": "owner_ref", "label": "Owner", "fieldtype": "Link", "options": "SharePageOwner"},
+        {
+            "fieldname": "owner_ref",
+            "label": "Owner",
+            "fieldtype": "Link",
+            "options": "SharePageOwner",
+        },
         {"fieldname": "col_b", "fieldtype": "Column"},
         {"fieldname": "photo", "label": "Photo", "fieldtype": "Image"},
         {"fieldname": "details_tab", "label": "Details", "fieldtype": "Tab"},

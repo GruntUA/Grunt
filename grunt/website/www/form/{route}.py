@@ -57,7 +57,9 @@ def _prepare_fields(raw: list[dict[str, Any]]) -> list[dict[str, Any]]:
                 "widget": widget,
                 "input_type": _INPUT_TYPES.get(ftype, "text"),
                 "number_step": "any" if ftype == "Float" else "1" if ftype == "Int" else "",
-                "options": [o.strip() for o in (field.get("options") or "").split("\n") if o.strip()],
+                "options": [
+                    o.strip() for o in (field.get("options") or "").split("\n") if o.strip()
+                ],
             }
         )
     return prepared
