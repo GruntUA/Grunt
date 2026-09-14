@@ -25,6 +25,7 @@ interface ActivityEntry {
     title?: string
     action: string
     user: string
+    user_name?: string
     details?: any
     created_at: string
 }
@@ -123,7 +124,7 @@ watch(() => auth.isLoggedIn, (loggedIn) => {
 
                         <div class="min-w-0 flex-1">
                             <div class="mb-1 flex items-center justify-between">
-                                <span class="font-semibold text-foreground">{{ item.user }}</span>
+                                <span class="font-semibold text-foreground">{{ item.user_name || item.user }}</span>
                                 <span class="tabular-nums text-muted-foreground">{{ formatTime(item.created_at) }}</span>
                             </div>
 

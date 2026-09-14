@@ -32,6 +32,7 @@ async def resolve_reference_titles(
         except Exception:
             log.debug("titles.doctype_not_found", doctype=dt_name)
             continue
+
         title_field = dt.title_field
         if not title_field or title_field == "name":
             continue

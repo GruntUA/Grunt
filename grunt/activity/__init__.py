@@ -125,9 +125,32 @@ async def record_activity(
 async def _broadcast_activity(
     doc: dict[str, Any], doctype: str, doc_id: str, action: str, user_email: str
 ) -> None:
-    """Push a live activity event to the global site WebSocket channel."""
+    """Push a live activity event to the global site WebSocket channel.
+
+    Resolves the document title and the user's full name up front — same as
+    the REST feed (``list_activity``) — so a live-pushed entry never flashes a
+    raw doc_id/email while the feed's own re-fetch would have shown a name.
+    """
     try:
         from grunt.api.v1.ws import manager
+        from grunt.document.titles import resolve_reference_titles
+
+        titles = await resolve_reference_titles([(doctype, doc_id)])
+        title = titles.get((doctype, doc_id)) or doc_id
+
+        user_name = user_email
+        try:
+            # System context: the "All" role can only read its own User row
+            # (match: name == user) — the broadcaster must resolve the
+            # *acting* user's name regardless of who ends up viewing the feed.
+            async with grunt.system_context(grunt._require_session()):
+                rows = await grunt.get_list(
+                    "User", filters={"name": user_email}, fields=["full_name"], limit=1
+                )
+            if rows and rows[0].get("full_name"):
+                user_name = rows[0]["full_name"]
+        except Exception:
+            pass
 
         created_at = doc.get("created_at")
         # "site" is the authenticated site-wide channel. Never "public:site" —
@@ -140,8 +163,10 @@ async def _broadcast_activity(
                 "name": doc.get("name"),
                 "doctype": doctype,
                 "doc_id": doc_id,
+                "title": title,
                 "action": action,
                 "user": user_email,
+                "user_name": user_name,
                 "created_at": created_at.isoformat()
                 if isinstance(created_at, datetime)
                 else str(created_at or ""),
