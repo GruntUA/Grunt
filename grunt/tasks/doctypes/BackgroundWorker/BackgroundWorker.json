@@ -1,0 +1,42 @@
+{
+  "name": "BackgroundWorker",
+  "label": "Воркери черги",
+  "module": "tasks",
+  "icon": "cpu",
+  "is_virtual": true,
+  "default_view": "list",
+  "description": "Consumer'и групи TaskIQ у Redis Stream — живий знімок, нічого не зберігається в БД. Воркер, що впав і не перезапустився, лишається тут як 'мертвий' консюмер, поки хтось його не приберe.",
+  "fields": [
+    {
+      "fieldname": "pending",
+      "label": "У роботі",
+      "fieldtype": "Int",
+      "read_only": true,
+      "in_list_view": true,
+      "description": "Скільки задач цей воркер зараз тримає (доставлено, не підтверджено)."
+    },
+    {
+      "fieldname": "idle_ms",
+      "label": "Простій, мс",
+      "fieldtype": "Int",
+      "read_only": true,
+      "in_list_view": true,
+      "description": "Час з моменту останньої взаємодії воркера з чергою."
+    },
+    {
+      "fieldname": "inactive_ms",
+      "label": "Без завершених задач, мс",
+      "fieldtype": "Int",
+      "read_only": true,
+      "in_list_view": true,
+      "description": "Час з моменту останньої успішно підтвердженої (ack) задачі."
+    }
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "read": true,
+      "delete": true
+    }
+  ]
+}

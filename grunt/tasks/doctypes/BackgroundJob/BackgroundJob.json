@@ -1,0 +1,69 @@
+{
+  "name": "BackgroundJob",
+  "label": "Активні фонові задачі",
+  "module": "tasks",
+  "icon": "loader",
+  "is_virtual": true,
+  "default_view": "list",
+  "description": "Задачі, які воркер зараз тримає в роботі (доставлені, ще не підтверджені) — живий знімок з Redis Stream, нічого не зберігається в БД. Завершені задачі тут не показуються; помилки дивіться в Журналі помилок.",
+  "fields": [
+    {
+      "fieldname": "task_name",
+      "label": "Задача",
+      "fieldtype": "Data",
+      "read_only": true,
+      "in_list_view": true,
+      "in_filter": true
+    },
+    {
+      "fieldname": "task_id",
+      "label": "ID задачі",
+      "fieldtype": "Data",
+      "read_only": true,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "consumer",
+      "label": "Воркер",
+      "fieldtype": "Data",
+      "read_only": true,
+      "in_list_view": true,
+      "in_filter": true
+    },
+    {
+      "fieldname": "queued_at",
+      "label": "У черзі з",
+      "fieldtype": "Datetime",
+      "read_only": true,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "idle_ms",
+      "label": "Без підтвердження, мс",
+      "fieldtype": "Int",
+      "read_only": true,
+      "in_list_view": true,
+      "description": "Час з моменту, як воркер востаннє щось із цією задачею робив. Велике значення означає, що задача, скоріш за все, зависла."
+    },
+    {
+      "fieldname": "delivery_count",
+      "label": "Спроб доставки",
+      "fieldtype": "Int",
+      "read_only": true,
+      "description": "Скільки разів Redis перепризначав цю задачу воркеру (транспортний рівень, не пов'язано з retry_on_error задачі)."
+    },
+    {
+      "fieldname": "arguments",
+      "label": "Аргументи",
+      "fieldtype": "JSON",
+      "read_only": true
+    }
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "read": true,
+      "delete": true
+    }
+  ]
+}

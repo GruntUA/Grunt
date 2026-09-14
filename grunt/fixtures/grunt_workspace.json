@@ -368,6 +368,24 @@
       "link_to": "SqlProfilerRequest",
       "show_count": true,
       "sequence": 78
+    },
+    {
+      "section": "Моніторинг",
+      "type": "DocType",
+      "label": "Активні фонові задачі",
+      "icon": "loader",
+      "link_to": "BackgroundJob",
+      "show_count": true,
+      "sequence": 79
+    },
+    {
+      "section": "Моніторинг",
+      "type": "DocType",
+      "label": "Воркери черги",
+      "icon": "cpu",
+      "link_to": "BackgroundWorker",
+      "show_count": true,
+      "sequence": 80
     }
   ]
 }

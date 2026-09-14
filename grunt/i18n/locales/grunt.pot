@@ -1604,6 +1604,51 @@ msgctxt "help:Address.full_address"
 msgid "Формується автоматично з полів адреси"
 msgstr ""
 
+#: grunt/grunt/tasks/doctypes/BackgroundJob/BackgroundJob.json
+msgctxt "help:BackgroundJob"
+msgid ""
+"Задачі, які воркер зараз тримає в роботі (доставлені, ще не підтверджені) — "
+"живий знімок з Redis Stream, нічого не зберігається в БД. Завершені задачі "
+"тут не показуються; помилки дивіться в Журналі помилок."
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/BackgroundJob/BackgroundJob.json
+msgctxt "help:BackgroundJob.delivery_count"
+msgid ""
+"Скільки разів Redis перепризначав цю задачу воркеру (транспортний рівень, не"
+" пов'язано з retry_on_error задачі)."
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/BackgroundJob/BackgroundJob.json
+msgctxt "help:BackgroundJob.idle_ms"
+msgid ""
+"Час з моменту, як воркер востаннє щось із цією задачею робив. Велике "
+"значення означає, що задача, скоріш за все, зависла."
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
+msgctxt "help:BackgroundWorker"
+msgid ""
+"Consumer'и групи TaskIQ у Redis Stream — живий знімок, нічого не "
+"зберігається в БД. Воркер, що впав і не перезапустився, лишається тут як "
+"'мертвий' консюмер, поки хтось його не приберe."
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
+msgctxt "help:BackgroundWorker.idle_ms"
+msgid "Час з моменту останньої взаємодії воркера з чергою."
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
+msgctxt "help:BackgroundWorker.inactive_ms"
+msgid "Час з моменту останньої успішно підтвердженої (ack) задачі."
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
+msgctxt "help:BackgroundWorker.pending"
+msgid "Скільки задач цей воркер зараз тримає (доставлено, не підтверджено)."
+msgstr ""
+
 #: grunt/grunt/geo/doctypes/City/City.json
 msgctxt "help:City.latitude"
 msgid "Географічна широта (десяткові градуси)"
@@ -1798,6 +1843,14 @@ msgid "Row/bar label (default: title field)"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgctxt "help:DocType.hide_from_activity_feed"
+msgid ""
+"Keep entries out of the site-wide activity feed only — they still appear in "
+"each document's own timeline. For admin/config records (roles, print "
+"formats, workspace layout, …)"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgctxt "help:DocType.icon"
 msgid "Lucide icon for the menu and Workspace"
 msgstr ""
@@ -1877,6 +1930,14 @@ msgstr ""
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgctxt "help:DocType.title_field"
 msgid "Which field is shown as the document title (default: name)"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgctxt "help:DocType.track_activity"
+msgid ""
+"Write an ActivityLog entry on create/update/delete. Turn off for high-"
+"frequency system churn (sessions, queues, logs) — never for ordinary "
+"business records"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
@@ -2685,6 +2746,66 @@ msgstr ""
 #: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
 msgctxt "meta:AssignmentRule.section_meta"
 msgid "Metadata"
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/BackgroundJob/BackgroundJob.json
+msgctxt "meta:BackgroundJob"
+msgid "Активні фонові задачі"
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/BackgroundJob/BackgroundJob.json
+msgctxt "meta:BackgroundJob.arguments"
+msgid "Аргументи"
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/BackgroundJob/BackgroundJob.json
+msgctxt "meta:BackgroundJob.consumer"
+msgid "Воркер"
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/BackgroundJob/BackgroundJob.json
+msgctxt "meta:BackgroundJob.delivery_count"
+msgid "Спроб доставки"
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/BackgroundJob/BackgroundJob.json
+msgctxt "meta:BackgroundJob.idle_ms"
+msgid "Без підтвердження, мс"
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/BackgroundJob/BackgroundJob.json
+msgctxt "meta:BackgroundJob.queued_at"
+msgid "У черзі з"
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/BackgroundJob/BackgroundJob.json
+msgctxt "meta:BackgroundJob.task_id"
+msgid "ID задачі"
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/BackgroundJob/BackgroundJob.json
+msgctxt "meta:BackgroundJob.task_name"
+msgid "Задача"
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
+msgctxt "meta:BackgroundWorker"
+msgid "Воркери черги"
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
+msgctxt "meta:BackgroundWorker.idle_ms"
+msgid "Простій, мс"
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
+msgctxt "meta:BackgroundWorker.inactive_ms"
+msgid "Без завершених задач, мс"
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
+msgctxt "meta:BackgroundWorker.pending"
+msgid "У роботі"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/Bookmark/Bookmark.json
@@ -3577,6 +3698,11 @@ msgid "Title field"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgctxt "meta:DocType.hide_from_activity_feed"
+msgid "Hide from global feed"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgctxt "meta:DocType.icon"
 msgid "Icon"
 msgstr ""
@@ -3774,6 +3900,11 @@ msgstr ""
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgctxt "meta:DocType.title_field"
 msgid "Title field"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgctxt "meta:DocType.track_activity"
+msgid "Activity log"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
