@@ -7,7 +7,7 @@ import fs from 'fs'
 // Discover external app frontend directories (bench/apps/*/www/)
 function discoverAppAliases() {
     const aliases: Record<string, string> = {}
-    const appsDir = path.resolve(__dirname, '../')
+    const appsDir = path.resolve(import.meta.dirname, '../')
     if (!fs.existsSync(appsDir)) return aliases
 
     for (const appName of fs.readdirSync(appsDir)) {
@@ -23,7 +23,7 @@ function discoverAppAliases() {
 // Discover allowed hosts from sites/ directory and their .env files
 function discoverAllowedHosts() {
     const hosts = new Set<string>(['localhost', '127.0.0.1'])
-    const sitesDir = path.resolve(__dirname, '../../sites')
+    const sitesDir = path.resolve(import.meta.dirname, '../../sites')
     if (!fs.existsSync(sitesDir)) return Array.from(hosts)
 
     for (const siteName of fs.readdirSync(sitesDir)) {
@@ -79,7 +79,7 @@ export default defineConfig({
     ],
     resolve: {
         alias: {
-            '@': path.resolve(__dirname, './frontend/src'),
+            '@': path.resolve(import.meta.dirname, './frontend/src'),
             ...appAliases,
         },
     },
