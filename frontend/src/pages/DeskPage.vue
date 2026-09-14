@@ -9,6 +9,15 @@ import AppCard from '@/components/desk/AppCard.vue'
 import ActivityStream from '@/components/dashboard/ActivityStream.vue'
 import MyWorkPanel from '@/components/dashboard/MyWorkPanel.vue'
 import { readRecent, looksLikeId, type RecentDoc } from '@/core/recentDocs'
+import { useColorMode, type Theme } from '@/core/composables/useColorMode'
+import { Button } from '@/components/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import {
   Search,
   LayoutGrid,
@@ -17,6 +26,7 @@ import {
   Sun,
   Sunset,
   Moon,
+  Monitor,
   PackageOpen,
 } from '@lucide/vue'
 
@@ -28,6 +38,8 @@ async function exitImpersonation() {
 const appStore = useAppStore()
 const uiStore = useUIStore()
 const router = useRouter()
+const colorMode = useColorMode()
+async function onThemeChange(theme: unknown) { await auth.setTheme(theme as Theme) }
 
 const allCounts = ref<Record<string, Record<string, number>>>({})
 
@@ -114,6 +126,33 @@ function docInitials(doc: RecentDoc): string {
 <template>
   <div class="h-screen overflow-y-auto bg-background">
     <main class="mx-auto max-w-6xl px-6 py-10 md:py-14">
+
+      <!-- ── TOP BAR: theme toggle ─────────────────────────────────── -->
+      <div class="mb-4 flex justify-end">
+        <DropdownMenu>
+          <DropdownMenuTrigger as-child>
+            <Button variant="ghost" size="icon-sm" title="Тема">
+              <component :is="colorMode.isDark.value ? Moon : Sun" class="size-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuRadioGroup :model-value="colorMode.currentTheme.value" @update:model-value="onThemeChange">
+              <DropdownMenuRadioItem value="light" class="gap-2 p-2">
+                <Sun class="size-4 shrink-0" />
+                <span>Світла</span>
+              </DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="dark" class="gap-2 p-2">
+                <Moon class="size-4 shrink-0" />
+                <span>Темна</span>
+              </DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="system" class="gap-2 p-2">
+                <Monitor class="size-4 shrink-0" />
+                <span>Системна</span>
+              </DropdownMenuRadioItem>
+            </DropdownMenuRadioGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
 
       <!-- ── HERO: greeting + search ──────────────────────────────── -->
       <section class="mx-auto max-w-xl space-y-5 pb-10 text-center">
