@@ -35,6 +35,9 @@ class QueryCache:
     def _key_prefix(self, doctype: str) -> str:
         return f"qcache:list:{doctype}:"
 
+    def _count_key_prefix(self, doctype: str) -> str:
+        return f"qcache:count:{doctype}:"
+
     def build_key(
         self,
         *,
@@ -62,6 +65,18 @@ class QueryCache:
         raw = json.dumps(payload, sort_keys=True, separators=(",", ":"))
         digest = hashlib.sha256(raw.encode()).hexdigest()
         return f"{self._key_prefix(doctype)}{digest}"
+
+    def build_count_key(
+        self,
+        *,
+        doctype: str,
+        user_email: str,
+        filters: dict[str, Any] | None,
+    ) -> str:
+        payload = {"doctype": doctype, "user": user_email, "filters": filters or {}}
+        raw = json.dumps(payload, sort_keys=True, separators=(",", ":"))
+        digest = hashlib.sha256(raw.encode()).hexdigest()
+        return f"{self._count_key_prefix(doctype)}{digest}"
 
     def _get_memory(self, key: str) -> dict[str, Any] | None:
         item = self._memory.get(key)
@@ -145,9 +160,35 @@ class QueryCache:
         self._set_memory(key, payload)
         await self._set_redis(key, payload)
 
+    async def get_count(self, key: str) -> int | None:
+        payload = self._get_memory(key)
+        if payload is not None:
+            self._hits += 1
+            return int(payload["n"])
+
+        payload = await self._get_redis(key)
+        if payload is not None:
+            self._hits += 1
+            self._set_memory(key, payload)
+            return int(payload["n"])
+
+        self._misses += 1
+        return None
+
+    async def set_count(self, key: str, value: int) -> None:
+        payload = {"n": value}
+        self._set_memory(key, payload)
+        await self._set_redis(key, payload)
+
     async def invalidate_doctype(self, doctype: str) -> None:
-        prefix = self._key_prefix(doctype)
-        stale = [k for k in self._memory if k.startswith(prefix)]
+        """Drop every cached list page and count for ``doctype``.
+
+        Both namespaces share one invalidation call because they're driven by
+        the same event (a doc of this type was created/updated/deleted) — a
+        caller never needs to invalidate one without the other.
+        """
+        prefixes = (self._key_prefix(doctype), self._count_key_prefix(doctype))
+        stale = [k for k in self._memory if k.startswith(prefixes)]
         for k in stale:
             self._memory.pop(k, None)
 
@@ -155,7 +196,9 @@ class QueryCache:
             async with self._redis() as r:
                 if r is None:
                     return
-                keys = await r.keys(f"{prefix}*")
+                keys: list[bytes | str] = []
+                for prefix in prefixes:
+                    keys.extend(await r.keys(f"{prefix}*"))
                 if keys:
                     await r.delete(*keys)
         except Exception as exc:

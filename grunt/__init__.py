@@ -130,6 +130,7 @@ if TYPE_CHECKING:
         doctype: str,
         *,
         filters: dict[str, Any] | None = None,
+        respect_permissions: bool = False,
     ) -> int: ...
     async def exists(
         doctype: str,

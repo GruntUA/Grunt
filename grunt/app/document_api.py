@@ -546,15 +546,35 @@ class DocumentAPI:
         filter ``grunt.get_list`` uses, so the number never includes rows the
         list view would hide. The internal system context sees the full count
         either way.
+
+        Permission-aware counts are cached per (doctype, user, filters) — cheap
+        to keep fresh because every create/update/delete already invalidates
+        the doctype's cache entries (see ``_invalidate_list_cache``), so the
+        TTL only covers the gap until that invalidation lands (e.g. a write
+        made outside the ORM, or a Redis hiccup), not routine staleness.
         """
         if not respect_permissions:
             return await self.db.count(doctype, filters=filters)
 
         from grunt.document import collection
 
-        return await collection.count_documents(
-            require_session(), doctype, require_user(), filters=filters
+        user = require_user()
+        cache = getattr(self, "query_cache", None)
+        cache_key: str | None = None
+        if settings.query_cache_enabled and cache is not None:
+            cache_key = cache.build_count_key(
+                doctype=doctype, user_email=getattr(user, "email", ""), filters=filters
+            )
+            cached = await cache.get_count(cache_key)
+            if cached is not None:
+                return cached
+
+        result = await collection.count_documents(
+            require_session(), doctype, user, filters=filters
         )
+        if cache_key is not None and cache is not None:
+            await cache.set_count(cache_key, result)
+        return result
 
     async def exists(
         self,

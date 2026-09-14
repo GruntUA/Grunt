@@ -140,12 +140,6 @@ async def get_counts(name: str) -> dict[str, int]:
     return {}
 
 
-# Cached because the stat costs one COUNT per business doctype (dozens of
-# queries) while being a purely informational figure on the home page.
-_DOC_STATS_TTL_SECONDS = 60.0
-_doc_stats_cache: dict[tuple[str, str], tuple[float, dict[str, int]]] = {}
-
-
 @grunt.whitelist()
 async def get_document_stats() -> dict[str, int]:
     """Return an honest, deduplicated document total for the home page.
@@ -155,28 +149,11 @@ async def get_document_stats() -> dict[str, int]:
     each business doctype exactly once and excludes infrastructural doctypes
     (logs, sessions, versions, queues, config/metadata).
 
-    ``grunt.count`` is permission-aware, so the figure only ever covers rows
-    the caller may see — the cache key is therefore per (site, user), for a
-    minute; an approximate headline number is not worth dozens of COUNT
-    queries on every page load.
+    Each per-doctype count goes through ``grunt.count(respect_permissions=True)``,
+    which is itself cached per (doctype, user, filters) — see its docstring —
+    so repeat page loads don't re-run dozens of COUNT queries.
     """
-    import time
-
     from grunt.metadata.registry import doctype_registry
-    from grunt.site.manager import site_manager
-
-    try:
-        site = site_manager.get_active_site()
-    except Exception:
-        site = ""
-
-    user = await grunt.get_current_user()
-    cache_key = (site, getattr(user, "email", ""))
-
-    now = time.monotonic()
-    cached = _doc_stats_cache.get(cache_key)
-    if cached and now - cached[0] < _DOC_STATS_TTL_SECONDS:
-        return cached[1]
 
     total = 0
     counted = 0
@@ -192,9 +169,7 @@ async def get_document_stats() -> dict[str, int]:
             # A doctype without a physical table yet — skip it silently.
             continue
 
-    stats = {"total": total, "doctypes": counted}
-    _doc_stats_cache[cache_key] = (now, stats)
-    return stats
+    return {"total": total, "doctypes": counted}
 
 
 @grunt.whitelist()
