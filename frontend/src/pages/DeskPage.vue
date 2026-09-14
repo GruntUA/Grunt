@@ -160,7 +160,13 @@ function docInitials(doc: RecentDoc): string {
           <div class="flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
             <component :is="greeting.icon" class="size-5" />
           </div>
-          <h1 class="text-2xl font-semibold tracking-tight text-foreground">{{ greeting.text }}</h1>
+          <h1 class="text-2xl font-semibold tracking-tight text-foreground">
+            <router-link v-if="auth.user" :to="`/app/grunt/User/${auth.user.id}`" title="Відкрити мій профіль"
+              class="transition-colors hover:text-primary">
+              {{ greeting.text }}
+            </router-link>
+            <template v-else>{{ greeting.text }}</template>
+          </h1>
           <p class="text-muted-foreground">Що плануєте зробити сьогодні?</p>
         </div>
 
