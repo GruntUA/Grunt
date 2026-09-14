@@ -143,7 +143,19 @@ export interface ListViewProxy {
   set_filters: (filters: Array<{ fieldname: string; op: string; value: string; label?: string; fieldtype?: string }>) => void  /** Set a single quick-filter value by its id. */
   set_quick_filter_value: (id: string, value: string) => void
   /** Replace all quick-filter values at once. */
-  set_quick_filters: (values: Record<string, string>) => void}
+  set_quick_filters: (values: Record<string, string>) => void
+  /**
+   * Show/hide the "+ Add" button, overriding the create-permission check.
+   * `undefined` (default) → let the DocType's `create` permission decide.
+   *
+   * ```js
+   * function setup_list(listview) {
+   *   listview.can_create = false
+   * }
+   * ```
+   */
+  can_create?: boolean
+}
 
 export interface ListQuickFilterChange {
   id: string

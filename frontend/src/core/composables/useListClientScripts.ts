@@ -31,6 +31,8 @@ export function useListClientScripts(params: UseListClientScriptsParams) {
   const listMenuItems = ref<ScriptMenuItem[]>([])
   const listviewProxy = ref<ListViewProxy | null>(null)
   const gruntProxy = ref<GruntProxy | null>(null)
+  /** `undefined` → no script touched `listview.can_create`; permissions decide. */
+  const canCreate = ref<boolean | undefined>(undefined)
 
   async function runListClientSetup() {
     const gp = createGruntProxy({
@@ -116,6 +118,7 @@ export function useListClientScripts(params: UseListClientScriptsParams) {
     listviewProxy.value = lv
     gruntProxy.value = gp
     await executeListSetup(params.doctype, lv, gp)
+    canCreate.value = lv.can_create
   }
 
   async function runQuickFilterOnChange(change: ListQuickFilterChange) {
@@ -131,6 +134,7 @@ export function useListClientScripts(params: UseListClientScriptsParams) {
   return {
     listButtons,
     listMenuItems,
+    canCreate,
     runListClientSetup,
     runQuickFilterOnChange,
   }

@@ -10,18 +10,23 @@ function on_load(frm) {
 }
 
 async function setup_list(listview) {
+  listview.can_create = false // read-only ring buffer view — records aren't created by hand
+
   let isRecording = true
   try {
-    const res = await grunt.api.get('/api/v1/dev/profiler/settings')
-    isRecording = res.data.enabled
+    const settings = await grunt.call({ method: 'grunt.api.v1.dev.get_profiler_settings' })
+    isRecording = settings.enabled
   } catch (_) {}
 
   const toggleBtn = listview.add_button(
     isRecording ? '⏹ Зупинити' : '▶ Старт',
     async function () {
       try {
-        const res = await grunt.api.put('/api/v1/dev/profiler/settings', { enabled: !isRecording })
-        isRecording = res.data.enabled
+        const settings = await grunt.call({
+          method: 'grunt.api.v1.dev.update_profiler_settings',
+          args: { enabled: !isRecording },
+        })
+        isRecording = settings.enabled
         toggleBtn.update({
           label: isRecording ? '⏹ Зупинити' : '▶ Старт',
           variant: isRecording ? 'destructive' : 'default',
@@ -39,7 +44,7 @@ async function setup_list(listview) {
     const ok = await grunt.confirm('Очистити буфер профілера?', 'Підтвердження')
     if (!ok) return
     try {
-      await grunt.api.delete('/api/v1/dev/profiler/clear')
+      await grunt.call({ method: 'grunt.api.v1.dev.clear_profiler' })
       grunt.show_alert('Буфер очищено', 'success')
       listview.refresh()
     } catch (e) {

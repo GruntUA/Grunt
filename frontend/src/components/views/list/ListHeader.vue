@@ -3,6 +3,7 @@ import { computed, ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import type { DocType, ScriptButton, ScriptMenuItem } from '@/types'
+import { useAuthStore } from '@/stores/auth'
 import { permissionsApi, type ActiveRestriction } from '@/core/api/permissions'
 import {
   Dialog,
@@ -45,6 +46,8 @@ const props = defineProps<{
   listMenuItems: ScriptMenuItem[]
   exportCtx: ExportContext | null
   viewMode: string
+  /** `listview.can_create` from a client script's `setup_list` — overrides the permission check either way. */
+  canCreateOverride?: boolean
 }>()
 
 const exporters = getExporters()
@@ -70,6 +73,21 @@ const currentView = computed(() => getViewDef(props.viewMode) ?? availableViews.
 
 const { t } = useI18n()
 const router = useRouter()
+const auth = useAuthStore()
+
+// A DocType with no matching permission row is closed to everyone — same
+// rule the backend's RoleAccess applies (no role bypasses permission rows,
+// see grunt/permissions/access.py). Mirrors that here so "+ Add" doesn't
+// offer an action the server will 405 right back. A client script's
+// `listview.can_create = false/true` (setup_list) overrides this either way.
+const canCreate = computed(() => {
+  if (props.canCreateOverride !== undefined) return props.canCreateOverride
+  if (!props.dt) return true // meta still loading — avoid a flash of "no button"
+  const perms = props.dt.permissions
+  if (!perms || !perms.length) return false // no permission rows = closed to everyone
+  const roles = auth.user?.roles ?? []
+  return perms.some((p) => p.create && (p.role === 'All' || roles.includes(p.role)))
+})
 
 function handleNew() {
   if (!props.isSystemDocType && props.dt?.quick_entry) {
@@ -224,7 +242,7 @@ watch(() => props.doctype, loadRestrictions)
       </Button>
 
       <!-- New button -->
-      <Button size="sm" class="px-4 gap-1.5" @click="handleNew" :title="`${t('Add')} (Ctrl+N)`">
+      <Button v-if="canCreate" size="sm" class="px-4 gap-1.5" @click="handleNew" :title="`${t('Add')} (Ctrl+N)`">
         <Plus class="size-4" />
         <span>{{ isSystemDocType ? 'New DocType' : t('Add') }}</span>
       </Button>

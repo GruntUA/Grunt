@@ -140,6 +140,7 @@ const dialog = useDialog()
 const {
   listButtons,
   listMenuItems,
+  canCreate: listCanCreate,
   runListClientSetup,
   runQuickFilterOnChange,
 } = useListClientScripts({
@@ -325,6 +326,7 @@ watch(() => props.doctype, async (newDoctype) => {
         <ListHeader :doctype="doctype" :dt="dt" :workspace="workspace" :is-fetching="isFetching"
           :is-system-doc-type="doctype === 'DocType'" :show-dev-actions="!!(isDev && auth.isSystemManager)"
           :list-buttons="listButtons" :list-menu-items="listMenuItems" :export-ctx="exportCtx"
+          :can-create-override="listCanCreate"
           v-model:view-mode="viewMode"
           @refresh="queryClient.invalidateQueries({ queryKey: ['documents', doctype] }); refreshKey++"
           @create-quick="showQuickEntry = true"
