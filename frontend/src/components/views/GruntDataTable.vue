@@ -11,6 +11,7 @@ import { Table, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
 import { TableBody, TableCell } from '@/components/ui/table'
+import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
 const props = defineProps<{
   columns: ListColumn[]
   rows: Record<string, unknown>[]
@@ -168,11 +169,15 @@ function isRowSelected(row: Record<string, unknown>): boolean {
 
       <!-- Empty state -->
       <TableRow v-else-if="!isLoading && !rows.length">
-        <TableCell :colspan="columns.length + 1" class="px-3 py-16 text-center border-0">
-          <div class="flex flex-col items-center gap-2">
-            <FileSpreadsheet class="text-muted-foreground/40 text-4xl" />
-            <p class="text-muted-foreground">Записів не знайдено</p>
-          </div>
+        <TableCell :colspan="columns.length + 1" class="border-0 p-0">
+          <Empty class="py-16">
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                <FileSpreadsheet />
+              </EmptyMedia>
+              <EmptyTitle>Записів не знайдено</EmptyTitle>
+            </EmptyHeader>
+          </Empty>
         </TableCell>
       </TableRow>
 

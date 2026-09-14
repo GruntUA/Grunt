@@ -9,6 +9,7 @@ import { FileX, ImageIcon } from '@lucide/vue'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
+import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription } from '@/components/ui/empty'
 
 const props = defineProps<{
   rows: Record<string, unknown>[]
@@ -87,18 +88,15 @@ function formatDate(val: unknown, type: string): string {
 <template>
   <div class="min-h-64 px-1">
     <!-- Empty state -->
-    <div v-if="!isLoading && !rows.length"
-      class="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed py-16 text-center">
-      <div class="flex size-10 items-center justify-center rounded-lg bg-muted">
-        <FileX class="size-5 text-muted-foreground" />
-      </div>
-      <div class="space-y-1">
-        <p class="text-sm font-medium">Записів не знайдено</p>
-        <p class="mx-auto max-w-xs text-xs text-muted-foreground">
-          Спробуйте змінити фільтри або додати новий документ
-        </p>
-      </div>
-    </div>
+    <Empty v-if="!isLoading && !rows.length" class="border border-dashed py-16">
+      <EmptyHeader>
+        <EmptyMedia variant="icon">
+          <FileX />
+        </EmptyMedia>
+        <EmptyTitle>Записів не знайдено</EmptyTitle>
+        <EmptyDescription>Спробуйте змінити фільтри або додати новий документ</EmptyDescription>
+      </EmptyHeader>
+    </Empty>
 
     <!-- Skeleton -->
     <div v-else-if="isLoading && !rows.length"

@@ -39,6 +39,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
 import { useReportModel, isNumericField, type AggFn } from './useReportModel'
 
 interface TableMeta { page: number; pages: number; total: number }
@@ -503,11 +504,15 @@ async function commitEdit(row: Record<string, unknown>, key: string) {
 
           <!-- Empty -->
           <TableRow v-else-if="!isLoading && !rows.length">
-            <TableCell :colspan="model.visibleColumns.value.length" class="px-3 py-16 text-center border-0">
-              <div class="flex flex-col items-center gap-2">
-                <FileSpreadsheet class="size-8 text-muted-foreground/40" />
-                <p class="text-muted-foreground">Записів не знайдено</p>
-              </div>
+            <TableCell :colspan="model.visibleColumns.value.length" class="border-0 p-0">
+              <Empty class="py-16">
+                <EmptyHeader>
+                  <EmptyMedia variant="icon">
+                    <FileSpreadsheet />
+                  </EmptyMedia>
+                  <EmptyTitle>Записів не знайдено</EmptyTitle>
+                </EmptyHeader>
+              </Empty>
             </TableCell>
           </TableRow>
 
