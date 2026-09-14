@@ -4,6 +4,7 @@
   "module": "monitoring",
   "is_virtual": true,
   "track_changes": false,
+  "track_activity": false,
   "title_field": "path",
   "search_fields": [
     "path",

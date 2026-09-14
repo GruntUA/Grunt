@@ -4,6 +4,8 @@
   "module": "document",
   "track_changes": false,
   "table_name": "grunt_doc_version",
+  "hide_from_activity_feed": true,
+  "track_deletions": false,
   "fields": [
     {
       "fieldname": "doctype",

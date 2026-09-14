@@ -2,6 +2,7 @@
   "name": "PageWidget",
   "label": "Page widget",
   "module": "site",
+  "hide_from_activity_feed": true,
   "is_child": true,
   "title_field": "title",
   "fields": [

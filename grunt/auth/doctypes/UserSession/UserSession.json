@@ -3,6 +3,7 @@
   "label": "User session",
   "module": "auth",
   "is_log": true,
+  "track_activity": false,
   "track_changes": false,
   "fields": [
     {

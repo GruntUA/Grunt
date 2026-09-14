@@ -2,6 +2,7 @@
   "name": "DashboardChart",
   "label": "Графік дашборду",
   "module": "reports",
+  "hide_from_activity_feed": true,
   "fields": [
     {
       "fieldname": "chart_type",

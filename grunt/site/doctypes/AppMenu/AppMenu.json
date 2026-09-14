@@ -6,6 +6,7 @@
   "autoname": "prompt",
   "title_field": "label",
   "table_name": "grunt_workspace",
+  "hide_from_activity_feed": true,
   "fields": [
     {
       "fieldname": "label",

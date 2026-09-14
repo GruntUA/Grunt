@@ -3,6 +3,8 @@
   "label": "Лог вхідного вебхуку",
   "module": "webhook",
   "table_name": "grunt_incoming_webhook_log",
+  "track_activity": false,
+  "track_deletions": false,
   "track_changes": false,
   "fields": [
     {

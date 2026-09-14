@@ -2,6 +2,7 @@
   "name": "Dashboard Widget",
   "label": "Віджет дашборду",
   "module": "reports",
+  "hide_from_activity_feed": true,
   "is_child": true,
   "title_field": "title",
   "fields": [

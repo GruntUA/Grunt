@@ -408,14 +408,14 @@ async def _widget_table(widget, dt, doctype_name, since, until, days, base_filte
 
 async def _widget_activity(widget, dt, doctype_name, since, until, days, base_filters) -> Any:
     """activity — recent ActivityLog entries, optionally scoped to one doctype."""
-    from grunt.activity import FEED_HIDDEN_DOCTYPES
+    from grunt.activity import feed_hidden_doctypes
 
     try:
         filters = dict(base_filters)
         if doctype_name:
             filters["doctype"] = doctype_name
         else:
-            filters["doctype__nin"] = sorted(FEED_HIDDEN_DOCTYPES)
+            filters["doctype__nin"] = sorted(await feed_hidden_doctypes())
         items = await grunt.get_list(
             "ActivityLog", filters=filters, order_by="created_at", order="desc", limit=20
         )

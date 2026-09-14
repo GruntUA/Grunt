@@ -2,6 +2,7 @@
   "name": "NumberCard",
   "label": "Числова картка",
   "module": "reports",
+  "hide_from_activity_feed": true,
   "fields": [
     {
       "fieldname": "label",

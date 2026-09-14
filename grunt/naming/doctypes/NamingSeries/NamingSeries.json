@@ -2,6 +2,7 @@
   "name": "NamingSeries",
   "label": "Серія нумерації",
   "module": "naming",
+  "hide_from_activity_feed": true,
   "fields": [
     {
       "fieldname": "prefix",

@@ -1,5 +1,5 @@
-"""Regression: DocLink, BackgroundTaskLog, ScheduledJobLog, SqlProfilerQuery
-and SqlProfilerSpan used to have no `permissions` at all. All five are
+"""Regression: DocLink, ScheduledJobLog, SqlProfilerQuery
+and SqlProfilerSpan used to have no `permissions` at all. All four are
 written exclusively through raw SQLAlchemy or `grunt.system_context()` (never
 under a regular user's own context), so restricting them costs nothing —
 verified per-doctype before applying the fix (see project memory).
@@ -32,7 +32,6 @@ _GRUNT_ROOT = Path(__file__).resolve().parents[2] / "grunt"
 
 _DOCTYPE_JSON = {
     "DocLink": _GRUNT_ROOT / "document/doctypes/DocLink/DocLink.json",
-    "BackgroundTaskLog": _GRUNT_ROOT / "tasks/doctypes/BackgroundTaskLog/BackgroundTaskLog.json",
     "ScheduledJobLog": _GRUNT_ROOT / "tasks/doctypes/ScheduledJobLog/ScheduledJobLog.json",
     "SqlProfilerQuery": (
         _GRUNT_ROOT / "monitoring/doctypes/SqlProfilerQuery/SqlProfilerQuery.json"

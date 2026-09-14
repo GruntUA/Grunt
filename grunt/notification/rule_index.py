@@ -2,8 +2,8 @@
 
 The hook bus (:func:`grunt.hooks.fire`, stage 5) consults this before it offloads
 notification-rule evaluation to a background worker. Without the check *every*
-document write in the system enqueues a worker task — and a ``BackgroundTaskLog``
-row — even when no rule could ever match it.
+document write in the system enqueues a worker task, even when no rule could
+ever match it.
 
 Modelled on :mod:`grunt.workflow.registry`: a process-local snapshot kept fresh by
 ``NotificationRule`` change hooks (wired in ``grunt.main``), with a short TTL so

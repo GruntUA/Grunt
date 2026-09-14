@@ -4,6 +4,8 @@
   "module": "tasks",
   "track_changes": false,
   "table_name": "grunt_scheduled_job_log",
+  "track_activity": false,
+  "track_deletions": false,
   "fields": [
     {
       "fieldname": "job_name",

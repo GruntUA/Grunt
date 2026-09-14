@@ -5,6 +5,7 @@
   "is_child": true,
   "title_field": "label",
   "table_name": "grunt_workspace_sidebar_item",
+  "hide_from_activity_feed": true,
   "fields": [
     {
       "fieldname": "type",

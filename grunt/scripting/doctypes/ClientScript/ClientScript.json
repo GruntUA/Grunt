@@ -3,6 +3,7 @@
   "label": "Клієнтський скрипт",
   "module": "scripting",
   "table_name": "grunt_client_script",
+  "hide_from_activity_feed": true,
   "fields": [
     {
       "fieldname": "doctype",

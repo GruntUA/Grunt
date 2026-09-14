@@ -4,6 +4,7 @@
   "module": "reports",
   "track_changes": false,
   "table_name": "grunt_report",
+  "hide_from_activity_feed": true,
   "fields": [
     {
       "fieldname": "report_name",

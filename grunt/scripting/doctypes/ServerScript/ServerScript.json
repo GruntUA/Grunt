@@ -3,6 +3,7 @@
   "label": "Серверний скрипт",
   "module": "scripting",
   "table_name": "grunt_server_script",
+  "hide_from_activity_feed": true,
   "fields": [
     {
       "fieldname": "script_type",

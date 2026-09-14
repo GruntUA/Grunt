@@ -8,68 +8,44 @@ from grunt.app import grunt
 from grunt.document.versioning import _SKIP_FIELDS
 from grunt.log import log
 
-# Doctypes that must NEVER be logged anywhere — high-frequency system churn
-# (sessions, queued mail, webhook/profiler/scheduler traffic). Recording these
-# is pure noise in every context, including per-document timelines.
-_SKIP_DOCTYPES = frozenset(
-    {
-        "ActivityLog",
-        "ViewLog",
-        "DeletedDocument",
-        "BackgroundTaskLog",
-        "ErrorLog",
-        "UserSession",
-        "Notification",
-        "PushSubscription",
-        "EmailQueue",
-        "ScheduledJobLog",
-        "WebhookLog",
-        "IncomingWebhookLog",
-        "AssignmentLog",
-        "SqlProfilerQuery",
-        "SqlProfilerRequest",
-        "SqlProfilerSpan",
-    }
-)
 
-# Additional doctypes hidden from the GLOBAL activity feed only. These are
-# config/metadata records whose changes are administrative, not day-to-day
-# business activity — but they stay visible in a specific document's timeline.
-FEED_HIDDEN_DOCTYPES = _SKIP_DOCTYPES | frozenset(
-    {
-        "DocType",
-        "DocField",
-        "DocTypeStatusIndicator",
-        "DocTypeCalendarSource",
-        "Role",
-        "UserRole",
-        "AppMenu",
-        "WorkspaceSidebarItem",
-        "Page",
-        "PageWidget",
-        "Dashboard",
-        "DashboardWidget",
-        "DashboardChart",
-        "NumberCard",
-        "Report",
-        "PrintFormat",
-        "WebForm",
-        "ClientScript",
-        "ServerScript",
-        "SystemSettings",
-        "NamingSeries",
-        "GruntInstalledApp",
-        "DocVersion",
-        "Bookmark",
-        "DocTag",
-        "DocLink",
-    }
-)
+async def _doctype_meta(doctype: str):
+    """Best-effort metadata lookup — unknown doctypes are treated as "log it"."""
+    from grunt.metadata.registry import doctype_registry
+
+    try:
+        return await doctype_registry.get(doctype)
+    except Exception:
+        return None
 
 
-def is_feed_hidden(doctype: str | None) -> bool:
-    """Whether a doctype should be excluded from the global activity feed."""
-    return doctype in FEED_HIDDEN_DOCTYPES
+async def should_log_activity(doctype: str) -> bool:
+    """Whether ``doctype`` writes ActivityLog rows at all (``DocType.track_activity``)."""
+    dt = await _doctype_meta(doctype)
+    return getattr(dt, "track_activity", True) if dt is not None else True
+
+
+def _feed_hidden(dt: Any) -> bool:
+    """True for doctypes that never log at all (``track_activity=False``) as well as
+    ones that log but opt out of the global feed only (``hide_from_activity_feed``)
+    — config/admin records that stay visible in a specific document's own timeline.
+    """
+    return not getattr(dt, "track_activity", True) or getattr(dt, "hide_from_activity_feed", False)
+
+
+async def is_feed_hidden(doctype: str | None) -> bool:
+    """Whether a doctype's entries should be excluded from the *global* activity feed."""
+    if not doctype:
+        return False
+    dt = await _doctype_meta(doctype)
+    return _feed_hidden(dt) if dt is not None else False
+
+
+async def feed_hidden_doctypes() -> list[str]:
+    """All doctype names currently excluded from the global activity feed."""
+    from grunt.metadata.registry import doctype_registry
+
+    return [dt.name for dt in await doctype_registry.list_all() if _feed_hidden(dt)]
 
 
 _ACTION_MAP = {
@@ -100,7 +76,7 @@ async def record_activity(
     or inventing one that never happened. This is the *only* legitimate
     write path, so it must work regardless of the acting user's own role.
     """
-    if not doctype or doctype in _SKIP_DOCTYPES:
+    if not doctype or not await should_log_activity(doctype):
         return
     try:
         async with grunt.system_context(grunt._require_session()):
@@ -225,10 +201,10 @@ async def record_view(event: str, **kwargs: Any) -> None:
         dt = await doctype_registry.get(doctype)
     except Exception:
         return
-    # ``_SKIP_DOCTYPES`` is not consulted here: it lists high-churn system logs,
-    # and seen/view tracking is opt-in per DocType via the flags below — none of
-    # those logs set them. An operational log that *does* opt in (e.g. ErrorLog,
-    # so an admin can tell which errors they've already triaged) is honoured.
+    # ``track_activity`` is not consulted here: seen/view tracking is a separate,
+    # opt-in concern via the flags below — none of the high-churn system logs set
+    # them. An operational log that *does* opt in (e.g. ErrorLog, so an admin can
+    # tell which errors they've already triaged) is honoured regardless.
     if not (getattr(dt, "track_seen", False) or getattr(dt, "track_views", False)):
         return
 

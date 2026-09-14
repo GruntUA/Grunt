@@ -162,7 +162,6 @@ async def get_document_stats() -> dict[str, int]:
     """
     import time
 
-    from grunt.activity import FEED_HIDDEN_DOCTYPES
     from grunt.metadata.registry import doctype_registry
     from grunt.site.manager import site_manager
 
@@ -184,7 +183,7 @@ async def get_document_stats() -> dict[str, int]:
     for dt in await doctype_registry.list_all():
         if dt.is_child or dt.is_virtual or dt.is_singleton:
             continue
-        if dt.name in FEED_HIDDEN_DOCTYPES:
+        if not dt.track_activity or dt.hide_from_activity_feed:
             continue
         try:
             total += await grunt.count(dt.name, respect_permissions=True)

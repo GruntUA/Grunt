@@ -2,6 +2,7 @@
   "name": "Role",
   "label": "Role",
   "module": "auth",
+  "hide_from_activity_feed": true,
   "autoname": "field:role_name",
   "title_field": "role_name",
   "fields": [

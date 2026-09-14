@@ -2,6 +2,7 @@
   "name": "DocTypeStatusIndicator",
   "label": "Status indicator",
   "module": "metadata",
+  "hide_from_activity_feed": true,
   "is_child": true,
   "fields": [
     {

@@ -221,6 +221,10 @@ class DocType(BaseModel):
     track_seen: bool = False  # record which users have opened each document (_seen column)
     track_views: bool = False  # log every document open to ViewLog (throttled 1/user/doc/hour)
     track_deletions: bool = True  # False → skip the restorable DeletedDocument snapshot on delete
+    track_activity: bool = True  # False → never write ActivityLog rows (high-churn system doctypes)
+    # True → excluded from the GLOBAL feed only, still shown in this doctype's own
+    # document timelines (for admin/config records: roles, print formats, etc.)
+    hide_from_activity_feed: bool = False
     quick_entry: bool = False  # True → "Create" opens a dialog instead of full form
 
     # Lifecycle markers (UI-only; no behavioural effect)

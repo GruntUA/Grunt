@@ -2,6 +2,7 @@
   "name": "UserRole",
   "label": "User role",
   "module": "auth",
+  "hide_from_activity_feed": true,
   "is_child": true,
   "fields": [
     {

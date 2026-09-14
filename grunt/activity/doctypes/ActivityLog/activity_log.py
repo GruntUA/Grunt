@@ -76,7 +76,7 @@ async def list_activity(
     by config/session/log churn. A per-document timeline (``doc_id`` set) is
     never filtered — it must stay complete.
     """
-    from grunt.activity import FEED_HIDDEN_DOCTYPES
+    from grunt.activity import feed_hidden_doctypes
 
     filters: dict[str, Any] = {}
     if doctype:
@@ -93,8 +93,10 @@ async def list_activity(
         filters["created_at__lte"] = date_to
 
     # Hide infrastructural doctypes from the global feed only.
-    if not doctype and not doc_id and FEED_HIDDEN_DOCTYPES:
-        filters["doctype__nin"] = list(FEED_HIDDEN_DOCTYPES)
+    if not doctype and not doc_id:
+        hidden = await feed_hidden_doctypes()
+        if hidden:
+            filters["doctype__nin"] = hidden
 
     page = int(page)
     per_page = int(per_page)

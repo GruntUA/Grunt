@@ -2,6 +2,8 @@
   "name": "EmailQueue",
   "label": "Черга листів",
   "module": "email",
+  "track_activity": false,
+  "track_deletions": false,
   "fields": [
     {
       "fieldname": "sender",

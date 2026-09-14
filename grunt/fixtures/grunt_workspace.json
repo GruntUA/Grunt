@@ -309,15 +309,6 @@
     {
       "section": "Моніторинг",
       "type": "DocType",
-      "label": "Фонові завдання",
-      "icon": "clock",
-      "link_to": "BackgroundTaskLog",
-      "show_count": true,
-      "sequence": 71
-    },
-    {
-      "section": "Моніторинг",
-      "type": "DocType",
       "label": "Заплановані завдання",
       "icon": "calendar",
       "link_to": "ScheduledJob",

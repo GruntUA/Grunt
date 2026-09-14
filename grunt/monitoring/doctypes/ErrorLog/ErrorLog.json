@@ -4,12 +4,17 @@
   "module": "monitoring",
   "icon": "bug",
   "is_log": true,
+  "track_activity": false,
   "track_changes": false,
   "track_seen": true,
   "autoname": "hash",
   "title_field": "title",
   "default_view": "list",
-  "search_fields": ["error_type", "method", "user"],
+  "search_fields": [
+    "error_type",
+    "method",
+    "user"
+  ],
   "description": "Необроблені помилки фреймворку та додатків — HTTP-запити, фонові завдання, контролери. Старі записи автоматично видаляються (див. Налаштування системи → Обслуговування).",
   "fields": [
     {

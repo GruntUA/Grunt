@@ -2,6 +2,7 @@
   "name": "SystemSettings",
   "label": "System settings",
   "module": "site",
+  "hide_from_activity_feed": true,
   "is_singleton": true,
   "icon": "Settings2",
   "fields": [

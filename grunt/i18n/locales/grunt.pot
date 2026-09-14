@@ -57,7 +57,7 @@ msgstr ""
 msgid "Add"
 msgstr ""
 
-#: grunt/frontend/src/components/views/FilterBar.vue:247
+#: grunt/frontend/src/components/views/FilterBar.vue:262
 msgid "Add a Filter"
 msgstr ""
 
@@ -81,7 +81,7 @@ msgstr ""
 msgid "Apply"
 msgstr ""
 
-#: grunt/frontend/src/components/views/FilterBar.vue:295
+#: grunt/frontend/src/components/views/FilterBar.vue:310
 msgid "Apply Filters"
 msgstr ""
 
@@ -200,8 +200,8 @@ msgstr ""
 msgid "Clear"
 msgstr ""
 
-#: grunt/frontend/src/components/views/FilterBar.vue:185
-#: grunt/frontend/src/components/views/FilterBar.vue:273
+#: grunt/frontend/src/components/views/FilterBar.vue:196
+#: grunt/frontend/src/components/views/FilterBar.vue:288
 msgid "Clear Filters"
 msgstr ""
 
@@ -447,7 +447,7 @@ msgstr ""
 msgid "Failed to load preview"
 msgstr ""
 
-#: grunt/frontend/src/components/views/FilterBar.vue:197
+#: grunt/frontend/src/components/views/FilterBar.vue:212
 #: grunt/frontend/src/components/dashboard/WidgetConfigPanel.vue:605
 msgid "Field"
 msgstr ""
@@ -468,7 +468,7 @@ msgstr ""
 msgid "Fill in the current row first"
 msgstr ""
 
-#: grunt/frontend/src/components/views/FilterBar.vue:180
+#: grunt/frontend/src/components/views/FilterBar.vue:191
 msgid "Filter"
 msgstr ""
 
@@ -765,7 +765,7 @@ msgstr ""
 msgid "No data"
 msgstr ""
 
-#: grunt/frontend/src/components/views/FilterBar.vue:236
+#: grunt/frontend/src/components/views/FilterBar.vue:251
 msgid "No fields available"
 msgstr ""
 
@@ -875,7 +875,7 @@ msgstr ""
 msgid "Point the camera at a barcode or QR code"
 msgstr ""
 
-#: grunt/frontend/src/components/views/FilterBar.vue:280
+#: grunt/frontend/src/components/views/FilterBar.vue:295
 msgid "Preset name"
 msgstr ""
 
@@ -1020,7 +1020,7 @@ msgstr ""
 msgid "Save and open"
 msgstr ""
 
-#: grunt/frontend/src/components/views/FilterBar.vue:289
+#: grunt/frontend/src/components/views/FilterBar.vue:304
 msgid "Save as preset"
 msgstr ""
 
@@ -1032,7 +1032,7 @@ msgstr ""
 msgid "Saved"
 msgstr ""
 
-#: grunt/frontend/src/components/views/FilterBar.vue:253
+#: grunt/frontend/src/components/views/FilterBar.vue:268
 msgid "Saved filters"
 msgstr ""
 
@@ -2685,51 +2685,6 @@ msgstr ""
 #: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
 msgctxt "meta:AssignmentRule.section_meta"
 msgid "Metadata"
-msgstr ""
-
-#: grunt/grunt/tasks/doctypes/BackgroundTaskLog/BackgroundTaskLog.json
-msgctxt "meta:BackgroundTaskLog"
-msgid "Лог фонових завдань"
-msgstr ""
-
-#: grunt/grunt/tasks/doctypes/BackgroundTaskLog/BackgroundTaskLog.json
-msgctxt "meta:BackgroundTaskLog.arguments"
-msgid "Аргументи"
-msgstr ""
-
-#: grunt/grunt/tasks/doctypes/BackgroundTaskLog/BackgroundTaskLog.json
-msgctxt "meta:BackgroundTaskLog.error_message"
-msgid "Помилка"
-msgstr ""
-
-#: grunt/grunt/tasks/doctypes/BackgroundTaskLog/BackgroundTaskLog.json
-msgctxt "meta:BackgroundTaskLog.finished_at"
-msgid "Завершення"
-msgstr ""
-
-#: grunt/grunt/tasks/doctypes/BackgroundTaskLog/BackgroundTaskLog.json
-msgctxt "meta:BackgroundTaskLog.next_attempt_at"
-msgid "Наступна спроба"
-msgstr ""
-
-#: grunt/grunt/tasks/doctypes/BackgroundTaskLog/BackgroundTaskLog.json
-msgctxt "meta:BackgroundTaskLog.retry_count"
-msgid "Спроб виконано"
-msgstr ""
-
-#: grunt/grunt/tasks/doctypes/BackgroundTaskLog/BackgroundTaskLog.json
-msgctxt "meta:BackgroundTaskLog.started_at"
-msgid "Початок"
-msgstr ""
-
-#: grunt/grunt/tasks/doctypes/BackgroundTaskLog/BackgroundTaskLog.json
-msgctxt "meta:BackgroundTaskLog.status"
-msgid "Статус"
-msgstr ""
-
-#: grunt/grunt/tasks/doctypes/BackgroundTaskLog/BackgroundTaskLog.json
-msgctxt "meta:BackgroundTaskLog.task_name"
-msgid "Завдання"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/Bookmark/Bookmark.json
@@ -5867,11 +5822,6 @@ msgid "Active"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.json
-msgctxt "meta:User.is_superadmin"
-msgid "Superadmin"
-msgstr ""
-
-#: grunt/grunt/auth/doctypes/User/User.json
 msgctxt "meta:User.language"
 msgid "Language"
 msgstr ""
@@ -6733,26 +6683,6 @@ msgstr ""
 
 #: grunt/grunt/assignment/doctypes/AssignmentLog/AssignmentLog.json
 msgctxt "select:AssignmentLog.status"
-msgid "Success"
-msgstr ""
-
-#: grunt/grunt/tasks/doctypes/BackgroundTaskLog/BackgroundTaskLog.json
-msgctxt "select:BackgroundTaskLog.status"
-msgid "Error"
-msgstr ""
-
-#: grunt/grunt/tasks/doctypes/BackgroundTaskLog/BackgroundTaskLog.json
-msgctxt "select:BackgroundTaskLog.status"
-msgid "Retrying"
-msgstr ""
-
-#: grunt/grunt/tasks/doctypes/BackgroundTaskLog/BackgroundTaskLog.json
-msgctxt "select:BackgroundTaskLog.status"
-msgid "Started"
-msgstr ""
-
-#: grunt/grunt/tasks/doctypes/BackgroundTaskLog/BackgroundTaskLog.json
-msgctxt "select:BackgroundTaskLog.status"
 msgid "Success"
 msgstr ""
 

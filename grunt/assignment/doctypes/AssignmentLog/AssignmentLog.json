@@ -3,6 +3,8 @@
   "label": "Assignment Log",
   "doctype": "DocType",
   "module": "assignment",
+  "track_activity": false,
+  "track_deletions": false,
   "log_changes": false,
   "fields": [
     {

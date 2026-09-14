@@ -5,6 +5,7 @@
   "is_log": true,
   "track_changes": false,
   "table_name": "grunt_log_view",
+  "track_activity": false,
   "fields": [
     {
       "fieldname": "doctype",

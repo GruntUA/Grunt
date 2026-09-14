@@ -3,6 +3,7 @@
   "label": "Формат друку",
   "module": "print",
   "table_name": "grunt_print_format",
+  "hide_from_activity_feed": true,
   "fields": [
     {
       "fieldname": "doctype",

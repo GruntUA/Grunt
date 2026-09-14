@@ -2,6 +2,7 @@
   "name": "Dashboard",
   "label": "Дашборд",
   "module": "reports",
+  "hide_from_activity_feed": true,
   "is_child": false,
   "autoname": "prompt",
   "title_field": "label",

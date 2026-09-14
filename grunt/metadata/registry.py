@@ -50,6 +50,8 @@ _CORE_SYNCED_DOCTYPE_ATTRS = frozenset(
         "is_submittable",
         "track_seen",
         "track_views",
+        "track_activity",
+        "hide_from_activity_feed",
         "quick_entry",
         "beta",
         "deprecated",

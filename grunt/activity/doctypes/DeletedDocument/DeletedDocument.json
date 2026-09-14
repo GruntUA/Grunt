@@ -8,7 +8,12 @@
   "autoname": "hash",
   "title_field": "title",
   "table_name": "grunt_log_deleted_document",
-  "search_fields": ["deleted_doctype", "deleted_name", "title"],
+  "track_activity": false,
+  "search_fields": [
+    "deleted_doctype",
+    "deleted_name",
+    "title"
+  ],
   "fields": [
     {
       "fieldname": "deleted_doctype",

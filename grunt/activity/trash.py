@@ -18,30 +18,6 @@ from typing import Any
 from grunt.app import grunt
 from grunt.log import log
 
-# Ніколи не знімкуємо: системний шум, самі себе, та інші журнали. Відновлювати
-# їх немає сенсу, а обсяг — величезний.
-SKIP_DOCTYPES = frozenset(
-    {
-        "DeletedDocument",
-        "ActivityLog",
-        "ViewLog",
-        "BackgroundTaskLog",
-        "ErrorLog",
-        "UserSession",
-        "Notification",
-        "PushSubscription",
-        "EmailQueue",
-        "ScheduledJobLog",
-        "WebhookLog",
-        "IncomingWebhookLog",
-        "AssignmentLog",
-        "SqlProfilerQuery",
-        "SqlProfilerRequest",
-        "SqlProfilerSpan",
-        "DocVersion",
-    }
-)
-
 
 def _title_of(dt: Any, doc: dict[str, Any]) -> str:
     """Best-effort human-readable label for the snapshot.
@@ -70,7 +46,7 @@ async def snapshot_deleted_document(event: str, **kwargs: Any) -> None:
 
     doctype = kwargs.get("doctype")
     doc = kwargs.get("doc")
-    if not doctype or not isinstance(doc, dict) or doctype in SKIP_DOCTYPES:
+    if not doctype or not isinstance(doc, dict):
         return
     if not doc.get("name"):
         return

@@ -36,10 +36,10 @@
           "widget_type": "metric",
           "title": "Помилки фонових задач",
           "description": "За останні 7 днів",
-          "doctype": "BackgroundTaskLog",
+          "doctype": "ErrorLog",
           "aggregation": "count",
-          "filters": { "status": "Error" },
-          "date_field": "started_at",
+          "filters": { "context": "Background Task" },
+          "date_field": "created_at",
           "period": "7d",
           "cols": 1,
           "color": "red",
@@ -79,9 +79,9 @@
         },
         {
           "widget_type": "donut",
-          "title": "Фонові задачі за статусом",
-          "doctype": "BackgroundTaskLog",
-          "group_by": "status",
+          "title": "Помилки за джерелом",
+          "doctype": "ErrorLog",
+          "group_by": "context",
           "cols": 1,
           "color": "cyan",
           "sequence": 70
@@ -121,7 +121,7 @@
           "cols": 4,
           "color": "primary",
           "sequence": 110,
-          "content": "[{\"title\":\"DocTypes\",\"icon\":\"Package\",\"link_type\":\"DocType\",\"link_to\":\"DocType\",\"color\":\"violet\"},{\"title\":\"Користувачі\",\"icon\":\"Users\",\"link_type\":\"DocType\",\"link_to\":\"User\",\"color\":\"blue\"},{\"title\":\"Ролі\",\"icon\":\"Shield\",\"link_type\":\"DocType\",\"link_to\":\"Role\",\"color\":\"primary\"},{\"title\":\"Системні налаштування\",\"icon\":\"Settings\",\"link_type\":\"DocType\",\"link_to\":\"SystemSettings\",\"color\":\"cyan\"},{\"title\":\"Фонові задачі\",\"icon\":\"Clock\",\"link_type\":\"DocType\",\"link_to\":\"BackgroundTaskLog\",\"color\":\"red\"},{\"title\":\"Лог активності\",\"icon\":\"ClipboardList\",\"link_type\":\"DocType\",\"link_to\":\"ActivityLog\",\"color\":\"blue\"},{\"title\":\"Заплановані завдання\",\"icon\":\"Calendar\",\"link_type\":\"DocType\",\"link_to\":\"ScheduledJob\",\"color\":\"violet\"}]"
+          "content": "[{\"title\":\"DocTypes\",\"icon\":\"Package\",\"link_type\":\"DocType\",\"link_to\":\"DocType\",\"color\":\"violet\"},{\"title\":\"Користувачі\",\"icon\":\"Users\",\"link_type\":\"DocType\",\"link_to\":\"User\",\"color\":\"blue\"},{\"title\":\"Ролі\",\"icon\":\"Shield\",\"link_type\":\"DocType\",\"link_to\":\"Role\",\"color\":\"primary\"},{\"title\":\"Системні налаштування\",\"icon\":\"Settings\",\"link_type\":\"DocType\",\"link_to\":\"SystemSettings\",\"color\":\"cyan\"},{\"title\":\"Лог помилок\",\"icon\":\"TriangleAlert\",\"link_type\":\"DocType\",\"link_to\":\"ErrorLog\",\"color\":\"red\"},{\"title\":\"Лог активності\",\"icon\":\"ClipboardList\",\"link_type\":\"DocType\",\"link_to\":\"ActivityLog\",\"color\":\"blue\"},{\"title\":\"Заплановані завдання\",\"icon\":\"Calendar\",\"link_type\":\"DocType\",\"link_to\":\"ScheduledJob\",\"color\":\"violet\"}]"
         }
       ]
     }

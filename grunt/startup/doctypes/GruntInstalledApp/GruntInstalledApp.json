@@ -3,6 +3,7 @@
   "label": "Магазин додатків",
   "module": "startup",
   "table_name": "grunt_meta_installed_app",
+  "hide_from_activity_feed": true,
   "fields": [
     {
       "fieldname": "title",

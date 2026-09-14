@@ -1,4 +1,4 @@
-"""Retention-based cleanup for is_log DocTypes (BackgroundTaskLog, ActivityLog, etc.).
+"""Retention-based cleanup for is_log DocTypes (ErrorLog, ActivityLog, etc.).
 
 Every DocType flagged ``is_log: true`` accumulates rows forever unless
 something purges old ones. Retention is

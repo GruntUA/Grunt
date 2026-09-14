@@ -3,6 +3,7 @@
   "label": "Тег документа",
   "module": "document",
   "track_changes": false,
+  "hide_from_activity_feed": true,
   "fields": [
     {
       "fieldname": "reference_doctype",

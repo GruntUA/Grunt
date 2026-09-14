@@ -3,6 +3,7 @@
   "label": "Web form",
   "module": "site",
   "table_name": "grunt_web_form",
+  "hide_from_activity_feed": true,
   "fields": [
     {
       "fieldname": "title",

@@ -121,7 +121,7 @@ async def test_grunt_log_error_is_exported():
 
 @pytest.mark.asyncio
 async def test_record_view_marks_error_log_seen(ctx):
-    """ErrorLog is in activity._SKIP_DOCTYPES, but track_seen must still win."""
+    """ErrorLog has track_activity=False, but track_seen must still win."""
     from grunt.activity import record_view
     from grunt.monitoring.error_log import record_error
 

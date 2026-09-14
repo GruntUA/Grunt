@@ -146,13 +146,6 @@ _ASSIGNMENT_EVENTS = frozenset({"after_save", "after_insert"})
 
 _NOTIFICATION_EVENTS = frozenset({"after_insert", "after_save", "after_update", "on_transition"})
 
-# DocTypes whose writes never warrant notification-rule evaluation: append-only
-# logs, plus ``Notification`` itself (the fan-out table — evaluating rules on a
-# Notification write would recursively enqueue more work).
-_NOTIFICATION_EXCLUDED_DOCTYPES = frozenset(
-    {"BackgroundTaskLog", "ErrorLog", "ActivityLog", "ViewLog", "Notification"}
-)
-
 
 def _user_email(kwargs: dict) -> str:
     user_obj = kwargs.get("user")
@@ -197,12 +190,21 @@ async def _evaluate_notification_rules(**kwargs: Any) -> None:
     """Offload notification-rule evaluation to a background worker."""
     doctype = kwargs.get("doctype")
     event = kwargs["event"]
-    if (
-        not doctype
-        or doctype in _NOTIFICATION_EXCLUDED_DOCTYPES
-        or not kwargs.get("doc")
-        or not kwargs.get("session")
-    ):
+    if not doctype or not kwargs.get("doc") or not kwargs.get("session"):
+        return
+    # ``Notification`` is the fan-out sink itself — evaluating rules on its own
+    # writes would recursively enqueue more work. Append-only system logs
+    # (``DocType.is_log``) never warrant notification rules either.
+    if doctype == "Notification":
+        return
+
+    from grunt.metadata.registry import doctype_registry
+
+    try:
+        dt = await doctype_registry.get(doctype)
+    except Exception:
+        dt = None
+    if dt is not None and getattr(dt, "is_log", False):
         return
 
     from grunt.notification import rule_index

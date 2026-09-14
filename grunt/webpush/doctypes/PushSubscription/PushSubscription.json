@@ -3,6 +3,8 @@
   "label": "Push-підписка",
   "module": "webpush",
   "table_name": "grunt_push_subscription",
+  "track_activity": false,
+  "track_deletions": false,
   "fields": [
     {
       "fieldname": "user",

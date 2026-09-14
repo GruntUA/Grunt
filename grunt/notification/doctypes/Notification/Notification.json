@@ -4,6 +4,8 @@
   "module": "notification",
   "track_changes": false,
   "table_name": "grunt_notification",
+  "track_activity": false,
+  "track_deletions": false,
   "fields": [
     {
       "fieldname": "user",

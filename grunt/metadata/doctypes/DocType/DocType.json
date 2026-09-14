@@ -5,6 +5,7 @@
   "is_virtual": false,
   "is_child": false,
   "track_changes": false,
+  "hide_from_activity_feed": true,
   "autoname": "prompt",
   "title_field": "label",
   "search_fields": [
@@ -203,6 +204,19 @@
       "fieldtype": "Check",
       "default": 1,
       "description": "Keep a JSON snapshot of the document in DeletedDocument on delete, for later restore"
+    },
+    {
+      "fieldname": "track_activity",
+      "label": "Activity log",
+      "fieldtype": "Check",
+      "default": 1,
+      "description": "Write an ActivityLog entry on create/update/delete. Turn off for high-frequency system churn (sessions, queues, logs) — never for ordinary business records"
+    },
+    {
+      "fieldname": "hide_from_activity_feed",
+      "label": "Hide from global feed",
+      "fieldtype": "Check",
+      "description": "Keep entries out of the site-wide activity feed only — they still appear in each document's own timeline. For admin/config records (roles, print formats, workspace layout, …)"
     },
     {
       "fieldname": "sec_ux",
