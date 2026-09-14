@@ -9,15 +9,22 @@ import AppCard from '@/components/desk/AppCard.vue'
 import ActivityStream from '@/components/dashboard/ActivityStream.vue'
 import MyWorkPanel from '@/components/dashboard/MyWorkPanel.vue'
 import { readRecent, looksLikeId, type RecentDoc } from '@/core/recentDocs'
-import { useSiteConfig } from '@/core/composables/useSiteConfig'
-import { Clock, Search, Zap, LayoutGrid, ArrowRight, Eye } from '@lucide/vue'
+import {
+  Search,
+  LayoutGrid,
+  Eye,
+  Sunrise,
+  Sun,
+  Sunset,
+  Moon,
+  PackageOpen,
+} from '@lucide/vue'
 
 const auth = useAuthStore()
 async function exitImpersonation() {
   await auth.stopImpersonation()
   window.location.href = '/'
 }
-const { appName } = useSiteConfig()
 const appStore = useAppStore()
 const uiStore = useUIStore()
 const router = useRouter()
@@ -32,10 +39,10 @@ const greeting = computed(() => {
   // backend) — the first name is the second word, not the first.
   const parts = auth.user?.full_name?.split(' ') ?? []
   const name = parts[1] ?? parts[0] ?? 'користувач'
-  if (hour < 5) return { text: `Добраніч, ${name}`, emoji: '🌙' }
-  if (hour < 12) return { text: `Доброго ранку, ${name}`, emoji: '☀️' }
-  if (hour < 18) return { text: `Доброго дня, ${name}`, emoji: '🌤️' }
-  return { text: `Доброго вечора, ${name}`, emoji: '🌆' }
+  if (hour < 5) return { text: `Добраніч, ${name}`, icon: Moon }
+  if (hour < 12) return { text: `Доброго ранку, ${name}`, icon: Sunrise }
+  if (hour < 18) return { text: `Доброго дня, ${name}`, icon: Sun }
+  return { text: `Доброго вечора, ${name}`, icon: Sunset }
 })
 
 // Honest, deduplicated business-document total (excludes logs/sessions/config).
@@ -49,12 +56,6 @@ const totalDocsCount = computed(() => {
   }
   return total
 })
-
-const quickStats = computed(() => [
-  { label: 'Додатків', value: appStore.workspaces.length, color: '#6366f1' },
-  { label: 'Документів', value: totalDocsCount.value, color: '#10b981' },
-  { label: 'Нещодавніх', value: recentDocs.value.length, color: '#f59e0b' },
-])
 
 onMounted(async () => {
   await appStore.loadAll()
@@ -111,178 +112,114 @@ function docInitials(doc: RecentDoc): string {
 </script>
 
 <template>
-  <div class="overflow-y-auto bg-background h-screen">
+  <div class="h-screen overflow-y-auto bg-background">
+    <main class="mx-auto max-w-6xl px-6 py-10 md:py-14">
 
-    <!-- Ambient background blobs -->
-    <div class="fixed inset-0 pointer-events-none overflow-hidden -z-10">
-      <div class="absolute -top-40 -right-40 w-96 h-96 bg-primary/5 rounded-full blur-[120px]" />
-      <div class="absolute top-1/2 -left-40 w-80 h-80 bg-violet-500/5 rounded-full blur-[100px]" />
-      <div class="absolute bottom-0 right-1/3 w-72 h-72 bg-emerald-500/5 rounded-full blur-[80px]" />
-    </div>
+      <!-- ── HERO: greeting + search ──────────────────────────────── -->
+      <section class="mx-auto max-w-xl space-y-5 pb-10 text-center">
+        <div class="flex flex-col items-center gap-2">
+          <div class="flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+            <component :is="greeting.icon" class="size-5" />
+          </div>
+          <h1 class="text-2xl font-semibold tracking-tight text-foreground">{{ greeting.text }}</h1>
+          <p class="text-muted-foreground">Що плануєте зробити сьогодні?</p>
+        </div>
 
-      <main class="max-w-6xl mx-auto px-6 py-8 md:py-12 space-y-10">
+        <div v-if="auth.isImpersonating"
+          class="flex items-center justify-center gap-2 rounded-lg border border-warning/30 bg-warning/10 px-3 py-2 text-warning">
+          <Eye class="size-3.5 shrink-0" />
+          <span>Перегляд як {{ auth.user?.full_name }} —
+            <button type="button" class="font-semibold underline underline-offset-2" @click="exitImpersonation">
+              повернутися до себе
+            </button>
+          </span>
+        </div>
 
-        <!-- ── HERO SECTION ─────────────────────────────────────────── -->
-        <section>
-          <div class="flex items-start gap-4 mb-8">
+        <button type="button"
+          class="flex w-full items-center gap-3 rounded-lg border bg-card px-4 py-3 text-left shadow-xs transition-colors hover:border-primary/40"
+          @click="uiStore.openCommandPalette">
+          <Search class="size-4 shrink-0 text-muted-foreground" />
+          <span class="flex-1 text-muted-foreground">
+            Шукайте документи, додатки або дії...
+          </span>
+          <div class="hidden shrink-0 items-center gap-1 sm:flex">
+            <kbd class="rounded border bg-muted px-1.5 py-0.5 font-mono text-xs text-muted-foreground">⌘</kbd>
+            <kbd class="rounded border bg-muted px-1.5 py-0.5 font-mono text-xs text-muted-foreground">K</kbd>
+          </div>
+        </button>
 
-            <div class="flex-1">
-              <!-- Greeting -->
-              <div class="flex items-center gap-3 mb-1">
-                <span class="text-4xl">{{ greeting.emoji }}</span>
-                <h1 class="text-3xl md:text-4xl font-semibold text-foreground tracking-tight leading-none">
-                  {{ greeting.text }}
-                </h1>
+        <p class="text-muted-foreground">
+          {{ appStore.workspaces.length }} додатків · {{ totalDocsCount.toLocaleString('uk-UA') }} документів у системі
+        </p>
+      </section>
+
+      <!-- ── CONTINUE: recent documents strip ─────────────────────── -->
+      <section v-if="recentDocs.length" class="space-y-3 pb-10">
+        <h2 class="font-medium text-foreground">Продовжити</h2>
+        <div class="-mx-1 flex gap-3 overflow-x-auto px-1 pb-1">
+          <button v-for="doc in recentDocs.slice(0, 10)" :key="doc.id"
+            class="group flex w-56 shrink-0 flex-col gap-2.5 rounded-lg border bg-card p-3 text-left transition-colors hover:border-primary/40"
+            @click="router.push(`/${doc.workspace}/${doc.doctype}/${doc.id}`)">
+            <div class="flex items-center justify-between">
+              <div class="flex size-8 shrink-0 items-center justify-center rounded-md font-semibold"
+                :style="{
+                  backgroundColor: `color-mix(in srgb, ${findWorkspaceForDoc(doc)?.color ?? 'var(--primary)'} 15%, transparent)`,
+                  color: findWorkspaceForDoc(doc)?.color ?? 'var(--primary)'
+                }">
+                {{ docInitials(doc) }}
               </div>
-              <p class="text-muted-foreground/70 ml-[3.5rem] font-medium">
-                Що плануєте зробити сьогодні?
+              <span class="font-mono text-muted-foreground/70">{{ timeAgo(doc.ts) }}</span>
+            </div>
+            <div class="min-w-0">
+              <p class="truncate font-semibold text-foreground transition-colors group-hover:text-primary">
+                {{ docDisplayTitle(doc) }}
               </p>
-              <button v-if="auth.isImpersonating"
-                class="mt-3 ml-[3.5rem] inline-flex items-center gap-2 rounded-md border border-violet-500/40 bg-violet-500/10 px-3 py-1.5 font-medium text-violet-700 transition-colors hover:bg-violet-500/20 dark:text-violet-300"
-                @click="exitImpersonation">
-                <Eye class="size-3.5 shrink-0" />
-                <span>Перегляд як {{ auth.user?.full_name }} — <span class="font-semibold underline">повернутися до себе</span></span>
-              </button>
+              <p class="truncate font-mono text-muted-foreground/70">{{ doc.doctype }}</p>
             </div>
-          </div>
+          </button>
+        </div>
+      </section>
 
-          <!-- Search bar -->
-          <div class="relative group cursor-pointer" @click="uiStore.openCommandPalette">
-            <div
-              class="relative flex items-center gap-4 px-5 py-4 bg-card/80 border border-border/50 rounded-lg shadow-sm transition-colors duration-300 group-hover:border-primary/40 group-hover:shadow-md">
-              <div
-                class="size-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 transition-colors group-hover:bg-primary/20">
-                <Search class="size-4 text-primary/70 group-hover:text-primary transition-colors" />
-              </div>
-              <span class="text-muted-foreground/50 flex-1 font-medium">
-                Шукайте документи, додатки або дії...
-              </span>
-              <div class="hidden sm:flex items-center gap-1 shrink-0">
-                <kbd
-                  class="px-2 py-1 rounded-lg bg-muted/60 font-semibold text-muted-foreground border border-border/40 shadow-sm">⌘</kbd>
-                <kbd
-                  class="px-2 py-1 rounded-lg bg-muted/60 font-semibold text-muted-foreground border border-border/40 shadow-sm">K</kbd>
-              </div>
-            </div>
-          </div>
+      <!-- ── MAIN: apps launcher + attention sidebar ──────────────── -->
+      <div class="grid grid-cols-1 items-start gap-8 pb-12 lg:grid-cols-[1fr_340px]">
 
-          <!-- Quick stats -->
-          <div class="mt-5 flex items-center gap-3 flex-wrap">
-            <div v-for="stat in quickStats" :key="stat.label"
-              class="flex items-center gap-2 px-4 py-2 rounded-lg bg-card/50 border border-border/30">
-              <div class="size-2 rounded-full" :style="{ backgroundColor: stat.color }" />
-              <span class="text-muted-foreground/60 font-medium">{{ stat.label }}:</span>
-              <span class="font-semibold text-foreground tabular-nums">{{ stat.value }}</span>
-            </div>
-            <div class="flex items-center gap-1.5 text-muted-foreground/40">
-              <Zap class="size-3" />
-              <span>{{ appName }}</span>
-            </div>
-          </div>
-        </section>
-
-        <!-- ── MY WORK (personal) ───────────────────────────────────── -->
-        <MyWorkPanel />
-
-        <!-- ── WORKSPACE CARDS ──────────────────────────────────────── -->
-        <section>
-          <div class="flex items-center justify-between mb-5">
+        <!-- Apps -->
+        <section class="space-y-4">
+          <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
-              <div class="size-7 rounded-lg bg-primary/10 flex items-center justify-center">
-                <LayoutGrid class="size-3.5 text-primary/70" />
-              </div>
-              <h2 class="font-semibold text-foreground/70 uppercase tracking-widest">Ваші додатки</h2>
+              <LayoutGrid class="size-3.5 text-muted-foreground" />
+              <h2 class="font-semibold text-foreground">Ваші додатки</h2>
             </div>
-            <span class="text-muted-foreground/40 font-medium">{{ appStore.workspaces.length }}
-              встановлено</span>
+            <span class="text-muted-foreground">{{ appStore.workspaces.length }} встановлено</span>
           </div>
 
           <!-- Loading skeleton -->
-          <div v-if="appStore.loading" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-            <div v-for="i in 4" :key="i" class="h-16 rounded-lg bg-card/50 border border-border/30 animate-pulse" />
+          <div v-if="appStore.loading" class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            <div v-for="i in 4" :key="i" class="h-16 animate-pulse rounded-lg border bg-card" />
           </div>
 
           <!-- Empty state -->
           <div v-else-if="appStore.workspaces.length === 0 && !auth.user?.is_superadmin"
-            class="flex flex-col items-center justify-center py-20 rounded-lg border border-dashed border-border/40 text-center space-y-3">
-            <div class="size-16 rounded-lg bg-muted/20 flex items-center justify-center text-3xl">📦</div>
+            class="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed py-20 text-center">
+            <PackageOpen class="size-8 text-muted-foreground/50" />
             <p class="text-muted-foreground">Немає встановлених додатків</p>
           </div>
 
           <!-- Cards grid -->
-          <div v-else class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+          <div v-else class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
             <AppCard v-for="ws in appStore.workspaces" :key="ws.name" :workspace="ws" :counts="allCounts[ws.name]" />
           </div>
         </section>
 
-        <!-- ── BOTTOM GRID: Recent + Activity ──────────────────────── -->
-        <div class="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start pb-12">
-
-          <!-- Recent documents -->
-          <section class="lg:col-span-3">
-            <div class="flex items-center justify-between mb-4">
-              <div class="flex items-center gap-2">
-                <div class="size-7 rounded-lg bg-amber-500/10 flex items-center justify-center">
-                  <Clock class="size-3.5 text-amber-500/70" />
-                </div>
-                <h2 class="font-semibold text-foreground/70 uppercase tracking-widest">Нещодавні</h2>
-              </div>
-            </div>
-
-            <!-- Empty state -->
-            <div v-if="recentDocs.length === 0"
-              class="flex flex-col items-center justify-center py-14 rounded-lg border border-dashed border-border/40 text-center space-y-2">
-              <div class="size-12 rounded-lg bg-muted/20 flex items-center justify-center text-2xl">🕐</div>
-              <p class="text-muted-foreground">Відкритих документів ще немає</p>
-              <p class="text-muted-foreground/50">Перейдіть до будь-якого запису, і він з'явиться тут</p>
-            </div>
-
-            <div v-else class="rounded-lg border border-border/40 bg-card/60 overflow-hidden shadow-sm">
-              <div v-for="doc in recentDocs.slice(0, 8)" :key="doc.id"
-                class="group flex items-center gap-3 px-4 py-3 border-b border-border/20 last:border-0 hover:bg-primary/[0.03] cursor-pointer transition-all duration-200"
-                @click="router.push(`/${doc.workspace}/${doc.doctype}/${doc.id}`)">
-                <!-- Avatar -->
-                <div
-                  class="size-8 rounded-lg flex items-center justify-center font-semibold shrink-0"
-                  :style="{
-                    backgroundColor: `color-mix(in srgb, ${findWorkspaceForDoc(doc)?.color ?? '#6366f1'} 20%, transparent)`,
-                    color: findWorkspaceForDoc(doc)?.color ?? '#6366f1'
-                  }">
-                  {{ docInitials(doc) }}
-                </div>
-
-                <!-- Info -->
-                <div class="flex-1 min-w-0">
-                  <p
-                    class="font-semibold text-foreground truncate group-hover:text-primary transition-colors duration-200">
-                    {{ docDisplayTitle(doc) }}
-                  </p>
-                  <div class="flex items-center gap-1.5 mt-0.5">
-                    <span v-if="findWorkspaceForDoc(doc)"
-                      class="font-semibold uppercase tracking-widest px-1.5 py-0.5 rounded-md" :style="{
-                        backgroundColor: `color-mix(in srgb, ${findWorkspaceForDoc(doc)?.color ?? '#666'} 15%, transparent)`,
-                        color: findWorkspaceForDoc(doc)?.color ?? '#666'
-                      }">{{ findWorkspaceForDoc(doc)?.label }}</span>
-                    <span class="text-muted-foreground/40 font-mono">{{ doc.doctype }}</span>
-                  </div>
-                </div>
-
-                <!-- Time + arrow -->
-                <div class="flex items-center gap-2 shrink-0">
-                  <span class="text-muted-foreground/40 font-mono tabular-nums">{{ timeAgo(doc.ts) }}</span>
-                  <ArrowRight
-                    class="size-3.5 text-muted-foreground/20 group-hover:text-primary/50 transition-colors duration-200" />
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <!-- Activity stream -->
-          <section class="lg:col-span-2 h-[500px]">
+        <!-- Attention: my work + activity -->
+        <aside class="space-y-6 lg:sticky lg:top-14">
+          <MyWorkPanel />
+          <div class="h-[380px]">
             <ActivityStream />
-          </section>
-        </div>
+          </div>
+        </aside>
+      </div>
 
-  </main>
+    </main>
   </div>
 </template>

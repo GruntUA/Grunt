@@ -5,13 +5,16 @@ import api from '@/core/api/client'
 import { useWebSocket } from '@/core/composables/useWebSocket'
 import { useAuthStore } from '@/stores/auth'
 import { formatTime as fmtTime, formatDayMonth } from '@/core/datetime'
+import { Button } from '@/components/ui/button'
+import { Spinner } from '@/components/ui/spinner'
 import {
     FileText,
     Plus,
     RefreshCcw,
     Trash2,
     Clock,
-    ExternalLink
+    ExternalLink,
+    History
 } from '@lucide/vue'
 
 
@@ -61,12 +64,12 @@ function getActionIcon(action: string) {
     }
 }
 
-function getActionColor(action: string) {
+function getActionTone(action: string) {
     switch (action.toLowerCase()) {
-        case 'create': return 'text-emerald-500 bg-emerald-500/10'
-        case 'update': return 'text-amber-500 bg-amber-500/10'
-        case 'delete': return 'text-rose-500 bg-rose-500/10'
-        default: return 'text-blue-500 bg-blue-500/10'
+        case 'create': return 'bg-success/10 text-success'
+        case 'update': return 'bg-warning/10 text-warning'
+        case 'delete': return 'bg-destructive/10 text-destructive'
+        default: return 'bg-info/10 text-info'
     }
 }
 
@@ -89,56 +92,55 @@ watch(() => auth.isLoggedIn, (loggedIn) => {
 </script>
 
 <template>
-    <div class="flex flex-col h-full bg-card border rounded-lg overflow-hidden shadow-sm">
-        <div class="px-4 py-3 border-b flex items-center justify-between bg-muted/20">
+    <div class="flex h-full flex-col overflow-hidden rounded-lg border bg-card">
+        <div class="flex items-center justify-between border-b px-4 py-2.5">
             <div class="flex items-center gap-2">
-                <Clock class="size-4 text-muted-foreground" />
-                <h3 class="font-semibold">Стрічка активності</h3>
+                <Clock class="size-3.5 text-muted-foreground" />
+                <span class="font-semibold text-foreground">Стрічка активності</span>
             </div>
-            <button @click="fetchActivity" class="text-primary hover:underline font-medium">Оновити</button>
+            <Button variant="ghost" size="icon-sm" title="Оновити" @click="fetchActivity">
+                <RefreshCcw class="size-3.5" />
+            </Button>
         </div>
 
         <div class="flex-1 overflow-y-auto">
-            <div v-if="loading" class="flex flex-col items-center justify-center py-12 gap-3">
-                <div class="size-5 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
+            <div v-if="loading" class="flex flex-col items-center justify-center gap-3 py-12">
+                <Spinner class="size-5 text-muted-foreground" />
                 <span class="text-muted-foreground">Завантаження...</span>
             </div>
 
-            <div v-else-if="activities.length === 0" class="py-12 text-center">
+            <div v-else-if="activities.length === 0" class="flex flex-col items-center justify-center gap-2 py-12 text-center">
+                <History class="size-6 text-muted-foreground/50" />
                 <p class="text-muted-foreground">Немає недавньої активності</p>
             </div>
 
-            <div v-else class="divide-y divide-border/50">
-                <div v-for="item in activities" :key="item.id" class="p-4 hover:bg-muted/30 transition-colors group">
+            <div v-else>
+                <div v-for="item in activities" :key="item.id" class="group border-b px-4 py-3 transition-colors last:border-0 hover:bg-accent">
                     <div class="flex gap-3">
-                        <div class="mt-0.5 size-8 rounded-lg flex items-center justify-center shrink-0"
-                            :class="getActionColor(item.action)">
+                        <div class="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-md" :class="getActionTone(item.action)">
                             <component :is="getActionIcon(item.action)" class="size-4" />
                         </div>
 
-                        <div class="flex-1 min-w-0">
-                            <div class="flex items-center justify-between mb-1">
+                        <div class="min-w-0 flex-1">
+                            <div class="mb-1 flex items-center justify-between">
                                 <span class="font-semibold text-foreground">{{ item.user }}</span>
-                                <span class="text-muted-foreground tabular-nums">{{
-                                    formatTime(item.created_at) }}</span>
+                                <span class="tabular-nums text-muted-foreground">{{ formatTime(item.created_at) }}</span>
                             </div>
 
-                            <p class="text-muted-foreground leading-snug break-words mb-2">
+                            <p class="mb-2 break-words leading-snug text-muted-foreground">
                                 <span class="font-medium text-foreground">
                                     {{ item.action === 'create' ? 'Створив(ла)' : item.action === 'update' ?
                                         'Оновив(ла)' : item.action }}
                                 </span>
                                 документ
-                                <span class="font-semibold text-foreground/80 lowercase">{{ item.doctype }}</span>:
-                                <span class="text-primary font-medium">{{ item.title || item.doc_id }}</span>
+                                <span class="font-semibold lowercase text-foreground/80">{{ item.doctype }}</span>:
+                                <span class="font-medium text-primary">{{ item.title || item.doc_id }}</span>
                             </p>
 
                             <div class="flex items-center justify-between">
-                                <span
-                                    class="px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-mono uppercase">{{
-                                        formatDate(item.created_at) }}</span>
-                                <button @click="goToDoc(item)"
-                                    class="flex items-center gap-1 text-primary opacity-0 group-hover:opacity-100 transition-opacity font-semibold uppercase tracking-wider">
+                                <span class="rounded bg-muted px-1.5 py-0.5 font-mono uppercase text-muted-foreground">{{
+                                    formatDate(item.created_at) }}</span>
+                                <button type="button" class="flex items-center gap-1 font-semibold uppercase tracking-wider text-primary opacity-0 transition-opacity group-hover:opacity-100" @click="goToDoc(item)">
                                     Переглянути
                                     <ExternalLink class="size-3" />
                                 </button>
