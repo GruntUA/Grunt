@@ -51,7 +51,7 @@ export interface FormScriptMenuItemHandle {
 
 /** Handle returned by listview.add_button — allows in-place updates. */
 export interface ScriptButtonHandle {
-  update: (updates: { label?: string; severity?: string }) => void
+  update: (updates: { label?: string; variant?: string }) => void
 }
 
 /** Callback registered via frm.set_query — returns filters for a link field. */

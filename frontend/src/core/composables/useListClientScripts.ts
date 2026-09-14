@@ -73,8 +73,12 @@ export function useListClientScripts(params: UseListClientScriptsParams) {
         const btn: ScriptButton = { label, action, severity: options?.variant }
         const idx = listButtons.value.push(btn) - 1
         return {
-          update(updates) {
-            listButtons.value[idx] = { ...listButtons.value[idx], ...updates }
+          update({ variant, ...rest }) {
+            listButtons.value[idx] = {
+              ...listButtons.value[idx],
+              ...rest,
+              ...(variant !== undefined ? { severity: variant } : {}),
+            }
           },
         }
       },
