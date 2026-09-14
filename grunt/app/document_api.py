@@ -343,7 +343,13 @@ class DocumentAPI:
         )
 
         result = None
-        cache_eligible = settings.query_cache_enabled and self._is_read_only_doctype(dt)
+        # Virtual doctypes read from a controller-owned source (ring buffer, external
+        # API, ...) that can mutate outside create/update/delete — the only paths
+        # that invalidate this cache (_invalidate_list_cache). Caching them risks
+        # serving a stale snapshot forever, so they're never cache-eligible here.
+        cache_eligible = (
+            settings.query_cache_enabled and not dt.is_virtual and self._is_read_only_doctype(dt)
+        )
         cache = getattr(self, "query_cache", None)
         cache_key: str | None = None
 
