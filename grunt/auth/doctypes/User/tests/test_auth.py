@@ -11,6 +11,46 @@ if TYPE_CHECKING:
 
 
 @pytest.mark.asyncio
+async def test_deactivation_takes_effect_immediately_despite_auth_cache(
+    ctx, client: AsyncClient
+):
+    """A cached per-request auth lookup (grunt.doc_cache) must not let a
+    deactivated user keep using an already-issued access token."""
+    from grunt.auth.doctypes.User.user import create_user
+
+    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
+        user = await create_user(
+            "cache-invalidation@grunt.example.com", "Str0ngPass", "Cache", "Test", None
+        )
+        await ctx.db._session().commit()
+
+    login = await client.post(
+        "/api/v1/method/grunt.auth.doctypes.User.user.login_api",
+        json={"email": "cache-invalidation@grunt.example.com", "password": "Str0ngPass"},
+    )
+    assert login.status_code == 200
+    headers = {"Authorization": f"Bearer {login.json()['data']['access_token']}"}
+
+    # Warm the auth cache for this uid.
+    warm = await client.get(
+        "/api/v1/method/grunt.auth.doctypes.User.user.me_api", headers=headers
+    )
+    assert warm.status_code == 200
+
+    # Deactivate through the generic document API — the same path an admin's
+    # "deactivate user" action goes through, and the one doc_cache
+    # invalidation is hooked into (DocumentAPI._invalidate_list_cache).
+    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
+        await ctx.save_doc("User", user.id, {"is_active": False})
+        await ctx.db._session().commit()
+
+    blocked = await client.get(
+        "/api/v1/method/grunt.auth.doctypes.User.user.me_api", headers=headers
+    )
+    assert blocked.status_code == 401
+
+
+@pytest.mark.asyncio
 async def test_session_lifecycle(ctx, client: AsyncClient):
     """register → login → whoami → update_me, carrying name + language/timezone."""
     from grunt.auth.doctypes.User.user import create_user

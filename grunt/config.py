@@ -44,6 +44,13 @@ class Settings(BaseSettings):
     query_cache_enabled: bool = True
     query_cache_ttl_seconds: int = 30
 
+    # Per-document cache for hot get-by-id lookups (optional, Redis-backed
+    # when redis_url is configured) — see grunt/cache/document_cache.py. TTL
+    # is only a backstop; freshness is normally guaranteed by invalidation on
+    # every write to the cached document.
+    doc_cache_enabled: bool = True
+    doc_cache_ttl_seconds: int = 300
+
     # Auth
     access_token_expire_minutes: int = 60 * 24  # 24h
     algorithm: str = "HS256"

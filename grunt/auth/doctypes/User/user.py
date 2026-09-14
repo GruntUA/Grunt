@@ -58,6 +58,37 @@ _SILENT_RESET_USER_FIELDS: frozenset[str] = frozenset(
     }
 )
 
+# Columns needed to authorize and identify an already-logged-in user on an
+# ordinary request (see grunt.auth.dependencies.current_user/optional_user).
+# Deliberately excludes password/token/MFA-secret columns — those only ever
+# matter during login, password-reset, or MFA setup, which fetch the user
+# themselves via get_user_by_email/get_user_by_id without this restriction.
+AUTH_CONTEXT_FIELDS: list[str] = [
+    "name",
+    "owner",
+    "created_at",
+    "modified_at",
+    "modified_by",
+    "docstatus",
+    "first_name",
+    "last_name",
+    "middle_name",
+    "full_name",
+    "avatar",
+    "email",
+    "phone",
+    "birth_date",
+    "gender",
+    "timezone",
+    "bio",
+    "is_active",
+    "signup_state",
+    "mfa_enabled",
+    "theme",
+    "language",
+    "last_login",
+]
+
 # ── Document Controller ───────────────────────────────────────────────────
 
 
@@ -280,29 +311,65 @@ async def verify_password(plain: str, hashed: str | None) -> bool:
 # ── User CRUD ─────────────────────────────────────────────────────────────
 
 
-async def _get_user_by(**filter_kwargs: str) -> User | None:
+async def _get_user_by(fields: list[str] | None = None, **filter_kwargs: str) -> User | None:
     """Look up a user by a single field (email or name). Runs as SYSTEM_USER —
-    needed pre-login, when no real user is in context yet."""
+    needed pre-login, when no real user is in context yet.
+
+    ``fields`` restricts the SELECT to those columns (see ``AUTH_CONTEXT_FIELDS``);
+    omit it to fetch the full row, including password/token/MFA columns.
+    """
     from grunt.auth.doctypes.UserRole.user_role import get_user_roles
     from grunt.context import require_session
 
     session = require_session()
     async with grunt.system_context(session):
-        user = await User.objects.filter(**filter_kwargs).first()
+        query = User.objects.filter(**filter_kwargs)
+        if fields is not None:
+            query = query.only(*fields)
+        user = await query.first()
         if user is None:
             return None
         user.data["roles"] = await get_user_roles(user.name)
         return user
 
 
-async def get_user_by_email(email: str) -> User | None:
+async def get_user_by_email(email: str, *, fields: list[str] | None = None) -> User | None:
     """Look up a user by email. See :func:`_get_user_by`."""
-    return await _get_user_by(email=email)
+    return await _get_user_by(fields, email=email)
 
 
-async def get_user_by_id(user_id: str) -> User | None:
+async def get_user_by_id(user_id: str, *, fields: list[str] | None = None) -> User | None:
     """Look up a user by id. See :func:`_get_user_by`."""
-    return await _get_user_by(name=user_id)
+    return await _get_user_by(fields, name=user_id)
+
+
+async def get_auth_context_user(uid: str) -> User | None:
+    """Resolve the authenticated user for request context — email/is_active/roles
+    plus display profile fields (``AUTH_CONTEXT_FIELDS``).
+
+    Used by :func:`grunt.auth.dependencies.current_user`/``optional_user`` on
+    (almost) every request, so this goes through ``grunt.doc_cache`` (a
+    generic per-document cache, see ``grunt/cache/document_cache.py``) instead
+    of hitting the DB each time. The cache is invalidated on every ``User``
+    write (see ``DocumentAPI._invalidate_list_cache``), so a role change or
+    deactivation still takes effect on the very next request — a cache hit is
+    never more than that stale-write race, not a TTL.
+    """
+    from grunt.app import grunt
+    from grunt.config import settings
+    from grunt.context import require_session
+
+    if not settings.doc_cache_enabled:
+        return await get_user_by_id(uid, fields=AUTH_CONTEXT_FIELDS)
+
+    cached = await grunt.doc_cache.get("User", uid)
+    if cached is not None:
+        return User(doctype="User", data=dict(cached), user=SYSTEM_USER, session=require_session())
+
+    user = await get_user_by_id(uid, fields=AUTH_CONTEXT_FIELDS)
+    if user is not None:
+        await grunt.doc_cache.set("User", uid, dict(user.data))
+    return user
 
 
 async def list_users() -> list[User]:

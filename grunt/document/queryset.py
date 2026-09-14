@@ -30,6 +30,7 @@ class QuerySet[T: Document]:
         self._model_cls = model_cls
         self._doctype: str = getattr(model_cls, "doctype", model_cls.__name__)
         self._filters: dict[str, Any] = {}
+        self._fields: list[str] | None = None
         self._order_by = "modified_at"
         self._order = "desc"
         self._limit = 20
@@ -38,6 +39,7 @@ class QuerySet[T: Document]:
     def _clone(self) -> QuerySet[T]:
         clone = QuerySet(self._model_cls)
         clone._filters = dict(self._filters)
+        clone._fields = self._fields
         clone._order_by = self._order_by
         clone._order = self._order
         clone._limit = self._limit
@@ -50,6 +52,12 @@ class QuerySet[T: Document]:
         """Merge equality/operator-suffixed filters (e.g. ``created_at__gte=...``)."""
         clone = self._clone()
         clone._filters.update(kwargs)
+        return clone
+
+    def only(self, *fields: str) -> QuerySet[T]:
+        """Restrict the SELECT to these columns instead of every column on the doctype."""
+        clone = self._clone()
+        clone._fields = list(fields)
         return clone
 
     def order_by(self, field: str) -> QuerySet[T]:
@@ -79,6 +87,7 @@ class QuerySet[T: Document]:
         return await grunt.get_all(
             self._model_cls,
             filters=self._filters or None,
+            fields=self._fields,
             limit=self._limit,
             page=self._page,
             order_by=self._order_by,

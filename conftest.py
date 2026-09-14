@@ -76,6 +76,15 @@ async def setup_db():
             await conn.run_sync(metadata.create_all)
         doctype_registry.reset()
 
+        # Tables were just dropped/recreated directly (not through
+        # DocumentAPI), so grunt.doc_cache doesn't know to invalidate —
+        # without this, a later test reusing the same test email (several
+        # files use "admin@grunt.example.com") could read another test's
+        # cached roles/is_active for a document that no longer exists.
+        from grunt.app import grunt
+
+        await grunt.doc_cache.invalidate_all()
+
         from grunt.workflow.registry import clear_cache as _clear_workflow_cache
 
         _clear_workflow_cache()

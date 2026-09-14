@@ -10,8 +10,7 @@ from fastapi.security import OAuth2PasswordBearer
 
 from grunt.auth.doctypes.User.user import (
     User,
-    get_user_by_email,
-    get_user_by_id,
+    get_auth_context_user,
 )
 from grunt.config import settings
 from grunt.db.session import get_engine, get_session
@@ -95,7 +94,7 @@ async def current_user(
     from grunt.app import grunt
 
     async with grunt.context(session):
-        user = await get_user_by_id(uid)
+        user = await get_auth_context_user(uid)
     if user is None or user.email != email or not user.is_active:
         raise credentials_exception
 
@@ -126,15 +125,16 @@ async def optional_user(
     try:
         payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
         email: str | None = payload.get("sub")
-        if not email:
+        uid: str | None = payload.get("uid")
+        if not email or not uid:
             return None
     except jwt.PyJWTError:
         return None
     from grunt.app import grunt
 
     async with grunt.context(session):
-        user = await get_user_by_email(email)
-    if user is None or not user.is_active:
+        user = await get_auth_context_user(uid)
+    if user is None or user.email != email or not user.is_active:
         return None
     return user
 

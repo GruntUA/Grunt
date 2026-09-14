@@ -19,6 +19,7 @@ from grunt.permissions.guards import (
 )
 
 if TYPE_CHECKING:
+    from grunt.cache.document_cache import DocumentCache
     from grunt.cache.query_cache import QueryCache
     from grunt.db import GruntDB
     from grunt.document.base import Document, DocumentList
@@ -36,6 +37,7 @@ class DocumentAPI:
     if TYPE_CHECKING:
         db: GruntDB
         query_cache: QueryCache
+        doc_cache: DocumentCache
 
     def _is_read_only_doctype(self, dt: Any) -> bool:
         """True when DocType has explicit permissions and none allow mutation."""
@@ -54,14 +56,27 @@ class DocumentAPI:
                 return False
         return True
 
-    async def _invalidate_list_cache(self, doctype: str) -> None:
+    async def _invalidate_list_cache(
+        self, doctype: str, names: str | list[str] | None = None
+    ) -> None:
         cache = getattr(self, "query_cache", None)
-        if cache is None:
+        if cache is not None:
+            try:
+                await cache.invalidate_doctype(doctype)
+            except Exception as exc:
+                log.warning("query_cache.invalidate_failed", doctype=doctype, error=str(exc))
+
+        doc_cache = getattr(self, "doc_cache", None)
+        if doc_cache is None:
             return
         try:
-            await cache.invalidate_doctype(doctype)
+            if names is None:
+                await doc_cache.invalidate_doctype(doctype)
+            else:
+                for name in [names] if isinstance(names, str) else names:
+                    await doc_cache.invalidate(doctype, name)
         except Exception as exc:
-            log.warning("query_cache.invalidate_failed", doctype=doctype, error=str(exc))
+            log.warning("doc_cache.invalidate_failed", doctype=doctype, error=str(exc))
 
     def _doc(self):
         """Build a session/engine-bound host document to run single-doc pipeline methods on."""
@@ -180,7 +195,7 @@ class DocumentAPI:
         created = await self._doc().create_document(
             doctype, data, user, ignore_required=ignore_required
         )
-        await self._invalidate_list_cache(doctype)
+        await self._invalidate_list_cache(doctype, created.get("name"))
         _, _, hidden_fields = await read_guard(doctype)
         return apply_hidden_fields_to_doc(created, hidden_fields)
 
@@ -200,7 +215,7 @@ class DocumentAPI:
         updated = await self._doc().update_document(
             doctype, id_or_name, data, user, ignore_required=ignore_required
         )
-        await self._invalidate_list_cache(doctype)
+        await self._invalidate_list_cache(doctype, id_or_name)
         _, _, hidden_fields = await read_guard(doctype)
         return apply_hidden_fields_to_doc(updated, hidden_fields)
 
@@ -216,7 +231,7 @@ class DocumentAPI:
         """
         _dt, user, _session = await write_guard(doctype, "delete")
         await self._doc().delete_document(doctype, id_or_name, user, replace_with)
-        await self._invalidate_list_cache(doctype)
+        await self._invalidate_list_cache(doctype, id_or_name)
 
     async def rename_doc(self, doctype: str, old_id: str, new_id: str) -> dict[str, Any]:
         """Rename a document and cascade all references."""
@@ -247,7 +262,7 @@ class DocumentAPI:
             user=user,
             session=session,
         )
-        await self._invalidate_list_cache(doctype)
+        await self._invalidate_list_cache(doctype, [old_id, new_id])
         return res
 
     async def bulk_delete_docs(
@@ -303,7 +318,7 @@ class DocumentAPI:
                 user_email=user.email,
             )
 
-        await self._invalidate_list_cache(doctype)
+        await self._invalidate_list_cache(doctype, ids)
         return deleted, errors
 
     @profile("grunt.get_list")
@@ -621,7 +636,7 @@ class DocumentAPI:
         """
         _, _, _ = await write_guard(doctype, "write")
         await self.db.set_value(doctype, id_or_name, fieldname, value)
-        await self._invalidate_list_cache(doctype)
+        await self._invalidate_list_cache(doctype, id_or_name)
 
     async def get_single(self, doctype: str, fieldname: str) -> Any:
         """Fetch a field value from a Single DocType (singleton document).
