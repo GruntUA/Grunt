@@ -5,7 +5,7 @@ uv = "latest"
 
 [tasks.deps]
 run = """
-uv sync --all-extras
+uv sync --all-extras --all-packages
 npm install
 """
 description = "Sync Python and Node.js dependencies"

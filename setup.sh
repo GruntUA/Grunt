@@ -120,10 +120,10 @@ step "3/6" "Встановлення Python залежностей"
 
 if [[ "$MODE" == "prod" ]]; then
     info "Встановлення з postgres + redis extras..."
-    uv sync --extra postgres --extra redis
+    uv sync --extra postgres --extra redis --all-packages
 else
     info "Встановлення dev залежностей (SQLite)..."
-    uv sync --extra dev
+    uv sync --extra dev --all-packages
 fi
 ok "Python залежності встановлено"
 
