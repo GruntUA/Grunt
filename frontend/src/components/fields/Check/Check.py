@@ -11,6 +11,8 @@ class CheckField(FieldType):
     def coerce(cls, value):
         if value is None or value == "":
             return False
+        if isinstance(value, str):
+            return value.strip().lower() not in ("0", "false", "no")
         return bool(value)
 
 
