@@ -244,7 +244,7 @@ function docInitials(doc: RecentDoc): string {
           </div>
 
           <!-- Empty state -->
-          <div v-else-if="appStore.workspaces.length === 0 && !auth.user?.is_superadmin"
+          <div v-else-if="appStore.workspaces.length === 0 && !auth.isSystemManager"
             class="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed py-20 text-center">
             <PackageOpen class="size-8 text-muted-foreground/50" />
             <p class="text-muted-foreground">Немає встановлених додатків</p>

@@ -1,8 +1,10 @@
-"""Regression: list_api_keys() had dead code — `filters = {"user_id": user.id}`
-was set unconditionally, then the `if not user.is_superadmin:` branch set the
-exact same value again. Superadmins could never see anyone's keys but their
-own, even though the comment ("Non-superadmins can only see their own keys")
-implies they should see everyone's.
+"""`list_api_keys()` restricts results to the caller's own keys unless they
+are the owner of a queried key, or hold the "System Manager" role — which is
+also the only role granted read access to ``ApiKey`` at all (see
+``ApiKey.json``), so every caller in these tests needs it just to get any
+result back. Since admin rights are granted purely through that role now
+(no separate superadmin flag), any System Manager sees every user's keys —
+there is no longer a further tier above it to distinguish.
 """
 
 from __future__ import annotations
@@ -12,17 +14,14 @@ import pytest
 from tests.support import make_user
 
 
-def _fake_user(email: str, name: str, *, is_superadmin: bool = False):
-    # ApiKey.json restricts read/write to role "System Manager" — every test
-    # user needs it just to reach list_api_keys() at all; is_superadmin then
-    # additionally controls whether they see everyone's keys or only their own.
-    user = make_user(email, roles=["System Manager"], is_superadmin=is_superadmin)
+def _fake_user(email: str, name: str):
+    user = make_user(email, roles=["System Manager"])
     user.data["name"] = name
     return user
 
 
 @pytest.mark.asyncio
-async def test_regular_user_sees_only_own_keys(ctx, db_session, engine):
+async def test_system_manager_sees_all_keys(ctx, db_session, engine):
     from grunt.app import grunt
     from grunt.auth.doctypes.ApiKey.api_key import list_api_keys
 
@@ -55,42 +54,4 @@ async def test_regular_user_sees_only_own_keys(ctx, db_session, engine):
     async with grunt.context(db_session, engine, alice):
         result = await list_api_keys(user=alice)
     labels = {k["label"] for k in result}
-    assert labels == {"Alice's key"}
-
-
-@pytest.mark.asyncio
-async def test_superadmin_sees_all_keys(ctx, db_session, engine):
-    from grunt.app import grunt
-    from grunt.auth.doctypes.ApiKey.api_key import list_api_keys
-
-    alice = _fake_user("alice2@grunt.example.com", "alice2-id")
-    bob = _fake_user("bob2@grunt.example.com", "bob2-id")
-    admin = _fake_user("admin@grunt.example.com", "admin-id", is_superadmin=True)
-
-    async with ctx.system_context(ctx.db._session()):
-        await ctx.new_doc(
-            "ApiKey",
-            {
-                "label": "Alice2's key",
-                "user_id": alice.id,
-                "key_prefix": "cccccccc",
-                "key_hash": "hash-c",
-                "is_active": True,
-            },
-        )
-        await ctx.new_doc(
-            "ApiKey",
-            {
-                "label": "Bob2's key",
-                "user_id": bob.id,
-                "key_prefix": "dddddddd",
-                "key_hash": "hash-d",
-                "is_active": True,
-            },
-        )
-        await ctx.db._session().commit()
-
-    async with grunt.context(db_session, engine, admin):
-        result = await list_api_keys(user=admin)
-    labels = {k["label"] for k in result}
-    assert {"Alice2's key", "Bob2's key"} <= labels
+    assert {"Alice's key", "Bob's key"} <= labels

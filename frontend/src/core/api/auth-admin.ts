@@ -13,7 +13,7 @@ export const authAdminApi = {
   listUsers: (): Promise<UserPublic[]> =>
     client.get('/api/v1/method/grunt.auth.doctypes.User.user.list_users_detailed_api').then(r => r.data.data),
 
-  /** Superadmin: open a short-lived session as another user. */
+  /** System Manager: open a short-lived session as another user. */
   startImpersonation: (userId: string): Promise<{
     access_token: string
     expires_in_minutes: number

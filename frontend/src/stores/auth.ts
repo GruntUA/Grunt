@@ -10,7 +10,6 @@ interface User {
   email: string
   full_name: string
   roles: string[]
-  is_superadmin: boolean
   mfa_enabled?: boolean
   /** False for accounts provisioned via OIDC / email link that never set one. */
   has_password?: boolean
@@ -38,8 +37,9 @@ export const useAuthStore = defineStore('auth', () => {
   const token = ref<string | null>(localStorage.getItem('grunt_token'))
   const refreshToken = ref<string | null>(localStorage.getItem('grunt_refresh_token'))
   const user = ref<User | null>(null)
+  const isSystemManager = computed(() => !!user.value?.roles?.includes('System Manager'))
 
-  // Set while a superadmin is viewing the system as another user. The real
+  // Set while a System Manager is viewing the system as another user. The real
   // session's tokens are stashed under `*_orig` keys and restored on stop.
   const impersonatedBy = ref<Impersonator | null>(_readImpersonation())
   const isImpersonating = computed(() => !!impersonatedBy.value)
@@ -136,7 +136,7 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   /**
-   * Superadmin: open a short-lived session as `userId`. Stashes the real
+   * System Manager: open a short-lived session as `userId`. Stashes the real
    * session so `stopImpersonation()` can restore it, then swaps in the
    * impersonation access token (which has no refresh token — it just expires).
    */
@@ -164,7 +164,7 @@ export const useAuthStore = defineStore('auth', () => {
     _scheduleImpersonationExpiry()
   }
 
-  /** Leave an impersonation session and restore the superadmin's own session. */
+  /** Leave an impersonation session and restore the System Manager's own session. */
   async function stopImpersonation(): Promise<void> {
     if (_impTimer) { clearTimeout(_impTimer); _impTimer = null }
     if (!isImpersonating.value) return
@@ -366,7 +366,7 @@ export const useAuthStore = defineStore('auth', () => {
   if (isImpersonating.value) _scheduleImpersonationExpiry()
 
   return {
-    token, refreshToken, user, isLoggedIn, login, loginWithPasskey, beginEmailLogin,
+    token, refreshToken, user, isLoggedIn, isSystemManager, login, loginWithPasskey, beginEmailLogin,
     completeEmailLogin, setSession, logout, refresh, fetchMe, prefetchMe, setTheme, setLanguage,
     impersonatedBy, isImpersonating, startImpersonation, stopImpersonation,
   }

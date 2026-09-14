@@ -5,7 +5,7 @@ No magic — a ``Schema`` subclass just names the fields to expose, then
 method builds its response::
 
     class UserPublic(Schema):
-        fields = ("name", "email", "full_name", "roles", "is_superadmin")
+        fields = ("name", "email", "full_name", "roles")
 
     @grunt.whitelist()
     async def whoami() -> dict:

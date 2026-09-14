@@ -171,14 +171,6 @@
       "description": "pending — a self-registered user is waiting for administrator approval and cannot sign in."
     },
     {
-      "fieldname": "is_superadmin",
-      "label": "Superadmin",
-      "fieldtype": "Check",
-      "default": false,
-      "in_list_view": true,
-      "in_filter": true
-    },
-    {
       "fieldname": "col_security",
       "fieldtype": "Column"
     },

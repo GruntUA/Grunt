@@ -7,7 +7,7 @@ it does not build SQL itself::
 
     active = await User.objects.filter(is_active=True).order_by("-created_at").limit(20).all()
     admin = await User.objects.filter(email="admin@grunt.local").first()
-    total = await User.objects.filter(is_superadmin=True).count()
+    total = await User.objects.filter(is_active=False).count()
     user, created = await User.objects.get_or_create(email="a@b.com", defaults={"first_name": "A"})
 
 Filter keys support the same operator suffixes as ``grunt.db`` (``__gt``, ``__gte``,

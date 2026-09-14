@@ -27,7 +27,7 @@ const def: ViewDefinition = {
     collapsedGroups: ctx.collapsedGroups,
     groupByField: ctx.groupByField,
     selection: ctx.selection,
-    isSuperadmin: ctx.isSuperadmin,
+    isSystemManager: ctx.isSystemManager,
   }),
 
   mountEvents: (ctx) => ({

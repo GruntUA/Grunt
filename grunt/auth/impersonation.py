@@ -1,10 +1,11 @@
-"""Superadmin "view as another user" (impersonation).
+"""System Manager "view as another user" (impersonation).
 
-A superadmin opens a short-lived session that authenticates as a target user
-— same roles, same permissions — to verify what that user can and cannot see.
-The session is a bare access token with no refresh token: it cannot be renewed
-and expires on its own after :data:`IMPERSONATION_TTL_MINUTES`. Nothing is
-written to the target's ``User`` row, so their own live session is untouched.
+A System Manager opens a short-lived session that authenticates as a target
+user — same roles, same permissions — to verify what that user can and
+cannot see. The session is a bare access token with no refresh token: it
+cannot be renewed and expires on its own after
+:data:`IMPERSONATION_TTL_MINUTES`. Nothing is written to the target's
+``User`` row, so their own live session is untouched.
 """
 
 from __future__ import annotations
@@ -12,6 +13,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 from grunt.log import log
+from grunt.permissions.roles import user_has_roles
 
 if TYPE_CHECKING:
     from grunt.auth.doctypes.User.user import User
@@ -22,7 +24,7 @@ IMPERSONATION_TTL_MINUTES = 30
 
 
 async def start_impersonation(actor: User, target_user_id: str) -> dict[str, Any]:
-    """Mint an impersonation session for *actor* (a superadmin) as *target_user_id*.
+    """Mint an impersonation session for *actor* (a System Manager) as *target_user_id*.
 
     Returns the same shape as a login payload minus the refresh token, plus an
     ``impersonated_by`` block naming *actor*.
@@ -31,16 +33,16 @@ async def start_impersonation(actor: User, target_user_id: str) -> dict[str, Any
     from grunt.auth.doctypes.User.user import _auth_user_dump, get_user_by_id
     from grunt.auth.service import create_access_token
 
-    if not actor.is_superadmin:
-        throw("Потрібні права суперадміністратора.", "PERMISSION_DENIED")
+    if not user_has_roles(actor, ["System Manager"]):
+        throw("Потрібні права System Manager.", "PERMISSION_DENIED")
 
     target = await get_user_by_id(target_user_id)
     if target is None:
         throw("Користувача не знайдено.", "NOT_FOUND")
     if target.id == actor.id:
         throw("Не можна увійти під власним обліковим записом.", "VALIDATION_ERROR")
-    if target.is_superadmin:
-        throw("Не можна увійти під іншим суперадміністратором.", "PERMISSION_DENIED")
+    if user_has_roles(target, ["System Manager"]):
+        throw("Не можна увійти під іншим адміністратором.", "PERMISSION_DENIED")
     if not target.is_active:
         throw("Обліковий запис вимкнено.", "VALIDATION_ERROR")
 

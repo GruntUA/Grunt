@@ -506,7 +506,7 @@ async def _get_widget_data(
     dashboard = dict(doc)
 
     user = grunt_app._require_user()
-    if not user.is_superadmin and not dashboard.get("is_published"):
+    if "System Manager" not in (user.roles or []) and not dashboard.get("is_published"):
         grunt.throw(unpublished_msg, "PERMISSION_DENIED")
 
     widgets: list[dict[str, Any]] = sorted(

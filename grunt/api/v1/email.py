@@ -17,7 +17,7 @@ def _mask_password(account: dict[str, Any]) -> dict[str, Any]:
     return account
 
 
-@grunt.whitelist(roles=["superadmin"])
+@grunt.whitelist(roles=["System Manager"])
 async def test_smtp_connection(
     smtp_server: str,
     smtp_port: int = 587,
@@ -46,11 +46,11 @@ async def test_smtp_connection(
         return {"success": False, "error": str(e)}
 
 
-@grunt.whitelist(roles=["superadmin"])
+@grunt.whitelist(roles=["System Manager"])
 async def send_test_email(account_id: str, recipient: str) -> dict[str, Any]:
     """Send a short test message through a saved EmailAccount.
 
-    Uses the stored SMTP settings (the caller is a superadmin, so the
+    Uses the stored SMTP settings (the caller is System Manager, so the
     ``after_read`` mask does not apply and the real password is available).
     """
     recipient = (recipient or "").strip()
@@ -88,19 +88,19 @@ async def send_test_email(account_id: str, recipient: str) -> dict[str, Any]:
         return {"success": False, "error": str(e)}
 
 
-@grunt.whitelist(roles=["superadmin"])
+@grunt.whitelist(roles=["System Manager"])
 async def list_accounts() -> list[dict[str, Any]]:
     result = await grunt.get_list("EmailAccount", limit=1000, order_by="created_at")
     return [_mask_password(dict(acc)) for acc in result]
 
 
-@grunt.whitelist(roles=["superadmin"])
+@grunt.whitelist(roles=["System Manager"])
 async def get_account(account_id: str) -> dict[str, Any]:
     data = await grunt.get_doc("EmailAccount", account_id)
     return _mask_password(dict(data))
 
 
-@grunt.whitelist(roles=["superadmin"])
+@grunt.whitelist(roles=["System Manager"])
 async def list_queue(
     status: str | None = None,
     page: int = 1,
@@ -121,7 +121,7 @@ async def list_queue(
     return {"items": records, "total": total, "page": page, "per_page": per_page}
 
 
-@grunt.whitelist(roles=["superadmin"])
+@grunt.whitelist(roles=["System Manager"])
 async def retry_item(queue_id: str) -> bool:
     await grunt.db.set_value("EmailQueue", queue_id, {"status": "Pending", "error_message": None})
     return True

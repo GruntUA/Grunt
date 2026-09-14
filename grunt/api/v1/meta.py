@@ -97,7 +97,7 @@ async def list_doctypes(module: str | None = None) -> list[dict[str, Any]]:
     ]
 
 
-@grunt.whitelist(roles=["superadmin"])
+@grunt.whitelist(roles=["System Manager"])
 async def save_doctype(doctype_data: dict[str, Any]) -> dict[str, Any]:
     """Create or update a DocType. Admin only."""
     from grunt.app import grunt as grunt_app
@@ -122,7 +122,7 @@ async def save_doctype(doctype_data: dict[str, Any]) -> dict[str, Any]:
     return await _dump_doctype(dt)
 
 
-@grunt.whitelist(roles=["superadmin"])
+@grunt.whitelist(roles=["System Manager"])
 async def delete_doctype(name: str) -> bool:
     """Delete a DocType definition. Admin only."""
     from grunt.app import grunt as grunt_app
@@ -131,7 +131,7 @@ async def delete_doctype(name: str) -> bool:
     return True
 
 
-@grunt.whitelist(roles=["superadmin"])
+@grunt.whitelist(roles=["System Manager"])
 async def sync_doctype(name: str) -> dict[str, Any]:
     """Force sync a DocType's physical table. Admin only."""
     from grunt.app import grunt as grunt_app
@@ -179,7 +179,7 @@ def _compaction_footprint_bytes(conn: Any, table_name: str, dialect: str) -> int
     return None
 
 
-@grunt.whitelist(roles=["superadmin"])
+@grunt.whitelist(roles=["System Manager"])
 async def compact_table(name: str) -> dict[str, Any]:
     """Compact a DocType's backing table and report how much space was freed.
 
@@ -264,7 +264,7 @@ async def compact_table(name: str) -> dict[str, Any]:
     return result
 
 
-@grunt.whitelist(roles=["superadmin"])
+@grunt.whitelist(roles=["System Manager"])
 async def table_info(name: str) -> dict[str, Any]:
     """Return physical storage info for a DocType's backing table. Admin only.
 

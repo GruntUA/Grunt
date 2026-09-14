@@ -106,7 +106,7 @@ const auth = useAuthStore()
 const dialog = useDialog()
 const toast = useToast()
 
-const canSave = computed(() => !!auth.user?.is_superadmin)
+const canSave = computed(() => !!auth.isSystemManager)
 const savedReports = ref<ReportSummary[]>([])
 
 async function loadSavedReports() {

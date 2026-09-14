@@ -197,7 +197,7 @@ async def ctx(db_session: AsyncSession, engine: AsyncEngine):
 
 @pytest.fixture
 async def auth_headers(client: AsyncClient) -> dict[str, str]:
-    """Register a superadmin user and return auth headers."""
+    """Register a System Manager user and return auth headers."""
     r_reg = await client.post(
         "/api/v1/method/grunt.auth.doctypes.User.user.register_full_name_api",
         json={"email": "admin@grunt.example.com", "password": "secret", "full_name": "Admin User"},

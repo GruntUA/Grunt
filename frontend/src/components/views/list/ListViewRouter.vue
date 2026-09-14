@@ -36,7 +36,7 @@ const props = defineProps<{
   activeFilters: ActiveFilter[]
   quickFilterDefs: QuickFilter[]
   quickFilterValues: Record<string, string>
-  isSuperadmin?: boolean
+  isSystemManager?: boolean
   refreshKey: number
 }>()
 
@@ -98,7 +98,7 @@ const ctx = computed((): ViewContext => ({
   quickFilterDefs: props.quickFilterDefs,
   quickFilterValues: props.quickFilterValues,
   resolvedField: resolvedField.value,
-  isSuperadmin: props.isSuperadmin,
+  isSystemManager: props.isSystemManager,
   refreshKey: props.refreshKey,
   emit: {
     sort: (key) => emit('sort', key),

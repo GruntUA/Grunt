@@ -19,8 +19,9 @@ if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
 
-# Placeholder returned instead of a stored SMTP password on every non-superadmin
-# read (see grunt.email.hooks.mask_smtp_password). Saving the account back with
+# Placeholder returned instead of a stored SMTP password on every read by a
+# non-System-Manager (see grunt.email.hooks.mask_smtp_password). Saving the
+# account back with
 # this exact value keeps the stored password untouched
 # (EmailAccount.before_save).
 SMTP_PASSWORD_MASK = "••••••••"

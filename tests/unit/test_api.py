@@ -63,19 +63,17 @@ def mock_user():
     user.email = "test@example.com"
     user.full_name = "Test User"
     user.roles = ["User"]
-    user.is_superadmin = False
     return user
 
 
 @pytest.fixture
 def superadmin_user():
-    """Mock superadmin user."""
+    """Mock System Manager user."""
     user = Mock()
     user.id = "admin-id"
     user.email = "admin@example.com"
     user.full_name = "Admin"
-    user.roles = ["Admin"]
-    user.is_superadmin = True
+    user.roles = ["System Manager"]
     return user
 
 
@@ -123,7 +121,7 @@ class TestContext:
         clear_context()
         user = get_user()
         assert user.email == "system"
-        assert user.is_superadmin is True
+        assert "System Manager" in user.roles
 
     def test_clear_context(self, mock_session, mock_user):
         """Test clearing context."""
@@ -404,9 +402,14 @@ class TestPermissions:
     """Test grunt.has_permission() — DocType-level and document-level (doc_id) checks."""
 
     @pytest.mark.asyncio
-    async def test_superadmin_always_allowed(self, setup_context):
-        """Superadmin bypasses permission rows entirely — no registry lookup needed."""
-        set_user(Mock(is_superadmin=True, roles=[]))
+    async def test_system_user_always_allowed(self, setup_context):
+        """The internal SYSTEM_USER identity bypasses permission rows entirely —
+        no registry lookup needed. A human holding "System Manager" does not
+        (see test_regular_user_no_permission_rows_denied's sibling in
+        test_sensitive_doctype_permissions.py)."""
+        from grunt.auth.doctypes.User.user import SYSTEM_USER
+
+        set_user(SYSTEM_USER)
         dt = _dt("Invoice")
         with _registry_returning(dt):
             assert await grunt.has_permission("Invoice", "read") is True
@@ -415,7 +418,7 @@ class TestPermissions:
 
     @pytest.mark.asyncio
     async def test_regular_user_no_permission_rows_denied(self, setup_context, mock_user):
-        """A DocType with no permission rows at all is closed to non-superadmins."""
+        """A DocType with no permission rows at all is closed to non-admins."""
         set_user(mock_user)
         dt = _dt("Invoice", [])
         with _registry_returning(dt):
@@ -432,7 +435,7 @@ class TestPermissions:
     @pytest.mark.asyncio
     async def test_permission_row_wrong_role_denied(self, setup_context):
         """A permission row exists, but not for the user's role."""
-        user = Mock(email="guest@example.com", roles=["Guest"], is_superadmin=False)
+        user = Mock(email="guest@example.com", roles=["Guest"])
         set_user(user)
         dt = _dt("Invoice", [DocPermission(role="Admin", read=True)])
         with _registry_returning(dt):
@@ -441,7 +444,7 @@ class TestPermissions:
     @pytest.mark.asyncio
     async def test_permission_row_matches_role_but_action_false_denied(self, setup_context):
         """A permission row matches the role, but doesn't grant this action."""
-        user = Mock(email="guest@example.com", roles=["Guest"], is_superadmin=False)
+        user = Mock(email="guest@example.com", roles=["Guest"])
         set_user(user)
         dt = _dt("Invoice", [DocPermission(role="Guest", read=False)])
         with _registry_returning(dt):
@@ -449,7 +452,7 @@ class TestPermissions:
 
     @pytest.mark.asyncio
     async def test_permission_row_matches_role_and_action_allowed(self, setup_context):
-        user = Mock(email="user@example.com", roles=["User"], is_superadmin=False)
+        user = Mock(email="user@example.com", roles=["User"])
         set_user(user)
         dt = _dt("Invoice", [DocPermission(role="User", write=True)])
         with _registry_returning(dt):
@@ -458,7 +461,7 @@ class TestPermissions:
     @pytest.mark.asyncio
     async def test_user_with_no_roles_denied(self, setup_context):
         """A user with no roles doesn't match any role-scoped permission row."""
-        user = Mock(email="nouser@example.com", roles=[], is_superadmin=False)
+        user = Mock(email="nouser@example.com", roles=[])
         set_user(user)
         dt = _dt("Invoice", [DocPermission(role="User", read=True)])
         with _registry_returning(dt):
@@ -471,8 +474,8 @@ class TestPermissions:
         Regression for api/permissions.py used to accept (and ignore) doc_id —
         this is what makes it actually restrict access to the caller's own doc.
         """
-        owner = Mock(email="owner@example.com", roles=["User"], is_superadmin=False)
-        attacker = Mock(email="attacker@example.com", roles=["User"], is_superadmin=False)
+        owner = Mock(email="owner@example.com", roles=["User"])
+        attacker = Mock(email="attacker@example.com", roles=["User"])
         dt = _dt("Contract", [DocPermission(role="User", read=True, match="owner == user")])
         doc = {"name": "CONTRACT-1", "owner": "owner@example.com"}
 

@@ -3,7 +3,7 @@
 submit() used to wrap the create call in `grunt.context(session, user=None)`,
 which made write_guard's require_user() raise RuntimeError unconditionally —
 every submission (guest or authenticated) crashed before a document was ever
-created. Fixed by running anonymous submissions as a synthetic, non-superadmin
+created. Fixed by running anonymous submissions as a synthetic, non-admin
 Guest identity (so the target DocType's own create-permission rules still
 apply) and authenticated submissions under the caller's real context.
 """

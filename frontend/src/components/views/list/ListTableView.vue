@@ -38,7 +38,7 @@ const props = defineProps<{
   collapsedGroups: Set<string>
   groupByField: DocField | null
   selection: SelectionState
-  isSuperadmin?: boolean
+  isSystemManager?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -70,7 +70,7 @@ function rowDocId(row: Record<string, unknown>): string {
       :all-selected="selection.allSelected"
       :page-count="rows?.length || 0"
       :editable-fields="dt?.fields"
-      :is-superadmin="isSuperadmin"
+      :is-system-manager="isSystemManager"
       :doctype="doctype"
       :selected-ids="selection.selectedIds"
       @delete="(rw) => emit('delete', rw)"

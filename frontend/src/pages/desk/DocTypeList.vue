@@ -323,7 +323,7 @@ watch(() => props.doctype, async (newDoctype) => {
     <AppBreadcrumb :workspace-name="workspace ?? 'grunt'" :doctype="doctype" :count="meta?.total ?? null">
       <template #actions>
         <ListHeader :doctype="doctype" :dt="dt" :workspace="workspace" :is-fetching="isFetching"
-          :is-system-doc-type="doctype === 'DocType'" :show-dev-actions="!!(isDev && auth.user?.is_superadmin)"
+          :is-system-doc-type="doctype === 'DocType'" :show-dev-actions="!!(isDev && auth.isSystemManager)"
           :list-buttons="listButtons" :list-menu-items="listMenuItems" :export-ctx="exportCtx"
           v-model:view-mode="viewMode"
           @refresh="queryClient.invalidateQueries({ queryKey: ['documents', doctype] }); refreshKey++"
@@ -390,7 +390,7 @@ watch(() => props.doctype, async (newDoctype) => {
       @sort="onSort"
       @row-click="navigateToDoc"
       @inline-update="inlineUpdate"
-      :is-superadmin="!!auth.user?.is_superadmin"
+      :is-system-manager="!!auth.isSystemManager"
       @delete="bulkDelete"
       @fast-delete="bulkFastDelete"
       @clear="clearSelection"

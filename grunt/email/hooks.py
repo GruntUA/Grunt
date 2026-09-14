@@ -18,13 +18,13 @@ def _mask(row: Any) -> None:
 async def mask_smtp_password(**kwargs: Any) -> None:
     """Replace stored SMTP passwords with a placeholder on read.
 
-    Fires on ``after_read`` for ``EmailAccount``. Superadmins (and the internal
-    SYSTEM_USER used by the queue worker / connection test) keep the real value
-    so mail delivery is unaffected; everyone else — including System Managers
-    editing the account form — only ever sees ``SMTP_PASSWORD_MASK``.
+    Fires on ``after_read`` for ``EmailAccount``. System Manager (and the
+    internal SYSTEM_USER used by the queue worker / connection test) keeps the
+    real value so mail delivery is unaffected; everyone else only ever sees
+    ``SMTP_PASSWORD_MASK``.
     """
     user = kwargs.get("user")
-    if user is not None and getattr(user, "is_superadmin", False):
+    if user is not None and "System Manager" in (getattr(user, "roles", None) or []):
         return
 
     doc = kwargs.get("doc")

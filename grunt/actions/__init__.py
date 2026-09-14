@@ -170,11 +170,10 @@ async def run(doctype: str, action: str, doc_id: str, args: dict | None = None) 
         grunt.throw(f"Дію «{action}» не зареєстровано", "NOT_FOUND")
 
     if spec.roles:
+        from grunt.permissions.roles import user_has_roles
+
         user = await grunt.get_current_user()
-        allowed = getattr(user, "is_superadmin", False) or (
-            set(spec.roles) & set(getattr(user, "roles", []) or [])
-        )
-        if not allowed:
+        if not user_has_roles(user, [*spec.roles, "System Manager"]):
             from grunt.errors import forbidden
 
             raise forbidden("Недостатньо прав для цієї дії")

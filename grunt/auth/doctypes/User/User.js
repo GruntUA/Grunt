@@ -23,7 +23,7 @@ function on_load(frm) {
       // Own password: prove knowledge of the current one — unless there is none
       // yet (signed up via email link / OIDC). Admins skip the check entirely.
       const isSelf = user_id === grunt.session.user;
-      const isAdmin = grunt.session.is_superadmin || (grunt.session.roles || []).includes("System Manager");
+      const isAdmin = (grunt.session.roles || []).includes("System Manager");
       const needCurrent = isSelf && !isAdmin && grunt.session.has_password !== false;
 
       const values = await grunt.form({
@@ -57,9 +57,10 @@ function on_load(frm) {
 
     frm.set_df_property("mfa_setup_button", "label", frm.doc.mfa_enabled ? "Вимкнути MFA" : "Увімкнути MFA");
 
-    // Референтність — суперадмін відкриває сесію під цим користувачем, щоб
+    // Референтність — System Manager відкриває сесію під цим користувачем, щоб
     // перевірити доступність документів. Повернення — через банер угорі.
-    if (grunt.session.is_superadmin && frm.doc.name !== grunt.session.user && !frm.doc.is_superadmin) {
+    const targetIsSystemManager = (frm.doc.roles || []).some((r) => r.role_name === "System Manager");
+    if ((grunt.session.roles || []).includes("System Manager") && frm.doc.name !== grunt.session.user && !targetIsSystemManager) {
       frm.add_button("Увійти як цей користувач", async () => {
         if (!(await grunt.confirm(
           `Відкрити сесію під користувачем «${frm.doc.full_name || frm.doc.name}»? ` +

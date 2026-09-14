@@ -100,7 +100,7 @@ async def test_compact_table_reports_freed_space(ctx, probe_doctype):
 
 
 @pytest.mark.asyncio
-async def test_compact_table_requires_superadmin(db_session, engine):
+async def test_compact_table_requires_system_manager(db_session, engine):
     from fastapi import HTTPException
 
     from grunt.api.v1.meta import compact_table
@@ -113,7 +113,7 @@ async def test_compact_table_requires_superadmin(db_session, engine):
 
 
 @pytest.mark.asyncio
-async def test_table_info_requires_superadmin(db_session, engine):
+async def test_table_info_requires_system_manager(db_session, engine):
     """A plain user (no roles) gets a 403 before the body runs."""
     from fastapi import HTTPException
 

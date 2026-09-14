@@ -18,7 +18,7 @@ async def _workspace_to_dict(ws_data: Any) -> dict[str, Any]:
     sidebar_items = ws_data.get("sidebar_items") or []
     for item in sorted(sidebar_items, key=lambda i: i.get("idx", 0)):
         item_roles = item.get("roles", "")
-        if not user.is_superadmin and item_roles:
+        if "System Manager" not in (user.roles or []) and item_roles:
             allowed = {r.strip() for r in item_roles.split(",") if r.strip()}
             if not (allowed & set(user.roles)):
                 continue
@@ -92,7 +92,7 @@ async def list_workspaces() -> list[dict[str, Any]]:
     for ws_brief in all_ws:
         try:
             ws_data = await grunt.get_doc("AppMenu", ws_brief["name"])
-            if ws_data.get("is_hidden") and not user.is_superadmin:
+            if ws_data.get("is_hidden") and "System Manager" not in (user.roles or []):
                 continue
             # Basic role check could be added here
             data.append(await _workspace_to_dict(ws_data))
@@ -108,7 +108,7 @@ async def get_workspace(name: str) -> dict[str, Any]:
     return await _workspace_to_dict(ws_data)
 
 
-@grunt.whitelist(roles=["superadmin"])
+@grunt.whitelist(roles=["System Manager"])
 async def save_workspace(workspace_data: dict[str, Any]) -> dict[str, Any]:
     """Create or update a workspace. Admin only."""
     data = workspace_data.copy()
@@ -124,7 +124,7 @@ async def save_workspace(workspace_data: dict[str, Any]) -> dict[str, Any]:
     return await _workspace_to_dict(ws_data)
 
 
-@grunt.whitelist(roles=["superadmin"])
+@grunt.whitelist(roles=["System Manager"])
 async def delete_workspace(name: str) -> bool:
     """Delete a workspace. Admin only."""
     await grunt.delete_doc("AppMenu", name)

@@ -118,8 +118,8 @@ export interface ViewContext {
   resolvedField: DocField | null
   /** Typed wrappers around ListViewRouter's emit function. */
   emit: ViewEmit
-  /** Whether the current user is a superadmin (for privileged actions like fast delete). */
-  isSuperadmin?: boolean
+  /** Whether the current user is a System Manager (for privileged actions like fast delete). */
+  isSystemManager?: boolean
   /**
    * Bumped by the header's Refresh button. Views that fetch their own data
    * (tree, calendar, kanban — anything outside the shared `['documents', doctype]`

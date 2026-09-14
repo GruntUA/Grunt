@@ -16,7 +16,7 @@ const props = defineProps<{
   allSelected?: boolean
   pageCount?: number
   editableFields?: DocField[]
-  isSuperadmin?: boolean
+  isSystemManager?: boolean
   doctype?: string
   selectedIds?: string[]
 }>()
@@ -188,9 +188,9 @@ async function submitUpdate() {
             Видалити
           </Button>
 
-          <!-- Fast delete — superadmin only, only when all records selected -->
+          <!-- Fast delete — System Manager only, only when all records selected -->
           <Button
-            v-if="isSuperadmin && allSelected"
+            v-if="isSystemManager && allSelected"
             variant="ghost" size="sm"
             class="!px-2.5 !h-7 !text-xs !font-semibold gap-1.5 text-destructive hover:text-destructive hover:!bg-destructive/10 opacity-80"
             @click="showFastDeleteModal = true"
@@ -281,7 +281,7 @@ async function submitUpdate() {
     </DialogContent>
   </Dialog>
 
-  <!-- Fast delete confirmation (superadmin) -->
+  <!-- Fast delete confirmation (System Manager) -->
   <Dialog v-model:open="showFastDeleteModal">
     <DialogContent class="max-w-sm w-full mx-4 p-0 px-6 pb-6 pt-1">
     <DialogHeader>

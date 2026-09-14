@@ -31,7 +31,7 @@ class BulkDeleteTask:
     +---------------------+------------------+----------+-------------------------+
     | run()                | explicit id list | yes      | one delete per id       |
     | run_delete_all()     | filters/search   | yes      | batched, iterative      |
-    | run_fast_delete_all()| filters          | **no**   | raw SQL, superadmin only|
+    | run_fast_delete_all()| filters          | **no**   | raw SQL, System Manager only|
     +---------------------+------------------+----------+-------------------------+
 
     ``run_fast_delete_all`` is the only one that bypasses the document
@@ -226,7 +226,7 @@ class BulkDeleteTask:
                 },
             )
 
-    # ── Fast truncate (superadmin only, no hooks) ─────────────────────────
+    # ── Fast truncate (System Manager only, no hooks) ─────────────────────
 
     async def run_fast_delete_all(
         self,
@@ -240,7 +240,7 @@ class BulkDeleteTask:
         """Delete records directly via SQL — no lifecycle hooks, no per-row overhead.
 
         ~100× faster than ``run_delete_all()`` for large datasets.
-        Only superadmins may call this method.
+        Only System Manager may call this method.
 
         Steps:
         1. DELETE FROM <doctype table> [WHERE <filters>]
@@ -263,7 +263,7 @@ class BulkDeleteTask:
         from grunt.metadata.registry import doctype_registry
         from grunt.search.service import _search_index_table
 
-        if not user.is_superadmin:
+        if "System Manager" not in (getattr(user, "roles", None) or []):
             await self._manager.send_to_user(
                 user_email,
                 {

@@ -98,7 +98,7 @@ class DocumentCollaborationRPCMixin:
 
         comment = await grunt_app.get_doc("Comment", comment_id)
         user = grunt_app.session
-        if comment.get("owner") != user.user and not user.is_superadmin:
+        if comment.get("owner") != user.user and not user.has_role("System Manager"):
             raise HTTPException(status.HTTP_403_FORBIDDEN, detail="Not allowed")
 
         await grunt_app.delete_doc("Comment", comment_id)

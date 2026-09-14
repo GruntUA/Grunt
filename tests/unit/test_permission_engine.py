@@ -46,6 +46,15 @@ def _user(
     return make_user(email, roles=roles or [], is_superadmin=is_superadmin)
 
 
+def _system_user() -> User:
+    """The internal SYSTEM_USER identity — the only thing RoleAccess.is_unrestricted
+    is True for (see grunt/permissions/access.py). A human holding "System
+    Manager" is scoped by matching permission rows like anyone else."""
+    from grunt.auth.doctypes.User.user import SYSTEM_USER
+
+    return SYSTEM_USER
+
+
 def _doctype(perms: list[dict]) -> DocType:
     return DocType(
         name="PermTest",
@@ -157,15 +166,25 @@ class TestPermissionMatchEvaluate:
 
 
 class TestRoleAccess:
-    def test_superadmin_is_unrestricted(self):
+    def test_system_user_is_unrestricted(self):
         dt = _doctype([{"role": "Employee", "read": True}])
-        access = RoleAccess(dt, _user(roles=[], is_superadmin=True))
+        access = RoleAccess(dt, _system_user())
         assert access.is_unrestricted
+        assert access.matching_permissions() == []
+
+    def test_system_manager_role_alone_is_not_unrestricted(self):
+        """A human holding "System Manager" is scoped by matching permission
+        rows, not an unconditional bypass — only the internal SYSTEM_USER
+        identity is (see test_system_user_is_unrestricted)."""
+        dt = _doctype([{"role": "Employee", "read": True}])
+        access = RoleAccess(dt, _user(roles=["System Manager"]))
+        assert not access.is_unrestricted
         assert access.matching_permissions() == []
 
     def test_no_permissions_defined_is_restricted(self):
         """Deny-by-default: no permission rows means nobody has been granted
-        access yet, not "open to anyone logged in". Only superadmin bypasses."""
+        access yet, not "open to anyone logged in". Only the internal
+        SYSTEM_USER identity bypasses."""
         dt = DocType(name="Closed", label="Closed", module="test", fields=[])
         access = RoleAccess(dt, _user(roles=["Employee"]))
         assert not access.is_unrestricted
@@ -210,10 +229,9 @@ class TestRoleAccess:
 
 
 class TestApplyPermissionFilter:
-    async def test_superadmin_unfiltered(self):
+    async def test_system_user_unfiltered(self):
         dt = _doctype([{"role": "Employee", "read": True, "match": "owner == user"}])
-        user = _user("admin@example.com", is_superadmin=True)
-        query = await apply_permission_filter(select(_TABLE), _TABLE, user, dt)
+        query = await apply_permission_filter(select(_TABLE), _TABLE, _system_user(), dt)
         assert query.whereclause is None
 
     async def test_no_permissions_defined_denies_all_rows(self):

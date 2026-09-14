@@ -162,16 +162,15 @@ export interface GruntProxy {
     user: string
     full_name: string
     roles: string[]
-    is_superadmin: boolean
     /** False for accounts provisioned via OIDC / email link that never set a password. */
     has_password: boolean
-    /** Set (with the impersonator) while a superadmin is viewing as this user. */
+    /** Set (with the impersonator) while a System Manager is viewing as this user. */
     impersonated_by: { email: string; full_name: string } | null
   }
   /**
-   * Superadmin only: open a short-lived session as another user to verify
+   * System Manager only: open a short-lived session as another user to verify
    * their access, then reload the app. Return to your own account from the
-   * banner at the top of the screen. Rejects for non-superadmins.
+   * banner at the top of the screen. Rejects for non-System-Managers.
    */
   impersonate: (userId: string) => Promise<void>
   /**
@@ -641,7 +640,6 @@ export function createGruntProxy(
         user: u?.email ?? 'guest@grunt.local',
         full_name: u?.full_name ?? 'Guest',
         roles: u?.roles ?? [],
-        is_superadmin: !!u?.is_superadmin,
         has_password: u?.has_password ?? true,
         impersonated_by: useAuthStore().impersonatedBy,
       }

@@ -143,10 +143,10 @@ class PermissionChecker:
     ) -> frozenset[str]:
         """Return the set of field names the user is NOT allowed to see.
 
-        If the user is superadmin or no permissions are defined, returns empty set.
-        For each matching role permission, the union of hidden_fields from the
-        *most permissive* (first matching) rule is used — i.e., if any matching
-        rule exposes a field, it is visible.
+        If no permissions are defined, returns empty set. For each matching
+        role permission, the union of hidden_fields from the *most permissive*
+        (first matching) rule is used — i.e., if any matching rule exposes a
+        field, it is visible.
         """
         access = RoleAccess(doctype, user)
         if access.is_unrestricted:

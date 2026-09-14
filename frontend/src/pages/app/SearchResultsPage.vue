@@ -128,7 +128,7 @@ async function reindex() {
         <p class="text-muted-foreground mt-0.5">Пошук по всіх документах системи</p>
       </div>
       <Button
-        v-if="auth.user?.is_superadmin"
+        v-if="auth.isSystemManager"
         variant="outline"
         size="sm"
         :disabled="isReindexing"
@@ -168,7 +168,7 @@ async function reindex() {
       <p class="text-muted-foreground">
         Нічого не знайдено для <b>"{{ q }}"</b>
       </p>
-      <Button variant="ghost" v-if="auth.user?.is_superadmin" size="sm" @click="reindex"><RefreshCw class="size-4 mr-2" />Спробувати перебудувати індекс</Button>
+      <Button variant="ghost" v-if="auth.isSystemManager" size="sm" @click="reindex"><RefreshCw class="size-4 mr-2" />Спробувати перебудувати індекс</Button>
     </div>
 
     <!-- ── Results ── -->

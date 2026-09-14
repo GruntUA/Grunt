@@ -25,17 +25,31 @@ def _make_doctype_with_perms(perms: list[dict]) -> DocType:
 
 
 @pytest.mark.asyncio
-async def test_superadmin_always_allowed():
-    """Superadmin bypasses all permission checks."""
+async def test_system_user_always_allowed():
+    """The internal SYSTEM_USER identity bypasses all permission checks — a
+    human holding "System Manager" is scoped by matching rows like anyone
+    else (see test_sensitive_doctype_permissions / test_readonly_log_doctypes,
+    where several DocTypes deliberately don't grant write to System Manager)."""
+    from grunt.auth.doctypes.User.user import SYSTEM_USER
+
+    dt = _make_doctype_with_perms([{"role": "Manager", "read": True}])
+    assert await permission_checker.check(SYSTEM_USER, dt, "read")
+
+
+@pytest.mark.asyncio
+async def test_system_manager_without_matching_row_denied():
+    """Holding "System Manager" doesn't bypass a DocType whose permissions
+    don't name it — only a matching permission row grants access."""
     user = make_user("user@example.com", is_superadmin=True)
     dt = _make_doctype_with_perms([{"role": "Manager", "read": True}])
-    assert await permission_checker.check(user, dt, "read")
+    assert not await permission_checker.check(user, dt, "read")
 
 
 @pytest.mark.asyncio
 async def test_no_permissions_means_closed():
-    """DocType with no permissions is closed to everyone but superadmin —
-    deny-by-default: no rows means nobody has been granted access yet."""
+    """DocType with no permissions is closed to everyone but the internal
+    SYSTEM_USER identity — deny-by-default: no rows means nobody has been
+    granted access yet."""
     user = make_user("user@example.com")
     dt = DocType(name="Closed", label="Closed", module="x", fields=[])
     assert not await permission_checker.check(user, dt, "read")
@@ -130,8 +144,8 @@ async def test_require_raises_on_deny():
 
 
 @pytest.mark.asyncio
-async def test_list_users_requires_superadmin(ctx):
-    """list_users requires superadmin (contextual check)."""
+async def test_list_users_requires_system_manager(ctx):
+    """list_users requires the System Manager role (contextual check)."""
 
     from grunt.app import grunt
     from grunt.auth.doctypes.User.user import User, list_users_api
@@ -148,9 +162,7 @@ async def test_list_users_requires_superadmin(ctx):
 
     # 2. Try to list users as regular user
     # We simulate this by changing the context user
-    reg_user_obj = User(
-        doctype="User", data={"email": reg_user_doc["email"], "is_superadmin": False}
-    )
+    reg_user_obj = User(doctype="User", data={"email": reg_user_doc["email"], "roles": []})
 
     from grunt.errors import APIError
 
@@ -161,8 +173,8 @@ async def test_list_users_requires_superadmin(ctx):
 
 
 @pytest.mark.asyncio
-async def test_list_users_as_superadmin(ctx):
-    """list_users works for superadmin."""
+async def test_list_users_as_system_manager(ctx):
+    """list_users works for System Manager."""
     from grunt.auth.doctypes.User.user import list_users_api, register
 
     # Register at least one user to list
@@ -218,14 +230,13 @@ async def test_count_respects_permissions(ctx):
     async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
         await create_user("boss@grunt.example.com", "Str0ngPass", "Boss", "One", None)
         me = await create_user("countme@grunt.example.com", "Str0ngPass", "Count", "Me", None)
-        await ctx.db.set_value("User", me.id, {"is_superadmin": False})
         await ctx.db._session().commit()
         raw_total = await grunt.count("User")
     assert raw_total >= 2
 
     me_ctx = User(
         doctype="User",
-        data={"email": me.id, "name": me.id, "roles": [], "is_superadmin": False},
+        data={"email": me.id, "name": me.id, "roles": []},
     )
     async with ctx.context(ctx.db._session(), ctx._require_engine(), me_ctx):
         assert await grunt.count("User", respect_permissions=True) == 1

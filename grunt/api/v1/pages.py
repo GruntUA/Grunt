@@ -36,7 +36,7 @@ async def list_pages() -> list[dict[str, Any]]:
     )
 
 
-@grunt.whitelist(roles=["superadmin"])
+@grunt.whitelist(roles=["System Manager"])
 async def register_page(page_data: dict[str, Any]) -> dict[str, Any]:
     """Register or update a custom page from an app. Admin only."""
     route = (page_data.get("route") or "").strip()
@@ -55,7 +55,7 @@ async def register_page(page_data: dict[str, Any]) -> dict[str, Any]:
     return {"route": route, "title": doc.get("title", route)}
 
 
-@grunt.whitelist(roles=["superadmin"])
+@grunt.whitelist(roles=["System Manager"])
 async def delete_page(route: str) -> bool:
     """Remove a custom page registration. Admin only."""
     if not route.startswith("/"):

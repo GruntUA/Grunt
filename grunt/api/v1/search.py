@@ -62,9 +62,9 @@ async def global_search(
     return results
 
 
-@grunt.whitelist(roles=["superadmin"])
+@grunt.whitelist(roles=["System Manager"])
 async def rebuild_index() -> dict[str, Any]:
-    """Rebuild the entire search index from scratch. Superadmin only."""
+    """Rebuild the entire search index from scratch. System Manager only."""
     from grunt.app import grunt as grunt_app
     from grunt.search.service import search_index_service
 

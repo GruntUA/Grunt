@@ -49,8 +49,8 @@ def create_access_token(
     """Create a JWT with user identity claims to avoid DB lookups on every request.
 
     When ``impersonator`` is given, the token authenticates as *user* but also
-    carries ``imp*`` claims naming the superadmin who opened the session — so
-    the UI can show a "you are viewing as …" banner and audit knows who acted.
+    carries ``imp*`` claims naming the System Manager who opened the session —
+    so the UI can show a "you are viewing as …" banner and audit knows who acted.
     """
     minutes = expire_minutes if expire_minutes is not None else settings.access_token_expire_minutes
     expire = datetime.now(UTC) + timedelta(minutes=minutes)
@@ -58,7 +58,6 @@ def create_access_token(
         "sub": user.email,
         "uid": user.id,
         "full_name": user.full_name,
-        "is_superadmin": user.is_superadmin,
         "is_active": user.is_active,
         "theme": user.theme,
         "roles": user.roles,

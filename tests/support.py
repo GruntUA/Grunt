@@ -17,6 +17,10 @@ if TYPE_CHECKING:
 def make_user(email: str, roles: list[str] | None = None, is_superadmin: bool = False) -> User:
     """Build a real, unsaved `User` Document for tests to act as.
 
+    ``is_superadmin=True`` grants full admin rights the same way it does in
+    production: by adding the "System Manager" role, not via a stored flag
+    (there is no such field on `User` anymore).
+
     Cheap despite being "real": `Document.__init__` only stores the data
     dict on the instance — no DocType/DB lookup happens at construction, so
     this doesn't touch the database (unlike driving a *target* doctype
@@ -25,7 +29,7 @@ def make_user(email: str, roles: list[str] | None = None, is_superadmin: bool = 
     """
     from grunt.auth.doctypes.User.user import User as _User
 
-    return _User(
-        doctype="User",
-        data={"email": email, "roles": roles or [], "is_superadmin": is_superadmin},
-    )
+    role_list = list(roles or [])
+    if is_superadmin and "System Manager" not in role_list:
+        role_list.append("System Manager")
+    return _User(doctype="User", data={"email": email, "roles": role_list})

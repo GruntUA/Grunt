@@ -10,7 +10,7 @@ class GruntSession:
 
     Example::
 
-        if grunt.session.is_superadmin:
+        if grunt.session.has_role("System Manager"):
             ...
         current_user = grunt.session.user
     """
@@ -32,12 +32,6 @@ class GruntSession:
         """List of role names assigned to the current user."""
         u = _user_ctx.get()
         return u.roles if u else []
-
-    @property
-    def is_superadmin(self) -> bool:
-        """Whether the current user is a superadmin."""
-        u = _user_ctx.get()
-        return u.is_superadmin if u else False
 
     def has_role(self, *roles: str) -> bool:
         """Return True if the current user has any of the given roles."""

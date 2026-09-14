@@ -112,7 +112,7 @@ class AppMenu(Document):
 
     def has_access(self, user: Any) -> bool:
         """Check if user has access to this workspace based on roles."""
-        if user.is_superadmin:
+        if "System Manager" in (getattr(user, "roles", None) or []):
             return True
         if not self.roles:
             return True

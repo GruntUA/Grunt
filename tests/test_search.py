@@ -42,7 +42,7 @@ async def regular_user_ctx(ctx):
     }
     await ctx.new_doc("User", reg_user_data)
     await ctx.db._session().commit()
-    return User(doctype="User", data={"email": "regular@example.com", "is_superadmin": False})
+    return User(doctype="User", data={"email": "regular@example.com", "roles": []})
 
 
 # ── Fixtures ──────────────────────────────────────────────────────────────
@@ -429,8 +429,8 @@ async def test_search_restricted_doctype_hidden_from_regular_user(ctx):
 
 
 @pytest.mark.asyncio
-async def test_search_restricted_doctype_visible_to_superadmin(ctx):
-    """Superadmin sees results from all DocTypes regardless of permissions."""
+async def test_search_restricted_doctype_visible_to_system_manager(ctx):
+    """System Manager sees results from all DocTypes regardless of permissions."""
     from grunt.api.v1.search import global_search
 
     restricted_dt = {
@@ -444,7 +444,7 @@ async def test_search_restricted_doctype_visible_to_superadmin(ctx):
     await create_and_sync(ctx, restricted_dt)
     await create_doc(ctx, "АдмінДок", {"name": "АД-001", "title": "Тільки для адміна ABC"})
 
-    # Default ctx has superadmin
+    # Default ctx has System Manager
     data = await global_search(q="Тільки для адміна ABC")
     assert any(r["doctype"] == "АдмінДок" for r in data)
 

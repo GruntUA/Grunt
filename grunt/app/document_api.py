@@ -523,7 +523,7 @@ class DocumentAPI:
         internal callers (bootstrap, formulas, background jobs) rely on that.
         Pass ``respect_permissions=True`` to apply the same row-level ``match``
         filter ``grunt.get_list`` uses, so the number never includes rows the
-        list view would hide. Superadmin / system context see the full count
+        list view would hide. The internal system context sees the full count
         either way.
         """
         if not respect_permissions:

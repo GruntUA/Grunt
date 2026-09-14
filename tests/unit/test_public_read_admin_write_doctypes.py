@@ -1,6 +1,6 @@
 """Regression: Page, AppMenu, Dashboard, NumberCard, DashboardChart and
 WebPage used to have no `permissions` at all. All six had a dedicated
-whitelisted method gating create/delete to `is_superadmin` (register_page/
+whitelisted method gating create/delete to System Manager (register_page/
 delete_page, save_workspace/delete_workspace, ...) or no dedicated writer at
 all (Dashboard/NumberCard/DashboardChart/WebPage are managed purely through
 the generic docs CRUD) — either way, that admin-only intent was never

@@ -1,4 +1,4 @@
-"""Tests for superadmin impersonation ("view as another user")."""
+"""Tests for System Manager impersonation ("view as another user")."""
 
 from __future__ import annotations
 
@@ -25,7 +25,7 @@ async def _login(client: AsyncClient, email: str, password: str) -> str:
 
 @pytest.fixture
 async def people(ctx):
-    """First user → superadmin; plus a regular user and a second superadmin."""
+    """First user → System Manager; plus a regular user and a second System Manager."""
     from grunt.auth.doctypes.User.user import create_user
 
     async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
@@ -33,13 +33,13 @@ async def people(ctx):
         member = await create_user("member@grunt.example.com", "Str0ngPass", "Mem", "Ber", None)
         await ctx.save_doc("User", member.id, {"roles": [{"role_name": "Кадровик"}]})
         other_admin = await create_user("admin2@grunt.example.com", "Str0ngPass", "Ad", "Min", None)
-        await ctx.db.set_value("User", other_admin.id, "is_superadmin", True)
+        await ctx.save_doc("User", other_admin.id, {"roles": [{"role_name": "System Manager"}]})
         await ctx.db._session().commit()
         return {"boss": boss.id, "member": member.id, "other_admin": other_admin.id}
 
 
 @pytest.mark.asyncio
-async def test_superadmin_views_as_member(ctx, client: AsyncClient, people):
+async def test_system_manager_views_as_member(ctx, client: AsyncClient, people):
     token = await _login(client, "boss@grunt.example.com", "Str0ngPass")
 
     resp = await client.post(
@@ -72,7 +72,7 @@ async def test_regular_user_cannot_impersonate(ctx, client: AsyncClient, people)
 
 
 @pytest.mark.asyncio
-async def test_cannot_impersonate_superadmin_or_self(ctx, client: AsyncClient, people):
+async def test_cannot_impersonate_system_manager_or_self(ctx, client: AsyncClient, people):
     token = await _login(client, "boss@grunt.example.com", "Str0ngPass")
     headers = {"Authorization": f"Bearer {token}"}
 

@@ -108,7 +108,7 @@ client.interceptors.response.use(
       originalConfig._retried = true
 
       // An impersonation session has no refresh token — a 401 means it expired
-      // or was rejected. Restore the superadmin's own session and retry once.
+      // or was rejected. Restore the System Manager's own session and retry once.
       {
         const { useAuthStore } = await import('@/stores/auth')
         const auth = useAuthStore()

@@ -138,7 +138,7 @@ async def bulk_delete(
 
     if delete_all:
         if fast:
-            # ── Fast path: direct SQL DELETE, superadmin only ─────────────
+            # ── Fast path: direct SQL DELETE, System Manager only ─────────
             async def _run_fast() -> None:
                 if active_site:
                     current_site.set(active_site)

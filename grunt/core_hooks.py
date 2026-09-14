@@ -9,7 +9,7 @@ lives here — declared, not imperatively registered in ``main.py``.
 from __future__ import annotations
 
 doc_events: dict[str, dict[str, list[str]]] = {
-    # Never hand a stored SMTP password back to a non-superadmin reader.
+    # Never hand a stored SMTP password back to a reader without System Manager.
     "EmailAccount": {
         "after_read": ["grunt.email.hooks.mask_smtp_password"],
     },

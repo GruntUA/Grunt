@@ -76,7 +76,7 @@ async def list_api_keys(user: User | None = None) -> list[dict[str, Any]]:
     user = user or await grunt.get_current_user()
 
     filters: dict[str, Any] = {}
-    if not user.is_superadmin:
+    if "System Manager" not in (user.roles or []):
         filters["user_id"] = user.id
 
     return await grunt.get_list(
@@ -149,6 +149,6 @@ async def revoke_api_key(key_id: str, user: User | None = None) -> bool:
 
 
 def _require_key_owner(key_doc: dict[str, Any], user: User) -> None:
-    """Raise 403 if user doesn't own the key and isn't a superadmin."""
-    if not user.is_superadmin and key_doc.get("user_id") != user.id:
+    """Raise 403 if user doesn't own the key and isn't System Manager."""
+    if "System Manager" not in (user.roles or []) and key_doc.get("user_id") != user.id:
         raise forbidden("Немає доступу до цього ключа")

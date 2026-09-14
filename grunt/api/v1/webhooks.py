@@ -30,7 +30,7 @@ async def receive_incoming_webhook(slug: str, request: Request) -> dict[str, Any
     return {"success": True, **result}
 
 
-@grunt.whitelist(roles=["superadmin"])
+@grunt.whitelist(roles=["System Manager"])
 async def test_outgoing_webhook(webhook_id: str) -> dict[str, Any]:
     """Send a test payload for an outgoing webhook."""
     from grunt.app import grunt as grunt_app
@@ -43,7 +43,7 @@ async def test_outgoing_webhook(webhook_id: str) -> dict[str, Any]:
     return result
 
 
-@grunt.whitelist(roles=["superadmin"])
+@grunt.whitelist(roles=["System Manager"])
 async def list_incoming_logs(webhook_id: str, page: int = 1, per_page: int = 20) -> dict[str, Any]:
     """List recent delivery logs for an incoming webhook."""
     logs = await grunt.get_list(

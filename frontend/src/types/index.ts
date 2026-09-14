@@ -387,7 +387,6 @@ export interface UserPublic {
   email: string
   full_name: string
   roles: string[]
-  is_superadmin: boolean
   created_at?: string | null
 }
 

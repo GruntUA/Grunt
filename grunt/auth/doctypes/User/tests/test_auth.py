@@ -93,19 +93,19 @@ async def test_authenticated_requests_load_current_roles(ctx, client: AsyncClien
 @pytest.mark.asyncio
 async def test_self_edit_scope(ctx):
     """A non-privileged user may save their own profile fields but not roles,
-    activation, superadmin or password state (`_enforce_self_edit_scope`)."""
+    activation or password state (`_enforce_self_edit_scope`)."""
     from grunt.auth.doctypes.User.user import User, create_user
 
     async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
         u = await create_user("selfedit@grunt.example.com", "Str0ngPass", "Self", "Edit", None)
         await ctx.new_doc("Role", {"role_name": "Manager"})
-        # create_user() makes the very first user a superadmin — demote so this
-        # exercises the non-privileged path.
-        await ctx.db.set_value("User", u.id, {"is_superadmin": False, "is_active": True})
+        # create_user() grants the very first user "System Manager" — demote so
+        # this exercises the non-privileged path.
+        await ctx.save_doc("User", u.id, {"roles": []})
         await ctx.db._session().commit()
         uid = u.id
 
-    me = User(doctype="User", data={"email": uid, "name": uid, "roles": [], "is_superadmin": False})
+    me = User(doctype="User", data={"email": uid, "name": uid, "roles": []})
 
     async with ctx.context(ctx.db._session(), ctx._require_engine(), me):
         # profile field — allowed
@@ -113,7 +113,6 @@ async def test_self_edit_scope(ctx):
         await ctx.db._session().commit()
 
         for forbidden_patch in (
-            {"is_superadmin": True},
             {"is_active": False},
             {"signup_state": "pending"},
             {"roles": [{"role_name": "Manager"}]},
@@ -126,10 +125,9 @@ async def test_self_edit_scope(ctx):
 
     async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
         row = await ctx.db.get_all(
-            "User", filters={"name": uid}, fields=["first_name", "is_superadmin"], limit=1
+            "User", filters={"name": uid}, fields=["first_name"], limit=1
         )
     assert row[0]["first_name"] == "Renamed"
-    assert not row[0]["is_superadmin"]
 
 
 async def _set_settings(ctx, **values) -> None:
@@ -141,20 +139,20 @@ async def _set_settings(ctx, **values) -> None:
 
 
 @pytest.mark.asyncio
-async def test_first_user_superadmin_and_registration_gate(ctx):
-    """First user is always allowed and becomes superadmin; later self-signup
-    obeys allow_user_registration and receives default_role."""
+async def test_first_user_system_manager_and_registration_gate(ctx):
+    """First user is always allowed and gets the "System Manager" role; later
+    self-signup obeys allow_user_registration and receives default_role."""
     from grunt.api.messages import ApplicationError
     from grunt.auth.doctypes.User.user import get_user_by_email, register
 
     async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
-        # First user: allowed even with registration disabled, gets superadmin.
+        # First user: allowed even with registration disabled, gets System Manager.
         await _set_settings(ctx, allow_user_registration=False, default_role=None)
         await register(email="one@grunt.example.com", password="x", first_name="One", last_name="U")
         await ctx.db._session().commit()
 
         u1 = await get_user_by_email("one@grunt.example.com")
-        assert u1 is not None and u1.is_superadmin is True
+        assert u1 is not None and "System Manager" in (u1.roles or [])
 
         # Second user is now blocked.
         with pytest.raises(ApplicationError) as excinfo:
@@ -173,7 +171,7 @@ async def test_first_user_superadmin_and_registration_gate(ctx):
         await ctx.db._session().commit()
 
         u2 = await get_user_by_email("two@grunt.example.com")
-        assert u2 is not None and u2.is_superadmin is False
+        assert u2 is not None and "System Manager" not in (u2.roles or [])
 
         roles = await ctx.db.get_all(
             "UserRole",
@@ -281,10 +279,10 @@ async def test_register_rejects_weak_password(ctx):
 @pytest.mark.asyncio
 async def test_signup_approval_flow(ctx, client: AsyncClient):
     """require_signup_approval: a self-registered user is 'pending' and cannot
-    log in until a superadmin approves them."""
+    log in until a System Manager approves them."""
     from grunt.auth.doctypes.User.user import create_user
 
-    # First user = superadmin (bootstrap), always approved, does the approving.
+    # First user = System Manager (bootstrap), always approved, does the approving.
     async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
         await create_user("root@grunt.example.com", "Str0ngPass", "Root", "Admin", None)
         await ctx.db._session().commit()
@@ -312,7 +310,7 @@ async def test_signup_approval_flow(ctx, client: AsyncClient):
     assert body["approval_pending"] is True
     assert body["access_token"] is None
 
-    # Superadmin approves.
+    # System Manager approves.
     admin_login = await client.post(
         "/api/v1/method/grunt.auth.doctypes.User.user.login_api",
         json={"email": "root@grunt.example.com", "password": "Str0ngPass"},
@@ -377,10 +375,9 @@ async def test_set_user_password_self_service(ctx, client: AsyncClient):
         boss = await create_user("pwboss@grunt.example.com", "Str0ngPass", "Pw", "Boss", None)
         me = await create_user("pwme@grunt.example.com", "Str0ngPass", "Pw", "Me", None)
         other = await create_user("pwother@grunt.example.com", "Str0ngPass", "Pw", "Other", None)
-        await ctx.db.set_value("User", me.id, {"is_superadmin": False, "is_active": True})
-        await ctx.db.set_value("User", other.id, {"is_superadmin": False, "is_active": True})
         await ctx.db._session().commit()
-        assert boss  # first user → superadmin, keeps the demoted users non-privileged
+        assert me and other
+        assert boss  # first user → System Manager, later users stay non-privileged
 
     async def _login(email: str, password: str) -> dict[str, str]:
         r = await client.post(
@@ -417,7 +414,7 @@ async def test_set_user_password_self_service(ctx, client: AsyncClient):
     # new password now works, old one does not
     await _login("pwme@grunt.example.com", "N3wStr0ngPass")
 
-    # cannot change someone else's password without System Manager / superadmin
+    # cannot change someone else's password without the System Manager role
     forbidden = await client.post(
         _SET_PWD,
         json={
@@ -429,7 +426,7 @@ async def test_set_user_password_self_service(ctx, client: AsyncClient):
     )
     assert forbidden.status_code == 403
 
-    # a superadmin sets anyone's password with no current_password
+    # a System Manager sets anyone's password with no current_password
     admin_headers = await _login("pwboss@grunt.example.com", "Str0ngPass")
     admin_ok = await client.post(
         _SET_PWD,
@@ -453,9 +450,9 @@ async def test_set_password_first_time_for_passwordless_user(ctx, client: AsyncC
     from grunt.auth.login import find_or_create_external_user
 
     async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
-        await create_user("first@grunt.example.com", "Str0ngPass", "Fir", "St", None)  # superadmin
+        await create_user("first@grunt.example.com", "Str0ngPass", "Fir", "St", None)  # System Manager
         ext = await find_or_create_external_user("passwordless@grunt.example.com", "Pw Less")
-        await ctx.db.set_value("User", ext.id, {"is_superadmin": False, "is_active": True})
+        await ctx.db.set_value("User", ext.id, {"is_active": True})
         await ctx.db._session().commit()
         assert not ext.hashed_password  # provisioned without a password
 
@@ -475,7 +472,6 @@ async def test_set_password_first_time_for_passwordless_user(ctx, client: AsyncC
                 "email": "passwordless@grunt.example.com",
                 "name": "passwordless@grunt.example.com",
                 "roles": [],
-                "is_superadmin": False,
             },
         ),
     ):
@@ -491,7 +487,6 @@ async def test_set_password_first_time_for_passwordless_user(ctx, client: AsyncC
                 "email": "passwordless@grunt.example.com",
                 "name": "passwordless@grunt.example.com",
                 "roles": [],
-                "is_superadmin": False,
             },
         ),
     ):

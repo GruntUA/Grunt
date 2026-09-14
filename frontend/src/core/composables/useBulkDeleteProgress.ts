@@ -89,7 +89,7 @@ export function useBulkDeleteProgress(params: UseBulkDeleteProgressParams) {
     }
   }
 
-  /** Fast delete — direct SQL, no hooks, superadmin only. Near-instant for large datasets. */
+  /** Fast delete — direct SQL, no hooks, System Manager only. Near-instant for large datasets. */
   async function bulkFastDelete() {
     const total = params.metaTotal.value
     const unsubscribe = _subscribeProgress(total)

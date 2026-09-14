@@ -195,19 +195,19 @@ def db_trim_tables(doctype: str | None, dry_run: bool, quiet: bool, site: str | 
                     # can iterate them — reads only, no schema/JSON merge here.
                     await doctype_registry.load_all(session)
 
-                    # Fetch target Meta(s)
-                    grunt.session.set_context(session, eng)
-                    if doctype:
-                        metas = [await grunt.get_meta(doctype)]
-                    else:
-                        from grunt.document.meta import Meta
+                    async with grunt.system_context(session, eng):
+                        # Fetch target Meta(s)
+                        if doctype:
+                            metas = [await grunt.get_meta(doctype)]
+                        else:
+                            from grunt.document.meta import Meta
 
-                        all_dts = await doctype_registry.list_all()
-                        metas = [Meta(dt) for dt in all_dts]
+                            all_dts = await doctype_registry.list_all()
+                            metas = [Meta(dt) for dt in all_dts]
 
-                    # Trim them
-                    for m in metas:
-                        await m.trim_table(engine=eng, dry_run=dry_run, quiet=quiet)
+                        # Trim them
+                        for m in metas:
+                            await m.trim_table(engine=eng, dry_run=dry_run, quiet=quiet)
             finally:
                 current_site.reset(token)
 

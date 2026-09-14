@@ -35,7 +35,6 @@ async def run_server_script(method: str, params: dict[str, Any] | None = None) -
         trusted=script.get("trusted", False),
         user_email=user.email,
         user_roles=user.roles,
-        is_superadmin=user.is_superadmin,
     )
 
     if not result.success:

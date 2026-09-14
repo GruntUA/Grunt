@@ -2,9 +2,9 @@
 
 Plain CRUD (list/get/create/update/delete) on the ``Report`` doctype is
 covered end-to-end through the generic ``/api/v1/docs/Report`` REST routes —
-these tests exercise real permission enforcement (superadmin-only
+these tests exercise real permission enforcement (System-Manager-only
 write/create/delete, any-authenticated-user read) rather than calling
-Python functions directly under a superadmin-bypassing context.
+Python functions directly under a System-Manager-bypassing context.
 
 Report *execution* (``run``/``preview``) and the xlsx export
 (``export_xlsx``) are RPC-only — those are still exercised as direct
@@ -19,10 +19,10 @@ from httpx import AsyncClient
 
 
 async def _register_regular_user(client: AsyncClient, email: str) -> dict[str, str]:
-    """Register a second (non-superadmin) user and return its auth headers.
+    """Register a second (non-admin) user and return its auth headers.
 
-    The first user ever registered on a site becomes superadmin; any
-    subsequent registration is a plain user (see grunt/auth/doctypes/User/user.py).
+    The first user ever registered on a site gets the "System Manager" role;
+    any subsequent registration is a plain user (see grunt/auth/doctypes/User/user.py).
     """
     r_reg = await client.post(
         "/api/v1/method/grunt.auth.doctypes.User.user.register_full_name_api",
@@ -43,8 +43,8 @@ async def _register_regular_user(client: AsyncClient, email: str) -> dict[str, s
 
 
 @pytest.mark.asyncio
-async def test_report_crud_full_cycle_as_superadmin(client: AsyncClient, auth_headers):
-    """Superadmin can list/create/get/update/delete a Report via generic docs CRUD."""
+async def test_report_crud_full_cycle_as_system_manager(client: AsyncClient, auth_headers):
+    """System Manager can list/create/get/update/delete a Report via generic docs CRUD."""
     # Create
     r_create = await client.post(
         "/api/v1/docs/Report",
@@ -87,7 +87,7 @@ async def test_report_crud_full_cycle_as_superadmin(client: AsyncClient, auth_he
 
 @pytest.mark.asyncio
 async def test_report_read_allowed_for_any_authenticated_user(client: AsyncClient, auth_headers):
-    """Any authenticated user can read reports, not just superadmin/System Manager."""
+    """Any authenticated user can read reports, not just System Manager."""
     r_create = await client.post(
         "/api/v1/docs/Report",
         json={"report_name": "Readable Report", "report_type": "Query", "query": "SELECT 1"},
@@ -104,15 +104,15 @@ async def test_report_read_allowed_for_any_authenticated_user(client: AsyncClien
 
 @pytest.mark.asyncio
 async def test_report_write_forbidden_for_regular_user(client: AsyncClient, auth_headers):
-    """A regular (non-superadmin) user cannot create, update, or delete reports.
+    """A regular (non-admin) user cannot create, update, or delete reports.
 
     Regression guard for the Report.json permissions weakening this test suite
     was written to catch: the doctype's permissions must not grant write to
-    any role broader than superadmin (see Report.json — only {"role": "All",
+    any role broader than System Manager (see Report.json — only {"role": "All",
     "read": true} is defined, so write/create/delete fall through to
-    "nobody but superadmin").
+    "nobody but System Manager").
     """
-    # Seed one report as superadmin so there's something to attack via update/delete.
+    # Seed one report as System Manager so there's something to attack via update/delete.
     r_create = await client.post(
         "/api/v1/docs/Report",
         json={"report_name": "Protected Report", "report_type": "Query", "query": "SELECT 1"},

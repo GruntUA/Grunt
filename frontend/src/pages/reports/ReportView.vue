@@ -172,7 +172,7 @@ function openBuilder() {
                     <Download class="size-4 mr-2" />
                     XLSX
                 </Button>
-                <Button size="sm" @click="openBuilder" v-if="auth.user?.is_superadmin">
+                <Button size="sm" @click="openBuilder" v-if="auth.isSystemManager">
                     <Settings2 class="size-4 mr-2" />
                     Конструктор
                 </Button>

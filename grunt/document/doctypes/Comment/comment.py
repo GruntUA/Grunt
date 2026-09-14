@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from grunt.document.base import Document
+from grunt.permissions.roles import user_has_roles
 
 
 class Comment(Document):
@@ -20,7 +21,7 @@ class Comment(Document):
     async def before_delete(self) -> None:
         if (
             self.user
-            and not getattr(self.user, "is_superadmin", False)
+            and not user_has_roles(self.user, ["System Manager"])
             and self.owner != self.user.email
         ):
             self.grunt.throw("Видалити коментар може лише автор або адміністратор")

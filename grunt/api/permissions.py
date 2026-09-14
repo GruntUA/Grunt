@@ -34,6 +34,6 @@ async def get_current_user() -> User:
     """Get the current user from context.
 
     Returns:
-        User with email, full_name, roles, is_superadmin
+        User with email, full_name, roles
     """
     return get_user()

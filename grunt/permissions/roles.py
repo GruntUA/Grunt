@@ -15,10 +15,8 @@ if TYPE_CHECKING:
 
 
 def user_has_roles(user: User | None, roles: list[str]) -> bool:
-    """True if ``user`` is superadmin or holds at least one of ``roles``."""
+    """True if ``user`` holds at least one of ``roles``."""
     if user is None:
         return False
-    if getattr(user, "is_superadmin", False):
-        return True
     user_roles = getattr(user, "roles", None) or []
     return any(r in user_roles for r in roles)

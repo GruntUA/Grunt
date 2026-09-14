@@ -22,7 +22,7 @@ GUEST_USER = "guest@grunt.local"
 
 
 def _guest_user() -> User:
-    """Synthetic, non-superadmin identity for anonymous webform submissions."""
+    """Synthetic, non-admin identity for anonymous webform submissions."""
     from grunt.auth.doctypes.User.user import User as _User
 
     return _User(
@@ -31,7 +31,6 @@ def _guest_user() -> User:
             "email": GUEST_USER,
             "full_name": "Guest",
             "roles": ["Guest"],
-            "is_superadmin": False,
             "is_active": True,
         },
     )

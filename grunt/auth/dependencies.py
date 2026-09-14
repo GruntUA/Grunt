@@ -46,10 +46,10 @@ async def current_user(
        ``api/v1/ws.py::_authenticate_ws``, which reads its own ``token`` query
        param directly rather than going through this dependency.
 
-    The JWT identifies the user, while mutable authorization attributes (roles,
-    superadmin status, and active status) are loaded from the database for each
-    request. This makes role removals and account deactivation effective before
-    the access token expires.
+    The JWT identifies the user, while mutable authorization attributes (roles
+    and active status) are loaded from the database for each request. This
+    makes role removals and account deactivation effective before the access
+    token expires.
     """
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -100,7 +100,7 @@ async def current_user(
         raise credentials_exception
 
     # Impersonation session: the token authenticates as ``user`` but names the
-    # superadmin who opened it. Stash it so ``whoami`` / audit can surface it.
+    # System Manager who opened it. Stash it so ``whoami`` / audit can surface it.
     if payload.get("imp"):
         user.data["_impersonator"] = {
             "id": payload.get("imp"),
@@ -142,11 +142,13 @@ async def optional_user(
 async def superadmin_user(
     user: User = Depends(current_user),
 ) -> User:
-    """Ensure the current user is a superadmin."""
-    if not user.is_superadmin:
+    """Ensure the current user holds the "System Manager" role."""
+    from grunt.permissions.roles import user_has_roles
+
+    if not user_has_roles(user, ["System Manager"]):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Superadmin privileges required",
+            detail="System Manager privileges required",
         )
     return user
 

@@ -44,7 +44,7 @@ def users_create(email, password, full_name, site):
                 user = await create_user(email, password, first_name, last_name, middle_name)
             await session.commit()
 
-        label = "superadmin" if user.is_superadmin else "user"
+        label = "адміністратора" if "System Manager" in (user.roles or []) else "користувача"
         click.echo(f"Створено {label}: {user.email} ({user.full_name})")
 
     asyncio.run(_run())
@@ -69,12 +69,11 @@ def users_list(site):
             click.echo("Користувачів немає.")
             return
 
-        click.echo(f"{'Email':<35} {"Ім'я":<25} {'Ролі':<20} Суперадмін")
+        click.echo(f"{'Email':<35} {"Ім'я":<25} Ролі")
         click.echo("-" * 90)
         for u in users:
             roles = ", ".join(u.roles) or "—"
-            superadmin = "так" if u.is_superadmin else ""
-            click.echo(f"{u.email:<35} {u.full_name:<25} {roles:<20} {superadmin}")
+            click.echo(f"{u.email:<35} {u.full_name:<25} {roles}")
 
     asyncio.run(_run())
 

@@ -68,10 +68,10 @@ async def test_workspace_get_workspace_404_for_missing(ctx):
 
 
 @pytest.mark.asyncio
-async def test_workspace_save_requires_superadmin(ctx):
+async def test_workspace_save_requires_system_manager(ctx):
     from grunt.api.v1.workspace import save_workspace
 
-    regular = make_user("ws-regular@grunt.example.com", is_superadmin=False)
+    regular = make_user("ws-regular@grunt.example.com")
     async with ctx.context(ctx.db._session(), ctx._require_engine(), regular):
         with pytest.raises(APIError) as excinfo:
             await save_workspace({"label": "Should Not Save", "app": "grunt"})

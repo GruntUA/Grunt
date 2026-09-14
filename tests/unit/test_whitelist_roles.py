@@ -15,8 +15,8 @@ from grunt.errors import APIError
 from tests.support import make_user
 
 
-@grunt.whitelist(roles=["superadmin"])
-async def _superadmin_only() -> str:
+@grunt.whitelist(roles=["System Manager"])
+async def _admin_only() -> str:
     return "ok"
 
 
@@ -27,32 +27,32 @@ async def _require_predicate() -> str:
 
 @pytest.mark.asyncio
 async def test_roles_denies_user_without_role(ctx):
-    regular = make_user("regular@grunt.example.com", is_superadmin=False)
+    regular = make_user("regular@grunt.example.com")
     async with ctx.context(ctx.db._session(), ctx._require_engine(), regular):
         with pytest.raises(APIError) as excinfo:
-            await _superadmin_only()
+            await _admin_only()
         assert excinfo.value.status_code == 403
 
 
 @pytest.mark.asyncio
-async def test_roles_allows_superadmin(ctx):
+async def test_roles_allows_system_manager(ctx):
     admin = make_user("admin@grunt.example.com", is_superadmin=True)
     async with ctx.context(ctx.db._session(), ctx._require_engine(), admin):
-        assert await _superadmin_only() == "ok"
+        assert await _admin_only() == "ok"
 
 
 @pytest.mark.asyncio
 async def test_roles_allows_matching_role(ctx):
-    editor = make_user("editor@grunt.example.com", roles=["superadmin"], is_superadmin=False)
+    editor = make_user("editor@grunt.example.com", roles=["System Manager"])
     async with ctx.context(ctx.db._session(), ctx._require_engine(), editor):
-        assert await _superadmin_only() == "ok"
+        assert await _admin_only() == "ok"
 
 
 @pytest.mark.asyncio
 async def test_roles_denies_guest(ctx):
     async with ctx.context(ctx.db._session(), ctx._require_engine(), None):
         with pytest.raises(APIError) as excinfo:
-            await _superadmin_only()
+            await _admin_only()
         assert excinfo.value.status_code == 403
 
 
@@ -76,7 +76,7 @@ async def test_require_predicate_allows_when_true(ctx):
 async def test_enforcement_applies_to_direct_call_not_only_http_dispatch(ctx):
     """A direct Python call (no HTTP dispatcher involved) must still be gated —
     this is the exact scenario a dispatcher-only check would silently skip."""
-    regular = make_user("direct-call@grunt.example.com", is_superadmin=False)
+    regular = make_user("direct-call@grunt.example.com")
     async with ctx.context(ctx.db._session(), ctx._require_engine(), regular):
         with pytest.raises(APIError):
-            await _superadmin_only()
+            await _admin_only()

@@ -67,9 +67,9 @@ async def register_app(
     version: str = "0.1.0",
     modules: list[str] | None = None,
 ) -> dict[str, Any]:
-    """Register a new installed app. Superadmin only."""
+    """Register a new installed app. System Manager only."""
     user = grunt_app._require_user()
-    if not user.is_superadmin:
+    if "System Manager" not in (user.roles or []):
         grunt_app.throw("Not authorized", "PERMISSION_DENIED")
 
     if not name:
@@ -117,9 +117,9 @@ async def add_module(name: str, module: str) -> dict[str, Any]:
 
 @whitelist()
 async def delete_app(name: str) -> bool:
-    """Uninstall an app. Superadmin only."""
+    """Uninstall an app. System Manager only."""
     user = grunt_app._require_user()
-    if not user.is_superadmin:
+    if "System Manager" not in (user.roles or []):
         grunt_app.throw("Not authorized", "PERMISSION_DENIED")
 
     apps = await grunt_app.get_list("GruntInstalledApp", filters={"name": name})

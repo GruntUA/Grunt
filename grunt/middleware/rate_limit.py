@@ -1,14 +1,14 @@
 """Per-user/per-role rate limiting middleware.
 
 Tiers (configurable via settings):
-  superadmin  — unlimited
+  System Manager      — unlimited
   authenticated user  — settings.rate_limit_user  (default 200 req/min)
   anonymous (IP)      — settings.rate_limit_anon  (default 30 req/min)
 
 Algorithm: fixed-window per 60-second bucket.
 Storage:   in-memory dict (no Redis dependency; use Redis for multi-process).
 
-JWT is decoded lightly — only to extract email + is_superadmin claims.
+JWT is decoded lightly — only to extract email + roles claims.
 The signature IS verified (same secret_key) so the tier cannot be spoofed.
 """
 
@@ -149,11 +149,11 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         payload = self._decode_token(request.headers.get("authorization"))
 
         if payload:
-            is_superadmin = bool(payload.get("is_superadmin"))
+            is_system_manager = "System Manager" in (payload.get("roles") or [])
             email: str = payload.get("sub") or payload.get("email") or "unknown"
 
-            # Superadmins: unlimited
-            if is_superadmin:
+            # System Manager: unlimited
+            if is_system_manager:
                 return await call_next(request)
 
             limit: int = getattr(settings, "rate_limit_user", 200)

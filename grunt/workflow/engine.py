@@ -51,9 +51,8 @@ class WorkflowEngine:
             # Check roles
             if t.allowed_roles:
                 user_roles = set(getattr(user, "roles", []) or [])
-                if not user_roles.intersection(set(t.allowed_roles)) and not getattr(
-                    user, "is_superadmin", False
-                ):
+                allowed = user_roles.intersection(t.allowed_roles) or "System Manager" in user_roles
+                if not allowed:
                     continue
             # Check condition
             if t.condition and not self._eval_condition(t.condition, doc, user.email):

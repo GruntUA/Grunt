@@ -32,8 +32,7 @@ const fakeUser = {
   id: 'usr-1',
   email: 'admin@grunt.local',
   full_name: 'Admin',
-  roles: ['Administrator'],
-  is_superadmin: true,
+  roles: ['System Manager'],
   theme: 'system' as const,
 }
 

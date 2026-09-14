@@ -55,8 +55,7 @@ def get_user() -> User:
                 "name": "system",
                 "email": "system",
                 "full_name": "System",
-                "roles": [],
-                "is_superadmin": True,
+                "roles": ["System Manager"],
             },
         )
     return user
@@ -110,10 +109,12 @@ def whitelist(allow_guest: bool = False, *, roles: list[str] | None = None, requ
     other Python code (a hook, a test, another whitelisted method) — by reading
     the caller's identity from the active grunt context at call time:
 
-        @grunt.whitelist(roles=["superadmin"])
+        @grunt.whitelist(roles=["System Manager"])
         async def approve_user_api(user_id: str) -> bool: ...
 
-        @grunt.whitelist(require=lambda user: user.is_superadmin or user.id == target_id)
+        @grunt.whitelist(
+            require=lambda user: "System Manager" in (user.roles or []) or user.id == target_id
+        )
         async def reset_own_or_admin(...): ...
 
     A 403 is raised before the function body runs either way — there is no

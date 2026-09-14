@@ -231,7 +231,7 @@ onMounted(loadTimeline)
             <span class="font-medium text-foreground truncate">{{ item.user }}</span>
             <div class="flex items-center gap-1 shrink-0">
                 <span class="text-muted-foreground">{{ fmtDate(item.created_at) }}</span>
-                <button v-if="item.type === 'comment' && (item.user === auth.user?.email || auth.user?.is_superadmin)"
+                <button v-if="item.type === 'comment' && (item.user === auth.user?.email || auth.isSystemManager)"
                     class="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-destructive/10 hover:text-destructive"
                     @click="deleteComment(item)">
                     <Trash2 class="size-3" />

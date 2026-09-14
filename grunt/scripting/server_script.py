@@ -176,12 +176,9 @@ class _DBProxy:
 class _SessionProxy:
     """Session info exposed as ``grunt.session`` inside scripts."""
 
-    def __init__(
-        self, user_email: str = "", roles: list[str] | None = None, is_superadmin: bool = False
-    ) -> None:
+    def __init__(self, user_email: str = "", roles: list[str] | None = None) -> None:
         self.user = user_email
         self.roles = roles or []
-        self.is_superadmin = is_superadmin
 
     def has_role(self, *roles: str) -> bool:
         """Return True if the current user has any of the given roles."""
@@ -207,13 +204,12 @@ class ScriptContext:
         bridge: _SyncBridge | None = None,
         user_email: str = "",
         user_roles: list[str] | None = None,
-        is_superadmin: bool = False,
     ) -> None:
         self._session = session
         self._bridge = bridge
         self._response: dict[str, Any] = {}
         self._flags: dict[str, Any] = {}
-        self.session = _SessionProxy(user_email, roles=user_roles, is_superadmin=is_superadmin)
+        self.session = _SessionProxy(user_email, roles=user_roles)
         self.db = _DBProxy(bridge, session) if bridge and session else None
 
     def _get_session(self) -> AsyncSession:
@@ -569,7 +565,6 @@ class ServerScriptRunner:
         trusted: bool = False,
         user_email: str = "",
         user_roles: list[str] | None = None,
-        is_superadmin: bool = False,
     ) -> ScriptResult:
         """Execute a server script in a sandboxed environment.
 
@@ -581,7 +576,6 @@ class ServerScriptRunner:
             trusted: If True, skip security validation (for file-based app scripts).
             user_email: Current user email for grunt.session.
             user_roles: Roles of the current user for grunt.session.roles.
-            is_superadmin: Whether the current user is a superadmin.
 
         Returns:
             ScriptResult with success status, captured output, and response data.
@@ -610,7 +604,6 @@ class ServerScriptRunner:
             bridge=bridge,
             user_email=user_email,
             user_roles=user_roles,
-            is_superadmin=is_superadmin,
         )
         stdout_buf = io.StringIO()
         script_globals = build_safe_globals(

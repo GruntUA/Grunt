@@ -14,7 +14,7 @@ touch documents that link (via a Link field) to *for_value* of DocType *allow*.
 * When ``allow`` is a tree DocType, ``for_value`` also authorises the whole
   subtree beneath it (a parent department → all its sub-units).
 
-Not applied to superadmin or System Manager. When SystemSettings
+Not applied to System Manager. When SystemSettings
 ``apply_strict_user_permissions`` is on, a restricted ``allow`` with no Link
 field on the target DocType (or a NULL value) blocks rather than passes.
 
@@ -52,10 +52,8 @@ def invalidate_user_permission_cache(user_id: str | None = None) -> None:
 
 
 def user_permissions_apply_to(user: User | None) -> bool:
-    """User Permissions bind everyone except superadmin and System Manager."""
+    """User Permissions bind everyone except System Manager."""
     if user is None:
-        return False
-    if getattr(user, "is_superadmin", False):
         return False
     return "System Manager" not in (getattr(user, "roles", None) or [])
 

@@ -40,7 +40,7 @@ async function onLanguageChange(lang: unknown) { await auth.setLanguage(lang as 
 async function handleLogout() { await auth.logout(); router.push('/login') }
 async function exitImpersonation() {
   await auth.stopImpersonation()
-  // Full reload so every store re-initialises under the superadmin identity.
+  // Full reload so every store re-initialises under the System Manager identity.
   window.location.href = '/'
 }
 
@@ -185,7 +185,7 @@ watch(() => router.currentRoute.value.path, () => { if (appStore.active) appStor
       </template>
 
       <!-- Admin shortcuts -->
-      <SidebarGroup v-if="auth.user?.is_superadmin" class="mt-auto">
+      <SidebarGroup v-if="auth.isSystemManager" class="mt-auto">
         <SidebarGroupLabel>Налаштування</SidebarGroupLabel>
         <SidebarGroupContent>
           <SidebarMenu>

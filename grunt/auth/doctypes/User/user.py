@@ -20,6 +20,7 @@ if TYPE_CHECKING:
 import grunt
 from grunt.document.base import Document
 from grunt.document.schema import Schema
+from grunt.permissions.roles import user_has_roles
 
 _MAX_ATTEMPTS = 10
 _LOCKOUT_MINUTES = 30
@@ -27,7 +28,7 @@ _LOCKOUT_MINUTES = 30
 # When a non-privileged user saves their *own* record via the generic form (the
 # "All" permission row lets them), these fields must not change. Roles live in
 # the `roles` child table and are guarded separately. Privileged callers
-# (System Manager / superadmin) and internal/system code bypass this.
+# (System Manager) and internal/system code bypass this.
 #
 # Two tiers:
 #  * _GUARDED — user-meaningful privileged fields; changing one is a real
@@ -38,7 +39,6 @@ _LOCKOUT_MINUTES = 30
 _GUARDED_USER_FIELDS: dict[str, str] = {
     "email": "Email",  # autoname source — renaming an account is an admin action
     "is_active": "Активний",
-    "is_superadmin": "Суперадмін",
     "signup_state": "Стан реєстрації",
     "password": "Пароль",
 }
@@ -81,7 +81,6 @@ class User(Document):
     timezone: str | None
     bio: str | None
     is_active: bool
-    is_superadmin: bool
     signup_state: str
     password: str | None
     hashed_password: str | None
@@ -107,20 +106,18 @@ class User(Document):
 
         The ``{"role": "All", "match": "name == user"}`` permission on User lets
         any authenticated user save *their own* profile via the generic form.
-        This keeps that to profile fields only — roles, activation, superadmin,
-        password and MFA state stay admin-only. System Manager / superadmin and
+        This keeps that to profile fields only — roles, activation,
+        password and MFA state stay admin-only. System Manager and
         internal/system code (registration, fixtures, ``_assign_default_role``)
         are unrestricted.
         """
-        from grunt.permissions.roles import user_has_roles
-
         try:
             current = await grunt.get_current_user()
         except Exception:
             return
         if current is None or not getattr(current, "id", None):
             return
-        if user_has_roles(current, ["System Manager"]):  # True for superadmin too
+        if user_has_roles(current, ["System Manager"]):
             return
         if await _is_internal_context():
             return
@@ -212,16 +209,18 @@ class User(Document):
 class UserPublic(Schema):
     """Fields safe to return from whoami/register/list_users_api."""
 
-    fields = ("name", "email", "full_name", "avatar", "roles", "is_superadmin")
+    fields = ("name", "email", "full_name", "avatar", "roles")
 
 
-# Convenience system-user singleton for internal tasks.
+# Convenience system-user singleton for internal tasks. Admin rights come from
+# holding the "System Manager" role, same as any other user — no special-case
+# bypass for this identity.
 SYSTEM_USER = User(
     doctype="User",
     data={
         "email": "system@grunt.local",
         "full_name": "System",
-        "is_superadmin": True,
+        "roles": ["System Manager"],
         "is_active": True,
         "theme": "system",
         "language": "uk",
@@ -329,28 +328,39 @@ async def create_user(
     last_name: str,
     middle_name: str | None,
 ) -> User:
-    """Create a new user. The first user automatically becomes superadmin."""
+    """Create a new user. The first user automatically gets the "System Manager" role."""
     from grunt.context import require_session
     from grunt.site.manager import site_manager
 
     session = require_session()
     engine = site_manager.get_engine(site_manager.get_active_site())
     async with grunt.system_context(session, engine):
-        is_superadmin = await User.objects.count() == 0
+        is_first_user = await User.objects.count() == 0
         await User.objects.create(
             email=email,
             first_name=first_name,
             last_name=last_name,
             middle_name=middle_name,
             password=password,
-            is_superadmin=is_superadmin,
             is_active=True,
         )
-        log.info("user.created", email=email, superadmin=is_superadmin)
+        if is_first_user:
+            await _grant_system_manager(email)
+        log.info("user.created", email=email, first_user=is_first_user)
 
     user = await get_user_by_email(email)
     assert user is not None
     return user
+
+
+async def _grant_system_manager(user_id: str) -> None:
+    """Ensure the "System Manager" role exists and assign it to *user_id* —
+    used to make the first user on a site an administrator."""
+    from grunt.auth.doctypes.Role.role import Role
+
+    if not await grunt.db.exists("Role", {"role_name": "System Manager"}):
+        await Role.objects.create(role_name="System Manager")
+    await grunt.save_doc("User", user_id, {"roles": [{"role_name": "System Manager"}]})
 
 
 async def is_account_locked(user: User) -> bool:
@@ -429,7 +439,6 @@ def _auth_user_dump(user: User) -> dict[str, Any]:
         "email": user.email,
         "full_name": user.full_name,
         "roles": user.roles,
-        "is_superadmin": bool(user.is_superadmin),
         "theme": user.theme,
         "avatar": user.avatar,
         "mfa_enabled": bool(user.mfa_enabled),
@@ -500,14 +509,16 @@ async def _assign_default_role(user_id: str | None) -> None:
 async def _apply_signup_approval(user: User) -> bool:
     """Put a freshly self-registered user in the ``pending`` state when
     ``require_signup_approval`` is on, so they can't sign in until an admin
-    approves them. Superadmins (the bootstrap first user) are never held.
+    approves them. System Manager (the bootstrap first user) is never held.
 
     Returns True when the user was left pending.
     """
     from grunt.context import require_session
     from grunt.site.settings import get_setting
 
-    if user.is_superadmin or not await get_setting("require_signup_approval", False):
+    if user_has_roles(user, ["System Manager"]) or not await get_setting(
+        "require_signup_approval", False
+    ):
         return False
 
     assert user.id is not None
@@ -628,7 +639,7 @@ async def whoami() -> dict[str, Any]:
         "has_password": bool(getattr(user, "hashed_password", None)),
         "language": getattr(user, "language", None) or None,
         "timezone": getattr(user, "timezone", None) or None,
-        # Set only while a superadmin is viewing the system as this user.
+        # Set only while a System Manager is viewing the system as this user.
         "impersonated_by": ctx_user.data.get("_impersonator"),
     }
 
@@ -714,9 +725,9 @@ async def logout_api() -> bool:
     return True
 
 
-@grunt.whitelist(require=lambda user: bool(user.is_superadmin))
+@grunt.whitelist(require=lambda user: user_has_roles(user, ["System Manager"]))
 async def start_impersonation_api(user_id: str) -> dict[str, Any]:
-    """Open a short-lived session as another user. Superadmin only.
+    """Open a short-lived session as another user. System Manager only.
 
     Returns an access token (no refresh token) that authenticates as
     ``user_id`` with that user's roles, plus an ``impersonated_by`` block.
@@ -745,13 +756,13 @@ async def stop_impersonation_api() -> bool:
     return True
 
 
-@grunt.whitelist(roles=["superadmin"])
+@grunt.whitelist(roles=["System Manager"])
 async def list_users_api() -> list[dict[str, Any]]:
-    """List all users. Superadmin only (enforced by the whitelist gate)."""
+    """List all users. System Manager only (enforced by the whitelist gate)."""
     return UserPublic.dump_many(await list_users())
 
 
-@grunt.whitelist(roles=["superadmin"])
+@grunt.whitelist(roles=["System Manager"])
 async def list_users_detailed_api() -> list[dict[str, Any]]:
     """List all users with fields needed by the admin REST endpoint."""
     users = await list_users()
@@ -761,7 +772,6 @@ async def list_users_detailed_api() -> list[dict[str, Any]]:
             "email": u.email,
             "full_name": u.full_name,
             "roles": u.roles,
-            "is_superadmin": bool(u.is_superadmin),
             "theme": u.theme,
             "avatar": u.avatar,
             "mfa_enabled": bool(u.mfa_enabled),
@@ -773,9 +783,9 @@ async def list_users_detailed_api() -> list[dict[str, Any]]:
     ]
 
 
-@grunt.whitelist(roles=["superadmin"])
+@grunt.whitelist(roles=["System Manager"])
 async def list_pending_users_api() -> list[dict[str, Any]]:
-    """Self-registered users awaiting approval. Superadmin only."""
+    """Self-registered users awaiting approval. System Manager only."""
     rows = await grunt.get_list(
         "User",
         filters={"signup_state": "pending"},
@@ -799,15 +809,15 @@ async def _set_signup_state(user_id: str, state: str) -> bool:
     return True
 
 
-@grunt.whitelist(roles=["superadmin"])
+@grunt.whitelist(roles=["System Manager"])
 async def approve_user_api(user_id: str) -> bool:
-    """Approve a pending registration — the user can now sign in. Superadmin only."""
+    """Approve a pending registration — the user can now sign in. System Manager only."""
     return await _set_signup_state(user_id, "approved")
 
 
-@grunt.whitelist(roles=["superadmin"])
+@grunt.whitelist(roles=["System Manager"])
 async def reject_user_api(user_id: str) -> bool:
-    """Reject a pending registration. Superadmin only."""
+    """Reject a pending registration. System Manager only."""
     return await _set_signup_state(user_id, "rejected")
 
 
@@ -820,10 +830,9 @@ async def set_user_password_api(
     A user may change *their own* password by passing their ``current_password``.
     When the account has no password yet (provisioned via OIDC / email link),
     that check is skipped — it is a first-time set. Changing *someone else's*
-    password requires System Manager / superadmin.
+    password requires the System Manager role.
     """
     from grunt.auth.password_policy import enforce_password_policy
-    from grunt.permissions.roles import user_has_roles
 
     user = await get_user_by_id(user_id)
     if not user or not user.id:
