@@ -12,6 +12,8 @@ interface TableMeta {
   page: number
   pages: number
   total: number
+  unavailable?: boolean
+  unavailable_message?: string
 }
 
 interface SelectionState {
@@ -109,6 +111,7 @@ function rowDocId(row: Record<string, unknown>): string {
             :columns="columns"
             :rows="rows"
             :fields="fields"
+            :meta="meta"
             :row-link-base="`/app/${workspace}/${doctype}`"
             :is-loading="isLoading"
             :sort-key="normalizedSortKey"

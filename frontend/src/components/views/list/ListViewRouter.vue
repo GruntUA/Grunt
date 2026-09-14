@@ -9,6 +9,8 @@ interface TableMeta {
   page: number
   pages: number
   total: number
+  unavailable?: boolean
+  unavailable_message?: string
 }
 
 const props = defineProps<{

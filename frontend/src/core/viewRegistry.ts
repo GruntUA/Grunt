@@ -87,7 +87,13 @@ export interface ViewContext {
   rows: Record<string, unknown>[]
   fields: DocField[]
   columns: ListColumn[]
-  meta?: { page: number; pages: number; total: number }
+  meta?: {
+    page: number
+    pages: number
+    total: number
+    unavailable?: boolean
+    unavailable_message?: string
+  }
   isLoading: boolean
   hasData: boolean
   // Selection

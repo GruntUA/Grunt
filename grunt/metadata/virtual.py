@@ -203,19 +203,30 @@ class VirtualDocType:
         rows: list[dict],
         page: int,
         per_page: int,
+        *,
+        extra_meta: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
-        """Paginate *rows* and wrap in the standard Grunt list response."""
+        """Paginate *rows* and wrap in the standard Grunt list response.
+
+        ``extra_meta`` is merged into ``meta`` as-is — e.g. a virtual DocType
+        backed by a live external source (Redis, an API) can flag
+        ``{"unavailable": True, "unavailable_message": "Redis не налаштований"}``
+        when an empty list means "source unreachable" rather than "nothing
+        there". The message is caller-supplied, ready-to-display text — the
+        generic list UI never needs to know *why* a source is unavailable,
+        only that it is.
+        """
         import math
 
         total = len(rows)
         offset = (page - 1) * per_page
         page_rows = rows[offset : offset + per_page]
-        return {
-            "data": page_rows,
-            "meta": {
-                "total": total,
-                "page": page,
-                "per_page": per_page,
-                "pages": math.ceil(total / per_page) if per_page else 1,
-            },
+        meta: dict[str, Any] = {
+            "total": total,
+            "page": page,
+            "per_page": per_page,
+            "pages": math.ceil(total / per_page) if per_page else 1,
         }
+        if extra_meta:
+            meta.update(extra_meta)
+        return {"data": page_rows, "meta": meta}

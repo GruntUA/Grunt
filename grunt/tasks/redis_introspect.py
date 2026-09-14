@@ -74,3 +74,20 @@ def entry_timestamp_ms(message_id: str) -> int | None:
         return int(message_id.split("-", 1)[0])
     except (ValueError, IndexError):
         return None
+
+
+_UNAVAILABLE_MESSAGES = {
+    "not_configured": "Redis не налаштований — REDIS_URL не задано, живий моніторинг вимкнено.",
+    "unreachable": "Redis недоступний — перевірте, чи він запущений.",
+}
+
+
+def unavailable_message(reason: str) -> str:
+    """Human-readable text for a ``_load_all()`` failure reason.
+
+    Redis-specific by design — callers (the BackgroundJob/BackgroundWorker
+    controllers) put this straight in API ``meta`` for the frontend to
+    display as-is, so no generic UI component ever needs to know Redis
+    exists.
+    """
+    return _UNAVAILABLE_MESSAGES.get(reason, "Джерело даних тимчасово недоступне.")

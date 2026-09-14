@@ -6,7 +6,7 @@ from fastapi import HTTPException, status
 
 from grunt.log import log
 from grunt.metadata.virtual import VirtualDocType
-from grunt.tasks.redis_introspect import redis_conn, s, stream_broker
+from grunt.tasks.redis_introspect import redis_conn, s, stream_broker, unavailable_message
 
 
 class BackgroundWorkerController(VirtualDocType):
@@ -27,7 +27,7 @@ class BackgroundWorkerController(VirtualDocType):
         search: str | None = None,
         **kwargs: Any,
     ) -> dict[str, Any]:
-        rows = await self._load_all()
+        rows, reason = await self._load_all()
 
         if search:
             rows = self.apply_search(rows, search, ["name"])
@@ -35,10 +35,16 @@ class BackgroundWorkerController(VirtualDocType):
             rows = self.apply_filters(rows, filters)
         rows = self.apply_sort(rows, sort_by, sort_order)
 
-        return self.build_response(rows, page, per_page)
+        extra_meta = (
+            {"unavailable": True, "unavailable_message": unavailable_message(reason)}
+            if reason
+            else None
+        )
+        return self.build_response(rows, page, per_page, extra_meta=extra_meta)
 
     async def get(self, doc_id: str, **kwargs: Any) -> dict[str, Any]:
-        for row in await self._load_all():
+        rows, _reason = await self._load_all()
+        for row in rows:
             if row["name"] == doc_id:
                 return row
         return {}
@@ -68,16 +74,17 @@ class BackgroundWorkerController(VirtualDocType):
             detail="BackgroundWorker is a live view of the consumer group — it can't be edited",
         )
 
-    async def _load_all(self) -> list[dict[str, Any]]:
+    async def _load_all(self) -> tuple[list[dict[str, Any]], str | None]:
+        """Returns ``(rows, unavailable_reason)`` — reason is ``None`` on a genuine empty list."""
         sb = stream_broker()
         if sb is None:
-            return []
+            return [], "not_configured"
 
         rows: list[dict[str, Any]] = []
         try:
             async with redis_conn() as conn:
                 if conn is None:
-                    return []
+                    return [], "not_configured"
 
                 consumers = await conn.xinfo_consumers(sb.queue_name, sb.consumer_group_name)
                 for c in consumers:
@@ -92,6 +99,6 @@ class BackgroundWorkerController(VirtualDocType):
                     )
         except Exception as exc:
             log.warning("background_worker.list_failed", error=str(exc))
-            return []
+            return [], "unreachable"
 
-        return rows
+        return rows, None

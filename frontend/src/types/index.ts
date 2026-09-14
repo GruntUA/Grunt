@@ -409,6 +409,14 @@ export interface PaginationMeta {
   pages: number
   /** Opaque cursor for keyset pagination — present when more rows exist */
   next_cursor?: string
+  /**
+   * Set by a virtual DocType backed by a live external source (Redis, an
+   * API) when an empty list means "source unreachable", not "nothing
+   * there" — e.g. BackgroundJob/BackgroundWorker without Redis configured.
+   * ``unavailable_message`` is ready-to-display text from the backend.
+   */
+  unavailable?: boolean
+  unavailable_message?: string
 }
 
 export interface StandardListResponse<T> {
