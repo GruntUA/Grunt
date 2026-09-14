@@ -117,7 +117,7 @@ function isInline(f: DocField): boolean {
       <!-- Read-only / non-inline -->
       <span
         v-else-if="!isInline(f)"
-        :class="['block px-3 py-2 text-xs break-words whitespace-pre-wrap', !cellDisplay(f) && 'text-muted-foreground/60']"
+        :class="['block px-3 py-2 text-xs break-words whitespace-pre-wrap', cellDisplay(f) ? 'text-foreground' : 'text-muted-foreground']"
       >
         {{ cellDisplay(f) || '—' }}
       </span>
