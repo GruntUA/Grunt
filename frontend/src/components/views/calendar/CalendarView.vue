@@ -100,21 +100,27 @@ async function loadDocuments() {
     const currentYear = currentMonth.value.getFullYear()
 
     const endField = props.doctype.calendar_end_date_field
+    const primaryFields = new Set(['name', props.dateField, props.doctype.title_field || 'name'])
+    if (endField) primaryFields.add(endField)
     const primaryFetch = docsApi.list(props.doctype.name, {
       rawFilters: { [`${props.dateField}__lte`]: endStr },
       per_page: 200,
+      fields: [...primaryFields].join(','),
     })
 
     const sources = props.doctype.calendar_sources || []
-    const secondaryFetches = sources.map(source =>
-      docsApi.list(source.doctype, {
+    const secondaryFetches = sources.map(source => {
+      const sourceFields = new Set(['name', source.date_field, source.label_field || 'name'])
+      if (source.end_date_field) sourceFields.add(source.end_date_field)
+      return docsApi.list(source.doctype, {
         rawFilters: {
           ...(source.filters || {}),
           ...(!source.recurring ? { [`${source.date_field}__lte`]: endStr } : {}),
         },
         per_page: 200,
+        fields: [...sourceFields].join(','),
       })
-    )
+    })
 
     const [primaryResp, ...secondaryResps] = await Promise.all([primaryFetch, ...secondaryFetches])
     const allEvents: CalendarEvent[] = []

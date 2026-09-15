@@ -68,10 +68,18 @@ async function loadCards() {
   if (!props.doctype?.name) return
   isLoading.value = true
   try {
+    const wanted = new Set([
+      'name',
+      'modified_at',
+      'owner',
+      props.doctype.title_field || 'name',
+      props.columnField,
+    ])
     const resp = await docsApi.list(props.doctype.name, {
       per_page: 500, // Fetch more for kanban
       sort: 'modified_at',
-      order: 'desc'
+      order: 'desc',
+      fields: [...wanted].join(','),
     })
     const all = resp.data || []
 
