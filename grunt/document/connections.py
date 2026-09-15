@@ -72,6 +72,7 @@ async def _direct_link_stats(link: DocTypeLink, doc_name: str) -> tuple[int, lis
         limit=_PREVIEW_LIMIT,
         order_by="modified_at",
         order="desc",
+        include_total=False,
     )
     preview = [{"name": r["name"], "title": r.get(title_field) or r["name"]} for r in rows]
     return int(total), preview
