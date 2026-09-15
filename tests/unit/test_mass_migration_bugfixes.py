@@ -99,3 +99,30 @@ async def test_assignment_preview_rule_resolves_typed_doc(ctx):
 
         result = await AssignmentService().preview_rule(rule_doc["name"], {"name": "x"})
         assert result["rule_id"] == rule_doc["name"]
+
+
+@pytest.mark.asyncio
+async def test_workspace_list_workspaces_with_sidebar_items(ctx):
+    """list_workspaces() batch-preloads DocType metadata (doctype_registry.list_all())
+    before resolving sidebar items, instead of one lazy-load per item — this just
+    checks the resulting data is still correct after that change."""
+    from grunt.api.v1.workspace import list_workspaces
+
+    admin = make_user("ws-perf-admin@grunt.example.com", is_superadmin=True)
+    async with ctx.context(ctx.db._session(), ctx._require_engine(), admin):
+        await ctx.new_doc(
+            "AppMenu",
+            {
+                "label": "Perf Test WS",
+                "app": "grunt",
+                "sidebar_items": [
+                    {"type": "DocType", "link_to": "User", "label": "Users", "idx": 0},
+                    {"type": "DocType", "link_to": "DocType", "label": "DocTypes", "idx": 1},
+                ],
+            },
+        )
+        await ctx.db._session().commit()
+
+        result = await list_workspaces()
+        ws = next(w for w in result if w["label"] == "Perf Test WS")
+        assert [i["link_to"] for i in ws["items"]] == ["User", "DocType"]

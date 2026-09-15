@@ -83,6 +83,14 @@ async def _get_ws_controller(name: str) -> AppMenu:
 @grunt.whitelist()
 async def list_workspaces() -> list[dict[str, Any]]:
     """List workspaces visible to the current user."""
+    from grunt.metadata.registry import doctype_registry
+
+    # Sidebar items across all workspaces touch most of the app's DocTypes.
+    # Batch-load them in one query up front instead of letting
+    # _workspace_to_dict's per-item doctype_registry.get() lazy-load each one
+    # with its own SELECT.
+    await doctype_registry.list_all()
+
     all_ws = await grunt.get_list("AppMenu", fields=["name"], order_by="sequence")
     data = []
     user = await grunt.get_current_user()
