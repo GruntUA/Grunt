@@ -145,6 +145,9 @@ async def lifespan(app: FastAPI):
     # ── Shutdown ─────────────────────────────────────────────────────
     await stop_scheduler()
     await broker.shutdown()
+    from grunt.app import grunt as grunt_app
+
+    await grunt_app.query_cache.aclose()
     for eng in site_manager.engines.values():
         await eng.dispose()
     log.info("grunt.shutdown")

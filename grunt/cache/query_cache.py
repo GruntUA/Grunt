@@ -31,6 +31,7 @@ class QueryCache:
         self._hits = 0
         self._misses = 0
         self._redis_failed = False
+        self._redis_client: Redis | None = None
 
     def _key_prefix(self, doctype: str) -> str:
         return f"qcache:list:{doctype}:"
@@ -95,22 +96,31 @@ class QueryCache:
 
     @asynccontextmanager
     async def _redis(self) -> AsyncGenerator[Redis | None]:
-        """Yield a connected Redis client, or None when Redis isn't usable.
+        """Yield the shared Redis client, or None when Redis isn't usable.
 
-        Shared connect/close so ``_get_redis``/``_set_redis``/``invalidate_doctype``
-        don't each reimplement "skip if disabled or previously failed, open a
-        client, always close it, flip ``_redis_failed`` on any error".
+        The client wraps its own connection pool and is safe to reuse across
+        concurrent calls, so it's created once and kept for the cache's
+        lifetime instead of opening/closing a fresh connection on every single
+        get/set — ``_get_redis``/``_set_redis``/``invalidate_doctype`` all
+        share this one "skip if disabled or previously failed, else hand back
+        the live client" path.
         """
         if self._redis_failed or not settings.redis_url:
             yield None
             return
-        import redis.asyncio as aioredis
+        if self._redis_client is None:
+            import redis.asyncio as aioredis
 
-        r = aioredis.from_url(settings.redis_url, socket_connect_timeout=1)
-        try:
-            yield r
-        finally:
-            await r.aclose()
+            self._redis_client = aioredis.from_url(
+                settings.redis_url, socket_connect_timeout=1
+            )
+        yield self._redis_client
+
+    async def aclose(self) -> None:
+        """Close the shared Redis client, if one was ever opened."""
+        if self._redis_client is not None:
+            await self._redis_client.aclose()
+            self._redis_client = None
 
     async def _get_redis(self, key: str) -> dict[str, Any] | None:
         try:
