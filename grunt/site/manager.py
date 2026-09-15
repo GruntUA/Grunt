@@ -199,6 +199,12 @@ class SiteManager:
 
                 @event.listens_for(engine.sync_engine, "connect")
                 def _on_sqlite_connect(dbapi_conn, _connection_record):
+                    # Hand transaction control fully to SQLAlchemy: pysqlite/aiosqlite's
+                    # own implicit BEGIN/COMMIT heuristics otherwise race with
+                    # SAVEPOINT (session.begin_nested()) boundaries, causing stray
+                    # implicit commits (and, under WAL, real fsync stalls) exactly
+                    # at nested-transaction points.
+                    dbapi_conn.isolation_level = None
                     with suppress(Exception):
                         cursor = dbapi_conn.cursor()
                         cursor.execute("PRAGMA journal_mode=WAL")
@@ -214,6 +220,10 @@ class SiteManager:
                         dbapi_conn.create_function(
                             "lower", 1, lambda s: s.lower() if isinstance(s, str) else s
                         )
+
+                @event.listens_for(engine.sync_engine, "begin")
+                def _on_sqlite_begin(conn):
+                    conn.exec_driver_sql("BEGIN")
 
             if settings.debug:
                 from grunt.db.profiler import attach_query_profiler  # noqa: PLC0415
