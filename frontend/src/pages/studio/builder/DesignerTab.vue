@@ -5,6 +5,7 @@ import type { DocType } from '@/types'
 import FieldPalette from './FieldPalette.vue'
 import BuilderCanvas from './BuilderCanvas.vue'
 import PropertiesPanel from './PropertiesPanel.vue'
+import IndexHintsBar from './IndexHintsBar.vue'
 
 const props = defineProps<{
   doctype: DocType
@@ -35,6 +36,7 @@ onMounted(() => {
 
 <template>
   <div class="flex flex-col h-[75vh] min-h-[30rem] overflow-hidden -mx-5 -mb-5 border-t border-border bg-background">
+    <IndexHintsBar />
     <div class="flex flex-1 overflow-hidden">
       <div class="w-60 shrink-0 border-r bg-card/50 overflow-y-auto">
         <FieldPalette />

@@ -1,11 +1,5 @@
 import client from './client'
-import type { DocType, DocTypeSummary, IndexHint } from '@/types'
-
-export interface DocTypeSaveResult {
-  data: DocType
-  hints: IndexHint[]
-  exported_to: string | null
-}
+import type { DocType, DocTypeSummary } from '@/types'
 
 export interface ValidatorInfo { name: string; label: string; field_types: string[] }
 
@@ -47,14 +41,6 @@ export const metaApi = {
   listValidators: (): Promise<ValidatorInfo[]> =>
     client.get('/api/v1/method/grunt.api.v1.meta.list_validators')
       .then(r => r.data.data),
-
-  create: (dt: DocType): Promise<DocTypeSaveResult> =>
-    client.post('/api/v1/method/grunt.api.v1.meta.save_doctype', { doctype_data: { ...dt, __is_new: true } })
-      .then(r => ({ data: r.data.data, hints: [], exported_to: null })),
-
-  update: (dt: DocType): Promise<DocTypeSaveResult> =>
-    client.post('/api/v1/method/grunt.api.v1.meta.save_doctype', { doctype_data: dt })
-      .then(r => ({ data: r.data.data, hints: [], exported_to: null })),
 
   delete: (name: string) =>
     client.post('/api/v1/method/grunt.api.v1.meta.delete_doctype', { name }),

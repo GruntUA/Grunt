@@ -235,6 +235,8 @@ export interface DocType {
   title_field?: string
   image_field?: string | null
   search_fields?: string[]
+  /** Composite (multi-column) indexes — [["reference_doctype", "reference_id"]]. */
+  indexes?: string[][]
   autoname?: string | null
   default_view?: string | null
   form_show_sidebar?: boolean

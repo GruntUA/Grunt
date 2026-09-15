@@ -4,6 +4,8 @@ import type { DocType, DocField, FieldType } from '@/types'
 import { parseLayout } from '@/core/composables/useFormLayout'
 import type { FormLayout } from '@/core/composables/useFormLayout'
 import { useBuilderLayout } from '@/core/composables/builder/useBuilderLayout'
+import { computeIndexHints } from '@/core/indexHints'
+import type { IndexHint } from '@/types'
 
 /**
  * Designer-only state for the DocType "Конструктор" tab.
@@ -54,6 +56,8 @@ export const useBuilderStore = defineStore('builder', () => {
     if (!Array.isArray(fields)) return []
     return parseLayout(fields)
   })
+
+  const indexHints = computed<IndexHint[]>(() => computeIndexHints(doctype.value))
 
   const {
     generateFieldname,
@@ -122,6 +126,7 @@ export const useBuilderStore = defineStore('builder', () => {
     selectedFieldName,
     selectedField,
     layout,
+    indexHints,
     addField,
     removeField,
     updateField,
