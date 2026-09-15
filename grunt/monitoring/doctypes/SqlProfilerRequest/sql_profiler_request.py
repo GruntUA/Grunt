@@ -70,7 +70,6 @@ class SqlProfilerRequest(VirtualDocType):
         request_id = row["request_id"]
         queries = [
             {
-                "id": f"{request_id}-q{idx}",
                 "name": f"{request_id}-q{idx}",
                 "idx": idx,
                 **q,
@@ -79,7 +78,6 @@ class SqlProfilerRequest(VirtualDocType):
         ]
         spans = [
             {
-                "id": f"{request_id}-s{idx}",
                 "name": f"{request_id}-s{idx}",
                 "method": s["name"],
                 "duration_ms": s["duration_ms"],
@@ -88,7 +86,6 @@ class SqlProfilerRequest(VirtualDocType):
             for idx, s in enumerate(row.get("spans", []))
         ]
         return {
-            "id": request_id,
             "name": request_id,
             "method": row["method"],
             "path": row["path"],
