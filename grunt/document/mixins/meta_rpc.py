@@ -6,7 +6,6 @@ RPC: grunt.document.base.Document.get_sidebar
 
 from __future__ import annotations
 
-import asyncio
 from typing import Any
 
 import grunt
@@ -86,57 +85,59 @@ class DocumentMetaRPCMixin:
         from grunt.document.links import link_service
 
         # Auxiliary sections — independent of each other and of the doc load
-        # above, so fetch them concurrently. A viewer who can't read one of
-        # these system DocTypes just gets an empty section, not a broken
-        # sidebar. None of these need pagination totals, so include_total is
-        # off to skip the extra COUNT(*) per section.
-        assignees, shares, tags, bookmarks, backlinks = await asyncio.gather(
-            _optional(
-                grunt_app.get_list(
-                    "ToDo",
-                    filters={**ref, "status__in": ["Open", "In Progress"]},
-                    order_by="created_at",
-                    order="asc",
-                    limit=100,
-                    include_total=False,
-                ),
-                [],
+        # above, but all run on the one request-scoped AsyncSession, which
+        # SQLAlchemy does not allow to be driven from concurrent coroutines
+        # (asyncio.gather here would race two queries onto the same session
+        # and raise IllegalStateChangeError under load) — so fetch them one
+        # at a time. A viewer who can't read one of these system DocTypes
+        # just gets an empty section, not a broken sidebar. None of these
+        # need pagination totals, so include_total is off to skip the extra
+        # COUNT(*) per section.
+        assignees = await _optional(
+            grunt_app.get_list(
+                "ToDo",
+                filters={**ref, "status__in": ["Open", "In Progress"]},
+                order_by="created_at",
+                order="asc",
+                limit=100,
+                include_total=False,
             ),
-            _optional(
-                grunt_app.get_list(
-                    "SharedWith",
-                    filters=ref,
-                    order_by="created_at",
-                    order="asc",
-                    limit=100,
-                    include_total=False,
-                ),
-                [],
+            [],
+        )
+        shares = await _optional(
+            grunt_app.get_list(
+                "SharedWith",
+                filters=ref,
+                order_by="created_at",
+                order="asc",
+                limit=100,
+                include_total=False,
             ),
-            _optional(
-                grunt_app.get_list(
-                    "DocTag",
-                    filters=ref,
-                    order_by="created_at",
-                    order="asc",
-                    limit=100,
-                    include_total=False,
-                ),
-                [],
+            [],
+        )
+        tags = await _optional(
+            grunt_app.get_list(
+                "DocTag",
+                filters=ref,
+                order_by="created_at",
+                order="asc",
+                limit=100,
+                include_total=False,
             ),
-            _optional(
-                grunt_app.get_list(
-                    "Bookmark",
-                    filters={**ref, "owner": grunt_app.session.user},
-                    limit=1,
-                    include_total=False,
-                ),
-                [],
+            [],
+        )
+        bookmarks = await _optional(
+            grunt_app.get_list(
+                "Bookmark",
+                filters={**ref, "owner": grunt_app.session.user},
+                limit=1,
+                include_total=False,
             ),
-            _optional(
-                link_service.get_backlinks(grunt_app._require_session(), doctype, doc_id),
-                [],
-            ),
+            [],
+        )
+        backlinks = await _optional(
+            link_service.get_backlinks(grunt_app._require_session(), doctype, doc_id),
+            [],
         )
 
         bookmark = dict(bookmarks[0]) if bookmarks else None

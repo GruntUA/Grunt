@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
 import contextlib
 import json
 import re
@@ -537,7 +536,11 @@ async def _get_widget_data(
             result = None
         return w_dict["name"], result
 
-    pairs = await asyncio.gather(*(_safe_compute(w) for w in widgets))
+    # Sequential, not asyncio.gather: all widgets share the request-scoped
+    # AsyncSession, which SQLAlchemy does not allow to be driven from
+    # concurrent coroutines — gathering here races queries onto the same
+    # session and raises IllegalStateChangeError under load.
+    pairs = [await _safe_compute(w) for w in widgets]
     return dict(pairs)
 
 
