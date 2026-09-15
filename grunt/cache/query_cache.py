@@ -50,6 +50,7 @@ class QueryCache:
         order_by: str,
         order: str,
         search: str | None,
+        include_total: bool = True,
     ) -> str:
         payload = {
             "doctype": doctype,
@@ -61,6 +62,7 @@ class QueryCache:
             "order_by": order_by,
             "order": order,
             "search": search or "",
+            "include_total": include_total,
         }
         raw = json.dumps(payload, sort_keys=True, separators=(",", ":"))
         digest = hashlib.sha256(raw.encode()).hexdigest()

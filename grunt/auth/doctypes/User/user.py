@@ -338,6 +338,27 @@ async def get_user_by_email(email: str, *, fields: list[str] | None = None) -> U
     return await _get_user_by(fields, email=email)
 
 
+async def get_users_by_emails(
+    emails: list[str], *, fields: list[str] | None = None
+) -> list[User]:
+    """Batch lookup by email — one query instead of N :func:`get_user_by_email` calls.
+
+    Unlike :func:`get_user_by_email`, this does not attach ``roles`` (not
+    needed by its current callers, e.g. the sidebar's people list).
+    """
+    from grunt.context import require_session
+
+    if not emails:
+        return []
+
+    session = require_session()
+    async with grunt.system_context(session):
+        query = User.objects.filter(email__in=emails)
+        if fields is not None:
+            query = query.only(*fields)
+        return await query.all()
+
+
 async def get_user_by_id(user_id: str, *, fields: list[str] | None = None) -> User | None:
     """Look up a user by id. See :func:`_get_user_by`."""
     return await _get_user_by(fields, name=user_id)

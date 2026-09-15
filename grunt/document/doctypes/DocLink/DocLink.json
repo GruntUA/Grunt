@@ -5,6 +5,7 @@
   "track_changes": false,
   "table_name": "grunt_doc_link",
   "hide_from_activity_feed": true,
+  "indexes": [["source_doctype", "source_id"], ["target_doctype", "target_id"]],
   "fields": [
     {
       "fieldname": "source_doctype",

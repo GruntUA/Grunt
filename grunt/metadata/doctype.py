@@ -288,6 +288,11 @@ class DocType(BaseModel):
     # Search
     search_fields: list[str] = []
 
+    # Composite (multi-column) indexes — single-column indexes use field.index
+    # instead. Each entry is an ordered list of fieldnames, e.g.
+    # [["reference_doctype", "reference_id"]].
+    indexes: list[list[str]] = []
+
     # Override physical table name — used to pin core/system DocTypes to their
     # legacy ORM table names (e.g. "grunt_server_script" instead of "grunt_core_server_script").
     table_name: str | None = None

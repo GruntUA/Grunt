@@ -6,6 +6,7 @@ RPC: grunt.document.base.Document.get_sidebar
 
 from __future__ import annotations
 
+import asyncio
 from typing import Any
 
 import grunt
@@ -82,44 +83,60 @@ class DocumentMetaRPCMixin:
 
         ref = {"reference_doctype": doctype, "reference_id": doc_id}
 
-        # Auxiliary sections — a viewer who can't read one of these system
-        # DocTypes just gets an empty section, not a broken sidebar.
-        assignees = await _optional(
-            grunt_app.get_list(
-                "ToDo",
-                filters={**ref, "status__in": ["Open", "In Progress"]},
-                order_by="created_at",
-                order="asc",
-                limit=100,
-            ),
-            [],
-        )
-        shares = await _optional(
-            grunt_app.get_list(
-                "SharedWith", filters=ref, order_by="created_at", order="asc", limit=100
-            ),
-            [],
-        )
-        tags = await _optional(
-            grunt_app.get_list(
-                "DocTag", filters=ref, order_by="created_at", order="asc", limit=100
-            ),
-            [],
-        )
-        bookmarks = await _optional(
-            grunt_app.get_list(
-                "Bookmark",
-                filters={**ref, "owner": grunt_app.session.user},
-                limit=1,
-            ),
-            [],
-        )
-
         from grunt.document.links import link_service
 
-        backlinks = await _optional(
-            link_service.get_backlinks(grunt_app._require_session(), doctype, doc_id),
-            [],
+        # Auxiliary sections — independent of each other and of the doc load
+        # above, so fetch them concurrently. A viewer who can't read one of
+        # these system DocTypes just gets an empty section, not a broken
+        # sidebar. None of these need pagination totals, so include_total is
+        # off to skip the extra COUNT(*) per section.
+        assignees, shares, tags, bookmarks, backlinks = await asyncio.gather(
+            _optional(
+                grunt_app.get_list(
+                    "ToDo",
+                    filters={**ref, "status__in": ["Open", "In Progress"]},
+                    order_by="created_at",
+                    order="asc",
+                    limit=100,
+                    include_total=False,
+                ),
+                [],
+            ),
+            _optional(
+                grunt_app.get_list(
+                    "SharedWith",
+                    filters=ref,
+                    order_by="created_at",
+                    order="asc",
+                    limit=100,
+                    include_total=False,
+                ),
+                [],
+            ),
+            _optional(
+                grunt_app.get_list(
+                    "DocTag",
+                    filters=ref,
+                    order_by="created_at",
+                    order="asc",
+                    limit=100,
+                    include_total=False,
+                ),
+                [],
+            ),
+            _optional(
+                grunt_app.get_list(
+                    "Bookmark",
+                    filters={**ref, "owner": grunt_app.session.user},
+                    limit=1,
+                    include_total=False,
+                ),
+                [],
+            ),
+            _optional(
+                link_service.get_backlinks(grunt_app._require_session(), doctype, doc_id),
+                [],
+            ),
         )
 
         bookmark = dict(bookmarks[0]) if bookmarks else None
@@ -140,12 +157,13 @@ class DocumentMetaRPCMixin:
 
         people: dict[str, dict[str, Any]] = {}
         if emails:
-            from grunt.auth.doctypes.User.user import get_user_by_email
+            from grunt.auth.doctypes.User.user import get_users_by_emails
 
-            for email in emails:
-                u = await get_user_by_email(email)
-                if u is None:
-                    continue
+            users = await get_users_by_emails(
+                list(emails), fields=["email", "full_name", "avatar"]
+            )
+            for u in users:
+                email = u.email
                 people[email] = {
                     "name": getattr(u, "full_name", None) or email,
                     "avatar": u.data.get("avatar") or None,

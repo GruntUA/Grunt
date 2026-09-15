@@ -4,6 +4,7 @@
   "module": "document",
   "track_changes": false,
   "hide_from_activity_feed": true,
+  "indexes": [["reference_doctype", "reference_id"]],
   "fields": [
     {
       "fieldname": "reference_doctype",

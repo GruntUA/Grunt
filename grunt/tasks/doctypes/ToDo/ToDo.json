@@ -6,6 +6,7 @@
   "title_field": "description",
   "default_view": "list",
   "search_fields": ["description", "assigned_to", "reference_id"],
+  "indexes": [["reference_doctype", "reference_id"]],
   "status_field": "status",
   "track_changes": true,
   "track_seen": true,

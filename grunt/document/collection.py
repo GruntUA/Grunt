@@ -243,6 +243,7 @@ async def list_documents(
     search: str | None = None,
     fields: list[str] | None = None,
     cursor: str | None = None,
+    include_total: bool = True,
 ) -> DocumentList:
     dt = await doctype_registry.get(doctype_name)
 
@@ -275,18 +276,20 @@ async def list_documents(
 
     query = await _apply_where(query, table, dt, filters, search, extra_clause, user, up_conds)
 
-    count_q = await _apply_where(
-        select(func.count()).select_from(table),
-        table,
-        dt,
-        filters,
-        search,
-        extra_clause,
-        user,
-        up_conds,
-    )
-    count_result = await session.execute(count_q)
-    total = count_result.scalar() or 0
+    total: int | None = None
+    if include_total:
+        count_q = await _apply_where(
+            select(func.count()).select_from(table),
+            table,
+            dt,
+            filters,
+            search,
+            extra_clause,
+            user,
+            up_conds,
+        )
+        count_result = await session.execute(count_q)
+        total = count_result.scalar() or 0
 
     sort_col, order_by_expr = _resolve_sort(session, table, sort_by, sort_order)
     query = query.order_by(order_by_expr)
@@ -304,7 +307,7 @@ async def list_documents(
             "total": total,
             "page": page,
             "per_page": per_page,
-            "pages": math.ceil(total / per_page) if per_page else 1,
+            "pages": (math.ceil(total / per_page) if per_page else 1) if total is not None else None,
             "next_cursor": next_cursor,
         },
     )

@@ -266,6 +266,11 @@ def compile_doctype_to_table(doctype: DocType) -> Table:
         if field.index and not field.unique:
             constraints.append(Index(f"ix_{table_name}_{field.fieldname}", field.fieldname))
 
+    # Composite indexes (doctype.indexes)
+    for idx_fields in doctype.indexes:
+        idx_name = f"ix_{table_name}_" + "_".join(idx_fields)
+        constraints.append(Index(idx_name, *idx_fields))
+
     table = Table(table_name, metadata, *columns, *constraints, extend_existing=True)
     cache[doctype.name] = table
     return table

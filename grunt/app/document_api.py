@@ -334,12 +334,16 @@ class DocumentAPI:
         order: str = "desc",
         search: str | None = None,
         cursor: str | None = None,
+        include_total: bool = True,
     ) -> DocumentList:
         """Fetch a guarded, field-masked page of documents (with pagination meta).
 
         The single read entry point: applies read_guard, before/after_read hooks
         and hidden-field masking. Returns a :class:`DocumentList` whose
         ``to_dict()`` carries pagination metadata.
+
+        ``include_total=False`` skips the pagination ``COUNT(*)`` query for
+        call sites that never read ``meta.total`` (e.g. sidebar widgets).
         """
         from grunt.events import fire
 
@@ -380,6 +384,7 @@ class DocumentAPI:
                 order_by=order_by,
                 order=order,
                 search=search,
+                include_total=include_total,
             )
             result = await cache.get_list(cache_key)
 
@@ -398,6 +403,7 @@ class DocumentAPI:
                 search=search,
                 fields=fields,
                 cursor=cursor,
+                include_total=include_total,
             )
             if cache_key and cache is not None:
                 await cache.set_list(cache_key, result)

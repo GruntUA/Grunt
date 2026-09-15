@@ -2,6 +2,7 @@
   "name": "Comment",
   "label": "Коментар",
   "module": "document",
+  "indexes": [["reference_doctype", "reference_id"]],
   "fields": [
     {
       "fieldname": "reference_doctype",
