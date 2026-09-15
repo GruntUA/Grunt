@@ -6,6 +6,8 @@ import copy
 from datetime import UTC
 from typing import TYPE_CHECKING, Any, overload
 
+from fastapi import HTTPException
+
 from grunt.config import settings
 from grunt.context import require_engine, require_session, require_user
 from grunt.db.profiler import profile
@@ -196,7 +198,16 @@ class DocumentAPI:
             doctype, data, user, ignore_required=ignore_required
         )
         await self._invalidate_list_cache(doctype, created.get("name"))
-        _, _, hidden_fields = await read_guard(doctype)
+        try:
+            _, _, hidden_fields = await read_guard(doctype)
+        except HTTPException:
+            # A role granted "create" but no "read" at all (e.g. a public
+            # WebForm's Guest — create-only by design, so anonymous submitters
+            # can't list or re-read other people's submissions) still gets its
+            # own just-created document back: create permission is already the
+            # trust boundary here, and there is no read-permission rule to mask
+            # fields against for a role that holds none.
+            hidden_fields = frozenset()
         return apply_hidden_fields_to_doc(created, hidden_fields)
 
     async def save_doc(

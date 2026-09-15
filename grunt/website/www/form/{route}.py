@@ -22,9 +22,12 @@ _INPUT_TYPES = {
     "Float": "number",
     "Date": "date",
     "Datetime": "datetime-local",
-    "Email": "email",
-    "Phone": "tel",
 }
+# A plain Text/Data field carrying one of these DocField.validator names gets
+# the matching native <input type> (browser keyboard hint + basic client-side
+# check) — there's no separate "Email"/"Phone" fieldtype in the framework,
+# validation is opt-in via `validator` on any text field (see grunt.validators).
+_VALIDATOR_INPUT_TYPES = {"email": "email", "phone": "tel"}
 _LAYOUT_TYPES = {"Section", "Column", "Tab", "Table"}
 
 
@@ -44,8 +47,14 @@ def _prepare_fields(raw: list[dict[str, Any]]) -> list[dict[str, Any]]:
             widget = "check"
         elif ftype == "Select":
             widget = "select"
+        elif ftype == "Attach":
+            widget = "file"
         else:
             widget = "input"
+
+        input_type = _INPUT_TYPES.get(ftype, "text")
+        if input_type == "text":
+            input_type = _VALIDATOR_INPUT_TYPES.get(field.get("validator") or "", input_type)
 
         prepared.append(
             {
@@ -55,7 +64,7 @@ def _prepare_fields(raw: list[dict[str, Any]]) -> list[dict[str, Any]]:
                 "required": bool(field.get("required")),
                 "default": field.get("default") or "",
                 "widget": widget,
-                "input_type": _INPUT_TYPES.get(ftype, "text"),
+                "input_type": input_type,
                 "number_step": "any" if ftype == "Float" else "1" if ftype == "Int" else "",
                 "options": [
                     o.strip() for o in (field.get("options") or "").split("\n") if o.strip()
@@ -84,23 +93,48 @@ async def get_context(context: dict[str, Any]) -> dict[str, Any]:
 
 async def handle_post(context: dict[str, Any]) -> Any:
     from fastapi.responses import HTMLResponse
+    from starlette.datastructures import UploadFile
 
     from grunt.webform import web_form_service
     from grunt.webform.service import WebFormError
 
     route = (context.get("path_params") or {}).get("route", "")
     raw = await context["request"].form()
-    data: dict[str, Any] = {key: raw[key] for key in raw if key != "__form"}
+
+    # Honeypot: a field no sighted visitor sees or fills (hidden off-screen in
+    # the template), so anything that lands here is almost certainly a bot
+    # blindly filling every input. Answer with the normal success state —
+    # don't tip it off — but skip creating anything.
+    if (str(raw.get("_hp") or "")).strip():
+        context["submitted"] = True
+        context["success_message"] = "Дякуємо! Вашу заявку прийнято."
+        return context
+
+    data: dict[str, Any] = {key: raw[key] for key in raw if key not in ("__form", "_hp")}
+
+    fields = await web_form_service.get_form_fields(route)
 
     # Normalise checkboxes: an unchecked box isn't posted at all → coerce to 0/1
     # so the target DocType's Check field gets a real value.
-    check_names = {
-        f["fieldname"]
-        for f in await web_form_service.get_form_fields(route)
-        if f["fieldtype"] == "Check"
-    }
+    check_names = {f["fieldname"] for f in fields if f["fieldtype"] == "Check"}
     for name in check_names:
         data[name] = 1 if str(data.get(name, "")).lower() in ("on", "1", "true") else 0
+
+    # Attach fields arrive as UploadFile objects (multipart) — store them and
+    # swap in the resulting file_url, the same value shape the target
+    # DocType's Attach field expects everywhere else in the app.
+    attach_names = {f["fieldname"] for f in fields if f["fieldtype"] == "Attach"}
+    for name in attach_names:
+        upload = data.get(name)
+        if not isinstance(upload, UploadFile) or not upload.filename:
+            data.pop(name, None)
+            continue
+        try:
+            data[name] = await web_form_service.save_guest_file(upload)
+        except WebFormError as exc:
+            context["submit_error"] = str(exc)
+            context["form_data"] = {k: v for k, v in data.items() if k not in attach_names}
+            return context
 
     try:
         result = await web_form_service.submit(route=route, data=data, user_email=None)

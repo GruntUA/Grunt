@@ -69,6 +69,8 @@
         }
         .field.check label { display: flex; align-items: center; gap: 0.5rem; font-weight: 400; color: var(--muted); }
         .field.check input { width: 1rem; height: 1rem; accent-color: var(--primary); }
+        .field input[type=file] { width: 100%; font: inherit; }
+        .hp { position: absolute; left: -9999px; top: -9999px; opacity: 0; height: 0; overflow: hidden; }
         .section-break {
             margin: 1.5rem 0 1rem;
             padding-bottom: 0.5rem;
@@ -140,12 +142,23 @@
                     <h1>{{ form.title }}</h1>
                     {% if form.introduction %}<p class="intro">{{ form.introduction }}</p>{% endif %}
                 </div>
-                <form method="post">
+                <form method="post" enctype="multipart/form-data">
                     {% if submit_error %}<div class="banner error">{{ submit_error }}</div>{% endif %}
+
+                    <div class="hp" aria-hidden="true">
+                        <label for="f-_hp">Залиште це поле порожнім</label>
+                        <input id="f-_hp" name="_hp" type="text" tabindex="-1" autocomplete="off">
+                    </div>
 
                     {% for f in fields %}
                         {% if f.kind == "section" %}
                             {% if f.label %}<div class="section-break">{{ f.label }}</div>{% endif %}
+                        {% elif f.widget == "file" %}
+                            <div class="field">
+                                <label for="f-{{ f.fieldname }}">{{ f.label }}{% if f.required %}<span class="req">*</span>{% endif %}</label>
+                                <input id="f-{{ f.fieldname }}" name="{{ f.fieldname }}" type="file"
+                                       {% if f.required %}required{% endif %}>
+                            </div>
                         {% elif f.widget == "check" %}
                             <div class="field check">
                                 <label>

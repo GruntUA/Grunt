@@ -89,6 +89,7 @@ class WebFormService:
                     "required": field.required,
                     "options": field.options,
                     "default": field.default,
+                    "validator": field.validator,
                 }
             )
 
@@ -205,6 +206,60 @@ class WebFormService:
 
         async with grunt.context(require_session()):
             return await grunt.db.count(doctype)
+
+    async def save_guest_file(self, upload: Any) -> str:
+        """Store an uploaded file for an anonymous Attach-field submission.
+
+        The JSON upload API (``grunt.storage.doctypes.File.file.upload``) requires
+        an authenticated session and attributes the file to ``grunt.session.user``
+        — neither holds for a guest webform POST. This stores the same way
+        (storage backend + a ``File`` row) but runs the ``File`` insert under
+        ``system_context`` since Guest has no reason to hold write permission on
+        the File doctype itself; the target DocType's own Guest create
+        permission (checked by ``submit()``) remains the real access gate.
+        """
+        import hashlib
+
+        from grunt.config import settings
+        from grunt.context import require_session
+        from grunt.storage import get_storage_backend
+
+        content = await upload.read()
+        max_bytes = settings.max_upload_size_mb * 1024 * 1024
+        if len(content) > max_bytes:
+            raise WebFormError(f"Файл завеликий (макс. {settings.max_upload_size_mb} МБ)")
+
+        content_type = upload.content_type or "application/octet-stream"
+        storage = get_storage_backend()
+        try:
+            path = await storage.save(
+                content=content, filename=upload.filename, content_type=content_type
+            )
+        except ValueError as exc:
+            raise WebFormError(str(exc)) from exc
+
+        async with grunt.system_context(require_session()):
+            file_doc = await grunt.new_doc(
+                "File",
+                {
+                    "file_name": upload.filename,
+                    "file_url": "",
+                    "path": path,
+                    "content_type": content_type,
+                    "content_hash": hashlib.sha256(content).hexdigest(),
+                    "file_size": len(content),
+                    "uploaded_by": GUEST_USER,
+                    "is_public": True,
+                },
+            )
+            file_id = str(file_doc["name"])
+            file_url = (
+                "/api/v1/method/grunt.storage.doctypes.File.file.get_content"
+                f"?file_id={file_id}"
+            )
+            await grunt.db.set_value("File", file_id, "file_url", file_url)
+
+        return file_url
 
 
 class WebFormError(Exception):
