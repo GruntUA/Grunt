@@ -189,9 +189,16 @@ class SiteManager:
                     }
                 )
             elif "sqlite" in db_url:
-                from sqlalchemy.pool import NullPool  # noqa: PLC0415
-
-                engine_kwargs.update({"poolclass": NullPool, "connect_args": {"timeout": 30}})
+                # A real (small) pool instead of NullPool: NullPool opens a brand
+                # new aiosqlite connection — a new background thread plus the
+                # connect-time PRAGMAs below — on every single checkout, which
+                # showed up as tens of ms hiding inside the profiler's "BEGIN"
+                # span on every request. WAL mode lets several connections read
+                # concurrently, and connect_args timeout is SQLite's busy_timeout
+                # for the rare writer/writer contention, so pooling is safe here.
+                engine_kwargs.update(
+                    {"pool_size": 5, "max_overflow": 5, "connect_args": {"timeout": 30}}
+                )
 
             engine = create_async_engine(db_url, **engine_kwargs)
 
