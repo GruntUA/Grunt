@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 import re
+from datetime import date, datetime
 from typing import TYPE_CHECKING, Any, Literal, cast, overload
 
-from sqlalchemy import CursorResult, func, or_, select, update
+from sqlalchemy import CursorResult, Date, func, or_, select, update
 
 from grunt.context import _session_ctx
+from grunt.db.types import UtcDateTime
 from grunt.metadata.compiler import compile_doctype_to_table
 from grunt.metadata.registry import doctype_registry
 from grunt.utils.attr_dict import AttrDict
@@ -522,6 +524,30 @@ def _as_list(value: Any) -> list[Any]:
     return list(value) if isinstance(value, (list, tuple)) else str(value).split(",")
 
 
+def _coerce_for_column(col: Any, value: Any) -> Any:
+    """Parse an ISO date/datetime string filter value to match its column's type.
+
+    Callers build filter dicts from Python code (dashboard widgets computing
+    ``since``/``until`` as ISO strings, query params, JSON) rather than always
+    handing over real ``date``/``datetime`` objects. SQLAlchemy's bind
+    processors for ``Date``/``UtcDateTime`` only accept the real object and
+    raise ``TypeError`` on a bare string, so comparisons silently blow up
+    (caught by the widget's own try/except, surfacing as an empty chart) —
+    coerce once, here, instead of at every call site.
+    """
+    if not isinstance(value, str):
+        return value
+    col_type = getattr(col, "type", None)
+    try:
+        if isinstance(col_type, UtcDateTime):
+            return datetime.fromisoformat(value)
+        if isinstance(col_type, Date):
+            return date.fromisoformat(value[:10])
+    except ValueError:
+        return value
+    return value
+
+
 def build_clauses(table: Any, filters: dict[str, Any]) -> list[Any]:
     """Build SQLAlchemy WHERE clauses from an operator-aware filter dict.
 
@@ -544,6 +570,9 @@ def build_clauses(table: Any, filters: dict[str, Any]) -> list[Any]:
         col = table.c.get(fieldname)
         if col is None:
             continue
+
+        if op in ("eq", "ne", "neq", "gte", "lte", "lte_or_null", "gt", "lt"):
+            value = _coerce_for_column(col, value)
 
         if op == "eq":
             clauses.append(col == value)

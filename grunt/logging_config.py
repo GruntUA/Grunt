@@ -110,11 +110,20 @@ def configure_logging(
         cache_logger_on_first_use=True,
     )
 
-    # Console output — always enabled
+    # Console output — always enabled. structlog.dev.ConsoleRenderer()'s default
+    # exception_formatter is a RichTracebackFormatter with show_locals=True,
+    # which walks and pretty-prints every local in every frame — on a deep
+    # SQLAlchemy stack (huge Select/dialect object reprs) this alone can take
+    # more than a second *per logged exception* (measured: ~18x a plain
+    # traceback), silently turning any `log.warning(..., exc_info=True)` in a
+    # request path into a multi-second stall. Keep rich's colouring/formatting
+    # but only pay for locals when a human is actually attached (debug=True).
     console_formatter = structlog.stdlib.ProcessorFormatter(
         processors=[
             structlog.stdlib.ProcessorFormatter.remove_processors_meta,
-            structlog.dev.ConsoleRenderer(),
+            structlog.dev.ConsoleRenderer(
+                exception_formatter=structlog.dev.RichTracebackFormatter(show_locals=debug),
+            ),
         ],
     )
     console_handler = logging.StreamHandler()
