@@ -125,6 +125,8 @@ if TYPE_CHECKING:
         order_by: str = "modified_at",
         order: str = "desc",
         search: str | None = None,
+        cursor: str | None = None,
+        include_total: bool = True,
     ) -> list[dict[str, Any]]: ...
     async def count(
         doctype: str,

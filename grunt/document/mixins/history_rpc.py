@@ -119,7 +119,7 @@ class DocumentHistoryRPCMixin:
         """Return a merged timeline of activity and comments."""
         from grunt.app import grunt as grunt_app
 
-        await grunt_app.get_doc(doctype, doc_id)  # permission check
+        await grunt_app.get_doc(doctype, doc_id, expand=[])  # permission check only
 
         act_rows = await grunt_app.get_list(
             "ActivityLog", filters={"doctype": doctype, "doc_id": doc_id}, limit=1000

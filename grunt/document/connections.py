@@ -109,7 +109,7 @@ async def get_connections(doctype: str, doc_id: str) -> dict[str, Any]:
     """
     from grunt.app import grunt as grunt_app
 
-    doc = await grunt_app.get_doc(doctype, doc_id)  # permission check
+    doc = await grunt_app.get_doc(doctype, doc_id, expand=[])  # permission check
     doc_name = doc.get("name") or doc_id
 
     dt = await doctype_registry.get(doctype)

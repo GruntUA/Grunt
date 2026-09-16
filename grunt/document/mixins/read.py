@@ -81,7 +81,11 @@ class DocumentReadMixin:
                     self._ml, doctype_name, doc["name"], dt, doc, fields=selected_ml
                 )
 
-        await evaluate_read_formulas(dt, doc)
+        # expand=[] means the caller wants the bare row only (e.g. a
+        # permission check) — skip read_formula evaluation, which can run
+        # arbitrary queries (grunt.count/grunt.get_list) per field.
+        if expand is None or expand_set:
+            await evaluate_read_formulas(dt, doc)
 
         # Call controller on_load if the app overrides it
         from grunt.document.base import Document

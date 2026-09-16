@@ -6,6 +6,7 @@
   "track_changes": false,
   "table_name": "grunt_log_view",
   "track_activity": false,
+  "indexes": [["doctype", "doc_id", "viewed_by"]],
   "fields": [
     {
       "fieldname": "doctype",

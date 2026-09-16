@@ -61,7 +61,7 @@ class DocumentMetaRPCMixin:
 
         ids = list(doc_ids) if doc_ids else ([doc_id] if doc_id else [])
         for one in ids:
-            await grunt_app.get_doc(doctype, one)  # permission check per id
+            await grunt_app.get_doc(doctype, one, expand=[])  # permission check per id
 
         from grunt.document.links import link_service
 
@@ -78,7 +78,7 @@ class DocumentMetaRPCMixin:
         """
         from grunt.app import grunt as grunt_app
 
-        doc = await grunt_app.get_doc(doctype, doc_id)  # also the permission check
+        doc = await grunt_app.get_doc(doctype, doc_id, expand=[])  # also the permission check
 
         ref = {"reference_doctype": doctype, "reference_id": doc_id}
 

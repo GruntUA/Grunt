@@ -27,7 +27,7 @@ class DocumentCollaborationRPCMixin:
         """Return all comments for a document."""
         from grunt.app import grunt as grunt_app
 
-        await grunt_app.get_doc(doctype, doc_id)  # permission check
+        await grunt_app.get_doc(doctype, doc_id, expand=[])  # permission check
 
         rows = await grunt_app.get_list(
             "Comment",
@@ -63,7 +63,7 @@ class DocumentCollaborationRPCMixin:
         if not content:
             raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, detail="content is required")
 
-        await grunt_app.get_doc(doctype, doc_id)  # permission check
+        await grunt_app.get_doc(doctype, doc_id, expand=[])  # permission check
 
         comment = await grunt_app.new_doc(
             "Comment",
@@ -109,7 +109,7 @@ class DocumentCollaborationRPCMixin:
         """Return the current user's bookmark."""
         from grunt.app import grunt as grunt_app
 
-        await grunt_app.get_doc(doctype, doc_id)
+        await grunt_app.get_doc(doctype, doc_id, expand=[])
 
         rows = await grunt_app.get_list(
             "Bookmark",
@@ -132,7 +132,7 @@ class DocumentCollaborationRPCMixin:
         """Bookmark a document."""
         from grunt.app import grunt as grunt_app
 
-        await grunt_app.get_doc(doctype, doc_id)  # permission check
+        await grunt_app.get_doc(doctype, doc_id, expand=[])  # permission check
 
         return await grunt_app.new_doc(
             "Bookmark",
