@@ -10,9 +10,10 @@ const props = defineProps<{
 
 const builder = useBuilderStore()
 
-// No point exposing these on a public-facing form: a child table needs its
-// own UI a plain <form> can't provide, and JSON/Code are raw data fields.
-const EXCLUDED_TYPES = new Set(['Table', 'JSON', 'Code'])
+// Tab/Section/Column are the *target* DocType's own layout scaffolding, not
+// data fields — dragging one in would just add a meaningless empty marker.
+// Table needs UI a plain <form> can't provide; JSON/Code are raw data fields.
+const EXCLUDED_TYPES = new Set(['Tab', 'Section', 'Column', 'Table', 'JSON', 'Code'])
 
 const addedNames = computed(
   () => new Set((builder.doctype?.fields ?? []).map((f) => f.fieldname)),
