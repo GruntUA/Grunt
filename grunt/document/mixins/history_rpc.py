@@ -22,11 +22,12 @@ class DocumentHistoryRPCMixin:
     @grunt.whitelist()
     async def get_versions(doctype: str, doc_id: str) -> list[dict[str, Any]]:
         """Return version history for a document."""
-        from grunt.app import grunt as grunt_app
+        from grunt.permissions.guards import doc_guard
 
         # Ensure document exists and user has access
-        await grunt_app.get_doc(doctype, doc_id)
+        await doc_guard(doctype, doc_id)
 
+        from grunt.app import grunt as grunt_app
         from grunt.document.versioning import version_service
 
         return await version_service.get_versions(grunt_app._require_session(), doctype, doc_id)
@@ -89,8 +90,9 @@ class DocumentHistoryRPCMixin:
     ) -> list[dict[str, Any]]:
         """Return the activity log for a document."""
         from grunt.app import grunt as grunt_app
+        from grunt.permissions.guards import doc_guard
 
-        await grunt_app.get_doc(doctype, doc_id)
+        await doc_guard(doctype, doc_id)
 
         per_page = max(1, min(per_page, 100))
 
@@ -118,8 +120,9 @@ class DocumentHistoryRPCMixin:
     async def get_timeline(doctype: str, doc_id: str) -> list[dict[str, Any]]:
         """Return a merged timeline of activity and comments."""
         from grunt.app import grunt as grunt_app
+        from grunt.permissions.guards import doc_guard
 
-        await grunt_app.get_doc(doctype, doc_id, expand=[])  # permission check only
+        await doc_guard(doctype, doc_id)
 
         act_rows = await grunt_app.get_list(
             "ActivityLog", filters={"doctype": doctype, "doc_id": doc_id}, limit=1000

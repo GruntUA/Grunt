@@ -58,10 +58,11 @@ class DocumentMetaRPCMixin:
     ) -> dict[str, Any]:
         """Summarise what references the given document(s) — see LinkService."""
         from grunt.app import grunt as grunt_app
+        from grunt.permissions.guards import doc_guard
 
         ids = list(doc_ids) if doc_ids else ([doc_id] if doc_id else [])
         for one in ids:
-            await grunt_app.get_doc(doctype, one, expand=[])  # permission check per id
+            await doc_guard(doctype, one)  # permission check per id
 
         from grunt.document.links import link_service
 

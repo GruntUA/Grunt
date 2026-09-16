@@ -11,8 +11,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 from grunt.context import require_session, require_user
+from grunt.errors import not_found
 from grunt.metadata.registry import doctype_registry
-from grunt.permissions.types import WriteAction
+from grunt.permissions.types import PermissionAction, WriteAction
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
@@ -58,6 +59,27 @@ async def read_guard(doctype: str) -> tuple[Any, User, frozenset[str]]:
     await permission_checker.require(user, dt, "read")
     hidden_fields = permission_checker.hidden_fields(user, dt)
     return dt, user, hidden_fields
+
+
+async def doc_guard(doctype: str, doc_id: str, action: PermissionAction = "read") -> None:
+    """Verify the current user may act on *doc_id*, without loading the document.
+
+    Callers that only need the permission check (the document itself is
+    discarded) should use this instead of ``grunt.get_doc`` — it fetches the
+    bare row (no child tables, multi-link, or ``read_formula`` fields) just to
+    evaluate row-level ``match``/User Permission rules. Raises ``404`` when
+    the document does not exist, ``403`` when the action is not permitted.
+    """
+    from grunt.app import grunt
+    from grunt.permissions.rbac import permission_checker
+
+    dt = await doctype_registry.get(doctype)
+    user = require_user()
+    lookup_id = dt.name if dt.is_singleton else doc_id
+    doc = await grunt.db.get_value(doctype, lookup_id, "*")
+    if doc is None:
+        raise not_found(f"Документ «{doc_id}» не знайдено")
+    await permission_checker.require(user, dt, action, doc)
 
 
 async def write_guard(doctype: str, action: WriteAction) -> tuple[Any, User, AsyncSession]:

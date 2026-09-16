@@ -107,12 +107,12 @@ async def get_connections(doctype: str, doc_id: str) -> dict[str, Any]:
           ]
         }
     """
-    from grunt.app import grunt as grunt_app
+    from grunt.permissions.guards import doc_guard
 
-    doc = await grunt_app.get_doc(doctype, doc_id, expand=[])  # permission check
-    doc_name = doc.get("name") or doc_id
+    await doc_guard(doctype, doc_id)  # permission check
 
     dt = await doctype_registry.get(doctype)
+    doc_name = dt.name if dt.is_singleton else doc_id
     # The `links` table is authoritative. A DocType that declares no rows shows
     # no connection chips — backlinks are never derived from reverse Link fields.
     links = [link for link in (dt.links or []) if not link.hidden]

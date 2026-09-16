@@ -26,8 +26,9 @@ class DocumentCollaborationRPCMixin:
     async def get_comments(doctype: str, doc_id: str) -> list[dict[str, Any]]:
         """Return all comments for a document."""
         from grunt.app import grunt as grunt_app
+        from grunt.permissions.guards import doc_guard
 
-        await grunt_app.get_doc(doctype, doc_id, expand=[])  # permission check
+        await doc_guard(doctype, doc_id)
 
         rows = await grunt_app.get_list(
             "Comment",
@@ -58,12 +59,13 @@ class DocumentCollaborationRPCMixin:
     ) -> dict[str, Any]:
         """Add a comment to a document. Parses @email mentions."""
         from grunt.app import grunt as grunt_app
+        from grunt.permissions.guards import doc_guard
 
         content = (content or "").strip()
         if not content:
             raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, detail="content is required")
 
-        await grunt_app.get_doc(doctype, doc_id, expand=[])  # permission check
+        await doc_guard(doctype, doc_id)
 
         comment = await grunt_app.new_doc(
             "Comment",
@@ -108,8 +110,9 @@ class DocumentCollaborationRPCMixin:
     async def get_bookmark(doctype: str, doc_id: str) -> dict[str, Any] | None:
         """Return the current user's bookmark."""
         from grunt.app import grunt as grunt_app
+        from grunt.permissions.guards import doc_guard
 
-        await grunt_app.get_doc(doctype, doc_id, expand=[])
+        await doc_guard(doctype, doc_id)
 
         rows = await grunt_app.get_list(
             "Bookmark",
@@ -131,8 +134,9 @@ class DocumentCollaborationRPCMixin:
     async def add_bookmark(doctype: str, doc_id: str, title: str = "") -> dict[str, Any]:
         """Bookmark a document."""
         from grunt.app import grunt as grunt_app
+        from grunt.permissions.guards import doc_guard
 
-        await grunt_app.get_doc(doctype, doc_id, expand=[])  # permission check
+        await doc_guard(doctype, doc_id)
 
         return await grunt_app.new_doc(
             "Bookmark",
