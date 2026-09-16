@@ -82,6 +82,14 @@ class Settings(BaseSettings):
     rate_limit_enabled: bool = True
     rate_limit_user: int = 200  # req/min for authenticated users
     rate_limit_anon: int = 30  # req/min for anonymous (IP-based)
+    rate_limit_webform: int = 10  # req/min per-IP for public web-form submissions
+
+    # CAPTCHA (Turnstile) — used only by WebForm submissions that opt in via
+    # their own captcha_enabled flag. Leave captcha_provider unset to disable
+    # site-wide, even if a form asks for it.
+    captcha_provider: str | None = None  # "turnstile" is the only provider for now
+    captcha_site_key: str | None = None
+    captcha_secret_key: str | None = None
 
     # Localization
     default_locale: str = "uk"

@@ -44,6 +44,16 @@ _AUTH_STRICT_PATHS: dict[str, int] = {
     "/api/v1/method/grunt.auth.doctypes.User.user.forgot_password_api": 5,
 }
 
+# Public web-form submissions — the SSR path (`/form/{route}`, POST) and its
+# JSON RPC twin. Both are wide open to anonymous, unauthenticated traffic by
+# design, so they get their own (tighter) strict tier rather than sharing the
+# general anon-IP bucket with every other unauthenticated GET on the site.
+_WEBFORM_SUBMIT_RPC_PATH = "/api/v1/method/grunt.api.v1.webform.submit_form"
+
+
+def _is_webform_submit(path: str, method: str) -> bool:
+    return method == "POST" and (path.startswith("/form/") or path == _WEBFORM_SUBMIT_RPC_PATH)
+
 
 class _Window:
     """Single fixed-window counter for one key."""
@@ -106,6 +116,12 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             reset_in = max(0, int(win.reset_at - now))
         return allowed, remaining, reset_in
 
+    def _client_ip(self, request: Request) -> str:
+        forwarded = request.headers.get("x-forwarded-for")
+        return (forwarded.split(",")[0].strip() if forwarded else None) or (
+            request.client.host if request.client else "unknown"
+        )
+
     async def _cleanup(self) -> None:
         """Evict stale windows (called periodically; best-effort)."""
         now = time.monotonic()
@@ -129,14 +145,27 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         # Strict IP-based limits for sensitive auth paths (regardless of user tier)
         if path in _AUTH_STRICT_PATHS:
             strict_limit = _AUTH_STRICT_PATHS[path]
-            forwarded = request.headers.get("x-forwarded-for")
-            ip = (forwarded.split(",")[0].strip() if forwarded else None) or (
-                request.client.host if request.client else "unknown"
-            )
+            ip = self._client_ip(request)
             strict_key = f"auth:{path}:{ip}"
             allowed, remaining, reset_in = await self._check(strict_key, strict_limit)
             if not allowed:
                 log.warning("rate_limit.auth_exceeded", path=path, ip=ip)
+                return JSONResponse(
+                    status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                    content=error_body(
+                        "RATE_LIMIT_EXCEEDED", "Забагато запитів. Спробуйте пізніше."
+                    ),
+                    headers={"Retry-After": str(reset_in)},
+                )
+
+        # Strict IP-based limit for anonymous web-form submissions
+        if _is_webform_submit(path, request.method):
+            webform_limit = getattr(settings, "rate_limit_webform", 10)
+            ip = self._client_ip(request)
+            webform_key = f"webform:{path}:{ip}"
+            allowed, remaining, reset_in = await self._check(webform_key, webform_limit)
+            if not allowed:
+                log.warning("rate_limit.webform_exceeded", path=path, ip=ip)
                 return JSONResponse(
                     status_code=status.HTTP_429_TOO_MANY_REQUESTS,
                     content=error_body(
@@ -160,12 +189,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             key = f"user:{email}"
         else:
             limit = getattr(settings, "rate_limit_anon", 30)
-            # Best-effort client IP
-            forwarded = request.headers.get("x-forwarded-for")
-            ip = (forwarded.split(",")[0].strip() if forwarded else None) or (
-                request.client.host if request.client else "unknown"
-            )
-            key = f"ip:{ip}"
+            key = f"ip:{self._client_ip(request)}"
 
         allowed, remaining, reset_in = await self._check(key, limit)
 

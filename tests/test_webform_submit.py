@@ -10,6 +10,8 @@ apply) and authenticated submissions under the caller's real context.
 
 from __future__ import annotations
 
+from unittest.mock import AsyncMock, patch
+
 import pytest
 from fastapi import HTTPException
 
@@ -20,6 +22,23 @@ TARGET_OPEN = {
     "label": "Web Form Target Open",
     "module": "core",
     "fields": [{"fieldname": "title", "label": "Title", "fieldtype": "Text"}],
+    "permissions": [{"role": "All", "read": True, "write": True, "create": True}],
+}
+
+TARGET_WITH_EMAIL = {
+    "name": "WebFormTargetWithEmail",
+    "label": "Web Form Target With Email",
+    "module": "core",
+    "fields": [
+        {"fieldname": "title", "label": "Title", "fieldtype": "Text"},
+        {"fieldname": "notes", "label": "Notes", "fieldtype": "Text"},
+        {
+            "fieldname": "email",
+            "label": "Email",
+            "fieldtype": "Text",
+            "validator": "email",
+        },
+    ],
     "permissions": [{"role": "All", "read": True, "write": True, "create": True}],
 }
 
@@ -197,3 +216,186 @@ async def test_api_submit_form_allows_authenticated_when_login_required(ctx, db_
 
     doc = await ctx.get_doc("WebFormTargetOpen", result["id"])
     assert doc["owner"] == "alice@example.com"
+
+
+@pytest.mark.asyncio
+async def test_get_form_fields_preserves_builder_order_and_label_override(ctx):
+    """WebFormField.idx (not the target DocType's own field order) drives the
+    form's field order, and a per-form label override wins over the target's.
+    """
+    from grunt.api.v1.meta import save_doctype
+    from grunt.webform import web_form_service
+
+    await save_doctype(doctype_data={**TARGET_WITH_EMAIL, "__is_new": True})
+    await ctx.db._session().commit()
+
+    await ctx.new_doc(
+        "WebForm",
+        {
+            "title": "Ordered Form",
+            "route": "ordered-form",
+            "doctype": "WebFormTargetWithEmail",
+            "is_published": True,
+            "fields": [
+                {"fieldname": "notes"},
+                {"fieldname": "title", "label": "Заголовок звернення"},
+                {"fieldname": "email"},
+            ],
+        },
+    )
+    await ctx.db._session().commit()
+
+    fields = await web_form_service.get_form_fields("ordered-form")
+    assert [f["fieldname"] for f in fields] == ["notes", "title", "email"]
+    assert fields[1]["label"] == "Заголовок звернення"
+    # fieldtype/validator always come live from the target DocType, not the
+    # WebFormField row (which didn't specify them at all here).
+    assert fields[2]["validator"] == "email"
+
+
+@pytest.mark.asyncio
+async def test_get_form_fields_includes_layout_markers(ctx):
+    """Tab/Section/Column rows pass through as layout markers, not fields."""
+    from grunt.api.v1.meta import save_doctype
+    from grunt.webform import web_form_service
+
+    await save_doctype(doctype_data={**TARGET_WITH_EMAIL, "__is_new": True})
+    await ctx.db._session().commit()
+
+    await ctx.new_doc(
+        "WebForm",
+        {
+            "title": "Sectioned Form",
+            "route": "sectioned-form",
+            "doctype": "WebFormTargetWithEmail",
+            "is_published": True,
+            "fields": [
+                {"fieldname": "sec_contact", "fieldtype": "Section", "label": "Контакти"},
+                {"fieldname": "title"},
+            ],
+        },
+    )
+    await ctx.db._session().commit()
+
+    fields = await web_form_service.get_form_fields("sectioned-form")
+    assert fields[0]["fieldtype"] == "Section"
+    assert fields[0]["label"] == "Контакти"
+    assert fields[1]["fieldname"] == "title"
+
+
+@pytest.mark.asyncio
+async def test_required_override_forces_required(ctx):
+    """A field the target DocType leaves optional can be forced required just
+    for this form via WebFormField.required.
+    """
+    from grunt.api.v1.meta import save_doctype
+    from grunt.webform import web_form_service
+    from grunt.webform.service import WebFormError
+
+    await save_doctype(doctype_data={**TARGET_WITH_EMAIL, "__is_new": True})
+    await ctx.db._session().commit()
+
+    await ctx.new_doc(
+        "WebForm",
+        {
+            "title": "Required Override Form",
+            "route": "required-override-form",
+            "doctype": "WebFormTargetWithEmail",
+            "is_published": True,
+            "fields": [
+                {"fieldname": "title"},
+                {"fieldname": "notes", "required": True},
+            ],
+        },
+    )
+    await ctx.db._session().commit()
+
+    with pytest.raises(WebFormError, match="обов'язковим"):
+        await web_form_service.submit(
+            route="required-override-form", data={"title": "Hello"}, user_email=None
+        )
+
+
+@pytest.mark.asyncio
+async def test_submit_queues_confirmation_email_to_submitter_and_notify_list(ctx):
+    """A successful submission with confirmation_template set queues one email
+    to the submitter's own email field and one to each notify_emails address.
+    """
+    from grunt.api.v1.meta import save_doctype
+    from grunt.webform import web_form_service
+
+    await save_doctype(doctype_data={**TARGET_WITH_EMAIL, "__is_new": True})
+    await ctx.db._session().commit()
+
+    await ctx.new_doc(
+        "EmailTemplate",
+        {
+            "name": "webform-confirmation",
+            "label": "Webform confirmation",
+            "is_active": True,
+            "subject": "Дякуємо, {title}!",
+            "body": "Ваше звернення {doc_id} прийнято.",
+        },
+    )
+    await ctx.db._session().commit()
+
+    await ctx.new_doc(
+        "WebForm",
+        {
+            "title": "Email Form",
+            "route": "email-form",
+            "doctype": "WebFormTargetWithEmail",
+            "is_published": True,
+            "confirmation_template": "webform-confirmation",
+            "notify_emails": "staff@example.com,\nsecond@example.com",
+            "fields": [{"fieldname": "title"}, {"fieldname": "email"}],
+        },
+    )
+    await ctx.db._session().commit()
+
+    with patch(
+        "grunt.email.templates.queue", new=AsyncMock(return_value="q1")
+    ) as mock_queue:
+        result = await web_form_service.submit(
+            route="email-form",
+            data={"title": "Hello", "email": "submitter@example.com"},
+            user_email=None,
+        )
+
+    assert result["id"]
+    sent_to = {call.kwargs["to"] for call in mock_queue.await_args_list}
+    assert sent_to == {"submitter@example.com", "staff@example.com", "second@example.com"}
+    for call in mock_queue.await_args_list:
+        assert call.kwargs["name"] == "webform-confirmation"
+
+
+@pytest.mark.asyncio
+async def test_submit_notify_failure_does_not_fail_submission(ctx):
+    """A broken confirmation_template (e.g. deleted) must not take down the
+    submission — the document is already created by the time email fires.
+    """
+    from grunt.api.v1.meta import save_doctype
+    from grunt.webform import web_form_service
+
+    await save_doctype(doctype_data={**TARGET_WITH_EMAIL, "__is_new": True})
+    await ctx.db._session().commit()
+
+    await ctx.new_doc(
+        "WebForm",
+        {
+            "title": "Broken Email Form",
+            "route": "broken-email-form",
+            "doctype": "WebFormTargetWithEmail",
+            "is_published": True,
+            "confirmation_template": "does-not-exist",
+            "fields": [{"fieldname": "title"}, {"fieldname": "email"}],
+        },
+    )
+    await ctx.db._session().commit()
+
+    result = await web_form_service.submit(
+        route="broken-email-form",
+        data={"title": "Hello", "email": "submitter@example.com"},
+        user_email=None,
+    )
+    assert result["id"]

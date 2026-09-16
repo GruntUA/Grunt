@@ -74,7 +74,15 @@ def _prepare_fields(raw: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return prepared
 
 
+def _client_ip(request: Any) -> str:
+    forwarded = request.headers.get("x-forwarded-for")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return request.client.host if request.client else "unknown"
+
+
 async def get_context(context: dict[str, Any]) -> dict[str, Any]:
+    from grunt.config import settings
     from grunt.webform import web_form_service
 
     route = (context.get("path_params") or {}).get("route", "")
@@ -88,6 +96,10 @@ async def get_context(context: dict[str, Any]) -> dict[str, Any]:
     context["form"] = form
     context["fields"] = _prepare_fields(await web_form_service.get_form_fields(route))
     context.setdefault("form_data", {})
+    context["captcha_enabled"] = bool(form.get("captcha_enabled")) and bool(
+        settings.captcha_provider
+    )
+    context["captcha_site_key"] = settings.captcha_site_key
     return context
 
 
@@ -109,6 +121,23 @@ async def handle_post(context: dict[str, Any]) -> Any:
         context["submitted"] = True
         context["success_message"] = "Дякуємо! Вашу заявку прийнято."
         return context
+
+    form = await web_form_service.get_form(route)
+    if form and form.get("captcha_enabled"):
+        from grunt.config import settings
+        from grunt.webform.captcha import verify_captcha
+
+        if settings.captcha_provider:
+            token = str(raw.get("cf-turnstile-response") or "")
+            ok = await verify_captcha(token, _client_ip(context["request"]))
+            if not ok:
+                context["submit_error"] = (
+                    "Не вдалося підтвердити, що ви не робот. Спробуйте ще раз."
+                )
+                context["form_data"] = {
+                    k: v for k, v in raw.items() if k not in ("__form", "_hp")
+                }
+                return context
 
     data: dict[str, Any] = {key: raw[key] for key in raw if key not in ("__form", "_hp")}
 

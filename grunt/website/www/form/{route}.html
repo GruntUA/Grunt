@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ title }}</title>
+    {% if captcha_enabled %}
+        <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+    {% endif %}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -191,6 +194,10 @@
                             </div>
                         {% endif %}
                     {% endfor %}
+
+                    {% if captcha_enabled %}
+                        <div class="cf-turnstile" data-sitekey="{{ captcha_site_key }}" style="margin-bottom: 1.25rem;"></div>
+                    {% endif %}
 
                     <button type="submit">{{ form.submit_label or "Надіслати" }}</button>
                 </form>

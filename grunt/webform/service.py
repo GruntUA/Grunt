@@ -20,6 +20,11 @@ if TYPE_CHECKING:
 # Guest user identifier for anonymous submissions
 GUEST_USER = "guest@grunt.local"
 
+# WebFormField rows carrying one of these are layout markers, not real fields —
+# the target DocType, never the WebFormField row, is the source of truth for
+# fieldtype/options/validator/default of an ordinary field.
+_LAYOUT_FIELDTYPES = {"Tab", "Section", "Column"}
+
 
 def _guest_user() -> User:
     """Synthetic, non-admin identity for anonymous webform submissions."""
@@ -40,56 +45,86 @@ class WebFormService:
     """Manages web form loading, validation, and submission."""
 
     async def get_form(self, route: str) -> dict[str, Any] | None:
-        """Load a published web form by its route slug."""
+        """Load a published web form by its route slug, fields included.
+
+        ``WebForm`` itself is System-Manager-only to edit (its own
+        DocPermission grants nothing to Guest/All) — the actual public-access
+        gate is ``is_published`` plus the *target* DocType's own create
+        permission, checked in :meth:`submit`. Fetching under
+        ``system_context`` here (mirroring :meth:`save_guest_file`) is what
+        lets an anonymous SSR request read the form's own definition,
+        including its hydrated ``fields`` child rows, without that requiring
+        a matching read-permission on WebForm itself.
+        """
         from grunt.context import require_session
 
         async with grunt.context(require_session()):
             rows = await grunt.db.get_all(
                 "WebForm",
                 filters={"route": route, "is_published": True},
-                fields=[
-                    "name",
-                    "title",
-                    "route",
-                    "doctype",
-                    "fields",
-                    "introduction",
-                    "success_message",
-                    "success_url",
-                    "allow_edit",
-                    "login_required",
-                    "submit_label",
-                ],
+                fields=["name"],
                 limit=1,
             )
+        if not rows:
+            return None
 
-        return rows[0] if rows else None
+        async with grunt.system_context(require_session()):
+            return await grunt.get_doc("WebForm", rows[0]["name"])
 
     async def get_form_fields(self, route: str) -> list[dict[str, Any]]:
-        """Return the full field definitions for a web form (with DocType metadata).
+        """Return the form's fields, in the order chosen in the builder.
 
-        Merges the web form's selected fields with DocType field definitions.
+        Each ``WebFormField`` row supplies fieldname + optional overrides
+        (label/required/hidden/description) and, for Tab/Section/Column rows,
+        the layout marker itself. Every other property — fieldtype, options,
+        validator, default — is always resolved live from the target
+        DocType, so a WebForm can never drift out of sync with a field's real
+        type.
         """
         form = await self.get_form(route)
         if not form:
             return []
 
         dt = await doctype_registry.get(form["doctype"])
-        field_names = {f["fieldname"] for f in form["fields"]} if form["fields"] else set()
+        meta = Meta(dt)
 
-        result = []
-        for field in Meta(dt).get_physical_fields():
-            if field_names and field.fieldname not in field_names:
+        result: list[dict[str, Any]] = []
+        for row in form["fields"] or []:
+            if row.get("hidden"):
                 continue
+
+            ftype = row.get("fieldtype") or ""
+            if ftype in _LAYOUT_FIELDTYPES:
+                result.append(
+                    {
+                        "fieldname": row["fieldname"],
+                        "fieldtype": ftype,
+                        "label": row.get("label") or "",
+                        "required": False,
+                        "options": None,
+                        "default": None,
+                        "validator": None,
+                        "collapsible": bool(row.get("collapsible")),
+                    }
+                )
+                continue
+
+            target = meta.get_field(row["fieldname"])
+            if not target:
+                # Field was removed from the target DocType after being added
+                # to this form — drop it rather than surface a broken widget.
+                continue
+
             result.append(
                 {
-                    "fieldname": field.fieldname,
-                    "fieldtype": field.fieldtype,
-                    "label": field.label,
-                    "required": field.required,
-                    "options": field.options,
-                    "default": field.default,
-                    "validator": field.validator,
+                    "fieldname": target.fieldname,
+                    "fieldtype": target.fieldtype,
+                    "label": row.get("label") or target.label,
+                    "required": bool(target.required) or bool(row.get("required")),
+                    "options": target.options,
+                    "default": target.default,
+                    "validator": target.validator,
+                    "description": row.get("description") or target.description,
                 }
             )
 
@@ -123,17 +158,14 @@ class WebFormService:
         if form["login_required"] and not user_email:
             raise WebFormError("Для заповнення цієї форми потрібна авторизація")
 
-        dt = await doctype_registry.get(form["doctype"])
-
         # Check max submissions
         if form.get("max_submissions", 0) > 0:
             count = await self._count_submissions(form["doctype"])
             if count >= form["max_submissions"]:
                 raise WebFormError("Досягнуто максимальну кількість відповідей")
 
-        # Validate: only allow fields listed in the web form
-        allowed_fields = {f["fieldname"] for f in form["fields"]} if form["fields"] else None
-        validated = self._validate_submission(dt, data, allowed_fields)
+        fields = await self.get_form_fields(route)
+        validated = self._validate_submission(fields, data)
 
         if user_email:
             # Authenticated submitter — the ambient request context is
@@ -165,6 +197,17 @@ class WebFormService:
             user=owner,
         )
 
+        submitter_email = user_email
+        if not submitter_email:
+            email_field = next((f for f in fields if f.get("validator") == "email"), None)
+            if email_field:
+                submitter_email = validated.get(email_field["fieldname"])
+
+        try:
+            await self._notify(form, validated, doc_id, submitter_email)
+        except Exception:
+            log.exception("webform.notify_failed", form=form["name"], doc_id=doc_id)
+
         return {
             "id": doc_id,
             "name": doc.get("name", doc_id[:8]),
@@ -174,31 +217,72 @@ class WebFormService:
 
     def _validate_submission(
         self,
-        dt: Any,
+        fields: list[dict[str, Any]],
         data: dict[str, Any],
-        allowed_fields: set[str] | None,
     ) -> dict[str, Any]:
-        """Validate and filter submission data against DocType fields."""
+        """Validate and filter submission data against the form's resolved fields.
+
+        *fields* is the output of :meth:`get_form_fields` — already limited to
+        the fields the form actually exposes, with target-DocType and
+        WebFormField-override ``required`` merged. Only real (non-layout)
+        entries reach this point.
+        """
         errors: list[str] = []
         validated: dict[str, Any] = {}
 
-        for field in Meta(dt).get_physical_fields():
-            if allowed_fields and field.fieldname not in allowed_fields:
+        for field in fields:
+            if field["fieldtype"] in _LAYOUT_FIELDTYPES:
                 continue
 
-            value = data.get(field.fieldname)
+            value = data.get(field["fieldname"])
 
-            if field.required and (value is None or value == ""):
-                errors.append(f"Поле '{field.label}' є обов'язковим")
+            if field["required"] and (value is None or value == ""):
+                errors.append(f"Поле '{field['label']}' є обов'язковим")
                 continue
 
             if value is not None:
-                validated[field.fieldname] = value
+                validated[field["fieldname"]] = value
 
         if errors:
             raise WebFormError("; ".join(errors))
 
         return validated
+
+    async def _notify(
+        self,
+        form: dict[str, Any],
+        validated: dict[str, Any],
+        doc_id: str,
+        submitter_email: str | None,
+    ) -> None:
+        """Queue the confirmation email to the submitter and/or notify_emails.
+
+        A missing template, an EmailTemplate that's been deactivated, or any
+        other failure here must never fail the submission itself — the
+        document is already created by the time this runs. Callers wrap this
+        in a broad try/except for that reason.
+        """
+        template_name = form.get("confirmation_template")
+        if not template_name:
+            return
+
+        recipients: set[str] = set()
+        if submitter_email:
+            recipients.add(submitter_email)
+        for chunk in (form.get("notify_emails") or "").replace(",", "\n").splitlines():
+            addr = chunk.strip()
+            if addr:
+                recipients.add(addr)
+        if not recipients:
+            return
+
+        from grunt.context import require_session
+        from grunt.email import templates as email_templates
+
+        session = require_session()
+        context = {**validated, "doc_id": doc_id, "webform_title": form["title"]}
+        for addr in recipients:
+            await email_templates.queue(session, to=addr, name=template_name, context=context)
 
     async def _count_submissions(self, doctype: str) -> int:
         """Count existing documents in the target table."""

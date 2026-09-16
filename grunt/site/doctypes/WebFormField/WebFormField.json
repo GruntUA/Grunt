@@ -1,0 +1,53 @@
+{
+  "name": "WebFormField",
+  "label": "Web form field",
+  "module": "site",
+  "is_child": true,
+  "hide_from_activity_feed": true,
+  "fields": [
+    {
+      "fieldname": "fieldname",
+      "label": "Fieldname",
+      "fieldtype": "Text",
+      "required": true,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "fieldtype",
+      "label": "Field type",
+      "fieldtype": "Select",
+      "in_list_view": true,
+      "options": "Text\nLongText\nRichText\nInt\nFloat\nCheck\nDate\nDatetime\nTime\nSelect\nLink\nMultiLink\nTable\nAttach\nImage\nJSON\nCode\nSection\nColumn\nTab\nSignature\nGeolocation\nRating\nIcon",
+      "description": "Empty for an ordinary field (its real type is always resolved live from the target DocType); set only to mark a Tab/Section/Column layout row"
+    },
+    {
+      "fieldname": "label",
+      "label": "Label override",
+      "fieldtype": "Text",
+      "in_list_view": true,
+      "description": "Required for Tab/Section rows; optional override for ordinary fields"
+    },
+    {
+      "fieldname": "required",
+      "label": "Required on this form",
+      "fieldtype": "Check",
+      "description": "OR'd with the target field's own required flag"
+    },
+    {
+      "fieldname": "hidden",
+      "label": "Hidden",
+      "fieldtype": "Check"
+    },
+    {
+      "fieldname": "collapsible",
+      "label": "Collapsible",
+      "fieldtype": "Check",
+      "description": "Section rows only"
+    },
+    {
+      "fieldname": "description",
+      "label": "Help text override",
+      "fieldtype": "Text"
+    }
+  ]
+}

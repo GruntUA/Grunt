@@ -77,9 +77,49 @@
       "fieldtype": "Check"
     },
     {
+      "fieldname": "sec_notifications",
+      "label": "Notifications",
+      "fieldtype": "Section",
+      "collapsible": true
+    },
+    {
+      "fieldname": "confirmation_template",
+      "label": "Confirmation email template",
+      "fieldtype": "Link",
+      "options": "EmailTemplate",
+      "description": "Sent to the submitter's own email field (if any) and to every address in Notify emails below"
+    },
+    {
+      "fieldname": "notify_emails",
+      "label": "Notify emails",
+      "fieldtype": "LongText",
+      "description": "One address per line or comma-separated — staff to alert on every submission"
+    },
+    {
+      "fieldname": "sec_antispam",
+      "label": "Anti-spam",
+      "fieldtype": "Section",
+      "collapsible": true
+    },
+    {
+      "fieldname": "captcha_enabled",
+      "label": "Require CAPTCHA",
+      "fieldtype": "Check",
+      "default": false,
+      "description": "Requires a captcha_provider to be configured for the site — otherwise ignored"
+    },
+    {
+      "fieldname": "tab_designer",
+      "label": "Конструктор",
+      "fieldtype": "Tab",
+      "tab_component": "WebFormDesignerTab",
+      "icon": "LayoutTemplate"
+    },
+    {
       "fieldname": "fields",
-      "label": "Fields (JSON)",
-      "fieldtype": "JSON"
+      "label": "Fields",
+      "fieldtype": "Table",
+      "options": "WebFormField"
     }
   ],
   "permissions": [
