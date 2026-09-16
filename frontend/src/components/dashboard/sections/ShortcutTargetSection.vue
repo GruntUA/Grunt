@@ -3,6 +3,9 @@ import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { docsApi } from '@/core/api'
 import type { LinkSearchItem } from '@/core/api/docs'
+import { Input } from '@/components/ui/input'
+import { Separator } from '@/components/ui/separator'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { useWidgetPropertyEditor } from '@/core/composables/useWidgetPropertyEditor'
 
 const { t } = useI18n()
@@ -63,15 +66,30 @@ function selectLink(item: LinkSearchItem) {
 </script>
 
 <template>
-  <div class="space-y-1">
-    <label class="font-medium text-muted-foreground uppercase tracking-wide">{{ t('Target') }}</label>
+  <Separator class="!mb-3" />
+  <p class="font-semibold text-muted-foreground uppercase tracking-wide mb-3">{{ t('Link type') }}</p>
+  <div class="mb-4">
+    <ToggleGroup
+      type="single"
+      variant="outline"
+      size="sm"
+      class="w-full flex-wrap"
+      :model-value="widget.link_type ?? 'DocType'"
+      @update:model-value="(v) => v && updateWidget('link_type', v)"
+    >
+      <ToggleGroupItem v-for="lt in LINK_TYPES" :key="lt.value" :value="lt.value" class="flex-1">{{ lt.label }}</ToggleGroupItem>
+    </ToggleGroup>
+  </div>
+
+  <div class="flex flex-col gap-1.5 mb-4">
+    <label class="font-medium">{{ t('Target') }}</label>
     <div v-if="linkSearchDoctype" class="relative">
-      <input
-        :value="linkQuery"
-        class="w-full h-8 px-3 rounded-md border bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
+      <Input
+        :model-value="linkQuery"
         :placeholder="t('Search {dt}...', { dt: linkSearchDoctype })"
         autocomplete="off"
-        @input="onLinkInput(($event.target as HTMLInputElement).value)"
+        class="w-full"
+        @update:model-value="onLinkInput(String($event))"
         @focus="onLinkFocus"
         @blur="onLinkBlur"
       />
@@ -88,26 +106,12 @@ function selectLink(item: LinkSearchItem) {
         >{{ item.title }}</button>
       </div>
     </div>
-    <input
+    <Input
       v-else
-      :value="widget.doctype"
-      class="w-full h-8 px-3 rounded-md border bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
+      :model-value="widget.doctype"
       placeholder="https://…"
-      @change="updateWidget('doctype', ($event.target as HTMLInputElement).value)"
+      class="w-full"
+      @update:model-value="updateWidget('doctype', $event)"
     />
-  </div>
-
-  <div class="space-y-1">
-    <label class="font-medium text-muted-foreground uppercase tracking-wide">{{ t('Link type') }}</label>
-    <div class="grid grid-cols-2 gap-1">
-      <button
-        v-for="lt in LINK_TYPES" :key="lt.value"
-        :class="[
-          'px-2.5 py-1.5 rounded-md border transition-colors',
-          widget.link_type === lt.value ? 'bg-primary text-primary-foreground border-primary' : 'hover:bg-muted',
-        ]"
-        @click="updateWidget('link_type', lt.value)"
-      >{{ lt.label }}</button>
-    </div>
   </div>
 </template>

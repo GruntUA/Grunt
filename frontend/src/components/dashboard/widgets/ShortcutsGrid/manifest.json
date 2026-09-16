@@ -1,11 +1,1 @@
-{
-    "type": "shortcuts_grid",
-    "label": "Shortcuts grid",
-    "icon": "⊞",
-    "configSections": [
-        "title",
-        "tiles",
-        "width",
-        "color"
-    ]
-}
+{"type": "shortcuts_grid", "label": "Shortcuts grid", "icon": "layout-grid", "category": "Навігація", "configSections": ["title", "tiles", "width", "color"]}

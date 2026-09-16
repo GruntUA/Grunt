@@ -1,12 +1,1 @@
-{
-    "type": "heatmap",
-    "label": "Heatmap",
-    "icon": "🟩",
-    "configSections": [
-        "title",
-        "doctypeSource",
-        "dateRange",
-        "width",
-        "color"
-    ]
-}
+{"type": "heatmap", "label": "Heatmap", "icon": "grid-3x3", "category": "Графіки", "configSections": ["title", "doctypeSource", "dateRange", "width", "color"]}

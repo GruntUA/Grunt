@@ -11,7 +11,7 @@ import { docsApi } from '@/core/api/docs'
 import { getPageData } from '@/core/api/pages'
 import WidgetCard from '@/components/dashboard/WidgetCard.vue'
 import WidgetConfigPanel from '@/components/dashboard/WidgetConfigPanel.vue'
-import { getPaletteWidgets } from '@/core/widgetRegistry'
+import { getPaletteGroups, getWidgetDef } from '@/core/widgetRegistry'
 import type { DashboardWidget, WidgetType } from '@/types'
 import { useToast } from '@/core/composables/useToast'
 import { setPageTitle } from '@/core/composables/usePageTitle'
@@ -66,7 +66,7 @@ const embedUrl = computed(() => `${window.location.origin}/page/${props.pageName
 // Single source of truth — see @/core/widgetRegistry. Keeps this palette and
 // WidgetConfigPanel's type switcher from drifting out of sync (they used to
 // be two independently hand-maintained lists).
-const WIDGET_TYPES = getPaletteWidgets()
+const WIDGET_GROUPS = getPaletteGroups()
 
 // ── Data loading ───────────────────────────────────────────────────────────────
 
@@ -179,7 +179,7 @@ function addWidget(type: WidgetType) {
   const newWidget: DashboardWidget = {
     id,
     widget_type: type,
-    title: t(WIDGET_TYPES.find(w => w.type === type)?.label ?? 'Новий'),
+    title: t(getWidgetDef(type)?.label ?? 'Новий'),
     cols: type === 'shortcut' || type === 'clock' ? 1 : type === 'gauge' ? 1 : 2,
     color: 'primary',
     doctype: '',
@@ -380,17 +380,20 @@ const printPage = () => window.print()
             <p class="font-semibold uppercase tracking-widest text-muted-foreground mb-2 px-1">
               Типи віджетів
             </p>
-            <div class="space-y-0.5">
-              <button
-                v-for="wt in WIDGET_TYPES"
-                :key="wt.type"
-                class="w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-left hover:bg-background transition-colors border border-transparent hover:border-border"
-                @click="addWidget(wt.type as WidgetType)"
-              >
-                <AppIcon :icon="wt.icon" class="size-4 shrink-0 text-muted-foreground" />
-                <span>{{ t(wt.label) }}</span>
-                <Plus class="size-3 ml-auto text-muted-foreground opacity-0 group-hover:opacity-100" />
-              </button>
+            <div v-for="group in WIDGET_GROUPS" :key="group.category" class="mb-3">
+              <p class="text-muted-foreground/70 px-1 mb-1">{{ group.category }}</p>
+              <div class="space-y-0.5">
+                <button
+                  v-for="wt in group.widgets"
+                  :key="wt.type"
+                  class="w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-left hover:bg-background transition-colors border border-transparent hover:border-border"
+                  @click="addWidget(wt.type as WidgetType)"
+                >
+                  <AppIcon :icon="wt.icon" class="size-4 shrink-0 text-muted-foreground" />
+                  <span>{{ t(wt.label) }}</span>
+                  <Plus class="size-3 ml-auto text-muted-foreground opacity-0 group-hover:opacity-100" />
+                </button>
+              </div>
             </div>
           </div>
         </div>

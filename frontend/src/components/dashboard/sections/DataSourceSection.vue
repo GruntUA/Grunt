@@ -3,6 +3,9 @@ import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { reportsApi } from '@/core/api/reports'
 import type { ReportSummary } from '@/types'
+import { Separator } from '@/components/ui/separator'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useWidgetPropertyEditor } from '@/core/composables/useWidgetPropertyEditor'
 import { isReportSourced } from './widgetHelpers'
 
@@ -20,24 +23,31 @@ function setReportSource(useReport: boolean) {
 </script>
 
 <template>
-  <div class="space-y-1">
-    <label class="font-medium text-muted-foreground uppercase tracking-wide">{{ t('Data source') }}</label>
-    <select
-      :value="isReportSourced(widget) ? 'report' : 'doctype'"
-      class="w-full h-8 px-3 rounded-md border bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
-      @change="setReportSource(($event.target as HTMLSelectElement).value === 'report')"
+  <Separator class="!mb-3" />
+  <p class="font-semibold text-muted-foreground uppercase tracking-wide mb-3">{{ t('Data source') }}</p>
+  <div class="mb-4 flex flex-col gap-2">
+    <ToggleGroup
+      type="single"
+      variant="outline"
+      size="sm"
+      class="w-full"
+      :model-value="isReportSourced(widget) ? 'report' : 'doctype'"
+      @update:model-value="(v) => v && setReportSource(v === 'report')"
     >
-      <option value="doctype">{{ t('DocType aggregate') }}</option>
-      <option value="report">{{ t('Saved report') }}</option>
-    </select>
-    <select
+      <ToggleGroupItem value="doctype" class="flex-1">{{ t('DocType aggregate') }}</ToggleGroupItem>
+      <ToggleGroupItem value="report" class="flex-1">{{ t('Saved report') }}</ToggleGroupItem>
+    </ToggleGroup>
+    <Select
       v-if="isReportSourced(widget)"
-      :value="widget.report"
-      class="w-full h-8 px-3 mt-1 rounded-md border bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
-      @change="updateWidget('report', ($event.target as HTMLSelectElement).value)"
+      :model-value="widget.report ?? undefined"
+      @update:model-value="(v) => updateWidget('report', v ?? '')"
     >
-      <option value="">{{ t('— Select —') }}</option>
-      <option v-for="r in reports" :key="r.name" :value="r.report_name">{{ r.report_name }}</option>
-    </select>
+      <SelectTrigger class="w-full">
+        <SelectValue :placeholder="t('— Select —')" />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem v-for="r in reports" :key="r.name" :value="r.report_name">{{ r.report_name }}</SelectItem>
+      </SelectContent>
+    </Select>
   </div>
 </template>

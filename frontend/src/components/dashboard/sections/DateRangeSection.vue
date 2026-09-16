@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { Input } from '@/components/ui/input'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { useWidgetPropertyEditor } from '@/core/composables/useWidgetPropertyEditor'
 import { isReportSourced } from './widgetHelpers'
 
@@ -17,27 +19,27 @@ const PERIODS = computed(() => [
 
 <template>
   <template v-if="!isReportSourced(widget)">
-    <div class="space-y-1">
-      <label class="font-medium text-muted-foreground uppercase tracking-wide">{{ t('Date field') }}</label>
-      <input
-        :value="widget.date_field"
-        class="w-full h-8 px-3 rounded-md border bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
+    <div class="flex flex-col gap-1.5 mb-4">
+      <label class="font-medium">{{ t('Date field') }}</label>
+      <Input
+        :model-value="widget.date_field ?? ''"
         placeholder="created_at"
-        @change="updateWidget('date_field', ($event.target as HTMLInputElement).value)"
+        class="w-full"
+        @update:model-value="updateWidget('date_field', $event)"
       />
     </div>
-    <div class="space-y-1">
-      <label class="font-medium text-muted-foreground uppercase tracking-wide">{{ t('Period') }}</label>
-      <div class="grid grid-cols-4 gap-1">
-        <button
-          v-for="p in PERIODS" :key="p.value"
-          :class="[
-            'py-1.5 rounded-md border transition-colors',
-            widget.period === p.value ? 'bg-primary text-primary-foreground border-primary' : 'hover:bg-muted',
-          ]"
-          @click="updateWidget('period', p.value)"
-        >{{ p.label }}</button>
-      </div>
+    <div class="flex flex-col gap-1.5 mb-4">
+      <label class="font-medium">{{ t('Period') }}</label>
+      <ToggleGroup
+        type="single"
+        variant="outline"
+        size="sm"
+        class="w-full"
+        :model-value="widget.period"
+        @update:model-value="(v) => v && updateWidget('period', v)"
+      >
+        <ToggleGroupItem v-for="p in PERIODS" :key="p.value" :value="p.value" class="flex-1">{{ p.label }}</ToggleGroupItem>
+      </ToggleGroup>
     </div>
   </template>
 </template>

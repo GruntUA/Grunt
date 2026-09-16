@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
+import { Input } from '@/components/ui/input'
+import { Separator } from '@/components/ui/separator'
 import { useWidgetPropertyEditor } from '@/core/composables/useWidgetPropertyEditor'
 
 const { t } = useI18n()
@@ -7,23 +9,25 @@ const { widget, updateWidget } = useWidgetPropertyEditor()
 </script>
 
 <template>
-  <div class="grid grid-cols-2 gap-2">
-    <div class="space-y-1">
-      <label class="font-medium text-muted-foreground uppercase tracking-wide">{{ t('Min') }}</label>
-      <input
-        :value="widget.min_value"
+  <Separator class="!mb-3" />
+  <p class="font-semibold text-muted-foreground uppercase tracking-wide mb-3">{{ t('Range') }}</p>
+  <div class="flex gap-2 mb-4">
+    <div class="flex-1 flex flex-col gap-1.5">
+      <label class="font-medium">{{ t('Min') }}</label>
+      <Input
         type="number"
-        class="w-full h-8 px-3 rounded-md border bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
-        @change="updateWidget('min_value', Number(($event.target as HTMLInputElement).value))"
+        :model-value="widget.min_value ?? ''"
+        class="w-full"
+        @update:model-value="(v: string | number) => updateWidget('min_value', v === '' ? null : Number(v))"
       />
     </div>
-    <div class="space-y-1">
-      <label class="font-medium text-muted-foreground uppercase tracking-wide">{{ t('Max') }}</label>
-      <input
-        :value="widget.max_value"
+    <div class="flex-1 flex flex-col gap-1.5">
+      <label class="font-medium">{{ t('Max') }}</label>
+      <Input
         type="number"
-        class="w-full h-8 px-3 rounded-md border bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
-        @change="updateWidget('max_value', Number(($event.target as HTMLInputElement).value))"
+        :model-value="widget.max_value ?? ''"
+        class="w-full"
+        @update:model-value="(v: string | number) => updateWidget('max_value', v === '' ? null : Number(v))"
       />
     </div>
   </div>

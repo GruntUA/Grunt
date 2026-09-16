@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { useWidgetPropertyEditor } from '@/core/composables/useWidgetPropertyEditor'
 
 const { t } = useI18n()
@@ -15,17 +16,17 @@ const COLS = computed(() => [
 </script>
 
 <template>
-  <div class="space-y-1">
-    <label class="font-medium text-muted-foreground uppercase tracking-wide">{{ t('Width') }}</label>
-    <div class="grid grid-cols-4 gap-1">
-      <button
-        v-for="c in COLS" :key="c.value"
-        :class="[
-          'py-1.5 rounded-md border transition-colors',
-          widget.cols === c.value ? 'bg-primary text-primary-foreground border-primary' : 'hover:bg-muted',
-        ]"
-        @click="updateWidget('cols', c.value)"
-      >{{ c.label }}</button>
-    </div>
+  <div class="flex flex-col gap-1.5 mb-4">
+    <label class="font-medium">{{ t('Width') }}</label>
+    <ToggleGroup
+      type="single"
+      variant="outline"
+      size="sm"
+      class="w-full"
+      :model-value="String(widget.cols)"
+      @update:model-value="(v) => v && updateWidget('cols', Number(v))"
+    >
+      <ToggleGroupItem v-for="c in COLS" :key="c.value" :value="String(c.value)" class="flex-1">{{ c.label }}</ToggleGroupItem>
+    </ToggleGroup>
   </div>
 </template>

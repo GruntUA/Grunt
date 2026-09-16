@@ -1,11 +1,1 @@
-{
-    "type": "activity",
-    "label": "Activity",
-    "icon": "🕒",
-    "configSections": [
-        "title",
-        "activityFilter",
-        "width",
-        "color"
-    ]
-}
+{"type": "activity", "label": "Activity", "icon": "activity", "category": "Списки", "configSections": ["title", "activityFilter", "width", "color"]}

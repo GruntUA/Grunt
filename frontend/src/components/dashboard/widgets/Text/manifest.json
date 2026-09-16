@@ -1,11 +1,1 @@
-{
-    "type": "text",
-    "label": "Text",
-    "icon": "📝",
-    "configSections": [
-        "title",
-        "textContent",
-        "width",
-        "color"
-    ]
-}
+{"type": "text", "label": "Text", "icon": "type", "category": "Інше", "configSections": ["title", "textContent", "width", "color"]}

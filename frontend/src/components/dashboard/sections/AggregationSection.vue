@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { Input } from '@/components/ui/input'
+import { Separator } from '@/components/ui/separator'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { useWidgetPropertyEditor } from '@/core/composables/useWidgetPropertyEditor'
 
 const { t } = useI18n()
@@ -18,26 +21,29 @@ const needsField = computed(() => ['sum', 'avg', 'min', 'max'].includes(widget.v
 </script>
 
 <template>
-  <div class="space-y-1">
-    <label class="font-medium text-muted-foreground uppercase tracking-wide">{{ t('Aggregation') }}</label>
-    <div class="grid grid-cols-1 gap-1">
-      <button
-        v-for="a in AGGREGATIONS" :key="a.value"
-        :class="[
-          'px-3 py-1.5 rounded-md border transition-colors text-left',
-          widget.aggregation === a.value ? 'bg-primary text-primary-foreground border-primary' : 'hover:bg-muted',
-        ]"
-        @click="updateWidget('aggregation', a.value)"
-      >{{ a.label }}</button>
-    </div>
+  <Separator class="!mb-3" />
+  <p class="font-semibold text-muted-foreground uppercase tracking-wide mb-3">{{ t('Aggregation') }}</p>
+  <div class="mb-4">
+    <ToggleGroup
+      type="single"
+      variant="outline"
+      size="sm"
+      orientation="vertical"
+      :spacing="1"
+      class="w-full flex-col items-stretch"
+      :model-value="widget.aggregation"
+      @update:model-value="(v) => v && updateWidget('aggregation', v)"
+    >
+      <ToggleGroupItem v-for="a in AGGREGATIONS" :key="a.value" :value="a.value" class="w-full justify-start">{{ a.label }}</ToggleGroupItem>
+    </ToggleGroup>
   </div>
-  <div v-if="needsField" class="space-y-1">
-    <label class="font-medium text-muted-foreground uppercase tracking-wide">{{ t('Field') }}</label>
-    <input
-      :value="widget.field"
-      class="w-full h-8 px-3 rounded-md border bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
+  <div v-if="needsField" class="flex flex-col gap-1.5 mb-4">
+    <label class="font-medium">{{ t('Field') }}</label>
+    <Input
+      :model-value="widget.field ?? ''"
       placeholder="fieldname"
-      @change="updateWidget('field', ($event.target as HTMLInputElement).value)"
+      class="w-full"
+      @update:model-value="updateWidget('field', $event)"
     />
   </div>
 </template>

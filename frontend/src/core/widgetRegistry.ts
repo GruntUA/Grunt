@@ -11,6 +11,7 @@
  *     type: 'leave_balance',
  *     label: 'Leave balance',
  *     icon: '🏖️',
+ *     category: 'HR',
  *     component: () => import('./LeaveBalanceWidget.vue').then(m => m.default),
  *     configSections: ['title', 'width', 'color'],
  *   })
@@ -50,6 +51,8 @@ export interface WidgetDefinition {
   label: string
   /** Emoji shown in the palette */
   icon: string
+  /** Group label for the palette (e.g. "Показники", "Графіки") */
+  category: string
   /** Render component used by WidgetCard */
   component: () => Promise<Component>
   /** Property sections shown in WidgetConfigPanel, in order */
@@ -72,9 +75,22 @@ export function getWidgetDef(type: string): WidgetDefinition | undefined {
   return _registry.get(type)
 }
 
-/** All registered widget types, in registration order — drives the palette. */
+/** All registered widget types, in registration order. */
 export function getPaletteWidgets(): WidgetDefinition[] {
   return [..._registry.values()]
+}
+
+/**
+ * Palette groups for the dashboard sidebar and the type switcher dropdown.
+ * Groups maintain registration order within each category.
+ */
+export function getPaletteGroups(): Array<{ category: string; widgets: WidgetDefinition[] }> {
+  const groups = new Map<string, WidgetDefinition[]>()
+  for (const def of _registry.values()) {
+    if (!groups.has(def.category)) groups.set(def.category, [])
+    groups.get(def.category)!.push(def)
+  }
+  return [...groups.entries()].map(([category, widgets]) => ({ category, widgets }))
 }
 
 const _asyncComponentCache = new Map<string, Component>()
@@ -107,6 +123,7 @@ function isValidManifestEntry(v: unknown): v is ManifestEntry {
   return typeof v === 'object' && v !== null
     && typeof (v as any).type === 'string'
     && typeof (v as any).label === 'string'
+    && typeof (v as any).category === 'string'
     && Array.isArray((v as any).configSections)
 }
 

@@ -3,9 +3,12 @@ import { computed, defineAsyncComponent, provide, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { DashboardWidget } from '@/types'
 import { useDocTypeStore } from '@/stores/doctype'
-import { getWidgetDef, getPaletteWidgets } from '@/core/widgetRegistry'
+import { getWidgetDef, getPaletteGroups } from '@/core/widgetRegistry'
 import { getWidgetSection } from '@/core/widgetSectionRegistry'
 import { WIDGET_FIELD_KEY, WIDGET_UPDATE_KEY } from '@/core/composables/useWidgetPropertyEditor'
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Button } from '@/components/ui/button'
+import AppIcon from '@/components/AppIcon.vue'
 import { Trash2 } from '@lucide/vue'
 
 // Register all core sections (side-effect import)
@@ -44,7 +47,7 @@ function updateWidget(key: string, val: unknown) {
 provide(WIDGET_FIELD_KEY, draft as never)
 provide(WIDGET_UPDATE_KEY, updateWidget)
 
-const paletteWidgets = getPaletteWidgets()
+const typeGroups = getPaletteGroups()
 const def = computed(() => draft.value ? getWidgetDef(draft.value.widget_type) : undefined)
 const configSections = computed(() => def.value?.configSections ?? [])
 
@@ -55,9 +58,9 @@ const sectionComponents = computed(() =>
   })
 )
 
-function changeType(next: string) {
-  if (!draft.value || next === draft.value.widget_type) return
-  updateWidget('widget_type', next)
+function changeType(next: unknown) {
+  if (!draft.value || !next || next === draft.value.widget_type) return
+  updateWidget('widget_type', String(next))
 }
 </script>
 
@@ -69,34 +72,38 @@ function changeType(next: string) {
 
   <div v-else class="flex flex-col h-full overflow-hidden">
     <div class="px-4 py-3 border-b shrink-0 flex items-center justify-between">
-      <span class="font-semibold uppercase tracking-wide text-muted-foreground">{{ t('Settings') }}</span>
-      <button
-        class="text-destructive hover:underline flex items-center gap-1"
-        @click="emit('remove')"
-      >
+      <span class="font-semibold uppercase tracking-wide text-muted-foreground">{{ def ? t(def.label) : t('Settings') }}</span>
+      <Button variant="ghost" size="sm" class="text-destructive hover:text-destructive" @click="emit('remove')">
         <Trash2 class="size-3" /> {{ t('Delete') }}
-      </button>
+      </Button>
     </div>
 
-    <div class="flex-1 overflow-y-auto p-4 space-y-4">
+    <div class="flex-1 overflow-y-auto p-4">
 
       <!-- Widget type -->
-      <div class="space-y-1.5">
-        <label class="font-medium text-muted-foreground uppercase tracking-wide">{{ t('Type') }}</label>
-        <div class="grid grid-cols-2 gap-1">
-          <button
-            v-for="wt in paletteWidgets" :key="wt.type"
-            :class="[
-              'flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border transition-colors',
-              draft.widget_type === wt.type
-                ? 'bg-primary text-primary-foreground border-primary'
-                : 'hover:bg-muted border-border',
-            ]"
-            @click="changeType(wt.type)"
-          >
-            <span>{{ wt.icon }}</span>{{ t(wt.label) }}
-          </button>
-        </div>
+      <div class="flex flex-col gap-1.5 mb-4">
+        <label class="font-medium">{{ t('Type') }}</label>
+        <Select :model-value="draft.widget_type" @update:model-value="changeType">
+          <SelectTrigger class="w-full">
+            <SelectValue>
+              <span class="flex items-center gap-2">
+                <AppIcon v-if="def" :icon="def.icon" class="size-4 shrink-0 text-muted-foreground" />
+                {{ def ? t(def.label) : draft.widget_type }}
+              </span>
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup v-for="group in typeGroups" :key="group.category">
+              <SelectLabel>{{ group.category }}</SelectLabel>
+              <SelectItem v-for="wt in group.widgets" :key="wt.type" :value="wt.type">
+                <span class="flex items-center gap-2">
+                  <AppIcon :icon="wt.icon" class="size-4 shrink-0 text-muted-foreground" />
+                  {{ t(wt.label) }}
+                </span>
+              </SelectItem>
+            </SelectGroup>
+          </SelectContent>
+        </Select>
       </div>
 
       <!-- Registered sections -->

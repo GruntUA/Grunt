@@ -1,11 +1,1 @@
-{
-    "type": "links",
-    "label": "Links",
-    "icon": "🔗",
-    "configSections": [
-        "title",
-        "links",
-        "width",
-        "color"
-    ]
-}
+{"type": "links", "label": "Links", "icon": "link-2", "category": "Навігація", "configSections": ["title", "links", "width", "color"]}

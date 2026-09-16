@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
+import { Input } from '@/components/ui/input'
 import { useWidgetPropertyEditor } from '@/core/composables/useWidgetPropertyEditor'
 import { isReportSourced } from './widgetHelpers'
 
@@ -8,13 +9,13 @@ const { widget, updateWidget } = useWidgetPropertyEditor()
 </script>
 
 <template>
-  <div v-if="!isReportSourced(widget)" class="space-y-1">
-    <label class="font-medium text-muted-foreground uppercase tracking-wide">{{ t('Group by') }}</label>
-    <input
-      :value="widget.group_by"
-      class="w-full h-8 px-3 rounded-md border bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
+  <div v-if="!isReportSourced(widget)" class="flex flex-col gap-1.5 mb-4">
+    <label class="font-medium">{{ t('Group by') }}</label>
+    <Input
+      :model-value="widget.group_by ?? ''"
       placeholder="fieldname"
-      @change="updateWidget('group_by', ($event.target as HTMLInputElement).value)"
+      class="w-full"
+      @update:model-value="updateWidget('group_by', $event)"
     />
   </div>
 </template>

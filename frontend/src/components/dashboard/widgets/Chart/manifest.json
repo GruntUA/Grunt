@@ -1,30 +1,4 @@
 [
-  {
-    "type": "chart_area",
-    "label": "Area",
-    "icon": "📈",
-    "configSections": [
-      "title",
-      "dataSource",
-      "doctypeSource",
-      "groupBy",
-      "dateRange",
-      "width",
-      "color"
-    ]
-  },
-  {
-    "type": "chart_bar",
-    "label": "Bar",
-    "icon": "📊",
-    "configSections": [
-      "title",
-      "dataSource",
-      "doctypeSource",
-      "groupBy",
-      "dateRange",
-      "width",
-      "color"
-    ]
-  }
+  {"type": "chart_area", "label": "Area", "icon": "area-chart", "category": "Графіки", "configSections": ["title", "dataSource", "doctypeSource", "groupBy", "dateRange", "width", "color"]},
+  {"type": "chart_bar", "label": "Bar", "icon": "bar-chart-3", "category": "Графіки", "configSections": ["title", "dataSource", "doctypeSource", "groupBy", "dateRange", "width", "color"]}
 ]
