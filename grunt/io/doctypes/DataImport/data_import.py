@@ -3,9 +3,7 @@ from pathlib import Path
 from typing import Any
 
 from grunt.document.base import Document
-from grunt.document.meta import Meta
 from grunt.log import log
-from grunt.metadata.registry import doctype_registry
 
 
 class DataImport(Document):
@@ -15,7 +13,11 @@ class DataImport(Document):
         """Extract headers and first 5 data rows for column mapping."""
         file_path = await self._resolve_file_path()
         data = self._read_file(file_path, limit=6)  # header + 5 rows
-        dt = await doctype_registry.get(self.doctype_name)
+        dt = await self.grunt.get_meta(self.doctype_name)
+        if dt is None:
+            from grunt.errors import not_found
+
+            raise not_found(f"DocType «{self.doctype_name}» не знайдено")
 
         headers = [str(h) if h is not None else "" for h in (data[0] if data else [])]
         suggestions: dict[str, str] = {}
@@ -39,7 +41,7 @@ class DataImport(Document):
                     "fieldtype": f.fieldtype,
                     "required": f.required,
                 }
-                for f in Meta(dt).get_physical_fields()
+                for f in dt.get_physical_fields()
             ],
         }
 
@@ -71,8 +73,15 @@ class DataImport(Document):
             mapping = json.loads(mapping) if mapping else {}
 
         # Load required fields for dry-run validation
-        dt = await doctype_registry.get(self.doctype_name)
-        required_fields = {f.fieldname for f in Meta(dt).get_required_fields()}
+        dt = await self.grunt.get_meta(self.doctype_name)
+        if dt is None:
+            self.status = "Failed"
+            self.error_log = json.dumps(
+                [{"row": 0, "error": f"DocType «{self.doctype_name}» не знайдено"}]
+            )
+            await self.session.commit()
+            return
+        required_fields = {f.fieldname for f in dt.get_required_fields()}
         mapped_dt_fields = set(mapping.values())
 
         total = len(rows)
@@ -250,8 +259,10 @@ class DataImport(Document):
         if exporter is None:
             raise ValueError(f"Невідомий формат експорту: {fmt}")
 
-        dt = await doctype_registry.get(doctype)
-        exportable = Meta(dt).get_physical_fields()
+        dt = await grunt_app.get_meta(doctype)
+        if dt is None:
+            raise ValueError(f"DocType «{doctype}» не знайдено")
+        exportable = dt.get_physical_fields()
         if fields:
             exportable = [f for f in exportable if f.fieldname in fields]
 
@@ -273,14 +284,17 @@ class DataImport(Document):
         fmt: str = "csv",
     ) -> tuple[bytes, str]:
         """Return an empty import template (headers only) for *doctype*."""
+        from grunt.app import grunt as grunt_app
         from grunt.io.exporters.registry import get_exporter
 
         exporter = get_exporter(fmt)
         if exporter is None:
             raise ValueError(f"Невідомий формат: {fmt}")
 
-        dt = await doctype_registry.get(doctype)
-        exportable = Meta(dt).get_physical_fields()
+        dt = await grunt_app.get_meta(doctype)
+        if dt is None:
+            raise ValueError(f"DocType «{doctype}» не знайдено")
+        exportable = dt.get_physical_fields()
         content = await exporter.export(doctype, [], exportable)
         filename = f"{doctype.lower()}_template.{exporter.file_extension}"
         return content, filename

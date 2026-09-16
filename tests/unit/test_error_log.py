@@ -130,7 +130,7 @@ async def test_record_view_marks_error_log_seen(ctx):
     await session.commit()
 
     doc = await ctx.get_doc("ErrorLog", name)
-    await record_view("after_read", doctype="ErrorLog", doc=dict(doc), user=_plain_user())
+    await record_view(event="after_read", doctype="ErrorLog", doc=dict(doc), user=_plain_user())
 
     stored = await ctx.db.get_value("ErrorLog", name, "_seen")
     assert "plain@example.com" in (stored or [])

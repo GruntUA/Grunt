@@ -21,22 +21,27 @@ from grunt.api.context import (
 from grunt.api.messages import ApplicationError, msgprint, throw
 from grunt.api.permissions import get_current_user
 from grunt.app import GruntDB, grunt
+from grunt.metadata.doctype import DocType
 from grunt.metadata.permission import DocPermission
 
 db = GruntDB()
 
 
-def _dt(name: str, permissions: list[DocPermission] | None = None) -> Mock:
-    """A stand-in DocType with just the attributes permission_checker.check() reads.
+def _dt(name: str, permissions: list[DocPermission] | None = None) -> DocType:
+    """A minimal, real DocType with just enough set for permission checks.
 
-    Plain ``Mock(name=..., permissions=...)`` doesn't work here — ``name`` is a
-    reserved Mock constructor kwarg (sets the mock's repr, not a ``.name``
-    attribute), so it has to be assigned after construction instead.
+    A real ``DocType`` (rather than a bare ``Mock``) so it round-trips cleanly
+    through ``Meta()`` (via ``grunt.get_meta``/``doctype_registry.get_meta``) —
+    ``Meta.__init__`` iterates ``.fields``, and other metadata helpers may walk
+    ``.indexes`` etc.; a pydantic model gives all of those their real empty
+    defaults instead of each one needing to be stubbed by hand.
     """
-    dt = Mock()
-    dt.name = name
-    dt.permissions = permissions if permissions is not None else []
-    return dt
+    return DocType(
+        name=name,
+        label=name,
+        module="core",
+        permissions=permissions if permissions is not None else [],
+    )
 
 
 def _registry_returning(dt: Mock):
@@ -269,6 +274,7 @@ class TestGruntAppLayerPermissions:
         """grunt.get_value must raise 403 when read permission is denied."""
         dt = Mock()
         dt.name = "Invoice"
+        dt.fields = []
 
         with (
             patch("grunt.app.doctype_registry.get", new_callable=AsyncMock, return_value=dt),
@@ -291,6 +297,7 @@ class TestGruntAppLayerPermissions:
         dt = Mock()
         dt.name = "Invoice"
         dt.permissions = []
+        dt.fields = []
 
         with (
             patch("grunt.app.doctype_registry.get", new_callable=AsyncMock, return_value=dt),
@@ -325,6 +332,7 @@ class TestGruntAppLayerPermissions:
         dt = Mock()
         dt.name = "Invoice"
         dt.permissions = []
+        dt.fields = []
         rows = [{"name": "INV-001", "status": "Draft"}]
 
         with (
@@ -482,6 +490,10 @@ class TestPermissions:
         with (
             _registry_returning(dt),
             patch.object(GruntDB, "get_value", new_callable=AsyncMock, return_value=doc),
+            # No UserPermission rows for either user — check() still consults
+            # doc_passes()/get_user_permissions_for() once the role-level match
+            # succeeds, so this needs mocking too, not just get_value().
+            patch.object(GruntDB, "get_all", new_callable=AsyncMock, return_value=[]),
         ):
             set_user(owner)
             assert await grunt.has_permission("Contract", "read", "CONTRACT-1") is True

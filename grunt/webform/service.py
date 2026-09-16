@@ -9,9 +9,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 from grunt.app import grunt
-from grunt.document.meta import Meta
 from grunt.log import log
-from grunt.metadata.registry import doctype_registry
 
 if TYPE_CHECKING:
     from grunt.auth.doctypes.User.user import User
@@ -85,8 +83,11 @@ class WebFormService:
         if not form:
             return []
 
-        dt = await doctype_registry.get(form["doctype"])
-        meta = Meta(dt)
+        meta = await grunt.get_meta(form["doctype"])
+        if meta is None:
+            from grunt.errors import not_found
+
+            raise not_found(f"DocType «{form['doctype']}» не знайдено")
 
         result: list[dict[str, Any]] = []
         for row in form["fields"] or []:

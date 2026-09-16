@@ -42,8 +42,6 @@ async def snapshot_deleted_document(event: str, **kwargs: Any) -> None:
     (``_call_hook`` already swallows exceptions, but we guard anyway so a
     partial snapshot is never written).
     """
-    from grunt.metadata.registry import doctype_registry
-
     doctype = kwargs.get("doctype")
     doc = kwargs.get("doc")
     if not doctype or not isinstance(doc, dict):
@@ -51,9 +49,8 @@ async def snapshot_deleted_document(event: str, **kwargs: Any) -> None:
     if not doc.get("name"):
         return
 
-    try:
-        dt = await doctype_registry.get(doctype)
-    except Exception:
+    dt = await grunt.get_meta(doctype)
+    if dt is None:
         return
 
     # Дочірні рядки їдуть у знімку батька; окремих табличних доктайпів,

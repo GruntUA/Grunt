@@ -158,9 +158,12 @@ async def run(doctype: str, action: str, doc_id: str, args: dict | None = None) 
     exists in the registry, so the set of runnable actions per DocType stays
     exactly what the metadata declares.
     """
-    from grunt.metadata.registry import doctype_registry
+    from grunt.app import grunt as grunt_app
+    from grunt.errors import not_found
 
-    dt = await doctype_registry.get(doctype)
+    dt = await grunt_app.get_meta(doctype)
+    if dt is None:
+        raise not_found(f"DocType «{doctype}» не знайдено")
     bound = {(b.action or "") for b in getattr(dt, "actions", []) or []}
     if action not in bound:
         grunt.throw(f"Дію «{action}» не підключено до {doctype}", "NOT_FOUND")

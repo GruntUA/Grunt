@@ -74,7 +74,13 @@ async def get_doctype(name: str, raw: bool = False) -> dict[str, Any]:
     await doctype_registry.get(name)  # ensure it exists (raises 404 if not)
     fresh = await doctype_registry._lazy_load(name)
     if fresh is None:
-        fresh = await doctype_registry.get(name)
+        from grunt.app import grunt as grunt_app
+        from grunt.errors import not_found
+
+        meta = await grunt_app.get_meta(name)
+        if meta is None:
+            raise not_found(f"DocType «{name}» не знайдено")
+        fresh = meta.doc
     return await _dump_doctype(fresh, translate=not raw)
 
 
@@ -135,8 +141,12 @@ async def delete_doctype(name: str) -> bool:
 async def sync_doctype(name: str) -> dict[str, Any]:
     """Force sync a DocType's physical table. Admin only."""
     from grunt.app import grunt as grunt_app
+    from grunt.errors import not_found
 
-    dt = await doctype_registry.get(name)
+    meta = await grunt_app.get_meta(name)
+    if meta is None:
+        raise not_found(f"DocType «{name}» не знайдено")
+    dt = meta.doc
     session = grunt_app._require_session()
     engine = grunt_app._require_engine()
 
@@ -197,8 +207,11 @@ async def compact_table(name: str) -> dict[str, Any]:
     import sqlalchemy as sa
 
     from grunt.app import grunt as grunt_app
+    from grunt.errors import not_found
 
-    dt = await doctype_registry.get(name)
+    dt = await grunt_app.get_meta(name)
+    if dt is None:
+        raise not_found(f"DocType «{name}» не знайдено")
     if dt.is_virtual:
         grunt.throw("Віртуальний тип документа не має фізичної таблиці", "VALIDATION_ERROR")
 
@@ -278,8 +291,11 @@ async def table_info(name: str) -> dict[str, Any]:
     import sqlalchemy as sa
 
     from grunt.app import grunt as grunt_app
+    from grunt.errors import not_found
 
-    dt = await doctype_registry.get(name)
+    dt = await grunt_app.get_meta(name)
+    if dt is None:
+        raise not_found(f"DocType «{name}» не знайдено")
     if dt.is_virtual:
         grunt.throw("Віртуальний тип документа не має фізичної таблиці", "VALIDATION_ERROR")
 

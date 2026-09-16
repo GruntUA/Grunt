@@ -14,6 +14,7 @@ if TYPE_CHECKING:
     from sqlalchemy.sql import Select
 
     from grunt.auth.doctypes.User.user import User
+    from grunt.document.meta import Meta
     from grunt.metadata.doctype import DocType
 
 
@@ -21,7 +22,7 @@ async def apply_permission_filter(
     query: Select,
     table: Table,
     user: User,
-    doctype: DocType,
+    doctype: DocType | Meta,
 ) -> Select:
     """Restrict *query* to rows the user's role-permissions allow via `match`.
 

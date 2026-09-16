@@ -46,11 +46,16 @@ class LinkService:
 
         Returns the number of links created.
         """
-        from grunt.metadata.compiler import compile_doctype_to_table
+        from grunt.app import grunt
+        from grunt.errors import not_found
 
-        doclink_dt = await doctype_registry.get("DocLink")
-        table = compile_doctype_to_table(doclink_dt)
-        dt = await doctype_registry.get(doctype)
+        doclink_dt = await grunt.get_meta("DocLink")
+        if doclink_dt is None:
+            raise not_found("DocType «DocLink» не знайдено")
+        table = doclink_dt.table
+        dt = await grunt.get_meta(doctype)
+        if dt is None:
+            raise not_found(f"DocType «{doctype}» не знайдено")
 
         # Delete existing links from this source document
         await session.execute(
@@ -111,10 +116,13 @@ class LinkService:
 
         Returns a list of dicts with source_doctype, source_id, link_fieldname.
         """
-        from grunt.metadata.compiler import compile_doctype_to_table
+        from grunt.app import grunt
+        from grunt.errors import not_found
 
-        dt_doc_link = await doctype_registry.get("DocLink")
-        table = compile_doctype_to_table(dt_doc_link)
+        dt_doc_link = await grunt.get_meta("DocLink")
+        if dt_doc_link is None:
+            raise not_found("DocType «DocLink» не знайдено")
+        table = dt_doc_link.table
         stmt = (
             select(table)
             .where(table.c.target_doctype == doctype)
@@ -241,10 +249,13 @@ class LinkService:
         doc_id: str,
     ) -> None:
         """Remove all links from and to a document (on delete)."""
-        from grunt.metadata.compiler import compile_doctype_to_table
+        from grunt.app import grunt
+        from grunt.errors import not_found
 
-        dt_doc_link = await doctype_registry.get("DocLink")
-        table = compile_doctype_to_table(dt_doc_link)
+        dt_doc_link = await grunt.get_meta("DocLink")
+        if dt_doc_link is None:
+            raise not_found("DocType «DocLink» не знайдено")
+        table = dt_doc_link.table
 
         # Links FROM this document
         await session.execute(

@@ -245,12 +245,14 @@ class ReportEngine:
         Columns without an aggregation are treated as GROUP BY columns when
         any aggregation column is present; otherwise a plain SELECT is used.
         """
-        from grunt.metadata.compiler import compile_doctype_to_table
-        from grunt.metadata.registry import doctype_registry
+        from grunt.app import grunt
+        from grunt.errors import not_found
         from grunt.permissions.rbac import permission_checker
 
-        dt = await doctype_registry.get(doctype)
-        table = compile_doctype_to_table(dt)
+        dt = await grunt.get_meta(doctype)
+        if dt is None:
+            raise not_found(f"DocType «{doctype}» не знайдено")
+        table = dt.table
 
         # Permission check
         await permission_checker.require(user, dt, "read")
@@ -259,11 +261,8 @@ class ReportEngine:
 
         # If no column definitions, fall back to in_list_view fields
         if not col_defs:
-            from grunt.document.meta import Meta
-
             col_defs = [
-                {"fieldname": f.fieldname, "label": f.label}
-                for f in Meta(dt).get_list_view_fields()
+                {"fieldname": f.fieldname, "label": f.label} for f in dt.get_list_view_fields()
             ]
 
         agg_map: dict[str, Callable[..., Any]] = {

@@ -23,7 +23,6 @@ async def global_search(
         grunt.throw("Parameter 'limit' too high", "VALIDATION_ERROR")
 
     from grunt.app import grunt as grunt_app
-    from grunt.metadata.registry import doctype_registry
     from grunt.permissions.rbac import permission_checker
     from grunt.search.service import search_index_service
 
@@ -43,11 +42,14 @@ async def global_search(
     for r in raw:
         dt_name = r["doctype"]
         if dt_name not in allowed_doctypes:
-            try:
-                dt = await doctype_registry.get(dt_name)
-                allowed_doctypes[dt_name] = await permission_checker.check(user, dt, "read")
-            except Exception:
+            dt = await grunt_app.get_meta(dt_name)
+            if dt is None:
                 allowed_doctypes[dt_name] = False
+            else:
+                try:
+                    allowed_doctypes[dt_name] = await permission_checker.check(user, dt, "read")
+                except Exception:
+                    allowed_doctypes[dt_name] = False
 
         if allowed_doctypes.get(dt_name):
             results.append(

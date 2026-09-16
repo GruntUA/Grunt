@@ -40,16 +40,19 @@ async def _load() -> frozenset[tuple[str, str]] | None:
     """Read every enabled rule's ``(doctype, event)``; ``None`` if no session bound."""
     from sqlalchemy import select
 
+    from grunt.app import grunt
     from grunt.context import _session_ctx
-    from grunt.document.meta import Meta
-    from grunt.metadata.registry import doctype_registry
 
     session = _session_ctx.get()
     if session is None:
         return None
 
-    dt = await doctype_registry.get("NotificationRule")
-    table = Meta(dt).table
+    dt = await grunt.get_meta("NotificationRule")
+    if dt is None:
+        from grunt.errors import not_found
+
+        raise not_found("DocType «NotificationRule» не знайдено")
+    table = dt.table
     result = await session.execute(
         select(table.c.doctype, table.c.event).where(table.c.is_enabled.is_(True))
     )

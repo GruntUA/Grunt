@@ -100,10 +100,9 @@ async def get_active_workflow(document_type: str) -> ResolvedWorkflow | None:
     if document_type in _CACHE:
         return _CACHE[document_type]
 
-    from grunt.document.meta import Meta
+    from grunt.app import grunt as grunt_app
     from grunt.document.relations import _load_child_tables
     from grunt.document.serde import serialize_datetimes
-    from grunt.metadata.registry import doctype_registry
 
     session = await _get_session()
     if session is None:
@@ -112,8 +111,12 @@ async def get_active_workflow(document_type: str) -> ResolvedWorkflow | None:
         # can still resolve it.
         return None
 
-    dt = await doctype_registry.get("Workflow")
-    meta = Meta(dt)
+    meta = await grunt_app.get_meta("Workflow")
+    if meta is None:
+        from grunt.errors import not_found
+
+        raise not_found("DocType «Workflow» не знайдено")
+    dt = meta.doc  # _load_child_tables below is typed to take the raw DocType
     table = meta.table
     data_fields = {f.fieldname for f in meta.get_physical_fields()}
     cols = [c for c in table.c if c.key in data_fields or c.key == "name"]

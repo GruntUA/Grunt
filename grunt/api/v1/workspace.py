@@ -28,12 +28,7 @@ async def _workspace_to_dict(ws_data: Any) -> dict[str, Any]:
         item_icon = item.get("icon", "")
         is_singleton = False
         if item_type == "DocType" and link_to:
-            from grunt.metadata.registry import doctype_registry
-
-            try:
-                dt_meta = await doctype_registry.get(link_to)
-            except Exception:
-                dt_meta = None
+            dt_meta = await grunt_app.get_meta(link_to)
             if dt_meta is not None:
                 is_singleton = dt_meta.is_singleton
                 # Fall back to the DocType's own icon when the sidebar item
@@ -87,7 +82,7 @@ async def list_workspaces() -> list[dict[str, Any]]:
 
     # Sidebar items across all workspaces touch most of the app's DocTypes.
     # Batch-load them in one query up front instead of letting
-    # _workspace_to_dict's per-item doctype_registry.get() lazy-load each one
+    # _workspace_to_dict's per-item grunt_app.get_meta() lazy-load each one
     # with its own SELECT.
     await doctype_registry.list_all()
 

@@ -26,10 +26,8 @@ from typing import Any
 from sqlalchemy import distinct, func, select
 
 import grunt
-from grunt.document.meta import Meta
 from grunt.log import log
 from grunt.metadata.doctype import DocTypeLink
-from grunt.metadata.registry import doctype_registry
 
 _PREVIEW_LIMIT = 5
 
@@ -39,8 +37,10 @@ async def _child_link_stats(link: DocTypeLink, doc_name: str) -> tuple[int, list
     from grunt.app import grunt as grunt_app
 
     session = grunt_app._require_session()
-    child_dt = await doctype_registry.get(link.parent_doctype or "")
-    child_table = Meta(child_dt).table
+    child_dt = await grunt_app.get_meta(link.parent_doctype or "")
+    if child_dt is None:
+        raise ValueError(f"DocType «{link.parent_doctype}» не знайдено")
+    child_table = child_dt.table
 
     if link.link_fieldname not in child_table.c:
         return 0, []
@@ -62,7 +62,9 @@ async def _direct_link_stats(link: DocTypeLink, doc_name: str) -> tuple[int, lis
     filters = {link.link_fieldname: doc_name}
     total = await grunt.count(link.link_doctype, filters=filters)
 
-    link_dt = await doctype_registry.get(link.link_doctype)
+    link_dt = await grunt.get_meta(link.link_doctype)
+    if link_dt is None:
+        raise ValueError(f"DocType «{link.link_doctype}» не знайдено")
     title_field = link_dt.title_field or "name"
     fields = ["name"] if title_field == "name" else ["name", title_field]
     rows = await grunt.get_list(
@@ -81,7 +83,9 @@ async def _direct_link_stats(link: DocTypeLink, doc_name: str) -> tuple[int, lis
 async def _resolve_titles(doctype: str, names: list[str]) -> list[dict[str, Any]]:
     if not names:
         return []
-    dt = await doctype_registry.get(doctype)
+    dt = await grunt.get_meta(doctype)
+    if dt is None:
+        raise ValueError(f"DocType «{doctype}» не знайдено")
     title_field = dt.title_field or "name"
     fields = ["name"] if title_field == "name" else ["name", title_field]
     rows = await grunt.get_list(
@@ -111,7 +115,11 @@ async def get_connections(doctype: str, doc_id: str) -> dict[str, Any]:
 
     await doc_guard(doctype, doc_id)  # permission check
 
-    dt = await doctype_registry.get(doctype)
+    from grunt.errors import not_found
+
+    dt = await grunt.get_meta(doctype)
+    if dt is None:
+        raise not_found(f"DocType «{doctype}» не знайдено")
     doc_name = dt.name if dt.is_singleton else doc_id
     # The `links` table is authoritative. A DocType that declares no rows shows
     # no connection chips — backlinks are never derived from reverse Link fields.
@@ -128,11 +136,11 @@ async def get_connections(doctype: str, doc_id: str) -> dict[str, Any]:
             log.exception("connections.link_error", doctype=doctype, link_doctype=link.link_doctype)
             continue
 
-        link_dt = await doctype_registry.get(link.link_doctype)
+        link_dt = await grunt.get_meta(link.link_doctype)
         groups.setdefault(link.group or "", []).append(
             {
                 "link_doctype": link.link_doctype,
-                "label": link.label or link_dt.label or link.link_doctype,
+                "label": link.label or (link_dt.label if link_dt else None) or link.link_doctype,
                 "fieldname": link.link_fieldname,
                 "via_child": bool(link.parent_doctype),
                 "count": count,

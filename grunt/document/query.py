@@ -41,11 +41,10 @@ async def _expand_child_of_filters(
 
         linked_doctype: str = field.options  # type: ignore[assignment]
 
-        from grunt.metadata.registry import doctype_registry
+        from grunt.app import grunt
 
-        try:
-            linked_dt = await doctype_registry.get(linked_doctype)
-        except Exception:
+        linked_dt = await grunt.get_meta(linked_doctype)
+        if linked_dt is None:
             result[f"{fieldname}__eq"] = value
             continue
 
@@ -53,16 +52,12 @@ async def _expand_child_of_filters(
             result[f"{fieldname}__eq"] = value
             continue
 
-        from grunt.document.meta import Meta
-
-        tree_view = Meta(linked_dt).get_tree_view()
+        tree_view = linked_dt.get_tree_view()
         parent_field: str = (
             tree_view.parent_field if tree_view and tree_view.parent_field else "parent"
         )
 
-        from grunt.metadata.compiler import compile_doctype_to_table
-
-        linked_table = compile_doctype_to_table(linked_dt)
+        linked_table = linked_dt.table
         parent_col = linked_table.c.get(parent_field)
         if parent_col is None:
             result[f"{fieldname}__eq"] = value
@@ -96,15 +91,13 @@ async def _link_field_search_condition(
     if not linked_doctype:
         return None
 
-    from grunt.metadata.compiler import compile_doctype_to_table
-    from grunt.metadata.registry import doctype_registry
+    from grunt.app import grunt
 
-    try:
-        linked_dt = await doctype_registry.get(linked_doctype)
-    except Exception:
+    linked_dt = await grunt.get_meta(linked_doctype)
+    if linked_dt is None:
         return None
 
-    linked_table = compile_doctype_to_table(linked_dt)
+    linked_table = linked_dt.table
     linked_cols = [linked_table.c.name]
     title_field = linked_dt.title_field
     if title_field and title_field != "name":

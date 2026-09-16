@@ -35,6 +35,7 @@ if TYPE_CHECKING:
     from sqlalchemy.sql import ColumnElement
 
     from grunt.auth.doctypes.User.user import User
+    from grunt.document.meta import Meta
     from grunt.metadata.doctype import DocType
 
 
@@ -119,17 +120,14 @@ async def _expand_tree_values(allow: str, values: set[str]) -> set[str]:
     indexed queries per list render; departments/units are few enough that
     caching isn't worth the staleness risk.
     """
-    from grunt.metadata.registry import doctype_registry
+    from grunt.app import grunt
 
-    try:
-        dt = await doctype_registry.get(allow)
-    except Exception:
+    dt = await grunt.get_meta(allow)
+    if dt is None:
         return values
     parent_field = getattr(dt, "tree_parent_field", None)
     if not getattr(dt, "is_tree", False) or not parent_field:
         return values
-
-    from grunt.app import grunt
 
     out = set(values)
     frontier = list(values)
@@ -146,7 +144,7 @@ async def _expand_tree_values(allow: str, values: set[str]) -> set[str]:
     return out
 
 
-def _link_fieldnames(doctype: DocType, allow: str) -> list[str]:
+def _link_fieldnames(doctype: DocType | Meta, allow: str) -> list[str]:
     """Fields on *doctype* that Link to *allow* (plus ``name`` when the DocType
     is itself restricted). DynamicLink fields are skipped — their target isn't
     statically known."""
@@ -166,7 +164,7 @@ def _link_fieldnames(doctype: DocType, allow: str) -> list[str]:
 async def build_conditions(
     table: Table,
     user: User | None,
-    doctype: DocType,
+    doctype: DocType | Meta,
 ) -> list[ColumnElement] | None:
     """SQL conditions (AND-joined by the caller) enforcing *user*'s permissions
     on *doctype*, or ``None`` when nothing applies. May return ``[false()]`` to
@@ -195,7 +193,7 @@ async def build_conditions(
     return conds or None
 
 
-async def doc_passes(user: User | None, doctype: DocType, doc: dict[str, Any]) -> bool:
+async def doc_passes(user: User | None, doctype: DocType | Meta, doc: dict[str, Any]) -> bool:
     """Python-level check of a single already-fetched *doc* against *user*'s
     permissions — the per-document counterpart of :func:`build_conditions`."""
     up = await get_user_permissions_for(user, doctype.name)
@@ -229,20 +227,21 @@ async def doc_passes(user: User | None, doctype: DocType, doc: dict[str, Any]) -
 async def get_active_restrictions(doctype: str) -> list[dict[str, Any]]:
     """Rows for the list-view "Restrictions" popup: which fields on *doctype*
     are constrained, and to which values, for the current user."""
-    from grunt.document.meta import Meta
-    from grunt.metadata.registry import doctype_registry
+    from grunt.app import grunt as grunt_app
+    from grunt.errors import not_found
 
     user = await grunt.get_current_user()
-    dt = await doctype_registry.get(doctype)
+    dt = await grunt_app.get_meta(doctype)
+    if dt is None:
+        raise not_found(f"DocType «{doctype}» не знайдено")
     up = await get_user_permissions_for(user, doctype)
     if not up:
         return []
 
-    meta = Meta(dt)
     out: list[dict[str, Any]] = []
     for allow, values in up.items():
         for fn in _link_fieldnames(dt, allow):
-            label = "ID" if fn == "name" else meta.get_label(fn)
+            label = "ID" if fn == "name" else dt.get_label(fn)
             for value in sorted(values):
                 out.append({"field": label, "fieldname": fn, "allow": allow, "value": value})
     return out
@@ -252,7 +251,8 @@ async def get_active_restrictions(doctype: str) -> list[dict[str, Any]]:
 async def get_user_permission_defaults(doctype: str) -> dict[str, str]:
     """``{fieldname: value}`` to pre-fill on a new *doctype* form from the
     current user's ``is_default`` UserPermission rows."""
-    from grunt.metadata.registry import doctype_registry
+    from grunt.app import grunt as grunt_app
+    from grunt.errors import not_found
 
     user = await grunt.get_current_user()
     if not user_permissions_apply_to(user):
@@ -270,7 +270,9 @@ async def get_user_permission_defaults(doctype: str) -> dict[str, str]:
     if not rows:
         return {}
 
-    dt = await doctype_registry.get(doctype)
+    dt = await grunt_app.get_meta(doctype)
+    if dt is None:
+        raise not_found(f"DocType «{doctype}» не знайдено")
     defaults: dict[str, str] = {}
     for r in rows:
         if not r.get("apply_to_all_doctypes") and r.get("applicable_for") != doctype:

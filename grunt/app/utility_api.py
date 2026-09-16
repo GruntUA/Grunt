@@ -43,13 +43,13 @@ class UtilityAPI:
             kwargs=kwargs,
         )
 
-    async def get_meta(self, doctype: str) -> Meta:
-        """Return the :class:`~grunt.core.document.meta.Meta` wrapper."""
-        from grunt.document.meta import Meta
+    async def get_meta(self, doctype: str) -> Meta | None:
+        """Return the :class:`~grunt.document.meta.Meta` wrapper, or ``None``
+        if ``doctype`` isn't a registered DocType.
+        """
         from grunt.metadata.registry import doctype_registry
 
-        dt = await doctype_registry.get(doctype)
-        return Meta(dt)
+        return await doctype_registry.get_meta(doctype)
 
     def throw(self, message: str, title: str | None = None) -> NoReturn:
         """Raise a user-facing :class:`GruntError`."""

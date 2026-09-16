@@ -88,11 +88,13 @@ class NamingService:
 
         Uses SELECT ... FOR UPDATE to prevent race conditions.
         """
-        from grunt.metadata.compiler import compile_doctype_to_table
-        from grunt.metadata.registry import doctype_registry
+        from grunt.app import grunt
+        from grunt.errors import not_found
 
-        ns_dt = await doctype_registry.get("NamingSeries")
-        table = compile_doctype_to_table(ns_dt)
+        ns_dt = await grunt.get_meta("NamingSeries")
+        if ns_dt is None:
+            raise not_found("DocType «NamingSeries» не знайдено")
+        table = ns_dt.table
 
         # Try to get existing row with lock
         stmt = select(table).where(table.c.prefix == prefix).with_for_update()

@@ -12,8 +12,6 @@ from grunt.log import log
 @grunt.whitelist(allow_guest=True)
 async def get_shared_document(token: str) -> dict[str, Any]:
     """Return a publicly shared document by token. No authentication required."""
-    from grunt.metadata.registry import doctype_registry
-
     # Use SYSTEM_USER for db queries since we are in guest mode
     shares = await grunt.db.get_all(
         "DocumentShare",
@@ -43,7 +41,9 @@ async def get_shared_document(token: str) -> dict[str, Any]:
     doc_id = share["doc_id"]
 
     # Fetch without permission guards — this is a guest-accessible share link
-    dt = await doctype_registry.get(doctype_name)
+    dt = await grunt.get_meta(doctype_name)
+    if dt is None:
+        grunt.throw("DocType не знайдено", "NOT_FOUND")
     doc = await grunt.db.get_doc(doctype_name, doc_id)
 
     if not doc:
@@ -56,9 +56,7 @@ async def get_shared_document(token: str) -> dict[str, Any]:
     except Exception:
         log.exception("suppressed_error")
 
-    from grunt.document.meta import Meta
-
-    meta = Meta(dt)
+    meta = dt
     visible_fields = [
         {"fieldname": f.fieldname, "label": f.label, "fieldtype": f.fieldtype}
         for f in meta.get_visible_fields()
@@ -84,20 +82,16 @@ async def _inject_top_level_link_labels(meta: Any, doc: dict[str, Any]) -> None:
     labels itself (unlike the app's ``Link`` field component), so it needs the
     display label baked into the response.
     """
-    from grunt.document.meta import Meta
-    from grunt.metadata.registry import doctype_registry
-
     link_fields = [f for f in meta.doc.fields if f.fieldtype == "Link" and f.options]
     for lf in link_fields:
         raw = doc.get(lf.fieldname)
         if not raw:
             continue
-        try:
-            target_dt = await doctype_registry.get(lf.options)
-        except Exception:
+        target_dt = await grunt.get_meta(lf.options)
+        if target_dt is None:
             continue
 
-        title_field = Meta(target_dt).get_title_field()
+        title_field = target_dt.get_title_field()
         row = await grunt.db.get_values(lf.options, raw, [title_field])
         if row:
             doc[f"{lf.fieldname}__label"] = str(row.get(title_field) or raw)

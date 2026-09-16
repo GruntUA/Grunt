@@ -50,10 +50,14 @@ class VersionService:
         if not changes:
             return None
 
-        from grunt.metadata.compiler import compile_doctype_to_table
-        from grunt.metadata.registry import doctype_registry
+        from grunt.app import grunt
 
-        table = compile_doctype_to_table(await doctype_registry.get("DocVersion"))
+        dt_version = await grunt.get_meta("DocVersion")
+        if dt_version is None:
+            from grunt.errors import not_found
+
+            raise not_found("DocType «DocVersion» не знайдено")
+        table = dt_version.table
 
         # Get next version number
         stmt = (
@@ -100,10 +104,14 @@ class VersionService:
         doc_id: str,
     ) -> list[dict[str, Any]]:
         """Get all versions for a document, newest first."""
-        from grunt.metadata.compiler import compile_doctype_to_table
-        from grunt.metadata.registry import doctype_registry
+        from grunt.app import grunt
 
-        table = compile_doctype_to_table(await doctype_registry.get("DocVersion"))
+        dt_version = await grunt.get_meta("DocVersion")
+        if dt_version is None:
+            from grunt.errors import not_found
+
+            raise not_found("DocType «DocVersion» не знайдено")
+        table = dt_version.table
         stmt = (
             select(table)
             .where(table.c.doctype == doctype)
@@ -130,10 +138,14 @@ class VersionService:
         version_id: str,
     ) -> dict[str, Any] | None:
         """Get a specific version by ID."""
-        from grunt.metadata.compiler import compile_doctype_to_table
-        from grunt.metadata.registry import doctype_registry
+        from grunt.app import grunt
 
-        table = compile_doctype_to_table(await doctype_registry.get("DocVersion"))
+        dt_version = await grunt.get_meta("DocVersion")
+        if dt_version is None:
+            from grunt.errors import not_found
+
+            raise not_found("DocType «DocVersion» не знайдено")
+        table = dt_version.table
         stmt = select(table).where(table.c.name == version_id)
         result = await session.execute(stmt)
         row = result.mappings().first()

@@ -10,8 +10,6 @@ from sqlalchemy import CursorResult, Date, func, or_, select, update
 
 from grunt.context import _session_ctx
 from grunt.db.types import UtcDateTime
-from grunt.metadata.compiler import compile_doctype_to_table
-from grunt.metadata.registry import doctype_registry
 from grunt.utils.attr_dict import AttrDict
 
 if TYPE_CHECKING:
@@ -150,8 +148,13 @@ class GruntDB:
 
         Returns ``None`` when no document matches (or no requested field exists).
         """
-        dt = await doctype_registry.get(doctype)
-        table = compile_doctype_to_table(dt)
+        from grunt.app import grunt
+        from grunt.errors import not_found
+
+        dt = await grunt.get_meta(doctype)
+        if dt is None:
+            raise not_found(f"DocType «{doctype}» не знайдено")
+        table = dt.table
 
         async def _fetch_row(columns: list[Any]) -> Any:
             stmt = _apply_filters(select(*columns), table, filters).limit(1)
@@ -187,8 +190,13 @@ class GruntDB:
         value: Any = None,
     ) -> None:
         """Update one or more fields on a document."""
-        dt = await doctype_registry.get(doctype)
-        table = compile_doctype_to_table(dt)
+        from grunt.app import grunt
+        from grunt.errors import not_found
+
+        dt = await grunt.get_meta(doctype)
+        if dt is None:
+            raise not_found(f"DocType «{doctype}» не знайдено")
+        table = dt.table
         values = fieldname if isinstance(fieldname, dict) else {fieldname: value}
         await self._session().execute(table.update().where(table.c.name == doc_id).values(values))
         await self._session().flush()
@@ -199,8 +207,13 @@ class GruntDB:
         filters: str | dict[str, Any],
     ) -> str | None:
         """Return the document name if a match exists, else ``None``."""
-        dt = await doctype_registry.get(doctype)
-        table = compile_doctype_to_table(dt)
+        from grunt.app import grunt
+        from grunt.errors import not_found
+
+        dt = await grunt.get_meta(doctype)
+        if dt is None:
+            raise not_found(f"DocType «{doctype}» не знайдено")
+        table = dt.table
         stmt = select(table.c.name)
         stmt = _apply_filters(stmt, table, filters)
         stmt = stmt.limit(1)
@@ -252,8 +265,13 @@ class GruntDB:
         order: str = "desc",
     ) -> list[dict[str, Any]] | list[Any]:
         """Fetch a list of documents as plain dicts."""
-        dt = await doctype_registry.get(doctype)
-        table = compile_doctype_to_table(dt)
+        from grunt.app import grunt
+        from grunt.errors import not_found
+
+        dt = await grunt.get_meta(doctype)
+        if dt is None:
+            raise not_found(f"DocType «{doctype}» не знайдено")
+        table = dt.table
 
         select_fields = [pluck] if pluck else fields
         if select_fields:
@@ -294,8 +312,13 @@ class GruntDB:
         fieldnames: list[str],
     ) -> dict[str, Any] | None:
         """Return multiple field values from the first matching document."""
-        dt = await doctype_registry.get(doctype)
-        table = compile_doctype_to_table(dt)
+        from grunt.app import grunt
+        from grunt.errors import not_found
+
+        dt = await grunt.get_meta(doctype)
+        if dt is None:
+            raise not_found(f"DocType «{doctype}» не знайдено")
+        table = dt.table
         cols = [table.c[f] for f in fieldnames if f in table.c]
         if not cols:
             return None
@@ -311,8 +334,13 @@ class GruntDB:
 
     async def get_single_value(self, doctype: str, fieldname: str) -> Any:
         """Return a field value from a Singleton DocType (e.g. SystemSettings)."""
-        dt = await doctype_registry.get(doctype)
-        table = compile_doctype_to_table(dt)
+        from grunt.app import grunt
+        from grunt.errors import not_found
+
+        dt = await grunt.get_meta(doctype)
+        if dt is None:
+            raise not_found(f"DocType «{doctype}» не знайдено")
+        table = dt.table
         col = table.c.get(fieldname)
         if col is None:
             return None
@@ -327,8 +355,13 @@ class GruntDB:
         Low-level — no permission guards. Use ``grunt.get_doc`` for
         authenticated reads with RBAC enforcement.
         """
-        dt = await doctype_registry.get(doctype)
-        table = compile_doctype_to_table(dt)
+        from grunt.app import grunt
+        from grunt.errors import not_found
+
+        dt = await grunt.get_meta(doctype)
+        if dt is None:
+            raise not_found(f"DocType «{doctype}» не знайдено")
+        table = dt.table
         stmt = select(table).where(table.c.name == name).limit(1)
         result = await self._session().execute(stmt)
         row = result.first()
@@ -340,8 +373,13 @@ class GruntDB:
         filters: dict[str, Any] | None = None,
     ) -> int:
         """Count documents matching optional filters."""
-        dt = await doctype_registry.get(doctype)
-        table = compile_doctype_to_table(dt)
+        from grunt.app import grunt
+        from grunt.errors import not_found
+
+        dt = await grunt.get_meta(doctype)
+        if dt is None:
+            raise not_found(f"DocType «{doctype}» не знайдено")
+        table = dt.table
         stmt = select(func.count()).select_from(table)
         if filters:
             stmt = _apply_db_filters(stmt, table, filters)
@@ -357,8 +395,13 @@ class GruntDB:
         if not filters:
             raise ValueError("grunt.db.delete requires at least one filter.")
 
-        dt = await doctype_registry.get(doctype)
-        table = compile_doctype_to_table(dt)
+        from grunt.app import grunt
+        from grunt.errors import not_found
+
+        dt = await grunt.get_meta(doctype)
+        if dt is None:
+            raise not_found(f"DocType «{doctype}» не знайдено")
+        table = dt.table
 
         stmt = table.delete()
         stmt = _apply_db_filters(stmt, table, filters)
@@ -374,8 +417,13 @@ class GruntDB:
         Caller is responsible for providing required standard fields
         (`name`, timestamps, owner, etc.) when needed.
         """
-        dt = await doctype_registry.get(doctype)
-        table = compile_doctype_to_table(dt)
+        from grunt.app import grunt
+        from grunt.errors import not_found
+
+        dt = await grunt.get_meta(doctype)
+        if dt is None:
+            raise not_found(f"DocType «{doctype}» не знайдено")
+        table = dt.table
         await self._session().execute(table.insert().values(**values))
         await self._session().flush()
 
@@ -384,8 +432,13 @@ class GruntDB:
         if not rows:
             return 0
 
-        dt = await doctype_registry.get(doctype)
-        table = compile_doctype_to_table(dt)
+        from grunt.app import grunt
+        from grunt.errors import not_found
+
+        dt = await grunt.get_meta(doctype)
+        if dt is None:
+            raise not_found(f"DocType «{doctype}» не знайдено")
+        table = dt.table
         result = await self._session().execute(table.insert(), rows)
         await self._session().flush()
         return cast("CursorResult", result).rowcount or len(rows)
@@ -397,8 +450,13 @@ class GruntDB:
         values: dict[str, Any],
     ) -> int:
         """Update multiple rows matching exact-match filters and flush session."""
-        dt = await doctype_registry.get(doctype)
-        table = compile_doctype_to_table(dt)
+        from grunt.app import grunt
+        from grunt.errors import not_found
+
+        dt = await grunt.get_meta(doctype)
+        if dt is None:
+            raise not_found(f"DocType «{doctype}» не знайдено")
+        table = dt.table
 
         update_values = {k: v for k, v in values.items() if k in table.c}
         if not update_values:
@@ -423,8 +481,13 @@ class GruntDB:
         order: str = "desc",
     ) -> list[dict[str, Any]]:
         """Fetch aggregated data (GROUP BY, SUM, COUNT, etc)."""
-        dt = await doctype_registry.get(doctype)
-        table = compile_doctype_to_table(dt)
+        from grunt.app import grunt
+        from grunt.errors import not_found
+
+        dt = await grunt.get_meta(doctype)
+        if dt is None:
+            raise not_found(f"DocType «{doctype}» не знайдено")
+        table = dt.table
 
         select_exprs: list[Any] = []
         group_by_exprs: list[Any] = []

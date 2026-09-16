@@ -18,7 +18,6 @@ async def resolve_reference_titles(
     callers fall back to the raw id for those refs.
     """
     from grunt.app import grunt
-    from grunt.metadata.registry import doctype_registry
 
     by_doctype: dict[str, set[str]] = {}
     for dt_name, doc_id in refs:
@@ -27,9 +26,8 @@ async def resolve_reference_titles(
 
     titles: dict[tuple[str, str], str] = {}
     for dt_name, ids in by_doctype.items():
-        try:
-            dt = await doctype_registry.get(dt_name)
-        except Exception:
+        dt = await grunt.get_meta(dt_name)
+        if dt is None:
             log.debug("titles.doctype_not_found", doctype=dt_name)
             continue
 

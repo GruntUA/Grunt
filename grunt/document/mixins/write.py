@@ -69,8 +69,16 @@ class DocumentWriteMixin(DocumentReadMixin):
 
     async def _resolve_dt(self, doctype_name: str) -> Any:
         """Return the freshest DocType definition, forcing a lazy reload if needed."""
+        from grunt.app import grunt
+        from grunt.errors import not_found
+
         fresh = await doctype_registry._lazy_load(doctype_name)
-        return fresh if fresh is not None else await doctype_registry.get(doctype_name)
+        if fresh is not None:
+            return Meta(fresh)
+        dt = await grunt.get_meta(doctype_name)
+        if dt is None:
+            raise not_found(f"DocType «{doctype_name}» не знайдено")
+        return dt
 
     async def _run_lifecycle_hooks(self, doc: Any, *hook_names: str) -> None:
         """Call the named controller lifecycle hooks on *doc*, in order.
@@ -187,7 +195,7 @@ class DocumentWriteMixin(DocumentReadMixin):
         doc = controller_cls(doctype_name, row, user, self.session)
 
         await self._run_lifecycle_hooks(doc, "validate", "before_insert", "before_save")
-        await compute_formulas(dt, row)
+        await compute_formulas(dt.doc, row)
         await self._insert_row(table, row)
         await self._save_children(dt, doc_id, data, user, now)
         await self._apply_aggregations(dt, table, doc_id, row)
@@ -212,7 +220,7 @@ class DocumentWriteMixin(DocumentReadMixin):
         now: datetime,
     ) -> None:
         """Persist child-table rows for the created document."""
-        await _save_child_tables(self.session, dt, doc_id, data, user, now)
+        await _save_child_tables(self.session, dt.doc, doc_id, data, user, now)
 
     async def _apply_aggregations(
         self,
@@ -222,7 +230,7 @@ class DocumentWriteMixin(DocumentReadMixin):
         row: dict[str, Any],
     ) -> None:
         """Compute and persist aggregate fields derived from child tables."""
-        agg_values = await compute_aggregations(self.session, dt, doc_id)
+        agg_values = await compute_aggregations(self.session, dt.doc, doc_id)
         if not agg_values:
             return
 
@@ -246,7 +254,7 @@ class DocumentWriteMixin(DocumentReadMixin):
         With ``only_present=True`` fields absent from *data* are left untouched
         (used on update so unmentioned relations are preserved).
         """
-        for mlf in Meta(dt).get_multilink_fields():
+        for mlf in dt.get_multilink_fields():
             if only_present and mlf.fieldname not in data:
                 continue
             values = data.get(mlf.fieldname)
@@ -264,7 +272,7 @@ class DocumentWriteMixin(DocumentReadMixin):
         from grunt.search.service import search_index_service
         from grunt.webhook.service import webhook_service
 
-        await search_index_service.index_document(self.session, doctype_name, dt, row)
+        await search_index_service.index_document(self.session, doctype_name, dt.doc, row)
         await webhook_service.fire(self.session, "after_insert", doctype_name, row)
 
     async def _serialize_doc_out(
@@ -272,7 +280,7 @@ class DocumentWriteMixin(DocumentReadMixin):
     ) -> dict[str, Any]:
         """Serialise datetime values and attach MultiLink field values for the response."""
         serialize_datetimes(row)
-        await attach_multi_link_values(self._ml, doctype_name, doc_id, dt, row)
+        await attach_multi_link_values(self._ml, doctype_name, doc_id, dt.doc, row)
         return row
 
     # ── Create ────────────────────────────────────────────────────────────
@@ -302,7 +310,7 @@ class DocumentWriteMixin(DocumentReadMixin):
             await self._fire_write_hooks("after_insert", "after_save", doctype_name, created, user)
             return created
 
-        table = Meta(dt).table
+        table = dt.table
         await self._check_singleton(dt, table)
 
         errors = _validate_data(dt, data, ignore_required=ignore_required)
@@ -317,7 +325,7 @@ class DocumentWriteMixin(DocumentReadMixin):
             await self._persist_new_doc(dt, table, doctype_name, doc_id, data, row, user, now)
             await self._fire_create_services(doctype_name, dt, row)
         except IntegrityError as exc:
-            raise friendly_integrity_error(exc, dt) from exc
+            raise friendly_integrity_error(exc, dt.doc) from exc
         finally:
             self._reset_grunt_context(_tokens)
 
@@ -337,7 +345,7 @@ class DocumentWriteMixin(DocumentReadMixin):
         """Return the dict of fields to write into the DB (stripped + coerced)."""
         table_columns = {c.name for c in table.columns}
         update_data: dict[str, Any] = {}
-        for field in Meta(dt).get_physical_fields():
+        for field in dt.get_physical_fields():
             if field.fieldname not in table_columns:
                 continue
             if field.fieldname in data and field.fieldname not in PROTECTED_FIELDS:
@@ -357,8 +365,8 @@ class DocumentWriteMixin(DocumentReadMixin):
     ) -> dict[str, Any]:
         """Serialise, load child tables, and attach MultiLink fields for the response."""
         result = serialize_datetimes(dict(merged))
-        await _load_child_tables(self.session, dt, result)
-        await attach_multi_link_values(self._ml, doctype_name, real_id, dt, result)
+        await _load_child_tables(self.session, dt.doc, result)
+        await attach_multi_link_values(self._ml, doctype_name, real_id, dt.doc, result)
         return result
 
     async def _persist_update_doc(
@@ -380,10 +388,10 @@ class DocumentWriteMixin(DocumentReadMixin):
         *update_data*. This captures both lifecycle-hook mutations and freshly
         computed formula values in one place before the UPDATE is issued.
         """
-        await compute_formulas(dt, row)
+        await compute_formulas(dt.doc, row)
 
         table_cols = {c.name for c in table.columns}
-        for field in Meta(dt).get_physical_fields():
+        for field in dt.get_physical_fields():
             if field.fieldname in PROTECTED_FIELDS or field.fieldname not in table_cols:
                 continue
             if row.get(field.fieldname) != existing.get(field.fieldname):
@@ -393,7 +401,7 @@ class DocumentWriteMixin(DocumentReadMixin):
             table.update().where(table.c.name == real_id).values(**update_data)
         )
 
-        await _save_child_tables(self.session, dt, real_id, row, user, datetime.now(UTC))
+        await _save_child_tables(self.session, dt.doc, real_id, row, user, datetime.now(UTC))
         await self._apply_aggregations(dt, table, real_id, row)
 
         await self._sync_multi_links(dt, doctype_name, real_id, data, only_present=True)
@@ -422,7 +430,7 @@ class DocumentWriteMixin(DocumentReadMixin):
         # because there is no separate "new" state. Upsert: if the sole row
         # does not exist yet, create it now (named after the DocType).
         if dt.is_singleton and not is_virtual_routed(dt, doctype_name):
-            table = Meta(dt).table
+            table = dt.table
             count = await self.session.execute(select(func.count()).select_from(table))
             if (count.scalar() or 0) == 0:
                 return await self.create_document(
@@ -445,7 +453,7 @@ class DocumentWriteMixin(DocumentReadMixin):
             await self._fire_write_hooks("after_update", "after_save", doctype_name, updated, user)
             return updated
 
-        table = Meta(dt).table
+        table = dt.table
         existing = await self.get_document(doctype_name, doc_id, user)
 
         # write_guard() (the facade's pre-check) only verifies doctype-level
@@ -466,7 +474,7 @@ class DocumentWriteMixin(DocumentReadMixin):
         merged = {**existing, **update_data}
         # Inject submitted child-table rows into merged so lifecycle hooks see the
         # incoming data (not the old DB rows) and their mutations are persisted.
-        for _f in Meta(dt).get_child_table_fields():
+        for _f in dt.get_child_table_fields():
             if _f.fieldname in data:
                 merged[_f.fieldname] = data[_f.fieldname]
 
@@ -510,13 +518,13 @@ class DocumentWriteMixin(DocumentReadMixin):
             await fire_update_services(
                 session=self.session,
                 doctype_name=doctype_name,
-                dt=dt,
+                dt=dt.doc,
                 result=result,
             )
             await self._fire_write_hooks("after_update", "after_save", doctype_name, result, user)
             return result
         except IntegrityError as exc:
-            raise friendly_integrity_error(exc, dt) from exc
+            raise friendly_integrity_error(exc, dt.doc) from exc
         finally:
             self._reset_grunt_context(_tokens)
 
@@ -553,7 +561,7 @@ class DocumentWriteMixin(DocumentReadMixin):
             )
             return
 
-        table = Meta(dt).table
+        table = dt.table
 
         existing = await self.get_document(doctype_name, doc_id, user)
 
@@ -578,7 +586,7 @@ class DocumentWriteMixin(DocumentReadMixin):
             await validate_replacement(self.session, dt, real_id, replace_with)
             try:
                 await repoint_references(
-                    self.session, Meta(dt), doctype_name, real_id, replace_with, is_merge=True
+                    self.session, dt, doctype_name, real_id, replace_with, is_merge=True
                 )
                 await self.session.flush()
             except IntegrityError as exc:

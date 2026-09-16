@@ -31,6 +31,8 @@ from grunt.permissions.rbac import invalidate_permission_cache
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
+    from grunt.document.meta import Meta
+
 
 _FIELDNAME_RE = re.compile(r"^[a-z][a-z0-9_]*$")
 _MAX_FIELDNAME_LEN = 64
@@ -322,6 +324,29 @@ class DocTypeRegistry:
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"DocType '{name}' not found",
         )
+
+    async def get_meta(self, name: str) -> Meta | None:
+        """Return the :class:`~grunt.document.meta.Meta` wrapper for *name*, or
+        ``None`` if *name* isn't a registered DocType.
+
+        The canonical, Frappe-``get_meta``-style accessor for callers that want
+        field lookups, cached derived properties (``table``, ``get_valid_columns``,
+        ...), or any other metadata query. Use :meth:`get` instead only when the
+        raw pydantic :class:`DocType` model itself is required (compiling,
+        syncing, editing the definition) — it still raises ``404`` on a miss.
+
+        Unlike :meth:`get`, a missing DocType is not exceptional here — callers
+        that need the old "404 if missing" behaviour raise it themselves after
+        a ``None`` check, so the choice is explicit at each call site instead of
+        implicit in this shared accessor.
+        """
+        from grunt.document.meta import Meta
+
+        try:
+            dt = await self.get(name)
+        except HTTPException:
+            return None
+        return Meta(dt)
 
     async def get_or_none(self, name: str) -> DocType | None:
         """Like :meth:`get`, but returns ``None`` instead of raising 404.

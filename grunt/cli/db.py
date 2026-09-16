@@ -198,7 +198,11 @@ def db_trim_tables(doctype: str | None, dry_run: bool, quiet: bool, site: str | 
                     async with grunt.system_context(session, eng):
                         # Fetch target Meta(s)
                         if doctype:
-                            metas = [await grunt.get_meta(doctype)]
+                            target_meta = await grunt.get_meta(doctype)
+                            if target_meta is None:
+                                click.echo(f"DocType '{doctype}' не знайдено.", err=True)
+                                raise SystemExit(1)
+                            metas = [target_meta]
                         else:
                             from grunt.document.meta import Meta
 

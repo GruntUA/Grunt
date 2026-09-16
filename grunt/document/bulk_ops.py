@@ -256,11 +256,7 @@ class BulkDeleteTask:
 
         from grunt.db.api import _apply_filters
         from grunt.db.session import async_session_factory
-        from grunt.metadata.compiler import (
-            MULTI_LINK_TABLE,
-            compile_doctype_to_table,
-        )
-        from grunt.metadata.registry import doctype_registry
+        from grunt.metadata.compiler import MULTI_LINK_TABLE
         from grunt.search.service import _search_index_table
 
         if "System Manager" not in (getattr(user, "roles", None) or []):
@@ -279,8 +275,10 @@ class BulkDeleteTask:
 
         try:
             async with async_session_factory() as session, grunt_app.context(session, engine, user):
-                dt = await doctype_registry.get(doctype)
-                table = compile_doctype_to_table(dt)
+                dt = await grunt_app.get_meta(doctype)
+                if dt is None:
+                    raise ValueError(f"DocType «{doctype}» не знайдено")
+                table = dt.table
 
                 # ── 1. Delete main rows ──────────────────────────────────
                 del_stmt = sa_delete(table)
@@ -301,8 +299,10 @@ class BulkDeleteTask:
 
                 # ── 4. Summary ActivityLog entry ─────────────────────────
                 try:
-                    dt_log = await doctype_registry.get("ActivityLog")
-                    t_log = compile_doctype_to_table(dt_log)
+                    dt_log = await grunt_app.get_meta("ActivityLog")
+                    if dt_log is None:
+                        raise ValueError("DocType «ActivityLog» не знайдено")
+                    t_log = dt_log.table
                     now = datetime.now(UTC)
                     table_cols = {c.name for c in t_log.c}
                     log_row: dict[str, Any] = {

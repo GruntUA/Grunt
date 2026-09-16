@@ -29,11 +29,8 @@ from typing import TYPE_CHECKING, Any
 from fastapi import HTTPException, status
 from sqlalchemy import literal, select
 
-from grunt.document.meta import Meta
 from grunt.document.registry import document_registry
 from grunt.log import log
-from grunt.metadata.compiler import compile_doctype_to_table
-from grunt.metadata.registry import doctype_registry
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
@@ -116,9 +113,15 @@ class TreeService:
         sort_order: str = "asc",
     ) -> list[dict[str, Any]]:
         """Return direct children of *parent_id* (or root nodes if None)."""
-        dt = await doctype_registry.get(doctype)
+        from grunt.app import grunt
+
+        dt = await grunt.get_meta(doctype)
+        if dt is None:
+            raise HTTPException(
+                status.HTTP_404_NOT_FOUND, detail=f"DocType «{doctype}» не знайдено"
+            )
         parent_field = _require_tree(dt)
-        table = compile_doctype_to_table(dt)
+        table = dt.table
         title_col = _title_field(dt)
 
         controller_filters = filters or {}
@@ -201,11 +204,16 @@ class TreeService:
         substring) and, like ``filters``, keeps the ancestors of every match so
         the returned tree stays connected.
         """
+        from grunt.app import grunt
         from grunt.document.base import Document
 
-        dt = await doctype_registry.get(doctype)
+        dt = await grunt.get_meta(doctype)
+        if dt is None:
+            raise HTTPException(
+                status.HTTP_404_NOT_FOUND, detail=f"DocType «{doctype}» не знайдено"
+            )
         parent_field = _require_tree(dt)
-        table = compile_doctype_to_table(dt)
+        table = dt.table
         title_col = _title_field(dt)
 
         ctrl_cls = document_registry.get(doctype)
@@ -365,9 +373,15 @@ class TreeService:
         fields: list[str] | None = None,
     ) -> list[dict[str, Any]]:
         """Return ordered path from the direct parent up to the root."""
-        dt = await doctype_registry.get(doctype)
+        from grunt.app import grunt
+
+        dt = await grunt.get_meta(doctype)
+        if dt is None:
+            raise HTTPException(
+                status.HTTP_404_NOT_FOUND, detail=f"DocType «{doctype}» не знайдено"
+            )
         parent_field = _require_tree(dt)
-        table = compile_doctype_to_table(dt)
+        table = dt.table
         title_col = _title_field(dt)
 
         select_cols = self._build_select_cols(table, fields, title_col, parent_field)
@@ -414,9 +428,15 @@ class TreeService:
 
         from sqlalchemy import update as sa_update
 
-        dt = await doctype_registry.get(doctype)
+        from grunt.app import grunt
+
+        dt = await grunt.get_meta(doctype)
+        if dt is None:
+            raise HTTPException(
+                status.HTTP_404_NOT_FOUND, detail=f"DocType «{doctype}» не знайдено"
+            )
         parent_field = _require_tree(dt)
-        table = compile_doctype_to_table(dt)
+        table = dt.table
 
         # Cycle guard: get subtree ids of the node being moved
         if new_parent_id:
@@ -489,7 +509,7 @@ class TreeService:
     ) -> tuple[str | None, str]:
         from grunt.document.base import Document
 
-        tree_view = Meta(dt).get_tree_view()
+        tree_view = dt.get_tree_view()
         default_sort_by = tree_view.sort_by if tree_view else None
         default_sort_order = tree_view.sort_order if tree_view else "asc"
 

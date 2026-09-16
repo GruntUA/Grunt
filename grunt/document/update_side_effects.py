@@ -284,14 +284,15 @@ async def write_bulk_delete_activity_log(
     if not doc_ids:
         return
 
-    from grunt.metadata.compiler import compile_doctype_to_table
-    from grunt.metadata.registry import doctype_registry
+    from grunt.app import grunt
 
     _now = now or datetime.now(UTC)
 
     try:
-        dt_log = await doctype_registry.get("ActivityLog")
-        t_log = compile_doctype_to_table(dt_log)
+        dt_log = await grunt.get_meta("ActivityLog")
+        if dt_log is None:
+            raise ValueError("DocType «ActivityLog» не знайдено")
+        t_log = dt_log.table
 
         table_cols = {c.name for c in t_log.c}
 

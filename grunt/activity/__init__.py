@@ -9,20 +9,16 @@ from grunt.document.versioning import _SKIP_FIELDS
 from grunt.log import log
 
 
-async def _doctype_meta(doctype: str):
-    """Best-effort metadata lookup — unknown doctypes are treated as "log it"."""
-    from grunt.metadata.registry import doctype_registry
+async def should_log_activity(doctype: str) -> bool | None:
+    """Whether ``doctype`` writes ActivityLog rows at all (``DocType.track_activity``).
 
-    try:
-        return await doctype_registry.get(doctype)
-    except Exception:
-        return None
+    ``doctype`` is a free-text field on ActivityLog, not a Link — callers may
+    pass names that aren't (or no longer are) real DocTypes, in which case
+    nothing is logged.
+    """
+    dt = await grunt.get_meta(doctype)
+    return dt.track_activity if dt else None
 
-
-async def should_log_activity(doctype: str) -> bool:
-    """Whether ``doctype`` writes ActivityLog rows at all (``DocType.track_activity``)."""
-    dt = await _doctype_meta(doctype)
-    return getattr(dt, "track_activity", True) if dt is not None else True
 
 
 def _feed_hidden(dt: Any) -> bool:
@@ -30,15 +26,7 @@ def _feed_hidden(dt: Any) -> bool:
     ones that log but opt out of the global feed only (``hide_from_activity_feed``)
     — config/admin records that stay visible in a specific document's own timeline.
     """
-    return not getattr(dt, "track_activity", True) or getattr(dt, "hide_from_activity_feed", False)
-
-
-async def is_feed_hidden(doctype: str | None) -> bool:
-    """Whether a doctype's entries should be excluded from the *global* activity feed."""
-    if not doctype:
-        return False
-    dt = await _doctype_meta(doctype)
-    return _feed_hidden(dt) if dt is not None else False
+    return not dt.track_activity or dt.hide_from_activity_feed
 
 
 async def feed_hidden_doctypes() -> list[str]:
@@ -152,70 +140,78 @@ async def _broadcast_activity(
         log.debug("activity.broadcast_failed", doctype=doctype, doc_id=doc_id)
 
 
-async def log_activity(event: str, **kwargs) -> None:
+async def log_activity(
+    event: str,
+    *,
+    doc: dict[str, Any] | str | None = None,
+    doc_id: str | None = None,
+    user: Any = None,
+    doctype: str | None = None,
+    changed_fields: list[str] | None = None,
+    **kwargs: Any,
+) -> None:
     """Hook adapter: map a lifecycle event to an ActivityLog entry."""
     action = _ACTION_MAP.get(event)
-    doc = kwargs.get("doc") or kwargs.get("doc_id")
-    user = kwargs.get("user")
-    doctype = kwargs.get("doctype")
+    doc_ref = doc or doc_id
 
-    if not action or not doc or not user or not doctype:
+    if not action or not doc_ref or not user or not doctype:
         return
 
-    doc_id = str(doc.get("name") or "") if isinstance(doc, dict) else str(doc)
-    if not doc_id:
+    resolved_id = str(doc_ref.get("name") or "") if isinstance(doc_ref, dict) else str(doc_ref)
+    if not resolved_id:
         return
     user_email = user.email if hasattr(user, "email") else str(user)
 
     details: dict | None = None
-    if action == "Update":
-        changed = [f for f in (kwargs.get("changed_fields") or []) if f not in _SKIP_FIELDS]
+    if action == "Update" and changed_fields:
+        changed = [f for f in changed_fields if f not in _SKIP_FIELDS]
         if changed:
             details = {"changed_fields": changed}
 
-    await record_activity(doctype, doc_id, action, user_email=user_email, details=details)
+    await record_activity(doctype, resolved_id, action, user_email=user_email, details=details)
 
 
 # View-log throttle: at most one ViewLog row per (user, document) per hour.
 _VIEW_LOG_THROTTLE = timedelta(hours=1)
 
 
-async def record_view(event: str, **kwargs: Any) -> None:
+async def record_view(
+    *,
+    doctype: str | None = None,
+    doc: dict[str, Any] | None = None,
+    user: Any = None,
+    method: str | None = None,
+    **kwargs: Any,
+) -> None:
     """``after_read`` hook: record per-user "seen" state and ViewLog entries.
 
     Acts only for DocTypes that opt in via ``track_seen`` / ``track_views``, and
     only for single-document reads — the ``after_read`` fired by list, get_value
     and get_all passes ``method=`` and/or no ``doc`` dict, so those are skipped.
     """
-    from grunt.metadata.registry import doctype_registry
-
-    doctype = kwargs.get("doctype")
-    doc = kwargs.get("doc")
-    if kwargs.get("method") or not doctype or not isinstance(doc, dict):
+    if method or not doctype or not isinstance(doc, dict):
         return
     doc_id = doc.get("name")
     if not doc_id:
         return
 
-    try:
-        dt = await doctype_registry.get(doctype)
-    except Exception:
+    dt = await grunt.get_meta(doctype)
+    if dt is None:
         return
     # ``track_activity`` is not consulted here: seen/view tracking is a separate,
     # opt-in concern via the flags below — none of the high-churn system logs set
     # them. An operational log that *does* opt in (e.g. ErrorLog, so an admin can
     # tell which errors they've already triaged) is honoured regardless.
-    if not (getattr(dt, "track_seen", False) or getattr(dt, "track_views", False)):
+    if not (dt.track_seen or dt.track_views):
         return
 
-    user_obj = kwargs.get("user")
-    user_email = getattr(user_obj, "email", None) or str(user_obj or "")
+    user_email = getattr(user, "email", None) or str(user or "")
     if not user_email or user_email in ("guest@grunt.local", "system", "Guest"):
         return
 
     session = grunt._require_session()
 
-    if getattr(dt, "track_seen", False):
+    if dt.track_seen:
         seen = doc.get("_seen")
         seen = list(seen) if isinstance(seen, list) else []
         if user_email not in seen:
@@ -227,7 +223,7 @@ async def record_view(event: str, **kwargs: Any) -> None:
             except Exception as e:
                 log.warning("view.seen_failed", error=str(e), doctype=doctype, doc_id=doc_id)
 
-    if getattr(dt, "track_views", False):
+    if dt.track_views:
         try:
             async with grunt.system_context(session):
                 recent = await grunt.db.get_all(
@@ -263,16 +259,18 @@ async def get_view_info(doctype: str, doc_id: str) -> dict[str, Any]:
     the total ViewLog row count and ``viewers`` the distinct viewer count
     (track_views). Fields the DocType hasn't opted into come back empty/zero.
     """
-    from grunt.metadata.registry import doctype_registry
+    dt = await grunt.get_meta(doctype)
+    if dt is None:
+        from grunt.errors import not_found
 
-    dt = await doctype_registry.get(doctype)
+        raise not_found(f"DocType «{doctype}» не знайдено")
     out: dict[str, Any] = {"seen": [], "views": 0, "viewers": 0}
 
-    if getattr(dt, "track_seen", False):
+    if dt.track_seen:
         seen = await grunt.db.get_value(doctype, doc_id, "_seen")
         out["seen"] = seen if isinstance(seen, list) else []
 
-    if getattr(dt, "track_views", False):
+    if dt.track_views:
         rows = await grunt.db.get_all(
             "ViewLog",
             filters={"doctype": doctype, "doc_id": str(doc_id)},

@@ -448,7 +448,7 @@ async def _compute_widget_data(
     global_until: datetime | None = None,
 ) -> Any:
     """Compute data for a single widget row — dispatches on widget_type."""
-    from grunt.metadata.registry import doctype_registry
+    from grunt.app import grunt as grunt_app
 
     doctype_name: str = widget.get("doctype") or ""
     widget_type: str = widget.get("widget_type") or "metric"
@@ -463,10 +463,9 @@ async def _compute_widget_data(
 
     dt = None
     if doctype_name:
-        try:
-            dt = await doctype_registry.get(doctype_name)
-        except Exception:
-            log.warning("dashboard.unknown_doctype", doctype=doctype_name, exc_info=True)
+        dt = await grunt_app.get_meta(doctype_name)
+        if dt is None:
+            log.warning("dashboard.unknown_doctype", doctype=doctype_name)
             return None
 
     period_key = widget.get("period") or "last_month"

@@ -18,7 +18,6 @@ from typing import Any
 from sqlalchemy import or_, select
 
 import grunt
-from grunt.metadata.registry import doctype_registry
 
 
 async def _identifier_search(
@@ -36,9 +35,8 @@ async def _identifier_search(
     so a select-only caller can't probe non-identifier values.
     """
     from grunt.context import require_session
-    from grunt.document.meta import Meta
 
-    table = Meta(dt).table
+    table = dt.table
     allowed = {c for c in cols_needed if c in table.c}
 
     stmt = select(*[table.c[c] for c in cols_needed if c in table.c])
@@ -89,10 +87,13 @@ class DocumentLinkRPCMixin:
         """Search documents for a Link field dropdown."""
         from grunt.app import grunt as grunt_app
         from grunt.context import require_user
+        from grunt.errors import not_found
         from grunt.permissions.access import RoleAccess
         from grunt.permissions.rbac import permission_checker
 
-        dt = await doctype_registry.get(doctype)
+        dt = await grunt_app.get_meta(doctype)
+        if dt is None:
+            raise not_found(f"DocType «{doctype}» не знайдено")
         extra_filters: dict[str, Any] = filters or {}
         # A numeric search term ("12345") can arrive coerced to int — normalise.
         search = str(search or "").strip()
@@ -106,15 +107,15 @@ class DocumentLinkRPCMixin:
         # "read" wants an unfiltered picker, and check(user, dt, "read") can't
         # see that its "read" is row-scoped when there's no doc to match against.
         user = require_user()
-        access = RoleAccess(dt, user)
+        access = RoleAccess(dt.doc, user)
         if access.has_unrestricted_read:
             has_read = True
         elif access.has_explicit_select:
             has_read = False
-        elif await permission_checker.check(user, dt, "read"):
+        elif await permission_checker.check(user, dt.doc, "read"):
             has_read = True
         else:
-            await permission_checker.require(user, dt, "select")  # raises 403
+            await permission_checker.require(user, dt.doc, "select")  # raises 403
             has_read = False
 
         # Virtual DocType — delegate to its controller's get_list

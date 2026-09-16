@@ -122,7 +122,7 @@ async def _apply_where(
     """
     from grunt.permissions.query import apply_permission_filter
 
-    query = await apply_permission_filter(query, table, user, dt)
+    query = await apply_permission_filter(query, table, user, dt.doc)
     if user_permission_conditions:
         query = query.where(and_(*user_permission_conditions))
     if extra_clause is not None:
@@ -130,7 +130,7 @@ async def _apply_where(
     if filters:
         query = _apply_filters(query, table, filters)
     if search:
-        query = await _apply_search(query, table, dt, search)
+        query = await _apply_search(query, table, dt.doc, search)
     return query
 
 
@@ -213,9 +213,10 @@ async def _finalize_rows(
     except Exception as exc:
         log.warning("list_documents.attach_labels_failed", doctype=doctype_name, error=str(exc))
 
+    raw_dt = dt.doc
     for doc_row in rows:
         serialize_datetimes(doc_row)
-        await evaluate_read_formulas(dt, doc_row)
+        await evaluate_read_formulas(raw_dt, doc_row)
 
 
 def _build_next_cursor(rows: list[dict[Any, Any]], per_page: int, sort_by: str) -> str | None:
@@ -245,7 +246,14 @@ async def list_documents(
     cursor: str | None = None,
     include_total: bool = True,
 ) -> DocumentList:
-    dt = await doctype_registry.get(doctype_name)
+    from grunt.app import grunt
+
+    dt = await grunt.get_meta(doctype_name)
+    if dt is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"DocType «{doctype_name}» не знайдено",
+        )
 
     # Virtual DocType or VirtualDocType controller — delegate to sub-module
     if is_virtual_routed(dt, doctype_name):
@@ -253,7 +261,7 @@ async def list_documents(
             doctype_name, user, page, per_page, sort_by, sort_order, filters, search
         )
 
-    table = Meta(dt).table
+    table = dt.table
 
     # Singleton — return at most 1 row, ignore pagination
     if dt.is_singleton:
@@ -268,11 +276,11 @@ async def list_documents(
 
     # Expand tree-aware child_of operators before applying filters
     if filters and any(k.endswith("__child_of") for k in filters):
-        filters = await _expand_child_of_filters(session, dt, filters)
+        filters = await _expand_child_of_filters(session, dt.doc, filters)
 
     from grunt.permissions.user_permissions import build_conditions
 
-    up_conds = await build_conditions(table, user, dt)
+    up_conds = await build_conditions(table, user, dt.doc)
 
     query = await _apply_where(query, table, dt, filters, search, extra_clause, user, up_conds)
 
@@ -307,7 +315,9 @@ async def list_documents(
             "total": total,
             "page": page,
             "per_page": per_page,
-            "pages": (math.ceil(total / per_page) if per_page else 1) if total is not None else None,
+            "pages": (
+                (math.ceil(total / per_page) if per_page else 1) if total is not None else None
+            ),
             "next_cursor": next_cursor,
         },
     )
@@ -325,21 +335,26 @@ async def count_documents(
     filter ``list_documents`` applies to its pagination total, so a sidebar
     badge or a headline stat never reports rows the list itself hides.
     """
-    dt = await doctype_registry.get(doctype_name)
+    from grunt.app import grunt
+
+    dt = await grunt.get_meta(doctype_name)
+    if dt is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"DocType «{doctype_name}» не знайдено",
+        )
     if dt.is_virtual:
         # Virtual DocTypes own their storage; fall back to the plain count.
-        from grunt.app import grunt
-
         return await grunt.db.count(doctype_name, filters=filters)
 
-    table = Meta(dt).table
+    table = dt.table
     extra_clause = await _resolve_list_filter_extra(session, doctype_name, filters, table)
     if filters and any(k.endswith("__child_of") for k in filters):
-        filters = await _expand_child_of_filters(session, dt, filters)
+        filters = await _expand_child_of_filters(session, dt.doc, filters)
 
     from grunt.permissions.user_permissions import build_conditions
 
-    up_conds = await build_conditions(table, user, dt)
+    up_conds = await build_conditions(table, user, dt.doc)
     count_q = await _apply_where(
         select(func.count()).select_from(table),
         table,
@@ -387,21 +402,25 @@ async def bulk_delete(
     from grunt.app import grunt as _grunt
     from grunt.document.multi_link import MultiLinkService
 
-    dt = await doctype_registry.get(doctype_name)
+    dt = await _grunt.get_meta(doctype_name)
+    if dt is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"DocType «{doctype_name}» не знайдено",
+        )
 
     if is_virtual_routed(dt, doctype_name):
         return await bulk_delete_virtual(doctype_name=doctype_name, ids=ids, user=user)
 
-    table = Meta(dt).table
+    table = dt.table
 
     if replace_with:
-        dt_meta = Meta(dt)
         for src in ids:
             if src == replace_with:
                 continue
             await validate_replacement(session, dt, src, replace_with)
             await repoint_references(
-                session, dt_meta, doctype_name, src, replace_with, is_merge=True
+                session, dt, doctype_name, src, replace_with, is_merge=True
             )
         await session.flush()
     ml = MultiLinkService(session)
@@ -564,10 +583,14 @@ _RENAME_SYSTEM_REFS = [
 
 async def _rename_system_refs(session: AsyncSession, old_id: str, new_id: str) -> None:
     """Best-effort update of _RENAME_SYSTEM_REFS rows pointing at *old_id*."""
+    from grunt.app import grunt
+
     for sys_dt_name, sys_fieldname in _RENAME_SYSTEM_REFS:
         try:
-            sys_dt = await doctype_registry.get(sys_dt_name)
-            sys_table = Meta(sys_dt).table
+            sys_dt = await grunt.get_meta(sys_dt_name)
+            if sys_dt is None:
+                continue
+            sys_table = sys_dt.table
             if sys_fieldname in sys_table.c:
                 await session.execute(
                     sys_table.update()
@@ -624,8 +647,7 @@ async def validate_replacement(
             detail="Заміна не може збігатися з документом, що видаляється",
         )
 
-    meta = Meta(dt)
-    table = meta.table
+    table = dt.table
 
     exists = await session.scalar(select(table.c.name).where(table.c.name == target_id))
     if not exists:
@@ -667,15 +689,21 @@ async def rename_document(
     if old_id == new_id:
         return await _load(old_id)
 
-    dt = await doctype_registry.get(doctype_name)
+    from grunt.app import grunt
+
+    dt = await grunt.get_meta(doctype_name)
+    if dt is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"DocType «{doctype_name}» не знайдено",
+        )
     if is_virtual_routed(dt, doctype_name):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Cannot rename virtual documents",
         )
 
-    dt_meta = Meta(dt)
-    table = dt_meta.table
+    table = dt.table
 
     exists_q = select(table.c.name).where(table.c.name == new_id)
     exists_res = await session.execute(exists_q)
@@ -687,7 +715,7 @@ async def rename_document(
 
     await session.execute(table.update().where(table.c.name == old_id).values(name=new_id))
 
-    await repoint_references(session, dt_meta, doctype_name, old_id, new_id)
+    await repoint_references(session, dt, doctype_name, old_id, new_id)
 
     await session.flush()
 
@@ -696,7 +724,7 @@ async def rename_document(
 
     await search_index_service.remove_document(session, doctype_name, old_id)
     new_doc = await _load(new_id)
-    await search_index_service.index_document(session, doctype_name, dt, new_doc)
+    await search_index_service.index_document(session, doctype_name, dt.doc, new_doc)
 
     log.info("document.renamed", doctype=doctype_name, old=old_id, new=new_id)
     return new_doc

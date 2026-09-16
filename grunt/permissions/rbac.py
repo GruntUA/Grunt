@@ -25,6 +25,7 @@ _ACTION_UK: dict[str, str] = {
 
 if TYPE_CHECKING:
     from grunt.auth.doctypes.User.user import User
+    from grunt.document.meta import Meta
     from grunt.metadata.doctype import DocType
 
 # _PERM_CACHE key: (user_email, frozenset(roles), doctype_name, id(permissions_list), action)
@@ -58,7 +59,7 @@ class PermissionChecker:
     async def check(
         self,
         user: User,
-        doctype: DocType,
+        doctype: DocType | Meta,
         action: PermissionAction,
         doc: dict | None = None,
     ) -> bool:
@@ -126,7 +127,7 @@ class PermissionChecker:
     async def require(
         self,
         user: User,
-        doctype: DocType,
+        doctype: DocType | Meta,
         action: PermissionAction,
         doc: dict | None = None,
     ) -> None:
@@ -139,7 +140,7 @@ class PermissionChecker:
     def hidden_fields(
         self,
         user: User,
-        doctype: DocType,
+        doctype: DocType | Meta,
     ) -> frozenset[str]:
         """Return the set of field names the user is NOT allowed to see.
 

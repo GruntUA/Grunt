@@ -91,9 +91,11 @@ async def test_record_activity_still_works_for_a_plain_user(ctx, db_session, eng
     from grunt.activity import record_activity
     from grunt.app import grunt
 
+    # "User" is just a stand-in for "some real DocType" — record_activity
+    # doesn't touch the referenced document, so any registered name works.
     async with grunt.context(db_session, engine, _plain_user("nobody@example.com")):
         await record_activity(
-            "SomeDoctype",
+            "User",
             "some-id",
             "Create",
             user_email="nobody@example.com",
@@ -104,6 +106,33 @@ async def test_record_activity_still_works_for_a_plain_user(ctx, db_session, eng
     async with grunt.context(db_session, engine, _system_manager()):
         rows = await grunt.get_list(
             "ActivityLog",
-            filters={"doctype": "SomeDoctype", "doc_id": "some-id"},
+            filters={"doctype": "User", "doc_id": "some-id"},
         )
     assert any(r["user"] == "nobody@example.com" and r["action"] == "Create" for r in rows)
+
+
+@pytest.mark.asyncio
+async def test_record_activity_skips_unknown_doctype(ctx, db_session, engine):
+    """``doctype`` on ActivityLog is free text, not a Link — record_activity()
+    must silently skip names that aren't registered DocTypes rather than
+    writing a row (or raising) for them.
+    """
+    from grunt.activity import record_activity
+    from grunt.app import grunt
+
+    async with grunt.context(db_session, engine, _system_manager()):
+        await record_activity(
+            "NotARealDoctype",
+            "some-id",
+            "Create",
+            user_email="admin@example.com",
+            broadcast=False,
+        )
+    await ctx.db._session().commit()
+
+    async with grunt.context(db_session, engine, _system_manager()):
+        rows = await grunt.get_list(
+            "ActivityLog",
+            filters={"doctype": "NotARealDoctype", "doc_id": "some-id"},
+        )
+    assert rows == []

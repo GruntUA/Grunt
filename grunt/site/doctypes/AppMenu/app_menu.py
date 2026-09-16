@@ -57,9 +57,8 @@ class AppMenu(Document):
         counts: dict[str, int] = {}
         for item in items:
             link_to = item["link_to"]
-            try:
-                dt = await grunt.get_meta(link_to)
-            except Exception:
+            dt = await grunt.get_meta(link_to)
+            if dt is None:
                 continue
 
             filters = self._parse_filters(item)

@@ -26,6 +26,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from grunt.auth.doctypes.User.user import User
+    from grunt.document.meta import Meta
     from grunt.metadata.doctype import DocType
     from grunt.metadata.permission import DocPermission
 
@@ -33,7 +34,7 @@ if TYPE_CHECKING:
 class RoleAccess:
     """Role-based access facts for *user* on *doctype*, computed once."""
 
-    def __init__(self, doctype: DocType, user: User) -> None:
+    def __init__(self, doctype: DocType | Meta, user: User) -> None:
         self.doctype = doctype
         self.user = user
         self.user_roles: frozenset[str] = frozenset(getattr(user, "roles", []) or [])

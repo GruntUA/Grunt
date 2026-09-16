@@ -12,7 +12,6 @@ from typing import TYPE_CHECKING, Any
 
 from grunt.context import require_session, require_user
 from grunt.errors import not_found
-from grunt.metadata.registry import doctype_registry
 from grunt.permissions.types import PermissionAction, WriteAction
 
 if TYPE_CHECKING:
@@ -52,9 +51,12 @@ async def read_guard(doctype: str) -> tuple[Any, User, frozenset[str]]:
     Returns ``(dt, user, hidden_fields)``. Raises ``403`` when the user has no
     *read* permission on the DocType.
     """
+    from grunt.app import grunt
     from grunt.permissions.rbac import permission_checker
 
-    dt = await doctype_registry.get(doctype)
+    dt = await grunt.get_meta(doctype)
+    if dt is None:
+        raise not_found(f"DocType «{doctype}» не знайдено")
     user = require_user()
     await permission_checker.require(user, dt, "read")
     hidden_fields = permission_checker.hidden_fields(user, dt)
@@ -73,7 +75,9 @@ async def doc_guard(doctype: str, doc_id: str, action: PermissionAction = "read"
     from grunt.app import grunt
     from grunt.permissions.rbac import permission_checker
 
-    dt = await doctype_registry.get(doctype)
+    dt = await grunt.get_meta(doctype)
+    if dt is None:
+        raise not_found(f"DocType «{doctype}» не знайдено")
     user = require_user()
     lookup_id = dt.name if dt.is_singleton else doc_id
     doc = await grunt.db.get_value(doctype, lookup_id, "*")
@@ -88,9 +92,12 @@ async def write_guard(doctype: str, action: WriteAction) -> tuple[Any, User, Asy
     Returns ``(dt, user, session)``. Raises ``403`` when the user has no
     permission for *action* (``"create"``, ``"write"``, or ``"delete"``).
     """
+    from grunt.app import grunt
     from grunt.permissions.rbac import permission_checker
 
-    dt = await doctype_registry.get(doctype)
+    dt = await grunt.get_meta(doctype)
+    if dt is None:
+        raise not_found(f"DocType «{doctype}» не знайдено")
     user = require_user()
     await permission_checker.require(user, dt, action)
     return dt, user, require_session()

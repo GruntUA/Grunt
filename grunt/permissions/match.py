@@ -30,6 +30,7 @@ if TYPE_CHECKING:
     from sqlalchemy.sql import ColumnElement
 
     from grunt.auth.doctypes.User.user import User
+    from grunt.document.meta import Meta
     from grunt.metadata.doctype import DocType
 
 
@@ -57,21 +58,19 @@ def _operand(raw_value: str, user: User) -> tuple[bool, str]:
     return False, ""
 
 
-async def _resolve_link_target(doctype: DocType, link_fn: str) -> tuple[str, Table] | None:
+async def _resolve_link_target(doctype: DocType | Meta, link_fn: str) -> tuple[str, Table] | None:
     """``(target_doctype_name, target_table)`` for the Link field *link_fn* on
     *doctype*, or ``None`` when *link_fn* is not a Link (or its target DocType
     can't be loaded)."""
     field = next((f for f in doctype.fields if f.fieldname == link_fn), None)
     if field is None or field.fieldtype != "Link" or not field.options:
         return None
-    from grunt.metadata.compiler import compile_doctype_to_table
-    from grunt.metadata.registry import doctype_registry
+    from grunt.app import grunt
 
-    try:
-        target_dt = await doctype_registry.get(field.options)
-    except Exception:
+    target_dt = await grunt.get_meta(field.options)
+    if target_dt is None:
         return None
-    return field.options, compile_doctype_to_table(target_dt)
+    return field.options, target_dt.table
 
 
 class PermissionMatch:
@@ -92,7 +91,7 @@ class PermissionMatch:
         return m.group("field"), m.group("op"), m.group("value").strip()
 
     async def to_sql(
-        self, table: Table, user: User, doctype: DocType | None = None
+        self, table: Table, user: User, doctype: DocType | Meta | None = None
     ) -> ColumnElement | None:
         """SQL condition for row-level list/count filtering.
 
@@ -134,7 +133,7 @@ class PermissionMatch:
         col = table.c[link_fn]
         return col.in_(subq) if op == "==" else col.not_in(subq)
 
-    async def evaluate_doc(self, doc: dict, user: User, doctype: DocType) -> bool:
+    async def evaluate_doc(self, doc: dict, user: User, doctype: DocType | Meta) -> bool:
         """Per-document check.
 
         Resolves the single-hop ``link_field.target_field`` form with one DB

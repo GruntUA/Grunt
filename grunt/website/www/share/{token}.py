@@ -124,17 +124,16 @@ async def get_context(context: dict[str, Any]) -> dict[str, Any]:
 
     all_fields: list[Any] = []
     title_field = "name"
-    try:
-        from grunt.document.meta import Meta
-        from grunt.metadata.registry import doctype_registry
+    from grunt.app import grunt as grunt_app
 
-        dt = await doctype_registry.get(share["doctype"])
-        all_fields = list(Meta(dt).doc.fields)
-        title_field = getattr(dt, "title_field", None) or "name"
-    except Exception:  # metadata unavailable — fall back to a flat single section
+    dt = await grunt_app.get_meta(share["doctype"])
+    if dt is None:  # metadata unavailable — fall back to a flat single section
         all_fields = [
             _FlatField(f["fieldname"], f["label"], f["fieldtype"]) for f in share["fields"]
         ]
+    else:
+        all_fields = list(dt.fields)
+        title_field = getattr(dt, "title_field", None) or "name"
 
     tabs = _build_tabs(all_fields, exposed, doc)
 

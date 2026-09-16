@@ -18,7 +18,6 @@ from fastapi.responses import Response, StreamingResponse
 
 import grunt
 from grunt.io import get_exporter, get_exporters
-from grunt.metadata.registry import doctype_registry
 
 _AUTOPRINT_SCRIPT = (
     "<script>"
@@ -45,8 +44,10 @@ async def _export_via_registry(
 
     from grunt.api.v1.docs.utils import _non_layout_fields
 
-    dt = await doctype_registry.get(doctype)
-    fields = _non_layout_fields(dt)
+    dt = await grunt_app.get_meta(doctype)
+    if dt is None:
+        raise HTTPException(status_code=404, detail=f"DocType «{doctype}» не знайдено")
+    fields = _non_layout_fields(dt.doc)
     field_names = [f.fieldname for f in fields]
 
     rows = await grunt_app.get_list(
@@ -124,13 +125,15 @@ class DocumentExportRPCMixin:
         from grunt.app import grunt as grunt_app
 
         doc = await grunt_app.get_doc(doctype, doc_id)
-        dt = await doctype_registry.get(doctype)
+        dt = await grunt_app.get_meta(doctype)
+        if dt is None:
+            raise HTTPException(status_code=404, detail=f"DocType «{doctype}» не знайдено")
         session = grunt_app._require_session()
 
         if fmt == "xlsx":
             from grunt.api.v1.docs.utils import _generate_xlsx_single
 
-            content = _generate_xlsx_single(dt, doc)
+            content = _generate_xlsx_single(dt.doc, doc)
             return Response(
                 content=content,
                 media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -231,7 +234,9 @@ class DocumentExportRPCMixin:
         if not template_str:
             raise HTTPException(422, detail="template is required")
 
-        dt = await doctype_registry.get(doctype)
+        dt = await grunt_app.get_meta(doctype)
+        if dt is None:
+            raise HTTPException(status_code=404, detail=f"DocType «{doctype}» не знайдено")
 
         if doc_id:
             doc = await grunt_app.get_doc(doctype, doc_id)

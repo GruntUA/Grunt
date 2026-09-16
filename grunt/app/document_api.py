@@ -12,7 +12,6 @@ from grunt.config import settings
 from grunt.context import require_engine, require_session, require_user
 from grunt.db.profiler import profile
 from grunt.log import log
-from grunt.metadata.registry import doctype_registry
 from grunt.permissions.guards import (
     apply_hidden_fields_to_doc,
     apply_hidden_fields_to_rows,
@@ -493,11 +492,14 @@ class DocumentAPI:
         """Create multiple documents in a single database round-trip."""
         from datetime import datetime
 
-        from grunt.metadata.compiler import compile_doctype_to_table
+        from grunt.app import grunt
+        from grunt.errors import not_found
         from grunt.naming import naming_service
 
-        dt = await doctype_registry.get(doctype)
-        table = compile_doctype_to_table(dt)
+        dt = await grunt.get_meta(doctype)
+        if dt is None:
+            raise not_found(f"DocType «{doctype}» не знайдено")
+        table = dt.table
         user = require_user()
         session = require_session()
 
@@ -699,11 +701,15 @@ class DocumentAPI:
 
             await grunt.submit("LeaveRequest", request_id, "Approve")
         """
+        from grunt.app import grunt
+        from grunt.errors import not_found
         from grunt.workflow.engine import workflow_engine
 
-        dt = await doctype_registry.get(doctype)
+        dt = await grunt.get_meta(doctype)
+        if dt is None:
+            raise not_found(f"DocType «{doctype}» не знайдено")
         return await workflow_engine.apply_transition(
-            dt,
+            dt.doc,
             doc_id,
             action,
             require_user(),

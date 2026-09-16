@@ -148,16 +148,13 @@ async def _apply_doctype_fixture(
 ) -> None:
     """Insert fixture records for a regular DocType, skipping duplicates."""
     from grunt.app import grunt
-    from grunt.document.meta import Meta
-    from grunt.metadata.registry import doctype_registry
 
-    try:
-        dt = await doctype_registry.get(doctype_name)
-    except Exception:
+    dt = await grunt.get_meta(doctype_name)
+    if dt is None:
         log.warning("startup.fixture_doctype_not_found", doctype=doctype_name)
         return
 
-    physical_fields = Meta(dt).get_physical_fields()
+    physical_fields = dt.get_physical_fields()
 
     async with grunt.system_context(session, eng):
         for rec in records:

@@ -58,7 +58,11 @@ class DocumentHistoryRPCMixin:
         )
 
         # Apply as a regular update
+        from grunt.errors import not_found
+
         meta = await grunt_app.get_meta(doctype)
+        if meta is None:
+            raise not_found(f"DocType «{doctype}» не знайдено")
 
         update_fields = {}
         for field in meta.get_physical_fields():

@@ -150,6 +150,11 @@ async def test_run_rejects_unbound_key(sample_action, monkeypatch):
         async def get(self, name):
             return DocType(name=name, label=name, module="core", actions=[])
 
+        async def get_meta(self, name):
+            from grunt.document.meta import Meta
+
+            return Meta(await self.get(name))
+
     monkeypatch.setattr("grunt.metadata.registry.doctype_registry", _Reg())
 
     with pytest.raises(Exception) as exc:

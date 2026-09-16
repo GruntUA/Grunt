@@ -154,10 +154,12 @@ async def _run_before_uninstall_hook(session, target_site: str, name: str) -> No
 
 async def _delete_naming_series_counters(session, app_doctypes: list) -> None:
     """Clear NamingSeries prefix counters derived from this app's autoname doctypes."""
-    from grunt.metadata.compiler import compile_doctype_to_table
-    from grunt.metadata.registry import doctype_registry
+    from grunt.app import grunt
 
-    ns_table = compile_doctype_to_table(await doctype_registry.get("NamingSeries"))
+    ns_dt = await grunt.get_meta("NamingSeries")
+    if ns_dt is None:
+        raise SystemExit("Помилка: DocType 'NamingSeries' не знайдено.")
+    ns_table = ns_dt.table
     for dt in app_doctypes:
         autoname = (dt.autoname or "").strip()
         if not autoname or autoname.startswith("field:"):

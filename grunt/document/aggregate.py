@@ -23,8 +23,6 @@ from sqlalchemy import func, select
 
 from grunt.document.meta import Meta
 from grunt.log import log
-from grunt.metadata.compiler import compile_doctype_to_table
-from grunt.metadata.registry import doctype_registry
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
@@ -42,6 +40,8 @@ async def compute_aggregations(
 
     Returns an empty dict if no aggregate fields are defined.
     """
+    from grunt.app import grunt
+
     meta = Meta(dt)
     agg_fields = meta.get_aggregate_fields()
     if not agg_fields:
@@ -74,9 +74,8 @@ async def compute_aggregations(
             )
             continue
 
-        try:
-            child_dt = await doctype_registry.get(table_field.options)
-        except Exception:
+        child_dt = await grunt.get_meta(table_field.options)
+        if child_dt is None:
             log.warning(
                 "aggregate.child_doctype_not_found",
                 doctype=dt.name,
@@ -84,7 +83,7 @@ async def compute_aggregations(
             )
             continue
 
-        child_table = compile_doctype_to_table(child_dt)
+        child_table = child_dt.table
 
         # "count" does not need a child column
         if func_name == "count":

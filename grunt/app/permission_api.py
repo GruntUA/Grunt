@@ -11,7 +11,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 from grunt.context import require_user
-from grunt.metadata.registry import doctype_registry
 from grunt.permissions.types import PermissionAction
 
 if TYPE_CHECKING:
@@ -41,14 +40,16 @@ class PermissionAPI:
         from grunt.app import grunt
         from grunt.permissions.rbac import permission_checker
 
-        dt = await doctype_registry.get(doctype)
+        dt = await grunt.get_meta(doctype)
+        if dt is None:
+            return False
         user = require_user()
         doc: dict[str, Any] | None = None
         if doc_id:
             doc = await grunt.db.get_value(doctype, doc_id, "*")
         return await permission_checker.check(
             user,
-            dt,
+            dt.doc,
             action,
             doc,
         )

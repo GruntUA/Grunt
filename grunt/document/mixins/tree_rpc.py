@@ -24,13 +24,15 @@ async def _tree_read_gate(doctype: str) -> tuple[Any, list[str] | None]:
     filters, so returns ``(dt, [name, parent_field, title_field])``. Neither →
     a 403 naming the DocType.
     """
-    from grunt.metadata.registry import doctype_registry
+    from grunt.errors import not_found
     from grunt.permissions.access import RoleAccess
     from grunt.permissions.rbac import permission_checker
 
-    dt = await doctype_registry.get(doctype)
+    dt = await grunt.get_meta(doctype)
+    if dt is None:
+        raise not_found(f"DocType «{doctype}» не знайдено")
     user = grunt.get_user()
-    access = RoleAccess(dt, user)
+    access = RoleAccess(dt.doc, user)
 
     # An explicit ``select`` grant (without unrestricted ``read``) limits the
     # tree to identifier columns — even when the user also has a row-scoped
@@ -43,9 +45,9 @@ async def _tree_read_gate(doctype: str) -> tuple[Any, list[str] | None]:
             allowed.append(title_field)
         return dt, allowed
 
-    if await permission_checker.check(user, dt, "read"):
+    if await permission_checker.check(user, dt.doc, "read"):
         return dt, None
-    await permission_checker.require(user, dt, "select")  # raises 403
+    await permission_checker.require(user, dt.doc, "select")  # raises 403
     return dt, None  # unreachable — require() raised
 
 
