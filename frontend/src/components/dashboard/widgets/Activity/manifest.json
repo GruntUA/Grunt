@@ -1,0 +1,11 @@
+{
+    "type": "activity",
+    "label": "Activity",
+    "icon": "🕒",
+    "configSections": [
+        "title",
+        "activityFilter",
+        "width",
+        "color"
+    ]
+}

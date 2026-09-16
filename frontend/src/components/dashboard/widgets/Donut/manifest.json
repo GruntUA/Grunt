@@ -1,0 +1,13 @@
+{
+    "type": "donut",
+    "label": "Donut",
+    "icon": "🍩",
+    "configSections": [
+        "title",
+        "dataSource",
+        "doctypeSource",
+        "groupBy",
+        "width",
+        "color"
+    ]
+}

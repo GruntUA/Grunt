@@ -1,0 +1,11 @@
+{
+    "type": "clock",
+    "label": "Clock",
+    "icon": "🕐",
+    "configSections": [
+        "title",
+        "description",
+        "width",
+        "color"
+    ]
+}

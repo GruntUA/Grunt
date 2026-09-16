@@ -1,0 +1,14 @@
+{
+    "type": "metric",
+    "label": "Metric",
+    "icon": "🔢",
+    "configSections": [
+        "title",
+        "doctypeSource",
+        "aggregation",
+        "dateRange",
+        "width",
+        "color",
+        "icon"
+    ]
+}

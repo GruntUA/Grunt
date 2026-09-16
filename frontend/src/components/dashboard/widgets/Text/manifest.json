@@ -1,0 +1,11 @@
+{
+    "type": "text",
+    "label": "Text",
+    "icon": "📝",
+    "configSections": [
+        "title",
+        "textContent",
+        "width",
+        "color"
+    ]
+}

@@ -1,0 +1,13 @@
+{
+    "type": "funnel",
+    "label": "Funnel",
+    "icon": "🔽",
+    "configSections": [
+        "title",
+        "doctypeSource",
+        "groupBy",
+        "dateRange",
+        "width",
+        "color"
+    ]
+}

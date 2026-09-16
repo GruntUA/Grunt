@@ -1,0 +1,14 @@
+{
+    "type": "gauge",
+    "label": "Gauge",
+    "icon": "🎯",
+    "configSections": [
+        "title",
+        "doctypeSource",
+        "gaugeRange",
+        "aggregation",
+        "dateRange",
+        "width",
+        "color"
+    ]
+}

@@ -1,0 +1,11 @@
+{
+    "type": "links",
+    "label": "Links",
+    "icon": "🔗",
+    "configSections": [
+        "title",
+        "links",
+        "width",
+        "color"
+    ]
+}

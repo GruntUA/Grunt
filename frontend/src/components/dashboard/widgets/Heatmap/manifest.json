@@ -1,0 +1,12 @@
+{
+    "type": "heatmap",
+    "label": "Heatmap",
+    "icon": "🟩",
+    "configSections": [
+        "title",
+        "doctypeSource",
+        "dateRange",
+        "width",
+        "color"
+    ]
+}

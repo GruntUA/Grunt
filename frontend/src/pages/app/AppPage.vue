@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import AppIcon from '@/components/AppIcon.vue'
 import {
   RefreshCw, LayoutDashboard, Pencil, Plus, Save, X,
@@ -10,6 +11,7 @@ import { docsApi } from '@/core/api/docs'
 import { getPageData } from '@/core/api/pages'
 import WidgetCard from '@/components/dashboard/WidgetCard.vue'
 import WidgetConfigPanel from '@/components/dashboard/WidgetConfigPanel.vue'
+import { getPaletteWidgets } from '@/core/widgetRegistry'
 import type { DashboardWidget, WidgetType } from '@/types'
 import { useToast } from '@/core/composables/useToast'
 import { setPageTitle } from '@/core/composables/usePageTitle'
@@ -21,6 +23,7 @@ const props = defineProps<{
 }>()
 
 const toast = useToast()
+const { t } = useI18n()
 
 interface PageDoc {
   id: string
@@ -60,23 +63,10 @@ const embedUrl = computed(() => `${window.location.origin}/page/${props.pageName
 
 // ── Widget types palette ───────────────────────────────────────────────────────
 
-const WIDGET_TYPES: { value: WidgetType; label: string; icon: string }[] = [
-  { value: 'metric',         label: 'Метрика',       icon: '🔢' },
-  { value: 'gauge',          label: 'Gauge',         icon: '🎯' },
-  { value: 'chart_area',     label: 'Area',          icon: '📈' },
-  { value: 'chart_bar',      label: 'Bar',           icon: '📊' },
-  { value: 'donut',          label: 'Кругова',       icon: '🍩' },
-  { value: 'list',           label: 'Список',        icon: '📋' },
-  { value: 'shortcut',       label: 'Ярлик',         icon: '🔗' },
-  { value: 'shortcuts_grid', label: 'Сітка ярликів', icon: '⊞' },
-  { value: 'text',           label: 'Текст',         icon: '📝' },
-  { value: 'clock',          label: 'Годинник',      icon: '🕐' },
-  { value: 'activity',       label: 'Активність',    icon: '🕒' },
-  { value: 'calendar',       label: 'Календар',      icon: '📅' },
-  { value: 'heatmap',        label: 'Теплокарта',    icon: '🟩' },
-  { value: 'funnel',         label: 'Воронка',       icon: '🔽' },
-  { value: 'table',          label: 'Таблиця',       icon: '📊' },
-]
+// Single source of truth — see @/core/widgetRegistry. Keeps this palette and
+// WidgetConfigPanel's type switcher from drifting out of sync (they used to
+// be two independently hand-maintained lists).
+const WIDGET_TYPES = getPaletteWidgets()
 
 // ── Data loading ───────────────────────────────────────────────────────────────
 
@@ -189,7 +179,7 @@ function addWidget(type: WidgetType) {
   const newWidget: DashboardWidget = {
     id,
     widget_type: type,
-    title: WIDGET_TYPES.find(t => t.value === type)?.label ?? 'Новий',
+    title: t(WIDGET_TYPES.find(w => w.type === type)?.label ?? 'Новий'),
     cols: type === 'shortcut' || type === 'clock' ? 1 : type === 'gauge' ? 1 : 2,
     color: 'primary',
     doctype: '',
@@ -392,13 +382,13 @@ const printPage = () => window.print()
             </p>
             <div class="space-y-0.5">
               <button
-                v-for="t in WIDGET_TYPES"
-                :key="t.value"
+                v-for="wt in WIDGET_TYPES"
+                :key="wt.type"
                 class="w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-left hover:bg-background transition-colors border border-transparent hover:border-border"
-                @click="addWidget(t.value)"
+                @click="addWidget(wt.type as WidgetType)"
               >
-                <AppIcon :icon="t.icon" class="size-4 shrink-0 text-muted-foreground" />
-                <span>{{ t.label }}</span>
+                <AppIcon :icon="wt.icon" class="size-4 shrink-0 text-muted-foreground" />
+                <span>{{ t(wt.label) }}</span>
                 <Plus class="size-3 ml-auto text-muted-foreground opacity-0 group-hover:opacity-100" />
               </button>
             </div>

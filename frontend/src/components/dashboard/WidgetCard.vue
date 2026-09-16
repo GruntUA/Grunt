@@ -2,21 +2,7 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { DashboardWidget } from '@/types'
-import MetricWidget from './MetricWidget.vue'
-import GaugeWidget from './GaugeWidget.vue'
-import ChartWidget from './ChartWidget.vue'
-import DonutWidget from './DonutWidget.vue'
-import ListWidget from './ListWidget.vue'
-import ShortcutWidget from './ShortcutWidget.vue'
-import ShortcutsGridWidget from './ShortcutsGridWidget.vue'
-import TextWidget from './TextWidget.vue'
-import ClockWidget from './ClockWidget.vue'
-import ActivityWidget from './ActivityWidget.vue'
-import CalendarWidget from './CalendarWidget.vue'
-import HeatmapWidget from './HeatmapWidget.vue'
-import FunnelWidget from './FunnelWidget.vue'
-import TableWidget from './TableWidget.vue'
-import LinksWidget from './LinksWidget.vue'
+import { getAsyncWidgetComponent } from '@/core/widgetRegistry'
 
 const props = defineProps<{
   widget: DashboardWidget
@@ -33,15 +19,7 @@ const emit = defineEmits<{
   remove: [widget: DashboardWidget]
 }>()
 
-const metricData = computed(() => props.data as { value: number; trend?: number | null })
-const chartData = computed(() => props.data as { labels: string[]; values: number[] })
-const listData = computed(() => props.data as { items: Record<string, unknown>[]; title_field: string | null })
-const countData = computed(() => props.data as { count: number } | null)
-const activityData = computed(() => props.data as { items: { id: string; doctype: string; doc_id: string; action: string; user: string; created_at: string }[] } | null)
-const heatmapData = computed(() => props.data as { days: Record<string, number> } | null)
-const calendarData = computed(() => props.data as { entries: { date: string; count: number }[] } | null)
-const funnelData = computed(() => props.data as { stages: { label: string; count: number }[] } | null)
-const tableData = computed(() => props.data as { rows: { label: string; value: number }[]; aggregation?: string; field?: string | null } | null)
+const widgetComponent = computed(() => getAsyncWidgetComponent(props.widget.widget_type))
 
 const colSpanClass = computed(() => ({
   1: 'col-span-1',
@@ -88,93 +66,14 @@ const minH = computed(() => {
       </button>
     </div>
 
-    <!-- Widget renders -->
+    <!-- Widget render -->
     <div class="h-full">
-      <MetricWidget
-        v-if="widget.widget_type === 'metric'"
+      <component
+        :is="widgetComponent"
+        v-if="widgetComponent"
         :widget="widget"
-        :data="metricData"
+        :data="data"
         :loading="loading"
-      />
-      <GaugeWidget
-        v-else-if="widget.widget_type === 'gauge'"
-        :widget="widget"
-        :data="metricData"
-        :loading="loading"
-      />
-      <ChartWidget
-        v-else-if="widget.widget_type === 'chart_area' || widget.widget_type === 'chart_bar'"
-        :widget="widget"
-        :data="chartData"
-        :loading="loading"
-      />
-      <DonutWidget
-        v-else-if="widget.widget_type === 'donut'"
-        :widget="widget"
-        :data="chartData"
-        :loading="loading"
-      />
-      <ListWidget
-        v-else-if="widget.widget_type === 'list'"
-        :widget="widget"
-        :data="listData"
-        :loading="loading"
-        :workspace-name="workspaceName"
-      />
-      <ShortcutWidget
-        v-else-if="widget.widget_type === 'shortcut'"
-        :widget="widget"
-        :data="countData"
-        :loading="loading"
-        :workspace-name="workspaceName"
-      />
-      <ShortcutsGridWidget
-        v-else-if="widget.widget_type === 'shortcuts_grid'"
-        :widget="widget"
-        :workspace-name="workspaceName"
-      />
-      <TextWidget
-        v-else-if="widget.widget_type === 'text'"
-        :widget="widget"
-      />
-      <ClockWidget
-        v-else-if="widget.widget_type === 'clock'"
-        :widget="widget"
-      />
-      <ActivityWidget
-        v-else-if="widget.widget_type === 'activity'"
-        :widget="widget"
-        :data="activityData"
-        :loading="loading"
-        :workspace-name="workspaceName"
-      />
-      <CalendarWidget
-        v-else-if="widget.widget_type === 'calendar'"
-        :widget="widget"
-        :data="heatmapData"
-        :loading="loading"
-      />
-      <HeatmapWidget
-        v-else-if="widget.widget_type === 'heatmap'"
-        :widget="widget"
-        :data="calendarData"
-        :loading="loading"
-      />
-      <FunnelWidget
-        v-else-if="widget.widget_type === 'funnel'"
-        :widget="widget"
-        :data="funnelData"
-        :loading="loading"
-      />
-      <TableWidget
-        v-else-if="widget.widget_type === 'table'"
-        :widget="widget"
-        :data="tableData"
-        :loading="loading"
-      />
-      <LinksWidget
-        v-else-if="widget.widget_type === 'links'"
-        :widget="widget"
         :workspace-name="workspaceName"
       />
     </div>

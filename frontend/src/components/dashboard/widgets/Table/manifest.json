@@ -1,0 +1,14 @@
+{
+    "type": "table",
+    "label": "Table",
+    "icon": "📊",
+    "configSections": [
+        "title",
+        "doctypeSource",
+        "aggregation",
+        "groupBy",
+        "dateRange",
+        "width",
+        "color"
+    ]
+}

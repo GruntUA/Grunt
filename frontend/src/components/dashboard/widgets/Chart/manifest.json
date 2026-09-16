@@ -1,0 +1,30 @@
+[
+  {
+    "type": "chart_area",
+    "label": "Area",
+    "icon": "📈",
+    "configSections": [
+      "title",
+      "dataSource",
+      "doctypeSource",
+      "groupBy",
+      "dateRange",
+      "width",
+      "color"
+    ]
+  },
+  {
+    "type": "chart_bar",
+    "label": "Bar",
+    "icon": "📊",
+    "configSections": [
+      "title",
+      "dataSource",
+      "doctypeSource",
+      "groupBy",
+      "dateRange",
+      "width",
+      "color"
+    ]
+  }
+]

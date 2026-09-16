@@ -1,0 +1,19 @@
+/** Registers every core widget config-section. Imported once (as a side effect) by WidgetConfigPanel. */
+import { registerWidgetSection } from '@/core/widgetSectionRegistry'
+
+registerWidgetSection('title', () => import('./TitleSection.vue').then(m => m.default))
+registerWidgetSection('dataSource', () => import('./DataSourceSection.vue').then(m => m.default))
+registerWidgetSection('doctypeSource', () => import('./DoctypeSourceSection.vue').then(m => m.default))
+registerWidgetSection('shortcutTarget', () => import('./ShortcutTargetSection.vue').then(m => m.default))
+registerWidgetSection('activityFilter', () => import('./ActivityFilterSection.vue').then(m => m.default))
+registerWidgetSection('description', () => import('./DescriptionSection.vue').then(m => m.default))
+registerWidgetSection('textContent', () => import('./TextContentSection.vue').then(m => m.default))
+registerWidgetSection('tiles', () => import('./TilesSection.vue').then(m => m.default))
+registerWidgetSection('links', () => import('./LinksSection.vue').then(m => m.default))
+registerWidgetSection('gaugeRange', () => import('./GaugeRangeSection.vue').then(m => m.default))
+registerWidgetSection('aggregation', () => import('./AggregationSection.vue').then(m => m.default))
+registerWidgetSection('groupBy', () => import('./GroupBySection.vue').then(m => m.default))
+registerWidgetSection('dateRange', () => import('./DateRangeSection.vue').then(m => m.default))
+registerWidgetSection('width', () => import('./WidthSection.vue').then(m => m.default))
+registerWidgetSection('color', () => import('./ColorSection.vue').then(m => m.default))
+registerWidgetSection('icon', () => import('./IconSection.vue').then(m => m.default))

@@ -1,0 +1,13 @@
+{
+    "type": "shortcut",
+    "label": "Shortcut",
+    "icon": "🔗",
+    "configSections": [
+        "title",
+        "shortcutTarget",
+        "description",
+        "width",
+        "color",
+        "icon"
+    ]
+}

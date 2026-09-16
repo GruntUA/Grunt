@@ -1,0 +1,12 @@
+{
+    "type": "calendar",
+    "label": "Calendar",
+    "icon": "📅",
+    "configSections": [
+        "title",
+        "doctypeSource",
+        "dateRange",
+        "width",
+        "color"
+    ]
+}
