@@ -1,0 +1,24 @@
+{
+  "name": "WebsiteFooterColumn",
+  "label": "Site footer column",
+  "module": "site",
+  "is_child": true,
+  "title_field": "title",
+  "fields": [
+    {
+      "fieldname": "title",
+      "label": "Column heading",
+      "fieldtype": "Text",
+      "required": true,
+      "in_list_view": true,
+      "description": "Must match the 'Group' field on the footer links this column should show"
+    },
+    {
+      "fieldname": "enabled",
+      "label": "Enabled",
+      "fieldtype": "Check",
+      "default": true,
+      "in_list_view": true
+    }
+  ]
+}

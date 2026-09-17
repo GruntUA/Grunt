@@ -1,3 +1,17 @@
+{% if website_settings and website_settings.top_menu_items %}
+<div style="background: var(--bg-subtle, #f3f4f6); border-bottom: 1px solid var(--border-color); font-size: 0.8rem;">
+    <div class="container" style="height: 2.25rem; display: flex; align-items: center; justify-content: flex-end; gap: 1.5rem;">
+        {% for item in website_settings.top_menu_items %}
+            <a href="{{ item.url }}"
+               style="display: inline-flex; align-items: center; gap: 0.35rem; text-decoration: none; color: var(--text-muted); font-weight: 500;"
+               {% if item.is_external %}target="_blank" rel="noopener"{% endif %}>
+                {% if item.icon %}<i data-lucide="{{ item.icon }}"></i>{% endif %}
+                {{ item.label }}
+            </a>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
 <header class="glass" style="position: sticky; top: 0; z-index: 50; border-bottom: 1px solid var(--border-color);">
     <div class="container" style="height: 4.5rem; display: flex; align-items: center; justify-content: space-between;">
         <a href="/" style="display: flex; align-items: center; gap: 0.75rem; text-decoration: none; color: var(--text-main);">
@@ -16,15 +30,33 @@
         </a>
 
         <nav style="display: flex; align-items: center; gap: 2rem;">
-            {% if website_settings and website_settings.navbar_items %}
-                {% for item in website_settings.navbar_items %}
-                    <a href="{{ item.url }}" 
-                       style="text-decoration: none; color: var(--text-muted); font-weight: 500; font-size: 0.95rem; transition: color 0.2s;" 
-                       onmouseover="this.style.color='var(--text-main)'" 
-                       onmouseout="this.style.color='var(--text-muted)'"
-                       {% if item.is_external %}target="_blank"{% endif %}>
-                        {{ item.label }}
-                    </a>
+            {% if website_settings and website_settings.main_menu_items %}
+                {% for item in website_settings.main_menu_items %}
+                    {% if not item.parent_index %}
+                        {% set children = website_settings.main_menu_items | selectattr('parent_index', 'equalto', loop.index) | list %}
+                        <div style="position: relative;" {% if children %}class="gr-nav-has-submenu"{% endif %}>
+                            <a href="{{ item.url }}"
+                               style="display: inline-flex; align-items: center; gap: 0.35rem; text-decoration: none;
+                                      {% if item.highlight %}color: white; background: var(--primary); padding: 0.5rem 1rem; border-radius: 0.5rem;
+                                      {% else %}color: var(--text-muted); font-weight: 500; font-size: 0.95rem; transition: color 0.2s;
+                                      onmouseover=\"this.style.color='var(--text-main)'\" onmouseout=\"this.style.color='var(--text-muted)'\"{% endif %}"
+                               {% if item.is_external %}target="_blank" rel="noopener"{% endif %}>
+                                {% if item.icon %}<i data-lucide="{{ item.icon }}"></i>{% endif %}
+                                {{ item.label }}
+                            </a>
+                            {% if children %}
+                            <div class="gr-nav-submenu" style="display: none; position: absolute; top: 100%; left: 0; margin-top: 0.5rem; background: white; border: 1px solid var(--border-color); border-radius: 0.5rem; box-shadow: 0 10px 25px rgba(0,0,0,0.08); min-width: 12rem; padding: 0.5rem; z-index: 60;">
+                                {% for child in children %}
+                                    <a href="{{ child.url }}"
+                                       style="display: block; padding: 0.5rem 0.75rem; border-radius: 0.375rem; text-decoration: none; color: var(--text-main); font-size: 0.9rem;"
+                                       {% if child.is_external %}target="_blank" rel="noopener"{% endif %}>
+                                        {{ child.label }}
+                                    </a>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    {% endif %}
                 {% endfor %}
             {% endif %}
 
@@ -38,6 +70,9 @@
         </nav>
     </div>
 </header>
+<style>
+    .gr-nav-has-submenu:hover .gr-nav-submenu { display: block; }
+</style>
 <script>
     // JWT lives only in localStorage (not a cookie), so SSR can't know the auth
     // state at render time — decide client-side, same key the SPA auth store uses.

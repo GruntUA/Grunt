@@ -6,12 +6,21 @@ re-reads each installed app's metadata from disk and applies it to the DB.
 
 from __future__ import annotations
 
+import sys
 from typing import TYPE_CHECKING, Any
 
 from grunt.log import log
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from sqlalchemy.ext.asyncio import AsyncSession
+
+
+def _ensure_on_syspath(path: Path) -> None:
+    entry = str(path)
+    if entry not in sys.path:
+        sys.path.insert(0, entry)
 
 
 async def _register_app_if_new(app_name: str, app_meta: dict) -> bool:
@@ -241,6 +250,7 @@ async def sync_installed_apps(session: AsyncSession, site_name: str) -> None:
     import json
 
     from grunt.app import grunt
+    from grunt.document.registry import document_registry
     from grunt.metadata.registry import doctype_registry
     from grunt.site.manager import site_manager
     from grunt.startup.fixtures import _load_app_meta
@@ -252,6 +262,8 @@ async def sync_installed_apps(session: AsyncSession, site_name: str) -> None:
     site_config = json.loads(site_file.read_text())
     installed_apps = site_config.get("installed_apps", [])
     eng = site_manager.get_engine(site_name)
+
+    _ensure_on_syspath(site_manager.bench_dir / "apps")
 
     async with grunt.system_context(session, eng):
         await doctype_registry.load_all(session)
@@ -265,6 +277,14 @@ async def sync_installed_apps(session: AsyncSession, site_name: str) -> None:
             if app_meta is None:
                 log.warning("startup.app_meta_not_found", app=app_name)
                 continue
+
+            # Controllers must be importable (sys.path) and their
+            # doctype->module mapping indexed *before* fixtures run below —
+            # otherwise document_registry.get() silently falls back to the
+            # generic Document base and custom validate()/on_update() hooks
+            # never fire for fixture-seeded records.
+            _ensure_on_syspath(app_dir)
+            document_registry.index_external_app_controllers(app_dir)
 
             is_first_install = await _register_app_if_new(app_name, app_meta)
             app_modules = set(app_meta.get("modules", []))

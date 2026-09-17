@@ -44,10 +44,18 @@
       "fieldtype": "Section"
     },
     {
-      "fieldname": "navbar_items",
-      "label": "Top menu items",
+      "fieldname": "top_menu_items",
+      "label": "Top utility bar items",
       "fieldtype": "Table",
-      "options": "WebsiteNavItem"
+      "options": "WebsiteNavItem",
+      "description": "A slim bar above the main navigation (contacts, language switcher, quick links) — leave empty to skip it"
+    },
+    {
+      "fieldname": "main_menu_items",
+      "label": "Main menu items",
+      "fieldtype": "Table",
+      "options": "WebsiteNavItem",
+      "description": "The primary navbar. Set a row's 'Submenu of' to another row's position to nest it as a dropdown entry."
     },
     {
       "fieldname": "sec_footer",
@@ -59,6 +67,13 @@
       "label": "Copyright text",
       "fieldtype": "Text",
       "default": "© 2026"
+    },
+    {
+      "fieldname": "footer_columns",
+      "label": "Footer columns",
+      "fieldtype": "Table",
+      "options": "WebsiteFooterColumn",
+      "description": "Controls which footer columns show and in what order. Leave empty to auto-group footer links by their 'Group' field instead."
     },
     {
       "fieldname": "footer_items",

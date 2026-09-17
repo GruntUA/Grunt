@@ -8,8 +8,24 @@
                 </p>
             </div>
             
-            {% if website_settings and website_settings.footer_items %}
-                {# Grouping footer items by 'group' field #}
+            {% if website_settings and website_settings.footer_columns %}
+                {# Explicit column order/enable — 'group' on each link must match a column's title #}
+                {% for col in website_settings.footer_columns if col.enabled %}
+                <div>
+                    <h4 style="margin-bottom: 1.25rem; font-size: 1.1rem;">{{ col.title }}</h4>
+                    <ul style="list-style: none;">
+                        {% for item in (website_settings.footer_items or []) | selectattr('group', 'equalto', col.title) | list %}
+                            <li style="margin-bottom: 0.5rem;">
+                                <a href="{{ item.url }}" style="color: var(--text-muted); text-decoration: none; font-size: 0.95rem;" {% if item.is_external %}target="_blank" rel="noopener"{% endif %}>
+                                    {{ item.label }}
+                                </a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endfor %}
+            {% elif website_settings and website_settings.footer_items %}
+                {# No explicit columns configured — group items by 'group' field, in first-seen order #}
                 {% set groups = {} %}
                 {% for item in website_settings.footer_items %}
                     {% set g = item.group or "Посилання" %}
@@ -25,7 +41,7 @@
                     <ul style="list-style: none;">
                         {% for item in items %}
                             <li style="margin-bottom: 0.5rem;">
-                                <a href="{{ item.url }}" style="color: var(--text-muted); text-decoration: none; font-size: 0.95rem;">
+                                <a href="{{ item.url }}" style="color: var(--text-muted); text-decoration: none; font-size: 0.95rem;" {% if item.is_external %}target="_blank" rel="noopener"{% endif %}>
                                     {{ item.label }}
                                 </a>
                             </li>

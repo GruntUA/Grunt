@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import importlib.util
 import inspect
+import re
 from pathlib import Path
 from typing import Any
 
@@ -197,6 +198,30 @@ async def render_page(
     return HTMLResponse(content=html)
 
 
+_PARAM_TOKEN_RE = re.compile(r"\{(\w+)\}")
+
+
+def _pattern_regex(url_pattern: str) -> re.Pattern[str]:
+    """Compile a ``/service/{route}``-style pattern to a matching regex.
+
+    External apps' file-based pages reach FastAPI's own routing table only
+    after ASGI lifespan startup (:func:`grunt.apps.loader.load_external_apps`)
+    — which runs *after* the catch-all ``/{path:path}`` is already mounted at
+    import time in :mod:`grunt.main`, so it always matches first and shadows
+    them. This regex match is what actually resolves a dynamic file-based
+    page for those apps; static patterns are still handled by the plain
+    string comparison below (cheaper, and the common case).
+    """
+    parts: list[str] = []
+    last = 0
+    for m in _PARAM_TOKEN_RE.finditer(url_pattern):
+        parts.append(re.escape(url_pattern[last : m.start()]))
+        parts.append(f"(?P<{m.group(1)}>[^/]+)")
+        last = m.end()
+    parts.append(re.escape(url_pattern[last:]))
+    return re.compile("^" + "".join(parts) + "$")
+
+
 async def render_page_by_route(
     request: Request,
     session: Any,
@@ -209,11 +234,18 @@ async def render_page_by_route(
     if path != "/" and path.endswith("/"):
         path = path[:-1]
 
-    # 1. Try file-based pages first
+    # 1. Try file-based pages first — static routes by exact string, dynamic
+    # ({param}) routes by regex (see _pattern_regex).
     for page in website_registry.pages:
-        # Simple match for now (could be improved with regex for path params)
         if page.url_pattern == path:
             return await render_page(page, request, session=session)
+
+    for page in website_registry.pages:
+        if "{" not in page.url_pattern:
+            continue
+        m = _pattern_regex(page.url_pattern).match(path)
+        if m:
+            return await render_page(page, request, m.groupdict(), session=session)
 
     # 2. Try database-based pages (WebPage)
     from grunt.auth.doctypes.User.user import SYSTEM_USER

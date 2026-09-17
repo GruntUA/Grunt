@@ -36,6 +36,11 @@ if TYPE_CHECKING:
 CORE_APP = "grunt"
 _GRUNT_PKG = Path(__file__).resolve().parent.parent  # grunt/apps/loader.py -> grunt/
 
+# Name of the app whose www/ pages mount at the site root (set by the first
+# loaded app whose hooks.py declares `is_primary_web_app = True`) instead of
+# under `/{app_name}/...`. See `load_app`.
+_primary_web_app: str | None = None
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # App zero
@@ -131,6 +136,8 @@ def _is_loadable_app(app_dir: Path, installed_apps: set[str]) -> bool:
 async def load_app(fastapi_app: FastAPI | None, app_dir: Path) -> None:
     """Load one app directory: file scripts, controllers, hooks, routers,
     static assets and pages."""
+    global _primary_web_app
+
     ctx = LoadContext(app_name=app_dir.name, app_dir=app_dir, fastapi_app=fastapi_app)
 
     from grunt.document.registry import document_registry
@@ -139,13 +146,28 @@ async def load_app(fastapi_app: FastAPI | None, app_dir: Path) -> None:
     _discover_scripts(app_dir.parent, app_filter=ctx.app_name)
     document_registry.index_external_app_controllers(app_dir)
 
+    wants_root = False
     for hooks_mod in _iter_hooks_modules(app_dir):
         _apply_hooks_module(hooks_mod, ctx)
         await _run_on_startup(hooks_mod, ctx)
+        if getattr(hooks_mod, "is_primary_web_app", False):
+            wants_root = True
+
+    is_main_app = False
+    if wants_root:
+        if _primary_web_app is None:
+            _primary_web_app = ctx.app_name
+            is_main_app = True
+        elif _primary_web_app == ctx.app_name:
+            is_main_app = True
+        else:
+            log.warning(
+                "apps.primary_web_app.conflict", app=ctx.app_name, holder=_primary_web_app
+            )
 
     _include_app_routers(ctx)
     _mount_app_static(ctx)
-    _register_app_pages(ctx)
+    _register_app_pages(ctx, is_main_app=is_main_app)
 
 
 async def reload_app(app_name: str, fastapi_app: FastAPI | None = None) -> None:
@@ -264,12 +286,12 @@ def _mount_app_static(ctx: LoadContext) -> None:
     log.info("www.assets.mounted", app=ctx.app_name)
 
 
-def _register_app_pages(ctx: LoadContext) -> None:
+def _register_app_pages(ctx: LoadContext, *, is_main_app: bool = False) -> None:
     if ctx.fastapi_app is None:
         return
     from grunt.website import make_website_handler, website_registry
 
-    for page in website_registry.discover_app(ctx.app_dir, ctx.app_name):
+    for page in website_registry.discover_app(ctx.app_dir, ctx.app_name, is_main_app=is_main_app):
         ctx.fastapi_app.add_api_route(
             page.url_pattern,
             make_website_handler(page),

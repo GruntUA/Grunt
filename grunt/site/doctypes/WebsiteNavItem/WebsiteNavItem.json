@@ -29,13 +29,32 @@
       "fieldname": "group",
       "label": "Group (for the footer)",
       "fieldtype": "Text",
-      "description": "Used only in the site footer to group links under a heading"
+      "description": "Used only in the site footer to group links under a heading — must match a Site footer column's title"
     },
     {
       "fieldname": "sequence",
       "label": "Order",
       "fieldtype": "Int",
       "default": 0
+    },
+    {
+      "fieldname": "icon",
+      "label": "Icon",
+      "fieldtype": "Icon"
+    },
+    {
+      "fieldname": "highlight",
+      "label": "Highlight",
+      "fieldtype": "Check",
+      "default": false,
+      "description": "Render this item as a call-to-action (e.g. a button) instead of a plain link"
+    },
+    {
+      "fieldname": "parent_index",
+      "label": "Submenu of (row #)",
+      "fieldtype": "Int",
+      "default": 0,
+      "description": "Set to another row's position (1-based) in this same table to nest this item as a submenu entry. 0 = top-level item."
     }
   ]
 }
