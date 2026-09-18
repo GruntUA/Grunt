@@ -1100,7 +1100,7 @@ const canAddRow = computed(() => {
       <DialogHeader>
         <DialogTitle class="font-semibold">{{ field.label }} — рядок {{ editIdx !== null ? editIdx + 1 : '' }}</DialogTitle>
       </DialogHeader>
-      <div class="flex flex-col gap-4 py-2">
+      <div class="flex min-w-0 flex-col gap-4 py-2">
         <FieldRenderer
           v-for="f in allFields"
           :key="f.fieldname"

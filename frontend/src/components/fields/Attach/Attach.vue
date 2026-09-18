@@ -46,7 +46,7 @@ function openPicker() {
         :href="currentUrl"
         target="_blank"
         rel="noopener noreferrer"
-        class="flex flex-1 items-center gap-1 truncate text-primary hover:underline"
+        class="flex min-w-0 flex-1 items-center gap-1 truncate text-primary hover:underline"
         @click.stop
       >
         <span class="truncate">{{ filename ?? currentUrl }}</span>
