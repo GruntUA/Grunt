@@ -24,9 +24,11 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-const form = ref<Record<string, unknown>>(
-  Object.fromEntries(props.transition.prompt_fields.map(name => [name, props.doc[name] ?? null])),
-)
+// Seed with the full document, not just prompt_fields — the filtered layout
+// can still include a Section/Column with a `depends_on` referencing other
+// doc fields (e.g. `doc.status`), which must resolve correctly for the
+// prompt fields inside it to actually render.
+const form = ref<Record<string, unknown>>({ ...props.doc })
 
 const promptDt = computed<DocType>(() => ({
   ...props.doctype,
@@ -39,6 +41,13 @@ const reqdOverrides = computed(() =>
 
 function onFormUpdate(updated: Record<string, unknown>) {
   Object.assign(form.value, updated)
+}
+
+function onSubmit() {
+  // Only the declared prompt_fields go over the wire — the rest of `form`
+  // exists purely so the layout's depends_on conditions resolve correctly.
+  const values = Object.fromEntries(props.transition.prompt_fields.map(name => [name, form.value[name]]))
+  emit('submit', values)
 }
 
 const isVisible = ref(true)
@@ -69,7 +78,7 @@ const isVisible = ref(true)
         <Button variant="outline" :disabled="isSubmitting" @click="emit('close')">
           {{ t('Cancel') }}
         </Button>
-        <Button :disabled="isSubmitting" @click="emit('submit', form)">
+        <Button :disabled="isSubmitting" @click="onSubmit">
           {{ transition.action }}
         </Button>
       </DialogFooter>
