@@ -1,5 +1,12 @@
 import { ref } from 'vue'
 
+export interface ServerErrorValidationField {
+  loc: string
+  msg: string
+  type: string
+  input: string
+}
+
 export interface ServerErrorDebug {
   exc_type: string
   message: string
@@ -7,6 +14,8 @@ export interface ServerErrorDebug {
   sql?: string
   sql_params?: string
   db_error?: string
+  /** Per-field breakdown for a pydantic ValidationError (422) */
+  fields?: ServerErrorValidationField[]
 }
 
 interface ServerErrorState {

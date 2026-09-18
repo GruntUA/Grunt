@@ -26,11 +26,16 @@ async def get_transitions(doctype: str, doc_id: str) -> list[dict[str, Any]]:
     doc = await grunt_app.get_doc(doctype, doc_id)
     user = grunt_app._require_user()
     transitions = await workflow_engine.get_available_transitions(dt.doc, doc, user)
-    return [{"action": t.action, "to_state": t.to_state} for t in transitions]
+    return [
+        {"action": t.action, "to_state": t.to_state, "prompt_fields": t.prompt_fields}
+        for t in transitions
+    ]
 
 
 @grunt.whitelist()
-async def apply_transition(doctype: str, doc_id: str, action: str) -> dict[str, Any]:
+async def apply_transition(
+    doctype: str, doc_id: str, action: str, values: dict[str, Any] | None = None
+) -> dict[str, Any]:
     """Apply a workflow transition to a document."""
     from grunt.errors import not_found
 
@@ -43,5 +48,7 @@ async def apply_transition(doctype: str, doc_id: str, action: str) -> dict[str, 
     session = grunt_app._require_session()
     engine = grunt_app._require_engine()
 
-    updated = await workflow_engine.apply_transition(dt.doc, doc_id, action, user, session, engine)
+    updated = await workflow_engine.apply_transition(
+        dt.doc, doc_id, action, user, session, engine, values
+    )
     return updated

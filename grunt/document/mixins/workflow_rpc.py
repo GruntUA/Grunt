@@ -34,12 +34,21 @@ class DocumentWorkflowRPCMixin:
         doc = await grunt_app.get_doc(doctype, doc_id)
         user = grunt_app._require_user()
         transitions = await workflow_engine.get_available_transitions(dt.doc, doc, user)
-        return [{"action": t.action, "to_state": t.to_state} for t in transitions]
+        return [
+            {"action": t.action, "to_state": t.to_state, "prompt_fields": t.prompt_fields}
+            for t in transitions
+        ]
 
     @staticmethod
     @grunt.whitelist()
-    async def apply_workflow_transition(doctype: str, doc_id: str, action: str) -> dict[str, Any]:
-        """Apply a workflow transition to a document."""
+    async def apply_workflow_transition(
+        doctype: str, doc_id: str, action: str, values: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
+        """Apply a workflow transition to a document.
+
+        ``values`` fills in the transition's ``prompt_fields`` (e.g. a note
+        entered in a dialog) — fields not declared on the transition are ignored.
+        """
         from grunt.app import grunt as grunt_app
         from grunt.errors import not_found
 
@@ -52,5 +61,5 @@ class DocumentWorkflowRPCMixin:
         session = grunt_app._require_session()
 
         return await workflow_engine.apply_transition(
-            dt.doc, doc_id, action, user, session, grunt_app._require_engine()
+            dt.doc, doc_id, action, user, session, grunt_app._require_engine(), values
         )

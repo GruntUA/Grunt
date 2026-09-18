@@ -30,6 +30,7 @@ interface WorkflowTransitionRow {
   action: string
   allowed_roles?: string
   condition?: string | null
+  prompt_fields?: string | null
 }
 
 type NodePositions = Record<string, { x: number; y: number }>
@@ -378,6 +379,15 @@ function removeSelectedTransition() {
             <label class="font-medium">Умова (eval:)</label>
             <Textarea :model-value="selectedTransition.condition ?? ''" rows="3"
               @update:model-value="updateSelectedTransition({ condition: String($event) || null })" />
+          </div>
+          <div class="flex flex-col gap-1.5">
+            <label class="font-medium">Поля діалогу (через кому)</label>
+            <Input :model-value="selectedTransition.prompt_fields ?? ''"
+              placeholder="напр. execution_note"
+              @update:model-value="updateSelectedTransition({ prompt_fields: String($event) || null })" />
+            <p class="text-muted-foreground text-xs">
+              Якщо вказано, перед переходом відкриється діалог для заповнення цих полів документа.
+            </p>
           </div>
           <Button variant="destructive" size="sm" class="mt-2" @click="removeSelectedTransition">
             <Trash2 class="size-3.5" />Видалити перехід

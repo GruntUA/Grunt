@@ -694,6 +694,7 @@ class DocumentAPI:
         doctype: str,
         doc_id: str,
         action: str,
+        values: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """Apply a workflow transition to a document.
 
@@ -702,6 +703,9 @@ class DocumentAPI:
         current document state or the user lacks the required role::
 
             await grunt.submit("LeaveRequest", request_id, "Approve")
+
+        ``values`` fills in the transition's ``prompt_fields`` (e.g. a note
+        collected in a dialog before applying the transition).
         """
         from grunt.app import grunt
         from grunt.errors import not_found
@@ -717,6 +721,7 @@ class DocumentAPI:
             require_user(),
             require_session(),
             require_engine(),
+            values,
         )
 
     async def copy_doc(

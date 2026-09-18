@@ -25,7 +25,10 @@ function copyAll() {
   const d = state.value.debug
   if (!d) return
   const text = [
-    `${d.exc_type}: ${d.message}`,
+    `${state.value.status} ${d.exc_type}: ${d.message}`,
+    d.fields?.length
+      ? `\nFields:\n${d.fields.map(f => `  ${f.loc}: ${f.msg} (got ${f.input})`).join('\n')}`
+      : '',
     d.sql ? `\nSQL:\n${d.sql}` : '',
     d.sql_params ? `\nParams: ${d.sql_params}` : '',
     d.db_error ? `\nDB Error: ${d.db_error}` : '',
@@ -51,7 +54,7 @@ function copyAll() {
                 <span class="inline-flex items-center px-2 py-0.5 rounded font-mono font-semibold bg-red-900/60 text-red-300 border border-red-800/50">
                   {{ state.status }}
                 </span>
-                <span class="text-red-400/70 font-mono">Internal Server Error</span>
+                <span class="text-red-400/70 font-mono">{{ state.status >= 500 ? 'Internal Server Error' : 'Server-side Error' }}</span>
               </div>
               <p class="font-mono text-red-200 font-semibold break-words" v-if="state.debug">
                 <span class="text-red-400">{{ state.debug.exc_type }}</span>:
@@ -78,6 +81,21 @@ function copyAll() {
 
           <!-- Body -->
           <div class="flex-1 overflow-y-auto p-5 space-y-4 font-mono">
+            <!-- Validation fields block -->
+            <template v-if="state.debug?.fields?.length">
+              <div>
+                <div class="text-red-400/60 uppercase tracking-wider mb-2">Fields</div>
+                <div class="bg-black/40 border border-red-900/20 rounded-lg divide-y divide-red-900/20">
+                  <div v-for="(f, idx) in state.debug.fields" :key="idx" class="px-4 py-2">
+                    <div class="text-yellow-200/90">{{ f.loc }} <span class="text-red-400/50">({{ f.type }})</span></div>
+                    <div class="text-red-100/80">{{ f.msg }}</div>
+                    <div class="text-red-400/50 truncate">input: {{ f.input }}</div>
+                  </div>
+                </div>
+              </div>
+              <div class="border-t border-red-900/20" />
+            </template>
+
             <!-- SQL block -->
             <template v-if="state.debug?.sql">
               <div>

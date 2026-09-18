@@ -22,14 +22,36 @@ if TYPE_CHECKING:
 
 
 async def _validation_error(request: Request, exc: ValidationError) -> JSONResponse:
-    return JSONResponse(
-        status_code=422,
-        content=error_body(
-            "VALIDATION_ERROR",
-            "Помилка валідації",
-            [str(e["msg"]) for e in exc.errors()],
-        ),
+    content = error_body(
+        "VALIDATION_ERROR",
+        "Помилка валідації",
+        [str(e["msg"]) for e in exc.errors()],
     )
+
+    # Debug mode: attach the same rich `debug` bundle _generic_exception() gives
+    # 500s — this is a server-side pydantic bug (a metadata model rejecting a
+    # shape the DB actually holds), not a client input mistake, and the plain
+    # "422 / Помилка валідації" message alone gives no way to find it. Listing
+    # each failing field/input is what actually points at the broken model.
+    if settings.debug:
+        import traceback as _tb
+
+        content["error"]["debug"] = {
+            "exc_type": type(exc).__name__,
+            "message": str(exc),
+            "traceback": _tb.format_exc(),
+            "fields": [
+                {
+                    "loc": ".".join(str(p) for p in e["loc"]),
+                    "msg": e["msg"],
+                    "type": e["type"],
+                    "input": repr(e.get("input")),
+                }
+                for e in exc.errors()
+            ],
+        }
+
+    return JSONResponse(status_code=422, content=content)
 
 
 async def _http_exception(request: Request, exc: HTTPException) -> JSONResponse:

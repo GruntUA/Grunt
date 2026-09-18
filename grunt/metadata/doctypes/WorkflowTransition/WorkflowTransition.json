@@ -34,6 +34,12 @@
       "fieldname": "condition",
       "label": "Condition (eval:)",
       "fieldtype": "Text"
+    },
+    {
+      "fieldname": "prompt_fields",
+      "label": "Dialog fields (comma-separated)",
+      "fieldtype": "LongText",
+      "description": "Fieldnames on the target DocType to ask for in a dialog before applying this transition. When set, Condition (if any) is checked against the values entered in the dialog."
     }
   ],
   "permissions": [

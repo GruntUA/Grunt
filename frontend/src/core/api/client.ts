@@ -157,15 +157,19 @@ client.interceptors.response.use(
       return Promise.reject(error)
     }
 
-    // Show error modal for 5xx server errors
-    if (error.response?.status >= 500) {
+    // Show the debug error modal for any response carrying a `debug` bundle —
+    // not just 5xx. A backend bug can just as well surface as a 422 (e.g. a
+    // pydantic model rejecting a shape the DB holds) or another status; what
+    // matters is whether the server attached debug info (only happens with
+    // settings.debug=True), not the status code itself.
+    if (error.response?.status) {
       const body = error.response?.data
       const debug = body?.error?.debug ?? null
       const plainMessage = body?.error?.message ?? 'Server error. Please try again later.'
       if (debug) {
         const { useServerError } = await import('@/core/composables/useServerError')
         useServerError().show(error.response.status, debug, plainMessage)
-      } else {
+      } else if (error.response.status >= 500) {
         const { useToast } = await import('@/core/composables/useToast')
         useToast().error(plainMessage)
       }

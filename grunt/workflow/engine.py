@@ -54,8 +54,14 @@ class WorkflowEngine:
                 allowed = user_roles.intersection(t.allowed_roles) or "System Manager" in user_roles
                 if not allowed:
                     continue
-            # Check condition
-            if t.condition and not self._eval_condition(t.condition, doc, user.email):
+            # Check condition — transitions with prompt_fields defer this check
+            # to apply_transition(), once the dialog values are merged in, since
+            # the condition often depends on a field the dialog itself fills in.
+            if (
+                t.condition
+                and not t.prompt_fields
+                and not self._eval_condition(t.condition, doc, user.email)
+            ):
                 continue
             available.append(t)
         return available
@@ -68,6 +74,7 @@ class WorkflowEngine:
         user: User,
         session: AsyncSession,
         engine: AsyncEngine,
+        values: dict | None = None,
     ) -> dict:
         from grunt.app import grunt
         from grunt.workflow.registry import get_active_workflow
@@ -91,13 +98,29 @@ class WorkflowEngine:
                 detail="Документ не має налаштованого Workflow",
             )
 
+        state_field = workflow.state_field
+        updates: dict = {state_field: transition.to_state}
+        if transition.prompt_fields:
+            # Only fields the transition explicitly asks for can be written
+            # this way — an RPC caller can't sneak other fields in via `values`.
+            for fieldname in transition.prompt_fields:
+                if values and fieldname in values:
+                    updates[fieldname] = values[fieldname]
+
+            if transition.condition:
+                merged_doc = {**doc, **updates}
+                if not self._eval_condition(transition.condition, merged_doc, user.email):
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail="Заповніть обов'язкові поля",
+                    )
+
         # Apply — guarded `grunt.set_value` (not `grunt.db.set_value`), so this
         # still enforces the doctype's own write permission even when the
         # transition itself declares no `allowed_roles` (a reader with no
         # write access must not be able to move the document through its
         # workflow just because they can read it).
-        state_field = workflow.state_field
-        await grunt.set_value(doctype.name, doc_id, state_field, transition.to_state)
+        await grunt.set_value(doctype.name, doc_id, updates)
 
         # Re-read updated document (set_value already flushed) as a bound controller
         # so apps can react to state changes via after_save() — .as_dict() below

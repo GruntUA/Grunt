@@ -220,3 +220,95 @@ async def test_workflow_multi_step(ctx):
     # Approve
     updated = await ctx.submit("Contract", doc_id, "Approve")
     assert updated["status"] == "Approved"
+
+
+PROMPT_FIELD_DOCTYPE = {
+    "name": "TaskTicket",
+    "label": "Task ticket",
+    "module": "crm",
+    "fields": [
+        {"fieldname": "title", "label": "Назва", "fieldtype": "Text"},
+        {"fieldname": "status", "label": "Статус", "fieldtype": "Text"},
+        {"fieldname": "resolution_note", "label": "Виконані роботи", "fieldtype": "LongText"},
+    ],
+}
+
+PROMPT_FIELD_WORKFLOW = {
+    "document_type": "TaskTicket",
+    "workflow_state_field": "status",
+    "states": [
+        {"state": "Open", "label": "Відкрито", "is_initial": True},
+        {"state": "Done", "label": "Виконано"},
+    ],
+    "transitions": [
+        {
+            "action": "Виконати",
+            "from_state": "Open",
+            "to_state": "Done",
+            "condition": "doc['resolution_note'] != None and doc['resolution_note'] != ''",
+            "prompt_fields": "resolution_note",
+        },
+    ],
+}
+
+
+@pytest.mark.asyncio
+async def test_workflow_prompt_fields_shown_before_values_filled(ctx):
+    """A transition with prompt_fields stays available even before its
+    condition field has a value — the dialog is what collects it."""
+    from grunt.api.v1.meta import save_doctype
+    from grunt.api.v1.workflow import get_transitions
+
+    await save_doctype(PROMPT_FIELD_DOCTYPE)
+    await ctx.db._session().commit()
+    await _create_workflow(ctx, PROMPT_FIELD_WORKFLOW)
+
+    doc = await ctx.new_doc("TaskTicket", {"title": "Test", "status": "Open"})
+    doc_id = doc["name"]
+
+    transitions = await get_transitions("TaskTicket", doc_id)
+    assert len(transitions) == 1
+    assert transitions[0]["prompt_fields"] == ["resolution_note"]
+
+
+@pytest.mark.asyncio
+async def test_workflow_prompt_fields_rejects_empty_values(ctx):
+    """Applying a prompt_fields transition without the required value fails."""
+    from fastapi import HTTPException
+
+    from grunt.api.v1.meta import save_doctype
+
+    await save_doctype(PROMPT_FIELD_DOCTYPE)
+    await ctx.db._session().commit()
+    await _create_workflow(ctx, PROMPT_FIELD_WORKFLOW)
+
+    doc = await ctx.new_doc("TaskTicket", {"title": "Test", "status": "Open"})
+    doc_id = doc["name"]
+
+    with pytest.raises(HTTPException) as excinfo:
+        await ctx.submit("TaskTicket", doc_id, "Виконати")
+    assert excinfo.value.status_code == 400
+
+
+@pytest.mark.asyncio
+async def test_workflow_prompt_fields_applies_dialog_values(ctx):
+    """Applying a prompt_fields transition writes the dialog values and the
+    new state in the same update — only fields listed in prompt_fields."""
+    from grunt.api.v1.meta import save_doctype
+
+    await save_doctype(PROMPT_FIELD_DOCTYPE)
+    await ctx.db._session().commit()
+    await _create_workflow(ctx, PROMPT_FIELD_WORKFLOW)
+
+    doc = await ctx.new_doc("TaskTicket", {"title": "Test", "status": "Open"})
+    doc_id = doc["name"]
+
+    updated = await ctx.submit(
+        "TaskTicket",
+        doc_id,
+        "Виконати",
+        {"resolution_note": "Полагодив принтер", "title": "Should be ignored"},
+    )
+    assert updated["status"] == "Done"
+    assert updated["resolution_note"] == "Полагодив принтер"
+    assert updated["title"] == "Test"

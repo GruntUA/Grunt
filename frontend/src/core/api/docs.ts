@@ -4,6 +4,7 @@ import type { ActiveFilter, GruntDocument, StandardListResponse } from '@/types'
 export interface WorkflowTransitionItem {
   action: string
   to_state: string
+  prompt_fields: string[]
 }
 
 export interface CommentItem {
@@ -230,9 +231,9 @@ export const docsApi = {
       params: { doctype, doc_id: id },
     }).then(r => r.data),
 
-  applyTransition: (doctype: string, id: string, action: string): Promise<{ success: boolean; data: GruntDocument }> =>
+  applyTransition: (doctype: string, id: string, action: string, values?: Record<string, unknown>): Promise<{ success: boolean; data: GruntDocument }> =>
     client.post('/api/v1/method/grunt.document.base.Document.apply_workflow_transition', {
-      doctype, doc_id: id, action,
+      doctype, doc_id: id, action, values,
     }).then(r => r.data),
 
   getLinks: (doctype: string, id: string): Promise<BacklinkItem[]> =>

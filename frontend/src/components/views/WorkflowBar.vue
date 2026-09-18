@@ -6,6 +6,8 @@ import type { WorkflowTransitionItem } from '@/core/api/docs'
 import { Loader2 } from '@lucide/vue'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import WorkflowActionDialog from '@/components/workflow/WorkflowActionDialog.vue'
+import { useToast } from '@/core/composables/useToast'
 
 const props = defineProps<{
   doctype: DocType
@@ -46,6 +48,10 @@ const stateBadge = computed(() => {
 
 const transitions = ref<WorkflowTransitionItem[]>([])
 const isLoading = ref(false)
+const toast = useToast()
+
+const pendingTransition = ref<WorkflowTransitionItem | null>(null)
+const dialogError = ref<string | null>(null)
 
 async function loadTransitions() {
   if (!props.doctype.workflow_state_field) return
@@ -57,12 +63,29 @@ async function loadTransitions() {
   }
 }
 
-async function apply(action: string) {
+function onActionClick(t: WorkflowTransitionItem) {
+  if (t.prompt_fields?.length) {
+    dialogError.value = null
+    pendingTransition.value = t
+    return
+  }
+  apply(t.action)
+}
+
+async function apply(action: string, values?: Record<string, unknown>) {
   isLoading.value = true
   try {
-    await docsApi.applyTransition(props.doctype.name, props.docId, action)
+    await docsApi.applyTransition(props.doctype.name, props.docId, action, values)
+    pendingTransition.value = null
     emit('transitioned')
     await loadTransitions()
+  } catch (err: unknown) {
+    const detail = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail
+    if (pendingTransition.value) {
+      dialogError.value = detail ?? 'Помилка застосування переходу'
+    } else {
+      toast.error(detail ?? 'Помилка застосування переходу')
+    }
   } finally {
     isLoading.value = false
   }
@@ -79,10 +102,21 @@ onMounted(loadTransitions)
     <span class="text-muted-foreground">Стан:</span>
     <Badge :class="stateBadge.colorClass">{{ stateBadge.label }}</Badge>
     <div class="flex gap-2 ml-2">
-      <Button variant="secondary" v-for="t in transitions" :key="t.action" size="sm" :disabled="isLoading" @click="apply(t.action)">
+      <Button variant="secondary" v-for="t in transitions" :key="t.action" size="sm" :disabled="isLoading" @click="onActionClick(t)">
         <Loader2 v-if="isLoading" class="size-4 animate-spin" />
         {{ t.action }}
       </Button>
     </div>
   </div>
+
+  <WorkflowActionDialog
+    v-if="pendingTransition"
+    :doctype="doctype"
+    :transition="pendingTransition"
+    :doc="doc"
+    :is-submitting="isLoading"
+    :error-message="dialogError"
+    @submit="(values) => apply(pendingTransition!.action, values)"
+    @close="pendingTransition = null"
+  />
 </template>

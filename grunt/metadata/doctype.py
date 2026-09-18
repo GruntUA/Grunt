@@ -32,14 +32,31 @@ class WorkflowTransition(BaseModel):
     action: str  # button label
     allowed_roles: list[str] = []
     condition: str | None = None  # Python expression
+    # Fieldnames on the target DocType to collect in a dialog before applying
+    # this transition (e.g. an execution note for a "mark as done" action).
+    # When set, `condition` (if any) is checked against the *merged* values
+    # at apply time instead of gating the button's visibility.
+    prompt_fields: list[str] = []
 
     @model_validator(mode="before")
     @classmethod
-    def _split_allowed_roles(cls, data: Any) -> Any:
-        """``allowed_roles`` is stored as a comma-separated ``LongText`` field."""
-        if isinstance(data, dict) and isinstance(data.get("allowed_roles"), str):
-            roles = [r.strip() for r in data["allowed_roles"].split(",") if r.strip()]
-            data = {**data, "allowed_roles": roles}
+    def _split_csv_lists(cls, data: Any) -> Any:
+        """``allowed_roles``/``prompt_fields`` are comma-separated ``LongText`` fields.
+
+        A DB row predating the column (or simply never filled in) stores it as
+        SQL ``NULL`` — read back as ``None``, which a bare ``list[str]`` field
+        rejects, so that must become ``[]`` too rather than only splitting strings.
+        """
+        if isinstance(data, dict):
+            updates = {}
+            for key in ("allowed_roles", "prompt_fields"):
+                value = data.get(key)
+                if isinstance(value, str):
+                    updates[key] = [v.strip() for v in value.split(",") if v.strip()]
+                elif value is None and key in data:
+                    updates[key] = []
+            if updates:
+                data = {**data, **updates}
         return data
 
 
