@@ -7,8 +7,6 @@ const props = defineProps<BaseFieldProps>()
 
 const emit = defineEmits<{
   'update:modelValue': [value: unknown]
-  'create-new': [doctype: string, preset: string]
-  'selection-change': [rowNames: string[]]
 }>()
 
 const isDisabled = computed(() => !!(props.disabled || props.field.read_only))

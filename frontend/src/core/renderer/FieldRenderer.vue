@@ -11,6 +11,13 @@ const { isDev, altPressed } = useDevMode()
 
 const INLINE_LABEL_TYPES = new Set(['Check', 'Button', 'Section', 'Column', 'Tab', 'Table'])
 
+// Only some field components actually emit these — wiring the listener
+// unconditionally on every field type makes Vue warn about an extraneous
+// non-emits listener for the rest (worse for components whose root is a
+// fragment, which can't auto-inherit fallthrough attrs at all).
+const CREATE_NEW_TYPES = new Set(['Link', 'DynamicLink', 'Table'])
+const SELECTION_CHANGE_TYPES = new Set(['Table'])
+
 const props = defineProps<{
   field: DocField
   modelValue: unknown
@@ -45,6 +52,19 @@ const injectedError = computed(() =>
 const displayError = computed(() => props.error || injectedError.value || validatorError.value || null)
 
 const component = computed(() => getAsyncFieldComponent(props.field.fieldtype))
+
+const fieldListeners = computed(() => {
+  const listeners: Record<string, (...args: any[]) => void> = {}
+  if (CREATE_NEW_TYPES.has(props.field.fieldtype)) {
+    listeners['create-new'] = (doctype: string, preset: string) =>
+      emit('create-new', doctype, preset, props.field.fieldname)
+  }
+  if (SELECTION_CHANGE_TYPES.has(props.field.fieldtype)) {
+    listeners['selection-change'] = (rowNames: string[]) =>
+      emit('table-selection-change', props.field.fieldname, rowNames)
+  }
+  return listeners
+})
 
 const hasOwnLabel = computed(() => INLINE_LABEL_TYPES.has(props.field.fieldtype))
 
@@ -102,8 +122,7 @@ async function copyFieldname() {
       :error="displayError"
       :doc="docValues"
       @update:modelValue="emit('update:modelValue', $event)"
-      @create-new="(doctype: string, preset: string) => emit('create-new', doctype, preset, field.fieldname)"
-      @selection-change="(rowNames: string[]) => emit('table-selection-change', field.fieldname, rowNames)"
+      v-on="fieldListeners"
     />
 
     <p v-if="field.description" :id="descId" class="text-muted-foreground leading-snug whitespace-pre-line">

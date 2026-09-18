@@ -18,8 +18,6 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   'update:modelValue': [value: Date | null]
-  'create-new': [doctype: string, preset: string]
-  'selection-change': [rowNames: string[]]
 }>()
 
 // Layout of the typed value (separator, part order, placeholder) follows
