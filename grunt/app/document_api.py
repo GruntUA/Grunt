@@ -161,6 +161,8 @@ class DocumentAPI:
         from fastapi import HTTPException
 
         try:
+            if isinstance(doctype, type):
+                return await self.get_doc(doctype, id_or_name, expand=expand)
             return await self.get_doc(doctype, id_or_name, expand=expand)
         except HTTPException as exc:
             if exc.status_code == 404:
