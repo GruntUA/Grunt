@@ -373,6 +373,11 @@ export const docsApi = {
       params: { doctype, doc_id: id },
     }).then(r => r.data.data ?? []),
 
+  restoreVersion: (doctype: string, id: string, versionId: string): Promise<{ document: GruntDocument; restored_to_version: number }> =>
+    client.post('/api/v1/method/grunt.document.base.Document.restore_version', {
+      doctype, doc_id: id, version_id: versionId,
+    }).then(r => r.data.data),
+
   // ── Seen / views (track_seen / track_views) ─────────────────────────────
 
   getViewInfo: (doctype: string, id: string): Promise<{ seen: string[]; views: number; viewers: number }> =>

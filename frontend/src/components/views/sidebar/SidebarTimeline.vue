@@ -23,6 +23,11 @@ const props = defineProps<{
   document: GruntDocument
 }>()
 
+const emit = defineEmits<{
+  /** A previous version was restored — the document's own data is now stale. */
+  restored: []
+}>()
+
 const auth = useAuthStore()
 const dialog = useDialog()
 const timeline = ref<TimelineItem[]>([])
@@ -101,7 +106,6 @@ async function openVersionDiff(item: TimelineItem) {
   await dialog.form({
     title: item.version ? `Версія ${item.version}` : 'Зміни',
     size: 'large',
-    primaryLabel: 'Закрити',
     fields: [{
       fieldname: 'diff',
       label: '',
@@ -119,6 +123,20 @@ async function openVersionDiff(item: TimelineItem) {
         { key: 'old', label: 'Було' },
         { key: 'new', label: 'Стало' },
       ],
+    }],
+    buttons: [{
+      label: 'Відновити цю версію',
+      variant: 'outline',
+      action: async (ctx) => {
+        const ok = await ctx.confirm('Відновити документ до цієї версії? Поточні значення полів буде замінено.')
+        if (!ok) return
+        try {
+          await docsApi.restoreVersion(props.doctype.name, props.document.name, item.id)
+          await loadTimeline()
+          emit('restored')
+          ctx.close()
+        } catch { /* silent */ }
+      },
     }],
   })
 }

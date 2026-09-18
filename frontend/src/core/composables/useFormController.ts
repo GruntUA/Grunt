@@ -148,7 +148,6 @@ export function useFormController(
   const { startLinkCreate, finishLinkCreate, restoreLinkDraft } = useLinkCreate()
 
   const showDeleteModal = ref(false)
-  const showVersions = ref(false)
 
   const {
     quickEntryDt,
@@ -184,7 +183,6 @@ export function useFormController(
     workspace,
     isDirty,
     showDeleteModal,
-    showVersions,
     isQuickEntryOpen,
   })
 
@@ -234,7 +232,6 @@ export function useFormController(
     workspace,
     form,
     showDeleteModal,
-    showVersions,
     remove,
     goToList,
     markAllowLeave,
@@ -331,7 +328,6 @@ export function useFormController(
     // Modals
     showDeleteModal,
     showLeaveModal,
-    showVersions,
 
     // Quick entry
     quickEntryDt,

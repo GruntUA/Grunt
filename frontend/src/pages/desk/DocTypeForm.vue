@@ -8,11 +8,10 @@ import { useToast } from '@/core/composables/useToast'
 import { useFormController } from '@/core/composables/useFormController'
 import { docsApi } from '@/core/api/docs'
 import type { GruntDocument } from '@/types'
-import { History, Activity, Eye, TriangleAlert, FlaskConical } from '@lucide/vue'
+import { Activity, Eye, TriangleAlert, FlaskConical } from '@lucide/vue'
 
 import FormRenderer from '@/core/renderer/FormRenderer.vue'
 import DocSidebar from '@/components/views/DocSidebar.vue'
-import VersionHistoryPanel from '@/components/views/VersionHistoryPanel.vue'
 import QuickEntryDialog from '@/components/views/QuickEntryDialog.vue'
 import SidebarTimeline from '@/components/views/sidebar/SidebarTimeline.vue'
 
@@ -56,7 +55,6 @@ const {
   blurField,
   showDeleteModal,
   showLeaveModal,
-  showVersions,
   quickEntryDt,
   quickEntryPreset,
   handleSave,
@@ -195,26 +193,7 @@ const initials = (email: string) => email.slice(0, 2).toUpperCase()
               <span class="flex-1 text-left">{{ t('Активність') }}</span>
             </div>
             <div class="form-section-body p-4!">
-              <SidebarTimeline :doctype="dt" :document="document as GruntDocument" />
-            </div>
-          </div>
-
-          <!-- Version history -->
-          <div v-if="id && dt?.track_changes" class="form-section">
-            <button type="button" class="form-section-header w-full hover:bg-muted/70 transition-colors"
-              @click="showVersions = !showVersions">
-              <History class="size-3.5 text-muted-foreground" />
-              <span class="flex-1 text-left">{{ t('version_history') }}</span>
-              <div class="size-4 flex items-center justify-center transition-transform duration-300"
-                :class="{ 'rotate-180': showVersions }">
-                <svg width="10" height="6" viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="2"
-                  stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M1 1L5 5L9 1" />
-                </svg>
-              </div>
-            </button>
-            <div v-if="showVersions">
-              <VersionHistoryPanel :doctype="doctype" :doc-id="id" @restored="onVersionRestored" />
+              <SidebarTimeline :doctype="dt" :document="document as GruntDocument" @restored="onVersionRestored" />
             </div>
           </div>
         </div>

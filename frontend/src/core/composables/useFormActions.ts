@@ -9,7 +9,6 @@ interface UseFormActionsParams {
   workspace?: string
   form: Ref<Record<string, unknown>>
   showDeleteModal: Ref<boolean>
-  showVersions: Ref<boolean>
   remove: (replaceWith?: string) => Promise<unknown>
   goToList: () => void
   markAllowLeave: () => void
@@ -34,7 +33,6 @@ const PROTECTED_DUPLICATE_FIELDS = [
 export function useFormActions(params: UseFormActionsParams) {
   function onVersionRestored() {
     params.queryClient.invalidateQueries({ queryKey: ['document', params.doctype, params.id] })
-    params.showVersions.value = false
   }
 
   async function handleDelete(replaceWith?: string) {

@@ -9,7 +9,6 @@ interface UseFormNavigationParams {
   workspace?: string
   isDirty: Ref<boolean>
   showDeleteModal: Ref<boolean>
-  showVersions: Ref<boolean>
   isQuickEntryOpen: Ref<boolean>
 }
 
@@ -47,11 +46,6 @@ export function useFormNavigation(params: UseFormNavigationParams) {
 
   useShortcut(['escape'], () => {
     if (params.showDeleteModal.value || showLeaveModal.value || params.isQuickEntryOpen.value) return
-
-    if (params.showVersions.value) {
-      params.showVersions.value = false
-      return
-    }
 
     goToList()
   }, { preventDefault: true, allowInInput: false })
