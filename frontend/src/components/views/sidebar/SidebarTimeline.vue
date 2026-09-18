@@ -8,9 +8,10 @@ import {
   Send,
   User,
 } from '@lucide/vue'
-import { docsApi, type TimelineItem } from '@/core/api/docs'
+import { docsApi, type TimelineItem, type DocVersionChange } from '@/core/api/docs'
 import { authAdminApi } from '@/core/api/auth-admin'
 import { useAuthStore } from '@/stores/auth'
+import { useDialog } from '@/core/composables/useDialog'
 import type { DocType, GruntDocument, UserPublic } from '@/types'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
@@ -23,6 +24,7 @@ const props = defineProps<{
 }>()
 
 const auth = useAuthStore()
+const dialog = useDialog()
 const timeline = ref<TimelineItem[]>([])
 const timelineLoading = ref(false)
 
@@ -65,6 +67,60 @@ function timelineLabel(item: TimelineItem): string {
     return `${base}: ${fields}`
   }
   return base
+}
+
+function formatDiffValue(val: unknown): string {
+  if (val === null || val === undefined || val === '') return '—'
+  if (typeof val === 'boolean') return val ? 'Так' : 'Ні'
+  if (Array.isArray(val)) {
+    if (!val.length) return '—'
+    // Child-table / MultiLink snapshots: rows of objects have no single
+    // generic label, so just say how many — the alternative is "[object
+    // Object]" repeated N times.
+    if (val.some(v => v !== null && typeof v === 'object')) return `${val.length} зап.`
+    return val.map(String).join(', ')
+  }
+  return String(val)
+}
+
+/** Prefer the resolved Link-field title (old_label/new_label) over the raw stored id. */
+function changeValue(change: DocVersionChange, key: 'old' | 'new'): string {
+  const label = key === 'old' ? change.old_label : change.new_label
+  return label ?? formatDiffValue(change[key])
+}
+
+function versionChangeText(item: TimelineItem): string {
+  return (item.changes ?? [])
+    .map(c => `${fieldLabelMap.value[c.field] ?? c.field}: ${changeValue(c, 'old')} → ${changeValue(c, 'new')}`)
+    .join('; ')
+}
+
+async function openVersionDiff(item: TimelineItem) {
+  const changes = item.changes ?? []
+  if (!changes.length) return
+  await dialog.form({
+    title: item.version ? `Версія ${item.version}` : 'Зміни',
+    size: 'large',
+    primaryLabel: 'Закрити',
+    fields: [{
+      fieldname: 'diff',
+      label: '',
+      fieldtype: 'Table',
+      selectable: false,
+      searchable: false,
+      rowKey: 'field',
+      rows: changes.map(c => ({
+        field: fieldLabelMap.value[c.field] ?? c.field,
+        old: changeValue(c, 'old'),
+        new: changeValue(c, 'new'),
+      })),
+      columns: [
+        { key: 'field', label: 'Поле', width: '30%' },
+        { key: 'old', label: 'Було' },
+        { key: 'new', label: 'Стало' },
+      ],
+    }],
+  })
 }
 
 function fmtDate(d: string | null) {
@@ -241,6 +297,11 @@ onMounted(loadTimeline)
           <span v-if="item.type === 'activity'" class="text-muted-foreground">
             {{ timelineLabel(item) }}
           </span>
+          <button v-if="item.type === 'version'" type="button"
+            class="text-left text-muted-foreground hover:text-foreground hover:underline underline-offset-2 w-fit"
+            @click="openVersionDiff(item)">
+            {{ versionChangeText(item) }}
+          </button>
           <p v-if="item.type === 'comment'"
             class="text-foreground rounded-md border bg-muted/40 px-3 py-2 whitespace-pre-wrap">
             {{ item.content }}

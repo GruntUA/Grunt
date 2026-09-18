@@ -122,11 +122,14 @@ class DocumentHistoryRPCMixin:
     @staticmethod
     @grunt.whitelist()
     async def get_timeline(doctype: str, doc_id: str) -> list[dict[str, Any]]:
-        """Return a merged timeline of activity and comments."""
+        """Return a merged timeline of activity, field-value versions and comments."""
         from grunt.app import grunt as grunt_app
         from grunt.permissions.guards import doc_guard
 
         await doc_guard(doctype, doc_id)
+
+        dt = await grunt_app.get_meta(doctype)
+        track_changes = bool(dt and dt.track_changes)
 
         act_rows = await grunt_app.get_list(
             "ActivityLog", filters={"doctype": doctype, "doc_id": doc_id}, limit=1000
@@ -138,16 +141,41 @@ class DocumentHistoryRPCMixin:
 
         items: list[dict[str, Any]] = []
         for r in act_rows:
+            action = r.get("action")
+            # When versions are tracked, each "Update" is reported as a richer
+            # "version" item below (with the actual old/new values) — skip the
+            # plain field-name-only entry to avoid showing the same edit twice.
+            if track_changes and action in ("Update", "update"):
+                continue
             items.append(
                 {
                     "type": "activity",
                     "name": str(r["name"]),
-                    "action": r.get("action"),
+                    "action": action,
                     "user": r.get("user"),
                     "details": r.get("details"),
                     "created_at": str(r["created_at"]) if r.get("created_at") else None,
                 }
             )
+
+        if track_changes:
+            from grunt.document.versioning import version_service
+
+            versions = await version_service.get_versions(
+                grunt_app._require_session(), doctype, doc_id
+            )
+            for v in versions:
+                items.append(
+                    {
+                        "type": "version",
+                        "name": v["id"],
+                        "version": v["version"],
+                        "changes": v["changes"],
+                        "user": v["user"],
+                        "created_at": v["created_at"],
+                    }
+                )
+
         for r in comment_rows:
             items.append(
                 {

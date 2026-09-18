@@ -15,12 +15,24 @@ export interface CommentItem {
   created_at: string | null
 }
 
+export interface DocVersionChange {
+  field: string
+  old: unknown
+  new: unknown
+  /** Link fields only: the referenced record's display title, resolved server-side. */
+  old_label?: string | null
+  new_label?: string | null
+}
+
 export interface TimelineItem {
-  type: 'activity' | 'comment'
+  type: 'activity' | 'comment' | 'version'
   id: string
   action?: string
   content?: string
   comment_type?: string
+  /** version items only: the version number and its field-level diff. */
+  version?: number
+  changes?: DocVersionChange[] | null
   user: string
   details?: Record<string, unknown> | null
   created_at: string | null

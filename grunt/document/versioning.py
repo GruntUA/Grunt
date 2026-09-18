@@ -121,7 +121,7 @@ class VersionService:
         result = await session.execute(stmt)
         rows = result.mappings().all()
 
-        return [
+        versions = [
             {
                 "id": row["name"],
                 "version": row["version"],
@@ -131,6 +131,85 @@ class VersionService:
             }
             for row in rows
         ]
+
+        dt = await grunt.get_meta(doctype)
+        if dt is not None:
+            await self.resolve_change_labels(session, dt, versions)
+
+        return versions
+
+    async def resolve_change_labels(
+        self,
+        session: AsyncSession,
+        dt: Any,
+        versions: list[dict[str, Any]],
+    ) -> None:
+        """Add ``old_label``/``new_label`` to Link-field changes, in place.
+
+        Lets version diffs show a linked record's display title (e.g. an
+        Employee's name) instead of its raw id — mirrors the ``__label``
+        Link resolution already done for regular document reads
+        (see ``grunt.document.relations``).
+        """
+        link_fields = {
+            f.fieldname: f for f in dt.get_link_fields() if f.fieldtype == "Link" and f.options
+        }
+        if not link_fields:
+            return
+
+        ids_by_target: dict[str, set[str]] = {}
+        for v in versions:
+            for change in v.get("changes") or []:
+                field = link_fields.get(change.get("field"))
+                if field is None:
+                    continue
+                for key in ("old", "new"):
+                    val = change.get(key)
+                    if val not in (None, ""):
+                        ids_by_target.setdefault(field.options, set()).add(str(val))
+
+        if not ids_by_target:
+            return
+
+        from grunt.document.meta import Meta
+        from grunt.metadata.registry import doctype_registry
+
+        label_maps: dict[str, dict[str, str]] = {}
+        for target_name, ids in ids_by_target.items():
+            try:
+                target_dt = await doctype_registry.get(target_name)
+            except Exception:
+                log.warning("version.link_label_target_error", target=target_name)
+                continue
+            target_meta = Meta(target_dt)
+            title_field = target_meta.get_title_field()
+            target_table = target_meta.table
+            cols = [target_table.c.name]
+            if title_field != "name" and title_field in target_table.c:
+                cols.append(target_table.c[title_field])
+            try:
+                async with session.begin_nested():
+                    result = await session.execute(
+                        select(*cols).where(target_table.c.name.in_(ids))
+                    )
+                    rows = result.mappings().all()
+            except Exception:
+                log.warning("version.link_label_fetch_error", target=target_name)
+                continue
+            label_maps[target_name] = {
+                str(r["name"]): str(r.get(title_field) or r["name"]) for r in rows
+            }
+
+        for v in versions:
+            for change in v.get("changes") or []:
+                field = link_fields.get(change.get("field"))
+                if field is None:
+                    continue
+                label_map = label_maps.get(field.options, {})
+                if change.get("old") not in (None, ""):
+                    change["old_label"] = label_map.get(str(change["old"]), str(change["old"]))
+                if change.get("new") not in (None, ""):
+                    change["new_label"] = label_map.get(str(change["new"]), str(change["new"]))
 
     async def get_version(
         self,

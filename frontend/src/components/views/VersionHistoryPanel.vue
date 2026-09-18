@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { Clock, RotateCcw, ChevronRight, Loader2, User } from '@lucide/vue'
 import { formatDateTime } from '@/core/datetime'
 import api from '@/core/api/client'
+import type { DocVersionChange } from '@/core/api/docs'
 
 const props = defineProps<{
   doctype: string
@@ -19,7 +20,7 @@ interface VersionEntry {
   version: number
   user: string
   created_at: string | null
-  changes: Record<string, { old: unknown; new: unknown }> | null
+  changes: DocVersionChange[] | null
 }
 
 const { t } = useI18n()
@@ -68,14 +69,25 @@ function formatTime(val: string | null): string {
   return formatDateTime(val)
 }
 
-function changedFields(changes: VersionEntry['changes']): string[] {
-  return Object.keys(changes ?? {})
+function changedFields(changes: VersionEntry['changes']): DocVersionChange[] {
+  return changes ?? []
 }
 
 function formatValue(val: unknown): string {
   if (val === null || val === undefined || val === '') return '—'
   if (typeof val === 'boolean') return val ? t('Yes') : t('No')
+  if (Array.isArray(val)) {
+    if (!val.length) return '—'
+    if (val.some(v => v !== null && typeof v === 'object')) return `${val.length} зап.`
+    return val.map(String).join(', ')
+  }
   return String(val)
+}
+
+/** Prefer the resolved Link-field title (old_label/new_label) over the raw stored id. */
+function changeValue(change: DocVersionChange, key: 'old' | 'new'): string {
+  const label = key === 'old' ? change.old_label : change.new_label
+  return label ?? formatValue(change[key])
 }
 </script>
 
@@ -147,18 +159,18 @@ function formatValue(val: unknown): string {
         <Transition name="diff">
           <div v-if="expanded === v.id && v.changes" class="px-8 pb-3">
             <div class="rounded-lg border bg-muted/20 overflow-hidden">
-              <div v-for="field in changedFields(v.changes)" :key="field"
+              <div v-for="field in changedFields(v.changes)" :key="field.field"
                 class="grid grid-cols-[1fr_auto_1fr] items-center gap-2 px-3 py-1.5 border-b last:border-0">
                 <div class="min-w-0">
-                  <span class="font-medium text-muted-foreground uppercase block mb-0.5">{{ field }}</span>
+                  <span class="font-medium text-muted-foreground uppercase block mb-0.5">{{ field.field }}</span>
                   <span class="line-through text-muted-foreground/60 truncate block">
-                    {{ formatValue(v.changes![field].old) }}
+                    {{ changeValue(field, 'old') }}
                   </span>
                 </div>
                 <ChevronRight class="size-3 text-muted-foreground shrink-0" />
                 <div class="min-w-0">
                   <span class="text-primary font-medium truncate block">
-                    {{ formatValue(v.changes![field].new) }}
+                    {{ changeValue(field, 'new') }}
                   </span>
                 </div>
               </div>
