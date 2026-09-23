@@ -61,7 +61,7 @@ function goHome() {
 <template>
   <!-- Only visible on mobile -->
   <nav
-    class="md:hidden fixed bottom-0 inset-x-0 z-40 bg-card/95 border-t border-border/60 safe-b"
+    class="md:hidden fixed bottom-0 inset-x-0 z-40 bg-card border-t border-border/60 safe-b"
     style="padding-bottom: env(safe-area-inset-bottom)"
   >
     <div class="flex items-stretch h-14">
