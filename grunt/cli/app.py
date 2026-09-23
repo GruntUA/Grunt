@@ -94,11 +94,33 @@ async def _do_install(name: str, site: str | None = None) -> None:
     print(f"  Додатки: {', '.join(site_config.get('installed_apps', []))}")
 
 
+def _apps_dir() -> Path:
+    from grunt.site.manager import site_manager
+
+    return site_manager.bench_dir / "apps"
+
+
+@app_group.command("deps")
+@click.argument("names", nargs=-1)
+def app_deps(names: tuple[str, ...]):
+    """Встановити Python-залежності додатків bench (apps/<app>/pyproject.toml).
+
+    Без аргументів — усі додатки. Запускається після `uv sync` фреймворку.
+    """
+    from grunt.apps.deps import install_app_packages
+
+    installed = install_app_packages(_apps_dir(), list(names) or None)
+    click.echo(f"Залежності додатків: {', '.join(installed) or 'немає додатків з pyproject.toml'}")
+
+
 @app_group.command("install")
 @click.argument("name")
 @click.option("--site", default=None, help="Назва сайту")
 def app_install(name: str, site: str | None):
     """Встановити додаток та одразу зареєструвати його workspace."""
+    from grunt.apps.deps import install_app_packages
+
+    install_app_packages(_apps_dir(), [name])  # its Python dependencies first
     asyncio.run(_do_install(name, site))
 
 
