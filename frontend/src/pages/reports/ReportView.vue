@@ -3,6 +3,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { formatDate, formatDateTime } from '@/core/datetime'
 import { useRouter } from 'vue-router'
 import { reportsApi } from '@/core/api/reports'
+import { addUrlFilters, periodRange } from './drilldown'
 import { metaApi } from '@/core/api/meta'
 import { useAuthStore } from '@/stores/auth'
 import type { ActiveFilter, DocField, ReportChartConfig } from '@/types'
@@ -127,26 +128,29 @@ function formatCell(val: any, fieldtype: string): string {
     return String(val)
 }
 
-/** Report filter-key suffix → list-view URL operator (see useListRouteSync OP_MAP). */
-const URL_OP: Record<string, string> = { '': 'eq', like: 'ilike' }
-
 /**
  * Aggregated List reports: each row summarises the documents sharing its
- * group values (`meta.drilldown`). Rows whose group value is empty can't be
- * expressed as an equality filter, so they stay plain.
+ * group values (`meta.drilldown`). A date group opens its whole period; rows
+ * whose group value is empty can't be expressed as a filter, so they stay plain.
  */
 function drilldownQuery(row: Record<string, any>): Record<string, string> | null {
     const dd = meta.value?.drilldown
     if (!dd) return null
     const query: Record<string, string> = {}
-    for (const [key, value] of Object.entries(filters.value)) {
-        const [field, op = ''] = key.split('__')
-        query[`filter[${field}__${URL_OP[op] ?? op}]`] = String(value)
-    }
+    addUrlFilters(query, filters.value)
+    addUrlFilters(query, dd.conditions ?? {})
     for (const field of dd.group_by as string[]) {
         const value = row[field]
         if (value === null || value === undefined || value === '') return null
-        query[`filter[${field}__eq]`] = String(value)
+        const bucket = dd.date_groups?.[field]
+        if (bucket) {
+            const range = periodRange(bucket, String(value))
+            if (!range) return null
+            query[`filter[${field}__gte]`] = range[0]
+            query[`filter[${field}__lt]`] = range[1]
+        } else {
+            query[`filter[${field}__eq]`] = String(value)
+        }
     }
     return query
 }

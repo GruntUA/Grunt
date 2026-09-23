@@ -7,7 +7,7 @@ import { reportsApi } from '@/core/api/reports'
 import type { ReportChartConfig, ReportChartType } from '@/types'
 import {
     Plus, Search, Save, Play, Trash2, ChevronRight,
-    Layout, Table as TableIcon, FileBarChart, Pencil, ChartColumn
+    Layout, Table as TableIcon, FileBarChart, Pencil, ChartColumn, ListFilter, ArrowDownUp
 } from '@lucide/vue'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
@@ -50,6 +50,49 @@ function toggleChartValueField(fieldname: string) {
     if (i >= 0) chart.value.value_fields.splice(i, 1)
     else chart.value.value_fields.push(fieldname)
 }
+// Fixed conditions, sort and "top N" (List-report options, see grunt/reports/list_options.py)
+interface Condition { fieldname: string; op: string; value: string }
+const conditions = ref<Condition[]>([])
+const sortBy = ref('')
+const sortOrder = ref<'asc' | 'desc'>('asc')
+const rowLimit = ref<number | undefined>(undefined)
+const OPERATORS = [
+    { value: '=', label: '=' },
+    { value: '!=', label: '≠' },
+    { value: '>', label: '>' },
+    { value: '<', label: '<' },
+    { value: '>=', label: '≥' },
+    { value: '<=', label: '≤' },
+    { value: 'like', label: 'містить' },
+    { value: 'in', label: 'одне з (через кому)' },
+    { value: 'not in', label: 'жодне з' },
+    { value: 'is set', label: 'заповнено' },
+    { value: 'is not set', label: 'порожньо' },
+]
+const NO_VALUE_OPS = new Set(['is set', 'is not set'])
+const DATE_GROUPS = [
+    { value: 'none', label: 'Точна дата' },
+    { value: 'day', label: 'По днях' },
+    { value: 'month', label: 'По місяцях' },
+    { value: 'quarter', label: 'По кварталах' },
+    { value: 'year', label: 'По роках' },
+]
+function isDateColumn(col: any) {
+    return col.fieldtype === 'Date' || col.fieldtype === 'Datetime'
+}
+function addCondition() {
+    conditions.value.push({ fieldname: '', op: '=', value: '' })
+}
+function removeCondition(index: number) {
+    conditions.value.splice(index, 1)
+}
+const listOptions = computed(() => ({
+    conditions: conditions.value.filter(c => c.fieldname),
+    sort_by: sortBy.value || null,
+    sort_order: sortOrder.value,
+    row_limit: rowLimit.value || null,
+}))
+
 const previewData = ref<any[]>([])
 const previewCols = ref<any[]>([])
 const previewMeta = ref<any>(null)
@@ -87,6 +130,10 @@ onMounted(async () => {
                 color: rep.chart_config.color,
             }
         }
+        conditions.value = (rep.conditions ?? []).map((c) => ({ fieldname: c.fieldname, op: c.op, value: String(c.value ?? '') }))
+        sortBy.value = rep.sort_by ?? ''
+        sortOrder.value = rep.sort_order === 'desc' ? 'desc' : 'asc'
+        rowLimit.value = rep.row_limit || undefined
         reportTitle.value = rep.report_name
     }
 })
@@ -137,7 +184,8 @@ async function runPreview() {
         const res = await api.post('/api/v1/method/grunt.reports.doctypes.Report.report.preview', {
             doctype: selectedDoctype.value,
             columns: columns.value,
-            filters: {}
+            filters: {},
+            ...listOptions.value,
         })
         previewData.value = res.data.data.data
         previewCols.value = res.data.data.columns
@@ -162,6 +210,7 @@ async function saveReport() {
             columns: columns.value,
             filters_config: filterConfigs.value,
             chart_config: chartEnabled.value && chart.value.label_field ? chart.value : null,
+            ...listOptions.value,
         }
 
         if (reportDocName.value) {
@@ -265,6 +314,81 @@ const displayFields = computed(() => {
                                     Підсумок
                                 </label>
                             </div>
+                            <Select v-if="isDateColumn(col) && (!col.aggregation || col.aggregation === 'none')"
+                                :model-value="col.date_group || 'none'"
+                                @update:model-value="v => (col.date_group = v === 'none' ? undefined : v)">
+                                <SelectTrigger class="h-7 text-xs w-full">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem v-for="g in DATE_GROUPS" :key="g.value" :value="g.value">{{ g.label }}</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+
+                    <!-- Fixed conditions -->
+                    <div v-if="selectedDoctype" class="space-y-3">
+                        <h4 class="font-semibold uppercase text-muted-foreground flex items-center gap-1.5">
+                            <ListFilter class="size-3.5" />
+                            Умови ({{ conditions.length }})
+                        </h4>
+                        <p class="text-muted-foreground">
+                            Завжди застосовуються до звіту. Для дат можна писати today, today-30, today+7.
+                        </p>
+                        <div v-for="(cond, i) in conditions" :key="i" class="flex flex-col gap-2 p-2 rounded-lg border bg-background">
+                            <div class="flex items-center gap-2">
+                                <Select v-model="cond.fieldname">
+                                    <SelectTrigger class="h-7 text-xs flex-1"><SelectValue placeholder="Поле" /></SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem v-for="f in fields" :key="f.fieldname" :value="f.fieldname">{{ f.label }}</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <button @click="removeCondition(i)" class="p-1 text-muted-foreground hover:text-destructive transition-colors">
+                                    <Trash2 class="size-4" />
+                                </button>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <Select v-model="cond.op">
+                                    <SelectTrigger class="h-7 text-xs w-36"><SelectValue /></SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem v-for="o in OPERATORS" :key="o.value" :value="o.value">{{ o.label }}</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <Input v-if="!NO_VALUE_OPS.has(cond.op)" v-model="cond.value" placeholder="Значення" class="h-7 text-xs flex-1" />
+                            </div>
+                        </div>
+                        <Button variant="outline" size="sm" class="w-full" @click="addCondition">
+                            <Plus class="size-4" /> Додати умову
+                        </Button>
+                    </div>
+
+                    <!-- Sort & top N -->
+                    <div v-if="selectedDoctype && columns.length" class="space-y-3">
+                        <h4 class="font-semibold uppercase text-muted-foreground flex items-center gap-1.5">
+                            <ArrowDownUp class="size-3.5" />
+                            Сортування
+                        </h4>
+                        <div class="flex items-center gap-2">
+                            <Select :model-value="sortBy || 'default'" @update:model-value="v => (sortBy = v === 'default' ? '' : String(v))">
+                                <SelectTrigger class="h-7 text-xs flex-1"><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="default">За групуванням</SelectItem>
+                                    <SelectItem v-for="c in columns" :key="c.fieldname" :value="c.fieldname">{{ c.label }}</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <Select v-model="sortOrder" :disabled="!sortBy">
+                                <SelectTrigger class="h-7 text-xs w-32"><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="asc">За зростанням</SelectItem>
+                                    <SelectItem value="desc">За спаданням</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-muted-foreground whitespace-nowrap">Показати перші</span>
+                            <Input v-model.number="rowLimit" type="number" min="1" placeholder="усі" class="h-7 text-xs w-24" />
+                            <span class="text-muted-foreground">рядків</span>
                         </div>
                     </div>
 

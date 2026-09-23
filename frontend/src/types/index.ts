@@ -374,6 +374,11 @@ export interface ReportDetail extends ReportSummary {
   columns?: ReportColumn[] | null
   filters_config?: unknown[] | null
   chart_config?: ReportChartConfig | null
+  /** List reports: always-applied conditions, sort and "top N". */
+  conditions?: { fieldname: string; op: string; value?: unknown }[] | null
+  sort_by?: string | null
+  sort_order?: 'asc' | 'desc' | null
+  row_limit?: number | null
 }
 
 export interface ReportResult {

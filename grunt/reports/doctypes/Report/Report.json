@@ -47,6 +47,38 @@
       "fieldtype": "JSON"
     },
     {
+      "fieldname": "sec_list_options",
+      "label": "List report options",
+      "fieldtype": "Section",
+      "depends_on": "eval:doc.report_type==='List'",
+      "collapsible": true
+    },
+    {
+      "fieldname": "conditions",
+      "label": "Conditions",
+      "fieldtype": "JSON",
+      "description": "Always applied: [{\"fieldname\", \"op\", \"value\"}]; dates may be relative (today, today-30)."
+    },
+    {
+      "fieldname": "sort_by",
+      "label": "Sort by",
+      "fieldtype": "Data",
+      "description": "Result column to sort by."
+    },
+    {
+      "fieldname": "sort_order",
+      "label": "Sort order",
+      "fieldtype": "Select",
+      "options": "asc\ndesc",
+      "default": "asc"
+    },
+    {
+      "fieldname": "row_limit",
+      "label": "Row limit",
+      "fieldtype": "Int",
+      "description": "Show only the first N rows (top N). Empty — all."
+    },
+    {
       "fieldname": "sec_query",
       "label": "SQL запит",
       "fieldtype": "Section",

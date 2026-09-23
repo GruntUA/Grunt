@@ -33,7 +33,18 @@ class ReportEngine:
             rows = await grunt.get_list(
                 "Report",
                 filters={"report_name": report_name},
-                fields=["report_name", "report_type", "query", "script", "columns", "doctype"],
+                fields=[
+                    "report_name",
+                    "report_type",
+                    "query",
+                    "script",
+                    "columns",
+                    "doctype",
+                    "conditions",
+                    "sort_by",
+                    "sort_order",
+                    "row_limit",
+                ],
                 limit=1,
             )
         report = rows[0] if rows else None
@@ -54,13 +65,7 @@ class ReportEngine:
             doctype = report.get("doctype")
             if not doctype:
                 raise HTTPException(400, detail="List report requires a DocType")
-            return await self._run_list_report(
-                doctype,
-                {"columns": report.get("columns") or []},
-                filters,
-                user,
-                session,
-            )
+            return await self._run_list_report(doctype, report, filters, user, session)
         raise HTTPException(
             status_code=400,
             detail=f"Тип звіту '{report_type}' не підтримується",
@@ -273,32 +278,50 @@ class ReportEngine:
             "max": func.max,
         }
 
-        has_aggregation = any(c.get("aggregation") for c in col_defs)
+        from grunt.reports.list_options import DATE_BUCKETS, compile_conditions, date_bucket
+
+        dialect = session.get_bind().dialect.name
+        # "none" (the builder's "no aggregation") is not an aggregation.
+        has_aggregation = any((c.get("aggregation") or "").lower() in agg_map for c in col_defs)
         select_cols = []
         group_by_cols = []
+        group_fields: list[str] = []
+        date_groups: dict[str, str] = {}
+        order_exprs: dict[str, Any] = {}  # result column → sortable expression
         result_columns = []
 
         for col_def in col_defs:
             fn = col_def["fieldname"]
             label = col_def.get("label", fn)
-            agg = col_def.get("aggregation", "").lower()
+            agg = (col_def.get("aggregation") or "").lower()
             fieldtype = col_def.get("fieldtype", "Text")
 
             sa_col = table.c.get(fn)
             if sa_col is None:
                 continue
 
-            if agg and agg in agg_map:
-                select_cols.append(agg_map[agg](sa_col).label(fn))
-                result_columns.append({"fieldname": fn, "label": label, "fieldtype": fieldtype})
+            if agg in agg_map:
+                expr = agg_map[agg](sa_col)
+                select_cols.append(expr.label(fn))
             elif has_aggregation:
-                # Non-aggregated column when aggregation is present → GROUP BY
-                select_cols.append(sa_col)
-                group_by_cols.append(sa_col)
-                result_columns.append({"fieldname": fn, "label": label, "fieldtype": fieldtype})
+                # Non-aggregated column when aggregation is present → GROUP BY,
+                # optionally by period for a date column.
+                bucket = col_def.get("date_group")
+                if bucket in DATE_BUCKETS:
+                    expr = date_bucket(sa_col, bucket, dialect)
+                    date_groups[fn] = bucket
+                    fieldtype = "Data"
+                    select_cols.append(expr.label(fn))
+                else:
+                    expr = sa_col
+                    select_cols.append(sa_col)
+                group_by_cols.append(expr)
+                group_fields.append(fn)
             else:
+                expr = sa_col
                 select_cols.append(sa_col)
-                result_columns.append({"fieldname": fn, "label": label, "fieldtype": fieldtype})
+            order_exprs[fn] = expr
+            result_columns.append({"fieldname": fn, "label": label, "fieldtype": fieldtype})
 
         if not select_cols:
             return {"columns": [], "data": [], "meta": {"rows": 0, "time_ms": 0}}
@@ -314,6 +337,12 @@ class ReportEngine:
         for clause in build_clauses(table, active_filters):
             stmt = stmt.where(clause)
 
+        # Fixed report conditions (always on, unlike the viewer's filters).
+        conditions = compile_conditions(report.get("conditions"))
+        for condition in conditions:
+            for clause in build_clauses(table, condition):
+                stmt = stmt.where(clause)
+
         # Row-level security
         from grunt.permissions.query import apply_permission_filter
         from grunt.permissions.user_permissions import build_conditions
@@ -328,7 +357,18 @@ class ReportEngine:
         if group_by_cols:
             stmt = stmt.group_by(*group_by_cols)
 
-        stmt = stmt.limit(10_000)
+        # Sort by any result column; a grouped report defaults to its groups.
+        sort_by = report.get("sort_by")
+        descending = (report.get("sort_order") or "asc").lower() == "desc"
+        if sort_by in order_exprs:
+            expr = order_exprs[sort_by]
+            stmt = stmt.order_by(expr.desc() if descending else expr.asc())
+        elif group_by_cols:
+            stmt = stmt.order_by(*group_by_cols)
+
+        # "Top N": the report's own limit, never above the hard cap.
+        row_limit = int(report.get("row_limit") or 0)
+        stmt = stmt.limit(min(row_limit, 10_000) if row_limit > 0 else 10_000)
 
         start = time.time()
         db_result = await session.execute(stmt)
@@ -339,8 +379,15 @@ class ReportEngine:
         meta: dict[str, Any] = {"rows": len(rows), "time_ms": elapsed}
         if group_by_cols:
             # Each result row summarises the documents sharing these group
-            # values — the client can open them as a filtered list.
-            meta["drilldown"] = {"doctype": doctype, "group_by": [c.name for c in group_by_cols]}
+            # values — the client can open them as a filtered list. Date groups
+            # are periods (the client turns the label into a date range), and
+            # the report's own conditions narrow that list too.
+            meta["drilldown"] = {
+                "doctype": doctype,
+                "group_by": group_fields,
+                "date_groups": date_groups,
+                "conditions": {k: v for c in conditions for k, v in c.items()},
+            }
 
         return {"columns": result_columns, "data": rows, "meta": meta}
 

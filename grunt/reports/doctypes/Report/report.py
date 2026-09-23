@@ -37,14 +37,26 @@ async def run(name: str, filters: dict[str, Any] | None = None) -> dict[str, Any
 
 @grunt.whitelist()
 async def preview(
-    doctype: str, columns: list[str] | None = None, filters: dict[str, Any] | None = None
+    doctype: str,
+    columns: list[dict[str, Any]] | None = None,
+    filters: dict[str, Any] | None = None,
+    conditions: list[dict[str, Any]] | None = None,
+    sort_by: str | None = None,
+    sort_order: str | None = None,
+    row_limit: int | None = None,
 ) -> dict[str, Any]:
-    """Execute an ad-hoc report configuration for preview."""
+    """Execute an ad-hoc List report configuration (the builder's preview)."""
     from grunt.reports.engine import report_engine
 
     result = await report_engine._run_list_report(
         doctype,
-        {"columns": columns or []},
+        {
+            "columns": columns or [],
+            "conditions": conditions or [],
+            "sort_by": sort_by,
+            "sort_order": sort_order,
+            "row_limit": row_limit,
+        },
         filters or {},
         grunt_app._require_user(),
         grunt_app._require_session(),

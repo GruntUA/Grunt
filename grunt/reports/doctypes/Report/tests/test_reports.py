@@ -332,7 +332,12 @@ async def test_aggregated_list_report_carries_drilldown(ctx):
     await ctx.db._session().commit()
 
     grouped = await run_report(name="Reports By Type", filters={})
-    assert grouped["meta"]["drilldown"] == {"doctype": "Report", "group_by": ["report_type"]}
+    assert grouped["meta"]["drilldown"] == {
+        "doctype": "Report",
+        "group_by": ["report_type"],
+        "date_groups": {},
+        "conditions": {},
+    }
     by_type = {r["report_type"]: r["report_name"] for r in grouped["data"]}
     assert by_type["Query"] >= 2
 
