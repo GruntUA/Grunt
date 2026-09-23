@@ -28,6 +28,8 @@ async def issue_login(
     complete ``mfa_login_api``. Pass ``honor_mfa=False`` from the MFA step
     itself (the factor has already been proven).
 
+    A role with ``Role.allowed_ips`` refuses sign-in from any other address.
+
     When one of the user's roles has ``Role.require_mfa`` but MFA is off, the
     payload is the same challenge shape plus ``mfa_setup_required`` and an
     ``mfa_setup`` token — the client enrolls via ``mfa_enroll_begin`` /
@@ -36,6 +38,7 @@ async def issue_login(
     from grunt.api.messages import throw
     from grunt.auth.doctypes.User.user import _auth_user_dump
     from grunt.auth.doctypes.UserSession.user_session import open_session
+    from grunt.auth.ip_policy import sign_in_ip_allowed
     from grunt.auth.mfa import mfa_setup_required
     from grunt.auth.service import (
         access_token_minutes,
@@ -43,6 +46,9 @@ async def issue_login(
         create_mfa_setup_token,
         create_mfa_token,
     )
+
+    if not await sign_in_ip_allowed(user, ip_address):
+        throw("Вхід з цієї IP-адреси заборонено для вашої ролі.", "PERMISSION_DENIED")
 
     state = getattr(user, "signup_state", None) or "approved"
     if state == "rejected":

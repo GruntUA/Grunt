@@ -75,10 +75,9 @@ def _prepare_fields(raw: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 
 def _client_ip(request: Any) -> str:
-    forwarded = request.headers.get("x-forwarded-for")
-    if forwarded:
-        return forwarded.split(",")[0].strip()
-    return request.client.host if request.client else "unknown"
+    from grunt.auth.doctypes.UserSession.user_session import client_ip
+
+    return client_ip(request) or "unknown"
 
 
 async def get_context(context: dict[str, Any]) -> dict[str, Any]:
@@ -134,9 +133,7 @@ async def handle_post(context: dict[str, Any]) -> Any:
                 context["submit_error"] = (
                     "Не вдалося підтвердити, що ви не робот. Спробуйте ще раз."
                 )
-                context["form_data"] = {
-                    k: v for k, v in raw.items() if k not in ("__form", "_hp")
-                }
+                context["form_data"] = {k: v for k, v in raw.items() if k not in ("__form", "_hp")}
                 return context
 
     data: dict[str, Any] = {key: raw[key] for key in raw if key not in ("__form", "_hp")}

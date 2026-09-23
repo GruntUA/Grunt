@@ -337,9 +337,7 @@ async def get_user_by_email(email: str, *, fields: list[str] | None = None) -> U
     return await _get_user_by(fields, email=email)
 
 
-async def get_users_by_emails(
-    emails: list[str], *, fields: list[str] | None = None
-) -> list[User]:
+async def get_users_by_emails(emails: list[str], *, fields: list[str] | None = None) -> list[User]:
     """Batch lookup by email — one query instead of N :func:`get_user_by_email` calls.
 
     Unlike :func:`get_user_by_email`, this does not attach ``roles`` (not
@@ -822,8 +820,16 @@ async def refresh_api(refresh_token: str, request: Request | None = None) -> dic
         grunt.throw("Invalid or expired refresh token", "UNAUTHORIZED")
 
     # A role started requiring MFA after this session was opened (or MFA was
-    # turned off): end the session so the next sign-in goes through enrollment.
+    # turned off), or the session moved to an address the user's role does not
+    # allow: end the session so the next sign-in goes through the policy.
+    from grunt.auth.ip_policy import sign_in_ip_allowed
     from grunt.auth.mfa import mfa_setup_required
+
+    if not await sign_in_ip_allowed(user, client_ip(request)):
+        from grunt.auth.doctypes.UserSession.user_session import end_session
+
+        await end_session(sid)
+        grunt.throw("Вхід з цієї IP-адреси заборонено для вашої ролі", "UNAUTHORIZED")
 
     if await mfa_setup_required(user):
         from grunt.auth.doctypes.UserSession.user_session import end_session

@@ -60,9 +60,9 @@ async def current_user(
     api_key_header = request.headers.get("X-Api-Key")
     if api_key_header:
         from grunt.auth.api_key_service import authenticate_api_key
+        from grunt.auth.doctypes.UserSession.user_session import client_ip
 
-        client_ip = request.client.host if request.client else None
-        user = await authenticate_api_key(api_key_header, session, client_ip)
+        user = await authenticate_api_key(api_key_header, session, client_ip(request))
         if user is None:
             raise credentials_exception
 

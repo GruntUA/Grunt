@@ -37,16 +37,30 @@ def _as_utc(value: Any) -> datetime | None:
 
 
 def client_ip(request: Request | None) -> str | None:
-    """The caller's real IP behind Cloudflare / a reverse proxy."""
+    """The caller's real IP behind Cloudflare / a reverse proxy.
+
+    Forwarded-IP headers are honoured only when the connection itself comes
+    from ``settings.trusted_proxies`` (any of them) or, with
+    ``settings.trust_cloudflare``, from a Cloudflare edge (CF-Connecting-IP
+    only); otherwise they could be forged.
+    """
+    from grunt.auth.ip_policy import CLOUDFLARE_RANGES, ip_allowed
+    from grunt.config import settings
+
     if request is None:
         return None
+    peer = request.client.host if request.client else None
     headers = request.headers
+    if peer and not ip_allowed(peer, set(settings.trusted_proxies)):
+        cf_ip = (headers.get("cf-connecting-ip") or "").strip()
+        if cf_ip and settings.trust_cloudflare and ip_allowed(peer, set(CLOUDFLARE_RANGES)):
+            return cf_ip
+        return peer
     ip = headers.get("cf-connecting-ip") or headers.get("x-real-ip")
     if not ip and (forwarded := headers.get("x-forwarded-for")):
         ip = forwarded.split(",")[0]
-    if not ip and request.client:
-        ip = request.client.host
-    return ip.strip() if ip else None
+    ip = (ip or "").strip() or peer
+    return ip or None
 
 
 def client_user_agent(request: Request | None) -> str | None:

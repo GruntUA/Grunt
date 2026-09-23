@@ -72,6 +72,15 @@ class Settings(BaseSettings):
     aws_access_key_id: str | None = None
     aws_secret_access_key: str | None = None
 
+    # Reverse proxies whose forwarded client-IP headers (CF-Connecting-IP,
+    # X-Real-IP, X-Forwarded-For) are believed. A request from any other
+    # address is identified by its own socket address — so a client can't
+    # spoof its IP (and dodge a role / API-key IP allowlist) with a header.
+    trusted_proxies: list[str] = ["127.0.0.1/32", "::1/128"]
+    # Also believe CF-Connecting-IP when the connection comes from a published
+    # Cloudflare edge range (grunt.auth.ip_policy.CLOUDFLARE_RANGES).
+    trust_cloudflare: bool = True
+
     # CORS
     allowed_origins: list[str] = [
         "http://localhost:5173",

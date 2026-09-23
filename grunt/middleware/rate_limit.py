@@ -117,10 +117,9 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         return allowed, remaining, reset_in
 
     def _client_ip(self, request: Request) -> str:
-        forwarded = request.headers.get("x-forwarded-for")
-        return (forwarded.split(",")[0].strip() if forwarded else None) or (
-            request.client.host if request.client else "unknown"
-        )
+        from grunt.auth.doctypes.UserSession.user_session import client_ip
+
+        return client_ip(request) or "unknown"
 
     async def _cleanup(self) -> None:
         """Evict stale windows (called periodically; best-effort)."""

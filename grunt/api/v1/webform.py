@@ -53,7 +53,9 @@ async def submit_form(
 
     form = await web_form_service.get_form(route)
     if form and form.get("captcha_enabled") and settings.captcha_provider:
-        ip = request.client.host if request and request.client else "unknown"
+        from grunt.auth.doctypes.UserSession.user_session import client_ip
+
+        ip = client_ip(request) or "unknown"
         if not await verify_captcha(captcha_token, ip):
             grunt.throw("Не вдалося підтвердити, що ви не робот", "CAPTCHA_FAILED")
 

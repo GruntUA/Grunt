@@ -8601,3 +8601,13 @@ msgstr "Документ"
 msgctxt "meta:DocFollow.user"
 msgid "User"
 msgstr "Користувач"
+
+#: grunt/grunt/auth/doctypes/Role/Role.json
+msgctxt "meta:Role.allowed_ips"
+msgid "Allowed sign-in IPs"
+msgstr "Дозволені IP для входу"
+
+#: grunt/grunt/auth/doctypes/Role/Role.json
+msgctxt "help:Role.allowed_ips"
+msgid "Users with this role can sign in only from these addresses or networks (e.g. 10.0.0.0/8), one per line. Empty — no restriction."
+msgstr "Користувачі з цією роллю можуть входити лише з цих адрес або мереж (напр. 10.0.0.0/8), по одній у рядку. Порожньо — без обмежень."

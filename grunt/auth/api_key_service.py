@@ -13,11 +13,11 @@ Security notes:
 from __future__ import annotations
 
 import hashlib
-import ipaddress
 import secrets
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
+from grunt.auth.ip_policy import ip_allowed, parse_ip_list
 from grunt.log import log
 
 if TYPE_CHECKING:
@@ -115,12 +115,10 @@ async def authenticate_api_key(
             return None
 
     # Check IP allowlist
-    allowed_ips_raw = (matched_row.get("allowed_ips") or "").strip()
-    if allowed_ips_raw and client_ip:
-        allowed = {ip.strip() for ip in allowed_ips_raw.split(",") if ip.strip()}
-        if not _ip_allowed(client_ip, allowed):
-            log.warning("api_key.ip_rejected", prefix=key_prefix, ip=client_ip)
-            return None
+    allowed = parse_ip_list(matched_row.get("allowed_ips"))
+    if allowed and client_ip and not ip_allowed(client_ip, allowed):
+        log.warning("api_key.ip_rejected", prefix=key_prefix, ip=client_ip)
+        return None
 
     # Load user
     async with grunt.context(session):
@@ -139,21 +137,3 @@ async def authenticate_api_key(
 
     log.info("api_key.authenticated", prefix=key_prefix, user=user.email)
     return user
-
-
-def _ip_allowed(client_ip: str, allowed: set[str]) -> bool:
-    """Check if client_ip is in the allowed set (supports CIDR notation)."""
-    try:
-        addr = ipaddress.ip_address(client_ip)
-    except ValueError:
-        return False
-    for entry in allowed:
-        try:
-            if "/" in entry:
-                if addr in ipaddress.ip_network(entry, strict=False):
-                    return True
-            elif addr == ipaddress.ip_address(entry):
-                return True
-        except ValueError:
-            continue
-    return False

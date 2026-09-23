@@ -25,6 +25,12 @@
       "fieldtype": "Check",
       "in_list_view": true,
       "description": "Users with this role must set up 2FA (TOTP) before they can sign in."
+    },
+    {
+      "fieldname": "allowed_ips",
+      "label": "Allowed sign-in IPs",
+      "fieldtype": "LongText",
+      "description": "Users with this role can sign in only from these addresses or networks (e.g. 10.0.0.0/8), one per line. Empty — no restriction."
     }
   ],
   "permissions": [
