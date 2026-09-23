@@ -39,7 +39,17 @@ description = "Start only the Vite frontend dev server"
 [tasks.worker]
 run = """
 trap 'kill $CHILD 2>/dev/null; exit 0' TERM INT
-uv run taskiq worker grunt.tasks.worker:broker --workers ${WORKERS:-1} &
+# With `grunt serve` in reload mode (RELOAD set) the worker restarts on code
+# changes too — watching the framework and every app package, like uvicorn.
+RELOAD_ARGS=""
+if [ -n "$RELOAD" ]; then
+  RELOAD_ARGS="--reload --reload-dir grunt"
+  for app in ../*/; do
+    name=$(basename "$app")
+    [ "$name" != grunt ] && [ -d "$app$name" ] && RELOAD_ARGS="$RELOAD_ARGS --reload-dir $app$name"
+  done
+fi
+uv run taskiq worker grunt.tasks.worker:broker --workers ${WORKERS:-1} $RELOAD_ARGS &
 CHILD=$!
 wait $CHILD
 """
