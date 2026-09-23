@@ -309,6 +309,15 @@
     {
       "section": "Моніторинг",
       "type": "DocType",
+      "label": "Резервні копії",
+      "icon": "archive",
+      "link_to": "Backup",
+      "show_count": false,
+      "sequence": 69
+    },
+    {
+      "section": "Моніторинг",
+      "type": "DocType",
       "label": "Лог активності",
       "icon": "clipboard-list",
       "link_to": "ActivityLog",

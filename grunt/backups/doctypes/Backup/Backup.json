@@ -1,0 +1,24 @@
+{
+  "name": "Backup",
+  "label": "Резервні копії",
+  "module": "backups",
+  "icon": "archive",
+  "is_virtual": true,
+  "track_changes": false,
+  "track_activity": false,
+  "default_view": "list",
+  "sort_field": "name",
+  "sort_order": "desc",
+  "description": "Резервні копії сайту в sites/<site>/backups/: база даних, завантажені файли, конфігурація. Розклад і кількість копій — у Системних налаштуваннях → Backups.",
+  "fields": [
+    { "fieldname": "created_at", "label": "Створено", "fieldtype": "Datetime", "in_list_view": true, "read_only": true },
+    { "fieldname": "total_size", "label": "Розмір", "fieldtype": "Data", "in_list_view": true, "read_only": true },
+    { "fieldname": "database_size", "label": "База даних", "fieldtype": "Data", "in_list_view": true, "read_only": true },
+    { "fieldname": "files_size", "label": "Файли", "fieldtype": "Data", "in_list_view": true, "read_only": true },
+    { "fieldname": "has_config", "label": "Конфігурація", "fieldtype": "Check", "in_list_view": true, "read_only": true },
+    { "fieldname": "database_url", "label": "database_url", "fieldtype": "Data", "hidden": true, "read_only": true },
+    { "fieldname": "files_url", "label": "files_url", "fieldtype": "Data", "hidden": true, "read_only": true },
+    { "fieldname": "config_url", "label": "config_url", "fieldtype": "Data", "hidden": true, "read_only": true }
+  ],
+  "permissions": [{ "role": "System Manager", "read": true, "delete": true }]
+}

@@ -471,6 +471,64 @@ async def ws_echo(nonce: str) -> dict[str, Any]:
     return {"sent": True}
 
 
+# ── Backups ───────────────────────────────────────────────────────────────
+
+
+async def check_backups() -> list[Row]:
+    from grunt.backups import list_backups
+    from grunt.site.manager import site_manager
+    from grunt.site.settings import get_setting
+
+    cat = "Резервні копії"
+    site = site_manager.get_active_site()
+    backups = list_backups(site)
+    enabled = bool(await get_setting("backup_enabled", True))
+    interval = int(await get_setting("backup_interval_hours", 24) or 24)
+    rows = []
+    if not enabled:
+        rows.append(
+            row(cat, "Розклад", WARNING, "вимкнено", "Увімкніть: Системні налаштування → Backups.")
+        )
+    if not backups:
+        rows.append(
+            row(
+                cat,
+                "Остання копія",
+                ERROR,
+                "жодної",
+                "Натисніть «Створити зараз» у «Резервні копії» або `grunt db backup`.",
+            )
+        )
+        return rows
+    last = backups[0]
+    age = datetime.now(UTC) - last.created_at
+    hours = age.total_seconds() / 3600
+    # One missed run is a warning, two an error (the worker or scheduler is down).
+    status = OK if hours < interval + 2 else WARNING if hours < 2 * interval + 2 else ERROR
+    rows.append(
+        row(
+            cat,
+            "Остання копія",
+            status,
+            f"{hours:.0f} год тому · {human_size(last.size())}",
+            ""
+            if status == OK
+            else "Копії не створюються за розкладом — перевірте воркер і журнал помилок.",
+        )
+    )
+    if "database" not in last.files:
+        rows.append(row(cat, "База в останній копії", ERROR, "відсутня"))
+    rows.append(
+        row(
+            cat,
+            "Зберігається копій",
+            INFO,
+            f"{len(backups)} · {human_size(sum(b.size() for b in backups))}",
+        )
+    )
+    return rows
+
+
 # ── Apps' Python dependencies ─────────────────────────────────────────────
 
 
@@ -561,6 +619,7 @@ CHECKS: list[tuple[str, Callable[[], Awaitable[list[Row]]]]] = [
     ("Користувачі та безпека", check_users),
     ("Конфігурація", check_config),
     ("Файли", check_storage),
+    ("Резервні копії", check_backups),
     ("Вебсокети", check_realtime),
     ("Залежності додатків", check_app_dependencies),
     ("Офлайн-режим", check_offline_build),

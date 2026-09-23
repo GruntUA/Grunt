@@ -237,6 +237,55 @@
       "description": "Appended to the end of every outgoing email."
     },
     {
+      "fieldname": "tab_backups",
+      "label": "Backups",
+      "fieldtype": "Tab",
+      "icon": "archive"
+    },
+    {
+      "fieldname": "sec_backups",
+      "label": "Scheduled backups",
+      "fieldtype": "Section",
+      "description": "Database, uploaded files and site config are saved to sites/<site>/backups/. Backups are listed, downloaded and made on demand in «Резервні копії»."
+    },
+    {
+      "fieldname": "backup_enabled",
+      "label": "Make backups automatically",
+      "fieldtype": "Check",
+      "default": true,
+      "columns": 12
+    },
+    {
+      "fieldname": "backup_interval_hours",
+      "label": "Every, hours",
+      "fieldtype": "Int",
+      "default": 24,
+      "min_value": 1,
+      "max_value": 720,
+      "columns": 4,
+      "depends_on": "eval:doc.backup_enabled",
+      "description": "24 = once a day."
+    },
+    {
+      "fieldname": "backup_keep",
+      "label": "Keep backups",
+      "fieldtype": "Int",
+      "default": 7,
+      "min_value": 1,
+      "max_value": 365,
+      "columns": 4,
+      "depends_on": "eval:doc.backup_enabled",
+      "description": "Older ones are deleted after each new backup."
+    },
+    {
+      "fieldname": "backup_include_files",
+      "label": "Include uploaded files",
+      "fieldtype": "Check",
+      "default": true,
+      "columns": 4,
+      "depends_on": "eval:doc.backup_enabled"
+    },
+    {
       "fieldname": "tab_notifications",
       "label": "Notifications",
       "fieldtype": "Tab",
