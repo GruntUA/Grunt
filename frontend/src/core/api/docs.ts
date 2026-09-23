@@ -299,11 +299,6 @@ export const docsApi = {
       description: description?.trim() || assignmentPlaceholder(user),
     }).then(r => r.data.data),
 
-  getSharedWith: (doctype: string, id: string): Promise<GruntDocument[]> =>
-    client.get(`/api/v1/docs/SharedWith`, {
-      params: { 'filter[reference_doctype]': doctype, 'filter[reference_id]': id }
-    }).then(r => r.data.data ?? []),
-
   share: (doctype: string, id: string, user: string, permission: 'Read' | 'Write' = 'Read'): Promise<GruntDocument> =>
     client.post(`/api/v1/docs/SharedWith`, {
       reference_doctype: doctype,
@@ -318,11 +313,6 @@ export const docsApi = {
   unassign: (todoId: string): Promise<void> =>
     client.delete(`/api/v1/docs/ToDo/${todoId}`).then(() => undefined),
 
-  getTags: (doctype: string, id: string): Promise<GruntDocument[]> =>
-    client.get(`/api/v1/docs/DocTag`, {
-      params: { 'filter[reference_doctype]': doctype, 'filter[reference_id]': id }
-    }).then(r => r.data.data ?? []),
-
   addTag: (doctype: string, id: string, tag: string): Promise<GruntDocument> =>
     client.post(`/api/v1/docs/DocTag`, {
       reference_doctype: doctype,
@@ -335,11 +325,6 @@ export const docsApi = {
 
   // ── Comments ────────────────────────────────────────────────────────────
 
-  getComments: (doctype: string, id: string): Promise<CommentItem[]> =>
-    client.get('/api/v1/method/grunt.document.base.Document.get_comments', {
-      params: { doctype, doc_id: id },
-    }).then(r => r.data.data ?? []),
-
   addComment: (doctype: string, id: string, content: string): Promise<CommentItem> =>
     client.post('/api/v1/method/grunt.document.base.Document.add_comment', {
       doctype, doc_id: id, content,
@@ -351,11 +336,6 @@ export const docsApi = {
     }).then(() => undefined),
 
   // ── Bookmarks ────────────────────────────────────────────────────────────
-
-  getBookmark: (doctype: string, id: string): Promise<GruntDocument | null> =>
-    client.get('/api/v1/method/grunt.document.base.Document.get_bookmark', {
-      params: { doctype, doc_id: id },
-    }).then(r => r.data.data ?? null),
 
   addBookmark: (doctype: string, id: string, title?: string): Promise<GruntDocument> =>
     client.post('/api/v1/method/grunt.document.base.Document.add_bookmark', {

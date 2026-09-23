@@ -120,9 +120,10 @@
 |---|--------|------|------|
 | 10.1 | 💡 | **Централізувати `workspaceUrl()`** | ~25 голих `/${ws}/…` конструкцій у ~18 файлах → один хелпер; після цього зняти alias `/:workspaceName` у роутері. Потрібні тести кліків. |
 | 10.2 | 💡 | **Роль вкладки «Поля» в редакторі DocType** | Сира таблиця `DocField` дублює Конструктор. Сховати або генерувати `PropertiesPanel` з метаданих `DocField` замість рукописних секцій. |
-| 10.3 | 💡 | **Прибрати мертвий код** | `SharedWith` DocType; дублікати `apps/grunt/auth/doctypes/User/User.json` і `apps/grunt/naming/doctypes/NamingSeries/NamingSeries.json` (поза `grunt/`, не завантажуються); решта `getSharedWith`/`getTags`/`getBacklinks`/`getBookmark` на фронті. |
+| 10.3 | ✅ | **Прибрати мертвий код** | Мертві `docsApi.getSharedWith/getTags/getComments/getBookmark` видалено; дублікатів `apps/grunt/auth|naming` вже не було. `SharedWith` виявився НЕ мертвим — див. 10.9. |
 | 10.4 | 💡 | **Крос-doctype умови у `match`** | Читання `Comment`/`File` через generic CRUD має залежати від доступу до пов'язаного документа — граматика `PermissionMatch` цього поки не вміє. |
 | 10.5 | 💡 | **Підписка на документ (follow)** | Per-doc follow + сповіщення про зміни. |
 | 10.6 | 💡 | **Реєстр секцій бічної панелі** | Hook `sidebar_sections` для додатків + серверні `perms` у bundle `get_sidebar`. |
 | 10.7 | 💡 | **Table field: залишки аудиту** | Віртуалізація, блокування Save форми при помилках рядків, responsive stack-cards, перф `TableEditRow`. |
 | 10.8 | 💡 | **AttachPicker: залишки** | PDF-прев'ю (серверний thumbnail через PyMuPDF), віртуалізація сітки, roving-tabindex. |
+| 10.9 | 💡 | **Справжній DocShare** | Панель «Доступ» пише `SharedWith` (user + Read/Write), але модуль прав його не враховує — поділитися документом нічого не дає; сам `SharedWith` без `permissions`. Треба: read/write-гарантія в `permission_checker` + фільтр списку, права на `SharedWith` (власник документа / System Manager). |
