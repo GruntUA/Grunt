@@ -1,6 +1,6 @@
 import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest'
 
-import { WebSocketChannel } from '@/core/ws/WebSocketChannel'
+import { WebSocketChannel, openChannelCount } from '@/core/ws/WebSocketChannel'
 
 class MockWebSocket {
   static instances: MockWebSocket[] = []
@@ -69,6 +69,23 @@ describe('WebSocketChannel', () => {
     channel.connect()
 
     expect(MockWebSocket.instances[0]?.url).toContain('/api/v1/ws/user?token=test-token')
+  })
+
+  it('counts open channels per URL for the health report', () => {
+    const a = new WebSocketChannel({ url: '/api/v1/ws/user' })
+    const b = new WebSocketChannel({ url: '/api/v1/ws/site' })
+    a.connect()
+    b.connect()
+    expect(openChannelCount('/api/v1/ws/user')).toBe(0) // still connecting
+
+    MockWebSocket.instances[0]!.open()
+    MockWebSocket.instances[1]!.open()
+    expect(openChannelCount('/api/v1/ws/user')).toBe(1)
+
+    MockWebSocket.instances[0]!.serverClose()
+    expect(openChannelCount('/api/v1/ws/user')).toBe(0)
+    b.destroy()
+    expect(openChannelCount('/api/v1/ws/site')).toBe(0)
   })
 
   it('dispatches named events to listeners', () => {

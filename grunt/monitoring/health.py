@@ -17,6 +17,7 @@ from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import text
 
+from grunt import whitelist
 from grunt.app import grunt
 from grunt.log import log
 
@@ -360,6 +361,104 @@ async def check_storage() -> list[Row]:
     return rows
 
 
+# ── Realtime (WebSocket) ──────────────────────────────────────────────────
+
+WS_ECHO_EVENT = "health_echo"
+REDIS_ROUNDTRIP_TIMEOUT = 2.0
+
+
+async def check_realtime() -> list[Row]:
+    """Connections of this process + the Redis pub/sub relay that carries
+    realtime messages between processes (web workers, the task worker)."""
+    import asyncio
+    import uuid
+
+    from grunt.api.v1.ws import manager
+    from grunt.config import settings
+
+    cat = "Вебсокети"
+    channels = manager._connections
+    users = {c for c, conns in channels.items() if c.startswith("user:") and conns}
+    rows = [
+        row(
+            cat,
+            "Підключення (цей процес)",
+            INFO,
+            f"{manager._total_connections()} з'єднань, {len(users)} користувачів",
+        )
+    ]
+    if not settings.redis_url:
+        rows.append(
+            row(
+                cat,
+                "Ретрансляція між процесами",
+                INFO,
+                "без Redis",
+                "Повідомлення доходять лише до клієнтів цього процесу — достатньо для одного "
+                "процесу сервера без окремого воркера.",
+            )
+        )
+        return rows
+
+    import redis.asyncio as aioredis
+
+    key = f"grunt:ws:__health__:{uuid.uuid4().hex}"
+    r = aioredis.from_url(settings.redis_url, socket_connect_timeout=1)
+    try:
+        pubsub = r.pubsub()
+        await pubsub.subscribe(key)
+        started = time.perf_counter()
+        await r.publish(key, "ping")
+        got = None
+        deadline = started + REDIS_ROUNDTRIP_TIMEOUT
+        while got is None and time.perf_counter() < deadline:
+            msg = await pubsub.get_message(ignore_subscribe_messages=True, timeout=0.2)
+            if msg and msg.get("type") == "message":
+                got = time.perf_counter() - started
+            await asyncio.sleep(0)
+        await pubsub.unsubscribe(key)
+        await pubsub.aclose()
+    finally:
+        await r.aclose()
+    rows.append(
+        row(cat, "Ретрансляція через Redis", OK, f"працює, {got * 1000:.0f} мс")
+        if got is not None
+        else row(
+            cat,
+            "Ретрансляція через Redis",
+            ERROR,
+            "не працює",
+            "Повідомлення з воркера й інших процесів (прогрес імпорту, сповіщення) не дійдуть "
+            "до браузера.",
+        )
+    )
+    listening = manager.redis_listener_alive or not channels
+    rows.append(
+        row(
+            cat,
+            "Слухач Redis у цьому процесі",
+            OK if listening else WARNING,
+            "працює" if manager.redis_listener_alive else "не працює",
+            ""
+            if listening
+            else "Є з'єднання, але слухач не працює — повідомлення з Redis не доставляються.",
+        )
+    )
+    return rows
+
+
+@whitelist(roles=["System Manager"])
+async def ws_echo(nonce: str) -> dict[str, Any]:
+    """Push a test event to the caller's own user channel — the browser half
+    of the report checks it arrives exactly once (grunt/api/v1/ws.py)."""
+    from grunt.api.v1.ws import manager
+
+    await manager.send_to_user(
+        grunt.session.user, {"event": WS_ECHO_EVENT, "data": {"nonce": nonce}}
+    )
+    return {"sent": True}
+
+
 # ── Offline mode (server side) ────────────────────────────────────────────
 
 
@@ -412,6 +511,7 @@ CHECKS: list[tuple[str, Callable[[], Awaitable[list[Row]]]]] = [
     ("Користувачі та безпека", check_users),
     ("Конфігурація", check_config),
     ("Файли", check_storage),
+    ("Вебсокети", check_realtime),
     ("Офлайн-режим", check_offline_build),
 ]
 

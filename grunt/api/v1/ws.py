@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 from typing import Any
 
@@ -34,7 +35,10 @@ class ConnectionManager:
         self._presence: dict[str, dict[int, dict[str, str]]] = {}
         # channel → {fieldname: user_info}
         self._field_locks: dict[str, dict[str, dict[str, str]]] = {}
-        self._redis_listener_started = False
+        # Strong reference: asyncio keeps only weak ones, so an unreferenced
+        # listener task can be garbage-collected mid-flight — realtime then
+        # silently stops relaying.
+        self._redis_listener_task: asyncio.Task[None] | None = None
 
     def _total_connections(self) -> int:
         return sum(len(v) for v in self._connections.values())
@@ -79,41 +83,55 @@ class ConnectionManager:
 
     # ── Redis helpers ─────────────────────────────────────────────────
 
-    async def _redis_publish(self, channel: str, message: str) -> None:
-        """Publish a message to a Redis channel (best-effort)."""
+    async def _redis_publish(self, channel: str, message: str) -> bool:
+        """Publish a message to a Redis channel (best-effort); True if published."""
         try:
             from grunt.config import settings
 
             if not settings.redis_url:
-                return
+                return False
             import redis.asyncio as aioredis
 
             r = aioredis.from_url(settings.redis_url, socket_connect_timeout=1)
             await r.publish(f"grunt:ws:{channel}", message)
             await r.aclose()
+            return True
         except Exception:
             log.exception("suppressed_error")
+            return False
+
+    async def _deliver(self, channel: str, message: str) -> None:
+        """Deliver to every process's clients on *channel*, exactly once.
+
+        With Redis, publishing is enough: every web process — this one too —
+        relays it to its own connections from the listener. Sending locally as
+        well delivered each message twice. Without Redis (or if the publish
+        failed) only this process's connections can be reached.
+        """
+        if not await self._redis_publish(channel, message):
+            await self._send(channel, message)
+
+    @property
+    def redis_listener_alive(self) -> bool:
+        task = self._redis_listener_task
+        return task is not None and not task.done()
 
     async def ensure_redis_listener(self) -> None:
-        """Start the Redis subscriber background task (once per process)."""
-        if self._redis_listener_started:
+        """Start the Redis subscriber background task (once per process;
+        again if it ever stopped)."""
+        if self.redis_listener_alive:
             return
         try:
             from grunt.config import settings
 
             if not settings.redis_url:
                 return
-            import asyncio
-
-            self._redis_listener_started = True
-            asyncio.create_task(self._redis_listener_loop())
+            self._redis_listener_task = asyncio.create_task(self._redis_listener_loop())
         except Exception:
             log.exception("suppressed_error")
 
     async def _redis_listener_loop(self) -> None:
         """Subscribe to grunt:ws:* and relay messages to local connections."""
-        import asyncio
-
         while True:
             try:
                 import redis.asyncio as aioredis
@@ -139,15 +157,15 @@ class ConnectionManager:
                         await self._handle_broadcast_users(data)
                     else:
                         await self._send(channel, data)
-            except Exception:
+            except Exception as e:
+                log.warning("ws.redis_listener_error", error=str(e))
                 await asyncio.sleep(2)  # retry after brief pause
 
     # ── Public broadcast API ──────────────────────────────────────────
 
     async def broadcast(self, channel: str, event: str, data: dict[str, Any]) -> None:
         message = json.dumps({"event": event, "data": data})
-        await self._redis_publish(channel, message)
-        await self._send(channel, message)
+        await self._deliver(channel, message)
 
     async def broadcast_doc(
         self, doctype: str, doc_id: str, event: str, data: dict[str, Any]
@@ -161,16 +179,13 @@ class ConnectionManager:
         """Send a message to all WebSocket connections of a specific user."""
         channel = f"user:{user_email}"
         message = json.dumps(payload)
-        await self._redis_publish(channel, message)
-        await self._send(channel, message)
+        await self._deliver(channel, message)
 
     async def broadcast_all_users(self, payload: dict[str, Any]) -> None:
         """Broadcast a message to all connected user channels."""
         message = json.dumps(payload)
-        for channel in list(self._connections):
-            if channel.startswith("user:"):
-                await self._send(channel, message)
-        await self._redis_publish("__broadcast_users__", message)
+        if not await self._redis_publish("__broadcast_users__", message):
+            await self._handle_broadcast_users(message)
 
     async def _handle_broadcast_users(self, message: str) -> None:
         """Called by the Redis listener for __broadcast_users__ channel."""

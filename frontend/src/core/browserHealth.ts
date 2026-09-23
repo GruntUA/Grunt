@@ -10,6 +10,7 @@
 import client from '@/core/api/client'
 import { queue, refreshQueue } from '@/core/composables/useOfflineQueue'
 import { isOnline, serverReachable } from '@/core/composables/useNetworkStatus'
+import { openChannelCount } from '@/core/ws/WebSocketChannel'
 
 export type HealthStatus = 'OK' | 'Warning' | 'Error' | 'Info'
 
@@ -31,6 +32,11 @@ const OFFLINE = 'Офлайн-режим'
 const NETWORK = 'Мережа'
 const STORAGE = 'Сховище браузера'
 const BROWSER = 'Браузер'
+const REALTIME = 'Вебсокети'
+
+const WS_TIMEOUT_MS = 5000
+const ECHO_WAIT_MS = 2500
+const ECHO_EVENT = 'health_echo' // grunt/monitoring/health.py
 
 function row(category: string, check: string, status: HealthStatus, value: unknown = '', hint = ''): HealthRow {
   return { category, check, status, value: value == null ? '' : String(value), hint }
@@ -171,6 +177,88 @@ async function storageChecks(): Promise<HealthRow[]> {
   ]
 }
 
+/** Open a test socket; resolves once it is open, rejects with the close code. */
+function openSocket(url: string): Promise<WebSocket> {
+  return new Promise((resolve, reject) => {
+    const ws = new WebSocket(url)
+    const timer = setTimeout(() => { ws.close(); reject(new Error('timeout')) }, WS_TIMEOUT_MS)
+    ws.onopen = () => { clearTimeout(timer); resolve(ws) }
+    ws.onclose = (e) => { clearTimeout(timer); reject(new Error(`code ${e.code}`)) }
+  })
+}
+
+/** Count matching messages for up to `ms`; with `first`, stop at the first one. */
+function waitFor(
+  ws: WebSocket,
+  match: (msg: Record<string, any>) => boolean,
+  ms: number,
+  first = false,
+): Promise<number> {
+  return new Promise((resolve) => {
+    let hits = 0
+    const done = () => { clearTimeout(timer); ws.removeEventListener('message', onMessage); resolve(hits) }
+    const onMessage = (e: MessageEvent) => {
+      try {
+        if (match(JSON.parse(e.data))) hits++
+      } catch { /* not JSON */ }
+      if (first && hits) done()
+    }
+    const timer = setTimeout(done, ms)
+    ws.addEventListener('message', onMessage)
+  })
+}
+
+/**
+ * A real round trip on a separate test socket: connect to the user channel,
+ * ping → pong, then ask the server to push an event to this user and count
+ * how many copies arrive (exactly one is right — two means double delivery).
+ */
+async function realtimeChecks(): Promise<HealthRow[]> {
+  const rows = [openChannelCount('/api/v1/ws/user')
+    ? row(REALTIME, 'Realtime застосунку', 'OK', 'підключено')
+    : row(REALTIME, 'Realtime застосунку', 'Warning', 'не підключено',
+        'Сповіщення й оновлення документів не приходитимуть наживо.')]
+  if (!('WebSocket' in window)) return [...rows, row(REALTIME, 'Тестове з\'єднання', 'Error', 'не підтримується')]
+
+  const token = localStorage.getItem('grunt_token') ?? ''
+  const proto = location.protocol === 'https:' ? 'wss:' : 'ws:'
+  const url = `${proto}//${location.host}/api/v1/ws/user?token=${encodeURIComponent(token)}`
+  const started = performance.now()
+  let ws: WebSocket
+  try {
+    ws = await openSocket(url)
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e)
+    return [...rows, row(REALTIME, 'Тестове з\'єднання', 'Error', msg === 'code 4001' ? 'токен не прийнято' : msg,
+      'Перевірте, що проксі (nginx/Cloudflare) пропускає WebSocket на /api/v1/ws/.')]
+  }
+  try {
+    rows.push(row(REALTIME, 'Тестове з\'єднання', 'OK', `відкрито за ${Math.round(performance.now() - started)} мс`))
+
+    const pingAt = performance.now()
+    const pong = waitFor(ws, (m) => m.event === 'pong', 2000, true)
+    ws.send(JSON.stringify({ action: 'ping' }))
+    rows.push(await pong
+      ? row(REALTIME, 'Ping → pong', 'OK', `${Math.round(performance.now() - pingAt)} мс`)
+      : row(REALTIME, 'Ping → pong', 'Error', 'немає відповіді'))
+
+    const nonce = Math.random().toString(36).slice(2)
+    const echoes = waitFor(ws, (m) => m.event === ECHO_EVENT && m.data?.nonce === nonce, ECHO_WAIT_MS)
+    await client.post('/api/v1/method/grunt.monitoring.health.ws_echo', { nonce })
+    const copies = await echoes
+    rows.push(copies === 1
+      ? row(REALTIME, 'Доставка з сервера', 'OK', 'рівно одна копія')
+      : copies === 0
+        ? row(REALTIME, 'Доставка з сервера', 'Error', 'не дійшло',
+            'Сервер надіслав подію, але браузер її не отримав — перевірте ретрансляцію через Redis.')
+        : row(REALTIME, 'Доставка з сервера', 'Warning', `${copies} копії`,
+            'Кожне повідомлення приходить кілька разів — сповіщення дублюються.'))
+  } finally {
+    ws.close()
+  }
+  return rows
+}
+
 function browserChecks(): HealthRow[] {
   const permission = 'Notification' in window ? Notification.permission : 'unsupported'
   const labels: Record<string, string> = { granted: 'дозволено', denied: 'заборонено', default: 'не запитано', unsupported: 'не підтримується' }
@@ -196,6 +284,7 @@ export async function diagnoseBrowser(): Promise<HealthRow[]> {
     safe(NETWORK, 'Сервер', probeChecks),
     safe(OFFLINE, 'Черга змін', queueChecks),
     safe(NETWORK, 'Мережа', networkChecks),
+    safe(REALTIME, 'Вебсокети', realtimeChecks),
     safe(STORAGE, 'Сховище', storageChecks),
     safe(BROWSER, 'Браузер', browserChecks),
   ])

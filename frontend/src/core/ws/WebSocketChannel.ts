@@ -32,12 +32,24 @@ function buildWebSocketUrl(url: string, includeAuthToken: boolean): string {
   return fullUrl
 }
 
+/** Open channels across the app — each component owns its own WebSocketChannel. */
+const openChannels = new Set<WebSocketChannel>()
+
+/** How many of the app's channels to `url` are open right now (health report). */
+export function openChannelCount(url: string): number {
+  return [...openChannels].filter((c) => c.channelUrl === url).length
+}
+
 export class WebSocketChannel {
   readonly isConnected = ref(false)
   readonly lastMessage = ref<unknown>(null)
 
   private ws: WebSocket | null = null
   private url: string | null
+
+  get channelUrl(): string | null {
+    return this.url
+  }
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null
   private pingTimer: ReturnType<typeof setInterval> | null = null
   private manualClose = false
@@ -90,11 +102,13 @@ export class WebSocketChannel {
 
     this.ws.onopen = () => {
       this.isConnected.value = true
+      openChannels.add(this)
       this.startPing()
     }
 
     this.ws.onclose = () => {
       this.isConnected.value = false
+      openChannels.delete(this)
       this.stopPing()
       this.ws = null
 
@@ -143,6 +157,7 @@ export class WebSocketChannel {
     this.stopReconnect()
     this.stopPing()
     this.isConnected.value = false
+    openChannels.delete(this)
 
     if (this.ws) {
       const ws = this.ws
