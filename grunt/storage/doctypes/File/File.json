@@ -5,6 +5,7 @@
   "title_field": "file_name",
   "image_field": "thumbnail_url",
   "default_view": "gallery",
+  "inherit_permission_from": ["attached_to_doctype", "attached_to_id"],
   "fields": [
     {
       "fieldname": "file_name",

@@ -242,6 +242,10 @@ class DocType(BaseModel):
     # True → excluded from the GLOBAL feed only, still shown in this doctype's own
     # document timelines (for admin/config records: roles, print formats, etc.)
     hide_from_activity_feed: bool = False
+    # [<doctype field>, <id field>] → rows are readable only by users who can
+    # read the referenced document (comments, tags, attachments).
+    # See grunt.permissions.reference.
+    inherit_permission_from: list[str] | None = None
     quick_entry: bool = False  # True → "Create" opens a dialog instead of full form
 
     # Lifecycle markers (UI-only; no behavioural effect)

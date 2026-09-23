@@ -33,6 +33,12 @@ async def apply_permission_filter(
     could actually enforce quietly expose every row instead of none.
     """
     access = RoleAccess(doctype, user)
+    if access.is_unrestricted:
+        return query
+
+    from grunt.permissions.reference import apply_reference_filter
+
+    query = await apply_reference_filter(query, table, user, doctype)
     if access.has_unrestricted_read:
         return query
 

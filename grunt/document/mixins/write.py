@@ -317,6 +317,17 @@ class DocumentWriteMixin(DocumentReadMixin):
         if errors:
             raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=errors)
 
+        # A comment / tag / attachment may only be added to a readable document.
+        from grunt.permissions.access import RoleAccess
+        from grunt.permissions.reference import reference_readable
+
+        if not RoleAccess(dt, user).is_unrestricted and not await reference_readable(
+            user, dt, data
+        ):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN, detail="Немає доступу до документа"
+            )
+
         now = datetime.now(UTC)
         doc_id, row = await self._build_initial_row(dt, table, data, user, now)
 

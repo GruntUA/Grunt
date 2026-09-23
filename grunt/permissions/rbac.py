@@ -120,6 +120,12 @@ class PermissionChecker:
             if not await doc_passes(user, doctype, doc):
                 result = False
 
+        # Comments / tags / attachments: readable only with the referenced doc.
+        if result and doc is not None and action in ("read", "select"):
+            from grunt.permissions.reference import reference_readable
+
+            result = await reference_readable(user, doctype, doc)
+
         if cache_key is not None:
             _PERM_CACHE[cache_key] = result
         return result or await self._shared(user, doctype, action, doc)
