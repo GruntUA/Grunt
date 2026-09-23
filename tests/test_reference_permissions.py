@@ -118,3 +118,34 @@ async def test_share_opens_the_comments_too(ctx, cases, db_session, engine):
     async with grunt.context(db_session, engine, _ann()):
         rows = await grunt.get_list("Comment", filters={"reference_doctype": "SecretCase"})
     assert len(rows) == 2
+
+
+@pytest.mark.asyncio
+async def test_private_attachment_download_follows_document_access(ctx, cases, db_session, engine):
+    from grunt.app import grunt
+    from grunt.storage.doctypes.File.file import get_content
+
+    mine, other = cases
+    ids = {}
+    for case in (mine, other):
+        row = await ctx.new_doc(
+            "File",
+            {
+                "file_name": f"{case}.txt",
+                "path": f"missing/{case}.txt",
+                "file_url": "/z",
+                "is_public": False,
+                "attached_to_doctype": "SecretCase",
+                "attached_to_id": case,
+            },
+        )
+        ids[case] = row["name"]
+    await ctx.db._session().commit()
+
+    async with grunt.context(db_session, engine, _ann()):
+        with pytest.raises(HTTPException) as denied:
+            await get_content(ids[other])
+        assert denied.value.status_code == 403
+        with pytest.raises(HTTPException) as allowed:
+            await get_content(ids[mine])  # permitted — fails only on the fake storage path
+        assert allowed.value.status_code == 404

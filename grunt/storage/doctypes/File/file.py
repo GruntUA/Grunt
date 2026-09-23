@@ -144,14 +144,33 @@ async def get_content(file_id: str) -> Response:
     """Whitelisted method: Fetch file content from storage."""
     # Use grunt.db directly to avoid permission checks that require an active user.
     doc = await grunt.db.get_values(
-        "File", file_id, ["path", "content_type", "file_name", "is_public"]
+        "File",
+        file_id,
+        [
+            "name",
+            "owner",
+            "path",
+            "content_type",
+            "file_name",
+            "is_public",
+            "attached_to_doctype",
+            "attached_to_id",
+        ],
     )
     if not doc:
         raise HTTPException(404, "File not found")
 
-    # If file is not public, require the user to be authenticated
-    if not doc.get("is_public") and _user_ctx.get() is None:
-        raise HTTPException(401, "Authentication required to access this file")
+    # A private file needs an authenticated user who may read it — which, for
+    # an attachment, means reading the document it is attached to.
+    if not doc.get("is_public"):
+        user = _user_ctx.get()
+        if user is None:
+            raise HTTPException(401, "Authentication required to access this file")
+        from grunt.permissions.rbac import permission_checker
+
+        meta = await grunt.get_meta("File")
+        if meta is None or not await permission_checker.check(user, meta, "read", doc):
+            raise HTTPException(403, "Немає доступу до файлу")
 
     storage = get_storage_backend()
     try:
