@@ -75,3 +75,19 @@ async def test_doc_guard_on_virtual_doctype_does_not_touch_a_table(ctx):
     from grunt.document.connections import get_connections
 
     assert await get_connections("SystemHealthReport", "SystemHealthReport") == {"groups": []}
+
+
+@pytest.mark.asyncio
+async def test_missing_app_dependency_is_reported(tmp_path, monkeypatch):
+    from grunt.site.manager import site_manager
+
+    app = tmp_path / "apps" / "demo"
+    app.mkdir(parents=True)
+    (app / "pyproject.toml").write_text(
+        '[project]\nname = "demo"\ndependencies = ["surely-not-installed-pkg>=1", "pydantic"]\n'
+    )
+    monkeypatch.setattr(site_manager, "bench_dir", tmp_path)
+    [r] = await health.check_app_dependencies()
+    assert r["status"] == "Error"
+    assert "demo: demo" in r["hint"] and "surely-not-installed-pkg" in r["hint"]
+    assert "pydantic" not in r["hint"]

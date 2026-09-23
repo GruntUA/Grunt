@@ -459,6 +459,44 @@ async def ws_echo(nonce: str) -> dict[str, Any]:
     return {"sent": True}
 
 
+# ── Apps' Python dependencies ─────────────────────────────────────────────
+
+
+def _requirement_name(spec: str) -> str:
+    import re
+
+    return re.split(r"[\s\[<>=!~;@]", spec.strip(), maxsplit=1)[0]
+
+
+async def check_app_dependencies() -> list[Row]:
+    """Every package an app declares in its pyproject.toml is installed."""
+    import importlib.metadata
+    import tomllib
+
+    from grunt.apps.deps import app_packages
+    from grunt.site.manager import site_manager
+
+    missing: list[str] = []
+    apps = app_packages(site_manager.bench_dir / "apps")
+    for app in apps:
+        project = tomllib.loads((app / "pyproject.toml").read_text()).get("project", {})
+        for spec in [app.name, *project.get("dependencies", [])]:
+            name = _requirement_name(spec)
+            try:
+                importlib.metadata.version(name)
+            except importlib.metadata.PackageNotFoundError:
+                missing.append(f"{app.name}: {name}")
+    return [
+        row(
+            "Залежності додатків",
+            "Python-пакети додатків",
+            ERROR if missing else OK,
+            f"бракує {len(missing)}" if missing else f"{len(apps)} додатків, усе встановлено",
+            ("Виконайте `grunt app deps`. Бракує: " + ", ".join(missing)) if missing else "",
+        )
+    ]
+
+
 # ── Offline mode (server side) ────────────────────────────────────────────
 
 
@@ -512,6 +550,7 @@ CHECKS: list[tuple[str, Callable[[], Awaitable[list[Row]]]]] = [
     ("Конфігурація", check_config),
     ("Файли", check_storage),
     ("Вебсокети", check_realtime),
+    ("Залежності додатків", check_app_dependencies),
     ("Офлайн-режим", check_offline_build),
 ]
 
