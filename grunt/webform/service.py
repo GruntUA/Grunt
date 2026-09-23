@@ -334,13 +334,14 @@ class WebFormService:
                     "content_hash": hashlib.sha256(content).hexdigest(),
                     "file_size": len(content),
                     "uploaded_by": GUEST_USER,
-                    "is_public": True,
+                    # A citizen's upload is private — staff open it via a
+                    # signed URL (grunt.storage.signing).
+                    "is_public": False,
                 },
             )
             file_id = str(file_doc["name"])
             file_url = (
-                "/api/v1/method/grunt.storage.doctypes.File.file.get_content"
-                f"?file_id={file_id}"
+                f"/api/v1/method/grunt.storage.doctypes.File.file.get_content?file_id={file_id}"
             )
             await grunt.db.set_value("File", file_id, "file_url", file_url)
 

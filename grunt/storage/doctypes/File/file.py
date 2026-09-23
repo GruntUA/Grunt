@@ -56,12 +56,23 @@ async def upload(
     file: UploadFile,
     attached_to_doctype: str | None = None,
     attached_to_id: str | None = None,
+    is_public: bool | None = None,
 ) -> dict[str, Any]:
-    """Whitelisted method: Upload a file and create a File document."""
+    """Whitelisted method: Upload a file and create a File document.
+
+    An attachment (``attached_to_*`` set) is private unless ``is_public`` is
+    passed explicitly — readable only with its document, via a signed URL (see
+    :mod:`grunt.storage.signing`). A free-standing library file stays public.
+    """
+    if is_public is None:
+        is_public = not attached_to_doctype
     if not file.filename:
         raise HTTPException(400, "No filename provided")
 
-    content = await file.read()
+    try:
+        content = await file.read()
+    finally:
+        await file.close()
     max_bytes = settings.max_upload_size_mb * 1024 * 1024
     if len(content) > max_bytes:
         raise HTTPException(
@@ -110,7 +121,7 @@ async def upload(
         content_hash=content_hash,
         file_size=len(content),
         uploaded_by=grunt.session.user,
-        is_public=True,
+        is_public=is_public,
         attached_to_doctype=attached_to_doctype or None,
         attached_to_id=attached_to_id or None,
     )
@@ -140,8 +151,14 @@ def _upload_payload(doc: File, *, deduped: bool) -> dict[str, Any]:
 
 
 @whitelist(allow_guest=True)
-async def get_content(file_id: str) -> Response:
-    """Whitelisted method: Fetch file content from storage."""
+async def get_content(file_id: str, exp: int | None = None, sig: str | None = None) -> Response:
+    """Whitelisted method: Fetch file content from storage.
+
+    A private file needs either a valid signature (``exp`` + ``sig``, appended
+    to every file URL the API hands out) or a user allowed to read it.
+    """
+    from grunt.storage.signing import verify
+
     # Use grunt.db directly to avoid permission checks that require an active user.
     doc = await grunt.db.get_values(
         "File",
@@ -162,7 +179,7 @@ async def get_content(file_id: str) -> Response:
 
     # A private file needs an authenticated user who may read it — which, for
     # an attachment, means reading the document it is attached to.
-    if not doc.get("is_public"):
+    if not doc.get("is_public") and not verify(file_id, exp, sig):
         user = _user_ctx.get()
         if user is None:
             raise HTTPException(401, "Authentication required to access this file")

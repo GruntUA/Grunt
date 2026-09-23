@@ -193,6 +193,9 @@ class DocumentExportRPCMixin:
             if html is None:
                 html = render_standard(dt.label, dt.fields, doc)
 
+            from grunt.storage.signing import sign_file_urls_in_html
+
+            html = sign_file_urls_in_html(html)
             if fmt == "html":
                 if autoprint:
                     html = html.replace("</body>", f"{_AUTOPRINT_SCRIPT}</body>", 1)
@@ -255,7 +258,9 @@ class DocumentExportRPCMixin:
         except Exception as e:
             html = f"<pre style='color:red;padding:1rem'>Помилка шаблону:\n{e}</pre>"
 
-        return Response(content=html, media_type="text/html")
+        from grunt.storage.signing import sign_file_urls_in_html
+
+        return Response(content=sign_file_urls_in_html(html), media_type="text/html")
 
     @staticmethod
     @grunt.whitelist()

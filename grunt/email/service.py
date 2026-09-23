@@ -525,7 +525,7 @@ class EmailService:
 
     @staticmethod
     async def store_bytes(content: bytes, filename: str, mimetype: str | None) -> str | None:
-        """Save raw bytes through the storage backend, return a File content URL."""
+        """Save raw bytes through the storage backend as a private File; return its URL."""
         from grunt.app import grunt
         from grunt.storage import get_storage_backend
 
@@ -542,7 +542,9 @@ class EmailService:
                     "path": path,
                     "content_type": mimetype or "application/octet-stream",
                     "file_size": len(content),
-                    "is_public": True,
+                    # Mail attachments are private; the UI opens them via
+                    # signed URLs (grunt.storage.signing).
+                    "is_public": False,
                     "file_url": "",
                 },
             )

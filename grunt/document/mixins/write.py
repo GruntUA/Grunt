@@ -300,6 +300,9 @@ class DocumentWriteMixin(DocumentReadMixin):
         so global/DocType hooks (notifications, assignment rules, backlink sync,
         activity log) fire identically regardless of the caller.
         """
+        from grunt.storage.signing import strip_file_signatures
+
+        data = strip_file_signatures(data)
         await fire(
             "before_save", doctype=doctype_name, doc=dict(data), user=user, session=self.session
         )
@@ -434,6 +437,9 @@ class DocumentWriteMixin(DocumentReadMixin):
 
         Single entry point for updating a document — see :meth:`create_document`.
         """
+        from grunt.storage.signing import strip_file_signatures
+
+        data = strip_file_signatures(data)
         dt = await self._resolve_dt(doctype_name)
 
         # A singleton's first save arrives here, not at ``create_document`` —
