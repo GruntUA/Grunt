@@ -37,8 +37,13 @@ wait $CHILD
 description = "Start only the Vite frontend dev server"
 
 [tasks.worker]
-run = "uv run grunt/cli/main.py worker"
-description = "Start the TaskIQ background worker"
+run = """
+trap 'kill $CHILD 2>/dev/null; exit 0' TERM INT
+uv run taskiq worker grunt.tasks.worker:broker --workers ${WORKERS:-1} &
+CHILD=$!
+wait $CHILD
+"""
+description = "Start the TaskIQ background worker (needs REDIS_URL)"
 
 [tasks.bootstrap]
 run = "uv run python bootstrap_site.py"

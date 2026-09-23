@@ -94,10 +94,10 @@ def serve(port, reload, no_frontend):
 
 @click.command()
 def worker():
-    """Запуск воркера фонових завдань (TaskIQ)."""
-    from grunt.site.manager import site_manager
-    from grunt.tasks.registry import discover_tasks
+    """Запуск воркера фонових завдань (TaskIQ).
 
+    Задачі реєструє модуль grunt.tasks.worker — у процесі самого воркера
+    (TaskIQ стартує його окремим процесом, тож імпорти тут йому не видно).
+    """
     click.echo("Запуск воркера TaskIQ...")
-    discover_tasks(site_manager.bench_dir / "apps")
-    subprocess.run(["taskiq", "worker", "grunt.tasks.broker:broker"])
+    subprocess.run(["taskiq", "worker", "grunt.tasks.worker:broker"])

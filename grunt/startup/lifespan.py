@@ -8,6 +8,8 @@ Kept out of :mod:`grunt.main` so the entry point stays a thin assembly of
    definitions and schema sync are `grunt db migrate`'s job, not boot's)
 3. load external apps installed on at least one site
 4. optional Sentry, then the task broker and the scheduler
+
+Steps 1–3 (+ Sentry) are :func:`boot`, which the task worker runs too.
 """
 
 from __future__ import annotations
@@ -120,9 +122,10 @@ def _init_observability() -> None:
         log.warning("sentry.not_installed", hint="pip install sentry-sdk[fastapi]")
 
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    # ── Startup ──────────────────────────────────────────────────────
+async def boot(app: FastAPI | None = None) -> None:
+    """Everything a process needs before it can touch documents: logging,
+    sites, the DocType registry, installed apps. Shared by the web server
+    (``lifespan``) and the task worker (``grunt.tasks.worker``)."""
     _configure()
     await _bring_up_sites()
 
@@ -137,6 +140,12 @@ async def lifespan(app: FastAPI):
 
     await _seed_supported_languages()
     _init_observability()
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # ── Startup ──────────────────────────────────────────────────────
+    await boot(app)
     await broker.startup()
     await start_scheduler()
 
