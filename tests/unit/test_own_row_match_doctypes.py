@@ -95,12 +95,14 @@ def test_user_session_has_permissions_defined():
 
 
 @pytest.mark.asyncio
-async def test_user_session_owner_can_read_and_deactivate_own_session():
+async def test_user_session_owner_can_read_but_not_edit_own_session():
+    # Sessions are revoked through revoke_my_session/logout, never edited directly
+    # (the row carries the refresh-token hash and the idle-timeout clock).
     dt = _load_user_session()
     owner = _user("owner@example.com")
     own_row = {"user": "owner@example.com"}
     assert await permission_checker.check(owner, dt, "read", own_row) is True
-    assert await permission_checker.check(owner, dt, "write", own_row) is True
+    assert await permission_checker.check(owner, dt, "write", own_row) is False
 
 
 @pytest.mark.asyncio

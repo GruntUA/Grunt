@@ -50,6 +50,8 @@ export const useAuthStore = defineStore('auth', () => {
       if (e.key === 'grunt_token') {
         token.value = e.newValue
         if (!e.newValue) user.value = null
+      } else if (e.key === 'grunt_refresh_token') {
+        refreshToken.value = e.newValue
       }
     })
   }
@@ -250,9 +252,27 @@ export const useAuthStore = defineStore('auth', () => {
     return { mfa_required: false, approval_pending: false }
   }
 
+  /**
+   * Swap the refresh token for a new pair. Refresh tokens are single-use and
+   * shared by all tabs (localStorage), so the refresh is serialized across tabs:
+   * a tab that waited for the lock adopts the pair another tab just minted
+   * instead of spending the already-rotated token (which would log it out).
+   */
   async function refresh(): Promise<boolean> {
-    const rt = refreshToken.value
+    const staleAccess = token.value
+    const run = () => _refreshOnce(staleAccess)
+    return navigator.locks ? navigator.locks.request('grunt-token-refresh', run) : run()
+  }
+
+  async function _refreshOnce(staleAccess: string | null): Promise<boolean> {
+    const storedAccess = localStorage.getItem('grunt_token')
+    const rt = localStorage.getItem('grunt_refresh_token') ?? refreshToken.value
     if (!rt) return false
+    if (storedAccess && storedAccess !== staleAccess && !isJwtExpired(storedAccess)) {
+      token.value = storedAccess
+      refreshToken.value = rt
+      return true
+    }
     try {
       const { data: body } = await client.post('/api/v1/method/grunt.auth.doctypes.User.user.refresh_api', {
         refresh_token: rt,

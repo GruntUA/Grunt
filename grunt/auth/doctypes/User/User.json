@@ -300,18 +300,6 @@
       "hidden": true
     },
     {
-      "fieldname": "refresh_token",
-      "label": "Refresh token",
-      "fieldtype": "Text",
-      "hidden": true
-    },
-    {
-      "fieldname": "refresh_token_expires_at",
-      "label": "Refresh token expiry",
-      "fieldtype": "Datetime",
-      "hidden": true
-    },
-    {
       "fieldname": "col_tokens",
       "fieldtype": "Column",
       "hidden": true
@@ -346,8 +334,6 @@
         "hashed_password",
         "mfa_secret",
         "mfa_backup_codes",
-        "refresh_token",
-        "refresh_token_expires_at",
         "reset_token",
         "reset_token_expires_at"
       ]

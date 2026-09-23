@@ -1,7 +1,8 @@
 """User DocType controller — password hashing, authentication, and user CRUD.
 
 All business logic related to the User document lives here.
-The auth layer (JWT tokens, refresh tokens) remains in ``grunt.core.auth.service``.
+JWT access tokens live in ``grunt.auth.service``; per-device sessions and their
+refresh tokens in ``grunt.auth.doctypes.UserSession``.
 """
 
 from __future__ import annotations
@@ -51,8 +52,6 @@ _SILENT_RESET_USER_FIELDS: frozenset[str] = frozenset(
         "login_attempts",
         "locked_until",
         "last_login",
-        "refresh_token",
-        "refresh_token_expires_at",
         "reset_token",
         "reset_token_expires_at",
     }
@@ -537,20 +536,6 @@ def _auth_user_dump(user: User) -> dict[str, Any]:
     }
 
 
-async def _track_login_session(
-    user_id: str,
-    ip_address: str | None,
-    user_agent: str | None,
-) -> None:
-    """Best-effort session tracking for successful logins."""
-    try:
-        from grunt.auth.doctypes.UserSession.user_session import create_session
-
-        await create_session(user_id, ip_address, user_agent)
-    except Exception:
-        log.exception("suppressed_error")
-
-
 async def _guard_registration() -> None:
     """Block self-service registration unless ``allow_user_registration`` is on.
 
@@ -660,13 +645,9 @@ async def register_full_name_api(email: str, password: str, full_name: str) -> d
 
 
 @grunt.whitelist(allow_guest=True)
-async def login_api(
-    email: str,
-    password: str,
-    ip_address: str | None = None,
-    user_agent: str | None = None,
-) -> dict[str, Any]:
+async def login_api(email: str, password: str, request: Request | None = None) -> dict[str, Any]:
     """Authenticate a user and issue auth tokens or MFA challenge token."""
+    from grunt.auth.doctypes.UserSession.user_session import client_ip, client_user_agent
     from grunt.auth.login import issue_login
 
     try:
@@ -679,17 +660,19 @@ async def login_api(
     if user is None:
         grunt.throw("Incorrect email or password", "UNAUTHORIZED")
 
-    return await issue_login(user, ip_address=ip_address, user_agent=user_agent)
+    return await issue_login(
+        user, ip_address=client_ip(request), user_agent=client_user_agent(request)
+    )
 
 
 @grunt.whitelist(allow_guest=True)
 async def mfa_login_api(
     mfa_token: str,
     code: str,
-    ip_address: str | None = None,
-    user_agent: str | None = None,
+    request: Request | None = None,
 ) -> dict[str, Any]:
     """Verify MFA challenge token+code and issue full auth tokens."""
+    from grunt.auth.doctypes.UserSession.user_session import client_ip, client_user_agent
     from grunt.auth.login import issue_login
     from grunt.auth.mfa import check_mfa_code
     from grunt.auth.service import verify_mfa_token
@@ -709,7 +692,12 @@ async def mfa_login_api(
         raise
 
     # honor_mfa=False: the second factor has just been proven here.
-    return await issue_login(user, ip_address=ip_address, user_agent=user_agent, honor_mfa=False)
+    return await issue_login(
+        user,
+        ip_address=client_ip(request),
+        user_agent=client_user_agent(request),
+        honor_mfa=False,
+    )
 
 
 @grunt.whitelist()
@@ -771,21 +759,22 @@ async def update_me_api(
 
 
 @grunt.whitelist(allow_guest=True)
-async def refresh_api(refresh_token: str) -> dict[str, Any]:
-    """Exchange a valid refresh token for a new access+refresh pair."""
-    from grunt.auth.service import (
-        create_access_token,
-        rotate_refresh_token,
-        session_ttl_minutes,
-    )
+async def refresh_api(refresh_token: str, request: Request | None = None) -> dict[str, Any]:
+    """Exchange a session's refresh token for a new access+refresh pair."""
+    from grunt.auth.doctypes.UserSession.user_session import client_ip, rotate_session
+    from grunt.auth.service import access_token_minutes, create_access_token
 
-    result = await rotate_refresh_token(refresh_token)
-    if result is None:
+    rotated = await rotate_session(refresh_token, client_ip(request))
+    if rotated is None:
         grunt.throw("Invalid or expired refresh token", "UNAUTHORIZED")
 
-    new_refresh_token, user = result
+    sid, new_refresh_token, user_id = rotated
+    user = await get_user_by_id(user_id)
+    if user is None or not user.is_active:
+        grunt.throw("Invalid or expired refresh token", "UNAUTHORIZED")
+
     return {
-        "access_token": create_access_token(user, await session_ttl_minutes()),
+        "access_token": create_access_token(user, await access_token_minutes(), sid=sid),
         "refresh_token": new_refresh_token,
         "mfa_token": None,
         "token_type": "bearer",
@@ -796,20 +785,12 @@ async def refresh_api(refresh_token: str) -> dict[str, Any]:
 
 @grunt.whitelist()
 async def logout_api() -> bool:
-    """Revoke current user's refresh tokens and terminate active sessions."""
-    from grunt.auth.service import revoke_refresh_tokens_for_user
+    """End the current device's session (other devices stay signed in)."""
+    from grunt.auth.doctypes.UserSession.user_session import end_session
 
     user = await grunt.get_current_user()
-    assert user.id is not None
-
-    await revoke_refresh_tokens_for_user(user.id)
-    try:
-        from grunt.auth.doctypes.UserSession.user_session import terminate_all_user_sessions
-
-        await terminate_all_user_sessions(user.id)
-    except Exception:
-        log.exception("suppressed_error")
-
+    if sid := user.data.get("_sid"):
+        await end_session(sid)
     return True
 
 

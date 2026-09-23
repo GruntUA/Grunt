@@ -98,6 +98,10 @@ async def current_user(
     if user is None or user.email != email or not user.is_active:
         raise credentials_exception
 
+    # The device session this token was minted for (logout / session list).
+    if payload.get("sid"):
+        user.data["_sid"] = payload["sid"]
+
     # Impersonation session: the token authenticates as ``user`` but names the
     # System Manager who opened it. Stash it so ``whoami`` / audit can surface it.
     if payload.get("imp"):

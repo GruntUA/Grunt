@@ -160,6 +160,24 @@ describe('useAuthStore', () => {
       expect(ok).toBe(false)
       expect(auth.token).toBeNull()
     })
+
+    it('adopts the pair another tab already refreshed instead of reusing the spent token', async () => {
+      localStorage.setItem('grunt_token', 'expired-access')
+      localStorage.setItem('grunt_refresh_token', 'spent-refresh')
+      const auth = useAuthStore()
+
+      // Another tab rotates the tokens while this one is waiting.
+      const exp = Math.floor(Date.now() / 1000) + 600
+      const fresh = `h.${btoa(JSON.stringify({ exp }))}.s`
+      localStorage.setItem('grunt_token', fresh)
+      localStorage.setItem('grunt_refresh_token', 'fresh-refresh')
+
+      const ok = await auth.refresh()
+      expect(ok).toBe(true)
+      expect(mockPost).not.toHaveBeenCalled()
+      expect(auth.token).toBe(fresh)
+      expect(auth.refreshToken).toBe('fresh-refresh')
+    })
   })
 
   describe('fetchMe', () => {

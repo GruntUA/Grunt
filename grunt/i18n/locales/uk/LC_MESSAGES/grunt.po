@@ -2675,16 +2675,6 @@ msgid "Session tokens"
 msgstr "Токени сесій"
 
 #: grunt/grunt/auth/doctypes/User/User.json
-msgctxt "meta:User.refresh_token"
-msgid "Refresh token"
-msgstr "Токен оновлення (Refresh)"
-
-#: grunt/grunt/auth/doctypes/User/User.json
-msgctxt "meta:User.refresh_token_expires_at"
-msgid "Refresh token expiry"
-msgstr "Час дії Refresh токену"
-
-#: grunt/grunt/auth/doctypes/User/User.json
 msgctxt "meta:User.reset_token"
 msgid "Password reset token"
 msgstr "Токен відновлення пароля"
@@ -2715,9 +2705,9 @@ msgid "User"
 msgstr "Користувач"
 
 #: grunt/grunt/auth/doctypes/UserSession/UserSession.json
-msgctxt "meta:UserSession.session_key"
-msgid "Session key"
-msgstr "Ключ сесії"
+msgctxt "meta:UserSession.refresh_token_hash"
+msgid "Refresh token hash"
+msgstr "Хеш токена оновлення"
 
 #: grunt/grunt/auth/doctypes/UserSession/UserSession.json
 msgctxt "meta:UserSession.ip_address"

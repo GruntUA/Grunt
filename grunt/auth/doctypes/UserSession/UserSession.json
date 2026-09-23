@@ -16,10 +16,9 @@
       "in_filter": true
     },
     {
-      "fieldname": "session_key",
-      "label": "Session key",
+      "fieldname": "refresh_token_hash",
+      "label": "Refresh token hash",
       "fieldtype": "Text",
-      "required": true,
       "hidden": true
     },
     {
@@ -52,8 +51,10 @@
     {
       "role": "All",
       "read": true,
-      "write": true,
-      "match": "user == user"
+      "match": "user == user",
+      "hidden_fields": [
+        "refresh_token_hash"
+      ]
     }
   ]
 }

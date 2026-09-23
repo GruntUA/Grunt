@@ -35,6 +35,7 @@ from grunt.api.messages import ApplicationError
 from grunt.api.router import GruntRouter
 from grunt.api.v1.schemas.response import ok
 from grunt.auth import providers as auth_providers
+from grunt.auth.doctypes.UserSession.user_session import client_ip
 from grunt.auth.login import issue_login
 from grunt.auth.providers.base import AuthFlowContext
 from grunt.config import settings
@@ -71,7 +72,7 @@ async def oauth_callback(
         ctx = AuthFlowContext(
             request=request,
             data={"code": code},
-            ip_address=request.client.host if request.client else None,
+            ip_address=client_ip(request),
             user_agent=request.headers.get("user-agent"),
         )
         user = await prov.complete(ctx)

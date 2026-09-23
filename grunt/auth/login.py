@@ -29,13 +29,9 @@ async def issue_login(
     itself (the factor has already been proven).
     """
     from grunt.api.messages import throw
-    from grunt.auth.doctypes.User.user import _auth_user_dump, _track_login_session
-    from grunt.auth.service import (
-        create_access_token,
-        create_mfa_token,
-        create_refresh_token,
-        session_ttl_minutes,
-    )
+    from grunt.auth.doctypes.User.user import _auth_user_dump
+    from grunt.auth.doctypes.UserSession.user_session import open_session
+    from grunt.auth.service import access_token_minutes, create_access_token, create_mfa_token
 
     state = getattr(user, "signup_state", None) or "approved"
     if state == "rejected":
@@ -63,10 +59,8 @@ async def issue_login(
         }
 
     assert user.id is not None
-    ttl = await session_ttl_minutes()
-    access_token = create_access_token(user, ttl)
-    refresh_token = await create_refresh_token(user.id, ttl)
-    await _track_login_session(user.id, ip_address, user_agent)
+    sid, refresh_token = await open_session(user.id, ip_address, user_agent)
+    access_token = create_access_token(user, await access_token_minutes(), sid=sid)
 
     return {
         "access_token": access_token,

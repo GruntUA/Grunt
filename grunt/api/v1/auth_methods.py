@@ -23,6 +23,7 @@ from grunt.api.v1.schemas.response import ok
 from grunt.auth import providers as auth_providers
 from grunt.auth.dependencies import current_user, optional_user
 from grunt.auth.doctypes.User.user import User
+from grunt.auth.doctypes.UserSession.user_session import client_ip
 from grunt.auth.login import issue_login
 from grunt.auth.providers.base import AuthFlowContext
 
@@ -36,7 +37,7 @@ def _ctx(request: Request, data: dict[str, Any] | None, user: User | None) -> Au
         request=request,
         data=data or {},
         user=user,
-        ip_address=request.client.host if request.client else None,
+        ip_address=client_ip(request),
         user_agent=request.headers.get("user-agent"),
     )
 
