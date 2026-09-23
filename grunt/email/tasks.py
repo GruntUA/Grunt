@@ -60,6 +60,7 @@ async def process_email_queue():
                     continue
 
                 account = await grunt.get_doc("EmailAccount", account_id)
+                await session.commit()  # no transaction (write lock) across SMTP
 
                 try:
                     message = {**item, "attachments": decode_attachments(item.get("attachments"))}
@@ -90,6 +91,7 @@ async def pull_from_accounts():
             accounts = await grunt.get_list(
                 "EmailAccount", filters={"enable_incoming": "True"}, limit=1000
             )
+            await session.commit()  # no transaction (write lock) across IMAP
 
             for account in accounts:
                 emails = await EmailService.pull_emails(account)

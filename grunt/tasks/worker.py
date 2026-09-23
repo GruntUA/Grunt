@@ -21,6 +21,7 @@ from pathlib import Path
 
 from taskiq import TaskiqEvents, TaskiqState
 
+from grunt.db.write_intent import set_process_default
 from grunt.log import log
 from grunt.tasks.broker import broker
 
@@ -79,6 +80,9 @@ def _apps_dir() -> Path | None:
 
 
 import_task_modules(_apps_dir())
+
+# Tasks write — on SQLite take the write lock at BEGIN (grunt/db/write_intent.py).
+set_process_default(True)
 
 
 @broker.on_event(TaskiqEvents.WORKER_STARTUP)

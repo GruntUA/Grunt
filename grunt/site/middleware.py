@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING
 
 from starlette.middleware.base import BaseHTTPMiddleware
 
+from grunt.db.write_intent import READ_ONLY_METHODS, set_write_intent
 from grunt.log import log
 from grunt.site.manager import current_site, site_manager
 
@@ -65,6 +66,8 @@ class SiteContextMiddleware(BaseHTTPMiddleware):
         # 4. Set the site context var BEFORE anything below resolves a
         # per-site resource (e.g. the DocType registry) off it.
         token = current_site.set(site) if site else None
+        # SQLite: writing requests take the write lock at BEGIN (grunt/db/write_intent.py).
+        set_write_intent(request.method not in READ_ONLY_METHODS)
 
         try:
             # 5. Hot reload: check for .reload_meta trigger (written by `grunt migrate`)

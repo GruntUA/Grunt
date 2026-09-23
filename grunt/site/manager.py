@@ -230,7 +230,10 @@ class SiteManager:
 
                 @event.listens_for(engine.sync_engine, "begin")
                 def _on_sqlite_begin(conn):
-                    conn.exec_driver_sql("BEGIN")
+                    from grunt.db.write_intent import begin_statement  # noqa: PLC0415
+
+                    # IMMEDIATE for work that will write — see grunt/db/write_intent.py.
+                    conn.exec_driver_sql(begin_statement())
 
             if settings.debug:
                 from grunt.db.profiler import attach_query_profiler  # noqa: PLC0415
