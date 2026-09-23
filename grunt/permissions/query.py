@@ -24,7 +24,8 @@ async def apply_permission_filter(
     user: User,
     doctype: DocType | Meta,
 ) -> Select:
-    """Restrict *query* to rows the user's role-permissions allow via `match`.
+    """Restrict *query* to rows the user's role-permissions allow via `match`,
+    plus documents shared with the user (``SharedWith``).
 
     Safe-by-default: a permission rule whose `match` expression can't be
     translated to SQL contributes *no* rows (fails closed) rather than being
@@ -35,7 +36,12 @@ async def apply_permission_filter(
     if access.has_unrestricted_read:
         return query
 
+    from grunt.permissions.shares import shared_names_clause
+
     conditions = []
+    shared = await shared_names_clause(table, user, doctype.name)
+    if shared is not None:
+        conditions.append(shared)
 
     for perm in access.matching_permissions():
         read_ok = perm.read if hasattr(perm, "read") else False
@@ -54,8 +60,9 @@ async def apply_permission_filter(
             log.warning("permissions.match_unparseable", doctype=doctype.name, match=match_expr)
 
     if not conditions:
-        # Either no read rule matched this user's roles, or every matching
-        # rule's `match` was unparseable — deny all rows rather than guess.
+        # No read rule matched this user's roles (or every matching rule's
+        # `match` was unparseable) and nothing is shared — deny all rows
+        # rather than guess.
         return query.where(false())
 
     return query.where(or_(*conditions))

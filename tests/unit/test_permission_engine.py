@@ -28,6 +28,22 @@ from tests.support import make_user
 if TYPE_CHECKING:
     from grunt.auth.doctypes.User.user import User
 
+
+@pytest.fixture(autouse=True)
+def _no_document_shares(monkeypatch):
+    """Role logic in isolation — SharedWith grants are covered by tests/test_doc_shares.py."""
+    from grunt.permissions import shares
+
+    async def _no_share(*_a, **_kw):
+        return False
+
+    async def _no_clause(*_a, **_kw):
+        return None
+
+    monkeypatch.setattr(shares, "has_share", _no_share)
+    monkeypatch.setattr(shares, "shared_names_clause", _no_clause)
+
+
 _META = MetaData()
 _TABLE = Table(
     "perm_engine_test_table",

@@ -126,4 +126,4 @@
 | 10.6 | 💡 | **Реєстр секцій бічної панелі** | Hook `sidebar_sections` для додатків + серверні `perms` у bundle `get_sidebar`. |
 | 10.7 | 💡 | **Table field: залишки аудиту** | Віртуалізація, блокування Save форми при помилках рядків, responsive stack-cards, перф `TableEditRow`. |
 | 10.8 | 💡 | **AttachPicker: залишки** | PDF-прев'ю (серверний thumbnail через PyMuPDF), віртуалізація сітки, roving-tabindex. |
-| 10.9 | 💡 | **Справжній DocShare** | Панель «Доступ» пише `SharedWith` (user + Read/Write), але модуль прав його не враховує — поділитися документом нічого не дає; сам `SharedWith` без `permissions`. Треба: read/write-гарантія в `permission_checker` + фільтр списку, права на `SharedWith` (власник документа / System Manager). |
+| 10.9 | ✅ | **Справжній DocShare** | `grunt/permissions/shares.py`: `SharedWith` Read → read/select, Write → +write, лише на цей документ (не create/delete). Fallback у `PermissionChecker.check` (не кешується) + `name IN (shared)` в `apply_permission_filter`. Контролер: ділитися може лише той, хто може писати документ; рядки share бачать отримувач і автор. |

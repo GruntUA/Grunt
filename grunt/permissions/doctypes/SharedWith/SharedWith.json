@@ -2,7 +2,12 @@
   "name": "SharedWith",
   "label": "Доступ",
   "module": "permissions",
-  "indexes": [["reference_doctype", "reference_id"]],
+  "indexes": [
+    [
+      "reference_doctype",
+      "reference_id"
+    ]
+  ],
   "fields": [
     {
       "fieldname": "reference_doctype",
@@ -30,5 +35,31 @@
       "options": "Read\nWrite",
       "default": "Read"
     }
-  ]
+  ],
+  "permissions": [
+    {
+      "role": "All",
+      "create": true,
+      "write": true,
+      "delete": true
+    },
+    {
+      "role": "All",
+      "read": true,
+      "match": "user == user"
+    },
+    {
+      "role": "All",
+      "read": true,
+      "match": "owner == user"
+    },
+    {
+      "role": "System Manager",
+      "read": true,
+      "create": true,
+      "write": true,
+      "delete": true
+    }
+  ],
+  "description": "Per-user share of one document (Read / Write). Only someone who can write the document may share it."
 }
