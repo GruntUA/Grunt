@@ -42,6 +42,8 @@ export interface BacklinkItem {
   source_doctype: string
   source_id: string
   link_fieldname: string
+  /** Source document's title_field value, or its id when it has none */
+  title: string
 }
 
 export interface DeleteImpactGroup {
@@ -77,7 +79,6 @@ export interface SidebarBundle {
   assignees: SidebarAssignee[]
   shares: SidebarShare[]
   tags: SidebarTag[]
-  backlinks: BacklinkItem[]
   bookmark: GruntDocument | null
   /** email → display name + avatar, for everyone referenced above */
   people: Record<string, SidebarPerson>

@@ -39,15 +39,26 @@ class DocumentMetaRPCMixin:
     @staticmethod
     @grunt.whitelist()
     async def get_backlinks(doctype: str, doc_id: str) -> list[dict[str, Any]]:
-        """Return all documents that link to this document (backlinks)."""
+        """Return all documents that link to this document (backlinks).
+
+        Each row carries ``title`` — the source document's title_field value
+        (permission-aware, one query per source DocType), falling back to its id.
+        """
         from grunt.app import grunt as grunt_app
 
         # Permission verification
         await grunt_app.get_doc(doctype, doc_id)
 
         from grunt.document.links import link_service
+        from grunt.document.titles import resolve_reference_titles
 
-        return await link_service.get_backlinks(grunt_app._require_session(), doctype, doc_id)
+        rows = await link_service.get_backlinks(grunt_app._require_session(), doctype, doc_id)
+        refs = [(r["source_doctype"], r["source_id"]) for r in rows]
+        titles = await resolve_reference_titles(refs)
+        return [
+            {**r, "title": str(titles.get(ref) or r["source_id"])}
+            for r, ref in zip(rows, refs, strict=True)
+        ]
 
     @staticmethod
     @grunt.whitelist()
@@ -73,7 +84,7 @@ class DocumentMetaRPCMixin:
     async def get_sidebar(doctype: str, doc_id: str) -> dict[str, Any]:
         """Return the whole document-sidebar payload in one round-trip.
 
-        Bundles assignees, shares, tags, backlinks and the current user's
+        Bundles assignees, shares, tags and the current user's
         bookmark so the desk sidebar needs a single request instead of one
         per section.
         """
@@ -82,8 +93,6 @@ class DocumentMetaRPCMixin:
         doc = await grunt_app.get_doc(doctype, doc_id, expand=[])  # also the permission check
 
         ref = {"reference_doctype": doctype, "reference_id": doc_id}
-
-        from grunt.document.links import link_service
 
         # Auxiliary sections — independent of each other and of the doc load
         # above, but all run on the one request-scoped AsyncSession, which
@@ -134,10 +143,6 @@ class DocumentMetaRPCMixin:
                 limit=1,
                 include_total=False,
             ),
-            [],
-        )
-        backlinks = await _optional(
-            link_service.get_backlinks(grunt_app._require_session(), doctype, doc_id),
             [],
         )
 
@@ -194,7 +199,6 @@ class DocumentMetaRPCMixin:
                 for r in shares
             ],
             "tags": [{"name": str(r["name"]), "tag": r.get("tag")} for r in tags],
-            "backlinks": backlinks,
             "bookmark": bookmark,
             "people": people,
         }

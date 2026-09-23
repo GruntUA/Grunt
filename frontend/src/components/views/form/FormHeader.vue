@@ -22,11 +22,13 @@ import {
   Database,
   Check,
   HardDriveDownload,
+  Link2,
 } from '@lucide/vue'
 import { metaApi, type DocTypeTableInfo, type DocTypeCompactResult } from '@/core/api/meta'
 import { useDocPanel } from '@/components/views/sidebar/useDocPanel'
 import AppBreadcrumb from '@/components/app/AppBreadcrumb.vue'
 import { resolveStatusBadge } from '@/core/status'
+import DocLinksDialog from './DocLinksDialog.vue'
 import WorkflowBar from '@/components/views/WorkflowBar.vue'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -69,6 +71,7 @@ const shareLoading = ref(false)
 const showShareDialog = ref(false)
 const shareExpires = ref('')
 const showRenameDialog = ref(false)
+const showLinksDialog = ref(false)
 const newDocId = ref('')
 const isRenaming = ref(false)
 
@@ -308,6 +311,12 @@ const menuItems = computed(() => {
     })
 
     items.push({
+      label: t('Links'),
+      icon: Link2,
+      command: () => (showLinksDialog.value = true),
+    })
+
+    items.push({
       label: t('Share link'),
       icon: Share2,
       command: () => {
@@ -482,6 +491,8 @@ const menuItems = computed(() => {
       :doc="document as Record<string, unknown>"
       @transitioned="handleRefresh" />
   </div>
+
+  <DocLinksDialog v-if="id" v-model:open="showLinksDialog" :doctype="doctype" :doc-id="id" :workspace="workspace" />
 
   <!-- Share Dialog -->
   <Dialog :open="showShareDialog" @update:open="(v: boolean) => showShareDialog = v">

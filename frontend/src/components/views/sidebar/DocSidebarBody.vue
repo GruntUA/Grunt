@@ -177,13 +177,6 @@ function printDoc() {
   if (token) params.set('token', token)
   window.open(`/api/v1/method/grunt.document.base.Document.print?${params.toString()}`, '_blank', 'noopener')
 }
-
-function goToLink(l: { source_doctype: string; source_id: string }) {
-  const path = props.workspace
-    ? `/${props.workspace}/${l.source_doctype}/${l.source_id}`
-    : `/${l.source_doctype}/${l.source_id}`
-  router.push(path)
-}
 </script>
 
 <template>
@@ -399,35 +392,6 @@ function goToLink(l: { source_doctype: string; source_id: string }) {
         </Button>
       </div>
     </div>
-
-    <!-- Backlinks: counter only, expandable -->
-    <Collapsible
-      v-if="sb.bundle.value.backlinks.length"
-      class="flex flex-col gap-2 p-3 bg-muted/30 rounded-lg border border-border/40"
-    >
-      <CollapsibleTrigger
-        class="group flex items-center gap-1.5 font-semibold uppercase tracking-wider text-muted-foreground/80 hover:text-foreground transition-colors"
-      >
-        <ChevronRight class="size-3 transition-transform group-data-[state=open]:rotate-90" />
-        Зв'язки · {{ sb.bundle.value.backlinks.length }}
-      </CollapsibleTrigger>
-      <CollapsibleContent>
-        <div class="flex flex-col gap-1.5 pt-0.5">
-          <button
-            v-for="l in sb.bundle.value.backlinks"
-            :key="`${l.source_doctype}-${l.source_id}`"
-            class="flex items-center gap-2 p-2 rounded-lg bg-background border border-border/40 hover:border-primary/50 hover:bg-primary/5 transition-colors group text-left shadow-sm"
-            @click="goToLink(l)"
-          >
-            <ChevronRight class="size-3 text-muted-foreground/50 group-hover:text-primary transition-colors" />
-            <div class="flex flex-col min-w-0">
-              <span class="font-semibold text-foreground truncate">{{ l.source_doctype }}</span>
-              <span class="text-muted-foreground truncate">{{ l.source_id }}</span>
-            </div>
-          </button>
-        </div>
-      </CollapsibleContent>
-    </Collapsible>
 
     <!-- Bottom actions -->
     <div class="flex gap-2">
