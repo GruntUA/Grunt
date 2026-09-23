@@ -73,12 +73,17 @@ async def doc_guard(doctype: str, doc_id: str, action: PermissionAction = "read"
     the document does not exist, ``403`` when the action is not permitted.
     """
     from grunt.app import grunt
+    from grunt.document.virtual import is_virtual_routed
     from grunt.permissions.rbac import permission_checker
 
     dt = await grunt.get_meta(doctype)
     if dt is None:
         raise not_found(f"DocType «{doctype}» не знайдено")
     user = require_user()
+    if is_virtual_routed(dt, doctype):
+        # No table to look the row up in — the DocType-level check is all there is.
+        await permission_checker.require(user, dt, action)
+        return
     lookup_id = dt.name if dt.is_singleton else doc_id
     doc = await grunt.db.get_value(doctype, lookup_id, "*")
     if doc is None:

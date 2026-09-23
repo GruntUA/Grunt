@@ -1,0 +1,15 @@
+{
+  "name": "SystemHealthItem",
+  "label": "Рядок звіту про стан системи",
+  "module": "monitoring",
+  "is_virtual": true,
+  "is_child": true,
+  "track_changes": false,
+  "track_activity": false,
+  "fields": [
+    { "fieldname": "label", "label": "Назва", "fieldtype": "Data", "in_list_view": true, "read_only": true },
+    { "fieldname": "count", "label": "Кількість", "fieldtype": "Int", "in_list_view": true, "read_only": true },
+    { "fieldname": "details", "label": "Примітка", "fieldtype": "Data", "in_list_view": true, "read_only": true }
+  ],
+  "permissions": [{ "role": "System Manager", "read": true }]
+}

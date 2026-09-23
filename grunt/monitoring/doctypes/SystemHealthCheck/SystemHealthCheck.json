@@ -1,0 +1,31 @@
+{
+  "name": "SystemHealthCheck",
+  "label": "Перевірка стану системи",
+  "module": "monitoring",
+  "is_virtual": true,
+  "is_child": true,
+  "track_changes": false,
+  "track_activity": false,
+  "status_field": "status",
+  "status_indicators": [
+    { "value": "OK", "color": "success", "label": "Добре" },
+    { "value": "Warning", "color": "warn", "label": "Увага" },
+    { "value": "Error", "color": "danger", "label": "Проблема" },
+    { "value": "Info", "color": "secondary", "label": "Інфо" }
+  ],
+  "fields": [
+    { "fieldname": "category", "label": "Розділ", "fieldtype": "Data", "read_only": true },
+    { "fieldname": "check", "label": "Перевірка", "fieldtype": "Data", "in_list_view": true, "read_only": true },
+    {
+      "fieldname": "status",
+      "label": "Стан",
+      "fieldtype": "Select",
+      "options": "OK\nWarning\nError\nInfo",
+      "in_list_view": true,
+      "read_only": true
+    },
+    { "fieldname": "value", "label": "Значення", "fieldtype": "Data", "in_list_view": true, "read_only": true },
+    { "fieldname": "hint", "label": "Що робити", "fieldtype": "Text", "in_list_view": true, "read_only": true }
+  ],
+  "permissions": [{ "role": "System Manager", "read": true }]
+}

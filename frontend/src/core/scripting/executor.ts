@@ -11,6 +11,7 @@
 
 import client from '@/core/api/client'
 import { useAuthStore } from '@/stores/auth'
+import { grunt as appGrunt } from '@/core/grunt'
 import type { DialogSize } from '@/core/composables/useDialog'
 
 // ── Types ────────────────────────────────────────────────────────────────
@@ -277,6 +278,14 @@ export interface GruntProxy {
     list: () => Promise<Array<{ name: string; label: string; last_used_at: string | null }>>
     rename: (name: string, label: string) => Promise<void>
     remove: (name: string) => Promise<void>
+  }
+  /**
+   * Browser health checks for the «Стан системи» report — service worker,
+   * offline cache and queue, network, storage (core/browserHealth.ts).
+   */
+  health: {
+    diagnose_browser: () => Promise<import('@/core/browserHealth').HealthRow[]>
+    persist_storage: () => Promise<boolean>
   }
 }
 
@@ -820,6 +829,8 @@ export function createGruntProxy(
         await authApi.deletePasskey(name)
       },
     },
+
+    health: appGrunt.health,
   }
 }
 

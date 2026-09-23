@@ -34,6 +34,8 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import SelectListCell from '@/components/fields/Select/ListCell.vue'
+import { statusConfigOf } from '@/core/status'
 import TableRowSheet from './TableRowSheet.vue'
 import { INLINE_TYPES, isLayoutRow, useTableCell } from './useTableCell'
 import { useTableRows, type Row } from './useTableRows'
@@ -132,6 +134,9 @@ const canAddRow = computed(() => {
   return !last || !rowHasError(last)
 })
 
+// The child DocType's status field shows as a coloured badge, like in lists.
+const statusConfig = computed(() => statusConfigOf(childDocType.value))
+
 // ── Grouping (field.group_by) ───────────────────────────────────────────────
 const groupBy = computed(() => props.field.group_by || null)
 
@@ -188,6 +193,8 @@ const CELL_WIDTH: Record<string, string> = {
   Date: 'min-w-40',
   Datetime: 'min-w-52',
   Link: 'min-w-56',
+  Text: 'min-w-64 whitespace-normal',
+  LongText: 'min-w-64 whitespace-normal',
 }
 
 const colSpan = computed(() => columns.value.length + (props.disabled ? 2 : 3))
@@ -359,6 +366,13 @@ function applyBulk() {
                   :doc="item.row"
                   :error="cellError(item.row, f) || undefined"
                   v-on="cellListeners(item.row, f)"
+                />
+                <SelectListCell
+                  v-else-if="statusConfig?.field === f.fieldname"
+                  :value="item.row[f.fieldname]"
+                  :row="item.row"
+                  :field="f"
+                  :status-config="statusConfig"
                 />
                 <span v-else :class="!cellDisplay(item.row, f) && 'text-muted-foreground'">
                   {{ cellDisplay(item.row, f) || '—' }}

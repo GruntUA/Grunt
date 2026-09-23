@@ -28,6 +28,7 @@ import { metaApi, type DocTypeTableInfo, type DocTypeCompactResult } from '@/cor
 import { useDocPanel } from '@/components/views/sidebar/useDocPanel'
 import AppBreadcrumb from '@/components/app/AppBreadcrumb.vue'
 import { resolveStatusBadge } from '@/core/status'
+import { getLayoutTypeSet } from '@/core/fieldRegistry'
 import DocLinksDialog from './DocLinksDialog.vue'
 import WorkflowBar from '@/components/views/WorkflowBar.vue'
 import { Badge } from '@/components/ui/badge'
@@ -267,6 +268,12 @@ function menuItemIcon(item: any): Component | null {
 
 const statusBadge = computed(() => resolveStatusBadge(props.dt, props.document))
 
+// A form whose every field is read-only (a live report, a virtual view) has nothing to save.
+const LAYOUT_TYPES = getLayoutTypeSet()
+const canSave = computed(
+  () => !props.dt || props.dt.fields.some((f) => !LAYOUT_TYPES.has(f.fieldtype) && !f.read_only),
+)
+
 const menuItems = computed(() => {
   const items: any[] = []
 
@@ -455,7 +462,7 @@ const menuItems = computed(() => {
           <PanelRight class="size-4" />
         </Button>
 
-        <Button :disabled="isSaving" size="sm" @click="emit('save')" :title="`${t('Save')} (Ctrl+S)`">
+        <Button v-if="canSave" :disabled="isSaving" size="sm" @click="emit('save')" :title="`${t('Save')} (Ctrl+S)`">
           <Loader2 v-if="isSaving" class="size-4 animate-spin mr-1.5" />
           {{ t('Save') }}
         </Button>

@@ -1,0 +1,127 @@
+{
+  "name": "SystemHealthReport",
+  "label": "Стан системи",
+  "module": "monitoring",
+  "icon": "heart-pulse",
+  "is_virtual": true,
+  "is_singleton": true,
+  "track_changes": false,
+  "track_activity": false,
+  "status_field": "overall_status",
+  "status_indicators": [
+    {
+      "value": "OK",
+      "color": "success",
+      "label": "Усе гаразд"
+    },
+    {
+      "value": "Warning",
+      "color": "warn",
+      "label": "Є попередження"
+    },
+    {
+      "value": "Error",
+      "color": "danger",
+      "label": "Є проблеми"
+    }
+  ],
+  "description": "Діагностика: база даних, фонові задачі, планувальник, помилки, пошта, безпека, файли й офлайн-режим. Обчислюється наживо при кожному відкритті — нічого не зберігається.",
+  "fields": [
+    {
+      "fieldname": "tab_server",
+      "label": "Сервер",
+      "fieldtype": "Tab"
+    },
+    {
+      "fieldname": "overall_status",
+      "label": "Загальний стан",
+      "fieldtype": "Select",
+      "options": "OK\nWarning\nError",
+      "read_only": true
+    },
+    {
+      "fieldname": "checked_at",
+      "label": "Перевірено",
+      "fieldtype": "Datetime",
+      "read_only": true
+    },
+    {
+      "fieldname": "col_summary",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "ok_count",
+      "label": "Добре",
+      "fieldtype": "Int",
+      "read_only": true
+    },
+    {
+      "fieldname": "warning_count",
+      "label": "Увага",
+      "fieldtype": "Int",
+      "read_only": true
+    },
+    {
+      "fieldname": "error_count",
+      "label": "Проблеми",
+      "fieldtype": "Int",
+      "read_only": true
+    },
+    {
+      "fieldname": "sec_checks",
+      "label": "Перевірки",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "checks",
+      "label": "Перевірки",
+      "fieldtype": "Table",
+      "options": "SystemHealthCheck",
+      "group_by": "category",
+      "read_only": true
+    },
+    {
+      "fieldname": "sec_details",
+      "label": "Подробиці",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "top_errors",
+      "label": "Найчастіші помилки (7 днів)",
+      "fieldtype": "Table",
+      "options": "SystemHealthItem",
+      "read_only": true
+    },
+    {
+      "fieldname": "col_details",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "largest_tables",
+      "label": "Найбільші таблиці",
+      "fieldtype": "Table",
+      "options": "SystemHealthItem",
+      "read_only": true
+    },
+    {
+      "fieldname": "tab_browser",
+      "label": "Браузер і офлайн",
+      "fieldtype": "Tab"
+    },
+    {
+      "fieldname": "browser_checks",
+      "label": "Перевірки цього браузера",
+      "fieldtype": "Table",
+      "options": "SystemHealthCheck",
+      "group_by": "category",
+      "read_only": true,
+      "description": "Виконуються в браузері, з якого відкрито сторінку: service worker, офлайн-кеш, черга несинхронізованих змін, сховище."
+    }
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "read": true
+    }
+  ]
+}

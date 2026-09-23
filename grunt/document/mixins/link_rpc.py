@@ -123,7 +123,7 @@ class DocumentLinkRPCMixin:
             from grunt.document.virtual import _get_virtual_controller
 
             ctrl = _get_virtual_controller(doctype, grunt.get_user())
-            result = await ctrl.get_list(search=search, page=1, per_page=per_page)
+            result = await ctrl.get_list(search=search, page=1, per_page=per_page) if ctrl else {}
             title_field = dt.title_field or "name"
             items = []
             for row in result.get("data", []):

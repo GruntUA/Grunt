@@ -144,4 +144,17 @@ export const grunt = {
       await authApi.deletePasskey(name)
     },
   },
+
+  /** Browser health checks (service worker, offline cache & queue, storage) — see core/browserHealth.ts. */
+  health: {
+    async diagnose_browser() {
+      const { diagnoseBrowser } = await import('@/core/browserHealth')
+      return diagnoseBrowser()
+    },
+
+    async persist_storage(): Promise<boolean> {
+      const { persistStorage } = await import('@/core/browserHealth')
+      return persistStorage()
+    },
+  },
 }
