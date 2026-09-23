@@ -7,6 +7,7 @@ import type { LinkSearchItem } from '@/core/api/docs'
 import type { TreeNode } from '@/components/ui/tree-select'
 import { escapeHtml } from '@/lib/utils'
 import { useAnchoredDropdown } from '@/core/composables/useAnchoredDropdown'
+import { docUrl } from '@/core/workspaceUrl'
 
 export type LinkFiltersFn = (fieldname: string, doc: Record<string, unknown>) => Record<string, string | string[]>
 
@@ -383,7 +384,7 @@ export function useLinkField(props: {
   const linkedDocUrl = computed(() => {
     if (!isSelected.value || !props.field.options || !props.modelValue) return null
     const workspace = route.params.workspaceName as string | undefined
-    if (workspace) return `/${workspace}/${props.field.options}/${props.modelValue}`
+    if (workspace) return docUrl(props.field.options, props.modelValue, workspace)
     return null
   })
 

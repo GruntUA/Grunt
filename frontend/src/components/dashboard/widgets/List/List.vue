@@ -3,6 +3,7 @@ import type { DashboardWidget } from '@/types'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { formatDate as fmtDate } from '@/core/datetime'
+import { docUrl } from '@/core/workspaceUrl'
 
 const props = defineProps<{
   widget: DashboardWidget
@@ -28,7 +29,7 @@ function getTitle(item: Record<string, unknown>): string {
 
 function open(item: Record<string, unknown>) {
   if (!props.workspaceName) return
-  router.push(`/${props.workspaceName}/${props.widget.doctype}/${item.id}`)
+  router.push(docUrl(props.widget.doctype, item.id, props.workspaceName))
 }
 </script>
 

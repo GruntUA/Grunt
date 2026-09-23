@@ -12,6 +12,7 @@ import { useAppStore } from '@/stores/app'
 import AppIcon from '@/components/AppIcon.vue'
 import { MoreHorizontal, Home } from '@lucide/vue'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
+import { docUrl, workspaceUrl } from '@/core/workspaceUrl'
 
 const props = defineProps<{ workspaceName: string }>()
 
@@ -46,9 +47,9 @@ function isActive(link_to: string) {
 function navigate(item: { type: string; link_to: string }) {
   showOverflow.value = false
   if (item.type === 'DocType') {
-    router.push(`/${props.workspaceName}/${item.link_to}`)
+    router.push(docUrl(item.link_to, null, props.workspaceName))
   } else if (item.type === 'Report') {
-    router.push(`/${props.workspaceName}/report/${item.link_to}`)
+    router.push(workspaceUrl(props.workspaceName, 'report', encodeURIComponent(item.link_to)))
   }
 }
 

@@ -28,6 +28,7 @@ import {
 } from '@lucide/vue'
 import { Button } from '@/components/ui/button'
 import type { ButtonVariants } from '@/components/ui/button'
+import { docUrl } from '@/core/workspaceUrl'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 
 // Client scripts set `severity` as a free-form string; trust it as a Button variant.
@@ -94,11 +95,10 @@ function handleNew() {
     emit('create-quick')
     return
   }
-  const ws = props.workspace ?? 'grunt'
   if (props.isSystemDocType) {
-    router.push(`/${ws}/DocType/new`)
+    router.push(docUrl('DocType', 'new', props.workspace))
   } else {
-    router.push(props.workspace ? `/${props.workspace}/${props.doctype}/new` : `/${props.doctype}/new`)
+    router.push(docUrl(props.doctype, 'new', props.workspace))
   }
 }
 
@@ -122,7 +122,7 @@ const menuItems = computed(() => {
         items.push({
             label: t('Edit DocType'),
             icon: Pencil,
-            command: () => router.push(`/${props.workspace ?? 'grunt'}/DocType/${props.doctype}`)
+            command: () => router.push(docUrl('DocType', props.doctype, props.workspace))
         })
         items.push({
             label: t('Customize Quick Filters'),

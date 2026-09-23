@@ -10,6 +10,7 @@ import { Loader2 } from '@lucide/vue'
 import { docsApi, type BacklinkItem } from '@/core/api/docs'
 import { useDocTypeStore } from '@/stores/doctype'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { docUrl } from '@/core/workspaceUrl'
 import { Input } from '@/components/ui/input'
 
 const props = defineProps<{
@@ -60,7 +61,7 @@ const groups = computed(() => {
 
 function goTo(l: BacklinkItem) {
   open.value = false
-  router.push(props.workspace ? `/${props.workspace}/${l.source_doctype}/${l.source_id}` : `/${l.source_doctype}/${l.source_id}`)
+  router.push(docUrl(l.source_doctype, l.source_id, props.workspace))
 }
 </script>
 

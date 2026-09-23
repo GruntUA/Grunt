@@ -3,6 +3,7 @@ import type { DashboardWidget } from '@/types'
 import { FileText, Plus, RefreshCcw, Trash2, Send, Share2, MessageSquare, GitBranch } from '@lucide/vue'
 import { useRouter } from 'vue-router'
 import { formatDayMonth } from '@/core/datetime'
+import { docUrl } from '@/core/workspaceUrl'
 
 const props = defineProps<{
   widget: DashboardWidget
@@ -69,8 +70,7 @@ function formatTime(val: string): string {
 }
 
 function goToDoc(item: ActivityItem) {
-  const ws = props.workspaceName ?? 'grunt'
-  router.push(`/${ws}/${item.doctype}/${item.doc_id}`)
+  router.push(docUrl(item.doctype, item.doc_id, props.workspaceName))
 }
 </script>
 

@@ -39,6 +39,7 @@ import QuickFilterSettingsDialog from '@/components/views/list/QuickFilterSettin
 import DocTypeToolbar from '@/components/views/DocTypeToolbar.vue'
 import ListViewRouter from '@/components/views/list/ListViewRouter.vue'
 import ListPagination from '@/components/views/ListPagination.vue'
+import { docUrl } from '@/core/workspaceUrl'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 const props = defineProps<{ doctype: string; workspace?: string }>()
 const doctype = computed(() => props.doctype)
@@ -298,16 +299,15 @@ function navigateToDoc(row: Record<string, unknown>) {
   if (Array.isArray(seen) && email && !seen.includes(email)) {
     row._seen = [...seen, email]
   }
-  const ws = props.workspace ?? 'grunt'
   // Use generic routing for all DocTypes including DocType itself
-  router.push(`/${ws}/${props.doctype}/${encodeURIComponent(String(docId))}`)
+  router.push(docUrl(props.doctype, docId, props.workspace))
 }
 
 watch(() => props.doctype, async (newDoctype) => {
   dt.value = await dtStore.get(newDoctype)
   setPageTitle(dt.value?.label || newDoctype)
   if (dt.value?.is_singleton) {
-    router.replace(`/${props.workspace ?? 'grunt'}/${newDoctype}/${newDoctype}`)
+    router.replace(docUrl(newDoctype, newDoctype, props.workspace))
     return
   }
   applyRouteState()

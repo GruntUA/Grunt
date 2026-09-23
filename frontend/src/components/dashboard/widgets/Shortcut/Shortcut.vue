@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import type { DashboardWidget } from '@/types'
 import * as LucideIcons from '@lucide/vue'
 import { ExternalLink } from '@lucide/vue'
+import { docUrl } from '@/core/workspaceUrl'
 import { useRouter } from 'vue-router'
 
 const props = defineProps<{
@@ -41,7 +42,7 @@ function navigate() {
   } else if (linkType === 'Page') {
     router.push({ name: 'workspace-page', params: { workspaceName: ws, pageName: target } })
   } else {
-    router.push(`/${ws}/${target}`)
+    router.push(docUrl(target, null, ws))
   }
 }
 </script>

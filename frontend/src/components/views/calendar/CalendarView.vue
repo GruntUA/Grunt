@@ -25,6 +25,7 @@ import { Calendar } from '@/components/ui/calendar'
 import { Popover, PopoverAnchor, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Separator } from '@/components/ui/separator'
 import { Spinner } from '@/components/ui/spinner'
+import { docUrl } from '@/core/workspaceUrl'
 
 const props = defineProps<{
   doctype: DocType
@@ -246,7 +247,7 @@ watch(() => props.refreshKey, (_v, old) => { if (old !== undefined) loadDocument
 
 function navigateToDoc(event: CalendarEvent) {
   const id = String(event.id)
-  router.push(props.workspace ? `/${props.workspace}/${event.doctype}/${id}` : `/${event.doctype}/${id}`)
+  router.push(docUrl(event.doctype, id, props.workspace))
 }
 
 function showEventDetails(event: CalendarEvent, target: EventTarget | null) {
@@ -307,9 +308,7 @@ async function onDrop(e: DragEvent, day: Date) {
 }
 
 function onDayClick(day: Date) {
-  const path = props.workspace
-    ? `/${props.workspace}/${props.doctype.name}/new`
-    : `/${props.doctype.name}/new`
+  const path = docUrl(props.doctype.name, 'new', props.workspace)
 
   router.push({
     path,

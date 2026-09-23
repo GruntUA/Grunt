@@ -29,6 +29,7 @@ import {
   Monitor,
   PackageOpen,
 } from '@lucide/vue'
+import { docUrl } from '@/core/workspaceUrl'
 
 const auth = useAuthStore()
 async function exitImpersonation() {
@@ -204,7 +205,7 @@ function docInitials(doc: RecentDoc): string {
         <div class="-mx-1 flex gap-3 overflow-x-auto px-1 pb-1">
           <button v-for="doc in recentDocs.slice(0, 10)" :key="doc.id"
             class="group flex w-56 shrink-0 flex-col gap-2.5 rounded-lg border bg-card p-3 text-left transition-colors hover:border-primary/40"
-            @click="router.push(`/${doc.workspace}/${doc.doctype}/${doc.id}`)">
+            @click="router.push(docUrl(doc.doctype, doc.id, doc.workspace))">
             <div class="flex items-center justify-between">
               <div class="flex size-8 shrink-0 items-center justify-center rounded-md font-semibold"
                 :style="{

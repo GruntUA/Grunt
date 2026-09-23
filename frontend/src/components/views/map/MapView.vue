@@ -11,6 +11,7 @@ import { useMapMarkers } from '@/core/composables/useMapMarkers'
 import { useMapLifecycle } from '@/core/composables/useMapLifecycle'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { docUrl } from '@/core/workspaceUrl'
 
 // ── Props ────────────────────────────────────────────────────────────────────
 const props = defineProps<{
@@ -56,8 +57,7 @@ const mapEl = ref<HTMLDivElement | null>(null)
 const mapWrapEl = ref<HTMLDivElement | null>(null)
 
 function navigateToDoc(id: string) {
-  const ws = props.workspace ?? 'grunt'
-  router.push(`/${ws}/${props.doctype.name}/${id}`)
+  router.push(docUrl(props.doctype.name, id, props.workspace))
 }
 
 const { isLoading, markerCount, skippedCount, loadedRows, loadMarkers } = useMapMarkers({

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useAppStore } from '@/stores/app'
 import { workspaceApi, type MyWork } from '@/core/api/workspace'
 import { isAssignmentPlaceholder } from '@/core/api/docs'
 import { CheckSquare, Bell } from '@lucide/vue'
@@ -9,21 +8,12 @@ import { formatIntl } from '@/core/datetime'
 import { Badge } from '@/components/ui/badge'
 import { Spinner } from '@/components/ui/spinner'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
+import { docUrl } from '@/core/workspaceUrl'
 
 const router = useRouter()
-const appStore = useAppStore()
 
 const data = ref<MyWork | null>(null)
 const loading = ref(true)
-
-// Resolve which workspace exposes a given doctype, so task links navigate
-// to the correct app route. Falls back to the first workspace.
-function workspaceForDoctype(doctype: string): string {
-  for (const ws of appStore.workspaces) {
-    if (ws.items?.some(i => i.type === 'DocType' && i.link_to === doctype)) return ws.name
-  }
-  return appStore.workspaces[0]?.name ?? ''
-}
 
 const assignedCount = computed(() => data.value?.counts.assigned ?? 0)
 const unreadCount = computed(() => data.value?.counts.unread ?? 0)
@@ -36,13 +26,12 @@ function taskNote(t: MyWork['assigned'][number]): string {
 
 function openTask(t: MyWork['assigned'][number]) {
   if (!t.reference_doctype || !t.reference_id) return
-  const ws = workspaceForDoctype(t.reference_doctype)
-  router.push(`/${ws}/${t.reference_doctype}/${t.reference_id}`)
+  router.push(docUrl(t.reference_doctype, t.reference_id))
 }
 
 function openNotification(n: MyWork['notifications'][number]) {
   if (n.doctype && n.doc_id) {
-    router.push(`/${workspaceForDoctype(n.doctype)}/${n.doctype}/${n.doc_id}`)
+    router.push(docUrl(n.doctype, n.doc_id))
   }
 }
 

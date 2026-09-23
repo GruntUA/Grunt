@@ -11,6 +11,7 @@ import { getLayoutTypeSet } from '@/core/fieldRegistry'
 import { filterFieldsByName } from '@/core/fieldFilter'
 import { ExternalLink } from '@lucide/vue'
 import { Button } from '@/components/ui/button'
+import { docUrl } from '@/core/workspaceUrl'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
 const props = defineProps<{
@@ -76,8 +77,7 @@ async function handleSave(openAfter: boolean) {
     emit('saved', savedDoc.name)
     emit('close')
     if (openAfter) {
-      const ws = props.workspace ?? 'grunt'
-      router.push(`/${ws}/${props.dt.name}/${savedDoc.id}`)
+      router.push(docUrl(props.dt.name, savedDoc.id, props.workspace))
     }
   } catch (err: unknown) {
     const e = err as {

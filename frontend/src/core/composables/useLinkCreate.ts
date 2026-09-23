@@ -12,12 +12,16 @@
  */
 
 import { useRouter } from 'vue-router'
+import { docUrl } from '@/core/workspaceUrl'
 
 const DRAFT_PREFIX = 'grunt:link_draft:'
 const RETURN_KEY = 'grunt:link_return'
 
 export interface LinkReturnContext {
   returnPath: string
+  /** Where the draft of the originating form is stored (see draftKey). */
+  draftDoctype: string
+  draftId: string
   fieldname: string
   linkedDoctype: string
 }
@@ -92,16 +96,13 @@ export function useLinkCreate() {
     formData: Record<string, unknown>,
     workspace?: string,
   ): void {
-    const returnPath = workspace
-      ? `/${workspace}/${currentDoctype}/${currentId ?? 'new'}`
-      : `/${currentDoctype}/${currentId ?? 'new'}`
+    const draftId = currentId ?? 'new'
+    const returnPath = docUrl(currentDoctype, draftId, workspace)
 
     saveDraft(currentDoctype, currentId, formData)
-    saveReturnContext({ returnPath, fieldname, linkedDoctype })
+    saveReturnContext({ returnPath, draftDoctype: currentDoctype, draftId, fieldname, linkedDoctype })
 
-    const newPath = workspace
-      ? `/${workspace}/${linkedDoctype}/new`
-      : `/${linkedDoctype}/new`
+    const newPath = docUrl(linkedDoctype, 'new', workspace)
 
     const initialData = Object.keys(preset).length > 0 ? preset : null
 
@@ -133,8 +134,8 @@ export function useLinkCreate() {
           fieldname: ctx.fieldname,
           value: savedName,
           // Encode draft key so the return form knows where to find draft
-          draftDoctype: ctx.returnPath.split('/').at(-2) ?? '',
-          draftId: ctx.returnPath.split('/').at(-1) ?? 'new',
+          draftDoctype: ctx.draftDoctype,
+          draftId: ctx.draftId,
         }),
       },
     })

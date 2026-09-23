@@ -2,6 +2,7 @@ import { computed, ref, type Ref } from 'vue'
 import { onBeforeRouteLeave, type Router } from 'vue-router'
 
 import { useShortcut } from '@/core/composables/useShortcuts'
+import { docUrl } from '@/core/workspaceUrl'
 
 interface UseFormNavigationParams {
   router: Router
@@ -18,7 +19,7 @@ export function useFormNavigation(params: UseFormNavigationParams) {
   const allowLeave = ref(false)
 
   const listPath = computed(() => {
-    return params.workspace ? `/${params.workspace}/${params.doctype}` : `/${params.doctype}`
+    return docUrl(params.doctype, null, params.workspace)
   })
 
   function markAllowLeave() {

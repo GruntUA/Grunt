@@ -31,6 +31,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { docUrl } from '@/core/workspaceUrl'
 
 const props = defineProps<{
   doctype: DocType
@@ -124,7 +125,7 @@ function priorityTag(a: SidebarAssignee): string {
   return a.priority && a.priority in PRIORITY_LABEL ? PRIORITY_LABEL[a.priority] : ''
 }
 function openTask(a: SidebarAssignee) {
-  router.push(props.workspace ? `/${props.workspace}/ToDo/${a.name}` : `/ToDo/${a.name}`)
+  router.push(docUrl('ToDo', a.name, props.workspace))
 }
 async function confirmUnassign(a: SidebarAssignee) {
   const ok = await dialog.confirm(`Прибрати ${sb.personName(a.assigned_to)} з відповідальних?`)

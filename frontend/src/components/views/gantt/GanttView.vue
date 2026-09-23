@@ -15,6 +15,7 @@ import {
 } from 'date-fns'
 import { uk, enUS } from 'date-fns/locale'
 import { useRouter } from 'vue-router'
+import { docUrl } from '@/core/workspaceUrl'
 import type { DocType } from '@/types'
 import { siteConfigState } from '@/core/composables/useSiteConfig'
 import { docsApi } from '@/core/api/docs'
@@ -369,8 +370,7 @@ function serialize(d: Date, original: unknown, ftype: string): string {
 
 function openTask(task: GanttTask) {
   if (drag.value) return
-  const base = props.workspace ? `/${props.workspace}` : ''
-  router.push(`${base}/${props.doctype.name}/${task.id}`)
+  router.push(docUrl(props.doctype.name, task.id, props.workspace))
 }
 
 function fmtSpan(task: GanttTask) {

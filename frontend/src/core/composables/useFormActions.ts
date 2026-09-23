@@ -2,6 +2,7 @@ import type { Ref } from 'vue'
 import type { Router } from 'vue-router'
 
 import type { QueryClient } from '@tanstack/vue-query'
+import { docUrl } from '@/core/workspaceUrl'
 
 interface UseFormActionsParams {
   doctype: string
@@ -53,9 +54,7 @@ export function useFormActions(params: UseFormActionsParams) {
       delete clone[field]
     })
 
-    const path = params.workspace
-      ? `/${params.workspace}/${params.doctype}/new`
-      : `/${params.doctype}/new`
+    const path = docUrl(params.doctype, 'new', params.workspace)
 
     params.markAllowLeave()
     params.router.push({ path, state: { duplicate: JSON.stringify(clone) } })

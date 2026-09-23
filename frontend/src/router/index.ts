@@ -60,7 +60,6 @@ const router = createRouter({
     },
     {
       path: '/app/:workspaceName',
-      alias: '/:workspaceName',
       component: () => import('@/pages/app/AppLayout.vue'),
       props: true,
       children: [
@@ -124,6 +123,13 @@ const router = createRouter({
         },
       ],
     },
+    // Legacy bare workspace URLs (old bookmarks: /letter/IncomingLetter/…) →
+    // canonical /app/…. Static routes (/login, /403, …) rank above this.
+    // New links are built with core/workspaceUrl (docUrl / workspaceUrl).
+    {
+      path: '/:workspaceName/:rest(.*)*',
+      redirect: (to) => '/app' + to.fullPath,
+    },
     // 403 forbidden
     {
       path: '/403',
@@ -144,17 +150,6 @@ const router = createRouter({
 router.beforeEach(async (to) => {
   // Branding / locale / date-format config must be ready before the first paint.
   await loadSiteConfig()
-
-  // Redirect alias paths (/:workspaceName/...) to canonical /app/:workspaceName/...
-  // When matched via alias, matched[0].path is the alias path (e.g. /:workspaceName),
-  // but matched[0].aliasOf?.path is the canonical path (/app/:workspaceName).
-  const firstRecord = to.matched[0]
-  const isWorkspaceRoute =
-    firstRecord?.path === '/app/:workspaceName' ||
-    (firstRecord as any)?.aliasOf?.path === '/app/:workspaceName'
-  if (isWorkspaceRoute && !to.path.startsWith('/app/')) {
-    return '/app' + to.path
-  }
 
   const auth = useAuthStore()
 

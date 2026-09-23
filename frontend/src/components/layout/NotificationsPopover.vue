@@ -14,6 +14,7 @@ import { useToast } from '@/core/composables/useToast'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover'
+import { docUrl } from '@/core/workspaceUrl'
 
 const props = defineProps<{
     workspace?: string
@@ -61,8 +62,7 @@ function handleNotificationClick(n: NotificationItem) {
 
     if (n.doctype && n.doc_id) {
         isOpen.value = false
-        const ws = props.workspace || 'grunt'
-        router.push(`/${ws}/${n.doctype}/${n.doc_id}`)
+        router.push(docUrl(n.doctype, n.doc_id, props.workspace))
     }
 }
 

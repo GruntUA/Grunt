@@ -9,6 +9,7 @@ import QuickEntryDialog from '@/components/views/QuickEntryDialog.vue'
 import { useQuickFilters } from '@/core/composables/useQuickFilters'
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
+import { docUrl } from '@/core/workspaceUrl'
 
 const props = defineProps<{
   doctype: DocType
@@ -224,11 +225,7 @@ function toggleSortOrder() {
 }
 
 function navigateTo(node: any) {
-  if (props.workspace) {
-    router.push(`/${props.workspace}/${props.doctype.name}/${node.id}`)
-  } else {
-    router.push(`/${props.doctype.name}/${node.id}`)
-  }
+  router.push(docUrl(props.doctype.name, node.id, props.workspace))
 }
 
 // ── Quick entry ───────────────────────────────────────────────────────────────
@@ -244,11 +241,7 @@ function onQuickEntrySaved() {
 }
 
 function createRoot() {
-  if (props.workspace) {
-    router.push(`/${props.workspace}/${props.doctype.name}/new`)
-  } else {
-    router.push(`/${props.doctype.name}/new`)
-  }
+  router.push(docUrl(props.doctype.name, 'new', props.workspace))
 }
 
 const totalCount = computed(() => {

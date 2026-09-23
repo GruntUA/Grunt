@@ -5,6 +5,7 @@ import type { DashboardWidget, ShortcutItem } from '@/types'
 import * as LucideIcons from '@lucide/vue'
 import { ExternalLink } from '@lucide/vue'
 import { useRouter } from 'vue-router'
+import { docUrl } from '@/core/workspaceUrl'
 
 const props = defineProps<{
   widget: DashboardWidget
@@ -41,7 +42,7 @@ function navigate(tile: ShortcutItem) {
   } else if (tile.link_type === 'Page') {
     router.push({ name: 'workspace-page', params: { workspaceName: ws, pageName: tile.link_to } })
   } else {
-    router.push(`/${ws}/${tile.link_to}`)
+    router.push(docUrl(tile.link_to, null, ws))
   }
 }
 </script>

@@ -5,6 +5,7 @@ import { clearScriptCache } from '@/core/scripting/executor'
 import { useAppStore } from '@/stores/app'
 import type { DocType } from '@/types'
 import type { QueryClient } from '@tanstack/vue-query'
+import { docUrl } from '@/core/workspaceUrl'
 
 interface UseFormSaveParams {
   doctype: string
@@ -112,10 +113,7 @@ export function useFormSave(params: UseFormSaveParams) {
           return
         }
 
-        const path = params.workspace
-          ? `/${params.workspace}/${params.doctype}/${savedDoc.id}`
-          : `/${params.doctype}/${savedDoc.id}`
-        params.router.replace(path)
+        params.router.replace(docUrl(params.doctype, savedDoc.id, params.workspace))
       }
     } catch (error: unknown) {
       const err = error as {

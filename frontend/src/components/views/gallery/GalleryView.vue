@@ -10,6 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription } from '@/components/ui/empty'
+import { docUrl } from '@/core/workspaceUrl'
 
 const props = defineProps<{
   rows: Record<string, unknown>[]
@@ -61,8 +62,7 @@ function onCardClick(e: MouseEvent, row: Record<string, unknown>) {
 }
 
 function navigateToDoc(row: Record<string, unknown>) {
-  const ws = props.workspace ?? 'grunt'
-  router.push(`/${ws}/${props.doctype}/${row.id}`)
+  router.push(docUrl(props.doctype, row.id, props.workspace))
 }
 
 function formatCell(val: unknown): string {

@@ -23,6 +23,7 @@ import { onKeyStroke } from '@vueuse/core'
 import { useToast } from '@/core/composables/useToast'
 import { tryCalc, formatCalcResult } from '@/lib/calc'
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog'
+import { docUrl, workspaceUrl } from '@/core/workspaceUrl'
 import { Command, CommandList, CommandGroup, CommandItem } from '@/components/ui/command'
 
 const { t } = useI18n()
@@ -122,7 +123,7 @@ const quickCreateDoctypes = computed(() => {
 
 function createDoc(dt: any) {
     const ws = appStore.workspaces.find(w => w.items.some((i: any) => i.link_to === dt.name))
-    navigateTo(`/${ws?.name || appStore.active?.name || 'grunt'}/${dt.name}/new`)
+    navigateTo(docUrl(dt.name, 'new', ws?.name || appStore.active?.name))
 }
 
 // Async search across actions, workspaces, doctypes and indexed documents.
@@ -168,7 +169,7 @@ watch(search, async (val) => {
                     title: ws.label,
                     icon: LayoutGrid,
                     category: t('Apps'),
-                    run: () => navigateTo(`/${ws.name}`),
+                    run: () => navigateTo(workspaceUrl(ws.name)),
                 })
             }
         })
@@ -185,8 +186,8 @@ watch(search, async (val) => {
                     run: () => {
                         const ws = appStore.workspaces.find(w => w.items.some((i: any) => i.link_to === dt.name))
                         navigateTo(dt.is_singleton
-                            ? `/${ws?.name || 'grunt'}/${dt.name}/${dt.name}`
-                            : `/${ws?.name || 'grunt'}/${dt.name}`)
+                            ? docUrl(dt.name, dt.name, ws?.name)
+                            : docUrl(dt.name, null, ws?.name))
                     },
                 })
             }
@@ -204,7 +205,7 @@ watch(search, async (val) => {
                     category: t('Documents'),
                     run: () => {
                         const ws = appStore.workspaces.find(w => w.items.some((i: any) => i.link_to === d.doctype))
-                        navigateTo(`/${ws?.name || 'grunt'}/${d.doctype}/${docId}`)
+                        navigateTo(docUrl(d.doctype, docId, ws?.name))
                     },
                 })
             })

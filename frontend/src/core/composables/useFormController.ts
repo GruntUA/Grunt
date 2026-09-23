@@ -33,6 +33,7 @@ import { useFormDocumentView } from './useFormDocumentView'
 import { useFormShortcuts } from './useFormShortcuts'
 
 import type { DocType } from '@/types'
+import { docUrl } from '@/core/workspaceUrl'
 
 // ── Public interface ─────────────────────────────────────────────────────────
 
@@ -176,12 +177,11 @@ export function useFormController(
       startLinkCreate(linkedDoctype, preset, fieldname, parentDoctype, parentId, formSnapshot, ws)
     },
     navigateToNew: (linkedDoctype, preset) => {
-      const ws = workspace || 'grunt'
       const query: Record<string, string> = {}
       for (const [k, v] of Object.entries(preset)) {
         query[k] = String(v)
       }
-      void router.push({ path: `/${ws}/${linkedDoctype}/new`, query })
+      void router.push({ path: docUrl(linkedDoctype, 'new', workspace), query })
     },
   })
 
