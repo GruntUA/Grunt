@@ -440,6 +440,9 @@ class DocumentWriteMixin(DocumentReadMixin):
         from grunt.storage.signing import strip_file_signatures
 
         data = strip_file_signatures(data)
+        # Optimistic-concurrency guard: the `modified_at` the client's edit was
+        # based on (sent by offline replays). A newer server copy → 409.
+        base_modified_at = data.pop("__base_modified_at", None)
         dt = await self._resolve_dt(doctype_name)
 
         # A singleton's first save arrives here, not at ``create_document`` —
@@ -481,6 +484,13 @@ class DocumentWriteMixin(DocumentReadMixin):
         from grunt.permissions.rbac import permission_checker
 
         await permission_checker.require(user, dt, "write", existing)
+
+        if base_modified_at and not _same_instant(base_modified_at, existing.get("modified_at")):
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Документ змінено після того, як ви почали редагування. "
+                "Відкрийте його знову та повторіть зміни.",
+            )
 
         errors = _validate_data(dt, data, partial=True, ignore_required=ignore_required)
         if errors:
@@ -648,3 +658,22 @@ class DocumentWriteMixin(DocumentReadMixin):
             user=user,
             session=self.session,
         )
+
+
+def _same_instant(a: Any, b: Any) -> bool:
+    """Compare two timestamps given as datetimes or ISO strings (``Z`` / offset / naive-UTC)."""
+
+    def parse(v: Any) -> datetime | None:
+        if isinstance(v, datetime):
+            dt = v
+        elif isinstance(v, str) and v:
+            try:
+                dt = datetime.fromisoformat(v.replace("Z", "+00:00"))
+            except ValueError:
+                return None
+        else:
+            return None
+        return dt if dt.tzinfo else dt.replace(tzinfo=UTC)
+
+    pa, pb = parse(a), parse(b)
+    return pa is not None and pb is not None and pa == pb

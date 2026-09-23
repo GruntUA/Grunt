@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite'
+import { defineConfig, type Plugin } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import tailwindcss from '@tailwindcss/vite'
 import path from 'path'
@@ -71,11 +71,30 @@ const allowedHosts = discoverAllowedHosts()
 // - /node_modules
 const CLEAN_URL_PROXY_REGEX = '^(?!(/app($|/)|/api($|/)|/ws($|/)|/assets($|/)|/@|/node_modules|/frontend($|/)|/vite-hmr($|/)))'
 
+/**
+ * Lists every built asset in `precache-manifest.json` so the service worker
+ * (public/sw.js) can cache the whole app at install — pages never opened
+ * online still work offline.
+ */
+function precacheManifest(): Plugin {
+    return {
+        name: 'grunt-precache-manifest',
+        apply: 'build',
+        generateBundle(_options, bundle) {
+            const files = Object.keys(bundle)
+                .filter((f) => /\.(js|css|woff2?|svg|png|webp)$/.test(f))
+                .map((f) => `/${f}`)
+            this.emitFile({ type: 'asset', fileName: 'precache-manifest.json', source: JSON.stringify(files) })
+        },
+    }
+}
+
 // https://vitejs.dev/config/
 export default defineConfig({
     plugins: [
         vue(),
         tailwindcss(),
+        precacheManifest(),
     ],
     resolve: {
         alias: {
@@ -135,6 +154,14 @@ export default defineConfig({
             '@intlify/shared',
             '@intlify/message-compiler',
         ],
+    },
+    // `vite preview` serves the built dist/ itself — only the API goes to the
+    // backend (the dev `server.proxy` would also send /assets there).
+    preview: {
+        proxy: {
+            '/api/v1/ws': { target: 'http://localhost:8000', ws: true },
+            '/api': { target: 'http://localhost:8000', changeOrigin: true },
+        },
     },
     server: {
         port: 5173,

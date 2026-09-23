@@ -116,6 +116,13 @@ export function useFormSave(params: UseFormSaveParams) {
         params.router.replace(docUrl(params.doctype, savedDoc.id, params.workspace))
       }
     } catch (error: unknown) {
+      // No connection: the change is queued (useOfflineQueue) and the client
+      // already told the user — nothing failed, so don't show an error.
+      const { isOfflineQueued } = await import('@/core/composables/useOfflineQueue')
+      if (isOfflineQueued(error)) {
+        params.markAllowLeave()
+        return
+      }
       const err = error as {
         response?: {
           status?: number

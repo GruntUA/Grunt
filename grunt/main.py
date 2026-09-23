@@ -13,6 +13,7 @@ from grunt.api.v1.router import v1_router
 from grunt.apps import load_core
 from grunt.config import settings
 from grunt.i18n.middleware import LanguageMiddleware
+from grunt.middleware.idempotency import IdempotencyMiddleware
 from grunt.middleware.logging import RequestLoggingMiddleware
 from grunt.middleware.rate_limit import RateLimitMiddleware
 from grunt.middleware.security import SecurityHeadersMiddleware
@@ -37,6 +38,7 @@ app = FastAPI(
     default_response_class=SignedFileURLResponse,
 )
 
+app.add_middleware(IdempotencyMiddleware)
 app.add_middleware(LanguageMiddleware)
 app.add_middleware(RequestLoggingMiddleware)
 app.add_middleware(RateLimitMiddleware)

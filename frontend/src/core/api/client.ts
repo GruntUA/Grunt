@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { markServerReachable } from '@/core/composables/useNetworkStatus'
 import type { AxiosInstance, InternalAxiosRequestConfig } from 'axios'
 
 // Backward-compat shim: backend no longer sends `id` (name is the sole PK).
@@ -79,6 +80,8 @@ function showForbiddenToast(message: string) {
 // Response interceptor: normalize id=name shim, then handle auth errors
 client.interceptors.response.use(
   (response) => {
+    // A real server answer, or the service worker's offline copy of one?
+    markServerReachable(response.headers?.['x-grunt-offline'] !== '1')
     if (response.data && typeof response.data === 'object' && 'data' in response.data) {
       response.data.data = _normalizeIds(response.data.data)
     }
@@ -175,24 +178,22 @@ client.interceptors.response.use(
       }
     }
 
-    // Network error (no response): connection lost
+    // Network error (no response): connection lost. A document create /
+    // update / delete is queued for later (see useOfflineQueue); the caller
+    // gets OfflineQueuedError instead of a response. Anything else (actions,
+    // RPCs, login) just fails — replaying it later on stale state is unsafe.
     if (!error.response && error.request) {
+      markServerReachable(false)
       const method = (originalConfig?.method ?? '').toLowerCase()
-
-      // Don't enqueue replayed requests or GET requests
       const isReplay = originalConfig?.headers?.['X-Offline-Replay'] === '1'
       if (MUTABLE_METHODS.has(method) && !isReplay) {
-        // Silently enqueue the mutation for later replay
-        const { offlineQueue } = await import('@/core/composables/useOfflineQueue')
-        const token = localStorage.getItem('grunt_token')
-        await offlineQueue.enqueue({
-          method: originalConfig.method ?? 'post',
-          url: originalConfig.url ?? '',
-          data: originalConfig.data ? JSON.parse(originalConfig.data) : undefined,
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-        })
-        // Return a resolved placeholder so the UI doesn't crash
-        return Promise.resolve({ data: { _queued: true }, status: 202, statusText: 'Queued' })
+        const { enqueue, OfflineQueuedError } = await import('@/core/composables/useOfflineQueue')
+        const data = typeof originalConfig.data === 'string' ? JSON.parse(originalConfig.data) : originalConfig.data
+        if (await enqueue(method, originalConfig.url ?? '', data)) {
+          const { toast } = await import('@/core/composables/useToast')
+          toast.info("Зміни збережено на пристрої — надішлемо, щойно з'явиться зв'язок", "Немає з'єднання")
+          return Promise.reject(new OfflineQueuedError())
+        }
       }
     }
 

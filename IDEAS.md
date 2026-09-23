@@ -83,7 +83,7 @@
 
 | # | Статус | Ідея | Опис |
 |---|--------|------|------|
-| 7.1 | 💡 | **Offline-first форма** | Service Worker кешує остання відкриті документи. При відсутності мережі — дає читати/редагувати, синхронізує при поновленні. |
+| 7.1 | ✅ | **Offline-first форма** | `public/sw.js`: precache оболонки (`precache-manifest.json` з vite-плагіна) + network-first кеш GET `/api/*` (`X-Grunt-Offline: 1`); чистка при logout. Правки doc-CRUD офлайн → IDB-черга `useOfflineQueue` з `__base_modified_at` (сервер дає 409 на застарілу правку) та `Idempotency-Key` для POST (`middleware/idempotency.py`); автосинк при поверненні, панель `OfflineQueueSheet` (конфлікт → «Застосувати мої»/«Відкинути»). Лише production-збірка (у Vite dev SW не реєструється). |
 | 7.2 | ✅ | **Push Notifications (PWA)** | `PushSubscription` + `grunt/webpush/service.py`, підключено до `notification/service.py`; налаштування web-push у `SystemSettings`. |
 | 7.3 | ✅ | **Mobile-first ListView** | До 768px список (і згрупований) показується картками `components/views/list/ListCards.vue`: заголовок = `title_field` або перша не-Select/Check колонка, статус-бейдж, до 4 пар «поле: значення» тими самими list-cell компонентами, що й таблиця, чекбокс виділення, позначка track_seen. Брейкпоінт — `useCardLayout.ts`. |
 | 7.4 | ✅ | **Scan to fill** | `BarCode.vue`: сканування камерою та з зображення через BarcodeDetector (native або polyfill). |

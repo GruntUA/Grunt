@@ -11,6 +11,8 @@ from PIL import Image
 
 from grunt.storage.thumbnails import THUMB_WIDTH, make_thumbnail
 
+M = "/api/v1/method/grunt.storage.doctypes.File.file"
+
 
 def _png(w: int = 1600, h: int = 900) -> bytes:
     buf = io.BytesIO()
@@ -53,7 +55,6 @@ async def test_unsupported_or_broken_files_get_no_thumbnail():
 
 @pytest.mark.asyncio
 async def test_uploaded_pdf_serves_signed_thumbnail(client, auth_headers):
-    M = "/api/v1/method/grunt.storage.doctypes.File.file"
     up = await client.post(
         f"{M}.upload",
         files={"file": ("scan.pdf", _pdf(), "application/pdf")},

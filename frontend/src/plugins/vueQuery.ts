@@ -18,6 +18,15 @@ export const vueQueryOptions: VueQueryPluginOptions = {
         staleTime: 60_000,
         retry,
         retryDelay: 1_000,
+        // Offline, still run the request — the service worker answers from its
+        // cache (public/sw.js); TanStack's default would just pause it.
+        networkMode: 'offlineFirst',
+      },
+      mutations: {
+        // Never hold a mutation back while offline and fire it blindly later:
+        // let it fail now so the offline queue (useOfflineQueue) keeps it with
+        // a conflict check.
+        networkMode: 'always',
       },
     },
   },

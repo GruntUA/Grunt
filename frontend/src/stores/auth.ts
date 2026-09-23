@@ -360,6 +360,8 @@ export const useAuthStore = defineStore('auth', () => {
 
   function _logout() {
     if (_impTimer) { clearTimeout(_impTimer); _impTimer = null }
+    // The service worker's offline copy of API responses is this user's data.
+    if (typeof caches !== 'undefined') caches.delete('grunt-api-v1').catch(() => undefined)
     token.value = null
     refreshToken.value = null
     user.value = null

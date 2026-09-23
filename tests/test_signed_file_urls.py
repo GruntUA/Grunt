@@ -100,7 +100,9 @@ def test_rate_limiter_recognises_signed_file_requests():
 
     def req(url: str) -> Request:
         path, _, query = url.partition("?")
-        return Request({"type": "http", "path": path, "query_string": query.encode(), "headers": []})
+        return Request(
+            {"type": "http", "path": path, "query_string": query.encode(), "headers": []}
+        )
 
     assert _is_signed_file_request(req(signed))
     assert not _is_signed_file_request(req(f"{URL}f1"))
