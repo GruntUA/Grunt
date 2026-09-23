@@ -103,6 +103,19 @@ def verify_backup_code(stored_hashes: list[str], code: str) -> tuple[bool, list[
 # ── DB operations ─────────────────────────────────────────────────────────────
 
 
+async def mfa_setup_required(user: User) -> bool:
+    """True if MFA is off but one of the user's roles has ``Role.require_mfa``."""
+    if user.mfa_enabled:
+        return False
+    roles = list(getattr(user, "roles", None) or [])
+    if not roles:
+        return False
+    enforcing = await grunt_app.db.get_all(
+        "Role", filters={"name__in": roles, "require_mfa": True}, pluck="name", limit=1
+    )
+    return bool(enforcing)
+
+
 async def begin_mfa_setup(user: User) -> dict:
     """Generate a new TOTP secret, store it (unconfirmed), and return setup info."""
     # Prevent overwriting if already enabled

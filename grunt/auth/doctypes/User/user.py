@@ -700,6 +700,54 @@ async def mfa_login_api(
     )
 
 
+async def _user_for_mfa_setup(mfa_token: str) -> User:
+    """Resolve the user behind an ``mfa_setup`` token who still has to enroll."""
+    from grunt.auth.mfa import mfa_setup_required
+    from grunt.auth.service import verify_mfa_setup_token
+
+    payload = verify_mfa_setup_token(mfa_token)
+    if not payload:
+        grunt.throw("Невалідний або прострочений токен налаштування MFA", "UNAUTHORIZED")
+    user = await get_user_by_id(payload["uid"])
+    if not user or not user.is_active or not await mfa_setup_required(user):
+        grunt.throw("Налаштування MFA недоступне", "UNAUTHORIZED")
+    return user
+
+
+@grunt.whitelist(allow_guest=True)
+async def mfa_enroll_begin(mfa_token: str) -> dict[str, Any]:
+    """Login-time MFA enrollment, step 1: a fresh TOTP secret + QR code."""
+    from grunt.auth.mfa import begin_mfa_setup
+
+    return await begin_mfa_setup(await _user_for_mfa_setup(mfa_token))
+
+
+@grunt.whitelist(allow_guest=True)
+async def mfa_enroll_complete(
+    mfa_token: str,
+    code: str,
+    request: Request | None = None,
+) -> dict[str, Any]:
+    """Login-time MFA enrollment, step 2: confirm the code, then sign in.
+
+    Returns the regular login payload plus ``backup_codes`` to show once.
+    """
+    from grunt.auth.doctypes.UserSession.user_session import client_ip, client_user_agent
+    from grunt.auth.login import issue_login
+    from grunt.auth.mfa import confirm_mfa_setup
+
+    user = await _user_for_mfa_setup(mfa_token)
+    backup_codes = await confirm_mfa_setup(user, code)
+    user.mfa_enabled = True
+    payload = await issue_login(
+        user,
+        ip_address=client_ip(request),
+        user_agent=client_user_agent(request),
+        honor_mfa=False,
+    )
+    return {**payload, "backup_codes": backup_codes}
+
+
 @grunt.whitelist()
 async def whoami() -> dict[str, Any]:
     """Return the currently authenticated user.
@@ -772,6 +820,18 @@ async def refresh_api(refresh_token: str, request: Request | None = None) -> dic
     user = await get_user_by_id(user_id)
     if user is None or not user.is_active:
         grunt.throw("Invalid or expired refresh token", "UNAUTHORIZED")
+
+    # A role started requiring MFA after this session was opened (or MFA was
+    # turned off): end the session so the next sign-in goes through enrollment.
+    from grunt.auth.mfa import mfa_setup_required
+
+    if await mfa_setup_required(user):
+        from grunt.auth.doctypes.UserSession.user_session import end_session
+
+        await end_session(sid)
+        grunt.throw(
+            "Ваша роль вимагає двофакторної автентифікації — увійдіть знову", "UNAUTHORIZED"
+        )
 
     return {
         "access_token": create_access_token(user, await access_token_minutes(), sid=sid),

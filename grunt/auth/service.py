@@ -117,6 +117,21 @@ def verify_mfa_token(token: str) -> dict | None:
     return payload
 
 
+def create_mfa_setup_token(user: User) -> str:
+    """Token that lets a user whose role requires MFA enroll it during login.
+
+    A separate purpose from :func:`create_mfa_token`, so an MFA *verification*
+    token can never be replayed into enrollment (or vice versa). Longer TTL —
+    the user may still have to install an authenticator app.
+    """
+    return create_challenge_token("mfa_setup", ttl_minutes=15, sub=user.email, uid=user.id)
+
+
+def verify_mfa_setup_token(token: str) -> dict | None:
+    """Validate an MFA-setup token and return its claims, or None."""
+    return verify_challenge_token(token, "mfa_setup")
+
+
 # ── Password reset tokens ─────────────────────────────────────────────────
 
 

@@ -27,11 +27,22 @@ async def issue_login(
     ``mfa_required`` challenge instead of real tokens — the caller must then
     complete ``mfa_login_api``. Pass ``honor_mfa=False`` from the MFA step
     itself (the factor has already been proven).
+
+    When one of the user's roles has ``Role.require_mfa`` but MFA is off, the
+    payload is the same challenge shape plus ``mfa_setup_required`` and an
+    ``mfa_setup`` token — the client enrolls via ``mfa_enroll_begin`` /
+    ``mfa_enroll_complete`` instead of verifying. No tokens until then.
     """
     from grunt.api.messages import throw
     from grunt.auth.doctypes.User.user import _auth_user_dump
     from grunt.auth.doctypes.UserSession.user_session import open_session
-    from grunt.auth.service import access_token_minutes, create_access_token, create_mfa_token
+    from grunt.auth.mfa import mfa_setup_required
+    from grunt.auth.service import (
+        access_token_minutes,
+        create_access_token,
+        create_mfa_setup_token,
+        create_mfa_token,
+    )
 
     state = getattr(user, "signup_state", None) or "approved"
     if state == "rejected":
@@ -46,6 +57,17 @@ async def issue_login(
             "user": _auth_user_dump(user),
             "mfa_required": False,
             "approval_pending": True,
+        }
+
+    if honor_mfa and await mfa_setup_required(user):
+        return {
+            "access_token": None,
+            "refresh_token": None,
+            "mfa_token": create_mfa_setup_token(user),
+            "token_type": "bearer",
+            "user": _auth_user_dump(user),
+            "mfa_required": True,
+            "mfa_setup_required": True,
         }
 
     if honor_mfa and user.mfa_enabled:

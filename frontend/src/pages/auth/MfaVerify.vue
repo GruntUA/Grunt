@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { ShieldCheck, ArrowRight, ArrowLeft } from '@lucide/vue'
+import { ShieldCheck, ArrowRight, ArrowLeft, Copy } from '@lucide/vue'
 import { authApi } from '@/core/api'
 import { useAuthStore } from '@/stores/auth'
 import { useToast } from '@/core/composables/useToast'
@@ -20,6 +20,48 @@ const error = ref('')
 
 // Get temporary MFA token from URL query
 const mfaToken = (route.query.token as string) || ''
+
+// A role that requires 2FA sends users without it here with an `mfa_setup`
+// token: enroll (QR → code → backup codes) instead of verifying.
+function tokenPurpose(jwt: string): string | null {
+  try {
+    return JSON.parse(atob(jwt.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))).purpose ?? null
+  } catch {
+    return null
+  }
+}
+const isSetup = tokenPurpose(mfaToken) === 'mfa_setup'
+const setupInfo = ref<{ secret: string; qr_svg: string } | null>(null)
+const backupCodes = ref<string[]>([])
+
+onMounted(async () => {
+  if (!isSetup) return
+  try {
+    setupInfo.value = await authApi.mfaEnrollBegin(mfaToken)
+  } catch (e: any) {
+    error.value = e?.response?.data?.detail || e?.message || 'Не вдалося розпочати налаштування 2FA.'
+  }
+})
+
+async function handleEnroll() {
+  if (!code.value || code.value.length < 6) return
+  error.value = ''
+  loading.value = true
+  try {
+    const data = await authApi.mfaEnrollComplete(mfaToken, code.value)
+    await authStore.setSession(data.access_token, data.refresh_token)
+    backupCodes.value = data.backup_codes || []
+  } catch (e: any) {
+    error.value = e?.response?.data?.detail || e?.message || 'Невірний код. Спробуйте ще раз.'
+  } finally {
+    loading.value = false
+  }
+}
+
+async function copyBackupCodes() {
+  await navigator.clipboard.writeText(backupCodes.value.join('\n'))
+  toast.success('Резервні коди скопійовано')
+}
 
 async function handleVerify() {
   if (!code.value || code.value.length < 6) return
@@ -59,14 +101,47 @@ async function handleVerify() {
           class="inline-flex items-center justify-center w-16 h-16 rounded-lg bg-primary text-primary-foreground mb-4 shadow-sm">
           <ShieldCheck class="w-8 h-8" />
         </div>
-        <h1 class="text-2xl font-semibold text-foreground tracking-tight">Двофакторна перевірка</h1>
-        <p class="text-muted-foreground mt-2 max-w-[280px] mx-auto leading-relaxed">
+        <h1 class="text-2xl font-semibold text-foreground tracking-tight">
+          {{ isSetup ? 'Налаштування 2FA' : 'Двофакторна перевірка' }}
+        </h1>
+        <p v-if="isSetup" class="text-muted-foreground mt-2 max-w-[320px] mx-auto leading-relaxed">
+          Ваша роль вимагає двофакторної автентифікації. Відскануйте QR-код у додатку-автентифікаторі
+          та введіть 6-значний код.
+        </p>
+        <p v-else class="text-muted-foreground mt-2 max-w-[280px] mx-auto leading-relaxed">
           Будь ласка, введіть 6-значний код з вашого додатку або резервний код.
         </p>
       </div>
 
-      <div class="bg-card border border-border shadow-sm rounded-lg p-8">
-        <form class="flex flex-col gap-6" @submit.prevent="handleVerify">
+      <div v-if="backupCodes.length" class="bg-card border border-border shadow-sm rounded-lg p-8 flex flex-col gap-6">
+        <div class="flex flex-col gap-2">
+          <p class="font-semibold">2FA увімкнено. Збережіть резервні коди</p>
+          <p class="text-muted-foreground">
+            Кожен код можна використати один раз, якщо немає доступу до автентифікатора. Більше вони не показуватимуться.
+          </p>
+        </div>
+        <ul class="grid grid-cols-2 gap-2 font-mono text-sm text-center">
+          <li v-for="c in backupCodes" :key="c" class="rounded-md bg-muted py-1.5">{{ c }}</li>
+        </ul>
+        <Button variant="outline" type="button" @click="copyBackupCodes">
+          <Copy class="mr-2 h-4 w-4" />
+          Скопіювати коди
+        </Button>
+        <Button type="button" class="w-full h-12" @click="router.push({ name: 'desk' })">
+          Продовжити
+          <ArrowRight class="ml-2 h-5 w-5" />
+        </Button>
+      </div>
+
+      <div v-else class="bg-card border border-border shadow-sm rounded-lg p-8">
+        <div v-if="isSetup && setupInfo" class="flex flex-col items-center gap-3 mb-6">
+          <div class="rounded-md bg-white p-2 [&>svg]:size-44" v-html="setupInfo.qr_svg" />
+          <p class="text-muted-foreground text-center">
+            Або введіть ключ вручну:
+            <span class="block font-mono text-foreground break-all select-all">{{ setupInfo.secret }}</span>
+          </p>
+        </div>
+        <form class="flex flex-col gap-6" @submit.prevent="isSetup ? handleEnroll() : handleVerify()">
           <div class="flex flex-col gap-2 text-center">
             <label class="font-semibold text-muted-foreground uppercase tracking-widest">Код доступу</label>
             <Input v-model="code" type="text" inputmode="numeric" autocomplete="one-time-code"
@@ -81,7 +156,7 @@ async function handleVerify() {
 
           <Button type="submit" :disabled="loading || code.length < 6"
             class="w-full h-14 text-lg font-semibold shadow-sm">
-            <span>Підтвердити вхід</span>
+            <span>{{ isSetup ? 'Увімкнути 2FA та увійти' : 'Підтвердити вхід' }}</span>
             <Spinner v-if="loading" class="ml-2 h-5 w-5 order-last" />
             <ArrowRight v-else class="ml-2 h-5 w-5 order-last" />
           </Button>

@@ -50,6 +50,21 @@ export const authApi = {
         return { approval_pending: !!data.data?.approval_pending }
     },
 
+    /** Login-time MFA enrollment (role requires 2FA): fresh secret + QR. */
+    async mfaEnrollBegin(mfaToken: string): Promise<MfaSetupInfo> {
+        const { data } = await client.post(`${METHOD}.mfa_enroll_begin`, { mfa_token: mfaToken })
+        return data.data
+    },
+
+    /** Confirm the enrollment code — returns the login payload + `backup_codes`. */
+    async mfaEnrollComplete(mfaToken: string, code: string) {
+        const { data } = await client.post(`${METHOD}.mfa_enroll_complete`, {
+            mfa_token: mfaToken,
+            code,
+        })
+        return data.data
+    },
+
     async verifyMfaLogin(mfaToken: string, code: string) {
         const { data } = await client.post(`${METHOD}.mfa_login_api`, {
             mfa_token: mfaToken,

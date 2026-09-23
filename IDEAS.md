@@ -94,7 +94,7 @@
 
 | # | Статус | Ідея | Опис |
 |---|--------|------|------|
-| 8.1 | 💡 | **2FA Enforcement Policy** | Системна настройка `require_2fa_for_roles: [Admin, Manager]` — при логіні без 2FA переадресовує на setup. MFA-код вже є, треба policy. |
+| 8.1 | ✅ | **2FA Enforcement Policy** | Прапорець `Role.require_mfa`. `issue_login` для користувача з такою роллю без MFA повертає challenge `mfa_setup_required` + токен `mfa_setup` (без access-токенів); `/mfa-verify` в режимі налаштування: QR → код → резервні коди → вхід (`mfa_enroll_begin`/`mfa_enroll_complete`). `refresh_api` завершує відкриті сесії таких користувачів. |
 | 8.2 | ✅ | **Audit Log Diff UI** | Сторінка `ActivityLog` показує не просто "Update", а конкретно які поля змінилися і з якого на яке значення (diff). |
 | 8.3 | 🔨 | **Data Retention Rules** | Для `is_log`-доктайпів є: `DocType.log_retention_days` + fallback `SystemSettings.log_retention_days`, задача `log_cleanup`. Лишилось: політики для бізнес-документів (видалення/архівування). |
 | 8.4 | 🔨 | **IP Allowlist** | Є для `ApiKey` (allowlist IP на ключ). Лишилось: обмеження інтерактивного входу за IP для ролей. |

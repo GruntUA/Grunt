@@ -2422,6 +2422,16 @@ msgid "Name"
 msgstr "Назва"
 
 #: grunt/grunt/auth/doctypes/Role/Role.json
+msgctxt "meta:Role.require_mfa"
+msgid "Require two-factor authentication"
+msgstr "Вимагати двофакторну автентифікацію"
+
+#: grunt/grunt/auth/doctypes/Role/Role.json
+msgctxt "help:Role.require_mfa"
+msgid "Users with this role must set up 2FA (TOTP) before they can sign in."
+msgstr "Користувачі з цією роллю мають налаштувати 2FA (TOTP), перш ніж зможуть увійти."
+
+#: grunt/grunt/auth/doctypes/Role/Role.json
 msgctxt "meta:Role.description"
 msgid "Description"
 msgstr "Опис"

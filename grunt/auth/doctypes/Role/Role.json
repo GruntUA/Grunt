@@ -18,6 +18,13 @@
       "fieldname": "description",
       "label": "Description",
       "fieldtype": "LongText"
+    },
+    {
+      "fieldname": "require_mfa",
+      "label": "Require two-factor authentication",
+      "fieldtype": "Check",
+      "in_list_view": true,
+      "description": "Users with this role must set up 2FA (TOTP) before they can sign in."
     }
   ],
   "permissions": [
