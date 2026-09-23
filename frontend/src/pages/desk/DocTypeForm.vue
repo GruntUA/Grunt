@@ -7,8 +7,10 @@ import { useQuery, useQueryClient } from '@tanstack/vue-query'
 import { useToast } from '@/core/composables/useToast'
 import { useFormController } from '@/core/composables/useFormController'
 import { docsApi } from '@/core/api/docs'
+import { formatRelative } from '@/core/datetime'
 import type { GruntDocument } from '@/types'
-import { Activity, Eye, TriangleAlert, FlaskConical } from '@lucide/vue'
+import { Activity, Eye, TriangleAlert, FlaskConical, History } from '@lucide/vue'
+import { Button } from '@/components/ui/button'
 
 import FormRenderer from '@/core/renderer/FormRenderer.vue'
 import DocSidebar from '@/components/views/DocSidebar.vue'
@@ -42,6 +44,9 @@ const {
   isLoading,
   isDirty,
   isSaving,
+  pendingDraft,
+  restoreDraft,
+  discardDraft,
   validationErrors,
   scriptButtons,
   scriptMenuItems,
@@ -141,6 +146,15 @@ const initials = (email: string) => email.slice(0, 2).toUpperCase()
     </div>
 
     <template v-else>
+      <!-- Unsaved-changes draft recovery -->
+      <div v-if="pendingDraft"
+        class="flex items-center gap-2 rounded-md border border-primary/30 bg-primary/5 px-3 py-2 text-foreground">
+        <History class="size-4 shrink-0 text-primary" />
+        <span class="flex-1">{{ t('Знайдено незбережені зміни ({time}). Відновити чернетку?').replace('{time}', formatRelative(pendingDraft.savedAt)) }}</span>
+        <Button size="sm" variant="outline" @click="restoreDraft">{{ t('Відновити') }}</Button>
+        <Button size="sm" variant="ghost" @click="discardDraft">{{ t('Відхилити') }}</Button>
+      </div>
+
       <!-- Lifecycle markers -->
       <div v-if="dt?.deprecated"
         class="flex items-start gap-2 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-amber-900 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-200">

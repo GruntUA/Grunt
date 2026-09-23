@@ -20,6 +20,8 @@ interface FormInitializationParams {
   ) => LinkDraftResult | null
   info: (message: string) => void
   runOnLoad: () => Promise<unknown>
+  /** Looks up a leftover unsaved-changes draft for this (doctype, id) so the form can offer to restore it. */
+  checkForDraft: () => void
 }
 
 function applyHistoryObject(form: Record<string, unknown>, key: 'duplicate' | 'initial_data') {
@@ -74,6 +76,8 @@ export function useFormInitialization(params: FormInitializationParams) {
           params.form.value[key] = value
         }
       }
+
+      params.checkForDraft()
     }
 
     const linkReturn = params.restoreLinkDraft(params.doctype, params.id, params.form.value)

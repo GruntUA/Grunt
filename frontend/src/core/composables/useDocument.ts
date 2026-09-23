@@ -1,6 +1,7 @@
 import { ref, computed, watch } from 'vue'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/vue-query'
 import { docsApi } from '@/core/api/docs'
+import { clearFormDraft } from '@/core/composables/useFormDraft'
 import type { GruntDocument } from '@/types'
 
 export function useDocument(doctype: string, id: string | null) {
@@ -38,6 +39,7 @@ export function useDocument(doctype: string, id: string | null) {
       queryClient.setQueryData(['document', doctype, saved.id], saved)
       form.value = { ...saved }
       savedBaseline.value = JSON.stringify(saved)
+      clearFormDraft(doctype, id)
       queryClient.invalidateQueries({ queryKey: ['documents', doctype] })
     }
   })

@@ -86,7 +86,7 @@ def users_set_password(email, password, site):
     """Змінити пароль користувача."""
 
     async def _run():
-        import grunt
+        from grunt.app import grunt
         from grunt.auth.doctypes.User.user import (
             get_user_by_email,
             hash_password,

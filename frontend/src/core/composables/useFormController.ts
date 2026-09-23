@@ -12,6 +12,7 @@ import { useRouter, useRoute } from 'vue-router'
 
 import { useDocTypeStore } from '@/stores/doctype'
 import { useDocument } from '@/core/composables/useDocument'
+import { useFormDraft } from '@/core/composables/useFormDraft'
 import { useToast } from '@/core/composables/useToast'
 import { useWebSocket } from '@/core/composables/useWebSocket'
 import { usePresence } from '@/core/composables/usePresence'
@@ -71,6 +72,14 @@ export function useFormController(
   // ── Document data + CRUD primitives ───────────────────────────────────────
   const { document, form, isLoading, isError, isDirty, isSaving, save, remove, rename, markClean } =
     useDocument(doctype, id)
+
+  // ── Unsaved-changes draft (survives accidental reload/close) ───────────────
+  const { pendingDraft, checkForDraft, restoreDraft, discardDraft } = useFormDraft({
+    doctype,
+    id,
+    form,
+    isDirty,
+  })
 
   // ── Active tab — synced to URL query (?tab=...) ────────────────────────────
   const activeTab = computed<string>({
@@ -223,6 +232,7 @@ export function useFormController(
     restoreLinkDraft,
     info: (message: string) => toast.info(message),
     runOnLoad: () => runScriptEvent('on_load'),
+    checkForDraft,
   })
 
   // ── Delete / Duplicate / Version restore ───────────────────────────────────
@@ -283,6 +293,7 @@ export function useFormController(
       if (doc) {
         unwatchDoc()
         emits.onLoaded?.({ doctype, id, title: docTitle.value })
+        checkForDraft()
         await runScriptEvent('on_load')
       }
     })
@@ -307,6 +318,11 @@ export function useFormController(
     isError,
     isDirty,
     isSaving,
+
+    // Unsaved-changes draft
+    pendingDraft,
+    restoreDraft,
+    discardDraft,
 
     // Validation
     validationErrors,
