@@ -196,7 +196,7 @@ async def check_background_jobs() -> list[Row]:
 
 
 async def check_scheduler() -> list[Row]:
-    from grunt.tasks.scheduler import scheduler
+    from grunt.tasks.scheduler import failed_jobs, scheduler
 
     cat = "Планувальник"
     rows = [
@@ -210,6 +210,18 @@ async def check_scheduler() -> list[Row]:
             else "Запланові задачі (розсилки, чистка, дайджести) не запускаються.",
         )
     ]
+    rows.append(
+        row(
+            cat,
+            "Незареєстровані задачі",
+            ERROR if failed_jobs else OK,
+            len(failed_jobs),
+            "; ".join(f"{p}: {e}" for p, e in failed_jobs.items())
+            + " — виправте шлях у scheduler_events (hooks.py)."
+            if failed_jobs
+            else "",
+        )
+    )
     failed = await grunt.db.count(
         "ScheduledJobLog", {"status": "Failed", "started_at__gte": _since(timedelta(days=1))}
     )

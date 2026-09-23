@@ -16,6 +16,10 @@ if TYPE_CHECKING:
 # Global scheduler instance
 scheduler = AsyncIOScheduler()
 
+# Handlers from hooks' scheduler_events that could not be registered
+# (path → error) — shown by the «Стан системи» report instead of only a log line.
+failed_jobs: dict[str, str] = {}
+
 
 def register_scheduler_events(events: dict[str, list[str | dict]]) -> None:
     """Register scheduled tasks from a dictionary (e.g. from app's hooks.py).
@@ -91,9 +95,11 @@ def _add_scheduled_job(path: str, cron_expr: str) -> None:
             id=path,
             replace_existing=True,
         )
+        failed_jobs.pop(path, None)
         log.info("scheduler.job_added", path=path, cron=cron_expr)
 
     except (ImportError, AttributeError, ValueError) as e:
+        failed_jobs[path] = str(e)
         log.warning("scheduler.register_failed", path=path, error=str(e))
 
 

@@ -91,3 +91,14 @@ async def test_missing_app_dependency_is_reported(tmp_path, monkeypatch):
     assert r["status"] == "Error"
     assert "demo: demo" in r["hint"] and "surely-not-installed-pkg" in r["hint"]
     assert "pydantic" not in r["hint"]
+
+
+@pytest.mark.asyncio
+async def test_unregistered_scheduler_job_is_reported(ctx, monkeypatch):
+    from grunt.tasks import scheduler
+
+    monkeypatch.setattr(scheduler, "failed_jobs", {})
+    scheduler._add_scheduled_job("no_such_app.tasks.nope", "0 8 * * *")
+    rows = await health.check_scheduler()
+    [bad] = [r for r in rows if r["check"] == "Незареєстровані задачі"]
+    assert bad["status"] == "Error" and "no_such_app.tasks.nope" in bad["hint"]
