@@ -76,6 +76,20 @@ async def record_update_changes(
         except Exception:
             log.warning("activity_log.update_failed", doctype=doctype_name, doc_id=real_id)
 
+        try:
+            from grunt.activity.follow import notify_followers_of_update
+
+            await notify_followers_of_update(
+                session=session,
+                doctype=doctype_name,
+                doc_id=real_id,
+                dt=dt,
+                changed_fields=changed_fields,
+                actor_email=user.email,
+            )
+        except Exception:
+            log.exception("follow.update_notify_failed", doctype=doctype_name, doc_id=real_id)
+
 
 async def fire_update_services(
     *,

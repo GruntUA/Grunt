@@ -1,0 +1,38 @@
+{
+  "name": "DocFollow",
+  "label": "Document follow",
+  "description": "A user following one document: they are notified when it changes or gets a comment.",
+  "module": "activity",
+  "autoname": "hash",
+  "track_changes": false,
+  "track_activity": false,
+  "hide_from_activity_feed": true,
+  "indexes": [["reference_doctype", "reference_id"]],
+  "fields": [
+    {
+      "fieldname": "reference_doctype",
+      "label": "Document type",
+      "fieldtype": "Link",
+      "options": "DocType",
+      "required": true,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "reference_id",
+      "label": "Document",
+      "fieldtype": "Text",
+      "required": true,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "user",
+      "label": "User",
+      "fieldtype": "Text",
+      "in_list_view": true
+    }
+  ],
+  "permissions": [
+    {"role": "All", "read": true, "create": true, "delete": true, "match": "user == user"},
+    {"role": "System Manager", "read": true, "create": true, "write": true, "delete": true}
+  ]
+}

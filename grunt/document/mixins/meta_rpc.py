@@ -146,6 +146,16 @@ class DocumentMetaRPCMixin:
             [],
         )
 
+        follows = await _optional(
+            grunt_app.get_list(
+                "DocFollow",
+                filters={**ref, "user": grunt_app.session.user},
+                limit=1,
+                include_total=False,
+            ),
+            [],
+        )
+
         bookmark = dict(bookmarks[0]) if bookmarks else None
         if bookmark and bookmark.get("created_at"):
             bookmark["created_at"] = _iso(bookmark["created_at"])
@@ -200,5 +210,6 @@ class DocumentMetaRPCMixin:
             ],
             "tags": [{"name": str(r["name"]), "tag": r.get("tag")} for r in tags],
             "bookmark": bookmark,
+            "follow": {"name": str(follows[0]["name"])} if follows else None,
             "people": people,
         }

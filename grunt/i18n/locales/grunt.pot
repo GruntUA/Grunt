@@ -8241,3 +8241,28 @@ msgstr ""
 msgctxt "meta:EmailQueue.attachments"
 msgid "Attachments"
 msgstr ""
+
+#: grunt/grunt/activity/doctypes/DocFollow/DocFollow.json
+msgctxt "meta:DocFollow"
+msgid "Document follow"
+msgstr ""
+
+#: grunt/grunt/activity/doctypes/DocFollow/DocFollow.json
+msgctxt "help:DocFollow"
+msgid "A user following one document: they are notified when it changes or gets a comment."
+msgstr ""
+
+#: grunt/grunt/activity/doctypes/DocFollow/DocFollow.json
+msgctxt "meta:DocFollow.reference_doctype"
+msgid "Document type"
+msgstr ""
+
+#: grunt/grunt/activity/doctypes/DocFollow/DocFollow.json
+msgctxt "meta:DocFollow.reference_id"
+msgid "Document"
+msgstr ""
+
+#: grunt/grunt/activity/doctypes/DocFollow/DocFollow.json
+msgctxt "meta:DocFollow.user"
+msgid "User"
+msgstr ""

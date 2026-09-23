@@ -15,6 +15,7 @@ const EMPTY: SidebarBundle = {
   shares: [],
   tags: [],
   bookmark: null,
+  follow: null,
   people: {},
 }
 
@@ -103,6 +104,19 @@ export function useDocSidebar(
     }
   }
 
+  // ── Follow (notifications about changes / comments) ─────────────────────────
+  async function toggleFollow(): Promise<void> {
+    const d = dt(); const i = id()
+    if (!d || !i) return
+    if (bundle.value.follow) {
+      await docsApi.delete('DocFollow', bundle.value.follow.name)
+      bundle.value.follow = null
+    } else {
+      const row = await docsApi.create('DocFollow', { reference_doctype: d, reference_id: i })
+      bundle.value.follow = { name: String(row.name) }
+    }
+  }
+
   // ── People display helpers ────────────────────────────────────────────────
   function personName(email?: string | null): string {
     if (!email) return '—'
@@ -148,6 +162,7 @@ export function useDocSidebar(
     addTag,
     removeTag,
     toggleBookmark,
+    toggleFollow,
     searchUsers,
     personName,
     personAvatar,

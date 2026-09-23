@@ -5,6 +5,7 @@ import {
   UserPlus,
   Share2,
   Bookmark,
+  Bell,
   Printer,
   Check,
   Copy,
@@ -54,6 +55,7 @@ const imageUrl = computed(() => {
   return typeof val === 'string' && val ? val : null
 })
 const isBookmarked = computed(() => !!sb.bundle.value.bookmark)
+const isFollowing = computed(() => !!sb.bundle.value.follow)
 
 // ── Primary status badge (e.g. "На складі") — moved here from the form toolbar ──
 const statusBadge = computed(() => resolveStatusBadge(props.doctype, props.document))
@@ -395,6 +397,16 @@ function printDoc() {
     </div>
 
     <!-- Bottom actions -->
+    <Button
+      variant="outline"
+      size="sm"
+      :class="['w-full shadow-sm', isFollowing ? 'text-primary border-primary/40' : 'text-foreground']"
+      :title="isFollowing ? 'Ви отримуєте сповіщення про зміни та коментарі' : 'Отримувати сповіщення про зміни та коментарі'"
+      @click="sb.toggleFollow()"
+    >
+      <Bell class="size-3.5 mr-2" :fill="isFollowing ? 'currentColor' : 'none'" />
+      <span class="font-semibold">{{ isFollowing ? 'Стежу' : 'Стежити' }}</span>
+    </Button>
     <div class="flex gap-2">
       <Button
         variant="outline"

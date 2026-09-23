@@ -80,6 +80,8 @@ export interface SidebarBundle {
   shares: SidebarShare[]
   tags: SidebarTag[]
   bookmark: GruntDocument | null
+  /** The current user's DocFollow row for this document, if they follow it */
+  follow: { name: string } | null
   /** email → display name + avatar, for everyone referenced above */
   people: Record<string, SidebarPerson>
 }

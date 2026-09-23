@@ -8576,3 +8576,28 @@ msgstr "Востаннє надіслано"
 msgctxt "meta:EmailQueue.attachments"
 msgid "Attachments"
 msgstr "Вкладення"
+
+#: grunt/grunt/activity/doctypes/DocFollow/DocFollow.json
+msgctxt "meta:DocFollow"
+msgid "Document follow"
+msgstr "Підписка на документ"
+
+#: grunt/grunt/activity/doctypes/DocFollow/DocFollow.json
+msgctxt "help:DocFollow"
+msgid "A user following one document: they are notified when it changes or gets a comment."
+msgstr "Користувач стежить за документом: отримує сповіщення про його зміни та коментарі."
+
+#: grunt/grunt/activity/doctypes/DocFollow/DocFollow.json
+msgctxt "meta:DocFollow.reference_doctype"
+msgid "Document type"
+msgstr "Тип документа"
+
+#: grunt/grunt/activity/doctypes/DocFollow/DocFollow.json
+msgctxt "meta:DocFollow.reference_id"
+msgid "Document"
+msgstr "Документ"
+
+#: grunt/grunt/activity/doctypes/DocFollow/DocFollow.json
+msgctxt "meta:DocFollow.user"
+msgid "User"
+msgstr "Користувач"

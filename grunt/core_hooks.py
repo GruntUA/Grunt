@@ -24,6 +24,10 @@ doc_events: dict[str, dict[str, list[str]]] = {
         "after_save": ["grunt.i18n.hooks.refresh_supported_languages"],
         "after_delete": ["grunt.i18n.hooks.refresh_supported_languages"],
     },
+    # Tell a document's followers (DocFollow) about new comments on it.
+    "Comment": {
+        "after_insert": ["grunt.activity.follow.notify_followers_of_comment"],
+    },
     # ToDo assignment notifications live in its controller
     # (grunt.tasks.doctypes.ToDo.to_do.ToDo) — create / reassign / complete.
     # Log every document lifecycle event to ActivityLog.
@@ -33,6 +37,7 @@ doc_events: dict[str, dict[str, list[str]]] = {
         "after_delete": [
             "grunt.activity.trash.snapshot_deleted_document",
             "grunt.activity.log_activity",
+            "grunt.activity.follow.drop_follows",
         ],
         # Record per-user "seen" state / ViewLog for DocTypes that opt in via
         # track_seen / track_views (no-op for everything else).
