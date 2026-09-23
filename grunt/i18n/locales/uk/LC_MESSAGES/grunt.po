@@ -8611,3 +8611,23 @@ msgstr "Дозволені IP для входу"
 msgctxt "help:Role.allowed_ips"
 msgid "Users with this role can sign in only from these addresses or networks (e.g. 10.0.0.0/8), one per line. Empty — no restriction."
 msgstr "Користувачі з цією роллю можуть входити лише з цих адрес або мереж (напр. 10.0.0.0/8), по одній у рядку. Порожньо — без обмежень."
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgctxt "meta:DocType.retention_days"
+msgid "Retention, days"
+msgstr "Термін зберігання, днів"
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgctxt "help:DocType.retention_days"
+msgid "Delete documents older than this many days (nightly, through the normal delete — trash snapshot, hooks). Empty — keep forever; for logs — the site default"
+msgstr "Видаляти документи, старші за цю кількість днів (щоночі, звичайним видаленням — зі знімком у кошику та хуками). Порожньо — зберігати завжди; для журналів — значення сайту"
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgctxt "meta:DocType.retention_date_field"
+msgid "Retention date field"
+msgstr "Поле дати для терміну"
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgctxt "help:DocType.retention_date_field"
+msgid "Date/Datetime field the age is counted from (default: creation time)"
+msgstr "Поле дати, від якого рахується вік (за замовчуванням — час створення)"

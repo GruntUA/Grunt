@@ -232,7 +232,11 @@ class DocType(BaseModel):
     is_virtual: bool = False  # True → no DB table, data from controller
     is_tree: bool = False  # True → hierarchical; requires tree_view.parent_field
     is_log: bool = False  # True → operational log, excluded from global search index
-    log_retention_days: int | None = None  # is_log only; None → DEFAULT_LOG_RETENTION_DAYS
+    # Documents older than this (by retention_date_field, default created_at)
+    # are deleted by the nightly retention job (grunt.tasks.retention).
+    # is_log DocTypes fall back to SystemSettings.log_retention_days → 30.
+    retention_days: int | None = None
+    retention_date_field: str | None = None
     # to name the self-referential Link
     track_changes: bool = True  # audit log
     track_seen: bool = False  # record which users have opened each document (_seen column)

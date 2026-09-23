@@ -3,7 +3,7 @@
   "label": "Видалений документ",
   "module": "activity",
   "is_log": true,
-  "log_retention_days": 180,
+  "retention_days": 180,
   "track_changes": false,
   "autoname": "hash",
   "title_field": "title",

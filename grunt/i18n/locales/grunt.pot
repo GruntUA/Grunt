@@ -8276,3 +8276,23 @@ msgstr ""
 msgctxt "help:Role.allowed_ips"
 msgid "Users with this role can sign in only from these addresses or networks (e.g. 10.0.0.0/8), one per line. Empty — no restriction."
 msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgctxt "meta:DocType.retention_days"
+msgid "Retention, days"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgctxt "help:DocType.retention_days"
+msgid "Delete documents older than this many days (nightly, through the normal delete — trash snapshot, hooks). Empty — keep forever; for logs — the site default"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgctxt "meta:DocType.retention_date_field"
+msgid "Retention date field"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgctxt "help:DocType.retention_date_field"
+msgid "Date/Datetime field the age is counted from (default: creation time)"
+msgstr ""

@@ -219,6 +219,20 @@
       "description": "Keep entries out of the site-wide activity feed only — they still appear in each document's own timeline. For admin/config records (roles, print formats, workspace layout, …)"
     },
     {
+      "fieldname": "retention_days",
+      "label": "Retention, days",
+      "fieldtype": "Int",
+      "description": "Delete documents older than this many days (nightly, through the normal delete — trash snapshot, hooks). Empty — keep forever; for logs — the site default"
+    },
+    {
+      "fieldname": "retention_date_field",
+      "label": "Retention date field",
+      "fieldtype": "Data",
+      "depends_on": "retention_days",
+      "placeholder": "created_at",
+      "description": "Date/Datetime field the age is counted from (default: creation time)"
+    },
+    {
       "fieldname": "sec_ux",
       "label": "Interaction",
       "fieldtype": "Section"

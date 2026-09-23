@@ -46,7 +46,7 @@ def test_error_log_is_a_seen_tracking_log():
     assert dt.track_seen is True
     assert dt.track_changes is False
     # No per-DocType retention override — it must fall back to SystemSettings.
-    assert dt.log_retention_days is None
+    assert dt.retention_days is None
 
 
 def test_error_log_permissions_are_read_delete_for_system_manager_only():
@@ -158,7 +158,7 @@ async def test_seen_column_is_selectable_in_list(ctx):
 @pytest.mark.asyncio
 async def test_retention_falls_back_to_system_settings(ctx):
     from grunt.site.settings import clear_settings_cache, get_setting
-    from grunt.tasks.log_cleanup import DEFAULT_LOG_RETENTION_DAYS
+    from grunt.tasks.retention import DEFAULT_LOG_RETENTION_DAYS
 
     assert DEFAULT_LOG_RETENTION_DAYS == 30
 
