@@ -163,6 +163,37 @@ Counts and previews come from `grunt.document.connections.get_connections`.
 field to render the panel at the top of that tab. If no tab opts in, it
 renders at the top of the first tab.
 
+## Fixtures (shipping configuration records)
+
+Records that are part of the app's configuration — roles, workflows, home
+pages, print formats — live in `my_crm/fixtures/*.json` and are applied on
+install/migrate, in filename order:
+
+```json title="my_crm/fixtures/00_roles.json"
+{"doctype": "Role", "records": [{"name": "Sales Manager"}]}
+```
+
+A plain file is a **seed**: missing records are inserted, existing ones are
+never touched. To keep records built in the UI in sync with the app code,
+declare them in `hooks.py` and export them from a site:
+
+```python title="my_crm/hooks.py"
+fixtures = [
+    {"doctype": "Role", "filters": {"name__in": ["Sales Manager"]}, "file": "00_roles.json"},
+    {"doctype": "Workflow", "filters": {"document_type": "Deal"}, "file": "02_workflow.json"},
+    "PrintFormat",  # every record, written to print_format.json
+]
+```
+
+```bash
+grunt fixtures export my_crm [--site mysite]
+```
+
+Exported files carry `"sync": true`: on migrate, existing records are updated
+to match the file (only when a value differs, fields absent from the file are
+left alone). System columns, virtual fields and `Password` values are never
+exported; child tables are exported with their rows.
+
 ## Adding background tasks
 
 ```python title="my_crm/tasks.py"

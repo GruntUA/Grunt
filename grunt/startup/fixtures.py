@@ -11,6 +11,8 @@ from grunt.log import log
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
+    from grunt.document.meta import Meta
+
 
 _GRUNT_ROOT = Path(__file__).parent.parent  # grunt/startup/../ = grunt/
 
@@ -31,7 +33,9 @@ async def load_core_fixtures(session: AsyncSession, eng: AsyncEngine) -> None:
                 records = fx.get("records", [])
                 if not fx_doctype or not records:
                     continue
-                await _apply_doctype_fixture(fx_doctype, records, session, eng)
+                await _apply_doctype_fixture(
+                    fx_doctype, records, session, eng, sync=bool(fx.get("sync"))
+                )
                 log.info("startup.core_fixture_applied", file=fx_file.name, doctype=fx_doctype)
             except Exception as e:
                 log.warning("startup.core_fixture_failed", file=fx_file.name, error=str(e))
@@ -145,8 +149,15 @@ async def _apply_doctype_fixture(
     records: list,
     session: AsyncSession,
     eng: AsyncEngine,
+    *,
+    sync: bool = False,
 ) -> None:
-    """Insert fixture records for a regular DocType, skipping duplicates."""
+    """Apply fixture records for a regular DocType.
+
+    Missing records are inserted. Existing ones are skipped — unless *sync*
+    (a file written by ``grunt fixtures export``), then they are updated to
+    match the file whenever the stored values differ.
+    """
     from grunt.app import grunt
 
     dt = await grunt.get_meta(doctype_name)
@@ -162,7 +173,10 @@ async def _apply_doctype_fixture(
             if not name_val:
                 continue
 
-            if await grunt.exists(doctype_name, {"name": name_val}):
+            existing_id = await grunt.exists(doctype_name, {"name": name_val})
+            if existing_id:
+                if sync:
+                    await _sync_fixture_record(dt, doctype_name, existing_id, rec)
                 continue
 
             payload: dict[str, object] = dict(rec)
@@ -188,3 +202,30 @@ async def _apply_doctype_fixture(
                 raise
 
     await session.flush()
+
+
+async def _sync_fixture_record(dt: Meta, doctype_name: str, doc_id: str, rec: dict) -> None:
+    """Update an existing record to the fixture's values — only if they differ.
+
+    Compared in exported form (:func:`grunt.fixtures.clean_record`), so an
+    unchanged record is never re-saved (no DocVersion/ActivityLog noise on
+    every migrate). Fields absent from the fixture are left untouched.
+    """
+    from grunt.app import grunt
+    from grunt.fixtures import clean_record, to_json_compatible
+
+    current = await clean_record(dt, await grunt.get_doc(doctype_name, doc_id))
+    desired = to_json_compatible(rec)
+    changed = {k: v for k, v in desired.items() if k != "name" and current.get(k) != v}
+    if not changed:
+        return
+
+    fieldtypes = {f.fieldname: f.fieldtype for f in dt.get_physical_fields()}
+    payload = {
+        k: _coerce_fixture_value(fieldtypes[k], v) if k in fieldtypes else v
+        for k, v in changed.items()
+    }
+    await grunt.save_doc(doctype_name, doc_id, payload)
+    log.info(
+        "startup.fixture_synced", doctype=doctype_name, name=rec.get("name"), fields=sorted(changed)
+    )

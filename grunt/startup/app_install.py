@@ -138,7 +138,9 @@ async def _apply_app_fixtures(
                     deferred_menus.append((fx_file, records))
                     continue
 
-                await _apply_doctype_fixture(fx_doctype, records, session, eng)
+                await _apply_doctype_fixture(
+                    fx_doctype, records, session, eng, sync=bool(fx.get("sync"))
+                )
                 log.info("startup.fixture_applied", app=app_name, file=fx_file.name)
             except Exception as e:
                 log.warning("startup.fixture_failed", app=app_name, file=fx_file.name, error=str(e))
