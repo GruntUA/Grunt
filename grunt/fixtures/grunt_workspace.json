@@ -300,6 +300,15 @@
     {
       "section": "Моніторинг",
       "type": "DocType",
+      "label": "Стан системи",
+      "icon": "heart-pulse",
+      "link_to": "SystemHealthReport",
+      "show_count": false,
+      "sequence": 69
+    },
+    {
+      "section": "Моніторинг",
+      "type": "DocType",
       "label": "Лог активності",
       "icon": "clipboard-list",
       "link_to": "ActivityLog",
