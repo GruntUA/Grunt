@@ -77,6 +77,13 @@
     {
       "role": "All",
       "read": true
+    },
+    {
+      "role": "System Manager",
+      "read": true,
+      "write": true,
+      "create": true,
+      "delete": true
     }
   ]
 }
