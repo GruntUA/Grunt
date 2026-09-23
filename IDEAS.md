@@ -109,7 +109,7 @@
 | 9.1 | 💡 | **App Marketplace** | Каталог готових grunt-apps (CRM, HR, Склад) з встановленням через `grunt install-app <url>`. |
 | 9.2 | ✅ | **grunt scaffold** | Реалізовано: `grunt doctype scaffold MyName` — генерує `.json` + `.py` controller + JavaScript client script за шаблоном. |
 | 9.3 | 💡 | **VS Code Extension** | Підсвічування JSON-схеми DocType, автодоповнення fieldtype/options, команда "Open in Studio". |
-| 9.4 | 💡 | **DocType Import/Export** | Експорт DocType (і його даних-фікстур) в ZIP → імпорт на іншому сайті. `grunt export-doctype MyApp` / `grunt import-doctype myapp.zip`. |
+| 9.4 | ✅ | **DocType Import/Export** | DocType і так пишуться у файли додатка при збереженні (`export_doctype_files`) і синхронізуються при migrate. Для записів-конфігурації: `fixtures = [...]` у `hooks.py` + `grunt fixtures export <app>` → `<module>/fixtures/*.json` з `"sync": true` (loader оновлює наявні записи, коли значення відрізняються). ZIP свідомо не робили — додатки живуть у git. |
 | 9.5 | 💡 | **Grunt DevTools (браузерне розширення)** | Панель для відлагодження: поточний DocType, активні WebSocket-підписки, останні API-запити, SQL-запити поточної сторінки. |
 
 ---
