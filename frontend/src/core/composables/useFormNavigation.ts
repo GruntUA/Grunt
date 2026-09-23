@@ -47,9 +47,14 @@ export function useFormNavigation(params: UseFormNavigationParams) {
 
   useShortcut(['escape'], () => {
     if (params.showDeleteModal.value || showLeaveModal.value || params.isQuickEntryOpen.value) return
+    // Escape that closes a menu / popover / select / sheet is not "leave the form".
+    // reka-ui handles it on `document` first; its layer is still in the DOM here.
+    if (document.querySelector('[data-dismissable-layer]')) return
 
     goToList()
-  }, { preventDefault: true, allowInInput: false })
+    // No preventDefault: reka-ui's own Escape handler (also on window, registered
+    // later) skips dismissing a menu when the event is already defaultPrevented.
+  }, { allowInInput: false })
 
   onBeforeRouteLeave((to) => {
     if (allowLeave.value || !params.isDirty.value) {

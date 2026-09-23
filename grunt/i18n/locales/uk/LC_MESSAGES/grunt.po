@@ -8631,3 +8631,11 @@ msgstr "Поле дати для терміну"
 msgctxt "help:DocType.retention_date_field"
 msgid "Date/Datetime field the age is counted from (default: creation time)"
 msgstr "Поле дати, від якого рахується вік (за замовчуванням — час створення)"
+
+#: grunt/frontend/src/components/fields/Table/TableRowSheet.vue
+msgid "Row"
+msgstr "Рядок"
+
+#: grunt/frontend/src/components/fields/Table/TableRowSheet.vue
+msgid "Close"
+msgstr "Закрити"

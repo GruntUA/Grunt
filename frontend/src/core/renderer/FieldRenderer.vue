@@ -15,7 +15,7 @@ const INLINE_LABEL_TYPES = new Set(['Check', 'Button', 'Section', 'Column', 'Tab
 // unconditionally on every field type makes Vue warn about an extraneous
 // non-emits listener for the rest (worse for components whose root is a
 // fragment, which can't auto-inherit fallthrough attrs at all).
-const CREATE_NEW_TYPES = new Set(['Link', 'DynamicLink', 'Table'])
+const CREATE_NEW_TYPES = new Set(['Link', 'DynamicLink'])
 const SELECTION_CHANGE_TYPES = new Set(['Table'])
 
 const props = defineProps<{
