@@ -20,7 +20,7 @@
 
 | # | Статус | Ідея | Опис |
 |---|--------|------|------|
-| 2.1 | 💡 | **Chart-widgets на Dashboard** | Типи: лінійний, стовпчастий, кругова діаграма, gauge, KPI-картка. Конфігурація через DocType `DashboardWidget`, дані — через Report або прямий запит. Chart.js вже є в залежностях. |
+| 2.1 | ✅ | **Chart-widgets на Dashboard** | Реалізовано через віджети `Page` (`PageWidget`): метрики + `chart_area`/`chart_bar`/…, агрегація по DocType з фільтрами. Використовується в home-сторінках (grunt, inventory, letter, translate). |
 | 2.2 | 💡 | **Візуальний Query Builder** | Drag-and-drop конструктор запитів для Query Reports — вибір полів, умов, групування — без SQL. Генерує SQLAlchemy-запит у фоні. |
 | 2.3 | 💡 | **Scheduled Report Delivery** | Запуск звіту за розкладом (cron) → генерація XLSX/PDF → відправка на список email. Конфігурація через DocType `ReportSchedule`. |
 | 2.4 | 💡 | **Drill-down у звітах** | Клік на рядок/стовпець у зведеному звіті відкриває деталізований список документів, що стоять за цифрою. |
@@ -45,10 +45,10 @@
 | # | Статус | Ідея | Опис |
 |---|--------|------|------|
 | 4.1 | ✅ | **Webhooks UI** | Сторінка керування вихідними вебхуками: список, тестовий запит, лог останніх доставок (WebhookLog вже є). |
-| 4.2 | 💡 | **OAuth-провайдери** | Логін через Google, Microsoft, GitHub. Таблиця `OAuthProvider` у Studio, backend через `authlib`. Partial implementation вже є. |
+| 4.2 | ✅ | **OAuth-провайдери** | Pluggable auth-провайдери (реєстр + `/api/v1/auth` + `issue_login`): OIDC (`grunt/auth/providers/oauth.py`), WebAuthn/passkey. |
 | 4.3 | 💡 | **REST API Connector** | DocType `ApiConnector` — конфігурація зовнішнього REST API (base URL, auth, headers). `grunt.call_api("MyConnector", "/endpoint", data)` у Server Scripts. |
-| 4.4 | 💡 | **Zapier / Make (n8n) webhooks** | Incoming webhook endpoint `/api/v1/webhook/{token}` → виконує Server Script або створює документ. Дозволяє підключити будь-який no-code інструмент. |
-| 4.5 | 💡 | **S3-compatible storage UI** | Сторінка конфігурації файлового сховища (local / S3 / MinIO) з тест-кнопкою. Зараз конфігурується тільки через env. |
+| 4.4 | ✅ | **Zapier / Make (n8n) webhooks** | Реалізовано DocType `IncomingWebhook` (`grunt/webhook/`) з `field_mapping` → створення документа. |
+| 4.5 | 🔨 | **S3-compatible storage UI** | Бекенд є (`config.py`: `storage_backend` local/s3, `s3_bucket`/`s3_endpoint_url` для MinIO/R2). Лишилось: UI-конфігурація з тест-кнопкою (зараз лише env). |
 
 ---
 
@@ -73,7 +73,7 @@
 | 6.3 | 💡 | **Guided onboarding / Setup Wizard** | При першому запуску — покроковий wizard: назва системи, email SMTP, перший користувач, тестовий DocType. Зменшує поріг входу для нових розробників. |
 | 6.4 | ✅ | **Keyboard shortcuts** | Реалізовано в `CommandPalette.vue`: `Ctrl+K` — command palette, `Ctrl+N` — quick create. Форма: `Ctrl+S` — зберегти. |
 | 6.5 | ✅ | **Command Palette** | Реалізовано: `CommandPalette.vue` — fuzzy-пошук по DocTypes, документах, workspaces і командах. Групований результат, навігація клавіатурою, quick create, статичні дії. |
-| 6.6 | 💡 | **Inline edit у ListView** | Подвійний клік на комірку таблиці — редагування на місці без відкриття форми. Для полів типу Text, Select, Check. |
+| 6.6 | 🔨 | **Inline edit у ListView** | Зроблено у Report-в'юсі: прапорець `DocField.editable_in_grid` + click-to-edit у `ReportGridView.vue`. Лишилось: звичайний ListView. |
 | 6.7 | 💡 | **DocType Playground** | Сторінка в Studio де можна протестувати DocType: заповнити форму, побачити згенерований JSON, перевірити API. |
 | 6.8 | 💡 | **Типізовані проксі для полів у контролері (через реєстр)** | `register_field_type` отримує новий параметр `proxy_factory: Callable[[options, value], Any] \| None`. `Document.__getattr__` перевіряє реєстр і автоматично обгортає значення — без жодних знань фреймворку про конкретні типи. Приклад: Link реєструє `LinkProxy` з `__await__` → `str(self.parent_kved)` = `"KVED-001"` (зворотна сумісність), `kved = await self.parent_kved` → повний Document, `kved.name_uk` → значення. Пряме `self.parent_kved.name_uk` без await неможливе (async DB). Для окремих полів лінкованого документа краще використовувати існуючий механізм `fetch_from`. Аналогічно Table → `TableRowProxy`. Передумова: синхронний in-memory кеш мети DocType (fieldname → fieldtype + options) для використання в `__getattr__`. |
 
@@ -84,9 +84,9 @@
 | # | Статус | Ідея | Опис |
 |---|--------|------|------|
 | 7.1 | 💡 | **Offline-first форма** | Service Worker кешує остання відкриті документи. При відсутності мережі — дає читати/редагувати, синхронізує при поновленні. |
-| 7.2 | 💡 | **Push Notifications (PWA)** | Web Push API: підписка через браузер, відправка через `grunt.notify()`. WebPush модуль вже є, треба підключити до Notification flow. |
+| 7.2 | ✅ | **Push Notifications (PWA)** | `PushSubscription` + `grunt/webpush/service.py`, підключено до `notification/service.py`; налаштування web-push у `SystemSettings`. |
 | 7.3 | 💡 | **Mobile-first ListView** | На малих екранах замість таблиці — картки з ключовими полями (як у мобільних CRM). Автоматично за breakpoint. |
-| 7.4 | 💡 | **Scan to fill** | Кнопка сканування QR/barcode у мобільній формі для полів типу `Barcode`. Використовує camera API браузера. |
+| 7.4 | ✅ | **Scan to fill** | `BarCode.vue`: сканування камерою та з зображення через BarcodeDetector (native або polyfill). |
 
 ---
 
@@ -96,8 +96,8 @@
 |---|--------|------|------|
 | 8.1 | 💡 | **2FA Enforcement Policy** | Системна настройка `require_2fa_for_roles: [Admin, Manager]` — при логіні без 2FA переадресовує на setup. MFA-код вже є, треба policy. |
 | 8.2 | ✅ | **Audit Log Diff UI** | Сторінка `ActivityLog` показує не просто "Update", а конкретно які поля змінилися і з якого на яке значення (diff). |
-| 8.3 | 💡 | **Data Retention Rules** | DocType `RetentionPolicy`: автоматичне видалення/архівування документів старших N днів. Запускається через Scheduled Job. |
-| 8.4 | 💡 | **IP Allowlist** | Обмеження входу за IP-адресою для окремих ролей. Конфігурується в `Role` або `SystemSettings`. |
+| 8.3 | 🔨 | **Data Retention Rules** | Для `is_log`-доктайпів є: `DocType.log_retention_days` + fallback `SystemSettings.log_retention_days`, задача `log_cleanup`. Лишилось: політики для бізнес-документів (видалення/архівування). |
+| 8.4 | 🔨 | **IP Allowlist** | Є для `ApiKey` (allowlist IP на ключ). Лишилось: обмеження інтерактивного входу за IP для ролей. |
 | 8.5 | ✅ | **Session management** | Реалізовано: `UserSession` DocType (таблиця `grunt_core_user_session`), сесія створюється при логіні, завершується при logout. API: whitelisted methods `grunt.auth.doctypes.UserSession.user_session.list_my_sessions` / `revoke_my_session` через `/api/v1/method/*`. Frontend: `/profile` — сторінка з картками сесій (IP, браузер, ОС, остання активність, завершення). Посилання у DeskTopBar. |
 
 ---
@@ -111,3 +111,18 @@
 | 9.3 | 💡 | **VS Code Extension** | Підсвічування JSON-схеми DocType, автодоповнення fieldtype/options, команда "Open in Studio". |
 | 9.4 | 💡 | **DocType Import/Export** | Експорт DocType (і його даних-фікстур) в ZIP → імпорт на іншому сайті. `grunt export-doctype MyApp` / `grunt import-doctype myapp.zip`. |
 | 9.5 | 💡 | **Grunt DevTools (браузерне розширення)** | Панель для відлагодження: поточний DocType, активні WebSocket-підписки, останні API-запити, SQL-запити поточної сторінки. |
+
+---
+
+## 10. Беклог з рев'ю та аудитів
+
+| # | Статус | Ідея | Опис |
+|---|--------|------|------|
+| 10.1 | 💡 | **Централізувати `workspaceUrl()`** | ~25 голих `/${ws}/…` конструкцій у ~18 файлах → один хелпер; після цього зняти alias `/:workspaceName` у роутері. Потрібні тести кліків. |
+| 10.2 | 💡 | **Роль вкладки «Поля» в редакторі DocType** | Сира таблиця `DocField` дублює Конструктор. Сховати або генерувати `PropertiesPanel` з метаданих `DocField` замість рукописних секцій. |
+| 10.3 | 💡 | **Прибрати мертвий код** | `SharedWith` DocType; дублікати `apps/grunt/auth/doctypes/User/User.json` і `apps/grunt/naming/doctypes/NamingSeries/NamingSeries.json` (поза `grunt/`, не завантажуються); решта `getSharedWith`/`getTags`/`getBacklinks`/`getBookmark` на фронті. |
+| 10.4 | 💡 | **Крос-doctype умови у `match`** | Читання `Comment`/`File` через generic CRUD має залежати від доступу до пов'язаного документа — граматика `PermissionMatch` цього поки не вміє. |
+| 10.5 | 💡 | **Підписка на документ (follow)** | Per-doc follow + сповіщення про зміни. |
+| 10.6 | 💡 | **Реєстр секцій бічної панелі** | Hook `sidebar_sections` для додатків + серверні `perms` у bundle `get_sidebar`. |
+| 10.7 | 💡 | **Table field: залишки аудиту** | Віртуалізація, блокування Save форми при помилках рядків, responsive stack-cards, перф `TableEditRow`. |
+| 10.8 | 💡 | **AttachPicker: залишки** | PDF-прев'ю (серверний thumbnail через PyMuPDF), віртуалізація сітки, roving-tabindex. |
