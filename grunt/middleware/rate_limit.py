@@ -51,6 +51,22 @@ _AUTH_STRICT_PATHS: dict[str, int] = {
 _WEBFORM_SUBMIT_RPC_PATH = "/api/v1/method/grunt.api.v1.webform.submit_form"
 
 
+_FILE_CONTENT_PATH = "/api/v1/method/grunt.storage.doctypes.File.file.get_content"
+
+
+def _is_signed_file_request(request: Request) -> bool:
+    if request.url.path != _FILE_CONTENT_PATH:
+        return False
+    from grunt.storage.signing import verify
+
+    q = request.query_params
+    try:
+        exp = int(q.get("exp") or 0)
+    except ValueError:
+        return False
+    return verify(q.get("file_id") or "", exp, q.get("sig"))
+
+
 def _is_webform_submit(path: str, method: str) -> bool:
     return method == "POST" and (path.startswith("/form/") or path == _WEBFORM_SUBMIT_RPC_PATH)
 
@@ -176,7 +192,13 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         # Decode JWT (optional — does not affect auth, only rate limit tier)
         payload = self._decode_token(request.headers.get("authorization"))
 
-        if payload:
+        if not payload and _is_signed_file_request(request):
+            # <img> / links carry no Authorization header: a grid of previews
+            # would drain the anonymous budget in one page view. A valid file
+            # signature gets its own, more generous per-IP bucket.
+            limit = getattr(settings, "rate_limit_files", 600)
+            key = f"files:{self._client_ip(request)}"
+        elif payload:
             is_system_manager = "System Manager" in (payload.get("roles") or [])
             email: str = payload.get("sub") or payload.get("email") or "unknown"
 

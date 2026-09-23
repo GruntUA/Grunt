@@ -5,7 +5,7 @@ import { filesApi, type FileItem } from '@/core/api/files'
 import { useFileList, type FileCategory } from '@/core/composables/useFileList'
 import { useDebounce } from '@/core/composables/useDebounce'
 import { useToast } from '@/core/composables/useToast'
-import { isImageType, formatFileSize } from '@/core/fileUtils'
+import { fileTypeLabel, formatFileSize, previewUrl } from '@/core/fileUtils'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -223,8 +223,8 @@ watch([category, sort], () => scrollEl.value?.scrollTo({ top: 0 }))
                     class="group relative aspect-square rounded-lg border bg-background shadow-xs hover:shadow-md hover:border-primary/30 transition-all flex flex-col overflow-hidden">
                     <!-- Preview Area -->
                     <div class="flex-1 flex flex-col relative w-full items-center justify-center bg-muted/20 border-b">
-                        <img v-if="isImageType(file.content_type)" :src="file.url"
-                            class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        <img v-if="previewUrl(file)" :src="previewUrl(file)!"
+                            class="absolute inset-0 w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500"
                             loading="lazy" />
                         <div v-else class="flex flex-col items-center justify-center">
                             <FileIcon class="size-10 text-muted-foreground/30 mb-2" />
@@ -255,7 +255,7 @@ watch([category, sort], () => scrollEl.value?.scrollTo({ top: 0 }))
                         <div class="flex items-center justify-between uppercase font-semibold text-muted-foreground">
                             <Badge variant="secondary"
                                 class="text-xs px-1 bg-muted/30 border-transparent truncate max-w-[60px]">
-                                {{ file.content_type.split('/')[1] || 'FILE' }}
+                                {{ fileTypeLabel(file.filename, file.content_type) }}
                             </Badge>
                             <span class="tabular-nums opacity-70">{{ formatFileSize(file.size_bytes) }}</span>
                         </div>

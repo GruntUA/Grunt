@@ -3,6 +3,8 @@ import client from './client'
 export interface FileItem {
     id: string
     url: string
+    /** Small WebP preview (images, PDF first page), if the server made one. */
+    thumbnail_url?: string | null
     filename: string
     content_type: string
     content_hash?: string | null

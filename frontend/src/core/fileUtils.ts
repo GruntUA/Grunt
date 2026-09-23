@@ -8,6 +8,21 @@ export function isImageType(contentType: string | null | undefined): boolean {
   return !!contentType && contentType.startsWith('image/')
 }
 
+/** What a grid tile shows: the server preview, else the image itself, else nothing (icon). */
+export function previewUrl(file: {
+  url: string
+  content_type?: string | null
+  thumbnail_url?: string | null
+}): string | null {
+  return file.thumbnail_url || (isImageType(file.content_type) ? file.url : null)
+}
+
+/** Short type tag for a tile: the file extension ("DOCX"), else the MIME subtype. */
+export function fileTypeLabel(filename: string, contentType?: string | null): string {
+  const ext = /\.([a-z0-9]{1,5})$/i.exec(filename)?.[1]
+  return (ext || contentType?.split('/')[1] || 'file').toUpperCase()
+}
+
 const SIZE_UNITS = ['B', 'KB', 'MB', 'GB', 'TB'] as const
 
 export function formatFileSize(bytes: number): string {

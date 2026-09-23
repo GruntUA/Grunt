@@ -6,6 +6,7 @@ from grunt.cli.app import app_group
 from grunt.cli.db import db_group, db_migrate
 from grunt.cli.doctype import doctype_group
 from grunt.cli.fields import fields_group
+from grunt.cli.files import files_group
 from grunt.cli.fixtures import fixtures_group
 from grunt.cli.i18n import i18n_group
 from grunt.cli.lint import lint
@@ -54,6 +55,7 @@ cli.add_command(db_group)
 cli.add_command(app_group)
 cli.add_command(doctype_group)
 cli.add_command(fields_group)
+cli.add_command(files_group)
 cli.add_command(fixtures_group)
 cli.add_command(i18n_group)
 cli.add_command(site_group)

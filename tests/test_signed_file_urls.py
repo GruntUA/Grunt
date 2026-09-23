@@ -89,3 +89,19 @@ async def test_saved_attach_value_is_stored_unsigned(ctx):
     await ctx.save_doc("User", "pic@example.com", {"avatar": signed})
     await ctx.db._session().commit()
     assert await ctx.db.get_value("User", "pic@example.com", "avatar") == f"{URL}pic1"
+
+
+def test_rate_limiter_recognises_signed_file_requests():
+    from starlette.requests import Request
+
+    from grunt.middleware.rate_limit import _is_signed_file_request
+
+    signed = sign_file_urls(f'"{URL}f1"'.encode()).decode().strip('"')
+
+    def req(url: str) -> Request:
+        path, _, query = url.partition("?")
+        return Request({"type": "http", "path": path, "query_string": query.encode(), "headers": []})
+
+    assert _is_signed_file_request(req(signed))
+    assert not _is_signed_file_request(req(f"{URL}f1"))
+    assert not _is_signed_file_request(req(signed.replace("file_id=f1", "file_id=f2")))

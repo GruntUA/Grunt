@@ -92,6 +92,7 @@ class Settings(BaseSettings):
     rate_limit_user: int = 200  # req/min for authenticated users
     rate_limit_anon: int = 30  # req/min for anonymous (IP-based)
     rate_limit_webform: int = 10  # req/min per-IP for public web-form submissions
+    rate_limit_files: int = 600  # req/min per-IP for signed file URLs (<img> grids)
 
     # CAPTCHA (Turnstile) — used only by WebForm submissions that opt in via
     # their own captcha_enabled flag. Leave captcha_provider unset to disable

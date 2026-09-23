@@ -11,8 +11,9 @@ from grunt.config import settings
 from grunt.context import _user_ctx
 from grunt.document.base import Document
 from grunt.storage import get_storage_backend
+from grunt.storage.thumbnails import THUMB_MIMETYPE, make_thumbnail
 
-_IMAGE_TYPES = {"image/jpeg", "image/png", "image/gif", "image/webp", "image/svg+xml"}
+_CONTENT_URL = "/api/v1/method/grunt.storage.doctypes.File.file.get_content?file_id={}"
 
 
 class File(Document):
@@ -27,6 +28,7 @@ class File(Document):
     uploaded_by: str
     is_public: bool
     thumbnail_url: str | None
+    thumbnail_path: str | None
     attached_to_doctype: str | None
     attached_to_id: str | None
 
@@ -43,12 +45,14 @@ class File(Document):
         share one blob, so only drop the physical file when this is the last
         row pointing at that path.
         """
-        if not self.path:
-            return
-        others = await File.objects.filter(path=self.path, name__ne=self.name).count()
-        if others == 0:
-            storage = get_storage_backend()
-            await storage.delete(self.path)
+        storage = get_storage_backend()
+        for field in ("path", "thumbnail_path"):
+            value = getattr(self, field, None)
+            if not value:
+                continue
+            others = await File.objects.filter(**{field: value, "name__ne": self.name}).count()
+            if others == 0:
+                await storage.delete(value)
 
 
 @whitelist()
@@ -110,8 +114,6 @@ async def upload(
     except ValueError as exc:
         raise HTTPException(415, str(exc)) from exc
 
-    is_image = content_type in _IMAGE_TYPES
-
     # Create the File document first to get the auto-generated name.
     file_doc = await File.objects.create(
         file_name=file.filename,
@@ -128,12 +130,10 @@ async def upload(
     file_id = str(file_doc.name)
 
     # Build URL using the document name and persist it.
-    file_url = f"/api/v1/method/grunt.storage.doctypes.File.file.get_content?file_id={file_id}"
-    update: dict[str, Any] = {"file_url": file_url}
-    if is_image:
-        update["thumbnail_url"] = file_url
-    await grunt.save_doc("File", file_id, update)
+    file_url = _CONTENT_URL.format(file_id)
+    await grunt.save_doc("File", file_id, {"file_url": file_url})
     file_doc.file_url = file_url
+    file_doc.thumbnail_url = await store_thumbnail(file_id, content, content_type)
 
     return _upload_payload(file_doc, deduped=False)
 
@@ -146,13 +146,61 @@ def _upload_payload(doc: File, *, deduped: bool) -> dict[str, Any]:
         "filename": doc.file_name,
         "content_type": doc.content_type,
         "size_bytes": doc.file_size,
+        "thumbnail_url": doc.thumbnail_url,
         "deduped": deduped,
     }
 
 
+async def store_thumbnail(file_id: str, content: bytes, content_type: str | None) -> str | None:
+    """Make and store the file's preview (grunt.storage.thumbnails); return its URL.
+
+    SVG needs no raster preview — the browser draws the file itself.
+    """
+    if content_type == "image/svg+xml":
+        url = _CONTENT_URL.format(file_id)
+        await grunt.db.set_value("File", file_id, {"thumbnail_url": url})
+        return url
+    thumb = await make_thumbnail(content, content_type)
+    if thumb is None:
+        return None
+    path = await get_storage_backend().save(thumb, f"{file_id}.thumb.webp", THUMB_MIMETYPE)
+    url = _CONTENT_URL.format(file_id) + "&thumb=1"
+    await grunt.db.set_value("File", file_id, {"thumbnail_path": path, "thumbnail_url": url})
+    return url
+
+
+async def generate_missing_thumbnails(limit: int = 500) -> int:
+    """Backfill previews for files uploaded before thumbnails existed."""
+    from grunt.storage.thumbnails import can_thumbnail
+
+    rows = await grunt.db.get_all(
+        "File",
+        filters={"thumbnail_path__isnull": True},
+        fields=["name", "path", "content_type", "thumbnail_url"],
+        limit=None,
+    )
+    storage = get_storage_backend()
+    made = 0
+    for row in rows:
+        if made >= limit:
+            break
+        ctype = row.get("content_type")
+        if not row.get("path") or not can_thumbnail(ctype):
+            continue
+        try:
+            content = await storage.get(row["path"])
+        except Exception:  # noqa: BLE001 - a missing blob just stays without a preview
+            continue
+        if await store_thumbnail(str(row["name"]), content, ctype):
+            made += 1
+    return made
+
+
 @whitelist(allow_guest=True)
-async def get_content(file_id: str, exp: int | None = None, sig: str | None = None) -> Response:
-    """Whitelisted method: Fetch file content from storage.
+async def get_content(
+    file_id: str, exp: int | None = None, sig: str | None = None, thumb: bool = False
+) -> Response:
+    """Whitelisted method: Fetch file content from storage (``thumb`` — its preview).
 
     A private file needs either a valid signature (``exp`` + ``sig``, appended
     to every file URL the API hands out) or a user allowed to read it.
@@ -172,6 +220,7 @@ async def get_content(file_id: str, exp: int | None = None, sig: str | None = No
             "is_public",
             "attached_to_doctype",
             "attached_to_id",
+            "thumbnail_path",
         ],
     )
     if not doc:
@@ -190,6 +239,18 @@ async def get_content(file_id: str, exp: int | None = None, sig: str | None = No
             raise HTTPException(403, "Немає доступу до файлу")
 
     storage = get_storage_backend()
+    if thumb and doc.get("thumbnail_path"):
+        try:
+            preview = await storage.get(doc["thumbnail_path"])
+        except Exception:
+            raise HTTPException(404, "Thumbnail not found on storage") from None
+        # Previews never change for a file id — let the browser keep them.
+        return Response(
+            content=preview,
+            media_type=THUMB_MIMETYPE,
+            headers={"Cache-Control": "private, max-age=86400"},
+        )
+
     try:
         file_path = doc.get("path") or ""
         content = await storage.get(file_path)
@@ -238,6 +299,7 @@ async def get_list(
             {
                 "name": str(r.name),
                 "url": r.file_url,
+                "thumbnail_url": r.thumbnail_url,
                 "filename": r.file_name,
                 "content_type": r.content_type,
                 "content_hash": r.content_hash,

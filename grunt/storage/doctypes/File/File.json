@@ -34,6 +34,13 @@
       "read_only": true
     },
     {
+      "fieldname": "thumbnail_path",
+      "label": "Thumbnail path",
+      "fieldtype": "Text",
+      "hidden": true,
+      "read_only": true
+    },
+    {
       "fieldname": "file_size",
       "label": "Розмір (байт)",
       "fieldtype": "Int",
