@@ -58,6 +58,14 @@
       "label": "Обліковий запис",
       "fieldtype": "Link",
       "options": "EmailAccount"
+    },
+    {
+      "fieldname": "attachments",
+      "label": "Attachments",
+      "fieldtype": "JSON",
+      "read_only": true,
+      "hidden": true,
+      "description": "Files sent with the message: [{filename, mimetype, content_b64}]."
     }
   ],
   "permissions": [

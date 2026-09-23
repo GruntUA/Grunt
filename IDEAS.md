@@ -22,8 +22,8 @@
 |---|--------|------|------|
 | 2.1 | ✅ | **Chart-widgets на Dashboard** | Реалізовано через віджети `Page` (`PageWidget`): метрики + `chart_area`/`chart_bar`/…, агрегація по DocType з фільтрами. Використовується в home-сторінках (grunt, inventory, letter, translate). |
 | 2.2 | 💡 | **Візуальний Query Builder** | Drag-and-drop конструктор запитів для Query Reports — вибір полів, умов, групування — без SQL. Генерує SQLAlchemy-запит у фоні. |
-| 2.3 | 💡 | **Scheduled Report Delivery** | Запуск звіту за розкладом (cron) → генерація XLSX/PDF → відправка на список email. Конфігурація через DocType `ReportSchedule`. |
-| 2.4 | 💡 | **Drill-down у звітах** | Клік на рядок/стовпець у зведеному звіті відкриває деталізований список документів, що стоять за цифрою. |
+| 2.3 | ✅ | **Scheduled Report Delivery** | Поля на `Report` (секція «Розсилка»): `schedule_frequency` Daily/Weekly/Monthly, `schedule_recipients`, `schedule_filters`, `last_sent_at`. Щоденна задача 07:00 (`grunt/reports/delivery.py`) запускає звіт від імені власника → XLSX-вкладення в `EmailQueue.attachments`. Дія «Надіслати зараз». PDF — ні. |
+| 2.4 | ✅ | **Drill-down у звітах** | Згрупований List-звіт повертає `meta.drilldown`; клік на рядок у `ReportView` відкриває список DocType з фільтрами звіту + значеннями групи. |
 | 2.5 | ✅ | **Збережені фільтри** | Реалізовано в `FilterBar.vue`: збереження пресетів фільтрів за іменем у localStorage (per-user per-doctype), завантаження та видалення через dropdown меню. |
 
 ---

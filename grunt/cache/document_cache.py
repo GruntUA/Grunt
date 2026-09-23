@@ -141,7 +141,9 @@ class DocumentCache:
                     await r.delete(*keys)
         except Exception as exc:
             self._redis_failed = True
-            log.warning("doc_cache.redis_invalidate_doctype_failed", error=str(exc), doctype=doctype)
+            log.warning(
+                "doc_cache.redis_invalidate_doctype_failed", error=str(exc), doctype=doctype
+            )
 
     async def invalidate_all(self) -> None:
         """Drop every cached document of every doctype (test/dev reset)."""

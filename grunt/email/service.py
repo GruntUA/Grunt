@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import asyncio
+import base64
 import email
+import json
 import re
 import uuid
 from datetime import UTC, datetime
@@ -667,12 +669,16 @@ class EmailService:
         subject: str,
         body: str,
         html_body: str | None = None,
+        attachments: list[dict[str, Any]] | None = None,
     ) -> str:
         """Insert a record into EmailQueue for async delivery.
 
         Sending account: ``SystemSettings.default_email_account`` when set,
         otherwise the first EmailAccount with ``enable_outgoing=True``.
         ``SystemSettings.email_footer`` (if any) is appended to the body.
+
+        ``attachments`` — ``[{"filename", "mimetype", "content": bytes}]``; kept
+        base64-encoded on the queue row (never as public File records).
         """
         from grunt.app import grunt
         from grunt.site.settings import get_setting
@@ -725,6 +731,7 @@ class EmailService:
                         "is_html": is_html,
                         "status": "Pending",
                         "email_account": email_account_id,
+                        "attachments": encode_attachments(attachments),
                     },
                 )
         except Exception:
@@ -733,6 +740,34 @@ class EmailService:
 
         _kick_queue_after_commit(session)
         return record_id
+
+
+def encode_attachments(attachments: list[dict[str, Any]] | None) -> list[dict[str, Any]] | None:
+    """``content: bytes`` → ``content_b64`` so attachments fit a JSON column."""
+    if not attachments:
+        return None
+    return [
+        {
+            "filename": a.get("filename") or "attachment",
+            "mimetype": a.get("mimetype") or "application/octet-stream",
+            "content_b64": base64.b64encode(a["content"]).decode("ascii"),
+        }
+        for a in attachments
+    ]
+
+
+def decode_attachments(stored: Any) -> list[dict[str, Any]]:
+    """Inverse of :func:`encode_attachments` — what :meth:`EmailService.send_now` takes."""
+    if isinstance(stored, str):
+        stored = json.loads(stored or "null")
+    return [
+        {
+            "filename": a.get("filename") or "attachment",
+            "mimetype": a.get("mimetype") or "application/octet-stream",
+            "content": base64.b64decode(a.get("content_b64") or ""),
+        }
+        for a in stored or []
+    ]
 
 
 email_service = EmailService()

@@ -8452,3 +8452,63 @@ msgstr ""
 
 #~ msgid "Вебхук"
 #~ msgstr "Webhook"
+
+#: grunt/grunt/reports/doctypes/Report/Report.json
+msgctxt "meta:Report.sec_schedule"
+msgid "Scheduled delivery"
+msgstr ""
+
+#: grunt/grunt/reports/doctypes/Report/Report.json
+msgctxt "meta:Report.schedule_frequency"
+msgid "Send"
+msgstr ""
+
+#: grunt/grunt/reports/doctypes/Report/Report.json
+msgctxt "help:Report.schedule_frequency"
+msgid "Email the report as XLSX on a schedule (daily at 07:00). Empty — off."
+msgstr ""
+
+#: grunt/grunt/reports/doctypes/Report/Report.json
+msgctxt "select:Report.schedule_frequency"
+msgid "Daily"
+msgstr ""
+
+#: grunt/grunt/reports/doctypes/Report/Report.json
+msgctxt "select:Report.schedule_frequency"
+msgid "Weekly"
+msgstr ""
+
+#: grunt/grunt/reports/doctypes/Report/Report.json
+msgctxt "select:Report.schedule_frequency"
+msgid "Monthly"
+msgstr ""
+
+#: grunt/grunt/reports/doctypes/Report/Report.json
+msgctxt "meta:Report.schedule_recipients"
+msgid "Recipients"
+msgstr ""
+
+#: grunt/grunt/reports/doctypes/Report/Report.json
+msgctxt "help:Report.schedule_recipients"
+msgid "Email addresses, comma-separated or one per line."
+msgstr ""
+
+#: grunt/grunt/reports/doctypes/Report/Report.json
+msgctxt "meta:Report.schedule_filters"
+msgid "Filters"
+msgstr ""
+
+#: grunt/grunt/reports/doctypes/Report/Report.json
+msgctxt "help:Report.schedule_filters"
+msgid "Report filters for the scheduled run, e.g. {\"status\": \"Open\"}."
+msgstr ""
+
+#: grunt/grunt/reports/doctypes/Report/Report.json
+msgctxt "meta:Report.last_sent_at"
+msgid "Last sent"
+msgstr ""
+
+#: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
+msgctxt "meta:EmailQueue.attachments"
+msgid "Attachments"
+msgstr ""

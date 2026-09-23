@@ -71,6 +71,41 @@
       "fieldtype": "Code",
       "options": "python",
       "depends_on": "eval:doc.report_type==='Script'"
+    },
+    {
+      "fieldname": "sec_schedule",
+      "label": "Scheduled delivery",
+      "fieldtype": "Section",
+      "collapsible": true
+    },
+    {
+      "fieldname": "schedule_frequency",
+      "label": "Send",
+      "fieldtype": "Select",
+      "options": "\nDaily\nWeekly\nMonthly",
+      "description": "Email the report as XLSX on a schedule (daily at 07:00). Empty — off."
+    },
+    {
+      "fieldname": "schedule_recipients",
+      "label": "Recipients",
+      "fieldtype": "LongText",
+      "depends_on": "schedule_frequency",
+      "mandatory_depends_on": "schedule_frequency",
+      "description": "Email addresses, comma-separated or one per line."
+    },
+    {
+      "fieldname": "schedule_filters",
+      "label": "Filters",
+      "fieldtype": "JSON",
+      "depends_on": "schedule_frequency",
+      "description": "Report filters for the scheduled run, e.g. {\"status\": \"Open\"}."
+    },
+    {
+      "fieldname": "last_sent_at",
+      "label": "Last sent",
+      "fieldtype": "Datetime",
+      "read_only": true,
+      "depends_on": "schedule_frequency"
     }
   ],
   "permissions": [
@@ -84,6 +119,12 @@
       "write": true,
       "create": true,
       "delete": true
+    }
+  ],
+  "actions": [
+    {
+      "action": "report.send_now",
+      "condition": "doc.schedule_recipients"
     }
   ]
 }

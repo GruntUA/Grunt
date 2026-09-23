@@ -490,7 +490,8 @@ async def test_set_password_first_time_for_passwordless_user(ctx, client: AsyncC
     from grunt.auth.login import find_or_create_external_user
 
     async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
-        await create_user("first@grunt.example.com", "Str0ngPass", "Fir", "St", None)  # System Manager
+        # First user → System Manager.
+        await create_user("first@grunt.example.com", "Str0ngPass", "Fir", "St", None)
         ext = await find_or_create_external_user("passwordless@grunt.example.com", "Pw Less")
         await ctx.db.set_value("User", ext.id, {"is_active": True})
         await ctx.db._session().commit()

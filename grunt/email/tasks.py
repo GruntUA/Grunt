@@ -4,7 +4,7 @@ from datetime import UTC, datetime, timedelta
 
 from grunt.app import grunt
 from grunt.auth.doctypes.User.user import SYSTEM_USER
-from grunt.email.service import EmailService, email_service
+from grunt.email.service import EmailService, decode_attachments, email_service
 from grunt.log import log
 from grunt.site.manager import site_manager
 from grunt.tasks.broker import retryable_task
@@ -62,7 +62,8 @@ async def process_email_queue():
                 account = await grunt.get_doc("EmailAccount", account_id)
 
                 try:
-                    await EmailService.send_now(account, item)
+                    message = {**item, "attachments": decode_attachments(item.get("attachments"))}
+                    await EmailService.send_now(account, message)
                     await grunt.save_doc("EmailQueue", item["name"], {"status": "Sent"})
                     await session.commit()
                 except Exception as e:

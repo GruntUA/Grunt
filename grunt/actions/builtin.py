@@ -131,3 +131,20 @@ async def todo_cancel(doc: dict[str, Any], *, args: dict[str, Any]) -> dict[str,
 async def todo_reopen(doc: dict[str, Any], *, args: dict[str, Any]) -> dict[str, Any]:
     """Reopen a closed/cancelled task — the controller clears the completion stamp."""
     return {**await _set_todo_status(doc["name"], "Open"), "message": "Завдання відкрито"}
+
+
+@doc_action(
+    "report.send_now",
+    label="Надіслати зараз",
+    doctypes=["Report"],
+    icon="send",
+    variant="outline",
+    roles=["System Manager"],
+    confirm="Надіслати звіт отримувачам розсилки зараз?",
+)
+async def report_send_now(doc: dict[str, Any], *, args: dict[str, Any]) -> dict[str, Any]:
+    """Email the report to its scheduled recipients right away."""
+    from grunt.reports.delivery import send_report_now
+
+    sent = await send_report_now(doc["name"])
+    return {"message": f"Звіт поставлено в чергу для {sent} отримувачів", "refresh": True}
