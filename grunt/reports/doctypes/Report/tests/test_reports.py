@@ -304,6 +304,42 @@ async def test_run_list_report_operator_filters(ctx):
     assert len(noop_res["data"]) >= 4
 
 
+@pytest.mark.asyncio
+async def test_aggregated_list_report_carries_drilldown(ctx):
+    """A grouped List report tells the client how to open the rows behind a total."""
+    from grunt.reports.doctypes.Report.report import run as run_report
+
+    for rn in ("D Alpha", "D Beta"):
+        await ctx.new_doc(
+            "Report", {"report_name": rn, "report_type": "Query", "query": "SELECT 1"}
+        )
+    base = {"report_type": "List", "doctype": "Report"}
+    await ctx.new_doc(
+        "Report",
+        {
+            **base,
+            "report_name": "Reports By Type",
+            "columns": [
+                {"fieldname": "report_type", "label": "Type"},
+                {"fieldname": "report_name", "label": "Count", "aggregation": "count"},
+            ],
+        },
+    )
+    await ctx.new_doc(
+        "Report",
+        {**base, "report_name": "Plain Reports", "columns": [{"fieldname": "report_name"}]},
+    )
+    await ctx.db._session().commit()
+
+    grouped = await run_report(name="Reports By Type", filters={})
+    assert grouped["meta"]["drilldown"] == {"doctype": "Report", "group_by": ["report_type"]}
+    by_type = {r["report_type"]: r["report_name"] for r in grouped["data"]}
+    assert by_type["Query"] >= 2
+
+    plain = await run_report(name="Plain Reports", filters={})
+    assert "drilldown" not in plain["meta"]
+
+
 # ── export_report_xlsx ──────────────────────────────────────────────────
 
 

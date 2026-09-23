@@ -127,6 +127,40 @@ function formatCell(val: any, fieldtype: string): string {
     return String(val)
 }
 
+/** Report filter-key suffix → list-view URL operator (see useListRouteSync OP_MAP). */
+const URL_OP: Record<string, string> = { '': 'eq', like: 'ilike' }
+
+/**
+ * Aggregated List reports: each row summarises the documents sharing its
+ * group values (`meta.drilldown`). Rows whose group value is empty can't be
+ * expressed as an equality filter, so they stay plain.
+ */
+function drilldownQuery(row: Record<string, any>): Record<string, string> | null {
+    const dd = meta.value?.drilldown
+    if (!dd) return null
+    const query: Record<string, string> = {}
+    for (const [key, value] of Object.entries(filters.value)) {
+        const [field, op = ''] = key.split('__')
+        query[`filter[${field}__${URL_OP[op] ?? op}]`] = String(value)
+    }
+    for (const field of dd.group_by as string[]) {
+        const value = row[field]
+        if (value === null || value === undefined || value === '') return null
+        query[`filter[${field}__eq]`] = String(value)
+    }
+    return query
+}
+
+function openDrilldown(row: Record<string, any>) {
+    const query = drilldownQuery(row)
+    if (!query) return
+    router.push({
+        name: 'workspace-list',
+        params: { workspaceName: props.workspaceName, doctype: meta.value.drilldown.doctype },
+        query,
+    })
+}
+
 function openBuilder() {
     router.push({ name: 'report-builder', params: { workspaceName: props.workspaceName, reportName: props.reportName } })
 }
@@ -221,7 +255,11 @@ function openBuilder() {
                                 </div>
                             </td>
                         </tr>
-                        <tr v-else v-for="(row, ri) in data" :key="ri" class="border-b last:border-0 hover:bg-muted/30 transition-colors">
+                        <tr v-else v-for="(row, ri) in data" :key="ri"
+                            class="border-b last:border-0 hover:bg-muted/30 transition-colors"
+                            :class="{ 'cursor-pointer': drilldownQuery(row) }"
+                            :title="drilldownQuery(row) ? 'Відкрити документи' : undefined"
+                            @click="openDrilldown(row)">
                             <td v-for="col in columns" :key="col.fieldname" class="px-4 py-3 text-foreground/90 font-medium whitespace-nowrap">
                                 {{ formatCell(row[col.fieldname], col.fieldtype) }}
                             </td>

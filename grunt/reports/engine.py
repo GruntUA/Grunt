@@ -336,11 +336,13 @@ class ReportEngine:
         rows = [dict(zip(keys, row, strict=False)) for row in db_result.fetchall()]
         elapsed = int((time.time() - start) * 1000)
 
-        return {
-            "columns": result_columns,
-            "data": rows,
-            "meta": {"rows": len(rows), "time_ms": elapsed},
-        }
+        meta: dict[str, Any] = {"rows": len(rows), "time_ms": elapsed}
+        if group_by_cols:
+            # Each result row summarises the documents sharing these group
+            # values — the client can open them as a filtered list.
+            meta["drilldown"] = {"doctype": doctype, "group_by": [c.name for c in group_by_cols]}
+
+        return {"columns": result_columns, "data": rows, "meta": meta}
 
     # ── Excel export ──────────────────────────────────────────────────────────
 
