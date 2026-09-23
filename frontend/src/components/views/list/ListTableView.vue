@@ -6,6 +6,8 @@ import type { GroupedRowBucket } from '@/core/composables/useGrouping'
 import GruntDataTable from '@/components/views/GruntDataTable.vue'
 import BulkActionBar from '@/components/views/BulkActionBar.vue'
 import ListGroupedView from '@/components/views/list/ListGroupedView.vue'
+import ListCards from '@/components/views/list/ListCards.vue'
+import { useCardLayout } from '@/components/views/list/useCardLayout'
 import { statusConfigOf } from '@/core/status'
 
 interface TableMeta {
@@ -55,6 +57,7 @@ const emit = defineEmits<{
   'toggle-group': [key: string]
 }>()
 
+const cardLayout = useCardLayout()
 const selectionCount = computed(() => props.selection.selectedIds.length)
 const normalizedSortKey = computed(() => props.sortKey || '')
 
@@ -102,6 +105,22 @@ function rowDocId(row: Record<string, unknown>): string {
         @select-all="selection.toggleAll(rows?.map((r) => rowDocId(r)).filter(Boolean) || [])"
         @row-click="(row) => emit('row-click', row)"
         @inline-update="(rowId, field, value) => emit('inline-update', rowId, field, value)"
+      />
+
+      <!-- Phone width: cards instead of a table -->
+      <ListCards
+        v-else-if="cardLayout"
+        :dt="dt"
+        :workspace="workspace"
+        :doctype="doctype"
+        :rows="rows"
+        :columns="columns"
+        :is-loading="isLoading"
+        :selected-ids="selection.selectedIds"
+        :all-selected="selection.allSelected"
+        :meta="meta"
+        @select="(id) => selection.toggle(id)"
+        @row-click="(row) => emit('row-click', row)"
       />
 
       <!-- Ungrouped List View -->

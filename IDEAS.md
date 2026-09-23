@@ -85,7 +85,7 @@
 |---|--------|------|------|
 | 7.1 | 💡 | **Offline-first форма** | Service Worker кешує остання відкриті документи. При відсутності мережі — дає читати/редагувати, синхронізує при поновленні. |
 | 7.2 | ✅ | **Push Notifications (PWA)** | `PushSubscription` + `grunt/webpush/service.py`, підключено до `notification/service.py`; налаштування web-push у `SystemSettings`. |
-| 7.3 | 💡 | **Mobile-first ListView** | На малих екранах замість таблиці — картки з ключовими полями (як у мобільних CRM). Автоматично за breakpoint. |
+| 7.3 | ✅ | **Mobile-first ListView** | До 768px список (і згрупований) показується картками `components/views/list/ListCards.vue`: заголовок = `title_field` або перша не-Select/Check колонка, статус-бейдж, до 4 пар «поле: значення» тими самими list-cell компонентами, що й таблиця, чекбокс виділення, позначка track_seen. Брейкпоінт — `useCardLayout.ts`. |
 | 7.4 | ✅ | **Scan to fill** | `BarCode.vue`: сканування камерою та з зображення через BarcodeDetector (native або polyfill). |
 
 ---

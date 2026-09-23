@@ -4,6 +4,8 @@ import type { DocField, DocType } from '@/types'
 import type { ListColumn } from '@/core/composables/useListColumns'
 import type { GroupedRowBucket } from '@/core/composables/useGrouping'
 import GruntDataTable from '@/components/views/GruntDataTable.vue'
+import ListCards from '@/components/views/list/ListCards.vue'
+import { useCardLayout } from '@/components/views/list/useCardLayout'
 import { Badge } from '@/components/ui/badge'
 import { statusConfigOf } from '@/core/status'
 
@@ -28,6 +30,8 @@ const props = defineProps<{
   groupByField: DocField | null
 }>()
 
+const cardLayout = useCardLayout()
+
 const emit = defineEmits<{
   (e: 'toggleGroup', key: string): void
   (e: 'sort', key: string): void
@@ -49,8 +53,8 @@ function handleSelectGroup(items: Record<string, unknown>[]) {
 
 <template>
   <div class="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-2 duration-700">
-    <!-- Shared column header -->
-    <div class="bg-card rounded-lg border border-border/60 overflow-hidden">
+    <!-- Shared column header (tables only — cards carry their own labels) -->
+    <div v-if="!cardLayout" class="bg-card rounded-lg border border-border/60 overflow-hidden">
         <GruntDataTable
           :columns="columns"
           :rows="[]"
@@ -101,7 +105,22 @@ function handleSelectGroup(items: Record<string, unknown>[]) {
           <!-- Group rows -->
           <Transition name="group-expand">
             <div v-if="!collapsedGroups.has(group.key)" class="bg-card">
+              <ListCards
+                v-if="cardLayout"
+                class="p-3"
+                :dt="dt"
+                :workspace="workspace"
+                :doctype="doctype"
+                :rows="group.items"
+                :columns="columns"
+                :is-loading="false"
+                :selected-ids="selection?.selectedIds || []"
+                :all-selected="selection?.allSelected || false"
+                @select="selection?.toggle"
+                @row-click="emit('rowClick', $event)"
+              />
               <GruntDataTable
+                v-else
                 :columns="columns"
                 :rows="group.items"
                 :fields="dt?.fields ?? []"
