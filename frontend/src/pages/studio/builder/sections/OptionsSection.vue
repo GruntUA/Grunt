@@ -3,6 +3,7 @@ import { usePropertyEditor } from '@/core/composables/usePropertyEditor'
 import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
 import { Textarea } from '@/components/ui/textarea'
+import HTMLEditor from '@/components/fields/HTMLEditor/HTMLEditor.vue'
 
 const { field, updateField } = usePropertyEditor()
 </script>
@@ -17,6 +18,13 @@ const { field, updateField } = usePropertyEditor()
       @update:model-value="(v: string | number) => updateField('options', String(v))"
     />
     <p class="text-muted-foreground">Поле-посилання на Currency у цьому документі або фіксований ISO-код валюти</p>
+  </div>
+  <div v-else-if="field.fieldtype === 'HTML'" class="mb-4">
+    <HTMLEditor
+      :field="field"
+      :model-value="field.options ?? ''"
+      @update:model-value="(v: string) => updateField('options', v)"
+    />
   </div>
   <div v-else class="mb-4">
     <Textarea

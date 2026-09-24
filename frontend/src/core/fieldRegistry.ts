@@ -151,9 +151,9 @@ export function getLayoutTypeSet(): Set<string> {
   return new Set([..._registry.values()].filter((d) => !!d.is_layout).map((d) => d.type))
 }
 
-/** Layout types + non-physical container types (Table, MultiLink) that have no DB column. */
+/** Types with no DB column of their own (layout, Table, MultiLink, Button, HTML…) — per manifest storage_class. */
 export function getNonPhysicalTypeSet(): Set<string> {
-  return new Set([...getLayoutTypeSet(), 'Table', 'MultiLink'])
+  return new Set([..._registry.values()].filter((d) => !!d.is_layout || d.storage_class === 'none').map((d) => d.type))
 }
 
 /** Storage class for a field type. Unknown / plugin types are assumed text. */

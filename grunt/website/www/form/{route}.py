@@ -41,6 +41,12 @@ def _prepare_fields(raw: list[dict[str, Any]]) -> list[dict[str, Any]]:
             if ftype == "Section":
                 prepared.append({"kind": "section", "label": field.get("label") or ""})
             continue
+        if ftype == "HTML":
+            # Static block authored in the DocType builder (System Manager) — rendered as-is.
+            prepared.append({"kind": "html", "content": field.get("options") or ""})
+            continue
+        if ftype == "Button":
+            continue
 
         if ftype == "LongText":
             widget = "textarea"

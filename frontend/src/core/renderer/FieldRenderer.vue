@@ -9,7 +9,7 @@ import type { DocField } from '@/types'
 
 const { isDev, altPressed } = useDevMode()
 
-const INLINE_LABEL_TYPES = new Set(['Check', 'Button', 'Section', 'Column', 'Tab', 'Table'])
+const INLINE_LABEL_TYPES = new Set(['Check', 'Button', 'HTML', 'Section', 'Column', 'Tab', 'Table'])
 
 // Only some field components actually emit these — wiring the listener
 // unconditionally on every field type makes Vue warn about an extraneous

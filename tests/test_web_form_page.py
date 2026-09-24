@@ -93,3 +93,28 @@ async def test_form_page_unknown_route(client):
 
     assert resp.status_code == 200
     assert "Форму не знайдено" in resp.text
+
+
+def test_prepare_fields_html_block_and_datalist():
+    import importlib.util
+    from pathlib import Path
+
+    import grunt.website
+
+    path = Path(grunt.website.__file__).parent / "www" / "form" / "{route}.py"
+    spec = importlib.util.spec_from_file_location("form_route", path)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+
+    out = mod._prepare_fields(
+        [
+            {"fieldname": "hint", "fieldtype": "HTML", "label": "Hint", "options": "<b>Увага</b>"},
+            {"fieldname": "go", "fieldtype": "Button", "label": "Go"},
+            {"fieldname": "position", "fieldtype": "Data", "label": "Posada", "options": "A\nB"},
+            {"fieldname": "amount", "fieldtype": "Currency", "label": "Sum", "options": "currency"},
+        ]
+    )
+    assert out[0] == {"kind": "html", "content": "<b>Увага</b>"}
+    assert [f.get("fieldname") for f in out[1:]] == ["position", "amount"]
+    assert out[1]["options"] == ["A", "B"]
+    assert out[2]["options"] == [] and out[2]["number_step"] == "0.01"

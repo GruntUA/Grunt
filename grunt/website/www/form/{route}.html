@@ -156,6 +156,8 @@
                     {% for f in fields %}
                         {% if f.kind == "section" %}
                             {% if f.label %}<div class="section-break">{{ f.label }}</div>{% endif %}
+                        {% elif f.kind == "html" %}
+                            <div class="field html-block">{{ f.content | safe }}</div>
                         {% elif f.widget == "file" %}
                             <div class="field">
                                 <label for="f-{{ f.fieldname }}">{{ f.label }}{% if f.required %}<span class="req">*</span>{% endif %}</label>
