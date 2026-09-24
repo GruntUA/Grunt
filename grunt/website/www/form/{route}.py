@@ -20,6 +20,7 @@ _INPUT_TYPES = {
     "Text": "text",
     "Int": "number",
     "Float": "number",
+    "Currency": "number",
     "Date": "date",
     "Datetime": "datetime-local",
 }
@@ -65,7 +66,7 @@ def _prepare_fields(raw: list[dict[str, Any]]) -> list[dict[str, Any]]:
                 "default": field.get("default") or "",
                 "widget": widget,
                 "input_type": input_type,
-                "number_step": "any" if ftype == "Float" else "1" if ftype == "Int" else "",
+                "number_step": {"Float": "any", "Currency": "0.01", "Int": "1"}.get(ftype, ""),
                 "options": [
                     o.strip() for o in (field.get("options") or "").split("\n") if o.strip()
                 ],

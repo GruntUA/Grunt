@@ -4,7 +4,7 @@ export const SUPPORTED_FIELD_TYPES = new Set([
   'Text', 'Data', 'LongText',
   'Date', 'Datetime', 'Time',
   'Select', 'Check',
-  'Int', 'Float',
+  'Int', 'Float', 'Currency',
   'Link',
 ])
 
@@ -19,6 +19,7 @@ function inferInputType(field: DocField): QuickFilter['input_type'] {
       return 'check'
     case 'Int':
     case 'Float':
+    case 'Currency':
       return 'number'
     case 'Link':
       return 'link'

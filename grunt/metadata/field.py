@@ -9,8 +9,7 @@ from typing import TYPE_CHECKING, Any, ClassVar
 
 from pydantic import BaseModel
 from sqlalchemy import JSON as SAJSON
-from sqlalchemy import Boolean, Column, Date, Integer, String, Text, Time
-from sqlalchemy import Float as SAFloat
+from sqlalchemy import Boolean, Column, Date, Double, Integer, Numeric, String, Text, Time
 from sqlalchemy.dialects.postgresql import JSONB
 
 from grunt.db.types import UtcDateTime
@@ -29,7 +28,11 @@ _SA_TYPE_BUILDERS: dict[str, Callable[[list[Any]], TypeEngine]] = {
     "String": lambda a: String(a[0]) if a else String(255),
     "Text": lambda a: Text(),
     "Integer": lambda a: Integer(),
-    "Float": lambda a: SAFloat(precision=a[0]) if a else SAFloat(),
+    # 8-byte double everywhere — a bare FLOAT is 4-byte (~7 digits) on MySQL.
+    "Double": lambda a: Double(),
+    # Exact decimal (money). asdecimal=False keeps Python-side values plain floats,
+    # so formulas/aggregates/JSON don't have to learn Decimal.
+    "Numeric": lambda a: Numeric(*a, asdecimal=False),
     "Boolean": lambda a: Boolean(),
     "Date": lambda a: Date(),
     "DateTime": lambda a: UtcDateTime(),
@@ -107,7 +110,8 @@ _SA_TYPE_STORAGE_CLASS: dict[str, str] = {
     "String": "text",
     "Text": "text",
     "Integer": "int",
-    "Float": "float",
+    "Double": "float",
+    "Numeric": "float",
     "Boolean": "bool",
     "Date": "date",
     "DateTime": "datetime",

@@ -8,6 +8,7 @@ import { useI18n } from 'vue-i18n'
 import type { DocField } from '@/types'
 import { getLayoutTypeSet } from '@/core/fieldRegistry'
 import { validateFieldValue } from '@/core/validators'
+import { currencyCode, formatCurrency } from '@/core/currency'
 
 const LAYOUT_TYPES = getLayoutTypeSet()
 
@@ -17,6 +18,7 @@ export const INLINE_TYPES = new Set([
   'Text',
   'Int',
   'Float',
+  'Currency',
   'Check',
   'Select',
   'Date',
@@ -60,7 +62,7 @@ export function useTableCell() {
         /* bad regex in metadata — ignore */
       }
     }
-    if (f.fieldtype === 'Int' || f.fieldtype === 'Float') {
+    if (f.fieldtype === 'Int' || f.fieldtype === 'Float' || f.fieldtype === 'Currency') {
       const n = Number(v)
       if (Number.isNaN(n)) return t('Must be a number')
       if (f.min_value != null && n < f.min_value) return `${t('Min')}: ${f.min_value}`
@@ -74,6 +76,7 @@ export function useTableCell() {
     const v = row[f.fieldname]
     if (isEmpty(v)) return ''
     if (f.fieldtype === 'Check') return v ? t('Yes') : t('No')
+    if (f.fieldtype === 'Currency') return formatCurrency(v, currencyCode(f, row))
     const label = row[`${f.fieldname}__label`]
     if (!isEmpty(label)) return String(label)
     return typeof v === 'object' ? JSON.stringify(v) : String(v)

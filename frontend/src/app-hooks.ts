@@ -53,6 +53,7 @@ import RatingListCell from '@/components/fields/Rating/ListCell.vue'
 import IconListCell from '@/components/fields/Icon/ListCell.vue'
 import LinkListCell from '@/components/fields/Link/ListCell.vue'
 import ImageListCell from '@/components/fields/Image/ListCell.vue'
+import CurrencyListCell from '@/components/fields/Currency/ListCell.vue'
 
 registerListCell('Check', CheckListCell)
 registerListCell('Select', SelectListCell)
@@ -63,6 +64,7 @@ registerListCell('Rating', RatingListCell)
 registerListCell('Icon', IconListCell)
 registerListCell('Link', LinkListCell)
 registerListCell('Image', ImageListCell)
+registerListCell('Currency', CurrencyListCell)
 
 // ── Exporters ──────────────────────────────────────────────────────────────
 import { registerExporter } from '@/core/io'

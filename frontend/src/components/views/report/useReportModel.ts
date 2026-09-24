@@ -29,7 +29,7 @@ export interface ReportListColumn {
 export type AggFn = 'none' | 'sum' | 'avg' | 'min' | 'max' | 'count'
 
 /** Field types whose values can be summed / averaged. */
-const NUMERIC = new Set(['Int', 'Float', 'Percent', 'Duration', 'Rating'])
+const NUMERIC = new Set(['Int', 'Float', 'Currency', 'Percent', 'Duration', 'Rating'])
 const STRUCTURAL = getNonPhysicalTypeSet()
 
 export function isNumericField(f: DocField | undefined): boolean {

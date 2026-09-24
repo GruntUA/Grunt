@@ -3,7 +3,7 @@ from grunt.metadata.field import FieldType, register_field_type_class
 
 class RatingField(FieldType):
     name = "Rating"
-    column_spec = staticmethod(lambda f: ("Float", 2))
+    column_spec = staticmethod(lambda f: ("Double",))
     empty_as_null = True
     python_type = "int | None"
 

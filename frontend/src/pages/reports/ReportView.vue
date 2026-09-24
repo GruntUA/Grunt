@@ -124,7 +124,7 @@ function formatCell(val: any, fieldtype: string): string {
     if (val === null || val === undefined || val === '') return '—'
     if (fieldtype === 'Date') return formatDate(val)
     if (fieldtype === 'Datetime') return formatDateTime(val)
-    if (fieldtype === 'Float' || fieldtype === 'Int') return val.toLocaleString('uk-UA')
+    if (fieldtype === 'Float' || fieldtype === 'Int' || fieldtype === 'Currency') return val.toLocaleString('uk-UA')
     return String(val)
 }
 

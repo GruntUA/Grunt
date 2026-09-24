@@ -188,6 +188,7 @@ const CELL_WIDTH: Record<string, string> = {
   Check: 'w-12',
   Int: 'min-w-24',
   Float: 'min-w-28',
+  Currency: 'min-w-32',
   Time: 'min-w-28',
   Select: 'min-w-36',
   Date: 'min-w-40',
@@ -198,7 +199,7 @@ const CELL_WIDTH: Record<string, string> = {
 }
 
 /** Numbers line up by their last digit — right-aligned in the grid only, not in forms. */
-const NUMERIC = new Set(['Int', 'Float', 'Percent', 'Duration'])
+const NUMERIC = new Set(['Int', 'Float', 'Currency', 'Percent', 'Duration'])
 const alignOf = (f: DocField) => (NUMERIC.has(f.fieldtype) ? 'text-right [&_input]:text-right' : '')
 
 const colSpan = computed(() => columns.value.length + (props.disabled ? 2 : 3))

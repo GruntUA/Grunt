@@ -3,7 +3,7 @@ from grunt.metadata.field import FieldType, register_field_type_class
 
 class PercentField(FieldType):
     name = "Percent"
-    column_spec = staticmethod(lambda f: ("Float", 6))
+    column_spec = staticmethod(lambda f: ("Double",))
     empty_as_null = True
     python_type = "float | None"
 

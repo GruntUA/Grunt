@@ -36,7 +36,7 @@ function toDate(value: DateInput): Date | null {
   return Number.isNaN(d.getTime()) ? null : d
 }
 
-function localeTag(): string {
+export function localeTag(): string {
   return siteConfigState().language || 'uk-UA'
 }
 

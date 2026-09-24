@@ -136,9 +136,11 @@ _TYPE_ALIASES: dict[str, str] = {
     "BIGINT": "INTEGER",
     "SMALLINT": "INTEGER",
     "TINYINT": "INTEGER",
-    "DOUBLE": "FLOAT",
-    "REAL": "FLOAT",
-    "NUMERIC": "FLOAT",
+    # Postgres reflects DOUBLE PRECISION as DOUBLE_PRECISION. REAL / MySQL FLOAT are
+    # 4-byte and stay distinct so sync widens them to DOUBLE.
+    "DOUBLE_PRECISION": "DOUBLE",
+    "DOUBLE PRECISION": "DOUBLE",
+    "DECIMAL": "NUMERIC",
     "TIMESTAMP": "DATETIME",
 }
 

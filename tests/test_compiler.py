@@ -160,3 +160,23 @@ def test_multi_link_table_has_query_supporting_index_and_unique_order_constraint
     # Composite PK (parent_doctype, parent_name, parent_field, idx) enforces uniqueness.
     pk_cols = {c.name for c in MULTI_LINK_TABLE.primary_key.columns}
     assert pk_cols == {"parent_doctype", "parent_name", "parent_field", "idx"}
+
+
+def test_float_is_double_and_currency_is_exact_numeric():
+    from sqlalchemy import Double, Numeric
+    from sqlalchemy.dialects import postgresql
+    from sqlalchemy.dialects.postgresql import DOUBLE_PRECISION, NUMERIC, REAL
+
+    from grunt.metadata.compiler import _type_changed
+
+    flt = DocField(fieldname="f", label="F", fieldtype="Float").to_sa_column().type
+    cur = DocField(fieldname="c", label="C", fieldtype="Currency")
+    assert isinstance(flt, Double)
+    assert isinstance(cur.to_sa_column().type, Numeric)
+    assert cur.coerce("12.345") == 12.35
+
+    pg = postgresql.dialect()
+    assert _type_changed(flt, REAL(), pg)  # legacy 4-byte column gets widened
+    assert not _type_changed(flt, DOUBLE_PRECISION(), pg)
+    assert _type_changed(cur.to_sa_column().type, DOUBLE_PRECISION(), pg)  # Float → Currency
+    assert not _type_changed(cur.to_sa_column().type, NUMERIC(18, 2), pg)

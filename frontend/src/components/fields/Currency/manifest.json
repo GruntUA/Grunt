@@ -1,0 +1,1 @@
+{"type": "Currency", "label": "Currency", "icon": "banknote", "category": "Базові", "propertySections": ["core", "flags", "display", "text", "options", "formula", "aggregate", "default", "number", "validation", "fetch_from"], "storage_class": "float"}

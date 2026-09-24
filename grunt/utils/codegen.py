@@ -226,6 +226,7 @@ _FAKE_VALUES: dict[str, object] = {
     "LongText": "Long text content",
     "Int": 42,
     "Float": 3.14,
+    "Currency": 1250.5,
     "Check": True,
     "Date": "2026-01-15",
     "Datetime": "2026-01-15T10:00:00",

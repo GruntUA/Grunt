@@ -301,7 +301,7 @@ def apply_field_values(
         elif field.fieldtype == "Check":
             row[field.fieldname] = False
         elif fill_empty:
-            if field.fieldtype in ("Int", "Float"):
+            if field.fieldtype in ("Int", "Float", "Currency"):
                 row[field.fieldname] = 0
             elif field.fieldtype in ("Date", "Datetime", "Time"):
                 row[field.fieldname] = None
