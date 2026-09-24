@@ -199,8 +199,8 @@ function getVisibleSections(tab: LayoutTab): LayoutSection[] {
 
           <!-- Fields layout -->
           <Transition name="section">
-            <div v-if="!section.collapsed" :class="section.label ? 'form-section-body' : ''"
-              class="grid grid-cols-1 gap-x-5 gap-y-5" :class="sectionGridClass(section)">
+            <div v-if="!section.collapsed" class="grid grid-cols-1 gap-x-5 gap-y-5"
+              :class="[section.label ? 'form-section-body' : '', sectionGridClass(section)]">
               <div v-for="(col, ci) in section.columns" :key="ci" class="flex-1 flex flex-col gap-3 min-w-0">
                 <div v-for="f in col" v-show="overrides?.[f.fieldname] !== false" :key="f.fieldname"
                   class="relative group" @focusin="emit('field-focus', f.fieldname)"
