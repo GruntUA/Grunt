@@ -57,7 +57,7 @@ const readable = computed(() => {
       :disabled="disabled || field.read_only"
       :max="field.max_value"
       :aria-invalid="error ? true : undefined"
-      :class="['w-full text-right tabular-nums', field.bold && 'font-medium']"
+      :class="['w-full tabular-nums', field.bold && 'font-medium']"
       @wheel="onWheel"
       @update:model-value="onUpdate"
     />

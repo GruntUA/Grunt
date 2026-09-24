@@ -197,6 +197,10 @@ const CELL_WIDTH: Record<string, string> = {
   LongText: 'min-w-64 whitespace-normal',
 }
 
+/** Numbers line up by their last digit — right-aligned in the grid only, not in forms. */
+const NUMERIC = new Set(['Int', 'Float', 'Percent', 'Duration'])
+const alignOf = (f: DocField) => (NUMERIC.has(f.fieldtype) ? 'text-right [&_input]:text-right' : '')
+
 const colSpan = computed(() => columns.value.length + (props.disabled ? 2 : 3))
 
 // ── Row actions ─────────────────────────────────────────────────────────────
@@ -287,7 +291,12 @@ function applyBulk() {
               />
             </TableHead>
             <TableHead class="w-12">#</TableHead>
-            <TableHead v-for="f in columns" :key="f.fieldname" :title="f.description || undefined">
+            <TableHead
+              v-for="f in columns"
+              :key="f.fieldname"
+              :class="alignOf(f)"
+              :title="f.description || undefined"
+            >
               {{ f.label }}<span v-if="f.required" class="text-destructive"> *</span>
             </TableHead>
             <TableHead class="w-px" />
@@ -348,7 +357,7 @@ function applyBulk() {
               <TableCell
                 v-for="f in columns"
                 :key="f.fieldname"
-                :class="CELL_WIDTH[f.fieldtype] ?? 'min-w-40'"
+                :class="[CELL_WIDTH[f.fieldtype] ?? 'min-w-40', alignOf(f)]"
                 :title="cellError(item.row, f) || undefined"
               >
                 <Checkbox

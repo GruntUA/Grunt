@@ -38,7 +38,7 @@ function onWheel(e: WheelEvent) {
       :min="field.min_value"
       :max="field.max_value"
       :aria-invalid="error ? true : undefined"
-      :class="['w-full pr-7 text-right tabular-nums', field.bold && 'font-medium']"
+      :class="['w-full pr-7 tabular-nums', field.bold && 'font-medium']"
       @wheel="onWheel"
       @update:model-value="onUpdate"
     />
