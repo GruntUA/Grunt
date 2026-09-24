@@ -1,26 +1,43 @@
-import type { BadgeVariants } from '@/components/ui/badge'
 import type { DocType, DocTypeStatusConfig } from '@/types'
 
-// Stock shadcn Badge has no success/warning/info variant — map the semantic
-// status colours onto the built-in set: positive → filled `default`, anything
-// non-error → neutral `secondary`, error → `destructive`.
-const STATUS_VARIANT: Record<string, BadgeVariants['variant']> = {
-  success: 'default',
-  green: 'default',
-  info: 'secondary',
-  blue: 'secondary',
-  warn: 'secondary',
-  yellow: 'secondary',
-  orange: 'secondary',
-  danger: 'destructive',
-  red: 'destructive',
-  secondary: 'secondary',
-  gray: 'secondary',
+const NEUTRAL = 'border-muted-foreground/20 bg-muted/40 text-muted-foreground'
+const GREEN = 'border-green-500/30 bg-green-500/10 text-green-700 dark:text-emerald-400'
+const BLUE = 'border-blue-500/30 bg-blue-500/10 text-blue-700 dark:text-blue-400'
+const AMBER = 'border-yellow-500/30 bg-yellow-500/10 text-yellow-700 dark:text-amber-400'
+const RED = 'border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-400'
+
+// Single source of truth for status-indicator colours. Every status badge
+// (list cells, workflow bar, doc sidebar, form header, mobile cards) renders
+// as `<Badge variant="outline" :class="statusToneClass(color)">` — soft tint,
+// same look everywhere.
+const TONE_CLASSES: Record<string, string> = {
+  default: NEUTRAL,
+  secondary: NEUTRAL,
+  success: GREEN,
+  info: BLUE,
+  warn: AMBER,
+  danger: RED,
+  contrast: 'border-foreground/20 bg-foreground text-background',
+  // Legacy colour names.
+  gray: NEUTRAL,
+  blue: BLUE,
+  green: GREEN,
+  yellow: AMBER,
+  orange: AMBER,
+  red: RED,
+  purple: 'border-violet-500/30 bg-violet-500/10 text-violet-700 dark:text-violet-300',
+  pink: 'border-pink-500/30 bg-pink-500/10 text-pink-700 dark:text-pink-300',
+}
+
+/** Tint classes for an indicator colour; unknown/empty → neutral. */
+export function statusToneClass(color: string | null | undefined): string {
+  return TONE_CLASSES[color ?? ''] ?? NEUTRAL
 }
 
 export interface StatusBadge {
   label: string
-  variant: BadgeVariants['variant']
+  class: string
+  icon: string | null
 }
 
 /**
@@ -36,21 +53,31 @@ export function statusConfigOf(
 }
 
 /**
- * Resolve a document's status badge from its DocType `status_field` +
- * `status_indicators`. Falls back to a bare `status` field value with no
- * colour. Returns null when there is nothing to show.
+ * Resolve the badge for `value` against a DocType's `status_indicators`.
+ * Values without an indicator get the neutral tint.
+ */
+export function statusBadgeFor(
+  dt: DocType | null | undefined,
+  value: unknown,
+): StatusBadge | null {
+  if (value == null || value === '') return null
+  const val = String(value)
+  const ind = dt?.status_indicators?.find((i) => i.value === val)
+  return {
+    label: ind?.label || val,
+    class: statusToneClass(ind?.color),
+    icon: ind?.icon ?? null,
+  }
+}
+
+/**
+ * Resolve a document's status badge from its DocType `status_field` (falls
+ * back to a bare `status` field). Returns null when there is nothing to show.
  */
 export function resolveStatusBadge(
   dt: DocType | null | undefined,
   doc: Record<string, unknown> | null | undefined,
 ): StatusBadge | null {
   if (!doc) return null
-  const field = dt?.status_field || 'status'
-  const val = doc[field]
-  if (val == null || val === '') return null
-  const ind = dt?.status_indicators?.find((i) => i.value === String(val))
-  return {
-    label: ind?.label || String(val),
-    variant: (ind && STATUS_VARIANT[ind.color]) || 'secondary',
-  }
+  return statusBadgeFor(dt, doc[dt?.status_field || 'status'])
 }

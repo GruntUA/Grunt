@@ -222,7 +222,7 @@ const statusBadge = computed(() => resolveStatusBadge(props.dt, props.document))
           :is-new="id === null"
           class="mb-0! min-w-0 flex-1"
         />
-        <Badge v-if="statusBadge && hidePanelToggle" :variant="statusBadge.variant" class="animate-in fade-in slide-in-from-left-2 duration-300 text-xs h-5 px-1.5 shrink-0">
+        <Badge v-if="statusBadge && hidePanelToggle" variant="outline" :class="['animate-in fade-in slide-in-from-left-2 duration-300', statusBadge.class]">
           {{ statusBadge.label }}
         </Badge>
         <Badge v-if="isDirty" variant="secondary" class="animate-in fade-in slide-in-from-left-2 duration-300 text-xs h-5 px-1.5 shrink-0">

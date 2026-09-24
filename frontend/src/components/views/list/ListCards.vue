@@ -44,6 +44,7 @@ const fieldMap = computed(() =>
   Object.fromEntries((props.dt?.fields ?? []).map((f) => [f.fieldname, f])),
 )
 const statusConfig = computed(() => statusConfigOf(props.dt))
+const statusOf = (row: Record<string, unknown>) => resolveStatusBadge(props.dt, row)
 const statusField = computed(() => props.dt?.status_field || 'status')
 
 /** Badge-like types make a poor card title (e.g. a "Document type" Select). */
@@ -161,8 +162,8 @@ const unavailable = computed(() =>
           />
           <span v-else>{{ rowId(row) }}</span>
         </a>
-        <Badge v-if="resolveStatusBadge(dt, row)" :variant="resolveStatusBadge(dt, row)!.variant" class="shrink-0">
-          {{ resolveStatusBadge(dt, row)!.label }}
+        <Badge v-if="statusOf(row)" variant="outline" :class="statusOf(row)!.class">
+          {{ statusOf(row)!.label }}
         </Badge>
       </div>
 

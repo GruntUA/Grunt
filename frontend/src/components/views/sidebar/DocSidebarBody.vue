@@ -23,7 +23,7 @@ import { isAssignmentPlaceholder, type SidebarAssignee } from '@/core/api/docs'
 import { useToast } from '@/core/composables/useToast'
 import { useDialog } from '@/core/composables/useDialog'
 import { formatDate, formatFull, formatRelative } from '@/core/datetime'
-import { resolveStatusBadge } from '@/core/status'
+import { resolveStatusBadge, statusToneClass } from '@/core/status'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -65,9 +65,9 @@ const docstatusBadge = computed(() => {
   if (!props.doctype.is_submittable) return null
   return (
     [
-      { label: 'Чернетка', variant: 'secondary' as const },
-      { label: 'Проведено', variant: 'default' as const },
-      { label: 'Скасовано', variant: 'destructive' as const },
+      { label: 'Чернетка', class: statusToneClass('secondary') },
+      { label: 'Проведено', class: statusToneClass('info') },
+      { label: 'Скасовано', class: statusToneClass('danger') },
     ][props.document.docstatus] ?? null
   )
 })
@@ -194,7 +194,7 @@ function printDoc() {
     <!-- Primary status -->
     <div v-if="statusBadge" class="flex items-center gap-2">
       <span class="font-semibold uppercase tracking-wider text-muted-foreground/80">Статус</span>
-      <Badge :variant="statusBadge.variant" class="text-xs h-5 px-2">{{ statusBadge.label }}</Badge>
+      <Badge variant="outline" :class="statusBadge.class">{{ statusBadge.label }}</Badge>
     </div>
 
     <!-- Identity: id -->
@@ -208,7 +208,7 @@ function printDoc() {
         <Check v-if="copied" class="size-3.5 text-success" />
         <Copy v-else class="size-3.5" />
       </button>
-      <Badge v-if="docstatusBadge" :variant="docstatusBadge.variant" class="ml-auto text-xs h-5 px-1.5">
+      <Badge v-if="docstatusBadge" variant="outline" :class="['ml-auto', docstatusBadge.class]">
         {{ docstatusBadge.label }}
       </Badge>
     </div>
