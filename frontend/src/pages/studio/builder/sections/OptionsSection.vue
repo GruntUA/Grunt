@@ -22,7 +22,7 @@ const { field, updateField } = usePropertyEditor()
     <Textarea
       :model-value="field.options ?? ''"
       rows="5"
-      placeholder="Кожна опція з нового рядка"
+      :placeholder="field.fieldtype === 'Data' ? 'Підказки автодоповнення — кожна з нового рядка' : 'Кожна опція з нового рядка'"
       class="w-full !text-sm"
       @update:model-value="(v: string | number) => updateField('options', String(v))"
     />

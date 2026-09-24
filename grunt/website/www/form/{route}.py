@@ -67,9 +67,12 @@ def _prepare_fields(raw: list[dict[str, Any]]) -> list[dict[str, Any]]:
                 "widget": widget,
                 "input_type": input_type,
                 "number_step": {"Float": "any", "Currency": "0.01", "Int": "1"}.get(ftype, ""),
+                # Select choices, or Data autocomplete suggestions (<datalist>).
                 "options": [
                     o.strip() for o in (field.get("options") or "").split("\n") if o.strip()
-                ],
+                ]
+                if ftype in ("Select", "Data")
+                else [],
             }
         )
     return prepared

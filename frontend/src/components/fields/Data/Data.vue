@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
+import { ComboboxInput } from 'reka-ui'
 import type { BaseFieldProps } from '@/types'
 import { Input } from '@/components/ui/input'
+import { Combobox, ComboboxAnchor, ComboboxItem, ComboboxList, ComboboxViewport } from '@/components/ui/combobox'
 
 const props = defineProps<BaseFieldProps>()
 const emit = defineEmits<{ 'update:modelValue': [value: unknown] }>()
@@ -31,6 +33,32 @@ const semantics = computed(() => (props.field.validator ? SEMANTICS[props.field.
 // Render a read-only linkable value as an anchor rather than a dead input.
 const asLink = computed(() => !!props.field.read_only && !!semantics.value && !!value.value)
 
+// `options` on a Data field = autocomplete suggestions (one per line). Unlike
+// Select the list is open: any text is still a valid value.
+const suggestions = computed(() =>
+  (props.field.options ?? '').split('\n').map((s) => s.trim()).filter(Boolean),
+)
+const editable = computed(() => !props.disabled && !props.field.read_only)
+const matches = computed(() => {
+  const q = value.value.trim().toLowerCase()
+  if (!q) return suggestions.value
+  return suggestions.value.filter((s) => s.toLowerCase().includes(q) && s.toLowerCase() !== q)
+})
+const open = ref(false)
+
+const inputProps = computed(() => ({
+  modelValue: value.value,
+  type: semantics.value?.type ?? 'text',
+  inputmode: semantics.value?.inputmode,
+  autocomplete: semantics.value?.autocomplete,
+  placeholder: props.field.placeholder,
+  required: props.field.required,
+  disabled: props.disabled || props.field.read_only,
+  maxlength: props.field.max_length || undefined,
+  'aria-invalid': props.error ? true : undefined,
+  class: props.field.bold && 'font-medium',
+}))
+
 function onUpdate(v: string | number) {
   emit('update:modelValue', String(v ?? ''))
 }
@@ -54,19 +82,30 @@ function onBlur(e: FocusEvent) {
     {{ value }}
   </a>
 
-  <Input
-    v-else
+  <Combobox
+    v-else-if="editable && suggestions.length"
     :model-value="value"
-    :type="semantics?.type ?? 'text'"
-    :inputmode="semantics?.inputmode"
-    :autocomplete="semantics?.autocomplete"
-    :placeholder="field.placeholder"
-    :required="field.required"
-    :disabled="disabled || field.read_only"
-    :maxlength="field.max_length || undefined"
-    :aria-invalid="error ? true : undefined"
-    :class="field.bold && 'font-medium'"
-    @update:model-value="onUpdate"
-    @blur="onBlur"
-  />
+    :open="open && matches.length > 0"
+    ignore-filter
+    open-on-click
+    open-on-focus
+    :reset-search-term-on-blur="false"
+    @update:open="open = $event"
+    @update:model-value="(v) => onUpdate(String(v ?? ''))"
+  >
+    <ComboboxAnchor class="w-full">
+      <ComboboxInput as-child :model-value="value">
+        <Input v-bind="inputProps" @update:model-value="onUpdate" @blur="onBlur" />
+      </ComboboxInput>
+    </ComboboxAnchor>
+    <ComboboxList align="start" class="w-(--reka-combobox-trigger-width) min-w-56">
+      <ComboboxViewport class="max-h-64 p-1">
+        <ComboboxItem v-for="s in matches" :key="s" :value="s">
+          <span class="truncate">{{ s }}</span>
+        </ComboboxItem>
+      </ComboboxViewport>
+    </ComboboxList>
+  </Combobox>
+
+  <Input v-else v-bind="inputProps" @update:model-value="onUpdate" @blur="onBlur" />
 </template>

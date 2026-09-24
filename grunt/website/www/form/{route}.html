@@ -189,7 +189,13 @@
                                            type="{{ f.input_type }}"
                                            {% if f.number_step %}step="{{ f.number_step }}"{% endif %}
                                            value="{{ val }}"
+                                           {% if f.options %}list="dl-{{ f.fieldname }}"{% endif %}
                                            {% if f.required %}required{% endif %}>
+                                    {% if f.options %}
+                                        <datalist id="dl-{{ f.fieldname }}">
+                                            {% for opt in f.options %}<option value="{{ opt }}">{% endfor %}
+                                        </datalist>
+                                    {% endif %}
                                 {% endif %}
                             </div>
                         {% endif %}
