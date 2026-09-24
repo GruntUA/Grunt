@@ -1,16 +1,21 @@
 function on_load(frm) {
-  frm.add_button('Копіювати JSON', async () => {
-    try {
-      await navigator.clipboard.writeText(JSON.stringify(frm.doc, null, 2))
-      grunt.show_alert('Скопійовано в буфер обміну', 'success')
-    } catch (e) {
-      grunt.show_alert('Clipboard недоступний: ' + e.message, 'error')
-    }
-  }, { variant: 'outline' })
+  frm.actions.add({
+    id: 'copy_json',
+    label: 'Копіювати JSON',
+    icon: 'clipboard-copy',
+    action: async (f) => {
+      try {
+        await navigator.clipboard.writeText(JSON.stringify(f.doc, null, 2))
+        grunt.show_alert('Скопійовано в буфер обміну', 'success')
+      } catch (e) {
+        grunt.show_alert('Clipboard недоступний: ' + e.message, 'error')
+      }
+    },
+  })
 }
 
 async function setup_list(listview) {
-  listview.can_create = false // read-only ring buffer view — records aren't created by hand
+  listview.actions.remove('add') // read-only ring buffer view — records aren't created by hand
 
   let isRecording = true
   try {
@@ -18,37 +23,44 @@ async function setup_list(listview) {
     isRecording = settings.enabled
   } catch (_) {}
 
-  const toggleBtn = listview.add_button(
-    isRecording ? '⏹ Зупинити' : '▶ Старт',
-    async function () {
+  const toggleLook = () => ({
+    label: isRecording ? 'Зупинити запис' : 'Почати запис',
+    icon: isRecording ? 'square' : 'play',
+    variant: isRecording ? 'destructive' : 'default',
+  })
+
+  listview.actions.add({
+    id: 'profiler_toggle',
+    ...toggleLook(),
+    action: async (lv) => {
       try {
         const settings = await grunt.call({
           method: 'grunt.api.v1.dev.update_profiler_settings',
           args: { enabled: !isRecording },
         })
         isRecording = settings.enabled
-        toggleBtn.update({
-          label: isRecording ? '⏹ Зупинити' : '▶ Старт',
-          variant: isRecording ? 'destructive' : 'default',
-        })
+        lv.actions.update('profiler_toggle', toggleLook())
         grunt.show_alert(isRecording ? 'Запис розпочато' : 'Запис зупинено', isRecording ? 'success' : 'info')
-        listview.refresh()
+        lv.refresh()
       } catch (e) {
         grunt.show_alert('Помилка: ' + e.message, 'error')
       }
     },
-    { variant: isRecording ? 'destructive' : 'default' },
-  )
+  })
 
-  listview.add_button('Очистити', async function () {
-    const ok = await grunt.confirm('Очистити буфер профілера?', 'Підтвердження')
-    if (!ok) return
-    try {
-      await grunt.call({ method: 'grunt.api.v1.dev.clear_profiler' })
-      grunt.show_alert('Буфер очищено', 'success')
-      listview.refresh()
-    } catch (e) {
-      grunt.show_alert('Помилка: ' + e.message, 'error')
-    }
-  }, { variant: 'outline' })
+  listview.actions.add({
+    id: 'profiler_clear',
+    label: 'Очистити',
+    icon: 'eraser',
+    confirm: 'Очистити буфер профілера?',
+    action: async (lv) => {
+      try {
+        await grunt.call({ method: 'grunt.api.v1.dev.clear_profiler' })
+        grunt.show_alert('Буфер очищено', 'success')
+        lv.refresh()
+      } catch (e) {
+        grunt.show_alert('Помилка: ' + e.message, 'error')
+      }
+    },
+  })
 }

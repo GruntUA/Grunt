@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, reactive, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { setPageTitle } from '@/core/composables/usePageTitle'
-import { useQuery, useQueryClient } from '@tanstack/vue-query'
+import { useQuery } from '@tanstack/vue-query'
 import { useToast } from '@/core/composables/useToast'
 import { useFormController } from '@/core/composables/useFormController'
 import { docsApi } from '@/core/api/docs'
@@ -29,11 +29,8 @@ const emit = defineEmits<{
 
 const router = useRouter()
 const toast = useToast()
-const queryClient = useQueryClient()
 const { t } = useI18n()
 
-// Local UI-only state not owned by the form controller
-const showActivityLog = ref(true)
 
 const {
   dt,
@@ -49,8 +46,15 @@ const {
   restoreDraft,
   discardDraft,
   validationErrors,
-  scriptButtons,
-  scriptMenuItems,
+  actions,
+  showRenameDialog,
+  showShareDialog,
+  showLinksDialog,
+  showActivityLog,
+  pendingTransition,
+  transitionError,
+  transitionBusy,
+  applyTransition,
   displayOverrides,
   reqdOverrides,
   dfPropOverrides,
@@ -63,9 +67,7 @@ const {
   showLeaveModal,
   quickEntryDt,
   quickEntryPreset,
-  handleSave,
   handleDelete,
-  handleDuplicate,
   onVersionRestored,
   onFormUpdate,
   handleCreateNew,
@@ -95,6 +97,15 @@ watch(
   { immediate: true },
 )
 
+// Workflow bar state (the transitions themselves are actions — global_form.js).
+const workflowUi = reactive({
+  pending: pendingTransition,
+  error: transitionError,
+  busy: transitionBusy,
+  apply: applyTransition,
+  close: () => { pendingTransition.value = null },
+})
+
 // Sidebar visibility: a client script (`frm.hide_sidebar()` / `frm.toggle_sidebar()`)
 // wins; otherwise the DocType's `form_show_sidebar` config (default: shown).
 const showSidebar = computed(() => {
@@ -117,11 +128,9 @@ const initials = (email: string) => email.slice(0, 2).toUpperCase()
 <template>
   <div class="flex flex-1 flex-col">
     <!-- Sticky header: breadcrumb + actions + document title -->
-    <FormHeader :doc-title="docTitle || doctype" :dt="dt" :doctype="doctype" :id="id" :workspace="workspace" :document="form" :perms="perms" :is-dirty="isDirty"
-      :is-loading="isLoading" :is-saving="isSaving" :script-buttons="scriptButtons" :script-menu-items="scriptMenuItems"
-      :hide-panel-toggle="!showSidebar"
-      @save="handleSave" @delete="showDeleteModal = true" @duplicate="handleDuplicate"
-      @toggleLog="showActivityLog = !showActivityLog"
+    <FormHeader :doc-title="docTitle || doctype" :dt="dt" :doctype="doctype" :id="id" :workspace="workspace" :document="form" :actions="actions" :workflow="workflowUi" :is-dirty="isDirty"
+      :is-loading="isLoading" :hide-panel-toggle="!showSidebar"
+      v-model:share-open="showShareDialog" v-model:rename-open="showRenameDialog" v-model:links-open="showLinksDialog"
       @rename="async (newId) => {
         try {
           await rename(newId)
@@ -138,7 +147,7 @@ const initials = (email: string) => email.slice(0, 2).toUpperCase()
           toast.error(e.response?.data?.detail || e.message)
         }
       }"
-      @invalidate="queryClient.invalidateQueries({ queryKey: ['document', props.doctype, props.id] })" />
+ />
 
     <div class="flex flex-1 flex-col gap-5 p-4 sm:p-6 lg:p-8 animate-in fade-in duration-500">
     <!-- Loading -->

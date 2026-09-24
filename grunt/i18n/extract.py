@@ -4,7 +4,7 @@ Walks the bench for translatable strings and returns them as a flat list of
 ``{source, context, kind, origin, plural_source, occurrences}`` dicts:
 
 * Python  — ``_("...")``, ``pgettext("ctx", "...")``, ``ngettext("s", "p", n)``
-* Vue/TS  — ``t('...')`` / ``$t("...")`` / ``tn('s', 'p', n)``
+* Vue/TS  — ``t('...')`` / ``$t("...")`` / ``tn('s', 'p', n)``; client scripts — ``__('...')``
   (``"ctx|msg"`` splits into context)
 * DocType JSON — ``label`` / ``description`` / ``placeholder`` / Select ``options``
   / status indicators, keyed by the ``meta:`` / ``help:`` / ``hint:`` / ``select:``
@@ -24,7 +24,8 @@ from pathlib import Path
 from typing import Any
 
 _PY_FUNCS = {"_", "gettext", "pgettext", "ngettext"}
-_TS_CALL = re.compile(r"(?<![\w$])\$?t\(\s*(['\"])(.+?)\1")
+# t('…') / $t('…') in Vue/TS, __('…') in client scripts (DocType .js files).
+_TS_CALL = re.compile(r"(?<![\w$])(?:\$?t|__)\(\s*(['\"])(.+?)\1")
 # tn('1 apple', '{n} apples', n) — the frontend plural helper.
 _TS_PLURAL = re.compile(r"(?<![\w$])tn\(\s*(['\"])(.+?)\1\s*,\s*(['\"])(.+?)\3")
 # "10", "1.5", "30d", "365d", "50%" — codes / magnitudes, nothing to translate.

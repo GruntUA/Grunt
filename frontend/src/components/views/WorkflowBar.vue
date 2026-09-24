@@ -1,20 +1,34 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+/**
+ * Workflow bar: the document's state (chrome) and its transitions — actions
+ * with `placement: 'workflow'` (global_form.js registers one per allowed
+ * transition on `on_transitions`; DocType scripts may change or add to them).
+ */
+import { computed } from 'vue'
 import type { DocType } from '@/types'
-import { docsApi } from '@/core/api/docs'
-import type { WorkflowTransitionItem } from '@/core/api/docs'
-import { Loader2 } from '@lucide/vue'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import WorkflowActionDialog from '@/components/workflow/WorkflowActionDialog.vue'
-import { useToast } from '@/core/composables/useToast'
+import ActionButtons from '@/components/views/actions/ActionButtons.vue'
+import type { ActionRegistry } from '@/core/actions'
+import type { FormProxy, WorkflowTransition } from '@/core/scripting/executor'
+
+/** The form controller's workflow state (useFormController). */
+export interface WorkflowUi {
+  pending: WorkflowTransition | null
+  error: string | null
+  busy: boolean
+  apply: (action: string, values?: Record<string, unknown>) => Promise<void>
+  close: () => void
+}
 
 const props = defineProps<{
   doctype: DocType
-  docId: string
   doc: Record<string, unknown>
+  actions: ActionRegistry<FormProxy>
+  workflow: WorkflowUi
 }>()
-const emit = defineEmits<{ transitioned: [] }>()
+
+const transitionActions = props.actions.resolved('workflow')
 
 const COLOR_CLASSES: Record<string, string> = {
   default: '',
@@ -46,52 +60,6 @@ const stateBadge = computed(() => {
   return { colorClass: '', label: val }
 })
 
-const transitions = ref<WorkflowTransitionItem[]>([])
-const isLoading = ref(false)
-const toast = useToast()
-
-const pendingTransition = ref<WorkflowTransitionItem | null>(null)
-const dialogError = ref<string | null>(null)
-
-async function loadTransitions() {
-  if (!props.doctype.workflow_state_field) return
-  try {
-    const r = await docsApi.getTransitions(props.doctype.name, props.docId)
-    transitions.value = r.data ?? []
-  } catch {
-    // silent
-  }
-}
-
-function onActionClick(t: WorkflowTransitionItem) {
-  if (t.prompt_fields?.length) {
-    dialogError.value = null
-    pendingTransition.value = t
-    return
-  }
-  apply(t.action)
-}
-
-async function apply(action: string, values?: Record<string, unknown>) {
-  isLoading.value = true
-  try {
-    await docsApi.applyTransition(props.doctype.name, props.docId, action, values)
-    pendingTransition.value = null
-    emit('transitioned')
-    await loadTransitions()
-  } catch (err: unknown) {
-    const detail = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail
-    if (pendingTransition.value) {
-      dialogError.value = detail ?? 'Помилка застосування переходу'
-    } else {
-      toast.error(detail ?? 'Помилка застосування переходу')
-    }
-  } finally {
-    isLoading.value = false
-  }
-}
-
-onMounted(loadTransitions)
 </script>
 
 <template>
@@ -102,21 +70,18 @@ onMounted(loadTransitions)
     <span class="text-muted-foreground">Стан:</span>
     <Badge :class="stateBadge.colorClass">{{ stateBadge.label }}</Badge>
     <div class="flex gap-2 ml-2">
-      <Button variant="secondary" v-for="t in transitions" :key="t.action" size="sm" :disabled="isLoading" @click="onActionClick(t)">
-        <Loader2 v-if="isLoading" class="size-4 animate-spin" />
-        {{ t.action }}
-      </Button>
+      <ActionButtons :toolbar="transitionActions" />
     </div>
   </div>
 
   <WorkflowActionDialog
-    v-if="pendingTransition"
+    v-if="workflow.pending"
     :doctype="doctype"
-    :transition="pendingTransition"
+    :transition="workflow.pending"
     :doc="doc"
-    :is-submitting="isLoading"
-    :error-message="dialogError"
-    @submit="(values) => apply(pendingTransition!.action, values)"
-    @close="pendingTransition = null"
+    :is-submitting="workflow.busy"
+    :error-message="workflow.error"
+    @submit="(values) => workflow.apply(workflow.pending!.action, values)"
+    @close="workflow.close()"
   />
 </template>

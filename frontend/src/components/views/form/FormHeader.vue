@@ -1,43 +1,31 @@
 <script setup lang="ts">
-import { ref, computed, shallowRef } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
-import { useQueryClient } from '@tanstack/vue-query'
-import type { Component } from 'vue'
-import type { DocType, ScriptButton, ScriptMenuItem } from '@/types'
-import type { DocPerms } from '@/core/permissions'
+import type { DocType } from '@/types'
+import type { ActionRegistry } from '@/core/actions'
+import type { FormProxy } from '@/core/scripting/executor'
+import ActionButtons from '@/components/views/actions/ActionButtons.vue'
+import ActionMenu from '@/components/views/actions/ActionMenu.vue'
 import {
   Loader2,
-  EllipsisVertical,
-  RefreshCw,
   Share2,
   Copy as CopyIcon,
-  Copy,
-  Undo,
-  History,
-  Pencil,
-  Trash2,
-  ChevronDown,
   PanelRight,
   Database,
   Check,
   HardDriveDownload,
-  Link2,
 } from '@lucide/vue'
 import { metaApi, type DocTypeTableInfo, type DocTypeCompactResult } from '@/core/api/meta'
 import { useDocPanel } from '@/components/views/sidebar/useDocPanel'
 import AppBreadcrumb from '@/components/app/AppBreadcrumb.vue'
 import { resolveStatusBadge } from '@/core/status'
-import { getLayoutTypeSet } from '@/core/fieldRegistry'
 import DocLinksDialog from './DocLinksDialog.vue'
-import WorkflowBar from '@/components/views/WorkflowBar.vue'
+import WorkflowBar, { type WorkflowUi } from '@/components/views/WorkflowBar.vue'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import type { ButtonVariants } from '@/components/ui/button'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
 const props = defineProps<{
   dt: DocType | null
   doctype: string
@@ -45,42 +33,61 @@ const props = defineProps<{
   workspace?: string
   docTitle: string
   document: any
-  /** What the user may do with this document (core/permissions.ts). */
-  perms: DocPerms
+  /** The form's buttons & menu (core/actions.ts), filled by global_form.js and scripts. */
+  actions: ActionRegistry<FormProxy>
+  /** Workflow state & the transition awaiting its prompt fields (useFormController). */
+  workflow: WorkflowUi
   isDirty: boolean
   isLoading: boolean
-  isSaving: boolean
-  scriptButtons: ScriptButton[]
-  scriptMenuItems: ScriptMenuItem[]
   hidePanelToggle?: boolean
 }>()
 
+// Dialogs the standard actions open (frm.share() / frm.rename() / frm.show_links()).
+const showShareDialog = defineModel<boolean>('shareOpen', { default: false })
+const showRenameDialog = defineModel<boolean>('renameOpen', { default: false })
+const showLinksDialog = defineModel<boolean>('linksOpen', { default: false })
+
 const emit = defineEmits<{
-  (e: 'save'): void
-  (e: 'delete'): void
-  (e: 'duplicate'): void
   (e: 'rename', newId: string): void
-  (e: 'toggleLog'): void
-  (e: 'invalidate'): void
 }>()
 
 const { t } = useI18n()
 const auth = useAuthStore()
 const router = useRouter()
-const queryClient = useQueryClient()
 const { open: panelOpen, toggle: togglePanel } = useDocPanel()
 
 const shareLink = ref<string | null>(null)
 const shareLoading = ref(false)
-const showShareDialog = ref(false)
 const shareExpires = ref('')
-const showRenameDialog = ref(false)
-const showLinksDialog = ref(false)
 const newDocId = ref('')
+
+// Fresh state every time a dialog opens.
+watch(showShareDialog, (open) => {
+  if (open) {
+    shareLink.value = null
+    shareExpires.value = ''
+  }
+})
+watch(showRenameDialog, (open) => {
+  if (open) newDocId.value = props.id || ''
+})
+
+const toolbarActions = props.actions.resolved('toolbar')
+const primaryActions = props.actions.resolved('primary')
+const menuActions = props.actions.resolved('menu')
 const isRenaming = ref(false)
 
-// Table info (DocType editor only)
-const isDocTypeEditor = computed(() => props.doctype === 'DocType' && !!props.id)
+// Table info (DocType editor only) — registered like any other action.
+props.actions.add({
+  id: 'table_info',
+  label: 'Інформація про таблицю',
+  icon: 'database',
+  placement: 'menu',
+  group: 'doctype',
+  order: 150,
+  visible: () => props.doctype === 'DocType' && !!props.id,
+  action: () => openTableInfo(),
+})
 const showTableInfoDialog = ref(false)
 const tableInfo = ref<DocTypeTableInfo | null>(null)
 const tableInfoLoading = ref(false)
@@ -154,29 +161,6 @@ function formatBytes(bytes: number | null | undefined): string {
   return `${value.toFixed(value < 10 ? 1 : 0)} ${units[i]}`
 }
 
-type IconMap = Record<string, Component>
-const lucideIcons = shallowRef<IconMap>({})
-let iconsLoaded = false
-
-function loadIcons() {
-  if (iconsLoaded) return
-  iconsLoaded = true
-  import('@lucide/vue').then((lib) => { lucideIcons.value = lib as unknown as IconMap })
-}
-
-function getIconComponent(name?: string | null): Component | null {
-  loadIcons()
-  const raw = String(name ?? '').trim()
-  if (!raw) return null
-  const pascal = raw.split('-').map((s) => s.charAt(0).toUpperCase() + s.slice(1)).join('')
-  return (lucideIcons.value[pascal] ?? null) as Component | null
-}
-
-// Client scripts set `severity` as a free-form string; trust it as a Button variant.
-function scriptButtonVariant(severity?: string): ButtonVariants['variant'] {
-  return (severity as ButtonVariants['variant']) || 'outline'
-}
-
 async function createShare() {
   if (!props.id || !props.doctype) return
   shareLoading.value = true
@@ -221,151 +205,8 @@ async function handleRename() {
   }
 }
 
-function handleRefresh() {
-  if (props.id) {
-    queryClient.invalidateQueries({ queryKey: ['document', props.doctype, props.id] })
-    emit('invalidate')
-  }
-}
-
-function handleUndo() {
-  router.go(0)
-}
-
-function toSplitButtonItem(btn: ScriptButton) {
-  return {
-    label: btn.label,
-    icon: btn.icon,
-    command: () => btn.action(),
-  }
-}
-
-const ungroupedScriptButtons = computed(() =>
-  (props.scriptButtons ?? []).filter((b) => !String(b.group ?? '').trim())
-)
-
-const groupedScriptButtons = computed(() => {
-  const groups = new Map<string, ScriptButton[]>()
-  for (const btn of props.scriptButtons ?? []) {
-    const group = String(btn.group ?? '').trim()
-    if (!group) continue
-    if (!groups.has(group)) groups.set(group, [])
-    groups.get(group)!.push(btn)
-  }
-  return Array.from(groups.entries()).map(([name, items]) => {
-    const [primary, ...secondary] = items
-    return {
-      name,
-      primary,
-      secondary,
-      model: secondary.map(toSplitButtonItem),
-    }
-  }).filter((g) => !!g.primary)
-})
-
-function menuItemIcon(item: any): Component | null {
-  if (!item?.icon) return null
-  if (typeof item.icon === 'string') return getIconComponent(item.icon)
-  return item.icon as Component
-}
 
 const statusBadge = computed(() => resolveStatusBadge(props.dt, props.document))
-
-// A form whose every field is read-only (a live report, a virtual view) has nothing to save.
-const LAYOUT_TYPES = getLayoutTypeSet()
-// Nor does one the user may not change.
-const canSave = computed(
-  () =>
-    props.perms.write &&
-    (!props.dt || props.dt.fields.some((f) => !LAYOUT_TYPES.has(f.fieldtype) && !f.read_only)),
-)
-
-const menuItems = computed(() => {
-  const items: any[] = []
-
-  for (const item of props.scriptMenuItems ?? []) {
-    if (item.separator_before) items.push({ separator: true })
-    items.push({
-      label: item.label,
-      icon: item.icon,
-      command: () => item.action(),
-    })
-  }
-
-  if (isDocTypeEditor.value) {
-    items.push({ separator: true })
-    items.push({
-      label: t('Інформація про таблицю'),
-      icon: Database,
-      command: openTableInfo,
-    })
-  }
-
-  if (props.id) {
-    items.push({ separator: true })
-    if (props.perms.create) {
-      items.push({
-        label: t('Duplicate'),
-        icon: Copy,
-        command: () => emit('duplicate'),
-      })
-    }
-
-    if (props.isDirty) {
-      items.push({
-        label: t('Discard changes'),
-        icon: Undo,
-        command: handleUndo,
-      })
-    }
-
-    items.push({
-      label: t('Activity log'),
-      icon: History,
-      command: () => emit('toggleLog'),
-    })
-
-    items.push({
-      label: t('Links'),
-      icon: Link2,
-      command: () => (showLinksDialog.value = true),
-    })
-
-    items.push({
-      label: t('Share link'),
-      icon: Share2,
-      command: () => {
-        showShareDialog.value = true
-        shareLink.value = null
-        shareExpires.value = ''
-      },
-    })
-  }
-
-  if (props.id && (props.perms.write || props.perms.delete)) {
-    items.push({ separator: true })
-    if (props.perms.write) {
-      items.push({
-        label: t('Rename'),
-        icon: Pencil,
-        command: () => {
-          newDocId.value = props.id || ''
-          showRenameDialog.value = true
-        },
-      })
-    }
-    if (props.perms.delete) {
-      items.push({
-        label: t('Delete'),
-        icon: Trash2,
-        class: 'text-destructive',
-        command: () => emit('delete'),
-      })
-    }
-  }
-
-  return items
-})
 </script>
 
 <template>
@@ -389,78 +230,8 @@ const menuItems = computed(() => {
         </Badge>
       </div>
       <div class="flex items-center gap-2 shrink-0">
-        <!-- Client script buttons -->
-        <Button
-          v-for="btn in ungroupedScriptButtons"
-          :key="`script-${btn.label}`"
-          size="sm"
-          :variant="scriptButtonVariant(btn.severity)"
-          @click="btn.action"
-          :class="['hidden sm:inline-flex gap-1.5', btn.className]"
-        >
-          <component
-            :is="getIconComponent(btn.icon)"
-            v-if="btn.icon"
-            class="size-3.5"
-          />
-          {{ btn.label }}
-        </Button>
-
-        <template v-for="grp in groupedScriptButtons" :key="`script-group-${grp.name}`">
-          <Button
-            v-if="grp.secondary.length === 0"
-            size="sm"
-            :variant="scriptButtonVariant(grp.primary.severity)"
-            @click="grp.primary.action"
-            :class="['hidden sm:inline-flex gap-1.5', grp.primary.className]"
-            :title="grp.name"
-          >
-            <component
-              :is="getIconComponent(grp.primary.icon)"
-              v-if="grp.primary.icon"
-              class="size-3.5"
-            />
-            {{ grp.primary.label }}
-          </Button>
-          <div v-else class="hidden sm:inline-flex" :class="grp.primary.className">
-            <Button
-              size="sm"
-              :variant="scriptButtonVariant(grp.primary.severity)"
-              class="rounded-r-none"
-              :aria-label="grp.primary.label"
-              :title="grp.name"
-              @click="grp.primary.action"
-            >
-              <component
-                :is="getIconComponent(grp.primary.icon)"
-                v-if="grp.primary.icon"
-                class="size-3.5"
-              />
-              {{ grp.primary.label }}
-            </Button>
-            <DropdownMenu>
-              <DropdownMenuTrigger as-child>
-                <Button size="sm" :variant="scriptButtonVariant(grp.primary.severity)" class="rounded-l-none border-l-0 px-2" :aria-label="`${grp.name} options`">
-                  <ChevronDown class="size-3.5" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem v-for="item in grp.model" :key="item.label" @click="item.command">
-                  <component
-                    :is="getIconComponent(item.icon)"
-                    v-if="item.icon"
-                    class="size-3.5"
-                  />
-                  {{ item.label }}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </template>
-
-        <Button variant="outline" v-if="id" class="text-foreground" :title="t('Refresh')" :disabled="isDirty || isLoading" @click="handleRefresh">
-          <RefreshCw class="size-4" :class="{ 'animate-spin': isLoading }" />
-        </Button>
+        <!-- Actions: global_form.js + the DocType's script + ClientScripts (core/actions.ts) -->
+        <ActionButtons :toolbar="toolbarActions" compact />
 
         <Button
           v-if="id && !hidePanelToggle"
@@ -473,41 +244,14 @@ const menuItems = computed(() => {
           <PanelRight class="size-4" />
         </Button>
 
-        <Button v-if="canSave" :disabled="isSaving" size="sm" @click="emit('save')" :title="`${t('Save')} (Ctrl+S)`">
-          <Loader2 v-if="isSaving" class="size-4 animate-spin mr-1.5" />
-          {{ t('Save') }}
-        </Button>
-
-        <!-- Context menu -->
-        <DropdownMenu>
-          <DropdownMenuTrigger as-child>
-            <Button variant="ghost" class="text-foreground hover:bg-muted/80 h-9 w-9 p-0">
-                <EllipsisVertical class="size-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent class="w-56" align="end">
-            <template v-for="(item, idx) in menuItems" :key="idx">
-              <DropdownMenuSeparator v-if="item.separator" />
-              <DropdownMenuItem v-else-if="item.url" as-child>
-                <a :href="item.url" :target="item.target" class="flex items-center gap-2">
-                  <component v-if="menuItemIcon(item)" :is="menuItemIcon(item)" class="size-4" />
-                  <span>{{ item.label }}</span>
-                </a>
-              </DropdownMenuItem>
-              <DropdownMenuItem v-else :variant="item.class === 'text-destructive' ? 'destructive' : 'default'" @click="item.command?.()">
-                <component v-if="menuItemIcon(item)" :is="menuItemIcon(item)" class="size-4" />
-                <span>{{ item.label }}</span>
-              </DropdownMenuItem>
-            </template>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <ActionButtons :toolbar="[]" :primary="primaryActions" />
+        <ActionMenu :actions="menuActions" trigger-variant="ghost" />
       </div>
     </div>
 
     <!-- Workflow (inside the header card) -->
-    <WorkflowBar v-if="!isLoading && dt && id && document && dt.workflow_state_field" :doctype="dt" :doc-id="id"
-      :doc="document as Record<string, unknown>"
-      @transitioned="handleRefresh" />
+    <WorkflowBar v-if="!isLoading && dt && id && document && dt.workflow_state_field" :doctype="dt"
+      :doc="document as Record<string, unknown>" :actions="actions" :workflow="workflow" />
   </div>
 
   <DocLinksDialog v-if="id" v-model:open="showLinksDialog" :doctype="doctype" :doc-id="id" :workspace="workspace" />

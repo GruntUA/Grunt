@@ -3,12 +3,8 @@
 // ── Lifecycle hooks ──────────────────────────────────────────────────────────
 
 function on_load(frm) {
-  if (frm.is_new) return
   _addButtons(frm)
-}
-
-function after_save(frm) {
-  _addButtons(frm)
+  if (!frm.is_new) _renderResultBanner(frm)
 }
 
 function on_change(frm, fieldname) {
@@ -17,19 +13,25 @@ function on_change(frm, fieldname) {
 
 // ── Buttons ──────────────────────────────────────────────────────────────────
 
+const _isDone = (f) => ['Success', 'Partial Success', 'Failed'].includes(f.doc.status)
+const _isPending = (f) => !f.doc.status || f.doc.status === 'Pending'
+
 function _addButtons(frm) {
-  const status = frm.get_value('status')
-  const isPending = !status || status === 'Pending'
-  const isDone = ['Success', 'Partial Success', 'Failed'].includes(status)
-
-  if (isPending || isDone) {
-    frm.add_button('Запустити імпорт', () => _runImport(frm), { variant: 'default' })
-  }
-
-  if (isDone) {
-    frm.add_button('Скинути', () => _reset(frm), { variant: 'secondary' })
-    _renderResultBanner(frm)
-  }
+  frm.actions.add({
+    id: 'run_import',
+    label: 'Запустити імпорт',
+    icon: 'play',
+    variant: 'default',
+    visible: (f) => !f.is_new && (_isPending(f) || _isDone(f)),
+    action: (f) => _runImport(f),
+  })
+  frm.actions.add({
+    id: 'reset_import',
+    label: 'Скинути',
+    variant: 'secondary',
+    visible: (f) => !f.is_new && _isDone(f),
+    action: (f) => _reset(f),
+  })
 }
 
 // ── Run ──────────────────────────────────────────────────────────────────────

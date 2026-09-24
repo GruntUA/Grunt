@@ -31,11 +31,14 @@ import { useFormInitialization } from './useFormInitialization'
 import { useFormActions } from './useFormActions'
 import { useFormLinkCreation } from './useFormLinkCreation'
 import { useFormDocumentView } from './useFormDocumentView'
-import { useFormShortcuts } from './useFormShortcuts'
+import { useActionShortcuts } from './useActionShortcuts'
 
 import type { DocType } from '@/types'
 import { docUrl } from '@/core/workspaceUrl'
 import { formPermissions } from '@/core/permissions'
+import { docsApi } from '@/core/api/docs'
+import type { WorkflowTransition } from '@/core/scripting/executor'
+import { getLayoutTypeSet } from '@/core/fieldRegistry'
 
 // ── Public interface ─────────────────────────────────────────────────────────
 
@@ -102,9 +105,36 @@ export function useFormController(
   // Deferred reference so the save handler can call itself via client scripts.
   let _saveHandler: (() => Promise<void>) | null = null
 
+  // Dialogs / panels the standard actions (global_form.js) open.
+  const showRenameDialog = ref(false)
+  const showShareDialog = ref(false)
+  const showLinksDialog = ref(false)
+  const showActivityLog = ref(true)
+
+  // Workflow: the transitions allowed now, and the one waiting for its prompt fields.
+  const transitions = ref<WorkflowTransition[]>([])
+  const pendingTransition = ref<WorkflowTransition | null>(null)
+  const transitionError = ref<string | null>(null)
+  const transitionBusy = ref(false)
+
+  // Meta + document straight from the server («Оновити», frm.reload({ meta: true })).
+  async function reload(opts: { meta?: boolean } = {}) {
+    if (opts.meta) {
+      dtStore.invalidate(doctype)
+      dt.value = await dtStore.get(doctype)
+    }
+    if (id) await queryClient.invalidateQueries({ queryKey: ['document', doctype, id] })
+  }
+
+  const LAYOUT_TYPES = getLayoutTypeSet()
+  const auth = useAuthStore()
+  const perms = computed(() =>
+    formPermissions(dt.value, document.value as Record<string, unknown> | null, !id, auth.user?.roles ?? []),
+  )
+
   const {
-    buttons: scriptButtons,
-    menuItems: scriptMenuItems,
+    actions,
+    frm,
     displayOverrides,
     reqdOverrides,
     dfPropOverrides,
@@ -119,31 +149,84 @@ export function useFormController(
     setValue: (field, value) => {
       form.value[field] = value
     },
-    reload: async () => {
-      if (id) {
-        await queryClient.invalidateQueries({ queryKey: ['document', doctype, id] })
-      }
-    },
+    reload,
     save: async () => {
       if (_saveHandler) await _saveHandler()
     },
     markClean,
     lastMessage,
+    state: () => ({
+      perm: perms.value,
+      transitions: transitions.value,
+      isDirty: isDirty.value,
+      isSaving: isSaving.value,
+      isLoading: isLoading.value,
+      hasEditableFields: (dt.value?.fields ?? []).some((f) => !LAYOUT_TYPES.has(f.fieldtype) && !f.read_only),
+    }),
+    ui: {
+      delete: () => { showDeleteModal.value = true },
+      duplicate: () => { void _duplicateHandler?.() },
+      discard: () => { router.go(0) },
+      rename: () => { showRenameDialog.value = true },
+      share: () => { showShareDialog.value = true },
+      showLinks: () => { showLinksDialog.value = true },
+      toggleActivity: () => { showActivityLog.value = !showActivityLog.value },
+      applyTransition: (action) => applyTransition(action),
+    },
   })
+  let _duplicateHandler: (() => void | Promise<void>) | null = null
 
   // ── Declarative document actions (DocType.actions bindings) ────────────────
-  const { docActionButtons } = useDocActions({
+  useDocActions({
     doctype,
     id,
     dt,
     form: () => form.value,
-    reload: async () => {
-      if (id) await queryClient.invalidateQueries({ queryKey: ['document', doctype, id] })
-    },
+    actions,
+    reload: () => reload(),
   })
 
-  // Registry-bound action buttons render first, then client-script buttons.
-  const allButtons = computed(() => [...docActionButtons.value, ...(scriptButtons.value ?? [])])
+  // Keyboard shortcuts declared by actions (`shortcut: 'Ctrl+S'`).
+  useActionShortcuts(actions)
+
+  // ── Workflow transitions → `on_transitions` (global_form.js registers them as actions)
+  async function loadTransitions() {
+    if (!id || !dt.value?.workflow_state_field) return
+    try {
+      transitions.value = (await docsApi.getTransitions(doctype, id)).data ?? []
+    } catch {
+      transitions.value = []
+    }
+    await runScriptEvent('on_transitions')
+  }
+
+  async function applyTransition(action: string, values?: Record<string, unknown>) {
+    const transition = transitions.value.find((t) => t.action === action)
+    if (!transition || !id) return
+    if (!values && transition.prompt_fields?.length) {
+      transitionError.value = null
+      pendingTransition.value = transition
+      return
+    }
+    transitionBusy.value = true
+    try {
+      await docsApi.applyTransition(doctype, id, action, values)
+      pendingTransition.value = null
+      await reload()
+    } catch (err: unknown) {
+      const detail = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail
+      if (pendingTransition.value) transitionError.value = detail ?? 'Помилка застосування переходу'
+      else toast.error(detail ?? 'Помилка застосування переходу')
+    } finally {
+      transitionBusy.value = false
+    }
+  }
+
+  // The allowed transitions depend on the state — reload them with the document.
+  watch(
+    () => [(document.value as Record<string, unknown> | null)?.modified_at, dt.value?.workflow_state_field],
+    () => { void loadTransitions() },
+  )
 
   // ── Validation ─────────────────────────────────────────────────────────────
   const { validationErrors, focusFirstError, validateForm } = useFormValidation({
@@ -251,6 +334,7 @@ export function useFormController(
     queryClient,
     toast,
   })
+  _duplicateHandler = handleDuplicate
 
   // ── Title + reactive form update (triggers on_change scripts) ──────────────
   const { docTitle, onFormUpdate } = useFormDocumentView({
@@ -263,17 +347,6 @@ export function useFormController(
     },
   })
 
-  // ── Permissions (server's __perms, or role rows for a new document) ────────
-  const auth = useAuthStore()
-  const perms = computed(() =>
-    formPermissions(dt.value, document.value as Record<string, unknown> | null, !id, auth.user?.roles ?? []),
-  )
-
-  // ── Keyboard shortcuts (Ctrl+S, Ctrl+P) ────────────────────────────────────
-  useFormShortcuts({
-    onSave: () => { if (perms.value.write) void handleSave() },
-    onPrint: () => { window.print() },
-  })
 
   // ── fetch_from field population ────────────────────────────────────────────
   useFetchFrom({
@@ -337,8 +410,18 @@ export function useFormController(
     validationErrors,
 
     // Client scripts (+ declarative DocType.actions bindings, prepended)
-    scriptButtons: allButtons,
-    scriptMenuItems,
+    // Buttons & menu items (core/actions.ts) and the dialogs they open
+    actions,
+    frm,
+    reload,
+    showRenameDialog,
+    showShareDialog,
+    showLinksDialog,
+    showActivityLog,
+    pendingTransition,
+    transitionError,
+    transitionBusy,
+    applyTransition,
     displayOverrides,
     reqdOverrides,
     dfPropOverrides,

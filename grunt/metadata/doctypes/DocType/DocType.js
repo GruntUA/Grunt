@@ -159,3 +159,8 @@ window.doc_type_on_change = on_change
 
 if (typeof on_load === 'function') { window.on_load = on_load }
 if (typeof on_change === 'function') { window.on_change = on_change }
+
+/** @param {ListViewProxy} listview */
+function setup_list(listview) {
+  listview.actions.update('add', { label: __('New DocType') })
+}

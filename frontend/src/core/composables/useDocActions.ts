@@ -1,6 +1,6 @@
 /**
- * useDocActions — turns a DocType's declarative `actions` bindings into
- * toolbar buttons, alongside client-script buttons.
+ * useDocActions — registers a DocType's declarative `actions` bindings in the
+ * form's action registry (core/actions.ts), next to script-registered actions.
  *
  * Each binding references an action registered in an app's Python code
  * (`@doc_action`). Clicking a button POSTs to `grunt.actions.run`, which
@@ -8,21 +8,25 @@
  * reloads the form. A `condition` expression on the binding is evaluated
  * against the current form data to show/hide the button reactively.
  */
-import { computed, unref } from 'vue'
+import { unref, watch } from 'vue'
 import type { MaybeRefOrGetter, Ref } from 'vue'
 
 import client from '@/core/api/client'
 import type { DialogField } from '@/core/composables/useDialog'
 import { useDialog } from '@/core/composables/useDialog'
 import { toast } from '@/core/composables/useToast'
-import type { DocActionField, DocType, ScriptButton } from '@/types'
+import type { DocActionField, DocType } from '@/types'
+import type { ActionsApi } from '@/core/actions'
+import type { FormProxy } from '@/core/scripting/executor'
 
 interface UseDocActionsOptions {
   doctype: string
   id: string | null
   dt: Ref<DocType | null>
-  /** Current form/document data — used for `condition` evaluation and as the doc id source. */
+  /** Current form/document data — the doc id source when running an action. */
   form: MaybeRefOrGetter<Record<string, unknown>>
+  /** The form's action registry to register the bindings in. */
+  actions: ActionsApi<FormProxy>
   /** Reload the document after a successful action (unless the handler opts out). */
   reload: () => void | Promise<void>
 }
@@ -39,29 +43,36 @@ function evalCondition(expr: string, doc: Record<string, unknown>): boolean {
 }
 
 export function useDocActions(options: UseDocActionsOptions) {
-  const buttons = computed<ScriptButton[]>(() => {
-    const bindings = options.dt.value?.actions ?? []
-    if (!bindings.length || !options.id) return []
+  let registered: string[] = []
 
-    const doc = (typeof options.form === 'function' ? options.form() : unref(options.form)) ?? {}
-
-    return bindings
-      .filter((b) => !b.hidden && !b._missing)
-      .filter((b) => !b.condition || evalCondition(b.condition, doc as Record<string, unknown>))
-      .map((b) => ({
-        label: b._label || b.label || b.action,
-        icon: b._icon || undefined,
-        group: b._group || b.group || undefined,
-        severity: b._variant || b.variant || 'outline',
-        action: () =>
-          runAction(
-            b.action,
-            b._label || b.label || b.action,
-            b._confirm ?? null,
-            b._fields ?? [],
-          ),
-      }))
-  })
+  // Re-register whenever the DocType definition changes (e.g. after a meta reload).
+  watch(
+    () => options.dt.value?.actions ?? [],
+    (bindings) => {
+      for (const id of registered) options.actions.remove(id)
+      registered = []
+      bindings
+        .filter((b) => !b.hidden && !b._missing)
+        .forEach((b, index) => {
+          const id = `doc_action:${b.action}`
+          const label = b._label || b.label || b.action
+          registered.push(id)
+          options.actions.add({
+            id,
+            label,
+            icon: b._icon || undefined,
+            group: b._group || b.group || undefined,
+            variant: b._variant || b.variant || 'outline',
+            placement: 'toolbar',
+            order: 200 + index,
+            visible: (frm) =>
+              !frm.is_new && (!b.condition || evalCondition(b.condition, frm.doc as Record<string, unknown>)),
+            action: () => runAction(b.action, label, b._confirm ?? null, b._fields ?? []),
+          })
+        })
+    },
+    { immediate: true },
+  )
 
   async function runAction(
     action: string,
@@ -108,5 +119,4 @@ export function useDocActions(options: UseDocActionsOptions) {
     }
   }
 
-  return { docActionButtons: buttons }
 }

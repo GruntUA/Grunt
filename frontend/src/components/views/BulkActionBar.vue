@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Trash2, Pencil, Loader2, CheckCircle, AlertCircle, X, Zap } from '@lucide/vue'
+import { Loader2, CheckCircle, AlertCircle, X, Zap, Pencil } from '@lucide/vue'
 import type { DocField } from '@/types'
 import { getNonPhysicalTypeSet, getAsyncFieldComponent } from '@/core/fieldRegistry'
 import { Button } from '@/components/ui/button'
@@ -9,6 +9,8 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { docsApi, type DeleteImpact } from '@/core/api/docs'
+import { LIST_BULK_UI } from '@/core/composables/useListBulkUi'
+import ActionIcon from '@/components/views/actions/ActionIcon.vue'
 
 const props = defineProps<{
   count: number
@@ -16,12 +18,8 @@ const props = defineProps<{
   allSelected?: boolean
   pageCount?: number
   editableFields?: DocField[]
-  isSystemManager?: boolean
   doctype?: string
   selectedIds?: string[]
-  /** Role-level rights (core/permissions.ts); the server still checks every document. */
-  canWrite?: boolean
-  canDelete?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -121,6 +119,22 @@ const valueComponent = computed(() =>
 // fieldtype is meaningless for the next.
 watch(updateField, () => { updateValue.value = null })
 
+// The `bulk` actions (global_list.js + scripts) and the dialogs they ask for —
+// listview.bulk_edit() / bulk_delete() / fast_delete() — from the list page.
+const bulkUi = inject(LIST_BULK_UI, null)
+const bulkActions = computed(() => bulkUi?.actions.value ?? [])
+
+watch(
+  () => bulkUi?.request.value,
+  (request) => {
+    if (!request || !bulkUi) return
+    bulkUi.request.value = null
+    if (request === 'edit') openUpdateModal()
+    else if (request === 'delete') showDeleteModal.value = true
+    else if (request === 'fast-delete') showFastDeleteModal.value = true
+  },
+)
+
 function openUpdateModal() {
   updateField.value = updatableFields.value[0]?.fieldname ?? ''
   updateValue.value = null
@@ -175,32 +189,23 @@ async function submitUpdate() {
           Вибрати всі {{ total }}
         </button>
 
-        <!-- Actions -->
+        <!-- Actions (core/actions.ts, placement: bulk) -->
         <div class="flex items-center gap-1">
-          <Button v-if="canWrite !== false" variant="ghost" size="sm" class="!px-2.5 !h-7 !text-xs !font-semibold gap-1.5 hover:!bg-muted/60" :disabled="!updatableFields.length" @click="openUpdateModal">
-            <Pencil class="size-3" />
-            Редагувати
-          </Button>
-
           <Button
-            v-if="canDelete !== false"
+            v-for="action in bulkActions"
+            :key="action.id"
             variant="ghost" size="sm"
-            class="!px-2.5 !h-7 !text-xs !font-semibold gap-1.5 text-destructive hover:text-destructive hover:!bg-destructive/10"
-            @click="showDeleteModal = true"
+            :class="[
+              '!px-2.5 !h-7 !text-xs !font-semibold gap-1.5',
+              action.variant === 'destructive'
+                ? 'text-destructive hover:text-destructive hover:!bg-destructive/10'
+                : 'hover:!bg-muted/60',
+            ]"
+            :disabled="action.disabled"
+            @click="action.run()"
           >
-            <Trash2 class="size-3" />
-            Видалити
-          </Button>
-
-          <!-- Fast delete — System Manager only, only when all records selected -->
-          <Button
-            v-if="isSystemManager && allSelected && canDelete !== false"
-            variant="ghost" size="sm"
-            class="!px-2.5 !h-7 !text-xs !font-semibold gap-1.5 text-destructive hover:text-destructive hover:!bg-destructive/10 opacity-80"
-            @click="showFastDeleteModal = true"
-          >
-            <Zap class="size-3" />
-            Швидке видалення
+            <ActionIcon v-if="action.icon" :name="action.icon" class="size-3" />
+            {{ action.label }}
           </Button>
         </div>
 

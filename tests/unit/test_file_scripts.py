@@ -90,6 +90,7 @@ def test_framework_global_form_script_loads_before_doctype_script(tmp_path, monk
     global_dir = doctypes_dir / "DocType"
     global_dir.mkdir(parents=True)
     (global_dir / "global_form.js").write_text("function on_load(frm) {}\n")
+    (global_dir / "global_list.js").write_text("function setup_list(listview) {}\n")
 
     page_dir = doctypes_dir / "Page"
     page_dir.mkdir()
@@ -101,4 +102,8 @@ def test_framework_global_form_script_loads_before_doctype_script(tmp_path, monk
 
     scripts = get_file_client_scripts("Page")
 
-    assert [script["name"] for script in scripts] == ["grunt:global_form.js", "grunt:Page.js"]
+    assert [script["name"] for script in scripts] == [
+        "grunt:global_form.js",
+        "grunt:global_list.js",
+        "grunt:Page.js",
+    ]

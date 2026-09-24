@@ -14,9 +14,14 @@ function on_load(frm) {
   // manager on a saved record (your own profile).
   frm.set_df_property("passkeys_button", "hidden", frm.is_new);
 
-  if (!frm.is_new) {
-    // Top bar override for change password
-    frm.add_button("Змінити пароль", async () => {
+  const saved = (f) => !f.is_new;
+
+  frm.actions.add({
+    id: "change_password",
+    label: "Змінити пароль",
+    icon: "key-round",
+    visible: saved,
+    action: async () => {
       const user_id = frm.doc.name;
       if (!user_id) return;
 
@@ -53,15 +58,25 @@ function on_load(frm) {
       } catch (error) {
         grunt.msgprint({ message: error?.message || "Помилка при встановленні пароля", indicator: "red" });
       }
-    });
+    },
+  });
 
+  if (!frm.is_new) {
     frm.set_df_property("mfa_setup_button", "label", frm.doc.mfa_enabled ? "Вимкнути MFA" : "Увімкнути MFA");
+  }
 
-    // Референтність — System Manager відкриває сесію під цим користувачем, щоб
-    // перевірити доступність документів. Повернення — через банер угорі.
-    const targetIsSystemManager = (frm.doc.roles || []).some((r) => r.role_name === "System Manager");
-    if ((grunt.session.roles || []).includes("System Manager") && frm.doc.name !== grunt.session.user && !targetIsSystemManager) {
-      frm.add_button("Увійти як цей користувач", async () => {
+  // Референтність — System Manager відкриває сесію під цим користувачем, щоб
+  // перевірити доступність документів. Повернення — через банер угорі.
+  frm.actions.add({
+    id: "impersonate",
+    label: "Увійти як цей користувач",
+    icon: "log-in",
+    visible: (f) =>
+      saved(f) &&
+      (grunt.session.roles || []).includes("System Manager") &&
+      f.doc.name !== grunt.session.user &&
+      !(f.doc.roles || []).some((r) => r.role_name === "System Manager"),
+    action: async () => {
         if (!(await grunt.confirm(
           `Відкрити сесію під користувачем «${frm.doc.full_name || frm.doc.name}»? ` +
           `Ви зможете повернутися у свій обліковий запис у будь-який момент.`
@@ -71,29 +86,40 @@ function on_load(frm) {
         } catch (e) {
           grunt.msgprint({ message: e?.message || "Не вдалося увійти під користувачем", indicator: "red" });
         }
-      });
-    }
+    },
+  });
 
-    if (frm.doc.signup_state === "pending") {
-      frm.add_button("✓ Підтвердити реєстрацію", async () => {
-        await grunt.call({
-          method: "grunt.auth.doctypes.User.user.approve_user_api",
-          args: { user_id: frm.doc.name },
-        });
-        grunt.msgprint({ message: "Реєстрацію підтверджено — користувач може увійти", indicator: "green" });
-        await frm.reload();
+  const pending = (f) => saved(f) && f.doc.signup_state === "pending";
+  frm.actions.add({
+    id: "approve_signup",
+    label: "Підтвердити реєстрацію",
+    icon: "check",
+    variant: "success",
+    visible: pending,
+    action: async () => {
+      await grunt.call({
+        method: "grunt.auth.doctypes.User.user.approve_user_api",
+        args: { user_id: frm.doc.name },
       });
-      frm.add_button("Відхилити", async () => {
-        if (!confirm("Відхилити реєстрацію цього користувача?")) return;
-        await grunt.call({
-          method: "grunt.auth.doctypes.User.user.reject_user_api",
-          args: { user_id: frm.doc.name },
-        });
-        grunt.msgprint({ message: "Реєстрацію відхилено", indicator: "orange" });
-        await frm.reload();
+      grunt.msgprint({ message: "Реєстрацію підтверджено — користувач може увійти", indicator: "green" });
+      await frm.reload();
+    },
+  });
+  frm.actions.add({
+    id: "reject_signup",
+    label: "Відхилити",
+    variant: "destructive",
+    confirm: "Відхилити реєстрацію цього користувача?",
+    visible: pending,
+    action: async () => {
+      await grunt.call({
+        method: "grunt.auth.doctypes.User.user.reject_user_api",
+        args: { user_id: frm.doc.name },
       });
-    }
-  }
+      grunt.msgprint({ message: "Реєстрацію відхилено", indicator: "orange" });
+      await frm.reload();
+    },
+  });
 }
 
 async function on_change(frm, fieldname) {

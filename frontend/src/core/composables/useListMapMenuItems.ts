@@ -1,20 +1,27 @@
-import type { Ref } from 'vue'
+import type { ActionsApi } from '@/core/actions'
 import type { ScriptMenuItem } from '@/types'
 
-export function useListMapMenuItems(listMenuItems: Ref<ScriptMenuItem[]>) {
+/** Menu items a list view (e.g. the map) contributes — registered as list actions while it is shown. */
+export function useListMapMenuItems(actions: ActionsApi) {
+  const id = (item: ScriptMenuItem) => `view:${item.label}`
+
   function registerMapMenuItems(items: ScriptMenuItem[]) {
-    listMenuItems.value.push(...items)
+    items.forEach((item, index) =>
+      actions.add({
+        id: id(item),
+        label: item.label,
+        icon: item.icon,
+        placement: 'menu',
+        group: 'view',
+        order: 50 + index,
+        action: () => item.action(),
+      }),
+    )
   }
 
   function unregisterMapMenuItems(items: ScriptMenuItem[]) {
-    for (const item of items) {
-      const idx = listMenuItems.value.indexOf(item)
-      if (idx !== -1) listMenuItems.value.splice(idx, 1)
-    }
+    for (const item of items) actions.remove(id(item))
   }
 
-  return {
-    registerMapMenuItems,
-    unregisterMapMenuItems,
-  }
+  return { registerMapMenuItems, unregisterMapMenuItems }
 }

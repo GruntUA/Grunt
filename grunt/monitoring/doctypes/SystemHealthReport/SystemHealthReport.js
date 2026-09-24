@@ -18,28 +18,51 @@ function on_load(frm) {
     frm.hide_sidebar() // assignees, tags, follow — nothing to do with a live report
     _checkBrowser(frm)
 
-    frm.add_button('Перевірити знову', async () => {
-        await frm.reload()
-        await _checkBrowser(frm)
-        grunt.show_alert('Перевірку оновлено', 'success')
+    // A live report: nothing to print, share or link — and «Перевірити знову»
+    // re-runs the browser checks too, so it replaces the plain refresh.
+    for (const id of ['refresh', 'print', 'print_xlsx', 'print_pdf', 'print_html', 'open_new_tab', 'share', 'links', 'activity']) {
+        frm.actions.remove(id)
+    }
+
+    frm.actions.add({
+        id: 'recheck',
+        label: 'Перевірити знову',
+        icon: 'refresh-cw',
+        busy: (f) => f.is_loading,
+        action: async (f) => {
+            await f.reload()
+            await _checkBrowser(f)
+            grunt.show_alert('Перевірку оновлено', 'success')
+        },
     })
 
-    frm.add_menu_item('Закріпити сховище браузера', async () => {
-        const ok = await grunt.health.persist_storage()
-        grunt.show_alert(
-            ok ? 'Браузер не видалятиме офлайн-дані' : 'Браузер відхилив запит (спробуйте встановити застосунок як PWA)',
-            ok ? 'success' : 'warning',
-        )
-        await _checkBrowser(frm)
+    frm.actions.add({
+        id: 'persist_storage',
+        label: 'Закріпити сховище браузера',
+        icon: 'hard-drive',
+        placement: 'menu',
+        action: async (f) => {
+            const ok = await grunt.health.persist_storage()
+            grunt.show_alert(
+                ok ? 'Браузер не видалятиме офлайн-дані' : 'Браузер відхилив запит (спробуйте встановити застосунок як PWA)',
+                ok ? 'success' : 'warning',
+            )
+            await _checkBrowser(f)
+        },
     })
 
-    frm.add_menu_item('Копіювати звіт', async () => {
-        const report = { ...frm.doc }
-        try {
-            await navigator.clipboard.writeText(JSON.stringify(report, null, 2))
-            grunt.show_alert('Звіт скопійовано в буфер обміну', 'success')
-        } catch (e) {
-            grunt.show_alert('Буфер обміну недоступний: ' + e.message, 'error')
-        }
+    frm.actions.add({
+        id: 'copy_report',
+        label: 'Копіювати звіт',
+        icon: 'clipboard-copy',
+        placement: 'menu',
+        action: async (f) => {
+            try {
+                await navigator.clipboard.writeText(JSON.stringify({ ...f.doc }, null, 2))
+                grunt.show_alert('Звіт скопійовано в буфер обміну', 'success')
+            } catch (e) {
+                grunt.show_alert('Буфер обміну недоступний: ' + e.message, 'error')
+            }
+        },
     })
 }

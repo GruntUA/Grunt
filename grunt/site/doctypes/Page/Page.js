@@ -1,7 +1,10 @@
 function on_load(frm) {
-  if (!frm.is_new) {
-    frm.add_button('Відкрити конструктор', () => {
-      grunt.set_route('page', frm.doc.name)
-    }, { icon: 'layout-dashboard', variant: 'primary' })
-  }
+  frm.actions.add({
+    id: 'open_builder',
+    label: 'Відкрити конструктор',
+    icon: 'layout-dashboard',
+    variant: 'primary',
+    visible: (f) => !f.is_new,
+    action: (f) => grunt.set_route('page', f.doc.name),
+  })
 }

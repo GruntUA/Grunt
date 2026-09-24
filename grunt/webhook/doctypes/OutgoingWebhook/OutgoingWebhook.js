@@ -7,15 +7,22 @@ let _logsPanel = null
 // ── Lifecycle hooks ───────────────────────────────────────────────────────────
 
 function on_load(frm) {
-  if (frm.is_new) return
-
-  frm.add_button('Тест', () => _runTest(frm), { variant: 'secondary' })
-  frm.add_button('Журнал доставок', () => _toggleLogs(frm), { variant: 'ghost' })
-}
-
-function after_save(frm) {
-  frm.add_button('Тест', () => _runTest(frm), { variant: 'secondary' })
-  frm.add_button('Журнал доставок', () => _toggleLogs(frm), { variant: 'ghost' })
+  frm.actions.add({
+    id: 'test_delivery',
+    label: 'Тест',
+    icon: 'send',
+    variant: 'secondary',
+    visible: (f) => !f.is_new,
+    action: (f) => _runTest(f),
+  })
+  frm.actions.add({
+    id: 'delivery_log',
+    label: 'Журнал доставок',
+    icon: 'scroll-text',
+    variant: 'ghost',
+    visible: (f) => !f.is_new,
+    action: (f) => _toggleLogs(f),
+  })
 }
 
 

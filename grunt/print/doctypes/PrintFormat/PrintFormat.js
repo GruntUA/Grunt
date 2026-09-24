@@ -12,11 +12,14 @@ const DEBOUNCE_MS = 800
 // ── Lifecycle hooks ───────────────────────────────────────────────────────────
 
 function on_load(frm) {
-  if (frm.is_new) return
-
-  frm.add_button('Попередній перегляд', () => {
-    _togglePreview(frm)
-  }, { variant: 'secondary' })
+  frm.actions.add({
+    id: 'preview',
+    label: 'Попередній перегляд',
+    icon: 'eye',
+    variant: 'secondary',
+    visible: (f) => !f.is_new,
+    action: (f) => _togglePreview(f),
+  })
 }
 
 function on_change(frm, fieldname) {
@@ -32,10 +35,6 @@ function after_save(frm) {
   if (_previewPanel && _previewPanel.isConnected) {
     _refreshPreview(frm)
   }
-  // Re-add button in case form re-rendered
-  frm.add_button('Попередній перегляд', () => {
-    _togglePreview(frm)
-  }, { variant: 'secondary' })
 }
 
 

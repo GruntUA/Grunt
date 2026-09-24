@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, provide } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useQueryClient } from '@tanstack/vue-query'
 import { docsApi } from '@/core/api/docs'
@@ -22,7 +22,6 @@ import { useQuickFilterPrefs } from '@/core/composables/useQuickFilterPrefs'
 import { useDebounce } from '@/core/composables/useDebounce'
 import { useBulkDeleteProgress } from '@/core/composables/useBulkDeleteProgress'
 import { useListSelection } from '@/core/composables/useListSelection'
-import { useDevMode } from '@/core/composables/useDevMode'
 import type { DocType, QuickFilter } from '@/types'
 import { getRegisteredViews, getViewDef } from '@/core/viewRegistry'
 import { useDialog } from '@/core/composables/useDialog'
@@ -40,6 +39,9 @@ import DocTypeToolbar from '@/components/views/DocTypeToolbar.vue'
 import ListViewRouter from '@/components/views/list/ListViewRouter.vue'
 import ListPagination from '@/components/views/ListPagination.vue'
 import { docUrl } from '@/core/workspaceUrl'
+import { roleAllows } from '@/core/permissions'
+import { getExporters } from '@/core/io/exporters/registry'
+import { LIST_BULK_UI, type BulkRequest } from '@/core/composables/useListBulkUi'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 const props = defineProps<{ doctype: string; workspace?: string }>()
 const doctype = computed(() => props.doctype)
@@ -57,7 +59,6 @@ const listWs = useWebSocket(`/api/v1/ws/${props.doctype}`)
 listWs.onEvent('doc_change', () => {
   queryClient.invalidateQueries({ queryKey: ['documents', props.doctype] })
 })
-const { isDev } = useDevMode()
 const { onUserEvent, offUserEvent } = useNotifications()
 
 // ── State ────────────────────────────────────────────────────────────────────
@@ -138,10 +139,11 @@ const {
 const colState = useListColumns(props.doctype, () => dt.value?.fields ?? [], () => dt.value?.title_field)
 const showQuickEntry = ref(false)
 const dialog = useDialog()
+// Bulk dialogs the selection bar opens on listview.bulk_edit() / bulk_delete() / fast_delete().
+const bulkRequest = ref<BulkRequest>(null)
+
 const {
-  listButtons,
-  listMenuItems,
-  canCreate: listCanCreate,
+  actions: listActions,
   runListClientSetup,
   runQuickFilterOnChange,
 } = useListClientScripts({
@@ -154,7 +156,50 @@ const {
   queryClient,
   dialog,
   toast,
+  state: () => {
+    const roles = auth.user?.roles ?? []
+    return {
+      perm: {
+        create: roleAllows(dt.value, 'create', roles),
+        write: roleAllows(dt.value, 'write', roles),
+        delete: roleAllows(dt.value, 'delete', roles),
+      },
+      selected: selectedIds.value,
+      allSelected: allSelected.value,
+      isFetching: isFetching.value,
+      exporters: getExporters().map((e) => ({ id: e.id, label: e.label })),
+      canExport: !!exportCtx.value,
+    }
+  },
+  ui: {
+    newDoc: () => {
+      if (dt.value?.quick_entry) showQuickEntry.value = true
+      else router.push(docUrl(props.doctype, 'new', props.workspace))
+    },
+    bulkEdit: () => { bulkRequest.value = 'edit' },
+    bulkDelete: () => { bulkRequest.value = 'delete' },
+    fastDelete: () => { bulkRequest.value = 'fast-delete' },
+    exportWith: (exporterId) => {
+      const exporter = getExporters().find((e) => e.id === exporterId)
+      if (exporter && exportCtx.value) void exporter.export(exportCtx.value)
+    },
+    customizeQuickFilters: () => { showQuickFilterDialog.value = true },
+    createReport: () => {
+      router.push({
+        name: 'report-builder',
+        params: { workspaceName: props.workspace ?? 'grunt' },
+        query: { doctype: props.doctype },
+      })
+    },
+    reloadMeta: async () => {
+      dtStore.invalidate(props.doctype)
+      dt.value = await dtStore.get(props.doctype)
+    },
+    refreshed: () => { refreshKey.value++ },
+  },
 })
+
+provide(LIST_BULK_UI, { actions: listActions.resolved('bulk'), request: bulkRequest })
 
 watch(
   quickFilterValues,
@@ -254,7 +299,7 @@ const { bulkUpdate, inlineUpdate } = useListActions({
   queryClient,
 })
 
-const { registerMapMenuItems, unregisterMapMenuItems } = useListMapMenuItems(listMenuItems)
+const { registerMapMenuItems, unregisterMapMenuItems } = useListMapMenuItems(listActions)
 
 // ── Grouping Logic ───────────────────────────────────────────────────────────
 const {
@@ -323,14 +368,7 @@ watch(() => props.doctype, async (newDoctype) => {
   >
     <AppBreadcrumb :workspace-name="workspace ?? 'grunt'" :doctype="doctype" :count="meta?.total ?? null">
       <template #actions>
-        <ListHeader :doctype="doctype" :dt="dt" :workspace="workspace" :is-fetching="isFetching"
-          :is-system-doc-type="doctype === 'DocType'" :show-dev-actions="!!(isDev && auth.isSystemManager)"
-          :list-buttons="listButtons" :list-menu-items="listMenuItems" :export-ctx="exportCtx"
-          :can-create-override="listCanCreate"
-          v-model:view-mode="viewMode"
-          @refresh="queryClient.invalidateQueries({ queryKey: ['documents', doctype] }); refreshKey++"
-          @create-quick="showQuickEntry = true"
-          @customize-quick-filters="showQuickFilterDialog = true" />
+        <ListHeader :doctype="doctype" :dt="dt" :actions="listActions" v-model:view-mode="viewMode" />
       </template>
     </AppBreadcrumb>
 

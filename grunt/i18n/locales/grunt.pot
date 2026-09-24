@@ -41,15 +41,14 @@ msgstr ""
 msgid "Actions"
 msgstr ""
 
+#: grunt/grunt/metadata/doctypes/DocType/global_form.js:118
 #: grunt/frontend/src/components/layout/CommandPalette.vue:111
-#: grunt/frontend/src/components/views/form/FormHeader.vue:315
 msgid "Activity log"
 msgstr ""
 
+#: grunt/grunt/metadata/doctypes/DocType/global_list.js:24
 #: grunt/frontend/src/components/dashboard/sections/TilesSection.vue:51
 #: grunt/frontend/src/components/dashboard/sections/LinksSection.vue:48
-#: grunt/frontend/src/components/views/list/ListHeader.vue:245
-#: grunt/frontend/src/components/views/list/ListHeader.vue:247
 msgid "Add"
 msgstr ""
 
@@ -69,11 +68,11 @@ msgstr ""
 msgid "An uppercase letter"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:514
+#: grunt/frontend/src/components/views/form/FormHeader.vue:269
 msgid "Anyone with the link can view this document"
 msgstr ""
 
-#: grunt/frontend/src/components/views/BulkActionBar.vue:369
+#: grunt/frontend/src/components/views/BulkActionBar.vue:378
 msgid "Apply"
 msgstr ""
 
@@ -127,7 +126,7 @@ msgstr ""
 msgid "Barcode not found in image."
 msgstr ""
 
-#: grunt/frontend/src/pages/desk/DocTypeForm.vue:167
+#: grunt/frontend/src/pages/desk/DocTypeForm.vue:165
 msgid "Beta: цей тип документа ще в розробці, поведінка може змінитися."
 msgstr ""
 
@@ -135,7 +134,7 @@ msgstr ""
 msgid "Bold"
 msgstr ""
 
-#: grunt/frontend/src/components/views/BulkActionBar.vue:329
+#: grunt/frontend/src/components/views/BulkActionBar.vue:338
 msgid "Bulk Update"
 msgstr ""
 
@@ -156,13 +155,13 @@ msgid "Camera unavailable."
 msgstr ""
 
 #: grunt/frontend/src/components/views/QuickEntryDialog.vue:147
-#: grunt/frontend/src/components/views/BulkActionBar.vue:275
-#: grunt/frontend/src/components/views/BulkActionBar.vue:366
+#: grunt/frontend/src/components/views/BulkActionBar.vue:284
+#: grunt/frontend/src/components/views/BulkActionBar.vue:375
 #: grunt/frontend/src/components/workflow/WorkflowActionDialog.vue:79
 #: grunt/frontend/src/components/views/form/FormModals.vue:138
-#: grunt/frontend/src/components/views/form/FormHeader.vue:529
-#: grunt/frontend/src/components/views/form/FormHeader.vue:575
-#: grunt/frontend/src/components/views/form/FormHeader.vue:689
+#: grunt/frontend/src/components/views/form/FormHeader.vue:284
+#: grunt/frontend/src/components/views/form/FormHeader.vue:330
+#: grunt/frontend/src/components/views/form/FormHeader.vue:444
 #: grunt/frontend/src/components/fields/Table/TableRowSheet.vue:108
 msgid "Cancel"
 msgstr ""
@@ -218,7 +217,11 @@ msgstr ""
 msgid "Configure"
 msgstr ""
 
-#: grunt/frontend/src/components/views/BulkActionBar.vue:225
+#: grunt/grunt/metadata/doctypes/DocType/global_form.js:86
+msgid "Configure print"
+msgstr ""
+
+#: grunt/frontend/src/components/views/BulkActionBar.vue:234
 msgid "Confirm Deletion"
 msgstr ""
 
@@ -234,7 +237,7 @@ msgstr ""
 msgid "Coordinates out of range"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:611
+#: grunt/frontend/src/components/views/form/FormHeader.vue:366
 msgid "Copy"
 msgstr ""
 
@@ -266,7 +269,7 @@ msgstr ""
 msgid "Create new DocType"
 msgstr ""
 
-#: grunt/frontend/src/components/views/list/ListHeader.vue:137
+#: grunt/grunt/metadata/doctypes/DocType/global_list.js:78
 msgid "Create report"
 msgstr ""
 
@@ -274,7 +277,7 @@ msgstr ""
 msgid "Currently attached"
 msgstr ""
 
-#: grunt/frontend/src/components/views/list/ListHeader.vue:128
+#: grunt/grunt/metadata/doctypes/DocType/global_list.js:68
 msgid "Customize Quick Filters"
 msgstr ""
 
@@ -294,11 +297,12 @@ msgstr ""
 msgid "Default"
 msgstr ""
 
-#: grunt/frontend/src/components/views/BulkActionBar.vue:277
+#: grunt/grunt/metadata/doctypes/DocType/global_form.js:160
+#: grunt/grunt/metadata/doctypes/DocType/global_list.js:98
+#: grunt/frontend/src/components/views/BulkActionBar.vue:286
 #: grunt/frontend/src/components/dashboard/WidgetConfigPanel.vue:77
 #: grunt/frontend/src/components/dashboard/WidgetCard.vue:60
 #: grunt/frontend/src/components/views/form/FormModals.vue:140
-#: grunt/frontend/src/components/views/form/FormHeader.vue:349
 #: grunt/frontend/src/components/fields/Table/Table.vue:471
 msgid "Delete"
 msgstr ""
@@ -331,7 +335,7 @@ msgstr ""
 msgid "Disable"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:308
+#: grunt/grunt/metadata/doctypes/DocType/global_form.js:108
 msgid "Discard changes"
 msgstr ""
 
@@ -351,7 +355,7 @@ msgstr ""
 msgid "Document not found"
 msgstr ""
 
-#: grunt/frontend/src/pages/desk/DocTypeForm.vue:135
+#: grunt/frontend/src/pages/desk/DocTypeForm.vue:133
 msgid "Document renamed"
 msgstr ""
 
@@ -359,8 +363,8 @@ msgstr ""
 msgid "Documents"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:554
-#: grunt/frontend/src/components/views/form/FormHeader.vue:703
+#: grunt/frontend/src/components/views/form/FormHeader.vue:309
+#: grunt/frontend/src/components/views/form/FormHeader.vue:458
 msgid "Done"
 msgstr ""
 
@@ -368,7 +372,7 @@ msgstr ""
 msgid "Drop files to upload"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:301
+#: grunt/grunt/metadata/doctypes/DocType/global_form.js:98
 #: grunt/frontend/src/components/fields/Table/Table.vue:433
 msgid "Duplicate"
 msgstr ""
@@ -377,13 +381,15 @@ msgstr ""
 msgid "Duplicate row"
 msgstr ""
 
+#: grunt/grunt/metadata/doctypes/DocType/global_list.js:89
 #: grunt/frontend/src/components/fields/Table/Table.vue:388
 #: grunt/frontend/src/components/fields/Table/Table.vue:389
 #: grunt/frontend/src/components/fields/Table/Table.vue:402
 msgid "Edit"
 msgstr ""
 
-#: grunt/frontend/src/components/views/list/ListHeader.vue:123
+#: grunt/grunt/metadata/doctypes/DocType/global_form.js:76
+#: grunt/grunt/metadata/doctypes/DocType/global_list.js:58
 msgid "Edit DocType"
 msgstr ""
 
@@ -395,7 +401,11 @@ msgstr ""
 msgid "Error: {msg}"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:521
+#: grunt/grunt/metadata/doctypes/DocType/global_form.js:55
+msgid "Excel (.xlsx)"
+msgstr ""
+
+#: grunt/frontend/src/components/views/form/FormHeader.vue:276
 msgid "Expires at"
 msgstr ""
 
@@ -409,6 +419,10 @@ msgstr ""
 
 #: grunt/frontend/src/components/fields/ColumnMapping/ColumnMapping.vue:75
 msgid "Failed to load preview"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocType/global_list.js:108
+msgid "Fast delete"
 msgstr ""
 
 #: grunt/frontend/src/components/views/FilterBar.vue:212
@@ -468,7 +482,7 @@ msgstr ""
 msgid "Full"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:532
+#: grunt/frontend/src/components/views/form/FormHeader.vue:287
 msgid "Generate link"
 msgstr ""
 
@@ -478,6 +492,10 @@ msgstr ""
 
 #: grunt/frontend/src/components/dashboard/sections/GroupBySection.vue:13
 msgid "Group by"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocType/global_form.js:57
+msgid "HTML"
 msgstr ""
 
 #: grunt/frontend/src/components/fields/RichText/RichText.vue:464
@@ -573,7 +591,7 @@ msgstr ""
 msgid "Link URL"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:549
+#: grunt/frontend/src/components/views/form/FormHeader.vue:304
 msgid "Link copied to clipboard when you click the copy button."
 msgstr ""
 
@@ -585,8 +603,8 @@ msgstr ""
 msgid "Link {n}"
 msgstr ""
 
+#: grunt/grunt/metadata/doctypes/DocType/global_form.js:128
 #: grunt/frontend/src/components/dashboard/sections/LinksSection.vue:46
-#: grunt/frontend/src/components/views/form/FormHeader.vue:321
 msgid "Links"
 msgstr ""
 
@@ -611,7 +629,7 @@ msgstr ""
 msgid "Longitude"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:550
+#: grunt/frontend/src/components/views/form/FormHeader.vue:305
 msgid "Manage shares"
 msgstr ""
 
@@ -670,11 +688,15 @@ msgstr ""
 msgid "New"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:567
+#: grunt/grunt/metadata/doctypes/DocType/DocType.js:165
+msgid "New DocType"
+msgstr ""
+
+#: grunt/frontend/src/components/views/form/FormHeader.vue:322
 msgid "New ID"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:553
+#: grunt/frontend/src/components/views/form/FormHeader.vue:308
 msgid "New link"
 msgstr ""
 
@@ -774,6 +796,10 @@ msgstr ""
 msgid "Open in map"
 msgstr ""
 
+#: grunt/grunt/metadata/doctypes/DocType/global_form.js:66
+msgid "Open in new tab"
+msgstr ""
+
 #: grunt/frontend/src/components/fields/Link/Link.vue:86
 #: grunt/frontend/src/components/fields/Link/Link.vue:130
 msgid "Open {doctype}"
@@ -781,6 +807,10 @@ msgstr ""
 
 #: grunt/frontend/src/components/layout/CommandPalette.vue:225
 msgid "Other"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocType/global_form.js:56
+msgid "PDF"
 msgstr ""
 
 #: grunt/frontend/src/components/dashboard/sections/ShortcutTargetSection.vue:17
@@ -805,6 +835,10 @@ msgstr ""
 
 #: grunt/frontend/src/components/views/FilterBar.vue:295
 msgid "Preset name"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocType/global_form.js:54
+msgid "Print"
 msgstr ""
 
 #: grunt/frontend/src/components/layout/NotificationsPopover.vue:170
@@ -847,8 +881,8 @@ msgstr ""
 msgid "Redo"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:450
-#: grunt/frontend/src/components/views/list/ListHeader.vue:198
+#: grunt/grunt/metadata/doctypes/DocType/global_form.js:41
+#: grunt/grunt/metadata/doctypes/DocType/global_list.js:34
 msgid "Refresh"
 msgstr ""
 
@@ -867,12 +901,12 @@ msgstr ""
 msgid "Remove {item}"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:340
-#: grunt/frontend/src/components/views/form/FormHeader.vue:578
+#: grunt/grunt/metadata/doctypes/DocType/global_form.js:150
+#: grunt/frontend/src/components/views/form/FormHeader.vue:333
 msgid "Rename"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:564
+#: grunt/frontend/src/components/views/form/FormHeader.vue:319
 msgid "Rename document"
 msgstr ""
 
@@ -928,9 +962,8 @@ msgstr ""
 msgid "Sample data"
 msgstr ""
 
+#: grunt/grunt/metadata/doctypes/DocType/global_form.js:28
 #: grunt/frontend/src/components/views/QuickEntryDialog.vue:161
-#: grunt/frontend/src/components/views/form/FormHeader.vue:465
-#: grunt/frontend/src/components/views/form/FormHeader.vue:467
 #: grunt/frontend/src/components/fields/Table/TableRowSheet.vue:110
 msgid "Save"
 msgstr ""
@@ -1033,7 +1066,7 @@ msgstr ""
 msgid "Select all"
 msgstr ""
 
-#: grunt/frontend/src/components/views/BulkActionBar.vue:338
+#: grunt/frontend/src/components/views/BulkActionBar.vue:347
 msgid "Select field..."
 msgstr ""
 
@@ -1067,8 +1100,8 @@ msgstr ""
 msgid "Setup"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:327
-#: grunt/frontend/src/components/views/form/FormHeader.vue:513
+#: grunt/grunt/metadata/doctypes/DocType/global_form.js:138
+#: grunt/frontend/src/components/views/form/FormHeader.vue:268
 msgid "Share link"
 msgstr ""
 
@@ -1186,7 +1219,7 @@ msgstr ""
 msgid "Undo"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:377
+#: grunt/frontend/src/components/views/form/FormHeader.vue:228
 msgid "Unsaved"
 msgstr ""
 
@@ -1211,7 +1244,7 @@ msgstr ""
 msgid "Uploading…"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:682
+#: grunt/frontend/src/components/views/form/FormHeader.vue:437
 msgid ""
 "VACUUM перепише весь файл бази даних і на час виконання заблокує запис. "
 "Продовжити?"
@@ -1248,7 +1281,7 @@ msgid "Yes"
 msgstr ""
 
 #: grunt/frontend/src/components/dashboard/sections/ActivityFilterSection.vue:18
-#: grunt/frontend/src/components/views/form/FormHeader.vue:521
+#: grunt/frontend/src/components/views/form/FormHeader.vue:276
 msgid "optional"
 msgstr ""
 
@@ -1262,6 +1295,10 @@ msgstr ""
 
 #: grunt/frontend/src/components/fields/Table/Table.vue:490
 msgid "rows need attention"
+msgstr ""
+
+#: grunt/frontend/src/core/scripting/executor.ts:820
+msgid "text"
 msgstr ""
 
 #: grunt/frontend/src/components/dashboard/widgets/Donut/Donut.vue:54
@@ -1302,7 +1339,7 @@ msgstr ""
 msgid "{n} selected"
 msgstr ""
 
-#: grunt/frontend/src/pages/desk/DocTypeForm.vue:189
+#: grunt/frontend/src/pages/desk/DocTypeForm.vue:187
 msgid "{views} переглядів · {viewers} користувачів"
 msgstr ""
 
@@ -1310,40 +1347,39 @@ msgstr ""
 msgid "{words} w · {chars} ch"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:654
+#: grunt/frontend/src/components/views/form/FormHeader.vue:409
 msgid "«мертвих» рядків: {n}"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:634
+#: grunt/frontend/src/components/views/form/FormHeader.vue:389
 msgid "Індекси"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:292
-#: grunt/frontend/src/components/views/form/FormHeader.vue:593
+#: grunt/frontend/src/components/views/form/FormHeader.vue:348
 msgid "Інформація про таблицю"
 msgstr ""
 
-#: grunt/frontend/src/pages/desk/DocTypeForm.vue:207
+#: grunt/frontend/src/pages/desk/DocTypeForm.vue:205
 msgid "Активність"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:661
+#: grunt/frontend/src/components/views/form/FormHeader.vue:416
 msgid "Виконується стиснення… база може бути заблокована до завершення."
 msgstr ""
 
-#: grunt/frontend/src/pages/desk/DocTypeForm.vue:154
+#: grunt/frontend/src/pages/desk/DocTypeForm.vue:152
 msgid "Відновити"
 msgstr ""
 
-#: grunt/frontend/src/pages/desk/DocTypeForm.vue:155
+#: grunt/frontend/src/pages/desk/DocTypeForm.vue:153
 msgid "Відхилити"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:643
+#: grunt/frontend/src/components/views/form/FormHeader.vue:398
 msgid "Вільно у файлі БД"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:630
+#: grunt/frontend/src/components/views/form/FormHeader.vue:385
 msgid "Дані"
 msgstr ""
 
@@ -1351,23 +1387,23 @@ msgstr ""
 msgid "Зберегти"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:671
+#: grunt/frontend/src/components/views/form/FormHeader.vue:426
 msgid "Звільнено {size}"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:670
+#: grunt/frontend/src/components/views/form/FormHeader.vue:425
 msgid "Звільнено {size} у файлі бази даних"
 msgstr ""
 
-#: grunt/frontend/src/pages/desk/DocTypeForm.vue:153
+#: grunt/frontend/src/pages/desk/DocTypeForm.vue:151
 msgid "Знайдено незбережені зміни ({time}). Відновити чернетку?"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:643
+#: grunt/frontend/src/components/views/form/FormHeader.vue:398
 msgid "Можна вивільнити"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:608
+#: grunt/frontend/src/components/views/form/FormHeader.vue:363
 msgid "Назва таблиці"
 msgstr ""
 
@@ -1379,11 +1415,11 @@ msgstr ""
 msgid "Обрати фільтри"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:685
+#: grunt/frontend/src/components/views/form/FormHeader.vue:440
 msgid "Операція перепише таблицю під ексклюзивним блокуванням. Продовжити?"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:131
+#: grunt/frontend/src/components/views/form/FormHeader.vue:140
 msgid "Оптимізувати таблицю"
 msgstr ""
 
@@ -1391,7 +1427,7 @@ msgstr ""
 msgid "Особисте налаштування — лише для вас, на цьому пристрої."
 msgstr ""
 
-#: grunt/frontend/src/pages/desk/DocTypeForm.vue:192
+#: grunt/frontend/src/pages/desk/DocTypeForm.vue:190
 msgid "Переглянули:"
 msgstr ""
 
@@ -1399,19 +1435,19 @@ msgstr ""
 msgid "Пошук..."
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:638
+#: grunt/frontend/src/components/views/form/FormHeader.vue:393
 msgid "Разом на диску"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:649
+#: grunt/frontend/src/components/views/form/FormHeader.vue:404
 msgid "Розмір недоступний для цієї бази даних"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:625
+#: grunt/frontend/src/components/views/form/FormHeader.vue:380
 msgid "Рядків"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:617
+#: grunt/frontend/src/components/views/form/FormHeader.vue:372
 msgid "СКБД"
 msgstr ""
 
@@ -1423,31 +1459,31 @@ msgstr ""
 msgid "Скинути до типових"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:702
+#: grunt/frontend/src/components/views/form/FormHeader.vue:457
 msgid "Скопійовано"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:690
+#: grunt/frontend/src/components/views/form/FormHeader.vue:445
 msgid "Стиснути"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:130
+#: grunt/frontend/src/components/views/form/FormHeader.vue:139
 msgid "Стиснути базу даних (VACUUM)"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:676
+#: grunt/frontend/src/components/views/form/FormHeader.vue:431
 msgid "Таблиця вже щільно упакована — вивільняти нічого."
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:621
+#: grunt/frontend/src/components/views/form/FormHeader.vue:376
 msgid "Таблиця ще не створена в базі даних"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:594
+#: grunt/frontend/src/components/views/form/FormHeader.vue:349
 msgid "Фізичне сховище цього типу документа"
 msgstr ""
 
-#: grunt/frontend/src/pages/desk/DocTypeForm.vue:162
+#: grunt/frontend/src/pages/desk/DocTypeForm.vue:160
 msgid ""
 "Цей тип документа позначено як неактуальний (deprecated). Він продовжує "
 "працювати, але не використовуйте його в новому коді."
@@ -3041,25 +3077,21 @@ msgid "Назва (укр.)"
 msgstr ""
 
 #: grunt/grunt/scripting/doctypes/ClientScript/ClientScript.json
-#: grunt/scripting/doctypes/ClientScript/ClientScript.json
 msgctxt "meta:ClientScript"
 msgid "Клієнтський скрипт"
 msgstr ""
 
 #: grunt/grunt/scripting/doctypes/ClientScript/ClientScript.json
-#: grunt/scripting/doctypes/ClientScript/ClientScript.json
 msgctxt "meta:ClientScript.doctype"
 msgid "Тип документа"
 msgstr ""
 
 #: grunt/grunt/scripting/doctypes/ClientScript/ClientScript.json
-#: grunt/scripting/doctypes/ClientScript/ClientScript.json
 msgctxt "meta:ClientScript.is_enabled"
 msgid "Активний"
 msgstr ""
 
 #: grunt/grunt/scripting/doctypes/ClientScript/ClientScript.json
-#: grunt/scripting/doctypes/ClientScript/ClientScript.json
 msgctxt "meta:ClientScript.script"
 msgid "Скрипт (JavaScript)"
 msgstr ""

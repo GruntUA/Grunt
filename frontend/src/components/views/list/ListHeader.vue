@@ -1,10 +1,12 @@
 <script setup lang="ts">
+/**
+ * List page header. The view switcher and the «restrictions» indicator are
+ * page chrome; every action — refresh, «Додати», export, the «⋯» menu, script
+ * buttons — comes from the list's action registry (core/actions.ts), filled by
+ * global_list.js, the DocType's script and ClientScripts.
+ */
 import { computed, ref, onMounted, watch } from 'vue'
-import { useRouter } from 'vue-router'
-import { useI18n } from 'vue-i18n'
-import type { DocType, ScriptButton, ScriptMenuItem } from '@/types'
-import { roleAllows } from '@/core/permissions'
-import { useAuthStore } from '@/stores/auth'
+import type { DocType } from '@/types'
 import { permissionsApi, type ActiveRestriction } from '@/core/api/permissions'
 import {
   Dialog,
@@ -12,54 +14,29 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { getExporters } from '@/core/io'
-import type { ExportContext } from '@/core/io'
 import { getRegisteredViews, getViewDef } from '@/core/viewRegistry'
-import {
-  Plus,
-  MoreHorizontal,
-  RefreshCw,
-  Download,
-  Pencil,
-  BarChart2,
-  ChevronDown,
-  Check,
-  Filter,
-  Ban,
-} from '@lucide/vue'
+import { ChevronDown, Check, Ban } from '@lucide/vue'
 import { Button } from '@/components/ui/button'
-import type { ButtonVariants } from '@/components/ui/button'
-import { docUrl } from '@/core/workspaceUrl'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-
-// Client scripts set `severity` as a free-form string; trust it as a Button variant.
-function scriptButtonVariant(severity?: string): ButtonVariants['variant'] {
-  return (severity as ButtonVariants['variant']) || 'outline'
-}
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import type { ActionRegistry } from '@/core/actions'
+import type { ListViewProxy } from '@/core/scripting/executor'
+import ActionButtons from '@/components/views/actions/ActionButtons.vue'
+import ActionMenu from '@/components/views/actions/ActionMenu.vue'
 
 const props = defineProps<{
   doctype: string
   dt: DocType | null
-  workspace?: string
-  isFetching: boolean
-  isSystemDocType: boolean
-  showDevActions: boolean
-  listButtons: ScriptButton[]
-  listMenuItems: ScriptMenuItem[]
-  exportCtx: ExportContext | null
+  actions: ActionRegistry<ListViewProxy>
   viewMode: string
-  /** `listview.can_create` from a client script's `setup_list` — overrides the permission check either way. */
-  canCreateOverride?: boolean
 }>()
-
-const exporters = getExporters()
 
 const emit = defineEmits<{
-  (e: 'refresh'): void
-  (e: 'create-quick'): void
   (e: 'update:viewMode', val: string): void
-  (e: 'customize-quick-filters'): void
 }>()
+
+const toolbarActions = props.actions.resolved('toolbar')
+const primaryActions = props.actions.resolved('primary')
+const menuActions = props.actions.resolved('menu')
 
 // ── View switcher ("List View ▾" dropdown) ───────────────────────────────────
 
@@ -72,88 +49,6 @@ const availableViews = computed(() =>
 )
 
 const currentView = computed(() => getViewDef(props.viewMode) ?? availableViews.value[0])
-
-const { t } = useI18n()
-const router = useRouter()
-const auth = useAuthStore()
-
-// A DocType with no matching permission row is closed to everyone — same
-// rule the backend's RoleAccess applies (no role bypasses permission rows,
-// see grunt/permissions/access.py). Mirrors that here so "+ Add" doesn't
-// offer an action the server will 405 right back. A client script's
-// `listview.can_create = false/true` (setup_list) overrides this either way.
-const canCreate = computed(() => {
-  if (props.canCreateOverride !== undefined) return props.canCreateOverride
-  if (!props.dt) return true // meta still loading — avoid a flash of "no button"
-  return roleAllows(props.dt, 'create', auth.user?.roles ?? [])
-})
-
-function handleNew() {
-  if (!props.isSystemDocType && props.dt?.quick_entry) {
-    emit('create-quick')
-    return
-  }
-  if (props.isSystemDocType) {
-    router.push(docUrl('DocType', 'new', props.workspace))
-  } else {
-    router.push(docUrl(props.doctype, 'new', props.workspace))
-  }
-}
-
-const menuItems = computed(() => {
-  const items: any[] = []
-
-    // Exporters
-    if (!props.isSystemDocType && props.exportCtx) {
-        exporters.forEach(exp => {
-            items.push({
-                label: exp.label,
-                icon: Download,
-                command: () => exp.export(props.exportCtx!)
-            })
-        })
-        items.push({ separator: true })
-    }
-
-    // Dev actions
-    if (props.showDevActions) {
-        items.push({
-            label: t('Edit DocType'),
-            icon: Pencil,
-            command: () => router.push(docUrl('DocType', props.doctype, props.workspace))
-        })
-        items.push({
-            label: t('Customize Quick Filters'),
-            icon: Filter,
-            command: () => emit('customize-quick-filters')
-        })
-        items.push({ separator: true })
-    }
-
-    // Report builder
-    items.push({
-        label: t('Create report'),
-        icon: BarChart2,
-        command: () => router.push({
-            name: 'report-builder',
-            params: { workspaceName: props.workspace ?? 'grunt' },
-            query: { doctype: props.doctype }
-        })
-    })
-
-    // Script menu items
-    if (props.listMenuItems.length) {
-        props.listMenuItems.forEach(item => {
-            if (item.separator_before) items.push({ separator: true })
-            items.push({
-                label: item.label,
-                command: () => item.action()
-            })
-        })
-    }
-
-    return items
-})
 
 // ── Row-level "Restrictions" (User Permissions) ──────────────────────────
 const restrictions = ref<ActiveRestriction[]>([])
@@ -192,10 +87,7 @@ watch(() => props.doctype, loadRestrictions)
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <!-- Refresh button -->
-        <Button variant="outline" size="icon-sm" :title="t('Refresh')" @click="emit('refresh')">
-          <RefreshCw class="size-4" :class="{ 'animate-spin': isFetching }" />
-        </Button>
+        <ActionButtons :toolbar="toolbarActions" compact />
 
         <!-- Restrictions (row-level User Permissions applied to this list) -->
         <Button
@@ -209,41 +101,10 @@ watch(() => props.doctype, loadRestrictions)
           <Ban class="size-4" />
         </Button>
 
-        <!-- Actions menu -->
-        <DropdownMenu>
-          <DropdownMenuTrigger as-child>
-            <Button variant="outline" size="icon-sm">
-              <MoreHorizontal class="size-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent class="w-56" align="end">
-            <template v-for="(item, idx) in menuItems" :key="idx">
-              <DropdownMenuSeparator v-if="item.separator" />
-              <DropdownMenuItem v-else @click="item.command?.()">
-                <component v-if="item.icon" :is="item.icon" class="size-4" />
-                <span>{{ item.label }}</span>
-              </DropdownMenuItem>
-            </template>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <ActionMenu :actions="menuActions" />
       </div>
 
-      <!-- Custom buttons -->
-      <Button
-        v-for="btn in listButtons"
-        :key="btn.label" size="sm"
-        :variant="scriptButtonVariant(btn.severity)"
-        class="hidden sm:inline-flex"
-        @click="btn.action()"
-      >
-        {{ btn.label }}
-      </Button>
-
-      <!-- New button -->
-      <Button v-if="canCreate" size="sm" class="px-4 gap-1.5" @click="handleNew" :title="`${t('Add')} (Ctrl+N)`">
-        <Plus class="size-4" />
-        <span>{{ isSystemDocType ? 'New DocType' : t('Add') }}</span>
-      </Button>
+      <ActionButtons :toolbar="[]" :primary="primaryActions" />
     </div>
   </div>
 

@@ -2,6 +2,8 @@ import { ref } from 'vue'
 import type { Ref } from 'vue'
 import type { QueryClient } from '@tanstack/vue-query'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
+import { createActionRegistry } from '@/core/actions'
 import {
   createListViewProxy,
   createGruntProxy,
@@ -9,9 +11,9 @@ import {
   executeListQuickFilterOnChange,
   type ListQuickFilterChange,
   type ListViewProxy,
+  type ListViewState,
   type GruntProxy,
 } from '@/core/scripting/executor'
-import type { ScriptButton, ScriptMenuItem } from '@/types'
 
 interface UseListClientScriptsParams {
   doctype: string
@@ -23,16 +25,36 @@ interface UseListClientScriptsParams {
   queryClient: QueryClient
   dialog: any
   toast: any
+  /** Live list state behind listview.perm / selected / … */
+  state: () => ListViewState
+  /** Flows the standard actions (global_list.js) open. */
+  ui: {
+    newDoc: () => void
+    bulkEdit: () => void
+    bulkDelete: () => void
+    fastDelete: () => void
+    exportWith: (exporterId: string) => void
+    customizeQuickFilters: () => void
+    createReport: () => void
+    /** Re-fetch the DocType definition from the server. */
+    reloadMeta: () => Promise<void>
+    /** After a refresh — views that fetch on their own (tree, calendar…) reload too. */
+    refreshed?: () => void
+  }
 }
 
 export function useListClientScripts(params: UseListClientScriptsParams) {
   const router = useRouter()
-  const listButtons = ref<ScriptButton[]>([])
-  const listMenuItems = ref<ScriptMenuItem[]>([])
+  const { t } = useI18n()
   const listviewProxy = ref<ListViewProxy | null>(null)
   const gruntProxy = ref<GruntProxy | null>(null)
-  /** `undefined` → no script touched `listview.can_create`; permissions decide. */
-  const canCreate = ref<boolean | undefined>(undefined)
+
+  // Every button / menu item / bulk action of the list (core/actions.ts) —
+  // filled by global_list.js, the DocType's script and ClientScripts.
+  const actions = createActionRegistry<ListViewProxy>(() => listviewProxy.value!, {
+    confirm: (message) => params.dialog.confirm(message),
+    translate: (label) => t(label),
+  })
 
   async function runListClientSetup() {
     const gp = createGruntProxy({
@@ -69,38 +91,19 @@ export function useListClientScripts(params: UseListClientScriptsParams) {
     })
 
     const lv = createListViewProxy(params.doctype, {
-      addButton(label, action, options) {
-        const btn: ScriptButton = { label, action, severity: options?.variant }
-        const idx = listButtons.value.push(btn) - 1
-        return {
-          update({ variant, ...rest }) {
-            listButtons.value[idx] = {
-              ...listButtons.value[idx],
-              ...rest,
-              ...(variant !== undefined ? { severity: variant } : {}),
-            }
-          },
-        }
+      state: params.state,
+      async refresh(options) {
+        if (options?.meta) await params.ui.reloadMeta()
+        await params.queryClient.invalidateQueries({ queryKey: ['documents', params.doctype] })
+        params.ui.refreshed?.()
       },
-      addMenuItem(label, action, options) {
-        const item: ScriptMenuItem = {
-          label,
-          action,
-          separator_before: options?.separator_before,
-        }
-        const idx = listMenuItems.value.push(item) - 1
-        return {
-          update(updates) {
-            listMenuItems.value[idx] = { ...listMenuItems.value[idx], ...updates }
-          },
-          remove() {
-            listMenuItems.value.splice(idx, 1)
-          },
-        }
-      },
-      refresh() {
-        params.queryClient.invalidateQueries({ queryKey: ['documents', params.doctype] })
-      },
+      newDoc: params.ui.newDoc,
+      bulkEdit: params.ui.bulkEdit,
+      bulkDelete: params.ui.bulkDelete,
+      fastDelete: params.ui.fastDelete,
+      exportWith: params.ui.exportWith,
+      customizeQuickFilters: params.ui.customizeQuickFilters,
+      createReport: params.ui.createReport,
       setFilters(filters) {
         params.activeFilters.value = filters.map((f) => ({
           fieldname: f.fieldname,
@@ -117,12 +120,12 @@ export function useListClientScripts(params: UseListClientScriptsParams) {
       setQuickFilters(values) {
         params.setQuickFilters(values)
       },
-    })
+    }, actions)
 
     listviewProxy.value = lv
     gruntProxy.value = gp
+    actions.clear()
     await executeListSetup(params.doctype, lv, gp)
-    canCreate.value = lv.can_create
   }
 
   async function runQuickFilterOnChange(change: ListQuickFilterChange) {
@@ -136,9 +139,7 @@ export function useListClientScripts(params: UseListClientScriptsParams) {
   }
 
   return {
-    listButtons,
-    listMenuItems,
-    canCreate,
+    actions,
     runListClientSetup,
     runQuickFilterOnChange,
   }

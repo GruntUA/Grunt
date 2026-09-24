@@ -13,47 +13,11 @@ import client from '@/core/api/client'
 import { useAuthStore } from '@/stores/auth'
 import { grunt as appGrunt } from '@/core/grunt'
 import type { DialogSize } from '@/core/composables/useDialog'
+import type { ActionsApi } from '@/core/actions'
+import { i18n } from '@/plugins/i18n'
+import type { DocPerms } from '@/core/permissions'
 
 // ── Types ────────────────────────────────────────────────────────────────
-
-export interface ScriptButton {
-  label: string
-  action: () => void | Promise<void>
-  severity?: string
-  className?: string
-  icon?: string
-  group?: string
-}
-
-export interface ScriptButtonOptions {
-  variant?: string
-  color?: string
-  icon?: string
-  group?: string
-}
-
-export interface ScriptMenuItem {
-  label: string
-  action: () => void | Promise<void>
-  icon?: string
-  separator_before?: boolean
-}
-
-export interface ScriptMenuItemOptions {
-  separator_before?: boolean
-  icon?: string
-}
-
-/** Handle returned by frm.add_menu_item — allows in-place updates/removal. */
-export interface FormScriptMenuItemHandle {
-  update: (updates: { label?: string; icon?: string; separator_before?: boolean }) => void
-  remove: () => void
-}
-
-/** Handle returned by listview.add_button — allows in-place updates. */
-export interface ScriptButtonHandle {
-  update: (updates: { label?: string; variant?: string }) => void
-}
 
 /** Callback registered via frm.set_query — returns filters for a link field. */
 export type LinkQueryFn = (
@@ -82,23 +46,49 @@ export interface FormProxy {
    */
   set_query: (fieldname: string, fn: LinkQueryFn) => void
   refresh_field: (fieldname: string) => void
-  add_button: (label: string, action: () => void | Promise<void>, options?: ScriptButtonOptions) => void
-  add_custom_button: (
-    label: string,
-    action: () => void | Promise<void>,
-    group?: string,
-    options?: ScriptButtonOptions,
-  ) => void
-  add_menu_item: (
-    label: string,
-    action: () => void | Promise<void>,
-    options?: ScriptMenuItemOptions,
-  ) => FormScriptMenuItemHandle
-  remove_custom_button: (label: string, group?: string | null) => void
-  clear_custom_buttons: () => void
-  change_custom_button_type: (label: string, group: string | null, buttonType: string) => void
+  /**
+   * Buttons and menu items of this form — see core/actions.ts. The standard
+   * ones (save, duplicate, rename, delete, print, …) come from the framework's
+   * `global_form.js`; change or remove them by id.
+   *
+   * ```js
+   * frm.actions.add({ id: 'approve', label: 'Погодити', action: (frm) => ... })
+   * frm.actions.remove('duplicate')
+   * ```
+   */
+  actions: ActionsApi<FormProxy>
+  /** What the user may do with this document (the server's `__perms`). */
+  readonly perm: DocPerms
+  /** The document's name, or null while it is new. */
+  readonly name: string | null
+  readonly is_dirty: boolean
+  readonly is_saving: boolean
+  readonly is_loading: boolean
+  /** The form has at least one field the user can type into. */
+  readonly has_editable_fields: boolean
+  /** Ask for confirmation, then delete the document. */
+  delete: () => void
+  /** Open a copy of this document as a new one. */
+  duplicate: () => void
+  /** Throw away unsaved changes. */
+  discard: () => void
+  /** The rename dialog. */
+  rename: () => void
+  /** The public-link dialog. */
+  share: () => void
+  /** The related-documents dialog. */
+  show_links: () => void
+  /** Show/hide the activity timeline. */
+  toggle_activity: () => void
+  /** Open a print of this document: `html` (optionally auto-printing), `pdf` or `xlsx`. */
+  print: (format?: string, options?: { autoprint?: boolean }) => void
+  /** Workflow transitions the user may apply now (see the `on_transitions` event). */
+  readonly transitions: WorkflowTransition[]
+  /** Apply a workflow transition — asks for its prompt fields first, then reloads the document. */
+  apply_transition: (action: string) => Promise<void>
   get_selected: () => Record<string, string[]>
-  reload: () => Promise<void>
+  /** Re-fetch the document from the server; with `{ meta: true }` also the DocType definition. */
+  reload: (options?: { meta?: boolean }) => Promise<void>
   save: () => Promise<void>
   /** Reset the dirty-state baseline to the current form values (for display-only set_value calls). */
   mark_clean: () => void
@@ -119,21 +109,53 @@ export interface FormProxy {
   _sidebar_hidden?: boolean
 }
 
-/** Handle returned by listview.add_menu_item — allows in-place updates. */
-export interface ScriptMenuItemHandle {
-  update: (updates: { label?: string }) => void
-  remove: () => void
+/** An exporter offered in a list's menu (core/exporters). */
+export interface ListExporterInfo {
+  id: string
+  label: string
 }
 
 /** ListView proxy exposed to client scripts as `listview` in `setup_list`. */
 export interface ListViewProxy {
   doctype: string
-  /** Add a custom button to the ListView toolbar. Returns a handle to update it later. */
-  add_button: (label: string, action: () => void | Promise<void>, options?: { variant?: string }) => ScriptButtonHandle
-  /** Add an item to the "⋯" header dropdown menu. Returns a handle to update or remove it. */
-  add_menu_item: (label: string, action: () => void | Promise<void>, options?: { separator_before?: boolean }) => ScriptMenuItemHandle
-  /** Reload the list data. */
-  refresh: () => void
+  /**
+   * Buttons and menu items of this list — see core/actions.ts. The standard
+   * ones («Додати», refresh, export, bulk edit/delete…) come from the
+   * framework's `global_list.js`; change or remove them by id.
+   *
+   * ```js
+   * function setup_list(listview) {
+   *   listview.actions.remove('add')
+   *   listview.actions.add({ id: 'import', label: 'Імпорт', action: () => ... })
+   * }
+   * ```
+   */
+  actions: ActionsApi<ListViewProxy>
+  /** Role-level rights on this DocType (the server still checks every document). */
+  readonly perm: DocPerms
+  /** Names of the selected rows. */
+  readonly selected: string[]
+  /** «Select all N» is on — the selection is every row matching the filters. */
+  readonly all_selected: boolean
+  readonly is_fetching: boolean
+  /** Registered exporters (CSV, Excel…) — usable when `can_export`. */
+  readonly exporters: ListExporterInfo[]
+  /** The current view can be exported. */
+  readonly can_export: boolean
+  /** Re-fetch the rows; with `{ meta: true }` also the DocType definition. */
+  refresh: (options?: { meta?: boolean }) => void
+  /** Create a document (quick entry when the DocType has it). */
+  new_doc: () => void
+  /** The bulk «set a field» dialog for the selection. */
+  bulk_edit: () => void
+  /** Delete the selection (with the impact dialog). */
+  bulk_delete: () => void
+  /** Delete every matching row without per-document hooks (System Manager). */
+  fast_delete: () => void
+  export: (exporterId: string) => void
+  customize_quick_filters: () => void
+  /** Open the report builder for this DocType. */
+  create_report: () => void
   /**
    * Replace the active filter set.
    *
@@ -141,21 +163,11 @@ export interface ListViewProxy {
    * listview.set_filters([{ fieldname: 'language', op: '=', value: 'uk', label: 'Мова' }])
    * ```
    */
-  set_filters: (filters: Array<{ fieldname: string; op: string; value: string; label?: string; fieldtype?: string }>) => void  /** Set a single quick-filter value by its id. */
+  set_filters: (filters: Array<{ fieldname: string; op: string; value: string; label?: string; fieldtype?: string }>) => void
+  /** Set a single quick-filter value by its id. */
   set_quick_filter_value: (id: string, value: string) => void
   /** Replace all quick-filter values at once. */
   set_quick_filters: (values: Record<string, string>) => void
-  /**
-   * Show/hide the "+ Add" button, overriding the create-permission check.
-   * `undefined` (default) → let the DocType's `create` permission decide.
-   *
-   * ```js
-   * function setup_list(listview) {
-   *   listview.can_create = false
-   * }
-   * ```
-   */
-  can_create?: boolean
 }
 
 export interface ListQuickFilterChange {
@@ -258,11 +270,6 @@ export interface GruntProxy {
   route_options?: Record<string, unknown> | null
   set_route: (...route: unknown[]) => void
   open_route: (...route: unknown[]) => void
-  ui: {
-    form: {
-      add_standard_menu_items: (frm: FormProxy) => void
-    }
-  }
   /**
    * WebAuthn / passkey helpers (drive `/api/v1/auth/webauthn/*` from a client
    * script). `mode: 'cross-device'` registers/uses a passkey that lives on a
@@ -289,7 +296,12 @@ export interface GruntProxy {
   }
 }
 
-export type ClientScriptEvent = 'on_load' | 'on_change' | 'validate' | 'before_save' | 'after_save'
+/**
+ * `on_transitions(frm)` runs whenever the workflow transitions allowed for the
+ * document (re)load — `frm.transitions` holds them; global_form.js registers
+ * them as `workflow:<action>` actions.
+ */
+export type ClientScriptEvent = 'on_load' | 'on_change' | 'validate' | 'before_save' | 'after_save' | 'on_transitions'
 
 interface ClientScriptEntry {
   name: string
@@ -337,6 +349,32 @@ export function clearScriptCache(doctype?: string): void {
 /**
  * Create a FormProxy from current form state.
  */
+export interface WorkflowTransition {
+  action: string
+  to_state: string
+  prompt_fields: string[]
+}
+
+export interface FormProxyState {
+  perm: DocPerms
+  transitions: WorkflowTransition[]
+  isDirty: boolean
+  isSaving: boolean
+  isLoading: boolean
+  hasEditableFields: boolean
+}
+
+export interface FormProxyUi {
+  delete: () => void
+  duplicate: () => void
+  discard: () => void
+  rename: () => void
+  share: () => void
+  showLinks: () => void
+  toggleActivity: () => void
+  applyTransition: (action: string) => Promise<void>
+}
+
 export function createFormProxy(
   doctype: string,
   doc: Record<string, unknown>,
@@ -344,31 +382,45 @@ export function createFormProxy(
   callbacks: {
     setValue?: (field: string, value: unknown) => void
     refreshField?: (field: string) => void
-    addButton?: (label: string, action: () => void | Promise<void>, options?: ScriptButtonOptions) => void
-    addMenuItem?: (
-      label: string,
-      action: () => void | Promise<void>,
-      options?: ScriptMenuItemOptions,
-    ) => FormScriptMenuItemHandle
-    removeButton?: (label: string, group?: string | null) => void
-    clearButtons?: () => void
-    updateButtonType?: (label: string, group: string | null, buttonType: string) => void
-    reload?: () => Promise<void>
+    reload?: (options?: { meta?: boolean }) => Promise<void>
     save?: () => Promise<void>
     markClean?: () => void
+    /** Live form state behind frm.perm / is_dirty / … (read on every access, so reactive). */
+    state?: () => FormProxyState
+    ui?: Partial<FormProxyUi>
   } = {},
   isNew: boolean = false,
+  actions: ActionsApi<FormProxy> = NO_ACTIONS,
 ): FormProxy {
-  const proxy: FormProxy = {
+  const state = (): FormProxyState =>
+    callbacks.state?.() ?? {
+      perm: { write: true, delete: false, create: false },
+      transitions: [],
+      isDirty: false,
+      isSaving: false,
+      isLoading: false,
+      hasEditableFields: true,
+    }
+
+  const proxy = {
     doctype,
     doc,
     fields,
     is_new: isNew,
+    actions,
     _display: {},
     _reqd: {},
     _df_props: {},
     _queries: {},
     _selected_rows: {},
+
+    get perm() { return state().perm },
+    get name() { return proxy.is_new ? null : ((proxy.doc.name as string | undefined) ?? null) },
+    get is_dirty() { return state().isDirty },
+    get is_saving() { return state().isSaving },
+    get is_loading() { return state().isLoading },
+    get has_editable_fields() { return state().hasEditableFields },
+    get transitions() { return state().transitions },
 
     get_value(fieldname: string) {
       return proxy.doc[fieldname]
@@ -402,44 +454,23 @@ export function createFormProxy(
       callbacks.refreshField?.(fieldname)
     },
 
-    add_button(label: string, action: () => void | Promise<void>, options?: ScriptButtonOptions) {
-      callbacks.addButton?.(label, action, options)
-    },
+    delete() { callbacks.ui?.delete?.() },
+    duplicate() { callbacks.ui?.duplicate?.() },
+    discard() { callbacks.ui?.discard?.() },
+    rename() { callbacks.ui?.rename?.() },
+    share() { callbacks.ui?.share?.() },
+    show_links() { callbacks.ui?.showLinks?.() },
+    toggle_activity() { callbacks.ui?.toggleActivity?.() },
+    async apply_transition(action: string) { await callbacks.ui?.applyTransition?.(action) },
 
-    add_custom_button(
-      label: string,
-      action: () => void | Promise<void>,
-      group?: string,
-      options?: ScriptButtonOptions,
-    ) {
-      const merged: ScriptButtonOptions = {
-        ...(options ?? {}),
-        group: options?.group ?? group,
-      }
-      callbacks.addButton?.(label, action, merged)
-    },
-
-    add_menu_item(
-      label: string,
-      action: () => void | Promise<void>,
-      options?: ScriptMenuItemOptions,
-    ): FormScriptMenuItemHandle {
-      return callbacks.addMenuItem?.(label, action, options) ?? {
-        update: () => {},
-        remove: () => {},
-      }
-    },
-
-    remove_custom_button(label: string, group?: string | null) {
-      callbacks.removeButton?.(label, group)
-    },
-
-    clear_custom_buttons() {
-      callbacks.clearButtons?.()
-    },
-
-    change_custom_button_type(label: string, group: string | null, buttonType: string) {
-      callbacks.updateButtonType?.(label, group, buttonType)
+    print(format = 'html', options: { autoprint?: boolean } = {}) {
+      const name = proxy.name
+      if (!name) return
+      const params = new URLSearchParams({ doctype, doc_id: name, fmt: format })
+      if (options.autoprint) params.set('autoprint', '1')
+      const token = localStorage.getItem('grunt_token')
+      if (token) params.set('token', token)
+      window.open(`/api/v1/method/grunt.document.base.Document.print?${params}`, '_blank', 'noopener')
     },
 
     get_selected() {
@@ -450,8 +481,8 @@ export function createFormProxy(
       )
     },
 
-    async reload() {
-      await callbacks.reload?.()
+    async reload(options?: { meta?: boolean }) {
+      await callbacks.reload?.(options)
     },
 
     async save() {
@@ -473,9 +504,19 @@ export function createFormProxy(
     show_sidebar() {
       proxy._sidebar_hidden = false
     },
-  }
+  } as FormProxy
 
   return proxy
+}
+
+/** Placeholder until a registry is attached (tests, detached proxies). */
+const NO_ACTIONS: ActionsApi<any> = {
+  add: () => {},
+  update: () => {},
+  remove: () => {},
+  get: () => undefined,
+  list: () => [],
+  run: async () => {},
 }
 
 /**
@@ -609,52 +650,6 @@ export function createGruntProxy(
     if (inNewTab) window.open(href, '_blank')
     else window.location.assign(href)
     routeOptions = null
-  }
-
-  const addStandardFormMenuItems = (frm: FormProxy): void => {
-    const documentName = String(frm.doc.name ?? '').trim()
-    const openInNewTab = (url: string) => {
-      window.open(url, '_blank', 'noopener')
-    }
-
-    if (documentName) {
-      const printUrl = (format: string, autoPrint = false): string => {
-        const params = new URLSearchParams({
-          doctype: frm.doctype,
-          doc_id: documentName,
-          fmt: format,
-        })
-        if (autoPrint) params.set('autoprint', '1')
-        const token = localStorage.getItem('grunt_token')
-        if (token) params.set('token', token)
-        return `/api/v1/method/grunt.document.base.Document.print?${params.toString()}`
-      }
-
-      frm.add_menu_item('Print', () => openInNewTab(printUrl('html', true)), { icon: 'printer' })
-      frm.add_menu_item('Excel (.xlsx)', () => openInNewTab(printUrl('xlsx')), { icon: 'file-spreadsheet' })
-      frm.add_menu_item('PDF', () => openInNewTab(printUrl('pdf')), { icon: 'file-text' })
-      frm.add_menu_item('HTML', () => openInNewTab(printUrl('html')), { icon: 'globe' })
-      frm.add_menu_item(
-        'Open in new tab',
-        () => openInNewTab(`/app/${encodeURIComponent(currentWorkspace())}/${encodeURIComponent(frm.doctype)}/${encodeURIComponent(documentName)}`),
-        { icon: 'external-link' },
-      )
-    }
-
-    // DocType / PrintFormat editing is System Manager-only on the server too.
-    if (!useAuthStore().isSystemManager) return
-
-    const workspace = encodeURIComponent(currentWorkspace())
-    frm.add_menu_item(
-      'Edit DocType',
-      () => openInNewTab(`/app/${workspace}/DocType/${encodeURIComponent(frm.doctype)}`),
-      { icon: 'settings' },
-    )
-    frm.add_menu_item(
-      'Configure print',
-      () => openInNewTab(`/app/${workspace}/PrintFormat?filter%5Bdoctype%5D=${encodeURIComponent(frm.doctype)}`),
-      { icon: 'sliders-horizontal' },
-    )
   }
 
   return {
@@ -798,11 +793,6 @@ export function createGruntProxy(
       navigateRoute(route, true)
     },
 
-    ui: {
-      form: {
-        add_standard_menu_items: addStandardFormMenuItems,
-      },
-    },
 
     passkey: {
       isSupported() {
@@ -848,6 +838,11 @@ export function dispatchMessageToProxy(
   })
 }
 
+/** `__('text')` in client scripts — the UI translation (and an extraction marker). */
+function translate(text: string): string {
+  return i18n.global.t(text)
+}
+
 // ── Execution ────────────────────────────────────────────────────────────
 
 /**
@@ -879,13 +874,14 @@ export async function executeClientScripts(
         'cur_frm',
         'frm',
         'grunt',
+        '__',
         `${entry.script};\n` +
         `if (typeof ${event} === 'function') {\n` +
         `  return ${event}(cur_frm${event === 'on_change' ? `, '${changedField ?? ''}'` : ''});\n` +
         `}`
       )
 
-      const result = await fn(frm, frm, gruntProxy)
+      const result = await fn(frm, frm, gruntProxy, translate)
 
       // For validate event, false = cancel
       if (event === 'validate' && result === false) {
@@ -904,37 +900,62 @@ export async function executeClientScripts(
 /**
  * Create a ListView proxy for client scripts.
  */
+export interface ListViewState {
+  perm: DocPerms
+  selected: string[]
+  allSelected: boolean
+  isFetching: boolean
+  exporters: ListExporterInfo[]
+  canExport: boolean
+}
+
 export function createListViewProxy(
   doctype: string,
   callbacks: {
-    addButton?: (label: string, action: () => void | Promise<void>, options?: { variant?: string }) => ScriptButtonHandle
-    addMenuItem?: (label: string, action: () => void | Promise<void>, options?: { separator_before?: boolean }) => ScriptMenuItemHandle
-    refresh?: () => void
+    state?: () => ListViewState
+    refresh?: (options?: { meta?: boolean }) => void
+    newDoc?: () => void
+    bulkEdit?: () => void
+    bulkDelete?: () => void
+    fastDelete?: () => void
+    exportWith?: (exporterId: string) => void
+    customizeQuickFilters?: () => void
+    createReport?: () => void
     setFilters?: (filters: Array<{ fieldname: string; op: string; value: string; label?: string; fieldtype?: string }>) => void
     setQuickFilterValue?: (id: string, value: string) => void
     setQuickFilters?: (values: Record<string, string>) => void
   } = {},
+  actions: ActionsApi<ListViewProxy> = NO_ACTIONS,
 ): ListViewProxy {
+  const state = (): ListViewState =>
+    callbacks.state?.() ?? {
+      perm: { write: false, delete: false, create: false },
+      selected: [],
+      allSelected: false,
+      isFetching: false,
+      exporters: [],
+      canExport: false,
+    }
   return {
     doctype,
-    add_button(label, action, options): ScriptButtonHandle {
-      return callbacks.addButton?.(label, action, options) ?? { update: () => { } }
-    },
-    add_menu_item(label, action, options): ScriptMenuItemHandle {
-      return callbacks.addMenuItem?.(label, action, options) ?? { update: () => { }, remove: () => { } }
-    },
-    refresh() {
-      callbacks.refresh?.()
-    },
-    set_filters(filters) {
-      callbacks.setFilters?.(filters)
-    },
-    set_quick_filter_value(id, value) {
-      callbacks.setQuickFilterValue?.(id, value)
-    },
-    set_quick_filters(values) {
-      callbacks.setQuickFilters?.(values)
-    },
+    actions,
+    get perm() { return state().perm },
+    get selected() { return state().selected },
+    get all_selected() { return state().allSelected },
+    get is_fetching() { return state().isFetching },
+    get exporters() { return state().exporters },
+    get can_export() { return state().canExport },
+    refresh(options) { callbacks.refresh?.(options) },
+    new_doc() { callbacks.newDoc?.() },
+    bulk_edit() { callbacks.bulkEdit?.() },
+    bulk_delete() { callbacks.bulkDelete?.() },
+    fast_delete() { callbacks.fastDelete?.() },
+    export(exporterId) { callbacks.exportWith?.(exporterId) },
+    customize_quick_filters() { callbacks.customizeQuickFilters?.() },
+    create_report() { callbacks.createReport?.() },
+    set_filters(filters) { callbacks.setFilters?.(filters) },
+    set_quick_filter_value(id, value) { callbacks.setQuickFilterValue?.(id, value) },
+    set_quick_filters(values) { callbacks.setQuickFilters?.(values) },
   }
 }
 
@@ -956,10 +977,11 @@ export async function executeListSetup(
       const fn = new Function(
         'listview',
         'grunt',
+        '__',
         `${entry.script};\n` +
         `if (typeof setup_list === 'function') { return setup_list(listview); }`,
       )
-      await fn(listview, gruntProxy)
+      await fn(listview, gruntProxy, translate)
     } catch (err) {
       console.warn(`[ClientScript] Error in "${entry.name}" (setup_list):`, err)
     }
@@ -993,10 +1015,11 @@ export async function executeListQuickFilterOnChange(
         'listview',
         'grunt',
         'change',
+        '__',
         `${entry.script};\n` +
         `if (typeof on_quick_filter_change === 'function') { return on_quick_filter_change(listview, change); }`,
       )
-      await fn(listview, gruntProxy, change)
+      await fn(listview, gruntProxy, change, translate)
     } catch (err) {
       console.warn(`[ClientScript] Error in "${entry.name}" (on_quick_filter_change):`, err)
     }

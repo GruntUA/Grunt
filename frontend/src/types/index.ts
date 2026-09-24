@@ -174,16 +174,7 @@ export interface DocTypeMapView {
   icon_field?: string                 // field containing a lucide icon name for the marker
 }
 
-export interface ScriptButton {
-  label: string
-  action: () => void | Promise<void>
-  severity?: string
-  className?: string
-  icon?: string
-  group?: string
-}
-
-/** Item registered via `listview.add_menu_item()` — appears in the "⋯" header dropdown. */
+/** A menu item a list view (e.g. the map) contributes to the list's «⋯» menu. */
 export interface ScriptMenuItem {
   label: string
   action: () => void | Promise<void>
