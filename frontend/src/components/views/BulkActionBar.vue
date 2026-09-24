@@ -19,6 +19,9 @@ const props = defineProps<{
   isSystemManager?: boolean
   doctype?: string
   selectedIds?: string[]
+  /** Role-level rights (core/permissions.ts); the server still checks every document. */
+  canWrite?: boolean
+  canDelete?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -174,12 +177,13 @@ async function submitUpdate() {
 
         <!-- Actions -->
         <div class="flex items-center gap-1">
-          <Button variant="ghost" size="sm" class="!px-2.5 !h-7 !text-xs !font-semibold gap-1.5 hover:!bg-muted/60" :disabled="!updatableFields.length" @click="openUpdateModal">
+          <Button v-if="canWrite !== false" variant="ghost" size="sm" class="!px-2.5 !h-7 !text-xs !font-semibold gap-1.5 hover:!bg-muted/60" :disabled="!updatableFields.length" @click="openUpdateModal">
             <Pencil class="size-3" />
             Редагувати
           </Button>
 
           <Button
+            v-if="canDelete !== false"
             variant="ghost" size="sm"
             class="!px-2.5 !h-7 !text-xs !font-semibold gap-1.5 text-destructive hover:text-destructive hover:!bg-destructive/10"
             @click="showDeleteModal = true"
@@ -190,7 +194,7 @@ async function submitUpdate() {
 
           <!-- Fast delete — System Manager only, only when all records selected -->
           <Button
-            v-if="isSystemManager && allSelected"
+            v-if="isSystemManager && allSelected && canDelete !== false"
             variant="ghost" size="sm"
             class="!px-2.5 !h-7 !text-xs !font-semibold gap-1.5 text-destructive hover:text-destructive hover:!bg-destructive/10 opacity-80"
             @click="showFastDeleteModal = true"

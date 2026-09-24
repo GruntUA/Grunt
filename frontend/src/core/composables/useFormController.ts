@@ -11,6 +11,7 @@ import { computed, onMounted, provide, ref, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 
 import { useDocTypeStore } from '@/stores/doctype'
+import { useAuthStore } from '@/stores/auth'
 import { useDocument } from '@/core/composables/useDocument'
 import { useFormDraft } from '@/core/composables/useFormDraft'
 import { useToast } from '@/core/composables/useToast'
@@ -34,6 +35,7 @@ import { useFormShortcuts } from './useFormShortcuts'
 
 import type { DocType } from '@/types'
 import { docUrl } from '@/core/workspaceUrl'
+import { formPermissions } from '@/core/permissions'
 
 // ── Public interface ─────────────────────────────────────────────────────────
 
@@ -261,9 +263,15 @@ export function useFormController(
     },
   })
 
+  // ── Permissions (server's __perms, or role rows for a new document) ────────
+  const auth = useAuthStore()
+  const perms = computed(() =>
+    formPermissions(dt.value, document.value as Record<string, unknown> | null, !id, auth.user?.roles ?? []),
+  )
+
   // ── Keyboard shortcuts (Ctrl+S, Ctrl+P) ────────────────────────────────────
   useFormShortcuts({
-    onSave: () => { void handleSave() },
+    onSave: () => { if (perms.value.write) void handleSave() },
     onPrint: () => { window.print() },
   })
 
@@ -318,6 +326,7 @@ export function useFormController(
     isError,
     isDirty,
     isSaving,
+    perms,
 
     // Unsaved-changes draft
     pendingDraft,

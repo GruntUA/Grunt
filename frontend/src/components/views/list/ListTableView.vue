@@ -9,6 +9,8 @@ import ListGroupedView from '@/components/views/list/ListGroupedView.vue'
 import ListCards from '@/components/views/list/ListCards.vue'
 import { useCardLayout } from '@/components/views/list/useCardLayout'
 import { statusConfigOf } from '@/core/status'
+import { roleAllows } from '@/core/permissions'
+import { useAuthStore } from '@/stores/auth'
 
 interface TableMeta {
   page: number
@@ -45,6 +47,8 @@ const props = defineProps<{
   isSystemManager?: boolean
 }>()
 
+const auth = useAuthStore()
+
 const emit = defineEmits<{
   'sort': [key: string]
   'row-click': [row: Record<string, unknown>]
@@ -78,6 +82,8 @@ function rowDocId(row: Record<string, unknown>): string {
       :is-system-manager="isSystemManager"
       :doctype="doctype"
       :selected-ids="selection.selectedIds"
+      :can-write="roleAllows(dt, 'write', auth.user?.roles ?? [])"
+      :can-delete="roleAllows(dt, 'delete', auth.user?.roles ?? [])"
       @delete="(rw) => emit('delete', rw)"
       @fast-delete="emit('fast-delete')"
       @clear="emit('clear')"

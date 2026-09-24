@@ -3,6 +3,7 @@ import { computed, ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import type { DocType, ScriptButton, ScriptMenuItem } from '@/types'
+import { roleAllows } from '@/core/permissions'
 import { useAuthStore } from '@/stores/auth'
 import { permissionsApi, type ActiveRestriction } from '@/core/api/permissions'
 import {
@@ -84,10 +85,7 @@ const auth = useAuthStore()
 const canCreate = computed(() => {
   if (props.canCreateOverride !== undefined) return props.canCreateOverride
   if (!props.dt) return true // meta still loading — avoid a flash of "no button"
-  const perms = props.dt.permissions
-  if (!perms || !perms.length) return false // no permission rows = closed to everyone
-  const roles = auth.user?.roles ?? []
-  return perms.some((p) => p.create && (p.role === 'All' || roles.includes(p.role)))
+  return roleAllows(props.dt, 'create', auth.user?.roles ?? [])
 })
 
 function handleNew() {

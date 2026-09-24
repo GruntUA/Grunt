@@ -44,6 +44,7 @@ const {
   isLoading,
   isDirty,
   isSaving,
+  perms,
   pendingDraft,
   restoreDraft,
   discardDraft,
@@ -116,7 +117,7 @@ const initials = (email: string) => email.slice(0, 2).toUpperCase()
 <template>
   <div class="flex flex-1 flex-col">
     <!-- Sticky header: breadcrumb + actions + document title -->
-    <FormHeader :doc-title="docTitle || doctype" :dt="dt" :doctype="doctype" :id="id" :workspace="workspace" :document="form" :is-dirty="isDirty"
+    <FormHeader :doc-title="docTitle || doctype" :dt="dt" :doctype="doctype" :id="id" :workspace="workspace" :document="form" :perms="perms" :is-dirty="isDirty"
       :is-loading="isLoading" :is-saving="isSaving" :script-buttons="scriptButtons" :script-menu-items="scriptMenuItems"
       :hide-panel-toggle="!showSidebar"
       @save="handleSave" @delete="showDeleteModal = true" @duplicate="handleDuplicate"
@@ -172,7 +173,7 @@ const initials = (email: string) => email.slice(0, 2).toUpperCase()
         <div class="min-w-0 flex flex-col gap-4">
           <!-- Main Form Card -->
           <div class="bg-card border border-border rounded-md shadow-sm p-5 overflow-hidden">
-            <FormRenderer :doctype="dt" :model-value="form" :disabled="isSaving" :errors="validationErrors"
+            <FormRenderer :doctype="dt" :model-value="form" :disabled="isSaving || !perms.write" :errors="validationErrors"
               v-model:active-tab="activeTab" :workspace="props.workspace"
               :overrides="displayOverrides" :reqd-overrides="reqdOverrides" :df-prop-overrides="dfPropOverrides" :field-locks="fieldLocks"
               @update:model-value="onFormUpdate($event)" @field-focus="focusField($event)"

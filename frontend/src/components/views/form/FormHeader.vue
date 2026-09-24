@@ -6,6 +6,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useQueryClient } from '@tanstack/vue-query'
 import type { Component } from 'vue'
 import type { DocType, ScriptButton, ScriptMenuItem } from '@/types'
+import type { DocPerms } from '@/core/permissions'
 import {
   Loader2,
   EllipsisVertical,
@@ -44,6 +45,8 @@ const props = defineProps<{
   workspace?: string
   docTitle: string
   document: any
+  /** What the user may do with this document (core/permissions.ts). */
+  perms: DocPerms
   isDirty: boolean
   isLoading: boolean
   isSaving: boolean
@@ -270,8 +273,11 @@ const statusBadge = computed(() => resolveStatusBadge(props.dt, props.document))
 
 // A form whose every field is read-only (a live report, a virtual view) has nothing to save.
 const LAYOUT_TYPES = getLayoutTypeSet()
+// Nor does one the user may not change.
 const canSave = computed(
-  () => !props.dt || props.dt.fields.some((f) => !LAYOUT_TYPES.has(f.fieldtype) && !f.read_only),
+  () =>
+    props.perms.write &&
+    (!props.dt || props.dt.fields.some((f) => !LAYOUT_TYPES.has(f.fieldtype) && !f.read_only)),
 )
 
 const menuItems = computed(() => {
@@ -297,11 +303,13 @@ const menuItems = computed(() => {
 
   if (props.id) {
     items.push({ separator: true })
-    items.push({
-      label: t('Duplicate'),
-      icon: Copy,
-      command: () => emit('duplicate'),
-    })
+    if (props.perms.create) {
+      items.push({
+        label: t('Duplicate'),
+        icon: Copy,
+        command: () => emit('duplicate'),
+      })
+    }
 
     if (props.isDirty) {
       items.push({
@@ -334,23 +342,26 @@ const menuItems = computed(() => {
     })
   }
 
-  if (props.id) {
+  if (props.id && (props.perms.write || props.perms.delete)) {
     items.push({ separator: true })
-    items.push({
-      label: t('Rename'),
-      icon: Pencil,
-      command: () => {
-        newDocId.value = props.id || ''
-        showRenameDialog.value = true
-      },
-    })
-
-    items.push({
-      label: t('Delete'),
-      icon: Trash2,
-      class: 'text-destructive',
-      command: () => emit('delete'),
-    })
+    if (props.perms.write) {
+      items.push({
+        label: t('Rename'),
+        icon: Pencil,
+        command: () => {
+          newDocId.value = props.id || ''
+          showRenameDialog.value = true
+        },
+      })
+    }
+    if (props.perms.delete) {
+      items.push({
+        label: t('Delete'),
+        icon: Trash2,
+        class: 'text-destructive',
+        command: () => emit('delete'),
+      })
+    }
   }
 
   return items

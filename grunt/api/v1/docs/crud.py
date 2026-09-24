@@ -15,6 +15,7 @@ from grunt.app import grunt as grunt_app
 from grunt.auth.dependencies import current_user
 from grunt.auth.doctypes.User.user import User
 from grunt.document.bulk_ops import BulkDeleteTask
+from grunt.permissions.doc_perms import PERMS_KEY, with_permissions
 
 router = GruntRouter()
 
@@ -57,8 +58,9 @@ async def create_document(
     user: User = Depends(current_user),
 ) -> dict[str, Any]:
     """Create a new document."""
+    body.pop(PERMS_KEY, None)  # computed, never stored
     doc = await grunt_app.new_doc(doctype, body)
-    return ok(doc)
+    return ok(await with_permissions(doctype, doc))
 
 
 @router.get("/{doctype}/{doc_id}")
@@ -71,7 +73,7 @@ async def get_document(
     """Get document data."""
     expand_fields = [f.strip() for f in expand.split(",") if f.strip()] if expand else None
     doc = await grunt_app.get_doc(doctype, doc_id, expand=expand_fields)
-    return ok(doc)
+    return ok(await with_permissions(doctype, doc))
 
 
 @router.put("/{doctype}/{doc_id}")
@@ -82,8 +84,9 @@ async def update_document(
     user: User = Depends(current_user),
 ) -> dict[str, Any]:
     """Update an existing document."""
+    body.pop(PERMS_KEY, None)  # computed, never stored
     doc = await grunt_app.save_doc(doctype, doc_id, body)
-    return ok(doc)
+    return ok(await with_permissions(doctype, doc))
 
 
 @router.delete("/{doctype}/{doc_id}", status_code=status.HTTP_204_NO_CONTENT)

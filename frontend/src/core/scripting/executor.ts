@@ -641,6 +641,9 @@ export function createGruntProxy(
       )
     }
 
+    // DocType / PrintFormat editing is System Manager-only on the server too.
+    if (!useAuthStore().isSystemManager) return
+
     const workspace = encodeURIComponent(currentWorkspace())
     frm.add_menu_item(
       'Edit DocType',
