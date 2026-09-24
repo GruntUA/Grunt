@@ -122,6 +122,18 @@ function mergedField(f: DocField): DocField {
   return reqdOverride !== undefined ? { ...base, required: reqdOverride } : base
 }
 
+// Columns collapse by the section's own width (container query), not the
+// viewport — a form squeezed by the sidebar stacks just like on a phone.
+const SECTION_GRID_CLASS: Record<number, string> = {
+  2: '@lg:grid-cols-2',
+  3: '@lg:grid-cols-2 @3xl:grid-cols-3',
+  4: '@lg:grid-cols-2 @4xl:grid-cols-4',
+}
+
+function sectionGridClass(section: LayoutSection): string {
+  return SECTION_GRID_CLASS[Math.min(section.columns.length, 4)] ?? ''
+}
+
 function toggleSection(section: LayoutSection) {
   if (section.collapsible) section.collapsed = !section.collapsed
 }
@@ -174,7 +186,7 @@ function getVisibleSections(tab: LayoutTab): LayoutSection[] {
       </template>
       <template v-else>
         <div v-for="(section, si) in getVisibleSections(tab)" :key="si"
-          :class="[section.label ? 'form-section' : '', 'mb-3 last:mb-0']">
+          :class="[section.label ? 'form-section' : '', '@container mb-3 last:mb-0']">
 
           <!-- Section header -->
           <div v-if="section.label" class="form-section-header"
@@ -188,8 +200,7 @@ function getVisibleSections(tab: LayoutTab): LayoutSection[] {
           <!-- Fields layout -->
           <Transition name="section">
             <div v-if="!section.collapsed" :class="section.label ? 'form-section-body' : ''"
-              class="grid grid-cols-1 gap-y-5 md:gap-x-5"
-              :style="section.columns.length > 1 ? `grid-template-columns: repeat(${Math.min(section.columns.length, 4)}, minmax(0, 1fr))` : ''">
+              class="grid grid-cols-1 gap-x-5 gap-y-5" :class="sectionGridClass(section)">
               <div v-for="(col, ci) in section.columns" :key="ci" class="flex-1 flex flex-col gap-3 min-w-0">
                 <div v-for="f in col" v-show="overrides?.[f.fieldname] !== false" :key="f.fieldname"
                   class="relative group" @focusin="emit('field-focus', f.fieldname)"
