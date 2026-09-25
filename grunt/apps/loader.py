@@ -42,6 +42,11 @@ _GRUNT_PKG = Path(__file__).resolve().parent.parent  # grunt/apps/loader.py -> g
 _primary_web_app: str | None = None
 
 
+def primary_web_app() -> str | None:
+    """Name of the app whose www/ pages are mounted at the site root, if any."""
+    return _primary_web_app
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # App zero
 # ─────────────────────────────────────────────────────────────────────────────
@@ -283,11 +288,24 @@ def _mount_app_static(ctx: LoadContext) -> None:
         StaticFiles(directory=str(public_dir)),
         name=f"assets_{ctx.app_name}",
     )
-    # Mounted at lifespan startup, i.e. after the "/{path:path}" catch-all
-    # (grunt.startup.website) — move it in front or it never matches.
-    routes = ctx.fastapi_app.router.routes
-    routes.insert(0, routes.pop())
+    _move_before_catch_all(ctx.fastapi_app)
     log.info("www.assets.mounted", app=ctx.app_name)
+
+
+def _move_before_catch_all(fastapi_app: FastAPI) -> None:
+    """Re-slot the route just added so it precedes the website catch-all.
+
+    External apps load at lifespan startup, after grunt.startup.website has
+    already registered ``/{path:path}`` — appended routes would sit behind it
+    and never match (static files came back as the SPA shell; pages were only
+    reached via the catch-all's own non-committing session).
+    """
+    routes = fastapi_app.router.routes
+    catch_all = next(
+        (i for i, r in enumerate(routes) if getattr(r, "path", None) == "/{path:path}"), None
+    )
+    if catch_all is not None and catch_all < len(routes) - 1:
+        routes.insert(catch_all, routes.pop())
 
 
 def _register_app_pages(ctx: LoadContext, *, is_main_app: bool = False) -> None:
@@ -303,3 +321,4 @@ def _register_app_pages(ctx: LoadContext, *, is_main_app: bool = False) -> None:
             include_in_schema=False,
             tags=["www"],
         )
+        _move_before_catch_all(ctx.fastapi_app)

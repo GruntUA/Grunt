@@ -195,7 +195,8 @@ async def render_page(
     template_name = context.get("template_name") or page.template_name
     template = env.get_template(template_name)
     html = await template.render_async(**context)
-    return HTMLResponse(content=html)
+    # A controller may set e.g. ``context["status_code"] = 404`` for a missing record.
+    return HTMLResponse(content=html, status_code=context.get("status_code") or 200)
 
 
 _PARAM_TOKEN_RE = re.compile(r"\{(\w+)\}")

@@ -8,13 +8,16 @@ shell (text/html) instead of the file.
 
 from __future__ import annotations
 
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from fastapi.testclient import TestClient
 
-from grunt.apps.loader import LoadContext, _mount_app_static
+from grunt.apps.loader import LoadContext, _mount_app_static, _move_before_catch_all
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 def test_app_assets_mount_in_front_of_catch_all(tmp_path: Path) -> None:
@@ -34,3 +37,20 @@ def test_app_assets_mount_in_front_of_catch_all(tmp_path: Path) -> None:
     assert response.status_code == 200
     assert response.headers["content-type"].startswith("text/css")
     assert response.text == "body{color:red}"
+
+
+def test_app_pages_register_in_front_of_catch_all() -> None:
+    """Pages must hit their own route (committing get_session), not the catch-all."""
+    fastapi_app = FastAPI()
+
+    @fastapi_app.get("/{path:path}")
+    async def catch_all(path: str) -> HTMLResponse:
+        return HTMLResponse("spa")
+
+    @fastapi_app.get("/demo_app/news/{route}")
+    async def page(route: str) -> HTMLResponse:
+        return HTMLResponse(f"news {route}")
+
+    _move_before_catch_all(fastapi_app)
+
+    assert TestClient(fastapi_app).get("/demo_app/news/hello").text == "news hello"
