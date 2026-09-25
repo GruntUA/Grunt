@@ -65,11 +65,13 @@ async def upload(
     """Whitelisted method: Upload a file and create a File document.
 
     An attachment (``attached_to_*`` set) is private unless ``is_public`` is
-    passed explicitly — readable only with its document, via a signed URL (see
-    :mod:`grunt.storage.signing`). A free-standing library file stays public.
+    passed explicitly or its DocType sets ``public_attachments`` — readable
+    only with its document, via a signed URL (see :mod:`grunt.storage.signing`).
+    A free-standing library file stays public.
     """
     if is_public is None:
-        is_public = not attached_to_doctype
+        meta = await grunt.get_meta(attached_to_doctype) if attached_to_doctype else None
+        is_public = not attached_to_doctype or bool(meta and meta.public_attachments)
     if not file.filename:
         raise HTTPException(400, "No filename provided")
 

@@ -9384,3 +9384,13 @@ msgstr ""
 
 #~ msgid "Вебхук"
 #~ msgstr "Webhook"
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgctxt "meta:DocType.public_attachments"
+msgid "Public attachments"
+msgstr "Public attachments"
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgctxt "help:DocType.public_attachments"
+msgid "Files uploaded to these documents are public by default (website content: news covers, page images). Otherwise attachments are private and readable only with the document"
+msgstr "Files uploaded to these documents are public by default (website content: news covers, page images). Otherwise attachments are private and readable only with the document"

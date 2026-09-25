@@ -213,6 +213,12 @@
       "description": "Write an ActivityLog entry on create/update/delete. Turn off for high-frequency system churn (sessions, queues, logs) — never for ordinary business records"
     },
     {
+      "fieldname": "public_attachments",
+      "label": "Public attachments",
+      "fieldtype": "Check",
+      "description": "Files uploaded to these documents are public by default (website content: news covers, page images). Otherwise attachments are private and readable only with the document"
+    },
+    {
       "fieldname": "hide_from_activity_feed",
       "label": "Hide from global feed",
       "fieldtype": "Check",

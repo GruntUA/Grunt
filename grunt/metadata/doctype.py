@@ -246,6 +246,9 @@ class DocType(BaseModel):
     # True → excluded from the GLOBAL feed only, still shown in this doctype's own
     # document timelines (for admin/config records: roles, print formats, etc.)
     hide_from_activity_feed: bool = False
+    # True → files uploaded to these documents default to is_public (public
+    # website content); otherwise an attachment is private to its document.
+    public_attachments: bool = False
     # [<doctype field>, <id field>] → rows are readable only by users who can
     # read the referenced document (comments, tags, attachments).
     # See grunt.permissions.reference.

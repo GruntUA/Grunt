@@ -201,3 +201,28 @@ async def test_before_delete_keeps_blob_while_another_row_shares_it(ctx):
     await remove(a["id"])
     with pytest.raises(HTTPException):
         await get_content(a["id"])
+
+
+@pytest.mark.asyncio
+async def test_upload_attachment_is_public_when_doctype_opts_in(ctx, monkeypatch):
+    """DocType.public_attachments → an attachment defaults to is_public (website content)."""
+    from types import SimpleNamespace
+
+    real_get_meta = grunt.get_meta
+
+    async def fake_get_meta(doctype: str):
+        if doctype == "WebNews":
+            return SimpleNamespace(public_attachments=True)
+        return await real_get_meta(doctype)
+
+    monkeypatch.setattr(grunt, "get_meta", fake_get_meta)
+
+    public = await upload(
+        _upload_file("cover.txt"), attached_to_doctype="WebNews", attached_to_id="N-1"
+    )
+    private = await upload(
+        _upload_file("scan.txt"), attached_to_doctype="Letter", attached_to_id="L-9"
+    )
+
+    assert (await grunt.db.get_value("File", public["id"], "is_public")) in (1, True)
+    assert (await grunt.db.get_value("File", private["id"], "is_public")) in (0, False)

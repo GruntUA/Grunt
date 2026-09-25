@@ -54,6 +54,7 @@ _CORE_SYNCED_DOCTYPE_ATTRS = frozenset(
         "track_views",
         "track_activity",
         "hide_from_activity_feed",
+        "public_attachments",
         "inherit_permission_from",
         "quick_entry",
         "beta",

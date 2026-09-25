@@ -9462,3 +9462,13 @@ msgstr ""
 #~ msgctxt "meta:User.is_superadmin"
 #~ msgid "Superadmin"
 #~ msgstr "Суперадмін"
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgctxt "meta:DocType.public_attachments"
+msgid "Public attachments"
+msgstr "Публічні вкладення"
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgctxt "help:DocType.public_attachments"
+msgid "Files uploaded to these documents are public by default (website content: news covers, page images). Otherwise attachments are private and readable only with the document"
+msgstr "Файли, завантажені до цих документів, за замовчуванням публічні (контент сайту: обкладинки новин, зображення сторінок). Інакше вкладення приватні й доступні лише разом із документом"
