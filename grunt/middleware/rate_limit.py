@@ -34,7 +34,7 @@ if TYPE_CHECKING:
 
 
 # Paths that are always exempt from rate limiting (public assets, health checks)
-_EXEMPT_PREFIXES = ("/api/docs", "/api/redoc", "/openapi.json", "/health")
+_EXEMPT_PREFIXES = ("/assets/", "/api/docs", "/api/redoc", "/openapi.json", "/health")
 
 # Strict per-IP overrides for sensitive auth endpoints (limit/minute).
 # These apply before the standard per-user/per-tier logic.

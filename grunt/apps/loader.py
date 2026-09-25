@@ -283,6 +283,10 @@ def _mount_app_static(ctx: LoadContext) -> None:
         StaticFiles(directory=str(public_dir)),
         name=f"assets_{ctx.app_name}",
     )
+    # Mounted at lifespan startup, i.e. after the "/{path:path}" catch-all
+    # (grunt.startup.website) — move it in front or it never matches.
+    routes = ctx.fastapi_app.router.routes
+    routes.insert(0, routes.pop())
     log.info("www.assets.mounted", app=ctx.app_name)
 
 
