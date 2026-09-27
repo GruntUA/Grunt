@@ -316,22 +316,31 @@ async def _widget_table(widget, dt, doctype_name, since, until, days, base_filte
             doctype_name,
             filters=filters if filters else None,
             group_by=group_by,
-            aggregations={"value": agg_expr},
+            # _doc/_n let the widget open the document itself when rows are
+            # grouped by the document's own title and the group is one row.
+            aggregations={"value": agg_expr, "_doc": "min(name)", "_n": "count"},
             order_by="value",
             order="desc",
             limit=20,
         )
+        group_field = Meta(dt).get_field(group_by)
+        by_title = group_by in ("name", dt.title_field)
         return {
             "rows": [
                 {
                     "label": str(r.get(group_by)) if r.get(group_by) is not None else "—",
                     "value": round(float(r.get("value") or 0), 2),
+                    "key": r.get(group_by),
+                    "doc": r.get("_doc") if by_title and r.get("_n") == 1 else None,
                 }
                 for r in rows
             ],
             "aggregation": agg,
             "field": value_field,
-            "group_label": getattr(Meta(dt).get_field(group_by), "label", None),
+            "group_label": getattr(group_field, "label", None),
+            "link_doctype": group_field.options
+            if group_field and group_field.fieldtype == "Link"
+            else None,
         }
     except Exception:
         _log_widget_failed(doctype_name, "table")

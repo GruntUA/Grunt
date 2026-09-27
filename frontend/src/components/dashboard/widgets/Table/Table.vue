@@ -1,17 +1,33 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useRouter } from 'vue-router'
 import type { DashboardWidget } from '@/types'
+import { docUrl } from '@/core/workspaceUrl'
+import { addUrlFilters } from '@/pages/reports/drilldown'
+
+interface Row {
+  label: string
+  value: number
+  /** Raw group value (null for the "—" bucket). */
+  key?: unknown
+  /** Document id when the group is exactly one row. */
+  doc?: string | null
+}
 
 const props = defineProps<{
   widget: DashboardWidget
   data: {
-    rows: { label: string; value: number }[]
+    rows: Row[]
     aggregation?: string
     field?: string | null
     group_label?: string | null
+    link_doctype?: string | null
   } | null
   loading?: boolean
+  workspaceName?: string
 }>()
+
+const router = useRouter()
 
 const rows = computed(() => props.data?.rows ?? [])
 const maxValue = computed(() => Math.max(...rows.value.map(r => r.value), 1))
@@ -25,6 +41,20 @@ const aggLabel = computed(() => {
 
 function barWidth(value: number): number {
   return Math.max(4, Math.round((value / maxValue.value) * 100))
+}
+
+/** Single-row group → that document; Link group → the linked record; else the filtered list. */
+function open(row: Row) {
+  const { widget, data } = props
+  if (row.doc) return router.push(docUrl(widget.doctype, row.doc))
+  if (row.key === null || row.key === undefined) return
+  if (data?.link_doctype) return router.push(docUrl(data.link_doctype, row.key))
+  if (!widget.group_by) return
+  const raw: unknown = widget.filters
+  const filters = typeof raw === 'string' ? JSON.parse(raw || '{}') : (raw ?? {})
+  const query: Record<string, string> = {}
+  addUrlFilters(query, { ...filters, [widget.group_by]: row.key })
+  router.push({ path: docUrl(widget.doctype), query })
 }
 
 function formatVal(v: number): string {
@@ -65,7 +95,7 @@ function formatVal(v: number): string {
         </thead>
         <tbody class="divide-y divide-border/40">
           <tr v-for="row in rows" :key="row.label"
-            class="hover:bg-muted/30 transition-colors group">
+            class="hover:bg-muted/30 transition-colors group cursor-pointer" @click="open(row)">
             <td class="px-4 py-2">
               <div class="flex items-center gap-2">
                 <!-- Bar -->
@@ -73,7 +103,7 @@ function formatVal(v: number): string {
                   <div class="h-full bg-primary/60 rounded-full transition-all"
                     :style="{ width: barWidth(row.value) + '%' }" />
                 </div>
-                <span class="min-w-0 truncate text-foreground/80" :title="row.label">{{ row.label }}</span>
+                <span class="min-w-0 truncate text-foreground/80 group-hover:text-primary group-hover:underline" :title="row.label">{{ row.label }}</span>
               </div>
             </td>
             <td class="px-4 py-2 text-right font-semibold tabular-nums text-foreground">
