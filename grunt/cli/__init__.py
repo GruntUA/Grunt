@@ -17,12 +17,16 @@ from grunt.cli.test import test
 from grunt.cli.ui import ui_group
 from grunt.cli.update import update_group
 from grunt.cli.user import users_group
+from grunt.db.write_intent import set_process_default
 
 
 @click.group()
 def cli():
     """Ґрунт CLI — інструмент управління фреймворком."""
-    pass
+    # CLI commands write (migrate, doctype sync, fixtures…) while the dev server
+    # and worker share the SQLite file — take the write lock at BEGIN, like the
+    # worker does (grunt/db/write_intent.py).
+    set_process_default(True)
 
 
 def _load_plugins() -> None:

@@ -116,6 +116,10 @@ async def load_core_doctypes(session: AsyncSession, sync_db: bool = False) -> No
             if sync_db:
                 log.info("startup.core_doctype_injected", doctype=dt_name)
         except Exception as e:
+            # Boot tolerates a broken file; a sync (migrate) must not report
+            # success with grunt_meta_doctype left stale.
+            if sync_db:
+                raise RuntimeError(f"core DocType {dt_file.name}: {e}") from e
             log.warning("startup.core_doctype_failed", file=dt_file.name, error=str(e))
 
 

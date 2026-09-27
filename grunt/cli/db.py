@@ -25,7 +25,7 @@ def db_migrate(dry_run: bool, site: str | None, no_alembic: bool) -> None:
     """
     import asyncio
 
-    async def _run() -> None:
+    async def _run() -> list[str]:
         from taskiq import InMemoryBroker
 
         from grunt.db.base import metadata
@@ -44,6 +44,7 @@ def db_migrate(dry_run: bool, site: str | None, no_alembic: bool) -> None:
         from grunt.tasks.broker import broker
 
         broker_started = False
+        failed: list[str] = []
 
         try:
             await broker.startup()
@@ -110,6 +111,7 @@ def db_migrate(dry_run: bool, site: str | None, no_alembic: bool) -> None:
                                     click.echo(f"    synced: {dt.name}")
                                 synced += 1
                             except Exception as e:
+                                failed.append(f"{site_name}: {dt.name}")
                                 click.echo(f"    [error] {dt.name}: {e}", err=True)
 
                         await session.commit()
@@ -154,7 +156,14 @@ def db_migrate(dry_run: bool, site: str | None, no_alembic: bool) -> None:
             site_manager.engines.clear()
             site_manager.session_makers.clear()
 
-    asyncio.run(_run())
+        return failed
+
+    failed = asyncio.run(_run())
+    if failed:
+        click.echo(f"\nМіграцію завершено з помилками ({len(failed)}):", err=True)
+        for item in failed:
+            click.echo(f"  {item}", err=True)
+        raise SystemExit(1)
     click.echo("\nМіграцію завершено.")
 
 

@@ -278,11 +278,8 @@ def _run_migrate_for_site(site_name: str) -> None:
                 await populate_system_doctypes(session, eng)
 
                 for dt in await doctype_registry.list_all():
-                    try:
-                        if not dt.is_virtual:
-                            await sync_table(dt, eng, session=session)
-                    except Exception as e:
-                        click.echo(f"  [warn] {dt.name}: {e}", err=True)
+                    if not dt.is_virtual:
+                        await sync_table(dt, eng, session=session)
 
                 await session.commit()
 
