@@ -2158,11 +2158,6 @@ msgid "Order"
 msgstr "Порядок"
 
 #: grunt/grunt/site/doctypes/WebsiteNavItem/WebsiteNavItem.json
-msgctxt "meta:WebsiteNavItem"
-msgid "Site menu item"
-msgstr "Пункт меню сайту"
-
-#: grunt/grunt/site/doctypes/WebsiteNavItem/WebsiteNavItem.json
 msgctxt "meta:WebsiteNavItem.label"
 msgid "Name"
 msgstr "Назва"
@@ -2215,11 +2210,6 @@ msgid ""
 msgstr ""
 "Route опублікованої WebPage, що використовується як домашня (файлова "
 "www/index.html завжди має пріоритет)"
-
-#: grunt/grunt/site/doctypes/WebsiteSettings/WebsiteSettings.json
-msgctxt "meta:WebsiteSettings.sec_nav"
-msgid "Navigation"
-msgstr "Навігація"
 
 #: grunt/grunt/site/doctypes/WebsiteSettings/WebsiteSettings.json
 msgctxt "meta:WebsiteSettings.sec_footer"
@@ -8376,32 +8366,11 @@ msgid ""
 "Render this item as a call-to-action (e.g. a button) instead of a plain link"
 msgstr ""
 
-#: grunt/grunt/site/doctypes/WebsiteNavItem/WebsiteNavItem.json
-msgctxt "help:WebsiteNavItem.parent_index"
-msgid ""
-"Set to another row's position (1-based) in this same table to nest this item"
-" as a submenu entry. 0 = top-level item."
-msgstr ""
-
 #: grunt/grunt/site/doctypes/WebsiteSettings/WebsiteSettings.json
 msgctxt "help:WebsiteSettings.footer_columns"
 msgid ""
 "Controls which footer columns show and in what order. Leave empty to auto-"
 "group footer links by their 'Group' field instead."
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebsiteSettings/WebsiteSettings.json
-msgctxt "help:WebsiteSettings.main_menu_items"
-msgid ""
-"The primary navbar. Set a row's 'Submenu of' to another row's position to "
-"nest it as a dropdown entry."
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebsiteSettings/WebsiteSettings.json
-msgctxt "help:WebsiteSettings.top_menu_items"
-msgid ""
-"A slim bar above the main navigation (contacts, language switcher, quick "
-"links) — leave empty to skip it"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/WorkflowTransition/WorkflowTransition.json
@@ -8787,24 +8756,9 @@ msgctxt "meta:WebsiteNavItem.icon"
 msgid "Icon"
 msgstr ""
 
-#: grunt/grunt/site/doctypes/WebsiteNavItem/WebsiteNavItem.json
-msgctxt "meta:WebsiteNavItem.parent_index"
-msgid "Submenu of (row #)"
-msgstr ""
-
 #: grunt/grunt/site/doctypes/WebsiteSettings/WebsiteSettings.json
 msgctxt "meta:WebsiteSettings.footer_columns"
 msgid "Footer columns"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebsiteSettings/WebsiteSettings.json
-msgctxt "meta:WebsiteSettings.main_menu_items"
-msgid "Main menu items"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebsiteSettings/WebsiteSettings.json
-msgctxt "meta:WebsiteSettings.top_menu_items"
-msgid "Top utility bar items"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/WorkflowTransition/WorkflowTransition.json
@@ -9152,6 +9106,163 @@ msgstr "Веб-перегляд"
 msgctxt "meta:DocType.web_route"
 msgid "Route"
 msgstr "Маршрут"
+
+#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+msgctxt "help:WebsiteMenuItem"
+msgid ""
+"Public site navigation as a tree: top-level items are menu sections, their "
+"children — groups and links. Several menus can live side by side (main, top "
+"bar, an app's own menu)."
+msgstr ""
+"Навігація публічного сайту деревом: пункти верхнього рівня — розділи меню, "
+"їхні дочірні — групи й посилання. Поруч можуть жити кілька меню (головне, "
+"верхня смуга, власне меню додатка)."
+
+#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+msgctxt "help:WebsiteMenuItem.highlight"
+msgid "Show as a button"
+msgstr "Показувати кнопкою"
+
+#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+msgctxt "help:WebsiteMenuItem.menu"
+msgid ""
+"main — the primary navbar, top — the slim bar above it; an app may use its "
+"own key (e.g. mlt_portal). Children inherit their parent's menu."
+msgstr ""
+"main — головне меню, top — тонка смуга над ним; додаток може мати власний "
+"ключ (напр. mlt_portal). Дочірні пункти успадковують меню батька."
+
+#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+msgctxt "help:WebsiteMenuItem.sec_link"
+msgid ""
+"Point at a document (its page address is used and follows renames) or type a"
+" URL. Leave both empty for a section/group heading."
+msgstr ""
+"Вкажіть документ (береться адреса його сторінки й не ламається при "
+"перейменуванні) або введіть URL. Порожньо — заголовок розділу чи групи."
+
+#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+msgctxt "help:WebsiteMenuItem.sequence"
+msgid "Among items with the same parent, smaller first"
+msgstr "Серед пунктів з одним батьком — менший спершу"
+
+#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+msgctxt "help:WebsiteMenuItem.url"
+msgid "/news, https://… — used when no document is chosen"
+msgstr "/news, https://… — коли документ не вибрано"
+
+#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+msgctxt "meta:WebsiteMenuItem"
+msgid "Site menu item"
+msgstr "Пункт меню сайту"
+
+#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+msgctxt "meta:WebsiteMenuItem.enabled"
+msgid "Show"
+msgstr "Показувати"
+
+#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+msgctxt "meta:WebsiteMenuItem.highlight"
+msgid "Highlight"
+msgstr "Виділити"
+
+#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+msgctxt "meta:WebsiteMenuItem.icon"
+msgid "Icon"
+msgstr "Іконка"
+
+#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+msgctxt "meta:WebsiteMenuItem.label"
+msgid "Name"
+msgstr "Назва"
+
+#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+msgctxt "meta:WebsiteMenuItem.link_doctype"
+msgid "Document type"
+msgstr "Тип документа"
+
+#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+msgctxt "meta:WebsiteMenuItem.link_name"
+msgid "Document"
+msgstr "Документ"
+
+#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+msgctxt "meta:WebsiteMenuItem.menu"
+msgid "Menu"
+msgstr "Меню"
+
+#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+msgctxt "meta:WebsiteMenuItem.open_in_new_tab"
+msgid "Open in a new tab"
+msgstr "Відкривати в новій вкладці"
+
+#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+msgctxt "meta:WebsiteMenuItem.parent_menu_item"
+msgid "Parent item"
+msgstr "Батьківський пункт"
+
+#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+msgctxt "meta:WebsiteMenuItem.sec_link"
+msgid "Link"
+msgstr "Посилання"
+
+#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+msgctxt "meta:WebsiteMenuItem.sec_look"
+msgid "Appearance"
+msgstr "Вигляд"
+
+#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+msgctxt "meta:WebsiteMenuItem.sequence"
+msgid "Order"
+msgstr "Порядок"
+
+#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+msgctxt "meta:WebsiteMenuItem.url"
+msgid "URL"
+msgstr "URL"
+
+#: grunt/grunt/site/doctypes/WebsiteNavItem/WebsiteNavItem.json
+msgctxt "meta:WebsiteNavItem"
+msgid "Site footer link"
+msgstr "Посилання підвалу сайту"
+
+#~ msgctxt "meta:WebsiteNavItem"
+#~ msgid "Site menu item"
+#~ msgstr "Пункт меню сайту"
+
+#~ msgctxt "meta:WebsiteSettings.sec_nav"
+#~ msgid "Navigation"
+#~ msgstr "Навігація"
+
+#~ msgctxt "help:WebsiteNavItem.parent_index"
+#~ msgid ""
+#~ "Set to another row's position (1-based) in this same table to nest this item"
+#~ " as a submenu entry. 0 = top-level item."
+#~ msgstr ""
+
+#~ msgctxt "help:WebsiteSettings.main_menu_items"
+#~ msgid ""
+#~ "The primary navbar. Set a row's 'Submenu of' to another row's position to "
+#~ "nest it as a dropdown entry."
+#~ msgstr ""
+
+#~ msgctxt "help:WebsiteSettings.top_menu_items"
+#~ msgid ""
+#~ "A slim bar above the main navigation (contacts, language switcher, quick "
+#~ "links) — leave empty to skip it"
+#~ msgstr ""
+
+#~ msgctxt "meta:WebsiteNavItem.parent_index"
+#~ msgid "Submenu of (row #)"
+#~ msgstr ""
+
+#~ msgctxt "meta:WebsiteSettings.main_menu_items"
+#~ msgid "Main menu items"
+#~ msgstr ""
+
+#~ msgctxt "meta:WebsiteSettings.top_menu_items"
+#~ msgid "Top utility bar items"
+#~ msgstr ""
 
 #~ msgctxt "meta:WebForm.fields"
 #~ msgid "Fields (JSON)"

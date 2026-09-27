@@ -1,6 +1,6 @@
 {
   "name": "WebsiteNavItem",
-  "label": "Site menu item",
+  "label": "Site footer link",
   "module": "site",
   "is_child": true,
   "title_field": "label",
@@ -48,13 +48,6 @@
       "fieldtype": "Check",
       "default": false,
       "description": "Render this item as a call-to-action (e.g. a button) instead of a plain link"
-    },
-    {
-      "fieldname": "parent_index",
-      "label": "Submenu of (row #)",
-      "fieldtype": "Int",
-      "default": 0,
-      "description": "Set to another row's position (1-based) in this same table to nest this item as a submenu entry. 0 = top-level item."
     }
   ]
 }

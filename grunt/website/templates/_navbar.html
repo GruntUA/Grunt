@@ -1,10 +1,12 @@
-{% if website_settings and website_settings.top_menu_items %}
+{% set top_menu = website_menu("top") %}
+{% set main_menu = website_menu("main") %}
+{% if top_menu %}
 <div style="background: var(--bg-subtle, #f3f4f6); border-bottom: 1px solid var(--border-color); font-size: 0.8rem;">
     <div class="container" style="height: 2.25rem; display: flex; align-items: center; justify-content: flex-end; gap: 1.5rem;">
-        {% for item in website_settings.top_menu_items %}
-            <a href="{{ item.url }}"
+        {% for item in top_menu %}
+            <a href="{{ item.url or '#' }}"
                style="display: inline-flex; align-items: center; gap: 0.35rem; text-decoration: none; color: var(--text-muted); font-weight: 500;"
-               {% if item.is_external %}target="_blank" rel="noopener"{% endif %}>
+               {% if item.open_in_new_tab %}target="_blank" rel="noopener"{% endif %}>
                 {% if item.icon %}<i data-lucide="{{ item.icon }}"></i>{% endif %}
                 {{ item.label }}
             </a>
@@ -30,35 +32,30 @@
         </a>
 
         <nav style="display: flex; align-items: center; gap: 2rem;">
-            {% if website_settings and website_settings.main_menu_items %}
-                {% for item in website_settings.main_menu_items %}
-                    {% if not item.parent_index %}
-                        {% set children = website_settings.main_menu_items | selectattr('parent_index', 'equalto', loop.index) | list %}
-                        <div style="position: relative;" {% if children %}class="gr-nav-has-submenu"{% endif %}>
-                            <a href="{{ item.url }}"
-                               style="display: inline-flex; align-items: center; gap: 0.35rem; text-decoration: none;
-                                      {% if item.highlight %}color: white; background: var(--primary); padding: 0.5rem 1rem; border-radius: 0.5rem;
-                                      {% else %}color: var(--text-muted); font-weight: 500; font-size: 0.95rem; transition: color 0.2s;
-                                      onmouseover=\"this.style.color='var(--text-main)'\" onmouseout=\"this.style.color='var(--text-muted)'\"{% endif %}"
-                               {% if item.is_external %}target="_blank" rel="noopener"{% endif %}>
-                                {% if item.icon %}<i data-lucide="{{ item.icon }}"></i>{% endif %}
-                                {{ item.label }}
+            {% for item in main_menu %}
+                {% set children = item.children %}
+                <div style="position: relative;" {% if children %}class="gr-nav-has-submenu"{% endif %}>
+                    <a href="{{ item.url or '#' }}"
+                       style="display: inline-flex; align-items: center; gap: 0.35rem; text-decoration: none;
+                              {% if item.highlight %}color: white; background: var(--primary); padding: 0.5rem 1rem; border-radius: 0.5rem;
+                              {% else %}color: var(--text-muted); font-weight: 500; font-size: 0.95rem; transition: color 0.2s;{% endif %}"
+                       {% if item.open_in_new_tab %}target="_blank" rel="noopener"{% endif %}>
+                        {% if item.icon %}<i data-lucide="{{ item.icon }}"></i>{% endif %}
+                        {{ item.label }}
+                    </a>
+                    {% if children %}
+                    <div class="gr-nav-submenu" style="display: none; position: absolute; top: 100%; left: 0; margin-top: 0.5rem; background: white; border: 1px solid var(--border-color); border-radius: 0.5rem; box-shadow: 0 10px 25px rgba(0,0,0,0.08); min-width: 12rem; padding: 0.5rem; z-index: 60;">
+                        {% for child in children %}
+                            <a href="{{ child.url or '#' }}"
+                               style="display: block; padding: 0.5rem 0.75rem; border-radius: 0.375rem; text-decoration: none; color: var(--text-main); font-size: 0.9rem;"
+                               {% if child.open_in_new_tab %}target="_blank" rel="noopener"{% endif %}>
+                                {{ child.label }}
                             </a>
-                            {% if children %}
-                            <div class="gr-nav-submenu" style="display: none; position: absolute; top: 100%; left: 0; margin-top: 0.5rem; background: white; border: 1px solid var(--border-color); border-radius: 0.5rem; box-shadow: 0 10px 25px rgba(0,0,0,0.08); min-width: 12rem; padding: 0.5rem; z-index: 60;">
-                                {% for child in children %}
-                                    <a href="{{ child.url }}"
-                                       style="display: block; padding: 0.5rem 0.75rem; border-radius: 0.375rem; text-decoration: none; color: var(--text-main); font-size: 0.9rem;"
-                                       {% if child.is_external %}target="_blank" rel="noopener"{% endif %}>
-                                        {{ child.label }}
-                                    </a>
-                                {% endfor %}
-                            </div>
-                            {% endif %}
-                        </div>
+                        {% endfor %}
+                    </div>
                     {% endif %}
-                {% endfor %}
-            {% endif %}
+                </div>
+            {% endfor %}
 
             <span id="gr-nav-auth" style="display: none;">
                 <a href="/app" class="btn btn-primary" style="padding: 0.5rem 1rem;">Увійти в систему</a>

@@ -241,7 +241,8 @@ async def render_doc_page(request: Request, session: Any) -> HTMLResponse | None
             if hook is not None:
                 await _apply(hook(controller, context), context)
 
-    return await _render(dt, context)
+        # Templates query too (website_menu) — render inside the grunt context.
+        return await _render(dt, context)
 
 
 async def _apply(result: Any, context: dict[str, Any]) -> None:

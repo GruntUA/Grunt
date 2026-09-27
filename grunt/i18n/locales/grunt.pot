@@ -2565,6 +2565,43 @@ msgid ""
 "Must match the 'Group' field on the footer links this column should show"
 msgstr ""
 
+#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+msgctxt "help:WebsiteMenuItem"
+msgid ""
+"Public site navigation as a tree: top-level items are menu sections, their "
+"children — groups and links. Several menus can live side by side (main, top "
+"bar, an app's own menu)."
+msgstr ""
+
+#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+msgctxt "help:WebsiteMenuItem.highlight"
+msgid "Show as a button"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+msgctxt "help:WebsiteMenuItem.menu"
+msgid ""
+"main — the primary navbar, top — the slim bar above it; an app may use its "
+"own key (e.g. mlt_portal). Children inherit their parent's menu."
+msgstr ""
+
+#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+msgctxt "help:WebsiteMenuItem.sec_link"
+msgid ""
+"Point at a document (its page address is used and follows renames) or type a"
+" URL. Leave both empty for a section/group heading."
+msgstr ""
+
+#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+msgctxt "help:WebsiteMenuItem.sequence"
+msgid "Among items with the same parent, smaller first"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+msgctxt "help:WebsiteMenuItem.url"
+msgid "/news, https://… — used when no document is chosen"
+msgstr ""
+
 #: grunt/grunt/site/doctypes/WebsiteNavItem/WebsiteNavItem.json
 msgctxt "help:WebsiteNavItem.group"
 msgid ""
@@ -2576,13 +2613,6 @@ msgstr ""
 msgctxt "help:WebsiteNavItem.highlight"
 msgid ""
 "Render this item as a call-to-action (e.g. a button) instead of a plain link"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebsiteNavItem/WebsiteNavItem.json
-msgctxt "help:WebsiteNavItem.parent_index"
-msgid ""
-"Set to another row's position (1-based) in this same table to nest this item"
-" as a submenu entry. 0 = top-level item."
 msgstr ""
 
 #: grunt/grunt/site/doctypes/WebsiteSettings/WebsiteSettings.json
@@ -2602,20 +2632,6 @@ msgctxt "help:WebsiteSettings.home_route"
 msgid ""
 "Route of the published WebPage used as the home page (a file-based "
 "www/index.html always takes priority)"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebsiteSettings/WebsiteSettings.json
-msgctxt "help:WebsiteSettings.main_menu_items"
-msgid ""
-"The primary navbar. Set a row's 'Submenu of' to another row's position to "
-"nest it as a dropdown entry."
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebsiteSettings/WebsiteSettings.json
-msgctxt "help:WebsiteSettings.top_menu_items"
-msgid ""
-"A slim bar above the main navigation (contacts, language switcher, quick "
-"links) — leave empty to skip it"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/Workflow/Workflow.json
@@ -7126,9 +7142,79 @@ msgctxt "meta:WebsiteFooterColumn.title"
 msgid "Column heading"
 msgstr ""
 
+#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+msgctxt "meta:WebsiteMenuItem"
+msgid "Site menu item"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+msgctxt "meta:WebsiteMenuItem.enabled"
+msgid "Show"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+msgctxt "meta:WebsiteMenuItem.highlight"
+msgid "Highlight"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+msgctxt "meta:WebsiteMenuItem.icon"
+msgid "Icon"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+msgctxt "meta:WebsiteMenuItem.label"
+msgid "Name"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+msgctxt "meta:WebsiteMenuItem.link_doctype"
+msgid "Document type"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+msgctxt "meta:WebsiteMenuItem.link_name"
+msgid "Document"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+msgctxt "meta:WebsiteMenuItem.menu"
+msgid "Menu"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+msgctxt "meta:WebsiteMenuItem.open_in_new_tab"
+msgid "Open in a new tab"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+msgctxt "meta:WebsiteMenuItem.parent_menu_item"
+msgid "Parent item"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+msgctxt "meta:WebsiteMenuItem.sec_link"
+msgid "Link"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+msgctxt "meta:WebsiteMenuItem.sec_look"
+msgid "Appearance"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+msgctxt "meta:WebsiteMenuItem.sequence"
+msgid "Order"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+msgctxt "meta:WebsiteMenuItem.url"
+msgid "URL"
+msgstr ""
+
 #: grunt/grunt/site/doctypes/WebsiteNavItem/WebsiteNavItem.json
 msgctxt "meta:WebsiteNavItem"
-msgid "Site menu item"
+msgid "Site footer link"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/WebsiteNavItem/WebsiteNavItem.json
@@ -7154,11 +7240,6 @@ msgstr ""
 #: grunt/grunt/site/doctypes/WebsiteNavItem/WebsiteNavItem.json
 msgctxt "meta:WebsiteNavItem.label"
 msgid "Name"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebsiteNavItem/WebsiteNavItem.json
-msgctxt "meta:WebsiteNavItem.parent_index"
-msgid "Submenu of (row #)"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/WebsiteNavItem/WebsiteNavItem.json
@@ -7212,11 +7293,6 @@ msgid "Home page route"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/WebsiteSettings/WebsiteSettings.json
-msgctxt "meta:WebsiteSettings.main_menu_items"
-msgid "Main menu items"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebsiteSettings/WebsiteSettings.json
 msgctxt "meta:WebsiteSettings.sec_brand"
 msgid "Branding"
 msgstr ""
@@ -7227,11 +7303,6 @@ msgid "Site footer"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/WebsiteSettings/WebsiteSettings.json
-msgctxt "meta:WebsiteSettings.sec_nav"
-msgid "Navigation"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebsiteSettings/WebsiteSettings.json
 msgctxt "meta:WebsiteSettings.sec_seo"
 msgid "Default SEO"
 msgstr ""
@@ -7239,11 +7310,6 @@ msgstr ""
 #: grunt/grunt/site/doctypes/WebsiteSettings/WebsiteSettings.json
 msgctxt "meta:WebsiteSettings.site_name"
 msgid "Site name"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebsiteSettings/WebsiteSettings.json
-msgctxt "meta:WebsiteSettings.top_menu_items"
-msgid "Top utility bar items"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/Workflow/Workflow.json

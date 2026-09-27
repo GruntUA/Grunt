@@ -71,6 +71,10 @@ class WebsiteRegistry:
         from grunt.website.block_types import get_block_template
 
         env.globals["block_template"] = get_block_template
+        # {% set menu = website_menu("main") %} — WebsiteMenuItem tree (async, auto-awaited)
+        from grunt.website.menu import get_menu
+
+        env.globals["website_menu"] = get_menu
         self._envs[app_name] = env
 
         discovered: list[WebsitePage] = []
@@ -194,7 +198,9 @@ async def render_page(
 
     template_name = context.get("template_name") or page.template_name
     template = env.get_template(template_name)
-    html = await template.render_async(**context)
+    # Templates query too (website_menu) — render inside the grunt context.
+    async with grunt.context(session, user=SYSTEM_USER):
+        html = await template.render_async(**context)
     # A controller may set e.g. ``context["status_code"] = 404`` for a missing record.
     return HTMLResponse(content=html, status_code=context.get("status_code") or 200)
 
@@ -314,7 +320,8 @@ async def render_db_page(doc: dict[str, Any], request: Request, session: Any) ->
         raise ValueError("No Jinja2 environment found")
 
     template = env.get_template("web_page.html")
-    html = await template.render_async(**context)
+    async with grunt.context(session, user=SYSTEM_USER):
+        html = await template.render_async(**context)
     return HTMLResponse(content=html)
 
 

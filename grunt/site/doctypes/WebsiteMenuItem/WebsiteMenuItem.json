@@ -1,0 +1,47 @@
+{
+  "name": "WebsiteMenuItem",
+  "label": "Site menu item",
+  "module": "site",
+  "icon": "Menu",
+  "autoname": "hash",
+  "title_field": "label",
+  "search_fields": ["label", "url"],
+  "is_tree": true,
+  "tree_parent_field": "parent_menu_item",
+  "tree_title_field": "label",
+  "tree_sort_by": "sequence",
+  "tree_sort_order": "asc",
+  "default_view": "tree",
+  "sort_field": "sequence",
+  "sort_order": "asc",
+  "description": "Public site navigation as a tree: top-level items are menu sections, their children — groups and links. Several menus can live side by side (main, top bar, an app's own menu).",
+  "fields": [
+    { "fieldname": "sec_item", "fieldtype": "Section" },
+    { "fieldname": "col_1", "fieldtype": "Column" },
+    { "fieldname": "label", "label": "Name", "fieldtype": "Text", "required": true, "in_list_view": true, "bold": true },
+    { "fieldname": "parent_menu_item", "label": "Parent item", "fieldtype": "Link", "options": "WebsiteMenuItem", "in_list_view": true, "in_filter": true },
+    { "fieldname": "menu", "label": "Menu", "fieldtype": "Data", "options": "main\ntop", "default": "main", "required": true, "in_list_view": true, "in_filter": true, "in_quick_filter": true,
+      "description": "main — the primary navbar, top — the slim bar above it; an app may use its own key (e.g. mlt_portal). Children inherit their parent's menu." },
+    { "fieldname": "col_2", "fieldtype": "Column" },
+    { "fieldname": "enabled", "label": "Show", "fieldtype": "Check", "default": 1, "in_list_view": true },
+    { "fieldname": "sequence", "label": "Order", "fieldtype": "Int", "default": 0, "description": "Among items with the same parent, smaller first" },
+    { "fieldname": "open_in_new_tab", "label": "Open in a new tab", "fieldtype": "Check" },
+
+    { "fieldname": "sec_link", "label": "Link", "fieldtype": "Section",
+      "description": "Point at a document (its page address is used and follows renames) or type a URL. Leave both empty for a section/group heading." },
+    { "fieldname": "col_3", "fieldtype": "Column" },
+    { "fieldname": "link_doctype", "label": "Document type", "fieldtype": "Link", "options": "DocType" },
+    { "fieldname": "link_name", "label": "Document", "fieldtype": "DynamicLink", "options": "link_doctype", "depends_on": "eval:doc.link_doctype" },
+    { "fieldname": "col_4", "fieldtype": "Column" },
+    { "fieldname": "url", "label": "URL", "fieldtype": "Text", "description": "/news, https://… — used when no document is chosen" },
+
+    { "fieldname": "sec_look", "label": "Appearance", "fieldtype": "Section", "collapsible": true },
+    { "fieldname": "col_5", "fieldtype": "Column" },
+    { "fieldname": "icon", "label": "Icon", "fieldtype": "Icon" },
+    { "fieldname": "col_6", "fieldtype": "Column" },
+    { "fieldname": "highlight", "label": "Highlight", "fieldtype": "Check", "description": "Show as a button" }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": true, "write": true, "create": true, "delete": true }
+  ]
+}

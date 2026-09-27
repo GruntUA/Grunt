@@ -39,25 +39,6 @@
       "columns": 12
     },
     {
-      "fieldname": "sec_nav",
-      "label": "Navigation",
-      "fieldtype": "Section"
-    },
-    {
-      "fieldname": "top_menu_items",
-      "label": "Top utility bar items",
-      "fieldtype": "Table",
-      "options": "WebsiteNavItem",
-      "description": "A slim bar above the main navigation (contacts, language switcher, quick links) — leave empty to skip it"
-    },
-    {
-      "fieldname": "main_menu_items",
-      "label": "Main menu items",
-      "fieldtype": "Table",
-      "options": "WebsiteNavItem",
-      "description": "The primary navbar. Set a row's 'Submenu of' to another row's position to nest it as a dropdown entry."
-    },
-    {
       "fieldname": "sec_footer",
       "label": "Site footer",
       "fieldtype": "Section"
