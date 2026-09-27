@@ -4,7 +4,12 @@ import type { DashboardWidget } from '@/types'
 
 const props = defineProps<{
   widget: DashboardWidget
-  data: { rows: { label: string; value: number }[]; aggregation?: string; field?: string | null } | null
+  data: {
+    rows: { label: string; value: number }[]
+    aggregation?: string
+    field?: string | null
+    group_label?: string | null
+  } | null
   loading?: boolean
 }>()
 
@@ -47,13 +52,13 @@ function formatVal(v: number): string {
 
     <!-- Table -->
     <div v-else class="flex-1 overflow-auto">
-      <table class="w-full">
+      <table class="w-full table-fixed">
         <thead class="sticky top-0 bg-card border-b">
           <tr>
             <th class="px-4 py-2 text-left font-medium text-muted-foreground">
-              {{ widget.group_by || 'Група' }}
+              {{ data?.group_label || widget.group_by || 'Група' }}
             </th>
-            <th class="px-4 py-2 text-right font-medium text-muted-foreground">
+            <th class="w-24 px-4 py-2 text-right font-medium text-muted-foreground">
               {{ aggLabel }}
             </th>
           </tr>
@@ -64,11 +69,11 @@ function formatVal(v: number): string {
             <td class="px-4 py-2">
               <div class="flex items-center gap-2">
                 <!-- Bar -->
-                <div class="flex-1 h-1.5 bg-muted/50 rounded-full overflow-hidden max-w-[80px]">
+                <div class="w-20 shrink-0 h-1.5 bg-muted/50 rounded-full overflow-hidden">
                   <div class="h-full bg-primary/60 rounded-full transition-all"
                     :style="{ width: barWidth(row.value) + '%' }" />
                 </div>
-                <span class="text-foreground/80 truncate max-w-[100px]">{{ row.label }}</span>
+                <span class="min-w-0 truncate text-foreground/80" :title="row.label">{{ row.label }}</span>
               </div>
             </td>
             <td class="px-4 py-2 text-right font-semibold tabular-nums text-foreground">

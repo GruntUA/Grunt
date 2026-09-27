@@ -302,6 +302,8 @@ async def _widget_table(widget, dt, doctype_name, since, until, days, base_filte
     if not group_by:
         return {"rows": []}
     try:
+        from grunt.document.meta import Meta
+
         agg = widget.get("aggregation") or "count"
         value_field = widget.get("field")
         agg_expr = f"{agg}({value_field})" if agg != "count" and value_field else "count"
@@ -329,6 +331,7 @@ async def _widget_table(widget, dt, doctype_name, since, until, days, base_filte
             ],
             "aggregation": agg,
             "field": value_field,
+            "group_label": getattr(Meta(dt).get_field(group_by), "label", None),
         }
     except Exception:
         _log_widget_failed(doctype_name, "table")
