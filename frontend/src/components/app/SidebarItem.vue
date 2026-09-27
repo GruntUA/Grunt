@@ -36,9 +36,31 @@ function getRoutePath(): string | null {
   }
 }
 
+/**
+ * A DocType item's `count_filters` also filters the list it opens — the badge
+ * says "153", the click shows those 153 (list reads `filter[field__op]=value`).
+ */
+const listQuery = computed<Record<string, string>>(() => {
+  if (props.item.type !== 'DocType' || props.item.is_singleton || !props.item.count_filters) return {}
+  try {
+    const filters = JSON.parse(props.item.count_filters)
+    if (!filters || typeof filters !== 'object' || Array.isArray(filters)) return {}
+    return Object.fromEntries(
+      Object.entries(filters)
+        .filter(([, v]) => v !== null && v !== undefined && typeof v !== 'object')
+        .map(([k, v]) => [`filter[${k}]`, String(v)]),
+    )
+  } catch {
+    return {}
+  }
+})
+
 const itemHref = computed(() => {
   if (props.item.type === 'URL') return props.item.link_to
-  return getRoutePath() ?? '#'
+  const path = getRoutePath()
+  if (!path) return '#'
+  const query = new URLSearchParams(listQuery.value).toString()
+  return query ? `${path}?${query}` : path
 })
 
 function navigate(e: MouseEvent) {
@@ -47,7 +69,7 @@ function navigate(e: MouseEvent) {
   e.preventDefault()
   if (props.item.type === 'URL') { window.open(props.item.link_to, '_blank'); return }
   const path = getRoutePath()
-  if (path) router.push(path)
+  if (path) router.push({ path, query: listQuery.value })
 }
 
 const displayCount = computed(() => {
