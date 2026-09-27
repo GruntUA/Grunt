@@ -13,7 +13,7 @@ implementation, not two that could drift apart again.
 
 from __future__ import annotations
 
-from sqlalchemy import Column, MetaData, String, Table, select
+from sqlalchemy import Column, Integer, MetaData, String, Table, select
 
 from grunt.db.api import _apply_filters, build_clauses
 
@@ -25,6 +25,7 @@ _TABLE = Table(
     Column("status", String),
     Column("due_date", String),
     Column("foo__bar", String),
+    Column("qty", Integer),
 )
 
 
@@ -76,6 +77,22 @@ class TestApplyFilters:
     def test_isnull_false_bool_and_string(self):
         assert "t.due_date IS NOT NULL" in _sql({"due_date__isnull": False})
         assert "t.due_date IS NOT NULL" in _sql({"due_date__isnull": "false"})
+
+    def test_nlike_keeps_nulls(self):
+        sql = _sql({"status__nlike": "x"})
+        assert "t.status IS NULL" in sql and "lower(t.status) NOT LIKE lower('%x%')" in sql
+
+    def test_is_not_set_text_covers_null_and_empty(self):
+        sql = _sql({"status__is": "not set"})
+        assert "t.status IS NULL OR t.status = ''" in sql
+
+    def test_is_set_text_negates_empty(self):
+        sql = _sql({"status__is": "set"})
+        assert "NOT (t.status IS NULL OR t.status = '')" in sql
+
+    def test_is_not_set_non_text_is_null_only(self):
+        sql = _sql({"qty__is": "not set"})
+        assert "t.qty IS NULL" in sql and "''" not in sql
 
     def test_field_with_double_underscore_not_misparsed(self):
         # A real column named foo__bar (no operator) must compare equal, not be

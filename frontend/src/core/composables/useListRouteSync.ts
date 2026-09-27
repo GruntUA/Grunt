@@ -2,6 +2,7 @@ import { watch, nextTick } from 'vue'
 import type { Ref } from 'vue'
 import type { RouteLocationNormalizedLoaded, Router } from 'vue-router'
 import type { DocType } from '@/types'
+import { OP_MAP, displayOp } from '@/core/api/docs'
 
 interface UseListRouteSyncOptions {
   route: RouteLocationNormalizedLoaded
@@ -17,15 +18,6 @@ interface UseListRouteSyncOptions {
   dt: Ref<DocType | null>
 }
 
-const OP_MAP: Record<string, string> = {
-  '=': 'eq', '!=': 'ne', 'like': 'ilike',
-  '>': 'gt', '<': 'lt', '>=': 'gte', '<=': 'lte',
-  'child_of': 'child_of',
-}
-
-const REVERSE_OP_MAP: Record<string, string> = Object.fromEntries(
-  Object.entries(OP_MAP).map(([display, backend]) => [backend, display])
-)
 
 export function useListRouteSync(options: UseListRouteSyncOptions) {
   // Prevents the route.query watcher from calling applyRouteState() when we
@@ -96,7 +88,7 @@ export function useListRouteSync(options: UseListRouteSyncOptions) {
         const field = options.dt.value?.fields.find(f => f.fieldname === fieldname)
         const label = field?.label || fieldname
         const fieldtype = field?.fieldtype
-        const op = REVERSE_OP_MAP[backendOp] || '='
+        const op = displayOp(backendOp, String(value))
 
         filters.push({
           fieldname,

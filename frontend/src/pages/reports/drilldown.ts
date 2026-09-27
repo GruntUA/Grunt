@@ -3,18 +3,17 @@
  * filters (see ReportView.vue and grunt/reports/engine.py `meta.drilldown`).
  */
 
-/** Report filter-key suffix → list-view URL operator (see useListRouteSync OP_MAP). */
-/** Report filter-key suffix → list-view URL operator (see useListRouteSync OP_MAP). */
+/** Report filter-key suffix → list-view URL operator (see OP_MAP in core/api/docs.ts). */
 const URL_OP: Record<string, string> = {
-    '': 'eq', eq: 'eq', ne: 'ne', like: 'ilike', ilike: 'ilike',
-    gt: 'gt', lt: 'lt', gte: 'gte', lte: 'lte', child_of: 'child_of',
+    '': 'eq', eq: 'eq', ne: 'ne', like: 'ilike', ilike: 'ilike', nlike: 'nlike',
+    gt: 'gt', lt: 'lt', gte: 'gte', lte: 'lte', child_of: 'child_of', is: 'is',
 }
 
 export function addUrlFilters(query: Record<string, string>, filters: Record<string, unknown>) {
     for (const [key, value] of Object.entries(filters)) {
         const [field, op = ''] = key.split('__')
         const urlOp = URL_OP[op]
-        // The list URL can't express in / not in / is-set — such a condition
+        // The list URL can't express in / not in / isnull — such a condition
         // just doesn't narrow the drill-down list.
         if (!urlOp || Array.isArray(value) || typeof value === 'boolean') continue
         query[`filter[${field}__${urlOp}]`] = String(value)

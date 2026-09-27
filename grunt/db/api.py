@@ -6,7 +6,7 @@ import re
 from datetime import date, datetime
 from typing import TYPE_CHECKING, Any, Literal, cast, overload
 
-from sqlalchemy import CursorResult, Date, func, or_, select, update
+from sqlalchemy import CursorResult, Date, String, func, or_, select, update
 
 from grunt.context import _session_ctx
 from grunt.db.types import UtcDateTime
@@ -561,6 +561,7 @@ def _apply_filters(stmt: Any, table: Any, filters: str | dict[str, Any]) -> Any:
 _FILTER_OPS = (
     "__lte_or_null",
     "__isnull",
+    "__nlike",
     "__like",
     "__ilike",
     "__gte",
@@ -572,6 +573,7 @@ _FILTER_OPS = (
     "__eq",
     "__in",
     "__ne",
+    "__is",
 )
 
 
@@ -585,6 +587,15 @@ def _truthy(value: Any) -> bool:
 def _as_list(value: Any) -> list[Any]:
     """Normalise an ``in``/``nin`` operand from either a list or a CSV string."""
     return list(value) if isinstance(value, (list, tuple)) else str(value).split(",")
+
+
+def _is_set_clause(col: Any, value: Any) -> Any:
+    """``field__is=set|not set`` — empty means NULL, and also ``''`` for text columns
+    (a cleared Data/Text/RichText field may be stored either way)."""
+    empty = col.is_(None)
+    if isinstance(col.type, String):
+        empty = or_(empty, col == "")
+    return empty if str(value).strip().lower() == "not set" else ~empty
 
 
 def _coerce_for_column(col: Any, value: Any) -> Any:
@@ -655,12 +666,16 @@ def build_clauses(table: Any, filters: dict[str, Any]) -> list[Any]:
             clauses.append(col.like(f"%{value}%"))
         elif op == "ilike":
             clauses.append(col.ilike(f"%{value}%"))
+        elif op == "nlike":
+            clauses.append(or_(col.is_(None), ~col.ilike(f"%{value}%")))
         elif op == "in":
             clauses.append(col.in_(_as_list(value)))
         elif op == "nin":
             clauses.append(col.not_in(_as_list(value)))
         elif op == "isnull":
             clauses.append(col.is_(None) if _truthy(value) else col.isnot(None))
+        elif op == "is":
+            clauses.append(_is_set_clause(col, value))
     return clauses
 
 

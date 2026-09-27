@@ -64,6 +64,7 @@ const OPERATORS = [
     { value: '>=', label: '≥' },
     { value: '<=', label: '≤' },
     { value: 'like', label: 'містить' },
+    { value: 'not like', label: 'не містить' },
     { value: 'in', label: 'одне з (через кому)' },
     { value: 'not in', label: 'жодне з' },
     { value: 'is set', label: 'заповнено' },

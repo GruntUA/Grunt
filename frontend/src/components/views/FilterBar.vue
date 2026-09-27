@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { Filter, X, Bookmark, Plus } from '@lucide/vue'
 import type { DocField, ActiveFilter } from '@/types'
 import { getFilterConfig } from '@/core/filterRegistry'
+import { NO_VALUE_OPS } from '@/core/api/docs'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { ButtonGroup } from '@/components/ui/button-group'
@@ -89,9 +90,9 @@ const draftRows = ref<DraftRow[]>([])
 
 function makeEmptyRow(): DraftRow {
   const f = filterableFields.value[0]
-  return f
-    ? { fieldname: f.fieldname, op: getFilterConfig(f.fieldtype).operators[0], value: '', displayValue: '' }
-    : { fieldname: '', op: '=', value: '', displayValue: '' }
+  const row = { fieldname: '', op: '=', value: '', displayValue: '' }
+  if (f) onFieldChange(row, f.fieldname)
+  return row
 }
 
 watch(isFilterOpen, (open) => {
@@ -112,9 +113,20 @@ function removeRow(i: number) {
 function onFieldChange(row: DraftRow, fieldname: string) {
   const f = fieldFor(fieldname)
   row.fieldname = fieldname
-  row.op = f ? getFilterConfig(f.fieldtype).operators[0] : '='
   row.value = ''
   row.displayValue = ''
+  onOpChange(row, f ? getFilterConfig(f.fieldtype).operators[0] : '=')
+}
+
+function onOpChange(row: DraftRow, op: string) {
+  const wasNoValue = row.op in NO_VALUE_OPS
+  row.op = op
+  if (op in NO_VALUE_OPS) {
+    row.value = NO_VALUE_OPS[op]
+    row.displayValue = ''
+  } else if (wasNoValue) {
+    row.value = ''
+  }
 }
 
 function buildFiltersFromDraft(): ActiveFilter[] {
@@ -153,6 +165,9 @@ const OP_LABELS: Record<string, string> = {
   '=': 'Дорівнює',
   '!=': 'Не дорівнює',
   'like': 'Містить',
+  'not like': 'Не містить',
+  'is not set': 'Порожнє',
+  'is set': 'Заповнене',
   '>': 'Більше',
   '<': 'Менше',
   '>=': 'Більше або дорівнює',
@@ -216,7 +231,7 @@ function keepOpenForLinkDropdown(e: CustomEvent<{ originalEvent?: Event }>) {
               </SelectContent>
             </Select>
 
-            <Select :model-value="row.op" @update:model-value="(v: unknown) => row.op = String(v)">
+            <Select :model-value="row.op" @update:model-value="(v: unknown) => onOpChange(row, String(v))">
               <SelectTrigger size="sm" class="h-8 text-xs w-32 shrink-0">
                 <SelectValue />
               </SelectTrigger>
@@ -231,7 +246,7 @@ function keepOpenForLinkDropdown(e: CustomEvent<{ originalEvent?: Event }>) {
             <div class="flex-1 min-w-0">
               <component
                 :is="getFilterConfig(fieldFor(row.fieldname)?.fieldtype ?? '_default').filterInput"
-                v-if="fieldFor(row.fieldname)"
+                v-if="fieldFor(row.fieldname) && !(row.op in NO_VALUE_OPS)"
                 :field="fieldFor(row.fieldname)"
                 :model-value="row.value"
                 :display-value="row.displayValue"

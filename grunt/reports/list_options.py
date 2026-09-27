@@ -26,10 +26,11 @@ _OP_SUFFIX = {
     ">=": "__gte",
     "<=": "__lte",
     "like": "__ilike",
+    "not like": "__nlike",
     "in": "__in",
     "not in": "__nin",
-    "is set": "__isnull",
-    "is not set": "__isnull",
+    "is set": "__is",
+    "is not set": "__is",
 }
 OPERATORS = tuple(_OP_SUFFIX)
 
@@ -56,7 +57,7 @@ def compile_conditions(conditions: list[dict[str, Any]] | None) -> list[dict[str
         if not field or op not in _OP_SUFFIX:
             continue
         if op in ("is set", "is not set"):
-            out.append({f"{field}__isnull": op == "is not set"})
+            out.append({f"{field}__is": "not set" if op == "is not set" else "set"})
             continue
         value = c.get("value")
         if op in ("in", "not in"):

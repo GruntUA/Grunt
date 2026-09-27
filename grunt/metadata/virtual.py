@@ -96,7 +96,7 @@ class VirtualDocType:
 
         Supported operators (appended to fieldname with ``__``):
             eq (default), ne, neq, gt, gte, lt, lte, lte_or_null, like, ilike,
-            in, nin, isnull
+            nlike, in, nin, isnull, is (``set`` / ``not set``)
 
         Same operator set as ``grunt.db.api.build_clauses`` (the SQL-backed
         equivalent for physical DocTypes) — an unrecognised operator raises
@@ -123,6 +123,11 @@ class VirtualDocType:
                         match = str(raw) != str(val)
                     elif op in ("like", "ilike"):
                         match = str(val).lower().strip("%") in str(raw).lower()
+                    elif op == "nlike":
+                        match = raw is None or str(val).lower().strip("%") not in str(raw).lower()
+                    elif op == "is":
+                        empty = raw in (None, "")
+                        match = empty if str(val).strip().lower() == "not set" else not empty
                     elif op in ("gt", "gte", "lt", "lte"):
                         a, b = float(raw or 0), float(val or 0)
                         match = (
@@ -171,9 +176,11 @@ class VirtualDocType:
             "lte_or_null",
             "like",
             "ilike",
+            "nlike",
             "in",
             "nin",
             "isnull",
+            "is",
         }
     )
 

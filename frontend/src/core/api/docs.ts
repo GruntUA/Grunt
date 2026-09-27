@@ -101,9 +101,19 @@ export function isAssignmentPlaceholder(description: string | null | undefined):
 }
 
 export const OP_MAP: Record<string, string> = {
-  '=': 'eq', '!=': 'ne', 'like': 'ilike',
+  '=': 'eq', '!=': 'ne', 'like': 'ilike', 'not like': 'nlike',
   '>': 'gt', '<': 'lt', '>=': 'gte', '<=': 'lte',
   'child_of': 'child_of',
+  'is set': 'is', 'is not set': 'is',
+}
+
+/** Operators without a user-entered value — the value is fixed and sent as `field__is=<value>`. */
+export const NO_VALUE_OPS: Record<string, string> = { 'is set': 'set', 'is not set': 'not set' }
+
+/** Backend `field__op` + value → display operator (inverse of OP_MAP; `is` splits by value). */
+export function displayOp(backendOp: string, value: string): string {
+  if (backendOp === 'is') return value === 'set' ? 'is set' : 'is not set'
+  return Object.keys(OP_MAP).find(k => OP_MAP[k] === backendOp) ?? '='
 }
 
 /** Convert ActiveFilter[] to raw backend filter object: { "fieldname__op": "value" } */

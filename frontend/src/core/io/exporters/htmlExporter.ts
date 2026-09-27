@@ -144,7 +144,7 @@ export function generateHtml(ctx: ExportContext): string {
   const isPartial = rows.length < total && total > 10_000
 
   const filterSummary = filters.length
-    ? filters.map(f => `${f.label} ${f.op} ${f.displayValue || f.value}`).join(' · ')
+    ? filters.map(f => f.op.startsWith('is ') ? `${f.label} ${f.op}` : `${f.label} ${f.op} ${f.displayValue || f.value}`).join(' · ')
     : null
 
   const headerCells = columns.map(c => `<th>${escapeHtml(c.label)}</th>`).join('')
