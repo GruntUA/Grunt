@@ -140,8 +140,12 @@ async def render_page(
     request: Request,
     path_params: dict[str, Any] | None = None,
     session: Any | None = None,
-) -> HTMLResponse:
-    """Load controller context, render Jinja2 template, return HTMLResponse."""
+) -> Response:
+    """Load controller context, render the Jinja2 template, return the HTML page.
+
+    A controller may return a ``Response`` instead of a context dict (e.g. a
+    ``RedirectResponse``) — it is sent as is.
+    """
     from grunt.app import grunt
     from grunt.config import settings
 
@@ -177,8 +181,8 @@ async def render_page(
                         result = mod.handle_post(context)
                         if inspect.isawaitable(result):
                             result = await result
-                        # If handle_post returns a response, return it immediately (e.g. redirect)
-                        if isinstance(result, HTMLResponse):
+                        # A returned response (e.g. a redirect) goes out as is.
+                        if isinstance(result, Response):
                             return result
                         if isinstance(result, dict):
                             context.update(result)
@@ -187,6 +191,8 @@ async def render_page(
                         result = mod.get_context(context)
                         if inspect.isawaitable(result):
                             result = await result
+                        if isinstance(result, Response):  # e.g. RedirectResponse
+                            return result
                         if isinstance(result, dict):
                             context.update(result)
             except Exception as e:
@@ -232,7 +238,7 @@ def _pattern_regex(url_pattern: str) -> re.Pattern[str]:
 async def render_page_by_route(
     request: Request,
     session: Any,
-) -> HTMLResponse | None:
+) -> Response | None:
     """Try to render a page by its route, checking both files and database."""
     from grunt.app import grunt
 
@@ -332,7 +338,7 @@ def make_website_handler(page: WebsitePage):
     async def _handler(
         request: Request,
         session: Any = Depends(get_session),
-    ) -> HTMLResponse:
+    ) -> Response:
         return await render_page(page, request, dict(request.path_params) or None, session=session)
 
     safe = page.url_pattern.replace("/", "_").replace("{", "").replace("}", "")
