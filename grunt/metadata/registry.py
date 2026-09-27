@@ -57,6 +57,11 @@ _CORE_SYNCED_DOCTYPE_ATTRS = frozenset(
         "public_attachments",
         "inherit_permission_from",
         "quick_entry",
+        "has_web_view",
+        "allow_guest_to_view",
+        "index_web_pages_for_search",
+        "web_route",
+        "is_published_field",
         "beta",
         "deprecated",
         "title_field",
@@ -490,19 +495,12 @@ class DocTypeRegistry:
                 self._reorder_core_fields(active_dt, doctype)
 
                 if sync_db:
-                    try:
-                        await session.execute(
-                            update(GruntMetaDoctype)
-                            .where(GruntMetaDoctype.c.name == doctype.name)
-                            .values(module=doctype.module, data=active_dt.model_dump())
-                        )
-                        await session.flush()
-                    except Exception as _upd_err:
-                        log.warning(
-                            "registry.core_metadata_update_failed",
-                            name=doctype.name,
-                            error=str(_upd_err),
-                        )
+                    await session.execute(
+                        update(GruntMetaDoctype)
+                        .where(GruntMetaDoctype.c.name == doctype.name)
+                        .values(module=doctype.module, data=active_dt.model_dump())
+                    )
+                    await session.flush()
         else:
             # First run: seed from the bundled JSON file.
             active_dt = doctype

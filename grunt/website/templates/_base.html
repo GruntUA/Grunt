@@ -8,7 +8,7 @@
     <!-- SEO -->
     {% set meta_description = description or (website_settings and website_settings.default_meta_description) %}
     {% if meta_description %}<meta name="description" content="{{ meta_description }}">{% endif %}
-    <meta name="robots" content="index, follow">
+    <meta name="robots" content="{{ 'noindex, nofollow' if noindex else 'index, follow' }}">
     
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">

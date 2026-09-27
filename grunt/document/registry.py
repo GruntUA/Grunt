@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib
+import importlib.util
 import inspect
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -52,6 +53,16 @@ class DocumentRegistry:
         if doctype not in self._controllers and doctype in self._index:
             self._import_controller(doctype, self._index[doctype])
         return self._controllers.get(doctype, Document)
+
+    def doctype_dir(self, doctype: str) -> Path | None:
+        """Directory of *doctype*'s controller module (``…/doctypes/<Name>/``),
+        located without importing it; ``None`` when it has no controller file.
+        """
+        module_path = self._index.get(doctype)
+        if not module_path or doctype in self._overrides:
+            return None
+        spec = importlib.util.find_spec(module_path)
+        return Path(spec.origin).parent if spec and spec.origin else None
 
     def _import_controller(self, doctype: str, module_path: str) -> None:
         """Import a module path and register the Document subclass found in it.

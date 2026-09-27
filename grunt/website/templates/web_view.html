@@ -1,0 +1,64 @@
+{#- Generic web view page for a DocType document (grunt.website.generator).
+    A DocType overrides it with doctypes/<Name>/templates/<Name>.html. -#}
+{% extends "_base.html" %}
+
+{% block head %}
+{% set og_image = image or (website_settings and website_settings.default_og_image) %}
+{% if og_image %}<meta property="og:image" content="{{ og_image }}">{% endif %}
+<meta property="og:title" content="{{ title }}">
+<style>
+    .wv { max-width: 56rem; margin: 0 auto; padding: 3rem 1.5rem 4rem; width: 100%; }
+    .wv-kind { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); }
+    .wv h1 { font-size: 2rem; line-height: 1.25; margin: 0.25rem 0 1.5rem; }
+    .wv-cover { width: 100%; max-height: 28rem; object-fit: cover; border-radius: var(--radius-md); margin-bottom: 2rem; }
+    .wv-tab + .wv-tab { margin-top: 2.5rem; }
+    .wv-tab > h2 { font-size: 1.25rem; margin-bottom: 1rem; }
+    .wv-section + .wv-section { margin-top: 2rem; }
+    .wv-section > h3 { font-size: 1rem; color: var(--text-muted); margin-bottom: 0.75rem; }
+    .wv-cols { display: grid; gap: 1rem 2rem; }
+    @media (min-width: 40rem) { .wv-cols.c2 { grid-template-columns: 1fr 1fr; } .wv-cols.c3 { grid-template-columns: repeat(3, 1fr); } }
+    .wv-field + .wv-field { margin-top: 1rem; }
+    .wv-label { display: block; font-size: 0.8125rem; color: var(--text-muted); margin-bottom: 0.125rem; }
+    .wv-value { word-wrap: break-word; }
+    .wv-value.multiline { white-space: pre-wrap; }
+    .wv-value.html { line-height: 1.75; }
+    .wv-value img { max-width: 100%; border-radius: 0.375rem; }
+</style>
+{% endblock %}
+
+{% block body %}
+<article class="wv">
+    <p class="wv-kind">{{ doctype.label }}</p>
+    <h1>{{ title }}</h1>
+    {% if image %}<img class="wv-cover" src="{{ image }}" alt="{{ title }}">{% endif %}
+
+    {% for tab in tabs %}
+        <div class="wv-tab">
+            {% if tabs | length > 1 and tab.label %}<h2>{{ tab.label }}</h2>{% endif %}
+            {% for section in tab.sections %}
+                <section class="wv-section">
+                    {% if section.label %}<h3>{{ section.label }}</h3>{% endif %}
+                    <div class="wv-cols c{{ section.cols | length if section.cols | length <= 3 else 3 }}">
+                        {% for col in section.cols %}
+                            <div>
+                                {% for f in col %}
+                                    <div class="wv-field">
+                                        <span class="wv-label">{{ f.label }}</span>
+                                        {% if f.image_url %}
+                                            <span class="wv-value"><img src="{{ f.image_url }}" alt="{{ f.label }}" loading="lazy"></span>
+                                        {% elif f.html %}
+                                            <div class="wv-value html">{{ f.value | safe }}</div>
+                                        {% else %}
+                                            <span class="wv-value{% if f.multiline %} multiline{% endif %}">{{ f.value }}</span>
+                                        {% endif %}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                </section>
+            {% endfor %}
+        </div>
+    {% endfor %}
+</article>
+{% endblock %}

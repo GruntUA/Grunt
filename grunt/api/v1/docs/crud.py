@@ -16,8 +16,14 @@ from grunt.auth.dependencies import current_user
 from grunt.auth.doctypes.User.user import User
 from grunt.document.bulk_ops import BulkDeleteTask
 from grunt.permissions.doc_perms import PERMS_KEY, with_permissions
+from grunt.website.generator import WEB_URL_KEY, with_web_url
 
 router = GruntRouter()
+
+
+async def _decorate(doctype: str, doc: Any) -> Any:
+    """The form's computed extras: ``__perms`` and, for a web page, ``__web_url``."""
+    return await with_web_url(doctype, await with_permissions(doctype, doc))
 
 
 @router.get("/{doctype}")
@@ -59,8 +65,9 @@ async def create_document(
 ) -> dict[str, Any]:
     """Create a new document."""
     body.pop(PERMS_KEY, None)  # computed, never stored
+    body.pop(WEB_URL_KEY, None)
     doc = await grunt_app.new_doc(doctype, body)
-    return ok(await with_permissions(doctype, doc))
+    return ok(await _decorate(doctype, doc))
 
 
 @router.get("/{doctype}/{doc_id}")
@@ -73,7 +80,7 @@ async def get_document(
     """Get document data."""
     expand_fields = [f.strip() for f in expand.split(",") if f.strip()] if expand else None
     doc = await grunt_app.get_doc(doctype, doc_id, expand=expand_fields)
-    return ok(await with_permissions(doctype, doc))
+    return ok(await _decorate(doctype, doc))
 
 
 @router.put("/{doctype}/{doc_id}")
@@ -85,8 +92,9 @@ async def update_document(
 ) -> dict[str, Any]:
     """Update an existing document."""
     body.pop(PERMS_KEY, None)  # computed, never stored
+    body.pop(WEB_URL_KEY, None)
     doc = await grunt_app.save_doc(doctype, doc_id, body)
-    return ok(await with_permissions(doctype, doc))
+    return ok(await _decorate(doctype, doc))
 
 
 @router.delete("/{doctype}/{doc_id}", status_code=status.HTTP_204_NO_CONTENT)

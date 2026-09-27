@@ -45,6 +45,7 @@ from grunt.document.virtual import (
 from grunt.errors import GruntError
 from grunt.events import fire
 from grunt.metadata.registry import doctype_registry
+from grunt.website.generator import fill_route
 
 PROTECTED_FIELDS = frozenset({"name", "owner", "created_at", "docstatus"})
 
@@ -195,6 +196,7 @@ class DocumentWriteMixin(DocumentReadMixin):
         doc = controller_cls(doctype_name, row, user, self.session)
 
         await self._run_lifecycle_hooks(doc, "validate", "before_insert", "before_save")
+        await fill_route(dt, row, self.session)
         await compute_formulas(dt.doc, row)
         await self._insert_row(table, row)
         await self._save_children(dt, doc_id, data, user, now)
@@ -510,6 +512,7 @@ class DocumentWriteMixin(DocumentReadMixin):
             controller_cls = document_registry.get(doctype_name)
             doc = controller_cls(doctype_name, merged, user, self.session)
             await self._run_lifecycle_hooks(doc, "validate", "before_save")
+            await fill_route(dt, merged, self.session)
 
             # _persist_update_doc computes formulas then performs a single pass that
             # writes back every physical field differing from `existing` — capturing

@@ -15,6 +15,8 @@ import {
   ChevronRight,
   Loader2,
   CalendarClock,
+  Globe,
+  ExternalLink,
 } from '@lucide/vue'
 import type { DocType, GruntDocument, UserPublic } from '@/types'
 import type { PresenceUser } from '@/core/composables/usePresence'
@@ -55,6 +57,11 @@ const imageUrl = computed(() => {
   return typeof val === 'string' && val ? val : null
 })
 const isBookmarked = computed(() => !!sb.bundle.value.bookmark)
+// Set by the server while the document is a public page (web view, WebPage, WebForm).
+const webUrl = computed(() => {
+  const url = props.document.__web_url
+  return typeof url === 'string' && url ? url : null
+})
 const isFollowing = computed(() => !!sb.bundle.value.follow)
 
 // ── Primary status badge (e.g. "На складі") — moved here from the form toolbar ──
@@ -235,6 +242,20 @@ function printDoc() {
         </span>
       </div>
     </div>
+
+    <!-- Public page of the document -->
+    <a
+      v-if="webUrl"
+      :href="webUrl"
+      target="_blank"
+      rel="noopener"
+      class="group flex items-center gap-2 text-foreground hover:text-primary transition-colors"
+    >
+      <Globe class="size-3.5 shrink-0 text-muted-foreground group-hover:text-primary" />
+      <span class="font-semibold">Переглянути на сайті</span>
+      <span class="truncate text-muted-foreground font-mono">{{ webUrl }}</span>
+      <ExternalLink class="size-3 shrink-0 ml-auto text-muted-foreground/60" />
+    </a>
 
     <!-- People: assignees + access -->
     <div class="flex flex-col gap-3 p-3 bg-muted/30 rounded-lg border border-border/40">

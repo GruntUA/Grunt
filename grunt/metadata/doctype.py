@@ -255,6 +255,18 @@ class DocType(BaseModel):
     inherit_permission_from: list[str] | None = None
     quick_entry: bool = False  # True → "Create" opens a dialog instead of full form
 
+    # Web view — each document is also a public page (see grunt.website.generator).
+    # URL: <app mount>/<web_route>/<doc route> — the app mount follows the www/
+    # rule ("" for core/primary web app, "/<app>" otherwise); <doc route> is the
+    # document's `route` field when it has one (auto-filled from the title),
+    # else its name. Only guest-visible pages are served — the site has no
+    # login cookie, so a signed-in reader can't be told apart from a guest.
+    has_web_view: bool = False
+    allow_guest_to_view: bool = False
+    index_web_pages_for_search: bool = True  # False → noindex + left out of sitemap.xml
+    web_route: str | None = None  # URL prefix, e.g. "news"
+    is_published_field: str | None = None  # Check field gating the page; None → every doc
+
     # Lifecycle markers (UI-only; no behavioural effect)
     beta: bool = False  # show a "Beta" badge — feature still under development
     deprecated: bool = False  # show a warning banner — kept for compatibility, avoid new use

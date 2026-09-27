@@ -390,6 +390,49 @@
       "depends_on": "is_tree"
     },
     {
+      "fieldname": "tab_web_view",
+      "label": "Web View",
+      "fieldtype": "Tab",
+      "icon": "Globe"
+    },
+    {
+      "fieldname": "has_web_view",
+      "label": "Has web view",
+      "fieldtype": "Check",
+      "description": "Every document is also a public web page, rendered by the DocType's templates/<Name>.html or the generic layout"
+    },
+    {
+      "fieldname": "allow_guest_to_view",
+      "label": "Allow guest to view",
+      "fieldtype": "Check",
+      "depends_on": "has_web_view",
+      "description": "Serve the pages to anonymous visitors. Without it the pages are not served at all — the website can't identify signed-in users"
+    },
+    {
+      "fieldname": "index_web_pages_for_search",
+      "label": "Index web pages for search",
+      "fieldtype": "Check",
+      "default": 1,
+      "depends_on": "has_web_view",
+      "description": "List the pages in sitemap.xml; otherwise they are marked noindex"
+    },
+    {
+      "fieldname": "web_route",
+      "label": "Route",
+      "fieldtype": "Data",
+      "depends_on": "has_web_view",
+      "placeholder": "news",
+      "description": "URL prefix under the app's website mount: /<route>/<document route>. The document part is its `route` field (filled from the title on save) or its name"
+    },
+    {
+      "fieldname": "is_published_field",
+      "label": "Is published field",
+      "fieldtype": "Select",
+      "options": "",
+      "depends_on": "has_web_view",
+      "description": "Check field that publishes the document; empty — every document is published"
+    },
+    {
       "fieldname": "tab_views",
       "label": "Views",
       "fieldtype": "Tab",

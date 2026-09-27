@@ -248,7 +248,20 @@ async def render_page_by_route(
         if m:
             return await render_page(page, request, m.groupdict(), session=session)
 
-    # 2. Try database-based pages (WebPage)
+    # 2. Documents of web-view DocTypes (grunt.website.generator)
+    from grunt.website.generator import render_doc_page
+
+    try:
+        response = await render_doc_page(request, session)
+    except HTTPException:
+        raise
+    except Exception as e:
+        log.warning("website.web_view.error", route=path, error=str(e))
+        response = None
+    if response is not None:
+        return response
+
+    # 3. Try database-based pages (WebPage)
     from grunt.auth.doctypes.User.user import SYSTEM_USER
 
     try:
@@ -321,10 +334,11 @@ def make_website_handler(page: WebsitePage):
 
 
 async def sitemap_xml(request: Request) -> Response:
-    """Generate /sitemap.xml from file-based www pages and published WebPage docs."""
+    """Generate /sitemap.xml: www pages, published WebPage docs, web view documents."""
     from grunt.app import grunt
     from grunt.auth.doctypes.User.user import SYSTEM_USER
     from grunt.site.manager import site_manager
+    from grunt.website.generator import sitemap_urls
 
     base = str(request.base_url).rstrip("/")
 
@@ -341,7 +355,8 @@ async def sitemap_xml(request: Request) -> Response:
             fields=["route"],
             limit=None,
         )
-    urls.extend(base + p["route"] for p in pages)
+        urls.extend(base + p["route"] for p in pages)
+        urls.extend(base + url for url in await sitemap_urls())
 
     entries = "".join(f"  <url><loc>{url}</loc></url>\n" for url in urls)
     body = (

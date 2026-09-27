@@ -41,7 +41,7 @@ msgstr ""
 msgid "Actions"
 msgstr ""
 
-#: grunt/grunt/metadata/doctypes/DocType/global_form.js:118
+#: grunt/grunt/metadata/doctypes/DocType/global_form.js:130
 #: grunt/frontend/src/components/layout/CommandPalette.vue:111
 msgid "Activity log"
 msgstr ""
@@ -56,7 +56,7 @@ msgstr ""
 msgid "Add a Filter"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/Table/Table.vue:486
+#: grunt/frontend/src/components/fields/Table/Table.vue:496
 msgid "Add row"
 msgstr ""
 
@@ -80,7 +80,7 @@ msgstr ""
 msgid "Apply Filters"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/Table/Table.vue:466
+#: grunt/frontend/src/components/fields/Table/Table.vue:476
 msgid "Apply to"
 msgstr ""
 
@@ -126,7 +126,7 @@ msgstr ""
 msgid "Barcode not found in image."
 msgstr ""
 
-#: grunt/frontend/src/pages/desk/DocTypeForm.vue:165
+#: grunt/frontend/src/pages/desk/DocTypeForm.vue:177
 msgid "Beta: цей тип документа ще в розробці, поведінка може змінитися."
 msgstr ""
 
@@ -193,7 +193,7 @@ msgstr ""
 msgid "Clear Filters"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/Table/Table.vue:473
+#: grunt/frontend/src/components/fields/Table/Table.vue:483
 msgid "Clear selection"
 msgstr ""
 
@@ -209,7 +209,7 @@ msgstr ""
 msgid "Color"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/Table/Table.vue:442
+#: grunt/frontend/src/components/fields/Table/Table.vue:452
 msgid "Column"
 msgstr ""
 
@@ -217,7 +217,7 @@ msgstr ""
 msgid "Configure"
 msgstr ""
 
-#: grunt/grunt/metadata/doctypes/DocType/global_form.js:86
+#: grunt/grunt/metadata/doctypes/DocType/global_form.js:98
 msgid "Configure print"
 msgstr ""
 
@@ -297,13 +297,13 @@ msgstr ""
 msgid "Default"
 msgstr ""
 
-#: grunt/grunt/metadata/doctypes/DocType/global_form.js:160
+#: grunt/grunt/metadata/doctypes/DocType/global_form.js:172
 #: grunt/grunt/metadata/doctypes/DocType/global_list.js:98
 #: grunt/frontend/src/components/views/BulkActionBar.vue:286
 #: grunt/frontend/src/components/dashboard/WidgetConfigPanel.vue:77
 #: grunt/frontend/src/components/dashboard/WidgetCard.vue:60
 #: grunt/frontend/src/components/views/form/FormModals.vue:140
-#: grunt/frontend/src/components/fields/Table/Table.vue:471
+#: grunt/frontend/src/components/fields/Table/Table.vue:481
 msgid "Delete"
 msgstr ""
 
@@ -315,7 +315,7 @@ msgstr ""
 msgid "Delete file"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/Table/Table.vue:415
+#: grunt/frontend/src/components/fields/Table/Table.vue:425
 msgid "Delete row"
 msgstr ""
 
@@ -323,7 +323,7 @@ msgstr ""
 msgid "Delete this file from the library?"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/Table/Table.vue:215
+#: grunt/frontend/src/components/fields/Table/Table.vue:220
 msgid "Deleted"
 msgstr ""
 
@@ -335,7 +335,7 @@ msgstr ""
 msgid "Disable"
 msgstr ""
 
-#: grunt/grunt/metadata/doctypes/DocType/global_form.js:108
+#: grunt/grunt/metadata/doctypes/DocType/global_form.js:120
 msgid "Discard changes"
 msgstr ""
 
@@ -355,7 +355,7 @@ msgstr ""
 msgid "Document not found"
 msgstr ""
 
-#: grunt/frontend/src/pages/desk/DocTypeForm.vue:133
+#: grunt/frontend/src/pages/desk/DocTypeForm.vue:145
 msgid "Document renamed"
 msgstr ""
 
@@ -372,23 +372,23 @@ msgstr ""
 msgid "Drop files to upload"
 msgstr ""
 
-#: grunt/grunt/metadata/doctypes/DocType/global_form.js:98
-#: grunt/frontend/src/components/fields/Table/Table.vue:433
+#: grunt/grunt/metadata/doctypes/DocType/global_form.js:110
+#: grunt/frontend/src/components/fields/Table/Table.vue:443
 msgid "Duplicate"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/Table/Table.vue:405
+#: grunt/frontend/src/components/fields/Table/Table.vue:415
 msgid "Duplicate row"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/global_list.js:89
-#: grunt/frontend/src/components/fields/Table/Table.vue:388
-#: grunt/frontend/src/components/fields/Table/Table.vue:389
-#: grunt/frontend/src/components/fields/Table/Table.vue:402
+#: grunt/frontend/src/components/fields/Table/Table.vue:398
+#: grunt/frontend/src/components/fields/Table/Table.vue:399
+#: grunt/frontend/src/components/fields/Table/Table.vue:412
 msgid "Edit"
 msgstr ""
 
-#: grunt/grunt/metadata/doctypes/DocType/global_form.js:76
+#: grunt/grunt/metadata/doctypes/DocType/global_form.js:88
 #: grunt/grunt/metadata/doctypes/DocType/global_list.js:58
 msgid "Edit DocType"
 msgstr ""
@@ -442,7 +442,7 @@ msgstr ""
 msgid "Files"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/Table/Table.vue:483
+#: grunt/frontend/src/components/fields/Table/Table.vue:493
 msgid "Fill in the current row first"
 msgstr ""
 
@@ -553,11 +553,11 @@ msgstr ""
 msgid "Inline code"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/Table/Table.vue:408
+#: grunt/frontend/src/components/fields/Table/Table.vue:418
 msgid "Insert row above"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/Table/Table.vue:411
+#: grunt/frontend/src/components/fields/Table/Table.vue:421
 msgid "Insert row below"
 msgstr ""
 
@@ -565,7 +565,7 @@ msgstr ""
 msgid "Invalid JSON"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/Table/useTableCell.ts:58
+#: grunt/frontend/src/components/fields/Table/useTableCell.ts:60
 msgid "Invalid format"
 msgstr ""
 
@@ -603,7 +603,7 @@ msgstr ""
 msgid "Link {n}"
 msgstr ""
 
-#: grunt/grunt/metadata/doctypes/DocType/global_form.js:128
+#: grunt/grunt/metadata/doctypes/DocType/global_form.js:140
 #: grunt/frontend/src/components/dashboard/sections/LinksSection.vue:46
 msgid "Links"
 msgstr ""
@@ -647,11 +647,11 @@ msgid "Mark as read"
 msgstr ""
 
 #: grunt/frontend/src/components/dashboard/sections/GaugeRangeSection.vue:25
-#: grunt/frontend/src/components/fields/Table/useTableCell.ts:67
+#: grunt/frontend/src/components/fields/Table/useTableCell.ts:69
 msgid "Max"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/Table/useTableCell.ts:55
+#: grunt/frontend/src/components/fields/Table/useTableCell.ts:57
 msgid "Max length"
 msgstr ""
 
@@ -660,7 +660,7 @@ msgid "Maximum"
 msgstr ""
 
 #: grunt/frontend/src/components/dashboard/sections/GaugeRangeSection.vue:16
-#: grunt/frontend/src/components/fields/Table/useTableCell.ts:66
+#: grunt/frontend/src/components/fields/Table/useTableCell.ts:68
 msgid "Min"
 msgstr ""
 
@@ -668,7 +668,7 @@ msgstr ""
 msgid "Minimum"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/Table/useTableCell.ts:65
+#: grunt/frontend/src/components/fields/Table/useTableCell.ts:67
 msgid "Must be a number"
 msgstr ""
 
@@ -684,11 +684,11 @@ msgstr ""
 #: grunt/frontend/src/components/app/AppBreadcrumb.vue:82
 #: grunt/frontend/src/components/dashboard/sections/TilesSection.vue:32
 #: grunt/frontend/src/components/dashboard/sections/LinksSection.vue:29
-#: grunt/frontend/src/pages/desk/DocTypeForm.vue:91
+#: grunt/frontend/src/pages/desk/DocTypeForm.vue:94
 msgid "New"
 msgstr ""
 
-#: grunt/grunt/metadata/doctypes/DocType/DocType.js:165
+#: grunt/grunt/metadata/doctypes/DocType/DocType.js:167
 msgid "New DocType"
 msgstr ""
 
@@ -709,7 +709,7 @@ msgid "Newest"
 msgstr ""
 
 #: grunt/frontend/src/components/fields/Table/Table.vue:148
-#: grunt/frontend/src/components/fields/Table/useTableCell.ts:76
+#: grunt/frontend/src/components/fields/Table/useTableCell.ts:78
 msgid "No"
 msgstr ""
 
@@ -746,7 +746,7 @@ msgstr ""
 msgid "No records"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/Table/Table.vue:306
+#: grunt/frontend/src/components/fields/Table/Table.vue:316
 msgid "No rows"
 msgstr ""
 
@@ -901,7 +901,7 @@ msgstr ""
 msgid "Remove {item}"
 msgstr ""
 
-#: grunt/grunt/metadata/doctypes/DocType/global_form.js:150
+#: grunt/grunt/metadata/doctypes/DocType/global_form.js:162
 #: grunt/frontend/src/components/views/form/FormHeader.vue:333
 msgid "Rename"
 msgstr ""
@@ -925,7 +925,7 @@ msgstr ""
 msgid "Report"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/Table/useTableCell.ts:52
+#: grunt/frontend/src/components/fields/Table/useTableCell.ts:54
 msgid "Required"
 msgstr ""
 
@@ -950,11 +950,11 @@ msgstr ""
 msgid "Row"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/Table/Table.vue:396
+#: grunt/frontend/src/components/fields/Table/Table.vue:406
 msgid "Row actions"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/Table/Table.vue:214
+#: grunt/frontend/src/components/fields/Table/Table.vue:219
 msgid "Row deleted"
 msgstr ""
 
@@ -1062,7 +1062,7 @@ msgstr ""
 msgid "Select a widget on the canvas or add a new one from the palette"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/Table/Table.vue:285
+#: grunt/frontend/src/components/fields/Table/Table.vue:290
 msgid "Select all"
 msgstr ""
 
@@ -1070,7 +1070,7 @@ msgstr ""
 msgid "Select field..."
 msgstr ""
 
-#: grunt/frontend/src/components/fields/Table/Table.vue:336
+#: grunt/frontend/src/components/fields/Table/Table.vue:346
 msgid "Select row"
 msgstr ""
 
@@ -1082,11 +1082,11 @@ msgstr ""
 msgid "Select {doctype}…"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/Table/Table.vue:430
+#: grunt/frontend/src/components/fields/Table/Table.vue:440
 msgid "Selected:"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/Table/Table.vue:437
+#: grunt/frontend/src/components/fields/Table/Table.vue:447
 msgid "Set value"
 msgstr ""
 
@@ -1100,7 +1100,7 @@ msgstr ""
 msgid "Setup"
 msgstr ""
 
-#: grunt/grunt/metadata/doctypes/DocType/global_form.js:138
+#: grunt/grunt/metadata/doctypes/DocType/global_form.js:150
 #: grunt/frontend/src/components/views/form/FormHeader.vue:268
 msgid "Share link"
 msgstr ""
@@ -1215,11 +1215,11 @@ msgstr ""
 #: grunt/frontend/src/components/fields/RichText/RichText.vue:580
 #: grunt/frontend/src/components/fields/Signature/Signature.vue:229
 #: grunt/frontend/src/components/fields/Signature/Signature.vue:230
-#: grunt/frontend/src/components/fields/Table/Table.vue:215
+#: grunt/frontend/src/components/fields/Table/Table.vue:220
 msgid "Undo"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:228
+#: grunt/frontend/src/components/views/form/FormHeader.vue:229
 msgid "Unsaved"
 msgstr ""
 
@@ -1254,13 +1254,17 @@ msgstr ""
 msgid "Validation error"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/Table/Table.vue:388
-#: grunt/frontend/src/components/fields/Table/Table.vue:389
+#: grunt/frontend/src/components/fields/Table/Table.vue:398
+#: grunt/frontend/src/components/fields/Table/Table.vue:399
 msgid "View"
 msgstr ""
 
 #: grunt/frontend/src/components/layout/CommandPalette.vue:110
 msgid "View hooks"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocType/global_form.js:78
+msgid "View on website"
 msgstr ""
 
 #: grunt/frontend/src/components/dashboard/sections/TitleSection.vue:15
@@ -1276,7 +1280,7 @@ msgid "Year"
 msgstr ""
 
 #: grunt/frontend/src/components/fields/Table/Table.vue:148
-#: grunt/frontend/src/components/fields/Table/useTableCell.ts:76
+#: grunt/frontend/src/components/fields/Table/useTableCell.ts:78
 msgid "Yes"
 msgstr ""
 
@@ -1285,19 +1289,19 @@ msgstr ""
 msgid "optional"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/Table/Table.vue:490
+#: grunt/frontend/src/components/fields/Table/Table.vue:500
 msgid "row needs attention"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/Table/Table.vue:214
+#: grunt/frontend/src/components/fields/Table/Table.vue:219
 msgid "rows deleted"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/Table/Table.vue:490
+#: grunt/frontend/src/components/fields/Table/Table.vue:500
 msgid "rows need attention"
 msgstr ""
 
-#: grunt/frontend/src/core/scripting/executor.ts:820
+#: grunt/frontend/src/core/scripting/executor.ts:841
 msgid "text"
 msgstr ""
 
@@ -1339,7 +1343,7 @@ msgstr ""
 msgid "{n} selected"
 msgstr ""
 
-#: grunt/frontend/src/pages/desk/DocTypeForm.vue:187
+#: grunt/frontend/src/pages/desk/DocTypeForm.vue:199
 msgid "{views} переглядів · {viewers} користувачів"
 msgstr ""
 
@@ -1359,7 +1363,7 @@ msgstr ""
 msgid "Інформація про таблицю"
 msgstr ""
 
-#: grunt/frontend/src/pages/desk/DocTypeForm.vue:205
+#: grunt/frontend/src/pages/desk/DocTypeForm.vue:217
 msgid "Активність"
 msgstr ""
 
@@ -1367,11 +1371,11 @@ msgstr ""
 msgid "Виконується стиснення… база може бути заблокована до завершення."
 msgstr ""
 
-#: grunt/frontend/src/pages/desk/DocTypeForm.vue:152
+#: grunt/frontend/src/pages/desk/DocTypeForm.vue:164
 msgid "Відновити"
 msgstr ""
 
-#: grunt/frontend/src/pages/desk/DocTypeForm.vue:153
+#: grunt/frontend/src/pages/desk/DocTypeForm.vue:165
 msgid "Відхилити"
 msgstr ""
 
@@ -1395,7 +1399,7 @@ msgstr ""
 msgid "Звільнено {size} у файлі бази даних"
 msgstr ""
 
-#: grunt/frontend/src/pages/desk/DocTypeForm.vue:151
+#: grunt/frontend/src/pages/desk/DocTypeForm.vue:163
 msgid "Знайдено незбережені зміни ({time}). Відновити чернетку?"
 msgstr ""
 
@@ -1419,7 +1423,7 @@ msgstr ""
 msgid "Операція перепише таблицю під ексклюзивним блокуванням. Продовжити?"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:140
+#: grunt/frontend/src/components/views/form/FormHeader.vue:141
 msgid "Оптимізувати таблицю"
 msgstr ""
 
@@ -1427,7 +1431,7 @@ msgstr ""
 msgid "Особисте налаштування — лише для вас, на цьому пристрої."
 msgstr ""
 
-#: grunt/frontend/src/pages/desk/DocTypeForm.vue:190
+#: grunt/frontend/src/pages/desk/DocTypeForm.vue:202
 msgid "Переглянули:"
 msgstr ""
 
@@ -1467,7 +1471,7 @@ msgstr ""
 msgid "Стиснути"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:139
+#: grunt/frontend/src/components/views/form/FormHeader.vue:140
 msgid "Стиснути базу даних (VACUUM)"
 msgstr ""
 
@@ -1483,7 +1487,7 @@ msgstr ""
 msgid "Фізичне сховище цього типу документа"
 msgstr ""
 
-#: grunt/frontend/src/pages/desk/DocTypeForm.vue:160
+#: grunt/frontend/src/pages/desk/DocTypeForm.vue:172
 msgid ""
 "Цей тип документа позначено як неактуальний (deprecated). Він продовжує "
 "працювати, але не використовуйте його в новому коді."
@@ -1692,6 +1696,13 @@ msgid ""
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgctxt "help:DocType.allow_guest_to_view"
+msgid ""
+"Serve the pages to anonymous visitors. Without it the pages are not served "
+"at all — the website can't identify signed-in users"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgctxt "help:DocType.autoname"
 msgid "Series (CONTR-.YYYY.-.####), field:fieldname, prompt or hash"
 msgstr ""
@@ -1775,6 +1786,13 @@ msgid "Row/bar label (default: title field)"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgctxt "help:DocType.has_web_view"
+msgid ""
+"Every document is also a public web page, rendered by the DocType's "
+"templates/<Name>.html or the generic layout"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgctxt "help:DocType.hide_from_activity_feed"
 msgid ""
 "Keep entries out of the site-wide activity feed only — they still appear in "
@@ -1793,8 +1811,19 @@ msgid "An Image or Attach field for the document avatar"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgctxt "help:DocType.index_web_pages_for_search"
+msgid "List the pages in sitemap.xml; otherwise they are marked noindex"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgctxt "help:DocType.is_child"
 msgid "Used inside another DocType's Table field"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgctxt "help:DocType.is_published_field"
+msgid ""
+"Check field that publishes the document; empty — every document is published"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
@@ -1834,6 +1863,14 @@ msgstr ""
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgctxt "help:DocType.module"
 msgid "Pick an App first"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgctxt "help:DocType.public_attachments"
+msgid ""
+"Files uploaded to these documents are public by default (website content: "
+"news covers, page images). Otherwise attachments are private and readable "
+"only with the document"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
@@ -1920,6 +1957,14 @@ msgstr ""
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgctxt "help:DocType.tree_title_field"
 msgid "Which field to show as the node label (default: title field)"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgctxt "help:DocType.web_route"
+msgid ""
+"URL prefix under the app's website mount: /<route>/<document route>. The "
+"document part is its `route` field (filled from the title on save) or its "
+"name"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocTypeAction/DocTypeAction.json
@@ -2599,6 +2644,11 @@ msgstr ""
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgctxt "hint:DocType.retention_date_field"
 msgid "created_at"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgctxt "hint:DocType.web_route"
+msgid "news"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
@@ -3812,6 +3862,11 @@ msgid "Document actions"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgctxt "meta:DocType.allow_guest_to_view"
+msgid "Allow guest to view"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgctxt "meta:DocType.app"
 msgid "App"
 msgstr ""
@@ -3912,6 +3967,11 @@ msgid "Title field"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgctxt "meta:DocType.has_web_view"
+msgid "Has web view"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgctxt "meta:DocType.hide_from_activity_feed"
 msgid "Hide from global feed"
 msgstr ""
@@ -3927,8 +3987,18 @@ msgid "Image field"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgctxt "meta:DocType.index_web_pages_for_search"
+msgid "Index web pages for search"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgctxt "meta:DocType.is_child"
 msgid "Child (Child Table)"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgctxt "meta:DocType.is_published_field"
+msgid "Is published field"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
@@ -3974,6 +4044,11 @@ msgstr ""
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgctxt "meta:DocType.permissions"
 msgid "Permissions"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgctxt "meta:DocType.public_attachments"
+msgid "Public attachments"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
@@ -4117,6 +4192,11 @@ msgid "Views"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgctxt "meta:DocType.tab_web_view"
+msgid "Web View"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgctxt "meta:DocType.table_name"
 msgid "Table name"
 msgstr ""
@@ -4174,6 +4254,11 @@ msgstr ""
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgctxt "meta:DocType.tree_title_field"
 msgid "Node title field"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgctxt "meta:DocType.web_route"
+msgid "Route"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocTypeAction/DocTypeAction.json

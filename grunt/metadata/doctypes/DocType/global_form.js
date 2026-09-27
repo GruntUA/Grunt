@@ -6,7 +6,7 @@
  *   frm.actions.update('save', { label: 'Провести' })
  *   frm.actions.remove('duplicate')
  *
- * Ids: save · refresh · print, print_xlsx, print_pdf, print_html · open_new_tab ·
+ * Ids: save · refresh · print, print_xlsx, print_pdf, print_html · open_new_tab, web_view ·
  * edit_doctype, configure_print · duplicate, discard, activity, links, share ·
  * rename, delete. Labels are translation keys (English source strings).
  *
@@ -70,6 +70,18 @@ function on_load(frm) {
         order: 200,
         visible: _saved,
         action: (f) => grunt.open_route('Form', f.doctype, f.name),
+    })
+    // `__web_url` — set by the server while the document is a public page
+    // (DocType web view, grunt.website.generator).
+    actions.add({
+        id: 'web_view',
+        label: __('View on website'),
+        icon: 'globe',
+        placement: 'menu',
+        group: 'print',
+        order: 210,
+        visible: (f) => _saved(f) && !!f.doc.__web_url,
+        action: (f) => window.open(f.doc.__web_url, '_blank', 'noopener'),
     })
     actions.add({
         id: 'edit_doctype',

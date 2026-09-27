@@ -53,6 +53,7 @@ function _refresh_field_selects(frm) {
     const dateFieldnames = pick(f => DATE_TYPES.has(f.fieldtype))
     const numberFieldnames = pick(f => NUMBER_TYPES.has(f.fieldtype))
     const textFieldnames = pick(f => TEXT_TYPES.has(f.fieldtype))
+    const checkFieldnames = pick(f => f.fieldtype === 'Check')
 
     const opt = names => '\n' + names.join('\n')
     frm.set_df_property('title_field', 'options', opt(allFieldnames))
@@ -73,6 +74,7 @@ function _refresh_field_selects(frm) {
     frm.set_df_property('calendar_date_field', 'options', opt(dateFieldnames))
     frm.set_df_property('calendar_end_date_field', 'options', opt(dateFieldnames))
     frm.set_df_property('calendar_title_field', 'options', opt(allFieldnames))
+    frm.set_df_property('is_published_field', 'options', opt(checkFieldnames))
 }
 
 async function on_load(frm) {
