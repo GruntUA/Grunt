@@ -143,7 +143,7 @@ watch(() => router.currentRoute.value.path, () => { if (appStore.active) appStor
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarItem v-for="item in group.items" :key="item.link_to + item.sequence" :item="item"
-                :workspace-name="workspaceName" :count="appStore.counts[item.link_to] ?? 0"
+                :workspace-name="workspaceName" :count="appStore.counts[item.count_key || item.link_to] ?? 0"
                 :color="appStore.active?.color" />
             </SidebarMenu>
           </SidebarGroupContent>
@@ -163,7 +163,7 @@ watch(() => router.currentRoute.value.path, () => { if (appStore.active) appStor
                 <SidebarGroupContent>
                   <SidebarMenuSub>
                     <SidebarItem v-for="item in group.items" :key="item.link_to + item.sequence" nested :item="item"
-                      :workspace-name="workspaceName" :count="appStore.counts[item.link_to] ?? 0"
+                      :workspace-name="workspaceName" :count="appStore.counts[item.count_key || item.link_to] ?? 0"
                       :color="appStore.active?.color" />
                   </SidebarMenuSub>
                 </SidebarGroupContent>
@@ -176,7 +176,7 @@ watch(() => router.currentRoute.value.path, () => { if (appStore.active) appStor
             <SidebarGroupContent>
               <SidebarMenu>
                 <SidebarItem v-for="item in group.items" :key="item.link_to + item.sequence" :item="item"
-                  :workspace-name="workspaceName" :count="appStore.counts[item.link_to] ?? 0"
+                  :workspace-name="workspaceName" :count="appStore.counts[item.count_key || item.link_to] ?? 0"
                   :color="appStore.active?.color" />
               </SidebarMenu>
             </SidebarGroupContent>

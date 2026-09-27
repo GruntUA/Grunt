@@ -13,6 +13,26 @@ from grunt.document.base import Document
 from grunt.log import log
 
 
+def parse_count_filters(item: dict[str, Any]) -> dict[str, Any]:
+    """A sidebar item's ``count_filters`` JSON → filters dict (``{}`` when unset/invalid)."""
+    raw = item.get("count_filters")
+    if not raw:
+        return {}
+    try:
+        data = json.loads(raw)
+        return data if isinstance(data, dict) else {}
+    except json.JSONDecodeError, ValueError:
+        return {}
+
+
+def count_key(doctype: str, filters: dict[str, Any]) -> str:
+    """Key of a sidebar item's count in get_counts' result (unique per filters)."""
+    if not filters:
+        return doctype
+    suffix = "_".join(str(v).lower() for v in filters.values())
+    return f"{doctype}_{suffix}"
+
+
 class AppMenu(Document):
     """Controller for AppMenu DocType."""
 
@@ -78,22 +98,10 @@ class AppMenu(Document):
         return counts
 
     def _parse_filters(self, item: dict[str, Any]) -> dict[str, Any]:
-        """Parse JSON filters from sidebar item."""
-        raw = item.get("count_filters")
-        if not raw:
-            return {}
-        try:
-            data = json.loads(raw)
-            return data if isinstance(data, dict) else {}
-        except json.JSONDecodeError, ValueError:
-            return {}
+        return parse_count_filters(item)
 
     def _generate_count_key(self, doctype: str, filters: dict[str, Any]) -> str:
-        """Generate a unique key for the count result based on filters."""
-        if not filters:
-            return doctype
-        suffix = "_".join(str(v).lower() for v in filters.values())
-        return f"{doctype}_{suffix}"
+        return count_key(doctype, filters)
 
     async def _get_virtual_count(self, doctype: str, filters: dict[str, Any]) -> int:
         """Fetch count for a Virtual DocType by calling its controller."""

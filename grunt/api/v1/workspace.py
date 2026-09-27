@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 import grunt
-from grunt.site.doctypes.AppMenu.app_menu import AppMenu
+from grunt.site.doctypes.AppMenu.app_menu import AppMenu, count_key, parse_count_filters
 
 
 async def _workspace_to_dict(ws_data: Any) -> dict[str, Any]:
@@ -44,6 +44,10 @@ async def _workspace_to_dict(ws_data: Any) -> dict[str, Any]:
                 "icon": item_icon,
                 "link_to": link_to,
                 "show_count": item.get("show_count", False),
+                # The badge's filters also filter the list the item opens (SidebarItem.vue);
+                # count_key matches the key get_counts files that badge's number under.
+                "count_filters": item.get("count_filters") or "",
+                "count_key": count_key(link_to, parse_count_filters(item)),
                 "roles": item_roles,
                 "sequence": item.get("idx", 0),
                 "is_singleton": is_singleton,

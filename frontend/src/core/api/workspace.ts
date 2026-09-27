@@ -8,6 +8,8 @@ export interface WorkspaceLink {
   link_to: string
   show_count: boolean
   count_filters?: string
+  /** Key of this item's badge in the counts map (differs from link_to when filtered). */
+  count_key?: string
   roles: string
   sequence: number
   is_singleton?: boolean
