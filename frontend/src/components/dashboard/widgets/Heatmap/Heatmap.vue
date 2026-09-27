@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useRouter } from 'vue-router'
 import type { DashboardWidget } from '@/types'
+import { formatIntl } from '@/core/datetime'
+import { docUrl } from '@/core/workspaceUrl'
+import { addUrlFilters } from '@/pages/reports/drilldown'
 
 const props = defineProps<{
   widget: DashboardWidget
@@ -8,139 +12,170 @@ const props = defineProps<{
   loading?: boolean
 }>()
 
-const MONTHS_UK = ['Січ','Лют','Бер','Кві','Тра','Чер','Лип','Сер','Вер','Жов','Лис','Гру']
+const router = useRouter()
+
+interface Cell { date: Date; key: string; count: number; future: boolean }
 
 const PERIOD_DAYS: Record<string, number> = { '7d': 7, '30d': 30, '90d': 90, '365d': 365 }
+const DAY_LABELS = ['Пн', '', 'Ср', '', 'Пт', '', '']
+// Literal class names so Tailwind generates them (no string-built `bg-primary/${n}`).
+const LEVELS = ['bg-muted', 'bg-primary/25', 'bg-primary/50', 'bg-primary/75', 'bg-primary']
 
 const periodDays = computed(() => PERIOD_DAYS[props.widget.period ?? '365d'] ?? 365)
 
-// Build week grid aligned to Monday for the widget's period
-const grid = computed(() => {
-  const entriesMap: Record<string, number> = {}
-  for (const e of (props.data?.entries ?? [])) {
-    entriesMap[e.date] = e.count
-  }
+/** Local YYYY-MM-DD — toISOString() would shift the day across the UTC boundary. */
+function dayKey(d: Date): string {
+  const p = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`
+}
 
+const counts = computed(() => {
+  const map = new Map<string, number>()
+  for (const e of props.data?.entries ?? []) map.set(e.date.slice(0, 10), e.count)
+  return map
+})
+
+// Week columns (Monday first) covering the widget's period up to today.
+const weeks = computed(() => {
   const today = new Date()
-  const start = new Date(today)
-  start.setDate(start.getDate() - (periodDays.value - 1))
-  // Align to previous Monday
-  const dow = (start.getDay() + 6) % 7
-  start.setDate(start.getDate() - dow)
+  today.setHours(0, 0, 0, 0)
+  const cur = new Date(today)
+  cur.setDate(cur.getDate() - (periodDays.value - 1))
+  cur.setDate(cur.getDate() - ((cur.getDay() + 6) % 7))
 
-  // How many weeks do we need?
-  const totalDays = Math.ceil((today.getTime() - start.getTime()) / 86400000) + 1
-  const numWeeks = Math.ceil(totalDays / 7)
-
-  const weeks: Array<Array<{ date: string; count: number; month: number }>> = []
-  const monthLabels: Array<{ label: string; weekIdx: number }> = []
-
-  let cur = new Date(start)
-  let prevMonth = -1
-
-  for (let w = 0; w < numWeeks; w++) {
-    const week: Array<{ date: string; count: number; month: number }> = []
+  const out: Cell[][] = []
+  while (cur <= today) {
+    const week: Cell[] = []
     for (let d = 0; d < 7; d++) {
-      const dateStr = cur.toISOString().slice(0, 10)
-      const mo = cur.getMonth()
-      if (mo !== prevMonth && d === 0) {
-        monthLabels.push({ label: MONTHS_UK[mo], weekIdx: w })
-        prevMonth = mo
-      }
-      week.push({ date: dateStr, count: entriesMap[dateStr] ?? 0, month: mo })
+      const key = dayKey(cur)
+      week.push({ date: new Date(cur), key, count: counts.value.get(key) ?? 0, future: cur > today })
       cur.setDate(cur.getDate() + 1)
     }
-    weeks.push(week)
+    out.push(week)
   }
-
-  return { weeks, monthLabels, numWeeks }
+  return out
 })
 
-const maxCount = computed(() => {
-  let m = 0
-  for (const e of (props.data?.entries ?? [])) if (e.count > m) m = e.count
-  return m || 1
+// A month is labelled on the first week that contains its 1st day; a label
+// closer than 3 weeks to the previous one would overlap it and is dropped.
+const monthLabels = computed(() => {
+  const labels: { col: number; label: string }[] = []
+  weeks.value.forEach((week, wi) => {
+    const first = wi === 0 ? week[0] : week.find(c => c.date.getDate() === 1)
+    if (!first) return
+    const prev = labels[labels.length - 1]
+    if (prev && wi - prev.col < 3) {
+      if (prev.col === 0) labels.pop()
+      else return
+    }
+    labels.push({ col: wi, label: fmt(first.date, { month: 'short' }) })
+  })
+  return labels
 })
 
-const totalCount = computed(() =>
-  (props.data?.entries ?? []).reduce((s, e) => s + e.count, 0)
-)
+const maxCount = computed(() => Math.max(1, ...(props.data?.entries ?? []).map(e => e.count)))
+const totalCount = computed(() => (props.data?.entries ?? []).reduce((s, e) => s + e.count, 0))
+const activeDays = computed(() => (props.data?.entries ?? []).filter(e => e.count > 0).length)
+const busiest = computed(() => {
+  const top = [...(props.data?.entries ?? [])].sort((a, b) => b.count - a.count)[0]
+  return top?.count ? top : null
+})
 
-function cellColor(count: number): string {
-  if (count === 0) return 'bg-muted/50'
-  const ratio = count / maxCount.value
-  if (ratio < 0.25) return 'bg-primary/25'
-  if (ratio < 0.5)  return 'bg-primary/50'
-  if (ratio < 0.75) return 'bg-primary/75'
-  return 'bg-primary'
+function level(count: number): string {
+  if (!count) return LEVELS[0]
+  return LEVELS[Math.min(4, Math.ceil((count / maxCount.value) * 4))]
+}
+
+/** Calendar-day formatting pinned to UTC, so the system timezone can't shift the day. */
+function fmt(d: Date, opts: Intl.DateTimeFormatOptions): string {
+  const utc = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()))
+  return formatIntl(utc, { ...opts, timeZone: 'UTC' })
+}
+
+function fmtDay(d: Date | string): string {
+  const date = typeof d === 'string' ? new Date(`${d.slice(0, 10)}T00:00:00`) : d
+  return fmt(date, { day: 'numeric', month: 'long', year: 'numeric' })
+}
+
+/** Day cell → the widget's list filtered to that day. */
+function open(cell: Cell) {
+  const { widget } = props
+  if (!cell.count || !widget.doctype || !widget.date_field) return
+  const next = new Date(cell.date)
+  next.setDate(next.getDate() + 1)
+  const raw: unknown = widget.filters
+  const filters = typeof raw === 'string' ? JSON.parse(raw || '{}') : (raw ?? {})
+  const query: Record<string, string> = {}
+  addUrlFilters(query, {
+    ...filters,
+    [`${widget.date_field}__gte`]: cell.key,
+    [`${widget.date_field}__lt`]: dayKey(next),
+  })
+  router.push({ path: docUrl(widget.doctype), query })
 }
 </script>
 
 <template>
   <div class="flex flex-col h-full px-4 py-3">
-    <!-- Header -->
     <div class="flex items-center justify-between mb-3 shrink-0">
       <p class="font-medium text-muted-foreground">{{ widget.title }}</p>
       <span v-if="!loading" class="text-muted-foreground">{{ totalCount }} за {{ periodDays }} дн.</span>
     </div>
 
-    <!-- Skeleton -->
-    <div v-if="loading" class="flex-1 flex items-center justify-center">
-      <div class="grid gap-0.5 w-full" style="grid-template-columns: repeat(53, 1fr)">
-        <div v-for="i in 53*7" :key="i" class="aspect-square rounded-sm bg-muted animate-pulse" />
+    <div v-if="loading" class="flex-1 flex items-center">
+      <div class="grid gap-[3px] w-full" style="grid-template-columns: repeat(53, 1fr)">
+        <div v-for="i in 53 * 7" :key="i" class="aspect-square rounded-[2px] bg-muted animate-pulse" />
       </div>
     </div>
 
     <template v-else>
-      <!-- Month labels + Grid using CSS grid for full-width -->
-      <div class="flex gap-1.5 flex-1 min-h-0">
-        <!-- Day labels column -->
-        <div class="flex flex-col justify-around shrink-0 pt-5 pb-0.5">
-          <div v-for="d in ['Пн','','Ср','','Пт','','Нд']" :key="d"
-            class="text-muted-foreground leading-none flex items-center h-0">
-            {{ d }}
-          </div>
-        </div>
-
-        <!-- Weeks grid -->
-        <div class="flex-1 min-w-0 flex flex-col gap-0.5">
-          <!-- Month labels row -->
+      <div class="flex-1 flex flex-col justify-center min-h-0">
+        <div
+          class="grid gap-[3px] items-center"
+          :style="{ gridTemplateColumns: `auto repeat(${weeks.length}, minmax(0, 1fr))` }"
+        >
+          <!-- Month labels -->
+          <div />
           <div
-            class="grid gap-0.5"
-            :style="`grid-template-columns: repeat(${grid.numWeeks}, 1fr)`"
+            v-for="m in monthLabels" :key="m.col"
+            class="text-muted-foreground whitespace-nowrap leading-none pb-1 capitalize"
+            :style="{ gridColumn: `${m.col + 2} / span 3`, gridRow: 1 }"
           >
-            <div
-              v-for="(_, wi) in grid.weeks" :key="wi"
-              class="text-muted-foreground font-medium truncate leading-none h-4 flex items-end"
-            >
-              {{ grid.monthLabels.find(m => m.weekIdx === wi)?.label ?? '' }}
+            {{ m.label }}
+          </div>
+
+          <!-- Rows = weekdays, columns = weeks -->
+          <template v-for="(dayLabel, d) in DAY_LABELS" :key="d">
+            <div class="text-muted-foreground leading-none pr-1.5" :style="{ gridRow: d + 2 }">
+              {{ dayLabel }}
             </div>
-          </div>
-
-          <!-- Cells grid — rows=days, cols=weeks -->
-          <div
-            class="grid gap-0.5 flex-1"
-            :style="`grid-template-columns: repeat(${grid.numWeeks}, 1fr); grid-template-rows: repeat(7, 1fr)`"
-          >
-            <template v-for="d in 7" :key="d">
-              <div
-                v-for="(week, wi) in grid.weeks"
-                :key="`${wi}-${d}`"
-                :title="`${week[d-1]?.date}: ${week[d-1]?.count}`"
-                :class="['rounded-sm transition-colors', cellColor(week[d-1]?.count ?? 0)]"
-                style="min-height: 8px"
-              />
-            </template>
-          </div>
+            <div
+              v-for="(week, wi) in weeks" :key="week[d].key"
+              :title="week[d].future ? undefined : `${fmtDay(week[d].date)}: ${week[d].count}`"
+              :class="[
+                'aspect-square rounded-[2px]',
+                week[d].future ? 'invisible' : level(week[d].count),
+                week[d].count ? 'cursor-pointer hover:ring-1 hover:ring-foreground/40' : '',
+              ]"
+              :style="{ gridRow: d + 2, gridColumn: wi + 2 }"
+              @click="open(week[d])"
+            />
+          </template>
         </div>
       </div>
 
-      <!-- Legend -->
-      <div class="flex items-center gap-1 mt-2 shrink-0 justify-end">
-        <span class="text-muted-foreground">Мало</span>
-        <div v-for="lvl in [0, 0.25, 0.5, 0.75, 1]" :key="lvl"
-          :class="['size-2.5 rounded-sm', lvl === 0 ? 'bg-muted/50' : lvl < 0.5 ? 'bg-primary/' + Math.round(lvl*100) : 'bg-primary']" />
-        <span class="text-muted-foreground">Багато</span>
+      <div class="flex items-center justify-between gap-3 mt-3 shrink-0 text-muted-foreground">
+        <span class="truncate">
+          Активних днів: <span class="text-foreground font-medium">{{ activeDays }}</span>
+          <template v-if="busiest">
+            · найбільше {{ fmtDay(busiest.date) }}: <span class="text-foreground font-medium">{{ busiest.count }}</span>
+          </template>
+        </span>
+        <div class="flex items-center gap-1 shrink-0">
+          <span>Мало</span>
+          <div v-for="cls in LEVELS" :key="cls" :class="['size-2.5 rounded-[2px]', cls]" />
+          <span>Багато</span>
+        </div>
       </div>
     </template>
   </div>
