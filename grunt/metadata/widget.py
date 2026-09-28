@@ -6,7 +6,7 @@ import importlib.util
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, ClassVar
 
-from grunt.log import log
+from grunt import log
 
 if TYPE_CHECKING:
     from datetime import datetime

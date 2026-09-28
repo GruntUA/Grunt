@@ -3,10 +3,10 @@ from __future__ import annotations
 from datetime import UTC, datetime, timedelta
 
 import grunt
+from grunt import _, log
 from grunt.auth.doctypes.User.user import SYSTEM_USER
 from grunt.email.service import EmailService, decode_attachments, email_service
-from grunt.i18n import _, ngettext, pgettext, use_language
-from grunt.log import log
+from grunt.i18n import ngettext, pgettext, use_language
 from grunt.site.manager import site_manager
 from grunt.tasks.broker import retryable_task
 

@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy import Table, false, or_
 
-from grunt.log import log
+from grunt import log
 from grunt.permissions.access import RoleAccess
 from grunt.permissions.match import PermissionMatch
 

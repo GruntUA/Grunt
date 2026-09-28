@@ -9,9 +9,9 @@ from __future__ import annotations
 import json
 from typing import Any
 
+from grunt import log
 from grunt.document.base import Document
 from grunt.io.doctypes.DataImport.data_import import DataImport
-from grunt.log import log
 
 
 class DataExport(Document):

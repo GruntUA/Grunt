@@ -6,8 +6,8 @@ from typing import TYPE_CHECKING, Any, cast
 
 from fastapi import HTTPException, status
 
+from grunt import _
 from grunt.document.registry import document_registry
-from grunt.i18n import _
 
 if TYPE_CHECKING:
     from grunt.auth.doctypes.User.user import User

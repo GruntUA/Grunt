@@ -11,7 +11,7 @@ from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
 
 import grunt
-from grunt.log import log
+from grunt import log
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
@@ -105,13 +105,12 @@ class NotificationService:
         offset: int = 0,
     ) -> list[dict[str, Any]]:
         """Get notifications for a user."""
-        from grunt.local import require_session
 
         filters: dict[str, Any] = {"user": user}
         if unread_only:
             filters["is_read"] = False
 
-        async with grunt.system_context(require_session()):
+        async with grunt.system_context(grunt.get_session()):
             rows = await grunt.db.get_all(
                 "Notification",
                 filters=filters,
@@ -132,16 +131,14 @@ class NotificationService:
 
     async def mark_read(self, notification_id: str) -> None:
         """Mark a single notification as read."""
-        from grunt.local import require_session
 
-        async with grunt.system_context(require_session()):
+        async with grunt.system_context(grunt.get_session()):
             await grunt.db.set_value("Notification", notification_id, "is_read", True)
 
     async def mark_all_read(self, user: str) -> int:
         """Mark all notifications as read for a user. Returns count of affected."""
-        from grunt.local import require_session
 
-        async with grunt.system_context(require_session()):
+        async with grunt.system_context(grunt.get_session()):
             return await grunt.bulk_update(
                 "Notification",
                 {"user": user, "is_read": False},

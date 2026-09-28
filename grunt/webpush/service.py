@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import json
 
-from grunt.log import log
+from grunt import log
 
 _VAPID_PRIVATE_KEY_FIELD = "webpush_vapid_private"
 _VAPID_PUBLIC_KEY_FIELD = "webpush_vapid_public"

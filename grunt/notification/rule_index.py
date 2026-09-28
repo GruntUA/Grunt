@@ -14,8 +14,7 @@ from __future__ import annotations
 
 import time
 
-from grunt.i18n import _
-from grunt.log import log
+from grunt import _, log
 
 # Upper bound on how long a process keeps serving a stale snapshot when the rule
 # change happened in *another* process (the invalidation hook only fires in the

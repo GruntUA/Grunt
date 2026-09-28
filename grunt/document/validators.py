@@ -28,8 +28,7 @@ import importlib.util
 import inspect
 from typing import TYPE_CHECKING
 
-from grunt.i18n import _
-from grunt.log import log
+from grunt import _, log
 from grunt.validators.base import Validator
 
 if TYPE_CHECKING:

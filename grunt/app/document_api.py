@@ -8,11 +8,11 @@ from typing import TYPE_CHECKING, Any, overload
 
 from fastapi import HTTPException
 
+import grunt
+from grunt import _, log
 from grunt.config import settings
 from grunt.db.profiler import profile
-from grunt.i18n import _
-from grunt.local import require_engine, require_session, require_user
-from grunt.log import log
+from grunt.local import require_engine, require_user
 from grunt.permissions.guards import (
     apply_hidden_fields_to_doc,
     apply_hidden_fields_to_rows,
@@ -84,7 +84,7 @@ class DocumentAPI:
         """Build a session/engine-bound host document to run single-doc pipeline methods on."""
         from grunt.document.base import Document
 
-        return Document.bare(require_session(), require_engine())
+        return Document.bare(grunt.get_session(), require_engine())
 
     @overload
     async def get_doc(
@@ -129,7 +129,7 @@ class DocumentAPI:
             await permission_checker.require(user, dt, "read", data)
             data = apply_hidden_fields_to_doc(data, hidden_fields)
             await fire("after_read", doctype=name, user=user, doc=data)
-            return doctype(doctype=name, data=data, user=user, session=require_session())
+            return doctype(doctype=name, data=data, user=user, session=grunt.get_session())
 
         dt, user, hidden_fields = await read_guard(doctype)
         await fire("before_read", doctype=doctype, user=user, doc_id=id_or_name)
@@ -180,7 +180,7 @@ class DocumentAPI:
         await permission_checker.require(user, dt, "read", data)
         data = apply_hidden_fields_to_doc(data, hidden_fields)
         controller_cls = document_registry.get(doctype)
-        return controller_cls(doctype, data, user, require_session())
+        return controller_cls(doctype, data, user, grunt.get_session())
 
     async def new_doc(
         self,
@@ -263,7 +263,7 @@ class DocumentAPI:
         from grunt.document import collection
 
         res = await collection.rename_document(
-            require_session(), require_engine(), doctype, old_id, new_id, user
+            grunt.get_session(), require_engine(), doctype, old_id, new_id, user
         )
 
         await fire(
@@ -405,7 +405,7 @@ class DocumentAPI:
             from grunt.document import collection
 
             result = await collection.list_documents(
-                require_session(),
+                grunt.get_session(),
                 doctype,
                 user,
                 page=page,
@@ -480,7 +480,7 @@ class DocumentAPI:
         apply_hidden_fields_to_rows(rows, hidden_fields)
         await fire("after_read", doctype=doctype, user=user, data=rows, method="get_all")
 
-        session = require_session()
+        session = grunt.get_session()
         controllers = [
             model_class(doctype=doctype, data=row, user=user, session=session)  # type: ignore[return-value, call-arg]
             for row in rows
@@ -504,7 +504,7 @@ class DocumentAPI:
             raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
         table = dt.table
         user = require_user()
-        session = require_session()
+        session = grunt.get_session()
 
         now = datetime.now(UTC)
         rows: list[dict[str, Any]] = []
@@ -591,7 +591,9 @@ class DocumentAPI:
             if cached is not None:
                 return cached
 
-        result = await collection.count_documents(require_session(), doctype, user, filters=filters)
+        result = await collection.count_documents(
+            grunt.get_session(), doctype, user, filters=filters
+        )
         if cache_key is not None and cache is not None:
             await cache.set_count(cache_key, result)
         return result
@@ -718,7 +720,7 @@ class DocumentAPI:
             doc_id,
             action,
             require_user(),
-            require_session(),
+            grunt.get_session(),
             require_engine(),
             values,
         )

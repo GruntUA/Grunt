@@ -6,7 +6,7 @@ turn a raw document reference into a display label without one query per row.
 
 from __future__ import annotations
 
-from grunt.log import log
+from grunt import log
 
 
 async def resolve_reference_titles(

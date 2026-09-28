@@ -13,8 +13,8 @@ from typing import TYPE_CHECKING, Any
 import anyio.to_thread
 import bcrypt
 
+from grunt import log
 from grunt.i18n import N_, _
-from grunt.log import log
 
 if TYPE_CHECKING:
     from fastapi import Request
@@ -143,7 +143,7 @@ class User(Document):
         are unrestricted.
         """
         try:
-            current = await grunt.get_current_user()
+            current = grunt.get_user()
         except Exception:
             return
         if current is None or not getattr(current, "id", None):
@@ -289,7 +289,7 @@ async def _is_internal_context() -> bool:
     fixtures, registration flows) or has no user at all — those paths must not
     be blocked by the interactive password policy."""
     try:
-        current = await grunt.get_current_user()
+        current = grunt.get_user()
     except Exception:
         return True
     return not current or current.email == SYSTEM_USER.email
@@ -322,9 +322,8 @@ async def _get_user_by(fields: list[str] | None = None, **filter_kwargs: str) ->
     omit it to fetch the full row, including password/token/MFA columns.
     """
     from grunt.auth.doctypes.UserRole.user_role import get_user_roles
-    from grunt.local import require_session
 
-    session = require_session()
+    session = grunt.get_session()
     async with grunt.system_context(session):
         query = User.objects.filter(**filter_kwargs)
         if fields is not None:
@@ -347,12 +346,11 @@ async def get_users_by_emails(emails: list[str], *, fields: list[str] | None = N
     Unlike :func:`get_user_by_email`, this does not attach ``roles`` (not
     needed by its current callers, e.g. the sidebar's people list).
     """
-    from grunt.local import require_session
 
     if not emails:
         return []
 
-    session = require_session()
+    session = grunt.get_session()
     async with grunt.system_context(session):
         query = User.objects.filter(email__in=emails)
         if fields is not None:
@@ -378,14 +376,15 @@ async def get_auth_context_user(uid: str) -> User | None:
     never more than that stale-write race, not a TTL.
     """
     from grunt.config import settings
-    from grunt.local import require_session
 
     if not settings.doc_cache_enabled:
         return await get_user_by_id(uid, fields=AUTH_CONTEXT_FIELDS)
 
     cached = await grunt.doc_cache.get("User", uid)
     if cached is not None:
-        return User(doctype="User", data=dict(cached), user=SYSTEM_USER, session=require_session())
+        return User(
+            doctype="User", data=dict(cached), user=SYSTEM_USER, session=grunt.get_session()
+        )
 
     user = await get_user_by_id(uid, fields=AUTH_CONTEXT_FIELDS)
     if user is not None:
@@ -397,10 +396,9 @@ async def list_users() -> list[User]:
     """List all users. Runs as SYSTEM_USER — callers (CLI, admin API) gate access
     themselves before calling this."""
     from grunt.auth.doctypes.UserRole.user_role import get_user_roles
-    from grunt.local import require_session
     from grunt.site.manager import site_manager
 
-    session = require_session()
+    session = grunt.get_session()
     engine = site_manager.get_engine(site_manager.get_active_site())
     async with grunt.system_context(session, engine):
         users = await User.objects.limit(10_000).all()
@@ -417,10 +415,9 @@ async def create_user(
     middle_name: str | None,
 ) -> User:
     """Create a new user. The first user automatically gets the "System Manager" role."""
-    from grunt.local import require_session
     from grunt.site.manager import site_manager
 
-    session = require_session()
+    session = grunt.get_session()
     engine = site_manager.get_engine(site_manager.get_active_site())
     async with grunt.system_context(session, engine):
         is_first_user = await User.objects.count() == 0
@@ -469,7 +466,6 @@ async def register_failed_attempt(user: User) -> None:
 
     Shared by every authentication factor (password, email code, ...).
     """
-    from grunt.local import require_session
     from grunt.site.settings import get_setting
 
     max_attempts = int(await get_setting("max_login_attempts", _MAX_ATTEMPTS) or _MAX_ATTEMPTS)
@@ -482,16 +478,15 @@ async def register_failed_attempt(user: User) -> None:
         updates["locked_until"] = datetime.now(UTC) + timedelta(minutes=lockout_minutes)
         updates["login_attempts"] = 0
     assert user.name
-    async with grunt.system_context(require_session()):
+    async with grunt.system_context(grunt.get_session()):
         await grunt.db.set_value("User", user.name, updates)
 
 
 async def clear_failed_attempts(user: User) -> None:
     """Reset the failed-sign-in counter and any lock after a success."""
-    from grunt.local import require_session
 
     assert user.name
-    async with grunt.system_context(require_session()):
+    async with grunt.system_context(grunt.get_session()):
         await grunt.db.set_value("User", user.name, {"login_attempts": 0, "locked_until": None})
 
 
@@ -502,7 +497,6 @@ async def authenticate(email: str, password: str) -> User | None:
     (``SystemSettings``) failures for ``account_lockout_duration`` minutes.
     Raises ``ValueError("locked")`` when the account is temporarily locked.
     """
-    from grunt.local import require_session
 
     user = await get_user_by_email(email)
     if user is None:
@@ -511,7 +505,7 @@ async def authenticate(email: str, password: str) -> User | None:
     if await is_account_locked(user):
         raise ValueError("locked")
 
-    async with grunt.system_context(require_session()):
+    async with grunt.system_context(grunt.get_session()):
         valid = bool(user.hashed_password) and await verify_password(password, user.hashed_password)
 
     if not valid:
@@ -559,14 +553,13 @@ async def _assign_default_role(user_id: str | None) -> None:
     Runs as SYSTEM — registration happens in a guest context that cannot
     write the admin-only ``User.roles`` table.
     """
-    from grunt.local import require_session
     from grunt.site.settings import get_setting
 
     role = await get_setting("default_role")
     if not role or not user_id:
         return
 
-    async with grunt.system_context(require_session()):
+    async with grunt.system_context(grunt.get_session()):
         if not await grunt.db.exists("Role", {"role_name": role}):
             return
         current = await grunt.db.get_all(
@@ -589,7 +582,6 @@ async def _apply_signup_approval(user: User) -> bool:
 
     Returns True when the user was left pending.
     """
-    from grunt.local import require_session
     from grunt.site.settings import get_setting
 
     if user_has_roles(user, ["System Manager"]) or not await get_setting(
@@ -598,7 +590,7 @@ async def _apply_signup_approval(user: User) -> bool:
         return False
 
     assert user.id is not None
-    async with grunt.system_context(require_session()):
+    async with grunt.system_context(grunt.get_session()):
         await grunt.db.set_value("User", user.id, {"signup_state": "pending", "is_active": False})
     user.data["signup_state"] = "pending"
     user.data["is_active"] = False
@@ -758,7 +750,7 @@ async def whoami() -> dict[str, Any]:
     Re-reads the row from the DB (the context user is built from JWT claims and
     lacks profile fields like ``mfa_enabled`` / ``language`` / ``timezone``).
     """
-    ctx_user = await grunt.get_current_user()
+    ctx_user = grunt.get_user()
     user = (await get_user_by_id(ctx_user.id) if ctx_user.id else None) or ctx_user
     return {
         **UserPublic.dump(user),
@@ -774,7 +766,7 @@ async def whoami() -> dict[str, Any]:
 @grunt.whitelist()
 async def me_api() -> dict[str, Any]:
     """Return current user with the full auth payload fields."""
-    user = await grunt.get_current_user()
+    user = grunt.get_user()
     return _auth_user_dump(user)
 
 
@@ -785,7 +777,7 @@ async def update_me_api(
     timezone: str | None = None,
 ) -> dict[str, Any]:
     """Update current user preferences and return updated profile."""
-    user = await grunt.get_current_user()
+    user = grunt.get_user()
 
     values: dict[str, Any] = {}
     if theme is not None:
@@ -862,7 +854,7 @@ async def logout_api() -> bool:
     """End the current device's session (other devices stay signed in)."""
     from grunt.auth.doctypes.UserSession.user_session import end_session
 
-    user = await grunt.get_current_user()
+    user = grunt.get_user()
     if sid := user.data.get("_sid"):
         await end_session(sid)
     return True
@@ -877,7 +869,7 @@ async def start_impersonation_api(user_id: str) -> dict[str, Any]:
     """
     from grunt.auth.impersonation import start_impersonation
 
-    actor = await grunt.get_current_user()
+    actor = grunt.get_user()
     return await start_impersonation(actor, user_id)
 
 
@@ -888,7 +880,7 @@ async def stop_impersonation_api() -> bool:
     The real session is restored client-side from the tokens it stashed before
     starting; this endpoint only records that the view-as session was closed.
     """
-    user = await grunt.get_current_user()
+    user = grunt.get_user()
     imp = user.data.get("_impersonator") if hasattr(user, "data") else None
     if imp:
         log.warning(
@@ -981,7 +973,7 @@ async def set_user_password_api(
     if not user or not user.id:
         grunt.throw(_("User not found"), "NOT_FOUND")
 
-    current = await grunt.get_current_user()
+    current = grunt.get_user()
     is_self = bool(
         current
         and (
@@ -1008,7 +1000,7 @@ async def set_user_password_api(
 @grunt.whitelist()
 async def setup_mfa() -> dict[str, Any]:
     """Whitelisted method: Start MFA setup for the current user."""
-    current = await grunt.get_current_user()
+    current = grunt.get_user()
     assert current.id is not None
     user = await get_user_by_id(current.id)
     if not user:
@@ -1019,7 +1011,7 @@ async def setup_mfa() -> dict[str, Any]:
 @grunt.whitelist()
 async def confirm_mfa(code: str) -> dict[str, Any]:
     """Whitelisted method: Confirm MFA setup for the current user."""
-    current = await grunt.get_current_user()
+    current = grunt.get_user()
     assert current.id is not None
     user = await get_user_by_id(current.id)
     if not user:
@@ -1033,7 +1025,7 @@ async def verify_mfa(code: str) -> bool:
     """Verify a TOTP or backup code for the current user."""
     from grunt.auth.mfa import check_mfa_code
 
-    current = await grunt.get_current_user()
+    current = grunt.get_user()
     assert current.id is not None
     user = await get_user_by_id(current.id)
     if not user:
@@ -1046,7 +1038,7 @@ async def verify_mfa(code: str) -> bool:
 @grunt.whitelist()
 async def disable_mfa() -> bool:
     """Whitelisted method: Disable MFA for the current user."""
-    current = await grunt.get_current_user()
+    current = grunt.get_user()
     assert current.id is not None
     user = await get_user_by_id(current.id)
     if not user:
@@ -1059,7 +1051,6 @@ async def disable_mfa() -> bool:
 async def forgot_password_api(email: str, request: Request | None = None) -> bool:
     """Queue a password reset email if the user exists (always returns success)."""
     from grunt.auth.service import create_password_reset_token
-    from grunt.local import require_session
     from grunt.utils.http import public_base_url
 
     user = await get_user_by_email(email)
@@ -1072,8 +1063,9 @@ async def forgot_password_api(email: str, request: Request | None = None) -> boo
     reset_url = f"{public_base_url(request)}/reset-password?token={token}"
 
     try:
+        from grunt import _
         from grunt.email.service import email_service
-        from grunt.i18n import _, use_language
+        from grunt.i18n import use_language
 
         # The mail is for the account owner — render it in *their* language.
         with use_language(user.language):
@@ -1090,7 +1082,7 @@ async def forgot_password_api(email: str, request: Request | None = None) -> boo
                 ]
             )
             subject = _("Password reset")
-        session = require_session()
+        session = grunt.get_session()
         await email_service.queue_email(
             session=session,
             to=user.email,

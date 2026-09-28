@@ -34,8 +34,7 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from grunt.i18n import _
-from grunt.log import log
+from grunt import _, log
 from grunt.progress import Progress
 
 if TYPE_CHECKING:

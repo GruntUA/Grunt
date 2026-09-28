@@ -12,8 +12,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from grunt.i18n import _
-from grunt.log import log
+from grunt import _, log
 from grunt.permissions.roles import user_has_roles
 
 if TYPE_CHECKING:

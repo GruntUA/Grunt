@@ -154,9 +154,7 @@ async def _attach_user_names(entries: list[dict[str, Any]]) -> None:
     if not emails:
         return
 
-    from grunt.local import require_session
-
-    async with grunt.system_context(require_session()):
+    async with grunt.system_context(grunt.get_session()):
         rows = await grunt.get_list(
             "User",
             filters={"name__in": list(emails)},

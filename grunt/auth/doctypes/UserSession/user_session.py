@@ -19,7 +19,7 @@ from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING, Any
 
 import grunt
-from grunt.i18n import _
+from grunt import _
 
 if TYPE_CHECKING:
     from fastapi import Request
@@ -89,12 +89,11 @@ async def open_session(
 ) -> tuple[str, str]:
     """Start a session for a successful login. Returns ``(sid, refresh_token)``."""
     from grunt.auth.service import session_ttl_minutes
-    from grunt.local import require_session
 
     sid = uuid.uuid4().hex
     refresh_token = secrets.token_hex(32)
 
-    async with grunt.system_context(require_session()):
+    async with grunt.system_context(grunt.get_session()):
         await _deactivate_expired(user_id, await session_ttl_minutes())
         await grunt.new_doc(
             "UserSession",
@@ -123,9 +122,8 @@ async def rotate_session(
     closes it on the next login or session listing.
     """
     from grunt.auth.service import session_ttl_minutes
-    from grunt.local import require_session
 
-    async with grunt.system_context(require_session()):
+    async with grunt.system_context(grunt.get_session()):
         rows = await grunt.db.get_all(
             "UserSession",
             filters={"refresh_token_hash": _hash(refresh_token), "is_active": True},
@@ -151,17 +149,15 @@ async def rotate_session(
 
 async def end_session(sid: str) -> None:
     """Revoke one session (its refresh token stops working)."""
-    from grunt.local import require_session
 
-    async with grunt.system_context(require_session()):
+    async with grunt.system_context(grunt.get_session()):
         await grunt.db.set_value("UserSession", sid, "is_active", False)
 
 
 async def end_all_sessions(user_id: str, keep_sid: str | None = None) -> int:
     """Revoke every active session of a user, optionally sparing ``keep_sid``."""
-    from grunt.local import require_session
 
-    async with grunt.system_context(require_session()):
+    async with grunt.system_context(grunt.get_session()):
         rows = await grunt.db.get_all(
             "UserSession",
             filters={"user": user_id, "is_active": True},
@@ -177,11 +173,10 @@ async def end_all_sessions(user_id: str, keep_sid: str | None = None) -> int:
 async def list_my_sessions() -> list[dict[str, Any]]:
     """Active sessions of the current user; ``current`` marks this device."""
     from grunt.auth.service import session_ttl_minutes
-    from grunt.local import require_session
 
-    current = await grunt.get_current_user()
+    current = grunt.get_user()
     assert current.id is not None
-    async with grunt.system_context(require_session()):
+    async with grunt.system_context(grunt.get_session()):
         await _deactivate_expired(current.id, await session_ttl_minutes())
         rows = await grunt.db.get_all(
             "UserSession",
@@ -197,10 +192,9 @@ async def list_my_sessions() -> list[dict[str, Any]]:
 @grunt.whitelist()
 async def revoke_my_session(session_id: str) -> bool:
     """Sign out one of the current user's devices."""
-    from grunt.local import require_session
 
-    current = await grunt.get_current_user()
-    async with grunt.system_context(require_session()):
+    current = grunt.get_user()
+    async with grunt.system_context(grunt.get_session()):
         owner = await grunt.db.get_value("UserSession", session_id, "user")
     if owner is None or owner != current.id:
         grunt.throw(_("Session not found"), "NOT_FOUND")
@@ -211,6 +205,6 @@ async def revoke_my_session(session_id: str) -> bool:
 @grunt.whitelist()
 async def revoke_other_sessions() -> int:
     """Sign out every device of the current user except this one."""
-    current = await grunt.get_current_user()
+    current = grunt.get_user()
     assert current.id is not None
     return await end_all_sessions(current.id, keep_sid=current.data.get("_sid"))

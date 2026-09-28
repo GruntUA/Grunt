@@ -16,7 +16,7 @@ from datetime import UTC, datetime
 from typing import Any
 
 import grunt
-from grunt.log import log
+from grunt import log
 
 
 def _title_of(dt: Any, doc: dict[str, Any]) -> str:

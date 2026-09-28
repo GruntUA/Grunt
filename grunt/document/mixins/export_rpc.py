@@ -17,7 +17,7 @@ from fastapi import HTTPException
 from fastapi.responses import Response, StreamingResponse
 
 import grunt
-from grunt.i18n import _
+from grunt import _
 from grunt.io import get_exporter, get_exporters
 
 _AUTOPRINT_SCRIPT = (

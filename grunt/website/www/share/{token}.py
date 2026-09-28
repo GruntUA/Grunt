@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from grunt.i18n import _
+from grunt import _
 from grunt.website.doc_layout import FlatField, build_tabs, fmt_dt
 
 

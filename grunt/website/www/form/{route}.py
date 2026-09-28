@@ -14,7 +14,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from grunt.i18n import _
+from grunt import _
 
 # fieldtype → native <input type>. Anything unlisted renders as a text input.
 _INPUT_TYPES = {

@@ -6,7 +6,7 @@ import json
 from typing import Any
 
 import grunt
-from grunt.log import log
+from grunt import log
 
 
 class AssignmentService:
@@ -118,10 +118,9 @@ class AssignmentService:
 
     async def _get_enabled_rules(self, doctype: str) -> list[dict]:
         """Завантажити всі enabled правила для DocType з БД."""
-        from grunt.local import require_session
 
         try:
-            async with grunt.context(require_session()):
+            async with grunt.context(grunt.get_session()):
                 rows = await grunt.db.get_all(
                     "AssignmentRule",
                     filters={"doctype_target": doctype, "enabled": True},
@@ -200,10 +199,9 @@ class AssignmentService:
             AssignmentLog,
         )
         from grunt.auth.doctypes.User.user import get_user_by_id
-        from grunt.local import require_session
 
         try:
-            async with grunt.system_context(require_session()):
+            async with grunt.system_context(grunt.get_session()):
                 ur_rows = await grunt.db.get_all(
                     "UserRole",
                     filters={"role_name": role, "parent_doctype": "User"},
@@ -247,11 +245,10 @@ class AssignmentService:
         Goes through ``new_doc`` — not ``bulk_insert`` — so the ``ToDo``
         ``after_insert`` hook fires and the assignee gets notified.
         """
-        from grunt.local import require_session
 
         ref_id = doc.get("name") or doc.get("id")
 
-        async with grunt.system_context(require_session()):
+        async with grunt.system_context(grunt.get_session()):
             already = await grunt.db.exists(
                 "ToDo",
                 {

@@ -17,8 +17,7 @@ from datetime import UTC, date, datetime
 from typing import TYPE_CHECKING, Any
 
 import grunt
-from grunt.i18n import _
-from grunt.log import log
+from grunt import _, log
 from grunt.site.manager import site_manager
 from grunt.tasks.broker import retryable_task
 
@@ -137,6 +136,5 @@ async def send_report_now(name: str) -> int:
     rows = await grunt.db.get_all("Report", filters={"name": name}, fields=_REPORT_FIELDS, limit=1)
     if not rows:
         grunt.throw(_("Report “%(name)s” not found") % {"name": name}, "NOT_FOUND")
-    from grunt.local import require_session
 
-    return await send_report(rows[0], require_session())
+    return await send_report(rows[0], grunt.get_session())

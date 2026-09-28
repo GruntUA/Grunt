@@ -9,7 +9,7 @@ from __future__ import annotations
 from typing import Any
 
 import grunt
-from grunt.i18n import _
+from grunt import _
 
 
 class DocumentWorkflowRPCMixin:

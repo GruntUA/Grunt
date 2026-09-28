@@ -17,7 +17,7 @@ from abc import ABC, abstractmethod
 from datetime import date
 from pathlib import Path
 
-from grunt.log import log
+from grunt import log
 
 # MIME type allowlist
 ALLOWED_MIME_TYPES: set[str] = {

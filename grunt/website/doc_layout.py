@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from grunt.i18n import _
+from grunt import _
 from grunt.utils.sanitize import sanitize_html
 
 # Framework bookkeeping fields never shown in the read-only share view.

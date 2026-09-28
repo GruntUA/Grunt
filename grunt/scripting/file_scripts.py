@@ -29,7 +29,7 @@ import re
 from pathlib import Path
 from typing import Any
 
-from grunt.log import log
+from grunt import log
 from grunt.utils.strings import to_snake_case
 
 # ── Registries ────────────────────────────────────────────────────────────

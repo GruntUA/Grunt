@@ -8,7 +8,7 @@ from typing import Any
 from fastapi import HTTPException, status
 from sqlalchemy.exc import IntegrityError
 
-from grunt.i18n import _
+from grunt import _
 
 _NOT_NULL_RE = re.compile(r"NOT NULL constraint failed:\s*\S+\.(\w+)", re.IGNORECASE)
 _UNIQUE_SQLITE_RE = re.compile(r"UNIQUE constraint failed:\s*\S+\.(\w+)", re.IGNORECASE)

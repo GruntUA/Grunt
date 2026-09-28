@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from grunt.log import log
+from grunt import log
 
 _GRUNT_ROOT = Path(__file__).parent.parent  # grunt/startup/ → grunt/
 

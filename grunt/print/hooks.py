@@ -1,8 +1,8 @@
 import json
 from typing import Any
 
+from grunt import log
 from grunt.hooks import on_doc
-from grunt.log import log
 from grunt.site.manager import site_manager
 
 

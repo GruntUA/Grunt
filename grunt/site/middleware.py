@@ -4,8 +4,8 @@ from typing import TYPE_CHECKING
 
 from starlette.middleware.base import BaseHTTPMiddleware
 
+from grunt import log
 from grunt.db.write_intent import READ_ONLY_METHODS, set_write_intent
-from grunt.log import log
 from grunt.site.manager import current_site, site_manager
 
 if TYPE_CHECKING:

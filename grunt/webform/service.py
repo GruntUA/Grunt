@@ -9,8 +9,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 import grunt
-from grunt.i18n import _
-from grunt.log import log
+from grunt import _, log
 
 if TYPE_CHECKING:
     from grunt.auth.doctypes.User.user import User
@@ -55,9 +54,8 @@ class WebFormService:
         including its hydrated ``fields`` child rows, without that requiring
         a matching read-permission on WebForm itself.
         """
-        from grunt.local import require_session
 
-        async with grunt.context(require_session()):
+        async with grunt.context(grunt.get_session()):
             rows = await grunt.db.get_all(
                 "WebForm",
                 filters={"route": route, "is_published": True},
@@ -67,7 +65,7 @@ class WebFormService:
         if not rows:
             return None
 
-        async with grunt.system_context(require_session()):
+        async with grunt.system_context(grunt.get_session()):
             return await grunt.get_doc("WebForm", rows[0]["name"])
 
     async def get_form_fields(self, route: str) -> list[dict[str, Any]]:
@@ -151,7 +149,6 @@ class WebFormService:
         Raises:
             WebFormError on validation or submission failure.
         """
-        from grunt.local import require_session
 
         form = await self.get_form(route)
         if not form:
@@ -185,7 +182,7 @@ class WebFormService:
             # actually configured. A real (if minimal) Guest user keeps
             # permission checks meaningful: the target DocType must have an
             # explicit `role: "Guest"` (or "All") create permission.
-            async with grunt.context(require_session(), user=_guest_user()):
+            async with grunt.context(grunt.get_session(), user=_guest_user()):
                 doc = await grunt.new_doc(form["doctype"], validated)
             owner = GUEST_USER
 
@@ -279,18 +276,16 @@ class WebFormService:
             return
 
         from grunt.email import templates as email_templates
-        from grunt.local import require_session
 
-        session = require_session()
+        session = grunt.get_session()
         context = {**validated, "doc_id": doc_id, "webform_title": form["title"]}
         for addr in recipients:
             await email_templates.queue(session, to=addr, name=template_name, context=context)
 
     async def _count_submissions(self, doctype: str) -> int:
         """Count existing documents in the target table."""
-        from grunt.local import require_session
 
-        async with grunt.context(require_session()):
+        async with grunt.context(grunt.get_session()):
             return await grunt.db.count(doctype)
 
     async def save_guest_file(self, upload: Any) -> str:
@@ -307,7 +302,6 @@ class WebFormService:
         import hashlib
 
         from grunt.config import settings
-        from grunt.local import require_session
         from grunt.storage import get_storage_backend
 
         content = await upload.read()
@@ -326,7 +320,7 @@ class WebFormService:
         except ValueError as exc:
             raise WebFormError(str(exc)) from exc
 
-        async with grunt.system_context(require_session()):
+        async with grunt.system_context(grunt.get_session()):
             file_doc = await grunt.new_doc(
                 "File",
                 {

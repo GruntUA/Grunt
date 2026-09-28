@@ -18,9 +18,8 @@ from typing import TYPE_CHECKING, Any
 from sqlalchemy import text
 
 import grunt
-from grunt import whitelist
+from grunt import log, whitelist
 from grunt.i18n import N_, _
-from grunt.log import log
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
@@ -65,9 +64,8 @@ def _since(delta: timedelta) -> datetime:
 
 
 def _session():
-    from grunt.local import require_session
 
-    return require_session()
+    return grunt.get_session()
 
 
 # ── Database ──────────────────────────────────────────────────────────────

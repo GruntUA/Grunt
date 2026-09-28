@@ -25,7 +25,7 @@ from contextvars import ContextVar
 from dataclasses import asdict, dataclass, field
 from typing import TYPE_CHECKING, Any, TypeVar
 
-from grunt.log import log
+from grunt import log
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine

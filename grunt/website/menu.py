@@ -20,7 +20,7 @@ from __future__ import annotations
 import time
 from typing import Any
 
-from grunt.log import log
+from grunt import log
 
 DOCTYPE = "WebsiteMenuItem"
 _TTL = 60.0

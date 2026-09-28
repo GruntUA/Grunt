@@ -12,8 +12,8 @@ from __future__ import annotations
 from contextlib import asynccontextmanager
 from typing import TYPE_CHECKING, Any
 
+from grunt import log
 from grunt.i18n import N_, _
-from grunt.log import log
 
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator

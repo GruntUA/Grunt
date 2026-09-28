@@ -17,7 +17,7 @@ import pytest
 async def test_inject_core_warns_on_permissions_drift_but_does_not_overwrite(
     ctx, db_session, engine, monkeypatch
 ):
-    from grunt.log import log
+    from grunt import log
     from grunt.metadata.doctype import DocType
     from grunt.metadata.permission import DocPermission
     from grunt.metadata.registry import doctype_registry
@@ -64,7 +64,7 @@ async def test_inject_core_warns_on_permissions_drift_but_does_not_overwrite(
 
 @pytest.mark.asyncio
 async def test_inject_core_silent_when_permissions_match(ctx, db_session, engine, monkeypatch):
-    from grunt.log import log
+    from grunt import log
     from grunt.metadata.doctype import DocType
     from grunt.metadata.permission import DocPermission
     from grunt.metadata.registry import doctype_registry

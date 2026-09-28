@@ -12,8 +12,8 @@ from datetime import date
 from typing import Any
 
 import grunt
+from grunt import _
 from grunt.document.tree import TREE_TITLE_RESOLVERS, tree_service
-from grunt.i18n import _
 from grunt.permissions.guards import write_guard
 
 

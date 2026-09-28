@@ -24,10 +24,9 @@ from fastapi import status
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
+from grunt import _, log
 from grunt.config import settings
 from grunt.errors import error_body
-from grunt.i18n import _
-from grunt.log import log
 
 if TYPE_CHECKING:
     from starlette.requests import Request

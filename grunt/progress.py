@@ -35,8 +35,7 @@ import uuid
 from contextlib import asynccontextmanager
 from typing import TYPE_CHECKING, Any, Literal
 
-from grunt import whitelist
-from grunt.log import log
+from grunt import log, whitelist
 
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator

@@ -7,9 +7,8 @@ from typing import Any
 import aiosmtplib
 
 import grunt
+from grunt import _, log
 from grunt.email.service import SMTP_PASSWORD_MASK, EmailService, smtp_connect_kwargs
-from grunt.i18n import _
-from grunt.log import log
 
 
 def _mask_password(account: dict[str, Any]) -> dict[str, Any]:

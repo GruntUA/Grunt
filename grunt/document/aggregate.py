@@ -21,8 +21,8 @@ from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import func, select
 
+from grunt import log
 from grunt.document.meta import Meta
-from grunt.log import log
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession

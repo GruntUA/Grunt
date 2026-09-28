@@ -5,8 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 import grunt
-from grunt.i18n import _
-from grunt.log import log
+from grunt import _, log
 from grunt.metadata.compiler import DuplicateDataError, get_table_name, sync_table
 from grunt.metadata.doctype import DocType
 from grunt.metadata.dynamic_options import get_option_labels, get_schemas, resolve_field_options

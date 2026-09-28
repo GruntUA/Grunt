@@ -7,11 +7,10 @@ from typing import TYPE_CHECKING, Any
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 
 import grunt
+from grunt import _, log
 from grunt.auth.dependencies import _oauth2_scheme_optional, optional_user
 from grunt.db.session import get_engine as get_engine_dep
 from grunt.db.session import get_session
-from grunt.i18n import _
-from grunt.log import log
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession

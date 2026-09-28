@@ -5,8 +5,7 @@ from typing import Any
 
 from fastapi import HTTPException, status
 
-from grunt.i18n import _
-from grunt.log import log
+from grunt import _, log
 from grunt.metadata.virtual import VirtualDocType
 from grunt.tasks.redis_introspect import (
     decode_message,

@@ -3,8 +3,8 @@ from __future__ import annotations
 import asyncio
 from typing import Any
 
+from grunt import log
 from grunt.db.session import async_session_factory
-from grunt.log import log
 from grunt.notification.service import notification_service
 from grunt.tasks.broker import task
 

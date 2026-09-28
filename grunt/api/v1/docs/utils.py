@@ -9,8 +9,8 @@ from typing import TYPE_CHECKING, Any
 import openpyxl
 from openpyxl.styles import Alignment, Font, PatternFill
 
+from grunt import _
 from grunt.document.meta import Meta
-from grunt.i18n import _
 from grunt.io.exporters.sanitize import escape_formula
 
 if TYPE_CHECKING:

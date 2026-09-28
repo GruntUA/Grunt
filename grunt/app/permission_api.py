@@ -1,27 +1,14 @@
-"""Permission API mixin for GruntApp facade.
-
-Identity/guard logic lives in :mod:`grunt.local` (context accessors) and
-:mod:`grunt.permissions.guards` (permission guards) as module-level functions —
-import and call those directly. ``_require_user`` stays as a thin facade wrapper
-because external code still calls ``grunt.get_user()``.
-"""
+"""Permission API mixin for GruntApp facade."""
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
-from grunt.local import require_user
 from grunt.permissions.types import PermissionAction
-
-if TYPE_CHECKING:
-    from grunt.auth.doctypes.User.user import User
 
 
 class PermissionAPI:
     """Permission and identity helper methods for GruntApp."""
-
-    def _require_user(self) -> User:
-        return require_user()
 
     async def has_permission(
         self,
@@ -43,7 +30,7 @@ class PermissionAPI:
         dt = await grunt.get_meta(doctype)
         if dt is None:
             return False
-        user = require_user()
+        user = grunt.get_user()
         doc: dict[str, Any] | None = None
         if doc_id:
             doc = await grunt.db.get_value(doctype, doc_id, "*")

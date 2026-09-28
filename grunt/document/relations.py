@@ -7,9 +7,9 @@ from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import select
 
+from grunt import log
 from grunt.document.meta import Meta
 from grunt.document.serde import audit_fields, serialize_datetimes
-from grunt.log import log
 from grunt.metadata.registry import doctype_registry
 
 if TYPE_CHECKING:

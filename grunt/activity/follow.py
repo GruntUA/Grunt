@@ -10,8 +10,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 import grunt
-from grunt.i18n import _, language_of, use_language
-from grunt.log import log
+from grunt import _, log
+from grunt.i18n import language_of, use_language
 
 if TYPE_CHECKING:
     from collections.abc import Callable

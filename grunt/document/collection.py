@@ -16,6 +16,7 @@ from typing import TYPE_CHECKING, Any
 from fastapi import HTTPException, status
 from sqlalchemy import and_, func, select, update
 
+from grunt import _, log
 from grunt.db.filters import apply_filters
 from grunt.document.base import Document, DocumentList
 from grunt.document.formula import evaluate_read_formulas
@@ -32,8 +33,6 @@ from grunt.document.update_side_effects import (
     run_bulk_delete_writes,
 )
 from grunt.document.virtual import is_virtual_routed, virtual_list
-from grunt.i18n import _
-from grunt.log import log
 from grunt.metadata.registry import doctype_registry
 
 if TYPE_CHECKING:

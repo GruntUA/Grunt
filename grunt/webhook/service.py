@@ -17,8 +17,7 @@ from typing import TYPE_CHECKING, Any
 
 import httpx
 
-from grunt.i18n import _
-from grunt.log import log
+from grunt import _, log
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession

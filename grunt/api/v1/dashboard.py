@@ -9,8 +9,7 @@ from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import grunt
-from grunt.i18n import _
-from grunt.log import log
+from grunt import _, log
 from grunt.metadata.widget import get_widget_type_class
 from grunt.reports.widget_compute import _widget_report_series
 

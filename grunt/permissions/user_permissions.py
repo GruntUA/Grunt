@@ -29,7 +29,7 @@ from typing import TYPE_CHECKING, Any
 from sqlalchemy import and_, false, or_
 
 import grunt
-from grunt.i18n import _
+from grunt import _
 
 if TYPE_CHECKING:
     from sqlalchemy import Table
@@ -228,7 +228,7 @@ async def get_active_restrictions(doctype: str) -> list[dict[str, Any]]:
     are constrained, and to which values, for the current user."""
     from grunt.errors import not_found
 
-    user = await grunt.get_current_user()
+    user = grunt.get_user()
     dt = await grunt.get_meta(doctype)
     if dt is None:
         raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
@@ -251,7 +251,7 @@ async def get_user_permission_defaults(doctype: str) -> dict[str, str]:
     current user's ``is_default`` UserPermission rows."""
     from grunt.errors import not_found
 
-    user = await grunt.get_current_user()
+    user = grunt.get_user()
     if not user_permissions_apply_to(user):
         return {}
     email = getattr(user, "email", None)

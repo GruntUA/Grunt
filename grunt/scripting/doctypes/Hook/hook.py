@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from grunt.i18n import _
+from grunt import _
 from grunt.metadata.virtual import VirtualDocType
 
 _SEARCH_FIELDS = ["event", "handler", "reference_doctype", "source"]
@@ -73,7 +73,7 @@ async def _collect_server_scripts() -> list[dict[str, Any]]:
             limit=1000,
         )
     except Exception:
-        from grunt.log import log
+        from grunt import log
 
         log.exception("hook.server_scripts_failed")
         return rows

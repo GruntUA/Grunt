@@ -10,9 +10,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+import grunt
+from grunt import _
 from grunt.errors import not_found
-from grunt.i18n import _
-from grunt.local import require_session, require_user
+from grunt.local import require_user
 from grunt.permissions.types import PermissionAction, WriteAction
 
 if TYPE_CHECKING:
@@ -52,7 +53,6 @@ async def read_guard(doctype: str) -> tuple[Any, User, frozenset[str]]:
     Returns ``(dt, user, hidden_fields)``. Raises ``403`` when the user has no
     *read* permission on the DocType.
     """
-    import grunt
     from grunt.permissions.rbac import permission_checker
 
     dt = await grunt.get_meta(doctype)
@@ -73,7 +73,6 @@ async def doc_guard(doctype: str, doc_id: str, action: PermissionAction = "read"
     evaluate row-level ``match``/User Permission rules. Raises ``404`` when
     the document does not exist, ``403`` when the action is not permitted.
     """
-    import grunt
     from grunt.document.virtual import is_virtual_routed
     from grunt.permissions.rbac import permission_checker
 
@@ -98,7 +97,6 @@ async def write_guard(doctype: str, action: WriteAction) -> tuple[Any, User, Asy
     Returns ``(dt, user, session)``. Raises ``403`` when the user has no
     permission for *action* (``"create"``, ``"write"``, or ``"delete"``).
     """
-    import grunt
     from grunt.permissions.rbac import permission_checker
 
     dt = await grunt.get_meta(doctype)
@@ -106,4 +104,4 @@ async def write_guard(doctype: str, action: WriteAction) -> tuple[Any, User, Asy
         raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
     user = require_user()
     await permission_checker.require(user, dt, action)
-    return dt, user, require_session()
+    return dt, user, grunt.get_session()

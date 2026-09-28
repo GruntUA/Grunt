@@ -17,9 +17,9 @@ from __future__ import annotations
 from contextlib import asynccontextmanager
 from typing import TYPE_CHECKING
 
+from grunt import log
 from grunt.apps import load_external_apps
 from grunt.config import settings
-from grunt.log import log
 from grunt.metadata.registry import doctype_registry
 from grunt.site.manager import current_site, site_manager
 from grunt.tasks.broker import broker

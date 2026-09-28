@@ -9,8 +9,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from grunt.i18n import _
-from grunt.log import log
+from grunt import _, log
 
 if TYPE_CHECKING:
     from grunt.auth.providers.base import AuthProvider

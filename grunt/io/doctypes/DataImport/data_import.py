@@ -2,9 +2,8 @@ import json
 from pathlib import Path
 from typing import Any
 
+from grunt import _, log
 from grunt.document.base import Document
-from grunt.i18n import _
-from grunt.log import log
 
 
 class DataImport(Document):

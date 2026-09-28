@@ -16,7 +16,8 @@ from typing import Any
 from fastapi import HTTPException, status
 
 import grunt
-from grunt.i18n import _, language_of, use_language
+from grunt import _
+from grunt.i18n import language_of, use_language
 
 
 class DocumentCollaborationRPCMixin:

@@ -12,9 +12,8 @@ from datetime import UTC, datetime
 from typing import Any
 
 import grunt
+from grunt import _, log
 from grunt.document.base import Document
-from grunt.i18n import _
-from grunt.log import log
 
 # Ключі знімка, які не можна передавати в insert відновлюваного документа:
 # per-user "seen" стан і аудит-поля (ядро проставляє власні).

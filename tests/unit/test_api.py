@@ -21,7 +21,6 @@ from grunt.api.context import (
     set_user,
 )
 from grunt.api.messages import ApplicationError, msgprint, throw
-from grunt.api.permissions import get_current_user
 from grunt.app import GruntDB
 from grunt.metadata.doctype import DocType
 from grunt.metadata.permission import DocPermission
@@ -138,22 +137,21 @@ class TestContext:
         set_engine(mock_engine)
         assert get_engine() == mock_engine
 
-    def test_get_user_without_context_returns_system_user(self):
-        """Test that get_user() returns system user if none set."""
+    def test_get_user_without_context_raises(self):
+        """Without a user in context get_user() refuses instead of inventing one."""
         clear_context()
-        user = get_user()
-        assert user.email == "system"
-        assert "System Manager" in user.roles
+        with pytest.raises(ApplicationError) as exc_info:
+            get_user()
+        assert exc_info.value.code == "UNAUTHORIZED"
 
     def test_clear_context(self, mock_session, mock_user):
-        """Test clearing context."""
+        """Clearing the context drops the user too."""
         set_session(mock_session)
         set_user(mock_user)
         clear_context()
 
-        # After clear, should return system user/new session
-        user = get_user()
-        assert user.email == "system"
+        with pytest.raises(ApplicationError):
+            get_user()
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -450,12 +448,10 @@ class TestPermissions:
             assert await grunt.has_permission("Invoice", "read") is False
             assert await grunt.has_permission("Invoice", "delete") is False
 
-    @pytest.mark.asyncio
-    async def test_get_current_user(self, setup_context, mock_user):
-        """Test get_current_user() returns user from context."""
+    def test_get_user(self, setup_context, mock_user):
+        """get_user() returns the user from context."""
         set_user(mock_user)
-        user = await get_current_user()
-        assert user == mock_user
+        assert get_user() == mock_user
 
     @pytest.mark.asyncio
     async def test_permission_row_wrong_role_denied(self, setup_context):

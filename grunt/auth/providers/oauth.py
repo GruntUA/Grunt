@@ -13,11 +13,11 @@ from typing import TYPE_CHECKING, Any, ClassVar
 
 from authlib.integrations.httpx_client import AsyncOAuth2Client
 
+from grunt import _
 from grunt.api.messages import throw
 from grunt.auth.providers.base import AuthFlowContext, AuthProvider
 from grunt.auth.providers.registry import register
 from grunt.config import settings
-from grunt.i18n import _
 
 if TYPE_CHECKING:
     from grunt.auth.doctypes.User.user import User

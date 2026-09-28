@@ -3,7 +3,7 @@ import asyncio
 import grunt
 from grunt.db.base import metadata
 from grunt.db.session import async_session_factory, get_engine
-from grunt.log import log
+from grunt import log
 from grunt.startup import (
     load_core_doctypes,
     populate_system_doctypes,

@@ -24,8 +24,8 @@ import sys
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from grunt import log
 from grunt.apps.consumers import HOOK_CONSUMERS, LoadContext, _resolve
-from grunt.log import log
 
 if TYPE_CHECKING:
     from collections.abc import Iterator

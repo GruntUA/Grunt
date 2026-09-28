@@ -26,8 +26,7 @@ from typing import Any
 from sqlalchemy import distinct, func, select
 
 import grunt
-from grunt.i18n import _
-from grunt.log import log
+from grunt import _, log
 from grunt.metadata.doctype import DocTypeLink
 
 _PREVIEW_LIMIT = 5

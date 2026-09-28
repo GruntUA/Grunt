@@ -6,8 +6,7 @@ from datetime import UTC, datetime
 from typing import Any
 
 import grunt
-from grunt.i18n import _
-from grunt.log import log
+from grunt import _, log
 
 
 @grunt.whitelist(allow_guest=True)

@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 
-from grunt.log import log
+from grunt import log
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession

@@ -8,8 +8,7 @@ from typing import TYPE_CHECKING, Any, cast
 from fastapi import HTTPException
 from sqlalchemy import func, select, text
 
-from grunt.i18n import _
-from grunt.log import log
+from grunt import _, log
 
 if TYPE_CHECKING:
     from collections.abc import Callable

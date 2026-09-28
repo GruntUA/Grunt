@@ -147,11 +147,10 @@ async def _find_and_invalidate_token(
     doesn't exist or has expired.
     """
     import grunt
-    from grunt.local import require_session
 
     now = datetime.now(UTC)
 
-    async with grunt.system_context(require_session()):
+    async with grunt.system_context(grunt.get_session()):
         users = await grunt.get_list(
             "User",
             filters={token_field: token},
@@ -178,12 +177,11 @@ async def _find_and_invalidate_token(
 async def create_password_reset_token(user_id: str) -> str:
     """Create a 1-hour password reset token. Invalidates prior unused tokens."""
     import grunt
-    from grunt.local import require_session
 
     token = uuid.uuid4().hex + uuid.uuid4().hex  # 64-char hex
     expires_at = datetime.now(UTC) + timedelta(hours=1)
 
-    async with grunt.system_context(require_session()):
+    async with grunt.system_context(grunt.get_session()):
         await grunt.db.set_value("User", user_id, "reset_token", token)
         await grunt.db.set_value("User", user_id, "reset_token_expires_at", expires_at)
 
@@ -198,9 +196,8 @@ async def consume_password_reset_token(token: str, new_password: str) -> bool:
 
     import grunt
     from grunt.auth.doctypes.User.user import hash_password
-    from grunt.local import require_session
 
-    async with grunt.system_context(require_session()):
+    async with grunt.system_context(grunt.get_session()):
         await grunt.db.set_value(
             "User",
             user_data["name"],

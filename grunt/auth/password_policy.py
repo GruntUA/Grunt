@@ -9,7 +9,7 @@ bootstrap (``grunt site create`` / setup wizard) is never blocked.
 from __future__ import annotations
 
 import grunt
-from grunt.i18n import _
+from grunt import _
 from grunt.site.settings import get_setting
 
 

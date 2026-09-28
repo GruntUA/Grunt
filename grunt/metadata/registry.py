@@ -21,9 +21,8 @@ from fastapi import HTTPException, status
 from sqlalchemy import delete, insert, select, update
 from sqlalchemy.exc import IntegrityError
 
+from grunt import _, log
 from grunt.db.system_tables import GruntMetaDoctype
-from grunt.i18n import _
-from grunt.log import log
 from grunt.metadata.compiler import invalidate_table_cache, sync_table
 from grunt.metadata.doctype import DocType
 from grunt.metadata.field import DocField

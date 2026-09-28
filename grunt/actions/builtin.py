@@ -12,8 +12,8 @@ from __future__ import annotations
 from typing import Any
 
 import grunt
+from grunt import _
 from grunt.actions.registry import doc_action
-from grunt.i18n import _
 
 
 @doc_action(

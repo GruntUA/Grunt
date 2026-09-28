@@ -15,8 +15,7 @@ from typing import TYPE_CHECKING, Any
 import aioimaplib
 import aiosmtplib
 
-from grunt.i18n import _
-from grunt.log import log
+from grunt import _, log
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
@@ -471,9 +470,9 @@ class EmailService:
         import grunt
 
         try:
-            from grunt.local import require_session
+            import grunt
 
-            sess = session or require_session()
+            sess = session or grunt.get_session()
         except Exception:
             return
 
@@ -582,9 +581,9 @@ class EmailService:
         import grunt
 
         try:
-            from grunt.local import require_session
+            import grunt
 
-            sess = session or require_session()
+            sess = session or grunt.get_session()
         except Exception:
             log.warning("email.record_no_session")
             return None

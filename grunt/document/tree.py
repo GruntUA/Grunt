@@ -29,9 +29,8 @@ from typing import TYPE_CHECKING, Any
 from fastapi import HTTPException, status
 from sqlalchemy import literal, select
 
+from grunt import _, log
 from grunt.document.registry import document_registry
-from grunt.i18n import _
-from grunt.log import log
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable

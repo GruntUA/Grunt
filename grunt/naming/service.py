@@ -15,8 +15,7 @@ from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import select, update
 
-from grunt.i18n import _
-from grunt.log import log
+from grunt import _, log
 from grunt.naming.patterns import (
     build_prefix,
     format_name,

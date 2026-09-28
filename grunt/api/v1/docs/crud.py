@@ -8,13 +8,13 @@ from typing import Any
 from fastapi import Body, Depends, Query, Request, status
 
 import grunt
+from grunt import _
 from grunt.api.router import GruntRouter
 from grunt.api.v1.docs.utils import parse_query_filters
 from grunt.api.v1.schemas.response import ok
 from grunt.auth.dependencies import current_user
 from grunt.auth.doctypes.User.user import User
 from grunt.document.bulk_ops import BulkDeleteTask
-from grunt.i18n import _
 from grunt.permissions.doc_perms import PERMS_KEY, with_permissions
 from grunt.website.generator import WEB_URL_KEY, with_web_url
 

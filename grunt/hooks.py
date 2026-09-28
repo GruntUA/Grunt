@@ -34,7 +34,7 @@ import inspect
 from collections import defaultdict
 from typing import TYPE_CHECKING, Any, TypedDict
 
-from grunt.log import log
+from grunt import log
 
 if TYPE_CHECKING:
     from collections.abc import Callable

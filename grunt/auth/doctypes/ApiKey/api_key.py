@@ -5,10 +5,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 import grunt
+from grunt import _
 from grunt.auth.api_key_service import generate_api_key
 from grunt.document.base import Document
 from grunt.errors import forbidden
-from grunt.i18n import _
 
 if TYPE_CHECKING:
     from datetime import datetime
@@ -40,7 +40,7 @@ async def create_api_key(
 
     The full key is returned once; subsequent reads return only key_prefix.
     """
-    user = user or await grunt.get_current_user()
+    user = user or grunt.get_user()
     clean_label = label.strip()
     if not clean_label:
         grunt.throw(_("label is required"), "VALIDATION")
@@ -74,7 +74,7 @@ async def create_api_key(
 @grunt.whitelist()
 async def list_api_keys(user: User | None = None) -> list[dict[str, Any]]:
     """List API keys (secrets are never returned)."""
-    user = user or await grunt.get_current_user()
+    user = user or grunt.get_user()
 
     filters: dict[str, Any] = {}
     if "System Manager" not in (user.roles or []):
@@ -108,7 +108,7 @@ async def update_api_key(
     user: User | None = None,
 ) -> dict[str, Any]:
     """Update label, active state, allowed IPs, or expiry of a key."""
-    user = user or await grunt.get_current_user()
+    user = user or grunt.get_user()
     key_doc = await grunt.get_doc("ApiKey", key_id)
     _require_key_owner(key_doc, user)
 
@@ -142,7 +142,7 @@ async def update_api_key(
 @grunt.whitelist()
 async def revoke_api_key(key_id: str, user: User | None = None) -> bool:
     """Permanently revoke (delete) an API key."""
-    user = user or await grunt.get_current_user()
+    user = user or grunt.get_user()
     key_doc = await grunt.get_doc("ApiKey", key_id)
     _require_key_owner(key_doc, user)
     await grunt.delete_doc("ApiKey", key_id)

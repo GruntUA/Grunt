@@ -6,10 +6,9 @@ from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import grunt
-from grunt import log_error
+from grunt import _, log, log_error
 from grunt.backups import DEFAULT_COMPRESSION_LEVEL, create_backup, list_backups, rotate
-from grunt.i18n import _, language_of, use_language
-from grunt.log import log
+from grunt.i18n import language_of, use_language
 from grunt.progress import TaskCancelledError, track_progress
 from grunt.site.manager import site_manager
 from grunt.tasks.broker import task

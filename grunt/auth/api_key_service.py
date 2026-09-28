@@ -17,8 +17,8 @@ import secrets
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
+from grunt import log
 from grunt.auth.ip_policy import ip_allowed, parse_ip_list
-from grunt.log import log
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession

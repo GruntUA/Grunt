@@ -32,8 +32,8 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
 
+from grunt import log
 from grunt.document.meta import NUMERIC_FIELDTYPES, Meta
-from grunt.log import log
 
 if TYPE_CHECKING:
     from grunt.metadata.doctype import DocType

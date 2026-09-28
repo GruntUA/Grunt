@@ -6,7 +6,7 @@ from typing import Any
 
 from taskiq import TaskiqMessage, TaskiqMiddleware, TaskiqResult
 
-from grunt.log import log
+from grunt import log
 
 _ARGS_PREVIEW_MAX = 2000
 

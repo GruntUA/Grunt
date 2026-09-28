@@ -59,6 +59,8 @@ from __future__ import annotations
 import contextlib
 from typing import TYPE_CHECKING, Any, ClassVar
 
+import grunt
+from grunt import log
 from grunt.document.mixins.collaboration_rpc import DocumentCollaborationRPCMixin
 from grunt.document.mixins.export_rpc import DocumentExportRPCMixin
 from grunt.document.mixins.history_rpc import DocumentHistoryRPCMixin
@@ -67,8 +69,7 @@ from grunt.document.mixins.meta_rpc import DocumentMetaRPCMixin
 from grunt.document.mixins.tree_rpc import DocumentTreeRPCMixin
 from grunt.document.mixins.workflow_rpc import DocumentWorkflowRPCMixin
 from grunt.document.mixins.write import DocumentWriteMixin
-from grunt.local import require_engine, require_session, require_user
-from grunt.log import log
+from grunt.local import require_engine, require_user
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
@@ -376,7 +377,7 @@ class Document(
         ):
             if getattr(self, "session", None) is None:
                 with contextlib.suppress(Exception):
-                    object.__setattr__(self, "session", require_session())
+                    object.__setattr__(self, "session", grunt.get_session())
             if getattr(self, "engine", None) is None:
                 with contextlib.suppress(Exception):
                     object.__setattr__(self, "engine", require_engine())

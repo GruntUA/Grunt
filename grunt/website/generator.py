@@ -32,7 +32,7 @@ from urllib.parse import quote, unquote
 from jinja2 import BaseLoader, ChoiceLoader, Environment, FileSystemLoader
 from sqlalchemy import select
 
-from grunt.log import log
+from grunt import log
 from grunt.utils.slug import slugify
 
 if TYPE_CHECKING:

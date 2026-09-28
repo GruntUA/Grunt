@@ -40,6 +40,7 @@ bare string (treated as ``{"message": ...}``), or nothing.
 from __future__ import annotations
 
 import grunt
+from grunt import _, log
 from grunt.actions.registry import (
     DOC_ACTION_SOURCE,
     DocAction,
@@ -48,8 +49,6 @@ from grunt.actions.registry import (
     get_doc_action,
     register_doc_action,
 )
-from grunt.i18n import _
-from grunt.log import log
 
 __all__ = [
     "DOC_ACTION_SOURCE",
@@ -179,7 +178,7 @@ async def run(doctype: str, action: str, doc_id: str, args: dict | None = None) 
     if spec.roles:
         from grunt.permissions.roles import user_has_roles
 
-        user = await grunt.get_current_user()
+        user = grunt.get_user()
         if not user_has_roles(user, [*spec.roles, "System Manager"]):
             from grunt.errors import forbidden
 

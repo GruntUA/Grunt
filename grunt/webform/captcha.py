@@ -11,8 +11,8 @@ from __future__ import annotations
 
 import httpx
 
+from grunt import log
 from grunt.config import settings
-from grunt.log import log
 
 _VERIFY_URLS = {
     "turnstile": "https://challenges.cloudflare.com/turnstile/v0/siteverify",

@@ -8,14 +8,13 @@ import jwt
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer
 
+from grunt import _, log
 from grunt.auth.doctypes.User.user import (
     User,
     get_auth_context_user,
 )
 from grunt.config import settings
 from grunt.db.session import get_engine, get_session
-from grunt.i18n import _
-from grunt.log import log
 
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator

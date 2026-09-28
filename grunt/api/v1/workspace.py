@@ -90,7 +90,7 @@ async def list_workspaces() -> list[dict[str, Any]]:
 
     all_ws = await grunt.get_list("AppMenu", fields=["name"], order_by="sequence")
     data = []
-    user = await grunt.get_current_user()
+    user = grunt.get_user()
     if not user:
         return []
 

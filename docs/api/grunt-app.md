@@ -10,9 +10,14 @@ The `grunt` package is the primary API for app developers. It is available in:
 import grunt
 ```
 
-One namespace: request helpers (`grunt.whitelist`, `grunt.throw`, `grunt.get_user`,
-`grunt.require_user`, `grunt.get_session`, `grunt.log`) and the document API below
-(bound from the internal `GruntApp` singleton).
+One namespace: translation and logging (`from grunt import _, log`), request helpers
+(`grunt.whitelist`, `grunt.throw`, `grunt.get_user`, `grunt.get_session`,
+`grunt.log_error`) and the document API below (bound from the internal `GruntApp`
+singleton). Rarely used plumbing (`set_user`, `clear_context`, `queue_email`, …)
+is imported from its own module.
+
+`grunt.get_user()` never invents a user: outside a request or
+`grunt.context(...)` / `grunt.system_context(...)` it raises a 401.
 
 ---
 
@@ -359,7 +364,7 @@ class UserPublic(Schema):
 
 @grunt.whitelist()
 async def whoami() -> dict:
-    user = await grunt.get_current_user()
+    user = grunt.get_user()
     return UserPublic.dump(user)
 
 

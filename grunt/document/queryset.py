@@ -109,14 +109,14 @@ class QuerySet[T: Document]:
     async def create(self, **data: Any) -> T:
         """Create a new document and return it as a typed controller instance."""
         import grunt
-        from grunt.local import require_session, require_user
+        from grunt.local import require_user
 
         created = await grunt.new_doc(self._doctype, data)
         return self._model_cls(
             doctype=self._doctype,
             data=created,
             user=require_user(),
-            session=require_session(),
+            session=grunt.get_session(),
         )
 
     async def get_or_create(

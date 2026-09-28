@@ -50,7 +50,6 @@ async def reference_readable(user: User, doctype: Any, doc: dict[str, Any]) -> b
 async def apply_reference_filter(query: Select, table: Table, user: User, doctype: Any) -> Select:
     """Keep only rows whose referenced document *user* may read (see module doc)."""
     import grunt
-    from grunt.local import require_session
     from grunt.permissions.query import apply_permission_filter
     from grunt.permissions.rbac import permission_checker
     from grunt.permissions.user_permissions import build_conditions
@@ -61,7 +60,7 @@ async def apply_reference_filter(query: Select, table: Table, user: User, doctyp
     dt_col, id_col = table.c[fields[0]], table.c[fields[1]]
 
     conditions = [dt_col.is_(None), dt_col == "", id_col.is_(None), id_col == ""]
-    referenced = (await require_session().execute(select(distinct(dt_col)))).scalars().all()
+    referenced = (await grunt.get_session().execute(select(distinct(dt_col)))).scalars().all()
     for ref_doctype in referenced:
         if not ref_doctype:
             continue

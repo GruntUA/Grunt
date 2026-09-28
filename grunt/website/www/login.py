@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from grunt.i18n import _
+from grunt import _
 
 
 async def get_context(context: dict[str, Any]) -> dict[str, Any]:

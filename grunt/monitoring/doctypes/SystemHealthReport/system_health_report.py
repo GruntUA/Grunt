@@ -4,7 +4,7 @@ from typing import Any
 
 from fastapi import HTTPException, status
 
-from grunt.i18n import _
+from grunt import _
 from grunt.metadata.virtual import VirtualDocType
 from grunt.monitoring.health import build_report
 

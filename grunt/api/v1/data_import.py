@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, cast
 
 import grunt
-from grunt.i18n import _
+from grunt import _
 
 if TYPE_CHECKING:
     from grunt.io.doctypes.DataImport.data_import import DataImport

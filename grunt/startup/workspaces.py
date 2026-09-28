@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from grunt.log import log
+from grunt import log
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession

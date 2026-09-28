@@ -13,8 +13,8 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy import select
 
+from grunt import _
 from grunt.hooks import on_doc
-from grunt.i18n import _
 from grunt.metadata.doctype import WorkflowState, WorkflowTransition
 
 if TYPE_CHECKING:

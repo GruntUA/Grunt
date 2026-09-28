@@ -6,9 +6,9 @@ import json
 from typing import Any
 
 import grunt
+from grunt import _
 from grunt.assignment import assignment_service
 from grunt.document.base import Document
-from grunt.i18n import _
 
 
 class AssignmentRule(Document):

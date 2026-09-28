@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from grunt import _
 from grunt.document.base import Document
-from grunt.i18n import _
 from grunt.permissions.roles import user_has_roles
 
 

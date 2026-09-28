@@ -10,8 +10,6 @@ from grunt.local import (
     _engine_ctx,
     _session_ctx,
     _user_ctx,
-    require_engine,
-    require_session,
 )
 
 if TYPE_CHECKING:
@@ -37,11 +35,12 @@ class ContextAPI:
         ContextVar tokens that
         can be passed to :meth:`reset_context` to restore the previous state.
 
-        App developers generally do NOT need to call this directly.
+        App developers generally do NOT need to call this directly. Without an
+        *engine* the one already in context is kept (same site, new session).
         """
         return (
             _session_ctx.set(session),
-            _engine_ctx.set(engine),
+            _engine_ctx.set(engine if engine is not None else _engine_ctx.get()),
             _user_ctx.set(user),
         )
 
@@ -105,9 +104,3 @@ class ContextAPI:
                 yield
         finally:
             _bootstrap_ctx.reset(token)
-
-    def _require_session(self) -> AsyncSession:
-        return require_session()
-
-    def _require_engine(self) -> AsyncEngine:
-        return require_engine()

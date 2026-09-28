@@ -13,7 +13,7 @@ from __future__ import annotations
 import asyncio
 import io
 
-from grunt.log import log
+from grunt import log
 
 THUMB_WIDTH = 480
 THUMB_MIMETYPE = "image/webp"

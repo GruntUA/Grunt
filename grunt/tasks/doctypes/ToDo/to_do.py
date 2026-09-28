@@ -16,9 +16,9 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import Any
 
+from grunt import _, log
 from grunt.document.base import Document
-from grunt.i18n import _, language_of, use_language
-from grunt.log import log
+from grunt.i18n import language_of, use_language
 
 _DONE_STATES = ("Closed", "Cancelled")
 

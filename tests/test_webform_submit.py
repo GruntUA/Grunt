@@ -176,9 +176,8 @@ async def _create_webform_login_required(ctx, target_doctype_name: str, route: s
 async def test_api_submit_form_rejects_anonymous_when_login_required(ctx, db_session, engine):
     """api.v1.webform.submit_form (not the service directly) for a guest request.
 
-    Regression: submit_form used to read the current user via
-    grunt.get_current_user(), which falls back to a synthetic "system" user
-    for unauthenticated requests instead of returning None — so
+    Regression: submit_form used to read the current user through a helper
+    that fell back to a synthetic "system" user for unauthenticated requests — so
     user_email was always truthy and `login_required` could never actually
     block an anonymous submission. Simulates the dispatcher's own guest
     context (user=None) rather than calling the service layer directly.

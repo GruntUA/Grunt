@@ -16,10 +16,9 @@ from fastapi import HTTPException
 from fastapi.responses import FileResponse
 
 import grunt
-from grunt import whitelist
+from grunt import _, whitelist
 from grunt.backups import _NAME, backups_dir
 from grunt.config import settings
-from grunt.i18n import _
 
 DOWNLOAD_TTL_SECONDS = 15 * 60
 _DOWNLOAD = "/api/v1/method/grunt.backups.api.download"

@@ -5,9 +5,8 @@ from typing import Any
 
 import grunt
 import grunt as _grunt
+from grunt import _, log
 from grunt.document.versioning import _SKIP_FIELDS
-from grunt.i18n import _
-from grunt.log import log
 
 
 async def should_log_activity(doctype: str) -> bool | None:

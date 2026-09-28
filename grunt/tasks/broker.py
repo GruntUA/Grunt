@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, ParamSpec, TypeVar
 
 from taskiq import AsyncBroker, AsyncTaskiqDecoratedTask, InMemoryBroker, SmartRetryMiddleware
 
-from grunt.log import log
+from grunt import log
 
 if TYPE_CHECKING:
     from collections.abc import Callable

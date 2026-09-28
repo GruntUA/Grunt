@@ -12,8 +12,8 @@ from sqlalchemy import JSON as SAJSON
 from sqlalchemy import Boolean, Column, Date, Double, Integer, Numeric, String, Text, Time
 from sqlalchemy.dialects.postgresql import JSONB
 
+from grunt import log
 from grunt.db.types import UtcDateTime
-from grunt.log import log
 
 if TYPE_CHECKING:
     from collections.abc import Callable

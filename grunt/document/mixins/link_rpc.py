@@ -18,7 +18,7 @@ from typing import Any
 from sqlalchemy import or_, select
 
 import grunt
-from grunt.i18n import _
+from grunt import _
 
 
 async def _identifier_search(
@@ -35,7 +35,6 @@ async def _identifier_search(
     Filters are honoured only on identifier columns; any other key is dropped
     so a select-only caller can't probe non-identifier values.
     """
-    from grunt.local import require_session
 
     table = dt.table
     allowed = {c for c in cols_needed if c in table.c}
@@ -50,7 +49,7 @@ async def _identifier_search(
             stmt = stmt.where(table.c[base] == value)
     stmt = stmt.limit(per_page)
 
-    result = await require_session().execute(stmt)
+    result = await grunt.get_session().execute(stmt)
     return [dict(r._mapping) for r in result]
 
 

@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 import grunt
-from grunt.i18n import _
+from grunt import _
 
 if TYPE_CHECKING:
     from fastapi import Request
@@ -42,13 +42,8 @@ async def submit_form(
     from grunt.webform import web_form_service
     from grunt.webform.captcha import verify_captcha
 
-    # grunt.get_current_user() is the wrong tool here: it falls back to a
-    # synthetic "system" user when no one is authenticated, so `user_email`
-    # would always be truthy and web_form_service.submit()'s
-    # `if form["login_required"] and not user_email` check could never
-    # actually block an anonymous submission. Read the raw context instead,
-    # which is genuinely None for a guest request (allow_guest=True routes
-    # user=None into context rather than raising).
+    # A guest may submit (allow_guest=True puts user=None into context), so
+    # read the context directly — grunt.get_user() would raise a 401 here.
     user = _user_ctx.get()
     user_email = user.email if user else None
 

@@ -12,9 +12,8 @@ from datetime import UTC, datetime
 from typing import Any
 
 import grunt
+from grunt import _, log
 from grunt.document.base import Document
-from grunt.i18n import _
-from grunt.log import log
 
 
 class WebAuthnCredential(Document):
@@ -63,7 +62,7 @@ async def _owned_passkey(name: str, user_id: str) -> str:
 @grunt.whitelist()
 async def list_my_passkeys() -> list[dict[str, Any]]:
     """Passkeys registered by the current user."""
-    current = await grunt.get_current_user()
+    current = grunt.get_user()
     rows = await grunt.get_list(
         "WebAuthnCredential",
         filters={"user": current.id},
@@ -77,7 +76,7 @@ async def list_my_passkeys() -> list[dict[str, Any]]:
 @grunt.whitelist()
 async def rename_passkey(name: str, label: str) -> bool:
     """Rename one of the current user's passkeys."""
-    current = await grunt.get_current_user()
+    current = grunt.get_user()
     assert current.id is not None
     label = (label or "").strip()
     if not label:
@@ -91,7 +90,7 @@ async def rename_passkey(name: str, label: str) -> bool:
 @grunt.whitelist()
 async def delete_passkey(name: str) -> bool:
     """Remove one of the current user's passkeys."""
-    current = await grunt.get_current_user()
+    current = grunt.get_user()
     assert current.id is not None
     target = await _owned_passkey(name, current.id)
     await grunt.delete_doc("WebAuthnCredential", target)
@@ -102,7 +101,7 @@ async def delete_passkey(name: str) -> bool:
 @grunt.whitelist()
 async def touch_passkey(name: str) -> bool:
     """Update ``last_used_at`` (used by the frontend after a successful ceremony)."""
-    current = await grunt.get_current_user()
+    current = grunt.get_user()
     assert current.id is not None
     await grunt.set_value(
         "WebAuthnCredential",

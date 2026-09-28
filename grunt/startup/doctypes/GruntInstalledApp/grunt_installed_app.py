@@ -5,10 +5,9 @@ from pathlib import Path
 from typing import Any
 
 import grunt
+from grunt import _, log
 from grunt.api.context import whitelist
 from grunt.document.base import Document
-from grunt.i18n import _
-from grunt.log import log
 
 
 class GruntInstalledApp(Document):

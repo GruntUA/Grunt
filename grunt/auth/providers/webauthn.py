@@ -16,13 +16,12 @@ from urllib.parse import urlparse
 
 import webauthn
 
+from grunt import _, log
 from grunt.api.messages import throw
 from grunt.auth.providers.base import AuthFlowContext, AuthProvider
 from grunt.auth.providers.registry import register
 from grunt.auth.service import create_challenge_token, verify_challenge_token
 from grunt.config import settings
-from grunt.i18n import _
-from grunt.log import log
 
 if TYPE_CHECKING:
     from grunt.auth.doctypes.User.user import User
@@ -91,9 +90,8 @@ def _resolve_rp(request: Any) -> tuple[str, str]:
 
 async def _credentials_for_user(user_id: str) -> list[dict]:
     import grunt
-    from grunt.local import require_session
 
-    async with grunt.system_context(require_session()):
+    async with grunt.system_context(grunt.get_session()):
         return await grunt.get_list(
             _CRED,
             filters={"user": user_id},
@@ -104,9 +102,8 @@ async def _credentials_for_user(user_id: str) -> list[dict]:
 
 async def _credential_by_id(credential_id: str) -> dict | None:
     import grunt
-    from grunt.local import require_session
 
-    async with grunt.system_context(require_session()):
+    async with grunt.system_context(grunt.get_session()):
         rows = await grunt.get_list(
             _CRED,
             filters={"credential_id": credential_id},
@@ -293,7 +290,6 @@ class WebAuthnProvider(AuthProvider):
 
     async def enroll_complete(self, ctx: AuthFlowContext) -> dict[str, Any]:
         import grunt
-        from grunt.local import require_session
 
         user = ctx.user
         if user is None or not user.id:
@@ -328,7 +324,7 @@ class WebAuthnProvider(AuthProvider):
             throw(_("This passkey is already registered"), "CONFLICT")
 
         transports = ",".join((response.get("response") or {}).get("transports") or [])
-        async with grunt.system_context(require_session()):
+        async with grunt.system_context(grunt.get_session()):
             doc = await grunt.new_doc(
                 _CRED,
                 {

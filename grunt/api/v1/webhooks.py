@@ -35,7 +35,7 @@ async def test_outgoing_webhook(webhook_id: str) -> dict[str, Any]:
     """Send a test payload for an outgoing webhook."""
     from grunt.webhook.service import webhook_service
 
-    user = await grunt.get_current_user()
+    user = grunt.get_user()
     result = await webhook_service.test_delivery(grunt.get_session(), webhook_id, user.email)
     return result
 

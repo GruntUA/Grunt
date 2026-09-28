@@ -11,7 +11,7 @@ import time
 from contextlib import asynccontextmanager
 from typing import TYPE_CHECKING, Any
 
-from grunt.log import log
+from grunt import log
 
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator

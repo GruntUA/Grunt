@@ -5,8 +5,8 @@ from __future__ import annotations
 from typing import Any
 
 import grunt
+from grunt import log
 from grunt.document.base import Document
-from grunt.log import log
 
 
 class AssignmentLog(Document):
@@ -39,7 +39,6 @@ class AssignmentLog(Document):
             error_message: Опис помилки (якщо status == "Error").
             filters_matched: Чи збіглися фільтри правила.
         """
-        from grunt.local import require_session
 
         log_doc: dict[str, Any] = {
             "rule_id": rule_id,
@@ -53,7 +52,7 @@ class AssignmentLog(Document):
         }
 
         try:
-            async with grunt.system_context(require_session()):
+            async with grunt.system_context(grunt.get_session()):
                 await grunt.bulk_insert("AssignmentLog", [log_doc])
         except Exception as exc:
             log.exception("assignment.log_error", exc_info=exc)

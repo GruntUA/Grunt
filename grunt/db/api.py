@@ -7,8 +7,8 @@ from typing import TYPE_CHECKING, Any, Literal, cast, overload
 
 from sqlalchemy import CursorResult, func, or_, select, update
 
+from grunt import _
 from grunt.db.filters import apply_filters, build_clauses
-from grunt.i18n import _
 from grunt.local import _session_ctx
 from grunt.utils.attr_dict import AttrDict
 

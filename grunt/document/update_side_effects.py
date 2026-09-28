@@ -12,9 +12,8 @@ from datetime import UTC, datetime
 from itertools import islice
 from typing import TYPE_CHECKING, Any
 
+from grunt import _, log
 from grunt.document.serde import audit_fields
-from grunt.i18n import _
-from grunt.log import log
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession

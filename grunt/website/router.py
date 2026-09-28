@@ -14,7 +14,7 @@ from fastapi import Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse, PlainTextResponse, Response
 from jinja2 import ChoiceLoader, Environment, FileSystemLoader, select_autoescape
 
-from grunt.log import log
+from grunt import log
 
 # Grunt-level base templates directory (apps can extend _base.html from here)
 _GRUNT_WWW_TEMPLATES_DIR = Path(__file__).parent / "templates"

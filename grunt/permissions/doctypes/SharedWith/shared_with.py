@@ -5,8 +5,8 @@ The grant itself is enforced in :mod:`grunt.permissions.shares`.
 
 from __future__ import annotations
 
+from grunt import _
 from grunt.document.base import Document
-from grunt.i18n import _
 
 
 class SharedWith(Document):

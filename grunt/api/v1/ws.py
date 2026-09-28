@@ -8,7 +8,7 @@ from typing import Any
 
 from fastapi import APIRouter, Query, WebSocket, WebSocketDisconnect
 
-from grunt.log import log
+from grunt import log
 
 router = APIRouter()
 

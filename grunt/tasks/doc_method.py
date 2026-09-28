@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from grunt.log import log
+from grunt import log
 from grunt.site.manager import site_manager
 from grunt.tasks.broker import task
 

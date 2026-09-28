@@ -4,9 +4,9 @@ from typing import Any
 
 from fastapi import HTTPException, status
 
+from grunt import _
 from grunt.backups import BackupSet, delete_backup, get_backup, list_backups
 from grunt.backups.api import download_url
-from grunt.i18n import _
 from grunt.metadata.virtual import VirtualDocType
 from grunt.monitoring.health import human_size
 

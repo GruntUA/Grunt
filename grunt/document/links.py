@@ -12,8 +12,7 @@ from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import and_, delete, func, select
 
-from grunt.i18n import _
-from grunt.log import log
+from grunt import _, log
 from grunt.metadata.registry import doctype_registry
 
 if TYPE_CHECKING:

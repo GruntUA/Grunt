@@ -13,7 +13,7 @@ from typing import Any
 from fastapi import HTTPException
 
 import grunt
-from grunt.i18n import _
+from grunt import _
 
 
 class DocumentHistoryRPCMixin:

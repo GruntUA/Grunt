@@ -21,8 +21,8 @@ from pathlib import Path
 
 from taskiq import TaskiqEvents, TaskiqState
 
+from grunt import log
 from grunt.db.write_intent import set_process_default
-from grunt.log import log
 from grunt.tasks.broker import broker
 
 __all__ = ["broker", "import_task_modules"]

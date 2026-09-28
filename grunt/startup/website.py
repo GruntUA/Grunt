@@ -20,8 +20,7 @@ from typing import TYPE_CHECKING
 from fastapi import HTTPException, Request
 from fastapi.staticfiles import StaticFiles
 
-from grunt.i18n import _
-from grunt.log import log
+from grunt import _, log
 from grunt.website import make_website_handler, robots_txt, sitemap_xml, website_registry
 
 if TYPE_CHECKING:

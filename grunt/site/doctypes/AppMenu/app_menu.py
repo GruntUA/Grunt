@@ -9,8 +9,8 @@ import json
 from typing import Any, cast
 
 import grunt
+from grunt import log
 from grunt.document.base import Document
-from grunt.log import log
 
 
 def parse_count_filters(item: dict[str, Any]) -> dict[str, Any]:

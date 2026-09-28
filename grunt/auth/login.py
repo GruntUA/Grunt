@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from grunt.i18n import _
+from grunt import _
 
 if TYPE_CHECKING:
     from grunt.auth.doctypes.User.user import User

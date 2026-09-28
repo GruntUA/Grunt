@@ -14,7 +14,7 @@ from datetime import datetime, timedelta
 from typing import Any
 
 import grunt
-from grunt.log import log
+from grunt import log
 
 
 def _log_widget_failed(doctype_name: str, widget_type: str) -> None:

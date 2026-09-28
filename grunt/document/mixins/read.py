@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Any
 from fastapi import HTTPException, status
 from sqlalchemy import select
 
-from grunt.i18n import _
+from grunt import _
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession

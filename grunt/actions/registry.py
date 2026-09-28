@@ -11,7 +11,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
-from grunt.log import log
+from grunt import log
 from grunt.metadata.dynamic_options import register_option
 
 if TYPE_CHECKING:

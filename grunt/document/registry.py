@@ -6,7 +6,7 @@ import inspect
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from grunt.log import log
+from grunt import log
 from grunt.utils.strings import to_snake_case
 
 if TYPE_CHECKING:

@@ -25,7 +25,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, ClassVar, Literal
 
-from grunt.i18n import _
+from grunt import _
 
 if TYPE_CHECKING:
     from fastapi import Request

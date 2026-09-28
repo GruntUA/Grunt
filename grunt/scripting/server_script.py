@@ -33,7 +33,7 @@ import io
 from datetime import UTC
 from typing import TYPE_CHECKING, Any, NoReturn, TypeVar
 
-from grunt.log import log
+from grunt import log
 from grunt.scripting.safe_globals import build_safe_globals, compile_script, validate_script
 
 if TYPE_CHECKING:

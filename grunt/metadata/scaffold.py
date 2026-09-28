@@ -14,8 +14,8 @@ from __future__ import annotations
 import json
 from typing import TYPE_CHECKING
 
+from grunt import log
 from grunt.document.base import SYS_FIELDS
-from grunt.log import log
 from grunt.site.manager import site_manager
 
 if TYPE_CHECKING:

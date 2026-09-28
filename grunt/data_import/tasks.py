@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+from grunt import log
 from grunt.auth.doctypes.User.user import SYSTEM_USER
 from grunt.data_import.service import DataImportService
-from grunt.log import log
 from grunt.site.manager import site_manager
 from grunt.tasks.broker import retryable_task
 

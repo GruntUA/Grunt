@@ -12,8 +12,8 @@ from datetime import UTC, date, datetime
 from typing import Any
 
 import grunt
-from grunt.i18n import _, language_of, ngettext, use_language
-from grunt.log import log
+from grunt import _, log
+from grunt.i18n import language_of, ngettext, use_language
 from grunt.site.manager import site_manager
 from grunt.tasks.broker import retryable_task
 

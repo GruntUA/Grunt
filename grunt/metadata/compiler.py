@@ -15,9 +15,8 @@ from sqlalchemy import (
     text,
 )
 
+from grunt import _, log
 from grunt.db.types import UtcDateTime
-from grunt.i18n import _
-from grunt.log import log
 from grunt.metadata.field import NON_PHYSICAL_FIELDS
 from grunt.utils.strings import to_snake_case
 

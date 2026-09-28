@@ -5,7 +5,7 @@ from __future__ import annotations
 from contextlib import asynccontextmanager
 from typing import TYPE_CHECKING
 
-from grunt.log import log
+from grunt import log
 from grunt.site.manager import site_manager
 
 if TYPE_CHECKING:
