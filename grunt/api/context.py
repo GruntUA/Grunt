@@ -3,11 +3,8 @@
 Uses contextvars (defined in grunt.core.context) to store the current session,
 user, engine, and site for the duration of each request or task.
 
-This allows developers to write:
-    from grunt import Doc
-    doc = await Doc.get("User", "test@mail.com")
-
-Without needing to import and pass session/user/engine everywhere.
+So app code reads ``grunt.get_user()`` / ``grunt.get_session()`` without
+passing session/user/engine through every call.
 """
 
 from __future__ import annotations

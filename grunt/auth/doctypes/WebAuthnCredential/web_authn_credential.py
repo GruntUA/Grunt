@@ -12,6 +12,7 @@ from datetime import UTC, datetime
 from typing import Any
 
 import grunt
+from grunt.app import grunt as grunt_app
 from grunt.document.base import Document
 from grunt.i18n import _
 from grunt.log import log
@@ -49,7 +50,7 @@ def _row_view(row: dict[str, Any]) -> dict[str, Any]:
 
 async def _owned_passkey(name: str, user_id: str) -> str:
     """Return the passkey id if it belongs to *user_id*, else raise 404."""
-    rows = await grunt.get_list(
+    rows = await grunt_app.get_list(
         "WebAuthnCredential",
         filters={"name": name, "user": user_id},
         fields=["name"],
@@ -64,7 +65,7 @@ async def _owned_passkey(name: str, user_id: str) -> str:
 async def list_my_passkeys() -> list[dict[str, Any]]:
     """Passkeys registered by the current user."""
     current = await grunt.get_current_user()
-    rows = await grunt.get_list(
+    rows = await grunt_app.get_list(
         "WebAuthnCredential",
         filters={"user": current.id},
         fields=["name", "label", "last_used_at", "backed_up", "transports", "creation"],
@@ -82,7 +83,7 @@ async def rename_passkey(name: str, label: str) -> bool:
     label = (label or "").strip()
     if not label:
         grunt.throw(_("Label is required"), "VALIDATION_ERROR")
-    await grunt.set_value(
+    await grunt_app.set_value(
         "WebAuthnCredential", await _owned_passkey(name, current.id), "label", label
     )
     return True
@@ -94,7 +95,7 @@ async def delete_passkey(name: str) -> bool:
     current = await grunt.get_current_user()
     assert current.id is not None
     target = await _owned_passkey(name, current.id)
-    await grunt.delete_doc("WebAuthnCredential", target)
+    await grunt_app.delete_doc("WebAuthnCredential", target)
     log.info("webauthn.passkey_removed", user=current.email, credential=target)
     return True
 
@@ -104,7 +105,7 @@ async def touch_passkey(name: str) -> bool:
     """Update ``last_used_at`` (used by the frontend after a successful ceremony)."""
     current = await grunt.get_current_user()
     assert current.id is not None
-    await grunt.set_value(
+    await grunt_app.set_value(
         "WebAuthnCredential",
         await _owned_passkey(name, current.id),
         "last_used_at",

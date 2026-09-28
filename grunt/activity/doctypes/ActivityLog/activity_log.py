@@ -1,6 +1,7 @@
 from typing import Any
 
 import grunt
+from grunt.app import grunt as grunt_app
 from grunt.document.base import Document
 
 
@@ -29,7 +30,7 @@ class ActivityLog(Document):
         details: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """Log an activity entry. Controller auto-fills user from context."""
-        return await grunt.new_doc(
+        return await grunt_app.new_doc(
             "ActivityLog",
             {
                 "doctype": doctype,
@@ -47,7 +48,7 @@ class ActivityLog(Document):
         limit: int = 100,
     ) -> list[dict[str, Any]]:
         """Get activity log for a document (newest first)."""
-        return await grunt.get_list(
+        return await grunt_app.get_list(
             "ActivityLog",
             filters={"doctype": doctype, "doc_id": doc_id},
             order_by="created_at",
@@ -100,8 +101,8 @@ async def list_activity(
 
     page = int(page)
     per_page = int(per_page)
-    total = await grunt.count("ActivityLog", filters=filters)
-    entries = await grunt.get_list(
+    total = await grunt_app.count("ActivityLog", filters=filters)
+    entries = await grunt_app.get_list(
         "ActivityLog",
         filters=filters,
         fields=["name", "doctype", "doc_id", "action", "user", "details", "created_at"],
@@ -156,8 +157,8 @@ async def _attach_user_names(entries: list[dict[str, Any]]) -> None:
 
     from grunt.context import require_session
 
-    async with grunt.system_context(require_session()):
-        rows = await grunt.get_list(
+    async with grunt_app.system_context(require_session()):
+        rows = await grunt_app.get_list(
             "User",
             filters={"name__in": list(emails)},
             fields=["name", "full_name"],

@@ -11,7 +11,7 @@ Enforcement lives in :mod:`grunt.permissions.user_permissions`, wired into
 
 from __future__ import annotations
 
-import grunt
+from grunt.app import grunt
 from grunt.document.base import Document
 from grunt.i18n import _
 

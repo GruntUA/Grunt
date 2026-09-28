@@ -29,6 +29,7 @@ from typing import TYPE_CHECKING, Any
 from sqlalchemy import and_, false, or_
 
 import grunt
+from grunt.app import grunt as grunt_app
 from grunt.i18n import _
 
 if TYPE_CHECKING:
@@ -228,7 +229,6 @@ async def doc_passes(user: User | None, doctype: DocType | Meta, doc: dict[str, 
 async def get_active_restrictions(doctype: str) -> list[dict[str, Any]]:
     """Rows for the list-view "Restrictions" popup: which fields on *doctype*
     are constrained, and to which values, for the current user."""
-    from grunt.app import grunt as grunt_app
     from grunt.errors import not_found
 
     user = await grunt.get_current_user()
@@ -252,7 +252,6 @@ async def get_active_restrictions(doctype: str) -> list[dict[str, Any]]:
 async def get_user_permission_defaults(doctype: str) -> dict[str, str]:
     """``{fieldname: value}`` to pre-fill on a new *doctype* form from the
     current user's ``is_default`` UserPermission rows."""
-    from grunt.app import grunt as grunt_app
     from grunt.errors import not_found
 
     user = await grunt.get_current_user()
@@ -262,7 +261,7 @@ async def get_user_permission_defaults(doctype: str) -> dict[str, str]:
     if not email:
         return {}
 
-    rows = await grunt.db.get_all(
+    rows = await grunt_app.db.get_all(
         "UserPermission",
         filters={"for_user": email, "is_default": True},
         fields=["allow", "for_value", "apply_to_all_doctypes", "applicable_for"],

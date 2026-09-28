@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 import grunt
+from grunt.app import grunt as grunt_app
 from grunt.i18n import _
 from grunt.log import log
 from grunt.metadata.compiler import DuplicateDataError, get_table_name, sync_table
@@ -68,7 +69,7 @@ async def _dump_doctype(dt: DocType, *, translate: bool = False) -> dict[str, An
 
 async def _get_app_name_for_module(module: str) -> str | None:
     """Return the installed app name that owns *module*, or None."""
-    rows = await grunt.db.get_all("GruntInstalledApp", fields=["name", "modules"])
+    rows = await grunt_app.db.get_all("GruntInstalledApp", fields=["name", "modules"])
     for row in rows:
         if module in (row.get("modules") or []):
             return row["name"]

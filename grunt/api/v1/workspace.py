@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 import grunt
+from grunt.app import grunt as grunt_app
 from grunt.site.doctypes.AppMenu.app_menu import AppMenu, count_key, parse_count_filters
 
 
@@ -90,7 +91,7 @@ async def list_workspaces() -> list[dict[str, Any]]:
     # with its own SELECT.
     await doctype_registry.list_all()
 
-    all_ws = await grunt.get_list("AppMenu", fields=["name"], order_by="sequence")
+    all_ws = await grunt_app.get_list("AppMenu", fields=["name"], order_by="sequence")
     data = []
     user = await grunt.get_current_user()
     if not user:
@@ -98,7 +99,7 @@ async def list_workspaces() -> list[dict[str, Any]]:
 
     for ws_brief in all_ws:
         try:
-            ws_data = await grunt.get_doc("AppMenu", ws_brief["name"])
+            ws_data = await grunt_app.get_doc("AppMenu", ws_brief["name"])
             if ws_data.get("is_hidden") and "System Manager" not in (user.roles or []):
                 continue
             # Basic role check could be added here
@@ -124,9 +125,9 @@ async def save_workspace(workspace_data: dict[str, Any]) -> dict[str, Any]:
 
     name = data.get("name")
     if name:
-        ws_data = await grunt.save_doc("AppMenu", name, data)
+        ws_data = await grunt_app.save_doc("AppMenu", name, data)
     else:
-        ws_data = await grunt.new_doc("AppMenu", data)
+        ws_data = await grunt_app.new_doc("AppMenu", data)
 
     return await _workspace_to_dict(ws_data)
 
@@ -134,7 +135,7 @@ async def save_workspace(workspace_data: dict[str, Any]) -> dict[str, Any]:
 @grunt.whitelist(roles=["System Manager"])
 async def delete_workspace(name: str) -> bool:
     """Delete a workspace. Admin only."""
-    await grunt.delete_doc("AppMenu", name)
+    await grunt_app.delete_doc("AppMenu", name)
     return True
 
 
@@ -170,7 +171,7 @@ async def get_document_stats() -> dict[str, int]:
         if not dt.track_activity or dt.hide_from_activity_feed:
             continue
         try:
-            total += await grunt.count(dt.name, respect_permissions=True)
+            total += await grunt_app.count(dt.name, respect_permissions=True)
             counted += 1
         except Exception:
             # A doctype without a physical table yet — skip it silently.
@@ -195,7 +196,7 @@ async def get_my_work() -> dict[str, Any]:
 
     # Open tasks assigned to me.
     try:
-        todos = await grunt.get_list(
+        todos = await grunt_app.get_list(
             "ToDo",
             filters={"assigned_to": email, "status": "Open"},
             fields=[
@@ -243,7 +244,7 @@ async def get_my_work() -> dict[str, Any]:
 
     # Unread notifications.
     try:
-        notifications = await grunt.get_list(
+        notifications = await grunt_app.get_list(
             "Notification",
             filters={"user": email, "is_read": False},
             fields=["name", "subject", "doctype", "doc_id", "created_at"],

@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 import grunt
+from grunt.app import grunt as grunt_app
 from grunt.i18n import _
 
 
@@ -18,8 +19,8 @@ async def list_notifications(
     if str(unread_only).lower() == "true":
         filters["is_read"] = False
 
-    total = await grunt.count("Notification", filters=filters)
-    data = await grunt.get_list(
+    total = await grunt_app.count("Notification", filters=filters)
+    data = await grunt_app.get_list(
         "Notification",
         filters=filters,
         page=int(page),
@@ -34,7 +35,7 @@ async def list_notifications(
 async def mark_as_read(notification_id: str) -> bool:
     """Mark a notification as read — only if it belongs to the current user."""
     user = await grunt.get_current_user()
-    count = await grunt.db.bulk_update(
+    count = await grunt_app.db.bulk_update(
         "Notification",
         filters={"name": notification_id, "user": user.email},
         values={"is_read": True},
@@ -46,7 +47,7 @@ async def mark_as_read(notification_id: str) -> bool:
 async def mark_all_as_read() -> dict[str, Any]:
     """Mark all notifications as read for the current user."""
     user = await grunt.get_current_user()
-    count = await grunt.db.bulk_update(
+    count = await grunt_app.db.bulk_update(
         "Notification",
         filters={"user": user.email, "is_read": False},
         values={"is_read": True},
@@ -58,7 +59,7 @@ async def mark_all_as_read() -> dict[str, Any]:
 async def get_unread_count() -> int:
     """Get the count of unread notifications for the current user."""
     user = await grunt.get_current_user()
-    return await grunt.count("Notification", filters={"user": user.email, "is_read": False})
+    return await grunt_app.count("Notification", filters={"user": user.email, "is_read": False})
 
 
 @grunt.whitelist()

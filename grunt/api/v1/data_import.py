@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, cast
 
 import grunt
+from grunt.app import grunt as grunt_app
 from grunt.i18n import _
 
 if TYPE_CHECKING:
@@ -23,7 +24,7 @@ async def get_import_preview(data_import_id: str) -> dict[str, Any]:
 @grunt.whitelist()
 async def get_import_status(data_import_id: str) -> dict[str, Any]:
     """Return the current status and progress of a DataImport record."""
-    doc = await grunt.find_doc("DataImport", data_import_id)
+    doc = await grunt_app.find_doc("DataImport", data_import_id)
     if not doc:
         grunt.throw(_("DataImport not found"), "NOT_FOUND")
     return {

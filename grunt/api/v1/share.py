@@ -6,6 +6,7 @@ from datetime import UTC, datetime
 from typing import Any
 
 import grunt
+from grunt.app import grunt as grunt_app
 from grunt.i18n import _
 from grunt.log import log
 
@@ -14,7 +15,7 @@ from grunt.log import log
 async def get_shared_document(token: str) -> dict[str, Any]:
     """Return a publicly shared document by token. No authentication required."""
     # Use SYSTEM_USER for db queries since we are in guest mode
-    shares = await grunt.db.get_all(
+    shares = await grunt_app.db.get_all(
         "DocumentShare",
         filters={"token": token, "is_active": True},
         limit=1,
@@ -42,10 +43,10 @@ async def get_shared_document(token: str) -> dict[str, Any]:
     doc_id = share["doc_id"]
 
     # Fetch without permission guards — this is a guest-accessible share link
-    dt = await grunt.get_meta(doctype_name)
+    dt = await grunt_app.get_meta(doctype_name)
     if dt is None:
         grunt.throw(_("DocType not found"), "NOT_FOUND")
-    doc = await grunt.db.get_doc(doctype_name, doc_id)
+    doc = await grunt_app.db.get_doc(doctype_name, doc_id)
 
     if not doc:
         grunt.throw(_("Document not found"), "NOT_FOUND")
@@ -53,7 +54,7 @@ async def get_shared_document(token: str) -> dict[str, Any]:
     # Increment view count (best-effort)
     try:
         current = int(share.get("view_count") or 0)
-        await grunt.set_value("DocumentShare", share["name"], "view_count", current + 1)
+        await grunt_app.set_value("DocumentShare", share["name"], "view_count", current + 1)
     except Exception:
         log.exception("suppressed_error")
 
@@ -88,12 +89,12 @@ async def _inject_top_level_link_labels(meta: Any, doc: dict[str, Any]) -> None:
         raw = doc.get(lf.fieldname)
         if not raw:
             continue
-        target_dt = await grunt.get_meta(lf.options)
+        target_dt = await grunt_app.get_meta(lf.options)
         if target_dt is None:
             continue
 
         title_field = target_dt.get_title_field()
-        row = await grunt.db.get_values(lf.options, raw, [title_field])
+        row = await grunt_app.db.get_values(lf.options, raw, [title_field])
         if row:
             doc[f"{lf.fieldname}__label"] = str(row.get(title_field) or raw)
 
@@ -109,7 +110,7 @@ async def create_share(
     if not doctype_name or not doc_id:
         grunt.throw(_("doctype_name and doc_id are required"), "VALIDATION_ERROR")
 
-    doc = await grunt.new_doc(
+    doc = await grunt_app.new_doc(
         "DocumentShare",
         {
             "doctype_name": doctype_name,

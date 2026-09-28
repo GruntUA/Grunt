@@ -165,7 +165,7 @@ class PermissionMatch:
             return False
         target_name, _target_table = resolved
 
-        import grunt
+        from grunt.app import grunt
 
         try:
             actual = await grunt.db.get_value(target_name, link_val, sub_fn)

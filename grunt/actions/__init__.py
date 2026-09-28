@@ -48,6 +48,7 @@ from grunt.actions.registry import (
     get_doc_action,
     register_doc_action,
 )
+from grunt.app import grunt as grunt_app
 from grunt.i18n import _
 from grunt.log import log
 
@@ -159,7 +160,6 @@ async def run(doctype: str, action: str, doc_id: str, args: dict | None = None) 
     exists in the registry, so the set of runnable actions per DocType stays
     exactly what the metadata declares.
     """
-    from grunt.app import grunt as grunt_app
     from grunt.errors import not_found
 
     dt = await grunt_app.get_meta(doctype)
@@ -186,7 +186,7 @@ async def run(doctype: str, action: str, doc_id: str, args: dict | None = None) 
 
             raise forbidden(_("Not permitted to run this action"))
 
-    doc = await grunt.get_doc(doctype, doc_id)  # enforces read permission
+    doc = await grunt_app.get_doc(doctype, doc_id)  # enforces read permission
     # Guarantee the handler can always read the DocType/id off `doc`, even if
     # the serializer omitted them.
     doc.setdefault("doctype", doctype)

@@ -9,6 +9,7 @@ from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import grunt
+from grunt.app import grunt as grunt_app
 from grunt.i18n import _
 from grunt.log import log
 from grunt.metadata.widget import get_widget_type_class
@@ -96,7 +97,6 @@ async def _compute_widget_data(
     global_until: datetime | None = None,
 ) -> Any:
     """Compute data for a single widget row — dispatches via the WidgetType registry."""
-    from grunt.app import grunt as grunt_app
 
     doctype_name: str = widget.get("doctype") or ""
     widget_type: str = widget.get("widget_type") or "metric"
@@ -162,9 +162,8 @@ async def _get_widget_data(
     pipeline for both entity types, differing only in which doctype to load
     and the (localized) error messages.
     """
-    from grunt.app import grunt as grunt_app
 
-    doc = await grunt.find_doc(entity_doctype, name)
+    doc = await grunt_app.find_doc(entity_doctype, name)
     if doc is None:
         grunt.throw(not_found_msg, "NOT_FOUND")
     dashboard = dict(doc)

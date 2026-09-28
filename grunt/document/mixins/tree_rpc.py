@@ -25,11 +25,12 @@ async def _tree_read_gate(doctype: str) -> tuple[Any, list[str] | None]:
     filters, so returns ``(dt, [name, parent_field, title_field])``. Neither →
     a 403 naming the DocType.
     """
+    from grunt.app import grunt as grunt_app
     from grunt.errors import not_found
     from grunt.permissions.access import RoleAccess
     from grunt.permissions.rbac import permission_checker
 
-    dt = await grunt.get_meta(doctype)
+    dt = await grunt_app.get_meta(doctype)
     if dt is None:
         raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
     user = grunt.get_user()
