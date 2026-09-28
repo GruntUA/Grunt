@@ -10,10 +10,11 @@
  */
 import { computed, ref, watch } from 'vue'
 import { useEventListener, useMediaQuery } from '@vueuse/core'
+import { matchesShortcut } from '@/core/shortcuts'
 
 const OPEN_KEY = 'doc_panel_open'
 const WIDTH_KEY = 'doc_panel_width'
-const SHORTCUT = ']' // Cmd/Ctrl+]  — the left nav owns 'b'
+const SHORTCUT = 'Mod+]' // the left nav owns Mod+B
 const DEFAULT_WIDTH = 300
 const MIN_WIDTH = 260
 const MAX_WIDTH = 520
@@ -65,7 +66,7 @@ export function useDocPanel() {
   if (!shortcutBound) {
     shortcutBound = true
     useEventListener('keydown', (e: KeyboardEvent) => {
-      if (e.key === SHORTCUT && (e.metaKey || e.ctrlKey)) {
+      if (matchesShortcut(e, SHORTCUT)) {
         e.preventDefault()
         toggle()
       }

@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import type { ResolvedAction } from '@/core/actions'
+import { formatShortcut } from '@/core/shortcuts'
 import ActionIcon from './ActionIcon.vue'
 
 const { t } = useI18n()
@@ -49,7 +50,7 @@ const sections = computed(() => {
         >
           <ActionIcon v-if="action.icon" :name="action.icon" class="size-4" />
           <span>{{ action.label }}</span>
-          <DropdownMenuShortcut v-if="action.shortcut">{{ action.shortcut }}</DropdownMenuShortcut>
+          <DropdownMenuShortcut v-if="action.shortcut">{{ formatShortcut(action.shortcut) }}</DropdownMenuShortcut>
         </DropdownMenuItem>
       </template>
     </DropdownMenuContent>

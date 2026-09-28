@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { reactive } from 'vue'
 
-import { actionButtonStyle, createActionRegistry, matchesShortcut } from '@/core/actions'
+import { actionButtonStyle, createActionRegistry } from '@/core/actions'
 
 function setup(confirmResult = true) {
   const ctx = reactive({ dirty: false, canWrite: true })
@@ -69,15 +69,7 @@ describe('action registry', () => {
   })
 })
 
-describe('shortcuts and styles', () => {
-  it('matches Ctrl / Cmd shortcuts', () => {
-    const ev = (init: KeyboardEventInit) => new KeyboardEvent('keydown', init)
-    expect(matchesShortcut(ev({ key: 's', ctrlKey: true }), 'Ctrl+S')).toBe(true)
-    expect(matchesShortcut(ev({ key: 's', metaKey: true }), 'Ctrl+S')).toBe(true)
-    expect(matchesShortcut(ev({ key: 's' }), 'Ctrl+S')).toBe(false)
-    expect(matchesShortcut(ev({ key: 's', ctrlKey: true, shiftKey: true }), 'Ctrl+S')).toBe(false)
-  })
-
+describe('styles', () => {
   it('maps tones to real Button variants', () => {
     expect(actionButtonStyle('destructive').variant).toBe('destructive')
     expect(actionButtonStyle('success')).toMatchObject({ variant: 'outline' })

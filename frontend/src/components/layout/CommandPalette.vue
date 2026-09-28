@@ -19,12 +19,14 @@ import {
     Activity,
     Equal,
 } from '@lucide/vue'
-import { onKeyStroke } from '@vueuse/core'
+import { useShortcut } from '@/core/composables/useShortcuts'
 import { useToast } from '@/core/composables/useToast'
 import { tryCalc, formatCalcResult } from '@/lib/calc'
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { docUrl, workspaceUrl } from '@/core/workspaceUrl'
-import { Command, CommandList, CommandGroup, CommandItem } from '@/components/ui/command'
+import { Command, CommandList, CommandGroup, CommandItem, CommandShortcut } from '@/components/ui/command'
+import { Kbd } from '@/components/ui/kbd'
+import { formatShortcut } from '@/core/shortcuts'
 
 const { t } = useI18n()
 const toast = useToast()
@@ -42,25 +44,11 @@ const activeIndex = ref(0)
 const inputRef = ref<HTMLInputElement | null>(null)
 const listRef = ref<any>(null)
 
-// Global shortcut: Ctrl/Cmd+K
-onKeyStroke(['k', 'K'], (e) => {
-    if (e.ctrlKey || e.metaKey) {
-        e.preventDefault()
-        uiStore.toggleCommandPalette()
-    }
-})
+// Global shortcut: Mod+K
+useShortcut('Mod+K', () => uiStore.toggleCommandPalette(), { preventDefault: true, allowInInput: true })
 
-// Quick create: Ctrl/Cmd+N
-onKeyStroke(['n', 'N'], (e) => {
-    if ((e.ctrlKey || e.metaKey) && !e.shiftKey) {
-        const active = document.activeElement
-        if (active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement || (active instanceof HTMLElement && active.isContentEditable)) {
-            return
-        }
-        e.preventDefault()
-        openQuickCreate()
-    }
-})
+// Quick create: Alt+N (⌥N) — browsers reserve Ctrl+N and never deliver it
+useShortcut('Alt+N', () => openQuickCreate(), { preventDefault: true })
 
 const handleToggleSearch = () => uiStore.toggleCommandPalette()
 const handleOpenQuickCreate = () => openQuickCreate()
@@ -105,7 +93,7 @@ function navigateTo(path: string) {
 }
 
 const staticActions = computed(() => [
-    { id: 'act-quick-create', title: t('Quick create (Ctrl+N)'), icon: FilePlus, run: openQuickCreate, category: t('Actions') },
+    { id: 'act-quick-create', title: t('Quick create'), shortcut: 'Alt+N', icon: FilePlus, run: openQuickCreate, category: t('Actions') },
     { id: 'act-new-doctype', title: t('Create new DocType'), icon: Plus, run: () => navigateTo('/grunt/DocType/new'), category: t('Actions') },
     { id: 'act-view-hooks', title: t('View hooks'), icon: Zap, run: () => navigateTo('/grunt/Hook'), category: t('Settings') },
     { id: 'act-activity-log', title: t('Activity log'), icon: Activity, run: () => navigateTo('/grunt/ActivityLog'), category: t('Settings') },
@@ -290,7 +278,7 @@ function onInputKeydown(e: KeyboardEvent) {
                         :placeholder="quickCreateOpen ? t('Select DocType to create a new record') : t('Search documents, apps or actions...')"
                         class="placeholder:text-muted-foreground flex h-10 w-full bg-transparent py-3 text-sm outline-none"
                         @keydown="onInputKeydown" />
-                    <kbd class="rounded border bg-muted px-1 text-xs text-muted-foreground">ESC</kbd>
+                    <Kbd>Esc</Kbd>
                 </div>
 
                 <CommandList ref="listRef" class="max-h-[400px]">
@@ -316,6 +304,7 @@ function onInputKeydown(e: KeyboardEvent) {
                             @mouseenter="setActive(action.id)" @select="action.run()">
                             <component :is="action.icon" />
                             <span>{{ action.title }}</span>
+                            <CommandShortcut v-if="action.shortcut">{{ formatShortcut(action.shortcut) }}</CommandShortcut>
                         </CommandItem>
                     </CommandGroup>
 
@@ -342,17 +331,17 @@ function onInputKeydown(e: KeyboardEvent) {
                 <div class="flex items-center justify-between gap-4 border-t px-3 py-2 text-xs text-muted-foreground">
                     <div class="flex items-center gap-3">
                         <span class="flex items-center gap-1">
-                            <kbd class="rounded border bg-muted px-1 font-sans">↑↓</kbd> {{ t('Navigate') }}
+                            <Kbd>↑↓</Kbd> {{ t('Navigate') }}
                         </span>
                         <span class="flex items-center gap-1">
-                            <kbd class="rounded border bg-muted px-1 font-sans">↵</kbd> {{ t('Select') }}
+                            <Kbd>↵</Kbd> {{ t('Select') }}
                         </span>
                     </div>
                     <button v-if="search.trim().length >= 2" class="font-medium text-foreground hover:underline"
                         @click="navigateTo(`/grunt/search?q=${encodeURIComponent(search)}`)">
                         {{ t('All results →') }}
                     </button>
-                    <kbd v-else class="rounded border bg-muted px-1 font-sans">Esc</kbd>
+                    <Kbd v-else>Esc</Kbd>
                 </div>
             </Command>
         </DialogContent>

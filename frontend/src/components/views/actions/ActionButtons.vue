@@ -14,6 +14,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import ShortcutKbd from '@/components/ShortcutKbd.vue'
 import { actionButtonStyle, type ResolvedAction } from '@/core/actions'
 import ActionIcon from './ActionIcon.vue'
 
@@ -49,27 +51,35 @@ function style(action: ResolvedAction, fallback: 'outline' | 'default' = 'outlin
   return actionButtonStyle(action.variant, fallback)
 }
 
+/** Actions with a shortcut get a tooltip with key caps instead of a native title. */
 function title(action: ResolvedAction) {
-  return action.shortcut ? `${action.label} (${action.shortcut})` : action.label
+  return action.shortcut ? undefined : action.label
 }
 </script>
 
 <template>
   <template v-for="slot in slots" :key="slot.kind === 'single' ? slot.action.id : `group:${slot.name}`">
-    <Button
-      v-if="slot.kind === 'single'"
-      :size="slot.action.iconOnly ? 'icon-sm' : 'sm'"
-      :variant="style(slot.action).variant"
-      :class="[slot.action.iconOnly ? '' : 'gap-1.5', compact && !slot.action.iconOnly ? 'hidden sm:inline-flex' : '', style(slot.action).className]"
-      :title="title(slot.action)"
-      :aria-label="slot.action.label"
-      :disabled="slot.action.disabled"
-      @click="slot.action.run()"
-    >
-      <Loader2 v-if="slot.action.busy" class="size-4 animate-spin" />
-      <ActionIcon v-else-if="slot.action.icon" :name="slot.action.icon" class="size-4" />
-      <template v-if="!slot.action.iconOnly">{{ slot.action.label }}</template>
-    </Button>
+    <Tooltip v-if="slot.kind === 'single'" :disabled="!slot.action.shortcut">
+      <TooltipTrigger as-child>
+        <Button
+          :size="slot.action.iconOnly ? 'icon-sm' : 'sm'"
+          :variant="style(slot.action).variant"
+          :class="[slot.action.iconOnly ? '' : 'gap-1.5', compact && !slot.action.iconOnly ? 'hidden sm:inline-flex' : '', style(slot.action).className]"
+          :title="title(slot.action)"
+          :aria-label="slot.action.label"
+          :disabled="slot.action.disabled"
+          @click="slot.action.run()"
+        >
+          <Loader2 v-if="slot.action.busy" class="size-4 animate-spin" />
+          <ActionIcon v-else-if="slot.action.icon" :name="slot.action.icon" class="size-4" />
+          <template v-if="!slot.action.iconOnly">{{ slot.action.label }}</template>
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent v-if="slot.action.shortcut" class="flex items-center gap-2">
+        {{ slot.action.label }}
+        <ShortcutKbd :shortcut="slot.action.shortcut" />
+      </TooltipContent>
+    </Tooltip>
 
     <div v-else class="inline-flex" :class="compact ? 'hidden sm:inline-flex' : ''">
       <Button
@@ -109,18 +119,24 @@ function title(action: ResolvedAction) {
     </div>
   </template>
 
-  <Button
-    v-for="action in primary ?? []"
-    :key="action.id"
-    size="sm"
-    :variant="style(action, 'default').variant"
-    :class="['gap-1.5', style(action, 'default').className]"
-    :title="title(action)"
-    :disabled="action.disabled || action.busy"
-    @click="action.run()"
-  >
-    <Loader2 v-if="action.busy" class="size-4 animate-spin" />
-    <ActionIcon v-else-if="action.icon" :name="action.icon" class="size-4" />
-    {{ action.label }}
-  </Button>
+  <Tooltip v-for="action in primary ?? []" :key="action.id" :disabled="!action.shortcut">
+    <TooltipTrigger as-child>
+      <Button
+        size="sm"
+        :variant="style(action, 'default').variant"
+        :class="['gap-1.5', style(action, 'default').className]"
+        :title="title(action)"
+        :disabled="action.disabled || action.busy"
+        @click="action.run()"
+      >
+        <Loader2 v-if="action.busy" class="size-4 animate-spin" />
+        <ActionIcon v-else-if="action.icon" :name="action.icon" class="size-4" />
+        {{ action.label }}
+      </Button>
+    </TooltipTrigger>
+    <TooltipContent v-if="action.shortcut" class="flex items-center gap-2">
+      {{ action.label }}
+      <ShortcutKbd :shortcut="action.shortcut" />
+    </TooltipContent>
+  </Tooltip>
 </template>

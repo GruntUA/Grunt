@@ -44,7 +44,7 @@ export interface ActionDef<C = any> {
   order?: number
   /** default | outline | secondary | ghost | destructive | success | warning | info, or a colour name. */
   variant?: string
-  /** Keyboard shortcut, e.g. `Ctrl+S` (Cmd on macOS). Works while typing in a field. */
+  /** Keyboard shortcut, e.g. `Mod+S` — ⌘ on macOS, Ctrl elsewhere (core/shortcuts.ts). Works while typing in a field. */
   shortcut?: string
   visible?: (ctx: C) => boolean
   enabled?: (ctx: C) => boolean
@@ -185,19 +185,6 @@ export function createActionRegistry<C>(
     },
   }
   return api
-}
-
-/** Does a keydown event match a shortcut like `Ctrl+S` / `Ctrl+Shift+P` (Ctrl = Cmd on macOS)? */
-export function matchesShortcut(event: KeyboardEvent, shortcut: string): boolean {
-  const parts = shortcut.toLowerCase().split('+').map((p) => p.trim())
-  const key = parts.pop()
-  if (!key || event.key.toLowerCase() !== key) return false
-  const wantCtrl = parts.includes('ctrl') || parts.includes('cmd') || parts.includes('meta')
-  return (
-    wantCtrl === (event.ctrlKey || event.metaKey) &&
-    parts.includes('shift') === event.shiftKey &&
-    parts.includes('alt') === event.altKey
-  )
 }
 
 /** Button look for an action `variant`: a shadcn Button variant, or a tone/colour

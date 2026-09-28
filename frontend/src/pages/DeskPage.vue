@@ -13,6 +13,7 @@ import MyWorkPanel from '@/components/dashboard/MyWorkPanel.vue'
 import { readRecent, looksLikeId, type RecentDoc } from '@/core/recentDocs'
 import { useColorMode, type Theme } from '@/core/composables/useColorMode'
 import { Button } from '@/components/ui/button'
+import ShortcutKbd from '@/components/ShortcutKbd.vue'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -192,10 +193,7 @@ function docInitials(doc: RecentDoc): string {
           <span class="flex-1 text-muted-foreground">
             {{ t('Search documents, apps or actions...') }}
           </span>
-          <div class="hidden shrink-0 items-center gap-1 sm:flex">
-            <kbd class="rounded border bg-muted px-1.5 py-0.5 font-mono text-xs text-muted-foreground">⌘</kbd>
-            <kbd class="rounded border bg-muted px-1.5 py-0.5 font-mono text-xs text-muted-foreground">K</kbd>
-          </div>
+          <ShortcutKbd shortcut="Mod+K" class="hidden shrink-0 sm:inline-flex" />
         </button>
 
         <p class="text-muted-foreground">

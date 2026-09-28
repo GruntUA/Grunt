@@ -6,6 +6,7 @@ import { useAuthStore } from '@/stores/auth'
 import i18n, { N_ } from '@/plugins/i18n'
 import { useAppStore } from '@/stores/app'
 import AppIcon from '@/components/AppIcon.vue'
+import ShortcutKbd from '@/components/ShortcutKbd.vue'
 import NotificationsPopover from '@/components/layout/NotificationsPopover.vue'
 import SidebarItem from './SidebarItem.vue'
 import { useColorMode } from '@/core/composables/useColorMode'
@@ -123,9 +124,7 @@ watch(() => router.currentRoute.value.path, () => { if (appStore.active) appStor
           <SidebarMenuButton :tooltip="t('Search')" @click="triggerSearch">
             <Search />
             <span>{{ t('Search...') }}</span>
-            <kbd class="ml-auto flex items-center gap-0.5 rounded border border-sidebar-border/50 bg-background/50 px-1.5 font-semibold text-muted-foreground group-data-[collapsible=icon]:hidden">
-              <span class="opacity-70">⌘</span>K
-            </kbd>
+            <ShortcutKbd shortcut="Mod+K" class="ml-auto group-data-[collapsible=icon]:hidden" />
           </SidebarMenuButton>
         </SidebarMenuItem>
         <SidebarMenuItem>

@@ -28,7 +28,7 @@ function on_load(frm) {
         label: __('Save'),
         placement: 'primary',
         order: 100,
-        shortcut: 'Ctrl+S',
+        shortcut: 'Mod+S',
         visible: (f) => f.perm.write && f.has_editable_fields,
         enabled: (f) => !f.is_saving,
         busy: (f) => f.is_saving,
