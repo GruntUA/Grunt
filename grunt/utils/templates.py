@@ -31,8 +31,10 @@ async def render_template(
     )
 
     # Globals available in every grunt template.
+    from grunt.local import _user_ctx
+
     env.globals["grunt"] = app
-    env.globals["session"] = app.session
+    env.globals["user"] = _user_ctx.get()  # None when rendered outside a user's context
     env.globals["now"] = datetime.now(UTC)
     from grunt.i18n.jinja import install as install_i18n
 
