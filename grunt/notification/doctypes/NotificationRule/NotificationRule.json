@@ -1,12 +1,12 @@
 {
   "name": "NotificationRule",
-  "label": "Правило нотифікації",
+  "label": "Notification Rule",
   "module": "notification",
   "table_name": "grunt_notification_rule",
   "fields": [
     {
       "fieldname": "doctype",
-      "label": "Тип документа",
+      "label": "Document type",
       "fieldtype": "Link",
       "options": "DocType",
       "required": true,
@@ -15,7 +15,7 @@
     },
     {
       "fieldname": "event",
-      "label": "Подія",
+      "label": "Event",
       "fieldtype": "Select",
       "options": "after_insert\nafter_save\non_transition\nvalue_change",
       "required": true,
@@ -24,7 +24,7 @@
     },
     {
       "fieldname": "channel",
-      "label": "Канал",
+      "label": "Channel",
       "fieldtype": "Select",
       "options": "system\nemail\nboth",
       "translatable": true,
@@ -33,30 +33,30 @@
     },
     {
       "fieldname": "recipients",
-      "label": "Отримувачі",
+      "label": "Recipients",
       "fieldtype": "Text",
       "required": true
     },
     {
       "fieldname": "condition",
-      "label": "Умова (Python)",
+      "label": "Condition (Python)",
       "fieldtype": "LongText"
     },
     {
       "fieldname": "subject_template",
-      "label": "Шаблон теми",
+      "label": "Subject template",
       "fieldtype": "Text",
       "default": "{doctype}: {name}"
     },
     {
       "fieldname": "message_template",
-      "label": "Шаблон повідомлення",
+      "label": "Message template",
       "fieldtype": "LongText",
       "default": "{doctype} {name} was {event}"
     },
     {
       "fieldname": "is_enabled",
-      "label": "Активне",
+      "label": "Active",
       "fieldtype": "Check",
       "default": true,
       "in_list_view": true,

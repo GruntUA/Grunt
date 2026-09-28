@@ -1,15 +1,18 @@
 {
   "name": "File",
-  "label": "Файл",
+  "label": "File",
   "module": "storage",
   "title_field": "file_name",
   "image_field": "thumbnail_url",
   "default_view": "gallery",
-  "inherit_permission_from": ["attached_to_doctype", "attached_to_id"],
+  "inherit_permission_from": [
+    "attached_to_doctype",
+    "attached_to_id"
+  ],
   "fields": [
     {
       "fieldname": "file_name",
-      "label": "Назва файлу",
+      "label": "File name",
       "fieldtype": "Text",
       "required": true,
       "in_list_view": true,
@@ -17,19 +20,19 @@
     },
     {
       "fieldname": "file_url",
-      "label": "URL файлу",
+      "label": "File URL",
       "fieldtype": "Text",
       "read_only": true
     },
     {
       "fieldname": "path",
-      "label": "Шлях у сховищі",
+      "label": "Storage path",
       "fieldtype": "Text",
       "read_only": true
     },
     {
       "fieldname": "thumbnail_url",
-      "label": "Мініатюра",
+      "label": "Thumbnail",
       "fieldtype": "Image",
       "read_only": true
     },
@@ -42,14 +45,14 @@
     },
     {
       "fieldname": "file_size",
-      "label": "Розмір (байт)",
+      "label": "Size (bytes)",
       "fieldtype": "Int",
       "read_only": true,
       "in_list_view": true
     },
     {
       "fieldname": "content_type",
-      "label": "Тип контенту",
+      "label": "Content type",
       "fieldtype": "Text",
       "read_only": true,
       "in_list_view": true,
@@ -57,7 +60,7 @@
     },
     {
       "fieldname": "content_hash",
-      "label": "Хеш вмісту (SHA-256)",
+      "label": "Content hash (SHA-256)",
       "fieldtype": "Data",
       "read_only": true,
       "in_filter": true,
@@ -65,7 +68,7 @@
     },
     {
       "fieldname": "uploaded_by",
-      "label": "Завантажив",
+      "label": "Uploaded by",
       "fieldtype": "Link",
       "options": "User",
       "in_list_view": true,
@@ -73,7 +76,7 @@
     },
     {
       "fieldname": "is_public",
-      "label": "Публічний",
+      "label": "Public",
       "fieldtype": "Check",
       "default": true,
       "in_list_view": true,
@@ -81,19 +84,19 @@
     },
     {
       "fieldname": "sec_attachment",
-      "label": "Прив'язка",
+      "label": "Binding",
       "fieldtype": "Section"
     },
     {
       "fieldname": "attached_to_doctype",
-      "label": "DocType документа",
+      "label": "Document DocType",
       "fieldtype": "Link",
       "options": "DocType",
       "in_filter": true
     },
     {
       "fieldname": "attached_to_id",
-      "label": "ID документа",
+      "label": "Document ID",
       "fieldtype": "DynamicLink",
       "options": "attached_to_doctype"
     }

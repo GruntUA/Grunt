@@ -1,32 +1,75 @@
 {
   "name": "EmailMessage",
-  "label": "Електронний лист",
+  "label": "Email Message",
   "module": "email",
   "title_field": "subject",
   "default_view": "list",
   "track_changes": false,
-  "search_fields": ["subject", "sender", "recipients"],
+  "search_fields": [
+    "subject",
+    "sender",
+    "recipients"
+  ],
   "status_field": "status",
   "status_indicators": [
-    {"value": "Отримано", "color": "blue", "icon": "inbox"},
-    {"value": "Надіслано", "color": "blue", "icon": "send"},
-    {"value": "Доставлено", "color": "green", "icon": "circle-check"},
-    {"value": "Не доставлено", "color": "red", "icon": "circle-x"},
-    {"value": "Відкладено", "color": "orange", "icon": "clock"},
-    {"value": "У черзі", "color": "yellow", "icon": "loader"},
-    {"value": "Помилка", "color": "red", "icon": "circle-x"}
+    {
+      "value": "Received",
+      "color": "blue",
+      "icon": "inbox"
+    },
+    {
+      "value": "Sent",
+      "color": "blue",
+      "icon": "send"
+    },
+    {
+      "value": "Delivered",
+      "color": "green",
+      "icon": "circle-check"
+    },
+    {
+      "value": "Undelivered",
+      "color": "red",
+      "icon": "circle-x"
+    },
+    {
+      "value": "Deferred",
+      "color": "orange",
+      "icon": "clock"
+    },
+    {
+      "value": "Queued",
+      "color": "yellow",
+      "icon": "loader"
+    },
+    {
+      "value": "Error",
+      "color": "red",
+      "icon": "circle-x"
+    }
   ],
-
   "fields": [
-    { "fieldname": "tab_main", "label": "Лист", "fieldtype": "Tab", "icon": "mail" },
-
-    { "fieldname": "sec_head", "label": "", "fieldtype": "Section" },
-    { "fieldname": "col_h1", "fieldtype": "Column" },
+    {
+      "fieldname": "tab_main",
+      "label": "Email",
+      "fieldtype": "Tab",
+      "icon": "mail"
+    },
+    {
+      "fieldname": "sec_head",
+      "label": "",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "col_h1",
+      "fieldtype": "Column"
+    },
     {
       "fieldname": "direction",
-      "label": "Напрям",
+      "label": "Direction",
       "fieldtype": "Select",
-      "options": "Вхідний\nВихідний",
+      "options": "Incoming\nOutgoing",
+      "translatable": true,
       "required": true,
       "read_only": true,
       "in_list_view": true,
@@ -35,18 +78,22 @@
     },
     {
       "fieldname": "message_date",
-      "label": "Дата / час",
+      "label": "Date / time",
       "fieldtype": "Datetime",
       "read_only": true,
       "in_list_view": true,
       "index": true
     },
-    { "fieldname": "col_h2", "fieldtype": "Column" },
+    {
+      "fieldname": "col_h2",
+      "fieldtype": "Column"
+    },
     {
       "fieldname": "status",
-      "label": "Статус",
+      "label": "Status",
       "fieldtype": "Select",
-      "options": "Отримано\nНадіслано\nДоставлено\nНе доставлено\nВідкладено\nУ черзі\nПомилка",
+      "options": "Received\nSent\nDelivered\nUndelivered\nDeferred\nQueued\nError",
+      "translatable": true,
       "read_only": true,
       "in_list_view": true,
       "in_filter": true,
@@ -54,7 +101,7 @@
     },
     {
       "fieldname": "email_account",
-      "label": "Обліковий запис",
+      "label": "Account",
       "fieldtype": "Link",
       "options": "EmailAccount",
       "read_only": true,
@@ -62,21 +109,44 @@
       "in_filter": true,
       "in_quick_filter": true
     },
-
-    { "fieldname": "sec_env", "label": "", "fieldtype": "Section" },
+    {
+      "fieldname": "sec_env",
+      "label": "",
+      "fieldtype": "Section"
+    },
     {
       "fieldname": "subject",
-      "label": "Тема",
+      "label": "Subject",
       "fieldtype": "Text",
       "read_only": true,
       "in_list_view": true,
       "bold": true
     },
-    { "fieldname": "sender", "label": "Від кого", "fieldtype": "Text", "read_only": true, "in_list_view": true },
-    { "fieldname": "recipients", "label": "Кому", "fieldtype": "Text", "read_only": true },
-    { "fieldname": "cc", "label": "Копія (Cc)", "fieldtype": "Text", "read_only": true, "depends_on": "eval: doc.cc" },
-
-    { "fieldname": "sec_body", "label": "Текст листа", "fieldtype": "Section" },
+    {
+      "fieldname": "sender",
+      "label": "From",
+      "fieldtype": "Text",
+      "read_only": true,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "recipients",
+      "label": "To",
+      "fieldtype": "Text",
+      "read_only": true
+    },
+    {
+      "fieldname": "cc",
+      "label": "Cc",
+      "fieldtype": "Text",
+      "read_only": true,
+      "depends_on": "eval: doc.cc"
+    },
+    {
+      "fieldname": "sec_body",
+      "label": "Email body",
+      "fieldtype": "Section"
+    },
     {
       "fieldname": "body_html",
       "label": "HTML",
@@ -86,81 +156,111 @@
     },
     {
       "fieldname": "body_text",
-      "label": "Текст",
+      "label": "Text",
       "fieldtype": "LongText",
       "read_only": true,
       "depends_on": "eval: !doc.body_html"
     },
-
     {
       "fieldname": "sec_att",
-      "label": "Вкладення",
+      "label": "Attachments",
       "fieldtype": "Section",
       "depends_on": "eval: doc.has_attachments"
     },
     {
       "fieldname": "has_attachments",
-      "label": "Є вкладення",
+      "label": "Has attachments",
       "fieldtype": "Check",
       "read_only": true,
       "in_list_view": true
     },
     {
       "fieldname": "attachments",
-      "label": "Вкладення",
+      "label": "Attachments",
       "fieldtype": "Table",
       "options": "EmailAttachment",
       "read_only": true
     },
-
     {
       "fieldname": "sec_err",
-      "label": "Помилка доставки",
+      "label": "Delivery error",
       "fieldtype": "Section",
       "depends_on": "eval: doc.error_message"
     },
-    { "fieldname": "error_message", "label": "Текст помилки", "fieldtype": "LongText", "read_only": true },
-
+    {
+      "fieldname": "error_message",
+      "label": "Error text",
+      "fieldtype": "LongText",
+      "read_only": true
+    },
     {
       "fieldname": "sec_tracking",
-      "label": "Відстеження доставки",
+      "label": "Delivery tracking",
       "fieldtype": "Section",
       "depends_on": "eval: doc.direction === 'Вихідний'"
     },
-    { "fieldname": "col_t1", "fieldtype": "Column" },
+    {
+      "fieldname": "col_t1",
+      "fieldtype": "Column"
+    },
     {
       "fieldname": "delivered_at",
-      "label": "Доставлено (час)",
+      "label": "Delivered at",
       "fieldtype": "Datetime",
       "read_only": true
     },
     {
       "fieldname": "read_at",
-      "label": "Прочитано отримувачем (час)",
+      "label": "Read by recipient at",
       "fieldtype": "Datetime",
       "read_only": true,
       "in_list_view": true
     },
-    { "fieldname": "col_t2", "fieldtype": "Column" },
+    {
+      "fieldname": "col_t2",
+      "fieldtype": "Column"
+    },
     {
       "fieldname": "request_receipt",
-      "label": "Запитано підтвердження прочитання",
+      "label": "Read receipt requested",
       "fieldtype": "Check",
       "read_only": true
     },
     {
       "fieldname": "delivery_detail",
-      "label": "Деталі доставки / діагностика",
+      "label": "Delivery details / diagnostics",
       "fieldtype": "LongText",
       "read_only": true,
       "depends_on": "eval: doc.delivery_detail"
     },
-
-    { "fieldname": "sec_meta", "label": "Службове", "fieldtype": "Section", "collapsible": true },
-    { "fieldname": "col_m1", "fieldtype": "Column" },
-    { "fieldname": "ref_doctype", "label": "Джерело — тип", "fieldtype": "Text", "read_only": true, "in_filter": true },
-    { "fieldname": "ref_name", "label": "Джерело — запис", "fieldtype": "Text", "read_only": true, "in_filter": true },
-    { "fieldname": "col_m2", "fieldtype": "Column" },
+    {
+      "fieldname": "sec_meta",
+      "label": "Internal",
+      "fieldtype": "Section",
+      "collapsible": true
+    },
+    {
+      "fieldname": "col_m1",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "ref_doctype",
+      "label": "Source — type",
+      "fieldtype": "Text",
+      "read_only": true,
+      "in_filter": true
+    },
+    {
+      "fieldname": "ref_name",
+      "label": "Source — record",
+      "fieldtype": "Text",
+      "read_only": true,
+      "in_filter": true
+    },
+    {
+      "fieldname": "col_m2",
+      "fieldtype": "Column"
+    },
     {
       "fieldname": "message_id",
       "label": "Message-ID",
@@ -169,7 +269,11 @@
       "unique": true,
       "index": true
     },
-    { "fieldname": "is_read", "label": "Прочитано", "fieldtype": "Check" }
+    {
+      "fieldname": "is_read",
+      "label": "Read",
+      "fieldtype": "Check"
+    }
   ],
   "permissions": [
     {

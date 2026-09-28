@@ -1,47 +1,47 @@
 {
   "name": "IncomingWebhook",
-  "label": "Вхідний вебхук",
+  "label": "Incoming Webhook",
   "module": "webhook",
   "table_name": "grunt_incoming_webhook",
   "fields": [
     {
       "fieldname": "label",
-      "label": "Назва",
+      "label": "Name",
       "fieldtype": "Data",
       "required": true,
       "in_list_view": true
     },
     {
       "fieldname": "slug",
-      "label": "URL шлях (slug)",
+      "label": "URL path (slug)",
       "fieldtype": "Data",
       "required": true,
       "in_list_view": true,
-      "description": "Унікальний ідентифікатор у URL: POST /api/v1/webhooks/incoming/{slug}"
+      "description": "Unique identifier in the URL: POST /api/v1/webhooks/incoming/{slug}"
     },
     {
       "fieldname": "secret",
-      "label": "Секрет (HMAC)",
+      "label": "Secret (HMAC)",
       "fieldtype": "Text",
-      "description": "Якщо задано — запити без валідного підпису відхиляються"
+      "description": "If set, requests without a valid signature are rejected"
     },
     {
       "fieldname": "signature_header",
-      "label": "Заголовок підпису",
+      "label": "Signature header",
       "fieldtype": "Data",
       "default": "X-Grunt-Signature",
-      "description": "HTTP-заголовок, в якому очікується підпис (наприклад X-Hub-Signature-256)"
+      "description": "HTTP header expected to carry the signature (e.g. X-Hub-Signature-256)"
     },
     {
       "fieldname": "signature_type",
-      "label": "Алгоритм підпису",
+      "label": "Signature algorithm",
       "fieldtype": "Select",
       "options": "hmac_sha256\nhmac_sha1\nnone",
       "default": "hmac_sha256"
     },
     {
       "fieldname": "action",
-      "label": "Дія",
+      "label": "Action",
       "fieldtype": "Select",
       "options": "log_only\nrun_server_script\ncreate_document",
       "default": "log_only",
@@ -50,27 +50,27 @@
     },
     {
       "fieldname": "server_script",
-      "label": "Серверний скрипт",
+      "label": "Server Script",
       "fieldtype": "Link",
       "options": "ServerScript",
-      "description": "Виконується при action = run_server_script. Payload доступний як змінна payload."
+      "description": "Runs when action = run_server_script. The payload is available as the variable payload."
     },
     {
       "fieldname": "target_doctype",
-      "label": "Тип документа",
+      "label": "Document type",
       "fieldtype": "Link",
       "options": "DocType",
-      "description": "Тип документа для створення при action = create_document"
+      "description": "Document type to create when action = create_document"
     },
     {
       "fieldname": "field_mapping",
-      "label": "Маппінг полів (JSON)",
+      "label": "Field mapping (JSON)",
       "fieldtype": "LongText",
       "description": "JSON: {\"doctype_field\": \"payload.path.to.value\"}"
     },
     {
       "fieldname": "is_enabled",
-      "label": "Активний",
+      "label": "Active",
       "fieldtype": "Check",
       "default": true,
       "in_list_view": true,

@@ -4709,150 +4709,150 @@ msgstr ""
 
 #: grunt/grunt/geo/doctypes/Address/Address.json
 msgctxt "help:Address.city_text"
-msgid "Введіть назву міста вручну, якщо немає в довіднику"
+msgid "Enter the city name manually if it is not in the directory"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Address/Address.json
 msgctxt "help:Address.full_address"
-msgid "Формується автоматично з полів адреси"
+msgid "Built automatically from the address fields"
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/BackgroundJob/BackgroundJob.json
 msgctxt "help:BackgroundJob"
 msgid ""
-"Задачі, які воркер зараз тримає в роботі (доставлені, ще не підтверджені) — "
-"живий знімок з Redis Stream, нічого не зберігається в БД. Завершені задачі "
-"тут не показуються; помилки дивіться в Журналі помилок."
+"Tasks a worker currently holds (delivered, not yet acknowledged) — a live "
+"snapshot from the Redis Stream, nothing is stored in the DB. Finished tasks "
+"are not shown here; see the Error Log for failures."
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/BackgroundJob/BackgroundJob.json
 msgctxt "help:BackgroundJob.delivery_count"
 msgid ""
-"Скільки разів Redis перепризначав цю задачу воркеру (транспортний рівень, не"
-" пов'язано з retry_on_error задачі)."
+"How many times Redis re-delivered this task to a worker (transport level, "
+"unrelated to the task's retry_on_error)."
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/BackgroundJob/BackgroundJob.json
 msgctxt "help:BackgroundJob.idle_ms"
 msgid ""
-"Час з моменту, як воркер востаннє щось із цією задачею робив. Велике "
-"значення означає, що задача, скоріш за все, зависла."
+"Time since the worker last did anything with this task. A large value means "
+"the task is most likely stuck."
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
 msgctxt "help:BackgroundWorker"
 msgid ""
-"Consumer'и групи TaskIQ у Redis Stream — живий знімок, нічого не "
-"зберігається в БД. Воркер, що впав і не перезапустився, лишається тут як "
-"'мертвий' консюмер, поки хтось його не приберe."
+"Consumers of the TaskIQ group in the Redis Stream — a live snapshot, nothing"
+" is stored in the DB. A worker that crashed and did not restart stays here "
+"as a 'dead' consumer until someone removes it."
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
 msgctxt "help:BackgroundWorker.idle_ms"
-msgid "Час з моменту останньої взаємодії воркера з чергою."
+msgid "Time since the worker last interacted with the queue."
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
 msgctxt "help:BackgroundWorker.inactive_ms"
-msgid "Час з моменту останньої успішно підтвердженої (ack) задачі."
+msgid "Time since the last successfully acknowledged (ack) task."
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
 msgctxt "help:BackgroundWorker.pending"
-msgid "Скільки задач цей воркер зараз тримає (доставлено, не підтверджено)."
+msgid ""
+"How many tasks this worker currently holds (delivered, not acknowledged)."
 msgstr ""
 
 #: grunt/grunt/backups/doctypes/Backup/Backup.json
 msgctxt "help:Backup"
 msgid ""
-"Резервні копії сайту в sites/<site>/backups/: база даних, завантажені файли,"
-" конфігурація. Розклад і кількість копій — у Системних налаштуваннях → "
-"Backups."
+"Site backups in sites/<site>/backups/: database, uploaded files, "
+"configuration. Schedule and number of copies — in System Settings → Backups."
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/City/City.json
 msgctxt "help:City.latitude"
-msgid "Географічна широта (десяткові градуси)"
+msgid "Latitude (decimal degrees)"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/City/City.json
 msgctxt "help:City.longitude"
-msgid "Географічна довгота (десяткові градуси)"
+msgid "Longitude (decimal degrees)"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Country/Country.json
 msgctxt "help:Country.code"
-msgid "Двобуквений код країни (UA, US, DE)"
+msgid "Two-letter country code (UA, US, DE)"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Country/Country.json
 msgctxt "help:Country.code3"
-msgid "Трибуквений код країни (UKR, USA, DEU)"
+msgid "Three-letter country code (UKR, USA, DEU)"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Country/Country.json
 msgctxt "help:Country.flag_emoji"
-msgid "Emoji-прапор країни (🇺🇦)"
+msgid "Country flag emoji (🇺🇦)"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Country/Country.json
 msgctxt "help:Country.numeric_code"
-msgid "Числовий код ISO 3166-1 (804 для України)"
+msgid "ISO 3166-1 numeric code (804 for Ukraine)"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Country/Country.json
 msgctxt "help:Country.phone_code"
-msgid "Міжнародний телефонний код (+380)"
+msgid "International dialing code (+380)"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Country/Country.json
 msgctxt "help:Country.tld"
-msgid "Національний домен (.ua, .us)"
+msgid "National domain (.ua, .us)"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Currency/Currency.json
 msgctxt "help:Currency.code"
-msgid "Трибуквений код валюти (UAH, USD, EUR)"
+msgid "Three-letter currency code (UAH, USD, EUR)"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Currency/Currency.json
 msgctxt "help:Currency.decimal_places"
-msgid "Кількість знаків після коми (0 для JPY, 2 для USD)"
+msgid "Number of decimal places (0 for JPY, 2 for USD)"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Currency/Currency.json
 msgctxt "help:Currency.numeric_code"
-msgid "Трицифровий числовий код ISO 4217 (980, 840, 978)"
+msgid "Three-digit ISO 4217 numeric code (980, 840, 978)"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Currency/Currency.json
 msgctxt "help:Currency.symbol"
-msgid "Символ валюти: ₴, $, €"
+msgid "Currency symbol: ₴, $, €"
 msgstr ""
 
 #: grunt/grunt/io/doctypes/DataExport/DataExport.json
 msgctxt "help:DataExport.fields_to_export"
-msgid "Масив fieldname. Якщо порожньо — всі поля."
+msgid "Array of fieldnames. If empty — all fields."
 msgstr ""
 
 #: grunt/grunt/io/doctypes/DataExport/DataExport.json
 msgctxt "help:DataExport.file"
-msgid "Заповнюється автоматично після експорту"
+msgid "Filled in automatically after export"
 msgstr ""
 
 #: grunt/grunt/io/doctypes/DataExport/DataExport.json
 msgctxt "help:DataExport.filters"
-msgid "JSON-об'єкт: {\"fieldname\": \"value\"}"
+msgid "JSON object: {\"fieldname\": \"value\"}"
 msgstr ""
 
 #: grunt/grunt/io/doctypes/DataImport/DataImport.json
 msgctxt "help:DataImport.skip_required_validation"
-msgid "Дозволяє імпортувати рядки навіть якщо обов'язкові поля порожні"
+msgid "Allows importing rows even if required fields are empty"
 msgstr ""
 
 #: grunt/grunt/io/doctypes/DataImport/DataImport.json
 msgctxt "help:DataImport.update_key"
-msgid "Назва поля, за яким шукати існуючий документ"
+msgid "Field used to find an existing document"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocField/DocField.json
@@ -5276,45 +5276,45 @@ msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
 msgctxt "help:EmailAccount.email_address"
-msgid "Повна адреса пошти. Для Gmail вона ж використовується як логін SMTP."
+msgid "Full email address. For Gmail it is also used as the SMTP login."
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
 msgctxt "help:EmailAccount.enable_incoming"
 msgid ""
-"Читання вхідних листів по IMAP. Для простого надсилання листів не потрібно. "
-"Gmail вимагає того самого пароля додатка."
+"Reads incoming emails over IMAP. Not needed just for sending. Gmail requires"
+" the same app password."
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
 msgctxt "help:EmailAccount.enable_outgoing"
-msgid "Дозволяє цьому обліковому запису надсилати листи."
+msgid "Allows this account to send emails."
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
 msgctxt "help:EmailAccount.open_app_passwords"
 msgid ""
-"Щоб надсилати листи через Gmail, потрібен «пароль додатка», а не звичайний пароль акаунта.\n"
+"To send email through Gmail you need an «app password», not the regular account password.\n"
 "\n"
-"1. Відкрийте акаунт Google → «Безпека» та увімкніть «Двоетапну перевірку» (без неї паролі додатків недоступні).\n"
-"2. Натисніть кнопку вище або відкрийте https://myaccount.google.com/apppasswords\n"
-"3. Введіть назву додатка (напр. «Grunt») і натисніть «Створити».\n"
-"4. Скопіюйте 16-значний код у поле «Пароль SMTP» нижче — пробіли можна не видаляти, вони приберуться автоматично."
+"1. Open your Google account → «Security» and turn on «2-Step Verification» (app passwords are unavailable without it).\n"
+"2. Click the button above or open https://myaccount.google.com/apppasswords\n"
+"3. Enter an app name (e.g. «Grunt») and click «Create».\n"
+"4. Copy the 16-character code into the «SMTP password» field below — spaces can stay, they are removed automatically."
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
 msgctxt "help:EmailAccount.provider"
 msgid ""
-"Gmail — сервери SMTP/IMAP і порти заповнюються автоматично, потрібно лише "
-"вказати email і пароль додатка. Оберіть «Інший провайдер», щоб ввести "
-"параметри вручну."
+"Gmail — SMTP/IMAP servers and ports are filled in automatically; you only "
+"need the email and an app password. Choose «Other» to enter the settings "
+"manually."
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
 msgctxt "help:EmailAccount.smtp_password"
 msgid ""
-"Для Gmail — 16-значний пароль додатка (App Password). Звичайний пароль акаунта Google не працює.\n"
-"Збережений пароль більше не показується — щоб змінити його, введіть новий."
+"For Gmail — a 16-character app password (App Password). The regular Google account password does not work.\n"
+"A saved password is not shown again — to change it, enter a new one."
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
@@ -5324,26 +5324,28 @@ msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
 msgctxt "help:EmailAccount.smtp_server"
-msgid "Для Gmail: smtp.gmail.com — підставляється автоматично."
+msgid "For Gmail: smtp.gmail.com — filled in automatically."
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
 msgctxt "help:EmailAccount.smtp_user"
 msgid ""
-"Логін для SMTP. Зазвичай збігається з email-адресою; для Gmail "
-"підставляється автоматично."
+"SMTP login. Usually the same as the email address; filled in automatically "
+"for Gmail."
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
 msgctxt "help:EmailAccount.test_connection"
-msgid "Перевіряє підключення та вхід на SMTP-сервер без надсилання листа."
+msgid ""
+"Checks the connection and sign-in to the SMTP server without sending an "
+"email."
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
 msgctxt "help:EmailAccount.test_send"
 msgid ""
-"Надсилає короткий тестовий лист на вказану адресу через цей обліковий запис."
-" Спершу збережіть зміни."
+"Sends a short test email to the given address through this account. Save "
+"your changes first."
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/EmailLoginToken/EmailLoginToken.json
@@ -5360,33 +5362,33 @@ msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailTemplate/EmailTemplate.json
 msgctxt "help:EmailTemplate.body"
-msgid ""
-"Текстова версія — завжди надсилається; підстановка та сама, {ім'я_поля}"
+msgid "Text version — always sent; same substitution, {field_name}"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailTemplate/EmailTemplate.json
 msgctxt "help:EmailTemplate.body_html"
 msgid ""
-"Необов'язково. Якщо заповнено — лист іде як HTML з текстовою версією як "
-"запасний варіант"
+"Optional. If set, the email is sent as HTML with the text version as a "
+"fallback"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailTemplate/EmailTemplate.json
 msgctxt "help:EmailTemplate.label"
-msgid "Для орієнтації в списку — на саму розсилку не впливає"
+msgid "For orientation in the list — does not affect sending"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailTemplate/EmailTemplate.json
 msgctxt "help:EmailTemplate.subject"
-msgid "Підстановка значень — {ім'я_поля} з контексту, який передає викликач"
+msgid ""
+"Value substitution — {field_name} from the context passed by the caller"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/ErrorLog/ErrorLog.json
 msgctxt "help:ErrorLog"
 msgid ""
-"Необроблені помилки фреймворку та додатків — HTTP-запити, фонові завдання, "
-"контролери. Старі записи автоматично видаляються (див. Налаштування системи "
-"→ Обслуговування)."
+"Unhandled framework and app errors — HTTP requests, background tasks, "
+"controllers. Old entries are deleted automatically (see System Settings → "
+"Maintenance)."
 msgstr ""
 
 #: grunt/grunt/webhook/doctypes/IncomingWebhook/IncomingWebhook.json
@@ -5396,45 +5398,44 @@ msgstr ""
 
 #: grunt/grunt/webhook/doctypes/IncomingWebhook/IncomingWebhook.json
 msgctxt "help:IncomingWebhook.secret"
-msgid "Якщо задано — запити без валідного підпису відхиляються"
+msgid "If set, requests without a valid signature are rejected"
 msgstr ""
 
 #: grunt/grunt/webhook/doctypes/IncomingWebhook/IncomingWebhook.json
 msgctxt "help:IncomingWebhook.server_script"
 msgid ""
-"Виконується при action = run_server_script. Payload доступний як змінна "
-"payload."
+"Runs when action = run_server_script. The payload is available as the "
+"variable payload."
 msgstr ""
 
 #: grunt/grunt/webhook/doctypes/IncomingWebhook/IncomingWebhook.json
 msgctxt "help:IncomingWebhook.signature_header"
-msgid ""
-"HTTP-заголовок, в якому очікується підпис (наприклад X-Hub-Signature-256)"
+msgid "HTTP header expected to carry the signature (e.g. X-Hub-Signature-256)"
 msgstr ""
 
 #: grunt/grunt/webhook/doctypes/IncomingWebhook/IncomingWebhook.json
 msgctxt "help:IncomingWebhook.slug"
-msgid "Унікальний ідентифікатор у URL: POST /api/v1/webhooks/incoming/{slug}"
+msgid "Unique identifier in the URL: POST /api/v1/webhooks/incoming/{slug}"
 msgstr ""
 
 #: grunt/grunt/webhook/doctypes/IncomingWebhook/IncomingWebhook.json
 msgctxt "help:IncomingWebhook.target_doctype"
-msgid "Тип документа для створення при action = create_document"
+msgid "Document type to create when action = create_document"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Language/Language.json
 msgctxt "help:Language.code"
-msgid "Двобуквений код мови (uk, en, de, fr)"
+msgid "Two-letter language code (uk, en, de, fr)"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Language/Language.json
 msgctxt "help:Language.native_name"
-msgid "Назва мови рідною мовою (Українська, English, Deutsch)"
+msgid "Language name in the language itself (Українська, English, Deutsch)"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Region/Region.json
 msgctxt "help:Region.code"
-msgid "Код підрозділу (UA-30 для Києва, US-CA для Каліфорнії)"
+msgid "Subdivision code (UA-30 for Kyiv, US-CA for California)"
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/Report/Report.json
@@ -5483,17 +5484,17 @@ msgstr ""
 
 #: grunt/grunt/tasks/doctypes/ScheduledJob/ScheduledJob.json
 msgctxt "help:ScheduledJob.cron_expression"
-msgid "Наприклад: '*/5 * * * *' для кожні 5 хвилин"
+msgid "For example: '*/5 * * * *' for every 5 minutes"
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/ScheduledJob/ScheduledJob.json
 msgctxt "help:ScheduledJob.executor"
-msgid "Ім'я функції або модуля для виконання"
+msgid "Function or module name to run"
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/ScheduledJob/ScheduledJob.json
 msgctxt "help:ScheduledJob.params"
-msgid "JSON параметри для виконання"
+msgid "JSON parameters for the run"
 msgstr ""
 
 #: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
@@ -5506,16 +5507,15 @@ msgstr ""
 #: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.json
 msgctxt "help:SystemHealthReport"
 msgid ""
-"Діагностика: база даних, фонові задачі, планувальник, помилки, пошта, "
-"безпека, файли й офлайн-режим. Обчислюється наживо при кожному відкритті — "
-"нічого не зберігається."
+"Diagnostics: database, background tasks, scheduler, errors, email, security,"
+" files and offline mode. Computed live on every open — nothing is stored."
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.json
 msgctxt "help:SystemHealthReport.browser_checks"
 msgid ""
-"Виконуються в браузері, з якого відкрито сторінку: service worker, офлайн-"
-"кеш, черга несинхронізованих змін, сховище."
+"Run in the browser this page is opened in: service worker, offline cache, "
+"queue of unsynced changes, storage."
 msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
@@ -5604,7 +5604,7 @@ msgstr ""
 msgctxt "help:SystemSettings.sec_backups"
 msgid ""
 "Database, uploaded files and site config are saved to sites/<site>/backups/."
-" Backups are listed, downloaded and made on demand in «Резервні копії»."
+" Backups are listed, downloaded and made on demand in «Backups»."
 msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
@@ -5626,17 +5626,17 @@ msgstr ""
 
 #: grunt/grunt/geo/doctypes/Timezone/Timezone.json
 msgctxt "help:Timezone.iana_id"
-msgid "Наприклад: Europe/Kyiv, America/New_York"
+msgid "For example: Europe/Kyiv, America/New_York"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Timezone/Timezone.json
 msgctxt "help:Timezone.label"
-msgid "Наприклад: (UTC+2) Київ"
+msgid "For example: (UTC+2) Kyiv"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Timezone/Timezone.json
 msgctxt "help:Timezone.offset_minutes"
-msgid "Зсув від UTC у хвилинах (+120 для UTC+2, -300 для UTC-5)"
+msgid "Offset from UTC in minutes (+120 for UTC+2, -300 for UTC-5)"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.json
@@ -5670,27 +5670,28 @@ msgstr ""
 
 #: grunt/grunt/permissions/doctypes/UserPermission/UserPermission.json
 msgctxt "help:UserPermission.allow"
-msgid "Тип документа, за яким обмежуємо доступ (напр. «Компанія»)."
+msgid "Document type to restrict access by (e.g. «Company»)."
 msgstr ""
 
 #: grunt/grunt/permissions/doctypes/UserPermission/UserPermission.json
 msgctxt "help:UserPermission.applicable_for"
-msgid "Обмежити дію цього правила одним DocType."
+msgid "Limit this rule to a single DocType."
 msgstr ""
 
 #: grunt/grunt/permissions/doctypes/UserPermission/UserPermission.json
 msgctxt "help:UserPermission.apply_to_all_doctypes"
-msgid "Обмеження діє на будь-який DocType із Link-полем на «Обмежити за»."
+msgid ""
+"The restriction applies to any DocType with a Link field to «Restrict by»."
 msgstr ""
 
 #: grunt/grunt/permissions/doctypes/UserPermission/UserPermission.json
 msgctxt "help:UserPermission.for_value"
-msgid "Дозволений запис. Користувач бачитиме лише документи, пов'язані з ним."
+msgid "The allowed record. The user will see only documents linked to it."
 msgstr ""
 
 #: grunt/grunt/permissions/doctypes/UserPermission/UserPermission.json
 msgctxt "help:UserPermission.is_default"
-msgid "Підставляти це значення у відповідне Link-поле нових документів."
+msgid "Fill this value into the matching Link field of new documents."
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/WebAuthnCredential/WebAuthnCredential.json
@@ -5876,92 +5877,92 @@ msgstr ""
 
 #: grunt/grunt/activity/doctypes/ActivityLog/ActivityLog.json
 msgctxt "meta:ActivityLog"
-msgid "Журнал активності"
+msgid "Activity Log"
 msgstr ""
 
 #: grunt/grunt/activity/doctypes/ActivityLog/ActivityLog.json
 msgctxt "meta:ActivityLog.action"
-msgid "Дія"
+msgid "Action"
 msgstr ""
 
 #: grunt/grunt/activity/doctypes/ActivityLog/ActivityLog.json
 msgctxt "meta:ActivityLog.details"
-msgid "Деталі"
+msgid "Details"
 msgstr ""
 
 #: grunt/grunt/activity/doctypes/ActivityLog/ActivityLog.json
 msgctxt "meta:ActivityLog.doc_id"
-msgid "ID документа"
+msgid "Document ID"
 msgstr ""
 
 #: grunt/grunt/activity/doctypes/ActivityLog/ActivityLog.json
 msgctxt "meta:ActivityLog.doctype"
-msgid "Тип документа"
+msgid "Document type"
 msgstr ""
 
 #: grunt/grunt/activity/doctypes/ActivityLog/ActivityLog.json
 msgctxt "meta:ActivityLog.user"
-msgid "Користувач"
+msgid "User"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Address/Address.json
 msgctxt "meta:Address"
-msgid "Адреса"
+msgid "Address"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Address/Address.json
 msgctxt "meta:Address.address_type"
-msgid "Тип адреси"
+msgid "Address type"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Address/Address.json
 msgctxt "meta:Address.apartment"
-msgid "Квартира / Офіс"
+msgid "Apartment / Office"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Address/Address.json
 msgctxt "meta:Address.building"
-msgid "Будинок"
+msgid "Building"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Address/Address.json
 msgctxt "meta:Address.city"
-msgid "Місто (довідник)"
+msgid "City (directory)"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Address/Address.json
 msgctxt "meta:Address.city_text"
-msgid "Місто (текст)"
+msgid "City (text)"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Address/Address.json
 msgctxt "meta:Address.country"
-msgid "Країна"
+msgid "Country"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Address/Address.json
 msgctxt "meta:Address.full_address"
-msgid "Повна адреса"
+msgid "Full address"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Address/Address.json
 msgctxt "meta:Address.notes"
-msgid "Примітки"
+msgid "Notes"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Address/Address.json
 msgctxt "meta:Address.region"
-msgid "Регіон / Область"
+msgid "Region / Oblast"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Address/Address.json
 msgctxt "meta:Address.street"
-msgid "Вулиця"
+msgid "Street"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Address/Address.json
 msgctxt "meta:Address.zip_code"
-msgid "Поштовий індекс"
+msgid "Postal code"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/ApiKey/ApiKey.json
@@ -6166,67 +6167,67 @@ msgstr ""
 
 #: grunt/grunt/tasks/doctypes/BackgroundJob/BackgroundJob.json
 msgctxt "meta:BackgroundJob"
-msgid "Активні фонові задачі"
+msgid "Active Background Tasks"
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/BackgroundJob/BackgroundJob.json
 msgctxt "meta:BackgroundJob.arguments"
-msgid "Аргументи"
+msgid "Arguments"
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/BackgroundJob/BackgroundJob.json
 msgctxt "meta:BackgroundJob.consumer"
-msgid "Воркер"
+msgid "Worker"
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/BackgroundJob/BackgroundJob.json
 msgctxt "meta:BackgroundJob.delivery_count"
-msgid "Спроб доставки"
+msgid "Delivery attempts"
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/BackgroundJob/BackgroundJob.json
 msgctxt "meta:BackgroundJob.idle_ms"
-msgid "Без підтвердження, мс"
+msgid "Without ack, ms"
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/BackgroundJob/BackgroundJob.json
 msgctxt "meta:BackgroundJob.queued_at"
-msgid "У черзі з"
+msgid "Queued since"
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/BackgroundJob/BackgroundJob.json
 msgctxt "meta:BackgroundJob.task_id"
-msgid "ID задачі"
+msgid "Task ID"
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/BackgroundJob/BackgroundJob.json
 msgctxt "meta:BackgroundJob.task_name"
-msgid "Задача"
+msgid "Task"
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
 msgctxt "meta:BackgroundWorker"
-msgid "Воркери черги"
+msgid "Queue Workers"
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
 msgctxt "meta:BackgroundWorker.idle_ms"
-msgid "Простій, мс"
+msgid "Idle, ms"
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
 msgctxt "meta:BackgroundWorker.inactive_ms"
-msgid "Без завершених задач, мс"
+msgid "Without finished tasks, ms"
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
 msgctxt "meta:BackgroundWorker.pending"
-msgid "У роботі"
+msgid "In progress"
 msgstr ""
 
 #: grunt/grunt/backups/doctypes/Backup/Backup.json
 msgctxt "meta:Backup"
-msgid "Резервні копії"
+msgid "Backups"
 msgstr ""
 
 #: grunt/grunt/backups/doctypes/Backup/Backup.json
@@ -6236,12 +6237,12 @@ msgstr ""
 
 #: grunt/grunt/backups/doctypes/Backup/Backup.json
 msgctxt "meta:Backup.created_at"
-msgid "Створено"
+msgid "Created"
 msgstr ""
 
 #: grunt/grunt/backups/doctypes/Backup/Backup.json
 msgctxt "meta:Backup.database_size"
-msgid "База даних"
+msgid "Database"
 msgstr ""
 
 #: grunt/grunt/backups/doctypes/Backup/Backup.json
@@ -6251,7 +6252,7 @@ msgstr ""
 
 #: grunt/grunt/backups/doctypes/Backup/Backup.json
 msgctxt "meta:Backup.files_size"
-msgid "Файли"
+msgid "Files"
 msgstr ""
 
 #: grunt/grunt/backups/doctypes/Backup/Backup.json
@@ -6261,12 +6262,12 @@ msgstr ""
 
 #: grunt/grunt/backups/doctypes/Backup/Backup.json
 msgctxt "meta:Backup.has_config"
-msgid "Конфігурація"
+msgid "Configuration"
 msgstr ""
 
 #: grunt/grunt/backups/doctypes/Backup/Backup.json
 msgctxt "meta:Backup.total_size"
-msgid "Розмір"
+msgid "Size"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/Bookmark/Bookmark.json
@@ -6291,247 +6292,247 @@ msgstr ""
 
 #: grunt/grunt/geo/doctypes/City/City.json
 msgctxt "meta:City"
-msgid "Місто"
+msgid "City"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/City/City.json
 msgctxt "meta:City.country"
-msgid "Країна"
+msgid "Country"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/City/City.json
 msgctxt "meta:City.is_active"
-msgid "Активне"
+msgid "Active"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/City/City.json
 msgctxt "meta:City.is_capital"
-msgid "Столиця"
+msgid "Capital"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/City/City.json
 msgctxt "meta:City.latitude"
-msgid "Широта"
+msgid "Latitude"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/City/City.json
 msgctxt "meta:City.longitude"
-msgid "Довгота"
+msgid "Longitude"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/City/City.json
 msgctxt "meta:City.population"
-msgid "Населення"
+msgid "Population"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/City/City.json
 msgctxt "meta:City.region"
-msgid "Регіон"
+msgid "Region"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/City/City.json
 msgctxt "meta:City.title"
-msgid "Назва"
+msgid "Name"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/City/City.json
 msgctxt "meta:City.title_uk"
-msgid "Назва (укр.)"
+msgid "Name (Ukrainian)"
 msgstr ""
 
 #: grunt/grunt/scripting/doctypes/ClientScript/ClientScript.json
 msgctxt "meta:ClientScript"
-msgid "Клієнтський скрипт"
+msgid "Client Script"
 msgstr ""
 
 #: grunt/grunt/scripting/doctypes/ClientScript/ClientScript.json
 msgctxt "meta:ClientScript.doctype"
-msgid "Тип документа"
+msgid "Document type"
 msgstr ""
 
 #: grunt/grunt/scripting/doctypes/ClientScript/ClientScript.json
 msgctxt "meta:ClientScript.is_enabled"
-msgid "Активний"
+msgid "Active"
 msgstr ""
 
 #: grunt/grunt/scripting/doctypes/ClientScript/ClientScript.json
 msgctxt "meta:ClientScript.script"
-msgid "Скрипт (JavaScript)"
+msgid "Script (JavaScript)"
 msgstr ""
 
 #: grunt/grunt/document/doctypes/Comment/Comment.json
 msgctxt "meta:Comment"
-msgid "Коментар"
+msgid "Comment"
 msgstr ""
 
 #: grunt/grunt/document/doctypes/Comment/Comment.json
 msgctxt "meta:Comment.comment_type"
-msgid "Тип"
+msgid "Type"
 msgstr ""
 
 #: grunt/grunt/document/doctypes/Comment/Comment.json
 msgctxt "meta:Comment.content"
-msgid "Вміст"
+msgid "Content"
 msgstr ""
 
 #: grunt/grunt/document/doctypes/Comment/Comment.json
 msgctxt "meta:Comment.reference_doctype"
-msgid "Тип документа"
+msgid "Document type"
 msgstr ""
 
 #: grunt/grunt/document/doctypes/Comment/Comment.json
 msgctxt "meta:Comment.reference_id"
-msgid "ID документа"
+msgid "Document ID"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Country/Country.json
 msgctxt "meta:Country"
-msgid "Країна"
+msgid "Country"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Country/Country.json
 msgctxt "meta:Country.capital"
-msgid "Столиця"
+msgid "Capital"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Country/Country.json
 msgctxt "meta:Country.code"
-msgid "Код ISO 3166-1 alpha-2"
+msgid "ISO 3166-1 alpha-2 code"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Country/Country.json
 msgctxt "meta:Country.code3"
-msgid "Код ISO 3166-1 alpha-3"
+msgid "ISO 3166-1 alpha-3 code"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Country/Country.json
 msgctxt "meta:Country.continent"
-msgid "Континент"
+msgid "Continent"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Country/Country.json
 msgctxt "meta:Country.currency"
-msgid "Валюта"
+msgid "Currency"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Country/Country.json
 msgctxt "meta:Country.flag_emoji"
-msgid "Прапор"
+msgid "Flag"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Country/Country.json
 msgctxt "meta:Country.is_active"
-msgid "Активна"
+msgid "Active"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Country/Country.json
 msgctxt "meta:Country.numeric_code"
-msgid "Числовий код"
+msgid "Numeric code"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Country/Country.json
 msgctxt "meta:Country.official_language"
-msgid "Офіційна мова"
+msgid "Official language"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Country/Country.json
 msgctxt "meta:Country.phone_code"
-msgid "Телефонний код"
+msgid "Dialing code"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Country/Country.json
 msgctxt "meta:Country.title"
-msgid "Назва (англ.)"
+msgid "Name (English)"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Country/Country.json
 msgctxt "meta:Country.title_uk"
-msgid "Назва (укр.)"
+msgid "Name (Ukrainian)"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Country/Country.json
 msgctxt "meta:Country.tld"
-msgid "Домен верхнього рівня"
+msgid "Top-level domain"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Currency/Currency.json
 msgctxt "meta:Currency"
-msgid "Валюта"
+msgid "Currency"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Currency/Currency.json
 msgctxt "meta:Currency.code"
-msgid "Код ISO 4217"
+msgid "ISO 4217 code"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Currency/Currency.json
 msgctxt "meta:Currency.decimal_places"
-msgid "Знаків після коми"
+msgid "Decimal places"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Currency/Currency.json
 msgctxt "meta:Currency.is_active"
-msgid "Активна"
+msgid "Active"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Currency/Currency.json
 msgctxt "meta:Currency.numeric_code"
-msgid "Числовий код"
+msgid "Numeric code"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Currency/Currency.json
 msgctxt "meta:Currency.symbol"
-msgid "Символ"
+msgid "Symbol"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Currency/Currency.json
 msgctxt "meta:Currency.title"
-msgid "Назва (англ.)"
+msgid "Name (English)"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Currency/Currency.json
 msgctxt "meta:Currency.title_uk"
-msgid "Назва (укр.)"
+msgid "Name (Ukrainian)"
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/Dashboard/Dashboard.json
 msgctxt "meta:Dashboard"
-msgid "Дашборд"
+msgid "Dashboard"
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
 msgctxt "meta:Dashboard Widget"
-msgid "Віджет дашборду"
+msgid "Dashboard Widget"
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
 msgctxt "meta:Dashboard Widget.aggregation"
-msgid "Агрегація"
+msgid "Aggregation"
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
 msgctxt "meta:Dashboard Widget.color"
-msgid "Колір"
+msgid "Color"
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
 msgctxt "meta:Dashboard Widget.cols"
-msgid "Ширина (1-4)"
+msgid "Width (1-4)"
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
 msgctxt "meta:Dashboard Widget.content"
-msgid "Вміст"
+msgid "Content"
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
 msgctxt "meta:Dashboard Widget.date_field"
-msgid "Поле дати"
+msgid "Date field"
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
 msgctxt "meta:Dashboard Widget.description"
-msgid "Опис / Підзаголовок"
+msgid "Description / Subtitle"
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
@@ -6541,307 +6542,307 @@ msgstr ""
 
 #: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
 msgctxt "meta:Dashboard Widget.field"
-msgid "Поле"
+msgid "Field"
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
 msgctxt "meta:Dashboard Widget.filters"
-msgid "Фільтри"
+msgid "Filters"
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
 msgctxt "meta:Dashboard Widget.group_by"
-msgid "Групувати за"
+msgid "Group by"
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
 msgctxt "meta:Dashboard Widget.icon"
-msgid "Іконка (lucide)"
+msgid "Icon (lucide)"
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
 msgctxt "meta:Dashboard Widget.link_type"
-msgid "Тип посилання"
+msgid "Link type"
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
 msgctxt "meta:Dashboard Widget.max_value"
-msgid "Макс. значення"
+msgid "Max value"
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
 msgctxt "meta:Dashboard Widget.min_value"
-msgid "Мін. значення"
+msgid "Min value"
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
 msgctxt "meta:Dashboard Widget.period"
-msgid "Період"
+msgid "Period"
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
 msgctxt "meta:Dashboard Widget.report"
-msgid "Звіт (джерело даних для графіка)"
+msgid "Report (chart data source)"
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
 msgctxt "meta:Dashboard Widget.sequence"
-msgid "Порядок"
+msgid "Order"
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
 msgctxt "meta:Dashboard Widget.title"
-msgid "Заголовок"
+msgid "Title"
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
 msgctxt "meta:Dashboard Widget.widget_type"
-msgid "Тип"
+msgid "Type"
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/Dashboard/Dashboard.json
 msgctxt "meta:Dashboard.description"
-msgid "Опис"
+msgid "Description"
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/Dashboard/Dashboard.json
 msgctxt "meta:Dashboard.is_published"
-msgid "Опублікований"
+msgid "Published"
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/Dashboard/Dashboard.json
 msgctxt "meta:Dashboard.label"
-msgid "Назва"
+msgid "Name"
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/Dashboard/Dashboard.json
 msgctxt "meta:Dashboard.roles"
-msgid "Ролі (через кому)"
+msgid "Roles (comma-separated)"
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/Dashboard/Dashboard.json
 msgctxt "meta:Dashboard.widgets"
-msgid "Віджети"
+msgid "Widgets"
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/Dashboard/Dashboard.json
 msgctxt "meta:Dashboard.workspace"
-msgid "Воркспейс"
+msgid "Workspace"
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/DashboardChart/DashboardChart.json
 msgctxt "meta:DashboardChart"
-msgid "Графік дашборду"
+msgid "Dashboard Chart"
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/DashboardChart/DashboardChart.json
 msgctxt "meta:DashboardChart.chart_type"
-msgid "Тип графіка"
+msgid "Chart type"
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/DashboardChart/DashboardChart.json
 msgctxt "meta:DashboardChart.color"
-msgid "Колір"
+msgid "Color"
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/DashboardChart/DashboardChart.json
 msgctxt "meta:DashboardChart.doctype"
-msgid "Тип документа"
+msgid "Document type"
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/DashboardChart/DashboardChart.json
 msgctxt "meta:DashboardChart.filters"
-msgid "Фільтри (JSON)"
+msgid "Filters (JSON)"
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/DashboardChart/DashboardChart.json
 msgctxt "meta:DashboardChart.group_by"
-msgid "Групувати за"
+msgid "Group by"
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/DashboardChart/DashboardChart.json
 msgctxt "meta:DashboardChart.is_public"
-msgid "Публічний"
+msgid "Public"
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/DashboardChart/DashboardChart.json
 msgctxt "meta:DashboardChart.timespan"
-msgid "Період"
+msgid "Period"
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/DashboardChart/DashboardChart.json
 msgctxt "meta:DashboardChart.value_field"
-msgid "Поле значення"
+msgid "Value field"
 msgstr ""
 
 #: grunt/grunt/io/doctypes/DataExport/DataExport.json
 msgctxt "meta:DataExport"
-msgid "Експорт даних"
+msgid "Data Export"
 msgstr ""
 
 #: grunt/grunt/io/doctypes/DataExport/DataExport.json
 msgctxt "meta:DataExport.doctype_name"
-msgid "Тип документа"
+msgid "Document type"
 msgstr ""
 
 #: grunt/grunt/io/doctypes/DataExport/DataExport.json
 msgctxt "meta:DataExport.error"
-msgid "Помилка"
+msgid "Error"
 msgstr ""
 
 #: grunt/grunt/io/doctypes/DataExport/DataExport.json
 msgctxt "meta:DataExport.export_format"
-msgid "Формат"
+msgid "Format"
 msgstr ""
 
 #: grunt/grunt/io/doctypes/DataExport/DataExport.json
 msgctxt "meta:DataExport.exported_rows"
-msgid "Експортовано рядків"
+msgid "Rows exported"
 msgstr ""
 
 #: grunt/grunt/io/doctypes/DataExport/DataExport.json
 msgctxt "meta:DataExport.fields_to_export"
-msgid "Поля для експорту"
+msgid "Fields to export"
 msgstr ""
 
 #: grunt/grunt/io/doctypes/DataExport/DataExport.json
 msgctxt "meta:DataExport.file"
-msgid "Файл результату"
+msgid "Result file"
 msgstr ""
 
 #: grunt/grunt/io/doctypes/DataExport/DataExport.json
 msgctxt "meta:DataExport.filters"
-msgid "Фільтри"
+msgid "Filters"
 msgstr ""
 
 #: grunt/grunt/io/doctypes/DataExport/DataExport.json
 msgctxt "meta:DataExport.label"
-msgid "Назва"
+msgid "Name"
 msgstr ""
 
 #: grunt/grunt/io/doctypes/DataExport/DataExport.json
 msgctxt "meta:DataExport.limit"
-msgid "Макс. рядків"
+msgid "Max rows"
 msgstr ""
 
 #: grunt/grunt/io/doctypes/DataExport/DataExport.json
 msgctxt "meta:DataExport.status"
-msgid "Статус"
+msgid "Status"
 msgstr ""
 
 #: grunt/grunt/io/doctypes/DataImport/DataImport.json
 msgctxt "meta:DataImport"
-msgid "Імпорт даних"
+msgid "Data Import"
 msgstr ""
 
 #: grunt/grunt/io/doctypes/DataImport/DataImport.json
 msgctxt "meta:DataImport.doctype_name"
-msgid "Тип документа"
+msgid "Document type"
 msgstr ""
 
 #: grunt/grunt/io/doctypes/DataImport/DataImport.json
 msgctxt "meta:DataImport.dry_run"
-msgid "Тільки валідація (без запису)"
+msgid "Validate only (no writes)"
 msgstr ""
 
 #: grunt/grunt/io/doctypes/DataImport/DataImport.json
 msgctxt "meta:DataImport.error_count"
-msgid "Помилок"
+msgid "Errors"
 msgstr ""
 
 #: grunt/grunt/io/doctypes/DataImport/DataImport.json
 msgctxt "meta:DataImport.error_log"
-msgid "Лог помилок"
+msgid "Error log"
 msgstr ""
 
 #: grunt/grunt/io/doctypes/DataImport/DataImport.json
 msgctxt "meta:DataImport.file"
-msgid "Файл (CSV / XLSX)"
+msgid "File (CSV / XLSX)"
 msgstr ""
 
 #: grunt/grunt/io/doctypes/DataImport/DataImport.json
 msgctxt "meta:DataImport.import_type"
-msgid "Тип імпорту"
+msgid "Import type"
 msgstr ""
 
 #: grunt/grunt/io/doctypes/DataImport/DataImport.json
 msgctxt "meta:DataImport.mapping"
-msgid "Маппінг колонок"
+msgid "Column mapping"
 msgstr ""
 
 #: grunt/grunt/io/doctypes/DataImport/DataImport.json
 msgctxt "meta:DataImport.processed_rows"
-msgid "Оброблено"
+msgid "Processed"
 msgstr ""
 
 #: grunt/grunt/io/doctypes/DataImport/DataImport.json
 msgctxt "meta:DataImport.skip_required_validation"
-msgid "Пропускати обов'язкові поля"
+msgid "Skip required fields"
 msgstr ""
 
 #: grunt/grunt/io/doctypes/DataImport/DataImport.json
 msgctxt "meta:DataImport.status"
-msgid "Статус"
+msgid "Status"
 msgstr ""
 
 #: grunt/grunt/io/doctypes/DataImport/DataImport.json
 msgctxt "meta:DataImport.total_rows"
-msgid "Всього рядків"
+msgid "Total rows"
 msgstr ""
 
 #: grunt/grunt/io/doctypes/DataImport/DataImport.json
 msgctxt "meta:DataImport.update_key"
-msgid "Ключ для оновлення"
+msgid "Update key"
 msgstr ""
 
 #: grunt/grunt/activity/doctypes/DeletedDocument/DeletedDocument.json
 msgctxt "meta:DeletedDocument"
-msgid "Видалений документ"
+msgid "Deleted Document"
 msgstr ""
 
 #: grunt/grunt/activity/doctypes/DeletedDocument/DeletedDocument.json
 msgctxt "meta:DeletedDocument.data"
-msgid "Знімок (JSON)"
+msgid "Snapshot (JSON)"
 msgstr ""
 
 #: grunt/grunt/activity/doctypes/DeletedDocument/DeletedDocument.json
 msgctxt "meta:DeletedDocument.deleted_at"
-msgid "Час видалення"
+msgid "Deleted at"
 msgstr ""
 
 #: grunt/grunt/activity/doctypes/DeletedDocument/DeletedDocument.json
 msgctxt "meta:DeletedDocument.deleted_by"
-msgid "Видалив"
+msgid "Deleted by"
 msgstr ""
 
 #: grunt/grunt/activity/doctypes/DeletedDocument/DeletedDocument.json
 msgctxt "meta:DeletedDocument.deleted_doctype"
-msgid "Тип документа"
+msgid "Document type"
 msgstr ""
 
 #: grunt/grunt/activity/doctypes/DeletedDocument/DeletedDocument.json
 msgctxt "meta:DeletedDocument.deleted_name"
-msgid "ID документа"
+msgid "Document ID"
 msgstr ""
 
 #: grunt/grunt/activity/doctypes/DeletedDocument/DeletedDocument.json
 msgctxt "meta:DeletedDocument.restored"
-msgid "Відновлено"
+msgid "Restored"
 msgstr ""
 
 #: grunt/grunt/activity/doctypes/DeletedDocument/DeletedDocument.json
 msgctxt "meta:DeletedDocument.restored_at"
-msgid "Час відновлення"
+msgid "Restored at"
 msgstr ""
 
 #: grunt/grunt/activity/doctypes/DeletedDocument/DeletedDocument.json
 msgctxt "meta:DeletedDocument.restored_to"
-msgid "Відновлено як"
+msgid "Restored as"
 msgstr ""
 
 #: grunt/grunt/activity/doctypes/DeletedDocument/DeletedDocument.json
 msgctxt "meta:DeletedDocument.title"
-msgid "Назва"
+msgid "Name"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocField/DocField.json
@@ -6946,32 +6947,32 @@ msgstr ""
 
 #: grunt/grunt/document/doctypes/DocLink/DocLink.json
 msgctxt "meta:DocLink"
-msgid "Зв'язок документа"
+msgid "Document Link"
 msgstr ""
 
 #: grunt/grunt/document/doctypes/DocLink/DocLink.json
 msgctxt "meta:DocLink.link_fieldname"
-msgid "Поле зв'язку"
+msgid "Link field"
 msgstr ""
 
 #: grunt/grunt/document/doctypes/DocLink/DocLink.json
 msgctxt "meta:DocLink.source_doctype"
-msgid "Тип джерела"
+msgid "Source type"
 msgstr ""
 
 #: grunt/grunt/document/doctypes/DocLink/DocLink.json
 msgctxt "meta:DocLink.source_id"
-msgid "ID джерела"
+msgid "Source ID"
 msgstr ""
 
 #: grunt/grunt/document/doctypes/DocLink/DocLink.json
 msgctxt "meta:DocLink.target_doctype"
-msgid "Тип цілі"
+msgid "Target type"
 msgstr ""
 
 #: grunt/grunt/document/doctypes/DocLink/DocLink.json
 msgctxt "meta:DocLink.target_id"
-msgid "ID цілі"
+msgid "Target ID"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
@@ -7046,22 +7047,22 @@ msgstr ""
 
 #: grunt/grunt/document/doctypes/DocTag/DocTag.json
 msgctxt "meta:DocTag"
-msgid "Тег документа"
+msgid "Document Tag"
 msgstr ""
 
 #: grunt/grunt/document/doctypes/DocTag/DocTag.json
 msgctxt "meta:DocTag.reference_doctype"
-msgid "Тип документа"
+msgid "Document type"
 msgstr ""
 
 #: grunt/grunt/document/doctypes/DocTag/DocTag.json
 msgctxt "meta:DocTag.reference_id"
-msgid "ID документа"
+msgid "Document ID"
 msgstr ""
 
 #: grunt/grunt/document/doctypes/DocTag/DocTag.json
 msgctxt "meta:DocTag.tag"
-msgid "Тег"
+msgid "Tag"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
@@ -7631,202 +7632,202 @@ msgstr ""
 
 #: grunt/grunt/document/doctypes/DocVersion/DocVersion.json
 msgctxt "meta:DocVersion"
-msgid "Версія документа"
+msgid "Document Version"
 msgstr ""
 
 #: grunt/grunt/document/doctypes/DocVersion/DocVersion.json
 msgctxt "meta:DocVersion.changes"
-msgid "Зміни"
+msgid "Changes"
 msgstr ""
 
 #: grunt/grunt/document/doctypes/DocVersion/DocVersion.json
 msgctxt "meta:DocVersion.doc_id"
-msgid "ID документа"
+msgid "Document ID"
 msgstr ""
 
 #: grunt/grunt/document/doctypes/DocVersion/DocVersion.json
 msgctxt "meta:DocVersion.doctype"
-msgid "Тип документа"
+msgid "Document type"
 msgstr ""
 
 #: grunt/grunt/document/doctypes/DocVersion/DocVersion.json
 msgctxt "meta:DocVersion.user"
-msgid "Користувач"
+msgid "User"
 msgstr ""
 
 #: grunt/grunt/document/doctypes/DocVersion/DocVersion.json
 msgctxt "meta:DocVersion.version"
-msgid "Версія"
+msgid "Version"
 msgstr ""
 
 #: grunt/grunt/document/doctypes/DocumentShare/DocumentShare.json
 msgctxt "meta:DocumentShare"
-msgid "Спільний доступ"
+msgid "Shared With"
 msgstr ""
 
 #: grunt/grunt/document/doctypes/DocumentShare/DocumentShare.json
 msgctxt "meta:DocumentShare.doc_id"
-msgid "Документ ID"
+msgid "Document ID"
 msgstr ""
 
 #: grunt/grunt/document/doctypes/DocumentShare/DocumentShare.json
 msgctxt "meta:DocumentShare.doctype_name"
-msgid "Тип документа"
+msgid "Document type"
 msgstr ""
 
 #: grunt/grunt/document/doctypes/DocumentShare/DocumentShare.json
 msgctxt "meta:DocumentShare.expires_at"
-msgid "Дійсно до"
+msgid "Valid until"
 msgstr ""
 
 #: grunt/grunt/document/doctypes/DocumentShare/DocumentShare.json
 msgctxt "meta:DocumentShare.is_active"
-msgid "Активне"
+msgid "Active"
 msgstr ""
 
 #: grunt/grunt/document/doctypes/DocumentShare/DocumentShare.json
 msgctxt "meta:DocumentShare.note"
-msgid "Примітка"
+msgid "Note"
 msgstr ""
 
 #: grunt/grunt/document/doctypes/DocumentShare/DocumentShare.json
 msgctxt "meta:DocumentShare.token"
-msgid "Токен"
+msgid "Token"
 msgstr ""
 
 #: grunt/grunt/document/doctypes/DocumentShare/DocumentShare.json
 msgctxt "meta:DocumentShare.view_count"
-msgid "Перегляди"
+msgid "Views"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
 msgctxt "meta:EmailAccount"
-msgid "Обліковий запис пошти"
+msgid "Email Account"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
 msgctxt "meta:EmailAccount.email_address"
-msgid "Email адреса"
+msgid "Email address"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
 msgctxt "meta:EmailAccount.enable_incoming"
-msgid "Дозволити вхідну пошту"
+msgid "Enable incoming mail"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
 msgctxt "meta:EmailAccount.enable_outgoing"
-msgid "Дозволити вихідну пошту"
+msgid "Enable outgoing mail"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
 msgctxt "meta:EmailAccount.imap_port"
-msgid "IMAP порт"
+msgid "IMAP port"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
 msgctxt "meta:EmailAccount.imap_server"
-msgid "IMAP сервер"
+msgid "IMAP server"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
 msgctxt "meta:EmailAccount.open_app_passwords"
-msgid "Відкрити сторінку паролів додатків Google"
+msgid "Open the Google app passwords page"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
 msgctxt "meta:EmailAccount.provider"
-msgid "Поштова служба"
+msgid "Mail service"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
 msgctxt "meta:EmailAccount.sec_creds"
-msgid "Крок 2 — автентифікація"
+msgid "Step 2 — authentication"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
 msgctxt "meta:EmailAccount.sec_gmail"
-msgid "Крок 1 — пароль додатка Google"
+msgid "Step 1 — Google app password"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
 msgctxt "meta:EmailAccount.sec_incoming"
-msgid "Вхідна пошта (IMAP)"
+msgid "Incoming mail (IMAP)"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
 msgctxt "meta:EmailAccount.sec_outgoing"
-msgid "Вихідна пошта (SMTP)"
+msgid "Outgoing mail (SMTP)"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
 msgctxt "meta:EmailAccount.smtp_password"
-msgid "Пароль SMTP (пароль додатка)"
+msgid "SMTP password (app password)"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
 msgctxt "meta:EmailAccount.smtp_port"
-msgid "SMTP порт"
+msgid "SMTP port"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
 msgctxt "meta:EmailAccount.smtp_server"
-msgid "SMTP сервер"
+msgid "SMTP server"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
 msgctxt "meta:EmailAccount.smtp_user"
-msgid "Користувач SMTP"
+msgid "SMTP user"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
 msgctxt "meta:EmailAccount.tab_main"
-msgid "Обліковий запис"
+msgid "Account"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
 msgctxt "meta:EmailAccount.test_connection"
-msgid "Перевірити з'єднання (SMTP)"
+msgid "Test connection (SMTP)"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
 msgctxt "meta:EmailAccount.test_send"
-msgid "Надіслати тестовий лист"
+msgid "Send test email"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
 msgctxt "meta:EmailAccount.use_ssl"
-msgid "Використовувати SSL"
+msgid "Use SSL"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
 msgctxt "meta:EmailAccount.use_tls"
-msgid "Використовувати TLS"
+msgid "Use TLS"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailAttachment/EmailAttachment.json
 msgctxt "meta:EmailAttachment"
-msgid "Вкладення листа"
+msgid "Email Attachment"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailAttachment/EmailAttachment.json
 msgctxt "meta:EmailAttachment.file"
-msgid "Файл"
+msgid "File"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailAttachment/EmailAttachment.json
 msgctxt "meta:EmailAttachment.filename"
-msgid "Ім'я файлу"
+msgid "File name"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailAttachment/EmailAttachment.json
 msgctxt "meta:EmailAttachment.mimetype"
-msgid "Тип"
+msgid "Type"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailAttachment/EmailAttachment.json
 msgctxt "meta:EmailAttachment.size"
-msgid "Розмір, Б"
+msgid "Size, B"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/EmailLoginToken/EmailLoginToken.json
@@ -7861,12 +7862,12 @@ msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 msgctxt "meta:EmailMessage"
-msgid "Електронний лист"
+msgid "Email Message"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 msgctxt "meta:EmailMessage.attachments"
-msgid "Вкладення"
+msgid "Attachments"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
@@ -7876,52 +7877,52 @@ msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 msgctxt "meta:EmailMessage.body_text"
-msgid "Текст"
+msgid "Text"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 msgctxt "meta:EmailMessage.cc"
-msgid "Копія (Cc)"
+msgid "Cc"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 msgctxt "meta:EmailMessage.delivered_at"
-msgid "Доставлено (час)"
+msgid "Delivered at"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 msgctxt "meta:EmailMessage.delivery_detail"
-msgid "Деталі доставки / діагностика"
+msgid "Delivery details / diagnostics"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 msgctxt "meta:EmailMessage.direction"
-msgid "Напрям"
+msgid "Direction"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 msgctxt "meta:EmailMessage.email_account"
-msgid "Обліковий запис"
+msgid "Account"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 msgctxt "meta:EmailMessage.error_message"
-msgid "Текст помилки"
+msgid "Error text"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 msgctxt "meta:EmailMessage.has_attachments"
-msgid "Є вкладення"
+msgid "Has attachments"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 msgctxt "meta:EmailMessage.is_read"
-msgid "Прочитано"
+msgid "Read"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 msgctxt "meta:EmailMessage.message_date"
-msgid "Дата / час"
+msgid "Date / time"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
@@ -7931,77 +7932,77 @@ msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 msgctxt "meta:EmailMessage.read_at"
-msgid "Прочитано отримувачем (час)"
+msgid "Read by recipient at"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 msgctxt "meta:EmailMessage.recipients"
-msgid "Кому"
+msgid "To"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 msgctxt "meta:EmailMessage.ref_doctype"
-msgid "Джерело — тип"
+msgid "Source — type"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 msgctxt "meta:EmailMessage.ref_name"
-msgid "Джерело — запис"
+msgid "Source — record"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 msgctxt "meta:EmailMessage.request_receipt"
-msgid "Запитано підтвердження прочитання"
+msgid "Read receipt requested"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 msgctxt "meta:EmailMessage.sec_att"
-msgid "Вкладення"
+msgid "Attachments"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 msgctxt "meta:EmailMessage.sec_body"
-msgid "Текст листа"
+msgid "Email body"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 msgctxt "meta:EmailMessage.sec_err"
-msgid "Помилка доставки"
+msgid "Delivery error"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 msgctxt "meta:EmailMessage.sec_meta"
-msgid "Службове"
+msgid "Internal"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 msgctxt "meta:EmailMessage.sec_tracking"
-msgid "Відстеження доставки"
+msgid "Delivery tracking"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 msgctxt "meta:EmailMessage.sender"
-msgid "Від кого"
+msgid "From"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 msgctxt "meta:EmailMessage.status"
-msgid "Статус"
+msgid "Status"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 msgctxt "meta:EmailMessage.subject"
-msgid "Тема"
+msgid "Subject"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 msgctxt "meta:EmailMessage.tab_main"
-msgid "Лист"
+msgid "Email"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
 msgctxt "meta:EmailQueue"
-msgid "Черга листів"
+msgid "Email Queue"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
@@ -8011,17 +8012,17 @@ msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
 msgctxt "meta:EmailQueue.content"
-msgid "Вміст"
+msgid "Content"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
 msgctxt "meta:EmailQueue.email_account"
-msgid "Обліковий запис"
+msgid "Account"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
 msgctxt "meta:EmailQueue.error_message"
-msgid "Помилка"
+msgid "Error"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
@@ -8031,117 +8032,117 @@ msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
 msgctxt "meta:EmailQueue.recipient"
-msgid "Отримувач"
+msgid "Recipient"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
 msgctxt "meta:EmailQueue.sender"
-msgid "Відправник"
+msgid "Sender"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
 msgctxt "meta:EmailQueue.status"
-msgid "Статус"
+msgid "Status"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
 msgctxt "meta:EmailQueue.subject"
-msgid "Тема"
+msgid "Subject"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
 msgctxt "meta:EmailQueue.text_content"
-msgid "Текстова версія"
+msgid "Text version"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailTemplate/EmailTemplate.json
 msgctxt "meta:EmailTemplate"
-msgid "Шаблон листа"
+msgid "Email Template"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailTemplate/EmailTemplate.json
 msgctxt "meta:EmailTemplate.body"
-msgid "Текст (звичайний)"
+msgid "Text (plain)"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailTemplate/EmailTemplate.json
 msgctxt "meta:EmailTemplate.body_html"
-msgid "Текст (HTML)"
+msgid "Text (HTML)"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailTemplate/EmailTemplate.json
 msgctxt "meta:EmailTemplate.description"
-msgid "Де використовується / доступні поля"
+msgid "Where used / available fields"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailTemplate/EmailTemplate.json
 msgctxt "meta:EmailTemplate.is_active"
-msgid "Активний"
+msgid "Active"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailTemplate/EmailTemplate.json
 msgctxt "meta:EmailTemplate.label"
-msgid "Назва"
+msgid "Name"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailTemplate/EmailTemplate.json
 msgctxt "meta:EmailTemplate.sec_content"
-msgid "Вміст"
+msgid "Content"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailTemplate/EmailTemplate.json
 msgctxt "meta:EmailTemplate.sec_help"
-msgid "Довідка"
+msgid "Help"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailTemplate/EmailTemplate.json
 msgctxt "meta:EmailTemplate.subject"
-msgid "Тема листа"
+msgid "Email subject"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/ErrorLog/ErrorLog.json
 msgctxt "meta:ErrorLog"
-msgid "Журнал помилок"
+msgid "Error Log"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/ErrorLog/ErrorLog.json
 msgctxt "meta:ErrorLog.app"
-msgid "Застосунок"
+msgid "App"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/ErrorLog/ErrorLog.json
 msgctxt "meta:ErrorLog.context"
-msgid "Контекст"
+msgid "Context"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/ErrorLog/ErrorLog.json
 msgctxt "meta:ErrorLog.error_message"
-msgid "Повідомлення"
+msgid "Message"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/ErrorLog/ErrorLog.json
 msgctxt "meta:ErrorLog.error_type"
-msgid "Тип"
+msgid "Type"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/ErrorLog/ErrorLog.json
 msgctxt "meta:ErrorLog.http_status"
-msgid "Код відповіді"
+msgid "Response code"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/ErrorLog/ErrorLog.json
 msgctxt "meta:ErrorLog.method"
-msgid "Метод / маршрут"
+msgid "Method / route"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/ErrorLog/ErrorLog.json
 msgctxt "meta:ErrorLog.reference_doctype"
-msgid "Тип документа"
+msgid "Document type"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/ErrorLog/ErrorLog.json
 msgctxt "meta:ErrorLog.reference_name"
-msgid "Документ"
+msgid "Document"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/ErrorLog/ErrorLog.json
@@ -8151,97 +8152,97 @@ msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/ErrorLog/ErrorLog.json
 msgctxt "meta:ErrorLog.request_method"
-msgid "HTTP-метод"
+msgid "HTTP method"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/ErrorLog/ErrorLog.json
 msgctxt "meta:ErrorLog.request_path"
-msgid "Шлях"
+msgid "Path"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/ErrorLog/ErrorLog.json
 msgctxt "meta:ErrorLog.sec_details"
-msgid "Деталі"
+msgid "Details"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/ErrorLog/ErrorLog.json
 msgctxt "meta:ErrorLog.sec_reference"
-msgid "Документ"
+msgid "Document"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/ErrorLog/ErrorLog.json
 msgctxt "meta:ErrorLog.sec_request"
-msgid "HTTP-запит"
+msgid "HTTP request"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/ErrorLog/ErrorLog.json
 msgctxt "meta:ErrorLog.title"
-msgid "Помилка"
+msgid "Error"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/ErrorLog/ErrorLog.json
 msgctxt "meta:ErrorLog.traceback"
-msgid "Трасування стека"
+msgid "Stack trace"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/ErrorLog/ErrorLog.json
 msgctxt "meta:ErrorLog.user"
-msgid "Користувач"
+msgid "User"
 msgstr ""
 
 #: grunt/grunt/storage/doctypes/File/File.json
 msgctxt "meta:File"
-msgid "Файл"
+msgid "File"
 msgstr ""
 
 #: grunt/grunt/storage/doctypes/File/File.json
 msgctxt "meta:File.attached_to_doctype"
-msgid "DocType документа"
+msgid "Document DocType"
 msgstr ""
 
 #: grunt/grunt/storage/doctypes/File/File.json
 msgctxt "meta:File.attached_to_id"
-msgid "ID документа"
+msgid "Document ID"
 msgstr ""
 
 #: grunt/grunt/storage/doctypes/File/File.json
 msgctxt "meta:File.content_hash"
-msgid "Хеш вмісту (SHA-256)"
+msgid "Content hash (SHA-256)"
 msgstr ""
 
 #: grunt/grunt/storage/doctypes/File/File.json
 msgctxt "meta:File.content_type"
-msgid "Тип контенту"
+msgid "Content type"
 msgstr ""
 
 #: grunt/grunt/storage/doctypes/File/File.json
 msgctxt "meta:File.file_name"
-msgid "Назва файлу"
+msgid "File name"
 msgstr ""
 
 #: grunt/grunt/storage/doctypes/File/File.json
 msgctxt "meta:File.file_size"
-msgid "Розмір (байт)"
+msgid "Size (bytes)"
 msgstr ""
 
 #: grunt/grunt/storage/doctypes/File/File.json
 msgctxt "meta:File.file_url"
-msgid "URL файлу"
+msgid "File URL"
 msgstr ""
 
 #: grunt/grunt/storage/doctypes/File/File.json
 msgctxt "meta:File.is_public"
-msgid "Публічний"
+msgid "Public"
 msgstr ""
 
 #: grunt/grunt/storage/doctypes/File/File.json
 msgctxt "meta:File.path"
-msgid "Шлях у сховищі"
+msgid "Storage path"
 msgstr ""
 
 #: grunt/grunt/storage/doctypes/File/File.json
 msgctxt "meta:File.sec_attachment"
-msgid "Прив'язка"
+msgid "Binding"
 msgstr ""
 
 #: grunt/grunt/storage/doctypes/File/File.json
@@ -8251,57 +8252,57 @@ msgstr ""
 
 #: grunt/grunt/storage/doctypes/File/File.json
 msgctxt "meta:File.thumbnail_url"
-msgid "Мініатюра"
+msgid "Thumbnail"
 msgstr ""
 
 #: grunt/grunt/storage/doctypes/File/File.json
 msgctxt "meta:File.uploaded_by"
-msgid "Завантажив"
+msgid "Uploaded by"
 msgstr ""
 
 #: grunt/grunt/startup/doctypes/GruntInstalledApp/GruntInstalledApp.json
 msgctxt "meta:GruntInstalledApp"
-msgid "Магазин додатків"
+msgid "App Store"
 msgstr ""
 
 #: grunt/grunt/startup/doctypes/GruntInstalledApp/GruntInstalledApp.json
 msgctxt "meta:GruntInstalledApp.installed_at"
-msgid "Встановлено"
+msgid "Installed"
 msgstr ""
 
 #: grunt/grunt/startup/doctypes/GruntInstalledApp/GruntInstalledApp.json
 msgctxt "meta:GruntInstalledApp.modules"
-msgid "Модулі"
+msgid "Modules"
 msgstr ""
 
 #: grunt/grunt/startup/doctypes/GruntInstalledApp/GruntInstalledApp.json
 msgctxt "meta:GruntInstalledApp.title"
-msgid "Заголовок"
+msgid "Title"
 msgstr ""
 
 #: grunt/grunt/startup/doctypes/GruntInstalledApp/GruntInstalledApp.json
 msgctxt "meta:GruntInstalledApp.version"
-msgid "Версія"
+msgid "Version"
 msgstr ""
 
 #: grunt/grunt/scripting/doctypes/Hook/Hook.json
 msgctxt "meta:Hook"
-msgid "Хуки"
+msgid "Hooks"
 msgstr ""
 
 #: grunt/grunt/scripting/doctypes/Hook/Hook.json
 msgctxt "meta:Hook.event"
-msgid "Подія"
+msgid "Event"
 msgstr ""
 
 #: grunt/grunt/scripting/doctypes/Hook/Hook.json
 msgctxt "meta:Hook.handler"
-msgid "Обробник / Скрипт"
+msgid "Handler / Script"
 msgstr ""
 
 #: grunt/grunt/scripting/doctypes/Hook/Hook.json
 msgctxt "meta:Hook.priority"
-msgid "Пріоритет"
+msgid "Priority"
 msgstr ""
 
 #: grunt/grunt/scripting/doctypes/Hook/Hook.json
@@ -8311,92 +8312,92 @@ msgstr ""
 
 #: grunt/grunt/scripting/doctypes/Hook/Hook.json
 msgctxt "meta:Hook.source"
-msgid "Джерело"
+msgid "Source"
 msgstr ""
 
 #: grunt/grunt/webhook/doctypes/IncomingWebhook/IncomingWebhook.json
 msgctxt "meta:IncomingWebhook"
-msgid "Вхідний вебхук"
+msgid "Incoming Webhook"
 msgstr ""
 
 #: grunt/grunt/webhook/doctypes/IncomingWebhook/IncomingWebhook.json
 msgctxt "meta:IncomingWebhook.action"
-msgid "Дія"
+msgid "Action"
 msgstr ""
 
 #: grunt/grunt/webhook/doctypes/IncomingWebhook/IncomingWebhook.json
 msgctxt "meta:IncomingWebhook.field_mapping"
-msgid "Маппінг полів (JSON)"
+msgid "Field mapping (JSON)"
 msgstr ""
 
 #: grunt/grunt/webhook/doctypes/IncomingWebhook/IncomingWebhook.json
 msgctxt "meta:IncomingWebhook.is_enabled"
-msgid "Активний"
+msgid "Active"
 msgstr ""
 
 #: grunt/grunt/webhook/doctypes/IncomingWebhook/IncomingWebhook.json
 msgctxt "meta:IncomingWebhook.label"
-msgid "Назва"
+msgid "Name"
 msgstr ""
 
 #: grunt/grunt/webhook/doctypes/IncomingWebhook/IncomingWebhook.json
 msgctxt "meta:IncomingWebhook.secret"
-msgid "Секрет (HMAC)"
+msgid "Secret (HMAC)"
 msgstr ""
 
 #: grunt/grunt/webhook/doctypes/IncomingWebhook/IncomingWebhook.json
 msgctxt "meta:IncomingWebhook.server_script"
-msgid "Серверний скрипт"
+msgid "Server Script"
 msgstr ""
 
 #: grunt/grunt/webhook/doctypes/IncomingWebhook/IncomingWebhook.json
 msgctxt "meta:IncomingWebhook.signature_header"
-msgid "Заголовок підпису"
+msgid "Signature header"
 msgstr ""
 
 #: grunt/grunt/webhook/doctypes/IncomingWebhook/IncomingWebhook.json
 msgctxt "meta:IncomingWebhook.signature_type"
-msgid "Алгоритм підпису"
+msgid "Signature algorithm"
 msgstr ""
 
 #: grunt/grunt/webhook/doctypes/IncomingWebhook/IncomingWebhook.json
 msgctxt "meta:IncomingWebhook.slug"
-msgid "URL шлях (slug)"
+msgid "URL path (slug)"
 msgstr ""
 
 #: grunt/grunt/webhook/doctypes/IncomingWebhook/IncomingWebhook.json
 msgctxt "meta:IncomingWebhook.target_doctype"
-msgid "Тип документа"
+msgid "Document type"
 msgstr ""
 
 #: grunt/grunt/webhook/doctypes/IncomingWebhookLog/IncomingWebhookLog.json
 msgctxt "meta:IncomingWebhookLog"
-msgid "Лог вхідного вебхуку"
+msgid "Incoming Webhook Log"
 msgstr ""
 
 #: grunt/grunt/webhook/doctypes/IncomingWebhookLog/IncomingWebhookLog.json
 msgctxt "meta:IncomingWebhookLog.action_taken"
-msgid "Виконана дія"
+msgid "Action taken"
 msgstr ""
 
 #: grunt/grunt/webhook/doctypes/IncomingWebhookLog/IncomingWebhookLog.json
 msgctxt "meta:IncomingWebhookLog.duration_ms"
-msgid "Час (мс)"
+msgid "Time (ms)"
 msgstr ""
 
 #: grunt/grunt/webhook/doctypes/IncomingWebhookLog/IncomingWebhookLog.json
 msgctxt "meta:IncomingWebhookLog.error"
-msgid "Помилка"
+msgid "Error"
 msgstr ""
 
 #: grunt/grunt/webhook/doctypes/IncomingWebhookLog/IncomingWebhookLog.json
 msgctxt "meta:IncomingWebhookLog.payload"
-msgid "Тіло запиту"
+msgid "Request body"
 msgstr ""
 
 #: grunt/grunt/webhook/doctypes/IncomingWebhookLog/IncomingWebhookLog.json
 msgctxt "meta:IncomingWebhookLog.request_headers"
-msgid "Заголовки запиту"
+msgid "Request headers"
 msgstr ""
 
 #: grunt/grunt/webhook/doctypes/IncomingWebhookLog/IncomingWebhookLog.json
@@ -8406,227 +8407,227 @@ msgstr ""
 
 #: grunt/grunt/webhook/doctypes/IncomingWebhookLog/IncomingWebhookLog.json
 msgctxt "meta:IncomingWebhookLog.status"
-msgid "Статус"
+msgid "Status"
 msgstr ""
 
 #: grunt/grunt/webhook/doctypes/IncomingWebhookLog/IncomingWebhookLog.json
 msgctxt "meta:IncomingWebhookLog.webhook"
-msgid "Вебхук"
+msgid "Webhook"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Language/Language.json
 msgctxt "meta:Language"
-msgid "Мова"
+msgid "Language"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Language/Language.json
 msgctxt "meta:Language.code"
-msgid "Код ISO 639-1"
+msgid "ISO 639-1 code"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Language/Language.json
 msgctxt "meta:Language.is_active"
-msgid "Активна"
+msgid "Active"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Language/Language.json
 msgctxt "meta:Language.native_name"
-msgid "Рідна назва"
+msgid "Native name"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Language/Language.json
 msgctxt "meta:Language.script"
-msgid "Писемність"
+msgid "Script"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Language/Language.json
 msgctxt "meta:Language.title"
-msgid "Назва (англ.)"
+msgid "Name (English)"
 msgstr ""
 
 #: grunt/grunt/naming/doctypes/NamingSeries/NamingSeries.json
 msgctxt "meta:NamingSeries"
-msgid "Серія нумерації"
+msgid "Naming Series"
 msgstr ""
 
 #: grunt/grunt/naming/doctypes/NamingSeries/NamingSeries.json
 msgctxt "meta:NamingSeries.current"
-msgid "Поточне значення"
+msgid "Current value"
 msgstr ""
 
 #: grunt/grunt/naming/doctypes/NamingSeries/NamingSeries.json
 msgctxt "meta:NamingSeries.prefix"
-msgid "Префікс"
+msgid "Prefix"
 msgstr ""
 
 #: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgctxt "meta:Notification"
-msgid "Повідомлення"
+msgid "Message"
 msgstr ""
 
 #: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgctxt "meta:Notification.doc_id"
-msgid "ID документа"
+msgid "Document ID"
 msgstr ""
 
 #: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgctxt "meta:Notification.doctype"
-msgid "Тип документа"
+msgid "Document type"
 msgstr ""
 
 #: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgctxt "meta:Notification.is_read"
-msgid "Прочитано"
+msgid "Read"
 msgstr ""
 
 #: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgctxt "meta:Notification.message"
-msgid "Повідомлення"
+msgid "Message"
 msgstr ""
 
 #: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgctxt "meta:Notification.subject"
-msgid "Тема"
+msgid "Subject"
 msgstr ""
 
 #: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgctxt "meta:Notification.user"
-msgid "Користувач"
+msgid "User"
 msgstr ""
 
 #: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
 msgctxt "meta:NotificationRule"
-msgid "Правило нотифікації"
+msgid "Notification Rule"
 msgstr ""
 
 #: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
 msgctxt "meta:NotificationRule.channel"
-msgid "Канал"
+msgid "Channel"
 msgstr ""
 
 #: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
 msgctxt "meta:NotificationRule.condition"
-msgid "Умова (Python)"
+msgid "Condition (Python)"
 msgstr ""
 
 #: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
 msgctxt "meta:NotificationRule.doctype"
-msgid "Тип документа"
+msgid "Document type"
 msgstr ""
 
 #: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
 msgctxt "meta:NotificationRule.event"
-msgid "Подія"
+msgid "Event"
 msgstr ""
 
 #: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
 msgctxt "meta:NotificationRule.is_enabled"
-msgid "Активне"
+msgid "Active"
 msgstr ""
 
 #: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
 msgctxt "meta:NotificationRule.message_template"
-msgid "Шаблон повідомлення"
+msgid "Message template"
 msgstr ""
 
 #: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
 msgctxt "meta:NotificationRule.recipients"
-msgid "Отримувачі"
+msgid "Recipients"
 msgstr ""
 
 #: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
 msgctxt "meta:NotificationRule.subject_template"
-msgid "Шаблон теми"
+msgid "Subject template"
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/NumberCard/NumberCard.json
 msgctxt "meta:NumberCard"
-msgid "Числова картка"
+msgid "Number Card"
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/NumberCard/NumberCard.json
 msgctxt "meta:NumberCard.aggregation"
-msgid "Агрегація"
+msgid "Aggregation"
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/NumberCard/NumberCard.json
 msgctxt "meta:NumberCard.color"
-msgid "Колір"
+msgid "Color"
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/NumberCard/NumberCard.json
 msgctxt "meta:NumberCard.doctype"
-msgid "Тип документа"
+msgid "Document type"
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/NumberCard/NumberCard.json
 msgctxt "meta:NumberCard.filters"
-msgid "Фільтри (JSON)"
+msgid "Filters (JSON)"
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/NumberCard/NumberCard.json
 msgctxt "meta:NumberCard.icon"
-msgid "Іконка"
+msgid "Icon"
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/NumberCard/NumberCard.json
 msgctxt "meta:NumberCard.is_public"
-msgid "Публічний"
+msgid "Public"
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/NumberCard/NumberCard.json
 msgctxt "meta:NumberCard.label"
-msgid "Назва"
+msgid "Name"
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/NumberCard/NumberCard.json
 msgctxt "meta:NumberCard.value_field"
-msgid "Поле значення"
+msgid "Value field"
 msgstr ""
 
 #: grunt/grunt/webhook/doctypes/OutgoingWebhook/OutgoingWebhook.json
 msgctxt "meta:OutgoingWebhook"
-msgid "Вихідний вебхук"
+msgid "Outgoing Webhook"
 msgstr ""
 
 #: grunt/grunt/webhook/doctypes/OutgoingWebhook/OutgoingWebhook.json
 msgctxt "meta:OutgoingWebhook.condition"
-msgid "Умова (Python)"
+msgid "Condition (Python)"
 msgstr ""
 
 #: grunt/grunt/webhook/doctypes/OutgoingWebhook/OutgoingWebhook.json
 msgctxt "meta:OutgoingWebhook.doctype_name"
-msgid "Тип документа"
+msgid "Document type"
 msgstr ""
 
 #: grunt/grunt/webhook/doctypes/OutgoingWebhook/OutgoingWebhook.json
 msgctxt "meta:OutgoingWebhook.event"
-msgid "Подія"
+msgid "Event"
 msgstr ""
 
 #: grunt/grunt/webhook/doctypes/OutgoingWebhook/OutgoingWebhook.json
 msgctxt "meta:OutgoingWebhook.headers"
-msgid "Заголовки (JSON)"
+msgid "Headers (JSON)"
 msgstr ""
 
 #: grunt/grunt/webhook/doctypes/OutgoingWebhook/OutgoingWebhook.json
 msgctxt "meta:OutgoingWebhook.is_enabled"
-msgid "Активний"
+msgid "Active"
 msgstr ""
 
 #: grunt/grunt/webhook/doctypes/OutgoingWebhook/OutgoingWebhook.json
 msgctxt "meta:OutgoingWebhook.secret"
-msgid "Секрет (HMAC)"
+msgid "Secret (HMAC)"
 msgstr ""
 
 #: grunt/grunt/webhook/doctypes/OutgoingWebhook/OutgoingWebhook.json
 msgctxt "meta:OutgoingWebhook.timeout"
-msgid "Тайм-аут (сек)"
+msgid "Timeout (sec)"
 msgstr ""
 
 #: grunt/grunt/webhook/doctypes/OutgoingWebhook/OutgoingWebhook.json
 msgctxt "meta:OutgoingWebhook.url"
-msgid "URL вебхуку"
+msgid "Webhook URL"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/Page/Page.json
@@ -8761,52 +8762,52 @@ msgstr ""
 
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.json
 msgctxt "meta:PrintFormat"
-msgid "Формат друку"
+msgid "Print Format"
 msgstr ""
 
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.json
 msgctxt "meta:PrintFormat.app"
-msgid "Додаток"
+msgid "App"
 msgstr ""
 
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.json
 msgctxt "meta:PrintFormat.doctype"
-msgid "Тип документа"
+msgid "Document type"
 msgstr ""
 
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.json
 msgctxt "meta:PrintFormat.is_app_format"
-msgid "Зберігати в додатку"
+msgid "Save in app"
 msgstr ""
 
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.json
 msgctxt "meta:PrintFormat.is_default"
-msgid "За замовчуванням"
+msgid "Default"
 msgstr ""
 
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.json
 msgctxt "meta:PrintFormat.sec_template"
-msgid "Шаблон Jinja2 + HTML"
+msgid "Jinja2 + HTML template"
 msgstr ""
 
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.json
 msgctxt "meta:PrintFormat.template"
-msgid "Шаблон"
+msgid "Template"
 msgstr ""
 
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.json
 msgctxt "meta:PrintFormat.template_type"
-msgid "Тип шаблону"
+msgid "Template type"
 msgstr ""
 
 #: grunt/grunt/webpush/doctypes/PushSubscription/PushSubscription.json
 msgctxt "meta:PushSubscription"
-msgid "Push-підписка"
+msgid "Push Subscription"
 msgstr ""
 
 #: grunt/grunt/webpush/doctypes/PushSubscription/PushSubscription.json
 msgctxt "meta:PushSubscription.auth"
-msgid "Auth ключ"
+msgid "Auth key"
 msgstr ""
 
 #: grunt/grunt/webpush/doctypes/PushSubscription/PushSubscription.json
@@ -8816,12 +8817,12 @@ msgstr ""
 
 #: grunt/grunt/webpush/doctypes/PushSubscription/PushSubscription.json
 msgctxt "meta:PushSubscription.p256dh"
-msgid "p256dh ключ"
+msgid "p256dh key"
 msgstr ""
 
 #: grunt/grunt/webpush/doctypes/PushSubscription/PushSubscription.json
 msgctxt "meta:PushSubscription.user"
-msgid "Користувач"
+msgid "User"
 msgstr ""
 
 #: grunt/grunt/webpush/doctypes/PushSubscription/PushSubscription.json
@@ -8831,52 +8832,52 @@ msgstr ""
 
 #: grunt/grunt/geo/doctypes/Region/Region.json
 msgctxt "meta:Region"
-msgid "Регіон"
+msgid "Region"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Region/Region.json
 msgctxt "meta:Region.code"
-msgid "Код ISO 3166-2"
+msgid "ISO 3166-2 code"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Region/Region.json
 msgctxt "meta:Region.country"
-msgid "Країна"
+msgid "Country"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Region/Region.json
 msgctxt "meta:Region.is_active"
-msgid "Активний"
+msgid "Active"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Region/Region.json
 msgctxt "meta:Region.region_type"
-msgid "Тип"
+msgid "Type"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Region/Region.json
 msgctxt "meta:Region.title"
-msgid "Назва"
+msgid "Name"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Region/Region.json
 msgctxt "meta:Region.title_uk"
-msgid "Назва (укр.)"
+msgid "Name (Ukrainian)"
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/Report/Report.json
 msgctxt "meta:Report"
-msgid "Звіт"
+msgid "Report"
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/Report/Report.json
 msgctxt "meta:Report.chart_config"
-msgid "Конфігурація графіка (JSON)"
+msgid "Chart configuration (JSON)"
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/Report/Report.json
 msgctxt "meta:Report.columns"
-msgid "Колонки (JSON)"
+msgid "Columns (JSON)"
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/Report/Report.json
@@ -8886,12 +8887,12 @@ msgstr ""
 
 #: grunt/grunt/reports/doctypes/Report/Report.json
 msgctxt "meta:Report.doctype"
-msgid "Тип документа"
+msgid "Document type"
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/Report/Report.json
 msgctxt "meta:Report.filters_config"
-msgid "Конфігурація фільтрів (JSON)"
+msgid "Filter configuration (JSON)"
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/Report/Report.json
@@ -8906,12 +8907,12 @@ msgstr ""
 
 #: grunt/grunt/reports/doctypes/Report/Report.json
 msgctxt "meta:Report.report_name"
-msgid "Назва"
+msgid "Name"
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/Report/Report.json
 msgctxt "meta:Report.report_type"
-msgid "Тип"
+msgid "Type"
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/Report/Report.json
@@ -8936,7 +8937,7 @@ msgstr ""
 
 #: grunt/grunt/reports/doctypes/Report/Report.json
 msgctxt "meta:Report.script"
-msgid "Скрипт"
+msgid "Script"
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/Report/Report.json
@@ -8946,7 +8947,7 @@ msgstr ""
 
 #: grunt/grunt/reports/doctypes/Report/Report.json
 msgctxt "meta:Report.sec_query"
-msgid "SQL запит"
+msgid "SQL query"
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/Report/Report.json
@@ -8956,7 +8957,7 @@ msgstr ""
 
 #: grunt/grunt/reports/doctypes/Report/Report.json
 msgctxt "meta:Report.sec_script"
-msgid "Python скрипт"
+msgid "Python script"
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/Report/Report.json
@@ -8996,177 +8997,177 @@ msgstr ""
 
 #: grunt/grunt/tasks/doctypes/ScheduledJob/ScheduledJob.json
 msgctxt "meta:ScheduledJob"
-msgid "Заплановані завдання"
+msgid "Scheduled Jobs"
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/ScheduledJob/ScheduledJob.json
 msgctxt "meta:ScheduledJob.cron_expression"
-msgid "Cron вираз"
+msgid "Cron expression"
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/ScheduledJob/ScheduledJob.json
 msgctxt "meta:ScheduledJob.enabled"
-msgid "Увімкнено"
+msgid "Enabled"
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/ScheduledJob/ScheduledJob.json
 msgctxt "meta:ScheduledJob.executor"
-msgid "Виконавець"
+msgid "Assignee"
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/ScheduledJob/ScheduledJob.json
 msgctxt "meta:ScheduledJob.job_id"
-msgid "ID завдання"
+msgid "Job ID"
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/ScheduledJob/ScheduledJob.json
 msgctxt "meta:ScheduledJob.last_error"
-msgid "Остання помилка"
+msgid "Last error"
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/ScheduledJob/ScheduledJob.json
 msgctxt "meta:ScheduledJob.last_run_at"
-msgid "Останній запуск"
+msgid "Last run"
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/ScheduledJob/ScheduledJob.json
 msgctxt "meta:ScheduledJob.next_run_at"
-msgid "Наступний запуск"
+msgid "Next run"
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/ScheduledJob/ScheduledJob.json
 msgctxt "meta:ScheduledJob.params"
-msgid "Параметри"
+msgid "Parameters"
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/ScheduledJob/ScheduledJob.json
 msgctxt "meta:ScheduledJob.run_count"
-msgid "Кількість запусків"
+msgid "Run count"
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/ScheduledJob/ScheduledJob.json
 msgctxt "meta:ScheduledJob.status"
-msgid "Статус"
+msgid "Status"
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/ScheduledJobLog/ScheduledJobLog.json
 msgctxt "meta:ScheduledJobLog"
-msgid "Лог завдань планувальника"
+msgid "Scheduled Job Log"
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/ScheduledJobLog/ScheduledJobLog.json
 msgctxt "meta:ScheduledJobLog.cron_expression"
-msgid "Cron вираз"
+msgid "Cron expression"
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/ScheduledJobLog/ScheduledJobLog.json
 msgctxt "meta:ScheduledJobLog.error_message"
-msgid "Помилка"
+msgid "Error"
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/ScheduledJobLog/ScheduledJobLog.json
 msgctxt "meta:ScheduledJobLog.finished_at"
-msgid "Завершення"
+msgid "End"
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/ScheduledJobLog/ScheduledJobLog.json
 msgctxt "meta:ScheduledJobLog.job_name"
-msgid "Назва завдання"
+msgid "Job name"
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/ScheduledJobLog/ScheduledJobLog.json
 msgctxt "meta:ScheduledJobLog.started_at"
-msgid "Початок"
+msgid "Start"
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/ScheduledJobLog/ScheduledJobLog.json
 msgctxt "meta:ScheduledJobLog.status"
-msgid "Статус"
+msgid "Status"
 msgstr ""
 
 #: grunt/grunt/scripting/doctypes/ServerScript/ServerScript.json
 msgctxt "meta:ServerScript"
-msgid "Серверний скрипт"
+msgid "Server Script"
 msgstr ""
 
 #: grunt/grunt/scripting/doctypes/ServerScript/ServerScript.json
 msgctxt "meta:ServerScript.allow_guest"
-msgid "Дозвіл для гостей"
+msgid "Allow guests"
 msgstr ""
 
 #: grunt/grunt/scripting/doctypes/ServerScript/ServerScript.json
 msgctxt "meta:ServerScript.api_method"
-msgid "API метод"
+msgid "API method"
 msgstr ""
 
 #: grunt/grunt/scripting/doctypes/ServerScript/ServerScript.json
 msgctxt "meta:ServerScript.cron"
-msgid "Cron вираз"
+msgid "Cron expression"
 msgstr ""
 
 #: grunt/grunt/scripting/doctypes/ServerScript/ServerScript.json
 msgctxt "meta:ServerScript.doctype"
-msgid "Тип документа"
+msgid "Document type"
 msgstr ""
 
 #: grunt/grunt/scripting/doctypes/ServerScript/ServerScript.json
 msgctxt "meta:ServerScript.event"
-msgid "Подія"
+msgid "Event"
 msgstr ""
 
 #: grunt/grunt/scripting/doctypes/ServerScript/ServerScript.json
 msgctxt "meta:ServerScript.is_enabled"
-msgid "Активний"
+msgid "Active"
 msgstr ""
 
 #: grunt/grunt/scripting/doctypes/ServerScript/ServerScript.json
 msgctxt "meta:ServerScript.script"
-msgid "Скрипт (Python)"
+msgid "Script (Python)"
 msgstr ""
 
 #: grunt/grunt/scripting/doctypes/ServerScript/ServerScript.json
 msgctxt "meta:ServerScript.script_type"
-msgid "Тип"
+msgid "Type"
 msgstr ""
 
 #: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
 msgctxt "meta:SharedWith"
-msgid "Доступ"
+msgid "Access"
 msgstr ""
 
 #: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
 msgctxt "meta:SharedWith.permission"
-msgid "Дозвіл"
+msgid "Permission"
 msgstr ""
 
 #: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
 msgctxt "meta:SharedWith.reference_doctype"
-msgid "Тип документа"
+msgid "Document type"
 msgstr ""
 
 #: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
 msgctxt "meta:SharedWith.reference_id"
-msgid "ID документа"
+msgid "Document ID"
 msgstr ""
 
 #: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
 msgctxt "meta:SharedWith.user"
-msgid "Користувач"
+msgid "User"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/SqlProfilerQuery/SqlProfilerQuery.json
 msgctxt "meta:SqlProfilerQuery"
-msgid "SQL Профайлер — Запит"
+msgid "SQL Profiler — Request"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/SqlProfilerQuery/SqlProfilerQuery.json
 msgctxt "meta:SqlProfilerQuery.duration_ms"
-msgid "Час (ms)"
+msgid "Time (ms)"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/SqlProfilerQuery/SqlProfilerQuery.json
 msgctxt "meta:SqlProfilerQuery.param_count"
-msgid "Параметрів"
+msgid "Parameters"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/SqlProfilerQuery/SqlProfilerQuery.json
@@ -9176,7 +9177,7 @@ msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/SqlProfilerQuery/SqlProfilerQuery.json
 msgctxt "meta:SqlProfilerQuery.slow"
-msgid "Повільний"
+msgid "Slow"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/SqlProfilerQuery/SqlProfilerQuery.json
@@ -9186,192 +9187,192 @@ msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/SqlProfilerRequest/SqlProfilerRequest.json
 msgctxt "meta:SqlProfilerRequest"
-msgid "SQL Profiler — Запити"
+msgid "SQL Profiler — Requests"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/SqlProfilerRequest/SqlProfilerRequest.json
 msgctxt "meta:SqlProfilerRequest.duration_ms"
-msgid "Тривалість (ms)"
+msgid "Duration (ms)"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/SqlProfilerRequest/SqlProfilerRequest.json
 msgctxt "meta:SqlProfilerRequest.method"
-msgid "Метод"
+msgid "Method"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/SqlProfilerRequest/SqlProfilerRequest.json
 msgctxt "meta:SqlProfilerRequest.path"
-msgid "Шлях"
+msgid "Path"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/SqlProfilerRequest/SqlProfilerRequest.json
 msgctxt "meta:SqlProfilerRequest.queries"
-msgid "SQL запити"
+msgid "SQL queries"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/SqlProfilerRequest/SqlProfilerRequest.json
 msgctxt "meta:SqlProfilerRequest.query_count"
-msgid "Запитів до БД"
+msgid "DB queries"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/SqlProfilerRequest/SqlProfilerRequest.json
 msgctxt "meta:SqlProfilerRequest.slow"
-msgid "Повільний"
+msgid "Slow"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/SqlProfilerRequest/SqlProfilerRequest.json
 msgctxt "meta:SqlProfilerRequest.slow_query_count"
-msgid "Повільних"
+msgid "Slow"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/SqlProfilerRequest/SqlProfilerRequest.json
 msgctxt "meta:SqlProfilerRequest.spans"
-msgid "Спани методів"
+msgid "Method spans"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/SqlProfilerRequest/SqlProfilerRequest.json
 msgctxt "meta:SqlProfilerRequest.status_code"
-msgid "Статус"
+msgid "Status"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/SqlProfilerRequest/SqlProfilerRequest.json
 msgctxt "meta:SqlProfilerRequest.total_query_ms"
-msgid "Час у БД (ms)"
+msgid "DB time (ms)"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/SqlProfilerSpan/SqlProfilerSpan.json
 msgctxt "meta:SqlProfilerSpan"
-msgid "SQL Профайлер — Спан"
+msgid "SQL Profiler — Span"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/SqlProfilerSpan/SqlProfilerSpan.json
 msgctxt "meta:SqlProfilerSpan.duration_ms"
-msgid "Час (ms)"
+msgid "Time (ms)"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/SqlProfilerSpan/SqlProfilerSpan.json
 msgctxt "meta:SqlProfilerSpan.method"
-msgid "Метод"
+msgid "Method"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/SystemHealthCheck/SystemHealthCheck.json
 msgctxt "meta:SystemHealthCheck"
-msgid "Перевірка стану системи"
+msgid "System Health Check"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/SystemHealthCheck/SystemHealthCheck.json
 msgctxt "meta:SystemHealthCheck.category"
-msgid "Розділ"
+msgid "Section"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/SystemHealthCheck/SystemHealthCheck.json
 msgctxt "meta:SystemHealthCheck.check"
-msgid "Перевірка"
+msgid "Check"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/SystemHealthCheck/SystemHealthCheck.json
 msgctxt "meta:SystemHealthCheck.hint"
-msgid "Що робити"
+msgid "What to do"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/SystemHealthCheck/SystemHealthCheck.json
 msgctxt "meta:SystemHealthCheck.status"
-msgid "Стан"
+msgid "State"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/SystemHealthCheck/SystemHealthCheck.json
 msgctxt "meta:SystemHealthCheck.value"
-msgid "Значення"
+msgid "Value"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/SystemHealthItem/SystemHealthItem.json
 msgctxt "meta:SystemHealthItem"
-msgid "Рядок звіту про стан системи"
+msgid "System Health Report Row"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/SystemHealthItem/SystemHealthItem.json
 msgctxt "meta:SystemHealthItem.count"
-msgid "Кількість"
+msgid "Count"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/SystemHealthItem/SystemHealthItem.json
 msgctxt "meta:SystemHealthItem.details"
-msgid "Примітка"
+msgid "Note"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/SystemHealthItem/SystemHealthItem.json
 msgctxt "meta:SystemHealthItem.label"
-msgid "Назва"
+msgid "Name"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.json
 msgctxt "meta:SystemHealthReport"
-msgid "Стан системи"
+msgid "System Health"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.json
 msgctxt "meta:SystemHealthReport.browser_checks"
-msgid "Перевірки цього браузера"
+msgid "Checks of this browser"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.json
 msgctxt "meta:SystemHealthReport.checked_at"
-msgid "Перевірено"
+msgid "Checked"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.json
 msgctxt "meta:SystemHealthReport.checks"
-msgid "Перевірки"
+msgid "Checks"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.json
 msgctxt "meta:SystemHealthReport.error_count"
-msgid "Проблеми"
+msgid "Problems"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.json
 msgctxt "meta:SystemHealthReport.largest_tables"
-msgid "Найбільші таблиці"
+msgid "Largest tables"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.json
 msgctxt "meta:SystemHealthReport.ok_count"
-msgid "Добре"
+msgid "Good"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.json
 msgctxt "meta:SystemHealthReport.overall_status"
-msgid "Загальний стан"
+msgid "Overall status"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.json
 msgctxt "meta:SystemHealthReport.sec_checks"
-msgid "Перевірки"
+msgid "Checks"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.json
 msgctxt "meta:SystemHealthReport.sec_details"
-msgid "Подробиці"
+msgid "Details"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.json
 msgctxt "meta:SystemHealthReport.tab_browser"
-msgid "Браузер і офлайн"
+msgid "Browser and offline"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.json
 msgctxt "meta:SystemHealthReport.tab_server"
-msgid "Сервер"
+msgid "Server"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.json
 msgctxt "meta:SystemHealthReport.top_errors"
-msgid "Найчастіші помилки (7 днів)"
+msgid "Most frequent errors (7 days)"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.json
 msgctxt "meta:SystemHealthReport.warning_count"
-msgid "Увага"
+msgid "Warning"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
@@ -9586,107 +9587,107 @@ msgstr ""
 
 #: grunt/grunt/geo/doctypes/Timezone/Timezone.json
 msgctxt "meta:Timezone"
-msgid "Часовий пояс"
+msgid "Timezone"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Timezone/Timezone.json
 msgctxt "meta:Timezone.iana_id"
-msgid "IANA-ідентифікатор"
+msgid "IANA identifier"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Timezone/Timezone.json
 msgctxt "meta:Timezone.is_active"
-msgid "Активний"
+msgid "Active"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Timezone/Timezone.json
 msgctxt "meta:Timezone.is_dst_observed"
-msgid "Перехід на літній час"
+msgid "Daylight saving time"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Timezone/Timezone.json
 msgctxt "meta:Timezone.label"
-msgid "Відображувана назва"
+msgid "Display name"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Timezone/Timezone.json
 msgctxt "meta:Timezone.offset_minutes"
-msgid "Зсув (хвилини)"
+msgid "Offset (minutes)"
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
 msgctxt "meta:ToDo"
-msgid "Завдання"
+msgid "Job"
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
 msgctxt "meta:ToDo.assigned_by"
-msgid "Призначив"
+msgid "Assigned by"
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
 msgctxt "meta:ToDo.assigned_on"
-msgid "Призначено"
+msgid "Assigned to"
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
 msgctxt "meta:ToDo.assigned_to"
-msgid "Виконавець"
+msgid "Assignee"
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
 msgctxt "meta:ToDo.color"
-msgid "Колір"
+msgid "Color"
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
 msgctxt "meta:ToDo.completed_by"
-msgid "Виконав"
+msgid "Run by"
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
 msgctxt "meta:ToDo.completed_on"
-msgid "Виконано"
+msgid "Done"
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
 msgctxt "meta:ToDo.description"
-msgid "Опис"
+msgid "Description"
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
 msgctxt "meta:ToDo.due_date"
-msgid "Термін"
+msgid "Due date"
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
 msgctxt "meta:ToDo.is_overdue"
-msgid "Прострочено"
+msgid "Overdue"
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
 msgctxt "meta:ToDo.priority"
-msgid "Пріоритет"
+msgid "Priority"
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
 msgctxt "meta:ToDo.reference_doctype"
-msgid "Тип документа"
+msgid "Document type"
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
 msgctxt "meta:ToDo.reference_id"
-msgid "ID документа"
+msgid "Document ID"
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
 msgctxt "meta:ToDo.sec_completion"
-msgid "Виконання"
+msgid "Execution"
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
 msgctxt "meta:ToDo.status"
-msgid "Статус"
+msgid "Status"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.json
@@ -9906,37 +9907,37 @@ msgstr ""
 
 #: grunt/grunt/permissions/doctypes/UserPermission/UserPermission.json
 msgctxt "meta:UserPermission"
-msgid "Дозвіл користувача"
+msgid "User Permission"
 msgstr ""
 
 #: grunt/grunt/permissions/doctypes/UserPermission/UserPermission.json
 msgctxt "meta:UserPermission.allow"
-msgid "Обмежити за"
+msgid "Restrict by"
 msgstr ""
 
 #: grunt/grunt/permissions/doctypes/UserPermission/UserPermission.json
 msgctxt "meta:UserPermission.applicable_for"
-msgid "Лише для документа"
+msgid "For document only"
 msgstr ""
 
 #: grunt/grunt/permissions/doctypes/UserPermission/UserPermission.json
 msgctxt "meta:UserPermission.apply_to_all_doctypes"
-msgid "Застосувати до всіх документів"
+msgid "Apply to all documents"
 msgstr ""
 
 #: grunt/grunt/permissions/doctypes/UserPermission/UserPermission.json
 msgctxt "meta:UserPermission.for_user"
-msgid "Користувач"
+msgid "User"
 msgstr ""
 
 #: grunt/grunt/permissions/doctypes/UserPermission/UserPermission.json
 msgctxt "meta:UserPermission.for_value"
-msgid "Значення"
+msgid "Value"
 msgstr ""
 
 #: grunt/grunt/permissions/doctypes/UserPermission/UserPermission.json
 msgctxt "meta:UserPermission.is_default"
-msgid "Значення за замовчуванням"
+msgid "Default value"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/UserRole/UserRole.json
@@ -9986,27 +9987,27 @@ msgstr ""
 
 #: grunt/grunt/activity/doctypes/ViewLog/ViewLog.json
 msgctxt "meta:ViewLog"
-msgid "Журнал переглядів"
+msgid "View Log"
 msgstr ""
 
 #: grunt/grunt/activity/doctypes/ViewLog/ViewLog.json
 msgctxt "meta:ViewLog.doc_id"
-msgid "ID документа"
+msgid "Document ID"
 msgstr ""
 
 #: grunt/grunt/activity/doctypes/ViewLog/ViewLog.json
 msgctxt "meta:ViewLog.doctype"
-msgid "Тип документа"
+msgid "Document type"
 msgstr ""
 
 #: grunt/grunt/activity/doctypes/ViewLog/ViewLog.json
 msgctxt "meta:ViewLog.viewed_at"
-msgid "Час перегляду"
+msgid "Viewed at"
 msgstr ""
 
 #: grunt/grunt/activity/doctypes/ViewLog/ViewLog.json
 msgctxt "meta:ViewLog.viewed_by"
-msgid "Переглянув"
+msgid "Viewed by"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/WebAuthnCredential/WebAuthnCredential.json
@@ -10151,7 +10152,7 @@ msgstr ""
 
 #: grunt/grunt/site/doctypes/WebForm/WebForm.json
 msgctxt "meta:WebForm.tab_designer"
-msgid "Конструктор"
+msgid "Builder"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/WebForm/WebForm.json
@@ -10276,42 +10277,42 @@ msgstr ""
 
 #: grunt/grunt/webhook/doctypes/WebhookLog/WebhookLog.json
 msgctxt "meta:WebhookLog"
-msgid "Лог вебхуку"
+msgid "Webhook Log"
 msgstr ""
 
 #: grunt/grunt/webhook/doctypes/WebhookLog/WebhookLog.json
 msgctxt "meta:WebhookLog.duration_ms"
-msgid "Час (мс)"
+msgid "Time (ms)"
 msgstr ""
 
 #: grunt/grunt/webhook/doctypes/WebhookLog/WebhookLog.json
 msgctxt "meta:WebhookLog.error"
-msgid "Помилка"
+msgid "Error"
 msgstr ""
 
 #: grunt/grunt/webhook/doctypes/WebhookLog/WebhookLog.json
 msgctxt "meta:WebhookLog.event"
-msgid "Подія"
+msgid "Event"
 msgstr ""
 
 #: grunt/grunt/webhook/doctypes/WebhookLog/WebhookLog.json
 msgctxt "meta:WebhookLog.is_test"
-msgid "Тестовий"
+msgid "Test"
 msgstr ""
 
 #: grunt/grunt/webhook/doctypes/WebhookLog/WebhookLog.json
 msgctxt "meta:WebhookLog.response_body"
-msgid "Відповідь"
+msgid "Response"
 msgstr ""
 
 #: grunt/grunt/webhook/doctypes/WebhookLog/WebhookLog.json
 msgctxt "meta:WebhookLog.status_code"
-msgid "HTTP Статус"
+msgid "HTTP status"
 msgstr ""
 
 #: grunt/grunt/webhook/doctypes/WebhookLog/WebhookLog.json
 msgctxt "meta:WebhookLog.success"
-msgid "Успіх"
+msgid "Success"
 msgstr ""
 
 #: grunt/grunt/webhook/doctypes/WebhookLog/WebhookLog.json
@@ -10321,7 +10322,7 @@ msgstr ""
 
 #: grunt/grunt/webhook/doctypes/WebhookLog/WebhookLog.json
 msgctxt "meta:WebhookLog.webhook"
-msgid "Вебхук"
+msgid "Webhook"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/WebsiteFooterColumn/WebsiteFooterColumn.json
@@ -10719,6 +10720,26 @@ msgctxt "select:ActivityLog.action"
 msgid "Workflow"
 msgstr ""
 
+#: grunt/grunt/geo/doctypes/Address/Address.json
+msgctxt "select:Address.address_type"
+msgid "Actual"
+msgstr ""
+
+#: grunt/grunt/geo/doctypes/Address/Address.json
+msgctxt "select:Address.address_type"
+msgid "Legal"
+msgstr ""
+
+#: grunt/grunt/geo/doctypes/Address/Address.json
+msgctxt "select:Address.address_type"
+msgid "Postal"
+msgstr ""
+
+#: grunt/grunt/geo/doctypes/Address/Address.json
+msgctxt "select:Address.address_type"
+msgid "Registered"
+msgstr ""
+
 #: grunt/grunt/assignment/doctypes/AssignmentLog/AssignmentLog.json
 msgctxt "select:AssignmentLog.assignment_method"
 msgid "role"
@@ -10757,6 +10778,41 @@ msgstr ""
 #: grunt/grunt/document/doctypes/Comment/Comment.json
 msgctxt "select:Comment.comment_type"
 msgid "Warning"
+msgstr ""
+
+#: grunt/grunt/geo/doctypes/Country/Country.json
+msgctxt "select:Country.continent"
+msgid "Africa"
+msgstr ""
+
+#: grunt/grunt/geo/doctypes/Country/Country.json
+msgctxt "select:Country.continent"
+msgid "Antarctica"
+msgstr ""
+
+#: grunt/grunt/geo/doctypes/Country/Country.json
+msgctxt "select:Country.continent"
+msgid "Asia"
+msgstr ""
+
+#: grunt/grunt/geo/doctypes/Country/Country.json
+msgctxt "select:Country.continent"
+msgid "Australia and Oceania"
+msgstr ""
+
+#: grunt/grunt/geo/doctypes/Country/Country.json
+msgctxt "select:Country.continent"
+msgid "Europe"
+msgstr ""
+
+#: grunt/grunt/geo/doctypes/Country/Country.json
+msgctxt "select:Country.continent"
+msgid "North America"
+msgstr ""
+
+#: grunt/grunt/geo/doctypes/Country/Country.json
+msgctxt "select:Country.continent"
+msgid "South America"
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
@@ -10927,6 +10983,61 @@ msgstr ""
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgctxt "select:DocType.tree_sort_order"
 msgid "desc"
+msgstr ""
+
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+msgctxt "select:EmailAccount.provider"
+msgid "Gmail"
+msgstr ""
+
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+msgctxt "select:EmailAccount.provider"
+msgid "Other"
+msgstr ""
+
+#: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
+msgctxt "select:EmailMessage.direction"
+msgid "Incoming"
+msgstr ""
+
+#: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
+msgctxt "select:EmailMessage.direction"
+msgid "Outgoing"
+msgstr ""
+
+#: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
+msgctxt "select:EmailMessage.status"
+msgid "Deferred"
+msgstr ""
+
+#: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
+msgctxt "select:EmailMessage.status"
+msgid "Delivered"
+msgstr ""
+
+#: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
+msgctxt "select:EmailMessage.status"
+msgid "Error"
+msgstr ""
+
+#: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
+msgctxt "select:EmailMessage.status"
+msgid "Queued"
+msgstr ""
+
+#: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
+msgctxt "select:EmailMessage.status"
+msgid "Received"
+msgstr ""
+
+#: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
+msgctxt "select:EmailMessage.status"
+msgid "Sent"
+msgstr ""
+
+#: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
+msgctxt "select:EmailMessage.status"
+msgid "Undelivered"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
@@ -11122,6 +11233,46 @@ msgstr ""
 #: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
 msgctxt "select:PageWidget.link_type"
 msgid "URL"
+msgstr ""
+
+#: grunt/grunt/geo/doctypes/Region/Region.json
+msgctxt "select:Region.region_type"
+msgid "Canton"
+msgstr ""
+
+#: grunt/grunt/geo/doctypes/Region/Region.json
+msgctxt "select:Region.region_type"
+msgid "Department"
+msgstr ""
+
+#: grunt/grunt/geo/doctypes/Region/Region.json
+msgctxt "select:Region.region_type"
+msgid "Land"
+msgstr ""
+
+#: grunt/grunt/geo/doctypes/Region/Region.json
+msgctxt "select:Region.region_type"
+msgid "Oblast"
+msgstr ""
+
+#: grunt/grunt/geo/doctypes/Region/Region.json
+msgctxt "select:Region.region_type"
+msgid "Other"
+msgstr ""
+
+#: grunt/grunt/geo/doctypes/Region/Region.json
+msgctxt "select:Region.region_type"
+msgid "Province"
+msgstr ""
+
+#: grunt/grunt/geo/doctypes/Region/Region.json
+msgctxt "select:Region.region_type"
+msgid "Region"
+msgstr ""
+
+#: grunt/grunt/geo/doctypes/Region/Region.json
+msgctxt "select:Region.region_type"
+msgid "State"
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/Report/Report.json
@@ -11376,55 +11527,55 @@ msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/SystemHealthCheck/SystemHealthCheck.json
 msgctxt "status:SystemHealthCheck"
-msgid "Інфо"
+msgid "Good"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/SystemHealthCheck/SystemHealthCheck.json
 msgctxt "status:SystemHealthCheck"
-msgid "Добре"
+msgid "Info"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/SystemHealthCheck/SystemHealthCheck.json
 msgctxt "status:SystemHealthCheck"
-msgid "Проблема"
+msgid "Problem"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/SystemHealthCheck/SystemHealthCheck.json
 msgctxt "status:SystemHealthCheck"
-msgid "Увага"
+msgid "Warning"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.json
 msgctxt "status:SystemHealthReport"
-msgid "Є попередження"
+msgid "All good"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.json
 msgctxt "status:SystemHealthReport"
-msgid "Є проблеми"
+msgid "Has problems"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.json
 msgctxt "status:SystemHealthReport"
-msgid "Усе гаразд"
+msgid "Has warnings"
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
 msgctxt "status:ToDo"
-msgid "В роботі"
+msgid "Cancelled"
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
 msgctxt "status:ToDo"
-msgid "Виконано"
+msgid "Done"
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
 msgctxt "status:ToDo"
-msgid "Відкрито"
+msgid "In Progress"
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
 msgctxt "status:ToDo"
-msgid "Скасовано"
+msgid "Open"
 msgstr ""

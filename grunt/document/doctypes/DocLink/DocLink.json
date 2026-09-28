@@ -1,15 +1,24 @@
 {
   "name": "DocLink",
-  "label": "Зв'язок документа",
+  "label": "Document Link",
   "module": "document",
   "track_changes": false,
   "table_name": "grunt_doc_link",
   "hide_from_activity_feed": true,
-  "indexes": [["source_doctype", "source_id"], ["target_doctype", "target_id"]],
+  "indexes": [
+    [
+      "source_doctype",
+      "source_id"
+    ],
+    [
+      "target_doctype",
+      "target_id"
+    ]
+  ],
   "fields": [
     {
       "fieldname": "source_doctype",
-      "label": "Тип джерела",
+      "label": "Source type",
       "fieldtype": "Text",
       "required": true,
       "in_list_view": true,
@@ -17,14 +26,14 @@
     },
     {
       "fieldname": "source_id",
-      "label": "ID джерела",
+      "label": "Source ID",
       "fieldtype": "Text",
       "required": true,
       "in_list_view": true
     },
     {
       "fieldname": "target_doctype",
-      "label": "Тип цілі",
+      "label": "Target type",
       "fieldtype": "Text",
       "required": true,
       "in_list_view": true,
@@ -32,14 +41,14 @@
     },
     {
       "fieldname": "target_id",
-      "label": "ID цілі",
+      "label": "Target ID",
       "fieldtype": "Text",
       "required": true,
       "in_list_view": true
     },
     {
       "fieldname": "link_fieldname",
-      "label": "Поле зв'язку",
+      "label": "Link field",
       "fieldtype": "Text",
       "required": true
     }

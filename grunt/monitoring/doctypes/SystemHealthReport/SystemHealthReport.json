@@ -1,6 +1,6 @@
 {
   "name": "SystemHealthReport",
-  "label": "Стан системи",
+  "label": "System Health",
   "module": "monitoring",
   "icon": "heart-pulse",
   "is_virtual": true,
@@ -12,29 +12,29 @@
     {
       "value": "OK",
       "color": "success",
-      "label": "Усе гаразд"
+      "label": "All good"
     },
     {
       "value": "Warning",
       "color": "warn",
-      "label": "Є попередження"
+      "label": "Has warnings"
     },
     {
       "value": "Error",
       "color": "danger",
-      "label": "Є проблеми"
+      "label": "Has problems"
     }
   ],
-  "description": "Діагностика: база даних, фонові задачі, планувальник, помилки, пошта, безпека, файли й офлайн-режим. Обчислюється наживо при кожному відкритті — нічого не зберігається.",
+  "description": "Diagnostics: database, background tasks, scheduler, errors, email, security, files and offline mode. Computed live on every open — nothing is stored.",
   "fields": [
     {
       "fieldname": "tab_server",
-      "label": "Сервер",
+      "label": "Server",
       "fieldtype": "Tab"
     },
     {
       "fieldname": "overall_status",
-      "label": "Загальний стан",
+      "label": "Overall status",
       "fieldtype": "Select",
       "options": "OK\nWarning\nError",
       "translatable": true,
@@ -42,7 +42,7 @@
     },
     {
       "fieldname": "checked_at",
-      "label": "Перевірено",
+      "label": "Checked",
       "fieldtype": "Datetime",
       "read_only": true
     },
@@ -52,30 +52,30 @@
     },
     {
       "fieldname": "ok_count",
-      "label": "Добре",
+      "label": "Good",
       "fieldtype": "Int",
       "read_only": true
     },
     {
       "fieldname": "warning_count",
-      "label": "Увага",
+      "label": "Warning",
       "fieldtype": "Int",
       "read_only": true
     },
     {
       "fieldname": "error_count",
-      "label": "Проблеми",
+      "label": "Problems",
       "fieldtype": "Int",
       "read_only": true
     },
     {
       "fieldname": "sec_checks",
-      "label": "Перевірки",
+      "label": "Checks",
       "fieldtype": "Section"
     },
     {
       "fieldname": "checks",
-      "label": "Перевірки",
+      "label": "Checks",
       "fieldtype": "Table",
       "options": "SystemHealthCheck",
       "group_by": "category",
@@ -83,12 +83,12 @@
     },
     {
       "fieldname": "sec_details",
-      "label": "Подробиці",
+      "label": "Details",
       "fieldtype": "Section"
     },
     {
       "fieldname": "top_errors",
-      "label": "Найчастіші помилки (7 днів)",
+      "label": "Most frequent errors (7 days)",
       "fieldtype": "Table",
       "options": "SystemHealthItem",
       "read_only": true
@@ -99,24 +99,24 @@
     },
     {
       "fieldname": "largest_tables",
-      "label": "Найбільші таблиці",
+      "label": "Largest tables",
       "fieldtype": "Table",
       "options": "SystemHealthItem",
       "read_only": true
     },
     {
       "fieldname": "tab_browser",
-      "label": "Браузер і офлайн",
+      "label": "Browser and offline",
       "fieldtype": "Tab"
     },
     {
       "fieldname": "browser_checks",
-      "label": "Перевірки цього браузера",
+      "label": "Checks of this browser",
       "fieldtype": "Table",
       "options": "SystemHealthCheck",
       "group_by": "category",
       "read_only": true,
-      "description": "Виконуються в браузері, з якого відкрито сторінку: service worker, офлайн-кеш, черга несинхронізованих змін, сховище."
+      "description": "Run in the browser this page is opened in: service worker, offline cache, queue of unsynced changes, storage."
     }
   ],
   "permissions": [

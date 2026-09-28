@@ -1,19 +1,19 @@
 {
   "name": "NamingSeries",
-  "label": "Серія нумерації",
+  "label": "Naming Series",
   "module": "naming",
   "hide_from_activity_feed": true,
   "fields": [
     {
       "fieldname": "prefix",
-      "label": "Префікс",
+      "label": "Prefix",
       "fieldtype": "Text",
       "unique": true,
       "required": true
     },
     {
       "fieldname": "current",
-      "label": "Поточне значення",
+      "label": "Current value",
       "fieldtype": "Int",
       "default": "0"
     }

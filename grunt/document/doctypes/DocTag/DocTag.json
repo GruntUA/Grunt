@@ -1,15 +1,23 @@
 {
   "name": "DocTag",
-  "label": "Тег документа",
+  "label": "Document Tag",
   "module": "document",
   "track_changes": false,
   "hide_from_activity_feed": true,
-  "indexes": [["reference_doctype", "reference_id"]],
-  "inherit_permission_from": ["reference_doctype", "reference_id"],
+  "indexes": [
+    [
+      "reference_doctype",
+      "reference_id"
+    ]
+  ],
+  "inherit_permission_from": [
+    "reference_doctype",
+    "reference_id"
+  ],
   "fields": [
     {
       "fieldname": "reference_doctype",
-      "label": "Тип документа",
+      "label": "Document type",
       "fieldtype": "Text",
       "required": true,
       "in_list_view": true,
@@ -17,14 +25,14 @@
     },
     {
       "fieldname": "reference_id",
-      "label": "ID документа",
+      "label": "Document ID",
       "fieldtype": "Text",
       "required": true,
       "in_filter": true
     },
     {
       "fieldname": "tag",
-      "label": "Тег",
+      "label": "Tag",
       "fieldtype": "Text",
       "required": true,
       "in_list_view": true,

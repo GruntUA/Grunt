@@ -41,6 +41,19 @@ export const i18n = createI18n({
 })
 
 /**
+ * PO strings are plain text, but vue-i18n compiles them: a bare `@` starts a
+ * linked message (`@:key`) and fails with "Invalid linked format". Escape it
+ * as a literal; `{…}` placeholders stay intact for interpolation.
+ */
+function escapeMessages(messages: Record<string, unknown>): Record<string, unknown> {
+  const out: Record<string, unknown> = {}
+  for (const [k, v] of Object.entries(messages)) {
+    out[k] = typeof v === 'string' ? v.replace(/@/g, "{'@'}") : v
+  }
+  return out
+}
+
+/**
  * Load translations from the backend API and merge into vue-i18n.
  * Called from App.vue onMounted after the API client is ready.
  */
@@ -57,7 +70,7 @@ export async function loadRemoteTranslations(locale?: SupportedLocale): Promise<
         if (seen && seen === bundle.version && Object.keys(i18n.global.getLocaleMessage(lang)).length) {
           return
         }
-        i18n.global.mergeLocaleMessage(lang, bundle.messages)
+        i18n.global.mergeLocaleMessage(lang, escapeMessages(bundle.messages))
         try {
           localStorage.setItem(key, bundle.version ?? '')
         } catch {

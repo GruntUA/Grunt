@@ -1,6 +1,6 @@
 {
   "name": "Dashboard",
-  "label": "Дашборд",
+  "label": "Dashboard",
   "module": "reports",
   "hide_from_activity_feed": true,
   "is_child": false,
@@ -9,26 +9,26 @@
   "fields": [
     {
       "fieldname": "label",
-      "label": "Назва",
+      "label": "Name",
       "fieldtype": "Text",
       "required": true,
       "in_list_view": true
     },
     {
       "fieldname": "description",
-      "label": "Опис",
+      "label": "Description",
       "fieldtype": "Text"
     },
     {
       "fieldname": "workspace",
-      "label": "Воркспейс",
+      "label": "Workspace",
       "fieldtype": "Text",
       "in_list_view": true,
       "in_filter": true
     },
     {
       "fieldname": "is_published",
-      "label": "Опублікований",
+      "label": "Published",
       "fieldtype": "Check",
       "default": false,
       "in_list_view": true,
@@ -36,12 +36,12 @@
     },
     {
       "fieldname": "roles",
-      "label": "Ролі (через кому)",
+      "label": "Roles (comma-separated)",
       "fieldtype": "Text"
     },
     {
       "fieldname": "widgets",
-      "label": "Віджети",
+      "label": "Widgets",
       "fieldtype": "Table",
       "options": "Dashboard Widget"
     }

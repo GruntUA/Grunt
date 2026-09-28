@@ -1,6 +1,6 @@
 {
   "name": "Timezone",
-  "label": "Часовий пояс",
+  "label": "Timezone",
   "module": "geo",
   "autoname": "field:iana_id",
   "title_field": "label",
@@ -8,45 +8,57 @@
   "fields": [
     {
       "fieldname": "iana_id",
-      "label": "IANA-ідентифікатор",
+      "label": "IANA identifier",
       "fieldtype": "Data",
       "required": true,
       "in_list_view": true,
       "bold": true,
-      "description": "Наприклад: Europe/Kyiv, America/New_York"
+      "description": "For example: Europe/Kyiv, America/New_York"
     },
     {
       "fieldname": "label",
-      "label": "Відображувана назва",
+      "label": "Display name",
       "fieldtype": "Text",
       "in_list_view": true,
-      "description": "Наприклад: (UTC+2) Київ"
+      "description": "For example: (UTC+2) Kyiv"
     },
     {
       "fieldname": "offset_minutes",
-      "label": "Зсув (хвилини)",
+      "label": "Offset (minutes)",
       "fieldtype": "Int",
       "in_list_view": true,
-      "description": "Зсув від UTC у хвилинах (+120 для UTC+2, -300 для UTC-5)"
+      "description": "Offset from UTC in minutes (+120 for UTC+2, -300 for UTC-5)"
     },
     {
       "fieldname": "is_dst_observed",
-      "label": "Перехід на літній час",
+      "label": "Daylight saving time",
       "fieldtype": "Check",
       "default": "0"
     },
     {
       "fieldname": "is_active",
-      "label": "Активний",
+      "label": "Active",
       "fieldtype": "Check",
       "default": "1",
       "in_filter": true
     }
   ],
   "default_view": "list",
-  "search_fields": ["iana_id", "label"],
+  "search_fields": [
+    "iana_id",
+    "label"
+  ],
   "permissions": [
-    { "role": "All", "read": true },
-    { "role": "System Manager", "read": true, "write": true, "create": true, "delete": true }
+    {
+      "role": "All",
+      "read": true
+    },
+    {
+      "role": "System Manager",
+      "read": true,
+      "write": true,
+      "create": true,
+      "delete": true
+    }
   ]
 }

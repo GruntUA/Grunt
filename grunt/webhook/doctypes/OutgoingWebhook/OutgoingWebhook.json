@@ -1,12 +1,12 @@
 {
   "name": "OutgoingWebhook",
-  "label": "Вихідний вебхук",
+  "label": "Outgoing Webhook",
   "module": "webhook",
   "table_name": "grunt_outgoing_webhook",
   "fields": [
     {
       "fieldname": "doctype_name",
-      "label": "Тип документа",
+      "label": "Document type",
       "fieldtype": "Link",
       "options": "DocType",
       "required": true,
@@ -15,7 +15,7 @@
     },
     {
       "fieldname": "event",
-      "label": "Подія",
+      "label": "Event",
       "fieldtype": "Select",
       "options": "after_insert\nafter_update\nafter_delete\non_submit\non_cancel",
       "required": true,
@@ -24,35 +24,35 @@
     },
     {
       "fieldname": "url",
-      "label": "URL вебхуку",
+      "label": "Webhook URL",
       "fieldtype": "Text",
       "required": true,
       "in_list_view": true
     },
     {
       "fieldname": "secret",
-      "label": "Секрет (HMAC)",
+      "label": "Secret (HMAC)",
       "fieldtype": "Text"
     },
     {
       "fieldname": "headers",
-      "label": "Заголовки (JSON)",
+      "label": "Headers (JSON)",
       "fieldtype": "LongText"
     },
     {
       "fieldname": "condition",
-      "label": "Умова (Python)",
+      "label": "Condition (Python)",
       "fieldtype": "LongText"
     },
     {
       "fieldname": "timeout",
-      "label": "Тайм-аут (сек)",
+      "label": "Timeout (sec)",
       "fieldtype": "Int",
       "default": 10
     },
     {
       "fieldname": "is_enabled",
-      "label": "Активний",
+      "label": "Active",
       "fieldtype": "Check",
       "default": true,
       "in_list_view": true,

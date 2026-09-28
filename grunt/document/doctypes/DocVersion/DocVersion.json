@@ -1,6 +1,6 @@
 {
   "name": "DocVersion",
-  "label": "Версія документа",
+  "label": "Document Version",
   "module": "document",
   "track_changes": false,
   "table_name": "grunt_doc_version",
@@ -9,7 +9,7 @@
   "fields": [
     {
       "fieldname": "doctype",
-      "label": "Тип документа",
+      "label": "Document type",
       "fieldtype": "Link",
       "options": "DocType",
       "required": true,
@@ -18,28 +18,28 @@
     },
     {
       "fieldname": "doc_id",
-      "label": "ID документа",
+      "label": "Document ID",
       "fieldtype": "Text",
       "required": true,
       "in_list_view": true
     },
     {
       "fieldname": "version",
-      "label": "Версія",
+      "label": "Version",
       "fieldtype": "Int",
       "required": true,
       "in_list_view": true
     },
     {
       "fieldname": "user",
-      "label": "Користувач",
+      "label": "User",
       "fieldtype": "Text",
       "required": true,
       "in_list_view": true
     },
     {
       "fieldname": "changes",
-      "label": "Зміни",
+      "label": "Changes",
       "fieldtype": "JSON"
     }
   ],

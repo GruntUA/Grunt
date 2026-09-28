@@ -1,6 +1,6 @@
 {
   "name": "Country",
-  "label": "Країна",
+  "label": "Country",
   "module": "geo",
   "autoname": "field:code",
   "title_field": "title",
@@ -8,88 +8,89 @@
   "fields": [
     {
       "fieldname": "code",
-      "label": "Код ISO 3166-1 alpha-2",
+      "label": "ISO 3166-1 alpha-2 code",
       "fieldtype": "Data",
       "required": true,
       "in_list_view": true,
       "bold": true,
-      "description": "Двобуквений код країни (UA, US, DE)"
+      "description": "Two-letter country code (UA, US, DE)"
     },
     {
       "fieldname": "code3",
-      "label": "Код ISO 3166-1 alpha-3",
+      "label": "ISO 3166-1 alpha-3 code",
       "fieldtype": "Data",
-      "description": "Трибуквений код країни (UKR, USA, DEU)"
+      "description": "Three-letter country code (UKR, USA, DEU)"
     },
     {
       "fieldname": "numeric_code",
-      "label": "Числовий код",
+      "label": "Numeric code",
       "fieldtype": "Data",
-      "description": "Числовий код ISO 3166-1 (804 для України)"
+      "description": "ISO 3166-1 numeric code (804 for Ukraine)"
     },
     {
       "fieldname": "flag_emoji",
-      "label": "Прапор",
+      "label": "Flag",
       "fieldtype": "Data",
       "in_list_view": true,
-      "description": "Emoji-прапор країни (🇺🇦)"
+      "description": "Country flag emoji (🇺🇦)"
     },
     {
       "fieldname": "title",
-      "label": "Назва (англ.)",
+      "label": "Name (English)",
       "fieldtype": "Text",
       "required": true,
       "in_list_view": true
     },
     {
       "fieldname": "title_uk",
-      "label": "Назва (укр.)",
+      "label": "Name (Ukrainian)",
       "fieldtype": "Text",
       "in_list_view": true
     },
     {
       "fieldname": "continent",
-      "label": "Континент",
+      "label": "Continent",
       "fieldtype": "Select",
-      "options": "\nАфрика\nАзія\nАвстралія та Океанія\nАнтарктида\nЄвропа\nПівнічна Америка\nПівденна Америка",
+      "options": "\nAfrica\nAsia\nAustralia and Oceania\nAntarctica\nEurope\nNorth America\nSouth America",
+      "translatable": true,
       "in_list_view": true,
       "in_filter": true,
       "in_quick_filter": true
     },
     {
       "fieldname": "capital",
-      "label": "Столиця",
+      "label": "Capital",
       "fieldtype": "Data"
     },
     {
       "fieldname": "phone_code",
-      "label": "Телефонний код",
+      "label": "Dialing code",
       "fieldtype": "Data",
-      "description": "Міжнародний телефонний код (+380)"
+      "description": "International dialing code (+380)"
     },
     {
       "fieldname": "tld",
-      "label": "Домен верхнього рівня",
+      "label": "Top-level domain",
       "fieldtype": "Data",
-      "description": "Національний домен (.ua, .us)"
+      "description": "National domain (.ua, .us)"
     },
     {
       "fieldname": "currency",
-      "label": "Валюта",
+      "label": "Currency",
       "fieldtype": "Link",
       "options": "Currency",
       "in_filter": true
     },
     {
       "fieldname": "official_language",
-      "label": "Офіційна мова",
+      "label": "Official language",
       "fieldtype": "Link",
       "options": "Language",
       "in_filter": true
     },
     {
       "fieldname": "is_active",
-      "label": "Активна",
+      "label": "Active",
       "fieldtype": "Check",
       "default": "1",
       "in_list_view": true,
@@ -98,10 +99,22 @@
     }
   ],
   "default_view": "list",
-
-  "search_fields": ["code", "title", "title_uk"],
+  "search_fields": [
+    "code",
+    "title",
+    "title_uk"
+  ],
   "permissions": [
-    { "role": "All", "read": true },
-    { "role": "System Manager", "read": true, "write": true, "create": true, "delete": true }
+    {
+      "role": "All",
+      "read": true
+    },
+    {
+      "role": "System Manager",
+      "read": true,
+      "write": true,
+      "create": true,
+      "delete": true
+    }
   ]
 }

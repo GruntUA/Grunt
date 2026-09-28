@@ -11995,6 +11995,2468 @@ msgstr "Відхилити реєстрацію цього користувач�
 msgid "Subscription error:"
 msgstr "Помилка підписки:"
 
+msgctxt "meta:ActivityLog"
+msgid "Activity Log"
+msgstr "Журнал активності"
+
+msgctxt "meta:ActivityLog.doctype"
+msgid "Document type"
+msgstr "Тип документа"
+
+msgctxt "meta:ActivityLog.doc_id"
+msgid "Document ID"
+msgstr "ID документа"
+
+msgctxt "meta:ActivityLog.user"
+msgid "User"
+msgstr "Користувач"
+
+msgctxt "meta:ActivityLog.action"
+msgid "Action"
+msgstr "Дія"
+
+msgctxt "meta:ActivityLog.details"
+msgid "Details"
+msgstr "Деталі"
+
+msgctxt "meta:DeletedDocument"
+msgid "Deleted Document"
+msgstr "Видалений документ"
+
+msgctxt "meta:DeletedDocument.deleted_doctype"
+msgid "Document type"
+msgstr "Тип документа"
+
+msgctxt "meta:DeletedDocument.deleted_name"
+msgid "Document ID"
+msgstr "ID документа"
+
+msgctxt "meta:DeletedDocument.title"
+msgid "Name"
+msgstr "Назва"
+
+msgctxt "meta:DeletedDocument.deleted_by"
+msgid "Deleted by"
+msgstr "Видалив"
+
+msgctxt "meta:DeletedDocument.deleted_at"
+msgid "Deleted at"
+msgstr "Час видалення"
+
+msgctxt "meta:DeletedDocument.restored"
+msgid "Restored"
+msgstr "Відновлено"
+
+msgctxt "meta:DeletedDocument.restored_at"
+msgid "Restored at"
+msgstr "Час відновлення"
+
+msgctxt "meta:DeletedDocument.restored_to"
+msgid "Restored as"
+msgstr "Відновлено як"
+
+msgctxt "meta:DeletedDocument.data"
+msgid "Snapshot (JSON)"
+msgstr "Знімок (JSON)"
+
+msgctxt "meta:ViewLog"
+msgid "View Log"
+msgstr "Журнал переглядів"
+
+msgctxt "meta:ViewLog.doctype"
+msgid "Document type"
+msgstr "Тип документа"
+
+msgctxt "meta:ViewLog.doc_id"
+msgid "Document ID"
+msgstr "ID документа"
+
+msgctxt "meta:ViewLog.viewed_by"
+msgid "Viewed by"
+msgstr "Переглянув"
+
+msgctxt "meta:ViewLog.viewed_at"
+msgid "Viewed at"
+msgstr "Час перегляду"
+
+msgctxt "meta:Backup"
+msgid "Backups"
+msgstr "Резервні копії"
+
+msgctxt "help:Backup"
+msgid ""
+"Site backups in sites/<site>/backups/: database, uploaded files, "
+"configuration. Schedule and number of copies — in System Settings → Backups."
+msgstr ""
+"Резервні копії сайту в sites/<site>/backups/: база даних, завантажені файли,"
+" конфігурація. Розклад і кількість копій — у Системних налаштуваннях → "
+"Backups."
+
+msgctxt "meta:Backup.created_at"
+msgid "Created"
+msgstr "Створено"
+
+msgctxt "meta:Backup.total_size"
+msgid "Size"
+msgstr "Розмір"
+
+msgctxt "meta:Backup.database_size"
+msgid "Database"
+msgstr "База даних"
+
+msgctxt "meta:Backup.files_size"
+msgid "Files"
+msgstr "Файли"
+
+msgctxt "meta:Backup.has_config"
+msgid "Configuration"
+msgstr "Конфігурація"
+
+msgctxt "meta:Comment"
+msgid "Comment"
+msgstr "Коментар"
+
+msgctxt "meta:Comment.reference_doctype"
+msgid "Document type"
+msgstr "Тип документа"
+
+msgctxt "meta:Comment.reference_id"
+msgid "Document ID"
+msgstr "ID документа"
+
+msgctxt "meta:Comment.content"
+msgid "Content"
+msgstr "Вміст"
+
+msgctxt "meta:Comment.comment_type"
+msgid "Type"
+msgstr "Тип"
+
+msgctxt "meta:DocLink"
+msgid "Document Link"
+msgstr "Зв'язок документа"
+
+msgctxt "meta:DocLink.source_doctype"
+msgid "Source type"
+msgstr "Тип джерела"
+
+msgctxt "meta:DocLink.source_id"
+msgid "Source ID"
+msgstr "ID джерела"
+
+msgctxt "meta:DocLink.target_doctype"
+msgid "Target type"
+msgstr "Тип цілі"
+
+msgctxt "meta:DocLink.target_id"
+msgid "Target ID"
+msgstr "ID цілі"
+
+msgctxt "meta:DocLink.link_fieldname"
+msgid "Link field"
+msgstr "Поле зв'язку"
+
+msgctxt "meta:DocTag"
+msgid "Document Tag"
+msgstr "Тег документа"
+
+msgctxt "meta:DocTag.reference_doctype"
+msgid "Document type"
+msgstr "Тип документа"
+
+msgctxt "meta:DocTag.reference_id"
+msgid "Document ID"
+msgstr "ID документа"
+
+msgctxt "meta:DocTag.tag"
+msgid "Tag"
+msgstr "Тег"
+
+msgctxt "meta:DocVersion"
+msgid "Document Version"
+msgstr "Версія документа"
+
+msgctxt "meta:DocVersion.doctype"
+msgid "Document type"
+msgstr "Тип документа"
+
+msgctxt "meta:DocVersion.doc_id"
+msgid "Document ID"
+msgstr "ID документа"
+
+msgctxt "meta:DocVersion.version"
+msgid "Version"
+msgstr "Версія"
+
+msgctxt "meta:DocVersion.user"
+msgid "User"
+msgstr "Користувач"
+
+msgctxt "meta:DocVersion.changes"
+msgid "Changes"
+msgstr "Зміни"
+
+msgctxt "meta:DocumentShare"
+msgid "Shared With"
+msgstr "Спільний доступ"
+
+msgctxt "meta:DocumentShare.doctype_name"
+msgid "Document type"
+msgstr "Тип документа"
+
+msgctxt "meta:DocumentShare.doc_id"
+msgid "Document ID"
+msgstr "Документ ID"
+
+msgctxt "meta:DocumentShare.token"
+msgid "Token"
+msgstr "Токен"
+
+msgctxt "meta:DocumentShare.expires_at"
+msgid "Valid until"
+msgstr "Дійсно до"
+
+msgctxt "meta:DocumentShare.is_active"
+msgid "Active"
+msgstr "Активне"
+
+msgctxt "meta:DocumentShare.view_count"
+msgid "Views"
+msgstr "Перегляди"
+
+msgctxt "meta:DocumentShare.note"
+msgid "Note"
+msgstr "Примітка"
+
+msgctxt "meta:EmailAccount"
+msgid "Email Account"
+msgstr "Обліковий запис пошти"
+
+msgctxt "meta:EmailAccount.tab_main"
+msgid "Account"
+msgstr "Обліковий запис"
+
+msgctxt "meta:EmailAccount.provider"
+msgid "Mail service"
+msgstr "Поштова служба"
+
+msgctxt "help:EmailAccount.provider"
+msgid ""
+"Gmail — SMTP/IMAP servers and ports are filled in automatically; you only "
+"need the email and an app password. Choose «Other» to enter the settings "
+"manually."
+msgstr ""
+"Gmail — сервери SMTP/IMAP і порти заповнюються автоматично, потрібно лише "
+"вказати email і пароль додатка. Оберіть «Інший провайдер», щоб ввести "
+"параметри вручну."
+
+msgctxt "meta:EmailAccount.email_address"
+msgid "Email address"
+msgstr "Email адреса"
+
+msgctxt "help:EmailAccount.email_address"
+msgid "Full email address. For Gmail it is also used as the SMTP login."
+msgstr "Повна адреса пошти. Для Gmail вона ж використовується як логін SMTP."
+
+msgctxt "meta:EmailAccount.sec_gmail"
+msgid "Step 1 — Google app password"
+msgstr "Крок 1 — пароль додатка Google"
+
+msgctxt "meta:EmailAccount.open_app_passwords"
+msgid "Open the Google app passwords page"
+msgstr "Відкрити сторінку паролів додатків Google"
+
+msgctxt "help:EmailAccount.open_app_passwords"
+msgid ""
+"To send email through Gmail you need an «app password», not the regular account password.\n"
+"\n"
+"1. Open your Google account → «Security» and turn on «2-Step Verification» (app passwords are unavailable without it).\n"
+"2. Click the button above or open https://myaccount.google.com/apppasswords\n"
+"3. Enter an app name (e.g. «Grunt») and click «Create».\n"
+"4. Copy the 16-character code into the «SMTP password» field below — spaces can stay, they are removed automatically."
+msgstr ""
+"Щоб надсилати листи через Gmail, потрібен «пароль додатка», а не звичайний пароль акаунта.\n"
+"\n"
+"1. Відкрийте акаунт Google → «Безпека» та увімкніть «Двоетапну перевірку» (без неї паролі додатків недоступні).\n"
+"2. Натисніть кнопку вище або відкрийте https://myaccount.google.com/apppasswords\n"
+"3. Введіть назву додатка (напр. «Grunt») і натисніть «Створити».\n"
+"4. Скопіюйте 16-значний код у поле «Пароль SMTP» нижче — пробіли можна не видаляти, вони приберуться автоматично."
+
+msgctxt "meta:EmailAccount.sec_creds"
+msgid "Step 2 — authentication"
+msgstr "Крок 2 — автентифікація"
+
+msgctxt "meta:EmailAccount.smtp_user"
+msgid "SMTP user"
+msgstr "Користувач SMTP"
+
+msgctxt "help:EmailAccount.smtp_user"
+msgid ""
+"SMTP login. Usually the same as the email address; filled in automatically "
+"for Gmail."
+msgstr ""
+"Логін для SMTP. Зазвичай збігається з email-адресою; для Gmail "
+"підставляється автоматично."
+
+msgctxt "meta:EmailAccount.smtp_password"
+msgid "SMTP password (app password)"
+msgstr "Пароль SMTP (пароль додатка)"
+
+msgctxt "help:EmailAccount.smtp_password"
+msgid ""
+"For Gmail — a 16-character app password (App Password). The regular Google account password does not work.\n"
+"A saved password is not shown again — to change it, enter a new one."
+msgstr ""
+"Для Gmail — 16-значний пароль додатка (App Password). Звичайний пароль акаунта Google не працює.\n"
+"Збережений пароль більше не показується — щоб змінити його, введіть новий."
+
+msgctxt "meta:EmailAccount.test_connection"
+msgid "Test connection (SMTP)"
+msgstr "Перевірити з'єднання (SMTP)"
+
+msgctxt "help:EmailAccount.test_connection"
+msgid ""
+"Checks the connection and sign-in to the SMTP server without sending an "
+"email."
+msgstr "Перевіряє підключення та вхід на SMTP-сервер без надсилання листа."
+
+msgctxt "meta:EmailAccount.test_send"
+msgid "Send test email"
+msgstr "Надіслати тестовий лист"
+
+msgctxt "help:EmailAccount.test_send"
+msgid ""
+"Sends a short test email to the given address through this account. Save "
+"your changes first."
+msgstr ""
+"Надсилає короткий тестовий лист на вказану адресу через цей обліковий запис."
+" Спершу збережіть зміни."
+
+msgctxt "meta:EmailAccount.sec_outgoing"
+msgid "Outgoing mail (SMTP)"
+msgstr "Вихідна пошта (SMTP)"
+
+msgctxt "meta:EmailAccount.enable_outgoing"
+msgid "Enable outgoing mail"
+msgstr "Дозволити вихідну пошту"
+
+msgctxt "help:EmailAccount.enable_outgoing"
+msgid "Allows this account to send emails."
+msgstr "Дозволяє цьому обліковому запису надсилати листи."
+
+msgctxt "meta:EmailAccount.smtp_server"
+msgid "SMTP server"
+msgstr "SMTP сервер"
+
+msgctxt "help:EmailAccount.smtp_server"
+msgid "For Gmail: smtp.gmail.com — filled in automatically."
+msgstr "Для Gmail: smtp.gmail.com — підставляється автоматично."
+
+msgctxt "meta:EmailAccount.smtp_port"
+msgid "SMTP port"
+msgstr "SMTP порт"
+
+msgctxt "meta:EmailAccount.use_tls"
+msgid "Use TLS"
+msgstr "Використовувати TLS"
+
+msgctxt "meta:EmailAccount.sec_incoming"
+msgid "Incoming mail (IMAP)"
+msgstr "Вхідна пошта (IMAP)"
+
+msgctxt "meta:EmailAccount.enable_incoming"
+msgid "Enable incoming mail"
+msgstr "Дозволити вхідну пошту"
+
+msgctxt "help:EmailAccount.enable_incoming"
+msgid ""
+"Reads incoming emails over IMAP. Not needed just for sending. Gmail requires"
+" the same app password."
+msgstr ""
+"Читання вхідних листів по IMAP. Для простого надсилання листів не потрібно. "
+"Gmail вимагає того самого пароля додатка."
+
+msgctxt "meta:EmailAccount.imap_server"
+msgid "IMAP server"
+msgstr "IMAP сервер"
+
+msgctxt "meta:EmailAccount.imap_port"
+msgid "IMAP port"
+msgstr "IMAP порт"
+
+msgctxt "meta:EmailAccount.use_ssl"
+msgid "Use SSL"
+msgstr "Використовувати SSL"
+
+msgctxt "meta:EmailAttachment"
+msgid "Email Attachment"
+msgstr "Вкладення листа"
+
+msgctxt "meta:EmailAttachment.filename"
+msgid "File name"
+msgstr "Ім'я файлу"
+
+msgctxt "meta:EmailAttachment.file"
+msgid "File"
+msgstr "Файл"
+
+msgctxt "meta:EmailAttachment.size"
+msgid "Size, B"
+msgstr "Розмір, Б"
+
+msgctxt "meta:EmailAttachment.mimetype"
+msgid "Type"
+msgstr "Тип"
+
+msgctxt "meta:EmailMessage"
+msgid "Email Message"
+msgstr "Електронний лист"
+
+msgctxt "meta:EmailMessage.tab_main"
+msgid "Email"
+msgstr "Лист"
+
+msgctxt "meta:EmailMessage.direction"
+msgid "Direction"
+msgstr "Напрям"
+
+msgctxt "meta:EmailMessage.message_date"
+msgid "Date / time"
+msgstr "Дата / час"
+
+msgctxt "meta:EmailMessage.status"
+msgid "Status"
+msgstr "Статус"
+
+msgctxt "meta:EmailMessage.email_account"
+msgid "Account"
+msgstr "Обліковий запис"
+
+msgctxt "meta:EmailMessage.subject"
+msgid "Subject"
+msgstr "Тема"
+
+msgctxt "meta:EmailMessage.sender"
+msgid "From"
+msgstr "Від кого"
+
+msgctxt "meta:EmailMessage.recipients"
+msgid "To"
+msgstr "Кому"
+
+msgctxt "meta:EmailMessage.cc"
+msgid "Cc"
+msgstr "Копія (Cc)"
+
+msgctxt "meta:EmailMessage.sec_body"
+msgid "Email body"
+msgstr "Текст листа"
+
+msgctxt "meta:EmailMessage.body_text"
+msgid "Text"
+msgstr "Текст"
+
+msgctxt "meta:EmailMessage.sec_att"
+msgid "Attachments"
+msgstr "Вкладення"
+
+msgctxt "meta:EmailMessage.has_attachments"
+msgid "Has attachments"
+msgstr "Є вкладення"
+
+msgctxt "meta:EmailMessage.attachments"
+msgid "Attachments"
+msgstr "Вкладення"
+
+msgctxt "meta:EmailMessage.sec_err"
+msgid "Delivery error"
+msgstr "Помилка доставки"
+
+msgctxt "meta:EmailMessage.error_message"
+msgid "Error text"
+msgstr "Текст помилки"
+
+msgctxt "meta:EmailMessage.sec_tracking"
+msgid "Delivery tracking"
+msgstr "Відстеження доставки"
+
+msgctxt "meta:EmailMessage.delivered_at"
+msgid "Delivered at"
+msgstr "Доставлено (час)"
+
+msgctxt "meta:EmailMessage.read_at"
+msgid "Read by recipient at"
+msgstr "Прочитано отримувачем (час)"
+
+msgctxt "meta:EmailMessage.request_receipt"
+msgid "Read receipt requested"
+msgstr "Запитано підтвердження прочитання"
+
+msgctxt "meta:EmailMessage.delivery_detail"
+msgid "Delivery details / diagnostics"
+msgstr "Деталі доставки / діагностика"
+
+msgctxt "meta:EmailMessage.sec_meta"
+msgid "Internal"
+msgstr "Службове"
+
+msgctxt "meta:EmailMessage.ref_doctype"
+msgid "Source — type"
+msgstr "Джерело — тип"
+
+msgctxt "meta:EmailMessage.ref_name"
+msgid "Source — record"
+msgstr "Джерело — запис"
+
+msgctxt "meta:EmailMessage.is_read"
+msgid "Read"
+msgstr "Прочитано"
+
+msgctxt "meta:EmailQueue"
+msgid "Email Queue"
+msgstr "Черга листів"
+
+msgctxt "meta:EmailQueue.sender"
+msgid "Sender"
+msgstr "Відправник"
+
+msgctxt "meta:EmailQueue.recipient"
+msgid "Recipient"
+msgstr "Отримувач"
+
+msgctxt "meta:EmailQueue.subject"
+msgid "Subject"
+msgstr "Тема"
+
+msgctxt "meta:EmailQueue.content"
+msgid "Content"
+msgstr "Вміст"
+
+msgctxt "meta:EmailQueue.text_content"
+msgid "Text version"
+msgstr "Текстова версія"
+
+msgctxt "meta:EmailQueue.status"
+msgid "Status"
+msgstr "Статус"
+
+msgctxt "meta:EmailQueue.error_message"
+msgid "Error"
+msgstr "Помилка"
+
+msgctxt "meta:EmailQueue.email_account"
+msgid "Account"
+msgstr "Обліковий запис"
+
+msgctxt "meta:EmailTemplate"
+msgid "Email Template"
+msgstr "Шаблон листа"
+
+msgctxt "meta:EmailTemplate.label"
+msgid "Name"
+msgstr "Назва"
+
+msgctxt "help:EmailTemplate.label"
+msgid "For orientation in the list — does not affect sending"
+msgstr "Для орієнтації в списку — на саму розсилку не впливає"
+
+msgctxt "meta:EmailTemplate.is_active"
+msgid "Active"
+msgstr "Активний"
+
+msgctxt "meta:EmailTemplate.sec_content"
+msgid "Content"
+msgstr "Вміст"
+
+msgctxt "meta:EmailTemplate.subject"
+msgid "Email subject"
+msgstr "Тема листа"
+
+msgctxt "help:EmailTemplate.subject"
+msgid ""
+"Value substitution — {field_name} from the context passed by the caller"
+msgstr "Підстановка значень — {ім'я_поля} з контексту, який передає викликач"
+
+msgctxt "meta:EmailTemplate.body"
+msgid "Text (plain)"
+msgstr "Текст (звичайний)"
+
+msgctxt "help:EmailTemplate.body"
+msgid "Text version — always sent; same substitution, {field_name}"
+msgstr ""
+"Текстова версія — завжди надсилається; підстановка та сама, {ім'я_поля}"
+
+msgctxt "meta:EmailTemplate.body_html"
+msgid "Text (HTML)"
+msgstr "Текст (HTML)"
+
+msgctxt "help:EmailTemplate.body_html"
+msgid ""
+"Optional. If set, the email is sent as HTML with the text version as a "
+"fallback"
+msgstr ""
+"Необов'язково. Якщо заповнено — лист іде як HTML з текстовою версією як "
+"запасний варіант"
+
+msgctxt "meta:EmailTemplate.sec_help"
+msgid "Help"
+msgstr "Довідка"
+
+msgctxt "meta:EmailTemplate.description"
+msgid "Where used / available fields"
+msgstr "Де використовується / доступні поля"
+
+msgctxt "meta:Address"
+msgid "Address"
+msgstr "Адреса"
+
+msgctxt "meta:Address.address_type"
+msgid "Address type"
+msgstr "Тип адреси"
+
+msgctxt "meta:Address.country"
+msgid "Country"
+msgstr "Країна"
+
+msgctxt "meta:Address.region"
+msgid "Region / Oblast"
+msgstr "Регіон / Область"
+
+msgctxt "meta:Address.city"
+msgid "City (directory)"
+msgstr "Місто (довідник)"
+
+msgctxt "meta:Address.city_text"
+msgid "City (text)"
+msgstr "Місто (текст)"
+
+msgctxt "help:Address.city_text"
+msgid "Enter the city name manually if it is not in the directory"
+msgstr "Введіть назву міста вручну, якщо немає в довіднику"
+
+msgctxt "meta:Address.zip_code"
+msgid "Postal code"
+msgstr "Поштовий індекс"
+
+msgctxt "meta:Address.street"
+msgid "Street"
+msgstr "Вулиця"
+
+msgctxt "meta:Address.building"
+msgid "Building"
+msgstr "Будинок"
+
+msgctxt "meta:Address.apartment"
+msgid "Apartment / Office"
+msgstr "Квартира / Офіс"
+
+msgctxt "meta:Address.full_address"
+msgid "Full address"
+msgstr "Повна адреса"
+
+msgctxt "help:Address.full_address"
+msgid "Built automatically from the address fields"
+msgstr "Формується автоматично з полів адреси"
+
+msgctxt "meta:Address.notes"
+msgid "Notes"
+msgstr "Примітки"
+
+msgctxt "meta:City"
+msgid "City"
+msgstr "Місто"
+
+msgctxt "meta:City.title"
+msgid "Name"
+msgstr "Назва"
+
+msgctxt "meta:City.title_uk"
+msgid "Name (Ukrainian)"
+msgstr "Назва (укр.)"
+
+msgctxt "meta:City.country"
+msgid "Country"
+msgstr "Країна"
+
+msgctxt "meta:City.region"
+msgid "Region"
+msgstr "Регіон"
+
+msgctxt "meta:City.is_capital"
+msgid "Capital"
+msgstr "Столиця"
+
+msgctxt "meta:City.population"
+msgid "Population"
+msgstr "Населення"
+
+msgctxt "meta:City.latitude"
+msgid "Latitude"
+msgstr "Широта"
+
+msgctxt "help:City.latitude"
+msgid "Latitude (decimal degrees)"
+msgstr "Географічна широта (десяткові градуси)"
+
+msgctxt "meta:City.longitude"
+msgid "Longitude"
+msgstr "Довгота"
+
+msgctxt "help:City.longitude"
+msgid "Longitude (decimal degrees)"
+msgstr "Географічна довгота (десяткові градуси)"
+
+msgctxt "meta:City.is_active"
+msgid "Active"
+msgstr "Активне"
+
+msgctxt "meta:Country"
+msgid "Country"
+msgstr "Країна"
+
+msgctxt "meta:Country.code"
+msgid "ISO 3166-1 alpha-2 code"
+msgstr "Код ISO 3166-1 alpha-2"
+
+msgctxt "help:Country.code"
+msgid "Two-letter country code (UA, US, DE)"
+msgstr "Двобуквений код країни (UA, US, DE)"
+
+msgctxt "meta:Country.code3"
+msgid "ISO 3166-1 alpha-3 code"
+msgstr "Код ISO 3166-1 alpha-3"
+
+msgctxt "help:Country.code3"
+msgid "Three-letter country code (UKR, USA, DEU)"
+msgstr "Трибуквений код країни (UKR, USA, DEU)"
+
+msgctxt "meta:Country.numeric_code"
+msgid "Numeric code"
+msgstr "Числовий код"
+
+msgctxt "help:Country.numeric_code"
+msgid "ISO 3166-1 numeric code (804 for Ukraine)"
+msgstr "Числовий код ISO 3166-1 (804 для України)"
+
+msgctxt "meta:Country.flag_emoji"
+msgid "Flag"
+msgstr "Прапор"
+
+msgctxt "help:Country.flag_emoji"
+msgid "Country flag emoji (🇺🇦)"
+msgstr "Emoji-прапор країни (🇺🇦)"
+
+msgctxt "meta:Country.title"
+msgid "Name (English)"
+msgstr "Назва (англ.)"
+
+msgctxt "meta:Country.title_uk"
+msgid "Name (Ukrainian)"
+msgstr "Назва (укр.)"
+
+msgctxt "meta:Country.continent"
+msgid "Continent"
+msgstr "Континент"
+
+msgctxt "meta:Country.capital"
+msgid "Capital"
+msgstr "Столиця"
+
+msgctxt "meta:Country.phone_code"
+msgid "Dialing code"
+msgstr "Телефонний код"
+
+msgctxt "help:Country.phone_code"
+msgid "International dialing code (+380)"
+msgstr "Міжнародний телефонний код (+380)"
+
+msgctxt "meta:Country.tld"
+msgid "Top-level domain"
+msgstr "Домен верхнього рівня"
+
+msgctxt "help:Country.tld"
+msgid "National domain (.ua, .us)"
+msgstr "Національний домен (.ua, .us)"
+
+msgctxt "meta:Country.currency"
+msgid "Currency"
+msgstr "Валюта"
+
+msgctxt "meta:Country.official_language"
+msgid "Official language"
+msgstr "Офіційна мова"
+
+msgctxt "meta:Country.is_active"
+msgid "Active"
+msgstr "Активна"
+
+msgctxt "meta:Currency"
+msgid "Currency"
+msgstr "Валюта"
+
+msgctxt "meta:Currency.code"
+msgid "ISO 4217 code"
+msgstr "Код ISO 4217"
+
+msgctxt "help:Currency.code"
+msgid "Three-letter currency code (UAH, USD, EUR)"
+msgstr "Трибуквений код валюти (UAH, USD, EUR)"
+
+msgctxt "meta:Currency.title"
+msgid "Name (English)"
+msgstr "Назва (англ.)"
+
+msgctxt "meta:Currency.title_uk"
+msgid "Name (Ukrainian)"
+msgstr "Назва (укр.)"
+
+msgctxt "meta:Currency.symbol"
+msgid "Symbol"
+msgstr "Символ"
+
+msgctxt "help:Currency.symbol"
+msgid "Currency symbol: ₴, $, €"
+msgstr "Символ валюти: ₴, $, €"
+
+msgctxt "meta:Currency.numeric_code"
+msgid "Numeric code"
+msgstr "Числовий код"
+
+msgctxt "help:Currency.numeric_code"
+msgid "Three-digit ISO 4217 numeric code (980, 840, 978)"
+msgstr "Трицифровий числовий код ISO 4217 (980, 840, 978)"
+
+msgctxt "meta:Currency.decimal_places"
+msgid "Decimal places"
+msgstr "Знаків після коми"
+
+msgctxt "help:Currency.decimal_places"
+msgid "Number of decimal places (0 for JPY, 2 for USD)"
+msgstr "Кількість знаків після коми (0 для JPY, 2 для USD)"
+
+msgctxt "meta:Currency.is_active"
+msgid "Active"
+msgstr "Активна"
+
+msgctxt "meta:Language"
+msgid "Language"
+msgstr "Мова"
+
+msgctxt "meta:Language.code"
+msgid "ISO 639-1 code"
+msgstr "Код ISO 639-1"
+
+msgctxt "help:Language.code"
+msgid "Two-letter language code (uk, en, de, fr)"
+msgstr "Двобуквений код мови (uk, en, de, fr)"
+
+msgctxt "meta:Language.title"
+msgid "Name (English)"
+msgstr "Назва (англ.)"
+
+msgctxt "meta:Language.native_name"
+msgid "Native name"
+msgstr "Рідна назва"
+
+msgctxt "help:Language.native_name"
+msgid "Language name in the language itself (Українська, English, Deutsch)"
+msgstr "Назва мови рідною мовою (Українська, English, Deutsch)"
+
+msgctxt "meta:Language.script"
+msgid "Script"
+msgstr "Писемність"
+
+msgctxt "meta:Language.is_active"
+msgid "Active"
+msgstr "Активна"
+
+msgctxt "meta:Region"
+msgid "Region"
+msgstr "Регіон"
+
+msgctxt "meta:Region.title"
+msgid "Name"
+msgstr "Назва"
+
+msgctxt "meta:Region.title_uk"
+msgid "Name (Ukrainian)"
+msgstr "Назва (укр.)"
+
+msgctxt "meta:Region.country"
+msgid "Country"
+msgstr "Країна"
+
+msgctxt "meta:Region.code"
+msgid "ISO 3166-2 code"
+msgstr "Код ISO 3166-2"
+
+msgctxt "help:Region.code"
+msgid "Subdivision code (UA-30 for Kyiv, US-CA for California)"
+msgstr "Код підрозділу (UA-30 для Києва, US-CA для Каліфорнії)"
+
+msgctxt "meta:Region.region_type"
+msgid "Type"
+msgstr "Тип"
+
+msgctxt "meta:Region.is_active"
+msgid "Active"
+msgstr "Активний"
+
+msgctxt "meta:Timezone"
+msgid "Timezone"
+msgstr "Часовий пояс"
+
+msgctxt "meta:Timezone.iana_id"
+msgid "IANA identifier"
+msgstr "IANA-ідентифікатор"
+
+msgctxt "help:Timezone.iana_id"
+msgid "For example: Europe/Kyiv, America/New_York"
+msgstr "Наприклад: Europe/Kyiv, America/New_York"
+
+msgctxt "meta:Timezone.label"
+msgid "Display name"
+msgstr "Відображувана назва"
+
+msgctxt "help:Timezone.label"
+msgid "For example: (UTC+2) Kyiv"
+msgstr "Наприклад: (UTC+2) Київ"
+
+msgctxt "meta:Timezone.offset_minutes"
+msgid "Offset (minutes)"
+msgstr "Зсув (хвилини)"
+
+msgctxt "help:Timezone.offset_minutes"
+msgid "Offset from UTC in minutes (+120 for UTC+2, -300 for UTC-5)"
+msgstr "Зсув від UTC у хвилинах (+120 для UTC+2, -300 для UTC-5)"
+
+msgctxt "meta:Timezone.is_dst_observed"
+msgid "Daylight saving time"
+msgstr "Перехід на літній час"
+
+msgctxt "meta:Timezone.is_active"
+msgid "Active"
+msgstr "Активний"
+
+msgctxt "meta:DataExport"
+msgid "Data Export"
+msgstr "Експорт даних"
+
+msgctxt "meta:DataExport.doctype_name"
+msgid "Document type"
+msgstr "Тип документа"
+
+msgctxt "meta:DataExport.label"
+msgid "Name"
+msgstr "Назва"
+
+msgctxt "meta:DataExport.export_format"
+msgid "Format"
+msgstr "Формат"
+
+msgctxt "meta:DataExport.fields_to_export"
+msgid "Fields to export"
+msgstr "Поля для експорту"
+
+msgctxt "help:DataExport.fields_to_export"
+msgid "Array of fieldnames. If empty — all fields."
+msgstr "Масив fieldname. Якщо порожньо — всі поля."
+
+msgctxt "meta:DataExport.filters"
+msgid "Filters"
+msgstr "Фільтри"
+
+msgctxt "help:DataExport.filters"
+msgid "JSON object: {\"fieldname\": \"value\"}"
+msgstr "JSON-об'єкт: {\"fieldname\": \"value\"}"
+
+msgctxt "meta:DataExport.limit"
+msgid "Max rows"
+msgstr "Макс. рядків"
+
+msgctxt "meta:DataExport.status"
+msgid "Status"
+msgstr "Статус"
+
+msgctxt "meta:DataExport.exported_rows"
+msgid "Rows exported"
+msgstr "Експортовано рядків"
+
+msgctxt "meta:DataExport.file"
+msgid "Result file"
+msgstr "Файл результату"
+
+msgctxt "help:DataExport.file"
+msgid "Filled in automatically after export"
+msgstr "Заповнюється автоматично після експорту"
+
+msgctxt "meta:DataExport.error"
+msgid "Error"
+msgstr "Помилка"
+
+msgctxt "meta:DataImport"
+msgid "Data Import"
+msgstr "Імпорт даних"
+
+msgctxt "meta:DataImport.doctype_name"
+msgid "Document type"
+msgstr "Тип документа"
+
+msgctxt "meta:DataImport.file"
+msgid "File (CSV / XLSX)"
+msgstr "Файл (CSV / XLSX)"
+
+msgctxt "meta:DataImport.import_type"
+msgid "Import type"
+msgstr "Тип імпорту"
+
+msgctxt "meta:DataImport.update_key"
+msgid "Update key"
+msgstr "Ключ для оновлення"
+
+msgctxt "help:DataImport.update_key"
+msgid "Field used to find an existing document"
+msgstr "Назва поля, за яким шукати існуючий документ"
+
+msgctxt "meta:DataImport.mapping"
+msgid "Column mapping"
+msgstr "Маппінг колонок"
+
+msgctxt "meta:DataImport.dry_run"
+msgid "Validate only (no writes)"
+msgstr "Тільки валідація (без запису)"
+
+msgctxt "meta:DataImport.skip_required_validation"
+msgid "Skip required fields"
+msgstr "Пропускати обов'язкові поля"
+
+msgctxt "help:DataImport.skip_required_validation"
+msgid "Allows importing rows even if required fields are empty"
+msgstr "Дозволяє імпортувати рядки навіть якщо обов'язкові поля порожні"
+
+msgctxt "meta:DataImport.status"
+msgid "Status"
+msgstr "Статус"
+
+msgctxt "meta:DataImport.total_rows"
+msgid "Total rows"
+msgstr "Всього рядків"
+
+msgctxt "meta:DataImport.processed_rows"
+msgid "Processed"
+msgstr "Оброблено"
+
+msgctxt "meta:DataImport.error_count"
+msgid "Errors"
+msgstr "Помилок"
+
+msgctxt "meta:DataImport.error_log"
+msgid "Error log"
+msgstr "Лог помилок"
+
+msgctxt "meta:ErrorLog"
+msgid "Error Log"
+msgstr "Журнал помилок"
+
+msgctxt "help:ErrorLog"
+msgid ""
+"Unhandled framework and app errors — HTTP requests, background tasks, "
+"controllers. Old entries are deleted automatically (see System Settings → "
+"Maintenance)."
+msgstr ""
+"Необроблені помилки фреймворку та додатків — HTTP-запити, фонові завдання, "
+"контролери. Старі записи автоматично видаляються (див. Налаштування системи "
+"→ Обслуговування)."
+
+msgctxt "meta:ErrorLog.title"
+msgid "Error"
+msgstr "Помилка"
+
+msgctxt "meta:ErrorLog.error_type"
+msgid "Type"
+msgstr "Тип"
+
+msgctxt "meta:ErrorLog.context"
+msgid "Context"
+msgstr "Контекст"
+
+msgctxt "meta:ErrorLog.app"
+msgid "App"
+msgstr "Застосунок"
+
+msgctxt "meta:ErrorLog.method"
+msgid "Method / route"
+msgstr "Метод / маршрут"
+
+msgctxt "meta:ErrorLog.user"
+msgid "User"
+msgstr "Користувач"
+
+msgctxt "meta:ErrorLog.sec_request"
+msgid "HTTP request"
+msgstr "HTTP-запит"
+
+msgctxt "meta:ErrorLog.request_method"
+msgid "HTTP method"
+msgstr "HTTP-метод"
+
+msgctxt "meta:ErrorLog.http_status"
+msgid "Response code"
+msgstr "Код відповіді"
+
+msgctxt "meta:ErrorLog.request_path"
+msgid "Path"
+msgstr "Шлях"
+
+msgctxt "meta:ErrorLog.sec_reference"
+msgid "Document"
+msgstr "Документ"
+
+msgctxt "meta:ErrorLog.reference_doctype"
+msgid "Document type"
+msgstr "Тип документа"
+
+msgctxt "meta:ErrorLog.reference_name"
+msgid "Document"
+msgstr "Документ"
+
+msgctxt "meta:ErrorLog.sec_details"
+msgid "Details"
+msgstr "Деталі"
+
+msgctxt "meta:ErrorLog.error_message"
+msgid "Message"
+msgstr "Повідомлення"
+
+msgctxt "meta:ErrorLog.traceback"
+msgid "Stack trace"
+msgstr "Трасування стека"
+
+msgctxt "meta:SqlProfilerQuery"
+msgid "SQL Profiler — Request"
+msgstr "SQL Профайлер — Запит"
+
+msgctxt "meta:SqlProfilerQuery.duration_ms"
+msgid "Time (ms)"
+msgstr "Час (ms)"
+
+msgctxt "meta:SqlProfilerQuery.param_count"
+msgid "Parameters"
+msgstr "Параметрів"
+
+msgctxt "meta:SqlProfilerQuery.slow"
+msgid "Slow"
+msgstr "Повільний"
+
+msgctxt "meta:SqlProfilerRequest"
+msgid "SQL Profiler — Requests"
+msgstr "SQL Profiler — Запити"
+
+msgctxt "meta:SqlProfilerRequest.method"
+msgid "Method"
+msgstr "Метод"
+
+msgctxt "meta:SqlProfilerRequest.path"
+msgid "Path"
+msgstr "Шлях"
+
+msgctxt "meta:SqlProfilerRequest.status_code"
+msgid "Status"
+msgstr "Статус"
+
+msgctxt "meta:SqlProfilerRequest.duration_ms"
+msgid "Duration (ms)"
+msgstr "Тривалість (ms)"
+
+msgctxt "meta:SqlProfilerRequest.query_count"
+msgid "DB queries"
+msgstr "Запитів до БД"
+
+msgctxt "meta:SqlProfilerRequest.total_query_ms"
+msgid "DB time (ms)"
+msgstr "Час у БД (ms)"
+
+msgctxt "meta:SqlProfilerRequest.slow_query_count"
+msgid "Slow"
+msgstr "Повільних"
+
+msgctxt "meta:SqlProfilerRequest.slow"
+msgid "Slow"
+msgstr "Повільний"
+
+msgctxt "meta:SqlProfilerRequest.spans"
+msgid "Method spans"
+msgstr "Спани методів"
+
+msgctxt "meta:SqlProfilerRequest.queries"
+msgid "SQL queries"
+msgstr "SQL запити"
+
+msgctxt "meta:SqlProfilerSpan"
+msgid "SQL Profiler — Span"
+msgstr "SQL Профайлер — Спан"
+
+msgctxt "meta:SqlProfilerSpan.method"
+msgid "Method"
+msgstr "Метод"
+
+msgctxt "meta:SqlProfilerSpan.duration_ms"
+msgid "Time (ms)"
+msgstr "Час (ms)"
+
+msgctxt "meta:SystemHealthCheck"
+msgid "System Health Check"
+msgstr "Перевірка стану системи"
+
+msgctxt "meta:SystemHealthCheck.category"
+msgid "Section"
+msgstr "Розділ"
+
+msgctxt "meta:SystemHealthCheck.check"
+msgid "Check"
+msgstr "Перевірка"
+
+msgctxt "meta:SystemHealthCheck.status"
+msgid "State"
+msgstr "Стан"
+
+msgctxt "meta:SystemHealthCheck.value"
+msgid "Value"
+msgstr "Значення"
+
+msgctxt "meta:SystemHealthCheck.hint"
+msgid "What to do"
+msgstr "Що робити"
+
+msgctxt "status:SystemHealthCheck"
+msgid "Good"
+msgstr "Добре"
+
+msgctxt "status:SystemHealthCheck"
+msgid "Warning"
+msgstr "Увага"
+
+msgctxt "status:SystemHealthCheck"
+msgid "Problem"
+msgstr "Проблема"
+
+msgctxt "status:SystemHealthCheck"
+msgid "Info"
+msgstr "Інфо"
+
+msgctxt "meta:SystemHealthItem"
+msgid "System Health Report Row"
+msgstr "Рядок звіту про стан системи"
+
+msgctxt "meta:SystemHealthItem.label"
+msgid "Name"
+msgstr "Назва"
+
+msgctxt "meta:SystemHealthItem.count"
+msgid "Count"
+msgstr "Кількість"
+
+msgctxt "meta:SystemHealthItem.details"
+msgid "Note"
+msgstr "Примітка"
+
+msgctxt "meta:SystemHealthReport"
+msgid "System Health"
+msgstr "Стан системи"
+
+msgctxt "help:SystemHealthReport"
+msgid ""
+"Diagnostics: database, background tasks, scheduler, errors, email, security,"
+" files and offline mode. Computed live on every open — nothing is stored."
+msgstr ""
+"Діагностика: база даних, фонові задачі, планувальник, помилки, пошта, "
+"безпека, файли й офлайн-режим. Обчислюється наживо при кожному відкритті — "
+"нічого не зберігається."
+
+msgctxt "meta:SystemHealthReport.tab_server"
+msgid "Server"
+msgstr "Сервер"
+
+msgctxt "meta:SystemHealthReport.overall_status"
+msgid "Overall status"
+msgstr "Загальний стан"
+
+msgctxt "meta:SystemHealthReport.checked_at"
+msgid "Checked"
+msgstr "Перевірено"
+
+msgctxt "meta:SystemHealthReport.ok_count"
+msgid "Good"
+msgstr "Добре"
+
+msgctxt "meta:SystemHealthReport.warning_count"
+msgid "Warning"
+msgstr "Увага"
+
+msgctxt "meta:SystemHealthReport.error_count"
+msgid "Problems"
+msgstr "Проблеми"
+
+msgctxt "meta:SystemHealthReport.sec_checks"
+msgid "Checks"
+msgstr "Перевірки"
+
+msgctxt "meta:SystemHealthReport.checks"
+msgid "Checks"
+msgstr "Перевірки"
+
+msgctxt "meta:SystemHealthReport.sec_details"
+msgid "Details"
+msgstr "Подробиці"
+
+msgctxt "meta:SystemHealthReport.top_errors"
+msgid "Most frequent errors (7 days)"
+msgstr "Найчастіші помилки (7 днів)"
+
+msgctxt "meta:SystemHealthReport.largest_tables"
+msgid "Largest tables"
+msgstr "Найбільші таблиці"
+
+msgctxt "meta:SystemHealthReport.tab_browser"
+msgid "Browser and offline"
+msgstr "Браузер і офлайн"
+
+msgctxt "meta:SystemHealthReport.browser_checks"
+msgid "Checks of this browser"
+msgstr "Перевірки цього браузера"
+
+msgctxt "help:SystemHealthReport.browser_checks"
+msgid ""
+"Run in the browser this page is opened in: service worker, offline cache, "
+"queue of unsynced changes, storage."
+msgstr ""
+"Виконуються в браузері, з якого відкрито сторінку: service worker, офлайн-"
+"кеш, черга несинхронізованих змін, сховище."
+
+msgctxt "status:SystemHealthReport"
+msgid "All good"
+msgstr "Усе гаразд"
+
+msgctxt "status:SystemHealthReport"
+msgid "Has warnings"
+msgstr "Є попередження"
+
+msgctxt "status:SystemHealthReport"
+msgid "Has problems"
+msgstr "Є проблеми"
+
+msgctxt "meta:NamingSeries"
+msgid "Naming Series"
+msgstr "Серія нумерації"
+
+msgctxt "meta:NamingSeries.prefix"
+msgid "Prefix"
+msgstr "Префікс"
+
+msgctxt "meta:NamingSeries.current"
+msgid "Current value"
+msgstr "Поточне значення"
+
+msgctxt "meta:Notification"
+msgid "Message"
+msgstr "Повідомлення"
+
+msgctxt "meta:Notification.user"
+msgid "User"
+msgstr "Користувач"
+
+msgctxt "meta:Notification.subject"
+msgid "Subject"
+msgstr "Тема"
+
+msgctxt "meta:Notification.message"
+msgid "Message"
+msgstr "Повідомлення"
+
+msgctxt "meta:Notification.doctype"
+msgid "Document type"
+msgstr "Тип документа"
+
+msgctxt "meta:Notification.doc_id"
+msgid "Document ID"
+msgstr "ID документа"
+
+msgctxt "meta:Notification.is_read"
+msgid "Read"
+msgstr "Прочитано"
+
+msgctxt "meta:NotificationRule"
+msgid "Notification Rule"
+msgstr "Правило нотифікації"
+
+msgctxt "meta:NotificationRule.doctype"
+msgid "Document type"
+msgstr "Тип документа"
+
+msgctxt "meta:NotificationRule.event"
+msgid "Event"
+msgstr "Подія"
+
+msgctxt "meta:NotificationRule.channel"
+msgid "Channel"
+msgstr "Канал"
+
+msgctxt "meta:NotificationRule.recipients"
+msgid "Recipients"
+msgstr "Отримувачі"
+
+msgctxt "meta:NotificationRule.condition"
+msgid "Condition (Python)"
+msgstr "Умова (Python)"
+
+msgctxt "meta:NotificationRule.subject_template"
+msgid "Subject template"
+msgstr "Шаблон теми"
+
+msgctxt "meta:NotificationRule.message_template"
+msgid "Message template"
+msgstr "Шаблон повідомлення"
+
+msgctxt "meta:NotificationRule.is_enabled"
+msgid "Active"
+msgstr "Активне"
+
+msgctxt "meta:SharedWith"
+msgid "Access"
+msgstr "Доступ"
+
+msgctxt "meta:SharedWith.reference_doctype"
+msgid "Document type"
+msgstr "Тип документа"
+
+msgctxt "meta:SharedWith.reference_id"
+msgid "Document ID"
+msgstr "ID документа"
+
+msgctxt "meta:SharedWith.user"
+msgid "User"
+msgstr "Користувач"
+
+msgctxt "meta:SharedWith.permission"
+msgid "Permission"
+msgstr "Дозвіл"
+
+msgctxt "meta:UserPermission"
+msgid "User Permission"
+msgstr "Дозвіл користувача"
+
+msgctxt "meta:UserPermission.for_user"
+msgid "User"
+msgstr "Користувач"
+
+msgctxt "meta:UserPermission.allow"
+msgid "Restrict by"
+msgstr "Обмежити за"
+
+msgctxt "help:UserPermission.allow"
+msgid "Document type to restrict access by (e.g. «Company»)."
+msgstr "Тип документа, за яким обмежуємо доступ (напр. «Компанія»)."
+
+msgctxt "meta:UserPermission.for_value"
+msgid "Value"
+msgstr "Значення"
+
+msgctxt "help:UserPermission.for_value"
+msgid "The allowed record. The user will see only documents linked to it."
+msgstr ""
+"Дозволений запис. Користувач бачитиме лише документи, пов'язані з ним."
+
+msgctxt "meta:UserPermission.apply_to_all_doctypes"
+msgid "Apply to all documents"
+msgstr "Застосувати до всіх документів"
+
+msgctxt "help:UserPermission.apply_to_all_doctypes"
+msgid ""
+"The restriction applies to any DocType with a Link field to «Restrict by»."
+msgstr "Обмеження діє на будь-який DocType із Link-полем на «Обмежити за»."
+
+msgctxt "meta:UserPermission.applicable_for"
+msgid "For document only"
+msgstr "Лише для документа"
+
+msgctxt "help:UserPermission.applicable_for"
+msgid "Limit this rule to a single DocType."
+msgstr "Обмежити дію цього правила одним DocType."
+
+msgctxt "meta:UserPermission.is_default"
+msgid "Default value"
+msgstr "Значення за замовчуванням"
+
+msgctxt "help:UserPermission.is_default"
+msgid "Fill this value into the matching Link field of new documents."
+msgstr "Підставляти це значення у відповідне Link-поле нових документів."
+
+msgctxt "meta:PrintFormat"
+msgid "Print Format"
+msgstr "Формат друку"
+
+msgctxt "meta:PrintFormat.doctype"
+msgid "Document type"
+msgstr "Тип документа"
+
+msgctxt "meta:PrintFormat.template_type"
+msgid "Template type"
+msgstr "Тип шаблону"
+
+msgctxt "meta:PrintFormat.is_default"
+msgid "Default"
+msgstr "За замовчуванням"
+
+msgctxt "meta:PrintFormat.is_app_format"
+msgid "Save in app"
+msgstr "Зберігати в додатку"
+
+msgctxt "meta:PrintFormat.app"
+msgid "App"
+msgstr "Додаток"
+
+msgctxt "meta:PrintFormat.sec_template"
+msgid "Jinja2 + HTML template"
+msgstr "Шаблон Jinja2 + HTML"
+
+msgctxt "meta:PrintFormat.template"
+msgid "Template"
+msgstr "Шаблон"
+
+msgctxt "meta:Dashboard"
+msgid "Dashboard"
+msgstr "Дашборд"
+
+msgctxt "meta:Dashboard.label"
+msgid "Name"
+msgstr "Назва"
+
+msgctxt "meta:Dashboard.description"
+msgid "Description"
+msgstr "Опис"
+
+msgctxt "meta:Dashboard.workspace"
+msgid "Workspace"
+msgstr "Воркспейс"
+
+msgctxt "meta:Dashboard.is_published"
+msgid "Published"
+msgstr "Опублікований"
+
+msgctxt "meta:Dashboard.roles"
+msgid "Roles (comma-separated)"
+msgstr "Ролі (через кому)"
+
+msgctxt "meta:Dashboard.widgets"
+msgid "Widgets"
+msgstr "Віджети"
+
+msgctxt "meta:DashboardChart"
+msgid "Dashboard Chart"
+msgstr "Графік дашборду"
+
+msgctxt "meta:DashboardChart.chart_type"
+msgid "Chart type"
+msgstr "Тип графіка"
+
+msgctxt "meta:DashboardChart.doctype"
+msgid "Document type"
+msgstr "Тип документа"
+
+msgctxt "meta:DashboardChart.value_field"
+msgid "Value field"
+msgstr "Поле значення"
+
+msgctxt "meta:DashboardChart.group_by"
+msgid "Group by"
+msgstr "Групувати за"
+
+msgctxt "meta:DashboardChart.timespan"
+msgid "Period"
+msgstr "Період"
+
+msgctxt "meta:DashboardChart.filters"
+msgid "Filters (JSON)"
+msgstr "Фільтри (JSON)"
+
+msgctxt "meta:DashboardChart.color"
+msgid "Color"
+msgstr "Колір"
+
+msgctxt "meta:DashboardChart.is_public"
+msgid "Public"
+msgstr "Публічний"
+
+msgctxt "meta:Dashboard Widget"
+msgid "Dashboard Widget"
+msgstr "Віджет дашборду"
+
+msgctxt "meta:Dashboard Widget.widget_type"
+msgid "Type"
+msgstr "Тип"
+
+msgctxt "meta:Dashboard Widget.title"
+msgid "Title"
+msgstr "Заголовок"
+
+msgctxt "meta:Dashboard Widget.aggregation"
+msgid "Aggregation"
+msgstr "Агрегація"
+
+msgctxt "meta:Dashboard Widget.field"
+msgid "Field"
+msgstr "Поле"
+
+msgctxt "meta:Dashboard Widget.group_by"
+msgid "Group by"
+msgstr "Групувати за"
+
+msgctxt "meta:Dashboard Widget.date_field"
+msgid "Date field"
+msgstr "Поле дати"
+
+msgctxt "meta:Dashboard Widget.period"
+msgid "Period"
+msgstr "Період"
+
+msgctxt "meta:Dashboard Widget.filters"
+msgid "Filters"
+msgstr "Фільтри"
+
+msgctxt "meta:Dashboard Widget.min_value"
+msgid "Min value"
+msgstr "Мін. значення"
+
+msgctxt "meta:Dashboard Widget.max_value"
+msgid "Max value"
+msgstr "Макс. значення"
+
+msgctxt "meta:Dashboard Widget.cols"
+msgid "Width (1-4)"
+msgstr "Ширина (1-4)"
+
+msgctxt "meta:Dashboard Widget.color"
+msgid "Color"
+msgstr "Колір"
+
+msgctxt "meta:Dashboard Widget.icon"
+msgid "Icon (lucide)"
+msgstr "Іконка (lucide)"
+
+msgctxt "meta:Dashboard Widget.sequence"
+msgid "Order"
+msgstr "Порядок"
+
+msgctxt "meta:Dashboard Widget.link_type"
+msgid "Link type"
+msgstr "Тип посилання"
+
+msgctxt "meta:Dashboard Widget.description"
+msgid "Description / Subtitle"
+msgstr "Опис / Підзаголовок"
+
+msgctxt "meta:Dashboard Widget.report"
+msgid "Report (chart data source)"
+msgstr "Звіт (джерело даних для графіка)"
+
+msgctxt "meta:Dashboard Widget.content"
+msgid "Content"
+msgstr "Вміст"
+
+msgctxt "meta:NumberCard"
+msgid "Number Card"
+msgstr "Числова картка"
+
+msgctxt "meta:NumberCard.label"
+msgid "Name"
+msgstr "Назва"
+
+msgctxt "meta:NumberCard.doctype"
+msgid "Document type"
+msgstr "Тип документа"
+
+msgctxt "meta:NumberCard.aggregation"
+msgid "Aggregation"
+msgstr "Агрегація"
+
+msgctxt "meta:NumberCard.value_field"
+msgid "Value field"
+msgstr "Поле значення"
+
+msgctxt "meta:NumberCard.filters"
+msgid "Filters (JSON)"
+msgstr "Фільтри (JSON)"
+
+msgctxt "meta:NumberCard.color"
+msgid "Color"
+msgstr "Колір"
+
+msgctxt "meta:NumberCard.icon"
+msgid "Icon"
+msgstr "Іконка"
+
+msgctxt "meta:NumberCard.is_public"
+msgid "Public"
+msgstr "Публічний"
+
+msgctxt "meta:Report"
+msgid "Report"
+msgstr "Звіт"
+
+msgctxt "meta:Report.report_name"
+msgid "Name"
+msgstr "Назва"
+
+msgctxt "meta:Report.report_type"
+msgid "Type"
+msgstr "Тип"
+
+msgctxt "meta:Report.doctype"
+msgid "Document type"
+msgstr "Тип документа"
+
+msgctxt "meta:Report.columns"
+msgid "Columns (JSON)"
+msgstr "Колонки (JSON)"
+
+msgctxt "meta:Report.filters_config"
+msgid "Filter configuration (JSON)"
+msgstr "Конфігурація фільтрів (JSON)"
+
+msgctxt "meta:Report.chart_config"
+msgid "Chart configuration (JSON)"
+msgstr "Конфігурація графіка (JSON)"
+
+msgctxt "meta:Report.sec_query"
+msgid "SQL query"
+msgstr "SQL запит"
+
+msgctxt "meta:Report.sec_script"
+msgid "Python script"
+msgstr "Python скрипт"
+
+msgctxt "meta:Report.script"
+msgid "Script"
+msgstr "Скрипт"
+
+msgctxt "meta:ClientScript"
+msgid "Client Script"
+msgstr "Клієнтський скрипт"
+
+msgctxt "meta:ClientScript.doctype"
+msgid "Document type"
+msgstr "Тип документа"
+
+msgctxt "meta:ClientScript.script"
+msgid "Script (JavaScript)"
+msgstr "Скрипт (JavaScript)"
+
+msgctxt "meta:ClientScript.is_enabled"
+msgid "Active"
+msgstr "Активний"
+
+msgctxt "meta:Hook"
+msgid "Hooks"
+msgstr "Хуки"
+
+msgctxt "meta:Hook.source"
+msgid "Source"
+msgstr "Джерело"
+
+msgctxt "meta:Hook.event"
+msgid "Event"
+msgstr "Подія"
+
+msgctxt "meta:Hook.handler"
+msgid "Handler / Script"
+msgstr "Обробник / Скрипт"
+
+msgctxt "meta:Hook.priority"
+msgid "Priority"
+msgstr "Пріоритет"
+
+msgctxt "meta:ServerScript"
+msgid "Server Script"
+msgstr "Серверний скрипт"
+
+msgctxt "meta:ServerScript.script_type"
+msgid "Type"
+msgstr "Тип"
+
+msgctxt "meta:ServerScript.doctype"
+msgid "Document type"
+msgstr "Тип документа"
+
+msgctxt "meta:ServerScript.event"
+msgid "Event"
+msgstr "Подія"
+
+msgctxt "meta:ServerScript.api_method"
+msgid "API method"
+msgstr "API метод"
+
+msgctxt "meta:ServerScript.cron"
+msgid "Cron expression"
+msgstr "Cron вираз"
+
+msgctxt "meta:ServerScript.script"
+msgid "Script (Python)"
+msgstr "Скрипт (Python)"
+
+msgctxt "meta:ServerScript.is_enabled"
+msgid "Active"
+msgstr "Активний"
+
+msgctxt "meta:ServerScript.allow_guest"
+msgid "Allow guests"
+msgstr "Дозвіл для гостей"
+
+msgctxt "help:SystemSettings.sec_backups"
+msgid ""
+"Database, uploaded files and site config are saved to sites/<site>/backups/."
+" Backups are listed, downloaded and made on demand in «Backups»."
+msgstr ""
+"Database, uploaded files and site config are saved to sites/<site>/backups/."
+" Backups are listed, downloaded and made on demand in «Резервні копії»."
+
+msgctxt "meta:WebForm.tab_designer"
+msgid "Builder"
+msgstr "Конструктор"
+
+msgctxt "meta:GruntInstalledApp"
+msgid "App Store"
+msgstr "Магазин додатків"
+
+msgctxt "meta:GruntInstalledApp.title"
+msgid "Title"
+msgstr "Заголовок"
+
+msgctxt "meta:GruntInstalledApp.version"
+msgid "Version"
+msgstr "Версія"
+
+msgctxt "meta:GruntInstalledApp.installed_at"
+msgid "Installed"
+msgstr "Встановлено"
+
+msgctxt "meta:GruntInstalledApp.modules"
+msgid "Modules"
+msgstr "Модулі"
+
+msgctxt "meta:File"
+msgid "File"
+msgstr "Файл"
+
+msgctxt "meta:File.file_name"
+msgid "File name"
+msgstr "Назва файлу"
+
+msgctxt "meta:File.file_url"
+msgid "File URL"
+msgstr "URL файлу"
+
+msgctxt "meta:File.path"
+msgid "Storage path"
+msgstr "Шлях у сховищі"
+
+msgctxt "meta:File.thumbnail_url"
+msgid "Thumbnail"
+msgstr "Мініатюра"
+
+msgctxt "meta:File.file_size"
+msgid "Size (bytes)"
+msgstr "Розмір (байт)"
+
+msgctxt "meta:File.content_type"
+msgid "Content type"
+msgstr "Тип контенту"
+
+msgctxt "meta:File.content_hash"
+msgid "Content hash (SHA-256)"
+msgstr "Хеш вмісту (SHA-256)"
+
+msgctxt "meta:File.uploaded_by"
+msgid "Uploaded by"
+msgstr "Завантажив"
+
+msgctxt "meta:File.is_public"
+msgid "Public"
+msgstr "Публічний"
+
+msgctxt "meta:File.sec_attachment"
+msgid "Binding"
+msgstr "Прив'язка"
+
+msgctxt "meta:File.attached_to_doctype"
+msgid "Document DocType"
+msgstr "DocType документа"
+
+msgctxt "meta:File.attached_to_id"
+msgid "Document ID"
+msgstr "ID документа"
+
+msgctxt "meta:BackgroundJob"
+msgid "Active Background Tasks"
+msgstr "Активні фонові задачі"
+
+msgctxt "help:BackgroundJob"
+msgid ""
+"Tasks a worker currently holds (delivered, not yet acknowledged) — a live "
+"snapshot from the Redis Stream, nothing is stored in the DB. Finished tasks "
+"are not shown here; see the Error Log for failures."
+msgstr ""
+"Задачі, які воркер зараз тримає в роботі (доставлені, ще не підтверджені) — "
+"живий знімок з Redis Stream, нічого не зберігається в БД. Завершені задачі "
+"тут не показуються; помилки дивіться в Журналі помилок."
+
+msgctxt "meta:BackgroundJob.task_name"
+msgid "Task"
+msgstr "Задача"
+
+msgctxt "meta:BackgroundJob.task_id"
+msgid "Task ID"
+msgstr "ID задачі"
+
+msgctxt "meta:BackgroundJob.consumer"
+msgid "Worker"
+msgstr "Воркер"
+
+msgctxt "meta:BackgroundJob.queued_at"
+msgid "Queued since"
+msgstr "У черзі з"
+
+msgctxt "meta:BackgroundJob.idle_ms"
+msgid "Without ack, ms"
+msgstr "Без підтвердження, мс"
+
+msgctxt "help:BackgroundJob.idle_ms"
+msgid ""
+"Time since the worker last did anything with this task. A large value means "
+"the task is most likely stuck."
+msgstr ""
+"Час з моменту, як воркер востаннє щось із цією задачею робив. Велике "
+"значення означає, що задача, скоріш за все, зависла."
+
+msgctxt "meta:BackgroundJob.delivery_count"
+msgid "Delivery attempts"
+msgstr "Спроб доставки"
+
+msgctxt "help:BackgroundJob.delivery_count"
+msgid ""
+"How many times Redis re-delivered this task to a worker (transport level, "
+"unrelated to the task's retry_on_error)."
+msgstr ""
+"Скільки разів Redis перепризначав цю задачу воркеру (транспортний рівень, не"
+" пов'язано з retry_on_error задачі)."
+
+msgctxt "meta:BackgroundJob.arguments"
+msgid "Arguments"
+msgstr "Аргументи"
+
+msgctxt "meta:BackgroundWorker"
+msgid "Queue Workers"
+msgstr "Воркери черги"
+
+msgctxt "help:BackgroundWorker"
+msgid ""
+"Consumers of the TaskIQ group in the Redis Stream — a live snapshot, nothing"
+" is stored in the DB. A worker that crashed and did not restart stays here "
+"as a 'dead' consumer until someone removes it."
+msgstr ""
+"Consumer'и групи TaskIQ у Redis Stream — живий знімок, нічого не "
+"зберігається в БД. Воркер, що впав і не перезапустився, лишається тут як "
+"'мертвий' консюмер, поки хтось його не приберe."
+
+msgctxt "meta:BackgroundWorker.pending"
+msgid "In progress"
+msgstr "У роботі"
+
+msgctxt "help:BackgroundWorker.pending"
+msgid ""
+"How many tasks this worker currently holds (delivered, not acknowledged)."
+msgstr "Скільки задач цей воркер зараз тримає (доставлено, не підтверджено)."
+
+msgctxt "meta:BackgroundWorker.idle_ms"
+msgid "Idle, ms"
+msgstr "Простій, мс"
+
+msgctxt "help:BackgroundWorker.idle_ms"
+msgid "Time since the worker last interacted with the queue."
+msgstr "Час з моменту останньої взаємодії воркера з чергою."
+
+msgctxt "meta:BackgroundWorker.inactive_ms"
+msgid "Without finished tasks, ms"
+msgstr "Без завершених задач, мс"
+
+msgctxt "help:BackgroundWorker.inactive_ms"
+msgid "Time since the last successfully acknowledged (ack) task."
+msgstr "Час з моменту останньої успішно підтвердженої (ack) задачі."
+
+msgctxt "meta:ScheduledJob"
+msgid "Scheduled Jobs"
+msgstr "Заплановані завдання"
+
+msgctxt "meta:ScheduledJob.job_id"
+msgid "Job ID"
+msgstr "ID завдання"
+
+msgctxt "meta:ScheduledJob.enabled"
+msgid "Enabled"
+msgstr "Увімкнено"
+
+msgctxt "meta:ScheduledJob.cron_expression"
+msgid "Cron expression"
+msgstr "Cron вираз"
+
+msgctxt "help:ScheduledJob.cron_expression"
+msgid "For example: '*/5 * * * *' for every 5 minutes"
+msgstr "Наприклад: '*/5 * * * *' для кожні 5 хвилин"
+
+msgctxt "meta:ScheduledJob.next_run_at"
+msgid "Next run"
+msgstr "Наступний запуск"
+
+msgctxt "meta:ScheduledJob.last_run_at"
+msgid "Last run"
+msgstr "Останній запуск"
+
+msgctxt "meta:ScheduledJob.status"
+msgid "Status"
+msgstr "Статус"
+
+msgctxt "meta:ScheduledJob.last_error"
+msgid "Last error"
+msgstr "Остання помилка"
+
+msgctxt "meta:ScheduledJob.run_count"
+msgid "Run count"
+msgstr "Кількість запусків"
+
+msgctxt "meta:ScheduledJob.executor"
+msgid "Assignee"
+msgstr "Виконавець"
+
+msgctxt "help:ScheduledJob.executor"
+msgid "Function or module name to run"
+msgstr "Ім'я функції або модуля для виконання"
+
+msgctxt "meta:ScheduledJob.params"
+msgid "Parameters"
+msgstr "Параметри"
+
+msgctxt "help:ScheduledJob.params"
+msgid "JSON parameters for the run"
+msgstr "JSON параметри для виконання"
+
+msgctxt "meta:ScheduledJobLog"
+msgid "Scheduled Job Log"
+msgstr "Лог завдань планувальника"
+
+msgctxt "meta:ScheduledJobLog.job_name"
+msgid "Job name"
+msgstr "Назва завдання"
+
+msgctxt "meta:ScheduledJobLog.started_at"
+msgid "Start"
+msgstr "Початок"
+
+msgctxt "meta:ScheduledJobLog.finished_at"
+msgid "End"
+msgstr "Завершення"
+
+msgctxt "meta:ScheduledJobLog.status"
+msgid "Status"
+msgstr "Статус"
+
+msgctxt "meta:ScheduledJobLog.error_message"
+msgid "Error"
+msgstr "Помилка"
+
+msgctxt "meta:ScheduledJobLog.cron_expression"
+msgid "Cron expression"
+msgstr "Cron вираз"
+
+msgctxt "meta:ToDo"
+msgid "Job"
+msgstr "Завдання"
+
+msgctxt "meta:ToDo.description"
+msgid "Description"
+msgstr "Опис"
+
+msgctxt "meta:ToDo.reference_doctype"
+msgid "Document type"
+msgstr "Тип документа"
+
+msgctxt "meta:ToDo.reference_id"
+msgid "Document ID"
+msgstr "ID документа"
+
+msgctxt "meta:ToDo.assigned_to"
+msgid "Assignee"
+msgstr "Виконавець"
+
+msgctxt "meta:ToDo.assigned_by"
+msgid "Assigned by"
+msgstr "Призначив"
+
+msgctxt "meta:ToDo.assigned_on"
+msgid "Assigned to"
+msgstr "Призначено"
+
+msgctxt "meta:ToDo.status"
+msgid "Status"
+msgstr "Статус"
+
+msgctxt "meta:ToDo.priority"
+msgid "Priority"
+msgstr "Пріоритет"
+
+msgctxt "meta:ToDo.due_date"
+msgid "Due date"
+msgstr "Термін"
+
+msgctxt "meta:ToDo.is_overdue"
+msgid "Overdue"
+msgstr "Прострочено"
+
+msgctxt "meta:ToDo.color"
+msgid "Color"
+msgstr "Колір"
+
+msgctxt "meta:ToDo.sec_completion"
+msgid "Execution"
+msgstr "Виконання"
+
+msgctxt "meta:ToDo.completed_on"
+msgid "Done"
+msgstr "Виконано"
+
+msgctxt "meta:ToDo.completed_by"
+msgid "Run by"
+msgstr "Виконав"
+
+msgctxt "status:ToDo"
+msgid "Open"
+msgstr "Відкрито"
+
+msgctxt "status:ToDo"
+msgid "In Progress"
+msgstr "В роботі"
+
+msgctxt "status:ToDo"
+msgid "Done"
+msgstr "Виконано"
+
+msgctxt "status:ToDo"
+msgid "Cancelled"
+msgstr "Скасовано"
+
+msgctxt "meta:IncomingWebhook"
+msgid "Incoming Webhook"
+msgstr "Вхідний вебхук"
+
+msgctxt "meta:IncomingWebhook.label"
+msgid "Name"
+msgstr "Назва"
+
+msgctxt "meta:IncomingWebhook.slug"
+msgid "URL path (slug)"
+msgstr "URL шлях (slug)"
+
+msgctxt "help:IncomingWebhook.slug"
+msgid "Unique identifier in the URL: POST /api/v1/webhooks/incoming/{slug}"
+msgstr "Унікальний ідентифікатор у URL: POST /api/v1/webhooks/incoming/{slug}"
+
+msgctxt "meta:IncomingWebhook.secret"
+msgid "Secret (HMAC)"
+msgstr "Секрет (HMAC)"
+
+msgctxt "help:IncomingWebhook.secret"
+msgid "If set, requests without a valid signature are rejected"
+msgstr "Якщо задано — запити без валідного підпису відхиляються"
+
+msgctxt "meta:IncomingWebhook.signature_header"
+msgid "Signature header"
+msgstr "Заголовок підпису"
+
+msgctxt "help:IncomingWebhook.signature_header"
+msgid "HTTP header expected to carry the signature (e.g. X-Hub-Signature-256)"
+msgstr ""
+"HTTP-заголовок, в якому очікується підпис (наприклад X-Hub-Signature-256)"
+
+msgctxt "meta:IncomingWebhook.signature_type"
+msgid "Signature algorithm"
+msgstr "Алгоритм підпису"
+
+msgctxt "meta:IncomingWebhook.action"
+msgid "Action"
+msgstr "Дія"
+
+msgctxt "meta:IncomingWebhook.server_script"
+msgid "Server Script"
+msgstr "Серверний скрипт"
+
+msgctxt "help:IncomingWebhook.server_script"
+msgid ""
+"Runs when action = run_server_script. The payload is available as the "
+"variable payload."
+msgstr ""
+"Виконується при action = run_server_script. Payload доступний як змінна "
+"payload."
+
+msgctxt "meta:IncomingWebhook.target_doctype"
+msgid "Document type"
+msgstr "Тип документа"
+
+msgctxt "help:IncomingWebhook.target_doctype"
+msgid "Document type to create when action = create_document"
+msgstr "Тип документа для створення при action = create_document"
+
+msgctxt "meta:IncomingWebhook.field_mapping"
+msgid "Field mapping (JSON)"
+msgstr "Маппінг полів (JSON)"
+
+msgctxt "meta:IncomingWebhook.is_enabled"
+msgid "Active"
+msgstr "Активний"
+
+msgctxt "meta:IncomingWebhookLog"
+msgid "Incoming Webhook Log"
+msgstr "Лог вхідного вебхуку"
+
+msgctxt "meta:IncomingWebhookLog.webhook"
+msgid "Webhook"
+msgstr "Вебхук"
+
+msgctxt "meta:IncomingWebhookLog.status"
+msgid "Status"
+msgstr "Статус"
+
+msgctxt "meta:IncomingWebhookLog.action_taken"
+msgid "Action taken"
+msgstr "Виконана дія"
+
+msgctxt "meta:IncomingWebhookLog.duration_ms"
+msgid "Time (ms)"
+msgstr "Час (мс)"
+
+msgctxt "meta:IncomingWebhookLog.request_headers"
+msgid "Request headers"
+msgstr "Заголовки запиту"
+
+msgctxt "meta:IncomingWebhookLog.payload"
+msgid "Request body"
+msgstr "Тіло запиту"
+
+msgctxt "meta:IncomingWebhookLog.error"
+msgid "Error"
+msgstr "Помилка"
+
+msgctxt "meta:OutgoingWebhook"
+msgid "Outgoing Webhook"
+msgstr "Вихідний вебхук"
+
+msgctxt "meta:OutgoingWebhook.doctype_name"
+msgid "Document type"
+msgstr "Тип документа"
+
+msgctxt "meta:OutgoingWebhook.event"
+msgid "Event"
+msgstr "Подія"
+
+msgctxt "meta:OutgoingWebhook.url"
+msgid "Webhook URL"
+msgstr "URL вебхуку"
+
+msgctxt "meta:OutgoingWebhook.secret"
+msgid "Secret (HMAC)"
+msgstr "Секрет (HMAC)"
+
+msgctxt "meta:OutgoingWebhook.headers"
+msgid "Headers (JSON)"
+msgstr "Заголовки (JSON)"
+
+msgctxt "meta:OutgoingWebhook.condition"
+msgid "Condition (Python)"
+msgstr "Умова (Python)"
+
+msgctxt "meta:OutgoingWebhook.timeout"
+msgid "Timeout (sec)"
+msgstr "Тайм-аут (сек)"
+
+msgctxt "meta:OutgoingWebhook.is_enabled"
+msgid "Active"
+msgstr "Активний"
+
+msgctxt "meta:WebhookLog"
+msgid "Webhook Log"
+msgstr "Лог вебхуку"
+
+msgctxt "meta:WebhookLog.webhook"
+msgid "Webhook"
+msgstr "Вебхук"
+
+msgctxt "meta:WebhookLog.event"
+msgid "Event"
+msgstr "Подія"
+
+msgctxt "meta:WebhookLog.status_code"
+msgid "HTTP status"
+msgstr "HTTP Статус"
+
+msgctxt "meta:WebhookLog.success"
+msgid "Success"
+msgstr "Успіх"
+
+msgctxt "meta:WebhookLog.duration_ms"
+msgid "Time (ms)"
+msgstr "Час (мс)"
+
+msgctxt "meta:WebhookLog.response_body"
+msgid "Response"
+msgstr "Відповідь"
+
+msgctxt "meta:WebhookLog.error"
+msgid "Error"
+msgstr "Помилка"
+
+msgctxt "meta:WebhookLog.is_test"
+msgid "Test"
+msgstr "Тестовий"
+
+msgctxt "meta:PushSubscription"
+msgid "Push Subscription"
+msgstr "Push-підписка"
+
+msgctxt "meta:PushSubscription.user"
+msgid "User"
+msgstr "Користувач"
+
+msgctxt "meta:PushSubscription.p256dh"
+msgid "p256dh key"
+msgstr "p256dh ключ"
+
+msgctxt "meta:PushSubscription.auth"
+msgid "Auth key"
+msgstr "Auth ключ"
+
+msgctxt "select:EmailAccount.provider"
+msgid "Other"
+msgstr "Інший провайдер"
+
+msgctxt "select:EmailMessage.direction"
+msgid "Incoming"
+msgstr "Вхідний"
+
+msgctxt "select:EmailMessage.direction"
+msgid "Outgoing"
+msgstr "Вихідний"
+
+msgctxt "select:EmailMessage.status"
+msgid "Received"
+msgstr "Отримано"
+
+msgctxt "select:EmailMessage.status"
+msgid "Sent"
+msgstr "Надіслано"
+
+msgctxt "select:EmailMessage.status"
+msgid "Delivered"
+msgstr "Доставлено"
+
+msgctxt "select:EmailMessage.status"
+msgid "Undelivered"
+msgstr "Не доставлено"
+
+msgctxt "select:EmailMessage.status"
+msgid "Deferred"
+msgstr "Відкладено"
+
+msgctxt "select:EmailMessage.status"
+msgid "Queued"
+msgstr "У черзі"
+
+msgctxt "select:EmailMessage.status"
+msgid "Error"
+msgstr "Помилка"
+
+msgctxt "select:Address.address_type"
+msgid "Registered"
+msgstr "Реєстрації"
+
+msgctxt "select:Address.address_type"
+msgid "Actual"
+msgstr "Фактична"
+
+msgctxt "select:Address.address_type"
+msgid "Postal"
+msgstr "Поштова"
+
+msgctxt "select:Address.address_type"
+msgid "Legal"
+msgstr "Юридична"
+
+msgctxt "select:Country.continent"
+msgid "Africa"
+msgstr "Африка"
+
+msgctxt "select:Country.continent"
+msgid "Asia"
+msgstr "Азія"
+
+msgctxt "select:Country.continent"
+msgid "Australia and Oceania"
+msgstr "Австралія та Океанія"
+
+msgctxt "select:Country.continent"
+msgid "Antarctica"
+msgstr "Антарктида"
+
+msgctxt "select:Country.continent"
+msgid "Europe"
+msgstr "Європа"
+
+msgctxt "select:Country.continent"
+msgid "North America"
+msgstr "Північна Америка"
+
+msgctxt "select:Country.continent"
+msgid "South America"
+msgstr "Південна Америка"
+
+msgctxt "select:Region.region_type"
+msgid "Oblast"
+msgstr "Область"
+
+msgctxt "select:Region.region_type"
+msgid "State"
+msgstr "Штат"
+
+msgctxt "select:Region.region_type"
+msgid "Province"
+msgstr "Провінція"
+
+msgctxt "select:Region.region_type"
+msgid "Land"
+msgstr "Земля"
+
+msgctxt "select:Region.region_type"
+msgid "Region"
+msgstr "Регіон"
+
+msgctxt "select:Region.region_type"
+msgid "Canton"
+msgstr "Кантон"
+
+msgctxt "select:Region.region_type"
+msgid "Department"
+msgstr "Департамент"
+
+msgctxt "select:Region.region_type"
+msgid "Other"
+msgstr "Інше"
+
 #~ msgctxt "meta:WebsiteNavItem"
 #~ msgid "Site menu item"
 #~ msgstr "Пункт меню сайту"

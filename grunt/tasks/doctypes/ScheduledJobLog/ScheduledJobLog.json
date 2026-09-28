@@ -1,6 +1,6 @@
 {
   "name": "ScheduledJobLog",
-  "label": "Лог завдань планувальника",
+  "label": "Scheduled Job Log",
   "module": "tasks",
   "track_changes": false,
   "table_name": "grunt_scheduled_job_log",
@@ -9,7 +9,7 @@
   "fields": [
     {
       "fieldname": "job_name",
-      "label": "Назва завдання",
+      "label": "Job name",
       "fieldtype": "Data",
       "required": true,
       "index": true,
@@ -18,20 +18,20 @@
     },
     {
       "fieldname": "started_at",
-      "label": "Початок",
+      "label": "Start",
       "fieldtype": "Datetime",
       "required": true,
       "in_list_view": true
     },
     {
       "fieldname": "finished_at",
-      "label": "Завершення",
+      "label": "End",
       "fieldtype": "Datetime",
       "in_list_view": true
     },
     {
       "fieldname": "status",
-      "label": "Статус",
+      "label": "Status",
       "fieldtype": "Select",
       "options": "Running\nSuccess\nFailed",
       "translatable": true,
@@ -42,12 +42,12 @@
     },
     {
       "fieldname": "error_message",
-      "label": "Помилка",
+      "label": "Error",
       "fieldtype": "LongText"
     },
     {
       "fieldname": "cron_expression",
-      "label": "Cron вираз",
+      "label": "Cron expression",
       "fieldtype": "Data"
     }
   ],

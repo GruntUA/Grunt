@@ -163,11 +163,11 @@ class EmailService:
             log.info(
                 "email.sent", recipient=message.get("recipient"), subject=message.get("subject")
             )
-            await EmailService._log_outgoing(account, message, msg, status="Надіслано")
+            await EmailService._log_outgoing(account, message, msg, status="Sent")
         except Exception as e:
             log.error("email.send_failed", error=str(e), recipient=message.get("recipient"))
             await EmailService._log_outgoing(
-                account, message, msg, status="Помилка", error=str(e), dedup=False
+                account, message, msg, status="Error", error=str(e), dedup=False
             )
             raise
 
@@ -185,7 +185,7 @@ class EmailService:
         content = message.get("content", "")
         plain = message.get("text_content") or message.get("text") or None
         await EmailService.record_message(
-            direction="Вихідний",
+            direction="Outgoing",
             status=status,
             subject=message.get("subject", ""),
             sender=account.get("email_address") or "",
@@ -433,14 +433,14 @@ class EmailService:
                     if a == "failed":
                         break
             status_map = {
-                "failed": "Не доставлено",
-                "delayed": "Відкладено",
-                "delivered": "Доставлено",
-                "relayed": "Доставлено",
-                "expanded": "Доставлено",
+                "failed": "Undelivered",
+                "delayed": "Deferred",
+                "delivered": "Delivered",
+                "relayed": "Delivered",
+                "expanded": "Delivered",
             }
             orig = EmailService._orig_message_id(msg, text_body)
-            status = status_map.get(action) or ("Не доставлено" if is_daemon else None)
+            status = status_map.get(action) or ("Undelivered" if is_daemon else None)
             if status is None:
                 return None
             # A message merely *from* postmaster/mailer-daemon with no
@@ -481,7 +481,7 @@ class EmailService:
         async with grunt.system_context(sess):
             row = await grunt.db.get_value(
                 "EmailMessage",
-                {"message_id": orig, "direction": "Вихідний"},
+                {"message_id": orig, "direction": "Outgoing"},
                 ["name", "status"],
                 as_dict=True,
             )
@@ -497,18 +497,18 @@ class EmailService:
                 if report.get("read"):
                     updates["read_at"] = now
                     updates["delivery_detail"] = report.get("detail")
-                    if cur in ("Надіслано", "Відкладено"):
-                        updates["status"] = "Доставлено"
+                    if cur in ("Sent", "Deferred"):
+                        updates["status"] = "Delivered"
                         updates["delivered_at"] = now
             else:  # dsn
                 new_status = report.get("status")
                 if (
-                    new_status == "Не доставлено"
-                    or new_status == "Відкладено"
-                    and cur == "Надіслано"
+                    new_status == "Undelivered"
+                    or new_status == "Deferred"
+                    and cur == "Sent"
                 ):
                     updates["status"] = new_status
-                elif new_status == "Доставлено" and cur in ("Надіслано", "Відкладено"):
+                elif new_status == "Delivered" and cur in ("Sent", "Deferred"):
                     updates["status"] = new_status
                     updates["delivered_at"] = now
                 if report.get("detail"):
@@ -615,7 +615,7 @@ class EmailService:
                         "request_receipt": bool(request_receipt),
                         "has_attachments": bool(att_rows),
                         "is_read": (
-                            bool(is_read) if is_read is not None else (direction == "Вихідний")
+                            bool(is_read) if is_read is not None else (direction == "Outgoing")
                         ),
                         "attachments": [
                             {

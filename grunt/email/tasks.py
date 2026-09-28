@@ -138,8 +138,8 @@ async def pull_from_accounts():
                                 }
                             )
                         await EmailService.record_message(
-                            direction="Вхідний",
-                            status="Отримано",
+                            direction="Incoming",
+                            status="Received",
                             subject=email_data.get("subject", ""),
                             sender=email_data.get("sender", ""),
                             recipients=email_data.get("recipients", ""),

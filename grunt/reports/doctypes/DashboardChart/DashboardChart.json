@@ -1,12 +1,12 @@
 {
   "name": "DashboardChart",
-  "label": "Графік дашборду",
+  "label": "Dashboard Chart",
   "module": "reports",
   "hide_from_activity_feed": true,
   "fields": [
     {
       "fieldname": "chart_type",
-      "label": "Тип графіка",
+      "label": "Chart type",
       "fieldtype": "Select",
       "options": "bar\nline\npie\ndonut",
       "default": "bar",
@@ -15,7 +15,7 @@
     },
     {
       "fieldname": "doctype",
-      "label": "Тип документа",
+      "label": "Document type",
       "fieldtype": "Link",
       "options": "DocType",
       "required": true,
@@ -23,18 +23,18 @@
     },
     {
       "fieldname": "value_field",
-      "label": "Поле значення",
+      "label": "Value field",
       "fieldtype": "Text",
       "required": true
     },
     {
       "fieldname": "group_by",
-      "label": "Групувати за",
+      "label": "Group by",
       "fieldtype": "Text"
     },
     {
       "fieldname": "timespan",
-      "label": "Період",
+      "label": "Period",
       "fieldtype": "Select",
       "options": "last_week\nlast_month\nlast_quarter\nlast_year\nall_time",
       "translatable": true,
@@ -43,18 +43,18 @@
     },
     {
       "fieldname": "filters",
-      "label": "Фільтри (JSON)",
+      "label": "Filters (JSON)",
       "fieldtype": "JSON"
     },
     {
       "fieldname": "color",
-      "label": "Колір",
+      "label": "Color",
       "fieldtype": "Text",
       "default": "#2D6A4F"
     },
     {
       "fieldname": "is_public",
-      "label": "Публічний",
+      "label": "Public",
       "fieldtype": "Check",
       "default": true
     }

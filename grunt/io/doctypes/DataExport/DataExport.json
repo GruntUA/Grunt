@@ -1,12 +1,12 @@
 {
   "name": "DataExport",
-  "label": "Експорт даних",
+  "label": "Data Export",
   "module": "io",
   "title_field": "doctype_name",
   "fields": [
     {
       "fieldname": "doctype_name",
-      "label": "Тип документа",
+      "label": "Document type",
       "fieldtype": "Link",
       "options": "DocType",
       "required": true,
@@ -15,13 +15,13 @@
     },
     {
       "fieldname": "label",
-      "label": "Назва",
+      "label": "Name",
       "fieldtype": "Data",
       "in_list_view": true
     },
     {
       "fieldname": "export_format",
-      "label": "Формат",
+      "label": "Format",
       "fieldtype": "Select",
       "options": "csv\nxlsx",
       "default": "xlsx",
@@ -30,25 +30,25 @@
     },
     {
       "fieldname": "fields_to_export",
-      "label": "Поля для експорту",
+      "label": "Fields to export",
       "fieldtype": "JSON",
-      "description": "Масив fieldname. Якщо порожньо — всі поля."
+      "description": "Array of fieldnames. If empty — all fields."
     },
     {
       "fieldname": "filters",
-      "label": "Фільтри",
+      "label": "Filters",
       "fieldtype": "JSON",
-      "description": "JSON-об'єкт: {\"fieldname\": \"value\"}"
+      "description": "JSON object: {\"fieldname\": \"value\"}"
     },
     {
       "fieldname": "limit",
-      "label": "Макс. рядків",
+      "label": "Max rows",
       "fieldtype": "Int",
       "default": 10000
     },
     {
       "fieldname": "status",
-      "label": "Статус",
+      "label": "Status",
       "fieldtype": "Select",
       "options": "Pending\nIn Progress\nSuccess\nFailed",
       "translatable": true,
@@ -59,21 +59,21 @@
     },
     {
       "fieldname": "exported_rows",
-      "label": "Експортовано рядків",
+      "label": "Rows exported",
       "fieldtype": "Int",
       "read_only": true,
       "in_list_view": true
     },
     {
       "fieldname": "file",
-      "label": "Файл результату",
+      "label": "Result file",
       "fieldtype": "Attach",
       "read_only": true,
-      "description": "Заповнюється автоматично після експорту"
+      "description": "Filled in automatically after export"
     },
     {
       "fieldname": "error",
-      "label": "Помилка",
+      "label": "Error",
       "fieldtype": "Text",
       "read_only": true
     }

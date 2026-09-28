@@ -1,6 +1,6 @@
 {
   "name": "SystemHealthCheck",
-  "label": "Перевірка стану системи",
+  "label": "System Health Check",
   "module": "monitoring",
   "is_virtual": true,
   "is_child": true,
@@ -8,25 +8,69 @@
   "track_activity": false,
   "status_field": "status",
   "status_indicators": [
-    { "value": "OK", "color": "success", "label": "Добре" },
-    { "value": "Warning", "color": "warn", "label": "Увага" },
-    { "value": "Error", "color": "danger", "label": "Проблема" },
-    { "value": "Info", "color": "secondary", "label": "Інфо" }
+    {
+      "value": "OK",
+      "color": "success",
+      "label": "Good"
+    },
+    {
+      "value": "Warning",
+      "color": "warn",
+      "label": "Warning"
+    },
+    {
+      "value": "Error",
+      "color": "danger",
+      "label": "Problem"
+    },
+    {
+      "value": "Info",
+      "color": "secondary",
+      "label": "Info"
+    }
   ],
   "fields": [
-    { "fieldname": "category", "label": "Розділ", "fieldtype": "Data", "read_only": true },
-    { "fieldname": "check", "label": "Перевірка", "fieldtype": "Data", "in_list_view": true, "read_only": true },
+    {
+      "fieldname": "category",
+      "label": "Section",
+      "fieldtype": "Data",
+      "read_only": true
+    },
+    {
+      "fieldname": "check",
+      "label": "Check",
+      "fieldtype": "Data",
+      "in_list_view": true,
+      "read_only": true
+    },
     {
       "fieldname": "status",
-      "label": "Стан",
+      "label": "State",
       "fieldtype": "Select",
       "options": "OK\nWarning\nError\nInfo",
       "translatable": true,
       "in_list_view": true,
       "read_only": true
     },
-    { "fieldname": "value", "label": "Значення", "fieldtype": "Data", "in_list_view": true, "read_only": true },
-    { "fieldname": "hint", "label": "Що робити", "fieldtype": "Text", "in_list_view": true, "read_only": true }
+    {
+      "fieldname": "value",
+      "label": "Value",
+      "fieldtype": "Data",
+      "in_list_view": true,
+      "read_only": true
+    },
+    {
+      "fieldname": "hint",
+      "label": "What to do",
+      "fieldtype": "Text",
+      "in_list_view": true,
+      "read_only": true
+    }
   ],
-  "permissions": [{ "role": "System Manager", "read": true }]
+  "permissions": [
+    {
+      "role": "System Manager",
+      "read": true
+    }
+  ]
 }

@@ -1,32 +1,32 @@
 {
   "name": "GruntInstalledApp",
-  "label": "Магазин додатків",
+  "label": "App Store",
   "module": "startup",
   "table_name": "grunt_meta_installed_app",
   "hide_from_activity_feed": true,
   "fields": [
     {
       "fieldname": "title",
-      "label": "Заголовок",
+      "label": "Title",
       "fieldtype": "Text",
       "required": true,
       "in_list_view": true
     },
     {
       "fieldname": "version",
-      "label": "Версія",
+      "label": "Version",
       "fieldtype": "Text",
       "in_list_view": true
     },
     {
       "fieldname": "installed_at",
-      "label": "Встановлено",
+      "label": "Installed",
       "fieldtype": "Datetime",
       "in_list_view": true
     },
     {
       "fieldname": "modules",
-      "label": "Модулі",
+      "label": "Modules",
       "fieldtype": "JSON"
     }
   ],

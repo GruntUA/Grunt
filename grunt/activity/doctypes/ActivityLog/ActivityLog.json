@@ -1,6 +1,6 @@
 {
   "name": "ActivityLog",
-  "label": "Журнал активності",
+  "label": "Activity Log",
   "module": "activity",
   "is_log": true,
   "track_changes": false,
@@ -9,7 +9,7 @@
   "fields": [
     {
       "fieldname": "doctype",
-      "label": "Тип документа",
+      "label": "Document type",
       "fieldtype": "Link",
       "options": "DocType",
       "required": true,
@@ -19,14 +19,14 @@
     },
     {
       "fieldname": "doc_id",
-      "label": "ID документа",
+      "label": "Document ID",
       "fieldtype": "Text",
       "required": true,
       "in_list_view": true
     },
     {
       "fieldname": "user",
-      "label": "Користувач",
+      "label": "User",
       "fieldtype": "Text",
       "required": true,
       "in_list_view": true,
@@ -35,7 +35,7 @@
     },
     {
       "fieldname": "action",
-      "label": "Дія",
+      "label": "Action",
       "fieldtype": "Select",
       "options": "Create\nUpdate\nDelete\nSubmit\nCancel\nShare\nComment\nWorkflow",
       "translatable": true,
@@ -46,7 +46,7 @@
     },
     {
       "fieldname": "details",
-      "label": "Деталі",
+      "label": "Details",
       "fieldtype": "JSON"
     }
   ],

@@ -1,6 +1,6 @@
 {
   "name": "Notification",
-  "label": "Повідомлення",
+  "label": "Message",
   "module": "notification",
   "track_changes": false,
   "table_name": "grunt_notification",
@@ -9,7 +9,7 @@
   "fields": [
     {
       "fieldname": "user",
-      "label": "Користувач",
+      "label": "User",
       "fieldtype": "Text",
       "required": true,
       "in_list_view": true,
@@ -18,31 +18,31 @@
     },
     {
       "fieldname": "subject",
-      "label": "Тема",
+      "label": "Subject",
       "fieldtype": "Text",
       "required": true,
       "in_list_view": true
     },
     {
       "fieldname": "message",
-      "label": "Повідомлення",
+      "label": "Message",
       "fieldtype": "LongText",
       "required": true
     },
     {
       "fieldname": "doctype",
-      "label": "Тип документа",
+      "label": "Document type",
       "fieldtype": "Text",
       "in_list_view": true
     },
     {
       "fieldname": "doc_id",
-      "label": "ID документа",
+      "label": "Document ID",
       "fieldtype": "Text"
     },
     {
       "fieldname": "is_read",
-      "label": "Прочитано",
+      "label": "Read",
       "fieldtype": "Check",
       "default": false,
       "in_list_view": true,

@@ -1,6 +1,6 @@
 {
   "name": "SqlProfilerQuery",
-  "label": "SQL Профайлер — Запит",
+  "label": "SQL Profiler — Request",
   "module": "monitoring",
   "is_virtual": true,
   "is_child": true,
@@ -17,21 +17,21 @@
     },
     {
       "fieldname": "duration_ms",
-      "label": "Час (ms)",
+      "label": "Time (ms)",
       "fieldtype": "Float",
       "in_list_view": true,
       "read_only": true
     },
     {
       "fieldname": "param_count",
-      "label": "Параметрів",
+      "label": "Parameters",
       "fieldtype": "Int",
       "in_list_view": true,
       "read_only": true
     },
     {
       "fieldname": "slow",
-      "label": "Повільний",
+      "label": "Slow",
       "fieldtype": "Check",
       "in_list_view": true,
       "read_only": true

@@ -1,32 +1,40 @@
 {
   "name": "Comment",
-  "label": "Коментар",
+  "label": "Comment",
   "module": "document",
-  "indexes": [["reference_doctype", "reference_id"]],
-  "inherit_permission_from": ["reference_doctype", "reference_id"],
+  "indexes": [
+    [
+      "reference_doctype",
+      "reference_id"
+    ]
+  ],
+  "inherit_permission_from": [
+    "reference_doctype",
+    "reference_id"
+  ],
   "fields": [
     {
       "fieldname": "reference_doctype",
-      "label": "Тип документа",
+      "label": "Document type",
       "fieldtype": "Link",
       "options": "DocType",
       "required": true
     },
     {
       "fieldname": "reference_id",
-      "label": "ID документа",
+      "label": "Document ID",
       "fieldtype": "Text",
       "required": true
     },
     {
       "fieldname": "content",
-      "label": "Вміст",
+      "label": "Content",
       "fieldtype": "LongText",
       "required": true
     },
     {
       "fieldname": "comment_type",
-      "label": "Тип",
+      "label": "Type",
       "fieldtype": "Select",
       "options": "Comment\nInfo\nWarning\nError",
       "translatable": true,

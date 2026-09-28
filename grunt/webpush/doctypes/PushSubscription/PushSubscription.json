@@ -1,6 +1,6 @@
 {
   "name": "PushSubscription",
-  "label": "Push-підписка",
+  "label": "Push Subscription",
   "module": "webpush",
   "table_name": "grunt_push_subscription",
   "track_activity": false,
@@ -8,7 +8,7 @@
   "fields": [
     {
       "fieldname": "user",
-      "label": "Користувач",
+      "label": "User",
       "fieldtype": "Text",
       "required": true,
       "in_list_view": true,
@@ -22,13 +22,13 @@
     },
     {
       "fieldname": "p256dh",
-      "label": "p256dh ключ",
+      "label": "p256dh key",
       "fieldtype": "LongText",
       "required": true
     },
     {
       "fieldname": "auth",
-      "label": "Auth ключ",
+      "label": "Auth key",
       "fieldtype": "Text",
       "required": true
     },

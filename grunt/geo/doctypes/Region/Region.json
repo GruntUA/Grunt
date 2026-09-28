@@ -1,6 +1,6 @@
 {
   "name": "Region",
-  "label": "Регіон",
+  "label": "Region",
   "module": "geo",
   "autoname": "field:title",
   "title_field": "title",
@@ -8,7 +8,7 @@
   "fields": [
     {
       "fieldname": "title",
-      "label": "Назва",
+      "label": "Name",
       "fieldtype": "Text",
       "required": true,
       "in_list_view": true,
@@ -16,13 +16,13 @@
     },
     {
       "fieldname": "title_uk",
-      "label": "Назва (укр.)",
+      "label": "Name (Ukrainian)",
       "fieldtype": "Text",
       "in_list_view": true
     },
     {
       "fieldname": "country",
-      "label": "Країна",
+      "label": "Country",
       "fieldtype": "Link",
       "options": "Country",
       "required": true,
@@ -32,31 +32,44 @@
     },
     {
       "fieldname": "code",
-      "label": "Код ISO 3166-2",
+      "label": "ISO 3166-2 code",
       "fieldtype": "Data",
       "in_list_view": true,
-      "description": "Код підрозділу (UA-30 для Києва, US-CA для Каліфорнії)"
+      "description": "Subdivision code (UA-30 for Kyiv, US-CA for California)"
     },
     {
       "fieldname": "region_type",
-      "label": "Тип",
+      "label": "Type",
       "fieldtype": "Select",
-      "options": "\nОбласть\nШтат\nПровінція\nЗемля\nРегіон\nКантон\nДепартамент\nІнше",
+      "options": "\nOblast\nState\nProvince\nLand\nRegion\nCanton\nDepartment\nOther",
+      "translatable": true,
       "in_filter": true
     },
     {
       "fieldname": "is_active",
-      "label": "Активний",
+      "label": "Active",
       "fieldtype": "Check",
       "default": "1",
       "in_filter": true
     }
   ],
   "default_view": "list",
-
-  "search_fields": ["title", "title_uk", "code"],
+  "search_fields": [
+    "title",
+    "title_uk",
+    "code"
+  ],
   "permissions": [
-    { "role": "All", "read": true },
-    { "role": "System Manager", "read": true, "write": true, "create": true, "delete": true }
+    {
+      "role": "All",
+      "read": true
+    },
+    {
+      "role": "System Manager",
+      "read": true,
+      "write": true,
+      "create": true,
+      "delete": true
+    }
   ]
 }

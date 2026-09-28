@@ -1,12 +1,21 @@
 {
   "name": "ToDo",
-  "label": "Завдання",
+  "label": "Job",
   "module": "tasks",
   "icon": "list-checks",
   "title_field": "description",
   "default_view": "list",
-  "search_fields": ["description", "assigned_to", "reference_id"],
-  "indexes": [["reference_doctype", "reference_id"]],
+  "search_fields": [
+    "description",
+    "assigned_to",
+    "reference_id"
+  ],
+  "indexes": [
+    [
+      "reference_doctype",
+      "reference_id"
+    ]
+  ],
   "status_field": "status",
   "track_changes": true,
   "track_seen": true,
@@ -26,10 +35,26 @@
   },
   "gantt_default_color": "#6366f1",
   "status_indicators": [
-    { "value": "Open", "color": "warn", "label": "Відкрито" },
-    { "value": "In Progress", "color": "primary", "label": "В роботі" },
-    { "value": "Closed", "color": "success", "label": "Виконано" },
-    { "value": "Cancelled", "color": "secondary", "label": "Скасовано" }
+    {
+      "value": "Open",
+      "color": "warn",
+      "label": "Open"
+    },
+    {
+      "value": "In Progress",
+      "color": "primary",
+      "label": "In Progress"
+    },
+    {
+      "value": "Closed",
+      "color": "success",
+      "label": "Done"
+    },
+    {
+      "value": "Cancelled",
+      "color": "secondary",
+      "label": "Cancelled"
+    }
   ],
   "actions": [
     {
@@ -51,7 +76,7 @@
   "fields": [
     {
       "fieldname": "description",
-      "label": "Опис",
+      "label": "Description",
       "fieldtype": "LongText",
       "required": true,
       "in_list_view": true,
@@ -59,20 +84,20 @@
     },
     {
       "fieldname": "reference_doctype",
-      "label": "Тип документа",
+      "label": "Document type",
       "fieldtype": "Link",
       "options": "DocType",
       "in_list_view": true
     },
     {
       "fieldname": "reference_id",
-      "label": "ID документа",
+      "label": "Document ID",
       "fieldtype": "DynamicLink",
       "options": "reference_doctype"
     },
     {
       "fieldname": "assigned_to",
-      "label": "Виконавець",
+      "label": "Assignee",
       "fieldtype": "Link",
       "options": "User",
       "in_list_view": true,
@@ -80,20 +105,20 @@
     },
     {
       "fieldname": "assigned_by",
-      "label": "Призначив",
+      "label": "Assigned by",
       "fieldtype": "Link",
       "options": "User",
       "read_only": true
     },
     {
       "fieldname": "assigned_on",
-      "label": "Призначено",
+      "label": "Assigned to",
       "fieldtype": "Datetime",
       "read_only": true
     },
     {
       "fieldname": "status",
-      "label": "Статус",
+      "label": "Status",
       "fieldtype": "Select",
       "options": "Open\nIn Progress\nClosed\nCancelled",
       "translatable": true,
@@ -103,7 +128,7 @@
     },
     {
       "fieldname": "priority",
-      "label": "Пріоритет",
+      "label": "Priority",
       "fieldtype": "Select",
       "options": "Low\nMedium\nHigh\nUrgent",
       "translatable": true,
@@ -113,13 +138,13 @@
     },
     {
       "fieldname": "due_date",
-      "label": "Термін",
+      "label": "Due date",
       "fieldtype": "Date",
       "in_list_view": true
     },
     {
       "fieldname": "is_overdue",
-      "label": "Прострочено",
+      "label": "Overdue",
       "fieldtype": "Check",
       "is_virtual": true,
       "read_only": true,
@@ -128,23 +153,23 @@
     },
     {
       "fieldname": "color",
-      "label": "Колір",
+      "label": "Color",
       "fieldtype": "Color"
     },
     {
       "fieldname": "sec_completion",
-      "label": "Виконання",
+      "label": "Execution",
       "fieldtype": "Section"
     },
     {
       "fieldname": "completed_on",
-      "label": "Виконано",
+      "label": "Done",
       "fieldtype": "Datetime",
       "read_only": true
     },
     {
       "fieldname": "completed_by",
-      "label": "Виконав",
+      "label": "Run by",
       "fieldtype": "Link",
       "options": "User",
       "read_only": true

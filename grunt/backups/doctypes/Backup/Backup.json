@@ -1,6 +1,6 @@
 {
   "name": "Backup",
-  "label": "Резервні копії",
+  "label": "Backups",
   "module": "backups",
   "icon": "archive",
   "is_virtual": true,
@@ -9,16 +9,70 @@
   "default_view": "list",
   "sort_field": "name",
   "sort_order": "desc",
-  "description": "Резервні копії сайту в sites/<site>/backups/: база даних, завантажені файли, конфігурація. Розклад і кількість копій — у Системних налаштуваннях → Backups.",
+  "description": "Site backups in sites/<site>/backups/: database, uploaded files, configuration. Schedule and number of copies — in System Settings → Backups.",
   "fields": [
-    { "fieldname": "created_at", "label": "Створено", "fieldtype": "Datetime", "in_list_view": true, "read_only": true },
-    { "fieldname": "total_size", "label": "Розмір", "fieldtype": "Data", "in_list_view": true, "read_only": true },
-    { "fieldname": "database_size", "label": "База даних", "fieldtype": "Data", "in_list_view": true, "read_only": true },
-    { "fieldname": "files_size", "label": "Файли", "fieldtype": "Data", "in_list_view": true, "read_only": true },
-    { "fieldname": "has_config", "label": "Конфігурація", "fieldtype": "Check", "in_list_view": true, "read_only": true },
-    { "fieldname": "database_url", "label": "database_url", "fieldtype": "Data", "hidden": true, "read_only": true },
-    { "fieldname": "files_url", "label": "files_url", "fieldtype": "Data", "hidden": true, "read_only": true },
-    { "fieldname": "config_url", "label": "config_url", "fieldtype": "Data", "hidden": true, "read_only": true }
+    {
+      "fieldname": "created_at",
+      "label": "Created",
+      "fieldtype": "Datetime",
+      "in_list_view": true,
+      "read_only": true
+    },
+    {
+      "fieldname": "total_size",
+      "label": "Size",
+      "fieldtype": "Data",
+      "in_list_view": true,
+      "read_only": true
+    },
+    {
+      "fieldname": "database_size",
+      "label": "Database",
+      "fieldtype": "Data",
+      "in_list_view": true,
+      "read_only": true
+    },
+    {
+      "fieldname": "files_size",
+      "label": "Files",
+      "fieldtype": "Data",
+      "in_list_view": true,
+      "read_only": true
+    },
+    {
+      "fieldname": "has_config",
+      "label": "Configuration",
+      "fieldtype": "Check",
+      "in_list_view": true,
+      "read_only": true
+    },
+    {
+      "fieldname": "database_url",
+      "label": "database_url",
+      "fieldtype": "Data",
+      "hidden": true,
+      "read_only": true
+    },
+    {
+      "fieldname": "files_url",
+      "label": "files_url",
+      "fieldtype": "Data",
+      "hidden": true,
+      "read_only": true
+    },
+    {
+      "fieldname": "config_url",
+      "label": "config_url",
+      "fieldtype": "Data",
+      "hidden": true,
+      "read_only": true
+    }
   ],
-  "permissions": [{ "role": "System Manager", "read": true, "delete": true }]
+  "permissions": [
+    {
+      "role": "System Manager",
+      "read": true,
+      "delete": true
+    }
+  ]
 }

@@ -1,36 +1,36 @@
 {
   "name": "EmailQueue",
-  "label": "Черга листів",
+  "label": "Email Queue",
   "module": "email",
   "track_activity": false,
   "track_deletions": false,
   "fields": [
     {
       "fieldname": "sender",
-      "label": "Відправник",
+      "label": "Sender",
       "fieldtype": "Text",
       "in_list_view": true
     },
     {
       "fieldname": "recipient",
-      "label": "Отримувач",
+      "label": "Recipient",
       "fieldtype": "Text",
       "in_list_view": true
     },
     {
       "fieldname": "subject",
-      "label": "Тема",
+      "label": "Subject",
       "fieldtype": "Text",
       "in_list_view": true
     },
     {
       "fieldname": "content",
-      "label": "Вміст",
+      "label": "Content",
       "fieldtype": "LongText"
     },
     {
       "fieldname": "text_content",
-      "label": "Текстова версія",
+      "label": "Text version",
       "fieldtype": "LongText"
     },
     {
@@ -41,7 +41,7 @@
     },
     {
       "fieldname": "status",
-      "label": "Статус",
+      "label": "Status",
       "fieldtype": "Select",
       "options": "Pending\nSending\nSent\nError",
       "translatable": true,
@@ -51,12 +51,12 @@
     },
     {
       "fieldname": "error_message",
-      "label": "Помилка",
+      "label": "Error",
       "fieldtype": "LongText"
     },
     {
       "fieldname": "email_account",
-      "label": "Обліковий запис",
+      "label": "Account",
       "fieldtype": "Link",
       "options": "EmailAccount"
     },

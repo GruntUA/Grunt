@@ -1,6 +1,6 @@
 {
   "name": "ErrorLog",
-  "label": "Журнал помилок",
+  "label": "Error Log",
   "module": "monitoring",
   "icon": "bug",
   "is_log": true,
@@ -15,11 +15,11 @@
     "method",
     "user"
   ],
-  "description": "Необроблені помилки фреймворку та додатків — HTTP-запити, фонові завдання, контролери. Старі записи автоматично видаляються (див. Налаштування системи → Обслуговування).",
+  "description": "Unhandled framework and app errors — HTTP requests, background tasks, controllers. Old entries are deleted automatically (see System Settings → Maintenance).",
   "fields": [
     {
       "fieldname": "title",
-      "label": "Помилка",
+      "label": "Error",
       "fieldtype": "Data",
       "read_only": true,
       "in_list_view": true,
@@ -27,7 +27,7 @@
     },
     {
       "fieldname": "error_type",
-      "label": "Тип",
+      "label": "Type",
       "fieldtype": "Data",
       "read_only": true,
       "in_list_view": true,
@@ -36,7 +36,7 @@
     },
     {
       "fieldname": "context",
-      "label": "Контекст",
+      "label": "Context",
       "fieldtype": "Select",
       "options": "HTTP Request\nBackground Task\nScheduled Job\nController\nManual",
       "translatable": true,
@@ -46,7 +46,7 @@
     },
     {
       "fieldname": "app",
-      "label": "Застосунок",
+      "label": "App",
       "fieldtype": "Data",
       "read_only": true,
       "in_filter": true,
@@ -54,7 +54,7 @@
     },
     {
       "fieldname": "method",
-      "label": "Метод / маршрут",
+      "label": "Method / route",
       "fieldtype": "Data",
       "read_only": true,
       "in_list_view": true,
@@ -62,7 +62,7 @@
     },
     {
       "fieldname": "user",
-      "label": "Користувач",
+      "label": "User",
       "fieldtype": "Data",
       "read_only": true,
       "in_list_view": true,
@@ -71,28 +71,28 @@
     },
     {
       "fieldname": "sec_request",
-      "label": "HTTP-запит",
+      "label": "HTTP request",
       "fieldtype": "Section",
       "collapsible": true,
       "depends_on": "eval: doc.context == 'HTTP Request'"
     },
     {
       "fieldname": "request_method",
-      "label": "HTTP-метод",
+      "label": "HTTP method",
       "fieldtype": "Data",
       "read_only": true,
       "columns": 3
     },
     {
       "fieldname": "http_status",
-      "label": "Код відповіді",
+      "label": "Response code",
       "fieldtype": "Int",
       "read_only": true,
       "columns": 3
     },
     {
       "fieldname": "request_path",
-      "label": "Шлях",
+      "label": "Path",
       "fieldtype": "Data",
       "read_only": true,
       "columns": 6
@@ -106,14 +106,14 @@
     },
     {
       "fieldname": "sec_reference",
-      "label": "Документ",
+      "label": "Document",
       "fieldtype": "Section",
       "collapsible": true,
       "depends_on": "eval: doc.reference_doctype"
     },
     {
       "fieldname": "reference_doctype",
-      "label": "Тип документа",
+      "label": "Document type",
       "fieldtype": "Link",
       "options": "DocType",
       "read_only": true,
@@ -122,25 +122,25 @@
     },
     {
       "fieldname": "reference_name",
-      "label": "Документ",
+      "label": "Document",
       "fieldtype": "Data",
       "read_only": true,
       "columns": 6
     },
     {
       "fieldname": "sec_details",
-      "label": "Деталі",
+      "label": "Details",
       "fieldtype": "Section"
     },
     {
       "fieldname": "error_message",
-      "label": "Повідомлення",
+      "label": "Message",
       "fieldtype": "Code",
       "read_only": true
     },
     {
       "fieldname": "traceback",
-      "label": "Трасування стека",
+      "label": "Stack trace",
       "fieldtype": "Code",
       "options": "python",
       "read_only": true

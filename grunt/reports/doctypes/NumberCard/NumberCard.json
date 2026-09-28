@@ -1,19 +1,19 @@
 {
   "name": "NumberCard",
-  "label": "Числова картка",
+  "label": "Number Card",
   "module": "reports",
   "hide_from_activity_feed": true,
   "fields": [
     {
       "fieldname": "label",
-      "label": "Назва",
+      "label": "Name",
       "fieldtype": "Text",
       "required": true,
       "in_list_view": true
     },
     {
       "fieldname": "doctype",
-      "label": "Тип документа",
+      "label": "Document type",
       "fieldtype": "Link",
       "options": "DocType",
       "required": true,
@@ -21,7 +21,7 @@
     },
     {
       "fieldname": "aggregation",
-      "label": "Агрегація",
+      "label": "Aggregation",
       "fieldtype": "Select",
       "options": "count\nsum\navg\nmin\nmax",
       "translatable": true,
@@ -30,28 +30,28 @@
     },
     {
       "fieldname": "value_field",
-      "label": "Поле значення",
+      "label": "Value field",
       "fieldtype": "Text"
     },
     {
       "fieldname": "filters",
-      "label": "Фільтри (JSON)",
+      "label": "Filters (JSON)",
       "fieldtype": "JSON"
     },
     {
       "fieldname": "color",
-      "label": "Колір",
+      "label": "Color",
       "fieldtype": "Text",
       "default": "#2D6A4F"
     },
     {
       "fieldname": "icon",
-      "label": "Іконка",
+      "label": "Icon",
       "fieldtype": "Text"
     },
     {
       "fieldname": "is_public",
-      "label": "Публічний",
+      "label": "Public",
       "fieldtype": "Check",
       "default": true
     }

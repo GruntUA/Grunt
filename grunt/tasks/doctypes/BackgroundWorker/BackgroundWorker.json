@@ -1,35 +1,35 @@
 {
   "name": "BackgroundWorker",
-  "label": "Воркери черги",
+  "label": "Queue Workers",
   "module": "tasks",
   "icon": "cpu",
   "is_virtual": true,
   "default_view": "list",
-  "description": "Consumer'и групи TaskIQ у Redis Stream — живий знімок, нічого не зберігається в БД. Воркер, що впав і не перезапустився, лишається тут як 'мертвий' консюмер, поки хтось його не приберe.",
+  "description": "Consumers of the TaskIQ group in the Redis Stream — a live snapshot, nothing is stored in the DB. A worker that crashed and did not restart stays here as a 'dead' consumer until someone removes it.",
   "fields": [
     {
       "fieldname": "pending",
-      "label": "У роботі",
+      "label": "In progress",
       "fieldtype": "Int",
       "read_only": true,
       "in_list_view": true,
-      "description": "Скільки задач цей воркер зараз тримає (доставлено, не підтверджено)."
+      "description": "How many tasks this worker currently holds (delivered, not acknowledged)."
     },
     {
       "fieldname": "idle_ms",
-      "label": "Простій, мс",
+      "label": "Idle, ms",
       "fieldtype": "Int",
       "read_only": true,
       "in_list_view": true,
-      "description": "Час з моменту останньої взаємодії воркера з чергою."
+      "description": "Time since the worker last interacted with the queue."
     },
     {
       "fieldname": "inactive_ms",
-      "label": "Без завершених задач, мс",
+      "label": "Without finished tasks, ms",
       "fieldtype": "Int",
       "read_only": true,
       "in_list_view": true,
-      "description": "Час з моменту останньої успішно підтвердженої (ack) задачі."
+      "description": "Time since the last successfully acknowledged (ack) task."
     }
   ],
   "permissions": [

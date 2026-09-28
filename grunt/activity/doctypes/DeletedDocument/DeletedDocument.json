@@ -1,6 +1,6 @@
 {
   "name": "DeletedDocument",
-  "label": "Видалений документ",
+  "label": "Deleted Document",
   "module": "activity",
   "is_log": true,
   "retention_days": 180,
@@ -17,7 +17,7 @@
   "fields": [
     {
       "fieldname": "deleted_doctype",
-      "label": "Тип документа",
+      "label": "Document type",
       "fieldtype": "Link",
       "options": "DocType",
       "required": true,
@@ -28,7 +28,7 @@
     },
     {
       "fieldname": "deleted_name",
-      "label": "ID документа",
+      "label": "Document ID",
       "fieldtype": "Text",
       "required": true,
       "read_only": true,
@@ -38,14 +38,14 @@
     },
     {
       "fieldname": "title",
-      "label": "Назва",
+      "label": "Name",
       "fieldtype": "Text",
       "read_only": true,
       "in_list_view": true
     },
     {
       "fieldname": "deleted_by",
-      "label": "Видалив",
+      "label": "Deleted by",
       "fieldtype": "Text",
       "read_only": true,
       "in_list_view": true,
@@ -54,14 +54,14 @@
     },
     {
       "fieldname": "deleted_at",
-      "label": "Час видалення",
+      "label": "Deleted at",
       "fieldtype": "Datetime",
       "read_only": true,
       "in_list_view": true
     },
     {
       "fieldname": "restored",
-      "label": "Відновлено",
+      "label": "Restored",
       "fieldtype": "Check",
       "default": 0,
       "read_only": true,
@@ -71,19 +71,19 @@
     },
     {
       "fieldname": "restored_at",
-      "label": "Час відновлення",
+      "label": "Restored at",
       "fieldtype": "Datetime",
       "read_only": true
     },
     {
       "fieldname": "restored_to",
-      "label": "Відновлено як",
+      "label": "Restored as",
       "fieldtype": "Text",
       "read_only": true
     },
     {
       "fieldname": "data",
-      "label": "Знімок (JSON)",
+      "label": "Snapshot (JSON)",
       "fieldtype": "JSON",
       "read_only": true
     }

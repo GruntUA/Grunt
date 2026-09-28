@@ -1,6 +1,6 @@
 {
   "name": "SqlProfilerSpan",
-  "label": "SQL Профайлер — Спан",
+  "label": "SQL Profiler — Span",
   "module": "monitoring",
   "is_virtual": true,
   "is_child": true,
@@ -9,14 +9,14 @@
   "fields": [
     {
       "fieldname": "method",
-      "label": "Метод",
+      "label": "Method",
       "fieldtype": "Data",
       "in_list_view": true,
       "read_only": true
     },
     {
       "fieldname": "duration_ms",
-      "label": "Час (ms)",
+      "label": "Time (ms)",
       "fieldtype": "Float",
       "in_list_view": true,
       "read_only": true

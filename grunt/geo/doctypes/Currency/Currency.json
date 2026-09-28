@@ -1,6 +1,6 @@
 {
   "name": "Currency",
-  "label": "Валюта",
+  "label": "Currency",
   "module": "geo",
   "autoname": "field:code",
   "title_field": "title",
@@ -8,49 +8,49 @@
   "fields": [
     {
       "fieldname": "code",
-      "label": "Код ISO 4217",
+      "label": "ISO 4217 code",
       "fieldtype": "Data",
       "required": true,
       "in_list_view": true,
       "bold": true,
-      "description": "Трибуквений код валюти (UAH, USD, EUR)"
+      "description": "Three-letter currency code (UAH, USD, EUR)"
     },
     {
       "fieldname": "title",
-      "label": "Назва (англ.)",
+      "label": "Name (English)",
       "fieldtype": "Text",
       "required": true,
       "in_list_view": true
     },
     {
       "fieldname": "title_uk",
-      "label": "Назва (укр.)",
+      "label": "Name (Ukrainian)",
       "fieldtype": "Text",
       "in_list_view": true
     },
     {
       "fieldname": "symbol",
-      "label": "Символ",
+      "label": "Symbol",
       "fieldtype": "Data",
       "in_list_view": true,
-      "description": "Символ валюти: ₴, $, €"
+      "description": "Currency symbol: ₴, $, €"
     },
     {
       "fieldname": "numeric_code",
-      "label": "Числовий код",
+      "label": "Numeric code",
       "fieldtype": "Data",
-      "description": "Трицифровий числовий код ISO 4217 (980, 840, 978)"
+      "description": "Three-digit ISO 4217 numeric code (980, 840, 978)"
     },
     {
       "fieldname": "decimal_places",
-      "label": "Знаків після коми",
+      "label": "Decimal places",
       "fieldtype": "Int",
       "default": "2",
-      "description": "Кількість знаків після коми (0 для JPY, 2 для USD)"
+      "description": "Number of decimal places (0 for JPY, 2 for USD)"
     },
     {
       "fieldname": "is_active",
-      "label": "Активна",
+      "label": "Active",
       "fieldtype": "Check",
       "default": "1",
       "in_list_view": true,
@@ -58,9 +58,23 @@
     }
   ],
   "default_view": "list",
-  "search_fields": ["code", "title", "title_uk", "symbol"],
+  "search_fields": [
+    "code",
+    "title",
+    "title_uk",
+    "symbol"
+  ],
   "permissions": [
-    { "role": "All", "read": true },
-    { "role": "System Manager", "read": true, "write": true, "create": true, "delete": true }
+    {
+      "role": "All",
+      "read": true
+    },
+    {
+      "role": "System Manager",
+      "read": true,
+      "write": true,
+      "create": true,
+      "delete": true
+    }
   ]
 }

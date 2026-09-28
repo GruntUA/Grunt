@@ -1,6 +1,6 @@
 {
   "name": "Hook",
-  "label": "Хуки",
+  "label": "Hooks",
   "module": "scripting",
   "is_virtual": true,
   "track_changes": false,
@@ -13,7 +13,7 @@
   "fields": [
     {
       "fieldname": "source",
-      "label": "Джерело",
+      "label": "Source",
       "fieldtype": "Data",
       "in_list_view": true,
       "read_only": true
@@ -27,21 +27,21 @@
     },
     {
       "fieldname": "event",
-      "label": "Подія",
+      "label": "Event",
       "fieldtype": "Data",
       "in_list_view": true,
       "read_only": true
     },
     {
       "fieldname": "handler",
-      "label": "Обробник / Скрипт",
+      "label": "Handler / Script",
       "fieldtype": "SmallText",
       "in_list_view": true,
       "read_only": true
     },
     {
       "fieldname": "priority",
-      "label": "Пріоритет",
+      "label": "Priority",
       "fieldtype": "Int",
       "in_list_view": true,
       "read_only": true

@@ -1,13 +1,13 @@
 {
   "name": "UserPermission",
-  "label": "Дозвіл користувача",
+  "label": "User Permission",
   "module": "permissions",
   "autoname": "hash",
   "title_field": "for_user",
   "fields": [
     {
       "fieldname": "for_user",
-      "label": "Користувач",
+      "label": "User",
       "fieldtype": "Link",
       "options": "User",
       "required": true,
@@ -17,23 +17,23 @@
     },
     {
       "fieldname": "allow",
-      "label": "Обмежити за",
+      "label": "Restrict by",
       "fieldtype": "Link",
       "options": "DocType",
       "required": true,
       "in_list_view": true,
       "in_filter": true,
-      "description": "Тип документа, за яким обмежуємо доступ (напр. «Компанія»)."
+      "description": "Document type to restrict access by (e.g. «Company»)."
     },
     {
       "fieldname": "for_value",
-      "label": "Значення",
+      "label": "Value",
       "fieldtype": "DynamicLink",
       "options": "allow",
       "required": true,
       "in_list_view": true,
       "in_filter": true,
-      "description": "Дозволений запис. Користувач бачитиме лише документи, пов'язані з ним."
+      "description": "The allowed record. The user will see only documents linked to it."
     },
     {
       "fieldname": "col_scope",
@@ -41,26 +41,26 @@
     },
     {
       "fieldname": "apply_to_all_doctypes",
-      "label": "Застосувати до всіх документів",
+      "label": "Apply to all documents",
       "fieldtype": "Check",
       "default": true,
       "in_list_view": true,
-      "description": "Обмеження діє на будь-який DocType із Link-полем на «Обмежити за»."
+      "description": "The restriction applies to any DocType with a Link field to «Restrict by»."
     },
     {
       "fieldname": "applicable_for",
-      "label": "Лише для документа",
+      "label": "For document only",
       "fieldtype": "Link",
       "options": "DocType",
       "depends_on": "eval:!doc.apply_to_all_doctypes",
-      "description": "Обмежити дію цього правила одним DocType."
+      "description": "Limit this rule to a single DocType."
     },
     {
       "fieldname": "is_default",
-      "label": "Значення за замовчуванням",
+      "label": "Default value",
       "fieldtype": "Check",
       "default": false,
-      "description": "Підставляти це значення у відповідне Link-поле нових документів."
+      "description": "Fill this value into the matching Link field of new documents."
     }
   ],
   "permissions": [

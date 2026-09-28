@@ -1,6 +1,6 @@
 {
   "name": "Address",
-  "label": "Адреса",
+  "label": "Address",
   "module": "geo",
   "autoname": "hash",
   "title_field": "full_address",
@@ -8,15 +8,16 @@
   "fields": [
     {
       "fieldname": "address_type",
-      "label": "Тип адреси",
+      "label": "Address type",
       "fieldtype": "Select",
-      "options": "\nРеєстрації\nФактична\nПоштова\nЮридична",
+      "options": "\nRegistered\nActual\nPostal\nLegal",
+      "translatable": true,
       "in_list_view": true,
       "in_filter": true
     },
     {
       "fieldname": "country",
-      "label": "Країна",
+      "label": "Country",
       "fieldtype": "Link",
       "options": "Country",
       "required": true,
@@ -25,62 +26,76 @@
     },
     {
       "fieldname": "region",
-      "label": "Регіон / Область",
+      "label": "Region / Oblast",
       "fieldtype": "Link",
       "options": "Region",
       "in_filter": true
     },
     {
       "fieldname": "city",
-      "label": "Місто (довідник)",
+      "label": "City (directory)",
       "fieldtype": "Link",
       "options": "City"
     },
     {
       "fieldname": "city_text",
-      "label": "Місто (текст)",
+      "label": "City (text)",
       "fieldtype": "Data",
       "in_list_view": true,
-      "description": "Введіть назву міста вручну, якщо немає в довіднику"
+      "description": "Enter the city name manually if it is not in the directory"
     },
     {
       "fieldname": "zip_code",
-      "label": "Поштовий індекс",
+      "label": "Postal code",
       "fieldtype": "Data"
     },
     {
       "fieldname": "street",
-      "label": "Вулиця",
+      "label": "Street",
       "fieldtype": "Data"
     },
     {
       "fieldname": "building",
-      "label": "Будинок",
+      "label": "Building",
       "fieldtype": "Data"
     },
     {
       "fieldname": "apartment",
-      "label": "Квартира / Офіс",
+      "label": "Apartment / Office",
       "fieldtype": "Data"
     },
     {
       "fieldname": "full_address",
-      "label": "Повна адреса",
+      "label": "Full address",
       "fieldtype": "LongText",
       "read_only": true,
       "in_list_view": true,
-      "description": "Формується автоматично з полів адреси"
+      "description": "Built automatically from the address fields"
     },
     {
       "fieldname": "notes",
-      "label": "Примітки",
+      "label": "Notes",
       "fieldtype": "LongText"
     }
   ],
   "default_view": "list",
-  "search_fields": ["city_text", "street", "zip_code", "full_address"],
+  "search_fields": [
+    "city_text",
+    "street",
+    "zip_code",
+    "full_address"
+  ],
   "permissions": [
-    { "role": "All", "read": true },
-    { "role": "System Manager", "read": true, "write": true, "create": true, "delete": true }
+    {
+      "role": "All",
+      "read": true
+    },
+    {
+      "role": "System Manager",
+      "read": true,
+      "write": true,
+      "create": true,
+      "delete": true
+    }
   ]
 }

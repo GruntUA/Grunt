@@ -1,6 +1,6 @@
 {
   "name": "Language",
-  "label": "Мова",
+  "label": "Language",
   "module": "geo",
   "autoname": "field:code",
   "title_field": "title",
@@ -8,30 +8,30 @@
   "fields": [
     {
       "fieldname": "code",
-      "label": "Код ISO 639-1",
+      "label": "ISO 639-1 code",
       "fieldtype": "Data",
       "required": true,
       "in_list_view": true,
       "bold": true,
-      "description": "Двобуквений код мови (uk, en, de, fr)"
+      "description": "Two-letter language code (uk, en, de, fr)"
     },
     {
       "fieldname": "title",
-      "label": "Назва (англ.)",
+      "label": "Name (English)",
       "fieldtype": "Text",
       "required": true,
       "in_list_view": true
     },
     {
       "fieldname": "native_name",
-      "label": "Рідна назва",
+      "label": "Native name",
       "fieldtype": "Text",
       "in_list_view": true,
-      "description": "Назва мови рідною мовою (Українська, English, Deutsch)"
+      "description": "Language name in the language itself (Українська, English, Deutsch)"
     },
     {
       "fieldname": "script",
-      "label": "Писемність",
+      "label": "Script",
       "fieldtype": "Select",
       "options": "Latin\nCyrillic\nArabic\nChinese\nDevanagari\nGreek\nHebrew\nJapanese\nKorean\nOther",
       "translatable": true,
@@ -40,7 +40,7 @@
     },
     {
       "fieldname": "is_active",
-      "label": "Активна",
+      "label": "Active",
       "fieldtype": "Check",
       "default": "1",
       "in_list_view": true,
@@ -48,9 +48,22 @@
     }
   ],
   "default_view": "list",
-  "search_fields": ["code", "title", "native_name"],
+  "search_fields": [
+    "code",
+    "title",
+    "native_name"
+  ],
   "permissions": [
-    { "role": "All", "read": true },
-    { "role": "System Manager", "read": true, "write": true, "create": true, "delete": true }
+    {
+      "role": "All",
+      "read": true
+    },
+    {
+      "role": "System Manager",
+      "read": true,
+      "write": true,
+      "create": true,
+      "delete": true
+    }
   ]
 }

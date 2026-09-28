@@ -1,15 +1,15 @@
 {
   "name": "BackgroundJob",
-  "label": "Активні фонові задачі",
+  "label": "Active Background Tasks",
   "module": "tasks",
   "icon": "loader",
   "is_virtual": true,
   "default_view": "list",
-  "description": "Задачі, які воркер зараз тримає в роботі (доставлені, ще не підтверджені) — живий знімок з Redis Stream, нічого не зберігається в БД. Завершені задачі тут не показуються; помилки дивіться в Журналі помилок.",
+  "description": "Tasks a worker currently holds (delivered, not yet acknowledged) — a live snapshot from the Redis Stream, nothing is stored in the DB. Finished tasks are not shown here; see the Error Log for failures.",
   "fields": [
     {
       "fieldname": "task_name",
-      "label": "Задача",
+      "label": "Task",
       "fieldtype": "Data",
       "read_only": true,
       "in_list_view": true,
@@ -17,14 +17,14 @@
     },
     {
       "fieldname": "task_id",
-      "label": "ID задачі",
+      "label": "Task ID",
       "fieldtype": "Data",
       "read_only": true,
       "in_list_view": true
     },
     {
       "fieldname": "consumer",
-      "label": "Воркер",
+      "label": "Worker",
       "fieldtype": "Data",
       "read_only": true,
       "in_list_view": true,
@@ -32,29 +32,29 @@
     },
     {
       "fieldname": "queued_at",
-      "label": "У черзі з",
+      "label": "Queued since",
       "fieldtype": "Datetime",
       "read_only": true,
       "in_list_view": true
     },
     {
       "fieldname": "idle_ms",
-      "label": "Без підтвердження, мс",
+      "label": "Without ack, ms",
       "fieldtype": "Int",
       "read_only": true,
       "in_list_view": true,
-      "description": "Час з моменту, як воркер востаннє щось із цією задачею робив. Велике значення означає, що задача, скоріш за все, зависла."
+      "description": "Time since the worker last did anything with this task. A large value means the task is most likely stuck."
     },
     {
       "fieldname": "delivery_count",
-      "label": "Спроб доставки",
+      "label": "Delivery attempts",
       "fieldtype": "Int",
       "read_only": true,
-      "description": "Скільки разів Redis перепризначав цю задачу воркеру (транспортний рівень, не пов'язано з retry_on_error задачі)."
+      "description": "How many times Redis re-delivered this task to a worker (transport level, unrelated to the task's retry_on_error)."
     },
     {
       "fieldname": "arguments",
-      "label": "Аргументи",
+      "label": "Arguments",
       "fieldtype": "JSON",
       "read_only": true
     }

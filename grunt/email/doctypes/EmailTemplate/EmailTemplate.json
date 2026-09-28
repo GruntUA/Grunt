@@ -1,23 +1,25 @@
 {
   "name": "EmailTemplate",
-  "label": "Шаблон листа",
+  "label": "Email Template",
   "module": "email",
   "title_field": "label",
   "track_changes": true,
-  "search_fields": ["label"],
+  "search_fields": [
+    "label"
+  ],
   "fields": [
     {
       "fieldname": "label",
-      "label": "Назва",
+      "label": "Name",
       "fieldtype": "Text",
       "required": true,
       "in_list_view": true,
       "bold": true,
-      "description": "Для орієнтації в списку — на саму розсилку не впливає"
+      "description": "For orientation in the list — does not affect sending"
     },
     {
       "fieldname": "is_active",
-      "label": "Активний",
+      "label": "Active",
       "fieldtype": "Check",
       "default": "1",
       "in_list_view": true,
@@ -25,38 +27,38 @@
     },
     {
       "fieldname": "sec_content",
-      "label": "Вміст",
+      "label": "Content",
       "fieldtype": "Section"
     },
     {
       "fieldname": "subject",
-      "label": "Тема листа",
+      "label": "Email subject",
       "fieldtype": "Text",
       "required": true,
-      "description": "Підстановка значень — {ім'я_поля} з контексту, який передає викликач"
+      "description": "Value substitution — {field_name} from the context passed by the caller"
     },
     {
       "fieldname": "body",
-      "label": "Текст (звичайний)",
+      "label": "Text (plain)",
       "fieldtype": "LongText",
       "required": true,
-      "description": "Текстова версія — завжди надсилається; підстановка та сама, {ім'я_поля}"
+      "description": "Text version — always sent; same substitution, {field_name}"
     },
     {
       "fieldname": "body_html",
-      "label": "Текст (HTML)",
+      "label": "Text (HTML)",
       "fieldtype": "HTMLEditor",
-      "description": "Необов'язково. Якщо заповнено — лист іде як HTML з текстовою версією як запасний варіант"
+      "description": "Optional. If set, the email is sent as HTML with the text version as a fallback"
     },
     {
       "fieldname": "sec_help",
-      "label": "Довідка",
+      "label": "Help",
       "fieldtype": "Section",
       "collapsible": true
     },
     {
       "fieldname": "description",
-      "label": "Де використовується / доступні поля",
+      "label": "Where used / available fields",
       "fieldtype": "LongText"
     }
   ],

@@ -1,13 +1,13 @@
 {
   "name": "ClientScript",
-  "label": "Клієнтський скрипт",
+  "label": "Client Script",
   "module": "scripting",
   "table_name": "grunt_client_script",
   "hide_from_activity_feed": true,
   "fields": [
     {
       "fieldname": "doctype",
-      "label": "Тип документа",
+      "label": "Document type",
       "fieldtype": "Link",
       "options": "DocType",
       "required": true,
@@ -16,13 +16,13 @@
     },
     {
       "fieldname": "script",
-      "label": "Скрипт (JavaScript)",
+      "label": "Script (JavaScript)",
       "fieldtype": "LongText",
       "required": true
     },
     {
       "fieldname": "is_enabled",
-      "label": "Активний",
+      "label": "Active",
       "fieldtype": "Check",
       "default": true,
       "in_list_view": true,

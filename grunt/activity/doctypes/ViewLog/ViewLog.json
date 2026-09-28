@@ -1,16 +1,22 @@
 {
   "name": "ViewLog",
-  "label": "Журнал переглядів",
+  "label": "View Log",
   "module": "activity",
   "is_log": true,
   "track_changes": false,
   "table_name": "grunt_log_view",
   "track_activity": false,
-  "indexes": [["doctype", "doc_id", "viewed_by"]],
+  "indexes": [
+    [
+      "doctype",
+      "doc_id",
+      "viewed_by"
+    ]
+  ],
   "fields": [
     {
       "fieldname": "doctype",
-      "label": "Тип документа",
+      "label": "Document type",
       "fieldtype": "Link",
       "options": "DocType",
       "required": true,
@@ -20,7 +26,7 @@
     },
     {
       "fieldname": "doc_id",
-      "label": "ID документа",
+      "label": "Document ID",
       "fieldtype": "Text",
       "required": true,
       "in_list_view": true,
@@ -28,7 +34,7 @@
     },
     {
       "fieldname": "viewed_by",
-      "label": "Переглянув",
+      "label": "Viewed by",
       "fieldtype": "Text",
       "required": true,
       "in_list_view": true,
@@ -37,7 +43,7 @@
     },
     {
       "fieldname": "viewed_at",
-      "label": "Час перегляду",
+      "label": "Viewed at",
       "fieldtype": "Datetime",
       "required": true,
       "in_list_view": true

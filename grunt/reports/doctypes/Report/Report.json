@@ -1,6 +1,6 @@
 {
   "name": "Report",
-  "label": "Звіт",
+  "label": "Report",
   "module": "reports",
   "track_changes": false,
   "table_name": "grunt_report",
@@ -8,7 +8,7 @@
   "fields": [
     {
       "fieldname": "report_name",
-      "label": "Назва",
+      "label": "Name",
       "fieldtype": "Text",
       "required": true,
       "unique": true,
@@ -16,7 +16,7 @@
     },
     {
       "fieldname": "report_type",
-      "label": "Тип",
+      "label": "Type",
       "fieldtype": "Select",
       "options": "Query\nScript\nList",
       "translatable": true,
@@ -26,7 +26,7 @@
     },
     {
       "fieldname": "doctype",
-      "label": "Тип документа",
+      "label": "Document type",
       "fieldtype": "Link",
       "options": "DocType",
       "in_list_view": true,
@@ -34,17 +34,17 @@
     },
     {
       "fieldname": "columns",
-      "label": "Колонки (JSON)",
+      "label": "Columns (JSON)",
       "fieldtype": "JSON"
     },
     {
       "fieldname": "filters_config",
-      "label": "Конфігурація фільтрів (JSON)",
+      "label": "Filter configuration (JSON)",
       "fieldtype": "JSON"
     },
     {
       "fieldname": "chart_config",
-      "label": "Конфігурація графіка (JSON)",
+      "label": "Chart configuration (JSON)",
       "fieldtype": "JSON"
     },
     {
@@ -82,7 +82,7 @@
     },
     {
       "fieldname": "sec_query",
-      "label": "SQL запит",
+      "label": "SQL query",
       "fieldtype": "Section",
       "depends_on": "eval:doc.report_type==='Query'"
     },
@@ -95,13 +95,13 @@
     },
     {
       "fieldname": "sec_script",
-      "label": "Python скрипт",
+      "label": "Python script",
       "fieldtype": "Section",
       "depends_on": "eval:doc.report_type==='Script'"
     },
     {
       "fieldname": "script",
-      "label": "Скрипт",
+      "label": "Script",
       "fieldtype": "Code",
       "options": "python",
       "depends_on": "eval:doc.report_type==='Script'"

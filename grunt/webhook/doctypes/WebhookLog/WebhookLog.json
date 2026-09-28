@@ -1,6 +1,6 @@
 {
   "name": "WebhookLog",
-  "label": "Лог вебхуку",
+  "label": "Webhook Log",
   "module": "webhook",
   "table_name": "grunt_webhook_log",
   "track_activity": false,
@@ -9,7 +9,7 @@
   "fields": [
     {
       "fieldname": "webhook",
-      "label": "Вебхук",
+      "label": "Webhook",
       "fieldtype": "Link",
       "options": "OutgoingWebhook",
       "in_list_view": true,
@@ -17,7 +17,7 @@
     },
     {
       "fieldname": "event",
-      "label": "Подія",
+      "label": "Event",
       "fieldtype": "Data",
       "in_list_view": true
     },
@@ -29,35 +29,35 @@
     },
     {
       "fieldname": "status_code",
-      "label": "HTTP Статус",
+      "label": "HTTP status",
       "fieldtype": "Int",
       "in_list_view": true
     },
     {
       "fieldname": "success",
-      "label": "Успіх",
+      "label": "Success",
       "fieldtype": "Check",
       "in_list_view": true,
       "in_filter": true
     },
     {
       "fieldname": "duration_ms",
-      "label": "Час (мс)",
+      "label": "Time (ms)",
       "fieldtype": "Int"
     },
     {
       "fieldname": "response_body",
-      "label": "Відповідь",
+      "label": "Response",
       "fieldtype": "LongText"
     },
     {
       "fieldname": "error",
-      "label": "Помилка",
+      "label": "Error",
       "fieldtype": "Text"
     },
     {
       "fieldname": "is_test",
-      "label": "Тестовий",
+      "label": "Test",
       "fieldtype": "Check",
       "in_filter": true
     }

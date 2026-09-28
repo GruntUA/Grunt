@@ -246,7 +246,7 @@
       "fieldname": "sec_backups",
       "label": "Scheduled backups",
       "fieldtype": "Section",
-      "description": "Database, uploaded files and site config are saved to sites/<site>/backups/. Backups are listed, downloaded and made on demand in «Резервні копії»."
+      "description": "Database, uploaded files and site config are saved to sites/<site>/backups/. Backups are listed, downloaded and made on demand in «Backups»."
     },
     {
       "fieldname": "backup_enabled",

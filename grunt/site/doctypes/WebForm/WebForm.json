@@ -110,7 +110,7 @@
     },
     {
       "fieldname": "tab_designer",
-      "label": "Конструктор",
+      "label": "Builder",
       "fieldtype": "Tab",
       "tab_component": "WebFormDesignerTab",
       "icon": "LayoutTemplate"

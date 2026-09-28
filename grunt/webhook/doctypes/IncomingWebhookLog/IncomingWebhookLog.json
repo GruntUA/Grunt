@@ -1,6 +1,6 @@
 {
   "name": "IncomingWebhookLog",
-  "label": "Лог вхідного вебхуку",
+  "label": "Incoming Webhook Log",
   "module": "webhook",
   "table_name": "grunt_incoming_webhook_log",
   "track_activity": false,
@@ -9,7 +9,7 @@
   "fields": [
     {
       "fieldname": "webhook",
-      "label": "Вебхук",
+      "label": "Webhook",
       "fieldtype": "Link",
       "options": "IncomingWebhook",
       "in_list_view": true,
@@ -23,7 +23,7 @@
     },
     {
       "fieldname": "status",
-      "label": "Статус",
+      "label": "Status",
       "fieldtype": "Select",
       "options": "success\nerror\nignored",
       "translatable": true,
@@ -32,28 +32,28 @@
     },
     {
       "fieldname": "action_taken",
-      "label": "Виконана дія",
+      "label": "Action taken",
       "fieldtype": "Data",
       "in_list_view": true
     },
     {
       "fieldname": "duration_ms",
-      "label": "Час (мс)",
+      "label": "Time (ms)",
       "fieldtype": "Int"
     },
     {
       "fieldname": "request_headers",
-      "label": "Заголовки запиту",
+      "label": "Request headers",
       "fieldtype": "LongText"
     },
     {
       "fieldname": "payload",
-      "label": "Тіло запиту",
+      "label": "Request body",
       "fieldtype": "LongText"
     },
     {
       "fieldname": "error",
-      "label": "Помилка",
+      "label": "Error",
       "fieldtype": "Text"
     }
   ],

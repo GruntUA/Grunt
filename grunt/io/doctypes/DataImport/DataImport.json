@@ -1,12 +1,12 @@
 {
   "name": "DataImport",
-  "label": "Імпорт даних",
+  "label": "Data Import",
   "module": "io",
   "title_field": "doctype_name",
   "fields": [
     {
       "fieldname": "doctype_name",
-      "label": "Тип документа",
+      "label": "Document type",
       "fieldtype": "Link",
       "options": "DocType",
       "required": true,
@@ -15,13 +15,13 @@
     },
     {
       "fieldname": "file",
-      "label": "Файл (CSV / XLSX)",
+      "label": "File (CSV / XLSX)",
       "fieldtype": "Attach",
       "required": true
     },
     {
       "fieldname": "import_type",
-      "label": "Тип імпорту",
+      "label": "Import type",
       "fieldtype": "Select",
       "options": "Insert New\nUpdate Existing",
       "translatable": true,
@@ -31,32 +31,32 @@
     },
     {
       "fieldname": "update_key",
-      "label": "Ключ для оновлення",
+      "label": "Update key",
       "fieldtype": "Data",
       "depends_on": "eval:doc.import_type === 'Update Existing'",
-      "description": "Назва поля, за яким шукати існуючий документ"
+      "description": "Field used to find an existing document"
     },
     {
       "fieldname": "mapping",
-      "label": "Маппінг колонок",
+      "label": "Column mapping",
       "fieldtype": "ColumnMapping"
     },
     {
       "fieldname": "dry_run",
-      "label": "Тільки валідація (без запису)",
+      "label": "Validate only (no writes)",
       "fieldtype": "Check",
       "default": true
     },
     {
       "fieldname": "skip_required_validation",
-      "label": "Пропускати обов'язкові поля",
+      "label": "Skip required fields",
       "fieldtype": "Check",
       "default": false,
-      "description": "Дозволяє імпортувати рядки навіть якщо обов'язкові поля порожні"
+      "description": "Allows importing rows even if required fields are empty"
     },
     {
       "fieldname": "status",
-      "label": "Статус",
+      "label": "Status",
       "fieldtype": "Select",
       "options": "Pending\nIn Progress\nSuccess\nPartial Success\nFailed",
       "translatable": true,
@@ -67,28 +67,28 @@
     },
     {
       "fieldname": "total_rows",
-      "label": "Всього рядків",
+      "label": "Total rows",
       "fieldtype": "Int",
       "read_only": true,
       "in_list_view": true
     },
     {
       "fieldname": "processed_rows",
-      "label": "Оброблено",
+      "label": "Processed",
       "fieldtype": "Int",
       "read_only": true,
       "in_list_view": true
     },
     {
       "fieldname": "error_count",
-      "label": "Помилок",
+      "label": "Errors",
       "fieldtype": "Int",
       "read_only": true,
       "in_list_view": true
     },
     {
       "fieldname": "error_log",
-      "label": "Лог помилок",
+      "label": "Error log",
       "fieldtype": "JSON",
       "read_only": true
     }

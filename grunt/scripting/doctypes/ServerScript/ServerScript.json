@@ -1,13 +1,13 @@
 {
   "name": "ServerScript",
-  "label": "Серверний скрипт",
+  "label": "Server Script",
   "module": "scripting",
   "table_name": "grunt_server_script",
   "hide_from_activity_feed": true,
   "fields": [
     {
       "fieldname": "script_type",
-      "label": "Тип",
+      "label": "Type",
       "fieldtype": "Select",
       "options": "DocType Event\nAPI\nScheduler Event",
       "translatable": true,
@@ -17,36 +17,36 @@
     },
     {
       "fieldname": "doctype",
-      "label": "Тип документа",
+      "label": "Document type",
       "fieldtype": "Link",
       "options": "DocType",
       "in_list_view": true
     },
     {
       "fieldname": "event",
-      "label": "Подія",
+      "label": "Event",
       "fieldtype": "Select",
       "options": "before_insert\nafter_insert\nbefore_save\nafter_save\nbefore_delete\nafter_delete\nvalidate"
     },
     {
       "fieldname": "api_method",
-      "label": "API метод",
+      "label": "API method",
       "fieldtype": "Text"
     },
     {
       "fieldname": "cron",
-      "label": "Cron вираз",
+      "label": "Cron expression",
       "fieldtype": "Text"
     },
     {
       "fieldname": "script",
-      "label": "Скрипт (Python)",
+      "label": "Script (Python)",
       "fieldtype": "LongText",
       "required": true
     },
     {
       "fieldname": "is_enabled",
-      "label": "Активний",
+      "label": "Active",
       "fieldtype": "Check",
       "default": true,
       "in_list_view": true,
@@ -54,7 +54,7 @@
     },
     {
       "fieldname": "allow_guest",
-      "label": "Дозвіл для гостей",
+      "label": "Allow guests",
       "fieldtype": "Check",
       "default": false
     }

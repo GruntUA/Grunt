@@ -1,6 +1,6 @@
 {
   "name": "SharedWith",
-  "label": "Доступ",
+  "label": "Access",
   "module": "permissions",
   "indexes": [
     [
@@ -11,26 +11,26 @@
   "fields": [
     {
       "fieldname": "reference_doctype",
-      "label": "Тип документа",
+      "label": "Document type",
       "fieldtype": "Link",
       "options": "DocType",
       "required": true
     },
     {
       "fieldname": "reference_id",
-      "label": "ID документа",
+      "label": "Document ID",
       "fieldtype": "Text",
       "required": true
     },
     {
       "fieldname": "user",
-      "label": "Користувач",
+      "label": "User",
       "fieldtype": "Text",
       "required": true
     },
     {
       "fieldname": "permission",
-      "label": "Дозвіл",
+      "label": "Permission",
       "fieldtype": "Select",
       "options": "Read\nWrite",
       "translatable": true,
