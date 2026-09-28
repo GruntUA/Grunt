@@ -17910,3 +17910,11 @@ msgstr "Оберіть хоча б одну частину для резервн
 #: grunt/grunt/backups/__init__.py
 msgid "Nothing to back up"
 msgstr "Немає що зберігати в резервній копії"
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid "Compression level"
+msgstr "Рівень стиснення"
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid "zstd, 1–19. Higher is smaller but slower: 9 is a good balance, 19 is the smallest. Also used by «Create now»."
+msgstr "zstd, 1–19. Вищий — менший файл, але довше: 9 — оптимальний баланс, 19 — найменший розмір. Застосовується і до «Створити зараз»."

@@ -286,6 +286,16 @@
       "depends_on": "eval:doc.backup_enabled"
     },
     {
+      "fieldname": "backup_compression_level",
+      "label": "Compression level",
+      "fieldtype": "Int",
+      "default": 9,
+      "min_value": 1,
+      "max_value": 19,
+      "columns": 4,
+      "description": "zstd, 1–19. Higher is smaller but slower: 9 is a good balance, 19 is the smallest. Also used by «Create now»."
+    },
+    {
       "fieldname": "tab_notifications",
       "label": "Notifications",
       "fieldtype": "Tab",

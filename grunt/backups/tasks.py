@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
+from typing import Any
 
 from grunt.app import grunt
-from grunt.backups import create_backup, list_backups, rotate
+from grunt.backups import DEFAULT_COMPRESSION_LEVEL, create_backup, list_backups, rotate
 from grunt.log import log
 from grunt.site.manager import site_manager
 from grunt.tasks.broker import task
@@ -23,6 +24,10 @@ async def _settings() -> dict:
         "interval": int(await get_setting("backup_interval_hours", 24) or 24),
         "keep": int(await get_setting("backup_keep", 7) or 7),
         "with_files": bool(await get_setting("backup_include_files", True)),
+        "level": int(
+            await get_setting("backup_compression_level", DEFAULT_COMPRESSION_LEVEL)
+            or DEFAULT_COMPRESSION_LEVEL
+        ),
     }
 
 
@@ -34,9 +39,9 @@ def is_due(site: str, interval_hours: int, now: datetime | None = None) -> bool:
     return now - backups[0].created_at >= timedelta(hours=interval_hours) - _DUE_SLACK
 
 
-async def _run(site: str, *, keep: int, **parts: bool) -> str:
+async def _run(site: str, *, keep: int, **options: Any) -> str:
     try:
-        backup = await create_backup(site, **parts)
+        backup = await create_backup(site, **options)
     except Exception as exc:
         await grunt.log_error(exc=exc, title="Backup failed", context="Background Task")
         raise
@@ -55,7 +60,7 @@ async def scheduled_backup() -> str | None:
         cfg = await _settings()
         if not cfg["enabled"] or not is_due(site, cfg["interval"]):
             return None
-        return await _run(site, with_files=cfg["with_files"], keep=cfg["keep"])
+        return await _run(site, keep=cfg["keep"], with_files=cfg["with_files"], level=cfg["level"])
 
 
 @task
@@ -73,4 +78,5 @@ async def backup_now(
             with_database=with_database,
             with_files=with_files,
             with_config=with_config,
+            level=cfg["level"],
         )

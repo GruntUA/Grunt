@@ -3,23 +3,23 @@
 One backup is a *set* of files sharing an id (``20260923-020000``) in
 ``sites/<site>/backups/``:
 
-* ``<id>-database.sqlite.gz`` — SQLite: an online snapshot through SQLite's
+* ``<id>-database.sqlite.zst`` — SQLite: an online snapshot through SQLite's
   backup API (consistent under WAL, unlike copying the file), checked with
   ``PRAGMA quick_check`` before it is kept; or ``<id>-database.pgdump`` —
   PostgreSQL ``pg_dump -Fc``;
-* ``<id>-files.tar.gz`` — the site's ``uploads/`` (local storage only);
+* ``<id>-files.tar.zst`` — the site's ``uploads/`` (local storage only);
 * ``<id>-config.env`` — the site ``.env`` (SECRET_KEY, DB credentials — a
   restore needs it); readable by the owner only.
 
 ``SystemSettings`` → «Резервні копії» turns the schedule on/off, sets the
-interval, how many sets to keep and whether files are included. An hourly job
+interval, how many sets to keep, whether files are included and the zstd
+compression level. An hourly job
 (:func:`grunt.backups.tasks.scheduled_backup`) makes a backup when one is due.
 """
 
 from __future__ import annotations
 
 import asyncio
-import gzip
 import os
 import re
 import shutil
@@ -27,6 +27,7 @@ import sqlite3
 import subprocess
 import tarfile
 import tempfile
+from compression import zstd
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
@@ -35,6 +36,9 @@ from grunt.i18n import _
 from grunt.log import log
 
 KINDS = ("database", "files", "config")
+# zstd 9: ~40% smaller than gzip 6 and faster; 19 squeezes more at ~25× the time.
+DEFAULT_COMPRESSION_LEVEL = 9
+MAX_COMPRESSION_LEVEL = 19
 _NAME = re.compile(r"^(\d{8}-\d{6})-(database|files|config)(\..+)$")
 
 
@@ -112,7 +116,18 @@ def rotate(site: str, keep: int) -> list[str]:
 # ── Making a backup ───────────────────────────────────────────────────────
 
 
-def _backup_sqlite(db_path: Path, dest: Path) -> None:
+def _zstd_options(level: int) -> dict:
+    """Compression *level* (clamped) on half the cores — the site keeps serving meanwhile."""
+    options = {
+        zstd.CompressionParameter.compression_level: min(max(level, 1), MAX_COMPRESSION_LEVEL)
+    }
+    workers = max((os.cpu_count() or 1) // 2, 1)
+    if workers > 1 and zstd.CompressionParameter.nb_workers.bounds()[1] > 0:
+        options[zstd.CompressionParameter.nb_workers] = workers
+    return options
+
+
+def _backup_sqlite(db_path: Path, dest: Path, level: int) -> None:
     with tempfile.TemporaryDirectory(dir=dest.parent) as tmp:
         snapshot = Path(tmp) / "snapshot.sqlite"
         src = sqlite3.connect(db_path)
@@ -127,7 +142,10 @@ def _backup_sqlite(db_path: Path, dest: Path) -> None:
             raise BackupError(
                 _("The database snapshot is corrupted: %(result)s") % {"result": result}
             )
-        with snapshot.open("rb") as fin, gzip.open(dest, "wb", compresslevel=6) as fout:
+        with (
+            snapshot.open("rb") as fin,
+            zstd.open(dest, "wb", options=_zstd_options(level)) as fout,
+        ):
             shutil.copyfileobj(fin, fout, length=1024 * 1024)
 
 
@@ -135,19 +153,24 @@ def _libpq_url(url) -> str:
     return url.set(drivername="postgresql").render_as_string(hide_password=False)
 
 
-def _backup_postgres(url, dest: Path) -> None:
+def _backup_postgres(url, dest: Path, level: int) -> None:
     if not shutil.which("pg_dump"):
         raise BackupError(_("pg_dump not found; install the PostgreSQL client"))
-    subprocess.run(["pg_dump", "-Fc", "-f", str(dest), _libpq_url(url)], check=True)
+    level = min(max(level, 1), MAX_COMPRESSION_LEVEL)
+    # --compress=zstd needs pg_dump 16+.
+    subprocess.run(
+        ["pg_dump", "-Fc", f"--compress=zstd:{level}", "-f", str(dest), _libpq_url(url)],
+        check=True,
+    )
 
 
-def _backup_files(uploads: Path, dest: Path) -> None:
-    with tarfile.open(dest, "w:gz", compresslevel=6) as tar:
+def _backup_files(uploads: Path, dest: Path, level: int) -> None:
+    with tarfile.open(dest, "w:zst", options=_zstd_options(level)) as tar:
         tar.add(uploads, arcname="uploads")
 
 
 def _create_backup_sync(
-    site: str, with_database: bool, with_files: bool, with_config: bool
+    site: str, with_database: bool, with_files: bool, with_config: bool, level: int
 ) -> BackupSet:
     backup_id = datetime.now(UTC).strftime("%Y%m%d-%H%M%S")
     out = backups_dir(site)
@@ -156,21 +179,21 @@ def _create_backup_sync(
     try:
         backend = url.get_backend_name()
         if with_database and backend == "sqlite":
-            dest = out / f"{backup_id}-database.sqlite.gz"
+            dest = out / f"{backup_id}-database.sqlite.zst"
             made.append(dest)
-            _backup_sqlite(Path(url.database), dest)
+            _backup_sqlite(Path(url.database), dest, level)
         elif with_database and backend == "postgresql":
             dest = out / f"{backup_id}-database.pgdump"
             made.append(dest)
-            _backup_postgres(url, dest)
+            _backup_postgres(url, dest, level)
         elif with_database:
             raise BackupError(_("Backups of %(backend)s are not supported") % {"backend": backend})
 
         uploads = site_dir(site) / "uploads"
         if with_files and uploads.is_dir():
-            dest = out / f"{backup_id}-files.tar.gz"
+            dest = out / f"{backup_id}-files.tar.zst"
             made.append(dest)
-            _backup_files(uploads, dest)
+            _backup_files(uploads, dest, level)
 
         env = site_dir(site) / ".env"
         if with_config and env.exists():
@@ -195,11 +218,12 @@ async def create_backup(
     with_database: bool = True,
     with_files: bool = True,
     with_config: bool = True,
+    level: int = DEFAULT_COMPRESSION_LEVEL,
 ) -> BackupSet:
     """Make a backup set of *site* (the heavy work runs off the event loop)."""
     started = datetime.now(UTC)
     backup = await asyncio.to_thread(
-        _create_backup_sync, site, with_database, with_files, with_config
+        _create_backup_sync, site, with_database, with_files, with_config, level
     )
     log.info(
         "backup.created",
@@ -231,7 +255,7 @@ def restore_backup(site: str, backup: BackupSet, *, with_files: bool = False) ->
     if url.get_backend_name() == "sqlite":
         db_path = Path(url.database)
         restored = aside / "restored.sqlite"
-        with gzip.open(backup.files["database"], "rb") as fin, restored.open("wb") as fout:
+        with zstd.open(backup.files["database"], "rb") as fin, restored.open("wb") as fout:
             shutil.copyfileobj(fin, fout, length=1024 * 1024)
         check = sqlite3.connect(restored)
         try:
@@ -271,7 +295,7 @@ def restore_backup(site: str, backup: BackupSet, *, with_files: bool = False) ->
         uploads = site_dir(site) / "uploads"
         if uploads.exists():
             shutil.move(uploads, aside / "uploads")
-        with tarfile.open(backup.files["files"], "r:gz") as tar:
+        with tarfile.open(backup.files["files"], "r:zst") as tar:
             tar.extractall(site_dir(site), filter="data")
     log.info("backup.restored", site=site, id=backup.id, aside=str(aside))
     return aside

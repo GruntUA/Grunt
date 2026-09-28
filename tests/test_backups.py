@@ -3,9 +3,9 @@ signed downloads, and the «Стан системи» check."""
 
 from __future__ import annotations
 
-import gzip
 import sqlite3
 import stat
+from compression import zstd
 from datetime import UTC, datetime, timedelta
 from urllib.parse import parse_qs, urlparse
 
@@ -56,8 +56,10 @@ async def test_backup_set_has_database_files_and_private_config(site):
     writer.close()
 
     assert set(backup.files) == {"database", "files", "config"}
+    assert backup.files["database"].name.endswith("-database.sqlite.zst")
+    assert backup.files["files"].name.endswith("-files.tar.zst")
     snapshot = site / "snapshot.sqlite"
-    snapshot.write_bytes(gzip.decompress(backup.files["database"].read_bytes()))
+    snapshot.write_bytes(zstd.decompress(backup.files["database"].read_bytes()))
     assert _rows(snapshot) == ["in wal", "original"]
     for path in backup.files.values():
         assert stat.S_IMODE(path.stat().st_mode) == 0o600
@@ -93,10 +95,16 @@ async def test_failed_backup_leaves_nothing_behind(site, monkeypatch):
     assert backups.list_backups(SITE) == []
 
 
+def test_compression_level_is_clamped():
+    level = backups.zstd.CompressionParameter.compression_level
+    assert backups._zstd_options(0)[level] == 1
+    assert backups._zstd_options(22)[level] == backups.MAX_COMPRESSION_LEVEL
+
+
 def test_rotation_keeps_the_newest(site):
     out = backups.backups_dir(SITE)
     for day in range(1, 6):
-        (out / f"202609{day:02d}-020000-database.sqlite.gz").write_bytes(b"x")
+        (out / f"202609{day:02d}-020000-database.sqlite.zst").write_bytes(b"x")
     removed = backups.rotate(SITE, keep=2)
     assert removed == ["20260903-020000", "20260902-020000", "20260901-020000"]
     assert [b.id for b in backups.list_backups(SITE)] == ["20260905-020000", "20260904-020000"]
@@ -122,7 +130,7 @@ async def test_restore_brings_back_database_and_files_and_keeps_the_old_state(si
 
 def test_restore_refuses_a_corrupt_copy(site):
     out = backups.backups_dir(SITE)
-    (out / "20260901-020000-database.sqlite.gz").write_bytes(gzip.compress(b"not a database"))
+    (out / "20260901-020000-database.sqlite.zst").write_bytes(zstd.compress(b"not a database"))
     backup = backups.get_backup(SITE, "20260901-020000")
     with pytest.raises((backups.BackupError, sqlite3.DatabaseError)):
         backups.restore_backup(SITE, backup)
@@ -132,7 +140,7 @@ def test_restore_refuses_a_corrupt_copy(site):
 def test_backup_is_due_after_the_interval(site):
     now = datetime(2026, 9, 23, 12, 0, tzinfo=UTC)
     assert tasks.is_due(SITE, 24, now)  # nothing yet
-    (backups.backups_dir(SITE) / "20260923-020000-database.sqlite.gz").write_bytes(b"x")
+    (backups.backups_dir(SITE) / "20260923-020000-database.sqlite.zst").write_bytes(b"x")
     assert not tasks.is_due(SITE, 24, now)
     assert tasks.is_due(SITE, 24, now + timedelta(hours=14))
     assert tasks.is_due(SITE, 6, now)
