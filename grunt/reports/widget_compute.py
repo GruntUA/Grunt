@@ -107,7 +107,9 @@ async def _widget_metric(widget, dt, doctype_name, since, until, days, base_filt
             trend = round((val - prev_val) / prev_val * 100, 1) if prev_val else None
         else:
             trend = None
-        return {"value": val, "trend": trend}
+        # `filters` = exactly what the value was counted over, so the card can
+        # drill down into the same rows of the list view.
+        return {"value": val, "trend": trend, "filters": filters}
     except Exception:
         _log_widget_failed(doctype_name, widget.get("widget_type") or "metric")
         return {"value": 0, "trend": None}

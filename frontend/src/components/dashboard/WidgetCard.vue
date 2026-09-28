@@ -66,8 +66,8 @@ const minH = computed(() => {
       </button>
     </div>
 
-    <!-- Widget render -->
-    <div class="h-full">
+    <!-- Widget render (drill-down clicks off while arranging the dashboard) -->
+    <div :class="['h-full', editMode && 'pointer-events-none']">
       <component
         :is="widgetComponent"
         v-if="widgetComponent"

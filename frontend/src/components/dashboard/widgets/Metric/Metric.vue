@@ -1,14 +1,30 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useRouter } from 'vue-router'
 import type { DashboardWidget } from '@/types'
+import { docUrl } from '@/core/workspaceUrl'
+import { addUrlFilters } from '@/pages/reports/drilldown'
 import * as LucideIcons from '@lucide/vue'
 import { TrendingUp, TrendingDown, Minus } from '@lucide/vue'
 
 const props = defineProps<{
   widget: DashboardWidget
-  data: { value: number; trend?: number | null } | null
+  data: { value: number; trend?: number | null; filters?: Record<string, unknown> } | null
   loading?: boolean
+  workspaceName?: string
 }>()
+
+const router = useRouter()
+
+/** Card → the widget's list, filtered to the rows the value was computed over. */
+const canOpen = computed(() => !!props.widget.doctype && !!props.data?.filters)
+
+function open() {
+  if (!canOpen.value) return
+  const query: Record<string, string> = {}
+  addUrlFilters(query, props.data!.filters!)
+  router.push({ path: docUrl(props.widget.doctype, null, props.workspaceName), query })
+}
 
 const iconComponent = computed(() => {
   if (!props.widget.icon) return null
@@ -40,7 +56,9 @@ const trendNeutral = computed(() => trend.value === null || trend.value === 0)
 </script>
 
 <template>
-  <div class="flex flex-col gap-3 p-5 h-full">
+  <div
+    :class="['flex flex-col gap-3 p-5 h-full', canOpen && 'cursor-pointer hover:bg-muted/30 transition-colors']"
+    @click="open">
     <!-- Header -->
     <div class="flex items-center justify-between">
       <p class="text-muted-foreground font-medium">{{ widget.title }}</p>

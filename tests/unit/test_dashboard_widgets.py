@@ -66,6 +66,19 @@ async def test_metric_widget_sums_a_field(ctx, widget_source):
 
 
 @pytest.mark.asyncio
+async def test_metric_widget_returns_drilldown_filters(ctx, widget_source):
+    """The card drills down into the list with the filters the value was counted over."""
+    from grunt.api.v1.dashboard import _compute_widget_data
+
+    result = await _compute_widget_data(
+        _widget("metric", filters={"status": "Active"}, date_field="creation")
+    )
+    assert result["value"] == 2
+    assert result["filters"]["status"] == "Active"
+    assert "creation__gte" in result["filters"]
+
+
+@pytest.mark.asyncio
 async def test_donut_widget_groups_by_field(ctx, widget_source):
     from grunt.api.v1.dashboard import _compute_widget_data
 
@@ -173,7 +186,7 @@ async def test_get_page_data_computes_all_widgets_by_name(ctx, widget_source):
     result = await get_page_data("Test Page")
     # Child-row names are framework-assigned — key on computed content instead.
     values = sorted(result.values(), key=str)
-    assert {"value": 3, "trend": None} in values
+    assert {"value": 3, "trend": None, "filters": {}} in values
     assert {"count": 3} in values
 
 
