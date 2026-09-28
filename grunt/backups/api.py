@@ -16,6 +16,7 @@ from fastapi import HTTPException
 from fastapi.responses import FileResponse
 
 from grunt import whitelist
+from grunt.app import grunt
 from grunt.backups import _NAME, backups_dir
 from grunt.config import settings
 from grunt.i18n import _
@@ -62,5 +63,10 @@ async def backup_now(
 
     if not (with_database or with_files or with_config):
         raise HTTPException(status_code=400, detail=_("Choose at least one part to back up"))
-    await task.kiq(with_database=with_database, with_files=with_files, with_config=with_config)
+    await task.kiq(
+        with_database=with_database,
+        with_files=with_files,
+        with_config=with_config,
+        user=grunt.session.user,
+    )
     return {"queued": True}

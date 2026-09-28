@@ -20,6 +20,7 @@ compression level. An hourly job
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import os
 import re
 import shutil
@@ -29,11 +30,12 @@ import tarfile
 import tempfile
 from compression import zstd
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 from grunt.i18n import _
 from grunt.log import log
+from grunt.progress import Progress
 
 KINDS = ("database", "files", "config")
 # zstd 9: ~40% smaller than gzip 6 and faster; 19 squeezes more at ~25× the time.
@@ -127,13 +129,22 @@ def _zstd_options(level: int) -> dict:
     return options
 
 
-def _backup_sqlite(db_path: Path, dest: Path, level: int) -> None:
-    with tempfile.TemporaryDirectory(dir=dest.parent) as tmp:
+def _backup_sqlite(db_path: Path, dest: Path, level: int, progress: Progress) -> None:
+    with tempfile.TemporaryDirectory(dir=dest.parent, prefix=".", suffix=".part") as tmp:
         snapshot = Path(tmp) / "snapshot.sqlite"
         src = sqlite3.connect(db_path)
         dst = sqlite3.connect(snapshot)
+        base = progress.done
+        page_size = src.execute("PRAGMA page_size").fetchone()[0]
+
+        def copied(_status: int, remaining: int, total: int) -> None:
+            progress.set(done=base + (total - remaining) * page_size)
+
         try:
-            src.backup(dst)  # consistent snapshot, readers/writers keep working
+            progress.set(stage=_("Copying the database"))
+            # consistent snapshot, readers/writers keep working between the steps
+            src.backup(dst, pages=4096, progress=copied)
+            progress.set(stage=_("Checking the database copy"))
             result = dst.execute("PRAGMA quick_check").fetchone()[0]
         finally:
             dst.close()
@@ -142,21 +153,25 @@ def _backup_sqlite(db_path: Path, dest: Path, level: int) -> None:
             raise BackupError(
                 _("The database snapshot is corrupted: %(result)s") % {"result": result}
             )
+        progress.set(done=base + snapshot.stat().st_size, stage=_("Compressing the database"))
         with (
             snapshot.open("rb") as fin,
             zstd.open(dest, "wb", options=_zstd_options(level)) as fout,
         ):
-            shutil.copyfileobj(fin, fout, length=1024 * 1024)
+            while chunk := fin.read(1024 * 1024):
+                fout.write(chunk)
+                progress.advance(len(chunk))
 
 
 def _libpq_url(url) -> str:
     return url.set(drivername="postgresql").render_as_string(hide_password=False)
 
 
-def _backup_postgres(url, dest: Path, level: int) -> None:
+def _backup_postgres(url, dest: Path, level: int, progress: Progress) -> None:
     if not shutil.which("pg_dump"):
         raise BackupError(_("pg_dump not found; install the PostgreSQL client"))
     level = min(max(level, 1), MAX_COMPRESSION_LEVEL)
+    progress.set(stage=_("Dumping the database"))  # pg_dump reports no progress
     # --compress=zstd needs pg_dump 16+.
     subprocess.run(
         ["pg_dump", "-Fc", f"--compress=zstd:{level}", "-f", str(dest), _libpq_url(url)],
@@ -164,46 +179,116 @@ def _backup_postgres(url, dest: Path, level: int) -> None:
     )
 
 
-def _backup_files(uploads: Path, dest: Path, level: int) -> None:
-    with tarfile.open(dest, "w:zst", options=_zstd_options(level)) as tar:
+class _CountingReader:
+    """A file whose reads advance *progress* — a big file moves the bar as it goes."""
+
+    def __init__(self, f, progress: Progress):
+        self._f = f
+        self._progress = progress
+
+    def read(self, size: int = -1) -> bytes:
+        chunk = self._f.read(size)
+        self._progress.advance(len(chunk))
+        return chunk
+
+
+class _CountingTarFile(tarfile.TarFile):
+    progress: Progress
+
+    def addfile(self, tarinfo, fileobj=None):
+        if fileobj is not None:
+            fileobj = _CountingReader(fileobj, self.progress)
+        super().addfile(tarinfo, fileobj)
+
+
+def _backup_files(uploads: Path, dest: Path, level: int, progress: Progress) -> None:
+    progress.set(stage=_("Archiving files"))
+    with _CountingTarFile.open(dest, "w:zst", options=_zstd_options(level)) as tar:
+        tar.progress = progress
         tar.add(uploads, arcname="uploads")
 
 
+def _part(path: Path) -> Path:
+    """Where *path* is written until the whole set is done — hidden, not matched by _NAME.
+
+    If the worker is killed mid-backup, only these are left behind, never a
+    broken set in the list.
+    """
+    return path.with_name(f".{path.name}.part")
+
+
+_STALE_PART = timedelta(hours=12)
+
+
+def _remove_stale_parts(out: Path) -> None:
+    """Leftovers of a backup that was killed (a running one's parts are fresh)."""
+    cutoff = datetime.now(UTC) - _STALE_PART
+    for path in out.glob(".*.part"):
+        with contextlib.suppress(OSError):
+            if datetime.fromtimestamp(path.stat().st_mtime, UTC) < cutoff:
+                shutil.rmtree(path) if path.is_dir() else path.unlink()
+
+
+def _tree_size(path: Path) -> int:
+    return sum(p.stat().st_size for p in path.rglob("*") if p.is_file() and not p.is_symlink())
+
+
 def _create_backup_sync(
-    site: str, with_database: bool, with_files: bool, with_config: bool, level: int
+    site: str,
+    with_database: bool,
+    with_files: bool,
+    with_config: bool,
+    level: int,
+    progress: Progress,
 ) -> BackupSet:
     backup_id = datetime.now(UTC).strftime("%Y%m%d-%H%M%S")
     out = backups_dir(site)
     url = _db_url(site)
-    made: list[Path] = []
+    backend = url.get_backend_name()
+    uploads = site_dir(site) / "uploads"
+    with_files = with_files and uploads.is_dir()
+
+    # The bar is measured in bytes read: a SQLite file twice (snapshot, then
+    # compressing it) plus every uploaded file; pg_dump shows its stage only.
+    progress.set(stage=_("Preparing"))
+    total = 0
+    if with_database and backend == "sqlite":
+        total += 2 * Path(url.database).stat().st_size
+    if with_files:
+        total += _tree_size(uploads)
+    progress.set(total=total)
+
+    _remove_stale_parts(out)
+    made: list[Path] = []  # the final paths; each is written as its _part() first
     try:
-        backend = url.get_backend_name()
         if with_database and backend == "sqlite":
             dest = out / f"{backup_id}-database.sqlite.zst"
             made.append(dest)
-            _backup_sqlite(Path(url.database), dest, level)
+            _backup_sqlite(Path(url.database), _part(dest), level, progress)
         elif with_database and backend == "postgresql":
             dest = out / f"{backup_id}-database.pgdump"
             made.append(dest)
-            _backup_postgres(url, dest, level)
+            _backup_postgres(url, _part(dest), level, progress)
         elif with_database:
             raise BackupError(_("Backups of %(backend)s are not supported") % {"backend": backend})
 
-        uploads = site_dir(site) / "uploads"
-        if with_files and uploads.is_dir():
+        if with_files:
             dest = out / f"{backup_id}-files.tar.zst"
             made.append(dest)
-            _backup_files(uploads, dest, level)
+            _backup_files(uploads, _part(dest), level, progress)
 
         env = site_dir(site) / ".env"
         if with_config and env.exists():
             dest = out / f"{backup_id}-config.env"
             made.append(dest)
-            shutil.copyfile(env, dest)
+            shutil.copyfile(env, _part(dest))
         for path in made:
-            os.chmod(path, 0o600)
+            os.chmod(_part(path), 0o600)
+        for path in made:  # the set appears in the list only once it is complete
+            _part(path).rename(path)
     except BaseException:
         for path in made:  # never leave a half-made set behind
+            _part(path).unlink(missing_ok=True)
             path.unlink(missing_ok=True)
         raise
     backup = get_backup(site, backup_id)
@@ -219,11 +304,16 @@ async def create_backup(
     with_files: bool = True,
     with_config: bool = True,
     level: int = DEFAULT_COMPRESSION_LEVEL,
+    progress: Progress | None = None,
 ) -> BackupSet:
-    """Make a backup set of *site* (the heavy work runs off the event loop)."""
+    """Make a backup set of *site* (the heavy work runs off the event loop).
+
+    *progress* (see :func:`grunt.progress.track_progress`) follows it in bytes.
+    """
     started = datetime.now(UTC)
+    progress = progress or Progress("", user=None)
     backup = await asyncio.to_thread(
-        _create_backup_sync, site, with_database, with_files, with_config, level
+        _create_backup_sync, site, with_database, with_files, with_config, level, progress
     )
     log.info(
         "backup.created",

@@ -114,6 +114,8 @@ function handleRealtimeEvent(msg: RealtimeEvent) {
         total: (msg.data.total as number) ?? 100,
         percent: msg.data.percent as number | undefined,
         description: msg.data.description as string | undefined,
+        unit: msg.data.unit as 'bytes' | null | undefined,
+        started_at: msg.data.started_at as number | undefined,
       })
       break
     }
@@ -125,6 +127,7 @@ function handleRealtimeEvent(msg: RealtimeEvent) {
         title: msg.data.title as string | undefined,
         status: (msg.data.status as 'done' | 'error') ?? 'done',
         message: msg.data.message as string | undefined,
+        doctype: msg.data.doctype as string | null | undefined,
       })
       break
     }

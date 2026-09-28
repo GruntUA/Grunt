@@ -1,5 +1,6 @@
 /**
- * Резервні копії — «Створити зараз» у списку, завантаження файлів копії у формі.
+ * Резервні копії — «Створити зараз» у списку (вибір частин, прогрес у панелі задач),
+ * завантаження файлів копії у формі.
  * Посилання на файли підписані й дійсні 15 хвилин (grunt/backups/api.py).
  */
 
@@ -36,7 +37,7 @@ async function setup_list(listview) {
         label: __('Create now'),
         icon: 'archive',
         placement: 'primary',
-        action: async (lv) => {
+        action: async () => {
             const parts = await grunt.form({
                 title: __('Create backup'),
                 primaryLabel: __('Create now'),
@@ -59,8 +60,8 @@ async function setup_list(listview) {
                     with_config: !!parts.with_config,
                 },
             })
-            grunt.show_alert(__('Backup queued — it will appear in the list in a minute'), 'success')
-            setTimeout(() => lv.refresh(), 5000)
+            // Progress shows in the task panel; the list refreshes when it's done.
+            grunt.show_alert(__('Backup started'), 'success')
         },
     })
 }

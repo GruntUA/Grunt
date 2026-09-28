@@ -7,12 +7,16 @@
  *
  * Usage (in a background task on the Python side):
  *
- *   await grunt.show_progress(user=email, title="Імпорт", count=n, total=total)
+ *   async with track_progress(_("Import"), user=email, total=n) as p:  # grunt.progress
+ *       p.advance(1)
  *
- * The frontend automatically picks up the WS event and shows the panel.
+ * or one-off updates with `grunt.publish.show_progress(...)`. The frontend
+ * picks up the WS events and shows the panel; `restore()` brings back the
+ * tasks still running after a page reload.
  */
 
 import { computed, ref } from 'vue'
+import client from '@/core/api/client'
 import i18n from '@/plugins/i18n'
 
 const t = (key: string): string => i18n.global.t(key)
@@ -27,6 +31,10 @@ export interface TaskEntry {
   total: number
   percent: number
   description?: string
+  /** 'bytes' — count/total are sizes (shown as MB/GB). */
+  unit?: 'bytes' | null
+  /** DocType whose open list refreshes when the task is done. */
+  doctype?: string | null
   /** 'active' while running, 'done' / 'error' after completion. */
   status: 'active' | 'done' | 'error'
   startedAt: number    // Date.now()
@@ -55,6 +63,9 @@ function update(data: {
   total?: number
   percent?: number
   description?: string
+  unit?: 'bytes' | null
+  /** Server start time, epoch seconds — keeps the ETA right after a reload. */
+  started_at?: number
 }) {
   const title = data.title ?? t('Task')
   const id = data.task_id ?? _titleToId(title)
@@ -79,8 +90,9 @@ function update(data: {
     total,
     percent,
     description: data.description ?? existing?.description,
+    unit: data.unit ?? existing?.unit,
     status: percent >= 100 ? 'done' : 'active',
-    startedAt: existing?.startedAt ?? now,
+    startedAt: data.started_at ? data.started_at * 1000 : (existing?.startedAt ?? now),
     updatedAt: now,
   })
 
@@ -91,13 +103,20 @@ function update(data: {
 }
 
 /** Mark a task as done or errored (sent from the backend task_done event). */
-function done(data: { task_id?: string; title?: string; status?: 'done' | 'error'; message?: string }) {
+function done(data: {
+  task_id?: string
+  title?: string
+  status?: 'done' | 'error'
+  message?: string
+  doctype?: string | null
+}) {
   const id = data.task_id ?? _titleToId(data.title ?? t('task'))
   const existing = _tasks.value.get(id)
   if (!existing) return
 
   _tasks.value.set(id, {
     ...existing,
+    doctype: data.doctype ?? existing.doctype,
     status: data.status ?? 'done',
     percent: data.status === 'error' ? existing.percent : 100,
     description: data.message ?? existing.description,
@@ -120,6 +139,16 @@ function _scheduleRemoval(id: string, delayMs: number) {
     _removalTimers.delete(id)
   }, delayMs)
   _removalTimers.set(id, t)
+}
+
+/** Pick up the tasks still running on the server (after a page reload). */
+async function restore() {
+  try {
+    const { data } = await client.post('/api/v1/method/grunt.progress.active_tasks', {})
+    for (const task of (data?.data ?? []) as Parameters<typeof update>[0][]) update(task)
+  } catch {
+    // not signed in / no Redis — nothing to restore
+  }
 }
 
 // ── Public composable ─────────────────────────────────────────────────────────
@@ -145,5 +174,6 @@ export function useTaskTracker() {
     update,
     done,
     dismiss,
+    restore,
   }
 }

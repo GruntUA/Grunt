@@ -17918,3 +17918,55 @@ msgstr "Рівень стиснення"
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgid "zstd, 1–19. Higher is smaller but slower: 9 is a good balance, 19 is the smallest. Also used by «Create now»."
 msgstr "zstd, 1–19. Вищий — менший файл, але довше: 9 — оптимальний баланс, 19 — найменший розмір. Застосовується і до «Створити зараз»."
+
+#: grunt/frontend/src/components/desk/TaskProgressPanel.vue
+msgid "< 1 min"
+msgstr "< 1 хв"
+
+#: grunt/frontend/src/components/desk/TaskProgressPanel.vue
+msgid "~{n} min"
+msgstr "~{n} хв"
+
+#: grunt/frontend/src/components/desk/TaskProgressPanel.vue
+msgid "Expand"
+msgstr "Розгорнути"
+
+#: grunt/frontend/src/components/desk/TaskProgressPanel.vue
+msgid "Collapse"
+msgstr "Згорнути"
+
+#: grunt/frontend/src/components/desk/TaskProgressPanel.vue
+msgid "Dismiss"
+msgstr "Закрити"
+
+#: grunt/grunt/backups/tasks.py
+msgid "Backup"
+msgstr "Резервна копія"
+
+#: grunt/grunt/backups/doctypes/Backup/Backup.js
+msgid "Backup started"
+msgstr "Резервне копіювання запущено"
+
+#: grunt/grunt/backups/__init__.py
+msgid "Preparing"
+msgstr "Підготовка"
+
+#: grunt/grunt/backups/__init__.py
+msgid "Copying the database"
+msgstr "Копіювання бази даних"
+
+#: grunt/grunt/backups/__init__.py
+msgid "Checking the database copy"
+msgstr "Перевірка копії бази даних"
+
+#: grunt/grunt/backups/__init__.py
+msgid "Compressing the database"
+msgstr "Стиснення бази даних"
+
+#: grunt/grunt/backups/__init__.py
+msgid "Dumping the database"
+msgstr "Вивантаження бази даних"
+
+#: grunt/grunt/backups/__init__.py
+msgid "Archiving files"
+msgstr "Архівування файлів"

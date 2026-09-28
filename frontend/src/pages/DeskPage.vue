@@ -99,11 +99,11 @@ function timeAgo(ts: number): string {
   const diff = Date.now() - ts
   const minutes = Math.floor(diff / 60000)
   if (minutes < 1) return t('just now')
-  if (minutes < 60) return t('{n} min').replace('{n}', String(minutes))
+  if (minutes < 60) return t('{n} min', { n: String(minutes) }).replace('{n}', String(minutes))
   const hours = Math.floor(minutes / 60)
-  if (hours < 24) return t('{n} h').replace('{n}', String(hours))
+  if (hours < 24) return t('{n} h', { n: String(hours) }).replace('{n}', String(hours))
   const days = Math.floor(hours / 24)
-  return t('{n} d').replace('{n}', String(days))
+  return t('{n} d', { n: String(days) }).replace('{n}', String(days))
 }
 
 function findWorkspaceForDoc(doc: RecentDoc) {
@@ -240,7 +240,7 @@ function docInitials(doc: RecentDoc): string {
               <LayoutGrid class="size-3.5 text-muted-foreground" />
               <h2 class="font-semibold text-foreground">{{ t('Your apps') }}</h2>
             </div>
-            <span class="text-muted-foreground">{{ t('{n} installed').replace('{n}', String(appStore.workspaces.length)) }}</span>
+            <span class="text-muted-foreground">{{ t('{n} installed', { n: String(appStore.workspaces.length) }).replace('{n}', String(appStore.workspaces.length)) }}</span>
           </div>
 
           <!-- Loading skeleton -->

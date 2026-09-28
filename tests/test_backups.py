@@ -179,3 +179,61 @@ async def test_health_reports_missing_and_fresh_backups(site, ctx, monkeypatch):
     rows = await health.check_backups()
     [last] = [r for r in rows if r["check"] == "Остання копія"]
     assert last["status"] == "OK"
+
+
+@pytest.mark.asyncio
+async def test_backup_progress_counts_every_byte(site):
+    from grunt.progress import Progress
+
+    progress = Progress("Backup", user=None)
+    await backups.create_backup(SITE, progress=progress)
+    assert progress.total > 0
+    assert progress.done == progress.total
+
+
+@pytest.mark.asyncio
+async def test_a_backup_in_the_making_is_not_listed(site, monkeypatch):
+    seen = []
+
+    def spy(uploads, dest, level, progress):
+        seen.append(dest.name)
+        seen.append([b.id for b in backups.list_backups(SITE)])
+        dest.write_bytes(b"archive")
+
+    monkeypatch.setattr(backups, "_backup_files", spy)
+    backup = await backups.create_backup(SITE)
+    assert seen[0].startswith(".") and seen[0].endswith(".part")
+    assert seen[1] == []  # the database was done, but the set wasn't complete yet
+    assert set(backup.files) == {"database", "files", "config"}
+    assert not list(backups.backups_dir(SITE).glob(".*"))
+
+
+@pytest.mark.asyncio
+async def test_disk_full_leaves_nothing_behind(site, monkeypatch):
+    def full(uploads, dest, level, progress):
+        dest.write_bytes(b"half")
+        raise OSError(28, "No space left on device")
+
+    monkeypatch.setattr(backups, "_backup_files", full)
+    with pytest.raises(OSError):
+        await backups.create_backup(SITE)
+    assert list(backups.backups_dir(SITE).iterdir()) == []
+
+
+def test_leftovers_of_a_killed_backup_are_removed(site):
+    import os
+
+    out = backups.backups_dir(SITE)
+    old_file = out / ".20260901-020000-files.tar.zst.part"
+    old_file.write_bytes(b"x")
+    old_dir = out / ".tmpabc.part"
+    old_dir.mkdir()
+    (old_dir / "snapshot.sqlite").write_bytes(b"x")
+    fresh = out / ".20260928-020000-files.tar.zst.part"  # a backup running right now
+    fresh.write_bytes(b"x")
+    long_ago = datetime(2026, 9, 1, tzinfo=UTC).timestamp()
+    for path in (old_file, old_dir):
+        os.utime(path, (long_ago, long_ago))
+
+    backups._remove_stale_parts(out)
+    assert [p.name for p in out.iterdir()] == [fresh.name]
