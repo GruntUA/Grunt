@@ -24,7 +24,8 @@ import DatetimeFilterInput from '@/components/fields/Datetime/FilterInput.vue'
 import LinkFilterInput from '@/components/fields/Link/FilterInput.vue'
 
 const EMPTY_OPS = ['is not set', 'is set']
-const TEXT_OPS = ['like', 'not like', '=', '!=', ...EMPTY_OPS]
+const LIST_OPS = ['in', 'not in']
+const TEXT_OPS = ['like', 'not like', '=', '!=', ...LIST_OPS, ...EMPTY_OPS]
 const NUM_OPS = ['=', '!=', '>', '<', '>=', '<=', ...EMPTY_OPS]
 const DATE_OPS = ['=', '!=', '>', '<', '>=', '<=', ...EMPTY_OPS]
 
@@ -40,8 +41,8 @@ registerFilterConfig('Date', { operators: DATE_OPS, filterInput: DateFilterInput
 registerFilterConfig('Datetime', { operators: DATE_OPS, filterInput: DatetimeFilterInput })
 registerFilterConfig('Time', { operators: DATE_OPS, filterInput: DefaultFilterInput })
 registerFilterConfig('Check', { operators: ['='], filterInput: CheckFilterInput })
-registerFilterConfig('Select', { operators: ['=', '!=', ...EMPTY_OPS], filterInput: SelectFilterInput })
-registerFilterConfig('Link', { operators: ['=', '!=', 'child_of', ...EMPTY_OPS], filterInput: LinkFilterInput })
+registerFilterConfig('Select', { operators: ['=', '!=', ...LIST_OPS, ...EMPTY_OPS], filterInput: SelectFilterInput })
+registerFilterConfig('Link', { operators: ['=', '!=', ...LIST_OPS, 'child_of', ...EMPTY_OPS], filterInput: LinkFilterInput })
 
 // ── List Cell Renderers ────────────────────────────────────────────────────
 import { registerListCell } from '@/core/listCellRegistry'

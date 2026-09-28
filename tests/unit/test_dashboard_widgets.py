@@ -241,3 +241,61 @@ async def test_get_page_data_not_found_raises(ctx, widget_source):
 
     with pytest.raises(ApplicationError):
         await get_page_data("does-not-exist")
+
+
+TREE_NODE_DOCTYPE = {
+    "name": "WidgetTreeNode",
+    "label": "Widget Tree Node",
+    "module": "core",
+    "is_tree": True,
+    "tree_parent_field": "parent_node",
+    "tree_title_field": "title",
+    "fields": [
+        {"fieldname": "title", "label": "Title", "fieldtype": "Text", "required": True},
+        {
+            "fieldname": "parent_node",
+            "label": "Parent",
+            "fieldtype": "Link",
+            "options": "WidgetTreeNode",
+        },
+    ],
+}
+
+TREE_ITEM_DOCTYPE = {
+    "name": "WidgetTreeItem",
+    "label": "Widget Tree Item",
+    "module": "core",
+    "fields": [
+        {"fieldname": "title", "label": "Title", "fieldtype": "Text", "required": True},
+        {"fieldname": "node", "label": "Node", "fieldtype": "Link", "options": "WidgetTreeNode"},
+    ],
+}
+
+
+@pytest.mark.asyncio
+async def test_metric_widget_expands_child_of_filter(ctx):
+    """`field__child_of` counts the whole subtree (grunt.db alone would drop it),
+    while drill-down keeps the original child_of for the list URL."""
+    from grunt.api.v1.dashboard import _compute_widget_data
+    from grunt.api.v1.meta import save_doctype
+
+    await save_doctype(doctype_data={**TREE_NODE_DOCTYPE, "__is_new": True})
+    await save_doctype(doctype_data={**TREE_ITEM_DOCTYPE, "__is_new": True})
+    root = await ctx.new_doc("WidgetTreeNode", {"title": "A"})
+    child = await ctx.new_doc("WidgetTreeNode", {"title": "B", "parent_node": root["name"]})
+    other = await ctx.new_doc("WidgetTreeNode", {"title": "C"})
+    for title, node in (("in A", root), ("in B", child), ("in C", other)):
+        await ctx.new_doc("WidgetTreeItem", {"title": title, "node": node["name"]})
+    await ctx.db._session().commit()
+
+    result = await _compute_widget_data(
+        {
+            "name": "w-tree",
+            "widget_type": "metric",
+            "doctype": "WidgetTreeItem",
+            "aggregation": "count",
+            "filters": {"node__child_of": root["name"]},
+        }
+    )
+    assert result["value"] == 2
+    assert result["filters"] == {"node__child_of": root["name"]}

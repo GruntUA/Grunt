@@ -125,8 +125,25 @@ async def _compute_widget_data(
     since = global_since if global_since is not None else now - timedelta(days=days)
     until = global_until if global_until is not None else now
     base_filters = _widget_filters(widget)
+    tree_filters = {k: v for k, v in base_filters.items() if k.endswith("__child_of")}
+    if not tree_filters or dt is None:
+        return await cls.compute(widget, dt, doctype_name, since, until, days, base_filters)
 
-    return await cls.compute(widget, dt, doctype_name, since, until, days, base_filters)
+    # `field__child_of` is expanded to the subtree (`field__in=…`) only by list
+    # queries; grunt.db.aggregate would silently drop it, so expand it here.
+    from grunt.document.query import _expand_child_of_filters
+
+    session = grunt_app._require_session()
+    expanded = await _expand_child_of_filters(session, dt.doc, base_filters)
+    data = await cls.compute(widget, dt, doctype_name, since, until, days, expanded)
+    # The list URL can't carry `__in`, so drill-down gets the original child_of back.
+    if isinstance(data, dict) and isinstance(data.get("filters"), dict):
+        for key, value in tree_filters.items():
+            field = key.removesuffix("__child_of")
+            data["filters"].pop(f"{field}__in", None)
+            data["filters"].pop(f"{field}__eq", None)
+            data["filters"][key] = value
+    return data
 
 
 async def _get_widget_data(

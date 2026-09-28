@@ -2,7 +2,7 @@
 import { ref, computed, watch, provide } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useQueryClient } from '@tanstack/vue-query'
-import { docsApi } from '@/core/api/docs'
+import { MULTI_VALUE_OPS, docsApi } from '@/core/api/docs'
 import { useDocTypeListData } from '@/core/composables/useDocTypeListData'
 import { useListRouteSync } from '@/core/composables/useListRouteSync'
 import { useListActions } from '@/core/composables/useListActions'
@@ -273,7 +273,7 @@ const { applyRouteState, setGroupByInRoute, applySort } = useListRouteSync({
 watch(activeFilters, async (newFilters) => {
   if (!dt.value) return
   
-  const filtersToResolve = newFilters.filter(f => !f.displayValue && f.value)
+  const filtersToResolve = newFilters.filter(f => !f.displayValue && f.value && !MULTI_VALUE_OPS.includes(f.op))
   if (!filtersToResolve.length) return
 
   for (const f of filtersToResolve) {

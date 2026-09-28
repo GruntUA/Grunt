@@ -43,9 +43,12 @@ def _truthy(value: Any) -> bool:
     return bool(value)
 
 
-def _as_list(value: Any) -> list[Any]:
-    """Normalise an ``in``/``nin`` operand from either a list or a CSV string."""
-    return list(value) if isinstance(value, (list, tuple)) else str(value).split(",")
+def as_list(value: Any) -> list[Any]:
+    """Normalise an ``in``/``nin`` operand from either a list or a CSV string
+    (``"a, b,"`` → ``["a", "b"]``)."""
+    if isinstance(value, (list, tuple)):
+        return list(value)
+    return [v.strip() for v in str(value).split(",") if v.strip()]
 
 
 def _is_set_clause(col: Any, value: Any) -> Any:
@@ -128,9 +131,9 @@ def build_clauses(table: Any, filters: dict[str, Any]) -> list[Any]:
         elif op == "nlike":
             clauses.append(or_(col.is_(None), ~col.ilike(f"%{value}%")))
         elif op == "in":
-            clauses.append(col.in_(_as_list(value)))
+            clauses.append(col.in_(as_list(value)))
         elif op == "nin":
-            clauses.append(col.not_in(_as_list(value)))
+            clauses.append(col.not_in(as_list(value)))
         elif op == "isnull":
             clauses.append(col.is_(None) if _truthy(value) else col.isnot(None))
         elif op == "is":

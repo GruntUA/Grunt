@@ -50,6 +50,9 @@ class TestApplyFilters:
     def test_in_csv(self):
         assert "IN ('A', 'B')" in _sql({"doctype__in": "A,B"})
 
+    def test_in_csv_trims_spaces_and_blanks(self):
+        assert "IN ('A', 'B')" in _sql({"doctype__in": " A, B,"})
+
     def test_nin_list(self):
         sql = _sql({"doctype__nin": ["UserSession", "AppMenu"]})
         assert "NOT IN ('UserSession', 'AppMenu')" in sql
@@ -114,3 +117,21 @@ class TestApplyFilters:
             stmt = stmt.where(c)
         via_build_clauses = str(stmt.compile(compile_kwargs={"literal_binds": True}))
         assert via_apply_filters == via_build_clauses
+
+
+class TestVirtualDocTypeInFilter:
+    """VirtualDocType.apply_filters mirrors build_clauses' in / nin operand parsing."""
+
+    ROWS = [{"s": "A"}, {"s": "B"}, {"s": "C"}]
+
+    def _apply(self, filters):
+        from grunt.metadata.virtual import VirtualDocType
+
+        return [r["s"] for r in VirtualDocType("T").apply_filters(self.ROWS, filters)]
+
+    def test_in_list_and_csv(self):
+        assert self._apply({"s__in": ["A", "B"]}) == ["A", "B"]
+        assert self._apply({"s__in": "A, B"}) == ["A", "B"]
+
+    def test_nin_list(self):
+        assert self._apply({"s__nin": ["A"]}) == ["B", "C"]

@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { ref, watch, onUnmounted, useId } from 'vue'
+import { computed, ref, watch, onUnmounted, useId } from 'vue'
 import { X, Loader2 } from '@lucide/vue'
 import type { DocField } from '@/types'
 import type { LinkSearchItem } from '@/core/api/docs'
 import { docsApi, metaApi } from '@/core/api'
+import { MULTI_VALUE_OPS } from '@/core/api/docs'
 import type { TreeNode } from '@/components/ui/tree-select'
 import { Input } from '@/components/ui/input'
 import { TreeSelect } from '@/components/ui/tree-select'
@@ -23,7 +24,13 @@ const emit = defineEmits<{
   'submit': []
 }>()
 
-const query = ref(props.displayValue || props.modelValue)
+// `in` / `not in`: modelValue is a CSV of ids, shown as removable chips.
+const multi = computed(() => MULTI_VALUE_OPS.includes(props.op))
+const values = computed(() => props.modelValue ? props.modelValue.split(',') : [])
+const titles = ref<Record<string, string>>({})
+
+const query = ref(multi.value ? '' : props.displayValue || props.modelValue)
+watch(multi, (m) => { query.value = m ? '' : props.displayValue || props.modelValue })
 const results = ref<LinkSearchItem[]>([])
 const isLoading = ref(false)
 const isOpen = ref(false)
@@ -120,11 +127,18 @@ async function search(val: string) {
   }
 }
 
+function setValues(ids: string[]) {
+  emit('update:modelValue', ids.join(','))
+  emit('update:displayValue', ids.map(id => titles.value[id] ?? id).join(', '))
+}
+
 function onInput(val: string) {
   query.value = val
-  if (isTree.value) return
-  emit('update:modelValue', '')
-  emit('update:displayValue', '')
+  if (isTree.value && !multi.value) return
+  if (!multi.value) {
+    emit('update:modelValue', '')
+    emit('update:displayValue', '')
+  }
   clearTimeout(debounceTimer)
   debounceTimer = setTimeout(() => search(val), val ? 300 : 0)
 }
@@ -140,6 +154,12 @@ function onBlur() {
 }
 
 function selectItem(item: LinkSearchItem) {
+  if (multi.value) {
+    titles.value[item.name] = item.title || item.name
+    if (!values.value.includes(item.name)) setValues([...values.value, item.name])
+    query.value = ''
+    return
+  }
   emit('update:modelValue', item.name)
   emit('update:displayValue', item.title || item.name)
   query.value = item.title || item.name
@@ -190,7 +210,7 @@ onUnmounted(() => {
 <template>
   <!-- Tree mode -->
   <TreeSelect
-    v-if="isTree"
+    v-if="isTree && !multi"
     :model-value="modelValue || null"
     :options="treeNodes"
     :loading="treeLoading"
@@ -201,6 +221,20 @@ onUnmounted(() => {
 
   <!-- Regular mode -->
   <div v-else ref="anchorRef" class="relative">
+    <div v-if="multi && values.length" class="flex flex-wrap gap-1 mb-1">
+      <span
+        v-for="id in values" :key="id"
+        class="inline-flex items-center gap-1 rounded-md border bg-muted px-1.5 py-0.5 max-w-full"
+      >
+        <span class="truncate">{{ titles[id] ?? id }}</span>
+        <button
+          type="button" class="text-muted-foreground hover:text-foreground" aria-label="Прибрати"
+          @mousedown.prevent="setValues(values.filter(v => v !== id))"
+        >
+          <X class="size-3" />
+        </button>
+      </span>
+    </div>
     <Input
       :model-value="query"
       class="h-8 text-xs w-full pr-7"
@@ -218,7 +252,7 @@ onUnmounted(() => {
     />
     <Loader2 v-if="isLoading" class="absolute right-2 top-1/2 -translate-y-1/2 size-3.5 animate-spin text-muted-foreground" />
     <button
-      v-else-if="modelValue"
+      v-else-if="modelValue && !multi"
       type="button"
       class="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
       aria-label="Очистити"
@@ -246,7 +280,7 @@ onUnmounted(() => {
             :aria-selected="i === activeIdx"
             :class="[
               'flex w-full flex-col gap-0.5 px-3 py-1.5 text-left transition-colors',
-              i === activeIdx || modelValue === item.name ? 'bg-accent text-accent-foreground' : 'hover:bg-accent/50',
+              i === activeIdx || values.includes(item.name) ? 'bg-accent text-accent-foreground' : 'hover:bg-accent/50',
             ]"
             @mousedown.prevent="selectItem(item)"
             @mouseover="activeIdx = i"

@@ -105,7 +105,11 @@ export const OP_MAP: Record<string, string> = {
   '>': 'gt', '<': 'lt', '>=': 'gte', '<=': 'lte',
   'child_of': 'child_of',
   'is set': 'is', 'is not set': 'is',
+  'in': 'in', 'not in': 'nin',
 }
+
+/** Operators whose value is a comma-separated list (`field__in=a,b`). */
+export const MULTI_VALUE_OPS = ['in', 'not in']
 
 /** Operators without a user-entered value — the value is fixed and sent as `field__is=<value>`. */
 export const NO_VALUE_OPS: Record<string, string> = { 'is set': 'set', 'is not set': 'not set' }

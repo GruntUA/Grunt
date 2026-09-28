@@ -9,16 +9,18 @@ import { docUrl } from '@/core/workspaceUrl'
 const URL_OP: Record<string, string> = {
     '': 'eq', eq: 'eq', ne: 'ne', like: 'ilike', ilike: 'ilike', nlike: 'nlike',
     gt: 'gt', lt: 'lt', gte: 'gte', lte: 'lte', child_of: 'child_of', is: 'is',
+    in: 'in', nin: 'nin',
 }
 
 export function addUrlFilters(query: Record<string, string>, filters: Record<string, unknown>) {
     for (const [key, value] of Object.entries(filters)) {
         const [field, op = ''] = key.split('__')
         const urlOp = URL_OP[op]
-        // The list URL can't express in / not in / isnull — such a condition
-        // just doesn't narrow the drill-down list.
-        if (!urlOp || Array.isArray(value) || typeof value === 'boolean') continue
-        query[`filter[${field}__${urlOp}]`] = String(value)
+        // The list URL can't express isnull / booleans — such a condition just
+        // doesn't narrow the drill-down list. in / nin lists travel as CSV.
+        if (!urlOp || typeof value === 'boolean') continue
+        if (Array.isArray(value) && urlOp !== 'in' && urlOp !== 'nin') continue
+        query[`filter[${field}__${urlOp}]`] = Array.isArray(value) ? value.join(',') : String(value)
     }
 }
 

@@ -12,11 +12,17 @@ describe('report drill-down', () => {
 
   it('maps report filters to list URL filters, skipping what the URL cannot express', () => {
     const q: Record<string, string> = {}
-    addUrlFilters(q, { status: 'Open', amount__gte: 5, name__ilike: 'ab', region__in: ['A'], x__isnull: true })
+    addUrlFilters(q, { status: 'Open', amount__gte: 5, name__ilike: 'ab', x__isnull: true, y__eq: ['A'] })
     expect(q).toEqual({
       'filter[status__eq]': 'Open',
       'filter[amount__gte]': '5',
       'filter[name__ilike]': 'ab',
     })
+  })
+
+  it('passes in / nin lists as CSV', () => {
+    const q: Record<string, string> = {}
+    addUrlFilters(q, { region__in: ['A', 'B'], status__nin: 'X,Y' })
+    expect(q).toEqual({ 'filter[region__in]': 'A,B', 'filter[status__nin]': 'X,Y' })
   })
 })

@@ -30,7 +30,7 @@ const raw = computed<Record<string, unknown>>(() => {
 
 /**
  * Split the widget's `{field__op: value}` dict: what the filter bar can edit, and
- * the rest (`@today-7d` tokens, `in` lists, unknown fields) kept verbatim.
+ * the rest (`@today-7d` tokens, unknown fields/operators) kept verbatim.
  */
 const split = computed(() => {
   const editable: ActiveFilter[] = []
@@ -38,14 +38,16 @@ const split = computed(() => {
   for (const [key, value] of Object.entries(raw.value)) {
     const [fieldname, backendOp = 'eq'] = key.split('__')
     const field = dt.value?.fields.find(f => f.fieldname === fieldname)
+    const list = Array.isArray(value) && (backendOp === 'in' || backendOp === 'nin')
     const scalar = typeof value === 'string' || typeof value === 'number'
-    if (!field || !scalar || !BACKEND_OPS.has(backendOp) || String(value).startsWith('@')) {
+    if (!field || !(scalar || list) || !BACKEND_OPS.has(backendOp) || String(value).startsWith('@')) {
       kept[key] = value
       continue
     }
+    const text = list ? (value as unknown[]).join(',') : String(value)
     editable.push({
       fieldname, label: field.label, fieldtype: field.fieldtype,
-      op: displayOp(backendOp, String(value)), value: String(value),
+      op: displayOp(backendOp, text), value: text,
     })
   }
   return { editable, kept }

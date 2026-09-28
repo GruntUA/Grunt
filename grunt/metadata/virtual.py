@@ -21,6 +21,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from grunt.db.filters import as_list
+
 
 class VirtualDocType:
     """Base class for Virtual DocType controllers.
@@ -148,9 +150,9 @@ class VirtualDocType:
                             except TypeError, ValueError:
                                 match = str(raw) <= str(val)
                     elif op == "in":
-                        match = str(raw) in [v.strip() for v in str(val).split(",")]
+                        match = str(raw) in [str(v) for v in as_list(val)]
                     elif op == "nin":
-                        match = str(raw) not in [v.strip() for v in str(val).split(",")]
+                        match = str(raw) not in [str(v) for v in as_list(val)]
                     else:  # isnull
                         match = (
                             (raw is None)

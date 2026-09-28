@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { Filter, X, Bookmark, Plus } from '@lucide/vue'
 import type { DocField, ActiveFilter } from '@/types'
 import { getFilterConfig } from '@/core/filterRegistry'
-import { NO_VALUE_OPS } from '@/core/api/docs'
+import { MULTI_VALUE_OPS, NO_VALUE_OPS } from '@/core/api/docs'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { ButtonGroup } from '@/components/ui/button-group'
@@ -128,6 +128,11 @@ function onFieldChange(row: DraftRow, fieldname: string) {
 
 function onOpChange(row: DraftRow, op: string) {
   const wasNoValue = row.op in NO_VALUE_OPS
+  // Leaving a list operator: keep just the first value.
+  if (MULTI_VALUE_OPS.includes(row.op) && !MULTI_VALUE_OPS.includes(op)) {
+    row.value = row.value.split(',')[0] ?? ''
+    row.displayValue = ''
+  }
   row.op = op
   if (op in NO_VALUE_OPS) {
     row.value = NO_VALUE_OPS[op]
@@ -181,6 +186,8 @@ const OP_LABELS: Record<string, string> = {
   '>=': 'Більше або дорівнює',
   '<=': 'Менше або дорівнює',
   'child_of': 'Підпорядковано',
+  'in': 'Одне з',
+  'not in': 'Жодне з',
 }
 
 function opLabel(op: string): string {
