@@ -64,9 +64,9 @@ class DocumentCache:
         if self._redis_failed or not settings.redis_url:
             yield None
             return
-        import redis.asyncio as aioredis
+        from grunt.utils.redis import connect
 
-        r = aioredis.from_url(settings.redis_url, socket_connect_timeout=1)
+        r = connect(socket_connect_timeout=1)
         try:
             yield r
         finally:

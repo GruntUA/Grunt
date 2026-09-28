@@ -12,6 +12,7 @@ from taskiq_redis import RedisStreamBroker
 
 from grunt.config import settings
 from grunt.tasks.middleware import BackgroundTaskLoggingMiddleware
+from grunt.utils.redis import connection_options
 
 _P = ParamSpec("_P")
 _R = TypeVar("_R")
@@ -31,7 +32,7 @@ _retry_middleware = SmartRetryMiddleware(
 )
 
 if settings.redis_url:
-    broker = RedisStreamBroker(settings.redis_url).with_middlewares(
+    broker = RedisStreamBroker(settings.redis_url, **connection_options()).with_middlewares(
         BackgroundTaskLoggingMiddleware(),
         _retry_middleware,
     )

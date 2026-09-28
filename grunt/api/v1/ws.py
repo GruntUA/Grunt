@@ -90,9 +90,9 @@ class ConnectionManager:
 
             if not settings.redis_url:
                 return False
-            import redis.asyncio as aioredis
+            from grunt.utils.redis import connect
 
-            r = aioredis.from_url(settings.redis_url, socket_connect_timeout=1)
+            r = connect(socket_connect_timeout=1)
             await r.publish(f"grunt:ws:{channel}", message)
             await r.aclose()
             return True
@@ -134,11 +134,9 @@ class ConnectionManager:
         """Subscribe to grunt:ws:* and relay messages to local connections."""
         while True:
             try:
-                import redis.asyncio as aioredis
+                from grunt.utils.redis import connect
 
-                from grunt.config import settings
-
-                r = aioredis.from_url(settings.redis_url)
+                r = connect()
                 pubsub = r.pubsub()
                 await pubsub.psubscribe("grunt:ws:*")
                 async for msg in pubsub.listen():

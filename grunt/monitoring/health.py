@@ -436,10 +436,10 @@ async def check_realtime() -> list[Row]:
         )
         return rows
 
-    import redis.asyncio as aioredis
+    from grunt.utils.redis import connect
 
     key = f"grunt:ws:__health__:{uuid.uuid4().hex}"
-    r = aioredis.from_url(settings.redis_url, socket_connect_timeout=1)
+    r = connect(socket_connect_timeout=1)
     try:
         pubsub = r.pubsub()
         await pubsub.subscribe(key)

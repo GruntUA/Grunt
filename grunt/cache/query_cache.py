@@ -109,11 +109,9 @@ class QueryCache:
             yield None
             return
         if self._redis_client is None:
-            import redis.asyncio as aioredis
+            from grunt.utils.redis import connect
 
-            self._redis_client = aioredis.from_url(
-                settings.redis_url, socket_connect_timeout=1
-            )
+            self._redis_client = connect(socket_connect_timeout=1)
         yield self._redis_client
 
     async def aclose(self) -> None:

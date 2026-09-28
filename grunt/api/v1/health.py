@@ -40,9 +40,9 @@ async def readiness() -> dict[str, Any]:
         from grunt.config import settings
 
         if settings.redis_url:
-            import redis.asyncio as aioredis
+            from grunt.utils.redis import connect
 
-            r = aioredis.from_url(settings.redis_url, socket_connect_timeout=2)
+            r = connect(socket_connect_timeout=2)
             await r.ping()
             await r.aclose()
             checks["redis"] = "ok"

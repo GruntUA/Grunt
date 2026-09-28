@@ -52,9 +52,9 @@ async def _redis():
 
     if not settings.redis_url:
         return None
-    import redis.asyncio as aioredis
+    from grunt.utils.redis import connect
 
-    return aioredis.from_url(settings.redis_url, socket_connect_timeout=1)
+    return connect(socket_connect_timeout=1)
 
 
 class Progress:
