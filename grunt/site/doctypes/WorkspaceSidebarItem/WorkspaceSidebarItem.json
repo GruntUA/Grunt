@@ -12,6 +12,7 @@
       "label": "Type",
       "fieldtype": "Select",
       "options": "DocType\nReport\nPage\nURL\nDivider",
+      "translatable": true,
       "default": "DocType",
       "required": true,
       "in_list_view": true

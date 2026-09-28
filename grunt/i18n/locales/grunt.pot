@@ -181,7 +181,7 @@ msgstr ""
 #: grunt/frontend/src/components/fields/Link/Link.vue:139
 #: grunt/frontend/src/components/fields/Link/Link.vue:140
 #: grunt/frontend/src/components/fields/Color/Color.vue:73
-#: grunt/frontend/src/components/fields/Select/Select.vue:80
+#: grunt/frontend/src/components/fields/Select/Select.vue:81
 #: grunt/frontend/src/components/fields/Signature/Signature.vue:186
 #: grunt/frontend/src/components/fields/Signature/Signature.vue:241
 #: grunt/frontend/src/components/fields/Icon/Icon.vue:167
@@ -575,7 +575,7 @@ msgstr ""
 msgid "Invalid JSON"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/Table/useTableCell.ts:60
+#: grunt/frontend/src/components/fields/Table/useTableCell.ts:61
 msgid "Invalid format"
 msgstr ""
 
@@ -657,11 +657,11 @@ msgid "Mark as read"
 msgstr ""
 
 #: grunt/frontend/src/components/dashboard/sections/GaugeRangeSection.vue:25
-#: grunt/frontend/src/components/fields/Table/useTableCell.ts:69
+#: grunt/frontend/src/components/fields/Table/useTableCell.ts:70
 msgid "Max"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/Table/useTableCell.ts:57
+#: grunt/frontend/src/components/fields/Table/useTableCell.ts:58
 msgid "Max length"
 msgstr ""
 
@@ -670,7 +670,7 @@ msgid "Maximum"
 msgstr ""
 
 #: grunt/frontend/src/components/dashboard/sections/GaugeRangeSection.vue:16
-#: grunt/frontend/src/components/fields/Table/useTableCell.ts:68
+#: grunt/frontend/src/components/fields/Table/useTableCell.ts:69
 msgid "Min"
 msgstr ""
 
@@ -678,7 +678,7 @@ msgstr ""
 msgid "Minimum"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/Table/useTableCell.ts:67
+#: grunt/frontend/src/components/fields/Table/useTableCell.ts:68
 msgid "Must be a number"
 msgstr ""
 
@@ -719,7 +719,7 @@ msgid "Newest"
 msgstr ""
 
 #: grunt/frontend/src/components/fields/Table/Table.vue:148
-#: grunt/frontend/src/components/fields/Table/useTableCell.ts:78
+#: grunt/frontend/src/components/fields/Table/useTableCell.ts:79
 msgid "No"
 msgstr ""
 
@@ -821,6 +821,10 @@ msgstr ""
 #: grunt/frontend/src/components/fields/Link/Link.vue:86
 #: grunt/frontend/src/components/fields/Link/Link.vue:130
 msgid "Open {doctype}"
+msgstr ""
+
+#: grunt/frontend/src/pages/studio/builder/sections/OptionsSection.vue:49
+msgid "Option captions are translated; stored values stay unchanged."
 msgstr ""
 
 #: grunt/frontend/src/components/layout/CommandPalette.vue:225
@@ -943,7 +947,7 @@ msgstr ""
 msgid "Report"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/Table/useTableCell.ts:54
+#: grunt/frontend/src/components/fields/Table/useTableCell.ts:55
 msgid "Required"
 msgstr ""
 
@@ -1092,8 +1096,8 @@ msgstr ""
 msgid "Select row"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/Select/FilterInput.vue:35
-#: grunt/frontend/src/components/fields/Select/FilterInput.vue:41
+#: grunt/frontend/src/components/fields/Select/FilterInput.vue:37
+#: grunt/frontend/src/components/fields/Select/FilterInput.vue:43
 msgid "Select value"
 msgstr ""
 
@@ -1214,6 +1218,10 @@ msgstr ""
 msgid "Title"
 msgstr ""
 
+#: grunt/frontend/src/pages/studio/builder/sections/OptionsSection.vue:47
+msgid "Translatable"
+msgstr ""
+
 #: grunt/frontend/src/components/views/ListEmptyState.vue:43
 msgid "Try adjusting your filters to see more results."
 msgstr ""
@@ -1307,7 +1315,7 @@ msgid "Year"
 msgstr ""
 
 #: grunt/frontend/src/components/fields/Table/Table.vue:148
-#: grunt/frontend/src/components/fields/Table/useTableCell.ts:78
+#: grunt/frontend/src/components/fields/Table/useTableCell.ts:79
 msgid "Yes"
 msgstr ""
 
@@ -1532,8 +1540,8 @@ msgstr ""
 msgid "— Select —"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/Select/Select.vue:66
-#: grunt/frontend/src/components/fields/MultiSelect/MultiSelect.vue:44
+#: grunt/frontend/src/components/fields/Select/Select.vue:67
+#: grunt/frontend/src/components/fields/MultiSelect/MultiSelect.vue:46
 msgid "— select —"
 msgstr ""
 
@@ -7549,26 +7557,6 @@ msgctxt "select:ActivityLog.action"
 msgid "Workflow"
 msgstr ""
 
-#: grunt/grunt/geo/doctypes/Address/Address.json
-msgctxt "select:Address.address_type"
-msgid "Поштова"
-msgstr ""
-
-#: grunt/grunt/geo/doctypes/Address/Address.json
-msgctxt "select:Address.address_type"
-msgid "Реєстрації"
-msgstr ""
-
-#: grunt/grunt/geo/doctypes/Address/Address.json
-msgctxt "select:Address.address_type"
-msgid "Фактична"
-msgstr ""
-
-#: grunt/grunt/geo/doctypes/Address/Address.json
-msgctxt "select:Address.address_type"
-msgid "Юридична"
-msgstr ""
-
 #: grunt/grunt/assignment/doctypes/AssignmentLog/AssignmentLog.json
 msgctxt "select:AssignmentLog.assignment_method"
 msgid "role"
@@ -7609,41 +7597,6 @@ msgctxt "select:Comment.comment_type"
 msgid "Warning"
 msgstr ""
 
-#: grunt/grunt/geo/doctypes/Country/Country.json
-msgctxt "select:Country.continent"
-msgid "Європа"
-msgstr ""
-
-#: grunt/grunt/geo/doctypes/Country/Country.json
-msgctxt "select:Country.continent"
-msgid "Австралія та Океанія"
-msgstr ""
-
-#: grunt/grunt/geo/doctypes/Country/Country.json
-msgctxt "select:Country.continent"
-msgid "Азія"
-msgstr ""
-
-#: grunt/grunt/geo/doctypes/Country/Country.json
-msgctxt "select:Country.continent"
-msgid "Антарктида"
-msgstr ""
-
-#: grunt/grunt/geo/doctypes/Country/Country.json
-msgctxt "select:Country.continent"
-msgid "Африка"
-msgstr ""
-
-#: grunt/grunt/geo/doctypes/Country/Country.json
-msgctxt "select:Country.continent"
-msgid "Південна Америка"
-msgstr ""
-
-#: grunt/grunt/geo/doctypes/Country/Country.json
-msgctxt "select:Country.continent"
-msgid "Північна Америка"
-msgstr ""
-
 #: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
 msgctxt "select:Dashboard Widget.aggregation"
 msgid "avg"
@@ -7670,36 +7623,6 @@ msgid "sum"
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
-msgctxt "select:Dashboard Widget.color"
-msgid "amber"
-msgstr ""
-
-#: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
-msgctxt "select:Dashboard Widget.color"
-msgid "blue"
-msgstr ""
-
-#: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
-msgctxt "select:Dashboard Widget.color"
-msgid "cyan"
-msgstr ""
-
-#: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
-msgctxt "select:Dashboard Widget.color"
-msgid "primary"
-msgstr ""
-
-#: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
-msgctxt "select:Dashboard Widget.color"
-msgid "red"
-msgstr ""
-
-#: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
-msgctxt "select:Dashboard Widget.color"
-msgid "violet"
-msgstr ""
-
-#: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
 msgctxt "select:Dashboard Widget.link_type"
 msgid "DocType"
 msgstr ""
@@ -7717,106 +7640,6 @@ msgstr ""
 #: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
 msgctxt "select:Dashboard Widget.link_type"
 msgid "URL"
-msgstr ""
-
-#: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
-msgctxt "select:Dashboard Widget.widget_type"
-msgid "activity"
-msgstr ""
-
-#: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
-msgctxt "select:Dashboard Widget.widget_type"
-msgid "calendar"
-msgstr ""
-
-#: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
-msgctxt "select:Dashboard Widget.widget_type"
-msgid "chart_area"
-msgstr ""
-
-#: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
-msgctxt "select:Dashboard Widget.widget_type"
-msgid "chart_bar"
-msgstr ""
-
-#: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
-msgctxt "select:Dashboard Widget.widget_type"
-msgid "clock"
-msgstr ""
-
-#: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
-msgctxt "select:Dashboard Widget.widget_type"
-msgid "donut"
-msgstr ""
-
-#: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
-msgctxt "select:Dashboard Widget.widget_type"
-msgid "funnel"
-msgstr ""
-
-#: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
-msgctxt "select:Dashboard Widget.widget_type"
-msgid "gauge"
-msgstr ""
-
-#: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
-msgctxt "select:Dashboard Widget.widget_type"
-msgid "heatmap"
-msgstr ""
-
-#: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
-msgctxt "select:Dashboard Widget.widget_type"
-msgid "links"
-msgstr ""
-
-#: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
-msgctxt "select:Dashboard Widget.widget_type"
-msgid "list"
-msgstr ""
-
-#: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
-msgctxt "select:Dashboard Widget.widget_type"
-msgid "metric"
-msgstr ""
-
-#: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
-msgctxt "select:Dashboard Widget.widget_type"
-msgid "shortcut"
-msgstr ""
-
-#: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
-msgctxt "select:Dashboard Widget.widget_type"
-msgid "shortcuts_grid"
-msgstr ""
-
-#: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
-msgctxt "select:Dashboard Widget.widget_type"
-msgid "table"
-msgstr ""
-
-#: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
-msgctxt "select:Dashboard Widget.widget_type"
-msgid "text"
-msgstr ""
-
-#: grunt/grunt/reports/doctypes/DashboardChart/DashboardChart.json
-msgctxt "select:DashboardChart.chart_type"
-msgid "bar"
-msgstr ""
-
-#: grunt/grunt/reports/doctypes/DashboardChart/DashboardChart.json
-msgctxt "select:DashboardChart.chart_type"
-msgid "donut"
-msgstr ""
-
-#: grunt/grunt/reports/doctypes/DashboardChart/DashboardChart.json
-msgctxt "select:DashboardChart.chart_type"
-msgid "line"
-msgstr ""
-
-#: grunt/grunt/reports/doctypes/DashboardChart/DashboardChart.json
-msgctxt "select:DashboardChart.chart_type"
-msgid "pie"
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/DashboardChart/DashboardChart.json
@@ -7842,16 +7665,6 @@ msgstr ""
 #: grunt/grunt/reports/doctypes/DashboardChart/DashboardChart.json
 msgctxt "select:DashboardChart.timespan"
 msgid "last_year"
-msgstr ""
-
-#: grunt/grunt/io/doctypes/DataExport/DataExport.json
-msgctxt "select:DataExport.export_format"
-msgid "csv"
-msgstr ""
-
-#: grunt/grunt/io/doctypes/DataExport/DataExport.json
-msgctxt "select:DataExport.export_format"
-msgid "xlsx"
 msgstr ""
 
 #: grunt/grunt/io/doctypes/DataExport/DataExport.json
@@ -7909,159 +7722,39 @@ msgctxt "select:DataImport.status"
 msgid "Success"
 msgstr ""
 
-#: grunt/grunt/metadata/doctypes/DocField/DocField.json
-msgctxt "select:DocField.fieldtype"
-msgid "Attach"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/DocField/DocField.json
-msgctxt "select:DocField.fieldtype"
-msgid "Check"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/DocField/DocField.json
-msgctxt "select:DocField.fieldtype"
-msgid "Code"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/DocField/DocField.json
-msgctxt "select:DocField.fieldtype"
-msgid "Column"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/DocField/DocField.json
-msgctxt "select:DocField.fieldtype"
-msgid "Date"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/DocField/DocField.json
-msgctxt "select:DocField.fieldtype"
-msgid "Datetime"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/DocField/DocField.json
-msgctxt "select:DocField.fieldtype"
-msgid "Float"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/DocField/DocField.json
-msgctxt "select:DocField.fieldtype"
-msgid "Geolocation"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/DocField/DocField.json
-msgctxt "select:DocField.fieldtype"
-msgid "Icon"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/DocField/DocField.json
-msgctxt "select:DocField.fieldtype"
-msgid "Image"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/DocField/DocField.json
-msgctxt "select:DocField.fieldtype"
-msgid "Int"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/DocField/DocField.json
-msgctxt "select:DocField.fieldtype"
-msgid "JSON"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/DocField/DocField.json
-msgctxt "select:DocField.fieldtype"
-msgid "Link"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/DocField/DocField.json
-msgctxt "select:DocField.fieldtype"
-msgid "LongText"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/DocField/DocField.json
-msgctxt "select:DocField.fieldtype"
-msgid "MultiLink"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/DocField/DocField.json
-msgctxt "select:DocField.fieldtype"
-msgid "Rating"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/DocField/DocField.json
-msgctxt "select:DocField.fieldtype"
-msgid "RichText"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/DocField/DocField.json
-msgctxt "select:DocField.fieldtype"
-msgid "Section"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/DocField/DocField.json
-msgctxt "select:DocField.fieldtype"
-msgid "Select"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/DocField/DocField.json
-msgctxt "select:DocField.fieldtype"
-msgid "Signature"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/DocField/DocField.json
-msgctxt "select:DocField.fieldtype"
-msgid "Tab"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/DocField/DocField.json
-msgctxt "select:DocField.fieldtype"
-msgid "Table"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/DocField/DocField.json
-msgctxt "select:DocField.fieldtype"
-msgid "Text"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/DocField/DocField.json
-msgctxt "select:DocField.fieldtype"
-msgid "Time"
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgctxt "select:DocType.default_view"
+msgid "calendar"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgctxt "select:DocType.default_view"
-msgid "calendar|CalendarDays"
+msgid "gallery"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgctxt "select:DocType.default_view"
-msgid "gallery|Image"
+msgid "gantt"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgctxt "select:DocType.default_view"
-msgid "gantt|ChartGantt"
+msgid "kanban"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgctxt "select:DocType.default_view"
-msgid "kanban|LayoutGrid"
+msgid "list"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgctxt "select:DocType.default_view"
-msgid "list|LayoutList"
+msgid "map"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgctxt "select:DocType.default_view"
-msgid "map|Map"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/DocType/DocType.json
-msgctxt "select:DocType.default_view"
-msgid "tree|GitBranch"
+msgid "tree"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
@@ -8072,141 +7765,6 @@ msgstr ""
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgctxt "select:DocType.tree_sort_order"
 msgid "desc"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/DocTypeAction/DocTypeAction.json
-msgctxt "select:DocTypeAction.variant"
-msgid "default"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/DocTypeAction/DocTypeAction.json
-msgctxt "select:DocTypeAction.variant"
-msgid "destructive"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/DocTypeAction/DocTypeAction.json
-msgctxt "select:DocTypeAction.variant"
-msgid "ghost"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/DocTypeAction/DocTypeAction.json
-msgctxt "select:DocTypeAction.variant"
-msgid "outline"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/DocTypeAction/DocTypeAction.json
-msgctxt "select:DocTypeAction.variant"
-msgid "secondary"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/DocTypeAction/DocTypeAction.json
-msgctxt "select:DocTypeAction.variant"
-msgid "success"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/DocTypeCalendarSource/DocTypeCalendarSource.json
-msgctxt "select:DocTypeCalendarSource.event_type"
-msgid "birthday"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/DocTypeCalendarSource/DocTypeCalendarSource.json
-msgctxt "select:DocTypeCalendarSource.event_type"
-msgid "default"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/DocTypeStatusIndicator/DocTypeStatusIndicator.json
-msgctxt "select:DocTypeStatusIndicator.color"
-msgid "contrast"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/DocTypeStatusIndicator/DocTypeStatusIndicator.json
-msgctxt "select:DocTypeStatusIndicator.color"
-msgid "danger"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/DocTypeStatusIndicator/DocTypeStatusIndicator.json
-msgctxt "select:DocTypeStatusIndicator.color"
-msgid "default"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/DocTypeStatusIndicator/DocTypeStatusIndicator.json
-msgctxt "select:DocTypeStatusIndicator.color"
-msgid "info"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/DocTypeStatusIndicator/DocTypeStatusIndicator.json
-msgctxt "select:DocTypeStatusIndicator.color"
-msgid "primary"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/DocTypeStatusIndicator/DocTypeStatusIndicator.json
-msgctxt "select:DocTypeStatusIndicator.color"
-msgid "secondary"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/DocTypeStatusIndicator/DocTypeStatusIndicator.json
-msgctxt "select:DocTypeStatusIndicator.color"
-msgid "success"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/DocTypeStatusIndicator/DocTypeStatusIndicator.json
-msgctxt "select:DocTypeStatusIndicator.color"
-msgid "warn"
-msgstr ""
-
-#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
-msgctxt "select:EmailAccount.provider"
-msgid "Gmail"
-msgstr ""
-
-#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
-msgctxt "select:EmailAccount.provider"
-msgid "Інший провайдер"
-msgstr ""
-
-#: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
-msgctxt "select:EmailMessage.direction"
-msgid "Вихідний"
-msgstr ""
-
-#: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
-msgctxt "select:EmailMessage.direction"
-msgid "Вхідний"
-msgstr ""
-
-#: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
-msgctxt "select:EmailMessage.status"
-msgid "Відкладено"
-msgstr ""
-
-#: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
-msgctxt "select:EmailMessage.status"
-msgid "Доставлено"
-msgstr ""
-
-#: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
-msgctxt "select:EmailMessage.status"
-msgid "Надіслано"
-msgstr ""
-
-#: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
-msgctxt "select:EmailMessage.status"
-msgid "Не доставлено"
-msgstr ""
-
-#: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
-msgctxt "select:EmailMessage.status"
-msgid "Отримано"
-msgstr ""
-
-#: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
-msgctxt "select:EmailMessage.status"
-msgid "Помилка"
-msgstr ""
-
-#: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
-msgctxt "select:EmailMessage.status"
-msgid "У черзі"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
@@ -8252,36 +7810,6 @@ msgstr ""
 #: grunt/grunt/monitoring/doctypes/ErrorLog/ErrorLog.json
 msgctxt "select:ErrorLog.context"
 msgid "Scheduled Job"
-msgstr ""
-
-#: grunt/grunt/webhook/doctypes/IncomingWebhook/IncomingWebhook.json
-msgctxt "select:IncomingWebhook.action"
-msgid "create_document"
-msgstr ""
-
-#: grunt/grunt/webhook/doctypes/IncomingWebhook/IncomingWebhook.json
-msgctxt "select:IncomingWebhook.action"
-msgid "log_only"
-msgstr ""
-
-#: grunt/grunt/webhook/doctypes/IncomingWebhook/IncomingWebhook.json
-msgctxt "select:IncomingWebhook.action"
-msgid "run_server_script"
-msgstr ""
-
-#: grunt/grunt/webhook/doctypes/IncomingWebhook/IncomingWebhook.json
-msgctxt "select:IncomingWebhook.signature_type"
-msgid "hmac_sha1"
-msgstr ""
-
-#: grunt/grunt/webhook/doctypes/IncomingWebhook/IncomingWebhook.json
-msgctxt "select:IncomingWebhook.signature_type"
-msgid "hmac_sha256"
-msgstr ""
-
-#: grunt/grunt/webhook/doctypes/IncomingWebhook/IncomingWebhook.json
-msgctxt "select:IncomingWebhook.signature_type"
-msgid "none"
 msgstr ""
 
 #: grunt/grunt/webhook/doctypes/IncomingWebhookLog/IncomingWebhookLog.json
@@ -8364,26 +7892,6 @@ msgctxt "select:NotificationRule.channel"
 msgid "system"
 msgstr ""
 
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
-msgctxt "select:NotificationRule.event"
-msgid "after_insert"
-msgstr ""
-
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
-msgctxt "select:NotificationRule.event"
-msgid "after_save"
-msgstr ""
-
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
-msgctxt "select:NotificationRule.event"
-msgid "on_transition"
-msgstr ""
-
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
-msgctxt "select:NotificationRule.event"
-msgid "value_change"
-msgstr ""
-
 #: grunt/grunt/reports/doctypes/NumberCard/NumberCard.json
 msgctxt "select:NumberCard.aggregation"
 msgid "avg"
@@ -8409,31 +7917,6 @@ msgctxt "select:NumberCard.aggregation"
 msgid "sum"
 msgstr ""
 
-#: grunt/grunt/webhook/doctypes/OutgoingWebhook/OutgoingWebhook.json
-msgctxt "select:OutgoingWebhook.event"
-msgid "after_delete"
-msgstr ""
-
-#: grunt/grunt/webhook/doctypes/OutgoingWebhook/OutgoingWebhook.json
-msgctxt "select:OutgoingWebhook.event"
-msgid "after_insert"
-msgstr ""
-
-#: grunt/grunt/webhook/doctypes/OutgoingWebhook/OutgoingWebhook.json
-msgctxt "select:OutgoingWebhook.event"
-msgid "after_update"
-msgstr ""
-
-#: grunt/grunt/webhook/doctypes/OutgoingWebhook/OutgoingWebhook.json
-msgctxt "select:OutgoingWebhook.event"
-msgid "on_cancel"
-msgstr ""
-
-#: grunt/grunt/webhook/doctypes/OutgoingWebhook/OutgoingWebhook.json
-msgctxt "select:OutgoingWebhook.event"
-msgid "on_submit"
-msgstr ""
-
 #: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
 msgctxt "select:PageWidget.aggregation"
 msgid "avg"
@@ -8457,36 +7940,6 @@ msgstr ""
 #: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
 msgctxt "select:PageWidget.aggregation"
 msgid "sum"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
-msgctxt "select:PageWidget.color"
-msgid "amber"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
-msgctxt "select:PageWidget.color"
-msgid "blue"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
-msgctxt "select:PageWidget.color"
-msgid "cyan"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
-msgctxt "select:PageWidget.color"
-msgid "primary"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
-msgctxt "select:PageWidget.color"
-msgid "red"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
-msgctxt "select:PageWidget.color"
-msgid "violet"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
@@ -8507,131 +7960,6 @@ msgstr ""
 #: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
 msgctxt "select:PageWidget.link_type"
 msgid "URL"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
-msgctxt "select:PageWidget.widget_type"
-msgid "activity"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
-msgctxt "select:PageWidget.widget_type"
-msgid "calendar"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
-msgctxt "select:PageWidget.widget_type"
-msgid "chart_area"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
-msgctxt "select:PageWidget.widget_type"
-msgid "chart_bar"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
-msgctxt "select:PageWidget.widget_type"
-msgid "clock"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
-msgctxt "select:PageWidget.widget_type"
-msgid "donut"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
-msgctxt "select:PageWidget.widget_type"
-msgid "funnel"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
-msgctxt "select:PageWidget.widget_type"
-msgid "gauge"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
-msgctxt "select:PageWidget.widget_type"
-msgid "heatmap"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
-msgctxt "select:PageWidget.widget_type"
-msgid "list"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
-msgctxt "select:PageWidget.widget_type"
-msgid "metric"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
-msgctxt "select:PageWidget.widget_type"
-msgid "shortcut"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
-msgctxt "select:PageWidget.widget_type"
-msgid "shortcuts_grid"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
-msgctxt "select:PageWidget.widget_type"
-msgid "table"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
-msgctxt "select:PageWidget.widget_type"
-msgid "text"
-msgstr ""
-
-#: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.json
-msgctxt "select:PrintFormat.template_type"
-msgid "docx"
-msgstr ""
-
-#: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.json
-msgctxt "select:PrintFormat.template_type"
-msgid "html"
-msgstr ""
-
-#: grunt/grunt/geo/doctypes/Region/Region.json
-msgctxt "select:Region.region_type"
-msgid "Інше"
-msgstr ""
-
-#: grunt/grunt/geo/doctypes/Region/Region.json
-msgctxt "select:Region.region_type"
-msgid "Департамент"
-msgstr ""
-
-#: grunt/grunt/geo/doctypes/Region/Region.json
-msgctxt "select:Region.region_type"
-msgid "Земля"
-msgstr ""
-
-#: grunt/grunt/geo/doctypes/Region/Region.json
-msgctxt "select:Region.region_type"
-msgid "Кантон"
-msgstr ""
-
-#: grunt/grunt/geo/doctypes/Region/Region.json
-msgctxt "select:Region.region_type"
-msgid "Область"
-msgstr ""
-
-#: grunt/grunt/geo/doctypes/Region/Region.json
-msgctxt "select:Region.region_type"
-msgid "Провінція"
-msgstr ""
-
-#: grunt/grunt/geo/doctypes/Region/Region.json
-msgctxt "select:Region.region_type"
-msgid "Регіон"
-msgstr ""
-
-#: grunt/grunt/geo/doctypes/Region/Region.json
-msgctxt "select:Region.region_type"
-msgid "Штат"
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/Report/Report.json
@@ -8710,41 +8038,6 @@ msgid "Success"
 msgstr ""
 
 #: grunt/grunt/scripting/doctypes/ServerScript/ServerScript.json
-msgctxt "select:ServerScript.event"
-msgid "after_delete"
-msgstr ""
-
-#: grunt/grunt/scripting/doctypes/ServerScript/ServerScript.json
-msgctxt "select:ServerScript.event"
-msgid "after_insert"
-msgstr ""
-
-#: grunt/grunt/scripting/doctypes/ServerScript/ServerScript.json
-msgctxt "select:ServerScript.event"
-msgid "after_save"
-msgstr ""
-
-#: grunt/grunt/scripting/doctypes/ServerScript/ServerScript.json
-msgctxt "select:ServerScript.event"
-msgid "before_delete"
-msgstr ""
-
-#: grunt/grunt/scripting/doctypes/ServerScript/ServerScript.json
-msgctxt "select:ServerScript.event"
-msgid "before_insert"
-msgstr ""
-
-#: grunt/grunt/scripting/doctypes/ServerScript/ServerScript.json
-msgctxt "select:ServerScript.event"
-msgid "before_save"
-msgstr ""
-
-#: grunt/grunt/scripting/doctypes/ServerScript/ServerScript.json
-msgctxt "select:ServerScript.event"
-msgid "validate"
-msgstr ""
-
-#: grunt/grunt/scripting/doctypes/ServerScript/ServerScript.json
 msgctxt "select:ServerScript.script_type"
 msgid "API"
 msgstr ""
@@ -8804,41 +8097,6 @@ msgctxt "select:SystemHealthReport.overall_status"
 msgid "Warning"
 msgstr ""
 
-#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
-msgctxt "select:SystemSettings.date_format"
-msgid "dd.mm.yyyy"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
-msgctxt "select:SystemSettings.date_format"
-msgid "dd/mm/yyyy"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
-msgctxt "select:SystemSettings.date_format"
-msgid "yyyy-mm-dd"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
-msgctxt "select:SystemSettings.language"
-msgid "en-US"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
-msgctxt "select:SystemSettings.language"
-msgid "uk-UA"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
-msgctxt "select:SystemSettings.timezone"
-msgid "Europe/Kyiv"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
-msgctxt "select:SystemSettings.timezone"
-msgid "UTC"
-msgstr ""
-
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
 msgctxt "select:ToDo.priority"
 msgid "High"
@@ -8895,16 +8153,6 @@ msgid "Other"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.json
-msgctxt "select:User.language"
-msgid "en"
-msgstr ""
-
-#: grunt/grunt/auth/doctypes/User/User.json
-msgctxt "select:User.language"
-msgid "uk"
-msgstr ""
-
-#: grunt/grunt/auth/doctypes/User/User.json
 msgctxt "select:User.signup_state"
 msgid "approved"
 msgstr ""
@@ -8932,156 +8180,6 @@ msgstr ""
 #: grunt/grunt/auth/doctypes/User/User.json
 msgctxt "select:User.theme"
 msgid "system"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
-msgctxt "select:WebFormField.fieldtype"
-msgid "Attach"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
-msgctxt "select:WebFormField.fieldtype"
-msgid "Check"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
-msgctxt "select:WebFormField.fieldtype"
-msgid "Code"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
-msgctxt "select:WebFormField.fieldtype"
-msgid "Column"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
-msgctxt "select:WebFormField.fieldtype"
-msgid "Date"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
-msgctxt "select:WebFormField.fieldtype"
-msgid "Datetime"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
-msgctxt "select:WebFormField.fieldtype"
-msgid "Float"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
-msgctxt "select:WebFormField.fieldtype"
-msgid "Geolocation"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
-msgctxt "select:WebFormField.fieldtype"
-msgid "Icon"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
-msgctxt "select:WebFormField.fieldtype"
-msgid "Image"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
-msgctxt "select:WebFormField.fieldtype"
-msgid "Int"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
-msgctxt "select:WebFormField.fieldtype"
-msgid "JSON"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
-msgctxt "select:WebFormField.fieldtype"
-msgid "Link"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
-msgctxt "select:WebFormField.fieldtype"
-msgid "LongText"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
-msgctxt "select:WebFormField.fieldtype"
-msgid "MultiLink"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
-msgctxt "select:WebFormField.fieldtype"
-msgid "Rating"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
-msgctxt "select:WebFormField.fieldtype"
-msgid "RichText"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
-msgctxt "select:WebFormField.fieldtype"
-msgid "Section"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
-msgctxt "select:WebFormField.fieldtype"
-msgid "Select"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
-msgctxt "select:WebFormField.fieldtype"
-msgid "Signature"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
-msgctxt "select:WebFormField.fieldtype"
-msgid "Tab"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
-msgctxt "select:WebFormField.fieldtype"
-msgid "Table"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
-msgctxt "select:WebFormField.fieldtype"
-msgid "Text"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
-msgctxt "select:WebFormField.fieldtype"
-msgid "Time"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/WorkflowState/WorkflowState.json
-msgctxt "select:WorkflowState.color"
-msgid "blue"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/WorkflowState/WorkflowState.json
-msgctxt "select:WorkflowState.color"
-msgid "gray"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/WorkflowState/WorkflowState.json
-msgctxt "select:WorkflowState.color"
-msgid "green"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/WorkflowState/WorkflowState.json
-msgctxt "select:WorkflowState.color"
-msgid "orange"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/WorkflowState/WorkflowState.json
-msgctxt "select:WorkflowState.color"
-msgid "red"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/WorkflowState/WorkflowState.json
-msgctxt "select:WorkflowState.color"
-msgid "yellow"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/WorkspaceSidebarItem/WorkspaceSidebarItem.json

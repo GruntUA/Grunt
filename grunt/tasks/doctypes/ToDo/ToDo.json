@@ -96,6 +96,7 @@
       "label": "Статус",
       "fieldtype": "Select",
       "options": "Open\nIn Progress\nClosed\nCancelled",
+      "translatable": true,
       "default": "Open",
       "in_list_view": true,
       "in_quick_filter": true
@@ -105,6 +106,7 @@
       "label": "Пріоритет",
       "fieldtype": "Select",
       "options": "Low\nMedium\nHigh\nUrgent",
+      "translatable": true,
       "default": "Medium",
       "in_list_view": true,
       "in_quick_filter": true

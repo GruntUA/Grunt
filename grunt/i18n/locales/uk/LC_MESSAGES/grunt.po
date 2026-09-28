@@ -2776,26 +2776,26 @@ msgstr "Список через кому: usb, nfc, ble, internal, hybrid"
 
 #: grunt/frontend/src/components/dashboard/sections/DateRangeSection.vue:15
 msgid "3 months"
-msgstr ""
+msgstr "3 місяці"
 
 #: grunt/frontend/src/components/dashboard/sections/DateRangeSection.vue:14
 msgid "30 days"
-msgstr ""
+msgstr "30 днів"
 
 #: grunt/frontend/src/components/dashboard/sections/DateRangeSection.vue:13
 msgid "7 days"
-msgstr ""
+msgstr "7 днів"
 
 #: grunt/frontend/src/router/index.ts:190
 msgid "Access denied"
-msgstr ""
+msgstr "Доступ заборонено"
 
 #: grunt/frontend/src/components/layout/CommandPalette.vue:108
 #: grunt/frontend/src/components/layout/CommandPalette.vue:109
 #: grunt/frontend/src/components/layout/CommandPalette.vue:112
 #: grunt/frontend/src/components/layout/CommandPalette.vue:113
 msgid "Actions"
-msgstr ""
+msgstr "Дії"
 
 #: grunt/grunt/metadata/doctypes/DocType/global_form.js:130
 #: grunt/frontend/src/components/layout/CommandPalette.vue:111
@@ -2810,55 +2810,55 @@ msgstr "Додати"
 
 #: grunt/frontend/src/components/views/FilterBar.vue:294
 msgid "Add a Filter"
-msgstr ""
+msgstr "Додати фільтр"
 
 #: grunt/frontend/src/components/fields/Table/Table.vue:496
 msgid "Add row"
-msgstr ""
+msgstr "Додати рядок"
 
 #: grunt/frontend/src/components/dashboard/sections/AggregationSection.vue:25
 msgid "Aggregation"
-msgstr ""
+msgstr "Агрегація"
 
 #: grunt/frontend/src/components/views/form/FormHeader.vue:269
 msgid "Anyone with the link can view this document"
-msgstr ""
+msgstr "Будь-хто з посиланням може переглядати цей документ"
 
 #: grunt/frontend/src/components/views/BulkActionBar.vue:378
 msgid "Apply"
-msgstr ""
+msgstr "Застосувати"
 
 #: grunt/frontend/src/components/views/FilterBar.vue:342
 msgid "Apply Filters"
-msgstr ""
+msgstr "Застосувати фільтри"
 
 #: grunt/frontend/src/components/fields/Table/Table.vue:476
 msgid "Apply to"
-msgstr ""
+msgstr "Застосувати до"
 
 #: grunt/frontend/src/components/layout/CommandPalette.vue:171
 msgid "Apps"
-msgstr ""
+msgstr "Додатки"
 
 #: grunt/frontend/src/core/attachmentChannels/channels/LibraryChannel/LibraryChannel.vue:426
 msgid "Attach"
-msgstr ""
+msgstr "Прикріпити"
 
 #: grunt/frontend/src/components/fields/Attach/AttachPicker.vue:66
 msgid "Attach a file"
-msgstr ""
+msgstr "Прикріпити файл"
 
 #: grunt/frontend/src/components/fields/Attach/AttachPicker.vue:66
 msgid "Attach an image"
-msgstr ""
+msgstr "Прикріпити зображення"
 
 #: grunt/frontend/src/components/dashboard/sections/AggregationSection.vue:15
 msgid "Average (AVG)"
-msgstr ""
+msgstr "Середнє (AVG)"
 
 #: grunt/frontend/src/components/fields/BarCode/BarCode.vue:177
 msgid "Barcode not found in image."
-msgstr ""
+msgstr "На зображенні не знайдено штрихкоду."
 
 #: grunt/frontend/src/pages/desk/DocTypeForm.vue:177
 msgid "Beta: цей тип документа ще в розробці, поведінка може змінитися."
@@ -2866,19 +2866,20 @@ msgstr ""
 
 #: grunt/frontend/src/components/views/BulkActionBar.vue:338
 msgid "Bulk Update"
-msgstr ""
+msgstr "Масове оновлення"
 
 #: grunt/frontend/src/components/fields/BarCode/BarCode.vue:117
 msgid "Camera access denied. Allow access in browser settings."
 msgstr ""
+"Доступ до камери заборонено. Дозвольте доступ у налаштуваннях браузера."
 
 #: grunt/frontend/src/components/fields/BarCode/BarCode.vue:118
 msgid "Camera error: {msg}"
-msgstr ""
+msgstr "Помилка камери: {msg}"
 
 #: grunt/frontend/src/components/fields/BarCode/BarCode.vue:94
 msgid "Camera unavailable."
-msgstr ""
+msgstr "Камера недоступна."
 
 #: grunt/frontend/src/components/views/QuickEntryDialog.vue:147
 #: grunt/frontend/src/components/views/BulkActionBar.vue:284
@@ -2890,11 +2891,11 @@ msgstr ""
 #: grunt/frontend/src/components/views/form/FormHeader.vue:444
 #: grunt/frontend/src/components/fields/Table/TableRowSheet.vue:108
 msgid "Cancel"
-msgstr ""
+msgstr "Скасувати"
 
 #: grunt/frontend/src/components/views/QuickEntryDialog.vue:106
 msgid "Check the form for errors"
-msgstr ""
+msgstr "Перевірте форму на помилки"
 
 #: grunt/frontend/src/components/views/ListEmptyState.vue:46
 #: grunt/frontend/src/components/views/FilterBar.vue:228
@@ -2904,55 +2905,55 @@ msgstr "Скинути фільтри"
 
 #: grunt/frontend/src/components/fields/Table/Table.vue:483
 msgid "Clear selection"
-msgstr ""
+msgstr "Зняти виділення"
 
 #: grunt/frontend/src/components/dashboard/sections/ColorSection.vue:13
 msgid "Color"
-msgstr ""
+msgstr "Колір"
 
 #: grunt/frontend/src/components/fields/Table/Table.vue:452
 msgid "Column"
-msgstr ""
+msgstr "Колонка"
 
 #: grunt/frontend/src/components/dashboard/WidgetCard.vue:51
 msgid "Configure"
-msgstr ""
+msgstr "Налаштувати"
 
 #: grunt/frontend/src/components/views/BulkActionBar.vue:234
 msgid "Confirm Deletion"
-msgstr ""
+msgstr "Підтвердьте видалення"
 
 #: grunt/frontend/src/components/dashboard/sections/TextContentSection.vue:12
 msgid "Content (HTML/text)"
-msgstr ""
+msgstr "Вміст (HTML/текст)"
 
 #: grunt/frontend/src/components/dashboard/widgets/Funnel/Funnel.vue:80
 msgid "Conversion:"
-msgstr ""
+msgstr "Конверсія:"
 
 #: grunt/frontend/src/components/views/form/FormHeader.vue:366
 msgid "Copy"
-msgstr ""
+msgstr "Копіювати"
 
 #: grunt/frontend/src/core/attachmentChannels/channels/LibraryChannel/LibraryChannel.vue:225
 msgid "Could not delete the file"
-msgstr ""
+msgstr "Не вдалося видалити файл"
 
 #: grunt/frontend/src/components/dashboard/sections/AggregationSection.vue:13
 msgid "Count (COUNT)"
-msgstr ""
+msgstr "Кількість (COUNT)"
 
 #: grunt/frontend/src/components/fields/Link/Link.vue:216
 msgid "Create"
-msgstr ""
+msgstr "Створити"
 
 #: grunt/frontend/src/components/fields/Link/Link.vue:220
 msgid "Create new"
-msgstr ""
+msgstr "Створити новий"
 
 #: grunt/frontend/src/components/layout/CommandPalette.vue:109
 msgid "Create new DocType"
-msgstr ""
+msgstr "Створити новий DocType"
 
 #: grunt/grunt/metadata/doctypes/DocType/global_list.js:78
 msgid "Create report"
@@ -2960,7 +2961,7 @@ msgstr "Створити звіт"
 
 #: grunt/frontend/src/core/attachmentChannels/channels/LibraryChannel/LibraryChannel.vue:379
 msgid "Currently attached"
-msgstr ""
+msgstr "Зараз прикріплено"
 
 #: grunt/grunt/metadata/doctypes/DocType/global_list.js:68
 msgid "Customize Quick Filters"
@@ -2968,11 +2969,11 @@ msgstr "Налаштувати швидкі фільтри"
 
 #: grunt/frontend/src/components/dashboard/sections/DataSourceSection.vue:27
 msgid "Data source"
-msgstr ""
+msgstr "Джерело даних"
 
 #: grunt/frontend/src/components/dashboard/sections/DateRangeSection.vue:23
 msgid "Date field"
-msgstr ""
+msgstr "Поле дати"
 
 #: grunt/grunt/metadata/doctypes/DocType/global_form.js:172
 #: grunt/grunt/metadata/doctypes/DocType/global_list.js:98
@@ -2987,31 +2988,31 @@ msgstr "Видалити"
 
 #: grunt/frontend/src/components/views/form/FormModals.vue:86
 msgid "Delete document?"
-msgstr ""
+msgstr "Видалити документ?"
 
 #: grunt/frontend/src/core/attachmentChannels/channels/LibraryChannel/LibraryChannel.vue:395
 msgid "Delete file"
-msgstr ""
+msgstr "Видалити файл"
 
 #: grunt/frontend/src/components/fields/Table/Table.vue:425
 msgid "Delete row"
-msgstr ""
+msgstr "Видалити рядок"
 
 #: grunt/frontend/src/core/attachmentChannels/channels/LibraryChannel/LibraryChannel.vue:217
 msgid "Delete this file from the library?"
-msgstr ""
+msgstr "Видалити цей файл з бібліотеки?"
 
 #: grunt/frontend/src/components/fields/Table/Table.vue:220
 msgid "Deleted"
-msgstr ""
+msgstr "Видалено"
 
 #: grunt/frontend/src/components/dashboard/sections/LinksSection.vue:105
 msgid "Description (optional)"
-msgstr ""
+msgstr "Опис (необов'язково)"
 
 #: grunt/frontend/src/components/layout/NotificationsPopover.vue:176
 msgid "Disable"
-msgstr ""
+msgstr "Вимкнути"
 
 #: grunt/grunt/metadata/doctypes/DocType/global_form.js:120
 msgid "Discard changes"
@@ -3019,32 +3020,32 @@ msgstr "Скасувати зміни"
 
 #: grunt/frontend/src/components/dashboard/sections/ShortcutTargetSection.vue:15
 msgid "DocType (list)"
-msgstr ""
+msgstr "DocType (список)"
 
 #: grunt/frontend/src/components/dashboard/sections/DataSourceSection.vue:37
 msgid "DocType aggregate"
-msgstr ""
+msgstr "Агрегат DocType"
 
 #: grunt/frontend/src/components/layout/CommandPalette.vue:185
 msgid "DocTypes"
-msgstr ""
+msgstr "DocType-и"
 
 #: grunt/frontend/src/pages/desk/DocTypeForm.vue:145
 msgid "Document renamed"
-msgstr ""
+msgstr "Документ перейменовано"
 
 #: grunt/frontend/src/components/layout/CommandPalette.vue:205
 msgid "Documents"
-msgstr ""
+msgstr "Документи"
 
 #: grunt/frontend/src/components/views/form/FormHeader.vue:309
 #: grunt/frontend/src/components/views/form/FormHeader.vue:458
 msgid "Done"
-msgstr ""
+msgstr "Готово"
 
 #: grunt/frontend/src/core/attachmentChannels/channels/LibraryChannel/LibraryChannel.vue:258
 msgid "Drop files to upload"
-msgstr ""
+msgstr "Перетягніть файли для завантаження"
 
 #: grunt/grunt/metadata/doctypes/DocType/global_form.js:110
 #: grunt/frontend/src/components/fields/Table/Table.vue:443
@@ -3053,7 +3054,7 @@ msgstr "Дублювати"
 
 #: grunt/frontend/src/components/fields/Table/Table.vue:415
 msgid "Duplicate row"
-msgstr ""
+msgstr "Дублювати рядок"
 
 #: grunt/grunt/metadata/doctypes/DocType/global_list.js:89
 #: grunt/frontend/src/components/fields/Table/Table.vue:398
@@ -3069,98 +3070,98 @@ msgstr "Редагувати DocType"
 
 #: grunt/frontend/src/components/layout/NotificationsPopover.vue:176
 msgid "Enable"
-msgstr ""
+msgstr "Увімкнути"
 
 #: grunt/frontend/src/components/fields/BarCode/BarCode.vue:180
 msgid "Error: {msg}"
-msgstr ""
+msgstr "Помилка: {msg}"
 
 #: grunt/frontend/src/components/views/form/FormHeader.vue:276
 msgid "Expires at"
-msgstr ""
+msgstr "Діє до"
 
 #: grunt/frontend/src/components/dashboard/sections/ShortcutTargetSection.vue:18
 msgid "External URL"
-msgstr ""
+msgstr "Зовнішній URL"
 
 #: grunt/frontend/src/core/attachmentChannels/channels/LibraryChannel/LibraryChannel.vue:322
 msgid "Failed to load files"
-msgstr ""
+msgstr "Не вдалося завантажити файли"
 
 #: grunt/frontend/src/components/views/FilterBar.vue:244
 #: grunt/frontend/src/components/dashboard/sections/AggregationSection.vue:41
 msgid "Field"
-msgstr ""
+msgstr "Поле"
 
 #: grunt/frontend/src/router/index.ts:192
 msgid "Files"
-msgstr ""
+msgstr "Файли"
 
 #: grunt/frontend/src/components/fields/Table/Table.vue:493
 msgid "Fill in the current row first"
-msgstr ""
+msgstr "Спершу заповніть поточний рядок"
 
 #: grunt/frontend/src/components/views/FilterBar.vue:223
 msgid "Filter"
-msgstr ""
+msgstr "Фільтр"
 
 #: grunt/frontend/src/components/dashboard/sections/ActivityFilterSection.vue:18
 msgid "Filter by DocType"
-msgstr ""
+msgstr "Фільтр за DocType"
 
 #: grunt/frontend/src/components/dashboard/sections/WidthSection.vue:14
 msgid "Full"
-msgstr ""
+msgstr "Повна"
 
 #: grunt/frontend/src/components/views/form/FormHeader.vue:287
 msgid "Generate link"
-msgstr ""
+msgstr "Згенерувати посилання"
 
 #: grunt/frontend/src/components/layout/CommandPalette.vue:183
 msgid "Go to list {label}"
-msgstr ""
+msgstr "Перейти до списку {label}"
 
 #: grunt/frontend/src/components/dashboard/sections/GroupBySection.vue:13
 msgid "Group by"
-msgstr ""
+msgstr "Групувати за"
 
 #: grunt/frontend/src/router/index.ts:189
 msgid "Home"
-msgstr ""
+msgstr "Головна"
 
 #: grunt/frontend/src/components/dashboard/sections/TilesSection.vue:21
 #: grunt/frontend/src/components/dashboard/sections/IconSection.vue:15
 #: grunt/frontend/src/components/dashboard/sections/IconSection.vue:22
 msgid "Icon (lucide)"
-msgstr ""
+msgstr "Іконка (lucide)"
 
 #: grunt/frontend/src/components/fields/Table/Table.vue:418
 msgid "Insert row above"
-msgstr ""
+msgstr "Вставити рядок вище"
 
 #: grunt/frontend/src/components/fields/Table/Table.vue:421
 msgid "Insert row below"
-msgstr ""
+msgstr "Вставити рядок нижче"
 
 #: grunt/frontend/src/components/fields/Table/useTableCell.ts:60
 msgid "Invalid format"
-msgstr ""
+msgstr "Неправильний формат"
 
 #: grunt/frontend/src/components/views/form/FormModals.vue:155
 msgid "Leave"
-msgstr ""
+msgstr "Піти"
 
 #: grunt/frontend/src/components/views/form/FormHeader.vue:304
 msgid "Link copied to clipboard when you click the copy button."
-msgstr ""
+msgstr "Посилання копіюється в буфер обміну натисканням кнопки копіювання."
 
 #: grunt/frontend/src/components/dashboard/sections/ShortcutTargetSection.vue:70
 msgid "Link type"
-msgstr ""
+msgstr "Тип посилання"
 
 #: grunt/frontend/src/components/dashboard/sections/LinksSection.vue:57
 msgid "Link {n}"
-msgstr ""
+msgstr "Посилання {n}"
 
 #: grunt/grunt/metadata/doctypes/DocType/global_form.js:140
 #: grunt/frontend/src/components/dashboard/sections/LinksSection.vue:46
@@ -3169,54 +3170,54 @@ msgstr "Зв'язки"
 
 #: grunt/frontend/src/components/views/tree/TreeView.vue:153
 msgid "Load error"
-msgstr ""
+msgstr "Помилка завантаження"
 
 #: grunt/frontend/src/components/layout/CommandPalette.vue:113
 msgid "Log out"
-msgstr ""
+msgstr "Вийти"
 
 #: grunt/frontend/src/components/views/form/FormHeader.vue:305
 msgid "Manage shares"
-msgstr ""
+msgstr "Керувати доступом"
 
 #: grunt/frontend/src/components/layout/NotificationsPopover.vue:124
 #: grunt/frontend/src/components/layout/NotificationsPopover.vue:126
 msgid "Mark all as read"
-msgstr ""
+msgstr "Позначити все як прочитане"
 
 #: grunt/frontend/src/components/layout/NotificationsPopover.vue:160
 msgid "Mark as read"
-msgstr ""
+msgstr "Позначити як прочитане"
 
 #: grunt/frontend/src/components/dashboard/sections/GaugeRangeSection.vue:25
 #: grunt/frontend/src/components/fields/Table/useTableCell.ts:69
 msgid "Max"
-msgstr ""
+msgstr "Макс."
 
 #: grunt/frontend/src/components/fields/Table/useTableCell.ts:57
 msgid "Max length"
-msgstr ""
+msgstr "Макс. довжина"
 
 #: grunt/frontend/src/components/dashboard/sections/AggregationSection.vue:17
 msgid "Maximum"
-msgstr ""
+msgstr "Максимум"
 
 #: grunt/frontend/src/components/dashboard/sections/GaugeRangeSection.vue:16
 #: grunt/frontend/src/components/fields/Table/useTableCell.ts:68
 msgid "Min"
-msgstr ""
+msgstr "Мін."
 
 #: grunt/frontend/src/components/dashboard/sections/AggregationSection.vue:16
 msgid "Minimum"
-msgstr ""
+msgstr "Мінімум"
 
 #: grunt/frontend/src/components/fields/Table/useTableCell.ts:67
 msgid "Must be a number"
-msgstr ""
+msgstr "Має бути числом"
 
 #: grunt/frontend/src/core/attachmentChannels/channels/LibraryChannel/LibraryChannel.vue:291
 msgid "Name"
-msgstr ""
+msgstr "Назва"
 
 #: grunt/frontend/src/router/index.ts:199
 #: grunt/frontend/src/components/app/AppBreadcrumb.vue:82
@@ -3224,124 +3225,124 @@ msgstr ""
 #: grunt/frontend/src/components/dashboard/sections/LinksSection.vue:29
 #: grunt/frontend/src/pages/desk/DocTypeForm.vue:94
 msgid "New"
-msgstr ""
+msgstr "Новий"
 
 #: grunt/frontend/src/components/views/form/FormHeader.vue:322
 msgid "New ID"
-msgstr ""
+msgstr "Новий ID"
 
 #: grunt/frontend/src/components/views/form/FormHeader.vue:308
 msgid "New link"
-msgstr ""
+msgstr "Нове посилання"
 
 #: grunt/frontend/src/components/layout/NotificationsPopover.vue:35
 msgid "New notification"
-msgstr ""
+msgstr "Нове сповіщення"
 
 #: grunt/frontend/src/core/attachmentChannels/channels/LibraryChannel/LibraryChannel.vue:290
 msgid "Newest"
-msgstr ""
+msgstr "Найновіші"
 
 #: grunt/frontend/src/components/fields/Attach/AttachPicker.vue:117
 msgid "No attachment sources available"
-msgstr ""
+msgstr "Немає доступних джерел вкладень"
 
 #: grunt/frontend/src/components/views/FilterBar.vue:283
 msgid "No fields available"
-msgstr ""
+msgstr "Немає доступних полів"
 
 #: grunt/frontend/src/core/attachmentChannels/channels/LibraryChannel/LibraryChannel.vue:338
 msgid "No files found"
-msgstr ""
+msgstr "Файлів не знайдено"
 
 #: grunt/frontend/src/components/dashboard/sections/LinksSection.vue:53
 #: grunt/frontend/src/components/dashboard/widgets/Links/Links.vue:62
 msgid "No links"
-msgstr ""
+msgstr "Немає посилань"
 
 #: grunt/frontend/src/components/layout/NotificationsPopover.vue:135
 msgid "No notifications"
-msgstr ""
+msgstr "Немає сповіщень"
 
 #: grunt/frontend/src/components/dashboard/widgets/List/List.vue:51
 #: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:308
 #: grunt/frontend/src/components/fields/Link/Link.vue:195
 msgid "No records"
-msgstr ""
+msgstr "Немає записів"
 
 #: grunt/frontend/src/components/fields/Table/Table.vue:316
 msgid "No rows"
-msgstr ""
+msgstr "Немає рядків"
 
 #: grunt/frontend/src/components/dashboard/widgets/ShortcutsGrid/ShortcutsGrid.vue:68
 msgid "No tiles"
-msgstr ""
+msgstr "Немає плиток"
 
 #: grunt/frontend/src/components/dashboard/sections/TilesSection.vue:56
 msgid "No tiles — click «Add»"
-msgstr ""
+msgstr "Немає плиток — натисніть «Додати»"
 
 #: grunt/frontend/src/components/dashboard/sections/DescriptionSection.vue:10
 msgid "Note"
-msgstr ""
+msgstr "Примітка"
 
 #: grunt/frontend/src/components/layout/CommandPalette.vue:325
 msgid "Nothing found for"
-msgstr ""
+msgstr "Нічого не знайдено за запитом"
 
 #: grunt/frontend/src/components/layout/NotificationsPopover.vue:103
 #: grunt/frontend/src/components/layout/NotificationsPopover.vue:117
 msgid "Notifications"
-msgstr ""
+msgstr "Сповіщення"
 
 #: grunt/frontend/src/core/attachmentChannels/channels/LibraryChannel/LibraryChannel.vue:301
 msgid "Only files from this document"
-msgstr ""
+msgstr "Лише файли цього документа"
 
 #: grunt/frontend/src/components/fields/Link/Link.vue:86
 #: grunt/frontend/src/components/fields/Link/Link.vue:130
 msgid "Open {doctype}"
-msgstr ""
+msgstr "Відкрити {doctype}"
 
 #: grunt/frontend/src/components/layout/CommandPalette.vue:225
 msgid "Other"
-msgstr ""
+msgstr "Інше"
 
 #: grunt/frontend/src/components/dashboard/sections/ShortcutTargetSection.vue:17
 msgid "Page"
-msgstr ""
+msgstr "Сторінка"
 
 #: grunt/frontend/src/router/index.ts:191
 msgid "Page not found"
-msgstr ""
+msgstr "Сторінку не знайдено"
 
 #: grunt/frontend/src/components/dashboard/sections/DateRangeSection.vue:32
 msgid "Period"
-msgstr ""
+msgstr "Період"
 
 #: grunt/frontend/src/components/views/FilterBar.vue:327
 msgid "Preset name"
-msgstr ""
+msgstr "Назва пресету"
 
 #: grunt/frontend/src/components/layout/NotificationsPopover.vue:170
 msgid "Push notifications disabled"
-msgstr ""
+msgstr "Push-сповіщення вимкнено"
 
 #: grunt/frontend/src/components/layout/NotificationsPopover.vue:170
 msgid "Push notifications enabled"
-msgstr ""
+msgstr "Push-сповіщення увімкнено"
 
 #: grunt/frontend/src/components/layout/CommandPalette.vue:312
 msgid "Quick actions"
-msgstr ""
+msgstr "Швидкі дії"
 
 #: grunt/frontend/src/components/layout/CommandPalette.vue:302
 msgid "Quick create"
-msgstr ""
+msgstr "Швидке створення"
 
 #: grunt/frontend/src/components/layout/CommandPalette.vue:108
 msgid "Quick create (Ctrl+N)"
-msgstr ""
+msgstr "Швидке створення (Ctrl+N)"
 
 #: grunt/grunt/metadata/doctypes/DocType/global_form.js:41
 #: grunt/grunt/metadata/doctypes/DocType/global_list.js:34
@@ -3355,34 +3356,34 @@ msgstr "Перейменувати"
 
 #: grunt/frontend/src/components/views/form/FormHeader.vue:319
 msgid "Rename document"
-msgstr ""
+msgstr "Перейменувати документ"
 
 #: grunt/frontend/src/components/dashboard/sections/TilesSection.vue:90
 #: grunt/frontend/src/components/dashboard/sections/ShortcutTargetSection.vue:16
 #: grunt/frontend/src/components/dashboard/sections/LinksSection.vue:78
 msgid "Report"
-msgstr ""
+msgstr "Звіт"
 
 #: grunt/frontend/src/components/fields/Table/useTableCell.ts:54
 msgid "Required"
-msgstr ""
+msgstr "Обов'язкове"
 
 #: grunt/frontend/src/router/index.ts:185
 #: grunt/frontend/src/router/index.ts:186
 msgid "Reset password"
-msgstr ""
+msgstr "Скинути пароль"
 
 #: grunt/frontend/src/components/views/tree/TreeView.vue:290
 msgid "Retry"
-msgstr ""
+msgstr "Повторити"
 
 #: grunt/frontend/src/components/fields/Table/Table.vue:406
 msgid "Row actions"
-msgstr ""
+msgstr "Дії з рядком"
 
 #: grunt/frontend/src/components/fields/Table/Table.vue:219
 msgid "Row deleted"
-msgstr ""
+msgstr "Рядок видалено"
 
 #: grunt/grunt/metadata/doctypes/DocType/global_form.js:28
 #: grunt/frontend/src/components/views/QuickEntryDialog.vue:161
@@ -3392,118 +3393,118 @@ msgstr "Зберегти"
 
 #: grunt/frontend/src/components/views/QuickEntryDialog.vue:152
 msgid "Save and close"
-msgstr ""
+msgstr "Зберегти й закрити"
 
 #: grunt/frontend/src/components/views/QuickEntryDialog.vue:156
 msgid "Save and open"
-msgstr ""
+msgstr "Зберегти й відкрити"
 
 #: grunt/frontend/src/components/views/FilterBar.vue:336
 msgid "Save as preset"
-msgstr ""
+msgstr "Зберегти як пресет"
 
 #: grunt/frontend/src/components/views/QuickEntryDialog.vue:112
 msgid "Save error"
-msgstr ""
+msgstr "Помилка збереження"
 
 #: grunt/frontend/src/components/views/QuickEntryDialog.vue:75
 msgid "Saved"
-msgstr ""
+msgstr "Збережено"
 
 #: grunt/frontend/src/components/views/FilterBar.vue:300
 msgid "Saved filters"
-msgstr ""
+msgstr "Збережені фільтри"
 
 #: grunt/frontend/src/components/dashboard/sections/DataSourceSection.vue:38
 msgid "Saved report"
-msgstr ""
+msgstr "Збережений звіт"
 
 #: grunt/frontend/src/components/fields/BarCode/BarCode.vue:198
 msgid "Scan or enter manually"
-msgstr ""
+msgstr "Відскануйте або введіть вручну"
 
 #: grunt/frontend/src/components/fields/BarCode/BarCode.vue:213
 msgid "Scan with camera"
-msgstr ""
+msgstr "Сканувати камерою"
 
 #: grunt/frontend/src/components/fields/BarCode/BarCode.vue:163
 msgid "Scanning is not supported in this browser."
-msgstr ""
+msgstr "Сканування не підтримується в цьому браузері."
 
 #: grunt/frontend/src/components/fields/BarCode/BarCode.vue:89
 msgid "Scanning is not supported in this browser. Use image upload."
-msgstr ""
+msgstr "Сканування не підтримується в цьому браузері. Завантажте зображення."
 
 #: grunt/frontend/src/router/index.ts:195
 msgid "Search"
-msgstr ""
+msgstr "Пошук"
 
 #: grunt/frontend/src/components/layout/CommandPalette.vue:283
 #: grunt/frontend/src/components/layout/CommandPalette.vue:284
 #: grunt/frontend/src/components/layout/CommandPalette.vue:290
 msgid "Search documents, apps or actions..."
-msgstr ""
+msgstr "Пошук документів, додатків або дій..."
 
 #: grunt/frontend/src/core/attachmentChannels/channels/LibraryChannel/LibraryChannel.vue:266
 msgid "Search files…"
-msgstr ""
+msgstr "Пошук файлів…"
 
 #: grunt/frontend/src/components/dashboard/sections/ShortcutTargetSection.vue:89
 msgid "Search {dt}..."
-msgstr ""
+msgstr "Пошук: {dt}..."
 
 #: grunt/frontend/src/components/views/DocTypeToolbar.vue:83
 msgid "Search..."
-msgstr ""
+msgstr "Пошук..."
 
 #: grunt/frontend/src/components/layout/CommandPalette.vue:299
 #: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:306
 #: grunt/frontend/src/components/fields/Link/Link.vue:193
 msgid "Searching..."
-msgstr ""
+msgstr "Пошук..."
 
 #: grunt/frontend/src/components/layout/CommandPalette.vue:290
 msgid "Select DocType to create a new record"
-msgstr ""
+msgstr "Оберіть DocType, щоб створити новий запис"
 
 #: grunt/frontend/src/components/dashboard/WidgetConfigPanel.vue:70
 msgid "Select a widget on the canvas or add a new one from the palette"
-msgstr ""
+msgstr "Оберіть віджет на полотні або додайте новий з палітри"
 
 #: grunt/frontend/src/components/fields/Table/Table.vue:290
 msgid "Select all"
-msgstr ""
+msgstr "Виділити все"
 
 #: grunt/frontend/src/components/views/BulkActionBar.vue:347
 msgid "Select field..."
-msgstr ""
+msgstr "Оберіть поле..."
 
 #: grunt/frontend/src/components/fields/Table/Table.vue:346
 msgid "Select row"
-msgstr ""
+msgstr "Виділити рядок"
 
 #: grunt/frontend/src/components/fields/Select/FilterInput.vue:35
 #: grunt/frontend/src/components/fields/Select/FilterInput.vue:41
 msgid "Select value"
-msgstr ""
+msgstr "Оберіть значення"
 
 #: grunt/frontend/src/components/fields/Table/Table.vue:440
 msgid "Selected:"
-msgstr ""
+msgstr "Вибрано:"
 
 #: grunt/frontend/src/components/fields/Table/Table.vue:447
 msgid "Set value"
-msgstr ""
+msgstr "Встановити значення"
 
 #: grunt/frontend/src/components/layout/CommandPalette.vue:110
 #: grunt/frontend/src/components/layout/CommandPalette.vue:111
 #: grunt/frontend/src/components/dashboard/WidgetConfigPanel.vue:75
 msgid "Settings"
-msgstr ""
+msgstr "Налаштування"
 
 #: grunt/frontend/src/router/index.ts:188
 msgid "Setup"
-msgstr ""
+msgstr "Початкове налаштування"
 
 #: grunt/grunt/metadata/doctypes/DocType/global_form.js:150
 #: grunt/frontend/src/components/views/form/FormHeader.vue:268
@@ -3512,94 +3513,94 @@ msgstr "Поділитися посиланням"
 
 #: grunt/frontend/src/router/index.ts:183
 msgid "Sign in"
-msgstr ""
+msgstr "Увійти"
 
 #: grunt/frontend/src/router/index.ts:184
 msgid "Sign up"
-msgstr ""
+msgstr "Зареєструватися"
 
 #: grunt/frontend/src/core/attachmentChannels/channels/LibraryChannel/LibraryChannel.vue:292
 msgid "Size"
-msgstr ""
+msgstr "Розмір"
 
 #: grunt/frontend/src/components/views/tree/TreeView.vue:270
 msgid "Sort by"
-msgstr ""
+msgstr "Сортувати за"
 
 #: grunt/frontend/src/components/views/tree/TreeView.vue:276
 msgid "Sort order"
-msgstr ""
+msgstr "Порядок сортування"
 
 #: grunt/frontend/src/components/views/form/FormModals.vue:154
 msgid "Stay"
-msgstr ""
+msgstr "Залишитися"
 
 #: grunt/frontend/src/components/fields/BarCode/BarCode.vue:218
 msgid "Stop"
-msgstr ""
+msgstr "Зупинити"
 
 #: grunt/frontend/src/components/dashboard/sections/DescriptionSection.vue:10
 msgid "Subtitle"
-msgstr ""
+msgstr "Підзаголовок"
 
 #: grunt/frontend/src/components/dashboard/sections/AggregationSection.vue:14
 msgid "Sum (SUM)"
-msgstr ""
+msgstr "Сума (SUM)"
 
 #: grunt/frontend/src/components/layout/CommandPalette.vue:112
 msgid "System settings"
-msgstr ""
+msgstr "Налаштування системи"
 
 #: grunt/frontend/src/components/dashboard/sections/ShortcutTargetSection.vue:85
 msgid "Target"
-msgstr ""
+msgstr "Ціль"
 
 #: grunt/frontend/src/components/dashboard/sections/TilesSection.vue:64
 msgid "Tile {n}"
-msgstr ""
+msgstr "Плитка {n}"
 
 #: grunt/frontend/src/components/dashboard/sections/TilesSection.vue:49
 msgid "Tiles"
-msgstr ""
+msgstr "Плитки"
 
 #: grunt/frontend/src/components/dashboard/sections/TilesSection.vue:71
 #: grunt/frontend/src/components/dashboard/sections/LinksSection.vue:85
 #: grunt/frontend/src/components/dashboard/sections/TitleSection.vue:12
 msgid "Title"
-msgstr ""
+msgstr "Заголовок"
 
 #: grunt/frontend/src/core/attachmentChannels/channels/LibraryChannel/LibraryChannel.vue:328
 msgid "Try again"
-msgstr ""
+msgstr "Спробувати ще раз"
 
 #: grunt/frontend/src/router/index.ts:187
 msgid "Two-factor authentication"
-msgstr ""
+msgstr "Двофакторна автентифікація"
 
 #: grunt/frontend/src/components/dashboard/WidgetConfigPanel.vue:85
 msgid "Type"
-msgstr ""
+msgstr "Тип"
 
 #: grunt/frontend/src/components/dashboard/sections/TilesSection.vue:105
 #: grunt/frontend/src/components/dashboard/sections/LinksSection.vue:99
 msgid "URL or name..."
-msgstr ""
+msgstr "URL або назва..."
 
 #: grunt/frontend/src/components/views/form/FormHeader.vue:229
 msgid "Unsaved"
-msgstr ""
+msgstr "Не збережено"
 
 #: grunt/frontend/src/components/views/form/FormModals.vue:150
 msgid "Unsaved changes"
-msgstr ""
+msgstr "Незбережені зміни"
 
 #: grunt/frontend/src/core/attachmentChannels/channels/LibraryChannel/LibraryChannel.vue:194
 msgid "Upload failed"
-msgstr ""
+msgstr "Не вдалося завантажити"
 
 #: grunt/frontend/src/components/fields/BarCode/BarCode.vue:223
 msgid "Upload image with barcode"
-msgstr ""
+msgstr "Завантажити зображення зі штрихкодом"
 
 #: grunt/frontend/src/components/views/form/FormHeader.vue:437
 msgid ""
@@ -3610,62 +3611,63 @@ msgstr ""
 #: grunt/frontend/src/components/fields/Table/Table.vue:398
 #: grunt/frontend/src/components/fields/Table/Table.vue:399
 msgid "View"
-msgstr ""
+msgstr "Переглянути"
 
 #: grunt/frontend/src/components/layout/CommandPalette.vue:110
 msgid "View hooks"
-msgstr ""
+msgstr "Переглянути хуки"
 
 #: grunt/frontend/src/components/dashboard/sections/TitleSection.vue:15
 msgid "Widget title"
-msgstr ""
+msgstr "Заголовок віджета"
 
 #: grunt/frontend/src/components/dashboard/sections/WidthSection.vue:20
 msgid "Width"
-msgstr ""
+msgstr "Ширина"
 
 #: grunt/frontend/src/components/dashboard/sections/DateRangeSection.vue:16
 msgid "Year"
-msgstr ""
+msgstr "Рік"
 
 #: grunt/frontend/src/components/dashboard/sections/ActivityFilterSection.vue:18
 #: grunt/frontend/src/components/views/form/FormHeader.vue:276
 msgid "optional"
-msgstr ""
+msgstr "необов'язково"
 
 #: grunt/frontend/src/components/fields/Table/Table.vue:500
 msgid "row needs attention"
-msgstr ""
+msgstr "рядок потребує уваги"
 
 #: grunt/frontend/src/components/fields/Table/Table.vue:219
 msgid "rows deleted"
-msgstr ""
+msgstr "рядків видалено"
 
 #: grunt/frontend/src/components/fields/Table/Table.vue:500
 msgid "rows need attention"
-msgstr ""
+msgstr "рядків потребують уваги"
 
 #: grunt/frontend/src/components/dashboard/widgets/Donut/Donut.vue:81
 msgid "total"
-msgstr ""
+msgstr "усього"
 
 #: grunt/frontend/src/plugins/i18n.ts:18
 msgid "{n} file"
 msgid_plural "{n} files"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "{n} файл"
+msgstr[1] "{n} файли"
+msgstr[2] "{n} файлів"
 
 #: grunt/frontend/src/core/attachmentChannels/channels/LibraryChannel/LibraryChannel.vue:184
 msgid "{n} file(s) uploaded"
-msgstr ""
+msgstr "Завантажено файлів: {n}"
 
 #: grunt/frontend/src/core/attachmentChannels/channels/LibraryChannel/LibraryChannel.vue:185
 msgid "{n} file(s) were already in the library"
-msgstr ""
+msgstr "Файлів, що вже були в бібліотеці: {n}"
 
 #: grunt/frontend/src/core/attachmentChannels/channels/LibraryChannel/LibraryChannel.vue:417
 msgid "{n} selected"
-msgstr ""
+msgstr "Вибрано: {n}"
 
 #: grunt/frontend/src/pages/desk/DocTypeForm.vue:199
 msgid "{views} переглядів · {viewers} користувачів"
@@ -3803,11 +3805,11 @@ msgstr ""
 
 #: grunt/frontend/src/components/dashboard/sections/ActivityFilterSection.vue:23
 msgid "— All —"
-msgstr ""
+msgstr "— Усі —"
 
 #: grunt/frontend/src/components/dashboard/sections/DataSourceSection.vue:46
 msgid "— Select —"
-msgstr ""
+msgstr "— Оберіть —"
 
 #: grunt/grunt/geo/doctypes/Address/Address.json
 msgctxt "help:Address.city_text"
@@ -3950,7 +3952,7 @@ msgstr ""
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
 msgctxt "help:EmailAccount.smtp_port"
 msgid "Gmail: 587 (STARTTLS)."
-msgstr ""
+msgstr "Gmail: 587 (STARTTLS)."
 
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
 msgctxt "help:EmailAccount.smtp_server"
@@ -3987,7 +3989,7 @@ msgstr ""
 #: grunt/grunt/webhook/doctypes/IncomingWebhook/IncomingWebhook.json
 msgctxt "help:IncomingWebhook.field_mapping"
 msgid "JSON: {\"doctype_field\": \"payload.path.to.value\"}"
-msgstr ""
+msgstr "JSON: {\"doctype_field\": \"payload.path.to.value\"}"
 
 #: grunt/grunt/webhook/doctypes/IncomingWebhook/IncomingWebhook.json
 msgctxt "help:IncomingWebhook.secret"
@@ -4190,107 +4192,107 @@ msgstr ""
 #: grunt/grunt/auth/doctypes/ApiKey/ApiKey.json
 msgctxt "meta:ApiKey"
 msgid "API Key"
-msgstr ""
+msgstr "API-ключ"
 
 #: grunt/grunt/assignment/doctypes/AssignmentLog/AssignmentLog.json
 msgctxt "meta:AssignmentLog"
 msgid "Assignment Log"
-msgstr ""
+msgstr "Журнал призначень"
 
 #: grunt/grunt/assignment/doctypes/AssignmentLog/AssignmentLog.json
 msgctxt "meta:AssignmentLog.assigned_to"
 msgid "Assigned To"
-msgstr ""
+msgstr "Призначено"
 
 #: grunt/grunt/assignment/doctypes/AssignmentLog/AssignmentLog.json
 msgctxt "meta:AssignmentLog.assignment_method"
 msgid "Assignment Method"
-msgstr ""
+msgstr "Спосіб призначення"
 
 #: grunt/grunt/assignment/doctypes/AssignmentLog/AssignmentLog.json
 msgctxt "meta:AssignmentLog.doctype_affected"
 msgid "DocType Affected"
-msgstr ""
+msgstr "Задіяний DocType"
 
 #: grunt/grunt/assignment/doctypes/AssignmentLog/AssignmentLog.json
 msgctxt "meta:AssignmentLog.document_id"
 msgid "Document ID"
-msgstr ""
+msgstr "ID документа"
 
 #: grunt/grunt/assignment/doctypes/AssignmentLog/AssignmentLog.json
 msgctxt "meta:AssignmentLog.error_message"
 msgid "Error Message"
-msgstr ""
+msgstr "Повідомлення про помилку"
 
 #: grunt/grunt/assignment/doctypes/AssignmentLog/AssignmentLog.json
 msgctxt "meta:AssignmentLog.filters_matched"
 msgid "Filters Matched"
-msgstr ""
+msgstr "Збіглися фільтри"
 
 #: grunt/grunt/assignment/doctypes/AssignmentLog/AssignmentLog.json
 msgctxt "meta:AssignmentLog.rule_id"
 msgid "Rule ID"
-msgstr ""
+msgstr "ID правила"
 
 #: grunt/grunt/assignment/doctypes/AssignmentLog/AssignmentLog.json
 msgctxt "meta:AssignmentLog.status"
 msgid "Status"
-msgstr ""
+msgstr "Статус"
 
 #: grunt/grunt/assignment/doctypes/AssignmentLog/AssignmentLog.json
 msgctxt "meta:AssignmentLog.timestamp"
 msgid "Timestamp"
-msgstr ""
+msgstr "Час"
 
 #: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
 msgctxt "meta:AssignmentRule"
 msgid "Assignment Rule"
-msgstr ""
+msgstr "Правило призначення"
 
 #: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
 msgctxt "meta:AssignmentRule.assign_to_role"
 msgid "Assign to Role"
-msgstr ""
+msgstr "Призначати ролі"
 
 #: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
 msgctxt "meta:AssignmentRule.assign_to_user"
 msgid "Assign to User"
-msgstr ""
+msgstr "Призначати користувачу"
 
 #: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
 msgctxt "meta:AssignmentRule.description"
 msgid "Description"
-msgstr ""
+msgstr "Опис"
 
 #: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
 msgctxt "meta:AssignmentRule.doctype_target"
 msgid "Target DocType"
-msgstr ""
+msgstr "Цільовий DocType"
 
 #: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
 msgctxt "meta:AssignmentRule.enabled"
 msgid "Enabled"
-msgstr ""
+msgstr "Увімкнено"
 
 #: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
 msgctxt "meta:AssignmentRule.filters"
 msgid "Filters (JSON)"
-msgstr ""
+msgstr "Фільтри (JSON)"
 
 #: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
 msgctxt "meta:AssignmentRule.section_assignment"
 msgid "Assignment"
-msgstr ""
+msgstr "Призначення"
 
 #: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
 msgctxt "meta:AssignmentRule.section_condition"
 msgid "Conditions"
-msgstr ""
+msgstr "Умови"
 
 #: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
 msgctxt "meta:AssignmentRule.section_meta"
 msgid "Metadata"
-msgstr ""
+msgstr "Метадані"
 
 #: grunt/grunt/geo/doctypes/City/City.json
 msgctxt "meta:City"
@@ -4540,7 +4542,7 @@ msgstr ""
 #: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
 msgctxt "meta:Dashboard Widget.doctype"
 msgid "DocType"
-msgstr ""
+msgstr "DocType"
 
 #: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
 msgctxt "meta:Dashboard Widget.field"
@@ -4900,17 +4902,17 @@ msgstr ""
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgctxt "meta:DocType.beta"
 msgid "Beta"
-msgstr ""
+msgstr "Бета"
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgctxt "meta:DocType.sec_kanban_view"
 msgid "Kanban"
-msgstr ""
+msgstr "Канбан"
 
 #: grunt/grunt/metadata/doctypes/DocTypeCalendarSource/DocTypeCalendarSource.json
 msgctxt "meta:DocTypeCalendarSource.doctype"
 msgid "DocType"
-msgstr ""
+msgstr "DocType"
 
 #: grunt/grunt/document/doctypes/DocVersion/DocVersion.json
 msgctxt "meta:DocVersion"
@@ -5180,7 +5182,7 @@ msgstr ""
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 msgctxt "meta:EmailMessage.message_id"
 msgid "Message-ID"
-msgstr ""
+msgstr "Message-ID"
 
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 msgctxt "meta:EmailMessage.read_at"
@@ -5350,7 +5352,7 @@ msgstr ""
 #: grunt/grunt/monitoring/doctypes/ErrorLog/ErrorLog.json
 msgctxt "meta:ErrorLog.request_id"
 msgid "Request ID"
-msgstr ""
+msgstr "ID запиту"
 
 #: grunt/grunt/monitoring/doctypes/ErrorLog/ErrorLog.json
 msgctxt "meta:ErrorLog.request_method"
@@ -5505,7 +5507,7 @@ msgstr ""
 #: grunt/grunt/scripting/doctypes/Hook/Hook.json
 msgctxt "meta:Hook.reference_doctype"
 msgid "DocType"
-msgstr ""
+msgstr "DocType"
 
 #: grunt/grunt/scripting/doctypes/Hook/Hook.json
 msgctxt "meta:Hook.source"
@@ -5600,7 +5602,7 @@ msgstr ""
 #: grunt/grunt/webhook/doctypes/IncomingWebhookLog/IncomingWebhookLog.json
 msgctxt "meta:IncomingWebhookLog.slug"
 msgid "Slug"
-msgstr ""
+msgstr "Slug"
 
 #: grunt/grunt/webhook/doctypes/IncomingWebhookLog/IncomingWebhookLog.json
 msgctxt "meta:IncomingWebhookLog.status"
@@ -5830,7 +5832,7 @@ msgstr ""
 #: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
 msgctxt "meta:PageWidget.doctype"
 msgid "DocType"
-msgstr ""
+msgstr "DocType"
 
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.json
 msgctxt "meta:PrintFormat"
@@ -5885,7 +5887,7 @@ msgstr ""
 #: grunt/grunt/webpush/doctypes/PushSubscription/PushSubscription.json
 msgctxt "meta:PushSubscription.endpoint"
 msgid "Endpoint"
-msgstr ""
+msgstr "Endpoint"
 
 #: grunt/grunt/webpush/doctypes/PushSubscription/PushSubscription.json
 msgctxt "meta:PushSubscription.p256dh"
@@ -5900,7 +5902,7 @@ msgstr ""
 #: grunt/grunt/webpush/doctypes/PushSubscription/PushSubscription.json
 msgctxt "meta:PushSubscription.user_agent"
 msgid "User Agent"
-msgstr ""
+msgstr "User Agent"
 
 #: grunt/grunt/geo/doctypes/Region/Region.json
 msgctxt "meta:Region"
@@ -5965,7 +5967,7 @@ msgstr ""
 #: grunt/grunt/reports/doctypes/Report/Report.json
 msgctxt "meta:Report.query"
 msgid "SQL"
-msgstr ""
+msgstr "SQL"
 
 #: grunt/grunt/reports/doctypes/Report/Report.json
 msgctxt "meta:Report.report_name"
@@ -6170,7 +6172,7 @@ msgstr ""
 #: grunt/grunt/monitoring/doctypes/SqlProfilerQuery/SqlProfilerQuery.json
 msgctxt "meta:SqlProfilerQuery.request_id"
 msgid "Request ID"
-msgstr ""
+msgstr "ID запиту"
 
 #: grunt/grunt/monitoring/doctypes/SqlProfilerQuery/SqlProfilerQuery.json
 msgctxt "meta:SqlProfilerQuery.slow"
@@ -6180,7 +6182,7 @@ msgstr ""
 #: grunt/grunt/monitoring/doctypes/SqlProfilerQuery/SqlProfilerQuery.json
 msgctxt "meta:SqlProfilerQuery.sql"
 msgid "SQL"
-msgstr ""
+msgstr "SQL"
 
 #: grunt/grunt/monitoring/doctypes/SqlProfilerRequest/SqlProfilerRequest.json
 msgctxt "meta:SqlProfilerRequest"
@@ -6255,17 +6257,17 @@ msgstr ""
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgctxt "meta:SystemSettings.tab_email"
 msgid "Email"
-msgstr ""
+msgstr "Email"
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgctxt "meta:SystemSettings.webpush_vapid_private"
 msgid "VAPID Private Key"
-msgstr ""
+msgstr "Приватний ключ VAPID"
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgctxt "meta:SystemSettings.webpush_vapid_public"
 msgid "VAPID Public Key"
-msgstr ""
+msgstr "Публічний ключ VAPID"
 
 #: grunt/grunt/geo/doctypes/Timezone/Timezone.json
 msgctxt "meta:Timezone"
@@ -6375,7 +6377,7 @@ msgstr ""
 #: grunt/grunt/auth/doctypes/User/User.json
 msgctxt "meta:User.email"
 msgid "Email"
-msgstr ""
+msgstr "Email"
 
 #: grunt/grunt/permissions/doctypes/UserPermission/UserPermission.json
 msgctxt "meta:UserPermission"
@@ -6440,12 +6442,12 @@ msgstr ""
 #: grunt/grunt/auth/doctypes/WebAuthnCredential/WebAuthnCredential.json
 msgctxt "meta:WebAuthnCredential.aaguid"
 msgid "AAGUID"
-msgstr ""
+msgstr "AAGUID"
 
 #: grunt/grunt/auth/doctypes/WebAuthnCredential/WebAuthnCredential.json
 msgctxt "meta:WebAuthnCredential.credential_id"
 msgid "Credential ID"
-msgstr ""
+msgstr "ID облікових даних"
 
 #: grunt/grunt/webhook/doctypes/WebhookLog/WebhookLog.json
 msgctxt "meta:WebhookLog"
@@ -6490,7 +6492,7 @@ msgstr ""
 #: grunt/grunt/webhook/doctypes/WebhookLog/WebhookLog.json
 msgctxt "meta:WebhookLog.url"
 msgid "URL"
-msgstr ""
+msgstr "URL"
 
 #: grunt/grunt/webhook/doctypes/WebhookLog/WebhookLog.json
 msgctxt "meta:WebhookLog.webhook"
@@ -6500,57 +6502,37 @@ msgstr ""
 #: grunt/grunt/site/doctypes/WebsiteNavItem/WebsiteNavItem.json
 msgctxt "meta:WebsiteNavItem.url"
 msgid "URL"
-msgstr ""
+msgstr "URL"
 
 #: grunt/grunt/metadata/doctypes/Workflow/Workflow.json
 msgctxt "meta:Workflow"
 msgid "Workflow"
-msgstr ""
+msgstr "Робочий процес"
 
 #: grunt/grunt/metadata/doctypes/Workflow/Workflow.json
 msgctxt "meta:Workflow.document_type"
 msgid "DocType"
-msgstr ""
-
-#: grunt/grunt/activity/doctypes/ActivityLog/ActivityLog.json
-msgctxt "select:ActivityLog.action"
-msgid "Cancel"
-msgstr ""
+msgstr "DocType"
 
 #: grunt/grunt/activity/doctypes/ActivityLog/ActivityLog.json
 msgctxt "select:ActivityLog.action"
 msgid "Comment"
-msgstr ""
-
-#: grunt/grunt/activity/doctypes/ActivityLog/ActivityLog.json
-msgctxt "select:ActivityLog.action"
-msgid "Create"
-msgstr ""
-
-#: grunt/grunt/activity/doctypes/ActivityLog/ActivityLog.json
-msgctxt "select:ActivityLog.action"
-msgid "Delete"
-msgstr ""
+msgstr "Коментар"
 
 #: grunt/grunt/activity/doctypes/ActivityLog/ActivityLog.json
 msgctxt "select:ActivityLog.action"
 msgid "Share"
-msgstr ""
+msgstr "Надання доступу"
 
 #: grunt/grunt/activity/doctypes/ActivityLog/ActivityLog.json
 msgctxt "select:ActivityLog.action"
 msgid "Submit"
-msgstr ""
+msgstr "Проведення"
 
 #: grunt/grunt/activity/doctypes/ActivityLog/ActivityLog.json
 msgctxt "select:ActivityLog.action"
 msgid "Update"
-msgstr ""
-
-#: grunt/grunt/activity/doctypes/ActivityLog/ActivityLog.json
-msgctxt "select:ActivityLog.action"
-msgid "Workflow"
-msgstr ""
+msgstr "Оновлення"
 
 #: grunt/grunt/geo/doctypes/Address/Address.json
 msgctxt "select:Address.address_type"
@@ -6575,42 +6557,42 @@ msgstr ""
 #: grunt/grunt/assignment/doctypes/AssignmentLog/AssignmentLog.json
 msgctxt "select:AssignmentLog.assignment_method"
 msgid "role"
-msgstr ""
+msgstr "Роль"
 
 #: grunt/grunt/assignment/doctypes/AssignmentLog/AssignmentLog.json
 msgctxt "select:AssignmentLog.assignment_method"
 msgid "user"
-msgstr ""
+msgstr "Користувач"
 
 #: grunt/grunt/assignment/doctypes/AssignmentLog/AssignmentLog.json
 msgctxt "select:AssignmentLog.status"
 msgid "Failed"
-msgstr ""
+msgstr "Помилка"
 
 #: grunt/grunt/assignment/doctypes/AssignmentLog/AssignmentLog.json
 msgctxt "select:AssignmentLog.status"
 msgid "Success"
-msgstr ""
+msgstr "Успішно"
 
 #: grunt/grunt/document/doctypes/Comment/Comment.json
 msgctxt "select:Comment.comment_type"
 msgid "Comment"
-msgstr ""
+msgstr "Коментар"
 
 #: grunt/grunt/document/doctypes/Comment/Comment.json
 msgctxt "select:Comment.comment_type"
 msgid "Error"
-msgstr ""
+msgstr "Помилка"
 
 #: grunt/grunt/document/doctypes/Comment/Comment.json
 msgctxt "select:Comment.comment_type"
 msgid "Info"
-msgstr ""
+msgstr "Інформація"
 
 #: grunt/grunt/document/doctypes/Comment/Comment.json
 msgctxt "select:Comment.comment_type"
 msgid "Warning"
-msgstr ""
+msgstr "Попередження"
 
 #: grunt/grunt/geo/doctypes/Country/Country.json
 msgctxt "select:Country.continent"
@@ -6650,27 +6632,27 @@ msgstr ""
 #: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
 msgctxt "select:Dashboard Widget.aggregation"
 msgid "avg"
-msgstr ""
+msgstr "Середнє"
 
 #: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
 msgctxt "select:Dashboard Widget.aggregation"
 msgid "count"
-msgstr ""
+msgstr "Кількість"
 
 #: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
 msgctxt "select:Dashboard Widget.aggregation"
 msgid "max"
-msgstr ""
+msgstr "Максимум"
 
 #: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
 msgctxt "select:Dashboard Widget.aggregation"
 msgid "min"
-msgstr ""
+msgstr "Мінімум"
 
 #: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
 msgctxt "select:Dashboard Widget.aggregation"
 msgid "sum"
-msgstr ""
+msgstr "Сума"
 
 #: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
 msgctxt "select:Dashboard Widget.color"
@@ -6700,21 +6682,6 @@ msgstr ""
 #: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
 msgctxt "select:Dashboard Widget.color"
 msgid "violet"
-msgstr ""
-
-#: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
-msgctxt "select:Dashboard Widget.link_type"
-msgid "DocType"
-msgstr ""
-
-#: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
-msgctxt "select:Dashboard Widget.link_type"
-msgid "Report"
-msgstr ""
-
-#: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
-msgctxt "select:Dashboard Widget.link_type"
-msgid "URL"
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
@@ -6815,27 +6782,27 @@ msgstr ""
 #: grunt/grunt/reports/doctypes/DashboardChart/DashboardChart.json
 msgctxt "select:DashboardChart.timespan"
 msgid "all_time"
-msgstr ""
+msgstr "За весь час"
 
 #: grunt/grunt/reports/doctypes/DashboardChart/DashboardChart.json
 msgctxt "select:DashboardChart.timespan"
 msgid "last_month"
-msgstr ""
+msgstr "Останній місяць"
 
 #: grunt/grunt/reports/doctypes/DashboardChart/DashboardChart.json
 msgctxt "select:DashboardChart.timespan"
 msgid "last_quarter"
-msgstr ""
+msgstr "Останній квартал"
 
 #: grunt/grunt/reports/doctypes/DashboardChart/DashboardChart.json
 msgctxt "select:DashboardChart.timespan"
 msgid "last_week"
-msgstr ""
+msgstr "Останній тиждень"
 
 #: grunt/grunt/reports/doctypes/DashboardChart/DashboardChart.json
 msgctxt "select:DashboardChart.timespan"
 msgid "last_year"
-msgstr ""
+msgstr "Останній рік"
 
 #: grunt/grunt/io/doctypes/DataExport/DataExport.json
 msgctxt "select:DataExport.export_format"
@@ -6850,62 +6817,57 @@ msgstr ""
 #: grunt/grunt/io/doctypes/DataExport/DataExport.json
 msgctxt "select:DataExport.status"
 msgid "Failed"
-msgstr ""
+msgstr "Помилка"
 
 #: grunt/grunt/io/doctypes/DataExport/DataExport.json
 msgctxt "select:DataExport.status"
 msgid "In Progress"
-msgstr ""
+msgstr "Виконується"
 
 #: grunt/grunt/io/doctypes/DataExport/DataExport.json
 msgctxt "select:DataExport.status"
 msgid "Pending"
-msgstr ""
+msgstr "Очікує"
 
 #: grunt/grunt/io/doctypes/DataExport/DataExport.json
 msgctxt "select:DataExport.status"
 msgid "Success"
-msgstr ""
+msgstr "Успішно"
 
 #: grunt/grunt/io/doctypes/DataImport/DataImport.json
 msgctxt "select:DataImport.import_type"
 msgid "Insert New"
-msgstr ""
+msgstr "Додати нові"
 
 #: grunt/grunt/io/doctypes/DataImport/DataImport.json
 msgctxt "select:DataImport.import_type"
 msgid "Update Existing"
-msgstr ""
+msgstr "Оновити наявні"
 
 #: grunt/grunt/io/doctypes/DataImport/DataImport.json
 msgctxt "select:DataImport.status"
 msgid "Failed"
-msgstr ""
+msgstr "Помилка"
 
 #: grunt/grunt/io/doctypes/DataImport/DataImport.json
 msgctxt "select:DataImport.status"
 msgid "In Progress"
-msgstr ""
+msgstr "Виконується"
 
 #: grunt/grunt/io/doctypes/DataImport/DataImport.json
 msgctxt "select:DataImport.status"
 msgid "Partial Success"
-msgstr ""
+msgstr "Частково успішно"
 
 #: grunt/grunt/io/doctypes/DataImport/DataImport.json
 msgctxt "select:DataImport.status"
 msgid "Pending"
-msgstr ""
+msgstr "Очікує"
 
 #: grunt/grunt/io/doctypes/DataImport/DataImport.json
 msgctxt "select:DataImport.status"
 msgid "Success"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/DocField/DocField.json
-msgctxt "select:DocField.fieldtype"
-msgid "Attach"
-msgstr ""
+msgstr "Успішно"
 
 #: grunt/grunt/metadata/doctypes/DocField/DocField.json
 msgctxt "select:DocField.fieldtype"
@@ -6915,11 +6877,6 @@ msgstr ""
 #: grunt/grunt/metadata/doctypes/DocField/DocField.json
 msgctxt "select:DocField.fieldtype"
 msgid "Code"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/DocField/DocField.json
-msgctxt "select:DocField.fieldtype"
-msgid "Column"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocField/DocField.json
@@ -6944,27 +6901,12 @@ msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocField/DocField.json
 msgctxt "select:DocField.fieldtype"
-msgid "Icon"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/DocField/DocField.json
-msgctxt "select:DocField.fieldtype"
-msgid "Image"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/DocField/DocField.json
-msgctxt "select:DocField.fieldtype"
 msgid "Int"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocField/DocField.json
 msgctxt "select:DocField.fieldtype"
 msgid "JSON"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/DocField/DocField.json
-msgctxt "select:DocField.fieldtype"
-msgid "Link"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocField/DocField.json
@@ -7005,11 +6947,6 @@ msgstr ""
 #: grunt/grunt/metadata/doctypes/DocField/DocField.json
 msgctxt "select:DocField.fieldtype"
 msgid "Tab"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/DocField/DocField.json
-msgctxt "select:DocField.fieldtype"
-msgid "Table"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocField/DocField.json
@@ -7060,12 +6997,12 @@ msgstr ""
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgctxt "select:DocType.tree_sort_order"
 msgid "asc"
-msgstr ""
+msgstr "За зростанням"
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgctxt "select:DocType.tree_sort_order"
 msgid "desc"
-msgstr ""
+msgstr "За спаданням"
 
 #: grunt/grunt/metadata/doctypes/DocTypeAction/DocTypeAction.json
 msgctxt "select:DocTypeAction.variant"
@@ -7205,47 +7142,47 @@ msgstr ""
 #: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
 msgctxt "select:EmailQueue.status"
 msgid "Error"
-msgstr ""
+msgstr "Помилка"
 
 #: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
 msgctxt "select:EmailQueue.status"
 msgid "Pending"
-msgstr ""
+msgstr "Очікує"
 
 #: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
 msgctxt "select:EmailQueue.status"
 msgid "Sending"
-msgstr ""
+msgstr "Надсилається"
 
 #: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
 msgctxt "select:EmailQueue.status"
 msgid "Sent"
-msgstr ""
+msgstr "Надіслано"
 
 #: grunt/grunt/monitoring/doctypes/ErrorLog/ErrorLog.json
 msgctxt "select:ErrorLog.context"
 msgid "Background Task"
-msgstr ""
+msgstr "Фонове завдання"
 
 #: grunt/grunt/monitoring/doctypes/ErrorLog/ErrorLog.json
 msgctxt "select:ErrorLog.context"
 msgid "Controller"
-msgstr ""
+msgstr "Контролер"
 
 #: grunt/grunt/monitoring/doctypes/ErrorLog/ErrorLog.json
 msgctxt "select:ErrorLog.context"
 msgid "HTTP Request"
-msgstr ""
+msgstr "HTTP-запит"
 
 #: grunt/grunt/monitoring/doctypes/ErrorLog/ErrorLog.json
 msgctxt "select:ErrorLog.context"
 msgid "Manual"
-msgstr ""
+msgstr "Вручну"
 
 #: grunt/grunt/monitoring/doctypes/ErrorLog/ErrorLog.json
 msgctxt "select:ErrorLog.context"
 msgid "Scheduled Job"
-msgstr ""
+msgstr "Заплановане завдання"
 
 #: grunt/grunt/webhook/doctypes/IncomingWebhook/IncomingWebhook.json
 msgctxt "select:IncomingWebhook.action"
@@ -7280,82 +7217,77 @@ msgstr ""
 #: grunt/grunt/webhook/doctypes/IncomingWebhookLog/IncomingWebhookLog.json
 msgctxt "select:IncomingWebhookLog.status"
 msgid "error"
-msgstr ""
+msgstr "Помилка"
 
 #: grunt/grunt/webhook/doctypes/IncomingWebhookLog/IncomingWebhookLog.json
 msgctxt "select:IncomingWebhookLog.status"
 msgid "ignored"
-msgstr ""
+msgstr "Проігноровано"
 
 #: grunt/grunt/webhook/doctypes/IncomingWebhookLog/IncomingWebhookLog.json
 msgctxt "select:IncomingWebhookLog.status"
 msgid "success"
-msgstr ""
+msgstr "Успішно"
 
 #: grunt/grunt/geo/doctypes/Language/Language.json
 msgctxt "select:Language.script"
 msgid "Arabic"
-msgstr ""
+msgstr "Арабська"
 
 #: grunt/grunt/geo/doctypes/Language/Language.json
 msgctxt "select:Language.script"
 msgid "Chinese"
-msgstr ""
+msgstr "Китайська"
 
 #: grunt/grunt/geo/doctypes/Language/Language.json
 msgctxt "select:Language.script"
 msgid "Cyrillic"
-msgstr ""
+msgstr "Кирилиця"
 
 #: grunt/grunt/geo/doctypes/Language/Language.json
 msgctxt "select:Language.script"
 msgid "Devanagari"
-msgstr ""
+msgstr "Деванагарі"
 
 #: grunt/grunt/geo/doctypes/Language/Language.json
 msgctxt "select:Language.script"
 msgid "Greek"
-msgstr ""
+msgstr "Грецька"
 
 #: grunt/grunt/geo/doctypes/Language/Language.json
 msgctxt "select:Language.script"
 msgid "Hebrew"
-msgstr ""
+msgstr "Іврит"
 
 #: grunt/grunt/geo/doctypes/Language/Language.json
 msgctxt "select:Language.script"
 msgid "Japanese"
-msgstr ""
+msgstr "Японська"
 
 #: grunt/grunt/geo/doctypes/Language/Language.json
 msgctxt "select:Language.script"
 msgid "Korean"
-msgstr ""
+msgstr "Корейська"
 
 #: grunt/grunt/geo/doctypes/Language/Language.json
 msgctxt "select:Language.script"
 msgid "Latin"
-msgstr ""
-
-#: grunt/grunt/geo/doctypes/Language/Language.json
-msgctxt "select:Language.script"
-msgid "Other"
-msgstr ""
+msgstr "Латиниця"
 
 #: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
 msgctxt "select:NotificationRule.channel"
 msgid "both"
-msgstr ""
+msgstr "Обидва"
 
 #: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
 msgctxt "select:NotificationRule.channel"
 msgid "email"
-msgstr ""
+msgstr "Email"
 
 #: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
 msgctxt "select:NotificationRule.channel"
 msgid "system"
-msgstr ""
+msgstr "Система"
 
 #: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
 msgctxt "select:NotificationRule.event"
@@ -7380,27 +7312,27 @@ msgstr ""
 #: grunt/grunt/reports/doctypes/NumberCard/NumberCard.json
 msgctxt "select:NumberCard.aggregation"
 msgid "avg"
-msgstr ""
+msgstr "Середнє"
 
 #: grunt/grunt/reports/doctypes/NumberCard/NumberCard.json
 msgctxt "select:NumberCard.aggregation"
 msgid "count"
-msgstr ""
+msgstr "Кількість"
 
 #: grunt/grunt/reports/doctypes/NumberCard/NumberCard.json
 msgctxt "select:NumberCard.aggregation"
 msgid "max"
-msgstr ""
+msgstr "Максимум"
 
 #: grunt/grunt/reports/doctypes/NumberCard/NumberCard.json
 msgctxt "select:NumberCard.aggregation"
 msgid "min"
-msgstr ""
+msgstr "Мінімум"
 
 #: grunt/grunt/reports/doctypes/NumberCard/NumberCard.json
 msgctxt "select:NumberCard.aggregation"
 msgid "sum"
-msgstr ""
+msgstr "Сума"
 
 #: grunt/grunt/webhook/doctypes/OutgoingWebhook/OutgoingWebhook.json
 msgctxt "select:OutgoingWebhook.event"
@@ -7430,27 +7362,27 @@ msgstr ""
 #: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
 msgctxt "select:PageWidget.aggregation"
 msgid "avg"
-msgstr ""
+msgstr "Середнє"
 
 #: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
 msgctxt "select:PageWidget.aggregation"
 msgid "count"
-msgstr ""
+msgstr "Кількість"
 
 #: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
 msgctxt "select:PageWidget.aggregation"
 msgid "max"
-msgstr ""
+msgstr "Максимум"
 
 #: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
 msgctxt "select:PageWidget.aggregation"
 msgid "min"
-msgstr ""
+msgstr "Мінімум"
 
 #: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
 msgctxt "select:PageWidget.aggregation"
 msgid "sum"
-msgstr ""
+msgstr "Сума"
 
 #: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
 msgctxt "select:PageWidget.color"
@@ -7480,26 +7412,6 @@ msgstr ""
 #: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
 msgctxt "select:PageWidget.color"
 msgid "violet"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
-msgctxt "select:PageWidget.link_type"
-msgid "DocType"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
-msgctxt "select:PageWidget.link_type"
-msgid "Page"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
-msgctxt "select:PageWidget.link_type"
-msgid "Report"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
-msgctxt "select:PageWidget.link_type"
-msgid "URL"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
@@ -7630,52 +7542,52 @@ msgstr ""
 #: grunt/grunt/reports/doctypes/Report/Report.json
 msgctxt "select:Report.report_type"
 msgid "List"
-msgstr ""
+msgstr "Список"
 
 #: grunt/grunt/reports/doctypes/Report/Report.json
 msgctxt "select:Report.report_type"
 msgid "Query"
-msgstr ""
+msgstr "Запит"
 
 #: grunt/grunt/reports/doctypes/Report/Report.json
 msgctxt "select:Report.report_type"
 msgid "Script"
-msgstr ""
+msgstr "Скрипт"
 
 #: grunt/grunt/tasks/doctypes/ScheduledJob/ScheduledJob.json
 msgctxt "select:ScheduledJob.status"
 msgid "Failed"
-msgstr ""
+msgstr "Помилка"
 
 #: grunt/grunt/tasks/doctypes/ScheduledJob/ScheduledJob.json
 msgctxt "select:ScheduledJob.status"
 msgid "Pending"
-msgstr ""
+msgstr "Очікує"
 
 #: grunt/grunt/tasks/doctypes/ScheduledJob/ScheduledJob.json
 msgctxt "select:ScheduledJob.status"
 msgid "Running"
-msgstr ""
+msgstr "Виконується"
 
 #: grunt/grunt/tasks/doctypes/ScheduledJob/ScheduledJob.json
 msgctxt "select:ScheduledJob.status"
 msgid "Success"
-msgstr ""
+msgstr "Успішно"
 
 #: grunt/grunt/tasks/doctypes/ScheduledJobLog/ScheduledJobLog.json
 msgctxt "select:ScheduledJobLog.status"
 msgid "Failed"
-msgstr ""
+msgstr "Помилка"
 
 #: grunt/grunt/tasks/doctypes/ScheduledJobLog/ScheduledJobLog.json
 msgctxt "select:ScheduledJobLog.status"
 msgid "Running"
-msgstr ""
+msgstr "Виконується"
 
 #: grunt/grunt/tasks/doctypes/ScheduledJobLog/ScheduledJobLog.json
 msgctxt "select:ScheduledJobLog.status"
 msgid "Success"
-msgstr ""
+msgstr "Успішно"
 
 #: grunt/grunt/scripting/doctypes/ServerScript/ServerScript.json
 msgctxt "select:ServerScript.event"
@@ -7715,27 +7627,27 @@ msgstr ""
 #: grunt/grunt/scripting/doctypes/ServerScript/ServerScript.json
 msgctxt "select:ServerScript.script_type"
 msgid "API"
-msgstr ""
+msgstr "API"
 
 #: grunt/grunt/scripting/doctypes/ServerScript/ServerScript.json
 msgctxt "select:ServerScript.script_type"
 msgid "DocType Event"
-msgstr ""
+msgstr "Подія DocType"
 
 #: grunt/grunt/scripting/doctypes/ServerScript/ServerScript.json
 msgctxt "select:ServerScript.script_type"
 msgid "Scheduler Event"
-msgstr ""
+msgstr "Подія планувальника"
 
 #: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
 msgctxt "select:SharedWith.permission"
 msgid "Read"
-msgstr ""
+msgstr "Читання"
 
 #: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
 msgctxt "select:SharedWith.permission"
 msgid "Write"
-msgstr ""
+msgstr "Запис"
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgctxt "select:SystemSettings.date_format"
@@ -7775,42 +7687,42 @@ msgstr ""
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
 msgctxt "select:ToDo.priority"
 msgid "High"
-msgstr ""
+msgstr "Високий"
 
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
 msgctxt "select:ToDo.priority"
 msgid "Low"
-msgstr ""
+msgstr "Низький"
 
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
 msgctxt "select:ToDo.priority"
 msgid "Medium"
-msgstr ""
+msgstr "Середній"
 
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
 msgctxt "select:ToDo.priority"
 msgid "Urgent"
-msgstr ""
+msgstr "Терміновий"
 
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
 msgctxt "select:ToDo.status"
 msgid "Cancelled"
-msgstr ""
+msgstr "Скасовано"
 
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
 msgctxt "select:ToDo.status"
 msgid "Closed"
-msgstr ""
+msgstr "Закрито"
 
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
 msgctxt "select:ToDo.status"
 msgid "In Progress"
-msgstr ""
+msgstr "В роботі"
 
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
 msgctxt "select:ToDo.status"
 msgid "Open"
-msgstr ""
+msgstr "Відкрито"
 
 #: grunt/grunt/auth/doctypes/User/User.json
 msgctxt "select:User.language"
@@ -7825,32 +7737,32 @@ msgstr ""
 #: grunt/grunt/auth/doctypes/User/User.json
 msgctxt "select:User.signup_state"
 msgid "approved"
-msgstr ""
+msgstr "Підтверджено"
 
 #: grunt/grunt/auth/doctypes/User/User.json
 msgctxt "select:User.signup_state"
 msgid "pending"
-msgstr ""
+msgstr "Очікує"
 
 #: grunt/grunt/auth/doctypes/User/User.json
 msgctxt "select:User.signup_state"
 msgid "rejected"
-msgstr ""
+msgstr "Відхилено"
 
 #: grunt/grunt/auth/doctypes/User/User.json
 msgctxt "select:User.theme"
 msgid "dark"
-msgstr ""
+msgstr "Темна"
 
 #: grunt/grunt/auth/doctypes/User/User.json
 msgctxt "select:User.theme"
 msgid "light"
-msgstr ""
+msgstr "Світла"
 
 #: grunt/grunt/auth/doctypes/User/User.json
 msgctxt "select:User.theme"
 msgid "system"
-msgstr ""
+msgstr "Системна"
 
 #: grunt/grunt/metadata/doctypes/WorkflowState/WorkflowState.json
 msgctxt "select:WorkflowState.color"
@@ -7885,27 +7797,7 @@ msgstr ""
 #: grunt/grunt/site/doctypes/WorkspaceSidebarItem/WorkspaceSidebarItem.json
 msgctxt "select:WorkspaceSidebarItem.type"
 msgid "Divider"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WorkspaceSidebarItem/WorkspaceSidebarItem.json
-msgctxt "select:WorkspaceSidebarItem.type"
-msgid "DocType"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WorkspaceSidebarItem/WorkspaceSidebarItem.json
-msgctxt "select:WorkspaceSidebarItem.type"
-msgid "Page"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WorkspaceSidebarItem/WorkspaceSidebarItem.json
-msgctxt "select:WorkspaceSidebarItem.type"
-msgid "Report"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WorkspaceSidebarItem/WorkspaceSidebarItem.json
-msgctxt "select:WorkspaceSidebarItem.type"
-msgid "URL"
-msgstr ""
+msgstr "Роздільник"
 
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
 msgctxt "status:ToDo"
@@ -7979,6 +7871,9 @@ msgid ""
 "each document's own timeline. For admin/config records (roles, print "
 "formats, workspace layout, …)"
 msgstr ""
+"Не показувати записи лише в загальній стрічці активності — у хронології "
+"самого документа вони лишаються. Для адміністративних/конфігураційних "
+"записів (ролі, друковані форми, макет робочого простору, …)"
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgctxt "help:DocType.track_activity"
@@ -7987,6 +7882,9 @@ msgid ""
 "frequency system churn (sessions, queues, logs) — never for ordinary "
 "business records"
 msgstr ""
+"Записувати в ActivityLog створення/оновлення/видалення. Вимикайте для частих"
+" системних змін (сесії, черги, журнали) — ніколи для звичайних бізнес-"
+"записів"
 
 #: grunt/grunt/tasks/doctypes/BackgroundJob/BackgroundJob.json
 msgctxt "meta:BackgroundJob"
@@ -8051,7 +7949,7 @@ msgstr ""
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgctxt "meta:DocType.hide_from_activity_feed"
 msgid "Hide from global feed"
-msgstr ""
+msgstr "Приховати із загальної стрічки"
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgctxt "meta:DocType.track_activity"
@@ -8199,7 +8097,7 @@ msgstr "Закрити"
 
 #: grunt/frontend/src/components/dashboard/sections/GaugeRangeSection.vue:13
 msgid "Range"
-msgstr ""
+msgstr "Діапазон"
 
 #: grunt/frontend/src/pages/desk/DocTypeForm.vue:164
 msgid "Відновити"
@@ -8225,6 +8123,7 @@ msgstr ""
 msgctxt "help:EmailQueue.attachments"
 msgid "Files sent with the message: [{filename, mimetype, content_b64}]."
 msgstr ""
+"Файли, надіслані з повідомленням: [{filename, mimetype, content_b64}]."
 
 #: grunt/grunt/email/doctypes/EmailTemplate/EmailTemplate.json
 msgctxt "help:EmailTemplate.body"
@@ -8255,16 +8154,18 @@ msgid ""
 "Always applied: [{\"fieldname\", \"op\", \"value\"}]; dates may be relative "
 "(today, today-30)."
 msgstr ""
+"Застосовуються завжди: [{\"fieldname\", \"op\", \"value\"}]; дати можуть "
+"бути відносними (today, today-30)."
 
 #: grunt/grunt/reports/doctypes/Report/Report.json
 msgctxt "help:Report.row_limit"
 msgid "Show only the first N rows (top N). Empty — all."
-msgstr ""
+msgstr "Показувати лише перші N рядків (топ-N). Порожнє — усі."
 
 #: grunt/grunt/reports/doctypes/Report/Report.json
 msgctxt "help:Report.sort_by"
 msgid "Result column to sort by."
-msgstr ""
+msgstr "Колонка результату для сортування."
 
 #: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
 msgctxt "help:SharedWith"
@@ -8272,6 +8173,8 @@ msgid ""
 "Per-user share of one document (Read / Write). Only someone who can write "
 "the document may share it."
 msgstr ""
+"Спільний доступ користувача до одного документа (Читання / Запис). "
+"Поділитися може лише той, хто має право запису в документ."
 
 #: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.json
 msgctxt "help:SystemHealthReport"
@@ -8314,6 +8217,7 @@ msgid ""
 "Requires a captcha_provider to be configured for the site — otherwise "
 "ignored"
 msgstr ""
+"Потребує налаштованого для сайту captcha_provider — інакше ігнорується"
 
 #: grunt/grunt/site/doctypes/WebForm/WebForm.json
 msgctxt "help:WebForm.confirmation_template"
@@ -8321,17 +8225,21 @@ msgid ""
 "Sent to the submitter's own email field (if any) and to every address in "
 "Notify emails below"
 msgstr ""
+"Надсилається на email самого відправника (якщо є таке поле) і на кожну "
+"адресу з «Email для сповіщень» нижче"
 
 #: grunt/grunt/site/doctypes/WebForm/WebForm.json
 msgctxt "help:WebForm.notify_emails"
 msgid ""
 "One address per line or comma-separated — staff to alert on every submission"
 msgstr ""
+"По адресі на рядок або через кому — співробітники, яких сповіщати про кожне "
+"надсилання"
 
 #: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
 msgctxt "help:WebFormField.collapsible"
 msgid "Section rows only"
-msgstr ""
+msgstr "Лише для рядків Section"
 
 #: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
 msgctxt "help:WebFormField.fieldtype"
@@ -8339,22 +8247,26 @@ msgid ""
 "Empty for an ordinary field (its real type is always resolved live from the "
 "target DocType); set only to mark a Tab/Section/Column layout row"
 msgstr ""
+"Порожнє для звичайного поля (його справжній тип завжди береться з цільового "
+"DocType); задавайте лише для рядків розмітки Tab/Section/Column"
 
 #: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
 msgctxt "help:WebFormField.label"
 msgid "Required for Tab/Section rows; optional override for ordinary fields"
 msgstr ""
+"Обов'язково для рядків Tab/Section; для звичайних полів — необов'язкове "
+"перевизначення"
 
 #: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
 msgctxt "help:WebFormField.required"
 msgid "OR'd with the target field's own required flag"
-msgstr ""
+msgstr "Поєднується через АБО з власною ознакою обов'язковості цільового поля"
 
 #: grunt/grunt/site/doctypes/WebsiteFooterColumn/WebsiteFooterColumn.json
 msgctxt "help:WebsiteFooterColumn.title"
 msgid ""
 "Must match the 'Group' field on the footer links this column should show"
-msgstr ""
+msgstr "Має збігатися з полем «Група» посилань футера, які показує ця колонка"
 
 #: grunt/grunt/site/doctypes/WebsiteNavItem/WebsiteNavItem.json
 msgctxt "help:WebsiteNavItem.group"
@@ -8362,12 +8274,15 @@ msgid ""
 "Used only in the site footer to group links under a heading — must match a "
 "Site footer column's title"
 msgstr ""
+"Використовується лише у футері сайту для групування посилань під заголовком "
+"— має збігатися із заголовком колонки футера"
 
 #: grunt/grunt/site/doctypes/WebsiteNavItem/WebsiteNavItem.json
 msgctxt "help:WebsiteNavItem.highlight"
 msgid ""
 "Render this item as a call-to-action (e.g. a button) instead of a plain link"
 msgstr ""
+"Показувати пункт як заклик до дії (напр. кнопку), а не як звичайне посилання"
 
 #: grunt/grunt/site/doctypes/WebsiteSettings/WebsiteSettings.json
 msgctxt "help:WebsiteSettings.footer_columns"
@@ -8375,6 +8290,8 @@ msgid ""
 "Controls which footer columns show and in what order. Leave empty to auto-"
 "group footer links by their 'Group' field instead."
 msgstr ""
+"Визначає, які колонки футера показувати і в якому порядку. Залиште порожнім,"
+" щоб посилання футера автоматично групувалися за полем «Група»."
 
 #: grunt/grunt/metadata/doctypes/WorkflowTransition/WorkflowTransition.json
 msgctxt "help:WorkflowTransition.prompt_fields"
@@ -8383,6 +8300,9 @@ msgid ""
 " transition. When set, Condition (if any) is checked against the values "
 "entered in the dialog."
 msgstr ""
+"Імена полів цільового DocType, які запитуються в діалозі перед виконанням "
+"переходу. Якщо задано, Умова (за наявності) перевіряється за значеннями, "
+"введеними в діалозі."
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgctxt "hint:DocType.retention_date_field"
@@ -8482,32 +8402,32 @@ msgstr ""
 #: grunt/grunt/storage/doctypes/File/File.json
 msgctxt "meta:File.thumbnail_path"
 msgid "Thumbnail path"
-msgstr ""
+msgstr "Шлях до мініатюри"
 
 #: grunt/grunt/reports/doctypes/Report/Report.json
 msgctxt "meta:Report.conditions"
 msgid "Conditions"
-msgstr ""
+msgstr "Умови"
 
 #: grunt/grunt/reports/doctypes/Report/Report.json
 msgctxt "meta:Report.row_limit"
 msgid "Row limit"
-msgstr ""
+msgstr "Ліміт рядків"
 
 #: grunt/grunt/reports/doctypes/Report/Report.json
 msgctxt "meta:Report.sec_list_options"
 msgid "List report options"
-msgstr ""
+msgstr "Параметри звіту-списку"
 
 #: grunt/grunt/reports/doctypes/Report/Report.json
 msgctxt "meta:Report.sort_by"
 msgid "Sort by"
-msgstr ""
+msgstr "Сортувати за"
 
 #: grunt/grunt/reports/doctypes/Report/Report.json
 msgctxt "meta:Report.sort_order"
 msgid "Sort order"
-msgstr ""
+msgstr "Порядок сортування"
 
 #: grunt/grunt/monitoring/doctypes/SystemHealthCheck/SystemHealthCheck.json
 msgctxt "meta:SystemHealthCheck"
@@ -8662,32 +8582,32 @@ msgstr "Резервні копії"
 #: grunt/grunt/site/doctypes/WebForm/WebForm.json
 msgctxt "meta:WebForm.captcha_enabled"
 msgid "Require CAPTCHA"
-msgstr ""
+msgstr "Вимагати CAPTCHA"
 
 #: grunt/grunt/site/doctypes/WebForm/WebForm.json
 msgctxt "meta:WebForm.confirmation_template"
 msgid "Confirmation email template"
-msgstr ""
+msgstr "Шаблон листа-підтвердження"
 
 #: grunt/grunt/site/doctypes/WebForm/WebForm.json
 msgctxt "meta:WebForm.fields"
 msgid "Fields"
-msgstr ""
+msgstr "Поля"
 
 #: grunt/grunt/site/doctypes/WebForm/WebForm.json
 msgctxt "meta:WebForm.notify_emails"
 msgid "Notify emails"
-msgstr ""
+msgstr "Email для сповіщень"
 
 #: grunt/grunt/site/doctypes/WebForm/WebForm.json
 msgctxt "meta:WebForm.sec_antispam"
 msgid "Anti-spam"
-msgstr ""
+msgstr "Антиспам"
 
 #: grunt/grunt/site/doctypes/WebForm/WebForm.json
 msgctxt "meta:WebForm.sec_notifications"
 msgid "Notifications"
-msgstr ""
+msgstr "Сповіщення"
 
 #: grunt/grunt/site/doctypes/WebForm/WebForm.json
 msgctxt "meta:WebForm.tab_designer"
@@ -8697,82 +8617,77 @@ msgstr ""
 #: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
 msgctxt "meta:WebFormField"
 msgid "Web form field"
-msgstr ""
+msgstr "Поле веб-форми"
 
 #: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
 msgctxt "meta:WebFormField.collapsible"
 msgid "Collapsible"
-msgstr ""
+msgstr "Згортається"
 
 #: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
 msgctxt "meta:WebFormField.description"
 msgid "Help text override"
-msgstr ""
+msgstr "Власний текст підказки"
 
 #: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
 msgctxt "meta:WebFormField.fieldname"
 msgid "Fieldname"
-msgstr ""
+msgstr "Ім'я поля"
 
 #: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
 msgctxt "meta:WebFormField.fieldtype"
 msgid "Field type"
-msgstr ""
+msgstr "Тип поля"
 
 #: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
 msgctxt "meta:WebFormField.hidden"
 msgid "Hidden"
-msgstr ""
+msgstr "Приховане"
 
 #: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
 msgctxt "meta:WebFormField.label"
 msgid "Label override"
-msgstr ""
+msgstr "Власна назва"
 
 #: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
 msgctxt "meta:WebFormField.required"
 msgid "Required on this form"
-msgstr ""
+msgstr "Обов'язкове в цій формі"
 
 #: grunt/grunt/site/doctypes/WebsiteFooterColumn/WebsiteFooterColumn.json
 msgctxt "meta:WebsiteFooterColumn"
 msgid "Site footer column"
-msgstr ""
+msgstr "Колонка футера сайту"
 
 #: grunt/grunt/site/doctypes/WebsiteFooterColumn/WebsiteFooterColumn.json
 msgctxt "meta:WebsiteFooterColumn.enabled"
 msgid "Enabled"
-msgstr ""
+msgstr "Увімкнено"
 
 #: grunt/grunt/site/doctypes/WebsiteFooterColumn/WebsiteFooterColumn.json
 msgctxt "meta:WebsiteFooterColumn.title"
 msgid "Column heading"
-msgstr ""
+msgstr "Заголовок колонки"
 
 #: grunt/grunt/site/doctypes/WebsiteNavItem/WebsiteNavItem.json
 msgctxt "meta:WebsiteNavItem.highlight"
 msgid "Highlight"
-msgstr ""
+msgstr "Виділяти"
 
 #: grunt/grunt/site/doctypes/WebsiteNavItem/WebsiteNavItem.json
 msgctxt "meta:WebsiteNavItem.icon"
 msgid "Icon"
-msgstr ""
+msgstr "Іконка"
 
 #: grunt/grunt/site/doctypes/WebsiteSettings/WebsiteSettings.json
 msgctxt "meta:WebsiteSettings.footer_columns"
 msgid "Footer columns"
-msgstr ""
+msgstr "Колонки футера"
 
 #: grunt/grunt/metadata/doctypes/WorkflowTransition/WorkflowTransition.json
 msgctxt "meta:WorkflowTransition.prompt_fields"
 msgid "Dialog fields (comma-separated)"
-msgstr ""
-
-#: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
-msgctxt "select:Dashboard Widget.link_type"
-msgid "Page"
-msgstr ""
+msgstr "Поля діалогу (через кому)"
 
 #: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
 msgctxt "select:Dashboard Widget.widget_type"
@@ -8782,52 +8697,47 @@ msgstr ""
 #: grunt/grunt/reports/doctypes/Report/Report.json
 msgctxt "select:Report.sort_order"
 msgid "asc"
-msgstr ""
+msgstr "За зростанням"
 
 #: grunt/grunt/reports/doctypes/Report/Report.json
 msgctxt "select:Report.sort_order"
 msgid "desc"
-msgstr ""
+msgstr "За спаданням"
 
 #: grunt/grunt/monitoring/doctypes/SystemHealthCheck/SystemHealthCheck.json
 msgctxt "select:SystemHealthCheck.status"
 msgid "Error"
-msgstr ""
+msgstr "Помилка"
 
 #: grunt/grunt/monitoring/doctypes/SystemHealthCheck/SystemHealthCheck.json
 msgctxt "select:SystemHealthCheck.status"
 msgid "Info"
-msgstr ""
+msgstr "Інформація"
 
 #: grunt/grunt/monitoring/doctypes/SystemHealthCheck/SystemHealthCheck.json
 msgctxt "select:SystemHealthCheck.status"
 msgid "OK"
-msgstr ""
+msgstr "OK"
 
 #: grunt/grunt/monitoring/doctypes/SystemHealthCheck/SystemHealthCheck.json
 msgctxt "select:SystemHealthCheck.status"
 msgid "Warning"
-msgstr ""
+msgstr "Попередження"
 
 #: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.json
 msgctxt "select:SystemHealthReport.overall_status"
 msgid "Error"
-msgstr ""
+msgstr "Помилка"
 
 #: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.json
 msgctxt "select:SystemHealthReport.overall_status"
 msgid "OK"
-msgstr ""
+msgstr "OK"
 
 #: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.json
 msgctxt "select:SystemHealthReport.overall_status"
 msgid "Warning"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
-msgctxt "select:WebFormField.fieldtype"
-msgid "Attach"
-msgstr ""
+msgstr "Попередження"
 
 #: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
 msgctxt "select:WebFormField.fieldtype"
@@ -8837,11 +8747,6 @@ msgstr ""
 #: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
 msgctxt "select:WebFormField.fieldtype"
 msgid "Code"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
-msgctxt "select:WebFormField.fieldtype"
-msgid "Column"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
@@ -8866,27 +8771,12 @@ msgstr ""
 
 #: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
 msgctxt "select:WebFormField.fieldtype"
-msgid "Icon"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
-msgctxt "select:WebFormField.fieldtype"
-msgid "Image"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
-msgctxt "select:WebFormField.fieldtype"
 msgid "Int"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
 msgctxt "select:WebFormField.fieldtype"
 msgid "JSON"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
-msgctxt "select:WebFormField.fieldtype"
-msgid "Link"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
@@ -8927,11 +8817,6 @@ msgstr ""
 #: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
 msgctxt "select:WebFormField.fieldtype"
 msgid "Tab"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
-msgctxt "select:WebFormField.fieldtype"
-msgid "Table"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
@@ -9235,7 +9120,7 @@ msgstr "Джерело даних недоступне"
 
 #: grunt/frontend/src/components/dashboard/sections/FiltersSection.vue:72
 msgid "Filters"
-msgstr ""
+msgstr "Фільтри"
 
 #: grunt/frontend/src/components/views/ListEmptyState.vue:52
 msgid "No records found"
@@ -9252,6 +9137,108 @@ msgstr "Джерело даних тимчасово недоступне."
 #: grunt/frontend/src/components/views/ListEmptyState.vue:43
 msgid "Try adjusting your filters to see more results."
 msgstr "Спробуйте змінити фільтри, щоб побачити більше результатів."
+
+msgctxt "select:ActivityLog.action"
+msgid "Create"
+msgstr "Створення"
+
+msgctxt "select:ActivityLog.action"
+msgid "Delete"
+msgstr "Видалення"
+
+msgctxt "select:ActivityLog.action"
+msgid "Cancel"
+msgstr "Скасування"
+
+msgctxt "select:ActivityLog.action"
+msgid "Workflow"
+msgstr "Робочий процес"
+
+msgctxt "select:Dashboard Widget.link_type"
+msgid "DocType"
+msgstr "DocType"
+
+msgctxt "select:Dashboard Widget.link_type"
+msgid "Report"
+msgstr "Звіт"
+
+msgctxt "select:Dashboard Widget.link_type"
+msgid "Page"
+msgstr "Сторінка"
+
+msgctxt "select:Dashboard Widget.link_type"
+msgid "URL"
+msgstr "URL"
+
+msgctxt "select:PageWidget.link_type"
+msgid "DocType"
+msgstr "DocType"
+
+msgctxt "select:PageWidget.link_type"
+msgid "Report"
+msgstr "Звіт"
+
+msgctxt "select:PageWidget.link_type"
+msgid "Page"
+msgstr "Сторінка"
+
+msgctxt "select:PageWidget.link_type"
+msgid "URL"
+msgstr "URL"
+
+msgctxt "select:WorkspaceSidebarItem.type"
+msgid "DocType"
+msgstr "DocType"
+
+msgctxt "select:WorkspaceSidebarItem.type"
+msgid "Report"
+msgstr "Звіт"
+
+msgctxt "select:WorkspaceSidebarItem.type"
+msgid "Page"
+msgstr "Сторінка"
+
+msgctxt "select:WorkspaceSidebarItem.type"
+msgid "URL"
+msgstr "URL"
+
+msgctxt "select:DocType.default_view"
+msgid "list"
+msgstr "Список"
+
+msgctxt "select:DocType.default_view"
+msgid "kanban"
+msgstr "Канбан"
+
+msgctxt "select:DocType.default_view"
+msgid "calendar"
+msgstr "Календар"
+
+msgctxt "select:DocType.default_view"
+msgid "gantt"
+msgstr "Гант"
+
+msgctxt "select:DocType.default_view"
+msgid "tree"
+msgstr "Дерево"
+
+msgctxt "select:DocType.default_view"
+msgid "gallery"
+msgstr "Галерея"
+
+msgctxt "select:DocType.default_view"
+msgid "map"
+msgstr "Карта"
+
+msgctxt "select:Language.script"
+msgid "Other"
+msgstr "Інше"
+
+msgid "Translatable"
+msgstr "Перекладається"
+
+msgid "Option captions are translated; stored values stay unchanged."
+msgstr "Підписи опцій перекладаються; збережені значення не змінюються."
 
 #~ msgctxt "meta:WebsiteNavItem"
 #~ msgid "Site menu item"

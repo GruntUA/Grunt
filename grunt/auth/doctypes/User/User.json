@@ -109,7 +109,8 @@
       "fieldname": "gender",
       "label": "Gender",
       "fieldtype": "Select",
-      "options": "Male\nFemale\nOther"
+      "options": "Male\nFemale\nOther",
+      "translatable": true
     },
     {
       "fieldname": "col_p2",
@@ -164,6 +165,7 @@
       "label": "Registration state",
       "fieldtype": "Select",
       "options": "approved\npending\nrejected",
+      "translatable": true,
       "default": "approved",
       "read_only": true,
       "in_list_view": true,
@@ -280,6 +282,7 @@
       "label": "Theme",
       "fieldtype": "Select",
       "options": "light\ndark\nsystem",
+      "translatable": true,
       "default": "system"
     },
     {

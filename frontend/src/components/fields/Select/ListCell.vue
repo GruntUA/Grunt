@@ -4,6 +4,7 @@ import type { Component } from 'vue'
 import type { DocField, DocTypeStatusConfig } from '@/types'
 import { Badge } from '@/components/ui/badge'
 import { statusToneClass } from '@/core/status'
+import { selectOptionLabel } from '@/lib/selectOptions'
 
 const props = defineProps<{
   value: unknown
@@ -35,7 +36,7 @@ const badge = computed(() => {
   const ind = props.statusConfig?.field === props.field.fieldname
     ? props.statusConfig.indicators.find((i) => i.value === val)
     : undefined
-  return { class: statusToneClass(ind?.color), label: ind?.label || val, icon: ind?.icon ?? null }
+  return { class: statusToneClass(ind?.color), label: ind?.label || selectOptionLabel(props.field, val), icon: ind?.icon ?? null }
 })
 </script>
 

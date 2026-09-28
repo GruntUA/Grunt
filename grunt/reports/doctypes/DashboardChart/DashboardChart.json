@@ -37,6 +37,7 @@
       "label": "Період",
       "fieldtype": "Select",
       "options": "last_week\nlast_month\nlast_quarter\nlast_year\nall_time",
+      "translatable": true,
       "default": "last_year",
       "in_list_view": true
     },

@@ -9,6 +9,7 @@ import type { DocField } from '@/types'
 import { getLayoutTypeSet } from '@/core/fieldRegistry'
 import { validateFieldValue } from '@/core/validators'
 import { currencyCode, formatCurrency } from '@/core/currency'
+import { selectOptionLabel } from '@/lib/selectOptions'
 
 const LAYOUT_TYPES = getLayoutTypeSet()
 
@@ -77,6 +78,7 @@ export function useTableCell() {
     if (isEmpty(v)) return ''
     if (f.fieldtype === 'Check') return v ? t('Yes') : t('No')
     if (f.fieldtype === 'Currency') return formatCurrency(v, currencyCode(f, row))
+    if (f.fieldtype === 'Select') return selectOptionLabel(f, v)
     const label = row[`${f.fieldname}__label`]
     if (!isEmpty(label)) return String(label)
     return typeof v === 'object' ? JSON.stringify(v) : String(v)

@@ -21,6 +21,7 @@
       "label": "Стан",
       "fieldtype": "Select",
       "options": "OK\nWarning\nError\nInfo",
+      "translatable": true,
       "in_list_view": true,
       "read_only": true
     },

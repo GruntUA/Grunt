@@ -39,6 +39,10 @@ export interface DocField {
   editable_in_grid?: boolean
   // Type-specific
   options?: string
+  /** Select / MultiSelect — captions go through the translation catalog. */
+  translatable?: boolean
+  /** Served for `translatable` fields: {stored value: caption in the user's language}. */
+  option_labels?: Record<string, string>
   // Name of a backend registry source whose values replace `options` — see
   // grunt.metadata.dynamic_options. Already resolved into `options` by the
   // time the schema reaches the frontend; kept here for completeness.

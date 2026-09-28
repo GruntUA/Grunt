@@ -23,6 +23,8 @@ import time
 from pathlib import Path
 from typing import Any
 
+from grunt.i18n.meta import SELECT_FIELDTYPES, option_values
+
 _PY_FUNCS = {"_", "gettext", "pgettext", "ngettext"}
 # t('…') / $t('…') in Vue/TS, __('…') in client scripts (DocType .js files).
 _TS_CALL = re.compile(r"(?<![\w$])(?:\$?t|__)\(\s*(['\"])(.+?)\1")
@@ -227,10 +229,9 @@ def _scan_doctype_json(text: str, rel: str, origin: str, add) -> None:
         for attr, prefix in _attr_ctx.items():
             if field.get(attr):
                 add(field[attr], f"{prefix}:{name}.{fn}", "meta", origin, rel)
-        if field.get("fieldtype") == "Select" and isinstance(field.get("options"), str):
-            for opt in field["options"].split("\n"):
-                if opt.strip():
-                    add(opt, f"select:{name}.{fn}", "meta", origin, rel)
+        if field.get("translatable") and field.get("fieldtype") in SELECT_FIELDTYPES:
+            for opt in option_values(field.get("options")):
+                add(opt, f"select:{name}.{fn}", "meta", origin, rel)
     for ind in dt.get("status_indicators") or []:
         if ind.get("label"):
             add(ind["label"], f"status:{name}", "meta", origin, rel)

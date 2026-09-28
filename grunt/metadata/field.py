@@ -270,6 +270,10 @@ class DocField(BaseModel):
     # fields draw their choices from a plugin-extensible registry instead of
     # a static JSON list.
     options_source: str | None = None
+    # Select / MultiSelect only — show option values through the translation
+    # catalog (msgctxt ``select:<DocType>.<field>``). Stored values never change:
+    # the served schema carries the translated captions as ``option_labels``.
+    translatable: bool = False
     # Name of a schema registry source (see grunt.metadata.dynamic_options)
     # whose registered field-lists are attached at schema-serve time as
     # `dynamic_schemas`. `dynamic_schema_key` names the sibling field in the

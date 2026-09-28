@@ -34,6 +34,7 @@
       "label": "Статус",
       "fieldtype": "Select",
       "options": "Running\nSuccess\nFailed",
+      "translatable": true,
       "required": true,
       "in_list_view": true,
       "in_filter": true,

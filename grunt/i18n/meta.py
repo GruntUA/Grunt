@@ -9,7 +9,7 @@ so a translator (or the Translate app) can target a specific field:
     meta:<DocType>.<fieldname>    → a field label
     help:<DocType>[.<fieldname>]  → a description / help text
     hint:<DocType>.<fieldname>    → a field placeholder
-    select:<DocType>.<fieldname>  → one option value of a Select field
+    select:<DocType>.<fieldname>  → one option caption of a ``translatable`` Select
     status:<DocType>              → a status-indicator label
 
 label / description / placeholder each get their own context so they never share
@@ -22,6 +22,8 @@ from __future__ import annotations
 from typing import Any
 
 from grunt.i18n.service import translation_service
+
+SELECT_FIELDTYPES = frozenset({"Select", "MultiSelect"})
 
 
 def _tr(ctx: str, text: Any, lang: str) -> Any:
@@ -46,8 +48,10 @@ def translate_doctype_meta(data: dict[str, Any], lang: str | None = None) -> dic
         field["description"] = _tr(f"help:{name}.{fieldname}", field.get("description"), lang)
         field["placeholder"] = _tr(f"hint:{name}.{fieldname}", field.get("placeholder"), lang)
 
-        if field.get("fieldtype") == "Select":
-            _translate_select_options(field, f"select:{name}.{fieldname}", lang)
+        if field.get("translatable") and field.get("fieldtype") in SELECT_FIELDTYPES:
+            labels = option_labels(field.get("options"), f"select:{name}.{fieldname}", lang)
+            if labels:
+                field["option_labels"] = labels
 
     for indicator in data.get("status_indicators") or []:
         indicator["label"] = _tr(f"status:{name}", indicator.get("label"), lang)
@@ -55,13 +59,19 @@ def translate_doctype_meta(data: dict[str, Any], lang: str | None = None) -> dic
     return data
 
 
-def _translate_select_options(field: dict[str, Any], ctx: str, lang: str) -> None:
-    options = field.get("options")
-    if isinstance(options, str):
-        field["options"] = "\n".join(
-            _tr(ctx, line, lang) if line.strip() else line for line in options.split("\n")
-        )
-    elif isinstance(options, list):
-        field["options"] = [
-            _tr(ctx, opt, lang) if isinstance(opt, str) and opt.strip() else opt for opt in options
-        ]
+def option_values(options: Any) -> list[str]:
+    """Stored values of a Select ``options`` spec (newline string or list); an
+    ``value|IconName`` line contributes only ``value``."""
+    lines = options.split("\n") if isinstance(options, str) else options or []
+    return [v for v in (str(line).split("|", 1)[0].strip() for line in lines) if v]
+
+
+def option_labels(options: Any, ctx: str, lang: str) -> dict[str, str]:
+    """``{value: caption}`` for the options whose translation differs. The option
+    values themselves are what gets stored, so they are never rewritten."""
+    labels = {}
+    for value in option_values(options):
+        caption = _tr(ctx, value, lang)
+        if caption != value:
+            labels[value] = caption
+    return labels

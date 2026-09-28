@@ -34,6 +34,7 @@
       "label": "Писемність",
       "fieldtype": "Select",
       "options": "Latin\nCyrillic\nArabic\nChinese\nDevanagari\nGreek\nHebrew\nJapanese\nKorean\nOther",
+      "translatable": true,
       "in_list_view": true,
       "in_filter": true
     },

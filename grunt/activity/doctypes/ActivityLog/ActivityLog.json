@@ -38,6 +38,7 @@
       "label": "Дія",
       "fieldtype": "Select",
       "options": "Create\nUpdate\nDelete\nSubmit\nCancel\nShare\nComment\nWorkflow",
+      "translatable": true,
       "required": true,
       "in_list_view": true,
       "in_filter": true,

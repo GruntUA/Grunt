@@ -51,6 +51,7 @@
       "label": "Статус",
       "fieldtype": "Select",
       "options": "Pending\nIn Progress\nSuccess\nFailed",
+      "translatable": true,
       "default": "Pending",
       "read_only": true,
       "in_list_view": true,

@@ -100,7 +100,8 @@
       "fieldname": "default_view",
       "label": "Default view",
       "fieldtype": "Select",
-      "options": "\nlist|LayoutList\nkanban|LayoutGrid\ncalendar|CalendarDays\ngantt|ChartGantt\ntree|GitBranch\ngallery|Image\nmap|Map"
+      "options": "\nlist|LayoutList\nkanban|LayoutGrid\ncalendar|CalendarDays\ngantt|ChartGantt\ntree|GitBranch\ngallery|Image\nmap|Map",
+      "translatable": true
     },
     {
       "fieldname": "image_field",
@@ -386,6 +387,7 @@
       "label": "Sort direction",
       "fieldtype": "Select",
       "options": "asc\ndesc",
+      "translatable": true,
       "default": "asc",
       "depends_on": "is_tree"
     },

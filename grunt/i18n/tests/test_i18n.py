@@ -235,7 +235,9 @@ class TestMetaTranslation:
                     "placeholder": "Оберіть…",
                     "fieldtype": "Select",
                     "options": "Новий\nЗакритий",
+                    "translatable": True,
                 },
+                {"fieldname": "kind", "fieldtype": "Select", "options": "Новий|Star\nІнший"},
                 {"fieldname": "note", "label": "Нотатка", "fieldtype": "Text"},
             ],
             "status_indicators": [{"value": "Новий", "label": "Новий"}],
@@ -270,8 +272,10 @@ class TestMetaTranslation:
 
         assert out["label"] == "Widget"
         assert out["fields"][0]["label"] == "Status"
-        assert out["fields"][0]["options"] == "New\nЗакритий"
-        assert out["fields"][1]["label"] == "Нотатка"  # untranslated → source kept
+        # Values are what gets stored — only the captions are translated.
+        assert out["fields"][0]["options"] == "Новий\nЗакритий"
+        assert out["fields"][0]["option_labels"] == {"Новий": "New"}
+        assert out["fields"][2]["label"] == "Нотатка"  # untranslated → source kept
         assert out["status_indicators"][0]["label"] == "New"
 
     def test_noop_without_entries(self):
@@ -280,6 +284,17 @@ class TestMetaTranslation:
         out = translate_doctype_meta(self._dt(), lang="uk")
         assert out["label"] == "Віджет"
         assert out["fields"][0]["options"] == "Новий\nЗакритий"
+        assert "option_labels" not in out["fields"][0]
+
+    def test_non_translatable_select_is_left_alone(self):
+        from grunt.i18n.meta import translate_doctype_meta
+
+        # A context-free "Новий" must not leak into a plain Select's options.
+        translation_service.register_provider(lambda _l: {"Новий": "New"})
+        out = translate_doctype_meta(self._dt(), lang="uk")
+        assert out["fields"][0]["option_labels"] == {"Новий": "New"}
+        assert out["fields"][1]["options"] == "Новий|Star\nІнший"
+        assert "option_labels" not in out["fields"][1]
 
 
 class TestPlurals:

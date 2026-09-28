@@ -27,6 +27,7 @@
       "label": "Канал",
       "fieldtype": "Select",
       "options": "system\nemail\nboth",
+      "translatable": true,
       "default": "system",
       "in_list_view": true
     },

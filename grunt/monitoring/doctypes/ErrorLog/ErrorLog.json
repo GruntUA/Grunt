@@ -39,6 +39,7 @@
       "label": "Контекст",
       "fieldtype": "Select",
       "options": "HTTP Request\nBackground Task\nScheduled Job\nController\nManual",
+      "translatable": true,
       "read_only": true,
       "in_list_view": true,
       "in_filter": true

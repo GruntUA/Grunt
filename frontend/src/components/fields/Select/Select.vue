@@ -16,7 +16,7 @@ const emit = defineEmits<{ 'update:modelValue': [value: unknown] }>()
 
 const { t } = useI18n()
 
-const parsedOptions = computed(() => parseSelectOptions(props.field.options))
+const parsedOptions = computed(() => parseSelectOptions(props.field.options, props.field.option_labels))
 
 // Lazily resolve icon names → components, keyed by name.
 const iconMap = shallowRef<Record<string, Component>>({})
@@ -27,6 +27,7 @@ watchEffect(async () => {
 const resolvedOptions = computed(() =>
   parsedOptions.value.map((o) => ({
     value: o.value,
+    label: o.label,
     icon: o.icon ? (iconMap.value[o.icon] ?? null) : null,
   })),
 )
@@ -61,14 +62,14 @@ const clearable = computed(() => !readonly.value && !props.field.required && cur
       >
         <span v-if="currentOption" class="flex items-center gap-2">
           <component :is="currentOption.icon" v-if="currentOption.icon" class="size-4 text-muted-foreground" />
-          {{ currentOption.value }}
+          {{ currentOption.label }}
         </span>
         <span v-else class="text-muted-foreground">{{ field.placeholder ?? t('— select —') }}</span>
       </SelectTrigger>
       <SelectContent>
         <SelectItem v-for="opt in resolvedOptions" :key="opt.value" :value="opt.value">
           <component :is="opt.icon" v-if="opt.icon" class="size-4" />
-          {{ opt.value }}
+          {{ opt.label }}
         </SelectItem>
       </SelectContent>
     </ShadcnSelect>

@@ -33,6 +33,7 @@
       "label": "Дозвіл",
       "fieldtype": "Select",
       "options": "Read\nWrite",
+      "translatable": true,
       "default": "Read"
     }
   ],

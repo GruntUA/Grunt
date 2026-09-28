@@ -24,6 +24,7 @@
       "label": "Тип імпорту",
       "fieldtype": "Select",
       "options": "Insert New\nUpdate Existing",
+      "translatable": true,
       "default": "Insert New",
       "required": true,
       "in_list_view": true
@@ -58,6 +59,7 @@
       "label": "Статус",
       "fieldtype": "Select",
       "options": "Pending\nIn Progress\nSuccess\nPartial Success\nFailed",
+      "translatable": true,
       "default": "Pending",
       "read_only": true,
       "in_list_view": true,

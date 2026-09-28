@@ -4,7 +4,7 @@ import { formatDayMonth } from '@/core/datetime'
 import { VueDraggable } from 'vue-draggable-plus'
 import type { DocType, DocField } from '@/types'
 import { docsApi } from '@/core/api/docs'
-import { parseSelectValues } from '@/lib/selectOptions'
+import { parseSelectValues, selectOptionLabel } from '@/lib/selectOptions'
 
 import { Plus, Calendar, Ellipsis } from '@lucide/vue'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
@@ -56,7 +56,7 @@ function columnDot(col: string) {
 }
 
 function columnLabel(col: string) {
-  return statusIndicatorMap.value?.get(col)?.label || col
+  return statusIndicatorMap.value?.get(col)?.label || selectOptionLabel(columnFieldDef.value, col)
 }
 
 const cardsByColumn = ref<Record<string, any[]>>({})

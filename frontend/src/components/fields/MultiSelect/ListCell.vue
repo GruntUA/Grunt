@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import type { DocField } from '@/types'
 import { Badge } from '@/components/ui/badge'
+import { selectOptionLabel } from '@/lib/selectOptions'
 
 const props = defineProps<{
   value: unknown
@@ -26,7 +27,7 @@ const values = computed<string[]>(() => {
       :key="val"
       variant="secondary"
       class="font-normal whitespace-nowrap"
-    >{{ val }}</Badge>
+    >{{ selectOptionLabel(field, val) }}</Badge>
   </div>
   <span v-else class="text-muted-foreground/30">—</span>
 </template>

@@ -55,8 +55,10 @@ def test_extracts_doctype_json(tmp_path):
                         "description": "Поточний стан",
                         "placeholder": "Оберіть…",
                         "fieldtype": "Select",
-                        "options": "Новий\nСтарий",
-                    }
+                        "options": "Новий|Star\nСтарий",
+                        "translatable": True,
+                    },
+                    {"fieldname": "c", "fieldtype": "Select", "options": "Код"},
                 ],
                 "status_indicators": [{"value": "Новий", "label": "Новий"}],
             }
@@ -71,7 +73,8 @@ def test_extracts_doctype_json(tmp_path):
     assert ("Стан", "meta:Foo.s") in keyed
     assert ("Поточний стан", "help:Foo.s") in keyed  # description → help:
     assert ("Оберіть…", "hint:Foo.s") in keyed  # placeholder → hint:
-    assert ("Новий", "select:Foo.s") in keyed
+    assert ("Новий", "select:Foo.s") in keyed  # icon suffix dropped
+    assert not any(ctx == "select:Foo.c" for _, ctx in keyed)  # not translatable
     assert ("Новий", "status:Foo") in keyed
     assert all(r["origin"] == "myapp" for r in rows)
 
@@ -90,18 +93,21 @@ def test_skips_numbers_and_codes(tmp_path):
                         "label": "Період",
                         "fieldtype": "Select",
                         "options": "30d\n90d\n365d",
+                        "translatable": True,
                     },
                     {
                         "fieldname": "coef",
                         "label": "Коеф.",
                         "fieldtype": "Select",
                         "options": "1.5\n2.0\n10",
+                        "translatable": True,
                     },
                     {
                         "fieldname": "age",
                         "label": "Вік",
                         "fieldtype": "Select",
                         "options": "3 months\n30 days",
+                        "translatable": True,
                     },
                 ],
             }

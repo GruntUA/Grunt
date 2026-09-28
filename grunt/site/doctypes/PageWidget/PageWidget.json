@@ -31,6 +31,7 @@
       "label": "Aggregation",
       "fieldtype": "Select",
       "options": "count\nsum\navg\nmin\nmax",
+      "translatable": true,
       "default": "count"
     },
     {
@@ -100,7 +101,8 @@
       "fieldname": "link_type",
       "label": "Link type",
       "fieldtype": "Select",
-      "options": "DocType\nReport\nPage\nURL"
+      "options": "DocType\nReport\nPage\nURL",
+      "translatable": true
     },
     {
       "fieldname": "description",

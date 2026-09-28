@@ -150,6 +150,12 @@ description: Довідник по всіх типах полів, налашт�
 { "fieldtype": "Select", "options": "Чернетка\nПідписано\nВідправлено" }
 ```
 
+`"translatable": true` (Select / MultiSelect) — підписи опцій перекладаються (msgctxt `select:<DocType>.<field>`), а в БД зберігається незмінне значення: схема віддає `option_labels` {значення: підпис}. Вмикати для людських слів (`Open\nClosed`, `Low\nHigh`); технічні коди (fieldtype, кольори, події) — без прапорця, вони не перекладаються взагалі.
+
+```json
+{ "fieldtype": "Select", "options": "Open\nIn Progress\nClosed", "translatable": true }
+```
+
 ### Посилання
 
 | fieldtype | БД | Опис |

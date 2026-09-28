@@ -24,6 +24,7 @@
       "label": "Агрегація",
       "fieldtype": "Select",
       "options": "count\nsum\navg\nmin\nmax",
+      "translatable": true,
       "default": "count",
       "in_list_view": true
     },

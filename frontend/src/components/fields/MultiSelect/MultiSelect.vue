@@ -3,7 +3,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { BaseFieldProps } from '@/types'
 import { cn } from '@/lib/utils'
-import { parseSelectValues } from '@/lib/selectOptions'
+import { parseSelectOptions } from '@/lib/selectOptions'
 import { MultiSelect as ShadcnMultiSelect } from '@/components/ui/multi-select'
 
 const props = defineProps<BaseFieldProps>()
@@ -11,7 +11,7 @@ const emit = defineEmits<{ 'update:modelValue': [value: unknown] }>()
 
 const { t } = useI18n()
 
-const parsedOptions = computed(() => parseSelectValues(props.field.options))
+const parsedOptions = computed(() => parseSelectOptions(props.field.options, props.field.option_labels))
 
 const selectedValues = computed<string[]>(() => {
   const v = props.modelValue
@@ -40,6 +40,8 @@ const triggerClass = computed(() =>
   <ShadcnMultiSelect
     :model-value="selectedValues"
     :options="parsedOptions"
+    option-label="label"
+    option-value="value"
     :disabled="disabled || field.read_only"
     :placeholder="field.placeholder ?? t('— select —')"
     :aria-invalid="error ? true : undefined"

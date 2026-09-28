@@ -44,6 +44,7 @@
       "label": "Статус",
       "fieldtype": "Select",
       "options": "Pending\nSending\nSent\nError",
+      "translatable": true,
       "default": "Pending",
       "in_list_view": true,
       "in_filter": true

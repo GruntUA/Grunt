@@ -41,6 +41,7 @@
       "label": "Assignment Method",
       "fieldtype": "Select",
       "options": "user\nrole",
+      "translatable": true,
       "required": true,
       "help": "user = assign to specific user, role = assign to role"
     },
@@ -49,6 +50,7 @@
       "label": "Status",
       "fieldtype": "Select",
       "options": "Success\nFailed",
+      "translatable": true,
       "default": "Success",
       "in_list_view": true
     },

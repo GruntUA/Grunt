@@ -37,6 +37,7 @@
       "label": "Загальний стан",
       "fieldtype": "Select",
       "options": "OK\nWarning\nError",
+      "translatable": true,
       "read_only": true
     },
     {

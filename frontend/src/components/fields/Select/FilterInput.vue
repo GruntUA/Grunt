@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { DocField } from '@/types'
-import { parseSelectValues } from '@/lib/selectOptions'
+import { parseSelectOptions } from '@/lib/selectOptions'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { MultiSelect } from '@/components/ui/multi-select'
 import { MULTI_VALUE_OPS } from '@/core/api/docs'
@@ -22,7 +22,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-const options = computed(() => parseSelectValues(props.field.options))
+const options = computed(() => parseSelectOptions(props.field.options, props.field.option_labels))
 const multi = computed(() => MULTI_VALUE_OPS.includes(props.op))
 const values = computed(() => props.modelValue ? props.modelValue.split(',') : [])
 </script>
@@ -32,6 +32,8 @@ const values = computed(() => props.modelValue ? props.modelValue.split(',') : [
     v-if="multi"
     :model-value="values"
     :options="options"
+    option-label="label"
+    option-value="value"
     :placeholder="t('Select value')"
     class="h-8 text-xs w-full"
     @update:model-value="emit('update:modelValue', $event.join(','))"
@@ -41,7 +43,7 @@ const values = computed(() => props.modelValue ? props.modelValue.split(',') : [
       <SelectValue :placeholder="t('Select value')" />
     </SelectTrigger>
     <SelectContent>
-      <SelectItem v-for="opt in options" :key="opt" :value="opt">{{ opt }}</SelectItem>
+      <SelectItem v-for="opt in options" :key="opt.value" :value="opt.value">{{ opt.label }}</SelectItem>
     </SelectContent>
   </Select>
 </template>

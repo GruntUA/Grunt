@@ -29,6 +29,7 @@
       "label": "Тип",
       "fieldtype": "Select",
       "options": "Comment\nInfo\nWarning\nError",
+      "translatable": true,
       "default": "Comment"
     }
   ],
