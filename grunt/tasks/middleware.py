@@ -60,7 +60,7 @@ class BackgroundTaskLoggingMiddleware(TaskiqMiddleware):
             args_str = ""
 
         try:
-            from grunt.app import grunt
+            import grunt
             from grunt.monitoring.error_log import record_error
             from grunt.site.manager import site_manager
 

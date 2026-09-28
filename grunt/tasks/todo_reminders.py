@@ -11,7 +11,7 @@ from collections import defaultdict
 from datetime import UTC, date, datetime
 from typing import Any
 
-from grunt.app import grunt
+import grunt
 from grunt.i18n import _, language_of, ngettext, use_language
 from grunt.log import log
 from grunt.site.manager import site_manager

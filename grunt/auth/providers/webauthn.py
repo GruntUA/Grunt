@@ -90,8 +90,8 @@ def _resolve_rp(request: Any) -> tuple[str, str]:
 
 
 async def _credentials_for_user(user_id: str) -> list[dict]:
-    from grunt.app import grunt
-    from grunt.context import require_session
+    import grunt
+    from grunt.local import require_session
 
     async with grunt.system_context(require_session()):
         return await grunt.get_list(
@@ -103,8 +103,8 @@ async def _credentials_for_user(user_id: str) -> list[dict]:
 
 
 async def _credential_by_id(credential_id: str) -> dict | None:
-    from grunt.app import grunt
-    from grunt.context import require_session
+    import grunt
+    from grunt.local import require_session
 
     async with grunt.system_context(require_session()):
         rows = await grunt.get_list(
@@ -191,7 +191,7 @@ class WebAuthnProvider(AuthProvider):
         return {"options": options_json, "challenge_token": token}
 
     async def complete(self, ctx: AuthFlowContext) -> User:
-        from grunt.app import grunt
+        import grunt
         from grunt.auth.doctypes.User.user import get_user_by_id
 
         response = ctx.get("response") or ctx.get("credential")
@@ -224,7 +224,7 @@ class WebAuthnProvider(AuthProvider):
             log.warning("webauthn.verify_failed", error=str(exc))
             throw(_("Passkey verification failed"), "UNAUTHORIZED")
 
-        async with grunt.system_context(grunt._require_session()):
+        async with grunt.system_context(grunt.get_session()):
             await grunt.db.set_value(
                 _CRED,
                 cred["name"],
@@ -292,8 +292,8 @@ class WebAuthnProvider(AuthProvider):
         return {"options": options_json, "challenge_token": token}
 
     async def enroll_complete(self, ctx: AuthFlowContext) -> dict[str, Any]:
-        from grunt.app import grunt
-        from grunt.context import require_session
+        import grunt
+        from grunt.local import require_session
 
         user = ctx.user
         if user is None or not user.id:

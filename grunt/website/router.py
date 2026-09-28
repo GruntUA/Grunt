@@ -150,7 +150,7 @@ async def render_page(
     A controller may return a ``Response`` instead of a context dict (e.g. a
     ``RedirectResponse``) — it is sent as is.
     """
-    from grunt.app import grunt
+    import grunt
     from grunt.config import settings
 
     context: dict[str, Any] = {
@@ -244,7 +244,7 @@ async def render_page_by_route(
     session: Any,
 ) -> Response | None:
     """Try to render a page by its route, checking both files and database."""
-    from grunt.app import grunt
+    import grunt
 
     path = request.url.path
     # Clean trailing slash for matching
@@ -303,7 +303,7 @@ async def render_page_by_route(
 
 async def render_db_page(doc: dict[str, Any], request: Request, session: Any) -> HTMLResponse:
     """Render a dynamic page from the database using a generic template."""
-    from grunt.app import grunt
+    import grunt
     from grunt.config import settings
 
     context: dict[str, Any] = {
@@ -352,7 +352,7 @@ def make_website_handler(page: WebsitePage):
 
 async def sitemap_xml(request: Request) -> Response:
     """Generate /sitemap.xml: www pages, published WebPage docs, web view documents."""
-    from grunt.app import grunt
+    import grunt
     from grunt.auth.doctypes.User.user import SYSTEM_USER
     from grunt.site.manager import site_manager
     from grunt.website.generator import sitemap_urls

@@ -9,7 +9,7 @@ from grunt.email.service import EmailService, email_service
 
 @pytest.mark.asyncio
 async def test_queue_email_stores_html_flag_and_plain_alternative(ctx):
-    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
+    async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         await ctx.new_doc(
             "EmailAccount", {"email_address": "out@example.com", "enable_outgoing": True}
         )

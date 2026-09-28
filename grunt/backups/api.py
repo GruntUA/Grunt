@@ -15,8 +15,8 @@ from urllib.parse import urlencode
 from fastapi import HTTPException
 from fastapi.responses import FileResponse
 
+import grunt
 from grunt import whitelist
-from grunt.app import grunt
 from grunt.backups import _NAME, backups_dir
 from grunt.config import settings
 from grunt.i18n import _

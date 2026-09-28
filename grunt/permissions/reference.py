@@ -28,7 +28,7 @@ def reference_fields(doctype: Any) -> tuple[str, str] | None:
 
 async def reference_readable(user: User, doctype: Any, doc: dict[str, Any]) -> bool:
     """True if *doc* points at nothing, at a removed DocType, or at a document *user* can read."""
-    from grunt.app import grunt
+    import grunt
     from grunt.permissions.rbac import permission_checker
 
     fields = reference_fields(doctype)
@@ -49,8 +49,8 @@ async def reference_readable(user: User, doctype: Any, doc: dict[str, Any]) -> b
 
 async def apply_reference_filter(query: Select, table: Table, user: User, doctype: Any) -> Select:
     """Keep only rows whose referenced document *user* may read (see module doc)."""
-    from grunt.app import grunt
-    from grunt.context import require_session
+    import grunt
+    from grunt.local import require_session
     from grunt.permissions.query import apply_permission_filter
     from grunt.permissions.rbac import permission_checker
     from grunt.permissions.user_permissions import build_conditions

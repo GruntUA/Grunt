@@ -28,7 +28,7 @@ PASSWORD = "Str0ngPass"
 async def account(ctx):
     from grunt.auth.doctypes.User.user import create_user
 
-    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
+    async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         user = await create_user(EMAIL, PASSWORD, "Sess", "Ion", None)
         await ctx.db._session().commit()
         return user.id
@@ -151,7 +151,7 @@ async def test_password_reset_ends_all_sessions(ctx, client: AsyncClient, accoun
     from grunt.auth.service import consume_password_reset_token, create_password_reset_token
 
     data = await _login(client)
-    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
+    async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         token = await create_password_reset_token(account)
         assert await consume_password_reset_token(token, "N3wPassword!")
         await ctx.db._session().commit()

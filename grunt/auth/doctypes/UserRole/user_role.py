@@ -13,8 +13,8 @@ class UserRole(Document):
 
 async def get_user_roles(user_id: str) -> list[str]:
     """Load role names for a user. Caller must already have an active grunt context."""
-    from grunt.app import grunt
-    from grunt.context import require_session
+    import grunt
+    from grunt.local import require_session
 
     async with grunt.system_context(require_session()):
         rows = await grunt.db.get_all(

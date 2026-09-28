@@ -146,8 +146,8 @@ async def _find_and_invalidate_token(
     Returns the matched row (with at least ``"name"``), or None if the token
     doesn't exist or has expired.
     """
-    from grunt.app import grunt
-    from grunt.context import require_session
+    import grunt
+    from grunt.local import require_session
 
     now = datetime.now(UTC)
 
@@ -177,8 +177,8 @@ async def _find_and_invalidate_token(
 
 async def create_password_reset_token(user_id: str) -> str:
     """Create a 1-hour password reset token. Invalidates prior unused tokens."""
-    from grunt.app import grunt
-    from grunt.context import require_session
+    import grunt
+    from grunt.local import require_session
 
     token = uuid.uuid4().hex + uuid.uuid4().hex  # 64-char hex
     expires_at = datetime.now(UTC) + timedelta(hours=1)
@@ -196,9 +196,9 @@ async def consume_password_reset_token(token: str, new_password: str) -> bool:
     if user_data is None:
         return False
 
-    from grunt.app import grunt
+    import grunt
     from grunt.auth.doctypes.User.user import hash_password
-    from grunt.context import require_session
+    from grunt.local import require_session
 
     async with grunt.system_context(require_session()):
         await grunt.db.set_value(

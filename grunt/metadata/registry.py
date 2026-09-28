@@ -246,7 +246,7 @@ class DocTypeRegistry:
         nothing is bound — background tasks/schedulers with their own raw
         session still work exactly as before.
         """
-        from grunt.context import _session_ctx
+        from grunt.local import _session_ctx
 
         active_session = _session_ctx.get()
         if active_session is not None:

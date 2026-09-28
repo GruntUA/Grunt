@@ -2,10 +2,8 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, NoReturn
+from typing import TYPE_CHECKING, Any
 
-from grunt.errors import GruntError
-from grunt.log import log
 from grunt.utils.templates import render_template as _render_template
 
 if TYPE_CHECKING:
@@ -29,7 +27,7 @@ class UtilityAPI:
 
             await grunt.enqueue_doc("Report", report_id, "generate", format="pdf")
         """
-        from grunt.context import require_user
+        from grunt.local import require_user
         from grunt.site.manager import site_manager
         from grunt.tasks.doc_method import enqueue_doc_method
 
@@ -50,20 +48,6 @@ class UtilityAPI:
         from grunt.metadata.registry import doctype_registry
 
         return await doctype_registry.get_meta(doctype)
-
-    def throw(self, message: str, title: str | None = None) -> NoReturn:
-        """Raise a user-facing :class:`GruntError`."""
-        raise GruntError(message, title=title)
-
-    def log(self, *args: Any) -> None:
-        """Log a message via grunt.log (also captured in server script output)."""
-        log.info("grunt.log", message=" ".join(str(a) for a in args))
-
-    def _(self, source: str) -> str:
-        """Translate a string using the current request language."""
-        from grunt.i18n import _ as _translate
-
-        return _translate(source)
 
     async def render_template(
         self,

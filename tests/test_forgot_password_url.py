@@ -52,7 +52,7 @@ async def _queued_bodies(ctx) -> tuple[str, str]:
 
 @pytest.mark.asyncio
 async def test_reset_url_uses_request_origin(ctx, _patched_user):
-    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
+    async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         await ctx.new_doc(
             "EmailAccount", {"email_address": "o@example.com", "enable_outgoing": True}
         )
@@ -70,7 +70,7 @@ async def test_reset_url_uses_request_origin(ctx, _patched_user):
 
 @pytest.mark.asyncio
 async def test_reset_url_uses_host_and_forwarded_proto(ctx, _patched_user):
-    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
+    async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         await ctx.new_doc(
             "EmailAccount", {"email_address": "o@example.com", "enable_outgoing": True}
         )
@@ -86,7 +86,7 @@ async def test_reset_url_uses_host_and_forwarded_proto(ctx, _patched_user):
 
 @pytest.mark.asyncio
 async def test_reset_url_falls_back_to_app_url_without_request(ctx, _patched_user):
-    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
+    async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         await ctx.new_doc(
             "EmailAccount", {"email_address": "o@example.com", "enable_outgoing": True}
         )
@@ -107,7 +107,7 @@ async def test_endpoint_injects_request_into_method(client, ctx):
         "/api/v1/method/grunt.auth.doctypes.User.user.register_full_name_api",
         json={"email": "ep@example.com", "password": "secret", "full_name": "Ep User"},
     )
-    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
+    async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         await ctx.new_doc(
             "EmailAccount", {"email_address": "o@example.com", "enable_outgoing": True}
         )
@@ -120,7 +120,7 @@ async def test_endpoint_injects_request_into_method(client, ctx):
     )
     assert r.status_code == 200
 
-    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
+    async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         rows = await ctx.db.get_all(
             "EmailQueue",
             filters={"recipient": "ep@example.com"},

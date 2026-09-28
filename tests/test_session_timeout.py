@@ -27,7 +27,7 @@ async def test_access_token_is_short_and_capped_by_timeout(ctx):
         session_ttl_minutes,
     )
 
-    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
+    async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         user = await create_user("ttl@grunt.example.com", "correct-horse", "T", "L", None)
         await ctx.db._session().commit()
 
@@ -49,6 +49,6 @@ async def test_access_token_is_short_and_capped_by_timeout(ctx):
 async def test_session_ttl_falls_back_when_unset(ctx):
     from grunt.auth.service import session_ttl_minutes
 
-    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
+    async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         await _set_timeout(ctx, None)
         assert await session_ttl_minutes() == cfg.access_token_expire_minutes

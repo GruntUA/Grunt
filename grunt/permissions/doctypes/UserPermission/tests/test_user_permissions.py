@@ -53,7 +53,7 @@ async def setup(ctx):
 
 @pytest.mark.asyncio
 async def test_list_and_count_are_restricted(ctx, setup, db_session, engine):
-    from grunt.app import grunt
+    import grunt
 
     async with grunt.context(db_session, engine, _employee("alice@example.com")):
         rows = await grunt.get_list("UPTestPost")
@@ -65,7 +65,7 @@ async def test_list_and_count_are_restricted(ctx, setup, db_session, engine):
 
 @pytest.mark.asyncio
 async def test_unrestricted_user_sees_everything(ctx, setup, db_session, engine):
-    from grunt.app import grunt
+    import grunt
 
     async with grunt.context(db_session, engine, _employee("nobody@example.com")):
         rows = await grunt.get_list("UPTestPost")
@@ -74,7 +74,7 @@ async def test_unrestricted_user_sees_everything(ctx, setup, db_session, engine)
 
 @pytest.mark.asyncio
 async def test_single_doc_read_and_write_blocked(ctx, setup, db_session, engine):
-    from grunt.app import grunt
+    import grunt
 
     async with grunt.context(db_session, engine, _employee("alice@example.com")):
         assert (await grunt.get_doc("UPTestPost", setup["red"]))["name"] == setup["red"]
@@ -87,7 +87,7 @@ async def test_single_doc_read_and_write_blocked(ctx, setup, db_session, engine)
 
 @pytest.mark.asyncio
 async def test_system_manager_is_exempt(ctx, setup, db_session, engine):
-    from grunt.app import grunt
+    import grunt
 
     sm = make_user("sm@example.com", roles=["System Manager", "Employee"])
     async with grunt.context(db_session, engine, sm):
@@ -97,7 +97,7 @@ async def test_system_manager_is_exempt(ctx, setup, db_session, engine):
 
 @pytest.mark.asyncio
 async def test_restrictions_popup_payload(ctx, setup, db_session, engine):
-    from grunt.app import grunt
+    import grunt
     from grunt.permissions.user_permissions import get_active_restrictions
 
     async with grunt.context(db_session, engine, _employee("alice@example.com")):
@@ -107,7 +107,7 @@ async def test_restrictions_popup_payload(ctx, setup, db_session, engine):
 
 @pytest.mark.asyncio
 async def test_is_default_form_defaults(ctx, setup, db_session, engine):
-    from grunt.app import grunt
+    import grunt
     from grunt.permissions.user_permissions import (
         get_user_permission_defaults,
         invalidate_user_permission_cache,
@@ -164,8 +164,8 @@ TREE_ASSET_DOCTYPE = {
 async def test_tree_allow_authorises_whole_subtree(ctx, db_session, engine):
     """A UserPermission on a parent tree node also grants its descendants —
     an institution → all its sub-units."""
+    import grunt
     from grunt.api.v1.meta import save_doctype
-    from grunt.app import grunt
     from grunt.permissions.user_permissions import invalidate_user_permission_cache
 
     await save_doctype(doctype_data={**TREE_DOCTYPE, "__is_new": True})
@@ -197,7 +197,7 @@ async def test_tree_allow_authorises_whole_subtree(ctx, db_session, engine):
 
 @pytest.mark.asyncio
 async def test_strict_mode_hides_docs_without_link(ctx, setup, db_session, engine):
-    from grunt.app import grunt
+    import grunt
     from grunt.permissions.user_permissions import invalidate_user_permission_cache
 
     # A post with no team link — visible by default, hidden under strict mode.

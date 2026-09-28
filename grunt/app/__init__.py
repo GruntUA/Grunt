@@ -16,7 +16,6 @@ from grunt.app.utility_api import UtilityAPI
 from grunt.cache.document_cache import DocumentCache
 from grunt.cache.query_cache import QueryCache
 from grunt.db import GruntDB
-from grunt.errors import GruntError
 from grunt.metadata.registry import doctype_registry
 from grunt.session import GruntSession
 
@@ -26,11 +25,12 @@ from grunt.session import GruntSession
 class GruntApp(ContextAPI, RealtimeAPI, PermissionAPI, DocumentAPI, UtilityAPI):
     """Primary developer API for building Grunt apps.
 
-    Accessed via the module-level singleton ``grunt``:
+    Its methods are re-exported by the ``grunt`` package — app code uses them
+    from there:
 
     .. code-block:: python
 
-        from grunt.app import grunt
+        import grunt
 
         # CRUD
         doc = await grunt.get_doc("Invoice", invoice_id)
@@ -72,4 +72,4 @@ class GruntApp(ContextAPI, RealtimeAPI, PermissionAPI, DocumentAPI, UtilityAPI):
 
 grunt = GruntApp()
 
-__all__ = ["GruntApp", "GruntDB", "GruntError", "doctype_registry", "grunt"]
+__all__ = ["GruntApp", "GruntDB", "doctype_registry", "grunt"]

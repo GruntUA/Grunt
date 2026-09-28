@@ -17,7 +17,7 @@ async def resolve_reference_titles(
     Doctypes that no longer exist, or whose title lookup fails, are skipped —
     callers fall back to the raw id for those refs.
     """
-    from grunt.app import grunt
+    import grunt
 
     by_doctype: dict[str, set[str]] = {}
     for dt_name, doc_id in refs:

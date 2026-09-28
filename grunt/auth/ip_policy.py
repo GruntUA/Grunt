@@ -73,7 +73,7 @@ async def role_ip_allowlist(user: User) -> set[str] | None:
     ``None`` — no role of the user restricts it. Roles without a list never
     widen a restricted one, so holding "All" does not lift a restriction.
     """
-    from grunt.app import grunt
+    import grunt
 
     roles = list(getattr(user, "roles", None) or [])
     if not roles:

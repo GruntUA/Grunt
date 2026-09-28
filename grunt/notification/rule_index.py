@@ -41,8 +41,8 @@ async def _load() -> frozenset[tuple[str, str]] | None:
     """Read every enabled rule's ``(doctype, event)``; ``None`` if no session bound."""
     from sqlalchemy import select
 
-    from grunt.app import grunt
-    from grunt.context import _session_ctx
+    import grunt
+    from grunt.local import _session_ctx
 
     session = _session_ctx.get()
     if session is None:

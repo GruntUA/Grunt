@@ -5,7 +5,7 @@ from __future__ import annotations
 import contextlib
 from typing import TYPE_CHECKING
 
-from grunt.context import (
+from grunt.local import (
     _bootstrap_ctx,
     _engine_ctx,
     _session_ctx,

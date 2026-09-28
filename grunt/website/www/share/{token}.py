@@ -34,9 +34,9 @@ async def get_context(context: dict[str, Any]) -> dict[str, Any]:
 
     all_fields: list[Any] = []
     title_field = "name"
-    from grunt.app import grunt as grunt_app
+    import grunt
 
-    dt = await grunt_app.get_meta(share["doctype"])
+    dt = await grunt.get_meta(share["doctype"])
     if dt is None:  # metadata unavailable — fall back to a flat single section
         all_fields = [
             FlatField(f["fieldname"], f["label"], f["fieldtype"]) for f in share["fields"]

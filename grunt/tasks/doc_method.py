@@ -20,7 +20,7 @@ async def _run_doc_method(
     kwargs: dict[str, Any],
 ) -> None:
     """Execute ``doc.<method>(**kwargs)`` in a background worker."""
-    from grunt.app import grunt
+    import grunt
     from grunt.auth.doctypes.User.user import get_user_by_email
 
     maker = site_manager.get_session_maker(site)

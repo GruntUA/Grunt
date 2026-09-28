@@ -468,10 +468,10 @@ class EmailService:
     @staticmethod
     async def apply_report(report: dict[str, Any], session: AsyncSession | None = None) -> None:
         """Update the referenced outgoing ``EmailMessage`` from a DSN/MDN report."""
-        from grunt.app import grunt
+        import grunt
 
         try:
-            from grunt.context import require_session
+            from grunt.local import require_session
 
             sess = session or require_session()
         except Exception:
@@ -526,7 +526,7 @@ class EmailService:
     @staticmethod
     async def store_bytes(content: bytes, filename: str, mimetype: str | None) -> str | None:
         """Save raw bytes through the storage backend as a private File; return its URL."""
-        from grunt.app import grunt
+        import grunt
         from grunt.storage import get_storage_backend
 
         try:
@@ -579,10 +579,10 @@ class EmailService:
         session: AsyncSession | None = None,
     ) -> str | None:
         """Best-effort: persist one ``EmailMessage`` row (dedup by Message-ID)."""
-        from grunt.app import grunt
+        import grunt
 
         try:
-            from grunt.context import require_session
+            from grunt.local import require_session
 
             sess = session or require_session()
         except Exception:
@@ -649,7 +649,7 @@ class EmailService:
         ``SystemSettings.default_email_account`` when it points at a real account,
         otherwise the first ``EmailAccount`` with ``enable_outgoing=True``.
         """
-        from grunt.app import grunt
+        import grunt
         from grunt.site.settings import get_setting
 
         async with grunt.system_context(session):
@@ -682,7 +682,7 @@ class EmailService:
         ``attachments`` — ``[{"filename", "mimetype", "content": bytes}]``; kept
         base64-encoded on the queue row (never as public File records).
         """
-        from grunt.app import grunt
+        import grunt
         from grunt.site.settings import get_setting
 
         # Resolve the outgoing account id (best-effort — None if unconfigured)

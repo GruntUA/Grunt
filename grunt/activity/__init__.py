@@ -3,8 +3,8 @@ from __future__ import annotations
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
+import grunt
 import grunt as _grunt
-from grunt.app import grunt
 from grunt.document.versioning import _SKIP_FIELDS
 from grunt.i18n import _
 from grunt.log import log
@@ -67,7 +67,7 @@ async def record_activity(
     if not doctype or not await should_log_activity(doctype):
         return
     try:
-        async with grunt.system_context(grunt._require_session()):
+        async with grunt.system_context(grunt.get_session()):
             doc = await grunt.new_doc(
                 "ActivityLog",
                 {
@@ -107,7 +107,7 @@ async def _broadcast_activity(
             # System context: the "All" role can only read its own User row
             # (match: name == user) — the broadcaster must resolve the
             # *acting* user's name regardless of who ends up viewing the feed.
-            async with grunt.system_context(grunt._require_session()):
+            async with grunt.system_context(grunt.get_session()):
                 rows = await grunt.get_list(
                     "User", filters={"name": user_email}, fields=["full_name"], limit=1
                 )
@@ -209,7 +209,7 @@ async def record_view(
     if not user_email or user_email in ("guest@grunt.local", "system", "Guest"):
         return
 
-    session = grunt._require_session()
+    session = grunt.get_session()
 
     if dt.track_seen:
         seen = doc.get("_seen")

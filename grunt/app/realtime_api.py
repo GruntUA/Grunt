@@ -4,8 +4,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from grunt.utils.app_helpers import _format_msgprint
-
 if TYPE_CHECKING:
     from grunt.publish import MessageType
     from grunt.session import GruntSession
@@ -64,36 +62,3 @@ class RealtimeAPI:
         from grunt.publish import broadcast as _broadcast
 
         await _broadcast(event=event, data=data, message=message, type=type)
-
-    async def msgprint(
-        self,
-        msg: str | list,
-        title: str | None = None,
-        *,
-        indicator: str = "blue",
-        as_list: bool = False,
-        as_table: bool = False,
-        raise_exception: type[BaseException] | None = None,
-    ) -> None:
-        """Show a message dialog to the current user via WebSocket."""
-        formatted = _format_msgprint(msg, as_list=as_list, as_table=as_table)
-
-        indicator_to_type: dict[str, MessageType] = {
-            "blue": "info",
-            "green": "success",
-            "red": "error",
-            "orange": "warning",
-            "yellow": "warning",
-        }
-        msg_type = indicator_to_type.get(indicator, "info")
-
-        await self.publish(
-            user=self.session.user,
-            event="msgprint",
-            data={"title": title, "indicator": indicator},
-            message=formatted,
-            type=msg_type,
-        )
-
-        if raise_exception is not None:
-            raise raise_exception(formatted)

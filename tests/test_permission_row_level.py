@@ -61,7 +61,7 @@ def _employee(email: str) -> User:
 
 @pytest.mark.asyncio
 async def test_get_list_filters_rows_by_match(ctx, setup_ticket_doctype, db_session, engine):
-    from grunt.app import grunt
+    import grunt
 
     alice_id = (await ctx.new_doc("PermTestTicket", {"title": "Alice's ticket"}))["name"]
     bob_id = (await ctx.new_doc("PermTestTicket", {"title": "Bob's ticket"}))["name"]
@@ -79,7 +79,7 @@ async def test_get_list_filters_rows_by_match(ctx, setup_ticket_doctype, db_sess
 
 @pytest.mark.asyncio
 async def test_get_doc_denies_non_matching_row(ctx, setup_ticket_doctype, db_session, engine):
-    from grunt.app import grunt
+    import grunt
 
     alice_id = (await ctx.new_doc("PermTestTicket", {"title": "Alice's ticket"}))["name"]
     bob_id = (await ctx.new_doc("PermTestTicket", {"title": "Bob's ticket"}))["name"]
@@ -103,7 +103,7 @@ async def test_get_doc_denies_non_matching_row(ctx, setup_ticket_doctype, db_ses
 async def test_save_doc_denies_writing_non_matching_row(
     ctx, setup_ticket_doctype, db_session, engine
 ):
-    from grunt.app import grunt
+    import grunt
 
     alice_id = (await ctx.new_doc("PermTestTicket", {"title": "Alice's ticket"}))["name"]
     bob_id = (await ctx.new_doc("PermTestTicket", {"title": "Bob's ticket"}))["name"]
@@ -131,7 +131,7 @@ async def test_save_doc_denies_writing_non_matching_row(
 async def test_delete_doc_denies_deleting_non_matching_row(
     ctx, setup_ticket_doctype, db_session, engine
 ):
-    from grunt.app import grunt
+    import grunt
 
     bob_id = (await ctx.new_doc("PermTestTicket", {"title": "Bob's ticket"}))["name"]
     await ctx.set_value("PermTestTicket", bob_id, "owner", "bob@example.com")

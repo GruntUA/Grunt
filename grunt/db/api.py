@@ -7,9 +7,9 @@ from typing import TYPE_CHECKING, Any, Literal, cast, overload
 
 from sqlalchemy import CursorResult, func, or_, select, update
 
-from grunt.context import _session_ctx
 from grunt.db.filters import apply_filters, build_clauses
 from grunt.i18n import _
+from grunt.local import _session_ctx
 from grunt.utils.attr_dict import AttrDict
 
 if TYPE_CHECKING:
@@ -148,7 +148,7 @@ class GruntDB:
 
         Returns ``None`` when no document matches (or no requested field exists).
         """
-        from grunt.app import grunt
+        import grunt
         from grunt.errors import not_found
 
         dt = await grunt.get_meta(doctype)
@@ -190,7 +190,7 @@ class GruntDB:
         value: Any = None,
     ) -> None:
         """Update one or more fields on a document."""
-        from grunt.app import grunt
+        import grunt
         from grunt.errors import not_found
 
         dt = await grunt.get_meta(doctype)
@@ -207,7 +207,7 @@ class GruntDB:
         filters: str | dict[str, Any],
     ) -> str | None:
         """Return the document name if a match exists, else ``None``."""
-        from grunt.app import grunt
+        import grunt
         from grunt.errors import not_found
 
         dt = await grunt.get_meta(doctype)
@@ -265,7 +265,7 @@ class GruntDB:
         order: str = "desc",
     ) -> list[dict[str, Any]] | list[Any]:
         """Fetch a list of documents as plain dicts."""
-        from grunt.app import grunt
+        import grunt
         from grunt.errors import not_found
 
         dt = await grunt.get_meta(doctype)
@@ -312,7 +312,7 @@ class GruntDB:
         fieldnames: list[str],
     ) -> dict[str, Any] | None:
         """Return multiple field values from the first matching document."""
-        from grunt.app import grunt
+        import grunt
         from grunt.errors import not_found
 
         dt = await grunt.get_meta(doctype)
@@ -334,7 +334,7 @@ class GruntDB:
 
     async def get_single_value(self, doctype: str, fieldname: str) -> Any:
         """Return a field value from a Singleton DocType (e.g. SystemSettings)."""
-        from grunt.app import grunt
+        import grunt
         from grunt.errors import not_found
 
         dt = await grunt.get_meta(doctype)
@@ -355,7 +355,7 @@ class GruntDB:
         Low-level — no permission guards. Use ``grunt.get_doc`` for
         authenticated reads with RBAC enforcement.
         """
-        from grunt.app import grunt
+        import grunt
         from grunt.errors import not_found
 
         dt = await grunt.get_meta(doctype)
@@ -373,7 +373,7 @@ class GruntDB:
         filters: dict[str, Any] | None = None,
     ) -> int:
         """Count documents matching optional filters."""
-        from grunt.app import grunt
+        import grunt
         from grunt.errors import not_found
 
         dt = await grunt.get_meta(doctype)
@@ -395,7 +395,7 @@ class GruntDB:
         if not filters:
             raise ValueError("grunt.db.delete requires at least one filter.")
 
-        from grunt.app import grunt
+        import grunt
         from grunt.errors import not_found
 
         dt = await grunt.get_meta(doctype)
@@ -417,7 +417,7 @@ class GruntDB:
         Caller is responsible for providing required standard fields
         (`name`, timestamps, owner, etc.) when needed.
         """
-        from grunt.app import grunt
+        import grunt
         from grunt.errors import not_found
 
         dt = await grunt.get_meta(doctype)
@@ -432,7 +432,7 @@ class GruntDB:
         if not rows:
             return 0
 
-        from grunt.app import grunt
+        import grunt
         from grunt.errors import not_found
 
         dt = await grunt.get_meta(doctype)
@@ -450,7 +450,7 @@ class GruntDB:
         values: dict[str, Any],
     ) -> int:
         """Update multiple rows matching exact-match filters and flush session."""
-        from grunt.app import grunt
+        import grunt
         from grunt.errors import not_found
 
         dt = await grunt.get_meta(doctype)
@@ -481,7 +481,7 @@ class GruntDB:
         order: str = "desc",
     ) -> list[dict[str, Any]]:
         """Fetch aggregated data (GROUP BY, SUM, COUNT, etc)."""
-        from grunt.app import grunt
+        import grunt
         from grunt.errors import not_found
 
         dt = await grunt.get_meta(doctype)

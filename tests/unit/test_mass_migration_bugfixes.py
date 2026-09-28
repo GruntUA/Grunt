@@ -46,7 +46,7 @@ async def test_workspace_get_workspace_returns_saved_data(ctx):
     from grunt.api.v1.workspace import get_workspace
 
     admin = make_user("ws-admin@grunt.example.com", is_superadmin=True)
-    async with ctx.context(ctx.db._session(), ctx._require_engine(), admin):
+    async with ctx.context(ctx.db._session(), ctx.get_engine(), admin):
         created = await ctx.new_doc("AppMenu", {"label": "Test Workspace", "app": "grunt"})
         await ctx.db._session().commit()
 
@@ -61,7 +61,7 @@ async def test_workspace_get_workspace_404_for_missing(ctx):
     from grunt.api.v1.workspace import get_workspace
 
     admin = make_user("ws-admin2@grunt.example.com", is_superadmin=True)
-    async with ctx.context(ctx.db._session(), ctx._require_engine(), admin):
+    async with ctx.context(ctx.db._session(), ctx.get_engine(), admin):
         with pytest.raises(HTTPException) as excinfo:
             await get_workspace("does-not-exist")
         assert excinfo.value.status_code == 404
@@ -72,7 +72,7 @@ async def test_workspace_save_requires_system_manager(ctx):
     from grunt.api.v1.workspace import save_workspace
 
     regular = make_user("ws-regular@grunt.example.com")
-    async with ctx.context(ctx.db._session(), ctx._require_engine(), regular):
+    async with ctx.context(ctx.db._session(), ctx.get_engine(), regular):
         with pytest.raises(APIError) as excinfo:
             await save_workspace({"label": "Should Not Save", "app": "grunt"})
         assert excinfo.value.status_code == 403
@@ -86,7 +86,7 @@ async def test_assignment_preview_rule_resolves_typed_doc(ctx):
     from grunt.assignment.service import AssignmentService
 
     admin = make_user("assign-admin@grunt.example.com", is_superadmin=True)
-    async with ctx.context(ctx.db._session(), ctx._require_engine(), admin):
+    async with ctx.context(ctx.db._session(), ctx.get_engine(), admin):
         rule_doc = await ctx.new_doc(
             "AssignmentRule",
             {
@@ -109,7 +109,7 @@ async def test_workspace_list_workspaces_with_sidebar_items(ctx):
     from grunt.api.v1.workspace import list_workspaces
 
     admin = make_user("ws-perf-admin@grunt.example.com", is_superadmin=True)
-    async with ctx.context(ctx.db._session(), ctx._require_engine(), admin):
+    async with ctx.context(ctx.db._session(), ctx.get_engine(), admin):
         await ctx.new_doc(
             "AppMenu",
             {

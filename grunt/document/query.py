@@ -41,7 +41,7 @@ async def _expand_child_of_filters(
 
         linked_doctype: str = field.options  # type: ignore[assignment]
 
-        from grunt.app import grunt
+        import grunt
 
         linked_dt = await grunt.get_meta(linked_doctype)
         if linked_dt is None:
@@ -91,7 +91,7 @@ async def _link_field_search_condition(
     if not linked_doctype:
         return None
 
-    from grunt.app import grunt
+    import grunt
 
     linked_dt = await grunt.get_meta(linked_doctype)
     if linked_dt is None:

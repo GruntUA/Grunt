@@ -14,7 +14,7 @@ from pydantic import ValidationError
 
 from grunt.api.messages import ApplicationError
 from grunt.config import settings
-from grunt.errors import GruntError, error_body
+from grunt.errors import error_body
 from grunt.i18n import _
 from grunt.log import log
 
@@ -70,35 +70,10 @@ async def _http_exception(request: Request, exc: HTTPException) -> JSONResponse:
     )
 
 
-async def _grunt_error(request: Request, exc: GruntError) -> JSONResponse:
-    """Map GruntError to appropriate HTTP status codes based on title."""
-    status_map = {
-        "PERMISSION_DENIED": 403,
-        "NOT_FOUND": 404,
-        "CONFLICT": 409,
-        "VALIDATION_ERROR": 422,
-    }
-    status_code = status_map.get(exc.title or "APPLICATION_ERROR", 422)
-    return JSONResponse(
-        status_code=status_code,
-        content=error_body(exc.title or "APPLICATION_ERROR", str(exc)),
-    )
-
-
 async def _application_error(request: Request, exc: ApplicationError) -> JSONResponse:
-    """Map ApplicationError to appropriate HTTP status codes based on code."""
-    status_map = {
-        "UNAUTHORIZED": 401,
-        "PERMISSION_DENIED": 403,
-        "NOT_FOUND": 404,
-        "CONFLICT": 409,
-        "DUPLICATE_DATA": 409,
-        "VALIDATION_ERROR": 422,
-        "RATE_LIMITED": 429,
-    }
-    status_code = status_map.get(exc.code, 422)
+    """Render ApplicationError with the HTTP status its code maps to."""
     return JSONResponse(
-        status_code=status_code,
+        status_code=exc.status_code,
         content={
             "success": False,
             "error": {
@@ -189,6 +164,5 @@ def register_exception_handlers(app: FastAPI) -> None:
     # ever gets the class it is registered for.
     app.add_exception_handler(ValidationError, _validation_error)  # pyright: ignore[reportArgumentType]
     app.add_exception_handler(HTTPException, _http_exception)  # pyright: ignore[reportArgumentType]
-    app.add_exception_handler(GruntError, _grunt_error)  # pyright: ignore[reportArgumentType]
     app.add_exception_handler(ApplicationError, _application_error)  # pyright: ignore[reportArgumentType]
     app.add_exception_handler(Exception, _generic_exception)

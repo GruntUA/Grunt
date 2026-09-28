@@ -78,7 +78,7 @@ async def _get_session() -> AsyncSession | None:
     one site's DB is reachable from the same process), and only fall back to
     ``site_manager`` when nothing is bound (background tasks/schedulers).
     """
-    from grunt.context import _session_ctx
+    from grunt.local import _session_ctx
 
     session = _session_ctx.get()
     if session is not None:
@@ -101,7 +101,7 @@ async def get_active_workflow(document_type: str) -> ResolvedWorkflow | None:
     if document_type in _CACHE:
         return _CACHE[document_type]
 
-    from grunt.app import grunt as grunt_app
+    import grunt
     from grunt.document.relations import _load_child_tables
     from grunt.document.serde import serialize_datetimes
 
@@ -112,7 +112,7 @@ async def get_active_workflow(document_type: str) -> ResolvedWorkflow | None:
         # can still resolve it.
         return None
 
-    meta = await grunt_app.get_meta("Workflow")
+    meta = await grunt.get_meta("Workflow")
     if meta is None:
         from grunt.errors import not_found
 

@@ -258,7 +258,7 @@ class DataImport(Document):
     @classmethod
     async def export_doctype(
         cls,
-        grunt_app: Any,
+        grunt: Any,
         doctype: str,
         *,
         filters: dict[str, Any] | None = None,
@@ -276,14 +276,14 @@ class DataImport(Document):
         if exporter is None:
             raise ValueError(_("Unknown export format: %(format)s") % {"format": fmt})
 
-        dt = await grunt_app.get_meta(doctype)
+        dt = await grunt.get_meta(doctype)
         if dt is None:
             raise ValueError(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
         exportable = dt.get_physical_fields()
         if fields:
             exportable = [f for f in exportable if f.fieldname in fields]
 
-        rows = await grunt_app.get_list(
+        rows = await grunt.get_list(
             doctype,
             filters=filters,
             fields=[f.fieldname for f in exportable],
@@ -301,14 +301,14 @@ class DataImport(Document):
         fmt: str = "csv",
     ) -> tuple[bytes, str]:
         """Return an empty import template (headers only) for *doctype*."""
-        from grunt.app import grunt as grunt_app
+        import grunt
         from grunt.io.exporters.registry import get_exporter
 
         exporter = get_exporter(fmt)
         if exporter is None:
             raise ValueError(_("Unknown format: %(format)s") % {"format": fmt})
 
-        dt = await grunt_app.get_meta(doctype)
+        dt = await grunt.get_meta(doctype)
         if dt is None:
             raise ValueError(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
         exportable = dt.get_physical_fields()

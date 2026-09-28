@@ -13,7 +13,7 @@ import json
 from datetime import datetime, timedelta
 from typing import Any
 
-from grunt.app import grunt
+import grunt
 from grunt.log import log
 
 
@@ -67,8 +67,8 @@ async def _widget_report_series(widget: Any) -> Any:
 
     report_name = widget.get("report") or ""
     try:
-        user = grunt._require_user()
-        session = grunt._require_session()
+        user = grunt.get_user()
+        session = grunt.get_session()
 
         cfg_rows = await grunt.get_list(
             "Report", filters={"report_name": report_name}, fields=["chart_config"], limit=1

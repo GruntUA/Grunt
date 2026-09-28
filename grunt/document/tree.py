@@ -115,7 +115,7 @@ class TreeService:
         sort_order: str = "asc",
     ) -> list[dict[str, Any]]:
         """Return direct children of *parent_id* (or root nodes if None)."""
-        from grunt.app import grunt
+        import grunt
 
         dt = await grunt.get_meta(doctype)
         if dt is None:
@@ -208,7 +208,7 @@ class TreeService:
         substring) and, like ``filters``, keeps the ancestors of every match so
         the returned tree stays connected.
         """
-        from grunt.app import grunt
+        import grunt
         from grunt.document.base import Document
 
         dt = await grunt.get_meta(doctype)
@@ -378,7 +378,7 @@ class TreeService:
         fields: list[str] | None = None,
     ) -> list[dict[str, Any]]:
         """Return ordered path from the direct parent up to the root."""
-        from grunt.app import grunt
+        import grunt
 
         dt = await grunt.get_meta(doctype)
         if dt is None:
@@ -434,7 +434,7 @@ class TreeService:
 
         from sqlalchemy import update as sa_update
 
-        from grunt.app import grunt
+        import grunt
 
         dt = await grunt.get_meta(doctype)
         if dt is None:

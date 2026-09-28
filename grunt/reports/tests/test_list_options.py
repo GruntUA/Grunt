@@ -41,7 +41,7 @@ async def _run(ctx, **report):
     from grunt.reports.engine import report_engine
 
     return await report_engine._run_list_report(
-        "RptSale", report, {}, ctx._require_user(), ctx.db._session()
+        "RptSale", report, {}, ctx.get_user(), ctx.db._session()
     )
 
 

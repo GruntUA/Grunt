@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from grunt.app import grunt
+import grunt
 from grunt.i18n import _
 from grunt.log import log
 
@@ -55,7 +55,7 @@ class WebFormService:
         including its hydrated ``fields`` child rows, without that requiring
         a matching read-permission on WebForm itself.
         """
-        from grunt.context import require_session
+        from grunt.local import require_session
 
         async with grunt.context(require_session()):
             rows = await grunt.db.get_all(
@@ -151,7 +151,7 @@ class WebFormService:
         Raises:
             WebFormError on validation or submission failure.
         """
-        from grunt.context import require_session
+        from grunt.local import require_session
 
         form = await self.get_form(route)
         if not form:
@@ -278,8 +278,8 @@ class WebFormService:
         if not recipients:
             return
 
-        from grunt.context import require_session
         from grunt.email import templates as email_templates
+        from grunt.local import require_session
 
         session = require_session()
         context = {**validated, "doc_id": doc_id, "webform_title": form["title"]}
@@ -288,7 +288,7 @@ class WebFormService:
 
     async def _count_submissions(self, doctype: str) -> int:
         """Count existing documents in the target table."""
-        from grunt.context import require_session
+        from grunt.local import require_session
 
         async with grunt.context(require_session()):
             return await grunt.db.count(doctype)
@@ -307,7 +307,7 @@ class WebFormService:
         import hashlib
 
         from grunt.config import settings
-        from grunt.context import require_session
+        from grunt.local import require_session
         from grunt.storage import get_storage_backend
 
         content = await upload.read()

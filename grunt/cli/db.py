@@ -181,7 +181,7 @@ def db_trim_tables(doctype: str | None, dry_run: bool, quiet: bool, site: str | 
     from grunt.site.manager import current_site, site_manager
 
     async def _run() -> None:
-        from grunt.app import grunt
+        import grunt
         from grunt.metadata.registry import doctype_registry
 
         sites = [site] if site else site_manager.get_sites()

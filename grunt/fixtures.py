@@ -73,7 +73,7 @@ async def clean_record(meta: Meta, data: dict[str, Any], *, child: bool = False)
     matches on), every physical non-``Password`` field, MultiLink lists and
     child tables (recursively cleaned). ``None`` values are dropped.
     """
-    from grunt.app import grunt
+    import grunt
 
     out: dict[str, Any] = {}
     if not child and data.get("name") is not None:
@@ -118,7 +118,7 @@ async def export_records(spec: FixtureSpec) -> list[dict[str, Any]]:
 
     Must run inside a grunt context (e.g. ``grunt.system_context``).
     """
-    from grunt.app import grunt
+    import grunt
 
     meta = await grunt.get_meta(spec.doctype)
     if meta is None:

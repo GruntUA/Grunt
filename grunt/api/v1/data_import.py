@@ -5,7 +5,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, cast
 
 import grunt
-from grunt.app import grunt as grunt_app
 from grunt.i18n import _
 
 if TYPE_CHECKING:
@@ -15,16 +14,15 @@ if TYPE_CHECKING:
 @grunt.whitelist()
 async def get_import_preview(data_import_id: str) -> dict[str, Any]:
     """Return column headers, preview rows, and auto-suggested field mapping."""
-    from grunt.app import grunt as _grunt
 
-    di_doc = cast("DataImport", await _grunt.get_doc_instance("DataImport", data_import_id))
+    di_doc = cast("DataImport", await grunt.get_doc_instance("DataImport", data_import_id))
     return await di_doc.get_preview()
 
 
 @grunt.whitelist()
 async def get_import_status(data_import_id: str) -> dict[str, Any]:
     """Return the current status and progress of a DataImport record."""
-    doc = await grunt_app.find_doc("DataImport", data_import_id)
+    doc = await grunt.find_doc("DataImport", data_import_id)
     if not doc:
         grunt.throw(_("DataImport not found"), "NOT_FOUND")
     return {

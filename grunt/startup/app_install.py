@@ -28,7 +28,7 @@ async def _register_app_if_new(app_name: str, app_meta: dict) -> bool:
 
     Returns True if this was the first install (the row didn't exist yet).
     """
-    from grunt.app import grunt
+    import grunt
 
     is_first_install = await grunt.exists("GruntInstalledApp", {"name": app_name}) is None
     if is_first_install:
@@ -168,7 +168,7 @@ async def _sync_app_print_formats(
     """
     import json
 
-    from grunt.app import grunt
+    import grunt
     from grunt.startup.fixtures import _apply_doctype_fixture
 
     for module in app_modules:
@@ -251,7 +251,7 @@ async def sync_installed_apps(session: AsyncSession, site_name: str) -> None:
     """
     import json
 
-    from grunt.app import grunt
+    import grunt
     from grunt.document.registry import document_registry
     from grunt.metadata.registry import doctype_registry
     from grunt.site.manager import site_manager

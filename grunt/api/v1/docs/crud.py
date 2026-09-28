@@ -11,7 +11,6 @@ import grunt
 from grunt.api.router import GruntRouter
 from grunt.api.v1.docs.utils import parse_query_filters
 from grunt.api.v1.schemas.response import ok
-from grunt.app import grunt as grunt_app
 from grunt.auth.dependencies import current_user
 from grunt.auth.doctypes.User.user import User
 from grunt.document.bulk_ops import BulkDeleteTask
@@ -44,7 +43,7 @@ async def list_documents(
     merged_filters = parse_query_filters(request)
     field_list = [f.strip() for f in fields.split(",") if f.strip()] if fields else None
 
-    result = await grunt_app.get_list(
+    result = await grunt.get_list(
         doctype,
         filters=merged_filters if merged_filters else None,
         fields=field_list,
@@ -67,7 +66,7 @@ async def create_document(
     """Create a new document."""
     body.pop(PERMS_KEY, None)  # computed, never stored
     body.pop(WEB_URL_KEY, None)
-    doc = await grunt_app.new_doc(doctype, body)
+    doc = await grunt.new_doc(doctype, body)
     return ok(await _decorate(doctype, doc))
 
 
@@ -80,7 +79,7 @@ async def get_document(
 ) -> dict[str, Any]:
     """Get document data."""
     expand_fields = [f.strip() for f in expand.split(",") if f.strip()] if expand else None
-    doc = await grunt_app.get_doc(doctype, doc_id, expand=expand_fields)
+    doc = await grunt.get_doc(doctype, doc_id, expand=expand_fields)
     return ok(await _decorate(doctype, doc))
 
 
@@ -94,7 +93,7 @@ async def update_document(
     """Update an existing document."""
     body.pop(PERMS_KEY, None)  # computed, never stored
     body.pop(WEB_URL_KEY, None)
-    doc = await grunt_app.save_doc(doctype, doc_id, body)
+    doc = await grunt.save_doc(doctype, doc_id, body)
     return ok(await _decorate(doctype, doc))
 
 
@@ -110,13 +109,13 @@ async def delete_document(
     ``replace_with`` — repoint every reference to this document at the given
     surviving document of the same DocType before deleting.
     """
-    await grunt_app.delete_doc(doctype, doc_id, replace_with)
+    await grunt.delete_doc(doctype, doc_id, replace_with)
 
 
 @grunt.whitelist()
 async def rename(doctype: str, doc_id: str, new_name: str) -> dict[str, Any]:
     """Rename a document (change its id). RPC: grunt.api.v1.docs.crud.rename"""
-    return await grunt_app.rename_doc(doctype, doc_id, new_name)
+    return await grunt.rename_doc(doctype, doc_id, new_name)
 
 
 @grunt.whitelist()
@@ -144,7 +143,7 @@ async def bulk_delete(
 
     user = grunt.get_user()
     user_email = user.email
-    engine = grunt_app._require_engine()
+    engine = grunt.get_engine()
     task = BulkDeleteTask()
     active_site = current_site.get()
 
@@ -182,7 +181,7 @@ async def bulk_delete(
 
     # ── Explicit IDs path ─────────────────────────────────────────────────
     if not ids:
-        grunt_app.throw(_("ids or delete_all is required"))
+        grunt.throw(_("ids or delete_all is required"))
 
     total = len(ids)
 
@@ -211,15 +210,15 @@ async def bulk_update(
     RPC: grunt.api.v1.docs.crud.bulk_update
     """
     if not ids:
-        grunt_app.throw(_("ids is required"))
+        grunt.throw(_("ids is required"))
     if not field:
-        grunt_app.throw(_("field is required"))
+        grunt.throw(_("field is required"))
 
     updated = 0
     errors: list[str] = []
     for doc_id in ids:
         try:
-            await grunt_app.save_doc(doctype, doc_id, {field: value})
+            await grunt.save_doc(doctype, doc_id, {field: value})
             updated += 1
         except Exception as e:
             errors.append(f"{doc_id}: {e}")

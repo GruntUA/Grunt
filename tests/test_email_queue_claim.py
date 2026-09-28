@@ -26,7 +26,7 @@ async def _queue_one(ctx) -> str:
 
 @pytest.mark.asyncio
 async def test_claim_is_exclusive(ctx):
-    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
+    async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         rid = await _queue_one(ctx)
 
         first = await ctx.db.bulk_update(
@@ -42,7 +42,7 @@ async def test_claim_is_exclusive(ctx):
 
 @pytest.mark.asyncio
 async def test_stale_sending_is_reopened_fresh_is_not(ctx):
-    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
+    async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         stale = await _queue_one(ctx)
         fresh = await _queue_one(ctx)
 
@@ -82,7 +82,7 @@ async def test_process_email_queue_double_run_sends_once(ctx, monkeypatch):
     from grunt.email import tasks as email_tasks
     from grunt.email.service import EmailService
 
-    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
+    async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         rid = await _queue_one(ctx)
 
     sent: list = []
@@ -117,6 +117,6 @@ async def test_process_email_queue_double_run_sends_once(ctx, monkeypatch):
 
     assert sent == [rid]
 
-    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
+    async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         status = await ctx.db.get_value("EmailQueue", rid, "status")
     assert status == "Sent"

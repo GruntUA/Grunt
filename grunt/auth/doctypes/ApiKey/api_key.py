@@ -5,7 +5,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 import grunt
-from grunt.app import grunt as grunt_app
 from grunt.auth.api_key_service import generate_api_key
 from grunt.document.base import Document
 from grunt.errors import forbidden
@@ -49,7 +48,7 @@ async def create_api_key(
     assert user.id is not None
     full_key, key_prefix, key_hash = generate_api_key()
 
-    doc = await grunt_app.new_doc(
+    doc = await grunt.new_doc(
         "ApiKey",
         {
             "label": clean_label,
@@ -81,7 +80,7 @@ async def list_api_keys(user: User | None = None) -> list[dict[str, Any]]:
     if "System Manager" not in (user.roles or []):
         filters["user_id"] = user.id
 
-    return await grunt_app.get_list(
+    return await grunt.get_list(
         "ApiKey",
         filters=filters,
         fields=[
@@ -110,7 +109,7 @@ async def update_api_key(
 ) -> dict[str, Any]:
     """Update label, active state, allowed IPs, or expiry of a key."""
     user = user or await grunt.get_current_user()
-    key_doc = await grunt_app.get_doc("ApiKey", key_id)
+    key_doc = await grunt.get_doc("ApiKey", key_id)
     _require_key_owner(key_doc, user)
 
     updates: dict[str, Any] = {}
@@ -129,7 +128,7 @@ async def update_api_key(
     if not updates:
         grunt.throw(_("No fields to update"), "VALIDATION")
 
-    doc = await grunt_app.save_doc("ApiKey", key_id, updates)
+    doc = await grunt.save_doc("ApiKey", key_id, updates)
     return {
         "name": doc["name"],
         "label": doc["label"],
@@ -144,9 +143,9 @@ async def update_api_key(
 async def revoke_api_key(key_id: str, user: User | None = None) -> bool:
     """Permanently revoke (delete) an API key."""
     user = user or await grunt.get_current_user()
-    key_doc = await grunt_app.get_doc("ApiKey", key_id)
+    key_doc = await grunt.get_doc("ApiKey", key_id)
     _require_key_owner(key_doc, user)
-    await grunt_app.delete_doc("ApiKey", key_id)
+    await grunt.delete_doc("ApiKey", key_id)
     return True
 
 

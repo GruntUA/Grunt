@@ -447,7 +447,7 @@ async def language_of(user: str | None) -> str | None:
     """
     if not user:
         return None
-    from grunt.app import grunt
+    import grunt
 
     try:
         return await grunt.db.get_value("User", user, "language")

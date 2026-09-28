@@ -152,7 +152,7 @@ async def test_list_pagination(ctx, setup_doctype):
     from grunt.api.v1.documents import get_list, new_doc
     from grunt.auth.doctypes.User.user import SYSTEM_USER
 
-    async with ctx.context(ctx.db._session(), ctx._require_engine(), SYSTEM_USER):
+    async with ctx.context(ctx.db._session(), ctx.get_engine(), SYSTEM_USER):
         for i in range(5):
             await new_doc("TestItem", {"title": f"Item {i}"})
         await ctx.db._session().commit()
@@ -171,7 +171,7 @@ async def test_list_cursor_pagination(ctx, setup_doctype):
     from grunt.auth.doctypes.User.user import SYSTEM_USER
 
     session = ctx.db._session()
-    engine = ctx._require_engine()
+    engine = ctx.get_engine()
 
     async with ctx.context(session, engine, SYSTEM_USER):
         for i in range(5):
@@ -328,7 +328,7 @@ async def test_get_document_expand_multilink(ctx):
     await ctx.db._session().commit()
 
     session = ctx.db._session()
-    engine = ctx._require_engine()
+    engine = ctx.get_engine()
 
     async with ctx.context(session, engine, SYSTEM_USER):
         full_doc = await ctx.get_doc("ExpandItem", created["name"])
@@ -630,7 +630,7 @@ async def test_bulk_delete_documents(ctx, setup_doctype):
     b = await ctx.new_doc("TestItem", {"title": "Bulk B"})
     await ctx.db._session().commit()
 
-    async with ctx.context(ctx.db._session(), ctx._require_engine(), SYSTEM_USER):
+    async with ctx.context(ctx.db._session(), ctx.get_engine(), SYSTEM_USER):
         deleted, errors = await ctx.bulk_delete_docs(
             "TestItem",
             [a["name"], b["name"], "missing-id"],
@@ -658,7 +658,7 @@ async def test_list_partial_fields(ctx, setup_doctype):
     from grunt.api.v1.documents import get_list, new_doc
     from grunt.auth.doctypes.User.user import SYSTEM_USER
 
-    async with ctx.context(ctx.db._session(), ctx._require_engine(), SYSTEM_USER):
+    async with ctx.context(ctx.db._session(), ctx.get_engine(), SYSTEM_USER):
         await new_doc("TestItem", {"title": "Partial", "status": "Active", "count": 42})
         await ctx.db._session().commit()
 
@@ -681,7 +681,7 @@ async def test_link_search_returns_compact_items(ctx, setup_doctype):
     await ctx.new_doc("TestItem", {"title": "Beta Item", "status": "Active"})
     await ctx.db._session().commit()
 
-    async with ctx.context(ctx.db._session(), ctx._require_engine(), SYSTEM_USER):
+    async with ctx.context(ctx.db._session(), ctx.get_engine(), SYSTEM_USER):
         items = await Document.link_search(
             "TestItem",
             search="Alpha",
@@ -733,7 +733,7 @@ async def test_link_search_returns_all_search_fields(ctx):
     )
     await ctx.db._session().commit()
 
-    async with ctx.context(ctx.db._session(), ctx._require_engine(), SYSTEM_USER):
+    async with ctx.context(ctx.db._session(), ctx.get_engine(), SYSTEM_USER):
         items = await Document.link_search("Correspondentish", search="34620942")
 
     assert len(items) == 1

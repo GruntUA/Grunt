@@ -15,7 +15,7 @@ _METHODS = "/api/v1/auth/methods"
 async def _access_token(ctx, client: AsyncClient, email: str = "pk@grunt.example.com") -> str:
     from grunt.auth.doctypes.User.user import create_user
 
-    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
+    async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         await create_user(email, "Str0ngPass", "Pass", "Key", None)
         await ctx.db._session().commit()
 
@@ -150,7 +150,7 @@ async def test_full_passkey_register_then_login(ctx, client: AsyncClient, monkey
     assert done.json()["data"]["label"] == "Test Key"
 
     cred_b64 = webauthn.helpers.bytes_to_base64url(cred_id)
-    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
+    async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         rows = await ctx.db.get_all(
             "WebAuthnCredential",
             filters={"credential_id": cred_b64},
@@ -206,7 +206,7 @@ async def test_full_passkey_register_then_login(ctx, client: AsyncClient, monkey
     assert body["mfa_required"] is False
 
     # sign_count advanced from the assertion
-    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
+    async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         row = (
             await ctx.db.get_all(
                 "WebAuthnCredential",

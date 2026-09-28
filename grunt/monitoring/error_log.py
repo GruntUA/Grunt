@@ -56,7 +56,7 @@ def _clip(value: str | None, limit: int) -> str:
 
 async def _write_row(payload: dict[str, Any], session: AsyncSession | None) -> str | None:
     """Insert one ErrorLog row, either on *session* or a fresh isolated one."""
-    from grunt.app import grunt
+    import grunt
 
     if session is not None:
         # Caller owns the transaction (e.g. the task middleware already holds a

@@ -392,14 +392,14 @@ async def test_child_doctype_excluded_from_search(ctx):
 @pytest.mark.asyncio
 async def test_search_open_doctype_accessible_to_regular_user(ctx):
     """DocType with an explicit "All" read permission is open — regular user can find docs."""
+    import grunt
     from grunt.api.v1.search import global_search
-    from grunt.app import grunt
 
     await create_and_sync(ctx, SIMPLE_DOCTYPE)
     await create_doc(ctx, "Документ", {"name": "ДОК-001", "title": "Відкритий документ"})
 
     user = await regular_user_ctx(ctx)
-    async with grunt.context(ctx.db._session(), ctx._require_engine(), user):
+    async with grunt.context(ctx.db._session(), ctx.get_engine(), user):
         data = await global_search(q="Відкритий")
         assert any(r["doctype"] == "Документ" for r in data)
 
@@ -407,8 +407,8 @@ async def test_search_open_doctype_accessible_to_regular_user(ctx):
 @pytest.mark.asyncio
 async def test_search_restricted_doctype_hidden_from_regular_user(ctx):
     """DocType restricted by role is excluded from results for users without that role."""
+    import grunt
     from grunt.api.v1.search import global_search
-    from grunt.app import grunt
 
     restricted_dt = {
         "name": "СекретнийДок",
@@ -423,7 +423,7 @@ async def test_search_restricted_doctype_hidden_from_regular_user(ctx):
 
     # Regular user without Manager role → should not see results
     user = await regular_user_ctx(ctx)
-    async with grunt.context(ctx.db._session(), ctx._require_engine(), user):
+    async with grunt.context(ctx.db._session(), ctx.get_engine(), user):
         data = await global_search(q="Секретний вміст XYZ123")
         assert not any(r["doctype"] == "СекретнийДок" for r in data)
 

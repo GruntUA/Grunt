@@ -28,22 +28,20 @@ class DocumentHistoryRPCMixin:
         # Ensure document exists and user has access
         await doc_guard(doctype, doc_id)
 
-        from grunt.app import grunt as grunt_app
         from grunt.document.versioning import version_service
 
-        return await version_service.get_versions(grunt_app._require_session(), doctype, doc_id)
+        return await version_service.get_versions(grunt.get_session(), doctype, doc_id)
 
     @staticmethod
     @grunt.whitelist()
     async def restore_version(doctype: str, doc_id: str, version_id: str) -> dict[str, Any]:
         """Restore a document to a previous version."""
-        from grunt.app import grunt as grunt_app
         from grunt.document.versioning import version_service
 
         # Get current doc and verify access
-        current_doc = await grunt_app.get_doc(doctype, doc_id)
+        current_doc = await grunt.get_doc(doctype, doc_id)
 
-        session = grunt_app._require_session()
+        session = grunt.get_session()
         target = await version_service.get_version(session, version_id)
         if target is None:
             raise HTTPException(status_code=404, detail=_("Version not found"))
@@ -63,7 +61,7 @@ class DocumentHistoryRPCMixin:
         # Apply as a regular update
         from grunt.errors import not_found
 
-        meta = await grunt_app.get_meta(doctype)
+        meta = await grunt.get_meta(doctype)
         if meta is None:
             raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
 
@@ -72,7 +70,7 @@ class DocumentHistoryRPCMixin:
             if field.fieldname in restore_data:
                 update_fields[field.fieldname] = restore_data[field.fieldname]
 
-        result = await grunt_app.save_doc(doctype, doc_id, update_fields)
+        result = await grunt.save_doc(doctype, doc_id, update_fields)
 
         # Add audit log — via the shared write path (grunt.activity.record_activity),
         # not a raw grunt.new_doc("ActivityLog", ...) call: ActivityLog.create is
@@ -84,7 +82,7 @@ class DocumentHistoryRPCMixin:
             doctype,
             doc_id,
             "restore",
-            user_email=grunt_app.session.user,
+            user_email=grunt.session.user,
             details={"to_version": target["version"]},
         )
 
@@ -96,14 +94,13 @@ class DocumentHistoryRPCMixin:
         doctype: str, doc_id: str, per_page: int = 10
     ) -> list[dict[str, Any]]:
         """Return the activity log for a document."""
-        from grunt.app import grunt as grunt_app
         from grunt.permissions.guards import doc_guard
 
         await doc_guard(doctype, doc_id)
 
         per_page = max(1, min(per_page, 100))
 
-        entries = await grunt_app.get_list(
+        entries = await grunt.get_list(
             "ActivityLog",
             filters={"doctype": doctype, "doc_id": doc_id},
             order_by="created_at",
@@ -126,19 +123,18 @@ class DocumentHistoryRPCMixin:
     @grunt.whitelist()
     async def get_timeline(doctype: str, doc_id: str) -> list[dict[str, Any]]:
         """Return a merged timeline of activity, field-value versions and comments."""
-        from grunt.app import grunt as grunt_app
         from grunt.permissions.guards import doc_guard
 
         await doc_guard(doctype, doc_id)
 
-        dt = await grunt_app.get_meta(doctype)
+        dt = await grunt.get_meta(doctype)
         track_changes = bool(dt and dt.track_changes)
 
-        act_rows = await grunt_app.get_list(
+        act_rows = await grunt.get_list(
             "ActivityLog", filters={"doctype": doctype, "doc_id": doc_id}, limit=1000
         )
 
-        comment_rows = await grunt_app.get_list(
+        comment_rows = await grunt.get_list(
             "Comment", filters={"reference_doctype": doctype, "reference_id": doc_id}, limit=1000
         )
 
@@ -164,9 +160,7 @@ class DocumentHistoryRPCMixin:
         if track_changes:
             from grunt.document.versioning import version_service
 
-            versions = await version_service.get_versions(
-                grunt_app._require_session(), doctype, doc_id
-            )
+            versions = await version_service.get_versions(grunt.get_session(), doctype, doc_id)
             for v in versions:
                 items.append(
                     {

@@ -158,7 +158,7 @@ async def _apply_doctype_fixture(
     (a file written by ``grunt fixtures export``), then they are updated to
     match the file whenever the stored values differ.
     """
-    from grunt.app import grunt
+    import grunt
 
     dt = await grunt.get_meta(doctype_name)
     if dt is None:
@@ -211,7 +211,7 @@ async def _sync_fixture_record(dt: Meta, doctype_name: str, doc_id: str, rec: di
     unchanged record is never re-saved (no DocVersion/ActivityLog noise on
     every migrate). Fields absent from the fixture are left untouched.
     """
-    from grunt.app import grunt
+    import grunt
     from grunt.fixtures import clean_record, to_json_compatible
 
     current = await clean_record(dt, await grunt.get_doc(doctype_name, doc_id))

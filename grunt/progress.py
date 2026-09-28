@@ -224,7 +224,7 @@ async def track_progress(
 @whitelist()
 async def active_tasks() -> list[dict[str, Any]]:
     """The current user's running tasks — the task panel restores itself from this."""
-    from grunt.app import grunt
+    import grunt
 
     redis = await _redis()
     if redis is None:
@@ -243,7 +243,7 @@ async def active_tasks() -> list[dict[str, Any]]:
 @whitelist()
 async def cancel_task(task_id: str) -> bool:
     """Ask the current user's running *task_id* to stop; False if there is no such task."""
-    from grunt.app import grunt
+    import grunt
 
     redis = await _redis()
     if redis is None:

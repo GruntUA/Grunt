@@ -57,7 +57,7 @@ async def notify(
 
     Requires an active grunt context (session + user). This is automatically
     satisfied inside request handlers, lifecycle hooks, and background tasks
-    that use :meth:`grunt.context`.
+    that use :meth:`grunt.local`.
 
     Args:
         users: List of user emails to notify.
@@ -70,7 +70,7 @@ async def notify(
     Returns:
         List of created notification IDs.
     """
-    from grunt.app import grunt
+    import grunt
 
     ids: list[str] = []
     for user_email in users:

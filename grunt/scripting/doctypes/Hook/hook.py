@@ -62,7 +62,7 @@ def _collect() -> list[dict[str, Any]]:
 
 async def _collect_server_scripts() -> list[dict[str, Any]]:
     """Gather enabled Server Scripts registered as event/API hooks."""
-    from grunt.app import grunt
+    import grunt
 
     rows: list[dict[str, Any]] = []
     try:

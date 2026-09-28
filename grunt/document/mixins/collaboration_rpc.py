@@ -26,12 +26,11 @@ class DocumentCollaborationRPCMixin:
     @grunt.whitelist()
     async def get_comments(doctype: str, doc_id: str) -> list[dict[str, Any]]:
         """Return all comments for a document."""
-        from grunt.app import grunt as grunt_app
         from grunt.permissions.guards import doc_guard
 
         await doc_guard(doctype, doc_id)
 
-        rows = await grunt_app.get_list(
+        rows = await grunt.get_list(
             "Comment",
             filters={"reference_doctype": doctype, "reference_id": doc_id},
             order_by="created_at",
@@ -59,7 +58,6 @@ class DocumentCollaborationRPCMixin:
         comment_type: str = "Comment",
     ) -> dict[str, Any]:
         """Add a comment to a document. Parses @email mentions."""
-        from grunt.app import grunt as grunt_app
         from grunt.permissions.guards import doc_guard
 
         content = (content or "").strip()
@@ -70,7 +68,7 @@ class DocumentCollaborationRPCMixin:
 
         await doc_guard(doctype, doc_id)
 
-        comment = await grunt_app.new_doc(
+        comment = await grunt.new_doc(
             "Comment",
             {
                 "reference_doctype": doctype,
@@ -82,14 +80,14 @@ class DocumentCollaborationRPCMixin:
 
         # ── @mention notifications ──────────────────────────────────────────
         mentions = set(re.findall(r"@([\w.+\-]+@[\w.\-]+)", content))
-        mentions.discard(grunt_app.session.user)  # do not notify self
+        mentions.discard(grunt.session.user)  # do not notify self
         if mentions:
             for mention in mentions:
                 with use_language(await language_of(mention)):
                     subject = _("%(user)s mentioned you in a comment") % {
-                        "user": grunt_app.session.user
+                        "user": grunt.session.user
                     }
-                await grunt_app.notify(
+                await grunt.notify(
                     users=[mention],
                     subject=subject,
                     message=content,
@@ -103,30 +101,28 @@ class DocumentCollaborationRPCMixin:
     @grunt.whitelist()
     async def delete_comment(doctype: str, doc_id: str, comment_id: str) -> None:
         """Delete a comment."""
-        from grunt.app import grunt as grunt_app
 
-        comment = await grunt_app.get_doc("Comment", comment_id)
-        user = grunt_app.session
+        comment = await grunt.get_doc("Comment", comment_id)
+        user = grunt.session
         if comment.get("owner") != user.user and not user.has_role("System Manager"):
             raise HTTPException(status.HTTP_403_FORBIDDEN, detail=_("Not allowed"))
 
-        await grunt_app.delete_doc("Comment", comment_id)
+        await grunt.delete_doc("Comment", comment_id)
 
     @staticmethod
     @grunt.whitelist()
     async def get_bookmark(doctype: str, doc_id: str) -> dict[str, Any] | None:
         """Return the current user's bookmark."""
-        from grunt.app import grunt as grunt_app
         from grunt.permissions.guards import doc_guard
 
         await doc_guard(doctype, doc_id)
 
-        rows = await grunt_app.get_list(
+        rows = await grunt.get_list(
             "Bookmark",
             filters={
                 "reference_doctype": doctype,
                 "reference_id": doc_id,
-                "owner": grunt_app.session.user,
+                "owner": grunt.session.user,
             },
             limit=1,
         )
@@ -140,12 +136,11 @@ class DocumentCollaborationRPCMixin:
     @grunt.whitelist()
     async def add_bookmark(doctype: str, doc_id: str, title: str = "") -> dict[str, Any]:
         """Bookmark a document."""
-        from grunt.app import grunt as grunt_app
         from grunt.permissions.guards import doc_guard
 
         await doc_guard(doctype, doc_id)
 
-        return await grunt_app.new_doc(
+        return await grunt.new_doc(
             "Bookmark",
             {
                 "reference_doctype": doctype,
@@ -158,16 +153,15 @@ class DocumentCollaborationRPCMixin:
     @grunt.whitelist()
     async def remove_bookmark(doctype: str, doc_id: str) -> None:
         """Remove a bookmark."""
-        from grunt.app import grunt as grunt_app
 
-        rows = await grunt_app.get_list(
+        rows = await grunt.get_list(
             "Bookmark",
             filters={
                 "reference_doctype": doctype,
                 "reference_id": doc_id,
-                "owner": grunt_app.session.user,
+                "owner": grunt.session.user,
             },
             limit=1,
         )
         if rows:
-            await grunt_app.delete_doc("Bookmark", rows[0]["name"])
+            await grunt.delete_doc("Bookmark", rows[0]["name"])

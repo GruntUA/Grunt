@@ -77,7 +77,7 @@ class WorkflowEngine:
         engine: AsyncEngine,
         values: dict | None = None,
     ) -> dict:
-        from grunt.app import grunt
+        import grunt
         from grunt.workflow.registry import get_active_workflow
 
         # Get document
@@ -200,7 +200,7 @@ class WorkflowEngine:
         details: dict,
         session: AsyncSession,
     ) -> None:
-        from grunt.app import grunt
+        import grunt
 
         await grunt.new_doc(
             "ActivityLog",

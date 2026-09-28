@@ -78,7 +78,7 @@ async def gear(ctx, setup_doctypes):
 
 @pytest.mark.asyncio
 async def test_get_list_filters_via_linked_field(ctx, gear, db_session, engine):
-    from grunt.app import grunt
+    import grunt
 
     async with grunt.context(db_session, engine, _employee("alice@example.com")):
         result = await grunt.get_list("PermTestGear")
@@ -90,7 +90,7 @@ async def test_get_list_filters_via_linked_field(ctx, gear, db_session, engine):
 
 @pytest.mark.asyncio
 async def test_get_doc_allows_own_denies_others(ctx, gear, db_session, engine):
-    from grunt.app import grunt
+    import grunt
 
     async with grunt.context(db_session, engine, _employee("alice@example.com")):
         own = await grunt.get_doc("PermTestGear", gear["alice_g"])

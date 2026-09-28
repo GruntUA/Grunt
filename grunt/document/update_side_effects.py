@@ -64,10 +64,10 @@ async def record_update_changes(
             item["field"] for item in diff_changes if item["field"] not in _SKIP_FIELDS
         ]
         try:
+            import grunt
             from grunt.activity import record_activity
-            from grunt.app import grunt as _g
 
-            async with _g.context(session=session, engine=engine, user=user):
+            async with grunt.context(session=session, engine=engine, user=user):
                 await record_activity(
                     doctype_name,
                     real_id,
@@ -146,8 +146,8 @@ async def run_bulk_before_delete_hooks(
     report: ProgressCallback | None = None,
 ) -> list[tuple[dict[str, Any], Any]]:
     """Run per-document before_delete hooks and keep only successful controllers."""
-    from grunt.app import GruntError
     from grunt.document.registry import document_registry
+    from grunt.errors import ApplicationError
 
     controllers: list[tuple[dict[str, Any], Any]] = []
     for i, doc in enumerate(docs):
@@ -155,7 +155,7 @@ async def run_bulk_before_delete_hooks(
         ctrl = controller_cls(doctype_name, doc, user, session)
         try:
             await ctrl.before_delete()
-        except GruntError as e:
+        except ApplicationError as e:
             errors.append(f"{doc['name']}: {e}")
             continue
         controllers.append((doc, ctrl))
@@ -172,14 +172,14 @@ async def run_bulk_after_delete_hooks(
     errors: list[str],
 ) -> None:
     """Run per-document after_delete hooks and fire outgoing webhooks."""
-    from grunt.app import GruntError
+    from grunt.errors import ApplicationError
 
     docs_for_webhook: list[dict[str, Any]] = []
     for doc, ctrl in controllers:
         real_id = str(doc["name"])
         try:
             await ctrl.after_delete()
-        except GruntError as e:
+        except ApplicationError as e:
             errors.append(f"{real_id}: {e}")
         docs_for_webhook.append(doc)
 
@@ -300,7 +300,7 @@ async def write_bulk_delete_activity_log(
     if not doc_ids:
         return
 
-    from grunt.app import grunt
+    import grunt
 
     _now = now or datetime.now(UTC)
 

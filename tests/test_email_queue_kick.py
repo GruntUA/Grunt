@@ -25,7 +25,7 @@ async def test_commit_kicks_the_queue(ctx, monkeypatch):
 
     monkeypatch.setattr(email_tasks.process_email_queue, "kiq", _fake_kiq)
 
-    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
+    async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         await ctx.new_doc(
             "EmailAccount", {"email_address": "out@example.com", "enable_outgoing": True}
         )
@@ -56,7 +56,7 @@ async def test_rollback_does_not_kick_the_queue(ctx, monkeypatch):
 
     monkeypatch.setattr(email_tasks.process_email_queue, "kiq", _fake_kiq)
 
-    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
+    async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         await ctx.new_doc(
             "EmailAccount", {"email_address": "out@example.com", "enable_outgoing": True}
         )
@@ -83,7 +83,7 @@ async def test_many_queue_calls_share_one_kick(ctx, monkeypatch):
 
     monkeypatch.setattr(email_tasks.process_email_queue, "kiq", _fake_kiq)
 
-    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
+    async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         await ctx.new_doc(
             "EmailAccount", {"email_address": "out@example.com", "enable_outgoing": True}
         )

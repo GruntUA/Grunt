@@ -50,7 +50,7 @@ def _generate_vapid_keys() -> tuple[str, str]:
 class WebPushService:
     async def get_vapid_public_key(self) -> str | None:
         """Return the VAPID public key stored in SystemSettings, or None."""
-        from grunt.app import grunt
+        import grunt
 
         try:
             return await grunt.get_single("SystemSettings", _VAPID_PUBLIC_KEY_FIELD)
@@ -65,7 +65,7 @@ class WebPushService:
             log.warning("webpush.pywebpush_not_installed")
             return None
 
-        from grunt.app import grunt
+        import grunt
 
         try:
             public_key = await grunt.get_single("SystemSettings", _VAPID_PUBLIC_KEY_FIELD)
@@ -99,7 +99,7 @@ class WebPushService:
         user_agent: str = "",
     ) -> None:
         """Upsert a push subscription for a user (one per endpoint)."""
-        from grunt.app import grunt
+        import grunt
 
         # Remove old subscription at this endpoint if any using db.delete for performance
         await grunt.db.delete("PushSubscription", filters={"endpoint": endpoint})
@@ -118,7 +118,7 @@ class WebPushService:
 
     async def remove_subscription(self, endpoint: str, user: str) -> None:
         """Delete a push subscription by endpoint URL — only if it belongs to `user`."""
-        from grunt.app import grunt
+        import grunt
 
         await grunt.db.delete("PushSubscription", filters={"endpoint": endpoint, "user": user})
 
@@ -140,7 +140,7 @@ class WebPushService:
         except ImportError:
             return  # Silently skip if not installed
 
-        from grunt.app import grunt
+        import grunt
 
         # Get VAPID private key
         try:

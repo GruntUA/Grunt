@@ -38,7 +38,7 @@ async def submit_form(
     purely to get the caller's IP for CAPTCHA verification below.
     """
     from grunt.config import settings
-    from grunt.context import _user_ctx
+    from grunt.local import _user_ctx
     from grunt.webform import web_form_service
     from grunt.webform.captcha import verify_captcha
 

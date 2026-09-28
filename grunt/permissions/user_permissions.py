@@ -29,7 +29,6 @@ from typing import TYPE_CHECKING, Any
 from sqlalchemy import and_, false, or_
 
 import grunt
-from grunt.app import grunt as grunt_app
 from grunt.i18n import _
 
 if TYPE_CHECKING:
@@ -68,7 +67,6 @@ async def _strict_mode() -> bool:
 
 
 async def _load(user_email: str) -> dict[str, dict[str, set[str]]]:
-    from grunt.app import grunt
 
     rows = await grunt.db.get_all(
         "UserPermission",
@@ -122,7 +120,6 @@ async def _expand_tree_values(allow: str, values: set[str]) -> set[str]:
     indexed queries per list render; departments/units are few enough that
     caching isn't worth the staleness risk.
     """
-    from grunt.app import grunt
 
     dt = await grunt.get_meta(allow)
     if dt is None:
@@ -232,7 +229,7 @@ async def get_active_restrictions(doctype: str) -> list[dict[str, Any]]:
     from grunt.errors import not_found
 
     user = await grunt.get_current_user()
-    dt = await grunt_app.get_meta(doctype)
+    dt = await grunt.get_meta(doctype)
     if dt is None:
         raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
     up = await get_user_permissions_for(user, doctype)
@@ -261,7 +258,7 @@ async def get_user_permission_defaults(doctype: str) -> dict[str, str]:
     if not email:
         return {}
 
-    rows = await grunt_app.db.get_all(
+    rows = await grunt.db.get_all(
         "UserPermission",
         filters={"for_user": email, "is_default": True},
         fields=["allow", "for_value", "apply_to_all_doctypes", "applicable_for"],
@@ -270,7 +267,7 @@ async def get_user_permission_defaults(doctype: str) -> dict[str, str]:
     if not rows:
         return {}
 
-    dt = await grunt_app.get_meta(doctype)
+    dt = await grunt.get_meta(doctype)
     if dt is None:
         raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
     defaults: dict[str, str] = {}

@@ -247,7 +247,7 @@ async def list_documents(
     cursor: str | None = None,
     include_total: bool = True,
 ) -> DocumentList:
-    from grunt.app import grunt
+    import grunt
 
     dt = await grunt.get_meta(doctype_name)
     if dt is None:
@@ -336,7 +336,7 @@ async def count_documents(
     filter ``list_documents`` applies to its pagination total, so a sidebar
     badge or a headline stat never reports rows the list itself hides.
     """
-    from grunt.app import grunt
+    import grunt
 
     dt = await grunt.get_meta(doctype_name)
     if dt is None:
@@ -400,10 +400,10 @@ async def bulk_delete(
     if not ids:
         return 0, []
 
-    from grunt.app import grunt as _grunt
+    import grunt
     from grunt.document.multi_link import MultiLinkService
 
-    dt = await _grunt.get_meta(doctype_name)
+    dt = await grunt.get_meta(doctype_name)
     if dt is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -436,7 +436,7 @@ async def bulk_delete(
         if progress_cb is not None:
             await progress_cb(done, total, len(errors))
 
-    tokens = _grunt.set_context(session=session, engine=engine, user=user)
+    tokens = grunt.set_context(session=session, engine=engine, user=user)
     try:
         controllers = await run_bulk_before_delete_hooks(
             doctype_name=doctype_name,
@@ -447,14 +447,14 @@ async def bulk_delete(
             report=_report,
         )
     finally:
-        _grunt.reset_context(tokens)
+        grunt.reset_context(tokens)
 
     if not controllers:
         return 0, errors
 
     final_ids = [str(d["name"]) for d, _ in controllers]
 
-    tokens = _grunt.set_context(session=session, engine=engine, user=user)
+    tokens = grunt.set_context(session=session, engine=engine, user=user)
     try:
         await run_bulk_delete_writes(
             session=session,
@@ -470,7 +470,7 @@ async def bulk_delete(
             errors=errors,
         )
     finally:
-        _grunt.reset_context(tokens)
+        grunt.reset_context(tokens)
 
     deleted = len(final_ids)
     await _report(total)
@@ -582,7 +582,7 @@ _RENAME_SYSTEM_REFS = [
 
 async def _rename_system_refs(session: AsyncSession, old_id: str, new_id: str) -> None:
     """Best-effort update of _RENAME_SYSTEM_REFS rows pointing at *old_id*."""
-    from grunt.app import grunt
+    import grunt
 
     for sys_dt_name, sys_fieldname in _RENAME_SYSTEM_REFS:
         try:
@@ -688,7 +688,7 @@ async def rename_document(
     if old_id == new_id:
         return await _load(old_id)
 
-    from grunt.app import grunt
+    import grunt
 
     dt = await grunt.get_meta(doctype_name)
     if dt is None:

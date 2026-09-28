@@ -48,7 +48,6 @@ from grunt.actions.registry import (
     get_doc_action,
     register_doc_action,
 )
-from grunt.app import grunt as grunt_app
 from grunt.i18n import _
 from grunt.log import log
 
@@ -162,7 +161,7 @@ async def run(doctype: str, action: str, doc_id: str, args: dict | None = None) 
     """
     from grunt.errors import not_found
 
-    dt = await grunt_app.get_meta(doctype)
+    dt = await grunt.get_meta(doctype)
     if dt is None:
         raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
     bound = {(b.action or "") for b in getattr(dt, "actions", []) or []}
@@ -186,7 +185,7 @@ async def run(doctype: str, action: str, doc_id: str, args: dict | None = None) 
 
             raise forbidden(_("Not permitted to run this action"))
 
-    doc = await grunt_app.get_doc(doctype, doc_id)  # enforces read permission
+    doc = await grunt.get_doc(doctype, doc_id)  # enforces read permission
     # Guarantee the handler can always read the DocType/id off `doc`, even if
     # the serializer omitted them.
     doc.setdefault("doctype", doctype)

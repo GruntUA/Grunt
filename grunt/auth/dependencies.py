@@ -92,7 +92,7 @@ async def current_user(
     if not uid:
         raise credentials_exception
 
-    from grunt.app import grunt
+    import grunt
 
     async with grunt.context(session):
         user = await get_auth_context_user(uid)
@@ -135,7 +135,7 @@ async def optional_user(
             return None
     except jwt.PyJWTError:
         return None
-    from grunt.app import grunt
+    import grunt
 
     async with grunt.context(session):
         user = await get_auth_context_user(uid)
@@ -175,8 +175,8 @@ async def grunt_context(
             items = await grunt.get_list("MyDocType", filters={"status": "Active"})
             return {"data": items}
     """
-    from grunt.app import grunt
-    from grunt.context import _messages_ctx
+    import grunt
+    from grunt.local import _messages_ctx
 
     tokens = grunt.set_context(session, engine, user)
     _messages_ctx.set([])
@@ -204,7 +204,7 @@ async def grunt_context_optional(
     user: User | None = Depends(optional_user),
 ) -> AsyncGenerator[None, Any]:
     """FastAPI dependency: sets up grunt SDK context for the request, with an optional user."""
-    from grunt.app import grunt
+    import grunt
 
     tokens = grunt.set_context(session, engine, user)
     try:

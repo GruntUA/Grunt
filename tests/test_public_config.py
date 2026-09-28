@@ -34,7 +34,7 @@ async def test_public_config_is_guest_accessible_and_complete(client):
 
 @pytest.mark.asyncio
 async def test_public_config_reflects_system_settings(ctx, client):
-    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
+    async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         await ctx.db.set_value(
             "SystemSettings",
             "SystemSettings",

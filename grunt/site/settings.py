@@ -39,7 +39,7 @@ async def get_system_settings(*, fresh: bool = False) -> dict[str, Any]:
     if not fresh and _cache is not None and (time.monotonic() - _cache_ts) < _TTL_SECONDS:
         return _cache
 
-    from grunt.app import grunt
+    import grunt
 
     # A singleton has exactly one row; read it positionally rather than by name
     # (the row may be autonamed to a hash on some sites).

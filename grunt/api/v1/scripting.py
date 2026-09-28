@@ -11,24 +11,22 @@ from grunt.i18n import _
 @grunt.whitelist()
 async def get_client_scripts(doctype: str) -> list[dict[str, Any]]:
     """Return all enabled client scripts for a DocType."""
-    from grunt.app import grunt as grunt_app
     from grunt.scripting.client_script import get_client_scripts as _get
 
-    return await _get(grunt_app._require_session(), doctype)
+    return await _get(grunt.get_session(), doctype)
 
 
 @grunt.whitelist()
 async def run_server_script(method: str, params: dict[str, Any] | None = None) -> dict[str, Any]:
     """Execute a Server Script of type 'API'."""
-    from grunt.app import grunt as grunt_app
     from grunt.scripting import server_script_runner
 
-    session = grunt_app._require_session()
+    session = grunt.get_session()
     script = await server_script_runner.load_api_script(session, method)
     if not script:
         grunt.throw(_("API method “%(method)s” not found") % {"method": method}, "NOT_FOUND")
 
-    user = grunt_app._require_user()
+    user = grunt.get_user()
     result = await server_script_runner.execute(
         script["script"],
         session=session,

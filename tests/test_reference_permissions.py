@@ -54,7 +54,7 @@ def _ann():
 
 @pytest.mark.asyncio
 async def test_comment_list_shows_only_readable_documents(ctx, cases, db_session, engine):
-    from grunt.app import grunt
+    import grunt
 
     mine, _ = cases
     async with grunt.context(db_session, engine, _ann()):
@@ -64,7 +64,7 @@ async def test_comment_list_shows_only_readable_documents(ctx, cases, db_session
 
 @pytest.mark.asyncio
 async def test_comment_on_unreadable_document_is_forbidden(ctx, cases, db_session, engine):
-    from grunt.app import grunt
+    import grunt
 
     _, other = cases
     [row] = await ctx.db.get_all(
@@ -83,7 +83,7 @@ async def test_comment_on_unreadable_document_is_forbidden(ctx, cases, db_sessio
 
 @pytest.mark.asyncio
 async def test_comment_on_readable_document_allowed(ctx, cases, db_session, engine):
-    from grunt.app import grunt
+    import grunt
 
     mine, _ = cases
     async with grunt.context(db_session, engine, _ann()):
@@ -95,7 +95,7 @@ async def test_comment_on_readable_document_allowed(ctx, cases, db_session, engi
 
 @pytest.mark.asyncio
 async def test_unattached_files_keep_role_access(ctx, cases, db_session, engine):
-    from grunt.app import grunt
+    import grunt
 
     async with grunt.context(db_session, engine, _ann()):
         names = {r["file_name"] for r in await grunt.get_list("File", limit=100)}
@@ -105,7 +105,7 @@ async def test_unattached_files_keep_role_access(ctx, cases, db_session, engine)
 
 @pytest.mark.asyncio
 async def test_share_opens_the_comments_too(ctx, cases, db_session, engine):
-    from grunt.app import grunt
+    import grunt
 
     _, other = cases
     await ctx.new_doc("User", {"email": "ann@example.com", "first_name": "Ann", "last_name": "A"})
@@ -122,7 +122,7 @@ async def test_share_opens_the_comments_too(ctx, cases, db_session, engine):
 
 @pytest.mark.asyncio
 async def test_private_attachment_download_follows_document_access(ctx, cases, db_session, engine):
-    from grunt.app import grunt
+    import grunt
     from grunt.storage.doctypes.File.file import get_content
 
     mine, other = cases

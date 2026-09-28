@@ -183,11 +183,11 @@ def make_app_fixtures(app_dir: Path, app_name: str) -> dict[str, Any]:
     @pytest_asyncio.fixture
     async def ctx(db_session: AsyncSession, engine: AsyncEngine):
         """Provide an active grunt context with SYSTEM_USER for tests."""
-        from grunt.app import grunt as grunt_app
+        import grunt
         from grunt.auth.doctypes.User.user import SYSTEM_USER
 
-        async with grunt_app.context(db_session, engine, SYSTEM_USER):
-            yield grunt_app
+        async with grunt.context(db_session, engine, SYSTEM_USER):
+            yield grunt
 
     return {
         "setup_db": setup_db,

@@ -11,7 +11,7 @@ import pytest
 from fastapi import HTTPException, UploadFile
 from starlette.datastructures import Headers
 
-from grunt.app import grunt
+import grunt
 from grunt.storage.doctypes.File.file import dedupe_storage, get_content, get_list, remove, upload
 
 

@@ -82,7 +82,7 @@ async def _seed_supported_languages() -> None:
     process-global (as is the default: last site wins). ``en``/``uk`` stay
     supported even if the table is empty or absent (fresh install).
     """
-    from grunt.app import grunt
+    import grunt
     from grunt.i18n import translation_service
     from grunt.site.settings import get_setting
 
@@ -143,9 +143,9 @@ async def lifespan(app: FastAPI):
     # ── Shutdown ─────────────────────────────────────────────────────
     await stop_scheduler()
     await broker.shutdown()
-    from grunt.app import grunt as grunt_app
+    import grunt
 
-    await grunt_app.query_cache.aclose()
+    await grunt.query_cache.aclose()
     for eng in site_manager.engines.values():
         await eng.dispose()
     log.info("grunt.shutdown")

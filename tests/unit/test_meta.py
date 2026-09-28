@@ -1,6 +1,6 @@
 import pytest
 
-from grunt.app import grunt
+import grunt
 
 
 @pytest.mark.asyncio

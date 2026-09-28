@@ -35,7 +35,7 @@ async def _upsert_workspace(
 
     Returns True if an existing workspace was updated, False if created.
     """
-    from grunt.app import grunt
+    import grunt
 
     existing = await grunt.get_list("AppMenu", filters={"name": ws_name}, fields=["name"], limit=1)
     updated = bool(existing)
@@ -89,7 +89,7 @@ async def seed_grunt_workspace(session: AsyncSession, eng: Any) -> None:
     """Create or update the Grunt system workspace from fixtures/grunt_workspace.json."""
     import json
 
-    from grunt.app import grunt
+    import grunt
 
     fixture_file = _FIXTURES_DIR / "grunt_workspace.json"
     if not fixture_file.exists():

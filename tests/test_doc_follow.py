@@ -37,7 +37,7 @@ async def box(ctx):
 
 
 async def _follow(db_session, engine, doc: str, user=None) -> dict:
-    from grunt.app import grunt
+    import grunt
 
     async with grunt.context(db_session, engine, user or make_user(BOB, roles=["Editor"])):
         row = await grunt.new_doc(
@@ -73,7 +73,7 @@ async def test_update_notifies_follower_with_changed_fields(ctx, box, db_session
 
 @pytest.mark.asyncio
 async def test_own_changes_do_not_notify(ctx, box, db_session, engine):
-    from grunt.app import grunt
+    import grunt
 
     bob = make_user(BOB, roles=["Editor"])
     await _follow(db_session, engine, box, bob)

@@ -1,16 +1,16 @@
 """Permission API mixin for GruntApp facade.
 
-Identity/guard logic lives in :mod:`grunt.context` (context accessors) and
+Identity/guard logic lives in :mod:`grunt.local` (context accessors) and
 :mod:`grunt.permissions.guards` (permission guards) as module-level functions —
 import and call those directly. ``_require_user`` stays as a thin facade wrapper
-because external code still calls ``grunt._require_user()``.
+because external code still calls ``grunt.get_user()``.
 """
 
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from grunt.context import require_user
+from grunt.local import require_user
 from grunt.permissions.types import PermissionAction
 
 if TYPE_CHECKING:
@@ -37,7 +37,7 @@ class PermissionAPI:
             if not await grunt.has_permission("Invoice", "delete"):
                 grunt.throw("You cannot delete invoices")
         """
-        from grunt.app import grunt
+        import grunt
         from grunt.permissions.rbac import permission_checker
 
         dt = await grunt.get_meta(doctype)

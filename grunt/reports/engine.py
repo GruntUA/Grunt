@@ -28,7 +28,7 @@ class ReportEngine:
         user: User,
         session: AsyncSession,
     ) -> dict[str, Any]:
-        from grunt.app import grunt
+        import grunt
 
         async with grunt.context(session, None, user):
             rows = await grunt.get_list(
@@ -154,7 +154,7 @@ class ReportEngine:
             else:
                 query = "SELECT ... FROM dbstat ..."
         """
-        from grunt.app import grunt
+        import grunt
         from grunt.db.session import get_engine as _engine_factory
 
         script_src = report.get("script", "").strip()
@@ -258,7 +258,7 @@ class ReportEngine:
         Columns without an aggregation are treated as GROUP BY columns when
         any aggregation column is present; otherwise a plain SELECT is used.
         """
-        from grunt.app import grunt
+        import grunt
         from grunt.errors import not_found
         from grunt.permissions.rbac import permission_checker
 

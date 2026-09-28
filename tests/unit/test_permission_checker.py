@@ -147,7 +147,7 @@ async def test_require_raises_on_deny():
 async def test_list_users_requires_system_manager(ctx):
     """list_users requires the System Manager role (contextual check)."""
 
-    from grunt.app import grunt
+    import grunt
     from grunt.auth.doctypes.User.user import User, list_users_api
 
     # 1. Create a regular user
@@ -166,7 +166,7 @@ async def test_list_users_requires_system_manager(ctx):
 
     from grunt.errors import APIError
 
-    async with grunt.context(ctx.db._session(), ctx._require_engine(), reg_user_obj):
+    async with grunt.context(ctx.db._session(), ctx.get_engine(), reg_user_obj):
         with pytest.raises(APIError) as excinfo:
             await list_users_api()
         assert excinfo.value.status_code == 403
@@ -224,10 +224,10 @@ async def test_count_respects_permissions(ctx):
     """`grunt.count(..., respect_permissions=True)` applies the same row-level
     `match` filter as the list view — a non-privileged user counting `User`
     sees only their own row, not everyone's."""
-    from grunt.app import grunt
+    import grunt
     from grunt.auth.doctypes.User.user import User, create_user
 
-    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
+    async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         await create_user("boss@grunt.example.com", "Str0ngPass", "Boss", "One", None)
         me = await create_user("countme@grunt.example.com", "Str0ngPass", "Count", "Me", None)
         await ctx.db._session().commit()
@@ -238,6 +238,6 @@ async def test_count_respects_permissions(ctx):
         doctype="User",
         data={"email": me.id, "name": me.id, "roles": []},
     )
-    async with ctx.context(ctx.db._session(), ctx._require_engine(), me_ctx):
+    async with ctx.context(ctx.db._session(), ctx.get_engine(), me_ctx):
         assert await grunt.count("User", respect_permissions=True) == 1
         assert await grunt.count("User") == raw_total  # default path unchanged

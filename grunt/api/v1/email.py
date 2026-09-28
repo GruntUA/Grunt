@@ -7,7 +7,6 @@ from typing import Any
 import aiosmtplib
 
 import grunt
-from grunt.app import grunt as grunt_app
 from grunt.email.service import SMTP_PASSWORD_MASK, EmailService, smtp_connect_kwargs
 from grunt.i18n import _
 from grunt.log import log
@@ -35,7 +34,7 @@ async def test_smtp_connection(
     back).
     """
     if account_id and (not smtp_password or smtp_password == SMTP_PASSWORD_MASK):
-        smtp_password = await grunt_app.db.get_value("EmailAccount", account_id, "smtp_password")
+        smtp_password = await grunt.db.get_value("EmailAccount", account_id, "smtp_password")
     try:
         async with aiosmtplib.SMTP(
             timeout=10,
@@ -59,14 +58,12 @@ async def send_test_email(account_id: str, recipient: str) -> dict[str, Any]:
     if not recipient:
         return {"success": False, "error": _("No recipient address specified.")}
 
-    account = dict(await grunt_app.get_doc("EmailAccount", account_id))
+    account = dict(await grunt.get_doc("EmailAccount", account_id))
     if not account.get("enable_outgoing"):
         return {"success": False, "error": _("Outgoing email is disabled for this account.")}
 
     # Reads mask the password — pull the real one straight from the column.
-    account["smtp_password"] = await grunt_app.db.get_value(
-        "EmailAccount", account_id, "smtp_password"
-    )
+    account["smtp_password"] = await grunt.db.get_value("EmailAccount", account_id, "smtp_password")
     if not account["smtp_password"]:
         return {
             "success": False,
@@ -94,13 +91,13 @@ async def send_test_email(account_id: str, recipient: str) -> dict[str, Any]:
 
 @grunt.whitelist(roles=["System Manager"])
 async def list_accounts() -> list[dict[str, Any]]:
-    result = await grunt_app.get_list("EmailAccount", limit=1000, order_by="created_at")
+    result = await grunt.get_list("EmailAccount", limit=1000, order_by="created_at")
     return [_mask_password(dict(acc)) for acc in result]
 
 
 @grunt.whitelist(roles=["System Manager"])
 async def get_account(account_id: str) -> dict[str, Any]:
-    data = await grunt_app.get_doc("EmailAccount", account_id)
+    data = await grunt.get_doc("EmailAccount", account_id)
     return _mask_password(dict(data))
 
 
@@ -113,7 +110,7 @@ async def list_queue(
     page = int(page)
     per_page = int(per_page)
     filters = {"status": status} if status else None
-    records = await grunt_app.get_list(
+    records = await grunt.get_list(
         "EmailQueue",
         limit=per_page,
         page=page,
@@ -121,13 +118,11 @@ async def list_queue(
         order="desc",
         filters=filters,
     )
-    total = await grunt_app.count("EmailQueue", filters=filters)
+    total = await grunt.count("EmailQueue", filters=filters)
     return {"items": records, "total": total, "page": page, "per_page": per_page}
 
 
 @grunt.whitelist(roles=["System Manager"])
 async def retry_item(queue_id: str) -> bool:
-    await grunt_app.db.set_value(
-        "EmailQueue", queue_id, {"status": "Pending", "error_message": None}
-    )
+    await grunt.db.set_value("EmailQueue", queue_id, {"status": "Pending", "error_message": None})
     return True

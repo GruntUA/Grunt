@@ -9,11 +9,11 @@ from logging.config import fileConfig
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 
-# Ensure system table definitions are imported so metadata knows about them
-import grunt.db.system_tables as _system_tables  # noqa: F401
-
 # ── Grunt imports ────────────────────────────────────────────────────────
 from grunt.config import settings
+
+# Ensure system table definitions are imported so metadata knows about them
+from grunt.db import system_tables as _system_tables  # noqa: F401
 from grunt.db.alembic_utils import async_url_to_sync
 from grunt.db.base import metadata
 from grunt.site.manager import site_manager

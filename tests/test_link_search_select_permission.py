@@ -47,7 +47,7 @@ def _picker(email: str) -> User:
 
 @pytest.mark.asyncio
 async def test_select_only_user_can_search_link(ctx, setup_catalog, db_session, engine):
-    from grunt.app import grunt
+    import grunt
     from grunt.document.base import Document
 
     async with grunt.context(db_session, engine, _picker("p@example.com")):
@@ -71,7 +71,7 @@ async def test_select_only_user_can_search_link(ctx, setup_catalog, db_session, 
 
 @pytest.mark.asyncio
 async def test_no_select_no_read_denies_link_search(ctx, setup_catalog, db_session, engine):
-    from grunt.app import grunt
+    import grunt
     from grunt.document.base import Document
 
     async with grunt.context(db_session, engine, make_user("x@example.com", roles=[])):
@@ -112,7 +112,7 @@ async def test_explicit_select_beats_row_scoped_read(ctx, setup_mixed, db_sessio
     """An explicit ``select`` grant gives an unfiltered identifier picker even
     when the caller also matches a row-scoped ``read`` rule (here: owns none of
     the rows, so the plain "read" path would return nothing)."""
-    from grunt.app import grunt
+    import grunt
     from grunt.document.base import Document
 
     async with grunt.context(db_session, engine, _picker("outsider@example.com")):
@@ -125,7 +125,7 @@ async def test_explicit_select_beats_row_scoped_read(ctx, setup_mixed, db_sessio
 async def test_row_scoped_read_without_select_still_filters(ctx, setup_mixed, db_session, engine):
     """No ``select`` grant → the picker keeps the legacy row-filtered "read"
     path (no 403, just the caller's own subset — empty here)."""
-    from grunt.app import grunt
+    import grunt
     from grunt.document.base import Document
 
     async with grunt.context(db_session, engine, make_user("nobody@example.com", roles=[])):
@@ -152,8 +152,8 @@ LSTREE = {
 
 @pytest.mark.asyncio
 async def test_select_only_user_can_load_tree_picker(ctx, db_session, engine):
+    import grunt
     from grunt.api.v1.meta import save_doctype
-    from grunt.app import grunt
     from grunt.document.base import Document
 
     await save_doctype(doctype_data={**LSTREE, "__is_new": True})

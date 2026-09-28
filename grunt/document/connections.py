@@ -26,7 +26,6 @@ from typing import Any
 from sqlalchemy import distinct, func, select
 
 import grunt
-from grunt.app import grunt as grunt_app
 from grunt.i18n import _
 from grunt.log import log
 from grunt.metadata.doctype import DocTypeLink
@@ -36,10 +35,9 @@ _PREVIEW_LIMIT = 5
 
 async def _child_link_stats(link: DocTypeLink, doc_name: str) -> tuple[int, list[dict[str, Any]]]:
     """Count + preview for a via-child-table link."""
-    from grunt.app import grunt as grunt_app
 
-    session = grunt_app._require_session()
-    child_dt = await grunt_app.get_meta(link.parent_doctype or "")
+    session = grunt.get_session()
+    child_dt = await grunt.get_meta(link.parent_doctype or "")
     if child_dt is None:
         raise ValueError(_("DocType “%(doctype)s” not found") % {"doctype": link.parent_doctype})
     child_table = child_dt.table
@@ -62,14 +60,14 @@ async def _child_link_stats(link: DocTypeLink, doc_name: str) -> tuple[int, list
 async def _direct_link_stats(link: DocTypeLink, doc_name: str) -> tuple[int, list[dict[str, Any]]]:
     """Count + preview for a direct reverse-Link link."""
     filters = {link.link_fieldname: doc_name}
-    total = await grunt_app.count(link.link_doctype, filters=filters)
+    total = await grunt.count(link.link_doctype, filters=filters)
 
-    link_dt = await grunt_app.get_meta(link.link_doctype)
+    link_dt = await grunt.get_meta(link.link_doctype)
     if link_dt is None:
         raise ValueError(_("DocType “%(doctype)s” not found") % {"doctype": link.link_doctype})
     title_field = link_dt.title_field or "name"
     fields = ["name"] if title_field == "name" else ["name", title_field]
-    rows = await grunt_app.get_list(
+    rows = await grunt.get_list(
         link.link_doctype,
         filters=filters,
         fields=fields,
@@ -85,12 +83,12 @@ async def _direct_link_stats(link: DocTypeLink, doc_name: str) -> tuple[int, lis
 async def _resolve_titles(doctype: str, names: list[str]) -> list[dict[str, Any]]:
     if not names:
         return []
-    dt = await grunt_app.get_meta(doctype)
+    dt = await grunt.get_meta(doctype)
     if dt is None:
         raise ValueError(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
     title_field = dt.title_field or "name"
     fields = ["name"] if title_field == "name" else ["name", title_field]
-    rows = await grunt_app.get_list(
+    rows = await grunt.get_list(
         doctype, filters={"name__in": names}, fields=fields, limit=len(names)
     )
     by_name = {r["name"]: (r.get(title_field) or r["name"]) for r in rows}
@@ -119,7 +117,7 @@ async def get_connections(doctype: str, doc_id: str) -> dict[str, Any]:
 
     from grunt.errors import not_found
 
-    dt = await grunt_app.get_meta(doctype)
+    dt = await grunt.get_meta(doctype)
     if dt is None:
         raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
     doc_name = dt.name if dt.is_singleton else doc_id
@@ -138,7 +136,7 @@ async def get_connections(doctype: str, doc_id: str) -> dict[str, Any]:
             log.exception("connections.link_error", doctype=doctype, link_doctype=link.link_doctype)
             continue
 
-        link_dt = await grunt_app.get_meta(link.link_doctype)
+        link_dt = await grunt.get_meta(link.link_doctype)
         groups.setdefault(link.group or "", []).append(
             {
                 "link_doctype": link.link_doctype,

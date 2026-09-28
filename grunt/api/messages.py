@@ -1,29 +1,19 @@
 """Message and notification API.
 
 Example:
-    from grunt import msgprint, throw, notify
+    from grunt import msgprint, throw
 
     msgprint("Operation complete!", type="success")
 
     if not valid:
         throw("Invalid state", code="INVALID_STATE")
 
-    await notify("New Request", "From client ABC", doctype="Request", doc_id="REQ-001")
 """
 
 from typing import NoReturn
 
-from grunt.api.context import get_session, get_user
-
-
-class ApplicationError(Exception):
-    """Error raised by throw() — translates to HTTP exception with message."""
-
-    def __init__(self, message: str, code: str = "ERROR", title: str = "") -> None:
-        self.message = message
-        self.code = code
-        self.title = title
-        super().__init__(message)
+from grunt.api.context import get_session
+from grunt.errors import ApplicationError
 
 
 def msgprint(message: str, title: str = "", msg_type: str = "info") -> None:
@@ -38,7 +28,7 @@ def msgprint(message: str, title: str = "", msg_type: str = "info") -> None:
         msg_type: "success", "info", "warning", "error" (default: "info")
     """
     from grunt.api.context import add_message
-    from grunt.context import _messages_ctx
+    from grunt.local import _messages_ctx
 
     if _messages_ctx.get() is None:
         _messages_ctx.set([])
@@ -72,47 +62,6 @@ def throw(message: str, code: str = "ERROR", title: str = "") -> NoReturn:
     raise ApplicationError(message, code=code, title=title)
 
 
-async def notify(
-    title: str,
-    message: str,
-    doctype: str = "",
-    doc_id: str = "",
-    icon: str = "info",
-    recipient: str | None = None,
-) -> None:
-    """Send an in-app notification to a user.
-
-    Args:
-        title: Notification title
-        message: Notification body
-        doctype: Optional document type (e.g., "Request")
-        doc_id: Optional document ID (links to the document)
-        icon: Icon type (default: "info")
-        recipient: Target user email (default: current user)
-
-    Example:
-        await notify(
-            "New invoice",
-            "Invoice INV-001 from ABC Inc",
-            doctype="Invoice",
-            doc_id="INV-001"
-        )
-    """
-    from grunt.publish import notify as _notify
-
-    user = get_user()
-    if recipient is None:
-        recipient = user.email
-
-    await _notify(
-        users=[recipient],
-        subject=title,
-        message=message,
-        doctype=doctype or None,
-        doc_id=doc_id or None,
-    )
-
-
 async def notify_all(
     title: str,
     message: str,
@@ -136,7 +85,7 @@ async def notify_all(
     if roles:
         emails = await svc._resolve_role_recipients(roles, session)
     else:
-        from grunt.app import grunt
+        import grunt
 
         rows = await grunt.db.get_all(
             "User",

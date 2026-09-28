@@ -231,7 +231,7 @@ async def _write_job_log(
 ) -> str | None:
     """Insert a new ScheduledJobLog record. Returns the generated name, or None on failure."""
     try:
-        from grunt.app import grunt
+        import grunt
 
         async with grunt.system_context(session):
             doc = await grunt.new_doc(
@@ -258,7 +258,7 @@ async def _update_job_log(
 ) -> None:
     """Update a ScheduledJobLog record after job completion via Grunt ORM."""
     try:
-        from grunt.app import grunt
+        import grunt
 
         values: dict = {"status": status, "finished_at": datetime.now(UTC)}
         if error_message is not None:

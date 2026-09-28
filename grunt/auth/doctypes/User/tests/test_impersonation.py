@@ -28,7 +28,7 @@ async def people(ctx):
     """First user → System Manager; plus a regular user and a second System Manager."""
     from grunt.auth.doctypes.User.user import create_user
 
-    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
+    async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         boss = await create_user("boss@grunt.example.com", "Str0ngPass", "Boss", "Root", None)
         member = await create_user("member@grunt.example.com", "Str0ngPass", "Mem", "Ber", None)
         await ctx.save_doc("User", member.id, {"roles": [{"role_name": "Кадровик"}]})

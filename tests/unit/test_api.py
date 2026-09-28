@@ -8,6 +8,8 @@ from unittest.mock import AsyncMock, Mock, patch
 import pytest
 from fastapi import HTTPException
 
+import grunt
+
 # Import API modules
 from grunt.api.context import (
     clear_context,
@@ -20,7 +22,7 @@ from grunt.api.context import (
 )
 from grunt.api.messages import ApplicationError, msgprint, throw
 from grunt.api.permissions import get_current_user
-from grunt.app import GruntDB, grunt
+from grunt.app import GruntDB
 from grunt.metadata.doctype import DocType
 from grunt.metadata.permission import DocPermission
 

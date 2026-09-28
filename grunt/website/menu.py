@@ -45,7 +45,7 @@ async def get_menu(menu: str = "main") -> list[dict[str, Any]]:
 
 
 async def _build(menu: str) -> list[dict[str, Any]]:
-    from grunt.app import grunt
+    import grunt
 
     rows = await grunt.db.get_all(
         DOCTYPE,
@@ -93,7 +93,7 @@ async def _build(menu: str) -> list[dict[str, Any]]:
 
 async def _document_urls(rows: list[dict[str, Any]]) -> dict[tuple[str, str], str]:
     """(doctype, name) → public page URL, one query per linked DocType."""
-    from grunt.app import grunt
+    import grunt
     from grunt.document.registry import document_registry
     from grunt.website.generator import web_url
 

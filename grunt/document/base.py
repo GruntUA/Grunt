@@ -8,7 +8,7 @@ routed through ``self.data`` via ``__getattr__``/``__setattr__``.
 Defining a typed controller::
 
     from grunt.document.base import Document
-    from grunt.app import grunt
+    import grunt
 
     class Invoice(Document):
         # Declare fields as class-level annotations for IDE support.
@@ -59,7 +59,6 @@ from __future__ import annotations
 import contextlib
 from typing import TYPE_CHECKING, Any, ClassVar
 
-from grunt.context import require_engine, require_session, require_user
 from grunt.document.mixins.collaboration_rpc import DocumentCollaborationRPCMixin
 from grunt.document.mixins.export_rpc import DocumentExportRPCMixin
 from grunt.document.mixins.history_rpc import DocumentHistoryRPCMixin
@@ -68,12 +67,12 @@ from grunt.document.mixins.meta_rpc import DocumentMetaRPCMixin
 from grunt.document.mixins.tree_rpc import DocumentTreeRPCMixin
 from grunt.document.mixins.workflow_rpc import DocumentWorkflowRPCMixin
 from grunt.document.mixins.write import DocumentWriteMixin
+from grunt.local import require_engine, require_session, require_user
 from grunt.log import log
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
-    from grunt.app import GruntApp
     from grunt.auth.doctypes.User.user import User
 
 
@@ -321,12 +320,8 @@ class Document(
     # ── Convenience accessors ─────────────────────────────────────────────
 
     @property
-    def grunt(self) -> GruntApp:
-        """The :class:`~grunt.app.GruntApp` singleton.
-
-        A shorthand for ``from grunt.app import grunt``.
-
-        Available inside all lifecycle hooks as ``self.grunt``.
+    def grunt(self):  # the ``grunt`` package — typed as the module, so no annotation
+        """The ``grunt`` package, available inside all lifecycle hooks as ``self.grunt``.
 
         Example::
 
@@ -335,9 +330,9 @@ class Document(
                 if not exists:
                     self.grunt.throw(f"Клієнта '{self.customer}' не знайдено")
         """
-        from grunt.app import grunt as _grunt
+        import grunt
 
-        return _grunt
+        return grunt
 
     def as_dict(self) -> dict[str, Any]:
         """Return a shallow copy of the underlying data dict."""
@@ -395,15 +390,15 @@ class Document(
 
     def _set_grunt_context(self, user: User) -> tuple:
         """Activate the grunt ContextVar context for the current lifecycle scope."""
-        from grunt.app import grunt as _grunt
+        import grunt
 
-        return _grunt.set_context(session=self.session, engine=self.engine, user=user)
+        return grunt.set_context(session=self.session, engine=self.engine, user=user)
 
     @staticmethod
     def _reset_grunt_context(tokens: tuple) -> None:
-        from grunt.app import grunt as _grunt
+        import grunt
 
-        _grunt.reset_context(tokens)
+        grunt.reset_context(tokens)
 
     # ── Persistence ───────────────────────────────────────────────────────
 
@@ -506,7 +501,7 @@ class Document(
         """Called after a document is deleted from the database."""
 
     async def validate(self) -> None:
-        """Custom validation — raise :class:`~grunt.app.GruntError` to abort the save."""
+        """Custom validation — call ``grunt.throw()`` to abort the save."""
 
     @classmethod
     async def list_filter_extra(

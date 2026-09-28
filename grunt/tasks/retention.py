@@ -18,7 +18,7 @@ from __future__ import annotations
 from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING
 
-from grunt.app import grunt
+import grunt
 from grunt.log import log
 from grunt.metadata.registry import doctype_registry
 from grunt.site.manager import site_manager
@@ -49,7 +49,7 @@ async def _purge_documents(dt: DocType, cutoff: datetime) -> int:
         order="asc",
         limit=MAX_DELETES_PER_RUN,
     )
-    from grunt.context import require_session
+    from grunt.local import require_session
 
     session = require_session()
     deleted = 0

@@ -51,7 +51,7 @@ class VersionService:
         if not changes:
             return None
 
-        from grunt.app import grunt
+        import grunt
 
         dt_version = await grunt.get_meta("DocVersion")
         if dt_version is None:
@@ -105,7 +105,7 @@ class VersionService:
         doc_id: str,
     ) -> list[dict[str, Any]]:
         """Get all versions for a document, newest first."""
-        from grunt.app import grunt
+        import grunt
 
         dt_version = await grunt.get_meta("DocVersion")
         if dt_version is None:
@@ -218,7 +218,7 @@ class VersionService:
         version_id: str,
     ) -> dict[str, Any] | None:
         """Get a specific version by ID."""
-        from grunt.app import grunt
+        import grunt
 
         dt_version = await grunt.get_meta("DocVersion")
         if dt_version is None:

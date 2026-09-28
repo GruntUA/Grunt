@@ -33,7 +33,6 @@ _AUTOPRINT_SCRIPT = (
 async def _export_via_registry(
     doctype: str, fmt: str, filters: dict[str, Any] | None = None
 ) -> Response:
-    from grunt.app import grunt as grunt_app
 
     exporter = get_exporter(fmt)
     if exporter is None:
@@ -46,7 +45,7 @@ async def _export_via_registry(
 
     from grunt.api.v1.docs.utils import _non_layout_fields
 
-    dt = await grunt_app.get_meta(doctype)
+    dt = await grunt.get_meta(doctype)
     if dt is None:
         raise HTTPException(
             status_code=404, detail=_("DocType “%(doctype)s” not found") % {"doctype": doctype}
@@ -54,7 +53,7 @@ async def _export_via_registry(
     fields = _non_layout_fields(dt.doc)
     field_names = [f.fieldname for f in fields]
 
-    rows = await grunt_app.get_list(
+    rows = await grunt.get_list(
         doctype,
         limit=10_000,
         filters=filters if filters else None,
@@ -85,11 +84,10 @@ class DocumentExportRPCMixin:
         fields: str | None = None,
     ) -> StreamingResponse:
         """Export documents as CSV."""
-        from grunt.app import grunt as grunt_app
 
         parsed_fields = fields.split(",") if fields else ["*"]
 
-        data = await grunt_app.get_list(
+        data = await grunt.get_list(
             doctype,
             limit=1000,
             order_by=sort_by,
@@ -126,15 +124,14 @@ class DocumentExportRPCMixin:
         token: str | None = None,  # unused: absorbs ?token= consumed by auth, not by us
     ) -> Response:
         """Generate document in requested format: html, pdf, xlsx, or docx."""
-        from grunt.app import grunt as grunt_app
 
-        doc = await grunt_app.get_doc(doctype, doc_id)
-        dt = await grunt_app.get_meta(doctype)
+        doc = await grunt.get_doc(doctype, doc_id)
+        dt = await grunt.get_meta(doctype)
         if dt is None:
             raise HTTPException(
                 status_code=404, detail=_("DocType “%(doctype)s” not found") % {"doctype": doctype}
             )
-        session = grunt_app._require_session()
+        session = grunt.get_session()
 
         if fmt == "xlsx":
             from grunt.api.v1.docs.utils import _generate_xlsx_single
@@ -239,24 +236,23 @@ class DocumentExportRPCMixin:
         doc_id: str | None = None,
     ) -> Response:
         """Render an arbitrary Jinja2 HTML template against a document (or sample)."""
-        from grunt.app import grunt as grunt_app
         from grunt.print.renderer import render_from_string
 
         template_str = (template or "").strip()
         if not template_str:
             raise HTTPException(422, detail=_("template is required"))
 
-        dt = await grunt_app.get_meta(doctype)
+        dt = await grunt.get_meta(doctype)
         if dt is None:
             raise HTTPException(
                 status_code=404, detail=_("DocType “%(doctype)s” not found") % {"doctype": doctype}
             )
 
         if doc_id:
-            doc = await grunt_app.get_doc(doctype, doc_id)
+            doc = await grunt.get_doc(doctype, doc_id)
         else:
             # Use first available document as sample
-            sample_list = await grunt_app.get_list(doctype, limit=1)
+            sample_list = await grunt.get_list(doctype, limit=1)
             if sample_list:
                 doc = sample_list[0]
             else:

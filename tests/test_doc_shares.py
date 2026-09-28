@@ -55,7 +55,7 @@ def _bob():
 
 @pytest.mark.asyncio
 async def test_no_share_no_access(ctx, boxes, db_session, engine):
-    from grunt.app import grunt
+    import grunt
 
     a, _ = boxes
     async with grunt.context(db_session, engine, _bob()):
@@ -66,7 +66,7 @@ async def test_no_share_no_access(ctx, boxes, db_session, engine):
 
 @pytest.mark.asyncio
 async def test_read_share_grants_that_document_only(ctx, boxes, db_session, engine):
-    from grunt.app import grunt
+    import grunt
 
     a, b = boxes
     await _share(ctx, a, "Read")
@@ -82,7 +82,7 @@ async def test_read_share_grants_that_document_only(ctx, boxes, db_session, engi
 
 @pytest.mark.asyncio
 async def test_write_share_allows_edit_but_not_delete_or_other_docs(ctx, boxes, db_session, engine):
-    from grunt.app import grunt
+    import grunt
 
     a, b = boxes
     await _share(ctx, a, "Write")
@@ -97,7 +97,7 @@ async def test_write_share_allows_edit_but_not_delete_or_other_docs(ctx, boxes, 
 
 @pytest.mark.asyncio
 async def test_unshare_revokes_access(ctx, boxes, db_session, engine):
-    from grunt.app import grunt
+    import grunt
 
     a, _ = boxes
     share = await _share(ctx, a, "Read")
@@ -114,8 +114,8 @@ async def test_unshare_revokes_access(ctx, boxes, db_session, engine):
 
 @pytest.mark.asyncio
 async def test_only_writers_can_share(ctx, boxes, db_session, engine):
+    import grunt
     from grunt.api.messages import ApplicationError
-    from grunt.app import grunt
 
     a, _ = boxes
     await _share(ctx, a, "Read")  # bob can read A, not write it
@@ -147,7 +147,7 @@ async def test_share_to_unknown_user_rejected(ctx, boxes):
 
 @pytest.mark.asyncio
 async def test_share_rows_visible_to_grantee_and_sharer_only(ctx, boxes, db_session, engine):
-    from grunt.app import grunt
+    import grunt
 
     a, _ = boxes
     editor = make_user("ed@example.com", roles=["Editor"])

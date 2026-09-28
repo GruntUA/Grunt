@@ -177,8 +177,8 @@ async def test_apply_transition_requires_write_permission(ctx, db_session, engin
     """
     from fastapi import HTTPException
 
+    import grunt
     from grunt.api.v1.meta import save_doctype
-    from grunt.app import grunt
     from tests.support import make_user
 
     await save_doctype(doctype_data={**GUARDED_WORKFLOW_DOCTYPE, "__is_new": True})

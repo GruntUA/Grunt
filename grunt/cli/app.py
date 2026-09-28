@@ -35,7 +35,7 @@ async def _do_install(name: str, site: str | None = None) -> None:
     """Встановлює додаток: реєструє в grunt.site, завантажує DocTypes, fixtures, after_install."""
     import json
 
-    from grunt.app import grunt
+    import grunt
     from grunt.db.base import metadata
     from grunt.metadata.compiler import SA_METADATA
     from grunt.metadata.registry import doctype_registry
@@ -176,7 +176,7 @@ async def _run_before_uninstall_hook(session, target_site: str, name: str) -> No
 
 async def _delete_naming_series_counters(session, app_doctypes: list) -> None:
     """Clear NamingSeries prefix counters derived from this app's autoname doctypes."""
-    from grunt.app import grunt
+    import grunt
 
     ns_dt = await grunt.get_meta("NamingSeries")
     if ns_dt is None:
@@ -194,7 +194,7 @@ async def _delete_naming_series_counters(session, app_doctypes: list) -> None:
 async def _delete_workspace_and_registration(
     *, name: str, has_workspace: bool, has_installed_row: bool
 ) -> None:
-    from grunt.app import grunt
+    import grunt
 
     if has_workspace:
         await grunt.db.delete("WorkspaceSidebarItem", {"parent_name": name})
@@ -232,7 +232,7 @@ async def _do_uninstall(
     """
     import json
 
-    from grunt.app import grunt
+    import grunt
     from grunt.metadata.registry import doctype_registry
     from grunt.site.manager import current_site, site_manager
 

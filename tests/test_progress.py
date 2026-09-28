@@ -92,7 +92,7 @@ def redis_store(monkeypatch, sent):
 
 
 def _as_user(monkeypatch, email):
-    from grunt.app import grunt
+    import grunt
 
     monkeypatch.setattr(type(grunt.session), "user", property(lambda self: email))
 

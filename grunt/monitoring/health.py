@@ -17,8 +17,8 @@ from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import text
 
+import grunt
 from grunt import whitelist
-from grunt.app import grunt
 from grunt.i18n import N_, _
 from grunt.log import log
 
@@ -65,7 +65,7 @@ def _since(delta: timedelta) -> datetime:
 
 
 def _session():
-    from grunt.context import require_session
+    from grunt.local import require_session
 
     return require_session()
 

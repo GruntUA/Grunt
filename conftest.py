@@ -81,7 +81,7 @@ async def setup_db():
         # without this, a later test reusing the same test email (several
         # files use "admin@grunt.example.com") could read another test's
         # cached roles/is_active for a document that no longer exists.
-        from grunt.app import grunt
+        import grunt
 
         await grunt.doc_cache.invalidate_all()
 
@@ -197,11 +197,11 @@ async def client():
 @pytest.fixture
 async def ctx(db_session: AsyncSession, engine: AsyncEngine):
     """Provide an active grunt context with SYSTEM_USER for tests."""
-    from grunt.app import grunt as grunt_app
+    import grunt
     from grunt.auth.doctypes.User.user import SYSTEM_USER
 
-    async with grunt_app.context(db_session, engine, SYSTEM_USER):
-        yield grunt_app
+    async with grunt.context(db_session, engine, SYSTEM_USER):
+        yield grunt
 
 
 @pytest.fixture

@@ -10,7 +10,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
 
-from grunt.app import grunt
+import grunt
 from grunt.log import log
 
 if TYPE_CHECKING:
@@ -105,7 +105,7 @@ class NotificationService:
         offset: int = 0,
     ) -> list[dict[str, Any]]:
         """Get notifications for a user."""
-        from grunt.context import require_session
+        from grunt.local import require_session
 
         filters: dict[str, Any] = {"user": user}
         if unread_only:
@@ -132,14 +132,14 @@ class NotificationService:
 
     async def mark_read(self, notification_id: str) -> None:
         """Mark a single notification as read."""
-        from grunt.context import require_session
+        from grunt.local import require_session
 
         async with grunt.system_context(require_session()):
             await grunt.db.set_value("Notification", notification_id, "is_read", True)
 
     async def mark_all_read(self, user: str) -> int:
         """Mark all notifications as read for a user. Returns count of affected."""
-        from grunt.context import require_session
+        from grunt.local import require_session
 
         async with grunt.system_context(require_session()):
             return await grunt.bulk_update(
@@ -278,7 +278,7 @@ class NotificationService:
         if not role_names:
             return []
         try:
-            from grunt.app import grunt
+            import grunt
 
             async with grunt.system_context(session):
                 # Collect user_ids for all requested roles

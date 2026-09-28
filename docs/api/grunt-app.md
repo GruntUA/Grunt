@@ -1,14 +1,18 @@
-# GruntApp SDK
+# The `grunt` API
 
-The `grunt` object is the primary API for app developers. It is available in:
+The `grunt` package is the primary API for app developers. It is available in:
 
 - Controller methods (`validate`, `before_save`, `after_insert`, etc.)
 - Hook functions (`@on("after_insert", ...)`)
 - Server Scripts (available as `grunt` global)
 
 ```python
-from grunt.app import grunt
+import grunt
 ```
+
+One namespace: request helpers (`grunt.whitelist`, `grunt.throw`, `grunt.get_user`,
+`grunt.require_user`, `grunt.get_session`, `grunt.log`) and the document API below
+(bound from the internal `GruntApp` singleton).
 
 ---
 
@@ -437,14 +441,11 @@ async with grunt.system_context(session):
 A helper that's always called from *somewhere* with an already-active context
 (the common case — most functions called from a controller or a whitelisted
 method) shouldn't take `session` as its own parameter at all. Read it via
-`require_session()` instead of threading it through every call:
+`grunt.get_session()` instead of threading it through every call:
 
 ```python
-from grunt.context import require_session
-
-
 async def get_user_by_email(email: str) -> User | None:
-    async with grunt.system_context(require_session()):
+    async with grunt.system_context(grunt.get_session()):
         return await User.objects.filter(email=email).first()
 ```
 
@@ -475,13 +476,14 @@ requires one.
 
 ## Error handling
 
-### `grunt.throw(message, title)`
+### `grunt.throw(message, code="ERROR", title="")`
 
-Raise a user-facing error (returned as HTTP 422).
+Raise a user-facing error. `code` picks the HTTP status (`VALIDATION_ERROR` → 422,
+`NOT_FOUND` → 404, `PERMISSION_DENIED` → 403, `CONFLICT` → 409, `UNAUTHORIZED` → 401).
 
 ```python
 if self.amount <= 0:
-    grunt.throw("Amount must be greater than zero", title="Validation Error")
+    grunt.throw("Amount must be greater than zero", code="VALIDATION_ERROR")
 ```
 
 ---

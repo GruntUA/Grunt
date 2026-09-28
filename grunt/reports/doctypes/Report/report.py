@@ -21,7 +21,6 @@ from typing import Any
 from fastapi.responses import Response
 
 import grunt
-from grunt.app import grunt as grunt_app
 
 
 @grunt.whitelist()
@@ -29,9 +28,7 @@ async def run(name: str, filters: dict[str, Any] | None = None) -> dict[str, Any
     """Execute a report and return results."""
     from grunt.reports.engine import report_engine
 
-    result = await report_engine.run(
-        name, filters or {}, grunt_app._require_user(), grunt_app._require_session()
-    )
+    result = await report_engine.run(name, filters or {}, grunt.get_user(), grunt.get_session())
     return result
 
 
@@ -58,8 +55,8 @@ async def preview(
             "row_limit": row_limit,
         },
         filters or {},
-        grunt_app._require_user(),
-        grunt_app._require_session(),
+        grunt.get_user(),
+        grunt.get_session(),
     )
     return result
 
@@ -73,9 +70,7 @@ async def export_xlsx(
     """Run a report and return the result as an xlsx file download."""
     from grunt.reports.engine import report_engine
 
-    result = await report_engine.run(
-        name, filters or {}, grunt_app._require_user(), grunt_app._require_session()
-    )
+    result = await report_engine.run(name, filters or {}, grunt.get_user(), grunt.get_session())
     xlsx_bytes = await report_engine.export_excel(result, name)
     return Response(
         content=xlsx_bytes,

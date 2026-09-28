@@ -23,7 +23,7 @@ async def get_client_scripts(
     Returns a list of dicts with `name` and `script` keys.
     """
     from grunt.app import GruntDB
-    from grunt.context import _session_ctx
+    from grunt.local import _session_ctx
 
     token = _session_ctx.set(session)
     try:

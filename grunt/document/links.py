@@ -47,7 +47,7 @@ class LinkService:
 
         Returns the number of links created.
         """
-        from grunt.app import grunt
+        import grunt
         from grunt.errors import not_found
 
         doclink_dt = await grunt.get_meta("DocLink")
@@ -117,7 +117,7 @@ class LinkService:
 
         Returns a list of dicts with source_doctype, source_id, link_fieldname.
         """
-        from grunt.app import grunt
+        import grunt
         from grunt.errors import not_found
 
         dt_doc_link = await grunt.get_meta("DocLink")
@@ -250,7 +250,7 @@ class LinkService:
         doc_id: str,
     ) -> None:
         """Remove all links from and to a document (on delete)."""
-        from grunt.app import grunt
+        import grunt
         from grunt.errors import not_found
 
         dt_doc_link = await grunt.get_meta("DocLink")

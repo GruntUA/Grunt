@@ -18,7 +18,7 @@ async def _set_push(ctx, enabled: bool) -> None:
 async def test_vapid_key_and_subscribe_blocked_when_disabled(ctx):
     from grunt.api.v1.notifications import get_vapid_public_key, subscribe_push
 
-    async with ctx.context(ctx.db._session(), ctx._require_engine()):
+    async with ctx.context(ctx.db._session(), ctx.get_engine()):
         await _set_push(ctx, False)
 
         assert await get_vapid_public_key() is None
@@ -32,7 +32,7 @@ async def test_vapid_key_and_subscribe_blocked_when_disabled(ctx):
 async def test_send_push_early_returns_when_disabled(ctx):
     from grunt.webpush.service import webpush_service
 
-    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
+    async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         await _set_push(ctx, False)
 
         await ctx.new_doc(

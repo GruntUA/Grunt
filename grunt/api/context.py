@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from grunt.context import _engine_ctx, _messages_ctx, _session_ctx, _site_ctx, _user_ctx
+from grunt.local import _engine_ctx, _messages_ctx, _session_ctx, _site_ctx, _user_ctx
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
@@ -41,20 +41,18 @@ def set_user(user: User) -> None:
 
 
 def get_user() -> User:
-    """Get the current user (may be anonymous for scheduler tasks)."""
+    """The user the current request or task runs as.
+
+    Never invents one: without a user in context (a guest request, or a task
+    that didn't enter ``grunt.context`` / ``grunt.system_context``) it raises
+    a 401 instead of letting a permission check pass on a stand-in.
+    """
     user = _user_ctx.get()
     if user is None:
-        from grunt.auth.doctypes.User.user import User as _User
+        from grunt.errors import ApplicationError
+        from grunt.i18n import _
 
-        return _User(
-            doctype="User",
-            data={
-                "name": "system",
-                "email": "system",
-                "full_name": "System",
-                "roles": ["System Manager"],
-            },
-        )
+        raise ApplicationError(_("Authentication required"), code="UNAUTHORIZED")
     return user
 
 
@@ -131,8 +129,8 @@ def whitelist(allow_guest: bool = False, *, roles: list[str] | None = None, requ
 
             @functools.wraps(fn)
             async def wrapper(*args, **kwargs):
-                from grunt.context import require_user
                 from grunt.errors import forbidden
+                from grunt.local import require_user
                 from grunt.permissions.roles import user_has_roles
 
                 try:

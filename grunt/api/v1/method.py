@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Any
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 
-from grunt.app import grunt as grunt_app
+import grunt
 from grunt.auth.dependencies import _oauth2_scheme_optional, optional_user
 from grunt.db.session import get_engine as get_engine_dep
 from grunt.db.session import get_session
@@ -140,7 +140,7 @@ async def _invoke_with_context(
             raise
 
     # Activate context
-    async with grunt_app.context(session, engine, user):
+    async with grunt.context(session, engine, user):
         # Validate required parameters
         # (@grunt.whitelist(roles=..., require=...) enforcement happens inside
         # `method` itself now — see grunt.api.context.whitelist — so it applies

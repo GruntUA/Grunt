@@ -5,7 +5,7 @@ from typing import Any
 
 from apscheduler.triggers.cron import CronTrigger
 
-from grunt.app import grunt
+import grunt
 from grunt.i18n import _
 from grunt.metadata.virtual import VirtualDocType
 

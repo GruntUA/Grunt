@@ -40,7 +40,7 @@ async def compute_aggregations(
 
     Returns an empty dict if no aggregate fields are defined.
     """
-    from grunt.app import grunt
+    import grunt
 
     meta = Meta(dt)
     agg_fields = meta.get_aggregate_fields()

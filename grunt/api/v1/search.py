@@ -23,18 +23,17 @@ async def global_search(
     if limit > 50:
         grunt.throw(_("Parameter 'limit' too high"), "VALIDATION_ERROR")
 
-    from grunt.app import grunt as grunt_app
     from grunt.permissions.rbac import permission_checker
     from grunt.search.service import search_index_service
 
     raw = await search_index_service.search(
-        session=grunt_app._require_session(),
+        session=grunt.get_session(),
         q=q,
         limit=limit,
         doctype=doctype,
     )
 
-    user = grunt_app._require_user()
+    user = grunt.get_user()
 
     # Check read permission per doctype
     allowed_doctypes: dict[str, bool] = {}
@@ -43,7 +42,7 @@ async def global_search(
     for r in raw:
         dt_name = r["doctype"]
         if dt_name not in allowed_doctypes:
-            dt = await grunt_app.get_meta(dt_name)
+            dt = await grunt.get_meta(dt_name)
             if dt is None:
                 allowed_doctypes[dt_name] = False
             else:
@@ -68,9 +67,8 @@ async def global_search(
 @grunt.whitelist(roles=["System Manager"])
 async def rebuild_index() -> dict[str, Any]:
     """Rebuild the entire search index from scratch. System Manager only."""
-    from grunt.app import grunt as grunt_app
     from grunt.search.service import search_index_service
 
-    session = grunt_app._require_session()
-    count = await search_index_service.reindex_all(session, grunt_app._require_engine())
+    session = grunt.get_session()
+    count = await search_index_service.reindex_all(session, grunt.get_engine())
     return {"indexed": count}

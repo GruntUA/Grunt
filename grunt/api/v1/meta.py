@@ -5,7 +5,6 @@ from __future__ import annotations
 from typing import Any
 
 import grunt
-from grunt.app import grunt as grunt_app
 from grunt.i18n import _
 from grunt.log import log
 from grunt.metadata.compiler import DuplicateDataError, get_table_name, sync_table
@@ -69,7 +68,7 @@ async def _dump_doctype(dt: DocType, *, translate: bool = False) -> dict[str, An
 
 async def _get_app_name_for_module(module: str) -> str | None:
     """Return the installed app name that owns *module*, or None."""
-    rows = await grunt_app.db.get_all("GruntInstalledApp", fields=["name", "modules"])
+    rows = await grunt.db.get_all("GruntInstalledApp", fields=["name", "modules"])
     for row in rows:
         if module in (row.get("modules") or []):
             return row["name"]
@@ -86,10 +85,9 @@ async def get_doctype(name: str, raw: bool = False) -> dict[str, Any]:
     await doctype_registry.get(name)  # ensure it exists (raises 404 if not)
     fresh = await doctype_registry._lazy_load(name)
     if fresh is None:
-        from grunt.app import grunt as grunt_app
         from grunt.errors import not_found
 
-        meta = await grunt_app.get_meta(name)
+        meta = await grunt.get_meta(name)
         if meta is None:
             raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": name})
         fresh = meta.doc
@@ -118,11 +116,10 @@ async def list_doctypes(module: str | None = None) -> list[dict[str, Any]]:
 @grunt.whitelist(roles=["System Manager"])
 async def save_doctype(doctype_data: dict[str, Any]) -> dict[str, Any]:
     """Create or update a DocType. Admin only."""
-    from grunt.app import grunt as grunt_app
 
     dt = DocType(**doctype_data)
-    session = grunt_app._require_session()
-    engine = grunt_app._require_engine()
+    session = grunt.get_session()
+    engine = grunt.get_engine()
 
     try:
         if await doctype_registry.get_or_none(dt.name) is not None:
@@ -145,24 +142,22 @@ async def save_doctype(doctype_data: dict[str, Any]) -> dict[str, Any]:
 @grunt.whitelist(roles=["System Manager"])
 async def delete_doctype(name: str) -> bool:
     """Delete a DocType definition. Admin only."""
-    from grunt.app import grunt as grunt_app
 
-    await doctype_registry.delete(name, grunt_app._require_session())
+    await doctype_registry.delete(name, grunt.get_session())
     return True
 
 
 @grunt.whitelist(roles=["System Manager"])
 async def sync_doctype(name: str) -> dict[str, Any]:
     """Force sync a DocType's physical table. Admin only."""
-    from grunt.app import grunt as grunt_app
     from grunt.errors import not_found
 
-    meta = await grunt_app.get_meta(name)
+    meta = await grunt.get_meta(name)
     if meta is None:
         raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": name})
     dt = meta.doc
-    session = grunt_app._require_session()
-    engine = grunt_app._require_engine()
+    session = grunt.get_session()
+    engine = grunt.get_engine()
 
     try:
         await sync_table(dt, engine, session=session)
@@ -220,17 +215,16 @@ async def compact_table(name: str) -> dict[str, Any]:
     """
     import sqlalchemy as sa
 
-    from grunt.app import grunt as grunt_app
     from grunt.errors import not_found
 
-    dt = await grunt_app.get_meta(name)
+    dt = await grunt.get_meta(name)
     if dt is None:
         raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": name})
     if dt.is_virtual:
         grunt.throw(_("A virtual DocType has no physical table"), "VALIDATION_ERROR")
 
     table_name = dt.table_name or get_table_name(dt.module or "", dt.name)
-    engine = grunt_app._require_engine()
+    engine = grunt.get_engine()
     dialect = engine.dialect.name
 
     if dialect == "sqlite":
@@ -307,17 +301,16 @@ async def table_info(name: str) -> dict[str, Any]:
     """
     import sqlalchemy as sa
 
-    from grunt.app import grunt as grunt_app
     from grunt.errors import not_found
 
-    dt = await grunt_app.get_meta(name)
+    dt = await grunt.get_meta(name)
     if dt is None:
         raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": name})
     if dt.is_virtual:
         grunt.throw(_("A virtual DocType has no physical table"), "VALIDATION_ERROR")
 
     table_name = dt.table_name or get_table_name(dt.module or "", dt.name)
-    engine = grunt_app._require_engine()
+    engine = grunt.get_engine()
     dialect = engine.dialect.name
 
     info: dict[str, Any] = {

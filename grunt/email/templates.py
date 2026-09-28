@@ -36,8 +36,8 @@ async def render(name: str, context: dict[str, Any]) -> tuple[str, str, str | No
     including one acting as a synthetic Guest (e.g. a public WebForm
     submission queuing its own confirmation e-mail).
     """
-    from grunt.app import grunt
-    from grunt.context import require_session
+    import grunt
+    from grunt.local import require_session
 
     async with grunt.system_context(require_session()):
         rows = await grunt.db.get_all(

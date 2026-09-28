@@ -116,7 +116,7 @@ class _DBProxy:
         self._session = session
 
     async def _run_with_session(self, action: Callable[[], Awaitable[_T]]) -> _T:
-        from grunt.context import _session_ctx
+        from grunt.local import _session_ctx
 
         token = _session_ctx.set(self._session)
         try:
@@ -218,7 +218,7 @@ class ScriptContext:
         return self._session
 
     async def _run_with_session(self, action: Callable[[], Awaitable[_T]]) -> _T:
-        from grunt.context import _session_ctx
+        from grunt.local import _session_ctx
 
         token = _session_ctx.set(self._get_session())
         try:
@@ -337,9 +337,9 @@ class ScriptContext:
         return self._run_or_raise(self._new_doc_impl(doctype, data), "new_doc")
 
     async def _new_doc_impl(self, doctype: str, data: dict[str, Any]) -> dict[str, Any]:
-        from grunt.app import grunt as _grunt
+        import grunt
 
-        return await self._run_with_session(lambda: _grunt.new_doc(doctype, data))
+        return await self._run_with_session(lambda: grunt.new_doc(doctype, data))
 
     def save_doc(self, doctype: str, id_or_name: str, data: dict[str, Any]) -> dict[str, Any]:
         """Update an existing document.
@@ -463,7 +463,7 @@ class ServerScriptRunner:
     ) -> list[dict[str, Any]]:
         """Load enabled server scripts for a specific DocType event."""
         from grunt.app import GruntDB
-        from grunt.context import _session_ctx
+        from grunt.local import _session_ctx
 
         token = _session_ctx.set(session)
         try:
@@ -505,7 +505,7 @@ class ServerScriptRunner:
     async def load_api_script(self, session: AsyncSession, method: str) -> dict[str, Any] | None:
         """Load an API-type server script by method name."""
         from grunt.app import GruntDB
-        from grunt.context import _session_ctx
+        from grunt.local import _session_ctx
 
         token = _session_ctx.set(session)
         try:
@@ -537,7 +537,7 @@ class ServerScriptRunner:
     async def load_scheduler_scripts(self, session: AsyncSession) -> list[dict[str, Any]]:
         """Load all enabled scheduler-type server scripts."""
         from grunt.app import GruntDB
-        from grunt.context import _session_ctx
+        from grunt.local import _session_ctx
 
         token = _session_ctx.set(session)
         try:

@@ -34,7 +34,7 @@ async def box(ctx):
 
 
 async def _perms_as(user, name, db_session, engine):
-    from grunt.app import grunt
+    import grunt
 
     async with grunt.context(db_session, engine, user):
         doc = await grunt.get_doc("PermBox", name)

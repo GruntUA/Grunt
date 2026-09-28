@@ -103,11 +103,11 @@ async def test_compact_table_reports_freed_space(ctx, probe_doctype):
 async def test_compact_table_requires_system_manager(db_session, engine):
     from fastapi import HTTPException
 
+    import grunt
     from grunt.api.v1.meta import compact_table
-    from grunt.app import grunt as grunt_app
     from tests.support import make_user
 
-    async with grunt_app.context(db_session, engine, make_user("nobody@grunt.example.com")):
+    async with grunt.context(db_session, engine, make_user("nobody@grunt.example.com")):
         with pytest.raises(HTTPException):
             await compact_table(name="DocType")
 
@@ -117,10 +117,10 @@ async def test_table_info_requires_system_manager(db_session, engine):
     """A plain user (no roles) gets a 403 before the body runs."""
     from fastapi import HTTPException
 
+    import grunt
     from grunt.api.v1.meta import table_info
-    from grunt.app import grunt as grunt_app
     from tests.support import make_user
 
-    async with grunt_app.context(db_session, engine, make_user("nobody@grunt.example.com")):
+    async with grunt.context(db_session, engine, make_user("nobody@grunt.example.com")):
         with pytest.raises(HTTPException):
             await table_info(name="DocType")

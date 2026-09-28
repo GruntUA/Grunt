@@ -12,7 +12,6 @@ from datetime import UTC, datetime
 from typing import Any
 
 import grunt
-from grunt.app import grunt as grunt_app
 from grunt.document.base import Document
 from grunt.i18n import _
 from grunt.log import log
@@ -70,7 +69,7 @@ async def restore(name: str, allow_rename: bool = False) -> dict[str, Any]:
 
     _require_system_manager()
 
-    snap = await grunt_app.get_doc("DeletedDocument", name)
+    snap = await grunt.get_doc("DeletedDocument", name)
     if snap.get("restored"):
         grunt.throw(
             _("Already restored as “%(name)s”") % {"name": snap.get("restored_to") or "?"},
@@ -89,7 +88,7 @@ async def restore(name: str, allow_rename: bool = False) -> dict[str, Any]:
     payload = _snapshot_payload(snap)
     orig_name = str(snap["deleted_name"])
 
-    if await grunt_app.db.exists(target_dt, orig_name):
+    if await grunt.db.exists(target_dt, orig_name):
         if not allow_rename:
             grunt.throw(
                 _("Document “%(name)s” already exists. Restore with a new ID?")
@@ -98,9 +97,9 @@ async def restore(name: str, allow_rename: bool = False) -> dict[str, Any]:
             )
         payload.pop("name", None)
 
-    async with grunt_app.system_context(grunt.get_session()):
-        created = await grunt_app.new_doc(target_dt, payload)
-        await grunt_app.set_value(
+    async with grunt.system_context(grunt.get_session()):
+        created = await grunt.new_doc(target_dt, payload)
+        await grunt.set_value(
             "DeletedDocument",
             name,
             {

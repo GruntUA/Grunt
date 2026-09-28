@@ -9,7 +9,7 @@ import pytest
 from fastapi import UploadFile
 from starlette.datastructures import Headers
 
-from grunt.app import grunt
+import grunt
 from grunt.storage.doctypes.File.file import File, dedupe_storage, upload
 
 

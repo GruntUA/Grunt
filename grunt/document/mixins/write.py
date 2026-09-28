@@ -45,7 +45,7 @@ from grunt.document.virtual import (
     virtual_delete,
     virtual_update,
 )
-from grunt.errors import GruntError
+from grunt.errors import ApplicationError
 from grunt.events import fire
 from grunt.metadata.registry import doctype_registry
 from grunt.website.generator import fill_route
@@ -73,7 +73,7 @@ class DocumentWriteMixin(DocumentReadMixin):
 
     async def _resolve_dt(self, doctype_name: str) -> Any:
         """Return the freshest DocType definition, forcing a lazy reload if needed."""
-        from grunt.app import grunt
+        import grunt
         from grunt.errors import not_found
 
         fresh = await doctype_registry._lazy_load(doctype_name)
@@ -87,18 +87,15 @@ class DocumentWriteMixin(DocumentReadMixin):
     async def _run_lifecycle_hooks(self, doc: Any, *hook_names: str) -> None:
         """Call the named controller lifecycle hooks on *doc*, in order.
 
-        A ``GruntError`` raised by any hook is normalized to a 422 response —
-        this is the one place that translates "controller rejected the save"
-        into an HTTP error, shared by create/update/delete.
+        A ``grunt.throw()`` from any hook becomes an HTTP error with the status
+        its code maps to — the one place that translates "controller rejected
+        the save" into HTTP, shared by create/update/delete.
         """
         try:
             for hook_name in hook_names:
                 await getattr(doc, hook_name)()
-        except GruntError as e:
-            raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
-                detail=str(e),
-            ) from e
+        except ApplicationError as e:
+            raise e.to_api_error() from e
 
     async def _fire_write_hooks(
         self,

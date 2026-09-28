@@ -8,7 +8,7 @@ from __future__ import annotations
 import json
 from typing import Any, cast
 
-from grunt.app import grunt
+import grunt
 from grunt.document.base import Document
 from grunt.log import log
 

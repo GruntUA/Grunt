@@ -35,8 +35,8 @@ async def guarded_import_target(ctx):
 
 @pytest.mark.asyncio
 async def test_run_import_job_denies_non_system_manager(ctx, db_session, engine):
+    import grunt
     from grunt.api.v1.data_import import run_import_job
-    from grunt.app import grunt
 
     outsider = make_user("outsider@grunt.example.com")
     async with grunt.context(db_session, engine, outsider):
@@ -47,8 +47,8 @@ async def test_run_import_job_denies_non_system_manager(ctx, db_session, engine)
 
 @pytest.mark.asyncio
 async def test_run_import_job_allows_system_manager(ctx, db_session, engine):
+    import grunt
     from grunt.api.v1.data_import import run_import_job
-    from grunt.app import grunt
 
     manager = make_user("dm@grunt.example.com", roles=["System Manager"])
     async with grunt.context(db_session, engine, manager):
@@ -63,8 +63,8 @@ async def test_run_import_job_allows_system_manager(ctx, db_session, engine):
 async def test_download_template_denies_user_without_read(
     ctx, guarded_import_target, db_session, engine
 ):
+    import grunt
     from grunt.api.v1.data_import import download_template
-    from grunt.app import grunt
 
     outsider = make_user("outsider2@grunt.example.com")
     async with grunt.context(db_session, engine, outsider):
@@ -77,8 +77,8 @@ async def test_download_template_denies_user_without_read(
 async def test_download_template_allows_user_with_read(
     ctx, guarded_import_target, db_session, engine
 ):
+    import grunt
     from grunt.api.v1.data_import import download_template
-    from grunt.app import grunt
 
     owner = make_user("owner@grunt.example.com", roles=["DataOwner"])
     async with grunt.context(db_session, engine, owner):

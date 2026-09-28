@@ -27,7 +27,7 @@ async def _mails_for(ctx, recipient: str) -> list[dict]:
 
 @pytest.mark.asyncio
 async def test_assigning_a_todo_notifies_the_assignee(ctx):
-    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
+    async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         await ctx.new_doc(
             "EmailAccount", {"email_address": "out@example.com", "enable_outgoing": True}
         )
@@ -57,7 +57,7 @@ async def test_assigning_a_todo_notifies_the_assignee(ctx):
 
 @pytest.mark.asyncio
 async def test_placeholder_description_falls_back_to_generic_message(ctx):
-    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
+    async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         await ctx.new_doc(
             "ToDo",
             {
@@ -79,7 +79,7 @@ async def test_self_assignment_does_not_notify(ctx):
     # ctx runs as SYSTEM_USER
     from grunt.auth.doctypes.User.user import SYSTEM_USER
 
-    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
+    async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         await ctx.new_doc(
             "ToDo",
             {
@@ -100,7 +100,7 @@ async def test_auto_assignment_is_idempotent(ctx):
     from grunt.assignment.service import assignment_service
 
     doc = {"name": "inv-42"}
-    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
+    async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         await assignment_service._create_todo("Invoice", doc, ASSIGNEE)
         await assignment_service._create_todo("Invoice", doc, ASSIGNEE)
 
@@ -117,7 +117,7 @@ async def test_auto_assignment_is_idempotent(ctx):
 @pytest.mark.asyncio
 async def test_reassigning_a_todo_notifies_the_new_assignee(ctx):
     other = "other@example.com"
-    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
+    async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         todo = await ctx.new_doc(
             "ToDo",
             {
@@ -141,7 +141,7 @@ async def test_reassigning_a_todo_notifies_the_new_assignee(ctx):
 @pytest.mark.asyncio
 async def test_closing_a_todo_stamps_completion_and_notifies_the_assigner(ctx):
     assigner = "boss@example.com"
-    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
+    async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         await ctx.new_doc(
             "EmailAccount", {"email_address": "out@example.com", "enable_outgoing": True}
         )
@@ -176,7 +176,7 @@ async def test_closing_a_todo_stamps_completion_and_notifies_the_assigner(ctx):
 
 @pytest.mark.asyncio
 async def test_reopening_a_todo_clears_the_completion_stamp(ctx):
-    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
+    async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         todo = await ctx.new_doc(
             "ToDo",
             {
@@ -203,7 +203,7 @@ async def test_reopening_a_todo_clears_the_completion_stamp(ctx):
 async def test_todo_complete_action_closes_and_stamps(ctx):
     from grunt.actions import run as run_action
 
-    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
+    async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         todo = await ctx.new_doc(
             "ToDo",
             {
@@ -224,7 +224,7 @@ async def test_todo_complete_action_closes_and_stamps(ctx):
 
 @pytest.mark.asyncio
 async def test_is_overdue_virtual_field(ctx):
-    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
+    async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         past = await ctx.new_doc(
             "ToDo",
             {
@@ -268,7 +268,7 @@ async def test_due_reminder_sends_one_digest_per_assignee(ctx, monkeypatch):
     import conftest as _cf
     from grunt.tasks import todo_reminders as tr
 
-    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
+    async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         await ctx.new_doc(
             "EmailAccount", {"email_address": "out@example.com", "enable_outgoing": True}
         )
@@ -311,7 +311,7 @@ async def test_due_reminder_sends_one_digest_per_assignee(ctx, monkeypatch):
 
     await tr.send_due_reminders()
 
-    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
+    async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         notifs = await _notifs_for(ctx, ASSIGNEE)
         mails = await _mails_for(ctx, ASSIGNEE)
 
@@ -326,7 +326,7 @@ async def test_due_reminder_sends_one_digest_per_assignee(ctx, monkeypatch):
 async def test_sidebar_shows_in_progress_and_overdue_assignees(ctx):
     from grunt.document.base import Document
 
-    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
+    async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         role = await ctx.new_doc("Role", {"role_name": "Sidebar Test Role"})
         ref = {"reference_doctype": "Role", "reference_id": role["name"]}
 

@@ -9,7 +9,6 @@ from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import grunt
-from grunt.app import grunt as grunt_app
 from grunt.i18n import _
 from grunt.log import log
 from grunt.metadata.widget import get_widget_type_class
@@ -115,7 +114,7 @@ async def _compute_widget_data(
 
     dt = None
     if doctype_name:
-        dt = await grunt_app.get_meta(doctype_name)
+        dt = await grunt.get_meta(doctype_name)
         if dt is None:
             log.warning("dashboard.unknown_doctype", doctype=doctype_name)
             return None
@@ -134,7 +133,7 @@ async def _compute_widget_data(
     # queries; grunt.db.aggregate would silently drop it, so expand it here.
     from grunt.document.query import _expand_child_of_filters
 
-    session = grunt_app._require_session()
+    session = grunt.get_session()
     expanded = await _expand_child_of_filters(session, dt.doc, base_filters)
     data = await cls.compute(widget, dt, doctype_name, since, until, days, expanded)
     # The list URL can't carry `__in`, so drill-down gets the original child_of back.
@@ -163,12 +162,12 @@ async def _get_widget_data(
     and the (localized) error messages.
     """
 
-    doc = await grunt_app.find_doc(entity_doctype, name)
+    doc = await grunt.find_doc(entity_doctype, name)
     if doc is None:
         grunt.throw(not_found_msg, "NOT_FOUND")
     dashboard = dict(doc)
 
-    user = grunt_app._require_user()
+    user = grunt.get_user()
     if "System Manager" not in (user.roles or []) and not dashboard.get("is_published"):
         grunt.throw(unpublished_msg, "PERMISSION_DENIED")
 

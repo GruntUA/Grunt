@@ -5,8 +5,8 @@ from __future__ import annotations
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
+import grunt
 from grunt import log_error
-from grunt.app import grunt
 from grunt.backups import DEFAULT_COMPRESSION_LEVEL, create_backup, list_backups, rotate
 from grunt.i18n import _, language_of, use_language
 from grunt.log import log

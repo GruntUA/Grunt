@@ -44,15 +44,14 @@ class DocumentMetaRPCMixin:
         Each row carries ``title`` — the source document's title_field value
         (permission-aware, one query per source DocType), falling back to its id.
         """
-        from grunt.app import grunt as grunt_app
 
         # Permission verification
-        await grunt_app.get_doc(doctype, doc_id)
+        await grunt.get_doc(doctype, doc_id)
 
         from grunt.document.links import link_service
         from grunt.document.titles import resolve_reference_titles
 
-        rows = await link_service.get_backlinks(grunt_app._require_session(), doctype, doc_id)
+        rows = await link_service.get_backlinks(grunt.get_session(), doctype, doc_id)
         refs = [(r["source_doctype"], r["source_id"]) for r in rows]
         titles = await resolve_reference_titles(refs)
         return [
@@ -68,7 +67,6 @@ class DocumentMetaRPCMixin:
         doc_ids: list[str] | None = None,
     ) -> dict[str, Any]:
         """Summarise what references the given document(s) — see LinkService."""
-        from grunt.app import grunt as grunt_app
         from grunt.permissions.guards import doc_guard
 
         ids = list(doc_ids) if doc_ids else ([doc_id] if doc_id else [])
@@ -77,7 +75,7 @@ class DocumentMetaRPCMixin:
 
         from grunt.document.links import link_service
 
-        return await link_service.get_delete_impact(grunt_app._require_session(), doctype, ids)
+        return await link_service.get_delete_impact(grunt.get_session(), doctype, ids)
 
     @staticmethod
     @grunt.whitelist()
@@ -88,9 +86,8 @@ class DocumentMetaRPCMixin:
         bookmark so the desk sidebar needs a single request instead of one
         per section.
         """
-        from grunt.app import grunt as grunt_app
 
-        doc = await grunt_app.get_doc(doctype, doc_id, expand=[])  # also the permission check
+        doc = await grunt.get_doc(doctype, doc_id, expand=[])  # also the permission check
 
         ref = {"reference_doctype": doctype, "reference_id": doc_id}
 
@@ -104,7 +101,7 @@ class DocumentMetaRPCMixin:
         # need pagination totals, so include_total is off to skip the extra
         # COUNT(*) per section.
         assignees = await _optional(
-            grunt_app.get_list(
+            grunt.get_list(
                 "ToDo",
                 filters={**ref, "status__in": ["Open", "In Progress"]},
                 order_by="created_at",
@@ -115,7 +112,7 @@ class DocumentMetaRPCMixin:
             [],
         )
         shares = await _optional(
-            grunt_app.get_list(
+            grunt.get_list(
                 "SharedWith",
                 filters=ref,
                 order_by="created_at",
@@ -126,7 +123,7 @@ class DocumentMetaRPCMixin:
             [],
         )
         tags = await _optional(
-            grunt_app.get_list(
+            grunt.get_list(
                 "DocTag",
                 filters=ref,
                 order_by="created_at",
@@ -137,9 +134,9 @@ class DocumentMetaRPCMixin:
             [],
         )
         bookmarks = await _optional(
-            grunt_app.get_list(
+            grunt.get_list(
                 "Bookmark",
-                filters={**ref, "owner": grunt_app.session.user},
+                filters={**ref, "owner": grunt.session.user},
                 limit=1,
                 include_total=False,
             ),
@@ -147,9 +144,9 @@ class DocumentMetaRPCMixin:
         )
 
         follows = await _optional(
-            grunt_app.get_list(
+            grunt.get_list(
                 "DocFollow",
-                filters={**ref, "user": grunt_app.session.user},
+                filters={**ref, "user": grunt.session.user},
                 limit=1,
                 include_total=False,
             ),

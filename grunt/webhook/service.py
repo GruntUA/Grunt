@@ -33,7 +33,7 @@ class WebhookService:
         doc: dict[str, Any],
     ) -> None:
         """Load matching enabled webhooks and fire them concurrently (best-effort)."""
-        from grunt.app import grunt
+        import grunt
         from grunt.metadata.registry import doctype_registry
 
         if await doctype_registry.get_or_none("OutgoingWebhook") is None:
@@ -97,7 +97,7 @@ class WebhookService:
         user_email: str,
     ) -> dict[str, Any]:
         """Send a test payload for the given webhook and return the log entry."""
-        from grunt.app import grunt
+        import grunt
 
         async with grunt.system_context(session):
             wh_data = await grunt.find_doc("OutgoingWebhook", webhook_id)
@@ -142,7 +142,7 @@ class WebhookService:
         is_test: bool = False,
     ) -> dict[str, Any]:
         """Send a webhook POST and write a WebhookLog record. Returns log data."""
-        from grunt.app import grunt
+        import grunt
         from grunt.metadata.registry import doctype_registry
 
         headers: dict[str, str] = {"Content-Type": "application/json"}

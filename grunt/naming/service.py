@@ -89,7 +89,7 @@ class NamingService:
 
         Uses SELECT ... FOR UPDATE to prevent race conditions.
         """
-        from grunt.app import grunt
+        import grunt
         from grunt.errors import not_found
 
         ns_dt = await grunt.get_meta("NamingSeries")

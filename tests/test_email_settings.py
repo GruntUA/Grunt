@@ -10,7 +10,7 @@ from grunt.site.settings import clear_settings_cache
 
 @pytest.mark.asyncio
 async def test_queue_email_uses_configured_account_and_footer(ctx):
-    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
+    async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         # Two outgoing accounts — the *configured* one must win over "first".
         await ctx.new_doc(
             "EmailAccount", {"email_address": "first@example.com", "enable_outgoing": True}
@@ -55,7 +55,7 @@ async def test_queue_email_uses_configured_account_and_footer(ctx):
 
 @pytest.mark.asyncio
 async def test_queue_email_falls_back_to_first_outgoing(ctx):
-    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
+    async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         acct = await ctx.new_doc(
             "EmailAccount", {"email_address": "only@example.com", "enable_outgoing": True}
         )

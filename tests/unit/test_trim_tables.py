@@ -1,7 +1,7 @@
 import pytest
 from sqlalchemy import inspect, text
 
-from grunt.app import grunt
+import grunt
 
 
 @pytest.mark.asyncio

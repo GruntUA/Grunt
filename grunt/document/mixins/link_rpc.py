@@ -35,7 +35,7 @@ async def _identifier_search(
     Filters are honoured only on identifier columns; any other key is dropped
     so a select-only caller can't probe non-identifier values.
     """
-    from grunt.context import require_session
+    from grunt.local import require_session
 
     table = dt.table
     allowed = {c for c in cols_needed if c in table.c}
@@ -86,13 +86,12 @@ class DocumentLinkRPCMixin:
         filters: dict[str, Any] | None = None,
     ) -> list[dict[str, Any]]:
         """Search documents for a Link field dropdown."""
-        from grunt.app import grunt as grunt_app
-        from grunt.context import require_user
         from grunt.errors import not_found
+        from grunt.local import require_user
         from grunt.permissions.access import RoleAccess
         from grunt.permissions.rbac import permission_checker
 
-        dt = await grunt_app.get_meta(doctype)
+        dt = await grunt.get_meta(doctype)
         if dt is None:
             raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
         extra_filters: dict[str, Any] = filters or {}
@@ -157,7 +156,7 @@ class DocumentLinkRPCMixin:
 
         query = search
         if has_read:
-            rows = await grunt_app.get_list(
+            rows = await grunt.get_list(
                 doctype,
                 filters=extra_filters if extra_filters else None,
                 fields=cols_needed,

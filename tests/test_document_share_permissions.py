@@ -55,7 +55,7 @@ async def setup_secret_doctype(ctx):
 async def test_cannot_share_a_document_you_cannot_read(
     ctx, setup_secret_doctype, db_session, engine
 ):
-    from grunt.app import grunt
+    import grunt
 
     secret_id = (await ctx.new_doc("ShareTestSecret", {"title": "top secret"}))["name"]
     await ctx.set_value("ShareTestSecret", secret_id, "owner", "owner@example.com")
@@ -76,7 +76,7 @@ async def test_cannot_share_a_document_you_cannot_read(
 
 @pytest.mark.asyncio
 async def test_owner_can_share_their_own_document(ctx, setup_secret_doctype, db_session, engine):
-    from grunt.app import grunt
+    import grunt
 
     secret_id = (await ctx.new_doc("ShareTestSecret", {"title": "my doc"}))["name"]
     await ctx.set_value("ShareTestSecret", secret_id, "owner", "owner@example.com")

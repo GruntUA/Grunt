@@ -9,9 +9,9 @@ from typing import TYPE_CHECKING, Any, overload
 from fastapi import HTTPException
 
 from grunt.config import settings
-from grunt.context import require_engine, require_session, require_user
 from grunt.db.profiler import profile
 from grunt.i18n import _
+from grunt.local import require_engine, require_session, require_user
 from grunt.log import log
 from grunt.permissions.guards import (
     apply_hidden_fields_to_doc,
@@ -31,7 +31,7 @@ class DocumentAPI:
     """Document CRUD, list/query, and workflow helpers for GruntApp.
 
     Guard/identity logic is imported as module-level functions from
-    :mod:`grunt.context` and :mod:`grunt.permissions.guards`; the annotations
+    :mod:`grunt.local` and :mod:`grunt.permissions.guards`; the annotations
     below declare the ``db``/``query_cache`` attributes provided by the composed
     :class:`~grunt.app.GruntApp` so type checkers can resolve them.
     """
@@ -495,7 +495,7 @@ class DocumentAPI:
         """Create multiple documents in a single database round-trip."""
         from datetime import datetime
 
-        from grunt.app import grunt
+        import grunt
         from grunt.errors import not_found
         from grunt.naming import naming_service
 
@@ -706,7 +706,7 @@ class DocumentAPI:
         ``values`` fills in the transition's ``prompt_fields`` (e.g. a note
         collected in a dialog before applying the transition).
         """
-        from grunt.app import grunt
+        import grunt
         from grunt.errors import not_found
         from grunt.workflow.engine import workflow_engine
 

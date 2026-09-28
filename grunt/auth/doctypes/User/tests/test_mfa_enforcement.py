@@ -20,13 +20,13 @@ async def _bootstrap_admin(ctx) -> None:
     """First user → System Manager."""
     from grunt.auth.doctypes.User.user import create_user
 
-    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
+    async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         await create_user(EMAIL, PASSWORD, "Root", "Admin", None)
         await ctx.db._session().commit()
 
 
 async def _require_mfa_for_system_manager(ctx) -> None:
-    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
+    async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         if await ctx.db.exists("Role", "System Manager"):
             await ctx.db.set_value("Role", "System Manager", "require_mfa", True)
         else:
@@ -88,7 +88,7 @@ async def test_mfa_token_cannot_be_used_for_enrollment(ctx, client: AsyncClient)
 
     await _bootstrap_admin(ctx)
     await _require_mfa_for_system_manager(ctx)
-    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
+    async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         user = await get_user_by_email(EMAIL)
     assert user is not None
 

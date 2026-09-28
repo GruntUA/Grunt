@@ -74,7 +74,7 @@ async def authenticate_api_key(
 
     key_prefix = raw[:8]
 
-    from grunt.app import grunt
+    import grunt
     from grunt.auth.doctypes.User.user import get_user_by_id
 
     async with grunt.system_context(session):

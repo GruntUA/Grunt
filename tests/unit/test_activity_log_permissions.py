@@ -88,8 +88,8 @@ async def test_record_activity_still_works_for_a_plain_user(ctx, db_session, eng
     roles at all — it now writes as SYSTEM_USER specifically so locking down
     ActivityLog.create doesn't break logging for everyone but admins.
     """
+    import grunt
     from grunt.activity import record_activity
-    from grunt.app import grunt
 
     # "User" is just a stand-in for "some real DocType" — record_activity
     # doesn't touch the referenced document, so any registered name works.
@@ -117,8 +117,8 @@ async def test_record_activity_skips_unknown_doctype(ctx, db_session, engine):
     must silently skip names that aren't registered DocTypes rather than
     writing a row (or raising) for them.
     """
+    import grunt
     from grunt.activity import record_activity
-    from grunt.app import grunt
 
     async with grunt.context(db_session, engine, _system_manager()):
         await record_activity(

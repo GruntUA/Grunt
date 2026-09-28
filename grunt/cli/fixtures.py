@@ -22,7 +22,7 @@ def fixtures_export(app: str, site: str | None):
     """
 
     async def _run():
-        from grunt.app import grunt
+        import grunt
         from grunt.apps.loader import _ensure_on_syspath, _hooks_import_path
         from grunt.fixtures import export_fixtures, parse_fixture_specs
         from grunt.site.manager import site_manager

@@ -91,7 +91,7 @@ def web_url(dt: Any, doc: dict[str, Any]) -> str | None:
 
 async def with_web_url(doctype: str, doc: Any) -> Any:
     """*doc* (an API response dict) with ``__web_url`` added when it has a page."""
-    from grunt.app import grunt
+    import grunt
     from grunt.document.registry import document_registry
 
     if not isinstance(doc, dict):
@@ -138,7 +138,7 @@ async def _find_page(path: str) -> tuple[Any, str | None] | None:
     """``(DocType, document name)`` for a page *path*. The name is ``None`` when
     *path* is under a web view DocType's prefix but no published document is
     there; ``None`` overall when no DocType claims the path."""
-    from grunt.app import grunt
+    import grunt
     from grunt.metadata.registry import doctype_registry
 
     claimed = None
@@ -186,7 +186,7 @@ async def render_doc_page(request: Request, session: Any) -> HTMLResponse | None
     404 in the app's own layout); without that hook it falls through like any
     unknown path.
     """
-    from grunt.app import grunt
+    import grunt
     from grunt.auth.doctypes.User.user import SYSTEM_USER
     from grunt.config import settings
     from grunt.document.registry import document_registry
@@ -282,7 +282,7 @@ async def _render(dt: Any, context: dict[str, Any]) -> HTMLResponse | None:
 
 async def sitemap_urls() -> list[str]:
     """Paths of every indexed web view page (caller holds a grunt context)."""
-    from grunt.app import grunt
+    import grunt
     from grunt.metadata.registry import doctype_registry
 
     urls: list[str] = []

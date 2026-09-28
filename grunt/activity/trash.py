@@ -15,7 +15,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import Any
 
-from grunt.app import grunt
+import grunt
 from grunt.log import log
 
 
@@ -66,7 +66,7 @@ async def snapshot_deleted_document(event: str, **kwargs: Any) -> None:
     user_obj = kwargs.get("user")
     deleted_by = getattr(user_obj, "email", None) or str(user_obj or "system")
 
-    session = grunt._require_session()
+    session = grunt.get_session()
     try:
         async with grunt.system_context(session):
             await grunt.new_doc(

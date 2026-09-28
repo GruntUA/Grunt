@@ -18,7 +18,7 @@ def files_thumbnails(site: str | None, limit: int):
     """Create thumbnails (images, PDF) for files uploaded without them."""
 
     async def _run():
-        from grunt.app import grunt
+        import grunt
         from grunt.storage.doctypes.File.file import generate_missing_thumbnails
 
         async with _site_session(site) as (session, eng), grunt.system_context(session, eng):

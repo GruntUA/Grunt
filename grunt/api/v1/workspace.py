@@ -5,15 +5,13 @@ from __future__ import annotations
 from typing import Any
 
 import grunt
-from grunt.app import grunt as grunt_app
 from grunt.site.doctypes.AppMenu.app_menu import AppMenu, count_key, parse_count_filters
 
 
 async def _workspace_to_dict(ws_data: Any) -> dict[str, Any]:
     """Convert AppMenu document data to dict, filtering items by role."""
-    from grunt.app import grunt as grunt_app
 
-    user = grunt_app._require_user()
+    user = grunt.get_user()
 
     items = []
     sidebar_items = ws_data.get("sidebar_items") or []
@@ -29,7 +27,7 @@ async def _workspace_to_dict(ws_data: Any) -> dict[str, Any]:
         item_icon = item.get("icon", "")
         is_singleton = False
         if item_type == "DocType" and link_to:
-            dt_meta = await grunt_app.get_meta(link_to)
+            dt_meta = await grunt.get_meta(link_to)
             if dt_meta is not None:
                 is_singleton = dt_meta.is_singleton
                 # Fall back to the DocType's own icon when the sidebar item
@@ -75,9 +73,8 @@ async def _get_ws_controller(name: str) -> AppMenu:
     # the top-level `grunt` package facade's stub can't use `@overload` (mypy
     # requires a real implementation for that in a non-stub .py file), so it
     # falls back to a looser `dict[str, Any] | D` union that doesn't narrow here.
-    from grunt.app import grunt as grunt_app
 
-    return await grunt_app.get_doc(AppMenu, name)
+    return await grunt.get_doc(AppMenu, name)
 
 
 @grunt.whitelist()
@@ -87,11 +84,11 @@ async def list_workspaces() -> list[dict[str, Any]]:
 
     # Sidebar items across all workspaces touch most of the app's DocTypes.
     # Batch-load them in one query up front instead of letting
-    # _workspace_to_dict's per-item grunt_app.get_meta() lazy-load each one
+    # _workspace_to_dict's per-item grunt.get_meta() lazy-load each one
     # with its own SELECT.
     await doctype_registry.list_all()
 
-    all_ws = await grunt_app.get_list("AppMenu", fields=["name"], order_by="sequence")
+    all_ws = await grunt.get_list("AppMenu", fields=["name"], order_by="sequence")
     data = []
     user = await grunt.get_current_user()
     if not user:
@@ -99,7 +96,7 @@ async def list_workspaces() -> list[dict[str, Any]]:
 
     for ws_brief in all_ws:
         try:
-            ws_data = await grunt_app.get_doc("AppMenu", ws_brief["name"])
+            ws_data = await grunt.get_doc("AppMenu", ws_brief["name"])
             if ws_data.get("is_hidden") and "System Manager" not in (user.roles or []):
                 continue
             # Basic role check could be added here
@@ -125,9 +122,9 @@ async def save_workspace(workspace_data: dict[str, Any]) -> dict[str, Any]:
 
     name = data.get("name")
     if name:
-        ws_data = await grunt_app.save_doc("AppMenu", name, data)
+        ws_data = await grunt.save_doc("AppMenu", name, data)
     else:
-        ws_data = await grunt_app.new_doc("AppMenu", data)
+        ws_data = await grunt.new_doc("AppMenu", data)
 
     return await _workspace_to_dict(ws_data)
 
@@ -135,7 +132,7 @@ async def save_workspace(workspace_data: dict[str, Any]) -> dict[str, Any]:
 @grunt.whitelist(roles=["System Manager"])
 async def delete_workspace(name: str) -> bool:
     """Delete a workspace. Admin only."""
-    await grunt_app.delete_doc("AppMenu", name)
+    await grunt.delete_doc("AppMenu", name)
     return True
 
 
@@ -171,7 +168,7 @@ async def get_document_stats() -> dict[str, int]:
         if not dt.track_activity or dt.hide_from_activity_feed:
             continue
         try:
-            total += await grunt_app.count(dt.name, respect_permissions=True)
+            total += await grunt.count(dt.name, respect_permissions=True)
             counted += 1
         except Exception:
             # A doctype without a physical table yet — skip it silently.
@@ -188,15 +185,13 @@ async def get_my_work() -> dict[str, Any]:
     """
     from datetime import date
 
-    from grunt.app import grunt as grunt_app
-
-    user = grunt_app._require_user()
+    user = grunt.get_user()
     email = user.email
     today = date.today().isoformat()
 
     # Open tasks assigned to me.
     try:
-        todos = await grunt_app.get_list(
+        todos = await grunt.get_list(
             "ToDo",
             filters={"assigned_to": email, "status": "Open"},
             fields=[
@@ -244,7 +239,7 @@ async def get_my_work() -> dict[str, Any]:
 
     # Unread notifications.
     try:
-        notifications = await grunt_app.get_list(
+        notifications = await grunt.get_list(
             "Notification",
             filters={"user": email, "is_read": False},
             fields=["name", "subject", "doctype", "doc_id", "created_at"],

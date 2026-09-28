@@ -5,12 +5,12 @@ from typing import Any
 
 from fastapi import HTTPException, Response, UploadFile
 
+import grunt
 from grunt.api.context import whitelist
-from grunt.app import grunt
 from grunt.config import settings
-from grunt.context import _user_ctx
 from grunt.document.base import Document
 from grunt.i18n import _
+from grunt.local import _user_ctx
 from grunt.storage import get_storage_backend
 from grunt.storage.thumbnails import THUMB_MIMETYPE, make_thumbnail
 

@@ -344,7 +344,7 @@ async def ws_document(
     user_email = await _authenticate_ws(websocket, token)
     if not user_email:
         return
-    from grunt.app import grunt
+    import grunt
 
     dt = await grunt.get_meta(doctype)
     normalized_doctype = dt.name if dt is not None else doctype
@@ -392,7 +392,7 @@ async def ws_list(
     user_email = await _authenticate_ws(websocket, token)
     if not user_email:
         return
-    from grunt.app import grunt
+    import grunt
 
     dt = await grunt.get_meta(doctype)
     normalized_doctype = dt.name if dt is not None else doctype

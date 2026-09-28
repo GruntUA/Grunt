@@ -35,8 +35,8 @@ async def has_share(user: User, doctype: str, action: str, doc_name: str | None 
     its documents — which is what the doctype-level pre-flight guards need;
     the document-level check that follows still requires a share on that doc.
     """
-    from grunt.app import grunt
-    from grunt.context import _session_ctx
+    import grunt
+    from grunt.local import _session_ctx
 
     levels = _LEVELS.get(action)
     # No bound session: a pure in-memory check (unit tests, startup) — there is
@@ -55,7 +55,7 @@ async def has_share(user: User, doctype: str, action: str, doc_name: str | None 
 
 async def shared_names_clause(table: Table, user: User, doctype: str) -> ColumnElement[bool] | None:
     """``name IN (<docs of doctype shared with user>)`` for list queries."""
-    from grunt.app import grunt
+    import grunt
 
     if not user.email or "name" not in table.c:
         return None

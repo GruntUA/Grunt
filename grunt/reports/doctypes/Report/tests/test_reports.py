@@ -219,7 +219,6 @@ async def test_run_script_report_query_contract_still_select_only(ctx):
     from fastapi import HTTPException
 
     from grunt.api.messages import ApplicationError
-    from grunt.errors import GruntError
     from grunt.reports.doctypes.Report.report import run as run_report
 
     await ctx.new_doc(
@@ -232,7 +231,7 @@ async def test_run_script_report_query_contract_still_select_only(ctx):
     )
     await ctx.db._session().commit()
 
-    with pytest.raises((HTTPException, ApplicationError, GruntError)):
+    with pytest.raises((HTTPException, ApplicationError)):
         await run_report(name="Script Query Danger Report", filters={})
 
 
@@ -254,9 +253,8 @@ async def test_run_report_forbids_delete(ctx):
     await ctx.db._session().commit()
 
     from grunt.api.messages import ApplicationError
-    from grunt.errors import GruntError
 
-    with pytest.raises((HTTPException, ApplicationError, GruntError)):
+    with pytest.raises((HTTPException, ApplicationError)):
         await run_report(name="Bad Report", filters={})
 
 

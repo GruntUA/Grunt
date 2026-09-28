@@ -144,8 +144,8 @@ class EmailLoginProvider(AuthProvider):
     # ── EmailLoginToken row lifecycle ───────────────────────────────────────
 
     async def _new_token(self, email: str, code_hash: str, ip: str | None) -> str:
-        from grunt.app import grunt
-        from grunt.context import require_session
+        import grunt
+        from grunt.local import require_session
 
         now = datetime.now(UTC)
         async with grunt.system_context(require_session()):
@@ -167,8 +167,8 @@ class EmailLoginProvider(AuthProvider):
         """The row for *tid* if it exists, is unconsumed and unexpired."""
         if not tid:
             return None
-        from grunt.app import grunt
-        from grunt.context import require_session
+        import grunt
+        from grunt.local import require_session
 
         async with grunt.system_context(require_session()):
             rows = await grunt.get_list(
@@ -190,8 +190,8 @@ class EmailLoginProvider(AuthProvider):
         return row
 
     async def _mark_consumed(self, tid: str) -> None:
-        from grunt.app import grunt
-        from grunt.context import require_session
+        import grunt
+        from grunt.local import require_session
 
         async with grunt.system_context(require_session()):
             await grunt.db.set_value(_TOKEN_DT, tid, {"consumed_at": datetime.now(UTC)})
@@ -225,10 +225,10 @@ class EmailLoginProvider(AuthProvider):
         return user
 
     async def _send_mail(self, email: str, code: str, login_url: str) -> None:
-        from grunt.app import grunt
-        from grunt.context import require_session
+        import grunt
         from grunt.email.service import email_service
         from grunt.i18n import _
+        from grunt.local import require_session
 
         # Rendered in the request language — the person asking is the recipient.
         plain = "\n\n".join(

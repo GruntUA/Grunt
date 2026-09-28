@@ -20,7 +20,7 @@ def users_create(email, password, full_name, site):
     """Create a new user."""
 
     async def _run():
-        from grunt.app import grunt
+        import grunt
         from grunt.auth.doctypes.User.user import create_user, get_user_by_email
 
         name_parts = full_name.strip().split()
@@ -56,7 +56,7 @@ def users_list(site):
     """List all users."""
 
     async def _run():
-        from grunt.app import grunt
+        import grunt
         from grunt.auth.doctypes.User.user import list_users
 
         async with (
@@ -86,7 +86,7 @@ def users_set_password(email, password, site):
     """Change a user's password."""
 
     async def _run():
-        from grunt.app import grunt
+        import grunt
         from grunt.auth.doctypes.User.user import (
             get_user_by_email,
             hash_password,

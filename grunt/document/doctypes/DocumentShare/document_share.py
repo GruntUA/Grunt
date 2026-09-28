@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import secrets
 
-from grunt.app import grunt
+import grunt
 from grunt.document.base import Document
 
 

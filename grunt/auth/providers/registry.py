@@ -43,7 +43,7 @@ def get(name: str) -> AuthProvider:
     _bootstrap()
     provider = _PROVIDERS.get(name)
     if provider is None:
-        from grunt.app import grunt
+        import grunt
 
         grunt.throw(_("Unknown auth provider: %(name)s") % {"name": name}, "NOT_FOUND")
     return provider

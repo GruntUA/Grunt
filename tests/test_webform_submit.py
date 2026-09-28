@@ -137,8 +137,8 @@ async def test_submit_authenticated_sets_real_owner(ctx, db_session, engine):
     """Authenticated submission runs under the caller's own identity and
     attributes the document to them, not to the synthetic Guest user.
     """
+    import grunt
     from grunt.api.v1.meta import save_doctype
-    from grunt.app import grunt
     from grunt.webform import web_form_service
 
     await save_doctype(doctype_data={**TARGET_OPEN, "__is_new": True})
@@ -183,9 +183,9 @@ async def test_api_submit_form_rejects_anonymous_when_login_required(ctx, db_ses
     block an anonymous submission. Simulates the dispatcher's own guest
     context (user=None) rather than calling the service layer directly.
     """
+    import grunt
     from grunt.api.v1.meta import save_doctype
     from grunt.api.v1.webform import submit_form
-    from grunt.app import grunt
 
     await save_doctype(doctype_data={**TARGET_OPEN, "__is_new": True})
     await ctx.db._session().commit()
@@ -202,9 +202,9 @@ async def test_api_submit_form_rejects_anonymous_when_login_required(ctx, db_ses
 @pytest.mark.asyncio
 async def test_api_submit_form_allows_authenticated_when_login_required(ctx, db_session, engine):
     """Same login_required form, but an authenticated caller — must succeed."""
+    import grunt
     from grunt.api.v1.meta import save_doctype
     from grunt.api.v1.webform import submit_form
-    from grunt.app import grunt
 
     await save_doctype(doctype_data={**TARGET_OPEN, "__is_new": True})
     await ctx.db._session().commit()

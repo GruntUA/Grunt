@@ -35,7 +35,7 @@ class DocumentReadMixin:
         user: User,
         expand: list[str] | None = None,
     ) -> dict[str, Any]:
-        from grunt.app import grunt
+        import grunt
 
         dt = await grunt.get_meta(doctype_name)
         if dt is None:

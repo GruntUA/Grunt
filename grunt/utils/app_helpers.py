@@ -60,26 +60,3 @@ def _collect_template_dirs() -> list[str]:
             dirs.append(str(p))
 
     return dirs
-
-
-def _format_msgprint(
-    msg: str | list,
-    *,
-    as_list: bool = False,
-    as_table: bool = False,
-) -> str:
-    """Format a msgprint message to an HTML string."""
-    if isinstance(msg, str):
-        return msg
-
-    if as_table and msg and isinstance(msg[0], (list, tuple)):
-        rows_html = "".join(
-            "<tr>" + "".join(f"<td>{cell}</td>" for cell in row) + "</tr>" for row in msg
-        )
-        return f"<table>{rows_html}</table>"
-
-    if as_list or isinstance(msg, list):
-        items_html = "".join(f"<li>{item}</li>" for item in msg)
-        return f"<ul>{items_html}</ul>"
-
-    return str(msg)

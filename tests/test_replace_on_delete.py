@@ -152,7 +152,7 @@ async def test_bulk_delete_with_replacement(ctx, rpl_doctypes):
     src_b = await ctx.new_doc("RplSource", {"ref": b["name"]})
     await ctx.db._session().commit()
 
-    async with ctx.context(ctx.db._session(), ctx._require_engine(), SYSTEM_USER):
+    async with ctx.context(ctx.db._session(), ctx.get_engine(), SYSTEM_USER):
         deleted, errors = await ctx.bulk_delete_docs(
             "RplTarget", [a["name"], b["name"]], replace_with=keep["name"]
         )

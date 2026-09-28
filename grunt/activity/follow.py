@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from grunt.app import grunt
+import grunt
 from grunt.i18n import _, language_of, use_language
 from grunt.log import log
 

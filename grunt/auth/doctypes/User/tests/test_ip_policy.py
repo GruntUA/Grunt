@@ -56,7 +56,7 @@ def test_forwarded_headers_trusted_only_from_proxy():
 async def _setup(ctx, allowed_ips: str) -> None:
     from grunt.auth.doctypes.User.user import create_user
 
-    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
+    async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         await create_user(EMAIL, PASSWORD, "Root", "Admin", None)  # → System Manager
         if await ctx.db.exists("Role", "System Manager"):
             await ctx.db.set_value("Role", "System Manager", "allowed_ips", allowed_ips)

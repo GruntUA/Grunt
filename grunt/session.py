@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from grunt.context import _user_ctx
+from grunt.local import _user_ctx
 
 
 class GruntSession:

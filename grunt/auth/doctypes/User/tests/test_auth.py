@@ -16,7 +16,7 @@ async def test_deactivation_takes_effect_immediately_despite_auth_cache(ctx, cli
     deactivated user keep using an already-issued access token."""
     from grunt.auth.doctypes.User.user import create_user
 
-    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
+    async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         user = await create_user(
             "cache-invalidation@grunt.example.com", "Str0ngPass", "Cache", "Test", None
         )
@@ -36,7 +36,7 @@ async def test_deactivation_takes_effect_immediately_despite_auth_cache(ctx, cli
     # Deactivate through the generic document API — the same path an admin's
     # "deactivate user" action goes through, and the one doc_cache
     # invalidation is hooked into (DocumentAPI._invalidate_list_cache).
-    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
+    async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         await ctx.save_doc("User", user.id, {"is_active": False})
         await ctx.db._session().commit()
 
@@ -51,7 +51,7 @@ async def test_session_lifecycle(ctx, client: AsyncClient):
     """register → login → whoami → update_me, carrying name + language/timezone."""
     from grunt.auth.doctypes.User.user import create_user
 
-    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
+    async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         user = await create_user("admin@grunt.example.com", "Str0ngPass", "Admin", "Root", None)
         await ctx.db.set_value("User", user.id, {"language": "en", "timezone": "Europe/Warsaw"})
         await ctx.db._session().commit()
@@ -109,7 +109,7 @@ async def test_authenticated_requests_load_current_roles(ctx, client: AsyncClien
     from grunt.auth.doctypes.User.user import create_user
     from grunt.auth.service import create_access_token
 
-    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
+    async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         user = await create_user("roles@grunt.example.com", "Str0ngPass", "Role", "Test", None)
         await ctx.save_doc("User", user.id, {"roles": [{"role_name": "Кадровик"}]})
         await ctx.db._session().commit()
@@ -132,7 +132,7 @@ async def test_self_edit_scope(ctx):
     activation or password state (`_enforce_self_edit_scope`)."""
     from grunt.auth.doctypes.User.user import User, create_user
 
-    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
+    async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         u = await create_user("selfedit@grunt.example.com", "Str0ngPass", "Self", "Edit", None)
         await ctx.new_doc("Role", {"role_name": "Manager"})
         # create_user() grants the very first user "System Manager" — demote so
@@ -143,7 +143,7 @@ async def test_self_edit_scope(ctx):
 
     me = User(doctype="User", data={"email": uid, "name": uid, "roles": []})
 
-    async with ctx.context(ctx.db._session(), ctx._require_engine(), me):
+    async with ctx.context(ctx.db._session(), ctx.get_engine(), me):
         # profile field — allowed
         await ctx.save_doc("User", uid, {"first_name": "Renamed", "bio": "hi"})
         await ctx.db._session().commit()
@@ -159,7 +159,7 @@ async def test_self_edit_scope(ctx):
             assert "прав" in str(exc.value)
             ctx.db._session().expire_all()
 
-    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
+    async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         row = await ctx.db.get_all("User", filters={"name": uid}, fields=["first_name"], limit=1)
     assert row[0]["first_name"] == "Renamed"
 
@@ -179,7 +179,7 @@ async def test_first_user_system_manager_and_registration_gate(ctx):
     from grunt.api.messages import ApplicationError
     from grunt.auth.doctypes.User.user import get_user_by_email, register
 
-    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
+    async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         # First user: allowed even with registration disabled, gets System Manager.
         await _set_settings(ctx, allow_user_registration=False, default_role=None)
         await register(email="one@grunt.example.com", password="x", first_name="One", last_name="U")
@@ -226,13 +226,13 @@ async def test_lockout_and_wrong_password(ctx):
     (from SystemSettings) the account locks for account_lockout_duration."""
     from grunt.auth.doctypes.User.user import authenticate, create_user
 
-    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
+    async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         await create_user("lock@grunt.example.com", "correct-horse", "Lock", "Me", None)
         await ctx.db._session().commit()
 
     await _set_settings(ctx, max_login_attempts=3, account_lockout_duration=15)
 
-    async with ctx.context(ctx.db._session(), ctx._require_engine()):
+    async with ctx.context(ctx.db._session(), ctx.get_engine()):
         for _ in range(2):
             assert await authenticate("lock@grunt.example.com", "wrong") is None
         # 3rd failure trips the lock
@@ -255,7 +255,7 @@ async def test_lockout_and_wrong_password(ctx):
 async def test_register_via_http_assigns_default_role(ctx, client: AsyncClient):
     """Guest-context registration (the real HTTP path) can still grant the
     admin-only default_role — _assign_default_role escalates to SYSTEM."""
-    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
+    async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         await ctx.new_doc("Role", {"role_name": "Newcomer"})
         await _set_settings(ctx, allow_user_registration=True, default_role="Newcomer")
 
@@ -266,7 +266,7 @@ async def test_register_via_http_assigns_default_role(ctx, client: AsyncClient):
     assert resp.status_code == 200, resp.text
     uid = resp.json()["data"]["id"]
 
-    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
+    async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         rows = await ctx.db.get_all(
             "UserRole",
             filters={"parent_name": uid, "parent_doctype": "User", "role_name": "Newcomer"},
@@ -282,7 +282,7 @@ async def test_register_rejects_weak_password(ctx):
     from grunt.api.messages import ApplicationError
     from grunt.auth.doctypes.User.user import register
 
-    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
+    async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         await _set_settings(
             ctx,
             allow_user_registration=True,
@@ -317,7 +317,7 @@ async def test_signup_approval_flow(ctx, client: AsyncClient):
     from grunt.auth.doctypes.User.user import create_user
 
     # First user = System Manager (bootstrap), always approved, does the approving.
-    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
+    async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         await create_user("root@grunt.example.com", "Str0ngPass", "Root", "Admin", None)
         await ctx.db._session().commit()
     await _set_settings(ctx, allow_user_registration=True, require_signup_approval=True)
@@ -376,7 +376,7 @@ async def test_signup_approval_flow(ctx, client: AsyncClient):
 @pytest.mark.asyncio
 async def test_signup_approval_off_by_default(ctx, client: AsyncClient):
     """Without the setting, registration behaves as before (immediate login)."""
-    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
+    async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         await _set_settings(ctx, allow_user_registration=True)
 
     reg = await client.post(
@@ -405,7 +405,7 @@ async def test_set_user_password_self_service(ctx, client: AsyncClient):
     one; wrong current password and another user's record are both refused."""
     from grunt.auth.doctypes.User.user import create_user
 
-    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
+    async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         boss = await create_user("pwboss@grunt.example.com", "Str0ngPass", "Pw", "Boss", None)
         me = await create_user("pwme@grunt.example.com", "Str0ngPass", "Pw", "Me", None)
         other = await create_user("pwother@grunt.example.com", "Str0ngPass", "Pw", "Other", None)
@@ -483,7 +483,7 @@ async def test_set_password_first_time_for_passwordless_user(ctx, client: AsyncC
     )
     from grunt.auth.login import find_or_create_external_user
 
-    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
+    async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         # First user → System Manager.
         await create_user("first@grunt.example.com", "Str0ngPass", "Fir", "St", None)
         ext = await find_or_create_external_user("passwordless@grunt.example.com", "Pw Less")
@@ -500,7 +500,7 @@ async def test_set_password_first_time_for_passwordless_user(ctx, client: AsyncC
 
     async with ctx.context(
         ctx.db._session(),
-        ctx._require_engine(),
+        ctx.get_engine(),
         User(
             doctype="User",
             data={
@@ -515,7 +515,7 @@ async def test_set_password_first_time_for_passwordless_user(ctx, client: AsyncC
 
     async with ctx.context(
         ctx.db._session(),
-        ctx._require_engine(),
+        ctx.get_engine(),
         User(
             doctype="User",
             data={

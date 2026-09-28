@@ -189,9 +189,9 @@ class IncomingWebhookService:
         payload: Any,
     ) -> tuple[str, str]:
         """Execute the linked ServerScript.  Returns (action_taken, error)."""
-        from grunt.app import grunt
+        import grunt
         from grunt.auth.doctypes.User.user import SYSTEM_USER
-        from grunt.context import require_session
+        from grunt.local import require_session
         from grunt.scripting.server_script import ServerScriptRunner
 
         server_script_engine = ServerScriptRunner()
@@ -227,8 +227,8 @@ class IncomingWebhookService:
         payload: Any,
     ) -> tuple[str, str]:
         """Create a DocType document from the payload using field_mapping."""
-        from grunt.app import grunt
-        from grunt.context import require_session
+        import grunt
+        from grunt.local import require_session
 
         target_doctype = webhook.get("target_doctype")
         if not target_doctype:
@@ -262,8 +262,8 @@ class IncomingWebhookService:
     # ──────────────────────────────────────────────────────────────────
 
     async def _load_webhook(self, slug: str) -> dict[str, Any] | None:
-        from grunt.app import grunt
-        from grunt.context import require_session
+        import grunt
+        from grunt.local import require_session
         from grunt.metadata.registry import doctype_registry
 
         if await doctype_registry.get_or_none("IncomingWebhook") is None:
@@ -290,8 +290,8 @@ class IncomingWebhookService:
         error: str,
         duration_ms: int,
     ) -> None:
-        from grunt.app import grunt
-        from grunt.context import require_session
+        import grunt
+        from grunt.local import require_session
         from grunt.metadata.registry import doctype_registry
 
         if await doctype_registry.get_or_none("IncomingWebhookLog") is None:

@@ -22,7 +22,7 @@ def _fake_user(email: str, name: str):
 
 @pytest.mark.asyncio
 async def test_system_manager_sees_all_keys(ctx, db_session, engine):
-    from grunt.app import grunt
+    import grunt
     from grunt.auth.doctypes.ApiKey.api_key import list_api_keys
 
     alice = _fake_user("alice@grunt.example.com", "alice-id")

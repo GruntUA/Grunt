@@ -9,7 +9,7 @@ from grunt.site.settings import get_setting
 
 @pytest.mark.asyncio
 async def test_after_save_invalidates_cache(ctx):
-    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
+    async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         # prime the cache
         assert await get_setting("password_min_length") == 1
 

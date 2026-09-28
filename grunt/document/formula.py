@@ -85,7 +85,7 @@ async def _evaluate_formulas(dt: DocType, row: dict[str, Any], attr: str) -> dic
         return row
 
     # Build evaluation namespace
-    from grunt.app import grunt
+    import grunt
 
     async def _count(doctype: str, filters: dict[str, Any] | None = None) -> int:
         return await grunt.count(doctype, filters=filters)

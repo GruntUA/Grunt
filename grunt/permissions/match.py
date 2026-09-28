@@ -65,7 +65,7 @@ async def _resolve_link_target(doctype: DocType | Meta, link_fn: str) -> tuple[s
     field = next((f for f in doctype.fields if f.fieldname == link_fn), None)
     if field is None or field.fieldtype != "Link" or not field.options:
         return None
-    from grunt.app import grunt
+    import grunt
 
     target_dt = await grunt.get_meta(field.options)
     if target_dt is None:
@@ -165,7 +165,7 @@ class PermissionMatch:
             return False
         target_name, _target_table = resolved
 
-        from grunt.app import grunt
+        import grunt
 
         try:
             actual = await grunt.db.get_value(target_name, link_val, sub_fn)

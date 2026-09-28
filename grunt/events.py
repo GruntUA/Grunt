@@ -25,8 +25,8 @@ import inspect
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
-from grunt.context import _bootstrap_ctx
 from grunt.hooks import dispatch as _dispatch_hooks
+from grunt.local import _bootstrap_ctx
 from grunt.log import log
 
 if TYPE_CHECKING:

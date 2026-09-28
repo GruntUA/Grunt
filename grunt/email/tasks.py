@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
 
-from grunt.app import grunt
+import grunt
 from grunt.auth.doctypes.User.user import SYSTEM_USER
 from grunt.email.service import EmailService, decode_attachments, email_service
 from grunt.i18n import _, ngettext, pgettext, use_language
@@ -207,7 +207,7 @@ async def send_notification_digest(period: str = "daily") -> None:
     since = datetime.now(UTC) - timedelta(hours=hours)
 
     async with maker() as session:
-        from grunt.app import grunt
+        import grunt
 
         sent = 0
         async with grunt.system_context(session):

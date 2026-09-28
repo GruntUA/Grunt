@@ -32,7 +32,7 @@ async def test_mark_as_read_ignores_other_users_notification(ctx):
         )
         await ctx.db._session().commit()
 
-    async with ctx.context(ctx.db._session(), ctx._require_engine(), attacker):
+    async with ctx.context(ctx.db._session(), ctx.get_engine(), attacker):
         updated = await mark_as_read(notif["name"])
     assert updated is False
 
@@ -61,7 +61,7 @@ async def test_mark_as_read_updates_own_notification(ctx):
         )
         await ctx.db._session().commit()
 
-    async with ctx.context(ctx.db._session(), ctx._require_engine(), owner):
+    async with ctx.context(ctx.db._session(), ctx.get_engine(), owner):
         updated = await mark_as_read(notif["name"])
     assert updated is True
 
@@ -89,7 +89,7 @@ async def test_unsubscribe_push_ignores_other_users_subscription(ctx):
         )
         await ctx.db._session().commit()
 
-    async with ctx.context(ctx.db._session(), ctx._require_engine(), attacker):
+    async with ctx.context(ctx.db._session(), ctx.get_engine(), attacker):
         await unsubscribe_push("https://push.example.com/abc123")
 
     async with ctx.system_context(ctx.db._session()):

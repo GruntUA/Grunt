@@ -98,7 +98,7 @@ async def get_print_format_template(
         Tuple of (template_content, template_type) or None.
     """
     from grunt.app import GruntDB
-    from grunt.context import _session_ctx
+    from grunt.local import _session_ctx
 
     token = _session_ctx.set(session)
     try:

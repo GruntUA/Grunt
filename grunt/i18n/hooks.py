@@ -15,7 +15,7 @@ async def refresh_supported_languages(**_kwargs: object) -> None:
     Doc-event target for ``Language`` after_save / after_delete. Runs inside the
     saving request, so a grunt context/session is already bound.
     """
-    from grunt.app import grunt
+    import grunt
     from grunt.i18n import translation_service
 
     try:
