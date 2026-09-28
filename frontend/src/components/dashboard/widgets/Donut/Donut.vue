@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
 import { Doughnut } from 'vue-chartjs'
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js'
+import type { ActiveElement, ChartEvent } from 'chart.js'
 import type { DashboardWidget } from '@/types'
+import { filteredListUrl, groupFilter } from '@/pages/reports/drilldown'
 
 ChartJS.register(ArcElement, Tooltip, Legend)
 
@@ -11,9 +14,31 @@ const { t } = useI18n()
 
 const props = defineProps<{
   widget: DashboardWidget
-  data: { labels: string[]; values: number[] } | null
+  data: { labels: string[]; values: number[]; keys?: unknown[]; filters?: Record<string, unknown> } | null
   loading?: boolean
+  workspaceName?: string
 }>()
+
+const router = useRouter()
+
+// Report-sourced donuts carry no `keys`/`filters` and stay non-clickable.
+const canOpen = computed(() => !!props.widget.doctype && !!props.widget.group_by && !!props.data?.keys)
+
+/** Segment → the widget's list filtered to that group. */
+function onClick(_e: ChartEvent, els: ActiveElement[]) {
+  const { widget, data } = props
+  if (!canOpen.value || !els.length) return
+  router.push(filteredListUrl(
+    widget.doctype,
+    { ...data!.filters, ...groupFilter(widget.group_by!, data!.keys![els[0].index]) },
+    props.workspaceName,
+  ))
+}
+
+function onHover(e: ChartEvent, els: ActiveElement[]) {
+  const canvas = e.native?.target as HTMLElement | undefined
+  if (canvas) canvas.style.cursor = canOpen.value && els.length ? 'pointer' : 'default'
+}
 
 const PALETTE = [
   '#2D6A4F', '#3b82f6', '#f59e0b', '#ef4444',
@@ -34,6 +59,8 @@ const chartData = computed(() => ({
 }))
 
 const chartOptions = {
+  onClick,
+  onHover,
   responsive: true,
   maintainAspectRatio: false,
   cutout: '68%',

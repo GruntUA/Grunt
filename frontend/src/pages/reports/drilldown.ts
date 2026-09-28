@@ -2,6 +2,8 @@
  * Drill-down helpers for List reports: turn a summary row into list-view URL
  * filters (see ReportView.vue and grunt/reports/engine.py `meta.drilldown`).
  */
+import type { RouteLocationRaw } from 'vue-router'
+import { docUrl } from '@/core/workspaceUrl'
 
 /** Report filter-key suffix → list-view URL operator (see OP_MAP in core/api/docs.ts). */
 const URL_OP: Record<string, string> = {
@@ -18,6 +20,20 @@ export function addUrlFilters(query: Record<string, string>, filters: Record<str
         if (!urlOp || Array.isArray(value) || typeof value === 'boolean') continue
         query[`filter[${field}__${urlOp}]`] = String(value)
     }
+}
+
+/** The doctype list narrowed by `filters` (grunt.db filter keys) — dashboard widget drill-down. */
+export function filteredListUrl(
+    doctype: string, filters: Record<string, unknown>, workspace?: string | null,
+): RouteLocationRaw {
+    const query: Record<string, string> = {}
+    addUrlFilters(query, filters)
+    return { path: docUrl(doctype, null, workspace), query }
+}
+
+/** Filter for one group of a group-by widget; the NULL group means "field is empty". */
+export function groupFilter(field: string, key: unknown): Record<string, unknown> {
+    return key === null || key === undefined ? { [`${field}__is`]: 'not set' } : { [field]: key }
 }
 
 /** `[from, to)` ISO dates of a date-group label: 2026-09-23 / 2026-09 / 2026-Q3 / 2026. */

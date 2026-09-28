@@ -1,15 +1,22 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
 import type { DashboardWidget } from '@/types'
+import { filteredListUrl, groupFilter } from '@/pages/reports/drilldown'
 
 const { t } = useI18n()
 
 const props = defineProps<{
   widget: DashboardWidget
-  data: { stages: { label: string; count: number }[] } | null
+  data: { stages: Stage[]; filters?: Record<string, unknown> } | null
   loading?: boolean
+  workspaceName?: string
 }>()
+
+interface Stage { label: string; key?: unknown; count: number }
+
+const router = useRouter()
 
 const stages = computed(() => props.data?.stages ?? [])
 const maxCount = computed(() => Math.max(...stages.value.map(s => s.count), 1))
@@ -20,6 +27,17 @@ const COLOR_MAP: Record<string, string> = {
 }
 
 const color = computed(() => COLOR_MAP[props.widget.color] ?? COLOR_MAP.primary)
+
+const canOpen = computed(() => !!props.widget.doctype && !!props.widget.group_by && !!props.data?.filters)
+
+/** Stage → the widget's list filtered to that group. */
+function open(stage: Stage) {
+  const { widget, data } = props
+  if (!canOpen.value || !stage.count) return
+  router.push(filteredListUrl(
+    widget.doctype, { ...data!.filters, ...groupFilter(widget.group_by!, stage.key) }, props.workspaceName,
+  ))
+}
 
 function widthPct(count: number): number {
   return Math.max(20, Math.round((count / maxCount.value) * 100))
@@ -48,8 +66,10 @@ function widthPct(count: number): number {
         class="flex items-center gap-2 mx-auto w-full"
         :style="{ maxWidth: widthPct(stage.count) + '%' }">
         <div
-          class="flex items-center justify-between w-full px-3 py-1.5 rounded-md text-white font-medium transition-all"
-          :style="{ backgroundColor: color, opacity: 1 - i * (0.12) }">
+          :class="['flex items-center justify-between w-full px-3 py-1.5 rounded-md text-white font-medium transition-all',
+            canOpen && stage.count && 'cursor-pointer hover:brightness-110']"
+          :style="{ backgroundColor: color, opacity: 1 - i * (0.12) }"
+          @click="open(stage)">
           <span class="truncate">{{ stage.label }}</span>
           <span class="ml-2 tabular-nums font-semibold shrink-0">{{ stage.count }}</span>
         </div>

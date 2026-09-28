@@ -1,1 +1,1 @@
-{"type": "calendar", "label": "Calendar", "icon": "calendar", "category": "Графіки", "configSections": ["title", "doctypeSource", "dateRange", "width", "color"]}
+{"type": "calendar", "label": "Calendar", "icon": "calendar", "category": "Графіки", "configSections": ["title", "doctypeSource", "filters", "dateRange", "width", "color"]}

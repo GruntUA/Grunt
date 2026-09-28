@@ -3,13 +3,13 @@ import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import type { DashboardWidget } from '@/types'
 import { formatIntl } from '@/core/datetime'
-import { docUrl } from '@/core/workspaceUrl'
-import { addUrlFilters } from '@/pages/reports/drilldown'
+import { filteredListUrl } from '@/pages/reports/drilldown'
 
 const props = defineProps<{
   widget: DashboardWidget
-  data: { entries: { date: string; count: number }[] } | null
+  data: { entries: { date: string; count: number }[]; filters?: Record<string, unknown> } | null
   loading?: boolean
+  workspaceName?: string
 }>()
 
 const router = useRouter()
@@ -99,19 +99,15 @@ function fmtDay(d: Date | string): string {
 
 /** Day cell → the widget's list filtered to that day. */
 function open(cell: Cell) {
-  const { widget } = props
-  if (!cell.count || !widget.doctype || !widget.date_field) return
+  const { widget, data } = props
+  if (!cell.count || !widget.doctype || !widget.date_field || !data?.filters) return
   const next = new Date(cell.date)
   next.setDate(next.getDate() + 1)
-  const raw: unknown = widget.filters
-  const filters = typeof raw === 'string' ? JSON.parse(raw || '{}') : (raw ?? {})
-  const query: Record<string, string> = {}
-  addUrlFilters(query, {
-    ...filters,
+  router.push(filteredListUrl(widget.doctype, {
+    ...data.filters,
     [`${widget.date_field}__gte`]: cell.key,
     [`${widget.date_field}__lt`]: dayKey(next),
-  })
-  router.push({ path: docUrl(widget.doctype), query })
+  }, props.workspaceName))
 }
 </script>
 

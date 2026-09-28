@@ -1,1 +1,1 @@
-{"type": "list", "label": "List", "icon": "list", "category": "Списки", "configSections": ["title", "doctypeSource", "width", "color"]}
+{"type": "list", "label": "List", "icon": "list", "category": "Списки", "configSections": ["title", "doctypeSource", "filters", "width", "color"]}

@@ -1,1 +1,1 @@
-{"type": "funnel", "label": "Funnel", "icon": "filter", "category": "Графіки", "configSections": ["title", "doctypeSource", "groupBy", "dateRange", "width", "color"]}
+{"type": "funnel", "label": "Funnel", "icon": "filter", "category": "Графіки", "configSections": ["title", "doctypeSource", "filters", "groupBy", "dateRange", "width", "color"]}

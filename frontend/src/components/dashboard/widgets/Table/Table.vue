@@ -3,7 +3,7 @@ import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import type { DashboardWidget } from '@/types'
 import { docUrl } from '@/core/workspaceUrl'
-import { addUrlFilters } from '@/pages/reports/drilldown'
+import { filteredListUrl, groupFilter } from '@/pages/reports/drilldown'
 
 interface Row {
   label: string
@@ -22,6 +22,7 @@ const props = defineProps<{
     field?: string | null
     group_label?: string | null
     link_doctype?: string | null
+    filters?: Record<string, unknown>
   } | null
   loading?: boolean
   workspaceName?: string
@@ -47,14 +48,12 @@ function barWidth(value: number): number {
 function open(row: Row) {
   const { widget, data } = props
   if (row.doc) return router.push(docUrl(widget.doctype, row.doc))
-  if (row.key === null || row.key === undefined) return
-  if (data?.link_doctype) return router.push(docUrl(data.link_doctype, row.key))
-  if (!widget.group_by) return
-  const raw: unknown = widget.filters
-  const filters = typeof raw === 'string' ? JSON.parse(raw || '{}') : (raw ?? {})
-  const query: Record<string, string> = {}
-  addUrlFilters(query, { ...filters, [widget.group_by]: row.key })
-  router.push({ path: docUrl(widget.doctype), query })
+  const isNull = row.key === null || row.key === undefined
+  if (data?.link_doctype && !isNull) return router.push(docUrl(data.link_doctype, row.key))
+  if (!widget.group_by || !data?.filters) return
+  router.push(filteredListUrl(
+    widget.doctype, { ...data.filters, ...groupFilter(widget.group_by, row.key) }, props.workspaceName,
+  ))
 }
 
 function formatVal(v: number): string {

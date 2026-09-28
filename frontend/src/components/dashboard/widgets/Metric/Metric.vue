@@ -2,8 +2,7 @@
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import type { DashboardWidget } from '@/types'
-import { docUrl } from '@/core/workspaceUrl'
-import { addUrlFilters } from '@/pages/reports/drilldown'
+import { filteredListUrl } from '@/pages/reports/drilldown'
 import * as LucideIcons from '@lucide/vue'
 import { TrendingUp, TrendingDown, Minus } from '@lucide/vue'
 
@@ -21,9 +20,7 @@ const canOpen = computed(() => !!props.widget.doctype && !!props.data?.filters)
 
 function open() {
   if (!canOpen.value) return
-  const query: Record<string, string> = {}
-  addUrlFilters(query, props.data!.filters!)
-  router.push({ path: docUrl(props.widget.doctype, null, props.workspaceName), query })
+  router.push(filteredListUrl(props.widget.doctype, props.data!.filters!, props.workspaceName))
 }
 
 const iconComponent = computed(() => {

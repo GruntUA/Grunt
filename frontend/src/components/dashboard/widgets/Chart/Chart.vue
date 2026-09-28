@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
 import { Bar, Line } from 'vue-chartjs'
 import {
   Chart as ChartJS,
@@ -13,7 +14,9 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js'
+import type { ActiveElement, ChartEvent, Chart as ChartInstance } from 'chart.js'
 import type { DashboardWidget } from '@/types'
+import { filteredListUrl, periodRange } from '@/pages/reports/drilldown'
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, PointElement, LineElement, Filler, Tooltip, Legend)
 
@@ -21,9 +24,17 @@ const { t } = useI18n()
 
 const props = defineProps<{
   widget: DashboardWidget
-  data: { labels: string[]; values?: number[]; groups?: Record<string, number[]> } | null
+  data: {
+    labels: string[]
+    values?: number[]
+    groups?: Record<string, number[]>
+    filters?: Record<string, unknown>
+  } | null
   loading?: boolean
+  workspaceName?: string
 }>()
+
+const router = useRouter()
 
 const PALETTE = [
   '#2D6A4F', '#3b82f6', '#f59e0b', '#ef4444',
@@ -82,7 +93,37 @@ const chartData = computed(() => {
   }
 })
 
+// Report-sourced charts carry no `filters` and stay non-clickable.
+const canOpen = computed(() => !!props.widget.doctype && !!props.widget.date_field && !!props.data?.filters)
+
+/** The day column under the pointer (and, for a grouped chart, the nearest series). */
+function hit(e: ChartEvent, chart: ChartInstance): ActiveElement | undefined {
+  const mode = isGrouped.value ? 'nearest' : 'index'
+  return chart.getElementsAtEventForMode(e as unknown as Event, mode, { intersect: false }, false)[0]
+}
+
+/** Day (and group) → the widget's list filtered to it. */
+function onClick(e: ChartEvent, _els: ActiveElement[], chart: ChartInstance) {
+  const { widget, data } = props
+  const el = canOpen.value ? hit(e, chart) : undefined
+  const range = el && periodRange('day', data!.labels[el.index])
+  if (!el || !range) return
+  const df = widget.date_field!
+  const filters: Record<string, unknown> = { ...data!.filters, [`${df}__gte`]: range[0], [`${df}__lt`]: range[1] }
+  if (isGrouped.value && widget.group_by) {
+    filters[widget.group_by] = Object.keys(data!.groups!)[el.datasetIndex]
+  }
+  router.push(filteredListUrl(widget.doctype, filters, props.workspaceName))
+}
+
+function onHover(e: ChartEvent, _els: ActiveElement[], chart: ChartInstance) {
+  const canvas = e.native?.target as HTMLElement | undefined
+  if (canvas) canvas.style.cursor = canOpen.value && hit(e, chart) ? 'pointer' : 'default'
+}
+
 const chartOptions = computed(() => ({
+  onClick,
+  onHover,
   responsive: true,
   maintainAspectRatio: false,
   plugins: {

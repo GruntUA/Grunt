@@ -10,7 +10,7 @@ plugin files, since several widget types share a computation (gauge reuses
 from __future__ import annotations
 
 import json
-from datetime import timedelta
+from datetime import datetime, timedelta
 from typing import Any
 
 import grunt
@@ -24,6 +24,25 @@ def _log_widget_failed(doctype_name: str, widget_type: str) -> None:
         widget_type=widget_type,
         exc_info=True,
     )
+
+
+def _bound(dt: Any, date_field: str, when: datetime, *, upper: bool = False) -> str:
+    """A date-range bound for ``date_field`` in the form its list filter input edits.
+
+    Date → ``YYYY-MM-DD`` (the query only compares the date part anyway),
+    Datetime → ``YYYY-MM-DDTHH:MM`` — so a widget's drill-down filters show up
+    in the list's filter bar instead of an unparseable ISO timestamp. An
+    ``upper`` bound rounds up to the minute, so rows from the current minute
+    stay in range.
+    """
+    from grunt.document.meta import Meta
+
+    field = Meta(dt).get_field(date_field) if dt is not None else None
+    if field is not None and field.fieldtype == "Date":
+        return when.date().isoformat()
+    if upper and (when.second or when.microsecond):
+        when += timedelta(minutes=1)
+    return when.strftime("%Y-%m-%dT%H:%M")
 
 
 def _as_number(value: Any) -> float:
@@ -89,9 +108,9 @@ async def _widget_metric(widget, dt, doctype_name, since, until, days, base_filt
     filters = dict(base_filters)
     prev_filters = dict(base_filters)
     if date_field:
-        filters[f"{date_field}__gte"] = since.isoformat()
-        prev_filters[f"{date_field}__gte"] = (since - timedelta(days=days)).isoformat()
-        prev_filters[f"{date_field}__lt"] = since.isoformat()
+        filters[f"{date_field}__gte"] = _bound(dt, date_field, since)
+        prev_filters[f"{date_field}__gte"] = _bound(dt, date_field, since - timedelta(days=days))
+        prev_filters[f"{date_field}__lt"] = _bound(dt, date_field, since)
 
     agg_expr = f"{agg}({field})" if agg != "count" else "count"
     try:
@@ -125,8 +144,8 @@ async def _widget_chart(widget, dt, doctype_name, since, until, days, base_filte
     try:
         filters = {
             **base_filters,
-            f"{date_field}__gte": since.isoformat(),
-            f"{date_field}__lte": until.isoformat(),
+            f"{date_field}__gte": _bound(dt, date_field, since),
+            f"{date_field}__lte": _bound(dt, date_field, until, upper=True),
         }
         if group_by:
             rows = await grunt.db.aggregate(
@@ -147,7 +166,7 @@ async def _widget_chart(widget, dt, doctype_name, since, until, days, base_filte
                 (str(r.get(date_expr)), str(r.get(group_by))): int(r.get("cnt") or 0) for r in rows
             }
             groups = {gv: [lookup.get((lbl, gv), 0) for lbl in all_labels] for gv in group_values}
-            return {"labels": all_labels, "groups": groups}
+            return {"labels": all_labels, "groups": groups, "filters": filters}
         else:
             rows = await grunt.db.aggregate(
                 doctype_name,
@@ -160,6 +179,7 @@ async def _widget_chart(widget, dt, doctype_name, since, until, days, base_filte
             return {
                 "labels": [str(r.get(date_expr)) for r in rows],
                 "values": [r.get("cnt") for r in rows],
+                "filters": filters,
             }
     except Exception:
         _log_widget_failed(doctype_name, widget.get("widget_type") or "chart")
@@ -184,6 +204,9 @@ async def _widget_donut(widget, dt, doctype_name, since, until, days, base_filte
         return {
             "labels": [str(r.get(group_by)) for r in rows],
             "values": [r.get("cnt") for r in rows],
+            # Raw group values (labels stringify NULL) + base filters, for drill-down.
+            "keys": [r.get(group_by) for r in rows],
+            "filters": base_filters,
         }
     except Exception:
         _log_widget_failed(doctype_name, "donut")
@@ -226,8 +249,8 @@ async def _widget_calendar(widget, dt, doctype_name, since, until, days, base_fi
         group_by_expr = f"date({date_field})"
         filters = {
             **base_filters,
-            f"{date_field}__gte": since.isoformat(),
-            f"{date_field}__lte": until.isoformat(),
+            f"{date_field}__gte": _bound(dt, date_field, since),
+            f"{date_field}__lte": _bound(dt, date_field, until, upper=True),
         }
         rows = await grunt.db.aggregate(
             doctype_name, filters=filters, group_by=group_by_expr, aggregations={"cnt": "count"}
@@ -245,7 +268,7 @@ async def _widget_heatmap(widget, dt, doctype_name, since, until, days, base_fil
         return {"entries": []}
     try:
         group_by_expr = f"date({date_field})"
-        filters = {**base_filters, f"{date_field}__gte": since.isoformat()}
+        filters = {**base_filters, f"{date_field}__gte": _bound(dt, date_field, since)}
         rows = await grunt.db.aggregate(
             doctype_name,
             filters=filters,
@@ -255,7 +278,8 @@ async def _widget_heatmap(widget, dt, doctype_name, since, until, days, base_fil
             order="asc",
         )
         return {
-            "entries": [{"date": str(r.get(group_by_expr)), "count": r.get("cnt")} for r in rows]
+            "entries": [{"date": str(r.get(group_by_expr)), "count": r.get("cnt")} for r in rows],
+            "filters": filters,
         }
     except Exception:
         _log_widget_failed(doctype_name, "heatmap")
@@ -277,22 +301,22 @@ async def _widget_funnel(widget, dt, doctype_name, since, until, days, base_filt
         filters = dict(base_filters)
         date_field = widget.get("date_field")
         if date_field:
-            filters[f"{date_field}__gte"] = since.isoformat()
+            filters[f"{date_field}__gte"] = _bound(dt, date_field, since)
         rows = await grunt.db.aggregate(
             doctype_name,
             filters=filters if filters else None,
             group_by=group_by,
             aggregations={"cnt": "count"},
         )
-        counts = {str(r.get(group_by)): r.get("cnt") for r in rows}
+        counts = {r.get(group_by): r.get("cnt") for r in rows}
         if ordered_options:
-            stages = [{"label": o, "count": counts.get(o, 0)} for o in ordered_options]
+            stages = [{"label": o, "key": o, "count": counts.get(o, 0)} for o in ordered_options]
         else:
             stages = [
-                {"label": k, "count": v}
+                {"label": str(k), "key": k, "count": v}
                 for k, v in sorted(counts.items(), key=lambda x: -(x[1] or 0))
             ]
-        return {"stages": stages}
+        return {"stages": stages, "filters": filters}
     except Exception:
         _log_widget_failed(doctype_name, "funnel")
         return {"stages": []}
@@ -312,8 +336,8 @@ async def _widget_table(widget, dt, doctype_name, since, until, days, base_filte
         filters = dict(base_filters)
         date_field = widget.get("date_field")
         if date_field:
-            filters[f"{date_field}__gte"] = since.isoformat()
-            filters[f"{date_field}__lte"] = until.isoformat()
+            filters[f"{date_field}__gte"] = _bound(dt, date_field, since)
+            filters[f"{date_field}__lte"] = _bound(dt, date_field, until, upper=True)
         rows = await grunt.db.aggregate(
             doctype_name,
             filters=filters if filters else None,
@@ -343,6 +367,7 @@ async def _widget_table(widget, dt, doctype_name, since, until, days, base_filte
             "link_doctype": group_field.options
             if group_field and group_field.fieldtype == "Link"
             else None,
+            "filters": filters,
         }
     except Exception:
         _log_widget_failed(doctype_name, "table")

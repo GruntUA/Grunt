@@ -1,1 +1,1 @@
-{"type": "donut", "label": "Donut", "icon": "donut", "category": "Графіки", "configSections": ["title", "dataSource", "doctypeSource", "groupBy", "width", "color"]}
+{"type": "donut", "label": "Donut", "icon": "donut", "category": "Графіки", "configSections": ["title", "dataSource", "doctypeSource", "filters", "groupBy", "width", "color"]}

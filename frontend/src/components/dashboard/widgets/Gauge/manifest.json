@@ -1,1 +1,1 @@
-{"type": "gauge", "label": "Gauge", "icon": "gauge", "category": "Показники", "configSections": ["title", "doctypeSource", "gaugeRange", "aggregation", "dateRange", "width", "color"]}
+{"type": "gauge", "label": "Gauge", "icon": "gauge", "category": "Показники", "configSections": ["title", "doctypeSource", "filters", "gaugeRange", "aggregation", "dateRange", "width", "color"]}

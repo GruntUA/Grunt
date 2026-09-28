@@ -1,1 +1,1 @@
-{"type": "metric", "label": "Metric", "icon": "hash", "category": "Показники", "configSections": ["title", "doctypeSource", "aggregation", "dateRange", "width", "color", "icon"]}
+{"type": "metric", "label": "Metric", "icon": "hash", "category": "Показники", "configSections": ["title", "doctypeSource", "filters", "aggregation", "dateRange", "width", "color", "icon"]}

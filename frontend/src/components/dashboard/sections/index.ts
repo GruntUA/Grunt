@@ -4,6 +4,7 @@ import { registerWidgetSection } from '@/core/widgetSectionRegistry'
 registerWidgetSection('title', () => import('./TitleSection.vue').then(m => m.default))
 registerWidgetSection('dataSource', () => import('./DataSourceSection.vue').then(m => m.default))
 registerWidgetSection('doctypeSource', () => import('./DoctypeSourceSection.vue').then(m => m.default))
+registerWidgetSection('filters', () => import('./FiltersSection.vue').then(m => m.default))
 registerWidgetSection('shortcutTarget', () => import('./ShortcutTargetSection.vue').then(m => m.default))
 registerWidgetSection('activityFilter', () => import('./ActivityFilterSection.vue').then(m => m.default))
 registerWidgetSection('description', () => import('./DescriptionSection.vue').then(m => m.default))

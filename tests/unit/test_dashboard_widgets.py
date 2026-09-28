@@ -9,6 +9,8 @@ handler family plus both entry points end-to-end.
 
 from __future__ import annotations
 
+import re
+
 import pytest
 
 WIDGET_SOURCE_DOCTYPE = {
@@ -71,11 +73,12 @@ async def test_metric_widget_returns_drilldown_filters(ctx, widget_source):
     from grunt.api.v1.dashboard import _compute_widget_data
 
     result = await _compute_widget_data(
-        _widget("metric", filters={"status": "Active"}, date_field="creation")
+        _widget("metric", filters={"status": "Active"}, date_field="created_at")
     )
     assert result["value"] == 2
     assert result["filters"]["status"] == "Active"
-    assert "creation__gte" in result["filters"]
+    # Datetime bound in the list filter input's own format (no seconds / tz).
+    assert re.fullmatch(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}", result["filters"]["created_at__gte"])
 
 
 @pytest.mark.asyncio
@@ -87,6 +90,25 @@ async def test_donut_widget_groups_by_field(ctx, widget_source):
         "Active": 2,
         "Draft": 1,
     }
+    # Raw group values + base filters let a segment click open the filtered list.
+    assert result["keys"] == result["labels"]
+    assert result["filters"] == {}
+
+
+@pytest.mark.asyncio
+async def test_funnel_and_chart_return_drilldown_data(ctx, widget_source):
+    from grunt.api.v1.dashboard import _compute_widget_data
+
+    funnel = await _compute_widget_data(_widget("funnel", group_by="status"))
+    assert {s["key"]: s["count"] for s in funnel["stages"]}["Active"] == 2
+    assert funnel["filters"] == {}
+
+    chart = await _compute_widget_data(
+        _widget("chart_bar", date_field="created_at", filters={"status": "Active"})
+    )
+    assert sum(chart["values"]) == 2
+    assert chart["filters"]["status"] == "Active"
+    assert {"created_at__gte", "created_at__lte"} <= chart["filters"].keys()
 
 
 @pytest.mark.asyncio

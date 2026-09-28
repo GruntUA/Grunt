@@ -1,1 +1,1 @@
-{"type": "table", "label": "Table", "icon": "table", "category": "Графіки", "configSections": ["title", "doctypeSource", "aggregation", "groupBy", "dateRange", "width", "color"]}
+{"type": "table", "label": "Table", "icon": "table", "category": "Графіки", "configSections": ["title", "doctypeSource", "filters", "aggregation", "groupBy", "dateRange", "width", "color"]}

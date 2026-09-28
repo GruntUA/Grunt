@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { Doughnut } from 'vue-chartjs'
 import {
   Chart as ChartJS,
@@ -7,14 +8,26 @@ import {
   Tooltip,
 } from 'chart.js'
 import type { DashboardWidget } from '@/types'
+import { filteredListUrl } from '@/pages/reports/drilldown'
 
 ChartJS.register(ArcElement, Tooltip)
 
 const props = defineProps<{
   widget: DashboardWidget
-  data: { value: number; trend?: number | null } | null
+  data: { value: number; trend?: number | null; filters?: Record<string, unknown> } | null
   loading?: boolean
+  workspaceName?: string
 }>()
+
+const router = useRouter()
+
+/** Gauge → the widget's list, filtered to the rows the value was computed over. */
+const canOpen = computed(() => !!props.widget.doctype && !!props.data?.filters)
+
+function open() {
+  if (!canOpen.value) return
+  router.push(filteredListUrl(props.widget.doctype, props.data!.filters!, props.workspaceName))
+}
 
 const colorAccents: Record<string, string> = {
   primary: '#2D6A4F',
@@ -72,7 +85,9 @@ const trendPos = computed(() => (trend.value ?? 0) > 0)
 </script>
 
 <template>
-  <div class="flex flex-col gap-1 p-5 h-full">
+  <div
+    :class="['flex flex-col gap-1 p-5 h-full', canOpen && 'cursor-pointer hover:bg-muted/30 transition-colors']"
+    @click="open">
     <p class="text-muted-foreground font-medium">{{ widget.title }}</p>
 
     <!-- Skeleton -->

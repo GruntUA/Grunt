@@ -16,6 +16,8 @@ const props = defineProps<{
   fields: DocField[]
   doctype?: string
   initialFilters?: ActiveFilter[]
+  /** Offer every data field, not just `in_filter` ones (dashboard widget config). */
+  allFields?: boolean
 }>()
 
 const emit = defineEmits<{ change: [filters: ActiveFilter[]] }>()
@@ -77,9 +79,15 @@ function deletePreset(name: string) {
 }
 
 // ── Field list ──────────────────────────────────────────────────────────────
-const filterableFields = computed(() =>
-  props.fields.filter(f => f.in_filter && !['Section', 'Column', 'Tab'].includes(f.fieldtype))
-)
+// A field already filtered on (e.g. a dashboard drill-down URL) stays pickable
+// even without `in_filter`, so its row renders and can be edited.
+const filterableFields = computed(() => {
+  const used = new Set([...activeFilters.value, ...draftRows.value].map(f => f.fieldname))
+  return props.fields.filter(f =>
+    (props.allFields || f.in_filter || used.has(f.fieldname))
+    && !['Section', 'Column', 'Tab', 'Table', 'HTML', 'Button'].includes(f.fieldtype),
+  )
+})
 
 function fieldFor(fieldname: string): DocField | undefined {
   return props.fields.find(f => f.fieldname === fieldname)
