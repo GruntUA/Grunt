@@ -1,7 +1,7 @@
 """Operator-aware filter dicts → SQLAlchemy WHERE clauses.
 
 ``{"status": "Open", "amount__gte": 10, "title__is": "set"}`` — a key is a
-column name plus an optional ``__<op>`` suffix (see ``_FILTER_OPS``); all
+column name plus an optional ``__<op>`` suffix (see ``FILTER_OPS``); all
 conditions are ANDed. Shared by ``grunt.db`` and document list queries.
 """
 
@@ -14,26 +14,39 @@ from sqlalchemy import Date, String, or_
 
 from grunt.db.types import UtcDateTime
 
+# Operators a filter key may end with (``field__<op>``; no suffix = ``eq``).
+# Shared with in-memory filtering of virtual DocTypes (grunt.metadata.virtual).
 # Ordered longest-first so multi-word suffixes (``__lte_or_null``) win over
-# their prefixes. Anchoring on ``__`` also keeps a field literally named
-# ``foo__bar`` (no operator) from being misread as ``foo`` + op ``bar``.
-_FILTER_OPS = (
-    "__lte_or_null",
-    "__isnull",
-    "__nlike",
-    "__like",
-    "__ilike",
-    "__gte",
-    "__lte",
-    "__nin",
-    "__neq",
-    "__gt",
-    "__lt",
-    "__eq",
-    "__in",
-    "__ne",
-    "__is",
+# their prefixes.
+FILTER_OPS = (
+    "lte_or_null",
+    "isnull",
+    "nlike",
+    "like",
+    "ilike",
+    "gte",
+    "lte",
+    "nin",
+    "neq",
+    "gt",
+    "lt",
+    "eq",
+    "in",
+    "ne",
+    "is",
 )
+
+
+def split_key(key: str) -> tuple[str, str]:
+    """``"amount__gte"`` → ``("amount", "gte")``; no known suffix → ``(key, "eq")``.
+
+    Only known operators are split off, so a field literally named ``foo__bar``
+    stays whole instead of being misread as ``foo`` + op ``bar``.
+    """
+    for op in FILTER_OPS:
+        if key.endswith(f"__{op}"):
+            return key[: -len(op) - 2], op
+    return key, "eq"
 
 
 def _truthy(value: Any) -> bool:
@@ -89,20 +102,13 @@ def build_clauses(table: Any, filters: dict[str, Any]) -> list[Any]:
 
     Single source of truth for filter parsing across *physical* DocTypes — used
     both by the ``grunt.db`` layer (count/get_all/…) and by document list
-    queries. Virtual DocTypes filtering in-memory rows use the equivalent
-    ``VirtualDocType.apply_filters`` (``grunt.metadata.virtual``) instead,
-    which intentionally mirrors the same operator set.
+    queries. Virtual DocTypes filtering in-memory rows use
+    ``VirtualDocType.apply_filters`` (``grunt.metadata.virtual``), built on the
+    same ``FILTER_OPS`` / ``split_key``.
     """
     clauses: list[Any] = []
     for key, value in filters.items():
-        op = "eq"
-        fieldname = key
-        for suffix in _FILTER_OPS:
-            if key.endswith(suffix):
-                fieldname = key[: -len(suffix)]
-                op = suffix[2:]
-                break
-
+        fieldname, op = split_key(key)
         col = table.c.get(fieldname)
         if col is None:
             continue

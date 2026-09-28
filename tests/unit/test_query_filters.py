@@ -13,9 +13,10 @@ implementation, not two that could drift apart again.
 
 from __future__ import annotations
 
+import pytest
 from sqlalchemy import Column, Integer, MetaData, String, Table, select
 
-from grunt.db.filters import apply_filters, build_clauses
+from grunt.db.filters import FILTER_OPS, apply_filters, build_clauses, split_key
 
 _META = MetaData()
 _TABLE = Table(
@@ -135,3 +136,33 @@ class TestVirtualDocTypeInFilter:
 
     def test_nin_list(self):
         assert self._apply({"s__nin": ["A"]}) == ["B", "C"]
+
+
+class TestSplitKey:
+    def test_known_suffixes(self):
+        assert split_key("status") == ("status", "eq")
+        assert split_key("due__lte_or_null") == ("due", "lte_or_null")
+        assert split_key("name__ilike") == ("name", "ilike")
+        assert split_key("x__isnull") == ("x", "isnull")
+
+    def test_unknown_suffix_stays_in_the_field(self):
+        assert split_key("foo__bar") == ("foo__bar", "eq")
+        assert split_key("dept__child_of") == ("dept__child_of", "eq")
+
+
+@pytest.mark.parametrize("op", FILTER_OPS)
+def test_every_operator_is_handled_by_sql_and_virtual(op):
+    """FILTER_OPS is the one list both backends are driven by — each operator
+    must yield a SQL clause *and* be implemented for in-memory rows."""
+    from grunt.metadata.virtual import VirtualDocType
+
+    value = "set" if op == "is" else "1"
+    assert len(build_clauses(_TABLE, {f"qty__{op}": value})) == 1
+    VirtualDocType("T").apply_filters([{"qty": 1}], {f"qty__{op}": value})
+
+
+def test_virtual_rejects_unknown_operator():
+    from grunt.metadata.virtual import VirtualDocType
+
+    with pytest.raises(ValueError, match="child_of"):
+        VirtualDocType("T").apply_filters([{"dept": "A"}], {"dept__child_of": "A"})

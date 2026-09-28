@@ -21,7 +21,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from grunt.db.filters import as_list
+from grunt.db.filters import as_list, split_key
 
 
 class VirtualDocType:
@@ -100,20 +100,15 @@ class VirtualDocType:
             eq (default), ne, neq, gt, gte, lt, lte, lte_or_null, like, ilike,
             nlike, in, nin, isnull, is (``set`` / ``not set``)
 
-        Same operator set as ``grunt.db.filters.build_clauses`` (the SQL-backed
-        equivalent for physical DocTypes) — an unrecognised operator raises
-        rather than silently falling back to ``eq``, so a typo or a future
-        operator added to one side without the other fails loudly instead of
-        quietly returning the wrong rows.
+        Keys are parsed by ``grunt.db.filters.split_key``, the same as the
+        SQL-backed ``build_clauses``. An unknown operator (``status__typo``,
+        ``dept__child_of``) or one in ``FILTER_OPS`` not implemented below
+        raises rather than silently returning the wrong rows.
         """
         for key, val in filters.items():
-            if "__" in key:
-                field, op = key.rsplit("__", 1)
-            else:
-                field, op = key, "eq"
-
-            if op not in self._SUPPORTED_FILTER_OPS:
-                raise ValueError(f"Unsupported filter operator: {op!r}")
+            field, op = split_key(key)
+            if "__" in field:
+                raise ValueError(f"Unsupported filter operator in {key!r}")
 
             result: list[dict] = []
             for r in rows:
@@ -153,38 +148,20 @@ class VirtualDocType:
                         match = str(raw) in [str(v) for v in as_list(val)]
                     elif op == "nin":
                         match = str(raw) not in [str(v) for v in as_list(val)]
-                    else:  # isnull
+                    elif op == "isnull":
                         match = (
                             (raw is None)
                             if str(val).lower() in ("true", "1")
                             else (raw is not None)
                         )
+                    else:  # in FILTER_OPS but not handled here — not swallowed below
+                        raise NotImplementedError(f"Filter operator {op!r} not supported")
                 except TypeError, ValueError:
                     match = False
                 if match:
                     result.append(r)
             rows = result
         return rows
-
-    _SUPPORTED_FILTER_OPS = frozenset(
-        {
-            "eq",
-            "ne",
-            "neq",
-            "gt",
-            "gte",
-            "lt",
-            "lte",
-            "lte_or_null",
-            "like",
-            "ilike",
-            "nlike",
-            "in",
-            "nin",
-            "isnull",
-            "is",
-        }
-    )
 
     def apply_sort(self, rows: list[dict], sort_by: str, sort_order: str) -> list[dict]:
         """Sort *rows* by *sort_by* field.  Nones are always placed last."""
