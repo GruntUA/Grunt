@@ -3,13 +3,14 @@
 Templates call ``website_menu("main")`` (a Jinja global, see
 :mod:`grunt.website.router`) and get nested dicts::
 
-    {"label", "url", "open_in_new_tab", "icon", "highlight", "children": [...]}
+    {"name", "label", "url", "route", "open_in_new_tab", "icon", "highlight", "children": [...]}
 
 ``url`` is final: an item pointing at a document gets that document's page
 address (its controller's ``get_web_url`` or the web view route, see
 :mod:`grunt.website.generator`), so renaming a page doesn't break the menu.
 Items whose document has no public page drop to ``url=None`` (rendered as a
-plain heading). Disabled items hide with their whole subtree.
+plain heading). Disabled items hide with their whole subtree. ``route`` is the
+item's section slug — apps that render section pages build its URL themselves.
 
 Built trees are cached per menu for a short while; saving or deleting an item
 invalidates this process's cache (other processes catch up on expiry).
@@ -56,6 +57,7 @@ async def _build(menu: str) -> list[dict[str, Any]]:
             "parent_menu_item",
             "sequence",
             "url",
+            "route",
             "link_doctype",
             "link_name",
             "open_in_new_tab",
@@ -70,10 +72,12 @@ async def _build(menu: str) -> list[dict[str, Any]]:
 
     nodes = {
         row["name"]: {
+            "name": row["name"],
             "label": row["label"],
             "url": urls.get((row["link_doctype"], row["link_name"]))
             if row.get("link_doctype")
             else (row.get("url") or None),
+            "route": row.get("route"),
             "open_in_new_tab": bool(row.get("open_in_new_tab")),
             "icon": row.get("icon"),
             "highlight": bool(row.get("highlight")),

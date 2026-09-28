@@ -21,7 +21,7 @@ async def _item(ctx, **data) -> str:
 
 @pytest.mark.asyncio
 async def test_menu_tree_is_ordered_and_hides_disabled_subtrees(ctx):
-    about = await _item(ctx, label="About", sequence=2)
+    about = await _item(ctx, label="About", sequence=2, route=" Про нас ")
     news = await _item(ctx, label="News", url="/news", sequence=1)
     # A child follows its parent's menu, whatever it was created with.
     await _item(ctx, label="Archive", url="/news/archive", parent_menu_item=news, menu="top")
@@ -35,6 +35,7 @@ async def test_menu_tree_is_ordered_and_hides_disabled_subtrees(ctx):
     assert tree[0]["url"] == "/news"
     assert [c["label"] for c in tree[0]["children"]] == ["Archive"]
     assert tree[1]["url"] is None  # a heading
+    assert tree[1]["route"] == "pro-nas"  # section slug, normalised; the app builds its URL
     assert tree[1]["children"] == []  # disabled item hides its whole subtree
     assert await site_menu.get_menu("top") == []
 

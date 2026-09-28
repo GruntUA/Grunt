@@ -5,7 +5,7 @@
   "icon": "Menu",
   "autoname": "hash",
   "title_field": "label",
-  "search_fields": ["label", "url"],
+  "search_fields": ["label", "url", "route"],
   "is_tree": true,
   "tree_parent_field": "parent_menu_item",
   "tree_title_field": "label",
@@ -34,6 +34,8 @@
     { "fieldname": "link_name", "label": "Document", "fieldtype": "DynamicLink", "options": "link_doctype", "depends_on": "eval:doc.link_doctype" },
     { "fieldname": "col_4", "fieldtype": "Column" },
     { "fieldname": "url", "label": "URL", "fieldtype": "Text", "description": "/news, https://… — used when no document is chosen" },
+    { "fieldname": "route", "label": "Section route", "fieldtype": "Data", "unique": true,
+      "description": "Address slug of this item as a site section — an app renders the section page with the pages filed under it (e.g. the portal: /page/<route>). The app's menu links there when no document or URL is set." },
 
     { "fieldname": "sec_look", "label": "Appearance", "fieldtype": "Section", "collapsible": true },
     { "fieldname": "col_5", "fieldtype": "Column" },

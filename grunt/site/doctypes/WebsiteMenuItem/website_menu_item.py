@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from grunt import _
 from grunt.document.base import Document
+from grunt.utils.slug import slugify
 
 
 class WebsiteMenuItem(Document):
@@ -19,6 +20,8 @@ class WebsiteMenuItem(Document):
                 self.menu = parent_menu
         if not self.link_doctype:
             self.link_name = None
+        if self.route:
+            self.route = slugify(str(self.route)) or None
 
     async def after_save(self) -> None:
         from grunt.website.menu import invalidate
