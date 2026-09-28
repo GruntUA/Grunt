@@ -236,12 +236,24 @@ def _resolve_site(site: str | None) -> str:
 
 @db_group.command("backup")
 @click.option("--site", default=None, help="Site name")
-@click.option("--no-files", is_flag=True, help="Without uploaded files (database and config only)")
-def db_backup(site: str | None, no_files: bool):
+@click.option("--no-database", is_flag=True, help="Without the database")
+@click.option("--no-files", is_flag=True, help="Without uploaded files")
+@click.option("--no-config", is_flag=True, help="Without the site .env")
+def db_backup(site: str | None, no_database: bool, no_files: bool, no_config: bool):
     """Back up the site to sites/<site>/backups/ (database, files, .env)."""
-    from grunt.backups import create_backup
+    from grunt.backups import BackupError, create_backup
 
-    backup = asyncio.run(create_backup(_resolve_site(site), with_files=not no_files))
+    try:
+        backup = asyncio.run(
+            create_backup(
+                _resolve_site(site),
+                with_database=not no_database,
+                with_files=not no_files,
+                with_config=not no_config,
+            )
+        )
+    except BackupError as e:
+        raise click.ClickException(str(e)) from e
     for kind, path in sorted(backup.files.items()):
         click.echo(f"{kind:9} {path}")
 

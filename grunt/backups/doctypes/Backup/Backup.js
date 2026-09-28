@@ -37,7 +37,28 @@ async function setup_list(listview) {
         icon: 'archive',
         placement: 'primary',
         action: async (lv) => {
-            await grunt.call({ method: 'grunt.backups.api.backup_now' })
+            const parts = await grunt.form({
+                title: __('Create backup'),
+                primaryLabel: __('Create now'),
+                fields: [
+                    { fieldname: 'with_database', label: __('Database'), fieldtype: 'Check', default: true },
+                    { fieldname: 'with_files', label: __('Uploaded files'), fieldtype: 'Check', default: true },
+                    { fieldname: 'with_config', label: __('Configuration (.env)'), fieldtype: 'Check', default: true },
+                ],
+            })
+            if (!parts) return
+            if (!parts.with_database && !parts.with_files && !parts.with_config) {
+                grunt.show_alert(__('Choose at least one part to back up'), 'warning')
+                return
+            }
+            await grunt.call({
+                method: 'grunt.backups.api.backup_now',
+                args: {
+                    with_database: !!parts.with_database,
+                    with_files: !!parts.with_files,
+                    with_config: !!parts.with_config,
+                },
+            })
             grunt.show_alert(__('Backup queued — it will appear in the list in a minute'), 'success')
             setTimeout(() => lv.refresh(), 5000)
         },

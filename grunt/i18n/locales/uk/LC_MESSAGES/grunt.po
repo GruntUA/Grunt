@@ -17890,3 +17890,23 @@ msgstr "Мова інтерфейсу. Порожнє — мова сайту з
 #~ msgctxt "meta:User.is_superadmin"
 #~ msgid "Superadmin"
 #~ msgstr "Суперадмін"
+
+#: grunt/grunt/backups/doctypes/Backup/Backup.js
+msgid "Create backup"
+msgstr "Створити резервну копію"
+
+#: grunt/grunt/backups/doctypes/Backup/Backup.js
+msgid "Uploaded files"
+msgstr "Завантажені файли"
+
+#: grunt/grunt/backups/doctypes/Backup/Backup.js
+msgid "Configuration (.env)"
+msgstr "Конфігурація (.env)"
+
+#: grunt/grunt/backups/api.py grunt/grunt/backups/doctypes/Backup/Backup.js
+msgid "Choose at least one part to back up"
+msgstr "Оберіть хоча б одну частину для резервної копії"
+
+#: grunt/grunt/backups/__init__.py
+msgid "Nothing to back up"
+msgstr "Немає що зберігати в резервній копії"

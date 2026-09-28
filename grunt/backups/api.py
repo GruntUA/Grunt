@@ -54,9 +54,13 @@ async def download(file: str, exp: int, sig: str) -> FileResponse:
 
 
 @whitelist(roles=["System Manager"])
-async def backup_now() -> dict:
-    """Queue a backup (the worker makes it; progress shows up in the list)."""
+async def backup_now(
+    with_database: bool = True, with_files: bool = True, with_config: bool = True
+) -> dict:
+    """Queue a backup of the chosen parts (the worker makes it; it shows up in the list)."""
     from grunt.backups.tasks import backup_now as task
 
-    await task.kiq()
+    if not (with_database or with_files or with_config):
+        raise HTTPException(status_code=400, detail=_("Choose at least one part to back up"))
+    await task.kiq(with_database=with_database, with_files=with_files, with_config=with_config)
     return {"queued": True}

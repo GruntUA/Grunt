@@ -34,9 +34,9 @@ def is_due(site: str, interval_hours: int, now: datetime | None = None) -> bool:
     return now - backups[0].created_at >= timedelta(hours=interval_hours) - _DUE_SLACK
 
 
-async def _run(site: str, *, with_files: bool, keep: int) -> str:
+async def _run(site: str, *, keep: int, **parts: bool) -> str:
     try:
-        backup = await create_backup(site, with_files=with_files)
+        backup = await create_backup(site, **parts)
     except Exception as exc:
         await grunt.log_error(exc=exc, title="Backup failed", context="Background Task")
         raise
@@ -59,10 +59,18 @@ async def scheduled_backup() -> str | None:
 
 
 @task
-async def backup_now() -> str:
-    """Make a backup right away (the «Резервні копії» list button)."""
+async def backup_now(
+    with_database: bool = True, with_files: bool = True, with_config: bool = True
+) -> str:
+    """Make a backup right away (the «Резервні копії» list button) of the chosen parts."""
     site = site_manager.get_active_site()
     maker = site_manager.get_session_maker(site)
     async with maker() as session, grunt.system_context(session, site_manager.get_engine(site)):
         cfg = await _settings()
-        return await _run(site, with_files=cfg["with_files"], keep=cfg["keep"])
+        return await _run(
+            site,
+            keep=cfg["keep"],
+            with_database=with_database,
+            with_files=with_files,
+            with_config=with_config,
+        )

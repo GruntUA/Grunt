@@ -70,6 +70,19 @@ async def test_backup_without_files(site):
 
 
 @pytest.mark.asyncio
+async def test_backup_of_chosen_parts_only(site):
+    backup = await backups.create_backup(SITE, with_database=False, with_config=False)
+    assert set(backup.files) == {"files"}
+
+
+@pytest.mark.asyncio
+async def test_backup_of_nothing_is_refused(site):
+    with pytest.raises(backups.BackupError):
+        await backups.create_backup(SITE, with_database=False, with_files=False, with_config=False)
+    assert backups.list_backups(SITE) == []
+
+
+@pytest.mark.asyncio
 async def test_failed_backup_leaves_nothing_behind(site, monkeypatch):
     def boom(*_a):
         raise RuntimeError("disk full")

@@ -146,24 +146,25 @@ def _backup_files(uploads: Path, dest: Path) -> None:
         tar.add(uploads, arcname="uploads")
 
 
-def _create_backup_sync(site: str, with_files: bool) -> BackupSet:
+def _create_backup_sync(
+    site: str, with_database: bool, with_files: bool, with_config: bool
+) -> BackupSet:
     backup_id = datetime.now(UTC).strftime("%Y%m%d-%H%M%S")
     out = backups_dir(site)
     url = _db_url(site)
     made: list[Path] = []
     try:
-        if url.get_backend_name() == "sqlite":
+        backend = url.get_backend_name()
+        if with_database and backend == "sqlite":
             dest = out / f"{backup_id}-database.sqlite.gz"
             made.append(dest)
             _backup_sqlite(Path(url.database), dest)
-        elif url.get_backend_name() == "postgresql":
+        elif with_database and backend == "postgresql":
             dest = out / f"{backup_id}-database.pgdump"
             made.append(dest)
             _backup_postgres(url, dest)
-        else:
-            raise BackupError(
-                _("Backups of %(backend)s are not supported") % {"backend": url.get_backend_name()}
-            )
+        elif with_database:
+            raise BackupError(_("Backups of %(backend)s are not supported") % {"backend": backend})
 
         uploads = site_dir(site) / "uploads"
         if with_files and uploads.is_dir():
@@ -172,7 +173,7 @@ def _create_backup_sync(site: str, with_files: bool) -> BackupSet:
             _backup_files(uploads, dest)
 
         env = site_dir(site) / ".env"
-        if env.exists():
+        if with_config and env.exists():
             dest = out / f"{backup_id}-config.env"
             made.append(dest)
             shutil.copyfile(env, dest)
@@ -183,14 +184,23 @@ def _create_backup_sync(site: str, with_files: bool) -> BackupSet:
             path.unlink(missing_ok=True)
         raise
     backup = get_backup(site, backup_id)
-    assert backup is not None
+    if backup is None:
+        raise BackupError(_("Nothing to back up"))
     return backup
 
 
-async def create_backup(site: str, *, with_files: bool = True) -> BackupSet:
+async def create_backup(
+    site: str,
+    *,
+    with_database: bool = True,
+    with_files: bool = True,
+    with_config: bool = True,
+) -> BackupSet:
     """Make a backup set of *site* (the heavy work runs off the event loop)."""
     started = datetime.now(UTC)
-    backup = await asyncio.to_thread(_create_backup_sync, site, with_files)
+    backup = await asyncio.to_thread(
+        _create_backup_sync, site, with_database, with_files, with_config
+    )
     log.info(
         "backup.created",
         site=site,
