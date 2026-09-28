@@ -17,9 +17,11 @@ The document API is bound from the :class:`~grunt.app.GruntApp` singleton last.
 """
 
 # isort: off
-# `_` and `log` first: modules loaded below may already `from grunt import _, log`.
-from grunt.i18n import _
+# `log` and `_` first: modules loaded below may already `from grunt import _, log`.
+# `log` before `_`: importing grunt.i18n already pulls in grunt.metadata, whose
+# `from grunt import log` would otherwise get the grunt.log *module*.
 from grunt.log import log
+from grunt.i18n import _
 from grunt.api.context import get_engine, get_session, get_user, whitelist
 from grunt.api.messages import msgprint, throw
 from grunt.monitoring.error_log import record_error as log_error
