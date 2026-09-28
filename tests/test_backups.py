@@ -189,6 +189,7 @@ async def test_backup_progress_counts_every_byte(site):
     await backups.create_backup(SITE, progress=progress)
     assert progress.total > 0
     assert progress.done == progress.total
+    assert progress.step == progress.steps == 3  # config, files, database
 
 
 @pytest.mark.asyncio

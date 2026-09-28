@@ -117,6 +117,8 @@ function handleRealtimeEvent(msg: RealtimeEvent) {
         unit: msg.data.unit as 'bytes' | null | undefined,
         started_at: msg.data.started_at as number | undefined,
         cancellable: msg.data.cancellable as boolean | undefined,
+        step: msg.data.step as number | undefined,
+        steps: msg.data.steps as number | undefined,
       })
       break
     }

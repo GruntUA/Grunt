@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import { ref, computed, onMounted, watch } from 'vue'
-import { useElementSize, useNow } from '@vueuse/core'
+import { useElementSize } from '@vueuse/core'
 import { useQueryClient } from '@tanstack/vue-query'
 import { CircleCheck, CircleAlert, CircleX, ChevronDown, ChevronUp, X } from '@lucide/vue'
 import { useTaskTracker, type TaskEntry } from '@/core/composables/useTaskTracker'
@@ -17,7 +17,6 @@ const { t } = useI18n()
 const tracker = useTaskTracker()
 const queryClient = useQueryClient()
 const collapsed = ref(false)
-const now = useNow({ interval: 1000 })
 
 const visible = computed(() => tracker.count.value > 0)
 
@@ -48,6 +47,29 @@ async function cancel(task: TaskEntry) {
   }
 }
 
+// Collapsed, the header still tells the main thing: «Backup · 54% · ~2 min · +1».
+const active = computed(() => tracker.tasks.value.filter(task => task.status === 'active'))
+const summary = computed(() => {
+  const [first, ...rest] = active.value
+  if (!first) return t('Tasks finished')
+  const parts = [first.title]
+  if (first.total) parts.push(`${first.percent}%`)
+  if (eta(first)) parts.push(eta(first))
+  if (rest.length) parts.push(`+${rest.length}`)
+  return parts.join(' · ')
+})
+const overallPercent = computed(() =>
+  active.value.length ? Math.round(active.value.reduce((sum, task) => sum + task.percent, 0) / active.value.length) : 100)
+
+/** The stage, with «step 2 of 3» for work in parts while it runs. */
+function describe(task: TaskEntry): string {
+  const text = task.description ?? ''
+  if (task.status !== 'active' || task.cancelling || !task.steps || task.steps < 2 || !task.step) return text
+  const [n, m] = [String(task.step), String(task.steps)]
+  const step = t('step {n} of {m}', { n, m }).replace('{n}', n).replace('{m}', m)
+  return text ? `${text} · ${step}` : step
+}
+
 function formatCount(task: TaskEntry): string {
   if (task.unit === 'bytes') return `${formatFileSize(task.count)} / ${formatFileSize(task.total)}`
   const fmt = (n: number) =>
@@ -57,11 +79,10 @@ function formatCount(task: TaskEntry): string {
   return `${fmt(task.count)} / ${fmt(task.total)}`
 }
 
-/** "~2 min" left, extrapolated from the time so far — once there's enough to go on. */
+/** "~2 min" left at the recent pace (useTaskTracker measures it) — once it's known. */
 function eta(task: TaskEntry): string {
-  if (task.status !== 'active' || task.percent < 3 || task.percent >= 100) return ''
-  const elapsed = (now.value.getTime() - task.startedAt) / 1000
-  const left = (elapsed * (100 - task.percent)) / task.percent
+  const left = task.etaSeconds
+  if (task.status !== 'active' || left == null) return ''
   if (left < 60) return t('< 1 min')
   const n = String(Math.round(left / 60))
   // Params for a translated key, replace() for one not in the bundle (renders {n} as is).
@@ -82,17 +103,18 @@ function eta(task: TaskEntry): string {
         ref="panel"
         class="fixed right-6 bottom-6 z-40 w-80 overflow-hidden rounded-lg border bg-popover text-popover-foreground shadow-md"
       >
-        <div class="flex items-center gap-2 border-b px-3 py-2">
-          <Spinner v-if="tracker.hasActive.value" class="text-muted-foreground" />
-          <CircleCheck v-else class="size-4 text-success" />
-          <span class="flex-1 font-medium">
-            {{ tracker.hasActive.value ? t('Tasks running') : t('Tasks finished') }}
+        <div class="relative flex items-center gap-2 px-3 py-2" :class="{ 'border-b': !collapsed }">
+          <span class="flex-1 truncate font-medium tabular-nums">
+            <template v-if="collapsed">{{ summary }}</template>
+            <template v-else>{{ tracker.hasActive.value ? t('Tasks running') : t('Tasks finished') }}</template>
           </span>
           <Button variant="ghost" size="icon-xs" :aria-label="collapsed ? t('Expand') : t('Collapse')"
             @click="collapsed = !collapsed">
             <ChevronUp v-if="collapsed" />
             <ChevronDown v-else />
           </Button>
+          <Progress v-if="collapsed && active.length" :model-value="overallPercent"
+            class="absolute inset-x-0 bottom-0 h-0.5 rounded-none" />
         </div>
 
         <div v-if="!collapsed" class="max-h-96 divide-y overflow-y-auto">
@@ -104,9 +126,9 @@ function eta(task: TaskEntry): string {
               <CircleAlert v-else class="mt-px size-3.5 text-destructive" />
               <div class="min-w-0 flex-1">
                 <p class="truncate font-medium">{{ task.title }}</p>
-                <p v-if="task.description" class="truncate text-muted-foreground"
+                <p v-if="describe(task)" class="truncate text-muted-foreground"
                   :class="{ 'text-destructive': task.status === 'error' }">
-                  {{ task.description }}
+                  {{ describe(task) }}
                 </p>
               </div>
               <Button v-if="task.status !== 'active'" variant="ghost" size="icon-xs"

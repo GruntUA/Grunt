@@ -88,6 +88,8 @@ class Progress:
         self.total = total
         self.done = 0
         self.stage: str | None = None
+        self.step = 0  # «step N of M» when the work has distinct parts
+        self.steps = 0
         self.unit = unit
         self.doctype = doctype
         self.started_at = time.time()
@@ -95,7 +97,19 @@ class Progress:
         self.cancelled = False  # set by the flusher when the user asked to cancel
         self._version = 0  # bumped on every change; the flusher publishes when it moved
 
-    def set(self, *, done: int | None = None, total: int | None = None, stage: str | None = None):
+    def set(
+        self,
+        *,
+        done: int | None = None,
+        total: int | None = None,
+        stage: str | None = None,
+        step: int | None = None,
+        steps: int | None = None,
+    ):
+        if step is not None:
+            self.step = step
+        if steps is not None:
+            self.steps = steps
         if done is not None:
             self.done = done
         if total is not None:
@@ -123,6 +137,8 @@ class Progress:
             "total": total,
             "percent": min(round(self.done * 100 / total), 99) if total else 0,
             "description": self.stage,
+            "step": self.step,
+            "steps": self.steps,
             "unit": self.unit,
             "started_at": self.started_at,
             "cancellable": self.cancellable,

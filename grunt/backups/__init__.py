@@ -212,6 +212,11 @@ def _backup_files(uploads: Path, dest: Path, level: int, progress: Progress) -> 
         tar.add(uploads, arcname="uploads")
 
 
+def _backup_config(env: Path, dest: Path, progress: Progress) -> None:
+    progress.set(stage=_("Copying the configuration"))
+    shutil.copyfile(env, dest)
+
+
 def _part(path: Path) -> Path:
     """Where *path* is written until the whole set is done — hidden, not matched by _NAME.
 
@@ -263,7 +268,9 @@ def _create_backup_sync(
     progress.set(stage=_("Preparing"))
     steps: list[tuple[int, Path, Callable[[Path], object]]] = []
     if with_config and env.exists():
-        steps.append((0, out / f"{backup_id}-config.env", lambda part: shutil.copyfile(env, part)))
+        steps.append(
+            (0, out / f"{backup_id}-config.env", lambda part: _backup_config(env, part, progress))
+        )
     if with_database and backend == "sqlite":
         db_path = Path(url.database)
         steps.append(
@@ -290,12 +297,13 @@ def _create_backup_sync(
             )
         )
     steps.sort(key=lambda step: step[0])  # stable: the config stays ahead of a pg_dump
-    progress.set(total=sum(size for size, _dest, _make in steps))
+    progress.set(total=sum(size for size, _dest, _make in steps), steps=len(steps))
 
     _remove_stale_parts(out)
     made: list[Path] = []  # the final paths; each is written as its _part() first
     try:
-        for _size, dest, make in steps:
+        for step, (_size, dest, make) in enumerate(steps, 1):
+            progress.set(step=step)
             made.append(dest)
             make(_part(dest))
         for path in made:

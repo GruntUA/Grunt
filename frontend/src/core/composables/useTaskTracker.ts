@@ -43,6 +43,11 @@ export interface TaskEntry {
   cancellable?: boolean
   /** Cancel was requested, the task hasn't stopped yet. */
   cancelling?: boolean
+  /** «Step N of M» when the task has distinct parts (0 = none). */
+  step?: number
+  steps?: number
+  /** Seconds left at the pace of the last {@link ETA_WINDOW_MS} — unknown until it's measured. */
+  etaSeconds?: number
   startedAt: number    // Date.now()
   updatedAt: number    // Date.now()
 }
@@ -53,6 +58,25 @@ const _tasks = ref<Map<string, TaskEntry>>(new Map())
 
 /** Height of the open task panel (0 when hidden) — toasts stack above it. */
 const _panelHeight = ref(0)
+
+/**
+ * ETA follows the recent pace, not the average since the start: a backup's
+ * database part flies, its files crawl — the average would promise "< 1 min"
+ * all through the slow part.
+ */
+const ETA_WINDOW_MS = 15_000
+const ETA_MIN_SPAN_MS = 3_000
+const _samples = new Map<string, { at: number; count: number }[]>()
+
+function _eta(id: string, now: number, count: number, total: number): number | undefined {
+  const samples = (_samples.get(id) ?? []).filter(s => s.at >= now - ETA_WINDOW_MS && s.count <= count)
+  samples.push({ at: now, count })
+  _samples.set(id, samples)
+  const first = samples[0]!
+  const span = now - first.at
+  if (span < ETA_MIN_SPAN_MS || count <= first.count || total <= count) return undefined
+  return ((total - count) * span) / (count - first.count) / 1000
+}
 
 // IDs scheduled for auto-removal so we don't pile up timers.
 const _removalTimers = new Map<string, ReturnType<typeof setTimeout>>()
@@ -74,6 +98,8 @@ function update(data: {
   description?: string
   unit?: 'bytes' | null
   cancellable?: boolean
+  step?: number
+  steps?: number
   /** Server start time, epoch seconds — keeps the ETA right after a reload. */
   started_at?: number
 }) {
@@ -103,6 +129,9 @@ function update(data: {
     unit: data.unit ?? existing?.unit,
     cancellable: data.cancellable ?? existing?.cancellable,
     cancelling: existing?.cancelling,
+    step: data.step ?? existing?.step,
+    steps: data.steps ?? existing?.steps,
+    etaSeconds: _eta(id, now, count, total),
     status: percent >= 100 ? 'done' : 'active',
     startedAt: data.started_at ? data.started_at * 1000 : (existing?.startedAt ?? now),
     updatedAt: now,
@@ -154,6 +183,7 @@ async function cancel(id: string) {
 /** Immediately remove a task (user dismissed it). */
 function dismiss(id: string) {
   _tasks.value.delete(id)
+  _samples.delete(id)
   const t = _removalTimers.get(id)
   if (t) { clearTimeout(t); _removalTimers.delete(id) }
 }
@@ -161,6 +191,7 @@ function dismiss(id: string) {
 function _scheduleRemoval(id: string, delayMs: number) {
   const t = setTimeout(() => {
     _tasks.value.delete(id)
+    _samples.delete(id)
     _removalTimers.delete(id)
   }, delayMs)
   _removalTimers.set(id, t)

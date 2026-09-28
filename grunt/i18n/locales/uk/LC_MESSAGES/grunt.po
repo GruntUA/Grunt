@@ -17982,3 +17982,11 @@ msgstr "Скасувати задачу"
 #: grunt/frontend/src/components/desk/TaskProgressPanel.vue
 msgid "Stop «{title}»? What is done so far is discarded."
 msgstr "Зупинити «{title}»? Уже виконане буде відкинуто."
+
+#: grunt/frontend/src/components/desk/TaskProgressPanel.vue
+msgid "step {n} of {m}"
+msgstr "крок {n} з {m}"
+
+#: grunt/grunt/backups/__init__.py
+msgid "Copying the configuration"
+msgstr "Копіювання конфігурації"
