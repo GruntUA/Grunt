@@ -25,22 +25,9 @@
       "read_only": true
     },
     {
-      "fieldname": "path",
-      "label": "Storage path",
-      "fieldtype": "Text",
-      "read_only": true
-    },
-    {
       "fieldname": "thumbnail_url",
       "label": "Thumbnail",
       "fieldtype": "Image",
-      "read_only": true
-    },
-    {
-      "fieldname": "thumbnail_path",
-      "label": "Thumbnail path",
-      "fieldtype": "Text",
-      "hidden": true,
       "read_only": true
     },
     {
@@ -64,7 +51,8 @@
       "fieldtype": "Data",
       "read_only": true,
       "in_filter": true,
-      "index": true
+      "index": true,
+      "required": true
     },
     {
       "fieldname": "uploaded_by",

@@ -33,12 +33,12 @@ async def cases(ctx):
             "Comment",
             {"reference_doctype": "SecretCase", "reference_id": case, "content": f"on {case}"},
         )
-    await ctx.new_doc("File", {"file_name": "lib.txt", "path": "lib.txt", "file_url": "/x"})
+    await ctx.new_doc("File", {"file_name": "lib.txt", "content_hash": "a" * 64, "file_url": "/x"})
     await ctx.new_doc(
         "File",
         {
             "file_name": "evidence.txt",
-            "path": "evidence.txt",
+            "content_hash": "b" * 64,
             "file_url": "/y",
             "attached_to_doctype": "SecretCase",
             "attached_to_id": other,
@@ -132,7 +132,7 @@ async def test_private_attachment_download_follows_document_access(ctx, cases, d
             "File",
             {
                 "file_name": f"{case}.txt",
-                "path": f"missing/{case}.txt",
+                "content_hash": "c" * 64,  # no such blob stored
                 "file_url": "/z",
                 "is_public": False,
                 "attached_to_doctype": "SecretCase",
@@ -147,5 +147,5 @@ async def test_private_attachment_download_follows_document_access(ctx, cases, d
             await get_content(ids[other])
         assert denied.value.status_code == 403
         with pytest.raises(HTTPException) as allowed:
-            await get_content(ids[mine])  # permitted — fails only on the fake storage path
+            await get_content(ids[mine])  # permitted — fails only on the missing blob
         assert allowed.value.status_code == 404

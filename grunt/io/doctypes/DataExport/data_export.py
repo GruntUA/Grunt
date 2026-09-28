@@ -60,7 +60,7 @@ class DataExport(Document):
 
             self.status = "Success"
             self.exported_rows = max(0, exported_rows)
-            self.file = f"/api/v1/files/{file_doc['id']}"
+            self.file = file_doc["file_url"]
             self.error = ""
 
         except Exception as exc:
@@ -71,33 +71,15 @@ class DataExport(Document):
         await self.session.commit()
 
     async def _save_file(self, filename: str, content: bytes, fmt: str) -> dict[str, Any]:
-        """Store export bytes via the storage backend and create a File record."""
-        from grunt.storage import get_storage_backend
+        """Store export bytes as a private File record."""
+        from grunt.storage import store
 
         mime = (
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             if fmt == "xlsx"
             else "text/csv"
         )
-        storage = get_storage_backend()
-        path = await storage.save(content=content, filename=filename, content_type=mime)
-
-        user = self.grunt.get_user()
-        file_doc = await self.grunt.new_doc(
-            "File",
-            {
-                "file_name": filename,
-                "path": path,
-                "content_type": mime,
-                "file_size": len(content),
-                "uploaded_by": user.email,
-                "is_public": False,
-            },
-        )
-        file_id = str(file_doc["name"])
-        file_url = f"/api/v1/files/{file_id}"
-        await self.grunt.save_doc("File", file_id, {"file_url": file_url})
-        file_doc["name"] = file_id
+        file_doc = await store(content, filename, mime)
         return file_doc
 
     @staticmethod

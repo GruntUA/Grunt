@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import { ref, onMounted, onUnmounted, watch } from 'vue'
-import { UploadCloud, File as FileIcon, Trash2, Search, Download, Folder, AlertCircle, Layers } from '@lucide/vue'
+import { UploadCloud, File as FileIcon, Trash2, Search, Download, Folder, AlertCircle } from '@lucide/vue'
 import { filesApi, type FileItem } from '@/core/api/files'
 import { useFileList, type FileCategory } from '@/core/composables/useFileList'
 import { useDebounce } from '@/core/composables/useDebounce'
-import { useToast } from '@/core/composables/useToast'
 import { fileTypeLabel, formatFileSize, previewUrl } from '@/core/fileUtils'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -22,8 +21,6 @@ const sort = ref<'new' | 'name' | 'size'>('new')
 const uploading = ref(false)
 const isDragging = ref(false)
 const deletingId = ref<string | null>(null)
-const deduping = ref(false)
-const toast = useToast()
 
 const categoryTabs: { id: FileCategory; label: string }[] = [
   { id: 'all', label: t('All') },
@@ -103,26 +100,6 @@ async function removeFile(item: FileItem) {
   }
 }
 
-async function dedupeStorage() {
-  if (!confirm(t('Merge identical files on disk? Records and links stay unchanged.'))) return
-  deduping.value = true
-  try {
-    const r = await filesApi.dedupeStorage()
-    await refetch()
-    if (r.freed_blobs) {
-      toast.success(
-        t('Freed {size} ({copies} copies, groups: {groups})').replace('{size}', formatFileSize(r.freed_bytes)).replace('{copies}', String(r.freed_blobs)).replace('{groups}', String(r.duplicate_groups)),
-      )
-    } else {
-      toast.info(t('No duplicates found'))
-    }
-  } catch {
-    toast.error(t('Could not process duplicates'))
-  } finally {
-    deduping.value = false
-  }
-}
-
 watch([category, sort], () => scrollEl.value?.scrollTo({ top: 0 }))
 </script>
 
@@ -146,12 +123,6 @@ watch([category, sort], () => scrollEl.value?.scrollTo({ top: 0 }))
                     <Search class="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
                     <Input v-model="searchQuery" :placeholder="t('Enter a file name...')" class="pl-9 h-9 w-full" />
                 </div>
-                <Button variant="outline" :disabled="deduping" class="h-9 whitespace-nowrap px-4"
-                    :title="t('Merge identical files on disk')" @click="dedupeStorage">
-                    <Spinner v-if="deduping" class="size-4! mr-2" strokeWidth="8" />
-                    <Layers v-else class="size-4 mr-2" />
-                    {{ t('Duplicates') }}
-                </Button>
                 <div class="relative overflow-hidden group shrink-0">
                     <Button :disabled="uploading" class="h-9 whitespace-nowrap px-4">
                         <Spinner v-if="uploading" class="size-4! mr-2" strokeWidth="8" />

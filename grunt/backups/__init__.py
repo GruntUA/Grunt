@@ -214,7 +214,12 @@ def _backup_files(uploads: Path, dest: Path, level: int, progress: Progress) -> 
     progress.set(stage=_("Archiving files"))
     with _CountingTarFile.open(dest, "w:zst", options=_zstd_options(level)) as tar:
         tar.progress = progress
-        tar.add(uploads, arcname="uploads")
+        # Uploads still in flight (tmp/) are not files yet.
+        tar.add(
+            uploads,
+            arcname="uploads",
+            filter=lambda info: None if info.name.startswith("uploads/tmp/") else info,
+        )
 
 
 def _backup_config(env: Path, dest: Path, progress: Progress) -> None:

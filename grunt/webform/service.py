@@ -299,49 +299,29 @@ class WebFormService:
         the File doctype itself; the target DocType's own Guest create
         permission (checked by ``submit()``) remains the real access gate.
         """
-        import hashlib
-
         from grunt.config import settings
-        from grunt.storage import get_storage_backend
+        from grunt.storage import FileTooLargeError, store
+        from grunt.storage.files import upload_limit
 
-        content = await upload.read()
-        max_bytes = settings.max_upload_size_mb * 1024 * 1024
-        if len(content) > max_bytes:
-            raise WebFormError(
-                _("The file is too large (max %(size)s MB)") % {"size": settings.max_upload_size_mb}
-            )
-
-        content_type = upload.content_type or "application/octet-stream"
-        storage = get_storage_backend()
         try:
-            path = await storage.save(
-                content=content, filename=upload.filename, content_type=content_type
-            )
-        except ValueError as exc:
-            raise WebFormError(str(exc)) from exc
-
-        async with grunt.system_context(grunt.get_session()):
-            file_doc = await grunt.new_doc(
-                "File",
-                {
-                    "file_name": upload.filename,
-                    "file_url": "",
-                    "path": path,
-                    "content_type": content_type,
-                    "content_hash": hashlib.sha256(content).hexdigest(),
-                    "file_size": len(content),
-                    "uploaded_by": GUEST_USER,
+            async with grunt.system_context(grunt.get_session()):
+                file_doc = await store(
+                    upload.file,
+                    upload.filename,
+                    upload.content_type,
+                    uploaded_by=GUEST_USER,
                     # A citizen's upload is private — staff open it via a
                     # signed URL (grunt.storage.signing).
-                    "is_public": False,
-                },
-            )
-            file_id = str(file_doc["name"])
-            file_url = (
-                f"/api/v1/method/grunt.storage.doctypes.File.file.get_content?file_id={file_id}"
-            )
-            await grunt.db.set_value("File", file_id, "file_url", file_url)
-
+                    is_public=False,
+                    max_bytes=upload_limit(),
+                )
+        except FileTooLargeError:
+            raise WebFormError(
+                _("The file is too large (max %(size)s MB)") % {"size": settings.max_upload_size_mb}
+            ) from None
+        except ValueError as exc:
+            raise WebFormError(str(exc)) from exc
+        file_url = file_doc["file_url"]
         return file_url
 
 

@@ -142,6 +142,7 @@ def _register_framework_jobs() -> None:
     # Hourly check; the backup itself runs when SystemSettings' interval has passed.
     _add_scheduled_job("grunt.backups.tasks.scheduled_backup", "15 * * * *")
     _add_scheduled_job("grunt.tasks.retention.purge_expired_documents", "0 3 * * *")  # daily 03:00
+    _add_scheduled_job("grunt.storage.tasks.collect_garbage", "30 3 * * *")  # daily 03:30
     _add_scheduled_job("grunt.tasks.todo_reminders.send_due_reminders", "0 8 * * *")  # daily 08:00
     _add_scheduled_job("grunt.reports.delivery.send_scheduled_reports", "0 7 * * *")  # daily 07:00
 

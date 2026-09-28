@@ -1,59 +1,38 @@
 from __future__ import annotations
 
-import hashlib
 from typing import Any
 
-from fastapi import HTTPException, Response, UploadFile
+from fastapi import HTTPException, Request, Response, UploadFile
+from fastapi.responses import FileResponse
 
 import grunt
 from grunt import _
 from grunt.api.context import whitelist
-from grunt.config import settings
 from grunt.document.base import Document
 from grunt.local import _user_ctx
-from grunt.storage import get_storage_backend
-from grunt.storage.thumbnails import THUMB_MIMETYPE, make_thumbnail
-
-_CONTENT_URL = "/api/v1/method/grunt.storage.doctypes.File.file.get_content?file_id={}"
+from grunt.storage import files
+from grunt.storage.backends import FileTooLargeError, get_storage_backend
+from grunt.storage.thumbnails import THUMB_MIMETYPE, can_thumbnail
 
 
 class File(Document):
-    """DocType controller for File."""
+    """DocType controller for File.
+
+    A row is metadata over a content-addressed blob (``content_hash``): the
+    blob outlives the row and is dropped by the storage garbage collector
+    (grunt.storage.gc) once nothing — trash included — refers to it.
+    """
 
     file_name: str
     file_url: str
-    path: str
     content_type: str
-    content_hash: str | None
+    content_hash: str
     file_size: int
     uploaded_by: str
     is_public: bool
     thumbnail_url: str | None
-    thumbnail_path: str | None
     attached_to_doctype: str | None
     attached_to_id: str | None
-
-    async def before_delete(self) -> None:
-        """Delete the physical file before the DB row.
-
-        Not best-effort: if the storage backend fails, the File document must
-        not be deleted either — otherwise the row disappears while the
-        physical file silently survives as an orphan with no record pointing
-        to it. Letting the exception propagate aborts the whole delete
-        pipeline (see ``DocumentWriteMixin.delete_document``).
-
-        Storage de-duplication (see ``dedupe_storage``) lets several File rows
-        share one blob, so only drop the physical file when this is the last
-        row pointing at that path.
-        """
-        storage = get_storage_backend()
-        for field in ("path", "thumbnail_path"):
-            value = getattr(self, field, None)
-            if not value:
-                continue
-            others = await File.objects.filter(**{field: value, "name__ne": self.name}).count()
-            if others == 0:
-                await storage.delete(value)
 
 
 @whitelist()
@@ -76,134 +55,92 @@ async def upload(
     if not file.filename:
         raise HTTPException(400, _("No filename provided"))
 
+    content_type = file.content_type or "application/octet-stream"
     try:
-        content = await file.read()
-    finally:
-        await file.close()
-    max_bytes = settings.max_upload_size_mb * 1024 * 1024
-    if len(content) > max_bytes:
+        files.validate_mime_type(content_type)
+        # Streamed to disk while hashing — never held in memory whole.
+        key, size = await get_storage_backend().put(file.file, max_bytes=files.upload_limit())
+    except FileTooLargeError:
+        from grunt.config import settings
+
         raise HTTPException(
             413,
             _("The file is too large (max %(size)s MB)") % {"size": settings.max_upload_size_mb},
-        )
+        ) from None
+    except ValueError as exc:
+        raise HTTPException(415, str(exc)) from exc
+    finally:
+        await file.close()
 
-    content_type = file.content_type or "application/octet-stream"
-    content_hash = hashlib.sha256(content).hexdigest()
-
-    # De-duplicate: a re-upload of the same name + byte-identical content by the
-    # same user for the same target reuses the existing File instead of storing a
-    # second copy. Scoped tightly (name, hash, size, uploader, attachment target)
-    # so a different name — or the same bytes for a *different* document — still
-    # gets its own correctly-linked row.
+    # The blob is stored once whatever happens; this only decides whether a
+    # re-upload of the same name + bytes by the same user for the same target
+    # reuses its File row instead of listing a second one. A different name —
+    # or the same bytes for a *different* document — gets its own row.
     existing = await File.objects.filter(
         file_name=file.filename,
-        content_hash=content_hash,
-        file_size=len(content),
+        content_hash=key,
         uploaded_by=grunt.get_user().email,
         attached_to_doctype=attached_to_doctype or None,
         attached_to_id=attached_to_id or None,
     ).first()
     if existing is not None:
-        return _upload_payload(existing, deduped=True)
+        return _upload_payload(existing.as_dict(), deduped=True)
 
-    storage = get_storage_backend()
-
-    try:
-        path = await storage.save(
-            content=content,
-            filename=file.filename,
-            content_type=content_type,
-        )
-    except ValueError as exc:
-        raise HTTPException(415, str(exc)) from exc
-
-    # Create the File document first to get the auto-generated name.
-    file_doc = await File.objects.create(
-        file_name=file.filename,
-        file_url="",  # placeholder; updated below with the real name
-        path=path,
-        content_type=content_type,
-        content_hash=content_hash,
-        file_size=len(content),
-        uploaded_by=grunt.get_user().email,
+    doc = await files.create_file(
+        key,
+        size,
+        file.filename,
+        content_type,
+        attached_to_doctype=attached_to_doctype,
+        attached_to_id=attached_to_id,
         is_public=is_public,
-        attached_to_doctype=attached_to_doctype or None,
-        attached_to_id=attached_to_id or None,
     )
-    file_id = str(file_doc.name)
-
-    # Build URL using the document name and persist it.
-    file_url = _CONTENT_URL.format(file_id)
-    await grunt.save_doc("File", file_id, {"file_url": file_url})
-    file_doc.file_url = file_url
-    file_doc.thumbnail_url = await store_thumbnail(file_id, content, content_type)
-
-    return _upload_payload(file_doc, deduped=False)
+    return _upload_payload(doc, deduped=False)
 
 
-def _upload_payload(doc: File, *, deduped: bool) -> dict[str, Any]:
+def _upload_payload(doc: dict[str, Any], *, deduped: bool) -> dict[str, Any]:
     """Response shape shared by a fresh upload and a de-duplicated hit."""
     return {
-        "id": str(doc.name),
-        "url": doc.file_url,
-        "filename": doc.file_name,
-        "content_type": doc.content_type,
-        "size_bytes": doc.file_size,
-        "thumbnail_url": doc.thumbnail_url,
+        "id": str(doc["name"]),
+        "url": doc["file_url"],
+        "filename": doc["file_name"],
+        "content_type": doc["content_type"],
+        "size_bytes": doc["file_size"],
+        "thumbnail_url": doc.get("thumbnail_url"),
         "deduped": deduped,
     }
 
 
-async def store_thumbnail(file_id: str, content: bytes, content_type: str | None) -> str | None:
-    """Make and store the file's preview (grunt.storage.thumbnails); return its URL.
-
-    SVG needs no raster preview — the browser draws the file itself.
-    """
-    if content_type == "image/svg+xml":
-        url = _CONTENT_URL.format(file_id)
-        await grunt.db.set_value("File", file_id, {"thumbnail_url": url})
-        return url
-    thumb = await make_thumbnail(content, content_type)
-    if thumb is None:
-        return None
-    path = await get_storage_backend().save(thumb, f"{file_id}.thumb.webp", THUMB_MIMETYPE)
-    url = _CONTENT_URL.format(file_id) + "&thumb=1"
-    await grunt.db.set_value("File", file_id, {"thumbnail_path": path, "thumbnail_url": url})
-    return url
-
-
 async def generate_missing_thumbnails(limit: int = 500) -> int:
-    """Backfill previews for files uploaded before thumbnails existed."""
-    from grunt.storage.thumbnails import can_thumbnail
-
+    """Backfill previews for files that have none (made before, or on a failure)."""
     rows = await grunt.db.get_all(
         "File",
-        filters={"thumbnail_path__isnull": True},
-        fields=["name", "path", "content_type", "thumbnail_url"],
+        filters={"thumbnail_url__isnull": True},
+        fields=["name", "content_hash", "content_type"],
         limit=None,
     )
-    storage = get_storage_backend()
     made = 0
     for row in rows:
         if made >= limit:
             break
-        ctype = row.get("content_type")
-        if not row.get("path") or not can_thumbnail(ctype):
+        key, ctype = row.get("content_hash"), row.get("content_type")
+        if not key or not can_thumbnail(ctype) or not await files.ensure_thumbnail(key, ctype):
             continue
-        try:
-            content = await storage.get(row["path"])
-        except Exception:  # noqa: BLE001 - a missing blob just stays without a preview
-            continue
-        if await store_thumbnail(str(row["name"]), content, ctype):
-            made += 1
+        url = files.thumbnail_url(str(row["name"]), key, ctype)
+        await grunt.db.set_value("File", row["name"], {"thumbnail_url": url})
+        made += 1
     return made
 
 
 @whitelist(allow_guest=True)
 async def get_content(
-    file_id: str, exp: int | None = None, sig: str | None = None, thumb: bool = False
+    file_id: str,
+    exp: int | None = None,
+    sig: str | None = None,
+    thumb: bool = False,
+    request: Request | None = None,
 ) -> Response:
-    """Whitelisted method: Fetch file content from storage (``thumb`` — its preview).
+    """Whitelisted method: Stream file content from storage (``thumb`` — its preview).
 
     A private file needs either a valid signature (``exp`` + ``sig``, appended
     to every file URL the API hands out) or a user allowed to read it.
@@ -217,13 +154,12 @@ async def get_content(
         [
             "name",
             "owner",
-            "path",
+            "content_hash",
             "content_type",
             "file_name",
             "is_public",
             "attached_to_doctype",
             "attached_to_id",
-            "thumbnail_path",
         ],
     )
     if not doc:
@@ -241,36 +177,29 @@ async def get_content(
         if meta is None or not await permission_checker.check(user, meta, "read", doc):
             raise HTTPException(403, _("No access to the file"))
 
+    key = doc.get("content_hash") or ""
     storage = get_storage_backend()
-    if thumb and doc.get("thumbnail_path"):
-        try:
-            preview = await storage.get(doc["thumbnail_path"])
-        except Exception:
-            raise HTTPException(404, _("Thumbnail not found on storage")) from None
-        # Previews never change for a file id — let the browser keep them.
-        return Response(
-            content=preview,
-            media_type=THUMB_MIMETYPE,
-            headers={"Cache-Control": "private, max-age=86400"},
-        )
-
+    # A blob never changes (it is named by its hash) — let the browser keep
+    # it and revalidate by ETag. "private": access is per user.
+    etag = f'"{key}-thumb"' if thumb else f'"{key}"'
+    headers = {"ETag": etag, "Cache-Control": "private, max-age=86400"}
     try:
-        file_path = doc.get("path") or ""
-        content = await storage.get(file_path)
-    except Exception:
-        raise HTTPException(404, _("File not found on storage")) from None
-
-    from urllib.parse import quote
-
-    file_name = doc.get("file_name") or "file"
-    # RFC 5987: UTF-8 encoded filename for non-ASCII characters
-    encoded_name = quote(file_name, safe="")
-    disposition = f"attachment; filename*=UTF-8''{encoded_name}"
-
-    return Response(
-        content=content,
+        path = storage.thumbnail_path(key) if thumb else storage.path(key)
+    except FileNotFoundError:
+        path = None
+    if path is None or not path.exists():
+        raise HTTPException(404, _("File not found on storage"))
+    if isinstance(request, Request) and request.headers.get("if-none-match") == etag:
+        return Response(status_code=304, headers=headers)
+    if thumb:
+        return FileResponse(path, media_type=THUMB_MIMETYPE, headers=headers)
+    # Streamed from disk, with Range support (video, large PDFs).
+    return FileResponse(
+        path,
         media_type=doc.get("content_type"),
-        headers={"Content-Disposition": disposition},
+        filename=doc.get("file_name") or "file",
+        content_disposition_type="attachment",
+        headers=headers,
     )
 
 
@@ -320,89 +249,10 @@ async def get_list(
 
 @whitelist()
 async def remove(file_id: str) -> bool:
-    """Whitelisted method: Delete a file.
+    """Whitelisted method: Delete a file (permission-checked by delete_doc).
 
-    Deletes only through grunt.delete_doc(), not a manual storage.delete()
-    here first — that used to run unconditionally via grunt.db (which
-    bypasses permission checks) *before* delete_doc()'s own guard had a
-    chance to reject the request, so a non-owner could destroy someone
-    else's file's actual content even though the DB row deletion would
-    correctly be denied. File.before_delete() already deletes the physical
-    file as a required (non-best-effort) step of the guarded pipeline.
+    The blob stays until the storage garbage collector finds nothing — no
+    other File row, no trashed snapshot — pointing at it (grunt.storage.gc).
     """
     await grunt.delete_doc("File", file_id)
     return True
-
-
-@whitelist(roles=["System Manager"])
-async def dedupe_storage(backfill: bool = True) -> dict[str, Any]:
-    """Admin op: make byte-identical File rows share one stored blob.
-
-    1. (``backfill``) fill ``content_hash`` for rows missing it, reading the blob.
-    2. Group rows by (content_hash, file_size); in each group repoint every
-       row's ``path`` to the oldest row's path and delete the blobs that no
-       row references any more.
-
-    Rows, ids, URLs and per-row metadata are untouched — only disk is reclaimed.
-    ``File.before_delete`` is ref-counted, so a later delete of any shared row
-    keeps the blob until the last row goes.
-    """
-    storage = get_storage_backend()
-
-    rows: list[File] = []
-    page = 1
-    while True:
-        batch = await File.objects.order_by("created_at").limit(500).page(page).all()
-        if not batch:
-            break
-        rows.extend(batch)
-        page += 1
-
-    backfilled = 0
-    if backfill:
-        for r in rows:
-            if r.content_hash or not r.path:
-                continue
-            try:
-                data = await storage.get(r.path)
-            except Exception:
-                continue
-            r.content_hash = hashlib.sha256(data).hexdigest()
-            await grunt.save_doc("File", str(r.name), {"content_hash": r.content_hash})
-            backfilled += 1
-
-    groups: dict[tuple[str, int], list[File]] = {}
-    for r in rows:
-        if r.content_hash and r.path:
-            groups.setdefault((r.content_hash, r.file_size), []).append(r)
-
-    merged_rows = freed_blobs = freed_bytes = 0
-    for (_hash, size), group in groups.items():
-        if len(group) < 2:
-            continue
-        group.sort(key=lambda r: str(r.created_at or ""))
-        canonical = group[0]
-        stale_paths: set[str] = set()
-        for r in group[1:]:
-            if r.path == canonical.path:
-                continue
-            stale_paths.add(r.path)
-            await grunt.save_doc("File", str(r.name), {"path": canonical.path})
-            r.path = canonical.path
-            merged_rows += 1
-        for stale in stale_paths:
-            if await File.objects.filter(path=stale).count() == 0:
-                try:
-                    await storage.delete(stale)
-                except Exception:
-                    continue
-                freed_blobs += 1
-                freed_bytes += size
-
-    return {
-        "backfilled_hashes": backfilled,
-        "duplicate_groups": sum(1 for g in groups.values() if len(g) > 1),
-        "merged_rows": merged_rows,
-        "freed_blobs": freed_blobs,
-        "freed_bytes": freed_bytes,
-    }

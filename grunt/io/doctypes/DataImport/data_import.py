@@ -11,8 +11,8 @@ class DataImport(Document):
 
     async def get_preview(self) -> dict[str, Any]:
         """Extract headers and first 5 data rows for column mapping."""
-        file_path = await self._resolve_file_path()
-        data = self._read_file(file_path, limit=6)  # header + 5 rows
+        file_path, file_name = await self._resolve_file_path()
+        data = self._read_file(file_path, file_name, limit=6)  # header + 5 rows
         dt = await self.grunt.get_meta(self.doctype_name)
         if dt is None:
             from grunt.errors import not_found
@@ -51,14 +51,14 @@ class DataImport(Document):
         await self.session.commit()
 
         try:
-            file_path = await self._resolve_file_path()
+            file_path, file_name = await self._resolve_file_path()
         except FileNotFoundError as exc:
             self.status = "Failed"
             self.error_log = json.dumps([{"row": 0, "error": str(exc)}])
             await self.session.commit()
             return
 
-        all_rows = self._read_file(file_path)
+        all_rows = self._read_file(file_path, file_name)
         if not all_rows:
             self.status = "Failed"
             self.error_log = json.dumps([{"row": 0, "error": "File is empty"}])
@@ -200,8 +200,8 @@ class DataImport(Document):
         except Exception:
             log.exception("suppressed_error")
 
-    async def _resolve_file_path(self) -> Path:
-        """Resolve the attached file reference to an absolute Path.
+    async def _resolve_file_path(self) -> tuple[Path, str]:
+        """Resolve the attached file reference to its blob's path and file name.
 
         Only resolves through a real `File` document + the storage
         backend — `self.file` is a plain string field an authenticated
@@ -212,41 +212,30 @@ class DataImport(Document):
         path readable by the app process) would be "imported" and its
         contents surfaced back through get_preview()'s headers/rows.
         """
-        file_id: str | None = None
+        from urllib.parse import parse_qs, urlparse
 
-        if self.file.startswith("/api/v1/files/"):
-            file_id = self.file.rstrip("/").split("/")[-1]
-        elif "file_id=" in self.file:
-            from urllib.parse import parse_qs, urlparse
-
-            qs = parse_qs(urlparse(self.file).query)
-            ids = qs.get("file_id", [])
-            file_id = ids[0] if ids else None
-
+        file_id = parse_qs(urlparse(self.file).query).get("file_id", [None])[0]
         if file_id:
             doc = await self.grunt.find_doc("File", file_id)
-            if doc:
-                from grunt.storage.backends import get_storage_backend
+            if doc and doc.get("content_hash"):
+                from grunt.storage import get_storage_backend
 
-                storage = get_storage_backend()
-                rel = doc["path"]
-                # LocalStorageBackend exposes _root; resolve absolute path
-                root = getattr(storage, "_root", None)
-                abs_path = Path(root) / rel if root else Path(rel)
-                if abs_path.exists():
-                    return abs_path
+                path = get_storage_backend().path(doc["content_hash"])
+                if path.exists():
+                    # Blobs carry no extension — the importer goes by the name.
+                    return path, doc["file_name"]
 
         raise FileNotFoundError(f"Import file not found: {self.file}")
 
     @staticmethod
-    def _read_file(file_path: Path, limit: int | None = None) -> list[list[Any]]:
+    def _read_file(file_path: Path, file_name: str, limit: int | None = None) -> list[list[Any]]:
         """Read CSV or XLSX file via the io importer registry."""
         from grunt.io.importers.registry import get_importer_for_file
 
-        imp = get_importer_for_file(file_path.name)
+        imp = get_importer_for_file(file_name)
         if imp is None:
             raise ValueError(
-                _("Unsupported file format: %(format)s") % {"format": file_path.suffix}
+                _("Unsupported file format: %(format)s") % {"format": Path(file_name).suffix}
             )
         return imp.read(file_path, limit=limit)
 

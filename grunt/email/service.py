@@ -525,32 +525,13 @@ class EmailService:
     @staticmethod
     async def store_bytes(content: bytes, filename: str, mimetype: str | None) -> str | None:
         """Save raw bytes through the storage backend as a private File; return its URL."""
-        import grunt
-        from grunt.storage import get_storage_backend
+        from grunt.storage import store
 
         try:
-            path = await get_storage_backend().save(
-                content=content,
-                filename=filename or "attachment",
-                content_type=mimetype or "application/octet-stream",
-            )
-            fdoc = await grunt.new_doc(
-                "File",
-                {
-                    "file_name": filename or "attachment",
-                    "path": path,
-                    "content_type": mimetype or "application/octet-stream",
-                    "file_size": len(content),
-                    # Mail attachments are private; the UI opens them via
-                    # signed URLs (grunt.storage.signing).
-                    "is_public": False,
-                    "file_url": "",
-                },
-            )
-            fid = fdoc["name"]
-            url = f"/api/v1/method/grunt.storage.doctypes.File.file.get_content?file_id={fid}"
-            await grunt.db.set_value("File", fid, {"file_url": url})
-            return url
+            # Mail attachments are private; the UI opens them via signed URLs
+            # (grunt.storage.signing).
+            fdoc = await store(content, filename or "attachment", mimetype)
+            return fdoc["file_url"]
         except Exception:
             log.exception("email.store_bytes_failed")
             return None
