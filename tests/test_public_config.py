@@ -11,6 +11,7 @@ _KEYS = {
     "app_name",
     "app_logo",
     "language",
+    "languages",
     "timezone",
     "date_format",
     "allow_user_registration",
@@ -26,6 +27,9 @@ async def test_public_config_is_guest_accessible_and_complete(client):
     # defaults from the permissive conftest seed
     assert isinstance(data["app_name"], str) and data["app_name"]
     assert data["allow_user_registration"] is True
+    codes = {lang["code"] for lang in data["languages"]}
+    assert {"en", "uk"} <= codes
+    assert data["language"] in codes
 
 
 @pytest.mark.asyncio

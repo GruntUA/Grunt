@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { ref, computed, watch, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Loader2, CheckCircle, AlertCircle, X, Zap, Pencil } from '@lucide/vue'
+import { Loader2, CheckCircle, AlertTriangle, X, Zap } from '@lucide/vue'
 import type { DocField } from '@/types'
 import { getNonPhysicalTypeSet, getAsyncFieldComponent } from '@/core/fieldRegistry'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { docsApi, type DeleteImpact } from '@/core/api/docs'
 import { LIST_BULK_UI } from '@/core/composables/useListBulkUi'
@@ -225,39 +227,32 @@ async function submitUpdate() {
 
   <!-- Delete confirmation -->
   <Dialog v-model:open="showDeleteModal">
-    <DialogContent class="max-w-sm w-full mx-4 p-0 px-6 pb-6 pt-1">
-    <DialogHeader>
-      <div class="flex items-center gap-3">
-        <div class="size-10 rounded-full bg-destructive/10 flex items-center justify-center border border-destructive/20">
-          <AlertCircle class="size-5 text-destructive" />
-        </div>
-        <DialogTitle class="font-semibold text-lg">{{ t('Confirm Deletion') }}</DialogTitle>
-      </div>
-    </DialogHeader>
-
-    <div class="py-2 flex flex-col gap-3">
-      <p class="text-muted-foreground leading-relaxed">
-        {{ t('You are about to delete {n} records. This cannot be undone.').replace('{n}', String(displayCount)) }}
-      </p>
+    <DialogContent class="sm:max-w-md">
+      <DialogHeader>
+        <DialogTitle>{{ t('Confirm Deletion') }}</DialogTitle>
+        <DialogDescription>
+          {{ t('You are about to delete {n} records. This cannot be undone.').replace('{n}', String(displayCount)) }}
+        </DialogDescription>
+      </DialogHeader>
 
       <div v-if="impactLoading" class="flex items-center gap-2 text-muted-foreground">
         <Loader2 class="size-4 animate-spin" /> {{ t('Checking links…') }}
       </div>
 
-      <template v-else-if="canReplace && hasRefs">
+      <div v-else-if="canReplace && hasRefs" class="grid gap-4">
         <p class="text-muted-foreground">
           {{ t('Other documents link to the selected records') }}
-          (<span class="font-semibold text-foreground">{{ impact!.total }}</span>).
+          (<span class="font-medium text-foreground">{{ impact!.total }}</span>).
         </p>
-        <ul class="max-h-32 overflow-y-auto rounded-md border border-border/60 bg-muted/30 divide-y divide-border/50">
+        <ul class="max-h-32 overflow-y-auto rounded-md border divide-y">
           <li v-for="g in impact!.groups" :key="`${g.doctype}-${g.field}`"
             class="flex items-center justify-between gap-3 px-3 py-1.5">
             <span class="truncate">{{ groupLine(g) }}</span>
-            <span class="shrink-0 tabular-nums font-semibold text-muted-foreground">{{ g.count }}</span>
+            <span class="shrink-0 tabular-nums text-muted-foreground">{{ g.count }}</span>
           </li>
         </ul>
-        <div class="flex flex-col gap-1.5">
-          <label class="font-medium">{{ t('Replace with') }}</label>
+        <div class="grid gap-2">
+          <Label>{{ t('Replace with') }}</Label>
           <component
             :is="linkComponent"
             :field="replaceField"
@@ -268,114 +263,90 @@ async function submitUpdate() {
             {{ t('The replacement cannot be one of the records being deleted.') }}
           </p>
         </div>
-        <label v-if="!canReassign" class="flex items-start gap-2 cursor-pointer">
-          <Checkbox :model-value="ackDangling" class="mt-0.5"
+        <Label v-if="!canReassign" class="items-start font-normal text-muted-foreground">
+          <Checkbox :model-value="ackDangling"
             @update:model-value="ackDangling = $event === true" />
-          <span class="text-muted-foreground">
-            {{ t('Delete without replacement — {n} links will become invalid.').replace('{n}', String(impact!.total)) }}
-          </span>
-        </label>
-      </template>
-    </div>
+          {{ t('Delete without replacement — {n} links will become invalid.').replace('{n}', String(impact!.total)) }}
+        </Label>
+      </div>
 
-    <DialogFooter>
-      <div class="flex gap-2 w-full pt-2">
-        <Button variant="outline" class="flex-1" @click="showDeleteModal = false">{{ t('Cancel') }}</Button>
-        <Button variant="destructive" class="flex-1" :disabled="!canConfirmDelete" @click="confirmDelete">
+      <DialogFooter>
+        <Button variant="outline" @click="showDeleteModal = false">{{ t('Cancel') }}</Button>
+        <Button variant="destructive" :disabled="!canConfirmDelete" @click="confirmDelete">
           {{ canReassign ? t('Delete and reassign') : t('Delete') }}
         </Button>
-      </div>
-    </DialogFooter>
+      </DialogFooter>
     </DialogContent>
   </Dialog>
 
   <!-- Fast delete confirmation (System Manager) -->
   <Dialog v-model:open="showFastDeleteModal">
-    <DialogContent class="max-w-sm w-full mx-4 p-0 px-6 pb-6 pt-1">
-    <DialogHeader>
-      <div class="flex items-center gap-3">
-        <div class="size-10 rounded-full bg-destructive/10 flex items-center justify-center border border-destructive/20">
-          <Zap class="size-5 text-destructive" />
-        </div>
-        <DialogTitle class="font-semibold text-lg">{{ t('Fast delete') }}</DialogTitle>
-      </div>
-    </DialogHeader>
+    <DialogContent class="sm:max-w-md">
+      <DialogHeader>
+        <DialogTitle>{{ t('Fast delete') }}</DialogTitle>
+        <DialogDescription>
+          {{ t('Delete {n} records directly via SQL — no lifecycle hooks, no per-record ActivityLog.').replace('{n}', String(displayCount)) }}
+        </DialogDescription>
+      </DialogHeader>
 
-    <div class="py-2 flex flex-col gap-3">
-      <p class="text-muted-foreground leading-relaxed">
-        {{ t('Delete {n} records directly via SQL — no lifecycle hooks, no per-record ActivityLog.').replace('{n}', String(displayCount)) }}
-      </p>
-      <div class="p-3 bg-destructive/5 border border-destructive/20 rounded-lg">
-        <p class="text-destructive font-semibold">
-          ⚡ {{ t('This cannot be undone. before_delete / after_delete hooks do not run. Use only to bulk-clean test or imported data.') }}
-        </p>
-      </div>
-    </div>
+      <Alert variant="destructive">
+        <AlertTriangle />
+        <AlertDescription>
+          {{ t('This cannot be undone. before_delete / after_delete hooks do not run. Use only to bulk-clean test or imported data.') }}
+        </AlertDescription>
+      </Alert>
 
-    <DialogFooter>
-      <div class="flex gap-2 w-full pt-2">
-        <Button variant="outline" class="flex-1" @click="showFastDeleteModal = false">{{ t('Cancel') }}</Button>
-        <Button variant="destructive" class="flex-1" @click="showFastDeleteModal = false; emit('fastDelete')">
-          <Zap class="size-4 mr-1" />
+      <DialogFooter>
+        <Button variant="outline" @click="showFastDeleteModal = false">{{ t('Cancel') }}</Button>
+        <Button variant="destructive" @click="showFastDeleteModal = false; emit('fastDelete')">
+          <Zap />
           {{ t('Delete') }}
         </Button>
-      </div>
-    </DialogFooter>
+      </DialogFooter>
     </DialogContent>
   </Dialog>
 
   <!-- Bulk update dialog -->
   <Dialog v-model:open="showUpdateModal">
-    <DialogContent class="max-w-sm w-full mx-4 p-0 px-6 pb-6 pt-1">
-    <DialogHeader>
-      <div class="flex items-center gap-3">
-        <div class="size-10 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20">
-          <Pencil class="size-5 text-primary" />
-        </div>
-        <DialogTitle class="font-semibold text-lg">{{ t('Bulk Update') }}</DialogTitle>
-      </div>
-    </DialogHeader>
-
-    <div class="flex flex-col gap-5 py-2">
-      <div class="flex flex-col gap-2">
-        <label class="font-semibold uppercase tracking-[0.1em] text-muted-foreground">{{ t('Choose a field') }}</label>
-        <Select v-model="updateField">
-          <SelectTrigger class="w-full">
-            <SelectValue :placeholder="t('Select field...')" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem v-for="opt in updatableFields" :key="opt.fieldname" :value="opt.fieldname">{{ opt.label }}</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-      <div class="flex flex-col gap-2">
-        <label class="font-semibold uppercase tracking-[0.1em] text-muted-foreground">{{ t('New value') }}</label>
-        <component
-          :is="valueComponent"
-          v-if="selectedField"
-          :key="selectedField.fieldname"
-          :field="selectedField"
-          :model-value="updateValue"
-          @update:model-value="updateValue = $event"
-        />
-      </div>
-
-      <div class="p-3 bg-muted/30 rounded-lg border border-border/40">
-        <p class="text-muted-foreground leading-tight italic">
+    <DialogContent class="sm:max-w-md">
+      <DialogHeader>
+        <DialogTitle>{{ t('Bulk Update') }}</DialogTitle>
+        <DialogDescription>
           {{ t('This updates the field on all {n} selected records.').replace('{n}', String(displayCount)) }}
-        </p>
-      </div>
-    </div>
+        </DialogDescription>
+      </DialogHeader>
 
-    <DialogFooter>
-      <div class="flex gap-2 w-full pt-2">
-        <Button variant="outline" class="flex-1" @click="showUpdateModal = false">{{ t('Cancel') }}</Button>
-        <Button class="flex-1" :disabled="!updateField || updateSaving" @click="submitUpdate">
-          <Loader2 v-if="updateSaving" class="size-4 animate-spin mr-2" />
-          <span>{{ t('Apply') }}</span>
-        </Button>
+      <div class="grid gap-4">
+        <div class="grid gap-2">
+          <Label>{{ t('Choose a field') }}</Label>
+          <Select v-model="updateField">
+            <SelectTrigger class="w-full">
+              <SelectValue :placeholder="t('Select field...')" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem v-for="opt in updatableFields" :key="opt.fieldname" :value="opt.fieldname">{{ opt.label }}</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div v-if="selectedField" class="grid gap-2">
+          <Label>{{ t('New value') }}</Label>
+          <component
+            :is="valueComponent"
+            :key="selectedField.fieldname"
+            :field="selectedField"
+            :model-value="updateValue"
+            @update:model-value="updateValue = $event"
+          />
+        </div>
       </div>
-    </DialogFooter>
+
+      <DialogFooter>
+        <Button variant="outline" @click="showUpdateModal = false">{{ t('Cancel') }}</Button>
+        <Button :disabled="!updateField || updateSaving" @click="submitUpdate">
+          <Loader2 v-if="updateSaving" class="animate-spin" />
+          {{ t('Apply') }}
+        </Button>
+      </DialogFooter>
     </DialogContent>
   </Dialog>
 </template>
