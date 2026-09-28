@@ -203,7 +203,13 @@ def db_trim_tables(doctype: str | None, dry_run: bool, quiet: bool, site: str | 
                     await doctype_registry.load_all(session)
 
                     async with grunt.system_context(session, eng):
-                        # Fetch target Meta(s)
+                        from grunt.document.meta import Meta
+
+                        all_metas = [
+                            Meta(dt)
+                            for dt in await doctype_registry.list_all()
+                            if not dt.is_virtual
+                        ]
                         if doctype:
                             target_meta = await grunt.get_meta(doctype)
                             if target_meta is None:
@@ -211,15 +217,23 @@ def db_trim_tables(doctype: str | None, dry_run: bool, quiet: bool, site: str | 
                                 raise SystemExit(1)
                             metas = [target_meta]
                         else:
-                            from grunt.document.meta import Meta
+                            metas = all_metas
 
-                            all_dts = await doctype_registry.list_all()
-                            metas = [Meta(dt) for dt in all_dts]
+                # Several DocTypes may share a table (table_name) — a column is kept
+                # while any of them still defines it.
+                shared: dict[str, set[str]] = {}
+                for m in all_metas:
+                    shared.setdefault(m.table_name, set()).update(m.get_valid_columns())
 
                 # Trim only after the session is closed: its transaction (BEGIN
                 # IMMEDIATE) would lock out trim_table's own connection.
                 for m in metas:
-                    await m.trim_table(engine=eng, dry_run=dry_run, quiet=quiet)
+                    await m.trim_table(
+                        engine=eng,
+                        dry_run=dry_run,
+                        quiet=quiet,
+                        keep=shared.get(m.table_name, ()),
+                    )
             finally:
                 current_site.reset(token)
 

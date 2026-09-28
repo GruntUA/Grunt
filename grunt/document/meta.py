@@ -8,6 +8,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
+    from collections.abc import Iterable
+
     from grunt.metadata.doctype import DocType, DocTypeTreeView
     from grunt.metadata.field import DocField
 
@@ -220,8 +222,17 @@ class Meta:
             ]
         return self._list_view_fields
 
-    async def trim_table(self, engine: Any, dry_run: bool = False, quiet: bool = False) -> None:
+    async def trim_table(
+        self,
+        engine: Any,
+        dry_run: bool = False,
+        quiet: bool = False,
+        keep: Iterable[str] = (),
+    ) -> None:
         """Drop columns from this DocType's database table that are not defined in metadata.
+
+        ``keep`` — columns of other DocTypes stored in the same table (``table_name``),
+        which must survive too.
         WARNING: Dropping columns is irreversible and could lead to data loss.
         """
         if self.doc.is_virtual:
@@ -240,7 +251,7 @@ class Meta:
                 return
 
             db_cols = {c["name"] for c in insp.get_columns(table_name)}
-            valid_cols = set(self.get_valid_columns())
+            valid_cols = set(self.get_valid_columns()) | set(keep)
 
             to_drop = db_cols - valid_cols
 

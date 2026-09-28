@@ -65,3 +65,20 @@ async def test_valid_columns_include_system_columns(ctx):
 
     child = set((await grunt.get_meta("UserRole")).get_valid_columns())
     assert {"parent_name", "parent_doctype", "parent_field", "idx"} <= child
+
+
+@pytest.mark.asyncio
+async def test_trim_keeps_columns_of_doctypes_sharing_the_table(ctx, engine):
+    """``keep`` — another DocType on the same table_name still defines the column."""
+    meta = await grunt.get_meta("User")
+    table_name = meta.table_name
+    async with engine.begin() as conn:
+        await conn.execute(text(f'ALTER TABLE "{table_name}" ADD COLUMN "shared_col" TEXT'))
+
+    await meta.trim_table(engine, quiet=True, keep={"shared_col"})
+
+    async with engine.begin() as conn:
+        cols = await conn.run_sync(
+            lambda c: {col["name"] for col in inspect(c).get_columns(table_name)}
+        )
+    assert "shared_col" in cols
