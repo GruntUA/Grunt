@@ -45,6 +45,9 @@ export interface TaskEntry {
 
 const _tasks = ref<Map<string, TaskEntry>>(new Map())
 
+/** Height of the open task panel (0 when hidden) — toasts stack above it. */
+const _panelHeight = ref(0)
+
 // IDs scheduled for auto-removal so we don't pile up timers.
 const _removalTimers = new Map<string, ReturnType<typeof setTimeout>>()
 
@@ -175,5 +178,6 @@ export function useTaskTracker() {
     done,
     dismiss,
     restore,
+    panelHeight: _panelHeight,
   }
 }

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import { ref, computed, onMounted, watch } from 'vue'
-import { useNow } from '@vueuse/core'
+import { useElementSize, useNow } from '@vueuse/core'
 import { useQueryClient } from '@tanstack/vue-query'
 import { CircleCheck, CircleAlert, ChevronDown, ChevronUp, X } from '@lucide/vue'
 import { useTaskTracker, type TaskEntry } from '@/core/composables/useTaskTracker'
@@ -19,6 +19,10 @@ const collapsed = ref(false)
 const now = useNow({ interval: 1000 })
 
 const visible = computed(() => tracker.count.value > 0)
+
+const panel = ref<HTMLElement | null>(null)
+const { height } = useElementSize(panel, undefined, { box: 'border-box' })
+watch(height, (h) => { tracker.panelHeight.value = panel.value ? h : 0 })
 
 onMounted(() => {
   if (localStorage.getItem('grunt_token')) void tracker.restore()
@@ -66,7 +70,8 @@ function eta(task: TaskEntry): string {
     >
       <div
         v-if="visible"
-        class="fixed right-4 bottom-4 z-40 w-80 overflow-hidden rounded-lg border bg-popover text-popover-foreground shadow-md"
+        ref="panel"
+        class="fixed right-6 bottom-6 z-40 w-80 overflow-hidden rounded-lg border bg-popover text-popover-foreground shadow-md"
       >
         <div class="flex items-center gap-2 border-b px-3 py-2">
           <Spinner v-if="tracker.hasActive.value" class="text-muted-foreground" />

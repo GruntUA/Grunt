@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useQueryClient } from '@tanstack/vue-query'
 import { RouterView } from 'vue-router'
 import GruntDialog from '@/components/desk/GruntDialog.vue'
@@ -16,6 +16,7 @@ import OfflineQueueSheet from '@/components/layout/OfflineQueueSheet.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useServerError } from '@/core/composables/useServerError'
 import { useColorMode } from '@/core/composables/useColorMode'
+import { useTaskTracker } from '@/core/composables/useTaskTracker'
 import { CloudUpload, WifiOff } from '@lucide/vue'
 import { Toaster } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
@@ -32,6 +33,11 @@ const { state: serverErrorState, close: closeServerError } = useServerError()
 const queueOpen = ref(false)
 const auth = useAuthStore()
 const queryClient = useQueryClient()
+
+// Toasts stack above the background-task panel (both live bottom-right).
+const taskPanelHeight = useTaskTracker().panelHeight
+const toastOffset = computed(() =>
+  taskPanelHeight.value ? { bottom: 24 + taskPanelHeight.value + 8 } : undefined)
 watch(
   () => auth.user?.email,
   async (email) => {
@@ -90,7 +96,8 @@ onUnmounted(() => {
       <OfflineQueueSheet v-model:open="queueOpen" />
 
       <RouterView />
-      <Toaster position="bottom-right" :theme="isDark ? 'dark' : 'light'" />
+      <Toaster position="bottom-right" :theme="isDark ? 'dark' : 'light'"
+        :offset="toastOffset" :mobile-offset="toastOffset" />
 
       <CommandPalette />
       <PWAInstallPrompt />
