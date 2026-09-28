@@ -116,6 +116,7 @@ function handleRealtimeEvent(msg: RealtimeEvent) {
         description: msg.data.description as string | undefined,
         unit: msg.data.unit as 'bytes' | null | undefined,
         started_at: msg.data.started_at as number | undefined,
+        cancellable: msg.data.cancellable as boolean | undefined,
       })
       break
     }
@@ -125,7 +126,7 @@ function handleRealtimeEvent(msg: RealtimeEvent) {
       taskTracker.done({
         task_id: msg.data.task_id as string | undefined,
         title: msg.data.title as string | undefined,
-        status: (msg.data.status as 'done' | 'error') ?? 'done',
+        status: (msg.data.status as 'done' | 'error' | 'cancelled') ?? 'done',
         message: msg.data.message as string | undefined,
         doctype: msg.data.doctype as string | null | undefined,
       })

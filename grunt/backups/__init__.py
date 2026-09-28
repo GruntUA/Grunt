@@ -32,10 +32,14 @@ from compression import zstd
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from grunt.i18n import _
 from grunt.log import log
 from grunt.progress import Progress
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 KINDS = ("database", "files", "config")
 # zstd 9: ~40% smaller than gzip 6 and faster; 19 squeezes more at ~25× the time.
@@ -248,40 +252,52 @@ def _create_backup_sync(
     uploads = site_dir(site) / "uploads"
     with_files = with_files and uploads.is_dir()
 
-    # The bar is measured in bytes read: a SQLite file twice (snapshot, then
-    # compressing it) plus every uploaded file; pg_dump shows its stage only.
+    if with_database and backend not in ("sqlite", "postgresql"):
+        raise BackupError(_("Backups of %(backend)s are not supported") % {"backend": backend})
+    env = site_dir(site) / ".env"
+
+    # Quickest first — (bytes read, final path, make it): the config is a copy
+    # of one small file; the database and the files go by size. The bar is
+    # measured in those bytes: a SQLite file twice (snapshot, then compressing
+    # it), every uploaded file; pg_dump's size is unknown — it shows its stage only.
     progress.set(stage=_("Preparing"))
-    total = 0
+    steps: list[tuple[int, Path, Callable[[Path], object]]] = []
+    if with_config and env.exists():
+        steps.append((0, out / f"{backup_id}-config.env", lambda part: shutil.copyfile(env, part)))
     if with_database and backend == "sqlite":
-        total += 2 * Path(url.database).stat().st_size
+        db_path = Path(url.database)
+        steps.append(
+            (
+                2 * db_path.stat().st_size,
+                out / f"{backup_id}-database.sqlite.zst",
+                lambda part: _backup_sqlite(db_path, part, level, progress),
+            )
+        )
+    if with_database and backend == "postgresql":
+        steps.append(
+            (
+                0,
+                out / f"{backup_id}-database.pgdump",
+                lambda part: _backup_postgres(url, part, level, progress),
+            )
+        )
     if with_files:
-        total += _tree_size(uploads)
-    progress.set(total=total)
+        steps.append(
+            (
+                _tree_size(uploads),
+                out / f"{backup_id}-files.tar.zst",
+                lambda part: _backup_files(uploads, part, level, progress),
+            )
+        )
+    steps.sort(key=lambda step: step[0])  # stable: the config stays ahead of a pg_dump
+    progress.set(total=sum(size for size, _dest, _make in steps))
 
     _remove_stale_parts(out)
     made: list[Path] = []  # the final paths; each is written as its _part() first
     try:
-        if with_database and backend == "sqlite":
-            dest = out / f"{backup_id}-database.sqlite.zst"
+        for _size, dest, make in steps:
             made.append(dest)
-            _backup_sqlite(Path(url.database), _part(dest), level, progress)
-        elif with_database and backend == "postgresql":
-            dest = out / f"{backup_id}-database.pgdump"
-            made.append(dest)
-            _backup_postgres(url, _part(dest), level, progress)
-        elif with_database:
-            raise BackupError(_("Backups of %(backend)s are not supported") % {"backend": backend})
-
-        if with_files:
-            dest = out / f"{backup_id}-files.tar.zst"
-            made.append(dest)
-            _backup_files(uploads, _part(dest), level, progress)
-
-        env = site_dir(site) / ".env"
-        if with_config and env.exists():
-            dest = out / f"{backup_id}-config.env"
-            made.append(dest)
-            shutil.copyfile(env, _part(dest))
+            make(_part(dest))
         for path in made:
             os.chmod(_part(path), 0o600)
         for path in made:  # the set appears in the list only once it is complete

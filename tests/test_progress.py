@@ -57,3 +57,69 @@ def test_percent_never_reaches_100_before_done():
     p = progress_mod.Progress("x", user=None, total=10)
     p.advance(10)
     assert p.payload()["percent"] == 99
+
+
+class FakeRedis:
+    def __init__(self, store):
+        self.store = store
+
+    async def set(self, key, value, ex=None):
+        self.store[key] = value
+
+    async def get(self, key):
+        return self.store.get(key)
+
+    async def exists(self, key):
+        return int(key in self.store)
+
+    async def delete(self, *keys):
+        for key in keys:
+            self.store.pop(key, None)
+
+    async def aclose(self):
+        pass
+
+
+@pytest.fixture
+def redis_store(monkeypatch, sent):
+    store: dict = {}
+
+    async def fake_redis():
+        return FakeRedis(store)
+
+    monkeypatch.setattr(progress_mod, "_redis", fake_redis)
+    return store
+
+
+def _as_user(monkeypatch, email):
+    from grunt.app import grunt
+
+    monkeypatch.setattr(type(grunt.session), "user", property(lambda self: email))
+
+
+@pytest.mark.asyncio
+async def test_cancel_stops_the_task_and_reports_cancelled(sent, redis_store, monkeypatch):
+    _as_user(monkeypatch, "a@x")
+    async with track_progress("Backup", user="a@x", total=100, cancellable=True) as p:
+        await progress_mod.asyncio.sleep(0)  # flusher stores the task
+        assert p.payload()["cancellable"] is True
+        assert await progress_mod.cancel_task(p.task_id) is True
+        await progress_mod.asyncio.sleep(progress_mod.FLUSH_SECONDS + 0.05)
+        p.advance(1)  # raises TaskCancelledError; track_progress swallows it
+        raise AssertionError("not reached")  # pragma: no cover
+    assert sent[-1][1] == "task_done" and sent[-1][2]["status"] == "cancelled"
+    assert redis_store == {}  # state and cancel flag are cleaned up
+
+
+@pytest.mark.asyncio
+async def test_someone_elses_task_cannot_be_cancelled(sent, redis_store, monkeypatch):
+    async with track_progress("Backup", user="a@x", cancellable=True) as p:
+        await progress_mod.asyncio.sleep(0)
+        _as_user(monkeypatch, "b@x")
+        assert await progress_mod.cancel_task(p.task_id) is False
+
+
+@pytest.mark.asyncio
+async def test_without_redis_a_task_is_not_cancellable(sent):
+    async with track_progress("Backup", user="a@x", cancellable=True) as p:
+        assert p.payload()["cancellable"] is False

@@ -353,9 +353,7 @@ async def test_submit_queues_confirmation_email_to_submitter_and_notify_list(ctx
     )
     await ctx.db._session().commit()
 
-    with patch(
-        "grunt.email.templates.queue", new=AsyncMock(return_value="q1")
-    ) as mock_queue:
+    with patch("grunt.email.templates.queue", new=AsyncMock(return_value="q1")) as mock_queue:
         result = await web_form_service.submit(
             route="email-form",
             data={"title": "Hello", "email": "submitter@example.com"},

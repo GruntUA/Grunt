@@ -17970,3 +17970,15 @@ msgstr "Вивантаження бази даних"
 #: grunt/grunt/backups/__init__.py
 msgid "Archiving files"
 msgstr "Архівування файлів"
+
+#: grunt/frontend/src/core/composables/useTaskTracker.ts
+msgid "Cancelling…"
+msgstr "Скасування…"
+
+#: grunt/frontend/src/components/desk/TaskProgressPanel.vue
+msgid "Cancel task"
+msgstr "Скасувати задачу"
+
+#: grunt/frontend/src/components/desk/TaskProgressPanel.vue
+msgid "Stop «{title}»? What is done so far is discarded."
+msgstr "Зупинити «{title}»? Уже виконане буде відкинуто."

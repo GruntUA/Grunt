@@ -23,6 +23,8 @@ const t = (key: string): string => i18n.global.t(key)
 
 // ── Data model ───────────────────────────────────────────────────────────────
 
+export type TaskStatus = 'active' | 'done' | 'error' | 'cancelled'
+
 export interface TaskEntry {
   /** Stable key — derived from title (trimmed lowercase) or explicit task_id. */
   id: string
@@ -36,7 +38,11 @@ export interface TaskEntry {
   /** DocType whose open list refreshes when the task is done. */
   doctype?: string | null
   /** 'active' while running, 'done' / 'error' after completion. */
-  status: 'active' | 'done' | 'error'
+  status: TaskStatus
+  /** The task stops on request (the panel shows a cancel button while it runs). */
+  cancellable?: boolean
+  /** Cancel was requested, the task hasn't stopped yet. */
+  cancelling?: boolean
   startedAt: number    // Date.now()
   updatedAt: number    // Date.now()
 }
@@ -67,6 +73,7 @@ function update(data: {
   percent?: number
   description?: string
   unit?: 'bytes' | null
+  cancellable?: boolean
   /** Server start time, epoch seconds — keeps the ETA right after a reload. */
   started_at?: number
 }) {
@@ -92,8 +99,10 @@ function update(data: {
     count,
     total,
     percent,
-    description: data.description ?? existing?.description,
+    description: existing?.cancelling ? existing.description : (data.description ?? existing?.description),
     unit: data.unit ?? existing?.unit,
+    cancellable: data.cancellable ?? existing?.cancellable,
+    cancelling: existing?.cancelling,
     status: percent >= 100 ? 'done' : 'active',
     startedAt: data.started_at ? data.started_at * 1000 : (existing?.startedAt ?? now),
     updatedAt: now,
@@ -109,7 +118,7 @@ function update(data: {
 function done(data: {
   task_id?: string
   title?: string
-  status?: 'done' | 'error'
+  status?: Exclude<TaskStatus, 'active'>
   message?: string
   doctype?: string | null
 }) {
@@ -121,12 +130,25 @@ function done(data: {
     ...existing,
     doctype: data.doctype ?? existing.doctype,
     status: data.status ?? 'done',
-    percent: data.status === 'error' ? existing.percent : 100,
-    description: data.message ?? existing.description,
+    percent: data.status === 'error' || data.status === 'cancelled' ? existing.percent : 100,
+    cancelling: false,
+    description: data.status === 'cancelled' ? t('Cancelled') : (data.message ?? existing.description),
     updatedAt: Date.now(),
   })
 
   _scheduleRemoval(id, data.status === 'error' ? 10_000 : 4_000)
+}
+
+/** Ask the server to stop a running task; the panel shows «Cancelling…» until it does. */
+async function cancel(id: string) {
+  const task = _tasks.value.get(id)
+  if (!task || task.status !== 'active') return
+  _tasks.value.set(id, { ...task, cancelling: true, description: t('Cancelling…') })
+  try {
+    await client.post('/api/v1/method/grunt.progress.cancel_task', { task_id: id })
+  } catch {
+    _tasks.value.set(id, { ...task, cancelling: false })
+  }
 }
 
 /** Immediately remove a task (user dismissed it). */
@@ -177,6 +199,7 @@ export function useTaskTracker() {
     update,
     done,
     dismiss,
+    cancel,
     restore,
     panelHeight: _panelHeight,
   }

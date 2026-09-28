@@ -237,3 +237,43 @@ def test_leftovers_of_a_killed_backup_are_removed(site):
 
     backups._remove_stale_parts(out)
     assert [p.name for p in out.iterdir()] == [fresh.name]
+
+
+@pytest.mark.asyncio
+async def test_cancelled_backup_leaves_nothing_behind(site):
+    from grunt.progress import Progress, TaskCancelledError
+
+    progress = Progress("Backup", user=None)
+    progress.cancelled = True  # as the flusher sets it after the user pressed cancel
+    with pytest.raises(TaskCancelledError):
+        await backups.create_backup(SITE, progress=progress)
+    assert list(backups.backups_dir(SITE).iterdir()) == []
+
+
+@pytest.mark.asyncio
+async def test_parts_are_made_quickest_first(site, monkeypatch):
+    order = []
+    real_sqlite, real_files, real_copy = (
+        backups._backup_sqlite,
+        backups._backup_files,
+        backups.shutil.copyfile,
+    )
+
+    def sqlite(*a):
+        order.append("database")
+        real_sqlite(*a)
+
+    def files(*a):
+        order.append("files")
+        real_files(*a)
+
+    def copy(src, dst):
+        order.append("config")
+        return real_copy(src, dst)
+
+    monkeypatch.setattr(backups, "_backup_sqlite", sqlite)
+    monkeypatch.setattr(backups, "_backup_files", files)
+    monkeypatch.setattr(backups.shutil, "copyfile", copy)
+    await backups.create_backup(SITE)
+    # the test uploads are a few bytes, smaller than the database
+    assert order == ["config", "files", "database"]

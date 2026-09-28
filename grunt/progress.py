@@ -16,7 +16,11 @@ The frontend's floating task panel (``TaskProgressPanel.vue``) shows it:
   again (:func:`active_tasks`);
 * on exit ``task_done`` is sent — ``error`` with the message if the block
   raised (the exception propagates), and with *doctype* the open list of that
-  DocType refreshes.
+  DocType refreshes;
+* with ``cancellable=True`` the panel offers a cancel button
+  (:func:`cancel_task`): the next :meth:`Progress.set`/:meth:`Progress.advance`
+  raises :class:`TaskCancelledError` — the work's own error handling cleans up —
+  and ``track_progress`` swallows it, reporting ``cancelled``.
 
 Without a *user* (a scheduled run) nothing is published; the calls are no-ops.
 """
@@ -47,6 +51,14 @@ def _key(user: str, task_id: str = "*") -> str:
     return f"grunt:progress:{user}:{task_id}"
 
 
+def _cancel_key(task_id: str) -> str:
+    return f"grunt:progress-cancel:{task_id}"
+
+
+class TaskCancelledError(Exception):
+    """Raised inside a tracked task once its user pressed cancel."""
+
+
 async def _redis():
     from grunt.config import settings
 
@@ -68,6 +80,7 @@ class Progress:
         total: int = 0,
         unit: Unit = None,
         doctype: str | None = None,
+        cancellable: bool = False,
     ):
         self.task_id = uuid.uuid4().hex
         self.title = title
@@ -78,6 +91,8 @@ class Progress:
         self.unit = unit
         self.doctype = doctype
         self.started_at = time.time()
+        self.cancellable = cancellable
+        self.cancelled = False  # set by the flusher when the user asked to cancel
         self._version = 0  # bumped on every change; the flusher publishes when it moved
 
     def set(self, *, done: int | None = None, total: int | None = None, stage: str | None = None):
@@ -88,10 +103,16 @@ class Progress:
         if stage is not None:
             self.stage = stage
         self._version += 1
+        self._check()
 
     def advance(self, n: int) -> None:
         self.done += n
         self._version += 1
+        self._check()
+
+    def _check(self) -> None:
+        if self.cancelled:
+            raise TaskCancelledError(self.title)
 
     def payload(self) -> dict[str, Any]:
         total = max(self.total, 0)
@@ -104,6 +125,7 @@ class Progress:
             "description": self.stage,
             "unit": self.unit,
             "started_at": self.started_at,
+            "cancellable": self.cancellable,
         }
 
 
@@ -126,6 +148,9 @@ async def _flush_loop(p: Progress, redis) -> None:
             if redis is not None:
                 with contextlib.suppress(Exception):
                     await redis.set(_key(p.user, p.task_id), json.dumps(data), ex=_TTL_SECONDS)
+        if p.cancellable and redis is not None and not p.cancelled:
+            with contextlib.suppress(Exception):
+                p.cancelled = bool(await redis.exists(_cancel_key(p.task_id)))
         await asyncio.sleep(FLUSH_SECONDS)
 
 
@@ -137,6 +162,7 @@ async def track_progress(
     total: int = 0,
     unit: Unit = None,
     doctype: str | None = None,
+    cancellable: bool = False,
 ) -> AsyncIterator[Progress]:
     """Report the progress of the enclosed work to *user* (see the module docstring)."""
     p = Progress(title, user=user, total=total, unit=unit, doctype=doctype)
@@ -147,10 +173,14 @@ async def track_progress(
     redis = None
     with contextlib.suppress(Exception):
         redis = await _redis()
+    # Cancelling goes through Redis (the button is pressed in the web process).
+    p.cancellable = cancellable and redis is not None
     flusher = asyncio.create_task(_flush_loop(p, redis))
     status, message = "done", None
     try:
         yield p
+    except TaskCancelledError:
+        status = "cancelled"
     except BaseException as exc:
         status, message = "error", str(exc) or type(exc).__name__
         raise
@@ -160,7 +190,7 @@ async def track_progress(
             await flusher
         if redis is not None:
             with contextlib.suppress(Exception):
-                await redis.delete(_key(user, p.task_id))
+                await redis.delete(_key(user, p.task_id), _cancel_key(p.task_id))
                 await redis.aclose()
         await _send(
             user,
@@ -192,3 +222,20 @@ async def active_tasks() -> list[dict[str, Any]]:
     finally:
         await redis.aclose()
     return sorted(tasks, key=lambda t: t.get("started_at", 0))
+
+
+@whitelist()
+async def cancel_task(task_id: str) -> bool:
+    """Ask the current user's running *task_id* to stop; False if there is no such task."""
+    from grunt.app import grunt
+
+    redis = await _redis()
+    if redis is None:
+        return False
+    try:
+        if not await redis.exists(_key(grunt.session.user, task_id)):
+            return False
+        await redis.set(_cancel_key(task_id), 1, ex=_TTL_SECONDS)
+        return True
+    finally:
+        await redis.aclose()

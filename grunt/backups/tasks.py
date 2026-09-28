@@ -9,7 +9,7 @@ from grunt.app import grunt
 from grunt.backups import DEFAULT_COMPRESSION_LEVEL, create_backup, list_backups, rotate
 from grunt.i18n import _, language_of, use_language
 from grunt.log import log
-from grunt.progress import track_progress
+from grunt.progress import TaskCancelledError, track_progress
 from grunt.site.manager import site_manager
 from grunt.tasks.broker import task
 
@@ -54,6 +54,9 @@ def is_due(site: str, interval_hours: int, now: datetime | None = None) -> bool:
 async def _run(site: str, *, keep: int, **options: Any) -> str:
     try:
         backup = await create_backup(site, **options)
+    except TaskCancelledError:
+        log.info("backup.cancelled", site=site)
+        raise
     except Exception as exc:
         await grunt.log_error(exc=exc, title="Backup failed", context="Background Task")
         raise
@@ -95,7 +98,7 @@ async def backup_now(
         await _end_transaction(session)
         with use_language(lang):
             async with track_progress(
-                _("Backup"), user=user, unit="bytes", doctype="Backup"
+                _("Backup"), user=user, unit="bytes", doctype="Backup", cancellable=True
             ) as progress:
                 return await _run(
                     site,

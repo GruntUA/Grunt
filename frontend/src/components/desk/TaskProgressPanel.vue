@@ -3,9 +3,10 @@ import { useI18n } from 'vue-i18n'
 import { ref, computed, onMounted, watch } from 'vue'
 import { useElementSize, useNow } from '@vueuse/core'
 import { useQueryClient } from '@tanstack/vue-query'
-import { CircleCheck, CircleAlert, ChevronDown, ChevronUp, X } from '@lucide/vue'
+import { CircleCheck, CircleAlert, CircleX, ChevronDown, ChevronUp, X } from '@lucide/vue'
 import { useTaskTracker, type TaskEntry } from '@/core/composables/useTaskTracker'
 import { toast } from '@/core/composables/useToast'
+import { useDialog } from '@/core/composables/useDialog'
 import { formatFileSize } from '@/core/fileUtils'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
@@ -38,6 +39,14 @@ watch(tracker.tasks, (tasks) => {
     if (task.status === 'error') toast.error(`${task.title}: ${task.description ?? t('Failed')}`)
   }
 })
+
+async function cancel(task: TaskEntry) {
+  const title = task.title
+  const message = t('Stop «{title}»? What is done so far is discarded.', { title }).replace('{title}', title)
+  if (await useDialog().confirm(message, t('Cancel task'))) {
+    await tracker.cancel(task.id)
+  }
+}
 
 function formatCount(task: TaskEntry): string {
   if (task.unit === 'bytes') return `${formatFileSize(task.count)} / ${formatFileSize(task.total)}`
@@ -91,6 +100,7 @@ function eta(task: TaskEntry): string {
             <div class="flex items-start gap-2">
               <Spinner v-if="task.status === 'active'" class="mt-px size-3.5 text-muted-foreground" />
               <CircleCheck v-else-if="task.status === 'done'" class="mt-px size-3.5 text-success" />
+              <CircleX v-else-if="task.status === 'cancelled'" class="mt-px size-3.5 text-muted-foreground" />
               <CircleAlert v-else class="mt-px size-3.5 text-destructive" />
               <div class="min-w-0 flex-1">
                 <p class="truncate font-medium">{{ task.title }}</p>
@@ -99,8 +109,14 @@ function eta(task: TaskEntry): string {
                   {{ task.description }}
                 </p>
               </div>
-              <Button variant="ghost" size="icon-xs" class="opacity-0 group-hover:opacity-100"
-                :aria-label="t('Dismiss')" @click="tracker.dismiss(task.id)">
+              <Button v-if="task.status !== 'active'" variant="ghost" size="icon-xs"
+                class="opacity-0 group-hover:opacity-100" :aria-label="t('Dismiss')"
+                @click="tracker.dismiss(task.id)">
+                <X />
+              </Button>
+              <Button v-else-if="task.cancellable" variant="ghost" size="icon-xs"
+                :disabled="task.cancelling" :aria-label="t('Cancel task')" :title="t('Cancel task')"
+                @click="cancel(task)">
                 <X />
               </Button>
             </div>
@@ -127,5 +143,8 @@ function eta(task: TaskEntry): string {
 }
 .pind-error :deep([data-slot='progress-indicator']) {
   background-color: var(--destructive);
+}
+.pind-cancelled :deep([data-slot='progress-indicator']) {
+  background-color: var(--muted-foreground);
 }
 </style>
