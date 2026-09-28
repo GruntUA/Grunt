@@ -136,7 +136,7 @@ class DocumentMetaRPCMixin:
         bookmarks = await _optional(
             grunt.get_list(
                 "Bookmark",
-                filters={**ref, "owner": grunt.session.user},
+                filters={**ref, "owner": grunt.get_user().email},
                 limit=1,
                 include_total=False,
             ),
@@ -146,7 +146,7 @@ class DocumentMetaRPCMixin:
         follows = await _optional(
             grunt.get_list(
                 "DocFollow",
-                filters={**ref, "user": grunt.session.user},
+                filters={**ref, "user": grunt.get_user().email},
                 limit=1,
                 include_total=False,
             ),

@@ -488,7 +488,7 @@ async def ws_echo(nonce: str) -> dict[str, Any]:
     from grunt.api.v1.ws import manager
 
     await manager.send_to_user(
-        grunt.session.user, {"event": WS_ECHO_EVENT, "data": {"nonce": nonce}}
+        grunt.get_user().email, {"event": WS_ECHO_EVENT, "data": {"nonce": nonce}}
     )
     return {"sent": True}
 

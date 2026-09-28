@@ -93,8 +93,9 @@ def redis_store(monkeypatch, sent):
 
 def _as_user(monkeypatch, email):
     import grunt
+    from tests.support import make_user
 
-    monkeypatch.setattr(type(grunt.session), "user", property(lambda self: email))
+    monkeypatch.setattr(grunt, "get_user", lambda: make_user(email))
 
 
 @pytest.mark.asyncio

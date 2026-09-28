@@ -99,7 +99,7 @@ async def upload(
         file_name=file.filename,
         content_hash=content_hash,
         file_size=len(content),
-        uploaded_by=grunt.session.user,
+        uploaded_by=grunt.get_user().email,
         attached_to_doctype=attached_to_doctype or None,
         attached_to_id=attached_to_id or None,
     ).first()
@@ -125,7 +125,7 @@ async def upload(
         content_type=content_type,
         content_hash=content_hash,
         file_size=len(content),
-        uploaded_by=grunt.session.user,
+        uploaded_by=grunt.get_user().email,
         is_public=is_public,
         attached_to_doctype=attached_to_doctype or None,
         attached_to_id=attached_to_id or None,

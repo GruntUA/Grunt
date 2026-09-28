@@ -79,7 +79,7 @@ class Customer(Document):
 
     async def after_insert(self) -> None:
         await grunt.notify(
-            users=[grunt.session.user],
+            users=[grunt.get_user().email],
             subject=f"New customer: {self.full_name}",
             message=f"Customer {self.full_name} was created.",
             doctype="Customer",

@@ -81,12 +81,12 @@ class DocumentCollaborationRPCMixin:
 
         # ── @mention notifications ──────────────────────────────────────────
         mentions = set(re.findall(r"@([\w.+\-]+@[\w.\-]+)", content))
-        mentions.discard(grunt.session.user)  # do not notify self
+        mentions.discard(grunt.get_user().email)  # do not notify self
         if mentions:
             for mention in mentions:
                 with use_language(await language_of(mention)):
                     subject = _("%(user)s mentioned you in a comment") % {
-                        "user": grunt.session.user
+                        "user": grunt.get_user().email
                     }
                 await grunt.notify(
                     users=[mention],
@@ -104,8 +104,8 @@ class DocumentCollaborationRPCMixin:
         """Delete a comment."""
 
         comment = await grunt.get_doc("Comment", comment_id)
-        user = grunt.session
-        if comment.get("owner") != user.user and not user.has_role("System Manager"):
+        user = grunt.get_user()
+        if comment.get("owner") != user.email and not user.has_role("System Manager"):
             raise HTTPException(status.HTTP_403_FORBIDDEN, detail=_("Not allowed"))
 
         await grunt.delete_doc("Comment", comment_id)
@@ -123,7 +123,7 @@ class DocumentCollaborationRPCMixin:
             filters={
                 "reference_doctype": doctype,
                 "reference_id": doc_id,
-                "owner": grunt.session.user,
+                "owner": grunt.get_user().email,
             },
             limit=1,
         )
@@ -160,7 +160,7 @@ class DocumentCollaborationRPCMixin:
             filters={
                 "reference_doctype": doctype,
                 "reference_id": doc_id,
-                "owner": grunt.session.user,
+                "owner": grunt.get_user().email,
             },
             limit=1,
         )

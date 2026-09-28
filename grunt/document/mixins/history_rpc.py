@@ -82,7 +82,7 @@ class DocumentHistoryRPCMixin:
             doctype,
             doc_id,
             "restore",
-            user_email=grunt.session.user,
+            user_email=grunt.get_user().email,
             details={"to_version": target["version"]},
         )
 

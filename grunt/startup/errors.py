@@ -6,10 +6,12 @@ once from :mod:`grunt.main` after the routers are mounted.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+import traceback
+from pathlib import Path
+from typing import TYPE_CHECKING, Any
 
 from fastapi import HTTPException, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, Response
 from pydantic import ValidationError
 
 from grunt import _, log
@@ -19,9 +21,80 @@ from grunt.errors import error_body
 
 if TYPE_CHECKING:
     from fastapi import FastAPI
+    from jinja2 import Environment
+
+_TEMPLATES_DIR = Path(__file__).resolve().parent.parent / "website" / "templates"
+_error_env: Environment | None = None
 
 
-async def _validation_error(request: Request, exc: ValidationError) -> JSONResponse:
+def _wants_html(request: Request) -> bool:
+    """A browser navigation (website page, form post) — not an API/XHR call."""
+    if request.url.path.startswith("/api/"):
+        return False
+    return "text/html" in request.headers.get("accept", "")
+
+
+def _format_traceback(exc: BaseException) -> str:
+    return "".join(traceback.format_exception(exc))
+
+
+def _origin_frame(exc: BaseException) -> dict[str, Any] | None:
+    """The innermost frame outside third-party packages — where to look first.
+
+    Jinja rewrites template frames to point at the ``.html`` file/line, so for
+    a template error this is the offending template line.
+    """
+    frames = traceback.extract_tb(exc.__traceback__)
+    ours = [f for f in frames if "site-packages" not in f.filename]
+    frame = (ours or frames or [None])[-1]
+    if frame is None:
+        return None
+    return {
+        "filename": frame.filename,
+        "lineno": frame.lineno,
+        "name": frame.name,
+        "line": frame.line,
+    }
+
+
+def _render_error_html(
+    request: Request,
+    status_code: int,
+    title: str,
+    message: str = "",
+    debug: dict[str, Any] | None = None,
+    headers: dict[str, str] | None = None,
+) -> Response:
+    """Standalone HTML error page — deliberately not extending any site
+    ``_base.html``, which may itself be what failed."""
+    global _error_env
+    try:
+        if _error_env is None:
+            from jinja2 import Environment, FileSystemLoader, select_autoescape
+
+            _error_env = Environment(
+                loader=FileSystemLoader(str(_TEMPLATES_DIR)),
+                autoescape=select_autoescape(default=True),
+            )
+        from grunt.i18n import translation_service
+
+        html = _error_env.get_template("_error.html").render(
+            request=request,
+            request_id=getattr(request.state, "request_id", None),
+            status_code=status_code,
+            title=title,
+            message=message if message != title else "",
+            debug=debug,
+            home_label=_("Back to home page"),
+            lang=translation_service.get_lang(),
+        )
+    except Exception:  # noqa: BLE001 — never fail while reporting a failure
+        log.exception("error_page.render_failed")
+        html = f"<h1>{status_code}</h1>"
+    return HTMLResponse(html, status_code=status_code, headers=headers)
+
+
+async def _validation_error(request: Request, exc: ValidationError) -> Response:
     content = error_body(
         "VALIDATION_ERROR",
         _("Validation error"),
@@ -34,12 +107,10 @@ async def _validation_error(request: Request, exc: ValidationError) -> JSONRespo
     # "422 / Помилка валідації" message alone gives no way to find it. Listing
     # each failing field/input is what actually points at the broken model.
     if settings.debug:
-        import traceback as _tb
-
         content["error"]["debug"] = {
             "exc_type": type(exc).__name__,
             "message": str(exc),
-            "traceback": _tb.format_exc(),
+            "traceback": _format_traceback(exc),
             "fields": [
                 {
                     "loc": ".".join(str(p) for p in e["loc"]),
@@ -51,10 +122,15 @@ async def _validation_error(request: Request, exc: ValidationError) -> JSONRespo
             ],
         }
 
+    if _wants_html(request):
+        debug = content["error"].get("debug")
+        if debug:
+            debug["where"] = _origin_frame(exc)
+        return _render_error_html(request, 422, _("Validation error"), debug=debug)
     return JSONResponse(status_code=422, content=content)
 
 
-async def _http_exception(request: Request, exc: HTTPException) -> JSONResponse:
+async def _http_exception(request: Request, exc: HTTPException) -> Response:
     # APIError carries a semantic code + details; plain HTTPException falls back
     # to HTTP_<status> with any list detail surfaced as details.
     code = getattr(exc, "code", None) or f"HTTP_{exc.status_code}"
@@ -62,6 +138,14 @@ async def _http_exception(request: Request, exc: HTTPException) -> JSONResponse:
     details = getattr(exc, "details", None)
     if details is None:
         details = exc.detail if isinstance(exc.detail, list) else []
+    if _wants_html(request):
+        return _render_error_html(
+            request,
+            exc.status_code,
+            _page_title(exc.status_code),
+            message,
+            headers=getattr(exc, "headers", None),
+        )
     return JSONResponse(
         status_code=exc.status_code,
         content=error_body(code, message, details),
@@ -69,8 +153,12 @@ async def _http_exception(request: Request, exc: HTTPException) -> JSONResponse:
     )
 
 
-async def _application_error(request: Request, exc: ApplicationError) -> JSONResponse:
+async def _application_error(request: Request, exc: ApplicationError) -> Response:
     """Render ApplicationError with the HTTP status its code maps to."""
+    if _wants_html(request):
+        return _render_error_html(
+            request, exc.status_code, exc.title or _page_title(exc.status_code), exc.message
+        )
     return JSONResponse(
         status_code=exc.status_code,
         content={
@@ -103,13 +191,13 @@ async def _persist_error_log(request: Request, exc: Exception) -> None:
         log.debug("error_log.http_persist_failed", exc_info=True)
 
 
-async def _generic_exception(request: Request, exc: Exception) -> JSONResponse:
-    import traceback as _tb
-
+async def _generic_exception(request: Request, exc: Exception) -> Response:
     log.exception("unhandled_error", error=str(exc))
     await _persist_error_log(request, exc)
 
     if not settings.debug:
+        if _wants_html(request):
+            return _render_error_html(request, 500, _("Internal server error"))
         return JSONResponse(
             status_code=500,
             content={
@@ -125,7 +213,7 @@ async def _generic_exception(request: Request, exc: Exception) -> JSONResponse:
     debug_info: dict = {
         "exc_type": type(exc).__name__,
         "message": str(exc),
-        "traceback": _tb.format_exc(),
+        "traceback": _format_traceback(exc),
     }
 
     # Extract SQL details from SQLAlchemy errors
@@ -145,6 +233,9 @@ async def _generic_exception(request: Request, exc: Exception) -> JSONResponse:
     except Exception:
         log.exception("suppressed_error")
 
+    if _wants_html(request):
+        debug_info["where"] = _origin_frame(exc)
+        return _render_error_html(request, 500, _("Internal server error"), debug=debug_info)
     return JSONResponse(
         status_code=500,
         content={
@@ -156,6 +247,14 @@ async def _generic_exception(request: Request, exc: Exception) -> JSONResponse:
             },
         },
     )
+
+
+def _page_title(status_code: int) -> str:
+    return {
+        401: _("Login required"),
+        403: _("Access denied"),
+        404: _("Page not found"),
+    }.get(status_code) or (_("Internal server error") if status_code >= 500 else _("Error"))
 
 
 def register_exception_handlers(app: FastAPI) -> None:

@@ -17994,3 +17994,6 @@ msgstr "крок {n} з {m}"
 #: grunt/grunt/backups/__init__.py
 msgid "Copying the configuration"
 msgstr "Копіювання конфігурації"
+
+msgid "Back to home page"
+msgstr "На головну"

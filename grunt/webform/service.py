@@ -292,7 +292,7 @@ class WebFormService:
         """Store an uploaded file for an anonymous Attach-field submission.
 
         The JSON upload API (``grunt.storage.doctypes.File.file.upload``) requires
-        an authenticated session and attributes the file to ``grunt.session.user``
+        an authenticated session and attributes the file to ``grunt.get_user().email``
         — neither holds for a guest webform POST. This stores the same way
         (storage backend + a ``File`` row) but runs the ``File`` insert under
         ``system_context`` since Guest has no reason to hold write permission on

@@ -14073,3 +14073,6 @@ msgstr ""
 msgctxt "website"
 msgid "Links"
 msgstr ""
+
+msgid "Back to home page"
+msgstr ""

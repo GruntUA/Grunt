@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="{{ lang }}">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex" />
+  <title>{{ status_code }} · {{ title }}</title>
+  <style>
+    :root {
+      --bg: #fafafa; --fg: #18181b; --muted: #71717a; --border: #e4e4e7;
+      --card: #fff; --code: #f4f4f5; --accent: #dc2626; --hl: #fef2f2;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #09090b; --fg: #fafafa; --muted: #a1a1aa; --border: #27272a;
+        --card: #18181b; --code: #0f0f12; --accent: #f87171; --hl: #2a1215;
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; background: var(--bg); color: var(--fg);
+      font: 14px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    }
+    main { max-width: 64rem; margin: 0 auto; padding: 3rem 1rem; }
+    .status { font-size: 3rem; font-weight: 700; color: var(--accent); line-height: 1; }
+    h1 { font-size: 1.5rem; margin: .5rem 0; }
+    p { color: var(--muted); margin: .25rem 0 1.5rem; }
+    a { color: inherit; }
+    .card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: .5rem; padding: 1rem; margin-top: 1rem;
+    }
+    .label { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+    .exc { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 15px; margin: .25rem 0 0; }
+    .exc b { color: var(--accent); }
+    code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
+    .where { margin-top: .25rem; word-break: break-all; }
+    .where pre { background: var(--hl); border-left: 3px solid var(--accent); padding: .5rem .75rem; margin: .5rem 0 0; white-space: pre-wrap; }
+    details summary { cursor: pointer; font-weight: 600; }
+    details pre {
+      background: var(--code); border-radius: .375rem; padding: .75rem;
+      overflow-x: auto; margin: .75rem 0 0; max-height: 36rem;
+    }
+    dl { display: grid; grid-template-columns: max-content 1fr; gap: .25rem 1rem; margin: .5rem 0 0; }
+    dt { color: var(--muted); }
+    dd { margin: 0; word-break: break-all; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
+  </style>
+</head>
+<body>
+<main>
+  <div class="status">{{ status_code }}</div>
+  <h1>{{ title }}</h1>
+  {% if message %}<p>{{ message }}</p>{% endif %}
+  <a href="/">{{ home_label }}</a>
+
+  {% if debug %}
+  <div class="card">
+    <div class="label">{{ debug.exc_type }}</div>
+    <div class="exc"><b>{{ debug.exc_type }}</b>: {{ debug.message }}</div>
+    {% if debug.where %}
+    <div class="where">
+      <code>{{ debug.where.filename }}:{{ debug.where.lineno }}</code> — <code>{{ debug.where.name }}</code>
+      {% if debug.where.line %}<pre>{{ debug.where.line }}</pre>{% endif %}
+    </div>
+    {% endif %}
+  </div>
+
+  {% if debug.sql %}
+  <div class="card">
+    <div class="label">SQL</div>
+    <details open><summary>{{ debug.db_error }}</summary><pre>{{ debug.sql }}{% if debug.sql_params %}
+
+{{ debug.sql_params }}{% endif %}</pre></details>
+  </div>
+  {% endif %}
+
+  <div class="card">
+    <details open><summary>Traceback</summary><pre>{{ debug.traceback }}</pre></details>
+  </div>
+
+  <div class="card">
+    <div class="label">Request</div>
+    <dl>
+      <dt>Method</dt><dd>{{ request.method }}</dd>
+      <dt>URL</dt><dd>{{ request.url }}</dd>
+      {% if request_id %}<dt>Request ID</dt><dd>{{ request_id }}</dd>{% endif %}
+    </dl>
+  </div>
+  {% endif %}
+</main>
+</body>
+</html>

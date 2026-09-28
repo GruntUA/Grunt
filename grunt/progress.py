@@ -230,7 +230,7 @@ async def active_tasks() -> list[dict[str, Any]]:
         return []
     tasks = []
     try:
-        async for key in redis.scan_iter(match=_key(grunt.session.user)):
+        async for key in redis.scan_iter(match=_key(grunt.get_user().email)):
             with contextlib.suppress(Exception):
                 if raw := await redis.get(key):
                     tasks.append(json.loads(raw))
@@ -248,7 +248,7 @@ async def cancel_task(task_id: str) -> bool:
     if redis is None:
         return False
     try:
-        if not await redis.exists(_key(grunt.session.user, task_id)):
+        if not await redis.exists(_key(grunt.get_user().email, task_id)):
             return False
         await redis.set(_cancel_key(task_id), 1, ex=_TTL_SECONDS)
         return True

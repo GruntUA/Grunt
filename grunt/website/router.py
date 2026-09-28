@@ -173,34 +173,34 @@ async def render_page(
         except Exception:
             context["website_settings"] = None
 
+        # Controller errors propagate to the exception handlers (HTML error page):
+        # rendering the template without the controller's context only turns
+        # the real error into a misleading "'x' is undefined".
         if page.py_file:
-            try:
-                spec = importlib.util.spec_from_file_location("_www_controller", page.py_file)
-                if spec and spec.loader:
-                    mod = importlib.util.module_from_spec(spec)
-                    spec.loader.exec_module(mod)  # type: ignore[arg-type]
+            spec = importlib.util.spec_from_file_location("_www_controller", page.py_file)
+            if spec and spec.loader:
+                mod = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(mod)  # type: ignore[arg-type]
 
-                    # Handle POST logic if present
-                    if request.method == "POST" and hasattr(mod, "handle_post"):
-                        result = mod.handle_post(context)
-                        if inspect.isawaitable(result):
-                            result = await result
-                        # A returned response (e.g. a redirect) goes out as is.
-                        if isinstance(result, Response):
-                            return result
-                        if isinstance(result, dict):
-                            context.update(result)
+                # Handle POST logic if present
+                if request.method == "POST" and hasattr(mod, "handle_post"):
+                    result = mod.handle_post(context)
+                    if inspect.isawaitable(result):
+                        result = await result
+                    # A returned response (e.g. a redirect) goes out as is.
+                    if isinstance(result, Response):
+                        return result
+                    if isinstance(result, dict):
+                        context.update(result)
 
-                    if hasattr(mod, "get_context"):
-                        result = mod.get_context(context)
-                        if inspect.isawaitable(result):
-                            result = await result
-                        if isinstance(result, Response):  # e.g. RedirectResponse
-                            return result
-                        if isinstance(result, dict):
-                            context.update(result)
-            except Exception as e:
-                log.warning("website.controller.error", file=str(page.py_file), error=str(e))
+                if hasattr(mod, "get_context"):
+                    result = mod.get_context(context)
+                    if inspect.isawaitable(result):
+                        result = await result
+                    if isinstance(result, Response):  # e.g. RedirectResponse
+                        return result
+                    if isinstance(result, dict):
+                        context.update(result)
 
     env = website_registry.get_env(page.app)
     if env is None:

@@ -6,13 +6,11 @@ from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from grunt.publish import MessageType
-    from grunt.session import GruntSession
 
 
 class RealtimeAPI:
     """Notification and websocket helper methods for GruntApp."""
 
-    session: GruntSession
 
     async def notify(
         self,

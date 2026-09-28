@@ -82,7 +82,7 @@ class DataExport(Document):
         storage = get_storage_backend()
         path = await storage.save(content=content, filename=filename, content_type=mime)
 
-        user = self.grunt.session
+        user = self.grunt.get_user()
         file_doc = await self.grunt.new_doc(
             "File",
             {
@@ -90,7 +90,7 @@ class DataExport(Document):
                 "path": path,
                 "content_type": mime,
                 "file_size": len(content),
-                "uploaded_by": user.user,
+                "uploaded_by": user.email,
                 "is_public": False,
             },
         )

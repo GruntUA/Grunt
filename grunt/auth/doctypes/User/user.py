@@ -123,6 +123,12 @@ class User(Document):
     mfa_enabled: bool
     mfa_secret: str | None
 
+    def has_role(self, *roles: str) -> bool:
+        """True if the user holds any of *roles*."""
+        from grunt.permissions.roles import user_has_roles
+
+        return user_has_roles(self, list(roles))
+
     async def validate(self) -> None:
         if not self.email:
             raise ValueError(_("Email is required"))

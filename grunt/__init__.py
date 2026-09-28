@@ -29,7 +29,6 @@ from grunt.app import grunt as _app  # after the helpers above — see the modul
 
 # ── Document & database API (GruntApp) ────────────────────────────────────────
 db = _app.db
-session = _app.session
 query_cache = _app.query_cache
 doc_cache = _app.doc_cache
 
@@ -103,7 +102,6 @@ __all__ = [
     "render_template",
     "reset_context",
     "save_doc",
-    "session",
     "set_context",
     "set_value",
     "submit",

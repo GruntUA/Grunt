@@ -66,6 +66,6 @@ async def backup_now(
         with_database=with_database,
         with_files=with_files,
         with_config=with_config,
-        user=grunt.session.user,
+        user=grunt.get_user().email,
     )
     return {"queued": True}

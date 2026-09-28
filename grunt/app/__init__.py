@@ -17,7 +17,6 @@ from grunt.cache.document_cache import DocumentCache
 from grunt.cache.query_cache import QueryCache
 from grunt.db import GruntDB
 from grunt.metadata.registry import doctype_registry
-from grunt.session import GruntSession
 
 # ── Main API ──────────────────────────────────────────────────────────────────
 
@@ -57,12 +56,11 @@ class GruntApp(ContextAPI, RealtimeAPI, PermissionAPI, DocumentAPI, UtilityAPI):
         grunt.throw("Validation failed")
 
         # Current user
-        print(grunt.session.user)
+        print(grunt.get_user().email)
     """
 
     def __init__(self) -> None:
         self.db = GruntDB()
-        self.session = GruntSession()
         self.query_cache = QueryCache()
         self.doc_cache = DocumentCache()
 

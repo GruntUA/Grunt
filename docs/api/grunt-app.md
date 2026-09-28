@@ -401,27 +401,23 @@ Send a transient WebSocket message to one user.
 
 ```python
 await grunt.publish(
-    user=grunt.session.user,
+    user=grunt.get_user().email,
     event="msgprint",
     message="Document saved successfully",
     type="success",
 )
 ```
 
-### `grunt.broadcast(event, data, message, type)`
-
-Broadcast to ALL connected users.
-
 ---
 
-## Session info (`grunt.session`)
+## Current user (`grunt.get_user()`)
 
 ```python
-grunt.session.user  # current user email
-grunt.session.full_name  # current user full name
-grunt.session.roles  # list of role names
-grunt.session.is_superadmin  # bool
-grunt.session.has_role("Manager", "Accountant")  # bool
+user = grunt.get_user()  # the User the request/task runs as; 401 when there is none
+user.email
+user.full_name
+user.roles  # list of role names
+user.has_role("Manager", "Accountant")  # bool
 ```
 
 ---
