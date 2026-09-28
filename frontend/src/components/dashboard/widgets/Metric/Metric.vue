@@ -57,12 +57,12 @@ const trendNeutral = computed(() => trend.value === null || trend.value === 0)
 
 <template>
   <div
-    :class="['flex flex-col gap-3 p-5 h-full', canOpen && 'cursor-pointer hover:bg-muted/30 transition-colors']"
+    :class="['flex flex-col gap-3 p-4 sm:p-5 h-full', canOpen && 'cursor-pointer hover:bg-muted/30 transition-colors']"
     @click="open">
     <!-- Header -->
-    <div class="flex items-center justify-between">
-      <p class="text-muted-foreground font-medium">{{ widget.title }}</p>
-      <div v-if="iconComponent" :class="['p-2 rounded-lg', iconBg]">
+    <div class="flex items-start justify-between gap-2">
+      <p class="min-w-0 text-muted-foreground font-medium">{{ widget.title }}</p>
+      <div v-if="iconComponent" :class="['shrink-0 p-2 rounded-lg', iconBg]">
         <component :is="iconComponent" class="w-4 h-4" />
       </div>
     </div>
@@ -75,10 +75,10 @@ const trendNeutral = computed(() => trend.value === null || trend.value === 0)
 
     <!-- Value -->
     <template v-else>
-      <p class="text-3xl font-semibold tabular-nums tracking-tight text-foreground">{{ formattedValue }}</p>
+      <p class="text-2xl sm:text-3xl font-semibold tabular-nums tracking-tight text-foreground">{{ formattedValue }}</p>
 
       <!-- Trend badge -->
-      <div v-if="trend !== null" class="flex items-center gap-1">
+      <div v-if="trend !== null" class="flex flex-wrap items-center gap-1">
         <template v-if="trendNeutral">
           <Minus class="w-3.5 h-3.5 text-muted-foreground" />
           <span class="text-muted-foreground">{{ t('no change') }}</span>

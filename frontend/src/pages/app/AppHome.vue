@@ -68,12 +68,12 @@ watch(() => props.workspaceName, init)
     </div>
 
     <!-- Loading skeleton -->
-    <div v-if="loading" class="grid grid-cols-4 gap-4">
+    <div v-if="loading" class="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
       <div v-for="i in 4" :key="i" class="h-32 bg-muted animate-pulse rounded-lg" />
     </div>
 
     <!-- Widgets grid -->
-    <div v-else-if="hasWidgets" class="grid grid-cols-4 gap-4">
+    <div v-else-if="hasWidgets" class="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
       <WidgetCard
         v-for="widget in widgets"
         :key="widget.id"

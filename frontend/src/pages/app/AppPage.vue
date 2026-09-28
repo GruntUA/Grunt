@@ -11,7 +11,7 @@ import { docsApi } from '@/core/api/docs'
 import { getPageData } from '@/core/api/pages'
 import WidgetCard from '@/components/dashboard/WidgetCard.vue'
 import WidgetConfigPanel from '@/components/dashboard/WidgetConfigPanel.vue'
-import { getPaletteGroups, getWidgetDef } from '@/core/widgetRegistry'
+import { getPaletteGroups, getWidgetDef, widgetColSpan } from '@/core/widgetRegistry'
 import type { DashboardWidget, WidgetType } from '@/types'
 import { useToast } from '@/core/composables/useToast'
 import { setPageTitle } from '@/core/composables/usePageTitle'
@@ -302,7 +302,7 @@ const printPage = () => window.print()
     </div>
 
     <!-- Skeleton -->
-    <div v-if="loading" class="grid grid-cols-4 gap-4">
+    <div v-if="loading" class="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
       <div v-for="i in 6" :key="i" class="h-36 bg-muted animate-pulse rounded-lg" />
     </div>
 
@@ -332,7 +332,7 @@ const printPage = () => window.print()
 
     <!-- Widgets grid (normal mode) -->
     <div v-else-if="!editMode && (page?.widgets.length ?? 0) > 0"
-      class="grid grid-cols-4 gap-4 auto-rows-auto">
+      class="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4 auto-rows-auto">
       <WidgetCard
         v-for="w in page?.widgets ?? []"
         :key="w.id"
@@ -414,7 +414,7 @@ const printPage = () => window.print()
           <VueDraggable
             v-else-if="page"
             v-model="page.widgets"
-            class="grid grid-cols-4 gap-3 auto-rows-auto"
+            class="grid grid-cols-2 lg:grid-cols-4 gap-3 auto-rows-auto"
             handle=".drag-handle"
             ghost-class="opacity-40"
           >
@@ -422,7 +422,8 @@ const printPage = () => window.print()
               v-for="element in page.widgets"
               :key="element.id"
               :class="[
-                'relative rounded-lg border-2 transition-colors cursor-pointer group',
+                widgetColSpan(element.cols),
+                'relative min-w-0 rounded-lg border-2 transition-colors cursor-pointer group',
                 selectedWidgetId === element.id
                   ? 'border-primary shadow-md'
                   : 'border-transparent hover:border-primary/30',

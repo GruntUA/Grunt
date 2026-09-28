@@ -161,3 +161,15 @@ function discoverWidgets() {
 
 // Initialise registry
 discoverWidgets()
+
+/** Grid classes for a widget's `cols`. Dashboard grids are 2 columns below lg
+ *  and 4 from lg: wide widgets take the full row on small screens, 1-col
+ *  widgets (metrics) stay two per row. */
+export function widgetColSpan(cols: number | undefined): string {
+  return {
+    1: 'col-span-1',
+    2: 'col-span-2',
+    3: 'col-span-2 lg:col-span-3',
+    4: 'col-span-2 lg:col-span-4',
+  }[cols ?? 1] ?? 'col-span-1'
+}

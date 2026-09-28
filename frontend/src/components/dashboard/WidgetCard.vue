@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { DashboardWidget } from '@/types'
-import { getAsyncWidgetComponent } from '@/core/widgetRegistry'
+import { getAsyncWidgetComponent, widgetColSpan } from '@/core/widgetRegistry'
 
 const props = defineProps<{
   widget: DashboardWidget
@@ -21,12 +21,7 @@ const emit = defineEmits<{
 
 const widgetComponent = computed(() => getAsyncWidgetComponent(props.widget.widget_type))
 
-const colSpanClass = computed(() => ({
-  1: 'col-span-1',
-  2: 'col-span-2',
-  3: 'col-span-3',
-  4: 'col-span-4',
-}[props.widget.cols] ?? 'col-span-1'))
+const colSpanClass = computed(() => widgetColSpan(props.widget.cols))
 
 const minH = computed(() => {
   if (props.widget.widget_type === 'metric') return 'min-h-[120px]'
@@ -39,7 +34,7 @@ const minH = computed(() => {
 
 <template>
   <div :class="[colSpanClass, minH,
-    'group relative bg-card border rounded-lg shadow-sm overflow-hidden',
+    'group relative min-w-0 bg-card border rounded-lg shadow-sm overflow-hidden',
     editMode ? 'ring-2 ring-primary/20 cursor-grab active:cursor-grabbing' : '',
   ]">
     <!-- Edit overlay buttons -->
