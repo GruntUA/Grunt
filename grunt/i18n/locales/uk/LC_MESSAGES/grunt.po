@@ -13394,6 +13394,10 @@ msgstr "Знімок бази пошкоджений: %(result)s"
 msgid "Backups of %(backend)s are not supported"
 msgstr "Резервне копіювання %(backend)s не підтримується"
 
+#: grunt/grunt/backups/__init__.py:92
+msgid "The SQLite database has no file to back up"
+msgstr "База даних SQLite не має файлу для резервного копіювання"
+
 #: grunt/grunt/backups/__init__.py:233
 msgid "The database backup is corrupted: %(result)s"
 msgstr "Копія бази пошкоджена: %(result)s"

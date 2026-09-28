@@ -89,7 +89,7 @@ class NotificationService:
             await session.flush()
             log.info(
                 "notification.sent",
-                event=event,
+                doc_event=event,
                 doctype=doctype,
                 doc_id=doc.get("name"),
                 count=count,

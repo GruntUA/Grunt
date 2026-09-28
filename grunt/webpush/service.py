@@ -27,6 +27,7 @@ def _generate_vapid_keys() -> tuple[str, str]:
 
     v = Vapid()
     v.generate_keys()
+    assert v.private_key is not None and v.public_key is not None
 
     # Export private key to PEM
     private_pem = v.private_key.private_bytes(

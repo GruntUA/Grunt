@@ -252,7 +252,7 @@ def _merge_uk_entries(entries: list[tuple[str, str, str]]) -> None:
         existing = pf.find(msgid_en, msgctxt=ctx)
         if existing is not None:
             existing.msgstr = msgstr_uk
-            existing.obsolete = 0
+            existing.obsolete = False
         else:
             pf.append(polib.POEntry(msgctxt=ctx, msgid=msgid_en, msgstr=msgstr_uk))
     pf.save(str(path))

@@ -31,7 +31,7 @@ import contextlib
 import functools
 import io
 from datetime import UTC
-from typing import TYPE_CHECKING, Any, TypeVar
+from typing import TYPE_CHECKING, Any, NoReturn, TypeVar
 
 from grunt.log import log
 from grunt.scripting.safe_globals import build_safe_globals, compile_script, validate_script
@@ -258,7 +258,7 @@ class ScriptContext:
     def flags(self) -> dict[str, Any]:
         return self._flags
 
-    def throw(self, msg: str) -> None:
+    def throw(self, msg: str) -> NoReturn:
         """Raise a user-facing error from within a script."""
         raise ScriptError(msg)
 
@@ -497,7 +497,7 @@ class ServerScriptRunner:
             log.debug(
                 "Optional file-based DocType scripts module not available; skipping.",
                 doctype=doctype,
-                event=event,
+                doc_event=event,
             )
 
         return scripts
@@ -595,6 +595,7 @@ class ServerScriptRunner:
         if compile_result.errors:
             return ScriptResult(success=False, error="; ".join(compile_result.errors))
         compiled = compile_result.code
+        assert compiled is not None  # no errors → compiled
 
         # Build execution context with sync-async bridge
         loop = asyncio.get_running_loop()
@@ -675,7 +676,7 @@ class ServerScriptRunner:
                     "server_script.event_error",
                     script=s["name"],
                     doctype=doctype,
-                    event=event,
+                    doc_event=event,
                     error=result.error,
                 )
             results.append(result)

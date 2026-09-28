@@ -19,7 +19,7 @@ class CurrencyField(FieldType):
             return None
         try:
             return round(float(value), 2)
-        except (TypeError, ValueError):
+        except TypeError, ValueError:
             return None
 
 

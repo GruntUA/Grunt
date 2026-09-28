@@ -74,7 +74,7 @@ class OIDCProvider(AuthProvider):
             scope=self.scope,
         )
         url, _state = client.create_authorization_url(oidc["authorization_endpoint"])
-        await client.aclose()
+        await client.aclose()  # pyright: ignore[reportAttributeAccessIssue] — httpx.AsyncClient method
         return {"redirect_url": url}
 
     async def complete(self, ctx: AuthFlowContext) -> User:
@@ -93,11 +93,11 @@ class OIDCProvider(AuthProvider):
         )
         try:
             await oa.fetch_token(oidc["token_endpoint"], code=code, grant_type="authorization_code")
-            resp = await oa.get(oidc["userinfo_endpoint"])
+            resp = await oa.get(oidc["userinfo_endpoint"])  # pyright: ignore[reportAttributeAccessIssue]
             resp.raise_for_status()
             profile = resp.json()
         finally:
-            await oa.aclose()
+            await oa.aclose()  # pyright: ignore[reportAttributeAccessIssue]
 
         email = profile.get("email", "")
         if not email:

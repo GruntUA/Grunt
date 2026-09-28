@@ -20,6 +20,8 @@ from grunt.i18n import _
 from grunt.log import log
 
 if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
+
     from grunt.auth.doctypes.User.user import User
 
 
@@ -125,6 +127,7 @@ async def begin_mfa_setup(user: User) -> dict:
             400, detail=_("MFA is already enabled. Disable it first to set it up again.")
         )
 
+    assert user.id
     secret = generate_mfa_secret()
     await grunt_app.db.set_value("User", user.id, {"mfa_secret": secret, "mfa_enabled": False})
     log.info("mfa.setup_started", user=user.email)
@@ -150,6 +153,7 @@ async def confirm_mfa_setup(user: User, code: str) -> list[str]:
     if not verify_totp(secret, code):
         raise HTTPException(422, detail=_("Invalid TOTP code"))
 
+    assert user.id
     backup_codes = _generate_backup_codes()
     backup_hashes = [_hash_backup_code(c) for c in backup_codes]
     await grunt_app.db.set_value(
@@ -167,6 +171,7 @@ async def confirm_mfa_setup(user: User, code: str) -> list[str]:
 
 async def disable_mfa(user: User) -> None:
     """Disable MFA and clear stored secrets for the user."""
+    assert user.id
     await grunt_app.db.set_value(
         "User",
         user.id,
@@ -179,7 +184,7 @@ async def disable_mfa(user: User) -> None:
     log.info("mfa.disabled", user=user.email)
 
 
-async def check_mfa_code(user: User, code: str, session: object | None = None) -> None:
+async def check_mfa_code(user: User, code: str, session: AsyncSession | None = None) -> None:
     """Verify TOTP or backup code for the user.
 
     Raises HTTP 401 on failure. Consumes a backup code if used (updates DB).
@@ -221,6 +226,7 @@ async def check_mfa_code(user: User, code: str, session: object | None = None) -
         backup_hashes: list[str] = json.loads(backup_json) if backup_json else []
         matched, remaining = verify_backup_code(backup_hashes, code)
         if matched:
+            assert user.id
             await grunt_app.db.set_value(
                 "User", user.id, {"mfa_backup_codes": json.dumps(remaining)}
             )

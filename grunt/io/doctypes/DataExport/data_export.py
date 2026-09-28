@@ -109,7 +109,7 @@ class DataExport(Document):
         try:
             wb = openpyxl.load_workbook(io.BytesIO(file_bytes), read_only=True)
             ws = wb.active
-            count = ws.max_row - 1  # subtract header row
+            count = ws.max_row - 1 if ws is not None else 0  # subtract header row
             wb.close()
             return max(0, count)
         except Exception:

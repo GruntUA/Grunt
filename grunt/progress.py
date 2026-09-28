@@ -154,16 +154,16 @@ async def _send(user: str, event: str, data: dict[str, Any]) -> None:
         log.debug("progress.ws_send_failed", user=user, ws_event=event)
 
 
-async def _flush_loop(p: Progress, redis) -> None:
+async def _flush_loop(p: Progress, user: str, redis) -> None:
     sent = -1
     while True:
         if p._version != sent:
             sent = p._version
             data = p.payload()
-            await _send(p.user, "task_progress", data)  # type: ignore[arg-type]
+            await _send(user, "task_progress", data)
             if redis is not None:
                 with contextlib.suppress(Exception):
-                    await redis.set(_key(p.user, p.task_id), json.dumps(data), ex=_TTL_SECONDS)
+                    await redis.set(_key(user, p.task_id), json.dumps(data), ex=_TTL_SECONDS)
         if p.cancellable and redis is not None and not p.cancelled:
             with contextlib.suppress(Exception):
                 p.cancelled = bool(await redis.exists(_cancel_key(p.task_id)))
@@ -191,7 +191,7 @@ async def track_progress(
         redis = await _redis()
     # Cancelling goes through Redis (the button is pressed in the web process).
     p.cancellable = cancellable and redis is not None
-    flusher = asyncio.create_task(_flush_loop(p, redis))
+    flusher = asyncio.create_task(_flush_loop(p, user, redis))
     status, message = "done", None
     try:
         yield p

@@ -90,6 +90,7 @@ async def test_mfa_token_cannot_be_used_for_enrollment(ctx, client: AsyncClient)
     await _require_mfa_for_system_manager(ctx)
     async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
         user = await get_user_by_email(EMAIL)
+    assert user is not None
 
     r = await client.post(f"{M}.mfa_enroll_begin", json={"mfa_token": create_mfa_token(user)})
     assert r.status_code == 401

@@ -252,11 +252,8 @@ def _verify_toolchain(app_dir: Path) -> None:
 
 def _run_npm_install_for(app_dir: Path, upgrade: bool = False) -> None:
     mise = shutil.which("mise")
-    npm_run = (
-        [mise, "exec", "--", "npm"]
-        if mise
-        else ([shutil.which("npm")] if shutil.which("npm") else None)
-    )
+    npm = shutil.which("npm")
+    npm_run = [mise, "exec", "--", "npm"] if mise else ([npm] if npm else None)
     if not npm_run:
         console.print("  [yellow]⚠[/yellow]  npm not found")
         return

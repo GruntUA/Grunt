@@ -29,7 +29,7 @@ import inspect
 from typing import TYPE_CHECKING, Any
 from urllib.parse import quote, unquote
 
-from jinja2 import ChoiceLoader, Environment, FileSystemLoader
+from jinja2 import BaseLoader, ChoiceLoader, Environment, FileSystemLoader
 from sqlalchemy import select
 
 from grunt.log import log
@@ -169,7 +169,10 @@ def _template_env(app: str | None, template_dir: Path) -> Environment | None:
         base = website_registry.get_env(app or "grunt") or website_registry.get_env("grunt")
         if base is None:
             return None
-        env = base.overlay(loader=ChoiceLoader([FileSystemLoader(str(template_dir)), base.loader]))
+        loaders: list[BaseLoader] = [FileSystemLoader(str(template_dir))]
+        if base.loader is not None:
+            loaders.append(base.loader)
+        env = base.overlay(loader=ChoiceLoader(loaders))
         _template_envs[template_dir] = env
     return env
 

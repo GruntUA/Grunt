@@ -48,7 +48,7 @@
 | 4.2 | ✅ | **OAuth-провайдери** | Pluggable auth-провайдери (реєстр + `/api/v1/auth` + `issue_login`): OIDC (`grunt/auth/providers/oauth.py`), WebAuthn/passkey. |
 | 4.3 | 💡 | **REST API Connector** | DocType `ApiConnector` — конфігурація зовнішнього REST API (base URL, auth, headers). `grunt.call_api("MyConnector", "/endpoint", data)` у Server Scripts. |
 | 4.4 | ✅ | **Zapier / Make (n8n) webhooks** | Реалізовано DocType `IncomingWebhook` (`grunt/webhook/`) з `field_mapping` → створення документа. |
-| 4.5 | 🔨 | **S3-compatible storage UI** | Бекенд є (`config.py`: `storage_backend` local/s3, `s3_bucket`/`s3_endpoint_url` для MinIO/R2). Лишилось: UI-конфігурація з тест-кнопкою (зараз лише env). |
+| 4.5 | ❌ | **S3-compatible storage UI** | Відхилено (28.09.2026): S3-бекенд (aioboto3) прибрано з ядра, файли лише локально (`sites/<site>/uploads`). |
 
 ---
 

@@ -1,7 +1,12 @@
 """Database layer — engine, session, metadata, and high-level helpers."""
 
+from typing import TYPE_CHECKING
+
 from grunt.db.base import metadata
 from grunt.db.session import get_engine, get_session
+
+if TYPE_CHECKING:
+    from grunt.db.api import GruntDB
 
 __all__ = [
     "metadata",

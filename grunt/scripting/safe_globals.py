@@ -46,12 +46,13 @@ from datetime import date, datetime, time, timedelta, timezone
 from decimal import Decimal
 from typing import Any
 
-from RestrictedPython import CompileResult, compile_restricted_exec, safe_builtins
+from RestrictedPython.compile import CompileResult, compile_restricted_exec
 from RestrictedPython.Eval import default_guarded_getitem, default_guarded_getiter
 from RestrictedPython.Guards import (
     full_write_guard,
     guarded_iter_unpack_sequence,
     guarded_unpack_sequence,
+    safe_builtins,
     safer_getattr,
 )
 from RestrictedPython.PrintCollector import PrintCollector

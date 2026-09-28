@@ -71,7 +71,7 @@ async def _build(menu: str) -> list[dict[str, Any]]:
     nodes = {
         row["name"]: {
             "label": row["label"],
-            "url": urls.get((row.get("link_doctype"), row.get("link_name")))
+            "url": urls.get((row["link_doctype"], row["link_name"]))
             if row.get("link_doctype")
             else (row.get("url") or None),
             "open_in_new_tab": bool(row.get("open_in_new_tab")),

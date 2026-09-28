@@ -7,11 +7,13 @@ from __future__ import annotations
 from typing import Any
 
 from grunt.i18n import _
+from grunt.utils.sanitize import sanitize_html
 
 # Framework bookkeeping fields never shown in the read-only share view.
 _SKIP_FIELDS = {"id", "name", "owner", "created_at", "modified_at", "modified_by", "docstatus"}
 _MULTILINE = {"LongText", "Text", "HTML", "Code", "Markdown"}
-# Sanitized HTML (grunt.utils.sanitize) — a web view renders it as markup (``row.html``).
+# Rendered as markup (``row.html``) — sanitized again here, for rows written
+# before RichText was sanitized on save.
 _RICH = {"RichText"}
 _IMAGE_TYPES = {"Image", "Attach Image"}
 _IMAGE_EXTS = (".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg", ".avif", ".bmp")
@@ -47,6 +49,8 @@ def _row(
         value = _("Yes") if str(raw) in ("1", "true", "True") else _("No")
     elif fieldtype == "Link" and display not in (None, ""):
         value = display
+    elif fieldtype in _RICH:
+        value = sanitize_html(str(raw))
     else:
         value = raw
     return {

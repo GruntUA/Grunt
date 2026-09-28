@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 
 logger = structlog.get_logger(__name__)
 
-_SKIP_PATHS = frozenset({"/api/v1/health", "/api/v1/ready", "/api/v1/metrics"})
+_SKIP_PATHS = frozenset({"/api/v1/health", "/api/v1/ready"})
 # Don't profile the profiler endpoints themselves
 _PROFILER_PREFIX = "/api/v1/dev"
 
@@ -60,14 +60,6 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
             duration_ms = round((time.perf_counter() - start) * 1000, 1)
 
         response.headers["X-Request-ID"] = request_id
-
-        # Record Prometheus metrics (always)
-        try:
-            from grunt.monitoring.metrics import record_request
-
-            record_request(request.method, path, response.status_code, duration_ms / 1000)
-        except Exception:
-            logger.exception("suppressed_error")
 
         if path not in _SKIP_PATHS:
             from grunt.site.manager import current_site

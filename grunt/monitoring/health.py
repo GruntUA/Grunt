@@ -154,6 +154,7 @@ async def check_background_jobs() -> list[Row]:
             )
         ]
     async with redis_conn() as conn:
+        assert conn is not None  # stream_broker() was checked above
         await conn.ping()
         consumers = await conn.xinfo_consumers(sb.queue_name, sb.consumer_group_name)
         groups = await conn.xinfo_groups(sb.queue_name)
@@ -358,7 +359,6 @@ async def check_config() -> list[Row]:
             if settings.secret_key == DEFAULT_SECRET_KEY
             else "",
         ),
-        row(cat, _("File storage"), INFO, settings.storage_backend),
     ]
 
 
@@ -366,31 +366,27 @@ async def check_config() -> list[Row]:
 
 
 async def check_storage() -> list[Row]:
-    from grunt.config import settings
     from grunt.site.manager import site_manager
 
     cat = _("Files")
     count = await grunt.db.count("File")
     [agg] = await grunt.db.aggregate("File", aggregations={"size": "sum(file_size)"})
     rows = [row(cat, _("Files"), INFO, f"{count} · {human_size(agg.get('size') or 0)}")]
-    if settings.storage_backend == "local":
-        site_dir = site_manager.sites_dir / site_manager.get_active_site()
-        usage = shutil.disk_usage(site_dir)
-        free = usage.free / usage.total
-        status = OK if free >= DISK_WARN_FREE else WARNING if free >= DISK_ERROR_FREE else ERROR
-        rows.append(
-            row(
-                cat,
-                _("Free disk space"),
-                status,
-                _("%(free)s of %(total)s")
-                % {"free": human_size(usage.free), "total": human_size(usage.total)}
-                + f" ({free:.0%})",
-                ""
-                if status == OK
-                else _("Free up space: uploads and the database may stop working."),
-            )
+    site_dir = site_manager.sites_dir / site_manager.get_active_site()
+    usage = shutil.disk_usage(site_dir)
+    free = usage.free / usage.total
+    status = OK if free >= DISK_WARN_FREE else WARNING if free >= DISK_ERROR_FREE else ERROR
+    rows.append(
+        row(
+            cat,
+            _("Free disk space"),
+            status,
+            _("%(free)s of %(total)s")
+            % {"free": human_size(usage.free), "total": human_size(usage.total)}
+            + f" ({free:.0%})",
+            "" if status == OK else _("Free up space: uploads and the database may stop working."),
         )
+    )
     return rows
 
 

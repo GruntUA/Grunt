@@ -50,13 +50,13 @@ def s(value: Any) -> Any:
     return value.decode() if isinstance(value, bytes) else value
 
 
-def decode_message(raw: bytes) -> dict[str, Any]:
+def decode_message(raw: bytes | str) -> dict[str, Any]:
     """Best-effort decode of a stream entry's ``data`` field into task info."""
     sb = stream_broker()
     if sb is None:
         return {}
     try:
-        message = sb.formatter.loads(raw)
+        message = sb.formatter.loads(raw.encode() if isinstance(raw, str) else raw)
     except Exception as exc:
         log.debug("redis_introspect.decode_failed", error=str(exc))
         return {}

@@ -7,9 +7,9 @@ Kept out of :mod:`grunt.main` so the entry point stays a thin assembly of
 2. bring every site up (search index table, DocType *names* only — full
    definitions and schema sync are `grunt db migrate`'s job, not boot's)
 3. load external apps installed on at least one site
-4. optional Sentry, then the task broker and the scheduler
+4. the task broker and the scheduler
 
-Steps 1–3 (+ Sentry) are :func:`boot`, which the task worker runs too.
+Steps 1–3 are :func:`boot`, which the task worker runs too.
 """
 
 from __future__ import annotations
@@ -112,25 +112,6 @@ async def _seed_supported_languages() -> None:
         translation_service.set_supported(codes)
 
 
-def _init_observability() -> None:
-    if not settings.sentry_dsn:
-        return
-    try:
-        import sentry_sdk
-        from sentry_sdk.integrations.fastapi import FastApiIntegration
-        from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
-
-        sentry_sdk.init(
-            dsn=settings.sentry_dsn,
-            environment=settings.sentry_environment,
-            integrations=[FastApiIntegration(), SqlalchemyIntegration()],
-            traces_sample_rate=0.1,
-        )
-        log.info("sentry.initialized", environment=settings.sentry_environment)
-    except ImportError:
-        log.warning("sentry.not_installed", hint="pip install sentry-sdk[fastapi]")
-
-
 async def boot(app: FastAPI | None = None) -> None:
     """Everything a process needs before it can touch documents: logging,
     sites, the DocType registry, installed apps. Shared by the web server
@@ -148,7 +129,6 @@ async def boot(app: FastAPI | None = None) -> None:
     )
 
     await _seed_supported_languages()
-    _init_observability()
 
 
 @asynccontextmanager

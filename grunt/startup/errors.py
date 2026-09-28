@@ -185,8 +185,10 @@ async def _generic_exception(request: Request, exc: Exception) -> JSONResponse:
 
 
 def register_exception_handlers(app: FastAPI) -> None:
-    app.add_exception_handler(ValidationError, _validation_error)
-    app.add_exception_handler(HTTPException, _http_exception)
-    app.add_exception_handler(GruntError, _grunt_error)
-    app.add_exception_handler(ApplicationError, _application_error)
+    # Starlette types handlers as taking a bare Exception; each one here only
+    # ever gets the class it is registered for.
+    app.add_exception_handler(ValidationError, _validation_error)  # pyright: ignore[reportArgumentType]
+    app.add_exception_handler(HTTPException, _http_exception)  # pyright: ignore[reportArgumentType]
+    app.add_exception_handler(GruntError, _grunt_error)  # pyright: ignore[reportArgumentType]
+    app.add_exception_handler(ApplicationError, _application_error)  # pyright: ignore[reportArgumentType]
     app.add_exception_handler(Exception, _generic_exception)

@@ -2,13 +2,19 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from grunt.utils.app_helpers import _format_msgprint
+
+if TYPE_CHECKING:
+    from grunt.publish import MessageType
+    from grunt.session import GruntSession
 
 
 class RealtimeAPI:
     """Notification and websocket helper methods for GruntApp."""
+
+    session: GruntSession
 
     async def notify(
         self,
@@ -39,7 +45,7 @@ class RealtimeAPI:
         data: dict[str, Any] | None = None,
         *,
         message: str | None = None,
-        type: str = "info",
+        type: MessageType = "info",
     ) -> None:
         """Send a transient WebSocket message to a specific user (not persisted)."""
         from grunt.publish import publish as _publish
@@ -52,7 +58,7 @@ class RealtimeAPI:
         data: dict[str, Any] | None = None,
         *,
         message: str | None = None,
-        type: str = "info",
+        type: MessageType = "info",
     ) -> None:
         """Broadcast a transient WebSocket message to all connected users."""
         from grunt.publish import broadcast as _broadcast
@@ -72,7 +78,7 @@ class RealtimeAPI:
         """Show a message dialog to the current user via WebSocket."""
         formatted = _format_msgprint(msg, as_list=as_list, as_table=as_table)
 
-        indicator_to_type = {
+        indicator_to_type: dict[str, MessageType] = {
             "blue": "info",
             "green": "success",
             "red": "error",

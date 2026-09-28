@@ -128,7 +128,7 @@ class WebsiteRegistry:
             return
         loader = env.loader
         if isinstance(loader, ChoiceLoader):
-            loader.loaders.append(FileSystemLoader(str(path)))
+            loader.loaders = [*loader.loaders, FileSystemLoader(str(path))]
 
     @property
     def pages(self) -> list[WebsitePage]:
@@ -142,7 +142,8 @@ async def render_page(
     page: WebsitePage,
     request: Request,
     path_params: dict[str, Any] | None = None,
-    session: Any | None = None,
+    *,
+    session: Any,
 ) -> Response:
     """Load controller context, render the Jinja2 template, return the HTML page.
 

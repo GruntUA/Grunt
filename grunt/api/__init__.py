@@ -31,6 +31,8 @@ Usage in your app:
             await notify("Update", f"{self.doc.name} was processed")
 """
 
+from typing import TYPE_CHECKING
+
 from grunt.api.context import (
     clear_context,
     get_engine,
@@ -53,6 +55,11 @@ from grunt.api.messages import (
     throw,
 )
 from grunt.api.permissions import get_current_user
+
+if TYPE_CHECKING:
+    from grunt.app import GruntDB
+
+    db: GruntDB
 
 
 def __getattr__(name: str):

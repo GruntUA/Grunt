@@ -13,6 +13,8 @@ from grunt.i18n import _
 from grunt.log import log
 
 if TYPE_CHECKING:
+    from collections.abc import Awaitable, Callable
+
     from sqlalchemy.ext.asyncio import AsyncEngine
 
     from grunt.auth.doctypes.User.user import User
@@ -153,7 +155,9 @@ class DocumentWriteMixin(DocumentReadMixin):
             doc_name = str(data["name"])
         else:
             controller_cls = document_registry.get(dt.name)
-            custom_autoname = getattr(controller_cls, "autoname", None)
+            custom_autoname: Callable[..., Awaitable[str]] | None = getattr(
+                controller_cls, "autoname", None
+            )
             if custom_autoname is not None and callable(custom_autoname):
                 doc_name = await custom_autoname(data, self.session)
             else:

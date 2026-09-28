@@ -87,7 +87,7 @@ async def clean_record(meta: Meta, data: dict[str, Any], *, child: bool = False)
         if value is None or f.fieldname == "name":
             continue
         if f.fieldname in table_fieldnames:
-            child_meta = await grunt.get_meta(f.options)
+            child_meta = await grunt.get_meta(f.options or "")
             if child_meta is None or not value:
                 continue
             out[f.fieldname] = [await clean_record(child_meta, row, child=True) for row in value]

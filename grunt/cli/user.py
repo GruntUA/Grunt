@@ -101,6 +101,7 @@ def users_set_password(email, password, site):
                 click.echo(f"Error: user '{email}' not found.", err=True)
                 raise SystemExit(1)
 
+            assert user.id
             await grunt.db.set_value(
                 "User", user.id, {"hashed_password": await hash_password(password)}
             )

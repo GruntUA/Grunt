@@ -482,6 +482,7 @@ async def register_failed_attempt(user: User) -> None:
     if new_attempts >= max_attempts:
         updates["locked_until"] = datetime.now(UTC) + timedelta(minutes=lockout_minutes)
         updates["login_attempts"] = 0
+    assert user.name
     async with grunt.system_context(require_session()):
         await grunt.db.set_value("User", user.name, updates)
 
@@ -490,6 +491,7 @@ async def clear_failed_attempts(user: User) -> None:
     """Reset the failed-sign-in counter and any lock after a success."""
     from grunt.context import require_session
 
+    assert user.name
     async with grunt.system_context(require_session()):
         await grunt.db.set_value("User", user.name, {"login_attempts": 0, "locked_until": None})
 

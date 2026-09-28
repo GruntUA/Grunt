@@ -8,7 +8,7 @@ import re
 import uuid
 from datetime import UTC, datetime
 from email.header import decode_header, make_header
-from email.message import EmailMessage
+from email.message import EmailMessage, Message
 from email.utils import make_msgid, parsedate_to_datetime
 from typing import TYPE_CHECKING, Any
 
@@ -57,12 +57,12 @@ def _kick_queue_after_commit(session: AsyncSession) -> None:
     from sqlalchemy import event
 
     sync_session = session.sync_session
-    if getattr(sync_session, "_grunt_email_kick_armed", False):
+    if sync_session.info.get("grunt_email_kick_armed"):
         return
-    sync_session._grunt_email_kick_armed = True
+    sync_session.info["grunt_email_kick_armed"] = True
 
     def _on_commit(_s: Any) -> None:
-        sync_session._grunt_email_kick_armed = False
+        sync_session.info["grunt_email_kick_armed"] = False
         try:
             loop = asyncio.get_running_loop()
         except RuntimeError:
@@ -108,7 +108,7 @@ class EmailService:
                 f"Outgoing email is disabled for account {account.get('email_address')}"
             )
 
-        smtp_server = account.get("smtp_server")
+        smtp_server = account.get("smtp_server") or ""
         smtp_port = account.get("smtp_port", 587)
         use_tls = account.get("use_tls", True)
         username = account.get("smtp_user") or account.get("email_address")
@@ -275,7 +275,7 @@ class EmailService:
             return str(value)
 
     @staticmethod
-    def _parse_message(msg: email.message.Message) -> dict[str, Any]:
+    def _parse_message(msg: Message) -> dict[str, Any]:
         text_body, html_body = "", ""
         attachments: list[dict[str, Any]] = []
 
@@ -298,7 +298,7 @@ class EmailService:
                         )
                     continue
                 payload = part.get_payload(decode=True)
-                if not payload:
+                if not payload or not isinstance(payload, bytes):
                     continue
                 text = payload.decode(part.get_content_charset() or "utf-8", "replace")
                 if ctype == "text/plain" and not text_body:
@@ -308,7 +308,9 @@ class EmailService:
         else:
             payload = msg.get_payload(decode=True)
             text = (
-                payload.decode(msg.get_content_charset() or "utf-8", "replace") if payload else ""
+                payload.decode(msg.get_content_charset() or "utf-8", "replace")
+                if isinstance(payload, bytes)
+                else ""
             )
             if msg.get_content_type() == "text/html":
                 html_body = text
@@ -331,7 +333,7 @@ class EmailService:
     # ── Delivery / read-receipt reports (DSN / MDN) ──────────────────────────
 
     @staticmethod
-    def _find_part(msg: email.message.Message, content_type: str) -> Any | None:
+    def _find_part(msg: Message, content_type: str) -> Any | None:
         for part in msg.walk():
             if part.get_content_type() == content_type:
                 return part
@@ -346,7 +348,7 @@ class EmailService:
         return m.group(0) if m else (value or None)
 
     @staticmethod
-    def _orig_message_id(msg: email.message.Message, text_body: str = "") -> str | None:
+    def _orig_message_id(msg: Message, text_body: str = "") -> str | None:
         """Dig the original Message-ID out of a bounce/MDN report."""
         rfc822 = EmailService._find_part(msg, "message/rfc822")
         if rfc822 is not None:
@@ -371,7 +373,7 @@ class EmailService:
         return None
 
     @staticmethod
-    def _parse_report(msg: email.message.Message, text_body: str = "") -> dict[str, Any] | None:
+    def _parse_report(msg: Message, text_body: str = "") -> dict[str, Any] | None:
         """Classify a message as a delivery-status (DSN) or read-receipt (MDN)
         report and extract the referenced original Message-ID.
 
@@ -379,7 +381,8 @@ class EmailService:
         """
         report_type = ""
         if msg.get_content_maintype() == "multipart":
-            report_type = (msg.get_param("report-type") or "").lower()
+            param = msg.get_param("report-type")
+            report_type = param.lower() if isinstance(param, str) else ""
 
         from_hdr = EmailService._decode_header(msg["From"]).lower()
         is_daemon = "mailer-daemon" in from_hdr or "postmaster" in from_hdr
@@ -545,7 +548,7 @@ class EmailService:
                     "file_url": "",
                 },
             )
-            fid = fdoc.get("name")
+            fid = fdoc["name"]
             url = f"/api/v1/method/grunt.storage.doctypes.File.file.get_content?file_id={fid}"
             await grunt.db.set_value("File", fid, {"file_url": url})
             return url

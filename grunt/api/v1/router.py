@@ -7,7 +7,6 @@ from grunt.api.v1.dashboard_data import router as dashboard_data_router
 from grunt.api.v1.docs import router as docs_router
 from grunt.api.v1.health import router as health_router
 from grunt.api.v1.method import router as method_router
-from grunt.api.v1.metrics import router as metrics_router
 from grunt.api.v1.oauth import router as oauth_router
 from grunt.api.v1.webhooks import router as webhooks_router
 from grunt.api.v1.ws import router as ws_router
@@ -17,7 +16,6 @@ v1_router = APIRouter()
 # System endpoints
 v1_router.include_router(health_router, tags=["health"])
 v1_router.include_router(ws_router, tags=["websocket"])
-v1_router.include_router(metrics_router, tags=["monitoring"])
 
 # Core Meta / Method invocation
 v1_router.include_router(method_router, prefix="/method", tags=["method"])

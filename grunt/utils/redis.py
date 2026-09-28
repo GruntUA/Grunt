@@ -29,4 +29,6 @@ def connect(url: str | None = None, **kwargs: Any) -> Redis:
         from grunt.config import settings
 
         url = settings.redis_url
+    if not url:
+        raise RuntimeError("REDIS_URL is not configured")
     return aioredis.from_url(url, **connection_options(), **kwargs)

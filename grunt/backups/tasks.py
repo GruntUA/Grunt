@@ -5,6 +5,7 @@ from __future__ import annotations
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
+from grunt import log_error
 from grunt.app import grunt
 from grunt.backups import DEFAULT_COMPRESSION_LEVEL, create_backup, list_backups, rotate
 from grunt.i18n import _, language_of, use_language
@@ -58,7 +59,7 @@ async def _run(site: str, *, keep: int, **options: Any) -> str:
         log.info("backup.cancelled", site=site)
         raise
     except Exception as exc:
-        await grunt.log_error(exc=exc, title="Backup failed", context="Background Task")
+        await log_error(exc=exc, title="Backup failed", context="Background Task")
         raise
     removed = rotate(site, keep)
     if removed:

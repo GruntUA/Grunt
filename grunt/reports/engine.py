@@ -172,6 +172,7 @@ class ReportEngine:
         compiled = compile_script(script_src)
         if compiled.errors:
             raise HTTPException(400, detail="; ".join(compiled.errors))
+        assert compiled.code is not None  # no errors → compiled
 
         engine = await _engine_factory()
         async with grunt.context(session, engine, user):

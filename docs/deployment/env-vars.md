@@ -38,21 +38,8 @@ All configuration is via environment variables (or a `.env` file in the project 
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `STORAGE_BACKEND` | `local` | `local` or `s3` |
 | `UPLOAD_DIR` | `./uploads` | Upload directory (local storage) |
 | `MAX_UPLOAD_SIZE_MB` | `50` | Maximum file size in MB |
-| `S3_BUCKET` | — | S3 bucket name |
-| `S3_REGION` | — | AWS region (e.g. `eu-central-1`) |
-| `S3_ENDPOINT_URL` | — | Custom S3 endpoint (MinIO, Cloudflare R2) |
-| `AWS_ACCESS_KEY_ID` | — | AWS / MinIO access key |
-| `AWS_SECRET_ACCESS_KEY` | — | AWS / MinIO secret key |
-
-## Observability
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `SENTRY_DSN` | `None` | Sentry DSN — enables error tracking |
-| `SENTRY_ENVIRONMENT` | `production` | Sentry environment tag |
 
 ## OAuth2 / SSO
 

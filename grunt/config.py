@@ -58,19 +58,9 @@ class Settings(BaseSettings):
     # App URL (used for password reset links in emails)
     app_url: str = "http://localhost:5173"
 
-    # Sentry (optional — leave empty to disable)
-    sentry_dsn: str | None = None
-    sentry_environment: str = "production"
-
     # Storage
     upload_dir: str = "./uploads"
     max_upload_size_mb: int = 50
-    storage_backend: str = "local"  # "local" | "s3"
-    s3_bucket: str | None = None
-    s3_region: str | None = None
-    s3_endpoint_url: str | None = None  # for MinIO / Cloudflare R2
-    aws_access_key_id: str | None = None
-    aws_secret_access_key: str | None = None
 
     # Reverse proxies whose forwarded client-IP headers (CF-Connecting-IP,
     # X-Real-IP, X-Forwarded-For) are believed. A request from any other

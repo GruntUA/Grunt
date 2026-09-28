@@ -49,7 +49,7 @@ class TestVirtualDocTypeSubclass:
     @pytest.mark.asyncio
     async def test_custom_get_list(self):
         class MockAPI(VirtualDocType):
-            async def get_list(self, **kwargs):
+            async def get_list(self, *args, **kwargs):
                 return {
                     "data": [{"id": "1", "name": "Customer A"}],
                     "meta": {"total": 1, "page": 1, "per_page": 20},
@@ -107,7 +107,7 @@ class TestVirtualDocTypeSubclass:
     @pytest.mark.asyncio
     async def test_get_count_default(self):
         class MockAPI(VirtualDocType):
-            async def get_list(self, **kwargs):
+            async def get_list(self, *args, **kwargs):
                 return {
                     "data": [],
                     "meta": {"total": 42, "page": 1, "per_page": 1},

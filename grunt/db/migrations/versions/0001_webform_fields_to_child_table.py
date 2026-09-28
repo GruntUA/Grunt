@@ -81,7 +81,7 @@ def upgrade() -> None:
 
         try:
             entries = json.loads(fields_json)
-        except (TypeError, ValueError):
+        except TypeError, ValueError:
             continue
         if not isinstance(entries, list):
             continue

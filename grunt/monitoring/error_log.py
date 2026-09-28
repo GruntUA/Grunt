@@ -119,9 +119,9 @@ async def record_error(
 
         if user is None:
             try:
-                from grunt.app import grunt
+                from grunt.api.context import get_user
 
-                user = grunt.get_user().email
+                user = get_user().email
             except Exception:
                 user = None
 

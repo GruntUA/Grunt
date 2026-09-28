@@ -19,7 +19,7 @@ class SystemHealthReportController(VirtualDocType):
     async def get(self, doc_id: str, **kwargs: Any) -> dict[str, Any]:
         return {"name": self.doctype, "browser_checks": [], **await build_report()}
 
-    async def get_list(self, **kwargs: Any) -> dict[str, Any]:
+    async def get_list(self, *args: Any, **kwargs: Any) -> dict[str, Any]:
         # The single row, without running the checks — lists and counts only need the name.
         return self.build_response([{"name": self.doctype}], 1, 1)
 

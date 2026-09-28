@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Any
 
 import openpyxl
 from openpyxl.styles import Alignment, Font, PatternFill
+from openpyxl.utils import get_column_letter
 
 from grunt.io.exporters.registry import Exporter
 from grunt.io.exporters.sanitize import escape_formula
@@ -56,6 +57,7 @@ class XlsxExporter(Exporter):
 
         wb = openpyxl.Workbook()
         ws = wb.active
+        assert ws is not None  # a new Workbook always has one sheet
         ws.title = doctype[:31]  # Excel sheet name limit
 
         # Header row
@@ -76,9 +78,9 @@ class XlsxExporter(Exporter):
                 )
 
         # Auto-fit column widths (approximate)
-        for col_cells in ws.columns:
+        for col_idx, col_cells in enumerate(ws.columns, start=1):
             max_len = max((len(str(c.value or "")) for c in col_cells), default=0)
-            ws.column_dimensions[col_cells[0].column_letter].width = min(max_len + 4, 60)
+            ws.column_dimensions[get_column_letter(col_idx)].width = min(max_len + 4, 60)
 
         buf = io.BytesIO()
         wb.save(buf)

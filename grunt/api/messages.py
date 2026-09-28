@@ -11,6 +11,8 @@ Example:
     await notify("New Request", "From client ABC", doctype="Request", doc_id="REQ-001")
 """
 
+from typing import NoReturn
+
 from grunt.api.context import get_session, get_user
 
 
@@ -54,7 +56,7 @@ def msgprint_list(items: list[str], title: str = "") -> None:
         msgprint(item, title=title, msg_type="info")
 
 
-def throw(message: str, code: str = "ERROR", title: str = "") -> None:
+def throw(message: str, code: str = "ERROR", title: str = "") -> NoReturn:
     """Raise an ApplicationError (translates to HTTP exception + message).
 
     This stops execution and returns an error response to the frontend.

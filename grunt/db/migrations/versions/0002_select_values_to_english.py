@@ -84,9 +84,7 @@ def _apply(mapping_for: dict[str, dict[str, dict[str, str]]]) -> None:
                 continue
             tbl = sa.table(table, sa.column(column))
             for old, new in values.items():
-                conn.execute(
-                    sa.update(tbl).where(tbl.c[column] == old).values({column: new})
-                )
+                conn.execute(sa.update(tbl).where(tbl.c[column] == old).values({column: new}))
 
 
 def upgrade() -> None:

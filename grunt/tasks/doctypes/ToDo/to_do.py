@@ -63,7 +63,7 @@ class ToDo(Document):
             self.assigned_on = datetime.now(UTC)
 
     async def before_save(self) -> None:
-        if self._inserting:
+        if self._inserting or not self.id:
             return
         if self._prev is None:
             self._prev = (

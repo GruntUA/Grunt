@@ -226,12 +226,12 @@ class _DictTranslations(_gettext.NullTranslations):
     def gettext(self, message: str) -> str:
         return self._catalog.get(message, message)
 
-    def ngettext(self, singular: str, plural: str, n: int) -> str:
+    def ngettext(self, msgid1: str, msgid2: str, n: int) -> str:
         idx = plural_index(self._lang, n)
-        result = self._catalog.get(f"{singular}\x00{idx}")
+        result = self._catalog.get(f"{msgid1}\x00{idx}")
         if result:
             return result
-        return singular if n == 1 else plural
+        return msgid1 if n == 1 else msgid2
 
     def pgettext(self, context: str, message: str) -> str:
         key = f"{context}\x04{message}"

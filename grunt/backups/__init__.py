@@ -87,6 +87,12 @@ def _db_url(site: str):
     return site_manager.get_engine(site).url
 
 
+def _sqlite_path(url) -> Path:
+    if not url.database:  # in-memory SQLite — no file to back up or restore
+        raise BackupError(_("The SQLite database has no file to back up"))
+    return Path(url.database)
+
+
 # ── Listing / rotation ────────────────────────────────────────────────────
 
 
@@ -272,7 +278,7 @@ def _create_backup_sync(
             (0, out / f"{backup_id}-config.env", lambda part: _backup_config(env, part, progress))
         )
     if with_database and backend == "sqlite":
-        db_path = Path(url.database)
+        db_path = _sqlite_path(url)
         steps.append(
             (
                 2 * db_path.stat().st_size,
@@ -367,7 +373,7 @@ def restore_backup(site: str, backup: BackupSet, *, with_files: bool = False) ->
     url = _db_url(site)
 
     if url.get_backend_name() == "sqlite":
-        db_path = Path(url.database)
+        db_path = _sqlite_path(url)
         restored = aside / "restored.sqlite"
         with zstd.open(backup.files["database"], "rb") as fin, restored.open("wb") as fout:
             shutil.copyfileobj(fin, fout, length=1024 * 1024)

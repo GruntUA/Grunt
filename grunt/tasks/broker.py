@@ -46,7 +46,7 @@ else:
     log.warning("tasks.broker_initialized", type="in_memory", reason="REDIS_URL not set")
 
 
-def task(*args, **kwargs):
+def task[**P, R](func: Callable[P, R]) -> AsyncTaskiqDecoratedTask[P, R]:
     """Decorator to register a background task.
 
     Usage:
@@ -54,7 +54,7 @@ def task(*args, **kwargs):
         async def my_task(param):
             ...
     """
-    return broker.task(*args, **kwargs)
+    return broker.task(func)
 
 
 def retryable_task(

@@ -21,7 +21,7 @@ import json
 import re
 import time
 from pathlib import Path
-from typing import Any
+from typing import Any, TypeGuard
 
 from grunt.i18n.meta import SELECT_FIELDTYPES, option_values
 
@@ -232,7 +232,7 @@ def _scan_field_dict(node: ast.Dict, rel: str, origin: str, add) -> None:
         add(label.value, "", "code", origin, f"{rel}:{node.lineno}")
 
 
-def _is_str(node: ast.expr) -> bool:
+def _is_str(node: ast.expr | None) -> TypeGuard[ast.Constant]:
     return isinstance(node, ast.Constant) and isinstance(node.value, str)
 
 

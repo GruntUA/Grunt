@@ -29,6 +29,7 @@ from grunt.log import log
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
+    from types import ModuleType
 
     from fastapi import FastAPI
 
@@ -102,7 +103,7 @@ def _load_core_client_scripts() -> None:
 
 
 async def load_external_apps(
-    fastapi_app: FastAPI,
+    fastapi_app: FastAPI | None,
     *,
     bench_dir: Path,
     installed_apps: set[str],
@@ -166,9 +167,7 @@ async def load_app(fastapi_app: FastAPI | None, app_dir: Path) -> None:
         elif _primary_web_app == ctx.app_name:
             is_main_app = True
         else:
-            log.warning(
-                "apps.primary_web_app.conflict", app=ctx.app_name, holder=_primary_web_app
-            )
+            log.warning("apps.primary_web_app.conflict", app=ctx.app_name, holder=_primary_web_app)
 
     _include_app_routers(ctx)
     _mount_app_static(ctx)
@@ -216,7 +215,7 @@ def _hooks_import_path(app_name: str, module_name: str) -> str:
     return f"{app_name}.{module_name}.hooks"
 
 
-def _iter_hooks_modules(app_dir: Path) -> Iterator[object]:
+def _iter_hooks_modules(app_dir: Path) -> Iterator[ModuleType]:
     for hooks_file in app_dir.glob("*/hooks.py"):
         import_path = _hooks_import_path(app_dir.name, hooks_file.parent.name)
         try:

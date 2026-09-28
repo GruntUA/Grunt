@@ -58,14 +58,15 @@ async def record_update_changes(
             log.exception("version.create_error", doctype=doctype_name, doc_id=real_id)
 
     if diff_changes:
+        from grunt.document.versioning import _SKIP_FIELDS
+
+        changed_fields = [
+            item["field"] for item in diff_changes if item["field"] not in _SKIP_FIELDS
+        ]
         try:
             from grunt.activity import record_activity
             from grunt.app import grunt as _g
-            from grunt.document.versioning import _SKIP_FIELDS
 
-            changed_fields = [
-                item["field"] for item in diff_changes if item["field"] not in _SKIP_FIELDS
-            ]
             async with _g.context(session=session, engine=engine, user=user):
                 await record_activity(
                     doctype_name,

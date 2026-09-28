@@ -62,7 +62,8 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
 
         response = await call_next(request)
         if 200 <= response.status_code < 300:
-            body = b"".join([chunk async for chunk in response.body_iterator])
+            # call_next hands back a streaming response, typed as a plain Response.
+            body = b"".join([chunk async for chunk in response.body_iterator])  # pyright: ignore[reportAttributeAccessIssue]
             media_type = response.media_type or response.headers.get(
                 "content-type", "application/json"
             )

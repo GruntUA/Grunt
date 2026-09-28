@@ -65,10 +65,3 @@ class Comment(Document):
             order="asc",
             limit=1000,
         )
-
-    @classmethod
-    async def delete(cls, comment_id: str) -> None:
-        """Delete a comment. Controller enforces ownership check."""
-        from grunt.app import grunt
-
-        await grunt.delete_doc("Comment", comment_id)

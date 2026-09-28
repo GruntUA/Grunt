@@ -176,9 +176,7 @@ class DocumentMetaRPCMixin:
         if emails:
             from grunt.auth.doctypes.User.user import get_users_by_emails
 
-            users = await get_users_by_emails(
-                list(emails), fields=["email", "full_name", "avatar"]
-            )
+            users = await get_users_by_emails(list(emails), fields=["email", "full_name", "avatar"])
             for u in users:
                 email = u.email
                 people[email] = {

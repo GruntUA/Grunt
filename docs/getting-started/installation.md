@@ -53,18 +53,10 @@ SECRET_KEY=change-me-to-a-random-64-char-string
 
 # Optional
 REDIS_URL=redis://localhost:6379
-SENTRY_DSN=https://...@sentry.io/...
 
 # OAuth (Google SSO)
 OAUTH_GOOGLE_CLIENT_ID=...
 OAUTH_GOOGLE_CLIENT_SECRET=...
-
-# File storage (default: local)
-STORAGE_BACKEND=s3
-S3_BUCKET=my-bucket
-S3_REGION=eu-central-1
-AWS_ACCESS_KEY_ID=...
-AWS_SECRET_ACCESS_KEY=...
 ```
 
 See [Environment Variables](../deployment/env-vars.md) for a full reference.

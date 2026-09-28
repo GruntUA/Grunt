@@ -47,28 +47,12 @@ class ConnectionManager:
         await ws.accept()
         self._connections.setdefault(channel, []).append(ws)
         await self.ensure_redis_listener()
-        total = self._total_connections()
-        log.debug("ws.connect", channel=channel, total=total)
-        try:
-            from grunt.monitoring.metrics import ws_connections_active
-
-            if ws_connections_active is not None:
-                ws_connections_active.set(total)
-        except Exception:
-            log.exception("suppressed_error")
+        log.debug("ws.connect", channel=channel, total=self._total_connections())
 
     def disconnect(self, ws: WebSocket, channel: str) -> None:
         conns = self._connections.get(channel, [])
         if ws in conns:
             conns.remove(ws)
-        total = self._total_connections()
-        try:
-            from grunt.monitoring.metrics import ws_connections_active
-
-            if ws_connections_active is not None:
-                ws_connections_active.set(total)
-        except Exception:
-            log.exception("suppressed_error")
 
     async def _send(self, channel: str, message: str) -> None:
         """Send a message to all connections on a channel, removing dead ones."""

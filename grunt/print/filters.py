@@ -2,10 +2,14 @@
 
 from __future__ import annotations
 
+import functools
 import json
 import re
 from datetime import date, datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any, cast
+
+if TYPE_CHECKING:
+    from shevchenko import GenderDetectionInput
 
 # Regex to detect adjective-form Ukrainian surnames (-ський/-зький/etc.)
 # shevchenko 1.0.0 incorrectly declines these to "-ию" instead of "-ому/-ьому".
@@ -86,7 +90,7 @@ def decline_name(full_name: str | None, case: str = "nominative") -> str:
             return full_name
 
         try:
-            gender_result = shevchenko.detect_gender(input_data)
+            gender_result = shevchenko.detect_gender(cast("GenderDetectionInput", input_data))
             gender = gender_result.get("gender")
             input_data["gender"] = gender.value if gender else "masculine"
         except Exception:
@@ -296,13 +300,12 @@ def _decline_word_morph(word: str, case: str) -> str | None:
         return None
 
 
+@functools.cache
 def _morph_uk() -> Any:
     """Return a cached pymorphy3 MorphAnalyzer for Ukrainian."""
-    if not hasattr(_morph_uk, "_instance"):
-        import pymorphy3
+    import pymorphy3
 
-        _morph_uk._instance = pymorphy3.MorphAnalyzer(lang="uk")
-    return _morph_uk._instance
+    return pymorphy3.MorphAnalyzer(lang="uk")
 
 
 def striptags(value: str | None) -> str:

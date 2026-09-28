@@ -90,6 +90,7 @@ async def test_send_report_queues_xlsx_and_stamps_last_sent(ctx):
     [att] = decode_attachments(queued[0]["attachments"])
     assert att["filename"] == "Daily Answer.xlsx"
     sheet = openpyxl.load_workbook(io.BytesIO(att["content"])).active
+    assert sheet is not None
     assert [c.value for c in sheet[1]] == ["answer"]
     assert sheet["A2"].value == 42
 
