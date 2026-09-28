@@ -83,7 +83,13 @@ def stats_cmd(locales: tuple[str, ...], show_missing: bool, fail_under: float | 
     help="JSON object {ukrainian: english}.",
 )
 @click.option("--apply", is_flag=True, help="Write the changes (default: dry-run).")
-def flip_cmd(module: str, map_path: str | None, apply: bool) -> None:
+@click.option(
+    "--options",
+    "options",
+    is_flag=True,
+    help="Also rename Select option values (stored data — migrate existing rows too).",
+)
+def flip_cmd(module: str, map_path: str | None, apply: bool, options: bool) -> None:
     """Flip a module's DocType JSON to English; move Ukrainian into uk/grunt.po.
 
     Run without --map to list the strings that need translating. Provide those in
@@ -95,7 +101,7 @@ def flip_cmd(module: str, map_path: str | None, apply: bool) -> None:
     if map_path:
         mapping = json.loads(Path(map_path).read_text(encoding="utf-8"))
 
-    r = po.flip_module(module, mapping, apply=apply)
+    r = po.flip_module(module, mapping, apply=apply, options=options)
 
     if r["unmapped"]:
         click.echo(f"# {len(r['unmapped'])} strings still need an English mapping:")

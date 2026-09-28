@@ -159,9 +159,10 @@ def _doctype_json_paths(module: str) -> list[Path]:
     return [p for p in sorted(base.glob("*/*.json")) if p.stem == p.parent.name]
 
 
-def _walk_slots(dt: dict):
+def _walk_slots(dt: dict, *, options: bool = True):
     """Yield ``(setter, msgctxt, text)`` for every translatable slot in a DocType
-    dict. ``setter(new)`` mutates the dict in place."""
+    dict. ``setter(new)`` mutates the dict in place. ``options=False`` skips
+    Select option values — those are stored data, not captions."""
     name = dt.get("name") or ""
 
     def _s(obj, key):
@@ -177,7 +178,7 @@ def _walk_slots(dt: dict):
         for attr, prefix in (("label", "meta"), ("description", "help"), ("placeholder", "hint")):
             if fld.get(attr):
                 yield _s(fld, attr), f"{prefix}:{name}.{fn}", fld[attr]
-        if fld.get("fieldtype") == "Select" and isinstance(fld.get("options"), str):
+        if options and fld.get("fieldtype") == "Select" and isinstance(fld.get("options"), str):
             lines = fld["options"].split("\n")
             for i, line in enumerate(lines):
                 if line.strip():
@@ -193,9 +194,14 @@ def _walk_slots(dt: dict):
             yield _s(si, "label"), f"status:{name}", si["label"]
 
 
-def flip_module(module: str, mapping: dict[str, str], *, apply: bool = False) -> dict:
+def flip_module(
+    module: str, mapping: dict[str, str], *, apply: bool = False, options: bool = False
+) -> dict:
     """Replace Ukrainian strings in ``grunt/<module>/doctypes/**`` with their
     English *mapping*, moving the Ukrainian into ``locales/uk/LC_MESSAGES/grunt.po``.
+
+    Select option values are left alone unless *options* — they are what gets
+    stored, so renaming them needs a data migration alongside.
 
     Dry-run by default. Returns ``{files, entries, unmapped}``.
     """
@@ -208,7 +214,7 @@ def flip_module(module: str, mapping: dict[str, str], *, apply: bool = False) ->
         if "fields" not in dt:
             continue
         changed = False
-        for setter, ctx, text in _walk_slots(dt):
+        for setter, ctx, text in _walk_slots(dt, options=options):
             if not _has_cyrillic(text):
                 continue
             en = mapping.get(text)

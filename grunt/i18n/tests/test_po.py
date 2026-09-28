@@ -110,7 +110,7 @@ def flip_pkg(tmp_path, monkeypatch):
 
 
 def test_flip_module_dry_run_reports_unmapped(flip_pkg):
-    r = po.flip_module("demo", {"Віджет": "Widget"})
+    r = po.flip_module("demo", {"Віджет": "Widget"}, options=True)
     assert r["files"] == []  # dry run
     assert "Назва" in r["unmapped"] and "Чернетка" in r["unmapped"]
     assert "Віджет" not in r["unmapped"]
@@ -126,7 +126,7 @@ def test_flip_module_apply_rewrites_json_and_fills_uk_po(flip_pkg):
         "Чернетка": "Draft",
         "Готово": "Done",
     }
-    r = po.flip_module("demo", mapping, apply=True)
+    r = po.flip_module("demo", mapping, apply=True, options=True)
     assert r["unmapped"] == []
     assert r["entries"] == 5
 
@@ -142,4 +142,14 @@ def test_flip_module_apply_rewrites_json_and_fills_uk_po(flip_pkg):
     assert by[("select:Widget.st", "Draft")] == "Чернетка"
 
     # idempotent — second run finds nothing left to flip
-    assert po.flip_module("demo", mapping, apply=True)["entries"] == 0
+    assert po.flip_module("demo", mapping, apply=True, options=True)["entries"] == 0
+
+
+def test_flip_module_leaves_select_values_by_default(flip_pkg):
+    import json as _json
+
+    r = po.flip_module("demo", {"Віджет": "Widget", "Назва": "Name", "Статус": "Status"}, apply=True)
+    assert r["unmapped"] == []  # option values are not even asked for
+    dt = _json.loads(flip_pkg.read_text(encoding="utf-8"))
+    assert dt["fields"][1]["label"] == "Status"
+    assert dt["fields"][1]["options"] == "Чернетка\nГотово"  # stored values untouched
