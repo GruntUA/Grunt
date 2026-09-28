@@ -26,6 +26,7 @@ from typing import Any
 from sqlalchemy import distinct, func, select
 
 import grunt
+from grunt.i18n import _
 from grunt.log import log
 from grunt.metadata.doctype import DocTypeLink
 
@@ -39,7 +40,7 @@ async def _child_link_stats(link: DocTypeLink, doc_name: str) -> tuple[int, list
     session = grunt_app._require_session()
     child_dt = await grunt_app.get_meta(link.parent_doctype or "")
     if child_dt is None:
-        raise ValueError(f"DocType «{link.parent_doctype}» не знайдено")
+        raise ValueError(_("DocType “%(doctype)s” not found") % {"doctype": link.parent_doctype})
     child_table = child_dt.table
 
     if link.link_fieldname not in child_table.c:
@@ -64,7 +65,7 @@ async def _direct_link_stats(link: DocTypeLink, doc_name: str) -> tuple[int, lis
 
     link_dt = await grunt.get_meta(link.link_doctype)
     if link_dt is None:
-        raise ValueError(f"DocType «{link.link_doctype}» не знайдено")
+        raise ValueError(_("DocType “%(doctype)s” not found") % {"doctype": link.link_doctype})
     title_field = link_dt.title_field or "name"
     fields = ["name"] if title_field == "name" else ["name", title_field]
     rows = await grunt.get_list(
@@ -85,7 +86,7 @@ async def _resolve_titles(doctype: str, names: list[str]) -> list[dict[str, Any]
         return []
     dt = await grunt.get_meta(doctype)
     if dt is None:
-        raise ValueError(f"DocType «{doctype}» не знайдено")
+        raise ValueError(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
     title_field = dt.title_field or "name"
     fields = ["name"] if title_field == "name" else ["name", title_field]
     rows = await grunt.get_list(
@@ -119,7 +120,7 @@ async def get_connections(doctype: str, doc_id: str) -> dict[str, Any]:
 
     dt = await grunt.get_meta(doctype)
     if dt is None:
-        raise not_found(f"DocType «{doctype}» не знайдено")
+        raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
     doc_name = dt.name if dt.is_singleton else doc_id
     # The `links` table is authoritative. A DocType that declares no rows shows
     # no connection chips — backlinks are never derived from reverse Link fields.

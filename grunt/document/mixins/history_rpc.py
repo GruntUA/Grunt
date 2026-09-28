@@ -13,6 +13,7 @@ from typing import Any
 from fastapi import HTTPException
 
 import grunt
+from grunt.i18n import _
 
 
 class DocumentHistoryRPCMixin:
@@ -45,9 +46,11 @@ class DocumentHistoryRPCMixin:
         session = grunt_app._require_session()
         target = await version_service.get_version(session, version_id)
         if target is None:
-            raise HTTPException(status_code=404, detail="Версію не знайдено")
+            raise HTTPException(status_code=404, detail=_("Version not found"))
         if target["doctype"] != doctype or target["doc_id"] != doc_id:
-            raise HTTPException(status_code=400, detail="Версія не належить цьому документу")
+            raise HTTPException(
+                status_code=400, detail=_("The version does not belong to this document")
+            )
 
         # Get all versions for this doc
         all_versions = await version_service.get_versions(session, doctype, doc_id)
@@ -62,7 +65,7 @@ class DocumentHistoryRPCMixin:
 
         meta = await grunt_app.get_meta(doctype)
         if meta is None:
-            raise not_found(f"DocType «{doctype}» не знайдено")
+            raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
 
         update_fields = {}
         for field in meta.get_physical_fields():

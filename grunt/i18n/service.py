@@ -7,7 +7,9 @@ Translations are resolved in this order:
 2. PO files in this module's ``locales/`` dir and every installed app's
    ``<module>/locales/`` dir
 
-Default language is Ukrainian (uk). English strings are the source keys.
+English strings are the source keys. The fallback language (no request, or
+nothing negotiable) is the site default — ``SystemSettings.language``, seeded at
+startup via :meth:`TranslationService.set_default`; ``uk`` until then.
 
 Usage:
     from grunt.i18n import _, ngettext
@@ -21,6 +23,7 @@ from __future__ import annotations
 
 import gettext as _gettext
 import secrets
+from contextlib import contextmanager
 from contextvars import ContextVar, Token
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -29,14 +32,17 @@ from grunt.i18n.plurals import plural_index
 from grunt.log import log
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Callable, Iterator
 
 
 # Directory containing locale files (uk/LC_MESSAGES/grunt.po)
 _LOCALE_DIR = Path(__file__).parent / "locales"
 
-# Per-request language (set by middleware, default: uk)
-_current_lang: ContextVar[str] = ContextVar("grunt_lang", default="uk")
+# Per-request language (set by middleware); None → the site default below.
+_current_lang: ContextVar[str | None] = ContextVar("grunt_lang", default=None)
+
+# Fallback language outside a request (tasks, CLI) and when negotiation fails.
+_default_lang: str = "uk"
 
 # Cached gettext translation objects: {lang: GNUTranslations}
 _translations: dict[str, _gettext.GNUTranslations | _gettext.NullTranslations] = {}
@@ -58,6 +64,15 @@ _catalog_version: str = "0"
 # and default (uk); widened at startup from active geo.Language rows.
 _DEFAULT_SUPPORTED = frozenset({"uk", "en"})
 _supported: set[str] = set(_DEFAULT_SUPPORTED)
+
+# UI languages (the language switcher): the English source, the site default,
+# every locale that has a PO catalog (core or any app), plus extras a runtime
+# provider declares (e.g. the Translate app's enabled locales). Discovery is
+# cached until reload()/invalidate().
+_ui_langs_cache: list[str] | None = None
+_extra_ui_langs: set[str] = set()
+# Native language names ({"uk": "Українська"}), seeded from geo.Language.
+_language_names: dict[str, str] = {}
 
 
 def _load_translations(lang: str) -> _gettext.GNUTranslations | _gettext.NullTranslations:
@@ -101,76 +116,29 @@ def _parse_po_file(path: Path) -> dict[str, str]:
 
 
 def parse_po_string(text: str) -> dict[str, str]:
-    """Simple PO parser — extracts msgid → msgstr mappings.
+    """Parse PO text into msgid → msgstr mappings (via polib).
 
     Keys: bare ``msgid``, ``"<msgctxt>\\x04<msgid>"`` with context, and
-    ``"<key>\\x00<n>"`` for plural forms. Handles simple strings, msgctxt and
-    msgid_plural; does NOT handle multiline concatenation or obsolete entries.
+    ``"<key>\\x00<n>"`` for plural forms (plus the bare key → form 0).
+    Multi-line (wrapped) strings are joined; obsolete, fuzzy and untranslated
+    entries are skipped — the same set ``msgfmt`` would compile.
     """
+    import polib
+
     catalog: dict[str, str] = {}
-    current_msgctxt: str | None = None
-    current_msgid: str | None = None
-    current_msgid_plural: str | None = None
-    current_msgstr: str | None = None
-    plural_forms: dict[int, str] = {}
-
-    def _flush() -> None:
-        nonlocal current_msgctxt, current_msgid, current_msgid_plural, current_msgstr, plural_forms
-        if current_msgid is not None and current_msgid != "":
-            key = current_msgid
-            if current_msgctxt:
-                key = f"{current_msgctxt}\x04{current_msgid}"
-
-            if current_msgid_plural and plural_forms:
-                # Store plural forms as msgstr[0], msgstr[1], etc.
-                for idx, form in sorted(plural_forms.items()):
-                    if form:
-                        catalog[f"{key}\x00{idx}"] = form
-                # Also store the singular form
-                if plural_forms.get(0):
-                    catalog[key] = plural_forms[0]
-            elif current_msgstr:
-                catalog[key] = current_msgstr
-
-        current_msgctxt = None
-        current_msgid = None
-        current_msgid_plural = None
-        current_msgstr = None
-        plural_forms = {}
-
-    for raw_line in text.splitlines():
-        line = raw_line.strip()
-
-        if not line or line.startswith("#"):
+    for entry in polib.pofile(text):
+        if entry.obsolete or entry.fuzzy or not entry.msgid:
             continue
-
-        if line.startswith("msgctxt "):
-            _flush()
-            current_msgctxt = _unquote(line[8:])
-        elif line.startswith("msgid_plural "):
-            current_msgid_plural = _unquote(line[13:])
-        elif line.startswith("msgid "):
-            if current_msgid is not None:
-                _flush()
-            current_msgid = _unquote(line[6:])
-        elif line.startswith("msgstr["):
-            idx = int(line[7])
-            value = _unquote(line[10:])
-            plural_forms[idx] = value
-        elif line.startswith("msgstr "):
-            current_msgstr = _unquote(line[7:])
-
-    _flush()
-
+        key = f"{entry.msgctxt}\x04{entry.msgid}" if entry.msgctxt else entry.msgid
+        if entry.msgid_plural:
+            for idx, form in sorted(entry.msgstr_plural.items()):
+                if form:
+                    catalog[f"{key}\x00{idx}"] = form
+            if entry.msgstr_plural.get(0):
+                catalog[key] = entry.msgstr_plural[0]
+        elif entry.msgstr:
+            catalog[key] = entry.msgstr
     return catalog
-
-
-def _unquote(s: str) -> str:
-    """Remove surrounding quotes from a PO string value."""
-    s = s.strip()
-    if s.startswith('"') and s.endswith('"'):
-        s = s[1:-1]
-    return s.replace("\\n", "\n").replace('\\"', '"')
 
 
 def _flatten_catalog(catalog: dict[str, str]) -> dict[str, str]:
@@ -199,6 +167,21 @@ def _app_locale_po_files(lang: str) -> list[Path]:
     files = list(apps_dir.glob(f"*/*/locales/{lang}.po"))
     files += list(apps_dir.glob(f"*/*/locales/{lang}/LC_MESSAGES/*.po"))
     return files
+
+
+def _app_locale_codes() -> set[str]:
+    """Locale codes of every installed app's PO files."""
+    try:
+        from grunt.site.manager import site_manager
+
+        apps_dir = site_manager.bench_dir / "apps"
+    except Exception:
+        return set()
+    if not apps_dir.is_dir():
+        return set()
+    codes = {p.stem for p in apps_dir.glob("*/*/locales/*.po")}
+    codes.update(p.parent.parent.name for p in apps_dir.glob("*/*/locales/*/LC_MESSAGES/*.po"))
+    return {normalize_lang(c) for c in codes}
 
 
 def _app_catalog(lang: str) -> dict[str, str]:
@@ -259,11 +242,40 @@ class TranslationService:
     """Manages translations for backend strings."""
 
     def get_lang(self) -> str:
-        return _current_lang.get()
+        return _current_lang.get() or _default_lang
 
-    def set_lang(self, lang: str) -> Token[str]:
+    def set_lang(self, lang: str) -> Token[str | None]:
         """Set the current language. Returns a token for reset."""
         return _current_lang.set(lang)
+
+    @contextmanager
+    def use_language(self, lang: str | None) -> Iterator[None]:
+        """Temporarily switch the language, e.g. to render mail in the recipient's.
+
+        *lang* may be a locale tag (``en-US``); empty/unsupported → unchanged.
+        """
+        code = normalize_lang(lang)
+        if not code or code not in _supported:
+            yield
+            return
+        token = _current_lang.set(code)
+        try:
+            yield
+        finally:
+            _current_lang.reset(token)
+
+    def default_lang(self) -> str:
+        return _default_lang
+
+    def set_default(self, lang: str | None) -> None:
+        """Set the site default language (``SystemSettings.language``)."""
+        global _default_lang, _ui_langs_cache
+        code = normalize_lang(lang)
+        if code and code != _default_lang:
+            _default_lang = code
+            _supported.add(code)
+            _ui_langs_cache = None
+            self._bump_version()
 
     def translate(self, source: str, lang: str | None = None) -> str:
         """Translate a source string: provider → app PO → core PO → source.
@@ -272,7 +284,7 @@ class TranslationService:
         of English (framework msgids) and Ukrainian (DocType labels), so every
         locale — ``en`` included — is looked up and falls back to the source.
         """
-        lang = lang or _current_lang.get()
+        lang = lang or self.get_lang()
 
         hit = _provider_catalog(lang).get(source) or _app_catalog(lang).get(source)
         if hit:
@@ -286,7 +298,7 @@ class TranslationService:
         Plural forms are stored as flat keys ``"<singular>\\x00<form-index>"``
         (same convention the PO parser uses).
         """
-        lang = lang or _current_lang.get()
+        lang = lang or self.get_lang()
 
         key = f"{singular}\x00{plural_index(lang, n)}"
         hit = _provider_catalog(lang).get(key) or _app_catalog(lang).get(key)
@@ -305,7 +317,7 @@ class TranslationService:
         the same string (so ``Назва`` → ``Name`` need only be translated once,
         not per ``meta:<DocType>.<field>`` context) → the source message.
         """
-        lang = lang or _current_lang.get()
+        lang = lang or self.get_lang()
 
         flat = f"{context}|{message}"
         hit = _provider_catalog(lang).get(flat) or _app_catalog(lang).get(flat)
@@ -371,7 +383,38 @@ class TranslationService:
     # ── Supported languages (request-language negotiation) ───────────────
 
     def supported_langs(self) -> set[str]:
-        return set(_supported)
+        return set(_supported) | set(self.ui_languages())
+
+    def ui_languages(self) -> list[str]:
+        """Languages the UI can be switched to (sorted; the source ``en`` included)."""
+        global _ui_langs_cache
+        if _ui_langs_cache is None:
+            codes = {"en", _default_lang, *_extra_ui_langs}
+            codes.update(p.parent.parent.name for p in _LOCALE_DIR.glob("*/LC_MESSAGES/*.po"))
+            codes.update(_app_locale_codes())
+            _ui_langs_cache = sorted(c for c in codes if c)
+        return list(_ui_langs_cache)
+
+    def add_ui_languages(self, codes: object) -> None:
+        """Offer extra UI languages that have no PO file (yet) — e.g. locales
+        translated only in the database by a runtime provider."""
+        global _ui_langs_cache
+        try:
+            new = {normalize_lang(str(c)) for c in codes if c}  # type: ignore[union-attr]
+        except TypeError:
+            return
+        new.discard("")
+        if not new <= _extra_ui_langs:
+            _extra_ui_langs.update(new)
+            _ui_langs_cache = None
+            self._bump_version()
+
+    def set_language_names(self, names: dict[str, str]) -> None:
+        """Native names for the language switcher (``{"uk": "Українська"}``)."""
+        _language_names.update({k: v for k, v in names.items() if k and v})
+
+    def language_name(self, code: str) -> str:
+        return _language_names.get(code) or code
 
     def set_supported(self, codes: object) -> None:
         """Set the accepted language set (``en``/``uk`` are always kept)."""
@@ -388,14 +431,38 @@ class TranslationService:
 
     def reload(self) -> None:
         """Clear every cache (forces reload from files / provider)."""
+        global _ui_langs_cache
+        _ui_langs_cache = None
         _translations.clear()
         _app_catalogs.clear()
         _provider_cache.clear()
         self._bump_version()
 
 
+async def language_of(user: str | None) -> str | None:
+    """Stored UI language of *user* (email) — render mail/notifications to them in it.
+
+    Pair with :func:`use_language`; ``None`` (unknown user / no preference) keeps
+    the current language.
+    """
+    if not user:
+        return None
+    from grunt.app import grunt
+
+    try:
+        return await grunt.db.get_value("User", user, "language")
+    except Exception:  # noqa: BLE001 - a missing user must not break delivery
+        return None
+
+
+def normalize_lang(lang: str | None) -> str:
+    """``"uk-UA"`` / ``"EN_us"`` → ``"uk"`` / ``"en"``; empty → ``""``."""
+    return (lang or "").strip().lower()[:2]
+
+
 # Module-level singleton and convenience functions
 translation_service = TranslationService()
+use_language = translation_service.use_language
 
 
 def _(source: str) -> str:
@@ -426,3 +493,16 @@ def pgettext(context: str, message: str) -> str:
         label = pgettext("button", "Save")  # "Зберегти"
     """
     return translation_service.pgettext(context, message)
+
+
+def N_(message: str) -> str:  # noqa: N802 - gettext convention
+    """Mark *message* for extraction without translating it (gettext_noop).
+
+    For module-level constants, translated later where used: ``_(CONST)``.
+    """
+    return message
+
+
+def NP_(context: str, message: str) -> str:  # noqa: N802
+    """Contextual :func:`N_` — translate later with ``pgettext(context, CONST)``."""
+    return message

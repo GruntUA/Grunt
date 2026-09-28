@@ -17,6 +17,7 @@ from grunt.api.messages import throw
 from grunt.auth.providers.base import AuthFlowContext, AuthProvider
 from grunt.auth.providers.registry import register
 from grunt.config import settings
+from grunt.i18n import _
 
 if TYPE_CHECKING:
     from grunt.auth.doctypes.User.user import User
@@ -81,7 +82,7 @@ class OIDCProvider(AuthProvider):
 
         code = ctx.get("code")
         if not code:
-            throw("Missing OAuth 'code'", "VALIDATION_ERROR")
+            throw(_("Missing OAuth 'code'"), "VALIDATION_ERROR")
 
         oidc = await self._discover()
         oa = AsyncOAuth2Client(
@@ -100,7 +101,7 @@ class OIDCProvider(AuthProvider):
 
         email = profile.get("email", "")
         if not email:
-            throw("OAuth provider did not return an email address", "VALIDATION_ERROR")
+            throw(_("OAuth provider did not return an email address"), "VALIDATION_ERROR")
         full_name = profile.get("name") or profile.get("given_name") or email.split("@")[0]
         return await find_or_create_external_user(email, full_name)
 

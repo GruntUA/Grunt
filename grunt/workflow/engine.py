@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING
 
 from fastapi import HTTPException, status
 
+from grunt.i18n import _
 from grunt.log import log
 
 if TYPE_CHECKING:
@@ -88,14 +89,14 @@ class WorkflowEngine:
         if not transition:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Перехід недоступний",
+                detail=_("The transition is unavailable"),
             )
 
         workflow = await get_active_workflow(doctype.name)
         if not workflow:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Документ не має налаштованого Workflow",
+                detail=_("The document has no Workflow configured"),
             )
 
         state_field = workflow.state_field
@@ -112,7 +113,7 @@ class WorkflowEngine:
                 if not self._eval_condition(transition.condition, merged_doc, user.email):
                     raise HTTPException(
                         status_code=status.HTTP_400_BAD_REQUEST,
-                        detail="Заповніть обов'язкові поля",
+                        detail=_("Fill in the required fields"),
                     )
 
         # Apply — guarded `grunt.set_value` (not `grunt.db.set_value`), so this

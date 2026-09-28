@@ -12,6 +12,7 @@ from __future__ import annotations
 from contextlib import asynccontextmanager
 from typing import TYPE_CHECKING, Any
 
+from grunt.i18n import N_, _
 from grunt.log import log
 
 if TYPE_CHECKING:
@@ -72,13 +73,13 @@ def entry_timestamp_ms(message_id: str) -> int | None:
     """Redis stream ids are ``<ms-timestamp>-<seq>``."""
     try:
         return int(message_id.split("-", 1)[0])
-    except (ValueError, IndexError):
+    except ValueError, IndexError:
         return None
 
 
 _UNAVAILABLE_MESSAGES = {
-    "not_configured": "Redis не налаштований — REDIS_URL не задано, живий моніторинг вимкнено.",
-    "unreachable": "Redis недоступний — перевірте, чи він запущений.",
+    "not_configured": N_("Redis is not configured: REDIS_URL is not set, live monitoring is off."),
+    "unreachable": N_("Redis is unreachable; check that it is running."),
 }
 
 
@@ -90,4 +91,5 @@ def unavailable_message(reason: str) -> str:
     display as-is, so no generic UI component ever needs to know Redis
     exists.
     """
-    return _UNAVAILABLE_MESSAGES.get(reason, "Джерело даних тимчасово недоступне.")
+    message = _UNAVAILABLE_MESSAGES.get(reason)
+    return _(message) if message else _("The data source is temporarily unavailable.")

@@ -16,20 +16,20 @@ def _npm_cmd() -> list[str]:
 
 @click.command()
 def init():
-    """Заглушка ініціалізації проєкту (поки без створення .env, БД та адміна)."""
-    click.echo("Ініціалізація Ґрунт...")
-    click.echo("Готово.")
+    """Project initialization stub (does not create .env, the database or an admin yet)."""
+    click.echo("Initializing Grunt...")
+    click.echo("Done.")
 
 
 @click.command()
-@click.option("--port", default=8000, help="Порт для API")
+@click.option("--port", default=8000, help="API port")
 @click.option(
     "--reload",
     is_flag=True,
     default=True,
-    help="Режим перезавантаження (увімкнено за замовчуванням)",
+    help="Reload mode (on by default)",
 )
-@click.option("--no-frontend", is_flag=True, help="Не запускати фронтенд")
+@click.option("--no-frontend", is_flag=True, help="Do not start the frontend")
 def serve(port, reload, no_frontend):
     root_dir = Path(__file__).parents[2]
 
@@ -43,8 +43,8 @@ def serve(port, reload, no_frontend):
                 check=False,
             )
         else:
-            click.echo("Пропуск очищення порту 5173: команда fuser підтримується лише на Linux.")
-        click.echo("Запуск фронтенда (Vite) на порту 5173...")
+            click.echo("Skipping port 5173 cleanup: fuser is only supported on Linux.")
+        click.echo("Starting the frontend (Vite) on port 5173...")
         frontend_process = subprocess.Popen(
             [*_npm_cmd(), "npm", "run", "dev"],
             cwd=root_dir,
@@ -53,7 +53,7 @@ def serve(port, reload, no_frontend):
             stderr=None,
         )
 
-    click.echo(f"Запуск API сервера на порту {port}...")
+    click.echo(f"Starting the API server on port {port}...")
     cmd = ["uvicorn", "grunt.main:app", "--port", str(port)]
     if reload:
         cmd += [
@@ -82,7 +82,7 @@ def serve(port, reload, no_frontend):
     try:
         subprocess.run(cmd, cwd=root_dir)
     except KeyboardInterrupt:
-        click.echo("\nЗупинка серверів...")
+        click.echo("\nStopping servers...")
     finally:
         if frontend_process:
             frontend_process.terminate()
@@ -94,10 +94,10 @@ def serve(port, reload, no_frontend):
 
 @click.command()
 def worker():
-    """Запуск воркера фонових завдань (TaskIQ).
+    """Start the background job worker (TaskIQ).
 
-    Задачі реєструє модуль grunt.tasks.worker — у процесі самого воркера
-    (TaskIQ стартує його окремим процесом, тож імпорти тут йому не видно).
+    Tasks are registered by grunt.tasks.worker, inside the worker process itself
+    (TaskIQ starts it as a separate process, so imports here are not visible to it).
     """
-    click.echo("Запуск воркера TaskIQ...")
+    click.echo("Starting the TaskIQ worker...")
     subprocess.run(["taskiq", "worker", "grunt.tasks.worker:broker"])

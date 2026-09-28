@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 import grunt
+from grunt.i18n import _
 
 _PAGE_FIELDS = [
     "name",
@@ -41,7 +42,7 @@ async def register_page(page_data: dict[str, Any]) -> dict[str, Any]:
     """Register or update a custom page from an app. Admin only."""
     route = (page_data.get("route") or "").strip()
     if not route:
-        grunt.throw("route є обов'язковим", "VALIDATION_ERROR")
+        grunt.throw(_("route is required"), "VALIDATION_ERROR")
 
     existing = await grunt.get_list("Page", filters={"route": route}, limit=1)
     page_id = existing[0]["name"] if existing else None
@@ -62,7 +63,7 @@ async def delete_page(route: str) -> bool:
         route = f"/{route}"
     existing = await grunt.get_list("Page", filters={"route": route}, limit=1)
     if not existing:
-        grunt.throw("Сторінку не знайдено", "NOT_FOUND")
+        grunt.throw(_("Page not found"), "NOT_FOUND")
 
     await grunt.delete_doc("Page", existing[0]["name"])
     return True

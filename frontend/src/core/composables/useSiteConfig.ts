@@ -16,11 +16,20 @@ import i18n, { setLocale, type SupportedLocale } from '@/plugins/i18n'
 
 const LOCALE_STORAGE_KEY = 'grunt-locale'
 
+export interface UiLanguage {
+  /** Short code, e.g. "uk". */
+  code: string
+  /** Native name, e.g. "Українська". */
+  name: string
+}
+
 export interface SiteConfig {
   appName: string
   appLogo: string
-  /** Backend locale tag, e.g. "uk-UA" / "en-US". */
+  /** Site default UI language (short code, e.g. "uk"). */
   language: string
+  /** UI languages the switcher offers — every locale with a translation catalog. */
+  languages: UiLanguage[]
   /** Effective IANA tz name, e.g. "Europe/Kyiv". Empty = use the browser's zone. */
   timezone: string
   /** "dd.mm.yyyy" | "dd/mm/yyyy" | "yyyy-mm-dd" */
@@ -32,7 +41,11 @@ export interface SiteConfig {
 const state = reactive<SiteConfig>({
   appName: 'Ґрунт',
   appLogo: '',
-  language: 'uk-UA',
+  language: 'uk',
+  languages: [
+    { code: 'en', name: 'English' },
+    { code: 'uk', name: 'Українська' },
+  ],
   timezone: '',
   dateFormat: 'dd.mm.yyyy',
   allowRegistration: false,
@@ -46,7 +59,7 @@ let _userTimezone: string | null = null
 let _promise: Promise<void> | null = null
 
 function toShortLocale(tag: string): SupportedLocale {
-  return tag.toLowerCase().startsWith('en') ? 'en' : 'uk'
+  return tag.slice(0, 2).toLowerCase()
 }
 
 function _syncTimezone(): void {
@@ -62,7 +75,8 @@ async function _load(): Promise<void> {
       if (data && typeof data === 'object') {
         state.appName = data.app_name || state.appName
         state.appLogo = data.app_logo || ''
-        state.language = data.language || state.language
+        state.language = data.language ? toShortLocale(data.language) : state.language
+        if (Array.isArray(data.languages) && data.languages.length) state.languages = data.languages
         _siteTimezone = data.timezone || ''
         state.dateFormat = data.date_format || state.dateFormat
         state.allowRegistration = !!data.allow_user_registration
@@ -79,9 +93,8 @@ async function _load(): Promise<void> {
   // their own choice (that choice lives in localStorage['grunt-locale']).
   try {
     if (!localStorage.getItem(LOCALE_STORAGE_KEY)) {
-      const short = toShortLocale(state.language)
-      if (short !== 'uk') setLocale(short)
-      else document.documentElement.setAttribute('lang', 'uk')
+      if (i18n.global.locale.value !== state.language) setLocale(state.language)
+      else document.documentElement.setAttribute('lang', state.language)
     }
   } catch {
     // localStorage unavailable — ignore.

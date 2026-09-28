@@ -75,14 +75,16 @@ async def _bring_up_sites() -> None:
 
 
 async def _seed_supported_languages() -> None:
-    """Widen the i18n language negotiator from active ``geo.Language`` rows.
+    """Widen the i18n language negotiator from active ``geo.Language`` rows and
+    set the fallback language from ``SystemSettings.language``.
 
     Best-effort and union across sites — the accepted-language set is a single
-    process-global. ``en``/``uk`` stay supported even if the table is empty or
-    absent (fresh install).
+    process-global (as is the default: last site wins). ``en``/``uk`` stay
+    supported even if the table is empty or absent (fresh install).
     """
     from grunt.app import grunt
     from grunt.i18n import translation_service
+    from grunt.site.settings import get_setting
 
     codes: set[str] = set()
     for site in site_manager.get_sites():
@@ -90,10 +92,17 @@ async def _seed_supported_languages() -> None:
         try:
             maker = site_manager.get_session_maker(site)
             async with maker() as session, grunt.context(session):
+                translation_service.set_default(await get_setting("language"))
                 rows = await grunt.db.get_all(
-                    "Language", filters={"is_active": True}, fields=["code"], limit=None
+                    "Language",
+                    filters={"is_active": True},
+                    fields=["code", "native_name"],
+                    limit=None,
                 )
             codes.update(r["code"] for r in rows if r.get("code"))
+            translation_service.set_language_names(
+                {r["code"]: r.get("native_name") or "" for r in rows if r.get("code")}
+            )
         except Exception as e:  # noqa: BLE001 - table may not exist yet
             log.debug("i18n.seed_languages_skipped", site=site, error=str(e))
         finally:

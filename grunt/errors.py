@@ -15,6 +15,8 @@ from typing import Any
 
 from fastapi import HTTPException
 
+from grunt.i18n import _
+
 
 class GruntError(Exception):
     """User-facing error raised via ``grunt.throw()``.
@@ -64,14 +66,14 @@ class APIError(HTTPException):
         self.details = details or []
 
 
-def forbidden(message: str = "Недостатньо прав", *, details: list[Any] | None = None) -> APIError:
+def forbidden(message: str | None = None, *, details: list[Any] | None = None) -> APIError:
     """403 — the user is authenticated but lacks permission."""
-    return APIError(403, "FORBIDDEN", message, details=details)
+    return APIError(403, "FORBIDDEN", message or _("Not permitted"), details=details)
 
 
-def not_found(message: str = "Не знайдено", *, details: list[Any] | None = None) -> APIError:
+def not_found(message: str | None = None, *, details: list[Any] | None = None) -> APIError:
     """404 — the requested resource does not exist."""
-    return APIError(404, "NOT_FOUND", message, details=details)
+    return APIError(404, "NOT_FOUND", message or _("Not found"), details=details)
 
 
 def conflict(message: str, *, details: list[Any] | None = None) -> APIError:
@@ -85,10 +87,16 @@ def unprocessable(message: str, *, details: list[Any] | None = None) -> APIError
 
 
 def too_many_requests(
-    message: str = "Забагато запитів. Спробуйте пізніше.",
+    message: str | None = None,
     *,
     details: list[Any] | None = None,
     headers: dict[str, str] | None = None,
 ) -> APIError:
     """429 — rate limit exceeded."""
-    return APIError(429, "RATE_LIMIT_EXCEEDED", message, details=details, headers=headers)
+    return APIError(
+        429,
+        "RATE_LIMIT_EXCEEDED",
+        message or _("Too many requests. Try again later."),
+        details=details,
+        headers=headers,
+    )

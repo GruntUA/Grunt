@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import func, select
 
+from grunt.i18n import _
 from grunt.log import log
 
 if TYPE_CHECKING:
@@ -56,7 +57,7 @@ class VersionService:
         if dt_version is None:
             from grunt.errors import not_found
 
-            raise not_found("DocType «DocVersion» не знайдено")
+            raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": "DocVersion"})
         table = dt_version.table
 
         # Get next version number
@@ -110,7 +111,7 @@ class VersionService:
         if dt_version is None:
             from grunt.errors import not_found
 
-            raise not_found("DocType «DocVersion» не знайдено")
+            raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": "DocVersion"})
         table = dt_version.table
         stmt = (
             select(table)
@@ -223,7 +224,7 @@ class VersionService:
         if dt_version is None:
             from grunt.errors import not_found
 
-            raise not_found("DocType «DocVersion» не знайдено")
+            raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": "DocVersion"})
         table = dt_version.table
         stmt = select(table).where(table.c.name == version_id)
         result = await session.execute(stmt)

@@ -38,9 +38,7 @@ async def _run(site: str, *, with_files: bool, keep: int) -> str:
     try:
         backup = await create_backup(site, with_files=with_files)
     except Exception as exc:
-        await grunt.log_error(
-            exc=exc, title="Резервне копіювання не вдалося", context="Background Task"
-        )
+        await grunt.log_error(exc=exc, title="Backup failed", context="Background Task")
         raise
     removed = rotate(site, keep)
     if removed:

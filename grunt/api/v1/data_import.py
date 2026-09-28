@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, cast
 
 import grunt
+from grunt.i18n import _
 
 if TYPE_CHECKING:
     from grunt.io.doctypes.DataImport.data_import import DataImport
@@ -24,7 +25,7 @@ async def get_import_status(data_import_id: str) -> dict[str, Any]:
     """Return the current status and progress of a DataImport record."""
     doc = await grunt.find_doc("DataImport", data_import_id)
     if not doc:
-        grunt.throw("DataImport not found", "NOT_FOUND")
+        grunt.throw(_("DataImport not found"), "NOT_FOUND")
     return {
         "name": doc["name"],
         "status": doc.get("status"),
@@ -88,7 +89,7 @@ async def download_template(doctype: str, fmt: str = "csv") -> dict[str, Any]:
             else "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         }
     except KeyError:
-        grunt.throw(f"DocType '{doctype}' not found", "NOT_FOUND")
+        grunt.throw(_("DocType “%(doctype)s” not found") % {"doctype": doctype}, "NOT_FOUND")
 
 
 @grunt.whitelist()

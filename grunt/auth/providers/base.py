@@ -25,6 +25,8 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, ClassVar, Literal
 
+from grunt.i18n import _
+
 if TYPE_CHECKING:
     from fastapi import Request
 
@@ -91,7 +93,7 @@ class AuthProvider(ABC):
         """Public metadata for the login screen."""
         return {
             "name": self.name,
-            "label": self.label,
+            "label": _(self.label),
             "kind": self.kind,
             "icon": self.icon,
             "requires_identifier": self.requires_identifier,

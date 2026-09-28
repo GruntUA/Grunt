@@ -5,10 +5,11 @@ from __future__ import annotations
 from typing import Any
 
 import grunt
+from grunt.i18n import _
 from grunt.log import log
 from grunt.metadata.compiler import DuplicateDataError, get_table_name, sync_table
 from grunt.metadata.doctype import DocType
-from grunt.metadata.dynamic_options import get_schemas, resolve_field_options
+from grunt.metadata.dynamic_options import get_option_labels, get_schemas, resolve_field_options
 from grunt.metadata.registry import doctype_registry
 from grunt.metadata.scaffold import export_doctype_files
 
@@ -36,8 +37,13 @@ async def _dump_doctype(dt: DocType, *, translate: bool = False) -> dict[str, An
     for field, fdata in zip(dt.fields, data["fields"], strict=True):
         if field.options_source:
             fdata["options"] = resolve_field_options(field)
+            if labels := get_option_labels(field.options_source):
+                fdata["option_labels"] = labels
         if field.dynamic_schema_source:
-            fdata["dynamic_schemas"] = get_schemas(field.dynamic_schema_source)
+            fdata["dynamic_schemas"] = {
+                key: [dict(sub) for sub in fields]
+                for key, fields in get_schemas(field.dynamic_schema_source).items()
+            }
     workflow = await get_active_workflow(dt.name)
     data["workflow_state_field"] = workflow.state_field if workflow else None
 
@@ -51,6 +57,11 @@ async def _dump_doctype(dt: DocType, *, translate: bool = False) -> dict[str, An
         from grunt.i18n.meta import translate_doctype_meta
 
         translate_doctype_meta(data)
+        for fdata in data["fields"]:
+            for variant in (fdata.get("dynamic_schemas") or {}).values():
+                for sub in variant:
+                    if sub.get("label"):
+                        sub["label"] = _(sub["label"])
 
     return data
 
@@ -79,7 +90,7 @@ async def get_doctype(name: str, raw: bool = False) -> dict[str, Any]:
 
         meta = await grunt_app.get_meta(name)
         if meta is None:
-            raise not_found(f"DocType «{name}» не знайдено")
+            raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": name})
         fresh = meta.doc
     return await _dump_doctype(fresh, translate=not raw)
 
@@ -115,7 +126,9 @@ async def save_doctype(doctype_data: dict[str, Any]) -> dict[str, Any]:
     try:
         if await doctype_registry.get_or_none(dt.name) is not None:
             if doctype_data.get("__is_new"):
-                grunt.throw(f"DocType '{dt.name}' already exists", "CONFLICT")
+                grunt.throw(
+                    _("DocType “%(doctype)s” already exists") % {"doctype": dt.name}, "CONFLICT"
+                )
             await doctype_registry.update(dt, session, engine)
         else:
             await doctype_registry.register(dt, session, engine)
@@ -145,7 +158,7 @@ async def sync_doctype(name: str) -> dict[str, Any]:
 
     meta = await grunt_app.get_meta(name)
     if meta is None:
-        raise not_found(f"DocType «{name}» не знайдено")
+        raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": name})
     dt = meta.doc
     session = grunt_app._require_session()
     engine = grunt_app._require_engine()
@@ -211,9 +224,9 @@ async def compact_table(name: str) -> dict[str, Any]:
 
     dt = await grunt_app.get_meta(name)
     if dt is None:
-        raise not_found(f"DocType «{name}» не знайдено")
+        raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": name})
     if dt.is_virtual:
-        grunt.throw("Віртуальний тип документа не має фізичної таблиці", "VALIDATION_ERROR")
+        grunt.throw(_("A virtual DocType has no physical table"), "VALIDATION_ERROR")
 
     table_name = dt.table_name or get_table_name(dt.module or "", dt.name)
     engine = grunt_app._require_engine()
@@ -228,7 +241,10 @@ async def compact_table(name: str) -> dict[str, Any]:
         scope = "table"
         command = None
     else:
-        grunt.throw(f"Стиснення не підтримується для СКБД «{dialect}»", "VALIDATION_ERROR")
+        grunt.throw(
+            _("Compaction is not supported for the “%(dialect)s” database") % {"dialect": dialect},
+            "VALIDATION_ERROR",
+        )
 
     result: dict[str, Any] = {
         "doctype": dt.name,
@@ -242,7 +258,7 @@ async def compact_table(name: str) -> dict[str, Any]:
 
     def _run(conn: sa.engine.Connection) -> None:
         if not conn.dialect.has_table(conn, table_name):
-            grunt.throw("Таблиця ще не створена в базі даних", "VALIDATION_ERROR")
+            grunt.throw(_("The table has not been created in the database yet"), "VALIDATION_ERROR")
 
         quoted = conn.dialect.identifier_preparer.quote(table_name)
         cmd = command
@@ -295,9 +311,9 @@ async def table_info(name: str) -> dict[str, Any]:
 
     dt = await grunt_app.get_meta(name)
     if dt is None:
-        raise not_found(f"DocType «{name}» не знайдено")
+        raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": name})
     if dt.is_virtual:
-        grunt.throw("Віртуальний тип документа не має фізичної таблиці", "VALIDATION_ERROR")
+        grunt.throw(_("A virtual DocType has no physical table"), "VALIDATION_ERROR")
 
     table_name = dt.table_name or get_table_name(dt.module or "", dt.name)
     engine = grunt_app._require_engine()

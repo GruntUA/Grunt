@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import time
 
+from grunt.i18n import _
 from grunt.log import log
 
 # Upper bound on how long a process keeps serving a stale snapshot when the rule
@@ -51,7 +52,7 @@ async def _load() -> frozenset[tuple[str, str]] | None:
     if dt is None:
         from grunt.errors import not_found
 
-        raise not_found("DocType «NotificationRule» не знайдено")
+        raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": "NotificationRule"})
     table = dt.table
     result = await session.execute(
         select(table.c.doctype, table.c.event).where(table.c.is_enabled.is_(True))

@@ -1,10 +1,11 @@
+import { N_ } from '@/plugins/i18n'
 import { Map as MapIcon } from '@lucide/vue'
 import type { ViewDefinition } from '@/core/viewRegistry'
 import type { DocType, DocField, ScriptMenuItem } from '@/types'
 
 const def: ViewDefinition = {
   type: 'map',
-  label: 'Map',
+  label: N_('Map'),
   icon: MapIcon,
   order: 5,
 

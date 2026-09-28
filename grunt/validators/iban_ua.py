@@ -1,5 +1,6 @@
 import re
 
+from grunt.i18n import N_
 from grunt.validators.base import Validator
 
 _RE = re.compile(r"^UA\d{27}$")
@@ -14,8 +15,8 @@ class IbanUaValidator(Validator):
     """
 
     name = "iban_ua"
-    label = "IBAN (Україна)"
-    message = "Поле '{label}': невірний формат IBAN (очікується UA + 27 цифр)"
+    label = N_("IBAN (Ukraine)")
+    message = N_("Field “{label}”: invalid IBAN format (expected UA + 27 digits)")
 
     def check(self, value: str) -> bool:
         return bool(_RE.match(value.replace(" ", "").upper()))

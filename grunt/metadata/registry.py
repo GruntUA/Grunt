@@ -22,6 +22,7 @@ from sqlalchemy import delete, insert, select, update
 from sqlalchemy.exc import IntegrityError
 
 from grunt.db.system_tables import GruntMetaDoctype
+from grunt.i18n import _
 from grunt.log import log
 from grunt.metadata.compiler import invalidate_table_cache, sync_table
 from grunt.metadata.doctype import DocType
@@ -329,7 +330,7 @@ class DocTypeRegistry:
 
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"DocType '{name}' not found",
+            detail=_("DocType “%(doctype)s” not found") % {"doctype": name},
         )
 
     async def get_meta(self, name: str) -> Meta | None:
@@ -537,7 +538,7 @@ class DocTypeRegistry:
         if existing:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
-                detail=f"DocType '{doctype.name}' already exists",
+                detail=_("DocType “%(doctype)s” already exists") % {"doctype": doctype.name},
             )
 
         # Persist to DB
@@ -555,7 +556,7 @@ class DocTypeRegistry:
             if "grunt_meta_doctype.name" in str(exc):
                 raise HTTPException(
                     status_code=status.HTTP_409_CONFLICT,
-                    detail=f"DocType '{doctype.name}' already exists",
+                    detail=_("DocType “%(doctype)s” already exists") % {"doctype": doctype.name},
                 ) from exc
             raise
 
@@ -584,7 +585,7 @@ class DocTypeRegistry:
             if not exists:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
-                    detail=f"DocType '{doctype.name}' not found",
+                    detail=_("DocType “%(doctype)s” not found") % {"doctype": doctype.name},
                 )
             await self._lazy_load(doctype.name)
         self._validate_fields(doctype)
@@ -610,7 +611,7 @@ class DocTypeRegistry:
         if name not in self._doctypes:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"DocType '{name}' not found",
+                detail=_("DocType “%(doctype)s” not found") % {"doctype": name},
             )
         await session.execute(delete(GruntMetaDoctype).where(GruntMetaDoctype.c.name == name))
         await session.flush()
@@ -629,7 +630,7 @@ class DocTypeRegistry:
         if doctype.name in self._doctypes:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
-                detail=f"DocType '{doctype.name}' already exists",
+                detail=_("DocType “%(doctype)s” already exists") % {"doctype": doctype.name},
             )
         self._validate_fields(doctype)
 
@@ -641,7 +642,8 @@ class DocTypeRegistry:
             if f.fieldname in seen:
                 raise HTTPException(
                     status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
-                    detail=f"Duplicate fieldname '{f.fieldname}' in DocType '{doctype.name}'",
+                    detail=_("Duplicate fieldname '%(fieldname)s' in DocType '%(name)s'")
+                    % {"fieldname": f.fieldname, "name": doctype.name},
                 )
             seen.add(f.fieldname)
 
@@ -649,14 +651,18 @@ class DocTypeRegistry:
                 raise HTTPException(
                     status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
                     detail=(
-                        f"Invalid fieldname '{f.fieldname}': "
-                        "must start with a-z and contain only a-z, 0-9, _"
+                        _(
+                            "Invalid fieldname '%(fieldname)s': "
+                            "must start with a-z and contain only a-z, 0-9, _"
+                        )
+                        % {"fieldname": f.fieldname}
                     ),
                 )
             if len(f.fieldname) > _MAX_FIELDNAME_LEN:
                 raise HTTPException(
                     status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
-                    detail=f"Fieldname '{f.fieldname}' exceeds {_MAX_FIELDNAME_LEN} characters",
+                    detail=_("Fieldname '%(fieldname)s' exceeds %(max)s characters")
+                    % {"fieldname": f.fieldname, "max": _MAX_FIELDNAME_LEN},
                 )
 
 

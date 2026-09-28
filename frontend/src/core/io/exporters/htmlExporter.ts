@@ -1,6 +1,6 @@
 import type { Exporter, ExportContext } from './registry'
-import { formatDate, formatDateTime, formatFull } from '@/core/datetime'
-import i18n from '@/plugins/i18n'
+import { formatDate, formatDateTime, formatFull, localeTag } from '@/core/datetime'
+import i18n, { N_ } from '@/plugins/i18n'
 
 const t = (key: string): string => i18n.global.t(key)
 
@@ -185,7 +185,7 @@ export function generateHtml(ctx: ExportContext): string {
   }
 
   return `<!DOCTYPE html>
-<html lang="uk">
+<html lang="${localeTag()}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -358,7 +358,7 @@ function triggerDownload(html: string, filename: string) {
 
 export const htmlExporter: Exporter = {
   id: 'html',
-  label: 'Export HTML',
+  label: N_('Export HTML'),
   icon: 'FileCode',
   async export(ctx: ExportContext) {
     const allRows = await ctx.getAll()

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="uk">
+<html lang="{{ current_language() }}">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -48,8 +48,8 @@
 <body>
 <div class="wrapper">
   <div class="header">
-    <h1>{{ period_subj }} дайджест сповіщень</h1>
-    <p>Непрочитані сповіщення {{ period_label }} — всього {{ total }}</p>
+    <h1>{{ title }}</h1>
+    <p>{{ summary }}</p>
   </div>
   <div class="body">
     {% for doctype_key, items in groups.items() %}
@@ -67,13 +67,13 @@
         </li>
         {% endfor %}
         {% if items | length > 10 %}
-        <li class="more">… і ще {{ items | length - 10 }}</li>
+        <li class="more">{{ _("… and %(count)s more") % {"count": items | length - 10} }}</li>
         {% endif %}
       </ul>
     </div>
     {% endfor %}
   </div>
-  <div class="footer">Ґрунт — автоматичне повідомлення, не відповідайте на цей лист.</div>
+  <div class="footer">{{ _("Automated message, please do not reply.") }}</div>
 </div>
 </body>
 </html>

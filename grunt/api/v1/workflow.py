@@ -6,6 +6,7 @@ from typing import Any
 
 import grunt
 from grunt.app import grunt as grunt_app
+from grunt.i18n import _
 
 
 @grunt.whitelist()
@@ -15,7 +16,7 @@ async def get_transitions(doctype: str, doc_id: str) -> list[dict[str, Any]]:
 
     dt = await grunt_app.get_meta(doctype)
     if dt is None:
-        raise not_found(f"DocType «{doctype}» не знайдено")
+        raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
     from grunt.workflow.registry import get_active_workflow
 
     if not await get_active_workflow(doctype):
@@ -41,7 +42,7 @@ async def apply_transition(
 
     dt = await grunt_app.get_meta(doctype)
     if dt is None:
-        raise not_found(f"DocType «{doctype}» не знайдено")
+        raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
     from grunt.workflow.engine import workflow_engine
 
     user = grunt_app._require_user()

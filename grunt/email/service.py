@@ -15,6 +15,7 @@ from typing import TYPE_CHECKING, Any
 import aioimaplib
 import aiosmtplib
 
+from grunt.i18n import _
 from grunt.log import log
 
 if TYPE_CHECKING:
@@ -132,7 +133,7 @@ class EmailService:
             plain = (
                 message.get("text_content")
                 or message.get("text")
-                or "Це повідомлення у форматі HTML."
+                or _("This message is in HTML format.")
             )
             msg.set_content(plain)
             msg.add_alternative(content, subtype="html")
@@ -144,7 +145,7 @@ class EmailService:
             if not data:
                 continue
             mimetype = att.get("mimetype") or "application/octet-stream"
-            maintype, _, subtype = mimetype.partition("/")
+            maintype, _sep, subtype = mimetype.partition("/")
             msg.add_attachment(
                 data,
                 maintype=maintype or "application",
@@ -502,11 +503,7 @@ class EmailService:
                         updates["delivered_at"] = now
             else:  # dsn
                 new_status = report.get("status")
-                if (
-                    new_status == "Undelivered"
-                    or new_status == "Deferred"
-                    and cur == "Sent"
-                ):
+                if new_status == "Undelivered" or new_status == "Deferred" and cur == "Sent":
                     updates["status"] = new_status
                 elif new_status == "Delivered" and cur in ("Sent", "Deferred"):
                     updates["status"] = new_status

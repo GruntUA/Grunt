@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from grunt.errors import forbidden
+from grunt.i18n import NP_, _, pgettext
 from grunt.permissions.access import RoleAccess
 from grunt.permissions.match import PermissionMatch
 from grunt.permissions.types import PermissionAction
@@ -12,15 +13,15 @@ from grunt.permissions.types import PermissionAction
 # Human-readable action names for the "insufficient permissions" message, so a
 # toast says *which* DocType and *which* operation was denied instead of a bare
 # "Недостатньо прав".
-_ACTION_UK: dict[str, str] = {
-    "read": "читання",
-    "select": "вибір у полі",
-    "write": "редагування",
-    "create": "створення",
-    "delete": "видалення",
-    "submit": "проведення",
-    "cancel": "скасування",
-    "report": "звіти",
+_ACTION_VERBS: dict[str, str] = {
+    "read": NP_("permission", "read"),
+    "select": NP_("permission", "select in a field"),
+    "write": NP_("permission", "write"),
+    "create": NP_("permission", "create"),
+    "delete": NP_("permission", "delete"),
+    "submit": NP_("permission", "submit"),
+    "cancel": NP_("permission", "cancel"),
+    "report": NP_("permission", "reports"),
 }
 
 if TYPE_CHECKING:
@@ -159,8 +160,11 @@ class PermissionChecker:
         allowed = await self.check(user, doctype, action, doc)
         if not allowed:
             label = getattr(doctype, "label", None) or getattr(doctype, "name", "")
-            verb = _ACTION_UK.get(action, action)
-            raise forbidden(f"Немає доступу: {verb} «{label}»")
+            verb = _ACTION_VERBS.get(action, action)
+            raise forbidden(
+                _("No access: %(action)s “%(doctype)s”")
+                % {"action": pgettext("permission", verb), "doctype": _(label)}
+            )
 
     def hidden_fields(
         self,

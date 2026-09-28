@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Any, cast
 from fastapi import HTTPException
 from sqlalchemy import func, select, text
 
+from grunt.i18n import _
 from grunt.log import log
 
 if TYPE_CHECKING:
@@ -49,7 +50,9 @@ class ReportEngine:
             )
         report = rows[0] if rows else None
         if not report:
-            raise HTTPException(status_code=404, detail=f"Звіт '{report_name}' не знайдено")
+            raise HTTPException(
+                status_code=404, detail=_("Report “%(name)s” not found") % {"name": report_name}
+            )
 
         report_type = report["report_type"]
         if report_type == "Query":
@@ -64,11 +67,11 @@ class ReportEngine:
         if report_type == "List":
             doctype = report.get("doctype")
             if not doctype:
-                raise HTTPException(400, detail="List report requires a DocType")
+                raise HTTPException(400, detail=_("List report requires a DocType"))
             return await self._run_list_report(doctype, report, filters, user, session)
         raise HTTPException(
             status_code=400,
-            detail=f"Тип звіту '{report_type}' не підтримується",
+            detail=_("Report type “%(type)s” is not supported") % {"type": report_type},
         )
 
     # ── Query report ──────────────────────────────────────────────────────────
@@ -82,7 +85,7 @@ class ReportEngine:
     ) -> dict[str, Any]:
         query_str = report.get("query", "").strip()
         if not query_str:
-            raise HTTPException(400, detail="Запит не вказано")
+            raise HTTPException(400, detail=_("No query specified"))
 
         # Security check — allow only SELECT
         try:
@@ -92,7 +95,7 @@ class ReportEngine:
             for stmt in parsed:
                 stmt_type = stmt.get_type()
                 if stmt_type not in ("SELECT", None):
-                    raise HTTPException(400, detail="Дозволено тільки SELECT")
+                    raise HTTPException(400, detail=_("Only SELECT is allowed"))
         except ImportError:
             log.debug("suppressed_expected_error", exc_info=True)
 
@@ -100,7 +103,7 @@ class ReportEngine:
         query_lower = query_str.lower()
         for word in forbidden:
             if word in query_lower:
-                raise HTTPException(400, detail=f"Заборонено: {word.upper()}")
+                raise HTTPException(400, detail=_("Forbidden: %(word)s") % {"word": word.upper()})
 
         start = time.time()
         result = await session.execute(text(query_str))
@@ -156,7 +159,7 @@ class ReportEngine:
 
         script_src = report.get("script", "").strip()
         if not script_src:
-            raise HTTPException(400, detail="Скрипт не вказано")
+            raise HTTPException(400, detail=_("No script specified"))
 
         from grunt.scripting.safe_globals import build_safe_globals, compile_script
 
@@ -189,7 +192,9 @@ class ReportEngine:
                 raise
             except Exception as exc:
                 log.error("report.script_error", error=str(exc))
-                raise HTTPException(500, detail=f"Помилка виконання скрипту: {exc}") from exc
+                raise HTTPException(
+                    500, detail=_("Script execution error: %(error)s") % {"error": exc}
+                ) from exc
             elapsed = int((time.time() - start) * 1000)
 
             result: Any = extra_globals.get("result") or (
@@ -209,8 +214,10 @@ class ReportEngine:
             raise HTTPException(
                 500,
                 detail=(
-                    "Скрипт повинен присвоїти `result = {'columns': [...], 'data': [...]}` "
-                    "або `query = 'SELECT ...'`"
+                    _(
+                        "The script must assign `result = {'columns': [...], 'data': [...]}` "
+                        "or `query = 'SELECT ...'`"
+                    )
                 ),
             )
 
@@ -256,7 +263,7 @@ class ReportEngine:
 
         dt = await grunt.get_meta(doctype)
         if dt is None:
-            raise not_found(f"DocType «{doctype}» не знайдено")
+            raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
         table = dt.table
 
         # Permission check
@@ -400,7 +407,7 @@ class ReportEngine:
             import openpyxl
             from openpyxl.styles import Font
         except ImportError as e:
-            raise HTTPException(status_code=500, detail="openpyxl не встановлено") from e
+            raise HTTPException(status_code=500, detail=_("openpyxl is not installed")) from e
 
         wb = openpyxl.Workbook()
         ws = wb.active
@@ -434,7 +441,7 @@ class ReportEngine:
                 if fn in total_fields:
                     value: Any = sum(row.get(fn) or 0 for row in data)
                 elif ci == 1:
-                    value = "Разом"
+                    value = _("Total")
                 else:
                     continue
                 cell = ws.cell(row=tr, column=ci, value=value)

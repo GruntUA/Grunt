@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 import grunt
+from grunt.i18n import _
 
 
 @grunt.whitelist()
@@ -14,13 +15,13 @@ async def global_search(
     limit: int = 10,
 ) -> list[dict[str, Any]]:
     if not q or not q.strip():
-        grunt.throw("Parameter 'q' is required", "VALIDATION_ERROR")
+        grunt.throw(_("Parameter 'q' is required"), "VALIDATION_ERROR")
 
     limit = int(limit)
     if limit <= 0:
-        grunt.throw("Parameter 'limit' must be positive", "VALIDATION_ERROR")
+        grunt.throw(_("Parameter 'limit' must be positive"), "VALIDATION_ERROR")
     if limit > 50:
-        grunt.throw("Parameter 'limit' too high", "VALIDATION_ERROR")
+        grunt.throw(_("Parameter 'limit' too high"), "VALIDATION_ERROR")
 
     from grunt.app import grunt as grunt_app
     from grunt.permissions.rbac import permission_checker

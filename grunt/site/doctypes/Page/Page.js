@@ -1,7 +1,7 @@
 function on_load(frm) {
   frm.actions.add({
     id: 'open_builder',
-    label: 'Open builder',
+    label: __('Open builder'),
     icon: 'layout-dashboard',
     variant: 'primary',
     visible: (f) => !f.is_new,

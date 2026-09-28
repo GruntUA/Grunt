@@ -68,7 +68,10 @@ def test_enrich_resolves_defaults_and_flags_missing(sample_action):
             {"action": "test.doc_actions.gone"},
         ],
     }
-    enrich_doctype_actions(data)
+    from grunt.i18n import use_language
+
+    with use_language("en"):  # labels are translated for the request language
+        enrich_doctype_actions(data)
 
     resolved, overridden, missing = data["actions"]
     assert resolved["_label"] == "Sample"

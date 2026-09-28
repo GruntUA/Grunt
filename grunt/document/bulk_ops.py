@@ -6,6 +6,7 @@ from collections.abc import Awaitable, Callable, Sequence
 from typing import TYPE_CHECKING, Any, cast
 
 from grunt.app import grunt as grunt_app
+from grunt.i18n import _
 from grunt.log import log
 
 if TYPE_CHECKING:
@@ -267,7 +268,7 @@ class BulkDeleteTask:
                     "data": {
                         "deleted": 0,
                         "total": 0,
-                        "errors": ["Тільки суперадмін може виконати швидке видалення"],
+                        "errors": [_("Only a superadmin can run a fast delete")],
                     },
                 },
             )
@@ -277,7 +278,7 @@ class BulkDeleteTask:
             async with async_session_factory() as session, grunt_app.context(session, engine, user):
                 dt = await grunt_app.get_meta(doctype)
                 if dt is None:
-                    raise ValueError(f"DocType «{doctype}» не знайдено")
+                    raise ValueError(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
                 table = dt.table
 
                 # ── 1. Delete main rows ──────────────────────────────────
@@ -301,7 +302,9 @@ class BulkDeleteTask:
                 try:
                     dt_log = await grunt_app.get_meta("ActivityLog")
                     if dt_log is None:
-                        raise ValueError("DocType «ActivityLog» не знайдено")
+                        raise ValueError(
+                            _("DocType “%(doctype)s” not found") % {"doctype": "ActivityLog"}
+                        )
                     t_log = dt_log.table
                     now = datetime.now(UTC)
                     table_cols = {c.name for c in t_log.c}

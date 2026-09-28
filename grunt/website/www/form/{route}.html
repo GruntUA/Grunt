@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="uk">
+<html lang="{{ current_language() }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -129,15 +129,15 @@
         {% elif submitted %}
             <div class="card state ok">
                 <div class="mark">✓</div>
-                <h2>Дякуємо!</h2>
+                <h2>{{ _("Thank you!") }}</h2>
                 <p>{{ success_message }}</p>
             </div>
         {% elif form.login_required %}
             <div class="card state err">
                 <div class="mark">!</div>
-                <h2>Потрібна авторизація</h2>
-                <p>Ця форма доступна лише авторизованим користувачам.<br>
-                   <a href="/login">Увійти →</a></p>
+                <h2>{{ _("Sign-in required") }}</h2>
+                <p>{{ _("This form is available only to signed-in users.") }}<br>
+                   <a href="/login">{{ _("Sign in") }} →</a></p>
             </div>
         {% else %}
             <div class="card">
@@ -149,7 +149,7 @@
                     {% if submit_error %}<div class="banner error">{{ submit_error }}</div>{% endif %}
 
                     <div class="hp" aria-hidden="true">
-                        <label for="f-_hp">Залиште це поле порожнім</label>
+                        <label for="f-_hp">{{ _("Leave this field empty") }}</label>
                         <input id="f-_hp" name="_hp" type="text" tabindex="-1" autocomplete="off">
                     </div>
 
@@ -181,7 +181,7 @@
                                               {% if f.required %}required{% endif %}>{{ val }}</textarea>
                                 {% elif f.widget == "select" %}
                                     <select id="f-{{ f.fieldname }}" name="{{ f.fieldname }}" {% if f.required %}required{% endif %}>
-                                        <option value="">— Виберіть —</option>
+                                        <option value="">— {{ _("Select") }} —</option>
                                         {% for opt in f.options %}
                                             <option value="{{ opt }}" {% if val == opt %}selected{% endif %}>{{ opt }}</option>
                                         {% endfor %}
@@ -207,7 +207,7 @@
                         <div class="cf-turnstile" data-sitekey="{{ captcha_site_key }}" style="margin-bottom: 1.25rem;"></div>
                     {% endif %}
 
-                    <button type="submit">{{ form.submit_label or "Надіслати" }}</button>
+                    <button type="submit">{{ form.submit_label or _("Submit") }}</button>
                 </form>
             </div>
         {% endif %}

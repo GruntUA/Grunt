@@ -42,7 +42,9 @@ def _get_jinja_env() -> Environment:
         autoescape=select_autoescape(["html"]),
     )
     env.filters.update(JINJA_FILTERS)
-    return env
+    from grunt.i18n.jinja import install as install_i18n
+
+    return install_i18n(env)
 
 
 def render_template(template_name: str, doc: dict[str, Any]) -> str:

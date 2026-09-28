@@ -10,6 +10,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from grunt.i18n import _
+
 if TYPE_CHECKING:
     from grunt.auth.doctypes.User.user import User
 
@@ -48,11 +50,11 @@ async def issue_login(
     )
 
     if not await sign_in_ip_allowed(user, ip_address):
-        throw("Вхід з цієї IP-адреси заборонено для вашої ролі.", "PERMISSION_DENIED")
+        throw(_("Sign-in from this IP address is not allowed for your role."), "PERMISSION_DENIED")
 
     state = getattr(user, "signup_state", None) or "approved"
     if state == "rejected":
-        throw("Заявку на реєстрацію відхилено адміністратором.", "UNAUTHORIZED")
+        throw(_("The registration request was rejected by an administrator."), "UNAUTHORIZED")
     if state == "pending":
         # Not an error — the frontend shows a "waiting for approval" notice.
         return {

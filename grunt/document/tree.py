@@ -30,6 +30,7 @@ from fastapi import HTTPException, status
 from sqlalchemy import literal, select
 
 from grunt.document.registry import document_registry
+from grunt.i18n import _
 from grunt.log import log
 
 if TYPE_CHECKING:
@@ -86,7 +87,8 @@ def _require_tree(dt: Any) -> str:
     if not dt.is_tree or not dt.tree_view:
         raise HTTPException(
             status.HTTP_400_BAD_REQUEST,
-            detail=f"DocType '{dt.name}' is not a tree (is_tree=false or tree_view not configured)",
+            detail=_("DocType '%(name)s' is not a tree (is_tree=false or tree_view not configured)")
+            % {"name": dt.name},
         )
     return dt.tree_view.parent_field
 
@@ -118,7 +120,8 @@ class TreeService:
         dt = await grunt.get_meta(doctype)
         if dt is None:
             raise HTTPException(
-                status.HTTP_404_NOT_FOUND, detail=f"DocType «{doctype}» не знайдено"
+                status.HTTP_404_NOT_FOUND,
+                detail=_("DocType “%(doctype)s” not found") % {"doctype": doctype},
             )
         parent_field = _require_tree(dt)
         table = dt.table
@@ -150,7 +153,8 @@ class TreeService:
         if pf_col is None:
             raise HTTPException(
                 status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Column '{parent_field}' not found in table for '{doctype}'",
+                detail=_("Column '%(parent_field)s' not found in table for '%(doctype)s'")
+                % {"parent_field": parent_field, "doctype": doctype},
             )
 
         if parent_id is None:
@@ -210,7 +214,8 @@ class TreeService:
         dt = await grunt.get_meta(doctype)
         if dt is None:
             raise HTTPException(
-                status.HTTP_404_NOT_FOUND, detail=f"DocType «{doctype}» не знайдено"
+                status.HTTP_404_NOT_FOUND,
+                detail=_("DocType “%(doctype)s” not found") % {"doctype": doctype},
             )
         parent_field = _require_tree(dt)
         table = dt.table
@@ -378,7 +383,8 @@ class TreeService:
         dt = await grunt.get_meta(doctype)
         if dt is None:
             raise HTTPException(
-                status.HTTP_404_NOT_FOUND, detail=f"DocType «{doctype}» не знайдено"
+                status.HTTP_404_NOT_FOUND,
+                detail=_("DocType “%(doctype)s” not found") % {"doctype": doctype},
             )
         parent_field = _require_tree(dt)
         table = dt.table
@@ -433,7 +439,8 @@ class TreeService:
         dt = await grunt.get_meta(doctype)
         if dt is None:
             raise HTTPException(
-                status.HTTP_404_NOT_FOUND, detail=f"DocType «{doctype}» не знайдено"
+                status.HTTP_404_NOT_FOUND,
+                detail=_("DocType “%(doctype)s” not found") % {"doctype": doctype},
             )
         parent_field = _require_tree(dt)
         table = dt.table
@@ -445,7 +452,7 @@ class TreeService:
             if new_parent_id in subtree_ids:
                 raise HTTPException(
                     status.HTTP_409_CONFLICT,
-                    detail="Cannot move a node into its own subtree (cycle detected)",
+                    detail=_("Cannot move a node into its own subtree (cycle detected)"),
                 )
 
         stmt = (
@@ -462,7 +469,7 @@ class TreeService:
         await session.commit()
         row = result.fetchone()
         if not row:
-            raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Node not found")
+            raise HTTPException(status.HTTP_404_NOT_FOUND, detail=_("Node not found"))
 
         log.info("tree.node_moved", doctype=doctype, node=node_id, new_parent=new_parent_id)
         return dict(row._mapping)

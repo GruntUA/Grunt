@@ -1,7 +1,7 @@
 function on_load(frm) {
   frm.actions.add({
     id: 'copy_json',
-    label: 'Copy JSON',
+    label: __('Copy JSON'),
     icon: 'clipboard-copy',
     action: async (f) => {
       try {
@@ -24,7 +24,7 @@ async function setup_list(listview) {
   } catch (_) {}
 
   const toggleLook = () => ({
-    label: isRecording ? 'Stop recording' : 'Start recording',
+    label: isRecording ? __('Stop recording') : __('Start recording'),
     icon: isRecording ? 'square' : 'play',
     variant: isRecording ? 'destructive' : 'default',
   })
@@ -52,7 +52,7 @@ async function setup_list(listview) {
     id: 'profiler_clear',
     label: 'Clear',
     icon: 'eraser',
-    confirm: 'Clear the profiler buffer?',
+    confirm: __('Clear the profiler buffer?'),
     action: async (lv) => {
       try {
         await grunt.call({ method: 'grunt.api.v1.dev.clear_profiler' })

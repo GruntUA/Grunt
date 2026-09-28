@@ -12,6 +12,7 @@ from datetime import UTC, date, datetime
 from typing import Any
 
 from grunt.app import grunt
+from grunt.i18n import _, language_of, ngettext, use_language
 from grunt.log import log
 from grunt.site.manager import site_manager
 from grunt.tasks.broker import retryable_task
@@ -60,10 +61,16 @@ async def send_due_reminders() -> None:
 
         for user, items in by_user.items():
             overdue = sum(1 for t in items if _as_date(t.get("due_date")) < today)
-            subject = f"Нагадування: {len(items)} завд. з терміном" + (
-                f" ({overdue} прострочено)" if overdue else ""
-            )
-            message = "\n".join(_line(t, titles, today) for t in _sorted(items))
+            # Stored + mailed text: compose it in the recipient's language.
+            with use_language(await language_of(user)):
+                subject = ngettext(
+                    "Reminder: %(count)d task with a due date",
+                    "Reminder: %(count)d tasks with a due date",
+                    len(items),
+                ) % {"count": len(items)}
+                if overdue:
+                    subject += " (" + _("%(count)s overdue") % {"count": overdue} + ")"
+                message = "\n".join(_line(t, titles, today) for t in _sorted(items))
             try:
                 await notification_service.notify(
                     session,
@@ -102,6 +109,6 @@ def _line(t: dict[str, Any], titles: dict[tuple[str, str], str], today: date) ->
         t.get("reference_id") or ""
     )
     due = _as_date(t.get("due_date"))
-    mark = "⚠ прострочено" if due < today else "сьогодні"
+    mark = "⚠ " + _("overdue") if due < today else _("today")
     note = (t.get("description") or "").strip() or ref or t["name"]
     return f"• [{due.isoformat()}, {mark}] {note}"

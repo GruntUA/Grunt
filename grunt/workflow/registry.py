@@ -14,6 +14,7 @@ from typing import TYPE_CHECKING
 from sqlalchemy import select
 
 from grunt.hooks import on_doc
+from grunt.i18n import _
 from grunt.metadata.doctype import WorkflowState, WorkflowTransition
 
 if TYPE_CHECKING:
@@ -115,7 +116,7 @@ async def get_active_workflow(document_type: str) -> ResolvedWorkflow | None:
     if meta is None:
         from grunt.errors import not_found
 
-        raise not_found("DocType «Workflow» не знайдено")
+        raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": "Workflow"})
     dt = meta.doc  # _load_child_tables below is typed to take the raw DocType
     table = meta.table
     data_fields = {f.fieldname for f in meta.get_physical_fields()}

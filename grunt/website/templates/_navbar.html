@@ -58,11 +58,11 @@
             {% endfor %}
 
             <span id="gr-nav-auth" style="display: none;">
-                <a href="/app" class="btn btn-primary" style="padding: 0.5rem 1rem;">Увійти в систему</a>
+                <a href="/app" class="btn btn-primary" style="padding: 0.5rem 1rem;">{{ _("Go to the app") }}</a>
             </span>
             <span id="gr-nav-guest" style="display: none; align-items: center; gap: 2rem;">
-                <a href="/login" style="text-decoration: none; color: var(--text-muted); font-weight: 500; font-size: 0.95rem; transition: color 0.2s;" onmouseover="this.style.color='var(--text-main)'" onmouseout="this.style.color='var(--text-muted)'">Вхід</a>
-                <a href="/signup" class="btn btn-primary" style="padding: 0.5rem 1rem;">Реєстрація</a>
+                <a href="/login" style="text-decoration: none; color: var(--text-muted); font-weight: 500; font-size: 0.95rem; transition: color 0.2s;" onmouseover="this.style.color='var(--text-main)'" onmouseout="this.style.color='var(--text-muted)'">{{ _("Sign in") }}</a>
+                <a href="/signup" class="btn btn-primary" style="padding: 0.5rem 1rem;">{{ _("Sign up") }}</a>
             </span>
         </nav>
     </div>

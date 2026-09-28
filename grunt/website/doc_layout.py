@@ -6,6 +6,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from grunt.i18n import _
+
 # Framework bookkeeping fields never shown in the read-only share view.
 _SKIP_FIELDS = {"id", "name", "owner", "created_at", "modified_at", "modified_by", "docstatus"}
 _MULTILINE = {"LongText", "Text", "HTML", "Code", "Markdown"}
@@ -42,7 +44,7 @@ def _row(
     if raw in (None, ""):
         value = "—"
     elif fieldtype == "Check":
-        value = "Так" if str(raw) in ("1", "true", "True") else "Ні"
+        value = _("Yes") if str(raw) in ("1", "true", "True") else _("No")
     elif fieldtype == "Link" and display not in (None, ""):
         value = display
     else:

@@ -6,7 +6,9 @@
  * English source strings are used as keys — vue-i18n returns the key itself
  * when no translation is found, so English always works without a translation file.
  *
- * Default language: Ukrainian (uk).
+ * UI languages are dynamic: every locale with a backend translation catalog
+ * (see `get_public_config().languages`). Until the site config arrives the
+ * visitor's saved choice — or `uk` — is used.
  *
  * Usage in components:
  *   import { useI18n } from 'vue-i18n'
@@ -20,14 +22,19 @@
 
 import { createI18n } from 'vue-i18n'
 
-export type SupportedLocale = 'uk' | 'en'
+/** A short UI language code (`uk`, `en`, `pl`, …). */
+export type SupportedLocale = string
 
 const STORAGE_KEY = 'grunt-locale'
 const VERSION_KEY = 'grunt-locale-version'
 
 function getSavedLocale(): SupportedLocale {
-  const saved = localStorage.getItem(STORAGE_KEY)
-  if (saved === 'uk' || saved === 'en') return saved
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY)
+    if (saved && /^[a-z]{2}$/.test(saved)) return saved
+  } catch {
+    // storage unavailable
+  }
   return 'uk'
 }
 
@@ -35,7 +42,7 @@ export const i18n = createI18n({
   legacy: false,
   locale: getSavedLocale(),
   fallbackLocale: 'en',
-  messages: { uk: {}, en: {} },
+  messages: {},
   missingWarn: false,
   fallbackWarn: false,
 })
@@ -101,6 +108,12 @@ function pluralIndex(locale: string, n: number): number {
 }
 
 /**
+ * Mark a key for the i18n extractor without translating it (gettext_noop).
+ * For module-level constants that are translated where rendered: `t(CONST)`.
+ */
+export const N_ = (key: string): string => key
+
+/**
  * Plural-aware translate — mirrors the backend `ngettext`.
  *
  * Looks up `<singular>\u0000<form-index>` in the bundle (the form index comes
@@ -118,7 +131,11 @@ export function tn(singular: string, plural: string, n: number, ctx?: string): s
 
 export function setLocale(locale: SupportedLocale): void {
   i18n.global.locale.value = locale
-  localStorage.setItem(STORAGE_KEY, locale)
+  try {
+    localStorage.setItem(STORAGE_KEY, locale)
+  } catch {
+    // storage unavailable — the choice lasts for this page only
+  }
   document.documentElement.setAttribute('lang', locale)
   loadRemoteTranslations(locale)
   // DocType schemas are translated server-side per request language — drop the

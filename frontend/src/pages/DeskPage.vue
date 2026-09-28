@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { formatNumber } from '@/core/currency'
 import { useI18n } from 'vue-i18n'
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
@@ -198,7 +199,7 @@ function docInitials(doc: RecentDoc): string {
         </button>
 
         <p class="text-muted-foreground">
-          {{ t('{apps} apps · {docs} documents in the system').replace('{apps}', String(appStore.workspaces.length)).replace('{docs}', totalDocsCount.toLocaleString()) }}
+          {{ t('{apps} apps · {docs} documents in the system').replace('{apps}', String(appStore.workspaces.length)).replace('{docs}', formatNumber(totalDocsCount)) }}
         </p>
       </section>
 

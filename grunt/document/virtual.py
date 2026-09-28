@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Any, cast
 from fastapi import HTTPException, status
 
 from grunt.document.registry import document_registry
+from grunt.i18n import _
 
 if TYPE_CHECKING:
     from grunt.auth.doctypes.User.user import User
@@ -44,7 +45,8 @@ def _get_virtual_controller(doctype_name: str, user: User):
 def _no_controller(doctype_name: str) -> HTTPException:
     return HTTPException(
         status_code=status.HTTP_404_NOT_FOUND,
-        detail=f"Віртуальний DocType «{doctype_name}» не має окремих документів",
+        detail=_("Virtual DocType “%(doctype)s” has no individual documents")
+        % {"doctype": doctype_name},
     )
 
 

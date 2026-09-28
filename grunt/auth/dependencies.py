@@ -14,6 +14,7 @@ from grunt.auth.doctypes.User.user import (
 )
 from grunt.config import settings
 from grunt.db.session import get_engine, get_session
+from grunt.i18n import _
 from grunt.log import log
 
 if TYPE_CHECKING:
@@ -52,7 +53,7 @@ async def current_user(
     """
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
+        detail=_("Could not validate credentials"),
         headers={"WWW-Authenticate": "Bearer"},
     )
 
@@ -152,7 +153,7 @@ async def superadmin_user(
     if not user_has_roles(user, ["System Manager"]):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="System Manager privileges required",
+            detail=_("System Manager privileges required"),
         )
     return user
 

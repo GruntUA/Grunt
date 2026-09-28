@@ -9,6 +9,7 @@ from fastapi import HTTPException, status
 from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 
+from grunt.i18n import _
 from grunt.log import log
 
 if TYPE_CHECKING:
@@ -78,7 +79,7 @@ class DocumentWriteMixin(DocumentReadMixin):
             return Meta(fresh)
         dt = await grunt.get_meta(doctype_name)
         if dt is None:
-            raise not_found(f"DocType «{doctype_name}» не знайдено")
+            raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype_name})
         return dt
 
     async def _run_lifecycle_hooks(self, doc: Any, *hook_names: str) -> None:
@@ -121,7 +122,7 @@ class DocumentWriteMixin(DocumentReadMixin):
         if (existing.scalar() or 0) > 0:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
-                detail=f"'{dt.name}' is a singleton.",
+                detail=_("'%(name)s' is a singleton.") % {"name": dt.name},
             )
 
     async def _build_initial_row(
@@ -330,7 +331,7 @@ class DocumentWriteMixin(DocumentReadMixin):
             user, dt, data
         ):
             raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN, detail="Немає доступу до документа"
+                status_code=status.HTTP_403_FORBIDDEN, detail=_("No access to the document")
             )
 
         now = datetime.now(UTC)
@@ -490,8 +491,10 @@ class DocumentWriteMixin(DocumentReadMixin):
         if base_modified_at and not _same_instant(base_modified_at, existing.get("modified_at")):
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
-                detail="Документ змінено після того, як ви почали редагування. "
-                "Відкрийте його знову та повторіть зміни.",
+                detail=_(
+                    "The document was changed after you started editing. "
+                    "Open it again and repeat your changes."
+                ),
             )
 
         errors = _validate_data(dt, data, partial=True, ignore_required=ignore_required)
@@ -605,7 +608,7 @@ class DocumentWriteMixin(DocumentReadMixin):
         if dt.is_submittable and existing.get("docstatus") == 1:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
-                detail="Скасуйте документ перед видаленням",
+                detail=_("Cancel the document before deleting it"),
             )
 
         real_id = existing["name"]
@@ -622,7 +625,7 @@ class DocumentWriteMixin(DocumentReadMixin):
             except IntegrityError as exc:
                 raise HTTPException(
                     status_code=status.HTTP_409_CONFLICT,
-                    detail="Не вдалося перепризначити посилання — конфлікт унікальності",
+                    detail=_("Could not reassign the links: uniqueness conflict"),
                 ) from exc
 
         await fire(

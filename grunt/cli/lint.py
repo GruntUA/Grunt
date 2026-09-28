@@ -46,12 +46,12 @@ def _print_status(name: str, ok: bool) -> None:
     if ok:
         click.echo(click.style(f"  ✓ {name}: OK\n", fg="green"))
     else:
-        click.echo(click.style(f"  ✗ {name}: є помилки\n", fg="red"))
+        click.echo(click.style(f"  ✗ {name}: errors found\n", fg="red"))
 
 
 def _run_python(root: Path, fix: bool) -> int:
     if shutil.which("ruff") is None:
-        click.echo(click.style("  [skip] ruff не встановлено", fg="yellow"))
+        click.echo(click.style("  [skip] ruff is not installed", fg="yellow"))
         return 0
 
     results = []
@@ -75,11 +75,11 @@ def _run_python(root: Path, fix: bool) -> int:
 
 def _run_frontend(root: Path) -> int:
     if not (root / "package.json").exists():
-        click.echo(click.style("  [skip] package.json не знайдено", fg="yellow"))
+        click.echo(click.style("  [skip] package.json not found", fg="yellow"))
         return 0
 
     if shutil.which("npm") is None:
-        click.echo(click.style("  [skip] npm не знайдено", fg="yellow"))
+        click.echo(click.style("  [skip] npm not found", fg="yellow"))
         return 0
 
     click.echo(click.style("── vue-tsc ──", bold=True))
@@ -110,12 +110,12 @@ def _lint_app(app_root: Path, fix: bool, only_py: bool, only_js: bool) -> int:
 
 
 def _run_single(root: Path, fix: bool, only_py: bool, only_js: bool) -> None:
-    click.echo(f"Проєкт: {root}\n")
+    click.echo(f"Project: {root}\n")
     code = _lint_app(root, fix, only_py, only_js)
     if code != 0:
-        click.echo(click.style("Є помилки.", fg="red", bold=True))
+        click.echo(click.style("Errors found.", fg="red", bold=True))
         raise SystemExit(1)
-    click.echo(click.style("Все гаразд.", fg="green", bold=True))
+    click.echo(click.style("All good.", fg="green", bold=True))
 
 
 def _run_bench(
@@ -134,7 +134,7 @@ def _run_bench(
             available = ", ".join(sorted(apps_map))
             click.echo(
                 click.style(
-                    f"[error] Невідомі додатки: {', '.join(unknown)}. Доступні: {available}",
+                    f"[error] Unknown apps: {', '.join(unknown)}. Available: {available}",
                     fg="red",
                 ),
                 err=True,
@@ -145,7 +145,7 @@ def _run_bench(
         target = all_apps
 
     click.echo(f"Bench: {bench_root}")
-    click.echo(f"Додатки: {', '.join(a.name for a in target)}\n")
+    click.echo(f"Apps: {', '.join(a.name for a in target)}\n")
 
     results: dict[str, int] = {}
     for app_root in target:
@@ -153,41 +153,41 @@ def _run_bench(
         results[app_root.name] = _lint_app(app_root, fix, only_py, only_js)
 
     click.echo(click.style("─" * 40, bold=True))
-    click.echo(click.style("Підсумок:", bold=True))
+    click.echo(click.style("Summary:", bold=True))
     all_ok = True
     for app_name, code in results.items():
         ok = code == 0
         all_ok = all_ok and ok
-        status = click.style("✓ OK", fg="green") if ok else click.style("✗ помилки", fg="red")
+        status = click.style("✓ OK", fg="green") if ok else click.style("✗ errors", fg="red")
         click.echo(f"  {app_name}: {status}")
 
     click.echo()
     if not all_ok:
-        click.echo(click.style("Є помилки.", fg="red", bold=True))
+        click.echo(click.style("Errors found.", fg="red", bold=True))
         raise SystemExit(1)
-    click.echo(click.style("Все гаразд.", fg="green", bold=True))
+    click.echo(click.style("All good.", fg="green", bold=True))
 
 
 # ── Command ───────────────────────────────────────────────────────────────────
 
 
 @click.command("lint")
-@click.option("--fix", is_flag=True, help="Автоматично виправити (ruff --fix + ruff format)")
-@click.option("--py", "only_py", is_flag=True, help="Тільки Python")
-@click.option("--js", "only_js", is_flag=True, help="Тільки TypeScript/Vue")
-@click.option("--path", default=None, help="Корінь проєкту або bench (авто-пошук за замовчуванням)")
+@click.option("--fix", is_flag=True, help="Fix automatically (ruff --fix + ruff format)")
+@click.option("--py", "only_py", is_flag=True, help="Python only")
+@click.option("--js", "only_js", is_flag=True, help="TypeScript/Vue only")
+@click.option("--path", default=None, help="Project or bench root (auto-detected by default)")
 @click.option(
     "--app",
     "apps",
     multiple=True,
     metavar="APP",
-    help="Додаток для перевірки (можна повторити). Активує bench-режим.",
+    help="App to check (repeatable). Enables bench mode.",
 )
 def lint(fix: bool, only_py: bool, only_js: bool, path: str | None, apps: tuple[str, ...]) -> None:
-    """Перевірити код: ruff (Python) + vue-tsc (TS/Vue).
+    """Check the code: ruff (Python) + vue-tsc (TS/Vue).
 
-    З директорії bench — перевіряє всі або вибрані (--app) додатки.
-    З директорії додатку — перевіряє тільки цей додаток.
+    From the bench directory, checks all or the selected (--app) apps.
+    From an app directory, checks only that app.
     """
     start = Path(path).resolve() if path else Path.cwd()
 
@@ -201,7 +201,7 @@ def lint(fix: bool, only_py: bool, only_js: bool, path: str | None, apps: tuple[
         if bench is None:
             click.echo(
                 click.style(
-                    "[error] bench root не знайдено (немає apps/ з Python-пакетами)", fg="red"
+                    "[error] bench root not found (no apps/ with Python packages)", fg="red"
                 ),
                 err=True,
             )
@@ -212,8 +212,6 @@ def lint(fix: bool, only_py: bool, only_js: bool, path: str | None, apps: tuple[
     # Single app mode
     root = _find_app_root(start)
     if root is None or not (root / "pyproject.toml").exists():
-        click.echo(
-            click.style(f"[error] pyproject.toml не знайдено в: {start}", fg="red"), err=True
-        )
+        click.echo(click.style(f"[error] pyproject.toml not found in: {start}", fg="red"), err=True)
         raise SystemExit(1)
     _run_single(root, fix, only_py, only_js)

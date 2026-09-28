@@ -14,6 +14,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from grunt.i18n import _
+
 # fieldtype → native <input type>. Anything unlisted renders as a text input.
 _INPUT_TYPES = {
     "Data": "text",
@@ -97,8 +99,8 @@ async def get_context(context: dict[str, Any]) -> dict[str, Any]:
     route = (context.get("path_params") or {}).get("route", "")
     form = await web_form_service.get_form(route)
     if not form:
-        context["title"] = "Форму не знайдено"
-        context["load_error"] = "Форму не знайдено"
+        context["title"] = _("Form not found")
+        context["load_error"] = _("Form not found")
         return context
 
     context["title"] = form["title"]
@@ -128,7 +130,7 @@ async def handle_post(context: dict[str, Any]) -> Any:
     # don't tip it off — but skip creating anything.
     if (str(raw.get("_hp") or "")).strip():
         context["submitted"] = True
-        context["success_message"] = "Дякуємо! Вашу заявку прийнято."
+        context["success_message"] = _("Thank you! Your submission has been received.")
         return context
 
     form = await web_form_service.get_form(route)
@@ -140,8 +142,8 @@ async def handle_post(context: dict[str, Any]) -> Any:
             token = str(raw.get("cf-turnstile-response") or "")
             ok = await verify_captcha(token, _client_ip(context["request"]))
             if not ok:
-                context["submit_error"] = (
-                    "Не вдалося підтвердити, що ви не робот. Спробуйте ще раз."
+                context["submit_error"] = _(
+                    "Could not verify that you are not a robot. Please try again."
                 )
                 context["form_data"] = {k: v for k, v in raw.items() if k not in ("__form", "_hp")}
                 return context
@@ -179,7 +181,7 @@ async def handle_post(context: dict[str, Any]) -> Any:
         context["form_data"] = dict(data)
         return context
     except Exception as exc:  # e.g. HTTPException(403) when Guest lacks create
-        context["submit_error"] = str(getattr(exc, "detail", exc)) or "Помилка надсилання"
+        context["submit_error"] = str(getattr(exc, "detail", exc)) or _("Submission error")
         context["form_data"] = dict(data)
         return context
 
@@ -187,5 +189,7 @@ async def handle_post(context: dict[str, Any]) -> Any:
         return HTMLResponse("", status_code=303, headers={"Location": result["success_url"]})
 
     context["submitted"] = True
-    context["success_message"] = result.get("success_message") or "Форму успішно надіслано."
+    context["success_message"] = result.get("success_message") or _(
+        "The form has been submitted successfully."
+    )
     return context

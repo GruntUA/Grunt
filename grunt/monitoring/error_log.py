@@ -112,7 +112,7 @@ async def record_error(
                 tb_text = ""
 
         if not title:
-            title = f"{error_type}: {message}" if error_type else (message or "Помилка")
+            title = f"{error_type}: {message}" if error_type else (message or "Error")
 
         if app is None and tb_text:
             app = _app_of_traceback(tb_text)

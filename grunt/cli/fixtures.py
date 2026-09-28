@@ -8,17 +8,17 @@ from grunt.cli.utils import _site_session
 
 @click.group("fixtures")
 def fixtures_group():
-    """Фікстури додатків: експорт записів з БД у файли додатка."""
+    """App fixtures: export database records to app files."""
     pass
 
 
 @fixtures_group.command("export")
 @click.argument("app")
-@click.option("--site", default=None, help="Назва сайту")
+@click.option("--site", default=None, help="Site name")
 def fixtures_export(app: str, site: str | None):
-    """Експортувати записи, оголошені в `fixtures` у hooks.py додатка, у <module>/fixtures/.
+    """Export the records declared in `fixtures` in the app's hooks.py to <module>/fixtures/.
 
-    Файли пишуться з `"sync": true` — при migrate вони оновлюють наявні записи.
+    Files are written with `"sync": true`, so migrate updates existing records.
     """
 
     async def _run():
@@ -29,7 +29,7 @@ def fixtures_export(app: str, site: str | None):
 
         app_dir = site_manager.bench_dir / "apps" / app
         if not app_dir.is_dir():
-            click.echo(f"Помилка: додаток '{app}' не знайдено ({app_dir}).", err=True)
+            click.echo(f"Error: app '{app}' not found ({app_dir}).", err=True)
             raise SystemExit(1)
         _ensure_on_syspath(app_dir)
 
@@ -41,12 +41,12 @@ def fixtures_export(app: str, site: str | None):
                 targets.append((hooks_file.parent / "fixtures", parse_fixture_specs(entries)))
 
         if not targets:
-            click.echo(f"У hooks.py додатка '{app}' не оголошено `fixtures` — нічого експортувати.")
+            click.echo(f"The hooks.py of app '{app}' declares no `fixtures`; nothing to export.")
             return
 
         async with _site_session(site) as (session, eng), grunt.system_context(session, eng):
             for fixtures_dir, specs in targets:
                 for path, count in await export_fixtures(specs, fixtures_dir):
-                    click.echo(f"  {path.relative_to(app_dir)} — {count} записів")
+                    click.echo(f"  {path.relative_to(app_dir)}: {count} records")
 
     asyncio.run(_run())

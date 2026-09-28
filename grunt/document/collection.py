@@ -32,6 +32,7 @@ from grunt.document.update_side_effects import (
     run_bulk_delete_writes,
 )
 from grunt.document.virtual import is_virtual_routed, virtual_list
+from grunt.i18n import _
 from grunt.log import log
 from grunt.metadata.registry import doctype_registry
 
@@ -252,7 +253,7 @@ async def list_documents(
     if dt is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"DocType «{doctype_name}» не знайдено",
+            detail=_("DocType “%(doctype)s” not found") % {"doctype": doctype_name},
         )
 
     # Virtual DocType or VirtualDocType controller — delegate to sub-module
@@ -341,7 +342,7 @@ async def count_documents(
     if dt is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"DocType «{doctype_name}» не знайдено",
+            detail=_("DocType “%(doctype)s” not found") % {"doctype": doctype_name},
         )
     if dt.is_virtual:
         # Virtual DocTypes own their storage; fall back to the plain count.
@@ -406,7 +407,7 @@ async def bulk_delete(
     if dt is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"DocType «{doctype_name}» не знайдено",
+            detail=_("DocType “%(doctype)s” not found") % {"doctype": doctype_name},
         )
 
     if is_virtual_routed(dt, doctype_name):
@@ -419,9 +420,7 @@ async def bulk_delete(
             if src == replace_with:
                 continue
             await validate_replacement(session, dt, src, replace_with)
-            await repoint_references(
-                session, dt, doctype_name, src, replace_with, is_merge=True
-            )
+            await repoint_references(session, dt, doctype_name, src, replace_with, is_merge=True)
         await session.flush()
     ml = MultiLinkService(session)
     to_delete, errors = await collect_bulk_delete_candidates(
@@ -644,7 +643,7 @@ async def validate_replacement(
     if source_id == target_id:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Заміна не може збігатися з документом, що видаляється",
+            detail=_("The replacement cannot be the document being deleted"),
         )
 
     table = dt.table
@@ -653,7 +652,7 @@ async def validate_replacement(
     if not exists:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Документ-заміну «{target_id}» не знайдено",
+            detail=_("Replacement document “%(name)s” not found") % {"name": target_id},
         )
 
     parent_field = getattr(dt, "tree_parent_field", None)
@@ -668,7 +667,7 @@ async def validate_replacement(
             if cursor == source_id:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Не можна підставити підлеглий елемент як заміну",
+                    detail=_("A descendant cannot be used as the replacement"),
                 )
 
 
@@ -695,12 +694,12 @@ async def rename_document(
     if dt is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"DocType «{doctype_name}» не знайдено",
+            detail=_("DocType “%(doctype)s” not found") % {"doctype": doctype_name},
         )
     if is_virtual_routed(dt, doctype_name):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Cannot rename virtual documents",
+            detail=_("Cannot rename virtual documents"),
         )
 
     table = dt.table
@@ -710,7 +709,7 @@ async def rename_document(
     if exists_res.first():
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail=f"Document with name '{new_id}' already exists",
+            detail=_("Document with name '%(new_id)s' already exists") % {"new_id": new_id},
         )
 
     await session.execute(table.update().where(table.c.name == old_id).values(name=new_id))

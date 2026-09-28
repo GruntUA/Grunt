@@ -28,6 +28,7 @@ import importlib.util
 import inspect
 from typing import TYPE_CHECKING
 
+from grunt.i18n import _
 from grunt.log import log
 from grunt.validators.base import Validator
 
@@ -56,7 +57,7 @@ def list_validators() -> list[dict[str, object]]:
     """Return all validators as ``[{name, label, field_types}]`` sorted by label."""
     return sorted(
         [
-            {"name": v.name, "label": v.label, "field_types": v.field_types}
+            {"name": v.name, "label": _(v.label), "field_types": v.field_types}
             for v in _REGISTRY.values()
         ],
         key=lambda v: v["label"],  # type: ignore[arg-type]

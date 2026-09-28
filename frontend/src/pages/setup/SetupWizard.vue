@@ -23,7 +23,7 @@ const setupData = ref({
   app_name: siteConfigState().appName || 'Ґрунт',
   admin_email: 'admin@grunt.local',
   admin_password: '',
-  language: siteConfigState().language || 'uk-UA',
+  language: siteConfigState().language || 'uk',
 })
 
 async function submitSetup() {
@@ -125,8 +125,9 @@ async function submitSetup() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="uk-UA">uk-UA</SelectItem>
-                          <SelectItem value="en-US">en-US</SelectItem>
+                          <SelectItem v-for="lang in siteConfigState().languages" :key="lang.code" :value="lang.code">
+                            {{ lang.name }}
+                          </SelectItem>
                         </SelectContent>
                       </Select>
                     </div>

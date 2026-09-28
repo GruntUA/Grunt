@@ -7,17 +7,17 @@ from grunt.cli.utils import _site_session
 
 @click.group("users")
 def users_group():
-    """Керування користувачами."""
+    """Manage users."""
     pass
 
 
 @users_group.command("create")
 @click.option("--email", prompt="Email")
-@click.option("--password", prompt="Пароль", hide_input=True, confirmation_prompt=True)
-@click.option("--full-name", prompt="Повне ім'я")
-@click.option("--site", default=None, help="Назва сайту")
+@click.option("--password", prompt="Password", hide_input=True, confirmation_prompt=True)
+@click.option("--full-name", prompt="Full name")
+@click.option("--site", default=None, help="Site name")
 def users_create(email, password, full_name, site):
-    """Створити нового користувача."""
+    """Create a new user."""
 
     async def _run():
         from grunt.app import grunt
@@ -39,21 +39,21 @@ def users_create(email, password, full_name, site):
         async with _site_session(site) as (session, _eng):
             async with grunt.context(session, _eng):
                 if await get_user_by_email(email) is not None:
-                    click.echo(f"Помилка: користувач '{email}' вже існує.", err=True)
+                    click.echo(f"Error: user '{email}' already exists.", err=True)
                     raise SystemExit(1)
                 user = await create_user(email, password, first_name, last_name, middle_name)
             await session.commit()
 
-        label = "адміністратора" if "System Manager" in (user.roles or []) else "користувача"
-        click.echo(f"Створено {label}: {user.email} ({user.full_name})")
+        label = "administrator" if "System Manager" in (user.roles or []) else "user"
+        click.echo(f"Created {label}: {user.email} ({user.full_name})")
 
     asyncio.run(_run())
 
 
 @users_group.command("list")
-@click.option("--site", default=None, help="Назва сайту")
+@click.option("--site", default=None, help="Site name")
 def users_list(site):
-    """Показати список всіх користувачів."""
+    """List all users."""
 
     async def _run():
         from grunt.app import grunt
@@ -66,10 +66,10 @@ def users_list(site):
             users = await list_users()
 
         if not users:
-            click.echo("Користувачів немає.")
+            click.echo("No users.")
             return
 
-        click.echo(f"{'Email':<35} {"Ім'я":<25} Ролі")
+        click.echo(f"{'Email':<35} {'Name':<25} Roles")
         click.echo("-" * 90)
         for u in users:
             roles = ", ".join(u.roles) or "—"
@@ -80,10 +80,10 @@ def users_list(site):
 
 @users_group.command("set-password")
 @click.argument("email")
-@click.option("--password", prompt="Новий пароль", hide_input=True, confirmation_prompt=True)
-@click.option("--site", default=None, help="Назва сайту")
+@click.option("--password", prompt="New password", hide_input=True, confirmation_prompt=True)
+@click.option("--site", default=None, help="Site name")
 def users_set_password(email, password, site):
-    """Змінити пароль користувача."""
+    """Change a user's password."""
 
     async def _run():
         from grunt.app import grunt
@@ -98,7 +98,7 @@ def users_set_password(email, password, site):
         ):
             user = await get_user_by_email(email)
             if user is None:
-                click.echo(f"Помилка: користувача '{email}' не знайдено.", err=True)
+                click.echo(f"Error: user '{email}' not found.", err=True)
                 raise SystemExit(1)
 
             await grunt.db.set_value(
@@ -106,6 +106,6 @@ def users_set_password(email, password, site):
             )
             await session.commit()
 
-        click.echo(f"Пароль змінено для {email}.")
+        click.echo(f"Password changed for {email}.")
 
     asyncio.run(_run())

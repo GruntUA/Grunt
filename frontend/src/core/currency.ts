@@ -29,6 +29,11 @@ export function formatCurrency(value: unknown, code: string | null): string {
   return Number.isFinite(n) ? formatter(code).format(n) : String(value)
 }
 
+/** A plain number in the active UI locale (`12 345,6` / `12,345.6`). */
+export function formatNumber(value: number, opts: Intl.NumberFormatOptions = {}): string {
+  return new Intl.NumberFormat(localeTag(), opts).format(value)
+}
+
 /** `₴` for UAH; the code itself when Intl has no symbol for it. */
 export function currencySymbol(code: string | null): string {
   if (!code) return ''

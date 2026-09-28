@@ -26,6 +26,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 
 from grunt.config import settings
 from grunt.errors import error_body
+from grunt.i18n import _
 from grunt.log import log
 
 if TYPE_CHECKING:
@@ -165,7 +166,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                 return JSONResponse(
                     status_code=status.HTTP_429_TOO_MANY_REQUESTS,
                     content=error_body(
-                        "RATE_LIMIT_EXCEEDED", "Забагато запитів. Спробуйте пізніше."
+                        "RATE_LIMIT_EXCEEDED", _("Too many requests. Try again later.")
                     ),
                     headers={"Retry-After": str(reset_in)},
                 )
@@ -181,7 +182,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                 return JSONResponse(
                     status_code=status.HTTP_429_TOO_MANY_REQUESTS,
                     content=error_body(
-                        "RATE_LIMIT_EXCEEDED", "Забагато запитів. Спробуйте пізніше."
+                        "RATE_LIMIT_EXCEEDED", _("Too many requests. Try again later.")
                     ),
                     headers={"Retry-After": str(reset_in)},
                 )
@@ -220,7 +221,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             )
             return JSONResponse(
                 status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                content=error_body("RATE_LIMIT_EXCEEDED", "Забагато запитів. Спробуйте пізніше."),
+                content=error_body("RATE_LIMIT_EXCEEDED", _("Too many requests. Try again later.")),
                 headers={
                     "Retry-After": str(reset_in),
                     "X-RateLimit-Limit": str(limit),

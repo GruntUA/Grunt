@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from grunt.i18n import _
 from grunt.website.doc_layout import FlatField, build_tabs, fmt_dt
 
 
@@ -17,7 +18,7 @@ async def get_context(context: dict[str, Any]) -> dict[str, Any]:
     from grunt.api.v1.share import get_shared_document
 
     token = (context.get("path_params") or {}).get("token", "")
-    context["title"] = "Перегляд документа"
+    context["title"] = _("Document view")
 
     try:
         share = await get_shared_document(token)
@@ -25,7 +26,7 @@ async def get_context(context: dict[str, Any]) -> dict[str, Any]:
         context["error"] = exc.message
         return context
     except HTTPException as exc:
-        context["error"] = str(exc.detail) or "Посилання недоступне"
+        context["error"] = str(exc.detail) or _("The link is unavailable")
         return context
 
     doc = share["doc"]
@@ -47,15 +48,15 @@ async def get_context(context: dict[str, Any]) -> dict[str, Any]:
     tabs = build_tabs(all_fields, doc, exposed)
 
     meta: list[dict[str, str]] = [
-        {"label": "Тип документа", "value": share["doctype_label"]},
-        {"label": "Ідентифікатор", "value": share["doc_id"]},
+        {"label": _("Document type"), "value": share["doctype_label"]},
+        {"label": _("Identifier"), "value": share["doc_id"]},
     ]
     if doc.get("created_at"):
-        meta.append({"label": "Створено", "value": fmt_dt(doc["created_at"])})
+        meta.append({"label": _("Created on"), "value": fmt_dt(doc["created_at"])})
     if doc.get("modified_at"):
-        meta.append({"label": "Оновлено", "value": fmt_dt(doc["modified_at"])})
+        meta.append({"label": _("Modified"), "value": fmt_dt(doc["modified_at"])})
     if share.get("expires_at"):
-        meta.append({"label": "Дійсно до", "value": fmt_dt(share["expires_at"])})
+        meta.append({"label": _("Valid until"), "value": fmt_dt(share["expires_at"])})
 
     context["share"] = share
     context["tabs"] = tabs

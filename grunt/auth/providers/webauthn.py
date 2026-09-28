@@ -21,6 +21,7 @@ from grunt.auth.providers.base import AuthFlowContext, AuthProvider
 from grunt.auth.providers.registry import register
 from grunt.auth.service import create_challenge_token, verify_challenge_token
 from grunt.config import settings
+from grunt.i18n import _
 from grunt.log import log
 
 if TYPE_CHECKING:
@@ -196,17 +197,17 @@ class WebAuthnProvider(AuthProvider):
         response = ctx.get("response") or ctx.get("credential")
         token = ctx.get("challenge_token")
         if not response or not token:
-            throw("Missing WebAuthn response", "VALIDATION_ERROR")
+            throw(_("Missing WebAuthn response"), "VALIDATION_ERROR")
 
         claims = verify_challenge_token(token, _AUTH_PURPOSE)
         if not claims:
-            throw("Expired or invalid WebAuthn challenge", "UNAUTHORIZED")
+            throw(_("Expired or invalid WebAuthn challenge"), "UNAUTHORIZED")
         assert claims  # throw() above is NoReturn
 
         raw_id = response.get("rawId") or response.get("id")
         cred = await _credential_by_id(raw_id)
         if not cred:
-            throw("Unknown passkey", "UNAUTHORIZED")
+            throw(_("Unknown passkey"), "UNAUTHORIZED")
 
         fallback_rp_id, fallback_origin = _resolve_rp(ctx.request)
         try:
@@ -221,7 +222,7 @@ class WebAuthnProvider(AuthProvider):
             )
         except Exception as exc:  # library raises InvalidAuthenticationResponse
             log.warning("webauthn.verify_failed", error=str(exc))
-            throw("Passkey verification failed", "UNAUTHORIZED")
+            throw(_("Passkey verification failed"), "UNAUTHORIZED")
 
         async with grunt.system_context(grunt._require_session()):
             await grunt.db.set_value(
@@ -236,7 +237,7 @@ class WebAuthnProvider(AuthProvider):
 
         user = await get_user_by_id(cred["user"])
         if user is None or not user.is_active:
-            throw("User not found or inactive", "UNAUTHORIZED")
+            throw(_("User not found or inactive"), "UNAUTHORIZED")
         return user
 
     # ── enrol a passkey for the signed-in user ───────────────────────────
@@ -251,7 +252,7 @@ class WebAuthnProvider(AuthProvider):
 
         user = ctx.user
         if user is None or not user.id:
-            throw("Authentication required", "UNAUTHORIZED")
+            throw(_("Authentication required"), "UNAUTHORIZED")
 
         cross_device = ctx.get("mode") == "cross-device"
         rp_id, origin = _resolve_rp(ctx.request)
@@ -296,17 +297,17 @@ class WebAuthnProvider(AuthProvider):
 
         user = ctx.user
         if user is None or not user.id:
-            throw("Authentication required", "UNAUTHORIZED")
+            throw(_("Authentication required"), "UNAUTHORIZED")
 
         response = ctx.get("response") or ctx.get("credential")
         token = ctx.get("challenge_token")
         label = (ctx.get("label") or "").strip() or "Passkey"
         if not response or not token:
-            throw("Missing WebAuthn response", "VALIDATION_ERROR")
+            throw(_("Missing WebAuthn response"), "VALIDATION_ERROR")
 
         claims = verify_challenge_token(token, _REG_PURPOSE)
         if not claims or claims.get("uid") != user.id:
-            throw("Expired or invalid WebAuthn challenge", "UNAUTHORIZED")
+            throw(_("Expired or invalid WebAuthn challenge"), "UNAUTHORIZED")
         assert claims  # throw() above is NoReturn
 
         fallback_rp_id, fallback_origin = _resolve_rp(ctx.request)
@@ -320,11 +321,11 @@ class WebAuthnProvider(AuthProvider):
             )
         except Exception as exc:
             log.warning("webauthn.register_failed", error=str(exc))
-            throw("Passkey registration failed", "VALIDATION_ERROR")
+            throw(_("Passkey registration failed"), "VALIDATION_ERROR")
 
         credential_id = webauthn.helpers.bytes_to_base64url(reg.credential_id)
         if await _credential_by_id(credential_id):
-            throw("This passkey is already registered", "CONFLICT")
+            throw(_("This passkey is already registered"), "CONFLICT")
 
         transports = ",".join((response.get("response") or {}).get("transports") or [])
         async with grunt.system_context(require_session()):

@@ -9,6 +9,7 @@ from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import grunt
+from grunt.i18n import _
 from grunt.log import log
 from grunt.metadata.widget import get_widget_type_class
 from grunt.reports.widget_compute import _widget_report_series
@@ -220,8 +221,8 @@ async def get_page_data(
         name,
         date_from,
         date_to,
-        not_found_msg="Сторінку не знайдено",
-        unpublished_msg="Сторінку не опубліковано",
+        not_found_msg=_("Page not found"),
+        unpublished_msg=_("The page is not published"),
     )
 
 
@@ -237,6 +238,6 @@ async def get_dashboard_data(
         name,
         date_from,
         date_to,
-        not_found_msg="Дашборд не знайдено",
-        unpublished_msg="Дашборд не опубліковано",
+        not_found_msg=_("Dashboard not found"),
+        unpublished_msg=_("The dashboard is not published"),
     )

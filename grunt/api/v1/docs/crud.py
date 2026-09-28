@@ -15,6 +15,7 @@ from grunt.app import grunt as grunt_app
 from grunt.auth.dependencies import current_user
 from grunt.auth.doctypes.User.user import User
 from grunt.document.bulk_ops import BulkDeleteTask
+from grunt.i18n import _
 from grunt.permissions.doc_perms import PERMS_KEY, with_permissions
 from grunt.website.generator import WEB_URL_KEY, with_web_url
 
@@ -181,7 +182,7 @@ async def bulk_delete(
 
     # ── Explicit IDs path ─────────────────────────────────────────────────
     if not ids:
-        grunt_app.throw("ids or delete_all is required")
+        grunt_app.throw(_("ids or delete_all is required"))
 
     total = len(ids)
 
@@ -210,9 +211,9 @@ async def bulk_update(
     RPC: grunt.api.v1.docs.crud.bulk_update
     """
     if not ids:
-        grunt_app.throw("ids is required")
+        grunt_app.throw(_("ids is required"))
     if not field:
-        grunt_app.throw("field is required")
+        grunt_app.throw(_("field is required"))
 
     updated = 0
     errors: list[str] = []

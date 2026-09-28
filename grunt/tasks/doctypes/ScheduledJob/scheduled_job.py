@@ -6,6 +6,7 @@ from typing import Any
 from apscheduler.triggers.cron import CronTrigger
 
 from grunt.app import grunt
+from grunt.i18n import _
 from grunt.metadata.virtual import VirtualDocType
 
 
@@ -66,7 +67,7 @@ class ScheduledJobController(VirtualDocType):
 
         raise HTTPException(
             status_code=status.HTTP_405_METHOD_NOT_ALLOWED,
-            detail="Create a ServerScript with script_type='Scheduler Event' instead",
+            detail=_("Create a ServerScript with script_type='Scheduler Event' instead"),
         )
 
     async def update(self, doc_id: str, data: dict[str, Any], **kwargs: Any) -> dict[str, Any]:
@@ -75,7 +76,7 @@ class ScheduledJobController(VirtualDocType):
 
         raise HTTPException(
             status_code=status.HTTP_405_METHOD_NOT_ALLOWED,
-            detail="Edit the underlying ServerScript instead",
+            detail=_("Edit the underlying ServerScript instead"),
         )
 
     async def delete(self, doc_id: str, **kwargs: Any) -> None:

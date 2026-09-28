@@ -1,9 +1,10 @@
+import { N_ } from '@/plugins/i18n'
 import type { Exporter, ExportContext } from './registry'
 import { useAuthStore } from '@/stores/auth'
 
 export const excelExporter: Exporter = {
   id: 'excel',
-  label: 'Download Excel',
+  label: N_('Download Excel'),
   icon: 'Sheet',
   export(ctx: ExportContext) {
     const auth = useAuthStore()

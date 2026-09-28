@@ -10,9 +10,12 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 from grunt.app import grunt
+from grunt.i18n import _, language_of, use_language
 from grunt.log import log
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from sqlalchemy.ext.asyncio import AsyncSession
 
 # How many changed field labels a notification spells out before "і ще N".
@@ -35,19 +38,26 @@ async def _title(doctype: str, doc_id: str) -> str:
 
 def _field_labels(dt: Any, fieldnames: list[str]) -> str:
     fields = getattr(getattr(dt, "doc", dt), "fields", None) or []
-    labels = {f.fieldname: (f.label or f.fieldname) for f in fields}
+    labels = {f.fieldname: _(f.label or f.fieldname) for f in fields}
     shown = [labels.get(f, f) for f in fieldnames[:_MAX_FIELDS]]
     rest = len(fieldnames) - len(shown)
-    return ", ".join(shown) + (f" і ще {rest}" if rest > 0 else "")
+    return ", ".join(shown) + (" " + _("and %(count)s more") % {"count": rest} if rest > 0 else "")
 
 
 async def _notify(
-    session: AsyncSession, doctype: str, doc_id: str, users: list[str], subject: str, message: str
+    session: AsyncSession,
+    doctype: str,
+    doc_id: str,
+    users: list[str],
+    compose: Callable[[], tuple[str, str]],
 ) -> None:
+    """Notify each follower; *compose* → ``(subject, message)`` runs in their language."""
     from grunt.notification.service import notification_service
 
     for user in users:
         try:
+            with use_language(await language_of(user)):
+                subject, message = compose()
             await notification_service.notify(
                 session,
                 user=user,
@@ -83,9 +93,11 @@ async def notify_followers_of_update(
             doctype,
             doc_id,
             users,
-            subject=f"{label} «{title}» змінено",
-            message=f"Змінено: {_field_labels(dt, changed_fields)}"
-            + (f" — {actor_email}" if actor_email else ""),
+            lambda: (
+                _("%(doctype)s “%(title)s” changed") % {"doctype": _(label), "title": title},
+                _("Changed: %(fields)s") % {"fields": _field_labels(dt, changed_fields)}
+                + (f" — {actor_email}" if actor_email else ""),
+            ),
         )
 
 
@@ -111,8 +123,10 @@ async def notify_followers_of_comment(
             doctype,
             doc_id,
             users,
-            subject=f"Новий коментар: «{title}»",
-            message=(f"{actor}: " if actor else "") + (text[:300] if text else ""),
+            lambda: (
+                _("New comment: “%(title)s”") % {"title": title},
+                (f"{actor}: " if actor else "") + (text[:300] if text else ""),
+            ),
         )
 
 

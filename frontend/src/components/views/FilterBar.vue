@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { N_ } from '@/plugins/i18n'
 import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Filter, X, Bookmark, Plus } from '@lucide/vue'
@@ -177,19 +178,19 @@ function emitChange() {
 }
 
 const OP_LABELS: Record<string, string> = {
-  '=': 'Equals',
-  '!=': 'Not equals',
-  'like': 'Contains',
-  'not like': 'Does not contain',
-  'is not set': 'Is empty',
-  'is set': 'Is set',
-  '>': 'Greater than',
-  '<': 'Less than',
-  '>=': 'Greater than or equal',
-  '<=': 'Less than or equal',
-  'child_of': 'Descendant of',
-  'in': 'Is one of',
-  'not in': 'Is none of',
+  '=': N_('Equals'),
+  '!=': N_('Not equals'),
+  'like': N_('Contains'),
+  'not like': N_('Does not contain'),
+  'is not set': N_('Is empty'),
+  'is set': N_('Is set'),
+  '>': N_('Greater than'),
+  '<': N_('Less than'),
+  '>=': N_('Greater than or equal'),
+  '<=': N_('Less than or equal'),
+  'child_of': N_('Descendant of'),
+  'in': N_('Is one of'),
+  'not in': N_('Is none of'),
 }
 
 function opLabel(op: string): string {

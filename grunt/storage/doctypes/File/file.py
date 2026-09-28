@@ -10,6 +10,7 @@ from grunt.app import grunt
 from grunt.config import settings
 from grunt.context import _user_ctx
 from grunt.document.base import Document
+from grunt.i18n import _
 from grunt.storage import get_storage_backend
 from grunt.storage.thumbnails import THUMB_MIMETYPE, make_thumbnail
 
@@ -73,7 +74,7 @@ async def upload(
         meta = await grunt.get_meta(attached_to_doctype) if attached_to_doctype else None
         is_public = not attached_to_doctype or bool(meta and meta.public_attachments)
     if not file.filename:
-        raise HTTPException(400, "No filename provided")
+        raise HTTPException(400, _("No filename provided"))
 
     try:
         content = await file.read()
@@ -83,7 +84,7 @@ async def upload(
     if len(content) > max_bytes:
         raise HTTPException(
             413,
-            f"File too large (max {settings.max_upload_size_mb} MB)",
+            _("The file is too large (max %(size)s MB)") % {"size": settings.max_upload_size_mb},
         )
 
     content_type = file.content_type or "application/octet-stream"
@@ -226,26 +227,26 @@ async def get_content(
         ],
     )
     if not doc:
-        raise HTTPException(404, "File not found")
+        raise HTTPException(404, _("File not found"))
 
     # A private file needs an authenticated user who may read it — which, for
     # an attachment, means reading the document it is attached to.
     if not doc.get("is_public") and not verify(file_id, exp, sig):
         user = _user_ctx.get()
         if user is None:
-            raise HTTPException(401, "Authentication required to access this file")
+            raise HTTPException(401, _("Authentication required to access this file"))
         from grunt.permissions.rbac import permission_checker
 
         meta = await grunt.get_meta("File")
         if meta is None or not await permission_checker.check(user, meta, "read", doc):
-            raise HTTPException(403, "Немає доступу до файлу")
+            raise HTTPException(403, _("No access to the file"))
 
     storage = get_storage_backend()
     if thumb and doc.get("thumbnail_path"):
         try:
             preview = await storage.get(doc["thumbnail_path"])
         except Exception:
-            raise HTTPException(404, "Thumbnail not found on storage") from None
+            raise HTTPException(404, _("Thumbnail not found on storage")) from None
         # Previews never change for a file id — let the browser keep them.
         return Response(
             content=preview,
@@ -257,7 +258,7 @@ async def get_content(
         file_path = doc.get("path") or ""
         content = await storage.get(file_path)
     except Exception:
-        raise HTTPException(404, "File not found on storage") from None
+        raise HTTPException(404, _("File not found on storage")) from None
 
     from urllib.parse import quote
 
@@ -376,7 +377,7 @@ async def dedupe_storage(backfill: bool = True) -> dict[str, Any]:
             groups.setdefault((r.content_hash, r.file_size), []).append(r)
 
     merged_rows = freed_blobs = freed_bytes = 0
-    for (_, size), group in groups.items():
+    for (_hash, size), group in groups.items():
         if len(group) < 2:
             continue
         group.sort(key=lambda r: str(r.created_at or ""))

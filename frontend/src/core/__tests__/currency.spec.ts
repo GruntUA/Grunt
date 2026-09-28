@@ -1,12 +1,14 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { siteConfigState } from '@/core/composables/useSiteConfig'
-import { currencyCode, currencySymbol, formatCurrency } from '@/core/currency'
+import { currencyCode, currencySymbol, formatCurrency, formatNumber } from '@/core/currency'
+import i18n from '@/plugins/i18n'
 import type { DocField } from '@/types'
 
 const field = (options?: string) => ({ fieldname: 'amount', fieldtype: 'Currency', label: 'Amount', options }) as DocField
 
 beforeEach(() => {
-  Object.assign(siteConfigState(), { language: 'uk-UA' })
+  Object.assign(siteConfigState(), { language: 'uk' })
+  i18n.global.locale.value = 'uk'
 })
 
 describe('core/currency', () => {
@@ -29,5 +31,12 @@ describe('core/currency', () => {
     expect(formatCurrency(2, 'XX1')).toBe('2,00')
     expect(currencySymbol('UAH')).toBe('₴')
     expect(currencySymbol(null)).toBe('')
+  })
+
+  it('follows the active UI language, not the site default', () => {
+    expect(formatNumber(12345.6).replace(/\s/g, ' ')).toBe('12 345,6')
+    i18n.global.locale.value = 'en'
+    expect(formatNumber(12345.6)).toBe('12,345.6')
+    expect(formatCurrency(1.5, null)).toBe('1.50')
   })
 })

@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import and_, delete, func, select
 
+from grunt.i18n import _
 from grunt.log import log
 from grunt.metadata.registry import doctype_registry
 
@@ -51,11 +52,11 @@ class LinkService:
 
         doclink_dt = await grunt.get_meta("DocLink")
         if doclink_dt is None:
-            raise not_found("DocType «DocLink» не знайдено")
+            raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": "DocLink"})
         table = doclink_dt.table
         dt = await grunt.get_meta(doctype)
         if dt is None:
-            raise not_found(f"DocType «{doctype}» не знайдено")
+            raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
 
         # Delete existing links from this source document
         await session.execute(
@@ -121,7 +122,7 @@ class LinkService:
 
         dt_doc_link = await grunt.get_meta("DocLink")
         if dt_doc_link is None:
-            raise not_found("DocType «DocLink» не знайдено")
+            raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": "DocLink"})
         table = dt_doc_link.table
         stmt = (
             select(table)
@@ -158,7 +159,7 @@ class LinkService:
                 {"doctype": "Employee", "label": "Співробітник",
                  "field": "department", "field_label": "Відділ",
                  "count": 8, "in_child": false, "parent_doctype": null},
-                {"doctype": null, "label": "Множинні зв'язки", "field": null,
+                {"doctype": null, "label": "Multiple links", "field": null,
                  "count": 3, "in_child": false, "parent_doctype": null},
             ]}
 
@@ -230,7 +231,7 @@ class LinkService:
             groups.append(
                 {
                     "doctype": None,
-                    "label": "Множинні зв'язки",
+                    "label": _("Multiple links"),
                     "field": None,
                     "field_label": None,
                     "count": int(ml_count),
@@ -254,7 +255,7 @@ class LinkService:
 
         dt_doc_link = await grunt.get_meta("DocLink")
         if dt_doc_link is None:
-            raise not_found("DocType «DocLink» не знайдено")
+            raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": "DocLink"})
         table = dt_doc_link.table
 
         # Links FROM this document

@@ -1,10 +1,11 @@
+import { N_ } from '@/plugins/i18n'
 import { GitBranch } from '@lucide/vue'
 import type { ViewDefinition } from '@/core/viewRegistry'
 import type { DocType, DocField, ActiveFilter } from '@/types'
 
 const def: ViewDefinition = {
   type: 'tree',
-  label: 'Tree',
+  label: N_('Tree'),
   icon: GitBranch,
   order: 3,
 

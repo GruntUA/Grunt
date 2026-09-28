@@ -1,6 +1,6 @@
 {% extends "_base.html" %}
 
-{% block title %}Вхід — Ґрунт{% endblock %}
+{% block title %}{{ _("Sign in") }} — Ґрунт{% endblock %}
 
 {% block head %}
 <style>
@@ -60,8 +60,8 @@
 <div class="container">
     <div class="auth-card glass animate-fade-in">
         <div style="text-align: center; margin-bottom: 2.5rem;">
-            <h1 style="font-size: 1.75rem; margin-bottom: 0.5rem;">Ласкаво просимо</h1>
-            <p style="color: var(--text-muted); font-size: 0.95rem;">Увійдіть у свій аккаунт, щоб продовжити</p>
+            <h1 style="font-size: 1.75rem; margin-bottom: 0.5rem;">{{ _("Welcome") }}</h1>
+            <p style="color: var(--text-muted); font-size: 0.95rem;">{{ _("Sign in to your account to continue") }}</p>
         </div>
 
         {% if error %}
@@ -72,30 +72,30 @@
 
         <form action="/login" method="post">
             <div class="form-group">
-                <label class="form-label" for="email">Електронна пошта</label>
+                <label class="form-label" for="email">{{ _("Email") }}</label>
                 <input type="email" id="email" name="email" class="form-input" placeholder="name@company.com" required value="{{ email or '' }}">
             </div>
 
             <div class="form-group">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                    <label class="form-label" for="password" style="margin-bottom: 0;">Пароль</label>
-                    <a href="/forgot-password" style="font-size: 0.85rem; color: var(--primary); text-decoration: none;">Забули пароль?</a>
+                    <label class="form-label" for="password" style="margin-bottom: 0;">{{ _("Password") }}</label>
+                    <a href="/forgot-password" style="font-size: 0.85rem; color: var(--primary); text-decoration: none;">{{ _("Forgot password?") }}</a>
                 </div>
                 <input type="password" id="password" name="password" class="form-input" placeholder="••••••••" required>
             </div>
 
             <div class="form-group" style="display: flex; align-items: center; gap: 0.5rem;">
                 <input type="checkbox" id="remember" name="remember" style="width: 1rem; height: 1rem; cursor: pointer;">
-                <label for="remember" style="font-size: 0.9rem; color: var(--text-muted); cursor: pointer;">Запам'ятати мене</label>
+                <label for="remember" style="font-size: 0.9rem; color: var(--text-muted); cursor: pointer;">{{ _("Remember me") }}</label>
             </div>
 
             <button type="submit" class="btn btn-primary" style="width: 100%; height: 3rem; font-size: 1rem; margin-top: 1rem;">
-                Увійти
+                {{ _("Sign in") }}
             </button>
         </form>
 
         <div style="margin-top: 2rem; text-align: center; font-size: 0.95rem; color: var(--text-muted);">
-            Немає аккаунту? <a href="/signup" style="color: var(--primary); text-decoration: none; font-weight: 600;">Зареєструватися</a>
+            {{ _("No account?") }} <a href="/signup" style="color: var(--primary); text-decoration: none; font-weight: 600;">{{ _("Sign up") }}</a>
         </div>
     </div>
 </div>

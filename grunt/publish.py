@@ -35,6 +35,7 @@ from __future__ import annotations
 
 from typing import Any, Literal
 
+from grunt.i18n import _
 from grunt.log import log
 
 MessageType = Literal["success", "error", "info", "warning"]
@@ -301,7 +302,7 @@ async def throw(
         type="error",
         data={
             "message": message,
-            "title": title or "Помилка",
+            "title": title or _("Error"),
             "indicator": "red",
         },
     )

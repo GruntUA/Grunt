@@ -33,8 +33,10 @@ async def render_template(
     # Globals available in every grunt template.
     env.globals["grunt"] = app
     env.globals["session"] = app.session
-    env.globals["_"] = app._
     env.globals["now"] = datetime.now(UTC)
+    from grunt.i18n.jinja import install as install_i18n
+
+    install_i18n(env)
 
     tpl = env.get_template(template if is_file else "_")
     return await tpl.render_async(**ctx)

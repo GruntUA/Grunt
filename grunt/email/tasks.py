@@ -5,6 +5,7 @@ from datetime import UTC, datetime, timedelta
 from grunt.app import grunt
 from grunt.auth.doctypes.User.user import SYSTEM_USER
 from grunt.email.service import EmailService, decode_attachments, email_service
+from grunt.i18n import _, ngettext, pgettext, use_language
 from grunt.log import log
 from grunt.site.manager import site_manager
 from grunt.tasks.broker import retryable_task
@@ -162,6 +163,35 @@ async def pull_from_accounts():
             raise
 
 
+async def _render_digest(period: str, rows: list[dict], groups: dict[str, list]) -> tuple[str, str]:
+    """Subject + HTML body of one digest, in the current (recipient's) language."""
+    total = len(rows)
+    if period == "daily":
+        title = _("Daily notification digest")
+        summary = ngettext(
+            "%(count)d unread notification in the last day",
+            "%(count)d unread notifications in the last day",
+            total,
+        )
+    else:
+        title = _("Weekly notification digest")
+        summary = ngettext(
+            "%(count)d unread notification in the last week",
+            "%(count)d unread notifications in the last week",
+            total,
+        )
+    summary %= {"count": total}
+    labelled = {
+        (pgettext(f"meta:{key}", key) if key else _("System")): items
+        for key, items in groups.items()
+    }
+    html_body = await grunt.render_template(
+        "notification_digest.html",
+        {"title": title, "summary": summary, "total": total, "groups": labelled},
+    )
+    return f"{title}: {summary}", html_body
+
+
 @retryable_task()
 async def send_notification_digest(period: str = "daily") -> None:
     """Send unread-notification digest emails to all active users.
@@ -175,8 +205,6 @@ async def send_notification_digest(period: str = "daily") -> None:
 
     hours = 24 if period == "daily" else 168
     since = datetime.now(UTC) - timedelta(hours=hours)
-    period_label = "за останню добу" if period == "daily" else "за останній тиждень"
-    period_subj = "Щоденний" if period == "daily" else "Тижневий"
 
     async with maker() as session:
         from grunt.app import grunt
@@ -186,12 +214,12 @@ async def send_notification_digest(period: str = "daily") -> None:
             user_rows = await grunt.db.get_all(
                 "User",
                 filters={"is_active": True},
-                fields=["email"],
+                fields=["email", "language"],
                 limit=10_000,
             )
-            users = [r["email"] for r in user_rows if r.get("email")]
+            users = [(r["email"], r.get("language")) for r in user_rows if r.get("email")]
 
-            for user_email in users:
+            for user_email, user_language in users:
                 # Fetch unread notifications for this user since cutoff
                 rows = await grunt.db.get_all(
                     "Notification",
@@ -210,20 +238,11 @@ async def send_notification_digest(period: str = "daily") -> None:
                 # Group by doctype
                 groups: dict[str, list] = {}
                 for n in rows:
-                    key = str(n.get("doctype") or "Система")
+                    key = str(n.get("doctype") or "")
                     groups.setdefault(key, []).append(n)
 
-                subject = f"{period_subj} дайджест: {len(rows)} нових сповіщень"
-
-                html_body = await grunt.render_template(
-                    "notification_digest.html",
-                    {
-                        "period_subj": period_subj,
-                        "period_label": period_label,
-                        "total": len(rows),
-                        "groups": groups,
-                    },
-                )
+                with use_language(user_language):
+                    subject, html_body = await _render_digest(period, rows, groups)
 
                 try:
                     await email_service.queue_email(

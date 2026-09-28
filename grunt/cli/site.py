@@ -48,7 +48,7 @@ def _write_currentsite(sites_dir: Path, name: str) -> None:
 
 @click.group("site")
 def site_group():
-    """Управління сайтами Ґрунт."""
+    """Manage Grunt sites."""
     pass
 
 
@@ -57,10 +57,10 @@ def site_group():
 
 @site_group.command("list")
 def site_list():
-    """Показати всі сайти у bench."""
+    """Show all sites in the bench."""
     sites_dir = _get_sites_dir()
     if not sites_dir.exists():
-        click.echo("Директорія sites/ не знайдена.")
+        click.echo("The sites/ directory was not found.")
         return
 
     current = ""
@@ -75,10 +75,10 @@ def site_list():
     ]
 
     if not sites:
-        click.echo("Сайтів не знайдено. Створіть: grunt site create <name>")
+        click.echo("No sites found. Create one: grunt site create <name>")
         return
 
-    click.echo(f"{'Сайт':<30} {'DB':<50} {'Active'}")
+    click.echo(f"{'Site':<30} {'DB':<50} {'Active'}")
     click.echo("─" * 90)
     for name in sites:
         env_path = sites_dir / name / ".env"
@@ -99,10 +99,10 @@ def site_list():
 @site_group.command("info")
 @click.argument("name")
 def site_info(name: str):
-    """Показати конфігурацію сайту."""
+    """Show the site configuration."""
     site_path = _site_path(name)
     if not _is_valid_site(site_path):
-        click.echo(f"Сайт '{name}' не знайдено.", err=True)
+        click.echo(f"Site '{name}' not found.", err=True)
         raise SystemExit(1)
 
     sites_dir = _get_sites_dir()
@@ -112,9 +112,9 @@ def site_info(name: str):
         current = currentsite_file.read_text().strip()
 
     click.echo(f"\n{'═' * 50}")
-    click.echo(f"  Сайт: {name}{'  ← active' if name == current else ''}")
+    click.echo(f"  Site: {name}{'  ← active' if name == current else ''}")
     click.echo(f"{'═' * 50}")
-    click.echo(f"  Шлях:    {site_path}")
+    click.echo(f"  Path:    {site_path}")
 
     env_path = site_path / ".env"
     if env_path.exists():
@@ -128,7 +128,7 @@ def site_info(name: str):
                 val = "***"
             click.echo(f"    {key}={val}")
     else:
-        click.echo("  .env: не знайдено")
+        click.echo("  .env: not found")
 
     db_path = site_path / "grunt.db"
     if db_path.exists():
@@ -152,17 +152,17 @@ def site_info(name: str):
     "--admin-email",
     default="admin@example.com",
     show_default=True,
-    help="Email адміністратора сайту",
+    help="Site administrator email",
 )
 @click.option(
     "--admin-password",
     default=None,
-    help="Пароль адміністратора (за замовчуванням: генерується)",
+    help="Administrator password (default: generated)",
 )
 @click.option(
     "--no-migrate",
     is_flag=True,
-    help="Не запускати міграцію автоматично",
+    help="Do not run the migration automatically",
 )
 def site_create(
     name: str,
@@ -171,19 +171,21 @@ def site_create(
     admin_password: str | None,
     no_migrate: bool,
 ) -> None:
-    """Створити новий сайт."""
+    """Create a new site."""
     import re
     import secrets
 
     if not re.match(r"^[a-zA-Z0-9._-]+$", name):
-        click.echo("Помилка: назва сайту може містити лише літери, цифри, '.', '-', '_'.", err=True)
+        click.echo(
+            "Error: the site name may contain only letters, digits, '.', '-', '_'.", err=True
+        )
         raise SystemExit(1)
 
     sites_dir = _get_sites_dir()
     site_path = sites_dir / name
 
     if site_path.exists():
-        click.echo(f"Помилка: сайт '{name}' вже існує.", err=True)
+        click.echo(f"Error: site '{name}' already exists.", err=True)
         raise SystemExit(1)
 
     # Create directory structure
@@ -204,7 +206,7 @@ def site_create(
     )
     (site_path / ".env").write_text(env_content)
 
-    click.echo(f"✓ Сайт '{name}' створено: {site_path}")
+    click.echo(f"✓ Site '{name}' created: {site_path}")
     click.echo(f"  DB:    {resolved_db_url}")
     click.echo(f"  Admin: {admin_email}")
 
@@ -217,23 +219,23 @@ def site_create(
     currentsite_file = sites_dir / "currentsite.txt"
     if not existing or not currentsite_file.exists():
         _write_currentsite(sites_dir, name)
-        click.echo("  ◀ Встановлено як активний сайт")
+        click.echo("  ◀ Set as the active site")
 
     if no_migrate:
-        click.echo("\nПідказка: запустіть 'grunt db migrate' для ініціалізації схеми.")
-        click.echo(f"Пароль адміна: {password}")
+        click.echo("\nHint: run 'grunt db migrate' to initialize the schema.")
+        click.echo(f"Admin password: {password}")
         return
 
     # Run migrate
-    click.echo("\nЗапуск міграції...")
+    click.echo("\nRunning migration...")
     _run_migrate_for_site(name)
 
     # Create admin user
-    click.echo(f"\nСтворення адміністратора ({admin_email})...")
+    click.echo(f"\nCreating administrator ({admin_email})...")
     asyncio.run(_create_admin(name, admin_email, password))
 
     click.echo(f"\n{'─' * 50}")
-    click.echo(f"  Сайт '{name}' готовий!")
+    click.echo(f"  Site '{name}' is ready!")
     click.echo("  URL:      http://localhost:8000")
     click.echo(f"  Admin:    {admin_email}")
     click.echo(f"  Password: {password}")
@@ -295,7 +297,7 @@ def _run_migrate_for_site(site_name: str) -> None:
             current_site.reset(token)
 
     asyncio.run(_migrate())
-    click.echo("  ✓ Міграцію завершено")
+    click.echo("  ✓ Migration complete")
 
 
 async def _create_admin(site_name: str, email: str, password: str) -> None:
@@ -310,13 +312,13 @@ async def _create_admin(site_name: str, email: str, password: str) -> None:
             try:
                 async with grunt.context(session):
                     if await get_user_by_email(email) is not None:
-                        click.echo("  [info] Адмін вже існує — пропускаємо")
+                        click.echo("  [info] Admin already exists, skipping")
                         return
                     await create_user(email, password, "Administrator", "", None)
                 await session.commit()
-                click.echo("  ✓ Адміністратора створено")
+                click.echo("  ✓ Administrator created")
             except Exception as e:
-                click.echo(f"  [warn] Помилка при створенні адміна: {e}", err=True)
+                click.echo(f"  [warn] Failed to create admin: {e}", err=True)
     finally:
         current_site.reset(token)
 
@@ -326,22 +328,22 @@ async def _create_admin(site_name: str, email: str, password: str) -> None:
 
 @site_group.command("delete")
 @click.argument("name")
-@click.option("--yes", "-y", is_flag=True, help="Не запитувати підтвердження")
+@click.option("--yes", "-y", is_flag=True, help="Do not ask for confirmation")
 def site_delete(name: str, yes: bool) -> None:
-    """Видалити сайт та всі його дані."""
+    """Delete a site and all its data."""
     site_path = _site_path(name)
     if not _is_valid_site(site_path):
-        click.echo(f"Сайт '{name}' не знайдено.", err=True)
+        click.echo(f"Site '{name}' not found.", err=True)
         raise SystemExit(1)
 
     if not yes:
-        click.echo(f"⚠ Це видалить всі дані сайту '{name}': {site_path}")
-        if not click.confirm("Продовжити?"):
-            click.echo("Скасовано.")
+        click.echo(f"⚠ This deletes all data of site '{name}': {site_path}")
+        if not click.confirm("Continue?"):
+            click.echo("Cancelled.")
             return
 
     shutil.rmtree(site_path)
-    click.echo(f"✓ Сайт '{name}' видалено.")
+    click.echo(f"✓ Site '{name}' deleted.")
 
     # Update currentsite.txt if needed
     sites_dir = _get_sites_dir()
@@ -354,7 +356,7 @@ def site_delete(name: str, yes: bool) -> None:
         ]
         if remaining:
             _write_currentsite(sites_dir, remaining[0])
-            click.echo(f"  Активний сайт змінено на: {remaining[0]}")
+            click.echo(f"  Active site changed to: {remaining[0]}")
         else:
             currentsite_file.unlink(missing_ok=True)
 
@@ -365,12 +367,12 @@ def site_delete(name: str, yes: bool) -> None:
 @site_group.command("use")
 @click.argument("name")
 def site_use(name: str) -> None:
-    """Встановити сайт як активний (за замовчуванням для CLI)."""
+    """Set the active site (the CLI default)."""
     site_path = _site_path(name)
     if not _is_valid_site(site_path):
-        click.echo(f"Сайт '{name}' не знайдено.", err=True)
+        click.echo(f"Site '{name}' not found.", err=True)
         raise SystemExit(1)
 
     sites_dir = _get_sites_dir()
     _write_currentsite(sites_dir, name)
-    click.echo(f"✓ Активний сайт: {name}")
+    click.echo(f"✓ Active site: {name}")

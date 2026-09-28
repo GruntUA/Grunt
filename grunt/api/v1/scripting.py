@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 import grunt
+from grunt.i18n import _
 
 
 @grunt.whitelist()
@@ -25,7 +26,7 @@ async def run_server_script(method: str, params: dict[str, Any] | None = None) -
     session = grunt_app._require_session()
     script = await server_script_runner.load_api_script(session, method)
     if not script:
-        grunt.throw(f"API метод '{method}' не знайдено", "NOT_FOUND")
+        grunt.throw(_("API method “%(method)s” not found") % {"method": method}, "NOT_FOUND")
 
     user = grunt_app._require_user()
     result = await server_script_runner.execute(

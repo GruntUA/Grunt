@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 import grunt
+from grunt.i18n import _
 
 if TYPE_CHECKING:
     from fastapi import Request
@@ -17,7 +18,7 @@ async def get_form(route: str) -> dict[str, Any]:
 
     form = await web_form_service.get_form(route)
     if not form:
-        grunt.throw("Форму не знайдено", "NOT_FOUND")
+        grunt.throw(_("Form not found"), "NOT_FOUND")
 
     fields = await web_form_service.get_form_fields(route)
     return {**form, "field_definitions": fields}
@@ -57,7 +58,7 @@ async def submit_form(
 
         ip = client_ip(request) or "unknown"
         if not await verify_captcha(captcha_token, ip):
-            grunt.throw("Не вдалося підтвердити, що ви не робот", "CAPTCHA_FAILED")
+            grunt.throw(_("Could not verify that you are not a robot"), "CAPTCHA_FAILED")
 
     try:
         result = await web_form_service.submit(route=route, data=data, user_email=user_email)

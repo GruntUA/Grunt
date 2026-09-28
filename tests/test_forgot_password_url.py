@@ -24,6 +24,7 @@ class _User:
     id = "u1"
     full_name = "Тест Юзер"
     email = "u@example.com"
+    language = None
 
 
 @pytest.fixture

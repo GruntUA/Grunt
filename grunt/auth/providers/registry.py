@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from grunt.i18n import _
 from grunt.log import log
 
 if TYPE_CHECKING:
@@ -44,7 +45,7 @@ def get(name: str) -> AuthProvider:
     if provider is None:
         from grunt.app import grunt
 
-        grunt.throw(f"Unknown auth provider: {name}", "NOT_FOUND")
+        grunt.throw(_("Unknown auth provider: %(name)s") % {"name": name}, "NOT_FOUND")
     return provider
 
 

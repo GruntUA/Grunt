@@ -18,6 +18,7 @@ from fastapi.responses import FileResponse
 from grunt import whitelist
 from grunt.backups import _NAME, backups_dir
 from grunt.config import settings
+from grunt.i18n import _
 
 DOWNLOAD_TTL_SECONDS = 15 * 60
 _DOWNLOAD = "/api/v1/method/grunt.backups.api.download"
@@ -45,10 +46,10 @@ async def download(file: str, exp: int, sig: str) -> FileResponse:
     """A backup file, for a valid unexpired signature (see :func:`download_url`)."""
     site = _site()
     if exp < time.time() or not hmac.compare_digest(sig, _signature(site, file, exp)):
-        raise HTTPException(status_code=403, detail="Посилання недійсне або застаріло")
+        raise HTTPException(status_code=403, detail=_("The link is invalid or expired"))
     path = backups_dir(site) / file
     if not _NAME.match(file) or not path.is_file():
-        raise HTTPException(status_code=404, detail="Файл резервної копії не знайдено")
+        raise HTTPException(status_code=404, detail=_("Backup file not found"))
     return FileResponse(path, filename=file, media_type="application/octet-stream")
 
 

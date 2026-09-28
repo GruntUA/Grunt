@@ -8,6 +8,7 @@ import grunt
 from grunt.auth.api_key_service import generate_api_key
 from grunt.document.base import Document
 from grunt.errors import forbidden
+from grunt.i18n import _
 
 if TYPE_CHECKING:
     from datetime import datetime
@@ -42,7 +43,7 @@ async def create_api_key(
     user = user or await grunt.get_current_user()
     clean_label = label.strip()
     if not clean_label:
-        grunt.throw("label є обов'язковим", "VALIDATION")
+        grunt.throw(_("label is required"), "VALIDATION")
 
     assert user.id is not None
     full_key, key_prefix, key_hash = generate_api_key()
@@ -115,7 +116,7 @@ async def update_api_key(
     if label is not None:
         clean_label = label.strip()
         if not clean_label:
-            grunt.throw("label не може бути порожнім", "VALIDATION")
+            grunt.throw(_("label cannot be empty"), "VALIDATION")
         updates["label"] = clean_label
     if is_active is not None:
         updates["is_active"] = is_active
@@ -125,7 +126,7 @@ async def update_api_key(
         updates["allowed_ips"] = allowed_ips
 
     if not updates:
-        grunt.throw("Немає полів для оновлення", "VALIDATION")
+        grunt.throw(_("No fields to update"), "VALIDATION")
 
     doc = await grunt.save_doc("ApiKey", key_id, updates)
     return {
@@ -151,4 +152,4 @@ async def revoke_api_key(key_id: str, user: User | None = None) -> bool:
 def _require_key_owner(key_doc: dict[str, Any], user: User) -> None:
     """Raise 403 if user doesn't own the key and isn't System Manager."""
     if "System Manager" not in (user.roles or []) and key_doc.get("user_id") != user.id:
-        raise forbidden("Немає доступу до цього ключа")
+        raise forbidden(_("No access to this key"))

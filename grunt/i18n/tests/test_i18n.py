@@ -82,6 +82,7 @@ def fixture_catalog(tmp_path, monkeypatch):
 
     monkeypatch.setattr(svc, "_LOCALE_DIR", tmp_path)
     monkeypatch.setattr(svc, "_app_locale_po_files", lambda _lang: [])
+    monkeypatch.setattr(svc, "_app_locale_codes", set)
     translation_service.reload()
     yield tmp_path
     monkeypatch.undo()
@@ -347,6 +348,34 @@ class TestSupportedLangs:
         langs = translation_service.supported_langs()
         assert {"de", "fr", "uk", "en"} <= langs
         translation_service.set_supported(["uk", "en"])  # restore
+
+
+class TestUiLanguages:
+    def test_discovered_from_po_catalogs(self, fixture_catalog):
+        assert translation_service.ui_languages() == ["en", "uk"]
+        (fixture_catalog / "pl" / "LC_MESSAGES").mkdir(parents=True)
+        (fixture_catalog / "pl" / "LC_MESSAGES" / "grunt.po").write_text(_EN_PO, encoding="utf-8")
+        translation_service.reload()
+        assert translation_service.ui_languages() == ["en", "pl", "uk"]
+        assert "pl" in translation_service.supported_langs()
+
+    def test_provider_extras_and_names(self, monkeypatch):
+        import grunt.i18n.service as svc
+
+        monkeypatch.setattr(svc, "_extra_ui_langs", set())
+        translation_service.add_ui_languages(["de-DE"])
+        assert "de" in translation_service.ui_languages()
+        translation_service.set_language_names({"de": "Deutsch"})
+        assert translation_service.language_name("de") == "Deutsch"
+        assert translation_service.language_name("xx") == "xx"
+
+    def test_language_select_options(self):
+        from grunt.i18n import LANGUAGE_OPTIONS_SOURCE
+        from grunt.metadata.dynamic_options import get_option_labels, get_options
+
+        translation_service.set_language_names({"uk": "Українська"})
+        assert get_options(LANGUAGE_OPTIONS_SOURCE) == ["en", "uk"]
+        assert get_option_labels(LANGUAGE_OPTIONS_SOURCE)["uk"] == "Українська"
 
 
 class TestConvenienceFunctions:

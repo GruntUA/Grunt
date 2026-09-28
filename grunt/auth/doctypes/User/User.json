@@ -293,8 +293,8 @@
       "fieldname": "language",
       "label": "Language",
       "fieldtype": "Select",
-      "options": "uk\nen",
-      "default": "uk"
+      "options_source": "grunt.i18n.language",
+      "description": "Interface language. Empty = the site default."
     },
     {
       "fieldname": "sec_tokens",

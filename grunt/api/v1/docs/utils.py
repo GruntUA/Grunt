@@ -10,6 +10,7 @@ import openpyxl
 from openpyxl.styles import Alignment, Font, PatternFill
 
 from grunt.document.meta import Meta
+from grunt.i18n import _
 from grunt.io.exporters.sanitize import escape_formula
 
 if TYPE_CHECKING:
@@ -40,7 +41,7 @@ def _fmt(val: object) -> str:
     if val is None:
         return ""
     if isinstance(val, bool):
-        return "Так" if val else "Ні"
+        return _("Yes") if val else _("No")
     if isinstance(val, datetime):
         return val.strftime("%d.%m.%Y %H:%M")
     if isinstance(val, date):
@@ -69,8 +70,8 @@ def _generate_xlsx_single(dt: Any, doc: dict[str, Any]) -> bytes:
     title_cell.font = Font(bold=True, size=14)
     title_cell.alignment = Alignment(horizontal="center")
 
-    ws["A2"] = "Поле"
-    ws["B2"] = "Значення"
+    ws["A2"] = _("Field")
+    ws["B2"] = _("Value")
     for cell in [ws["A2"], ws["B2"]]:
         cell.font = header_font
         cell.fill = header_fill
@@ -121,6 +122,6 @@ def _generate_html_single(dt: Any, doc: dict[str, Any]) -> str:
 <body>
   <h1>{escape(dt.label)}</h1>
   <table>{rows}</table>
-  <div class="meta">Створено: {created} | Автор: {owner}</div>
+  <div class="meta">{escape(_("Created on"))}: {created} | {escape(_("Author"))}: {owner}</div>
 </body>
 </html>"""

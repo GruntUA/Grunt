@@ -6,6 +6,7 @@ from datetime import UTC, datetime
 from typing import Any
 
 import grunt
+from grunt.i18n import _
 from grunt.log import log
 
 
@@ -20,7 +21,7 @@ async def get_shared_document(token: str) -> dict[str, Any]:
     )
 
     if not shares:
-        grunt.throw("Посилання не знайдено або деактивовано", "NOT_FOUND")
+        grunt.throw(_("The link was not found or has been deactivated"), "NOT_FOUND")
 
     share = shares[0]
 
@@ -35,7 +36,7 @@ async def get_shared_document(token: str) -> dict[str, Any]:
         if expires_at:
             exp = expires_at if expires_at.tzinfo else expires_at.replace(tzinfo=UTC)
             if exp < datetime.now(UTC):
-                grunt.throw("Термін дії посилання закінчився", "GONE")
+                grunt.throw(_("The link has expired"), "GONE")
 
     doctype_name = share["doctype_name"]
     doc_id = share["doc_id"]
@@ -43,11 +44,11 @@ async def get_shared_document(token: str) -> dict[str, Any]:
     # Fetch without permission guards — this is a guest-accessible share link
     dt = await grunt.get_meta(doctype_name)
     if dt is None:
-        grunt.throw("DocType не знайдено", "NOT_FOUND")
+        grunt.throw(_("DocType not found"), "NOT_FOUND")
     doc = await grunt.db.get_doc(doctype_name, doc_id)
 
     if not doc:
-        grunt.throw("Документ не знайдено", "NOT_FOUND")
+        grunt.throw(_("Document not found"), "NOT_FOUND")
 
     # Increment view count (best-effort)
     try:
@@ -106,7 +107,7 @@ async def create_share(
 ) -> dict[str, Any]:
     """Create a new document share link. Authenticated users only."""
     if not doctype_name or not doc_id:
-        grunt.throw("doctype_name and doc_id are required", "VALIDATION_ERROR")
+        grunt.throw(_("doctype_name and doc_id are required"), "VALIDATION_ERROR")
 
     doc = await grunt.new_doc(
         "DocumentShare",

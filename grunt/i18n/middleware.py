@@ -3,7 +3,7 @@
 Order of precedence:
 1. explicit ``?lang=`` query parameter or ``X-Grunt-Lang`` header
 2. the best match from the ``Accept-Language`` header
-3. ``uk`` (framework default)
+3. the site default (``SystemSettings.language``, see ``TranslationService.set_default``)
 
 The set of acceptable languages is dynamic — :class:`TranslationService` is
 seeded at startup from the active ``geo.Language`` rows (see
@@ -21,8 +21,6 @@ from grunt.i18n.service import _current_lang, translation_service
 if TYPE_CHECKING:
     from starlette.requests import Request
     from starlette.responses import Response
-
-_DEFAULT = "uk"
 
 
 class LanguageMiddleware(BaseHTTPMiddleware):
@@ -67,9 +65,9 @@ def apply_user_language(request: Request, language: str | None) -> None:
 def _parse_accept_language(header: str, supported: set[str]) -> str:
     """Return the best supported language from an Accept-Language header."""
     if not header:
-        return _DEFAULT
+        return translation_service.default_lang()
     for part in header.split(","):
         lang = part.split(";")[0].strip().lower()[:2]
         if lang in supported:
             return lang
-    return _DEFAULT
+    return translation_service.default_lang()

@@ -43,12 +43,12 @@ def _install_app_skills(app_dir: Path) -> list[str]:
             continue
         skill_md = skill_dir / "SKILL.md"
         if not skill_md.exists():
-            click.echo(f"  [skip] {skill_dir.name}: SKILL.md не знайдено")
+            click.echo(f"  [skip] {skill_dir.name}: SKILL.md not found")
             continue
 
         name = _parse_skill_name(skill_md)
         if not name:
-            click.echo(f"  [skip] {skill_dir.name}: поле name: відсутнє у frontmatter")
+            click.echo(f"  [skip] {skill_dir.name}: the name: field is missing in the frontmatter")
             continue
 
         target = claude_skills / name
@@ -72,16 +72,16 @@ def _install_app_skills(app_dir: Path) -> list[str]:
 
 @click.group("skills")
 def skills_group():
-    """Керування AI скілами додатків."""
+    """Manage the apps' AI skills."""
     pass
 
 
 @skills_group.command("install")
 @click.argument("app_name", required=False)
 def skills_install(app_name: str | None):
-    """Встановити скіли з додатку (або всіх додатків).
+    """Install skills from an app (or all apps).
 
-    APP_NAME — назва додатку (опційно). Якщо не вказано — сканує всі додатки.
+    APP_NAME is the app name (optional). Without it, all apps are scanned.
     """
     from grunt.site.manager import site_manager
 
@@ -90,7 +90,7 @@ def skills_install(app_name: str | None):
     if app_name:
         app_dirs = [apps_dir / app_name]
         if not app_dirs[0].is_dir():
-            click.echo(f"Помилка: додаток '{app_name}' не знайдено.", err=True)
+            click.echo(f"Error: app '{app_name}' not found.", err=True)
             raise SystemExit(1)
     else:
         app_dirs = sorted(
@@ -101,24 +101,24 @@ def skills_install(app_name: str | None):
     for app_dir in app_dirs:
         names = _install_app_skills(app_dir)
         if names:
-            click.echo(f"[{app_dir.name}] встановлено: {', '.join(names)}")
+            click.echo(f"[{app_dir.name}] installed: {', '.join(names)}")
         total.extend(names)
 
     if not total:
-        click.echo("Скілів не знайдено.")
+        click.echo("No skills found.")
     else:
-        click.echo(f"\n{click.style('✓', fg='green')} Всього встановлено: {len(total)} скіл(ів)")
+        click.echo(f"\n{click.style('✓', fg='green')} Installed in total: {len(total)} skill(s)")
 
 
 @skills_group.command("uninstall")
 @click.argument("skill_name")
 def skills_uninstall(skill_name: str):
-    """Видалити встановлений скіл (видаляє симлінк)."""
+    """Remove an installed skill (deletes the symlink)."""
     from grunt.site.manager import site_manager
 
     target = _claude_skills_dir() / skill_name
     if not target.exists() and not target.is_symlink():
-        click.echo(f"Помилка: скіл '{skill_name}' не встановлено.", err=True)
+        click.echo(f"Error: skill '{skill_name}' is not installed.", err=True)
         raise SystemExit(1)
 
     target.unlink()
@@ -133,12 +133,12 @@ def skills_uninstall(skill_name: str):
             del lock["skills"][skill_name]
             lock_file.write_text(json.dumps(lock, indent=2, ensure_ascii=False), encoding="utf-8")
 
-    click.echo(f"{click.style('✓', fg='green')} Скіл '{skill_name}' видалено.")
+    click.echo(f"{click.style('✓', fg='green')} Skill '{skill_name}' removed.")
 
 
 @skills_group.command("list")
 def skills_list():
-    """Показати локальні скіли з усіх додатків."""
+    """Show local skills from all apps."""
     from grunt.site.manager import site_manager
 
     apps_dir = site_manager.bench_dir / "apps"
@@ -160,9 +160,9 @@ def skills_list():
             status = (
                 click.style("✓", fg="green")
                 if linked.is_symlink()
-                else click.style("✗ не встановлено", fg="red")
+                else click.style("✗ not installed", fg="red")
             )
             click.echo(f"  {status}  {name}  ({meta.get('path', '')})")
 
     if not found:
-        click.echo("Немає локальних скілів.")
+        click.echo("No local skills.")

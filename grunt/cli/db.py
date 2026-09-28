@@ -11,17 +11,19 @@ def db_group():
 
 
 @db_group.command("migrate")
-@click.option("--dry-run", is_flag=True, help="Показати SQL без виконання (для DocType таблиць)")
-@click.option("--site", default=None, help="Назва сайту")
-@click.option("--no-alembic", is_flag=True, help="Пропустити Alembic-міграції історії схеми")
+@click.option(
+    "--dry-run", is_flag=True, help="Show the SQL without running it (for DocType tables)"
+)
+@click.option("--site", default=None, help="Site name")
+@click.option("--no-alembic", is_flag=True, help="Skip the Alembic schema-history migrations")
 def db_migrate(dry_run: bool, site: str | None, no_alembic: bool) -> None:
-    """Синхронізувати схему БД: Alembic-міграції + system tables + DocType tables + fixtures.
+    """Sync the database schema: Alembic migrations + system tables + DocType tables + fixtures.
 
-    Запускати після:
-    - Оновлення фреймворку (нові Alembic-міграції, core DocTypes або зміни полів)
-    - Додавання нових DocTypes через Studio
-    - Встановлення нових додатків із DocTypes
-    - Змін у fixture файлах (00_workspace.json тощо)
+    Run it after:
+    - A framework update (new Alembic migrations, core DocTypes or field changes)
+    - Adding new DocTypes in Studio
+    - Installing new apps with DocTypes
+    - Changes to fixture files (00_workspace.json etc.)
     """
     import asyncio
 
@@ -52,11 +54,11 @@ def db_migrate(dry_run: bool, site: str | None, no_alembic: bool) -> None:
 
             sites = [site] if site else site_manager.get_sites()
             if not sites:
-                click.echo("Жодного сайту не знайдено.", err=True)
+                click.echo("No sites found.", err=True)
                 raise SystemExit(1)
 
             for site_name in sites:
-                click.echo(f"\n── Сайт: {site_name} ──")
+                click.echo(f"\n── Site: {site_name} ──")
                 token = current_site.set(site_name)
                 try:
                     eng = site_manager.get_engine(site_name)
@@ -77,7 +79,7 @@ def db_migrate(dry_run: bool, site: str | None, no_alembic: bool) -> None:
                     #    offline-previewable, so --dry-run skips it.
                     if no_alembic or dry_run:
                         why = "--no-alembic" if no_alembic else "dry-run"
-                        click.echo(f"  [3/5] Alembic — пропущено ({why}).")
+                        click.echo(f"  [3/5] Alembic: skipped ({why}).")
                     else:
                         from grunt.db.alembic_utils import sync_site
 
@@ -120,7 +122,7 @@ def db_migrate(dry_run: bool, site: str | None, no_alembic: bool) -> None:
 
                     # 4. Seed fixtures (skip on dry-run)
                     if dry_run:
-                        click.echo("  [5/5] Seed fixtures — пропущено (dry-run).")
+                        click.echo("  [5/5] Seed fixtures: skipped (dry-run).")
                     else:
                         click.echo("  [5/5] Seed fixtures...")
                         async with maker() as session:
@@ -160,20 +162,20 @@ def db_migrate(dry_run: bool, site: str | None, no_alembic: bool) -> None:
 
     failed = asyncio.run(_run())
     if failed:
-        click.echo(f"\nМіграцію завершено з помилками ({len(failed)}):", err=True)
+        click.echo(f"\nMigration finished with errors ({len(failed)}):", err=True)
         for item in failed:
             click.echo(f"  {item}", err=True)
         raise SystemExit(1)
-    click.echo("\nМіграцію завершено.")
+    click.echo("\nMigration complete.")
 
 
 @db_group.command("trim-tables")
 @click.option("--doctype", "-d", default=None, help="Specific DocType to process")
-@click.option("--dry-run", is_flag=True, help="Тільки показати, що буде видалено")
-@click.option("--quiet", "-q", is_flag=True, help="Не виводити інформацію")
-@click.option("--site", default=None, help="Назва сайту")
+@click.option("--dry-run", is_flag=True, help="Only show what would be removed")
+@click.option("--quiet", "-q", is_flag=True, help="Do not print information")
+@click.option("--site", default=None, help="Site name")
 def db_trim_tables(doctype: str | None, dry_run: bool, quiet: bool, site: str | None) -> None:
-    """Видалити колонки з таблиць, яких немає в метаданих (DocType)."""
+    """Drop table columns that are not in the metadata (DocType)."""
     import asyncio
 
     from grunt.site.manager import current_site, site_manager
@@ -184,12 +186,12 @@ def db_trim_tables(doctype: str | None, dry_run: bool, quiet: bool, site: str | 
 
         sites = [site] if site else site_manager.get_sites()
         if not sites:
-            click.echo("Жодного сайту не знайдено.", err=True)
+            click.echo("No sites found.", err=True)
             raise SystemExit(1)
 
         for site_name in sites:
             if not quiet:
-                click.echo(f"\n── Сайт: {site_name} ──")
+                click.echo(f"\n── Site: {site_name} ──")
             token = current_site.set(site_name)
             try:
                 eng = site_manager.get_engine(site_name)
@@ -205,7 +207,7 @@ def db_trim_tables(doctype: str | None, dry_run: bool, quiet: bool, site: str | 
                         if doctype:
                             target_meta = await grunt.get_meta(doctype)
                             if target_meta is None:
-                                click.echo(f"DocType '{doctype}' не знайдено.", err=True)
+                                click.echo(f"DocType '{doctype}' not found.", err=True)
                                 raise SystemExit(1)
                             metas = [target_meta]
                         else:
@@ -221,7 +223,7 @@ def db_trim_tables(doctype: str | None, dry_run: bool, quiet: bool, site: str | 
                 current_site.reset(token)
 
         if not quiet:
-            click.echo("\nОчистку колонок завершено.")
+            click.echo("\nColumn cleanup complete.")
 
     asyncio.run(_run())
 
@@ -233,10 +235,10 @@ def _resolve_site(site: str | None) -> str:
 
 
 @db_group.command("backup")
-@click.option("--site", default=None, help="Назва сайту")
-@click.option("--no-files", is_flag=True, help="Без завантажених файлів (лише база й конфіг)")
+@click.option("--site", default=None, help="Site name")
+@click.option("--no-files", is_flag=True, help="Without uploaded files (database and config only)")
 def db_backup(site: str | None, no_files: bool):
-    """Створити резервну копію сайту в sites/<site>/backups/ (база, файли, .env)."""
+    """Back up the site to sites/<site>/backups/ (database, files, .env)."""
     from grunt.backups import create_backup
 
     backup = asyncio.run(create_backup(_resolve_site(site), with_files=not no_files))
@@ -245,9 +247,9 @@ def db_backup(site: str | None, no_files: bool):
 
 
 @db_group.command("backups")
-@click.option("--site", default=None, help="Назва сайту")
+@click.option("--site", default=None, help="Site name")
 def db_backups(site: str | None):
-    """Показати резервні копії сайту (найновіші зверху)."""
+    """Show the site's backups (newest first)."""
     from grunt.backups import list_backups
     from grunt.monitoring.health import human_size
 
@@ -258,30 +260,30 @@ def db_backups(site: str | None):
 
 @db_group.command("restore")
 @click.argument("backup_id")
-@click.option("--site", default=None, help="Назва сайту")
-@click.option("--with-files", is_flag=True, help="Відновити й завантажені файли")
-@click.option("--yes", is_flag=True, help="Не питати підтвердження")
+@click.option("--site", default=None, help="Site name")
+@click.option("--with-files", is_flag=True, help="Restore uploaded files too")
+@click.option("--yes", is_flag=True, help="Do not ask for confirmation")
 def db_restore(backup_id: str, site: str | None, with_files: bool, yes: bool):
-    """Відновити сайт із резервної копії (ID з `grunt db backups`).
+    """Restore the site from a backup (ID from `grunt db backups`).
 
-    Зупиніть сервер і воркер перед відновленням. Поточна база (і файли з
-    --with-files) переносяться в backups/pre-restore-<час>/, тож відновлення
-    можна відкотити.
+    Stop the server and worker before restoring. The current database (and files with
+    --with-files) are moved to backups/pre-restore-<time>/, so the restore
+    can be rolled back.
     """
     from grunt.backups import BackupError, get_backup, restore_backup
 
     target = _resolve_site(site)
     backup = get_backup(target, backup_id)
     if backup is None:
-        raise click.ClickException(f"Резервної копії {backup_id} немає — див. `grunt db backups`")
+        raise click.ClickException(f"Backup {backup_id} does not exist; see `grunt db backups`")
     if not yes:
         click.confirm(
-            f"Замінити базу{' і файли' if with_files else ''} сайту {target} копією "
-            f"{backup_id}? Сервер і воркер мають бути зупинені.",
+            f"Replace the database{' and files' if with_files else ''} of site {target} "
+            f"with backup {backup_id}? The server and worker must be stopped.",
             abort=True,
         )
     try:
         aside = restore_backup(target, backup, with_files=with_files)
     except BackupError as e:
         raise click.ClickException(str(e)) from e
-    click.echo(f"Відновлено з {backup_id}. Попередній стан: {aside}")
+    click.echo(f"Restored from {backup_id}. Previous state: {aside}")

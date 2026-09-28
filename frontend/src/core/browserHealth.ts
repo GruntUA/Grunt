@@ -11,7 +11,7 @@ import client from '@/core/api/client'
 import { queue, refreshQueue } from '@/core/composables/useOfflineQueue'
 import { isOnline, serverReachable } from '@/core/composables/useNetworkStatus'
 import { openChannelCount } from '@/core/ws/WebSocketChannel'
-import i18n from '@/plugins/i18n'
+import i18n, { N_ } from '@/plugins/i18n'
 
 const t = (key: string): string => i18n.global.t(key)
 
@@ -31,11 +31,11 @@ export const API_CACHE = 'grunt-api-v1'
 const SHELL_KEY = '/__offline_shell__'
 const PROBE_URL = '/api/v1/method/grunt.auth.doctypes.User.user.whoami'
 
-const OFFLINE = 'Offline mode'
-const NETWORK = 'Network'
-const STORAGE = 'Browser storage'
-const BROWSER = 'Browser'
-const REALTIME = 'WebSockets'
+const OFFLINE = N_('Offline mode')
+const NETWORK = N_('Network')
+const STORAGE = N_('Browser storage')
+const BROWSER = N_('Browser')
+const REALTIME = N_('WebSockets')
 
 const WS_TIMEOUT_MS = 5000
 const ECHO_WAIT_MS = 2500
@@ -57,39 +57,39 @@ export function humanSize(bytes: number): string {
 
 async function serviceWorkerChecks(): Promise<HealthRow[]> {
   if (!import.meta.env.PROD) {
-    return [row(OFFLINE, 'Build', 'Warning', 'development mode',
-      'In Vite dev the service worker is not registered — offline works only in a production build.')]
+    return [row(OFFLINE, N_('Build'), 'Warning', N_('development mode'),
+      N_('In Vite dev the service worker is not registered — offline works only in a production build.'))]
   }
   if (!window.isSecureContext) {
-    return [row(OFFLINE, 'Secure connection', 'Error', location.protocol,
-      'The service worker works only over HTTPS (or localhost).')]
+    return [row(OFFLINE, N_('Secure connection'), 'Error', location.protocol,
+      N_('The service worker works only over HTTPS (or localhost).'))]
   }
   if (!('serviceWorker' in navigator)) {
-    return [row(OFFLINE, 'Service worker', 'Error', 'not supported', 'The browser does not support offline mode.')]
+    return [row(OFFLINE, N_('Service worker'), 'Error', N_('not supported'), N_('The browser does not support offline mode.'))]
   }
   const reg = await navigator.serviceWorker.getRegistration()
   if (!reg?.active) {
-    return [row(OFFLINE, 'Service worker', 'Error', reg ? 'installing' : 'not registered',
-      'Reload the page; if that does not help, check that the server serves /sw.js.')]
+    return [row(OFFLINE, N_('Service worker'), 'Error', reg ? N_('installing') : N_('not registered'),
+      N_('Reload the page; if that does not help, check that the server serves /sw.js.'))]
   }
   return [
-    row(OFFLINE, 'Service worker', 'OK', `${t('active')} (${new URL(reg.active.scriptURL).pathname})`),
+    row(OFFLINE, N_('Service worker'), 'OK', `${t('active')} (${new URL(reg.active.scriptURL).pathname})`),
     navigator.serviceWorker.controller
-      ? row(OFFLINE, 'Controls the page', 'OK', 'yes')
-      : row(OFFLINE, 'Controls the page', 'Warning', 'no',
-          'The page was opened before the service worker was installed — reload it.'),
+      ? row(OFFLINE, N_('Controls the page'), 'OK', N_('yes'))
+      : row(OFFLINE, N_('Controls the page'), 'Warning', N_('no'),
+          N_('The page was opened before the service worker was installed — reload it.')),
   ]
 }
 
 async function cacheChecks(): Promise<HealthRow[]> {
-  if (!('caches' in window)) return [row(OFFLINE, 'Cache Storage', 'Error', 'unavailable')]
+  if (!('caches' in window)) return [row(OFFLINE, N_('Cache Storage'), 'Error', N_('unavailable'))]
   const names = await caches.keys()
   const shellName = names.find((n) => n.startsWith(SHELL_CACHE_PREFIX))
   const rows: HealthRow[] = []
 
   if (!shellName) {
-    rows.push(row(OFFLINE, 'App cache', import.meta.env.PROD ? 'Error' : 'Info', 'empty',
-      'App files are not cached — pages will not open without the network.'))
+    rows.push(row(OFFLINE, N_('App cache'), import.meta.env.PROD ? 'Error' : 'Info', N_('empty'),
+      N_('App files are not cached — pages will not open without the network.')))
   } else {
     const shell = await caches.open(shellName)
     const cached = new Set((await shell.keys()).map((r) => new URL(r.url).pathname))
@@ -102,19 +102,19 @@ async function cacheChecks(): Promise<HealthRow[]> {
     }
     const missing = manifest.filter((u) => !cached.has(u))
     rows.push(missing.length
-      ? row(OFFLINE, 'App cache', 'Warning', t('{n} files, {missing} missing').replace('{n}', String(cached.size)).replace('{missing}', String(missing.length)),
+      ? row(OFFLINE, N_('App cache'), 'Warning', t('{n} files, {missing} missing').replace('{n}', String(cached.size)).replace('{missing}', String(missing.length)),
           t('Not cached, e.g.: {files}. Reload the page while online.').replace('{files}', missing.slice(0, 3).join(', ')))
-      : row(OFFLINE, 'App cache', 'OK', `${t('{n} files').replace('{n}', String(cached.size))} (${shellName})`))
+      : row(OFFLINE, N_('App cache'), 'OK', `${t('{n} files').replace('{n}', String(cached.size))} (${shellName})`))
     rows.push(await shell.match(SHELL_KEY)
-      ? row(OFFLINE, 'Offline page', 'OK', 'saved')
-      : row(OFFLINE, 'Offline page', 'Warning', 'missing',
-          'The shell is cached after the first page load with the network.'))
+      ? row(OFFLINE, N_('Offline page'), 'OK', N_('saved'))
+      : row(OFFLINE, N_('Offline page'), 'Warning', N_('missing'),
+          N_('The shell is cached after the first page load with the network.')))
   }
 
   const api = names.includes(API_CACHE) ? await caches.open(API_CACHE) : null
   const entries = api ? (await api.keys()).length : 0
-  rows.push(row(OFFLINE, 'Data saved for offline', entries ? 'OK' : 'Info', t('{n} API responses').replace('{n}', String(entries)),
-    entries ? '' : 'Open the lists and documents you need while online — they will become available offline.'))
+  rows.push(row(OFFLINE, N_('Data saved for offline'), entries ? 'OK' : 'Info', t('{n} API responses').replace('{n}', String(entries)),
+    entries ? '' : N_('Open the lists and documents you need while online — they will become available offline.')))
   return rows
 }
 
@@ -126,33 +126,33 @@ async function probeChecks(): Promise<HealthRow[]> {
     const ms = Math.round(performance.now() - started)
     const fromCache = res.headers['x-grunt-offline'] === '1'
     const rows = [fromCache
-      ? row(NETWORK, 'Server', 'Error', 'unavailable', 'The response came from the offline cache.')
-      : row(NETWORK, 'Server', ms < 1000 ? 'OK' : 'Warning', `${ms} ${t('ms')}`)]
+      ? row(NETWORK, N_('Server'), 'Error', N_('unavailable'), N_('The response came from the offline cache.'))
+      : row(NETWORK, N_('Server'), ms < 1000 ? 'OK' : 'Warning', `${ms} ${t('ms')}`)]
     if (import.meta.env.PROD && navigator.serviceWorker?.controller && !fromCache) {
       const stored = await caches.match(new URL(PROBE_URL, location.origin).href, { cacheName: API_CACHE })
       rows.push(stored
-        ? row(OFFLINE, 'Response caching', 'OK', 'working')
-        : row(OFFLINE, 'Response caching', 'Error', 'not working',
-            'The service worker did not cache the API response — offline data will not appear.'))
+        ? row(OFFLINE, N_('Response caching'), 'OK', N_('working'))
+        : row(OFFLINE, N_('Response caching'), 'Error', N_('not working'),
+            N_('The service worker did not cache the API response — offline data will not appear.')))
     }
     return rows
   } catch {
-    return [row(NETWORK, 'Server', 'Error', 'unavailable')]
+    return [row(NETWORK, N_('Server'), 'Error', N_('unavailable'))]
   }
 }
 
 async function queueChecks(): Promise<HealthRow[]> {
-  if (!('indexedDB' in window)) return [row(OFFLINE, 'Change queue', 'Error', 'IndexedDB unavailable')]
+  if (!('indexedDB' in window)) return [row(OFFLINE, N_('Change queue'), 'Error', N_('IndexedDB unavailable'))]
   await refreshQueue()
   const count = (s: string) => queue.value.filter((c) => c.status === s).length
   const pending = count('pending')
   const conflict = count('conflict')
   const failed = count('failed')
-  const rows = [row(OFFLINE, 'Unsynced changes', pending ? 'Warning' : 'OK', pending,
-    pending ? 'They will be sent automatically once the server is reachable.' : '')]
+  const rows = [row(OFFLINE, N_('Unsynced changes'), pending ? 'Warning' : 'OK', pending,
+    pending ? N_('They will be sent automatically once the server is reachable.') : '')]
   if (conflict || failed) {
-    rows.push(row(OFFLINE, 'Conflicts and rejected changes', 'Warning', t('{conflicts} conflicts, {failed} rejected').replace('{conflicts}', String(conflict)).replace('{failed}', String(failed)),
-      'Open «Unsynced changes» at the bottom of the screen and resolve each one.'))
+    rows.push(row(OFFLINE, N_('Conflicts and rejected changes'), 'Warning', t('{conflicts} conflicts, {failed} rejected').replace('{conflicts}', String(conflict)).replace('{failed}', String(failed)),
+      N_('Open «Unsynced changes» at the bottom of the screen and resolve each one.')))
   }
   return rows
 }
@@ -160,23 +160,23 @@ async function queueChecks(): Promise<HealthRow[]> {
 function networkChecks(): HealthRow[] {
   const conn = (navigator as Navigator & { connection?: { effectiveType?: string; saveData?: boolean } }).connection
   return [
-    row(NETWORK, 'Browser network', isOnline.value ? 'OK' : 'Warning', isOnline.value ? 'online' : 'offline'),
-    row(NETWORK, 'Server connection', serverReachable.value ? 'OK' : 'Warning',
-      serverReachable.value ? 'yes' : 'lost'),
-    ...(conn?.effectiveType ? [row(NETWORK, 'Connection type', 'Info', conn.effectiveType + (conn.saveData ? `, ${t('data saver')}` : ''))] : []),
+    row(NETWORK, N_('Browser network'), isOnline.value ? 'OK' : 'Warning', isOnline.value ? N_('online') : N_('offline')),
+    row(NETWORK, N_('Server connection'), serverReachable.value ? 'OK' : 'Warning',
+      serverReachable.value ? N_('yes') : N_('lost')),
+    ...(conn?.effectiveType ? [row(NETWORK, N_('Connection type'), 'Info', conn.effectiveType + (conn.saveData ? `, ${t('data saver')}` : ''))] : []),
   ]
 }
 
 async function storageChecks(): Promise<HealthRow[]> {
-  if (!navigator.storage?.estimate) return [row(STORAGE, 'Quota', 'Info', 'unknown')]
+  if (!navigator.storage?.estimate) return [row(STORAGE, N_('Quota'), 'Info', N_('unknown'))]
   const { usage = 0, quota = 0 } = await navigator.storage.estimate()
   const free = quota ? 1 - usage / quota : 1
   const persisted = navigator.storage.persisted ? await navigator.storage.persisted() : false
   return [
-    row(STORAGE, 'Used', free > 0.1 ? 'OK' : 'Warning', `${humanSize(usage)} / ${humanSize(quota)}`,
-      free > 0.1 ? '' : 'Low on space — the browser may delete the offline cache.'),
-    row(STORAGE, 'Persistent storage', persisted ? 'OK' : 'Info', persisted ? 'yes' : 'no',
-      persisted ? '' : 'The browser may clear offline data when space runs low. The «Persist storage» button asks it not to.'),
+    row(STORAGE, N_('Used'), free > 0.1 ? 'OK' : 'Warning', `${humanSize(usage)} / ${humanSize(quota)}`,
+      free > 0.1 ? '' : N_('Low on space — the browser may delete the offline cache.')),
+    row(STORAGE, N_('Persistent storage'), persisted ? 'OK' : 'Info', persisted ? N_('yes') : N_('no'),
+      persisted ? '' : N_('The browser may clear offline data when space runs low. The «Persist storage» button asks it not to.')),
   ]
 }
 
@@ -218,10 +218,10 @@ function waitFor(
  */
 async function realtimeChecks(): Promise<HealthRow[]> {
   const rows = [openChannelCount('/api/v1/ws/user')
-    ? row(REALTIME, 'App realtime', 'OK', 'connected')
-    : row(REALTIME, 'App realtime', 'Warning', 'not connected',
-        'Notifications and document updates will not arrive live.')]
-  if (!('WebSocket' in window)) return [...rows, row(REALTIME, 'Test connection', 'Error', 'not supported')]
+    ? row(REALTIME, N_('App realtime'), 'OK', N_('connected'))
+    : row(REALTIME, N_('App realtime'), 'Warning', N_('not connected'),
+        N_('Notifications and document updates will not arrive live.'))]
+  if (!('WebSocket' in window)) return [...rows, row(REALTIME, N_('Test connection'), 'Error', N_('not supported'))]
 
   const token = localStorage.getItem('grunt_token') ?? ''
   const proto = location.protocol === 'https:' ? 'wss:' : 'ws:'
@@ -232,30 +232,30 @@ async function realtimeChecks(): Promise<HealthRow[]> {
     ws = await openSocket(url)
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e)
-    return [...rows, row(REALTIME, 'Test connection', 'Error', msg === 'code 4001' ? 'token rejected' : msg,
-      'Check that the proxy (nginx/Cloudflare) passes WebSocket through on /api/v1/ws/.')]
+    return [...rows, row(REALTIME, N_('Test connection'), 'Error', msg === N_('code 4001') ? N_('token rejected') : msg,
+      N_('Check that the proxy (nginx/Cloudflare) passes WebSocket through on /api/v1/ws/.'))]
   }
   try {
-    rows.push(row(REALTIME, 'Test connection', 'OK', t('opened in {n} ms').replace('{n}', String(Math.round(performance.now() - started)))))
+    rows.push(row(REALTIME, N_('Test connection'), 'OK', t('opened in {n} ms').replace('{n}', String(Math.round(performance.now() - started)))))
 
     const pingAt = performance.now()
     const pong = waitFor(ws, (m) => m.event === 'pong', 2000, true)
     ws.send(JSON.stringify({ action: 'ping' }))
     rows.push(await pong
-      ? row(REALTIME, 'Ping → pong', 'OK', `${Math.round(performance.now() - pingAt)} ${t('ms')}`)
-      : row(REALTIME, 'Ping → pong', 'Error', 'no response'))
+      ? row(REALTIME, N_('Ping → pong'), 'OK', `${Math.round(performance.now() - pingAt)} ${t('ms')}`)
+      : row(REALTIME, N_('Ping → pong'), 'Error', N_('no response')))
 
     const nonce = Math.random().toString(36).slice(2)
     const echoes = waitFor(ws, (m) => m.event === ECHO_EVENT && m.data?.nonce === nonce, ECHO_WAIT_MS)
     await client.post('/api/v1/method/grunt.monitoring.health.ws_echo', { nonce })
     const copies = await echoes
     rows.push(copies === 1
-      ? row(REALTIME, 'Server delivery', 'OK', 'exactly one copy')
+      ? row(REALTIME, N_('Server delivery'), 'OK', N_('exactly one copy'))
       : copies === 0
-        ? row(REALTIME, 'Server delivery', 'Error', 'not delivered',
-            'The server sent an event but the browser did not receive it — check the Redis relay.')
-        : row(REALTIME, 'Server delivery', 'Warning', t('{n} copies').replace('{n}', String(copies)),
-            'Each message arrives several times — notifications are duplicated.'))
+        ? row(REALTIME, N_('Server delivery'), 'Error', N_('not delivered'),
+            N_('The server sent an event but the browser did not receive it — check the Redis relay.'))
+        : row(REALTIME, N_('Server delivery'), 'Warning', t('{n} copies').replace('{n}', String(copies)),
+            N_('Each message arrives several times — notifications are duplicated.')))
   } finally {
     ws.close()
   }
@@ -264,10 +264,10 @@ async function realtimeChecks(): Promise<HealthRow[]> {
 
 function browserChecks(): HealthRow[] {
   const permission = 'Notification' in window ? Notification.permission : 'unsupported'
-  const labels: Record<string, string> = { granted: 'allowed', denied: 'denied', default: 'not requested', unsupported: 'not supported' }
+  const labels: Record<string, string> = { granted: N_('allowed'), denied: N_('denied'), default: N_('not requested'), unsupported: 'not supported' }
   return [
-    row(BROWSER, 'Browser', 'Info', navigator.userAgent.replace(/^Mozilla\/5\.0 /, '')),
-    row(BROWSER, 'Push notifications', permission === 'granted' ? 'OK' : 'Info', labels[permission] ?? permission),
+    row(BROWSER, N_('Browser'), 'Info', navigator.userAgent.replace(/^Mozilla\/5\.0 /, '')),
+    row(BROWSER, N_('Push notifications'), permission === 'granted' ? 'OK' : 'Info', labels[permission] ?? permission),
   ]
 }
 
@@ -275,21 +275,21 @@ async function safe(category: string, name: string, fn: () => Promise<HealthRow[
   try {
     return await fn()
   } catch (e) {
-    return [row(category, name, 'Error', 'check failed', e instanceof Error ? e.message : String(e))]
+    return [row(category, name, 'Error', N_('check failed'), e instanceof Error ? e.message : String(e))]
   }
 }
 
 /** Run every browser check; never throws. */
 export async function diagnoseBrowser(): Promise<HealthRow[]> {
   const groups = await Promise.all([
-    safe(OFFLINE, 'Service worker', serviceWorkerChecks),
-    safe(OFFLINE, 'Cache', cacheChecks),
-    safe(NETWORK, 'Server', probeChecks),
-    safe(OFFLINE, 'Change queue', queueChecks),
-    safe(NETWORK, 'Network', networkChecks),
-    safe(REALTIME, 'WebSockets', realtimeChecks),
-    safe(STORAGE, 'Storage', storageChecks),
-    safe(BROWSER, 'Browser', browserChecks),
+    safe(OFFLINE, N_('Service worker'), serviceWorkerChecks),
+    safe(OFFLINE, N_('Cache'), cacheChecks),
+    safe(NETWORK, N_('Server'), probeChecks),
+    safe(OFFLINE, N_('Change queue'), queueChecks),
+    safe(NETWORK, N_('Network'), networkChecks),
+    safe(REALTIME, N_('WebSockets'), realtimeChecks),
+    safe(STORAGE, N_('Storage'), storageChecks),
+    safe(BROWSER, N_('Browser'), browserChecks),
   ])
   return groups.flat()
 }

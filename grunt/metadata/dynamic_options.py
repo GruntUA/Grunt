@@ -13,9 +13,13 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from grunt.metadata.field import DocField
 
 _REGISTRY: dict[str, list[str]] = {}
+# Computed sources: called at schema-serve time; items are values or (value, label).
+_PROVIDERS: dict[str, Callable[[], list[str | tuple[str, str]]]] = {}
 _SCHEMA_REGISTRY: dict[str, dict[str, list[dict]]] = {}
 
 
@@ -26,9 +30,32 @@ def register_option(source: str, value: str) -> None:
         values.append(value)
 
 
+def register_option_provider(source: str, fn: Callable[[], list[str | tuple[str, str]]]) -> None:
+    """Compute *source*'s options on every schema serve (e.g. the UI languages).
+
+    *fn* returns values or ``(value, label)`` pairs; labels reach the frontend
+    as the field's ``option_labels``.
+    """
+    _PROVIDERS[source] = fn
+
+
+def _provided(source: str) -> list[tuple[str, str | None]]:
+    fn = _PROVIDERS.get(source)
+    if fn is None:
+        return []
+    return [(item, None) if isinstance(item, str) else (item[0], item[1]) for item in fn()]
+
+
 def get_options(source: str) -> list[str]:
-    """Return the registered values for *source*, or an empty list if unknown."""
-    return list(_REGISTRY.get(source, []))
+    """Return the values for *source* (registered + provided), or [] if unknown."""
+    values = list(_REGISTRY.get(source, []))
+    values += [v for v, _label in _provided(source) if v not in values]
+    return values
+
+
+def get_option_labels(source: str) -> dict[str, str]:
+    """``{value: label}`` for provided options that carry a label."""
+    return {v: label for v, label in _provided(source) if label}
 
 
 def resolve_field_options(field: DocField) -> str | None:

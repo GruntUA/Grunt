@@ -48,6 +48,7 @@ from grunt.actions.registry import (
     get_doc_action,
     register_doc_action,
 )
+from grunt.i18n import _
 from grunt.log import log
 
 __all__ = [
@@ -95,11 +96,11 @@ def enrich_doctype_actions(data: dict) -> None:
     catalog = [
         {
             "key": a.key,
-            "label": a.label,
+            "label": _(a.label),
             "icon": a.icon,
             "group": a.group,
             "variant": a.variant,
-            "confirm": a.confirm,
+            "confirm": _(a.confirm) if a.confirm else a.confirm,
             "fields": a.fields,
             "module": a.module,
         }
@@ -114,11 +115,11 @@ def enrich_doctype_actions(data: dict) -> None:
             row["_label"] = row.get("label") or row.get("action") or "?"
             continue
         row["_missing"] = False
-        row["_label"] = row.get("label") or spec.label
+        row["_label"] = _(row.get("label") or spec.label)
         row["_icon"] = row.get("icon") or spec.icon
         row["_variant"] = row.get("variant") or spec.variant
         row["_group"] = row.get("group") or spec.group
-        row["_confirm"] = spec.confirm
+        row["_confirm"] = _(spec.confirm) if spec.confirm else spec.confirm
         row["_fields"] = spec.fields
 
 
@@ -129,11 +130,11 @@ async def list_doc_actions(doctype: str | None = None) -> list[dict]:
     return [
         {
             "key": a.key,
-            "label": a.label,
+            "label": _(a.label),
             "icon": a.icon,
             "group": a.group,
             "variant": a.variant,
-            "confirm": a.confirm,
+            "confirm": _(a.confirm) if a.confirm else a.confirm,
             "fields": a.fields,
             "doctypes": a.doctypes,
             "roles": a.roles,
@@ -163,14 +164,18 @@ async def run(doctype: str, action: str, doc_id: str, args: dict | None = None) 
 
     dt = await grunt_app.get_meta(doctype)
     if dt is None:
-        raise not_found(f"DocType «{doctype}» не знайдено")
+        raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
     bound = {(b.action or "") for b in getattr(dt, "actions", []) or []}
     if action not in bound:
-        grunt.throw(f"Дію «{action}» не підключено до {doctype}", "NOT_FOUND")
+        grunt.throw(
+            _("Action “%(action)s” is not bound to %(doctype)s")
+            % {"action": action, "doctype": doctype},
+            "NOT_FOUND",
+        )
 
     spec = get_doc_action(action)
     if spec is None:
-        grunt.throw(f"Дію «{action}» не зареєстровано", "NOT_FOUND")
+        grunt.throw(_("Action “%(action)s” is not registered") % {"action": action}, "NOT_FOUND")
 
     if spec.roles:
         from grunt.permissions.roles import user_has_roles
@@ -179,7 +184,7 @@ async def run(doctype: str, action: str, doc_id: str, args: dict | None = None) 
         if not user_has_roles(user, [*spec.roles, "System Manager"]):
             from grunt.errors import forbidden
 
-            raise forbidden("Недостатньо прав для цієї дії")
+            raise forbidden(_("Not permitted to run this action"))
 
     doc = await grunt.get_doc(doctype, doc_id)  # enforces read permission
     # Guarantee the handler can always read the DocType/id off `doc`, even if

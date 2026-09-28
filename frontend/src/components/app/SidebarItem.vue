@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { formatNumber } from '@/core/currency'
 import { computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import type { WorkspaceLink } from '@/core/api/workspace'
@@ -76,7 +77,7 @@ const displayCount = computed(() => {
   const n = props.count ?? 0
   if (n <= 0) return ''
   // Show the real grouped number below 100k, then compact it: 123 456 → "123K", 1 200 000 → "1.2M".
-  if (n < 100_000) return n.toLocaleString()
+  if (n < 100_000) return formatNumber(n)
   if (n < 1_000_000) return `${Math.round(n / 1000)}K`
   return `${(n / 1_000_000).toFixed(1).replace(/\.0$/, '')}M`
 })

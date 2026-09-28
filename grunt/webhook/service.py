@@ -17,6 +17,7 @@ from typing import TYPE_CHECKING, Any
 
 import httpx
 
+from grunt.i18n import _
 from grunt.log import log
 
 if TYPE_CHECKING:
@@ -102,7 +103,7 @@ class WebhookService:
             wh_data = await grunt.find_doc("OutgoingWebhook", webhook_id)
 
         if not wh_data:
-            return {"success": False, "error": "Вебхук не знайдено"}
+            return {"success": False, "error": _("Webhook not found")}
 
         payload_str = json.dumps(
             {

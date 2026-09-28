@@ -20,6 +20,7 @@ from typing import TYPE_CHECKING
 from fastapi import HTTPException, Request
 from fastapi.staticfiles import StaticFiles
 
+from grunt.i18n import _
 from grunt.log import log
 from grunt.website import make_website_handler, robots_txt, sitemap_xml, website_registry
 
@@ -103,4 +104,4 @@ async def _website_catch_all(request: Request):
         except Exception as _exc:
             log.warning("website.spa_fallback.error", path=request.url.path, error=str(_exc))
 
-    raise HTTPException(status_code=404, detail="Сторінку не знайдено")
+    raise HTTPException(status_code=404, detail=_("Page not found"))

@@ -13,6 +13,7 @@ from typing import Any
 
 import grunt
 from grunt.document.tree import TREE_TITLE_RESOLVERS, tree_service
+from grunt.i18n import _
 from grunt.permissions.guards import write_guard
 
 
@@ -30,7 +31,7 @@ async def _tree_read_gate(doctype: str) -> tuple[Any, list[str] | None]:
 
     dt = await grunt.get_meta(doctype)
     if dt is None:
-        raise not_found(f"DocType «{doctype}» не знайдено")
+        raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
     user = grunt.get_user()
     access = RoleAccess(dt.doc, user)
 

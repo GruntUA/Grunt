@@ -49,10 +49,10 @@
       "fieldname": "language",
       "label": "Default language",
       "fieldtype": "Select",
-      "options": "uk-UA\nen-US",
-      "default": "uk-UA",
+      "default": "uk",
       "columns": 6,
-      "description": "UI language for new users."
+      "description": "UI language for new users.",
+      "options_source": "grunt.i18n.language"
     },
     {
       "fieldname": "timezone",

@@ -33,7 +33,7 @@ async function setup_list(listview) {
     listview.actions.remove('bulk_edit')
     listview.actions.add({
         id: 'backup_now',
-        label: 'Create now',
+        label: __('Create now'),
         icon: 'archive',
         placement: 'primary',
         action: async (lv) => {

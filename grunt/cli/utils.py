@@ -15,7 +15,7 @@ async def _site_session(site: str | None):
     _sites = site_manager.get_sites()
     target_site: str | None = site or (_sites[0] if _sites else None)
     if target_site is None:
-        click.echo("Помилка: сайт не знайдено.", err=True)
+        click.echo("Error: site not found.", err=True)
         raise SystemExit(1)
 
     token = current_site.set(target_site)

@@ -12,6 +12,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from grunt.i18n import _
 from grunt.log import log
 from grunt.permissions.roles import user_has_roles
 
@@ -34,17 +35,17 @@ async def start_impersonation(actor: User, target_user_id: str) -> dict[str, Any
     from grunt.auth.service import create_access_token
 
     if not user_has_roles(actor, ["System Manager"]):
-        throw("Потрібні права System Manager.", "PERMISSION_DENIED")
+        throw(_("System Manager rights are required."), "PERMISSION_DENIED")
 
     target = await get_user_by_id(target_user_id)
     if target is None:
-        throw("Користувача не знайдено.", "NOT_FOUND")
+        throw(_("User not found."), "NOT_FOUND")
     if target.id == actor.id:
-        throw("Не можна увійти під власним обліковим записом.", "VALIDATION_ERROR")
+        throw(_("You cannot impersonate your own account."), "VALIDATION_ERROR")
     if user_has_roles(target, ["System Manager"]):
-        throw("Не можна увійти під іншим адміністратором.", "PERMISSION_DENIED")
+        throw(_("You cannot impersonate another administrator."), "PERMISSION_DENIED")
     if not target.is_active:
-        throw("Обліковий запис вимкнено.", "VALIDATION_ERROR")
+        throw(_("The account is disabled."), "VALIDATION_ERROR")
 
     log.warning(
         "auth.impersonation.start",

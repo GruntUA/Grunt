@@ -6,22 +6,22 @@ import click
 
 @click.group("app")
 def app_group():
-    """Керування встановленими додатками."""
+    """Manage installed apps."""
     pass
 
 
 @app_group.command("create")
 @click.argument("name")
-@click.option("--no-git", is_flag=True, default=False, help="Не ініціалізувати git репозиторій")
+@click.option("--no-git", is_flag=True, default=False, help="Do not initialize a git repository")
 @click.option(
     "--dest",
     default=None,
-    help="Директорія для створення додатку (за замовчуванням: bench_dir/apps/)",
+    help="Directory to create the app in (default: bench_dir/apps/)",
 )
 def create_app(name: str, no_git: bool, dest: str | None):
-    """Створити новий Grunt додаток (scaffold).
+    """Create a new Grunt app (scaffold).
 
-    NAME — назва додатку (snake_case), наприклад: my_crm
+    NAME is the app name (snake_case), e.g. my_crm
     """
     from grunt.site.manager import site_manager
     from grunt.utils.boilerplate import make_boilerplate
@@ -45,14 +45,14 @@ async def _do_install(name: str, site: str | None = None) -> None:
     _sites = site_manager.get_sites()
     target_site = site or (_sites[0] if _sites else None)
     if target_site is None:
-        raise SystemExit("Помилка: сайт не знайдено.")
+        raise SystemExit("Error: site not found.")
 
     app_dir = site_manager.bench_dir / "apps" / name
     app_json = app_dir / "app.json"
     if not app_dir.is_dir():
-        raise SystemExit(f"Помилка: директорія '{app_dir}' не існує.")
+        raise SystemExit(f"Error: directory '{app_dir}' does not exist.")
     if not app_json.exists():
-        raise SystemExit(f"Помилка: '{app_json}' не знайдено.")
+        raise SystemExit(f"Error: '{app_json}' not found.")
 
     app_meta = json.loads(app_json.read_text(encoding="utf-8"))
 
@@ -90,8 +90,8 @@ async def _do_install(name: str, site: str | None = None) -> None:
         current_site.reset(token)
 
     title = app_meta.get("title", name)
-    print(f"✓ Додаток {title} встановлено на сайт {target_site}")
-    print(f"  Додатки: {', '.join(site_config.get('installed_apps', []))}")
+    print(f"✓ App {title} installed on site {target_site}")
+    print(f"  Apps: {', '.join(site_config.get('installed_apps', []))}")
 
 
 def _apps_dir() -> Path:
@@ -103,21 +103,21 @@ def _apps_dir() -> Path:
 @app_group.command("deps")
 @click.argument("names", nargs=-1)
 def app_deps(names: tuple[str, ...]):
-    """Встановити Python-залежності додатків bench (apps/<app>/pyproject.toml).
+    """Install the Python dependencies of bench apps (apps/<app>/pyproject.toml).
 
-    Без аргументів — усі додатки. Запускається після `uv sync` фреймворку.
+    Without arguments, all apps. Runs after the framework's `uv sync`.
     """
     from grunt.apps.deps import install_app_packages
 
     installed = install_app_packages(_apps_dir(), list(names) or None)
-    click.echo(f"Залежності додатків: {', '.join(installed) or 'немає додатків з pyproject.toml'}")
+    click.echo(f"App dependencies: {', '.join(installed) or 'no apps with pyproject.toml'}")
 
 
 @app_group.command("install")
 @click.argument("name")
-@click.option("--site", default=None, help="Назва сайту")
+@click.option("--site", default=None, help="Site name")
 def app_install(name: str, site: str | None):
-    """Встановити додаток та одразу зареєструвати його workspace."""
+    """Install an app and register its workspace right away."""
     from grunt.apps.deps import install_app_packages
 
     install_app_packages(_apps_dir(), [name])  # its Python dependencies first
@@ -154,14 +154,14 @@ def _print_uninstall_plan(
     has_workspace: bool,
     has_installed_row: bool,
 ) -> None:
-    click.echo(f"Сайт: {target_site}. Буде видалено:")
+    click.echo(f"Site: {target_site}. Will be removed:")
     for dt_name, table, cnt in plan:
-        rows = "таблиці немає" if cnt is None else f"{cnt} рядків"
+        rows = "no table" if cnt is None else f"{cnt} rows"
         click.echo(f"  • DocType {dt_name} ({getattr(table, 'name', '?')}: {rows})")
     if has_workspace:
-        click.echo(f"  • Workspace '{name}' із пунктами меню")
+        click.echo(f"  • Workspace '{name}' with its menu items")
     if has_installed_row:
-        click.echo(f"  • Запис GruntInstalledApp '{name}'")
+        click.echo(f"  • GruntInstalledApp record '{name}'")
 
 
 async def _run_before_uninstall_hook(session, target_site: str, name: str) -> None:
@@ -180,7 +180,7 @@ async def _delete_naming_series_counters(session, app_doctypes: list) -> None:
 
     ns_dt = await grunt.get_meta("NamingSeries")
     if ns_dt is None:
-        raise SystemExit("Помилка: DocType 'NamingSeries' не знайдено.")
+        raise SystemExit("Error: DocType 'NamingSeries' not found.")
     ns_table = ns_dt.table
     for dt in app_doctypes:
         autoname = (dt.autoname or "").strip()
@@ -239,9 +239,9 @@ async def _do_uninstall(
     _sites = site_manager.get_sites()
     target_site = site or (_sites[0] if _sites else None)
     if target_site is None:
-        raise SystemExit("Помилка: сайт не знайдено.")
+        raise SystemExit("Error: site not found.")
     if name == "grunt":
-        raise SystemExit("Помилка: базовий додаток grunt не можна видалити.")
+        raise SystemExit("Error: the base grunt app cannot be removed.")
 
     site_file = site_manager.sites_dir / target_site / "grunt.site"
     site_config = json.loads(site_file.read_text(encoding="utf-8"))
@@ -258,10 +258,10 @@ async def _do_uninstall(
 
     if keep_data:
         if not is_registered:
-            raise SystemExit(f"Помилка: додаток '{name}' не встановлено.")
+            raise SystemExit(f"Error: app '{name}' is not installed.")
         _unregister()
-        click.echo(f"✓ Додаток '{name}' видалено з сайту {target_site} (дані збережено)")
-        click.echo(f"  Додатки: {', '.join(installed)}")
+        click.echo(f"✓ App '{name}' removed from site {target_site} (data kept)")
+        click.echo(f"  Apps: {', '.join(installed)}")
         return
 
     # Модулі додатку — з app.json; якщо директорії вже немає, fallback на name
@@ -292,7 +292,7 @@ async def _do_uninstall(
 
                 if not (is_registered or app_doctypes or has_installed_row or has_workspace):
                     raise SystemExit(
-                        f"Помилка: додаток '{name}' не встановлено і слідів у БД не знайдено."
+                        f"Error: app '{name}' is not installed and has no traces in the database."
                     )
 
                 plan = await _plan_app_uninstall(session, app_doctypes)
@@ -305,9 +305,9 @@ async def _do_uninstall(
                 )
 
                 if not assume_yes and not click.confirm(
-                    "Продовжити? Дані буде втрачено безповоротно"
+                    "Continue? The data will be lost permanently"
                 ):
-                    raise SystemExit("Скасовано.")
+                    raise SystemExit("Cancelled.")
 
                 await _run_before_uninstall_hook(session, target_site, name)
                 await _delete_naming_series_counters(session, app_doctypes)
@@ -334,37 +334,37 @@ async def _do_uninstall(
         current_site.reset(token)
 
     _unregister()
-    click.echo(f"✓ Додаток '{name}' видалено з сайту {target_site}, дані очищено")
-    click.echo(f"  Додатки: {', '.join(installed)}")
+    click.echo(f"✓ App '{name}' removed from site {target_site}, data cleared")
+    click.echo(f"  Apps: {', '.join(installed)}")
 
 
 @app_group.command("uninstall")
 @click.argument("name")
-@click.option("--site", default=None, help="Назва сайту")
+@click.option("--site", default=None, help="Site name")
 @click.option(
     "--keep-data",
     is_flag=True,
     default=False,
-    help="Лише зняти реєстрацію додатку, дані в БД залишити",
+    help="Only unregister the app, keep its data in the database",
 )
-@click.option("--yes", "-y", "assume_yes", is_flag=True, default=False, help="Без підтвердження")
+@click.option("--yes", "-y", "assume_yes", is_flag=True, default=False, help="No confirmation")
 @click.option(
     "--vacuum",
     is_flag=True,
     default=False,
-    help="Стиснути файл БД після очищення (лише SQLite)",
+    help="Compact the database file after cleanup (SQLite only)",
 )
 def app_uninstall(name: str, site: str | None, keep_data: bool, assume_yes: bool, vacuum: bool):
-    """Видалити додаток із сайту та очистити його дані в БД."""
+    """Remove an app from the site and clear its data in the database."""
     asyncio.run(
         _do_uninstall(name, site, keep_data=keep_data, assume_yes=assume_yes, vacuum=vacuum)
     )
 
 
 @app_group.command("list")
-@click.option("--site", default=None, help="Назва сайту")
+@click.option("--site", default=None, help="Site name")
 def app_list(site: str | None):
-    """Показати встановлені додатки."""
+    """Show installed apps."""
     import json
 
     from grunt.site.manager import site_manager
@@ -372,13 +372,13 @@ def app_list(site: str | None):
     _sites = site_manager.get_sites()
     target_site: str | None = site or (_sites[0] if _sites else None)
     if target_site is None:
-        click.echo("Помилка: сайт не знайдено.", err=True)
+        click.echo("Error: site not found.", err=True)
         raise SystemExit(1)
 
     site_file = site_manager.sites_dir / target_site / "grunt.site"
     site_config = json.loads(site_file.read_text(encoding="utf-8"))
     apps = site_config.get("installed_apps", [])
-    click.echo(f"Сайт: {target_site}")
+    click.echo(f"Site: {target_site}")
     for a in apps:
         click.echo(f"  • {a}")
 
@@ -386,9 +386,9 @@ def app_list(site: str | None):
 @app_group.command("doctor")
 @click.argument("name", required=False)
 def app_doctor(name: str | None):
-    """Перевірити додатки на помилки структури та виправити їх.
+    """Check apps for structural errors and fix them.
 
-    Якщо NAME не вказано — перевіряє всі додатки.
+    Without NAME, checks all apps.
     """
     import subprocess
 
@@ -403,12 +403,12 @@ def app_doctor(name: str | None):
 
     for app_name in target_apps:
         app_path = apps_dir / app_name
-        click.echo(f"🩺 Перевірка додатку: {click.style(app_name, fg='cyan')}")
+        click.echo(f"🩺 Checking app: {click.style(app_name, fg='cyan')}")
 
         # 1. Перевірка Git
         git_dir = app_path / ".git"
         if not git_dir.is_dir():
-            click.echo(f"  [!] Git не ініціалізовано. {click.style('Виправлення...', fg='yellow')}")
+            click.echo(f"  [!] Git is not initialized. {click.style('Fixing...', fg='yellow')}")
             try:
                 subprocess.run(["git", "init"], cwd=str(app_path), check=True, capture_output=True)
 
@@ -418,26 +418,26 @@ def app_doctor(name: str | None):
                     content = "__pycache__/\n*.py[cod]\n.env\n.venv/\nnode_modules/\ndist/\n"
                     gitignore.write_text(content, encoding="utf-8")
 
-                click.echo(f"  {click.style('✓', fg='green')} Git репозиторій створено.")
+                click.echo(f"  {click.style('✓', fg='green')} Git repository created.")
             except Exception as e:
-                click.echo(f"  {click.style('✗', fg='red')} Помилка при ініціалізації Git: {e}")
+                click.echo(f"  {click.style('✗', fg='red')} Git initialization failed: {e}")
 
         # 2. Перевірка app.json
         app_json = app_path / "app.json"
         if not app_json.exists():
-            click.echo(f"  [!] app.json відсутній. {click.style('Створення...', fg='yellow')}")
+            click.echo(f"  [!] app.json is missing. {click.style('Creating...', fg='yellow')}")
             import json
 
             basic_meta = {
                 "name": app_name,
                 "title": app_name.replace("_", " ").title(),
-                "description": f"Додаток {app_name}",
+                "description": f"App {app_name}",
                 "version": "0.1.0",
             }
             app_json.write_text(
                 json.dumps(basic_meta, indent=2, ensure_ascii=False), encoding="utf-8"
             )
-            click.echo(f"  {click.style('✓', fg='green')} app.json створено.")
+            click.echo(f"  {click.style('✓', fg='green')} app.json created.")
 
         # 3. Перевірка пакету (__init__.py)
         pkg_dir = app_path / app_name
@@ -445,10 +445,10 @@ def app_doctor(name: str | None):
             init_py = pkg_dir / "__init__.py"
             if not init_py.exists():
                 click.echo(
-                    f"  [!] {app_name}/__init__.py відсутній. "
-                    f"{click.style('Створення...', fg='yellow')}"
+                    f"  [!] {app_name}/__init__.py is missing. "
+                    f"{click.style('Creating...', fg='yellow')}"
                 )
                 init_py.touch()
-                click.echo(f"  {click.style('✓', fg='green')} __init__.py створено.")
+                click.echo(f"  {click.style('✓', fg='green')} __init__.py created.")
 
-    click.echo(f"\n{click.style('Доктор завершив роботу!', bold=True)}")
+    click.echo(f"\n{click.style('Doctor finished!', bold=True)}")

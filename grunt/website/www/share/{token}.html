@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="uk">
+<html lang="{{ current_language() }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -138,7 +138,7 @@
         {% endif %}
         <span class="brand">{{ site_name }}</span>
         <span class="sep">·</span>
-        <span class="mode">Перегляд документа</span>
+        <span class="mode">{{ _("Document view") }}</span>
     </header>
 
     {% macro render_section(section) %}
@@ -168,8 +168,8 @@
         {% if error or not share %}
             <div class="card error">
                 <div class="icon">!</div>
-                <p>{{ error or "Посилання недоступне" }}</p>
-                <p class="hint">Зверніться до власника документа за новим посиланням.</p>
+                <p>{{ error or _("The link is unavailable") }}</p>
+                <p class="hint">{{ _("Ask the document owner for a new link.") }}</p>
             </div>
         {% else %}
             <div class="layout">
@@ -188,7 +188,7 @@
                                 {% endfor %}
                                 <nav class="tabnav">
                                     {% for tab in tabs %}
-                                        <label for="tab-{{ loop.index0 }}">{{ tab.label or "Розділ %d" % loop.index }}</label>
+                                        <label for="tab-{{ loop.index0 }}">{{ tab.label or _("Section %(n)s") % {"n": loop.index} }}</label>
                                     {% endfor %}
                                 </nav>
                                 <div class="tabpanels">
@@ -207,7 +207,7 @@
 
                 <aside class="side">
                     <div class="card">
-                        <h3>Про документ</h3>
+                        <h3>{{ _("About the document") }}</h3>
                         <dl>
                             {% for item in meta %}
                                 <div>
@@ -216,7 +216,7 @@
                                 </div>
                             {% endfor %}
                         </dl>
-                        <p class="foot">Лише для читання · {{ site_name }}</p>
+                        <p class="foot">{{ _("Read only") }} · {{ site_name }}</p>
                     </div>
                 </aside>
             </div>

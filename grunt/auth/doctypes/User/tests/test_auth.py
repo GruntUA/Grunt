@@ -11,9 +11,7 @@ if TYPE_CHECKING:
 
 
 @pytest.mark.asyncio
-async def test_deactivation_takes_effect_immediately_despite_auth_cache(
-    ctx, client: AsyncClient
-):
+async def test_deactivation_takes_effect_immediately_despite_auth_cache(ctx, client: AsyncClient):
     """A cached per-request auth lookup (grunt.doc_cache) must not let a
     deactivated user keep using an already-issued access token."""
     from grunt.auth.doctypes.User.user import create_user
@@ -32,9 +30,7 @@ async def test_deactivation_takes_effect_immediately_despite_auth_cache(
     headers = {"Authorization": f"Bearer {login.json()['data']['access_token']}"}
 
     # Warm the auth cache for this uid.
-    warm = await client.get(
-        "/api/v1/method/grunt.auth.doctypes.User.user.me_api", headers=headers
-    )
+    warm = await client.get("/api/v1/method/grunt.auth.doctypes.User.user.me_api", headers=headers)
     assert warm.status_code == 200
 
     # Deactivate through the generic document API — the same path an admin's
@@ -164,9 +160,7 @@ async def test_self_edit_scope(ctx):
             ctx.db._session().expire_all()
 
     async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
-        row = await ctx.db.get_all(
-            "User", filters={"name": uid}, fields=["first_name"], limit=1
-        )
+        row = await ctx.db.get_all("User", filters={"name": uid}, fields=["first_name"], limit=1)
     assert row[0]["first_name"] == "Renamed"
 
 

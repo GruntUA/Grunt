@@ -1,5 +1,6 @@
 import re
 
+from grunt.i18n import N_
 from grunt.validators.base import Validator
 
 _RE = re.compile(r"^[A-Z]{2}\d{2}[A-Z0-9]{1,30}$")
@@ -15,8 +16,8 @@ class IbanValidator(Validator):
     """
 
     name = "iban"
-    label = "IBAN (міжнародний)"
-    message = "Поле '{label}': невірний формат IBAN"
+    label = N_("IBAN (international)")
+    message = N_("Field “{label}”: invalid IBAN format")
 
     def check(self, value: str) -> bool:
         return bool(_RE.match(value.replace(" ", "").upper()))

@@ -5,6 +5,8 @@ from __future__ import annotations
 import re
 from typing import ClassVar
 
+from grunt.i18n import N_, _
+
 
 class Validator:
     """Abstract base for all field validators.
@@ -15,7 +17,8 @@ class Validator:
 
     name: ClassVar[str]
     label: ClassVar[str]
-    message: ClassVar[str] = "Поле '{label}': невірне значення"
+    # Mark subclass strings with N_(); they are translated when used.
+    message: ClassVar[str] = N_("Field “{label}”: invalid value")
     # Field types for which this validator is relevant (shown in Studio dropdown).
     # Override in subclasses to restrict or expand.
     field_types: ClassVar[list[str]] = ["Data", "Text", "LongText"]
@@ -33,7 +36,7 @@ class Validator:
         if value is None or value == "":
             return None
         if not self.check(str(value)):
-            return self.message.format(label=field_label, value=value)
+            return _(self.message).format(label=_(field_label), value=value)
         return None
 
 

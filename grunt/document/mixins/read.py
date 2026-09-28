@@ -7,6 +7,8 @@ from typing import TYPE_CHECKING, Any
 from fastapi import HTTPException, status
 from sqlalchemy import select
 
+from grunt.i18n import _
+
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -39,7 +41,7 @@ class DocumentReadMixin:
         if dt is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"DocType «{doctype_name}» не знайдено",
+                detail=_("DocType “%(doctype)s” not found") % {"doctype": doctype_name},
             )
         if is_virtual_routed(dt, doctype_name):
             return await virtual_get(doctype_name, user, doc_id or doctype_name)
@@ -58,7 +60,7 @@ class DocumentReadMixin:
         if row is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Document '{doc_id or doctype_name}' not found.",
+                detail=_("Document “%(name)s” not found") % {"name": doc_id or doctype_name},
             )
 
         doc = serialize_datetimes(dict(row._mapping))

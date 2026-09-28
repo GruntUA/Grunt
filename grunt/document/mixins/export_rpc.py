@@ -17,6 +17,7 @@ from fastapi import HTTPException
 from fastapi.responses import Response, StreamingResponse
 
 import grunt
+from grunt.i18n import _
 from grunt.io import get_exporter, get_exporters
 
 _AUTOPRINT_SCRIPT = (
@@ -39,14 +40,17 @@ async def _export_via_registry(
         available = [e.id for e in get_exporters()]
         raise HTTPException(
             status_code=400,
-            detail=f"Невідомий формат '{fmt}'. Доступні: {', '.join(available)}",
+            detail=_("Unknown format “%(format)s”. Available: %(available)s")
+            % {"format": fmt, "available": ", ".join(available)},
         )
 
     from grunt.api.v1.docs.utils import _non_layout_fields
 
     dt = await grunt_app.get_meta(doctype)
     if dt is None:
-        raise HTTPException(status_code=404, detail=f"DocType «{doctype}» не знайдено")
+        raise HTTPException(
+            status_code=404, detail=_("DocType “%(doctype)s” not found") % {"doctype": doctype}
+        )
     fields = _non_layout_fields(dt.doc)
     field_names = [f.fieldname for f in fields]
 
@@ -127,7 +131,9 @@ class DocumentExportRPCMixin:
         doc = await grunt_app.get_doc(doctype, doc_id)
         dt = await grunt_app.get_meta(doctype)
         if dt is None:
-            raise HTTPException(status_code=404, detail=f"DocType «{doctype}» не знайдено")
+            raise HTTPException(
+                status_code=404, detail=_("DocType “%(doctype)s” not found") % {"doctype": doctype}
+            )
         session = grunt_app._require_session()
 
         if fmt == "xlsx":
@@ -165,11 +171,13 @@ class DocumentExportRPCMixin:
                     )
                 except Exception as e:
                     raise HTTPException(
-                        status_code=500, detail=f"DOCX generation error: {e}"
+                        status_code=500, detail=_("DOCX generation error: %(error)s") % {"error": e}
                     ) from e
             raise HTTPException(
                 status_code=404,
-                detail="Шаблон DOCX не знайдено. Створіть PrintFormat з template_type='docx'.",
+                detail=_(
+                    "DOCX template not found. Create a PrintFormat with template_type='docx'."
+                ),
             )
 
         if fmt in ("pdf", "html"):
@@ -219,7 +227,8 @@ class DocumentExportRPCMixin:
 
         raise HTTPException(
             status_code=400,
-            detail=f"Невідомий формат: {fmt}. Підтримуються: html, pdf, xlsx, docx",
+            detail=_("Unknown format: %(format)s. Supported: html, pdf, xlsx, docx")
+            % {"format": fmt},
         )
 
     @staticmethod
@@ -235,11 +244,13 @@ class DocumentExportRPCMixin:
 
         template_str = (template or "").strip()
         if not template_str:
-            raise HTTPException(422, detail="template is required")
+            raise HTTPException(422, detail=_("template is required"))
 
         dt = await grunt_app.get_meta(doctype)
         if dt is None:
-            raise HTTPException(status_code=404, detail=f"DocType «{doctype}» не знайдено")
+            raise HTTPException(
+                status_code=404, detail=_("DocType “%(doctype)s” not found") % {"doctype": doctype}
+            )
 
         if doc_id:
             doc = await grunt_app.get_doc(doctype, doc_id)
@@ -251,12 +262,12 @@ class DocumentExportRPCMixin:
             else:
                 # Synthetic empty doc with all field names set to None
                 doc: dict[str, str | None] = {f.fieldname: None for f in dt.fields}
-                doc.setdefault("name", "Зразок")
+                doc.setdefault("name", _("Sample"))
 
         try:
             html = render_from_string(template_str, doc, doctype_label=dt.label, fields=dt.fields)
         except Exception as e:
-            html = f"<pre style='color:red;padding:1rem'>Помилка шаблону:\n{e}</pre>"
+            html = f"<pre style='color:red;padding:1rem'>{_('Template error:')}\n{e}</pre>"
 
         from grunt.storage.signing import sign_file_urls_in_html
 

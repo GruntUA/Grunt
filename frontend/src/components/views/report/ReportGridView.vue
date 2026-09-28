@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { formatNumber } from '@/core/currency'
 import { useI18n } from 'vue-i18n'
 import { computed, watch, ref, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
@@ -198,7 +199,7 @@ function toggleGroup(key: string) {
 watch(() => model.groupKey.value, () => { collapsed.value = new Set() })
 
 // ── Formatting ──────────────────────────────────────────────────────────────
-const nf = new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 })
+const nf = { format: (v: number) => formatNumber(v, { maximumFractionDigits: 2 }) }
 function fmtNum(v: number | undefined): string {
   return v === undefined || !Number.isFinite(v) ? '' : nf.format(v)
 }
@@ -440,12 +441,12 @@ async function commitEdit(row: Record<string, unknown>, key: string) {
     <div v-if="isPartial" class="flex items-center gap-2 text-muted-foreground">
       <template v-if="truncated">
         <span class="text-amber-600 dark:text-amber-500">
-          {{ t('Limit of {n} records reached — totals cover only these.').replace('{n}', MAX_AUTOLOAD.toLocaleString()) }}
+          {{ t('Limit of {n} records reached — totals cover only these.').replace('{n}', formatNumber(MAX_AUTOLOAD)) }}
         </span>
       </template>
       <template v-else>
         <span>
-          {{ t('Totals for the current page') }} ({{ rows.length.toLocaleString() }}{{ meta ? ` / ${meta.total.toLocaleString()}` : '' }}).
+          {{ t('Totals for the current page') }} ({{ formatNumber(rows.length) }}{{ meta ? ` / ${formatNumber(meta.total)}` : '' }}).
         </span>
         <Button variant="link" size="sm" class="h-auto p-0 text-xs" @click="loadAll()">
           {{ t('Calculate for all') }}

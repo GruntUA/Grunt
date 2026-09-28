@@ -26,7 +26,7 @@ function on_load(frm) {
 
     frm.actions.add({
         id: 'recheck',
-        label: 'Check again',
+        label: __('Check again'),
         icon: 'refresh-cw',
         busy: (f) => f.is_loading,
         action: async (f) => {
@@ -38,7 +38,7 @@ function on_load(frm) {
 
     frm.actions.add({
         id: 'persist_storage',
-        label: 'Persist browser storage',
+        label: __('Persist browser storage'),
         icon: 'hard-drive',
         placement: 'menu',
         action: async (f) => {
@@ -53,7 +53,7 @@ function on_load(frm) {
 
     frm.actions.add({
         id: 'copy_report',
-        label: 'Copy report',
+        label: __('Copy report'),
         icon: 'clipboard-copy',
         placement: 'menu',
         action: async (f) => {

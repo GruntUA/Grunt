@@ -11,6 +11,7 @@ from fastapi import HTTPException
 from grunt.config import settings
 from grunt.context import require_engine, require_session, require_user
 from grunt.db.profiler import profile
+from grunt.i18n import _
 from grunt.log import log
 from grunt.permissions.guards import (
     apply_hidden_fields_to_doc,
@@ -500,7 +501,7 @@ class DocumentAPI:
 
         dt = await grunt.get_meta(doctype)
         if dt is None:
-            raise not_found(f"DocType «{doctype}» не знайдено")
+            raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
         table = dt.table
         user = require_user()
         session = require_session()
@@ -590,9 +591,7 @@ class DocumentAPI:
             if cached is not None:
                 return cached
 
-        result = await collection.count_documents(
-            require_session(), doctype, user, filters=filters
-        )
+        result = await collection.count_documents(require_session(), doctype, user, filters=filters)
         if cache_key is not None and cache is not None:
             await cache.set_count(cache_key, result)
         return result
@@ -713,7 +712,7 @@ class DocumentAPI:
 
         dt = await grunt.get_meta(doctype)
         if dt is None:
-            raise not_found(f"DocType «{doctype}» не знайдено")
+            raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
         return await workflow_engine.apply_transition(
             dt.doc,
             doc_id,

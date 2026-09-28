@@ -9,6 +9,7 @@ from __future__ import annotations
 from typing import Any
 
 import grunt
+from grunt.i18n import _
 
 
 class DocumentWorkflowRPCMixin:
@@ -23,7 +24,7 @@ class DocumentWorkflowRPCMixin:
 
         dt = await grunt_app.get_meta(doctype)
         if dt is None:
-            raise not_found(f"DocType «{doctype}» не знайдено")
+            raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
         from grunt.workflow.registry import get_active_workflow
 
         if not await get_active_workflow(doctype):
@@ -54,7 +55,7 @@ class DocumentWorkflowRPCMixin:
 
         dt = await grunt_app.get_meta(doctype)
         if dt is None:
-            raise not_found(f"DocType «{doctype}» не знайдено")
+            raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
         from grunt.workflow.engine import workflow_engine
 
         user = grunt_app._require_user()

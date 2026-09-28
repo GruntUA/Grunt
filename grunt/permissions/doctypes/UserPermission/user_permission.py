@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import grunt
 from grunt.document.base import Document
+from grunt.i18n import _
 
 
 class UserPermission(Document):
@@ -31,9 +32,7 @@ class UserPermission(Document):
 
     async def validate(self) -> None:
         if not self.apply_to_all_doctypes and not self.applicable_for:
-            raise ValueError(
-                "Вкажіть «Лише для документа» або увімкніть «Застосувати до всіх документів»"
-            )
+            raise ValueError(_("Set “Only for document” or enable “Apply to all documents”"))
         if self.apply_to_all_doctypes:
             self.applicable_for = None
 
@@ -49,7 +48,7 @@ class UserPermission(Document):
             limit=2,
         )
         if any(r["name"] != self.name for r in dupes):
-            raise ValueError("Такий дозвіл користувача вже існує")
+            raise ValueError(_("This user permission already exists"))
 
     async def after_save(self) -> None:
         _invalidate(self.for_user)

@@ -12,14 +12,15 @@ STATUSES = {"OK", "Warning", "Error", "Info"}
 
 @pytest.mark.asyncio
 async def test_report_runs_every_check(client, auth_headers):
-    r = await client.get(URL, headers=auth_headers)
+    # English — the CHECKS categories are the (untranslated) English sources.
+    r = await client.get(URL, headers={**auth_headers, "X-Grunt-Lang": "en"})
     assert r.status_code == 200, r.text
     doc = r.json()["data"]
 
     checks = doc["checks"]
     assert {c["category"] for c in checks} >= {c for c, _ in health.CHECKS}
     assert all(c["status"] in STATUSES for c in checks)
-    crashed = [c for c in checks if c["value"] == "перевірка впала"]
+    crashed = [c for c in checks if c["value"] == "check failed"]
     assert not crashed, crashed
 
     assert doc["overall_status"] in {"OK", "Warning", "Error"}

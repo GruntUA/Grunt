@@ -24,7 +24,7 @@ def _npm_runner() -> list[str]:
         return [mise, "exec", "--", "npx"]
     npx = shutil.which("npx")
     if not npx:
-        raise click.ClickException("npx не знайдено. Встановіть Node.js.")
+        raise click.ClickException("npx not found. Install Node.js.")
     return [npx]
 
 
@@ -65,19 +65,19 @@ def _shadcn(app_dir: Path, args: list[str]) -> int:
 
 @click.group("ui")
 def ui_group() -> None:
-    """Керування shadcn-vue UI компонентами."""
+    """Manage shadcn-vue UI components."""
 
 
 @ui_group.command("add")
 @click.argument("components", nargs=-1, required=True)
 @click.option(
-    "--overwrite", is_flag=True, default=True, show_default=True, help="Перезаписати існуючі файли"
+    "--overwrite", is_flag=True, default=True, show_default=True, help="Overwrite existing files"
 )
 def ui_add(components: tuple[str, ...], overwrite: bool) -> None:
-    """Додати один або кілька shadcn-vue компонентів.
+    """Add one or more shadcn-vue components.
 
     \b
-    Приклади:
+    Examples:
       grunt ui add empty
       grunt ui add dialog alert-dialog
     """
@@ -87,25 +87,25 @@ def ui_add(components: tuple[str, ...], overwrite: bool) -> None:
         args.append("--overwrite")
     code = _shadcn(app_dir, args)
     if code != 0:
-        raise click.ClickException(f"shadcn-vue завершився з кодом {code}")
-    click.echo(click.style("✔ Готово", fg="green"))
+        raise click.ClickException(f"shadcn-vue exited with code {code}")
+    click.echo(click.style("✔ Done", fg="green"))
 
 
 @ui_group.command("update")
 @click.argument("components", nargs=-1, required=False)
 def ui_update(components: tuple[str, ...]) -> None:
-    """Перевстановити shadcn-vue компоненти з останнього реєстру (--overwrite).
+    """Reinstall shadcn-vue components from the latest registry (--overwrite).
 
-    Без аргументів оновлює всі встановлені компоненти.
-    З аргументами — тільки вказані.
+    Without arguments, updates every installed component.
+    With arguments, only the given ones.
 
-    `npx shadcn-vue@latest` завжди тягне останню версію CLI/реєстру, тож
-    окремо ставити npm-пакет не треба.
+    `npx shadcn-vue@latest` always pulls the latest CLI/registry, so
+    there is no npm package to install separately.
 
     \b
-    Приклади:
-      grunt ui update                   # оновити все
-      grunt ui update button badge      # тільки button і badge
+    Examples:
+      grunt ui update                   # update everything
+      grunt ui update button badge      # only button and badge
     """
     app_dir = _app_dir()
     ui_dir = app_dir / "frontend" / "src" / "components" / "ui"
@@ -113,26 +113,26 @@ def ui_update(components: tuple[str, ...]) -> None:
     targets = list(components) if components else _installed_components(ui_dir)
 
     if not targets:
-        click.echo(click.style(f"  Компонентів не знайдено у {ui_dir}", fg="yellow"))
+        click.echo(click.style(f"  No components found in {ui_dir}", fg="yellow"))
         return
 
-    click.echo(f"── Оновлення {len(targets)} компонент(ів): {', '.join(targets)}")
+    click.echo(f"── Updating {len(targets)} component(s): {', '.join(targets)}")
     code = _shadcn(app_dir, ["add", *targets, "--overwrite"])
     if code != 0:
-        raise click.ClickException(f"shadcn-vue завершився з кодом {code}")
+        raise click.ClickException(f"shadcn-vue exited with code {code}")
 
-    click.echo(click.style("\n✔ Оновлення завершено", fg="green"))
+    click.echo(click.style("\n✔ Update complete", fg="green"))
 
 
 @ui_group.command("list")
 def ui_list() -> None:
-    """Показати встановлені shadcn-vue компоненти."""
+    """Show installed shadcn-vue components."""
     app_dir = _app_dir()
     ui_dir = app_dir / "frontend" / "src" / "components" / "ui"
     components = _installed_components(ui_dir)
     if not components:
-        click.echo("Компонентів не знайдено.")
+        click.echo("No components found.")
         return
-    click.echo(f"Встановлено {len(components)} компонент(ів):\n")
+    click.echo(f"{len(components)} component(s) installed:\n")
     for name in components:
         click.echo(f"  • {name}")

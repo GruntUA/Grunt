@@ -1,9 +1,10 @@
+import { N_ } from '@/plugins/i18n'
 import { Image as ImageIcon } from '@lucide/vue'
 import type { ViewDefinition } from '@/core/viewRegistry'
 
 const def: ViewDefinition = {
   type: 'gallery',
-  label: 'Gallery',
+  label: N_('Gallery'),
   icon: ImageIcon,
   order: 4,
 

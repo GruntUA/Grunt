@@ -4,6 +4,7 @@ from typing import Any
 
 from fastapi import HTTPException, status
 
+from grunt.i18n import _
 from grunt.metadata.virtual import VirtualDocType
 from grunt.monitoring.health import build_report
 
@@ -24,15 +25,15 @@ class SystemHealthReportController(VirtualDocType):
 
     async def create(self, data: dict[str, Any], **kwargs: Any) -> dict[str, Any]:
         raise HTTPException(
-            status.HTTP_405_METHOD_NOT_ALLOWED, "Звіт про стан системи лише для читання"
+            status.HTTP_405_METHOD_NOT_ALLOWED, _("The system health report is read-only")
         )
 
     async def update(self, doc_id: str, data: dict[str, Any], **kwargs: Any) -> dict[str, Any]:
         raise HTTPException(
-            status.HTTP_405_METHOD_NOT_ALLOWED, "Звіт про стан системи лише для читання"
+            status.HTTP_405_METHOD_NOT_ALLOWED, _("The system health report is read-only")
         )
 
     async def delete(self, doc_id: str, **kwargs: Any) -> None:
         raise HTTPException(
-            status.HTTP_405_METHOD_NOT_ALLOWED, "Звіт про стан системи лише для читання"
+            status.HTTP_405_METHOD_NOT_ALLOWED, _("The system health report is read-only")
         )

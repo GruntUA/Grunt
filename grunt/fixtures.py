@@ -62,7 +62,7 @@ def parse_fixture_specs(entries: list[str | dict[str, Any]]) -> list[FixtureSpec
                 )
             )
         else:
-            raise ValueError(f"Некоректний запис fixtures: {entry!r}")
+            raise ValueError(f"Invalid fixtures entry: {entry!r}")
     return specs
 
 
@@ -122,7 +122,7 @@ async def export_records(spec: FixtureSpec) -> list[dict[str, Any]]:
 
     meta = await grunt.get_meta(spec.doctype)
     if meta is None:
-        raise ValueError(f"DocType «{spec.doctype}» не знайдено")
+        raise ValueError(f"DocType “{spec.doctype}” not found")
 
     names = await grunt.db.get_all(
         spec.doctype,

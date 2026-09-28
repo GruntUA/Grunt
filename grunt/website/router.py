@@ -68,7 +68,10 @@ class WebsiteRegistry:
             autoescape=select_autoescape(["html"]),
             enable_async=True,
         )
+        from grunt.i18n.jinja import install as install_i18n
         from grunt.website.block_types import get_block_template
+
+        install_i18n(env)
 
         env.globals["block_template"] = get_block_template
         # {% set menu = website_menu("main") %} — WebsiteMenuItem tree (async, auto-awaited)

@@ -18,6 +18,7 @@ from typing import Any
 from sqlalchemy import or_, select
 
 import grunt
+from grunt.i18n import _
 
 
 async def _identifier_search(
@@ -93,7 +94,7 @@ class DocumentLinkRPCMixin:
 
         dt = await grunt_app.get_meta(doctype)
         if dt is None:
-            raise not_found(f"DocType «{doctype}» не знайдено")
+            raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
         extra_filters: dict[str, Any] = filters or {}
         # A numeric search term ("12345") can arrive coerced to int — normalise.
         search = str(search or "").strip()

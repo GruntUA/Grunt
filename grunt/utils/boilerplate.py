@@ -44,8 +44,8 @@ def make_boilerplate(dest: Path, app_name: str, no_git: bool = False) -> None:
     """Interactively create a new Grunt app at dest/app_name."""
     if not is_valid_app_name(app_name):
         click.echo(
-            "Помилка: назва додатку повинна бути у форматі snake_case "
-            "(тільки малі літери, цифри, підкреслення; починається з літери).",
+            "Error: the app name must be snake_case "
+            "(lowercase letters, digits and underscores only; starting with a letter).",
             err=True,
         )
         raise SystemExit(1)
@@ -77,37 +77,37 @@ def _get_user_inputs(app_name: str) -> dict:
     default_title = app_name.replace("_", " ").title()
     default_module = app_name
 
-    click.echo(f"\n  Новий Ґрунт додаток: {app_name}\n")
+    click.echo(f"\n  New Grunt app: {app_name}\n")
 
     title = _prompt_validated(
-        "Назва (title)",
+        "Title",
         validator=lambda v: bool(v.strip()),
-        error_msg="Назва не може бути порожньою.",
+        error_msg="The title cannot be empty.",
         default=default_title,
     )
 
-    description = click.prompt("Опис", default=f"{title} — Grunt app")
+    description = click.prompt("Description", default=f"{title} — Grunt app")
 
-    author = click.prompt("Автор (ім'я або організація)")
+    author = click.prompt("Author (name or organization)")
 
     email = _prompt_validated(
-        "Email автора",
+        "Author email",
         validator=is_valid_email,
-        error_msg="Невірний формат email.",
+        error_msg="Invalid email format.",
     )
 
-    version = click.prompt("Версія", default="0.1.0")
-    icon = click.prompt("Іконка (emoji)", default="📦")
-    color = click.prompt("Колір accent (hex)", default="#2D6A4F")
+    version = click.prompt("Version", default="0.1.0")
+    icon = click.prompt("Icon (emoji)", default="📦")
+    color = click.prompt("Accent color (hex)", default="#2D6A4F")
 
     module = _prompt_validated(
-        "Назва модуля (snake_case)",
+        "Module name (snake_case)",
         validator=lambda v: bool(re.match(r"^[a-z][a-z0-9_]*$", v)),
-        error_msg="Назва модуля повинна бути у форматі snake_case.",
+        error_msg="The module name must be snake_case.",
         default=default_module,
     )
 
-    use_git = click.confirm("\nІніціалізувати git репозиторій?", default=True)
+    use_git = click.confirm("\nInitialize a git repository?", default=True)
 
     return {
         "app_name": app_name,
@@ -133,7 +133,7 @@ def _create_app_boilerplate(dest: Path, hooks: dict, no_git: bool = False) -> No
     app_dir = dest / app_name
 
     if app_dir.exists():
-        click.echo(f"Помилка: директорія '{app_dir}' вже існує.", err=True)
+        click.echo(f"Error: directory '{app_dir}' already exists.", err=True)
         raise SystemExit(1)
 
     # Create directories
@@ -165,14 +165,14 @@ def _create_app_boilerplate(dest: Path, hooks: dict, no_git: bool = False) -> No
         _init_git(app_dir)
 
     # Summary
-    click.echo(f"\n✓ Додаток '{app_name}' створено в {app_dir}/")
-    click.echo("\nСтруктура:")
+    click.echo(f"\n✓ App '{app_name}' created in {app_dir}/")
+    click.echo("\nStructure:")
     for p in sorted(app_dir.rglob("*")):
         if not p.is_dir() and ".git" not in str(p):
             rel = p.relative_to(app_dir.parent)
             click.echo(f"  {rel}")
 
-    click.echo("\nНаступні кроки:")
+    click.echo("\nNext steps:")
     click.echo(f"  grunt app install {app_name}")
     click.echo("  grunt serve --reload")
 
@@ -328,8 +328,8 @@ def _init_git(app_dir: Path) -> None:
             check=True,
             capture_output=True,
         )
-        click.echo("  git: репозиторій ініціалізовано з initial commit.")
+        click.echo("  git: repository initialized with an initial commit.")
     except subprocess.CalledProcessError as exc:
-        click.echo(f"  git: не вдалося ініціалізувати — {exc}", err=True)
+        click.echo(f"  git: initialization failed: {exc}", err=True)
     except FileNotFoundError:
-        click.echo("  git: не знайдено, пропускаємо.", err=True)
+        click.echo("  git: not found, skipping.", err=True)

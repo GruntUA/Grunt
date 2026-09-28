@@ -15,6 +15,7 @@ from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import select, update
 
+from grunt.i18n import _
 from grunt.log import log
 from grunt.naming.patterns import (
     build_prefix,
@@ -93,7 +94,7 @@ class NamingService:
 
         ns_dt = await grunt.get_meta("NamingSeries")
         if ns_dt is None:
-            raise not_found("DocType «NamingSeries» не знайдено")
+            raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": "NamingSeries"})
         table = ns_dt.table
 
         # Try to get existing row with lock

@@ -34,7 +34,7 @@ async def seed_system_settings(session: AsyncSession, engine: AsyncEngine) -> No
             {
                 "name": "SystemSettings",
                 "app_name": "Grunt Framework",
-                "language": "uk-UA",
+                "language": "uk",
                 "timezone": "Europe/Kyiv",
                 "date_format": "dd.mm.yyyy",
                 "allow_user_registration": False,

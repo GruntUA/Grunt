@@ -17,6 +17,7 @@ from datetime import UTC, datetime
 from typing import Any
 
 from grunt.document.base import Document
+from grunt.i18n import _, language_of, use_language
 from grunt.log import log
 
 _DONE_STATES = ("Closed", "Cancelled")
@@ -24,8 +25,9 @@ _DONE_STATES = ("Closed", "Cancelled")
 # A ToDo created without a real task note carries a boilerplate description:
 # the frontend ``docsApi.assign`` writes ``"Assigned to <email>"``; the
 # auto-assignment rules (see ``grunt.assignment.service``) write
-# ``"Призначено: <doctype> <id>"``. Either means "no note".
-_PLACEHOLDER_PREFIXES = ("Assigned to ", "Призначено:")
+# ``"Auto-assigned: <doctype> <id>"`` (``"Призначено:"`` in rows written before
+# the English source). Any of them means "no note".
+_PLACEHOLDER_PREFIXES = ("Assigned to ", "Auto-assigned:", "Призначено:")
 
 
 def is_placeholder_note(note: str | None) -> bool:
@@ -35,7 +37,7 @@ def is_placeholder_note(note: str | None) -> bool:
 
 def auto_assign_note(doctype: str, ref_id: str | None) -> str:
     """The boilerplate description an automatic assignment gets."""
-    return f"Призначено: {doctype} {ref_id or ''}".strip()
+    return f"Auto-assigned: {doctype} {ref_id or ''}".strip()
 
 
 class ToDo(Document):
@@ -106,7 +108,7 @@ class ToDo(Document):
     def _target(self) -> str:
         ref_dt = (self.get("reference_doctype") or "").strip()
         ref_id = str(self.get("reference_id") or "").strip()
-        return f"{ref_dt} {ref_id}".strip() or "документ"
+        return f"{ref_dt} {ref_id}".strip() or _("document")
 
     def _task_note(self) -> str:
         note = (self.get("description") or "").strip()
@@ -131,14 +133,14 @@ class ToDo(Document):
         """Tell *assignee* they have a new assignment (skips self-assignment)."""
         if not assignee or assignee == self._actor_email():
             return
-        target = self._target()
         note = self._task_note()
         try:
-            await self._deliver(
-                assignee,
-                f"Вам призначено: {target}",
-                note or f"Вас призначено відповідальним за {target}.",
-            )
+            # Stored text: compose it in the recipient's language.
+            with use_language(await language_of(assignee)):
+                target = self._target()
+                subject = _("Assigned to you: %(target)s") % {"target": target}
+                message = note or _("You have been assigned to %(target)s.") % {"target": target}
+            await self._deliver(assignee, subject, message)
         except Exception:
             log.exception("todo.notify_assignee_failed", assignee=assignee)
 
@@ -148,13 +150,14 @@ class ToDo(Document):
         actor = self._actor_email()
         if not recipient or recipient == actor:
             return
-        target = self._target()
         try:
-            await self._deliver(
-                recipient,
-                f"Завдання виконано: {target}",
-                f"{actor or 'Виконавець'} позначив завдання виконаним: "
-                f"{self._task_note() or target}",
-            )
+            with use_language(await language_of(recipient)):
+                target = self._target()
+                subject = _("Task completed: %(target)s") % {"target": target}
+                message = _("%(actor)s marked the task as done: %(task)s") % {
+                    "actor": actor or _("The assignee"),
+                    "task": self._task_note() or target,
+                }
+            await self._deliver(recipient, subject, message)
         except Exception:
             log.exception("todo.notify_completion_failed", recipient=recipient)

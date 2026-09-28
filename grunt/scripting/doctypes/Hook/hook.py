@@ -11,6 +11,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from grunt.i18n import _
 from grunt.metadata.virtual import VirtualDocType
 
 _SEARCH_FIELDS = ["event", "handler", "reference_doctype", "source"]
@@ -128,7 +129,8 @@ class Hook(VirtualDocType):
             if named["name"] == doc_id:
                 return named
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=f"Hook '{doc_id}' not found"
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=_("Hook '%(doc_id)s' not found") % {"doc_id": doc_id},
         )
 
     async def create(self, data: dict[str, Any], **kwargs: Any) -> dict[str, Any]:

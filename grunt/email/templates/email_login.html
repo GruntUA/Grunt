@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="uk">
+<html lang="{{ current_language() }}">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -48,23 +48,23 @@
 <body>
 <div class="wrapper">
   <div class="header">
-    <h1>Вхід в систему</h1>
+    <h1>{{ _("Sign in") }}</h1>
   </div>
   <div class="body">
-    <p>Ми отримали запит на вхід за цією адресою електронної пошти.</p>
-    <p>Ваш код для входу:</p>
+    <p>{{ _("We received a sign-in request for this email address.") }}</p>
+    <p>{{ _("Your sign-in code:") }}</p>
     <div class="code">{{ code }}</div>
-    <p>Або натисніть кнопку, щоб увійти одразу:</p>
+    <p>{{ _("Or click the button to sign in right away:") }}</p>
     <div class="btn-wrap">
       <a href="{{ login_url }}" class="btn"
          style="display:inline-block;background:#2D6A4F;color:#ffffff;text-decoration:none;padding:12px 28px;border-radius:4px;font-size:14px;font-weight:700;"
-      ><span style="color:#ffffff;">Увійти</span></a>
+      ><span style="color:#ffffff;">{{ _("Sign in") }}</span></a>
     </div>
-    <p class="url-fallback">Або перейдіть за посиланням: {{ login_url }}</p>
-    <p>Код і посилання дійсні <strong>{{ ttl_minutes }} хвилин</strong>.
-       Якщо ви не намагалися увійти — просто проігноруйте цей лист.</p>
+    <p class="url-fallback">{{ _("Or follow this link:") }} {{ login_url }}</p>
+    <p>{{ _("The code and link are valid for %(minutes)s minutes.") % {"minutes": ttl_minutes} }}
+       {{ _("If you did not try to sign in, just ignore this email.") }}</p>
   </div>
-  <div class="footer">Ґрунт — автоматичне повідомлення, не відповідайте на цей лист.</div>
+  <div class="footer">{{ _("Automated message, please do not reply.") }}</div>
 </div>
 </body>
 </html>

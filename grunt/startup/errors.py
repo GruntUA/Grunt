@@ -15,6 +15,7 @@ from pydantic import ValidationError
 from grunt.api.messages import ApplicationError
 from grunt.config import settings
 from grunt.errors import GruntError, error_body
+from grunt.i18n import _
 from grunt.log import log
 
 if TYPE_CHECKING:
@@ -24,7 +25,7 @@ if TYPE_CHECKING:
 async def _validation_error(request: Request, exc: ValidationError) -> JSONResponse:
     content = error_body(
         "VALIDATION_ERROR",
-        "Помилка валідації",
+        _("Validation error"),
         [str(e["msg"]) for e in exc.errors()],
     )
 
@@ -141,7 +142,7 @@ async def _generic_exception(request: Request, exc: Exception) -> JSONResponse:
                 "success": False,
                 "error": {
                     "code": "INTERNAL_ERROR",
-                    "message": "Внутрішня помилка сервера",
+                    "message": _("Internal server error"),
                 },
             },
         )
@@ -176,7 +177,7 @@ async def _generic_exception(request: Request, exc: Exception) -> JSONResponse:
             "success": False,
             "error": {
                 "code": "INTERNAL_ERROR",
-                "message": "Внутрішня помилка сервера",
+                "message": _("Internal server error"),
                 "debug": debug_info,
             },
         },

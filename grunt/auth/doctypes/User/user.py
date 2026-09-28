@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING, Any
 import anyio.to_thread
 import bcrypt
 
+from grunt.i18n import N_, _
 from grunt.log import log
 
 if TYPE_CHECKING:
@@ -38,10 +39,10 @@ _LOCKOUT_MINUTES = 30
 #    back; a stale echo is not an attack, so quietly restore the stored value
 #    instead of failing the whole save.
 _GUARDED_USER_FIELDS: dict[str, str] = {
-    "email": "Email",  # autoname source — renaming an account is an admin action
-    "is_active": "Активний",
-    "signup_state": "Стан реєстрації",
-    "password": "Пароль",
+    "email": N_("Email"),  # autoname source — renaming an account is an admin action
+    "is_active": N_("Active"),
+    "signup_state": N_("Signup state"),
+    "password": N_("Password"),
 }
 _SILENT_RESET_USER_FIELDS: frozenset[str] = frozenset(
     {
@@ -124,11 +125,11 @@ class User(Document):
 
     async def validate(self) -> None:
         if not self.email:
-            raise ValueError("Email є обов'язковим")
+            raise ValueError(_("Email is required"))
         if not self.first_name:
-            raise ValueError("Ім'я є обов'язковим")
+            raise ValueError(_("First name is required"))
         if not self.last_name:
-            raise ValueError("Прізвище є обов'язковим")
+            raise ValueError(_("Last name is required"))
         await self._enforce_self_edit_scope()
 
     async def _enforce_self_edit_scope(self) -> None:
@@ -152,7 +153,7 @@ class User(Document):
         if await _is_internal_context():
             return
         if not self.name:
-            grunt.throw("Недостатньо прав для створення користувача", "FORBIDDEN")
+            grunt.throw(_("Not permitted to create users"), "FORBIDDEN")
 
         # Roles are only in the merged payload when the client actually submitted
         # the child table (see update_document) — so key presence == an attempt.
@@ -167,7 +168,7 @@ class User(Document):
                 r.get("role_name") for r in (self.data.get("roles") or []) if isinstance(r, dict)
             }
             if submitted != {r["role_name"] for r in stored}:
-                grunt.throw("Недостатньо прав для зміни ролей", "FORBIDDEN")
+                grunt.throw(_("Not permitted to change roles"), "FORBIDDEN")
 
         # Framework-managed fields the form only echoes back — quietly restore
         # the stored value rather than failing the save.
@@ -183,13 +184,16 @@ class User(Document):
             if field == "password":
                 if self.data.get("password"):
                     grunt.throw(
-                        "Недостатньо прав, щоб задати пароль — скористайтесь дією «Змінити пароль»",
+                        _("Not permitted to set the password; use the Change password action"),
                         "FORBIDDEN",
                     )
                 continue
             stored = await grunt.db.get_value("User", self.name, field)
             if _norm_scalar(self.data.get(field)) != _norm_scalar(stored):
-                grunt.throw(f"Недостатньо прав, щоб змінити поле «{label}»", "FORBIDDEN")
+                grunt.throw(
+                    _("Not permitted to change the field “%(field)s”") % {"field": _(label)},
+                    "FORBIDDEN",
+                )
 
     async def before_save(self) -> None:
         """Construct full_name from components."""
@@ -545,7 +549,7 @@ async def _guard_registration() -> None:
     if await grunt.db.count("User") == 0:
         return
     if not await get_setting("allow_user_registration", False):
-        grunt.throw("Реєстрація нових користувачів вимкнена", "FORBIDDEN")
+        grunt.throw(_("Registration of new users is disabled"), "FORBIDDEN")
 
 
 async def _assign_default_role(user_id: str | None) -> None:
@@ -617,7 +621,7 @@ async def register(
 
     existing = await get_user_by_email(email)
     if existing is not None:
-        grunt.throw(f"User with email '{email}' already exists", "CONFLICT")
+        grunt.throw(_("User with email '%(email)s' already exists") % {"email": email}, "CONFLICT")
 
     user = await create_user(email, password, first_name or "", last_name or "", middle_name)
     await _assign_default_role(user.id)
@@ -652,11 +656,11 @@ async def login_api(email: str, password: str, request: Request | None = None) -
         user = await authenticate(email, password)
     except ValueError as exc:
         if str(exc) == "locked":
-            grunt.throw("Account temporarily locked. Try again later.", "TOO_MANY_REQUESTS")
+            grunt.throw(_("Account temporarily locked. Try again later."), "TOO_MANY_REQUESTS")
         raise
 
     if user is None:
-        grunt.throw("Incorrect email or password", "UNAUTHORIZED")
+        grunt.throw(_("Incorrect email or password"), "UNAUTHORIZED")
 
     return await issue_login(
         user, ip_address=client_ip(request), user_agent=client_user_agent(request)
@@ -677,11 +681,11 @@ async def mfa_login_api(
 
     payload = verify_mfa_token(mfa_token)
     if not payload:
-        grunt.throw("Невалідний або прострочений MFA токен", "UNAUTHORIZED")
+        grunt.throw(_("Invalid or expired MFA token"), "UNAUTHORIZED")
 
     user = await get_user_by_id(payload["uid"])
     if not user or not user.is_active:
-        grunt.throw("Користувача не знайдено", "UNAUTHORIZED")
+        grunt.throw(_("User not found"), "UNAUTHORIZED")
 
     try:
         await check_mfa_code(user, code)
@@ -705,10 +709,10 @@ async def _user_for_mfa_setup(mfa_token: str) -> User:
 
     payload = verify_mfa_setup_token(mfa_token)
     if not payload:
-        grunt.throw("Невалідний або прострочений токен налаштування MFA", "UNAUTHORIZED")
+        grunt.throw(_("Invalid or expired MFA setup token"), "UNAUTHORIZED")
     user = await get_user_by_id(payload["uid"])
     if not user or not user.is_active or not await mfa_setup_required(user):
-        grunt.throw("Налаштування MFA недоступне", "UNAUTHORIZED")
+        grunt.throw(_("MFA setup is unavailable"), "UNAUTHORIZED")
     return user
 
 
@@ -785,12 +789,15 @@ async def update_me_api(
     values: dict[str, Any] = {}
     if theme is not None:
         if theme not in ("light", "dark", "system"):
-            grunt.throw("Invalid theme value", "VALIDATION_ERROR")
+            grunt.throw(_("Invalid theme value"), "VALIDATION_ERROR")
         values["theme"] = theme
     if language is not None:
-        if language not in ("uk", "en"):
-            grunt.throw("Invalid language value", "VALIDATION_ERROR")
-        values["language"] = language
+        from grunt.i18n import translation_service
+
+        # "" clears the preference (follow the site default).
+        if language and language not in translation_service.ui_languages():
+            grunt.throw(_("Invalid language value"), "VALIDATION_ERROR")
+        values["language"] = language or None
     if timezone is not None:
         values["timezone"] = timezone.strip()
 
@@ -800,7 +807,7 @@ async def update_me_api(
 
     updated = await get_user_by_id(user.id)
     if updated is None:
-        grunt.throw("User not found", "NOT_FOUND")
+        grunt.throw(_("User not found"), "NOT_FOUND")
     return _auth_user_dump(updated)
 
 
@@ -812,12 +819,12 @@ async def refresh_api(refresh_token: str, request: Request | None = None) -> dic
 
     rotated = await rotate_session(refresh_token, client_ip(request))
     if rotated is None:
-        grunt.throw("Invalid or expired refresh token", "UNAUTHORIZED")
+        grunt.throw(_("Invalid or expired refresh token"), "UNAUTHORIZED")
 
     sid, new_refresh_token, user_id = rotated
     user = await get_user_by_id(user_id)
     if user is None or not user.is_active:
-        grunt.throw("Invalid or expired refresh token", "UNAUTHORIZED")
+        grunt.throw(_("Invalid or expired refresh token"), "UNAUTHORIZED")
 
     # A role started requiring MFA after this session was opened (or MFA was
     # turned off), or the session moved to an address the user's role does not
@@ -829,14 +836,14 @@ async def refresh_api(refresh_token: str, request: Request | None = None) -> dic
         from grunt.auth.doctypes.UserSession.user_session import end_session
 
         await end_session(sid)
-        grunt.throw("Вхід з цієї IP-адреси заборонено для вашої ролі", "UNAUTHORIZED")
+        grunt.throw(_("Sign-in from this IP address is not allowed for your role"), "UNAUTHORIZED")
 
     if await mfa_setup_required(user):
         from grunt.auth.doctypes.UserSession.user_session import end_session
 
         await end_session(sid)
         grunt.throw(
-            "Ваша роль вимагає двофакторної автентифікації — увійдіть знову", "UNAUTHORIZED"
+            _("Your role requires two-factor authentication; sign in again"), "UNAUTHORIZED"
         )
 
     return {
@@ -934,7 +941,7 @@ async def list_pending_users_api() -> list[dict[str, Any]]:
 async def _set_signup_state(user_id: str, state: str) -> bool:
     user = await get_user_by_id(user_id)
     if not user or not user.id:
-        grunt.throw("Користувача не знайдено", "NOT_FOUND")
+        grunt.throw(_("User not found"), "NOT_FOUND")
     await grunt.set_value(
         "User",
         user.id,
@@ -971,7 +978,7 @@ async def set_user_password_api(
 
     user = await get_user_by_id(user_id)
     if not user or not user.id:
-        grunt.throw("Користувача не знайдено", "NOT_FOUND")
+        grunt.throw(_("User not found"), "NOT_FOUND")
 
     current = await grunt.get_current_user()
     is_self = bool(
@@ -985,14 +992,12 @@ async def set_user_password_api(
 
     if not is_admin:
         if not is_self:
-            grunt.throw(
-                "Недостатньо прав, щоб змінити пароль іншого користувача", "PERMISSION_DENIED"
-            )
+            grunt.throw(_("Not permitted to change another user's password"), "PERMISSION_DENIED")
         # A first-time set (no existing password) needs no current-password proof.
         if user.hashed_password and (
             not current_password or not await user.check_password(current_password)
         ):
-            grunt.throw("Поточний пароль вказано невірно", "PERMISSION_DENIED")
+            grunt.throw(_("The current password is incorrect"), "PERMISSION_DENIED")
 
     await enforce_password_policy(new_password)
     await grunt.set_value("User", user.id, "hashed_password", await hash_password(new_password))
@@ -1006,7 +1011,7 @@ async def setup_mfa() -> dict[str, Any]:
     assert current.id is not None
     user = await get_user_by_id(current.id)
     if not user:
-        grunt.throw("User not found")
+        grunt.throw(_("User not found"))
     return await user.setup_mfa()
 
 
@@ -1017,7 +1022,7 @@ async def confirm_mfa(code: str) -> dict[str, Any]:
     assert current.id is not None
     user = await get_user_by_id(current.id)
     if not user:
-        grunt.throw("User not found")
+        grunt.throw(_("User not found"))
     backup_codes = await user.confirm_mfa(code)
     return {"backup_codes": backup_codes}
 
@@ -1031,7 +1036,7 @@ async def verify_mfa(code: str) -> bool:
     assert current.id is not None
     user = await get_user_by_id(current.id)
     if not user:
-        grunt.throw("User not found", "NOT_FOUND")
+        grunt.throw(_("User not found"), "NOT_FOUND")
 
     await check_mfa_code(user, code)
     return True
@@ -1044,7 +1049,7 @@ async def disable_mfa() -> bool:
     assert current.id is not None
     user = await get_user_by_id(current.id)
     if not user:
-        grunt.throw("User not found")
+        grunt.throw(_("User not found"))
     await user.disable_mfa()
     return True
 
@@ -1068,22 +1073,28 @@ async def forgot_password_api(email: str, request: Request | None = None) -> boo
     try:
         from grunt.app import grunt as grunt_app
         from grunt.email.service import email_service
+        from grunt.i18n import _, use_language
 
-        html_body = await grunt_app.render_template(
-            "password_reset.html",
-            {"full_name": user.full_name, "reset_url": reset_url},
-        )
-        plain = (
-            f"Привіт, {user.full_name}.\n\n"
-            "Посилання для скидання пароля (дійсне 1 годину):\n\n"
-            f"{reset_url}\n\n"
-            "Якщо ви не надсилали цей запит — проігноруйте цей лист."
-        )
+        # The mail is for the account owner — render it in *their* language.
+        with use_language(user.language):
+            html_body = await grunt_app.render_template(
+                "password_reset.html",
+                {"full_name": user.full_name, "reset_url": reset_url},
+            )
+            plain = "\n\n".join(
+                [
+                    _("Hello, %(name)s,") % {"name": user.full_name},
+                    _("Password reset link (valid for 1 hour):"),
+                    reset_url,
+                    _("If you did not request this, just ignore this email."),
+                ]
+            )
+            subject = _("Password reset")
         session = require_session()
         await email_service.queue_email(
             session=session,
             to=user.email,
-            subject="Скидання пароля",
+            subject=subject,
             body=plain,
             html_body=html_body,
         )
@@ -1107,5 +1118,5 @@ async def reset_password_api(token: str, new_password: str) -> bool:
 
     reset_ok = await consume_password_reset_token(token, new_password)
     if not reset_ok:
-        grunt.throw("Invalid or expired reset token", "VALIDATION_ERROR")
+        grunt.throw(_("Invalid or expired reset token"), "VALIDATION_ERROR")
     return True

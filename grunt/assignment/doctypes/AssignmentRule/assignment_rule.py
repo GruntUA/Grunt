@@ -8,6 +8,7 @@ from typing import Any
 import grunt
 from grunt.assignment import assignment_service
 from grunt.document.base import Document
+from grunt.i18n import _
 
 
 class AssignmentRule(Document):
@@ -27,9 +28,9 @@ class AssignmentRule(Document):
                 json.loads(self.filters)
             except json.JSONDecodeError, TypeError:
                 grunt.throw(
-                    "Поле 'Filters (JSON)' має містити валідний JSON. "
-                    'Приклад: {"status": "Draft"}',
-                    title="Помилка валідації",
+                    _("The “Filters (JSON)” field must contain valid JSON.")
+                    + ' Example: {"status": "Draft"}',
+                    title=_("Validation error"),
                 )
 
     # ------------------------------------------------------------------

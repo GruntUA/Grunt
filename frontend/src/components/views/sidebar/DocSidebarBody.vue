@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { N_ } from '@/plugins/i18n'
 import { useI18n } from 'vue-i18n'
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
@@ -121,7 +122,7 @@ function realNote(a: SidebarAssignee): string {
 }
 // One detail card per assignment (note + state), newest last.
 const assigneeTasks = computed(() => sb.bundle.value.assignees)
-const STATUS_LABEL: Record<string, string> = { Open: 'status|Open', 'In Progress': 'status|In Progress' }
+const STATUS_LABEL: Record<string, string> = { Open: N_('status|Open'), 'In Progress': N_('status|In Progress') }
 function statusLabel(a: SidebarAssignee): string {
   return a.status ? (STATUS_LABEL[a.status] ? t(STATUS_LABEL[a.status]) : a.status) : ''
 }
@@ -132,7 +133,7 @@ function assigneeTooltip(a: SidebarAssignee): string {
   if (a.created_at) parts.push(t('assigned {when}').replace('{when}', formatRelative(a.created_at)))
   return parts.join(' — ')
 }
-const PRIORITY_LABEL: Record<string, string> = { Urgent: 'priority|Urgent', High: 'priority|High' }
+const PRIORITY_LABEL: Record<string, string> = { Urgent: N_('priority|Urgent'), High: N_('priority|High') }
 function priorityTag(a: SidebarAssignee): string {
   return a.priority && a.priority in PRIORITY_LABEL ? t(PRIORITY_LABEL[a.priority]) : ''
 }

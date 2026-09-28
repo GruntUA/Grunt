@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { formatNumber } from '@/core/currency'
 import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
@@ -378,7 +379,7 @@ const statusBadge = computed(() => resolveStatusBadge(props.dt, props.document))
           <template v-else>
             <div class="flex items-center justify-between gap-3 py-2">
               <dt class="text-muted-foreground">{{ t('Rows') }}</dt>
-              <dd>{{ tableInfo.row_count?.toLocaleString() ?? '—' }}</dd>
+              <dd>{{ tableInfo.row_count != null ? formatNumber(tableInfo.row_count) : '—' }}</dd>
             </div>
             <template v-if="tableInfo.size_supported">
               <div class="flex items-center justify-between gap-3 py-2">

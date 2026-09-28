@@ -6,6 +6,7 @@ from fastapi import HTTPException, status
 
 from grunt.backups import BackupSet, delete_backup, get_backup, list_backups
 from grunt.backups.api import download_url
+from grunt.i18n import _
 from grunt.metadata.virtual import VirtualDocType
 from grunt.monitoring.health import human_size
 
@@ -55,7 +56,7 @@ class BackupController(VirtualDocType):
         site = _site()
         backup = get_backup(site, doc_id)
         if backup is None:
-            raise HTTPException(status.HTTP_404_NOT_FOUND, "Резервну копію не знайдено")
+            raise HTTPException(status.HTTP_404_NOT_FOUND, _("Backup not found"))
         return _row(site, backup)
 
     async def delete(self, doc_id: str, **kwargs: Any) -> None:
@@ -63,8 +64,8 @@ class BackupController(VirtualDocType):
 
     async def create(self, data: dict[str, Any], **kwargs: Any) -> dict[str, Any]:
         raise HTTPException(
-            status.HTTP_405_METHOD_NOT_ALLOWED, "Копію створює кнопка «Створити зараз»"
+            status.HTTP_405_METHOD_NOT_ALLOWED, _("Backups are created with the Create now button")
         )
 
     async def update(self, doc_id: str, data: dict[str, Any], **kwargs: Any) -> dict[str, Any]:
-        raise HTTPException(status.HTTP_405_METHOD_NOT_ALLOWED, "Резервну копію не можна змінити")
+        raise HTTPException(status.HTTP_405_METHOD_NOT_ALLOWED, _("A backup cannot be changed"))

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from grunt.document.base import Document
+from grunt.i18n import _
 
 
 class DocFollow(Document):
@@ -16,14 +17,14 @@ class DocFollow(Document):
         if self.user is not None and self.user.email:
             self.data["user"] = self.user.email
         if not self.data.get("user"):
-            self.grunt.throw("Вкажіть користувача")
+            self.grunt.throw(_("Specify a user"))
 
         dt = await self.grunt.get_meta(self.reference_doctype)
         doc = await self.grunt.db.get_value(self.reference_doctype, self.reference_id, "*")
         if dt is None or doc is None:
-            self.grunt.throw("Документ не знайдено", "NOT_FOUND")
+            self.grunt.throw(_("Document not found"), "NOT_FOUND")
         if self.user is not None and not await permission_checker.check(self.user, dt, "read", doc):
-            self.grunt.throw("Немає доступу до документа", "PERMISSION_DENIED")
+            self.grunt.throw(_("No access to the document"), "PERMISSION_DENIED")
 
     async def before_insert(self) -> None:
         if await self.grunt.db.exists(
@@ -34,4 +35,4 @@ class DocFollow(Document):
                 "user": self.data["user"],
             },
         ):
-            self.grunt.throw("Ви вже стежите за цим документом", "DUPLICATE_DATA")
+            self.grunt.throw(_("You are already following this document"), "DUPLICATE_DATA")

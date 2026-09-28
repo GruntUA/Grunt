@@ -5,6 +5,7 @@ from typing import Any
 
 from fastapi import HTTPException, status
 
+from grunt.i18n import _
 from grunt.log import log
 from grunt.metadata.virtual import VirtualDocType
 from grunt.tasks.redis_introspect import (
@@ -61,25 +62,25 @@ class BackgroundJobController(VirtualDocType):
         sb = stream_broker()
         if sb is None:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="Redis broker not configured"
+                status_code=status.HTTP_404_NOT_FOUND, detail=_("Redis broker not configured")
             )
         async with redis_conn() as conn:
             if conn is None:
                 raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND, detail="Redis unavailable"
+                    status_code=status.HTTP_404_NOT_FOUND, detail=_("Redis unavailable")
                 )
             await conn.xack(sb.queue_name, sb.consumer_group_name, doc_id)
 
     async def create(self, data: dict[str, Any], **kwargs: Any) -> dict[str, Any]:
         raise HTTPException(
             status_code=status.HTTP_405_METHOD_NOT_ALLOWED,
-            detail="BackgroundJob is a live view of the queue — it can't be created directly",
+            detail=_("BackgroundJob is a live view of the queue — it can't be created directly"),
         )
 
     async def update(self, doc_id: str, data: dict[str, Any], **kwargs: Any) -> dict[str, Any]:
         raise HTTPException(
             status_code=status.HTTP_405_METHOD_NOT_ALLOWED,
-            detail="BackgroundJob is a live view of the queue — it can't be edited",
+            detail=_("BackgroundJob is a live view of the queue — it can't be edited"),
         )
 
     async def _load_all(self) -> tuple[list[dict[str, Any]], str | None]:

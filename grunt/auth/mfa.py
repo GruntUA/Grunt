@@ -16,6 +16,7 @@ import pyotp
 from fastapi import HTTPException
 
 from grunt.app import grunt as grunt_app
+from grunt.i18n import _
 from grunt.log import log
 
 if TYPE_CHECKING:
@@ -121,7 +122,7 @@ async def begin_mfa_setup(user: User) -> dict:
     # Prevent overwriting if already enabled
     if user.mfa_enabled:
         raise HTTPException(
-            400, detail="MFA вже увімкнено. Спочатку вимкніть його, щоб переналаштувати."
+            400, detail=_("MFA is already enabled. Disable it first to set it up again.")
         )
 
     secret = generate_mfa_secret()
@@ -143,11 +144,11 @@ async def confirm_mfa_setup(user: User, code: str) -> list[str]:
         "User", filters={"name": user.id}, fields=["mfa_secret"], limit=1
     )
     if not rows or not rows[0].get("mfa_secret"):
-        raise HTTPException(422, detail="MFA не налаштовано. Спочатку запустіть setup.")
+        raise HTTPException(422, detail=_("MFA is not set up. Run the setup first."))
 
     secret = rows[0]["mfa_secret"]
     if not verify_totp(secret, code):
-        raise HTTPException(422, detail="Невірний TOTP код")
+        raise HTTPException(422, detail=_("Invalid TOTP code"))
 
     backup_codes = _generate_backup_codes()
     backup_hashes = [_hash_backup_code(c) for c in backup_codes]
@@ -206,7 +207,7 @@ async def check_mfa_code(user: User, code: str, session: object | None = None) -
             limit=1,
         )
         if not rows or not rows[0].get("mfa_secret"):
-            raise HTTPException(401, detail="MFA не налаштовано")
+            raise HTTPException(401, detail=_("MFA is not set up"))
 
         row = rows[0]
         secret = row["mfa_secret"]
@@ -226,4 +227,4 @@ async def check_mfa_code(user: User, code: str, session: object | None = None) -
             log.info("mfa.backup_code_used", user=user.email, remaining=len(remaining))
             return
 
-        raise HTTPException(401, detail="Невірний код MFA")
+        raise HTTPException(401, detail=_("Invalid MFA code"))

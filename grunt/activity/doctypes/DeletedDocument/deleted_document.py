@@ -13,6 +13,7 @@ from typing import Any
 
 import grunt
 from grunt.document.base import Document
+from grunt.i18n import _
 from grunt.log import log
 
 # Ключі знімка, які не можна передавати в insert відновлюваного документа:
@@ -38,7 +39,7 @@ def _require_system_manager() -> None:
     from grunt.permissions.roles import user_has_roles
 
     if not user_has_roles(grunt.get_user(), ["System Manager"]):
-        grunt.throw("Відновлювати документи може лише System Manager", code="FORBIDDEN")
+        grunt.throw(_("Only a System Manager can restore documents"), code="FORBIDDEN")
 
 
 def _snapshot_payload(snap: dict[str, Any]) -> dict[str, Any]:
@@ -47,9 +48,9 @@ def _snapshot_payload(snap: dict[str, Any]) -> dict[str, Any]:
         try:
             raw = json.loads(raw)
         except json.JSONDecodeError:
-            grunt.throw("Знімок пошкоджено — некоректний JSON", code="INVALID_SNAPSHOT")
+            grunt.throw(_("The snapshot is corrupted: invalid JSON"), code="INVALID_SNAPSHOT")
     if not isinstance(raw, dict):
-        grunt.throw("Знімок порожній", code="INVALID_SNAPSHOT")
+        grunt.throw(_("The snapshot is empty"), code="INVALID_SNAPSHOT")
     return {k: v for k, v in raw.items() if k not in _STRIP_ON_RESTORE}
 
 
@@ -71,14 +72,18 @@ async def restore(name: str, allow_rename: bool = False) -> dict[str, Any]:
     snap = await grunt.get_doc("DeletedDocument", name)
     if snap.get("restored"):
         grunt.throw(
-            f"Уже відновлено як «{snap.get('restored_to') or '?'}»", code="ALREADY_RESTORED"
+            _("Already restored as “%(name)s”") % {"name": snap.get("restored_to") or "?"},
+            code="ALREADY_RESTORED",
         )
 
     target_dt = snap["deleted_doctype"]
     try:
         await doctype_registry.get(target_dt)
     except Exception:
-        grunt.throw(f"DocType «{target_dt}» більше не існує", code="DOCTYPE_GONE")
+        grunt.throw(
+            _("DocType “%(doctype)s” no longer exists") % {"doctype": target_dt},
+            code="DOCTYPE_GONE",
+        )
 
     payload = _snapshot_payload(snap)
     orig_name = str(snap["deleted_name"])
@@ -86,7 +91,8 @@ async def restore(name: str, allow_rename: bool = False) -> dict[str, Any]:
     if await grunt.db.exists(target_dt, orig_name):
         if not allow_rename:
             grunt.throw(
-                f"Документ «{orig_name}» уже існує. Відновити з новим ID?",
+                _("Document “%(name)s” already exists. Restore with a new ID?")
+                % {"name": orig_name},
                 code="NAME_TAKEN",
             )
         payload.pop("name", None)

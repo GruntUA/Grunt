@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Any
 
 from grunt.document.base import Document
+from grunt.i18n import _
 from grunt.log import log
 
 
@@ -17,7 +18,7 @@ class DataImport(Document):
         if dt is None:
             from grunt.errors import not_found
 
-            raise not_found(f"DocType «{self.doctype_name}» не знайдено")
+            raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": self.doctype_name})
 
         headers = [str(h) if h is not None else "" for h in (data[0] if data else [])]
         suggestions: dict[str, str] = {}
@@ -77,7 +78,13 @@ class DataImport(Document):
         if dt is None:
             self.status = "Failed"
             self.error_log = json.dumps(
-                [{"row": 0, "error": f"DocType «{self.doctype_name}» не знайдено"}]
+                [
+                    {
+                        "row": 0,
+                        "error": _("DocType “%(doctype)s” not found")
+                        % {"doctype": self.doctype_name},
+                    }
+                ]
             )
             await self.session.commit()
             return
@@ -112,23 +119,28 @@ class DataImport(Document):
                         ]
                         if missing:
                             raise ValueError(
-                                f"Обов'язкові поля відсутні або порожні: {', '.join(missing)}"
+                                _("Required fields are missing or empty: %(fields)s")
+                                % {"fields": ", ".join(missing)}
                             )
                     # Validate update key exists when updating
                     if self.import_type == "Update Existing":
                         key = self.update_key
                         if not key:
-                            raise ValueError("Ключ для оновлення не вказаний")
+                            raise ValueError(_("The update key is not specified"))
                         if not doc_data.get(key):
-                            raise ValueError(f"Значення ключа '{key}' відсутнє в рядку")
+                            raise ValueError(
+                                _("The key value “%(key)s” is missing in the row") % {"key": key}
+                            )
                 else:
                     if self.import_type == "Update Existing":
                         key = self.update_key
                         if not key:
-                            raise ValueError("Ключ для оновлення не вказаний")
+                            raise ValueError(_("The update key is not specified"))
                         key_value = doc_data.get(key)
                         if not key_value:
-                            raise ValueError(f"Значення ключа '{key}' відсутнє в рядку")
+                            raise ValueError(
+                                _("The key value “%(key)s” is missing in the row") % {"key": key}
+                            )
                         existing = await self.grunt.get_list(
                             self.doctype_name, filters={key: key_value}, limit=1
                         )
@@ -141,7 +153,10 @@ class DataImport(Document):
                                 ignore_required=skip_req,
                             )
                         else:
-                            raise ValueError(f"Документ з {key}={key_value} не знайдено")
+                            raise ValueError(
+                                _("Document with %(key)s=%(value)s not found")
+                                % {"key": key, "value": key_value}
+                            )
                     else:
                         await self.grunt.new_doc(
                             self.doctype_name,
@@ -231,7 +246,9 @@ class DataImport(Document):
 
         imp = get_importer_for_file(file_path.name)
         if imp is None:
-            raise ValueError(f"Непідтримуваний формат файлу: {file_path.suffix}")
+            raise ValueError(
+                _("Unsupported file format: %(format)s") % {"format": file_path.suffix}
+            )
         return imp.read(file_path, limit=limit)
 
     # ──────────────────────────────────────────────────────────────────
@@ -257,11 +274,11 @@ class DataImport(Document):
 
         exporter = get_exporter(fmt)
         if exporter is None:
-            raise ValueError(f"Невідомий формат експорту: {fmt}")
+            raise ValueError(_("Unknown export format: %(format)s") % {"format": fmt})
 
         dt = await grunt_app.get_meta(doctype)
         if dt is None:
-            raise ValueError(f"DocType «{doctype}» не знайдено")
+            raise ValueError(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
         exportable = dt.get_physical_fields()
         if fields:
             exportable = [f for f in exportable if f.fieldname in fields]
@@ -289,11 +306,11 @@ class DataImport(Document):
 
         exporter = get_exporter(fmt)
         if exporter is None:
-            raise ValueError(f"Невідомий формат: {fmt}")
+            raise ValueError(_("Unknown format: %(format)s") % {"format": fmt})
 
         dt = await grunt_app.get_meta(doctype)
         if dt is None:
-            raise ValueError(f"DocType «{doctype}» не знайдено")
+            raise ValueError(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
         exportable = dt.get_physical_fields()
         content = await exporter.export(doctype, [], exportable)
         filename = f"{doctype.lower()}_template.{exporter.file_extension}"

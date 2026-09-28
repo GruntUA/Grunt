@@ -31,7 +31,7 @@ async def _bootstrap(site: str | None) -> dict:
     sites = site_manager.get_sites()
     target: str | None = site or (sites[0] if sites else None)
     if target is None:
-        print("Помилка: сайт не знайдено.", file=sys.stderr)
+        print("Error: site not found.", file=sys.stderr)
         sys.exit(1)
 
     token = current_site.set(target)
@@ -172,28 +172,28 @@ def _start_repl(local_vars: dict, banner: str) -> None:
 
 def _make_banner(site: str) -> str:
     return f"""
-  ⚡ Ґрунт Interactive Shell  ─────────────────────────────────────────────
+  ⚡ Grunt Interactive Shell  ─────────────────────────────────────────────
   Site     : {site}
   Python   : {sys.version.split()[0]}
 
-  Об'єкти:
-    session            AsyncSession (поточний сайт)
+  Objects:
+    session            AsyncSession (current site)
     engine             AsyncEngine
     registry           DocType Registry
-    run(coro)          виконати async coroutine синхронно
+    run(coro)          run an async coroutine synchronously
 
-  Зручні функції:
+  Helpers:
     get_doc(doctype, name)                        → dict
     get_list(doctype, filters, fields, limit)     → list[dict]
-    save_doc(doctype, data)                       → dict  (create або update)
+    save_doc(doctype, data)                       → dict  (create or update)
     delete_doc(doctype, name)                     → None
 
-  Приклади:
+  Examples:
     >>> get_list("User", limit=5)
     >>> get_doc("User", "admin@example.com")
     >>> save_doc("ToDo", {{"title": "Test task", "status": "Open"}})
     >>> run(registry.get("MyDocType"))
 
-  Ctrl+D / exit() для виходу
+  Ctrl+D / exit() to quit
   ─────────────────────────────────────────────────────────────────────────
 """

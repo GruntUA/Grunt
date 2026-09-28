@@ -15,10 +15,9 @@ single source of whitespace.
 from __future__ import annotations
 
 _INSTALL_HINT = (
-    "PDF-генерація недоступна: не встановлено Playwright / Chromium або його "
-    "системні бібліотеки. Виконайте `pip install playwright`, "
-    "`playwright install chromium`, а на сервері ще й (з root) "
-    "`playwright install-deps chromium`."
+    "PDF generation is unavailable: Playwright / Chromium or its system libraries "
+    "are not installed. Run `pip install playwright`, `playwright install chromium` "
+    "and, on a server (as root), `playwright install-deps chromium`."
 )
 
 

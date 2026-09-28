@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from grunt.i18n import _
 from grunt.metadata.virtual import VirtualDocType
 
 
@@ -47,7 +48,7 @@ class SqlProfilerRequest(VirtualDocType):
                 return self._to_doc(row)
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"SqlProfilerRequest '{doc_id}' not found",
+            detail=_("SqlProfilerRequest '%(doc_id)s' not found") % {"doc_id": doc_id},
         )
 
     async def create(self, data: dict[str, Any], **kwargs: Any) -> dict[str, Any]:

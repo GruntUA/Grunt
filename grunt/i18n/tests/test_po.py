@@ -148,7 +148,9 @@ def test_flip_module_apply_rewrites_json_and_fills_uk_po(flip_pkg):
 def test_flip_module_leaves_select_values_by_default(flip_pkg):
     import json as _json
 
-    r = po.flip_module("demo", {"Віджет": "Widget", "Назва": "Name", "Статус": "Status"}, apply=True)
+    r = po.flip_module(
+        "demo", {"Віджет": "Widget", "Назва": "Name", "Статус": "Status"}, apply=True
+    )
     assert r["unmapped"] == []  # option values are not even asked for
     dt = _json.loads(flip_pkg.read_text(encoding="utf-8"))
     assert dt["fields"][1]["label"] == "Status"

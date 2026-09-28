@@ -6,6 +6,7 @@ from typing import Any
 import grunt as _grunt
 from grunt.app import grunt
 from grunt.document.versioning import _SKIP_FIELDS
+from grunt.i18n import _
 from grunt.log import log
 
 
@@ -18,7 +19,6 @@ async def should_log_activity(doctype: str) -> bool | None:
     """
     dt = await grunt.get_meta(doctype)
     return dt.track_activity if dt else None
-
 
 
 def _feed_hidden(dt: Any) -> bool:
@@ -263,7 +263,7 @@ async def get_view_info(doctype: str, doc_id: str) -> dict[str, Any]:
     if dt is None:
         from grunt.errors import not_found
 
-        raise not_found(f"DocType «{doctype}» не знайдено")
+        raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
     out: dict[str, Any] = {"seen": [], "views": 0, "viewers": 0}
 
     if dt.track_seen:

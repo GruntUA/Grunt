@@ -31,6 +31,7 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
 
+from grunt.i18n import _
 from grunt.log import log
 
 KINDS = ("database", "files", "config")
@@ -123,7 +124,9 @@ def _backup_sqlite(db_path: Path, dest: Path) -> None:
             dst.close()
             src.close()
         if result != "ok":
-            raise BackupError(f"Знімок бази пошкоджений: {result}")
+            raise BackupError(
+                _("The database snapshot is corrupted: %(result)s") % {"result": result}
+            )
         with snapshot.open("rb") as fin, gzip.open(dest, "wb", compresslevel=6) as fout:
             shutil.copyfileobj(fin, fout, length=1024 * 1024)
 
@@ -134,7 +137,7 @@ def _libpq_url(url) -> str:
 
 def _backup_postgres(url, dest: Path) -> None:
     if not shutil.which("pg_dump"):
-        raise BackupError("pg_dump не знайдено — встановіть клієнт PostgreSQL")
+        raise BackupError(_("pg_dump not found; install the PostgreSQL client"))
     subprocess.run(["pg_dump", "-Fc", "-f", str(dest), _libpq_url(url)], check=True)
 
 
@@ -158,7 +161,9 @@ def _create_backup_sync(site: str, with_files: bool) -> BackupSet:
             made.append(dest)
             _backup_postgres(url, dest)
         else:
-            raise BackupError(f"Резервне копіювання {url.get_backend_name()} не підтримується")
+            raise BackupError(
+                _("Backups of %(backend)s are not supported") % {"backend": url.get_backend_name()}
+            )
 
         uploads = site_dir(site) / "uploads"
         if with_files and uploads.is_dir():
@@ -208,7 +213,7 @@ def restore_backup(site: str, backup: BackupSet, *, with_files: bool = False) ->
     Returns that directory.
     """
     if "database" not in backup.files:
-        raise BackupError("У цій копії немає бази даних")
+        raise BackupError(_("This backup has no database"))
     aside = backups_dir(site) / f"pre-restore-{datetime.now(UTC):%Y%m%d-%H%M%S}"
     aside.mkdir(mode=0o700)
     url = _db_url(site)
@@ -224,7 +229,9 @@ def restore_backup(site: str, backup: BackupSet, *, with_files: bool = False) ->
         finally:
             check.close()
         if result != "ok":
-            raise BackupError(f"Копія бази пошкоджена: {result}")
+            raise BackupError(
+                _("The database backup is corrupted: %(result)s") % {"result": result}
+            )
         for suffix in ("", "-wal", "-shm"):
             current = Path(f"{db_path}{suffix}")
             if current.exists():
@@ -232,7 +239,7 @@ def restore_backup(site: str, backup: BackupSet, *, with_files: bool = False) ->
         shutil.move(restored, db_path)
     elif url.get_backend_name() == "postgresql":
         if not shutil.which("pg_restore"):
-            raise BackupError("pg_restore не знайдено — встановіть клієнт PostgreSQL")
+            raise BackupError(_("pg_restore not found; install the PostgreSQL client"))
         subprocess.run(
             [
                 "pg_restore",
@@ -246,7 +253,9 @@ def restore_backup(site: str, backup: BackupSet, *, with_files: bool = False) ->
             check=True,
         )
     else:
-        raise BackupError(f"Відновлення {url.get_backend_name()} не підтримується")
+        raise BackupError(
+            _("Restoring %(backend)s is not supported") % {"backend": url.get_backend_name()}
+        )
 
     if with_files and "files" in backup.files:
         uploads = site_dir(site) / "uploads"

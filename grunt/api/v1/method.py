@@ -10,6 +10,7 @@ from grunt.app import grunt as grunt_app
 from grunt.auth.dependencies import _oauth2_scheme_optional, optional_user
 from grunt.db.session import get_engine as get_engine_dep
 from grunt.db.session import get_session
+from grunt.i18n import _
 from grunt.log import log
 
 if TYPE_CHECKING:
@@ -97,7 +98,8 @@ def get_whitelisted_method(method_path: str) -> Any:
 
     if not method:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=f"Method {method_path} not found"
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=_("Method %(method_path)s not found") % {"method_path": method_path},
         )
 
     # Check if method is whitelisted
@@ -106,7 +108,9 @@ def get_whitelisted_method(method_path: str) -> Any:
         log.warning("method.not_whitelisted", method_path=method_path)
         from grunt.errors import forbidden
 
-        raise forbidden(f"Method {method_path} is not whitelisted")
+        raise forbidden(
+            _("Method %(method_path)s is not whitelisted") % {"method_path": method_path}
+        )
 
     return method
 
@@ -160,7 +164,7 @@ async def _invoke_with_context(
         if missing:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
-                detail=f"Missing required parameters: {', '.join(missing)}",
+                detail=_("Missing required parameters: %(items)s") % {"items": ", ".join(missing)},
             )
 
         if iscoroutinefunction(method):

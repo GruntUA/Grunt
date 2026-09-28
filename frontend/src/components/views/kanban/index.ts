@@ -1,10 +1,11 @@
+import { N_ } from '@/plugins/i18n'
 import { LayoutGrid } from '@lucide/vue'
 import type { ViewDefinition } from '@/core/viewRegistry'
 import type { DocType, DocField } from '@/types'
 
 const def: ViewDefinition = {
   type: 'kanban',
-  label: 'Kanban',
+  label: N_('Kanban'),
   icon: LayoutGrid,
   order: 1,
   managesOwnScroll: true,

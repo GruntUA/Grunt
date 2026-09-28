@@ -17,6 +17,7 @@ from datetime import UTC, date, datetime
 from typing import TYPE_CHECKING, Any
 
 from grunt.app import grunt
+from grunt.i18n import _
 from grunt.log import log
 from grunt.site.manager import site_manager
 from grunt.tasks.broker import retryable_task
@@ -79,8 +80,12 @@ async def send_report(report: dict[str, Any], session: AsyncSession) -> int:
 
     today = datetime.now(UTC).date().isoformat()
     rows = (result.get("meta") or {}).get("rows", len(result.get("data") or []))
-    subject = f"Звіт «{name}» — {today}"
-    body = f"Звіт «{name}» станом на {today}: {rows} рядків. Файл у вкладенні."
+    subject = _("Report “%(name)s”, %(date)s") % {"name": name, "date": today}
+    body = _("Report “%(name)s” as of %(date)s: %(rows)s rows. The file is attached.") % {
+        "name": name,
+        "date": today,
+        "rows": rows,
+    }
     attachment = {"filename": f"{name[:50]}.xlsx", "mimetype": XLSX_MIMETYPE, "content": xlsx}
 
     for to in recipients:
@@ -131,7 +136,7 @@ async def send_report_now(name: str) -> int:
     """Send one report immediately, regardless of its schedule (form action)."""
     rows = await grunt.db.get_all("Report", filters={"name": name}, fields=_REPORT_FIELDS, limit=1)
     if not rows:
-        grunt.throw(f"Звіт «{name}» не знайдено", "NOT_FOUND")
+        grunt.throw(_("Report “%(name)s” not found") % {"name": name}, "NOT_FOUND")
     from grunt.context import require_session
 
     return await send_report(rows[0], require_session())

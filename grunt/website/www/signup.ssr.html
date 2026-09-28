@@ -1,6 +1,6 @@
 {% extends "_base.html" %}
 
-{% block title %}Реєстрація — Ґрунт{% endblock %}
+{% block title %}{{ _("Sign up") }} — Ґрунт{% endblock %}
 
 {% block head %}
 <style>
@@ -66,8 +66,8 @@
 <div class="container">
     <div class="auth-card glass animate-fade-in">
         <div style="text-align: center; margin-bottom: 2.5rem;">
-            <h1 style="font-size: 1.75rem; margin-bottom: 0.5rem;">Створити акаунт</h1>
-            <p style="color: var(--text-muted); font-size: 0.95rem;">Приєднуйтесь до нашої спільноти сьогодні</p>
+            <h1 style="font-size: 1.75rem; margin-bottom: 0.5rem;">{{ _("Create an account") }}</h1>
+            <p style="color: var(--text-muted); font-size: 0.95rem;">{{ _("Join our community today") }}</p>
         </div>
 
         {% if error %}
@@ -79,44 +79,44 @@
         <form action="/signup" method="post">
             <div class="form-row">
                 <div class="form-group">
-                    <label class="form-label" for="first_name">Ім'я</label>
-                    <input type="text" id="first_name" name="first_name" class="form-input" placeholder="Іван" required value="{{ first_name or '' }}">
+                    <label class="form-label" for="first_name">{{ _("First name") }}</label>
+                    <input type="text" id="first_name" name="first_name" class="form-input" placeholder="{{ _('John') }}" required value="{{ first_name or '' }}">
                 </div>
                 <div class="form-group">
-                    <label class="form-label" for="last_name">Прізвище</label>
-                    <input type="text" id="last_name" name="last_name" class="form-input" placeholder="Франко" required value="{{ last_name or '' }}">
+                    <label class="form-label" for="last_name">{{ _("Last name") }}</label>
+                    <input type="text" id="last_name" name="last_name" class="form-input" placeholder="{{ _('Smith') }}" required value="{{ last_name or '' }}">
                 </div>
             </div>
 
             <div class="form-group">
-                <label class="form-label" for="email">Електронна пошта</label>
+                <label class="form-label" for="email">{{ _("Email") }}</label>
                 <input type="email" id="email" name="email" class="form-input" placeholder="name@company.com" required value="{{ email or '' }}">
             </div>
 
             <div class="form-group">
-                <label class="form-label" for="password">Пароль</label>
-                <input type="password" id="password" name="password" class="form-input" placeholder="Мінімум 8 символів" required>
+                <label class="form-label" for="password">{{ _("Password") }}</label>
+                <input type="password" id="password" name="password" class="form-input" placeholder="{{ _('At least 8 characters') }}" required>
             </div>
 
             <div class="form-group">
-                <label class="form-label" for="confirm_password">Підтвердіть пароль</label>
+                <label class="form-label" for="confirm_password">{{ _("Confirm password") }}</label>
                 <input type="password" id="confirm_password" name="confirm_password" class="form-input" placeholder="••••••••" required>
             </div>
 
             <div class="form-group" style="display: flex; align-items: flex-start; gap: 0.5rem; margin-top: 1.5rem;">
                 <input type="checkbox" id="terms" name="terms" required style="width: 1rem; height: 1rem; cursor: pointer; margin-top: 0.2rem;">
                 <label for="terms" style="font-size: 0.85rem; color: var(--text-muted); cursor: pointer;">
-                    Я погоджуюся з <a href="/terms" style="color: var(--primary); text-decoration: none;">Умовами використання</a> та <a href="/privacy" style="color: var(--primary); text-decoration: none;">Політикою конфіденційності</a>
+                    {{ _("I agree to the") }} <a href="/terms" style="color: var(--primary); text-decoration: none;">{{ _("Terms of use") }}</a> {{ _("and the") }} <a href="/privacy" style="color: var(--primary); text-decoration: none;">{{ _("Privacy policy") }}</a>
                 </label>
             </div>
 
             <button type="submit" class="btn btn-primary" style="width: 100%; height: 3rem; font-size: 1rem; margin-top: 1rem;">
-                Зареєструватися
+                {{ _("Sign up") }}
             </button>
         </form>
 
         <div style="margin-top: 2rem; text-align: center; font-size: 0.95rem; color: var(--text-muted);">
-            Вже маєте акаунт? <a href="/login" style="color: var(--primary); text-decoration: none; font-weight: 600;">Увійти</a>
+            {{ _("Already have an account?") }} <a href="/login" style="color: var(--primary); text-decoration: none; font-weight: 600;">{{ _("Sign in") }}</a>
         </div>
     </div>
 </div>

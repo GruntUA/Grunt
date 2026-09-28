@@ -8,6 +8,7 @@ import aiosmtplib
 
 import grunt
 from grunt.email.service import SMTP_PASSWORD_MASK, EmailService, smtp_connect_kwargs
+from grunt.i18n import _
 from grunt.log import log
 
 
@@ -55,30 +56,30 @@ async def send_test_email(account_id: str, recipient: str) -> dict[str, Any]:
     """
     recipient = (recipient or "").strip()
     if not recipient:
-        return {"success": False, "error": "Не вказано адресу отримувача."}
+        return {"success": False, "error": _("No recipient address specified.")}
 
     account = dict(await grunt.get_doc("EmailAccount", account_id))
     if not account.get("enable_outgoing"):
-        return {"success": False, "error": "Для цього облікового запису вимкнена вихідна пошта."}
+        return {"success": False, "error": _("Outgoing email is disabled for this account.")}
 
     # Reads mask the password — pull the real one straight from the column.
     account["smtp_password"] = await grunt.db.get_value("EmailAccount", account_id, "smtp_password")
     if not account["smtp_password"]:
         return {
             "success": False,
-            "error": "Пароль SMTP не збережено. Збережіть обліковий запис із паролем.",
+            "error": _("The SMTP password is not saved. Save the account with a password."),
         }
 
     try:
         await EmailService.send_now(
             account,
             {
-                "subject": "Grunt — тестовий лист",
+                "subject": _("Grunt test email"),
                 "recipient": recipient,
                 "content": (
-                    "Це тестовий лист, надісланий із Grunt.\n\n"
-                    "Якщо ви його отримали — надсилання пошти через цей обліковий "
-                    "запис працює."
+                    _("This is a test email sent from Grunt.")
+                    + "\n\n"
+                    + _("If you received it, sending email through this account works.")
                 ),
             },
         )

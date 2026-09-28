@@ -11,6 +11,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from grunt.i18n import _
+
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -22,7 +24,7 @@ class EmailTemplateError(Exception):
 def _format(template: str, context: dict[str, Any]) -> str:
     try:
         return template.format(**context)
-    except (KeyError, IndexError):
+    except KeyError, IndexError:
         return template
 
 
@@ -46,7 +48,9 @@ async def render(name: str, context: dict[str, Any]) -> tuple[str, str, str | No
         )
 
     if not rows:
-        raise EmailTemplateError(f"Email-шаблон «{name}» не знайдено або вимкнено")
+        raise EmailTemplateError(
+            _("Email template “%(name)s” not found or disabled") % {"name": name}
+        )
 
     row = rows[0]
     subject = _format(row["subject"], context)

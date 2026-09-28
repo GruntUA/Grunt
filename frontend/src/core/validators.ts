@@ -1,4 +1,4 @@
-import i18n from '@/plugins/i18n'
+import i18n, { N_ } from '@/plugins/i18n'
 
 const t = (key: string): string => i18n.global.t(key)
 
@@ -23,13 +23,13 @@ const EDRPOU = /^\d{8}(\d{2})?$/
 const RNOCPP = /^\d{10}$/
 
 const VALIDATORS: Record<string, ValidatorDef> = {
-  email:    { check: v => EMAIL.test(v),                          message: 'Invalid email format' },
-  phone:    { check: v => PHONE.test(v),                          message: 'Invalid phone format' },
-  url:      { check: v => URL.test(v),                            message: 'Invalid URL format' },
-  iban_ua:  { check: v => IBAN_UA.test(v.replace(/\s/g, '').toUpperCase()), message: 'Invalid IBAN (expected UA + 27 digits)' },
-  iban:     { check: v => IBAN.test(v.replace(/\s/g, '').toUpperCase()),    message: 'Invalid IBAN format' },
-  edrpou:   { check: v => EDRPOU.test(v.trim()),                  message: 'Invalid EDRPOU code (8 or 10 digits)' },
-  rnocpp:   { check: v => RNOCPP.test(v.trim()),                  message: 'Invalid RNOKPP (10 digits)' },
+  email:    { check: v => EMAIL.test(v),                          message: N_('Invalid email format') },
+  phone:    { check: v => PHONE.test(v),                          message: N_('Invalid phone format') },
+  url:      { check: v => URL.test(v),                            message: N_('Invalid URL format') },
+  iban_ua:  { check: v => IBAN_UA.test(v.replace(/\s/g, '').toUpperCase()), message: N_('Invalid IBAN (expected UA + 27 digits)') },
+  iban:     { check: v => IBAN.test(v.replace(/\s/g, '').toUpperCase()),    message: N_('Invalid IBAN format') },
+  edrpou:   { check: v => EDRPOU.test(v.trim()),                  message: N_('Invalid EDRPOU code (8 or 10 digits)') },
+  rnocpp:   { check: v => RNOCPP.test(v.trim()),                  message: N_('Invalid RNOKPP (10 digits)') },
 }
 
 export function validateFieldValue(validatorName: string, value: unknown): string | null {

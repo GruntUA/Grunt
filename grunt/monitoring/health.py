@@ -19,6 +19,7 @@ from sqlalchemy import text
 
 from grunt import whitelist
 from grunt.app import grunt
+from grunt.i18n import N_, _
 from grunt.log import log
 
 if TYPE_CHECKING:
@@ -52,11 +53,11 @@ def row(category: str, check: str, status: str, value: Any = "", hint: str = "")
 
 
 def human_size(n: float) -> str:
-    for unit in ("Б", "КБ", "МБ", "ГБ"):
+    for unit in ("B", "KB", "MB", "GB"):
         if n < 1024:
-            return f"{n:.0f} {unit}" if unit == "Б" else f"{n:.1f} {unit}"
+            return f"{n:.0f} {_(unit)}" if unit == "B" else f"{n:.1f} {_(unit)}"
         n /= 1024
-    return f"{n:.1f} ТБ"
+    return f"{n:.1f} {_('TB')}"
 
 
 def _since(delta: timedelta) -> datetime:
@@ -83,16 +84,16 @@ async def check_database() -> list[Row]:
     latency = (time.perf_counter() - started) * 1000
     rows = [
         row(
-            "База даних",
-            "З'єднання",
+            _("Database"),
+            _("Connection"),
             OK if latency < 200 else WARNING,
-            f"{dialect} {str(version).split(' on ')[0]} · {latency:.0f} мс",
-            "" if latency < 200 else "Повільна відповідь бази даних.",
+            f"{dialect} {str(version).split(' on ')[0]} · {latency:.0f} {_('ms')}",
+            "" if latency < 200 else _("Slow database response."),
         )
     ]
     size = await _database_size(session, dialect)
     if size is not None:
-        rows.append(row("База даних", "Розмір", INFO, human_size(size)))
+        rows.append(row(_("Database"), _("Size"), INFO, human_size(size)))
     return rows
 
 
@@ -124,9 +125,9 @@ async def largest_tables() -> list[Row]:
     for name, n in counts[:TOP_N]:
         dt = await grunt.get_meta(name)
         retention = dt.retention_days if dt else None
-        details = f"зберігається {retention} дн." if retention else ""
+        details = _("kept for %(days)s days") % {"days": retention} if retention else ""
         if dt and dt.is_log and not retention:
-            details = "журнал — загальний строк зберігання логів"
+            details = _("log: general log retention period")
         items.append({"label": name, "count": n, "details": details})
     return items
 
@@ -137,17 +138,19 @@ async def largest_tables() -> list[Row]:
 async def check_background_jobs() -> list[Row]:
     from grunt.tasks.redis_introspect import redis_conn, s, stream_broker
 
-    cat = "Фонові задачі"
+    cat = _("Background jobs")
     sb = stream_broker()
     if sb is None:
         return [
             row(
                 cat,
-                "Черга задач",
+                _("Job queue"),
                 WARNING,
-                "у процесі (без Redis)",
-                "REDIS_URL не задано: задачі виконуються в процесі сервера й губляться при "
-                "перезапуску. Для production налаштуйте Redis і воркер.",
+                _("in-process (no Redis)"),
+                _(
+                    "REDIS_URL is not set: jobs run inside the server process and are lost on "
+                    "restart. Configure Redis and a worker for production."
+                ),
             )
         ]
     async with redis_conn() as conn:
@@ -156,25 +159,26 @@ async def check_background_jobs() -> list[Row]:
         groups = await conn.xinfo_groups(sb.queue_name)
     alive = [c for c in consumers if int(c.get("idle", 0)) < DEAD_WORKER_IDLE_MS]
     dead = len(consumers) - len(alive)
-    rows = [row(cat, "Redis", OK, "доступний")]
+    rows = [row(cat, "Redis", OK, _("available"))]
     if not consumers:
         rows.append(
             row(
                 cat,
-                "Воркери",
+                _("Workers"),
                 ERROR,
                 0,
-                "Жоден воркер не підключений — фонові задачі не виконуються.",
+                _("No worker is connected: background jobs are not running."),
             )
         )
     else:
         rows.append(
             row(
                 cat,
-                "Воркери",
+                _("Workers"),
                 OK if not dead else WARNING,
-                f"{len(alive)} активних" + (f", {dead} без активності" if dead else ""),
-                "Воркер без активності понад 10 хв міг впасти — див. «Воркери черги»."
+                _("%(count)s active") % {"count": len(alive)}
+                + (", " + _("%(count)s idle") % {"count": dead} if dead else ""),
+                _("A worker idle for over 10 min may have crashed; see Queue Workers.")
                 if dead
                 else "",
             )
@@ -186,10 +190,10 @@ async def check_background_jobs() -> list[Row]:
         rows.append(
             row(
                 cat,
-                "Черга",
+                _("Queue"),
                 OK if lag < 100 else WARNING,
-                f"{lag} у черзі, {pending} виконується",
-                "" if lag < 100 else "Задачі накопичуються швидше, ніж виконуються.",
+                _("%(queued)s queued, %(running)s running") % {"queued": lag, "running": pending},
+                "" if lag < 100 else _("Jobs are piling up faster than they are processed."),
             )
         )
     return rows
@@ -198,26 +202,29 @@ async def check_background_jobs() -> list[Row]:
 async def check_scheduler() -> list[Row]:
     from grunt.tasks.scheduler import failed_jobs, scheduler
 
-    cat = "Планувальник"
+    cat = _("Scheduler")
     rows = [
         row(
             cat,
-            "Планувальник",
+            _("Scheduler"),
             OK if scheduler.running else ERROR,
-            f"працює, {len(scheduler.get_jobs())} задач" if scheduler.running else "зупинений",
+            _("running, %(count)s jobs") % {"count": len(scheduler.get_jobs())}
+            if scheduler.running
+            else _("stopped"),
             ""
             if scheduler.running
-            else "Запланові задачі (розсилки, чистка, дайджести) не запускаються.",
+            else _("Scheduled jobs (mailings, cleanup, digests) are not running."),
         )
     ]
     rows.append(
         row(
             cat,
-            "Незареєстровані задачі",
+            _("Unregistered jobs"),
             ERROR if failed_jobs else OK,
             len(failed_jobs),
             "; ".join(f"{p}: {e}" for p, e in failed_jobs.items())
-            + " — виправте шлях у scheduler_events (hooks.py)."
+            + " — "
+            + _("fix the path in scheduler_events (hooks.py).")
             if failed_jobs
             else "",
         )
@@ -228,10 +235,10 @@ async def check_scheduler() -> list[Row]:
     rows.append(
         row(
             cat,
-            "Невдалі запуски за добу",
+            _("Failed runs in the last day"),
             OK if not failed else WARNING,
             failed,
-            "Подробиці — у «Журнал запланованих задач»." if failed else "",
+            _("Details in the Scheduled Job Log.") if failed else "",
         )
     )
     return rows
@@ -243,7 +250,15 @@ async def check_scheduler() -> list[Row]:
 async def check_errors() -> list[Row]:
     n = await grunt.db.count("ErrorLog", {"created_at__gte": _since(timedelta(days=1))})
     status = OK if n < ERRORS_WARN_PER_DAY else WARNING if n < ERRORS_ERROR_PER_DAY else ERROR
-    return [row("Помилки", "Помилок за добу", status, n, "Див. «Журнал помилок»." if n else "")]
+    return [
+        row(
+            _("Errors"),
+            _("Errors in the last day"),
+            status,
+            n,
+            _("See the Error Log.") if n else "",
+        )
+    ]
 
 
 async def top_errors() -> list[Row]:
@@ -255,25 +270,27 @@ async def top_errors() -> list[Row]:
         order_by="count",
         limit=TOP_N,
     )
-    return [{"label": r["title"] or "—", "count": r["count"], "details": "за 7 днів"} for r in rows]
+    return [
+        {"label": r["title"] or "—", "count": r["count"], "details": _("in 7 days")} for r in rows
+    ]
 
 
 async def check_email() -> list[Row]:
-    cat = "Пошта"
+    cat = _("Email")
     outgoing = await grunt.db.count("EmailAccount", {"enable_outgoing": 1})
     rows = [
         row(
             cat,
-            "Обліковий запис для надсилання",
+            _("Outgoing email account"),
             OK if outgoing else WARNING,
             outgoing,
-            "" if outgoing else "Листи (скидання пароля, сповіщення) не надсилатимуться.",
+            "" if outgoing else _("Emails (password reset, notifications) will not be sent."),
         )
     ]
     failed = await grunt.db.count(
         "EmailQueue", {"status": "Error", "created_at__gte": _since(timedelta(days=7))}
     )
-    rows.append(row(cat, "Помилки надсилання за 7 днів", OK if not failed else WARNING, failed))
+    rows.append(row(cat, _("Sending errors in 7 days"), OK if not failed else WARNING, failed))
     stuck = await grunt.db.count(
         "EmailQueue",
         {"status__in": ["Pending", "Sending"], "created_at__lt": _since(STUCK_EMAIL_AFTER)},
@@ -281,10 +298,10 @@ async def check_email() -> list[Row]:
     rows.append(
         row(
             cat,
-            "Застряглі листи",
+            _("Stuck emails"),
             OK if not stuck else WARNING,
             stuck,
-            "Листи чекають понад 30 хв — перевірте воркер і SMTP." if stuck else "",
+            _("Emails have been waiting over 30 min; check the worker and SMTP.") if stuck else "",
         )
     )
     return rows
@@ -294,7 +311,7 @@ async def check_email() -> list[Row]:
 
 
 async def check_users() -> list[Row]:
-    cat = "Користувачі та безпека"
+    cat = _("Users and security")
     active = await grunt.db.count("User", {"is_active": 1})
     sessions = await grunt.db.count("UserSession", {"is_active": 1})
     managers = await grunt.db.get_all(
@@ -307,41 +324,41 @@ async def check_users() -> list[Row]:
     )
     locked = await grunt.db.count("User", {"locked_until__gt": datetime.now(UTC)})
     return [
-        row(cat, "Активні користувачі", INFO, active),
-        row(cat, "Активні сесії", INFO, sessions),
+        row(cat, _("Active users"), INFO, active),
+        row(cat, _("Active sessions"), INFO, sessions),
         row(
             cat,
-            "Адміністратори без 2FA",
+            _("Administrators without 2FA"),
             OK if not without_mfa else WARNING,
             len(without_mfa),
             ", ".join(without_mfa[:5]) if without_mfa else "",
         ),
-        row(cat, "Заблоковані облікові записи", OK if not locked else WARNING, locked),
+        row(cat, _("Locked accounts"), OK if not locked else WARNING, locked),
     ]
 
 
 async def check_config() -> list[Row]:
     from grunt.config import DEFAULT_SECRET_KEY, settings
 
-    cat = "Конфігурація"
+    cat = _("Configuration")
     return [
         row(
             cat,
-            "Режим налагодження",
+            _("Debug mode"),
             WARNING if settings.debug else OK,
-            "увімкнено" if settings.debug else "вимкнено",
-            "DEBUG=true у production відкриває зайві подробиці помилок." if settings.debug else "",
+            _("enabled") if settings.debug else _("disabled"),
+            _("DEBUG=true in production exposes extra error details.") if settings.debug else "",
         ),
         row(
             cat,
-            "Секретний ключ",
+            _("Secret key"),
             ERROR if settings.secret_key == DEFAULT_SECRET_KEY else OK,
-            "стандартний" if settings.secret_key == DEFAULT_SECRET_KEY else "власний",
-            "Задайте SECRET_KEY — зі стандартним ключем токени можна підробити."
+            _("default") if settings.secret_key == DEFAULT_SECRET_KEY else _("custom"),
+            _("Set SECRET_KEY: with the default key, tokens can be forged.")
             if settings.secret_key == DEFAULT_SECRET_KEY
             else "",
         ),
-        row(cat, "Сховище файлів", INFO, settings.storage_backend),
+        row(cat, _("File storage"), INFO, settings.storage_backend),
     ]
 
 
@@ -352,10 +369,10 @@ async def check_storage() -> list[Row]:
     from grunt.config import settings
     from grunt.site.manager import site_manager
 
-    cat = "Файли"
+    cat = _("Files")
     count = await grunt.db.count("File")
     [agg] = await grunt.db.aggregate("File", aggregations={"size": "sum(file_size)"})
-    rows = [row(cat, "Файлів", INFO, f"{count} · {human_size(agg.get('size') or 0)}")]
+    rows = [row(cat, _("Files"), INFO, f"{count} · {human_size(agg.get('size') or 0)}")]
     if settings.storage_backend == "local":
         site_dir = site_manager.sites_dir / site_manager.get_active_site()
         usage = shutil.disk_usage(site_dir)
@@ -364,10 +381,14 @@ async def check_storage() -> list[Row]:
         rows.append(
             row(
                 cat,
-                "Вільне місце на диску",
+                _("Free disk space"),
                 status,
-                f"{human_size(usage.free)} з {human_size(usage.total)} ({free:.0%})",
-                "" if status == OK else "Звільніть місце — завантаження й база можуть зупинитися.",
+                _("%(free)s of %(total)s")
+                % {"free": human_size(usage.free), "total": human_size(usage.total)}
+                + f" ({free:.0%})",
+                ""
+                if status == OK
+                else _("Free up space: uploads and the database may stop working."),
             )
         )
     return rows
@@ -388,26 +409,29 @@ async def check_realtime() -> list[Row]:
     from grunt.api.v1.ws import manager
     from grunt.config import settings
 
-    cat = "Вебсокети"
+    cat = _("WebSockets")
     channels = manager._connections
     users = {c for c, conns in channels.items() if c.startswith("user:") and conns}
     rows = [
         row(
             cat,
-            "Підключення (цей процес)",
+            _("Connections (this process)"),
             INFO,
-            f"{manager._total_connections()} з'єднань, {len(users)} користувачів",
+            _("%(connections)s connections, %(users)s users")
+            % {"connections": manager._total_connections(), "users": len(users)},
         )
     ]
     if not settings.redis_url:
         rows.append(
             row(
                 cat,
-                "Ретрансляція між процесами",
+                _("Cross-process relay"),
                 INFO,
-                "без Redis",
-                "Повідомлення доходять лише до клієнтів цього процесу — достатньо для одного "
-                "процесу сервера без окремого воркера.",
+                _("no Redis"),
+                _(
+                    "Messages reach only this process's clients, which is enough for a single "
+                    "server process without a separate worker."
+                ),
             )
         )
         return rows
@@ -433,27 +457,31 @@ async def check_realtime() -> list[Row]:
     finally:
         await r.aclose()
     rows.append(
-        row(cat, "Ретрансляція через Redis", OK, f"працює, {got * 1000:.0f} мс")
+        row(cat, _("Redis relay"), OK, f"{_('working')}, {got * 1000:.0f} {_('ms')}")
         if got is not None
         else row(
             cat,
-            "Ретрансляція через Redis",
+            _("Redis relay"),
             ERROR,
-            "не працює",
-            "Повідомлення з воркера й інших процесів (прогрес імпорту, сповіщення) не дійдуть "
-            "до браузера.",
+            _("not working"),
+            _(
+                "Messages from the worker and other processes (import progress, notifications) "
+                "will not reach the browser."
+            ),
         )
     )
     listening = manager.redis_listener_alive or not channels
     rows.append(
         row(
             cat,
-            "Слухач Redis у цьому процесі",
+            _("Redis listener in this process"),
             OK if listening else WARNING,
-            "працює" if manager.redis_listener_alive else "не працює",
+            _("working") if manager.redis_listener_alive else _("not working"),
             ""
             if listening
-            else "Є з'єднання, але слухач не працює — повідомлення з Redis не доставляються.",
+            else _(
+                "There are connections but the listener is down: Redis messages are not delivered."
+            ),
         )
     )
     return rows
@@ -479,7 +507,7 @@ async def check_backups() -> list[Row]:
     from grunt.site.manager import site_manager
     from grunt.site.settings import get_setting
 
-    cat = "Резервні копії"
+    cat = _("Backups")
     site = site_manager.get_active_site()
     backups = list_backups(site)
     enabled = bool(await get_setting("backup_enabled", True))
@@ -487,16 +515,22 @@ async def check_backups() -> list[Row]:
     rows = []
     if not enabled:
         rows.append(
-            row(cat, "Розклад", WARNING, "вимкнено", "Увімкніть: Системні налаштування → Backups.")
+            row(
+                cat,
+                _("Schedule"),
+                WARNING,
+                _("disabled"),
+                _("Enable it in System Settings → Backups."),
+            )
         )
     if not backups:
         rows.append(
             row(
                 cat,
-                "Остання копія",
+                _("Latest backup"),
                 ERROR,
-                "жодної",
-                "Натисніть «Створити зараз» у «Резервні копії» або `grunt db backup`.",
+                _("none"),
+                _("Click Create now in Backups, or run `grunt db backup`."),
             )
         )
         return rows
@@ -508,20 +542,22 @@ async def check_backups() -> list[Row]:
     rows.append(
         row(
             cat,
-            "Остання копія",
+            _("Latest backup"),
             status,
-            f"{hours:.0f} год тому · {human_size(last.size())}",
+            _("%(hours)s h ago") % {"hours": f"{hours:.0f}"} + f" · {human_size(last.size())}",
             ""
             if status == OK
-            else "Копії не створюються за розкладом — перевірте воркер і журнал помилок.",
+            else _(
+                "Backups are not being created on schedule; check the worker and the error log."
+            ),
         )
     )
     if "database" not in last.files:
-        rows.append(row(cat, "База в останній копії", ERROR, "відсутня"))
+        rows.append(row(cat, _("Database in the latest backup"), ERROR, _("missing")))
     rows.append(
         row(
             cat,
-            "Зберігається копій",
+            _("Backups kept"),
             INFO,
             f"{len(backups)} · {human_size(sum(b.size() for b in backups))}",
         )
@@ -558,11 +594,13 @@ async def check_app_dependencies() -> list[Row]:
                 missing.append(f"{app.name}: {name}")
     return [
         row(
-            "Залежності додатків",
-            "Python-пакети додатків",
+            _("App dependencies"),
+            _("Apps' Python packages"),
             ERROR if missing else OK,
-            f"бракує {len(missing)}" if missing else f"{len(apps)} додатків, усе встановлено",
-            ("Виконайте `grunt app deps`. Бракує: " + ", ".join(missing)) if missing else "",
+            _("%(count)s missing") % {"count": len(missing)}
+            if missing
+            else _("%(count)s apps, all installed") % {"count": len(apps)},
+            (_("Run `grunt app deps`. Missing:") + " " + ", ".join(missing)) if missing else "",
         )
     ]
 
@@ -574,55 +612,65 @@ async def check_offline_build() -> list[Row]:
     """The service worker exists only in the production build — check it is there."""
     import json
 
-    cat = "Офлайн-режим"
+    cat = _("Offline mode")
     manifest = FRONTEND_DIST / "precache-manifest.json"
     if not manifest.exists():
         return [
             row(
                 cat,
-                "Production-збірка",
+                _("Production build"),
                 WARNING,
-                "відсутня",
-                "Немає dist/precache-manifest.json: офлайн працює лише з production-збірки "
-                "(`npm run build`). У режимі розробки (Vite dev) service worker не реєструється.",
+                _("missing"),
+                _(
+                    "No dist/precache-manifest.json: offline mode works only with a production "
+                    "build (`npm run build`). In development (Vite dev) the service worker is "
+                    "not registered."
+                ),
             )
         ]
     files = json.loads(manifest.read_text())
     built = datetime.fromtimestamp(manifest.stat().st_mtime, UTC)
-    rows = [row(cat, "Production-збірка", OK, f"{len(files)} файлів, {built:%d.%m.%Y %H:%M} UTC")]
+    rows = [
+        row(
+            cat,
+            _("Production build"),
+            OK,
+            _("%(count)s files") % {"count": len(files)} + f", {built:%d.%m.%Y %H:%M} UTC",
+        )
+    ]
     dist_sw = FRONTEND_DIST / "sw.js"
     if not dist_sw.exists():
-        rows.append(row(cat, "Service worker у збірці", ERROR, "відсутній"))
+        rows.append(row(cat, _("Service worker in the build"), ERROR, _("missing")))
     elif SERVICE_WORKER_SRC.exists() and dist_sw.read_bytes() != SERVICE_WORKER_SRC.read_bytes():
         rows.append(
             row(
                 cat,
-                "Service worker у збірці",
+                _("Service worker in the build"),
                 WARNING,
-                "застарілий",
-                "public/sw.js змінено після збірки — перезберіть фронтенд.",
+                _("outdated"),
+                _("public/sw.js changed after the build; rebuild the frontend."),
             )
         )
     else:
-        rows.append(row(cat, "Service worker у збірці", OK, "актуальний"))
+        rows.append(row(cat, _("Service worker in the build"), OK, _("up to date")))
     return rows
 
 
 # ── Runner ────────────────────────────────────────────────────────────────
 
 CHECKS: list[tuple[str, Callable[[], Awaitable[list[Row]]]]] = [
-    ("База даних", check_database),
-    ("Фонові задачі", check_background_jobs),
-    ("Планувальник", check_scheduler),
-    ("Помилки", check_errors),
-    ("Пошта", check_email),
-    ("Користувачі та безпека", check_users),
-    ("Конфігурація", check_config),
-    ("Файли", check_storage),
-    ("Резервні копії", check_backups),
-    ("Вебсокети", check_realtime),
-    ("Залежності додатків", check_app_dependencies),
-    ("Офлайн-режим", check_offline_build),
+    (N_("Database"), check_database),
+    (N_("Background jobs"), check_background_jobs),
+    (N_("Scheduler"), check_scheduler),
+    (N_("Errors"), check_errors),
+    (N_("Email"), check_email),
+    (N_("Users and security"), check_users),
+    (N_("Configuration"), check_config),
+    (N_("Files"), check_storage),
+    (N_("Backups"), check_backups),
+    (N_("WebSockets"), check_realtime),
+    (N_("App dependencies"), check_app_dependencies),
+    (N_("Offline mode"), check_offline_build),
 ]
 
 
@@ -633,7 +681,9 @@ async def _safe(category: str, fn: Callable[[], Awaitable[Any]]) -> Any:
             return await fn()
     except Exception as e:  # noqa: BLE001 - a broken subsystem is a finding, not a crash
         log.warning("health.check_failed", check=fn.__name__, error=str(e))
-        return [row(category, fn.__name__.removeprefix("check_"), ERROR, "перевірка впала", str(e))]
+        return [
+            row(_(category), fn.__name__.removeprefix("check_"), ERROR, _("check failed"), str(e))
+        ]
 
 
 async def _items(fn: Callable[[], Awaitable[list[Row]]]) -> list[Row]:

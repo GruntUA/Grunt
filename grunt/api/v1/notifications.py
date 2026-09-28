@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 import grunt
+from grunt.i18n import _
 
 
 @grunt.whitelist()
@@ -85,7 +86,7 @@ async def subscribe_push(endpoint: str, p256dh: str, auth: str, user_agent: str 
     from grunt.site.settings import get_setting
 
     if not await get_setting("enable_web_push", False):
-        grunt.throw("Web Push вимкнено в налаштуваннях системи", "FORBIDDEN")
+        grunt.throw(_("Web Push is disabled in the system settings"), "FORBIDDEN")
 
     user = await grunt.get_current_user()
     from grunt.webpush.service import webpush_service

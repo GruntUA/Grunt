@@ -19,6 +19,7 @@ from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING, Any
 
 import grunt
+from grunt.i18n import _
 
 if TYPE_CHECKING:
     from fastapi import Request
@@ -202,7 +203,7 @@ async def revoke_my_session(session_id: str) -> bool:
     async with grunt.system_context(require_session()):
         owner = await grunt.db.get_value("UserSession", session_id, "user")
     if owner is None or owner != current.id:
-        grunt.throw("Session not found", "NOT_FOUND")
+        grunt.throw(_("Session not found"), "NOT_FOUND")
     await end_session(session_id)
     return True
 

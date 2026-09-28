@@ -98,7 +98,7 @@ def test(
 
     if not pytest_bin:
         click.echo(
-            click.style("[error] pytest не знайдено. Встановіть: pip install pytest", fg="red"),
+            click.style("[error] pytest not found. Install it: pip install pytest", fg="red"),
             err=True,
         )
         raise SystemExit(1)

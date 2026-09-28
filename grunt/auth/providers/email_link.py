@@ -31,6 +31,7 @@ from grunt.auth.providers.base import AuthFlowContext, AuthProvider
 from grunt.auth.providers.registry import register
 from grunt.auth.service import create_challenge_token, verify_challenge_token
 from grunt.config import settings
+from grunt.i18n import _
 from grunt.log import log
 
 if TYPE_CHECKING:
@@ -47,7 +48,7 @@ _EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 def _norm_email(raw: str | None) -> str:
     email = (raw or "").strip().lower()
     if not _EMAIL_RE.match(email):
-        throw("Введіть коректну адресу електронної пошти", "VALIDATION_ERROR")
+        throw(_("Enter a valid email address"), "VALIDATION_ERROR")
     return email
 
 
@@ -59,7 +60,7 @@ def _hash_code(email: str, code: str) -> str:
 
 class EmailLoginProvider(AuthProvider):
     name = "email"
-    label = "Електронна пошта"
+    label = "Email"
     kind: ClassVar = "challenge"
     icon = "mail"
     requires_identifier = True
@@ -94,11 +95,11 @@ class EmailLoginProvider(AuthProvider):
         if magic:
             claims = verify_challenge_token(magic, _LINK_PURPOSE)
             if not claims:
-                throw("Посилання недійсне або застаріле", "UNAUTHORIZED")
+                throw(_("The link is invalid or expired"), "UNAUTHORIZED")
             assert claims  # throw() above is NoReturn
             await self._consume(
                 str(claims.get("tid") or ""),
-                "Посилання недійсне або вже використане. Запросіть новий код.",
+                _("The link is invalid or already used. Request a new code."),
             )
             return await self._resolve_user(str(claims["email"]))
 
@@ -106,32 +107,32 @@ class EmailLoginProvider(AuthProvider):
         challenge_token = ctx.get("challenge_token")
         code = (ctx.get("code") or "").strip()
         if not challenge_token or not code:
-            throw("Введіть код підтвердження", "VALIDATION_ERROR")
+            throw(_("Enter the verification code"), "VALIDATION_ERROR")
 
         claims = verify_challenge_token(challenge_token, _CODE_PURPOSE)
         if not claims:
-            throw("Час дії коду вичерпано. Запросіть новий.", "UNAUTHORIZED")
+            throw(_("The code has expired. Request a new one."), "UNAUTHORIZED")
         assert claims
         email = str(claims["email"])
         tid = str(claims.get("tid") or "")
 
         row = await self._load_active(tid)
         if row is None:
-            throw("Код недійсний або вже використаний. Запросіть новий.", "UNAUTHORIZED")
+            throw(_("The code is invalid or already used. Request a new one."), "UNAUTHORIZED")
         assert row
 
         user = await get_user_by_email(email)
         if user is not None:
             if not user.is_active:
-                throw("Обліковий запис деактивовано", "UNAUTHORIZED")
+                throw(_("The account is deactivated"), "UNAUTHORIZED")
             if await is_account_locked(user):
-                throw("Забагато невдалих спроб. Спробуйте пізніше.", "RATE_LIMITED")
+                throw(_("Too many failed attempts. Try again later."), "RATE_LIMITED")
 
         if not hmac.compare_digest(str(row.get("code_hash") or ""), _hash_code(email, code)):
             if user is not None:
                 await register_failed_attempt(user)
             # A wrong guess does NOT burn the token — the user can retry.
-            throw("Невірний код підтвердження", "UNAUTHORIZED")
+            throw(_("Invalid verification code"), "UNAUTHORIZED")
 
         await self._mark_consumed(tid)
         if user is not None:
@@ -215,7 +216,7 @@ class EmailLoginProvider(AuthProvider):
         user = await get_user_by_email(email)
         if user is not None:
             if not user.is_active:
-                throw("Обліковий запис деактивовано", "UNAUTHORIZED")
+                throw(_("The account is deactivated"), "UNAUTHORIZED")
             return user
 
         await _guard_registration()
@@ -227,12 +228,17 @@ class EmailLoginProvider(AuthProvider):
         from grunt.app import grunt
         from grunt.context import require_session
         from grunt.email.service import email_service
+        from grunt.i18n import _
 
-        plain = (
-            f"Ваш код для входу: {code}\n\n"
-            f"Код дійсний {_TTL_MINUTES} хвилин.\n\n"
-            f"Або увійдіть одразу за посиланням:\n{login_url}\n\n"
-            "Якщо ви не намагалися увійти — просто проігноруйте цей лист."
+        # Rendered in the request language — the person asking is the recipient.
+        plain = "\n\n".join(
+            [
+                _("Your sign-in code: %(code)s") % {"code": code},
+                _("The code and link are valid for %(minutes)s minutes.")
+                % {"minutes": _TTL_MINUTES},
+                _("Or sign in right away via this link:") + "\n" + login_url,
+                _("If you did not try to sign in, just ignore this email."),
+            ]
         )
         try:
             html_body: str | None = await grunt.render_template(
@@ -246,13 +252,13 @@ class EmailLoginProvider(AuthProvider):
         session = require_session()
         if await email_service.resolve_outgoing_account_id(session) is None:
             throw(
-                "Вхід через пошту недоступний — не налаштовано поштовий сервер",
+                _("Email sign-in is unavailable: no mail server is configured"),
                 "VALIDATION_ERROR",
             )
         queued = await email_service.queue_email(
             session=session,
             to=email,
-            subject="Код для входу",
+            subject=_("Sign-in code"),
             body=plain,
             html_body=html_body,
         )

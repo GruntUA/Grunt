@@ -16,6 +16,7 @@ from sqlalchemy import (
 )
 
 from grunt.db.types import UtcDateTime
+from grunt.i18n import _
 from grunt.log import log
 from grunt.metadata.field import NON_PHYSICAL_FIELDS
 from grunt.utils.strings import to_snake_case
@@ -83,10 +84,17 @@ class DuplicateDataError(Exception):
 
     def _format(self) -> str:
         col_label = ", ".join(self.columns)
-        lines = [f"Неможливо додати унікальне обмеження на «{col_label}»: знайдено дублікати:"]
+        lines = [
+            _("Cannot add a unique constraint on “%(field)s”: duplicates found:")
+            % {"field": col_label}
+        ]
         for dup in self.duplicates:
-            lines.append(f"  • значення {dup['value']!r} — записи: {dup['ids']}")
-        lines.append("Виправте дублікати та повторіть операцію.")
+            lines.append(
+                "  • "
+                + _("value %(value)s, records: %(ids)s")
+                % {"value": repr(dup["value"]), "ids": dup["ids"]}
+            )
+        lines.append(_("Fix the duplicates and try again."))
         return "\n".join(lines)
 
 

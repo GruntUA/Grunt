@@ -27,7 +27,7 @@ function _addButtons(frm) {
   })
   frm.actions.add({
     id: 'reset_import',
-    label: 'Reset',
+    label: __('Reset'),
     variant: 'secondary',
     visible: (f) => !f.is_new && _isDone(f),
     action: (f) => _reset(f),

@@ -2,8 +2,9 @@
  * Centralised date/time presentation.
  *
  * Every user-facing date string in the app goes through here so that the
- * `SystemSettings` values `date_format` and `timezone` (plus `language` for
- * month/weekday names) take effect everywhere at once.
+ * `SystemSettings` values `date_format` and `timezone` take effect everywhere
+ * at once; month/weekday names and number separators follow the active UI
+ * language (the user's own, else the site default).
  *
  * - `formatDate` / `formatDateTime` are **pattern-driven** — they honour
  *   `date_format` (dd.mm.yyyy | dd/mm/yyyy | yyyy-mm-dd).
@@ -39,8 +40,9 @@ function toDate(value: DateInput): Date | null {
   return Number.isNaN(d.getTime()) ? null : d
 }
 
+/** BCP-47 tag for `Intl` — the active UI language (`uk`, `en`, …). */
 export function localeTag(): string {
-  return siteConfigState().language || 'uk-UA'
+  return i18n.global.locale.value || siteConfigState().language || 'uk'
 }
 
 function timeZone(): string | undefined {

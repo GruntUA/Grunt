@@ -6,11 +6,17 @@ import re
 from typing import TYPE_CHECKING, Any
 
 from grunt.document.validators import validate_field_value
+from grunt.i18n import _
 from grunt.log import log
 from grunt.metadata.field import get_field_type_class, is_physical_fieldtype
 
 if TYPE_CHECKING:
     from grunt.metadata.doctype import DocType
+
+
+def _label(field: Any) -> dict[str, str]:
+    """``{"label": <translated field label>}`` for message interpolation."""
+    return {"label": _(field.label or field.fieldname)}
 
 
 def _validate_data(
@@ -31,7 +37,9 @@ def _validate_data(
             if partial and field.fieldname not in data:
                 continue
             if (value is None or value == "") and field.default is None:
-                errors.append(f"{field.fieldname}: Поле '{field.label}' є обов'язковим")
+                errors.append(
+                    f"{field.fieldname}: " + _("Field “%(label)s” is required") % _label(field)
+                )
 
         if field.validator and value is not None and value != "":
             error = validate_field_value(
@@ -49,8 +57,9 @@ def _validate_data(
                 # Postgres/MySQL, where VARCHAR(n) is a hard limit.
                 if sa_type_name == "String" and args and len(str(value)) > args[0]:
                     errors.append(
-                        f"{field.fieldname}: Поле '{field.label}' занадто довге "
-                        f"(максимум {args[0]} символів)"
+                        f"{field.fieldname}: "
+                        + _("Field “%(label)s” is too long (maximum %(max)s characters)")
+                        % {**_label(field), "max": args[0]}
                     )
 
         if (field.min_value is not None or field.max_value is not None) and (
@@ -60,13 +69,15 @@ def _validate_data(
             if isinstance(number, int | float) and not isinstance(number, bool):
                 if field.min_value is not None and number < field.min_value:
                     errors.append(
-                        f"{field.fieldname}: Поле '{field.label}' має бути не менше "
-                        f"{field.min_value}"
+                        f"{field.fieldname}: "
+                        + _("Field “%(label)s” must be at least %(min)s")
+                        % {**_label(field), "min": field.min_value}
                     )
                 if field.max_value is not None and number > field.max_value:
                     errors.append(
-                        f"{field.fieldname}: Поле '{field.label}' має бути не більше "
-                        f"{field.max_value}"
+                        f"{field.fieldname}: "
+                        + _("Field “%(label)s” must be at most %(max)s")
+                        % {**_label(field), "max": field.max_value}
                     )
 
         if field.regex and value is not None and value != "":
@@ -76,6 +87,9 @@ def _validate_data(
                 log.warning("field.invalid_regex", fieldname=field.fieldname, pattern=field.regex)
             else:
                 if not matched:
-                    errors.append(f"{field.fieldname}: Поле '{field.label}' не відповідає формату")
+                    errors.append(
+                        f"{field.fieldname}: "
+                        + _("Field “%(label)s” does not match the format") % _label(field)
+                    )
 
     return errors

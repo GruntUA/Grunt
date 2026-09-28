@@ -1,10 +1,11 @@
+from grunt.i18n import N_
 from grunt.validators.base import RegexValidator
 
 
 class RnocppValidator(RegexValidator):
     name = "rnocpp"
-    label = "РНОКПП (ІПН)"
-    message = "Поле '{label}': невірний РНОКПП (10 цифр)"
+    label = N_("RNOKPP (individual tax number)")
+    message = N_("Field “{label}”: invalid RNOKPP (10 digits)")
     pattern = r"^\d{10}$"
 
     def check(self, value: str) -> bool:

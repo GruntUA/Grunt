@@ -20,7 +20,7 @@ async def refresh_supported_languages(**_kwargs: object) -> None:
 
     try:
         rows = await grunt.db.get_all(
-            "Language", filters={"is_active": True}, fields=["code"], limit=None
+            "Language", filters={"is_active": True}, fields=["code", "native_name"], limit=None
         )
     except Exception as e:  # noqa: BLE001
         log.debug("i18n.refresh_languages_skipped", error=str(e))
@@ -29,4 +29,7 @@ async def refresh_supported_languages(**_kwargs: object) -> None:
     codes = {r["code"] for r in rows if r.get("code")}
     if codes:
         translation_service.set_supported(codes)
+    translation_service.set_language_names(
+        {r["code"]: r.get("native_name") or "" for r in rows if r.get("code")}
+    )
     translation_service.invalidate()

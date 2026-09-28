@@ -13,11 +13,12 @@ from typing import Any
 
 import grunt
 from grunt.actions.registry import doc_action
+from grunt.i18n import _
 
 
 @doc_action(
     "core.duplicate",
-    label="Дублювати",
+    label="Duplicate",
     doctypes=["*"],
     icon="copy",
     variant="outline",
@@ -25,16 +26,16 @@ from grunt.actions.registry import doc_action
 async def duplicate(doc: dict[str, Any], *, args: dict[str, Any]) -> dict[str, Any]:
     """Create a fresh copy of the current document."""
     copy = await grunt.copy_doc(doc["doctype"], doc["name"])
-    return {"message": f"Створено копію: {copy['name']}", "refresh": False}
+    return {"message": _("Copy created: %(name)s") % {"name": copy["name"]}, "refresh": False}
 
 
 @doc_action(
     "core.recalc",
-    label="Перерахувати",
+    label="Recalculate",
     doctypes=["*"],
     icon="refresh-cw",
     variant="outline",
-    confirm="Перезберегти документ? Перерахуються формули й запустяться хуки validate/before_save.",
+    confirm="Re-save the document? Formulas are recalculated and validate/before_save hooks run.",
 )
 async def recalc(doc: dict[str, Any], *, args: dict[str, Any]) -> dict[str, Any]:
     """Re-save with no field changes so formulas and save-time hooks re-run.
@@ -42,12 +43,12 @@ async def recalc(doc: dict[str, Any], *, args: dict[str, Any]) -> dict[str, Any]
     A validation error in the controller propagates to the client as-is.
     """
     await grunt.save_doc(doc["doctype"], doc["name"], {})
-    return {"message": "Документ перезбережено, формули та хуки перераховано", "refresh": True}
+    return {"message": _("Document re-saved; formulas and hooks recalculated"), "refresh": True}
 
 
 @doc_action(
     "core.copy_reference",
-    label="Скопіювати посилання",
+    label="Copy link",
     doctypes=["*"],
     icon="link",
     variant="ghost",
@@ -60,7 +61,7 @@ async def copy_reference(doc: dict[str, Any], *, args: dict[str, Any]) -> dict[s
 
 @doc_action(
     "trash.restore",
-    label="Відновити",
+    label="Restore",
     doctypes=["DeletedDocument"],
     icon="undo-2",
     variant="success",
@@ -71,12 +72,12 @@ async def trash_restore(doc: dict[str, Any], *, args: dict[str, Any]) -> dict[st
     from grunt.activity.doctypes.DeletedDocument.deleted_document import restore
 
     restored = await restore(doc["name"])
-    return {"message": f"Відновлено: {restored['name']}", "refresh": True}
+    return {"message": _("Restored: %(name)s") % {"name": restored["name"]}, "refresh": True}
 
 
 @doc_action(
     "trash.restore_as_copy",
-    label="Відновити з новим ID",
+    label="Restore with a new ID",
     doctypes=["DeletedDocument"],
     icon="copy-plus",
     variant="outline",
@@ -87,7 +88,7 @@ async def trash_restore_as_copy(doc: dict[str, Any], *, args: dict[str, Any]) ->
     from grunt.activity.doctypes.DeletedDocument.deleted_document import restore
 
     restored = await restore(doc["name"], allow_rename=True)
-    return {"message": f"Відновлено як: {restored['name']}", "refresh": True}
+    return {"message": _("Restored as: %(name)s") % {"name": restored["name"]}, "refresh": True}
 
 
 async def _set_todo_status(name: str, status: str) -> dict[str, Any]:
@@ -98,53 +99,56 @@ async def _set_todo_status(name: str, status: str) -> dict[str, Any]:
 
 @doc_action(
     "todo.complete",
-    label="Позначити виконаним",
+    label="Mark as done",
     doctypes=["ToDo"],
     icon="check",
     variant="success",
 )
 async def todo_complete(doc: dict[str, Any], *, args: dict[str, Any]) -> dict[str, Any]:
     """Close the task — the controller stamps completed_on/by and pings the assigner."""
-    return {**await _set_todo_status(doc["name"], "Closed"), "message": "Завдання виконано"}
+    return {**await _set_todo_status(doc["name"], "Closed"), "message": _("Task completed")}
 
 
 @doc_action(
     "todo.cancel",
-    label="Скасувати",
+    label="Cancel",
     doctypes=["ToDo"],
     icon="x",
     variant="ghost",
-    confirm="Скасувати завдання?",
+    confirm="Cancel the task?",
 )
 async def todo_cancel(doc: dict[str, Any], *, args: dict[str, Any]) -> dict[str, Any]:
     """Cancel the task without marking it done."""
-    return {**await _set_todo_status(doc["name"], "Cancelled"), "message": "Завдання скасовано"}
+    return {**await _set_todo_status(doc["name"], "Cancelled"), "message": _("Task cancelled")}
 
 
 @doc_action(
     "todo.reopen",
-    label="Відкрити знову",
+    label="Reopen",
     doctypes=["ToDo"],
     icon="undo-2",
     variant="outline",
 )
 async def todo_reopen(doc: dict[str, Any], *, args: dict[str, Any]) -> dict[str, Any]:
     """Reopen a closed/cancelled task — the controller clears the completion stamp."""
-    return {**await _set_todo_status(doc["name"], "Open"), "message": "Завдання відкрито"}
+    return {**await _set_todo_status(doc["name"], "Open"), "message": _("Task reopened")}
 
 
 @doc_action(
     "report.send_now",
-    label="Надіслати зараз",
+    label="Send now",
     doctypes=["Report"],
     icon="send",
     variant="outline",
     roles=["System Manager"],
-    confirm="Надіслати звіт отримувачам розсилки зараз?",
+    confirm="Send the report to its recipients now?",
 )
 async def report_send_now(doc: dict[str, Any], *, args: dict[str, Any]) -> dict[str, Any]:
     """Email the report to its scheduled recipients right away."""
     from grunt.reports.delivery import send_report_now
 
     sent = await send_report_now(doc["name"])
-    return {"message": f"Звіт поставлено в чергу для {sent} отримувачів", "refresh": True}
+    return {
+        "message": _("Report queued for %(count)s recipients") % {"count": sent},
+        "refresh": True,
+    }

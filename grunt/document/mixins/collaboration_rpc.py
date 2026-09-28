@@ -16,6 +16,7 @@ from typing import Any
 from fastapi import HTTPException, status
 
 import grunt
+from grunt.i18n import _, language_of, use_language
 
 
 class DocumentCollaborationRPCMixin:
@@ -63,7 +64,9 @@ class DocumentCollaborationRPCMixin:
 
         content = (content or "").strip()
         if not content:
-            raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, detail="content is required")
+            raise HTTPException(
+                status.HTTP_422_UNPROCESSABLE_CONTENT, detail=_("content is required")
+            )
 
         await doc_guard(doctype, doc_id)
 
@@ -82,9 +85,13 @@ class DocumentCollaborationRPCMixin:
         mentions.discard(grunt_app.session.user)  # do not notify self
         if mentions:
             for mention in mentions:
+                with use_language(await language_of(mention)):
+                    subject = _("%(user)s mentioned you in a comment") % {
+                        "user": grunt_app.session.user
+                    }
                 await grunt_app.notify(
                     users=[mention],
-                    subject=f"{grunt_app.session.user} згадав вас у коментарі",
+                    subject=subject,
                     message=content,
                     doctype=doctype,
                     doc_id=doc_id,
@@ -101,7 +108,7 @@ class DocumentCollaborationRPCMixin:
         comment = await grunt_app.get_doc("Comment", comment_id)
         user = grunt_app.session
         if comment.get("owner") != user.user and not user.has_role("System Manager"):
-            raise HTTPException(status.HTTP_403_FORBIDDEN, detail="Not allowed")
+            raise HTTPException(status.HTTP_403_FORBIDDEN, detail=_("Not allowed"))
 
         await grunt_app.delete_doc("Comment", comment_id)
 

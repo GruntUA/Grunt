@@ -8,6 +8,8 @@ from typing import Any
 from fastapi import HTTPException, status
 from sqlalchemy.exc import IntegrityError
 
+from grunt.i18n import _
+
 _NOT_NULL_RE = re.compile(r"NOT NULL constraint failed:\s*\S+\.(\w+)", re.IGNORECASE)
 _UNIQUE_SQLITE_RE = re.compile(r"UNIQUE constraint failed:\s*\S+\.(\w+)", re.IGNORECASE)
 # PostgreSQL via constraint name: uq_{table}_{fieldname}
@@ -34,7 +36,7 @@ def friendly_integrity_error(exc: IntegrityError, dt: Any) -> HTTPException:
     m_nn = _NOT_NULL_RE.search(raw)
     if m_nn:
         label = _field_label(dt, m_nn.group(1))
-        message = f"Поле «{label}» є обов'язковим і не може бути порожнім."
+        message = _("Field “%(label)s” is required and cannot be empty.") % {"label": _(label)}
         return HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=message)
 
     col_name: str | None = None
@@ -48,8 +50,10 @@ def friendly_integrity_error(exc: IntegrityError, dt: Any) -> HTTPException:
 
     if col_name and dt is not None:
         label = _field_label(dt, col_name)
-        message = f"Значення поля «{label}» вже існує в системі. Введіть унікальне значення."
+        message = _("The value of field “%(label)s” already exists. Enter a unique value.") % {
+            "label": _(label)
+        }
     else:
-        message = "Запис з таким значенням вже існує. Введіть унікальне значення."
+        message = _("A record with this value already exists. Enter a unique value.")
 
     return HTTPException(status_code=status.HTTP_409_CONFLICT, detail=message)

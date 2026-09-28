@@ -3,12 +3,13 @@ import { computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
-import i18n from '@/plugins/i18n'
+import i18n, { N_ } from '@/plugins/i18n'
 import { useAppStore } from '@/stores/app'
 import AppIcon from '@/components/AppIcon.vue'
 import NotificationsPopover from '@/components/layout/NotificationsPopover.vue'
 import SidebarItem from './SidebarItem.vue'
 import { useColorMode } from '@/core/composables/useColorMode'
+import { useSiteConfig } from '@/core/composables/useSiteConfig'
 import { clearClientCache } from '@/core/clearCache'
 import type { Theme } from '@/core/composables/useColorMode'
 import { useSidebar } from '@/components/ui/sidebar'
@@ -39,7 +40,8 @@ function triggerSearch() { window.dispatchEvent(new CustomEvent('toggle-search')
 function initials(name: string) { return name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() }
 async function onThemeChange(theme: unknown) { await auth.setTheme(theme as Theme) }
 const currentLanguage = computed(() => auth.user?.language || i18n.global.locale.value)
-async function onLanguageChange(lang: unknown) { await auth.setLanguage(lang as 'uk' | 'en') }
+const { languages } = useSiteConfig()
+async function onLanguageChange(lang: unknown) { await auth.setLanguage(String(lang)) }
 async function handleLogout() { await auth.logout(); router.push('/login') }
 async function exitImpersonation() {
   await auth.stopImpersonation()
@@ -50,8 +52,8 @@ async function exitImpersonation() {
 // ── Admin shortcuts ───────────────────────────────────────────────────────────
 const adminLinks = [
   { to: '/grunt/ActivityLog', icon: Activity, label: 'Activity log' },
-  { to: '/grunt/EmailMessage', icon: Mail, label: 'Emails' },
-  { to: '/grunt/EmailAccount', icon: Mail, label: 'Email settings' },
+  { to: '/grunt/EmailMessage', icon: Mail, label: N_('Emails') },
+  { to: '/grunt/EmailAccount', icon: Mail, label: N_('Email settings') },
 ]
 
 // ── Lifecycle ─────────────────────────────────────────────────────────────────
@@ -289,13 +291,9 @@ watch(() => router.currentRoute.value.path, () => { if (appStore.active) appStor
               <DropdownMenuSeparator />
               <DropdownMenuLabel class="text-xs text-muted-foreground">{{ t('Language') }}</DropdownMenuLabel>
               <DropdownMenuRadioGroup :model-value="currentLanguage" @update:model-value="onLanguageChange">
-                <DropdownMenuRadioItem value="uk" class="gap-2 p-2">
+                <DropdownMenuRadioItem v-for="lang in languages" :key="lang.code" :value="lang.code" class="gap-2 p-2">
                   <Languages class="size-4 shrink-0" />
-                  <span>Українська</span>
-                </DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="en" class="gap-2 p-2">
-                  <Languages class="size-4 shrink-0" />
-                  <span>English</span>
+                  <span>{{ lang.name }}</span>
                 </DropdownMenuRadioItem>
               </DropdownMenuRadioGroup>
               <DropdownMenuSeparator />

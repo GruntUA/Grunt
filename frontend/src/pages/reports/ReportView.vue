@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { formatNumber } from '@/core/currency'
 import { useI18n } from 'vue-i18n'
 import { ref, computed, onMounted, watch } from 'vue'
 import { formatDate, formatDateTime } from '@/core/datetime'
@@ -128,7 +129,7 @@ function formatCell(val: any, fieldtype: string): string {
     if (val === null || val === undefined || val === '') return '—'
     if (fieldtype === 'Date') return formatDate(val)
     if (fieldtype === 'Datetime') return formatDateTime(val)
-    if (fieldtype === 'Float' || fieldtype === 'Int' || fieldtype === 'Currency') return val.toLocaleString('uk-UA')
+    if (fieldtype === 'Float' || fieldtype === 'Int' || fieldtype === 'Currency') return typeof val === 'number' ? formatNumber(val) : String(val)
     return String(val)
 }
 

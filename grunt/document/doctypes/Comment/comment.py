@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from grunt.document.base import Document
+from grunt.i18n import _
 from grunt.permissions.roles import user_has_roles
 
 
@@ -16,7 +17,7 @@ class Comment(Document):
 
     async def validate(self) -> None:
         if not (self.content or "").strip():
-            self.grunt.throw("Вміст коментаря не може бути порожнім")
+            self.grunt.throw(_("The comment cannot be empty"))
 
     async def before_delete(self) -> None:
         if (
@@ -24,7 +25,7 @@ class Comment(Document):
             and not user_has_roles(self.user, ["System Manager"])
             and self.owner != self.user.email
         ):
-            self.grunt.throw("Видалити коментар може лише автор або адміністратор")
+            self.grunt.throw(_("Only the author or an administrator can delete a comment"))
 
     # ------------------------------------------------------------------
     # Helper Classmethods

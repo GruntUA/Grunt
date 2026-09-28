@@ -25,11 +25,20 @@ from typing import Any
 
 from grunt.i18n.meta import SELECT_FIELDTYPES, option_values
 
-_PY_FUNCS = {"_", "gettext", "pgettext", "ngettext"}
-# t('…') / $t('…') in Vue/TS, __('…') in client scripts (DocType .js files).
-_TS_CALL = re.compile(r"(?<![\w$])(?:\$?t|__)\(\s*(['\"])(.+?)\1")
+_PY_FUNCS = {"_", "gettext", "pgettext", "ngettext", "N_", "NP_"}
+# Registration calls whose keyword strings are shown in the UI and translated
+# where they are served (e.g. ``@doc_action(label=..., confirm=...)``).
+_PY_LABEL_CALLS = {"doc_action": ("label", "confirm"), "register_doc_action": ("label", "confirm")}
+# t('…') / $t('…') in Vue/TS, __('…') in client scripts (DocType .js files),
+# N_('…') — a marked-only key (module constants translated where rendered).
+_TS_CALL = re.compile(r"(?<![\w$])(?:\$?t|__|N_)\(\s*(['\"])(.+?)\1")
 # tn('1 apple', '{n} apples', n) — the frontend plural helper.
 _TS_PLURAL = re.compile(r"(?<![\w$])tn\(\s*(['\"])(.+?)\1\s*,\s*(['\"])(.+?)\3")
+# {{ _("…") }} / pgettext("ctx", "…") / ngettext("s", "p", n) in Jinja templates.
+_JINJA_CALL = re.compile(
+    r"(?<![\w.])(_|pgettext|ngettext)\(\s*(['\"])(.+?)\2(?:\s*,\s*(['\"])(.+?)\4)?"
+)
+_JINJA_SUFFIXES = (".html", ".j2", ".jinja")
 # "10", "1.5", "30d", "365d", "50%" — codes / magnitudes, nothing to translate.
 _NUMERIC_TOKEN = re.compile(r"^\d+(?:[.,]\d+)?[a-z%]{0,3}$")
 _SKIP_DIRS = {
@@ -97,7 +106,9 @@ def extract_all(
         plural_source: str = "",
     ) -> None:
         source = (source or "").strip()
-        if not source or not _worth_translating(source):
+        # Explicit calls in code are always kept ("30s" in t('30s') is a label);
+        # the number filter guards against junk from scanned metadata.
+        if not source or (kind != "code" and not _worth_translating(source)):
             return
         key = (source, context)
         row = found.get(key)
@@ -131,6 +142,8 @@ def extract_all(
                 _scan_python(text, rel, origin, add)
             elif suffix in (".vue", ".ts", ".js", ".tsx"):
                 _scan_ts(text, rel, origin, add)
+            elif suffix in _JINJA_SUFFIXES:
+                _scan_jinja(text, rel, origin, add)
             elif suffix == ".json" and f"{path.parent.name}.json" == path.name:
                 _scan_doctype_json(text, rel, origin, add)
 
@@ -162,13 +175,21 @@ def _split_ctx(raw: str) -> tuple[str, str]:
 
 
 def _scan_python(text: str, rel: str, origin: str, add) -> None:
-    if "gettext" not in text and "pgettext" not in text and "_(" not in text:
+    if (
+        "gettext" not in text
+        and "_(" not in text
+        and '"fieldname"' not in text
+        and not any(f"{fn}(" in text for fn in _PY_LABEL_CALLS)
+    ):
         return
     try:
         tree = ast.parse(text)
     except SyntaxError:
         return
     for node in ast.walk(tree):
+        if isinstance(node, ast.Dict):
+            _scan_field_dict(node, rel, origin, add)
+            continue
         if not isinstance(node, ast.Call):
             continue
         fn = node.func
@@ -178,10 +199,15 @@ def _scan_python(text: str, rel: str, origin: str, add) -> None:
             name = fn.attr
         else:
             name = ""
+        if name in _PY_LABEL_CALLS:
+            for kw in node.keywords:
+                if kw.arg in _PY_LABEL_CALLS[name] and _is_str(kw.value) and kw.value.value:
+                    add(kw.value.value, "", "code", origin, f"{rel}:{node.lineno}")
+            continue
         if name not in _PY_FUNCS or not node.args:
             continue
         where = f"{rel}:{node.lineno}"
-        if name == "pgettext" and len(node.args) >= 2:
+        if name in ("pgettext", "NP_") and len(node.args) >= 2:
             ctx, msg = node.args[0], node.args[1]
             if _is_str(ctx) and _is_str(msg):
                 add(msg.value, ctx.value, "code", origin, where)
@@ -191,6 +217,19 @@ def _scan_python(text: str, rel: str, origin: str, add) -> None:
                 add(sing.value, "", "code", origin, where, plural_source=plur.value)
         elif _is_str(node.args[0]):
             add(node.args[0].value, "", "code", origin, where)
+
+
+def _scan_field_dict(node: ast.Dict, rel: str, origin: str, add) -> None:
+    """A DocField-shaped literal (``{"fieldname": ..., "label": "..."}``) built in
+    code — e.g. dynamic schemas, dialog fields — is served with ``_(label)``."""
+    keys = {
+        k.value: v
+        for k, v in zip(node.keys, node.values, strict=True)
+        if k is not None and _is_str(k)
+    }
+    label = keys.get("label")
+    if "fieldname" in keys and label is not None and _is_str(label) and label.value:
+        add(label.value, "", "code", origin, f"{rel}:{node.lineno}")
 
 
 def _is_str(node: ast.expr) -> bool:
@@ -205,6 +244,20 @@ def _scan_ts(text: str, rel: str, origin: str, add) -> None:
         context, source = _split_ctx(m.group(2))
         line = text.count("\n", 0, m.start()) + 1
         add(source, context, "code", origin, f"{rel}:{line}")
+
+
+def _scan_jinja(text: str, rel: str, origin: str, add) -> None:
+    if "_(" not in text and "gettext(" not in text:
+        return
+    for m in _JINJA_CALL.finditer(text):
+        fn, first, second = m.group(1), m.group(3), m.group(5)
+        where = f"{rel}:{text.count(chr(10), 0, m.start()) + 1}"
+        if fn == "pgettext" and second is not None:
+            add(second, first, "code", origin, where)
+        elif fn == "ngettext" and second is not None:
+            add(first, "", "code", origin, where, plural_source=second)
+        elif fn == "_":
+            add(first, "", "code", origin, where)
 
 
 def _scan_doctype_json(text: str, rel: str, origin: str, add) -> None:

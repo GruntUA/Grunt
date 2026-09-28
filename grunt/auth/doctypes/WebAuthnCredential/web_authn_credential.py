@@ -13,6 +13,7 @@ from typing import Any
 
 import grunt
 from grunt.document.base import Document
+from grunt.i18n import _
 from grunt.log import log
 
 
@@ -55,7 +56,7 @@ async def _owned_passkey(name: str, user_id: str) -> str:
         limit=1,
     )
     if not rows:
-        grunt.throw("Passkey not found", "NOT_FOUND")
+        grunt.throw(_("Passkey not found"), "NOT_FOUND")
     return rows[0]["name"]
 
 
@@ -80,7 +81,7 @@ async def rename_passkey(name: str, label: str) -> bool:
     assert current.id is not None
     label = (label or "").strip()
     if not label:
-        grunt.throw("Label is required", "VALIDATION_ERROR")
+        grunt.throw(_("Label is required"), "VALIDATION_ERROR")
     await grunt.set_value(
         "WebAuthnCredential", await _owned_passkey(name, current.id), "label", label
     )

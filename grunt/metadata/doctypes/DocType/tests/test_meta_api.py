@@ -85,8 +85,22 @@ async def test_duplicate_doctype_rejected(ctx):
     """Creating a DocType whose name already exists → ApplicationError."""
     from grunt.api.messages import ApplicationError
     from grunt.api.v1.meta import save_doctype
+    from grunt.i18n import use_language
 
     await save_doctype(doctype_data=SAMPLE_DOCTYPE)
-    with pytest.raises(ApplicationError) as excinfo:
+    with use_language("en"), pytest.raises(ApplicationError) as excinfo:
         await save_doctype(doctype_data={**SAMPLE_DOCTYPE, "__is_new": True})
     assert "already exists" in excinfo.value.message
+
+
+@pytest.mark.asyncio
+async def test_language_select_draws_ui_languages(ctx):
+    """User.language options come from the UI languages, labelled natively."""
+    from grunt.api.v1.meta import get_doctype
+    from grunt.i18n import translation_service
+
+    translation_service.set_language_names({"uk": "Українська"})
+    schema = await get_doctype(name="User")
+    field = next(f for f in schema["fields"] if f["fieldname"] == "language")
+    assert set(field["options"].split("\n")) >= {"en", "uk"}
+    assert field["option_labels"]["uk"] == "Українська"

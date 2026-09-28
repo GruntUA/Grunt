@@ -9,6 +9,7 @@ from sqlalchemy import CursorResult, func, or_, select, update
 
 from grunt.context import _session_ctx
 from grunt.db.filters import apply_filters, build_clauses
+from grunt.i18n import _
 from grunt.utils.attr_dict import AttrDict
 
 if TYPE_CHECKING:
@@ -152,7 +153,7 @@ class GruntDB:
 
         dt = await grunt.get_meta(doctype)
         if dt is None:
-            raise not_found(f"DocType «{doctype}» не знайдено")
+            raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
         table = dt.table
 
         async def _fetch_row(columns: list[Any]) -> Any:
@@ -194,7 +195,7 @@ class GruntDB:
 
         dt = await grunt.get_meta(doctype)
         if dt is None:
-            raise not_found(f"DocType «{doctype}» не знайдено")
+            raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
         table = dt.table
         values = fieldname if isinstance(fieldname, dict) else {fieldname: value}
         await self._session().execute(table.update().where(table.c.name == doc_id).values(values))
@@ -211,7 +212,7 @@ class GruntDB:
 
         dt = await grunt.get_meta(doctype)
         if dt is None:
-            raise not_found(f"DocType «{doctype}» не знайдено")
+            raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
         table = dt.table
         stmt = select(table.c.name)
         stmt = apply_filters(stmt, table, filters)
@@ -269,7 +270,7 @@ class GruntDB:
 
         dt = await grunt.get_meta(doctype)
         if dt is None:
-            raise not_found(f"DocType «{doctype}» не знайдено")
+            raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
         table = dt.table
 
         select_fields = [pluck] if pluck else fields
@@ -316,7 +317,7 @@ class GruntDB:
 
         dt = await grunt.get_meta(doctype)
         if dt is None:
-            raise not_found(f"DocType «{doctype}» не знайдено")
+            raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
         table = dt.table
         cols = [table.c[f] for f in fieldnames if f in table.c]
         if not cols:
@@ -338,7 +339,7 @@ class GruntDB:
 
         dt = await grunt.get_meta(doctype)
         if dt is None:
-            raise not_found(f"DocType «{doctype}» не знайдено")
+            raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
         table = dt.table
         col = table.c.get(fieldname)
         if col is None:
@@ -359,7 +360,7 @@ class GruntDB:
 
         dt = await grunt.get_meta(doctype)
         if dt is None:
-            raise not_found(f"DocType «{doctype}» не знайдено")
+            raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
         table = dt.table
         stmt = select(table).where(table.c.name == name).limit(1)
         result = await self._session().execute(stmt)
@@ -377,7 +378,7 @@ class GruntDB:
 
         dt = await grunt.get_meta(doctype)
         if dt is None:
-            raise not_found(f"DocType «{doctype}» не знайдено")
+            raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
         table = dt.table
         stmt = select(func.count()).select_from(table)
         if filters:
@@ -399,7 +400,7 @@ class GruntDB:
 
         dt = await grunt.get_meta(doctype)
         if dt is None:
-            raise not_found(f"DocType «{doctype}» не знайдено")
+            raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
         table = dt.table
 
         stmt = table.delete()
@@ -421,7 +422,7 @@ class GruntDB:
 
         dt = await grunt.get_meta(doctype)
         if dt is None:
-            raise not_found(f"DocType «{doctype}» не знайдено")
+            raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
         table = dt.table
         await self._session().execute(table.insert().values(**values))
         await self._session().flush()
@@ -436,7 +437,7 @@ class GruntDB:
 
         dt = await grunt.get_meta(doctype)
         if dt is None:
-            raise not_found(f"DocType «{doctype}» не знайдено")
+            raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
         table = dt.table
         result = await self._session().execute(table.insert(), rows)
         await self._session().flush()
@@ -454,7 +455,7 @@ class GruntDB:
 
         dt = await grunt.get_meta(doctype)
         if dt is None:
-            raise not_found(f"DocType «{doctype}» не знайдено")
+            raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
         table = dt.table
 
         update_values = {k: v for k, v in values.items() if k in table.c}
@@ -485,7 +486,7 @@ class GruntDB:
 
         dt = await grunt.get_meta(doctype)
         if dt is None:
-            raise not_found(f"DocType «{doctype}» не знайдено")
+            raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
         table = dt.table
 
         select_exprs: list[Any] = []

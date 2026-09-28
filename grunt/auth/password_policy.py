@@ -9,6 +9,7 @@ bootstrap (``grunt site create`` / setup wizard) is never blocked.
 from __future__ import annotations
 
 import grunt
+from grunt.i18n import _
 from grunt.site.settings import get_setting
 
 
@@ -46,15 +47,18 @@ async def enforce_password_policy(password: str) -> None:
     problems: list[str] = []
 
     if len(password) < min_length:
-        problems.append(f"містити щонайменше {min_length} символів")
+        problems.append(_("be at least %(count)s characters long") % {"count": min_length})
     if require_upper and not any(c.isupper() for c in password):
-        problems.append("містити велику літеру")
+        problems.append(_("contain an uppercase letter"))
     if require_lower and not any(c.islower() for c in password):
-        problems.append("містити малу літеру")
+        problems.append(_("contain a lowercase letter"))
     if require_digit and not any(c.isdigit() for c in password):
-        problems.append("містити цифру")
+        problems.append(_("contain a digit"))
     if require_symbol and not any(not c.isalnum() for c in password):
-        problems.append("містити спеціальний символ")
+        problems.append(_("contain a special character"))
 
     if problems:
-        grunt.throw("Пароль повинен " + "; ".join(problems) + ".", "VALIDATION_ERROR")
+        grunt.throw(
+            _("The password must %(requirements)s.") % {"requirements": "; ".join(problems)},
+            "VALIDATION_ERROR",
+        )

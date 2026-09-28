@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING, Any
 
 from grunt.context import require_session, require_user
 from grunt.errors import not_found
+from grunt.i18n import _
 from grunt.permissions.types import PermissionAction, WriteAction
 
 if TYPE_CHECKING:
@@ -56,7 +57,7 @@ async def read_guard(doctype: str) -> tuple[Any, User, frozenset[str]]:
 
     dt = await grunt.get_meta(doctype)
     if dt is None:
-        raise not_found(f"DocType «{doctype}» не знайдено")
+        raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
     user = require_user()
     await permission_checker.require(user, dt, "read")
     hidden_fields = permission_checker.hidden_fields(user, dt)
@@ -78,7 +79,7 @@ async def doc_guard(doctype: str, doc_id: str, action: PermissionAction = "read"
 
     dt = await grunt.get_meta(doctype)
     if dt is None:
-        raise not_found(f"DocType «{doctype}» не знайдено")
+        raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
     user = require_user()
     if is_virtual_routed(dt, doctype):
         # No table to look the row up in — the DocType-level check is all there is.
@@ -87,7 +88,7 @@ async def doc_guard(doctype: str, doc_id: str, action: PermissionAction = "read"
     lookup_id = dt.name if dt.is_singleton else doc_id
     doc = await grunt.db.get_value(doctype, lookup_id, "*")
     if doc is None:
-        raise not_found(f"Документ «{doc_id}» не знайдено")
+        raise not_found(_("Document “%(name)s” not found") % {"name": doc_id})
     await permission_checker.require(user, dt, action, doc)
 
 
@@ -102,7 +103,7 @@ async def write_guard(doctype: str, action: WriteAction) -> tuple[Any, User, Asy
 
     dt = await grunt.get_meta(doctype)
     if dt is None:
-        raise not_found(f"DocType «{doctype}» не знайдено")
+        raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
     user = require_user()
     await permission_checker.require(user, dt, action)
     return dt, user, require_session()

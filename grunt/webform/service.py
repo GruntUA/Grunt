@@ -9,6 +9,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 from grunt.app import grunt
+from grunt.i18n import _
 from grunt.log import log
 
 if TYPE_CHECKING:
@@ -87,7 +88,7 @@ class WebFormService:
         if meta is None:
             from grunt.errors import not_found
 
-            raise not_found(f"DocType «{form['doctype']}» не знайдено")
+            raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": form["doctype"]})
 
         result: list[dict[str, Any]] = []
         for row in form["fields"] or []:
@@ -154,16 +155,16 @@ class WebFormService:
 
         form = await self.get_form(route)
         if not form:
-            raise WebFormError("Форму не знайдено")
+            raise WebFormError(_("Form not found"))
 
         if form["login_required"] and not user_email:
-            raise WebFormError("Для заповнення цієї форми потрібна авторизація")
+            raise WebFormError(_("You need to sign in to fill in this form"))
 
         # Check max submissions
         if form.get("max_submissions", 0) > 0:
             count = await self._count_submissions(form["doctype"])
             if count >= form["max_submissions"]:
-                raise WebFormError("Досягнуто максимальну кількість відповідей")
+                raise WebFormError(_("The maximum number of responses has been reached"))
 
         fields = await self.get_form_fields(route)
         validated = self._validate_submission(fields, data)
@@ -238,7 +239,7 @@ class WebFormService:
             value = data.get(field["fieldname"])
 
             if field["required"] and (value is None or value == ""):
-                errors.append(f"Поле '{field['label']}' є обов'язковим")
+                errors.append(_("Field “%(label)s” is required") % {"label": _(field["label"])})
                 continue
 
             if value is not None:
@@ -312,7 +313,9 @@ class WebFormService:
         content = await upload.read()
         max_bytes = settings.max_upload_size_mb * 1024 * 1024
         if len(content) > max_bytes:
-            raise WebFormError(f"Файл завеликий (макс. {settings.max_upload_size_mb} МБ)")
+            raise WebFormError(
+                _("The file is too large (max %(size)s MB)") % {"size": settings.max_upload_size_mb}
+            )
 
         content_type = upload.content_type or "application/octet-stream"
         storage = get_storage_backend()

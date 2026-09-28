@@ -13,6 +13,7 @@ from itertools import islice
 from typing import TYPE_CHECKING, Any
 
 from grunt.document.serde import audit_fields
+from grunt.i18n import _
 from grunt.log import log
 
 if TYPE_CHECKING:
@@ -305,7 +306,7 @@ async def write_bulk_delete_activity_log(
     try:
         dt_log = await grunt.get_meta("ActivityLog")
         if dt_log is None:
-            raise ValueError("DocType «ActivityLog» не знайдено")
+            raise ValueError(_("DocType “%(doctype)s” not found") % {"doctype": "ActivityLog"})
         t_log = dt_log.table
 
         table_cols = {c.name for c in t_log.c}
