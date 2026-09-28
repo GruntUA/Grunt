@@ -1,6 +1,6 @@
-"""Unit tests for operator-aware filter building in ``grunt.db.api``.
+"""Unit tests for operator-aware filter building in ``grunt.db.filters``.
 
-These exercise ``_apply_filters`` against a real SQLAlchemy table so the
+These exercise ``apply_filters`` against a real SQLAlchemy table so the
 compiled SQL is checked directly — in particular that the list-level parser
 supports the same operators as the ``grunt.db`` count path (regression: the
 ``nin`` operator was silently dropped, so ``get_list`` and ``count`` disagreed).
@@ -15,7 +15,7 @@ from __future__ import annotations
 
 from sqlalchemy import Column, Integer, MetaData, String, Table, select
 
-from grunt.db.api import _apply_filters, build_clauses
+from grunt.db.filters import apply_filters, build_clauses
 
 _META = MetaData()
 _TABLE = Table(
@@ -30,7 +30,7 @@ _TABLE = Table(
 
 
 def _sql(filters: dict) -> str:
-    stmt = _apply_filters(select(_TABLE.c.doctype), _TABLE, filters)
+    stmt = apply_filters(select(_TABLE.c.doctype), _TABLE, filters)
     return str(stmt.compile(compile_kwargs={"literal_binds": True}))
 
 
@@ -104,7 +104,7 @@ class TestApplyFilters:
         assert "WHERE" not in _sql({"missing__nin": ["a"]})
 
     def test_apply_filters_matches_build_clauses(self):
-        # _apply_filters is a thin where()-applying wrapper around
+        # apply_filters is a thin where()-applying wrapper around
         # build_clauses — same WHERE output either way.
         f = {"doctype__nin": ["A", "B"], "status": "Open"}
         via_apply_filters = _sql(f)

@@ -303,7 +303,7 @@ class TreeService:
         walks an in-memory parent lookup to keep ancestors so the returned
         tree stays connected/readable instead of showing orphaned matches.
         """
-        from grunt.db.api import _apply_filters
+        from grunt.db.filters import apply_filters
         from grunt.document.base import Document
 
         # Build parent lookup from the flat result set (avoids extra DB round-trip)
@@ -315,7 +315,7 @@ class TreeService:
         # scoped only to the nodes already present in this subtree.
         tree_ids = [r["name"] for r in all_rows]
         filtered_q = select(table.c.name)
-        filtered_q = _apply_filters(filtered_q, table, filters)
+        filtered_q = apply_filters(filtered_q, table, filters)
 
         if search:
             from sqlalchemy import or_

@@ -331,7 +331,7 @@ class ReportEngine:
         # Apply filters — operator-aware, same vocabulary as list views:
         # ``field__gte`` / ``__like`` / ``__ne`` / … ; a bare ``field`` means
         # equality. Empty values are dropped so an untouched filter is a no-op.
-        from grunt.db.api import build_clauses
+        from grunt.db.filters import build_clauses
 
         active_filters = {k: v for k, v in filters.items() if v not in (None, "", [])}
         for clause in build_clauses(table, active_filters):

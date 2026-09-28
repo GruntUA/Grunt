@@ -9,10 +9,10 @@ from sqlalchemy import or_, select
 if TYPE_CHECKING:
     from grunt.metadata.doctype import DocType
 
-# Filter-clause building lives in grunt.db.api._apply_filters — this module
+# Filter-clause building lives in grunt.db.filters.apply_filters — this module
 # used to have a second, same-named function here that just wrapped
-# build_clauses() again, which made "which _apply_filters is this?" an
-# actual question when grepping. Import from grunt.db.api directly instead.
+# build_clauses() again, which made "which apply_filters is this?" an
+# actual question when grepping. Import from grunt.db.filters directly instead.
 
 
 async def _expand_child_of_filters(

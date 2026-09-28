@@ -521,7 +521,7 @@ class Document(
         cannot be expressed as simple ``field__op=value`` pairs.  Return a
         SQLAlchemy ``ClauseElement`` or ``None`` to skip.
 
-        The clause is appended *before* the standard ``_apply_filters`` step
+        The clause is appended *before* the standard ``apply_filters`` step
         so that both the data query and the COUNT query are guarded.
 
         Example::

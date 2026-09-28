@@ -16,7 +16,7 @@ from typing import TYPE_CHECKING, Any
 from fastapi import HTTPException, status
 from sqlalchemy import and_, func, select, update
 
-from grunt.db.api import _apply_filters
+from grunt.db.filters import apply_filters
 from grunt.document.base import Document, DocumentList
 from grunt.document.formula import evaluate_read_formulas
 from grunt.document.meta import Meta
@@ -128,7 +128,7 @@ async def _apply_where(
     if extra_clause is not None:
         query = query.where(extra_clause)
     if filters:
-        query = _apply_filters(query, table, filters)
+        query = apply_filters(query, table, filters)
     if search:
         query = await _apply_search(query, table, dt.doc, search)
     return query

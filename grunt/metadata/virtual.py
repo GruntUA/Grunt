@@ -98,7 +98,7 @@ class VirtualDocType:
             eq (default), ne, neq, gt, gte, lt, lte, lte_or_null, like, ilike,
             nlike, in, nin, isnull, is (``set`` / ``not set``)
 
-        Same operator set as ``grunt.db.api.build_clauses`` (the SQL-backed
+        Same operator set as ``grunt.db.filters.build_clauses`` (the SQL-backed
         equivalent for physical DocTypes) — an unrecognised operator raises
         rather than silently falling back to ``eq``, so a typo or a future
         operator added to one side without the other fails loudly instead of

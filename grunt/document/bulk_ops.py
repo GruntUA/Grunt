@@ -254,7 +254,7 @@ class BulkDeleteTask:
         from sqlalchemy import delete as sa_delete
         from sqlalchemy.engine import CursorResult
 
-        from grunt.db.api import _apply_filters
+        from grunt.db.filters import apply_filters
         from grunt.db.session import async_session_factory
         from grunt.metadata.compiler import MULTI_LINK_TABLE
         from grunt.search.service import _search_index_table
@@ -283,7 +283,7 @@ class BulkDeleteTask:
                 # ── 1. Delete main rows ──────────────────────────────────
                 del_stmt = sa_delete(table)
                 if filters:
-                    del_stmt = _apply_filters(del_stmt, table, filters)
+                    del_stmt = apply_filters(del_stmt, table, filters)
                 result = cast("CursorResult", await session.execute(del_stmt))
                 deleted: int = result.rowcount or 0
 
