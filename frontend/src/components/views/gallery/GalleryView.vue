@@ -9,7 +9,7 @@ import { FileX, ImageIcon } from '@lucide/vue'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription } from '@/components/ui/empty'
+import ListEmptyState from '@/components/views/ListEmptyState.vue'
 import { docUrl } from '@/core/workspaceUrl'
 
 const props = defineProps<{
@@ -88,15 +88,7 @@ function formatDate(val: unknown, type: string): string {
 <template>
   <div class="min-h-64 px-1">
     <!-- Empty state -->
-    <Empty v-if="!isLoading && !rows.length" class="border border-dashed py-16">
-      <EmptyHeader>
-        <EmptyMedia variant="icon">
-          <FileX />
-        </EmptyMedia>
-        <EmptyTitle>Записів не знайдено</EmptyTitle>
-        <EmptyDescription>Спробуйте змінити фільтри або додати новий документ</EmptyDescription>
-      </EmptyHeader>
-    </Empty>
+    <ListEmptyState v-if="!isLoading && !rows.length" class="border border-dashed py-16" :icon="FileX" />
 
     <!-- Skeleton -->
     <div v-else-if="isLoading && !rows.length"

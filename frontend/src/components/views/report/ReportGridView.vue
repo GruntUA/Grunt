@@ -11,7 +11,6 @@ import {
   Layers,
   Sigma,
   Download,
-  FileSpreadsheet,
   FileBarChart2,
   Save,
 } from '@lucide/vue'
@@ -39,7 +38,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
+import ListEmptyState from '@/components/views/ListEmptyState.vue'
 import { useReportModel, isNumericField, type AggFn } from './useReportModel'
 
 interface TableMeta { page: number; pages: number; total: number }
@@ -505,14 +504,7 @@ async function commitEdit(row: Record<string, unknown>, key: string) {
           <!-- Empty -->
           <TableRow v-else-if="!isLoading && !rows.length">
             <TableCell :colspan="model.visibleColumns.value.length" class="border-0 p-0">
-              <Empty class="py-16">
-                <EmptyHeader>
-                  <EmptyMedia variant="icon">
-                    <FileSpreadsheet />
-                  </EmptyMedia>
-                  <EmptyTitle>Записів не знайдено</EmptyTitle>
-                </EmptyHeader>
-              </Empty>
+              <ListEmptyState class="py-16" />
             </TableCell>
           </TableRow>
 

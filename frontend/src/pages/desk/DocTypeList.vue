@@ -42,6 +42,7 @@ import { docUrl } from '@/core/workspaceUrl'
 import { roleAllows } from '@/core/permissions'
 import { getExporters } from '@/core/io/exporters/registry'
 import { LIST_BULK_UI, type BulkRequest } from '@/core/composables/useListBulkUi'
+import { LIST_FILTER_RESET } from '@/core/composables/useListFilterReset'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 const props = defineProps<{ doctype: string; workspace?: string }>()
 const doctype = computed(() => props.doctype)
@@ -69,7 +70,7 @@ const page = ref(1)
 // refetch automatically from invalidateQueries below and ignore it.
 const refreshKey = ref(0)
 const { viewMode, sortKey, sortOrder, groupBy, activeFilters, quickFilterValues, search, perPage } = useListViewState(props.doctype)
-const { inlineSearch, debouncedSearch } = useListSearch(page, search)
+const { inlineSearch, debouncedSearch, resetSearch } = useListSearch(page, search)
 
 // ── Quick filters ─────────────────────────────────────────────────────────────
 const quickFilterPrefs = useQuickFilterPrefs(props.doctype)
@@ -200,6 +201,18 @@ const {
 })
 
 provide(LIST_BULK_UI, { actions: listActions.resolved('bulk'), request: bulkRequest })
+provide(LIST_FILTER_RESET, {
+  active: computed(() =>
+    !!debouncedSearch.value
+    || activeFilters.value.length > 0
+    || Object.values(quickFilterValues.value).some(Boolean),
+  ),
+  clear: () => {
+    resetSearch()
+    activeFilters.value = []
+    quickFilterValues.value = {}
+  },
+})
 
 watch(
   quickFilterValues,
@@ -394,7 +407,6 @@ watch(() => props.doctype, async (newDoctype) => {
       @update:quick-filter-values="quickFilterValues = $event"
       @update:group-by="setGroupBy"
       @sort="onSort"
-      @reset="inlineSearch = ''; activeFilters = []; quickFilterValues = {}; page = 1"
     />
 
     <ListViewRouter

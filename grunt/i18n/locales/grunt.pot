@@ -52,7 +52,7 @@ msgstr ""
 msgid "Add"
 msgstr ""
 
-#: grunt/frontend/src/components/views/FilterBar.vue:262
+#: grunt/frontend/src/components/views/FilterBar.vue:294
 msgid "Add a Filter"
 msgstr ""
 
@@ -76,7 +76,7 @@ msgstr ""
 msgid "Apply"
 msgstr ""
 
-#: grunt/frontend/src/components/views/FilterBar.vue:310
+#: grunt/frontend/src/components/views/FilterBar.vue:342
 msgid "Apply Filters"
 msgstr ""
 
@@ -188,8 +188,9 @@ msgstr ""
 msgid "Clear"
 msgstr ""
 
-#: grunt/frontend/src/components/views/FilterBar.vue:196
-#: grunt/frontend/src/components/views/FilterBar.vue:288
+#: grunt/frontend/src/components/views/ListEmptyState.vue:46
+#: grunt/frontend/src/components/views/FilterBar.vue:228
+#: grunt/frontend/src/components/views/FilterBar.vue:320
 msgid "Clear Filters"
 msgstr ""
 
@@ -229,7 +230,7 @@ msgstr ""
 msgid "Content (HTML/text)"
 msgstr ""
 
-#: grunt/frontend/src/components/dashboard/widgets/Funnel/Funnel.vue:60
+#: grunt/frontend/src/components/dashboard/widgets/Funnel/Funnel.vue:80
 msgid "Conversion:"
 msgstr ""
 
@@ -285,6 +286,10 @@ msgstr ""
 msgid "Data source"
 msgstr ""
 
+#: grunt/frontend/src/components/views/ListEmptyState.vue:35
+msgid "Data source unavailable"
+msgstr ""
+
 #: grunt/frontend/src/components/dashboard/sections/DateRangeSection.vue:23
 msgid "Date field"
 msgstr ""
@@ -302,6 +307,7 @@ msgstr ""
 #: grunt/frontend/src/components/views/BulkActionBar.vue:286
 #: grunt/frontend/src/components/dashboard/WidgetConfigPanel.vue:77
 #: grunt/frontend/src/components/dashboard/WidgetCard.vue:60
+#: grunt/frontend/src/components/dashboard/sections/FiltersSection.vue:82
 #: grunt/frontend/src/components/views/form/FormModals.vue:140
 #: grunt/frontend/src/components/fields/Table/Table.vue:481
 msgid "Delete"
@@ -425,7 +431,7 @@ msgstr ""
 msgid "Fast delete"
 msgstr ""
 
-#: grunt/frontend/src/components/views/FilterBar.vue:212
+#: grunt/frontend/src/components/views/FilterBar.vue:244
 #: grunt/frontend/src/components/dashboard/sections/AggregationSection.vue:41
 msgid "Field"
 msgstr ""
@@ -446,7 +452,7 @@ msgstr ""
 msgid "Fill in the current row first"
 msgstr ""
 
-#: grunt/frontend/src/components/views/FilterBar.vue:191
+#: grunt/frontend/src/components/views/FilterBar.vue:223
 msgid "Filter"
 msgstr ""
 
@@ -456,6 +462,10 @@ msgstr ""
 
 #: grunt/frontend/src/components/fields/Link/Link.vue:228
 msgid "Filter:"
+msgstr ""
+
+#: grunt/frontend/src/components/dashboard/sections/FiltersSection.vue:72
+msgid "Filters"
 msgstr ""
 
 #: grunt/frontend/src/components/fields/ColumnMapping/ColumnMapping.vue:114
@@ -717,13 +727,13 @@ msgstr ""
 msgid "No attachment sources available"
 msgstr ""
 
-#: grunt/frontend/src/components/dashboard/widgets/Donut/Donut.vue:60
-#: grunt/frontend/src/components/dashboard/widgets/Chart/Chart.vue:114
-#: grunt/frontend/src/components/dashboard/widgets/Funnel/Funnel.vue:42
+#: grunt/frontend/src/components/dashboard/widgets/Donut/Donut.vue:87
+#: grunt/frontend/src/components/dashboard/widgets/Chart/Chart.vue:155
+#: grunt/frontend/src/components/dashboard/widgets/Funnel/Funnel.vue:60
 msgid "No data"
 msgstr ""
 
-#: grunt/frontend/src/components/views/FilterBar.vue:251
+#: grunt/frontend/src/components/views/FilterBar.vue:283
 msgid "No fields available"
 msgstr ""
 
@@ -744,6 +754,14 @@ msgstr ""
 #: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:308
 #: grunt/frontend/src/components/fields/Link/Link.vue:195
 msgid "No records"
+msgstr ""
+
+#: grunt/frontend/src/components/views/ListEmptyState.vue:52
+msgid "No records found"
+msgstr ""
+
+#: grunt/frontend/src/components/views/ListEmptyState.vue:42
+msgid "No records match your filters"
 msgstr ""
 
 #: grunt/frontend/src/components/fields/Table/Table.vue:316
@@ -833,7 +851,7 @@ msgstr ""
 msgid "Point the camera at a barcode or QR code"
 msgstr ""
 
-#: grunt/frontend/src/components/views/FilterBar.vue:295
+#: grunt/frontend/src/components/views/FilterBar.vue:327
 msgid "Preset name"
 msgstr ""
 
@@ -976,7 +994,7 @@ msgstr ""
 msgid "Save and open"
 msgstr ""
 
-#: grunt/frontend/src/components/views/FilterBar.vue:304
+#: grunt/frontend/src/components/views/FilterBar.vue:336
 msgid "Save as preset"
 msgstr ""
 
@@ -988,7 +1006,7 @@ msgstr ""
 msgid "Saved"
 msgstr ""
 
-#: grunt/frontend/src/components/views/FilterBar.vue:268
+#: grunt/frontend/src/components/views/FilterBar.vue:300
 msgid "Saved filters"
 msgstr ""
 
@@ -1074,7 +1092,8 @@ msgstr ""
 msgid "Select row"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/Select/FilterInput.vue:29
+#: grunt/frontend/src/components/fields/Select/FilterInput.vue:35
+#: grunt/frontend/src/components/fields/Select/FilterInput.vue:41
 msgid "Select value"
 msgstr ""
 
@@ -1177,6 +1196,10 @@ msgstr ""
 msgid "Target"
 msgstr ""
 
+#: grunt/frontend/src/components/views/ListEmptyState.vue:27
+msgid "The data source is temporarily unavailable."
+msgstr ""
+
 #: grunt/frontend/src/components/dashboard/sections/TilesSection.vue:64
 msgid "Tile {n}"
 msgstr ""
@@ -1189,6 +1212,10 @@ msgstr ""
 #: grunt/frontend/src/components/dashboard/sections/LinksSection.vue:85
 #: grunt/frontend/src/components/dashboard/sections/TitleSection.vue:12
 msgid "Title"
+msgstr ""
+
+#: grunt/frontend/src/components/views/ListEmptyState.vue:43
+msgid "Try adjusting your filters to see more results."
 msgstr ""
 
 #: grunt/frontend/src/core/attachmentChannels/channels/LibraryChannel/LibraryChannel.vue:328
@@ -1305,7 +1332,7 @@ msgstr ""
 msgid "text"
 msgstr ""
 
-#: grunt/frontend/src/components/dashboard/widgets/Donut/Donut.vue:54
+#: grunt/frontend/src/components/dashboard/widgets/Donut/Donut.vue:81
 msgid "total"
 msgstr ""
 

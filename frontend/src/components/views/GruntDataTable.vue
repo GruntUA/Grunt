@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, nextTick } from 'vue'
-import { FileSpreadsheet, WifiOff, ChevronUp, ChevronDown, ArrowUpDown } from '@lucide/vue'
+import { ChevronUp, ChevronDown, ArrowUpDown } from '@lucide/vue'
 import type { DocField, DocTypeStatusConfig, PaginationMeta } from '@/types'
 import type { ListColumn } from '@/core/composables/useListColumns'
 import { getListCell } from '@/core/listCellRegistry'
@@ -11,7 +11,7 @@ import { Table, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
 import { TableBody, TableCell } from '@/components/ui/table'
-import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription } from '@/components/ui/empty'
+import ListEmptyState from '@/components/views/ListEmptyState.vue'
 const props = defineProps<{
   columns: ListColumn[]
   rows: Record<string, unknown>[]
@@ -27,13 +27,6 @@ const props = defineProps<{
   hideBody?: boolean
   meta?: Pick<PaginationMeta, 'unavailable' | 'unavailable_message'>
 }>()
-
-// The backend already knows *why* its data source is unavailable (Redis down,
-// an external API unreachable, …) and hands over ready-to-display text — this
-// generic table just renders it, with a neutral fallback if none was given.
-const unavailableDescription = computed(() =>
-  props.meta?.unavailable ? props.meta.unavailable_message || 'Джерело даних тимчасово недоступне.' : null,
-)
 
 const emit = defineEmits<{
   sort: [key: string]
@@ -178,16 +171,7 @@ function isRowSelected(row: Record<string, unknown>): boolean {
       <!-- Empty state -->
       <TableRow v-else-if="!isLoading && !rows.length">
         <TableCell :colspan="columns.length + 1" class="border-0 p-0">
-          <Empty class="py-16">
-            <EmptyHeader>
-              <EmptyMedia variant="icon">
-                <WifiOff v-if="unavailableDescription" />
-                <FileSpreadsheet v-else />
-              </EmptyMedia>
-              <EmptyTitle>{{ unavailableDescription ? 'Джерело даних недоступне' : 'Записів не знайдено' }}</EmptyTitle>
-              <EmptyDescription v-if="unavailableDescription">{{ unavailableDescription }}</EmptyDescription>
-            </EmptyHeader>
-          </Empty>
+          <ListEmptyState class="py-16" :meta="meta" />
         </TableCell>
       </TableRow>
 

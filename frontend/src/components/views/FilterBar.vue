@@ -33,6 +33,8 @@ interface DraftRow {
 
 const { t } = useI18n()
 const activeFilters = ref<ActiveFilter[]>(props.initialFilters ?? [])
+// Filters can be cleared from outside too (list empty state → «Скинути фільтри»).
+watch(() => props.initialFilters, (v) => { activeFilters.value = v ?? [] })
 
 // Filter popover
 const isFilterOpen = ref(false)

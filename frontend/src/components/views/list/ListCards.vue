@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { FileSpreadsheet, WifiOff } from '@lucide/vue'
 import type { DocField, DocType, PaginationMeta } from '@/types'
 import type { ListColumn } from '@/core/composables/useListColumns'
 import { getListCell } from '@/core/listCellRegistry'
@@ -11,7 +10,7 @@ import DefaultListCell from '@/components/fields/Default/ListCell.vue'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
+import ListEmptyState from '@/components/views/ListEmptyState.vue'
 import { Skeleton } from '@/components/ui/skeleton'
 
 /**
@@ -103,10 +102,6 @@ function onTitleClick(event: MouseEvent, row: Record<string, unknown>) {
   event.preventDefault()
   emit('rowClick', row)
 }
-
-const unavailable = computed(() =>
-  props.meta?.unavailable ? props.meta.unavailable_message || 'Джерело даних тимчасово недоступне.' : null,
-)
 </script>
 
 <template>
@@ -119,16 +114,7 @@ const unavailable = computed(() =>
       </Card>
     </template>
 
-    <Empty v-else-if="!rows.length" class="border py-16">
-      <EmptyHeader>
-        <EmptyMedia variant="icon">
-          <WifiOff v-if="unavailable" />
-          <FileSpreadsheet v-else />
-        </EmptyMedia>
-        <EmptyTitle>{{ unavailable ? 'Джерело даних недоступне' : 'Записів не знайдено' }}</EmptyTitle>
-        <EmptyDescription v-if="unavailable">{{ unavailable }}</EmptyDescription>
-      </EmptyHeader>
-    </Empty>
+    <ListEmptyState v-else-if="!rows.length" class="border py-16" :meta="meta" />
 
     <Card
       v-for="row in rows"
