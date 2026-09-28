@@ -141,26 +141,9 @@ class Meta:
         return self._searchable_fields
 
     def get_valid_columns(self) -> list[str]:
-        """Return all valid physical database columns."""
+        """Return all valid physical database columns — exactly the compiled table's."""
         if self._valid_columns is None:
-            cols = [
-                "id",
-                "name",
-                "owner",
-                "created_at",
-                "modified_at",
-                "docstatus",
-                "idx",
-                "parent",
-                "parentfield",
-                "parenttype",
-            ]
-            sys_cols = set(cols)
-
-            for df in self.doc.fields:
-                if df.is_physical and df.fieldname not in sys_cols:
-                    cols.append(df.fieldname)
-            self._valid_columns = cols
+            self._valid_columns = [c.name for c in self.table.columns]
         return self._valid_columns
 
     def get_physical_fields(self) -> list[DocField]:

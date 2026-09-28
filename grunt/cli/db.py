@@ -216,9 +216,10 @@ def db_trim_tables(doctype: str | None, dry_run: bool, quiet: bool, site: str | 
                             all_dts = await doctype_registry.list_all()
                             metas = [Meta(dt) for dt in all_dts]
 
-                        # Trim them
-                        for m in metas:
-                            await m.trim_table(engine=eng, dry_run=dry_run, quiet=quiet)
+                # Trim only after the session is closed: its transaction (BEGIN
+                # IMMEDIATE) would lock out trim_table's own connection.
+                for m in metas:
+                    await m.trim_table(engine=eng, dry_run=dry_run, quiet=quiet)
             finally:
                 current_site.reset(token)
 

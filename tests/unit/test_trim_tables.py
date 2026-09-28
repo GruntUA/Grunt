@@ -36,6 +36,13 @@ async def test_trim_tables_dry_run(ctx, engine):
 
         await conn.run_sync(_check_still_there)
 
+    # System columns are kept — only fake_col is reported.
+    async with engine.begin() as conn:
+        db_cols = await conn.run_sync(
+            lambda c: {col["name"] for col in inspect(c).get_columns(table_name)}
+        )
+    assert db_cols - set(user_meta.get_valid_columns()) == {"fake_col"}
+
     # 2. Test actual run drops
     # Trim the table removing the column
     await user_meta.trim_table(engine, dry_run=False, quiet=True)
@@ -48,3 +55,13 @@ async def test_trim_tables_dry_run(ctx, engine):
             assert "fake_col" not in cols
 
         await conn.run_sync(_check_dropped)
+
+
+@pytest.mark.asyncio
+async def test_valid_columns_include_system_columns(ctx):
+    """Trimming must never drop the compiler's system columns (modified_by, child links)."""
+    user = set((await grunt.get_meta("User")).get_valid_columns())
+    assert {"name", "owner", "created_at", "modified_at", "modified_by", "docstatus"} <= user
+
+    child = set((await grunt.get_meta("UserRole")).get_valid_columns())
+    assert {"parent_name", "parent_doctype", "parent_field", "idx"} <= child
