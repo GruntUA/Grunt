@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { ref, computed, watch, nextTick, useId } from 'vue'
 import { X, Pencil } from '@lucide/vue'
 import { cn } from '@/lib/utils'
@@ -14,6 +15,8 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 
+const { t } = useI18n()
+
 const props = withDefaults(defineProps<{
   modelValue: string | null
   options: TreeNode[]
@@ -22,7 +25,7 @@ const props = withDefaults(defineProps<{
   disabled?: boolean
   class?: string
 }>(), {
-  placeholder: '— оберіть —',
+  placeholder: undefined,
 })
 
 const emit = defineEmits<{
@@ -222,7 +225,7 @@ function keepOpenIfSelf(e: CustomEvent<{ originalEvent?: Event }>) {
         <input
           ref="inputEl"
           :value="displayValue"
-          :placeholder="placeholder"
+          :placeholder="placeholder ?? t('— Select —')"
           :disabled="disabled"
           role="combobox"
           aria-haspopup="tree"
@@ -245,7 +248,7 @@ function keepOpenIfSelf(e: CustomEvent<{ originalEvent?: Event }>) {
             v-if="!disabled"
             type="button"
             class="text-muted-foreground/70 transition-colors hover:text-foreground"
-            aria-label="Обрати зі списку"
+            :aria-label="t('Choose from list')"
             @click.stop="openDialog"
             @mousedown.stop.prevent
           >
@@ -255,7 +258,7 @@ function keepOpenIfSelf(e: CustomEvent<{ originalEvent?: Event }>) {
             v-if="selectedLabel && !disabled"
             type="button"
             class="text-muted-foreground/70 transition-colors hover:text-foreground"
-            aria-label="Очистити"
+            :aria-label="t('Clear')"
             @click.stop="onClear"
             @mousedown.stop.prevent
           >
@@ -286,7 +289,7 @@ function keepOpenIfSelf(e: CustomEvent<{ originalEvent?: Event }>) {
           @select="onSelect"
           @toggle="onToggle"
         />
-        <p v-if="!filteredOptions.length" class="px-2 py-3 text-center text-muted-foreground">Нічого не знайдено</p>
+        <p v-if="!filteredOptions.length" class="px-2 py-3 text-center text-muted-foreground">{{ t('Nothing found') }}</p>
       </div>
     </PopoverContent>
   </Popover>
@@ -294,14 +297,14 @@ function keepOpenIfSelf(e: CustomEvent<{ originalEvent?: Event }>) {
   <Dialog v-model:open="dialogOpen">
     <DialogContent class="gap-0 p-0 sm:max-w-6xl" @open-auto-focus.prevent>
       <DialogHeader class="border-b border-border px-4 py-3 pr-10">
-        <DialogTitle>{{ placeholder }}</DialogTitle>
-        <DialogDescription class="sr-only">Оберіть значення з дерева</DialogDescription>
+        <DialogTitle>{{ placeholder ?? t('— Select —') }}</DialogTitle>
+        <DialogDescription class="sr-only">{{ t('Choose a value from the tree') }}</DialogDescription>
       </DialogHeader>
       <div class="border-b border-border px-3 py-2">
         <input
           ref="dialogSearchEl"
           :value="search"
-          placeholder="Пошук…"
+          :placeholder="t('Search…')"
           autocomplete="off"
           class="w-full bg-transparent py-1 text-sm outline-none placeholder:text-muted-foreground"
           @input="onDialogSearch"
@@ -318,7 +321,7 @@ function keepOpenIfSelf(e: CustomEvent<{ originalEvent?: Event }>) {
           @select="onSelect"
           @toggle="onToggle"
         />
-        <p v-if="!filteredOptions.length" class="px-2 py-6 text-center text-muted-foreground">Нічого не знайдено</p>
+        <p v-if="!filteredOptions.length" class="px-2 py-6 text-center text-muted-foreground">{{ t('Nothing found') }}</p>
       </div>
     </DialogContent>
   </Dialog>

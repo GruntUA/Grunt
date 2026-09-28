@@ -1,9 +1,12 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { computed } from 'vue'
 import { useBuilderStore } from '@/stores/builder'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Checkbox } from '@/components/ui/checkbox'
+
+const { t } = useI18n()
 
 const builder = useBuilderStore()
 const field = computed(() => builder.selectedField)
@@ -26,33 +29,33 @@ function update(patch: Record<string, unknown>) {
       </p>
 
       <div class="flex flex-col gap-1.5 mb-4">
-        <label class="font-medium">Підпис</label>
+        <label class="font-medium">{{ t('Label') }}</label>
         <Input :model-value="field.label" class="w-full" @update:model-value="update({ label: $event })" />
       </div>
 
       <div v-if="isSection" class="flex items-center gap-2 mb-4">
         <Checkbox :model-value="!!field.collapsible" @update:model-value="update({ collapsible: !!$event })" />
-        <label class="font-medium">Згортається</label>
+        <label class="font-medium">{{ t('Collapsible') }}</label>
       </div>
 
       <template v-if="!isLayout">
         <div class="flex items-center gap-2 mb-3">
           <Checkbox :model-value="!!field.required" @update:model-value="update({ required: !!$event })" />
-          <label class="font-medium">Обов'язкове</label>
+          <label class="font-medium">{{ t('Required') }}</label>
         </div>
         <div class="flex items-center gap-2 mb-4">
           <Checkbox :model-value="!!field.hidden" @update:model-value="update({ hidden: !!$event })" />
-          <label class="font-medium">Приховане на формі</label>
+          <label class="font-medium">{{ t('Hidden on the form') }}</label>
         </div>
         <div class="flex flex-col gap-1.5 mb-4">
-          <label class="font-medium">Підказка</label>
+          <label class="font-medium">{{ t('Help text') }}</label>
           <Textarea :model-value="field.description" class="w-full" @update:model-value="update({ description: $event })" />
         </div>
       </template>
     </template>
 
     <div v-else class="flex items-center justify-center h-32 text-muted-foreground">
-      Оберіть поле для редагування
+      {{ t('Select a field to edit') }}
     </div>
   </div>
 </template>

@@ -6,6 +6,7 @@
  * global_list.js, the DocType's script and ClientScripts.
  */
 import { computed, ref, onMounted, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { DocType } from '@/types'
 import { permissionsApi, type ActiveRestriction } from '@/core/api/permissions'
 import {
@@ -33,6 +34,8 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: 'update:viewMode', val: string): void
 }>()
+
+const { t } = useI18n()
 
 const toolbarActions = props.actions.resolved('toolbar')
 const primaryActions = props.actions.resolved('primary')
@@ -74,14 +77,14 @@ watch(() => props.doctype, loadRestrictions)
           <DropdownMenuTrigger as-child>
             <Button variant="outline" size="sm" class="gap-1.5">
               <component :is="currentView?.icon" v-if="currentView" class="size-4" />
-              {{ currentView?.label }}
+              {{ currentView ? t(currentView.label) : '' }}
               <ChevronDown class="size-3.5 opacity-60" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start">
             <DropdownMenuItem v-for="def in availableViews" :key="def.type" @click="emit('update:viewMode', def.type)">
               <component :is="def.icon" class="size-4" />
-              <span>{{ def.label }}</span>
+              <span>{{ t(def.label) }}</span>
               <Check v-if="def.type === viewMode" class="ml-auto size-4" />
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -95,7 +98,7 @@ watch(() => props.doctype, loadRestrictions)
           variant="outline"
           size="icon-sm"
           class="text-amber-600 dark:text-amber-500"
-          title="Список обмежено вашими правами доступу"
+          :title="t('The list is limited by your access rights')"
           @click="showRestrictions = true"
         >
           <Ban class="size-4" />
@@ -113,17 +116,17 @@ watch(() => props.doctype, loadRestrictions)
       <DialogHeader>
         <DialogTitle class="flex items-center gap-2">
           <Ban class="size-4 text-amber-600 dark:text-amber-500" />
-          Обмеження
+          {{ t('Restrictions') }}
         </DialogTitle>
       </DialogHeader>
       <p class="text-muted-foreground -mt-1">
-        Ви бачите лише записи, що відповідають цим значенням.
+        {{ t('You only see records matching these values.') }}
       </p>
       <table class="w-full text-sm border border-border rounded-md overflow-hidden">
         <thead>
           <tr class="bg-muted/50 text-muted-foreground">
-            <th class="text-left font-medium px-3 py-2 border-b border-border">Поле</th>
-            <th class="text-left font-medium px-3 py-2 border-b border-border">Значення</th>
+            <th class="text-left font-medium px-3 py-2 border-b border-border">{{ t('Field') }}</th>
+            <th class="text-left font-medium px-3 py-2 border-b border-border">{{ t('Value') }}</th>
           </tr>
         </thead>
         <tbody>

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { reportsApi } from '@/core/api/reports'
@@ -8,6 +9,8 @@ import { Loader2 } from '@lucide/vue'
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+
+const { t } = useI18n()
 
 const route = useRoute()
 const router = useRouter()
@@ -63,7 +66,7 @@ onMounted(load)
   <div class="p-8 max-w-6xl">
     <!-- Breadcrumb -->
     <div class="flex items-center gap-2 text-muted-foreground mb-6">
-      <button class="hover:text-primary" @click="router.push('/reports')">Звіти</button>
+      <button class="hover:text-primary" @click="router.push('/reports')">{{ t('Reports') }}</button>
       <span>/</span>
       <span class="text-foreground font-medium">{{ reportName }}</span>
     </div>
@@ -72,12 +75,12 @@ onMounted(load)
       <div>
         <h1 class="text-xl font-semibold text-foreground">{{ reportName }}</h1>
         <p v-if="report" class="text-muted-foreground mt-0.5">
-          {{ report.report_type }} звіт
+          {{ t('{type} report').replace('{type}', report.report_type) }}
           <span v-if="report.doctype"> · {{ report.doctype }}</span>
         </p>
       </div>
       <div class="flex gap-2">
-        <Button variant="secondary" :disabled="isRunning" @click="runReport"><Loader2 v-if="isRunning" class="size-4 animate-spin" />Оновити</Button>
+        <Button variant="secondary" :disabled="isRunning" @click="runReport"><Loader2 v-if="isRunning" class="size-4 animate-spin" />{{ t('Refresh') }}</Button>
         <Button variant="secondary" @click="downloadXlsx">Excel ↓</Button>
       </div>
     </div>
@@ -89,7 +92,7 @@ onMounted(load)
     <template v-else>
       <!-- Result meta -->
       <div v-if="result" class="text-muted-foreground mb-3">
-        Рядків: {{ result.meta.rows }} · {{ result.meta.time_ms }} мс
+        {{ t('Rows: {n}').replace('{n}', String(result.meta.rows)) }} · {{ result.meta.time_ms }} {{ t('ms') }}
       </div>
 
       <!-- Table -->
@@ -106,10 +109,10 @@ onMounted(load)
         </TableBody>
       </Table>
       <div v-else-if="result" class="text-center py-10 text-muted-foreground">
-        Немає даних
+        {{ t('No data') }}
       </div>
       <div v-else class="text-center py-10 text-destructive">
-        Помилка виконання звіту
+        {{ t('Report execution error') }}
       </div>
     </template>
   </div>

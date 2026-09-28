@@ -59,7 +59,7 @@ describe('describeTypeChange', () => {
   it('flags moves to / from a non-physical type as danger', () => {
     const toTable = describeTypeChange('Data', 'Table')
     expect(toTable?.severity).toBe('danger')
-    expect(toTable?.message).toContain('дочірня таблиця')
+    expect(toTable?.message).toContain('child table')
 
     expect(describeTypeChange('MultiLink', 'Data')?.severity).toBe('danger')
   })

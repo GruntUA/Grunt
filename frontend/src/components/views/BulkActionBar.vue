@@ -61,7 +61,7 @@ const canConfirmDelete = computed(
 function groupLine(g: DeleteImpact['groups'][number]): string {
   const parts = [g.label]
   if (g.field_label) parts.push(g.field_label)
-  if (g.in_child && g.parent_doctype) parts.push(`у ${g.parent_doctype}`)
+  if (g.in_child && g.parent_doctype) parts.push(t('in {doctype}').replace('{doctype}', g.parent_doctype))
   return parts.join(' · ')
 }
 
@@ -172,9 +172,9 @@ async function submitUpdate() {
             <CheckCircle class="size-3 text-primary" />
           </div>
           <span class="font-semibold text-foreground tabular-nums">
-            {{ allSelected ? `всі ${total ?? count}` : count }}
+            {{ allSelected ? t('all {n}').replace('{n}', String(total ?? count)) : count }}
           </span>
-          <span class="text-muted-foreground">вибрано</span>
+          <span class="text-muted-foreground">{{ t('selected') }}</span>
         </div>
 
         <div class="h-4 w-px bg-border" />
@@ -186,7 +186,7 @@ async function submitUpdate() {
           class="font-semibold text-primary hover:underline underline-offset-2 transition-all whitespace-nowrap"
           @click="emit('selectAll')"
         >
-          Вибрати всі {{ total }}
+          {{ t('Select all {n}').replace('{n}', String(total)) }}
         </button>
 
         <!-- Actions (core/actions.ts, placement: bulk) -->
@@ -237,17 +237,16 @@ async function submitUpdate() {
 
     <div class="py-2 flex flex-col gap-3">
       <p class="text-muted-foreground leading-relaxed">
-        Ви збираєтесь видалити <span class="font-semibold text-foreground">{{ displayCount }}</span> записів.
-        Цю дію неможливо буде скасувати.
+        {{ t('You are about to delete {n} records. This cannot be undone.').replace('{n}', String(displayCount)) }}
       </p>
 
       <div v-if="impactLoading" class="flex items-center gap-2 text-muted-foreground">
-        <Loader2 class="size-4 animate-spin" /> Перевірка посилань…
+        <Loader2 class="size-4 animate-spin" /> {{ t('Checking links…') }}
       </div>
 
       <template v-else-if="canReplace && hasRefs">
         <p class="text-muted-foreground">
-          На виділені записи посилаються інші документи
+          {{ t('Other documents link to the selected records') }}
           (<span class="font-semibold text-foreground">{{ impact!.total }}</span>).
         </p>
         <ul class="max-h-32 overflow-y-auto rounded-md border border-border/60 bg-muted/30 divide-y divide-border/50">
@@ -258,7 +257,7 @@ async function submitUpdate() {
           </li>
         </ul>
         <div class="flex flex-col gap-1.5">
-          <label class="font-medium">Підставити замість видалених</label>
+          <label class="font-medium">{{ t('Replace with') }}</label>
           <component
             :is="linkComponent"
             :field="replaceField"
@@ -266,14 +265,14 @@ async function submitUpdate() {
             @update:model-value="replaceWith = ($event as string) ?? ''"
           />
           <p v-if="replaceIsSelf" class="text-destructive">
-            Заміна не може бути одним із записів, що видаляються.
+            {{ t('The replacement cannot be one of the records being deleted.') }}
           </p>
         </div>
         <label v-if="!canReassign" class="flex items-start gap-2 cursor-pointer">
           <Checkbox :model-value="ackDangling" class="mt-0.5"
             @update:model-value="ackDangling = $event === true" />
           <span class="text-muted-foreground">
-            Видалити без заміни — {{ impact!.total }} посилань стануть недійсними.
+            {{ t('Delete without replacement — {n} links will become invalid.').replace('{n}', String(impact!.total)) }}
           </span>
         </label>
       </template>
@@ -283,7 +282,7 @@ async function submitUpdate() {
       <div class="flex gap-2 w-full pt-2">
         <Button variant="outline" class="flex-1" @click="showDeleteModal = false">{{ t('Cancel') }}</Button>
         <Button variant="destructive" class="flex-1" :disabled="!canConfirmDelete" @click="confirmDelete">
-          {{ canReassign ? 'Видалити і перепризначити' : t('Delete') }}
+          {{ canReassign ? t('Delete and reassign') : t('Delete') }}
         </Button>
       </div>
     </DialogFooter>
@@ -298,29 +297,27 @@ async function submitUpdate() {
         <div class="size-10 rounded-full bg-destructive/10 flex items-center justify-center border border-destructive/20">
           <Zap class="size-5 text-destructive" />
         </div>
-        <DialogTitle class="font-semibold text-lg">Швидке видалення</DialogTitle>
+        <DialogTitle class="font-semibold text-lg">{{ t('Fast delete') }}</DialogTitle>
       </div>
     </DialogHeader>
 
     <div class="py-2 flex flex-col gap-3">
       <p class="text-muted-foreground leading-relaxed">
-        Видалити <span class="font-semibold text-foreground">{{ displayCount }}</span> записів напряму через SQL
-        — без lifecycle хуків, ActivityLog per-record.
+        {{ t('Delete {n} records directly via SQL — no lifecycle hooks, no per-record ActivityLog.').replace('{n}', String(displayCount)) }}
       </p>
       <div class="p-3 bg-destructive/5 border border-destructive/20 rounded-lg">
         <p class="text-destructive font-semibold">
-          ⚡ Це незворотна операція. Хуки <code>before_delete</code> / <code>after_delete</code> не виконуються.
-          Використовуй лише для масового очищення тестових або імпортованих даних.
+          ⚡ {{ t('This cannot be undone. before_delete / after_delete hooks do not run. Use only to bulk-clean test or imported data.') }}
         </p>
       </div>
     </div>
 
     <DialogFooter>
       <div class="flex gap-2 w-full pt-2">
-        <Button variant="outline" class="flex-1" @click="showFastDeleteModal = false">Скасувати</Button>
+        <Button variant="outline" class="flex-1" @click="showFastDeleteModal = false">{{ t('Cancel') }}</Button>
         <Button variant="destructive" class="flex-1" @click="showFastDeleteModal = false; emit('fastDelete')">
           <Zap class="size-4 mr-1" />
-          Видалити
+          {{ t('Delete') }}
         </Button>
       </div>
     </DialogFooter>
@@ -341,7 +338,7 @@ async function submitUpdate() {
 
     <div class="flex flex-col gap-5 py-2">
       <div class="flex flex-col gap-2">
-        <label class="font-semibold uppercase tracking-[0.1em] text-muted-foreground">Оберіть поле</label>
+        <label class="font-semibold uppercase tracking-[0.1em] text-muted-foreground">{{ t('Choose a field') }}</label>
         <Select v-model="updateField">
           <SelectTrigger class="w-full">
             <SelectValue :placeholder="t('Select field...')" />
@@ -352,7 +349,7 @@ async function submitUpdate() {
         </Select>
       </div>
       <div class="flex flex-col gap-2">
-        <label class="font-semibold uppercase tracking-[0.1em] text-muted-foreground">Нове значення</label>
+        <label class="font-semibold uppercase tracking-[0.1em] text-muted-foreground">{{ t('New value') }}</label>
         <component
           :is="valueComponent"
           v-if="selectedField"
@@ -365,7 +362,7 @@ async function submitUpdate() {
 
       <div class="p-3 bg-muted/30 rounded-lg border border-border/40">
         <p class="text-muted-foreground leading-tight italic">
-          Це оновить поле для всіх <span class="font-semibold text-foreground">{{ displayCount }}</span> виділених записів.
+          {{ t('This updates the field on all {n} selected records.').replace('{n}', String(displayCount)) }}
         </p>
       </div>
     </div>

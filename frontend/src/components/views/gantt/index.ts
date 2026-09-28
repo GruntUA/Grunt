@@ -6,7 +6,7 @@ const SYSTEM_DATE_FIELDS = new Set(['created_at', 'modified_at'])
 
 const def: ViewDefinition = {
   type: 'gantt',
-  label: 'Діаграма Ганта',
+  label: 'Gantt chart',
   icon: ChartGantt,
   order: 4,
 

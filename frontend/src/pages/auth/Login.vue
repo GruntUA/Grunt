@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { Fingerprint, Mail } from '@lucide/vue'
@@ -12,6 +13,8 @@ import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Spinner } from '@/components/ui/spinner'
 
+const { t } = useI18n()
+
 type Mode = 'signin' | 'signup'
 
 const router = useRouter()
@@ -20,7 +23,7 @@ const auth = useAuthStore()
 const { allowRegistration } = useSiteConfig()
 
 const PENDING_MSG =
-  'Ваш акаунт зареєстровано та очікує підтвердження адміністратора. Спробуйте увійти пізніше.'
+  t('Your account is registered and awaiting administrator approval. Try signing in later.')
 
 const mode = ref<Mode>(route.path === '/signup' ? 'signup' : 'signin')
 watch(
@@ -47,11 +50,11 @@ const emailSending = ref(false)
 const emailVerifying = ref(false)
 
 const isSignup = computed(() => mode.value === 'signup')
-const title = computed(() => (isSignup.value ? 'Створити акаунт' : 'З поверненням'))
+const title = computed(() => (isSignup.value ? t('Create an account') : t('Welcome back')))
 const subtitle = computed(() =>
-  isSignup.value ? 'Заповніть форму для реєстрації' : 'Увійдіть у свій акаунт',
+  isSignup.value ? t('Fill in the form to sign up') : t('Sign in to your account'),
 )
-const submitLabel = computed(() => (isSignup.value ? 'Зареєструватись' : 'Увійти'))
+const submitLabel = computed(() => (isSignup.value ? t('Sign up') : t('Sign in')))
 
 const methods = ref<AuthMethod[]>([])
 const redirectMethods = computed(() => methods.value.filter((m) => m.kind === 'redirect'))
@@ -97,7 +100,7 @@ async function consumeExternalRedirect() {
       else router.push({ name: 'desk' })
     } catch (e: any) {
       error.value =
-        e?.response?.data?.error?.message || 'Посилання для входу недійсне або застаріле'
+        e?.response?.data?.error?.message || t('The sign-in link is invalid or expired')
     }
     return
   }
@@ -107,7 +110,7 @@ async function consumeExternalRedirect() {
     return
   }
   if (p.get('error')) {
-    error.value = 'Не вдалося увійти через зовнішній провайдер'
+    error.value = t('Could not sign in with the external provider')
     return
   }
   if (p.get('mfa_required')) {
@@ -135,11 +138,11 @@ async function handleSubmit() {
 
   if (isSignup.value) {
     if (password.value !== passwordConfirm.value) {
-      error.value = 'Паролі не співпадають'
+      error.value = t('Passwords do not match')
       return
     }
     if (password.value.length < 8) {
-      error.value = 'Пароль має бути не менше 8 символів'
+      error.value = t('Password must be at least 8 characters')
       return
     }
   }
@@ -164,13 +167,13 @@ async function handleSubmit() {
   } catch (e: any) {
     const status = e?.response?.status
     if (status === 409) {
-      error.value = 'Користувач з таким email вже існує'
+      error.value = t('A user with this email already exists')
     } else if (status === 401 && !isSignup.value) {
-      error.value = 'Невірний email або пароль'
+      error.value = t('Invalid email or password')
     } else if (status === 429) {
-      error.value = e?.response?.data?.detail || 'Забагато невдалих спроб. Акаунт тимчасово заблоковано.'
+      error.value = e?.response?.data?.detail || t('Too many failed attempts. The account is temporarily locked.')
     } else {
-      error.value = e?.response?.data?.error?.message || e?.message || 'Помилка'
+      error.value = e?.response?.data?.error?.message || e?.message || t('Error')
     }
   } finally {
     loading.value = false
@@ -194,7 +197,7 @@ async function loginWithPasskey() {
       return
     }
     if (e?.name === 'NotAllowedError') return // user dismissed the prompt
-    error.value = e?.response?.data?.error?.message || e?.message || 'Не вдалося увійти за ключем доступу'
+    error.value = e?.response?.data?.error?.message || e?.message || t('Could not sign in with the passkey')
   } finally {
     passkeyLoading.value = false
   }
@@ -206,7 +209,7 @@ async function loginWithRedirect(provider: string) {
     const { redirect_url } = await authApi.begin(provider)
     window.location.assign(redirect_url)
   } catch (e: any) {
-    error.value = e?.response?.data?.error?.message || e?.message || 'Провайдер недоступний'
+    error.value = e?.response?.data?.error?.message || e?.message || t('Provider unavailable')
   }
 }
 
@@ -215,7 +218,7 @@ async function startEmailLogin() {
   notice.value = ''
   const target = email.value.trim()
   if (!target) {
-    error.value = 'Спершу введіть адресу електронної пошти'
+    error.value = t('Enter your email address first')
     return
   }
   emailSending.value = true
@@ -227,7 +230,7 @@ async function startEmailLogin() {
     emailStage.value = 'code'
   } catch (e: any) {
     error.value =
-      e?.response?.data?.error?.message || e?.message || 'Не вдалося надіслати код'
+      e?.response?.data?.error?.message || e?.message || t('Could not send the code')
   } finally {
     emailSending.value = false
   }
@@ -244,7 +247,7 @@ function resetEmailLogin() {
 async function verifyEmailCode() {
   error.value = ''
   if (emailCode.value.trim().length < 4) {
-    error.value = 'Введіть код з листа'
+    error.value = t('Enter the code from the email')
     return
   }
   emailVerifying.value = true
@@ -263,7 +266,7 @@ async function verifyEmailCode() {
     }
   } catch (e: any) {
     error.value =
-      e?.response?.data?.error?.message || e?.message || 'Невірний або застарілий код'
+      e?.response?.data?.error?.message || e?.message || t('Invalid or expired code')
   } finally {
     emailVerifying.value = false
   }
@@ -278,17 +281,16 @@ async function verifyEmailCode() {
       <!-- Registration submitted, awaiting approval -->
       <Card v-if="signupDone">
         <div class="flex flex-col items-center gap-2 px-6 text-center">
-          <h3 class="font-semibold text-xl">Заявку надіслано</h3>
+          <h3 class="font-semibold text-xl">{{ t('Request sent') }}</h3>
           <p class="text-muted-foreground leading-relaxed">
-            Ваш акаунт створено та очікує підтвердження адміністратора.
-            Ви зможете увійти після підтвердження.
+            {{ t('Your account has been created and is awaiting administrator approval. You can sign in once it is approved.') }}
           </p>
           <button
             type="button"
             class="text-primary hover:underline font-medium mt-2"
             @click="signupDone = false; switchMode('signin')"
           >
-            Повернутися до входу
+            {{ t('Back to sign in') }}
           </button>
         </div>
       </Card>
@@ -306,12 +308,12 @@ async function verifyEmailCode() {
             class="flex flex-col gap-5"
           >
             <p class="text-muted-foreground text-center leading-relaxed">
-              Ми надіслали код і посилання для входу на
+              {{ t('We sent a sign-in code and link to') }}
               <span class="text-foreground font-medium">{{ emailTarget }}</span>.
-              Введіть код або перейдіть за посиланням із листа.
+              {{ t('Enter the code or follow the link in the email.') }}
             </p>
             <div class="flex flex-col gap-1.5">
-              <label for="email-code" class="font-medium">Код із листа</label>
+              <label for="email-code" class="font-medium">{{ t('Code from the email') }}</label>
               <Input
                 id="email-code"
                 v-model="emailCode"
@@ -333,14 +335,14 @@ async function verifyEmailCode() {
             <div class="flex flex-col gap-3">
               <Button type="submit" :disabled="emailVerifying" class="w-full">
                 <Spinner v-if="emailVerifying" class="size-4 mr-2" />
-                Підтвердити
+                {{ t('Confirm') }}
               </Button>
               <div class="flex items-center justify-between text-muted-foreground">
                 <button type="button" class="hover:underline" :disabled="emailSending" @click="startEmailLogin">
-                  Надіслати ще раз
+                  {{ t('Resend') }}
                 </button>
                 <button type="button" class="hover:underline" @click="resetEmailLogin">
-                  Інший спосіб входу
+                  {{ t('Another sign-in method') }}
                 </button>
               </div>
             </div>
@@ -359,7 +361,7 @@ async function verifyEmailCode() {
               >
                 <Spinner v-if="passkeyLoading" class="size-4 mr-2" />
                 <Fingerprint v-else class="size-4 mr-2" />
-                Ключ доступу
+                {{ t('Passkey') }}
               </Button>
               <Button
                 v-for="m in redirectMethods"
@@ -369,7 +371,7 @@ async function verifyEmailCode() {
                 class="w-full"
                 @click="loginWithRedirect(m.name)"
               >
-                Продовжити з {{ m.label }}
+                {{ t('Continue with {provider}').replace('{provider}', m.label) }}
               </Button>
               <Button
                 v-if="hasEmailLogin"
@@ -381,7 +383,7 @@ async function verifyEmailCode() {
               >
                 <Spinner v-if="emailSending" class="size-4 mr-2" />
                 <Mail v-else class="size-4 mr-2" />
-                Надіслати код на пошту
+                {{ t('Email me a code') }}
               </Button>
             </div>
 
@@ -389,13 +391,13 @@ async function verifyEmailCode() {
               <div class="absolute inset-0 flex items-center" aria-hidden="true">
                 <span class="w-full border-t border-border"></span>
               </div>
-              <span class="bg-card text-muted-foreground relative px-2">або введіть пароль</span>
+              <span class="bg-card text-muted-foreground relative px-2">{{ t('or enter your password') }}</span>
             </div>
 
             <!-- Full name (signup only) -->
             <div v-if="isSignup" class="flex flex-col gap-1.5">
-              <label for="full-name" class="font-medium">Повне ім'я</label>
-              <Input id="full-name" v-model="fullName" type="text" autocomplete="name" placeholder="Іваненко Іван Іванович" required class="w-full" />
+              <label for="full-name" class="font-medium">{{ t('Full name') }}</label>
+              <Input id="full-name" v-model="fullName" type="text" autocomplete="name" :placeholder="t('John Smith')" required class="w-full" />
             </div>
 
             <!-- Email -->
@@ -407,13 +409,13 @@ async function verifyEmailCode() {
             <!-- Password -->
             <div class="flex flex-col gap-1.5">
               <div class="flex items-center">
-                <label for="password" class="font-medium">Пароль</label>
+                <label for="password" class="font-medium">{{ t('Password') }}</label>
                 <router-link
                   v-if="!isSignup"
                   to="/forgot-password"
                   class="ml-auto underline-offset-4 hover:underline text-muted-foreground"
                 >
-                  Забули пароль?
+                  {{ t('Forgot password?') }}
                 </router-link>
               </div>
               <Input
@@ -421,7 +423,7 @@ async function verifyEmailCode() {
                 v-model="password"
                 type="password"
                 :autocomplete="isSignup ? 'new-password' : 'current-password'"
-                :placeholder="isSignup ? 'Мінімум 8 символів' : '••••••••'"
+                :placeholder="isSignup ? t('At least 8 characters') : '••••••••'"
                 required
                 class="w-full"
               />
@@ -429,7 +431,7 @@ async function verifyEmailCode() {
 
             <!-- Confirm password (signup only) -->
             <div v-if="isSignup" class="flex flex-col gap-1.5">
-              <label for="password-confirm" class="font-medium">Повторіть пароль</label>
+              <label for="password-confirm" class="font-medium">{{ t('Repeat password') }}</label>
               <Input id="password-confirm" v-model="passwordConfirm" type="password" autocomplete="new-password" placeholder="••••••••" required class="w-full" />
             </div>
 
@@ -446,12 +448,12 @@ async function verifyEmailCode() {
                 {{ submitLabel }}
               </Button>
               <p v-if="isSignup" class="text-center text-muted-foreground">
-                Вже маєте акаунт?
-                <button type="button" class="text-primary hover:underline font-medium" @click="switchMode('signin')">Увійти</button>
+                {{ t('Already have an account?') }}
+                <button type="button" class="text-primary hover:underline font-medium" @click="switchMode('signin')">{{ t('Sign in') }}</button>
               </p>
               <p v-else-if="allowRegistration" class="text-center text-muted-foreground">
-                Немає акаунту?
-                <button type="button" class="text-primary hover:underline font-medium" @click="switchMode('signup')">Зареєструватись</button>
+                {{ t('No account?') }}
+                <button type="button" class="text-primary hover:underline font-medium" @click="switchMode('signup')">{{ t('Sign up') }}</button>
               </p>
             </div>
           </form>
@@ -459,8 +461,8 @@ async function verifyEmailCode() {
       </Card>
 
       <p class="px-6 text-center text-muted-foreground leading-relaxed">
-        Продовжуючи, ви погоджуєтесь з нашими
-        <a href="#" class="underline underline-offset-2 hover:text-foreground">Умовами використання</a> та <a href="#" class="underline underline-offset-2 hover:text-foreground">Політикою конфіденційності</a>.
+        {{ t('By continuing, you agree to our') }}
+        <a href="#" class="underline underline-offset-2 hover:text-foreground">{{ t('Terms of Service') }}</a> {{ t('and') }} <a href="#" class="underline underline-offset-2 hover:text-foreground">{{ t('Privacy Policy') }}</a>.
       </p>
     </div>
   </div>

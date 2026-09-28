@@ -1,5 +1,8 @@
 import type { Exporter, ExportContext } from './registry'
 import { formatDate, formatDateTime, formatFull } from '@/core/datetime'
+import i18n from '@/plugins/i18n'
+
+const t = (key: string): string => i18n.global.t(key)
 
 // Maps indicator color names → inline CSS values (mirrors global Badge variant colors)
 const STATUS_COLORS: Record<string, { bg: string; text: string; border: string }> = {
@@ -91,7 +94,7 @@ function formatCellHtml(
       const lat = Number(geo.lat).toFixed(5)
       const lng = Number(geo.lng).toFixed(5)
       const mapsUrl = `https://www.google.com/maps?q=${lat},${lng}`
-      return `<a href="${mapsUrl}" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:4px;font-family:monospace;font-size:11px;color:#1d4ed8;text-decoration:none" title="Відкрити в Google Maps"><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>${lat}, ${lng}</a>`
+      return `<a href="${mapsUrl}" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:4px;font-family:monospace;font-size:11px;color:#1d4ed8;text-decoration:none" title="${escapeHtml(t('Open in Google Maps'))}"><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>${lat}, ${lng}</a>`
     }
     return escapeHtml(str)
   }
@@ -155,12 +158,12 @@ export function generateHtml(ctx: ExportContext): string {
   if (groupBy) {
     const groups = groupRows(rows, groupBy)
     bodyContent = groups.map(({ key, items }) => {
-      const groupLabel = key || '(без значення)'
+      const groupLabel = key || t('(no value)')
       let groupHeaderHtml: string
       if (statusField === groupBy) {
         const ind = indicatorMap.get(key)
         groupHeaderHtml = ind
-          ? buildBadge((ind.label ?? key) || '(без значення)', ind.color)
+          ? buildBadge((ind.label ?? key) || t('(no value)'), ind.color)
           : `<strong>${escapeHtml(groupLabel)}</strong>`
       } else {
         groupHeaderHtml = `<strong>${escapeHtml(groupLabel)}</strong>`
@@ -313,12 +316,12 @@ export function generateHtml(ctx: ExportContext): string {
   <header>
     <h1>${escapeHtml(doctypeLabel)}</h1>
     <div class="meta">
-      <span class="chip">${rows.length}${isPartial ? ` з ${total}` : ''} записів</span>
-      ${isPartial ? `<span class="chip warning">⚠ Показано перші 10 000 записів</span>` : ''}
+      <span class="chip">${escapeHtml(t('{n} records').replace('{n}', `${rows.length}${isPartial ? ` / ${total}` : ''}`))}</span>
+      ${isPartial ? `<span class="chip warning">⚠ ${escapeHtml(t('Showing the first 10,000 records'))}</span>` : ''}
       <span class="sep">·</span>
       <span>${escapeHtml(dateStr)}</span>
-      ${filterSummary ? `<span class="sep">·</span><span><strong>Фільтри:</strong> ${escapeHtml(filterSummary)}</span>` : ''}
-      ${groupBy ? `<span class="sep">·</span><span><strong>Групування:</strong> ${escapeHtml(fields.find(f => f.fieldname === groupBy)?.label ?? groupBy)}</span>` : ''}
+      ${filterSummary ? `<span class="sep">·</span><span><strong>${escapeHtml(t('Filters'))}:</strong> ${escapeHtml(filterSummary)}</span>` : ''}
+      ${groupBy ? `<span class="sep">·</span><span><strong>${escapeHtml(t('Grouping'))}:</strong> ${escapeHtml(fields.find(f => f.fieldname === groupBy)?.label ?? groupBy)}</span>` : ''}
     </div>
   </header>
 
@@ -355,7 +358,7 @@ function triggerDownload(html: string, filename: string) {
 
 export const htmlExporter: Exporter = {
   id: 'html',
-  label: 'Експорт HTML',
+  label: 'Export HTML',
   icon: 'FileCode',
   async export(ctx: ExportContext) {
     const allRows = await ctx.getAll()

@@ -72,16 +72,16 @@ function handleReset() {
   <Dialog :open="open" @update:open="(v: boolean) => emit('update:open', v)">
     <DialogContent class="max-w-lg">
       <DialogHeader>
-        <DialogTitle>{{ t('Обрати фільтри') }}</DialogTitle>
+        <DialogTitle>{{ t('Choose filters') }}</DialogTitle>
       </DialogHeader>
 
       <p class="text-muted-foreground -mt-2">
-        {{ t('Особисте налаштування — лише для вас, на цьому пристрої.') }}
+        {{ t('Personal setting — only for you, on this device.') }}
       </p>
 
       <div class="relative">
         <Search class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-        <Input v-model="search" class="pl-9" :placeholder="t('Пошук...')" />
+        <Input v-model="search" class="pl-9" :placeholder="t('Search...')" />
       </div>
 
       <p class="font-medium text-muted-foreground uppercase tracking-wide">
@@ -100,17 +100,17 @@ function handleReset() {
           {{ f.label }}
         </label>
         <p v-if="!filteredFields.length" class="col-span-2 text-muted-foreground text-center py-4">
-          {{ t('Нічого не знайдено') }}
+          {{ t('Nothing found') }}
         </p>
       </div>
 
       <DialogFooter class="sm:justify-between">
         <Button variant="ghost" class="text-muted-foreground" @click="handleReset">
-          {{ t('Скинути до типових') }}
+          {{ t('Reset to defaults') }}
         </Button>
         <div class="flex gap-2">
-          <Button variant="outline" @click="emit('update:open', false)">{{ t('Скасувати') }}</Button>
-          <Button @click="handleSave">{{ t('Зберегти') }}</Button>
+          <Button variant="outline" @click="emit('update:open', false)">{{ t('Cancel') }}</Button>
+          <Button @click="handleSave">{{ t('Save') }}</Button>
         </div>
       </DialogFooter>
     </DialogContent>

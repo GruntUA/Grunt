@@ -11,6 +11,9 @@ import client from '@/core/api/client'
 import { queue, refreshQueue } from '@/core/composables/useOfflineQueue'
 import { isOnline, serverReachable } from '@/core/composables/useNetworkStatus'
 import { openChannelCount } from '@/core/ws/WebSocketChannel'
+import i18n from '@/plugins/i18n'
+
+const t = (key: string): string => i18n.global.t(key)
 
 export type HealthStatus = 'OK' | 'Warning' | 'Error' | 'Info'
 
@@ -23,70 +26,70 @@ export interface HealthRow {
 }
 
 // Must match public/sw.js.
-const SHELL_CACHE_PREFIX = 'grunt-shell-'
-const API_CACHE = 'grunt-api-v1'
+export const SHELL_CACHE_PREFIX = 'grunt-shell-'
+export const API_CACHE = 'grunt-api-v1'
 const SHELL_KEY = '/__offline_shell__'
 const PROBE_URL = '/api/v1/method/grunt.auth.doctypes.User.user.whoami'
 
-const OFFLINE = 'Офлайн-режим'
-const NETWORK = 'Мережа'
-const STORAGE = 'Сховище браузера'
-const BROWSER = 'Браузер'
-const REALTIME = 'Вебсокети'
+const OFFLINE = 'Offline mode'
+const NETWORK = 'Network'
+const STORAGE = 'Browser storage'
+const BROWSER = 'Browser'
+const REALTIME = 'WebSockets'
 
 const WS_TIMEOUT_MS = 5000
 const ECHO_WAIT_MS = 2500
 const ECHO_EVENT = 'health_echo' // grunt/monitoring/health.py
 
 function row(category: string, check: string, status: HealthStatus, value: unknown = '', hint = ''): HealthRow {
-  return { category, check, status, value: value == null ? '' : String(value), hint }
+  return { category: t(category), check: t(check), status, value: value == null ? '' : t(String(value)), hint: hint ? t(hint) : '' }
 }
 
 export function humanSize(bytes: number): string {
-  const units = ['Б', 'КБ', 'МБ', 'ГБ']
+  const units = ['B', 'KB', 'MB', 'GB']
   let n = bytes
   for (const unit of units) {
-    if (n < 1024) return unit === 'Б' ? `${n.toFixed(0)} ${unit}` : `${n.toFixed(1)} ${unit}`
+    if (n < 1024) return unit === 'B' ? `${n.toFixed(0)} ${t(unit)}` : `${n.toFixed(1)} ${t(unit)}`
     n /= 1024
   }
-  return `${n.toFixed(1)} ТБ`
+  return `${n.toFixed(1)} ${t('TB')}`
 }
 
 async function serviceWorkerChecks(): Promise<HealthRow[]> {
   if (!import.meta.env.PROD) {
-    return [row(OFFLINE, 'Збірка', 'Warning', 'режим розробки',
-      'У Vite dev service worker не реєструється — офлайн працює лише в production-збірці.')]
+    return [row(OFFLINE, 'Build', 'Warning', 'development mode',
+      'In Vite dev the service worker is not registered — offline works only in a production build.')]
   }
   if (!window.isSecureContext) {
-    return [row(OFFLINE, 'Безпечне з\'єднання', 'Error', location.protocol,
-      'Service worker працює лише через HTTPS (або localhost).')]
+    return [row(OFFLINE, 'Secure connection', 'Error', location.protocol,
+      'The service worker works only over HTTPS (or localhost).')]
   }
   if (!('serviceWorker' in navigator)) {
-    return [row(OFFLINE, 'Service worker', 'Error', 'не підтримується', 'Браузер не підтримує офлайн-режим.')]
+    return [row(OFFLINE, 'Service worker', 'Error', 'not supported', 'The browser does not support offline mode.')]
   }
   const reg = await navigator.serviceWorker.getRegistration()
   if (!reg?.active) {
-    return [row(OFFLINE, 'Service worker', 'Error', reg ? 'встановлюється' : 'не зареєстрований',
-      'Перезавантажте сторінку; якщо не допомагає — перевірте, що /sw.js віддається сервером.')]
+    return [row(OFFLINE, 'Service worker', 'Error', reg ? 'installing' : 'not registered',
+      'Reload the page; if that does not help, check that the server serves /sw.js.')]
   }
   return [
-    row(OFFLINE, 'Service worker', 'OK', `активний (${new URL(reg.active.scriptURL).pathname})`),
+    row(OFFLINE, 'Service worker', 'OK', `${t('active')} (${new URL(reg.active.scriptURL).pathname})`),
     navigator.serviceWorker.controller
-      ? row(OFFLINE, 'Керує сторінкою', 'OK', 'так')
-      : row(OFFLINE, 'Керує сторінкою', 'Warning', 'ні',
-          'Сторінку відкрито до встановлення service worker — перезавантажте її.'),
+      ? row(OFFLINE, 'Controls the page', 'OK', 'yes')
+      : row(OFFLINE, 'Controls the page', 'Warning', 'no',
+          'The page was opened before the service worker was installed — reload it.'),
   ]
 }
 
 async function cacheChecks(): Promise<HealthRow[]> {
-  if (!('caches' in window)) return [row(OFFLINE, 'Cache Storage', 'Error', 'недоступне')]
+  if (!('caches' in window)) return [row(OFFLINE, 'Cache Storage', 'Error', 'unavailable')]
   const names = await caches.keys()
   const shellName = names.find((n) => n.startsWith(SHELL_CACHE_PREFIX))
   const rows: HealthRow[] = []
 
   if (!shellName) {
-    rows.push(row(OFFLINE, 'Кеш застосунку', import.meta.env.PROD ? 'Error' : 'Info', 'порожній',
-      'Файли застосунку не збережені — без мережі сторінки не відкриються.'))
+    rows.push(row(OFFLINE, 'App cache', import.meta.env.PROD ? 'Error' : 'Info', 'empty',
+      'App files are not cached — pages will not open without the network.'))
   } else {
     const shell = await caches.open(shellName)
     const cached = new Set((await shell.keys()).map((r) => new URL(r.url).pathname))
@@ -99,19 +102,19 @@ async function cacheChecks(): Promise<HealthRow[]> {
     }
     const missing = manifest.filter((u) => !cached.has(u))
     rows.push(missing.length
-      ? row(OFFLINE, 'Кеш застосунку', 'Warning', `${cached.size} файлів, бракує ${missing.length}`,
-          `Не збережено, напр.: ${missing.slice(0, 3).join(', ')}. Перезавантажте сторінку з мережею.`)
-      : row(OFFLINE, 'Кеш застосунку', 'OK', `${cached.size} файлів (${shellName})`))
+      ? row(OFFLINE, 'App cache', 'Warning', t('{n} files, {missing} missing').replace('{n}', String(cached.size)).replace('{missing}', String(missing.length)),
+          t('Not cached, e.g.: {files}. Reload the page while online.').replace('{files}', missing.slice(0, 3).join(', ')))
+      : row(OFFLINE, 'App cache', 'OK', `${t('{n} files').replace('{n}', String(cached.size))} (${shellName})`))
     rows.push(await shell.match(SHELL_KEY)
-      ? row(OFFLINE, 'Офлайн-сторінка', 'OK', 'збережена')
-      : row(OFFLINE, 'Офлайн-сторінка', 'Warning', 'відсутня',
-          'Оболонка зберігається після першого відкриття сторінки з мережею.'))
+      ? row(OFFLINE, 'Offline page', 'OK', 'saved')
+      : row(OFFLINE, 'Offline page', 'Warning', 'missing',
+          'The shell is cached after the first page load with the network.'))
   }
 
   const api = names.includes(API_CACHE) ? await caches.open(API_CACHE) : null
   const entries = api ? (await api.keys()).length : 0
-  rows.push(row(OFFLINE, 'Збережені дані для офлайну', entries ? 'OK' : 'Info', `${entries} відповідей API`,
-    entries ? '' : 'Відкрийте потрібні списки й документи з мережею — вони стануть доступні офлайн.'))
+  rows.push(row(OFFLINE, 'Data saved for offline', entries ? 'OK' : 'Info', t('{n} API responses').replace('{n}', String(entries)),
+    entries ? '' : 'Open the lists and documents you need while online — they will become available offline.'))
   return rows
 }
 
@@ -123,33 +126,33 @@ async function probeChecks(): Promise<HealthRow[]> {
     const ms = Math.round(performance.now() - started)
     const fromCache = res.headers['x-grunt-offline'] === '1'
     const rows = [fromCache
-      ? row(NETWORK, 'Сервер', 'Error', 'недоступний', 'Відповідь прийшла з офлайн-кешу.')
-      : row(NETWORK, 'Сервер', ms < 1000 ? 'OK' : 'Warning', `${ms} мс`)]
+      ? row(NETWORK, 'Server', 'Error', 'unavailable', 'The response came from the offline cache.')
+      : row(NETWORK, 'Server', ms < 1000 ? 'OK' : 'Warning', `${ms} ${t('ms')}`)]
     if (import.meta.env.PROD && navigator.serviceWorker?.controller && !fromCache) {
       const stored = await caches.match(new URL(PROBE_URL, location.origin).href, { cacheName: API_CACHE })
       rows.push(stored
-        ? row(OFFLINE, 'Кешування відповідей', 'OK', 'працює')
-        : row(OFFLINE, 'Кешування відповідей', 'Error', 'не працює',
-            'Service worker не зберіг відповідь API — офлайн дані не з\'являться.'))
+        ? row(OFFLINE, 'Response caching', 'OK', 'working')
+        : row(OFFLINE, 'Response caching', 'Error', 'not working',
+            'The service worker did not cache the API response — offline data will not appear.'))
     }
     return rows
   } catch {
-    return [row(NETWORK, 'Сервер', 'Error', 'недоступний')]
+    return [row(NETWORK, 'Server', 'Error', 'unavailable')]
   }
 }
 
 async function queueChecks(): Promise<HealthRow[]> {
-  if (!('indexedDB' in window)) return [row(OFFLINE, 'Черга змін', 'Error', 'IndexedDB недоступна')]
+  if (!('indexedDB' in window)) return [row(OFFLINE, 'Change queue', 'Error', 'IndexedDB unavailable')]
   await refreshQueue()
   const count = (s: string) => queue.value.filter((c) => c.status === s).length
   const pending = count('pending')
   const conflict = count('conflict')
   const failed = count('failed')
-  const rows = [row(OFFLINE, 'Несинхронізовані зміни', pending ? 'Warning' : 'OK', pending,
-    pending ? 'Надішлються автоматично, щойно сервер стане доступний.' : '')]
+  const rows = [row(OFFLINE, 'Unsynced changes', pending ? 'Warning' : 'OK', pending,
+    pending ? 'They will be sent automatically once the server is reachable.' : '')]
   if (conflict || failed) {
-    rows.push(row(OFFLINE, 'Конфлікти й відхилені зміни', 'Warning', `${conflict} конфліктів, ${failed} відхилено`,
-      'Відкрийте «Несинхронізовані зміни» внизу екрана й вирішіть кожну.'))
+    rows.push(row(OFFLINE, 'Conflicts and rejected changes', 'Warning', t('{conflicts} conflicts, {failed} rejected').replace('{conflicts}', String(conflict)).replace('{failed}', String(failed)),
+      'Open «Unsynced changes» at the bottom of the screen and resolve each one.'))
   }
   return rows
 }
@@ -157,23 +160,23 @@ async function queueChecks(): Promise<HealthRow[]> {
 function networkChecks(): HealthRow[] {
   const conn = (navigator as Navigator & { connection?: { effectiveType?: string; saveData?: boolean } }).connection
   return [
-    row(NETWORK, 'Мережа браузера', isOnline.value ? 'OK' : 'Warning', isOnline.value ? 'онлайн' : 'офлайн'),
-    row(NETWORK, 'З\'єднання з сервером', serverReachable.value ? 'OK' : 'Warning',
-      serverReachable.value ? 'є' : 'втрачено'),
-    ...(conn?.effectiveType ? [row(NETWORK, 'Тип з\'єднання', 'Info', conn.effectiveType + (conn.saveData ? ', економія трафіку' : ''))] : []),
+    row(NETWORK, 'Browser network', isOnline.value ? 'OK' : 'Warning', isOnline.value ? 'online' : 'offline'),
+    row(NETWORK, 'Server connection', serverReachable.value ? 'OK' : 'Warning',
+      serverReachable.value ? 'yes' : 'lost'),
+    ...(conn?.effectiveType ? [row(NETWORK, 'Connection type', 'Info', conn.effectiveType + (conn.saveData ? `, ${t('data saver')}` : ''))] : []),
   ]
 }
 
 async function storageChecks(): Promise<HealthRow[]> {
-  if (!navigator.storage?.estimate) return [row(STORAGE, 'Квота', 'Info', 'невідомо')]
+  if (!navigator.storage?.estimate) return [row(STORAGE, 'Quota', 'Info', 'unknown')]
   const { usage = 0, quota = 0 } = await navigator.storage.estimate()
   const free = quota ? 1 - usage / quota : 1
   const persisted = navigator.storage.persisted ? await navigator.storage.persisted() : false
   return [
-    row(STORAGE, 'Використано', free > 0.1 ? 'OK' : 'Warning', `${humanSize(usage)} з ${humanSize(quota)}`,
-      free > 0.1 ? '' : 'Місця мало — браузер може видалити офлайн-кеш.'),
-    row(STORAGE, 'Постійне сховище', persisted ? 'OK' : 'Info', persisted ? 'так' : 'ні',
-      persisted ? '' : 'Браузер може очистити офлайн-дані при нестачі місця. Кнопка «Закріпити сховище» просить його цього не робити.'),
+    row(STORAGE, 'Used', free > 0.1 ? 'OK' : 'Warning', `${humanSize(usage)} / ${humanSize(quota)}`,
+      free > 0.1 ? '' : 'Low on space — the browser may delete the offline cache.'),
+    row(STORAGE, 'Persistent storage', persisted ? 'OK' : 'Info', persisted ? 'yes' : 'no',
+      persisted ? '' : 'The browser may clear offline data when space runs low. The «Persist storage» button asks it not to.'),
   ]
 }
 
@@ -215,10 +218,10 @@ function waitFor(
  */
 async function realtimeChecks(): Promise<HealthRow[]> {
   const rows = [openChannelCount('/api/v1/ws/user')
-    ? row(REALTIME, 'Realtime застосунку', 'OK', 'підключено')
-    : row(REALTIME, 'Realtime застосунку', 'Warning', 'не підключено',
-        'Сповіщення й оновлення документів не приходитимуть наживо.')]
-  if (!('WebSocket' in window)) return [...rows, row(REALTIME, 'Тестове з\'єднання', 'Error', 'не підтримується')]
+    ? row(REALTIME, 'App realtime', 'OK', 'connected')
+    : row(REALTIME, 'App realtime', 'Warning', 'not connected',
+        'Notifications and document updates will not arrive live.')]
+  if (!('WebSocket' in window)) return [...rows, row(REALTIME, 'Test connection', 'Error', 'not supported')]
 
   const token = localStorage.getItem('grunt_token') ?? ''
   const proto = location.protocol === 'https:' ? 'wss:' : 'ws:'
@@ -229,30 +232,30 @@ async function realtimeChecks(): Promise<HealthRow[]> {
     ws = await openSocket(url)
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e)
-    return [...rows, row(REALTIME, 'Тестове з\'єднання', 'Error', msg === 'code 4001' ? 'токен не прийнято' : msg,
-      'Перевірте, що проксі (nginx/Cloudflare) пропускає WebSocket на /api/v1/ws/.')]
+    return [...rows, row(REALTIME, 'Test connection', 'Error', msg === 'code 4001' ? 'token rejected' : msg,
+      'Check that the proxy (nginx/Cloudflare) passes WebSocket through on /api/v1/ws/.')]
   }
   try {
-    rows.push(row(REALTIME, 'Тестове з\'єднання', 'OK', `відкрито за ${Math.round(performance.now() - started)} мс`))
+    rows.push(row(REALTIME, 'Test connection', 'OK', t('opened in {n} ms').replace('{n}', String(Math.round(performance.now() - started)))))
 
     const pingAt = performance.now()
     const pong = waitFor(ws, (m) => m.event === 'pong', 2000, true)
     ws.send(JSON.stringify({ action: 'ping' }))
     rows.push(await pong
-      ? row(REALTIME, 'Ping → pong', 'OK', `${Math.round(performance.now() - pingAt)} мс`)
-      : row(REALTIME, 'Ping → pong', 'Error', 'немає відповіді'))
+      ? row(REALTIME, 'Ping → pong', 'OK', `${Math.round(performance.now() - pingAt)} ${t('ms')}`)
+      : row(REALTIME, 'Ping → pong', 'Error', 'no response'))
 
     const nonce = Math.random().toString(36).slice(2)
     const echoes = waitFor(ws, (m) => m.event === ECHO_EVENT && m.data?.nonce === nonce, ECHO_WAIT_MS)
     await client.post('/api/v1/method/grunt.monitoring.health.ws_echo', { nonce })
     const copies = await echoes
     rows.push(copies === 1
-      ? row(REALTIME, 'Доставка з сервера', 'OK', 'рівно одна копія')
+      ? row(REALTIME, 'Server delivery', 'OK', 'exactly one copy')
       : copies === 0
-        ? row(REALTIME, 'Доставка з сервера', 'Error', 'не дійшло',
-            'Сервер надіслав подію, але браузер її не отримав — перевірте ретрансляцію через Redis.')
-        : row(REALTIME, 'Доставка з сервера', 'Warning', `${copies} копії`,
-            'Кожне повідомлення приходить кілька разів — сповіщення дублюються.'))
+        ? row(REALTIME, 'Server delivery', 'Error', 'not delivered',
+            'The server sent an event but the browser did not receive it — check the Redis relay.')
+        : row(REALTIME, 'Server delivery', 'Warning', t('{n} copies').replace('{n}', String(copies)),
+            'Each message arrives several times — notifications are duplicated.'))
   } finally {
     ws.close()
   }
@@ -261,10 +264,10 @@ async function realtimeChecks(): Promise<HealthRow[]> {
 
 function browserChecks(): HealthRow[] {
   const permission = 'Notification' in window ? Notification.permission : 'unsupported'
-  const labels: Record<string, string> = { granted: 'дозволено', denied: 'заборонено', default: 'не запитано', unsupported: 'не підтримується' }
+  const labels: Record<string, string> = { granted: 'allowed', denied: 'denied', default: 'not requested', unsupported: 'not supported' }
   return [
-    row(BROWSER, 'Браузер', 'Info', navigator.userAgent.replace(/^Mozilla\/5\.0 /, '')),
-    row(BROWSER, 'Push-сповіщення', permission === 'granted' ? 'OK' : 'Info', labels[permission] ?? permission),
+    row(BROWSER, 'Browser', 'Info', navigator.userAgent.replace(/^Mozilla\/5\.0 /, '')),
+    row(BROWSER, 'Push notifications', permission === 'granted' ? 'OK' : 'Info', labels[permission] ?? permission),
   ]
 }
 
@@ -272,7 +275,7 @@ async function safe(category: string, name: string, fn: () => Promise<HealthRow[
   try {
     return await fn()
   } catch (e) {
-    return [row(category, name, 'Error', 'перевірка впала', e instanceof Error ? e.message : String(e))]
+    return [row(category, name, 'Error', 'check failed', e instanceof Error ? e.message : String(e))]
   }
 }
 
@@ -280,13 +283,13 @@ async function safe(category: string, name: string, fn: () => Promise<HealthRow[
 export async function diagnoseBrowser(): Promise<HealthRow[]> {
   const groups = await Promise.all([
     safe(OFFLINE, 'Service worker', serviceWorkerChecks),
-    safe(OFFLINE, 'Кеш', cacheChecks),
-    safe(NETWORK, 'Сервер', probeChecks),
-    safe(OFFLINE, 'Черга змін', queueChecks),
-    safe(NETWORK, 'Мережа', networkChecks),
-    safe(REALTIME, 'Вебсокети', realtimeChecks),
-    safe(STORAGE, 'Сховище', storageChecks),
-    safe(BROWSER, 'Браузер', browserChecks),
+    safe(OFFLINE, 'Cache', cacheChecks),
+    safe(NETWORK, 'Server', probeChecks),
+    safe(OFFLINE, 'Change queue', queueChecks),
+    safe(NETWORK, 'Network', networkChecks),
+    safe(REALTIME, 'WebSockets', realtimeChecks),
+    safe(STORAGE, 'Storage', storageChecks),
+    safe(BROWSER, 'Browser', browserChecks),
   ])
   return groups.flat()
 }

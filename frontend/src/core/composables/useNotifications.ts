@@ -5,6 +5,9 @@ import { useDialog } from '@/core/composables/useDialog'
 import { useTaskTracker } from '@/core/composables/useTaskTracker'
 import { WebSocketChannel } from '@/core/ws/WebSocketChannel'
 import type { GruntNotification, RealtimeEvent } from '@/types'
+import i18n from '@/plugins/i18n'
+
+const t = (key: string): string => i18n.global.t(key)
 
 // ── Shared state (singleton across components) ───────────────────────────
 
@@ -68,7 +71,7 @@ function handleRealtimeEvent(msg: RealtimeEvent) {
         })
       }
       // Show a toast for the notification
-      toast.info(msg.data.subject ?? msg.data.message ?? 'Нове сповіщення')
+      toast.info(msg.data.subject ?? msg.data.message ?? t('New notification'))
       break
     }
 
@@ -106,7 +109,7 @@ function handleRealtimeEvent(msg: RealtimeEvent) {
       const taskTracker = useTaskTracker()
       taskTracker.update({
         task_id: msg.data.task_id as string | undefined,
-        title: (msg.data.title as string) ?? 'Задача',
+        title: (msg.data.title as string) ?? t('Task'),
         count: (msg.data.count as number) ?? 0,
         total: (msg.data.total as number) ?? 100,
         percent: msg.data.percent as number | undefined,

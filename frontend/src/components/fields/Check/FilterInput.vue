@@ -1,5 +1,8 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import type { DocField } from '@/types'
+
+const { t } = useI18n()
 
 defineProps<{
   field: DocField
@@ -24,7 +27,7 @@ const emit = defineEmits<{
         ? 'border-primary bg-primary/10 text-primary font-semibold'
         : 'border-border hover:border-primary/40 text-muted-foreground'"
       @click="emit('update:modelValue', '1')"
-    >✓ Так</button>
+    >✓ {{ t('Yes') }}</button>
     <button
       type="button"
       class="flex-1 py-1.5 rounded border transition-colors"
@@ -32,6 +35,6 @@ const emit = defineEmits<{
         ? 'border-primary bg-primary/10 text-primary font-semibold'
         : 'border-border hover:border-primary/40 text-muted-foreground'"
       @click="emit('update:modelValue', '0')"
-    >✗ Ні</button>
+    >✗ {{ t('No') }}</button>
   </div>
 </template>

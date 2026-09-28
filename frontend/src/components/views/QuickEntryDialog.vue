@@ -128,8 +128,8 @@ const isVisible = ref(true)
   >
     <DialogContent class="sm:max-w-lg">
       <DialogHeader>
-        <DialogTitle>Новий {{ dt.label }}</DialogTitle>
-        <DialogDescription>Швидке додавання</DialogDescription>
+        <DialogTitle>{{ t('New {doctype}').replace('{doctype}', dt.label) }}</DialogTitle>
+        <DialogDescription>{{ t('Quick entry') }}</DialogDescription>
       </DialogHeader>
 
       <div class="-mx-6 max-h-[60vh] overflow-y-auto px-6">

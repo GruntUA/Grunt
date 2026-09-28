@@ -15,6 +15,9 @@
  */
 
 import { siteConfigState } from '@/core/composables/useSiteConfig'
+import i18n from '@/plugins/i18n'
+
+const t = (key: string): string => i18n.global.t(key)
 
 export const EMPTY_DATE = '—'
 
@@ -136,11 +139,11 @@ export interface DateFormatSpec {
 export function dateFormatSpec(): DateFormatSpec {
   switch (siteConfigState().dateFormat) {
     case 'yyyy-mm-dd':
-      return { sep: '-', order: ['y', 'm', 'd'], placeholder: 'РРРР-ММ-ДД' }
+      return { sep: '-', order: ['y', 'm', 'd'], placeholder: t('YYYY-MM-DD') }
     case 'dd/mm/yyyy':
-      return { sep: '/', order: ['d', 'm', 'y'], placeholder: 'ДД/ММ/РРРР' }
+      return { sep: '/', order: ['d', 'm', 'y'], placeholder: t('DD/MM/YYYY') }
     default:
-      return { sep: '.', order: ['d', 'm', 'y'], placeholder: 'ДД.ММ.РРРР' }
+      return { sep: '.', order: ['d', 'm', 'y'], placeholder: t('DD.MM.YYYY') }
   }
 }
 

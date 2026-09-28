@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { computed, ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
 import { ChevronRight, Plus } from '@lucide/vue'
@@ -11,6 +12,8 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
 import type { DocType, DocConnectionsResult } from '@/types'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   dt: DocType
@@ -78,7 +81,7 @@ const hasAny = computed(() => (result.value?.groups ?? []).some((g) => g.links.l
 
 <template>
   <div v-if="loading || hasAny" class="flex flex-col gap-3">
-    <p v-if="loading" class="text-muted-foreground px-0.5">Завантаження зв'язків…</p>
+    <p v-if="loading" class="text-muted-foreground px-0.5">{{ t('Loading connections…') }}</p>
 
     <div
       v-for="group in (hasAny ? (result?.groups ?? []) : [])"
@@ -123,7 +126,7 @@ const hasAny = computed(() => (result.value?.groups ?? []).some((g) => g.links.l
               v-if="!link.via_child"
               type="button"
               class="size-5 rounded-md hover:bg-primary/10 text-muted-foreground hover:text-primary flex items-center justify-center transition-colors border border-transparent hover:border-primary/20 -mr-1"
-              :title="`Створити новий ${link.link_doctype}`"
+              :title="t('New {doctype}').replace('{doctype}', link.link_doctype)"
               @click="handleAdd(link)"
             >
               <Plus class="size-3.5" />
@@ -146,7 +149,7 @@ const hasAny = computed(() => (result.value?.groups ?? []).some((g) => g.links.l
                 :to="listTo(link)"
                 class="px-2 py-1.5 text-primary hover:underline no-underline"
               >
-                Переглянути всі {{ link.count }} →
+                {{ t('View all {n}').replace('{n}', String(link.count)) }} →
               </RouterLink>
             </div>
           </CollapsibleContent>

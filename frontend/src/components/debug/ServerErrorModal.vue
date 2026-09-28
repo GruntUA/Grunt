@@ -1,9 +1,12 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { computed } from 'vue'
 import { useServerError } from '@/core/composables/useServerError'
 import { X, Copy, ChevronDown } from '@lucide/vue'
 import { ref } from 'vue'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
+
+const { t } = useI18n()
 
 const { state, close } = useServerError()
 
@@ -66,7 +69,7 @@ function copyAll() {
               <button
                 @click="copyAll"
                 class="p-1.5 rounded text-red-400/60 hover:text-red-300 hover:bg-red-900/30 transition-colors"
-                :title="copied ? 'Скопійовано!' : 'Копіювати'"
+                :title="copied ? t('Copied!') : t('Copy')"
               >
                 <Copy class="size-4" />
               </button>
@@ -138,7 +141,7 @@ function copyAll() {
                   class="w-full flex items-center justify-center gap-1.5 px-4 py-2 text-red-400/60 hover:text-red-300 hover:bg-red-900/20 transition-colors border-t border-red-900/20"
                 >
                   <ChevronDown class="size-3" />
-                  Показати всі {{ tracebackLines.length }} рядків
+                  {{ t('Show all {n} lines').replace('{n}', String(tracebackLines.length)) }}
                 </button>
               </div>
             </div>
@@ -146,7 +149,7 @@ function copyAll() {
 
           <!-- Footer hint -->
           <div class="px-5 py-2.5 border-t border-red-900/30 bg-[#1f0c0c] text-red-400/40 font-mono">
-            Показується лише в режимі debug · Натисни поза вікном або ESC щоб закрити
+            {{ t('Shown only in debug mode · Click outside or press ESC to close') }}
           </div>
     </DialogContent>
   </Dialog>

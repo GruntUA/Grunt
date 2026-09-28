@@ -4,6 +4,9 @@ import client from '@/core/api/client'
 import { useColorMode, type Theme } from '@/core/composables/useColorMode'
 import { applyUserPrefs } from '@/core/composables/useSiteConfig'
 import { setLocale, type SupportedLocale } from '@/plugins/i18n'
+import i18n from '@/plugins/i18n'
+
+const t = (key: string): string => i18n.global.t(key)
 
 interface User {
   id: string
@@ -200,7 +203,7 @@ export const useAuthStore = defineStore('auth', () => {
   ): Promise<void> {
     const { authApi } = await import('@/core/api/auth')
     const { getPasskeyAssertion, isWebAuthnSupported } = await import('@/core/composables/useWebAuthn')
-    if (!isWebAuthnSupported()) throw new Error('Цей браузер не підтримує ключі доступу')
+    if (!isWebAuthnSupported()) throw new Error(t('This browser does not support passkeys'))
 
     const payload: Record<string, string> = {}
     if (opts?.mode) payload.mode = opts.mode

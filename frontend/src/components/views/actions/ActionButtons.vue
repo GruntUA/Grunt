@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 /**
  * Toolbar + primary actions of an action registry (core/actions.ts).
  * Toolbar actions of one `group` become a split button; the primary action
@@ -15,6 +16,8 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { actionButtonStyle, type ResolvedAction } from '@/core/actions'
 import ActionIcon from './ActionIcon.vue'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   toolbar: ResolvedAction[]
@@ -86,7 +89,7 @@ function title(action: ResolvedAction) {
             size="sm"
             :variant="style(slot.items[0]).variant"
             :class="['rounded-l-none border-l-0 px-2', style(slot.items[0]).className]"
-            :aria-label="`${slot.name}: ще`"
+            :aria-label="`${slot.name}: ${t('more')}`"
           >
             <ChevronDown class="size-3.5" />
           </Button>

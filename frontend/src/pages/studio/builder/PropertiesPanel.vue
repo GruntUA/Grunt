@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { computed, provide, watch, defineAsyncComponent } from 'vue'
 import { useBuilderStore } from '@/stores/builder'
 import { getFieldDef, getPaletteGroups, getLayoutTypeSet } from '@/core/fieldRegistry'
@@ -9,6 +10,8 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrig
 
 // Register all core sections (side-effect import)
 import '@/pages/studio/builder/sections/index'
+
+const { t } = useI18n()
 
 const builder = useBuilderStore()
 const field = computed(() => builder.selectedField)
@@ -67,14 +70,14 @@ function changeType(next: unknown) {
 
       <!-- Field type -->
       <div v-if="!isLayoutField" class="flex flex-col gap-1.5 mb-4">
-        <label class="font-medium">Тип поля</label>
+        <label class="font-medium">{{ t('Field type') }}</label>
         <Select :model-value="field.fieldtype" @update:model-value="changeType">
           <SelectTrigger class="w-full">
             <SelectValue :placeholder="field.fieldtype" />
           </SelectTrigger>
           <SelectContent>
             <SelectGroup v-for="group in typeGroups" :key="group.category">
-              <SelectLabel>{{ group.category || 'Інше' }}</SelectLabel>
+              <SelectLabel>{{ group.category ? t(group.category) : t('Other') }}</SelectLabel>
               <SelectItem v-for="def in group.fields" :key="def.type" :value="def.type">
                 {{ def.label }}
               </SelectItem>
@@ -102,7 +105,7 @@ function changeType(next: unknown) {
 
     <!-- No selection -->
     <div v-else class="flex items-center justify-center h-32 text-muted-foreground">
-      Оберіть поле для редагування
+      {{ t('Select a field to edit') }}
     </div>
   </div>
 </template>

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { ref, computed, onMounted, watch } from 'vue'
 import { formatDate, formatDateTime } from '@/core/datetime'
 import { useRouter } from 'vue-router'
@@ -14,6 +15,8 @@ import { Skeleton } from '@/components/ui/skeleton'
 import FilterBar from '@/components/views/FilterBar.vue'
 import ReportChart from '@/components/reports/ReportChart.vue'
 import { setPageTitle } from '@/core/composables/usePageTitle'
+
+const { t } = useI18n()
 
 /** Frontend display operator → backend filter-key suffix (see grunt/db/api.py build_clauses). */
 const OP_SUFFIX: Record<string, string> = {
@@ -183,7 +186,7 @@ function openBuilder() {
                 <div class="flex items-center gap-2 mt-1">
                     <Badge variant="secondary" class="font-normal">{{ report?.report_type }}</Badge>
                     <p class="text-muted-foreground" v-if="meta">
-                        {{ meta.rows }} записів • {{ meta.time_ms }}мс
+                        {{ t('{n} records').replace('{n}', String(meta.rows)) }} • {{ meta.time_ms }} {{ t('ms') }}
                     </p>
                 </div>
             </div>
@@ -191,7 +194,7 @@ function openBuilder() {
             <div class="flex items-center gap-2">
                 <div v-if="chartConfig" class="flex rounded-md border overflow-hidden mr-1 font-medium">
                     <button
-                        v-for="m in ([['table', 'Таблиця'], ['chart', 'Графік'], ['both', 'Обидва']] as const)"
+                        v-for="m in ([['table', t('Table')], ['chart', t('Chart')], ['both', t('Both')]] as const)"
                         :key="m[0]"
                         class="px-2.5 py-1.5 transition-colors"
                         :class="viewMode === m[0] ? 'bg-primary text-primary-foreground' : 'bg-card hover:bg-muted text-muted-foreground'"
@@ -205,7 +208,7 @@ function openBuilder() {
                 </Button>
                 <Button variant="outline" size="sm" @click="fetchReport" :disabled="loading">
                     <RefreshCw class="size-4 mr-2" :class="{ 'animate-spin': loading }" />
-                    Оновити
+                    {{ t('Refresh') }}
                 </Button>
                 <Button variant="outline" size="sm" as="a" :href="reportsApi.exportXlsxUrl(reportName)" download>
                     <Download class="size-4 mr-2" />
@@ -213,7 +216,7 @@ function openBuilder() {
                 </Button>
                 <Button size="sm" @click="openBuilder" v-if="auth.isSystemManager">
                     <Settings2 class="size-4 mr-2" />
-                    Конструктор
+                    {{ t('Builder') }}
                 </Button>
             </div>
         </div>
@@ -231,7 +234,7 @@ function openBuilder() {
         <div v-if="chartConfig && viewMode !== 'table'" class="border rounded-lg shadow-sm bg-card p-4">
             <ReportChart v-if="data.length" ref="chartRef" :config="chartConfig" :columns="columns" :data="data" />
             <div v-else class="h-[360px] flex items-center justify-center text-muted-foreground">
-                Дані відсутні
+                {{ t('No data') }}
             </div>
         </div>
 
@@ -256,14 +259,14 @@ function openBuilder() {
                             <td :colspan="columns.length" class="text-center py-12">
                                 <div class="flex flex-col items-center gap-2 text-muted-foreground">
                                     <FileX class="size-12 opacity-20" />
-                                    <p>Дані відсутні</p>
+                                    <p>{{ t('No data') }}</p>
                                 </div>
                             </td>
                         </tr>
                         <tr v-else v-for="(row, ri) in data" :key="ri"
                             class="border-b last:border-0 hover:bg-muted/30 transition-colors"
                             :class="{ 'cursor-pointer': drilldownQuery(row) }"
-                            :title="drilldownQuery(row) ? 'Відкрити документи' : undefined"
+                            :title="drilldownQuery(row) ? t('Open documents') : undefined"
                             @click="openDrilldown(row)">
                             <td v-for="col in columns" :key="col.fieldname" class="px-4 py-3 text-foreground/90 font-medium whitespace-nowrap">
                                 {{ formatCell(row[col.fieldname], col.fieldtype) }}
@@ -276,7 +279,7 @@ function openBuilder() {
                                 <template v-if="totalsRow?.[col.fieldname] !== undefined">
                                     {{ formatCell(totalsRow?.[col.fieldname], col.fieldtype) }}
                                 </template>
-                                <template v-else-if="ci === 0">Разом</template>
+                                <template v-else-if="ci === 0">{{ t('Total') }}</template>
                             </td>
                         </tr>
                     </tfoot>

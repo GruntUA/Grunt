@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { computed, ref, watch, onUnmounted, useId } from 'vue'
 import { X, Loader2 } from '@lucide/vue'
 import type { DocField } from '@/types'
@@ -10,6 +11,8 @@ import { Input } from '@/components/ui/input'
 import { TreeSelect } from '@/components/ui/tree-select'
 import { escapeHtml } from '@/lib/utils'
 import { useAnchoredDropdown } from '@/core/composables/useAnchoredDropdown'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   field: DocField
@@ -214,7 +217,7 @@ onUnmounted(() => {
     :model-value="modelValue || null"
     :options="treeNodes"
     :loading="treeLoading"
-    :placeholder="`Оберіть ${field.options}...`"
+    :placeholder="t('Select {doctype}…').replace('{doctype}', field.options ?? '')"
     class="w-full text-xs"
     @update:model-value="onTreeSelect"
   />
@@ -228,7 +231,7 @@ onUnmounted(() => {
       >
         <span class="truncate">{{ titles[id] ?? id }}</span>
         <button
-          type="button" class="text-muted-foreground hover:text-foreground" aria-label="Прибрати"
+          type="button" class="text-muted-foreground hover:text-foreground" :aria-label="t('Remove')"
           @mousedown.prevent="setValues(values.filter(v => v !== id))"
         >
           <X class="size-3" />
@@ -238,7 +241,7 @@ onUnmounted(() => {
     <Input
       :model-value="query"
       class="h-8 text-xs w-full pr-7"
-      :placeholder="`Пошук ${field.options}...`"
+      :placeholder="t('Search {doctype}…').replace('{doctype}', field.options ?? '')"
       autocomplete="off"
       role="combobox"
       aria-autocomplete="list"
@@ -255,7 +258,7 @@ onUnmounted(() => {
       v-else-if="modelValue && !multi"
       type="button"
       class="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
-      aria-label="Очистити"
+      :aria-label="t('Clear')"
       @mousedown.prevent="clear"
     >
       <X class="size-3.5" />
@@ -290,9 +293,9 @@ onUnmounted(() => {
           </button>
         </div>
         <div v-else class="px-3 py-3 text-center text-muted-foreground">
-          <span v-if="isLoading">Пошук...</span>
-          <span v-else-if="query">Нічого не знайдено</span>
-          <span v-else>Немає записів</span>
+          <span v-if="isLoading">{{ t('Searching...') }}</span>
+          <span v-else-if="query">{{ t('Nothing found') }}</span>
+          <span v-else>{{ t('No records') }}</span>
         </div>
       </div>
     </Teleport>

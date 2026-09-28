@@ -1,7 +1,10 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { computed } from 'vue'
 import type { DocField } from '@/types'
 import { Input } from '@/components/ui/input'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   field: DocField
@@ -36,10 +39,10 @@ const readable = computed(() => {
   const minutes = Math.floor((s % 3600) / 60)
   const seconds = s % 60
   const parts: string[] = []
-  if (days) parts.push(`${days} д`)
-  if (hours) parts.push(`${hours} год`)
-  if (minutes) parts.push(`${minutes} хв`)
-  if (seconds || !parts.length) parts.push(`${seconds} с`)
+  if (days) parts.push(t('{n} d').replace('{n}', String(days)))
+  if (hours) parts.push(t('{n} h').replace('{n}', String(hours)))
+  if (minutes) parts.push(t('{n} min').replace('{n}', String(minutes)))
+  if (seconds || !parts.length) parts.push(t('{n} s').replace('{n}', String(seconds)))
   return parts.join(' ')
 })
 </script>

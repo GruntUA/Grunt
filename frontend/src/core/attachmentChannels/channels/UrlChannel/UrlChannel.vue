@@ -1,9 +1,12 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { ref, computed } from 'vue'
 import type { AttachmentResult, AttachChannelProps } from '@/core/attachmentChannels/types'
 import { AlertCircle } from '@lucide/vue'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+
+const { t } = useI18n()
 
 const props = defineProps<AttachChannelProps>()
 const emit = defineEmits<{ select: [result: AttachmentResult] }>()
@@ -26,7 +29,7 @@ function confirm() {
   error.value = ''
   const raw = urlInput.value.trim()
   if (!raw) {
-    error.value = 'Введіть URL'
+    error.value = t('Enter a URL')
     return
   }
   try {
@@ -34,14 +37,14 @@ function confirm() {
     const filename = parsed.pathname.split('/').filter(Boolean).pop() ?? raw
     emit('select', { url: raw, filename })
   } catch {
-    error.value = 'Невірний URL'
+    error.value = t('Invalid URL')
   }
 }
 </script>
 
 <template>
   <div class="p-4 flex flex-col gap-3">
-    <p class="text-muted-foreground">Вкажіть пряме посилання на файл у інтернеті.</p>
+    <p class="text-muted-foreground">{{ t('Enter a direct link to a file on the internet.') }}</p>
 
     <Input
       v-model="urlInput"
@@ -57,9 +60,9 @@ function confirm() {
 
     <div v-if="showImageWarning" class="flex items-center gap-1.5 text-amber-600">
       <AlertCircle class="size-3.5 shrink-0" />
-      URL не схожий на зображення
+      {{ t('The URL does not look like an image') }}
     </div>
 
-    <Button type="button" :disabled="!urlInput.trim()" @click="confirm">Підтвердити</Button>
+    <Button type="button" :disabled="!urlInput.trim()" @click="confirm">{{ t('Confirm') }}</Button>
   </div>
 </template>

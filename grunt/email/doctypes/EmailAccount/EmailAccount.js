@@ -83,29 +83,29 @@ function on_change(frm, fieldname) {
 function _friendlySmtpError(raw) {
     const s = String(raw || '')
     if (/535|5\.7\.8|Username and Password not accepted|BadCredentials|Application-specific password/i.test(s)) {
-        return 'Google відхилив вхід. Використайте 16-значний «пароль додатка» (App Password), а не звичайний пароль акаунта, і переконайтесь, що увімкнена двоетапна перевірка.'
+        return __('Google rejected the sign-in. Use a 16-character «app password» (App Password), not the regular account password, and make sure 2-Step Verification is enabled.')
     }
     if (/WRONG_VERSION_NUMBER|wrong version number|SSL:|SSLV3|record layer/i.test(s)) {
-        return 'Невідповідність шифрування та порту. Для Gmail потрібен порт 587 (STARTTLS) або 465 (SSL).'
+        return __('Encryption and port mismatch. Gmail needs port 587 (STARTTLS) or 465 (SSL).')
     }
     if (/timed out|timeout|Connection refused|Name or service not known|getaddrinfo|nodename/i.test(s)) {
-        return 'Сервер не відповідає. Перевірте адресу сервера, порт і доступ до мережі.'
+        return __('The server does not respond. Check the server address, port and network access.')
     }
-    return s || 'Невідома помилка'
+    return s || __('Unknown error')
 }
 
 /** @param {FormProxy} frm */
 async function _testConnection(frm) {
     if (!frm.doc.smtp_server) {
-        grunt.show_alert('Спочатку оберіть поштову службу або вкажіть SMTP-сервер.', 'warning')
+        grunt.show_alert(__('First choose a mail service or enter an SMTP server.'), 'warning')
         return
     }
     if (!frm.doc.smtp_password && frm.is_new) {
-        grunt.show_alert('Вкажіть пароль SMTP (для Gmail — пароль додатка).', 'warning')
+        grunt.show_alert(__('Enter the SMTP password (for Gmail — an app password).'), 'warning')
         return
     }
 
-    grunt.show_alert('Перевіряємо з\'єднання…', 'info')
+    grunt.show_alert(__('Checking the connection…'), 'info')
     try {
         const res = await grunt.call('grunt.api.v1.email.test_smtp_connection', {
             smtp_server: frm.doc.smtp_server,
@@ -116,7 +116,7 @@ async function _testConnection(frm) {
             account_id: frm.is_new ? undefined : frm.doc.name,
         })
         if (res && res.success) {
-            grunt.show_alert('З\'єднання успішне — вхід на SMTP-сервер пройшов.', 'success')
+            grunt.show_alert(__('Connection successful — signed in to the SMTP server.'), 'success')
         } else {
             grunt.show_alert(_friendlySmtpError(res && res.error), 'error')
         }
@@ -128,20 +128,20 @@ async function _testConnection(frm) {
 /** @param {FormProxy} frm */
 async function _sendTest(frm) {
     if (frm.is_new) {
-        grunt.show_alert('Спочатку збережіть обліковий запис, потім надсилайте тестовий лист.', 'warning')
+        grunt.show_alert(__('Save the account first, then send a test email.'), 'warning')
         return
     }
-    const to = await grunt.prompt({ label: 'Адреса отримувача', title: 'Тестовий лист' })
+    const to = await grunt.prompt({ label: __('Recipient address'), title: __('Test email') })
     if (!to || !to.trim()) return
 
-    grunt.show_alert('Надсилаємо тестовий лист…', 'info')
+    grunt.show_alert(__('Sending a test email…'), 'info')
     try {
         const res = await grunt.call('grunt.api.v1.email.send_test_email', {
             account_id: frm.doc.name,
             recipient: to,
         })
         if (res && res.success) {
-            grunt.show_alert('Тестовий лист надіслано на ' + to + '.', 'success')
+            grunt.show_alert(__('Test email sent to {to}.').replace('{to}', to), 'success')
         } else {
             grunt.show_alert(_friendlySmtpError(res && res.error), 'error')
         }

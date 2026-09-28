@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import {
@@ -36,6 +37,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { docUrl } from '@/core/workspaceUrl'
 
+const { t } = useI18n()
+
 const props = defineProps<{
   doctype: DocType
   document: GruntDocument
@@ -72,9 +75,9 @@ const docstatusBadge = computed(() => {
   if (!props.doctype.is_submittable) return null
   return (
     [
-      { label: 'Чернетка', class: statusToneClass('secondary') },
-      { label: 'Проведено', class: statusToneClass('info') },
-      { label: 'Скасовано', class: statusToneClass('danger') },
+      { label: t('Draft'), class: statusToneClass('secondary') },
+      { label: t('Submitted'), class: statusToneClass('info') },
+      { label: t('status|Cancelled'), class: statusToneClass('danger') },
     ][props.document.docstatus] ?? null
   )
 })
@@ -87,7 +90,7 @@ async function copyId() {
     copied.value = true
     setTimeout(() => (copied.value = false), 1500)
   } catch {
-    toast.error('Не вдалося скопіювати')
+    toast.error(t('Could not copy'))
   }
 }
 
@@ -118,26 +121,26 @@ function realNote(a: SidebarAssignee): string {
 }
 // One detail card per assignment (note + state), newest last.
 const assigneeTasks = computed(() => sb.bundle.value.assignees)
-const STATUS_LABEL: Record<string, string> = { Open: 'Відкрито', 'In Progress': 'В роботі' }
+const STATUS_LABEL: Record<string, string> = { Open: 'status|Open', 'In Progress': 'status|In Progress' }
 function statusLabel(a: SidebarAssignee): string {
-  return a.status ? (STATUS_LABEL[a.status] ?? a.status) : ''
+  return a.status ? (STATUS_LABEL[a.status] ? t(STATUS_LABEL[a.status]) : a.status) : ''
 }
 function assigneeTooltip(a: SidebarAssignee): string {
   const parts = [sb.personName(a.assigned_to)]
   const note = realNote(a)
   if (note) parts.push(note)
-  if (a.created_at) parts.push(`призначено ${formatRelative(a.created_at)}`)
+  if (a.created_at) parts.push(t('assigned {when}').replace('{when}', formatRelative(a.created_at)))
   return parts.join(' — ')
 }
-const PRIORITY_LABEL: Record<string, string> = { Urgent: 'Терміново', High: 'Високий' }
+const PRIORITY_LABEL: Record<string, string> = { Urgent: 'priority|Urgent', High: 'priority|High' }
 function priorityTag(a: SidebarAssignee): string {
-  return a.priority && a.priority in PRIORITY_LABEL ? PRIORITY_LABEL[a.priority] : ''
+  return a.priority && a.priority in PRIORITY_LABEL ? t(PRIORITY_LABEL[a.priority]) : ''
 }
 function openTask(a: SidebarAssignee) {
   router.push(docUrl('ToDo', a.name, props.workspace))
 }
 async function confirmUnassign(a: SidebarAssignee) {
-  const ok = await dialog.confirm(`Прибрати ${sb.personName(a.assigned_to)} з відповідальних?`)
+  const ok = await dialog.confirm(t('Remove {name} from assignees?').replace('{name}', sb.personName(a.assigned_to)))
   if (ok) await sb.unassign(a.name)
 }
 async function submitDialog() {
@@ -200,7 +203,7 @@ function printDoc() {
 
     <!-- Primary status -->
     <div v-if="statusBadge" class="flex items-center gap-2">
-      <span class="font-semibold uppercase tracking-wider text-muted-foreground/80">Статус</span>
+      <span class="font-semibold uppercase tracking-wider text-muted-foreground/80">{{ t('Status') }}</span>
       <Badge variant="outline" :class="statusBadge.class">{{ statusBadge.label }}</Badge>
     </div>
 
@@ -209,7 +212,7 @@ function printDoc() {
       <code class="font-mono font-semibold text-foreground truncate">{{ document.name }}</code>
       <button
         class="shrink-0 text-muted-foreground/60 hover:text-foreground transition-colors"
-        title="Скопіювати ідентифікатор"
+        :title="t('Copy ID')"
         @click="copyId"
       >
         <Check v-if="copied" class="size-3.5 text-success" />
@@ -231,14 +234,14 @@ function printDoc() {
       <div class="flex flex-col gap-0.5 min-w-0 leading-snug">
         <span class="truncate" :title="`${document.owner} · ${formatFull(document.created_at)}`">
           <span class="font-semibold text-foreground">{{ sb.personName(document.owner) }}</span>
-          <span class="text-muted-foreground"> · створив {{ formatRelative(document.created_at) }}</span>
+          <span class="text-muted-foreground"> · {{ t('created {when}').replace('{when}', formatRelative(document.created_at)) }}</span>
         </span>
         <span
           class="truncate"
           :title="`${document.modified_by || document.owner} · ${formatFull(document.modified_at)}`"
         >
           <span class="font-semibold text-foreground">{{ sb.personName(document.modified_by || document.owner) }}</span>
-          <span class="text-muted-foreground"> · змінив {{ formatRelative(document.modified_at) }}</span>
+          <span class="text-muted-foreground"> · {{ t('modified {when}').replace('{when}', formatRelative(document.modified_at)) }}</span>
         </span>
       </div>
     </div>
@@ -252,7 +255,7 @@ function printDoc() {
       class="group flex items-center gap-2 text-foreground hover:text-primary transition-colors"
     >
       <Globe class="size-3.5 shrink-0 text-muted-foreground group-hover:text-primary" />
-      <span class="font-semibold">Переглянути на сайті</span>
+      <span class="font-semibold">{{ t('View on website') }}</span>
       <span class="truncate text-muted-foreground font-mono">{{ webUrl }}</span>
       <ExternalLink class="size-3 shrink-0 ml-auto text-muted-foreground/60" />
     </a>
@@ -260,12 +263,12 @@ function printDoc() {
     <!-- People: assignees + access -->
     <div class="flex flex-col gap-3 p-3 bg-muted/30 rounded-lg border border-border/40">
       <div class="flex items-center justify-between">
-        <span class="font-semibold uppercase tracking-wider text-muted-foreground/80">Люди</span>
+        <span class="font-semibold uppercase tracking-wider text-muted-foreground/80">{{ t('People') }}</span>
         <div class="flex items-center gap-0.5">
-          <Button variant="ghost" size="icon" class="size-6" title="Призначити відповідального" @click="openDialog('assign')">
+          <Button variant="ghost" size="icon" class="size-6"   :title="t('Assign')" @click="openDialog('assign')">
             <UserPlus class="size-3.5" />
           </Button>
-          <Button variant="ghost" size="icon" class="size-6" title="Поділитися документом" @click="openDialog('share')">
+          <Button variant="ghost" size="icon" class="size-6"   :title="t('Share document')" @click="openDialog('share')">
             <Share2 class="size-3.5" />
           </Button>
         </div>
@@ -274,7 +277,7 @@ function printDoc() {
       <!-- Assignees -->
       <div class="flex flex-col gap-2">
         <div class="flex items-center gap-2">
-          <span class="text-muted-foreground shrink-0">Відповідальні</span>
+          <span class="text-muted-foreground shrink-0">{{ t('Assignees') }}</span>
           <div v-if="sb.bundle.value.assignees.length" class="flex flex-wrap gap-1.5">
             <div
               v-for="a in sb.bundle.value.assignees"
@@ -295,14 +298,14 @@ function printDoc() {
               </button>
               <button
                 class="absolute -top-1 -right-1 size-3.5 rounded-full bg-background border border-border shadow-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                :title="`Прибрати ${sb.personName(a.assigned_to)}`"
+                :title="t('Remove {name}').replace('{name}', sb.personName(a.assigned_to))"
                 @click="confirmUnassign(a)"
               >
                 <X class="size-2.5 text-destructive" />
               </button>
             </div>
           </div>
-          <span v-else class="text-muted-foreground/50">нема</span>
+          <span v-else class="text-muted-foreground/50">{{ t('none') }}</span>
         </div>
 
         <ul v-if="assigneeTasks.length" class="flex flex-col gap-1.5">
@@ -346,7 +349,7 @@ function printDoc() {
           class="group flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors"
         >
           <ChevronRight class="size-3 transition-transform group-data-[state=open]:rotate-90" />
-          Доступ · {{ sb.bundle.value.shares.length }}
+          {{ t('Access') }} · {{ sb.bundle.value.shares.length }}
         </CollapsibleTrigger>
         <CollapsibleContent>
           <div class="flex flex-col gap-1.5 pt-0.5">
@@ -376,9 +379,9 @@ function printDoc() {
       <div class="flex items-center justify-between">
         <span class="font-semibold uppercase tracking-wider text-muted-foreground/80 flex items-center gap-1.5">
           <Tag class="size-3" />
-          Теги
+          {{ t('Tags') }}
         </span>
-        <Button variant="ghost" size="icon" class="size-6" title="Додати тег" @click="showTagInput = !showTagInput">
+        <Button variant="ghost" size="icon" class="size-6" :title="t('Add tag')" @click="showTagInput = !showTagInput">
           <Plus class="size-3.5 transition-transform" :class="{ 'rotate-45': showTagInput }" />
         </Button>
       </div>
@@ -396,12 +399,12 @@ function printDoc() {
           />
         </Badge>
       </div>
-      <span v-else-if="!showTagInput" class="text-muted-foreground/50">нема тегів</span>
+      <span v-else-if="!showTagInput" class="text-muted-foreground/50">{{ t('no tags') }}</span>
 
       <div v-if="showTagInput" class="inline-flex h-8 shadow-sm w-full">
         <Input
           v-model="tagInput"
-          placeholder="Назва тега..."
+          :placeholder="t('Tag name...')"
           autofocus
           class="!text-xs h-full rounded-r-none flex-1"
           @keydown.enter.prevent="submitTag"
@@ -422,11 +425,11 @@ function printDoc() {
       variant="outline"
       size="sm"
       :class="['w-full shadow-sm', isFollowing ? 'text-primary border-primary/40' : 'text-foreground']"
-      :title="isFollowing ? 'Ви отримуєте сповіщення про зміни та коментарі' : 'Отримувати сповіщення про зміни та коментарі'"
+      :title="isFollowing ? t('You get notified about changes and comments') : t('Get notified about changes and comments')"
       @click="sb.toggleFollow()"
     >
       <Bell class="size-3.5 mr-2" :fill="isFollowing ? 'currentColor' : 'none'" />
-      <span class="font-semibold">{{ isFollowing ? 'Стежу' : 'Стежити' }}</span>
+      <span class="font-semibold">{{ isFollowing ? t('Following') : t('Follow') }}</span>
     </Button>
     <div class="flex gap-2">
       <Button
@@ -436,11 +439,11 @@ function printDoc() {
         @click="sb.toggleBookmark(bookmarkTitle())"
       >
         <Bookmark class="size-3.5 mr-2" :fill="isBookmarked ? 'currentColor' : 'none'" />
-        <span class="font-semibold">{{ isBookmarked ? 'У закладках' : 'Закладка' }}</span>
+        <span class="font-semibold">{{ isBookmarked ? t('Bookmarked') : t('Bookmark') }}</span>
       </Button>
       <Button variant="outline" size="sm" class="flex-1 text-foreground shadow-sm" @click="printDoc">
         <Printer class="size-3.5 mr-2" />
-        <span class="font-semibold">Друк</span>
+        <span class="font-semibold">{{ t('Print') }}</span>
       </Button>
     </div>
 
@@ -450,14 +453,14 @@ function printDoc() {
         <DialogHeader>
           <DialogTitle class="flex items-center gap-2 font-semibold text-lg">
             <component :is="dialogMode === 'assign' ? UserPlus : Share2" class="size-5 text-primary" />
-            {{ dialogMode === 'assign' ? 'Призначити відповідального' : 'Поділитися документом' }}
+            {{ dialogMode === 'assign' ? t('Assign') : t('Share document') }}
           </DialogTitle>
         </DialogHeader>
 
         <div class="flex flex-col gap-5 py-2">
           <div class="flex flex-col gap-2">
-            <label class="font-semibold uppercase tracking-wider text-muted-foreground">Email або логін</label>
-            <Input v-model="pickUser" placeholder="Пошук користувача..." class="w-full" @input="onPickInput" />
+            <label class="font-semibold uppercase tracking-wider text-muted-foreground">{{ t('Email or username') }}</label>
+            <Input v-model="pickUser" :placeholder="t('Search user...')" class="w-full" @input="onPickInput" />
             <div
               v-if="matches.length"
               class="border border-border rounded-md overflow-hidden max-h-40 overflow-y-auto divide-y divide-border/60"
@@ -479,22 +482,22 @@ function printDoc() {
           </div>
 
           <div v-if="dialogMode === 'assign'" class="flex flex-col gap-2">
-            <label class="font-semibold uppercase tracking-wider text-muted-foreground">Текст задачі</label>
+            <label class="font-semibold uppercase tracking-wider text-muted-foreground">{{ t('Task text') }}</label>
             <Textarea
               v-model="pickNote"
               rows="3"
-              placeholder="Що потрібно зробити? Напр. «Роутер передати на склад або списати»"
+              :placeholder="t('What needs to be done?')"
               class="w-full resize-none"
             />
           </div>
 
           <div v-if="dialogMode === 'share'" class="flex flex-col gap-2">
-            <label class="font-semibold uppercase tracking-wider text-muted-foreground">Рівень доступу</label>
+            <label class="font-semibold uppercase tracking-wider text-muted-foreground">{{ t('Access level') }}</label>
             <Select v-model="pickPermission">
               <SelectTrigger class="w-full"><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="Read">Читання</SelectItem>
-                <SelectItem value="Write">Редагування</SelectItem>
+                <SelectItem value="Read">{{ t('Read') }}</SelectItem>
+                <SelectItem value="Write">{{ t('Edit') }}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -502,10 +505,10 @@ function printDoc() {
 
         <DialogFooter>
           <div class="flex gap-2 w-full pt-2">
-            <Button variant="outline" class="flex-1" @click="dialogMode = null">Скасувати</Button>
+            <Button variant="outline" class="flex-1" @click="dialogMode = null">{{ t('Cancel') }}</Button>
             <Button class="flex-1" :disabled="!pickUser.trim() || saving" @click="submitDialog">
               <Loader2 v-if="saving" class="size-4 animate-spin mr-2" />
-              <span v-else>{{ dialogMode === 'assign' ? 'Призначити' : 'Надати доступ' }}</span>
+              <span v-else>{{ dialogMode === 'assign' ? t('Assign') : t('Grant access') }}</span>
             </Button>
           </div>
         </DialogFooter>

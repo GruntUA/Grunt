@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { ref, computed, watch } from 'vue'
 import {
   Search,
@@ -16,6 +17,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
+
+const { t } = useI18n()
 interface ListColumnsState {
   allAvailableColumns: { value: ListColumn[] }
   visibleColumns: { value: ListColumn[] }
@@ -59,9 +62,9 @@ function onColReorder(e: { oldIndex?: number; newIndex?: number }) {
 }
 
 const SYSTEM_SORT_OPTIONS = [
-  { key: 'modified_at', label: 'Дата оновлення' },
-  { key: 'created_at', label: 'Дата створення' },
-  { key: 'name', label: 'Назва' },
+  { key: 'modified_at', label: t('Last updated') },
+  { key: 'created_at', label: t('Created on') },
+  { key: 'name', label: t('Name') },
 ]
 
 const allSortOptions = computed(() => {
@@ -87,7 +90,7 @@ const filteredSortOptions = computed(() => {
         <SlidersHorizontal class="size-4" />
       </Button>
     </TooltipTrigger>
-    <TooltipContent>Стовпці, групування, сортування</TooltipContent>
+    <TooltipContent>{{ t('Columns, grouping, sorting') }}</TooltipContent>
   </Tooltip>
 
   <Popover v-model:open="isOpen">
@@ -96,16 +99,16 @@ const filteredSortOptions = computed(() => {
       <Tabs v-model="activeTab" class="gap-0">
         <div class="p-1">
           <TabsList class="w-full">
-            <TabsTrigger value="columns" class="flex-1">Стовпці</TabsTrigger>
-            <TabsTrigger v-if="groupableFields.length" value="group" class="flex-1">Групування</TabsTrigger>
-            <TabsTrigger value="sort" class="flex-1">Сортування</TabsTrigger>
+            <TabsTrigger value="columns" class="flex-1">{{ t('Columns') }}</TabsTrigger>
+            <TabsTrigger v-if="groupableFields.length" value="group" class="flex-1">{{ t('Grouping') }}</TabsTrigger>
+            <TabsTrigger value="sort" class="flex-1">{{ t('Sorting') }}</TabsTrigger>
           </TabsList>
         </div>
 
         <!-- Columns -->
         <TabsContent value="columns" class="p-1">
           <div class="px-2 py-1.5 flex items-center justify-between font-medium text-muted-foreground">
-            <span>Видимі стовпці</span>
+            <span>{{ t('Visible columns') }}</span>
             <span class="tabular-nums">
               {{ columns.visibleColumns.value.length }}/{{ columns.allAvailableColumns.value.length }}
             </span>
@@ -143,13 +146,13 @@ const filteredSortOptions = computed(() => {
 
         <!-- Group by -->
         <TabsContent v-if="groupableFields.length" value="group" class="p-1">
-          <div class="px-2 py-1.5 font-medium text-muted-foreground">Групувати за</div>
+          <div class="px-2 py-1.5 font-medium text-muted-foreground">{{ t('Group by') }}</div>
           <div
             class="flex items-center gap-2 p-2 rounded-md hover:bg-accent hover:text-accent-foreground cursor-pointer"
             @click="emit('update:groupBy', null)"
           >
             <Check class="size-4 shrink-0" :class="{ invisible: groupBy }" />
-            <span>Без групування</span>
+            <span>{{ t('No grouping') }}</span>
           </div>
           <Separator class="my-1" />
           <div class="max-h-[240px] overflow-y-auto scrollbar-none">
@@ -170,7 +173,7 @@ const filteredSortOptions = computed(() => {
           <div class="px-1 pb-1 pt-1">
             <div class="relative">
               <Search class="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
-              <Input v-model="sortSearch" class="h-8 pl-8" placeholder="Пошук поля..." />
+              <Input v-model="sortSearch" class="h-8 pl-8" :placeholder="t('Search field...')" />
             </div>
           </div>
           <div
@@ -178,10 +181,10 @@ const filteredSortOptions = computed(() => {
             @click="emit('sort', '')"
           >
             <Check class="size-4 shrink-0" :class="{ invisible: sortKey }" />
-            <span>За замовчуванням</span>
+            <span>{{ t('Default') }}</span>
           </div>
           <Separator class="my-1" />
-          <div v-if="!filteredSortOptions.length" class="px-2 py-3 text-center text-muted-foreground">Нічого не знайдено</div>
+          <div v-if="!filteredSortOptions.length" class="px-2 py-3 text-center text-muted-foreground">{{ t('Nothing found') }}</div>
           <div class="max-h-[220px] overflow-y-auto pr-1">
             <div
               v-for="opt in filteredSortOptions"

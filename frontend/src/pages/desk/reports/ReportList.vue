@@ -1,9 +1,12 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { reportsApi } from '@/core/api/reports'
 import type { ReportSummary } from '@/types'
 import { Spinner } from '@/components/ui/spinner'
+
+const { t } = useI18n()
 
 const router = useRouter()
 const reports = ref<ReportSummary[]>([])
@@ -30,7 +33,7 @@ onMounted(load)
 <template>
   <div class="p-8 max-w-5xl">
     <div class="flex items-center justify-between mb-6">
-      <h1 class="text-xl font-semibold text-foreground">Звіти</h1>
+      <h1 class="text-xl font-semibold text-foreground">{{ t('Reports') }}</h1>
     </div>
 
     <div v-if="isLoading" class="flex justify-center py-16">
@@ -38,8 +41,8 @@ onMounted(load)
     </div>
 
     <div v-else-if="reports.length === 0" class="text-center py-16 text-muted-foreground/70">
-      <p class="text-lg mb-2">Звітів немає</p>
-      <p>Додайте звіти через API або через Studio.</p>
+      <p class="text-lg mb-2">{{ t('No reports') }}</p>
+      <p>{{ t('Add reports via the API or Studio.') }}</p>
     </div>
 
     <div v-else class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">

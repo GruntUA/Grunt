@@ -9240,6 +9240,2761 @@ msgstr "Перекладається"
 msgid "Option captions are translated; stored values stay unchanged."
 msgstr "Підписи опцій перекладаються; збережені значення не змінюються."
 
+msgid "Open my profile"
+msgstr "Відкрити мій профіль"
+
+msgid "Theme"
+msgstr "Тема"
+
+msgid "Light"
+msgstr "Світла"
+
+msgid "Dark"
+msgstr "Темна"
+
+msgid "System"
+msgstr "Системна"
+
+msgid "Language"
+msgstr "Мова"
+
+msgid "Clear cache"
+msgstr "Очистити кеш"
+
+msgid ""
+"Reload translations, menus and schemas; your settings and drafts are kept"
+msgstr ""
+"Перезавантажити переклади, меню й схеми; ваші налаштування та чернетки "
+"збережуться"
+
+msgid "Back to my account"
+msgstr "Повернутися до свого облікового запису"
+
+msgid "Emails"
+msgstr "Листи (e-mail)"
+
+msgid "Email settings"
+msgstr "Пошта — налаштування"
+
+msgid "Overview"
+msgstr "Огляд"
+
+msgid "Rows per page"
+msgstr "Рядків на сторінці"
+
+msgid "Page {page} of {pages}"
+msgstr "Сторінка {page} з {pages}"
+
+msgid "First page"
+msgstr "Перша сторінка"
+
+msgid "Previous page"
+msgstr "Попередня сторінка"
+
+msgid "Next page"
+msgstr "Наступна сторінка"
+
+msgid "Last page"
+msgstr "Остання сторінка"
+
+msgid "Gantt chart"
+msgstr "Діаграма Ганта"
+
+msgid "Tree"
+msgstr "Дерево"
+
+msgid "Gallery"
+msgstr "Галерея"
+
+msgid "Map"
+msgstr "Карта"
+
+msgid "Kanban"
+msgstr "Канбан"
+
+msgid "{n} record"
+msgid_plural "{n} records"
+msgstr[0] "{n} запис"
+msgstr[1] "{n} записи"
+msgstr[2] "{n} записів"
+
+msgid "Activity"
+msgstr "Активність"
+
+msgid "Columns"
+msgstr "Колонки"
+
+msgid "Donut"
+msgstr "Кільцева"
+
+msgid "New value"
+msgstr "Нове значення"
+
+msgid "Restore"
+msgstr "Відновити"
+
+msgid "Total"
+msgstr "Разом"
+
+msgid "Table info"
+msgstr "Інформація про таблицю"
+
+msgid "Compact database (VACUUM)"
+msgstr "Стиснути базу даних (VACUUM)"
+
+msgid "Optimize table"
+msgstr "Оптимізувати таблицю"
+
+msgid "B"
+msgstr "Б"
+
+msgid "KB"
+msgstr "КБ"
+
+msgid "MB"
+msgstr "МБ"
+
+msgid "GB"
+msgstr "ГБ"
+
+msgid "TB"
+msgstr "ТБ"
+
+msgid "Hide details"
+msgstr "Сховати деталі"
+
+msgid "Show details"
+msgstr "Показати деталі"
+
+msgid "Physical storage of this document type"
+msgstr "Фізичне сховище цього типу документа"
+
+msgid "Table name"
+msgstr "Назва таблиці"
+
+msgid "DBMS"
+msgstr "СКБД"
+
+msgid "The table has not been created in the database yet"
+msgstr "Таблиця ще не створена в базі даних"
+
+msgid "Rows"
+msgstr "Рядків"
+
+msgid "Data"
+msgstr "Дані"
+
+msgid "Indexes"
+msgstr "Індекси"
+
+msgid "Total on disk"
+msgstr "Разом на диску"
+
+msgid "Free in the database file"
+msgstr "Вільно у файлі БД"
+
+msgid "Reclaimable"
+msgstr "Можна вивільнити"
+
+msgid "Size is not available for this database"
+msgstr "Розмір недоступний для цієї бази даних"
+
+msgid "Dead rows: {n}"
+msgstr "«Мертвих» рядків: {n}"
+
+msgid "Compacting… the database may be locked until it finishes."
+msgstr "Виконується стиснення… база може бути заблокована до завершення."
+
+msgid "Freed {size} in the database file"
+msgstr "Звільнено {size} у файлі бази даних"
+
+msgid "Freed {size}"
+msgstr "Звільнено {size}"
+
+msgid "The table is already compact — nothing to reclaim."
+msgstr "Таблиця вже щільно упакована — вивільняти нічого."
+
+msgid ""
+"VACUUM rewrites the whole database file and blocks writes while it runs. "
+"Continue?"
+msgstr ""
+"VACUUM перепише весь файл бази даних і на час виконання заблокує запис. "
+"Продовжити?"
+
+msgid "This rewrites the table under an exclusive lock. Continue?"
+msgstr "Операція перепише таблицю під ексклюзивним блокуванням. Продовжити?"
+
+msgid "Compact"
+msgstr "Стиснути"
+
+msgid "Copied"
+msgstr "Скопійовано"
+
+msgid "in {doctype}"
+msgstr "у {doctype}"
+
+msgid "Checking links…"
+msgstr "Перевірка посилань…"
+
+msgid "Other records link to this document"
+msgstr "На цей документ посилаються інші записи"
+
+msgid "Choose a replacement or delete without one."
+msgstr "Оберіть, чим їх замінити, або видаліть без заміни."
+
+msgid "Replace with"
+msgstr "Підставити замість видаленого"
+
+msgid "Cannot replace with the document being deleted."
+msgstr "Не можна підставити той самий документ, що видаляється."
+
+msgid "Delete without replacement — {n} links will become invalid."
+msgstr "Видалити без заміни — {n} посилань стануть недійсними."
+
+msgid "This cannot be undone. All related data will be deleted permanently."
+msgstr ""
+"Цю дію не можна скасувати. Всі пов'язані дані будуть видалені назавжди."
+
+msgid "Delete and reassign"
+msgstr "Видалити і перепризначити"
+
+msgid ""
+"You have changes that will be lost if you leave this page. Leave without "
+"saving?"
+msgstr ""
+"Ви внесли зміни, які буде втрачено, якщо ви покинете сторінку. Покинути без "
+"збереження?"
+
+msgid "Draft"
+msgstr "Чернетка"
+
+msgid "Submitted"
+msgstr "Зафіксував(ла)"
+
+msgctxt "status"
+msgid "Cancelled"
+msgstr "Скасовано"
+
+msgid "Could not copy"
+msgstr "Не вдалося скопіювати"
+
+msgctxt "status"
+msgid "Open"
+msgstr "Відкрито"
+
+msgctxt "status"
+msgid "In Progress"
+msgstr "В роботі"
+
+msgid "assigned {when}"
+msgstr "призначено {when}"
+
+msgctxt "priority"
+msgid "Urgent"
+msgstr "Терміново"
+
+msgctxt "priority"
+msgid "High"
+msgstr "Високий"
+
+msgid "Remove {name} from assignees?"
+msgstr "Прибрати {name} з відповідальних?"
+
+msgid "Status"
+msgstr "Статус"
+
+msgid "Copy ID"
+msgstr "Скопіювати ідентифікатор"
+
+msgid "created {when}"
+msgstr "створено {when}"
+
+msgid "modified {when}"
+msgstr "змінено {when}"
+
+msgid "People"
+msgstr "Люди"
+
+msgid "Assign"
+msgstr "Призначити відповідального"
+
+msgid "Share document"
+msgstr "Поділитися документом"
+
+msgid "Assignees"
+msgstr "Відповідальні"
+
+msgid "Remove {name}"
+msgstr "Прибрати {name}"
+
+msgid "none"
+msgstr "нема"
+
+msgid "Access"
+msgstr "Доступ"
+
+msgid "Tags"
+msgstr "Теги"
+
+msgid "Add tag"
+msgstr "Додати тег"
+
+msgid "no tags"
+msgstr "нема тегів"
+
+msgid "Tag name..."
+msgstr "Назва тега..."
+
+msgid "You get notified about changes and comments"
+msgstr "Ви отримуєте сповіщення про зміни та коментарі"
+
+msgid "Get notified about changes and comments"
+msgstr "Отримувати сповіщення про зміни та коментарі"
+
+msgid "Following"
+msgstr "Стежу"
+
+msgid "Follow"
+msgstr "Стежити"
+
+msgid "Bookmarked"
+msgstr "У закладках"
+
+msgid "Bookmark"
+msgstr "Закладка"
+
+msgid "Email or username"
+msgstr "Email або логін"
+
+msgid "Search user..."
+msgstr "Пошук користувача..."
+
+msgid "Task text"
+msgstr "Текст задачі"
+
+msgid "What needs to be done?"
+msgstr "Що потрібно зробити?"
+
+msgid "Access level"
+msgstr "Рівень доступу"
+
+msgid "Read"
+msgstr "Читання"
+
+msgid "Grant access"
+msgstr "Надати доступ"
+
+msgid "Created the document"
+msgstr "Створив документ"
+
+msgid "Updated the document"
+msgstr "Оновив документ"
+
+msgid "Deleted the document"
+msgstr "Видалив документ"
+
+msgid "Restored a version"
+msgstr "Відновив версію"
+
+msgid "Changed the status"
+msgstr "Змінив статус"
+
+msgid "{n} rows"
+msgstr "{n} рядків"
+
+msgid "Version {n}"
+msgstr "Версія {n}"
+
+msgid "Changes"
+msgstr "Зміни"
+
+msgid "Before"
+msgstr "Було"
+
+msgid "After"
+msgstr "Стало"
+
+msgid "Restore this version"
+msgstr "Відновити цю версію"
+
+msgid ""
+"Restore the document to this version? Current field values will be replaced."
+msgstr ""
+"Відновити документ до цієї версії? Поточні значення полів буде замінено."
+
+msgid "Write a comment... @ to mention"
+msgstr "Напишіть коментар... @ для згадки"
+
+msgid "Mention a user"
+msgstr "Згадати користувача"
+
+msgid "Ctrl+Enter to send"
+msgstr "Ctrl+Enter щоб надіслати"
+
+msgid "Send"
+msgstr "Надіслати"
+
+msgid "No activity yet"
+msgstr "Поки що немає активності"
+
+msgid "all {n}"
+msgstr "всі {n}"
+
+msgid "selected"
+msgstr "вибрано"
+
+msgid "Select all {n}"
+msgstr "Вибрати всі {n}"
+
+msgid "You are about to delete {n} records. This cannot be undone."
+msgstr "Ви збираєтесь видалити {n} записів. Цю дію неможливо буде скасувати."
+
+msgid "Other documents link to the selected records"
+msgstr "На виділені записи посилаються інші документи"
+
+msgid "The replacement cannot be one of the records being deleted."
+msgstr "Заміна не може бути одним із записів, що видаляються."
+
+msgid ""
+"Delete {n} records directly via SQL — no lifecycle hooks, no per-record "
+"ActivityLog."
+msgstr ""
+"Видалити {n} записів напряму через SQL — без lifecycle-хуків і ActivityLog "
+"для кожного запису."
+
+msgid ""
+"This cannot be undone. before_delete / after_delete hooks do not run. Use "
+"only to bulk-clean test or imported data."
+msgstr ""
+"Це незворотна операція. Хуки before_delete / after_delete не виконуються. "
+"Використовуйте лише для масового очищення тестових або імпортованих даних."
+
+msgid "Choose a field"
+msgstr "Оберіть поле"
+
+msgid "This updates the field on all {n} selected records."
+msgstr "Це оновить поле для всіх {n} виділених записів."
+
+msgid "Equals"
+msgstr "Дорівнює"
+
+msgid "Not equals"
+msgstr "Не дорівнює"
+
+msgid "Contains"
+msgstr "Містить"
+
+msgid "Does not contain"
+msgstr "Не містить"
+
+msgid "Is empty"
+msgstr "Порожнє"
+
+msgid "Is set"
+msgstr "Заповнене"
+
+msgid "Greater than"
+msgstr "Більше"
+
+msgid "Less than"
+msgstr "Менше"
+
+msgid "Greater than or equal"
+msgstr "Більше або дорівнює"
+
+msgid "Less than or equal"
+msgstr "Менше або дорівнює"
+
+msgid "Descendant of"
+msgstr "Підпорядковано"
+
+msgid "Is one of"
+msgstr "Одне з"
+
+msgid "Is none of"
+msgstr "Жодне з"
+
+msgid "Last updated"
+msgstr "Дата оновлення"
+
+msgid "Created on"
+msgstr "Дата створення"
+
+msgid "Columns, grouping, sorting"
+msgstr "Стовпці, групування, сортування"
+
+msgid "Grouping"
+msgstr "Групування"
+
+msgid "Sorting"
+msgstr "Сортування"
+
+msgid "Visible columns"
+msgstr "Видимі стовпці"
+
+msgid "No grouping"
+msgstr "Без групування"
+
+msgid "Search field..."
+msgstr "Пошук поля..."
+
+msgid "Choose filters"
+msgstr "Обрати фільтри"
+
+msgid "Personal setting — only for you, on this device."
+msgstr "Особисте налаштування — лише для вас, на цьому пристрої."
+
+msgid "Reset to defaults"
+msgstr "Скинути до типових"
+
+msgid "New {doctype}"
+msgstr "Новий {doctype}"
+
+msgid "Quick entry"
+msgstr "Швидке додавання"
+
+msgid "more"
+msgstr "ще"
+
+msgid "We sent a sign-in code and link to"
+msgstr "Ми надіслали код і посилання для входу на"
+
+msgid "Enter the code or follow the link in the email."
+msgstr "Введіть код або перейдіть за посиланням із листа."
+
+msgid ""
+"Your account has been created and is awaiting administrator approval. You "
+"can sign in once it is approved."
+msgstr ""
+"Ваш акаунт створено та очікує підтвердження адміністратора. Ви зможете "
+"увійти після підтвердження."
+
+msgid "Continue with {provider}"
+msgstr "Продовжити з {provider}"
+
+msgid "By continuing, you agree to our"
+msgstr "Продовжуючи, ви погоджуєтесь з нашими"
+
+msgid "Terms of Service"
+msgstr "Умовами використання"
+
+msgid "and"
+msgstr "та"
+
+msgid "Privacy Policy"
+msgstr "Політикою конфіденційності"
+
+msgid "If an account with {email} exists, we have sent a password reset link."
+msgstr "Якщо акаунт з {email} існує, ми надіслали посилання для зміни пароля."
+
+msgid ""
+"Your role requires two-factor authentication. Scan the QR code in your "
+"authenticator app and enter the 6-digit code."
+msgstr ""
+"Ваша роль вимагає двофакторної автентифікації. Відскануйте QR-код у додатку-"
+"автентифікаторі та введіть 6-значний код."
+
+msgid "Please enter the 6-digit code from your app or a backup code."
+msgstr "Будь ласка, введіть 6-значний код з вашого додатку або резервний код."
+
+msgid ""
+"Each code can be used once if you lose access to your authenticator. They "
+"will not be shown again."
+msgstr ""
+"Кожен код можна використати один раз, якщо немає доступу до автентифікатора."
+" Більше вони не показуватимуться."
+
+msgid "Back to sign in"
+msgstr "Повернутися до входу"
+
+msgid "Passwords do not match"
+msgstr "Паролі не збігаються"
+
+msgid "Password must be at least 8 characters"
+msgstr "Пароль має бути не менше 8 символів"
+
+msgid ""
+"Your account is registered and awaiting administrator approval. Try signing "
+"in later."
+msgstr ""
+"Ваш акаунт зареєстровано та очікує підтвердження адміністратора. Спробуйте "
+"увійти пізніше."
+
+msgid "Create an account"
+msgstr "Створити акаунт"
+
+msgid "Welcome back"
+msgstr "З поверненням"
+
+msgid "Fill in the form to sign up"
+msgstr "Заповніть форму для реєстрації"
+
+msgid "Sign in to your account"
+msgstr "Увійдіть у свій акаунт"
+
+msgid "The sign-in link is invalid or expired"
+msgstr "Посилання для входу недійсне або застаріле"
+
+msgid "Could not sign in with the external provider"
+msgstr "Не вдалося увійти через зовнішній провайдер"
+
+msgid "A user with this email already exists"
+msgstr "Користувач з таким email вже існує"
+
+msgid "Invalid email or password"
+msgstr "Невірний email або пароль"
+
+msgid "Too many failed attempts. The account is temporarily locked."
+msgstr "Забагато невдалих спроб. Акаунт тимчасово заблоковано."
+
+msgid "Error"
+msgstr "Помилка"
+
+msgid "Could not sign in with the passkey"
+msgstr "Не вдалося увійти за ключем доступу"
+
+msgid "Provider unavailable"
+msgstr "Провайдер недоступний"
+
+msgid "Enter your email address first"
+msgstr "Спершу введіть адресу електронної пошти"
+
+msgid "Could not send the code"
+msgstr "Не вдалося надіслати код"
+
+msgid "Enter the code from the email"
+msgstr "Введіть код з листа"
+
+msgid "Invalid or expired code"
+msgstr "Невірний або застарілий код"
+
+msgid "Request sent"
+msgstr "Заявку надіслано"
+
+msgid "Code from the email"
+msgstr "Код із листа"
+
+msgid "Confirm"
+msgstr "Підтвердити"
+
+msgid "Resend"
+msgstr "Надіслати ще раз"
+
+msgid "Another sign-in method"
+msgstr "Інший спосіб входу"
+
+msgid "Passkey"
+msgstr "Ключ доступу"
+
+msgid "Email me a code"
+msgstr "Надіслати код на пошту"
+
+msgid "or enter your password"
+msgstr "або введіть пароль"
+
+msgid "Full name"
+msgstr "Повне ім'я"
+
+msgid "John Smith"
+msgstr "Іваненко Іван Іванович"
+
+msgid "Password"
+msgstr "Пароль доступу"
+
+msgid "Forgot password?"
+msgstr "Забули пароль?"
+
+msgid "At least 8 characters"
+msgstr "Мінімум 8 символів"
+
+msgid "Repeat password"
+msgstr "Повторіть пароль"
+
+msgid "Already have an account?"
+msgstr "Вже маєте акаунт?"
+
+msgid "No account?"
+msgstr "Немає акаунту?"
+
+msgid "We will send you a recovery link"
+msgstr "Ми надішлемо вам посилання для відновлення"
+
+msgid "Check your email"
+msgstr "Перевірте пошту"
+
+msgid "Send link"
+msgstr "Надіслати посилання"
+
+msgid "Could not start 2FA setup."
+msgstr "Не вдалося розпочати налаштування 2FA."
+
+msgid "Invalid code. Try again."
+msgstr "Невірний код. Спробуйте ще раз."
+
+msgid "Backup codes copied"
+msgstr "Резервні коди скопійовано"
+
+msgid "Welcome!"
+msgstr "Вітаємо в системі!"
+
+msgid "2FA setup"
+msgstr "Налаштування 2FA"
+
+msgid "Two-factor verification"
+msgstr "Двофакторна перевірка"
+
+msgid "2FA is on. Save your backup codes"
+msgstr "2FA увімкнено. Збережіть резервні коди"
+
+msgid "Copy codes"
+msgstr "Скопіювати коди"
+
+msgid "Continue"
+msgstr "Продовжити"
+
+msgid "Or enter the key manually:"
+msgstr "Або введіть ключ вручну:"
+
+msgid "Access code"
+msgstr "Код доступу"
+
+msgid "Enable 2FA and sign in"
+msgstr "Увімкнути 2FA та увійти"
+
+msgid "Confirm sign-in"
+msgstr "Підтвердити вхід"
+
+msgid "Invalid or missing reset token."
+msgstr "Недійсний або відсутній токен скидання."
+
+msgid "Something went wrong"
+msgstr "Щось пішло не так"
+
+msgid "New password"
+msgstr "Новий пароль"
+
+msgid "Choose a strong password"
+msgstr "Оберіть надійний пароль"
+
+msgid "Password updated!"
+msgstr "Пароль оновлено!"
+
+msgid "You can now sign in with your new password."
+msgstr "Тепер ви можете увійти з новим паролем."
+
+msgid "Go to sign in"
+msgstr "Перейти до входу"
+
+msgid "Confirm password"
+msgstr "Підтвердіть пароль"
+
+msgid "Set new password"
+msgstr "Встановити новий пароль"
+
+msgid "user"
+msgstr "користувач"
+
+msgid "Good night, {name}"
+msgstr "Добраніч, {name}"
+
+msgid "Good morning, {name}"
+msgstr "Доброго ранку, {name}"
+
+msgid "Good afternoon, {name}"
+msgstr "Доброго дня, {name}"
+
+msgid "Good evening, {name}"
+msgstr "Доброго вечора, {name}"
+
+msgid "just now"
+msgstr "щойно"
+
+msgid "{n} min"
+msgstr "{n} хв"
+
+msgid "{n} h"
+msgstr "{n} год"
+
+msgid "{n} d"
+msgstr "{n} дн"
+
+msgid "Viewing as {name}"
+msgstr "Перегляд як {name}"
+
+msgid "switch back"
+msgstr "повернутися до себе"
+
+msgid "{apps} apps · {docs} documents in the system"
+msgstr "{apps} додатків · {docs} документів у системі"
+
+msgid "{n} installed"
+msgstr "{n} встановлено"
+
+msgid "Errors: {n}"
+msgstr "Помилок: {n}"
+
+msgid "Index rebuilt: {n} documents"
+msgstr "Індекс перебудовано: {n} документів"
+
+msgid "Unsaved changes found ({time}). Restore the draft?"
+msgstr "Знайдено незбережені зміни ({time}). Відновити чернетку?"
+
+msgid "Discard"
+msgstr "Відкинути"
+
+msgid ""
+"This document type is deprecated. It still works, but do not use it in new "
+"code."
+msgstr ""
+"Цей тип документа позначено як неактуальний (deprecated). Він продовжує "
+"працювати, але не використовуйте його в новому коді."
+
+msgid ""
+"Beta: this document type is still in development; its behavior may change."
+msgstr "Beta: цей тип документа ще в розробці, поведінка може змінитися."
+
+msgid "{views} views · {viewers} users"
+msgstr "{views} переглядів · {viewers} користувачів"
+
+msgid "Viewed by:"
+msgstr "Переглянули:"
+
+msgid "What are you planning to do today?"
+msgstr "Що плануєте зробити сьогодні?"
+
+msgid "Your apps"
+msgstr "Ваші додатки"
+
+msgid "No apps installed"
+msgstr "Немає встановлених додатків"
+
+msgid "As of date"
+msgstr "Станом на дату"
+
+msgid "Deleting records"
+msgstr "Видалення записів"
+
+msgid "Deleting records…"
+msgstr "Видалення записів…"
+
+msgid "Could not create the page"
+msgstr "Помилка створення сторінки"
+
+msgid "Link copied"
+msgstr "Посилання скопійовано"
+
+msgid "30s"
+msgstr "30с"
+
+msgid "1m"
+msgstr "1хв"
+
+msgid "5m"
+msgstr "5хв"
+
+msgid "10m"
+msgstr "10хв"
+
+msgid "The page has not been created yet"
+msgstr "Сторінку ще не створено"
+
+msgid "Create page"
+msgstr "Створити Сторінку"
+
+msgid "The page is empty"
+msgstr "Сторінка порожня"
+
+msgid "Edit mode"
+msgstr "Режим редагування"
+
+msgid "Widget types"
+msgstr "Типи віджетів"
+
+msgid "Choose a widget type"
+msgstr "Оберіть тип віджета"
+
+msgid "Click any type in the left panel — it will appear here"
+msgstr "Натисніть на будь-який тип у лівій панелі — він з'явиться тут"
+
+msgid "Embed page"
+msgstr "Вбудувати сторінку"
+
+msgid "Direct link"
+msgstr "Пряме посилання"
+
+msgid "Search error"
+msgstr "Помилка пошуку"
+
+msgid "Index rebuild error"
+msgstr "Помилка перебудови індексу"
+
+msgid "Global search"
+msgstr "Глобальний пошук"
+
+msgid "Search across all documents"
+msgstr "Пошук по всіх документах системи"
+
+msgid "Rebuild index"
+msgstr "Перебудувати індекс"
+
+msgid "Type at least 2 characters to search..."
+msgstr "Введіть мінімум 2 символи для пошуку..."
+
+msgid "Type at least 2 characters to search"
+msgstr "Введіть мінімум 2 символи для пошуку"
+
+msgid "Try rebuilding the index"
+msgstr "Спробувати перебудувати індекс"
+
+msgid "All"
+msgstr "Усі"
+
+msgid "Module"
+msgstr "Модуль"
+
+msgid "Freed {size} ({copies} copies, groups: {groups})"
+msgstr "Звільнено {size} ({copies} копій, груп: {groups})"
+
+msgid "Upload and manage documents and media"
+msgstr "Завантажуйте та керуйте документами і медіа"
+
+msgid "Drag files here or use the «Upload» button in the top right corner."
+msgstr ""
+"Перетягніть сюди файли або скористайтеся кнопкою «Завантажити» у правому "
+"верхньому куті."
+
+msgid "Created"
+msgstr "Створив(ла)"
+
+msgid "Updated"
+msgstr "Оновив(ла)"
+
+msgid "document"
+msgstr "документ"
+
+msgid "{n} min ago"
+msgstr "{n} хв тому"
+
+msgid "{n} h ago"
+msgstr "{n} год тому"
+
+msgid ""
+"Document changes made while offline. They are sent automatically once the "
+"network is back; conflicts and rejected changes wait for your decision."
+msgstr ""
+"Зміни документів, зроблені без зв'язку. Вони надсилаються автоматично, щойно"
+" з'являється мережа; конфлікти та відхилені зміни чекають на ваше рішення."
+
+msgid "Waiting for connection…"
+msgstr "Чекаємо на зв'язок…"
+
+msgid "Send now"
+msgstr "Надіслати зараз"
+
+msgid "Upload"
+msgstr "Завантажити"
+
+msgid "Open"
+msgstr "Відкрити"
+
+msgid "Images"
+msgstr "Зображення"
+
+msgid "Delete file?"
+msgstr "Видалити файл?"
+
+msgid "Merge identical files on disk? Records and links stay unchanged."
+msgstr "Об’єднати однакові файли на диску? Записи та посилання не змінюються."
+
+msgid "No duplicates found"
+msgstr "Дублікатів не знайдено"
+
+msgid "Could not process duplicates"
+msgstr "Не вдалося обробити дублікати"
+
+msgid "File manager"
+msgstr "Менеджер файлів"
+
+msgid "Enter a file name..."
+msgstr "Введіть назву файла..."
+
+msgid "Merge identical files on disk"
+msgstr "Об’єднати однакові файли на диску"
+
+msgid "Duplicates"
+msgstr "Дублікати"
+
+msgid "Newest first"
+msgstr "Спочатку нові"
+
+msgid "By name"
+msgstr "За назвою"
+
+msgid "By size"
+msgstr "За розміром"
+
+msgid "Drop the file here"
+msgstr "Відпустіть файл тут"
+
+msgid "No files"
+msgstr "Немає файлів"
+
+msgid "Activity feed"
+msgstr "Стрічка активності"
+
+msgid "No recent activity"
+msgstr "Немає недавньої активності"
+
+msgid "Cancelled"
+msgstr "Скасував(ла)"
+
+msgid "Shared"
+msgstr "Поділився(-лась)"
+
+msgid "Commented"
+msgstr "Прокоментував(ла)"
+
+msgid "Moved"
+msgstr "Перевів(ла)"
+
+msgid "No activity"
+msgstr "Немає активності"
+
+msgid "Remove"
+msgstr "Прибрати"
+
+msgid "Choose from list"
+msgstr "Обрати зі списку"
+
+msgid "Choose a value from the tree"
+msgstr "Оберіть значення з дерева"
+
+msgid "Search…"
+msgstr "Пошук…"
+
+msgid "Dialog"
+msgstr "Діалог"
+
+msgid "Change"
+msgstr "Змінити"
+
+msgid "Deletion"
+msgstr "Видалення"
+
+msgid "Waiting to send"
+msgstr "Очікує надсилання"
+
+msgid "Conflict"
+msgstr "Конфлікт"
+
+msgid "Rejected"
+msgstr "Відхилено"
+
+msgid "Unsynced changes"
+msgstr "Несинхронізовані зміни"
+
+msgid "All synced"
+msgstr "Усе синхронізовано"
+
+msgid "No changes waiting to be sent."
+msgstr "Немає змін, що чекають на надсилання."
+
+msgid "new document"
+msgstr "новий документ"
+
+msgid "Apply mine"
+msgstr "Застосувати мої"
+
+msgid "Download"
+msgstr "Завантажити"
+
+msgid "Field \"{label}\" is required"
+msgstr "Поле \"{label}\" є обов'язковим"
+
+msgid "Label"
+msgstr "Підпис"
+
+msgid "Fill in the required fields: {fields}"
+msgstr "Заповніть обов'язкові поля: {fields}"
+
+msgid "Invalid email format"
+msgstr "Невірний формат email"
+
+msgid "Invalid phone format"
+msgstr "Невірний формат телефону"
+
+msgid "Invalid URL format"
+msgstr "Невірний формат URL"
+
+msgid "Invalid IBAN (expected UA + 27 digits)"
+msgstr "Невірний IBAN (очікується UA + 27 цифр)"
+
+msgid "Invalid IBAN format"
+msgstr "Невірний формат IBAN"
+
+msgid "Invalid EDRPOU code (8 or 10 digits)"
+msgstr "Невірний код ЄДРПОУ (8 або 10 цифр)"
+
+msgid "Invalid RNOKPP (10 digits)"
+msgstr "Невірний РНОКПП (10 цифр)"
+
+msgid ""
+"The new type stores values differently (a separate column or a child table)."
+" Existing data of this field is not moved automatically — export it before "
+"migrating."
+msgstr ""
+"Новий тип зберігає значення інакше (окрема колонка або дочірня таблиця). "
+"Наявні дані цього поля не переносяться автоматично — вивантажте їх до "
+"міграції."
+
+msgid ""
+"The database column type changes during migration. Existing values are "
+"compatible and kept."
+msgstr ""
+"Тип колонки в БД зміниться під час міграції. Наявні значення сумісні й "
+"зберігаються."
+
+msgid ""
+"The database column type changes during migration. Values that cannot be "
+"converted to the new type may be lost — check existing data."
+msgstr ""
+"Тип колонки в БД зміниться під час міграції. Значення, які не вдасться "
+"привести до нового типу, можуть не зберегтися — перевірте наявні дані."
+
+msgid "YYYY-MM-DD"
+msgstr "РРРР-ММ-ДД"
+
+msgid "DD/MM/YYYY"
+msgstr "ДД/ММ/РРРР"
+
+msgid "DD.MM.YYYY"
+msgstr "ДД.ММ.РРРР"
+
+msgid "Success"
+msgstr "Успіх"
+
+msgid "Info"
+msgstr "Інформація"
+
+msgid "Warning"
+msgstr "Увага"
+
+msgid "Edit menu"
+msgstr "Редагувати меню"
+
+msgid "Not included (need aggregation): {columns}"
+msgstr "Не включено (потребують агрегації): {columns}"
+
+msgid "Applied «{name}»"
+msgstr "Застосовано «{name}»"
+
+msgid "Group"
+msgstr "Група"
+
+msgid "Saved reports for «{doctype}»"
+msgstr "Збережені звіти для «{doctype}»"
+
+msgid "Limit of {n} records reached — totals cover only these."
+msgstr "Досягнуто ліміту {n} записів — підсумки лише за ними."
+
+msgid "Totals for the current page"
+msgstr "Підсумки за поточною сторінкою"
+
+msgid "wk."
+msgstr "т."
+
+msgid "{n} without coordinates"
+msgstr "{n} без координат"
+
+msgid "Mon"
+msgstr "Пн"
+
+msgid "Tue"
+msgstr "Вт"
+
+msgid "Wed"
+msgstr "Ср"
+
+msgid "Thu"
+msgstr "Чт"
+
+msgid "Fri"
+msgstr "Пт"
+
+msgid "Sat"
+msgstr "Сб"
+
+msgid "Sun"
+msgstr "Нд"
+
+msgid "Total: {n} records"
+msgstr "Всього: {n} записів"
+
+msgid "Sum"
+msgstr "Сума"
+
+msgid "Count"
+msgstr "Кількість"
+
+msgid "Report name"
+msgstr "Назва звіту"
+
+msgid "Add at least one column"
+msgstr "Додайте хоча б одну колонку"
+
+msgid "Could not save the report"
+msgstr "Не вдалося зберегти звіт"
+
+msgid "Report saved"
+msgstr "Звіт збережено"
+
+msgid "Could not open the report"
+msgstr "Не вдалося відкрити звіт"
+
+msgid "No total"
+msgstr "Без підсумку"
+
+msgid "Average"
+msgstr "Середнє"
+
+msgid "No value"
+msgstr "Без значення"
+
+msgid "Subtotal"
+msgstr "Підсумок"
+
+msgid "Could not save"
+msgstr "Не вдалося зберегти"
+
+msgid "Report columns"
+msgstr "Стовпці звіту"
+
+msgid "Reports"
+msgstr "Звіти"
+
+msgid "None yet"
+msgstr "Ще немає"
+
+msgid "Save current as report…"
+msgstr "Зберегти поточний як звіт…"
+
+msgid "Export CSV"
+msgstr "Експорт CSV"
+
+msgid "Calculate for all"
+msgstr "Порахувати за всіма"
+
+msgid "Could not load Gantt chart data"
+msgstr "Не вдалося завантажити дані для діаграми Ганта"
+
+msgid "Could not update dates"
+msgstr "Не вдалося оновити дати"
+
+msgid "Days"
+msgstr "Дні"
+
+msgid "Weeks"
+msgstr "Тижні"
+
+msgid "Months"
+msgstr "Місяці"
+
+msgid "Updating…"
+msgstr "Оновлення…"
+
+msgid "Today"
+msgstr "Сьогодні"
+
+msgid "The Gantt chart needs start and end fields (Date/Datetime)."
+msgstr ""
+"Для діаграми Ганта потрібні поля початку та завершення (Date/Datetime)."
+
+msgid "Choose them in the Builder → «Views» tab → «Gantt chart»."
+msgstr "Оберіть їх у Конструкторі → вкладка «Вигляди» → «Діаграма Ганта»."
+
+msgid "No documents with dates filled in."
+msgstr "Немає документів із заповненими датами."
+
+msgid "No documents with start and end dates filled in."
+msgstr "Немає документів із заповненими датами початку та завершення."
+
+msgid "Export GeoJSON"
+msgstr "Експорт GeoJSON"
+
+msgid "Print / PDF"
+msgstr "Друк / PDF"
+
+msgid "Format:"
+msgstr "Формат:"
+
+msgid "Expand all"
+msgstr "Розгорнути все"
+
+msgid "Collapse all"
+msgstr "Згорнути все"
+
+msgid "No records yet"
+msgstr "Записів поки немає"
+
+msgid "Create the first one"
+msgstr "Створити перший"
+
+msgid "The list is limited by your access rights"
+msgstr "Список обмежено вашими правами доступу"
+
+msgid "Restrictions"
+msgstr "Обмеження"
+
+msgid "You only see records matching these values."
+msgstr "Ви бачите лише записи, що відповідають цим значенням."
+
+msgid "Value"
+msgstr "Значення"
+
+msgid "overdue"
+msgstr "прострочено"
+
+msgid "{n} records"
+msgstr "{n} записів"
+
+msgid "ms"
+msgstr "мс"
+
+msgid "{type} report"
+msgstr "{type} звіт"
+
+msgid "Rows: {n}"
+msgstr "Рядків: {n}"
+
+msgid "Select {id}"
+msgstr "Вибрати {id}"
+
+msgid "Clear «{label}»"
+msgstr "Очистити «{label}»"
+
+msgid "View all {n}"
+msgstr "Переглянути всі {n}"
+
+msgid "Documents linked to"
+msgstr "Документи, пов'язані з"
+
+msgid "No linked documents"
+msgstr "Немає пов'язаних документів"
+
+msgid "Copy result"
+msgstr "Скопіювати результат"
+
+msgid "Calculator"
+msgstr "Калькулятор"
+
+msgid "Navigate"
+msgstr "Навігація"
+
+msgid "Select"
+msgstr "Вибрати"
+
+msgid "All results →"
+msgstr "Всі результати →"
+
+msgid "Tasks"
+msgstr "Задачі"
+
+msgid "No assigned tasks"
+msgstr "Немає призначених задач"
+
+msgid "No new notifications"
+msgstr "Немає нових сповіщень"
+
+msgid "Chart"
+msgstr "Графік"
+
+msgid "Both"
+msgstr "Обидва"
+
+msgid "Builder"
+msgstr "Конструктор"
+
+msgid "Open documents"
+msgstr "Відкрити документи"
+
+msgid "Report execution error"
+msgstr "Помилка виконання звіту"
+
+msgid "Unseen"
+msgstr "Не переглянуто"
+
+msgid "Quick add..."
+msgstr "Швидке додавання..."
+
+msgid "Owner"
+msgstr "Власник"
+
+msgid "— Any —"
+msgstr "— Будь-який —"
+
+msgid "Details"
+msgstr "Деталі"
+
+msgid "Collapse (Ctrl+])"
+msgstr "Згорнути (Ctrl+])"
+
+msgid "Loading connections…"
+msgstr "Завантаження зв'язків…"
+
+msgid "Connections"
+msgstr "Зв'язки"
+
+msgid "YES"
+msgstr "ТАК"
+
+msgid "NO"
+msgstr "НІ"
+
+msgid "State:"
+msgstr "Стан:"
+
+msgid "Your latest notifications will appear here."
+msgstr "Тут з'являться ваші останні сповіщення."
+
+msgid "Open in Google Maps"
+msgstr "Відкрити в Google Maps"
+
+msgid "(no value)"
+msgstr "(без значення)"
+
+msgid "Showing the first 10,000 records"
+msgstr "Показано перші 10 000 записів"
+
+msgid "Export HTML"
+msgstr "Експорт HTML"
+
+msgid "No connection"
+msgstr "Немає з'єднання"
+
+msgid "Connection"
+msgstr "З'єднання"
+
+msgid ""
+"Pages opened earlier stay viewable; document changes are saved on this "
+"device and sent once the connection is back."
+msgstr ""
+"Відкриті раніше сторінки доступні для перегляду; зміни документів "
+"збережуться на пристрої й надішлються після відновлення зв'язку."
+
+msgid "Sync"
+msgstr "Синхронізація"
+
+msgid "Connection restored"
+msgstr "Зв'язок відновлено"
+
+msgid "{n} in {days} days"
+msgstr "{n} за {days} дн."
+
+msgid "Active days:"
+msgstr "Активних днів:"
+
+msgid "busiest {day}"
+msgstr "найбільше {day}"
+
+msgid "January"
+msgstr "Січень"
+
+msgid "February"
+msgstr "Лютий"
+
+msgid "March"
+msgstr "Березень"
+
+msgid "April"
+msgstr "Квітень"
+
+msgid "May"
+msgstr "Травень"
+
+msgid "June"
+msgstr "Червень"
+
+msgid "July"
+msgstr "Липень"
+
+msgid "August"
+msgstr "Серпень"
+
+msgid "September"
+msgstr "Вересень"
+
+msgid "October"
+msgstr "Жовтень"
+
+msgid "November"
+msgstr "Листопад"
+
+msgid "December"
+msgstr "Грудень"
+
+msgid "few"
+msgstr "мало"
+
+msgid "many"
+msgstr "багато"
+
+msgid "{n} s"
+msgstr "{n} с"
+
+msgid "Install {app}"
+msgstr "Встановити {app}"
+
+msgid "Tap"
+msgstr "Натисніть"
+
+msgid "Share"
+msgstr "Поділитись"
+
+msgid "in Safari"
+msgstr "в Safari"
+
+msgid "Choose"
+msgstr "Обрати"
+
+msgid "Add to Home Screen"
+msgstr "На екран «Домівка»"
+
+msgid "Drop a file or"
+msgstr "Перетягніть файл або"
+
+msgid "click to choose"
+msgstr "клацніть для вибору"
+
+msgid "Could not take a photo"
+msgstr "Не вдалося зробити фото"
+
+msgid "Upload error"
+msgstr "Помилка завантаження"
+
+msgid "Take a photo with the device camera"
+msgstr "Зробіть фото за допомогою камери пристрою"
+
+msgid "Turn on camera"
+msgstr "Увімкнути камеру"
+
+msgid "Connecting to the camera..."
+msgstr "Підключення до камери..."
+
+msgid "Take photo"
+msgstr "Зробити фото"
+
+msgid "Uploading photo..."
+msgstr "Завантаження фото..."
+
+msgid "Your browser does not support push notifications"
+msgstr "Ваш браузер не підтримує Push-сповіщення"
+
+msgid "You did not allow notifications"
+msgstr "Ви не надали дозвіл на сповіщення"
+
+msgid "The server is not set up for push notifications (VAPID key missing)"
+msgstr "Сервер не налаштовано для Push-сповіщень (відсутній VAPID ключ)"
+
+msgid "Service Worker is not ready. Reload the page."
+msgstr "Service Worker не готовий. Перезавантажте сторінку."
+
+msgid "Push notifications enabled!"
+msgstr "Push-сповіщення успішно ввімкнено!"
+
+msgid "Subscription error: "
+msgstr "Помилка підписки: "
+
+msgid "Add to the home screen for quick access"
+msgstr "Додати на головний екран для швидкого доступу"
+
+msgid "Install on iPhone / iPad"
+msgstr "Встановити на iPhone / iPad"
+
+msgid "Few"
+msgstr "Мало"
+
+msgid "Many"
+msgstr "Багато"
+
+msgid "Enter a URL"
+msgstr "Введіть URL"
+
+msgid "Invalid URL"
+msgstr "Невірний URL"
+
+msgid "Enter a direct link to a file on the internet."
+msgstr "Вкажіть пряме посилання на файл у інтернеті."
+
+msgid "The URL does not look like an image"
+msgstr "URL не схожий на зображення"
+
+msgid "Uploading..."
+msgstr "Завантаження..."
+
+msgid "Images only"
+msgstr "Тільки зображення"
+
+msgid "No options"
+msgstr "Немає варіантів"
+
+msgid "{n} queued"
+msgstr "{n} в черзі"
+
+msgid "{n} unsynced changes"
+msgstr "{n} несинхронізованих змін"
+
+msgid "Show all {n} lines"
+msgstr "Показати всі {n} рядків"
+
+msgid "Shown only in debug mode · Click outside or press ESC to close"
+msgstr ""
+"Показується лише в режимі debug · Клацніть поза вікном або ESC, щоб закрити"
+
+msgid "over {period}"
+msgstr "за {period}"
+
+msgid "Create a"
+msgstr "Створіть"
+
+msgid "and set it in the «Home page» field of the AppMenu settings."
+msgstr "і вкажіть її у полі «Домашня сторінка» в налаштуваннях AppMenu."
+
+msgid "Click to copy «{name}»"
+msgstr "Клацніть, щоб скопіювати «{name}»"
+
+msgid "done"
+msgstr "готово"
+
+msgid "error"
+msgstr "помилка"
+
+msgid ""
+"Changes saved on this device — they will be sent once the connection is back"
+msgstr "Зміни збережено на пристрої — надішлемо, щойно з'явиться зв'язок"
+
+msgid "records"
+msgstr "записів"
+
+msgid "No connection — viewing from cache, changes are saved on this device"
+msgstr "Немає з'єднання — перегляд з кешу, зміни зберігаються на пристрої"
+
+msgid "More"
+msgstr "Ще"
+
+msgid "All sections"
+msgstr "Всі розділи"
+
+msgid "Copied!"
+msgstr "Скопійовано!"
+
+msgid "no change"
+msgstr "без змін"
+
+msgid "The home page is not set up."
+msgstr "Домашня сторінка не налаштована."
+
+msgid "Confirmation"
+msgstr "Підтвердження"
+
+msgid "No reports"
+msgstr "Звітів немає"
+
+msgid "Add reports via the API or Studio."
+msgstr "Додайте звіти через API або через Studio."
+
+msgid "Key registration cancelled"
+msgstr "Реєстрацію ключа скасовано"
+
+msgid "Authentication cancelled"
+msgstr "Автентифікацію скасовано"
+
+msgid "Task"
+msgstr "Задача"
+
+msgid "task"
+msgstr "задача"
+
+msgid ""
+"No connection — changes are saved on this device and will be sent "
+"automatically"
+msgstr ""
+"Немає з'єднання — зміни збережено на пристрої й буде надіслано автоматично"
+
+msgid "Could not apply the transition"
+msgstr "Помилка застосування переходу"
+
+msgid "Delete error"
+msgstr "Помилка видалення"
+
+msgctxt "link"
+msgid "Page"
+msgstr "Сторінку"
+
+msgid "Camera"
+msgstr "Камера"
+
+msgid "Library"
+msgstr "Бібліотека"
+
+msgid "Local file"
+msgstr "Локальний файл"
+
+msgid "URL"
+msgstr "URL"
+
+msgid "Download Excel"
+msgstr "Завантажити Excel"
+
+msgid "Marked point"
+msgstr "Позначена точка"
+
+msgid "Field set: {value}"
+msgstr "Поле встановлено: {value}"
+
+msgid "The document was updated by another user"
+msgstr "Документ оновлено іншим користувачем"
+
+msgid "Report «{name}» not found"
+msgstr "Звіт «{name}» не знайдено"
+
+msgid "This browser does not support passkeys"
+msgstr "Цей браузер не підтримує ключі доступу"
+
+msgid "part of the text..."
+msgstr "частина тексту..."
+
+msgid "comma-separated values"
+msgstr "значення через кому"
+
+msgid "Tasks running"
+msgstr "Виконуються задачі"
+
+msgid "Tasks finished"
+msgstr "Задачі завершено"
+
+msgid "Add index"
+msgstr "Додати індекс"
+
+msgid "Structural"
+msgstr "Структурні"
+
+msgid "Drag section"
+msgstr "Перетягнути секцію"
+
+msgid ""
+"Reload the page; if that does not help, check that the server serves /sw.js."
+msgstr ""
+"Перезавантажте сторінку; якщо не допомагає — перевірте, що /sw.js віддається"
+" сервером."
+
+msgid ""
+"The server sent an event but the browser did not receive it — check the "
+"Redis relay."
+msgstr ""
+"Сервер надіслав подію, але браузер її не отримав — перевірте ретрансляцію "
+"через Redis."
+
+msgid ""
+"In Vite dev the service worker is not registered — offline works only in a "
+"production build."
+msgstr ""
+"У Vite dev service worker не реєструється — офлайн працює лише в production-"
+"збірці."
+
+msgid ""
+"Open the lists and documents you need while online — they will become "
+"available offline."
+msgstr ""
+"Відкрийте потрібні списки й документи з мережею — вони стануть доступні "
+"офлайн."
+
+msgid ""
+"Check that the proxy (nginx/Cloudflare) passes WebSocket through on "
+"/api/v1/ws/."
+msgstr ""
+"Перевірте, що проксі (nginx/Cloudflare) пропускає WebSocket на /api/v1/ws/."
+
+msgid ""
+"The page was opened before the service worker was installed — reload it."
+msgstr "Сторінку відкрито до встановлення service worker — перезавантажте її."
+
+msgid ""
+"The service worker did not cache the API response — offline data will not "
+"appear."
+msgstr "Service worker не зберіг відповідь API — офлайн дані не з'являться."
+
+msgid "App files are not cached — pages will not open without the network."
+msgstr "Файли застосунку не збережені — без мережі сторінки не відкриються."
+
+msgid "Each message arrives several times — notifications are duplicated."
+msgstr "Кожне повідомлення приходить кілька разів — сповіщення дублюються."
+
+msgid "The shell is cached after the first page load with the network."
+msgstr "Оболонка зберігається після першого відкриття сторінки з мережею."
+
+msgid ""
+"Open «Unsynced changes» at the bottom of the screen and resolve each one."
+msgstr "Відкрийте «Несинхронізовані зміни» внизу екрана й вирішіть кожну."
+
+msgid "Notifications and document updates will not arrive live."
+msgstr "Сповіщення й оновлення документів не приходитимуть наживо."
+
+msgid "The service worker works only over HTTPS (or localhost)."
+msgstr "Service worker працює лише через HTTPS (або localhost)."
+
+msgid "They will be sent automatically once the server is reachable."
+msgstr "Надішлються автоматично, щойно сервер стане доступний."
+
+msgid "Low on space — the browser may delete the offline cache."
+msgstr "Місця мало — браузер може видалити офлайн-кеш."
+
+msgid "The browser does not support offline mode."
+msgstr "Браузер не підтримує офлайн-режим."
+
+msgid "The response came from the offline cache."
+msgstr "Відповідь прийшла з офлайн-кешу."
+
+msgid "Conflicts and rejected changes"
+msgstr "Конфлікти й відхилені зміни"
+
+msgid "Data saved for offline"
+msgstr "Збережені дані для офлайну"
+
+msgid "Server connection"
+msgstr "З'єднання з сервером"
+
+msgid "Response caching"
+msgstr "Кешування відповідей"
+
+msgid "IndexedDB unavailable"
+msgstr "IndexedDB недоступна"
+
+msgid "Secure connection"
+msgstr "Безпечне з'єднання"
+
+msgid "App realtime"
+msgstr "Realtime застосунку"
+
+msgid "Test connection"
+msgstr "Тестове з'єднання"
+
+msgid "Server delivery"
+msgstr "Доставка з сервера"
+
+msgid "not registered"
+msgstr "не зареєстрований"
+
+msgid "token rejected"
+msgstr "токен не прийнято"
+
+msgid "Browser storage"
+msgstr "Сховище браузера"
+
+msgid "not supported"
+msgstr "не підтримується"
+
+msgid "Persistent storage"
+msgstr "Постійне сховище"
+
+msgid "exactly one copy"
+msgstr "рівно одна копія"
+
+msgid "Controls the page"
+msgstr "Керує сторінкою"
+
+msgid "Offline page"
+msgstr "Офлайн-сторінка"
+
+msgid "Browser network"
+msgstr "Мережа браузера"
+
+msgid "no response"
+msgstr "немає відповіді"
+
+msgid "Push notifications"
+msgstr "Push-сповіщення"
+
+msgid "check failed"
+msgstr "перевірка впала"
+
+msgid "development mode"
+msgstr "режим розробки"
+
+msgid "installing"
+msgstr "встановлюється"
+
+msgid "App cache"
+msgstr "Кеш застосунку"
+
+msgid "Connection type"
+msgstr "Тип з'єднання"
+
+msgid "not connected"
+msgstr "не підключено"
+
+msgid "Offline mode"
+msgstr "Офлайн-режим"
+
+msgid "unavailable"
+msgstr "недоступне"
+
+msgid "Used"
+msgstr "Використано"
+
+msgid "not requested"
+msgstr "не запитано"
+
+msgid "Change queue"
+msgstr "Черга змін"
+
+msgid "connected"
+msgstr "підключено"
+
+msgid "denied"
+msgstr "заборонено"
+
+msgid "WebSockets"
+msgstr "Вебсокети"
+
+msgid "saved"
+msgstr "збережена"
+
+msgid "not working"
+msgstr "не працює"
+
+msgid "not delivered"
+msgstr "не дійшло"
+
+msgid "allowed"
+msgstr "дозволено"
+
+msgid "empty"
+msgstr "порожній"
+
+msgid "missing"
+msgstr "відсутня"
+
+msgid "lost"
+msgstr "втрачено"
+
+msgid "unknown"
+msgstr "невідомо"
+
+msgid "Browser"
+msgstr "Браузер"
+
+msgid "Storage"
+msgstr "Сховище"
+
+msgid "Network"
+msgstr "Мережа"
+
+msgid "Build"
+msgstr "Збірка"
+
+msgid "Server"
+msgstr "Сервер"
+
+msgid "working"
+msgstr "працює"
+
+msgid "online"
+msgstr "онлайн"
+
+msgid "offline"
+msgstr "офлайн"
+
+msgid "Quota"
+msgstr "Квота"
+
+msgid "yes"
+msgstr "так"
+
+msgid "Cache"
+msgstr "Кеш"
+
+msgid "no"
+msgstr "ні"
+
+msgid "active"
+msgstr "активний"
+
+msgid "{n} files, {missing} missing"
+msgstr "{n} файлів, бракує {missing}"
+
+msgid "Not cached, e.g.: {files}. Reload the page while online."
+msgstr "Не збережено, напр.: {files}. Перезавантажте сторінку з мережею."
+
+msgid "{n} files"
+msgstr "{n} файлів"
+
+msgid "{n} API responses"
+msgstr "{n} відповідей API"
+
+msgid "{conflicts} conflicts, {failed} rejected"
+msgstr "{conflicts} конфліктів, {failed} відхилено"
+
+msgid "data saver"
+msgstr "економія трафіку"
+
+msgid "opened in {n} ms"
+msgstr "відкрито за {n} мс"
+
+msgid "{n} copies"
+msgstr "{n} копії"
+
+msgid ""
+"The browser may clear offline data when space runs low. The «Persist "
+"storage» button asks it not to."
+msgstr ""
+"Браузер може очистити офлайн-дані при нестачі місця. Кнопка «Закріпити "
+"сховище» просить його цього не робити."
+
+msgid "Document type"
+msgstr "Тип документа"
+
+msgid "Selected columns"
+msgstr "Вибрані стовпці"
+
+msgid "Conditions"
+msgstr "Умови"
+
+msgid "Add condition"
+msgstr "Додати умову"
+
+msgid "Choose a DocType and add columns in the side panel to see the result."
+msgstr ""
+"Оберіть DocType та додайте стовпці у боковій панелі, щоб побачити результат."
+
+msgid "Result"
+msgstr "Результат"
+
+msgid "New report"
+msgstr "Новий звіт"
+
+msgid "Bar"
+msgstr "Стовпчиковий"
+
+msgid "Line"
+msgstr "Лінійний"
+
+msgid "Area"
+msgstr "Площа"
+
+msgid "Pie"
+msgstr "Кругова"
+
+msgid "contains"
+msgstr "містить"
+
+msgid "does not contain"
+msgstr "не містить"
+
+msgid "one of (comma-separated)"
+msgstr "одне з (через кому)"
+
+msgid "none of"
+msgstr "жодне з"
+
+msgid "is set"
+msgstr "заповнено"
+
+msgid "is empty"
+msgstr "порожньо"
+
+msgid "Exact date"
+msgstr "Точна дата"
+
+msgid "By day"
+msgstr "По днях"
+
+msgid "By month"
+msgstr "По місяцях"
+
+msgid "By quarter"
+msgstr "По кварталах"
+
+msgid "By year"
+msgstr "По роках"
+
+msgid "None"
+msgstr "Немає"
+
+msgid "Minimum (MIN)"
+msgstr "Мінімум (MIN)"
+
+msgid "Maximum (MAX)"
+msgstr "Максимум (MAX)"
+
+msgid "Enter a name and a document type"
+msgstr "Вкажіть назву та тип документа"
+
+msgid "Choose a DocType"
+msgstr "Оберіть DocType"
+
+msgid "Add fields from the list below"
+msgstr "Додайте поля зі списку нижче"
+
+msgid ""
+"Always applied to the report. For dates you can write today, today-30, "
+"today+7."
+msgstr ""
+"Завжди застосовуються до звіту. Для дат можна писати today, today-30, "
+"today+7."
+
+msgid "By grouping"
+msgstr "За групуванням"
+
+msgid "Ascending"
+msgstr "За зростанням"
+
+msgid "Descending"
+msgstr "За спаданням"
+
+msgid "Show the first"
+msgstr "Показати перші"
+
+msgid "all"
+msgstr "усі"
+
+msgid "rows"
+msgstr "рядків"
+
+msgid ""
+"Fields the report viewer can filter by (the operator and value are chosen in"
+" the report itself)."
+msgstr ""
+"Поля, за якими глядач звіту зможе фільтрувати (оператор та значення обирає в"
+" самому звіті)."
+
+msgid "+ Add filter field"
+msgstr "+ Додати поле-фільтр"
+
+msgid "Chart type"
+msgstr "Тип графіка"
+
+msgid "Label column (X axis)"
+msgstr "Колонка-підпис (вісь X)"
+
+msgid "Value columns"
+msgstr "Колонки-значення"
+
+msgid "This is the label column"
+msgstr "Це колонка-підпис"
+
+msgid "Stacked"
+msgstr "Накопичувальний (stacked)"
+
+msgid "Available fields"
+msgstr "Доступні поля"
+
+msgid "Search fields..."
+msgstr "Пошук полів..."
+
+msgid "Preview"
+msgstr "Переглянути"
+
+msgid "Set up the report"
+msgstr "Налаштуйте звіт"
+
+msgid "Choose the first available DocType"
+msgstr "Обрати перший доступний DocType"
+
+msgid "Welcome to {app}"
+msgstr "Ласкаво просимо до {app}"
+
+msgid "System initialized!"
+msgstr "Систему ініціалізовано!"
+
+msgid "Configure the key system settings for a confident start."
+msgstr "Налаштуйте ключові параметри системи для впевненого старту."
+
+msgid "Basics"
+msgstr "Базові дані"
+
+msgid "Name and localization"
+msgstr "Назва та локалізація"
+
+msgid "Administrator"
+msgstr "Адміністратор"
+
+msgid "Protect the main account"
+msgstr "Захист головного акаунту"
+
+msgid "What shall we call the project?"
+msgstr "Як назвемо проект?"
+
+msgid "This name appears on the home screen and in emails."
+msgstr "Ця назва буде відображатися на головному екрані та в листах."
+
+msgid "System name"
+msgstr "Назва системи"
+
+msgid "For example: My ERP"
+msgstr "Наприклад: My ERP"
+
+msgid "Interface language"
+msgstr "Мова інтерфейсу"
+
+msgid "Administrator access"
+msgstr "Доступ адміністратора"
+
+msgid "Set a strong password for the main account."
+msgstr "Встановіть надійний пароль для головного акаунту."
+
+msgid "Back"
+msgstr "Назад"
+
+msgid "Finish"
+msgstr "Завершити"
+
+msgid "The system is ready!"
+msgstr "Систему готово!"
+
+msgid "Press the button below to sign in and start working with Grunt."
+msgstr "Тисніть кнопку нижче, щоб увійти та розпочати роботу з Grunt."
+
+msgid "Transition"
+msgstr "Перехід"
+
+msgid "State"
+msgstr "Стан"
+
+msgid "Drag from the edge of a node to another node to create a transition"
+msgstr "Перетягніть від краю вузла до іншого вузла, щоб створити перехід"
+
+msgid "Add states with the «State» button above"
+msgstr "Додайте стани кнопкою «Стан» вище"
+
+msgid "Value (for the state field)"
+msgstr "Значення (для поля стану)"
+
+msgid "Initial state"
+msgstr "Початковий стан"
+
+msgid "Final state"
+msgstr "Кінцевий стан"
+
+msgid "Delete state"
+msgstr "Видалити стан"
+
+msgid "From state"
+msgstr "З стану"
+
+msgid "To state"
+msgstr "У стан"
+
+msgid "Action (button text)"
+msgstr "Дія (текст кнопки)"
+
+msgid "Allowed roles (comma-separated)"
+msgstr "Дозволені ролі (через кому)"
+
+msgid "Condition (eval:)"
+msgstr "Умова (eval:)"
+
+msgid "Dialog fields (comma-separated)"
+msgstr "Поля діалогу (через кому)"
+
+msgid "e.g. execution_note"
+msgstr "напр. execution_note"
+
+msgid ""
+"If set, a dialog opens before the transition to fill in these document "
+"fields."
+msgstr ""
+"Якщо вказано, перед переходом відкриється діалог для заповнення цих полів "
+"документа."
+
+msgid "Delete transition"
+msgstr "Видалити перехід"
+
+msgid "Click a state or transition to edit it"
+msgstr "Натисніть на стан або перехід для редагування"
+
+msgid "or"
+msgstr "або"
+
+msgid "JSON object or"
+msgstr "JSON-об'єкт або"
+
+msgid ""
+"Computed on every save. All document fields are available as variables."
+msgstr ""
+"Обчислюється при кожному збереженні. Доступні всі поля документа як змінні."
+
+msgid "Examples:"
+msgstr "Приклади:"
+
+msgid "No TABLE fields in this DocType"
+msgstr "Немає TABLE-полів у цьому DocType"
+
+msgid ""
+"Linked documents (counters, «+ New») render at the top of this tab. If off "
+"everywhere, the panel shows above the form."
+msgstr ""
+"Пов'язані документи (лічильники, «+ Новий») рендеряться зверху цієї вкладки."
+" Якщо вимкнено скрізь — панель показується над формою."
+
+msgid ""
+"Fill the value automatically from another document when a Link field is "
+"chosen."
+msgstr ""
+"Автоматично заповнювати значення з іншого документа при виборі зв'язкового "
+"поля (Link)."
+
+msgid "Field type"
+msgstr "Тип поля"
+
+msgid "Select a field to edit"
+msgstr "Оберіть поле для редагування"
+
+msgid "Collapsible"
+msgstr "Згортається"
+
+msgid "Hidden on the form"
+msgstr "Приховане на формі"
+
+msgid "Help text"
+msgstr "Підказка"
+
+msgid "— not set —"
+msgstr "— не обрано —"
+
+msgid "Expression (Python)"
+msgstr "Вираз (Python)"
+
+msgid "Read Only (recommended)"
+msgstr "Read Only (рекомендовано)"
+
+msgid "— no aggregation —"
+msgstr "— без агрегації —"
+
+msgid "sum — total"
+msgstr "sum — сума"
+
+msgid "count — number of rows"
+msgstr "count — кількість рядків"
+
+msgid "avg — average"
+msgstr "avg — середнє"
+
+msgid "min — minimum"
+msgstr "min — мінімум"
+
+msgid "max — maximum"
+msgstr "max — максимум"
+
+msgid "Function"
+msgstr "Функція"
+
+msgid "Table (TABLE field)"
+msgstr "Таблиця (TABLE поле)"
+
+msgid "— choose a TABLE field —"
+msgstr "— оберіть TABLE поле —"
+
+msgid "Child DocType field"
+msgstr "Поле дочірнього DocType"
+
+msgid "e.g. amount"
+msgstr "напр. amount"
+
+msgid "Fieldname of a numeric field in the child DocType"
+msgstr "Fieldname числового поля у дочірньому DocType"
+
+msgid "currency or UAH"
+msgstr "currency або UAH"
+
+msgid ""
+"A Link field to Currency in this document, or a fixed ISO currency code"
+msgstr ""
+"Поле-посилання на Currency у цьому документі або фіксований ISO-код валюти"
+
+msgid "Autocomplete suggestions — one per line"
+msgstr "Підказки автодоповнення — кожна з нового рядка"
+
+msgid "One option per line"
+msgstr "Кожна опція з нового рядка"
+
+msgid "Could not load the fields of the chosen DocType"
+msgstr "Не вдалося завантажити поля обраного DocType"
+
+msgid "First choose a DocType in the tab above"
+msgstr "Спочатку виберіть DocType на вкладці вище"
+
+msgid "Loading…"
+msgstr "Завантаження…"
+
+msgid "Tab"
+msgstr "Вкладка"
+
+msgid "Show the «Connections» panel in this tab"
+msgstr "Показувати панель «Зв'язки» в цій вкладці"
+
+msgid "Fetch From"
+msgstr "Отримувати з (Fetch From)"
+
+msgid "e.g. link_field.source_field"
+msgstr "напр. link_field.source_field"
+
+msgid "DocType fields"
+msgstr "Поля DocType"
+
+msgid "All eligible fields are already added"
+msgstr "Усі придатні поля вже додано"
+
+msgid "Section"
+msgstr "Секція"
+
+msgid "is active"
+msgstr "активна"
+
+msgid ""
+"Open a session as «{name}»? You can return to your own account at any time."
+msgstr ""
+"Відкрити сесію під користувачем «{name}»? Ви зможете повернутися у свій "
+"обліковий запис у будь-який момент."
+
+msgid "Key «{name}» added"
+msgstr "Ключ «{name}» додано"
+
+msgid ""
+"Sign in without a password — with a fingerprint, Face ID or PIN. When "
+"adding, the browser offers to store the key on this device, on a phone (QR "
+"code) or on a hardware key."
+msgstr ""
+"Дозволяють входити без пароля — за відбитком, Face ID або PIN. Під час "
+"додавання браузер запропонує зберегти ключ на цьому пристрої, на телефоні "
+"(QR-код) або на апаратному ключі."
+
+msgid "Delete key «{name}»? You will no longer be able to sign in with it."
+msgstr "Видалити ключ «{name}»? Увійти за ним більше не вийде."
+
+msgid "Change password"
+msgstr "Змінити пароль"
+
+msgid "Current password"
+msgstr "Поточний пароль"
+
+msgid "Password changed"
+msgstr "Пароль успішно змінено"
+
+msgid "Could not set the password"
+msgstr "Помилка при встановленні пароля"
+
+msgid "Disable MFA"
+msgstr "Вимкнути MFA"
+
+msgid "Enable MFA"
+msgstr "Увімкнути MFA"
+
+msgid "Sign in as this user"
+msgstr "Увійти як цей користувач"
+
+msgid "Could not sign in as the user"
+msgstr "Не вдалося увійти під користувачем"
+
+msgid "Approve registration"
+msgstr "Підтвердити реєстрацію"
+
+msgid "Registration approved — the user can sign in"
+msgstr "Реєстрацію підтверджено — користувач може увійти"
+
+msgid "Reject"
+msgstr "Відхилити"
+
+msgid "Reject this user's registration?"
+msgstr "Відхилити реєстрацію цього користувача?"
+
+msgid "Registration rejected"
+msgstr "Реєстрацію відхилено"
+
+msgid "Could not add the key"
+msgstr "Не вдалося додати ключ"
+
+msgid "Passkeys"
+msgstr "Ключі доступу (Passkeys)"
+
+msgid "Your keys"
+msgstr "Ваші ключі"
+
+msgid "No keys yet. Add one below."
+msgstr "Ще немає жодного ключа. Додайте нижче."
+
+msgid "Synced"
+msgstr "Синхр."
+
+msgid "Last used"
+msgstr "Востаннє"
+
+msgid "Key deleted"
+msgstr "Ключ видалено"
+
+msgid "New key name"
+msgstr "Назва нового ключа"
+
+msgid "e.g. Work laptop"
+msgstr "напр. Робочий ноутбук"
+
+msgid "＋ Add key"
+msgstr "＋ Додати ключ"
+
+msgid "Are you sure you want to disable two-factor authentication?"
+msgstr "Ви впевнені, що хочете вимкнути двофакторну автентифікацію?"
+
+msgid "MFA disabled"
+msgstr "MFA вимкнено"
+
+msgid "MFA setup"
+msgstr "Налаштування MFA"
+
+msgid "Activate"
+msgstr "Активувати"
+
+msgid "1. Scan the QR code in the app"
+msgstr "1. Відскануйте QR-код у додатку"
+
+msgid "2. Enter the 6-digit confirmation code"
+msgstr "2. Введіть 6-значний код підтвердження"
+
+msgid "MFA activated"
+msgstr "MFA активовано"
+
+msgid "Save your backup codes! They are shown in the form."
+msgstr "Збережіть ваші резервні коди! Вони відображені у формі."
+
+msgid "Invalid code or error"
+msgstr "Невірний код або помилка"
+
+msgid "Refresh (Ctrl+Enter)"
+msgstr "Оновити (Ctrl+Enter)"
+
+msgid "New tab"
+msgstr "Нова вкладка"
+
+msgid "Specify a document type and a template to preview."
+msgstr "Вкажіть тип документа і шаблон для перегляду."
+
+msgid "Updating..."
+msgstr "Оновлення..."
+
+msgid "Network error:"
+msgstr "Помилка мережі:"
+
+msgid "Check updated"
+msgstr "Перевірку оновлено"
+
+msgid "The browser will not delete offline data"
+msgstr "Браузер не видалятиме офлайн-дані"
+
+msgid "The browser declined the request (try installing the app as a PWA)"
+msgstr "Браузер відхилив запит (спробуйте встановити застосунок як PWA)"
+
+msgid "Report copied to the clipboard"
+msgstr "Звіт скопійовано в буфер обміну"
+
+msgid "Clipboard unavailable:"
+msgstr "Буфер обміну недоступний:"
+
+msgid "Could not load the list of apps"
+msgstr "Не вдалося завантажити список додатків"
+
+msgid "Backup queued — it will appear in the list in a minute"
+msgstr "Резервну копію поставлено в чергу — з'явиться в списку за хвилину"
+
+msgid "Unknown error"
+msgstr "Невідома помилка"
+
+msgid "First choose a mail service or enter an SMTP server."
+msgstr "Спочатку оберіть поштову службу або вкажіть SMTP-сервер."
+
+msgid "Enter the SMTP password (for Gmail — an app password)."
+msgstr "Вкажіть пароль SMTP (для Gmail — пароль додатка)."
+
+msgid "Checking the connection…"
+msgstr "Перевіряємо з'єднання…"
+
+msgid "Connection successful — signed in to the SMTP server."
+msgstr "З'єднання успішне — вхід на SMTP-сервер пройшов."
+
+msgid "Save the account first, then send a test email."
+msgstr "Спочатку збережіть обліковий запис, потім надсилайте тестовий лист."
+
+msgid "Recipient address"
+msgstr "Адреса отримувача"
+
+msgid "Test email"
+msgstr "Тестовий лист"
+
+msgid "Sending a test email…"
+msgstr "Надсилаємо тестовий лист…"
+
+msgid "Test email sent to {to}."
+msgstr "Тестовий лист надіслано на {to}."
+
+msgid "Save the webhook before testing."
+msgstr "Збережіть вебхук перед тестуванням."
+
+msgid "Test"
+msgstr "Тест"
+
+msgid "Sending..."
+msgstr "Надсилання..."
+
+msgid "Response"
+msgstr "Відповідь"
+
+msgid "Delivery log"
+msgstr "Журнал доставок"
+
+msgid "No deliveries yet"
+msgstr "Доставок ще немає"
+
+msgid "Set up the column mapping first"
+msgstr "Спочатку налаштуйте маппінг колонок"
+
+msgid "Run validation (without writing)?"
+msgstr "Запустити валідацію (без запису)?"
+
+msgid "Run the data import?"
+msgstr "Запустити імпорт даних?"
+
+msgid "Run import"
+msgstr "Запустити імпорт"
+
+msgid "Starting..."
+msgstr "Запуск..."
+
+msgid "Import started"
+msgstr "Імпорт запущено"
+
+msgid "Reset the status to \"Pending\" and run again?"
+msgstr "Скинути статус до \"Очікування\" та запустити знову?"
+
+msgid "Import finished"
+msgstr "Імпорт завершено"
+
+msgid "Partial success"
+msgstr "Частковий успіх"
+
+msgid "Import error"
+msgstr "Помилка імпорту"
+
+msgid "Show {n} errors"
+msgstr "Показати {n} помилок"
+
+msgid "Row {n}:"
+msgstr "Рядок {n}:"
+
+msgid "Processed:"
+msgstr "Оброблено:"
+
+msgid "Errors:"
+msgstr "Помилок:"
+
+msgid "Import in progress..."
+msgstr "Виконується імпорт..."
+
+msgid "Copied to the clipboard"
+msgstr "Скопійовано в буфер обміну"
+
+msgid "Recording started"
+msgstr "Запис розпочато"
+
+msgid "Recording stopped"
+msgstr "Запис зупинено"
+
+msgid "Buffer cleared"
+msgstr "Буфер очищено"
+
+msgid "Check again"
+msgstr "Перевірити знову"
+
+msgid "Persist browser storage"
+msgstr "Закріпити сховище браузера"
+
+msgid "Copy report"
+msgstr "Копіювати звіт"
+
+msgid "Open builder"
+msgstr "Відкрити конструктор"
+
+msgid "View report"
+msgstr "Переглянути звіт"
+
+msgid "Database"
+msgstr "База даних"
+
+msgid "Configuration"
+msgstr "Конфігурація"
+
+msgid "Create now"
+msgstr "Створити зараз"
+
+msgid "Reset"
+msgstr "Скинути"
+
+msgid "Copy JSON"
+msgstr "Копіювати JSON"
+
+msgid "Stop recording"
+msgstr "Зупинити запис"
+
+msgid "Start recording"
+msgstr "Почати запис"
+
+msgid "Clear the profiler buffer?"
+msgstr "Очистити буфер профілера?"
+
+msgid ""
+"Google rejected the sign-in. Use a 16-character «app password» (App "
+"Password), not the regular account password, and make sure 2-Step "
+"Verification is enabled."
+msgstr ""
+"Google відхилив вхід. Використайте 16-значний «пароль додатка» (App "
+"Password), а не звичайний пароль акаунта, і переконайтесь, що увімкнена "
+"двоетапна перевірка."
+
+msgid ""
+"Encryption and port mismatch. Gmail needs port 587 (STARTTLS) or 465 (SSL)."
+msgstr ""
+"Невідповідність шифрування та порту. Для Gmail потрібен порт 587 (STARTTLS) "
+"або 465 (SSL)."
+
+msgid ""
+"The server does not respond. Check the server address, port and network "
+"access."
+msgstr ""
+"Сервер не відповідає. Перевірте адресу сервера, порт і доступ до мережі."
+
+msgid "{n} marker"
+msgid_plural "{n} markers"
+msgstr[0] "{n} мітка"
+msgstr[1] "{n} мітки"
+msgstr[2] "{n} міток"
+
+msgid "{n} result"
+msgid_plural "{n} results"
+msgstr[0] "{n} результат"
+msgstr[1] "{n} результати"
+msgstr[2] "{n} результатів"
+
+msgid "Synced {n} saved change"
+msgid_plural "Synced {n} saved changes"
+msgstr[0] "Синхронізовано {n} збережену зміну"
+msgstr[1] "Синхронізовано {n} збережені зміни"
+msgstr[2] "Синхронізовано {n} збережених змін"
+
+msgid "Loading..."
+msgstr "Завантаження..."
+
+msgid "Reject the registration of this user?"
+msgstr "Відхилити реєстрацію цього користувача?"
+
+msgid "Subscription error:"
+msgstr "Помилка підписки:"
+
 #~ msgctxt "meta:WebsiteNavItem"
 #~ msgid "Site menu item"
 #~ msgstr "Пункт меню сайту"
@@ -9291,28 +12046,19 @@ msgstr "Підписи опцій перекладаються; збережен
 #~ msgid "Top menu items"
 #~ msgstr "Пункти верхнього меню"
 
-#~ msgid "Activity"
-#~ msgstr ""
-
 #~ msgid "Blue"
 #~ msgstr ""
 
 #~ msgid "Calendar"
-#~ msgstr ""
+#~ msgstr "Календар"
 
 #~ msgid "Clock"
-#~ msgstr ""
-
-#~ msgid "Columns"
 #~ msgstr ""
 
 #~ msgid "Copy failed"
 #~ msgstr ""
 
 #~ msgid "Cyan"
-#~ msgstr ""
-
-#~ msgid "Donut"
 #~ msgstr ""
 
 #~ msgid "Drag to fill down"
@@ -9334,12 +12080,9 @@ msgstr "Підписи опцій перекладаються; збережен
 #~ msgstr ""
 
 #~ msgid "List"
-#~ msgstr ""
+#~ msgstr "Список"
 
 #~ msgid "Metric"
-#~ msgstr ""
-
-#~ msgid "New value"
 #~ msgstr ""
 
 #~ msgid "No matching rows"
@@ -9349,9 +12092,6 @@ msgstr "Підписи опцій перекладаються; збережен
 #~ msgstr ""
 
 #~ msgid "Red"
-#~ msgstr ""
-
-#~ msgid "Restore"
 #~ msgstr ""
 
 #~ msgid "Restore document to this version?"
@@ -9370,9 +12110,6 @@ msgstr "Підписи опцій перекладаються; збережен
 #~ msgstr ""
 
 #~ msgid "Text"
-#~ msgstr ""
-
-#~ msgid "Total"
 #~ msgstr ""
 
 #~ msgid "Violet"
@@ -9521,9 +12258,6 @@ msgstr "Підписи опцій перекладаються; збережен
 #~ msgctxt "label"
 #~ msgid "Modified at"
 #~ msgstr "Дата зміни"
-
-#~ msgid "Loading..."
-#~ msgstr "Завантаження..."
 
 #~ msgid "No results found"
 #~ msgstr "Нічого не знайдено"

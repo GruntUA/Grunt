@@ -4,10 +4,10 @@ import L from 'leaflet'
 export type PrintFormat = 'a4p' | 'a4l' | 'a3p' | 'a3l'
 
 export const PRINT_FORMATS: Record<PrintFormat, { label: string; ratio: number }> = {
-  a4p: { label: 'A4 книжна', ratio: 210 / 297 },
-  a4l: { label: 'A4 альбомна', ratio: 297 / 210 },
-  a3p: { label: 'A3 книжна', ratio: 297 / 420 },
-  a3l: { label: 'A3 альбомна', ratio: 420 / 297 },
+  a4p: { label: 'A4 portrait', ratio: 210 / 297 },
+  a4l: { label: 'A4 landscape', ratio: 297 / 210 },
+  a3p: { label: 'A3 portrait', ratio: 297 / 420 },
+  a3l: { label: 'A3 landscape', ratio: 420 / 297 },
 }
 
 const PRINT_MODE_MAP: Record<PrintFormat, { pageSize: string; orientation: 'Portrait' | 'Landscape' }> = {

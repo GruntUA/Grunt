@@ -177,23 +177,23 @@ function emitChange() {
 }
 
 const OP_LABELS: Record<string, string> = {
-  '=': 'Дорівнює',
-  '!=': 'Не дорівнює',
-  'like': 'Містить',
-  'not like': 'Не містить',
-  'is not set': 'Порожнє',
-  'is set': 'Заповнене',
-  '>': 'Більше',
-  '<': 'Менше',
-  '>=': 'Більше або дорівнює',
-  '<=': 'Менше або дорівнює',
-  'child_of': 'Підпорядковано',
-  'in': 'Одне з',
-  'not in': 'Жодне з',
+  '=': 'Equals',
+  '!=': 'Not equals',
+  'like': 'Contains',
+  'not like': 'Does not contain',
+  'is not set': 'Is empty',
+  'is set': 'Is set',
+  '>': 'Greater than',
+  '<': 'Less than',
+  '>=': 'Greater than or equal',
+  '<=': 'Less than or equal',
+  'child_of': 'Descendant of',
+  'in': 'Is one of',
+  'not in': 'Is none of',
 }
 
 function opLabel(op: string): string {
-  return OP_LABELS[op] ?? op
+  return OP_LABELS[op] ? t(OP_LABELS[op]) : op
 }
 
 function toggleFilter(event: Event) {

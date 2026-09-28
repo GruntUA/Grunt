@@ -3,7 +3,7 @@ import type { ViewDefinition } from '@/core/viewRegistry'
 
 const def: ViewDefinition = {
   type: 'gallery',
-  label: 'Галерея',
+  label: 'Gallery',
   icon: ImageIcon,
   order: 4,
 

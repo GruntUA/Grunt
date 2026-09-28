@@ -1,6 +1,9 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { computed } from 'vue'
 import type { DashboardWidget } from '@/types'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   widget: DashboardWidget
@@ -13,9 +16,9 @@ const now = new Date()
 const year = now.getFullYear()
 const month = now.getMonth() // 0-indexed
 
-const MONTHS_UK = ['Січень', 'Лютий', 'Березень', 'Квітень', 'Травень', 'Червень',
-  'Липень', 'Серпень', 'Вересень', 'Жовтень', 'Листопад', 'Грудень']
-const DAYS_UK = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд']
+const MONTHS_UK = [t('January'), t('February'), t('March'), t('April'), t('May'), t('June'),
+  t('July'), t('August'), t('September'), t('October'), t('November'), t('December')]
+const DAYS_UK = [t('Mon'), t('Tue'), t('Wed'), t('Thu'), t('Fri'), t('Sat'), t('Sun')]
 
 const monthLabel = computed(() => `${MONTHS_UK[month]} ${year}`)
 
@@ -92,10 +95,10 @@ function dotColor(count: number): string {
       <!-- Legend -->
       <div class="flex items-center justify-end gap-3 mt-2 shrink-0">
         <div class="flex items-center gap-1 text-muted-foreground">
-          <div class="size-2 rounded-full bg-primary/40" /> мало
+          <div class="size-2 rounded-full bg-primary/40" /> {{ t('few') }}
         </div>
         <div class="flex items-center gap-1 text-muted-foreground">
-          <div class="size-2 rounded-full bg-primary" /> багато
+          <div class="size-2 rounded-full bg-primary" /> {{ t('many') }}
         </div>
       </div>
     </template>

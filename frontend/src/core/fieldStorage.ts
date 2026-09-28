@@ -11,6 +11,9 @@
  */
 
 import { getStorageClass, type StorageClass } from './fieldRegistry'
+import i18n from '@/plugins/i18n'
+
+const t = (key: string): string => i18n.global.t(key)
 
 export type { StorageClass }
 
@@ -58,23 +61,19 @@ export function describeTypeChange(from: string, to: string): TypeChangeNote | n
   if (a === 'none' || b === 'none') {
     return {
       severity: 'danger',
-      message:
-        'Новий тип зберігає значення інакше (окрема колонка або дочірня таблиця). '
-        + 'Наявні дані цього поля не переносяться автоматично — вивантажте їх до міграції.',
+      message: t('The new type stores values differently (a separate column or a child table). Existing data of this field is not moved automatically — export it before migrating.'),
     }
   }
 
   if (SAFE_WIDENINGS.has(`${a}->${b}`)) {
     return {
       severity: 'info',
-      message: 'Тип колонки в БД зміниться під час міграції. Наявні значення сумісні й зберігаються.',
+      message: t('The database column type changes during migration. Existing values are compatible and kept.'),
     }
   }
 
   return {
     severity: 'danger',
-    message:
-      'Тип колонки в БД зміниться під час міграції. Значення, які не вдасться привести до нового типу, '
-      + 'можуть не зберегтися — перевірте наявні дані.',
+    message: t('The database column type changes during migration. Values that cannot be converted to the new type may be lost — check existing data.'),
   }
 }

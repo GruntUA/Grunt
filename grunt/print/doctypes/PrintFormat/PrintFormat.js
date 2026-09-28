@@ -14,7 +14,7 @@ const DEBOUNCE_MS = 800
 function on_load(frm) {
   frm.actions.add({
     id: 'preview',
-    label: 'Попередній перегляд',
+    label: 'Preview',
     icon: 'eye',
     variant: 'secondary',
     visible: (f) => !f.is_new,
@@ -93,12 +93,12 @@ function _createPreview(frm) {
     'flex-shrink:0',
   ].join(';')
   header.innerHTML = `
-    <span>Попередній перегляд</span>
+    <span>${__('Preview')}</span>
     <div style="display:flex;gap:8px;align-items:center">
       <span id="grunt-preview-status" style="font-size:12px;font-weight:400;color:var(--color-muted,#6b7280)"></span>
       <button id="grunt-preview-close"
         style="cursor:pointer;border:none;background:transparent;font-size:18px;line-height:1;padding:0 4px;color:var(--color-muted,#6b7280)"
-        title="Закрити">✕</button>
+        title="${__('Close')}">✕</button>
     </div>
   `
 
@@ -114,10 +114,10 @@ function _createPreview(frm) {
   toolbar.innerHTML = `
     <button id="grunt-preview-refresh"
       style="cursor:pointer;font-size:12px;padding:4px 10px;border:1px solid var(--color-border,#e5e7eb);border-radius:4px;background:var(--color-bg,#f9fafb)"
-      title="Оновити (Ctrl+Enter)">↺ Оновити</button>
+      title="${__('Refresh (Ctrl+Enter)')}">↺ ${__('Refresh')}</button>
     <button id="grunt-preview-open"
       style="cursor:pointer;font-size:12px;padding:4px 10px;border:1px solid var(--color-border,#e5e7eb);border-radius:4px;background:var(--color-bg,#f9fafb)"
-      title="Відкрити у новій вкладці">↗ Нова вкладка</button>
+      title="${__('Open in new tab')}">↗ ${__('New tab')}</button>
   `
 
   // Iframe
@@ -184,11 +184,11 @@ async function _refreshPreview(frm) {
   const template = frm.get_value('template')
 
   if (!doctype || !template) {
-    _setIframeContent('<p style="padding:2rem;color:#6b7280">Вкажіть тип документа і шаблон для перегляду.</p>')
+    _setIframeContent('<p style="padding:2rem;color:#6b7280">' + __('Specify a document type and a template to preview.') + '</p>')
     return
   }
 
-  _setStatus('Оновлення...')
+  _setStatus(__('Updating...'))
 
   const token = localStorage.getItem('grunt_token')
   const headers = { 'Content-Type': 'application/json' }
@@ -204,18 +204,18 @@ async function _refreshPreview(frm) {
     if (!resp.ok) {
       const text = await resp.text()
       _setIframeContent(`<pre style="padding:1rem;color:red;white-space:pre-wrap">HTTP ${resp.status}:\n${text}</pre>`)
-      _setStatus('Помилка ' + resp.status)
+      _setStatus(__('Error') + ' ' + resp.status)
       return
     }
 
     const html = await resp.text()
     _setIframeContent(html)
-    _setStatus('Оновлено')
+    _setStatus(__('Updated'))
 
     setTimeout(() => _setStatus(''), 2000)
   } catch (err) {
-    _setIframeContent(`<pre style="padding:1rem;color:red;white-space:pre-wrap">Помилка мережі:\n${err.message}</pre>`)
-    _setStatus('Помилка')
+    _setIframeContent(`<pre style="padding:1rem;color:red;white-space:pre-wrap">${__('Network error:')}\n${err.message}</pre>`)
+    _setStatus(__('Error'))
   }
 }
 

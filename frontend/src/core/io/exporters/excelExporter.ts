@@ -3,7 +3,7 @@ import { useAuthStore } from '@/stores/auth'
 
 export const excelExporter: Exporter = {
   id: 'excel',
-  label: 'Завантажити Excel',
+  label: 'Download Excel',
   icon: 'Sheet',
   export(ctx: ExportContext) {
     const auth = useAuthStore()

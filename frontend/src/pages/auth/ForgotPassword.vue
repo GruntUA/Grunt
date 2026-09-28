@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { authApi } from '@/core/api/auth-admin'
@@ -6,6 +7,8 @@ import { Sprout, ArrowLeft } from '@lucide/vue'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Spinner } from '@/components/ui/spinner'
+
+const { t } = useI18n()
 
 const router = useRouter()
 
@@ -36,17 +39,17 @@ async function handleSubmit() {
         <div class="inline-flex items-center justify-center w-14 h-14 rounded-lg bg-primary text-primary-foreground mb-4 shadow-sm">
           <Sprout class="w-7 h-7" />
         </div>
-        <h1 class="text-2xl font-semibold text-foreground tracking-tight">Скинути пароль</h1>
-        <p class="text-muted-foreground mt-1">Ми надішлемо вам посилання для відновлення</p>
+        <h1 class="text-2xl font-semibold text-foreground tracking-tight">{{ t('Reset password') }}</h1>
+        <p class="text-muted-foreground mt-1">{{ t('We will send you a recovery link') }}</p>
       </div>
 
       <div class="bg-card rounded-lg shadow-sm border border-border p-8">
         <div v-if="sent" class="text-center py-4 flex flex-col items-center gap-3">
-          <p class="text-foreground font-medium">Перевірте пошту</p>
+          <p class="text-foreground font-medium">{{ t('Check your email') }}</p>
           <p class="text-muted-foreground">
-            Якщо акаунт з <strong>{{ email }}</strong> існує, ми надіслали посилання для зміни пароля.
+            {{ t('If an account with {email} exists, we have sent a password reset link.').replace('{email}', email) }}
           </p>
-          <Button variant="ghost" class="mt-2" @click="router.push('/login')">Повернутись до входу</Button>
+          <Button variant="ghost" class="mt-2" @click="router.push('/login')">{{ t('Back to sign in') }}</Button>
         </div>
 
         <form v-else class="flex flex-col gap-5" @submit.prevent="handleSubmit">
@@ -61,7 +64,7 @@ async function handleSubmit() {
 
           <Button type="submit" :disabled="loading" class="w-full h-11 mt-1 font-medium">
             <Spinner v-if="loading" class="size-4 mr-2" />
-            Надіслати посилання
+            {{ t('Send link') }}
           </Button>
 
           <button
@@ -70,7 +73,7 @@ async function handleSubmit() {
             @click="router.push('/login')"
           >
             <ArrowLeft class="size-3.5" />
-            Повернутись до входу
+            {{ t('Back to sign in') }}
           </button>
         </form>
       </div>

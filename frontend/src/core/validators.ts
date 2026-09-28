@@ -1,3 +1,7 @@
+import i18n from '@/plugins/i18n'
+
+const t = (key: string): string => i18n.global.t(key)
+
 /**
  * Client-side field validators.
  * Must stay in sync with grunt/document/validators.py.
@@ -19,18 +23,18 @@ const EDRPOU = /^\d{8}(\d{2})?$/
 const RNOCPP = /^\d{10}$/
 
 const VALIDATORS: Record<string, ValidatorDef> = {
-  email:    { check: v => EMAIL.test(v),                          message: 'Невірний формат email' },
-  phone:    { check: v => PHONE.test(v),                          message: 'Невірний формат телефону' },
-  url:      { check: v => URL.test(v),                            message: 'Невірний формат URL' },
-  iban_ua:  { check: v => IBAN_UA.test(v.replace(/\s/g, '').toUpperCase()), message: 'Невірний IBAN (очікується UA + 27 цифр)' },
-  iban:     { check: v => IBAN.test(v.replace(/\s/g, '').toUpperCase()),    message: 'Невірний формат IBAN' },
-  edrpou:   { check: v => EDRPOU.test(v.trim()),                  message: 'Невірний код ЄДРПОУ (8 або 10 цифр)' },
-  rnocpp:   { check: v => RNOCPP.test(v.trim()),                  message: 'Невірний РНОКПП (10 цифр)' },
+  email:    { check: v => EMAIL.test(v),                          message: 'Invalid email format' },
+  phone:    { check: v => PHONE.test(v),                          message: 'Invalid phone format' },
+  url:      { check: v => URL.test(v),                            message: 'Invalid URL format' },
+  iban_ua:  { check: v => IBAN_UA.test(v.replace(/\s/g, '').toUpperCase()), message: 'Invalid IBAN (expected UA + 27 digits)' },
+  iban:     { check: v => IBAN.test(v.replace(/\s/g, '').toUpperCase()),    message: 'Invalid IBAN format' },
+  edrpou:   { check: v => EDRPOU.test(v.trim()),                  message: 'Invalid EDRPOU code (8 or 10 digits)' },
+  rnocpp:   { check: v => RNOCPP.test(v.trim()),                  message: 'Invalid RNOKPP (10 digits)' },
 }
 
 export function validateFieldValue(validatorName: string, value: unknown): string | null {
   if (value === null || value === undefined || value === '') return null
   const def = VALIDATORS[validatorName]
   if (!def) return null
-  return def.check(String(value)) ? null : def.message
+  return def.check(String(value)) ? null : t(def.message)
 }

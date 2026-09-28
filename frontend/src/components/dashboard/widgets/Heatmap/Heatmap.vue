@@ -1,9 +1,12 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import type { DashboardWidget } from '@/types'
 import { formatIntl } from '@/core/datetime'
 import { filteredListUrl } from '@/pages/reports/drilldown'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   widget: DashboardWidget
@@ -17,7 +20,7 @@ const router = useRouter()
 interface Cell { date: Date; key: string; count: number; future: boolean }
 
 const PERIOD_DAYS: Record<string, number> = { '7d': 7, '30d': 30, '90d': 90, '365d': 365 }
-const DAY_LABELS = ['Пн', '', 'Ср', '', 'Пт', '', '']
+const DAY_LABELS = [t('Mon'), '', t('Wed'), '', t('Fri'), '', '']
 // Literal class names so Tailwind generates them (no string-built `bg-primary/${n}`).
 const LEVELS = ['bg-muted', 'bg-primary/25', 'bg-primary/50', 'bg-primary/75', 'bg-primary']
 
@@ -115,7 +118,7 @@ function open(cell: Cell) {
   <div class="flex flex-col h-full px-4 py-3">
     <div class="flex items-center justify-between mb-3 shrink-0">
       <p class="font-medium text-muted-foreground">{{ widget.title }}</p>
-      <span v-if="!loading" class="text-muted-foreground">{{ totalCount }} за {{ periodDays }} дн.</span>
+      <span v-if="!loading" class="text-muted-foreground">{{ t('{n} in {days} days').replace('{n}', String(totalCount)).replace('{days}', String(periodDays)) }}</span>
     </div>
 
     <div v-if="loading" class="flex-1 flex items-center">
@@ -162,15 +165,15 @@ function open(cell: Cell) {
 
       <div class="flex items-center justify-between gap-3 mt-3 shrink-0 text-muted-foreground">
         <span class="truncate">
-          Активних днів: <span class="text-foreground font-medium">{{ activeDays }}</span>
+          {{ t('Active days:') }} <span class="text-foreground font-medium">{{ activeDays }}</span>
           <template v-if="busiest">
-            · найбільше {{ fmtDay(busiest.date) }}: <span class="text-foreground font-medium">{{ busiest.count }}</span>
+            · {{ t('busiest {day}').replace('{day}', fmtDay(busiest.date)) }}: <span class="text-foreground font-medium">{{ busiest.count }}</span>
           </template>
         </span>
         <div class="flex items-center gap-1 shrink-0">
-          <span>Мало</span>
+          <span>{{ t('Few') }}</span>
           <div v-for="cls in LEVELS" :key="cls" :class="['size-2.5 rounded-[2px]', cls]" />
-          <span>Багато</span>
+          <span>{{ t('Many') }}</span>
         </div>
       </div>
     </template>

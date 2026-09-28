@@ -1,7 +1,10 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import type { Workspace } from '@/core/api/workspace'
 import { ArrowUpRight, Layers } from '@lucide/vue'
 import AppIcon from '@/components/AppIcon.vue'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   workspace: Workspace
@@ -36,11 +39,11 @@ function totalCount(): number {
       </h3>
       <div v-if="totalCount() > 0" class="flex items-center gap-1 text-muted-foreground">
         <span class="font-medium tabular-nums" :style="{ color: workspace.color }">{{ totalCount() }}</span>
-        <span>записів</span>
+        <span>{{ t('records') }}</span>
       </div>
       <div v-else class="flex items-center gap-1 text-muted-foreground/60">
         <Layers class="size-3" />
-        <span>Відкрити</span>
+        <span>{{ t('Open') }}</span>
       </div>
     </div>
 

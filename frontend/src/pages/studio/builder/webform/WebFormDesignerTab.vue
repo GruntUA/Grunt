@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { onMounted, ref, watch } from 'vue'
 import { useBuilderStore } from '@/stores/builder'
 import { metaApi } from '@/core/api/meta'
@@ -6,6 +7,8 @@ import type { DocField, DocType } from '@/types'
 import BuilderCanvas from '../BuilderCanvas.vue'
 import WebFormFieldPalette from './WebFormFieldPalette.vue'
 import WebFormFieldPropertiesPanel from './WebFormFieldPropertiesPanel.vue'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   // The WebForm DocType's own meta (unused here — see note below).
@@ -98,7 +101,7 @@ async function load() {
     const merged = buildMergedFields(targetMeta.fields, props.modelValue.fields ?? [])
     builder.doctype = { fields: merged } as unknown as DocType
   } catch {
-    loadError.value = 'Не вдалося завантажити поля обраного DocType'
+    loadError.value = t('Could not load the fields of the chosen DocType')
   } finally {
     loading.value = false
     ready.value = true
@@ -124,10 +127,10 @@ onMounted(load)
 <template>
   <div class="flex flex-col h-[75vh] min-h-[30rem] overflow-hidden -mx-5 -mb-5 border-t border-border bg-background">
     <div v-if="!modelValue.doctype" class="flex-1 flex items-center justify-center text-muted-foreground">
-      Спочатку виберіть DocType на вкладці вище
+      {{ t('First choose a DocType in the tab above') }}
     </div>
     <div v-else-if="loading" class="flex-1 flex items-center justify-center text-muted-foreground">
-      Завантаження…
+      {{ t('Loading…') }}
     </div>
     <div v-else-if="loadError" class="flex-1 flex items-center justify-center text-destructive">
       {{ loadError }}

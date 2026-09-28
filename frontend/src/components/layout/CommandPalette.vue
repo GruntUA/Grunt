@@ -146,12 +146,12 @@ watch(search, async (val) => {
             matched.push({
                 id: 'calc-result',
                 title: `${calcExpr} = ${answer}`,
-                subtitle: 'Скопіювати результат',
+                subtitle: t('Copy result'),
                 icon: Equal,
-                category: 'Калькулятор',
+                category: t('Calculator'),
                 run: () => {
                     void navigator.clipboard?.writeText(answer).catch(() => {})
-                    toast.success(`${calcExpr} = ${answer}`, 'Скопійовано')
+                    toast.success(`${calcExpr} = ${answer}`, t('Copied'))
                     uiStore.closeCommandPalette()
                 },
             })
@@ -342,15 +342,15 @@ function onInputKeydown(e: KeyboardEvent) {
                 <div class="flex items-center justify-between gap-4 border-t px-3 py-2 text-xs text-muted-foreground">
                     <div class="flex items-center gap-3">
                         <span class="flex items-center gap-1">
-                            <kbd class="rounded border bg-muted px-1 font-sans">↑↓</kbd> Навігація
+                            <kbd class="rounded border bg-muted px-1 font-sans">↑↓</kbd> {{ t('Navigate') }}
                         </span>
                         <span class="flex items-center gap-1">
-                            <kbd class="rounded border bg-muted px-1 font-sans">↵</kbd> Вибрати
+                            <kbd class="rounded border bg-muted px-1 font-sans">↵</kbd> {{ t('Select') }}
                         </span>
                     </div>
                     <button v-if="search.trim().length >= 2" class="font-medium text-foreground hover:underline"
                         @click="navigateTo(`/grunt/search?q=${encodeURIComponent(search)}`)">
-                        Всі результати →
+                        {{ t('All results →') }}
                     </button>
                     <kbd v-else class="rounded border bg-muted px-1 font-sans">Esc</kbd>
                 </div>

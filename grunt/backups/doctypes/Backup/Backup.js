@@ -4,9 +4,9 @@
  */
 
 const DOWNLOADS = [
-    ['database_url', 'База даних'],
-    ['files_url', 'Файли'],
-    ['config_url', 'Конфігурація'],
+    ['database_url', 'Database'],
+    ['files_url', 'Files'],
+    ['config_url', 'Configuration'],
 ]
 
 /** @param {FormProxy} frm */
@@ -18,7 +18,7 @@ function on_load(frm) {
     DOWNLOADS.forEach(([field, label], i) =>
         frm.actions.add({
             id: `download_${field}`,
-            label: `Завантажити: ${label}`,
+            label: `${__('Download')}: ${__(label)}`,
             icon: 'download',
             group: 'download',
             order: 100 + i,
@@ -33,12 +33,12 @@ async function setup_list(listview) {
     listview.actions.remove('bulk_edit')
     listview.actions.add({
         id: 'backup_now',
-        label: 'Створити зараз',
+        label: 'Create now',
         icon: 'archive',
         placement: 'primary',
         action: async (lv) => {
             await grunt.call({ method: 'grunt.backups.api.backup_now' })
-            grunt.show_alert('Резервну копію поставлено в чергу — з\'явиться в списку за хвилину', 'success')
+            grunt.show_alert(__('Backup queued — it will appear in the list in a minute'), 'success')
             setTimeout(() => lv.refresh(), 5000)
         },
     })

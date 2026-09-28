@@ -1,9 +1,12 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import type { DashboardWidget } from '@/types'
 import { FileText, Plus, RefreshCcw, Trash2, Send, Share2, MessageSquare, GitBranch } from '@lucide/vue'
 import { useRouter } from 'vue-router'
 import { formatDayMonth } from '@/core/datetime'
 import { docUrl } from '@/core/workspaceUrl'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   widget: DashboardWidget
@@ -49,9 +52,9 @@ function getActionColor(action: string): string {
 
 function getActionLabel(action: string): string {
   const map: Record<string, string> = {
-    create: 'Створив(ла)', update: 'Оновив(ла)', delete: 'Видалив(ла)',
-    submit: 'Зафіксував(ла)', cancel: 'Скасував(ла)',
-    share: 'Поділився(-лась)', comment: 'Прокоментував(ла)', workflow: 'Перевів(ла)',
+    create: t('Created'), update: t('Updated'), delete: t('Deleted'),
+    submit: t('Submitted'), cancel: t('Cancelled'),
+    share: t('Shared'), comment: t('Commented'), workflow: t('Moved'),
   }
   return map[action?.toLowerCase()] ?? action
 }
@@ -62,10 +65,10 @@ function formatTime(val: string): string {
   const now = new Date()
   const diffMs = now.getTime() - d.getTime()
   const diffMin = Math.floor(diffMs / 60000)
-  if (diffMin < 1) return 'щойно'
-  if (diffMin < 60) return `${diffMin} хв тому`
+  if (diffMin < 1) return t('just now')
+  if (diffMin < 60) return t('{n} min ago').replace('{n}', String(diffMin))
   const diffH = Math.floor(diffMin / 60)
-  if (diffH < 24) return `${diffH} год тому`
+  if (diffH < 24) return t('{n} h ago').replace('{n}', String(diffH))
   return formatDayMonth(d)
 }
 
@@ -89,7 +92,7 @@ function goToDoc(item: ActivityItem) {
     <!-- Empty -->
     <div v-else-if="!data?.items?.length"
       class="flex-1 flex items-center justify-center text-muted-foreground">
-      Немає активності
+      {{ t('No activity') }}
     </div>
 
     <!-- Feed -->

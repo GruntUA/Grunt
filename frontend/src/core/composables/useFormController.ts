@@ -39,6 +39,9 @@ import { formPermissions } from '@/core/permissions'
 import { docsApi } from '@/core/api/docs'
 import type { WorkflowTransition } from '@/core/scripting/executor'
 import { getLayoutTypeSet } from '@/core/fieldRegistry'
+import i18n from '@/plugins/i18n'
+
+const t = (key: string): string => i18n.global.t(key)
 
 // ── Public interface ─────────────────────────────────────────────────────────
 
@@ -215,8 +218,8 @@ export function useFormController(
       await reload()
     } catch (err: unknown) {
       const detail = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail
-      if (pendingTransition.value) transitionError.value = detail ?? 'Помилка застосування переходу'
-      else toast.error(detail ?? 'Помилка застосування переходу')
+      if (pendingTransition.value) transitionError.value = detail ?? t('Could not apply the transition')
+      else toast.error(detail ?? t('Could not apply the transition'))
     } finally {
       transitionBusy.value = false
     }

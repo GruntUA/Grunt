@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { shallowRef } from 'vue'
 import type { Component } from 'vue'
 import { VueDraggable } from 'vue-draggable-plus'
@@ -6,6 +7,8 @@ import { useBuilderStore } from '@/stores/builder'
 import { getPaletteGroups, getLayoutFields } from '@/core/fieldRegistry'
 import type { FieldDefinition } from '@/core/fieldRegistry'
 import type { DocField } from '@/types'
+
+const { t } = useI18n()
 
 // ── Lucide icon resolution ────────────────────────────────────────────────────
 type IconMap = Record<string, Component>
@@ -77,7 +80,7 @@ function addLayoutItem(type: string) {
 
     <!-- Layout items (click only, from registry) -->
     <div class="mb-4">
-      <p class="text-muted-foreground/70 px-1 mb-1">Структурні</p>
+      <p class="text-muted-foreground/70 px-1 mb-1">{{ t('Structural') }}</p>
       <div class="flex flex-col gap-0.5">
         <button
           v-for="item in layoutItems"

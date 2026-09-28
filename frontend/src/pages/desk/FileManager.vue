@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { UploadCloud, File as FileIcon, Trash2, Search, Download, Folder, AlertCircle, Layers } from '@lucide/vue'
 import { filesApi, type FileItem } from '@/core/api/files'
@@ -12,6 +13,8 @@ import { Input } from '@/components/ui/input'
 import { Spinner } from '@/components/ui/spinner'
 import { Skeleton } from '@/components/ui/skeleton'
 
+const { t } = useI18n()
+
 const searchQuery = ref('')
 const debouncedSearch = useDebounce(searchQuery, 300)
 const category = ref<FileCategory>('all')
@@ -23,10 +26,10 @@ const deduping = ref(false)
 const toast = useToast()
 
 const categoryTabs: { id: FileCategory; label: string }[] = [
-  { id: 'all', label: 'Усі' },
-  { id: 'image', label: 'Зображення' },
+  { id: 'all', label: t('All') },
+  { id: 'image', label: t('Images') },
   { id: 'pdf', label: 'PDF' },
-  { id: 'document', label: 'Документи' },
+  { id: 'document', label: t('Documents') },
 ]
 
 const {
@@ -90,7 +93,7 @@ async function uploadFile(file: File) {
 }
 
 async function removeFile(item: FileItem) {
-  if (!confirm('Видалити файл?')) return
+  if (!confirm(t('Delete file?'))) return
   deletingId.value = item.id
   try {
     await filesApi.delete(item.id)
@@ -101,20 +104,20 @@ async function removeFile(item: FileItem) {
 }
 
 async function dedupeStorage() {
-  if (!confirm('Об’єднати однакові файли на диску? Записи та посилання не змінюються.')) return
+  if (!confirm(t('Merge identical files on disk? Records and links stay unchanged.'))) return
   deduping.value = true
   try {
     const r = await filesApi.dedupeStorage()
     await refetch()
     if (r.freed_blobs) {
       toast.success(
-        `Звільнено ${formatFileSize(r.freed_bytes)} (${r.freed_blobs} копій, груп: ${r.duplicate_groups})`,
+        t('Freed {size} ({copies} copies, groups: {groups})').replace('{size}', formatFileSize(r.freed_bytes)).replace('{copies}', String(r.freed_blobs)).replace('{groups}', String(r.duplicate_groups)),
       )
     } else {
-      toast.info('Дублікатів не знайдено')
+      toast.info(t('No duplicates found'))
     }
   } catch {
-    toast.error('Не вдалося обробити дублікати')
+    toast.error(t('Could not process duplicates'))
   } finally {
     deduping.value = false
   }
@@ -132,28 +135,28 @@ watch([category, sort], () => scrollEl.value?.scrollTo({ top: 0 }))
                     <Folder class="size-5 text-primary" />
                 </div>
                 <div>
-                    <h1 class="text-xl font-semibold text-foreground">Менеджер файлів</h1>
+                    <h1 class="text-xl font-semibold text-foreground">{{ t('File manager') }}</h1>
                     <p class="text-muted-foreground">
-                        Завантажуйте та керуйте документами і медіа<span v-if="total"> · {{ total }}</span>
+                        {{ t('Upload and manage documents and media') }}<span v-if="total"> · {{ total }}</span>
                     </p>
                 </div>
             </div>
             <div class="flex items-center gap-3 w-full md:w-auto md:flex-1 md:justify-end">
                 <div class="relative w-full md:max-w-xs xl:max-w-md">
                     <Search class="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
-                    <Input v-model="searchQuery" placeholder="Введіть назву файла..." class="pl-9 h-9 w-full" />
+                    <Input v-model="searchQuery" :placeholder="t('Enter a file name...')" class="pl-9 h-9 w-full" />
                 </div>
                 <Button variant="outline" :disabled="deduping" class="h-9 whitespace-nowrap px-4"
-                    title="Об’єднати однакові файли на диску" @click="dedupeStorage">
+                    :title="t('Merge identical files on disk')" @click="dedupeStorage">
                     <Spinner v-if="deduping" class="size-4! mr-2" strokeWidth="8" />
                     <Layers v-else class="size-4 mr-2" />
-                    Дублікати
+                    {{ t('Duplicates') }}
                 </Button>
                 <div class="relative overflow-hidden group shrink-0">
                     <Button :disabled="uploading" class="h-9 whitespace-nowrap px-4">
                         <Spinner v-if="uploading" class="size-4! mr-2" strokeWidth="8" />
                         <UploadCloud v-else class="size-4 mr-2" />
-                        Завантажити
+                        {{ t('Upload') }}
                     </Button>
                     <input type="file" class="absolute inset-0 opacity-0 cursor-pointer" @change="handleFileSelect"
                         :disabled="uploading" />
@@ -177,9 +180,9 @@ watch([category, sort], () => scrollEl.value?.scrollTo({ top: 0 }))
             </div>
             <select v-model="sort"
                 class="ml-auto h-8 rounded-md border border-input bg-transparent px-2 text-sm outline-none">
-                <option value="new">Спочатку нові</option>
-                <option value="name">За назвою</option>
-                <option value="size">За розміром</option>
+                <option value="new">{{ t('Newest first') }}</option>
+                <option value="name">{{ t('By name') }}</option>
+                <option value="size">{{ t('By size') }}</option>
             </select>
         </div>
 
@@ -192,7 +195,7 @@ watch([category, sort], () => scrollEl.value?.scrollTo({ top: 0 }))
                 <div
                     class="flex flex-col items-center bg-card p-6 rounded-lg shadow-md border border-primary/20 animate-in zoom-in duration-200">
                     <UploadCloud class="size-12 text-primary mb-2" />
-                    <h3 class="text-lg font-semibold text-primary">Відпустіть файл тут</h3>
+                    <h3 class="text-lg font-semibold text-primary">{{ t('Drop the file here') }}</h3>
                 </div>
             </div>
 
@@ -203,8 +206,8 @@ watch([category, sort], () => scrollEl.value?.scrollTo({ top: 0 }))
 
             <div v-else-if="isError" class="flex-1 flex flex-col items-center justify-center gap-3 text-center">
                 <AlertCircle class="size-10 text-muted-foreground/40" />
-                <h3 class="text-lg font-semibold">Не вдалося завантажити файли</h3>
-                <button class="text-sm text-primary hover:underline" @click="refetch()">Спробувати ще</button>
+                <h3 class="text-lg font-semibold">{{ t('Failed to load files') }}</h3>
+                <button class="text-sm text-primary hover:underline" @click="refetch()">{{ t('Try again') }}</button>
             </div>
 
             <div v-else-if="items.length === 0"
@@ -212,9 +215,9 @@ watch([category, sort], () => scrollEl.value?.scrollTo({ top: 0 }))
                 <div class="size-20 rounded-full bg-primary/5 flex items-center justify-center mb-6">
                     <UploadCloud class="size-10 text-primary/40" />
                 </div>
-                <h3 class="text-2xl font-semibold mb-3">Немає файлів</h3>
+                <h3 class="text-2xl font-semibold mb-3">{{ t('No files') }}</h3>
                 <p class="text-muted-foreground max-w-md md:max-w-xl mb-6 md:text-base px-4">
-                    Перетягніть сюди файли або скористайтеся кнопкою «Завантажити» у правому верхньому куті.
+                    {{ t('Drag files here or use the «Upload» button in the top right corner.') }}
                 </p>
             </div>
 
@@ -234,7 +237,7 @@ watch([category, sort], () => scrollEl.value?.scrollTo({ top: 0 }))
                             class="absolute inset-x-0 top-0 p-2 bg-black/40 flex items-start justify-end opacity-0 group-hover:opacity-100 transition-opacity">
                             <button @click="removeFile(file)"
                                 class="size-7 rounded-full bg-background/20 hover:bg-destructive text-white flex items-center justify-center transition-colors"
-                                title="Видалити">
+                                :title="t('Delete')">
                                 <Spinner v-if="deletingId === file.id" class="size-3.5!" />
                                 <Trash2 v-else class="size-3.5" />
                             </button>
@@ -243,7 +246,7 @@ watch([category, sort], () => scrollEl.value?.scrollTo({ top: 0 }))
                             class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
                             <a :href="file.url" download target="_blank"
                                 class="size-10 rounded-full bg-background/80 hover:bg-primary text-foreground hover:text-primary-foreground flex items-center justify-center transition-colors pointer-events-auto border border-white/20 shadow-md"
-                                title="Завантажити">
+                                :title="t('Download')">
                                 <Download class="size-4" />
                             </a>
                         </div>

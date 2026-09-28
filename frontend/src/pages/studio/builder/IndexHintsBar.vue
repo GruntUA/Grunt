@@ -1,7 +1,10 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { TriangleAlert } from '@lucide/vue'
 import { useBuilderStore } from '@/stores/builder'
 import type { IndexHint } from '@/types'
+
+const { t } = useI18n()
 
 const builder = useBuilderStore()
 
@@ -23,7 +26,7 @@ function applyHint(hint: IndexHint) {
           type="button"
           class="ml-2 font-semibold underline underline-offset-2 hover:opacity-75"
           @click="applyHint(hint)"
-        >Додати індекс</button>
+        >{{ t('Add index') }}</button>
       </div>
     </div>
   </div>

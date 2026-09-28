@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '@/core/api/client'
@@ -16,6 +17,8 @@ import {
     ExternalLink,
     History
 } from '@lucide/vue'
+
+const { t } = useI18n()
 
 
 interface ActivityEntry {
@@ -97,9 +100,9 @@ watch(() => auth.isLoggedIn, (loggedIn) => {
         <div class="flex items-center justify-between border-b px-4 py-2.5">
             <div class="flex items-center gap-2">
                 <Clock class="size-3.5 text-muted-foreground" />
-                <span class="font-semibold text-foreground">Стрічка активності</span>
+                <span class="font-semibold text-foreground">{{ t('Activity feed') }}</span>
             </div>
-            <Button variant="ghost" size="icon-sm" title="Оновити" @click="fetchActivity">
+            <Button variant="ghost" size="icon-sm" :title="t('Refresh')" @click="fetchActivity">
                 <RefreshCcw class="size-3.5" />
             </Button>
         </div>
@@ -107,12 +110,12 @@ watch(() => auth.isLoggedIn, (loggedIn) => {
         <div class="flex-1 overflow-y-auto">
             <div v-if="loading" class="flex flex-col items-center justify-center gap-3 py-12">
                 <Spinner class="size-5 text-muted-foreground" />
-                <span class="text-muted-foreground">Завантаження...</span>
+                <span class="text-muted-foreground">{{ t('Loading...') }}</span>
             </div>
 
             <div v-else-if="activities.length === 0" class="flex flex-col items-center justify-center gap-2 py-12 text-center">
                 <History class="size-6 text-muted-foreground/50" />
-                <p class="text-muted-foreground">Немає недавньої активності</p>
+                <p class="text-muted-foreground">{{ t('No recent activity') }}</p>
             </div>
 
             <div v-else>
@@ -130,10 +133,10 @@ watch(() => auth.isLoggedIn, (loggedIn) => {
 
                             <p class="mb-2 break-words leading-snug text-muted-foreground">
                                 <span class="font-medium text-foreground">
-                                    {{ item.action === 'create' ? 'Створив(ла)' : item.action === 'update' ?
-                                        'Оновив(ла)' : item.action }}
+                                    {{ item.action === 'create' ? t('Created') : item.action === 'update' ?
+                                        t('Updated') : item.action }}
                                 </span>
-                                документ
+                                {{ t('document') }}
                                 <span class="font-semibold lowercase text-foreground/80">{{ item.doctype }}</span>:
                                 <span class="font-medium text-primary">{{ item.title || item.doc_id }}</span>
                             </p>
@@ -142,7 +145,7 @@ watch(() => auth.isLoggedIn, (loggedIn) => {
                                 <span class="rounded bg-muted px-1.5 py-0.5 font-mono uppercase text-muted-foreground">{{
                                     formatDate(item.created_at) }}</span>
                                 <button type="button" class="flex items-center gap-1 font-semibold uppercase tracking-wider text-primary opacity-0 transition-opacity group-hover:opacity-100" @click="goToDoc(item)">
-                                    Переглянути
+                                    {{ t('View') }}
                                     <ExternalLink class="size-3" />
                                 </button>
                             </div>

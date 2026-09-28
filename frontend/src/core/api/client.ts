@@ -1,6 +1,9 @@
 import axios from 'axios'
 import { markServerReachable } from '@/core/composables/useNetworkStatus'
 import type { AxiosInstance, InternalAxiosRequestConfig } from 'axios'
+import i18n from '@/plugins/i18n'
+
+const t = (key: string): string => i18n.global.t(key)
 
 // Backward-compat shim: backend no longer sends `id` (name is the sole PK).
 // Recursively add `id = name` so existing components keep working unchanged.
@@ -155,7 +158,7 @@ client.interceptors.response.use(
     // network tab stay intact and the error is easy to debug.
     if (error.response?.status === 403) {
       const body = error.response?.data
-      const message: string = body?.detail ?? body?.error?.message ?? 'Доступ заборонено'
+      const message: string = body?.detail ?? body?.error?.message ?? t('Access denied')
       showForbiddenToast(message)
       return Promise.reject(error)
     }
@@ -191,7 +194,7 @@ client.interceptors.response.use(
         const data = typeof originalConfig.data === 'string' ? JSON.parse(originalConfig.data) : originalConfig.data
         if (await enqueue(method, originalConfig.url ?? '', data)) {
           const { toast } = await import('@/core/composables/useToast')
-          toast.info("Зміни збережено на пристрої — надішлемо, щойно з'явиться зв'язок", "Немає з'єднання")
+          toast.info(t('Changes saved on this device — they will be sent once the connection is back'), t('No connection'))
           return Promise.reject(new OfflineQueuedError())
         }
       }

@@ -1,9 +1,12 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { ref, watch, nextTick } from 'vue'
 import type { DocField } from '@/types'
 import { useBuilderStore } from '@/stores/builder'
 import type { LayoutSection } from '@/core/composables/useFormLayout'
 import CanvasColumn from './CanvasColumn.vue'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   section: LayoutSection
@@ -88,7 +91,7 @@ function selectSection() {
       <!-- Drag handle -->
       <span
         class="section-drag-handle text-muted-foreground/30 hover:text-muted-foreground/70 cursor-grab active:cursor-grabbing shrink-0 select-none"
-        title="Перетягнути секцію"
+        :title="t('Drag section')"
         @click.stop
       >⠿</span>
 

@@ -11,7 +11,7 @@ import type { ViewDefinition } from '@/core/viewRegistry'
  */
 const def: ViewDefinition = {
   type: 'report',
-  label: 'Звіт',
+  label: 'Report',
   icon: Table2,
   order: 6,
 

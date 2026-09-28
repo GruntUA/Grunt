@@ -1,8 +1,11 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { ref, computed } from 'vue'
 import { CheckCircle2, AlertCircle, ChevronDown, ChevronUp, X, Settings2 } from '@lucide/vue'
 import { useTaskTracker } from '@/core/composables/useTaskTracker'
 import { Progress } from '@/components/ui/progress'
+
+const { t } = useI18n()
 
 const tracker = useTaskTracker()
 const collapsed = ref(false)
@@ -48,7 +51,7 @@ function formatCount(count: number, total: number): string {
           <CheckCircle2 v-else class="size-4 text-success shrink-0" />
 
           <span class="font-semibold text-foreground flex-1">
-            {{ tracker.hasActive.value ? 'Виконуються задачі' : 'Задачі завершено' }}
+            {{ tracker.hasActive.value ? t('Tasks running') : t('Tasks finished') }}
           </span>
 
           <button

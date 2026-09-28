@@ -20,7 +20,7 @@
  *
  *   const def: ViewDefinition = {
  *     type: 'timeline',
- *     label: 'Таймлайн',
+ *     label: 'Timeline',   // English i18n key — rendered through t()
  *     icon: Clock,
  *     order: 10,
  *     resolveField: (dt: DocType): DocField | null =>

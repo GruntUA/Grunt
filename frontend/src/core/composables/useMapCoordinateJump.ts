@@ -1,5 +1,8 @@
 import { ref } from 'vue'
 import L from 'leaflet'
+import i18n from '@/plugins/i18n'
+
+const t = (key: string): string => i18n.global.t(key)
 
 interface UseMapCoordinateJumpParams {
   getMap: () => L.Map | null
@@ -58,7 +61,7 @@ export function useMapCoordinateJump({ getMap }: UseMapCoordinateJumpParams) {
 
     coordMarker = L.marker([lat, lng], { icon })
       .addTo(map)
-      .bindPopup(`<div class="popup-title">📍 Позначена точка</div>
+      .bindPopup(`<div class="popup-title">📍 ${t('Marked point')}</div>
       <div class="popup-coords">${lat.toFixed(6)}, ${lng.toFixed(6)}</div>`)
       .openPopup()
 

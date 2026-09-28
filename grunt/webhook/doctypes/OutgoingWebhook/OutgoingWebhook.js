@@ -9,7 +9,7 @@ let _logsPanel = null
 function on_load(frm) {
   frm.actions.add({
     id: 'test_delivery',
-    label: 'Тест',
+    label: 'Test',
     icon: 'send',
     variant: 'secondary',
     visible: (f) => !f.is_new,
@@ -17,7 +17,7 @@ function on_load(frm) {
   })
   frm.actions.add({
     id: 'delivery_log',
-    label: 'Журнал доставок',
+    label: 'Delivery log',
     icon: 'scroll-text',
     variant: 'ghost',
     visible: (f) => !f.is_new,
@@ -30,11 +30,11 @@ function on_load(frm) {
 
 async function _runTest(frm) {
   const id = frm.doc_id || frm.get_value('id') || frm.get_value('name')
-  if (!id) { alert('Збережіть вебхук перед тестуванням.'); return }
+  if (!id) { alert(__('Save the webhook before testing.')); return }
 
-  const btn = document.querySelector('[data-grunt-btn="Тест"]')
-    || [...document.querySelectorAll('button')].find(b => b.textContent.trim() === 'Тест')
-  if (btn) { btn.disabled = true; btn.textContent = '⏳ Надсилання...' }
+  const btn = document.querySelector('[data-grunt-btn="Test"]')
+    || [...document.querySelectorAll('button')].find(b => b.textContent.trim() === __('Test'))
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ ' + __('Sending...') }
 
   const token = localStorage.getItem('grunt_token')
   const headers = { 'Content-Type': 'application/json' }
@@ -53,7 +53,7 @@ async function _runTest(frm) {
   } catch (err) {
     _showTestResult({ success: false, error: err.message })
   } finally {
-    if (btn) { btn.disabled = false; btn.textContent = 'Тест' }
+    if (btn) { btn.disabled = false; btn.textContent = __('Test') }
   }
 }
 
@@ -81,11 +81,11 @@ function _showTestResult(log) {
       : 'background:#fef2f2;border:1px solid #fca5a5;color:#991b1b',
   ].join(';')
 
-  let html = `<div style="font-weight:600;margin-bottom:6px">${ok ? '✅ Успішно' : '❌ Помилка'}</div>`
-  if (log.status_code) html += `<div>HTTP ${log.status_code} · ${log.duration_ms ?? 0} мс</div>`
+  let html = `<div style="font-weight:600;margin-bottom:6px">${ok ? '✅ ' + __('Success') : '❌ ' + __('Error')}</div>`
+  if (log.status_code) html += `<div>HTTP ${log.status_code} · ${log.duration_ms ?? 0} ${__('ms')}</div>`
   if (log.error) html += `<div style="margin-top:4px;font-family:monospace;font-size:12px">${_esc(log.error)}</div>`
   if (log.response_body) {
-    html += `<details style="margin-top:8px"><summary style="cursor:pointer;font-size:12px">Відповідь</summary>
+    html += `<details style="margin-top:8px"><summary style="cursor:pointer;font-size:12px">${__('Response')}</summary>
       <pre style="margin-top:4px;overflow:auto;max-height:120px;font-size:11px;white-space:pre-wrap">${_esc(log.response_body.slice(0, 800))}</pre></details>`
   }
   html += `<button onclick="this.parentElement.remove()" style="position:absolute;top:10px;right:12px;background:none;border:none;cursor:pointer;font-size:16px;opacity:.6">✕</button>`
@@ -127,9 +127,9 @@ function _createLogsPanel(frm) {
 
   panel.innerHTML = `
     <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--color-border,#e5e7eb);flex-shrink:0">
-      <span style="font-weight:600;font-size:14px">Журнал доставок</span>
+      <span style="font-weight:600;font-size:14px">${__('Delivery log')}</span>
       <div style="display:flex;gap:8px;align-items:center">
-        <button id="gwl-refresh" title="Оновити"
+        <button id="gwl-refresh" title="${__('Refresh')}"
           style="font-size:12px;padding:4px 10px;border:1px solid var(--color-border,#e5e7eb);border-radius:6px;cursor:pointer;background:transparent">↺</button>
         <button id="gwl-close"
           style="background:none;border:none;cursor:pointer;font-size:18px;opacity:.5;line-height:1">✕</button>
@@ -150,7 +150,7 @@ async function _loadLogs(frm) {
   const body = document.getElementById('gwl-body')
   if (!body) return
 
-  body.innerHTML = '<div style="padding:20px;text-align:center;color:#9ca3af;font-size:13px">Завантаження...</div>'
+  body.innerHTML = '<div style="padding:20px;text-align:center;color:#9ca3af;font-size:13px">' + __('Loading...') + '</div>'
 
   const token = localStorage.getItem('grunt_token')
   const headers = token ? { 'Authorization': 'Bearer ' + token } : {}
@@ -162,7 +162,7 @@ async function _loadLogs(frm) {
     const logs = json?.data?.items ?? json?.data ?? []
 
     if (!logs.length) {
-      body.innerHTML = '<div style="padding:20px;text-align:center;color:#9ca3af;font-size:13px">Доставок ще немає</div>'
+      body.innerHTML = '<div style="padding:20px;text-align:center;color:#9ca3af;font-size:13px">' + __('No deliveries yet') + '</div>'
       return
     }
 
@@ -188,7 +188,7 @@ async function _loadLogs(frm) {
             </div>
             <div style="display:flex;gap:12px;color:#374151">
               ${log.status_code ? `<span>HTTP ${log.status_code}</span>` : ''}
-              ${log.duration_ms != null ? `<span>${log.duration_ms} мс</span>` : ''}
+              ${log.duration_ms != null ? `<span>${log.duration_ms} ${__('ms')}</span>` : ''}
               ${log.error ? `<span style="color:#dc2626" title="${_esc(log.error)}">⚠ ${_esc(log.error.slice(0, 40))}</span>` : ''}
             </div>
           </div>
@@ -196,7 +196,7 @@ async function _loadLogs(frm) {
       `
     }).join('')
   } catch (err) {
-    body.innerHTML = `<div style="padding:20px;color:#dc2626;font-size:13px">Помилка: ${_esc(err.message)}</div>`
+    body.innerHTML = `<div style="padding:20px;color:#dc2626;font-size:13px">${__('Error')}: ${_esc(err.message)}</div>`
   }
 }
 

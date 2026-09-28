@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { workspaceApi, type MyWork } from '@/core/api/workspace'
@@ -9,6 +10,8 @@ import { Badge } from '@/components/ui/badge'
 import { Spinner } from '@/components/ui/spinner'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { docUrl } from '@/core/workspaceUrl'
+
+const { t } = useI18n()
 
 const router = useRouter()
 
@@ -58,12 +61,12 @@ onMounted(async () => {
         <TabsList class="w-full">
           <TabsTrigger value="tasks" class="gap-1.5">
             <CheckSquare class="size-3.5" />
-            Задачі
+            {{ t('Tasks') }}
             <Badge v-if="assignedCount" variant="secondary" class="px-1.5">{{ assignedCount }}</Badge>
           </TabsTrigger>
           <TabsTrigger value="notifications" class="gap-1.5">
             <Bell class="size-3.5" />
-            Сповіщення
+            {{ t('Notifications') }}
             <Badge v-if="unreadCount" variant="secondary" class="px-1.5">{{ unreadCount }}</Badge>
           </TabsTrigger>
         </TabsList>
@@ -71,14 +74,14 @@ onMounted(async () => {
 
       <div v-if="loading" class="flex items-center justify-center gap-3 py-10 text-muted-foreground">
         <Spinner class="size-4" />
-        Завантаження...
+        {{ t('Loading...') }}
       </div>
 
       <template v-else>
         <TabsContent value="tasks" class="mt-0">
           <div v-if="!data?.assigned.length" class="flex flex-col items-center justify-center gap-2 py-10 text-center">
             <CheckSquare class="size-5 text-muted-foreground/40" />
-            <p class="text-muted-foreground">Немає призначених задач</p>
+            <p class="text-muted-foreground">{{ t('No assigned tasks') }}</p>
           </div>
           <button v-for="t in data!.assigned.slice(0, 8)" :key="t.id"
             class="group flex w-full items-start gap-3 border-b px-4 py-3 text-left transition-colors last:border-0 hover:bg-accent"
@@ -92,7 +95,7 @@ onMounted(async () => {
                 <span class="font-mono">{{ t.reference_doctype }}</span>
                 <template v-if="t.overdue">
                   <span>·</span>
-                  <span class="font-medium text-destructive">прострочено</span>
+                  <span class="font-medium text-destructive">{{ $t('overdue') }}</span>
                 </template>
                 <template v-else-if="t.due_date">
                   <span>·</span>
@@ -106,7 +109,7 @@ onMounted(async () => {
         <TabsContent value="notifications" class="mt-0">
           <div v-if="!data?.notifications.length" class="flex flex-col items-center justify-center gap-2 py-10 text-center">
             <Bell class="size-5 text-muted-foreground/40" />
-            <p class="text-muted-foreground">Немає нових сповіщень</p>
+            <p class="text-muted-foreground">{{ t('No new notifications') }}</p>
           </div>
           <button v-for="n in data!.notifications.slice(0, 8)" :key="n.name"
             class="group flex w-full items-start gap-3 border-b px-4 py-3 text-left transition-colors last:border-0 hover:bg-accent"

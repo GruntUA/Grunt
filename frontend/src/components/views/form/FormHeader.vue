@@ -80,7 +80,7 @@ const isRenaming = ref(false)
 // Table info (DocType editor only) — registered like any other action.
 props.actions.add({
   id: 'table_info',
-  label: 'Інформація про таблицю',
+  label: 'Table info',
   icon: 'database',
   placement: 'menu',
   group: 'doctype',
@@ -137,8 +137,8 @@ async function runCompact() {
 
 const compactLabel = computed(() =>
   tableInfo.value?.reclaim_scope === 'database'
-    ? t('Стиснути базу даних (VACUUM)')
-    : t('Оптимізувати таблицю'),
+    ? t('Compact database (VACUUM)')
+    : t('Optimize table'),
 )
 
 function copyTableName() {
@@ -150,8 +150,8 @@ function copyTableName() {
 
 function formatBytes(bytes: number | null | undefined): string {
   if (bytes === null || bytes === undefined) return '—'
-  if (bytes < 1024) return `${bytes} Б`
-  const units = ['КБ', 'МБ', 'ГБ', 'ТБ']
+  if (bytes < 1024) return `${bytes} ${t('B')}`
+  const units = [t('KB'), t('MB'), t('GB'), t('TB')]
   let value = bytes / 1024
   let i = 0
   while (value >= 1024 && i < units.length - 1) {
@@ -238,7 +238,7 @@ const statusBadge = computed(() => resolveStatusBadge(props.dt, props.document))
           variant="outline"
           class="text-foreground"
           :class="{ 'bg-muted': !panelOpen }"
-          :title="`${panelOpen ? 'Сховати' : 'Показати'} деталі (Ctrl+])`"
+          :title="`${panelOpen ? t('Hide details') : t('Show details')} (Ctrl+])`"
           @click="togglePanel"
         >
           <PanelRight class="size-4" />
@@ -345,8 +345,8 @@ const statusBadge = computed(() => resolveStatusBadge(props.dt, props.document))
             <Database class="size-4.5 text-primary" />
           </div>
           <div>
-            <DialogTitle class="text-base font-semibold">{{ t('Інформація про таблицю') }}</DialogTitle>
-            <p class="text-muted-foreground">{{ t('Фізичне сховище цього типу документа') }}</p>
+            <DialogTitle class="text-base font-semibold">{{ t('Table info') }}</DialogTitle>
+            <p class="text-muted-foreground">{{ t('Physical storage of this document type') }}</p>
           </div>
         </div>
       </DialogHeader>
@@ -360,7 +360,7 @@ const statusBadge = computed(() => resolveStatusBadge(props.dt, props.document))
       <div v-else-if="tableInfo">
         <dl class="divide-y divide-border">
           <div class="flex items-center justify-between gap-3 py-2">
-            <dt class="text-muted-foreground shrink-0">{{ t('Назва таблиці') }}</dt>
+            <dt class="text-muted-foreground shrink-0">{{ t('Table name') }}</dt>
             <dd class="flex items-center gap-1.5 min-w-0">
               <code class="font-mono truncate">{{ tableInfo.table_name }}</code>
               <Button variant="ghost" size="sm" class="size-6 p-0 shrink-0" :title="t('Copy')" @click="copyTableName">
@@ -369,51 +369,51 @@ const statusBadge = computed(() => resolveStatusBadge(props.dt, props.document))
             </dd>
           </div>
           <div class="flex items-center justify-between gap-3 py-2">
-            <dt class="text-muted-foreground">{{ t('СКБД') }}</dt>
+            <dt class="text-muted-foreground">{{ t('DBMS') }}</dt>
             <dd>{{ tableInfo.dialect }}</dd>
           </div>
           <div v-if="!tableInfo.exists" class="py-2 text-amber-600 dark:text-amber-400">
-            {{ t('Таблиця ще не створена в базі даних') }}
+            {{ t('The table has not been created in the database yet') }}
           </div>
           <template v-else>
             <div class="flex items-center justify-between gap-3 py-2">
-              <dt class="text-muted-foreground">{{ t('Рядків') }}</dt>
+              <dt class="text-muted-foreground">{{ t('Rows') }}</dt>
               <dd>{{ tableInfo.row_count?.toLocaleString() ?? '—' }}</dd>
             </div>
             <template v-if="tableInfo.size_supported">
               <div class="flex items-center justify-between gap-3 py-2">
-                <dt class="text-muted-foreground">{{ t('Дані') }}</dt>
+                <dt class="text-muted-foreground">{{ t('Data') }}</dt>
                 <dd>{{ formatBytes(tableInfo.table_bytes) }}</dd>
               </div>
               <div class="flex items-center justify-between gap-3 py-2">
-                <dt class="text-muted-foreground">{{ t('Індекси') }}</dt>
+                <dt class="text-muted-foreground">{{ t('Indexes') }}</dt>
                 <dd>{{ formatBytes(tableInfo.index_bytes) }}</dd>
               </div>
               <div class="flex items-center justify-between gap-3 py-2 font-medium">
-                <dt>{{ t('Разом на диску') }}</dt>
+                <dt>{{ t('Total on disk') }}</dt>
                 <dd>{{ formatBytes(tableInfo.total_bytes) }}</dd>
               </div>
               <div v-if="tableInfo.reclaimable_bytes" class="flex items-center justify-between gap-3 py-2">
                 <dt class="text-muted-foreground">
-                  {{ tableInfo.reclaim_scope === 'database' ? t('Вільно у файлі БД') : t('Можна вивільнити') }}
+                  {{ tableInfo.reclaim_scope === 'database' ? t('Free in the database file') : t('Reclaimable') }}
                 </dt>
                 <dd>{{ formatBytes(tableInfo.reclaimable_bytes) }}</dd>
               </div>
             </template>
             <div v-else class="py-2 text-muted-foreground">
-              {{ t('Розмір недоступний для цієї бази даних') }}
+              {{ t('Size is not available for this database') }}
             </div>
           </template>
         </dl>
         <p v-if="tableInfo.dead_tuples" class="mt-2 text-muted-foreground">
-          {{ t('«мертвих» рядків: {n}').replace('{n}', String(tableInfo.dead_tuples)) }}
+          {{ t('Dead rows: {n}').replace('{n}', String(tableInfo.dead_tuples)) }}
         </p>
 
         <!-- Compaction -->
         <div v-if="tableInfo.exists && tableInfo.size_supported" class="mt-3 border-t border-border pt-3">
           <div v-if="compacting" class="flex items-center gap-2 text-muted-foreground">
             <Loader2 class="size-3.5 animate-spin" />
-            {{ t('Виконується стиснення… база може бути заблокована до завершення.') }}
+            {{ t('Compacting… the database may be locked until it finishes.') }}
           </div>
 
           <p v-else-if="compactError" class="text-destructive">{{ compactError }}</p>
@@ -422,27 +422,27 @@ const statusBadge = computed(() => resolveStatusBadge(props.dt, props.document))
             <Check class="size-3.5 mt-0.5 shrink-0 text-emerald-600 dark:text-emerald-400" />
             <span v-if="compactResult.freed_bytes && compactResult.freed_bytes > 0" class="text-foreground">
               {{ (compactResult.scope === 'database'
-                    ? t('Звільнено {size} у файлі бази даних')
-                    : t('Звільнено {size}')).replace('{size}', formatBytes(compactResult.freed_bytes)) }}
+                    ? t('Freed {size} in the database file')
+                    : t('Freed {size}')).replace('{size}', formatBytes(compactResult.freed_bytes)) }}
               <span class="text-muted-foreground">
                 ({{ formatBytes(compactResult.before_bytes) }} → {{ formatBytes(compactResult.after_bytes) }})
               </span>
             </span>
-            <span v-else class="text-muted-foreground">{{ t('Таблиця вже щільно упакована — вивільняти нічого.') }}</span>
+            <span v-else class="text-muted-foreground">{{ t('The table is already compact — nothing to reclaim.') }}</span>
           </div>
 
           <div v-else-if="confirmCompact">
             <p class="text-muted-foreground mb-2">
               <span v-if="tableInfo.reclaim_scope === 'database'">
-                {{ t('VACUUM перепише весь файл бази даних і на час виконання заблокує запис. Продовжити?') }}
+                {{ t('VACUUM rewrites the whole database file and blocks writes while it runs. Continue?') }}
               </span>
               <span v-else>
-                {{ t('Операція перепише таблицю під ексклюзивним блокуванням. Продовжити?') }}
+                {{ t('This rewrites the table under an exclusive lock. Continue?') }}
               </span>
             </p>
             <div class="flex gap-2">
               <Button variant="outline" size="sm" @click="confirmCompact = false">{{ t('Cancel') }}</Button>
-              <Button variant="destructive" size="sm" @click="runCompact">{{ t('Стиснути') }}</Button>
+              <Button variant="destructive" size="sm" @click="runCompact">{{ t('Compact') }}</Button>
             </div>
           </div>
 
@@ -454,7 +454,7 @@ const statusBadge = computed(() => resolveStatusBadge(props.dt, props.document))
       </div>
 
       <DialogFooter>
-        <span v-if="tableNameCopied" class="text-muted-foreground self-center mr-auto">{{ t('Скопійовано') }}</span>
+        <span v-if="tableNameCopied" class="text-muted-foreground self-center mr-auto">{{ t('Copied') }}</span>
         <Button size="sm" :disabled="compacting" @click="showTableInfoDialog = false">{{ t('Done') }}</Button>
       </DialogFooter>
     </DialogContent>

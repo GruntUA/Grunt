@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
@@ -31,6 +32,8 @@ import {
 } from '@lucide/vue'
 import { docUrl } from '@/core/workspaceUrl'
 
+const { t } = useI18n()
+
 const auth = useAuthStore()
 async function exitImpersonation() {
   await auth.stopImpersonation()
@@ -51,11 +54,11 @@ const greeting = computed(() => {
   // full_name is "Прізвище Ім'я [По-батькові]" (see User.before_save on the
   // backend) — the first name is the second word, not the first.
   const parts = auth.user?.full_name?.split(' ') ?? []
-  const name = parts[1] ?? parts[0] ?? 'користувач'
-  if (hour < 5) return { text: `Добраніч, ${name}`, icon: Moon }
-  if (hour < 12) return { text: `Доброго ранку, ${name}`, icon: Sunrise }
-  if (hour < 18) return { text: `Доброго дня, ${name}`, icon: Sun }
-  return { text: `Доброго вечора, ${name}`, icon: Sunset }
+  const name = parts[1] ?? parts[0] ?? t('user')
+  if (hour < 5) return { text: t('Good night, {name}').replace('{name}', name), icon: Moon }
+  if (hour < 12) return { text: t('Good morning, {name}').replace('{name}', name), icon: Sunrise }
+  if (hour < 18) return { text: t('Good afternoon, {name}').replace('{name}', name), icon: Sun }
+  return { text: t('Good evening, {name}').replace('{name}', name), icon: Sunset }
 })
 
 // Honest, deduplicated business-document total (excludes logs/sessions/config).
@@ -94,12 +97,12 @@ onMounted(async () => {
 function timeAgo(ts: number): string {
   const diff = Date.now() - ts
   const minutes = Math.floor(diff / 60000)
-  if (minutes < 1) return 'щойно'
-  if (minutes < 60) return `${minutes} хв`
+  if (minutes < 1) return t('just now')
+  if (minutes < 60) return t('{n} min').replace('{n}', String(minutes))
   const hours = Math.floor(minutes / 60)
-  if (hours < 24) return `${hours} год`
+  if (hours < 24) return t('{n} h').replace('{n}', String(hours))
   const days = Math.floor(hours / 24)
-  return `${days} дн`
+  return t('{n} d').replace('{n}', String(days))
 }
 
 function findWorkspaceForDoc(doc: RecentDoc) {
@@ -132,7 +135,7 @@ function docInitials(doc: RecentDoc): string {
       <div class="mb-4 flex justify-end">
         <DropdownMenu>
           <DropdownMenuTrigger as-child>
-            <Button variant="ghost" size="icon-sm" title="Тема">
+            <Button variant="ghost" size="icon-sm" :title="t('Theme')">
               <component :is="colorMode.isDark.value ? Moon : Sun" class="size-4" />
             </Button>
           </DropdownMenuTrigger>
@@ -140,15 +143,15 @@ function docInitials(doc: RecentDoc): string {
             <DropdownMenuRadioGroup :model-value="colorMode.currentTheme.value" @update:model-value="onThemeChange">
               <DropdownMenuRadioItem value="light" class="gap-2 p-2">
                 <Sun class="size-4 shrink-0" />
-                <span>Світла</span>
+                <span>{{ t('Light') }}</span>
               </DropdownMenuRadioItem>
               <DropdownMenuRadioItem value="dark" class="gap-2 p-2">
                 <Moon class="size-4 shrink-0" />
-                <span>Темна</span>
+                <span>{{ t('Dark') }}</span>
               </DropdownMenuRadioItem>
               <DropdownMenuRadioItem value="system" class="gap-2 p-2">
                 <Monitor class="size-4 shrink-0" />
-                <span>Системна</span>
+                <span>{{ t('System') }}</span>
               </DropdownMenuRadioItem>
             </DropdownMenuRadioGroup>
           </DropdownMenuContent>
@@ -162,21 +165,21 @@ function docInitials(doc: RecentDoc): string {
             <component :is="greeting.icon" class="size-5" />
           </div>
           <h1 class="text-2xl font-semibold tracking-tight text-foreground">
-            <router-link v-if="auth.user" :to="`/app/grunt/User/${auth.user.id}`" title="Відкрити мій профіль"
+            <router-link v-if="auth.user" :to="`/app/grunt/User/${auth.user.id}`" :title="t('Open my profile')"
               class="transition-colors hover:text-primary">
               {{ greeting.text }}
             </router-link>
             <template v-else>{{ greeting.text }}</template>
           </h1>
-          <p class="text-muted-foreground">Що плануєте зробити сьогодні?</p>
+          <p class="text-muted-foreground">{{ t('What are you planning to do today?') }}</p>
         </div>
 
         <div v-if="auth.isImpersonating"
           class="flex items-center justify-center gap-2 rounded-lg border border-warning/30 bg-warning/10 px-3 py-2 text-warning">
           <Eye class="size-3.5 shrink-0" />
-          <span>Перегляд як {{ auth.user?.full_name }} —
+          <span>{{ t('Viewing as {name}').replace('{name}', auth.user?.full_name ?? '') }} —
             <button type="button" class="font-semibold underline underline-offset-2" @click="exitImpersonation">
-              повернутися до себе
+              {{ t('switch back') }}
             </button>
           </span>
         </div>
@@ -186,7 +189,7 @@ function docInitials(doc: RecentDoc): string {
           @click="uiStore.openCommandPalette">
           <Search class="size-4 shrink-0 text-muted-foreground" />
           <span class="flex-1 text-muted-foreground">
-            Шукайте документи, додатки або дії...
+            {{ t('Search documents, apps or actions...') }}
           </span>
           <div class="hidden shrink-0 items-center gap-1 sm:flex">
             <kbd class="rounded border bg-muted px-1.5 py-0.5 font-mono text-xs text-muted-foreground">⌘</kbd>
@@ -195,13 +198,13 @@ function docInitials(doc: RecentDoc): string {
         </button>
 
         <p class="text-muted-foreground">
-          {{ appStore.workspaces.length }} додатків · {{ totalDocsCount.toLocaleString('uk-UA') }} документів у системі
+          {{ t('{apps} apps · {docs} documents in the system').replace('{apps}', String(appStore.workspaces.length)).replace('{docs}', totalDocsCount.toLocaleString()) }}
         </p>
       </section>
 
       <!-- ── CONTINUE: recent documents strip ─────────────────────── -->
       <section v-if="recentDocs.length" class="space-y-3 pb-10">
-        <h2 class="font-medium text-foreground">Продовжити</h2>
+        <h2 class="font-medium text-foreground">{{ t('Continue') }}</h2>
         <div class="-mx-1 flex gap-3 overflow-x-auto px-1 pb-1">
           <button v-for="doc in recentDocs.slice(0, 10)" :key="doc.id"
             class="group flex w-56 shrink-0 flex-col gap-2.5 rounded-lg border bg-card p-3 text-left transition-colors hover:border-primary/40"
@@ -234,9 +237,9 @@ function docInitials(doc: RecentDoc): string {
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
               <LayoutGrid class="size-3.5 text-muted-foreground" />
-              <h2 class="font-semibold text-foreground">Ваші додатки</h2>
+              <h2 class="font-semibold text-foreground">{{ t('Your apps') }}</h2>
             </div>
-            <span class="text-muted-foreground">{{ appStore.workspaces.length }} встановлено</span>
+            <span class="text-muted-foreground">{{ t('{n} installed').replace('{n}', String(appStore.workspaces.length)) }}</span>
           </div>
 
           <!-- Loading skeleton -->
@@ -248,7 +251,7 @@ function docInitials(doc: RecentDoc): string {
           <div v-else-if="appStore.workspaces.length === 0 && !auth.isSystemManager"
             class="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed py-20 text-center">
             <PackageOpen class="size-8 text-muted-foreground/50" />
-            <p class="text-muted-foreground">Немає встановлених додатків</p>
+            <p class="text-muted-foreground">{{ t('No apps installed') }}</p>
           </div>
 
           <!-- Cards grid -->

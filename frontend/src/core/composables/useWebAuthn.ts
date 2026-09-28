@@ -1,3 +1,7 @@
+import i18n from '@/plugins/i18n'
+
+const t = (key: string): string => i18n.global.t(key)
+
 /**
  * Thin browser-side glue for the WebAuthn provider (`/api/v1/auth/webauthn/*`).
  *
@@ -105,7 +109,7 @@ export async function createPasskey(
   const cred = (await navigator.credentials.create({
     publicKey: decodeCreationOptions(optionsJSON),
   })) as PublicKeyCredential | null
-  if (!cred) throw new Error('Реєстрацію ключа скасовано')
+  if (!cred) throw new Error(t('Key registration cancelled'))
   return encodeCredential(cred)
 }
 
@@ -117,6 +121,6 @@ export async function getPasskeyAssertion(
   const cred = (await navigator.credentials.get({
     publicKey: decodeRequestOptions(optionsJSON),
   })) as PublicKeyCredential | null
-  if (!cred) throw new Error('Автентифікацію скасовано')
+  if (!cred) throw new Error(t('Authentication cancelled'))
   return encodeCredential(cred)
 }

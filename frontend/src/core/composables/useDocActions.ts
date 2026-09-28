@@ -18,6 +18,9 @@ import { toast } from '@/core/composables/useToast'
 import type { DocActionField, DocType } from '@/types'
 import type { ActionsApi } from '@/core/actions'
 import type { FormProxy } from '@/core/scripting/executor'
+import i18n from '@/plugins/i18n'
+
+const t = (key: string): string => i18n.global.t(key)
 
 interface UseDocActionsOptions {
   doctype: string
@@ -109,13 +112,13 @@ export function useDocActions(options: UseDocActionsOptions) {
           /* clipboard blocked — the message toast still shows the value */
         }
       }
-      toast.success(payload.message || `${label}: готово`)
+      toast.success(payload.message || `${label}: ${t('done')}`)
       if (payload.refresh !== false) await options.reload()
     } catch (err: unknown) {
       const detail =
         (err as { response?: { data?: { error?: { message?: string }; detail?: string } } })
           ?.response?.data
-      toast.error(detail?.error?.message || detail?.detail || `${label}: помилка`)
+      toast.error(detail?.error?.message || detail?.detail || `${label}: ${t('error')}`)
     }
   }
 

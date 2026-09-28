@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { onMounted, onUnmounted, ref, watch } from 'vue'
 import { useQueryClient } from '@tanstack/vue-query'
 import { RouterView } from 'vue-router'
@@ -18,6 +19,8 @@ import { useColorMode } from '@/core/composables/useColorMode'
 import { CloudUpload, WifiOff } from '@lucide/vue'
 import { Toaster } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
+
+const { t } = useI18n()
 
 const { isDark } = useColorMode()
 useNetworkStatus()
@@ -69,10 +72,10 @@ onUnmounted(() => {
           class="fixed bottom-20 left-1/2 z-50 flex -translate-x-1/2 items-center gap-2 rounded-full bg-amber-500 px-4 py-2 font-medium text-amber-950 shadow-md md:bottom-4"
           @click="queueOpen = true">
           <WifiOff class="size-4 shrink-0" />
-          <span>Немає з'єднання — перегляд з кешу, зміни зберігаються на пристрої</span>
+          <span>{{ t('No connection — viewing from cache, changes are saved on this device') }}</span>
           <span v-if="pendingCount > 0"
             class="ml-2 px-1.5 py-0.5 rounded-full bg-amber-950/15 font-semibold tabular-nums">
-            {{ pendingCount }} в черзі
+            {{ t('{n} queued').replace('{n}', String(pendingCount)) }}
           </span>
         </button>
       </Transition>
@@ -82,7 +85,7 @@ onUnmounted(() => {
         class="fixed bottom-20 left-4 z-50 flex items-center gap-2 rounded-full border bg-card px-3 py-1.5 font-medium shadow-md md:bottom-4"
         @click="queueOpen = true">
         <CloudUpload class="size-4 text-primary" />
-        {{ pendingCount }} несинхронізованих змін
+        {{ t('{n} unsynced changes').replace('{n}', String(pendingCount)) }}
       </button>
       <OfflineQueueSheet v-model:open="queueOpen" />
 

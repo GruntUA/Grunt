@@ -1,6 +1,9 @@
 import { watch, type Ref } from 'vue'
 
 import type { QueryClient } from '@tanstack/vue-query'
+import i18n from '@/plugins/i18n'
+
+const t = (key: string): string => i18n.global.t(key)
 
 interface UseFormDocWatcherParams {
   lastMessage: Ref<unknown>
@@ -20,7 +23,7 @@ export function useFormDocWatcher(params: UseFormDocWatcherParams) {
 
     const data = message.data as Record<string, unknown> | undefined
     if (data?.source !== 'import') {
-      params.toast.info('Документ оновлено іншим користувачем')
+      params.toast.info(t('The document was updated by another user'))
     }
 
     params.queryClient.invalidateQueries({

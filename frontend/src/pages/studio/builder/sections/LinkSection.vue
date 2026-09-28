@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { ref, onMounted } from 'vue'
 import { usePropertyEditor } from '@/core/composables/usePropertyEditor'
 import { metaApi } from '@/core/api'
@@ -6,6 +7,8 @@ import type { DocTypeSummary } from '@/types'
 import DocTypeCombobox from '@/components/DocTypeCombobox.vue'
 import { Separator } from '@/components/ui/separator'
 import { Textarea } from '@/components/ui/textarea'
+
+const { t } = useI18n()
 
 const { field, updateField } = usePropertyEditor()
 const doctypeList = ref<DocTypeSummary[]>([])
@@ -32,10 +35,10 @@ onMounted(async () => {
     <Textarea
       :model-value="field.link_filters ?? ''"
       rows="2"
-      placeholder='{"status": "Active"} або eval: {"company": doc.company}'
+      :placeholder="`{&quot;status&quot;: &quot;Active&quot;} ${t('or')} eval: {&quot;company&quot;: doc.company}`"
       class="w-full !text-sm !font-mono"
       @update:model-value="(v: string | number) => updateField('link_filters', String(v).trim() || null)"
     />
-    <p class="text-muted-foreground">JSON об'єкт або <code class="bg-muted px-1 rounded">eval: {"field": doc.field}</code></p>
+    <p class="text-muted-foreground">{{ t('JSON object or') }} <code class="bg-muted px-1 rounded">eval: {"field": doc.field}</code></p>
   </div>
 </template>

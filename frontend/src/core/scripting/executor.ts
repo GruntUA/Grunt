@@ -801,7 +801,7 @@ export function createGruntProxy(
       async register(label?: string, opts?: { mode?: 'cross-device' }) {
         const { authApi } = await import('@/core/api/auth')
         const { createPasskey, isWebAuthnSupported } = await import('@/core/composables/useWebAuthn')
-        if (!isWebAuthnSupported()) throw new Error('Цей браузер не підтримує ключі доступу')
+        if (!isWebAuthnSupported()) throw new Error(i18n.global.t('This browser does not support passkeys'))
         const { options, challenge_token } = await authApi.enrollBegin(
           'webauthn',
           opts?.mode ? { mode: opts.mode } : {},

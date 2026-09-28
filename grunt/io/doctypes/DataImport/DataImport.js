@@ -19,7 +19,7 @@ const _isPending = (f) => !f.doc.status || f.doc.status === 'Pending'
 function _addButtons(frm) {
   frm.actions.add({
     id: 'run_import',
-    label: 'Запустити імпорт',
+    label: 'Run import',
     icon: 'play',
     variant: 'default',
     visible: (f) => !f.is_new && (_isPending(f) || _isDone(f)),
@@ -27,7 +27,7 @@ function _addButtons(frm) {
   })
   frm.actions.add({
     id: 'reset_import',
-    label: 'Скинути',
+    label: 'Reset',
     variant: 'secondary',
     visible: (f) => !f.is_new && _isDone(f),
     action: (f) => _reset(f),
@@ -46,19 +46,19 @@ async function _runImport(frm) {
   ).some(Boolean)
 
   if (!hasMapping) {
-    grunt.show_alert('Спочатку налаштуйте маппінг колонок', 'warning')
+    grunt.show_alert(__('Set up the column mapping first'), 'warning')
     return
   }
 
   const dryRun = frm.get_value('dry_run')
-  const label = dryRun ? 'Запустити валідацію (без запису)?' : 'Запустити імпорт даних?'
+  const label = dryRun ? __('Run validation (without writing)?') : __('Run the data import?')
   if (!await grunt.confirm(label)) return
 
   // Save first so the backend reads the current mapping from DB
   await frm.save()
 
-  const btn = _findBtn('Запустити імпорт')
-  if (btn) { btn.disabled = true; btn.textContent = '⏳ Запуск...' }
+  const btn = _findBtn(__('Run import'))
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ ' + __('Starting...') }
 
   // Show progress bar before the request so it's visible even if the task finishes fast
   const progressEl = _createProgressBar()
@@ -90,20 +90,20 @@ async function _runImport(frm) {
       throw new Error(err?.error?.message || `HTTP ${resp.status}`)
     }
 
-    grunt.show_alert('Імпорт запущено', 'info')
+    grunt.show_alert(__('Import started'), 'info')
   } catch (err) {
     offProgress()
     offChange()
     progressEl.remove()
-    grunt.show_alert('Помилка: ' + err.message, 'error')
-    if (btn) { btn.disabled = false; btn.textContent = 'Запустити імпорт' }
+    grunt.show_alert(__('Error') + ': ' + err.message, 'error')
+    if (btn) { btn.disabled = false; btn.textContent = __('Run import') }
   }
 }
 
 // ── Reset ─────────────────────────────────────────────────────────────────────
 
 async function _reset(frm) {
-  if (!await grunt.confirm('Скинути статус до "Очікування" та запустити знову?')) return
+  if (!await grunt.confirm(__('Reset the status to "Pending" and run again?'))) return
   await frm.set_value('status', 'Pending')
   await frm.set_value('processed_rows', 0)
   await frm.set_value('error_count', 0)
@@ -135,15 +135,15 @@ function _renderResultBanner(frm, doc) {
       : { bg: '#fef2f2', border: '#fca5a5', text: '#991b1b', badge: '#fee2e2', badgeText: '#991b1b' }
 
   const icon = isOk ? '✅' : isPartial ? '⚠️' : '❌'
-  const title = isOk ? 'Імпорт завершено' : isPartial ? 'Частковий успіх' : 'Помилка імпорту'
+  const title = isOk ? __('Import finished') : isPartial ? __('Partial success') : __('Import error')
 
   const errorsHtml = errorLog.length
     ? `<details style="margin-top:12px">
         <summary style="cursor:pointer;font-size:12px;font-weight:600;color:${colors.text}">
-          Показати ${errorLog.length} помилок
+          ${__('Show {n} errors').replace('{n}', errorLog.length)}
         </summary>
         <ul style="margin-top:8px;padding-left:20px;font-size:12px;font-family:monospace;max-height:200px;overflow-y:auto">
-          ${errorLog.map(e => `<li style="margin-bottom:4px"><b>Рядок ${e.row}:</b> ${_esc(e.error)}</li>`).join('')}
+          ${errorLog.map(e => `<li style="margin-bottom:4px"><b>${__('Row {n}:').replace('{n}', e.row)}</b> ${_esc(e.error)}</li>`).join('')}
         </ul>
       </details>`
     : ''
@@ -169,8 +169,8 @@ function _renderResultBanner(frm, doc) {
       </span>
     </div>
     <div style="display:flex;gap:20px;font-size:12px">
-      <span>Оброблено: <b>${processed}</b> з <b>${total}</b></span>
-      ${errorCount ? `<span style="color:#dc2626">Помилок: <b>${errorCount}</b></span>` : ''}
+      <span>${__('Processed:')} <b>${processed}</b> / <b>${total}</b></span>
+      ${errorCount ? `<span style="color:#dc2626">${__('Errors:')} <b>${errorCount}</b></span>` : ''}
     </div>
     ${errorsHtml}
   `
@@ -199,7 +199,7 @@ function _createProgressBar() {
     box-shadow:0 8px 24px rgba(0,0,0,0.12);z-index:9999;font-size:13px;
   `
   el.innerHTML = `
-    <div style="margin-bottom:8px;font-weight:600">Виконується імпорт...</div>
+    <div style="margin-bottom:8px;font-weight:600">${__('Import in progress...')}</div>
     <div style="background:#e5e7eb;border-radius:999px;height:6px;overflow:hidden">
       <div id="grunt-di-bar" style="background:var(--color-primary,#6366f1);height:100%;width:0%;transition:width .4s"></div>
     </div>
@@ -214,7 +214,7 @@ function _updateProgressBar(el, pct, processed, total) {
   const bar = document.getElementById('grunt-di-bar')
   const label = document.getElementById('grunt-di-label')
   if (bar) bar.style.width = pct + '%'
-  if (label) label.textContent = `${processed} / ${total} рядків (${pct}%)`
+  if (label) label.textContent = `${processed} / ${total} ${__('rows')} (${pct}%)`
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────

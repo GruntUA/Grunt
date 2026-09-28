@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import i18n from '@/plugins/i18n'
 import { useAppStore } from '@/stores/app'
@@ -8,12 +9,13 @@ import AppIcon from '@/components/AppIcon.vue'
 import NotificationsPopover from '@/components/layout/NotificationsPopover.vue'
 import SidebarItem from './SidebarItem.vue'
 import { useColorMode } from '@/core/composables/useColorMode'
+import { clearClientCache } from '@/core/clearCache'
 import type { Theme } from '@/core/composables/useColorMode'
 import { useSidebar } from '@/components/ui/sidebar'
 import {
   ArrowLeft, Check, ChevronRight, ChevronsUpDown, Sun, Moon, Monitor,
   Settings2, Search, Activity,
-  Mail, LogOut, Languages, Eye,
+  Mail, LogOut, Languages, Eye, RefreshCw,
 } from '@lucide/vue'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
@@ -28,6 +30,7 @@ const auth = useAuthStore()
 const router = useRouter()
 const colorMode = useColorMode()
 const { isMobile } = useSidebar()
+const { t } = useI18n()
 
 // ── Actions ───────────────────────────────────────────────────────────────────
 function goToDesk() { router.push('/app') }
@@ -46,9 +49,9 @@ async function exitImpersonation() {
 
 // ── Admin shortcuts ───────────────────────────────────────────────────────────
 const adminLinks = [
-  { to: '/grunt/ActivityLog', icon: Activity, label: 'Журнал активності' },
-  { to: '/grunt/EmailMessage', icon: Mail, label: 'Листи (e-mail)' },
-  { to: '/grunt/EmailAccount', icon: Mail, label: 'Пошта — налаштування' },
+  { to: '/grunt/ActivityLog', icon: Activity, label: 'Activity log' },
+  { to: '/grunt/EmailMessage', icon: Mail, label: 'Emails' },
+  { to: '/grunt/EmailAccount', icon: Mail, label: 'Email settings' },
 ]
 
 // ── Lifecycle ─────────────────────────────────────────────────────────────────
@@ -90,7 +93,7 @@ watch(() => router.currentRoute.value.path, () => { if (appStore.active) appStor
               </SidebarMenuButton>
             </DropdownMenuTrigger>
             <DropdownMenuContent class="w-(--reka-dropdown-menu-trigger-width) min-w-56 rounded-lg" align="start" side="bottom" :side-offset="4">
-              <DropdownMenuLabel class="text-xs text-muted-foreground">Застосунки</DropdownMenuLabel>
+              <DropdownMenuLabel class="text-xs text-muted-foreground">{{ t('Apps') }}</DropdownMenuLabel>
               <DropdownMenuItem
                 v-for="ws in appStore.workspaces" :key="ws.name" class="gap-2 p-2"
                 @click="router.push(`/${ws.name}`)"
@@ -106,7 +109,7 @@ watch(() => router.currentRoute.value.path, () => { if (appStore.active) appStor
                 <div class="flex size-6 items-center justify-center rounded-md border bg-background">
                   <ArrowLeft class="size-4" />
                 </div>
-                <div class="font-medium text-muted-foreground">На головну</div>
+                <div class="font-medium text-muted-foreground">{{ t('Home') }}</div>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -115,9 +118,9 @@ watch(() => router.currentRoute.value.path, () => { if (appStore.active) appStor
 
       <SidebarMenu>
         <SidebarMenuItem>
-          <SidebarMenuButton tooltip="Пошук" @click="triggerSearch">
+          <SidebarMenuButton :tooltip="t('Search')" @click="triggerSearch">
             <Search />
-            <span>Пошук...</span>
+            <span>{{ t('Search...') }}</span>
             <kbd class="ml-auto flex items-center gap-0.5 rounded border border-sidebar-border/50 bg-background/50 px-1.5 font-semibold text-muted-foreground group-data-[collapsible=icon]:hidden">
               <span class="opacity-70">⌘</span>K
             </kbd>
@@ -128,7 +131,7 @@ watch(() => router.currentRoute.value.path, () => { if (appStore.active) appStor
         </SidebarMenuItem>
         <RouterLink :to="`/app/${workspaceName}`" custom v-slot="{ navigate }">
           <SidebarItem
-            :item="{ type: 'DocType', link_to: '', label: 'Огляд', icon: 'layout-dashboard', section: '', sequence: 0, show_count: false, roles: '' }"
+            :item="{ type: 'DocType', link_to: '', label: t('Overview'), icon: 'layout-dashboard', section: '', sequence: 0, show_count: false, roles: '' }"
             :workspace-name="workspaceName" @click="navigate" />
         </RouterLink>
       </SidebarMenu>
@@ -186,23 +189,23 @@ watch(() => router.currentRoute.value.path, () => { if (appStore.active) appStor
 
       <!-- Admin shortcuts -->
       <SidebarGroup v-if="auth.isSystemManager" class="mt-auto">
-        <SidebarGroupLabel>Налаштування</SidebarGroupLabel>
+        <SidebarGroupLabel>{{ t('Settings') }}</SidebarGroupLabel>
         <SidebarGroupContent>
           <SidebarMenu>
             <SidebarMenuItem v-for="link in adminLinks" :key="link.to">
               <RouterLink :to="link.to" custom v-slot="{ isActive, href, navigate }">
-                <SidebarMenuButton as-child :is-active="isActive" :tooltip="link.label">
+                <SidebarMenuButton as-child :is-active="isActive" :tooltip="t(link.label)">
                   <a :href="href" @click="navigate">
                     <component :is="link.icon" />
-                    <span>{{ link.label }}</span>
+                    <span>{{ t(link.label) }}</span>
                   </a>
                 </SidebarMenuButton>
               </RouterLink>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton tooltip="Редагувати меню" @click="router.push(`/app/grunt/AppMenu/${appStore.active?.name}`)">
+              <SidebarMenuButton :tooltip="t('Edit menu')" @click="router.push(`/app/grunt/AppMenu/${appStore.active?.name}`)">
                 <Settings2 />
-                <span>Редагувати меню</span>
+                <span>{{ t('Edit menu') }}</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
@@ -217,17 +220,17 @@ watch(() => router.currentRoute.value.path, () => { if (appStore.active) appStor
           <div class="rounded-md border border-violet-500/40 bg-violet-500/10 px-2 py-1.5 group-data-[collapsible=icon]:hidden">
             <div class="flex items-center gap-1.5 font-medium text-violet-700 dark:text-violet-300">
               <Eye class="size-3.5 shrink-0" />
-              <span class="truncate">Перегляд як {{ auth.user?.full_name }}</span>
+              <span class="truncate">{{ t('Viewing as {name}').replace('{name}', auth.user?.full_name ?? '') }}</span>
             </div>
             <button
               class="mt-1.5 w-full rounded bg-violet-600 px-2 py-1 font-semibold text-white transition-colors hover:bg-violet-700"
               @click="exitImpersonation">
-              Повернутися до себе
+              {{ t('switch back') }}
             </button>
           </div>
           <SidebarMenuButton
             class="hidden text-violet-600 group-data-[collapsible=icon]:flex dark:text-violet-400"
-            tooltip="Повернутися до свого облікового запису" @click="exitImpersonation">
+            :tooltip="t('Back to my account')" @click="exitImpersonation">
             <Eye />
           </SidebarMenuButton>
         </SidebarMenuItem>
@@ -253,7 +256,7 @@ watch(() => router.currentRoute.value.path, () => { if (appStore.active) appStor
               class="w-(--reka-dropdown-menu-trigger-width) min-w-56 rounded-lg"
               :side="isMobile ? 'bottom' : 'right'" align="end" :side-offset="4"
             >
-              <DropdownMenuItem class="p-0 font-normal focus:bg-sidebar-accent" title="Відкрити мій профіль" @click="goToProfile">
+              <DropdownMenuItem class="p-0 font-normal focus:bg-sidebar-accent" :title="t('Open my profile')" @click="goToProfile">
                 <div class="flex w-full items-center gap-2 px-1 py-1.5 text-left">
                   <Avatar class="size-8 rounded-lg">
                     <AvatarImage v-if="auth.user?.avatar" :src="auth.user.avatar" alt="" />
@@ -268,23 +271,23 @@ watch(() => router.currentRoute.value.path, () => { if (appStore.active) appStor
                 </div>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuLabel class="text-xs text-muted-foreground">Тема</DropdownMenuLabel>
+              <DropdownMenuLabel class="text-xs text-muted-foreground">{{ t('Theme') }}</DropdownMenuLabel>
               <DropdownMenuRadioGroup :model-value="colorMode.currentTheme.value" @update:model-value="onThemeChange">
                 <DropdownMenuRadioItem value="light" class="gap-2 p-2">
                   <Sun class="size-4 shrink-0" />
-                  <span>Світла</span>
+                  <span>{{ t('Light') }}</span>
                 </DropdownMenuRadioItem>
                 <DropdownMenuRadioItem value="dark" class="gap-2 p-2">
                   <Moon class="size-4 shrink-0" />
-                  <span>Темна</span>
+                  <span>{{ t('Dark') }}</span>
                 </DropdownMenuRadioItem>
                 <DropdownMenuRadioItem value="system" class="gap-2 p-2">
                   <Monitor class="size-4 shrink-0" />
-                  <span>Системна</span>
+                  <span>{{ t('System') }}</span>
                 </DropdownMenuRadioItem>
               </DropdownMenuRadioGroup>
               <DropdownMenuSeparator />
-              <DropdownMenuLabel class="text-xs text-muted-foreground">Мова</DropdownMenuLabel>
+              <DropdownMenuLabel class="text-xs text-muted-foreground">{{ t('Language') }}</DropdownMenuLabel>
               <DropdownMenuRadioGroup :model-value="currentLanguage" @update:model-value="onLanguageChange">
                 <DropdownMenuRadioItem value="uk" class="gap-2 p-2">
                   <Languages class="size-4 shrink-0" />
@@ -296,13 +299,17 @@ watch(() => router.currentRoute.value.path, () => { if (appStore.active) appStor
                 </DropdownMenuRadioItem>
               </DropdownMenuRadioGroup>
               <DropdownMenuSeparator />
+              <DropdownMenuItem class="gap-2 p-2" :title="t('Reload translations, menus and schemas; your settings and drafts are kept')" @click="clearClientCache">
+                <RefreshCw class="size-4 shrink-0" />
+                <span>{{ t('Clear cache') }}</span>
+              </DropdownMenuItem>
               <DropdownMenuItem v-if="auth.isImpersonating" class="gap-2 p-2 text-violet-600 focus:text-violet-700 dark:text-violet-400" @click="exitImpersonation">
                 <Eye class="size-4 shrink-0" />
-                <span>Повернутися до свого облікового запису</span>
+                <span>{{ t('Back to my account') }}</span>
               </DropdownMenuItem>
               <DropdownMenuItem class="gap-2 p-2" @click="handleLogout">
                 <LogOut class="size-4 shrink-0" />
-                <span>Вийти</span>
+                <span>{{ t('Log out') }}</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

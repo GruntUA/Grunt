@@ -6,6 +6,9 @@ import { useAppStore } from '@/stores/app'
 import type { DocType } from '@/types'
 import type { QueryClient } from '@tanstack/vue-query'
 import { docUrl } from '@/core/workspaceUrl'
+import i18n from '@/plugins/i18n'
+
+const t = (key: string): string => i18n.global.t(key)
 
 interface UseFormSaveParams {
   doctype: string
@@ -91,7 +94,7 @@ export function useFormSave(params: UseFormSaveParams) {
 
     try {
       const saved = await params.save()
-      params.toast.success('Збережено')
+      params.toast.success(t('Saved'))
       void params.runScriptEvent('after_save')
       params.dtStore.invalidate(params.doctype)
       params.queryClient.invalidateQueries({ queryKey: ['documents', params.doctype] })
@@ -145,7 +148,7 @@ export function useFormSave(params: UseFormSaveParams) {
           ? apiMessage
           : typeof detailMsg === 'string' && detailMsg.trim()
             ? detailMsg
-            : 'Помилка'
+            : t('Error')
         params.toast.error(msg)
         return
       }
@@ -206,20 +209,20 @@ export function useFormSave(params: UseFormSaveParams) {
         }
 
         if (hasFieldErrors) {
-          params.toast.error(combinedMessage || 'Перевірте правильність заповнення')
+          params.toast.error(combinedMessage || t('Check the form for errors'))
           params.focusFirstError()
         } else if (combinedMessage) {
           params.toast.error(combinedMessage)
         } else {
           const fallback = typeof apiMessage === 'string' && apiMessage.trim()
             ? apiMessage
-            : 'Помилка валідації'
+            : t('Validation error')
           params.toast.error(fallback)
         }
         return
       }
 
-      params.toast.error('Помилка збереження')
+      params.toast.error(t('Save error'))
     }
   }
 

@@ -90,7 +90,7 @@ function onNavKeydown(e: KeyboardEvent) {
             @click="activeId = ch.id"
           >
             <component :is="ch.icon" class="size-4 shrink-0" />
-            <span class="truncate">{{ ch.label }}</span>
+            <span class="truncate">{{ t(ch.label) }}</span>
           </button>
         </nav>
 

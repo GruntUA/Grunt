@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { computed, watch, ref, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import {
@@ -40,6 +41,8 @@ import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, Table
 import { Skeleton } from '@/components/ui/skeleton'
 import ListEmptyState from '@/components/views/ListEmptyState.vue'
 import { useReportModel, isNumericField, type AggFn } from './useReportModel'
+
+const { t } = useI18n()
 
 interface TableMeta { page: number; pages: number; total: number }
 
@@ -140,11 +143,11 @@ function buildFiltersConfig(): Array<{ fieldname: string; label: string; fieldty
 }
 
 async function saveAsReport() {
-  const name = (await dialog.prompt('Назва звіту'))?.trim()
+  const name = (await dialog.prompt(t('Report name')))?.trim()
   if (!name) return
   const { columns, droppedColumns } = model.toReportColumns()
   if (!columns.length) {
-    toast.warning('Додайте хоча б одну колонку')
+    toast.warning(t('Add at least one column'))
     return
   }
   try {
@@ -156,15 +159,15 @@ async function saveAsReport() {
       filters_config: buildFiltersConfig(),
     })
   } catch (e) {
-    toast.error(e instanceof Error ? e.message : 'Не вдалося зберегти звіт')
+    toast.error(e instanceof Error ? e.message : t('Could not save the report'))
     return
   }
   if (droppedColumns.length) {
-    toast.info(`Не включено (потребують агрегації): ${droppedColumns.join(', ')}`)
+    toast.info(t('Not included (need aggregation): {columns}').replace('{columns}', droppedColumns.join(', ')))
   }
-  toast.success('Звіт збережено', 'Готово', {
+  toast.success(t('Report saved'), t('Done'), {
     action: {
-      label: 'Відкрити',
+      label: t('Open'),
       onClick: () => router.push({
         name: 'workspace-report',
         params: { workspaceName: props.workspace, reportName: name },
@@ -179,9 +182,9 @@ async function openSavedReport(rep: ReportSummary) {
     const detail = await reportsApi.get(rep.report_name)
     model.applyReportColumns(detail.columns ?? [])
     collapsed.value = new Set()
-    toast.success(`Застосовано «${rep.report_name}»`)
+    toast.success(t('Applied «{name}»').replace('{name}', rep.report_name))
   } catch (e) {
-    toast.error(e instanceof Error ? e.message : 'Не вдалося відкрити звіт')
+    toast.error(e instanceof Error ? e.message : t('Could not open the report'))
   }
 }
 
@@ -216,19 +219,19 @@ function cellClass(key: string): string {
 }
 
 const AGG_LABELS: Record<AggFn, string> = {
-  none: 'Без підсумку',
-  sum: 'Сума',
-  avg: 'Середнє',
-  min: 'Мінімум',
-  max: 'Максимум',
-  count: 'Кількість',
+  none: t('No total'),
+  sum: t('Sum'),
+  avg: t('Average'),
+  min: t('Minimum'),
+  max: t('Maximum'),
+  count: t('Count'),
 }
 const AGG_CHOICES: AggFn[] = ['sum', 'avg', 'min', 'max', 'count', 'none']
 
 function groupLabelText(key: string): string {
-  if (!key || key === 'null' || key === 'undefined') return 'Без значення'
+  if (!key || key === 'null' || key === 'undefined') return t('No value')
   if (model.groupField.value?.fieldtype === 'Check') {
-    return key === '1' || key === 'true' ? 'Так' : 'Ні'
+    return key === '1' || key === 'true' ? t('Yes') : t('No')
   }
   return key
 }
@@ -269,14 +272,14 @@ function exportCsv() {
 
   if (model.groups.value) {
     for (const g of model.groups.value) {
-      lines.push(csvCell(`${model.groupField.value?.label ?? 'Група'}: ${groupLabelText(g.key)}`))
+      lines.push(csvCell(`${model.groupField.value?.label ?? t('Group')}: ${groupLabelText(g.key)}`))
       pushRows(g.rows)
-      if (model.hasAnyAggregate.value) lines.push(totalLine('Підсумок', g.aggregates))
+      if (model.hasAnyAggregate.value) lines.push(totalLine(t('Subtotal'), g.aggregates))
     }
   } else {
     pushRows(props.rows)
   }
-  if (model.hasAnyAggregate.value) lines.push(totalLine('Разом', model.grandTotals.value))
+  if (model.hasAnyAggregate.value) lines.push(totalLine(t('Total'), model.grandTotals.value))
 
   const blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8;' })
   const a = document.createElement('a')
@@ -331,7 +334,7 @@ async function commitEdit(row: Record<string, unknown>, key: string) {
     row[key] = draft.value
     editing.value = null
   } catch (e) {
-    toast.error(e instanceof Error ? e.message : 'Не вдалося зберегти')
+    toast.error(e instanceof Error ? e.message : t('Could not save'))
   } finally {
     saving.value = false
   }
@@ -348,12 +351,12 @@ async function commitEdit(row: Record<string, unknown>, key: string) {
           <Button variant="outline" size="sm" class="gap-1.5"
             :class="model.isCustomized.value && 'bg-accent text-accent-foreground'">
             <SlidersHorizontal class="size-4" />
-            Стовпці
+            {{ t('Columns') }}
             <span class="tabular-nums text-muted-foreground">{{ model.visibleColumns.value.length }}</span>
           </Button>
         </PopoverTrigger>
         <PopoverContent class="w-64 p-1" align="start">
-          <div class="px-2 py-1.5 font-medium text-muted-foreground">Стовпці звіту</div>
+          <div class="px-2 py-1.5 font-medium text-muted-foreground">{{ t('Report columns') }}</div>
           <div class="max-h-[320px] overflow-y-auto scrollbar-none py-1">
             <VueDraggable :model-value="model.visibleColumns.value" handle=".drag-handle"
               class="space-y-0.5" @end="(e: any) => model.reorderColumns(e.oldIndex, e.newIndex)">
@@ -382,13 +385,13 @@ async function commitEdit(row: Record<string, unknown>, key: string) {
           <Button variant="outline" size="sm" class="gap-1.5"
             :class="model.groupKey.value && 'bg-accent text-accent-foreground'">
             <Layers class="size-4" />
-            {{ model.groupField.value ? model.groupField.value.label : 'Групувати' }}
+            {{ model.groupField.value ? model.groupField.value.label : t('Group') }}
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" class="max-h-[320px] overflow-y-auto">
           <DropdownMenuItem @click="model.setGroupBy(null)">
             <Check class="size-4" :class="{ invisible: model.groupKey.value }" />
-            <span>Без групування</span>
+            <span>{{ t('No grouping') }}</span>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem v-for="f in model.groupableFields.value" :key="f.fieldname"
@@ -404,12 +407,12 @@ async function commitEdit(row: Record<string, unknown>, key: string) {
         <DropdownMenuTrigger as-child>
           <Button variant="outline" size="sm" class="gap-1.5 ml-auto">
             <FileBarChart2 class="size-4" />
-            Звіти
+            {{ t('Reports') }}
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" class="w-64 max-h-[360px] overflow-y-auto">
           <DropdownMenuLabel class="text-xs text-muted-foreground">
-            Збережені звіти для «{{ dt?.label ?? doctype }}»
+            {{ t('Saved reports for «{doctype}»').replace('{doctype}', dt?.label ?? doctype) }}
           </DropdownMenuLabel>
           <template v-if="savedReports.length">
             <DropdownMenuItem v-for="r in savedReports" :key="r.name" @click="openSavedReport(r)">
@@ -417,12 +420,12 @@ async function commitEdit(row: Record<string, unknown>, key: string) {
               <span class="flex-1 truncate">{{ r.report_name }}</span>
             </DropdownMenuItem>
           </template>
-          <div v-else class="px-2 py-2 text-muted-foreground">Ще немає</div>
+          <div v-else class="px-2 py-2 text-muted-foreground">{{ t('None yet') }}</div>
           <template v-if="canSave">
             <DropdownMenuSeparator />
             <DropdownMenuItem @click="saveAsReport">
               <Save class="size-4" />
-              <span>Зберегти поточний як звіт…</span>
+              <span>{{ t('Save current as report…') }}</span>
             </DropdownMenuItem>
           </template>
         </DropdownMenuContent>
@@ -430,23 +433,22 @@ async function commitEdit(row: Record<string, unknown>, key: string) {
 
       <Button variant="outline" size="sm" class="gap-1.5" @click="exportCsv">
         <Download class="size-4" />
-        Експорт CSV
+        {{ t('Export CSV') }}
       </Button>
     </div>
 
     <div v-if="isPartial" class="flex items-center gap-2 text-muted-foreground">
       <template v-if="truncated">
         <span class="text-amber-600 dark:text-amber-500">
-          Досягнуто ліміту {{ MAX_AUTOLOAD.toLocaleString('uk-UA') }} записів — підсумки лише за ними.
+          {{ t('Limit of {n} records reached — totals cover only these.').replace('{n}', MAX_AUTOLOAD.toLocaleString()) }}
         </span>
       </template>
       <template v-else>
         <span>
-          Підсумки за поточною сторінкою ({{ rows.length.toLocaleString('uk-UA') }}
-          {{ meta ? `з ${meta.total.toLocaleString('uk-UA')}` : '' }}).
+          {{ t('Totals for the current page') }} ({{ rows.length.toLocaleString() }}{{ meta ? ` / ${meta.total.toLocaleString()}` : '' }}).
         </span>
         <Button variant="link" size="sm" class="h-auto p-0 text-xs" @click="loadAll()">
-          Порахувати за всіма
+          {{ t('Calculate for all') }}
         </Button>
       </template>
     </div>
@@ -558,7 +560,7 @@ async function commitEdit(row: Record<string, unknown>, key: string) {
                   <TableCell v-for="(col, ci) in model.visibleColumns.value" :key="col.key"
                     class="px-3 py-1.5 font-medium tabular-nums"
                     :class="isNumericKey(col.key) ? 'text-right whitespace-nowrap' : 'whitespace-normal'">
-                    <span v-if="ci === 0" class="text-muted-foreground">Підсумок</span>
+                    <span v-if="ci === 0" class="text-muted-foreground">{{ t('Subtotal') }}</span>
                     <span v-else-if="col.key in g.aggregates">{{ fmtNum(g.aggregates[col.key]) }}</span>
                   </TableCell>
                 </TableRow>
@@ -603,7 +605,7 @@ async function commitEdit(row: Record<string, unknown>, key: string) {
             <TableCell v-for="(col, ci) in model.visibleColumns.value" :key="col.key"
               class="px-3 py-2 font-semibold tabular-nums"
               :class="isNumericKey(col.key) ? 'text-right whitespace-nowrap' : 'whitespace-normal'">
-              <span v-if="ci === 0">Разом{{ meta ? ` (${rows.length}/${meta.total})` : '' }}</span>
+              <span v-if="ci === 0">{{ t('Total') }}{{ meta ? ` (${rows.length}/${meta.total})` : '' }}</span>
               <span v-else-if="col.key in model.grandTotals.value">{{ fmtNum(model.grandTotals.value[col.key]) }}</span>
             </TableCell>
           </TableRow>

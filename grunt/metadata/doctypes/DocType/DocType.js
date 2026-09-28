@@ -108,7 +108,7 @@ async function on_load(frm) {
             frm.toggle_reqd('module', true)
         }
     } catch (e) {
-        grunt.show_alert('Не вдалося завантажити список додатків', 'error')
+        grunt.show_alert(__('Could not load the list of apps'), 'error')
     }
 }
 

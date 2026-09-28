@@ -8,6 +8,9 @@
 import { ref } from 'vue'
 import client from '@/core/api/client'
 import { toast } from '@/core/composables/useToast'
+import i18n from '@/plugins/i18n'
+
+const t = (key: string): string => i18n.global.t(key)
 
 const isSupported = 'serviceWorker' in navigator && 'PushManager' in window
 
@@ -53,7 +56,7 @@ async function checkSubscription(): Promise<void> {
 async function subscribe(): Promise<boolean> {
 
   if (!isSupported) {
-    toast.error('Ваш браузер не підтримує Push-сповіщення')
+    toast.error(t('Your browser does not support push notifications'))
     return false
   }
   
@@ -63,19 +66,19 @@ async function subscribe(): Promise<boolean> {
     const permission = await Notification.requestPermission()
     permissionState.value = permission
     if (permission !== 'granted') {
-      toast.error('Ви не надали дозвіл на сповіщення')
+      toast.error(t('You did not allow notifications'))
       return false
     }
 
     const vapidKey = await getVapidPublicKey()
     if (!vapidKey) {
-      toast.error('Сервер не налаштовано для Push-сповіщень (відсутній VAPID ключ)')
+      toast.error(t('The server is not set up for push notifications (VAPID key missing)'))
       return false
     }
 
     const reg = await getRegistration()
     if (!reg) {
-      toast.error('Service Worker не готовий. Перезавантажте сторінку.')
+      toast.error(t('Service Worker is not ready. Reload the page.'))
       return false
     }
 
@@ -94,11 +97,11 @@ async function subscribe(): Promise<boolean> {
     })
 
     isSubscribed.value = true
-    toast.success('Push-сповіщення успішно ввімкнено!')
+    toast.success(t('Push notifications enabled!'))
     return true
   } catch (e) {
     console.error('Push subscribe failed', e)
-    toast.error('Помилка підписки: ' + String(e))
+    toast.error(t('Subscription error:') + ' ' + String(e))
     return false
   } finally {
     isLoading.value = false

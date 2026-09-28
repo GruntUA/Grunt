@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { ref, computed, onMounted } from 'vue'
 import {
   MessageSquare,
@@ -17,6 +18,8 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { formatIntl } from '@/core/datetime'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   doctype: DocType
@@ -54,15 +57,15 @@ const fieldLabelMap = computed(() => {
 function timelineLabel(item: TimelineItem): string {
   if (item.type === 'comment') return item.content ?? ''
   const actionLabels: Record<string, string> = {
-    create: 'Створив документ',
-    Create: 'Створив документ',
-    update: 'Оновив документ',
-    Update: 'Оновив документ',
-    delete: 'Видалив документ',
-    Delete: 'Видалив документ',
-    bulk_update: 'Масове оновлення',
-    restore: 'Відновив версію',
-    transition: 'Змінив статус',
+    create: t('Created the document'),
+    Create: t('Created the document'),
+    update: t('Updated the document'),
+    Update: t('Updated the document'),
+    delete: t('Deleted the document'),
+    Delete: t('Deleted the document'),
+    bulk_update: t('Bulk Update'),
+    restore: t('Restored a version'),
+    transition: t('Changed the status'),
   }
   const base = actionLabels[item.action ?? ''] ?? item.action ?? ''
   if ((item.action === 'Update' || item.action === 'update') && item.details?.changed_fields) {
@@ -76,13 +79,13 @@ function timelineLabel(item: TimelineItem): string {
 
 function formatDiffValue(val: unknown): string {
   if (val === null || val === undefined || val === '') return '—'
-  if (typeof val === 'boolean') return val ? 'Так' : 'Ні'
+  if (typeof val === 'boolean') return val ? t('Yes') : t('No')
   if (Array.isArray(val)) {
     if (!val.length) return '—'
     // Child-table / MultiLink snapshots: rows of objects have no single
     // generic label, so just say how many — the alternative is "[object
     // Object]" repeated N times.
-    if (val.some(v => v !== null && typeof v === 'object')) return `${val.length} зап.`
+    if (val.some(v => v !== null && typeof v === 'object')) return t('{n} rows').replace('{n}', String(val.length))
     return val.map(String).join(', ')
   }
   return String(val)
@@ -104,7 +107,7 @@ async function openVersionDiff(item: TimelineItem) {
   const changes = item.changes ?? []
   if (!changes.length) return
   await dialog.form({
-    title: item.version ? `Версія ${item.version}` : 'Зміни',
+    title: item.version ? t('Version {n}').replace('{n}', String(item.version)) : t('Changes'),
     size: 'large',
     fields: [{
       fieldname: 'diff',
@@ -119,16 +122,16 @@ async function openVersionDiff(item: TimelineItem) {
         new: changeValue(c, 'new'),
       })),
       columns: [
-        { key: 'field', label: 'Поле', width: '30%' },
-        { key: 'old', label: 'Було' },
-        { key: 'new', label: 'Стало' },
+        { key: 'field', label: t('Field'), width: '30%' },
+        { key: 'old', label: t('Before') },
+        { key: 'new', label: t('After') },
       ],
     }],
     buttons: [{
-      label: 'Відновити цю версію',
+      label: t('Restore this version'),
       variant: 'outline',
       action: async (ctx) => {
-        const ok = await ctx.confirm('Відновити документ до цієї версії? Поточні значення полів буде замінено.')
+        const ok = await ctx.confirm(t('Restore the document to this version? Current field values will be replaced.'))
         if (!ok) return
         try {
           await docsApi.restoreVersion(props.doctype.name, props.document.name, item.id)
@@ -253,14 +256,14 @@ onMounted(loadTimeline)
     <div class="flex flex-col gap-2">
       <div class="relative">
         <Textarea v-model="commentInput" rows="3"
-          placeholder="Напишіть коментар... @ для згадки"
+          :placeholder="t('Write a comment... @ to mention')"
           class="resize-none"
           @keydown="onCommentKeydown" @input="onCommentInput" />
 
         <!-- Mentions -->
         <div v-if="mentionDropdown.length"
           class="absolute left-0 right-0 bottom-full mb-1 bg-popover text-popover-foreground border rounded-md shadow-md overflow-hidden z-50">
-          <div class="px-2 py-1.5 text-muted-foreground border-b">Згадати користувача</div>
+          <div class="px-2 py-1.5 text-muted-foreground border-b">{{ t('Mention a user') }}</div>
           <button v-for="(u, i) in mentionDropdown" :key="u.id"
             class="w-full flex items-center gap-2 px-2 py-1.5 text-left"
             :class="i === mentionIndex ? 'bg-accent text-accent-foreground' : 'hover:bg-accent hover:text-accent-foreground'"
@@ -276,17 +279,17 @@ onMounted(loadTimeline)
         </div>
       </div>
       <div class="flex items-center justify-between">
-          <span class="text-muted-foreground">Ctrl+Enter щоб надіслати</span>
+          <span class="text-muted-foreground">{{ t('Ctrl+Enter to send') }}</span>
           <Button size="sm" :disabled="!commentInput.trim() || commentSending" @click="sendComment">
             <Loader2 v-if="commentSending" class="size-3.5 animate-spin" />
             <Send v-else class="size-3.5" />
-            Надіслати
+            {{ t('Send') }}
           </Button>
       </div>
     </div>
 
     <div v-if="timeline.length === 0" class="py-8 text-center text-muted-foreground">
-      Поки що немає активності
+      {{ t('No activity yet') }}
     </div>
 
     <!-- Timeline -->

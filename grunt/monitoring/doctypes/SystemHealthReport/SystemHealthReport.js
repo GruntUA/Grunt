@@ -26,25 +26,25 @@ function on_load(frm) {
 
     frm.actions.add({
         id: 'recheck',
-        label: 'Перевірити знову',
+        label: 'Check again',
         icon: 'refresh-cw',
         busy: (f) => f.is_loading,
         action: async (f) => {
             await f.reload()
             await _checkBrowser(f)
-            grunt.show_alert('Перевірку оновлено', 'success')
+            grunt.show_alert(__('Check updated'), 'success')
         },
     })
 
     frm.actions.add({
         id: 'persist_storage',
-        label: 'Закріпити сховище браузера',
+        label: 'Persist browser storage',
         icon: 'hard-drive',
         placement: 'menu',
         action: async (f) => {
             const ok = await grunt.health.persist_storage()
             grunt.show_alert(
-                ok ? 'Браузер не видалятиме офлайн-дані' : 'Браузер відхилив запит (спробуйте встановити застосунок як PWA)',
+                ok ? __('The browser will not delete offline data') : __('The browser declined the request (try installing the app as a PWA)'),
                 ok ? 'success' : 'warning',
             )
             await _checkBrowser(f)
@@ -53,15 +53,15 @@ function on_load(frm) {
 
     frm.actions.add({
         id: 'copy_report',
-        label: 'Копіювати звіт',
+        label: 'Copy report',
         icon: 'clipboard-copy',
         placement: 'menu',
         action: async (f) => {
             try {
                 await navigator.clipboard.writeText(JSON.stringify({ ...f.doc }, null, 2))
-                grunt.show_alert('Звіт скопійовано в буфер обміну', 'success')
+                grunt.show_alert(__('Report copied to the clipboard'), 'success')
             } catch (e) {
-                grunt.show_alert('Буфер обміну недоступний: ' + e.message, 'error')
+                grunt.show_alert(__('Clipboard unavailable:') + ' ' + e.message, 'error')
             }
         },
     })

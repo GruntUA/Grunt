@@ -1,9 +1,12 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import type { DashboardWidget } from '@/types'
 import { docUrl } from '@/core/workspaceUrl'
 import { filteredListUrl, groupFilter } from '@/pages/reports/drilldown'
+
+const { t } = useI18n()
 
 interface Row {
   label: string
@@ -35,9 +38,9 @@ const maxValue = computed(() => Math.max(...rows.value.map(r => r.value), 1))
 
 const aggLabel = computed(() => {
   const map: Record<string, string> = {
-    count: 'Кількість', sum: 'Сума', avg: 'Середнє', min: 'Мін', max: 'Макс',
+    count: t('Count'), sum: t('Sum'), avg: t('Average'), min: t('Min'), max: t('Max'),
   }
-  return map[props.data?.aggregation ?? 'count'] ?? 'Значення'
+  return map[props.data?.aggregation ?? 'count'] ?? t('Value')
 })
 
 function barWidth(value: number): number {
@@ -76,7 +79,7 @@ function formatVal(v: number): string {
     <!-- Empty -->
     <div v-else-if="rows.length === 0"
       class="flex-1 flex items-center justify-center text-muted-foreground">
-      Немає даних
+      {{ t('No data') }}
     </div>
 
     <!-- Table -->
@@ -85,7 +88,7 @@ function formatVal(v: number): string {
         <thead class="sticky top-0 bg-card border-b">
           <tr>
             <th class="px-4 py-2 text-left font-medium text-muted-foreground">
-              {{ data?.group_label || widget.group_by || 'Група' }}
+              {{ data?.group_label || widget.group_by || t('Group') }}
             </th>
             <th class="w-24 px-4 py-2 text-right font-medium text-muted-foreground">
               {{ aggLabel }}

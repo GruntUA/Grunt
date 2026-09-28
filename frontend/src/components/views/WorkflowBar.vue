@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 /**
  * Workflow bar: the document's state (chrome) and its transitions — actions
  * with `placement: 'workflow'` (global_form.js registers one per allowed
@@ -12,6 +13,8 @@ import WorkflowActionDialog from '@/components/workflow/WorkflowActionDialog.vue
 import ActionButtons from '@/components/views/actions/ActionButtons.vue'
 import type { ActionRegistry } from '@/core/actions'
 import type { FormProxy, WorkflowTransition } from '@/core/scripting/executor'
+
+const { t } = useI18n()
 
 /** The form controller's workflow state (useFormController). */
 export interface WorkflowUi {
@@ -40,7 +43,7 @@ const stateBadge = computed(() => statusBadgeFor(props.doctype, props.doc[props.
     v-if="doctype.workflow_state_field"
     class="flex items-center gap-3 px-6 py-3 border-t border-border/50 bg-muted/30"
   >
-    <span class="text-muted-foreground">Стан:</span>
+    <span class="text-muted-foreground">{{ t('State:') }}</span>
     <Badge v-if="stateBadge" variant="outline" :class="stateBadge.class">{{ stateBadge.label }}</Badge>
     <div class="flex gap-2 ml-2">
       <ActionButtons :toolbar="transitionActions" />

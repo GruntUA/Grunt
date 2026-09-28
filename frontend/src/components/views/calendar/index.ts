@@ -4,7 +4,7 @@ import type { DocType, DocField } from '@/types'
 
 const def: ViewDefinition = {
   type: 'calendar',
-  label: 'Календар',
+  label: 'Calendar',
   icon: CalendarDays,
   order: 2,
   // Calendar fetches its own month window and scrolls its grid internally —

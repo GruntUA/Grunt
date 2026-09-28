@@ -1,6 +1,9 @@
 import client from './client'
 import { useAuthStore } from '@/stores/auth'
 import type { ReportDetail, ReportResult, ReportSummary } from '@/types'
+import i18n from '@/plugins/i18n'
+
+const t = (key: string): string => i18n.global.t(key)
 
 // Report is a regular registered DocType, so list/get/create/update/delete
 // go through the generic `/api/v1/docs/Report` CRUD (see grunt/api/v1/docs/crud.py) —
@@ -26,7 +29,7 @@ export const reportsApi = {
       params: { 'filter[report_name__eq]': reportName, per_page: 1 },
     })
     const row = r.data.data?.[0]
-    if (!row) throw new Error(`Звіт '${reportName}' не знайдено`)
+    if (!row) throw new Error(t('Report «{name}» not found').replace('{name}', reportName))
     return row as ReportDetail
   },
 

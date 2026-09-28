@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import {
   format,
@@ -23,6 +24,8 @@ import { useToast } from '@/core/composables/useToast'
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
 import { ChartGantt, ChevronLeft, ChevronRight } from '@lucide/vue'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   doctype: DocType
@@ -155,7 +158,7 @@ async function load() {
     tasks.value = out
   } catch (e) {
     console.error('Gantt: failed to load', e)
-    toast.error('Не вдалося завантажити дані для діаграми Ганта')
+    toast.error(t('Could not load Gantt chart data'))
   } finally {
     isLoading.value = false
   }
@@ -210,7 +213,7 @@ const ticks = computed<Tick[]>(() => {
     return eachWeekOfInterval({ start, end }, { weekStartsOn: 1 }).map((d) => ({
       x: xFor(d),
       label: format(d, 'd MMM', { locale: dfLocale.value }),
-      sub: format(d, "'т.'w", { locale: dfLocale.value }),
+      sub: format(d, `'${t('wk.')}'w`, { locale: dfLocale.value }),
       width: dayWidth.value * 7,
     }))
   }
@@ -348,7 +351,7 @@ async function onDragEnd() {
     await docsApi.update(props.doctype.name, task.id, patch)
   } catch (e) {
     console.error('Gantt: reschedule failed', e)
-    toast.error('Не вдалося оновити дати')
+    toast.error(t('Could not update dates'))
     await load()
   } finally {
     isSaving.value = false
@@ -378,9 +381,9 @@ function fmtSpan(task: GanttTask) {
 }
 
 const zoomOptions: { value: Zoom; label: string }[] = [
-  { value: 'day', label: 'Дні' },
-  { value: 'week', label: 'Тижні' },
-  { value: 'month', label: 'Місяці' },
+  { value: 'day', label: t('Days') },
+  { value: 'week', label: t('Weeks') },
+  { value: 'month', label: t('Months') },
 ]
 </script>
 
@@ -392,8 +395,8 @@ const zoomOptions: { value: Zoom; label: string }[] = [
         <div class="size-8 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20">
           <ChartGantt class="size-4 text-primary" />
         </div>
-        <h2 class="text-base font-semibold text-foreground">Діаграма Ганта</h2>
-        <span v-if="isSaving" class="text-primary animate-pulse">Оновлення…</span>
+        <h2 class="text-base font-semibold text-foreground">{{ t('Gantt chart') }}</h2>
+        <span v-if="isSaving" class="text-primary animate-pulse">{{ t('Updating…') }}</span>
       </div>
 
       <div class="flex items-center gap-2">
@@ -405,7 +408,7 @@ const zoomOptions: { value: Zoom; label: string }[] = [
         </div>
         <div class="flex items-center rounded-md border border-border/50 bg-background p-0.5">
           <Button variant="ghost" size="sm" class="!h-7 !px-2" @click="nudge(-1)"><ChevronLeft class="size-4" /></Button>
-          <Button variant="ghost" size="sm" class="!h-7 !px-3 !text-xs" @click="scrollToToday">Сьогодні</Button>
+          <Button variant="ghost" size="sm" class="!h-7 !px-3 !text-xs" @click="scrollToToday">{{ t('Today') }}</Button>
           <Button variant="ghost" size="sm" class="!h-7 !px-2" @click="nudge(1)"><ChevronRight class="size-4" /></Button>
         </div>
         <Spinner v-if="isLoading" class="!size-5" strokeWidth="6" />
@@ -415,8 +418,8 @@ const zoomOptions: { value: Zoom; label: string }[] = [
     <!-- Not configured -->
     <div v-if="!isConfigured" class="flex-1 flex flex-col items-center justify-center gap-2 p-10 text-center text-muted-foreground">
       <ChartGantt class="size-8 opacity-40" />
-      <p>Для діаграми Ганта потрібні поля початку та завершення (Date/Datetime).</p>
-      <p>Оберіть їх у Конструкторі → вкладка «Вигляди» → «Діаграма Ганта».</p>
+      <p>{{ t('The Gantt chart needs start and end fields (Date/Datetime).') }}</p>
+      <p>{{ t('Choose them in the Builder → «Views» tab → «Gantt chart».') }}</p>
     </div>
 
     <!-- Chart -->
@@ -429,7 +432,7 @@ const zoomOptions: { value: Zoom; label: string }[] = [
             {{ props.doctype.label }}
           </div>
           <div v-if="!isLoading && !tasks.length" class="p-4 text-muted-foreground">
-            Немає документів із заповненими датами.
+            {{ t('No documents with dates filled in.') }}
           </div>
           <div v-for="task in tasks" :key="task.id"
             class="flex items-center gap-2 px-3 border-b border-border/20 cursor-pointer hover:bg-muted/40 transition-colors"
@@ -502,7 +505,7 @@ const zoomOptions: { value: Zoom; label: string }[] = [
 
             <div v-if="!isLoading && !tasks.length"
               class="absolute inset-0 flex items-center justify-center text-muted-foreground">
-              Немає документів із заповненими датами початку та завершення.
+              {{ t('No documents with start and end dates filled in.') }}
             </div>
           </div>
         </div>

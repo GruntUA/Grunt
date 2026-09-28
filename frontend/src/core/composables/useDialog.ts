@@ -22,6 +22,9 @@
  */
 
 import { reactive } from 'vue'
+import i18n from '@/plugins/i18n'
+
+const t = (key: string): string => i18n.global.t(key)
 
 // ── Types ────────────────────────────────────────────────────────────────
 
@@ -211,7 +214,7 @@ export function useDialog() {
     return new Promise((resolve) => {
       reset()
       state.type = 'confirm'
-      state.title = title ?? 'Підтвердження'
+      state.title = title ?? t('Confirmation')
       state.message = message
       state.resolve = resolve as (value: unknown) => void
       state.open = true
@@ -255,7 +258,7 @@ export function useDialog() {
   function warn(
     title: string,
     message: string,
-    primaryLabel: string = 'Продовжити',
+    primaryLabel: string = t('Continue'),
   ): Promise<boolean> {
     return new Promise((resolve) => {
       reset()
@@ -348,7 +351,7 @@ export function useDialog() {
     return form({
       title: opts.title,
       size: opts.size ?? 'extra-large',
-      primaryLabel: opts.primaryLabel ?? 'Обрати',
+      primaryLabel: opts.primaryLabel ?? t('Choose'),
       fields: [...(opts.fields ?? []), tableField],
       buttons: opts.buttons,
     }).then((v) => (v ? (v.__selection as any) ?? (multiple ? [] : null) : null))

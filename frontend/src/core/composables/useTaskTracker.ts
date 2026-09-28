@@ -13,6 +13,9 @@
  */
 
 import { computed, ref } from 'vue'
+import i18n from '@/plugins/i18n'
+
+const t = (key: string): string => i18n.global.t(key)
 
 // ── Data model ───────────────────────────────────────────────────────────────
 
@@ -53,7 +56,7 @@ function update(data: {
   percent?: number
   description?: string
 }) {
-  const title = data.title ?? 'Задача'
+  const title = data.title ?? t('Task')
   const id = data.task_id ?? _titleToId(title)
   const count = data.count ?? 0
   const total = data.total ?? 100
@@ -89,7 +92,7 @@ function update(data: {
 
 /** Mark a task as done or errored (sent from the backend task_done event). */
 function done(data: { task_id?: string; title?: string; status?: 'done' | 'error'; message?: string }) {
-  const id = data.task_id ?? _titleToId(data.title ?? 'задача')
+  const id = data.task_id ?? _titleToId(data.title ?? t('task'))
   const existing = _tasks.value.get(id)
   if (!existing) return
 

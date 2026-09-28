@@ -1,9 +1,12 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { ref, computed, nextTick, watch } from 'vue'
 import { ChevronDown, Search } from '@lucide/vue'
 import { cn } from '@/lib/utils'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover'
+
+const { t } = useI18n()
 interface OptionObj { [key: string]: unknown }
 
 const props = withDefaults(defineProps<{
@@ -15,7 +18,7 @@ const props = withDefaults(defineProps<{
   disabled?: boolean
   class?: string
 }>(), {
-  placeholder: '— оберіть —',
+  placeholder: undefined,
 })
 
 const emit = defineEmits<{ 'update:modelValue': [value: string[]] }>()
@@ -80,7 +83,7 @@ function toggleValue(v: string) {
     )"
     @click="toggle"
   >
-    <span class="truncate text-left">{{ selectedLabels.length ? selectedText : placeholder }}</span>
+    <span class="truncate text-left">{{ selectedLabels.length ? selectedText : (placeholder ?? t('— Select —')) }}</span>
     <ChevronDown class="size-4 shrink-0 opacity-50" />
   </button>
 
@@ -93,7 +96,7 @@ function toggleValue(v: string) {
           ref="searchEl"
           v-model="search"
           type="text"
-          placeholder="Пошук…"
+          :placeholder="t('Search…')"
           class="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
         >
       </div>
@@ -106,8 +109,8 @@ function toggleValue(v: string) {
           <Checkbox :model-value="modelValue.includes(optValue(opt))" @update:model-value="toggleValue(optValue(opt))" />
           <span class="truncate">{{ optLabel(opt) }}</span>
         </label>
-        <p v-if="!options.length" class="px-2 py-3 text-center text-muted-foreground">Немає варіантів</p>
-        <p v-else-if="!filteredOptions.length" class="px-2 py-3 text-center text-muted-foreground">Нічого не знайдено</p>
+        <p v-if="!options.length" class="px-2 py-3 text-center text-muted-foreground">{{ t('No options') }}</p>
+        <p v-else-if="!filteredOptions.length" class="px-2 py-3 text-center text-muted-foreground">{{ t('Nothing found') }}</p>
       </div>
     </PopoverContent>
   </Popover>

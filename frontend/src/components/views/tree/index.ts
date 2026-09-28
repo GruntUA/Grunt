@@ -4,7 +4,7 @@ import type { DocType, DocField, ActiveFilter } from '@/types'
 
 const def: ViewDefinition = {
   type: 'tree',
-  label: 'Дерево',
+  label: 'Tree',
   icon: GitBranch,
   order: 3,
 

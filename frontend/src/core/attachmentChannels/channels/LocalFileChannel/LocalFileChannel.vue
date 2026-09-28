@@ -1,8 +1,11 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { ref } from 'vue'
 import type { AttachmentResult, AttachChannelProps } from '@/core/attachmentChannels/types'
 import { filesApi } from '@/core/api/files'
 import { Upload, AlertCircle } from '@lucide/vue'
+
+const { t } = useI18n()
 
 const props = defineProps<AttachChannelProps>()
 const emit = defineEmits<{ select: [result: AttachmentResult] }>()
@@ -29,7 +32,7 @@ async function uploadFile(file: File) {
       fileItem: item,
     })
   } catch (e: unknown) {
-    error.value = e instanceof Error ? e.message : 'Помилка завантаження'
+    error.value = e instanceof Error ? e.message : t('Upload error')
   } finally {
     isUploading.value = false
   }
@@ -60,13 +63,13 @@ function onFileChange(e: Event) {
       <div class="w-48 bg-muted rounded-full h-1.5">
         <div class="bg-primary h-1.5 rounded-full transition-all" :style="{ width: uploadProgress + '%' }" />
       </div>
-      <p class="text-muted-foreground">Завантаження...</p>
+      <p class="text-muted-foreground">{{ t('Uploading...') }}</p>
     </template>
     <template v-else>
       <Upload class="size-8 text-muted-foreground/50" />
       <div class="text-center">
-        <p class="text-foreground">Перетягни файл або <span class="text-primary font-medium">клікни для вибору</span></p>
-        <p v-if="imageOnly" class="text-muted-foreground mt-1">Тільки зображення</p>
+        <p class="text-foreground">{{ t('Drop a file or') }} <span class="text-primary font-medium">{{ t('click to choose') }}</span></p>
+        <p v-if="imageOnly" class="text-muted-foreground mt-1">{{ t('Images only') }}</p>
       </div>
     </template>
 

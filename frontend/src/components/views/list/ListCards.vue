@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { computed } from 'vue'
 import type { DocField, DocType, PaginationMeta } from '@/types'
 import type { ListColumn } from '@/core/composables/useListColumns'
@@ -12,6 +13,8 @@ import { Card } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
 import ListEmptyState from '@/components/views/ListEmptyState.vue'
 import { Skeleton } from '@/components/ui/skeleton'
+
+const { t } = useI18n()
 
 /**
  * List rows as cards — the phone-width counterpart of GruntDataTable. The first
@@ -128,7 +131,7 @@ function onTitleClick(event: MouseEvent, row: Record<string, unknown>) {
         <Checkbox
           class="mt-0.5"
           :model-value="isSelected(row)"
-          :aria-label="`Вибрати ${rowId(row)}`"
+          :aria-label="t('Select {id}').replace('{id}', String(rowId(row)))"
           @click.stop
           @update:model-value="emit('select', rowId(row))"
         />
@@ -137,7 +140,7 @@ function onTitleClick(event: MouseEvent, row: Record<string, unknown>) {
           class="min-w-0 flex-1 font-medium break-words"
           @click.stop="onTitleClick($event, row)"
         >
-          <span v-if="isUnseen(row)" class="mr-1.5 inline-block size-2 rounded-full bg-primary" aria-label="Не переглянуто" />
+          <span v-if="isUnseen(row)" class="mr-1.5 inline-block size-2 rounded-full bg-primary" :aria-label="t('Unseen')" />
           <component
             :is="cellOf(titleColumn)"
             v-if="titleColumn && !isEmpty(row[titleColumn.key])"

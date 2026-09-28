@@ -1,10 +1,13 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { ref, onMounted, computed } from 'vue'
 import { usePropertyEditor } from '@/core/composables/usePropertyEditor'
 import { metaApi, type ValidatorInfo } from '@/core/api/meta'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
+
+const { t } = useI18n()
 
 const { field, updateField } = usePropertyEditor()
 
@@ -20,7 +23,7 @@ const validatorOptions = computed(() => {
     v => v.field_types.includes(field.value.fieldtype)
   )
   return [
-    { value: '__none__', label: '— не обрано —' },
+    { value: '__none__', label: t('— not set —') },
     ...applicable.map(v => ({ value: v.name, label: v.label })),
   ]
 })
@@ -47,7 +50,7 @@ const hasValidators = computed(() => validatorOptions.value.length > 1)
       <label class="font-medium">Validator</label>
       <Select :model-value="field.validator || '__none__'" @update:model-value="updateField('validator', $event === '__none__' ? undefined : $event)">
         <SelectTrigger class="w-full">
-          <SelectValue placeholder="— не обрано —" />
+          <SelectValue :placeholder="t('— not set —')" />
         </SelectTrigger>
         <SelectContent>
           <SelectItem v-for="opt in validatorOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</SelectItem>

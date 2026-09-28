@@ -258,11 +258,11 @@ const totalCount = computed(() => {
     <div class="flex items-center gap-2 mb-4 flex-wrap">
       <Button variant="ghost" size="sm" @click="expandAll()">
         <ChevronDown class="size-3.5 mr-1" />
-        Розгорнути все
+        {{ t('Expand all') }}
       </Button>
       <Button variant="ghost" size="sm" @click="collapseAll">
         <ChevronRight class="size-3.5 mr-1" />
-        Згорнути все
+        {{ t('Collapse all') }}
       </Button>
       <select
         v-model="sortBy"
@@ -294,10 +294,10 @@ const totalCount = computed(() => {
     <div v-else-if="!loading && !treeNodes.length"
       class="flex flex-col items-center justify-center py-16 gap-3 text-muted-foreground">
       <FolderOpen class="size-12 opacity-30" />
-      <p>Записів поки немає</p>
+      <p>{{ t('No records yet') }}</p>
       <Button size="sm" @click="createRoot">
         <Plus class="size-4 mr-1.5" />
-        Створити перший
+        {{ t('Create the first one') }}
       </Button>
     </div>
 
@@ -310,7 +310,7 @@ const totalCount = computed(() => {
 
     <!-- Counter -->
     <p v-if="totalCount" class="mt-3 text-muted-foreground text-right">
-      Всього: {{ totalCount }} записів
+      {{ t('Total: {n} records').replace('{n}', String(totalCount)) }}
     </p>
 
     <!-- Quick entry dialog -->

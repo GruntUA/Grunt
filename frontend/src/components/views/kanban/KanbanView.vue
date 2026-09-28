@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { ref, computed, onMounted, watch } from 'vue'
 import { formatDayMonth } from '@/core/datetime'
 import { VueDraggable } from 'vue-draggable-plus'
@@ -11,6 +12,8 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
+
+const { t } = useI18n()
 const props = defineProps<{
   doctype: DocType
   columnField: string
@@ -164,7 +167,7 @@ watch(() => props.refreshKey, (_v, old) => { if (old !== undefined) loadCards() 
           <div class="p-2">
             <div class="relative">
               <Plus class="absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
-              <Input v-model="quickAddInputs[col]" placeholder="Швидке додавання..." class="h-8 pl-8"
+              <Input v-model="quickAddInputs[col]" :placeholder="t('Quick add...')" class="h-8 pl-8"
                 @keyup.enter="quickAdd(col)" />
             </div>
           </div>
@@ -184,7 +187,7 @@ watch(() => props.refreshKey, (_v, old) => { if (old !== undefined) loadCards() 
               </p>
 
               <div class="mt-3 flex items-center justify-between gap-2 text-muted-foreground">
-                <div v-if="card.owner" class="flex items-center gap-1.5 overflow-hidden" title="Власник">
+                <div v-if="card.owner" class="flex items-center gap-1.5 overflow-hidden" :title="t('Owner')">
                   <Avatar class="size-5 shrink-0">
                     <AvatarFallback class="text-xs">{{ card.owner.charAt(0).toUpperCase() }}</AvatarFallback>
                   </Avatar>

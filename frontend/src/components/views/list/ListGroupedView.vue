@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { ChevronRight, Layers } from '@lucide/vue'
 import type { DocField, DocType } from '@/types'
 import type { ListColumn } from '@/core/composables/useListColumns'
@@ -8,6 +9,8 @@ import ListCards from '@/components/views/list/ListCards.vue'
 import { useCardLayout } from '@/components/views/list/useCardLayout'
 import { Badge } from '@/components/ui/badge'
 import { statusConfigOf } from '@/core/status'
+
+const { t } = useI18n()
 
 interface SelectionState {
   selectedIds: string[]
@@ -41,8 +44,8 @@ const emit = defineEmits<{
 }>()
 
 function groupLabel(key: string): string {
-  if (!key || key === 'null' || key === 'undefined') return 'Без значення'
-  if (props.groupByField?.fieldtype === 'Check') return key === '1' || key === 'true' ? 'Так' : 'Ні'
+  if (!key || key === 'null' || key === 'undefined') return t('No value')
+  if (props.groupByField?.fieldtype === 'Check') return key === '1' || key === 'true' ? t('Yes') : t('No')
   return key
 }
 
@@ -87,7 +90,7 @@ function handleSelectGroup(items: Record<string, unknown>[]) {
             <div class="flex flex-col gap-0.5 min-w-0">
                 <div class="flex items-center gap-2">
                     <Layers class="size-3.5 text-muted-foreground/40" />
-                    <span class="font-semibold uppercase tracking-widest text-muted-foreground/60">{{ groupByField?.label || 'Група' }}</span>
+                    <span class="font-semibold uppercase tracking-widest text-muted-foreground/60">{{ groupByField?.label || t('Group') }}</span>
                 </div>
                 <h3 class="font-semibold text-foreground truncate">{{ groupLabel(group.key) }}</h3>
             </div>

@@ -3,7 +3,7 @@ import type { ViewDefinition } from '@/core/viewRegistry'
 
 const def: ViewDefinition = {
   type: 'list',
-  label: 'Список',
+  label: 'List',
   icon: LayoutList,
   order: 0,
 

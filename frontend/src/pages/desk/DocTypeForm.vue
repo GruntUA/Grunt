@@ -160,21 +160,21 @@ const initials = (email: string) => email.slice(0, 2).toUpperCase()
       <div v-if="pendingDraft"
         class="flex items-center gap-2 rounded-md border border-primary/30 bg-primary/5 px-3 py-2 text-foreground">
         <History class="size-4 shrink-0 text-primary" />
-        <span class="flex-1">{{ t('Знайдено незбережені зміни ({time}). Відновити чернетку?').replace('{time}', formatRelative(pendingDraft.savedAt)) }}</span>
-        <Button size="sm" variant="outline" @click="restoreDraft">{{ t('Відновити') }}</Button>
-        <Button size="sm" variant="ghost" @click="discardDraft">{{ t('Відхилити') }}</Button>
+        <span class="flex-1">{{ t('Unsaved changes found ({time}). Restore the draft?').replace('{time}', formatRelative(pendingDraft.savedAt)) }}</span>
+        <Button size="sm" variant="outline" @click="restoreDraft">{{ t('Restore') }}</Button>
+        <Button size="sm" variant="ghost" @click="discardDraft">{{ t('Discard') }}</Button>
       </div>
 
       <!-- Lifecycle markers -->
       <div v-if="dt?.deprecated"
         class="flex items-start gap-2 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-amber-900 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-200">
         <TriangleAlert class="size-4 mt-0.5 shrink-0" />
-        <span>{{ t('Цей тип документа позначено як неактуальний (deprecated). Він продовжує працювати, але не використовуйте його в новому коді.') }}</span>
+        <span>{{ t('This document type is deprecated. It still works, but do not use it in new code.') }}</span>
       </div>
       <div v-if="dt?.beta"
         class="flex items-start gap-2 rounded-md border border-border bg-muted/50 px-3 py-2 text-muted-foreground">
         <FlaskConical class="size-4 mt-0.5 shrink-0" />
-        <span>{{ t('Beta: цей тип документа ще в розробці, поведінка може змінитися.') }}</span>
+        <span>{{ t('Beta: this document type is still in development; its behavior may change.') }}</span>
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-5">
@@ -196,10 +196,10 @@ const initials = (email: string) => email.slice(0, 2).toUpperCase()
             class="flex flex-wrap items-center gap-x-4 gap-y-1.5 px-1 text-muted-foreground">
             <span v-if="dt?.track_views" class="inline-flex items-center gap-1.5">
               <Eye class="size-3.5" />
-              {{ t('{views} переглядів · {viewers} користувачів').replace('{views}', String(viewInfo.views)).replace('{viewers}', String(viewInfo.viewers)) }}
+              {{ t('{views} views · {viewers} users').replace('{views}', String(viewInfo.views)).replace('{viewers}', String(viewInfo.viewers)) }}
             </span>
             <span v-if="dt?.track_seen && seenList.length" class="inline-flex items-center gap-1.5">
-              {{ t('Переглянули:') }}
+              {{ t('Viewed by:') }}
               <span class="flex -space-x-1.5">
                 <span v-for="email in seenShown" :key="email" :title="email"
                   class="inline-flex size-5 items-center justify-center rounded-full border border-background bg-muted text-[9px] font-medium text-foreground">
@@ -214,7 +214,7 @@ const initials = (email: string) => email.slice(0, 2).toUpperCase()
           <div v-if="showActivityLog && id && document" class="form-section">
             <div class="form-section-header">
               <Activity class="size-3.5 text-muted-foreground" />
-              <span class="flex-1 text-left">{{ t('Активність') }}</span>
+              <span class="flex-1 text-left">{{ t('Activity') }}</span>
             </div>
             <div class="form-section-body p-4!">
               <SidebarTimeline :doctype="dt" :document="document as GruntDocument" @restored="onVersionRestored" />

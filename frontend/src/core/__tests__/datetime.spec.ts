@@ -80,8 +80,8 @@ describe('core/datetime', () => {
 
   it('dateFormatSpec describes separator / order / placeholder', () => {
     setConfig({ dateFormat: 'yyyy-mm-dd' })
-    expect(dateFormatSpec()).toEqual({ sep: '-', order: ['y', 'm', 'd'], placeholder: 'РРРР-ММ-ДД' })
+    expect(dateFormatSpec()).toEqual({ sep: '-', order: ['y', 'm', 'd'], placeholder: 'YYYY-MM-DD' })
     setConfig({ dateFormat: 'dd/mm/yyyy' })
-    expect(dateFormatSpec()).toEqual({ sep: '/', order: ['d', 'm', 'y'], placeholder: 'ДД/ММ/РРРР' })
+    expect(dateFormatSpec()).toEqual({ sep: '/', order: ['d', 'm', 'y'], placeholder: 'DD/MM/YYYY' })
   })
 })

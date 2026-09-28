@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { computed } from 'vue'
 import { X } from '@lucide/vue'
 import type { DocField, DocType, QuickFilter } from '@/types'
@@ -7,6 +8,8 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   defs: QuickFilter[]
@@ -91,7 +94,7 @@ function onInput(ff: QuickFilter, value: string) {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="__any__">{{ props.variant === 'quick' ? getLabel(ff) : '— Будь-який —' }}</SelectItem>
+              <SelectItem value="__any__">{{ props.variant === 'quick' ? getLabel(ff) : t('— Any —') }}</SelectItem>
               <SelectItem v-for="opt in getSelectOptions(ff)" :key="opt" :value="opt">{{ opt }}</SelectItem>
             </SelectContent>
           </Select>
@@ -134,7 +137,7 @@ function onInput(ff: QuickFilter, value: string) {
             variant="ghost" size="icon"
             class="absolute right-0.5 top-1/2 z-10 size-5 -translate-y-1/2 text-muted-foreground hover:text-foreground"
             @click="onInput(ff, '')"
-            :title="`Очистити «${getLabel(ff)}»`"
+            :title="t('Clear «{label}»').replace('{label}', getLabel(ff))"
           >
             <X class="size-3" />
           </Button>
@@ -145,7 +148,7 @@ function onInput(ff: QuickFilter, value: string) {
           v-if="getValue(ff) && (ff.input_type === 'select' || ff.input_type === 'check')"
           variant="ghost" size="icon" class="size-5"
           @click="onInput(ff, '')"
-          :title="`Очистити «${getLabel(ff)}»`"
+          :title="t('Clear «{label}»').replace('{label}', getLabel(ff))"
         >
           <X class="size-3" />
         </Button>

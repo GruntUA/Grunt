@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { ref, computed, onMounted, watch } from 'vue'
 import {
   format,
@@ -26,6 +27,8 @@ import { Popover, PopoverAnchor, PopoverContent, PopoverTrigger } from '@/compon
 import { Separator } from '@/components/ui/separator'
 import { Spinner } from '@/components/ui/spinner'
 import { docUrl } from '@/core/workspaceUrl'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   doctype: DocType
@@ -318,7 +321,7 @@ function onDayClick(day: Date) {
   })
 }
 
-const weekDays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд']
+const weekDays = [t('Mon'), t('Tue'), t('Wed'), t('Thu'), t('Fri'), t('Sat'), t('Sun')]
 </script>
 
 <template>
@@ -341,13 +344,13 @@ const weekDays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд']
           </PopoverContent>
         </Popover>
 
-        <span v-if="isRescheduling" class="text-primary animate-pulse">Оновлення…</span>
+        <span v-if="isRescheduling" class="text-primary animate-pulse">{{ t('Updating…') }}</span>
       </div>
 
       <div class="flex items-center gap-2">
         <div class="flex items-center rounded-md border border-border/50 bg-background p-0.5">
           <Button variant="ghost" size="sm" class="!h-7 !px-2" @click="prevMonth"><ChevronLeft class="size-4" /></Button>
-          <Button variant="ghost" size="sm" class="!h-7 !px-3" @click="setToday">Сьогодні</Button>
+          <Button variant="ghost" size="sm" class="!h-7 !px-3" @click="setToday">{{ t('Today') }}</Button>
           <Button variant="ghost" size="sm" class="!h-7 !px-2" @click="nextMonth"><ChevronRight class="size-4" /></Button>
         </div>
         <Spinner v-if="isLoading" class="!size-5" strokeWidth="6" />
@@ -410,7 +413,7 @@ const weekDays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд']
                   class="rounded px-1.5 py-0.5 text-left font-medium text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
                   @click.stop
                 >
-                  +{{ hiddenEventCount(day) }} ще
+                  +{{ hiddenEventCount(day) }} {{ t('more') }}
                 </button>
               </PopoverTrigger>
               <PopoverContent class="w-60 p-1" align="start">
@@ -455,7 +458,7 @@ const weekDays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд']
             <span>{{ fmtDate(selectedEvent.date) }}</span>
           </div>
 
-          <Button size="sm" class="w-full" @click="navigateToDoc(selectedEvent)">Відкрити</Button>
+          <Button size="sm" class="w-full" @click="navigateToDoc(selectedEvent)">{{ t('Open') }}</Button>
         </div>
       </PopoverContent>
     </Popover>

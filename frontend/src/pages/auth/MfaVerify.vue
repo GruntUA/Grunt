@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { onMounted, ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ShieldCheck, ArrowRight, ArrowLeft, Copy } from '@lucide/vue'
@@ -8,6 +9,8 @@ import { useToast } from '@/core/composables/useToast'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Spinner } from '@/components/ui/spinner'
+
+const { t } = useI18n()
 
 const router = useRouter()
 const route = useRoute()
@@ -39,7 +42,7 @@ onMounted(async () => {
   try {
     setupInfo.value = await authApi.mfaEnrollBegin(mfaToken)
   } catch (e: any) {
-    error.value = e?.response?.data?.detail || e?.message || 'Не вдалося розпочати налаштування 2FA.'
+    error.value = e?.response?.data?.detail || e?.message || t('Could not start 2FA setup.')
   }
 })
 
@@ -52,7 +55,7 @@ async function handleEnroll() {
     await authStore.setSession(data.access_token, data.refresh_token)
     backupCodes.value = data.backup_codes || []
   } catch (e: any) {
-    error.value = e?.response?.data?.detail || e?.message || 'Невірний код. Спробуйте ще раз.'
+    error.value = e?.response?.data?.detail || e?.message || t('Invalid code. Try again.')
   } finally {
     loading.value = false
   }
@@ -60,7 +63,7 @@ async function handleEnroll() {
 
 async function copyBackupCodes() {
   await navigator.clipboard.writeText(backupCodes.value.join('\n'))
-  toast.success('Резервні коди скопійовано')
+  toast.success(t('Backup codes copied'))
 }
 
 async function handleVerify() {
@@ -78,13 +81,13 @@ async function handleVerify() {
     localStorage.setItem('grunt_token', data.access_token)
     localStorage.setItem('grunt_refresh_token', data.refresh_token)
 
-    toast.success('Вітаємо в системі!')
+    toast.success(t('Welcome!'))
     setTimeout(() => {
       router.push({ name: 'desk' })
     }, 200)
   } catch (e: any) {
     console.error('MFA Verify Error:', e)
-    error.value = e?.response?.data?.detail || e?.message || 'Невірний код. Спробуйте ще раз.'
+    error.value = e?.response?.data?.detail || e?.message || t('Invalid code. Try again.')
     toast.error(error.value)
   } finally {
     loading.value = false
@@ -102,22 +105,21 @@ async function handleVerify() {
           <ShieldCheck class="w-8 h-8" />
         </div>
         <h1 class="text-2xl font-semibold text-foreground tracking-tight">
-          {{ isSetup ? 'Налаштування 2FA' : 'Двофакторна перевірка' }}
+          {{ isSetup ? t('2FA setup') : t('Two-factor verification') }}
         </h1>
         <p v-if="isSetup" class="text-muted-foreground mt-2 max-w-[320px] mx-auto leading-relaxed">
-          Ваша роль вимагає двофакторної автентифікації. Відскануйте QR-код у додатку-автентифікаторі
-          та введіть 6-значний код.
+          {{ t('Your role requires two-factor authentication. Scan the QR code in your authenticator app and enter the 6-digit code.') }}
         </p>
         <p v-else class="text-muted-foreground mt-2 max-w-[280px] mx-auto leading-relaxed">
-          Будь ласка, введіть 6-значний код з вашого додатку або резервний код.
+          {{ t('Please enter the 6-digit code from your app or a backup code.') }}
         </p>
       </div>
 
       <div v-if="backupCodes.length" class="bg-card border border-border shadow-sm rounded-lg p-8 flex flex-col gap-6">
         <div class="flex flex-col gap-2">
-          <p class="font-semibold">2FA увімкнено. Збережіть резервні коди</p>
+          <p class="font-semibold">{{ t('2FA is on. Save your backup codes') }}</p>
           <p class="text-muted-foreground">
-            Кожен код можна використати один раз, якщо немає доступу до автентифікатора. Більше вони не показуватимуться.
+            {{ t('Each code can be used once if you lose access to your authenticator. They will not be shown again.') }}
           </p>
         </div>
         <ul class="grid grid-cols-2 gap-2 font-mono text-sm text-center">
@@ -125,10 +127,10 @@ async function handleVerify() {
         </ul>
         <Button variant="outline" type="button" @click="copyBackupCodes">
           <Copy class="mr-2 h-4 w-4" />
-          Скопіювати коди
+          {{ t('Copy codes') }}
         </Button>
         <Button type="button" class="w-full h-12" @click="router.push({ name: 'desk' })">
-          Продовжити
+          {{ t('Continue') }}
           <ArrowRight class="ml-2 h-5 w-5" />
         </Button>
       </div>
@@ -137,13 +139,13 @@ async function handleVerify() {
         <div v-if="isSetup && setupInfo" class="flex flex-col items-center gap-3 mb-6">
           <div class="rounded-md bg-white p-2 [&>svg]:size-44" v-html="setupInfo.qr_svg" />
           <p class="text-muted-foreground text-center">
-            Або введіть ключ вручну:
+            {{ t('Or enter the key manually:') }}
             <span class="block font-mono text-foreground break-all select-all">{{ setupInfo.secret }}</span>
           </p>
         </div>
         <form class="flex flex-col gap-6" @submit.prevent="isSetup ? handleEnroll() : handleVerify()">
           <div class="flex flex-col gap-2 text-center">
-            <label class="font-semibold text-muted-foreground uppercase tracking-widest">Код доступу</label>
+            <label class="font-semibold text-muted-foreground uppercase tracking-widest">{{ t('Access code') }}</label>
             <Input v-model="code" type="text" inputmode="numeric" autocomplete="one-time-code"
               placeholder="000 000" maxlength="8" required autofocus
               class="h-16 text-center text-3xl font-mono tracking-[0.3em] !border-2 focus:!ring-primary/20 bg-background/50" />
@@ -156,14 +158,14 @@ async function handleVerify() {
 
           <Button type="submit" :disabled="loading || code.length < 6"
             class="w-full h-14 text-lg font-semibold shadow-sm">
-            <span>{{ isSetup ? 'Увімкнути 2FA та увійти' : 'Підтвердити вхід' }}</span>
+            <span>{{ isSetup ? t('Enable 2FA and sign in') : t('Confirm sign-in') }}</span>
             <Spinner v-if="loading" class="ml-2 h-5 w-5 order-last" />
             <ArrowRight v-else class="ml-2 h-5 w-5 order-last" />
           </Button>
 
           <Button variant="ghost" type="button" class="h-10 text-muted-foreground hover:text-foreground text-xs" @click="router.push('/login')">
             <ArrowLeft class="mr-2 h-3 w-3" />
-            Повернутися до входу
+            {{ t('Back to sign in') }}
           </Button>
         </form>
       </div>

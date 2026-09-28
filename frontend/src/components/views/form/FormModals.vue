@@ -68,7 +68,7 @@ const canDelete = computed(() => canReassign.value || !hasRefs.value || ackDangl
 function groupLine(g: DeleteImpact['groups'][number]): string {
   const parts = [g.label]
   if (g.field_label) parts.push(g.field_label)
-  if (g.in_child && g.parent_doctype) parts.push(`у ${g.parent_doctype}`)
+  if (g.in_child && g.parent_doctype) parts.push(t('in {doctype}').replace('{doctype}', g.parent_doctype))
   return parts.join(' · ')
 }
 
@@ -88,14 +88,14 @@ function confirm() {
 
         <div v-if="impactLoading" class="flex items-center gap-2 text-muted-foreground py-2">
           <Loader2 class="size-4 animate-spin" />
-          Перевірка посилань…
+          {{ t('Checking links…') }}
         </div>
 
         <template v-else-if="hasRefs">
           <p class="text-muted-foreground">
-            На цей документ посилаються інші записи
+            {{ t('Other records link to this document') }}
             (<span class="font-semibold text-foreground">{{ impact!.total }}</span>).
-            Оберіть, чим їх замінити, або видаліть без заміни.
+            {{ t('Choose a replacement or delete without one.') }}
           </p>
 
           <ul class="my-1 max-h-40 overflow-y-auto rounded-md border border-border/60 bg-muted/30 divide-y divide-border/50">
@@ -107,14 +107,14 @@ function confirm() {
           </ul>
 
           <div class="flex flex-col gap-1.5">
-            <label class="font-medium">Підставити замість видаленого</label>
+            <label class="font-medium">{{ t('Replace with') }}</label>
             <LinkField
               :field="replaceField"
               :model-value="replaceWith"
               @update:model-value="replaceWith = ($event as string) ?? ''"
             />
             <p v-if="replaceIsSelf" class="text-destructive">
-              Не можна підставити той самий документ, що видаляється.
+              {{ t('Cannot replace with the document being deleted.') }}
             </p>
           </div>
 
@@ -125,19 +125,19 @@ function confirm() {
               @update:model-value="ackDangling = $event === true"
             />
             <span class="text-muted-foreground">
-              Видалити без заміни — {{ impact!.total }} посилань стануть недійсними.
+              {{ t('Delete without replacement — {n} links will become invalid.').replace('{n}', String(impact!.total)) }}
             </span>
           </label>
         </template>
 
         <p v-else class="text-muted-foreground">
-          Цю дію не можна скасувати. Всі пов'язані дані будуть видалені назавжди.
+          {{ t('This cannot be undone. All related data will be deleted permanently.') }}
         </p>
 
         <DialogFooter>
           <Button variant="ghost" @click="emit('update:showDelete', false)">{{ t('Cancel') }}</Button>
           <Button variant="destructive" :disabled="!canDelete" @click="confirm">
-            {{ canReassign ? 'Видалити і перепризначити' : t('Delete') }}
+            {{ canReassign ? t('Delete and reassign') : t('Delete') }}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -149,7 +149,7 @@ function confirm() {
         <DialogHeader>
           <DialogTitle class="text-base">{{ t('Unsaved changes') }}</DialogTitle>
         </DialogHeader>
-        <p class="text-muted-foreground">Ви внесли зміни, які буде втрачено, якщо ви покинете сторінку. Покинути без збереження?</p>
+        <p class="text-muted-foreground">{{ t('You have changes that will be lost if you leave this page. Leave without saving?') }}</p>
         <DialogFooter>
           <Button variant="ghost" @click="emit('cancelLeave')">{{ t('Stay') }}</Button>
           <Button variant="destructive" @click="emit('confirmLeave')">{{ t('Leave') }}</Button>

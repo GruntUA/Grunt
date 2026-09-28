@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { useAttrs } from 'vue'
 import { PanelRightClose, User } from '@lucide/vue'
 import type { DocType, GruntDocument } from '@/types'
@@ -7,6 +8,8 @@ import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import DocSidebarBody from './sidebar/DocSidebarBody.vue'
 import { useDocPanel } from './sidebar/useDocPanel'
+
+const { t } = useI18n()
 
 defineProps<{
   doctype: DocType
@@ -57,8 +60,8 @@ function startResize(e: PointerEvent) {
     >
       <div class="form-section-header border-b border-border/60 px-4 py-3 flex items-center gap-2">
         <User class="size-3.5 text-muted-foreground" />
-        <span class="flex-1 font-semibold uppercase tracking-wider">Деталі</span>
-        <Button variant="ghost" size="icon" class="size-6 -mr-1.5" title="Згорнути (Ctrl+])" @click="toggle">
+        <span class="flex-1 font-semibold uppercase tracking-wider">{{ t('Details') }}</span>
+        <Button variant="ghost" size="icon" class="size-6 -mr-1.5" :title="t('Collapse (Ctrl+])')" @click="toggle">
           <PanelRightClose class="size-4" />
         </Button>
       </div>
@@ -74,7 +77,7 @@ function startResize(e: PointerEvent) {
       <SheetHeader class="border-b border-border/60 px-4 py-3">
         <SheetTitle class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider">
           <User class="size-3.5 text-muted-foreground" />
-          Деталі
+          {{ t('Details') }}
         </SheetTitle>
       </SheetHeader>
       <div class="p-4">

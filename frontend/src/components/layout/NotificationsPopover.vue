@@ -133,7 +133,7 @@ onUnmounted(() => {
                             class="flex flex-col items-center justify-center gap-1 py-12 text-center px-4">
                             <Bell class="size-8 text-muted-foreground/25 mb-1" />
                             <p class="font-medium text-foreground">{{ t('No notifications') }}</p>
-                            <p class="text-muted-foreground">Тут з'являться ваші останні сповіщення.</p>
+                            <p class="text-muted-foreground">{{ t('Your latest notifications will appear here.') }}</p>
                         </div>
                         <div v-else class="flex flex-col divide-y divide-border/60">
                             <div v-for="n in notifications" :key="n.id"

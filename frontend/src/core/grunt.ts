@@ -11,6 +11,9 @@ import { toast } from '@/core/composables/useToast'
 import client from '@/core/api/client'
 import { useDialog } from '@/core/composables/useDialog'
 import type { MsgprintOptions, PromptOptions, DialogOptions } from '@/core/composables/useDialog'
+import i18n from '@/plugins/i18n'
+
+const t = (key: string): string => i18n.global.t(key)
 
 export type AlertType = 'success' | 'error' | 'info' | 'warning'
 
@@ -115,7 +118,7 @@ export const grunt = {
         '@/core/composables/useWebAuthn'
       )
       if (!isWebAuthnSupported()) {
-        throw new Error('Цей браузер не підтримує ключі доступу')
+        throw new Error(t('This browser does not support passkeys'))
       }
       const { options, challenge_token } = await authApi.enrollBegin(
         'webauthn',

@@ -16,6 +16,9 @@
  */
 
 import { computed, ref } from 'vue'
+import i18n from '@/plugins/i18n'
+
+const t = (key: string): string => i18n.global.t(key)
 
 const DB_NAME = 'grunt_offline'
 const DB_VERSION = 2 // v1 stored bearer tokens — its store is dropped on upgrade
@@ -40,7 +43,7 @@ export interface QueuedChange {
 /** Thrown to the caller instead of a response when a change was queued. */
 export class OfflineQueuedError extends Error {
   constructor() {
-    super("Немає з'єднання — зміни збережено на пристрої й буде надіслано автоматично")
+    super(t('No connection — changes are saved on this device and will be sent automatically'))
     this.name = 'OfflineQueuedError'
   }
 }
@@ -140,7 +143,7 @@ export async function enqueue(method: string, url: string, data: unknown): Promi
 
 function errorMessage(err: any): string {
   const body = err?.response?.data
-  return body?.error?.message ?? body?.detail ?? err?.message ?? 'Помилка'
+  return body?.error?.message ?? body?.detail ?? err?.message ?? t('Error')
 }
 
 /**

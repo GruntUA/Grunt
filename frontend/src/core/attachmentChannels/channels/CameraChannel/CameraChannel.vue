@@ -1,9 +1,12 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { ref, onUnmounted } from 'vue'
 import type { AttachmentResult, AttachChannelProps } from '@/core/attachmentChannels/types'
 import { filesApi } from '@/core/api/files'
 import { Camera, X, AlertCircle, Loader2 } from '@lucide/vue'
 import { Button } from '@/components/ui/button'
+
+const { t } = useI18n()
 
 defineProps<AttachChannelProps>()
 const emit = defineEmits<{ select: [result: AttachmentResult] }>()
@@ -32,8 +35,8 @@ async function startCamera() {
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err)
     error.value = msg.includes('Permission') || msg.includes('NotAllowed')
-      ? 'Доступ до камери заборонено. Дозвольте доступ у налаштуваннях браузера.'
-      : `Помилка камери: ${msg}`
+      ? t('Camera access denied. Allow access in browser settings.')
+      : t('Camera error: {msg}').replace('{msg}', String(msg))
     state.value = 'error'
     stopStream()
   }
@@ -59,13 +62,13 @@ async function capture() {
   state.value = 'uploading'
 
   canvas.toBlob(async (blob) => {
-    if (!blob) { state.value = 'error'; error.value = 'Не вдалося зробити фото'; return }
+    if (!blob) { state.value = 'error'; error.value = t('Could not take a photo'); return }
     try {
       const file = new File([blob], `capture_${Date.now()}.jpg`, { type: 'image/jpeg' })
       const item = await filesApi.upload(file)
       emit('select', { url: item.url, filename: item.filename, contentType: item.content_type, fileItem: item })
     } catch (e: unknown) {
-      error.value = e instanceof Error ? e.message : 'Помилка завантаження'
+      error.value = e instanceof Error ? e.message : t('Upload error')
       state.value = 'error'
     }
   }, 'image/jpeg', 0.92)
@@ -80,10 +83,10 @@ onUnmounted(stopStream)
     <template v-if="state === 'idle' || state === 'error'">
       <div class="flex flex-col items-center gap-3 py-8">
         <Camera class="size-10 text-muted-foreground/40" />
-        <p class="text-muted-foreground text-center">Зробіть фото за допомогою камери пристрою</p>
+        <p class="text-muted-foreground text-center">{{ t('Take a photo with the device camera') }}</p>
         <Button type="button" @click="startCamera">
           <Camera class="size-4 mr-2" />
-          Увімкнути камеру
+          {{ t('Turn on camera') }}
         </Button>
       </div>
       <div v-if="error" class="flex items-center gap-1.5 text-destructive">
@@ -96,7 +99,7 @@ onUnmounted(stopStream)
     <template v-if="state === 'starting'">
       <div class="flex items-center gap-2 text-muted-foreground py-8">
         <Loader2 class="size-4 animate-spin" />
-        Підключення до камери...
+        {{ t('Connecting to the camera...') }}
       </div>
     </template>
 
@@ -108,11 +111,11 @@ onUnmounted(stopStream)
       <div class="flex gap-2">
         <Button type="button" @click="capture">
           <Camera class="size-4 mr-2" />
-          Зробити фото
+          {{ t('Take photo') }}
         </Button>
         <Button variant="outline" type="button" @click="stopStream">
           <X class="size-4 mr-2" />
-          Скасувати
+          {{ t('Cancel') }}
         </Button>
       </div>
     </template>
@@ -121,7 +124,7 @@ onUnmounted(stopStream)
     <template v-if="state === 'uploading' || state === 'capturing'">
       <div class="flex items-center gap-2 text-muted-foreground py-8">
         <Loader2 class="size-4 animate-spin" />
-        Завантаження фото...
+        {{ t('Uploading photo...') }}
       </div>
     </template>
 

@@ -18,7 +18,7 @@ function on_load(frm) {
 
   frm.actions.add({
     id: "change_password",
-    label: "Змінити пароль",
+    label: __('Change password'),
     icon: "key-round",
     visible: saved,
     action: async () => {
@@ -32,20 +32,20 @@ function on_load(frm) {
       const needCurrent = isSelf && !isAdmin && grunt.session.has_password !== false;
 
       const values = await grunt.form({
-        title: "Змінити пароль",
-        primaryLabel: "Змінити",
+        title: __('Change password'),
+        primaryLabel: __('Change'),
         fields: [
           ...(needCurrent
-            ? [{ fieldname: "current_password", label: "Поточний пароль", fieldtype: "Password", required: true }]
+            ? [{ fieldname: "current_password", label: __('Current password'), fieldtype: "Password", required: true }]
             : []),
-          { fieldname: "new_password", label: "Новий пароль", fieldtype: "Password", required: true, show_strength: true },
-          { fieldname: "confirm_password", label: "Підтвердіть пароль", fieldtype: "Password", required: true },
+          { fieldname: "new_password", label: __('New password'), fieldtype: "Password", required: true, show_strength: true },
+          { fieldname: "confirm_password", label: __('Confirm password'), fieldtype: "Password", required: true },
         ],
       });
       if (!values) return; // cancelled
 
       if (values.new_password !== values.confirm_password) {
-        grunt.msgprint({ message: "Паролі не збігаються", indicator: "orange" });
+        grunt.msgprint({ message: __('Passwords do not match'), indicator: "orange" });
         return;
       }
 
@@ -54,22 +54,22 @@ function on_load(frm) {
           method: "grunt.auth.doctypes.User.user.set_user_password_api",
           args: { user_id, new_password: values.new_password, current_password: values.current_password },
         });
-        grunt.msgprint({ message: "Пароль успішно змінено", indicator: "green" });
+        grunt.msgprint({ message: __('Password changed'), indicator: "green" });
       } catch (error) {
-        grunt.msgprint({ message: error?.message || "Помилка при встановленні пароля", indicator: "red" });
+        grunt.msgprint({ message: error?.message || __('Could not set the password'), indicator: "red" });
       }
     },
   });
 
   if (!frm.is_new) {
-    frm.set_df_property("mfa_setup_button", "label", frm.doc.mfa_enabled ? "Вимкнути MFA" : "Увімкнути MFA");
+    frm.set_df_property("mfa_setup_button", "label", frm.doc.mfa_enabled ? __('Disable MFA') : __('Enable MFA'));
   }
 
   // Референтність — System Manager відкриває сесію під цим користувачем, щоб
   // перевірити доступність документів. Повернення — через банер угорі.
   frm.actions.add({
     id: "impersonate",
-    label: "Увійти як цей користувач",
+    label: __('Sign in as this user'),
     icon: "log-in",
     visible: (f) =>
       saved(f) &&
@@ -78,13 +78,12 @@ function on_load(frm) {
       !(f.doc.roles || []).some((r) => r.role_name === "System Manager"),
     action: async () => {
         if (!(await grunt.confirm(
-          `Відкрити сесію під користувачем «${frm.doc.full_name || frm.doc.name}»? ` +
-          `Ви зможете повернутися у свій обліковий запис у будь-який момент.`
+          __("Open a session as «{name}»? You can return to your own account at any time.").replace("{name}", frm.doc.full_name || frm.doc.name)
         ))) return;
         try {
           await grunt.impersonate(frm.doc.name);
         } catch (e) {
-          grunt.msgprint({ message: e?.message || "Не вдалося увійти під користувачем", indicator: "red" });
+          grunt.msgprint({ message: e?.message || __('Could not sign in as the user'), indicator: "red" });
         }
     },
   });
@@ -92,7 +91,7 @@ function on_load(frm) {
   const pending = (f) => saved(f) && f.doc.signup_state === "pending";
   frm.actions.add({
     id: "approve_signup",
-    label: "Підтвердити реєстрацію",
+    label: __('Approve registration'),
     icon: "check",
     variant: "success",
     visible: pending,
@@ -101,22 +100,22 @@ function on_load(frm) {
         method: "grunt.auth.doctypes.User.user.approve_user_api",
         args: { user_id: frm.doc.name },
       });
-      grunt.msgprint({ message: "Реєстрацію підтверджено — користувач може увійти", indicator: "green" });
+      grunt.msgprint({ message: __('Registration approved — the user can sign in'), indicator: "green" });
       await frm.reload();
     },
   });
   frm.actions.add({
     id: "reject_signup",
-    label: "Відхилити",
+    label: __('Reject'),
     variant: "destructive",
-    confirm: "Відхилити реєстрацію цього користувача?",
+    confirm: __('Reject the registration of this user?'),
     visible: pending,
     action: async () => {
       await grunt.call({
         method: "grunt.auth.doctypes.User.user.reject_user_api",
         args: { user_id: frm.doc.name },
       });
-      grunt.msgprint({ message: "Реєстрацію відхилено", indicator: "orange" });
+      grunt.msgprint({ message: __('Registration rejected'), indicator: "orange" });
       await frm.reload();
     },
   });
@@ -148,10 +147,10 @@ async function on_change(frm, fieldname) {
     async function addKey({ values, setField }) {
       try {
         const r = await grunt.passkey.register((values.new_label || "").trim() || undefined);
-        grunt.show_alert(`Ключ «${r.label}» додано`, "success");
+        grunt.show_alert(__("Key «{name}» added").replace("{name}", r.label), "success");
       } catch (e) {
         if (e && e.name === "NotAllowedError") return; // user cancelled the browser prompt
-        grunt.show_alert(e && e.message ? e.message : "Не вдалося додати ключ", "error");
+        grunt.show_alert(e && e.message ? e.message : __('Could not add the key'), "error");
         return;
       }
       setField("keys", { rows: await load() });
@@ -159,75 +158,73 @@ async function on_change(frm, fieldname) {
     }
 
     await grunt.form({
-      title: "Ключі доступу (Passkeys)",
+      title: __('Passkeys'),
       size: "large",
       fields: [
         {
           fieldname: "hint",
           fieldtype: "HTML",
           plain: true,
-          default: "Дозволяють входити без пароля — за відбитком, Face ID або PIN. " +
-            "Під час додавання браузер запропонує зберегти ключ на цьому пристрої, " +
-            "на телефоні (QR-код) або на апаратному ключі.",
+          default: __("Sign in without a password — with a fingerprint, Face ID or PIN. When adding, the browser offers to store the key on this device, on a phone (QR code) or on a hardware key."),
         },
         {
           fieldname: "keys",
-          label: "Ваші ключі",
+          label: __('Your keys'),
           fieldtype: "Table",
           selectable: false,
           searchable: false,
           rowKey: "name",
           maxHeight: "260px",
-          emptyText: "Ще немає жодного ключа. Додайте нижче.",
+          emptyText: __('No keys yet. Add one below.'),
           columns: [
-            { key: "label", label: "Назва" },
-            { key: "backed_up", label: "Синхр.", width: "90px", align: "center", format: (v) => (v ? "так" : "—") },
-            { key: "last_used_at", label: "Востаннє", width: "130px", format: (v) => fmtDate(v) },
+            { key: "label", label: __('Name') },
+            { key: "backed_up", label: __('Synced'), width: "90px", align: "center", format: (v) => (v ? __("yes") : "—") },
+            { key: "last_used_at", label: __('Last used'), width: "130px", format: (v) => fmtDate(v) },
           ],
           rows: await load(),
           rowActions: [
             {
-              label: "Видалити",
+              label: __('Delete'),
               danger: true,
               onClick: async (row, { confirm, setRows }) => {
-                if (!(await confirm(`Видалити ключ «${row.label}»? Увійти за ним більше не вийде.`))) return;
+                if (!(await confirm(__("Delete key «{name}»? You will no longer be able to sign in with it.").replace("{name}", row.label)))) return;
                 await grunt.call({ method: `${PK}.delete_passkey`, args: { name: row.name } });
-                grunt.show_alert("Ключ видалено", "success");
+                grunt.show_alert(__('Key deleted'), "success");
                 setRows(await load());
               },
             },
           ],
         },
-        { fieldname: "new_label", label: "Назва нового ключа", fieldtype: "Text", placeholder: "напр. Робочий ноутбук" },
+        { fieldname: "new_label", label: __('New key name'), fieldtype: "Text", placeholder: __('e.g. Work laptop') },
       ],
       buttons: [
-        { label: "＋ Додати ключ", variant: "default", action: addKey },
+        { label: __('＋ Add key'), variant: "default", action: addKey },
       ],
     });
   }
 
   if (fieldname === "mfa_setup_button") {
     if (frm.doc.mfa_enabled) {
-      if (!confirm("Ви впевнені, що хочете вимкнути двофакторну автентифікацію?")) return;
+      if (!confirm(__('Are you sure you want to disable two-factor authentication?'))) return;
       await grunt.call({ method: "grunt.auth.doctypes.User.user.disable_mfa" });
       await frm.reload();
-      grunt.msgprint("MFA вимкнено");
+      grunt.msgprint(__('MFA disabled'));
     } else {
       const info = await grunt.call({ method: "grunt.auth.doctypes.User.user.setup_mfa" });
       if (info.qr_svg) {
         const values = await grunt.form({
-          title: "Налаштування MFA",
-          primaryLabel: "Активувати",
+          title: __('MFA setup'),
+          primaryLabel: __('Activate'),
           fields: [
             {
               fieldname: "qr_code",
-              label: "1. Відскануйте QR-код у додатку",
+              label: __('1. Scan the QR code in the app'),
               fieldtype: "HTML",
               default: info.qr_svg
             },
             {
               fieldname: "code",
-              label: "2. Введіть 6-значний код підтвердження",
+              label: __('2. Enter the 6-digit confirmation code'),
               fieldtype: "Text",
               placeholder: "123456",
               required: true
@@ -249,12 +246,12 @@ async function on_change(frm, fieldname) {
           frm.set_df_property("mfa_backup_display", "hidden", false);
 
           grunt.msgprint({
-            title: "MFA активовано",
-            message: "Збережіть ваші резервні коди! Вони відображені у формі.",
+            title: __('MFA activated'),
+            message: __('Save your backup codes! They are shown in the form.'),
             indicator: "green"
           });
         } catch (e) {
-          grunt.msgprint({ message: "Невірний код або помилка", indicator: "red" });
+          grunt.msgprint({ message: __('Invalid code or error'), indicator: "red" });
         }
       }
     }

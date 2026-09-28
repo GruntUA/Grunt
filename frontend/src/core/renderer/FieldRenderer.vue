@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { computed, inject, ref, useId } from 'vue'
 import { getAsyncFieldComponent } from '@/core/fieldRegistry'
 import { useDevMode } from '@/core/composables/useDevMode'
@@ -6,6 +7,8 @@ import { validateFieldValue } from '@/core/validators'
 import { evalDependsOn } from '@/core/dependsOn'
 import { FORM_ERRORS } from './formErrors'
 import type { DocField } from '@/types'
+
+const { t } = useI18n()
 
 const { isDev, altPressed } = useDevMode()
 
@@ -135,9 +138,9 @@ async function copyFieldname() {
     </p>
 
     <button v-if="isDev && altPressed" type="button" @click="copyFieldname"
-      :title="`Клікніть, щоб скопіювати «${field.fieldname}»`"
+      :title="t('Click to copy «{name}»').replace('{name}', field.fieldname)"
       class="absolute -top-2 right-1 z-50 rounded bg-foreground px-1.5 py-0.5 font-mono text-background select-none cursor-pointer hover:bg-foreground/80">
-      {{ copied ? 'Скопійовано' : field.fieldname }}
+      {{ copied ? t('Copied') : field.fieldname }}
     </button>
   </div>
 </template>

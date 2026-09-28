@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { ref, watch, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import api from '@/core/api/client'
@@ -17,6 +18,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Skeleton } from '@/components/ui/skeleton'
 import { Spinner } from '@/components/ui/spinner'
 
+const { t } = useI18n()
+
 const props = defineProps<{
     workspaceName: string
     reportName?: string
@@ -29,7 +32,7 @@ const previewLoading = ref(false)
 const doctypes = ref<any[]>([])
 const selectedDoctype = ref('')
 const fields = ref<any[]>([])
-const reportTitle = ref(props.reportName || 'Новий звіт')
+const reportTitle = ref(props.reportName || t('New report'))
 
 /** Internal doctype id (`name`) of the report being edited — resolved from
  *  `reportsApi.get()` by `report_name`, needed for the PUT call on save. */
@@ -39,11 +42,11 @@ const filterConfigs = ref<any[]>([]) // { fieldname, label, fieldtype } — whit
 const chartEnabled = ref(false)
 const chart = ref<ReportChartConfig>({ type: 'bar', label_field: '', value_fields: [], stacked: false })
 const CHART_TYPES: { value: ReportChartType; label: string }[] = [
-    { value: 'bar', label: 'Стовпчиковий' },
-    { value: 'line', label: 'Лінійний' },
-    { value: 'area', label: 'Площа' },
-    { value: 'pie', label: 'Кругова' },
-    { value: 'donut', label: 'Кільцева' },
+    { value: 'bar', label: t('Bar') },
+    { value: 'line', label: t('Line') },
+    { value: 'area', label: t('Area') },
+    { value: 'pie', label: t('Pie') },
+    { value: 'donut', label: t('Donut') },
 ]
 function toggleChartValueField(fieldname: string) {
     const i = chart.value.value_fields.indexOf(fieldname)
@@ -63,20 +66,20 @@ const OPERATORS = [
     { value: '<', label: '<' },
     { value: '>=', label: '≥' },
     { value: '<=', label: '≤' },
-    { value: 'like', label: 'містить' },
-    { value: 'not like', label: 'не містить' },
-    { value: 'in', label: 'одне з (через кому)' },
-    { value: 'not in', label: 'жодне з' },
-    { value: 'is set', label: 'заповнено' },
-    { value: 'is not set', label: 'порожньо' },
+    { value: 'like', label: t('contains') },
+    { value: 'not like', label: t('does not contain') },
+    { value: 'in', label: t('one of (comma-separated)') },
+    { value: 'not in', label: t('none of') },
+    { value: 'is set', label: t('is set') },
+    { value: 'is not set', label: t('is empty') },
 ]
 const NO_VALUE_OPS = new Set(['is set', 'is not set'])
 const DATE_GROUPS = [
-    { value: 'none', label: 'Точна дата' },
-    { value: 'day', label: 'По днях' },
-    { value: 'month', label: 'По місяцях' },
-    { value: 'quarter', label: 'По кварталах' },
-    { value: 'year', label: 'По роках' },
+    { value: 'none', label: t('Exact date') },
+    { value: 'day', label: t('By day') },
+    { value: 'month', label: t('By month') },
+    { value: 'quarter', label: t('By quarter') },
+    { value: 'year', label: t('By year') },
 ]
 function isDateColumn(col: any) {
     return col.fieldtype === 'Date' || col.fieldtype === 'Datetime'
@@ -99,12 +102,12 @@ const previewCols = ref<any[]>([])
 const previewMeta = ref<any>(null)
 
 const AGGREGATIONS = [
-    { value: 'none', label: 'Немає' },
-    { value: 'sum', label: 'Сума (SUM)' },
-    { value: 'count', label: 'Кількість (COUNT)' },
-    { value: 'avg', label: 'Середнє (AVG)' },
-    { value: 'min', label: 'Мінімум (MIN)' },
-    { value: 'max', label: 'Максимум (MAX)' },
+    { value: 'none', label: t('None') },
+    { value: 'sum', label: t('Sum (SUM)') },
+    { value: 'count', label: t('Count (COUNT)') },
+    { value: 'avg', label: t('Average (AVG)') },
+    { value: 'min', label: t('Minimum (MIN)') },
+    { value: 'max', label: t('Maximum (MAX)') },
 ]
 
 onMounted(async () => {
@@ -198,7 +201,7 @@ async function runPreview() {
 
 async function saveReport() {
     if (!reportTitle.value || !selectedDoctype.value) {
-        alert('Вкажіть назву та тип документа')
+        alert(t('Enter a name and a document type'))
         return
     }
 
@@ -242,21 +245,20 @@ const displayFields = computed(() => {
         <aside class="w-[400px] border-r flex flex-col bg-card shrink-0 shadow-sm z-20">
             <div class="p-6 border-b space-y-4">
                 <div class="space-y-1.5">
-                    <label class="font-semibold uppercase tracking-widest text-muted-foreground">Назва звіту</label>
+                    <label class="font-semibold uppercase tracking-widest text-muted-foreground">{{ t('Report name') }}</label>
                     <div class="relative">
                         <FileBarChart class="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-primary pointer-events-none" />
-                        <Input v-model="reportTitle" placeholder="Назва звіту"
+                        <Input v-model="reportTitle" :placeholder="t('Report name')"
                             class="!pl-8 !pr-8 font-semibold text-base h-9" />
                         <Pencil class="absolute right-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground pointer-events-none" />
                     </div>
                 </div>
 
                 <div class="space-y-2">
-                    <label class="font-semibold uppercase tracking-widest text-muted-foreground">Тип
-                        документа</label>
+                    <label class="font-semibold uppercase tracking-widest text-muted-foreground">{{ t('Document type') }}</label>
                     <Select v-model="selectedDoctype">
                       <SelectTrigger class="w-full">
-                        <SelectValue placeholder="Оберіть DocType" />
+                        <SelectValue :placeholder="t('Choose a DocType')" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem v-for="opt in doctypes" :key="opt.name" :value="opt.name">{{ opt.label }}</SelectItem>
@@ -268,7 +270,7 @@ const displayFields = computed(() => {
             <!-- Fields & Columns Tabs -->
             <Tabs default-value="columns" class="flex-1 flex flex-col overflow-hidden">
                 <TabsList class="w-full h-auto justify-start rounded-none border-b border-border bg-transparent">
-                    <TabsTrigger value="columns" class="flex-1">Колонки</TabsTrigger>
+                    <TabsTrigger value="columns" class="flex-1">{{ t('Columns') }}</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="columns" class="flex-1 overflow-y-auto p-4 space-y-6 focus-visible:ring-0 m-0">
@@ -277,13 +279,13 @@ const displayFields = computed(() => {
                         <div class="flex items-center justify-between">
                             <h4 class="font-semibold uppercase text-muted-foreground flex items-center gap-1.5">
                                 <TableIcon class="size-3.5" />
-                                Вибрані стовпці ({{ columns.length }})
+                                {{ t('Selected columns') }} ({{ columns.length }})
                             </h4>
                         </div>
 
                         <div v-if="columns.length === 0"
                             class="border-2 border-dashed rounded-lg p-8 text-center text-muted-foreground bg-muted/20">
-                            Додайте поля зі списку нижче
+                            {{ t('Add fields from the list below') }}
                         </div>
 
                         <div v-for="(col, index) in columns" :key="col.fieldname"
@@ -304,7 +306,7 @@ const displayFields = computed(() => {
                             <div class="flex items-center gap-2">
                                 <Select v-model="col.aggregation">
                                   <SelectTrigger class="h-7 text-xs w-full">
-                                    <SelectValue placeholder="Агрегація" />
+                                    <SelectValue :placeholder="t('Aggregation')" />
                                   </SelectTrigger>
                                   <SelectContent>
                                     <SelectItem v-for="opt in AGGREGATIONS" :key="opt.value" :value="opt.value">{{ opt.label }}</SelectItem>
@@ -312,7 +314,7 @@ const displayFields = computed(() => {
                                 </Select>
                                 <label class="flex items-center gap-1.5 text-muted-foreground whitespace-nowrap cursor-pointer select-none">
                                     <input type="checkbox" v-model="col.total" class="size-3.5 accent-primary" />
-                                    Підсумок
+                                    {{ t('Subtotal') }}
                                 </label>
                             </div>
                             <Select v-if="isDateColumn(col) && (!col.aggregation || col.aggregation === 'none')"
@@ -332,15 +334,15 @@ const displayFields = computed(() => {
                     <div v-if="selectedDoctype" class="space-y-3">
                         <h4 class="font-semibold uppercase text-muted-foreground flex items-center gap-1.5">
                             <ListFilter class="size-3.5" />
-                            Умови ({{ conditions.length }})
+                            {{ t('Conditions') }} ({{ conditions.length }})
                         </h4>
                         <p class="text-muted-foreground">
-                            Завжди застосовуються до звіту. Для дат можна писати today, today-30, today+7.
+                            {{ t('Always applied to the report. For dates you can write today, today-30, today+7.') }}
                         </p>
                         <div v-for="(cond, i) in conditions" :key="i" class="flex flex-col gap-2 p-2 rounded-lg border bg-background">
                             <div class="flex items-center gap-2">
                                 <Select v-model="cond.fieldname">
-                                    <SelectTrigger class="h-7 text-xs flex-1"><SelectValue placeholder="Поле" /></SelectTrigger>
+                                    <SelectTrigger class="h-7 text-xs flex-1"><SelectValue :placeholder="t('Field')" /></SelectTrigger>
                                     <SelectContent>
                                         <SelectItem v-for="f in fields" :key="f.fieldname" :value="f.fieldname">{{ f.label }}</SelectItem>
                                     </SelectContent>
@@ -356,11 +358,11 @@ const displayFields = computed(() => {
                                         <SelectItem v-for="o in OPERATORS" :key="o.value" :value="o.value">{{ o.label }}</SelectItem>
                                     </SelectContent>
                                 </Select>
-                                <Input v-if="!NO_VALUE_OPS.has(cond.op)" v-model="cond.value" placeholder="Значення" class="h-7 text-xs flex-1" />
+                                <Input v-if="!NO_VALUE_OPS.has(cond.op)" v-model="cond.value" :placeholder="t('Value')" class="h-7 text-xs flex-1" />
                             </div>
                         </div>
                         <Button variant="outline" size="sm" class="w-full" @click="addCondition">
-                            <Plus class="size-4" /> Додати умову
+                            <Plus class="size-4" /> {{ t('Add condition') }}
                         </Button>
                     </div>
 
@@ -368,28 +370,28 @@ const displayFields = computed(() => {
                     <div v-if="selectedDoctype && columns.length" class="space-y-3">
                         <h4 class="font-semibold uppercase text-muted-foreground flex items-center gap-1.5">
                             <ArrowDownUp class="size-3.5" />
-                            Сортування
+                            {{ t('Sorting') }}
                         </h4>
                         <div class="flex items-center gap-2">
                             <Select :model-value="sortBy || 'default'" @update:model-value="v => (sortBy = v === 'default' ? '' : String(v))">
                                 <SelectTrigger class="h-7 text-xs flex-1"><SelectValue /></SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="default">За групуванням</SelectItem>
+                                    <SelectItem value="default">{{ t('By grouping') }}</SelectItem>
                                     <SelectItem v-for="c in columns" :key="c.fieldname" :value="c.fieldname">{{ c.label }}</SelectItem>
                                 </SelectContent>
                             </Select>
                             <Select v-model="sortOrder" :disabled="!sortBy">
                                 <SelectTrigger class="h-7 text-xs w-32"><SelectValue /></SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="asc">За зростанням</SelectItem>
-                                    <SelectItem value="desc">За спаданням</SelectItem>
+                                    <SelectItem value="asc">{{ t('Ascending') }}</SelectItem>
+                                    <SelectItem value="desc">{{ t('Descending') }}</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
                         <div class="flex items-center gap-2">
-                            <span class="text-muted-foreground whitespace-nowrap">Показати перші</span>
-                            <Input v-model.number="rowLimit" type="number" min="1" placeholder="усі" class="h-7 text-xs w-24" />
-                            <span class="text-muted-foreground">рядків</span>
+                            <span class="text-muted-foreground whitespace-nowrap">{{ t('Show the first') }}</span>
+                            <Input v-model.number="rowLimit" type="number" min="1" :placeholder="t('all')" class="h-7 text-xs w-24" />
+                            <span class="text-muted-foreground">{{ t('rows') }}</span>
                         </div>
                     </div>
 
@@ -397,10 +399,10 @@ const displayFields = computed(() => {
                     <div v-if="selectedDoctype" class="space-y-3">
                         <h4 class="font-semibold uppercase text-muted-foreground flex items-center gap-1.5">
                             <Search class="size-3.5" />
-                            Фільтри ({{ filterConfigs.length }})
+                            {{ t('Filters') }} ({{ filterConfigs.length }})
                         </h4>
                         <p class="text-muted-foreground">
-                            Поля, за якими глядач звіту зможе фільтрувати (оператор та значення обирає в самому звіті).
+                            {{ t('Fields the report viewer can filter by (the operator and value are chosen in the report itself).') }}
                         </p>
                         <div v-for="(flt, i) in filterConfigs" :key="flt.fieldname"
                             class="flex items-center justify-between gap-2 p-2 rounded-lg border bg-background">
@@ -415,7 +417,7 @@ const displayFields = computed(() => {
                         </div>
                         <Select :model-value="''" @update:model-value="v => addFilter(String(v))">
                             <SelectTrigger class="h-8 text-xs w-full">
-                                <SelectValue placeholder="+ Додати поле-фільтр" />
+                                <SelectValue :placeholder="t('+ Add filter field')" />
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem v-for="f in fields" :key="f.fieldname" :value="f.fieldname"
@@ -431,26 +433,26 @@ const displayFields = computed(() => {
                         <label class="flex items-center gap-2 font-semibold uppercase text-muted-foreground cursor-pointer">
                             <input type="checkbox" v-model="chartEnabled" class="accent-primary size-3.5" />
                             <ChartColumn class="size-3.5" />
-                            Графік
+                            {{ t('Chart') }}
                         </label>
 
                         <div v-if="chartEnabled" class="space-y-3 pl-1">
                             <Select v-model="chart.type">
-                                <SelectTrigger class="h-8 text-xs w-full"><SelectValue placeholder="Тип графіка" /></SelectTrigger>
+                                <SelectTrigger class="h-8 text-xs w-full"><SelectValue :placeholder="t('Chart type')" /></SelectTrigger>
                                 <SelectContent>
                                     <SelectItem v-for="t in CHART_TYPES" :key="t.value" :value="t.value">{{ t.label }}</SelectItem>
                                 </SelectContent>
                             </Select>
 
                             <Select v-model="chart.label_field">
-                                <SelectTrigger class="h-8 text-xs w-full"><SelectValue placeholder="Колонка-підпис (вісь X)" /></SelectTrigger>
+                                <SelectTrigger class="h-8 text-xs w-full"><SelectValue :placeholder="t('Label column (X axis)')" /></SelectTrigger>
                                 <SelectContent>
                                     <SelectItem v-for="c in columns" :key="c.fieldname" :value="c.fieldname">{{ c.label }}</SelectItem>
                                 </SelectContent>
                             </Select>
 
                             <div>
-                                <p class="text-muted-foreground mb-1.5">Колонки-значення</p>
+                                <p class="text-muted-foreground mb-1.5">{{ t('Value columns') }}</p>
                                 <div class="flex flex-wrap gap-1.5">
                                     <button v-for="c in columns" :key="c.fieldname" type="button"
                                         class="px-2 py-1 rounded-md border transition-colors"
@@ -458,7 +460,7 @@ const displayFields = computed(() => {
                                             ? 'bg-primary text-primary-foreground border-primary'
                                             : 'bg-background hover:bg-muted'"
                                         :disabled="c.fieldname === chart.label_field"
-                                        :title="c.fieldname === chart.label_field ? 'Це колонка-підпис' : ''"
+                                        :title="c.fieldname === chart.label_field ? t('This is the label column') : ''"
                                         @click="toggleChartValueField(c.fieldname)">
                                         {{ c.label }}
                                     </button>
@@ -468,7 +470,7 @@ const displayFields = computed(() => {
                             <label v-if="chart.type === 'bar'"
                                 class="flex items-center gap-2 text-muted-foreground cursor-pointer">
                                 <input type="checkbox" v-model="chart.stacked" class="accent-primary size-3.5" />
-                                Накопичувальний (stacked)
+                                {{ t('Stacked') }}
                             </label>
                         </div>
                     </div>
@@ -477,11 +479,11 @@ const displayFields = computed(() => {
                     <div v-if="selectedDoctype" class="space-y-3">
                         <h4 class="font-semibold uppercase text-muted-foreground flex items-center gap-1.5">
                             <Plus class="size-3.5" />
-                            Доступні поля
+                            {{ t('Available fields') }}
                         </h4>
                         <div class="relative">
                             <Search class="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground z-10" />
-                            <Input v-model="filteredFields" placeholder="Пошук полів..."
+                            <Input v-model="filteredFields" :placeholder="t('Search fields...')"
                                 class="!h-9 !pl-8 !text-xs !bg-muted/20 !border-none !w-full" />
                         </div>
                         <div class="grid grid-cols-1 gap-1">
@@ -505,15 +507,15 @@ const displayFields = computed(() => {
                 <Button variant="secondary" :disabled="previewLoading || !selectedDoctype || columns.length === 0" @click="runPreview" class="w-full h-10 font-semibold">
                     <Play v-if="!previewLoading" class="size-4 mr-2" />
                     <Spinner v-else class="!size-4 !mr-2" />
-                    Переглянути
+                    {{ t('Preview') }}
                 </Button>
                 <div class="flex gap-2">
                     <Button :disabled="loading || columns.length === 0" @click="saveReport"
                         class="flex-1 h-10 font-semibold">
                         <Save class="size-4 mr-2" />
-                        Зберегти
+                        {{ t('Save') }}
                     </Button>
-                    <Button variant="outline" class="h-10 px-3" @click="router.back()">Скасувати</Button>
+                    <Button variant="outline" class="h-10 px-3" @click="router.back()">{{ t('Cancel') }}</Button>
                 </div>
             </div>
         </aside>
@@ -523,7 +525,7 @@ const displayFields = computed(() => {
             <!-- Tools -->
             <header class="p-8 pb-4 flex justify-between items-center shrink-0">
                 <div class="flex items-center gap-2 text-muted-foreground/80 font-medium">
-                    <span>Звіти</span>
+                    <span>{{ t('Reports') }}</span>
                     <ChevronRight class="size-3 opacity-50" />
                     <span class="text-foreground font-semibold">{{ reportTitle }}</span>
                 </div>
@@ -535,10 +537,9 @@ const displayFields = computed(() => {
                     <div class="size-16 rounded-full bg-primary/5 flex items-center justify-center mb-4">
                         <Layout class="size-8 text-primary/40" />
                     </div>
-                    <h3 class="text-xl font-semibold mb-2">Налаштуйте звіт</h3>
-                    <p class="text-muted-foreground max-w-sm mb-6">Оберіть DocType та додайте стовпці у боковій панелі,
-                        щоб побачити результат.</p>
-                    <Button variant="outline" @click="selectedDoctype = doctypes[0]?.name" v-if="!selectedDoctype">Обрати перший доступний DocType</Button>
+                    <h3 class="text-xl font-semibold mb-2">{{ t('Set up the report') }}</h3>
+                    <p class="text-muted-foreground max-w-sm mb-6">{{ t('Choose a DocType and add columns in the side panel to see the result.') }}</p>
+                    <Button variant="outline" @click="selectedDoctype = doctypes[0]?.name" v-if="!selectedDoctype">{{ t('Choose the first available DocType') }}</Button>
                 </div>
 
                 <div v-else class="flex-1 bg-card rounded-lg border shadow-sm overflow-hidden flex flex-col">
@@ -547,15 +548,15 @@ const displayFields = computed(() => {
                         <div
                             class="flex items-center gap-4 font-semibold text-muted-foreground uppercase tracking-widest">
                             <span class="flex items-center gap-1.5">
-                                <TableIcon class="size-3.5" /> Результат
+                                <TableIcon class="size-3.5" /> {{ t('Result') }}
                             </span>
-                            <span v-if="previewMeta">{{ previewMeta.rows }} рядків</span>
-                            <span v-if="previewMeta">{{ previewMeta.time_ms }}мс</span>
+                            <span v-if="previewMeta">{{ t('{n} rows').replace('{n}', String(previewMeta.rows)) }}</span>
+                            <span v-if="previewMeta">{{ previewMeta.time_ms }} {{ t('ms') }}</span>
                         </div>
                         <div v-if="previewLoading" class="flex items-center gap-2">
                             <Spinner class="!size-4" />
                             <span
-                                class="font-semibold text-primary italic uppercase anima">Завантаження...</span>
+                                class="font-semibold text-primary italic uppercase anima">{{ t('Loading...') }}</span>
                         </div>
                     </div>
 

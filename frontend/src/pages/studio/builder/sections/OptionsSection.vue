@@ -17,10 +17,10 @@ const { t } = useI18n()
   <div v-if="field.fieldtype === 'Currency'" class="mb-4 flex flex-col gap-1.5">
     <Input
       :model-value="field.options ?? ''"
-      placeholder="currency або UAH"
+      :placeholder="t('currency or UAH')"
       @update:model-value="(v: string | number) => updateField('options', String(v))"
     />
-    <p class="text-muted-foreground">Поле-посилання на Currency у цьому документі або фіксований ISO-код валюти</p>
+    <p class="text-muted-foreground">{{ t('A Link field to Currency in this document, or a fixed ISO currency code') }}</p>
   </div>
   <div v-else-if="field.fieldtype === 'HTML'" class="mb-4">
     <HTMLEditor
@@ -33,7 +33,7 @@ const { t } = useI18n()
     <Textarea
       :model-value="field.options ?? ''"
       rows="5"
-      :placeholder="field.fieldtype === 'Data' ? 'Підказки автодоповнення — кожна з нового рядка' : 'Кожна опція з нового рядка'"
+      :placeholder="field.fieldtype === 'Data' ? t('Autocomplete suggestions — one per line') : t('One option per line')"
       class="w-full !text-sm"
       @update:model-value="(v: string | number) => updateField('options', String(v))"
     />

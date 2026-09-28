@@ -15,6 +15,9 @@
 
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { toast } from '@/core/composables/useToast'
+import i18n, { tn } from '@/plugins/i18n'
+
+const t = (key: string): string => i18n.global.t(key)
 
 export const isOnline = ref(typeof navigator !== 'undefined' ? navigator.onLine : true)
 export const serverReachable = ref(true)
@@ -27,8 +30,8 @@ let wentOffline = false
 function announceOffline() {
   if (wentOffline) return
   wentOffline = true
-  toast.warning("Немає з'єднання", "З'єднання", {
-    detail: 'Відкриті раніше сторінки доступні для перегляду; зміни документів збережуться на пристрої й надішлються після відновлення зв\'язку.',
+  toast.warning(t('No connection'), t('Connection'), {
+    detail: t('Pages opened earlier stay viewable; document changes are saved on this device and sent once the connection is back.'),
     sticky: true,
     group: 'network',
   })
@@ -39,7 +42,7 @@ async function sync() {
   if (!queue.value.some((c) => c.status === 'pending')) return
   const synced = await offlineQueue.flush()
   if (synced > 0) {
-    toast.success(`Синхронізовано ${synced} збережених ${synced === 1 ? 'зміну' : 'змін'}`, 'Синхронізація', {
+    toast.success(tn('Synced {n} saved change', 'Synced {n} saved changes', synced), t('Sync'), {
       life: 4000,
     })
   }
@@ -50,7 +53,7 @@ async function comeBack() {
   toast.removeGroup('network')
   if (wentOffline) {
     wentOffline = false
-    toast.success("Зв'язок відновлено", "З'єднання")
+    toast.success(t('Connection restored'), t('Connection'))
   }
   await sync()
 }

@@ -5,8 +5,8 @@ import CameraChannelVue from './CameraChannel.vue'
 export const cameraChannel: AttachChannel = {
   id: 'camera',
   icon: Camera,
-  label: 'Камера',
-  description: 'Зробити фото за допомогою камери',
+  label: 'Camera',
+  description: 'Take a photo with the camera',
   component: CameraChannelVue,
   isSupported: () => typeof navigator !== 'undefined' && !!navigator.mediaDevices?.getUserMedia,
 }

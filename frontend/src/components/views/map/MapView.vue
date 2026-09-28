@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
+import { tn } from '@/plugins/i18n'
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { MapPin, Loader2, X, Search, RefreshCw, Printer, Expand } from '@lucide/vue'
@@ -12,6 +14,8 @@ import { useMapLifecycle } from '@/core/composables/useMapLifecycle'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { docUrl } from '@/core/workspaceUrl'
+
+const { t } = useI18n()
 
 // ── Props ────────────────────────────────────────────────────────────────────
 const props = defineProps<{
@@ -111,9 +115,9 @@ function exportPrint() {
 
 // Menu items for toolbar
 const menuItems: ScriptMenuItem[] = [
-  { label: 'Експорт GeoJSON', action: exportGeoJSON, separator_before: true },
-  { label: 'Експорт CSV', action: exportCSV },
-  { label: 'Друк / PDF', action: exportPrint },
+  { label: t('Export GeoJSON'), action: exportGeoJSON, separator_before: true },
+  { label: t('Export CSV'), action: exportCSV },
+  { label: t('Print / PDF'), action: exportPrint },
 ]
 
 // ── Lifecycle ─────────────────────────────────────────────────────────────────
@@ -140,13 +144,13 @@ const { map, markerLayer, browserPrint } = useMapLifecycle({
         </div>
         <div class="flex flex-col">
           <span v-if="isLoading" class="flex items-center gap-2 font-semibold text-foreground/80">
-            <Loader2 class="size-3.5 animate-spin text-primary" /> Завантаження...
+            <Loader2 class="size-3.5 animate-spin text-primary" /> {{ t('Loading...') }}
           </span>
           <span v-else class="font-semibold text-foreground/80 lowercase">
-            {{ markerCount }} мітк{{ markerCount === 1 ? 'а' : markerCount < 5 ? 'и' : '' }}
+            {{ tn('{n} marker', '{n} markers', markerCount) }}
           </span>
           <span v-if="skippedCount && !isLoading" class="text-muted-foreground/60 font-medium">
-            {{ skippedCount }} без координат
+            {{ t('{n} without coordinates').replace('{n}', String(skippedCount)) }}
           </span>
         </div>
       </div>
@@ -186,7 +190,7 @@ const { map, markerLayer, browserPrint } = useMapLifecycle({
 
           <!-- Format selector bar -->
           <div class="absolute top-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-3 px-4 py-2 bg-foreground/90 text-background rounded-lg shadow-md border border-white/10">
-            <span class="opacity-60 font-semibold uppercase tracking-wider">Формат:</span>
+            <span class="opacity-60 font-semibold uppercase tracking-wider">{{ t('Format:') }}</span>
             <div class="flex bg-background/10 p-1 rounded-lg gap-1">
               <button v-for="(fmt, key) in PRINT_FORMATS" :key="key"
                       class="px-3 py-1 rounded-lg transition-all font-semibold uppercase tracking-wide"
@@ -198,8 +202,8 @@ const { map, markerLayer, browserPrint } = useMapLifecycle({
               </button>
             </div>
             <div class="w-px h-6 bg-background/20 mx-1" />
-            <Button size="sm" @click="confirmPrint" class="!text-xs !font-semibold">Надрукувати</Button>
-            <Button variant="ghost" size="sm" @click="cancelPrint" class="!text-background !text-xs">Скасувати</Button>
+            <Button size="sm" @click="confirmPrint" class="!text-xs !font-semibold">{{ t('Print') }}</Button>
+            <Button variant="ghost" size="sm" @click="cancelPrint" class="!text-background !text-xs">{{ t('Cancel') }}</Button>
           </div>
 
           <!-- Selection rectangle -->

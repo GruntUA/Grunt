@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 /**
  * MobileBottomNav — fixed bottom navigation bar for small screens.
  *
@@ -13,6 +14,8 @@ import AppIcon from '@/components/AppIcon.vue'
 import { MoreHorizontal, Home } from '@lucide/vue'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { docUrl, workspaceUrl } from '@/core/workspaceUrl'
+
+const { t } = useI18n()
 
 const props = defineProps<{ workspaceName: string }>()
 
@@ -72,7 +75,7 @@ function goHome() {
         @click="goHome"
       >
         <Home class="w-5 h-5" />
-        <span class="font-medium leading-none">Головна</span>
+        <span class="font-medium leading-none">{{ t('Home') }}</span>
       </button>
 
       <!-- Top workspace items -->
@@ -94,7 +97,7 @@ function goHome() {
         @click="showOverflow = true"
       >
         <MoreHorizontal class="w-5 h-5" />
-        <span class="font-medium leading-none">Ще</span>
+        <span class="font-medium leading-none">{{ t('More') }}</span>
       </button>
     </div>
   </nav>
@@ -103,7 +106,7 @@ function goHome() {
   <Sheet :open="showOverflow" @update:open="(v: boolean) => (showOverflow = v)">
     <SheetContent side="bottom" class="md:hidden p-0 rounded-t-lg" style="padding-bottom: env(safe-area-inset-bottom)">
       <SheetHeader class="flex-row items-center justify-between px-5 pt-4 pb-2 gap-0 space-y-0">
-        <SheetTitle>Всі розділи</SheetTitle>
+        <SheetTitle>{{ t('All sections') }}</SheetTitle>
       </SheetHeader>
       <div class="max-h-72 overflow-y-auto">
         <div class="px-3 pb-4 space-y-0.5">

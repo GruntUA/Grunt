@@ -1,8 +1,11 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { usePropertyEditor } from '@/core/composables/usePropertyEditor'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Separator } from '@/components/ui/separator'
 import { Textarea } from '@/components/ui/textarea'
+
+const { t } = useI18n()
 
 const { field, updateField } = usePropertyEditor()
 </script>
@@ -14,11 +17,11 @@ const { field, updateField } = usePropertyEditor()
     <span
       v-if="field.formula"
       class="font-mono text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 px-1.5 py-0.5 rounded"
-    >ƒx активна</span>
+    >ƒx {{ t('is active') }}</span>
   </div>
   <div class="flex flex-col gap-3 mb-4">
     <div class="flex flex-col gap-1.5">
-      <label class="font-medium">Вираз (Python)</label>
+      <label class="font-medium">{{ t('Expression (Python)') }}</label>
       <Textarea
         :model-value="field.formula ?? ''"
         rows="2"
@@ -27,15 +30,15 @@ const { field, updateField } = usePropertyEditor()
         @update:model-value="(v: string | number) => updateField('formula', String(v).trim() || null)"
       />
       <p class="text-muted-foreground leading-relaxed">
-        Обчислюється при кожному збереженні. Доступні всі поля документа як змінні.<br>
-        Приклади: <code class="bg-muted px-1 rounded">qty * price</code>,
+        {{ t('Computed on every save. All document fields are available as variables.') }}<br>
+        {{ t('Examples:') }} <code class="bg-muted px-1 rounded">qty * price</code>,
         <code class="bg-muted px-1 rounded">round(a + b, 2)</code>,
         <code class="bg-muted px-1 rounded">first_name + ' ' + last_name</code>
       </p>
     </div>
     <div v-if="field.formula" class="flex items-center gap-2 pt-1 pl-0.5">
       <Checkbox :model-value="!!field.read_only" @update:model-value="updateField('read_only', $event)" />
-      <label class="text-muted-foreground cursor-pointer font-medium">Read Only (рекомендовано)</label>
+      <label class="text-muted-foreground cursor-pointer font-medium">{{ t('Read Only (recommended)') }}</label>
     </div>
   </div>
 </template>

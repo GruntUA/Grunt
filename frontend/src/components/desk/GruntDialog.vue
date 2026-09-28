@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { ref, computed, watch } from 'vue'
 import type { Component } from 'vue'
 import { AlertCircle, AlertTriangle, CheckCircle2, Info } from '@lucide/vue'
@@ -11,6 +12,8 @@ import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Spinner } from '@/components/ui/spinner'
 import { DialogFooter } from '@/components/ui/dialog'
+
+const { t } = useI18n()
 const { state, close } = useDialog()
 
 const MSG_ICON_MAP: Record<string, { icon: Component; class: string }> = {
@@ -208,7 +211,7 @@ function onOpenChange(v: boolean) {
         {{ state.title }}
       </DialogTitle>
     </DialogHeader>
-    <DialogTitle v-else class="sr-only">Діалог</DialogTitle>
+    <DialogTitle v-else class="sr-only">{{ t('Dialog') }}</DialogTitle>
     <DialogDescription class="sr-only">Dialog content</DialogDescription>
 
     <!-- Content -->
@@ -251,7 +254,7 @@ function onOpenChange(v: boolean) {
                     <Input
                         v-if="field.searchable !== false"
                         v-model="tableSearch[field.fieldname]"
-                        placeholder="Пошук…"
+                        :placeholder="t('Search…')"
                         class="w-full mb-2"
                     />
                     <div class="rounded-md border border-border overflow-hidden">
@@ -317,7 +320,7 @@ function onOpenChange(v: boolean) {
                                         <td
                                             :colspan="(field.columns?.length || 1) + (isSelectable(field) ? 1 : 0) + (field.rowActions?.length ? 1 : 0)"
                                             class="px-3 py-8 text-center text-muted-foreground"
-                                        >{{ field.emptyText || 'Нічого не знайдено' }}</td>
+                                        >{{ field.emptyText || t('Nothing found') }}</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -325,7 +328,7 @@ function onOpenChange(v: boolean) {
                         <div
                             v-if="isSelectable(field) && field.multiple !== false"
                             class="border-t border-border bg-muted/30 px-3 py-1.5 text-muted-foreground"
-                        >Вибрано: {{ selectedCount(field) }}</div>
+                        >{{ t('Selected:') }} {{ selectedCount(field) }}</div>
                     </div>
                 </template>
                 <template v-else-if="field.fieldtype === 'Check'">
@@ -343,7 +346,7 @@ function onOpenChange(v: boolean) {
                             class="shrink-0 px-2 py-0.5 rounded border border-border text-muted-foreground hover:text-foreground hover:border-foreground transition-colors"
                             @click="copyToClipboard(field.fieldname, String(formValues[field.fieldname] ?? ''))"
                         >
-                            {{ copiedField === field.fieldname ? 'Скопійовано ✓' : 'Копіювати' }}
+                            {{ copiedField === field.fieldname ? t('Copied') + ' ✓' : t('Copy') }}
                         </button>
                     </div>
                     <p v-if="field.description" class="text-muted-foreground -mt-1">{{ field.description }}</p>
@@ -419,11 +422,11 @@ function onOpenChange(v: boolean) {
             <Button @click="close()">OK</Button>
         </template>
         <template v-else-if="state.type === 'confirm'">
-            <Button variant="outline" @click="onCancel">Скасувати</Button>
-            <Button @click="onConfirm">Підтвердити</Button>
+            <Button variant="outline" @click="onCancel">{{ t('Cancel') }}</Button>
+            <Button @click="onConfirm">{{ t('Confirm') }}</Button>
         </template>
         <template v-else-if="state.type === 'prompt'">
-            <Button variant="outline" @click="onCancel">Скасувати</Button>
+            <Button variant="outline" @click="onCancel">{{ t('Cancel') }}</Button>
             <Button @click="onConfirm">OK</Button>
         </template>
         <template v-else-if="state.type === 'dialog' && state.buttons.length">
@@ -437,10 +440,10 @@ function onOpenChange(v: boolean) {
                 <Spinner v-if="state.busyButton === i" class="size-4 mr-2" />
                 {{ btn.label }}
             </Button>
-            <Button variant="ghost" :disabled="state.busyButton !== null" @click="onCancel">Закрити</Button>
+            <Button variant="ghost" :disabled="state.busyButton !== null" @click="onCancel">{{ t('Close') }}</Button>
         </template>
         <template v-else-if="state.type === 'dialog'">
-            <Button variant="outline" @click="onCancel">Скасувати</Button>
+            <Button variant="outline" @click="onCancel">{{ t('Cancel') }}</Button>
             <Button @click="onConfirm">{{ state.primaryLabel }}</Button>
         </template>
     </DialogFooter>
@@ -451,8 +454,8 @@ function onOpenChange(v: boolean) {
         <div class="w-full max-w-xs rounded-lg border bg-card p-4 shadow-lg flex flex-col gap-3">
             <p class="text-foreground leading-relaxed">{{ state.actionConfirm.message }}</p>
             <div class="flex justify-end gap-2">
-                <Button variant="outline" size="sm" @click="resolveActionConfirm(false)">Скасувати</Button>
-                <Button variant="destructive" size="sm" @click="resolveActionConfirm(true)">Підтвердити</Button>
+                <Button variant="outline" size="sm" @click="resolveActionConfirm(false)">{{ t('Cancel') }}</Button>
+                <Button variant="destructive" size="sm" @click="resolveActionConfirm(true)">{{ t('Confirm') }}</Button>
             </div>
         </div>
     </div>

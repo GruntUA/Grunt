@@ -5,7 +5,7 @@ import LocalFileChannelVue from './LocalFileChannel.vue'
 export const localFileChannel: AttachChannel = {
   id: 'local',
   icon: HardDriveUpload,
-  label: 'Локальний файл',
-  description: 'Завантажити файл з диску',
+  label: 'Local file',
+  description: 'Upload a file from disk',
   component: LocalFileChannelVue,
 }

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 /** The «⋯» menu of an action registry: `menu` actions, one section per `group`. */
 import { computed } from 'vue'
 import { EllipsisVertical } from '@lucide/vue'
@@ -13,6 +14,8 @@ import {
 } from '@/components/ui/dropdown-menu'
 import type { ResolvedAction } from '@/core/actions'
 import ActionIcon from './ActionIcon.vue'
+
+const { t } = useI18n()
 
 const props = defineProps<{ actions: ResolvedAction[]; triggerVariant?: 'ghost' | 'outline' }>()
 
@@ -30,7 +33,7 @@ const sections = computed(() => {
 <template>
   <DropdownMenu v-if="actions.length">
     <DropdownMenuTrigger as-child>
-      <Button :variant="triggerVariant ?? 'outline'" size="icon-sm" aria-label="Дії">
+      <Button :variant="triggerVariant ?? 'outline'" size="icon-sm" :aria-label="t('Actions')">
         <EllipsisVertical class="size-4" />
       </Button>
     </DropdownMenuTrigger>

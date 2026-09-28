@@ -4,7 +4,7 @@ import type { DocType, DocField, ScriptMenuItem } from '@/types'
 
 const def: ViewDefinition = {
   type: 'map',
-  label: 'Карта',
+  label: 'Map',
   icon: MapIcon,
   order: 5,
 

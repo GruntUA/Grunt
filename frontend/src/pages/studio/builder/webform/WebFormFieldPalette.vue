@@ -1,8 +1,11 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { computed } from 'vue'
 import { VueDraggable } from 'vue-draggable-plus'
 import { useBuilderStore } from '@/stores/builder'
 import type { DocField } from '@/types'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   targetFields: DocField[]
@@ -39,7 +42,7 @@ function addSection() {
 <template>
   <div class="h-full overflow-y-auto p-3 border-r border-border bg-background">
     <p class="font-semibold text-muted-foreground/70 uppercase tracking-wide mb-3 px-1">
-      Поля DocType
+      {{ t('DocType fields') }}
     </p>
 
     <VueDraggable
@@ -58,17 +61,17 @@ function addSection() {
       </div>
     </VueDraggable>
     <p v-if="!available.length" class="text-muted-foreground/60 px-2 mb-4">
-      Усі придатні поля вже додано
+      {{ t('All eligible fields are already added') }}
     </p>
 
     <div class="mb-4 mt-3">
-      <p class="text-muted-foreground/70 px-1 mb-1">Структурні</p>
+      <p class="text-muted-foreground/70 px-1 mb-1">{{ t('Structural') }}</p>
       <button
         type="button"
         class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-border transition-colors text-left w-full"
         @click="addSection"
       >
-        <span class="text-foreground">Секція</span>
+        <span class="text-foreground">{{ t('Section') }}</span>
       </button>
     </div>
   </div>

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { computed, ref, nextTick } from 'vue'
 import { ChevronUp, ChevronDown, ArrowUpDown } from '@lucide/vue'
 import type { DocField, DocTypeStatusConfig, PaginationMeta } from '@/types'
@@ -12,6 +13,8 @@ import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
 import { TableBody, TableCell } from '@/components/ui/table'
 import ListEmptyState from '@/components/views/ListEmptyState.vue'
+
+const { t } = useI18n()
 const props = defineProps<{
   columns: ListColumn[]
   rows: Record<string, unknown>[]
@@ -184,7 +187,7 @@ function isRowSelected(row: Record<string, unknown>): boolean {
             class="absolute left-0 top-0 bottom-0 w-1 bg-primary rounded-r-full pointer-events-none" />
           <span v-else-if="seenState(row) === 'unseen'"
             class="absolute left-1 top-1/2 -translate-y-1/2 size-1.5 rounded-full bg-primary pointer-events-none"
-            title="Не переглянуто" aria-hidden="true" />
+            :title="t('Unseen')" aria-hidden="true" />
           <div class="flex items-center justify-center w-full">
             <Checkbox :model-value="isRowSelected(row)"
               @update:model-value="() => { const docId = getRowDocId(row); if (docId) emit('select', docId) }"

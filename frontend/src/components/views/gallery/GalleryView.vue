@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { computed } from 'vue'
 import { formatDate as fmtDate, formatDateTime as fmtDateTime } from '@/core/datetime'
 import { useRouter } from 'vue-router'
@@ -11,6 +12,8 @@ import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
 import ListEmptyState from '@/components/views/ListEmptyState.vue'
 import { docUrl } from '@/core/workspaceUrl'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   rows: Record<string, unknown>[]
@@ -163,7 +166,7 @@ function formatDate(val: unknown, type: string): string {
                 </template>
                 <Badge v-else-if="getFieldType(col.key) === 'Check'"
                   :variant="row[col.key] ? 'default' : 'secondary'">
-                  {{ row[col.key] ? 'ТАК' : 'НІ' }}
+                  {{ row[col.key] ? t('YES') : t('NO') }}
                 </Badge>
                 <template v-else>
                   {{ displayValue(row, col.key) }}

@@ -4,7 +4,7 @@ import type { DocType, DocField } from '@/types'
 
 const def: ViewDefinition = {
   type: 'kanban',
-  label: 'Канбан',
+  label: 'Kanban',
   icon: LayoutGrid,
   order: 1,
   managesOwnScroll: true,

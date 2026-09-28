@@ -87,12 +87,12 @@ const currentFontFamily = ref<string>(FONT_DEFAULT)
 const currentFontSize = ref<string>(FONT_DEFAULT)
 
 const FONT_FAMILIES = [
-  { label: 'За замовчуванням', value: FONT_DEFAULT },
+  { label: t('Default'), value: FONT_DEFAULT },
   ...STATIC_FONT_FAMILIES,
 ]
 
 const FONT_SIZES = [
-  { label: 'Авто', value: FONT_DEFAULT },
+  { label: t('Auto'), value: FONT_DEFAULT },
   ...STATIC_FONT_SIZES,
 ]
 

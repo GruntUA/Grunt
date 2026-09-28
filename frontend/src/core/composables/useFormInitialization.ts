@@ -1,6 +1,9 @@
 import type { Ref } from 'vue'
 
 import type { DocType } from '@/types'
+import i18n from '@/plugins/i18n'
+
+const t = (key: string): string => i18n.global.t(key)
 
 interface LinkDraftResult {
   fieldname: string
@@ -83,7 +86,7 @@ export function useFormInitialization(params: FormInitializationParams) {
     const linkReturn = params.restoreLinkDraft(params.doctype, params.id, params.form.value)
     if (linkReturn) {
       params.form.value[linkReturn.fieldname] = linkReturn.value
-      params.info(`Поле встановлено: ${linkReturn.value}`)
+      params.info(t('Field set: {value}').replace('{value}', String(linkReturn.value)))
     }
 
     await params.runOnLoad()

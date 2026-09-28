@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { ref, computed, watch, provide } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useQueryClient } from '@tanstack/vue-query'
@@ -44,6 +45,8 @@ import { getExporters } from '@/core/io/exporters/registry'
 import { LIST_BULK_UI, type BulkRequest } from '@/core/composables/useListBulkUi'
 import { LIST_FILTER_RESET } from '@/core/composables/useListFilterReset'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
+
+const { t } = useI18n()
 const props = defineProps<{ doctype: string; workspace?: string }>()
 const doctype = computed(() => props.doctype)
 const workspace = computed(() => props.workspace ?? 'grunt')
@@ -96,7 +99,7 @@ const quickFilterDefs = computed<QuickFilter[]>(() => {
     return {
       ...ff,
       id: ff.id === 'as_of_date' ? ff.id : 'as_of_date',
-      label: ff.label ?? 'Станом на дату',
+      label: ff.label ?? t('As of date'),
       operator: 'lte_or_null',
       input_type: 'date',
       enabled_in: (ff.enabled_in.includes('tree') ? ff.enabled_in : [...ff.enabled_in, 'tree']) as Array<'list' | 'tree'>,
@@ -110,7 +113,7 @@ const quickFilterDefs = computed<QuickFilter[]>(() => {
     id: 'as_of_date',
     field: asOfField,
     operator: 'lte_or_null',
-    label: 'Станом на дату',
+    label: t('As of date'),
     input_type: 'date',
     on_change: { mode: 'local', debounce_ms: 150 },
     enabled_in: ['tree'],
@@ -168,7 +171,7 @@ const {
       selected: selectedIds.value,
       allSelected: allSelected.value,
       isFetching: isFetching.value,
-      exporters: getExporters().map((e) => ({ id: e.id, label: e.label })),
+      exporters: getExporters().map((e) => ({ id: e.id, label: t(e.label) })),
       canExport: !!exportCtx.value,
     }
   },
@@ -477,12 +480,12 @@ watch(() => props.doctype, async (newDoctype) => {
     <!-- Bulk delete progress dialog -->
     <Dialog v-if="deleteProgress" :open="deleteProgress.active">
       <DialogContent class="max-w-sm p-6" :show-close-button="false">
-      <DialogTitle class="sr-only">Видалення записів</DialogTitle>
+      <DialogTitle class="sr-only">{{ t('Deleting records') }}</DialogTitle>
       <div class="flex flex-col gap-4 py-2">
         <div class="flex items-center gap-3">
           <div class="size-5 shrink-0 rounded-full border-2 border-destructive/20 border-t-destructive animate-spin" />
           <p class="font-medium text-foreground">
-            Видалення записів…
+            {{ t('Deleting records…') }}
           </p>
         </div>
 
@@ -500,7 +503,7 @@ watch(() => props.doctype, async (newDoctype) => {
         </div>
 
         <p v-if="deleteProgress.errors > 0" class="text-destructive">
-          Помилок: {{ deleteProgress.errors }}
+          {{ t('Errors: {n}').replace('{n}', String(deleteProgress.errors)) }}
         </p>
       </div>
       </DialogContent>

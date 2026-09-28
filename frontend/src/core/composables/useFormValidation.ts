@@ -3,6 +3,9 @@ import { nextTick, ref, type Ref } from 'vue'
 import { getNonPhysicalTypeSet } from '@/core/fieldRegistry'
 import { parseLayout } from '@/core/composables/useFormLayout'
 import type { DocType } from '@/types'
+import i18n from '@/plugins/i18n'
+
+const t = (key: string): string => i18n.global.t(key)
 
 interface UseFormValidationParams {
   doctype: string
@@ -69,7 +72,7 @@ export function useFormValidation(params: UseFormValidationParams) {
 
       const value = params.form.value[field.fieldname]
       if (value === null || value === undefined || value === '') {
-        validationErrors.value[field.fieldname] = `Поле "${field.label}" є обов'язковим`
+        validationErrors.value[field.fieldname] = t('Field "{label}" is required').replace('{label}', field.label)
       }
     }
 
@@ -77,29 +80,29 @@ export function useFormValidation(params: UseFormValidationParams) {
     // that may not always be marked as `required` in form metadata.
     if (params.doctype === 'DocType') {
       const requiredCore: Array<{ key: 'name' | 'label' | 'module'; label: string }> = [
-        { key: 'name', label: 'Назва' },
-        { key: 'label', label: 'Мітка' },
-        { key: 'module', label: 'Модуль' },
+        { key: 'name', label: t('Name') },
+        { key: 'label', label: t('Label') },
+        { key: 'module', label: t('Module') },
       ]
       for (const core of requiredCore) {
         const value = params.form.value[core.key]
         if (value === null || value === undefined || value === '') {
-          validationErrors.value[core.key] = `Поле "${core.label}" є обов'язковим`
+          validationErrors.value[core.key] = t('Field "{label}" is required').replace('{label}', core.label)
         }
       }
     }
 
     if (Object.keys(validationErrors.value).length > 0) {
       const coreLabels: Record<string, string> = {
-        name: 'Назва',
-        label: 'Мітка',
-        module: 'Модуль',
+        name: t('Name'),
+        label: t('Label'),
+        module: t('Module'),
       }
       const missingLabels = Object.keys(validationErrors.value)
         .map((fieldname) => coreLabels[fieldname] || params.dt.value?.fields.find((f) => f.fieldname === fieldname)?.label || fieldname)
         .join(', ')
 
-      params.toast.error(`Заповніть обов'язкові поля: ${missingLabels}`)
+      params.toast.error(t('Fill in the required fields: {fields}').replace('{fields}', missingLabels))
       focusFirstError()
       return false
     }

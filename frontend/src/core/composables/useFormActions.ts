@@ -3,6 +3,9 @@ import type { Router } from 'vue-router'
 
 import type { QueryClient } from '@tanstack/vue-query'
 import { docUrl } from '@/core/workspaceUrl'
+import i18n from '@/plugins/i18n'
+
+const t = (key: string): string => i18n.global.t(key)
 
 interface UseFormActionsParams {
   doctype: string
@@ -39,11 +42,11 @@ export function useFormActions(params: UseFormActionsParams) {
   async function handleDelete(replaceWith?: string) {
     try {
       await params.remove(replaceWith)
-      params.toast.success('Видалено')
+      params.toast.success(t('Deleted'))
       params.queryClient.invalidateQueries({ queryKey: ['documents', params.doctype] })
       params.goToList()
     } catch {
-      params.toast.error('Помилка видалення')
+      params.toast.error(t('Delete error'))
     }
     params.showDeleteModal.value = false
   }

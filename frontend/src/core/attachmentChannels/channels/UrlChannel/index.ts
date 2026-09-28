@@ -6,6 +6,6 @@ export const urlChannel: AttachChannel = {
   id: 'url',
   icon: Link,
   label: 'URL',
-  description: 'Вказати посилання на файл у інтернеті',
+  description: 'Link to a file on the internet',
   component: UrlChannelVue,
 }

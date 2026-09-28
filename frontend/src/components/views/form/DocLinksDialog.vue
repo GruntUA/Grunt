@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 /**
  * Frappe-style "Links" dialog: documents that reference this one (DocLink
  * backlinks), grouped by source DocType. Opened from the form "⋯" menu;
@@ -12,6 +13,8 @@ import { useDocTypeStore } from '@/stores/doctype'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { docUrl } from '@/core/workspaceUrl'
 import { Input } from '@/components/ui/input'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   doctype: string
@@ -69,13 +72,13 @@ function goTo(l: BacklinkItem) {
   <Dialog v-model:open="open">
     <DialogContent class="sm:max-w-xl max-h-[85vh] flex flex-col">
       <DialogHeader>
-        <DialogTitle>Зв'язки</DialogTitle>
+        <DialogTitle>{{ t('Connections') }}</DialogTitle>
         <DialogDescription>
-          Документи, пов'язані з <span class="font-semibold text-foreground">{{ docId }}</span>
+          {{ t('Documents linked to') }} <span class="font-semibold text-foreground">{{ docId }}</span>
         </DialogDescription>
       </DialogHeader>
 
-      <Input v-if="links.length > 10" v-model="query" placeholder="Пошук..." />
+      <Input v-if="links.length > 10" v-model="query" :placeholder="t('Search...')" />
 
       <div class="flex flex-col gap-3 min-h-0 overflow-y-auto -mx-6 px-6">
         <Loader2 v-if="loading" class="size-5 animate-spin text-muted-foreground mx-auto my-6" />
@@ -97,7 +100,7 @@ function goTo(l: BacklinkItem) {
             </button>
           </div>
           <span v-if="!groups.length" class="text-muted-foreground py-6 text-center">
-            {{ links.length ? 'Нічого не знайдено' : 'Немає пов\'язаних документів' }}
+            {{ links.length ? t('Nothing found') : t('No linked documents') }}
           </span>
         </template>
       </div>

@@ -4,6 +4,9 @@ import { docsApi } from '@/core/api/docs'
 import type { ActiveFilter, DocField } from '@/types'
 import { getIconPaths, createIcon } from '@/core/map/iconCache'
 import { buildPopupTableHtml } from '@/core/map/popupFormatter'
+import i18n from '@/plugins/i18n'
+
+const t = (key: string): string => i18n.global.t(key)
 
 interface UseMapMarkersParams {
   doctypeName: Ref<string>
@@ -142,7 +145,7 @@ export function useMapMarkers({
          <div class="popup-coords">${latN.toFixed(6)}, ${lngN.toFixed(6)}</div>
          <a href="#" data-id="${String(row.id ?? row.name)}"
             class="popup-open-link open-doc">
-           Відкрити →
+           ${t('Open')} →
          </a>`,
           { maxWidth: 280 },
         )

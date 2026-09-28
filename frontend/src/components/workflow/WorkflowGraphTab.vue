@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { ref, computed, nextTick, watch } from 'vue'
 import { VueFlow, useVueFlow, Position, MarkerType } from '@vue-flow/core'
 import { Controls } from '@vue-flow/controls'
@@ -15,6 +16,8 @@ import { Plus, Trash2 } from '@lucide/vue'
 import '@vue-flow/core/dist/style.css'
 import '@vue-flow/core/dist/theme-default.css'
 import '@vue-flow/controls/dist/style.css'
+
+const { t } = useI18n()
 
 interface WorkflowStateRow {
   state: string
@@ -190,7 +193,7 @@ function onConnect(connection: Connection) {
   patch({
     transitions: [
       ...transitions.value,
-      { from_state: connection.source, to_state: connection.target, action: 'Перехід', allowed_roles: '' },
+      { from_state: connection.source, to_state: connection.target, action: t('Transition'), allowed_roles: '' },
     ],
   })
 }
@@ -210,7 +213,7 @@ function addTransition() {
       {
         from_state: states.value[0].state,
         to_state: states.value[1].state,
-        action: 'Перехід',
+        action: t('Transition'),
         allowed_roles: '',
       },
     ],
@@ -266,12 +269,12 @@ function removeSelectedTransition() {
   <div class="flex h-[calc(100vh-230px)] overflow-hidden -mx-5 -mb-5 rounded-t-md border-t border-border bg-background">
     <div class="flex-1 relative flex flex-col">
       <div class="flex items-center gap-2 pl-5 pr-3 py-2 border-b border-border bg-muted/30 overflow-x-auto overflow-y-visible shrink-0">
-        <Button variant="secondary" size="sm" class="shrink-0" @click="addState"><Plus class="size-3.5" />Стан</Button>
+        <Button variant="secondary" size="sm" class="shrink-0" @click="addState"><Plus class="size-3.5" />{{ t('State') }}</Button>
         <Button variant="secondary" size="sm" class="shrink-0" :disabled="states.length < 2" @click="addTransition">
-          <Plus class="size-3.5" />Перехід
+          <Plus class="size-3.5" />{{ t('Transition') }}
         </Button>
         <span class="text-muted-foreground shrink-0 whitespace-nowrap ml-2">
-          Перетягніть від краю вузла до іншого вузла, щоб створити перехід
+          {{ t('Drag from the edge of a node to another node to create a transition') }}
         </span>
       </div>
       <div class="flex-1 relative">
@@ -296,7 +299,7 @@ function removeSelectedTransition() {
           <Controls :show-interactive="false" />
         </VueFlow>
         <div v-if="states.length === 0" class="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <p class="text-muted-foreground">Додайте стани кнопкою «Стан» вище</p>
+          <p class="text-muted-foreground">{{ t('Add states with the «State» button above') }}</p>
         </div>
       </div>
     </div>
@@ -304,20 +307,20 @@ function removeSelectedTransition() {
     <!-- Properties panel -->
     <div class="w-72 shrink-0 border-l border-border overflow-y-auto p-4">
       <template v-if="selectedState">
-        <p class="font-semibold text-muted-foreground uppercase tracking-wide mb-3">Стан</p>
+        <p class="font-semibold text-muted-foreground uppercase tracking-wide mb-3">{{ t('State') }}</p>
         <div class="flex flex-col gap-3">
           <div class="flex flex-col gap-1.5">
-            <label class="font-medium">Значення (для поля стану)</label>
+            <label class="font-medium">{{ t('Value (for the state field)') }}</label>
             <Input :model-value="selectedState.state"
               @update:model-value="updateSelectedState({ state: String($event) })" />
           </div>
           <div class="flex flex-col gap-1.5">
-            <label class="font-medium">Назва</label>
+            <label class="font-medium">{{ t('Name') }}</label>
             <Input :model-value="selectedState.label ?? ''"
               @update:model-value="updateSelectedState({ label: String($event) })" />
           </div>
           <div class="flex flex-col gap-1.5">
-            <label class="font-medium">Колір</label>
+            <label class="font-medium">{{ t('Color') }}</label>
             <Select :model-value="selectedState.color ?? 'gray'"
               @update:model-value="updateSelectedState({ color: String($event) })">
               <SelectTrigger class="w-full"><SelectValue /></SelectTrigger>
@@ -329,24 +332,24 @@ function removeSelectedTransition() {
           <div class="flex items-center gap-2">
             <Checkbox :model-value="!!selectedState.is_initial"
               @update:model-value="updateSelectedState({ is_initial: !!$event })" />
-            <label class="font-medium">Початковий стан</label>
+            <label class="font-medium">{{ t('Initial state') }}</label>
           </div>
           <div class="flex items-center gap-2">
             <Checkbox :model-value="!!selectedState.is_final"
               @update:model-value="updateSelectedState({ is_final: !!$event })" />
-            <label class="font-medium">Кінцевий стан</label>
+            <label class="font-medium">{{ t('Final state') }}</label>
           </div>
           <Button variant="destructive" size="sm" class="mt-2" @click="removeSelectedState">
-            <Trash2 class="size-3.5" />Видалити стан
+            <Trash2 class="size-3.5" />{{ t('Delete state') }}
           </Button>
         </div>
       </template>
 
       <template v-else-if="selectedTransition">
-        <p class="font-semibold text-muted-foreground uppercase tracking-wide mb-3">Перехід</p>
+        <p class="font-semibold text-muted-foreground uppercase tracking-wide mb-3">{{ t('Transition') }}</p>
         <div class="flex flex-col gap-3">
           <div class="flex flex-col gap-1.5">
-            <label class="font-medium">З стану</label>
+            <label class="font-medium">{{ t('From state') }}</label>
             <Select :model-value="selectedTransition.from_state"
               @update:model-value="updateSelectedTransition({ from_state: String($event) })">
               <SelectTrigger class="w-full"><SelectValue /></SelectTrigger>
@@ -356,7 +359,7 @@ function removeSelectedTransition() {
             </Select>
           </div>
           <div class="flex flex-col gap-1.5">
-            <label class="font-medium">У стан</label>
+            <label class="font-medium">{{ t('To state') }}</label>
             <Select :model-value="selectedTransition.to_state"
               @update:model-value="updateSelectedTransition({ to_state: String($event) })">
               <SelectTrigger class="w-full"><SelectValue /></SelectTrigger>
@@ -366,37 +369,37 @@ function removeSelectedTransition() {
             </Select>
           </div>
           <div class="flex flex-col gap-1.5">
-            <label class="font-medium">Дія (текст кнопки)</label>
+            <label class="font-medium">{{ t('Action (button text)') }}</label>
             <Input :model-value="selectedTransition.action"
               @update:model-value="updateSelectedTransition({ action: String($event) })" />
           </div>
           <div class="flex flex-col gap-1.5">
-            <label class="font-medium">Дозволені ролі (через кому)</label>
+            <label class="font-medium">{{ t('Allowed roles (comma-separated)') }}</label>
             <Input :model-value="selectedTransition.allowed_roles ?? ''"
               @update:model-value="updateSelectedTransition({ allowed_roles: String($event) })" />
           </div>
           <div class="flex flex-col gap-1.5">
-            <label class="font-medium">Умова (eval:)</label>
+            <label class="font-medium">{{ t('Condition (eval:)') }}</label>
             <Textarea :model-value="selectedTransition.condition ?? ''" rows="3"
               @update:model-value="updateSelectedTransition({ condition: String($event) || null })" />
           </div>
           <div class="flex flex-col gap-1.5">
-            <label class="font-medium">Поля діалогу (через кому)</label>
+            <label class="font-medium">{{ t('Dialog fields (comma-separated)') }}</label>
             <Input :model-value="selectedTransition.prompt_fields ?? ''"
-              placeholder="напр. execution_note"
+              :placeholder="t('e.g. execution_note')"
               @update:model-value="updateSelectedTransition({ prompt_fields: String($event) || null })" />
             <p class="text-muted-foreground text-xs">
-              Якщо вказано, перед переходом відкриється діалог для заповнення цих полів документа.
+              {{ t('If set, a dialog opens before the transition to fill in these document fields.') }}
             </p>
           </div>
           <Button variant="destructive" size="sm" class="mt-2" @click="removeSelectedTransition">
-            <Trash2 class="size-3.5" />Видалити перехід
+            <Trash2 class="size-3.5" />{{ t('Delete transition') }}
           </Button>
         </div>
       </template>
 
       <p v-else class="text-muted-foreground text-center mt-8">
-        Натисніть на стан або перехід для редагування
+        {{ t('Click a state or transition to edit it') }}
       </p>
     </div>
   </div>

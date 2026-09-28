@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { ref, computed, onMounted, watch } from 'vue'
 import { useAppStore } from '@/stores/app'
 import { SidebarTrigger } from '@/components/ui/sidebar'
@@ -8,6 +9,8 @@ import AppIcon from '@/components/AppIcon.vue'
 import WidgetCard from '@/components/dashboard/WidgetCard.vue'
 import { setPageTitle } from '@/core/composables/usePageTitle'
 import type { DashboardWidget } from '@/types'
+
+const { t } = useI18n()
 
 const props = defineProps<{ workspaceName: string }>()
 const appStore = useAppStore()
@@ -84,10 +87,10 @@ watch(() => props.workspaceName, init)
     <!-- Empty state -->
     <div v-else-if="appStore.active" class="flex flex-col items-center justify-center py-20 text-center">
       <AppIcon :icon="appStore.active.icon || 'folder'" class="size-12 mb-4 text-muted-foreground/40" />
-      <p class="text-muted-foreground">Домашня сторінка не налаштована.</p>
+      <p class="text-muted-foreground">{{ t('The home page is not set up.') }}</p>
       <p class="text-muted-foreground/60 mt-1">
-        Створіть <router-link :to="`/${workspaceName}/Page`" class="text-primary hover:underline">Сторінку</router-link>
-        і вкажіть її у полі «Домашня сторінка» в налаштуваннях AppMenu.
+        {{ t('Create a') }} <router-link :to="`/${workspaceName}/Page`" class="text-primary hover:underline">{{ t('link|Page') }}</router-link>
+        {{ t('and set it in the «Home page» field of the AppMenu settings.') }}
       </p>
     </div>
   </div>

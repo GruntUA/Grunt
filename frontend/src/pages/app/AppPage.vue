@@ -128,7 +128,7 @@ async function createPage() {
     const msg = (err as { response?: { data?: { error?: { message?: string }; detail?: string } } })
       ?.response?.data?.error?.message
       ?? (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail
-      ?? 'Помилка створення сторінки'
+      ?? t('Could not create the page')
     toast.error(msg)
   } finally {
     loading.value = false
@@ -145,7 +145,7 @@ async function savePage() {
     await load()
   } catch (err: unknown) {
     const msg = (err as { response?: { data?: { error?: { message?: string } } } })
-      ?.response?.data?.error?.message ?? 'Помилка збереження'
+      ?.response?.data?.error?.message ?? t('Save error')
     toast.error(msg)
   } finally {
     saving.value = false
@@ -179,7 +179,7 @@ function addWidget(type: WidgetType) {
   const newWidget: DashboardWidget = {
     id,
     widget_type: type,
-    title: t(getWidgetDef(type)?.label ?? 'Новий'),
+    title: t(getWidgetDef(type)?.label ?? t('New')),
     cols: type === 'shortcut' || type === 'clock' ? 1 : type === 'gauge' ? 1 : 2,
     color: 'primary',
     doctype: '',
@@ -227,7 +227,7 @@ function handleRemoveFromPanel() {
 
 function copyEmbedUrl() {
   navigator.clipboard.writeText(embedUrl.value)
-  toast.success('Посилання скопійовано')
+  toast.success(t('Link copied'))
 }
 
 onMounted(load)
@@ -267,11 +267,11 @@ const printPage = () => window.print()
           <select v-model.number="autoRefreshInterval"
             class="h-8 px-2 rounded-lg border bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
             @change="startAutoRefresh(autoRefreshInterval)">
-            <option :value="0">Авто</option>
-            <option :value="30">30с</option>
-            <option :value="60">1хв</option>
-            <option :value="300">5хв</option>
-            <option :value="600">10хв</option>
+            <option :value="0">{{ t('Auto') }}</option>
+            <option :value="30">{{ t('30s') }}</option>
+            <option :value="60">{{ t('1m') }}</option>
+            <option :value="300">{{ t('5m') }}</option>
+            <option :value="600">{{ t('10m') }}</option>
           </select>
         </div>
 
@@ -279,13 +279,13 @@ const printPage = () => window.print()
           <button
             class="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-dashed border-primary/40 text-primary bg-primary/5 hover:bg-primary/10 transition-colors"
             @click="enterEdit">
-            <Pencil class="w-4 h-4" /> Налаштувати
+            <Pencil class="w-4 h-4" /> {{ t('Configure') }}
           </button>
           <button
             class="flex items-center gap-2 px-3 py-1.5 rounded-lg border hover:bg-muted transition-colors"
             :disabled="refreshing || loading"
             @click="refresh">
-            <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': refreshing }" /> Оновити
+            <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': refreshing }" /> {{ t('Refresh') }}
           </button>
           <button v-if="page"
             class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border hover:bg-muted transition-colors"
@@ -310,11 +310,11 @@ const printPage = () => window.print()
     <div v-else-if="!page"
       class="flex flex-col items-center justify-center py-24 text-muted-foreground">
       <LayoutDashboard class="w-12 h-12 mb-3 opacity-30" />
-      <p class="mb-4">Сторінку ще не створено</p>
+      <p class="mb-4">{{ t('The page has not been created yet') }}</p>
       <button
         class="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary/10 text-primary font-medium hover:bg-primary/20 transition-colors"
         @click="createPage">
-        <Plus class="w-4 h-4" /> Створити Сторінку
+        <Plus class="w-4 h-4" /> {{ t('Create page') }}
       </button>
     </div>
 
@@ -322,11 +322,11 @@ const printPage = () => window.print()
     <div v-else-if="!editMode && (page?.widgets.length ?? 0) === 0"
       class="flex flex-col items-center justify-center py-24 text-muted-foreground">
       <LayoutDashboard class="w-12 h-12 mb-3 opacity-30" />
-      <p class="mb-4">Сторінка порожня</p>
+      <p class="mb-4">{{ t('The page is empty') }}</p>
       <button
         class="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary/10 text-primary font-medium hover:bg-primary/20 transition-colors"
         @click="enterEdit">
-        <Pencil class="w-4 h-4" /> Налаштувати
+        <Pencil class="w-4 h-4" /> {{ t('Configure') }}
       </button>
     </div>
 
@@ -353,20 +353,20 @@ const printPage = () => window.print()
         <LayoutDashboard class="size-4 text-muted-foreground" />
         <span class="font-semibold">{{ page?.label ?? pageName }}</span>
         <span class="font-medium bg-warning/10 text-warning border border-warning/30 px-2 py-0.5 rounded">
-          Режим редагування
+          {{ t('Edit mode') }}
         </span>
         <div class="ml-auto flex items-center gap-2">
           <button
             class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border hover:bg-muted transition-colors"
             @click="cancelEdit">
-            <X class="w-4 h-4" /> Скасувати
+            <X class="w-4 h-4" /> {{ t('Cancel') }}
           </button>
           <button
             class="flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors"
             :class="{ 'opacity-50': saving }"
             :disabled="saving"
             @click="savePage">
-            <Save class="w-4 h-4" :class="{ 'animate-pulse': saving }" /> Зберегти
+            <Save class="w-4 h-4" :class="{ 'animate-pulse': saving }" /> {{ t('Save') }}
           </button>
         </div>
       </div>
@@ -378,7 +378,7 @@ const printPage = () => window.print()
         <div class="w-52 shrink-0 border-r border-border bg-muted/20 overflow-y-auto">
           <div class="px-3 py-3">
             <p class="font-semibold uppercase tracking-widest text-muted-foreground mb-2 px-1">
-              Типи віджетів
+              {{ t('Widget types') }}
             </p>
             <div v-for="group in WIDGET_GROUPS" :key="group.category" class="mb-3">
               <p class="text-muted-foreground/70 px-1 mb-1">{{ group.category }}</p>
@@ -407,8 +407,8 @@ const printPage = () => window.print()
           <div v-if="page && page.widgets.length === 0"
             class="flex flex-col items-center justify-center py-20 border-2 border-dashed border-primary/20 rounded-lg bg-primary/5 text-center">
             <div class="text-4xl mb-3">👈</div>
-            <h3 class="text-base font-semibold text-primary mb-1">Оберіть тип віджета</h3>
-            <p class="text-muted-foreground max-w-xs">Натисніть на будь-який тип у лівій панелі — він з'явиться тут</p>
+            <h3 class="text-base font-semibold text-primary mb-1">{{ t('Choose a widget type') }}</h3>
+            <p class="text-muted-foreground max-w-xs">{{ t('Click any type in the left panel — it will appear here') }}</p>
           </div>
 
           <VueDraggable
@@ -467,18 +467,18 @@ const printPage = () => window.print()
   <Dialog v-model:open="showEmbedModal">
     <DialogContent class="sm:max-w-[500px] p-0 px-6 pb-6 pt-2">
     <DialogHeader>
-      <DialogTitle>Вбудувати сторінку</DialogTitle>
+      <DialogTitle>{{ t('Embed page') }}</DialogTitle>
     </DialogHeader>
     <div class="space-y-4">
         <div class="space-y-1.5">
-          <label class="font-medium text-muted-foreground uppercase tracking-wide">Пряме посилання</label>
+          <label class="font-medium text-muted-foreground uppercase tracking-wide">{{ t('Direct link') }}</label>
           <div class="flex gap-2">
             <input :value="embedUrl" readonly
               class="flex-1 h-9 px-3 rounded-lg border bg-muted font-mono focus:outline-none" />
             <button
               class="px-3 h-9 rounded-lg border hover:bg-muted transition-colors"
               @click="copyEmbedUrl">
-              Копіювати
+              {{ t('Copy') }}
             </button>
           </div>
         </div>
