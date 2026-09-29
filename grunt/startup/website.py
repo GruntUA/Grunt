@@ -74,13 +74,20 @@ async def _website_catch_all(request: Request):
     from grunt.config import settings
     from grunt.site.manager import site_manager
     from grunt.website.router import render_page_by_route
+    from grunt.website.spa import DIST_DIR, static_file
 
     # 1. Serve root-level static files (replaces a StaticFiles mount at "/").
+    #    In production the built SPA (dist/) comes first — Vite serves it in dev.
     req_path = request.url.path.lstrip("/")
-    if req_path:  # ignore "/" itself
-        candidate = _MAIN_PUBLIC_DIR / req_path
-        if candidate.is_file():
-            return FileResponse(str(candidate))
+    if not settings.debug and (built := static_file(DIST_DIR, req_path)):
+        # Vite content-hashes everything under assets/, so it never changes.
+        immutable = req_path.startswith("assets/")
+        return FileResponse(
+            str(built),
+            headers={"Cache-Control": "public, max-age=31536000, immutable"} if immutable else None,
+        )
+    if candidate := static_file(_MAIN_PUBLIC_DIR, req_path):
+        return FileResponse(str(candidate))
 
     # 2. Try server-side website pages.
     site = site_manager.get_active_site()

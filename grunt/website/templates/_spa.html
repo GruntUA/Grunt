@@ -20,9 +20,8 @@
         <script type="module" src="/@vite/client"></script>
         <script type="module" src="/frontend/src/main.ts"></script>
     {% else %}
-        <!-- Build assets in prod -->
-        <link rel="stylesheet" href="/assets/grunt/main.css">
-        <script type="module" src="/assets/grunt/main.js"></script>
+        <!-- Build assets in prod (tags from dist/index.html) -->
+        {{ spa_assets() }}
     {% endif %}
   </head>
   <body>

@@ -78,6 +78,9 @@ class WebsiteRegistry:
         from grunt.website.menu import get_menu
 
         env.globals["website_menu"] = get_menu
+        from grunt.website.spa import spa_assets
+
+        env.globals["spa_assets"] = spa_assets
         self._envs[app_name] = env
 
         discovered: list[WebsitePage] = []

@@ -65,6 +65,9 @@ def text_sort_expr(col: Any, dialect_name: str) -> Any:
     return func.lower(col)
 
 
+_UNSET = object()
+
+
 class SiteManager:
     """Manages multi-tenant sites and their database connections.
 
@@ -94,6 +97,7 @@ class SiteManager:
         # Caches
         self.engines: dict[str, AsyncEngine] = {}
         self.session_makers: dict[str, async_sessionmaker[AsyncSession]] = {}
+        self._primary_web_app: Any = _UNSET
 
     @staticmethod
     def _find_bench_dir(start: Path) -> Path | None:
@@ -117,19 +121,50 @@ class SiteManager:
                 sites.append(d.name)
         return sites
 
-    def get_installed_apps(self, site_name: str) -> list[str]:
-        """Return the ``installed_apps`` list from a site's ``grunt.site`` config."""
+    def get_site_config(self, site_name: str) -> dict[str, Any]:
+        """Return a site's ``grunt.site`` config (empty if missing/unreadable)."""
         import json
 
         site_file = self.sites_dir / site_name / "grunt.site"
         if not site_file.exists():
-            return []
+            return {}
         try:
-            config = json.loads(site_file.read_text(encoding="utf-8"))
+            return json.loads(site_file.read_text(encoding="utf-8"))
         except (OSError, ValueError) as exc:
             log.error("site_manager.config_read_error", site=site_name, error=str(exc))
-            return []
-        return list(config.get("installed_apps", []))
+            return {}
+
+    def get_installed_apps(self, site_name: str) -> list[str]:
+        """Return the ``installed_apps`` list from a site's ``grunt.site`` config."""
+        return list(self.get_site_config(site_name).get("installed_apps", []))
+
+    def get_primary_web_app(self) -> str | None:
+        """App whose www/ pages mount at the site root (``primary_web_app`` in
+        ``grunt.site``), or ``None`` — then every app's pages live under
+        ``/{app_name}/...``.
+
+        Routes are mounted once per process, so this is bench-wide: the first
+        site (by name) that sets it wins, and a disagreeing site is logged.
+        Cached — changing it needs a restart anyway.
+        """
+        if self._primary_web_app is not _UNSET:
+            return self._primary_web_app
+        primary: str | None = None
+        for site in sorted(self.get_sites()):
+            config = self.get_site_config(site)
+            app = config.get("primary_web_app")
+            if not app:
+                continue
+            if app not in config.get("installed_apps", []):
+                log.warning("site_manager.primary_web_app.not_installed", site=site, app=app)
+            elif primary is None:
+                primary = app
+            elif primary != app:
+                log.warning(
+                    "site_manager.primary_web_app.conflict", site=site, app=app, holder=primary
+                )
+        self._primary_web_app = primary
+        return primary
 
     def get_all_installed_apps(self) -> set[str]:
         """Return the union of apps installed across every site in the bench.
