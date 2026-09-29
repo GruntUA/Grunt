@@ -371,8 +371,9 @@ class GruntDB:
         self,
         doctype: str,
         filters: dict[str, Any] | None = None,
+        or_filters: dict[str, Any] | None = None,
     ) -> int:
-        """Count documents matching optional filters."""
+        """Count documents matching optional filters (``or_filters`` — as in get_all)."""
         import grunt
         from grunt.errors import not_found
 
@@ -383,6 +384,10 @@ class GruntDB:
         stmt = select(func.count()).select_from(table)
         if filters:
             stmt = apply_filters(stmt, table, filters)
+        if or_filters:
+            or_clauses = build_clauses(table, or_filters)
+            if or_clauses:
+                stmt = stmt.where(or_(*or_clauses))
         result = await self._session().execute(stmt)
         return result.scalar() or 0
 
