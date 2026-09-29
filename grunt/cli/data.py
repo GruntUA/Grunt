@@ -201,7 +201,7 @@ def data_import(bundle: Path, site: str | None, yes: bool):
             for doctype in [*touched, "File"]:
                 await grunt.doc_cache.invalidate_doctype(doctype)
                 await grunt.query_cache.invalidate_doctype(doctype)
-        click.echo("Done. Restart the web service so its in-process caches refresh.")
+        click.echo("Done. Restart the services so their in-process caches refresh: grunt restart")
 
     asyncio.run(_run())
 
