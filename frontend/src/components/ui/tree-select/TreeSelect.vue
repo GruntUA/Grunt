@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import { ref, computed, watch, nextTick, useId } from 'vue'
-import { X, Pencil } from '@lucide/vue'
+import { X, Pencil, Search } from '@lucide/vue'
 import { cn } from '@/lib/utils'
 import { Spinner } from '@/components/ui/spinner'
+import { Kbd } from '@/components/ui/kbd'
 import TreeSelectNode from './TreeSelectNode.vue'
 import type { TreeNode } from './types'
 import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover'
@@ -211,6 +212,84 @@ function onDialogSearch(e: Event) {
   emit('filter', search.value)
 }
 
+function clearDialogSearch() {
+  search.value = ''
+  emit('filter', '')
+  dialogSearchEl.value?.focus()
+}
+
+/** Visible tree rows of the dialog, in document (= visual) order. */
+function dialogRows(): HTMLElement[] {
+  return Array.from(dialogListEl.value?.querySelectorAll<HTMLElement>('[data-tree-row]') ?? [])
+}
+
+function focusRow(row: HTMLElement | undefined) {
+  if (!row) return
+  row.focus()
+  row.scrollIntoView({ block: 'nearest' })
+}
+
+/** Row of the parent node: row → wrapper → role="group" → parent's row. */
+function parentRow(row: HTMLElement): HTMLElement | undefined {
+  const group = row.parentElement?.parentElement
+  if (group?.getAttribute('role') !== 'group') return undefined
+  return (group.previousElementSibling as HTMLElement | null) ?? undefined
+}
+
+function onDialogSearchKeydown(e: KeyboardEvent) {
+  if (e.key === 'ArrowDown') {
+    e.preventDefault()
+    focusRow(dialogRows()[0])
+  } else if (e.key === 'Enter') {
+    // Enter in the search box picks the first match.
+    e.preventDefault()
+    const key = dialogRows()[0]?.dataset.key
+    if (key) onSelect(key)
+  }
+}
+
+/** WAI-ARIA tree keyboard model: ↑↓ move, → expand/descend, ← collapse/ascend, ↵ pick. */
+function onDialogListKeydown(e: KeyboardEvent) {
+  const rows = dialogRows()
+  const row = document.activeElement as HTMLElement | null
+  const i = row ? rows.indexOf(row) : -1
+  if (i < 0 || !row) return
+  const key = row.dataset.key!
+  const expandedAttr = row.getAttribute('aria-expanded')
+  switch (e.key) {
+    case 'ArrowDown':
+      focusRow(rows[i + 1])
+      break
+    case 'ArrowUp':
+      if (i === 0) dialogSearchEl.value?.focus()
+      else focusRow(rows[i - 1])
+      break
+    case 'Home':
+      focusRow(rows[0])
+      break
+    case 'End':
+      focusRow(rows.at(-1))
+      break
+    case 'ArrowRight':
+      if (expandedAttr === 'false') onToggle(key)
+      else if (expandedAttr === 'true') focusRow(rows[i + 1])
+      break
+    case 'ArrowLeft':
+      if (expandedAttr === 'true') onToggle(key)
+      else focusRow(parentRow(row))
+      break
+    case 'Enter':
+    case ' ':
+      onSelect(key)
+      break
+    default:
+      // Typing anywhere in the tree continues the search.
+      if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) dialogSearchEl.value?.focus()
+      return
+  }
+  e.preventDefault()
+}
+
 /** Keep the popover open when the "outside" interaction is the field itself. */
 function keepOpenIfSelf(e: CustomEvent<{ originalEvent?: Event }>) {
   const target = (e.detail?.originalEvent?.target ?? e.target) as Node | null
@@ -286,6 +365,7 @@ function keepOpenIfSelf(e: CustomEvent<{ originalEvent?: Event }>) {
           :depth="0"
           :selected-key="modelValue"
           :expanded-keys="expandedKeys"
+          :query="search"
           @select="onSelect"
           @toggle="onToggle"
         />
@@ -295,22 +375,39 @@ function keepOpenIfSelf(e: CustomEvent<{ originalEvent?: Event }>) {
   </Popover>
 
   <Dialog v-model:open="dialogOpen">
-    <DialogContent class="gap-0 p-0 sm:max-w-6xl" @open-auto-focus.prevent>
-      <DialogHeader class="border-b border-border px-4 py-3 pr-10">
+    <DialogContent class="gap-0 overflow-hidden p-0 sm:max-w-xl" @open-auto-focus.prevent>
+      <DialogHeader class="px-4 pt-4 pb-3 pr-10">
         <DialogTitle>{{ placeholder ?? t('— Select —') }}</DialogTitle>
-        <DialogDescription class="sr-only">{{ t('Choose a value from the tree') }}</DialogDescription>
+        <DialogDescription>{{ t('Choose a value from the tree') }}</DialogDescription>
       </DialogHeader>
-      <div class="border-b border-border px-3 py-2">
+      <div class="flex h-10 items-center gap-2 border-y px-3">
+        <Search class="size-4 shrink-0 opacity-50" />
         <input
           ref="dialogSearchEl"
           :value="search"
           :placeholder="t('Search…')"
           autocomplete="off"
-          class="w-full bg-transparent py-1 text-sm outline-none placeholder:text-muted-foreground"
+          class="h-full w-full bg-transparent text-sm outline-hidden placeholder:text-muted-foreground"
           @input="onDialogSearch"
+          @keydown="onDialogSearchKeydown"
         >
+        <button
+          v-if="search"
+          type="button"
+          class="shrink-0 text-muted-foreground hover:text-foreground"
+          :aria-label="t('Clear search')"
+          @click="clearDialogSearch"
+        >
+          <X class="size-4" />
+        </button>
       </div>
-      <div ref="dialogListEl" class="max-h-[60vh] min-h-40 overflow-y-auto p-2">
+      <div
+        ref="dialogListEl"
+        role="tree"
+        :aria-label="placeholder"
+        class="h-[min(60vh,28rem)] overflow-y-auto p-1"
+        @keydown="onDialogListKeydown"
+      >
         <TreeSelectNode
           v-for="node in filteredOptions"
           :key="node.key"
@@ -318,10 +415,17 @@ function keepOpenIfSelf(e: CustomEvent<{ originalEvent?: Event }>) {
           :depth="0"
           :selected-key="modelValue"
           :expanded-keys="expandedKeys"
+          :query="search"
           @select="onSelect"
           @toggle="onToggle"
         />
-        <p v-if="!filteredOptions.length" class="px-2 py-6 text-center text-muted-foreground">{{ t('Nothing found') }}</p>
+        <p v-if="!filteredOptions.length" class="py-10 text-center text-sm text-muted-foreground">{{ t('Nothing found') }}</p>
+      </div>
+      <div class="hidden items-center gap-4 border-t px-4 py-2 text-xs text-muted-foreground sm:flex">
+        <span class="flex items-center gap-1"><Kbd>↑</Kbd><Kbd>↓</Kbd>{{ t('Navigate') }}</span>
+        <span class="flex items-center gap-1"><Kbd>←</Kbd><Kbd>→</Kbd>{{ t('Expand') }}</span>
+        <span class="flex items-center gap-1"><Kbd>↵</Kbd>{{ t('Select') }}</span>
+        <span class="ml-auto flex items-center gap-1"><Kbd>Esc</Kbd>{{ t('Close') }}</span>
       </div>
     </DialogContent>
   </Dialog>

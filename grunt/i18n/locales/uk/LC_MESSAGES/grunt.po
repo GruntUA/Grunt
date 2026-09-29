@@ -6919,6 +6919,9 @@ msgstr "Обрати зі списку"
 msgid "Choose a value from the tree"
 msgstr "Оберіть значення з дерева"
 
+msgid "Clear search"
+msgstr "Очистити пошук"
+
 #: grunt/frontend/src/components/desk/GruntDialog.vue:257
 #: grunt/frontend/src/components/ui/multi-select/MultiSelect.vue:99
 #: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue:307
