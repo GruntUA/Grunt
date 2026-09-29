@@ -17,7 +17,7 @@ import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { toast } from '@/core/composables/useToast'
 import i18n, { tn } from '@/plugins/i18n'
 
-const t = (key: string): string => i18n.global.t(key)
+const t = (key: string, params: Record<string, unknown> = {}): string => i18n.global.t(key, params)
 
 export const isOnline = ref(typeof navigator !== 'undefined' ? navigator.onLine : true)
 export const serverReachable = ref(true)

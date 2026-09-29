@@ -3,7 +3,7 @@ import { computed, type Ref } from 'vue'
 import type { DocType } from '@/types'
 import i18n from '@/plugins/i18n'
 
-const t = (key: string): string => i18n.global.t(key)
+const t = (key: string, params: Record<string, unknown> = {}): string => i18n.global.t(key, params)
 
 interface UseFormDocumentViewParams {
   id: string | null
@@ -16,7 +16,7 @@ interface UseFormDocumentViewParams {
 export function useFormDocumentView(params: UseFormDocumentViewParams) {
   const docTitle = computed(() => {
     if (!params.document.value) {
-      return params.id ? '...' : t('New {doctype}').replace('{doctype}', params.dt.value?.label ?? '')
+      return params.id ? '...' : t('New {doctype}', { doctype: params.dt.value?.label ?? '' })
     }
 
     const titleField = params.dt.value?.title_field
@@ -26,7 +26,7 @@ export function useFormDocumentView(params: UseFormDocumentViewParams) {
 
     const titleValue = titleField ? params.document.value[titleField] : undefined
     const nameValue = params.document.value.name
-    return (titleValue as string) || (nameValue as string) || t('New {doctype}').replace('{doctype}', params.dt.value?.label ?? '')
+    return (titleValue as string) || (nameValue as string) || t('New {doctype}', { doctype: params.dt.value?.label ?? '' })
   })
 
   function onFormUpdate(updated: Record<string, unknown>) {

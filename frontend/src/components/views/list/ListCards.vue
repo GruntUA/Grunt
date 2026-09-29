@@ -131,7 +131,7 @@ function onTitleClick(event: MouseEvent, row: Record<string, unknown>) {
         <Checkbox
           class="mt-0.5"
           :model-value="isSelected(row)"
-          :aria-label="t('Select {id}').replace('{id}', String(rowId(row)))"
+          :aria-label="t('Select {id}', { id: String(rowId(row)) })"
           @click.stop
           @update:model-value="emit('select', rowId(row))"
         />

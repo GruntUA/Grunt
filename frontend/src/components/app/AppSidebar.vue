@@ -221,7 +221,7 @@ watch(() => router.currentRoute.value.path, () => { if (appStore.active) appStor
           <div class="rounded-md border border-violet-500/40 bg-violet-500/10 px-2 py-1.5 group-data-[collapsible=icon]:hidden">
             <div class="flex items-center gap-1.5 font-medium text-violet-700 dark:text-violet-300">
               <Eye class="size-3.5 shrink-0" />
-              <span class="truncate">{{ t('Viewing as {name}').replace('{name}', auth.user?.full_name ?? '') }}</span>
+              <span class="truncate">{{ t('Viewing as {name}', { name: auth.user?.full_name ?? '' }) }}</span>
             </div>
             <button
               class="mt-1.5 w-full rounded bg-violet-600 px-2 py-1 font-semibold text-white transition-colors hover:bg-violet-700"

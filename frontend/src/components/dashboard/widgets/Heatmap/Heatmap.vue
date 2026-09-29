@@ -118,7 +118,7 @@ function open(cell: Cell) {
   <div class="flex flex-col h-full px-4 py-3">
     <div class="flex items-center justify-between mb-3 shrink-0">
       <p class="font-medium text-muted-foreground">{{ widget.title }}</p>
-      <span v-if="!loading" class="text-muted-foreground">{{ t('{n} in {days} days').replace('{n}', String(totalCount)).replace('{days}', String(periodDays)) }}</span>
+      <span v-if="!loading" class="text-muted-foreground">{{ t('{n} in {days} days', { n: String(totalCount), days: String(periodDays) }) }}</span>
     </div>
 
     <div v-if="loading" class="flex-1 flex items-center">
@@ -167,7 +167,7 @@ function open(cell: Cell) {
         <span class="truncate">
           {{ t('Active days:') }} <span class="text-foreground font-medium">{{ activeDays }}</span>
           <template v-if="busiest">
-            · {{ t('busiest {day}').replace('{day}', fmtDay(busiest.date)) }}: <span class="text-foreground font-medium">{{ busiest.count }}</span>
+            · {{ t('busiest {day}', { day: fmtDay(busiest.date) }) }}: <span class="text-foreground font-medium">{{ busiest.count }}</span>
           </template>
         </span>
         <div class="flex items-center gap-1 shrink-0">

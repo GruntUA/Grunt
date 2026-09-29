@@ -38,6 +38,23 @@ function getSavedLocale(): SupportedLocale {
   return 'uk'
 }
 
+/**
+ * PO strings are plain text, but vue-i18n compiles them: a bare `@` starts a
+ * linked message (`@:key`) and fails with "Invalid linked format". Escape it
+ * as a literal; `{…}` placeholders stay intact for interpolation.
+ */
+function escapeMessage(v: string): string {
+  return v.replace(/@/g, "{'@'}")
+}
+
+function escapeMessages(messages: Record<string, unknown>): Record<string, unknown> {
+  const out: Record<string, unknown> = {}
+  for (const [k, v] of Object.entries(messages)) {
+    out[k] = typeof v === 'string' ? escapeMessage(v) : v
+  }
+  return out
+}
+
 export const i18n = createI18n({
   legacy: false,
   locale: getSavedLocale(),
@@ -45,20 +62,12 @@ export const i18n = createI18n({
   messages: {},
   missingWarn: false,
   fallbackWarn: false,
+  // An untranslated key is compiled as its own message, so `t('Hi {name}', { name })`
+  // interpolates in English too — no `.replace('{name}', …)` at call sites.
+  fallbackFormat: true,
+  // …minus the `ctx|` prefix (`|` would split it into plural forms) and with `@` escaped.
+  missing: (_locale, key) => escapeMessage(key.replace(/^[\w-]+\|/, '')),
 })
-
-/**
- * PO strings are plain text, but vue-i18n compiles them: a bare `@` starts a
- * linked message (`@:key`) and fails with "Invalid linked format". Escape it
- * as a literal; `{…}` placeholders stay intact for interpolation.
- */
-function escapeMessages(messages: Record<string, unknown>): Record<string, unknown> {
-  const out: Record<string, unknown> = {}
-  for (const [k, v] of Object.entries(messages)) {
-    out[k] = typeof v === 'string' ? v.replace(/@/g, "{'@'}") : v
-  }
-  return out
-}
 
 /**
  * Load translations from the backend API and merge into vue-i18n.
@@ -124,11 +133,8 @@ export function tn(singular: string, plural: string, n: number, ctx?: string): s
   const locale = i18n.global.locale.value
   const base = ctx ? `${ctx}|${singular}` : singular
   const key = `${base}\u0000${pluralIndex(locale, n)}`
-  // Params too: vue-i18n interpolates `{n}` in a translated message itself
-  // (and blanks it without them); the replace() covers the untranslated fallback.
-  let out = i18n.global.t(key, { n, count: n })
-  if (out === key) out = Math.abs(n) === 1 ? singular : plural
-  return out.replace(/\{n\}|\{count\}/g, String(n))
+  const msg = i18n.global.te(key) ? key : Math.abs(n) === 1 ? singular : plural
+  return i18n.global.t(msg, { n, count: n })
 }
 
 export function setLocale(locale: SupportedLocale): void {

@@ -57,10 +57,10 @@ const greeting = computed(() => {
   // backend) — the first name is the second word, not the first.
   const parts = auth.user?.full_name?.split(' ') ?? []
   const name = parts[1] ?? parts[0] ?? t('user')
-  if (hour < 5) return { text: t('Good night, {name}').replace('{name}', name), icon: Moon }
-  if (hour < 12) return { text: t('Good morning, {name}').replace('{name}', name), icon: Sunrise }
-  if (hour < 18) return { text: t('Good afternoon, {name}').replace('{name}', name), icon: Sun }
-  return { text: t('Good evening, {name}').replace('{name}', name), icon: Sunset }
+  if (hour < 5) return { text: t('Good night, {name}', { name }), icon: Moon }
+  if (hour < 12) return { text: t('Good morning, {name}', { name }), icon: Sunrise }
+  if (hour < 18) return { text: t('Good afternoon, {name}', { name }), icon: Sun }
+  return { text: t('Good evening, {name}', { name }), icon: Sunset }
 })
 
 // Honest, deduplicated business-document total (excludes logs/sessions/config).
@@ -100,11 +100,11 @@ function timeAgo(ts: number): string {
   const diff = Date.now() - ts
   const minutes = Math.floor(diff / 60000)
   if (minutes < 1) return t('just now')
-  if (minutes < 60) return t('{n} min', { n: String(minutes) }).replace('{n}', String(minutes))
+  if (minutes < 60) return t('{n} min', { n: String(minutes) })
   const hours = Math.floor(minutes / 60)
-  if (hours < 24) return t('{n} h', { n: String(hours) }).replace('{n}', String(hours))
+  if (hours < 24) return t('{n} h', { n: String(hours) })
   const days = Math.floor(hours / 24)
-  return t('{n} d', { n: String(days) }).replace('{n}', String(days))
+  return t('{n} d', { n: String(days) })
 }
 
 function findWorkspaceForDoc(doc: RecentDoc) {
@@ -179,7 +179,7 @@ function docInitials(doc: RecentDoc): string {
         <div v-if="auth.isImpersonating"
           class="flex items-center justify-center gap-2 rounded-lg border border-warning/30 bg-warning/10 px-3 py-2 text-warning">
           <Eye class="size-3.5 shrink-0" />
-          <span>{{ t('Viewing as {name}').replace('{name}', auth.user?.full_name ?? '') }} —
+          <span>{{ t('Viewing as {name}', { name: auth.user?.full_name ?? '' }) }} —
             <button type="button" class="font-semibold underline underline-offset-2" @click="exitImpersonation">
               {{ t('switch back') }}
             </button>
@@ -197,7 +197,7 @@ function docInitials(doc: RecentDoc): string {
         </button>
 
         <p class="text-muted-foreground">
-          {{ t('{apps} apps · {docs} documents in the system').replace('{apps}', String(appStore.workspaces.length)).replace('{docs}', formatNumber(totalDocsCount)) }}
+          {{ t('{apps} apps · {docs} documents in the system', { apps: String(appStore.workspaces.length), docs: formatNumber(totalDocsCount) }) }}
         </p>
       </section>
 
@@ -238,7 +238,7 @@ function docInitials(doc: RecentDoc): string {
               <LayoutGrid class="size-3.5 text-muted-foreground" />
               <h2 class="font-semibold text-foreground">{{ t('Your apps') }}</h2>
             </div>
-            <span class="text-muted-foreground">{{ t('{n} installed', { n: String(appStore.workspaces.length) }).replace('{n}', String(appStore.workspaces.length)) }}</span>
+            <span class="text-muted-foreground">{{ t('{n} installed', { n: String(appStore.workspaces.length) }) }}</span>
           </div>
 
           <!-- Loading skeleton -->

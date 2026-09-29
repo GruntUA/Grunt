@@ -112,7 +112,7 @@ async function reindex() {
   isReindexing.value = true
   try {
     const res = await client.post('/api/v1/method/grunt.api.v1.search.rebuild_index')
-    toast.success(t('Index rebuilt: {n} documents').replace('{n}', String(res.data?.data?.indexed || 0)))
+    toast.success(t('Index rebuilt: {n} documents', { n: String(res.data?.data?.indexed || 0) }))
     await runSearch()
   } catch {
     toast.error(t('Index rebuild error'))

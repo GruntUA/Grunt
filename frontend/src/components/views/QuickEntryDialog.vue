@@ -128,7 +128,7 @@ const isVisible = ref(true)
   >
     <DialogContent class="sm:max-w-lg">
       <DialogHeader>
-        <DialogTitle>{{ t('New {doctype}').replace('{doctype}', dt.label) }}</DialogTitle>
+        <DialogTitle>{{ t('New {doctype}', { doctype: dt.label }) }}</DialogTitle>
         <DialogDescription>{{ t('Quick entry') }}</DialogDescription>
       </DialogHeader>
 

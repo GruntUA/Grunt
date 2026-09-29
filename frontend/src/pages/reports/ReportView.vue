@@ -187,7 +187,7 @@ function openBuilder() {
                 <div class="flex items-center gap-2 mt-1">
                     <Badge variant="secondary" class="font-normal">{{ report?.report_type }}</Badge>
                     <p class="text-muted-foreground" v-if="meta">
-                        {{ t('{n} records').replace('{n}', String(meta.rows)) }} • {{ meta.time_ms }} {{ t('ms') }}
+                        {{ t('{n} records', { n: String(meta.rows) }) }} • {{ meta.time_ms }} {{ t('ms') }}
                     </p>
                 </div>
             </div>

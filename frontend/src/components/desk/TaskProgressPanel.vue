@@ -41,7 +41,7 @@ watch(tracker.tasks, (tasks) => {
 
 async function cancel(task: TaskEntry) {
   const title = task.title
-  const message = t('Stop «{title}»? What is done so far is discarded.', { title }).replace('{title}', title)
+  const message = t('Stop «{title}»? What is done so far is discarded.', { title })
   if (await useDialog().confirm(message, t('Cancel task'))) {
     await tracker.cancel(task.id)
   }
@@ -66,7 +66,7 @@ function describe(task: TaskEntry): string {
   const text = task.description ?? ''
   if (task.status !== 'active' || task.cancelling || !task.steps || task.steps < 2 || !task.step) return text
   const [n, m] = [String(task.step), String(task.steps)]
-  const step = t('step {n} of {m}', { n, m }).replace('{n}', n).replace('{m}', m)
+  const step = t('step {n} of {m}', { n, m })
   return text ? `${text} · ${step}` : step
 }
 
@@ -86,7 +86,7 @@ function eta(task: TaskEntry): string {
   if (left < 60) return t('< 1 min')
   const n = String(Math.round(left / 60))
   // Params for a translated key, replace() for one not in the bundle (renders {n} as is).
-  return t('~{n} min', { n }).replace('{n}', n)
+  return t('~{n} min', { n })
 }
 </script>
 

@@ -2,7 +2,7 @@ import type { Exporter, ExportContext } from './registry'
 import { formatDate, formatDateTime, formatFull, localeTag } from '@/core/datetime'
 import i18n, { N_ } from '@/plugins/i18n'
 
-const t = (key: string): string => i18n.global.t(key)
+const t = (key: string, params: Record<string, unknown> = {}): string => i18n.global.t(key, params)
 
 // Maps indicator color names → inline CSS values (mirrors global Badge variant colors)
 const STATUS_COLORS: Record<string, { bg: string; text: string; border: string }> = {
@@ -316,7 +316,7 @@ export function generateHtml(ctx: ExportContext): string {
   <header>
     <h1>${escapeHtml(doctypeLabel)}</h1>
     <div class="meta">
-      <span class="chip">${escapeHtml(t('{n} records').replace('{n}', `${rows.length}${isPartial ? ` / ${total}` : ''}`))}</span>
+      <span class="chip">${escapeHtml(t('{n} records', { n: `${rows.length}${isPartial ? ` / ${total}` : ''}` }))}</span>
       ${isPartial ? `<span class="chip warning">⚠ ${escapeHtml(t('Showing the first 10,000 records'))}</span>` : ''}
       <span class="sep">·</span>
       <span>${escapeHtml(dateStr)}</span>

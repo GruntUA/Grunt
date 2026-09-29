@@ -535,7 +535,7 @@ watch(() => props.doctype, async (newDoctype) => {
         </div>
 
         <p v-if="deleteProgress.errors > 0" class="text-destructive">
-          {{ t('Errors: {n}').replace('{n}', String(deleteProgress.errors)) }}
+          {{ t('Errors: {n}', { n: String(deleteProgress.errors) }) }}
         </p>
       </div>
       </DialogContent>

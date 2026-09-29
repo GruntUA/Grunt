@@ -36,7 +36,7 @@ async function submitSetup() {
     })
     await reloadSiteConfig()
 
-    toast.success(t('Welcome to {app}').replace('{app}', setupData.value.app_name), t('System initialized!'))
+    toast.success(t('Welcome to {app}', { app: setupData.value.app_name }), t('System initialized!'))
     router.push('/')
   } catch (err: any) {
     toast.error(err.message, t('Error'))

@@ -130,7 +130,7 @@ function assigneeTooltip(a: SidebarAssignee): string {
   const parts = [sb.personName(a.assigned_to)]
   const note = realNote(a)
   if (note) parts.push(note)
-  if (a.created_at) parts.push(t('assigned {when}').replace('{when}', formatRelative(a.created_at)))
+  if (a.created_at) parts.push(t('assigned {when}', { when: formatRelative(a.created_at) }))
   return parts.join(' — ')
 }
 const PRIORITY_LABEL: Record<string, string> = { Urgent: N_('priority|Urgent'), High: N_('priority|High') }
@@ -141,7 +141,7 @@ function openTask(a: SidebarAssignee) {
   router.push(docUrl('ToDo', a.name, props.workspace))
 }
 async function confirmUnassign(a: SidebarAssignee) {
-  const ok = await dialog.confirm(t('Remove {name} from assignees?').replace('{name}', sb.personName(a.assigned_to)))
+  const ok = await dialog.confirm(t('Remove {name} from assignees?', { name: sb.personName(a.assigned_to) }))
   if (ok) await sb.unassign(a.name)
 }
 async function submitDialog() {
@@ -235,14 +235,14 @@ function printDoc() {
       <div class="flex flex-col gap-0.5 min-w-0 leading-snug">
         <span class="truncate" :title="`${document.owner} · ${formatFull(document.created_at)}`">
           <span class="font-semibold text-foreground">{{ sb.personName(document.owner) }}</span>
-          <span class="text-muted-foreground"> · {{ t('created {when}').replace('{when}', formatRelative(document.created_at)) }}</span>
+          <span class="text-muted-foreground"> · {{ t('created {when}', { when: formatRelative(document.created_at) }) }}</span>
         </span>
         <span
           class="truncate"
           :title="`${document.modified_by || document.owner} · ${formatFull(document.modified_at)}`"
         >
           <span class="font-semibold text-foreground">{{ sb.personName(document.modified_by || document.owner) }}</span>
-          <span class="text-muted-foreground"> · {{ t('modified {when}').replace('{when}', formatRelative(document.modified_at)) }}</span>
+          <span class="text-muted-foreground"> · {{ t('modified {when}', { when: formatRelative(document.modified_at) }) }}</span>
         </span>
       </div>
     </div>
@@ -299,7 +299,7 @@ function printDoc() {
               </button>
               <button
                 class="absolute -top-1 -right-1 size-3.5 rounded-full bg-background border border-border shadow-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                :title="t('Remove {name}').replace('{name}', sb.personName(a.assigned_to))"
+                :title="t('Remove {name}', { name: sb.personName(a.assigned_to) })"
                 @click="confirmUnassign(a)"
               >
                 <X class="size-2.5 text-destructive" />

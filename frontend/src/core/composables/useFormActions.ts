@@ -5,7 +5,7 @@ import type { QueryClient } from '@tanstack/vue-query'
 import { docUrl } from '@/core/workspaceUrl'
 import i18n from '@/plugins/i18n'
 
-const t = (key: string): string => i18n.global.t(key)
+const t = (key: string, params: Record<string, unknown> = {}): string => i18n.global.t(key, params)
 
 interface UseFormActionsParams {
   doctype: string

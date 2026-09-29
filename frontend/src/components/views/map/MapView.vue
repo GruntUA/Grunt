@@ -150,7 +150,7 @@ const { map, markerLayer, browserPrint } = useMapLifecycle({
             {{ tn('{n} marker', '{n} markers', markerCount) }}
           </span>
           <span v-if="skippedCount && !isLoading" class="text-muted-foreground/60 font-medium">
-            {{ t('{n} without coordinates').replace('{n}', String(skippedCount)) }}
+            {{ t('{n} without coordinates', { n: String(skippedCount) }) }}
           </span>
         </div>
       </div>

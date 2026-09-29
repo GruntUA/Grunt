@@ -86,12 +86,12 @@ const trendNeutral = computed(() => trend.value === null || trend.value === 0)
         <template v-else-if="trendPositive">
           <TrendingUp class="w-3.5 h-3.5 text-emerald-500" />
           <span class="text-emerald-600 font-medium">+{{ trend }}%</span>
-          <span class="text-muted-foreground">{{ t('over {period}').replace('{period}', String(widget.period)) }}</span>
+          <span class="text-muted-foreground">{{ t('over {period}', { period: String(widget.period) }) }}</span>
         </template>
         <template v-else>
           <TrendingDown class="w-3.5 h-3.5 text-red-500" />
           <span class="text-red-600 font-medium">{{ trend }}%</span>
-          <span class="text-muted-foreground">{{ t('over {period}').replace('{period}', String(widget.period)) }}</span>
+          <span class="text-muted-foreground">{{ t('over {period}', { period: String(widget.period) }) }}</span>
         </template>
       </div>
     </template>

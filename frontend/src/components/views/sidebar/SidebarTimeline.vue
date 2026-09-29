@@ -85,7 +85,7 @@ function formatDiffValue(val: unknown): string {
     // Child-table / MultiLink snapshots: rows of objects have no single
     // generic label, so just say how many — the alternative is "[object
     // Object]" repeated N times.
-    if (val.some(v => v !== null && typeof v === 'object')) return t('{n} rows').replace('{n}', String(val.length))
+    if (val.some(v => v !== null && typeof v === 'object')) return t('{n} rows', { n: String(val.length) })
     return val.map(String).join(', ')
   }
   return String(val)
@@ -107,7 +107,7 @@ async function openVersionDiff(item: TimelineItem) {
   const changes = item.changes ?? []
   if (!changes.length) return
   await dialog.form({
-    title: item.version ? t('Version {n}').replace('{n}', String(item.version)) : t('Changes'),
+    title: item.version ? t('Version {n}', { n: String(item.version) }) : t('Changes'),
     size: 'large',
     fields: [{
       fieldname: 'diff',

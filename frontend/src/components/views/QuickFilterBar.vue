@@ -137,7 +137,7 @@ function onInput(ff: QuickFilter, value: string) {
             variant="ghost" size="icon"
             class="absolute right-0.5 top-1/2 z-10 size-5 -translate-y-1/2 text-muted-foreground hover:text-foreground"
             @click="onInput(ff, '')"
-            :title="t('Clear «{label}»').replace('{label}', getLabel(ff))"
+            :title="t('Clear «{label}»', { label: getLabel(ff) })"
           >
             <X class="size-3" />
           </Button>
@@ -148,7 +148,7 @@ function onInput(ff: QuickFilter, value: string) {
           v-if="getValue(ff) && (ff.input_type === 'select' || ff.input_type === 'check')"
           variant="ghost" size="icon" class="size-5"
           @click="onInput(ff, '')"
-          :title="t('Clear «{label}»').replace('{label}', getLabel(ff))"
+          :title="t('Clear «{label}»', { label: getLabel(ff) })"
         >
           <X class="size-3" />
         </Button>

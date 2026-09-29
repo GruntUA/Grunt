@@ -18,7 +18,7 @@
 import { computed, ref } from 'vue'
 import i18n from '@/plugins/i18n'
 
-const t = (key: string): string => i18n.global.t(key)
+const t = (key: string, params: Record<string, unknown> = {}): string => i18n.global.t(key, params)
 
 const DB_NAME = 'grunt_offline'
 const DB_VERSION = 2 // v1 stored bearer tokens — its store is dropped on upgrade

@@ -63,7 +63,7 @@ const canConfirmDelete = computed(
 function groupLine(g: DeleteImpact['groups'][number]): string {
   const parts = [g.label]
   if (g.field_label) parts.push(g.field_label)
-  if (g.in_child && g.parent_doctype) parts.push(t('in {doctype}').replace('{doctype}', g.parent_doctype))
+  if (g.in_child && g.parent_doctype) parts.push(t('in {doctype}', { doctype: g.parent_doctype }))
   return parts.join(' · ')
 }
 
@@ -174,7 +174,7 @@ async function submitUpdate() {
             <CheckCircle class="size-3 text-primary" />
           </div>
           <span class="font-semibold text-foreground tabular-nums">
-            {{ allSelected ? t('all {n}').replace('{n}', String(total ?? count)) : count }}
+            {{ allSelected ? t('all {n}', { n: String(total ?? count) }) : count }}
           </span>
           <span class="text-muted-foreground">{{ t('selected') }}</span>
         </div>
@@ -188,7 +188,7 @@ async function submitUpdate() {
           class="font-semibold text-primary hover:underline underline-offset-2 transition-all whitespace-nowrap"
           @click="emit('selectAll')"
         >
-          {{ t('Select all {n}').replace('{n}', String(total)) }}
+          {{ t('Select all {n}', { n: String(total) }) }}
         </button>
 
         <!-- Actions (core/actions.ts, placement: bulk) -->
@@ -231,7 +231,7 @@ async function submitUpdate() {
       <DialogHeader>
         <DialogTitle>{{ t('Confirm Deletion') }}</DialogTitle>
         <DialogDescription>
-          {{ t('You are about to delete {n} records. This cannot be undone.').replace('{n}', String(displayCount)) }}
+          {{ t('You are about to delete {n} records. This cannot be undone.', { n: String(displayCount) }) }}
         </DialogDescription>
       </DialogHeader>
 
@@ -266,7 +266,7 @@ async function submitUpdate() {
         <Label v-if="!canReassign" class="items-start font-normal text-muted-foreground">
           <Checkbox :model-value="ackDangling"
             @update:model-value="ackDangling = $event === true" />
-          {{ t('Delete without replacement — {n} links will become invalid.').replace('{n}', String(impact!.total)) }}
+          {{ t('Delete without replacement — {n} links will become invalid.', { n: String(impact!.total) }) }}
         </Label>
       </div>
 
@@ -285,7 +285,7 @@ async function submitUpdate() {
       <DialogHeader>
         <DialogTitle>{{ t('Fast delete') }}</DialogTitle>
         <DialogDescription>
-          {{ t('Delete {n} records directly via SQL — no lifecycle hooks, no per-record ActivityLog.').replace('{n}', String(displayCount)) }}
+          {{ t('Delete {n} records directly via SQL — no lifecycle hooks, no per-record ActivityLog.', { n: String(displayCount) }) }}
         </DialogDescription>
       </DialogHeader>
 
@@ -312,7 +312,7 @@ async function submitUpdate() {
       <DialogHeader>
         <DialogTitle>{{ t('Bulk Update') }}</DialogTitle>
         <DialogDescription>
-          {{ t('This updates the field on all {n} selected records.').replace('{n}', String(displayCount)) }}
+          {{ t('This updates the field on all {n} selected records.', { n: String(displayCount) }) }}
         </DialogDescription>
       </DialogHeader>
 

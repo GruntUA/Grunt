@@ -36,7 +36,7 @@ async function startCamera() {
     const msg = err instanceof Error ? err.message : String(err)
     error.value = msg.includes('Permission') || msg.includes('NotAllowed')
       ? t('Camera access denied. Allow access in browser settings.')
-      : t('Camera error: {msg}').replace('{msg}', String(msg))
+      : t('Camera error: {msg}', { msg: String(msg) })
     state.value = 'error'
     stopStream()
   }

@@ -550,7 +550,7 @@ const displayFields = computed(() => {
                             <span class="flex items-center gap-1.5">
                                 <TableIcon class="size-3.5" /> {{ t('Result') }}
                             </span>
-                            <span v-if="previewMeta">{{ t('{n} rows').replace('{n}', String(previewMeta.rows)) }}</span>
+                            <span v-if="previewMeta">{{ t('{n} rows', { n: String(previewMeta.rows) }) }}</span>
                             <span v-if="previewMeta">{{ previewMeta.time_ms }} {{ t('ms') }}</span>
                         </div>
                         <div v-if="previewLoading" class="flex items-center gap-2">

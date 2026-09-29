@@ -81,7 +81,7 @@ onUnmounted(() => {
           <span>{{ t('No connection — viewing from cache, changes are saved on this device') }}</span>
           <span v-if="pendingCount > 0"
             class="ml-2 px-1.5 py-0.5 rounded-full bg-amber-950/15 font-semibold tabular-nums">
-            {{ t('{n} queued', { n: String(pendingCount) }).replace('{n}', String(pendingCount)) }}
+            {{ t('{n} queued', { n: String(pendingCount) }) }}
           </span>
         </button>
       </Transition>
@@ -91,7 +91,7 @@ onUnmounted(() => {
         class="fixed bottom-20 left-4 z-50 flex items-center gap-2 rounded-full border bg-card px-3 py-1.5 font-medium shadow-md md:bottom-4"
         @click="queueOpen = true">
         <CloudUpload class="size-4 text-primary" />
-        {{ t('{n} unsynced changes', { n: String(pendingCount) }).replace('{n}', String(pendingCount)) }}
+        {{ t('{n} unsynced changes', { n: String(pendingCount) }) }}
       </button>
       <OfflineQueueSheet v-model:open="queueOpen" />
 

@@ -126,7 +126,7 @@ const hasAny = computed(() => (result.value?.groups ?? []).some((g) => g.links.l
               v-if="!link.via_child"
               type="button"
               class="size-5 rounded-md hover:bg-primary/10 text-muted-foreground hover:text-primary flex items-center justify-center transition-colors border border-transparent hover:border-primary/20 -mr-1"
-              :title="t('New {doctype}').replace('{doctype}', link.link_doctype)"
+              :title="t('New {doctype}', { doctype: link.link_doctype })"
               @click="handleAdd(link)"
             >
               <Plus class="size-3.5" />
@@ -149,7 +149,7 @@ const hasAny = computed(() => (result.value?.groups ?? []).some((g) => g.links.l
                 :to="listTo(link)"
                 class="px-2 py-1.5 text-primary hover:underline no-underline"
               >
-                {{ t('View all {n}').replace('{n}', String(link.count)) }} →
+                {{ t('View all {n}', { n: String(link.count) }) }} →
               </RouterLink>
             </div>
           </CollapsibleContent>

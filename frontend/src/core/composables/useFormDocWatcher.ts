@@ -3,7 +3,7 @@ import { watch, type Ref } from 'vue'
 import type { QueryClient } from '@tanstack/vue-query'
 import i18n from '@/plugins/i18n'
 
-const t = (key: string): string => i18n.global.t(key)
+const t = (key: string, params: Record<string, unknown> = {}): string => i18n.global.t(key, params)
 
 interface UseFormDocWatcherParams {
   lastMessage: Ref<unknown>

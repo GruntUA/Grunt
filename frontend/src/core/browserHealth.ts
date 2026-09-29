@@ -13,7 +13,7 @@ import { isOnline, serverReachable } from '@/core/composables/useNetworkStatus'
 import { openChannelCount } from '@/core/ws/WebSocketChannel'
 import i18n, { N_ } from '@/plugins/i18n'
 
-const t = (key: string): string => i18n.global.t(key)
+const t = (key: string, params: Record<string, unknown> = {}): string => i18n.global.t(key, params)
 
 export type HealthStatus = 'OK' | 'Warning' | 'Error' | 'Info'
 
@@ -102,9 +102,9 @@ async function cacheChecks(): Promise<HealthRow[]> {
     }
     const missing = manifest.filter((u) => !cached.has(u))
     rows.push(missing.length
-      ? row(OFFLINE, N_('App cache'), 'Warning', t('{n} files, {missing} missing').replace('{n}', String(cached.size)).replace('{missing}', String(missing.length)),
-          t('Not cached, e.g.: {files}. Reload the page while online.').replace('{files}', missing.slice(0, 3).join(', ')))
-      : row(OFFLINE, N_('App cache'), 'OK', `${t('{n} files').replace('{n}', String(cached.size))} (${shellName})`))
+      ? row(OFFLINE, N_('App cache'), 'Warning', t('{n} files, {missing} missing', { n: String(cached.size), missing: String(missing.length) }),
+          t('Not cached, e.g.: {files}. Reload the page while online.', { files: missing.slice(0, 3).join(', ') }))
+      : row(OFFLINE, N_('App cache'), 'OK', `${t('{n} files', { n: String(cached.size) })} (${shellName})`))
     rows.push(await shell.match(SHELL_KEY)
       ? row(OFFLINE, N_('Offline page'), 'OK', N_('saved'))
       : row(OFFLINE, N_('Offline page'), 'Warning', N_('missing'),
@@ -113,7 +113,7 @@ async function cacheChecks(): Promise<HealthRow[]> {
 
   const api = names.includes(API_CACHE) ? await caches.open(API_CACHE) : null
   const entries = api ? (await api.keys()).length : 0
-  rows.push(row(OFFLINE, N_('Data saved for offline'), entries ? 'OK' : 'Info', t('{n} API responses').replace('{n}', String(entries)),
+  rows.push(row(OFFLINE, N_('Data saved for offline'), entries ? 'OK' : 'Info', t('{n} API responses', { n: String(entries) }),
     entries ? '' : N_('Open the lists and documents you need while online — they will become available offline.')))
   return rows
 }
@@ -151,7 +151,7 @@ async function queueChecks(): Promise<HealthRow[]> {
   const rows = [row(OFFLINE, N_('Unsynced changes'), pending ? 'Warning' : 'OK', pending,
     pending ? N_('They will be sent automatically once the server is reachable.') : '')]
   if (conflict || failed) {
-    rows.push(row(OFFLINE, N_('Conflicts and rejected changes'), 'Warning', t('{conflicts} conflicts, {failed} rejected').replace('{conflicts}', String(conflict)).replace('{failed}', String(failed)),
+    rows.push(row(OFFLINE, N_('Conflicts and rejected changes'), 'Warning', t('{conflicts} conflicts, {failed} rejected', { conflicts: String(conflict), failed: String(failed) }),
       N_('Open «Unsynced changes» at the bottom of the screen and resolve each one.')))
   }
   return rows
@@ -236,7 +236,7 @@ async function realtimeChecks(): Promise<HealthRow[]> {
       N_('Check that the proxy (nginx/Cloudflare) passes WebSocket through on /api/v1/ws/.'))]
   }
   try {
-    rows.push(row(REALTIME, N_('Test connection'), 'OK', t('opened in {n} ms').replace('{n}', String(Math.round(performance.now() - started)))))
+    rows.push(row(REALTIME, N_('Test connection'), 'OK', t('opened in {n} ms', { n: String(Math.round(performance.now() - started)) })))
 
     const pingAt = performance.now()
     const pong = waitFor(ws, (m) => m.event === 'pong', 2000, true)
@@ -254,7 +254,7 @@ async function realtimeChecks(): Promise<HealthRow[]> {
       : copies === 0
         ? row(REALTIME, N_('Server delivery'), 'Error', N_('not delivered'),
             N_('The server sent an event but the browser did not receive it — check the Redis relay.'))
-        : row(REALTIME, N_('Server delivery'), 'Warning', t('{n} copies').replace('{n}', String(copies)),
+        : row(REALTIME, N_('Server delivery'), 'Warning', t('{n} copies', { n: String(copies) }),
             N_('Each message arrives several times — notifications are duplicated.')))
   } finally {
     ws.close()

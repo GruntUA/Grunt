@@ -168,7 +168,7 @@ watch(search, async (val) => {
                 matched.push({
                     id: `dt-${dt.name}`,
                     title: dt.label,
-                    subtitle: t('Go to list {label}').replace('{label}', dt.label),
+                    subtitle: t('Go to list {label}', { label: dt.label }),
                     icon: FilePlus,
                     category: t('DocTypes'),
                     run: () => {

@@ -39,10 +39,10 @@ const readable = computed(() => {
   const minutes = Math.floor((s % 3600) / 60)
   const seconds = s % 60
   const parts: string[] = []
-  if (days) parts.push(t('{n} d').replace('{n}', String(days)))
-  if (hours) parts.push(t('{n} h').replace('{n}', String(hours)))
-  if (minutes) parts.push(t('{n} min').replace('{n}', String(minutes)))
-  if (seconds || !parts.length) parts.push(t('{n} s').replace('{n}', String(seconds)))
+  if (days) parts.push(t('{n} d', { n: String(days) }))
+  if (hours) parts.push(t('{n} h', { n: String(hours) }))
+  if (minutes) parts.push(t('{n} min', { n: String(minutes) }))
+  if (seconds || !parts.length) parts.push(t('{n} s', { n: String(seconds) }))
   return parts.join(' ')
 })
 </script>

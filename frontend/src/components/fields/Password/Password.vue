@@ -49,7 +49,7 @@ const checks = computed(() => {
   if (!p) return []
   const v = String(props.modelValue ?? '')
   const rules: { key: string; label: string; ok: boolean }[] = [
-    { key: 'len', label: t('At least {min} characters').replace('{min}', String(p.min_length)), ok: v.length >= p.min_length },
+    { key: 'len', label: t('At least {min} characters', { min: String(p.min_length) }), ok: v.length >= p.min_length },
   ]
   if (p.require_uppercase) rules.push({ key: 'upper', label: t('An uppercase letter'), ok: /\p{Lu}/u.test(v) })
   if (p.require_lowercase) rules.push({ key: 'lower', label: t('A lowercase letter'), ok: /\p{Ll}/u.test(v) })

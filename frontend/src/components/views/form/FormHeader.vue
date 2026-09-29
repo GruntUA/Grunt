@@ -407,7 +407,7 @@ const statusBadge = computed(() => resolveStatusBadge(props.dt, props.document))
           </template>
         </dl>
         <p v-if="tableInfo.dead_tuples" class="mt-2 text-muted-foreground">
-          {{ t('Dead rows: {n}').replace('{n}', String(tableInfo.dead_tuples)) }}
+          {{ t('Dead rows: {n}', { n: String(tableInfo.dead_tuples) }) }}
         </p>
 
         <!-- Compaction -->
@@ -422,9 +422,9 @@ const statusBadge = computed(() => resolveStatusBadge(props.dt, props.document))
           <div v-else-if="compactResult" class="flex items-start gap-2">
             <Check class="size-3.5 mt-0.5 shrink-0 text-emerald-600 dark:text-emerald-400" />
             <span v-if="compactResult.freed_bytes && compactResult.freed_bytes > 0" class="text-foreground">
-              {{ (compactResult.scope === 'database'
-                    ? t('Freed {size} in the database file')
-                    : t('Freed {size}')).replace('{size}', formatBytes(compactResult.freed_bytes)) }}
+              {{ compactResult.scope === 'database'
+                    ? t('Freed {size} in the database file', { size: formatBytes(compactResult.freed_bytes) })
+                    : t('Freed {size}', { size: formatBytes(compactResult.freed_bytes) }) }}
               <span class="text-muted-foreground">
                 ({{ formatBytes(compactResult.before_bytes) }} → {{ formatBytes(compactResult.after_bytes) }})
               </span>

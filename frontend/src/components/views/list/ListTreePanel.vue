@@ -200,14 +200,14 @@ async function onDrop(e: DragEvent, key: string) {
     if (updated) {
       const n = String(updated)
       toast.success(
-        t('Moved: {n}', { n }).replace('{n}', n) + (target ? ` → ${titles.get(target) ?? target}` : ''),
+        t('Moved: {n}', { n }) + (target ? ` → ${titles.get(target) ?? target}` : ''),
       )
       emit('moved')
     }
     // Rows the user may not change (e.g. someone else's file) come back as errors.
     if (errors.length) {
       const n = String(errors.length)
-      toast.error(t('Not moved: {n}', { n }).replace('{n}', n) + ` — ${errors[0].replace(/^[^:]*:\s*/, '')}`)
+      toast.error(t('Not moved: {n}', { n }) + ` — ${errors[0].replace(/^[^:]*:\s*/, '')}`)
     }
   } catch (err) {
     toast.error(errorText(err))
@@ -248,7 +248,7 @@ async function renameNode(node: TreeNode) {
 
 async function deleteNode(node: TreeNode) {
   const name = nodeTitle(node)
-  if (!(await dialog.confirm(t('Delete «{name}»?', { name }).replace('{name}', name)))) return
+  if (!(await dialog.confirm(t('Delete «{name}»?', { name })))) return
   try {
     await docsApi.delete(treeDoctype.value, node.name)
     if (selected.value === node.name) select(ALL)

@@ -138,7 +138,7 @@ async function copyFieldname() {
     </p>
 
     <button v-if="isDev && altPressed" type="button" @click="copyFieldname"
-      :title="t('Click to copy «{name}»').replace('{name}', field.fieldname)"
+      :title="t('Click to copy «{name}»', { name: field.fieldname })"
       class="absolute -top-2 right-1 z-50 rounded bg-foreground px-1.5 py-0.5 font-mono text-background select-none cursor-pointer hover:bg-foreground/80">
       {{ copied ? t('Copied') : field.fieldname }}
     </button>

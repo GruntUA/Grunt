@@ -68,7 +68,7 @@ const canDelete = computed(() => canReassign.value || !hasRefs.value || ackDangl
 function groupLine(g: DeleteImpact['groups'][number]): string {
   const parts = [g.label]
   if (g.field_label) parts.push(g.field_label)
-  if (g.in_child && g.parent_doctype) parts.push(t('in {doctype}').replace('{doctype}', g.parent_doctype))
+  if (g.in_child && g.parent_doctype) parts.push(t('in {doctype}', { doctype: g.parent_doctype }))
   return parts.join(' · ')
 }
 
@@ -125,7 +125,7 @@ function confirm() {
               @update:model-value="ackDangling = $event === true"
             />
             <span class="text-muted-foreground">
-              {{ t('Delete without replacement — {n} links will become invalid.').replace('{n}', String(impact!.total)) }}
+              {{ t('Delete without replacement — {n} links will become invalid.', { n: String(impact!.total) }) }}
             </span>
           </label>
         </template>

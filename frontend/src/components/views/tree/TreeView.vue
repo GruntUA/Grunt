@@ -310,7 +310,7 @@ const totalCount = computed(() => {
 
     <!-- Counter -->
     <p v-if="totalCount" class="mt-3 text-muted-foreground text-right">
-      {{ t('Total: {n} records').replace('{n}', String(totalCount)) }}
+      {{ t('Total: {n} records', { n: String(totalCount) }) }}
     </p>
 
     <!-- Quick entry dialog -->

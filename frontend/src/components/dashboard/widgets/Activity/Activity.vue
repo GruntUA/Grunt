@@ -66,9 +66,9 @@ function formatTime(val: string): string {
   const diffMs = now.getTime() - d.getTime()
   const diffMin = Math.floor(diffMs / 60000)
   if (diffMin < 1) return t('just now')
-  if (diffMin < 60) return t('{n} min ago').replace('{n}', String(diffMin))
+  if (diffMin < 60) return t('{n} min ago', { n: String(diffMin) })
   const diffH = Math.floor(diffMin / 60)
-  if (diffH < 24) return t('{n} h ago').replace('{n}', String(diffH))
+  if (diffH < 24) return t('{n} h ago', { n: String(diffH) })
   return formatDayMonth(d)
 }
 

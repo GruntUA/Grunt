@@ -42,7 +42,7 @@ function onPerPage(v: unknown) {
   <div class="flex flex-col-reverse items-center gap-3 px-1 py-3 text-xs sm:flex-row sm:justify-between">
     <div class="text-muted-foreground">
       {{ tn('{n} record', '{n} records', total) }}
-      <span v-if="selectedCount"> · {{ t('{n} selected', { n: selectedCount }).replace('{n}', String(selectedCount)) }}</span>
+      <span v-if="selectedCount"> · {{ t('{n} selected', { n: selectedCount }) }}</span>
     </div>
 
     <div class="flex items-center gap-3 sm:gap-4">
@@ -58,7 +58,7 @@ function onPerPage(v: unknown) {
         </Select>
       </div>
 
-      <span class="font-medium whitespace-nowrap">{{ t('Page {page} of {pages}', { page, pages: Math.max(pages, 1) }).replace('{page}', String(page)).replace('{pages}', String(Math.max(pages, 1))) }}</span>
+      <span class="font-medium whitespace-nowrap">{{ t('Page {page} of {pages}', { page, pages: Math.max(pages, 1) }) }}</span>
 
       <div class="flex items-center gap-1">
         <Button variant="outline" size="icon-sm" :disabled="page <= 1" :aria-label="t('First page')" @click="go(1)">

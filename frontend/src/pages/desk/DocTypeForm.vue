@@ -160,7 +160,7 @@ const initials = (email: string) => email.slice(0, 2).toUpperCase()
       <div v-if="pendingDraft"
         class="flex items-center gap-2 rounded-md border border-primary/30 bg-primary/5 px-3 py-2 text-foreground">
         <History class="size-4 shrink-0 text-primary" />
-        <span class="flex-1">{{ t('Unsaved changes found ({time}). Restore the draft?').replace('{time}', formatRelative(pendingDraft.savedAt)) }}</span>
+        <span class="flex-1">{{ t('Unsaved changes found ({time}). Restore the draft?', { time: formatRelative(pendingDraft.savedAt) }) }}</span>
         <Button size="sm" variant="outline" @click="restoreDraft">{{ t('Restore') }}</Button>
         <Button size="sm" variant="ghost" @click="discardDraft">{{ t('Discard') }}</Button>
       </div>
@@ -196,7 +196,7 @@ const initials = (email: string) => email.slice(0, 2).toUpperCase()
             class="flex flex-wrap items-center gap-x-4 gap-y-1.5 px-1 text-muted-foreground">
             <span v-if="dt?.track_views" class="inline-flex items-center gap-1.5">
               <Eye class="size-3.5" />
-              {{ t('{views} views · {viewers} users').replace('{views}', String(viewInfo.views)).replace('{viewers}', String(viewInfo.viewers)) }}
+              {{ t('{views} views · {viewers} users', { views: String(viewInfo.views), viewers: String(viewInfo.viewers) }) }}
             </span>
             <span v-if="dt?.track_seen && seenList.length" class="inline-flex items-center gap-1.5">
               {{ t('Viewed by:') }}

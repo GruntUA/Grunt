@@ -1,6 +1,6 @@
 import i18n, { N_ } from '@/plugins/i18n'
 
-const t = (key: string): string => i18n.global.t(key)
+const t = (key: string, params: Record<string, unknown> = {}): string => i18n.global.t(key, params)
 
 /**
  * Client-side field validators.

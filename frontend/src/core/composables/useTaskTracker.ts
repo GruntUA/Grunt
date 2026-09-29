@@ -19,7 +19,7 @@ import { computed, ref } from 'vue'
 import client from '@/core/api/client'
 import i18n from '@/plugins/i18n'
 
-const t = (key: string): string => i18n.global.t(key)
+const t = (key: string, params: Record<string, unknown> = {}): string => i18n.global.t(key, params)
 
 // ── Data model ───────────────────────────────────────────────────────────────
 

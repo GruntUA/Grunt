@@ -47,7 +47,7 @@ async function handleSubmit() {
         <div v-if="sent" class="text-center py-4 flex flex-col items-center gap-3">
           <p class="text-foreground font-medium">{{ t('Check your email') }}</p>
           <p class="text-muted-foreground">
-            {{ t('If an account with {email} exists, we have sent a password reset link.').replace('{email}', email) }}
+            {{ t('If an account with {email} exists, we have sent a password reset link.', { email }) }}
           </p>
           <Button variant="ghost" class="mt-2" @click="router.push('/login')">{{ t('Back to sign in') }}</Button>
         </div>

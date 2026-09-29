@@ -371,7 +371,7 @@ async function verifyEmailCode() {
                 class="w-full"
                 @click="loginWithRedirect(m.name)"
               >
-                {{ t('Continue with {provider}').replace('{provider}', m.label) }}
+                {{ t('Continue with {provider}', { provider: m.label }) }}
               </Button>
               <Button
                 v-if="hasEmailLogin"

@@ -75,7 +75,7 @@ onMounted(load)
       <div>
         <h1 class="text-xl font-semibold text-foreground">{{ reportName }}</h1>
         <p v-if="report" class="text-muted-foreground mt-0.5">
-          {{ t('{type} report').replace('{type}', report.report_type) }}
+          {{ t('{type} report', { type: report.report_type }) }}
           <span v-if="report.doctype"> · {{ report.doctype }}</span>
         </p>
       </div>
@@ -92,7 +92,7 @@ onMounted(load)
     <template v-else>
       <!-- Result meta -->
       <div v-if="result" class="text-muted-foreground mb-3">
-        {{ t('Rows: {n}').replace('{n}', String(result.meta.rows)) }} · {{ result.meta.time_ms }} {{ t('ms') }}
+        {{ t('Rows: {n}', { n: String(result.meta.rows) }) }} · {{ result.meta.time_ms }} {{ t('ms') }}
       </div>
 
       <!-- Table -->

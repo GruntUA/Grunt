@@ -164,7 +164,7 @@ async function saveAsReport() {
     return
   }
   if (droppedColumns.length) {
-    toast.info(t('Not included (need aggregation): {columns}').replace('{columns}', droppedColumns.join(', ')))
+    toast.info(t('Not included (need aggregation): {columns}', { columns: droppedColumns.join(', ') }))
   }
   toast.success(t('Report saved'), t('Done'), {
     action: {
@@ -183,7 +183,7 @@ async function openSavedReport(rep: ReportSummary) {
     const detail = await reportsApi.get(rep.report_name)
     model.applyReportColumns(detail.columns ?? [])
     collapsed.value = new Set()
-    toast.success(t('Applied «{name}»').replace('{name}', rep.report_name))
+    toast.success(t('Applied «{name}»', { name: rep.report_name }))
   } catch (e) {
     toast.error(e instanceof Error ? e.message : t('Could not open the report'))
   }
@@ -413,7 +413,7 @@ async function commitEdit(row: Record<string, unknown>, key: string) {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" class="w-64 max-h-[360px] overflow-y-auto">
           <DropdownMenuLabel class="text-xs text-muted-foreground">
-            {{ t('Saved reports for «{doctype}»').replace('{doctype}', dt?.label ?? doctype) }}
+            {{ t('Saved reports for «{doctype}»', { doctype: dt?.label ?? doctype }) }}
           </DropdownMenuLabel>
           <template v-if="savedReports.length">
             <DropdownMenuItem v-for="r in savedReports" :key="r.name" @click="openSavedReport(r)">
@@ -441,7 +441,7 @@ async function commitEdit(row: Record<string, unknown>, key: string) {
     <div v-if="isPartial" class="flex items-center gap-2 text-muted-foreground">
       <template v-if="truncated">
         <span class="text-amber-600 dark:text-amber-500">
-          {{ t('Limit of {n} records reached — totals cover only these.').replace('{n}', formatNumber(MAX_AUTOLOAD)) }}
+          {{ t('Limit of {n} records reached — totals cover only these.', { n: formatNumber(MAX_AUTOLOAD) }) }}
         </span>
       </template>
       <template v-else>

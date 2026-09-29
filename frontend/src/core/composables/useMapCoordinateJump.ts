@@ -2,7 +2,7 @@ import { ref } from 'vue'
 import L from 'leaflet'
 import i18n from '@/plugins/i18n'
 
-const t = (key: string): string => i18n.global.t(key)
+const t = (key: string, params: Record<string, unknown> = {}): string => i18n.global.t(key, params)
 
 interface UseMapCoordinateJumpParams {
   getMap: () => L.Map | null

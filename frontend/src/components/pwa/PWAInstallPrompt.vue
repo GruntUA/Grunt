@@ -101,7 +101,7 @@ function dismiss() {
         <Download class="w-5 h-5 text-primary" />
       </div>
       <div class="flex-1 min-w-0">
-        <p class="font-semibold text-foreground leading-tight">{{ t('Install {app}').replace('{app}', appName) }}</p>
+        <p class="font-semibold text-foreground leading-tight">{{ t('Install {app}', { app: appName }) }}</p>
         <p class="text-muted-foreground mt-0.5">{{ t('Add to the home screen for quick access') }}</p>
       </div>
       <div class="flex items-center gap-1.5 shrink-0">

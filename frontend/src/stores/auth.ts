@@ -6,7 +6,7 @@ import { applyUserPrefs } from '@/core/composables/useSiteConfig'
 import { setLocale, type SupportedLocale } from '@/plugins/i18n'
 import i18n from '@/plugins/i18n'
 
-const t = (key: string): string => i18n.global.t(key)
+const t = (key: string, params: Record<string, unknown> = {}): string => i18n.global.t(key, params)
 
 interface User {
   id: string

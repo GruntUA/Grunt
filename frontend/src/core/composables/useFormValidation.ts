@@ -5,7 +5,7 @@ import { parseLayout } from '@/core/composables/useFormLayout'
 import type { DocType } from '@/types'
 import i18n from '@/plugins/i18n'
 
-const t = (key: string): string => i18n.global.t(key)
+const t = (key: string, params: Record<string, unknown> = {}): string => i18n.global.t(key, params)
 
 interface UseFormValidationParams {
   doctype: string
@@ -72,7 +72,7 @@ export function useFormValidation(params: UseFormValidationParams) {
 
       const value = params.form.value[field.fieldname]
       if (value === null || value === undefined || value === '') {
-        validationErrors.value[field.fieldname] = t('Field "{label}" is required').replace('{label}', field.label)
+        validationErrors.value[field.fieldname] = t('Field "{label}" is required', { label: field.label })
       }
     }
 
@@ -87,7 +87,7 @@ export function useFormValidation(params: UseFormValidationParams) {
       for (const core of requiredCore) {
         const value = params.form.value[core.key]
         if (value === null || value === undefined || value === '') {
-          validationErrors.value[core.key] = t('Field "{label}" is required').replace('{label}', core.label)
+          validationErrors.value[core.key] = t('Field "{label}" is required', { label: core.label })
         }
       }
     }
@@ -102,7 +102,7 @@ export function useFormValidation(params: UseFormValidationParams) {
         .map((fieldname) => coreLabels[fieldname] || params.dt.value?.fields.find((f) => f.fieldname === fieldname)?.label || fieldname)
         .join(', ')
 
-      params.toast.error(t('Fill in the required fields: {fields}').replace('{fields}', missingLabels))
+      params.toast.error(t('Fill in the required fields: {fields}', { fields: missingLabels }))
       focusFirstError()
       return false
     }
