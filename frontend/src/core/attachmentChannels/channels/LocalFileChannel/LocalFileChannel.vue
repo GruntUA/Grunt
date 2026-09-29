@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import { ref } from 'vue'
-import type { AttachmentResult, AttachChannelProps } from '@/core/attachmentChannels/types'
+import type { AttachmentResult, AttachChannelProps, AttachChannelEmits } from '@/core/attachmentChannels/types'
 import { filesApi } from '@/core/api/files'
 import { Upload, AlertCircle } from '@lucide/vue'
 
 const { t } = useI18n()
 
 const props = defineProps<AttachChannelProps>()
-const emit = defineEmits<{ select: [result: AttachmentResult] }>()
+const emit = defineEmits<AttachChannelEmits>()
 
 const isDragging = ref(false)
 const isUploading = ref(false)
@@ -16,21 +16,24 @@ const uploadProgress = ref(0)
 const error = ref('')
 const fileInput = ref<HTMLInputElement>()
 
-async function uploadFile(file: File) {
+async function uploadFiles(files: File[]) {
+  if (!props.multiple) files = files.slice(0, 1)
+  if (!files.length) return
   error.value = ''
   isUploading.value = true
   uploadProgress.value = 0
   try {
-    const item = await filesApi.upload(file, {
-      attachedToDoctype: props.attachedToDoctype,
-      attachedToId: props.attachedToId,
-    })
-    emit('select', {
-      url: item.url,
-      filename: item.filename,
-      contentType: item.content_type,
-      fileItem: item,
-    })
+    const results: AttachmentResult[] = []
+    for (const [i, file] of files.entries()) {
+      const item = await filesApi.upload(file, {
+        attachedToDoctype: props.attachedToDoctype,
+        attachedToId: props.attachedToId,
+      })
+      results.push({ url: item.url, filename: item.filename, contentType: item.content_type, fileItem: item })
+      uploadProgress.value = Math.round(((i + 1) / files.length) * 100)
+    }
+    if (props.multiple) emit('selectMany', results)
+    else emit('select', results[0])
   } catch (e: unknown) {
     error.value = e instanceof Error ? e.message : t('Upload error')
   } finally {
@@ -40,13 +43,13 @@ async function uploadFile(file: File) {
 
 function onDrop(e: DragEvent) {
   isDragging.value = false
-  const file = e.dataTransfer?.files[0]
-  if (file) uploadFile(file)
+  uploadFiles(Array.from(e.dataTransfer?.files ?? []))
 }
 
 function onFileChange(e: Event) {
-  const file = (e.target as HTMLInputElement).files?.[0]
-  if (file) uploadFile(file)
+  const input = e.target as HTMLInputElement
+  uploadFiles(Array.from(input.files ?? []))
+  input.value = ''
 }
 </script>
 
@@ -83,6 +86,7 @@ function onFileChange(e: Event) {
       type="file"
       class="sr-only"
       :accept="imageOnly ? 'image/*' : undefined"
+      :multiple="multiple"
       @change="onFileChange"
     />
   </div>

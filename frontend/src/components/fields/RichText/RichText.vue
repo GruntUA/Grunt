@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, inject, onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useEditor, EditorContent } from '@tiptap/vue-3'
 import { Extension } from '@tiptap/core'
@@ -26,10 +26,14 @@ import {
   Minus, Image as ImageIcon,
   Table as TableIcon,
   Upload, IndentIncrease, IndentDecrease,
-  FileUp, Loader2,
+  FileUp, Loader2, Paperclip, Images,
 } from '@lucide/vue'
 import type { DocField } from '@/types'
 import { filesApi } from '@/core/api/files'
+import type { AttachmentResult } from '@/core/attachmentChannels/types'
+import AttachPicker from '@/components/fields/Attach/AttachPicker.vue'
+import type { DocContext } from '@/components/fields/Attach/useAttachmentField'
+import { FileList, Gallery, toFileEntry, toGalleryEntry, type FileBlockKind } from './fileBlocks'
 import { useToast } from '@/core/composables/useToast'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -53,6 +57,14 @@ const { t } = useI18n()
 const isEditable = () => !props.disabled && !props.field.read_only
 const isDocumentStyle = props.field.options === 'document'
 const toast = useToast()
+
+// Uploads made here are pending attachments of this DocType; the document
+// claims the ones its text refers to when saved (grunt.storage.references).
+const docContext = inject<DocContext | null>('docContext', null)
+const uploadTarget = () => ({
+  attachedToDoctype: docContext?.doctype,
+  attachedToId: docContext?.getId() ?? undefined,
+})
 
 // FieldRenderer only passes `field` / `modelValue` / `disabled` / `error`, so
 // the character limit and placeholder come from field metadata (the explicit
@@ -308,7 +320,7 @@ async function uploadImage(e: Event) {
   if (!file) return
   imageUploading.value = true
   try {
-    const item = await filesApi.upload(file)
+    const item = await filesApi.upload(file, uploadTarget())
     editor.value?.chain().focus().setImage({ src: item.url, alt: item.filename }).run()
     isImageOpen.value = false
   } catch (err) {
@@ -317,6 +329,28 @@ async function uploadImage(e: Event) {
     imageUploading.value = false
     input.value = ''
   }
+}
+
+// ── File list / gallery blocks ───────────────────────────────────────────────
+const picker = ref<{ kind: FileBlockKind; resolve: (r: AttachmentResult[]) => void } | null>(null)
+
+function pickFiles(kind: FileBlockKind): Promise<AttachmentResult[]> {
+  picker.value?.resolve([])
+  return new Promise((resolve) => { picker.value = { kind, resolve } })
+}
+
+function onPicked(results: AttachmentResult[]) {
+  picker.value?.resolve(results)
+  picker.value = null
+}
+
+async function insertFileBlock(kind: FileBlockKind) {
+  const picked = await pickFiles(kind)
+  if (!picked.length) return
+  const content = kind === 'gallery'
+    ? { type: 'gallery', attrs: { images: picked.map(toGalleryEntry) } }
+    : { type: 'fileList', attrs: { files: picked.map(toFileEntry) } }
+  editor.value?.chain().focus().insertContent(content).run()
 }
 
 // ── Word (.docx) import ──────────────────────────────────────────────────────
@@ -369,6 +403,8 @@ const editor = useEditor({
     Link.configure({ openOnClick: false }),
     Image.configure({ inline: false }),
     TableKit,
+    FileList.configure({ pick: pickFiles, t }),
+    Gallery.configure({ pick: pickFiles, t }),
     Placeholder.configure({ placeholder: placeholderText.value }),
     CharacterCount.configure(maxLen.value ? { limit: maxLen.value } : {}),
   ],
@@ -556,6 +592,16 @@ const doOutdent = () => (editor.value?.commands as any)?.outdent?.()
         </PopoverContent>
       </Popover>
 
+      <!-- File list / gallery -->
+      <Button size="sm" variant="ghost" :title="t('Files')" :aria-label="t('Files')" class="text-muted-foreground"
+        @click="insertFileBlock('fileList')">
+        <Paperclip class="size-4" />
+      </Button>
+      <Button size="sm" variant="ghost" :title="t('Gallery')" :aria-label="t('Gallery')" class="text-muted-foreground"
+        @click="insertFileBlock('gallery')">
+        <Images class="size-4" />
+      </Button>
+
       <!-- Import from Word -->
       <Button size="sm" variant="ghost" :title="t('Import from Word (.docx)')" :aria-label="t('Import from Word (.docx)')" :disabled="docxImporting"
         class="text-muted-foreground" @click="triggerDocxImport">
@@ -563,6 +609,16 @@ const doOutdent = () => (editor.value?.commands as any)?.outdent?.()
         <FileUp v-else class="size-4" />
       </Button>
       <input ref="docxInputEl" type="file" accept=".docx" class="hidden" @change="importDocx" />
+      <AttachPicker
+        :open="!!picker"
+        :image-only="picker?.kind === 'gallery'"
+        multiple
+        :attached-to-doctype="uploadTarget().attachedToDoctype"
+        :attached-to-id="uploadTarget().attachedToId"
+        @update:open="(open: boolean) => { if (!open) onPicked([]) }"
+        @select="(r: AttachmentResult) => onPicked([r])"
+        @select-many="onPicked"
+      />
 
       <Separator orientation="vertical" class="!mx-1 !h-6 !my-0" />
 
@@ -750,6 +806,44 @@ const doOutdent = () => (editor.value?.commands as any)?.outdent?.()
   outline: 2px solid var(--primary);
   outline-offset: 2px;
 }
+
+/* File list / gallery blocks (fileBlocks.ts) */
+.richtext-content .rt-file-block {
+  margin: 0.75rem 0;
+  padding: 0.5rem;
+  border: 1px dashed var(--border);
+  border-radius: 0.5rem;
+}
+.richtext-content .rt-file-block .file-list { display: flex; flex-direction: column; gap: 0.25rem; }
+.richtext-content .rt-file-block .gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 0.5rem;
+}
+.richtext-content .rt-file-block__item { position: relative; cursor: grab; }
+.richtext-content .rt-file-block .file-list__meta { color: var(--muted-foreground); font-size: 0.85em; }
+.richtext-content .rt-file-block .gallery__item { display: block; aspect-ratio: 4 / 3; overflow: hidden; border-radius: 0.375rem; }
+.richtext-content .rt-file-block .gallery__item img { width: 100%; height: 100%; object-fit: cover; margin: 0; border-radius: 0; }
+.richtext-content .rt-file-block__remove {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 1.25rem;
+  height: 1.25rem;
+  line-height: 1;
+  border-radius: 9999px;
+  background: var(--background);
+  color: var(--muted-foreground);
+  opacity: 0;
+}
+.richtext-content .rt-file-block__item:hover .rt-file-block__remove,
+.richtext-content .rt-file-block__remove:focus-visible { opacity: 1; }
+.richtext-content .rt-file-block__remove:hover { color: var(--destructive); }
+.richtext-content .rt-file-block__add {
+  margin-top: 0.5rem;
+  color: var(--primary);
+}
+.richtext-content .rt-file-block__add:hover { text-decoration: underline; }
 
 /* Tables */
 .richtext-content .tiptap table {

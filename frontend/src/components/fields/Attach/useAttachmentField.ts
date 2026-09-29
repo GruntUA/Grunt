@@ -7,7 +7,7 @@ import type { AttachmentResult } from '@/core/attachmentChannels/types'
 import { filesApi } from '@/core/api/files'
 import { extractFileId } from '@/core/fileUtils'
 
-interface DocContext {
+export interface DocContext {
   doctype: string
   getId: () => string | null
 }

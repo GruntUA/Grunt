@@ -7,8 +7,8 @@ Every write in the CRUD pipeline
 1. Runs the hook registry via :func:`grunt.hooks.dispatch` — app ``@on`` /
    ``on_doc`` / ``doc_events`` handlers.
 2. Walks :data:`SUBSCRIBERS` in ascending ``priority`` order — the framework's
-   own side-effect subsystems (Server Scripts, backlink sync, notification
-   rules, assignment rules) plus anything an app registered through
+   own side-effect subsystems (Server Scripts, backlink sync, pending-upload
+   claiming, notification rules, assignment rules) plus anything an app registered through
    :func:`subscribe`.
 
 Each subscriber is best-effort: its exception is logged and the remaining
@@ -144,6 +144,8 @@ _LINK_EVENTS = frozenset({"after_save", "after_insert", "after_delete"})
 
 _ASSIGNMENT_EVENTS = frozenset({"after_save", "after_insert"})
 
+_FILE_CLAIM_EVENTS = frozenset({"after_save"})
+
 _NOTIFICATION_EVENTS = frozenset({"after_insert", "after_save", "after_update", "on_transition"})
 
 
@@ -184,6 +186,16 @@ async def _sync_document_links(**kwargs: Any) -> None:
         await link_service.delete_links(session, doctype, doc_id)
     else:
         await link_service.sync_links(session, doctype, doc_id, doc)
+
+
+async def _claim_referenced_files(**kwargs: Any) -> None:
+    """Bind pending uploads the saved document points at (grunt.storage.references)."""
+    if not kwargs.get("session"):
+        return
+
+    from grunt.storage.references import claim_referenced_files
+
+    await claim_referenced_files(**kwargs)
 
 
 async def _evaluate_notification_rules(**kwargs: Any) -> None:
@@ -237,6 +249,7 @@ async def _evaluate_assignment_rules(**kwargs: Any) -> None:
 for _core_stage in (
     EventSubscriber("server_scripts", _run_server_scripts, _SERVER_SCRIPT_EVENTS, priority=30),
     EventSubscriber("document_links", _sync_document_links, _LINK_EVENTS, priority=40),
+    EventSubscriber("file_references", _claim_referenced_files, _FILE_CLAIM_EVENTS, priority=45),
     EventSubscriber(
         "notification_rules", _evaluate_notification_rules, _NOTIFICATION_EVENTS, priority=50
     ),

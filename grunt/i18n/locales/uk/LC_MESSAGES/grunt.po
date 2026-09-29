@@ -31,6 +31,7 @@ msgid "Validation error"
 msgstr "Помилка валідації"
 
 #: grunt/frontend/src/plugins/i18n.ts:17
+#: grunt/frontend/src/plugins/__tests__/i18n.spec.ts:25
 msgctxt "button"
 msgid "Save"
 msgstr "Зберегти"
@@ -90,7 +91,7 @@ msgstr "Нічого не знайдено за запитом «{query}»"
 msgid "Filter:"
 msgstr "Фільтр:"
 
-#: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue:261
+#: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue:340
 #: grunt/frontend/src/components/fields/Link/FilterInput.vue:261
 #: grunt/frontend/src/components/fields/Link/Link.vue:139
 #: grunt/frontend/src/components/fields/Link/Link.vue:140
@@ -197,8 +198,8 @@ msgstr "Пошук іконки…"
 #: grunt/frontend/src/components/DocTypeCombobox.vue:59
 #: grunt/frontend/src/components/desk/GruntDialog.vue:323
 #: grunt/frontend/src/components/ui/multi-select/MultiSelect.vue:113
-#: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue:292
-#: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue:324
+#: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue:372
+#: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue:422
 #: grunt/frontend/src/components/views/form/DocLinksDialog.vue:103
 #: grunt/frontend/src/components/views/list/QuickFilterSettingsDialog.vue:103
 #: grunt/frontend/src/components/views/list/ListToolbarControls.vue:187
@@ -253,7 +254,7 @@ msgstr "Не підписано"
 msgid "Sign here"
 msgstr "Підпишіть тут"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:580
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:636
 #: grunt/frontend/src/components/fields/Signature/Signature.vue:229
 #: grunt/frontend/src/components/fields/Signature/Signature.vue:230
 #: grunt/frontend/src/components/fields/Table/Table.vue:220
@@ -268,145 +269,145 @@ msgstr "Форматувати"
 msgid "Invalid JSON"
 msgstr "Невалідний JSON"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:360
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:394
 msgid "Rich text"
 msgstr "Форматований текст"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:409
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:445
 msgid "Formatting"
 msgstr "Форматування"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:414
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:450
 msgid "Font"
 msgstr "Шрифт"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:425
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:461
 msgid "Font size"
 msgstr "Розмір шрифту"
 
 #: grunt/frontend/src/components/views/list/ListToolbarControls.vue:184
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:90
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:419
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:102
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:455
 msgid "Default"
 msgstr "За замовчуванням"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:95
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:430
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:107
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:466
 #: grunt/frontend/src/pages/app/AppPage.vue:270
 msgid "Auto"
 msgstr "Авто"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:437
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:473
 msgid "Bold"
 msgstr "Жирний"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:443
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:479
 msgid "Italic"
 msgstr "Курсив"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:449
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:485
 msgid "Strikethrough"
 msgstr "Закреслений"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:455
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:491
 msgid "Inline code"
 msgstr "Код у рядку"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:464
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:500
 msgid "Heading 2"
 msgstr "Заголовок 2"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:469
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:505
 msgid "Heading 3"
 msgstr "Заголовок 3"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:477
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:513
 msgid "Bulleted list"
 msgstr "Маркований список"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:482
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:518
 msgid "Numbered list"
 msgstr "Нумерований список"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:487
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:523
 msgid "Quote"
 msgstr "Цитата"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:494
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:530
 msgid "Increase indent"
 msgstr "Збільшити відступ"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:497
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:533
 msgid "Decrease indent"
 msgstr "Зменшити відступ"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:501
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:537
 msgid "Code block"
 msgstr "Блок коду"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:506
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:542
 msgid "Horizontal rule"
 msgstr "Горизонтальна лінія"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:514
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:522
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:550
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:558
 msgid "Link"
 msgstr "Посилання"
 
 #: grunt/grunt/website/block_types.py:22
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:524
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:560
 msgid "Link URL"
 msgstr "URL посилання"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:528
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:564
 msgid "Remove link"
 msgstr "Прибрати посилання"
 
 #: grunt/grunt/website/block_types.py:52
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:537
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:544
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:573
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:580
 msgid "Image"
 msgstr "Зображення"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:546
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:582
 msgid "Image URL"
 msgstr "URL зображення"
 
 #: grunt/frontend/src/core/attachmentChannels/channels/LibraryChannel/LibraryChannel.vue:434
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:552
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:588
 msgid "Uploading…"
 msgstr "Завантаження…"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:552
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:588
 msgid "Upload file"
 msgstr "Завантажити файл"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:560
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:606
 msgid "Import from Word (.docx)"
 msgstr "Імпорт з Word (.docx)"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:570
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:626
 #: grunt/frontend/src/pages/reports/ReportView.vue:198
 msgid "Table"
 msgstr "Таблиця"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:585
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:641
 msgid "Redo"
 msgstr "Повторити"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:315
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:327
 msgid "Image upload failed"
 msgstr "Не вдалося завантажити зображення"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:341
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:375
 msgid "Imported with warnings"
 msgstr "Імпортовано з попередженнями"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:343
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:377
 msgid "Could not import document"
 msgstr "Не вдалося імпортувати документ"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:635
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:691
 msgid "{words} w · {chars} ch"
 msgstr "{words} сл. · {chars} симв."
 
@@ -3173,6 +3174,7 @@ msgstr "Поле"
 
 #: grunt/grunt/monitoring/health.py:369 grunt/grunt/monitoring/health.py:663
 #: grunt/grunt/monitoring/health.py:372
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:596
 msgid "Files"
 msgstr "Файли"
 
@@ -3796,6 +3798,9 @@ msgid "total"
 msgstr "усього"
 
 #: grunt/frontend/src/plugins/i18n.ts:20
+#: grunt/frontend/src/plugins/__tests__/i18n.spec.ts:33
+#: grunt/frontend/src/plugins/__tests__/i18n.spec.ts:34
+#: grunt/frontend/src/plugins/__tests__/i18n.spec.ts:35
 msgid "{n} file"
 msgid_plural "{n} files"
 msgstr[0] "{n} файл"
@@ -3822,8 +3827,8 @@ msgstr "— Усі —"
 #: grunt/frontend/src/components/DocTypeCombobox.vue:51
 #: grunt/frontend/src/components/DocTypeCombobox.vue:58
 #: grunt/frontend/src/components/ui/multi-select/MultiSelect.vue:86
-#: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue:228
-#: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue:300
+#: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue:307
+#: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue:380
 #: grunt/frontend/src/components/dashboard/sections/DataSourceSection.vue:46
 msgid "— Select —"
 msgstr "— Оберіть —"
@@ -4752,6 +4757,7 @@ msgstr "Рядок"
 
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.js:101
 #: grunt/frontend/src/components/desk/GruntDialog.vue:443
+#: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue:428
 #: grunt/frontend/src/components/fields/Table/TableRowSheet.vue:108
 msgid "Close"
 msgstr "Закрити"
@@ -5622,6 +5628,7 @@ msgid "Tree"
 msgstr "Дерево"
 
 #: grunt/frontend/src/components/views/gallery/index.ts:7
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:600
 msgid "Gallery"
 msgstr "Галерея"
 
@@ -6066,6 +6073,7 @@ msgid ""
 msgstr ""
 "Відновити документ до цієї версії? Поточні значення полів буде замінено."
 
+#: grunt/frontend/src/plugins/__tests__/i18n.spec.ts:29
 #: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:259
 msgid "Write a comment... @ to mention"
 msgstr "Напишіть коментар... @ для згадки"
@@ -6908,23 +6916,26 @@ msgid "No activity"
 msgstr "Немає активності"
 
 #: grunt/frontend/src/components/fields/Link/FilterInput.vue:234
+#: grunt/frontend/src/components/fields/RichText/fileBlocks.ts:128
+#: grunt/frontend/src/components/fields/RichText/fileBlocks.ts:129
 msgid "Remove"
 msgstr "Прибрати"
 
-#: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue:251
+#: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue:330
 msgid "Choose from list"
 msgstr "Обрати зі списку"
 
-#: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue:301
+#: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue:381
 msgid "Choose a value from the tree"
 msgstr "Оберіть значення з дерева"
 
+#: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue:398
 msgid "Clear search"
 msgstr "Очистити пошук"
 
 #: grunt/frontend/src/components/desk/GruntDialog.vue:257
 #: grunt/frontend/src/components/ui/multi-select/MultiSelect.vue:99
-#: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue:307
+#: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue:388
 msgid "Search…"
 msgstr "Пошук…"
 
@@ -7397,11 +7408,13 @@ msgid "Calculator"
 msgstr "Калькулятор"
 
 #: grunt/frontend/src/components/layout/CommandPalette.vue:334
+#: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue:425
 msgid "Navigate"
 msgstr "Навігація"
 
 #: grunt/grunt/website/www/form/{route}.html:184
 #: grunt/frontend/src/components/layout/CommandPalette.vue:337
+#: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue:427
 msgid "Select"
 msgstr "Вибрати"
 
@@ -7633,11 +7646,11 @@ msgstr "Обрати"
 msgid "Add to Home Screen"
 msgstr "На екран «Домівка»"
 
-#: grunt/frontend/src/core/attachmentChannels/channels/LocalFileChannel/LocalFileChannel.vue:71
+#: grunt/frontend/src/core/attachmentChannels/channels/LocalFileChannel/LocalFileChannel.vue:74
 msgid "Drop a file or"
 msgstr "Перетягніть файл або"
 
-#: grunt/frontend/src/core/attachmentChannels/channels/LocalFileChannel/LocalFileChannel.vue:71
+#: grunt/frontend/src/core/attachmentChannels/channels/LocalFileChannel/LocalFileChannel.vue:74
 msgid "click to choose"
 msgstr "клацніть для вибору"
 
@@ -7646,7 +7659,7 @@ msgid "Could not take a photo"
 msgstr "Не вдалося зробити фото"
 
 #: grunt/frontend/src/core/attachmentChannels/channels/CameraChannel/CameraChannel.vue:71
-#: grunt/frontend/src/core/attachmentChannels/channels/LocalFileChannel/LocalFileChannel.vue:35
+#: grunt/frontend/src/core/attachmentChannels/channels/LocalFileChannel/LocalFileChannel.vue:38
 msgid "Upload error"
 msgstr "Помилка завантаження"
 
@@ -7722,11 +7735,11 @@ msgstr "Вкажіть пряме посилання на файл у інтер
 msgid "The URL does not look like an image"
 msgstr "URL не схожий на зображення"
 
-#: grunt/frontend/src/core/attachmentChannels/channels/LocalFileChannel/LocalFileChannel.vue:66
+#: grunt/frontend/src/core/attachmentChannels/channels/LocalFileChannel/LocalFileChannel.vue:69
 msgid "Uploading..."
 msgstr "Завантаження..."
 
-#: grunt/frontend/src/core/attachmentChannels/channels/LocalFileChannel/LocalFileChannel.vue:72
+#: grunt/frontend/src/core/attachmentChannels/channels/LocalFileChannel/LocalFileChannel.vue:75
 msgid "Images only"
 msgstr "Тільки зображення"
 
@@ -14306,11 +14319,14 @@ msgid "~{n} min"
 msgstr "~{n} хв"
 
 #: grunt/frontend/src/components/desk/TaskProgressPanel.vue:111
+#: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue:426
+#: grunt/frontend/src/components/ui/tree-select/TreeSelectNode.vue:58
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:330
 msgid "Expand"
 msgstr "Розгорнути"
 
 #: grunt/frontend/src/components/desk/TaskProgressPanel.vue:111
+#: grunt/frontend/src/components/ui/tree-select/TreeSelectNode.vue:58
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:330
 msgid "Collapse"
 msgstr "Згорнути"
@@ -14508,6 +14524,26 @@ msgstr "Завантаження файлів"
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:210
 msgid "Not moved: {n}"
 msgstr "Не переміщено: {n}"
+
+#: grunt/frontend/src/components/fields/RichText/fileBlocks.ts:139
+msgid "Add files"
+msgstr "Додати файли"
+
+#: grunt/frontend/src/components/fields/RichText/fileBlocks.ts:139
+msgid "Add images"
+msgstr "Додати зображення"
+
+#: grunt/frontend/src/plugins/__tests__/i18n.spec.ts:17
+msgid "Hello {name}"
+msgstr ""
+
+#: grunt/frontend/src/plugins/i18n.ts:65
+msgid "Hi {name}"
+msgstr ""
+
+#: grunt/frontend/src/plugins/__tests__/i18n.spec.ts:21
+msgid "Saved {time}"
+msgstr ""
 
 #~ msgid "Quick create (Ctrl+N)"
 #~ msgstr "Швидке створення (Ctrl+N)"
