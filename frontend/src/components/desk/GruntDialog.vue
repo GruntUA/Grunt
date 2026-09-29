@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
+import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select'
 import { Spinner } from '@/components/ui/spinner'
 import { DialogFooter } from '@/components/ui/dialog'
 
@@ -28,6 +29,11 @@ const MSG_ICON_MAP: Record<string, { icon: Component; class: string }> = {
   info: { icon: Info, class: 'text-primary' },
 }
 const msgIndicator = computed(() => MSG_ICON_MAP[String(state.indicator ?? '')] ?? null)
+
+/** Select options: a `\n`-separated string (as in DocType fields) or an array. */
+function selectOptions(field: any): string[] {
+  return Array.isArray(field.options) ? field.options.map(String) : String(field.options ?? '').split('\n')
+}
 
 const promptValue = ref('')
 const formValues = ref<Record<string, any>>({})
@@ -336,6 +342,13 @@ function onOpenChange(v: boolean) {
                         <Checkbox :id="field.fieldname" v-model="formValues[field.fieldname]" />
                         <label :for="field.fieldname" class="cursor-pointer">{{ field.label }}</label>
                     </div>
+                </template>
+                <template v-else-if="field.fieldtype === 'Select'">
+                    <label :for="field.fieldname" class="font-medium text-foreground">{{ field.label }}</label>
+                    <p v-if="field.description" class="text-muted-foreground -mt-1">{{ field.description }}</p>
+                    <NativeSelect :id="field.fieldname" v-model="formValues[field.fieldname]" class="w-full">
+                        <NativeSelectOption v-for="opt in selectOptions(field)" :key="opt" :value="opt">{{ opt }}</NativeSelectOption>
+                    </NativeSelect>
                 </template>
                 <template v-else-if="field.fieldtype === 'LongText' || field.fieldtype === 'Code'">
                     <div class="flex items-center justify-between gap-2">
