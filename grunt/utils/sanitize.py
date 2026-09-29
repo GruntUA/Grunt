@@ -18,7 +18,7 @@ _EXTRA_ATTRIBUTES: dict[str, set[str]] = {
     "*": {"style", "class"},
     "a": {"title", "target"},
     "img": {"title", "loading"},
-    "iframe": {"src", "title", "width", "height", "allowfullscreen", "loading"},
+    "iframe": {"src", "title", "width", "height", "allowfullscreen", "loading", "referrerpolicy"},
     "td": {"colwidth"},
     "th": {"colwidth"},
 }
@@ -45,6 +45,9 @@ _cleaner = nh3.Cleaner(
         tag: nh3.ALLOWED_ATTRIBUTES.get(tag, set()) | _EXTRA_ATTRIBUTES.get(tag, set())
         for tag in nh3.ALLOWED_ATTRIBUTES.keys() | _EXTRA_ATTRIBUTES.keys()
     },
+    # YouTube refuses to play without a Referer (error 153), and a proxy may
+    # tighten the page policy to same-origin — pin it on the embed itself.
+    set_tag_attribute_values={"iframe": {"referrerpolicy": "strict-origin-when-cross-origin"}},
     attribute_filter=_filter_attribute,
     filter_style_properties=_ALLOWED_STYLES,
     url_schemes={"http", "https", "mailto", "tel"},

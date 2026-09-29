@@ -12,6 +12,7 @@ import Image from '@tiptap/extension-image'
 import Placeholder from '@tiptap/extension-placeholder'
 import CharacterCount from '@tiptap/extension-character-count'
 import { TableKit } from '@tiptap/extension-table'
+import Youtube from '@tiptap/extension-youtube'
 // Geist is the editor typeface only — loaded with this (lazy) chunk, not app-wide.
 import '@fontsource-variable/geist'
 // `mammoth` (~200 kB, pulls jszip) is loaded on demand in importDocx() only.
@@ -26,7 +27,7 @@ import {
   Minus, Image as ImageIcon,
   Table as TableIcon,
   Upload, IndentIncrease, IndentDecrease,
-  FileUp, Loader2, Paperclip, Images,
+  FileUp, Loader2, Paperclip, Images, Video, Trash2,
 } from '@lucide/vue'
 import type { DocField } from '@/types'
 import { filesApi } from '@/core/api/files'
@@ -331,6 +332,50 @@ async function uploadImage(e: Event) {
   }
 }
 
+// ── YouTube video ─────────────────────────────────────────────────────────────
+// The sanitizer (grunt/utils/sanitize.py) keeps the iframe but strips the
+// extension's `data-youtube-video` wrapper marker, so saved and imported
+// content is recognised by the embed src instead.
+const YoutubeEmbed = Youtube.extend({
+  parseHTML() {
+    return [
+      { tag: 'iframe[src*="youtube.com/embed/"]' },
+      { tag: 'iframe[src*="youtube-nocookie.com/embed/"]' },
+    ]
+  },
+})
+
+const isVideoOpen = ref(false)
+const videoAnchorEl = ref<HTMLElement | null>(null)
+const videoUrl = ref('')
+
+// A selected video is edited in place: the popover shows its link as a regular
+// watch URL, and inserting over the node selection replaces it.
+function openVideoPopover(event: Event) {
+  const src: string = editor.value?.isActive('youtube') ? editor.value.getAttributes('youtube').src ?? '' : ''
+  const id = src.match(/\/embed\/([\w-]+)/)?.[1]
+  videoUrl.value = id ? `https://www.youtube.com/watch?v=${id}` : src
+  videoAnchorEl.value = event.currentTarget as HTMLElement
+  isVideoOpen.value = !isVideoOpen.value
+}
+
+function removeVideo() {
+  editor.value?.chain().focus().deleteSelection().run()
+  videoUrl.value = ''
+  isVideoOpen.value = false
+}
+
+function insertVideo() {
+  const src = videoUrl.value.trim()
+  if (!src) return
+  if (!editor.value?.chain().focus().setYoutubeVideo({ src }).run()) {
+    toast.error(t('Paste a YouTube video link'), t('Invalid link'))
+    return
+  }
+  videoUrl.value = ''
+  isVideoOpen.value = false
+}
+
 // ── File list / gallery blocks ───────────────────────────────────────────────
 const picker = ref<{ kind: FileBlockKind; resolve: (r: AttachmentResult[]) => void } | null>(null)
 
@@ -403,6 +448,14 @@ const editor = useEditor({
     Link.configure({ openOnClick: false }),
     Image.configure({ inline: false }),
     TableKit,
+    YoutubeEmbed.configure({
+      nocookie: true,
+      width: 640,
+      height: 360,
+      // YouTube refuses to play without a Referer (error 153); the element
+      // attribute overrides a stricter page policy (e.g. a proxy's same-origin).
+      HTMLAttributes: { referrerpolicy: 'strict-origin-when-cross-origin' },
+    }),
     FileList.configure({ pick: pickFiles, t }),
     Gallery.configure({ pick: pickFiles, t }),
     Placeholder.configure({ placeholder: placeholderText.value }),
@@ -588,6 +641,30 @@ const doOutdent = () => (editor.value?.commands as any)?.outdent?.()
                 <span>{{ imageUploading ? t('Uploading…') : t('Upload file') }}</span>
                 <input type="file" accept="image/*" class="hidden" :disabled="imageUploading" @change="uploadImage" />
               </label>
+          </div>
+        </PopoverContent>
+      </Popover>
+
+      <!-- YouTube video -->
+      <Button size="sm" variant="ghost" :title="t('YouTube video')" :aria-label="t('YouTube video')"
+        :aria-pressed="editor.isActive('youtube')"
+        :class="editor.isActive('youtube') ? 'text-primary bg-accent' : 'text-muted-foreground'" @click="openVideoPopover">
+        <Video class="size-4" />
+      </Button>
+      <Popover v-model:open="isVideoOpen">
+        <PopoverAnchor :reference="videoAnchorEl ?? undefined" />
+        <PopoverContent class="w-auto p-0">
+          <div class="w-80 p-1">
+              <p class="font-medium text-muted-foreground mb-2">{{ t('YouTube video') }}</p>
+              <div class="flex gap-2">
+                <Input v-model="videoUrl" placeholder="https://www.youtube.com/watch?v=…" class="h-8 flex-1"
+                  :aria-label="t('Video URL')" @keydown.enter.prevent="insertVideo" />
+                <Button size="sm" class="h-8 px-3" @click="insertVideo">OK</Button>
+                <Button v-if="editor.isActive('youtube')" variant="ghost" size="sm" class="h-8 px-2 text-destructive hover:text-destructive"
+                  :title="t('Remove video')" :aria-label="t('Remove video')" @click="removeVideo">
+                  <Trash2 class="size-4" />
+                </Button>
+              </div>
           </div>
         </PopoverContent>
       </Popover>
@@ -803,6 +880,23 @@ const doOutdent = () => (editor.value?.commands as any)?.outdent?.()
   margin: 0.5rem 0;
 }
 .richtext-content .tiptap img.ProseMirror-selectednode {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* YouTube embeds: full width, 16:9 */
+.richtext-content .tiptap div[data-youtube-video] { margin: 0.5rem 0; }
+.richtext-content .tiptap iframe {
+  display: block;
+  width: 100%;
+  max-width: 640px;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  border: 0;
+  border-radius: 0.375rem;
+  pointer-events: none; /* let clicks select the node instead of playing */
+}
+.richtext-content .tiptap div[data-youtube-video].ProseMirror-selectednode iframe {
   outline: 2px solid var(--primary);
   outline-offset: 2px;
 }
