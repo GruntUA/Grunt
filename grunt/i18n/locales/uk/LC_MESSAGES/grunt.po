@@ -6916,8 +6916,8 @@ msgid "No activity"
 msgstr "Немає активності"
 
 #: grunt/frontend/src/components/fields/Link/FilterInput.vue:234
-#: grunt/frontend/src/components/fields/RichText/fileBlocks.ts:128
-#: grunt/frontend/src/components/fields/RichText/fileBlocks.ts:129
+#: grunt/frontend/src/components/fields/RichText/fileBlocks.ts:133
+#: grunt/frontend/src/components/fields/RichText/fileBlocks.ts:134
 msgid "Remove"
 msgstr "Прибрати"
 
@@ -14525,11 +14525,11 @@ msgstr "Завантаження файлів"
 msgid "Not moved: {n}"
 msgstr "Не переміщено: {n}"
 
-#: grunt/frontend/src/components/fields/RichText/fileBlocks.ts:139
+#: grunt/frontend/src/components/fields/RichText/fileBlocks.ts:146
 msgid "Add files"
 msgstr "Додати файли"
 
-#: grunt/frontend/src/components/fields/RichText/fileBlocks.ts:139
+#: grunt/frontend/src/components/fields/RichText/fileBlocks.ts:146
 msgid "Add images"
 msgstr "Додати зображення"
 
@@ -14565,6 +14565,14 @@ msgstr "Відео YouTube"
 #: grunt/frontend/src/components/fields/RichText/RichText.vue:664
 msgid "Remove video"
 msgstr "Видалити відео"
+
+#: grunt/frontend/src/components/fields/RichText/fileBlocks.ts:154
+msgid "Delete file list"
+msgstr "Видалити список файлів"
+
+#: grunt/frontend/src/components/fields/RichText/fileBlocks.ts:154
+msgid "Delete gallery"
+msgstr "Видалити галерею"
 
 #~ msgid "Quick create (Ctrl+N)"
 #~ msgstr "Швидке створення (Ctrl+N)"

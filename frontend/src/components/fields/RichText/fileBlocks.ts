@@ -107,6 +107,11 @@ class FileBlockView<T> implements NodeView {
       const cell = el('div', { class: 'rt-file-block__item' })
       cell.append(this.renderItem(item))
       if (editable) {
+        // Tiles and file names are links in the stored markup; while editing a
+        // click must not open (i.e. download) the file.
+        cell.addEventListener('click', (e) => {
+          if ((e.target as HTMLElement).closest('a')) e.preventDefault()
+        })
         cell.draggable = true
         cell.addEventListener('dragstart', (e) => {
           this.dragFrom = i
@@ -134,15 +139,22 @@ class FileBlockView<T> implements NodeView {
       list.append(cell)
     })
     this.dom.replaceChildren(list)
-    if (editable && this.options.pick) {
+    if (!editable) return
+    const actions = el('div', { class: 'rt-file-block__actions' })
+    if (this.options.pick) {
       const add = el('button', { type: 'button', class: 'rt-file-block__add' },
         this.kind === 'gallery' ? t('Add images') : t('Add files'))
       add.addEventListener('click', async () => {
         const picked = await this.options.pick!(this.kind)
         if (picked.length) this.commit([...this.items, ...picked.map(this.fromResult)])
       })
-      this.dom.append(add)
+      actions.append(add)
     }
+    const drop = el('button', { type: 'button', class: 'rt-file-block__delete' },
+      this.kind === 'gallery' ? t('Delete gallery') : t('Delete file list'))
+    drop.addEventListener('click', () => this.commit([]))
+    actions.append(drop)
+    this.dom.append(actions)
   }
 
   update(node: PmNode) {

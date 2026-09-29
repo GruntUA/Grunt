@@ -5664,11 +5664,11 @@ msgstr ""
 msgid "Add fields from the list below"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/fileBlocks.ts:139
+#: grunt/frontend/src/components/fields/RichText/fileBlocks.ts:146
 msgid "Add files"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/fileBlocks.ts:139
+#: grunt/frontend/src/components/fields/RichText/fileBlocks.ts:146
 msgid "Add images"
 msgstr ""
 
@@ -8826,8 +8826,8 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: grunt/frontend/src/components/fields/Link/FilterInput.vue:234
-#: grunt/frontend/src/components/fields/RichText/fileBlocks.ts:128
-#: grunt/frontend/src/components/fields/RichText/fileBlocks.ts:129
+#: grunt/frontend/src/components/fields/RichText/fileBlocks.ts:133
+#: grunt/frontend/src/components/fields/RichText/fileBlocks.ts:134
 msgid "Remove"
 msgstr ""
 
@@ -14297,6 +14297,14 @@ msgstr ""
 
 #: grunt/frontend/src/components/fields/RichText/RichText.vue:664
 msgid "Remove video"
+msgstr ""
+
+#: grunt/frontend/src/components/fields/RichText/fileBlocks.ts:154
+msgid "Delete file list"
+msgstr ""
+
+#: grunt/frontend/src/components/fields/RichText/fileBlocks.ts:154
+msgid "Delete gallery"
 msgstr ""
 
 #~ msgid "Beta: цей тип документа ще в розробці, поведінка може змінитися."

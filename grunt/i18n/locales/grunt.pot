@@ -295,11 +295,11 @@ msgstr ""
 msgid "Add fields from the list below"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/fileBlocks.ts:139
+#: grunt/frontend/src/components/fields/RichText/fileBlocks.ts:146
 msgid "Add files"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/fileBlocks.ts:139
+#: grunt/frontend/src/components/fields/RichText/fileBlocks.ts:146
 msgid "Add images"
 msgstr ""
 
@@ -1668,6 +1668,14 @@ msgstr ""
 
 #: grunt/frontend/src/core/attachmentChannels/channels/LibraryChannel/LibraryChannel.vue:395
 msgid "Delete file"
+msgstr ""
+
+#: grunt/frontend/src/components/fields/RichText/fileBlocks.ts:154
+msgid "Delete file list"
+msgstr ""
+
+#: grunt/frontend/src/components/fields/RichText/fileBlocks.ts:154
+msgid "Delete gallery"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.js:190
@@ -4424,8 +4432,8 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: grunt/frontend/src/components/fields/Link/FilterInput.vue:234
-#: grunt/frontend/src/components/fields/RichText/fileBlocks.ts:128
-#: grunt/frontend/src/components/fields/RichText/fileBlocks.ts:129
+#: grunt/frontend/src/components/fields/RichText/fileBlocks.ts:133
+#: grunt/frontend/src/components/fields/RichText/fileBlocks.ts:134
 msgid "Remove"
 msgstr ""
 
