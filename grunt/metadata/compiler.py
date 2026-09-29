@@ -104,6 +104,18 @@ def invalidate_table_cache(doctype_name: str) -> None:
     _TABLE_CACHE.get(_resolve_site_key(), {}).pop(doctype_name, None)
 
 
+def clear_table_cache(site: str) -> None:
+    """Forget every compiled Table of *site* — they are rebuilt from the
+    (re-read) DocTypes on next use.
+
+    Needed after a migration: a Table compiled before it still lists the old
+    columns, so a dropped column (``File.path``) failed every SELECT and a new
+    one (``File.folder``) was never read or written.
+    """
+    _TABLE_CACHE.pop(site, None)
+    _SA_METADATA.pop(site, None)
+
+
 # ── MultiLink junction table ─────────────────────────────────────────────
 
 MULTI_LINK_TABLE = Table(

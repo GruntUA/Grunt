@@ -59,11 +59,16 @@ export const filesApi = {
         return res.data.data
     },
 
-    upload: async (file: File, opts?: { attachedToDoctype?: string; attachedToId?: string }): Promise<FileItem> => {
+    upload: async (
+        file: File,
+        opts?: { attachedToDoctype?: string; attachedToId?: string; folder?: string; isPublic?: boolean },
+    ): Promise<FileItem> => {
         const formData = new FormData()
         formData.append('file', file)
         if (opts?.attachedToDoctype) formData.append('attached_to_doctype', opts.attachedToDoctype)
         if (opts?.attachedToId) formData.append('attached_to_id', opts.attachedToId)
+        if (opts?.folder) formData.append('folder', opts.folder)
+        if (opts?.isPublic !== undefined) formData.append('is_public', String(opts.isPublic))
         const res = await client.post('/api/v1/method/grunt.storage.doctypes.File.file.upload', formData, {
             headers: { 'Content-Type': 'multipart/form-data' }
         })

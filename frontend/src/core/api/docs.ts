@@ -129,6 +129,13 @@ export function filtersToRaw(filters: ActiveFilter[]): Record<string, string> {
   return raw
 }
 
+/** A node from the tree RPCs: `name`, the parent/title columns, `has_children` (children lists only). */
+export interface TreeNode {
+  name: string
+  has_children?: boolean
+  [field: string]: unknown
+}
+
 export interface ListParams {
   page?: number
   per_page?: number
@@ -305,6 +312,30 @@ export const docsApi = {
     })
     return r.data.data ?? []
   },
+
+  /** Direct children of a tree node (roots when `nodeId` is omitted), with `has_children`. */
+  getTreeChildren: (
+    doctype: string,
+    nodeId?: string | null,
+    params?: { sort_by?: string; sort_order?: 'asc' | 'desc' },
+  ): Promise<TreeNode[]> =>
+    client.get('/api/v1/method/grunt.document.base.Document.get_tree_children', {
+      params: { doctype, ...(nodeId ? { node_id: nodeId } : {}), ...params },
+    }).then(r => r.data.data ?? []),
+
+  /** Path from the root down to the node's parent (closest ancestor last). */
+  getTreeAncestors: (doctype: string, nodeId: string): Promise<TreeNode[]> =>
+    client.get('/api/v1/method/grunt.document.base.Document.get_tree_ancestors', {
+      params: { doctype, node_id: nodeId },
+    }).then(r => r.data.data ?? []),
+
+  /** Re-parent a tree node (`null` → root). 409 when it would create a cycle. */
+  moveTreeNode: (doctype: string, nodeId: string, newParentId: string | null): Promise<GruntDocument> =>
+    client.post('/api/v1/method/grunt.document.base.Document.move_tree_node', {
+      doctype,
+      node_id: nodeId,
+      new_parent_id: newParentId,
+    }).then(r => r.data.data),
 
   assign: (doctype: string, id: string, user: string, description?: string): Promise<GruntDocument> =>
     client.post(`/api/v1/docs/ToDo`, {

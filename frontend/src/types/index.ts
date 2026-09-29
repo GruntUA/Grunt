@@ -249,6 +249,7 @@ export interface DocType {
   gantt_default_color?: string | null
   gantt_dependencies_field?: string | null
   tree_parent_field?: string | null
+  list_tree_field?: string | null
   tree_title_field?: string | null
   tree_as_of_date_field?: string | null
   tree_sort_by?: string | null

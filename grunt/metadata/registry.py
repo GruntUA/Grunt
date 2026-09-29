@@ -67,6 +67,7 @@ _CORE_SYNCED_DOCTYPE_ATTRS = frozenset(
         "title_field",
         "description",
         "tree_parent_field",
+        "list_tree_field",
         "tree_title_field",
         "tree_as_of_date_field",
         "tree_sort_by",

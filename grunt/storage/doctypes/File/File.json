@@ -19,6 +19,14 @@
       "search": true
     },
     {
+      "fieldname": "folder",
+      "label": "Folder",
+      "fieldtype": "Link",
+      "options": "FileFolder",
+      "in_filter": true,
+      "index": true
+    },
+    {
       "fieldname": "file_url",
       "label": "File URL",
       "fieldtype": "Text",
@@ -100,6 +108,14 @@
       "write": true,
       "delete": true,
       "match": "owner == user"
+    },
+    {
+      "role": "System Manager",
+      "read": true,
+      "write": true,
+      "create": true,
+      "delete": true
     }
-  ]
+  ],
+  "list_tree_field": "folder"
 }

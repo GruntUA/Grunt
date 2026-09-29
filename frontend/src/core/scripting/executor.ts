@@ -14,7 +14,7 @@ import { useAuthStore } from '@/stores/auth'
 import { grunt as appGrunt } from '@/core/grunt'
 import type { DialogSize } from '@/core/composables/useDialog'
 import type { ActionsApi } from '@/core/actions'
-import { i18n } from '@/plugins/i18n'
+import { i18n, N_ } from '@/plugins/i18n'
 import type { DocPerms } from '@/core/permissions'
 
 // ── Types ────────────────────────────────────────────────────────────────
@@ -142,6 +142,8 @@ export interface ListViewProxy {
   readonly exporters: ListExporterInfo[]
   /** The current view can be exported. */
   readonly can_export: boolean
+  /** The active filters (the tree panel's node is one of them, e.g. `folder = …`). */
+  readonly filters: ReadonlyArray<{ fieldname: string; op: string; value: string }>
   /** Re-fetch the rows; with `{ meta: true }` also the DocType definition. */
   refresh: (options?: { meta?: boolean }) => void
   /** Create a document (quick entry when the DocType has it). */
@@ -244,6 +246,22 @@ export interface GruntProxy {
     buttons?: unknown[]
   }) => Promise<Record<string, unknown>[] | Record<string, unknown> | null>
   show_progress: (title: string, count: number, total: number, description?: string) => void
+  /**
+   * Let the user pick files and upload them as File records (with progress).
+   * Resolves with the uploaded files — empty when the picker was cancelled.
+   *
+   * ```js
+   * const files = await grunt.upload_files({ folder: 'a1b2c3', multiple: true })
+   * ```
+   */
+  upload_files: (opts?: {
+    multiple?: boolean
+    accept?: string
+    folder?: string | null
+    attached_to_doctype?: string
+    attached_to_id?: string
+    is_public?: boolean
+  }) => Promise<import('@/core/api/files').FileItem[]>
   /**
    * Subscribe to a WebSocket event on the current document channel.
    * Returns an unsubscribe function.
@@ -765,6 +783,34 @@ export function createGruntProxy(
       callbacks.showProgress?.(title, count, total, description)
     },
 
+    async upload_files(opts = {}) {
+      const picked = await pickFiles(opts.multiple ?? true, opts.accept)
+      const { filesApi } = await import('@/core/api/files')
+      const uploaded: import('@/core/api/files').FileItem[] = []
+      for (const [i, file] of picked.entries()) {
+        if (picked.length > 1) {
+          this.show_progress(translate(N_('Uploading files')), i, picked.length, file.name)
+        }
+        try {
+          uploaded.push(
+            await filesApi.upload(file, {
+              attachedToDoctype: opts.attached_to_doctype,
+              attachedToId: opts.attached_to_id,
+              folder: opts.folder ?? undefined,
+              isPublic: opts.is_public,
+            }),
+          )
+        } catch (err) {
+          const detail = (err as { response?: { data?: { detail?: string } } }).response?.data?.detail
+          this.show_alert(`${file.name}: ${detail ?? translate(N_('Upload failed'))}`, 'error')
+        }
+      }
+      if (picked.length > 1) {
+        this.show_progress(translate(N_('Uploading files')), picked.length, picked.length)
+      }
+      return uploaded
+    },
+
     onMessage(event: string, cb: (data: unknown) => void): () => void {
       if (!_messageListeners.has(event)) {
         _messageListeners.set(event, new Set())
@@ -838,9 +884,26 @@ export function dispatchMessageToProxy(
   })
 }
 
+/** Open the browser's file picker; resolves with the chosen files ([] on cancel). */
+function pickFiles(multiple: boolean, accept?: string): Promise<File[]> {
+  return new Promise((resolve) => {
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.multiple = multiple
+    if (accept) input.accept = accept
+    input.addEventListener('change', () => resolve(Array.from(input.files ?? [])))
+    input.addEventListener('cancel', () => resolve([]))
+    input.click()
+  })
+}
+
 /** `__('text')` in client scripts — the UI translation (and an extraction marker). */
-function translate(text: string): string {
-  return i18n.global.t(text)
+function translate(text: string, params?: Record<string, unknown>): string {
+  // With params vue-i18n fills `{n}` itself; the replace covers an untranslated key.
+  if (!params) return i18n.global.t(text)
+  let out = i18n.global.t(text, params)
+  for (const [k, v] of Object.entries(params)) out = out.replaceAll(`{${k}}`, String(v))
+  return out
 }
 
 // ── Execution ────────────────────────────────────────────────────────────
@@ -907,6 +970,7 @@ export interface ListViewState {
   isFetching: boolean
   exporters: ListExporterInfo[]
   canExport: boolean
+  filters: Array<{ fieldname: string; op: string; value: string }>
 }
 
 export function createListViewProxy(
@@ -935,6 +999,7 @@ export function createListViewProxy(
       isFetching: false,
       exporters: [],
       canExport: false,
+      filters: [],
     }
   return {
     doctype,
@@ -945,6 +1010,7 @@ export function createListViewProxy(
     get is_fetching() { return state().isFetching },
     get exporters() { return state().exporters },
     get can_export() { return state().canExport },
+    get filters() { return state().filters },
     refresh(options) { callbacks.refresh?.(options) },
     new_doc() { callbacks.newDoc?.() },
     bulk_edit() { callbacks.bulkEdit?.() },

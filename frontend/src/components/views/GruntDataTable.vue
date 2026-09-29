@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
 import { TableBody, TableCell } from '@/components/ui/table'
 import ListEmptyState from '@/components/views/ListEmptyState.vue'
+import { useRowDrag } from '@/core/composables/useRowDrag'
 
 const { t } = useI18n()
 const props = defineProps<{
@@ -38,6 +39,9 @@ const emit = defineEmits<{
   rowClick: [row: Record<string, unknown>]
   inlineUpdate: [rowId: string, field: string, value: string]
 }>()
+
+// Rows drag onto the list's tree panel (DocType.list_tree_field).
+const rowDrag = useRowDrag()
 
 function getRowDocId(row: Record<string, unknown>): string | null {
   const raw = row.id ?? row.name
@@ -181,7 +185,10 @@ function isRowSelected(row: Record<string, unknown>): boolean {
       <!-- Rows -->
       <TableRow v-for="(row, ri) in rows" :key="getRowDocId(row) ?? ri"
         class="cursor-pointer border-b border-border/20 last:border-0 transition-colors hover:bg-primary/5"
-        :class="{ 'bg-primary/5 hover:bg-primary/10': isRowSelected(row) }" @click="emit('rowClick', row)">
+        :class="{ 'bg-primary/5 hover:bg-primary/10': isRowSelected(row) }"
+        :draggable="rowDrag.draggable.value && !!getRowDocId(row)"
+        @dragstart="rowDrag.onDragStart($event, getRowDocId(row) ?? '')"
+        @click="emit('rowClick', row)">
         <TableCell class="relative px-3 py-2.5 border-b border-border/10">
           <div v-if="isRowSelected(row)"
             class="absolute left-0 top-0 bottom-0 w-1 bg-primary rounded-r-full pointer-events-none" />

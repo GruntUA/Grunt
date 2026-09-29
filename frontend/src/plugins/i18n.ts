@@ -124,7 +124,9 @@ export function tn(singular: string, plural: string, n: number, ctx?: string): s
   const locale = i18n.global.locale.value
   const base = ctx ? `${ctx}|${singular}` : singular
   const key = `${base}\u0000${pluralIndex(locale, n)}`
-  let out = i18n.global.t(key)
+  // Params too: vue-i18n interpolates `{n}` in a translated message itself
+  // (and blanks it without them); the replace() covers the untranslated fallback.
+  let out = i18n.global.t(key, { n, count: n })
   if (out === key) out = Math.abs(n) === 1 ? singular : plural
   return out.replace(/\{n\}|\{count\}/g, String(n))
 }

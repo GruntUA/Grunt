@@ -116,10 +116,9 @@ const router = createRouter({
           props: true,
         },
         {
+          // The file library is the File list now (folders in its tree panel).
           path: 'files',
-          name: 'file-manager',
-          component: () => import('@/pages/desk/FileManager.vue'),
-          props: true,
+          redirect: (to) => `/app/${String(to.params.workspaceName)}/File`,
         },
       ],
     },
@@ -189,7 +188,6 @@ function routeTitle(to: RouteLocationNormalized): string {
     case 'desk': return t('Home')
     case 'forbidden': return t('Access denied')
     case 'not-found': return t('Page not found')
-    case 'file-manager': return t('Files')
     case 'workspace-search': {
       const term = String(q.q ?? '').trim()
       return term ? `${t('Search')}: ${term}` : t('Search')

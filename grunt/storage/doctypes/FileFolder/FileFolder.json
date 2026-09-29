@@ -1,0 +1,57 @@
+{
+  "name": "FileFolder",
+  "label": "Folder",
+  "module": "storage",
+  "icon": "Folder",
+  "autoname": "hash",
+  "title_field": "folder_name",
+  "search_fields": [
+    "folder_name"
+  ],
+  "is_tree": true,
+  "tree_parent_field": "parent_folder",
+  "tree_title_field": "folder_name",
+  "tree_sort_by": "folder_name",
+  "tree_sort_order": "asc",
+  "default_view": "tree",
+  "description": "Folders of the file library. They only organise File records — moving a file between folders never touches the stored content.",
+  "fields": [
+    {
+      "fieldname": "folder_name",
+      "label": "Folder name",
+      "fieldtype": "Data",
+      "required": true,
+      "in_list_view": true,
+      "search": true
+    },
+    {
+      "fieldname": "parent_folder",
+      "label": "Parent folder",
+      "fieldtype": "Link",
+      "options": "FileFolder",
+      "in_list_view": true,
+      "in_filter": true,
+      "index": true
+    }
+  ],
+  "permissions": [
+    {
+      "role": "All",
+      "read": true,
+      "create": true
+    },
+    {
+      "role": "All",
+      "write": true,
+      "delete": true,
+      "match": "owner == user"
+    },
+    {
+      "role": "System Manager",
+      "read": true,
+      "write": true,
+      "create": true,
+      "delete": true
+    }
+  ]
+}

@@ -3,7 +3,7 @@ import { useI18n } from 'vue-i18n'
 import { ref, computed, watch, provide } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useQueryClient } from '@tanstack/vue-query'
-import { MULTI_VALUE_OPS, docsApi } from '@/core/api/docs'
+import { MULTI_VALUE_OPS, NO_VALUE_OPS, docsApi } from '@/core/api/docs'
 import { useDocTypeListData } from '@/core/composables/useDocTypeListData'
 import { useListRouteSync } from '@/core/composables/useListRouteSync'
 import { useListActions } from '@/core/composables/useListActions'
@@ -39,6 +39,8 @@ import QuickFilterSettingsDialog from '@/components/views/list/QuickFilterSettin
 import DocTypeToolbar from '@/components/views/DocTypeToolbar.vue'
 import ListViewRouter from '@/components/views/list/ListViewRouter.vue'
 import ListPagination from '@/components/views/ListPagination.vue'
+import ListTreePanel from '@/components/views/list/ListTreePanel.vue'
+import { provideRowDrag } from '@/core/composables/useRowDrag'
 import { docUrl } from '@/core/workspaceUrl'
 import { roleAllows } from '@/core/permissions'
 import { getExporters } from '@/core/io/exporters/registry'
@@ -173,6 +175,7 @@ const {
       isFetching: isFetching.value,
       exporters: getExporters().map((e) => ({ id: e.id, label: t(e.label) })),
       canExport: !!exportCtx.value,
+      filters: activeFilters.value,
     }
   },
   ui: {
@@ -271,6 +274,23 @@ watch(
 // shared pager (they load their own data, not one page at a time).
 const ownScrollView = computed(() => getViewDef(viewMode.value)?.managesOwnScroll ?? false)
 
+// ── Tree navigation (DocType.list_tree_field) ─────────────────────────────────
+// A Link to an `is_tree` DocType shown as a panel beside the list: its node is
+// a filter; rows dragged onto a node are re-linked. Views that manage their own
+// scroll (kanban, calendar…) keep the full width.
+const treeNavField = computed(() => {
+  const name = dt.value?.list_tree_field
+  const f = name ? dt.value?.fields.find(ff => ff.fieldname === name && ff.fieldtype === 'Link') : null
+  return f?.options ? f : null
+})
+const showTreeNav = computed(() => !!treeNavField.value && !ownScrollView.value)
+provideRowDrag({ doctype: props.doctype, enabled: showTreeNav, selectedIds })
+
+function onTreeRowsMoved() {
+  clearSelection()
+  queryClient.invalidateQueries({ queryKey: ['documents', props.doctype] })
+}
+
 const { applyRouteState, setGroupByInRoute, applySort } = useListRouteSync({
   route,
   router,
@@ -289,7 +309,7 @@ const { applyRouteState, setGroupByInRoute, applySort } = useListRouteSync({
 watch(activeFilters, async (newFilters) => {
   if (!dt.value) return
   
-  const filtersToResolve = newFilters.filter(f => !f.displayValue && f.value && !MULTI_VALUE_OPS.includes(f.op))
+  const filtersToResolve = newFilters.filter(f => !f.displayValue && f.value && !MULTI_VALUE_OPS.includes(f.op) && !(f.op in NO_VALUE_OPS))
   if (!filtersToResolve.length) return
 
   for (const f of filtersToResolve) {
@@ -412,6 +432,15 @@ watch(() => props.doctype, async (newDoctype) => {
       @sort="onSort"
     />
 
+    <div class="flex min-h-0 flex-1 gap-4" :class="ownScrollView && 'overflow-hidden'">
+    <aside v-if="showTreeNav && dt && treeNavField"
+      class="hidden w-56 shrink-0 md:block">
+      <div class="sticky top-4 max-h-[calc(100vh-6rem)] overflow-y-auto pr-1">
+        <ListTreePanel :dt="dt" :field="treeNavField" :workspace="workspace" :filters="activeFilters"
+          @update:filters="activeFilters = $event" @moved="onTreeRowsMoved" />
+      </div>
+    </aside>
+    <div class="flex min-w-0 flex-1 flex-col gap-3">
     <ListViewRouter
       v-if="dt && colState"
       :view-mode="viewMode"
@@ -471,6 +500,9 @@ watch(() => props.doctype, async (newDoctype) => {
         @update:page="page = $event"
         @update:per-page="perPage = $event"
       />
+    </div>
+
+    </div>
     </div>
 
     <!-- Quick Entry Dialog -->

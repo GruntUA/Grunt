@@ -298,6 +298,11 @@ class DocType(BaseModel):
     gantt_default_color: str | None = None
     gantt_dependencies_field: str | None = None
 
+    # List navigation — a Link field to an ``is_tree`` DocType (e.g. File.folder
+    # → FileFolder). The list shows that tree beside it: a node filters the
+    # list, dropping rows on a node re-links them.
+    list_tree_field: str | None = None
+
     # Tree view — hierarchy via a self-referential Link (`tree_parent_field`).
     # Gated by `is_tree`; the assembled config is exposed via `.tree_view`.
     tree_parent_field: str | None = None

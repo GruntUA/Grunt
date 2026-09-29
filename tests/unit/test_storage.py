@@ -232,3 +232,62 @@ async def test_download_supports_range_and_etag_over_http(client, auth_headers, 
     assert full.content == b"0123456789"
     again = await client.get(url, headers={**auth_headers, "If-None-Match": full.headers["etag"]})
     assert again.status_code == 304
+
+
+# ── folders ──────────────────────────────────────────────────────────────
+
+
+@pytest.mark.asyncio
+async def test_file_list_navigates_by_folder_tree(ctx):
+    meta = await grunt.get_meta("File")
+    assert meta is not None and meta.list_tree_field == "folder"
+    folder_meta = await grunt.get_meta("FileFolder")
+    assert folder_meta is not None and folder_meta.is_tree
+
+
+@pytest.mark.asyncio
+async def test_upload_into_folder_and_move_without_touching_disk(ctx, storage):
+    reports = (await grunt.new_doc("FileFolder", {"folder_name": "Reports"}))["name"]
+    archive = (await grunt.new_doc("FileFolder", {"folder_name": "Archive"}))["name"]
+
+    up = await upload(_upload_file("q3.txt", b"quarter three"), folder=reports)
+    assert await grunt.db.get_value("File", up["id"], "folder") == reports
+
+    blob = storage.path(await _key(up["id"]))
+    mtime = blob.stat().st_mtime
+    await grunt.save_doc("File", up["id"], {"folder": archive})
+
+    assert await grunt.db.get_value("File", up["id"], "folder") == archive
+    assert blob.stat().st_mtime == mtime
+
+
+@pytest.mark.asyncio
+async def test_same_file_in_two_folders_is_two_rows(ctx, storage):
+    a = (await grunt.new_doc("FileFolder", {"folder_name": "A"}))["name"]
+    b = (await grunt.new_doc("FileFolder", {"folder_name": "B"}))["name"]
+
+    first = await upload(_upload_file("logo.txt", b"logo"), folder=a)
+    second = await upload(_upload_file("logo.txt", b"logo"), folder=b)
+
+    assert first["id"] != second["id"]
+    assert len(list(storage.iter_keys())) == 1
+
+
+@pytest.mark.asyncio
+async def test_only_an_empty_folder_can_be_deleted(ctx, storage):
+    parent = (await grunt.new_doc("FileFolder", {"folder_name": "Parent"}))["name"]
+    child = (await grunt.new_doc("FileFolder", {"folder_name": "Child", "parent_folder": parent}))[
+        "name"
+    ]
+    up = await upload(_upload_file("inside.txt", b"inside"), folder=child)
+
+    with pytest.raises(HTTPException) as has_files:
+        await grunt.delete_doc("FileFolder", child)
+    assert has_files.value.status_code == 422
+    with pytest.raises(HTTPException) as has_subfolders:
+        await grunt.delete_doc("FileFolder", parent)
+    assert has_subfolders.value.status_code == 422
+
+    await remove(up["id"])
+    await grunt.delete_doc("FileFolder", child)
+    await grunt.delete_doc("FileFolder", parent)

@@ -93,6 +93,7 @@ async def create_file(
     *,
     attached_to_doctype: str | None = None,
     attached_to_id: str | None = None,
+    folder: str | None = None,
     is_public: bool = False,
     uploaded_by: str | None = None,
 ) -> dict[str, Any]:
@@ -113,6 +114,7 @@ async def create_file(
             "is_public": is_public,
             "attached_to_doctype": attached_to_doctype or None,
             "attached_to_id": attached_to_id or None,
+            "folder": folder or None,
         },
     )
     file_id = str(doc["name"])
@@ -133,6 +135,7 @@ async def store(
     *,
     attached_to_doctype: str | None = None,
     attached_to_id: str | None = None,
+    folder: str | None = None,
     is_public: bool = False,
     uploaded_by: str | None = None,
     max_bytes: int | None = None,
@@ -152,6 +155,7 @@ async def store(
         content_type,
         attached_to_doctype=attached_to_doctype,
         attached_to_id=attached_to_id,
+        folder=folder,
         is_public=is_public,
         uploaded_by=uploaded_by,
     )

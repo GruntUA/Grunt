@@ -33,6 +33,7 @@ class File(Document):
     thumbnail_url: str | None
     attached_to_doctype: str | None
     attached_to_id: str | None
+    folder: str | None
 
 
 @whitelist()
@@ -41,13 +42,15 @@ async def upload(
     attached_to_doctype: str | None = None,
     attached_to_id: str | None = None,
     is_public: bool | None = None,
+    folder: str | None = None,
 ) -> dict[str, Any]:
     """Whitelisted method: Upload a file and create a File document.
 
     An attachment (``attached_to_*`` set) is private unless ``is_public`` is
     passed explicitly or its DocType sets ``public_attachments`` — readable
     only with its document, via a signed URL (see :mod:`grunt.storage.signing`).
-    A free-standing library file stays public.
+    A free-standing library file stays public; ``folder`` files it into the
+    library tree (FileFolder).
     """
     if is_public is None:
         meta = await grunt.get_meta(attached_to_doctype) if attached_to_doctype else None
@@ -82,6 +85,7 @@ async def upload(
         uploaded_by=grunt.get_user().email,
         attached_to_doctype=attached_to_doctype or None,
         attached_to_id=attached_to_id or None,
+        folder=folder or None,
     ).first()
     if existing is not None:
         return _upload_payload(existing.as_dict(), deduped=True)
@@ -93,6 +97,7 @@ async def upload(
         content_type,
         attached_to_doctype=attached_to_doctype,
         attached_to_id=attached_to_id,
+        folder=folder,
         is_public=is_public,
     )
     return _upload_payload(doc, deduped=False)

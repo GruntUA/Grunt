@@ -62,6 +62,7 @@ function _refresh_field_selects(frm) {
     frm.set_df_property('status_field', 'options', opt(allFieldnames))
     frm.set_df_property('kanban_column_field', 'options', opt(selectFieldnames))
     frm.set_df_property('tree_parent_field', 'options', opt(linkFieldnames))
+    frm.set_df_property('list_tree_field', 'options', opt(linkFieldnames))
     frm.set_df_property('tree_title_field', 'options', opt(allFieldnames))
     frm.set_df_property('tree_as_of_date_field', 'options', opt(dateFieldnames))
     frm.set_df_property('tree_sort_by', 'options', opt(allFieldnames))

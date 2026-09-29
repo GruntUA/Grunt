@@ -16,10 +16,11 @@ async def _apply_hot_reload_if_triggered(site: str) -> None:
     """Refresh *this site's* in-memory DocType cache if `.reload_meta` is
     present (written by `grunt db migrate` / `grunt doctype sync`).
 
-    Clearing the DocType cache is enough on its own: the next lazy-load
-    re-reads the DocType's *stored* JSON blob (grunt_meta_doctype), which is
-    the single source of truth for `permissions` too (edited in the Studio
-    DocType builder, persisted in that blob).
+    Clearing the DocType cache makes the next lazy-load re-read the DocType's
+    *stored* JSON blob (grunt_meta_doctype), which is the single source of
+    truth for `permissions` too (edited in the Studio DocType builder,
+    persisted in that blob); the compiled Tables go too, or queries would
+    keep the columns of before the migration.
 
     Scoped explicitly to *site* (via ``get_registry(site)``) rather than the
     ambient ``current_site`` ContextVar: one process can serve several
@@ -29,10 +30,12 @@ async def _apply_hot_reload_if_triggered(site: str) -> None:
     if not reload_file.exists():
         return
 
+    from grunt.metadata.compiler import clear_table_cache
     from grunt.metadata.registry import get_registry
     from grunt.scripting.file_scripts import FILE_CLIENT_SCRIPT_REGISTRY, _client_script_scanned
 
     get_registry(site).clear_cache()
+    clear_table_cache(site)  # Tables compiled from the old definitions
     FILE_CLIENT_SCRIPT_REGISTRY.clear()
     _client_script_scanned.clear()
 
