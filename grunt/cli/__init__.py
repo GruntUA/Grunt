@@ -3,6 +3,7 @@ from importlib.metadata import entry_points
 import click
 
 from grunt.cli.app import app_group
+from grunt.cli.data import data_group
 from grunt.cli.db import db_group, db_migrate
 from grunt.cli.doctype import doctype_group
 from grunt.cli.fields import fields_group
@@ -56,6 +57,7 @@ cli.add_command(worker)
 cli.add_command(update_group)
 cli.add_command(users_group)
 cli.add_command(db_group)
+cli.add_command(data_group)
 cli.add_command(app_group)
 cli.add_command(doctype_group)
 cli.add_command(fields_group)
