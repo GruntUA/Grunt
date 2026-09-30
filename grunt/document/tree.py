@@ -36,6 +36,7 @@ if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
 
     from sqlalchemy.ext.asyncio import AsyncSession
+    from sqlalchemy.sql import Select
 
     from grunt.auth.doctypes.User.user import User
 
@@ -112,8 +113,13 @@ class TreeService:
         filters: dict[str, str] | None = None,
         sort_by: str | None = None,
         sort_order: str = "asc",
+        scope: Select | None = None,
     ) -> list[dict[str, Any]]:
-        """Return direct children of *parent_id* (or root nodes if None)."""
+        """Return direct children of *parent_id* (or root nodes if None).
+
+        ``scope`` — a ``SELECT name`` of the nodes the caller may see (row-level
+        permissions); a visible node whose parent is outside it counts as a root.
+        """
         import grunt
 
         dt = await grunt.get_meta(doctype)
@@ -157,9 +163,14 @@ class TreeService:
             )
 
         if parent_id is None:
-            stmt = stmt.where(pf_col.is_(None) | (pf_col == ""))
+            is_root = pf_col.is_(None) | (pf_col == "")
+            if scope is not None:
+                is_root = is_root | pf_col.not_in(scope)
+            stmt = stmt.where(is_root)
         else:
             stmt = stmt.where(pf_col == parent_id)
+        if scope is not None:
+            stmt = stmt.where(table.c.name.in_(scope))
 
         sort_col = table.c.get(sort_by) if sort_by else None
         if sort_col is not None:
@@ -179,6 +190,8 @@ class TreeService:
         if rows:
             parent_ids = [r["name"] for r in rows]
             check_stmt = select(pf_col).where(pf_col.in_(parent_ids)).distinct()
+            if scope is not None:
+                check_stmt = check_stmt.where(table.c.name.in_(scope))
             cr = await session.execute(check_stmt)
             child_parent_ids = {r[0] for r in cr.fetchall()}
 
@@ -199,6 +212,7 @@ class TreeService:
         search: str | None = None,
         sort_by: str | None = None,
         sort_order: str = "asc",
+        scope: Select | None = None,
     ) -> list[dict[str, Any]]:
         """Return the full subtree as nested dicts.
 
@@ -206,6 +220,9 @@ class TreeService:
         ``search`` matches ``name``/title/``search_fields`` (case-insensitive
         substring) and, like ``filters``, keeps the ancestors of every match so
         the returned tree stays connected.
+        ``scope`` — a ``SELECT name`` of the nodes the caller may see (row-level
+        permissions); the rest are dropped, ancestors included, and a visible
+        node whose parent is hidden is returned as a root.
         """
         import grunt
         from grunt.document.base import Document
@@ -259,6 +276,10 @@ class TreeService:
 
         result = await session.execute(select(tree_cte))
         all_rows = [dict(r._mapping) for r in result.fetchall()]
+
+        if scope is not None:
+            visible = {str(r[0]) for r in (await session.execute(scope)).fetchall()}
+            all_rows = [r for r in all_rows if r["name"] in visible]
 
         search_term = (search or "").strip()
         if filters or search_term:
@@ -375,8 +396,13 @@ class TreeService:
         node_id: str,
         *,
         fields: list[str] | None = None,
+        scope: Select | None = None,
     ) -> list[dict[str, Any]]:
-        """Return ordered path from the direct parent up to the root."""
+        """Return ordered path from the direct parent up to the root.
+
+        ``scope`` — a ``SELECT name`` of the nodes the caller may see; hidden
+        ancestors are left out of the path.
+        """
         import grunt
 
         dt = await grunt.get_meta(doctype)
@@ -410,6 +436,8 @@ class TreeService:
             .where(ancestors_cte.c.name != node_id)
             .order_by(ancestors_cte.c._depth.desc())
         )
+        if scope is not None:
+            stmt = stmt.where(ancestors_cte.c.name.in_(scope))
         result = await session.execute(stmt)
         return [dict(r._mapping) for r in result.fetchall()]
 

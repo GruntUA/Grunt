@@ -52,6 +52,31 @@ async def _tree_read_gate(doctype: str) -> tuple[Any, list[str] | None]:
     return dt, None  # unreachable — require() raised
 
 
+async def _tree_row_scope(dt: Any, restricted: list[str] | None) -> Any | None:
+    """``SELECT name`` of the nodes the current user may see, or ``None`` when
+    nothing narrows them.
+
+    The same row-level rules the list applies — a role's ``match``, shares and
+    User Permissions — so a tree (list panel, tree view, Link picker) never
+    shows more than the list does. The select-only path stays unfiltered, like
+    the Link-search identifier path.
+    """
+    if restricted is not None:
+        return None
+    from sqlalchemy import and_, select
+
+    from grunt.permissions.query import apply_permission_filter
+    from grunt.permissions.user_permissions import build_conditions
+
+    user = grunt.get_user()
+    table = dt.table
+    scope = await apply_permission_filter(select(table.c.name), table, user, dt.doc)
+    up_conds = await build_conditions(table, user, dt.doc)
+    if up_conds:
+        scope = scope.where(and_(*up_conds))
+    return None if scope.whereclause is None else scope
+
+
 def _parse_iso_day(raw: str | None) -> str | None:
     if not raw:
         return None
@@ -92,10 +117,11 @@ class DocumentTreeRPCMixin:
     ) -> list[dict[str, Any]]:
         """Return the full tree (or subtree from *root_id*) as nested dicts with ``children``."""
 
-        _dt, restricted = await _tree_read_gate(doctype)
+        dt, restricted = await _tree_read_gate(doctype)
         if restricted is not None:
             # select-only grant: identifier columns, no ad-hoc filters/search
             fields, filters, search = restricted, None, None
+        scope = await _tree_row_scope(dt, restricted)
         session = grunt.get_session()
 
         nodes = await tree_service.get_tree(
@@ -108,6 +134,7 @@ class DocumentTreeRPCMixin:
             search=search,
             sort_by=sort_by,
             sort_order=sort_order,
+            scope=scope,
         )
 
         as_of_date = _parse_iso_day(as_of)
@@ -134,9 +161,10 @@ class DocumentTreeRPCMixin:
         Each node includes a ``has_children`` boolean for rendering expand arrows.
         """
 
-        _dt, restricted = await _tree_read_gate(doctype)
+        dt, restricted = await _tree_read_gate(doctype)
         if restricted is not None:
             fields, filters = restricted, None
+        scope = await _tree_row_scope(dt, restricted)
         session = grunt.get_session()
 
         return await tree_service.get_children(
@@ -148,6 +176,7 @@ class DocumentTreeRPCMixin:
             filters=filters,
             sort_by=sort_by,
             sort_order=sort_order,
+            scope=scope,
         )
 
     @staticmethod
@@ -162,11 +191,14 @@ class DocumentTreeRPCMixin:
         Ordered from root → direct parent (closest ancestor last).
         """
 
-        _dt, restricted = await _tree_read_gate(doctype)
+        dt, restricted = await _tree_read_gate(doctype)
         if restricted is not None:
             fields = restricted
+        scope = await _tree_row_scope(dt, restricted)
         session = grunt.get_session()
-        return await tree_service.get_ancestors(session, doctype, node_id, fields=fields)
+        return await tree_service.get_ancestors(
+            session, doctype, node_id, fields=fields, scope=scope
+        )
 
     @staticmethod
     @grunt.whitelist()
