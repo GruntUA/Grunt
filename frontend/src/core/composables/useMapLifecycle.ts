@@ -1,7 +1,7 @@
 import { ref, Ref, onMounted, onUnmounted, watch, ComputedRef } from 'vue'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-import 'leaflet.browser.print/dist/leaflet.browser.print.js'
+import 'leaflet.browser.print/dist/leaflet.browser.print.min.js'
 import type { ScriptMenuItem, ActiveFilter } from '@/types'
 
 /**

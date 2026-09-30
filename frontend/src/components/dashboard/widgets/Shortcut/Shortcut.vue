@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { DashboardWidget } from '@/types'
-import * as LucideIcons from '@lucide/vue'
 import { ExternalLink } from '@lucide/vue'
 import { docUrl } from '@/core/workspaceUrl'
+import { useLucideIcons } from '@/core/composables/useLucideIcons'
 import { useRouter } from 'vue-router'
 
 const props = defineProps<{
@@ -14,11 +14,10 @@ const props = defineProps<{
 }>()
 
 const router = useRouter()
+const { iconFor } = useLucideIcons()
 
-const iconComponent = computed(() => {
-  if (!props.widget.icon) return ExternalLink
-  return (LucideIcons as Record<string, unknown>)[props.widget.icon] as typeof ExternalLink ?? ExternalLink
-})
+// 'span' holds the icon's box while the lazy icon set is still loading.
+const iconComponent = computed(() => iconFor(props.widget.icon, ExternalLink) ?? 'span')
 
 const colorMap: Record<string, string> = {
   primary: 'bg-primary/10 text-primary',
@@ -53,7 +52,7 @@ function navigate() {
     @click="navigate">
     <div class="flex items-center justify-between w-full">
       <div :class="['p-2 rounded-lg', iconBg]">
-        <component :is="iconComponent" class="w-4 h-4" />
+        <component :is="iconComponent" class="block w-4 h-4" />
       </div>
       <span v-if="data?.count != null"
         class="font-semibold px-2 py-0.5 rounded-full bg-muted text-muted-foreground tabular-nums">

@@ -2,10 +2,10 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { DashboardWidget, ShortcutItem } from '@/types'
-import * as LucideIcons from '@lucide/vue'
 import { ExternalLink } from '@lucide/vue'
 import { useRouter } from 'vue-router'
 import { docUrl } from '@/core/workspaceUrl'
+import { useLucideIcons } from '@/core/composables/useLucideIcons'
 
 const props = defineProps<{
   widget: DashboardWidget
@@ -14,6 +14,7 @@ const props = defineProps<{
 
 const router = useRouter()
 const { t } = useI18n()
+const { iconFor } = useLucideIcons()
 
 const tiles = computed<ShortcutItem[]>(() => {
   try { return JSON.parse(props.widget.content ?? '[]') } catch { return [] }
@@ -26,11 +27,6 @@ const colorMap: Record<string, string> = {
   red: 'bg-red-500/10 text-red-600',
   violet: 'bg-violet-500/10 text-violet-600',
   cyan: 'bg-cyan-500/10 text-cyan-600',
-}
-
-function iconFor(name?: string | null) {
-  if (!name) return ExternalLink
-  return (LucideIcons as Record<string, unknown>)[name] as typeof ExternalLink ?? ExternalLink
 }
 
 function navigate(tile: ShortcutItem) {
@@ -59,7 +55,7 @@ function navigate(tile: ShortcutItem) {
         class="flex flex-col items-start gap-1.5 p-3 rounded-lg border hover:bg-muted/50 transition-colors text-left"
         @click="navigate(tile)">
         <div :class="['p-1.5 rounded-md', colorMap[tile.color ?? 'primary'] ?? colorMap.primary]">
-          <component :is="iconFor(tile.icon)" class="w-3.5 h-3.5" />
+          <component :is="iconFor(tile.icon, ExternalLink) ?? 'span'" class="block w-3.5 h-3.5" />
         </div>
         <span class="font-medium leading-tight text-foreground">{{ tile.title }}</span>
       </button>

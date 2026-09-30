@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, shallowRef } from 'vue'
 import type { Component } from 'vue'
+import { loadLucideLib } from '@/lib/lucide'
 
 /**
  * Renders an icon from:
@@ -24,7 +25,7 @@ let lucideLoaded = false
 function ensureLucide() {
   if (lucideLoaded) return
   lucideLoaded = true
-  import('@lucide/vue').then(m => { lucide.value = m as unknown as IconMap })
+  loadLucideLib().then(m => { lucide.value = m })
 }
 
 const KEBAB_RE = /^[a-z][a-z0-9]*(-[a-z0-9]+)*$/

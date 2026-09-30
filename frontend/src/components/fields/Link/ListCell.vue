@@ -2,6 +2,7 @@
 import { shallowRef } from 'vue'
 import type { Component } from 'vue'
 import type { DocField, DocTypeStatusConfig } from '@/types'
+import { loadLucideLib } from '@/lib/lucide'
 import { initials } from '@/core/composables/usePresence'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 
@@ -19,7 +20,7 @@ let iconsLoaded = false
 function loadIcons() {
   if (iconsLoaded) return
   iconsLoaded = true
-  import('@lucide/vue').then((lib) => { lucideIcons.value = lib as unknown as IconMap })
+  loadLucideLib().then((lib) => { lucideIcons.value = lib })
 }
 
 function getIconComponent(name: string): Component | null {

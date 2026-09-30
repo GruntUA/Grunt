@@ -7,6 +7,7 @@ import { useBuilderStore } from '@/stores/builder'
 import { getPaletteGroups, getLayoutFields } from '@/core/fieldRegistry'
 import type { FieldDefinition } from '@/core/fieldRegistry'
 import type { DocField } from '@/types'
+import { loadLucideLib } from '@/lib/lucide'
 
 const { t } = useI18n()
 
@@ -18,7 +19,7 @@ let lucideLoaded = false
 function loadLucide() {
   if (lucideLoaded) return
   lucideLoaded = true
-  import('@lucide/vue').then(lib => { lucideIcons.value = lib as unknown as IconMap })
+  loadLucideLib().then(lib => { lucideIcons.value = lib })
 }
 loadLucide()
 

@@ -2,6 +2,7 @@
 import { computed, shallowRef } from 'vue'
 import type { Component } from 'vue'
 import type { DocField, DocTypeStatusConfig } from '@/types'
+import { loadLucideLib } from '@/lib/lucide'
 import { Badge } from '@/components/ui/badge'
 import { statusToneClass } from '@/core/status'
 import { selectOptionLabel } from '@/lib/selectOptions'
@@ -20,7 +21,7 @@ let iconsLoaded = false
 function loadIcons() {
   if (iconsLoaded) return
   iconsLoaded = true
-  import('@lucide/vue').then((lib) => { lucideIcons.value = lib as unknown as IconMap })
+  loadLucideLib().then((lib) => { lucideIcons.value = lib })
 }
 
 function getIconComponent(name: string): Component | null {

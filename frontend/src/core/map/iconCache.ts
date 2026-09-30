@@ -1,12 +1,13 @@
 import { createApp, h, type Component } from 'vue'
 import L from 'leaflet'
+import { loadLucideLib } from '@/lib/lucide'
 
 const iconPathCache = new Map<string, string>()
 type IconMap = Record<string, Component>
 let lucideLib: IconMap | null = null
 
 export async function ensureLucide(): Promise<IconMap> {
-  if (!lucideLib) lucideLib = await import('@lucide/vue') as unknown as IconMap
+  if (!lucideLib) lucideLib = await loadLucideLib()
   return lucideLib
 }
 

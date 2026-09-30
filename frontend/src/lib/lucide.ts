@@ -13,7 +13,11 @@ let modPromise: Promise<LucideModule> | null = null
 
 /** The whole icon module, PascalCase keys. Cached after first call. */
 export function loadLucideLib(): Promise<LucideModule> {
-  if (!modPromise) modPromise = import('@lucide/vue') as unknown as Promise<LucideModule>
+  // `?all` makes this a separate module instance of the package index, so the
+  // full set becomes its own lazy chunk; a plain `import('@lucide/vue')` shares
+  // the index with static `import { X } from '@lucide/vue'` and drags every
+  // icon into the initial load.
+  if (!modPromise) modPromise = import('@lucide/vue?all') as unknown as Promise<LucideModule>
   return modPromise
 }
 

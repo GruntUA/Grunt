@@ -106,11 +106,15 @@ export default defineConfig({
         rollupOptions: {
             output: {
                 manualChunks(id) {
+                    // Before vendor-vue: these also match its `/vue/` test. `@lucide/vue`
+                    // stays auto-split — a manual chunk would pull the full icon set
+                    // (lazy-loaded by useLucideIcons) into the initial load.
+                    if (id.includes('@lucide/vue')) return
+                    if (id.includes('@radix-icons/vue')) return 'vendor-icons'
                     if (isVueVendorModule(id)) return 'vendor-vue'
                     if (id.includes('@tanstack/vue-query')) return 'vendor-query'
                     if (id.includes('/clsx/') || id.includes('tailwind-merge')) return 'vendor-ui'
                     if (id.includes('reka-ui')) return 'vendor-reka'
-                    if (id.includes('@lucide/vue') || id.includes('@radix-icons/vue')) return 'vendor-icons'
                     if (id.includes('vue-i18n') || id.includes('@intlify')) return 'vendor-i18n'
                     // CodeMirror runtime core only — the `@codemirror/lang-*` grammars
                     // (and their heavy `@lezer/<language>` parser tables) are dynamically

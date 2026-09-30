@@ -4,7 +4,7 @@ import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import type { DashboardWidget } from '@/types'
 import { filteredListUrl } from '@/pages/reports/drilldown'
-import * as LucideIcons from '@lucide/vue'
+import { useLucideIcons } from '@/core/composables/useLucideIcons'
 import { TrendingUp, TrendingDown, Minus } from '@lucide/vue'
 
 const { t } = useI18n()
@@ -17,6 +17,7 @@ const props = defineProps<{
 }>()
 
 const router = useRouter()
+const { iconFor } = useLucideIcons()
 
 /** Card → the widget's list, filtered to the rows the value was computed over. */
 const canOpen = computed(() => !!props.widget.doctype && !!props.data?.filters)
@@ -26,10 +27,7 @@ function open() {
   router.push(filteredListUrl(props.widget.doctype, props.data!.filters!, props.workspaceName))
 }
 
-const iconComponent = computed(() => {
-  if (!props.widget.icon) return null
-  return (LucideIcons as Record<string, unknown>)[props.widget.icon] ?? null
-})
+const iconComponent = computed(() => iconFor(props.widget.icon))
 
 const colorMap: Record<string, string> = {
   primary:     'bg-primary/10 text-primary',

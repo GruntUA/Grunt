@@ -1,6 +1,7 @@
 <script setup lang="ts">
 /** A Lucide icon by kebab-case name (`trash-2`), loaded lazily. */
 import { computed, shallowRef, type Component } from 'vue'
+import { loadLucideLib } from '@/lib/lucide'
 
 const props = defineProps<{ name?: string | null }>()
 
@@ -11,8 +12,8 @@ const component = computed(() => {
   const raw = String(props.name ?? '').trim()
   if (!raw) return null
   if (!icons.value) {
-    loading ??= import('@lucide/vue').then((lib) => {
-      icons.value = lib as unknown as Record<string, Component>
+    loading ??= loadLucideLib().then((lib) => {
+      icons.value = lib
     })
     return null
   }
