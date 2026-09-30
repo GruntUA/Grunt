@@ -335,6 +335,22 @@ msgstr "Нумерований список"
 msgid "Quote"
 msgstr "Цитата"
 
+#: grunt/frontend/src/components/fields/RichText/RichText.vue
+msgid "Align left"
+msgstr "По лівому краю"
+
+#: grunt/frontend/src/components/fields/RichText/RichText.vue
+msgid "Align center"
+msgstr "По центру"
+
+#: grunt/frontend/src/components/fields/RichText/RichText.vue
+msgid "Align right"
+msgstr "По правому краю"
+
+#: grunt/frontend/src/components/fields/RichText/RichText.vue
+msgid "Justify"
+msgstr "По ширині"
+
 #: grunt/frontend/src/components/fields/RichText/RichText.vue:583
 msgid "Increase indent"
 msgstr "Збільшити відступ"

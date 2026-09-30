@@ -8,6 +8,7 @@ import type { Node as PmNode } from '@tiptap/pm/model'
 import StarterKit from '@tiptap/starter-kit'
 import { TextStyle } from '@tiptap/extension-text-style'
 import Link from '@tiptap/extension-link'
+import TextAlign from '@tiptap/extension-text-align'
 import Image from '@tiptap/extension-image'
 import Placeholder from '@tiptap/extension-placeholder'
 import CharacterCount from '@tiptap/extension-character-count'
@@ -27,6 +28,7 @@ import {
   Minus, Image as ImageIcon,
   Table as TableIcon,
   Upload, IndentIncrease, IndentDecrease,
+  TextAlignStart, TextAlignCenter, TextAlignEnd, TextAlignJustify,
   FileUp, Loader2, Paperclip, Images, Video, Trash2,
 } from '@lucide/vue'
 import type { DocField } from '@/types'
@@ -251,6 +253,14 @@ const IndentExt = Extension.create({
   },
 })
 
+// ── Alignment ─────────────────────────────────────────────────────────────────
+const ALIGNMENTS = [
+  { value: 'left', label: t('Align left'), icon: TextAlignStart },
+  { value: 'center', label: t('Align center'), icon: TextAlignCenter },
+  { value: 'right', label: t('Align right'), icon: TextAlignEnd },
+  { value: 'justify', label: t('Justify'), icon: TextAlignJustify },
+]
+
 // ── Bubble menu ───────────────────────────────────────────────────────────────
 const wrapperEl = ref<HTMLElement | null>(null)
 const bubbleVisible = ref(false)
@@ -445,6 +455,7 @@ const editor = useEditor({
     }),
     RichTextStyle,
     IndentExt,
+    TextAlign.configure({ types: ['paragraph', 'heading'] }),
     Link.configure({ openOnClick: false }),
     Image.configure({ inline: false }),
     TableKit,
@@ -577,6 +588,14 @@ const doOutdent = () => (editor.value?.commands as any)?.outdent?.()
         :class="editor.isActive('blockquote') ? 'text-primary bg-accent' : 'text-muted-foreground'"
         @click="editor.chain().focus().toggleBlockquote().run()">
         <Quote class="size-4" />
+      </Button>
+
+      <!-- Alignment -->
+      <Button v-for="a in ALIGNMENTS" :key="a.value" size="sm" variant="ghost" :title="a.label" :aria-label="a.label"
+        :aria-pressed="editor.isActive({ textAlign: a.value })"
+        :class="editor.isActive({ textAlign: a.value }) ? 'text-primary bg-accent' : 'text-muted-foreground'"
+        @click="editor.chain().focus().toggleTextAlign(a.value).run()">
+        <component :is="a.icon" class="size-4" />
       </Button>
 
       <!-- Indent / Outdent -->
