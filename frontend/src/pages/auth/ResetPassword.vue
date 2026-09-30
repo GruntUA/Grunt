@@ -42,7 +42,8 @@ async function handleSubmit() {
     await authApi.resetPassword(token.value, newPassword.value)
     done.value = true
   } catch (e: any) {
-    const detail = e?.response?.data?.detail
+    const body = e?.response?.data
+    const detail = body?.error?.message ?? body?.detail
     if (typeof detail === 'string') {
       error.value = detail
     } else {

@@ -24,7 +24,7 @@ async function handleSubmit() {
     await authApi.forgotPassword(email.value)
     sent.value = true
   } catch (e: any) {
-    error.value = e?.response?.data?.detail || e?.message || 'Something went wrong'
+    error.value = e?.response?.data?.error?.message || e?.response?.data?.detail || e?.message || 'Something went wrong'
   } finally {
     loading.value = false
   }
