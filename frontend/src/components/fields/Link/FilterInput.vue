@@ -19,6 +19,7 @@ const props = defineProps<{
   modelValue: string
   displayValue: string
   op: string
+  placeholder?: string
 }>()
 
 const emit = defineEmits<{
@@ -217,7 +218,7 @@ onUnmounted(() => {
     :model-value="modelValue || null"
     :options="treeNodes"
     :loading="treeLoading"
-    :placeholder="t('Select {doctype}…', { doctype: field.options ?? '' })"
+    :placeholder="placeholder ?? t('Select {doctype}…', { doctype: field.options ?? '' })"
     class="w-full text-xs"
     @update:model-value="onTreeSelect"
   />
@@ -241,7 +242,7 @@ onUnmounted(() => {
     <Input
       :model-value="query"
       class="h-8 text-xs w-full pr-7"
-      :placeholder="t('Search {doctype}…', { doctype: field.options ?? '' })"
+      :placeholder="placeholder ?? t('Search {doctype}…', { doctype: field.options ?? '' })"
       autocomplete="off"
       role="combobox"
       aria-autocomplete="list"

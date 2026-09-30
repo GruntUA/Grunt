@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { X } from '@lucide/vue'
 import type { DocField, DocType, QuickFilter } from '@/types'
 import { Button } from '@/components/ui/button'
@@ -8,6 +8,8 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
+import LinkFilterInput from '@/components/fields/Link/FilterInput.vue'
+import { docsApi } from '@/core/api'
 
 const { t } = useI18n()
 
@@ -54,6 +56,43 @@ function getValue(ff: QuickFilter): string {
 function onInput(ff: QuickFilter, value: string) {
   emit('update:modelValue', { ...props.modelValue, [ff.id]: value })
 }
+
+// Link filters store the linked document's id; its title is kept here for display.
+const linkTitles = ref<Record<string, string>>({})
+
+function linkTitleKey(ff: QuickFilter, id = getValue(ff)): string {
+  return `${ff.id}:${id}`
+}
+
+// The picker emits the id, then its title, before the new id comes back via props.
+const pickedIds: Record<string, string> = {}
+
+function onLinkPick(ff: QuickFilter, id: string) {
+  pickedIds[ff.id] = id
+  onInput(ff, id)
+}
+
+function onLinkTitle(ff: QuickFilter, title: string) {
+  const id = pickedIds[ff.id]
+  if (id && title) linkTitles.value = { ...linkTitles.value, [linkTitleKey(ff, id)]: title }
+}
+
+// A value restored from saved view state arrives without a title — look it up.
+watch(
+  () => activeDefs.value.filter(ff => ff.input_type === 'link' && getValue(ff)).map(ff => linkTitleKey(ff)).join('|'),
+  () => {
+    for (const ff of activeDefs.value) {
+      const id = getValue(ff)
+      const doctype = getField(ff)?.options
+      const key = linkTitleKey(ff)
+      if (ff.input_type !== 'link' || !id || !doctype || key in linkTitles.value) continue
+      docsApi.linkSearch(String(doctype), '', { name: id }, 1)
+        .then(([hit]) => { if (hit) linkTitles.value = { ...linkTitles.value, [key]: hit.title || hit.name } })
+        .catch(() => {})
+    }
+  },
+  { immediate: true },
+)
 </script>
 
 <template>
@@ -119,7 +158,23 @@ function onInput(ff: QuickFilter, value: string) {
             @update:model-value="(v: boolean | 'indeterminate') => onInput(ff, v === true ? '1' : '0')"
           />
 
-          <!-- Text / link / fallback -->
+          <!-- Link: pick the linked document (the filter compares its id, not typed text) -->
+          <div
+            v-else-if="ff.input_type === 'link' && getField(ff)"
+            class="w-[180px] [&_input]:h-7 [&_input]:text-xs"
+          >
+            <LinkFilterInput
+              :field="getField(ff)!"
+              :model-value="getValue(ff)"
+              :display-value="linkTitles[linkTitleKey(ff)] ?? ''"
+              :op="ff.operator"
+              :placeholder="props.variant === 'quick' ? getLabel(ff) : undefined"
+              @update:model-value="(v: string) => onLinkPick(ff, v)"
+              @update:display-value="(v: string) => onLinkTitle(ff, v)"
+            />
+          </div>
+
+          <!-- Text / fallback -->
           <Input
             v-else
             :id="`ff-${ff.id}`"
@@ -133,7 +188,7 @@ function onInput(ff: QuickFilter, value: string) {
 
           <!-- Clear button, inside the control for text-like inputs -->
           <Button
-            v-if="getValue(ff) && ff.input_type !== 'select' && ff.input_type !== 'check'"
+            v-if="getValue(ff) && ff.input_type !== 'select' && ff.input_type !== 'check' && ff.input_type !== 'link'"
             variant="ghost" size="icon"
             class="absolute right-0.5 top-1/2 z-10 size-5 -translate-y-1/2 text-muted-foreground hover:text-foreground"
             @click="onInput(ff, '')"
