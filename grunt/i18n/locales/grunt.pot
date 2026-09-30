@@ -832,8 +832,8 @@ msgstr ""
 #: grunt/frontend/src/components/views/form/FormHeader.vue:445
 #: grunt/frontend/src/components/views/list/QuickFilterSettingsDialog.vue:112
 #: grunt/frontend/src/components/views/map/MapView.vue:206
+#: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue:184
 #: grunt/frontend/src/components/fields/Table/TableRowSheet.vue:108
-#: grunt/frontend/src/pages/app/AppPage.vue:362
 msgid "Cancel"
 msgstr ""
 
@@ -910,6 +910,10 @@ msgstr ""
 #: grunt/frontend/src/core/api/client.ts:197
 msgid ""
 "Changes saved on this device — they will be sent once the connection is back"
+msgstr ""
+
+#: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:271
+msgid "Change…"
 msgstr ""
 
 #: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:436
@@ -1011,6 +1015,11 @@ msgstr ""
 msgid "Choose from list"
 msgstr ""
 
+#: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:267
+#: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:271
+msgid "Choose from the tree"
+msgstr ""
+
 #: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:542
 msgid "Choose the first available DocType"
 msgstr ""
@@ -1020,6 +1029,7 @@ msgid "Choose them in the Builder → «Views» tab → «Gantt chart»."
 msgstr ""
 
 #: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue:340
+#: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue:183
 #: grunt/frontend/src/components/fields/Link/FilterInput.vue:261
 #: grunt/frontend/src/components/fields/Link/Link.vue:139
 #: grunt/frontend/src/components/fields/Link/Link.vue:140
@@ -1042,6 +1052,7 @@ msgid "Clear cache"
 msgstr ""
 
 #: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue:398
+#: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue:156
 msgid "Clear search"
 msgstr ""
 
@@ -1095,7 +1106,7 @@ msgid "Code from the email"
 msgstr ""
 
 #: grunt/frontend/src/components/desk/TaskProgressPanel.vue:111
-#: grunt/frontend/src/components/ui/tree-select/TreeSelectNode.vue:58
+#: grunt/frontend/src/components/ui/tree-select/TreeSelectNode.vue:65
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:330
 msgid "Collapse"
 msgstr ""
@@ -1923,6 +1934,7 @@ msgstr ""
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:169
 #: grunt/frontend/src/components/views/form/FormHeader.vue:310
 #: grunt/frontend/src/components/views/form/FormHeader.vue:459
+#: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue:185
 msgid "Done"
 msgstr ""
 
@@ -2175,7 +2187,7 @@ msgstr ""
 
 #: grunt/frontend/src/components/desk/TaskProgressPanel.vue:111
 #: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue:426
-#: grunt/frontend/src/components/ui/tree-select/TreeSelectNode.vue:58
+#: grunt/frontend/src/components/ui/tree-select/TreeSelectNode.vue:65
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:330
 msgid "Expand"
 msgstr ""
@@ -3692,7 +3704,7 @@ msgid "No recipient address specified."
 msgstr ""
 
 #: grunt/frontend/src/components/dashboard/widgets/List/List.vue:51
-#: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:308
+#: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:354
 #: grunt/frontend/src/components/fields/Link/FilterInput.vue:298
 #: grunt/frontend/src/components/fields/Link/Link.vue:195
 msgid "No records"
@@ -3832,6 +3844,7 @@ msgstr ""
 #: grunt/frontend/src/components/views/form/DocLinksDialog.vue:103
 #: grunt/frontend/src/components/views/list/QuickFilterSettingsDialog.vue:103
 #: grunt/frontend/src/components/views/list/ListToolbarControls.vue:187
+#: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue:177
 #: grunt/frontend/src/components/fields/Link/FilterInput.vue:297
 #: grunt/frontend/src/components/fields/Icon/Icon.vue:132
 msgid "Nothing found"
@@ -3842,7 +3855,7 @@ msgstr ""
 msgid "Nothing found for"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:307
+#: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:353
 #: grunt/frontend/src/components/fields/Link/Link.vue:194
 msgid "Nothing found for “{query}”"
 msgstr ""
@@ -4456,7 +4469,7 @@ msgstr ""
 msgid "Remove video"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:232
+#: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:256
 msgid "Remove {item}"
 msgstr ""
 
@@ -4860,7 +4873,7 @@ msgstr ""
 msgid "Search user..."
 msgstr ""
 
-#: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:243
+#: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:278
 #: grunt/frontend/src/components/fields/Link/FilterInput.vue:244
 #: grunt/frontend/src/components/fields/Link/Link.vue:102
 msgid "Search {doctype}…"
@@ -4878,7 +4891,7 @@ msgid "Search..."
 msgstr ""
 
 #: grunt/frontend/src/components/layout/CommandPalette.vue:287
-#: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:306
+#: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:352
 #: grunt/frontend/src/components/fields/Link/FilterInput.vue:296
 #: grunt/frontend/src/components/fields/Link/Link.vue:193
 #: grunt/frontend/src/pages/app/SearchResultsPage.vue:160
@@ -4888,6 +4901,7 @@ msgstr ""
 #: grunt/frontend/src/components/desk/GruntDialog.vue:263
 #: grunt/frontend/src/components/ui/multi-select/MultiSelect.vue:99
 #: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue:388
+#: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue:148
 msgid "Search…"
 msgstr ""
 
@@ -4971,6 +4985,10 @@ msgstr ""
 #: grunt/frontend/src/components/desk/GruntDialog.vue:337
 #: grunt/frontend/src/components/fields/Table/Table.vue:440
 msgid "Selected:"
+msgstr ""
+
+#: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue:181
+msgid "Selected: {n}"
 msgstr ""
 
 #: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:286
@@ -5922,6 +5940,10 @@ msgstr ""
 #: grunt/frontend/src/components/dashboard/widgets/Calendar/Calendar.vue:21
 #: grunt/frontend/src/components/views/calendar/CalendarView.vue:324
 msgid "Thu"
+msgstr ""
+
+#: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue:142
+msgid "Tick the items you need in the tree"
 msgstr ""
 
 #: grunt/frontend/src/components/dashboard/sections/TilesSection.vue:64

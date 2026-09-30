@@ -2,12 +2,13 @@
 import { ref, watch, computed, onUnmounted, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { DocField } from '@/types'
-import { docsApi } from '@/core/api'
+import { docsApi, metaApi } from '@/core/api'
 import type { LinkSearchItem } from '@/core/api/docs'
-import { X, Loader2 } from '@lucide/vue'
+import { X, Loader2, ListTree } from '@lucide/vue'
 import { Badge } from '@/components/ui/badge'
 import { escapeHtml } from '@/lib/utils'
 import { useAnchoredDropdown } from '@/core/composables/useAnchoredDropdown'
+import TreePicker from './TreePicker.vue'
 
 const props = defineProps<{
   field: DocField
@@ -31,6 +32,11 @@ const activeIdx = ref(-1)
 
 // name → display label; seeded from search hits and resolved in bulk on load.
 const labels = ref<Map<string, string>>(new Map())
+
+// Tree target DocType → values are picked in a dialog with the whole tree.
+const isTree = ref(false)
+const titleField = ref('name')
+const pickerOpen = ref(false)
 
 const inputEl = ref<HTMLInputElement | null>(null)
 const anchorRef = ref<HTMLElement | null>(null)
@@ -102,9 +108,18 @@ async function resolveLabels(values: string[]) {
 
 watch(
   () => props.field.options,
-  () => {
+  async (doctype) => {
     labels.value = new Map()
     if (selectedValues.value.length) resolveLabels(selectedValues.value)
+    isTree.value = false
+    if (!doctype) return
+    try {
+      const meta = await metaApi.get(doctype)
+      titleField.value = meta.title_field || 'name'
+      isTree.value = !!meta.is_tree
+    } catch {
+      /* not readable as a tree — keep the plain search input */
+    }
   },
   { immediate: true },
 )
@@ -188,6 +203,15 @@ function removeValue(name: string) {
   inputEl.value?.focus()
 }
 
+function openPicker() {
+  if (!readonly.value) pickerOpen.value = true
+}
+
+function onPicked(values: string[], picked: Map<string, string>) {
+  labels.value = new Map([...labels.value, ...picked])
+  emit('update:modelValue', values)
+}
+
 // ── Highlight (source text is user data → always escaped before v-html) ───────
 function highlight(text: string): string {
   const safe = escapeHtml(text)
@@ -216,7 +240,7 @@ onUnmounted(() => {
         error && 'border-destructive focus-within:ring-destructive',
         readonly && 'bg-muted/50 opacity-60 cursor-not-allowed',
       ]"
-      @mousedown.self="inputEl?.focus()"
+      @mousedown.self="isTree ? openPicker() : inputEl?.focus()"
     >
       <Badge
         v-for="val in selectedValues"
@@ -236,8 +260,19 @@ onUnmounted(() => {
         </button>
       </Badge>
 
+      <button
+        v-if="isTree && !readonly"
+        type="button"
+        class="flex min-w-[120px] flex-1 items-center gap-1.5 px-1 py-0.5 text-left text-muted-foreground outline-none hover:text-foreground focus-visible:text-foreground"
+        :aria-label="t('Choose from the tree')"
+        @click="openPicker"
+      >
+        <ListTree class="size-4 shrink-0" />
+        <span>{{ selectedValues.length ? t('Change…') : (field.placeholder ?? t('Choose from the tree')) }}</span>
+      </button>
+
       <input
-        v-if="!readonly"
+        v-else-if="!readonly"
         ref="inputEl"
         :value="query"
         :placeholder="selectedValues.length ? '' : (field.placeholder ?? t('Search {doctype}…', { doctype: field.options ?? '' }))"
@@ -258,6 +293,17 @@ onUnmounted(() => {
 
       <Loader2 v-if="isLoading" class="size-4 shrink-0 animate-spin text-muted-foreground" />
     </div>
+
+    <TreePicker
+      v-if="isTree && field.options"
+      v-model:open="pickerOpen"
+      :doctype="field.options"
+      :title="field.label ?? ''"
+      :title-field="titleField"
+      :filters="linkFilters"
+      :model-value="selectedValues"
+      @update:model-value="onPicked"
+    />
 
     <!-- Dropdown -->
     <Teleport to="body">

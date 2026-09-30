@@ -71,7 +71,7 @@ msgstr "Ні"
 msgid "File deleted"
 msgstr "Файл видалено"
 
-#: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:243
+#: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:278
 #: grunt/frontend/src/components/fields/Link/FilterInput.vue:244
 #: grunt/frontend/src/components/fields/Link/Link.vue:102
 msgid "Search {doctype}…"
@@ -82,7 +82,7 @@ msgstr "Пошук {doctype}…"
 msgid "Select {doctype}…"
 msgstr "Оберіть {doctype}…"
 
-#: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:307
+#: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:353
 #: grunt/frontend/src/components/fields/Link/Link.vue:194
 msgid "Nothing found for “{query}”"
 msgstr "Нічого не знайдено за запитом «{query}»"
@@ -92,6 +92,7 @@ msgid "Filter:"
 msgstr "Фільтр:"
 
 #: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue:340
+#: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue:183
 #: grunt/frontend/src/components/fields/Link/FilterInput.vue:261
 #: grunt/frontend/src/components/fields/Link/Link.vue:139
 #: grunt/frontend/src/components/fields/Link/Link.vue:140
@@ -103,7 +104,7 @@ msgstr "Фільтр:"
 msgid "Clear"
 msgstr "Очистити"
 
-#: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:232
+#: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:256
 msgid "Remove {item}"
 msgstr "Прибрати {item}"
 
@@ -203,6 +204,7 @@ msgstr "Пошук іконки…"
 #: grunt/frontend/src/components/views/form/DocLinksDialog.vue:103
 #: grunt/frontend/src/components/views/list/QuickFilterSettingsDialog.vue:103
 #: grunt/frontend/src/components/views/list/ListToolbarControls.vue:187
+#: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue:177
 #: grunt/frontend/src/components/fields/Link/FilterInput.vue:297
 #: grunt/frontend/src/components/fields/Icon/Icon.vue:132
 msgid "Nothing found"
@@ -2946,8 +2948,8 @@ msgstr "Камера недоступна."
 #: grunt/frontend/src/components/views/form/FormHeader.vue:445
 #: grunt/frontend/src/components/views/list/QuickFilterSettingsDialog.vue:112
 #: grunt/frontend/src/components/views/map/MapView.vue:206
+#: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue:184
 #: grunt/frontend/src/components/fields/Table/TableRowSheet.vue:108
-#: grunt/frontend/src/pages/app/AppPage.vue:362
 msgid "Cancel"
 msgstr "Скасувати"
 
@@ -3113,6 +3115,7 @@ msgstr "Документи"
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:169
 #: grunt/frontend/src/components/views/form/FormHeader.vue:310
 #: grunt/frontend/src/components/views/form/FormHeader.vue:459
+#: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue:185
 msgid "Done"
 msgstr "Готово"
 
@@ -3364,7 +3367,7 @@ msgid "No notifications"
 msgstr "Немає сповіщень"
 
 #: grunt/frontend/src/components/dashboard/widgets/List/List.vue:51
-#: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:308
+#: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:354
 #: grunt/frontend/src/components/fields/Link/FilterInput.vue:298
 #: grunt/frontend/src/components/fields/Link/Link.vue:195
 msgid "No records"
@@ -3583,7 +3586,7 @@ msgid "Search..."
 msgstr "Пошук..."
 
 #: grunt/frontend/src/components/layout/CommandPalette.vue:287
-#: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:306
+#: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:352
 #: grunt/frontend/src/components/fields/Link/FilterInput.vue:296
 #: grunt/frontend/src/components/fields/Link/Link.vue:193
 #: grunt/frontend/src/pages/app/SearchResultsPage.vue:160
@@ -6930,12 +6933,14 @@ msgid "Choose a value from the tree"
 msgstr "Оберіть значення з дерева"
 
 #: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue:398
+#: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue:156
 msgid "Clear search"
 msgstr "Очистити пошук"
 
 #: grunt/frontend/src/components/desk/GruntDialog.vue:263
 #: grunt/frontend/src/components/ui/multi-select/MultiSelect.vue:99
 #: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue:388
+#: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue:148
 msgid "Search…"
 msgstr "Пошук…"
 
@@ -14320,13 +14325,13 @@ msgstr "~{n} хв"
 
 #: grunt/frontend/src/components/desk/TaskProgressPanel.vue:111
 #: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue:426
-#: grunt/frontend/src/components/ui/tree-select/TreeSelectNode.vue:58
+#: grunt/frontend/src/components/ui/tree-select/TreeSelectNode.vue:65
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:330
 msgid "Expand"
 msgstr "Розгорнути"
 
 #: grunt/frontend/src/components/desk/TaskProgressPanel.vue:111
-#: grunt/frontend/src/components/ui/tree-select/TreeSelectNode.vue:58
+#: grunt/frontend/src/components/ui/tree-select/TreeSelectNode.vue:65
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:330
 msgid "Collapse"
 msgstr "Згорнути"
@@ -14577,6 +14582,23 @@ msgstr "Видалити галерею"
 #: grunt/grunt/document/mixins/write.py:113
 msgid "No access: “%(field)s” is outside your user permissions"
 msgstr "Немає доступу: значення поля «%(field)s» поза вашими дозволами"
+
+#: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:271
+msgid "Change…"
+msgstr "Змінити…"
+
+#: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:267
+#: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:271
+msgid "Choose from the tree"
+msgstr "Вибрати з дерева"
+
+#: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue:181
+msgid "Selected: {n}"
+msgstr "Вибрано: {n}"
+
+#: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue:142
+msgid "Tick the items you need in the tree"
+msgstr "Позначте потрібні пункти в дереві"
 
 #~ msgid "Quick create (Ctrl+N)"
 #~ msgstr "Швидке створення (Ctrl+N)"

@@ -8,6 +8,8 @@ const props = defineProps<{
   node: TreeNode
   depth: number
   selectedKey: string | null
+  /** Multi-select mode: every row gets a checkbox, `selectedKey` is ignored. */
+  selectedKeys?: string[]
   expandedKeys: Record<string, boolean>
   /** Active search text — matching part of the label is emphasised. */
   query?: string
@@ -22,7 +24,12 @@ const { t } = useI18n()
 
 const hasChildren = computed(() => !!props.node.children?.length)
 const expanded = computed(() => hasChildren.value && !!props.expandedKeys[props.node.key])
-const selected = computed(() => props.node.key === props.selectedKey)
+const multiple = computed(() => props.selectedKeys !== undefined)
+const selected = computed(() =>
+  multiple.value
+    ? props.selectedKeys!.includes(props.node.key)
+    : props.node.key === props.selectedKey,
+)
 
 /** Label split around the first case-insensitive match of `query`. */
 const parts = computed(() => {
@@ -61,12 +68,19 @@ const parts = computed(() => {
         <ChevronRight class="size-3.5 transition-transform" :class="expanded && 'rotate-90'" />
       </button>
       <span v-else class="size-4.5 shrink-0" />
+      <span
+        v-if="multiple"
+        class="flex size-4 shrink-0 items-center justify-center rounded-[4px] border"
+        :class="selected ? 'border-primary bg-primary text-primary-foreground' : 'border-input'"
+      >
+        <Check v-if="selected" class="size-3" />
+      </span>
       <span class="min-w-0 flex-1 break-words">
         <template v-if="parts">{{ parts[0] }}<mark class="rounded-xs bg-primary/15 text-foreground">{{ parts[1] }}</mark>{{ parts[2] }}</template>
         <template v-else>{{ node.label }}</template>
       </span>
       <span v-if="hasChildren && !expanded" class="shrink-0 text-xs text-muted-foreground tabular-nums">{{ node.children!.length }}</span>
-      <Check v-if="selected" class="size-4 shrink-0 text-primary" />
+      <Check v-if="selected && !multiple" class="size-4 shrink-0 text-primary" />
     </div>
 
     <div v-if="expanded" role="group">
@@ -76,6 +90,7 @@ const parts = computed(() => {
         :node="child"
         :depth="depth + 1"
         :selected-key="selectedKey"
+        :selected-keys="selectedKeys"
         :expanded-keys="expandedKeys"
         :query="query"
         @select="(k) => emit('select', k)"
