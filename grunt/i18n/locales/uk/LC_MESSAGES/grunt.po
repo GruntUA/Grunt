@@ -13571,20 +13571,20 @@ msgstr "Поділитися документом може лише той, хт
 msgid "User “%(user)s” not found"
 msgstr "Користувача «%(user)s» не знайдено"
 
-#: grunt/grunt/document/mixins/write.py:334
+#: grunt/grunt/document/mixins/write.py:356
 #: grunt/grunt/activity/doctypes/DocFollow/doc_follow.py:27
 msgid "No access to the document"
 msgstr "Немає доступу до документа"
 
-#: grunt/grunt/document/mixins/write.py:611
+#: grunt/grunt/document/mixins/write.py:635
 msgid "Cancel the document before deleting it"
 msgstr "Скасуйте документ перед видаленням"
 
-#: grunt/grunt/document/mixins/write.py:628
+#: grunt/grunt/document/mixins/write.py:652
 msgid "Could not reassign the links: uniqueness conflict"
 msgstr "Не вдалося перепризначити посилання — конфлікт унікальності"
 
-#: grunt/grunt/document/mixins/write.py:494
+#: grunt/grunt/document/mixins/write.py:516
 msgid ""
 "The document was changed after you started editing. Open it again and repeat"
 " your changes."
@@ -14005,7 +14005,7 @@ msgstr "Файл не знайдено"
 msgid "Session not found"
 msgstr "Сесію не знайдено"
 
-#: grunt/grunt/document/mixins/write.py:123
+#: grunt/grunt/document/mixins/write.py:140
 msgid "'%(name)s' is a singleton."
 msgstr "«%(name)s» — singleton (єдиний запис)."
 
@@ -14573,6 +14573,10 @@ msgstr "Видалити список файлів"
 #: grunt/frontend/src/components/fields/RichText/fileBlocks.ts:154
 msgid "Delete gallery"
 msgstr "Видалити галерею"
+
+#: grunt/grunt/document/mixins/write.py:113
+msgid "No access: “%(field)s” is outside your user permissions"
+msgstr "Немає доступу: значення поля «%(field)s» поза вашими дозволами"
 
 #~ msgid "Quick create (Ctrl+N)"
 #~ msgstr "Швидке створення (Ctrl+N)"

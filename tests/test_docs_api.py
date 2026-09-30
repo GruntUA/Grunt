@@ -872,3 +872,55 @@ async def test_create_rejects_value_not_matching_regex(ctx):
     ok = await ctx.new_doc("RegexItem", {"code": "ABC-1234"})
     await ctx.db._session().commit()
     assert ok["code"] == "ABC-1234"
+
+
+@pytest.mark.asyncio
+async def test_lifecycle_hooks_see_submitted_multilink(ctx):
+    """validate()/after_save() see the submitted MultiLink list on create and
+    on update — not the stale stored one (or nothing at all on create)."""
+    from grunt.api.v1.meta import save_doctype
+    from grunt.document.base import Document
+    from grunt.document.registry import document_registry
+
+    await save_doctype(
+        doctype_data={
+            "name": "HookWatchItem",
+            "label": "Hook Watch Item",
+            "module": "core",
+            "fields": [
+                {"fieldname": "title", "label": "Title", "fieldtype": "Text"},
+                {
+                    "fieldname": "watchers",
+                    "label": "Watchers",
+                    "fieldtype": "MultiLink",
+                    "options": "User",
+                },
+            ],
+            "__is_new": True,
+        }
+    )
+    await ctx.db._session().commit()
+
+    seen: list[tuple[str, object]] = []
+
+    class HookWatchItem(Document):
+        async def validate(self) -> None:
+            seen.append(("validate", self.data.get("watchers")))
+
+        async def after_save(self) -> None:
+            seen.append(("after_save", self.data.get("watchers")))
+
+    document_registry.register("HookWatchItem", HookWatchItem)
+    try:
+        created = await ctx.new_doc(
+            "HookWatchItem", {"title": "x", "watchers": ["system@grunt.local"]}
+        )
+        assert seen == [
+            ("validate", ["system@grunt.local"]),
+            ("after_save", ["system@grunt.local"]),
+        ]
+        seen.clear()
+        await ctx.save_doc("HookWatchItem", created["name"], {"watchers": []})
+        assert seen == [("validate", []), ("after_save", [])]
+    finally:
+        document_registry._controllers.pop("HookWatchItem", None)

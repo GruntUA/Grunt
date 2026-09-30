@@ -44,6 +44,8 @@
     { "fieldname": "highlight", "label": "Highlight", "fieldtype": "Check", "description": "Show as a button" }
   ],
   "permissions": [
-    { "role": "System Manager", "read": true, "write": true, "create": true, "delete": true }
+    { "role": "System Manager", "read": true, "write": true, "create": true, "delete": true },
+    { "role": "Адміністратор порталу", "read": true, "write": true, "create": true, "delete": true, "match": "menu == 'mlt_portal'" },
+    { "role": "All", "read": true }
   ]
 }

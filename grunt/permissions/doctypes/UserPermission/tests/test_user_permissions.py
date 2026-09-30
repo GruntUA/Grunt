@@ -86,6 +86,25 @@ async def test_single_doc_read_and_write_blocked(ctx, setup, db_session, engine)
 
 
 @pytest.mark.asyncio
+async def test_new_values_are_checked_on_create_and_update(ctx, setup, db_session, engine):
+    """The stored row alone isn't enough: a restricted user may neither create
+    a record outside their scope nor move one of theirs out of it."""
+    import grunt
+
+    async with grunt.context(db_session, engine, _employee("alice@example.com")):
+        with pytest.raises(HTTPException) as exc:
+            await grunt.new_doc("UPTestPost", {"title": "sneaky", "team": "Blue"})
+        assert exc.value.status_code == 403
+        with pytest.raises(HTTPException) as exc:
+            await grunt.save_doc("UPTestPost", setup["red"], {"team": "Blue"})
+        assert exc.value.status_code == 403
+
+        created = await grunt.new_doc("UPTestPost", {"title": "mine", "team": "Red"})
+        assert created["team"] == "Red"
+        await grunt.save_doc("UPTestPost", setup["red"], {"title": "renamed"})
+
+
+@pytest.mark.asyncio
 async def test_system_manager_is_exempt(ctx, setup, db_session, engine):
     import grunt
 

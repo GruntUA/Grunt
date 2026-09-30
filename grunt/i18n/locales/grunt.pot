@@ -76,7 +76,7 @@ msgstr ""
 msgid "%(user)s mentioned you in a comment"
 msgstr ""
 
-#: grunt/grunt/document/mixins/write.py:123
+#: grunt/grunt/document/mixins/write.py:140
 msgid "'%(name)s' is a singleton."
 msgstr ""
 
@@ -842,7 +842,7 @@ msgstr ""
 msgid "Cancel task"
 msgstr ""
 
-#: grunt/grunt/document/mixins/write.py:611
+#: grunt/grunt/document/mixins/write.py:635
 msgid "Cancel the document before deleting it"
 msgstr ""
 
@@ -1392,7 +1392,7 @@ msgstr ""
 msgid "Could not open the report"
 msgstr ""
 
-#: grunt/grunt/document/mixins/write.py:628
+#: grunt/grunt/document/mixins/write.py:652
 msgid "Could not reassign the links: uniqueness conflict"
 msgstr ""
 
@@ -3539,7 +3539,7 @@ msgstr ""
 msgid "No TABLE fields in this DocType"
 msgstr ""
 
-#: grunt/grunt/document/mixins/write.py:334
+#: grunt/grunt/document/mixins/write.py:356
 #: grunt/grunt/activity/doctypes/DocFollow/doc_follow.py:27
 msgid "No access to the document"
 msgstr ""
@@ -3554,6 +3554,10 @@ msgstr ""
 
 #: grunt/grunt/permissions/rbac.py:165
 msgid "No access: %(action)s “%(doctype)s”"
+msgstr ""
+
+#: grunt/grunt/document/mixins/write.py:113
+msgid "No access: “%(field)s” is outside your user permissions"
 msgstr ""
 
 #: grunt/grunt/website/www/login.ssr.html:98
@@ -5638,7 +5642,7 @@ msgstr ""
 msgid "The document has no Workflow configured"
 msgstr ""
 
-#: grunt/grunt/document/mixins/write.py:494
+#: grunt/grunt/document/mixins/write.py:516
 msgid ""
 "The document was changed after you started editing. Open it again and repeat"
 " your changes."

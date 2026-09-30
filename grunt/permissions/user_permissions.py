@@ -19,7 +19,9 @@ Not applied to System Manager. When SystemSettings
 field on the target DocType (or a NULL value) blocks rather than passes.
 
 Wired into ``apply_permission_filter`` (lists / counts / link search / reports)
-and ``PermissionChecker.check`` (single-document read / write / delete).
+and ``PermissionChecker.check`` (single-document read / write / delete); the
+write path also checks the *new* values of a created / updated document, so a
+restricted user cannot insert or move a record outside their scope.
 """
 
 from __future__ import annotations
@@ -192,12 +194,18 @@ async def build_conditions(
     return conds or None
 
 
-async def doc_passes(user: User | None, doctype: DocType | Meta, doc: dict[str, Any]) -> bool:
-    """Python-level check of a single already-fetched *doc* against *user*'s
-    permissions — the per-document counterpart of :func:`build_conditions`."""
+async def doc_violation(
+    user: User | None, doctype: DocType | Meta, doc: dict[str, Any]
+) -> str | None:
+    """Python-level check of a single *doc* against *user*'s permissions — the
+    per-document counterpart of :func:`build_conditions`.
+
+    Returns the offending Link fieldname (``""`` when strict mode denies a
+    restricted type the DocType has no field for), or ``None`` when *doc* passes.
+    """
     up = await get_user_permissions_for(user, doctype.name)
     if not up:
-        return True
+        return None
 
     strict = await _strict_mode()
     for allow, values in up.items():
@@ -206,17 +214,31 @@ async def doc_passes(user: User | None, doctype: DocType | Meta, doc: dict[str, 
         checkable = [fn for fn in fields if fn == "name" or fn in doc]
         if not checkable:
             if strict:
-                return False
+                return ""
             continue
         for fn in checkable:
             value = doc.get("name") if fn == "name" else doc.get(fn)
             if value in (None, ""):
                 if strict:
-                    return False
+                    return fn
                 continue
             if value not in values:
-                return False
-    return True
+                return fn
+    return None
+
+
+async def doc_passes(user: User | None, doctype: DocType | Meta, doc: dict[str, Any]) -> bool:
+    """True when *doc* satisfies *user*'s permissions (see :func:`doc_violation`)."""
+    return await doc_violation(user, doctype, doc) is None
+
+
+async def allowed_values(user: User | None, doctype_name: str, allow: str) -> set[str] | None:
+    """Values of *allow* that *user* is limited to on *doctype_name* (tree
+    ``allow`` — with every descendant), or ``None`` when unrestricted."""
+    values = (await get_user_permissions_for(user, doctype_name)).get(allow)
+    if not values:
+        return None
+    return await _expand_tree_values(allow, values)
 
 
 # ── Whitelisted endpoints ────────────────────────────────────────────────

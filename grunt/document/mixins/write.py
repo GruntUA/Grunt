@@ -96,6 +96,23 @@ class DocumentWriteMixin(DocumentReadMixin):
         except ApplicationError as e:
             raise e.to_api_error() from e
 
+    @staticmethod
+    async def _require_user_permissions(dt: Any, row: dict[str, Any], user: User) -> None:
+        """403 when the values being written fall outside *user*'s User
+        Permissions — the role check alone only looks at the stored row, so
+        without this a restricted user could create a record in (or move one
+        to) a scope they may not touch."""
+        from grunt.permissions.user_permissions import doc_violation
+
+        fieldname = await doc_violation(user, dt, row)
+        if fieldname is None:
+            return
+        label = _(dt.get_label(fieldname)) if fieldname else _(dt.doc.label or dt.doc.name)
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=_("No access: “%(field)s” is outside your user permissions") % {"field": label},
+        )
+
     async def _fire_write_hooks(
         self,
         primary_event: str,
@@ -166,6 +183,10 @@ class DocumentWriteMixin(DocumentReadMixin):
                 row[k] = v
 
         apply_field_values(dt.fields, data, row)
+        # Submitted MultiLink lists, so lifecycle hooks see them (persisted from *data*).
+        for f in dt.get_multilink_fields():
+            if f.fieldname in data:
+                row[f.fieldname] = data[f.fieldname]
 
         from grunt.workflow.registry import get_active_workflow
 
@@ -197,6 +218,7 @@ class DocumentWriteMixin(DocumentReadMixin):
         doc = controller_cls(doctype_name, row, user, self.session)
 
         await self._run_lifecycle_hooks(doc, "validate", "before_insert", "before_save")
+        await self._require_user_permissions(dt, row, user)
         await fill_route(dt, row, self.session)
         await compute_formulas(dt.doc, row)
         await self._insert_row(table, row)
@@ -506,7 +528,8 @@ class DocumentWriteMixin(DocumentReadMixin):
         merged = {**existing, **update_data}
         # Inject submitted child-table rows into merged so lifecycle hooks see the
         # incoming data (not the old DB rows) and their mutations are persisted.
-        for _f in dt.get_child_table_fields():
+        # MultiLink lists too — visible to hooks, persisted from *data*.
+        for _f in [*dt.get_child_table_fields(), *dt.get_multilink_fields()]:
             if _f.fieldname in data:
                 merged[_f.fieldname] = data[_f.fieldname]
 
@@ -515,6 +538,7 @@ class DocumentWriteMixin(DocumentReadMixin):
             controller_cls = document_registry.get(doctype_name)
             doc = controller_cls(doctype_name, merged, user, self.session)
             await self._run_lifecycle_hooks(doc, "validate", "before_save")
+            await self._require_user_permissions(dt, merged, user)
             await fill_route(dt, merged, self.session)
 
             # _persist_update_doc computes formulas then performs a single pass that
