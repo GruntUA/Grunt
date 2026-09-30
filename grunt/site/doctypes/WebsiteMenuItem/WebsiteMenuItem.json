@@ -19,7 +19,7 @@
     { "fieldname": "sec_item", "fieldtype": "Section" },
     { "fieldname": "col_1", "fieldtype": "Column" },
     { "fieldname": "label", "label": "Name", "fieldtype": "Text", "required": true, "in_list_view": true, "bold": true },
-    { "fieldname": "parent_menu_item", "label": "Parent item", "fieldtype": "Link", "options": "WebsiteMenuItem", "in_list_view": true, "in_filter": true },
+    { "fieldname": "parent_menu_item", "label": "Parent item", "fieldtype": "Link", "options": "WebsiteMenuItem", "in_list_view": true, "in_filter": true, "ignore_user_permissions": true },
     { "fieldname": "menu", "label": "Menu", "fieldtype": "Data", "options": "main\ntop", "default": "main", "required": true, "in_list_view": true, "in_filter": true, "in_quick_filter": true,
       "description": "main — the primary navbar, top — the slim bar above it; an app may use its own key (e.g. mlt_portal). Children inherit their parent's menu." },
     { "fieldname": "col_2", "fieldtype": "Column" },
