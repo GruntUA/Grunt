@@ -481,8 +481,11 @@ const editor = useEditor({
   onBlur: () => { bubbleVisible.value = false },
 })
 
-watch(() => props.disabled,       () => editor.value?.setEditable(isEditable()))
-watch(() => props.field.read_only, () => editor.value?.setEditable(isEditable()))
+// No update event: setEditable would re-emit the editor's own serialization,
+// which differs from the sanitized HTML the server returns (form goes dirty
+// right after saving, when the form is re-enabled).
+watch(() => props.disabled,       () => editor.value?.setEditable(isEditable(), false))
+watch(() => props.field.read_only, () => editor.value?.setEditable(isEditable(), false))
 watch(() => props.modelValue, (v) => {
   const html = String(v ?? '')
   if (html === lastEmitted) return // our own echo — don't reset the caret
