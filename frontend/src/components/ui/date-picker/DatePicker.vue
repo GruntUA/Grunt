@@ -46,8 +46,10 @@ const calendarValue = computed<DateValue | null>({
   set(val) {
     if (!val) { emit('update:modelValue', null); return }
     const jsDate = val.toDate(getLocalTimeZone())
-    if (props.showTime && props.modelValue) {
-      jsDate.setHours(props.modelValue.getHours(), props.modelValue.getMinutes(), props.modelValue.getSeconds())
+    if (props.showTime) {
+      // Keep the existing time; for an empty field use the current time, not midnight
+      const t = props.modelValue ?? new Date()
+      jsDate.setHours(t.getHours(), t.getMinutes(), props.modelValue ? t.getSeconds() : 0)
     }
     emit('update:modelValue', jsDate)
   },
@@ -75,12 +77,12 @@ function setTime(h: number, m: number) {
 }
 
 const hours = computed({
-  get: () => props.modelValue ? pad(props.modelValue.getHours()) : '00',
-  set: (v: string) => setTime(Number(v), props.modelValue?.getMinutes() ?? 0),
+  get: () => pad((props.modelValue ?? new Date()).getHours()),
+  set: (v: string) => setTime(Number(v), (props.modelValue ?? new Date()).getMinutes()),
 })
 const minutes = computed({
-  get: () => props.modelValue ? pad(props.modelValue.getMinutes()) : '00',
-  set: (v: string) => setTime(props.modelValue?.getHours() ?? 0, Number(v)),
+  get: () => pad((props.modelValue ?? new Date()).getMinutes()),
+  set: (v: string) => setTime((props.modelValue ?? new Date()).getHours(), Number(v)),
 })
 
 // --- Клавіатурний ввід ---
