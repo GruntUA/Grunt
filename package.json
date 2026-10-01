@@ -52,6 +52,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
+    "jszip": "^3.10.2",
     "leaflet": "^1.9.4",
     "leaflet.browser.print": "^2.0.2",
     "mammoth": "^1.12.1",

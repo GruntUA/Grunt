@@ -404,6 +404,18 @@ msgstr "Завантажити файл"
 msgid "Import from Word (.docx)"
 msgstr "Імпорт з Word (.docx)"
 
+#: grunt/frontend/src/components/fields/RichText/RichText.vue
+msgid "Horizontal text"
+msgstr "Горизонтальний текст"
+
+#: grunt/frontend/src/components/fields/RichText/RichText.vue
+msgid "Vertical text, top to bottom"
+msgstr "Вертикальний текст, згори донизу"
+
+#: grunt/frontend/src/components/fields/RichText/RichText.vue
+msgid "Vertical text, bottom to top"
+msgstr "Вертикальний текст, знизу догори"
+
 #: grunt/frontend/src/components/fields/RichText/RichText.vue:703
 #: grunt/frontend/src/pages/reports/ReportView.vue:198
 msgid "Table"

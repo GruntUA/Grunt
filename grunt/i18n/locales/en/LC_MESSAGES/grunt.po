@@ -583,6 +583,18 @@ msgstr ""
 msgid "Import from Word (.docx)"
 msgstr ""
 
+#: grunt/frontend/src/components/fields/RichText/RichText.vue
+msgid "Horizontal text"
+msgstr ""
+
+#: grunt/frontend/src/components/fields/RichText/RichText.vue
+msgid "Vertical text, top to bottom"
+msgstr ""
+
+#: grunt/frontend/src/components/fields/RichText/RichText.vue
+msgid "Vertical text, bottom to top"
+msgstr ""
+
 #: grunt/frontend/src/components/fields/RichText/RichText.vue:420
 msgid "Imported with warnings"
 msgstr ""

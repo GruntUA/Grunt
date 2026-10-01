@@ -29,7 +29,7 @@ import {
   Table as TableIcon,
   Upload, IndentIncrease, IndentDecrease,
   TextAlignStart, TextAlignCenter, TextAlignEnd, TextAlignJustify,
-  FileUp, Loader2, Paperclip, Images, Video, Trash2,
+  FileUp, Loader2, Paperclip, Images, Video, Trash2, Type,
 } from '@lucide/vue'
 import type { DocField } from '@/types'
 import { filesApi } from '@/core/api/files'
@@ -37,6 +37,10 @@ import type { AttachmentResult } from '@/core/attachmentChannels/types'
 import AttachPicker from '@/components/fields/Attach/AttachPicker.vue'
 import type { DocContext } from '@/components/fields/Attach/useAttachmentField'
 import { FileList, Gallery, toFileEntry, toGalleryEntry, type FileBlockKind } from './fileBlocks'
+import {
+  RichTableCell, RichTableHeader, TEXT_DIRECTIONS, applyDocxTableLayout, readDocxDocumentXml,
+  type TextDirection,
+} from './tableCells'
 import { useToast } from '@/core/composables/useToast'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -425,7 +429,8 @@ async function importDocx(e: Event) {
     const arrayBuffer = await file.arrayBuffer()
     const { default: mammoth } = await import('mammoth')
     const { value: html, messages } = await mammoth.convertToHtml({ arrayBuffer })
-    editor.value?.chain().focus().insertContent(html).run()
+    const documentXml = await readDocxDocumentXml(arrayBuffer).catch(() => null)
+    editor.value?.chain().focus().insertContent(documentXml ? applyDocxTableLayout(html, documentXml) : html).run()
     const errors = messages.filter(m => m.type === 'error')
     if (errors.length) toast.warning(errors.map(m => m.message).join('; '), t('Imported with warnings'))
   } catch (err) {
@@ -434,6 +439,26 @@ async function importDocx(e: Event) {
     docxImporting.value = false
     input.value = ''
   }
+}
+
+// ── Table cell text direction ────────────────────────────────────────────────
+const TEXT_DIRECTION_LABELS: Record<string, string> = {
+  none: t('Horizontal text'),
+  tb: t('Vertical text, top to bottom'),
+  bt: t('Vertical text, bottom to top'),
+}
+
+function cellTextDirection(): TextDirection | null {
+  if (!editor.value) return null
+  const type = editor.value.isActive('tableHeader') ? 'tableHeader' : 'tableCell'
+  return editor.value.getAttributes(type).textDirection ?? null
+}
+
+// Cycles horizontal → top-to-bottom → bottom-to-top for the selected cells.
+function cycleTextDirection() {
+  const cur = cellTextDirection()
+  const next = TEXT_DIRECTIONS[(TEXT_DIRECTIONS.indexOf(cur) + 1) % TEXT_DIRECTIONS.length]
+  editor.value?.chain().focus().setCellAttribute('textDirection', next).run()
 }
 
 // ── Editor ────────────────────────────────────────────────────────────────────
@@ -458,7 +483,11 @@ const editor = useEditor({
     TextAlign.configure({ types: ['paragraph', 'heading'] }),
     Link.configure({ openOnClick: false }),
     Image.configure({ inline: false }),
-    TableKit,
+    // Column widths are kept (from Word, or dragged by hand) so a table keeps
+    // its layout on the public page instead of being re-flowed by the browser.
+    TableKit.configure({ table: { resizable: true }, tableCell: false, tableHeader: false }),
+    RichTableCell,
+    RichTableHeader,
     YoutubeEmbed.configure({
       nocookie: true,
       width: 640,
@@ -729,6 +758,14 @@ const doOutdent = () => (editor.value?.commands as any)?.outdent?.()
           : editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()">
         <TableIcon class="size-4" />
       </Button>
+      <Button v-if="editor.isActive('table')" size="sm" variant="ghost"
+        :title="TEXT_DIRECTION_LABELS[cellTextDirection() ?? 'none']"
+        :aria-label="TEXT_DIRECTION_LABELS[cellTextDirection() ?? 'none']"
+        :class="cellTextDirection() ? 'text-primary bg-accent' : 'text-muted-foreground'"
+        @click="cycleTextDirection">
+        <Type class="size-4 transition-transform"
+          :class="{ 'rotate-90': cellTextDirection() === 'tb', '-rotate-90': cellTextDirection() === 'bt' }" />
+      </Button>
 
       <div class="flex-1" />
 
@@ -981,9 +1018,14 @@ const doOutdent = () => (editor.value?.commands as any)?.outdent?.()
   border: 1px dashed var(--border);
   padding: 0.4rem 0.6rem;
   vertical-align: top;
-  min-width: 80px;
   position: relative;
 }
+/* Cells without a set width (new tables) don't collapse; Word widths win. */
+.richtext-content .tiptap td:not([colwidth]),
+.richtext-content .tiptap th:not([colwidth]) { min-width: 80px; }
+/* Vertical cells: centre the text along the cell, as Word does. */
+.richtext-content .tiptap td[style*="writing-mode"],
+.richtext-content .tiptap th[style*="writing-mode"] { vertical-align: middle; text-align: center; }
 .richtext-content .tiptap th {
   background-color: var(--muted);
   font-weight: 600;

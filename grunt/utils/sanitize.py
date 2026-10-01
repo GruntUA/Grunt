@@ -29,6 +29,7 @@ _ALLOWED_STYLES = {
     "text-align",
     "width",
     "min-width",
+    "writing-mode",  # vertical text in table cells
 }
 _EMBED_PREFIXES = ("https://www.youtube.com/embed/", "https://www.youtube-nocookie.com/embed/")
 
