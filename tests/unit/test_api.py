@@ -415,6 +415,14 @@ class TestMessages:
         assert err.code == "CODE"
         assert err.title == "Title"
 
+    @pytest.mark.parametrize(
+        ("code", "status"),
+        [("FORBIDDEN", 403), ("PERMISSION_DENIED", 403), ("NOT_FOUND", 404), ("ERROR", 422)],
+    )
+    def test_application_error_status(self, code, status):
+        """``throw(..., "FORBIDDEN")`` must be a 403, not a generic 422."""
+        assert ApplicationError("x", code=code).status_code == status
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # TESTS: Permissions

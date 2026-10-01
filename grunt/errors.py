@@ -21,6 +21,7 @@ from grunt.i18n import _
 APPLICATION_ERROR_STATUS: dict[str, int] = {
     "UNAUTHORIZED": 401,
     "PERMISSION_DENIED": 403,
+    "FORBIDDEN": 403,
     "NOT_FOUND": 404,
     "CONFLICT": 409,
     "DUPLICATE_DATA": 409,
