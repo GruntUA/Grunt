@@ -25,13 +25,10 @@ const dateObj = computed<Date | null>({
       emit('update:modelValue', null)
       return
     }
-    const y = val.getFullYear()
-    const mo = String(val.getMonth() + 1).padStart(2, '0')
-    const day = String(val.getDate()).padStart(2, '0')
-    const h = String(val.getHours()).padStart(2, '0')
-    const mi = String(val.getMinutes()).padStart(2, '0')
-    const s = String(val.getSeconds()).padStart(2, '0')
-    emit('update:modelValue', `${y}-${mo}-${day} ${h}:${mi}:${s}`)
+    // Datetimes are stored as UTC (grunt/db/types.py treats a naive value as
+    // UTC), so send an explicit instant — a naive local wall-clock string
+    // would come back shifted by the viewer's UTC offset.
+    emit('update:modelValue', val.toISOString())
   },
 })
 </script>
