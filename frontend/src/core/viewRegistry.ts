@@ -156,6 +156,12 @@ export interface ViewDefinition {
    */
   managesOwnScroll?: boolean
   /**
+   * Like managesOwnScroll, the page is height-bounded to the viewport, but the
+   * shared pagination bar stays: the view scrolls its rows internally so the
+   * header, toolbar and pager remain visible.
+   */
+  fillsViewport?: boolean
+  /**
    * Detects the field that enables this view for a given DocType.
    * The toolbar button is hidden when this returns null.
    * Omit entirely for views that are always available (list, gallery).

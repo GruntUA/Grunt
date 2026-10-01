@@ -273,6 +273,8 @@ watch(
 // page to the viewport so their internal scrollbars stay in view, and drop the
 // shared pager (they load their own data, not one page at a time).
 const ownScrollView = computed(() => getViewDef(viewMode.value)?.managesOwnScroll ?? false)
+// Page is bounded to the viewport; the view scrolls inside it (pager may still show).
+const boundedView = computed(() => ownScrollView.value || (getViewDef(viewMode.value)?.fillsViewport ?? false))
 
 // ── Tree navigation (DocType.list_tree_field) ─────────────────────────────────
 // A Link to an `is_tree` DocType shown as a panel beside the list: its node is
@@ -400,7 +402,7 @@ watch(() => props.doctype, async (newDoctype) => {
 <template>
   <div
     class="flex flex-1 flex-col gap-3 p-4 sm:p-5 lg:p-6 animate-in fade-in duration-500"
-    :class="ownScrollView && 'h-full overflow-hidden pb-0'"
+    :class="boundedView && ['h-full overflow-hidden', ownScrollView ? 'pb-0' : 'pb-2 sm:pb-2 lg:pb-2']"
   >
     <AppBreadcrumb :workspace-name="workspace ?? 'grunt'" :doctype="doctype" :count="meta?.total ?? null">
       <template #actions>
@@ -432,7 +434,7 @@ watch(() => props.doctype, async (newDoctype) => {
       @sort="onSort"
     />
 
-    <div class="flex min-h-0 flex-1 gap-4" :class="ownScrollView && 'overflow-hidden'">
+    <div class="flex min-h-0 flex-1 gap-4" :class="boundedView && 'overflow-hidden'">
     <aside v-if="showTreeNav && dt && treeNavField"
       class="hidden w-56 shrink-0 md:block">
       <div class="sticky top-4 max-h-[calc(100vh-6rem)] overflow-y-auto pr-1">
@@ -440,7 +442,7 @@ watch(() => props.doctype, async (newDoctype) => {
           @update:filters="activeFilters = $event" @moved="onTreeRowsMoved" />
       </div>
     </aside>
-    <div class="flex min-w-0 flex-1 flex-col gap-3">
+    <div class="flex min-h-0 min-w-0 flex-1 flex-col gap-3">
     <ListViewRouter
       v-if="dt && colState"
       :view-mode="viewMode"
@@ -485,11 +487,7 @@ watch(() => props.doctype, async (newDoctype) => {
       @unregister-menu-items="unregisterMapMenuItems"
     />
 
-    <!-- Pager stays pinned to the viewport bottom while the list scrolls behind it. -->
-    <div
-      v-if="!ownScrollView && meta && (rows.length > 0 || page > 1)"
-      class="sticky bottom-0 z-10 -mx-4 border-t bg-background px-4 sm:-mx-5 sm:px-5 lg:-mx-6 lg:px-6"
-    >
+    <div v-if="!ownScrollView && meta && (rows.length > 0 || page > 1)" class="shrink-0">
       <ListPagination
         :page="meta.page"
         :pages="meta.pages"

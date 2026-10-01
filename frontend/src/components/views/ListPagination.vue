@@ -39,7 +39,7 @@ function onPerPage(v: unknown) {
 </script>
 
 <template>
-  <div class="flex flex-col-reverse items-center gap-3 px-1 py-3 text-xs sm:flex-row sm:justify-between">
+  <div class="flex flex-col-reverse items-center gap-2 px-1 text-xs sm:flex-row sm:justify-between">
     <div class="text-muted-foreground">
       {{ tn('{n} record', '{n} records', total) }}
       <span v-if="selectedCount"> · {{ t('{n} selected', { n: selectedCount }) }}</span>
@@ -49,7 +49,7 @@ function onPerPage(v: unknown) {
       <div v-if="showPerPage" class="hidden items-center gap-2 sm:flex">
         <span class="text-muted-foreground">{{ t('Rows per page') }}</span>
         <Select :model-value="String(perPage)" @update:model-value="onPerPage">
-          <SelectTrigger class="h-8 w-[4.5rem]">
+          <SelectTrigger size="sm" class="w-[4.25rem] px-2 py-0 text-xs data-[size=sm]:h-7">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -61,17 +61,17 @@ function onPerPage(v: unknown) {
       <span class="font-medium whitespace-nowrap">{{ t('Page {page} of {pages}', { page, pages: Math.max(pages, 1) }) }}</span>
 
       <div class="flex items-center gap-1">
-        <Button variant="outline" size="icon-sm" :disabled="page <= 1" :aria-label="t('First page')" @click="go(1)">
-          <ChevronsLeft class="size-4" />
+        <Button variant="outline" size="icon-sm" class="size-7" :disabled="page <= 1" :aria-label="t('First page')" @click="go(1)">
+          <ChevronsLeft class="size-3.5" />
         </Button>
-        <Button variant="outline" size="icon-sm" :disabled="page <= 1" :aria-label="t('Previous page')" @click="go(page - 1)">
-          <ChevronLeft class="size-4" />
+        <Button variant="outline" size="icon-sm" class="size-7" :disabled="page <= 1" :aria-label="t('Previous page')" @click="go(page - 1)">
+          <ChevronLeft class="size-3.5" />
         </Button>
-        <Button variant="outline" size="icon-sm" :disabled="page >= pages" :aria-label="t('Next page')" @click="go(page + 1)">
-          <ChevronRight class="size-4" />
+        <Button variant="outline" size="icon-sm" class="size-7" :disabled="page >= pages" :aria-label="t('Next page')" @click="go(page + 1)">
+          <ChevronRight class="size-3.5" />
         </Button>
-        <Button variant="outline" size="icon-sm" :disabled="page >= pages" :aria-label="t('Last page')" @click="go(pages)">
-          <ChevronsRight class="size-4" />
+        <Button variant="outline" size="icon-sm" class="size-7" :disabled="page >= pages" :aria-label="t('Last page')" @click="go(pages)">
+          <ChevronsRight class="size-3.5" />
         </Button>
       </div>
     </div>

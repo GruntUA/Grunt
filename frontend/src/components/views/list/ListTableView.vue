@@ -67,7 +67,8 @@ function rowDocId(row: Record<string, unknown>): string {
 </script>
 
 <template>
-  <div>
+  <!-- Bounded to the page height: rows scroll here, header/toolbar/pager stay put. -->
+  <div class="flex h-full min-h-0 flex-col">
     <!-- Action Bar -->
     <BulkActionBar
       :count="selectionCount"
@@ -85,10 +86,11 @@ function rowDocId(row: Record<string, unknown>): string {
     />
 
     <!-- List Content -->
-    <div>
+    <div class="flex min-h-0 flex-1 flex-col">
       <!-- Grouped View -->
       <ListGroupedView
         v-if="groupBy && groupedRows && dt && groupByField"
+        class="min-h-0 overflow-y-auto"
         :dt="dt"
         :workspace="workspace"
         :doctype="doctype"
@@ -109,6 +111,7 @@ function rowDocId(row: Record<string, unknown>): string {
       <!-- Phone width: cards instead of a table -->
       <ListCards
         v-else-if="cardLayout"
+        class="min-h-0 overflow-y-auto"
         :dt="dt"
         :workspace="workspace"
         :doctype="doctype"
@@ -124,7 +127,10 @@ function rowDocId(row: Record<string, unknown>): string {
 
       <!-- Ungrouped List View -->
       <template v-else>
-        <div class="bg-card rounded-lg ring-1 ring-border/60 overflow-hidden">
+        <!-- The card is the scroller (both axes) so the column header can stick to its top. -->
+        <div
+          class="bg-card rounded-lg ring-1 ring-border/60 min-h-0 overflow-auto [&_[data-slot=table-container]]:overflow-visible [&_thead]:sticky [&_thead]:top-0 [&_thead]:z-10 [&_thead]:bg-card"
+        >
           <GruntDataTable
             :columns="columns"
             :rows="rows"

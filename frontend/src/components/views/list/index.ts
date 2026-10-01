@@ -6,6 +6,7 @@ const def: ViewDefinition = {
   label: 'List',
   icon: LayoutList,
   order: 0,
+  fillsViewport: true,
 
   // No resolveField — list is always available
 
