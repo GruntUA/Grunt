@@ -209,7 +209,7 @@ const {
 provide(LIST_BULK_UI, { actions: listActions.resolved('bulk'), request: bulkRequest })
 provide(LIST_FILTER_RESET, {
   active: computed(() =>
-    !!debouncedSearch.value
+    !!inlineSearch.value
     || activeFilters.value.length > 0
     || Object.values(quickFilterValues.value).some(Boolean),
   ),

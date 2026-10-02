@@ -13,12 +13,15 @@ import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
 import { Input } from '@/components/ui/input'
+import type { ListFilterReset } from '@/core/composables/useListFilterReset'
 const props = defineProps<{
   fields: DocField[]
   doctype?: string
   initialFilters?: ActiveFilter[]
   /** Offer every data field, not just `in_filter` ones (dashboard widget config). */
   allFields?: boolean
+  /** Widens the trigger's ✕ to reset search and quick filters too (list toolbar). */
+  reset?: ListFilterReset | null
 }>()
 
 const emit = defineEmits<{ change: [filters: ActiveFilter[]] }>()
@@ -173,6 +176,14 @@ function clearAll() {
   emitChange()
 }
 
+const canClear = computed(() => activeFilters.value.length > 0 || !!props.reset?.active.value)
+
+function clearEverything() {
+  if (!props.reset) return clearAll()
+  isFilterOpen.value = false
+  props.reset.clear()
+}
+
 function emitChange() {
   emit('change', activeFilters.value)
 }
@@ -226,7 +237,7 @@ function keepOpenForLinkDropdown(e: CustomEvent<{ originalEvent?: Event }>) {
           {{ activeFilters.length }}
         </Badge>
       </Button>
-      <Button v-if="activeFilters.length" variant="outline" size="icon" class="h-7 w-7" :title="t('Clear Filters')" @click="clearAll">
+      <Button v-if="canClear" variant="outline" size="icon" class="h-7 w-7" :title="t('Clear Filters')" @click="clearEverything">
         <X class="size-3.5" />
       </Button>
     </ButtonGroup>

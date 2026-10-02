@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, computed, defineAsyncComponent } from 'vue'
+import { ref, watch, computed, inject, defineAsyncComponent } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Search } from '@lucide/vue'
 import type { ActiveFilter, DocType, QuickFilter } from '@/types'
@@ -7,6 +7,7 @@ import FilterBar from '@/components/views/FilterBar.vue'
 import QuickFilterBar from '@/components/views/QuickFilterBar.vue'
 import { getViewDef, type ToolbarContext } from '@/core/viewRegistry'
 import { Input } from '@/components/ui/input'
+import { LIST_FILTER_RESET } from '@/core/composables/useListFilterReset'
 
 const props = defineProps<{
   dt: DocType | null
@@ -34,6 +35,10 @@ const { t } = useI18n()
 const localSearch = ref(props.inlineSearch)
 watch(() => props.inlineSearch, (v) => { localSearch.value = v })
 watch(localSearch, (v) => { emit('update:inlineSearch', v) })
+
+// Reset of search + filters + quick filters, provided by the list page —
+// wired into the ✕ of the Filter split button.
+const filterReset = inject(LIST_FILTER_RESET, null)
 
 // ── Active view's toolbar controls ───────────────────────────────────────────
 
@@ -98,6 +103,7 @@ const toolbarControlsEvents = computed(() =>
           :fields="dt.fields"
           :doctype="doctype"
           :initial-filters="activeFilters"
+          :reset="filterReset"
           class="!mb-0"
           @change="emit('update:activeFilters', $event)"
         />
