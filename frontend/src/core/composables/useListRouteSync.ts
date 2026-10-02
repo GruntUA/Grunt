@@ -13,6 +13,10 @@ interface UseListRouteSyncOptions {
   sortOrder: Ref<'asc' | 'desc'>
   activeFilters: Ref<any[]>
   quickFilterValues?: Ref<Record<string, string>>
+  /** Search box text — set from `?q=` when a link is opened. */
+  search?: Ref<string>
+  /** Debounced copy of `search` — written to `?q=` so typing doesn't spam history replaces. */
+  debouncedSearch?: Ref<string>
   validViews: readonly string[]
   getDefaultView: () => string
   dt: Ref<DocType | null>
@@ -27,7 +31,7 @@ export function useListRouteSync(options: UseListRouteSyncOptions) {
   let _syncingToUrl = false
 
   // Sync state → URL
-  watch([options.viewMode, options.activeFilters, options.quickFilterValues], () => {
+  watch([options.viewMode, options.activeFilters, options.quickFilterValues, options.debouncedSearch], () => {
     _syncingToUrl = true
 
     const query = { ...options.route.query }
@@ -53,6 +57,13 @@ export function useListRouteSync(options: UseListRouteSyncOptions) {
       Object.entries(options.quickFilterValues.value).forEach(([id, val]) => {
         if (val !== '' && val != null) query[`ff[${id}]`] = val
       })
+    }
+
+    // Search
+    if (options.debouncedSearch) {
+      const q = options.debouncedSearch.value.trim()
+      if (q) query.q = q
+      else delete query.q
     }
 
     options.router.replace({ query })
@@ -123,6 +134,12 @@ export function useListRouteSync(options: UseListRouteSyncOptions) {
     })
     if (Object.keys(ffValues).length > 0 && options.quickFilterValues) {
       options.quickFilterValues.value = { ...options.quickFilterValues.value, ...ffValues }
+    }
+
+    // Search: q=text
+    const urlSearch = options.route.query.q
+    if (typeof urlSearch === 'string' && urlSearch && options.search && options.search.value.trim() !== urlSearch) {
+      options.search.value = urlSearch
     }
   }
 

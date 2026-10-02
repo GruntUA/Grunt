@@ -302,6 +302,8 @@ const { applyRouteState, setGroupByInRoute, applySort } = useListRouteSync({
   sortOrder,
   activeFilters,
   quickFilterValues,
+  search: inlineSearch,
+  debouncedSearch,
   validViews: getRegisteredViews().map((d) => d.type),
   getDefaultView: () => dt.value?.default_view ?? 'list',
   dt,

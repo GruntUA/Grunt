@@ -14,6 +14,8 @@ describe('useListRouteSync', () => {
     const sortOrder = ref<'asc' | 'desc'>('asc')
     const activeFilters = ref<ActiveFilter[]>([])
     const dt = ref<DocType | null>(null)
+    const search = ref('')
+    const debouncedSearch = ref('')
     replace.mockReset()
 
     const route = { query } as RouteLocationNormalizedLoaded
@@ -27,6 +29,8 @@ describe('useListRouteSync', () => {
       sortKey,
       sortOrder,
       activeFilters,
+      search,
+      debouncedSearch,
       validViews: ['list', 'kanban', 'calendar'],
       getDefaultView: () => 'list',
       dt,
@@ -39,6 +43,8 @@ describe('useListRouteSync', () => {
       sortKey,
       sortOrder,
       activeFilters,
+      search,
+      debouncedSearch,
       dt,
     }
   }
@@ -112,5 +118,25 @@ describe('useListRouteSync', () => {
     expect(sortOrder.value).toBe('desc')
     expect(sortKey.value).toBe('name')
     expect(replace).toHaveBeenCalledWith({ query: { foo: 'bar', sort: 'name', order: 'desc' } })
+  })
+
+  it('applies search from q', () => {
+    const { applyRouteState, search } = setup({ q: 'державні сайт' })
+
+    applyRouteState()
+
+    expect(search.value).toBe('державні сайт')
+  })
+
+  it('writes debounced search to q and drops it when cleared', async () => {
+    const { debouncedSearch } = setup({ foo: 'bar' })
+
+    debouncedSearch.value = '  сайт '
+    await nextTick()
+    expect(replace).toHaveBeenLastCalledWith({ query: { foo: 'bar', q: 'сайт' } })
+
+    debouncedSearch.value = ''
+    await nextTick()
+    expect(replace).toHaveBeenLastCalledWith({ query: { foo: 'bar' } })
   })
 })
