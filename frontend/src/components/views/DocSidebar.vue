@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import { useAttrs } from 'vue'
-import { PanelRightClose, User } from '@lucide/vue'
+import { PanelRightClose } from '@lucide/vue'
 import type { DocType, GruntDocument } from '@/types'
 import type { PresenceUser } from '@/core/composables/usePresence'
 import { Button } from '@/components/ui/button'
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Kbd } from '@/components/ui/kbd'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import DocSidebarBody from './sidebar/DocSidebarBody.vue'
 import { useDocPanel } from './sidebar/useDocPanel'
@@ -16,7 +19,11 @@ defineProps<{
   document: GruntDocument
   workspace?: string
   users?: PresenceUser[]
+  imageUrl?: string | null
+  imageEditable?: boolean
 }>()
+
+const emit = defineEmits<{ 'set-image': [url: string | null] }>()
 
 const attrs = useAttrs()
 defineOptions({ inheritAttrs: false })
@@ -54,34 +61,46 @@ function startResize(e: PointerEvent) {
       :class="{ 'pointer-events-none opacity-0': !open }"
       @pointerdown="startResize"
     />
-    <div
-      class="form-section bg-card border border-border/60 rounded-lg shadow-sm overflow-hidden"
+    <Card
+      class="gap-0 rounded-lg py-0"
       :style="{ width: `${Math.max(width, MIN_WIDTH)}px` }"
     >
-      <div class="form-section-header border-b border-border/60 px-4 py-3 flex items-center gap-2">
-        <User class="size-3.5 text-muted-foreground" />
-        <span class="flex-1 font-semibold uppercase tracking-wider">{{ t('Details') }}</span>
-        <Button variant="ghost" size="icon" class="size-6 -mr-1.5" :title="t('Collapse (Ctrl+])')" @click="toggle">
-          <PanelRightClose class="size-4" />
-        </Button>
-      </div>
-      <div class="form-section-body p-4">
-        <DocSidebarBody :doctype="doctype" :document="document" :workspace="workspace" :users="users" />
-      </div>
-    </div>
+      <CardHeader class="flex items-center justify-between border-b px-4 py-3 [.border-b]:pb-3">
+        <CardTitle class="text-sm">{{ t('Details') }}</CardTitle>
+        <CardAction class="-my-1">
+          <Tooltip>
+            <TooltipTrigger as-child>
+              <Button variant="ghost" size="icon-sm" class="size-7 -mr-1.5" :aria-label="t('Collapse')" @click="toggle">
+                <PanelRightClose />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent class="flex items-center gap-2">
+              {{ t('Collapse') }}
+              <Kbd>Ctrl ]</Kbd>
+            </TooltipContent>
+          </Tooltip>
+        </CardAction>
+      </CardHeader>
+      <CardContent class="p-4">
+        <DocSidebarBody
+          :doctype="doctype" :document="document" :workspace="workspace" :users="users"
+          :image-url="imageUrl" :image-editable="imageEditable" @set-image="emit('set-image', $event)"
+        />
+      </CardContent>
+    </Card>
   </aside>
 
   <!-- Mobile: off-canvas sheet -->
   <Sheet v-else v-model:open="openMobile">
     <SheetContent side="right" class="w-[19rem] sm:max-w-sm p-0 overflow-y-auto">
       <SheetHeader class="border-b border-border/60 px-4 py-3">
-        <SheetTitle class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider">
-          <User class="size-3.5 text-muted-foreground" />
-          {{ t('Details') }}
-        </SheetTitle>
+        <SheetTitle class="text-sm">{{ t('Details') }}</SheetTitle>
       </SheetHeader>
       <div class="p-4">
-        <DocSidebarBody :doctype="doctype" :document="document" :workspace="workspace" :users="users" />
+        <DocSidebarBody
+          :doctype="doctype" :document="document" :workspace="workspace" :users="users"
+          :image-url="imageUrl" :image-editable="imageEditable" @set-image="emit('set-image', $event)"
+        />
       </div>
     </SheetContent>
   </Sheet>

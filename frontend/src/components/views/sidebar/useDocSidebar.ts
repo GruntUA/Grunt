@@ -21,6 +21,8 @@ const EMPTY: SidebarBundle = {
 
 // Users are shared across all sidebar instances and rarely change within a session.
 let usersCache: UserPublic[] | null = null
+// Tags already used on each DocType — suggestions for the tag picker.
+const tagsCache = new Map<string, string[]>()
 
 export function useDocSidebar(
   doctype: MaybeRefOrGetter<string | undefined>,
@@ -86,10 +88,25 @@ export function useDocSidebar(
     if (bundle.value.tags.some((t) => t.tag?.toLowerCase() === value.toLowerCase())) return
     const created = await docsApi.addTag(d, i, value)
     bundle.value.tags = [...bundle.value.tags, { name: String(created.name), tag: value }]
+    const known = tagsCache.get(d)
+    if (known && !known.includes(value)) known.push(value)
   }
   async function removeTag(name: string): Promise<void> {
     await docsApi.removeTag(name)
     bundle.value.tags = bundle.value.tags.filter((t) => t.name !== name)
+  }
+  async function knownTags(): Promise<string[]> {
+    const d = dt()
+    if (!d) return []
+    if (!tagsCache.has(d)) {
+      try {
+        const res = await docsApi.list('DocTag', { fields: 'tag', rawFilters: { reference_doctype: d }, per_page: 500 })
+        tagsCache.set(d, [...new Set(res.data.map((r) => String(r.tag ?? '')).filter(Boolean))].sort())
+      } catch {
+        return []
+      }
+    }
+    return tagsCache.get(d)!
   }
 
   // ── Bookmark ───────────────────────────────────────────────────────────────
@@ -142,7 +159,7 @@ export function useDocSidebar(
       }
     }
     const q = query.trim().toLowerCase()
-    if (!q) return []
+    if (!q) return usersCache
     return usersCache.filter(
       (u) =>
         u.email.toLowerCase().includes(q) ||
@@ -161,6 +178,7 @@ export function useDocSidebar(
     unshare,
     addTag,
     removeTag,
+    knownTags,
     toggleBookmark,
     toggleFollow,
     searchUsers,
@@ -169,3 +187,5 @@ export function useDocSidebar(
     personInitials,
   }
 }
+
+export type DocSidebarState = ReturnType<typeof useDocSidebar>

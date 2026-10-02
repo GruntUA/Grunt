@@ -78,6 +78,7 @@ const {
   cancelLeave,
   rename,
   setTableSelection,
+  handleSave,
 } = useFormController(
   { doctype: props.doctype, id: props.id, workspace: props.workspace },
   {
@@ -114,6 +115,27 @@ const showSidebar = computed(() => {
   if (sidebarHidden.value !== null) return !sidebarHidden.value
   return dt.value?.form_show_sidebar !== false
 })
+
+// Sidebar image: the DocType's `image_field`, editable when the field is.
+const imageField = computed(() => {
+  const name = dt.value?.image_field
+  return name ? dt.value?.fields.find((f) => f.fieldname === name) ?? null : null
+})
+const sidebarImage = computed(() => {
+  const val = imageField.value ? form.value[imageField.value.fieldname] : null
+  return typeof val === 'string' && val ? val : null
+})
+const sidebarImageEditable = computed(() => !!imageField.value && perms.value.write && !imageField.value.read_only && !isSaving.value)
+// Saved right away, like any other sidebar action — unless the form already
+// has unsaved edits, which the user should review and save together.
+async function setSidebarImage(url: string | null) {
+  const field = imageField.value?.fieldname
+  if (!field) return
+  const wasDirty = isDirty.value
+  onFormUpdate({ [field]: url })
+  if (wasDirty) toast.info(t('Image changed. Save the document to apply it.'))
+  else await handleSave()
+}
 
 // Seen / views (only fetched when the DocType opts into track_seen / track_views)
 const tracksViews = computed(() => !!(dt.value?.track_seen || dt.value?.track_views))
@@ -226,7 +248,8 @@ const initials = (email: string) => email.slice(0, 2).toUpperCase()
 
         <!-- Right Column: Sidebar -->
         <DocSidebar v-if="id && document && showSidebar" :doctype="dt" :document="document as GruntDocument"
-          :workspace="workspace" :users="presenceUsers" class="lg:sticky lg:top-14 lg:self-start" />
+          :workspace="workspace" :users="presenceUsers" :image-url="sidebarImage" :image-editable="sidebarImageEditable"
+          class="lg:sticky lg:top-14 lg:self-start" @set-image="setSidebarImage" />
       </div>
     </template>
     </div>

@@ -1,42 +1,24 @@
 <script setup lang="ts">
-import { N_ } from '@/plugins/i18n'
 import { useI18n } from 'vue-i18n'
 import { computed, ref } from 'vue'
-import { useRouter } from 'vue-router'
-import {
-  UserPlus,
-  Share2,
-  Bookmark,
-  Bell,
-  Printer,
-  Check,
-  Copy,
-  X,
-  Tag,
-  Plus,
-  ChevronRight,
-  Loader2,
-  CalendarClock,
-  Globe,
-  ExternalLink,
-} from '@lucide/vue'
-import type { DocType, GruntDocument, UserPublic } from '@/types'
+import { Bell, Bookmark, Check, Copy, ExternalLink, Printer } from '@lucide/vue'
+import type { DocType, GruntDocument } from '@/types'
 import type { PresenceUser } from '@/core/composables/usePresence'
 import { useDocSidebar } from './useDocSidebar'
-import { isAssignmentPlaceholder, type SidebarAssignee } from '@/core/api/docs'
 import { useToast } from '@/core/composables/useToast'
-import { useDialog } from '@/core/composables/useDialog'
-import { formatDate, formatFull, formatRelative } from '@/core/datetime'
+import { formatFull, formatRelative } from '@/core/datetime'
 import { resolveStatusBadge, statusBadgeFor, statusToneClass } from '@/core/status'
+import SidebarImage from './SidebarImage.vue'
+import SidebarPeople from './SidebarPeople.vue'
+import SidebarTags from './SidebarTags.vue'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { docUrl } from '@/core/workspaceUrl'
+import { ButtonGroup } from '@/components/ui/button-group'
+import { Separator } from '@/components/ui/separator'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Toggle } from '@/components/ui/toggle'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 
 const { t } = useI18n()
 
@@ -45,30 +27,43 @@ const props = defineProps<{
   document: GruntDocument
   workspace?: string
   users?: PresenceUser[]
+  /** Value of `image_field` in the form (may be unsaved); falls back to the saved document. */
+  imageUrl?: string | null
+  /** Upload / replace / remove the image from the sidebar. */
+  imageEditable?: boolean
 }>()
 
-const router = useRouter()
+const emit = defineEmits<{ 'set-image': [url: string | null] }>()
+
 const toast = useToast()
-const dialog = useDialog()
 const sb = useDocSidebar(
   () => props.doctype.name,
   () => props.document.name,
 )
 
-const imageUrl = computed(() => {
+const image = computed(() => {
+  if (props.imageUrl !== undefined) return props.imageUrl || null
   const field = props.doctype.image_field
   const val = field ? props.document[field] : null
   return typeof val === 'string' && val ? val : null
 })
 const isBookmarked = computed(() => !!sb.bundle.value.bookmark)
+const isFollowing = computed(() => !!sb.bundle.value.follow)
 // Set by the server while the document is a public page (web view, WebPage, WebForm).
 const webUrl = computed(() => {
   const url = props.document.__web_url
   return typeof url === 'string' && url ? url : null
 })
-const isFollowing = computed(() => !!sb.bundle.value.follow)
+const webPath = computed(() => {
+  if (!webUrl.value) return ''
+  try {
+    return new URL(webUrl.value, window.location.origin).pathname
+  } catch {
+    return webUrl.value
+  }
+})
 
-// ── Primary status badge (e.g. "На складі") — moved here from the form toolbar ──
+// ── Status badges ───────────────────────────────────────────────────────────
 const statusBadge = computed(() => resolveStatusBadge(props.doctype, props.document))
 // Workflow state, when it lives in a field other than the status one (otherwise
 // the badge above already is the state). The form hides that field; its
@@ -78,8 +73,6 @@ const workflowBadge = computed(() => {
   if (!field || field === (props.doctype.status_field || 'status')) return null
   return statusBadgeFor(props.doctype, props.document[field])
 })
-
-// ── Submission state badge ─────────────────────────────────────────────────────
 const docstatusBadge = computed(() => {
   if (!props.doctype.is_submittable) return null
   return (
@@ -103,85 +96,16 @@ async function copyId() {
   }
 }
 
-// ── Assign / Share — one dialog, two modes ───────────────────────────────────
-const dialogMode = ref<'assign' | 'share' | null>(null)
-const pickUser = ref('')
-const pickNote = ref('')
-const pickPermission = ref<'Read' | 'Write'>('Read')
-const matches = ref<UserPublic[]>([])
-const saving = ref(false)
-
-function openDialog(mode: 'assign' | 'share') {
-  dialogMode.value = mode
-  pickUser.value = ''
-  pickNote.value = ''
-  pickPermission.value = 'Read'
-  matches.value = []
-}
-async function onPickInput() {
-  matches.value = await sb.searchUsers(pickUser.value)
-}
-
-// A ToDo created without a task text carries an auto-generated placeholder —
-// treat that as "no text" so it's not shown as an actual task.
-function realNote(a: SidebarAssignee): string {
-  const d = (a.description ?? '').trim()
-  return isAssignmentPlaceholder(d) ? '' : d
-}
-// One detail card per assignment (note + state), newest last.
-const assigneeTasks = computed(() => sb.bundle.value.assignees)
-const STATUS_LABEL: Record<string, string> = { Open: N_('status|Open'), 'In Progress': N_('status|In Progress') }
-function statusLabel(a: SidebarAssignee): string {
-  return a.status ? (STATUS_LABEL[a.status] ? t(STATUS_LABEL[a.status]) : a.status) : ''
-}
-function assigneeTooltip(a: SidebarAssignee): string {
-  const parts = [sb.personName(a.assigned_to)]
-  const note = realNote(a)
-  if (note) parts.push(note)
-  if (a.created_at) parts.push(t('assigned {when}', { when: formatRelative(a.created_at) }))
-  return parts.join(' — ')
-}
-const PRIORITY_LABEL: Record<string, string> = { Urgent: N_('priority|Urgent'), High: N_('priority|High') }
-function priorityTag(a: SidebarAssignee): string {
-  return a.priority && a.priority in PRIORITY_LABEL ? t(PRIORITY_LABEL[a.priority]) : ''
-}
-function openTask(a: SidebarAssignee) {
-  router.push(docUrl('ToDo', a.name, props.workspace))
-}
-async function confirmUnassign(a: SidebarAssignee) {
-  const ok = await dialog.confirm(t('Remove {name} from assignees?', { name: sb.personName(a.assigned_to) }))
-  if (ok) await sb.unassign(a.name)
-}
-async function submitDialog() {
-  const user = pickUser.value.trim()
-  if (!user) return
-  saving.value = true
-  try {
-    if (dialogMode.value === 'assign') await sb.assign(user, pickNote.value)
-    else await sb.share(user, pickPermission.value)
-    dialogMode.value = null
-  } catch {
-    /* silent */
-  } finally {
-    saving.value = false
-  }
-}
-
-// ── Tags ────────────────────────────────────────────────────────────────────
-const showTagInput = ref(false)
-const tagInput = ref('')
-const tagAdding = ref(false)
-async function submitTag() {
-  tagAdding.value = true
-  try {
-    await sb.addTag(tagInput.value)
-    tagInput.value = ''
-  } catch {
-    /* silent */
-  } finally {
-    tagAdding.value = false
-  }
-}
+// ── Who / when rows ─────────────────────────────────────────────────────────
+const people = computed(() => [
+  { key: 'created', label: t('created'), email: props.document.owner, at: props.document.created_at },
+  {
+    key: 'modified',
+    label: t('modified'),
+    email: props.document.modified_by || props.document.owner,
+    at: props.document.modified_at,
+  },
+])
 
 function bookmarkTitle(): string {
   const tf = props.doctype.title_field ?? 'name'
@@ -202,332 +126,154 @@ function printDoc() {
 </script>
 
 <template>
-  <div class="flex flex-col gap-4">
-    <!-- Image (only when there is one) -->
-    <div v-if="imageUrl" class="flex justify-center -mt-1">
-      <div class="max-w-full max-h-48 rounded-lg overflow-hidden ring-4 ring-background shadow-sm border border-border/40">
-        <img :src="imageUrl" :alt="document.name" class="max-w-full h-auto max-h-48 object-contain" />
-      </div>
-    </div>
+  <div class="flex flex-col gap-4 text-sm">
+    <SidebarImage
+      v-if="doctype.image_field"
+      :url="image"
+      :editable="!!imageEditable"
+      :doctype="doctype.name"
+      :doc-id="document.name"
+      :alt="bookmarkTitle()"
+      @change="emit('set-image', $event)"
+    />
 
-    <!-- Primary status -->
-    <div v-if="statusBadge" class="flex items-center gap-2">
-      <span class="font-semibold uppercase tracking-wider text-muted-foreground/80">{{ t('Status') }}</span>
-      <Badge variant="outline" :class="statusBadge.class">{{ statusBadge.label }}</Badge>
-    </div>
+    <!-- Properties -->
+    <dl class="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-4 gap-y-2.5">
+      <template v-if="statusBadge">
+        <dt class="text-muted-foreground">{{ t('Status') }}</dt>
+        <dd>
+          <Badge variant="outline" :class="statusBadge.class">
+            {{ statusBadge.label }}
+          </Badge>
+        </dd>
+      </template>
 
-    <!-- Workflow state (when separate from the status) -->
-    <div v-if="workflowBadge" class="flex items-center gap-2">
-      <span class="font-semibold uppercase tracking-wider text-muted-foreground/80">{{ t('State') }}</span>
-      <Badge variant="outline" :class="workflowBadge.class">{{ workflowBadge.label }}</Badge>
-    </div>
+      <template v-if="workflowBadge">
+        <dt class="text-muted-foreground">{{ t('State') }}</dt>
+        <dd>
+          <Badge variant="outline" :class="workflowBadge.class">
+            {{ workflowBadge.label }}
+          </Badge>
+        </dd>
+      </template>
 
-    <!-- Identity: id -->
-    <div class="flex items-center gap-1.5">
-      <code class="font-mono font-semibold text-foreground truncate">{{ document.name }}</code>
-      <button
-        class="shrink-0 text-muted-foreground/60 hover:text-foreground transition-colors"
-        :title="t('Copy ID')"
-        @click="copyId"
-      >
-        <Check v-if="copied" class="size-3.5 text-success" />
-        <Copy v-else class="size-3.5" />
-      </button>
-      <Badge v-if="docstatusBadge" variant="outline" :class="['ml-auto', docstatusBadge.class]">
-        {{ docstatusBadge.label }}
-      </Badge>
-    </div>
+      <template v-if="docstatusBadge">
+        <dt class="text-muted-foreground">{{ t('Document') }}</dt>
+        <dd>
+          <Badge variant="outline" :class="docstatusBadge.class">{{ docstatusBadge.label }}</Badge>
+        </dd>
+      </template>
 
-    <!-- Meta: who / when, compact -->
-    <div class="flex items-start gap-2.5">
-      <Avatar class="!size-7 shrink-0 mt-0.5">
-        <AvatarImage v-if="sb.personAvatar(document.owner)" :src="sb.personAvatar(document.owner)!" />
-        <AvatarFallback class="!text-[10px] !bg-primary/10 !text-primary">
-          {{ sb.personInitials(document.owner) }}
-        </AvatarFallback>
-      </Avatar>
-      <div class="flex flex-col gap-0.5 min-w-0 leading-snug">
-        <span class="truncate" :title="`${document.owner} · ${formatFull(document.created_at)}`">
-          <span class="font-semibold text-foreground">{{ sb.personName(document.owner) }}</span>
-          <span class="text-muted-foreground"> · {{ t('created {when}', { when: formatRelative(document.created_at) }) }}</span>
-        </span>
-        <span
-          class="truncate"
-          :title="`${document.modified_by || document.owner} · ${formatFull(document.modified_at)}`"
-        >
-          <span class="font-semibold text-foreground">{{ sb.personName(document.modified_by || document.owner) }}</span>
-          <span class="text-muted-foreground"> · {{ t('modified {when}', { when: formatRelative(document.modified_at) }) }}</span>
-        </span>
-      </div>
-    </div>
-
-    <!-- Public page of the document -->
-    <a
-      v-if="webUrl"
-      :href="webUrl"
-      target="_blank"
-      rel="noopener"
-      class="group flex items-center gap-2 text-foreground hover:text-primary transition-colors"
-    >
-      <Globe class="size-3.5 shrink-0 text-muted-foreground group-hover:text-primary" />
-      <span class="font-semibold">{{ t('View on website') }}</span>
-      <span class="truncate text-muted-foreground font-mono">{{ webUrl }}</span>
-      <ExternalLink class="size-3 shrink-0 ml-auto text-muted-foreground/60" />
-    </a>
-
-    <!-- People: assignees + access -->
-    <div class="flex flex-col gap-3 p-3 bg-muted/30 rounded-lg border border-border/40">
-      <div class="flex items-center justify-between">
-        <span class="font-semibold uppercase tracking-wider text-muted-foreground/80">{{ t('People') }}</span>
-        <div class="flex items-center gap-0.5">
-          <Button variant="ghost" size="icon" class="size-6"   :title="t('Assign')" @click="openDialog('assign')">
-            <UserPlus class="size-3.5" />
-          </Button>
-          <Button variant="ghost" size="icon" class="size-6"   :title="t('Share document')" @click="openDialog('share')">
-            <Share2 class="size-3.5" />
-          </Button>
-        </div>
-      </div>
-
-      <!-- Assignees -->
-      <div class="flex flex-col gap-2">
-        <div class="flex items-center gap-2">
-          <span class="text-muted-foreground shrink-0">{{ t('Assignees') }}</span>
-          <div v-if="sb.bundle.value.assignees.length" class="flex flex-wrap gap-1.5">
-            <div
-              v-for="a in sb.bundle.value.assignees"
-              :key="a.name"
-              class="relative group"
-              :title="assigneeTooltip(a)"
-            >
-              <button type="button" @click="openTask(a)">
-                <Avatar
-                  class="!size-7 border transition-shadow hover:ring-2 hover:ring-primary/30"
-                  :class="a.is_overdue
-                    ? 'border-destructive/60 ring-1 ring-destructive/40'
-                    : a.status === 'In Progress' ? 'border-primary/60 ring-1 ring-primary/40' : 'border-border/60'"
-                >
-                  <AvatarImage v-if="sb.personAvatar(a.assigned_to)" :src="sb.personAvatar(a.assigned_to)!" />
-                  <AvatarFallback class="!text-[10px]">{{ sb.personInitials(a.assigned_to) }}</AvatarFallback>
-                </Avatar>
-              </button>
-              <button
-                class="absolute -top-1 -right-1 size-3.5 rounded-full bg-background border border-border shadow-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                :title="t('Remove {name}', { name: sb.personName(a.assigned_to) })"
-                @click="confirmUnassign(a)"
-              >
-                <X class="size-2.5 text-destructive" />
-              </button>
-            </div>
-          </div>
-          <span v-else class="text-muted-foreground/50">{{ t('none') }}</span>
-        </div>
-
-        <ul v-if="assigneeTasks.length" class="flex flex-col gap-1.5">
-          <li v-for="a in assigneeTasks" :key="a.name">
-            <button
-              type="button"
-              class="w-full text-left flex flex-col gap-1 rounded-lg border border-border/40 bg-background px-2 py-1.5 shadow-sm hover:border-primary/50 hover:bg-primary/5 transition-colors"
-              @click="openTask(a)"
-            >
-              <span v-if="realNote(a)" class="leading-snug text-foreground/80 line-clamp-2">
-                {{ realNote(a) }}
-              </span>
-              <span class="flex flex-wrap items-center gap-1 text-[10px] text-muted-foreground">
-                <Badge
-                  :variant="a.status === 'In Progress' ? 'secondary' : 'outline'"
-                  class="!text-[10px] !py-0 !px-1.5 !font-normal"
-                >
-                  {{ statusLabel(a) }}
-                </Badge>
-                <Badge
-                  v-if="a.due_date"
-                  :variant="a.is_overdue ? 'destructive' : 'outline'"
-                  class="!text-[10px] !py-0 !px-1.5 !font-normal gap-0.5"
-                >
-                  <CalendarClock class="size-2.5" />
-                  {{ formatDate(a.due_date) }}
-                </Badge>
-                <Badge v-if="priorityTag(a)" variant="outline" class="!text-[10px] !py-0 !px-1.5 !font-normal">
-                  {{ priorityTag(a) }}
-                </Badge>
-                <span class="ml-auto shrink-0">{{ sb.personName(a.assigned_to) }}</span>
-              </span>
-            </button>
-          </li>
-        </ul>
-      </div>
-
-      <!-- Access (collapsed by default) -->
-      <Collapsible v-if="sb.bundle.value.shares.length" class="flex flex-col gap-2">
-        <CollapsibleTrigger
-          class="group flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <ChevronRight class="size-3 transition-transform group-data-[state=open]:rotate-90" />
-          {{ t('Access') }} · {{ sb.bundle.value.shares.length }}
-        </CollapsibleTrigger>
-        <CollapsibleContent>
-          <div class="flex flex-col gap-1.5 pt-0.5">
-            <div
-              v-for="s in sb.bundle.value.shares"
-              :key="s.name"
-              class="flex items-center gap-2 group"
-            >
-              <Avatar class="!size-5 shrink-0">
-                <AvatarImage v-if="sb.personAvatar(s.user)" :src="sb.personAvatar(s.user)!" />
-                <AvatarFallback class="!text-[9px]">{{ sb.personInitials(s.user) }}</AvatarFallback>
-              </Avatar>
-              <span class="truncate flex-1">{{ sb.personName(s.user) }}</span>
-              <span class="uppercase tracking-tighter text-muted-foreground/60">{{ s.permission }}</span>
-              <X
-                class="size-3 cursor-pointer text-muted-foreground/40 hover:text-destructive transition-colors"
-                @click="sb.unshare(s.name)"
-              />
-            </div>
-          </div>
-        </CollapsibleContent>
-      </Collapsible>
-    </div>
-
-    <!-- Tags -->
-    <div class="flex flex-col gap-2.5 p-3 bg-muted/30 rounded-lg border border-border/40">
-      <div class="flex items-center justify-between">
-        <span class="font-semibold uppercase tracking-wider text-muted-foreground/80 flex items-center gap-1.5">
-          <Tag class="size-3" />
-          {{ t('Tags') }}
-        </span>
-        <Button variant="ghost" size="icon" class="size-6" :title="t('Add tag')" @click="showTagInput = !showTagInput">
-          <Plus class="size-3.5 transition-transform" :class="{ 'rotate-45': showTagInput }" />
-        </Button>
-      </div>
-
-      <div v-if="sb.bundle.value.tags.length" class="flex flex-wrap gap-1.5">
-        <Badge
-          v-for="t in sb.bundle.value.tags"
-          :key="t.name"
-          class="px-2 py-0.5 text-xs font-semibold bg-background border border-border/60 shadow-sm"
-        >
-          <span class="mr-1.5">{{ t.tag }}</span>
-          <X
-            class="size-3 cursor-pointer hover:text-destructive transition-colors shrink-0"
-            @click="sb.removeTag(t.name)"
-          />
-        </Badge>
-      </div>
-      <span v-else-if="!showTagInput" class="text-muted-foreground/50">{{ t('no tags') }}</span>
-
-      <div v-if="showTagInput" class="inline-flex h-8 shadow-sm w-full">
-        <Input
-          v-model="tagInput"
-          :placeholder="t('Tag name...')"
-          autofocus
-          class="!text-xs h-full rounded-r-none flex-1"
-          @keydown.enter.prevent="submitTag"
-        />
-        <Button
-          class="h-full px-2 rounded-l-none border-l-0"
-          :disabled="!tagInput.trim() || tagAdding"
-          @click="submitTag"
-        >
-          <Loader2 v-if="tagAdding" class="size-3.5 animate-spin" />
-          <Plus v-else class="size-3.5" />
-        </Button>
-      </div>
-    </div>
-
-    <!-- Bottom actions -->
-    <Button
-      variant="outline"
-      size="sm"
-      :class="['w-full shadow-sm', isFollowing ? 'text-primary border-primary/40' : 'text-foreground']"
-      :title="isFollowing ? t('You get notified about changes and comments') : t('Get notified about changes and comments')"
-      @click="sb.toggleFollow()"
-    >
-      <Bell class="size-3.5 mr-2" :fill="isFollowing ? 'currentColor' : 'none'" />
-      <span class="font-semibold">{{ isFollowing ? t('Following') : t('Follow') }}</span>
-    </Button>
-    <div class="flex gap-2">
-      <Button
-        variant="outline"
-        size="sm"
-        :class="['flex-1 shadow-sm', isBookmarked ? 'text-warning border-warning/40' : 'text-foreground']"
-        @click="sb.toggleBookmark(bookmarkTitle())"
-      >
-        <Bookmark class="size-3.5 mr-2" :fill="isBookmarked ? 'currentColor' : 'none'" />
-        <span class="font-semibold">{{ isBookmarked ? t('Bookmarked') : t('Bookmark') }}</span>
-      </Button>
-      <Button variant="outline" size="sm" class="flex-1 text-foreground shadow-sm" @click="printDoc">
-        <Printer class="size-3.5 mr-2" />
-        <span class="font-semibold">{{ t('Print') }}</span>
-      </Button>
-    </div>
-
-    <!-- Assign / Share dialog -->
-    <Dialog :open="dialogMode !== null" @update:open="(v) => { if (!v) dialogMode = null }">
-      <DialogContent class="max-w-sm w-full mx-4 p-0 px-6 pb-6 pt-1">
-        <DialogHeader>
-          <DialogTitle class="flex items-center gap-2 font-semibold text-lg">
-            <component :is="dialogMode === 'assign' ? UserPlus : Share2" class="size-5 text-primary" />
-            {{ dialogMode === 'assign' ? t('Assign') : t('Share document') }}
-          </DialogTitle>
-        </DialogHeader>
-
-        <div class="flex flex-col gap-5 py-2">
-          <div class="flex flex-col gap-2">
-            <label class="font-semibold uppercase tracking-wider text-muted-foreground">{{ t('Email or username') }}</label>
-            <Input v-model="pickUser" :placeholder="t('Search user...')" class="w-full" @input="onPickInput" />
-            <div
-              v-if="matches.length"
-              class="border border-border rounded-md overflow-hidden max-h-40 overflow-y-auto divide-y divide-border/60"
-            >
-              <button
-                v-for="u in matches"
-                :key="u.email"
-                type="button"
-                class="w-full px-3 py-2 text-left hover:bg-primary/5 transition-colors flex items-center gap-2"
-                @click="pickUser = u.email; matches = []"
-              >
-                <Avatar class="!size-6"><AvatarFallback class="!text-[10px]">{{ (u.full_name || u.email).slice(0, 2).toUpperCase() }}</AvatarFallback></Avatar>
-                <div class="flex flex-col min-w-0">
-                  <span class="font-medium truncate">{{ u.full_name || u.email }}</span>
-                  <span class="text-muted-foreground truncate">{{ u.email }}</span>
-                </div>
-              </button>
-            </div>
-          </div>
-
-          <div v-if="dialogMode === 'assign'" class="flex flex-col gap-2">
-            <label class="font-semibold uppercase tracking-wider text-muted-foreground">{{ t('Task text') }}</label>
-            <Textarea
-              v-model="pickNote"
-              rows="3"
-              :placeholder="t('What needs to be done?')"
-              class="w-full resize-none"
-            />
-          </div>
-
-          <div v-if="dialogMode === 'share'" class="flex flex-col gap-2">
-            <label class="font-semibold uppercase tracking-wider text-muted-foreground">{{ t('Access level') }}</label>
-            <Select v-model="pickPermission">
-              <SelectTrigger class="w-full"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Read">{{ t('Read') }}</SelectItem>
-                <SelectItem value="Write">{{ t('Edit') }}</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        <DialogFooter>
-          <div class="flex gap-2 w-full pt-2">
-            <Button variant="outline" class="flex-1" @click="dialogMode = null">{{ t('Cancel') }}</Button>
-            <Button class="flex-1" :disabled="!pickUser.trim() || saving" @click="submitDialog">
-              <Loader2 v-if="saving" class="size-4 animate-spin mr-2" />
-              <span v-else>{{ dialogMode === 'assign' ? t('Assign') : t('Grant access') }}</span>
+      <dt class="text-muted-foreground">ID</dt>
+      <dd class="flex min-w-0 items-center gap-1">
+        <code class="truncate font-mono text-xs">{{ document.name }}</code>
+        <Tooltip>
+          <TooltipTrigger as-child>
+            <Button variant="ghost" size="icon-xs" class="text-muted-foreground" :aria-label="t('Copy ID')" @click="copyId">
+              <Check v-if="copied" class="text-success" />
+              <Copy v-else />
             </Button>
-          </div>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          </TooltipTrigger>
+          <TooltipContent>{{ copied ? t('Copied') : t('Copy ID') }}</TooltipContent>
+        </Tooltip>
+      </dd>
+
+      <template v-if="webUrl">
+        <dt class="text-muted-foreground">{{ t('On website') }}</dt>
+        <dd class="min-w-0">
+          <a
+            :href="webUrl"
+            target="_blank"
+            rel="noopener"
+            class="group flex items-center gap-1 rounded-sm outline-none hover:text-primary focus-visible:ring-2 focus-visible:ring-ring/50"
+            :title="webUrl"
+          >
+            <span class="truncate font-mono text-xs">{{ webPath }}</span>
+            <ExternalLink class="size-3 shrink-0 text-muted-foreground group-hover:text-primary" />
+          </a>
+        </dd>
+      </template>
+    </dl>
+
+    <!-- Who / when: full width so long names fit -->
+    <ul class="flex flex-col gap-2.5">
+      <li v-for="p in people" :key="p.key" class="flex min-w-0 items-center gap-2.5">
+        <Avatar class="size-7 shrink-0">
+          <AvatarImage v-if="sb.personAvatar(p.email)" :src="sb.personAvatar(p.email)!" />
+          <AvatarFallback class="text-[10px]">{{ sb.personInitials(p.email) }}</AvatarFallback>
+        </Avatar>
+        <div class="flex min-w-0 flex-col leading-tight">
+          <span class="truncate font-medium" :title="sb.personName(p.email)">{{ sb.personName(p.email) }}</span>
+          <Tooltip>
+            <TooltipTrigger as-child>
+              <time class="w-fit text-xs text-muted-foreground" :datetime="p.at ?? undefined">
+                {{ p.label }} · {{ formatRelative(p.at) }}
+              </time>
+            </TooltipTrigger>
+            <TooltipContent>{{ formatFull(p.at) }}</TooltipContent>
+          </Tooltip>
+        </div>
+      </li>
+    </ul>
+
+    <Separator />
+
+    <template v-if="sb.loaded.value || !sb.loading.value">
+      <SidebarPeople :sb="sb" :workspace="workspace" />
+      <Separator />
+      <SidebarTags :sb="sb" />
+    </template>
+    <div v-else class="flex flex-col gap-3">
+      <Skeleton class="h-4 w-24" />
+      <Skeleton class="h-8 w-full" />
+      <Skeleton class="h-4 w-16" />
+      <Skeleton class="h-5 w-2/3" />
+    </div>
+
+    <Separator />
+
+    <!-- Actions -->
+    <ButtonGroup class="w-full">
+      <Tooltip>
+        <TooltipTrigger as-child>
+          <Toggle
+            variant="outline"
+            size="sm"
+            class="flex-1 data-[state=on]:text-primary"
+            :model-value="isFollowing"
+            @update:model-value="sb.toggleFollow()"
+          >
+            <Bell :fill="isFollowing ? 'currentColor' : 'none'" />
+            {{ isFollowing ? t('Following') : t('Follow') }}
+          </Toggle>
+        </TooltipTrigger>
+        <TooltipContent>
+          {{ isFollowing ? t('You get notified about changes and comments') : t('Get notified about changes and comments') }}
+        </TooltipContent>
+      </Tooltip>
+      <Tooltip>
+        <TooltipTrigger as-child>
+          <Toggle
+            variant="outline"
+            size="sm"
+            class="data-[state=on]:text-warning"
+            :model-value="isBookmarked"
+            :aria-label="isBookmarked ? t('Bookmarked') : t('Bookmark')"
+            @update:model-value="sb.toggleBookmark(bookmarkTitle())"
+          >
+            <Bookmark :fill="isBookmarked ? 'currentColor' : 'none'" />
+          </Toggle>
+        </TooltipTrigger>
+        <TooltipContent>{{ isBookmarked ? t('Bookmarked') : t('Bookmark') }}</TooltipContent>
+      </Tooltip>
+      <Tooltip>
+        <TooltipTrigger as-child>
+          <Button variant="outline" size="icon-sm" :aria-label="t('Print')" @click="printDoc">
+            <Printer />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>{{ t('Print') }}</TooltipContent>
+      </Tooltip>
+    </ButtonGroup>
   </div>
 </template>
