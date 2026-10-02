@@ -206,7 +206,7 @@ export function useFormController(
   async function applyTransition(action: string, values?: Record<string, unknown>) {
     const transition = transitions.value.find((t) => t.action === action)
     if (!transition || !id) return
-    if (!values && transition.prompt_fields?.length) {
+    if (!values && (transition.prompt_fields?.length || transition.require_comment)) {
       transitionError.value = null
       pendingTransition.value = transition
       return

@@ -46,6 +46,7 @@
   "permissions": [
     { "role": "System Manager", "read": true, "write": true, "create": true, "delete": true },
     { "role": "Адміністратор порталу", "read": true, "write": true, "create": true, "delete": true, "match": "menu == 'mlt_portal'" },
-    { "role": "Модератор порталу", "read": true }
+    { "role": "Модератор порталу", "read": true },
+    { "role": "Автор порталу", "read": true }
   ]
 }

@@ -39,6 +39,24 @@
       "fieldtype": "Check",
       "default": false,
       "in_list_view": true
+    },
+    {
+      "fieldname": "edit_roles",
+      "label": "Edit roles (comma-separated)",
+      "fieldtype": "LongText",
+      "description": "Who may edit or delete the document in this state (workflow actions are not affected). Empty — everyone with write permission"
+    },
+    {
+      "fieldname": "update_field",
+      "label": "Set field",
+      "fieldtype": "Text",
+      "description": "On entering this state, write “Field value” into this field of the document (e.g. published)"
+    },
+    {
+      "fieldname": "update_value",
+      "label": "Field value",
+      "fieldtype": "Text",
+      "depends_on": "eval:doc.update_field"
     }
   ],
   "permissions": [

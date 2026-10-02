@@ -45,6 +45,12 @@ async def _dump_doctype(dt: DocType, *, translate: bool = False) -> dict[str, An
             }
     workflow = await get_active_workflow(dt.name)
     data["workflow_state_field"] = workflow.state_field if workflow else None
+    if workflow and translate:
+        # The form shows the state read-only — it moves by the workflow bar's
+        # actions (grunt/workflow/guard.py); the builder (raw) keeps the source.
+        for fdata in data["fields"]:
+            if fdata.get("fieldname") == workflow.state_field:
+                fdata["read_only"] = True
 
     # Enrich `actions` bindings with defaults from the code registry and attach
     # `_action_catalog` for the binding editor — see grunt.actions.

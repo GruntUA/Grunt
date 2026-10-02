@@ -5,6 +5,8 @@ export interface WorkflowTransitionItem {
   action: string
   to_state: string
   prompt_fields: string[]
+  /** Ask for a comment (sent as `values.__comment`) before applying. */
+  require_comment?: boolean
 }
 
 export interface CommentItem {

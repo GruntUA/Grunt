@@ -371,6 +371,7 @@ export interface WorkflowTransition {
   action: string
   to_state: string
   prompt_fields: string[]
+  require_comment?: boolean
 }
 
 export interface FormProxyState {

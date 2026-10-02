@@ -192,6 +192,9 @@ class DocumentWriteMixin(DocumentReadMixin):
 
         workflow = await get_active_workflow(dt.name)
         if workflow:
+            from grunt.workflow.guard import check_create
+
+            await check_create(dt.name, data, user)
             sf = workflow.state_field
             if sf in data:
                 row[sf] = data[sf]
@@ -199,6 +202,9 @@ class DocumentWriteMixin(DocumentReadMixin):
                 initial = next((s for s in workflow.states if s.is_initial), None)
                 if initial:
                     row[sf] = initial.state
+                    target = dt.get_field(initial.update_field or "")
+                    if target is not None and target.fieldname not in data:
+                        row[target.fieldname] = target.coerce(initial.update_value)
 
         return doc_name, row
 
@@ -519,6 +525,13 @@ class DocumentWriteMixin(DocumentReadMixin):
                 ),
             )
 
+        # Workflow: the state moves only by transitions; an edit may itself be
+        # an `on_edit` transition (then *data* carries the new state).
+        from grunt.workflow.guard import check_update
+
+        data = dict(data)
+        auto_transition = await check_update(doctype_name, existing, data, user)
+
         errors = _validate_data(dt, data, partial=True, ignore_required=ignore_required)
         if errors:
             raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=errors)
@@ -534,6 +547,9 @@ class DocumentWriteMixin(DocumentReadMixin):
                 merged[_f.fieldname] = data[_f.fieldname]
 
         _tokens = self._set_grunt_context(user)
+        from grunt.workflow.engine import _active
+
+        transition_token = _active.set(auto_transition) if auto_transition else None
         try:
             controller_cls = document_registry.get(doctype_name)
             doc = controller_cls(doctype_name, merged, user, self.session)
@@ -579,11 +595,18 @@ class DocumentWriteMixin(DocumentReadMixin):
                 result=result,
             )
             await self._fire_write_hooks("after_update", "after_save", doctype_name, result, user)
-            return result
         except IntegrityError as exc:
             raise friendly_integrity_error(exc, dt.doc) from exc
         finally:
+            if transition_token is not None:
+                _active.reset(transition_token)
             self._reset_grunt_context(_tokens)
+
+        if auto_transition:
+            from grunt.workflow.engine import workflow_engine
+
+            await workflow_engine.finish_transition(auto_transition, result, user, self.session)
+        return result
 
     # ── Delete ────────────────────────────────────────────────────────────
 
@@ -628,6 +651,10 @@ class DocumentWriteMixin(DocumentReadMixin):
         from grunt.permissions.rbac import permission_checker
 
         await permission_checker.require(user, dt, "delete", existing)
+
+        from grunt.workflow.guard import check_delete
+
+        await check_delete(doctype_name, existing, user)
 
         if dt.is_submittable and existing.get("docstatus") == 1:
             raise HTTPException(

@@ -35,7 +35,12 @@ class DocumentWorkflowRPCMixin:
         user = grunt.get_user()
         transitions = await workflow_engine.get_available_transitions(dt.doc, doc, user)
         return [
-            {"action": t.action, "to_state": t.to_state, "prompt_fields": t.prompt_fields}
+            {
+            "action": t.action,
+            "to_state": t.to_state,
+            "prompt_fields": t.prompt_fields,
+            "require_comment": t.require_comment,
+        }
             for t in transitions
         ]
 
@@ -47,7 +52,8 @@ class DocumentWorkflowRPCMixin:
         """Apply a workflow transition to a document.
 
         ``values`` fills in the transition's ``prompt_fields`` (e.g. a note
-        entered in a dialog) — fields not declared on the transition are ignored.
+        entered in a dialog) — fields not declared on the transition are ignored;
+        ``values["__comment"]`` is the comment of a ``require_comment`` transition.
         """
         from grunt.errors import not_found
 

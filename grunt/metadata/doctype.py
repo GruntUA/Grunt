@@ -22,6 +22,17 @@ class WorkflowState(BaseModel):
     color: str = "gray"  # gray, blue, green, yellow, orange, red
     is_initial: bool = False
     is_final: bool = False
+    # Roles that may edit/delete the document while it is in this state
+    # (workflow actions are not affected); empty — anyone with write permission.
+    edit_roles: list[str] = []
+    # On entering this state, `update_value` is written into `update_field`.
+    update_field: str | None = None
+    update_value: str | None = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def _split_csv_lists(cls, data: Any) -> Any:
+        return _split_csv(data, ("edit_roles",))
 
 
 class WorkflowTransition(BaseModel):
@@ -37,27 +48,43 @@ class WorkflowTransition(BaseModel):
     # When set, `condition` (if any) is checked against the *merged* values
     # at apply time instead of gating the button's visibility.
     prompt_fields: list[str] = []
+    # Ask for a comment (added to the document's comments and the notification).
+    require_comment: bool = False
+    # Not a button: applied when a user allowed this transition edits the
+    # document in `from_state` (e.g. an edited published page goes back to review).
+    on_edit: bool = False
+    # Who is notified: "owner", "previous" (who performed the previous workflow
+    # action) and/or "next" (who can take the next step — see grunt.workflow.notify).
+    notify: list[str] = []
+    notify_email: bool = False
 
     @model_validator(mode="before")
     @classmethod
     def _split_csv_lists(cls, data: Any) -> Any:
-        """``allowed_roles``/``prompt_fields`` are comma-separated ``LongText`` fields.
+        return _split_csv(data, ("allowed_roles", "prompt_fields", "notify"))
 
-        A DB row predating the column (or simply never filled in) stores it as
-        SQL ``NULL`` — read back as ``None``, which a bare ``list[str]`` field
-        rejects, so that must become ``[]`` too rather than only splitting strings.
-        """
-        if isinstance(data, dict):
-            updates = {}
-            for key in ("allowed_roles", "prompt_fields"):
-                value = data.get(key)
-                if isinstance(value, str):
-                    updates[key] = [v.strip() for v in value.split(",") if v.strip()]
-                elif value is None and key in data:
-                    updates[key] = []
-            if updates:
-                data = {**data, **updates}
-        return data
+
+def _split_csv(data: Any, keys: tuple[str, ...]) -> Any:
+    """List fields of workflow rows are comma-separated ``LongText`` columns.
+
+    A DB row predating the column (or simply never filled in) stores it as
+    SQL ``NULL`` — read back as ``None``, which a bare ``list[str]`` field
+    rejects, so that must become ``[]`` too rather than only splitting strings.
+    Check columns read back as ``None`` the same way — dropped so the default applies.
+    """
+    if isinstance(data, dict):
+        updates: dict[str, Any] = {}
+        for key in keys:
+            value = data.get(key)
+            if isinstance(value, str):
+                updates[key] = [v.strip() for v in value.split(",") if v.strip()]
+            elif value is None and key in data:
+                updates[key] = []
+        data = {**data, **updates}
+        for key in ("require_comment", "on_edit", "notify_email", "is_initial", "is_final"):
+            if key in data and data[key] is None:
+                del data[key]
+    return data
 
 
 # ── Permission sub-model ─────────────────────────────────────────────────

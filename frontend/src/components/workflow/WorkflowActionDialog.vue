@@ -6,6 +6,8 @@ import type { WorkflowTransitionItem } from '@/core/api/docs'
 import { filterFieldsByName } from '@/core/fieldFilter'
 import FormRenderer from '@/core/renderer/FormRenderer.vue'
 import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
 const props = defineProps<{
@@ -39,6 +41,11 @@ const reqdOverrides = computed(() =>
   Object.fromEntries(props.transition.prompt_fields.map(name => [name, true])),
 )
 
+// A `require_comment` transition's comment — the server adds it to the
+// document's comments and the notification (values.__comment).
+const comment = ref('')
+const commentMissing = ref(false)
+
 function onFormUpdate(updated: Record<string, unknown>) {
   Object.assign(form.value, updated)
 }
@@ -46,7 +53,14 @@ function onFormUpdate(updated: Record<string, unknown>) {
 function onSubmit() {
   // Only the declared prompt_fields go over the wire — the rest of `form`
   // exists purely so the layout's depends_on conditions resolve correctly.
-  const values = Object.fromEntries(props.transition.prompt_fields.map(name => [name, form.value[name]]))
+  const values: Record<string, unknown> = Object.fromEntries(
+    props.transition.prompt_fields.map(name => [name, form.value[name]]),
+  )
+  if (props.transition.require_comment) {
+    commentMissing.value = !comment.value.trim()
+    if (commentMissing.value) return
+    values.__comment = comment.value.trim()
+  }
   emit('submit', values)
 }
 
@@ -65,12 +79,24 @@ const isVisible = ref(true)
 
       <div class="-mx-6 max-h-[60vh] overflow-y-auto px-6">
         <FormRenderer
+          v-if="transition.prompt_fields.length"
           :doctype="promptDt"
           :model-value="form"
           :disabled="isSubmitting"
           :reqd-overrides="reqdOverrides"
           @update:model-value="onFormUpdate"
         />
+        <div v-if="transition.require_comment" class="grid gap-2 py-2">
+          <Label for="workflow-comment">{{ t('Comment') }} <span class="text-destructive">*</span></Label>
+          <Textarea
+            id="workflow-comment"
+            v-model="comment"
+            rows="4"
+            :disabled="isSubmitting"
+            @update:model-value="commentMissing = false"
+          />
+          <p v-if="commentMissing" class="text-destructive text-sm">{{ t('Add a comment') }}</p>
+        </div>
         <p v-if="errorMessage" class="text-destructive mt-2">{{ errorMessage }}</p>
       </div>
 

@@ -40,6 +40,33 @@
       "label": "Dialog fields (comma-separated)",
       "fieldtype": "LongText",
       "description": "Fieldnames on the target DocType to ask for in a dialog before applying this transition. When set, Condition (if any) is checked against the values entered in the dialog."
+    },
+    {
+      "fieldname": "require_comment",
+      "label": "Comment required",
+      "fieldtype": "Check",
+      "default": false,
+      "description": "Ask for a comment before applying; it is added to the document comments and the notification"
+    },
+    {
+      "fieldname": "on_edit",
+      "label": "Apply on edit",
+      "fieldtype": "Check",
+      "default": false,
+      "description": "Not a button: applied automatically when a user with the allowed roles changes the document in the “From” state (e.g. an edited published page goes back to review)"
+    },
+    {
+      "fieldname": "notify",
+      "label": "Notify (comma-separated)",
+      "fieldtype": "LongText",
+      "description": "owner — the document author; previous — who performed the previous workflow action; next — users who can take the next step (by role and access to the document)"
+    },
+    {
+      "fieldname": "notify_email",
+      "label": "Also by email",
+      "fieldtype": "Check",
+      "default": false,
+      "depends_on": "eval:doc.notify"
     }
   ],
   "permissions": [

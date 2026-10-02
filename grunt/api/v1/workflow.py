@@ -27,7 +27,12 @@ async def get_transitions(doctype: str, doc_id: str) -> list[dict[str, Any]]:
     user = grunt.get_user()
     transitions = await workflow_engine.get_available_transitions(dt.doc, doc, user)
     return [
-        {"action": t.action, "to_state": t.to_state, "prompt_fields": t.prompt_fields}
+        {
+            "action": t.action,
+            "to_state": t.to_state,
+            "prompt_fields": t.prompt_fields,
+            "require_comment": t.require_comment,
+        }
         for t in transitions
     ]
 

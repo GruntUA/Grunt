@@ -1,10 +1,29 @@
-"""Workflow engine — state machine for DocType documents."""
+"""Workflow engine — state machine for DocType documents.
+
+A transition is applied through the regular update pipeline (``grunt.save_doc``),
+so the controller's ``validate``/``after_save`` and every hook run as for any
+save; :func:`current_transition` tells them which transition is in progress.
+
+While a DocType has an active workflow (see grunt/workflow/guard.py):
+
+* its state field changes only through transitions (the internal system user —
+  imports, fixtures, migrations — is exempt);
+* a state's ``edit_roles`` limits who may edit/delete the document in it;
+* an ``on_edit`` transition is applied automatically when a user allowed to
+  take it edits the document in its ``from_state``.
+
+After a transition: activity log entry, the comment (``require_comment``) on
+the document, notifications (``notify``, grunt/workflow/notify.py), the
+``on_transition`` hook and a websocket broadcast.
+"""
 
 from __future__ import annotations
 
 import contextlib
+from contextvars import ContextVar
+from dataclasses import dataclass
 from datetime import datetime
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from fastapi import HTTPException, status
 
@@ -15,6 +34,36 @@ if TYPE_CHECKING:
 
     from grunt.auth.doctypes.User.user import User
     from grunt.metadata.doctype import DocType, WorkflowState, WorkflowTransition
+
+# Values key carrying the dialog's comment for a `require_comment` transition.
+COMMENT_KEY = "__comment"
+
+
+@dataclass(frozen=True, slots=True)
+class ActiveTransition:
+    """The transition being applied — visible to controllers via :func:`current_transition`."""
+
+    doctype: str
+    doc_id: str
+    from_state: str | None
+    to_state: str
+    action: str
+    transition: WorkflowTransition
+    comment: str | None = None
+
+
+_active: ContextVar[ActiveTransition | None] = ContextVar("grunt_workflow_transition", default=None)
+
+
+def current_transition() -> ActiveTransition | None:
+    """The workflow transition being saved right now, if any.
+
+    Set while the update pipeline runs for a transition (a button or an
+    ``on_edit`` transition), so ``validate``/``after_save`` can react to it::
+
+        if (t := current_transition()) and t.to_state == "Approved": ...
+    """
+    return _active.get()
 
 
 class WorkflowEngine:
@@ -35,7 +84,10 @@ class WorkflowEngine:
         doctype: DocType,
         doc: dict,
         user: User,
+        *,
+        on_edit: bool = False,
     ) -> list[WorkflowTransition]:
+        """Transitions *user* may apply now — buttons, or with ``on_edit`` the automatic ones."""
         from grunt.workflow.registry import get_active_workflow
 
         workflow = await get_active_workflow(doctype.name)
@@ -46,14 +98,10 @@ class WorkflowEngine:
 
         available: list[WorkflowTransition] = []
         for t in workflow.transitions:
-            if t.from_state != current_state_name:
+            if t.from_state != current_state_name or t.on_edit != on_edit:
                 continue
-            # Check roles
-            if t.allowed_roles:
-                user_roles = set(getattr(user, "roles", []) or [])
-                allowed = user_roles.intersection(t.allowed_roles) or "System Manager" in user_roles
-                if not allowed:
-                    continue
+            if not user_may_take(t, user):
+                continue
             # Check condition — transitions with prompt_fields defer this check
             # to apply_transition(), once the dialog values are merged in, since
             # the condition often depends on a field the dialog itself fills in.
@@ -79,7 +127,6 @@ class WorkflowEngine:
         import grunt
         from grunt.workflow.registry import get_active_workflow
 
-        # Get document
         doc = await grunt.get_doc(doctype.name, doc_id)
 
         available = await self.get_available_transitions(doctype, doc, user)
@@ -98,13 +145,20 @@ class WorkflowEngine:
                 detail=_("The document has no Workflow configured"),
             )
 
-        state_field = workflow.state_field
-        updates: dict = {state_field: transition.to_state}
+        values = dict(values or {})
+        comment = str(values.pop(COMMENT_KEY, None) or "").strip() or None
+        if transition.require_comment and not comment:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=_("Add a comment"),
+            )
+
+        updates: dict = state_updates(workflow, transition.to_state)
         if transition.prompt_fields:
             # Only fields the transition explicitly asks for can be written
             # this way — an RPC caller can't sneak other fields in via `values`.
             for fieldname in transition.prompt_fields:
-                if values and fieldname in values:
+                if fieldname in values:
                     updates[fieldname] = values[fieldname]
 
             if transition.condition:
@@ -115,80 +169,94 @@ class WorkflowEngine:
                         detail=_("Fill in the required fields"),
                     )
 
-        # Apply — guarded `grunt.set_value` (not `grunt.db.set_value`), so this
-        # still enforces the doctype's own write permission even when the
-        # transition itself declares no `allowed_roles` (a reader with no
-        # write access must not be able to move the document through its
-        # workflow just because they can read it).
-        await grunt.set_value(doctype.name, doc_id, updates)
-
-        # Re-read updated document (set_value already flushed) as a bound controller
-        # so apps can react to state changes via after_save() — .as_dict() below
-        # reuses this same fetch for the hooks/return value, no second DB round-trip.
-        controller = await grunt.get_doc_instance(doctype.name, doc_id)
-        updated_doc = controller.as_dict()
+        active = ActiveTransition(
+            doctype=doctype.name,
+            doc_id=doc["name"],
+            from_state=doc.get(workflow.state_field),
+            to_state=transition.to_state,
+            action=action,
+            transition=transition,
+            comment=comment,
+        )
+        # The full update pipeline (validate, after_save, hooks, versions) —
+        # `grunt.save_doc` also enforces the doctype's own write permission,
+        # so a reader can't move a document through its workflow.
+        token = _active.set(active)
         try:
-            await controller.after_save()
-        except Exception:
-            log.exception("workflow.controller_after_save_error", doctype=doctype.name)
+            updated = await grunt.save_doc(doctype.name, doc_id, updates)
+        finally:
+            _active.reset(token)
 
-        # Fire on_transition hooks
+        await self.finish_transition(active, updated, user, session)
+        return updated
+
+    async def finish_transition(
+        self,
+        active: ActiveTransition,
+        doc: dict,
+        user: User,
+        session: AsyncSession,
+    ) -> None:
+        """After a transition is saved: log, comment, notify, hooks, broadcast."""
         from grunt.events import fire as fire_hook
+        from grunt.workflow.notify import notify_transition, previous_actor
+
+        # Who performed the previous action — read before this one is logged.
+        previous = None
+        if "previous" in active.transition.notify:
+            with contextlib.suppress(Exception):
+                previous = await previous_actor(active.doctype, active.doc_id)
+
+        with contextlib.suppress(Exception):
+            await self._log_activity(
+                doctype=active.doctype,
+                doc_id=active.doc_id,
+                action="Workflow",
+                user=user.email,
+                details={
+                    "from": active.from_state,
+                    "to": active.to_state,
+                    "action": active.action,
+                    "comment": active.comment,
+                },
+                session=session,
+            )
+
+        if active.comment:
+            try:
+                await _add_comment(active)
+            except Exception:
+                log.exception("workflow.comment_error", doctype=active.doctype)
+
+        try:
+            await notify_transition(active, doc, user, previous=previous)
+        except Exception:
+            log.exception("workflow.notify_error", doctype=active.doctype)
 
         try:
             await fire_hook(
                 "on_transition",
-                doctype=doctype.name,
-                doc=updated_doc,
-                from_state=doc.get(state_field),
-                to_state=transition.to_state,
-                action=action,
+                doctype=active.doctype,
+                doc=doc,
+                from_state=active.from_state,
+                to_state=active.to_state,
+                action=active.action,
+                comment=active.comment,
                 user=user,
                 session=session,
             )
         except Exception:
             log.exception("hook.on_transition_error")
 
-        # Fire after_save / after_update hooks (so doc_events work for transitions too)
-        try:
-            await fire_hook(
-                "after_save",
-                doctype=doctype.name,
-                doc=updated_doc,
-                user=user,
-                session=session,
-            )
-        except Exception:
-            log.exception("hook.after_save_on_transition_error")
-
-        # Log activity
-        with contextlib.suppress(Exception):
-            await self._log_activity(
-                doctype=doctype.name,
-                doc_id=doc_id,
-                action="workflow_transition",
-                user=user.email,
-                details={
-                    "from": doc.get(state_field),
-                    "to": transition.to_state,
-                    "action": action,
-                },
-                session=session,
-            )
-
-        # Broadcast WS
         with contextlib.suppress(Exception):
             from grunt.api.v1.ws import manager
 
             await manager.broadcast_doc(
-                doctype.name,
-                doc_id,
+                active.doctype,
+                active.doc_id,
                 "workflow_transition",
-                {"action": action, "to_state": transition.to_state},
+                {"action": active.action, "to_state": active.to_state},
             )
-
-        # Return updated doc (already read above)
-        return updated_doc
 
     async def _log_activity(
         self,
@@ -201,16 +269,17 @@ class WorkflowEngine:
     ) -> None:
         import grunt
 
-        await grunt.new_doc(
-            "ActivityLog",
-            {
-                "doctype": doctype,
-                "doc_id": doc_id,
-                "action": action,
-                "user": user,
-                "details": details,
-            },
-        )
+        async with grunt.system_context(session):
+            await grunt.new_doc(
+                "ActivityLog",
+                {
+                    "doctype": doctype,
+                    "doc_id": doc_id,
+                    "action": action,
+                    "user": user,
+                    "details": details,
+                },
+            )
 
     def _eval_condition(self, condition: str, doc: dict, user: str) -> bool:
         try:
@@ -223,6 +292,41 @@ class WorkflowEngine:
         except Exception:
             log.warning("workflow.condition_eval_failed", condition=condition, user=user)
             return True  # Don't block on error
+
+
+def user_may_take(transition: WorkflowTransition, user: User) -> bool:
+    """Role check of a transition (System Manager may take any)."""
+    if not transition.allowed_roles:
+        return True
+    roles = set(getattr(user, "roles", []) or [])
+    return bool(roles.intersection(transition.allowed_roles)) or "System Manager" in roles
+
+
+def state_updates(workflow: Any, to_state: str) -> dict[str, Any]:
+    """Fields written on entering *to_state*: the state itself and its ``update_field``."""
+    updates: dict[str, Any] = {workflow.state_field: to_state}
+    state = next((s for s in workflow.states if s.state == to_state), None)
+    if state and state.update_field:
+        updates[state.update_field] = state.update_value
+    return updates
+
+
+async def _add_comment(active: ActiveTransition) -> None:
+    """The transition's comment on the document's comment thread."""
+    from html import escape
+
+    import grunt
+
+    text = escape(active.comment or "").replace("\n", "<br>")
+    await grunt.new_doc(
+        "Comment",
+        {
+            "reference_doctype": active.doctype,
+            "reference_id": active.doc_id,
+            "content": f"<p><strong>{escape(active.action)}</strong></p><p>{text}</p>",
+            "comment_type": "Comment",
+        },
+    )
 
 
 workflow_engine = WorkflowEngine()

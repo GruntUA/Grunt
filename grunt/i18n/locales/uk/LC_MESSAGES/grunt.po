@@ -14628,6 +14628,75 @@ msgstr "Вибрано: {n}"
 msgid "Tick the items you need in the tree"
 msgstr "Позначте потрібні пункти в дереві"
 
+msgid "%(user)s: “%(action)s” — %(from)s → %(to)s"
+msgstr "%(user)s: «%(action)s» — %(from)s → %(to)s"
+
+msgid "A new document starts in the “%(state)s” state"
+msgstr "Новий документ створюється у стані «%(state)s»"
+
+msgid "Add a comment"
+msgstr "Напишіть коментар"
+
+msgid "Comment:"
+msgstr "Коментар:"
+
+msgid "In the “%(state)s” state the document can't be deleted"
+msgstr "У стані «%(state)s» документ не можна видалити"
+
+msgid "In the “%(state)s” state the document can't be edited"
+msgstr "У стані «%(state)s» документ не можна редагувати"
+
+msgid "The state changes only through workflow actions"
+msgstr "Стан змінюється лише діями робочого процесу (кнопками над формою)"
+
+msgctxt "meta:WorkflowState.edit_roles"
+msgid "Edit roles (comma-separated)"
+msgstr "Ролі, що редагують (через кому)"
+
+msgctxt "help:WorkflowState.edit_roles"
+msgid "Who may edit or delete the document in this state (workflow actions are not affected). Empty — everyone with write permission"
+msgstr "Хто може редагувати й видаляти документ у цьому стані (на дії робочого процесу не впливає). Порожньо — усі з правом запису"
+
+msgctxt "meta:WorkflowState.update_field"
+msgid "Set field"
+msgstr "Встановити поле"
+
+msgctxt "help:WorkflowState.update_field"
+msgid "On entering this state, write “Field value” into this field of the document (e.g. published)"
+msgstr "Під час переходу в цей стан записати «Значення поля» в це поле документа (наприклад, published)"
+
+msgctxt "meta:WorkflowState.update_value"
+msgid "Field value"
+msgstr "Значення поля"
+
+msgctxt "meta:WorkflowTransition.require_comment"
+msgid "Comment required"
+msgstr "Потрібен коментар"
+
+msgctxt "help:WorkflowTransition.require_comment"
+msgid "Ask for a comment before applying; it is added to the document comments and the notification"
+msgstr "Перед переходом запитати коментар; він додається до коментарів документа й до сповіщення"
+
+msgctxt "meta:WorkflowTransition.on_edit"
+msgid "Apply on edit"
+msgstr "Застосовувати під час правки"
+
+msgctxt "help:WorkflowTransition.on_edit"
+msgid "Not a button: applied automatically when a user with the allowed roles changes the document in the “From” state (e.g. an edited published page goes back to review)"
+msgstr "Не кнопка: застосовується автоматично, коли користувач із дозволеною роллю змінює документ у стані «З» (наприклад, змінена опублікована сторінка повертається на модерацію)"
+
+msgctxt "meta:WorkflowTransition.notify"
+msgid "Notify (comma-separated)"
+msgstr "Сповістити (через кому)"
+
+msgctxt "help:WorkflowTransition.notify"
+msgid "owner — the document author; previous — who performed the previous workflow action; next — users who can take the next step (by role and access to the document)"
+msgstr "owner — автор документа; previous — хто виконав попередню дію; next — хто може зробити наступний крок (за роллю та доступом до документа)"
+
+msgctxt "meta:WorkflowTransition.notify_email"
+msgid "Also by email"
+msgstr "Також на email"
+
 #~ msgid "Quick create (Ctrl+N)"
 #~ msgstr "Швидке створення (Ctrl+N)"
 
