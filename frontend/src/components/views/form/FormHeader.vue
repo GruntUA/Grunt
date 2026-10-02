@@ -13,7 +13,6 @@ import {
   Loader2,
   Share2,
   Copy as CopyIcon,
-  PanelRight,
   Database,
   Check,
   HardDriveDownload,
@@ -77,6 +76,20 @@ const toolbarActions = props.actions.resolved('toolbar')
 const primaryActions = props.actions.resolved('primary')
 const menuActions = props.actions.resolved('menu')
 const isRenaming = ref(false)
+
+// Details sidebar toggle — first in the «⋯» menu. Its shortcut (Mod+]) runs it
+// through the action registry; useDocPanel keeps a fallback for other pages.
+props.actions.add({
+  id: 'toggle_details',
+  label: () => (panelOpen.value ? 'Hide details' : 'Show details'),
+  icon: 'panel-right',
+  placement: 'menu',
+  group: 'view',
+  order: 10,
+  shortcut: 'Mod+]',
+  visible: () => !!props.id && !props.hidePanelToggle,
+  action: () => togglePanel(),
+})
 
 // Table info (DocType editor only) — registered like any other action.
 props.actions.add({
@@ -234,17 +247,6 @@ const statusBadge = computed(() => resolveStatusBadge(props.dt, props.document))
         <!-- Actions: global_form.js + the DocType's script + ClientScripts (core/actions.ts) -->
         <ActionButtons :toolbar="toolbarActions" compact />
 
-        <Button
-          v-if="id && !hidePanelToggle"
-          variant="outline"
-          size="icon-sm"
-          class="text-foreground"
-          :class="{ 'bg-muted': !panelOpen }"
-          :title="`${panelOpen ? t('Hide details') : t('Show details')} (Ctrl+])`"
-          @click="togglePanel"
-        >
-          <PanelRight class="size-4" />
-        </Button>
 
         <!-- Workflow transitions — next to Save; the state is in the sidebar -->
         <WorkflowActions v-if="!isLoading && dt && id && document && dt.workflow_state_field" :doctype="dt"

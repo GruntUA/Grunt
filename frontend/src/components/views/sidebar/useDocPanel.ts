@@ -66,6 +66,8 @@ export function useDocPanel() {
   if (!shortcutBound) {
     shortcutBound = true
     useEventListener('keydown', (e: KeyboardEvent) => {
+      // A form registers the toggle as an action with this shortcut — it ran already.
+      if (e.defaultPrevented) return
       if (matchesShortcut(e, SHORTCUT)) {
         e.preventDefault()
         toggle()
