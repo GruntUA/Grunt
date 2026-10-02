@@ -5,9 +5,7 @@ import {
   MessageSquare,
   Activity as ActivityIcon,
   Trash2,
-  Loader2,
   Send,
-  User,
 } from '@lucide/vue'
 import { docsApi, type TimelineItem, type DocVersionChange } from '@/core/api/docs'
 import { authAdminApi } from '@/core/api/auth-admin'
@@ -17,6 +15,10 @@ import type { DocType, GruntDocument, UserPublic } from '@/types'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
+import { Kbd, KbdGroup } from '@/components/ui/kbd'
+import { Spinner } from '@/components/ui/spinner'
+import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover'
+import { Item, ItemContent, ItemDescription, ItemGroup, ItemMedia, ItemTitle } from '@/components/ui/item'
 import { formatIntl } from '@/core/datetime'
 
 const { t } = useI18n()
@@ -248,41 +250,50 @@ onMounted(loadTimeline)
 
 <template>
   <div v-if="timelineLoading" class="flex justify-center py-10">
-    <Loader2 class="size-5 animate-spin text-muted-foreground" />
+    <Spinner class="size-5 text-muted-foreground" />
   </div>
 
   <div v-else class="flex flex-col gap-5">
     <!-- Comment input -->
     <div class="flex flex-col gap-2">
-      <div class="relative">
-        <Textarea v-model="commentInput" rows="3"
-          :placeholder="t('Write a comment... @ to mention')"
-          class="resize-none"
-          @keydown="onCommentKeydown" @input="onCommentInput" />
-
-        <!-- Mentions -->
-        <div v-if="mentionDropdown.length"
-          class="absolute left-0 right-0 bottom-full mb-1 bg-popover text-popover-foreground border rounded-md shadow-md overflow-hidden z-50">
-          <div class="px-2 py-1.5 text-muted-foreground border-b">{{ t('Mention a user') }}</div>
-          <button v-for="(u, i) in mentionDropdown" :key="u.id"
-            class="w-full flex items-center gap-2 px-2 py-1.5 text-left"
-            :class="i === mentionIndex ? 'bg-accent text-accent-foreground' : 'hover:bg-accent hover:text-accent-foreground'"
-            @mousedown.prevent="insertMention(u)">
-            <Avatar class="size-6 shrink-0">
-              <AvatarFallback><User class="size-3" /></AvatarFallback>
-            </Avatar>
-            <div class="flex flex-col min-w-0">
-                <span class="font-medium truncate">{{ u.full_name || u.email }}</span>
-                <span class="text-muted-foreground truncate">{{ u.email }}</span>
-            </div>
-          </button>
-        </div>
-      </div>
+      <!-- Mentions: anchored to the textarea, which keeps focus and drives the
+           highlight with the arrow keys (onCommentKeydown). -->
+      <Popover :open="mentionDropdown.length > 0" @update:open="(v) => { if (!v) mentionDropdown = [] }">
+        <PopoverAnchor as-child>
+          <Textarea v-model="commentInput" rows="3"
+            :placeholder="t('Write a comment... @ to mention')"
+            class="resize-none"
+            @keydown="onCommentKeydown" @input="onCommentInput" />
+        </PopoverAnchor>
+        <PopoverContent side="top" align="start" class="w-(--reka-popper-anchor-width) p-1"
+          @open-auto-focus.prevent @close-auto-focus.prevent>
+          <div class="px-2 py-1.5 text-xs font-medium text-muted-foreground">{{ t('Mention a user') }}</div>
+          <ItemGroup class="max-h-56 overflow-y-auto">
+            <Item v-for="(u, i) in mentionDropdown" :key="u.id" as="button" type="button" size="sm"
+              class="w-full flex-nowrap gap-2 px-2 py-1.5 text-left hover:bg-accent hover:text-accent-foreground"
+              :class="i === mentionIndex && 'bg-accent text-accent-foreground'"
+              @mousedown.prevent="insertMention(u)">
+              <ItemMedia>
+                <Avatar class="size-6">
+                  <AvatarFallback class="text-[10px]">{{ (u.full_name || u.email).slice(0, 2).toUpperCase() }}</AvatarFallback>
+                </Avatar>
+              </ItemMedia>
+              <ItemContent class="min-w-0 gap-0">
+                <ItemTitle class="w-full"><span class="truncate">{{ u.full_name || u.email }}</span></ItemTitle>
+                <ItemDescription v-if="u.full_name" class="truncate text-xs">{{ u.email }}</ItemDescription>
+              </ItemContent>
+            </Item>
+          </ItemGroup>
+        </PopoverContent>
+      </Popover>
       <div class="flex items-center justify-between">
-          <span class="text-muted-foreground">{{ t('Ctrl+Enter to send') }}</span>
+          <KbdGroup class="text-xs text-muted-foreground">
+            <Kbd>Ctrl</Kbd><Kbd>Enter</Kbd>
+            <span>{{ t('to send') }}</span>
+          </KbdGroup>
           <Button size="sm" :disabled="!commentInput.trim() || commentSending" @click="sendComment">
-            <Loader2 v-if="commentSending" class="size-3.5 animate-spin" />
-            <Send v-else class="size-3.5" />
+            <Spinner v-if="commentSending" />
+            <Send v-else />
             {{ t('Send') }}
           </Button>
       </div>
@@ -308,21 +319,23 @@ onMounted(loadTimeline)
             <span class="font-medium text-foreground truncate">{{ item.user }}</span>
             <div class="flex items-center gap-1 shrink-0">
                 <span class="text-muted-foreground">{{ fmtDate(item.created_at) }}</span>
-                <button v-if="item.type === 'comment' && (item.user === auth.user?.email || auth.isSystemManager)"
-                    class="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-destructive/10 hover:text-destructive"
+                <Button v-if="item.type === 'comment' && (item.user === auth.user?.email || auth.isSystemManager)"
+                    variant="ghost" size="icon-xs"
+                    class="opacity-0 group-hover:opacity-100 focus-visible:opacity-100 hover:bg-destructive/10 hover:text-destructive [@media(hover:none)]:opacity-100"
+                    :aria-label="t('Delete comment')"
                     @click="deleteComment(item)">
-                    <Trash2 class="size-3" />
-                </button>
+                    <Trash2 />
+                </Button>
             </div>
           </div>
           <span v-if="item.type === 'activity'" class="text-muted-foreground">
             {{ timelineLabel(item) }}
           </span>
-          <button v-if="item.type === 'version'" type="button"
-            class="text-left text-muted-foreground hover:text-foreground hover:underline underline-offset-2 w-fit"
+          <Button v-if="item.type === 'version'" variant="link"
+            class="h-auto w-fit justify-start p-0 font-normal whitespace-normal text-left text-muted-foreground hover:text-foreground"
             @click="openVersionDiff(item)">
             {{ versionChangeText(item) }}
-          </button>
+          </Button>
           <p v-if="item.type === 'comment'"
             class="text-foreground rounded-md border bg-muted/40 px-3 py-2 whitespace-pre-wrap">
             {{ item.content }}

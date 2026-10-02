@@ -11,10 +11,12 @@ import { resolveStatusBadge, statusBadgeFor, statusToneClass } from '@/core/stat
 import SidebarImage from './SidebarImage.vue'
 import SidebarPeople from './SidebarPeople.vue'
 import SidebarTags from './SidebarTags.vue'
+import SidebarPersonCard from './SidebarPersonCard.vue'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { ButtonGroup } from '@/components/ui/button-group'
+import { Item, ItemContent, ItemDescription, ItemGroup, ItemMedia, ItemTitle } from '@/components/ui/item'
 import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Toggle } from '@/components/ui/toggle'
@@ -181,40 +183,52 @@ function printDoc() {
       <template v-if="webUrl">
         <dt class="text-muted-foreground">{{ t('On website') }}</dt>
         <dd class="min-w-0">
-          <a
-            :href="webUrl"
-            target="_blank"
-            rel="noopener"
-            class="group flex items-center gap-1 rounded-sm outline-none hover:text-primary focus-visible:ring-2 focus-visible:ring-ring/50"
-            :title="webUrl"
-          >
-            <span class="truncate font-mono text-xs">{{ webPath }}</span>
-            <ExternalLink class="size-3 shrink-0 text-muted-foreground group-hover:text-primary" />
-          </a>
+          <Tooltip>
+            <TooltipTrigger as-child>
+              <a
+                :href="webUrl"
+                target="_blank"
+                rel="noopener"
+                class="group flex items-center gap-1 rounded-sm outline-none hover:text-primary focus-visible:ring-2 focus-visible:ring-ring/50"
+              >
+                <span class="truncate font-mono text-xs">{{ webPath }}</span>
+                <ExternalLink class="size-3 shrink-0 text-muted-foreground group-hover:text-primary" />
+              </a>
+            </TooltipTrigger>
+            <TooltipContent class="max-w-80 break-all">{{ webUrl }}</TooltipContent>
+          </Tooltip>
         </dd>
       </template>
     </dl>
 
     <!-- Who / when: full width so long names fit -->
-    <ul class="flex flex-col gap-2.5">
-      <li v-for="p in people" :key="p.key" class="flex min-w-0 items-center gap-2.5">
-        <Avatar class="size-7 shrink-0">
-          <AvatarImage v-if="sb.personAvatar(p.email)" :src="sb.personAvatar(p.email)!" />
-          <AvatarFallback class="text-[10px]">{{ sb.personInitials(p.email) }}</AvatarFallback>
-        </Avatar>
-        <div class="flex min-w-0 flex-col leading-tight">
-          <span class="truncate font-medium" :title="sb.personName(p.email)">{{ sb.personName(p.email) }}</span>
-          <Tooltip>
-            <TooltipTrigger as-child>
-              <time class="w-fit text-xs text-muted-foreground" :datetime="p.at ?? undefined">
-                {{ p.label }} · {{ formatRelative(p.at) }}
-              </time>
-            </TooltipTrigger>
-            <TooltipContent>{{ formatFull(p.at) }}</TooltipContent>
-          </Tooltip>
-        </div>
-      </li>
-    </ul>
+    <ItemGroup class="-mx-2 gap-0.5">
+      <Item v-for="p in people" :key="p.key" size="sm" class="gap-2.5 px-2 py-1.5">
+        <SidebarPersonCard :sb="sb" :email="p.email">
+          <ItemMedia>
+            <Avatar class="size-7">
+              <AvatarImage v-if="sb.personAvatar(p.email)" :src="sb.personAvatar(p.email)!" />
+              <AvatarFallback class="text-[10px]">{{ sb.personInitials(p.email) }}</AvatarFallback>
+            </Avatar>
+          </ItemMedia>
+        </SidebarPersonCard>
+        <ItemContent class="min-w-0 gap-0">
+          <ItemTitle class="w-full">
+            <SidebarPersonCard :sb="sb" :email="p.email">
+              <span class="truncate">{{ sb.personName(p.email) }}</span>
+            </SidebarPersonCard>
+          </ItemTitle>
+          <ItemDescription class="text-xs">
+            <Tooltip>
+              <TooltipTrigger as-child>
+                <time :datetime="p.at ?? undefined">{{ p.label }} · {{ formatRelative(p.at) }}</time>
+              </TooltipTrigger>
+              <TooltipContent>{{ formatFull(p.at) }}</TooltipContent>
+            </Tooltip>
+          </ItemDescription>
+        </ItemContent>
+      </Item>
+    </ItemGroup>
 
     <Separator />
 

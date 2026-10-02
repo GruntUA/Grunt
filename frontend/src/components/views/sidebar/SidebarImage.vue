@@ -9,6 +9,8 @@ import type { AttachmentResult } from '@/core/attachmentChannels/types'
 import AttachPicker from '@/components/fields/Attach/AttachPicker.vue'
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
+import { AspectRatio } from '@/components/ui/aspect-ratio'
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia } from '@/components/ui/empty'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -93,8 +95,8 @@ async function remove() {
     @drop="onDrop"
   >
     <!-- Image -->
-    <div v-if="url" class="group relative overflow-hidden rounded-md border bg-muted/40">
-      <img :src="url" :alt="alt ?? ''" class="aspect-video w-full object-contain" />
+    <AspectRatio v-if="url" :ratio="16 / 9" class="group overflow-hidden rounded-md border bg-muted/40">
+      <img :src="url" :alt="alt ?? ''" class="size-full object-contain" />
 
       <DropdownMenu v-if="editable">
         <DropdownMenuTrigger as-child>
@@ -140,24 +142,28 @@ async function remove() {
           {{ t('Drop to replace') }}
         </template>
       </div>
-    </div>
+    </AspectRatio>
 
     <!-- Empty: add an image -->
-    <button
+    <Empty
       v-else
-      type="button"
-      class="flex h-24 w-full flex-col items-center justify-center gap-1 rounded-md border border-dashed text-muted-foreground transition-colors outline-none hover:bg-muted/50 hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none"
-      :class="dragOver && 'border-primary bg-primary/5 text-primary'"
-      :disabled="uploading"
-      @click="pickerOpen = true"
+      class="gap-3 border p-4 md:p-4 transition-colors"
+      :class="dragOver && 'border-primary bg-primary/5'"
     >
-      <Spinner v-if="uploading" />
-      <template v-else>
-        <ImagePlus class="size-5" />
-        <span class="text-sm font-medium">{{ t('Add image') }}</span>
-        <span class="text-xs">{{ t('Drop a file or click to choose') }}</span>
-      </template>
-    </button>
+      <EmptyHeader class="gap-1">
+        <EmptyMedia variant="icon" class="mb-1 size-9">
+          <Spinner v-if="uploading" />
+          <ImagePlus v-else class="size-5" />
+        </EmptyMedia>
+        <EmptyDescription class="text-xs">{{ t('Drop a file or click to choose') }}</EmptyDescription>
+      </EmptyHeader>
+      <EmptyContent>
+        <Button variant="outline" size="sm" :disabled="uploading" @click="pickerOpen = true">
+          <ImagePlus />
+          {{ t('Add image') }}
+        </Button>
+      </EmptyContent>
+    </Empty>
 
     <input ref="fileInput" type="file" accept="image/*" class="hidden" @change="onFileInput" />
 

@@ -2,7 +2,7 @@
 import { N_ } from '@/plugins/i18n'
 import { useI18n } from 'vue-i18n'
 import { computed, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
 import {
   CalendarClock,
   ChevronRight,
@@ -21,6 +21,7 @@ import { useDialog } from '@/core/composables/useDialog'
 import { formatDate, formatRelative } from '@/core/datetime'
 import { docUrl } from '@/core/workspaceUrl'
 import SidebarUserCommand from './SidebarUserCommand.vue'
+import SidebarPersonCard from './SidebarPersonCard.vue'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -34,7 +35,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Label } from '@/components/ui/label'
+import { Field, FieldDescription, FieldGroup, FieldLabel } from '@/components/ui/field'
+import {
+  Item,
+  ItemActions,
+  ItemContent,
+  ItemDescription,
+  ItemGroup,
+  ItemMedia,
+  ItemTitle,
+} from '@/components/ui/item'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Textarea } from '@/components/ui/textarea'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
@@ -64,8 +74,14 @@ const PRIORITY_LABEL: Record<string, string> = { Urgent: N_('priority|Urgent'), 
 function priorityTag(a: SidebarAssignee): string {
   return a.priority && a.priority in PRIORITY_LABEL ? t(PRIORITY_LABEL[a.priority]) : ''
 }
+function taskUrl(a: SidebarAssignee): string {
+  return docUrl('ToDo', a.name, props.workspace)
+}
 function openTask(a: SidebarAssignee) {
-  router.push(docUrl('ToDo', a.name, props.workspace))
+  router.push(taskUrl(a))
+}
+function assignedMeta(a: SidebarAssignee): string | undefined {
+  return a.created_at ? t('assigned {when}', { when: formatRelative(a.created_at) }) : undefined
 }
 async function confirmUnassign(a: SidebarAssignee) {
   const ok = await dialog.confirm(t('Remove {name} from assignees?', { name: props.sb.personName(a.assigned_to) }))
@@ -148,28 +164,36 @@ function permissionLabel(p: string): string {
       </Popover>
     </div>
 
-    <ul v-if="assignees.length" class="-mx-1.5 flex flex-col">
-      <li
+    <ItemGroup v-if="assignees.length" class="-mx-2 gap-0.5">
+      <!-- The title link stretches over the row; avatar and actions sit above it. -->
+      <Item
         v-for="a in assignees"
         :key="a.name"
-        class="flex items-start gap-2.5 rounded-md p-1.5 transition-colors hover:bg-muted/50"
+        size="sm"
+        class="relative flex-nowrap items-start gap-2.5 px-2 py-1.5 hover:bg-accent/50"
       >
-        <Avatar
-          class="mt-0.5 size-6 shrink-0 ring-2"
-          :class="a.is_overdue ? 'ring-destructive/50' : a.status === 'In Progress' ? 'ring-primary/50' : 'ring-transparent'"
-        >
-          <AvatarImage v-if="sb.personAvatar(a.assigned_to)" :src="sb.personAvatar(a.assigned_to)!" />
-          <AvatarFallback class="text-[10px]">{{ sb.personInitials(a.assigned_to) }}</AvatarFallback>
-        </Avatar>
-        <button
-          type="button"
-          class="flex min-w-0 flex-1 flex-col gap-1 rounded-sm text-left outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
-          :title="a.created_at ? t('assigned {when}', { when: formatRelative(a.created_at) }) : undefined"
-          @click="openTask(a)"
-        >
-          <span class="truncate text-sm font-medium">{{ sb.personName(a.assigned_to) }}</span>
-          <span v-if="realNote(a)" class="line-clamp-2 text-xs text-muted-foreground">{{ realNote(a) }}</span>
-          <span class="flex flex-wrap gap-1">
+        <SidebarPersonCard :sb="sb" :email="a.assigned_to" :meta="assignedMeta(a)">
+          <ItemMedia class="relative z-10">
+            <Avatar
+              class="size-7 ring-2"
+              :class="a.is_overdue ? 'ring-destructive/50' : a.status === 'In Progress' ? 'ring-primary/50' : 'ring-transparent'"
+            >
+              <AvatarImage v-if="sb.personAvatar(a.assigned_to)" :src="sb.personAvatar(a.assigned_to)!" />
+              <AvatarFallback class="text-[10px]">{{ sb.personInitials(a.assigned_to) }}</AvatarFallback>
+            </Avatar>
+          </ItemMedia>
+        </SidebarPersonCard>
+        <ItemContent class="min-w-0 gap-1">
+          <ItemTitle class="w-full">
+            <RouterLink
+              :to="taskUrl(a)"
+              class="truncate outline-none after:absolute after:inset-0 after:rounded-md focus-visible:after:ring-3 focus-visible:after:ring-ring/50"
+            >
+              {{ sb.personName(a.assigned_to) }}
+            </RouterLink>
+          </ItemTitle>
+          <ItemDescription v-if="realNote(a)" class="text-xs">{{ realNote(a) }}</ItemDescription>
+          <div class="flex flex-wrap gap-1">
             <Badge v-if="statusLabel(a)" :variant="a.status === 'In Progress' ? 'secondary' : 'outline'" class="font-normal">
               {{ statusLabel(a) }}
             </Badge>
@@ -178,28 +202,30 @@ function permissionLabel(p: string): string {
               {{ formatDate(a.due_date) }}
             </Badge>
             <Badge v-if="priorityTag(a)" variant="outline" class="font-normal">{{ priorityTag(a) }}</Badge>
-          </span>
-        </button>
-        <DropdownMenu>
-          <DropdownMenuTrigger as-child>
-            <Button variant="ghost" size="icon-sm" class="size-6 shrink-0" :aria-label="t('More actions')">
-              <Ellipsis />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem @select="openTask(a)">
-              <ExternalLink />
-              {{ t('Open task') }}
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem variant="destructive" @select="confirmUnassign(a)">
-              <UserMinus />
-              {{ t('Unassign') }}
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </li>
-    </ul>
+          </div>
+        </ItemContent>
+        <ItemActions class="relative z-10">
+          <DropdownMenu>
+            <DropdownMenuTrigger as-child>
+              <Button variant="ghost" size="icon-xs" :aria-label="t('More actions')">
+                <Ellipsis />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem @select="openTask(a)">
+                <ExternalLink />
+                {{ t('Open task') }}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem variant="destructive" @select="confirmUnassign(a)">
+                <UserMinus />
+                {{ t('Unassign') }}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </ItemActions>
+      </Item>
+    </ItemGroup>
     <p v-else class="text-sm text-muted-foreground">{{ t('Nobody is assigned') }}</p>
   </section>
 
@@ -223,7 +249,14 @@ function permissionLabel(p: string): string {
         </PopoverTrigger>
         <PopoverContent align="end" class="w-64 p-0">
           <div class="border-b p-2">
-            <ToggleGroup :model-value="sharePermission" type="single" variant="outline" size="sm" class="w-full" @update:model-value="(v) => { if (v) sharePermission = v as 'Read' | 'Write' }">
+            <ToggleGroup
+              :model-value="sharePermission"
+              type="single"
+              variant="outline"
+              size="sm"
+              class="w-full"
+              @update:model-value="(v) => { if (v) sharePermission = v as 'Read' | 'Write' }"
+            >
               <ToggleGroupItem value="Read" class="flex-1">{{ t('Read') }}</ToggleGroupItem>
               <ToggleGroupItem value="Write" class="flex-1">{{ t('Edit') }}</ToggleGroupItem>
             </ToggleGroup>
@@ -233,25 +266,35 @@ function permissionLabel(p: string): string {
       </Popover>
     </div>
     <CollapsibleContent v-if="shares.length">
-      <ul class="flex flex-col gap-1">
-        <li v-for="s in shares" :key="s.name" class="flex items-center gap-2">
-          <Avatar class="size-5 shrink-0">
-            <AvatarImage v-if="sb.personAvatar(s.user)" :src="sb.personAvatar(s.user)!" />
-            <AvatarFallback class="text-[9px]">{{ sb.personInitials(s.user) }}</AvatarFallback>
-          </Avatar>
-          <span class="flex-1 truncate text-sm">{{ sb.personName(s.user) }}</span>
-          <Badge variant="outline" class="font-normal">{{ permissionLabel(s.permission) }}</Badge>
-          <Button
-            variant="ghost"
-            size="icon-xs"
-            class="text-muted-foreground hover:text-destructive"
-            :aria-label="t('Remove {name}', { name: sb.personName(s.user) })"
-            @click="sb.unshare(s.name)"
-          >
-            <X />
-          </Button>
-        </li>
-      </ul>
+      <ItemGroup class="-mx-2">
+        <Item v-for="s in shares" :key="s.name" size="sm" class="flex-nowrap gap-2 px-2 py-1">
+          <SidebarPersonCard :sb="sb" :email="s.user">
+            <ItemMedia>
+              <Avatar class="size-6">
+                <AvatarImage v-if="sb.personAvatar(s.user)" :src="sb.personAvatar(s.user)!" />
+                <AvatarFallback class="text-[9px]">{{ sb.personInitials(s.user) }}</AvatarFallback>
+              </Avatar>
+            </ItemMedia>
+          </SidebarPersonCard>
+          <ItemContent class="min-w-0">
+            <ItemTitle class="w-full font-normal">
+              <span class="truncate">{{ sb.personName(s.user) }}</span>
+            </ItemTitle>
+          </ItemContent>
+          <ItemActions class="gap-1">
+            <Badge variant="outline" class="font-normal">{{ permissionLabel(s.permission) }}</Badge>
+            <Button
+              variant="ghost"
+              size="icon-xs"
+              class="text-muted-foreground hover:text-destructive"
+              :aria-label="t('Remove {name}', { name: sb.personName(s.user) })"
+              @click="sb.unshare(s.name)"
+            >
+              <X />
+            </Button>
+          </ItemActions>
+        </Item>
+      </ItemGroup>
     </CollapsibleContent>
     <p v-else class="text-sm text-muted-foreground">{{ t('Not shared with anyone') }}</p>
   </Collapsible>
@@ -264,25 +307,31 @@ function permissionLabel(p: string): string {
         <DialogDescription>{{ t('The assignee gets a task linked to this document.') }}</DialogDescription>
       </DialogHeader>
 
-      <div class="flex flex-col gap-4">
-        <div class="flex flex-col gap-2">
-          <Label>{{ t('Assignee') }}</Label>
+      <FieldGroup>
+        <Field>
+          <FieldLabel>{{ t('Assignee') }}</FieldLabel>
           <div class="rounded-md border">
             <SidebarUserCommand v-if="!taskUser" :sb="sb" @select="taskUser = $event" />
-            <div v-else class="flex items-center gap-2 p-2">
-              <Avatar class="size-6">
-                <AvatarImage v-if="sb.personAvatar(taskUser)" :src="sb.personAvatar(taskUser)!" />
-                <AvatarFallback class="text-[10px]">{{ sb.personInitials(taskUser) }}</AvatarFallback>
-              </Avatar>
-              <span class="flex-1 truncate text-sm">{{ sb.personName(taskUser) }}</span>
-              <Button variant="ghost" size="icon-xs" :aria-label="t('Change')" @click="taskUser = ''">
-                <X />
-              </Button>
-            </div>
+            <Item v-else size="sm" class="flex-nowrap gap-2 px-2 py-1.5">
+              <ItemMedia>
+                <Avatar class="size-6">
+                  <AvatarImage v-if="sb.personAvatar(taskUser)" :src="sb.personAvatar(taskUser)!" />
+                  <AvatarFallback class="text-[10px]">{{ sb.personInitials(taskUser) }}</AvatarFallback>
+                </Avatar>
+              </ItemMedia>
+              <ItemContent class="min-w-0">
+                <ItemTitle class="w-full font-normal"><span class="truncate">{{ sb.personName(taskUser) }}</span></ItemTitle>
+              </ItemContent>
+              <ItemActions>
+                <Button variant="ghost" size="icon-xs" :aria-label="t('Change')" @click="taskUser = ''">
+                  <X />
+                </Button>
+              </ItemActions>
+            </Item>
           </div>
-        </div>
-        <div class="flex flex-col gap-2">
-          <Label for="sidebar-task-note">{{ t('Task text') }}</Label>
+        </Field>
+        <Field>
+          <FieldLabel for="sidebar-task-note">{{ t('Task text') }}</FieldLabel>
           <Textarea
             id="sidebar-task-note"
             v-model="taskNote"
@@ -290,8 +339,9 @@ function permissionLabel(p: string): string {
             :placeholder="t('What needs to be done?')"
             class="resize-none"
           />
-        </div>
-      </div>
+          <FieldDescription>{{ t('Optional. Without it the task only links to the document.') }}</FieldDescription>
+        </Field>
+      </FieldGroup>
 
       <DialogFooter>
         <Button variant="outline" @click="taskDialog = false">{{ t('Cancel') }}</Button>
