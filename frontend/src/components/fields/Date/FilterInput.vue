@@ -1,8 +1,9 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import type { DocField } from '@/types'
-import { Input } from '@/components/ui/input'
+import { DatePicker } from '@/components/ui/date-picker'
 
-defineProps<{
+const props = defineProps<{
   field: DocField
   modelValue: string
   displayValue: string
@@ -14,14 +15,21 @@ const emit = defineEmits<{
   'update:displayValue': [value: string]
   'submit': []
 }>()
+
+const pad = (n: number) => String(n).padStart(2, '0')
+
+// The filter value is a plain YYYY-MM-DD date.
+const date = computed<Date | null>({
+  get() {
+    const [y, m, d] = props.modelValue.split('-').map(Number)
+    return y && m && d ? new Date(y, m - 1, d) : null
+  },
+  set(v) {
+    emit('update:modelValue', v ? `${v.getFullYear()}-${pad(v.getMonth() + 1)}-${pad(v.getDate())}` : '')
+  },
+})
 </script>
 
 <template>
-  <Input
-    :model-value="modelValue"
-    type="date"
-    class="h-8 text-xs w-full"
-    @update:model-value="emit('update:modelValue', String($event))"
-    @keydown.enter="emit('submit')"
-  />
+  <DatePicker v-model="date" class="w-full" />
 </template>

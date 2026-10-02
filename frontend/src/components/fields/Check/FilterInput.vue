@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
+import { Check, X } from '@lucide/vue'
 import type { DocField } from '@/types'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 
 const { t } = useI18n()
 
@@ -19,22 +21,14 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <div class="flex gap-2">
-    <button
-      type="button"
-      class="flex-1 py-1.5 rounded border transition-colors"
-      :class="modelValue === '1'
-        ? 'border-primary bg-primary/10 text-primary font-semibold'
-        : 'border-border hover:border-primary/40 text-muted-foreground'"
-      @click="emit('update:modelValue', '1')"
-    >✓ {{ t('Yes') }}</button>
-    <button
-      type="button"
-      class="flex-1 py-1.5 rounded border transition-colors"
-      :class="modelValue === '0'
-        ? 'border-primary bg-primary/10 text-primary font-semibold'
-        : 'border-border hover:border-primary/40 text-muted-foreground'"
-      @click="emit('update:modelValue', '0')"
-    >✗ {{ t('No') }}</button>
-  </div>
+  <ToggleGroup
+    type="single"
+    variant="outline"
+    class="w-full"
+    :model-value="modelValue"
+    @update:model-value="(v) => emit('update:modelValue', String(v ?? ''))"
+  >
+    <ToggleGroupItem value="1" class="flex-1"><Check /> {{ t('Yes') }}</ToggleGroupItem>
+    <ToggleGroupItem value="0" class="flex-1"><X /> {{ t('No') }}</ToggleGroupItem>
+  </ToggleGroup>
 </template>

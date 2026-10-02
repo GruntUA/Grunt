@@ -35,11 +35,11 @@ const values = computed(() => props.modelValue ? props.modelValue.split(',') : [
     option-label="label"
     option-value="value"
     :placeholder="t('Select value')"
-    class="h-8 text-xs w-full"
+    class="w-full"
     @update:model-value="emit('update:modelValue', $event.join(','))"
   />
   <Select v-else :model-value="modelValue" @update:model-value="(v: unknown) => emit('update:modelValue', String(v))">
-    <SelectTrigger size="sm" class="h-8 text-xs w-full">
+    <SelectTrigger class="w-full">
       <SelectValue :placeholder="t('Select value')" />
     </SelectTrigger>
     <SelectContent>

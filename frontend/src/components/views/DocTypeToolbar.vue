@@ -85,7 +85,7 @@ const toolbarControlsEvents = computed(() =>
       <div class="flex flex-1 flex-wrap items-center gap-2">
         <div class="relative w-full max-w-[260px]">
           <Search class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-          <Input v-model="localSearch" class="h-8 pl-9" :placeholder="t('Search...')" />
+          <Input v-model="localSearch" class="pl-9" :placeholder="t('Search...')" />
         </div>
         <!-- Quick filters render inline for every view (labels carried by placeholders). -->
         <QuickFilterBar
@@ -94,8 +94,6 @@ const toolbarControlsEvents = computed(() =>
           :dt="dt"
           :scope="viewMode === 'tree' ? 'tree' : 'list'"
           :model-value="quickFilterValues"
-          variant="quick"
-          class="!px-0 !py-0"
           @update:model-value="emit('update:quickFilterValues', $event)"
         />
         <FilterBar

@@ -1,8 +1,9 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import type { DocField } from '@/types'
-import { Input } from '@/components/ui/input'
+import { DatePicker } from '@/components/ui/date-picker'
 
-defineProps<{
+const props = defineProps<{
   field: DocField
   modelValue: string
   displayValue: string
@@ -14,14 +15,24 @@ const emit = defineEmits<{
   'update:displayValue': [value: string]
   'submit': []
 }>()
+
+const pad = (n: number) => String(n).padStart(2, '0')
+
+// The filter value keeps the YYYY-MM-DDTHH:mm wall-clock form the filter has always sent.
+const date = computed<Date | null>({
+  get() {
+    if (!props.modelValue) return null
+    const d = new Date(props.modelValue)
+    return isNaN(d.getTime()) ? null : d
+  },
+  set(v) {
+    emit('update:modelValue', v
+      ? `${v.getFullYear()}-${pad(v.getMonth() + 1)}-${pad(v.getDate())}T${pad(v.getHours())}:${pad(v.getMinutes())}`
+      : '')
+  },
+})
 </script>
 
 <template>
-  <Input
-    :model-value="modelValue"
-    type="datetime-local"
-    class="h-8 text-xs w-full"
-    @update:model-value="emit('update:modelValue', String($event))"
-    @keydown.enter="emit('submit')"
-  />
+  <DatePicker v-model="date" show-time class="w-full" />
 </template>

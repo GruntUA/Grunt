@@ -23,7 +23,7 @@ const emit = defineEmits<{
 <template>
   <Input
     :model-value="modelValue"
-    class="h-8 text-xs w-full"
+    class="w-full"
     :placeholder="op === 'like' ? t('part of the text...') : MULTI_VALUE_OPS.includes(op) ? t('comma-separated values') : t('Value')"
     @update:model-value="emit('update:modelValue', String($event))"
     @keydown.enter="emit('submit')"

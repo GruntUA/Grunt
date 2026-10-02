@@ -230,29 +230,29 @@ function keepOpenForLinkDropdown(e: CustomEvent<{ originalEvent?: Event }>) {
   <div class="flex flex-wrap items-center gap-2">
     <!-- Trigger -->
     <ButtonGroup>
-      <Button variant="outline" size="sm" class="h-7 text-xs gap-1.5" @click="toggleFilter">
-        <Filter class="size-3" />
+      <Button variant="outline" @click="toggleFilter">
+        <Filter />
         {{ t('Filter') }}
-        <Badge v-if="activeFilters.length" variant="secondary" class="h-4 px-1.5 text-[10px] tabular-nums">
+        <Badge v-if="activeFilters.length" variant="secondary" class="rounded-sm px-1 font-normal tabular-nums">
           {{ activeFilters.length }}
         </Badge>
       </Button>
-      <Button v-if="canClear" variant="outline" size="icon" class="h-7 w-7" :title="t('Clear Filters')" @click="clearEverything">
-        <X class="size-3.5" />
+      <Button v-if="canClear" variant="outline" size="icon" :title="t('Clear Filters')" @click="clearEverything">
+        <X />
       </Button>
     </ButtonGroup>
 
     <Popover :open="isFilterOpen" @update:open="(v: boolean) => { isFilterOpen = v }">
       <PopoverAnchor :reference="filterAnchorEl ?? undefined" />
       <PopoverContent
-        class="w-[440px] p-3" align="start"
+        class="w-[560px]" align="start"
         @pointer-down-outside="keepOpenForLinkDropdown"
         @focus-outside="keepOpenForLinkDropdown"
       >
-        <div class="space-y-2 max-h-72 overflow-y-auto">
-          <div v-for="(row, i) in draftRows" :key="i" class="flex items-center gap-1.5">
+        <div class="-m-1 flex max-h-80 flex-col gap-2 overflow-y-auto p-1">
+          <div v-for="(row, i) in draftRows" :key="i" class="flex items-center gap-2">
             <Select :model-value="row.fieldname" @update:model-value="(v: unknown) => onFieldChange(row, String(v))">
-              <SelectTrigger size="sm" class="h-8 text-xs w-32 shrink-0">
+              <SelectTrigger class="w-36 shrink-0">
                 <SelectValue :placeholder="t('Field')" />
               </SelectTrigger>
               <SelectContent>
@@ -261,7 +261,7 @@ function keepOpenForLinkDropdown(e: CustomEvent<{ originalEvent?: Event }>) {
             </Select>
 
             <Select :model-value="row.op" @update:model-value="(v: unknown) => onOpChange(row, String(v))">
-              <SelectTrigger size="sm" class="h-8 text-xs w-32 shrink-0">
+              <SelectTrigger class="w-36 shrink-0">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -286,39 +286,39 @@ function keepOpenForLinkDropdown(e: CustomEvent<{ originalEvent?: Event }>) {
               />
             </div>
 
-            <Button variant="ghost" size="icon" class="size-7 shrink-0 text-muted-foreground hover:text-destructive" @click="removeRow(i)">
-              <X class="size-3.5" />
+            <Button variant="ghost" size="icon" class="shrink-0 text-muted-foreground hover:text-destructive" :aria-label="t('Remove')" @click="removeRow(i)">
+              <X />
             </Button>
           </div>
 
-          <p v-if="!filterableFields.length" class="text-muted-foreground italic px-1 py-1">
+          <p v-if="!filterableFields.length" class="text-sm text-muted-foreground">
             {{ t('No fields available') }}
           </p>
         </div>
 
-        <button
+        <Button
           v-if="filterableFields.length"
-          type="button"
-          class="flex items-center gap-1.5 text-muted-foreground hover:text-foreground mt-2 px-1 py-1"
+          variant="ghost" size="sm"
+          class="mt-2 text-muted-foreground"
           @click="addRow"
         >
-          <Plus class="size-3.5" />
+          <Plus />
           {{ t('Add a Filter') }}
-        </button>
+        </Button>
 
         <!-- Saved presets -->
         <template v-if="doctype && savedPresets.length">
           <Separator class="my-2" />
-          <p class="text-muted-foreground px-1 mb-1">{{ t('Saved filters') }}</p>
+          <p class="mb-2 text-sm text-muted-foreground">{{ t('Saved filters') }}</p>
           <div class="flex flex-wrap gap-1">
             <Badge
               v-for="preset in savedPresets" :key="preset.name"
-              variant="outline" class="cursor-pointer gap-1 pr-1 hover:bg-accent font-normal"
+              variant="outline" class="cursor-pointer pr-1 hover:bg-accent"
               @click="applyPreset(preset)"
             >
               {{ preset.name }}
-              <button type="button" class="hover:text-destructive" @click.stop="deletePreset(preset.name)">
-                <X class="size-3" />
+              <button type="button" class="hover:text-destructive" :aria-label="t('Remove')" @click.stop="deletePreset(preset.name)">
+                <X />
               </button>
             </Badge>
           </div>
@@ -328,29 +328,29 @@ function keepOpenForLinkDropdown(e: CustomEvent<{ originalEvent?: Event }>) {
 
         <div class="flex items-center justify-between gap-2">
           <div class="flex items-center gap-1">
-            <Button variant="ghost" size="sm" class="text-xs text-muted-foreground" @click="clearAll">
+            <Button variant="ghost" class="text-muted-foreground" @click="clearAll">
               {{ t('Clear Filters') }}
             </Button>
             <template v-if="doctype">
               <template v-if="showSaveName">
                 <Input
                   v-model="presetNameInput"
-                  class="h-7 text-xs w-28"
+                  class="w-36"
                   :placeholder="t('Preset name')"
                   autofocus
                   @keydown="(e: KeyboardEvent) => { if (e.key === 'Enter') savePreset(); else if (e.key === 'Escape') showSaveName = false }"
                 />
-                <Button size="sm" class="h-7 px-2.5 text-xs" @click="savePreset">OK</Button>
-                <Button variant="ghost" size="icon" class="size-7" @click="showSaveName = false">
-                  <X class="size-3.5" />
+                <Button @click="savePreset">OK</Button>
+                <Button variant="ghost" size="icon" :aria-label="t('Cancel')" @click="showSaveName = false">
+                  <X />
                 </Button>
               </template>
-              <Button v-else variant="ghost" size="icon" class="size-7 text-muted-foreground" :title="t('Save as preset')" @click="showSaveName = true">
-                <Bookmark class="size-3.5" />
+              <Button v-else variant="ghost" size="icon" class="text-muted-foreground" :title="t('Save as preset')" :aria-label="t('Save as preset')" @click="showSaveName = true">
+                <Bookmark />
               </Button>
             </template>
           </div>
-          <Button size="sm" class="text-xs" @click="applyDraft">
+          <Button @click="applyDraft">
             {{ t('Apply Filters') }}
           </Button>
         </div>
