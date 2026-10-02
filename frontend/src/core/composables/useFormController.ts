@@ -421,6 +421,7 @@ export function useFormController(
     showShareDialog,
     showLinksDialog,
     showActivityLog,
+    transitions,
     pendingTransition,
     transitionError,
     transitionBusy,

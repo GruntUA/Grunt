@@ -51,6 +51,7 @@ const {
   showShareDialog,
   showLinksDialog,
   showActivityLog,
+  transitions,
   pendingTransition,
   transitionError,
   transitionBusy,
@@ -99,6 +100,7 @@ watch(
 
 // Workflow bar state (the transitions themselves are actions — global_form.js).
 const workflowUi = reactive({
+  transitions,
   pending: pendingTransition,
   error: transitionError,
   busy: transitionBusy,

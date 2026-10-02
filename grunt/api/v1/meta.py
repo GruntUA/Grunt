@@ -46,7 +46,7 @@ async def _dump_doctype(dt: DocType, *, translate: bool = False) -> dict[str, An
     workflow = await get_active_workflow(dt.name)
     data["workflow_state_field"] = workflow.state_field if workflow else None
     if workflow and translate:
-        # The form shows the state read-only — it moves by the workflow bar's
+        # The form hides the state (shown in the sidebar) — it moves by the header's workflow
         # actions (grunt/workflow/guard.py); the builder (raw) keeps the source.
         for fdata in data["fields"]:
             if fdata.get("fieldname") == workflow.state_field:

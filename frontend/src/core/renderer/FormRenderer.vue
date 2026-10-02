@@ -115,6 +115,9 @@ function update(fieldname: string, val: unknown) {
 }
 
 function mergedField(f: DocField): DocField {
+  // The workflow state moves only by the header's workflow actions and is shown
+  // in the document sidebar — no read-only duplicate in the form.
+  if (f.fieldname === props.doctype.workflow_state_field) return { ...f, hidden: true }
   const dfOverrides = props.dfPropOverrides?.[f.fieldname]
   const reqdOverride = props.reqdOverrides?.[f.fieldname]
   if (!dfOverrides && reqdOverride === undefined) return f

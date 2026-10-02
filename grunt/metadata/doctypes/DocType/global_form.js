@@ -181,8 +181,8 @@ function on_load(frm) {
 }
 
 /**
- * Workflow transitions allowed now → `workflow:<action>` actions in the workflow
- * bar. Runs again whenever they reload (a transition changes the state), so the
+ * Workflow transitions allowed now → `workflow:<action>` actions in the form
+ * header (next to Save). Runs again whenever they reload (a transition changes the state), so the
  * previous state's transitions are dropped first. A DocType's own
  * `on_transitions` runs after this one and may change or hide them:
  *
@@ -204,7 +204,8 @@ function on_transitions(frm) {
             label: t.action,
             placement: 'workflow',
             order: 100 + i,
-            variant: 'secondary',
+            // No variant/icon: the button takes the colour & icon of the state it
+            // leads to (`status_indicators`) — set them here to override.
             enabled: (f) => !f.is_saving && !f.is_dirty,
             action: (f) => f.apply_transition(t.action),
         }),

@@ -14647,7 +14647,7 @@ msgid "In the “%(state)s” state the document can't be edited"
 msgstr "У стані «%(state)s» документ не можна редагувати"
 
 msgid "The state changes only through workflow actions"
-msgstr "Стан змінюється лише діями робочого процесу (кнопками над формою)"
+msgstr "Стан змінюється лише діями робочого процесу (кнопки біля «Зберегти»)"
 
 msgctxt "meta:WorkflowState.edit_roles"
 msgid "Edit roles (comma-separated)"

@@ -23,7 +23,7 @@ import { useDocPanel } from '@/components/views/sidebar/useDocPanel'
 import AppBreadcrumb from '@/components/app/AppBreadcrumb.vue'
 import { resolveStatusBadge } from '@/core/status'
 import DocLinksDialog from './DocLinksDialog.vue'
-import WorkflowBar, { type WorkflowUi } from '@/components/views/WorkflowBar.vue'
+import WorkflowActions, { type WorkflowUi } from '@/components/views/WorkflowActions.vue'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -223,7 +223,7 @@ const statusBadge = computed(() => resolveStatusBadge(props.dt, props.document))
           :is-new="id === null"
           class="mb-0! min-w-0 flex-1"
         />
-        <Badge v-if="statusBadge && hidePanelToggle" variant="outline" :class="['animate-in fade-in slide-in-from-left-2 duration-300', statusBadge.class]">
+        <Badge v-if="statusBadge && (hidePanelToggle || !panelOpen)" variant="outline" :class="['animate-in fade-in slide-in-from-left-2 duration-300', statusBadge.class]">
           {{ statusBadge.label }}
         </Badge>
         <Badge v-if="isDirty" variant="secondary" class="animate-in fade-in slide-in-from-left-2 duration-300 text-xs h-5 px-1.5 shrink-0">
@@ -237,6 +237,7 @@ const statusBadge = computed(() => resolveStatusBadge(props.dt, props.document))
         <Button
           v-if="id && !hidePanelToggle"
           variant="outline"
+          size="icon-sm"
           class="text-foreground"
           :class="{ 'bg-muted': !panelOpen }"
           :title="`${panelOpen ? t('Hide details') : t('Show details')} (Ctrl+])`"
@@ -245,14 +246,14 @@ const statusBadge = computed(() => resolveStatusBadge(props.dt, props.document))
           <PanelRight class="size-4" />
         </Button>
 
+        <!-- Workflow transitions — next to Save; the state is in the sidebar -->
+        <WorkflowActions v-if="!isLoading && dt && id && document && dt.workflow_state_field" :doctype="dt"
+          :doc="document as Record<string, unknown>" :actions="actions" :workflow="workflow" />
+
         <ActionButtons :toolbar="[]" :primary="primaryActions" />
         <ActionMenu :actions="menuActions" trigger-variant="ghost" />
       </div>
     </div>
-
-    <!-- Workflow (inside the header card) -->
-    <WorkflowBar v-if="!isLoading && dt && id && document && dt.workflow_state_field" :doctype="dt"
-      :doc="document as Record<string, unknown>" :actions="actions" :workflow="workflow" />
   </div>
 
   <DocLinksDialog v-if="id" v-model:open="showLinksDialog" :doctype="doctype" :doc-id="id" :workspace="workspace" />

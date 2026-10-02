@@ -27,7 +27,7 @@ import { isAssignmentPlaceholder, type SidebarAssignee } from '@/core/api/docs'
 import { useToast } from '@/core/composables/useToast'
 import { useDialog } from '@/core/composables/useDialog'
 import { formatDate, formatFull, formatRelative } from '@/core/datetime'
-import { resolveStatusBadge, statusToneClass } from '@/core/status'
+import { resolveStatusBadge, statusBadgeFor, statusToneClass } from '@/core/status'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -70,6 +70,14 @@ const isFollowing = computed(() => !!sb.bundle.value.follow)
 
 // ── Primary status badge (e.g. "На складі") — moved here from the form toolbar ──
 const statusBadge = computed(() => resolveStatusBadge(props.doctype, props.document))
+// Workflow state, when it lives in a field other than the status one (otherwise
+// the badge above already is the state). The form hides that field; its
+// transitions are in the form header.
+const workflowBadge = computed(() => {
+  const field = props.doctype.workflow_state_field
+  if (!field || field === (props.doctype.status_field || 'status')) return null
+  return statusBadgeFor(props.doctype, props.document[field])
+})
 
 // ── Submission state badge ─────────────────────────────────────────────────────
 const docstatusBadge = computed(() => {
@@ -206,6 +214,12 @@ function printDoc() {
     <div v-if="statusBadge" class="flex items-center gap-2">
       <span class="font-semibold uppercase tracking-wider text-muted-foreground/80">{{ t('Status') }}</span>
       <Badge variant="outline" :class="statusBadge.class">{{ statusBadge.label }}</Badge>
+    </div>
+
+    <!-- Workflow state (when separate from the status) -->
+    <div v-if="workflowBadge" class="flex items-center gap-2">
+      <span class="font-semibold uppercase tracking-wider text-muted-foreground/80">{{ t('State') }}</span>
+      <Badge variant="outline" :class="workflowBadge.class">{{ workflowBadge.label }}</Badge>
     </div>
 
     <!-- Identity: id -->

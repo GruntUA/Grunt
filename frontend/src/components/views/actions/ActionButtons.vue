@@ -2,12 +2,14 @@
 import { useI18n } from 'vue-i18n'
 /**
  * Toolbar + primary actions of an action registry (core/actions.ts).
- * Toolbar actions of one `group` become a split button; the primary action
+ * Toolbar actions of one `group` become a split button (shadcn ButtonGroup:
+ * the first action as the button, the rest in its dropdown); the primary action
  * comes last, as the default (filled) button.
  */
 import { computed } from 'vue'
 import { ChevronDown, Loader2 } from '@lucide/vue'
 import { Button } from '@/components/ui/button'
+import { ButtonGroup, ButtonGroupSeparator } from '@/components/ui/button-group'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -51,6 +53,11 @@ function style(action: ResolvedAction, fallback: 'outline' | 'default' = 'outlin
   return actionButtonStyle(action.variant, fallback)
 }
 
+/** Destructive actions stay red inside a group's dropdown. */
+function menuVariant(action: ResolvedAction) {
+  return style(action).variant === 'destructive' ? 'destructive' : 'default'
+}
+
 /** Actions with a shortcut get a tooltip with key caps instead of a native title. */
 function title(action: ResolvedAction) {
   return action.shortcut ? undefined : action.label
@@ -81,42 +88,47 @@ function title(action: ResolvedAction) {
       </TooltipContent>
     </Tooltip>
 
-    <div v-else class="inline-flex" :class="compact ? 'hidden sm:inline-flex' : ''">
+    <ButtonGroup v-else :aria-label="slot.name" :class="compact ? 'hidden sm:flex' : ''">
       <Button
         size="sm"
         :variant="style(slot.items[0]).variant"
-        :class="['gap-1.5 rounded-r-none', style(slot.items[0]).className]"
+        :class="['gap-1.5', style(slot.items[0]).className]"
         :title="slot.name"
-        :disabled="slot.items[0].disabled"
+        :disabled="slot.items[0].disabled || slot.items[0].busy"
         @click="slot.items[0].run()"
       >
-        <ActionIcon v-if="slot.items[0].icon" :name="slot.items[0].icon" class="size-4" />
+        <Loader2 v-if="slot.items[0].busy" class="size-4 animate-spin" />
+        <ActionIcon v-else-if="slot.items[0].icon" :name="slot.items[0].icon" class="size-4" />
         {{ slot.items[0].label }}
       </Button>
+      <!-- Filled buttons have no border to split them — shadcn puts a separator between. -->
+      <ButtonGroupSeparator v-if="style(slot.items[0]).variant !== 'outline'" />
       <DropdownMenu>
         <DropdownMenuTrigger as-child>
           <Button
             size="sm"
             :variant="style(slot.items[0]).variant"
-            :class="['rounded-l-none border-l-0 px-2', style(slot.items[0]).className]"
+            :class="['!px-2', style(slot.items[0]).className]"
             :aria-label="`${slot.name}: ${t('more')}`"
           >
-            <ChevronDown class="size-3.5" />
+            <ChevronDown class="size-4" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
+        <DropdownMenuContent align="end" class="min-w-44">
           <DropdownMenuItem
             v-for="item in slot.items.slice(1)"
             :key="item.id"
-            :disabled="item.disabled"
+            :variant="menuVariant(item)"
+            :disabled="item.disabled || item.busy"
             @click="item.run()"
           >
-            <ActionIcon v-if="item.icon" :name="item.icon" class="size-4" />
+            <Loader2 v-if="item.busy" class="size-4 animate-spin" />
+            <ActionIcon v-else-if="item.icon" :name="item.icon" class="size-4" />
             {{ item.label }}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-    </div>
+    </ButtonGroup>
   </template>
 
   <Tooltip v-for="action in primary ?? []" :key="action.id" :disabled="!action.shortcut">
