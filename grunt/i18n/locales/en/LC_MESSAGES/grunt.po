@@ -147,7 +147,7 @@ msgid "Bold"
 msgstr ""
 
 #: grunt/frontend/src/components/views/BulkActionBar.vue:313
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:68
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:107
 msgid "Bulk Update"
 msgstr ""
 
@@ -467,7 +467,7 @@ msgstr ""
 #: grunt/grunt/api/v1/docs/utils.py:73
 #: grunt/frontend/src/components/views/FilterBar.vue:245
 #: grunt/frontend/src/components/dashboard/sections/AggregationSection.vue:41
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:127
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:181
 #: grunt/frontend/src/components/views/list/ListHeader.vue:128
 #: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:345
 msgid "Field"
@@ -778,7 +778,8 @@ msgid "Newest"
 msgstr ""
 
 #: grunt/grunt/website/doc_layout.py:49 grunt/grunt/api/v1/docs/utils.py:44
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:84
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:123
+#: grunt/frontend/src/components/views/sidebar/TimelineChanges.vue:49
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:235
 #: grunt/frontend/src/components/views/list/ListGroupedView.vue:48
 #: grunt/frontend/src/components/fields/Check/FilterInput.vue:38
@@ -1401,7 +1402,8 @@ msgstr ""
 
 #: grunt/grunt/website/doc_layout.py:49 grunt/grunt/api/v1/docs/utils.py:44
 #: grunt/frontend/src/components/pwa/PWAInstallPrompt.vue:108
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:84
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:123
+#: grunt/frontend/src/components/views/sidebar/TimelineChanges.vue:49
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:235
 #: grunt/frontend/src/components/views/list/ListGroupedView.vue:48
 #: grunt/frontend/src/components/fields/Check/FilterInput.vue:30
@@ -5719,7 +5721,7 @@ msgstr ""
 msgid "Administrators without 2FA"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:129
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:183
 msgid "After"
 msgstr ""
 
@@ -5992,7 +5994,7 @@ msgstr ""
 msgid "Basics"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:128
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:182
 msgid "Before"
 msgstr ""
 
@@ -6144,7 +6146,7 @@ msgstr ""
 msgid "Change queue"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:70
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:109
 msgid "Changed the status"
 msgstr ""
 
@@ -6152,7 +6154,7 @@ msgstr ""
 msgid "Changed: %(fields)s"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:112
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:166
 msgid "Changes"
 msgstr ""
 
@@ -6642,8 +6644,8 @@ msgstr ""
 msgid "Created on"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:62
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:63
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:101
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:102
 msgid "Created the document"
 msgstr ""
 
@@ -6767,8 +6769,8 @@ msgstr ""
 msgid "Delete «{name}»?"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:66
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:67
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:105
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:106
 msgid "Deleted the document"
 msgstr ""
 
@@ -7988,7 +7990,7 @@ msgstr ""
 msgid "May"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:270
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:324
 msgid "Mention a user"
 msgstr ""
 
@@ -8163,7 +8165,7 @@ msgstr ""
 msgid "No activity"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:303
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:357
 msgid "No activity yet"
 msgstr ""
 
@@ -8937,12 +8939,12 @@ msgstr ""
 msgid "Response caching"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:136
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:190
 msgid ""
 "Restore the document to this version? Current field values will be replaced."
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:133
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:187
 msgid "Restore this version"
 msgstr ""
 
@@ -8950,7 +8952,7 @@ msgstr ""
 msgid "Restore with a new ID"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:69
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:108
 msgid "Restored a version"
 msgstr ""
 
@@ -9127,7 +9129,7 @@ msgstr ""
 msgid "Selected columns"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:297
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:351
 msgid "Send"
 msgstr ""
 
@@ -10089,8 +10091,8 @@ msgstr ""
 msgid "Updated"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:64
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:65
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:103
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:104
 msgid "Updated the document"
 msgstr ""
 
@@ -10194,7 +10196,7 @@ msgstr ""
 msgid "Version not found"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:112
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:166
 msgid "Version {n}"
 msgstr ""
 
@@ -10325,7 +10327,7 @@ msgid "Workers"
 msgstr ""
 
 #: grunt/frontend/src/plugins/__tests__/i18n.spec.ts:29
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:264
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:318
 msgid "Write a comment... @ to mention"
 msgstr ""
 
@@ -11025,7 +11027,8 @@ msgid_plural "{n} results"
 msgstr[0] ""
 msgstr[1] ""
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:90
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:129
+#: grunt/frontend/src/components/views/sidebar/TimelineChanges.vue:54
 #: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:553
 msgid "{n} rows"
 msgstr ""
@@ -14534,7 +14537,7 @@ msgstr ""
 msgid "Add tag…"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:325
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:387
 msgid "Delete comment"
 msgstr ""
 
@@ -14542,8 +14545,53 @@ msgstr ""
 msgid "Optional. Without it the task only links to the document."
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:292
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:346
 msgid "to send"
+msgstr ""
+
+#: grunt/frontend/src/components/views/sidebar/TimelineChanges.vue:137
+msgid "Compare and restore"
+msgstr ""
+
+#: grunt/frontend/src/components/views/sidebar/TimelineChanges.vue:133
+msgid "Show less"
+msgstr ""
+
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:152
+msgid "changed {n} field"
+msgid_plural "changed {n} fields"
+msgstr[0] ""
+msgstr[1] ""
+
+#: grunt/frontend/src/components/views/sidebar/TimelineChanges.vue:97
+#: grunt/frontend/src/components/views/sidebar/TimelineChanges.vue:117
+msgid "cleared"
+msgstr ""
+
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:149
+msgid "commented"
+msgstr ""
+
+#: grunt/frontend/src/components/views/sidebar/TimelineChanges.vue:101
+msgid "previous value"
+msgstr ""
+
+#: grunt/frontend/src/components/views/sidebar/TimelineChanges.vue:91
+msgid "removed"
+msgstr ""
+
+#: grunt/frontend/src/components/views/sidebar/TimelineChanges.vue:133
+msgid "{n} more change"
+msgid_plural "{n} more changes"
+msgstr[0] ""
+msgstr[1] ""
+
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:156
+msgid "applied «{action}»"
+msgstr ""
+
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:156
+msgid "changed the state"
 msgstr ""
 
 #~ msgid "Ctrl+Enter to send"

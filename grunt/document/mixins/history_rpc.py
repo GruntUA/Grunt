@@ -185,5 +185,17 @@ class DocumentHistoryRPCMixin:
                 }
             )
 
+        # Display names/avatars of the authors, so the UI needn't list all users.
+        emails = {i["user"] for i in items if i.get("user")}
+        if emails:
+            from grunt.auth.doctypes.User.user import get_users_by_emails
+
+            users = await get_users_by_emails(list(emails), fields=["email", "full_name", "avatar"])
+            people = {u.email: (getattr(u, "full_name", None), u.data.get("avatar")) for u in users}
+            for i in items:
+                name, avatar = people.get(i.get("user"), (None, None))
+                i["user_name"] = name or None
+                i["user_avatar"] = avatar or None
+
         items.sort(key=lambda x: x["created_at"] or "")
         return items

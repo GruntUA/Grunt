@@ -36,6 +36,9 @@ export interface TimelineItem {
   version?: number
   changes?: DocVersionChange[] | null
   user: string
+  /** Author's full name / avatar, resolved server-side. */
+  user_name?: string | null
+  user_avatar?: string | null
   details?: Record<string, unknown> | null
   created_at: string | null
 }

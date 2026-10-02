@@ -1,25 +1,26 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import { ref, computed, onMounted } from 'vue'
-import {
-  MessageSquare,
-  Activity as ActivityIcon,
-  Trash2,
-  Send,
-} from '@lucide/vue'
+import { ArrowRight, Trash2, Send } from '@lucide/vue'
 import { docsApi, type TimelineItem, type DocVersionChange } from '@/core/api/docs'
 import { authAdminApi } from '@/core/api/auth-admin'
 import { useAuthStore } from '@/stores/auth'
 import { useDialog } from '@/core/composables/useDialog'
 import type { DocType, GruntDocument, UserPublic } from '@/types'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Kbd, KbdGroup } from '@/components/ui/kbd'
 import { Spinner } from '@/components/ui/spinner'
 import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover'
 import { Item, ItemContent, ItemDescription, ItemGroup, ItemMedia, ItemTitle } from '@/components/ui/item'
-import { formatIntl } from '@/core/datetime'
+import { formatFull, formatIntl } from '@/core/datetime'
+import { tn } from '@/plugins/i18n'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import TimelineChanges from './TimelineChanges.vue'
+import { htmlToLine, htmlToText, looksLikeHtml } from '@/lib/htmlText'
+import { statusBadgeFor } from '@/core/status'
+import { Badge } from '@/components/ui/badge'
 
 const { t } = useI18n()
 
@@ -46,7 +47,45 @@ async function loadTimeline() {
   finally { timelineLoading.value = false }
 }
 
-const reversedTimeline = computed(() => [...timeline.value].reverse())
+// A Date/Datetime "change" that is the same instant in another timezone
+// notation (e.g. +00:00 → +03:00) is not a change for the reader.
+function isRealChange(c: DocVersionChange): boolean {
+  const type = props.doctype.fields?.find((f) => f.fieldname === c.field)?.fieldtype
+  if ((type === 'Date' || type === 'Datetime') && typeof c.old === 'string' && typeof c.new === 'string') {
+    const a = Date.parse(c.old)
+    const b = Date.parse(c.new)
+    if (!Number.isNaN(a) && a === b) return false
+  }
+  return true
+}
+
+const isWorkflow = (item: TimelineItem) => item.type === 'activity' && item.action?.toLowerCase() === 'workflow'
+
+// A workflow action also writes a version that only flips the state field —
+// the workflow entry already says that, so the version is dropped.
+function isWorkflowEcho(item: TimelineItem, changes: DocVersionChange[]): boolean {
+  const stateField = props.doctype.workflow_state_field
+  if (!stateField || changes.some((c) => c.field !== stateField)) return false
+  const at = Date.parse(item.created_at ?? '')
+  return timeline.value.some(
+    (w) => isWorkflow(w) && w.user === item.user && Math.abs(Date.parse(w.created_at ?? '') - at) < 10_000,
+  )
+}
+
+// Newest first; versions keep only real changes and drop out when none are left.
+const reversedTimeline = computed(() =>
+  [...timeline.value].reverse().flatMap((item) => {
+    if (item.type !== 'version') return [item]
+    const changes = (item.changes ?? []).filter(isRealChange)
+    return changes.length && !isWorkflowEcho(item, changes) ? [{ ...item, changes }] : []
+  }),
+)
+
+function workflowState(item: TimelineItem, key: 'from' | 'to') {
+  const state = item.details?.[key]
+  if (state == null || state === '') return null
+  return statusBadgeFor(props.doctype, state) ?? { label: String(state), class: '' }
+}
 
 const fieldLabelMap = computed(() => {
   const map: Record<string, string> = {}
@@ -90,7 +129,8 @@ function formatDiffValue(val: unknown): string {
     if (val.some(v => v !== null && typeof v === 'object')) return t('{n} rows', { n: String(val.length) })
     return val.map(String).join(', ')
   }
-  return String(val)
+  const s = String(val)
+  return looksLikeHtml(s) ? htmlToLine(s) || '—' : s
 }
 
 /** Prefer the resolved Link-field title (old_label/new_label) over the raw stored id. */
@@ -99,10 +139,24 @@ function changeValue(change: DocVersionChange, key: 'old' | 'new'): string {
   return label ?? formatDiffValue(change[key])
 }
 
-function versionChangeText(item: TimelineItem): string {
-  return (item.changes ?? [])
-    .map(c => `${fieldLabelMap.value[c.field] ?? c.field}: ${changeValue(c, 'old')} → ${changeValue(c, 'new')}`)
-    .join('; ')
+function initials(item: TimelineItem): string {
+  const parts = (item.user_name || item.user || '?').split(/[\s@.]+/).filter(Boolean)
+  return ((parts[0]?.[0] ?? '?') + (parts[1]?.[0] ?? '')).toUpperCase()
+}
+
+/** Short action text after the author's name. */
+function summary(item: TimelineItem): string {
+  if (item.type === 'comment') return t('commented')
+  if (item.type === 'version') {
+    const n = item.changes?.length ?? 0
+    return tn('changed {n} field', 'changed {n} fields', n)
+  }
+  if (isWorkflow(item)) {
+    const action = item.details?.action
+    return action ? t('applied «{action}»', { action: String(action) }) : t('changed the state')
+  }
+  const label = timelineLabel(item)
+  return label.charAt(0).toLocaleLowerCase() + label.slice(1)
 }
 
 async function openVersionDiff(item: TimelineItem) {
@@ -304,44 +358,55 @@ onMounted(loadTimeline)
     </div>
 
     <!-- Timeline -->
-    <div v-else class="w-full">
-      <div v-for="(item, idx) in reversedTimeline" :key="idx" class="flex gap-3 group">
-        <div class="flex flex-col items-center shrink-0">
-          <span class="flex size-6 items-center justify-center rounded-full border"
-            :class="item.type === 'comment' ? 'bg-primary/10 text-primary border-primary/20' : 'bg-muted text-muted-foreground'">
-            <MessageSquare v-if="item.type === 'comment'" class="size-3" />
-            <ActivityIcon v-else class="size-3" />
-          </span>
-          <div v-if="idx < reversedTimeline.length - 1" class="w-px flex-1 bg-border my-1" />
+    <ol v-else class="w-full">
+      <li v-for="(item, idx) in reversedTimeline" :key="item.id ?? idx" class="group flex gap-3">
+        <div class="flex shrink-0 flex-col items-center">
+          <Avatar class="size-7">
+            <AvatarImage v-if="item.user_avatar" :src="item.user_avatar" />
+            <AvatarFallback class="text-[10px]">{{ initials(item) }}</AvatarFallback>
+          </Avatar>
+          <div v-if="idx < reversedTimeline.length - 1" class="my-1 w-px flex-1 bg-border" />
         </div>
-        <div class="flex flex-col gap-1 pb-5 min-w-0 flex-1">
-          <div class="flex items-center justify-between gap-2">
-            <span class="font-medium text-foreground truncate">{{ item.user }}</span>
-            <div class="flex items-center gap-1 shrink-0">
-                <span class="text-muted-foreground">{{ fmtDate(item.created_at) }}</span>
-                <Button v-if="item.type === 'comment' && (item.user === auth.user?.email || auth.isSystemManager)"
-                    variant="ghost" size="icon-xs"
-                    class="opacity-0 group-hover:opacity-100 focus-visible:opacity-100 hover:bg-destructive/10 hover:text-destructive [@media(hover:none)]:opacity-100"
-                    :aria-label="t('Delete comment')"
-                    @click="deleteComment(item)">
-                    <Trash2 />
-                </Button>
-            </div>
+        <div class="flex min-w-0 flex-1 flex-col gap-2 pb-6">
+          <div class="flex min-h-7 items-center gap-2">
+            <p class="flex min-w-0 flex-1 items-baseline gap-1.5 text-sm">
+              <span class="shrink-0 font-medium">{{ item.user_name || item.user }}</span>
+              <span class="truncate text-muted-foreground">{{ summary(item) }}</span>
+            </p>
+            <Tooltip>
+              <TooltipTrigger as-child>
+                <time class="shrink-0 text-xs text-muted-foreground" :datetime="item.created_at ?? undefined">
+                  {{ fmtDate(item.created_at) }}
+                </time>
+              </TooltipTrigger>
+              <TooltipContent>{{ formatFull(item.created_at) }}</TooltipContent>
+            </Tooltip>
+            <Button v-if="item.type === 'comment' && (item.user === auth.user?.email || auth.isSystemManager)"
+              variant="ghost" size="icon-xs"
+              class="opacity-0 group-hover:opacity-100 focus-visible:opacity-100 hover:bg-destructive/10 hover:text-destructive [@media(hover:none)]:opacity-100"
+              :aria-label="t('Delete comment')"
+              @click="deleteComment(item)">
+              <Trash2 />
+            </Button>
           </div>
-          <span v-if="item.type === 'activity'" class="text-muted-foreground">
-            {{ timelineLabel(item) }}
-          </span>
-          <Button v-if="item.type === 'version'" variant="link"
-            class="h-auto w-fit justify-start p-0 font-normal whitespace-normal text-left text-muted-foreground hover:text-foreground"
-            @click="openVersionDiff(item)">
-            {{ versionChangeText(item) }}
-          </Button>
+          <TimelineChanges v-if="item.type === 'version' && item.changes?.length"
+            :changes="item.changes" :fields="doctype.fields ?? []" @compare="openVersionDiff(item)" />
+          <div v-if="isWorkflow(item) && (workflowState(item, 'from') || workflowState(item, 'to'))"
+            class="flex flex-wrap items-center gap-1.5">
+            <Badge v-if="workflowState(item, 'from')" variant="outline" :class="workflowState(item, 'from')!.class">
+              {{ workflowState(item, 'from')!.label }}
+            </Badge>
+            <ArrowRight class="size-3.5 text-muted-foreground" />
+            <Badge v-if="workflowState(item, 'to')" variant="outline" :class="workflowState(item, 'to')!.class">
+              {{ workflowState(item, 'to')!.label }}
+            </Badge>
+          </div>
           <p v-if="item.type === 'comment'"
-            class="text-foreground rounded-md border bg-muted/40 px-3 py-2 whitespace-pre-wrap">
-            {{ item.content }}
+            class="rounded-md border bg-muted/40 px-3 py-2 text-sm break-words whitespace-pre-line">
+            {{ htmlToText(item.content ?? '') }}
           </p>
         </div>
-      </div>
-    </div>
+      </li>
+    </ol>
   </div>
 </template>
