@@ -45,6 +45,7 @@ function getField(ff: QuickFilter): DocField | undefined {
 function getSelectOptions(ff: QuickFilter): { value: string, label: string }[] {
   // A Check field is filtered as Yes / No — '0' is a real filter, distinct from "any".
   if (ff.input_type === 'check') return [{ value: '1', label: t('Yes') }, { value: '0', label: t('No') }]
+  if (ff.input_type === 'year') return yearOptions(ff)
   // Explicit options on the filter definition take priority over field.options
   const raw = ff.options?.length
     ? ff.options
@@ -81,6 +82,45 @@ function onDatePick(ff: QuickFilter, d: DateValue | undefined) {
   onInput(ff, d ? d.toString() : '')
   openDateId.value = null
 }
+
+// ── Year ─────────────────────────────────────────────────────────────────────
+// Years run from the newest to the oldest value of the field in the data
+// (two one-row list calls); until they arrive — the last ten years.
+const yearRanges = ref<Record<string, [number, number]>>({})
+
+function yearOf(row: Record<string, unknown> | undefined, field: string): number | null {
+  const y = Number(String(row?.[field] ?? '').slice(0, 4))
+  return Number.isInteger(y) && y > 0 ? y : null
+}
+
+async function loadYearRange(ff: QuickFilter) {
+  const edge = (order: 'asc' | 'desc') => docsApi.list(props.dt.name, {
+    fields: ff.field, sort: ff.field, order, per_page: 1, rawFilters: { [`${ff.field}__is`]: 'set' },
+  }).then(r => yearOf(r.data?.[0], ff.field))
+  const [min, max] = await Promise.all([edge('asc'), edge('desc')])
+  if (min && max) yearRanges.value = { ...yearRanges.value, [ff.id]: [min, max] }
+}
+
+function yearOptions(ff: QuickFilter): { value: string, label: string }[] {
+  const now = new Date().getFullYear()
+  let [min, max] = yearRanges.value[ff.id] ?? [now - 9, now]
+  // A year restored from saved view state stays pickable even outside the range.
+  const picked = Number(getValue(ff))
+  if (Number.isInteger(picked) && picked > 0) { min = Math.min(min, picked); max = Math.max(max, picked) }
+  const years: { value: string, label: string }[] = []
+  for (let y = max; y >= min; y--) years.push({ value: String(y), label: String(y) })
+  return years
+}
+
+watch(
+  () => activeDefs.value.filter(ff => ff.input_type === 'year').map(ff => ff.id).join('|'),
+  () => {
+    for (const ff of activeDefs.value) {
+      if (ff.input_type === 'year' && !(ff.id in yearRanges.value)) loadYearRange(ff).catch(() => {})
+    }
+  },
+  { immediate: true },
+)
 
 // ── Link ─────────────────────────────────────────────────────────────────────
 // Link filters store the linked document's id; its title is kept here for display.
@@ -144,9 +184,9 @@ watch(
         v-else
         class="w-auto has-[[data-slot=select-trigger]:focus-visible]:border-ring has-[[data-slot=select-trigger]:focus-visible]:ring-3 has-[[data-slot=select-trigger]:focus-visible]:ring-ring/50"
       >
-        <!-- Select / Check: the chevron gives way to ✕ once a value is chosen -->
+        <!-- Select / Check / Year: the chevron gives way to ✕ once a value is chosen -->
         <Select
-          v-if="ff.input_type === 'select' || ff.input_type === 'check'"
+          v-if="ff.input_type === 'select' || ff.input_type === 'check' || ff.input_type === 'year'"
           :model-value="getValue(ff)"
           @update:model-value="(v: unknown) => onInput(ff, String(v ?? ''))"
         >

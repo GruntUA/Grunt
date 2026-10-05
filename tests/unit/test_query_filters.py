@@ -14,7 +14,7 @@ implementation, not two that could drift apart again.
 from __future__ import annotations
 
 import pytest
-from sqlalchemy import Column, Integer, MetaData, String, Table, select
+from sqlalchemy import Column, Date, Integer, MetaData, String, Table, select
 
 from grunt.db.filters import FILTER_OPS, apply_filters, build_clauses, split_key
 
@@ -27,6 +27,7 @@ _TABLE = Table(
     Column("due_date", String),
     Column("foo__bar", String),
     Column("qty", Integer),
+    Column("signed_on", Date),
 )
 
 
@@ -98,6 +99,18 @@ class TestApplyFilters:
         sql = _sql({"qty__is": "not set"})
         assert "t.qty IS NULL" in sql and "''" not in sql
 
+    def test_year_on_date_column_is_a_range(self):
+        # A range, not strftime/EXTRACT — keeps an index on the column usable.
+        sql = _sql({"signed_on__year": "2022"})
+        assert "t.signed_on >= '2022-01-01'" in sql and "t.signed_on < '2023-01-01'" in sql
+
+    def test_year_on_text_column_compares_iso_strings(self):
+        sql = _sql({"due_date__year": 2022})
+        assert "t.due_date >= '2022-01-01'" in sql and "t.due_date < '2023-01-01'" in sql
+
+    def test_year_not_a_number_matches_nothing(self):
+        assert "WHERE false" in _sql({"signed_on__year": "abc"})
+
     def test_field_with_double_underscore_not_misparsed(self):
         # A real column named foo__bar (no operator) must compare equal, not be
         # split into foo + op "bar".
@@ -136,6 +149,21 @@ class TestVirtualDocTypeInFilter:
 
     def test_nin_list(self):
         assert self._apply({"s__nin": ["A"]}) == ["B", "C"]
+
+
+class TestVirtualDocTypeYearFilter:
+    ROWS = [{"d": "2021-12-31"}, {"d": "2022-01-01"}, {"d": "2022-12-31 23:59"}, {"d": None}]
+
+    def _apply(self, filters):
+        from grunt.metadata.virtual import VirtualDocType
+
+        return [r["d"] for r in VirtualDocType("T").apply_filters(self.ROWS, filters)]
+
+    def test_year(self):
+        assert self._apply({"d__year": "2022"}) == ["2022-01-01", "2022-12-31 23:59"]
+
+    def test_year_not_a_number_matches_nothing(self):
+        assert self._apply({"d__year": "abc"}) == []
 
 
 class TestSplitKey:

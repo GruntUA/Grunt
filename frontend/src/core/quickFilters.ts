@@ -8,7 +8,12 @@ export const SUPPORTED_FIELD_TYPES = new Set([
   'Link',
 ])
 
+function isYearFilter(field: DocField): boolean {
+  return (field.fieldtype === 'Date' || field.fieldtype === 'Datetime') && field.quick_filter_mode === 'year'
+}
+
 function inferInputType(field: DocField): QuickFilter['input_type'] {
+  if (isYearFilter(field)) return 'year'
   switch (field.fieldtype) {
     case 'Date':
     case 'Datetime':
@@ -29,6 +34,7 @@ function inferInputType(field: DocField): QuickFilter['input_type'] {
 }
 
 function inferOperator(field: DocField): string {
+  if (isYearFilter(field)) return 'year'
   if (field.fieldtype === 'Text' || field.fieldtype === 'Data' || field.fieldtype === 'LongText') {
     return 'ilike'
   }

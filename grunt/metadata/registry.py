@@ -98,6 +98,7 @@ _CORE_SYNCED_FIELD_ATTRS = frozenset(
         "bold",
         "in_quick_entry",
         "in_quick_filter",
+        "quick_filter_mode",
         "is_virtual",
         "read_formula",
         "validator",

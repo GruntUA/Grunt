@@ -98,7 +98,7 @@ class VirtualDocType:
 
         Supported operators (appended to fieldname with ``__``):
             eq (default), ne, neq, gt, gte, lt, lte, lte_or_null, like, ilike,
-            nlike, in, nin, isnull, is (``set`` / ``not set``)
+            nlike, in, nin, isnull, is (``set`` / ``not set``), year
 
         Keys are parsed by ``grunt.db.filters.split_key``, the same as the
         SQL-backed ``build_clauses``. An unknown operator (``status__typo``,
@@ -148,6 +148,8 @@ class VirtualDocType:
                         match = str(raw) in [str(v) for v in as_list(val)]
                     elif op == "nin":
                         match = str(raw) not in [str(v) for v in as_list(val)]
+                    elif op == "year":
+                        match = raw not in (None, "") and str(raw)[:4] == f"{int(val):04d}"
                     elif op == "isnull":
                         match = (
                             (raw is None)

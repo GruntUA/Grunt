@@ -10,7 +10,7 @@ from __future__ import annotations
 from datetime import date, datetime
 from typing import Any
 
-from sqlalchemy import Date, String, or_
+from sqlalchemy import Date, String, and_, false, or_
 
 from grunt.db.types import UtcDateTime
 
@@ -28,6 +28,7 @@ FILTER_OPS = (
     "lte",
     "nin",
     "neq",
+    "year",
     "gt",
     "lt",
     "eq",
@@ -97,6 +98,28 @@ def _coerce_for_column(col: Any, value: Any) -> Any:
     return value
 
 
+def _year_clause(col: Any, value: Any) -> Any:
+    """``field__year=2022`` — a date/datetime within that calendar year.
+
+    Compiled as a half-open range (``>= 2022-01-01 AND < 2023-01-01``) rather
+    than ``strftime``/``EXTRACT`` so an index on the column still applies. A
+    value that is not a year matches nothing instead of dropping the filter.
+    """
+    try:
+        year = int(str(value).strip())
+        start, end = date(year, 1, 1), date(year + 1, 1, 1)
+    except ValueError, OverflowError:
+        return false()
+    col_type = getattr(col, "type", None)
+    if isinstance(col_type, UtcDateTime):
+        lo, hi = datetime(year, 1, 1), datetime(year + 1, 1, 1)
+    elif isinstance(col_type, Date):
+        lo, hi = start, end
+    else:  # ISO text — compares lexically
+        lo, hi = start.isoformat(), end.isoformat()
+    return and_(col >= lo, col < hi)
+
+
 def build_clauses(table: Any, filters: dict[str, Any]) -> list[Any]:
     """Build SQLAlchemy WHERE clauses from an operator-aware filter dict.
 
@@ -144,6 +167,8 @@ def build_clauses(table: Any, filters: dict[str, Any]) -> list[Any]:
             clauses.append(col.is_(None) if _truthy(value) else col.isnot(None))
         elif op == "is":
             clauses.append(_is_set_clause(col, value))
+        elif op == "year":
+            clauses.append(_year_clause(col, value))
     return clauses
 
 

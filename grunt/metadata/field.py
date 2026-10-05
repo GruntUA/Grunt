@@ -5,7 +5,7 @@ from __future__ import annotations
 import importlib.util
 from pathlib import Path
 from types import SimpleNamespace
-from typing import TYPE_CHECKING, Any, ClassVar
+from typing import TYPE_CHECKING, Any, ClassVar, Literal
 
 from pydantic import BaseModel
 from sqlalchemy import JSON as SAJSON
@@ -326,6 +326,9 @@ class DocField(BaseModel):
 
     in_quick_entry: bool = False
     in_quick_filter: bool = False
+    # Date/Datetime quick filters only: "year" picks a calendar year
+    # (``field__year``) instead of an exact date. None — the date picker.
+    quick_filter_mode: Literal["year"] | None = None
 
     validator: str | None = None
 

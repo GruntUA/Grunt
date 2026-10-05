@@ -35,6 +35,8 @@ export interface DocField {
   in_list_view?: boolean
   in_filter?: boolean
   in_quick_filter?: boolean
+  /** Date/Datetime quick filter: 'year' — pick a calendar year (`field__year`) instead of a date. */
+  quick_filter_mode?: 'year' | null
   /** Editable inline in the Report (spreadsheet) grid view. */
   editable_in_grid?: boolean
   // Type-specific
@@ -151,7 +153,7 @@ export interface QuickFilter {
   field: string
   operator: string
   label?: string
-  input_type: string  // 'text' | 'date' | 'select' | 'check' | 'number' | 'link'
+  input_type: string  // 'text' | 'date' | 'year' | 'select' | 'check' | 'number' | 'link'
   default_value?: string | null
   /** Explicit list of select options; overrides field.options when set */
   options?: string[] | null
