@@ -14874,6 +14874,43 @@ msgstr "виконав(ла) «{action}»"
 msgid "changed the state"
 msgstr "змінив(ла) стан"
 
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgctxt "help:SystemSettings.captcha_provider"
+msgid ""
+"Empty — CAPTCHA is off for the whole site, even on forms that ask for it."
+msgstr ""
+"Порожньо — CAPTCHA вимкнено для всього сайту, навіть на формах, які її "
+"вимагають."
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgctxt "help:SystemSettings.sec_captcha"
+msgid ""
+"Protects public forms from bots. Get the keys at dash.cloudflare.com → "
+"Turnstile."
+msgstr ""
+"Захищає публічні форми від ботів. Ключі — на dash.cloudflare.com → "
+"Turnstile."
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgctxt "meta:SystemSettings.captcha_provider"
+msgid "Provider"
+msgstr "Провайдер"
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgctxt "meta:SystemSettings.captcha_secret_key"
+msgid "Secret key"
+msgstr "Секретний ключ"
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgctxt "meta:SystemSettings.captcha_site_key"
+msgid "Site key"
+msgstr "Ключ сайту"
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgctxt "meta:SystemSettings.sec_captcha"
+msgid "CAPTCHA (Cloudflare Turnstile)"
+msgstr "CAPTCHA (Cloudflare Turnstile)"
+
 #~ msgid "Ctrl+Enter to send"
 #~ msgstr "Ctrl+Enter щоб надіслати"
 

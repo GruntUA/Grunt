@@ -37,10 +37,9 @@ async def submit_form(
     ``grunt.api.v1.method._invoke_with_context``) — never passed by a caller —
     purely to get the caller's IP for CAPTCHA verification below.
     """
-    from grunt.config import settings
     from grunt.local import _user_ctx
     from grunt.webform import web_form_service
-    from grunt.webform.captcha import verify_captcha
+    from grunt.webform.captcha import captcha_site_key, verify_captcha
 
     # A guest may submit (allow_guest=True puts user=None into context), so
     # read the context directly — grunt.get_user() would raise a 401 here.
@@ -48,7 +47,7 @@ async def submit_form(
     user_email = user.email if user else None
 
     form = await web_form_service.get_form(route)
-    if form and form.get("captcha_enabled") and settings.captcha_provider:
+    if form and form.get("captcha_enabled") and await captcha_site_key() is not None:
         from grunt.auth.doctypes.UserSession.user_session import client_ip
 
         ip = client_ip(request) or "unknown"

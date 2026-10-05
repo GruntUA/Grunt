@@ -199,6 +199,35 @@
       "columns": 6
     },
     {
+      "fieldname": "sec_captcha",
+      "label": "CAPTCHA (Cloudflare Turnstile)",
+      "fieldtype": "Section",
+      "description": "Protects public forms from bots. Get the keys at dash.cloudflare.com → Turnstile."
+    },
+    {
+      "fieldname": "captcha_provider",
+      "label": "Provider",
+      "fieldtype": "Select",
+      "options": "\nturnstile",
+      "columns": 4,
+      "description": "Empty — CAPTCHA is off for the whole site, even on forms that ask for it."
+    },
+    {
+      "fieldname": "captcha_site_key",
+      "label": "Site key",
+      "fieldtype": "Text",
+      "columns": 4,
+      "depends_on": "eval: doc.captcha_provider"
+    },
+    {
+      "fieldname": "captcha_secret_key",
+      "label": "Secret key",
+      "fieldtype": "Password",
+      "columns": 4,
+      "depends_on": "eval: doc.captcha_provider",
+      "mandatory_depends_on": "eval: doc.captcha_provider"
+    },
+    {
       "fieldname": "sec_user_permissions",
       "label": "Access restrictions (User Permissions)",
       "fieldtype": "Section"

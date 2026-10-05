@@ -13,6 +13,7 @@ from sqlalchemy import (
     UniqueConstraint,
     inspect,
     text,
+    update,
 )
 
 from grunt import _, log
@@ -267,7 +268,11 @@ def compile_doctype_to_table(doctype: DocType) -> Table:
 
         col.nullable = True
         # Defaults are handled at the application level (the document pipeline),
-        # not at the DB column level, to avoid SA compile issues.
+        # not at the DB column level, to avoid SA compile issues. The static one
+        # is kept for _sync_columns: a column added to a table with rows gets it.
+        backfill = _backfill_default(field)
+        if backfill is not None:
+            col.info["backfill_default"] = backfill
 
         columns.append(col)
 
@@ -300,8 +305,27 @@ def compile_doctype_to_table(doctype: DocType) -> Table:
 # ── Sync (create / alter) ───────────────────────────────────────────────
 
 
+def _backfill_default(field: Any) -> Any:
+    """The field's static default as a column value, or None when it has none.
+
+    Date/time defaults are skipped: they are tokens like ``"Today"`` meaning
+    "at creation", not a value to stamp on rows that already exist.
+    """
+    if field.default is None or field.fieldtype in ("Date", "Datetime", "Time"):
+        return None
+    try:
+        return field.coerce(field.default)
+    except (TypeError, ValueError):
+        return None
+
+
 def _sync_columns(insp: Any, connection: Any, table: Table) -> None:
-    """Add missing columns (as NULL) and ALTER type-changed ones (non-SQLite only)."""
+    """Add missing columns and ALTER type-changed ones (non-SQLite only).
+
+    A new column is added as NULL (safe on tables with rows), then existing
+    rows get the field's static default — what a new document would get — so
+    e.g. a new Check "enabled by default" on a settings singleton reads as on.
+    """
     existing_col_map = {c["name"]: c["type"] for c in insp.get_columns(table.name)}
 
     for col in table.columns:
@@ -312,6 +336,12 @@ def _sync_columns(insp: Any, connection: Any, table: Table) -> None:
                 text(f'ALTER TABLE "{table.name}" ADD COLUMN "{col.name}" {col_type} NULL')
             )
             log.info("compiler.column_added", table=table.name, column=col.name)
+            if "backfill_default" in col.info:
+                connection.execute(
+                    update(table)
+                    .where(col.is_(None))
+                    .values({col.name: col.info["backfill_default"]})
+                )
 
         elif connection.dialect.name != "sqlite" and _type_changed(
             col.type, existing_col_map[col.name], connection.dialect

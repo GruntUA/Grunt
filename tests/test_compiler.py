@@ -152,6 +152,39 @@ async def test_sync_table_adds_new_column(async_engine):
     assert "extra_col" in cols
 
 
+@pytest.mark.asyncio
+async def test_new_column_backfills_static_default(async_engine):
+    """Existing rows get a new field's static default, as a new document would."""
+    from sqlalchemy import text
+
+    dt = _make_test_doctype(name="SyncBackfill")
+    await sync_table(dt, async_engine)
+    async with async_engine.begin() as conn:
+        await conn.execute(
+            text("INSERT INTO grunt_test_sync_backfill (name, owner) VALUES ('a', 'x')")
+        )
+
+    dt.fields += [
+        DocField(fieldname="enabled", label="On", fieldtype="Check", default=1),
+        DocField(fieldname="term", label="Term", fieldtype="Int", default="30"),
+        DocField(fieldname="note", label="Note", fieldtype="Text", default="hi"),
+        DocField(fieldname="since", label="Since", fieldtype="Date", default="Today"),
+        DocField(fieldname="plain", label="Plain", fieldtype="Text"),
+    ]
+    compiled_metadata = get_compiled_metadata()
+    compiled_metadata.remove(compiled_metadata.tables["grunt_test_sync_backfill"])
+    invalidate_table_cache("SyncBackfill")
+    await sync_table(dt, async_engine)
+
+    async with async_engine.connect() as conn:
+        row = (
+            await conn.execute(
+                text("SELECT enabled, term, note, since, plain FROM grunt_test_sync_backfill")
+            )
+        ).one()
+    assert tuple(row) == (1, 30, "hi", None, None)
+
+
 def test_multi_link_table_has_query_supporting_index_and_unique_order_constraint():
     """MultiLink table should enforce deterministic order and support read/delete queries."""
     index_names = {index.name for index in MULTI_LINK_TABLE.indexes}

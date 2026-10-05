@@ -154,7 +154,7 @@ msgstr ""
 msgid "A city is required: pick one from the list or type it in"
 msgstr ""
 
-#: grunt/grunt/document/collection.py:669
+#: grunt/grunt/document/collection.py:717
 msgid "A descendant cannot be used as the replacement"
 msgstr ""
 
@@ -284,7 +284,7 @@ msgstr ""
 msgid "Add"
 msgstr ""
 
-#: grunt/frontend/src/components/views/FilterBar.vue:295
+#: grunt/frontend/src/components/views/FilterBar.vue:306
 msgid "Add a Filter"
 msgstr ""
 
@@ -466,7 +466,7 @@ msgstr ""
 msgid "Apply"
 msgstr ""
 
-#: grunt/frontend/src/components/views/FilterBar.vue:343
+#: grunt/frontend/src/components/views/FilterBar.vue:354
 msgid "Apply Filters"
 msgstr ""
 
@@ -863,6 +863,7 @@ msgstr ""
 #: grunt/frontend/src/components/views/BulkActionBar.vue:274
 #: grunt/frontend/src/components/views/BulkActionBar.vue:300
 #: grunt/frontend/src/components/views/BulkActionBar.vue:344
+#: grunt/frontend/src/components/views/FilterBar.vue:344
 #: grunt/frontend/src/components/workflow/WorkflowActionDialog.vue:105
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue:347
 #: grunt/frontend/src/components/views/form/FormModals.vue:138
@@ -872,7 +873,6 @@ msgstr ""
 #: grunt/frontend/src/components/views/list/QuickFilterSettingsDialog.vue:112
 #: grunt/frontend/src/components/views/map/MapView.vue:206
 #: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue:184
-#: grunt/frontend/src/components/fields/Table/TableRowSheet.vue:108
 msgid "Cancel"
 msgstr ""
 
@@ -906,7 +906,7 @@ msgstr ""
 msgid "Cannot move a node into its own subtree (cycle detected)"
 msgstr ""
 
-#: grunt/grunt/document/collection.py:701
+#: grunt/grunt/document/collection.py:749
 msgid "Cannot rename virtual documents"
 msgstr ""
 
@@ -1070,7 +1070,8 @@ msgstr ""
 
 #: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue:340
 #: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue:183
-#: grunt/frontend/src/components/fields/Link/FilterInput.vue:262
+#: grunt/frontend/src/components/fields/Link/FilterInput.vue:213
+#: grunt/frontend/src/components/fields/Link/FilterInput.vue:214
 #: grunt/frontend/src/components/fields/Link/Link.vue:139
 #: grunt/frontend/src/components/fields/Link/Link.vue:140
 #: grunt/frontend/src/components/fields/Color/Color.vue:73
@@ -1082,8 +1083,8 @@ msgid "Clear"
 msgstr ""
 
 #: grunt/frontend/src/components/views/ListEmptyState.vue:46
-#: grunt/frontend/src/components/views/FilterBar.vue:229
-#: grunt/frontend/src/components/views/FilterBar.vue:321
+#: grunt/frontend/src/components/views/FilterBar.vue:240
+#: grunt/frontend/src/components/views/FilterBar.vue:332
 msgid "Clear Filters"
 msgstr ""
 
@@ -1104,8 +1105,8 @@ msgstr ""
 msgid "Clear the profiler buffer?"
 msgstr ""
 
-#: grunt/frontend/src/components/views/QuickFilterBar.vue:195
-#: grunt/frontend/src/components/views/QuickFilterBar.vue:206
+#: grunt/frontend/src/components/views/QuickFilterBar.vue:238
+#: grunt/frontend/src/components/views/QuickFilterBar.vue:239
 msgid "Clear «{label}»"
 msgstr ""
 
@@ -1318,7 +1319,7 @@ msgstr ""
 msgid "Connections (this process)"
 msgstr ""
 
-#: grunt/frontend/src/components/views/FilterBar.vue:183
+#: grunt/frontend/src/components/views/FilterBar.vue:194
 msgid "Contains"
 msgstr ""
 
@@ -1511,11 +1512,11 @@ msgstr ""
 msgid "Could not validate credentials"
 msgstr ""
 
-#: grunt/grunt/api/v1/webform.py:56
+#: grunt/grunt/api/v1/webform.py:55
 msgid "Could not verify that you are not a robot"
 msgstr ""
 
-#: grunt/grunt/website/www/form/{route}.py:145
+#: grunt/grunt/website/www/form/{route}.py:141
 msgid "Could not verify that you are not a robot. Please try again."
 msgstr ""
 
@@ -1795,11 +1796,11 @@ msgstr ""
 msgid "Deleted the document"
 msgstr ""
 
-#: grunt/frontend/src/pages/desk/DocTypeList.vue:513
+#: grunt/frontend/src/pages/desk/DocTypeList.vue:515
 msgid "Deleting records"
 msgstr ""
 
-#: grunt/frontend/src/pages/desk/DocTypeList.vue:518
+#: grunt/frontend/src/pages/desk/DocTypeList.vue:520
 msgid "Deleting records…"
 msgstr ""
 
@@ -1811,7 +1812,7 @@ msgstr ""
 msgid "Delivery log"
 msgstr ""
 
-#: grunt/frontend/src/components/views/FilterBar.vue:191
+#: grunt/frontend/src/components/views/FilterBar.vue:202
 msgid "Descendant of"
 msgstr ""
 
@@ -1898,8 +1899,8 @@ msgstr ""
 msgid "DocType not found"
 msgstr ""
 
-#: grunt/grunt/metadata/registry.py:541 grunt/grunt/metadata/registry.py:633
-#: grunt/grunt/metadata/registry.py:559 grunt/grunt/api/v1/meta.py:133
+#: grunt/grunt/metadata/registry.py:542 grunt/grunt/metadata/registry.py:634
+#: grunt/grunt/metadata/registry.py:560 grunt/grunt/api/v1/meta.py:133
 msgid "DocType “%(doctype)s” already exists"
 msgstr ""
 
@@ -1908,8 +1909,8 @@ msgid "DocType “%(doctype)s” no longer exists"
 msgstr ""
 
 #: grunt/grunt/webform/service.py:89 grunt/grunt/app/document_api.py:504
-#: grunt/grunt/app/document_api.py:717 grunt/grunt/metadata/registry.py:333
-#: grunt/grunt/metadata/registry.py:614 grunt/grunt/metadata/registry.py:588
+#: grunt/grunt/app/document_api.py:717 grunt/grunt/metadata/registry.py:334
+#: grunt/grunt/metadata/registry.py:615 grunt/grunt/metadata/registry.py:589
 #: grunt/grunt/notification/rule_index.py:54
 #: grunt/grunt/activity/__init__.py:265 grunt/grunt/actions/__init__.py:165
 #: grunt/grunt/document/connections.py:41
@@ -1918,9 +1919,10 @@ msgstr ""
 #: grunt/grunt/document/connections.py:121
 #: grunt/grunt/document/collection.py:255
 #: grunt/grunt/document/collection.py:344
-#: grunt/grunt/document/collection.py:409
-#: grunt/grunt/document/collection.py:696 grunt/grunt/document/links.py:54
-#: grunt/grunt/document/links.py:58 grunt/grunt/document/links.py:124
+#: grunt/grunt/document/collection.py:389
+#: grunt/grunt/document/collection.py:457
+#: grunt/grunt/document/collection.py:744 grunt/grunt/document/links.py:54
+#: grunt/grunt/document/links.py:58
 msgid "DocType “%(doctype)s” not found"
 msgstr ""
 
@@ -1967,7 +1969,7 @@ msgstr ""
 msgid "Document with %(key)s=%(value)s not found"
 msgstr ""
 
-#: grunt/grunt/document/collection.py:711
+#: grunt/grunt/document/collection.py:759
 msgid "Document with name '%(new_id)s' already exists"
 msgstr ""
 
@@ -1991,7 +1993,7 @@ msgstr ""
 msgid "Documents linked to"
 msgstr ""
 
-#: grunt/frontend/src/components/views/FilterBar.vue:184
+#: grunt/frontend/src/components/views/FilterBar.vue:195
 msgid "Does not contain"
 msgstr ""
 
@@ -2052,7 +2054,7 @@ msgstr ""
 msgid "Duplicate"
 msgstr ""
 
-#: grunt/grunt/metadata/registry.py:645
+#: grunt/grunt/metadata/registry.py:646
 msgid "Duplicate fieldname '%(fieldname)s' in DocType '%(name)s'"
 msgstr ""
 
@@ -2201,7 +2203,7 @@ msgstr ""
 msgid "Enter your email address first"
 msgstr ""
 
-#: grunt/frontend/src/components/views/FilterBar.vue:181
+#: grunt/frontend/src/components/views/FilterBar.vue:192
 msgid "Equals"
 msgstr ""
 
@@ -2238,7 +2240,7 @@ msgstr ""
 msgid "Errors:"
 msgstr ""
 
-#: grunt/frontend/src/pages/desk/DocTypeList.vue:536
+#: grunt/frontend/src/pages/desk/DocTypeList.vue:538
 msgid "Errors: {n}"
 msgstr ""
 
@@ -2329,7 +2331,7 @@ msgid "Few"
 msgstr ""
 
 #: grunt/grunt/api/v1/docs/utils.py:73
-#: grunt/frontend/src/components/views/FilterBar.vue:245
+#: grunt/frontend/src/components/views/FilterBar.vue:256
 #: grunt/frontend/src/components/dashboard/sections/AggregationSection.vue:41
 #: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:181
 #: grunt/frontend/src/components/views/list/ListHeader.vue:128
@@ -2406,7 +2408,7 @@ msgstr ""
 msgid "Field “{label}”: invalid value"
 msgstr ""
 
-#: grunt/grunt/metadata/registry.py:664
+#: grunt/grunt/metadata/registry.py:665
 msgid "Fieldname '%(fieldname)s' exceeds %(max)s characters"
 msgstr ""
 
@@ -2472,7 +2474,7 @@ msgid ""
 "chosen."
 msgstr ""
 
-#: grunt/frontend/src/components/views/FilterBar.vue:224
+#: grunt/frontend/src/components/views/FilterBar.vue:235
 msgid "Filter"
 msgstr ""
 
@@ -2676,11 +2678,11 @@ msgid ""
 "Verification is enabled."
 msgstr ""
 
-#: grunt/frontend/src/components/views/FilterBar.vue:187
+#: grunt/frontend/src/components/views/FilterBar.vue:198
 msgid "Greater than"
 msgstr ""
 
-#: grunt/frontend/src/components/views/FilterBar.vue:189
+#: grunt/frontend/src/components/views/FilterBar.vue:200
 msgid "Greater than or equal"
 msgstr ""
 
@@ -3010,7 +3012,7 @@ msgstr ""
 msgid "Invalid email or password"
 msgstr ""
 
-#: grunt/grunt/metadata/registry.py:654
+#: grunt/grunt/metadata/registry.py:655
 msgid ""
 "Invalid fieldname '%(fieldname)s': must start with a-z and contain only a-z,"
 " 0-9, _"
@@ -3065,19 +3067,19 @@ msgstr ""
 msgid "Invalid verification code"
 msgstr ""
 
-#: grunt/frontend/src/components/views/FilterBar.vue:185
+#: grunt/frontend/src/components/views/FilterBar.vue:196
 msgid "Is empty"
 msgstr ""
 
-#: grunt/frontend/src/components/views/FilterBar.vue:193
+#: grunt/frontend/src/components/views/FilterBar.vue:204
 msgid "Is none of"
 msgstr ""
 
-#: grunt/frontend/src/components/views/FilterBar.vue:192
+#: grunt/frontend/src/components/views/FilterBar.vue:203
 msgid "Is one of"
 msgstr ""
 
-#: grunt/frontend/src/components/views/FilterBar.vue:186
+#: grunt/frontend/src/components/views/FilterBar.vue:197
 msgid "Is set"
 msgstr ""
 
@@ -3200,11 +3202,11 @@ msgstr ""
 msgid "Leave this field empty"
 msgstr ""
 
-#: grunt/frontend/src/components/views/FilterBar.vue:188
+#: grunt/frontend/src/components/views/FilterBar.vue:199
 msgid "Less than"
 msgstr ""
 
-#: grunt/frontend/src/components/views/FilterBar.vue:190
+#: grunt/frontend/src/components/views/FilterBar.vue:201
 msgid "Less than or equal"
 msgstr ""
 
@@ -3627,11 +3629,12 @@ msgid "Next page"
 msgstr ""
 
 #: grunt/grunt/website/doc_layout.py:49 grunt/grunt/api/v1/docs/utils.py:44
+#: grunt/frontend/src/components/views/QuickFilterBar.vue:47
 #: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:123
 #: grunt/frontend/src/components/views/sidebar/TimelineChanges.vue:49
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:235
 #: grunt/frontend/src/components/views/list/ListGroupedView.vue:48
-#: grunt/frontend/src/components/fields/Check/FilterInput.vue:38
+#: grunt/frontend/src/components/fields/Check/FilterInput.vue:32
 #: grunt/frontend/src/components/fields/Table/Table.vue:148
 #: grunt/frontend/src/components/fields/Table/useTableCell.ts:79
 msgid "No"
@@ -3735,7 +3738,7 @@ msgstr ""
 msgid "No documents with start and end dates filled in."
 msgstr ""
 
-#: grunt/frontend/src/components/views/FilterBar.vue:284
+#: grunt/frontend/src/components/views/FilterBar.vue:295
 msgid "No fields available"
 msgstr ""
 
@@ -3795,7 +3798,7 @@ msgstr ""
 
 #: grunt/frontend/src/components/dashboard/widgets/List/List.vue:51
 #: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:354
-#: grunt/frontend/src/components/fields/Link/FilterInput.vue:299
+#: grunt/frontend/src/components/fields/Link/FilterInput.vue:233
 #: grunt/frontend/src/components/fields/Link/Link.vue:195
 msgid "No records"
 msgstr ""
@@ -3878,7 +3881,7 @@ msgstr ""
 msgid "Not cached, e.g.: {files}. Reload the page while online."
 msgstr ""
 
-#: grunt/frontend/src/components/views/FilterBar.vue:182
+#: grunt/frontend/src/components/views/FilterBar.vue:193
 msgid "Not equals"
 msgstr ""
 
@@ -3947,7 +3950,7 @@ msgstr ""
 #: grunt/frontend/src/components/views/list/QuickFilterSettingsDialog.vue:103
 #: grunt/frontend/src/components/views/list/ListToolbarControls.vue:187
 #: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue:177
-#: grunt/frontend/src/components/fields/Link/FilterInput.vue:298
+#: grunt/frontend/src/components/fields/Link/FilterInput.vue:232
 #: grunt/frontend/src/components/fields/Icon/Icon.vue:132
 msgid "Nothing found"
 msgstr ""
@@ -4310,7 +4313,7 @@ msgstr ""
 msgid "Preparing"
 msgstr ""
 
-#: grunt/frontend/src/components/views/FilterBar.vue:328
+#: grunt/frontend/src/components/views/FilterBar.vue:339
 msgid "Preset name"
 msgstr ""
 
@@ -4565,7 +4568,8 @@ msgid_plural "Reminder: %(count)d tasks with a due date"
 msgstr[0] ""
 msgstr[1] ""
 
-#: grunt/frontend/src/components/fields/Link/FilterInput.vue:235
+#: grunt/frontend/src/components/views/FilterBar.vue:289
+#: grunt/frontend/src/components/views/FilterBar.vue:320
 #: grunt/frontend/src/components/fields/RichText/fileBlocks.ts:133
 #: grunt/frontend/src/components/fields/RichText/fileBlocks.ts:134
 msgid "Remove"
@@ -4644,7 +4648,7 @@ msgstr ""
 msgid "Replace with"
 msgstr ""
 
-#: grunt/grunt/document/collection.py:654
+#: grunt/grunt/document/collection.py:702
 msgid "Replacement document “%(name)s” not found"
 msgstr ""
 
@@ -4882,7 +4886,7 @@ msgstr ""
 msgid "Save and open"
 msgstr ""
 
-#: grunt/frontend/src/components/views/FilterBar.vue:337
+#: grunt/frontend/src/components/views/FilterBar.vue:348
 msgid "Save as preset"
 msgstr ""
 
@@ -4913,7 +4917,7 @@ msgstr ""
 msgid "Saved"
 msgstr ""
 
-#: grunt/frontend/src/components/views/FilterBar.vue:301
+#: grunt/frontend/src/components/views/FilterBar.vue:312
 msgid "Saved filters"
 msgstr ""
 
@@ -5004,7 +5008,7 @@ msgid "Search user..."
 msgstr ""
 
 #: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:278
-#: grunt/frontend/src/components/fields/Link/FilterInput.vue:245
+#: grunt/frontend/src/components/fields/Link/FilterInput.vue:228
 #: grunt/frontend/src/components/fields/Link/Link.vue:102
 msgid "Search {doctype}…"
 msgstr ""
@@ -5014,7 +5018,7 @@ msgid "Search {dt}..."
 msgstr ""
 
 #: grunt/frontend/src/components/app/AppSidebar.vue:126
-#: grunt/frontend/src/components/views/DocTypeToolbar.vue:83
+#: grunt/frontend/src/components/views/DocTypeToolbar.vue:88
 #: grunt/frontend/src/components/views/form/DocLinksDialog.vue:81
 #: grunt/frontend/src/components/views/list/QuickFilterSettingsDialog.vue:84
 msgid "Search..."
@@ -5022,7 +5026,7 @@ msgstr ""
 
 #: grunt/frontend/src/components/layout/CommandPalette.vue:287
 #: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:352
-#: grunt/frontend/src/components/fields/Link/FilterInput.vue:297
+#: grunt/frontend/src/components/fields/Link/FilterInput.vue:231
 #: grunt/frontend/src/components/fields/Link/Link.vue:193
 #: grunt/frontend/src/pages/app/SearchResultsPage.vue:160
 msgid "Searching..."
@@ -5099,7 +5103,8 @@ msgstr ""
 msgid "Select value"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/Link/FilterInput.vue:221
+#: grunt/frontend/src/components/fields/Link/FilterInput.vue:183
+#: grunt/frontend/src/components/fields/Link/FilterInput.vue:206
 #: grunt/frontend/src/components/fields/Link/Link.vue:78
 msgid "Select {doctype}…"
 msgstr ""
@@ -5460,7 +5465,7 @@ msgstr ""
 msgid "Stuck emails"
 msgstr ""
 
-#: grunt/grunt/website/www/form/{route}.py:184
+#: grunt/grunt/website/www/form/{route}.py:180
 msgid "Submission error"
 msgstr ""
 
@@ -5677,7 +5682,7 @@ msgstr ""
 msgid "Thank you!"
 msgstr ""
 
-#: grunt/grunt/website/www/form/{route}.py:133
+#: grunt/grunt/website/www/form/{route}.py:132
 msgid "Thank you! Your submission has been received."
 msgstr ""
 
@@ -5809,7 +5814,7 @@ msgstr ""
 msgid "The folder is not empty: move or delete its files first"
 msgstr ""
 
-#: grunt/grunt/website/www/form/{route}.py:192
+#: grunt/grunt/website/www/form/{route}.py:188
 msgid "The form has been submitted successfully."
 msgstr ""
 
@@ -5891,7 +5896,7 @@ msgstr ""
 msgid "The replacement cannot be one of the records being deleted."
 msgstr ""
 
-#: grunt/grunt/document/collection.py:645
+#: grunt/grunt/document/collection.py:693
 msgid "The replacement cannot be the document being deleted"
 msgstr ""
 
@@ -6610,11 +6615,12 @@ msgstr ""
 
 #: grunt/grunt/website/doc_layout.py:49 grunt/grunt/api/v1/docs/utils.py:44
 #: grunt/frontend/src/components/pwa/PWAInstallPrompt.vue:108
+#: grunt/frontend/src/components/views/QuickFilterBar.vue:47
 #: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:123
 #: grunt/frontend/src/components/views/sidebar/TimelineChanges.vue:49
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:235
 #: grunt/frontend/src/components/views/list/ListGroupedView.vue:48
-#: grunt/frontend/src/components/fields/Check/FilterInput.vue:30
+#: grunt/frontend/src/components/fields/Check/FilterInput.vue:31
 #: grunt/frontend/src/components/fields/Table/Table.vue:148
 #: grunt/frontend/src/components/fields/Table/useTableCell.ts:79
 msgid "Yes"
@@ -7456,10 +7462,6 @@ msgstr ""
 
 #: grunt/frontend/src/components/dashboard/sections/ActivityFilterSection.vue:23
 msgid "— All —"
-msgstr ""
-
-#: grunt/frontend/src/components/views/QuickFilterBar.vue:136
-msgid "— Any —"
 msgstr ""
 
 #: grunt/frontend/src/components/fields/ColumnMapping/ColumnMapping.vue:169
@@ -8373,6 +8375,12 @@ msgid "Older ones are deleted after each new backup."
 msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgctxt "help:SystemSettings.captcha_provider"
+msgid ""
+"Empty — CAPTCHA is off for the whole site, even on forms that ask for it."
+msgstr ""
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgctxt "help:SystemSettings.default_email_account"
 msgid "Used for outgoing mail when no sender is set explicitly."
 msgstr ""
@@ -8427,6 +8435,13 @@ msgctxt "help:SystemSettings.sec_backups"
 msgid ""
 "Database, uploaded files and site config are saved to sites/<site>/backups/."
 " Backups are listed, downloaded and made on demand in «Backups»."
+msgstr ""
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgctxt "help:SystemSettings.sec_captcha"
+msgid ""
+"Protects public forms from bots. Get the keys at dash.cloudflare.com → "
+"Turnstile."
 msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
@@ -12323,6 +12338,21 @@ msgid "Keep backups"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgctxt "meta:SystemSettings.captcha_provider"
+msgid "Provider"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgctxt "meta:SystemSettings.captcha_secret_key"
+msgid "Secret key"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgctxt "meta:SystemSettings.captcha_site_key"
+msgid "Site key"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgctxt "meta:SystemSettings.date_format"
 msgid "Date format"
 msgstr ""
@@ -12400,6 +12430,11 @@ msgstr ""
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgctxt "meta:SystemSettings.sec_backups"
 msgid "Scheduled backups"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgctxt "meta:SystemSettings.sec_captcha"
+msgid "CAPTCHA (Cloudflare Turnstile)"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json

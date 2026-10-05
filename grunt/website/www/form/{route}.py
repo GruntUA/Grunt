@@ -93,8 +93,8 @@ def _client_ip(request: Any) -> str:
 
 
 async def get_context(context: dict[str, Any]) -> dict[str, Any]:
-    from grunt.config import settings
     from grunt.webform import web_form_service
+    from grunt.webform.captcha import captcha_site_key
 
     route = (context.get("path_params") or {}).get("route", "")
     form = await web_form_service.get_form(route)
@@ -107,10 +107,9 @@ async def get_context(context: dict[str, Any]) -> dict[str, Any]:
     context["form"] = form
     context["fields"] = _prepare_fields(await web_form_service.get_form_fields(route))
     context.setdefault("form_data", {})
-    context["captcha_enabled"] = bool(form.get("captcha_enabled")) and bool(
-        settings.captcha_provider
-    )
-    context["captcha_site_key"] = settings.captcha_site_key
+    site_key = await captcha_site_key()
+    context["captcha_enabled"] = bool(form.get("captcha_enabled")) and site_key is not None
+    context["captcha_site_key"] = site_key
     return context
 
 
@@ -135,18 +134,15 @@ async def handle_post(context: dict[str, Any]) -> Any:
 
     form = await web_form_service.get_form(route)
     if form and form.get("captcha_enabled"):
-        from grunt.config import settings
-        from grunt.webform.captcha import verify_captcha
+        from grunt.webform.captcha import TOKEN_FIELD, verify_captcha
 
-        if settings.captcha_provider:
-            token = str(raw.get("cf-turnstile-response") or "")
-            ok = await verify_captcha(token, _client_ip(context["request"]))
-            if not ok:
-                context["submit_error"] = _(
-                    "Could not verify that you are not a robot. Please try again."
-                )
-                context["form_data"] = {k: v for k, v in raw.items() if k not in ("__form", "_hp")}
-                return context
+        token = str(raw.get(TOKEN_FIELD) or "")
+        if not await verify_captcha(token, _client_ip(context["request"])):
+            context["submit_error"] = _(
+                "Could not verify that you are not a robot. Please try again."
+            )
+            context["form_data"] = {k: v for k, v in raw.items() if k not in ("__form", "_hp")}
+            return context
 
     data: dict[str, Any] = {key: raw[key] for key in raw if key not in ("__form", "_hp")}
 

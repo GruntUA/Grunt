@@ -213,6 +213,32 @@ async def _sync_app_print_formats(
                 )
 
 
+async def _seed_app_singletons(app_name: str) -> None:
+    """Create the missing row of each of the app's singletons, from field defaults.
+
+    A singleton is read as its one row — none means a 404 from ``get_doc`` and
+    every reader inventing its own fallbacks. Created after the fixtures, so a
+    fixture that ships the row wins; an existing row is never touched (a field
+    added later gets its default via the column backfill in the compiler).
+    """
+    import grunt
+    from grunt.metadata.registry import doctype_registry
+
+    for dt in await doctype_registry.list_all():
+        if dt.app != app_name or not dt.is_singleton or dt.is_virtual:
+            continue
+        if await grunt.db.count(dt.name) > 0:
+            continue
+        try:
+            async with grunt.get_session().begin_nested():
+                await grunt.new_doc(dt.name, {"name": dt.name})
+            log.info("startup.app_singleton_seeded", app=app_name, doctype=dt.name)
+        except Exception as e:
+            log.warning(
+                "startup.app_singleton_seed_failed", app=app_name, doctype=dt.name, error=str(e)
+            )
+
+
 async def _seed_app_workspace_from_registry(
     app_name: str, app_meta: dict, app_modules: set[str]
 ) -> None:
@@ -296,6 +322,7 @@ async def sync_installed_apps(session: AsyncSession, site_name: str) -> None:
                 session, eng, app_dir, app_name, app_modules, app_meta
             )
             await _sync_app_print_formats(session, eng, app_dir, app_name, app_modules)
+            await _seed_app_singletons(app_name)
 
             if not workspace_from_fixture:
                 await _seed_app_workspace_from_registry(app_name, app_meta, app_modules)
