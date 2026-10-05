@@ -1,7 +1,7 @@
 <script setup lang="ts">
 /**
- * App brand mark — the configured `app_logo` image when set, otherwise the
- * Sprout glyph — plus the `app_name`. Single source for the ~5 places that
+ * App brand mark - the configured `app_logo` image when set, otherwise the
+ * Sprout glyph - plus the `app_name`. Single source for the ~5 places that
  * used to hard-code "Ґрунт" / "Grunt Framework" + <Sprout>.
  */
 import { Sprout } from '@lucide/vue'

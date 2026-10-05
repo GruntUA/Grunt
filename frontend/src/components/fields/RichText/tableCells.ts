@@ -1,10 +1,10 @@
 import { TableCell, TableHeader } from '@tiptap/extension-table'
 
-// ── Vertical text & Word column widths in table cells ────────────────────────
+// Vertical text & Word column widths in table cells
 // A cell's text direction is stored as `writing-mode` in its style (the
 // sanitizer allows it), so saved HTML renders vertically on public pages too:
-//   'tb' — top to bottom (Word «tbRl», text turned 90° clockwise)
-//   'bt' — bottom to top (Word «btLr», text turned 90° counter-clockwise)
+//   'tb' - top to bottom (Word «tbRl», text turned 90° clockwise)
+//   'bt' - bottom to top (Word «btLr», text turned 90° counter-clockwise)
 export type TextDirection = 'tb' | 'bt'
 
 export const TEXT_DIRECTIONS: (TextDirection | null)[] = [null, 'tb', 'bt']
@@ -73,7 +73,7 @@ export const RichTableHeader = TableHeader.extend({
   },
 })
 
-// ── .docx import ─────────────────────────────────────────────────────────────
+// .docx import
 // mammoth keeps table structure (colspan / rowspan) but drops column widths
 // and text direction. They are read from word/document.xml and put back onto
 // mammoth's HTML: tables match in document order, and the cells of a row in

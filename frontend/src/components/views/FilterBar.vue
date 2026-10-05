@@ -37,14 +37,14 @@ interface DraftRow {
 
 const { t } = useI18n()
 const activeFilters = ref<ActiveFilter[]>(props.initialFilters ?? [])
-// Filters can be cleared from outside too (list empty state → «Скинути фільтри»).
+// Filters can be cleared from outside too (list empty state -> «Скинути фільтри»).
 watch(() => props.initialFilters, (v) => { activeFilters.value = v ?? [] })
 
 // Filter popover
 const isFilterOpen = ref(false)
 const filterAnchorEl = ref<HTMLElement | null>(null)
 
-// ── Saved presets ───────────────────────────────────────────────────────────
+// Saved presets
 const presetKey = computed(() => props.doctype ? `grunt_filter_presets_${props.doctype}` : null)
 const savedPresets = ref<FilterPreset[]>(loadPresets())
 const showSaveName = ref(false)
@@ -84,7 +84,7 @@ function deletePreset(name: string) {
   persistPresets()
 }
 
-// ── Field list ──────────────────────────────────────────────────────────────
+// Field list
 // A field already filtered on (e.g. a dashboard drill-down URL) stays pickable
 // even without `in_filter`, so its row renders and can be edited.
 const filterableFields = computed(() => {
@@ -99,7 +99,7 @@ function fieldFor(fieldname: string): DocField | undefined {
   return props.fields.find(f => f.fieldname === fieldname)
 }
 
-// ── Draft rows (edited freely inside the popover, committed on Apply) ───────
+// Draft rows (edited freely inside the popover, committed on Apply)
 const draftRows = ref<DraftRow[]>([])
 
 function makeEmptyRow(): DraftRow {
@@ -216,7 +216,7 @@ function toggleFilter(event: Event) {
 
 /**
  * Link/MultiLink filter inputs teleport their result dropdown to <body>, outside
- * this popover's DOM subtree — without this, clicking a result reads as an
+ * this popover's DOM subtree - without this, clicking a result reads as an
  * "outside" interaction and closes the whole filter popover before the click
  * can register.
  */

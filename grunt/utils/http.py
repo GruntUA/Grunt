@@ -9,7 +9,7 @@ if TYPE_CHECKING:
 
 
 def public_base_url(request: Request | None) -> str:
-    """The public origin the browser is actually on — ``scheme://host``.
+    """The public origin the browser is actually on - ``scheme://host``.
 
     Reads ``Origin`` / ``Host`` + ``X-Forwarded-Proto`` so links built for
     emails and redirects resolve to the real domain behind a reverse proxy,

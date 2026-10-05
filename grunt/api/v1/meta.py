@@ -24,11 +24,11 @@ async def _dump_doctype(dt: DocType, *, translate: bool = False) -> dict[str, An
     form based on block_type) without a second round-trip.
 
     `workflow_state_field` is resolved from the active `Workflow` document (if
-    any) rather than stored on the DocType itself — see grunt/workflow/registry.py.
+    any) rather than stored on the DocType itself - see grunt/workflow/registry.py.
 
     ``translate=True`` runs labels/descriptions/Select options through the i18n
     layer for the current request language (see grunt.i18n.meta). Only the
-    presentational render paths pass it — never file export / sync.
+    presentational render paths pass it - never file export / sync.
     """
     from grunt.workflow.registry import get_active_workflow
 
@@ -46,14 +46,14 @@ async def _dump_doctype(dt: DocType, *, translate: bool = False) -> dict[str, An
     workflow = await get_active_workflow(dt.name)
     data["workflow_state_field"] = workflow.state_field if workflow else None
     if workflow and translate:
-        # The form hides the state (shown in the sidebar) — it moves by the header's workflow
+        # The form hides the state (shown in the sidebar) - it moves by the header's workflow
         # actions (grunt/workflow/guard.py); the builder (raw) keeps the source.
         for fdata in data["fields"]:
             if fdata.get("fieldname") == workflow.state_field:
                 fdata["read_only"] = True
 
     # Enrich `actions` bindings with defaults from the code registry and attach
-    # `_action_catalog` for the binding editor — see grunt.actions.
+    # `_action_catalog` for the binding editor - see grunt.actions.
     from grunt.actions import enrich_doctype_actions
 
     enrich_doctype_actions(data)
@@ -207,16 +207,16 @@ def _compaction_footprint_bytes(conn: Any, table_name: str, dialect: str) -> int
 async def compact_table(name: str) -> dict[str, Any]:
     """Compact a DocType's backing table and report how much space was freed.
 
-    Admin only. Blocking maintenance — the command holds a heavy lock while it
+    Admin only. Blocking maintenance - the command holds a heavy lock while it
     rewrites storage, so callers should confirm before invoking:
 
-    * SQLite   — ``VACUUM`` (rewrites the *entire* database file)
-    * Postgres — ``VACUUM (FULL, ANALYZE) <table>`` (ACCESS EXCLUSIVE on the table)
-    * MySQL    — ``OPTIMIZE TABLE <table>``
+    * SQLite - ``VACUUM`` (rewrites the *entire* database file)
+    * Postgres - ``VACUUM (FULL, ANALYZE) <table>`` (ACCESS EXCLUSIVE on the table)
+    * MySQL - ``OPTIMIZE TABLE <table>``
 
     Runs on a dedicated AUTOCOMMIT connection since none of these may run
     inside a transaction. Returns before/after byte figures and ``freed_bytes``
-    (clamped at 0 — a table can legitimately grow slightly after a rewrite).
+    (clamped at 0 - a table can legitimately grow slightly after a rewrite).
     """
     import sqlalchemy as sa
 
@@ -328,7 +328,7 @@ async def table_info(name: str) -> dict[str, Any]:
         "index_bytes": None,
         "total_bytes": None,
         "reclaimable_bytes": None,
-        "reclaim_scope": None,  # "table" | "database" — what a compaction would touch
+        "reclaim_scope": None,  # "table" | "database" - what a compaction would touch
         "size_supported": False,
     }
 

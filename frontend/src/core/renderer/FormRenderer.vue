@@ -116,7 +116,7 @@ function update(fieldname: string, val: unknown) {
 
 function mergedField(f: DocField): DocField {
   // The workflow state moves only by the header's workflow actions and is shown
-  // in the document sidebar — no read-only duplicate in the form.
+  // in the document sidebar - no read-only duplicate in the form.
   if (f.fieldname === props.doctype.workflow_state_field) return { ...f, hidden: true }
   const dfOverrides = props.dfPropOverrides?.[f.fieldname]
   const reqdOverride = props.reqdOverrides?.[f.fieldname]
@@ -126,7 +126,7 @@ function mergedField(f: DocField): DocField {
 }
 
 // Columns collapse by the section's own width (container query), not the
-// viewport — a form squeezed by the sidebar stacks just like on a phone.
+// viewport - a form squeezed by the sidebar stacks just like on a phone.
 const SECTION_GRID_CLASS: Record<number, string> = {
   2: '@lg:grid-cols-2',
   3: '@lg:grid-cols-2 @3xl:grid-cols-3',

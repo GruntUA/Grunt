@@ -6,8 +6,8 @@ every public function swallows its own exceptions and logs a warning instead.
 
 Callers:
 
-* :func:`grunt.startup.errors._generic_exception` — unhandled HTTP 500s;
-* :mod:`grunt.tasks.middleware` — background-task failures that won't retry;
+* :func:`grunt.startup.errors._generic_exception` - unhandled HTTP 500s;
+* :mod:`grunt.tasks.middleware` - background-task failures that won't retry;
 * application code via :func:`grunt.log_error` (see ``grunt/__init__.py``).
 """
 
@@ -144,6 +144,6 @@ async def record_error(
         payload = {k: v for k, v in payload.items() if v is not None}
 
         return await _write_row(payload, session)
-    except Exception as log_exc:  # noqa: BLE001 — logging must never raise
+    except Exception as log_exc:  # noqa: BLE001 - logging must never raise
         log.warning("error_log.write_failed", error=str(log_exc))
         return None

@@ -1,5 +1,5 @@
 """
-Website page rendering engine — Enhanced routing for Grunt apps.
+Website page rendering engine - Enhanced routing for Grunt apps.
 """
 
 from __future__ import annotations
@@ -74,7 +74,7 @@ class WebsiteRegistry:
         install_i18n(env)
 
         env.globals["block_template"] = get_block_template
-        # {% set menu = website_menu("main") %} — WebsiteMenuItem tree (async, auto-awaited)
+        # {% set menu = website_menu("main") %} - WebsiteMenuItem tree (async, auto-awaited)
         from grunt.website.menu import get_menu
 
         env.globals["website_menu"] = get_menu
@@ -122,7 +122,7 @@ class WebsiteRegistry:
         """Append *path* as a template search directory for *app_name*'s env.
 
         Lets an installed app contribute templates (e.g. custom block-type
-        renderers) that resolve inside another app's environment — used by
+        renderers) that resolve inside another app's environment - used by
         external apps that register `website_block_types` in hooks.py but
         render through the shared "grunt" env.
         """
@@ -151,7 +151,7 @@ async def render_page(
     """Load controller context, render the Jinja2 template, return the HTML page.
 
     A controller may return a ``Response`` instead of a context dict (e.g. a
-    ``RedirectResponse``) — it is sent as is.
+    ``RedirectResponse``) - it is sent as is.
     """
     import grunt
     from grunt.config import settings
@@ -211,7 +211,7 @@ async def render_page(
 
     template_name = context.get("template_name") or page.template_name
     template = env.get_template(template_name)
-    # Templates query too (website_menu) — render inside the grunt context.
+    # Templates query too (website_menu) - render inside the grunt context.
     async with grunt.context(session, user=SYSTEM_USER):
         html = await template.render_async(**context)
     # A controller may set e.g. ``context["status_code"] = 404`` for a missing record.
@@ -226,7 +226,7 @@ def _pattern_regex(url_pattern: str) -> re.Pattern[str]:
 
     External apps' file-based pages reach FastAPI's own routing table only
     after ASGI lifespan startup (:func:`grunt.apps.loader.load_external_apps`)
-    — which runs *after* the catch-all ``/{path:path}`` is already mounted at
+    - which runs *after* the catch-all ``/{path:path}`` is already mounted at
     import time in :mod:`grunt.main`, so it always matches first and shadows
     them. This regex match is what actually resolves a dynamic file-based
     page for those apps; static patterns are still handled by the plain
@@ -254,7 +254,7 @@ async def render_page_by_route(
     if path != "/" and path.endswith("/"):
         path = path[:-1]
 
-    # 1. Try file-based pages first — static routes by exact string, dynamic
+    # 1. Try file-based pages first - static routes by exact string, dynamic
     # ({param}) routes by regex (see _pattern_regex).
     for page in website_registry.pages:
         if page.url_pattern == path:

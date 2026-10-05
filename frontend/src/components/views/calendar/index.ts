@@ -7,7 +7,7 @@ const def: ViewDefinition = {
   label: 'Calendar',
   icon: CalendarDays,
   order: 2,
-  // Calendar fetches its own month window and scrolls its grid internally —
+  // Calendar fetches its own month window and scrolls its grid internally -
   // it doesn't use the shared list pager.
   managesOwnScroll: true,
 

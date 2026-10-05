@@ -1,4 +1,4 @@
-"""Startup routines — populate system DocType tables and seed core data.
+"""Startup routines - populate system DocType tables and seed core data.
 
 Called once during application lifespan startup.
 """

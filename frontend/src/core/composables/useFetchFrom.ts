@@ -9,7 +9,7 @@ interface UseFetchFromParams {
 }
 
 export function useFetchFrom({ doctype, modelValue, updateField }: UseFetchFromParams) {
-    // Track previous values of link fields manually — Vue does NOT clone
+    // Track previous values of link fields manually - Vue does NOT clone
     // oldVal for object refs in deep watch (prevDoc === doc by reference).
     const prevLinkValues = new Map<string, unknown>()
 

@@ -1,5 +1,5 @@
 /**
- * useFormDraft — protects unsaved form edits from being lost to an accidental
+ * useFormDraft - protects unsaved form edits from being lost to an accidental
  * page reload, tab close, or crash.
  *
  * While the form is dirty, the current `form.value` is debounce-written to
@@ -7,13 +7,13 @@
  * the caller can offer it back to the user (a banner, typically) via
  * `pendingDraft` / `restoreDraft()` / `discardDraft()`. The draft is cleared
  * automatically once the document is actually saved (see `clearFormDraft`,
- * called from `useDocument`'s save mutation) — never on mere navigation, since
+ * called from `useDocument`'s save mutation) - never on mere navigation, since
  * that's exactly the case this exists to survive.
  */
 import { onMounted, onUnmounted, ref, watch, type Ref } from 'vue'
 
 const DRAFT_PREFIX = 'grunt:draft:'
-const STALE_AFTER_MS = 7 * 24 * 60 * 60 * 1000 // 7 днів — старі чернетки не пропонуємо
+const STALE_AFTER_MS = 7 * 24 * 60 * 60 * 1000 // 7 днів - старі чернетки не пропонуємо
 
 export interface StoredFormDraft {
   data: Record<string, unknown>
@@ -76,7 +76,7 @@ export function useFormDraft(params: UseFormDraftParams) {
     pendingDraft.value = null
   }
 
-  // Debounced autosave — mirrors the deep-compare style `isDirty` already uses in useDocument.
+  // Debounced autosave - mirrors the deep-compare style `isDirty` already uses in useDocument.
   let timer: ReturnType<typeof setTimeout> | undefined
   watch(
     () => (params.isDirty.value ? JSON.stringify(params.form.value) : null),

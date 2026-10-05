@@ -7,7 +7,7 @@ from grunt.website.doc_layout import FlatField, build_tabs, fmt_dt
 
 
 async def get_context(context: dict[str, Any]) -> dict[str, Any]:
-    """Render a publicly shared document by token — server-side twin of the
+    """Render a publicly shared document by token - server-side twin of the
     former ``DocumentShareView.vue``. Reuses the guest-accessible
     :func:`grunt.api.v1.share.get_shared_document` service directly, then lays
     the fields out with the target DocType's own Tab/Section/Column structure.
@@ -37,7 +37,7 @@ async def get_context(context: dict[str, Any]) -> dict[str, Any]:
     import grunt
 
     dt = await grunt.get_meta(share["doctype"])
-    if dt is None:  # metadata unavailable — fall back to a flat single section
+    if dt is None:  # metadata unavailable - fall back to a flat single section
         all_fields = [
             FlatField(f["fieldname"], f["label"], f["fieldtype"]) for f in share["fields"]
         ]

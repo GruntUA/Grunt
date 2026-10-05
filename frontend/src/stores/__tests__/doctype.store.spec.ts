@@ -3,7 +3,7 @@ import { setActivePinia, createPinia } from 'pinia'
 import { useDocTypeStore } from '@/stores/doctype'
 import type { DocType, DocTypeSummary } from '@/types'
 
-// ── Mocks ──────────────────────────────────────────────────────────────────
+// Mocks
 
 const { mockList, mockGet } = vi.hoisted(() => ({
   mockList: vi.fn(),
@@ -21,7 +21,7 @@ vi.mock('@/core/api/meta', () => ({
   },
 }))
 
-// ── Fixtures ───────────────────────────────────────────────────────────────
+// Fixtures
 
 const fakeSummary: DocTypeSummary = { name: 'Order', label: 'Order', module: 'crm' }
 
@@ -36,7 +36,7 @@ const fakeDocType: DocType = {
   permissions: [],
 }
 
-// ── Tests ──────────────────────────────────────────────────────────────────
+// Tests
 
 describe('useDocTypeStore', () => {
   beforeEach(() => {

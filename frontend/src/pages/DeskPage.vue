@@ -54,7 +54,7 @@ const recentDocs = ref<RecentDoc[]>([])
 const greeting = computed(() => {
   const hour = new Date().getHours()
   // full_name is "Прізвище Ім'я [По-батькові]" (see User.before_save on the
-  // backend) — the first name is the second word, not the first.
+  // backend) - the first name is the second word, not the first.
   const parts = auth.user?.full_name?.split(' ') ?? []
   const name = parts[1] ?? parts[0] ?? t('user')
   if (hour < 5) return { text: t('Good night, {name}', { name }), icon: Moon }
@@ -81,7 +81,7 @@ onMounted(async () => {
   // Read history, dropping entries whose workspace is no longer installed.
   recentDocs.value = readRecent(appStore.workspaces.map(w => w.name))
 
-  // Fire all count requests at once instead of walking workspaces serially —
+  // Fire all count requests at once instead of walking workspaces serially -
   // they are independent, so serial awaits only added round-trips.
   const [counts] = await Promise.all([
     Promise.all(
@@ -133,7 +133,7 @@ function docInitials(doc: RecentDoc): string {
   <div class="h-screen overflow-y-auto bg-background">
     <main class="mx-auto max-w-6xl px-6 py-10 md:py-14">
 
-      <!-- ── TOP BAR: theme toggle ─────────────────────────────────── -->
+      <!-- TOP BAR: theme toggle -->
       <div class="mb-4 flex justify-end">
         <DropdownMenu>
           <DropdownMenuTrigger as-child>
@@ -160,7 +160,7 @@ function docInitials(doc: RecentDoc): string {
         </DropdownMenu>
       </div>
 
-      <!-- ── HERO: greeting + search ──────────────────────────────── -->
+      <!-- HERO: greeting + search -->
       <section class="mx-auto max-w-xl space-y-5 pb-10 text-center">
         <div class="flex flex-col items-center gap-2">
           <div class="flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
@@ -201,7 +201,7 @@ function docInitials(doc: RecentDoc): string {
         </p>
       </section>
 
-      <!-- ── CONTINUE: recent documents strip ─────────────────────── -->
+      <!-- CONTINUE: recent documents strip -->
       <section v-if="recentDocs.length" class="space-y-3 pb-10">
         <h2 class="font-medium text-foreground">{{ t('Continue') }}</h2>
         <div class="-mx-1 flex gap-3 overflow-x-auto px-1 pb-1">
@@ -228,7 +228,7 @@ function docInitials(doc: RecentDoc): string {
         </div>
       </section>
 
-      <!-- ── MAIN: apps launcher + attention sidebar ──────────────── -->
+      <!-- MAIN: apps launcher + attention sidebar -->
       <div class="grid grid-cols-1 items-start gap-8 pb-12 lg:grid-cols-[1fr_340px]">
 
         <!-- Apps -->

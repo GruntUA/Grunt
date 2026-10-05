@@ -1,4 +1,4 @@
-"""Scripting module — Server Script (Python) and Client Script (JS) engine."""
+"""Scripting module - Server Script (Python) and Client Script (JS) engine."""
 
 from grunt.scripting.server_script import ServerScriptRunner
 

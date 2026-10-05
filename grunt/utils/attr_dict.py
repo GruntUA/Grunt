@@ -1,4 +1,4 @@
-"""``AttrDict`` — a dict whose keys are also accessible as attributes.
+"""``AttrDict`` - a dict whose keys are also accessible as attributes.
 
 ``d.key`` is equivalent to ``d.get("key")`` and returns ``None`` for missing
 keys (so optional fields read cleanly). Used as

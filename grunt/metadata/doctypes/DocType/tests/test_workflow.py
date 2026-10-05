@@ -1,4 +1,4 @@
-"""Tests for the Workflow engine — state machine transitions.
+"""Tests for the Workflow engine - state machine transitions.
 
 Workflow is a regular DocType (grunt/metadata/doctypes/Workflow): its
 documents reference the DocType they govern via `document_type`, instead of
@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import pytest
 
-# ── Helpers ───────────────────────────────────────────────────────────────
+# Helpers
 
 DOCTYPE_PAYLOAD = {
     "name": "Contract",
@@ -41,7 +41,7 @@ CONTRACT_WORKFLOW = {
 async def _create_workflow(ctx, payload: dict) -> dict:
     """Create a Workflow document, flush, and re-read it with its child rows.
 
-    ``new_doc()`` returns the inserted row as-is — it doesn't re-attach child
+    ``new_doc()`` returns the inserted row as-is - it doesn't re-attach child
     tables (``states``/``transitions``), so callers that need them must re-fetch.
     """
     created = await ctx.new_doc("Workflow", payload)
@@ -160,7 +160,7 @@ GUARDED_CONTRACT_WORKFLOW = {
         {"state": "Submitted", "label": "Надіслано"},
     ],
     "transitions": [
-        # No allowed_roles — the workflow-level gate alone would let
+        # No allowed_roles - the workflow-level gate alone would let
         # anyone who can read the doc apply this transition.
         {"action": "Submit", "from_state": "Draft", "to_state": "Submitted"},
     ],
@@ -170,7 +170,7 @@ GUARDED_CONTRACT_WORKFLOW = {
 @pytest.mark.asyncio
 async def test_apply_transition_requires_write_permission(ctx, db_session, engine):
     """Regression: apply_transition() used to mutate the document's state via
-    the unguarded grunt.db.set_value() — a user with only READ access (and no
+    the unguarded grunt.db.set_value() - a user with only READ access (and no
     allowed_roles configured on the transition itself) could still push the
     document through its workflow. Now uses the guarded grunt.set_value(),
     which enforces the doctype's own write permission.
@@ -203,7 +203,7 @@ async def test_apply_transition_requires_write_permission(ctx, db_session, engin
 
 @pytest.mark.asyncio
 async def test_workflow_multi_step(ctx):
-    """Full workflow: Draft → Submitted → Approved."""
+    """Full workflow: Draft -> Submitted -> Approved."""
     from grunt.api.v1.meta import save_doctype
 
     await save_doctype(DOCTYPE_PAYLOAD)
@@ -255,7 +255,7 @@ PROMPT_FIELD_WORKFLOW = {
 @pytest.mark.asyncio
 async def test_workflow_prompt_fields_shown_before_values_filled(ctx):
     """A transition with prompt_fields stays available even before its
-    condition field has a value — the dialog is what collects it."""
+    condition field has a value - the dialog is what collects it."""
     from grunt.api.v1.meta import save_doctype
     from grunt.api.v1.workflow import get_transitions
 
@@ -293,7 +293,7 @@ async def test_workflow_prompt_fields_rejects_empty_values(ctx):
 @pytest.mark.asyncio
 async def test_workflow_prompt_fields_applies_dialog_values(ctx):
     """Applying a prompt_fields transition writes the dialog values and the
-    new state in the same update — only fields listed in prompt_fields."""
+    new state in the same update - only fields listed in prompt_fields."""
     from grunt.api.v1.meta import save_doctype
 
     await save_doctype(PROMPT_FIELD_DOCTYPE)

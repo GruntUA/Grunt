@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 /**
- * MobileBottomNav — fixed bottom navigation bar for small screens.
+ * MobileBottomNav - fixed bottom navigation bar for small screens.
  *
  * Shows up to 4 top-level workspace items + a "More" overflow sheet.
  * Visible only on mobile (hidden on md+) so it does not interfere with
@@ -23,7 +23,7 @@ const router = useRouter()
 const route = useRoute()
 const appStore = useAppStore()
 
-// ── Derive nav items from active workspace ─────────────────────────────────
+// Derive nav items from active workspace
 
 const navItems = computed(() => {
   return appStore.groupedItems
@@ -41,7 +41,7 @@ const overflowItems = computed(() => {
 
 const showOverflow = ref(false)
 
-// ── Route helpers ──────────────────────────────────────────────────────────
+// Route helpers
 
 function isActive(link_to: string) {
   return route.params.doctype === link_to

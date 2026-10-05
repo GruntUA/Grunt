@@ -1,4 +1,4 @@
-"""Exporter registry — pluggable document export formats."""
+"""Exporter registry - pluggable document export formats."""
 
 from __future__ import annotations
 
@@ -24,7 +24,7 @@ class Exporter(ABC):
         io_exporters = [MyExporter()]
     """
 
-    #: Unique format identifier — used in API ``?fmt=`` param and registry lookup.
+    #: Unique format identifier - used in API ``?fmt=`` param and registry lookup.
     id: str
 
     #: Human-readable label shown in export dialogs.
@@ -47,7 +47,7 @@ class Exporter(ABC):
 
         Args:
             doctype: DocType name (for sheet titles, metadata, etc.)
-            rows:    List of dicts — one dict per document row.
+            rows:    List of dicts - one dict per document row.
             fields:  Ordered list of DocField objects to include.
 
         Returns:
@@ -60,7 +60,7 @@ class Exporter(ABC):
         return f"{doctype}_{ts}.{self.file_extension}"
 
 
-# ── Registry ───────────────────────────────────────────────────────────────
+# Registry
 
 _registry: dict[str, Exporter] = {}
 

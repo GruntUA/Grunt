@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 /**
- * Workflow actions in the form header, next to Save: the document's transitions —
+ * Workflow actions in the form header, next to Save: the document's transitions -
  * actions with `placement: 'workflow'` (global_form.js registers one per allowed
  * transition on `on_transitions`; DocType scripts may change or add to them).
  * One transition is a plain button; several become a shadcn ButtonGroup split
@@ -30,7 +30,7 @@ const { t } = useI18n()
 
 /** The form controller's workflow state (useFormController). */
 export interface WorkflowUi {
-  /** Transitions allowed now — to style each action by its target state. */
+  /** Transitions allowed now - to style each action by its target state. */
   transitions: WorkflowTransition[]
   pending: WorkflowTransition | null
   error: string | null
@@ -46,7 +46,7 @@ const props = defineProps<{
   workflow: WorkflowUi
 }>()
 
-// Tinted outline per indicator colour — the button looks like the badge of the
+// Tinted outline per indicator colour - the button looks like the badge of the
 // state it leads to. Neutral colours stay a plain outline button.
 const TINTS: Record<string, string> = {
   success: 'border-green-500/30 bg-green-500/10 text-green-700 hover:bg-green-500/20 hover:text-green-700 dark:text-emerald-400 dark:hover:text-emerald-400',
@@ -63,7 +63,7 @@ const TONE: Record<string, string> = {
   danger: 'danger', red: 'danger',
   purple: 'purple', pink: 'pink',
 }
-// Just the text colour — for the state icon in the dropdown items.
+// Just the text colour - for the state icon in the dropdown items.
 const ICON_TEXT: Record<string, string> = {
   success: 'text-green-600 dark:text-emerald-400',
   info: 'text-blue-600 dark:text-blue-400',
@@ -78,7 +78,7 @@ const actions = props.actions.resolved('workflow')
 interface StyledAction extends Omit<ResolvedAction, 'variant'> {
   variant: ActionButtonVariant
   className: string
-  /** Target-state tone, for the dropdown item (`danger` → destructive item). */
+  /** Target-state tone, for the dropdown item (`danger` -> destructive item). */
   tone: string | null
 }
 
@@ -94,7 +94,7 @@ const styled = computed<StyledAction[]>(() =>
     const indicator = targetIndicator(a)
     const icon = a.icon ?? indicator?.icon ?? undefined
     if (a.variant) {
-      // Set by a script — wins over the state colour.
+      // Set by a script - wins over the state colour.
       const look = actionButtonStyle(a.variant, 'outline')
       return { ...a, icon, ...look, tone: look.variant === 'destructive' ? 'danger' : null }
     }
@@ -105,7 +105,7 @@ const styled = computed<StyledAction[]>(() =>
 
 const main = computed(() => styled.value[0] ?? null)
 const rest = computed(() => styled.value.slice(1))
-// Filled buttons have no border to split them — shadcn puts a separator between.
+// Filled buttons have no border to split them - shadcn puts a separator between.
 const needsSeparator = computed(() => main.value?.variant !== 'outline')
 </script>
 

@@ -8,7 +8,7 @@ and a ``File`` row only needs its ``content_hash`` (grunt.storage.backends).
 For every ``File`` row (and every ``File`` snapshot in the trash): fill the
 hash if it is missing, move the file into ``blobs/`` (identical copies
 collapse into one), move the preview into ``thumbs/``. Files no row refers to
-are moved aside to ``uploads/orphaned/`` — not deleted. Then the ``path`` and
+are moved aside to ``uploads/orphaned/`` - not deleted. Then the ``path`` and
 ``thumbnail_path`` columns are dropped.
 
 Revision ID: 0004
@@ -124,7 +124,7 @@ def upgrade() -> None:
         if key and key != row["content_hash"]:
             conn.execute(sa.update(tbl).where(tbl.c.name == row["name"]).values(content_hash=key))
 
-    # A trashed File keeps its blob too — and must still find it once restored.
+    # A trashed File keeps its blob too - and must still find it once restored.
     if _TRASH in inspector.get_table_names():
         trash = sa.table(_TRASH, sa.column("name"), sa.column("data"))
         snapshots = conn.execute(

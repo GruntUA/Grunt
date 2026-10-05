@@ -16,9 +16,7 @@ class ActivityLog(Document):
         if not self.data.get("user") and self.user:
             self.data["user"] = self.user.email
 
-    # ------------------------------------------------------------------
     # Helper Classmethods
-    # ------------------------------------------------------------------
 
     @classmethod
     async def log(
@@ -74,7 +72,7 @@ async def list_activity(
     When browsing the global feed (no explicit ``doctype``/``doc_id`` filter),
     infrastructural doctypes are hidden so business activity is not drowned out
     by config/session/log churn. A per-document timeline (``doc_id`` set) is
-    never filtered — it must stay complete.
+    never filtered - it must stay complete.
     """
     from grunt.activity import feed_hidden_doctypes
 

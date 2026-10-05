@@ -43,7 +43,7 @@ def _write_currentsite(sites_dir: Path, name: str) -> None:
     (sites_dir / "currentsite.txt").write_text(name)
 
 
-# ── Group ────────────────────────────────────────────────────────────────────
+# Group
 
 
 @click.group("site")
@@ -52,7 +52,7 @@ def site_group():
     pass
 
 
-# ── list ─────────────────────────────────────────────────────────────────────
+# list
 
 
 @site_group.command("list")
@@ -93,7 +93,7 @@ def site_list():
         click.echo(f"{name:<30} {db_url:<50} {marker}")
 
 
-# ── info ─────────────────────────────────────────────────────────────────────
+# info
 
 
 @site_group.command("info")
@@ -138,7 +138,7 @@ def site_info(name: str):
     click.echo("")
 
 
-# ── create ───────────────────────────────────────────────────────────────────
+# create
 
 
 @site_group.command("create")
@@ -273,7 +273,7 @@ def _run_migrate_for_site(site_name: str) -> None:
             async with maker() as session:
                 # New site: seed core DocTypes into grunt_meta_doctype so the
                 # server can lazy-load them without ever touching the JSON
-                # files again (sync_db=True — same as `grunt db migrate`).
+                # files again (sync_db=True - same as `grunt db migrate`).
                 await load_core_doctypes(session, sync_db=True)
                 await apply_doctype_overrides(session, eng, sync_db=True)
                 await doctype_registry.load_all(session)
@@ -323,7 +323,7 @@ async def _create_admin(site_name: str, email: str, password: str) -> None:
         current_site.reset(token)
 
 
-# ── delete ───────────────────────────────────────────────────────────────────
+# delete
 
 
 @site_group.command("delete")
@@ -361,7 +361,7 @@ def site_delete(name: str, yes: bool) -> None:
             currentsite_file.unlink(missing_ok=True)
 
 
-# ── use ──────────────────────────────────────────────────────────────────────
+# use
 
 
 @site_group.command("use")

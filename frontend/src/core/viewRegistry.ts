@@ -5,13 +5,13 @@
  * Built-in views (list, kanban, calendar, tree, gallery, map) are registered
  * via their own index.ts files inside src/components/views/{type}/.
  *
- * External apps register custom views the same way — create a directory,
+ * External apps register custom views the same way - create a directory,
  * add an index.ts that calls registerView(), and the registry picks it up
  * automatically via import.meta.glob.
  *
  * Usage from a custom view (e.g. my-app/views/timeline/index.ts):
  *
- *   // IMPORTANT: use `import type` only — never import runtime values from
+ *   // IMPORTANT: use `import type` only - never import runtime values from
  *   // viewRegistry in an index.ts, to avoid circular-initialization errors.
  *
  *   import { Clock } from '@lucide/vue'
@@ -20,7 +20,7 @@
  *
  *   const def: ViewDefinition = {
  *     type: 'timeline',
- *     label: 'Timeline',   // English i18n key — rendered through t()
+ *     label: 'Timeline',   // English i18n key - rendered through t()
  *     icon: Clock,
  *     order: 10,
  *     resolveField: (dt: DocType): DocField | null =>
@@ -44,7 +44,7 @@ import type { DocType, DocField, ActiveFilter, QuickFilter, ScriptMenuItem } fro
 import type { ListColumn } from '@/core/composables/useListColumns'
 import type { GroupedRowBucket } from '@/core/composables/useGrouping'
 
-// ── Shared sub-types ──────────────────────────────────────────────────────────
+// Shared sub-types
 
 export interface SelectionState {
   selectedIds: string[]
@@ -128,23 +128,23 @@ export interface ViewContext {
   isSystemManager?: boolean
   /**
    * Bumped by the header's Refresh button. Views that fetch their own data
-   * (tree, calendar, kanban — anything outside the shared `['documents', doctype]`
+   * (tree, calendar, kanban - anything outside the shared `['documents', doctype]`
    * query) should watch this and refetch; views on the shared query already
    * refetch automatically when it's invalidated and don't need to read this.
    */
   refreshKey: number
 }
 
-// ── ViewDefinition ─────────────────────────────────────────────────────────────
+// ViewDefinition
 
 export interface ViewDefinition {
-  /** Unique identifier — used as the viewMode string (e.g. 'kanban'). */
+  /** Unique identifier - used as the viewMode string (e.g. 'kanban'). */
   type: string
   /** Tooltip shown on the toolbar button. */
   label: string
   /** Lucide icon component (imported directly, not a string). */
   icon: Component
-  /** Position in the toolbar — lower numbers appear first. */
+  /** Position in the toolbar - lower numbers appear first. */
   order: number
   /** Builder-only entries can opt out of toolbar and route availability. */
   showInToolbar?: boolean
@@ -170,12 +170,12 @@ export interface ViewDefinition {
   /** Async loader for the view's root Vue component. */
   component(): Promise<Component>
   /**
-   * Maps ViewContext → the props object bound to the component via v-bind.
+   * Maps ViewContext -> the props object bound to the component via v-bind.
    * Called reactively on each render by ListViewRouter.
    */
   mountProps?(ctx: ViewContext): Record<string, unknown>
   /**
-   * Maps ViewContext → event handlers bound to the component via v-on.
+   * Maps ViewContext -> event handlers bound to the component via v-on.
    * Keys use Vue's camelCase onXxx convention (e.g. 'onRowClick').
    * For update:* events keep the colon: 'onUpdate:quickFilterValues'.
    */
@@ -187,18 +187,18 @@ export interface ViewDefinition {
    */
   toolbarControls?: () => Promise<Component>
   /**
-   * Maps ToolbarContext → props for the toolbarControls component.
+   * Maps ToolbarContext -> props for the toolbarControls component.
    * ctx.extras contains view-specific data provided by DocTypeList.
    */
   mountToolbarProps?: (ctx: ToolbarContext) => Record<string, unknown>
   /**
-   * Maps ToolbarContext → event handlers for the toolbarControls component.
+   * Maps ToolbarContext -> event handlers for the toolbarControls component.
    * Keys use Vue's camelCase onXxx convention.
    */
   mountToolbarEvents?: (ctx: ToolbarContext) => Record<string, (...args: unknown[]) => void>
 }
 
-// ── Toolbar types ─────────────────────────────────────────────────────────────
+// Toolbar types
 
 /** Typed wrappers around DocTypeToolbar's emit, passed into mountToolbarProps/Events. */
 export interface ToolbarEmit {
@@ -233,11 +233,11 @@ export interface ToolbarContext {
   emit: ToolbarEmit
 }
 
-// ── Internal registry ─────────────────────────────────────────────────────────
+// Internal registry
 
 const _registry = new Map<string, ViewDefinition>()
 
-// ── Public API ────────────────────────────────────────────────────────────────
+// Public API
 
 /** Register a view. Must be called before the Vue app mounts. */
 export function registerView(def: ViewDefinition): void {
@@ -281,7 +281,7 @@ export function resolveViewField(type: string, dt: DocType | null): DocField | n
   return _registry.get(type)?.resolveField?.(dt) ?? null
 }
 
-// ── Auto-discovery ────────────────────────────────────────────────────────────
+// Auto-discovery
 // Each src/components/views/*/index.ts exports a ViewDefinition as `default`.
 // The registry eagerly imports them and registers each definition.
 // index.ts files must NOT import from viewRegistry at runtime (only `import type`)

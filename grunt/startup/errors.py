@@ -28,7 +28,7 @@ _error_env: Environment | None = None
 
 
 def _wants_html(request: Request) -> bool:
-    """A browser navigation (website page, form post) — not an API/XHR call."""
+    """A browser navigation (website page, form post) - not an API/XHR call."""
     if request.url.path.startswith("/api/"):
         return False
     return "text/html" in request.headers.get("accept", "")
@@ -39,7 +39,7 @@ def _format_traceback(exc: BaseException) -> str:
 
 
 def _origin_frame(exc: BaseException) -> dict[str, Any] | None:
-    """The innermost frame outside third-party packages — where to look first.
+    """The innermost frame outside third-party packages - where to look first.
 
     Jinja rewrites template frames to point at the ``.html`` file/line, so for
     a template error this is the offending template line.
@@ -65,7 +65,7 @@ def _render_error_html(
     debug: dict[str, Any] | None = None,
     headers: dict[str, str] | None = None,
 ) -> Response:
-    """Standalone HTML error page — deliberately not extending any site
+    """Standalone HTML error page - deliberately not extending any site
     ``_base.html``, which may itself be what failed."""
     global _error_env
     try:
@@ -88,7 +88,7 @@ def _render_error_html(
             home_label=_("Back to home page"),
             lang=translation_service.get_lang(),
         )
-    except Exception:  # noqa: BLE001 — never fail while reporting a failure
+    except Exception:  # noqa: BLE001 - never fail while reporting a failure
         log.exception("error_page.render_failed")
         html = f"<h1>{status_code}</h1>"
     return HTMLResponse(html, status_code=status_code, headers=headers)
@@ -102,7 +102,7 @@ async def _validation_error(request: Request, exc: ValidationError) -> Response:
     )
 
     # Debug mode: attach the same rich `debug` bundle _generic_exception() gives
-    # 500s — this is a server-side pydantic bug (a metadata model rejecting a
+    # 500s - this is a server-side pydantic bug (a metadata model rejecting a
     # shape the DB actually holds), not a client input mistake, and the plain
     # "422 / Помилка валідації" message alone gives no way to find it. Listing
     # each failing field/input is what actually points at the broken model.
@@ -187,7 +187,7 @@ async def _persist_error_log(request: Request, exc: Exception) -> None:
             request_path=request.url.path,
             request_id=getattr(request.state, "request_id", None),
         )
-    except Exception:  # noqa: BLE001 — the 500 response must go out regardless
+    except Exception:  # noqa: BLE001 - the 500 response must go out regardless
         log.debug("error_log.http_persist_failed", exc_info=True)
 
 

@@ -33,7 +33,7 @@ def _row(site: str, backup: BackupSet) -> dict[str, Any]:
 
 
 class BackupController(VirtualDocType):
-    """The backup sets on disk — made by the scheduler or «Створити зараз»."""
+    """The backup sets on disk - made by the scheduler or «Створити зараз»."""
 
     async def get_list(
         self,

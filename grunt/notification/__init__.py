@@ -1,4 +1,4 @@
-"""Notification module — event-driven notifications for document changes."""
+"""Notification module - event-driven notifications for document changes."""
 
 from grunt.notification.service import NotificationService
 

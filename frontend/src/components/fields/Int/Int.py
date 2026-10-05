@@ -13,7 +13,7 @@ class IntField(FieldType):
             return None
         if isinstance(value, str):
             try:
-                return int(float(value))  # handles "1.0" → 1
+                return int(float(value))  # handles "1.0" -> 1
             except ValueError:
                 return None
         return value

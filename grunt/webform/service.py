@@ -1,4 +1,4 @@
-"""Web Form service — load form definitions and process public submissions.
+"""Web Form service - load form definitions and process public submissions.
 
 Web Forms expose a subset of DocType fields as a public-facing form.
 Submissions create documents in the target DocType.
@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 # Guest user identifier for anonymous submissions
 GUEST_USER = "guest@grunt.local"
 
-# WebFormField rows carrying one of these are layout markers, not real fields —
+# WebFormField rows carrying one of these are layout markers, not real fields -
 # the target DocType, never the WebFormField row, is the source of truth for
 # fieldtype/options/validator/default of an ordinary field.
 _LAYOUT_FIELDTYPES = {"Tab", "Section", "Column"}
@@ -46,7 +46,7 @@ class WebFormService:
         """Load a published web form by its route slug, fields included.
 
         ``WebForm`` itself is System-Manager-only to edit (its own
-        DocPermission grants nothing to Guest/All) — the actual public-access
+        DocPermission grants nothing to Guest/All) - the actual public-access
         gate is ``is_published`` plus the *target* DocType's own create
         permission, checked in :meth:`submit`. Fetching under
         ``system_context`` here (mirroring :meth:`save_guest_file`) is what
@@ -73,8 +73,8 @@ class WebFormService:
 
         Each ``WebFormField`` row supplies fieldname + optional overrides
         (label/required/hidden/description) and, for Tab/Section/Column rows,
-        the layout marker itself. Every other property — fieldtype, options,
-        validator, default — is always resolved live from the target
+        the layout marker itself. Every other property - fieldtype, options,
+        validator, default - is always resolved live from the target
         DocType, so a WebForm can never drift out of sync with a field's real
         type.
         """
@@ -112,7 +112,7 @@ class WebFormService:
             target = meta.get_field(row["fieldname"])
             if not target:
                 # Field was removed from the target DocType after being added
-                # to this form — drop it rather than surface a broken widget.
+                # to this form - drop it rather than surface a broken widget.
                 continue
 
             result.append(
@@ -167,17 +167,17 @@ class WebFormService:
         validated = self._validate_submission(fields, data)
 
         if user_email:
-            # Authenticated submitter — the ambient request context is
+            # Authenticated submitter - the ambient request context is
             # already scoped to this user by the API layer; new_doc's
             # audit_fields will set owner=user_email from it.
             doc = await grunt.new_doc(form["doctype"], validated)
             owner = user_email
         else:
-            # Anonymous — run the create as a synthetic Guest identity.
+            # Anonymous - run the create as a synthetic Guest identity.
             # `grunt.context(session, user=None)` would make write_guard's
             # require_user() raise (no create is possible with no user at
             # all), and running as SYSTEM_USER would bypass the target
-            # DocType's create-permission rules entirely — silently letting
+            # DocType's create-permission rules entirely - silently letting
             # any DocType accept guest writes regardless of how it's
             # actually configured. A real (if minimal) Guest user keeps
             # permission checks meaningful: the target DocType must have an
@@ -221,7 +221,7 @@ class WebFormService:
     ) -> dict[str, Any]:
         """Validate and filter submission data against the form's resolved fields.
 
-        *fields* is the output of :meth:`get_form_fields` — already limited to
+        *fields* is the output of :meth:`get_form_fields` - already limited to
         the fields the form actually exposes, with target-DocType and
         WebFormField-override ``required`` merged. Only real (non-layout)
         entries reach this point.
@@ -257,7 +257,7 @@ class WebFormService:
         """Queue the confirmation email to the submitter and/or notify_emails.
 
         A missing template, an EmailTemplate that's been deactivated, or any
-        other failure here must never fail the submission itself — the
+        other failure here must never fail the submission itself - the
         document is already created by the time this runs. Callers wrap this
         in a broad try/except for that reason.
         """
@@ -293,7 +293,7 @@ class WebFormService:
 
         The JSON upload API (``grunt.storage.doctypes.File.file.upload``) requires
         an authenticated session and attributes the file to ``grunt.get_user().email``
-        — neither holds for a guest webform POST. This stores the same way
+        - neither holds for a guest webform POST. This stores the same way
         (storage backend + a ``File`` row) but runs the ``File`` insert under
         ``system_context`` since Guest has no reason to hold write permission on
         the File doctype itself; the target DocType's own Guest create
@@ -310,7 +310,7 @@ class WebFormService:
                     upload.filename,
                     upload.content_type,
                     uploaded_by=GUEST_USER,
-                    # A citizen's upload is private — staff open it via a
+                    # A citizen's upload is private - staff open it via a
                     # signed URL (grunt.storage.signing).
                     is_public=False,
                     max_bytes=upload_limit(),

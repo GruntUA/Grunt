@@ -1,7 +1,7 @@
-"""Startup — workspace (AppMenu + sidebar) seeding.
+"""Startup - workspace (AppMenu + sidebar) seeding.
 
 App-install orchestration (DocTypes, fixtures, print formats) lives in
-``grunt.startup.app_install`` — this module only creates/updates the
+``grunt.startup.app_install`` - this module only creates/updates the
 ``AppMenu``/``WorkspaceSidebarItem`` records themselves.
 """
 
@@ -27,9 +27,9 @@ async def _upsert_workspace(
     """Create or update one AppMenu workspace, then replace its sidebar items.
 
     Shared by ``seed_grunt_workspace``/``_apply_workspace_fixture``/
-    ``_auto_seed_workspace`` — each builds its own create/update field dicts
+    ``_auto_seed_workspace`` - each builds its own create/update field dicts
     from a different data source (bundled fixture / per-app fixture /
-    DocType-registry fallback, respectively — which is why the two dicts
+    DocType-registry fallback, respectively - which is why the two dicts
     aren't derived from one another here), but the upsert mechanics and the
     "replace sidebar: delete then bulk-insert" step are identical in all three.
 
@@ -163,7 +163,7 @@ async def _apply_workspace_fixture(
             "is_hidden": rec.get("is_hidden", False),
             "roles": rec.get("roles", ""),
         }
-        # home_page is a Link — omit rather than send "" when unset
+        # home_page is a Link - omit rather than send "" when unset
         if rec.get("home_page"):
             create_fields["home_page"] = rec["home_page"]
 
@@ -218,7 +218,7 @@ async def _auto_seed_workspace(
                 "section": app_meta.get("title", app_name),
                 "type": "DocType",
                 "label": dt.label,
-                # Leave blank when the DocType has no icon of its own — the
+                # Leave blank when the DocType has no icon of its own - the
                 # workspace API fills it from the DocType meta on read, and the
                 # frontend falls back to a generic icon.
                 "icon": getattr(dt, "icon", None) or "",

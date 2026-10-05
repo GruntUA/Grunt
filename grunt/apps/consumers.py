@@ -1,11 +1,11 @@
-"""Hook-key consumers — the registry that maps a name in an app's ``hooks.py``
+"""Hook-key consumers - the registry that maps a name in an app's ``hooks.py``
 to the code that acts on it.
 
 An app's ``hooks.py`` is just a module with well-known module-level names
 (``doc_events``, ``scheduler_events``, ``io_exporters``, ...). For each name
 that a hooks module defines, :func:`grunt.apps.loader._apply_hooks_module`
 looks it up here and calls the registered consumer. Adding a new kind of hook
-means registering one consumer with :func:`consumer` — never editing the app
+means registering one consumer with :func:`consumer` - never editing the app
 loader's control flow.
 
 The framework itself ("app zero", :mod:`grunt.core_hooks`) is loaded through
@@ -73,10 +73,8 @@ def _resolve(path: str) -> Any:
     return getattr(importlib.import_module(module_path), attr)
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Consumers — one per recognised hooks.py name. Keep imports lazy so importing
+# Consumers - one per recognised hooks.py name. Keep imports lazy so importing
 # this module stays cheap and cycle-free.
-# ─────────────────────────────────────────────────────────────────────────────
 
 
 @consumer("doc_events")

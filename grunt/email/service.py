@@ -76,13 +76,13 @@ def _kick_queue_after_commit(session: AsyncSession) -> None:
 def smtp_connect_kwargs(host: str, port: int | None, use_tls: bool) -> dict[str, Any]:
     """Build ``aiosmtplib.SMTP`` kwargs with the correct TLS mode for the port.
 
-    - ``465`` → implicit TLS from the first byte (SMTPS).
-    - ``587`` / ``25`` / other → connect in plaintext, then upgrade via
+    - ``465`` -> implicit TLS from the first byte (SMTPS).
+    - ``587`` / ``25`` / other -> connect in plaintext, then upgrade via
       STARTTLS: forced when ``use_tls`` is set, best-effort otherwise.
 
     Passing ``use_tls=True`` on port 587 (as a naive reading of the account's
     "use TLS" checkbox suggests) makes the client start a TLS handshake against
-    a plaintext SMTP banner — Gmail then fails with
+    a plaintext SMTP banner - Gmail then fails with
     ``[SSL: WRONG_VERSION_NUMBER] wrong version number``.
     """
     port = int(port or 587)
@@ -122,7 +122,7 @@ class EmailService:
 
         if message.get("request_receipt"):
             # Ask the recipient's client for a read receipt (MDN). Honoured only
-            # by some clients and only with the user's consent — best-effort.
+            # by some clients and only with the user's consent - best-effort.
             receipt_addr = account.get("email_address")
             msg["Disposition-Notification-To"] = receipt_addr
             msg["Return-Receipt-To"] = receipt_addr
@@ -329,7 +329,7 @@ class EmailService:
             "report": EmailService._parse_report(msg, text_body),
         }
 
-    # ── Delivery / read-receipt reports (DSN / MDN) ──────────────────────────
+    # Delivery / read-receipt reports (DSN / MDN)
 
     @staticmethod
     def _find_part(msg: Message, content_type: str) -> Any | None:
@@ -659,13 +659,13 @@ class EmailService:
         otherwise the first EmailAccount with ``enable_outgoing=True``.
         ``SystemSettings.email_footer`` (if any) is appended to the body.
 
-        ``attachments`` — ``[{"filename", "mimetype", "content": bytes}]``; kept
+        ``attachments`` - ``[{"filename", "mimetype", "content": bytes}]``; kept
         base64-encoded on the queue row (never as public File records).
         """
         import grunt
         from grunt.site.settings import get_setting
 
-        # Resolve the outgoing account id (best-effort — None if unconfigured)
+        # Resolve the outgoing account id (best-effort - None if unconfigured)
         email_account_id: str | None = None
         footer: str = ""
         try:
@@ -725,7 +725,7 @@ class EmailService:
 
 
 def encode_attachments(attachments: list[dict[str, Any]] | None) -> list[dict[str, Any]] | None:
-    """``content: bytes`` → ``content_b64`` so attachments fit a JSON column."""
+    """``content: bytes`` -> ``content_b64`` so attachments fit a JSON column."""
     if not attachments:
         return None
     return [
@@ -739,7 +739,7 @@ def encode_attachments(attachments: list[dict[str, Any]] | None) -> list[dict[st
 
 
 def decode_attachments(stored: Any) -> list[dict[str, Any]]:
-    """Inverse of :func:`encode_attachments` — what :meth:`EmailService.send_now` takes."""
+    """Inverse of :func:`encode_attachments` - what :meth:`EmailService.send_now` takes."""
     if isinstance(stored, str):
         stored = json.loads(stored or "null")
     return [

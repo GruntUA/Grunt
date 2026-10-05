@@ -1,4 +1,4 @@
-"""Public web form — server-rendered twin of the former ``PublicWebForm.vue``.
+"""Public web form - server-rendered twin of the former ``PublicWebForm.vue``.
 
 Reuses :mod:`grunt.webform.service` (the same code the JSON API wraps) to load
 the definition and process the submission. The page works with no JavaScript:
@@ -6,7 +6,7 @@ a plain ``<form method="post">`` posts back to the same URL, ``handle_post``
 runs the submission, and the template re-renders with a success or error state.
 
 SSR requests carry no session (the JWT lives in ``localStorage``), so every
-submission goes through as an anonymous guest — a ``login_required`` form shows
+submission goes through as an anonymous guest - a ``login_required`` form shows
 a sign-in prompt instead of the fields.
 """
 
@@ -16,7 +16,7 @@ from typing import Any
 
 from grunt import _
 
-# fieldtype → native <input type>. Anything unlisted renders as a text input.
+# fieldtype -> native <input type>. Anything unlisted renders as a text input.
 _INPUT_TYPES = {
     "Data": "text",
     "Text": "text",
@@ -28,7 +28,7 @@ _INPUT_TYPES = {
 }
 # A plain Text/Data field carrying one of these DocField.validator names gets
 # the matching native <input type> (browser keyboard hint + basic client-side
-# check) — there's no separate "Email"/"Phone" fieldtype in the framework,
+# check) - there's no separate "Email"/"Phone" fieldtype in the framework,
 # validation is opt-in via `validator` on any text field (see grunt.validators).
 _VALIDATOR_INPUT_TYPES = {"email": "email", "phone": "tel"}
 _LAYOUT_TYPES = {"Section", "Column", "Tab", "Table"}
@@ -44,7 +44,7 @@ def _prepare_fields(raw: list[dict[str, Any]]) -> list[dict[str, Any]]:
                 prepared.append({"kind": "section", "label": field.get("label") or ""})
             continue
         if ftype == "HTML":
-            # Static block authored in the DocType builder (System Manager) — rendered as-is.
+            # Static block authored in the DocType builder (System Manager) - rendered as-is.
             prepared.append({"kind": "html", "content": field.get("options") or ""})
             continue
         if ftype == "Button":
@@ -125,8 +125,8 @@ async def handle_post(context: dict[str, Any]) -> Any:
 
     # Honeypot: a field no sighted visitor sees or fills (hidden off-screen in
     # the template), so anything that lands here is almost certainly a bot
-    # blindly filling every input. Answer with the normal success state —
-    # don't tip it off — but skip creating anything.
+    # blindly filling every input. Answer with the normal success state -
+    # don't tip it off - but skip creating anything.
     if (str(raw.get("_hp") or "")).strip():
         context["submitted"] = True
         context["success_message"] = _("Thank you! Your submission has been received.")
@@ -148,13 +148,13 @@ async def handle_post(context: dict[str, Any]) -> Any:
 
     fields = await web_form_service.get_form_fields(route)
 
-    # Normalise checkboxes: an unchecked box isn't posted at all → coerce to 0/1
+    # Normalise checkboxes: an unchecked box isn't posted at all -> coerce to 0/1
     # so the target DocType's Check field gets a real value.
     check_names = {f["fieldname"] for f in fields if f["fieldtype"] == "Check"}
     for name in check_names:
         data[name] = 1 if str(data.get(name, "")).lower() in ("on", "1", "true") else 0
 
-    # Attach fields arrive as UploadFile objects (multipart) — store them and
+    # Attach fields arrive as UploadFile objects (multipart) - store them and
     # swap in the resulting file_url, the same value shape the target
     # DocType's Attach field expects everywhere else in the app.
     attach_names = {f["fieldname"] for f in fields if f["fieldtype"] == "Attach"}

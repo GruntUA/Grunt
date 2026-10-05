@@ -15,7 +15,7 @@ const router = createRouter({
       meta: { public: true },
     },
     {
-      // Same combined component as /login — it switches to the sign-up form
+      // Same combined component as /login - it switches to the sign-up form
       // based on the path.
       path: '/signup',
       name: 'register',
@@ -70,8 +70,8 @@ const router = createRouter({
           props: true,
         },
         {
-          // `:id` == "new" is the create sentinel (matches the rest of the app —
-          // scripting executor, useLinkCreate — which all treat "new" this way);
+          // `:id` == "new" is the create sentinel (matches the rest of the app -
+          // scripting executor, useLinkCreate - which all treat "new" this way);
           // map it to a null id so DocTypeForm renders a blank form.
           path: ':doctype/:id(.*)',
           name: 'workspace-form',
@@ -122,7 +122,7 @@ const router = createRouter({
         },
       ],
     },
-    // Legacy bare workspace URLs (old bookmarks: /letter/IncomingLetter/…) →
+    // Legacy bare workspace URLs (old bookmarks: /letter/IncomingLetter/…) ->
     // canonical /app/…. Static routes (/login, /403, …) rank above this.
     // New links are built with core/workspaceUrl (docUrl / workspaceUrl).
     {
@@ -153,7 +153,7 @@ router.beforeEach(async (to) => {
   const auth = useAuthStore()
 
   // Already-authenticated visitor hits the login page directly (e.g. via a
-  // bookmark or /login link) — send them straight to the desk instead of
+  // bookmark or /login link) - send them straight to the desk instead of
   // showing the form again. isLoggedIn only checks token presence; fetchMe
   // confirms the token is still valid server-side (and clears it on 401/403).
   if ((to.name === 'login' || to.name === 'register') && auth.isLoggedIn) {
@@ -174,7 +174,7 @@ router.beforeEach(async (to) => {
  */
 function routeTitle(to: RouteLocationNormalized): string {
   const t = i18n.global.t
-  // Route params can be `string | string[]` (repeatable segments) — flatten.
+  // Route params can be `string | string[]` (repeatable segments) - flatten.
   const s = (v: unknown): string => (Array.isArray(v) ? v.join('/') : String(v ?? ''))
   const p = to.params
   const q = to.query as Record<string, unknown>

@@ -2,7 +2,7 @@
 
 ``grunt db migrate`` calls :func:`upgrade_site` for every site so the Alembic
 version history is applied alongside the metadata/table sync. Standalone
-``alembic upgrade head`` still works — ``env.py`` falls back to the active site
+``alembic upgrade head`` still works - ``env.py`` falls back to the active site
 when no explicit URL is handed in through ``config.attributes["target_db_url"]``.
 """
 
@@ -60,13 +60,13 @@ def sync_site(db_url: str) -> str:
     """Bring a site's Alembic history in line, assuming system tables already exist.
 
     The framework's migrations are incremental patches on top of
-    ``metadata.create_all`` — they are not runnable from an empty database. So:
+    ``metadata.create_all`` - they are not runnable from an empty database. So:
 
-    * **no revision scripts** (``versions/`` is empty — the default in dev, until
+    * **no revision scripts** (``versions/`` is empty - the default in dev, until
       the first migration is written for a release): there is no history to
       apply. Skip.
     * **no ``alembic_version`` table** (fresh site, or one that predates Alembic):
-      the tables ``create_all`` just built are already at head — ``stamp head``
+      the tables ``create_all`` just built are already at head - ``stamp head``
       records that without running any migration.
     * **``alembic_version`` present**: ``upgrade head`` applies whatever is pending.
 

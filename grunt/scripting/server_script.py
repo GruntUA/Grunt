@@ -1,4 +1,4 @@
-"""Server Script engine — execute user-defined Python scripts in a sandbox.
+"""Server Script engine - execute user-defined Python scripts in a sandbox.
 
 Script types:
 - DocType Event: runs on document lifecycle events (before_save, after_insert, etc.)
@@ -46,7 +46,7 @@ _T = TypeVar("_T")
 
 # Maximum execution output capture (bytes)
 _MAX_OUTPUT = 10_000
-# Maximum script execution time hint (seconds) — enforced externally if needed
+# Maximum script execution time hint (seconds) - enforced externally if needed
 MAX_EXEC_SECONDS = 5
 
 
@@ -56,7 +56,7 @@ class _BufferPrintCollector:
     A script's own `print(...)` statements are compiled to call this (they
     never touch real `sys.stdout`), while `grunt.log(...)` calls real
     `print()` from host code (`ScriptContext.log`, outside the restricted
-    compile) — caught separately by `contextlib.redirect_stdout`. Writing
+    compile) - caught separately by `contextlib.redirect_stdout`. Writing
     both into the *same* StringIO keeps script output and grunt.log() output
     in one combined, correctly ordered stream instead of two disjoint ones.
     """
@@ -96,7 +96,7 @@ def _bridged[T](fn: Callable[..., Awaitable[T]]) -> Callable[..., T]:
 
     Every ``_DBProxy`` operation needs both a sync surface (RestrictedPython
     scripts run synchronously) and an async implementation (it awaits real DB
-    calls) — this collapses each such pair from two named methods (a one-line
+    calls) - this collapses each such pair from two named methods (a one-line
     sync trampoline + an ``_async_*`` twin) into one ``async def`` that IS the
     public method, run through ``self._bridge``.
     """
@@ -193,7 +193,7 @@ class ScriptContext:
 
     # Opts this object out of RestrictedPython's full_write_guard wrapping
     # (see Guards._full_write_guard) so restricted scripts can do
-    # `grunt.response = {...}` / `grunt.flags[...] = ...` — otherwise every
+    # `grunt.response = {...}` / `grunt.flags[...] = ...` - otherwise every
     # attribute assignment on a host object requires it to implement
     # __guarded_setattr__, which plain Python classes don't have.
     _guarded_writes = True
@@ -230,7 +230,7 @@ class ScriptContext:
         """Run *coro* via the bridge, or *default* if there's no bridge/session.
 
         Missing bridge/session means the context was built for preview/dry-run
-        use without a live DB (see ``ScriptContext()`` call sites) — every
+        use without a live DB (see ``ScriptContext()`` call sites) - every
         read-only ``grunt.*`` script method degrades to its empty-result
         default in that mode rather than erroring.
         """
@@ -580,7 +580,7 @@ class ServerScriptRunner:
         Returns:
             ScriptResult with success status, captured output, and response data.
         """
-        # Friendlier pre-check for untrusted scripts — trusted (file-based)
+        # Friendlier pre-check for untrusted scripts - trusted (file-based)
         # scripts skip straight to the real compile below, which enforces
         # the exact same restrictions either way (see safe_globals.py).
         if not trusted:
@@ -595,7 +595,7 @@ class ServerScriptRunner:
         if compile_result.errors:
             return ScriptResult(success=False, error="; ".join(compile_result.errors))
         compiled = compile_result.code
-        assert compiled is not None  # no errors → compiled
+        assert compiled is not None  # no errors -> compiled
 
         # Build execution context with sync-async bridge
         loop = asyncio.get_running_loop()
@@ -613,7 +613,7 @@ class ServerScriptRunner:
                 "grunt": ctx,
                 # Script's own print(...) statements are routed here by
                 # RestrictedPython instead of through the _print_ default
-                # (PrintCollector) — see _BufferPrintCollector docstring.
+                # (PrintCollector) - see _BufferPrintCollector docstring.
                 "_print_": lambda _getattr_=None: _BufferPrintCollector(
                     stdout_buf, _getattr_=_getattr_
                 ),

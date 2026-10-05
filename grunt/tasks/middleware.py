@@ -16,9 +16,9 @@ class BackgroundTaskLoggingMiddleware(TaskiqMiddleware):
 
     Successful runs are not persisted anywhere in the DB. Every task used to
     get a ``BackgroundTaskLog`` row on start (and an update on finish), which
-    turned routine traffic — the 5-minute email-queue tick, a notification
+    turned routine traffic - the 5-minute email-queue tick, a notification
     rule check on every matching document write, every ``enqueue_doc()``
-    call — into permanent rows nobody read. Mirrors Frappe's model: ad-hoc
+    call - into permanent rows nobody read. Mirrors Frappe's model: ad-hoc
     ``frappe.enqueue`` jobs live transiently in Redis/RQ, and only unhandled
     errors ever reach the DB (their ``Error Log``).
     """

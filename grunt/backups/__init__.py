@@ -1,17 +1,17 @@
-"""Site backups — database, uploaded files and site config, on a schedule.
+"""Site backups - database, uploaded files and site config, on a schedule.
 
 One backup is a *set* of files sharing an id (``20260923-020000``) in
 ``sites/<site>/backups/``:
 
-* ``<id>-database.sqlite.zst`` — SQLite: an online snapshot through SQLite's
+* ``<id>-database.sqlite.zst`` - SQLite: an online snapshot through SQLite's
   backup API (consistent under WAL, unlike copying the file), checked with
-  ``PRAGMA quick_check`` before it is kept; or ``<id>-database.pgdump`` —
+  ``PRAGMA quick_check`` before it is kept; or ``<id>-database.pgdump`` -
   PostgreSQL ``pg_dump -Fc``;
-* ``<id>-files.tar.zst`` — the site's ``uploads/`` (local storage only);
-* ``<id>-config.env`` — the site ``.env`` (SECRET_KEY, DB credentials — a
+* ``<id>-files.tar.zst`` - the site's ``uploads/`` (local storage only);
+* ``<id>-config.env`` - the site ``.env`` (SECRET_KEY, DB credentials - a
   restore needs it); readable by the owner only.
 
-``SystemSettings`` → «Резервні копії» turns the schedule on/off, sets the
+``SystemSettings`` -> «Резервні копії» turns the schedule on/off, sets the
 interval, how many sets to keep, whether files are included and the zstd
 compression level. An hourly job
 (:func:`grunt.backups.tasks.scheduled_backup`) makes a backup when one is due.
@@ -54,7 +54,7 @@ class BackupError(RuntimeError):
 @dataclass
 class BackupSet:
     id: str
-    files: dict[str, Path] = field(default_factory=dict)  # kind → path
+    files: dict[str, Path] = field(default_factory=dict)  # kind -> path
 
     @property
     def created_at(self) -> datetime:
@@ -65,7 +65,7 @@ class BackupSet:
         return sum(p.stat().st_size for p in paths if p.exists())
 
 
-# ── Where things are ──────────────────────────────────────────────────────
+# Where things are
 
 
 def site_dir(site: str) -> Path:
@@ -87,12 +87,12 @@ def _db_url(site: str):
 
 
 def _sqlite_path(url) -> Path:
-    if not url.database:  # in-memory SQLite — no file to back up or restore
+    if not url.database:  # in-memory SQLite - no file to back up or restore
         raise BackupError(_("The SQLite database has no file to back up"))
     return Path(url.database)
 
 
-# ── Listing / rotation ────────────────────────────────────────────────────
+# Listing / rotation
 
 
 def list_backups(site: str) -> list[BackupSet]:
@@ -124,11 +124,11 @@ def rotate(site: str, keep: int) -> list[str]:
     return removed
 
 
-# ── Making a backup ───────────────────────────────────────────────────────
+# Making a backup
 
 
 def _zstd_options(level: int) -> dict:
-    """Compression *level* (clamped) on half the cores — the site keeps serving meanwhile."""
+    """Compression *level* (clamped) on half the cores - the site keeps serving meanwhile."""
     options = {
         zstd.CompressionParameter.compression_level: min(max(level, 1), MAX_COMPRESSION_LEVEL)
     }
@@ -181,7 +181,7 @@ def _backup_postgres(url, dest: Path, level: int, progress: Progress) -> None:
         raise BackupError(_("pg_dump not found; install the PostgreSQL client"))
     level = min(max(level, 1), MAX_COMPRESSION_LEVEL)
     progress.set(stage=_("Dumping the database"))  # pg_dump reports no progress
-    # --compress=zstd needs pg_dump 16+.
+    # compress=zstd needs pg_dump 16+.
     subprocess.run(
         ["pg_dump", "-Fc", f"--compress=zstd:{level}", "-f", str(dest), _libpq_url(url)],
         check=True,
@@ -189,7 +189,7 @@ def _backup_postgres(url, dest: Path, level: int, progress: Progress) -> None:
 
 
 class _CountingReader:
-    """A file whose reads advance *progress* — a big file moves the bar as it goes."""
+    """A file whose reads advance *progress* - a big file moves the bar as it goes."""
 
     def __init__(self, f, progress: Progress):
         self._f = f
@@ -228,7 +228,7 @@ def _backup_config(env: Path, dest: Path, progress: Progress) -> None:
 
 
 def _part(path: Path) -> Path:
-    """Where *path* is written until the whole set is done — hidden, not matched by _NAME.
+    """Where *path* is written until the whole set is done - hidden, not matched by _NAME.
 
     If the worker is killed mid-backup, only these are left behind, never a
     broken set in the list.
@@ -271,10 +271,10 @@ def _create_backup_sync(
         raise BackupError(_("Backups of %(backend)s are not supported") % {"backend": backend})
     env = site_dir(site) / ".env"
 
-    # Quickest first — (bytes read, final path, make it): the config is a copy
+    # Quickest first - (bytes read, final path, make it): the config is a copy
     # of one small file; the database and the files go by size. The bar is
     # measured in those bytes: a SQLite file twice (snapshot, then compressing
-    # it), every uploaded file; pg_dump's size is unknown — it shows its stage only.
+    # it), every uploaded file; pg_dump's size is unknown - it shows its stage only.
     progress.set(stage=_("Preparing"))
     steps: list[tuple[int, Path, Callable[[Path], object]]] = []
     if with_config and env.exists():
@@ -360,7 +360,7 @@ async def create_backup(
     return backup
 
 
-# ── Restoring ─────────────────────────────────────────────────────────────
+# Restoring
 
 
 def restore_backup(site: str, backup: BackupSet, *, with_files: bool = False) -> Path:

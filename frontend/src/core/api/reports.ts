@@ -6,7 +6,7 @@ import i18n from '@/plugins/i18n'
 const t = (key: string, params: Record<string, unknown> = {}): string => i18n.global.t(key, params)
 
 // Report is a regular registered DocType, so list/get/create/update/delete
-// go through the generic `/api/v1/docs/Report` CRUD (see grunt/api/v1/docs/crud.py) —
+// go through the generic `/api/v1/docs/Report` CRUD (see grunt/api/v1/docs/crud.py) -
 // no bespoke REST route exists or is needed for those. Only `run` and
 // `exportXlsxUrl` are real RPC-only behavior (arbitrary query/script
 // execution, xlsx generation), dispatched via `/api/v1/method/...`
@@ -14,7 +14,7 @@ const t = (key: string, params: Record<string, unknown> = {}): string => i18n.gl
 //
 // Identifier split: CRUD operations key off the doctype's internal `name`
 // (the generic REST contract), while `run`/`exportXlsxUrl` key off the
-// human `report_name` field — `ReportEngine.run` looks reports up by
+// human `report_name` field - `ReportEngine.run` looks reports up by
 // `report_name`, and every existing reference to a report elsewhere in the
 // app (dashboard shortcuts, sidebar links, the `report_url()` scripting
 // helper) already stores/uses `report_name`, not the internal id.

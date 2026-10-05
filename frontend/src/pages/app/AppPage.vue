@@ -34,7 +34,7 @@ interface PageDoc {
   widgets: DashboardWidget[]
 }
 
-// ── State ─────────────────────────────────────────────────────────────────────
+// State
 
 const page   = ref<PageDoc | null>(null)
 const widgetData  = ref<Record<string, unknown>>({})
@@ -61,14 +61,14 @@ const autoRefreshTimer    = ref<ReturnType<typeof setInterval> | null>(null)
 const showEmbedModal = ref(false)
 const embedUrl = computed(() => `${window.location.origin}/page/${props.pageName}`)
 
-// ── Widget types palette ───────────────────────────────────────────────────────
+// Widget types palette
 
-// Single source of truth — see @/core/widgetRegistry. Keeps this palette and
+// Single source of truth - see @/core/widgetRegistry. Keeps this palette and
 // WidgetConfigPanel's type switcher from drifting out of sync (they used to
 // be two independently hand-maintained lists).
 const WIDGET_GROUPS = getPaletteGroups()
 
-// ── Data loading ───────────────────────────────────────────────────────────────
+// Data loading
 
 async function loadData() {
   try {
@@ -101,7 +101,7 @@ async function refresh() {
   try { await loadData() } finally { refreshing.value = false }
 }
 
-// ── Auto-refresh ───────────────────────────────────────────────────────────────
+// Auto-refresh
 
 function startAutoRefresh(seconds: number) {
   stopAutoRefresh()
@@ -112,7 +112,7 @@ function stopAutoRefresh() {
 }
 onUnmounted(stopAutoRefresh)
 
-// ── Dashboard CRUD ─────────────────────────────────────────────────────────────
+// Dashboard CRUD
 
 async function createPage() {
   loading.value = true
@@ -152,7 +152,7 @@ async function savePage() {
   }
 }
 
-// ── Edit mode ──────────────────────────────────────────────────────────────────
+// Edit mode
 
 function enterEdit() {
   editMode.value = true
@@ -169,7 +169,7 @@ function cancelEdit() {
   load()
 }
 
-// ── Widget management ──────────────────────────────────────────────────────────
+// Widget management
 
 function generateId() { return 'w-' + Math.random().toString(36).substring(2, 9) }
 
@@ -223,7 +223,7 @@ function handleRemoveFromPanel() {
   if (w) removeWidget(w)
 }
 
-// ── Embed ──────────────────────────────────────────────────────────────────────
+// Embed
 
 function copyEmbedUrl() {
   navigator.clipboard.writeText(embedUrl.value)
@@ -237,7 +237,7 @@ const printPage = () => window.print()
 
 <template>
 <div>
-  <!-- ── Normal view ────────────────────────────────────────────────────────── -->
+  <!-- Normal view -->
   <div class="p-6">
     <!-- Header -->
     <div class="flex items-center justify-between mb-4">
@@ -344,7 +344,7 @@ const printPage = () => window.print()
     </div>
   </div>
 
-  <!-- ── Edit mode overlay ──────────────────────────────────────────────────── -->
+  <!-- Edit mode overlay -->
   <Teleport to="body">
     <div v-if="editMode" class="fixed inset-0 z-50 flex flex-col bg-background overflow-hidden">
 
@@ -374,7 +374,7 @@ const printPage = () => window.print()
       <!-- 3-column body -->
       <div class="flex flex-1 overflow-hidden">
 
-        <!-- ── Left: widget palette ──────────────────────────────────────────── -->
+        <!-- Left: widget palette -->
         <div class="w-52 shrink-0 border-r border-border bg-muted/20 overflow-y-auto">
           <div class="px-3 py-3">
             <p class="font-semibold uppercase tracking-widest text-muted-foreground mb-2 px-1">
@@ -398,7 +398,7 @@ const printPage = () => window.print()
           </div>
         </div>
 
-        <!-- ── Center: canvas ─────────────────────────────────────────────────── -->
+        <!-- Center: canvas -->
         <div
           class="flex-1 overflow-y-auto bg-muted/10 p-4"
           @click.self="selectedWidgetId = null"
@@ -451,7 +451,7 @@ const printPage = () => window.print()
           </VueDraggable>
         </div>
 
-        <!-- ── Right: config panel ────────────────────────────────────────────── -->
+        <!-- Right: config panel -->
         <div class="w-72 shrink-0 border-l border-border bg-card overflow-hidden flex flex-col">
           <WidgetConfigPanel
             :widget="selectedWidget"
@@ -464,7 +464,7 @@ const printPage = () => window.print()
     </div>
   </Teleport>
 
-  <!-- ── Embed dialog ───────────────────────────────────────────────────────── -->
+  <!-- Embed dialog -->
   <Dialog v-model:open="showEmbedModal">
     <DialogContent class="sm:max-w-[500px] p-0 px-6 pb-6 pt-2">
     <DialogHeader>

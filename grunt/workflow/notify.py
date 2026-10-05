@@ -2,12 +2,12 @@
 
 Recipients, comma-separated in the transition's ``notify``:
 
-* ``owner`` — the document's author;
-* ``previous`` — who performed the previous workflow action on the document
+* ``owner`` - the document's author;
+* ``previous`` - who performed the previous workflow action on the document
   (e.g. the author who sent it for review, when a reviewer sends it back);
-* ``next`` — users who can take the next step: they hold a role allowed on a
+* ``next`` - users who can take the next step: they hold a role allowed on a
   button transition out of the new state *and* can read this very document
-  (role permissions, ``match`` rules and User Permissions — so a section
+  (role permissions, ``match`` rules and User Permissions - so a section
   moderator hears only about their own sections).
 
 The actor is never notified. A system notification (with web push) always;
@@ -93,7 +93,7 @@ async def next_actors(doctype: str, doc: dict[str, Any]) -> list[str]:
             limit=None,
         )
         # UserRole points at the account id; it may differ from the current
-        # email (an account renamed later) — notifications go to the email.
+        # email (an account renamed later) - notifications go to the email.
         candidates = sorted({r["parent_name"] for r in rows})
         users = [await get_user_by_id(user_id) for user_id in candidates]
     for candidate in users:
@@ -158,7 +158,7 @@ async def _state_label(doctype: str, state: str | None) -> str:
 
 
 async def _form_url(meta: Any, doc_id: str) -> str:
-    """The document's form in the desk — absolute when the site is named by its domain."""
+    """The document's form in the desk - absolute when the site is named by its domain."""
     from grunt.api.v1.meta import _get_app_name_for_module
     from grunt.site.manager import current_site
 

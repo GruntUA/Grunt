@@ -1,7 +1,7 @@
 /**
  * Filter Registry
  *
- * Maps fieldtype → filter configuration: which comparison operators are
+ * Maps fieldtype -> filter configuration: which comparison operators are
  * available and which Vue component renders the value input.
  *
  * Built-in registrations are in app-hooks.ts.
@@ -12,15 +12,15 @@
  *   registerFilterConfig('MyType', { operators: ['=', '!='], filterInput: MyFilterInput })
  *
  * FilterInput components must accept these props:
- *   field:         DocField  — full field metadata (options, linked doctype, etc.)
- *   modelValue:    string    — the raw filter value sent to the API
- *   displayValue:  string    — human-readable label (used by Link fields)
- *   op:            string    — currently selected operator
+ *   field:         DocField - full field metadata (options, linked doctype, etc.)
+ *   modelValue:    string - the raw filter value sent to the API
+ *   displayValue:  string - human-readable label (used by Link fields)
+ *   op:            string - currently selected operator
  *
  * And emit:
  *   update:modelValue   (value: string)
  *   update:displayValue (value: string)
- *   submit              ()             — user pressed Enter / confirmed
+ *   submit              () - user pressed Enter / confirmed
  */
 
 import type { Component } from 'vue'

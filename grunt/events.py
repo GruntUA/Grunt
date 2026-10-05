@@ -1,12 +1,12 @@
-"""Document event bus — the fan-out pipeline behind ``fire()``.
+"""Document event bus - the fan-out pipeline behind ``fire()``.
 
 Every write in the CRUD pipeline
 (:class:`grunt.document.mixins.write.DocumentWriteMixin`) ends in a single
 ``fire("after_save", ...)`` call. :func:`fire`:
 
-1. Runs the hook registry via :func:`grunt.hooks.dispatch` — app ``@on`` /
+1. Runs the hook registry via :func:`grunt.hooks.dispatch` - app ``@on`` /
    ``on_doc`` / ``doc_events`` handlers.
-2. Walks :data:`SUBSCRIBERS` in ascending ``priority`` order — the framework's
+2. Walks :data:`SUBSCRIBERS` in ascending ``priority`` order - the framework's
    own side-effect subsystems (Server Scripts, backlink sync, pending-upload
    claiming, notification rules, assignment rules) plus anything an app registered through
    :func:`subscribe`.
@@ -15,7 +15,7 @@ Each subscriber is best-effort: its exception is logged and the remaining
 subscribers still run. The whole bus no-ops during bootstrap (fixture /
 migration loading) so those never trigger notifications or server scripts.
 
-Adding a stage means appending an :class:`EventSubscriber` — never editing
+Adding a stage means appending an :class:`EventSubscriber` - never editing
 :func:`fire`.
 """
 
@@ -118,14 +118,12 @@ async def fire(event: str, **kwargs: Any) -> None:
             log.exception("event.subscriber_error", subscriber=sub.name, hook_event=event)
 
 
-# ─────────────────────────────────────────────────────────────────────────────
 # Core pipeline stages
 #
 # These are framework-internal (not pluggable), but they are registered the
-# same way an app's would be — as data in SUBSCRIBERS — so the dispatch loop
+# same way an app's would be - as data in SUBSCRIBERS - so the dispatch loop
 # in fire() stays a plain iteration. Each keeps its own lazy imports to avoid
 # import cycles at module load.
-# ─────────────────────────────────────────────────────────────────────────────
 
 _SERVER_SCRIPT_EVENTS = frozenset(
     {
@@ -204,7 +202,7 @@ async def _evaluate_notification_rules(**kwargs: Any) -> None:
     event = kwargs["event"]
     if not doctype or not kwargs.get("doc") or not kwargs.get("session"):
         return
-    # ``Notification`` is the fan-out sink itself — evaluating rules on its own
+    # ``Notification`` is the fan-out sink itself - evaluating rules on its own
     # writes would recursively enqueue more work. Append-only system logs
     # (``DocType.is_log``) never warrant notification rules either.
     if doctype == "Notification":
@@ -221,7 +219,7 @@ async def _evaluate_notification_rules(**kwargs: Any) -> None:
 
     from grunt.notification import rule_index
 
-    # Skip the worker hop entirely unless a rule could actually match —
+    # Skip the worker hop entirely unless a rule could actually match -
     # otherwise every document write queues a task and a log row.
     if not await rule_index.has_rules(doctype, event):
         return

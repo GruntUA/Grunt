@@ -22,7 +22,7 @@ function formatter(code: string | null): Intl.NumberFormat {
   }
 }
 
-/** `12 345,67 ₴` — or `12 345,67` when the currency is unknown. */
+/** `12 345,67 ₴` - or `12 345,67` when the currency is unknown. */
 export function formatCurrency(value: unknown, code: string | null): string {
   if (value === null || value === undefined || value === '') return ''
   const n = Number(value)

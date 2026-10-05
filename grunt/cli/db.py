@@ -74,8 +74,8 @@ def db_migrate(dry_run: bool, site: str | None, no_alembic: bool) -> None:
                     async with eng.begin() as conn:
                         await conn.run_sync(SA_METADATA.create_all)
 
-                    # 3. Alembic history — schema patches on top of create_all.
-                    #    Fresh site → stamp head; existing → upgrade. Not
+                    # 3. Alembic history - schema patches on top of create_all.
+                    #    Fresh site -> stamp head; existing -> upgrade. Not
                     #    offline-previewable, so --dry-run skips it.
                     if no_alembic or dry_run:
                         why = "--no-alembic" if no_alembic else "dry-run"
@@ -92,7 +92,7 @@ def db_migrate(dry_run: bool, site: str | None, no_alembic: bool) -> None:
                     async with maker() as session:
                         await load_core_doctypes(session, sync_db=True)
                         await apply_doctype_overrides(session, eng, sync_db=True)
-                        # Hydrate Studio-created DocTypes too — list_all()'s
+                        # Hydrate Studio-created DocTypes too - list_all()'s
                         # lazy branch only fires once _known_names is populated.
                         await doctype_registry.load_all(session)
                         await populate_system_doctypes(session, eng)
@@ -199,7 +199,7 @@ def db_trim_tables(doctype: str | None, dry_run: bool, quiet: bool, site: str | 
 
                 async with maker() as session:
                     # Hydrate every DocType (core + Studio) from the DB so we
-                    # can iterate them — reads only, no schema/JSON merge here.
+                    # can iterate them - reads only, no schema/JSON merge here.
                     await doctype_registry.load_all(session)
 
                     async with grunt.system_context(session, eng):
@@ -219,7 +219,7 @@ def db_trim_tables(doctype: str | None, dry_run: bool, quiet: bool, site: str | 
                         else:
                             metas = all_metas
 
-                # Several DocTypes may share a table (table_name) — a column is kept
+                # Several DocTypes may share a table (table_name) - a column is kept
                 # while any of them still defines it.
                 shared: dict[str, set[str]] = {}
                 for m in all_metas:

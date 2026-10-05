@@ -1,10 +1,10 @@
-"""System tables — Core SQLAlchemy Table definitions for Grunt internals.
+"""System tables - Core SQLAlchemy Table definitions for Grunt internals.
 
 Only bootstrap-critical tables that must exist before the DocType registry
 loads are kept here.
 
 All other system tables (ServerScript, Notification, ActivityLog, etc.) are
-DocType-driven — defined in core/doctypes/*.json.
+DocType-driven - defined in core/doctypes/*.json.
 """
 
 from __future__ import annotations

@@ -5,7 +5,7 @@
 import type { RouteLocationRaw } from 'vue-router'
 import { docUrl } from '@/core/workspaceUrl'
 
-/** Report filter-key suffix → list-view URL operator (see OP_MAP in core/api/docs.ts). */
+/** Report filter-key suffix -> list-view URL operator (see OP_MAP in core/api/docs.ts). */
 const URL_OP: Record<string, string> = {
     '': 'eq', eq: 'eq', ne: 'ne', like: 'ilike', ilike: 'ilike', nlike: 'nlike',
     gt: 'gt', lt: 'lt', gte: 'gte', lte: 'lte', child_of: 'child_of', is: 'is',
@@ -16,7 +16,7 @@ export function addUrlFilters(query: Record<string, string>, filters: Record<str
     for (const [key, value] of Object.entries(filters)) {
         const [field, op = ''] = key.split('__')
         const urlOp = URL_OP[op]
-        // The list URL can't express isnull / booleans — such a condition just
+        // The list URL can't express isnull / booleans - such a condition just
         // doesn't narrow the drill-down list. in / nin lists travel as CSV.
         if (!urlOp || typeof value === 'boolean') continue
         if (Array.isArray(value) && urlOp !== 'in' && urlOp !== 'nin') continue
@@ -24,7 +24,7 @@ export function addUrlFilters(query: Record<string, string>, filters: Record<str
     }
 }
 
-/** The doctype list narrowed by `filters` (grunt.db filter keys) — dashboard widget drill-down. */
+/** The doctype list narrowed by `filters` (grunt.db filter keys) - dashboard widget drill-down. */
 export function filteredListUrl(
     doctype: string, filters: Record<string, unknown>, workspace?: string | null,
 ): RouteLocationRaw {

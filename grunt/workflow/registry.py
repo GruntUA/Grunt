@@ -49,12 +49,12 @@ def invalidate(document_type: str) -> None:
 
 
 def clear_cache() -> None:
-    """Drop all cached resolutions — used by tests."""
+    """Drop all cached resolutions - used by tests."""
     _CACHE.clear()
 
 
 # Registered here (not a separate grunt/workflow/hooks.py) so importing this
-# module — which every call site already does — is enough to wire up cache
+# module - which every call site already does - is enough to wire up cache
 # invalidation. A hook file that nothing imports never registers itself.
 @on_doc("Workflow", "after_save")
 async def _invalidate_on_save(doc: dict, **kwargs: object) -> None:
@@ -107,7 +107,7 @@ async def get_active_workflow(document_type: str) -> ResolvedWorkflow | None:
 
     session = await _get_session()
     if session is None:
-        # No session available at all (e.g. a disconnected background task) —
+        # No session available at all (e.g. a disconnected background task) -
         # don't cache a negative result, so a later call with a real session
         # can still resolve it.
         return None

@@ -1,4 +1,4 @@
-"""Startup — sync installed apps: DocTypes, fixtures, print formats, workspace.
+"""Startup - sync installed apps: DocTypes, fixtures, print formats, workspace.
 
 Runs on every ``grunt migrate`` / ``grunt app install`` / ``grunt site create``:
 re-reads each installed app's metadata from disk and applies it to the DB.
@@ -80,7 +80,7 @@ async def _register_app_doctypes(
                     existing_dt = doctype_registry._doctypes[dt_name]
                     if existing_dt.app and existing_dt.app != app_name:
                         # Name collision with a doctype owned by a different
-                        # app (or grunt core) — updating here would silently
+                        # app (or grunt core) - updating here would silently
                         # overwrite it, and whichever app's sync runs last
                         # would "win" on every migrate. Refuse instead: the
                         # colliding app must rename its doctype.
@@ -216,7 +216,7 @@ async def _sync_app_print_formats(
 async def _seed_app_singletons(app_name: str) -> None:
     """Create the missing row of each of the app's singletons, from field defaults.
 
-    A singleton is read as its one row — none means a 404 from ``get_doc`` and
+    A singleton is read as its one row - none means a 404 from ``get_doc`` and
     every reader inventing its own fallbacks. Created after the fixtures, so a
     fixture that ships the row wins; an existing row is never touched (a field
     added later gets its default via the column backfill in the compiler).
@@ -269,7 +269,7 @@ async def _run_after_install_hook(
 async def sync_installed_apps(session: AsyncSession, site_name: str) -> None:
     """Sync DocTypes, fixtures, print formats and the workspace for every installed app.
 
-    Reads ``grunt.site`` → ``installed_apps``, loads each app's metadata
+    Reads ``grunt.site`` -> ``installed_apps``, loads each app's metadata
     (``grunt_app.py`` or ``app.json``), auto-registers DocTypes from the app's
     ``doctypes/`` directories if not yet in the registry, applies fixtures and
     print formats, then creates/updates a workspace with the app's DocTypes as
@@ -307,7 +307,7 @@ async def sync_installed_apps(session: AsyncSession, site_name: str) -> None:
                 continue
 
             # Controllers must be importable (sys.path) and their
-            # doctype->module mapping indexed *before* fixtures run below —
+            # doctype->module mapping indexed *before* fixtures run below -
             # otherwise document_registry.get() silently falls back to the
             # generic Document base and custom validate()/on_update() hooks
             # never fire for fixture-seeded records.

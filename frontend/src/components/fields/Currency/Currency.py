@@ -2,7 +2,7 @@ from grunt.metadata.field import FieldType, register_field_type_class
 
 
 class CurrencyField(FieldType):
-    """Money amount — exact NUMERIC column, rounded to kopecks on write.
+    """Money amount - exact NUMERIC column, rounded to kopecks on write.
 
     ``options`` names the currency: a fieldname of a Link to Currency on the same
     doc, or a fixed ISO code (e.g. ``UAH``). Display only; storage ignores it.

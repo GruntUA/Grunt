@@ -4,7 +4,7 @@ import type { ListColumn } from '@/core/composables/useListColumns'
 import { getNonPhysicalTypeSet } from '@/core/fieldRegistry'
 
 /**
- * One entry of a `Report` (type=List) `columns` JSON — the same shape the
+ * One entry of a `Report` (type=List) `columns` JSON - the same shape the
  * backend report engine consumes (grunt/reports/engine.py `_run_list_report`).
  * A column with no `aggregation` becomes a GROUP BY when any sibling has one.
  */
@@ -16,7 +16,7 @@ export interface ReportListColumn {
 }
 
 /**
- * Report view model — a "Report" grid over the list query.
+ * Report view model - a "Report" grid over the list query.
  *
  * Pure logic only: which columns are shown, an optional single-level group-by,
  * a per-column aggregate function, and the derived grouped rows + subtotal /
@@ -82,7 +82,7 @@ export function useReportModel(opts: ReportModelOptions) {
     } catch { /* quota / private mode — non-fatal */ }
   }
 
-  // ── Field lookup ───────────────────────────────────────────────────────────
+  // Field lookup
 
   const fieldMap = computed<Record<string, DocField>>(() => {
     const m: Record<string, DocField> = {}
@@ -133,7 +133,7 @@ export function useReportModel(opts: ReportModelOptions) {
     persist()
   }
 
-  // ── Group by ──────────────────────────────────────────────────────────────
+  // Group by
 
   const groupableFields = computed<DocField[]>(() =>
     (opts.dt()?.fields ?? []).filter(
@@ -151,7 +151,7 @@ export function useReportModel(opts: ReportModelOptions) {
     persist()
   }
 
-  // ── Aggregates ────────────────────────────────────────────────────────────
+  // Aggregates
 
   function aggFor(key: string): AggFn {
     const f = fieldMap.value[key]
@@ -191,7 +191,7 @@ export function useReportModel(opts: ReportModelOptions) {
     return out
   }
 
-  // ── Derived model ─────────────────────────────────────────────────────────
+  // Derived model
 
   const groups = computed<ReportGroup[] | null>(() => {
     if (!groupKey.value) return null
@@ -219,13 +219,13 @@ export function useReportModel(opts: ReportModelOptions) {
       || Object.keys(_persisted.value.aggs ?? {}).length > 0,
   )
 
-  // ── Bridge: <-> saved `Report` (type=List) `columns` JSON ──────────────────
+  // Bridge: <-> saved `Report` (type=List) `columns` JSON
 
   /**
    * Serialize the current shape into a `Report` `List` `columns` array.
    *
    * With aggregates present the result is a *pivot*: the group field (if set)
-   * plus every aggregated column — plain detail columns are dropped, because
+   * plus every aggregated column - plain detail columns are dropped, because
    * the backend engine turns every non-aggregated column into a GROUP BY.
    * Without aggregates it is a plain detail listing of all visible columns.
    *

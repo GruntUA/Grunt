@@ -5,14 +5,14 @@ const t = (key: string, params: Record<string, unknown> = {}): string => i18n.gl
 /**
  * Thin browser-side glue for the WebAuthn provider (`/api/v1/auth/webauthn/*`).
  *
- * The backend (py_webauthn) speaks the "…OptionsJSON" dialect — every binary
+ * The backend (py_webauthn) speaks the "…OptionsJSON" dialect - every binary
  * field is base64url. This module converts those to the `ArrayBuffer`s that
  * `navigator.credentials` wants, runs the ceremony, and serialises the
  * resulting `PublicKeyCredential` back to the same base64url JSON shape the
  * backend verifies.
  */
 
-// ── base64url ↔ bytes ──────────────────────────────────────────────────────
+// base64url ↔ bytes
 
 function b64urlToBuffer(value: string): ArrayBuffer {
   const pad = value.length % 4 === 0 ? '' : '='.repeat(4 - (value.length % 4))
@@ -30,7 +30,7 @@ function bytesToB64url(buffer: ArrayBuffer): string {
   return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
 }
 
-// ── option decoders ───────────────────────────────────────────────────────
+// option decoders
 
 interface DescriptorJSON {
   id: string
@@ -63,7 +63,7 @@ function decodeRequestOptions(o: Record<string, any>): PublicKeyCredentialReques
   } as unknown as PublicKeyCredentialRequestOptions
 }
 
-// ── credential encoders ───────────────────────────────────────────────────
+// credential encoders
 
 function encodeCredential(cred: PublicKeyCredential): Record<string, any> {
   const response = cred.response as AuthenticatorResponse & Record<string, any>
@@ -91,7 +91,7 @@ function encodeCredential(cred: PublicKeyCredential): Record<string, any> {
   return out
 }
 
-// ── public API ────────────────────────────────────────────────────────────
+// public API
 
 export function isWebAuthnSupported(): boolean {
   return (

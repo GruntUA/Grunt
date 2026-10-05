@@ -13,7 +13,7 @@ const props = defineProps<{
   attachedToId?: string
   /** Let channels that support it (Library) return several files at once. */
   multiple?: boolean
-  /** URL currently stored in the field — passed through for an "attached" marker. */
+  /** URL currently stored in the field - passed through for an "attached" marker. */
   currentUrl?: string | null
 }>()
 

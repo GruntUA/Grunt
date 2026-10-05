@@ -1,5 +1,5 @@
 /**
- * useFormController — unified form lifecycle facade.
+ * useFormController - unified form lifecycle facade.
  *
  * Orchestrates document loading, dirty-state tracking, client-script execution,
  * field validation, saving, navigation guards, real-time sync, presence,
@@ -43,7 +43,7 @@ import i18n from '@/plugins/i18n'
 
 const t = (key: string, params: Record<string, unknown> = {}): string => i18n.global.t(key, params)
 
-// ── Public interface ─────────────────────────────────────────────────────────
+// Public interface
 
 export interface UseFormControllerOptions {
   /** The machine-name of the DocType being edited. */
@@ -61,7 +61,7 @@ export interface UseFormControllerEmits {
   onNotFound?: (payload: { doctype: string; id: string }) => void
 }
 
-// ── Composable ───────────────────────────────────────────────────────────────
+// Composable
 
 export function useFormController(
   options: UseFormControllerOptions,
@@ -75,14 +75,14 @@ export function useFormController(
   const toast = useToast()
   const queryClient = useQueryClient()
 
-  // ── DocType metadata ───────────────────────────────────────────────────────
+  // DocType metadata
   const dt = ref<DocType | null>(null)
 
-  // ── Document data + CRUD primitives ───────────────────────────────────────
+  // Document data + CRUD primitives
   const { document, form, isLoading, isError, isDirty, isSaving, save, remove, rename, markClean } =
     useDocument(doctype, id)
 
-  // ── Unsaved-changes draft (survives accidental reload/close) ───────────────
+  // Unsaved-changes draft (survives accidental reload/close)
   const { pendingDraft, checkForDraft, restoreDraft, discardDraft } = useFormDraft({
     doctype,
     id,
@@ -90,7 +90,7 @@ export function useFormController(
     isDirty,
   })
 
-  // ── Active tab — synced to URL query (?tab=...) ────────────────────────────
+  // Active tab - synced to URL query (?tab=...)
   const activeTab = computed<string>({
     get: () => (route.query.tab as string) || '',
     set: (val) => {
@@ -98,13 +98,13 @@ export function useFormController(
     },
   })
 
-  // ── Real-time WebSocket + presence ─────────────────────────────────────────
+  // Real-time WebSocket + presence
   const wsUrl = computed(() => (id ? `/api/v1/ws/${doctype}/${id}` : null))
   const docWs = useWebSocket(wsUrl)
   const { lastMessage } = docWs
   const { users: presenceUsers, fieldLocks, focusField, blurField } = usePresence(docWs)
 
-  // ── Client scripts ─────────────────────────────────────────────────────────
+  // Client scripts
   // Deferred reference so the save handler can call itself via client scripts.
   let _saveHandler: (() => Promise<void>) | null = null
 
@@ -179,7 +179,7 @@ export function useFormController(
   })
   let _duplicateHandler: (() => void | Promise<void>) | null = null
 
-  // ── Declarative document actions (DocType.actions bindings) ────────────────
+  // Declarative document actions (DocType.actions bindings)
   useDocActions({
     doctype,
     id,
@@ -192,7 +192,7 @@ export function useFormController(
   // Keyboard shortcuts declared by actions (`shortcut: 'Ctrl+S'`).
   useActionShortcuts(actions)
 
-  // ── Workflow transitions → `on_transitions` (global_form.js registers them as actions)
+  // Workflow transitions -> `on_transitions` (global_form.js registers them as actions)
   async function loadTransitions() {
     if (!id || !dt.value?.workflow_state_field) return
     try {
@@ -225,13 +225,13 @@ export function useFormController(
     }
   }
 
-  // The allowed transitions depend on the state — reload them with the document.
+  // The allowed transitions depend on the state - reload them with the document.
   watch(
     () => [(document.value as Record<string, unknown> | null)?.modified_at, dt.value?.workflow_state_field],
     () => { void loadTransitions() },
   )
 
-  // ── Validation ─────────────────────────────────────────────────────────────
+  // Validation
   const { validationErrors, focusFirstError, validateForm } = useFormValidation({
     doctype,
     dt,
@@ -242,7 +242,7 @@ export function useFormController(
     activeTab,
   })
 
-  // ── Link creation (quick entry + full navigation) ──────────────────────────
+  // Link creation (quick entry + full navigation)
   const { startLinkCreate, finishLinkCreate, restoreLinkDraft } = useLinkCreate()
 
   const showDeleteModal = ref(false)
@@ -273,7 +273,7 @@ export function useFormController(
     },
   })
 
-  // ── Navigation guard (dirty leave warning + Escape shortcut) ───────────────
+  // Navigation guard (dirty leave warning + Escape shortcut)
   const { showLeaveModal, markAllowLeave, confirmLeave, cancelLeave, goToList } = useFormNavigation({
     router,
     doctype,
@@ -283,10 +283,10 @@ export function useFormController(
     isQuickEntryOpen,
   })
 
-  // ── WebSocket doc-change watcher ───────────────────────────────────────────
+  // WebSocket doc-change watcher
   useFormDocWatcher({ lastMessage, isDirty, doctype, id, queryClient, toast })
 
-  // ── Save ───────────────────────────────────────────────────────────────────
+  // Save
   const { handleSave } = useFormSave({
     doctype,
     id,
@@ -307,7 +307,7 @@ export function useFormController(
   })
   _saveHandler = handleSave
 
-  // ── Initialization (defaults, URL params, duplicate, on_load) ──────────────
+  // Initialization (defaults, URL params, duplicate, on_load)
   const { initialize } = useFormInitialization({
     doctype,
     id,
@@ -323,7 +323,7 @@ export function useFormController(
     checkForDraft,
   })
 
-  // ── Delete / Duplicate / Version restore ───────────────────────────────────
+  // Delete / Duplicate / Version restore
   const { onVersionRestored, handleDelete, handleDuplicate } = useFormActions({
     doctype,
     id,
@@ -339,7 +339,7 @@ export function useFormController(
   })
   _duplicateHandler = handleDuplicate
 
-  // ── Title + reactive form update (triggers on_change scripts) ──────────────
+  // Title + reactive form update (triggers on_change scripts)
   const { docTitle, onFormUpdate } = useFormDocumentView({
     id,
     dt,
@@ -351,7 +351,7 @@ export function useFormController(
   })
 
 
-  // ── fetch_from field population ────────────────────────────────────────────
+  // fetch_from field population
   useFetchFrom({
     doctype: dt,
     modelValue: form,
@@ -360,11 +360,11 @@ export function useFormController(
     },
   })
 
-  // ── Provide link-filter resolver to all descendant Link fields ─────────────
+  // Provide link-filter resolver to all descendant Link fields
   provide('getLinkFilters', getLinkFilters)
   provide('docContext', { doctype, getId: () => id })
 
-  // ── Lifecycle ──────────────────────────────────────────────────────────────
+  // Lifecycle
   onMounted(async () => {
     await initialize()
   })
@@ -390,7 +390,7 @@ export function useFormController(
     })
   }
 
-  // ── Public surface ─────────────────────────────────────────────────────────
+  // Public surface
   return {
     // State
     dt,

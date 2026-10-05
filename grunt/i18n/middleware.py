@@ -1,11 +1,11 @@
-"""Language middleware — resolves the per-request UI language.
+"""Language middleware - resolves the per-request UI language.
 
 Order of precedence:
 1. explicit ``?lang=`` query parameter or ``X-Grunt-Lang`` header
 2. the best match from the ``Accept-Language`` header
 3. the site default (``SystemSettings.language``, see ``TranslationService.set_default``)
 
-The set of acceptable languages is dynamic — :class:`TranslationService` is
+The set of acceptable languages is dynamic - :class:`TranslationService` is
 seeded at startup from the active ``geo.Language`` rows (see
 ``grunt.startup.lifespan``) and refreshed when a ``Language`` row changes.
 """

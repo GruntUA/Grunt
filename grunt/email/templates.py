@@ -1,9 +1,9 @@
-"""EmailTemplate rendering — queue transactional email without hardcoding
+"""EmailTemplate rendering - queue transactional email without hardcoding
 subject/body strings in app controllers.
 
 Placeholders use plain ``str.format()`` syntax against the caller's context
-dict — the same convention ``grunt.notification.service`` already uses for
-NotificationRule templates — rather than reaching for a templating engine for
+dict - the same convention ``grunt.notification.service`` already uses for
+NotificationRule templates - rather than reaching for a templating engine for
 what is normally a handful of substitutions.
 """
 
@@ -31,7 +31,7 @@ def _format(template: str, context: dict[str, Any]) -> str:
 async def render(name: str, context: dict[str, Any]) -> tuple[str, str, str | None]:
     """Return ``(subject, body_text, body_html)`` for EmailTemplate *name*.
 
-    Runs under ``system_context`` — EmailTemplate is System-Manager-only to
+    Runs under ``system_context`` - EmailTemplate is System-Manager-only to
     edit, but any server-side code path needs to be able to render one,
     including one acting as a synthetic Guest (e.g. a public WebForm
     submission queuing its own confirmation e-mail).

@@ -51,7 +51,7 @@ def _validate_data(
             column_spec = get_field_type_class(field.fieldtype).column_spec
             if column_spec is not None:
                 sa_type_name, *args = column_spec(field)
-                # SQLite doesn't enforce VARCHAR length — check it ourselves so a
+                # SQLite doesn't enforce VARCHAR length - check it ourselves so a
                 # value that "fits" in dev doesn't fail only once deployed on
                 # Postgres/MySQL, where VARCHAR(n) is a hard limit.
                 if sa_type_name == "String" and args and len(str(value)) > args[0]:

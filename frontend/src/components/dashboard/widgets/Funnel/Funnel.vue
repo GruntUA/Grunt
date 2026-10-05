@@ -30,7 +30,7 @@ const color = computed(() => COLOR_MAP[props.widget.color] ?? COLOR_MAP.primary)
 
 const canOpen = computed(() => !!props.widget.doctype && !!props.widget.group_by && !!props.data?.filters)
 
-/** Stage → the widget's list filtered to that group. */
+/** Stage -> the widget's list filtered to that group. */
 function open(stage: Stage) {
   const { widget, data } = props
   if (!canOpen.value || !stage.count) return

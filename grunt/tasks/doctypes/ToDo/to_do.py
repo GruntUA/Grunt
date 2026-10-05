@@ -4,9 +4,9 @@ A ToDo row *is* an assignment: someone (``assigned_to``) is put on the hook for
 a document (``reference_doctype`` / ``reference_id``), optionally with a task
 note in ``description``.
 
-- on create        → ping the assignee
-- on reassignment  → ping the new assignee
-- on completion    → stamp ``completed_on`` / ``completed_by`` and tell whoever
+- on create        -> ping the assignee
+- on reassignment  -> ping the new assignee
+- on completion    -> stamp ``completed_on`` / ``completed_by`` and tell whoever
                      created the assignment (``assigned_by``, falling back to
                      ``owner``); reopening clears the stamp
 """
@@ -53,7 +53,7 @@ class ToDo(Document):
     _inserting: bool = False
     _prev: dict[str, Any] | None = None
 
-    # ── lifecycle ────────────────────────────────────────────────────────
+    # lifecycle
 
     async def before_insert(self) -> None:
         self._inserting = True
@@ -81,7 +81,7 @@ class ToDo(Document):
             if not self.get("completed_by"):
                 self.completed_by = self._actor_email() or None
         elif was_done and not is_done:
-            # reopened — drop the stale completion stamp
+            # reopened - drop the stale completion stamp
             self.completed_on = None
             self.completed_by = None
 
@@ -100,7 +100,7 @@ class ToDo(Document):
         if self.status == "Closed" and prev.get("status") != "Closed":
             await self._notify_completion()
 
-    # ── helpers ─────────────────────────────────────────────────────────
+    # helpers
 
     def _actor_email(self) -> str:
         return getattr(getattr(self, "user", None), "email", "") or ""

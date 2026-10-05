@@ -1,11 +1,11 @@
-"""NamingService — generates document names from DocType autoname patterns.
+"""NamingService - generates document names from DocType autoname patterns.
 
 Supports:
-  - "field:<fieldname>"          → use a field value as the name
-  - "hash"                       → short random token
-  - "prompt"                     → user supplies name explicitly
-  - "PREFIX-.YYYY.-.####"        → pattern with date tokens and auto-incrementing counter
-  - ""  (empty)                  → falls back to "hash"
+  - "field:<fieldname>"          -> use a field value as the name
+  - "hash"                       -> short random token
+  - "prompt"                     -> user supplies name explicitly
+  - "PREFIX-.YYYY.-.####"        -> pattern with date tokens and auto-incrementing counter
+  - ""  (empty)                  -> falls back to "hash"
 """
 
 from __future__ import annotations
@@ -54,7 +54,7 @@ class NamingService:
         if autoname.startswith("format:"):
             autoname = autoname[7:]
 
-        # Empty autoname → use hash as fallback
+        # Empty autoname -> use hash as fallback
         if not autoname:
             autoname = "hash"
 
@@ -66,16 +66,16 @@ class NamingService:
         # Parse pattern-based autoname
         parts = parse_pattern(autoname)
         if not parts:
-            # Unrecognised pattern — fall back to hash
+            # Unrecognised pattern - fall back to hash
             return resolve_simple("hash", data)  # type: ignore[return-value]
 
         now = datetime.now(UTC)
 
         if not has_counter(parts):
-            # Pattern without counter — just format date tokens
+            # Pattern without counter - just format date tokens
             return format_name(parts, counter=0, now=now)
 
-        # Pattern with counter — need atomic increment
+        # Pattern with counter - need atomic increment
         prefix = build_prefix(parts, now=now)
         counter = await self._next_counter(prefix, session)
         name = format_name(parts, counter=counter, now=now)
@@ -109,7 +109,7 @@ class NamingService:
             await session.flush()
             return new_counter
 
-        # First time — insert with counter = 1
+        # First time - insert with counter = 1
         now = datetime.now(UTC)
         await session.execute(
             table.insert().values(

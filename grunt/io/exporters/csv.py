@@ -1,4 +1,4 @@
-"""CSV exporter — UTF-8 with BOM for Excel compatibility."""
+"""CSV exporter - UTF-8 with BOM for Excel compatibility."""
 
 from __future__ import annotations
 

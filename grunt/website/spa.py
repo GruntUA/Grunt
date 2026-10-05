@@ -1,4 +1,4 @@
-"""The built Desk SPA (``npm run build`` → ``dist/``) in production.
+"""The built Desk SPA (``npm run build`` -> ``dist/``) in production.
 
 With ``debug`` off there is no Vite dev server: the website catch-all serves
 ``dist/`` files itself, and ``_spa.html`` pulls the hashed entry tags out of
@@ -36,7 +36,7 @@ def spa_assets() -> Markup:
         return Markup("")
     if _cache is None or _cache[0] != mtime:
         html = index.read_text(encoding="utf-8")
-        # Google Fonts stylesheet lives in _spa.html itself — keep only local assets.
+        # Google Fonts stylesheet lives in _spa.html itself - keep only local assets.
         tags = [t for t in _ASSET_TAG_RE.findall(html) if "://" not in t]
         _cache = (mtime, Markup("\n".join(tags)))
     return _cache[1]

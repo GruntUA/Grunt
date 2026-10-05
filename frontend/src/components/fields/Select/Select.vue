@@ -18,7 +18,7 @@ const { t } = useI18n()
 
 const parsedOptions = computed(() => parseSelectOptions(props.field.options, props.field.option_labels))
 
-// Lazily resolve icon names → components, keyed by name.
+// Lazily resolve icon names -> components, keyed by name.
 const iconMap = shallowRef<Record<string, Component>>({})
 watchEffect(async () => {
   iconMap.value = await resolveOptionIcons(parsedOptions.value)
@@ -43,7 +43,7 @@ const currentOption = computed(
 
 const readonly = computed(() => !!props.disabled || !!props.field.read_only)
 
-// Optional fields get a clear affordance — reka Select has no native deselect.
+// Optional fields get a clear affordance - reka Select has no native deselect.
 const clearable = computed(() => !readonly.value && !props.field.required && current.value != null)
 </script>
 

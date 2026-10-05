@@ -6,17 +6,17 @@ thing: which `DocPermission` rows a user's roles actually match. Wrapping
 that here means the three call sites can't drift the way `PermissionMatch`'s
 two evaluation modes already had.
 
-No role, including "System Manager", bypasses permission rows outright —
+No role, including "System Manager", bypasses permission rows outright -
 access is always decided by matching rows. Most DocTypes grant System
 Manager unrestricted CRUD via an explicit `{"role": "System Manager", ...}`
 row, but a few (read-only logs, audit trails) deliberately don't grant
-write/create/delete to anyone, System Manager included — a blanket
+write/create/delete to anyone, System Manager included - a blanket
 role-based bypass would silently defeat that.
 
 The one exception is the internal SYSTEM_USER identity (`grunt.system_context()`
-— background tasks, hooks, migrations): it bypasses permission rows entirely,
+- background tasks, hooks, migrations): it bypasses permission rows entirely,
 same as before. That's an unrelated, non-human concern from "how do people
-get admin rights" — it's what lets the framework itself write to doctypes
+get admin rights" - it's what lets the framework itself write to doctypes
 (like ErrorLog) that intentionally grant no write access to any real role.
 """
 
@@ -41,7 +41,7 @@ class RoleAccess:
 
     @property
     def has_unrestricted_read(self) -> bool:
-        """True when a matching permission grants ``read`` with no row ``match`` —
+        """True when a matching permission grants ``read`` with no row ``match`` -
         the user may read every row, not just a filtered subset.
 
         ``apply_permission_filter()`` and the Link/tree picker gates both need to
@@ -72,7 +72,7 @@ class RoleAccess:
 
     @property
     def is_unrestricted(self) -> bool:
-        """True only for the internal SYSTEM_USER identity — never for a human
+        """True only for the internal SYSTEM_USER identity - never for a human
         role, System Manager included (see module docstring)."""
         from grunt.auth.doctypes.User.user import SYSTEM_USER
 
@@ -81,10 +81,10 @@ class RoleAccess:
     def matching_permissions(self) -> list[DocPermission]:
         """Permission rows whose role applies to this user (own roles, or "All").
 
-        Returns an empty list when :attr:`is_unrestricted` — callers must
+        Returns an empty list when :attr:`is_unrestricted` - callers must
         check that first and treat it as "everything allowed", not "nothing
         matched". A DocType with no permission rows at all is closed to
-        everyone else — "no permissions defined" means nobody has been
+        everyone else - "no permissions defined" means nobody has been
         granted access yet, not "open to anyone logged in". A doctype that
         should genuinely be world-readable needs an explicit
         `{"role": "All", ...}` permission row.

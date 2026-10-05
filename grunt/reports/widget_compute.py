@@ -1,7 +1,7 @@
 """Per-widget-type data computation for Dashboard/Page widgets.
 
 Each function here backs one `WidgetType.compute()` (see the `<Type>.py`
-files under `frontend/src/components/dashboard/widgets/`) — kept in one
+files under `frontend/src/components/dashboard/widgets/`) - kept in one
 importable module, rather than duplicated across those dynamically-loaded
 plugin files, since several widget types share a computation (gauge reuses
 `_widget_metric`, chart_bar reuses `_widget_chart`).
@@ -29,8 +29,8 @@ def _log_widget_failed(doctype_name: str, widget_type: str) -> None:
 def _bound(dt: Any, date_field: str, when: datetime, *, upper: bool = False) -> str:
     """A date-range bound for ``date_field`` in the form its list filter input edits.
 
-    Date → ``YYYY-MM-DD`` (the query only compares the date part anyway),
-    Datetime → ``YYYY-MM-DDTHH:MM`` — so a widget's drill-down filters show up
+    Date -> ``YYYY-MM-DD`` (the query only compares the date part anyway),
+    Datetime -> ``YYYY-MM-DDTHH:MM`` - so a widget's drill-down filters show up
     in the list's filter bar instead of an unparseable ISO timestamp. An
     ``upper`` bound rounds up to the minute, so rows from the current minute
     stay in range.
@@ -100,7 +100,7 @@ async def _widget_report_series(widget: Any) -> Any:
 
 
 async def _widget_metric(widget, dt, doctype_name, since, until, days, base_filters) -> Any:
-    """metric/gauge — a single aggregated value, optionally with a trend vs the prior period."""
+    """metric/gauge - a single aggregated value, optionally with a trend vs the prior period."""
     agg = widget.get("aggregation") or "count"
     field = widget.get("field") or "*"
     date_field = widget.get("date_field")
@@ -134,7 +134,7 @@ async def _widget_metric(widget, dt, doctype_name, since, until, days, base_filt
 
 
 async def _widget_chart(widget, dt, doctype_name, since, until, days, base_filters) -> Any:
-    """chart_area/chart_bar — a time series, optionally split into groups."""
+    """chart_area/chart_bar - a time series, optionally split into groups."""
     date_field = widget.get("date_field")
     if not date_field:
         return {"labels": [], "values": []}
@@ -186,7 +186,7 @@ async def _widget_chart(widget, dt, doctype_name, since, until, days, base_filte
 
 
 async def _widget_donut(widget, dt, doctype_name, since, until, days, base_filters) -> Any:
-    """donut — top N groups by count."""
+    """donut - top N groups by count."""
     group_by = widget.get("group_by")
     if not group_by:
         return {"labels": [], "values": []}
@@ -213,7 +213,7 @@ async def _widget_donut(widget, dt, doctype_name, since, until, days, base_filte
 
 
 async def _widget_list(widget, dt, doctype_name, since, until, days, base_filters) -> Any:
-    """list — most recently modified documents."""
+    """list - most recently modified documents."""
     try:
         items = await grunt.get_list(
             doctype_name,
@@ -229,7 +229,7 @@ async def _widget_list(widget, dt, doctype_name, since, until, days, base_filter
 
 
 async def _widget_shortcut(widget, dt, doctype_name, since, until, days, base_filters) -> Any:
-    """shortcut — a bare document count (always 1 for a singleton)."""
+    """shortcut - a bare document count (always 1 for a singleton)."""
     try:
         if dt.is_singleton:
             return {"count": 1}
@@ -240,7 +240,7 @@ async def _widget_shortcut(widget, dt, doctype_name, since, until, days, base_fi
 
 
 async def _widget_calendar(widget, dt, doctype_name, since, until, days, base_filters) -> Any:
-    """calendar — document counts per calendar day, for the requested range."""
+    """calendar - document counts per calendar day, for the requested range."""
     date_field = widget.get("date_field")
     if not date_field:
         return {"days": {}}
@@ -261,7 +261,7 @@ async def _widget_calendar(widget, dt, doctype_name, since, until, days, base_fi
 
 
 async def _widget_heatmap(widget, dt, doctype_name, since, until, days, base_filters) -> Any:
-    """heatmap — document counts per calendar day, since the range start (no upper bound)."""
+    """heatmap - document counts per calendar day, since the range start (no upper bound)."""
     date_field = widget.get("date_field")
     if not date_field:
         return {"entries": []}
@@ -286,7 +286,7 @@ async def _widget_heatmap(widget, dt, doctype_name, since, until, days, base_fil
 
 
 async def _widget_funnel(widget, dt, doctype_name, since, until, days, base_filters) -> Any:
-    """funnel — group counts, ordered by a Select field's declared option order if available."""
+    """funnel - group counts, ordered by a Select field's declared option order if available."""
     group_by = widget.get("group_by")
     if not group_by:
         return {"stages": []}
@@ -322,7 +322,7 @@ async def _widget_funnel(widget, dt, doctype_name, since, until, days, base_filt
 
 
 async def _widget_table(widget, dt, doctype_name, since, until, days, base_filters) -> Any:
-    """table — group aggregation rows (label + aggregated value), sorted descending."""
+    """table - group aggregation rows (label + aggregated value), sorted descending."""
     group_by = widget.get("group_by")
     if not group_by:
         return {"rows": []}
@@ -374,7 +374,7 @@ async def _widget_table(widget, dt, doctype_name, since, until, days, base_filte
 
 
 async def _widget_activity(widget, dt, doctype_name, since, until, days, base_filters) -> Any:
-    """activity — recent ActivityLog entries, optionally scoped to one doctype."""
+    """activity - recent ActivityLog entries, optionally scoped to one doctype."""
     from grunt.activity import feed_hidden_doctypes
 
     try:

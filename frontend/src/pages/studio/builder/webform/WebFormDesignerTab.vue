@@ -11,7 +11,7 @@ import WebFormFieldPropertiesPanel from './WebFormFieldPropertiesPanel.vue'
 const { t } = useI18n()
 
 const props = defineProps<{
-  // The WebForm DocType's own meta (unused here — see note below).
+  // The WebForm DocType's own meta (unused here - see note below).
   doctype: DocType
   // The WebForm *document* being edited: { doctype: "<target dt name>", fields: WebFormField[], ... }
   modelValue: Record<string, any>
@@ -21,7 +21,7 @@ const emit = defineEmits<{
   'update:modelValue': [value: Record<string, any>]
 }>()
 
-// `doctype` (the prop above) is the meta of *this* document's own DocType —
+// `doctype` (the prop above) is the meta of *this* document's own DocType -
 // i.e. WebForm itself, the same way DesignerTab.vue gets DocType's meta when
 // editing a DocType. What the canvas needs to edit is the *target* DocType
 // named in `modelValue.doctype` (e.g. "CitizenAppeal"), fetched separately.
@@ -74,7 +74,7 @@ function flattenToRows(fields: DocField[]): Record<string, any>[] {
       fieldname: f.fieldname,
       fieldtype: '',
       // Only persist an override when it actually diverges from the target
-      // — an un-touched field should keep tracking the target's own label
+      // - an un-touched field should keep tracking the target's own label
       // if that's renamed later, rather than freezing today's value.
       label: target && f.label !== target.label ? f.label : '',
       required: !!f.required && !target?.required,
@@ -109,7 +109,7 @@ async function load() {
 }
 
 // Mirrors DesignerTab.vue's contract: this tab is unmounted whenever it
-// isn't active, so it re-seeds from the live document on every visit — a
+// isn't active, so it re-seeds from the live document on every visit - a
 // single outward mirror (builder.doctype -> modelValue) is enough while
 // mounted, since the designer is the only editor touching `fields` then.
 watch(

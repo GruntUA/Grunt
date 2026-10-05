@@ -1,10 +1,10 @@
-"""Web view — documents of a DocType served as public pages.
+"""Web view - documents of a DocType served as public pages.
 
 A DocType opts in with ``has_web_view`` + ``allow_guest_to_view`` and a
 ``web_route`` prefix. A document's page lives at
 ``<app mount>/<web_route>/<doc route>``:
 
-* the app mount follows the www/ rule — ``""`` for the core and for the
+* the app mount follows the www/ rule - ``""`` for the core and for the
   primary web app, ``/<app>`` for every other app;
 * ``<doc route>`` is the document's ``route`` field when the DocType has one
   (filled from the title on save, see :func:`fill_route`), else its name.
@@ -44,14 +44,14 @@ if TYPE_CHECKING:
 WEB_URL_KEY = "__web_url"
 ROUTE_FIELD = "route"
 
-# Shown on the page itself (heading/cover) or pure web plumbing — left out of
+# Shown on the page itself (heading/cover) or pure web plumbing - left out of
 # the generic field layout.
 _TECHNICAL_FIELDS = {ROUTE_FIELD}
 
 _template_envs: dict[Path, Environment] = {}
 
 
-# ── URLs ─────────────────────────────────────────────────────────────────
+# URLs
 
 
 def _has_field(dt: Any, fieldname: str) -> bool:
@@ -64,7 +64,7 @@ def is_public(dt: Any) -> bool:
 
 
 def route_prefix(dt: Any) -> str:
-    """``/news`` or ``/<app>/news`` — the URL every page of *dt* starts with."""
+    """``/news`` or ``/<app>/news`` - the URL every page of *dt* starts with."""
     from grunt.apps.loader import CORE_APP, primary_web_app
 
     app = dt.app
@@ -107,7 +107,7 @@ async def with_web_url(doctype: str, doc: Any) -> Any:
     return doc
 
 
-# ── Route on save ────────────────────────────────────────────────────────
+# Route on save
 
 
 async def fill_route(dt: Any, row: dict[str, Any], session: Any) -> None:
@@ -131,7 +131,7 @@ async def fill_route(dt: Any, row: dict[str, Any], session: Any) -> None:
         candidate, suffix = f"{base}-{suffix}", suffix + 1
 
 
-# ── Serving ──────────────────────────────────────────────────────────────
+# Serving
 
 
 async def _find_page(path: str) -> tuple[Any, str | None] | None:
@@ -244,7 +244,7 @@ async def render_doc_page(request: Request, session: Any) -> HTMLResponse | None
             if hook is not None:
                 await _apply(hook(controller, context), context)
 
-        # Templates query too (website_menu) — render inside the grunt context.
+        # Templates query too (website_menu) - render inside the grunt context.
         return await _render(dt, context)
 
 

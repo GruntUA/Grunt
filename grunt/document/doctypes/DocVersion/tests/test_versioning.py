@@ -66,10 +66,10 @@ class TestBuildRestoreData:
             {"version": 1, "changes": [{"field": "title", "old": "Draft", "new": "V1"}]},
         ]
 
-        # Restore to version 2 — should undo version 3
+        # Restore to version 2 - should undo version 3
         restored = self.svc.build_restore_data(current, versions, target_version=2)
         assert restored["status"] == "Open"
-        assert restored["title"] == "V3"  # Not undone — version 2 changed it
+        assert restored["title"] == "V3"  # Not undone - version 2 changed it
 
     def test_restore_to_version_1(self):
         """Restoring to version 1 undoes versions 3 and 2, keeping v1's state."""
@@ -80,7 +80,7 @@ class TestBuildRestoreData:
             {"version": 1, "changes": [{"field": "status", "old": "Draft", "new": "Active"}]},
         ]
 
-        # Restore to v1 = undo v3 (status Done→Active) and v2 (title Final→Initial)
+        # Restore to v1 = undo v3 (status Done->Active) and v2 (title Final->Initial)
         restored = self.svc.build_restore_data(current, versions, target_version=1)
         assert restored["status"] == "Active"  # State after v1 was applied
         assert restored["title"] == "Initial"  # State before v2 was applied

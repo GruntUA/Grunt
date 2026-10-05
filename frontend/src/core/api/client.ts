@@ -55,7 +55,7 @@ client.interceptors.request.use(async (config) => {
     const { i18n } = await import('@/plugins/i18n')
     config.headers['X-Grunt-Lang'] = i18n.global.locale.value
   } catch {
-    // i18n not ready yet — server falls back to its default language
+    // i18n not ready yet - server falls back to its default language
   }
   return config
 })
@@ -113,7 +113,7 @@ client.interceptors.response.use(
     if (error.response?.status === 401 && !isAuthEndpoint && !originalConfig._retried) {
       originalConfig._retried = true
 
-      // An impersonation session has no refresh token — a 401 means it expired
+      // An impersonation session has no refresh token - a 401 means it expired
       // or was rejected. Restore the System Manager's own session and retry once.
       {
         const { useAuthStore } = await import('@/stores/auth')
@@ -154,7 +154,7 @@ client.interceptors.response.use(
       }
     }
 
-    // Show toast for 403 forbidden responses — no redirect so the page and
+    // Show toast for 403 forbidden responses - no redirect so the page and
     // network tab stay intact and the error is easy to debug.
     if (error.response?.status === 403) {
       const body = error.response?.data
@@ -163,7 +163,7 @@ client.interceptors.response.use(
       return Promise.reject(error)
     }
 
-    // Show the debug error modal for any response carrying a `debug` bundle —
+    // Show the debug error modal for any response carrying a `debug` bundle -
     // not just 5xx. A backend bug can just as well surface as a 422 (e.g. a
     // pydantic model rejecting a shape the DB holds) or another status; what
     // matters is whether the server attached debug info (only happens with
@@ -184,7 +184,7 @@ client.interceptors.response.use(
     // Network error (no response): connection lost. A document create /
     // update / delete is queued for later (see useOfflineQueue); the caller
     // gets OfflineQueuedError instead of a response. Anything else (actions,
-    // RPCs, login) just fails — replaying it later on stale state is unsafe.
+    // RPCs, login) just fails - replaying it later on stale state is unsafe.
     if (!error.response && error.request) {
       markServerReachable(false)
       const method = (originalConfig?.method ?? '').toLowerCase()

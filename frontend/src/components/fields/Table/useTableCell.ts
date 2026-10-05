@@ -1,5 +1,5 @@
 /**
- * Cell helpers for the Table field — which cells are edited inline, what a
+ * Cell helpers for the Table field - which cells are edited inline, what a
  * read-only cell shows, and per-cell validation (mirrors the backend so the
  * user fixes a row before Save).
  */
@@ -42,7 +42,7 @@ export function useTableCell() {
 
   /**
    * First validation message for a cell, or null. `includeRequired: false`
-   * reports only wrong values, not "not filled in yet" — for the row summary
+   * reports only wrong values, not "not filled in yet" - for the row summary
    * and the Add-row gate, so untouched required cells don't cry wolf.
    */
   function cellError(
@@ -60,7 +60,7 @@ export function useTableCell() {
       try {
         if (!new RegExp(f.regex).test(s)) return t('Invalid format')
       } catch {
-        /* bad regex in metadata — ignore */
+        /* bad regex in metadata - ignore */
       }
     }
     if (f.fieldtype === 'Int' || f.fieldtype === 'Float' || f.fieldtype === 'Currency') {

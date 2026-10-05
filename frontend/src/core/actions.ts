@@ -1,5 +1,5 @@
 /**
- * Action registry — every button and menu item of a form or a list.
+ * Action registry - every button and menu item of a form or a list.
  *
  * Nothing in the form/list header is hard-coded: the framework's
  * `global_form.js` / `global_list.js` register the standard actions (Save,
@@ -21,18 +21,18 @@
  * ```
  *
  * `visible` / `enabled` / `busy` / a function `label` are re-evaluated
- * reactively — they may read `frm.doc`, `frm.perm`, `frm.is_dirty`, … .
+ * reactively - they may read `frm.doc`, `frm.perm`, `frm.is_dirty`, … .
  */
 import { computed, shallowRef, triggerRef, type ComputedRef } from 'vue'
 
 export type ActionPlacement = 'primary' | 'toolbar' | 'menu' | 'bulk' | 'workflow'
 
 export interface ActionDef<C = any> {
-  /** Stable id — `update` / `remove` / a later `add` with the same id address it. */
+  /** Stable id - `update` / `remove` / a later `add` with the same id address it. */
   id: string
   label: string | ((ctx: C) => string)
-  /** primary — the main button (right-most); toolbar — buttons; menu — the «⋯» menu;
-   *  workflow — the workflow bar (transitions); bulk — list selection bar. Default: toolbar. */
+  /** primary - the main button (right-most); toolbar - buttons; menu - the «⋯» menu;
+   *  workflow - the workflow bar (transitions); bulk - list selection bar. Default: toolbar. */
   placement?: ActionPlacement
   /** Lucide icon name (kebab-case), e.g. `save`, `trash-2`. */
   icon?: string
@@ -44,7 +44,7 @@ export interface ActionDef<C = any> {
   order?: number
   /** default | outline | secondary | ghost | destructive | success | warning | info, or a colour name. */
   variant?: string
-  /** Keyboard shortcut, e.g. `Mod+S` — ⌘ on macOS, Ctrl elsewhere (core/shortcuts.ts). Works while typing in a field. */
+  /** Keyboard shortcut, e.g. `Mod+S` - ⌘ on macOS, Ctrl elsewhere (core/shortcuts.ts). Works while typing in a field. */
   shortcut?: string
   visible?: (ctx: C) => boolean
   enabled?: (ctx: C) => boolean

@@ -22,7 +22,7 @@ _messages_ctx: ContextVar[list[dict] | None] = ContextVar("grunt_messages", defa
 _bootstrap_ctx: ContextVar[bool] = ContextVar("grunt_bootstrap", default=False)
 
 
-# ── Context accessors ───────────────────────────────────────────────────────
+# Context accessors
 # Module-level helpers so any layer can read the active request context directly
 # (without routing through a GruntApp facade method). The facade keeps thin
 # ``_require_*`` method wrappers around these for backward compatibility.

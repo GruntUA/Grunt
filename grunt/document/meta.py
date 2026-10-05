@@ -1,4 +1,4 @@
-"""Meta class — wrapper over raw DocType metadata.
+"""Meta class - wrapper over raw DocType metadata.
 
 Provides convenient access and caching for metadata operations.
 """
@@ -67,7 +67,7 @@ class Meta:
         """Return this DocType's compiled :class:`sqlalchemy.Table`.
 
         Delegates to :func:`compile_doctype_to_table`, which memoizes by
-        DocType name — cheap to call repeatedly, kept here for callers that
+        DocType name - cheap to call repeatedly, kept here for callers that
         already hold a :class:`Meta` and shouldn't need a second import.
         """
         from grunt.metadata.compiler import compile_doctype_to_table
@@ -143,7 +143,7 @@ class Meta:
         return self._searchable_fields
 
     def get_valid_columns(self) -> list[str]:
-        """Return all valid physical database columns — exactly the compiled table's."""
+        """Return all valid physical database columns - exactly the compiled table's."""
         if self._valid_columns is None:
             self._valid_columns = [c.name for c in self.table.columns]
         return self._valid_columns
@@ -231,7 +231,7 @@ class Meta:
     ) -> None:
         """Drop columns from this DocType's database table that are not defined in metadata.
 
-        ``keep`` — columns of other DocTypes stored in the same table (``table_name``),
+        ``keep`` - columns of other DocTypes stored in the same table (``table_name``),
         which must survive too.
         WARNING: Dropping columns is irreversible and could lead to data loss.
         """

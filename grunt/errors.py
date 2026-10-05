@@ -2,9 +2,9 @@
 
 Two layers live here:
 
-* :class:`ApplicationError` — a user-facing domain error raised via
+* :class:`ApplicationError` - a user-facing domain error raised via
   ``grunt.throw()``; its ``code`` picks the HTTP status (:data:`APPLICATION_ERROR_STATUS`).
-* :class:`APIError` (+ factory helpers like :func:`forbidden`) — HTTP errors with
+* :class:`APIError` (+ factory helpers like :func:`forbidden`) - HTTP errors with
   a *semantic* error code and structured details, plus :func:`error_body`, the
   single builder for the JSON error envelope used by every error response.
 """
@@ -17,7 +17,7 @@ from fastapi import HTTPException
 
 from grunt.i18n import _
 
-# ``grunt.throw(..., code=...)`` → HTTP status; anything else is a 422.
+# ``grunt.throw(..., code=...)`` -> HTTP status; anything else is a 422.
 APPLICATION_ERROR_STATUS: dict[str, int] = {
     "UNAUTHORIZED": 401,
     "PERMISSION_DENIED": 403,
@@ -44,7 +44,7 @@ class ApplicationError(Exception):
         return APPLICATION_ERROR_STATUS.get(self.code, 422)
 
     def to_api_error(self) -> APIError:
-        """The same error as an HTTP exception — for code paths that only speak HTTP."""
+        """The same error as an HTTP exception - for code paths that only speak HTTP."""
         return APIError(self.status_code, self.code, self.message)
 
 
@@ -86,22 +86,22 @@ class APIError(HTTPException):
 
 
 def forbidden(message: str | None = None, *, details: list[Any] | None = None) -> APIError:
-    """403 — the user is authenticated but lacks permission."""
+    """403 - the user is authenticated but lacks permission."""
     return APIError(403, "FORBIDDEN", message or _("Not permitted"), details=details)
 
 
 def not_found(message: str | None = None, *, details: list[Any] | None = None) -> APIError:
-    """404 — the requested resource does not exist."""
+    """404 - the requested resource does not exist."""
     return APIError(404, "NOT_FOUND", message or _("Not found"), details=details)
 
 
 def conflict(message: str, *, details: list[Any] | None = None) -> APIError:
-    """409 — the request conflicts with the current state (duplicate, etc.)."""
+    """409 - the request conflicts with the current state (duplicate, etc.)."""
     return APIError(409, "CONFLICT", message, details=details)
 
 
 def unprocessable(message: str, *, details: list[Any] | None = None) -> APIError:
-    """422 — the request is well-formed but failed validation."""
+    """422 - the request is well-formed but failed validation."""
     return APIError(422, "VALIDATION_ERROR", message, details=details)
 
 
@@ -111,7 +111,7 @@ def too_many_requests(
     details: list[Any] | None = None,
     headers: dict[str, str] | None = None,
 ) -> APIError:
-    """429 — rate limit exceeded."""
+    """429 - rate limit exceeded."""
     return APIError(
         429,
         "RATE_LIMIT_EXCEEDED",

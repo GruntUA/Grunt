@@ -1,4 +1,4 @@
-"""Storage tasks — run by the task worker."""
+"""Storage tasks - run by the task worker."""
 
 from __future__ import annotations
 

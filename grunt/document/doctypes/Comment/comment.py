@@ -1,4 +1,4 @@
-"""Comment DocType controller — validation and permission enforcement."""
+"""Comment DocType controller - validation and permission enforcement."""
 
 from __future__ import annotations
 
@@ -27,9 +27,7 @@ class Comment(Document):
         ):
             self.grunt.throw(_("Only the author or an administrator can delete a comment"))
 
-    # ------------------------------------------------------------------
     # Helper Classmethods
-    # ------------------------------------------------------------------
 
     @classmethod
     async def add(

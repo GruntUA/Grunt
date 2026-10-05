@@ -145,7 +145,7 @@ def _render_fallback(doctype_label: str, fields: list[Any], doc: dict[str, Any])
     """Minimal HTML fallback when no template file exists.
 
     Built by hand (not through Jinja, which autoescapes) because there's no
-    template to render — every interpolated value is therefore document data
+    template to render - every interpolated value is therefore document data
     or a label and MUST be escaped explicitly, or a field value containing
     HTML/script becomes a stored XSS in the print/HTML view every viewer of
     that document opens.

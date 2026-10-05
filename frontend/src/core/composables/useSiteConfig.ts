@@ -4,11 +4,11 @@
  *
  * Precedence for the *effective* locale & timezone:
  *   1. the logged-in user's `User.language` / `User.timezone`   (applyUserPrefs)
- *   2. the visitor's explicit browser choice — localStorage['grunt-locale']
+ *   2. the visitor's explicit browser choice - localStorage['grunt-locale']
  *   3. `SystemSettings` defaults                                (loadSiteConfig)
  *
- * Singleton state (same pattern as `useColorMode`) so plain modules — e.g.
- * `core/datetime.ts` — can read it without a component instance.
+ * Singleton state (same pattern as `useColorMode`) so plain modules - e.g.
+ * `core/datetime.ts` - can read it without a component instance.
  */
 
 import { reactive, toRefs } from 'vue'
@@ -28,7 +28,7 @@ export interface SiteConfig {
   appLogo: string
   /** Site default UI language (short code, e.g. "uk"). */
   language: string
-  /** UI languages the switcher offers — every locale with a translation catalog. */
+  /** UI languages the switcher offers - every locale with a translation catalog. */
   languages: UiLanguage[]
   /** Effective IANA tz name, e.g. "Europe/Kyiv". Empty = use the browser's zone. */
   timezone: string
@@ -52,7 +52,7 @@ const state = reactive<SiteConfig>({
   loaded: false,
 })
 
-// Site default vs. per-user override — `state.timezone` is whichever applies.
+// Site default vs. per-user override - `state.timezone` is whichever applies.
 let _siteTimezone = ''
 let _userTimezone: string | null = null
 
@@ -83,7 +83,7 @@ async function _load(): Promise<void> {
       }
     }
   } catch {
-    // Offline / not configured — keep the defaults.
+    // Offline / not configured - keep the defaults.
   } finally {
     state.loaded = true
     _syncTimezone()
@@ -97,7 +97,7 @@ async function _load(): Promise<void> {
       else document.documentElement.setAttribute('lang', state.language)
     }
   } catch {
-    // localStorage unavailable — ignore.
+    // localStorage unavailable - ignore.
   }
 }
 
@@ -107,7 +107,7 @@ export function loadSiteConfig(): Promise<void> {
   return _promise
 }
 
-/** Force a fresh fetch — e.g. right after the setup wizard saves settings. */
+/** Force a fresh fetch - e.g. right after the setup wizard saves settings. */
 export function reloadSiteConfig(): Promise<void> {
   _promise = _load()
   return _promise

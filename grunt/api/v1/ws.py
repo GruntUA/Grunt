@@ -21,7 +21,7 @@ class ConnectionManager:
     the message to their locally-connected clients.
 
     Channel naming:
-      ``grunt:ws:<channel>``  →  delivered to all connections on that channel
+      ``grunt:ws:<channel>``  ->  delivered to all connections on that channel
 
     Presence / field-lock state is kept **in-process** (per worker).
     For multi-worker deployments the presence_update event is published via
@@ -31,12 +31,12 @@ class ConnectionManager:
 
     def __init__(self) -> None:
         self._connections: dict[str, list[WebSocket]] = {}
-        # channel → {ws_id: user_info}
+        # channel -> {ws_id: user_info}
         self._presence: dict[str, dict[int, dict[str, str]]] = {}
-        # channel → {fieldname: user_info}
+        # channel -> {fieldname: user_info}
         self._field_locks: dict[str, dict[str, dict[str, str]]] = {}
         # Strong reference: asyncio keeps only weak ones, so an unreferenced
-        # listener task can be garbage-collected mid-flight — realtime then
+        # listener task can be garbage-collected mid-flight - realtime then
         # silently stops relaying.
         self._redis_listener_task: asyncio.Task[None] | None = None
 
@@ -65,7 +65,7 @@ class ConnectionManager:
         for ws in dead:
             self.disconnect(ws, channel)
 
-    # ── Redis helpers ─────────────────────────────────────────────────
+    # Redis helpers
 
     async def _redis_publish(self, channel: str, message: str) -> bool:
         """Publish a message to a Redis channel (best-effort); True if published."""
@@ -87,7 +87,7 @@ class ConnectionManager:
     async def _deliver(self, channel: str, message: str) -> None:
         """Deliver to every process's clients on *channel*, exactly once.
 
-        With Redis, publishing is enough: every web process — this one too —
+        With Redis, publishing is enough: every web process - this one too -
         relays it to its own connections from the listener. Sending locally as
         well delivered each message twice. Without Redis (or if the publish
         failed) only this process's connections can be reached.
@@ -143,7 +143,7 @@ class ConnectionManager:
                 log.warning("ws.redis_listener_error", error=str(e))
                 await asyncio.sleep(2)  # retry after brief pause
 
-    # ── Public broadcast API ──────────────────────────────────────────
+    # Public broadcast API
 
     async def broadcast(self, channel: str, event: str, data: dict[str, Any]) -> None:
         message = json.dumps({"event": event, "data": data})
@@ -175,7 +175,7 @@ class ConnectionManager:
             if channel.startswith("user:"):
                 await self._send(channel, message)
 
-    # ── Presence API ──────────────────────────────────────────────────
+    # Presence API
 
     def _presence_list(self, channel: str) -> list[dict[str, str]]:
         return list(self._presence.get(channel, {}).values())
@@ -261,7 +261,7 @@ async def _authenticate_ws(websocket: WebSocket, token: str | None) -> str | Non
 
 
 async def _run_simple_channel(websocket: WebSocket, channel: str) -> None:
-    """Connect, relay ping/pong until disconnect — shared by ws_user/ws_site/ws_public.
+    """Connect, relay ping/pong until disconnect - shared by ws_user/ws_site/ws_public.
 
     All three are the same channel lifecycle; they differ only in how
     *channel* is computed (and whether that requires authenticating first).
@@ -327,14 +327,14 @@ async def ws_document(
 
     Supports presence tracking and field-level locking.
 
-    Client → Server actions:
+    Client -> Server actions:
       { "action": "ping" }
       { "action": "presence_join", "user": { "email": "...", "full_name": "...", "color": "#..." } }
       { "action": "presence_leave" }
       { "action": "field_focus", "field": "fieldname" }
       { "action": "field_blur",  "field": "fieldname" }
 
-    Server → Client events:
+    Server -> Client events:
       { "event": "pong" }
       { "event": "doc_change",       "data": { ... } }
       { "event": "presence_update",  "data": { "users": [...] } }

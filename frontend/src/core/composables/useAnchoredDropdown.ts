@@ -1,6 +1,6 @@
 /**
  * Positions a teleported dropdown against an anchor element using fixed
- * coordinates, and keeps it glued to the anchor while it is open — the anchor
+ * coordinates, and keeps it glued to the anchor while it is open - the anchor
  * moves under a `position: fixed` layer on any page/container scroll or window
  * resize, so those must trigger a re-measure.
  *

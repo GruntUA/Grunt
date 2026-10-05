@@ -48,7 +48,7 @@ def test_forwarded_headers_trusted_only_from_proxy():
     # Anyone else can't claim an address with a header.
     assert client_ip(_request("203.0.113.9", x_real_ip="10.1.2.3")) == "203.0.113.9"
     assert client_ip(_request("203.0.113.9", cf_connecting_ip="10.1.2.3")) == "203.0.113.9"
-    # A Cloudflare edge is believed — but only for CF-Connecting-IP.
+    # A Cloudflare edge is believed - but only for CF-Connecting-IP.
     assert client_ip(_request("104.23.162.181", cf_connecting_ip="10.1.2.3")) == "10.1.2.3"
     assert client_ip(_request("104.23.162.181", x_real_ip="10.1.2.3")) == "104.23.162.181"
 
@@ -57,7 +57,7 @@ async def _setup(ctx, allowed_ips: str) -> None:
     from grunt.auth.doctypes.User.user import create_user
 
     async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
-        await create_user(EMAIL, PASSWORD, "Root", "Admin", None)  # → System Manager
+        await create_user(EMAIL, PASSWORD, "Root", "Admin", None)  # -> System Manager
         if await ctx.db.exists("Role", "System Manager"):
             await ctx.db.set_value("Role", "System Manager", "allowed_ips", allowed_ips)
         else:

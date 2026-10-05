@@ -1,5 +1,5 @@
 /**
- * useWebPush — Web Push API composable.
+ * useWebPush - Web Push API composable.
  *
  * Handles VAPID public key fetch, permission request, subscription save/remove.
  * Works only in browsers that support PushManager. Falls back gracefully.

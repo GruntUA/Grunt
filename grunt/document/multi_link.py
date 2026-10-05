@@ -1,4 +1,4 @@
-"""MultiLink service — manages many-to-many relationships via junction table."""
+"""MultiLink service - manages many-to-many relationships via junction table."""
 
 from __future__ import annotations
 

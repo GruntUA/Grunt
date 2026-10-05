@@ -25,7 +25,7 @@ const error = ref('')
 const mfaToken = (route.query.token as string) || ''
 
 // A role that requires 2FA sends users without it here with an `mfa_setup`
-// token: enroll (QR → code → backup codes) instead of verifying.
+// token: enroll (QR -> code -> backup codes) instead of verifying.
 function tokenPurpose(jwt: string): string | null {
   try {
     return JSON.parse(atob(jwt.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))).purpose ?? null

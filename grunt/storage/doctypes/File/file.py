@@ -20,7 +20,7 @@ class File(Document):
 
     A row is metadata over a content-addressed blob (``content_hash``): the
     blob outlives the row and is dropped by the storage garbage collector
-    (grunt.storage.gc) once nothing — trash included — refers to it.
+    (grunt.storage.gc) once nothing - trash included - refers to it.
     """
 
     file_name: str
@@ -47,7 +47,7 @@ async def upload(
     """Whitelisted method: Upload a file and create a File document.
 
     An attachment (``attached_to_*`` set) is private unless ``is_public`` is
-    passed explicitly or its DocType sets ``public_attachments`` — readable
+    passed explicitly or its DocType sets ``public_attachments`` - readable
     only with its document, via a signed URL (see :mod:`grunt.storage.signing`).
     A free-standing library file stays public; ``folder`` files it into the
     library tree (FileFolder).
@@ -61,7 +61,7 @@ async def upload(
     content_type = file.content_type or "application/octet-stream"
     try:
         files.validate_mime_type(content_type)
-        # Streamed to disk while hashing — never held in memory whole.
+        # Streamed to disk while hashing - never held in memory whole.
         key, size = await get_storage_backend().put(file.file, max_bytes=files.upload_limit())
     except FileTooLargeError:
         from grunt.config import settings
@@ -77,8 +77,8 @@ async def upload(
 
     # The blob is stored once whatever happens; this only decides whether a
     # re-upload of the same name + bytes by the same user for the same target
-    # reuses its File row instead of listing a second one. A different name —
-    # or the same bytes for a *different* document — gets its own row.
+    # reuses its File row instead of listing a second one. A different name -
+    # or the same bytes for a *different* document - gets its own row.
     existing = await File.objects.filter(
         file_name=file.filename,
         content_hash=key,
@@ -145,7 +145,7 @@ async def get_content(
     thumb: bool = False,
     request: Request | None = None,
 ) -> Response:
-    """Whitelisted method: Stream file content from storage (``thumb`` — its preview).
+    """Whitelisted method: Stream file content from storage (``thumb`` - its preview).
 
     A private file needs either a valid signature (``exp`` + ``sig``, appended
     to every file URL the API hands out) or a user allowed to read it.
@@ -170,7 +170,7 @@ async def get_content(
     if not doc:
         raise HTTPException(404, _("File not found"))
 
-    # A private file needs an authenticated user who may read it — which, for
+    # A private file needs an authenticated user who may read it - which, for
     # an attachment, means reading the document it is attached to.
     if not doc.get("is_public") and not verify(file_id, exp, sig):
         user = _user_ctx.get()
@@ -184,7 +184,7 @@ async def get_content(
 
     key = doc.get("content_hash") or ""
     storage = get_storage_backend()
-    # A blob never changes (it is named by its hash) — let the browser keep
+    # A blob never changes (it is named by its hash) - let the browser keep
     # it and revalidate by ETag. "private": access is per user.
     etag = f'"{key}-thumb"' if thumb else f'"{key}"'
     headers = {"ETag": etag, "Cache-Control": "private, max-age=86400"}
@@ -256,8 +256,8 @@ async def get_list(
 async def remove(file_id: str) -> bool:
     """Whitelisted method: Delete a file (permission-checked by delete_doc).
 
-    The blob stays until the storage garbage collector finds nothing — no
-    other File row, no trashed snapshot — pointing at it (grunt.storage.gc).
+    The blob stays until the storage garbage collector finds nothing - no
+    other File row, no trashed snapshot - pointing at it (grunt.storage.gc).
     """
     await grunt.delete_doc("File", file_id)
     return True

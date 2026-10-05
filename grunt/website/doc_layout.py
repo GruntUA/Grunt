@@ -1,4 +1,4 @@
-"""A document laid out by its DocType's Tab → Section → Column structure,
+"""A document laid out by its DocType's Tab -> Section -> Column structure,
 for the server-rendered read-only views (``/share/{token}``, web view pages).
 """
 
@@ -12,7 +12,7 @@ from grunt.utils.sanitize import sanitize_html
 # Framework bookkeeping fields never shown in the read-only share view.
 _SKIP_FIELDS = {"id", "name", "owner", "created_at", "modified_at", "modified_by", "docstatus"}
 _MULTILINE = {"LongText", "Text", "HTML", "Code", "Markdown"}
-# Rendered as markup (``row.html``) — sanitized again here, for rows written
+# Rendered as markup (``row.html``) - sanitized again here, for rows written
 # before RichText was sanitized on save.
 _RICH = {"RichText"}
 _IMAGE_TYPES = {"Image", "Attach Image"}
@@ -34,7 +34,7 @@ def _is_image_value(fieldtype: str, raw: Any) -> bool:
 
 
 def fmt_dt(raw: Any) -> str:
-    """`2026-09-08T14:20:12+00:00` → `2026-09-08 14:20`."""
+    """`2026-09-08T14:20:12+00:00` -> `2026-09-08 14:20`."""
     return raw[:16].replace("T", " ") if isinstance(raw, str) and len(raw) >= 16 else (raw or "")
 
 
@@ -68,7 +68,7 @@ def build_tabs(
     exposed: set[str] | None = None,
     skip: set[str] | None = None,
 ) -> list[dict]:
-    """Walk the DocType's ordered field list and rebuild its Tab → Section →
+    """Walk the DocType's ordered field list and rebuild its Tab -> Section ->
     Column layout, keeping only the data fields in *exposed* (all when empty)
     and never those in *skip*.
     """

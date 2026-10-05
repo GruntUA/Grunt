@@ -22,7 +22,7 @@ const ready = ref(false)
 // This tab is unmounted by the surrounding <TabsContent> whenever it isn't the
 // active tab, so it re-seeds from the live form model on every visit. While it
 // *is* mounted the designer is the only editor touching the model, so a single
-// outward mirror (builder.doctype -> modelValue) is enough — no inbound watcher,
+// outward mirror (builder.doctype -> modelValue) is enough - no inbound watcher,
 // no echo loop.
 watch(() => builder.doctype, (newVal) => {
   if (ready.value && newVal) emit('update:modelValue', { ...newVal })

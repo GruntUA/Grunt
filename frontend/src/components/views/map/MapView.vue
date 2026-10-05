@@ -17,7 +17,7 @@ import { docUrl } from '@/core/workspaceUrl'
 
 const { t } = useI18n()
 
-// ── Props ────────────────────────────────────────────────────────────────────
+// Props
 const props = defineProps<{
   doctype: DocType
   geoField: string
@@ -31,14 +31,14 @@ const emit = defineEmits<{
   'unregister-menu-items': [items: ScriptMenuItem[]]
 }>()
 
-// ── Map config (from doctype.map_view or defaults) ───────────────────────────
+// Map config (from doctype.map_view or defaults)
 const cfg = computed<DocTypeMapView>(() => props.doctype.map_view ?? {})
 const labelField = computed(() => cfg.value.label_field ?? props.doctype.title_field ?? 'name')
 const colorField = computed(() => cfg.value.color_field ?? null)
 const colorMap = computed(() => cfg.value.color_map ?? {})
 const defaultColor = computed(() => cfg.value.default_color ?? 'var(--color-primary, #3b82f6)')
 
-// Auto-derive iconField: "object_type__color" → "object_type__icon", or explicit cfg
+// Auto-derive iconField: "object_type__color" -> "object_type__icon", or explicit cfg
 const iconField = computed(() => {
   if (cfg.value.icon_field) return cfg.value.icon_field
   if (colorField.value?.endsWith('__color')) return colorField.value.replace('__color', '__icon')
@@ -48,14 +48,14 @@ const iconField = computed(() => {
 const doctypeName = computed(() => props.doctype.name)
 const geoFieldName = computed(() => props.geoField)
 
-// ── Popup fields (user-configured columns or in_list_view fallback) ───────────
+// Popup fields (user-configured columns or in_list_view fallback)
 const { popupFields } = useMapPopupFields({
   doctypeName,
   fields: computed(() => props.doctype.fields),
   geoField: geoFieldName,
 })
 
-// ── State ────────────────────────────────────────────────────────────────────
+// State
 const router = useRouter()
 const mapEl = ref<HTMLDivElement | null>(null)
 const mapWrapEl = ref<HTMLDivElement | null>(null)
@@ -85,7 +85,7 @@ const { coordInput, coordError, gotoCoord, clearCoordMarker } = useMapCoordinate
   getMap: () => map.value,
 })
 
-// ── Export / Print ───────────────────────────────────────────────────────────
+// Export / Print
 const { exportGeoJSON, exportCSV } = useMapExport({
   doctypeName,
   geoField: geoFieldName,
@@ -120,7 +120,7 @@ const menuItems: ScriptMenuItem[] = [
   { label: t('Print / PDF'), action: exportPrint },
 ]
 
-// ── Lifecycle ─────────────────────────────────────────────────────────────────
+// Lifecycle
 // Initialize map, tile layer, menu registration, and watch for prop changes
 const { map, markerLayer, browserPrint } = useMapLifecycle({
   mapEl,
@@ -183,7 +183,7 @@ const { map, markerLayer, browserPrint } = useMapLifecycle({
     <div ref="mapWrapEl" class="flex-1 w-full relative">
       <div ref="mapEl" class="absolute inset-0 z-0" />
 
-      <!-- ── Print area selector ── -->
+      <!-- Print area selector -->
       <template v-if="isPrintMode">
         <!-- Dark overlay with "hole" via box-shadow on the rect -->
         <div class="absolute inset-0 z-[2000] select-none" @mousedown.self.prevent>

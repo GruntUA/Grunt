@@ -42,7 +42,7 @@ class DocAction:
     confirm: str | None = None
     roles: list[str] = field(default_factory=list)
     module: str = ""
-    # Input fields to prompt for before running — each a ``DialogField``-shaped
+    # Input fields to prompt for before running - each a ``DialogField``-shaped
     # dict (``fieldname``, ``label``, ``fieldtype``, ``required``, ``default``,
     # ``options``, ``description``). The toolbar opens a form dialog and passes
     # the collected values to the handler as ``args``. Empty = run immediately.

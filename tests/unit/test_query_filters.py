@@ -194,3 +194,13 @@ def test_virtual_rejects_unknown_operator():
 
     with pytest.raises(ValueError, match="child_of"):
         VirtualDocType("T").apply_filters([{"dept": "A"}], {"dept__child_of": "A"})
+
+
+@pytest.mark.parametrize("value", ["yes", "true", "1", True, "no", "false", "0", False])
+def test_virtual_isnull_reads_value_like_sql(value):
+    from grunt.db.filters import is_truthy
+    from grunt.metadata.virtual import VirtualDocType
+
+    rows = [{"qty": None}, {"qty": 1}]
+    expected = [rows[0]] if is_truthy(value) else [rows[1]]
+    assert VirtualDocType("T").apply_filters(rows, {"qty__isnull": value}) == expected

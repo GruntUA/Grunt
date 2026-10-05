@@ -1,5 +1,5 @@
 /**
- * Browser half of the «Стан системи» report — the checks only this browser
+ * Browser half of the «Стан системи» report - the checks only this browser
  * can answer: is the service worker installed and in control, is the app
  * shell fully pre-cached, do API responses land in the offline cache, what
  * is waiting in the offline queue, how much storage is left.
@@ -98,7 +98,7 @@ async function cacheChecks(): Promise<HealthRow[]> {
       const res = await fetch('/precache-manifest.json', { cache: 'no-store' })
       if (res.ok) manifest = await res.json()
     } catch {
-      /* offline right now — compare against what is cached */
+      /* offline right now - compare against what is cached */
     }
     const missing = manifest.filter((u) => !cached.has(u))
     rows.push(missing.length
@@ -213,8 +213,8 @@ function waitFor(
 
 /**
  * A real round trip on a separate test socket: connect to the user channel,
- * ping → pong, then ask the server to push an event to this user and count
- * how many copies arrive (exactly one is right — two means double delivery).
+ * ping -> pong, then ask the server to push an event to this user and count
+ * how many copies arrive (exactly one is right - two means double delivery).
  */
 async function realtimeChecks(): Promise<HealthRow[]> {
   const rows = [openChannelCount('/api/v1/ws/user')

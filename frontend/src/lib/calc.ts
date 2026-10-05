@@ -3,7 +3,7 @@
  *
  * Supports: + - * / % , ^ / ** (power, right-associative), unary +/-,
  * parentheses and decimal numbers. Anything it does not fully understand
- * yields `null` — there is no `eval`, no access to globals.
+ * yields `null` - there is no `eval`, no access to globals.
  */
 
 type Token =

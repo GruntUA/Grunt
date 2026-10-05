@@ -11,7 +11,7 @@ from grunt.print.renderer import (
     render_standard,
 )
 
-# ── Filter tests ─────────────────────────────────────────────────────────
+# Filter tests
 
 
 class TestDateFormatFilter:
@@ -73,7 +73,7 @@ class TestJinjaFiltersDict:
         assert "striptags" in JINJA_FILTERS
 
 
-# ── Jinja environment tests ─────────────────────────────────────────────
+# Jinja environment tests
 
 
 class TestJinjaEnv:
@@ -89,7 +89,7 @@ class TestJinjaEnv:
         assert env.autoescape is True or callable(env.autoescape)
 
 
-# ── render_from_string tests ─────────────────────────────────────────────
+# render_from_string tests
 
 
 class TestRenderFromString:
@@ -118,7 +118,7 @@ class TestRenderFromString:
         assert str(datetime.now(UTC).year) in html
 
 
-# ── render_standard tests ────────────────────────────────────────────────
+# render_standard tests
 
 
 def _make_field(fieldtype="Text", fieldname="title", label="Title", hidden=False):
@@ -181,7 +181,7 @@ class TestRenderStandard:
         assert "15.03.2025" in html
 
 
-# ── _render_fallback tests ───────────────────────────────────────────────
+# _render_fallback tests
 
 
 class TestRenderFallback:
@@ -220,7 +220,7 @@ class TestRenderFallback:
         assert "<td></td>" in html
 
     def test_field_value_html_is_escaped(self):
-        """Regression: a field value is document data, not markup — a value
+        """Regression: a field value is document data, not markup - a value
         containing HTML/script must render as inert text, not be injected
         into the page (stored XSS via any field, e.g. a "notes" or "title").
         """

@@ -7,7 +7,7 @@ _MAX_VARCHAR = 1000
 class PasswordField(FieldType):
     """Single-line secret input.
 
-    Same storage as ``Data`` (a ``String`` column) — the difference is purely
+    Same storage as ``Data`` (a ``String`` column) - the difference is purely
     presentational: the frontend renders it masked with a reveal toggle, and
     the value is kept out of full-text search.
     """

@@ -31,7 +31,7 @@ watchEffect(() => {
       : 'border-border hover:border-border/80 hover:shadow-sm'"
     @click.stop="emit('select')"
   >
-    <!-- ── Header row ── -->
+    <!-- Header row -->
     <div class="flex items-center gap-1.5 px-2 py-1.5 border-b border-border/50 bg-muted/30">
       <span class="drag-handle text-muted-foreground/50 hover:text-muted-foreground cursor-grab active:cursor-grabbing shrink-0 select-none">⠿</span>
 
@@ -54,7 +54,7 @@ watchEffect(() => {
       >×</button>
     </div>
 
-    <!-- ── Field preview ── -->
+    <!-- Field preview -->
     <div class="px-3 pt-2 pb-2.5 pointer-events-none select-none">
       <component
         :is="previewComponent"

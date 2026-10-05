@@ -4,7 +4,7 @@ import i18n, { N_ } from '@/plugins/i18n'
 
 const t = (key: string, params: Record<string, unknown> = {}): string => i18n.global.t(key, params)
 
-// Maps indicator color names → inline CSS values (mirrors global Badge variant colors)
+// Maps indicator color names -> inline CSS values (mirrors global Badge variant colors)
 const STATUS_COLORS: Record<string, { bg: string; text: string; border: string }> = {
   default: { bg: '#f9fafb', text: '#6b7280', border: '#d1d5db' },
   secondary: { bg: '#f9fafb', text: '#6b7280', border: '#d1d5db' },
@@ -152,7 +152,7 @@ export function generateHtml(ctx: ExportContext): string {
 
   const headerCells = columns.map(c => `<th>${escapeHtml(c.label)}</th>`).join('')
 
-  // ── Body: grouped or flat ──────────────────────────────────────────────────
+  // Body: grouped or flat
   let bodyContent: string
 
   if (groupBy) {

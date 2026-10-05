@@ -37,7 +37,7 @@ export function useLinkField(props: {
   const treeNodes = ref<TreeNode[]>([])
   const treeLoading = ref(false)
 
-  // Cache: name → display label
+  // Cache: name -> display label
   const displayCache = new Map<string, string>()
 
   let debounceTimer: ReturnType<typeof setTimeout>
@@ -60,7 +60,7 @@ export function useLinkField(props: {
 
   // `link_filters` rarely changes, but resolveFilters() is called on every
   // search, on every activeFilterChips recompute and inside a JSON.stringify
-  // watcher — so compile the `eval:` expression / parse the JSON once per
+  // watcher - so compile the `eval:` expression / parse the JSON once per
   // distinct raw string instead of rebuilding it each call.
   let compiledRaw: string | undefined
   let compiledEval: ((doc: Record<string, unknown>) => unknown) | null = null
@@ -170,7 +170,7 @@ export function useLinkField(props: {
     if (displayCache.has(raw)) { query.value = displayCache.get(raw)!; return }
 
     // The parent (form / child-table row) usually already carries the resolved
-    // label as `<fieldname>__label` — use it instead of a network round-trip,
+    // label as `<fieldname>__label` - use it instead of a network round-trip,
     // but only while it still matches the field's current value.
     const docLabel = props.doc?.[`${props.field.fieldname}__label`]
     if (
@@ -242,7 +242,7 @@ export function useLinkField(props: {
   function onFocus() {
     clearTimeout(blurTimer)
     computeDropdownStyle()
-    // When a value is already picked, `query` holds its label — searching for
+    // When a value is already picked, `query` holds its label - searching for
     // that exact string just echoes the one row back. Open the default list
     // instead so the user can switch to another record.
     if (!isOpen.value) search(isSelected.value ? '' : query.value)
@@ -256,7 +256,7 @@ export function useLinkField(props: {
   }
 
   // When the typed text already names an existing record (by label or id),
-  // creating "the same thing" again is meaningless — hide the create row.
+  // creating "the same thing" again is meaningless - hide the create row.
   const hasExactMatch = computed(() => {
     const q = query.value.trim().toLowerCase()
     if (!q) return false

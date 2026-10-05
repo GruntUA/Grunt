@@ -30,7 +30,7 @@ defineOptions({ inheritAttrs: false })
 
 const { open, openMobile, isMobile, state, width, toggle, setWidth, MIN_WIDTH } = useDocPanel()
 
-// ── Desktop resize handle ───────────────────────────────────────────────────
+// Desktop resize handle
 function startResize(e: PointerEvent) {
   e.preventDefault()
   const startX = e.clientX

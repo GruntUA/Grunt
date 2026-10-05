@@ -1,8 +1,8 @@
-"""System health — the checks behind the «Стан системи» report.
+"""System health - the checks behind the «Стан системи» report.
 
 Every check returns rows ``{category, check, status, value, hint}`` with status
 ``OK`` / ``Warning`` / ``Error`` / ``Info``. A check that blows up becomes an
-``Error`` row of its own — one broken subsystem never hides the others. The
+``Error`` row of its own - one broken subsystem never hides the others. The
 browser half of the report (service worker, offline cache and queue) runs in
 the page itself: ``frontend/src/core/browserHealth.ts``.
 """
@@ -68,7 +68,7 @@ def _session():
     return grunt.get_session()
 
 
-# ── Database ──────────────────────────────────────────────────────────────
+# Database
 
 
 async def check_database() -> list[Row]:
@@ -105,7 +105,7 @@ async def _database_size(session, dialect: str) -> int | None:
 
 
 async def largest_tables() -> list[Row]:
-    """Top DocTypes by row count — what grows (logs usually) and may need retention."""
+    """Top DocTypes by row count - what grows (logs usually) and may need retention."""
     from grunt.metadata.registry import doctype_registry
 
     counts: list[tuple[str, int]] = []
@@ -130,7 +130,7 @@ async def largest_tables() -> list[Row]:
     return items
 
 
-# ── Background jobs & scheduler ───────────────────────────────────────────
+# Background jobs & scheduler
 
 
 async def check_background_jobs() -> list[Row]:
@@ -243,7 +243,7 @@ async def check_scheduler() -> list[Row]:
     return rows
 
 
-# ── Errors, email ─────────────────────────────────────────────────────────
+# Errors, email
 
 
 async def check_errors() -> list[Row]:
@@ -306,7 +306,7 @@ async def check_email() -> list[Row]:
     return rows
 
 
-# ── Users & security ──────────────────────────────────────────────────────
+# Users & security
 
 
 async def check_users() -> list[Row]:
@@ -360,7 +360,7 @@ async def check_config() -> list[Row]:
     ]
 
 
-# ── Storage ───────────────────────────────────────────────────────────────
+# Storage
 
 
 async def check_storage() -> list[Row]:
@@ -388,7 +388,7 @@ async def check_storage() -> list[Row]:
     return rows
 
 
-# ── Realtime (WebSocket) ──────────────────────────────────────────────────
+# Realtime (WebSocket)
 
 WS_ECHO_EVENT = "health_echo"
 REDIS_ROUNDTRIP_TIMEOUT = 2.0
@@ -483,7 +483,7 @@ async def check_realtime() -> list[Row]:
 
 @whitelist(roles=["System Manager"])
 async def ws_echo(nonce: str) -> dict[str, Any]:
-    """Push a test event to the caller's own user channel — the browser half
+    """Push a test event to the caller's own user channel - the browser half
     of the report checks it arrives exactly once (grunt/api/v1/ws.py)."""
     from grunt.api.v1.ws import manager
 
@@ -493,7 +493,7 @@ async def ws_echo(nonce: str) -> dict[str, Any]:
     return {"sent": True}
 
 
-# ── Backups ───────────────────────────────────────────────────────────────
+# Backups
 
 
 async def check_backups() -> list[Row]:
@@ -559,7 +559,7 @@ async def check_backups() -> list[Row]:
     return rows
 
 
-# ── Apps' Python dependencies ─────────────────────────────────────────────
+# Apps' Python dependencies
 
 
 def _requirement_name(spec: str) -> str:
@@ -599,11 +599,11 @@ async def check_app_dependencies() -> list[Row]:
     ]
 
 
-# ── Offline mode (server side) ────────────────────────────────────────────
+# Offline mode (server side)
 
 
 async def check_offline_build() -> list[Row]:
-    """The service worker exists only in the production build — check it is there."""
+    """The service worker exists only in the production build - check it is there."""
     import json
 
     cat = _("Offline mode")
@@ -650,7 +650,7 @@ async def check_offline_build() -> list[Row]:
     return rows
 
 
-# ── Runner ────────────────────────────────────────────────────────────────
+# Runner
 
 CHECKS: list[tuple[str, Callable[[], Awaitable[list[Row]]]]] = [
     (N_("Database"), check_database),

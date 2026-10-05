@@ -52,6 +52,6 @@ def load_doctype_from_file(doctype: str) -> dict[str, Any]:
     for d in txt.get("permissions", []):
         d["doctype"] = "DocPerm"
 
-    # Kept as raw dicts rather than mapped to a model class here — that maps
+    # Kept as raw dicts rather than mapped to a model class here - that maps
     # better to Grunt's Pydantic workflow when used directly.
     return txt

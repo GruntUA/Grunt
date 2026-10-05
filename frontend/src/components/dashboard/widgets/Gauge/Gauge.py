@@ -1,4 +1,4 @@
-"""gauge widget — backend data computation.
+"""gauge widget - backend data computation.
 
 Shares metric's compute (same aggregation/trend shape).
 """

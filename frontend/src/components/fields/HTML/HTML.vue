@@ -2,7 +2,7 @@
 import type { BaseFieldProps } from '@/types'
 
 // Content comes from DocType metadata (`options`), which only a System Manager
-// can edit — the same people who can already ship client/server scripts — so
+// can edit - the same people who can already ship client/server scripts - so
 // it is rendered as-is, like Frappe's HTML field.
 defineProps<BaseFieldProps>()
 </script>

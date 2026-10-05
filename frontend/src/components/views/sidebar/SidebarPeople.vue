@@ -59,8 +59,8 @@ const dialog = useDialog()
 const assignees = computed(() => props.sb.bundle.value.assignees)
 const shares = computed(() => props.sb.bundle.value.shares)
 
-// ── Assignees ───────────────────────────────────────────────────────────────
-// A ToDo created without a task text carries an auto-generated placeholder —
+// Assignees
+// A ToDo created without a task text carries an auto-generated placeholder -
 // treat that as "no text" so it's not shown as an actual task.
 function realNote(a: SidebarAssignee): string {
   const d = (a.description ?? '').trim()
@@ -98,7 +98,7 @@ async function quickAssign(email: string) {
   }
 }
 
-// "Assign with a task" — the user picker plus a task text.
+// "Assign with a task" - the user picker plus a task text.
 const taskDialog = ref(false)
 const taskUser = ref('')
 const taskNote = ref('')
@@ -122,7 +122,7 @@ async function submitTask() {
   }
 }
 
-// ── Access ──────────────────────────────────────────────────────────────────
+// Access
 const shareOpen = ref(false)
 const sharePermission = ref<'Read' | 'Write'>('Read')
 const accessOpen = ref(false)

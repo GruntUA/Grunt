@@ -32,7 +32,7 @@ async def list_notifications(
 
 @grunt.whitelist()
 async def mark_as_read(notification_id: str) -> bool:
-    """Mark a notification as read — only if it belongs to the current user."""
+    """Mark a notification as read - only if it belongs to the current user."""
     user = grunt.get_user()
     count = await grunt.db.bulk_update(
         "Notification",
@@ -65,7 +65,7 @@ async def get_unread_count() -> int:
 async def get_vapid_public_key() -> str | None:
     """Return the VAPID public key needed to subscribe to Web Push.
 
-    ``None`` when Web Push is disabled in SystemSettings — the client then
+    ``None`` when Web Push is disabled in SystemSettings - the client then
     shows "server not configured for push".
     """
     from grunt.site.settings import get_setting

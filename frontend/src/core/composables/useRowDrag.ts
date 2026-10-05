@@ -5,7 +5,7 @@ export const ROW_DRAG_MIME = 'application/x-grunt-rows'
 
 interface RowDragContext {
   doctype: string
-  /** Rows can be dragged (a drop target — the list's tree panel — is shown). */
+  /** Rows can be dragged (a drop target - the list's tree panel - is shown). */
   enabled: Ref<boolean>
   selectedIds: Ref<string[]>
 }

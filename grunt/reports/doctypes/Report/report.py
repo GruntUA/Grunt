@@ -1,16 +1,16 @@
-"""Report RPC methods — grunt.reports.doctypes.Report.report.{run,preview,export_xlsx}
+"""Report RPC methods - grunt.reports.doctypes.Report.report.{run,preview,export_xlsx}
 
 Plain CRUD on the ``Report`` doctype (list/get/create/update/delete) goes
-through the generic ``/api/v1/docs/Report`` REST endpoints — ``Report`` is a
+through the generic ``/api/v1/docs/Report`` REST endpoints - ``Report`` is a
 regular registered DocType, so that works with no custom code, and is
 enforced by ``Report.json``'s ``permissions`` (read: any authenticated user;
-write/create/delete: nobody but System Manager — see that file). The RPC methods
+write/create/delete: nobody but System Manager - see that file). The RPC methods
 below cover only what generic CRUD can't: running a report (arbitrary
 SQL/script/list execution) and exporting the result. ``run``/``export_xlsx``
 look up the report by its human ``report_name`` (unique but distinct from the
 doctype's internal ``name``/id), matching ``ReportEngine.run``'s lookup key
 and every existing frontend reference to a report (shortcuts, sidebar links,
-print scripting) — see project notes for why that identifier was kept rather
+print scripting) - see project notes for why that identifier was kept rather
 than switched to the internal id.
 """
 

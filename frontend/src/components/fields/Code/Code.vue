@@ -21,7 +21,7 @@ const emit = defineEmits<{ 'update:modelValue': [value: string] }>()
 const { t } = useI18n()
 const { isDark } = useColorMode()
 
-// Each grammar is its own chunk — a SQL field never pulls the Python/HTML/… parsers.
+// Each grammar is its own chunk - a SQL field never pulls the Python/HTML/… parsers.
 const LANG_LOADERS: Record<string, () => Promise<Extension>> = {
   sql: () => import('@codemirror/lang-sql').then((m) => m.sql()),
   js: () => import('@codemirror/lang-javascript').then((m) => m.javascript()),
@@ -39,7 +39,7 @@ const lang = computed(() => (props.field.options ?? '').toLowerCase().trim())
 const canFormat = computed(() => lang.value === 'sql' || lang.value === 'json')
 const isReadonly = computed(() => !!props.disabled || !!props.field.read_only)
 
-// Populated asynchronously — the editor renders immediately, highlighting snaps
+// Populated asynchronously - the editor renders immediately, highlighting snaps
 // in once the grammar chunk resolves.
 const langExt = shallowRef<Extension | null>(null)
 watch(
@@ -100,7 +100,7 @@ watch(
   },
 )
 
-// Pretty-print the stored value once for readability (no emit → not dirty).
+// Pretty-print the stored value once for readability (no emit -> not dirty).
 onMounted(async () => {
   buffer.value = await prettify(buffer.value)
 })

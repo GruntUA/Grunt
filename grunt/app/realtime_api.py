@@ -11,7 +11,6 @@ if TYPE_CHECKING:
 class RealtimeAPI:
     """Notification and websocket helper methods for GruntApp."""
 
-
     async def notify(
         self,
         *,

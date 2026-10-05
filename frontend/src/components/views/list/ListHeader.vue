@@ -1,8 +1,8 @@
 <script setup lang="ts">
 /**
  * List page header. The view switcher and the «restrictions» indicator are
- * page chrome; every action — refresh, «Додати», export, the «⋯» menu, script
- * buttons — comes from the list's action registry (core/actions.ts), filled by
+ * page chrome; every action - refresh, «Додати», export, the «⋯» menu, script
+ * buttons - comes from the list's action registry (core/actions.ts), filled by
  * global_list.js, the DocType's script and ClientScripts.
  */
 import { computed, ref, onMounted, watch } from 'vue'
@@ -41,7 +41,7 @@ const toolbarActions = props.actions.resolved('toolbar')
 const primaryActions = props.actions.resolved('primary')
 const menuActions = props.actions.resolved('menu')
 
-// ── View switcher ("List View ▾" dropdown) ───────────────────────────────────
+// View switcher ("List View ▾" dropdown)
 
 const availableViews = computed(() =>
   getRegisteredViews().filter((def) => {
@@ -53,7 +53,7 @@ const availableViews = computed(() =>
 
 const currentView = computed(() => getViewDef(props.viewMode) ?? availableViews.value[0])
 
-// ── Row-level "Restrictions" (User Permissions) ──────────────────────────
+// Row-level "Restrictions" (User Permissions)
 const restrictions = ref<ActiveRestriction[]>([])
 const showRestrictions = ref(false)
 

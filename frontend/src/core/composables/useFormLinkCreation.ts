@@ -34,7 +34,7 @@ export function useFormLinkCreation(params: UseFormLinkCreationParams) {
     const linkedDt = await params.loadDocType(linkedDoctype)
 
     // A typed search string becomes the new document's title-field value (a
-    // sensible display default) — never its `name` (primary key). The `name`
+    // sensible display default) - never its `name` (primary key). The `name`
     // column is owned by the target DocType's own autoname scheme; stuffing
     // free text into it here would silently hijack the naming series (see
     // _build_initial_row, which always honors an explicit `data["name"]`).
@@ -54,7 +54,7 @@ export function useFormLinkCreation(params: UseFormLinkCreationParams) {
 
     params.markAllowLeave()
 
-    // Dashboard "+" has no fieldname — use simple navigation with query params
+    // Dashboard "+" has no fieldname - use simple navigation with query params
     // so there's no unwanted return-flow after saving the new document.
     if (!fieldname && typeof preset !== 'string') {
       params.navigateToNew(linkedDoctype, preset)

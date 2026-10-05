@@ -91,7 +91,7 @@ def _generate_xlsx_single(dt: Any, doc: dict[str, Any]) -> bytes:
 def _generate_html_single(dt: Any, doc: dict[str, Any]) -> str:
     """Generate a single document HTML (standard layout).
 
-    Hand-built (not Jinja, which autoescapes) — every interpolated value is
+    Hand-built (not Jinja, which autoescapes) - every interpolated value is
     document data or a label and MUST be escaped explicitly, same reasoning
     as print/renderer.py's _render_fallback (a field value containing HTML
     is document data, not markup, and this doesn't get autoescape for free).

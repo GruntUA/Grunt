@@ -1,7 +1,7 @@
 import type { ActionsApi } from '@/core/actions'
 import type { ScriptMenuItem } from '@/types'
 
-/** Menu items a list view (e.g. the map) contributes — registered as list actions while it is shown. */
+/** Menu items a list view (e.g. the map) contributes - registered as list actions while it is shown. */
 export function useListMapMenuItems(actions: ActionsApi) {
   const id = (item: ScriptMenuItem) => `view:${item.label}`
 

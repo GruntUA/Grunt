@@ -32,7 +32,7 @@ function buildWebSocketUrl(url: string, includeAuthToken: boolean): string {
   return fullUrl
 }
 
-/** Open channels across the app — each component owns its own WebSocketChannel. */
+/** Open channels across the app - each component owns its own WebSocketChannel. */
 const openChannels = new Set<WebSocketChannel>()
 
 /** How many of the app's channels to `url` are open right now (health report). */
@@ -164,7 +164,7 @@ export class WebSocketChannel {
       ws.onclose = null
       ws.onmessage = null
       if (ws.readyState === WebSocket.CONNECTING) {
-        // Closing a CONNECTING socket logs a browser warning — defer until open
+        // Closing a CONNECTING socket logs a browser warning - defer until open
         ws.onopen = () => ws.close()
       } else {
         ws.close()

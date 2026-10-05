@@ -1,4 +1,4 @@
-"""Alembic env.py — configured for Grunt system tables.
+"""Alembic env.py - configured for Grunt system tables.
 
 Reads database_url from grunt.config.settings so the URL lives in .env only.
 target_metadata points to the shared MetaData that includes all system tables.
@@ -9,7 +9,7 @@ from logging.config import fileConfig
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 
-# ── Grunt imports ────────────────────────────────────────────────────────
+# Grunt imports
 from grunt.config import settings
 
 # Ensure system table definitions are imported so metadata knows about them
@@ -18,11 +18,11 @@ from grunt.db.alembic_utils import async_url_to_sync
 from grunt.db.base import metadata
 from grunt.site.manager import site_manager
 
-# ── Alembic config ──────────────────────────────────────────────────────
+# Alembic config
 config = context.config
 
 # A caller (e.g. `grunt db migrate`, which iterates every site) can pin the
-# target DB explicitly. Otherwise resolve the active site's URL — that keeps
+# target DB explicitly. Otherwise resolve the active site's URL - that keeps
 # a bare `alembic upgrade head` working from the shell.
 db_url = config.attributes.get("target_db_url")
 if not db_url:

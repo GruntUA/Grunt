@@ -35,7 +35,7 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const showDeleteModal = ref(false)
 
-// ── Replace-on-delete: what still references the selected rows ─────────────
+// Replace-on-delete: what still references the selected rows
 const impact = ref<DeleteImpact | null>(null)
 const impactLoading = ref(false)
 const replaceWith = ref<string>('')
@@ -108,7 +108,7 @@ const updatableFields = computed(() =>
   (props.editableFields ?? []).filter(f => !NON_PHYSICAL.has(f.fieldtype) && !f.read_only)
 )
 
-// The field object for the currently picked fieldname — drives which control is
+// The field object for the currently picked fieldname - drives which control is
 // rendered for the "new value" input (Link picker, Select, Date, Check, …).
 const selectedField = computed(() =>
   updatableFields.value.find(f => f.fieldname === updateField.value) ?? null
@@ -117,12 +117,12 @@ const valueComponent = computed(() =>
   selectedField.value ? getAsyncFieldComponent(selectedField.value.fieldtype) : null
 )
 
-// Reset the value whenever the target field changes — a value entered for one
+// Reset the value whenever the target field changes - a value entered for one
 // fieldtype is meaningless for the next.
 watch(updateField, () => { updateValue.value = null })
 
-// The `bulk` actions (global_list.js + scripts) and the dialogs they ask for —
-// listview.bulk_edit() / bulk_delete() / fast_delete() — from the list page.
+// The `bulk` actions (global_list.js + scripts) and the dialogs they ask for -
+// listview.bulk_edit() / bulk_delete() / fast_delete() - from the list page.
 const bulkUi = inject(LIST_BULK_UI, null)
 const bulkActions = computed(() => bulkUi?.actions.value ?? [])
 

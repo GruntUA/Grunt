@@ -1,12 +1,12 @@
-"""grunt data export / import — move documents of chosen DocTypes (with their files)
+"""grunt data export / import - move documents of chosen DocTypes (with their files)
 between sites, e.g. from a dev site to a new production one.
 
-A bundle is a plain tar (uploads are mostly images/PDF — compression buys little):
+A bundle is a plain tar (uploads are mostly images/PDF - compression buys little):
 
-* ``data.json`` — rows of every exported DocType, as stored (same ``name`` s, so
+* ``data.json`` - rows of every exported DocType, as stored (same ``name`` s, so
   links between documents and ``file_id`` references in texts keep working), and
   the ``File`` records they use;
-* ``blobs/<sha256>`` (+ ``thumbs/<sha256>.webp``) — the stored files of those
+* ``blobs/<sha256>`` (+ ``thumbs/<sha256>.webp``) - the stored files of those
   records only, not the whole ``uploads/`` of the source site.
 
 Rows are copied table-to-table, without controllers/hooks: this is a transfer of
@@ -42,7 +42,7 @@ def data_group():
     """Data: move documents with their files between sites."""
 
 
-# ── export ───────────────────────────────────────────────────────────────────
+# export
 
 
 @data_group.command("export")
@@ -66,7 +66,7 @@ def data_export(output: Path, specs: tuple[str, ...], site: str | None):
 
     from grunt.db.write_intent import set_process_default
 
-    # Only reads here — don't take the write lock at BEGIN like other commands.
+    # Only reads here - don't take the write lock at BEGIN like other commands.
     set_process_default(False)
 
     async def _collect():
@@ -100,7 +100,7 @@ def data_export(output: Path, specs: tuple[str, ...], site: str | None):
             file_table = await _table("File")
             for chunk in _chunks(sorted(file_ids)):
                 files += await _select(session, file_table, {}, extra=("name", chunk))
-            # Reads are done — end the transaction before the long file copy.
+            # Reads are done - end the transaction before the long file copy.
             await session.rollback()
 
             backend = get_storage_backend()
@@ -137,7 +137,7 @@ def data_export(output: Path, specs: tuple[str, ...], site: str | None):
     click.echo(f"Bundle: {output} ({output.stat().st_size / 2**20:.0f} MB)")
 
 
-# ── import ───────────────────────────────────────────────────────────────────
+# import
 
 
 @data_group.command("import")
@@ -206,7 +206,7 @@ def data_import(bundle: Path, site: str | None, yes: bool):
     asyncio.run(_run())
 
 
-# ── helpers ──────────────────────────────────────────────────────────────────
+# helpers
 
 
 def _parse_spec(spec: str) -> tuple[str, dict[str, str]]:

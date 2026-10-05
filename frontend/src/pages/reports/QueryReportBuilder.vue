@@ -34,11 +34,11 @@ const selectedDoctype = ref('')
 const fields = ref<any[]>([])
 const reportTitle = ref(props.reportName || t('New report'))
 
-/** Internal doctype id (`name`) of the report being edited — resolved from
+/** Internal doctype id (`name`) of the report being edited - resolved from
  *  `reportsApi.get()` by `report_name`, needed for the PUT call on save. */
 const reportDocName = ref<string | null>(null)
 const columns = ref<any[]>([]) // { fieldname, label, aggregation, fieldtype }
-const filterConfigs = ref<any[]>([]) // { fieldname, label, fieldtype } — whitelist of fields the viewer can filter on
+const filterConfigs = ref<any[]>([]) // { fieldname, label, fieldtype } - whitelist of fields the viewer can filter on
 const chartEnabled = ref(false)
 const chart = ref<ReportChartConfig>({ type: 'bar', label_field: '', value_fields: [], stacked: false })
 const CHART_TYPES: { value: ReportChartType; label: string }[] = [

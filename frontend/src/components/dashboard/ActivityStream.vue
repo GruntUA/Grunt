@@ -39,7 +39,7 @@ const router = useRouter()
 const auth = useAuthStore()
 
 // WebSocket for real-time activity
-// Authenticated site-wide channel — the activity feed carries user emails and
+// Authenticated site-wide channel - the activity feed carries user emails and
 // document ids, so it must never ride the unauthenticated /ws/public/* route.
 const ws = useWebSocket('/api/v1/ws/site')
 ws.onEvent('activity', (data: any) => {
@@ -53,7 +53,7 @@ async function fetchActivity() {
         const res = await api.get('/api/v1/method/grunt.activity.doctypes.ActivityLog.activity_log.list_activity')
         activities.value = res.data.data.items
     } catch {
-        // silently ignore — empty state shown
+        // silently ignore - empty state shown
     } finally {
         loading.value = false
     }

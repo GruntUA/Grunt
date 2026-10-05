@@ -40,7 +40,7 @@ if TYPE_CHECKING:
 _INDEX_TABLE_NAME = "grunt_search_index"
 _INDEX_META = MetaData()
 
-# Table definition (created via DDL, not Alembic — it's a framework table)
+# Table definition (created via DDL, not Alembic - it's a framework table)
 _search_index_table = Table(
     _INDEX_TABLE_NAME,
     _INDEX_META,
@@ -250,7 +250,7 @@ class SearchIndexService:
 
         try:
             if dialect == "postgresql":
-                # Use plainto_tsquery — handles multi-word naturally
+                # Use plainto_tsquery - handles multi-word naturally
                 ts_query = func.plainto_tsquery("simple", q)
                 ts_vector = func.to_tsvector("simple", func.coalesce(t.c.content_raw, ""))
                 stmt = (
@@ -260,7 +260,7 @@ class SearchIndexService:
                 )
             elif dialect == "mysql":
                 # MySQL FULLTEXT MATCH ... AGAINST. `q` is a bound parameter
-                # (:q), not string-interpolated into the SQL text — a raw
+                # (:q), not string-interpolated into the SQL text - a raw
                 # f-string here would let a search query break out of the
                 # AGAINST('...') literal (verified: `q = "' OR 1=1 -- "`
                 # produced `AGAINST('' OR 1=1 -- ' IN BOOLEAN MODE)`, valid

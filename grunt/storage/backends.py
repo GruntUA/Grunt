@@ -1,12 +1,12 @@
-"""Storage backends — content-addressed blobs, per site.
+"""Storage backends - content-addressed blobs, per site.
 
 A blob's key is the SHA-256 of its bytes, so identical content is stored once
 no matter how many ``File`` rows point at it, and a stored blob never changes.
 On the local filesystem (``sites/<site>/uploads/``)::
 
-    blobs/ab/cd/abcd…  — the file itself (no extension: ``File`` has the type)
-    thumbs/ab/cd/abcd….webp — its preview (grunt.storage.thumbnails)
-    tmp/               — uploads in flight, moved into ``blobs/`` when complete
+    blobs/ab/cd/abcd… - the file itself (no extension: ``File`` has the type)
+    thumbs/ab/cd/abcd….webp - its preview (grunt.storage.thumbnails)
+    tmp/ - uploads in flight, moved into ``blobs/`` when complete
 
 Usage::
 
@@ -15,8 +15,8 @@ Usage::
     key, size = await storage.put(stream_or_bytes, max_bytes=...)
     content = await storage.get(key)
 
-Blobs are never deleted when a ``File`` row goes — several rows may share
-one — but by :func:`grunt.storage.gc.collect_garbage`, which drops those no
+Blobs are never deleted when a ``File`` row goes - several rows may share
+one - but by :func:`grunt.storage.gc.collect_garbage`, which drops those no
 row (nor a trashed row) refers to any more.
 """
 
@@ -83,7 +83,7 @@ class StorageBackend(ABC):
 
 
 def _check_key(key: str) -> str:
-    # Keys come from the DB, but they become paths — never let one escape the root.
+    # Keys come from the DB, but they become paths - never let one escape the root.
     if not _KEY_RE.match(key or ""):
         raise FileNotFoundError(f"Invalid storage key: {key!r}")
     return key

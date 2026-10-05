@@ -1,4 +1,4 @@
-"""UserRole DocType controller — child table of ``User.roles``."""
+"""UserRole DocType controller - child table of ``User.roles``."""
 
 from __future__ import annotations
 

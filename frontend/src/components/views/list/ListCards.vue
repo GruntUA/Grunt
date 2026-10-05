@@ -17,7 +17,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 const { t } = useI18n()
 
 /**
- * List rows as cards — the phone-width counterpart of GruntDataTable. The first
+ * List rows as cards - the phone-width counterpart of GruntDataTable. The first
  * list column is the card title, the DocType status is a badge, and the next few
  * columns are label / value pairs rendered by the same list-cell components the
  * table uses.
@@ -39,7 +39,7 @@ const emit = defineEmits<{
   rowClick: [row: Record<string, unknown>]
 }>()
 
-/** Label / value pairs under the title — more would turn a card into a form. */
+/** Label / value pairs under the title - more would turn a card into a form. */
 const MAX_DETAILS = 4
 
 const fieldMap = computed(() =>
@@ -89,7 +89,7 @@ function isSelected(row: Record<string, unknown>): boolean {
   return !!props.allSelected || props.selectedIds.includes(rowId(row))
 }
 
-// track_seen: `_seen` lists who opened the document — flag the unopened ones.
+// track_seen: `_seen` lists who opened the document - flag the unopened ones.
 const auth = useAuthStore()
 function isUnseen(row: Record<string, unknown>): boolean {
   return Array.isArray(row._seen) && !row._seen.includes(auth.user?.email ?? '')

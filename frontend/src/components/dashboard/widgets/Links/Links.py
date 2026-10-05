@@ -1,4 +1,4 @@
-"""links widget — renders entirely client-side from `content`; no backend computation."""
+"""links widget - renders entirely client-side from `content`; no backend computation."""
 
 from __future__ import annotations
 

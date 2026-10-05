@@ -1,7 +1,7 @@
 /**
  * Widget Registry
  *
- * Single source of truth for every dashboard widget type in the system —
+ * Single source of truth for every dashboard widget type in the system -
  * the Dashboard-widget counterpart of fieldRegistry.ts. Core types are
  * registered below via manifest.json auto-discovery. Plugin apps register
  * their own widgets by calling registerWidget() before the Vue app mounts:
@@ -45,7 +45,7 @@ export type WidgetConfigSection =
   | 'icon'
 
 export interface WidgetDefinition {
-  /** Unique identifier — matches DashboardWidget.widget_type */
+  /** Unique identifier - matches DashboardWidget.widget_type */
   type: string
   /** Human-readable name shown in the palette and properties panel */
   label: string
@@ -59,11 +59,11 @@ export interface WidgetDefinition {
   configSections: WidgetConfigSection[]
 }
 
-// ── Internal registry ────────────────────────────────────────────────────────
+// Internal registry
 
 const _registry = new Map<string, WidgetDefinition>()
 
-// ── Public API ────────────────────────────────────────────────────────────────
+// Public API
 
 /** Register a widget type. Can be called from any app before mount. */
 export function registerWidget(def: WidgetDefinition): void {
@@ -107,14 +107,14 @@ export function getAsyncWidgetComponent(type: string): Component | undefined {
   return comp
 }
 
-// ── Discovery ─────────────────────────────────────────────────────────────────
+// Discovery
 
 /**
  * Discover and register all widgets from the components/dashboard/widgets/ directory.
  * Each widget lives in its own directory with:
  *  - manifest.json: one definition, or an array of definitions that share a
  *    single component (e.g. chart_area/chart_bar both render Chart.vue)
- *  - [DirName].vue: the render component (by convention — every entry in the
+ *  - [DirName].vue: the render component (by convention - every entry in the
  *    manifest uses this same file, regardless of its own `type`)
  */
 type ManifestEntry = Omit<WidgetDefinition, 'component'>

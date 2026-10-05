@@ -14,7 +14,7 @@ import Placeholder from '@tiptap/extension-placeholder'
 import CharacterCount from '@tiptap/extension-character-count'
 import { TableKit } from '@tiptap/extension-table'
 import Youtube from '@tiptap/extension-youtube'
-// Geist is the editor typeface only — loaded with this (lazy) chunk, not app-wide.
+// Geist is the editor typeface only - loaded with this (lazy) chunk, not app-wide.
 import '@fontsource-variable/geist'
 // `mammoth` (~200 kB, pulls jszip) is loaded on demand in importDocx() only.
 
@@ -79,9 +79,9 @@ const uploadTarget = () => ({
 const maxLen = computed(() => props.maxLength ?? props.field.max_length)
 const placeholderText = computed(() => props.placeholder ?? props.field.placeholder ?? '')
 
-// ── Font & Indent data ────────────────────────────────────────────────────────
+// Font & Indent data
 // Reka-ui's Select reserves the empty string for "no selection" internally, so
-// SelectItem can't use value="" for the placeholder/default entry — a sentinel
+// SelectItem can't use value="" for the placeholder/default entry - a sentinel
 // stands in for it and gets translated back to "" at the apply/read boundary.
 const FONT_DEFAULT = '__default__'
 
@@ -94,7 +94,7 @@ const STATIC_FONT_FAMILIES = [
 ]
 
 // Document style targets print (the OutgoingLetter format lays the body out in
-// pt), so its size presets are in pt — «14» means 14pt, as in Word. Inline /
+// pt), so its size presets are in pt - «14» means 14pt, as in Word. Inline /
 // web rich text keeps px.
 const FONT_SIZE_UNIT = isDocumentStyle ? 'pt' : 'px'
 const STATIC_FONT_SIZES = [10, 12, 14, 16, 18, 20, 24, 28, 36, 48].map((n) => ({
@@ -143,7 +143,7 @@ function updateFormatState() {
   }
   // Reflect the effective font in the selects when it matches one of the
   // presets (e.g. Times New Roman inherited from .richtext-document), even
-  // without an explicit textStyle mark — so the dropdown shows what's applied.
+  // without an explicit textStyle mark - so the dropdown shows what's applied.
   const matchedFamily = STATIC_FONT_FAMILIES.find(f => f.label.toLowerCase() === effFamily.toLowerCase())
   const matchedSize = STATIC_FONT_SIZES.find(f => f.label === effSize)
   currentFontFamily.value = attrs.fontFamily || matchedFamily?.value || FONT_DEFAULT
@@ -170,7 +170,7 @@ function applyFontSize(val: string) {
   currentFontSize.value = val
 }
 
-// ── Custom TextStyle with fontFamily + fontSize ───────────────────────────────
+// Custom TextStyle with fontFamily + fontSize
 const RichTextStyle = TextStyle.extend({
   addAttributes() {
     return {
@@ -189,7 +189,7 @@ const RichTextStyle = TextStyle.extend({
   },
 })
 
-// ── Indent extension ──────────────────────────────────────────────────────────
+// Indent extension
 const INDENT_STEP = 40
 const MAX_INDENT = 7
 const INDENT_TYPES = ['paragraph', 'heading', 'blockquote']
@@ -257,7 +257,7 @@ const IndentExt = Extension.create({
   },
 })
 
-// ── Alignment ─────────────────────────────────────────────────────────────────
+// Alignment
 const ALIGNMENTS = [
   { value: 'left', label: t('Align left'), icon: TextAlignStart },
   { value: 'center', label: t('Align center'), icon: TextAlignCenter },
@@ -265,7 +265,7 @@ const ALIGNMENTS = [
   { value: 'justify', label: t('Justify'), icon: TextAlignJustify },
 ]
 
-// ── Bubble menu ───────────────────────────────────────────────────────────────
+// Bubble menu
 const wrapperEl = ref<HTMLElement | null>(null)
 const bubbleVisible = ref(false)
 const bubbleStyle = ref<Record<string, string>>({})
@@ -285,7 +285,7 @@ function updateBubble() {
   } catch { bubbleVisible.value = false }
 }
 
-// ── Link popover ──────────────────────────────────────────────────────────────
+// Link popover
 const isLinkOpen = ref(false)
 const linkAnchorEl = ref<HTMLElement | null>(null)
 const linkUrl  = ref('')
@@ -311,7 +311,7 @@ function removeLink() {
   isLinkOpen.value = false
 }
 
-// ── Image ─────────────────────────────────────────────────────────────────────
+// Image
 const isImageOpen = ref(false)
 const imageAnchorEl = ref<HTMLElement | null>(null)
 const imageUrl       = ref('')
@@ -346,7 +346,7 @@ async function uploadImage(e: Event) {
   }
 }
 
-// ── YouTube video ─────────────────────────────────────────────────────────────
+// YouTube video
 // The sanitizer (grunt/utils/sanitize.py) keeps the iframe but strips the
 // extension's `data-youtube-video` wrapper marker, so saved and imported
 // content is recognised by the embed src instead.
@@ -390,7 +390,7 @@ function insertVideo() {
   isVideoOpen.value = false
 }
 
-// ── File list / gallery blocks ───────────────────────────────────────────────
+// File list / gallery blocks
 const picker = ref<{ kind: FileBlockKind; resolve: (r: AttachmentResult[]) => void } | null>(null)
 
 function pickFiles(kind: FileBlockKind): Promise<AttachmentResult[]> {
@@ -412,7 +412,7 @@ async function insertFileBlock(kind: FileBlockKind) {
   editor.value?.chain().focus().insertContent(content).run()
 }
 
-// ── Word (.docx) import ──────────────────────────────────────────────────────
+// Word (.docx) import
 const docxInputEl = ref<HTMLInputElement | null>(null)
 const docxImporting = ref(false)
 
@@ -441,7 +441,7 @@ async function importDocx(e: Event) {
   }
 }
 
-// ── Table cell text direction ────────────────────────────────────────────────
+// Table cell text direction
 const TEXT_DIRECTION_LABELS: Record<string, string> = {
   none: t('Horizontal text'),
   tb: t('Vertical text, top to bottom'),
@@ -454,14 +454,14 @@ function cellTextDirection(): TextDirection | null {
   return editor.value.getAttributes(type).textDirection ?? null
 }
 
-// Cycles horizontal → top-to-bottom → bottom-to-top for the selected cells.
+// Cycles horizontal -> top-to-bottom -> bottom-to-top for the selected cells.
 function cycleTextDirection() {
   const cur = cellTextDirection()
   const next = TEXT_DIRECTIONS[(TEXT_DIRECTIONS.indexOf(cur) + 1) % TEXT_DIRECTIONS.length]
   editor.value?.chain().focus().setCellAttribute('textDirection', next).run()
 }
 
-// ── Editor ────────────────────────────────────────────────────────────────────
+// Editor
 let lastEmitted = ''
 
 const editor = useEditor({
@@ -517,7 +517,7 @@ watch(() => props.disabled,       () => editor.value?.setEditable(isEditable(), 
 watch(() => props.field.read_only, () => editor.value?.setEditable(isEditable(), false))
 watch(() => props.modelValue, (v) => {
   const html = String(v ?? '')
-  if (html === lastEmitted) return // our own echo — don't reset the caret
+  if (html === lastEmitted) return // our own echo - don't reset the caret
   if (editor.value && editor.value.getHTML() !== html)
     editor.value.commands.setContent(html, { emitUpdate: false })
 })
@@ -534,7 +534,7 @@ const doOutdent = () => (editor.value?.commands as any)?.outdent?.()
 <template>
   <div class="flex flex-col gap-1.5">
 
-    <!-- ── Toolbar ────────────────────────────────────────────────────── -->
+    <!-- Toolbar -->
     <div
       v-if="editor && isEditable()"
       role="toolbar"
@@ -781,7 +781,7 @@ const doOutdent = () => (editor.value?.commands as any)?.outdent?.()
       </Button>
     </div>
 
-    <!-- ── Editor area ─────────────────────────────────────────────────── -->
+    <!-- Editor area -->
     <div
       ref="wrapperEl"
       class="relative border border-border min-h-[120px] focus-within:ring-1 focus-within:ring-primary focus-within:border-primary transition-colors"
@@ -820,7 +820,7 @@ const doOutdent = () => (editor.value?.commands as any)?.outdent?.()
       <EditorContent :editor="editor" class="richtext-content p-3 text-foreground" :class="isDocumentStyle ? 'richtext-document' : ''" />
     </div>
 
-    <!-- ── Footer (error is rendered by FieldRenderer) ────────────────── -->
+    <!-- Footer (error is rendered by FieldRenderer) -->
     <div class="flex justify-end">
       <p v-if="editor" class="text-muted-foreground tabular-nums" aria-live="off">
         <template v-if="maxLen">{{ charCount() }} / {{ maxLen }}</template>
@@ -1012,7 +1012,7 @@ const doOutdent = () => (editor.value?.commands as any)?.outdent?.()
 .richtext-content .tiptap td,
 .richtext-content .tiptap th {
   /* Dashed, not solid: this is an editing guide for cell boundaries, not
-     ink — print formats don't style <table> at all, so a table imported
+     ink - print formats don't style <table> at all, so a table imported
      from a borderless Word layout (e.g. a signature block) still prints
      without a border even though it shows a guide here while editing. */
   border: 1px dashed var(--border);

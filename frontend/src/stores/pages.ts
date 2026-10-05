@@ -13,7 +13,7 @@ export const usePageStore = defineStore('pages', () => {
       pages.value = await fetchPages()
       loaded.value = true
     } catch {
-      // ignore — pages are optional
+      // ignore - pages are optional
     }
   }
 

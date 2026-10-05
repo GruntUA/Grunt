@@ -11,7 +11,7 @@ const { t } = useI18n()
 interface Row {
   label: string
   value: number
-  /** Raw group value (null for the "—" bucket). */
+  /** Raw group value (null for the "-" bucket). */
   key?: unknown
   /** Document id when the group is exactly one row. */
   doc?: string | null
@@ -47,7 +47,7 @@ function barWidth(value: number): number {
   return Math.max(4, Math.round((value / maxValue.value) * 100))
 }
 
-/** Single-row group → that document; Link group → the linked record; else the filtered list. */
+/** Single-row group -> that document; Link group -> the linked record; else the filtered list. */
 function open(row: Row) {
   const { widget, data } = props
   if (row.doc) return router.push(docUrl(widget.doctype, row.doc))

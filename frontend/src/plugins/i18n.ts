@@ -1,20 +1,20 @@
 /**
- * Vue i18n plugin — loads translations from PO-based backend API.
+ * Vue i18n plugin - loads translations from PO-based backend API.
  *
  * Source of truth: PO/POT files on the backend.
  * Frontend receives a JSON bundle via GET /api/v1/translations/{locale}.
- * English source strings are used as keys — vue-i18n returns the key itself
+ * English source strings are used as keys - vue-i18n returns the key itself
  * when no translation is found, so English always works without a translation file.
  *
  * UI languages are dynamic: every locale with a backend translation catalog
  * (see `get_public_config().languages`). Until the site config arrives the
- * visitor's saved choice — or `uk` — is used.
+ * visitor's saved choice - or `uk` - is used.
  *
  * Usage in components:
  *   import { useI18n } from 'vue-i18n'
  *   const { t } = useI18n()
- *   t('Document not found')  // → "Документ не знайдено"
- *   t('button|Save')         // → "Зберегти" (with context)
+ *   t('Document not found')  // -> "Документ не знайдено"
+ *   t('button|Save')         // -> "Зберегти" (with context)
  *
  *   import { tn } from '@/plugins/i18n'
  *   tn('{n} file', '{n} files', count)  // plural-aware; mirrors backend ngettext
@@ -63,7 +63,7 @@ export const i18n = createI18n({
   missingWarn: false,
   fallbackWarn: false,
   // An untranslated key is compiled as its own message, so `t('Hi {name}', { name })`
-  // interpolates in English too — no `.replace('{name}', …)` at call sites.
+  // interpolates in English too - no `.replace('{name}', …)` at call sites.
   fallbackFormat: true,
   // …minus the `ctx|` prefix (`|` would split it into plural forms) and with `@` escaped.
   missing: (_locale, key) => escapeMessage(key.replace(/^[\w-]+\|/, '')),
@@ -90,16 +90,16 @@ export async function loadRemoteTranslations(locale?: SupportedLocale): Promise<
         try {
           localStorage.setItem(key, bundle.version ?? '')
         } catch {
-          // storage unavailable — re-merge next time, harmless
+          // storage unavailable - re-merge next time, harmless
         }
       }
     }
   } catch {
-    // No translations available — English source strings shown as-is
+    // No translations available - English source strings shown as-is
   }
 }
 
-// ── Plural forms ────────────────────────────────────────────────────────────
+// Plural forms
 // Kept in step with grunt/i18n/plurals.py.
 function slavic3(n: number): number {
   n = Math.abs(n)
@@ -123,7 +123,7 @@ function pluralIndex(locale: string, n: number): number {
 export const N_ = (key: string): string => key
 
 /**
- * Plural-aware translate — mirrors the backend `ngettext`.
+ * Plural-aware translate - mirrors the backend `ngettext`.
  *
  * Looks up `<singular>\u0000<form-index>` in the bundle (the form index comes
  * from the current locale's plural rule); falls back to the English
@@ -142,11 +142,11 @@ export function setLocale(locale: SupportedLocale): void {
   try {
     localStorage.setItem(STORAGE_KEY, locale)
   } catch {
-    // storage unavailable — the choice lasts for this page only
+    // storage unavailable - the choice lasts for this page only
   }
   document.documentElement.setAttribute('lang', locale)
   loadRemoteTranslations(locale)
-  // DocType schemas are translated server-side per request language — drop the
+  // DocType schemas are translated server-side per request language - drop the
   // cache so the next render refetches labels in the new language.
   import('@/stores/doctype')
     .then(({ useDocTypeStore }) => useDocTypeStore().invalidateAll())

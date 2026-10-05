@@ -19,7 +19,7 @@ import { setPageTitle } from '@/core/composables/usePageTitle'
 
 const { t } = useI18n()
 
-/** Frontend display operator → backend filter-key suffix (see grunt/db/api.py build_clauses). */
+/** Frontend display operator -> backend filter-key suffix (see grunt/db/api.py build_clauses). */
 const OP_SUFFIX: Record<string, string> = {
     '=': '', '!=': '__ne', 'like': '__like', 'not like': '__nlike',
     '>': '__gt', '<': '__lt', '>=': '__gte', '<=': '__lte', 'child_of': '__child_of',

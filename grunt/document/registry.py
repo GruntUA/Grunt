@@ -17,17 +17,17 @@ class DocumentRegistry:
     """Registry for DocType controller classes with lazy loading.
 
     Controllers are never imported at startup. Instead, ``index_*`` methods
-    build a name→module_path map, and the actual import happens the first
+    build a name->module_path map, and the actual import happens the first
     time ``get(doctype)`` is called for that DocType.
     """
 
     def __init__(self) -> None:
         self._controllers: dict[str, type[Document]] = {}
-        # Lazy index: doctype name → dotted module path to import
+        # Lazy index: doctype name -> dotted module path to import
         self._index: dict[str, str] = {}
         self._overrides: dict[str, str] = {}
 
-    # ── Eager registration (used for explicit overrides from hooks) ───────────
+    # Eager registration (used for explicit overrides from hooks)
 
     def register(self, doctype: str, controller: type[Document]) -> None:
         """Register an already-imported controller class."""
@@ -37,14 +37,14 @@ class DocumentRegistry:
     def register_overrides(self, overrides: dict[str, str]) -> None:
         """Register controller overrides (mapping: DocType -> 'module.ClassName').
 
-        Overrides are resolved lazily — the module is NOT imported here.
+        Overrides are resolved lazily - the module is NOT imported here.
         """
         self._overrides.update(overrides)
         for doctype, path in overrides.items():
             # Store as lazy index entry; the class name is embedded in the path
             self._index[doctype] = path
 
-    # ── Lazy get ──────────────────────────────────────────────────────────────
+    # Lazy get
 
     def get(self, doctype: str) -> type[Document]:
         """Return the controller for a DocType, importing it on first access."""
@@ -68,8 +68,8 @@ class DocumentRegistry:
         """Import a module path and register the Document subclass found in it.
 
         Supports two formats:
-        - ``grunt.auth.doctypes.User.user``          → scan module for Document subclass
-        - ``myapp.module.MyController``              → explicit class path (overrides)
+        - ``grunt.auth.doctypes.User.user``          -> scan module for Document subclass
+        - ``myapp.module.MyController``              -> explicit class path (overrides)
 
         Accepts both Document and VirtualDocType subclasses.
         """
@@ -83,7 +83,7 @@ class DocumentRegistry:
             )
 
         # Check if it's an explicit class path (override format: "module.ClassName")
-        # Heuristic: last segment starts with uppercase → explicit class reference
+        # Heuristic: last segment starts with uppercase -> explicit class reference
         parts = module_path.rsplit(".", 1)
         if len(parts) == 2 and parts[1][0].isupper():
             mod_path, class_name = parts
@@ -113,7 +113,7 @@ class DocumentRegistry:
                 "document.lazy_load_failed", doctype=doctype, module=module_path, error=str(e)
             )
 
-    # ── Index builders (no imports, no I/O beyond filesystem stat) ────────────
+    # Index builders (no imports, no I/O beyond filesystem stat)
 
     def index_core_controllers(self) -> None:
         """Index controllers bundled with grunt core (grunt/*/doctypes/{Name}/{snake}.py).
@@ -125,7 +125,7 @@ class DocumentRegistry:
 
         count = 0
         for doctypes_dir in _find_doctype_dirs():
-            # module name from path: grunt/{module}/doctypes → "module"
+            # module name from path: grunt/{module}/doctypes -> "module"
             module_name = doctypes_dir.parent.name
             for dt_dir in doctypes_dir.iterdir():
                 if not dt_dir.is_dir() or dt_dir.name.startswith((".", "_")):

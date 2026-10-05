@@ -131,7 +131,7 @@ async def compute_aggregations(
             )
             continue
 
-        # Coerce None → 0 for numeric functions (sum/avg/count/min/max)
+        # Coerce None -> 0 for numeric functions (sum/avg/count/min/max)
         if value is None:
             value = 0
 

@@ -6,13 +6,13 @@
  * at once; month/weekday names and number separators follow the active UI
  * language (the user's own, else the site default).
  *
- * - `formatDate` / `formatDateTime` are **pattern-driven** — they honour
+ * - `formatDate` / `formatDateTime` are **pattern-driven** - they honour
  *   `date_format` (dd.mm.yyyy | dd/mm/yyyy | yyyy-mm-dd).
  * - `formatDayMonth` / `formatWeekday` / `formatFull` / `formatIntl` are
  *   locale-driven (short human labels, timeline chrome, export headers).
  *
  * Config is read live from `siteConfigState()` so changing SystemSettings and
- * reloading the SPA is enough — no rebuild.
+ * reloading the SPA is enough - no rebuild.
  */
 
 import { siteConfigState } from '@/core/composables/useSiteConfig'
@@ -31,7 +31,7 @@ function toDate(value: DateInput): Date | null {
     const d = new Date(value)
     return Number.isNaN(d.getTime()) ? null : d
   }
-  // "2026-08-28 09:30:00" → ISO-parseable. Server timestamps are always UTC;
+  // "2026-08-28 09:30:00" -> ISO-parseable. Server timestamps are always UTC;
   // a date-time string with no zone designator is parsed by JS as *local*
   // time, so tag a bare one as UTC before `Intl` re-localises it.
   let s = String(value).trim().replace(' ', 'T')
@@ -40,7 +40,7 @@ function toDate(value: DateInput): Date | null {
   return Number.isNaN(d.getTime()) ? null : d
 }
 
-/** BCP-47 tag for `Intl` — the active UI language (`uk`, `en`, …). */
+/** BCP-47 tag for `Intl` - the active UI language (`uk`, `en`, …). */
 export function localeTag(): string {
   return i18n.global.locale.value || siteConfigState().language || 'uk'
 }
@@ -100,7 +100,7 @@ export function formatTime(value: DateInput): string {
   return `${(p.hour ?? '00').padStart(2, '0')}:${(p.minute ?? '00').padStart(2, '0')}`
 }
 
-/** Short label like "28 серп." — for activity feeds / timelines. */
+/** Short label like "28 серп." - for activity feeds / timelines. */
 export function formatDayMonth(value: DateInput): string {
   const d = toDate(value)
   if (!d) return EMPTY_DATE
@@ -117,7 +117,7 @@ export function formatWeekday(value: DateInput, style: 'long' | 'short' = 'long'
   return new Intl.DateTimeFormat(localeTag(), { timeZone: timeZone(), weekday: style }).format(d)
 }
 
-/** Long, locale-formatted — for export headers and share banners. */
+/** Long, locale-formatted - for export headers and share banners. */
 export function formatFull(value: DateInput): string {
   const d = toDate(value)
   if (!d) return EMPTY_DATE

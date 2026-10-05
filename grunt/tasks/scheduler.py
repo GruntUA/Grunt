@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 scheduler = AsyncIOScheduler()
 
 # Handlers from hooks' scheduler_events that could not be registered
-# (path → error) — shown by the «Стан системи» report instead of only a log line.
+# (path -> error) - shown by the «Стан системи» report instead of only a log line.
 failed_jobs: dict[str, str] = {}
 
 
@@ -83,10 +83,10 @@ def _add_scheduled_job(path: str, cron_expr: str) -> None:
         async def trigger_task():
             log.info("scheduler.triggering_task", path=path)
             if hasattr(task_fn, "kiq"):
-                # TaskIQ-decorated task — send to worker
+                # TaskIQ-decorated task - send to worker
                 await task_fn.kiq()
             else:
-                # Plain async function — call directly
+                # Plain async function - call directly
                 await task_fn()
 
         scheduler.add_job(

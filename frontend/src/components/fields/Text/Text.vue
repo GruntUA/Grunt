@@ -35,7 +35,7 @@ function onUpdate(v: string | number) {
   emit('update:modelValue', String(v ?? ''))
 }
 
-// Trim stray leading/trailing whitespace on commit — a common cause of failed
+// Trim stray leading/trailing whitespace on commit - a common cause of failed
 // unique checks and lookups.
 function onBlur(e: FocusEvent) {
   const raw = (e.target as HTMLInputElement).value

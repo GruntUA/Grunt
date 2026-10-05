@@ -61,7 +61,7 @@ async def send_test_email(account_id: str, recipient: str) -> dict[str, Any]:
     if not account.get("enable_outgoing"):
         return {"success": False, "error": _("Outgoing email is disabled for this account.")}
 
-    # Reads mask the password — pull the real one straight from the column.
+    # Reads mask the password - pull the real one straight from the column.
     account["smtp_password"] = await grunt.db.get_value("EmailAccount", account_id, "smtp_password")
     if not account["smtp_password"]:
         return {

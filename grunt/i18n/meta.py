@@ -5,12 +5,12 @@ compiled DocType schema, so those strings never pass through ``_()``. This
 module translates them on the way out, keyed by a stable ``msgctxt`` convention
 so a translator (or the Translate app) can target a specific field:
 
-    meta:<DocType>                → the DocType label
-    meta:<DocType>.<fieldname>    → a field label
-    help:<DocType>[.<fieldname>]  → a description / help text
-    hint:<DocType>.<fieldname>    → a field placeholder
-    select:<DocType>.<fieldname>  → one option caption of a ``translatable`` Select
-    status:<DocType>              → a status-indicator label
+    meta:<DocType>                -> the DocType label
+    meta:<DocType>.<fieldname>    -> a field label
+    help:<DocType>[.<fieldname>]  -> a description / help text
+    hint:<DocType>.<fieldname>    -> a field placeholder
+    select:<DocType>.<fieldname>  -> one option caption of a ``translatable`` Select
+    status:<DocType>              -> a status-indicator label
 
 label / description / placeholder each get their own context so they never share
 a row in the Translate registry. ``pgettext`` also falls back to a context-free

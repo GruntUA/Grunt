@@ -13,7 +13,7 @@ class BackgroundWorkerController(VirtualDocType):
     """Live view of the TaskIQ consumer group's members (``XINFO CONSUMERS``).
 
     Read-only except for ``delete``, which drops a dead consumer's
-    registration (``XGROUP DELCONSUMER``) — for a worker process that
+    registration (``XGROUP DELCONSUMER``) - for a worker process that
     crashed and left an idle entry behind.
     """
 
@@ -75,7 +75,7 @@ class BackgroundWorkerController(VirtualDocType):
         )
 
     async def _load_all(self) -> tuple[list[dict[str, Any]], str | None]:
-        """Returns ``(rows, unavailable_reason)`` — reason is ``None`` on a genuine empty list."""
+        """Returns ``(rows, unavailable_reason)`` - reason is ``None`` on a genuine empty list."""
         sb = stream_broker()
         if sb is None:
             return [], "not_configured"

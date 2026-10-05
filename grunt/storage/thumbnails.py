@@ -1,11 +1,11 @@
-"""File thumbnails — a small WebP preview for images and PDFs (first page).
+"""File thumbnails - a small WebP preview for images and PDFs (first page).
 
 Made once, at upload, and stored next to the file (``File.thumbnail_path``);
 served by ``get_content(..., thumb=1)`` with the same access rules and signed
 URLs as the file itself. Grids (library, file manager) load these instead of
 full-size originals, and PDFs finally get a real preview instead of an icon.
 
-PDFs are rendered with pypdfium2 (PDFium, Apache/BSD — no AGPL dependency).
+PDFs are rendered with pypdfium2 (PDFium, Apache/BSD - no AGPL dependency).
 """
 
 from __future__ import annotations
@@ -60,7 +60,7 @@ async def make_thumbnail(content: bytes, content_type: str | None) -> bytes | No
     if not can_thumbnail(content_type):
         return None
     try:
-        # Decoding / rendering is CPU work — keep it off the event loop.
+        # Decoding / rendering is CPU work - keep it off the event loop.
         return await asyncio.to_thread(_render, content, content_type or "")
     except Exception as e:  # noqa: BLE001 - a bad file just goes without a preview
         log.warning("thumbnail.failed", content_type=content_type, error=str(e))

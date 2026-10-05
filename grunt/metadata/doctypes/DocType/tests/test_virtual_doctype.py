@@ -1,4 +1,4 @@
-"""Tests for Virtual DocType — base class and delegation logic."""
+"""Tests for Virtual DocType - base class and delegation logic."""
 
 import pytest
 

@@ -55,7 +55,7 @@ def datetime_format(value: str | datetime | None, fmt: str = "%d.%m.%Y %H:%M") -
 
 
 def name_format(value: str | None) -> str:
-    """Reformat 'Прізвище Ім'я По-батькові' → 'Ім'я ПРІЗВИЩЕ'."""
+    """Reformat 'Прізвище Ім'я По-батькові' -> 'Ім'я ПРІЗВИЩЕ'."""
     if not value:
         return ""
     parts = value.strip().split()
@@ -188,7 +188,7 @@ def decline_position(position: str | None, case: str = "nominative") -> str:
                 result.append(declined)
                 head_found = True
             else:
-                # Preposition or already-declined noun → stop inflecting
+                # Preposition or already-declined noun -> stop inflecting
                 result.append(word)
                 head_found = True
 

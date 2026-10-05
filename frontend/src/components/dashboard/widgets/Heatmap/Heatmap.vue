@@ -26,7 +26,7 @@ const LEVELS = ['bg-muted', 'bg-primary/25', 'bg-primary/50', 'bg-primary/75', '
 
 const periodDays = computed(() => PERIOD_DAYS[props.widget.period ?? '365d'] ?? 365)
 
-/** Local YYYY-MM-DD — toISOString() would shift the day across the UTC boundary. */
+/** Local YYYY-MM-DD - toISOString() would shift the day across the UTC boundary. */
 function dayKey(d: Date): string {
   const p = (n: number) => String(n).padStart(2, '0')
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`
@@ -100,7 +100,7 @@ function fmtDay(d: Date | string): string {
   return fmt(date, { day: 'numeric', month: 'long', year: 'numeric' })
 }
 
-/** Day cell → the widget's list filtered to that day. */
+/** Day cell -> the widget's list filtered to that day. */
 function open(cell: Cell) {
   const { widget, data } = props
   if (!cell.count || !widget.doctype || !widget.date_field || !data?.filters) return

@@ -45,7 +45,7 @@ class Settings(BaseSettings):
     query_cache_ttl_seconds: int = 30
 
     # Per-document cache for hot get-by-id lookups (optional, Redis-backed
-    # when redis_url is configured) — see grunt/cache/document_cache.py. TTL
+    # when redis_url is configured) - see grunt/cache/document_cache.py. TTL
     # is only a backstop; freshness is normally guaranteed by invalidation on
     # every write to the cached document.
     doc_cache_enabled: bool = True
@@ -64,7 +64,7 @@ class Settings(BaseSettings):
 
     # Reverse proxies whose forwarded client-IP headers (CF-Connecting-IP,
     # X-Real-IP, X-Forwarded-For) are believed. A request from any other
-    # address is identified by its own socket address — so a client can't
+    # address is identified by its own socket address - so a client can't
     # spoof its IP (and dodge a role / API-key IP allowlist) with a header.
     trusted_proxies: list[str] = ["127.0.0.1/32", "::1/128"]
     # Also believe CF-Connecting-IP when the connection comes from a published
@@ -84,7 +84,7 @@ class Settings(BaseSettings):
     rate_limit_webform: int = 10  # req/min per-IP for public web-form submissions
     rate_limit_files: int = 600  # req/min per-IP for signed file URLs (<img> grids)
 
-    # CAPTCHA (Turnstile) — used only by WebForm submissions that opt in via
+    # CAPTCHA (Turnstile) - used only by WebForm submissions that opt in via
     # their own captcha_enabled flag. Leave captcha_provider unset to disable
     # site-wide, even if a form asks for it.
     captcha_provider: str | None = None  # "turnstile" is the only provider for now
@@ -95,7 +95,7 @@ class Settings(BaseSettings):
     default_locale: str = "uk"
     default_timezone: str = "Europe/Kyiv"
 
-    # OAuth2 / SSO (optional — leave empty to disable)
+    # OAuth2 / SSO (optional - leave empty to disable)
     oauth_google_client_id: str | None = None
     oauth_google_client_secret: str | None = None
     # Microsoft Azure AD
@@ -103,7 +103,7 @@ class Settings(BaseSettings):
     oauth_microsoft_client_secret: str | None = None
     oauth_microsoft_tenant_id: str = "common"  # or specific tenant UUID
 
-    # WebAuthn / Passkeys (optional — needs the `webauthn` extra installed)
+    # WebAuthn / Passkeys (optional - needs the `webauthn` extra installed)
     # All three fall back to APP_URL / APP_NAME when left unset, which is fine
     # for local dev but should be pinned explicitly in production.
     webauthn_rp_id: str | None = None  # DNS name only, e.g. "app.example.com"

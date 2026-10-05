@@ -1,4 +1,4 @@
-"""Tests for dashboard module — aggregation helpers and config validation."""
+"""Tests for dashboard module - aggregation helpers and config validation."""
 
 from datetime import UTC, datetime, timedelta
 

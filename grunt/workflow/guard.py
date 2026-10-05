@@ -4,7 +4,7 @@ Called from grunt/document/mixins/write.py. Outside a transition (see
 :func:`grunt.workflow.engine.current_transition`):
 
 * the state field can't be set to anything but the initial state on create,
-  and can't be changed on update — only transitions move it;
+  and can't be changed on update - only transitions move it;
 * an ``on_edit`` transition available to the user turns an edit into that
   transition (e.g. an edited published page goes back to review);
 * otherwise a state's ``edit_roles`` decides who may edit or delete; a user
@@ -51,7 +51,7 @@ def _norm(value: Any) -> str:
     elif isinstance(value, date):
         value = value.isoformat()
     text = str(value).strip()
-    # "2026-03-15 09:44:00+00:00" / "...T09:44:00Z" / "...T09:44:00.000" → one shape.
+    # "2026-03-15 09:44:00+00:00" / "...T09:44:00Z" / "...T09:44:00.000" -> one shape.
     if len(text) >= 19 and text[4] == "-" and text[10] in " T" and text[13] == ":":
         text = text[:10] + "T" + text[11:19]
     return text
@@ -67,7 +67,7 @@ def _label(workflow: Any, state: str | None) -> str:
 
 
 async def check_create(doctype: str, data: dict[str, Any], user: User | None) -> None:
-    """A new document starts in the initial state — no other state on create."""
+    """A new document starts in the initial state - no other state on create."""
     from grunt.workflow.registry import get_active_workflow
 
     workflow = await get_active_workflow(doctype)
@@ -89,7 +89,7 @@ async def check_update(
     """Validate an edit; returns the ``on_edit`` transition it turned into, if any.
 
     For an ``on_edit`` transition, *data* gets the new state (and its
-    ``update_field``) — the caller saves it as part of the same update.
+    ``update_field``) - the caller saves it as part of the same update.
     """
     from grunt.workflow.engine import ActiveTransition, state_updates, workflow_engine
     from grunt.workflow.registry import get_active_workflow
@@ -131,7 +131,7 @@ async def check_update(
 
 
 async def check_delete(doctype: str, existing: dict[str, Any], user: User | None) -> None:
-    """``edit_roles`` govern deletion too; so does ``on_edit`` — whose edits go
+    """``edit_roles`` govern deletion too; so does ``on_edit`` - whose edits go
     to review can't remove the document without it either."""
     from grunt.workflow.engine import workflow_engine
     from grunt.workflow.registry import get_active_workflow

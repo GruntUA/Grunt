@@ -1,4 +1,4 @@
-"""Document Actions — code-registered, metadata-bound custom document buttons.
+"""Document Actions - code-registered, metadata-bound custom document buttons.
 
 An *action* is a named unit of behaviour that an app registers in code
 (``@doc_action(...)``); a DocType then *binds* zero or more registered actions
@@ -9,7 +9,7 @@ its label / button group / variant or gates it with a JS ``condition``.
 
 Registering an action also feeds its key into the dynamic-options registry
 under ``DOC_ACTION_SOURCE`` so ``DocTypeAction.action``'s Select dropdown
-always reflects the currently-registered set — mirroring how
+always reflects the currently-registered set - mirroring how
 ``grunt.website.block_types`` populates ``WebPageBlock.block_type``.
 
 Flow at runtime:
@@ -18,7 +18,7 @@ Flow at runtime:
   defaults by ``grunt.api.v1.meta._dump_doctype``) and renders a toolbar
   button per visible binding;
 * clicking a button calls ``POST /api/v1/method/grunt.actions.run`` with the
-  DocType, the action key and the document id — if the action declares
+  DocType, the action key and the document id - if the action declares
   ``fields`` the toolbar first opens a form dialog and sends the collected
   values as ``args``;
 * :func:`run` re-checks that the key is actually bound on that DocType,
@@ -154,7 +154,7 @@ async def run(doctype: str, action: str, doc_id: str, args: dict | None = None) 
     """Execute a document action.
 
     *action* must be a key that is both registered in code **and** bound on
-    *doctype* via its ``actions`` table — an unbound key is rejected even if it
+    *doctype* via its ``actions`` table - an unbound key is rejected even if it
     exists in the registry, so the set of runnable actions per DocType stays
     exactly what the metadata declares.
     """

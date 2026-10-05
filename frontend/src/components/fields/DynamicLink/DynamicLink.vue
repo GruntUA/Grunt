@@ -18,7 +18,7 @@ const emit = defineEmits<{
 }>()
 
 // field.options holds the fieldname whose value is the target doctype name.
-// Empty string → no doctype resolved → fall back to plain text input.
+// Empty string -> no doctype resolved -> fall back to plain text input.
 const targetDoctype = computed(() =>
   props.doc && props.field.options
     ? String(props.doc[props.field.options] ?? '')

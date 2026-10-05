@@ -1,4 +1,4 @@
-"""`grunt i18n` — framework translation catalogs (PO/POT)."""
+"""`grunt i18n` - framework translation catalogs (PO/POT)."""
 
 from __future__ import annotations
 

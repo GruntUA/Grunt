@@ -39,12 +39,12 @@ async def get_import_status(data_import_id: str) -> dict[str, Any]:
 async def run_import_job(data_import_id: str) -> dict[str, Any]:
     """Start an import job via the background task queue.
 
-    The queued task runs as SYSTEM_USER (it must — the import itself writes
+    The queued task runs as SYSTEM_USER (it must - the import itself writes
     into whatever target doctype the DataImport record names, which the
     triggering user may have no access to). That makes this check load-
     bearing in a way `get_import_preview`/`get_import_status` aren't: without
     it, any authenticated user who obtains a DataImport id (log line, shared
-    link, id guessing) could trigger someone else's privileged bulk-write —
+    link, id guessing) could trigger someone else's privileged bulk-write -
     DataImport is create/write/delete-restricted to "System Manager" for
     exactly this reason, but nothing enforced that restriction on the one
     action that actually executes the write.
@@ -60,7 +60,7 @@ async def run_import_job(data_import_id: str) -> dict[str, Any]:
     await write_guard("DataImport", "write")
 
     if isinstance(broker, InMemoryBroker):
-        # No Redis worker running — execute directly in a background asyncio task
+        # No Redis worker running - execute directly in a background asyncio task
         asyncio.create_task(run_data_import(data_import_id))
     else:
         await run_data_import.kiq(data_import_id)

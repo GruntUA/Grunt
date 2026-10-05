@@ -33,7 +33,7 @@ def is_virtual_routed(dt: Any, doctype_name: str) -> bool:
 def _get_virtual_controller(doctype_name: str, user: User):
     """Get the VirtualDocType controller instance for a virtual DocType, or
     ``None`` when it has none (e.g. a virtual child table whose rows exist only
-    inside the parent document) — such a DocType simply has no documents."""
+    inside the parent document) - such a DocType simply has no documents."""
     from grunt.metadata.virtual import VirtualDocType
 
     controller_cls = document_registry.get(doctype_name)

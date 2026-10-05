@@ -21,7 +21,7 @@ class BackgroundJobController(VirtualDocType):
     """Live view of in-flight (delivered, not yet acked) Redis Stream entries.
 
     Read-only except for ``delete``, which acks a stuck entry off the pending
-    list — a manual "dismiss" for a job that will never finish on its own.
+    list - a manual "dismiss" for a job that will never finish on its own.
     """
 
     async def get_list(
@@ -57,7 +57,7 @@ class BackgroundJobController(VirtualDocType):
         return {}
 
     async def delete(self, doc_id: str, **kwargs: Any) -> None:
-        """Ack the entry — removes it from the pending list without retrying it."""
+        """Ack the entry - removes it from the pending list without retrying it."""
         sb = stream_broker()
         if sb is None:
             raise HTTPException(
@@ -83,7 +83,7 @@ class BackgroundJobController(VirtualDocType):
         )
 
     async def _load_all(self) -> tuple[list[dict[str, Any]], str | None]:
-        """Returns ``(rows, unavailable_reason)`` — reason is ``None`` on a genuine empty list."""
+        """Returns ``(rows, unavailable_reason)`` - reason is ``None`` on a genuine empty list."""
         sb = stream_broker()
         if sb is None:
             return [], "not_configured"

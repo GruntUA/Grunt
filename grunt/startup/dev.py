@@ -17,7 +17,7 @@ VITE_SERVER_URL = "http://localhost:5173"
 def register_dev_proxy(app: FastAPI) -> None:
     """Proxy Vite dev-server paths to the running Vite server.
 
-    No-op unless ``settings.debug`` — in production the built assets are
+    No-op unless ``settings.debug`` - in production the built assets are
     served as static files instead.
     """
     if not settings.debug:

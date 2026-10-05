@@ -25,7 +25,7 @@ from grunt.db.write_intent import set_process_default
 def cli():
     """Grunt CLI: the framework management tool."""
     # CLI commands write (migrate, doctype sync, fixtures…) while the dev server
-    # and worker share the SQLite file — take the write lock at BEGIN, like the
+    # and worker share the SQLite file - take the write lock at BEGIN, like the
     # worker does (grunt/db/write_intent.py).
     set_process_default(True)
 

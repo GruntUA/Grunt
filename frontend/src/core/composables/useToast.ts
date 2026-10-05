@@ -37,7 +37,7 @@ export function useToast() {
 
 /**
  * Non-composable version for plain JS files.
- * Works anywhere — sonner's `toast()` has no Vue-context dependency, unlike PrimeVue's useToast().
+ * Works anywhere - sonner's `toast()` has no Vue-context dependency, unlike PrimeVue's useToast().
  */
 export const toast = {
   success: (m: string, s?: string, o?: any) => show('success', m, s ?? i18n.global.t('Success'), { life: 3000, ...o }),

@@ -2,7 +2,7 @@ from grunt.metadata.field import FieldType, register_field_type_class
 
 
 class RichTextField(FieldType):
-    """HTML from the tiptap editor — sanitized on every write (grunt.utils.sanitize)."""
+    """HTML from the tiptap editor - sanitized on every write (grunt.utils.sanitize)."""
 
     name = "RichText"
     column_spec = staticmethod(lambda f: ("Text",))

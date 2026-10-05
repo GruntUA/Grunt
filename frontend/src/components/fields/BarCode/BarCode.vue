@@ -1,11 +1,11 @@
 <script setup lang="ts">
 /**
- * FieldBarcode — barcode / QR-code scanner field.
+ * FieldBarcode - barcode / QR-code scanner field.
  *
  * Input modes:
  *  1. Manual text input (always available)
  *  2. Camera scan via BarcodeDetector API (native or polyfill)
- *  3. File upload — user picks an image; decoded via BarcodeDetector
+ *  3. File upload - user picks an image; decoded via BarcodeDetector
  *
  * On platforms where the native BarcodeDetector is unavailable (Windows desktop),
  * the `barcode-detector` npm polyfill (ZXing-WASM) is loaded dynamically.
@@ -34,7 +34,7 @@ defineProps<{
 
 const emit = defineEmits<{ 'update:modelValue': [value: unknown] }>()
 
-// ── State ──────────────────────────────────────────────────────────────────
+// State
 
 const { t } = useI18n()
 const scanning = ref(false)
@@ -48,7 +48,7 @@ let stream: MediaStream | null = null
 let rafId: number | null = null
 let detector: BarcodeDetectorInstance | null = null
 
-// ── Polyfill bootstrap ─────────────────────────────────────────────────────
+// Polyfill bootstrap
 
 async function ensureDetector(): Promise<BarcodeDetectorClass | null> {
   if (BarcodeDetectorCtor) return BarcodeDetectorCtor
@@ -78,7 +78,7 @@ onMounted(async () => {
   await ensureDetector()
 })
 
-// ── Camera scan ────────────────────────────────────────────────────────────
+// Camera scan
 
 async function startScan() {
   scanError.value = ''
@@ -132,7 +132,7 @@ function detectLoop() {
         }
       }
     } catch {
-      // detector may throw on some frames — just continue
+      // detector may throw on some frames - just continue
     }
     if (scanning.value) detectLoop()
   })
@@ -151,7 +151,7 @@ function onDecoded(value: string) {
   setTimeout(() => { scanSuccess.value = false }, 2000)
 }
 
-// ── File upload fallback ───────────────────────────────────────────────────
+// File upload fallback
 
 async function onFileChange(e: Event) {
   scanError.value = ''
@@ -183,7 +183,7 @@ async function onFileChange(e: Event) {
   if (fileInputRef.value) fileInputRef.value.value = ''
 }
 
-// ── Cleanup ────────────────────────────────────────────────────────────────
+// Cleanup
 
 onUnmounted(stopScan)
 </script>

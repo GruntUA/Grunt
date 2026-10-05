@@ -1,7 +1,7 @@
 <script setup lang="ts">
 /**
  * Tree navigation beside a list (DocType.list_tree_field): the nodes of the
- * linked `is_tree` DocType — folders for File, departments for Employee…
+ * linked `is_tree` DocType - folders for File, departments for Employee…
  *
  * The open node *is* a list filter (`field = node`, `child_of` with nested,
  * `is not set` for «without»), so it lives in the URL like any other filter.
@@ -35,7 +35,7 @@ const props = defineProps<{
 }>()
 const emit = defineEmits<{
   'update:filters': [filters: ActiveFilter[]]
-  /** Rows were re-linked — the list refetches. */
+  /** Rows were re-linked - the list refetches. */
   moved: []
 }>()
 
@@ -59,8 +59,8 @@ const roles = computed(() => auth.user?.roles ?? [])
 const canCreate = computed(() => roleAllows(treeDt.value, 'create', roles.value))
 const canMoveRows = computed(() => roleAllows(props.dt, 'write', roles.value))
 
-// ── Nodes: loaded one level at a time ───────────────────────────────────────
-const childrenOf = reactive(new Map<string, TreeNode[]>()) // '' → roots
+// Nodes: loaded one level at a time
+const childrenOf = reactive(new Map<string, TreeNode[]>()) // '' -> roots
 const expanded = reactive(new Set<string>())
 const titles = reactive(new Map<string, string>())
 
@@ -107,7 +107,7 @@ const rows = computed<Row[]>(() => {
   return out
 })
 
-// ── Selection = the list filter on the field ────────────────────────────────
+// Selection = the list filter on the field
 const current = computed(() =>
   props.filters.find((f) => f.fieldname === props.field.fieldname && TREE_OPS.includes(f.op)),
 )
@@ -137,7 +137,7 @@ function select(key: string, nested = includeNested.value) {
   emit('update:filters', [...rest, filter])
 }
 
-/** Opening the list on a node (from the URL) — unfold the path to it. */
+/** Opening the list on a node (from the URL) - unfold the path to it. */
 async function revealSelected() {
   const key = selected.value
   if (key === ALL || key === NONE || titles.has(key) && isVisible(key)) return
@@ -159,7 +159,7 @@ onMounted(async () => {
 })
 watch(selected, revealSelected)
 
-// ── Drag & drop ─────────────────────────────────────────────────────────────
+// Drag & drop
 const dropTarget = ref<string | null>(null)
 
 function accepts(e: DragEvent): boolean {
@@ -214,7 +214,7 @@ async function onDrop(e: DragEvent, key: string) {
   }
 }
 
-// ── Node actions ────────────────────────────────────────────────────────────
+// Node actions
 async function createNode(parent: string | null) {
   const title = await dialog.prompt({ label: t('Name'), title: t('New folder'), required: true })
   if (!title?.trim()) return

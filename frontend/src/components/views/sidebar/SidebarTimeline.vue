@@ -30,7 +30,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  /** A previous version was restored — the document's own data is now stale. */
+  /** A previous version was restored - the document's own data is now stale. */
   restored: []
 }>()
 
@@ -48,7 +48,7 @@ async function loadTimeline() {
 }
 
 // A Date/Datetime "change" that is the same instant in another timezone
-// notation (e.g. +00:00 → +03:00) is not a change for the reader.
+// notation (e.g. +00:00 -> +03:00) is not a change for the reader.
 function isRealChange(c: DocVersionChange): boolean {
   const type = props.doctype.fields?.find((f) => f.fieldname === c.field)?.fieldtype
   if ((type === 'Date' || type === 'Datetime') && typeof c.old === 'string' && typeof c.new === 'string') {
@@ -61,7 +61,7 @@ function isRealChange(c: DocVersionChange): boolean {
 
 const isWorkflow = (item: TimelineItem) => item.type === 'activity' && item.action?.toLowerCase() === 'workflow'
 
-// A workflow action also writes a version that only flips the state field —
+// A workflow action also writes a version that only flips the state field -
 // the workflow entry already says that, so the version is dropped.
 function isWorkflowEcho(item: TimelineItem, changes: DocVersionChange[]): boolean {
   const stateField = props.doctype.workflow_state_field
@@ -124,7 +124,7 @@ function formatDiffValue(val: unknown): string {
   if (Array.isArray(val)) {
     if (!val.length) return '—'
     // Child-table / MultiLink snapshots: rows of objects have no single
-    // generic label, so just say how many — the alternative is "[object
+    // generic label, so just say how many - the alternative is "[object
     // Object]" repeated N times.
     if (val.some(v => v !== null && typeof v === 'object')) return t('{n} rows', { n: String(val.length) })
     return val.map(String).join(', ')
@@ -232,7 +232,7 @@ async function deleteComment(item: TimelineItem) {
   } catch { /* silent */ }
 }
 
-// ── @mention autocomplete logic (retained for functionality) ─────────────────
+// @mention autocomplete logic (retained for functionality)
 const allUsers = ref<UserPublic[]>([])
 const mentionDropdown = ref<UserPublic[]>([])
 const mentionIndex = ref(0)

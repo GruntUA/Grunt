@@ -21,7 +21,7 @@ const EMPTY: SidebarBundle = {
 
 // Users are shared across all sidebar instances and rarely change within a session.
 let usersCache: UserPublic[] | null = null
-// Tags already used on each DocType — suggestions for the tag picker.
+// Tags already used on each DocType - suggestions for the tag picker.
 const tagsCache = new Map<string, string[]>()
 
 export function useDocSidebar(
@@ -48,7 +48,7 @@ export function useDocSidebar(
       bundle.value = await docsApi.getSidebar(d, i)
       loaded.value = true
     } catch {
-      /* silent — sidebar is non-critical */
+      /* silent - sidebar is non-critical */
     } finally {
       loading.value = false
     }
@@ -56,7 +56,7 @@ export function useDocSidebar(
 
   watch([dt, id], reload, { immediate: true })
 
-  // ── Assignees ──────────────────────────────────────────────────────────────
+  // Assignees
   async function assign(user: string, description?: string): Promise<void> {
     const d = dt(); const i = id()
     if (!d || !i || !user.trim()) return
@@ -68,7 +68,7 @@ export function useDocSidebar(
     bundle.value.assignees = bundle.value.assignees.filter((a) => a.name !== name)
   }
 
-  // ── Shares ─────────────────────────────────────────────────────────────────
+  // Shares
   async function share(user: string, permission: 'Read' | 'Write'): Promise<void> {
     const d = dt(); const i = id()
     if (!d || !i || !user.trim()) return
@@ -80,7 +80,7 @@ export function useDocSidebar(
     bundle.value.shares = bundle.value.shares.filter((s) => s.name !== name)
   }
 
-  // ── Tags ───────────────────────────────────────────────────────────────────
+  // Tags
   async function addTag(tag: string): Promise<void> {
     const d = dt(); const i = id()
     const value = tag.trim()
@@ -109,7 +109,7 @@ export function useDocSidebar(
     return tagsCache.get(d)!
   }
 
-  // ── Bookmark ───────────────────────────────────────────────────────────────
+  // Bookmark
   async function toggleBookmark(title: string): Promise<void> {
     const d = dt(); const i = id()
     if (!d || !i) return
@@ -121,7 +121,7 @@ export function useDocSidebar(
     }
   }
 
-  // ── Follow (notifications about changes / comments) ─────────────────────────
+  // Follow (notifications about changes / comments)
   async function toggleFollow(): Promise<void> {
     const d = dt(); const i = id()
     if (!d || !i) return
@@ -134,7 +134,7 @@ export function useDocSidebar(
     }
   }
 
-  // ── People display helpers ────────────────────────────────────────────────
+  // People display helpers
   function personName(email?: string | null): string {
     if (!email) return '—'
     return bundle.value.people[email]?.name || email
@@ -149,7 +149,7 @@ export function useDocSidebar(
     return (parts[0]?.[0] ?? '?').concat(parts[1]?.[0] ?? '').toUpperCase()
   }
 
-  // ── User search (assign / share pickers) ───────────────────────────────────
+  // User search (assign / share pickers)
   async function searchUsers(query: string): Promise<UserPublic[]> {
     if (!usersCache) {
       try {

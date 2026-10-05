@@ -1,7 +1,7 @@
 /**
  * Keyboard shortcuts: one notation for declaring, matching and showing them.
  *
- * A shortcut is `Mod+S`, `Mod+Shift+P`, `Escape`, `Alt+Enter`… — `Mod` (also
+ * A shortcut is `Mod+S`, `Mod+Shift+P`, `Escape`, `Alt+Enter`… - `Mod` (also
  * spelled `Ctrl` / `Cmd` / `Meta`) is the platform's primary modifier: ⌘ on
  * macOS / iOS, Ctrl elsewhere.
  *
@@ -33,7 +33,7 @@ const KEY_ALIASES: Record<string, string> = { esc: 'escape', return: 'enter', de
 
 function parse(shortcut: string): ParsedShortcut {
   const parts = shortcut.toLowerCase().split('+').map((p) => p.trim())
-  // `Mod++` — the last part is the key itself.
+  // `Mod++` - the last part is the key itself.
   const raw = parts.pop() || '+'
   return {
     mod: parts.some((p) => MOD_ALIASES.has(p)),
@@ -48,7 +48,7 @@ const CODE_KEYS: Record<string, string> = {
   Semicolon: ';', Quote: "'", Backquote: '`', Minus: '-', Equal: '=',
 }
 
-/** The Latin key under the finger: `KeyS` → `s`, `Digit1` → `1`, `BracketRight` → `]`. */
+/** The Latin key under the finger: `KeyS` -> `s`, `Digit1` -> `1`, `BracketRight` -> `]`. */
 function physicalKey(code: string): string | undefined {
   if (/^Key[A-Z]$/.test(code)) return code.slice(3).toLowerCase()
   if (/^Digit\d$/.test(code)) return code.slice(5)
@@ -67,7 +67,7 @@ export function matchesShortcut(event: KeyboardEvent, shortcut: string, mac = IS
   const key = (event.key ?? '').toLowerCase()
   if (key === want.key) return true
   // Non-Latin layout (Cyrillic, Greek…), or Option on macOS that turns the key
-  // into another symbol (⌥N → «˜», a dead key): compare the physical key instead.
+  // into another symbol (⌥N -> «˜», a dead key): compare the physical key instead.
   const nonLatin = key.length === 1 && key.charCodeAt(0) > 127
   const macOption = mac && event.altKey
   return (nonLatin || macOption || key === 'dead') && physicalKey(event.code) === want.key
@@ -84,7 +84,7 @@ const KEY_LABELS: Record<string, string> = {
 export function shortcutKeys(shortcut: string, mac = IS_MAC): string[] {
   const p = parse(shortcut)
   const names = mac ? MAC_SYMBOLS : PC_NAMES
-  // macOS order is ⌥⇧⌘, Windows/Linux — Ctrl+Shift+Alt.
+  // macOS order is ⌥⇧⌘, Windows/Linux - Ctrl+Shift+Alt.
   const mods = mac
     ? [p.alt && names.alt, p.shift && names.shift, p.mod && names.mod]
     : [p.mod && names.mod, p.shift && names.shift, p.alt && names.alt]

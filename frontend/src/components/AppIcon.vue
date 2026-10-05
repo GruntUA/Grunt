@@ -5,14 +5,14 @@ import { loadLucideLib } from '@/lib/lucide'
 
 /**
  * Renders an icon from:
- *  - a Vue Component           → renders it directly
- *  - a kebab-case Lucide name  → "file-text"  → resolves to <FileText />
- *  - an emoji / other string   → "📁"         → renders as <span>
+ *  - a Vue Component           -> renders it directly
+ *  - a kebab-case Lucide name  -> "file-text"  -> resolves to <FileText />
+ *  - an emoji / other string   -> "📁"         -> renders as <span>
  */
 const props = withDefaults(defineProps<{
   icon: string | Component | undefined
   class?: string
-  /** Render unresolvable strings as literal text (e.g. emoji). Set false to silently render nothing instead — for spots where a broken/legacy icon value shouldn't show up as clutter. */
+  /** Render unresolvable strings as literal text (e.g. emoji). Set false to silently render nothing instead - for spots where a broken/legacy icon value shouldn't show up as clutter. */
   textFallback?: boolean
 }>(), {
   textFallback: true,
@@ -29,7 +29,7 @@ function ensureLucide() {
 }
 
 const KEBAB_RE = /^[a-z][a-z0-9]*(-[a-z0-9]+)*$/
-// Matches genuine emoji/pictographs ("📌", "🏠") — not legacy icon identifiers
+// Matches genuine emoji/pictographs ("📌", "🏠") - not legacy icon identifiers
 // ("octicon octicon-shield-lock") that fail to resolve and shouldn't render as clutter.
 const EMOJI_RE = /\p{Extended_Pictographic}/u
 

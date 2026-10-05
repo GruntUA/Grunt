@@ -1,4 +1,4 @@
-"""Auth service — JWT access tokens and refresh/reset token lifecycle.
+"""Auth service - JWT access tokens and refresh/reset token lifecycle.
 
 User CRUD, password hashing, and authentication logic live in the
 User DocType controller: ``grunt.core.doctypes.User.User``.
@@ -18,7 +18,7 @@ if TYPE_CHECKING:
     from grunt.auth.doctypes.User.user import User
 
 
-# ── JWT ───────────────────────────────────────────────────────────────────
+# JWT
 
 # Access tokens are short-lived; the device's UserSession (refreshed through
 # its refresh token) is what carries the login across the idle timeout.
@@ -51,7 +51,7 @@ def create_access_token(
     """Create a JWT with user identity claims to avoid DB lookups on every request.
 
     When ``impersonator`` is given, the token authenticates as *user* but also
-    carries ``imp*`` claims naming the System Manager who opened the session —
+    carries ``imp*`` claims naming the System Manager who opened the session -
     so the UI can show a "you are viewing as …" banner and audit knows who acted.
     """
     minutes = expire_minutes if expire_minutes is not None else settings.access_token_expire_minutes
@@ -78,7 +78,7 @@ def create_challenge_token(purpose: str, *, ttl_minutes: int = 5, **claims: obje
     """Sign a short-lived, single-purpose token.
 
     Used for stateless multi-step ceremonies where the server has to remember
-    something between two HTTP calls without a DB row — MFA hand-off, WebAuthn
+    something between two HTTP calls without a DB row - MFA hand-off, WebAuthn
     challenges, ... . ``purpose`` is checked on the way back in
     :func:`verify_challenge_token`, so a token minted for one flow can't be
     replayed into another.
@@ -121,7 +121,7 @@ def create_mfa_setup_token(user: User) -> str:
     """Token that lets a user whose role requires MFA enroll it during login.
 
     A separate purpose from :func:`create_mfa_token`, so an MFA *verification*
-    token can never be replayed into enrollment (or vice versa). Longer TTL —
+    token can never be replayed into enrollment (or vice versa). Longer TTL -
     the user may still have to install an authenticator app.
     """
     return create_challenge_token("mfa_setup", ttl_minutes=15, sub=user.email, uid=user.id)
@@ -132,7 +132,7 @@ def verify_mfa_setup_token(token: str) -> dict | None:
     return verify_challenge_token(token, "mfa_setup")
 
 
-# ── Password reset tokens ─────────────────────────────────────────────────
+# Password reset tokens
 
 
 async def _find_and_invalidate_token(
@@ -205,7 +205,7 @@ async def consume_password_reset_token(token: str, new_password: str) -> bool:
             await hash_password(new_password),
         )
 
-    # A password reset may be a response to a stolen account — sign out everywhere.
+    # A password reset may be a response to a stolen account - sign out everywhere.
     from grunt.auth.doctypes.UserSession.user_session import end_all_sessions
 
     await end_all_sessions(user_data["name"])

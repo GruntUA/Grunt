@@ -15,7 +15,7 @@ from grunt.utils.attr_dict import AttrDict
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
-# "sum(amount)" / "count()" — see _parse_aggregation_expr.
+# "sum(amount)" / "count()" - see _parse_aggregation_expr.
 _AGG_EXPR_RE = re.compile(r"^([a-z_]+)(?:\((.*)\))?$")
 
 
@@ -64,7 +64,7 @@ def _build_group_by_column(table: Any, gb: str) -> tuple[Any, Any]:
 
 
 class GruntDB:
-    """Low-level database helpers — accessible as ``grunt.db``.
+    """Low-level database helpers - accessible as ``grunt.db``.
 
     All methods are async and operate on the current request session.
 
@@ -127,7 +127,7 @@ class GruntDB:
             # single value
             subject = await grunt.db.get_value("Task", "TASK00002", "subject")
 
-            # multiple values → list (unpackable)
+            # multiple values -> list (unpackable)
             subject, desc = await grunt.db.get_value(
                 "Task", "TASK00002", ["subject", "description"]
             )
@@ -160,7 +160,7 @@ class GruntDB:
             stmt = apply_filters(select(*columns), table, filters).limit(1)
             return (await self._session().execute(stmt)).first()
 
-        # Whole-document fetch (``"*"``) — always returns an attribute-dict.
+        # Whole-document fetch (``"*"``) - always returns an attribute-dict.
         if fieldname == "*":
             row = await _fetch_row([table])
             return AttrDict(row._mapping) if row is not None else None
@@ -352,7 +352,7 @@ class GruntDB:
     async def get_doc(self, doctype: str, name: str) -> dict[str, Any] | None:
         """Return a single document by name, or ``None`` if not found.
 
-        Low-level — no permission guards. Use ``grunt.get_doc`` for
+        Low-level - no permission guards. Use ``grunt.get_doc`` for
         authenticated reads with RBAC enforcement.
         """
         import grunt
@@ -373,7 +373,7 @@ class GruntDB:
         filters: dict[str, Any] | None = None,
         or_filters: dict[str, Any] | None = None,
     ) -> int:
-        """Count documents matching optional filters (``or_filters`` — as in get_all)."""
+        """Count documents matching optional filters (``or_filters`` - as in get_all)."""
         import grunt
         from grunt.errors import not_found
 

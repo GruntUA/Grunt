@@ -1,4 +1,4 @@
-"""Virtual DocType controller — SQL Profiler Requests.
+"""Virtual DocType controller - SQL Profiler Requests.
 
 Exposes the in-memory profiler ring buffer as a standard Grunt DocType.
 Read-only: list + get. Create/update/delete are not supported.

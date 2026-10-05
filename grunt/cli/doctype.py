@@ -28,7 +28,7 @@ def doctype_sync(name: str, site: str | None):
 
         # Find JSON file across all grunt/*/doctypes/ and app doctypes/, tracking
         # which app owns each search dir so we can both stamp DocType.app (core
-        # doctype JSON never sets it — only the startup path did, until now) and
+        # doctype JSON never sets it - only the startup path did, until now) and
         # refuse to silently push one app's definition over another's.
         json_file = None
         owning_app = "grunt"

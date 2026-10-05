@@ -1,4 +1,4 @@
-"""Startup — DocType registry bootstrap and population."""
+"""Startup - DocType registry bootstrap and population."""
 
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 
 from grunt.metadata.compiler import DuplicateDataError, compile_doctype_to_table
 
-_GRUNT_ROOT = Path(__file__).parent.parent.parent  # grunt/startup/doctypes/ → grunt/
+_GRUNT_ROOT = Path(__file__).parent.parent.parent  # grunt/startup/doctypes/ -> grunt/
 
 
 def _find_doctype_dirs(_root=None):
@@ -32,11 +32,11 @@ async def apply_doctype_overrides(
     For each DocType listed in ``hooks.DOCTYPE_OVERRIDES``, new fields that are
     not yet present are appended to the DocType definition.
 
-    Physical table changes (ALTER TABLE) are NOT applied here — run
+    Physical table changes (ALTER TABLE) are NOT applied here - run
     ``grunt migrate`` to synchronise DB schema with DocType definitions.
 
     Only called from ``grunt db migrate`` (with ``sync_db=True``, so the
-    merged result is persisted into ``grunt_meta_doctype`` — the server never
+    merged result is persisted into ``grunt_meta_doctype`` - the server never
     re-runs this merge at boot, so without persistence the added fields would
     be lost the moment the DocType is next lazy-loaded from a fresh process).
     """

@@ -30,7 +30,7 @@ function write(entries: RecentDoc[]): void {
     localStorage.setItem(KEY, JSON.stringify(entries.slice(0, MAX)))
     window.dispatchEvent(new Event(CHANGED_EVENT))
   } catch {
-    // ignore quota / serialization errors — history is best-effort
+    // ignore quota / serialization errors - history is best-effort
   }
 }
 

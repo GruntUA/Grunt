@@ -2,13 +2,13 @@
 
 Provides `_()` and `ngettext()` for translating server-side messages.
 Translations are resolved in this order:
-1. a registered runtime provider (e.g. the Translate app — DB-backed, editable
+1. a registered runtime provider (e.g. the Translate app - DB-backed, editable
    without a redeploy); see :func:`register_provider`
 2. PO files in this module's ``locales/`` dir and every installed app's
    ``<module>/locales/`` dir
 
 English strings are the source keys. The fallback language (no request, or
-nothing negotiable) is the site default — ``SystemSettings.language``, seeded at
+nothing negotiable) is the site default - ``SystemSettings.language``, seeded at
 startup via :meth:`TranslationService.set_default`; ``uk`` until then.
 
 Usage:
@@ -38,7 +38,7 @@ if TYPE_CHECKING:
 # Directory containing locale files (uk/LC_MESSAGES/grunt.po)
 _LOCALE_DIR = Path(__file__).parent / "locales"
 
-# Per-request language (set by middleware); None → the site default below.
+# Per-request language (set by middleware); None -> the site default below.
 _current_lang: ContextVar[str | None] = ContextVar("grunt_lang", default=None)
 
 # Fallback language outside a request (tasks, CLI) and when negotiation fails.
@@ -56,7 +56,7 @@ _app_catalogs: dict[str, dict[str, str]] = {}
 _provider: Callable[[str], dict[str, str]] | None = None
 _provider_cache: dict[str, dict[str, str]] = {}
 
-# Cheap version tag for the frontend bundle — changes on any provider
+# Cheap version tag for the frontend bundle - changes on any provider
 # invalidation, app-catalog reload, or active-language change.
 _catalog_version: str = "0"
 
@@ -103,7 +103,7 @@ def _load_translations(lang: str) -> _gettext.GNUTranslations | _gettext.NullTra
         log.debug("i18n.loaded_po", lang=lang, entries=len(catalog))
         return trans
 
-    # No translation file — return NullTranslations (passthrough)
+    # No translation file - return NullTranslations (passthrough)
     trans = _gettext.NullTranslations()
     _translations[lang] = trans
     return trans
@@ -116,12 +116,12 @@ def _parse_po_file(path: Path) -> dict[str, str]:
 
 
 def parse_po_string(text: str) -> dict[str, str]:
-    """Parse PO text into msgid → msgstr mappings (via polib).
+    """Parse PO text into msgid -> msgstr mappings (via polib).
 
     Keys: bare ``msgid``, ``"<msgctxt>\\x04<msgid>"`` with context, and
-    ``"<key>\\x00<n>"`` for plural forms (plus the bare key → form 0).
+    ``"<key>\\x00<n>"`` for plural forms (plus the bare key -> form 0).
     Multi-line (wrapped) strings are joined; obsolete, fuzzy and untranslated
-    entries are skipped — the same set ``msgfmt`` would compile.
+    entries are skipped - the same set ``msgfmt`` would compile.
     """
     import polib
 
@@ -252,7 +252,7 @@ class TranslationService:
     def use_language(self, lang: str | None) -> Iterator[None]:
         """Temporarily switch the language, e.g. to render mail in the recipient's.
 
-        *lang* may be a locale tag (``en-US``); empty/unsupported → unchanged.
+        *lang* may be a locale tag (``en-US``); empty/unsupported -> unchanged.
         """
         code = normalize_lang(lang)
         if not code or code not in _supported:
@@ -278,11 +278,11 @@ class TranslationService:
             self._bump_version()
 
     def translate(self, source: str, lang: str | None = None) -> str:
-        """Translate a source string: provider → app PO → core PO → source.
+        """Translate a source string: provider -> app PO -> core PO -> source.
 
         No language is special-cased: source strings in this codebase are a mix
         of English (framework msgids) and Ukrainian (DocType labels), so every
-        locale — ``en`` included — is looked up and falls back to the source.
+        locale - ``en`` included - is looked up and falls back to the source.
         """
         lang = lang or self.get_lang()
 
@@ -293,7 +293,7 @@ class TranslationService:
         return _load_translations(lang).gettext(source)
 
     def ngettext(self, singular: str, plural: str, n: int, lang: str | None = None) -> str:
-        """Translate with plural forms: provider → app PO → core PO → fallback.
+        """Translate with plural forms: provider -> app PO -> core PO -> fallback.
 
         Plural forms are stored as flat keys ``"<singular>\\x00<form-index>"``
         (same convention the PO parser uses).
@@ -313,9 +313,9 @@ class TranslationService:
     def pgettext(self, context: str, message: str, lang: str | None = None) -> str:
         """Translate with context (msgctxt).
 
-        Order: contextual entry (provider → app → core PO) → **plain** entry for
-        the same string (so ``Назва`` → ``Name`` need only be translated once,
-        not per ``meta:<DocType>.<field>`` context) → the source message.
+        Order: contextual entry (provider -> app -> core PO) -> **plain** entry for
+        the same string (so ``Назва`` -> ``Name`` need only be translated once,
+        not per ``meta:<DocType>.<field>`` context) -> the source message.
         """
         lang = lang or self.get_lang()
 
@@ -336,7 +336,7 @@ class TranslationService:
     def get_all_translations(self, lang: str) -> dict[str, str]:
         """Full flat catalog for a language (for the frontend JSON bundle).
 
-        Merge order (later wins): core PO → installed apps' PO → runtime provider.
+        Merge order (later wins): core PO -> installed apps' PO -> runtime provider.
         Keys are bare source strings or ``"context|msgid"``.
         """
         trans = _load_translations(lang)
@@ -347,7 +347,7 @@ class TranslationService:
         result.update(_provider_catalog(lang))
         return result
 
-    # ── Runtime provider / cache management ──────────────────────────────
+    # Runtime provider / cache management
 
     def register_provider(self, fn: Callable[[str], dict[str, str]]) -> None:
         """Register the runtime translation provider (one; last registration wins).
@@ -380,7 +380,7 @@ class TranslationService:
         global _catalog_version
         _catalog_version = secrets.token_hex(8)
 
-    # ── Supported languages (request-language negotiation) ───────────────
+    # Supported languages (request-language negotiation)
 
     def supported_langs(self) -> set[str]:
         return set(_supported) | set(self.ui_languages())
@@ -396,7 +396,7 @@ class TranslationService:
         return list(_ui_langs_cache)
 
     def add_ui_languages(self, codes: object) -> None:
-        """Offer extra UI languages that have no PO file (yet) — e.g. locales
+        """Offer extra UI languages that have no PO file (yet) - e.g. locales
         translated only in the database by a runtime provider."""
         global _ui_langs_cache
         try:
@@ -440,7 +440,7 @@ class TranslationService:
 
 
 async def language_of(user: str | None) -> str | None:
-    """Stored UI language of *user* (email) — render mail/notifications to them in it.
+    """Stored UI language of *user* (email) - render mail/notifications to them in it.
 
     Pair with :func:`use_language`; ``None`` (unknown user / no preference) keeps
     the current language.
@@ -456,7 +456,7 @@ async def language_of(user: str | None) -> str | None:
 
 
 def normalize_lang(lang: str | None) -> str:
-    """``"uk-UA"`` / ``"EN_us"`` → ``"uk"`` / ``"en"``; empty → ``""``."""
+    """``"uk-UA"`` / ``"EN_us"`` -> ``"uk"`` / ``"en"``; empty -> ``""``."""
     return (lang or "").strip().lower()[:2]
 
 
@@ -504,5 +504,5 @@ def N_(message: str) -> str:  # noqa: N802 - gettext convention
 
 
 def NP_(context: str, message: str) -> str:  # noqa: N802
-    """Contextual :func:`N_` — translate later with ``pgettext(context, CONST)``."""
+    """Contextual :func:`N_` - translate later with ``pgettext(context, CONST)``."""
     return message

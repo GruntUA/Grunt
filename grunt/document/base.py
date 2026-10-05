@@ -1,57 +1,8 @@
-"""Base Document class — the foundation for all DocType controllers.
+"""Base class for DocType controllers.
 
-Every DocType can have a custom controller by subclassing :class:`Document`.
-Field annotations on the subclass serve as both documentation and type hints for
-IDEs — they are NOT regular class attributes; at runtime, all field access is
-routed through ``self.data`` via ``__getattr__``/``__setattr__``.
-
-Defining a typed controller::
-
-    from grunt.document.base import Document
-    import grunt
-
-    class Invoice(Document):
-        # Declare fields as class-level annotations for IDE support.
-        # The declared type is used by type checkers; the value lives in self.data.
-        number: str
-        amount: float
-        status: str
-        customer: str          # Link → Customer
-        due_date: str          # Date field (ISO string at runtime)
-        notes: str | None
-
-        async def validate(self) -> None:
-            if self.amount is not None and self.amount <= 0:
-                grunt.throw("Сума повинна бути більше нуля")
-
-        async def before_insert(self) -> None:
-            if not self.number:
-                self.number = f"INV-{self.id[:8].upper()}"
-
-        async def after_insert(self) -> None:
-            await grunt.notify(
-                users=[self.owner],
-                subject=f"Рахунок {self.number} створено",
-                message=f"Сума: {self.amount} грн.",
-                doctype=self.doctype,
-                doc_id=self.id,
-            )
-
-Accessing document data::
-
-    # Read — goes through __getattr__, returns self.data.get("amount")
-    amount = self.amount
-
-    # Write — goes through __setattr__, sets self.data["amount"] = value
-    self.amount = 1500.0
-
-    # Access system fields
-    doc_id = self.id
-    created_by = self.owner
-    is_draft = self.docstatus == 0
-
-    # Access the raw data dict directly when needed
-    raw = self.data
+Field values live in ``self.data``; ``__getattr__``/``__setattr__`` route
+``doc.amount`` to ``doc.data["amount"]``. Annotations on a subclass are only
+there for IDEs and type checkers.
 """
 
 from __future__ import annotations
@@ -77,11 +28,10 @@ if TYPE_CHECKING:
     from grunt.auth.doctypes.User.user import User
 
 
-# Fields that are stored as real instance attributes (not routed into self.data)
+# Real instance attributes; everything else is routed into self.data.
 _RESERVED = frozenset({"doctype", "data", "user", "session", "engine"})
 
-# System fields managed by the framework — exposed as read-only properties on Document.
-# Controllers must not set these directly; use self.data["field"] = ... if truly needed.
+# Read-only on the controller. Set them through self.data if you really must.
 SYS_FIELDS: frozenset[str] = frozenset(
     {
         "id",
@@ -100,16 +50,11 @@ SYS_FIELDS: frozenset[str] = frozenset(
 
 
 class DocumentList(list):
-    """A list of documents/rows with associated metadata (pagination, etc.).
+    """A list of rows plus pagination meta.
 
-    Deliberately dual-interface, not a plain list: ``for doc in result`` and
-    ``result[0]`` behave like a normal list, but ``result["data"]`` and
-    ``result["meta"]``/``result.meta`` are special-cased to make this object
-    also usable wherever callers expect the ``{"data": [...], "meta": {...}}``
-    API response shape (see :meth:`to_dict`) without a separate conversion
-    step. This means ``result["data"]`` is NOT indexing into the list by a
-    literal string key the way a real ``dict`` would raise for — don't assume
-    ``DocumentList`` behaves like ``dict`` beyond these two special keys.
+    Iterates and indexes like a list, but ``result["data"]`` and
+    ``result["meta"]`` also work, so it can be returned where the
+    ``{"data": ..., "meta": ...}`` response shape is expected.
     """
 
     def __init__(self, data: list, meta: dict[str, Any] | None = None) -> None:
@@ -117,7 +62,6 @@ class DocumentList(list):
         self.meta = meta or {}
 
     def to_dict(self) -> dict[str, Any]:
-        """Convert to the standard API response format."""
         return {"data": list(self), "meta": self.meta}
 
     def __getitem__(self, key: Any) -> Any:
@@ -136,13 +80,7 @@ class DocumentList(list):
 
 
 class _ObjectsDescriptor:
-    """Class-level descriptor backing ``Document.objects`` — see ``QuerySet``.
-
-    Only ever bound via class access (``User.objects``, not ``user.objects``);
-    it does not go through ``Document.__getattr__`` (that only fires on
-    *instance* attribute lookup misses), so there's no risk of colliding with
-    a real ``objects`` field on a doctype.
-    """
+    """``Document.objects`` - returns a QuerySet for the controller class."""
 
     def __get__(self, instance: Any, owner: type[Document]) -> Any:
         from grunt.document.queryset import QuerySet
@@ -162,35 +100,27 @@ class Document(
 ):
     """Base class for all DocType controllers.
 
-    Subclass this to add custom validation and lifecycle hooks to a DocType.
-    Place the subclass in your app's ``controllers/`` directory (or register it
-    manually via :func:`~grunt.core.document.registry.document_registry`).
+    Subclass it and override the lifecycle hooks below (all async, all optional)::
 
-    **Field annotations** — declare DocType fields as class-level annotations to
-    get IDE autocompletion and type-checker support:
-
-    .. code-block:: python
-
-        class Order(Document):
-            title: str
+        class Invoice(Document):
             amount: float
-            status: str
+            customer: str
 
-    At runtime, attribute access is routed through ``self.data`` — the annotation
-    is a type hint only.
-
-    **Lifecycle hooks** (all async, all optional):
-
-    * ``validate()`` — called on create and update, before DB write.
-    * ``before_insert()`` — called on create only, before DB insert.
-    * ``after_insert()`` — called after the row is inserted.
-    * ``before_save()`` — called on create and update, just before DB write.
-    * ``after_save()`` — called after a successful create or update.
-    * ``before_delete()`` — called before the row is deleted.
-    * ``after_delete()`` — called after deletion.
+            async def validate(self) -> None:
+                if self.amount <= 0:
+                    grunt.throw("Сума повинна бути більше нуля")
     """
 
     objects: ClassVar[_ObjectsDescriptor] = _ObjectsDescriptor()
+
+    doctype: str
+    data: dict[str, Any]
+    # The mixins assume these are bound, but outside a grunt context _bind()
+    # can leave them None, so they are left untyped here.
+    user: Any
+    session: Any
+    engine: Any
+    _ml: Any
 
     def __init__(
         self,
@@ -200,14 +130,12 @@ class Document(
         session: AsyncSession | None = None,
         engine: AsyncEngine | None = None,
     ) -> None:
-        # Use object.__setattr__ to bypass our custom __setattr__ for reserved attrs
-        object.__setattr__(self, "doctype", doctype)
-        object.__setattr__(self, "data", data)
-        object.__setattr__(self, "user", user)
-        object.__setattr__(self, "session", session)
-        object.__setattr__(self, "engine", engine)
-        # MultiLinkService bound lazily in _bind() once a session is resolved.
-        object.__setattr__(self, "_ml", None)
+        self.doctype = doctype
+        self.data = data
+        self.user = user
+        self.session = session
+        self.engine = engine
+        self._ml = None  # MultiLinkService, created in _bind() once there is a session
 
     @classmethod
     def bare(
@@ -215,28 +143,19 @@ class Document(
         session: AsyncSession | None = None,
         engine: AsyncEngine | None = None,
     ) -> Document:
-        """Build an empty, bound throwaway document to run dict-based pipeline methods on.
-
-        Single builder for the ``GruntApp`` facade and REST layer, both
-        of which drive the CRUD pipeline through a throwaway ``Document``. Passing
-        ``session``/``engine`` binds them explicitly; omitting them lets ``_bind``
-        resolve the active grunt context.
-        """
+        """An empty bound document, for running the CRUD pipeline on plain dicts."""
         doc = cls("", {}, session=session, engine=engine)
         doc._bind()
         return doc
 
-    # ── Attribute routing ─────────────────────────────────────────────────
+    # Attribute routing
 
     def __getattr__(self, name: str) -> Any:
-        # Only called when normal attribute lookup fails (i.e. for non-reserved names).
-        # Private attributes (underscore-prefixed) are not routed through data.
-        if name.startswith("_"):
+        # Only reached when normal lookup fails, i.e. for field names. Reserved
+        # names land here before __init__ has set them (copy, pickle).
+        if name.startswith("_") or name in _RESERVED:
             raise AttributeError(name)
-        try:
-            return self._raw()[name]
-        except KeyError:
-            return None
+        return self.data.get(name)
 
     def __setattr__(self, name: str, value: Any) -> None:
         if name in _RESERVED or name.startswith("_"):
@@ -247,203 +166,133 @@ class Document(
                 f"Use self.data['{name}'] = ... if you must override it."
             )
         else:
-            self._raw()[name] = value
+            self.data[name] = value
 
-    def _raw(self, name: str = "data") -> Any:
-        """Read a reserved attribute (``data``/``session``/``doctype``/…) directly.
-
-        ``self.data`` already resolves correctly via plain attribute lookup —
-        reserved names (see ``_RESERVED`` above) are always real instance
-        attributes, never routed through the data dict — but spelling that
-        out as ``self._raw()`` at every call site
-        buried the actual intent ("read the raw dict") under bypass-boilerplate
-        repeated ~25 times in this file. One named escape hatch instead.
-        """
-        return object.__getattribute__(self, name)
-
-    # ── System field accessors (read-only) ───────────────────────────────
+    # System fields (read-only)
 
     @property
     def id(self) -> str | None:
-        """Document identifier — alias for name (primary key)."""
-        return self._raw().get("name")
+        """Same as ``name``."""
+        return self.data.get("name")
 
     @property
     def name(self) -> str | None:
-        """Human-readable document identifier (primary key)."""
-        return self._raw().get("name")
+        return self.data.get("name")
 
     @property
     def owner(self) -> str | None:
-        """Username of the user who created this document."""
-        return self._raw().get("owner")
+        return self.data.get("owner")
 
     @property
     def docstatus(self) -> int:
-        """Workflow state: 0 = Draft, 1 = Submitted, 2 = Cancelled."""
-        return self._raw().get("docstatus", 0)
+        """0 = Draft, 1 = Submitted, 2 = Cancelled."""
+        return self.data.get("docstatus", 0)
 
     @property
     def idx(self) -> int:
-        """Row index within a parent document's child table."""
-        return self._raw().get("idx", 0)
+        """Row position in the parent's child table."""
+        return self.data.get("idx", 0)
 
     @property
     def created_at(self) -> Any:
-        """Timestamp when the document was first created."""
-        return self._raw().get("created_at")
+        return self.data.get("created_at")
 
     @property
     def modified_at(self) -> Any:
-        """Timestamp of the most recent save."""
-        return self._raw().get("modified_at")
+        return self.data.get("modified_at")
 
     @property
     def modified_by(self) -> str | None:
-        """Username of the user who last saved this document."""
-        return self._raw().get("modified_by")
+        return self.data.get("modified_by")
 
     @property
     def parent(self) -> str | None:
-        """ID of the parent document (set for child-table rows only)."""
-        return self._raw().get("parent")
+        return self.data.get("parent")
 
     @property
     def parentfield(self) -> str | None:
-        """Field name in the parent DocType that references this child table."""
-        return self._raw().get("parentfield")
+        return self.data.get("parentfield")
 
     @property
     def parenttype(self) -> str | None:
-        """DocType name of the parent document."""
-        return self._raw().get("parenttype")
-
-    # ── Convenience accessors ─────────────────────────────────────────────
+        return self.data.get("parenttype")
 
     @property
-    def grunt(self):  # the ``grunt`` package — typed as the module, so no annotation
-        """The ``grunt`` package, available inside all lifecycle hooks as ``self.grunt``.
-
-        Example::
-
-            async def validate(self) -> None:
-                exists = await self.grunt.db.exists("Customer", self.customer)
-                if not exists:
-                    self.grunt.throw(f"Клієнта '{self.customer}' не знайдено")
-        """
-        import grunt
-
+    def grunt(self):
+        """The ``grunt`` package, so hooks can call ``self.grunt.db...``."""
         return grunt
 
     def as_dict(self) -> dict[str, Any]:
-        """Return a shallow copy of the underlying data dict."""
-        return dict(self._raw())
+        return dict(self.data)
 
     def update(self, values: dict[str, Any]) -> None:
-        """Bulk-update multiple fields at once.
-
-        Equivalent to calling ``self.field = value`` for each key in ``values``.
-        """
-        data = self._raw()
-        data.update(values)
+        self.data.update(values)
 
     def get(self, fieldname: str, default: Any = None) -> Any:
-        """Return ``self.data.get(fieldname, default)`` — same as ``dict.get``."""
-        return self._raw().get(fieldname, default)
+        return self.data.get(fieldname, default)
 
-    # ── Context binding ───────────────────────────────────────────────────
+    # Context binding
 
     def _bind(self) -> None:
-        """Populate session/engine/user/_ml from explicit attrs or the active grunt context.
+        """Fill in session/engine/user from the active grunt context if not given.
 
-        Lets a document be persisted both inside an HTTP request (where the
-        controller is built with session/engine) and from a script/CLI that runs
-        within ``async with grunt.context(...)``.
-
-        The ambient ``ContextVar`` fallback below exists for callers that have
-        no session/engine/user to pass explicitly (scripts, CLI, background
-        tasks). Prefer constructing with explicit ``session``/``engine``/``user``
-        wherever they're available — including in tests, where relying on
-        ambient context means pushing values into ``ContextVar``s instead of
-        passing them in directly. Each of the three resolves independently and
-        silently no-ops on failure, so a ``Document()`` built with no arguments
-        can end up only partially bound (e.g. session set, user not) with no
-        error until the missing piece is actually used.
+        Lets the same controller work inside a request and from scripts/CLI
+        running under ``grunt.context(...)``. Whatever can't be resolved stays
+        None and only fails once it's actually used.
         """
-        if (
-            getattr(self, "session", None) is None
-            or getattr(self, "engine", None) is None
-            or getattr(self, "user", None) is None
-        ):
-            if getattr(self, "session", None) is None:
-                with contextlib.suppress(Exception):
-                    object.__setattr__(self, "session", grunt.get_session())
-            if getattr(self, "engine", None) is None:
-                with contextlib.suppress(Exception):
-                    object.__setattr__(self, "engine", require_engine())
-            if getattr(self, "user", None) is None:
-                with contextlib.suppress(Exception):
-                    object.__setattr__(self, "user", require_user())
-        if getattr(self, "_ml", None) is None and getattr(self, "session", None) is not None:
+        if self.session is None:
+            with contextlib.suppress(RuntimeError):
+                self.session = grunt.get_session()
+        if self.engine is None:
+            with contextlib.suppress(RuntimeError):
+                self.engine = require_engine()
+        if self.user is None:
+            with contextlib.suppress(RuntimeError):
+                self.user = require_user()
+        if self._ml is None and self.session is not None:
             from grunt.document.multi_link import MultiLinkService
 
-            object.__setattr__(self, "_ml", MultiLinkService(self.session))
+            self._ml = MultiLinkService(self.session)
 
     def _set_grunt_context(self, user: User) -> tuple:
-        """Activate the grunt ContextVar context for the current lifecycle scope."""
-        import grunt
-
         return grunt.set_context(session=self.session, engine=self.engine, user=user)
 
     @staticmethod
     def _reset_grunt_context(tokens: tuple) -> None:
-        import grunt
-
         grunt.reset_context(tokens)
 
-    # ── Persistence ───────────────────────────────────────────────────────
+    def _replace_data(self, values: dict[str, Any]) -> None:
+        # Mutate in place: callers may still hold a reference to self.data.
+        self.data.clear()
+        self.data.update(values)
+
+    # Persistence
 
     async def insert(self, *, ignore_required: bool = False) -> dict[str, Any]:
-        """Insert this document into the database and sync local data.
-
-        Runs the full create pipeline (validate/before_insert/before_save →
-        INSERT → child tables → aggregations → MultiLink → after hooks) directly
-        on this object. Returns the persisted document dict.
-        """
+        """Run the full create pipeline on this document and return the saved row."""
         self._bind()
         result = await self.create_document(
             self.doctype, self.data, self.user, ignore_required=ignore_required
         )
-        data = self._raw()
-        data.clear()
-        data.update(result)
+        self._replace_data(result)
         return result
 
     async def save(self, *, ignore_required: bool = False) -> dict[str, Any]:
-        """Save changes to the database and sync local data.
-
-        Runs the full update pipeline (validate/before_save → UPDATE → children →
-        aggregations → MultiLink → after_save) on this object's current state.
-        """
+        """Run the full update pipeline on this document and return the saved row."""
         self._bind()
-        doc_id = self.id
-        if doc_id is None:
+        if self.id is None:
             raise ValueError(f"Cannot save {self.doctype}: document has no name")
         result = await self.update_document(
-            self.doctype, doc_id, self.data, self.user, ignore_required=ignore_required
+            self.doctype, self.id, self.data, self.user, ignore_required=ignore_required
         )
-        data = self._raw()
-        data.clear()
-        data.update(result)
+        self._replace_data(result)
         return result
 
     async def delete(self) -> None:
-        """Delete this document from the database."""
         self._bind()
-        doc_id = self.id
-        if doc_id is None:
+        if self.id is None:
             raise ValueError(f"Cannot delete {self.doctype}: document has no name")
-        await self.delete_document(self.doctype, doc_id, self.user)
+        await self.delete_document(self.doctype, self.id, self.user)
 
     @classmethod
     async def load(
@@ -456,53 +305,40 @@ class Document(
         engine: AsyncEngine | None = None,
         user: User | None = None,
     ) -> Document:
-        """Load a document from the DB and return it as its controller instance.
-
-        The returned object is an instance of the registered controller subclass
-        with ``self.data`` populated (child tables, MultiLink, read formulas, and
-        ``on_load`` already applied), ready for ``.save()``/``.delete()``.
-        """
+        """Load a document as an instance of its registered controller."""
         from grunt.document.registry import document_registry
 
         controller_cls = document_registry.get(doctype)
-        inst = controller_cls(doctype, {}, user=user, session=session, engine=engine)
-        inst._bind()
-        loaded = await inst.get_document(doctype, name, inst.user, expand=expand)
-        data = inst._raw()
-        data.clear()
-        data.update(loaded)
-        return inst
+        doc = controller_cls(doctype, {}, user=user, session=session, engine=engine)
+        doc._bind()
+        doc._replace_data(await doc.get_document(doctype, name, doc.user, expand=expand))
+        return doc
 
-    # ── Lifecycle hooks ───────────────────────────────────────────────────
+    # Lifecycle hooks
 
     async def on_load(self) -> None:
-        """Called after a document is loaded from the database.
-
-        Override to apply defaults, coerce field types, or load related data
-        (e.g. roles, computed fields).  At call time ``self.data`` contains
-        the raw row dict from the DB.
-        """
+        """After the row is read from the DB; ``self.data`` holds the raw row."""
 
     async def before_insert(self) -> None:
-        """Called before a new document is inserted into the database."""
+        """Before INSERT of a new document."""
 
     async def after_insert(self) -> None:
-        """Called after a new document is inserted into the database."""
+        """After INSERT of a new document."""
 
     async def before_save(self) -> None:
-        """Called before a document is written to the database (create or update)."""
+        """Before every write, insert or update."""
 
     async def after_save(self) -> None:
-        """Called after a document is successfully written to the database."""
+        """After every successful write, insert or update."""
 
     async def before_delete(self) -> None:
-        """Called before a document is deleted from the database."""
+        """Before the row is deleted."""
 
     async def after_delete(self) -> None:
-        """Called after a document is deleted from the database."""
+        """After the row is deleted."""
 
     async def validate(self) -> None:
-        """Custom validation — call ``grunt.throw()`` to abort the save."""
+        """Before every write. Call ``grunt.throw()`` to abort the save."""
 
     @classmethod
     async def list_filter_extra(
@@ -511,24 +347,15 @@ class Document(
         filters: dict[str, Any],
         table: Any,
     ) -> Any | None:
-        """Return an extra SQLAlchemy WHERE clause to append to list/tree queries.
+        """Extra WHERE clause for list and tree queries, or None.
 
-        Override in a controller to inject custom per-DocType filtering that
-        cannot be expressed as simple ``field__op=value`` pairs.  Return a
-        SQLAlchemy ``ClauseElement`` or ``None`` to skip.
-
-        The clause is appended *before* the standard ``apply_filters`` step
-        so that both the data query and the COUNT query are guarded.
-
-        Example::
+        For filtering that can't be written as ``field__op=value``. The clause
+        is applied to both the data query and the COUNT query::
 
             @classmethod
             async def list_filter_extra(cls, session, filters, table):
-                from sqlalchemy import or_
                 col = table.c.get("archived")
-                if col is None:
-                    return None
-                return or_(col == False, col.is_(None))
+                return None if col is None else or_(col == False, col.is_(None))
         """
         return None
 
@@ -539,12 +366,7 @@ class Document(
         filters: dict[str, Any],
         table: Any,
     ) -> bool:
-        """Return whether matched tree nodes should include ancestor chain.
-
-        Override in a controller when tree filters should return strictly
-        matching nodes (for example, time-sliced hierarchy views where
-        non-matching ancestors must stay hidden).
-        """
+        """Whether a filtered tree also returns the ancestors of matched nodes."""
         return True
 
     @classmethod
@@ -557,11 +379,7 @@ class Document(
         sort_by: str | None,
         sort_order: str,
     ) -> tuple[str | None, str] | None:
-        """Return custom tree sort settings as ``(sort_by, sort_order)``.
-
-        Override in a DocType controller to provide app-specific ordering for
-        tree nodes. Return ``None`` to keep the resolved defaults.
-        """
+        """Override tree sorting as ``(sort_by, sort_order)``; None keeps the default."""
         return None
 
     @classmethod
@@ -574,14 +392,8 @@ class Document(
         sort_by: str | None,
         sort_order: str,
     ) -> list[dict[str, Any]]:
-        """Return reordered child nodes for advanced tree sorting use-cases.
-
-        Override to apply business-specific sorting that cannot be expressed as
-        a single ``sort_by`` field. The default implementation is a no-op.
-        """
+        """Reorder child nodes when one ``sort_by`` field isn't enough."""
         return children
-
-    # ── Real-time helpers ─────────────────────────────────────────────────
 
     async def publish_progress(
         self,
@@ -591,60 +403,33 @@ class Document(
         message: str | None = None,
         commit: bool = True,
     ) -> None:
-        """Broadcast import/processing progress via WebSocket.
+        """Send an ``import_progress`` event to clients watching this document.
 
-        Updates ``processed_rows`` / ``total_rows`` on the document (if those
-        fields exist), persists to DB, then sends an ``import_progress`` event
-        on the document's WebSocket channel so connected clients update their
-        progress UI without polling.
-
-        Usage inside a controller::
-
-            for idx, row in enumerate(rows):
-                await self.process_row(row)
-                if idx % 10 == 0:
-                    await self.publish_progress(idx + 1, len(rows))
-
-        Arguments:
-            processed: Number of items processed so far.
-            total:     Total number of items to process.
-            message:   Optional status string shown alongside the progress bar.
-            commit:    Whether to flush the session to DB (default ``True``).
-                       Pass ``False`` if you handle the commit yourself.
+        Also sets ``processed_rows``/``total_rows`` in ``self.data`` when the
+        DocType has those fields, and commits the session unless ``commit=False``.
+        The fields themselves are not written until the document is saved.
         """
-        data = self._raw()
-        if "processed_rows" in data or hasattr(self, "processed_rows"):
-            data["processed_rows"] = processed
-        if "total_rows" in data or hasattr(self, "total_rows"):
-            data["total_rows"] = total
+        if "processed_rows" in self.data:
+            self.data["processed_rows"] = processed
+        if "total_rows" in self.data:
+            self.data["total_rows"] = total
 
-        session = self._raw("session")
-        if commit and session is not None:
-            await session.commit()
+        if commit and self.session is not None:
+            await self.session.commit()
 
+        doc_id = self.data.get("name")
+        if not doc_id:
+            return
+
+        from grunt.api.v1.ws import manager
+
+        payload: dict[str, object] = {"processed": processed, "total": total}
+        if message is not None:
+            payload["message"] = message
         try:
-            from grunt.api.v1.ws import manager
-
-            doc_id = data.get("name")
-            if doc_id:
-                payload: dict[str, object] = {
-                    "processed": processed,
-                    "total": total,
-                }
-                if message is not None:
-                    payload["message"] = message
-                await manager.broadcast_doc(
-                    self._raw("doctype"),
-                    str(doc_id),
-                    "import_progress",
-                    payload,
-                )
+            await manager.broadcast_doc(self.doctype, str(doc_id), "import_progress", payload)
         except Exception:
-            log.exception("suppressed_error")
-
-    # ── Repr ──────────────────────────────────────────────────────────────
+            log.exception("document.progress_broadcast_failed", doctype=self.doctype, doc=doc_id)
 
     def __repr__(self) -> str:
-        doc_id = self._raw().get("name", "?")
-        doctype = self._raw("doctype")
-        return f"<{doctype} id={doc_id!r}>"
+        return f"<{self.doctype} id={self.data.get('name', '?')!r}>"

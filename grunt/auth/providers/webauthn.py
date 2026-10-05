@@ -1,4 +1,4 @@
-"""WebAuthn / passkey authentication provider — the reference implementation
+"""WebAuthn / passkey authentication provider - the reference implementation
 for :mod:`grunt.auth.providers`.
 
 Credentials are stored one-per-row in the ``WebAuthnCredential`` DocType. The
@@ -32,12 +32,12 @@ _REG_PURPOSE = "webauthn-reg"
 _CRED = "WebAuthnCredential"
 
 
-# ── deployment config ───────────────────────────────────────────────────────
+# deployment config
 #
 # ``WEBAUTHN_RP_ID`` / ``WEBAUTHN_ORIGIN`` are explicit overrides and SHOULD be
 # pinned in production (a stable rp_id lets one passkey work across sub-domains).
 # When unset we derive both from the incoming request, so a passkey works on
-# whatever host the app is actually served from — not the ``APP_URL`` default.
+# whatever host the app is actually served from - not the ``APP_URL`` default.
 
 
 def _rp_name() -> str:
@@ -85,7 +85,7 @@ def _resolve_rp(request: Any) -> tuple[str, str]:
     return rp_id, origin
 
 
-# ── DB helpers ──────────────────────────────────────────────────────────────
+# DB helpers
 
 
 async def _credentials_for_user(user_id: str) -> list[dict]:
@@ -137,7 +137,7 @@ def _descriptors(rows: list[dict]) -> list[Any]:
     ]
 
 
-# ── Provider ────────────────────────────────────────────────────────────────
+# Provider
 
 
 class WebAuthnProvider(AuthProvider):
@@ -148,7 +148,7 @@ class WebAuthnProvider(AuthProvider):
     requires_identifier = False  # usernameless (resident-key) sign-in supported
     supports_enrollment = True
 
-    # ── sign in ────────────────────────────────────────────────────────────
+    # sign in
 
     async def begin(self, ctx: AuthFlowContext) -> dict[str, Any]:
         from webauthn.helpers.structs import UserVerificationRequirement
@@ -156,8 +156,8 @@ class WebAuthnProvider(AuthProvider):
         from grunt.auth.doctypes.User.user import get_user_by_email
 
         # "cross-device" = sign in with a passkey on a phone (QR/Bluetooth hybrid
-        # transport). It must be a discoverable-credential request — the phone
-        # can then present any passkey for this RP — so we never scope it to a
+        # transport). It must be a discoverable-credential request - the phone
+        # can then present any passkey for this RP - so we never scope it to a
         # known credential list, even when an email was supplied.
         cross_device = ctx.get("mode") == "cross-device"
 
@@ -183,7 +183,7 @@ class WebAuthnProvider(AuthProvider):
         )
         options_json = json.loads(webauthn.options_to_json(options))
         if cross_device:
-            # WebAuthn L3 hint — steer the client straight to the phone/QR UI.
+            # WebAuthn L3 hint - steer the client straight to the phone/QR UI.
             options_json["hints"] = ["hybrid"]
         return {"options": options_json, "challenge_token": token}
 
@@ -237,7 +237,7 @@ class WebAuthnProvider(AuthProvider):
             throw(_("User not found or inactive"), "UNAUTHORIZED")
         return user
 
-    # ── enrol a passkey for the signed-in user ───────────────────────────
+    # enrol a passkey for the signed-in user
 
     async def enroll_begin(self, ctx: AuthFlowContext) -> dict[str, Any]:
         from webauthn.helpers.structs import (
@@ -281,7 +281,7 @@ class WebAuthnProvider(AuthProvider):
         )
         options_json = json.loads(webauthn.options_to_json(options))
         if cross_device:
-            # L3 hint — "hybrid" only (NOT "client-device", which pulls the
+            # L3 hint - "hybrid" only (NOT "client-device", which pulls the
             # picker back to this device). Some platforms (Windows) still show
             # their own sheet defaulting to the local device with a "Change"
             # link; the RP cannot override that.

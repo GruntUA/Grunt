@@ -1,4 +1,4 @@
-"""Tests for the Meta API — DocType CRUD, sync, and schema export (migrated to
+"""Tests for the Meta API - DocType CRUD, sync, and schema export (migrated to
 whitelisted methods)."""
 
 from __future__ import annotations
@@ -31,7 +31,7 @@ SAMPLE_DOCTYPE = {
 
 @pytest.mark.asyncio
 async def test_doctype_crud_lifecycle(ctx):
-    """save → get → list → sync → update → delete → 404, on one DocType."""
+    """save -> get -> list -> sync -> update -> delete -> 404, on one DocType."""
     from fastapi import HTTPException
 
     from grunt.api.v1.meta import (
@@ -61,7 +61,7 @@ async def test_doctype_crud_lifecycle(ctx):
     assert synced["name"] == "Task"
     assert "table_name" in synced
 
-    # update — add a field
+    # update - add a field
     updated = await save_doctype(
         doctype_data={
             **SAMPLE_DOCTYPE,
@@ -73,7 +73,7 @@ async def test_doctype_crud_lifecycle(ctx):
     )
     assert len(updated["fields"]) == 4
 
-    # delete → subsequent get 404s
+    # delete -> subsequent get 404s
     await delete_doctype(name="Task")
     with pytest.raises(HTTPException) as excinfo:
         await get_doctype(name="Task")
@@ -82,7 +82,7 @@ async def test_doctype_crud_lifecycle(ctx):
 
 @pytest.mark.asyncio
 async def test_duplicate_doctype_rejected(ctx):
-    """Creating a DocType whose name already exists → ApplicationError."""
+    """Creating a DocType whose name already exists -> ApplicationError."""
     from grunt.api.messages import ApplicationError
     from grunt.api.v1.meta import save_doctype
     from grunt.i18n import use_language

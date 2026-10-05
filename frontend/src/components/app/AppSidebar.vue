@@ -34,7 +34,7 @@ const colorMode = useColorMode()
 const { isMobile } = useSidebar()
 const { t } = useI18n()
 
-// ── Actions ───────────────────────────────────────────────────────────────────
+// Actions
 function goToDesk() { router.push('/app') }
 function goToProfile() { if (auth.user) router.push(`/app/grunt/User/${auth.user.id}`) }
 function triggerSearch() { window.dispatchEvent(new CustomEvent('toggle-search')) }
@@ -50,14 +50,14 @@ async function exitImpersonation() {
   window.location.href = '/'
 }
 
-// ── Admin shortcuts ───────────────────────────────────────────────────────────
+// Admin shortcuts
 const adminLinks = [
   { to: '/grunt/ActivityLog', icon: Activity, label: 'Activity log' },
   { to: '/grunt/EmailMessage', icon: Mail, label: N_('Emails') },
   { to: '/grunt/EmailAccount', icon: Mail, label: N_('Email settings') },
 ]
 
-// ── Lifecycle ─────────────────────────────────────────────────────────────────
+// Lifecycle
 const _onQuickCreate = () => {
   window.dispatchEvent(new CustomEvent('toggle-search'))
   window.dispatchEvent(new CustomEvent('command-palette-open-quick-create'))

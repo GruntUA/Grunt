@@ -39,8 +39,8 @@ async def _session_scope() -> AsyncGenerator[AsyncSession]:
     """Open a session for the active site, bound to the Grunt API context.
 
     Shared by ``get_session`` (FastAPI dependency) and ``async_session_factory``
-    (everywhere else) — the two differ only in *how* they're invoked, not in
-    session lifecycle: bind → yield → commit/rollback → unbind.
+    (everywhere else) - the two differ only in *how* they're invoked, not in
+    session lifecycle: bind -> yield -> commit/rollback -> unbind.
     """
     site_name = site_manager.get_active_site()
     maker = site_manager.get_session_maker(site_name)

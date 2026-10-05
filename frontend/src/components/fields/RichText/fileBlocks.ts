@@ -1,5 +1,5 @@
 /**
- * File blocks for the RichText editor — a list of downloadable files and an
+ * File blocks for the RichText editor - a list of downloadable files and an
  * image gallery, each placed wherever the author wants it in the text.
  *
  * Both are stored as plain semantic HTML that renders without any script or

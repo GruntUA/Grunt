@@ -1,4 +1,4 @@
-"""shortcut widget — backend data computation."""
+"""shortcut widget - backend data computation."""
 
 from __future__ import annotations
 

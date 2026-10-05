@@ -37,9 +37,9 @@ async def current_user(
     """Decode JWT or validate an API key and return the authenticated user.
 
     Auth priority:
-    1. ``X-Api-Key: grnt_<key>`` header — static API key (for integrations/CI)
-    2. ``Authorization: Bearer <jwt>`` header — standard JWT
-    3. ``?token=<jwt>`` query parameter — for direct-navigation downloads
+    1. ``X-Api-Key: grnt_<key>`` header - static API key (for integrations/CI)
+    2. ``Authorization: Bearer <jwt>`` header - standard JWT
+    3. ``?token=<jwt>`` query parameter - for direct-navigation downloads
        (e.g. the xlsx export link) where the browser can't attach a header.
        WebSocket routes do NOT use this: they authenticate independently via
        ``api/v1/ws.py::_authenticate_ws``, which reads its own ``token`` query
@@ -56,7 +56,7 @@ async def current_user(
         headers={"WWW-Authenticate": "Bearer"},
     )
 
-    # ── 1. API Key ────────────────────────────────────────────────────────
+    # 1. API Key
     api_key_header = request.headers.get("X-Api-Key")
     if api_key_header:
         from grunt.auth.api_key_service import authenticate_api_key
@@ -73,7 +73,7 @@ async def current_user(
         apply_user_language(request, user.data.get("language"))
         return user
 
-    # ── 2. JWT Bearer / query param ───────────────────────────────────────
+    # 2. JWT Bearer / query param
     if not token:
         token = request.query_params.get("token")
     if not token:

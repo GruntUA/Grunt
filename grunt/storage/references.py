@@ -4,7 +4,7 @@ A file uploaded from a form before the document has an id (a new record, or
 an image dropped into a rich-text field) is stored as a *pending* attachment:
 ``attached_to_doctype`` set, ``attached_to_id`` empty. When the document is
 saved, every pending file of that DocType that one of its file-bearing fields
-(Attach, Image, RichText — child-table rows included) points at is bound to
+(Attach, Image, RichText - child-table rows included) points at is bound to
 it, so the file shows among the document's attachments and inherits its
 permissions.
 

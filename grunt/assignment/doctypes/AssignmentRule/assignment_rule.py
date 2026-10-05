@@ -17,9 +17,7 @@ class AssignmentRule(Document):
     Інкапсулює логіку перевірки фільтрів і застосування правила призначення.
     """
 
-    # ------------------------------------------------------------------
     # Lifecycle hooks
-    # ------------------------------------------------------------------
 
     async def validate(self) -> None:
         """Перевірити коректність JSON у полі filters."""
@@ -33,9 +31,7 @@ class AssignmentRule(Document):
                     title=_("Validation error"),
                 )
 
-    # ------------------------------------------------------------------
     # Публічний API правила
-    # ------------------------------------------------------------------
 
     def parsed_filters(self) -> dict:
         """Повернути розпарсені filters або порожній dict."""
@@ -53,9 +49,9 @@ class AssignmentRule(Document):
         """Перевірити, чи документ відповідає умовам правила.
 
         Підтримує:
-            {"status": "Draft"}           → doc["status"] == "Draft"
-            {"total": {">": 1000}}        → doc["total"] > 1000
-            {"status": "Draft", "qty": 5} → AND по всіх умовах
+            {"status": "Draft"}           -> doc["status"] == "Draft"
+            {"total": {">": 1000}}        -> doc["total"] > 1000
+            {"status": "Draft", "qty": 5} -> AND по всіх умовах
         """
         filters = self.parsed_filters()
         if not filters:
@@ -88,9 +84,7 @@ class AssignmentRule(Document):
         return True
 
 
-# ------------------------------------------------------------------
 # Whitelisted API
-# ------------------------------------------------------------------
 
 
 @grunt.whitelist()

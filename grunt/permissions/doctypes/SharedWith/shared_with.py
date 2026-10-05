@@ -1,4 +1,4 @@
-"""SharedWith controller — only someone who may write a document can share it.
+"""SharedWith controller - only someone who may write a document can share it.
 
 The grant itself is enforced in :mod:`grunt.permissions.shares`.
 """

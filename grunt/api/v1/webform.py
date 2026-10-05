@@ -34,7 +34,7 @@ async def submit_form(
     """Submit a web form.
 
     ``request`` is auto-injected by the dispatcher (see
-    ``grunt.api.v1.method._invoke_with_context``) — never passed by a caller —
+    ``grunt.api.v1.method._invoke_with_context``) - never passed by a caller -
     purely to get the caller's IP for CAPTCHA verification below.
     """
     from grunt.local import _user_ctx
@@ -42,7 +42,7 @@ async def submit_form(
     from grunt.webform.captcha import captcha_site_key, verify_captcha
 
     # A guest may submit (allow_guest=True puts user=None into context), so
-    # read the context directly — grunt.get_user() would raise a 401 here.
+    # read the context directly - grunt.get_user() would raise a 401 here.
     user = _user_ctx.get()
     user_email = user.email if user else None
 

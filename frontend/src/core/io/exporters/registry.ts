@@ -6,7 +6,7 @@ import type { ListColumn } from '@/core/composables/useListColumns'
 export interface ExportContext {
   doctypeName: string
   doctypeLabel: string
-  /** Current page rows — use getAll() to fetch everything */
+  /** Current page rows - use getAll() to fetch everything */
   rows: Record<string, unknown>[]
   columns: ListColumn[]
   fields: DocField[]
@@ -19,7 +19,7 @@ export interface ExportContext {
   getAll: () => Promise<Record<string, unknown>[]>
 }
 
-/** A registered exporter — add your own with registerExporter() */
+/** A registered exporter - add your own with registerExporter() */
 export interface Exporter {
   id: string
   label: string
@@ -37,7 +37,7 @@ export function registerExporter(exp: Exporter): void {
   else _registry.push(exp)
 }
 
-/** Returns the live reactive array — safe to use in templates / computed */
+/** Returns the live reactive array - safe to use in templates / computed */
 export function getExporters(): Exporter[] {
   return _registry
 }

@@ -1,4 +1,4 @@
-"""Backup tasks — run by the task worker."""
+"""Backup tasks - run by the task worker."""
 
 from __future__ import annotations
 

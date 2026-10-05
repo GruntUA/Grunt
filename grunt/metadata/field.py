@@ -28,7 +28,7 @@ _SA_TYPE_BUILDERS: dict[str, Callable[[list[Any]], TypeEngine]] = {
     "String": lambda a: String(a[0]) if a else String(255),
     "Text": lambda a: Text(),
     "Integer": lambda a: Integer(),
-    # 8-byte double everywhere — a bare FLOAT is 4-byte (~7 digits) on MySQL.
+    # 8-byte double everywhere - a bare FLOAT is 4-byte (~7 digits) on MySQL.
     "Double": lambda a: Double(),
     # Exact decimal (money). asdecimal=False keeps Python-side values plain floats,
     # so formulas/aggregates/JSON don't have to learn Decimal.
@@ -37,12 +37,12 @@ _SA_TYPE_BUILDERS: dict[str, Callable[[list[Any]], TypeEngine]] = {
     "Date": lambda a: Date(),
     "DateTime": lambda a: UtcDateTime(),
     "Time": lambda a: Time(),
-    # JSONB on Postgres — indexable/queryable; SQLite and MySQL keep plain JSON.
+    # JSONB on Postgres - indexable/queryable; SQLite and MySQL keep plain JSON.
     "JSON": lambda a: SAJSON().with_variant(JSONB(), "postgresql"),
 }
 
 
-# ── FieldType base class ──────────────────────────────────────────────────────
+# FieldType base class
 
 
 class FieldType:
@@ -75,9 +75,9 @@ class FieldType:
         return value
 
 
-# ── Registry ──────────────────────────────────────────────────────────────────
+# Registry
 
-# The FieldType class registry is the single source of truth — column_spec/
+# The FieldType class registry is the single source of truth - column_spec/
 # searchable/empty_as_null/python_type are read straight off the registered
 # class (falling back to FieldType's own class-level defaults for unknown
 # types), instead of mirroring them into parallel dicts that a new FieldType
@@ -105,7 +105,7 @@ def get_registered_fieldtypes() -> list[str]:
 
 # column_spec's first tuple element (the SQLAlchemy type family) collapsed to the
 # coarse storage class the DocType «Конструктор» warns about on a fieldtype
-# change — see get_storage_class().
+# change - see get_storage_class().
 _SA_TYPE_STORAGE_CLASS: dict[str, str] = {
     "String": "text",
     "Text": "text",
@@ -123,8 +123,8 @@ _SA_TYPE_STORAGE_CLASS: dict[str, str] = {
 def get_storage_class(fieldtype: str) -> str:
     """Return the coarse storage class ('text', 'int', ..., 'none') for *fieldtype*.
 
-    Derived from ``column_spec`` — the same source :meth:`DocField.to_sa_column` uses
-    to build the real column — so it can't drift from it. ``column_spec`` only needs
+    Derived from ``column_spec`` - the same source :meth:`DocField.to_sa_column` uses
+    to build the real column - so it can't drift from it. ``column_spec`` only needs
     an object with the DocField attributes it reads (e.g. ``max_length``); none of
     them affect the resulting SQLAlchemy type family, so a bare stand-in is enough.
     Consumed by ``grunt fields sync-manifests`` to keep each field type's frontend
@@ -145,7 +145,7 @@ def get_python_type(fieldtype: str) -> str:
     return get_field_type_class(fieldtype).python_type
 
 
-# ── Discovery ─────────────────────────────────────────────────────────────────
+# Discovery
 
 
 def _find_bench_dir_for_fields(start: Path) -> Path | None:
@@ -211,17 +211,17 @@ def discover_field_types() -> None:
 
 # Runs once, as an import-time side effect: plain `import grunt.metadata.field`
 # scans every app's fields/ dir on disk and dynamically loads each plugin's
-# register() — every field-type module (Select, Link, ...) becomes importable
+# register() - every field-type module (Select, Link, ...) becomes importable
 # and DocField-typeable this way. This has to happen before DocType JSON gets
 # parsed anywhere, and every code path that touches DocFields imports this
-# module first regardless, so there's no later "real" point to defer it to —
+# module first regardless, so there's no later "real" point to defer it to -
 # but it does mean this module can't be imported for its types alone without
 # the disk scan, and re-running discovery (e.g. after installing an app at
 # runtime) means calling discover_field_types() again explicitly.
 discover_field_types()
 
 
-# ── Convenience predicates ────────────────────────────────────────────────────
+# Convenience predicates
 
 NON_PHYSICAL_FIELDS: frozenset[str] = frozenset(
     name for name, cls in _FIELD_TYPE_REGISTRY.items() if cls.column_spec is None
@@ -238,7 +238,7 @@ def is_empty_as_null_fieldtype(fieldtype: str) -> bool:
     return get_field_type_class(fieldtype).empty_as_null
 
 
-# ── DocField ──────────────────────────────────────────────────────────────────
+# DocField
 
 
 class DocField(BaseModel):
@@ -266,18 +266,18 @@ class DocField(BaseModel):
     # Type-specific options
     options: str | None = None
     # Name of a registry source (see grunt.metadata.dynamic_options) whose
-    # registered values replace `options` at schema-serve time — lets Select
+    # registered values replace `options` at schema-serve time - lets Select
     # fields draw their choices from a plugin-extensible registry instead of
     # a static JSON list.
     options_source: str | None = None
-    # Select / MultiSelect only — show option values through the translation
+    # Select / MultiSelect only - show option values through the translation
     # catalog (msgctxt ``select:<DocType>.<field>``). Stored values never change:
     # the served schema carries the translated captions as ``option_labels``.
     translatable: bool = False
     # Name of a schema registry source (see grunt.metadata.dynamic_options)
     # whose registered field-lists are attached at schema-serve time as
     # `dynamic_schemas`. `dynamic_schema_key` names the sibling field in the
-    # same row/document whose value selects which variant applies — lets a
+    # same row/document whose value selects which variant applies - lets a
     # JSON field (typically hidden) render a different form per row instead
     # of a fixed set of columns shared by every variant.
     dynamic_schema_source: str | None = None
@@ -287,7 +287,7 @@ class DocField(BaseModel):
     placeholder: str | None = None
 
     link_filters: str | None = None
-    # Link fields only — exclude this field from User Permission row-filtering
+    # Link fields only - exclude this field from User Permission row-filtering
     # (see grunt.permissions.user_permissions). Use when a DocType has several
     # Link fields to the same target but only some of them should scope a
     # user's visible rows (e.g. a letter's "registering unit" restricts access
@@ -296,10 +296,10 @@ class DocField(BaseModel):
 
     # Layout
     collapsible: bool = False
-    show_connections: bool = False  # Tab fields only — host the "Зв'язки" panel in this tab
+    show_connections: bool = False  # Tab fields only - host the "Зв'язки" panel in this tab
     columns: int = 12
     icon: str | None = None
-    # Tab fields only — mount a bespoke Vue component as the tab body instead of
+    # Tab fields only - mount a bespoke Vue component as the tab body instead of
     # the generic section/field layout (e.g. "DesignerTab", "WorkflowGraphTab").
     tab_component: str | None = None
 
@@ -327,7 +327,7 @@ class DocField(BaseModel):
     in_quick_entry: bool = False
     in_quick_filter: bool = False
     # Date/Datetime quick filters only: "year" picks a calendar year
-    # (``field__year``) instead of an exact date. None — the date picker.
+    # (``field__year``) instead of an exact date. None - the date picker.
     quick_filter_mode: Literal["year"] | None = None
 
     validator: str | None = None

@@ -4,7 +4,6 @@ Fields with a non-empty ``formula`` attribute are *computed fields*: their
 value is calculated from a Python expression every time the document is saved.
 
 Expression context
-------------------
 All field values of the current document are available as plain variables:
 
     # DocType: OrderLine
@@ -14,14 +13,14 @@ All field values of the current document are available as plain variables:
     # Conditional
     formula = "price * qty * (1 - discount / 100) if discount else price * qty"
 
-Available built-ins (sandboxed — no imports, no file I/O):
+Available built-ins (sandboxed - no imports, no file I/O):
 
     abs, round, min, max, sum, len, str, int, float, bool,
     all, any, sorted, reversed, enumerate, zip, map, filter,
     divmod, pow, True, False, None
 
 Also in scope: ``now`` (timezone-aware UTC ``datetime``) and ``today`` (its
-``date``) — handy for age / expiry / overdue flags.
+``date``) - handy for age / expiry / overdue flags.
 
 If evaluation raises an exception the field is left unchanged and a warning
 is logged.  This ensures a bad formula never blocks a save.
@@ -174,7 +173,7 @@ def _coerce_result(value: Any, fieldtype: str) -> Any:
             return value
     if fieldtype == "Check":
         return bool(value)
-    # Data, Text, etc. — convert to string
+    # Data, Text, etc. - convert to string
     if fieldtype in ("Data", "Text", "LongText", "SmallText"):
         return str(value)
     return value

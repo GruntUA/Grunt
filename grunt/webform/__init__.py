@@ -1,4 +1,4 @@
-"""Web Form module — public forms for anonymous submissions."""
+"""Web Form module - public forms for anonymous submissions."""
 
 from grunt.webform.service import WebFormService
 

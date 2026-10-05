@@ -1,7 +1,7 @@
 """Single entry point for Redis clients.
 
 redis-py ≥ 7 sends ``CLIENT MAINT_NOTIFICATIONS`` on every new connection
-(RESP3), which only Redis ≥ 8.2 / Redis Cloud understands — on older servers
+(RESP3), which only Redis ≥ 8.2 / Redis Cloud understands - on older servers
 each connect logs "Failed to enable maintenance notifications". Grunt talks
 to a single standalone Redis, so the feature is switched off for every client.
 """

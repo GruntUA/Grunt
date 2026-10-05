@@ -1,5 +1,5 @@
 <script setup lang="ts">
-/** A shortcut as shadcn key caps for this platform: `Mod+S` → ⌘ S on macOS, Ctrl S elsewhere. */
+/** A shortcut as shadcn key caps for this platform: `Mod+S` -> ⌘ S on macOS, Ctrl S elsewhere. */
 import { computed } from 'vue'
 import { Kbd, KbdGroup } from '@/components/ui/kbd'
 import { shortcutKeys } from '@/core/shortcuts'

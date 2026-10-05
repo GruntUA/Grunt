@@ -8,7 +8,7 @@ const RED = 'border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-400'
 
 // Single source of truth for status-indicator colours. Every status badge
 // (list cells, workflow bar, doc sidebar, form header, mobile cards) renders
-// as `<Badge variant="outline" :class="statusToneClass(color)">` — soft tint,
+// as `<Badge variant="outline" :class="statusToneClass(color)">` - soft tint,
 // same look everywhere.
 const TONE_CLASSES: Record<string, string> = {
   default: NEUTRAL,
@@ -29,7 +29,7 @@ const TONE_CLASSES: Record<string, string> = {
   pink: 'border-pink-500/30 bg-pink-500/10 text-pink-700 dark:text-pink-300',
 }
 
-/** Tint classes for an indicator colour; unknown/empty → neutral. */
+/** Tint classes for an indicator colour; unknown/empty -> neutral. */
 export function statusToneClass(color: string | null | undefined): string {
   return TONE_CLASSES[color ?? ''] ?? NEUTRAL
 }

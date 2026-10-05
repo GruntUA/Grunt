@@ -1,13 +1,13 @@
-"""Logging configuration — configures structlog with rotating file handlers.
+"""Logging configuration - configures structlog with rotating file handlers.
 
 Call configure_logging() once at application startup (in main.py lifespan).
 After that, all structlog.get_logger(name) calls are routed automatically:
 
-  grunt.web.<safe_site>         → logs/web/<site>/access.log  (HTTP access)
-  grunt.db.*                    → logs/db/queries.log         (slow queries)
-  grunt.tasks.*, grunt.worker.* → logs/scheduler/tasks.log    (background)
-  <app_name>.*                  → logs/apps/<app>/            (per-app)
-  grunt.*  (catch-all)          → logs/system/grunt.log       (system)
+  grunt.web.<safe_site>         -> logs/web/<site>/access.log  (HTTP access)
+  grunt.db.*                    -> logs/db/queries.log         (slow queries)
+  grunt.tasks.*, grunt.worker.* -> logs/scheduler/tasks.log    (background)
+  <app_name>.*                  -> logs/apps/<app>/            (per-app)
+  grunt.*  (catch-all)          -> logs/system/grunt.log       (system)
 """
 
 from __future__ import annotations
@@ -94,7 +94,7 @@ def configure_logging(
 
     numeric_level = getattr(logging, log_level.upper(), logging.INFO)
 
-    # Shared processors — used by all loggers
+    # Shared processors - used by all loggers
     shared_processors: list = [
         structlog.contextvars.merge_contextvars,
         structlog.stdlib.add_log_level,
@@ -110,9 +110,9 @@ def configure_logging(
         cache_logger_on_first_use=True,
     )
 
-    # Console output — always enabled. structlog.dev.ConsoleRenderer()'s default
+    # Console output - always enabled. structlog.dev.ConsoleRenderer()'s default
     # exception_formatter is a RichTracebackFormatter with show_locals=True,
-    # which walks and pretty-prints every local in every frame — on a deep
+    # which walks and pretty-prints every local in every frame - on a deep
     # SQLAlchemy stack (huge Select/dialect object reprs) this alone can take
     # more than a second *per logged exception* (measured: ~18x a plain
     # traceback), silently turning any `log.warning(..., exc_info=True)` in a
@@ -166,7 +166,7 @@ def configure_logging(
         ],
     )
 
-    # System log — grunt root (catch-all for framework internals)
+    # System log - grunt root (catch-all for framework internals)
     _add_file_handler(
         "grunt",
         log_dir / "system" / "grunt.log",
@@ -186,7 +186,7 @@ def configure_logging(
             propagate=False,
         )
 
-    # DB log — human-readable format with SQL on its own lines
+    # DB log - human-readable format with SQL on its own lines
     db_formatter = structlog.stdlib.ProcessorFormatter(
         processors=[
             structlog.stdlib.ProcessorFormatter.remove_processors_meta,

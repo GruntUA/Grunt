@@ -30,7 +30,7 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const router = useRouter()
 
-// ── Quick filter state ────────────────────────────────────────────────────────
+// Quick filter state
 const _ffValues = ref<Record<string, string>>(props.quickFilterValues ?? {})
 
 watch(() => props.quickFilterValues, (v) => {
@@ -45,11 +45,11 @@ const ffDefs = computed<QuickFilter[]>(() => props.quickFilterDefs ?? [])
 
 const { rawQuickFilters } = useQuickFilters(ffDefs, 'tree', _ffValues)
 
-// ── As-of date (from tree_as_of_date_field) ──────────────────────────────────
+// As-of date (from tree_as_of_date_field)
 const asOfField = computed(() => props.doctype.tree_as_of_date_field ?? null)
 const asOf = computed(() => _ffValues.value.as_of_date ?? '')
 
-// ── Sorting (metadata defaults + runtime override) ───────────────────────────
+// Sorting (metadata defaults + runtime override)
 const defaultSortBy = computed(() =>
   props.doctype.tree_sort_by
   ?? props.doctype.tree_title_field
@@ -91,12 +91,12 @@ const sortFieldLabel = computed<Record<string, string>>(() => {
   return labels
 })
 
-// ── Tree state ───────────────────────────────────────────────────────────────
+// Tree state
 const treeNodes = ref<any[]>([])
 const loading = ref(false)
 const error = ref('')
 
-// ── Expanded IDs persistence ─────────────────────────────────────────────────
+// Expanded IDs persistence
 const STORAGE_KEY = `tree_expanded_${props.doctype.name}`
 
 function loadExpandedIds(): Set<string> {
@@ -115,7 +115,7 @@ function saveExpandedIds(ids: Set<string>) {
 
 const expandedIds = ref<Set<string>>(loadExpandedIds())
 
-// ── Active filters (FilterBar) ───────────────────────────────────────────────
+// Active filters (FilterBar)
 const _activeFilters = ref<ActiveFilter[]>(props.activeFilters ?? [])
 
 watch(() => props.activeFilters, (v) => {
@@ -126,7 +126,7 @@ watch(_activeFilters, (v) => {
   emit('update:activeFilters', v)
 }, { deep: true })
 
-// ── Data fetching ────────────────────────────────────────────────────────────
+// Data fetching
 async function loadTree() {
   loading.value = true
   error.value = ''
@@ -169,7 +169,7 @@ onMounted(loadTree)
 // collapsed folders are visible (the backend already trims to matches + ancestors).
 const forceExpandAll = computed(() => Boolean(props.search?.trim()))
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
+// Helpers
 const titleField = computed(() =>
   props.doctype.tree_title_field
   ?? props.doctype.title_field
@@ -191,7 +191,7 @@ function countDescendants(node: any): number {
   return count
 }
 
-// ── Interactions ─────────────────────────────────────────────────────────────
+// Interactions
 function toggle(node: any) {
   const id = String(node.id)
   if (expandedIds.value.has(id)) {
@@ -228,7 +228,7 @@ function navigateTo(node: any) {
   router.push(docUrl(props.doctype.name, node.id, props.workspace))
 }
 
-// ── Quick entry ───────────────────────────────────────────────────────────────
+// Quick entry
 const quickEntryPreset = ref<Record<string, unknown> | null>(null)
 
 function createChild(parentNode: any) {
@@ -319,7 +319,7 @@ const totalCount = computed(() => {
   </div>
 </template>
 
-<!-- ── Recursive tree node component ─────────────────────────────────────── -->
+<!-- Recursive tree node component -->
 <script lang="ts">
 import { defineComponent, h, type PropType } from 'vue'
 import { ChevronRight as CR, ChevronDown as CD, Plus as PL, Folder as FL, FolderOpen as FO, FileText as FT } from '@lucide/vue'

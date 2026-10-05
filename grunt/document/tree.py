@@ -1,14 +1,13 @@
-"""Tree service — operations for is_tree DocTypes.
+"""Tree service - operations for is_tree DocTypes.
 
 Uses an **adjacency-list** model: each document has a nullable self-referential
 Link field (``parent_field`` defined in ``DocType.tree_view``).
 
 Recursive queries (subtree, path to root) use a SQLAlchemy Core recursive CTE
-(``Select.cte(recursive=True)``) — supported by SQLite ≥ 3.8.3 and all
+(``Select.cte(recursive=True)``) - supported by SQLite ≥ 3.8.3 and all
 PostgreSQL / MySQL 8 versions.
 
 Public API
-----------
 ``tree_service.get_children(session, doctype, parent_id, ...)``
     Direct children of a node (or root nodes when parent_id is None).
 
@@ -45,7 +44,7 @@ if TYPE_CHECKING:
 #
 # Lets an app attach point-in-time display labels to its own tree DocType
 # (e.g. "what was this node called on 2024-01-01") without the framework's
-# generic Tree API needing to know that app's DocTypes or business terms —
+# generic Tree API needing to know that app's DocTypes or business terms -
 # apps register via grunt.document.tree.register_tree_title_resolver(...) in
 # their own hooks.py, loaded by main.py alongside doc_events/scheduler_events.
 TREE_TITLE_RESOLVERS: dict[str, Callable[..., Awaitable[dict[str, str]]]] = {}
@@ -98,9 +97,7 @@ def _title_field(dt: Any) -> str:
 
 
 class TreeService:
-    # ──────────────────────────────────────────────────────────────────
     # Read
-    # ──────────────────────────────────────────────────────────────────
 
     async def get_children(
         self,
@@ -117,7 +114,7 @@ class TreeService:
     ) -> list[dict[str, Any]]:
         """Return direct children of *parent_id* (or root nodes if None).
 
-        ``scope`` — a ``SELECT name`` of the nodes the caller may see (row-level
+        ``scope`` - a ``SELECT name`` of the nodes the caller may see (row-level
         permissions); a visible node whose parent is outside it counts as a root.
         """
         import grunt
@@ -220,7 +217,7 @@ class TreeService:
         ``search`` matches ``name``/title/``search_fields`` (case-insensitive
         substring) and, like ``filters``, keeps the ancestors of every match so
         the returned tree stays connected.
-        ``scope`` — a ``SELECT name`` of the nodes the caller may see (row-level
+        ``scope`` - a ``SELECT name`` of the nodes the caller may see (row-level
         permissions); the rest are dropped, ancestors included, and a visible
         node whose parent is hidden is returned as a root.
         """
@@ -362,7 +359,7 @@ class TreeService:
                     seen.add(fname)
             filtered_q = filtered_q.where(or_(*(col.ilike(f"%{search}%") for col in search_cols)))
 
-        # Controller hook: list_filter_extra — allows DocType controllers
+        # Controller hook: list_filter_extra - allows DocType controllers
         # (e.g. in app code) to inject extra WHERE clauses without touching
         # the framework core.
         if ctrl_cls.list_filter_extra is not Document.list_filter_extra:
@@ -400,7 +397,7 @@ class TreeService:
     ) -> list[dict[str, Any]]:
         """Return ordered path from the direct parent up to the root.
 
-        ``scope`` — a ``SELECT name`` of the nodes the caller may see; hidden
+        ``scope`` - a ``SELECT name`` of the nodes the caller may see; hidden
         ancestors are left out of the path.
         """
         import grunt
@@ -441,9 +438,7 @@ class TreeService:
         result = await session.execute(stmt)
         return [dict(r._mapping) for r in result.fetchall()]
 
-    # ──────────────────────────────────────────────────────────────────
     # Write
-    # ──────────────────────────────────────────────────────────────────
 
     async def move_node(
         self,
@@ -501,9 +496,7 @@ class TreeService:
         log.info("tree.node_moved", doctype=doctype, node=node_id, new_parent=new_parent_id)
         return dict(row._mapping)
 
-    # ──────────────────────────────────────────────────────────────────
     # Helpers
-    # ──────────────────────────────────────────────────────────────────
 
     @staticmethod
     def _build_select_cols(

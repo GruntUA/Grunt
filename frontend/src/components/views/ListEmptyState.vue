@@ -9,7 +9,7 @@ import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTi
 
 /**
  * "No rows" for every list view. Three cases: the data source is down
- * (`meta.unavailable`), filters hide everything (offers a reset — see
+ * (`meta.unavailable`), filters hide everything (offers a reset - see
  * LIST_FILTER_RESET), or the DocType is simply empty.
  */
 const props = withDefaults(defineProps<{
@@ -21,7 +21,7 @@ const { t } = useI18n()
 const filters = inject(LIST_FILTER_RESET, null)
 
 // The backend already knows *why* its data source is unavailable (Redis down,
-// an external API unreachable, …) and hands over ready-to-display text — we
+// an external API unreachable, …) and hands over ready-to-display text - we
 // just render it, with a neutral fallback if none was given.
 const unavailable = computed(() =>
   props.meta?.unavailable ? props.meta.unavailable_message || t('The data source is temporarily unavailable.') : null,

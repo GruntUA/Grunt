@@ -14,7 +14,7 @@ const props = defineProps<{
 const builder = useBuilderStore()
 
 // Tab/Section/Column are the *target* DocType's own layout scaffolding, not
-// data fields — dragging one in would just add a meaningless empty marker.
+// data fields - dragging one in would just add a meaningless empty marker.
 // Table needs UI a plain <form> can't provide; JSON/Code are raw data fields.
 const EXCLUDED_TYPES = new Set(['Tab', 'Section', 'Column', 'Table', 'JSON', 'Code'])
 
@@ -29,7 +29,7 @@ const available = computed(() =>
 )
 
 // The target DocType's own `hidden` describes its normal desk form, not this
-// webform — a field an admin explicitly drags in here should start visible.
+// webform - a field an admin explicitly drags in here should start visible.
 function cloneField(item: DocField): DocField {
   return { ...item, hidden: false }
 }

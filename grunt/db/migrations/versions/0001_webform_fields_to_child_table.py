@@ -2,7 +2,7 @@
 
 WebForm.fields changed from a JSON blob to a Table(WebFormField) child
 relation. Schema sync (``grunt db migrate``'s DocType-table step) only adds
-columns/tables — it never migrates data across a type change, so any site
+columns/tables - it never migrates data across a type change, so any site
 that already had a WebForm before this change loses that form's field list
 the moment the new schema lands (the old JSON blob is left behind, orphaned,
 on the parent row, until this migration runs).
@@ -39,7 +39,7 @@ def upgrade() -> None:
 
     parent_cols = {c["name"] for c in inspector.get_columns(_PARENT_TABLE)}
     if "fields" not in parent_cols:
-        return  # legacy column already gone — nothing to backfill
+        return  # legacy column already gone - nothing to backfill
 
     child = sa.table(
         _CHILD_TABLE,
@@ -77,7 +77,7 @@ def upgrade() -> None:
             {"p": form_name},
         ).scalar()
         if already:
-            continue  # real rows already exist — a fresh insert, don't duplicate
+            continue  # real rows already exist - a fresh insert, don't duplicate
 
         try:
             entries = json.loads(fields_json)
@@ -121,5 +121,5 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     op.add_column(_PARENT_TABLE, sa.Column("fields", sa.Text(), nullable=True))
-    # Data isn't restored to the JSON column — the child rows remain as the
+    # Data isn't restored to the JSON column - the child rows remain as the
     # source of truth even after downgrade rather than being deleted.

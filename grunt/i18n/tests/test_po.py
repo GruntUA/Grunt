@@ -141,7 +141,7 @@ def test_flip_module_apply_rewrites_json_and_fills_uk_po(flip_pkg):
     assert by[("meta:Widget.nm", "Name")] == "Назва"
     assert by[("select:Widget.st", "Draft")] == "Чернетка"
 
-    # idempotent — second run finds nothing left to flip
+    # idempotent - second run finds nothing left to flip
     assert po.flip_module("demo", mapping, apply=True, options=True)["entries"] == 0
 
 

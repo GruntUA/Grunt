@@ -101,7 +101,7 @@ class QueryCache:
         The client wraps its own connection pool and is safe to reuse across
         concurrent calls, so it's created once and kept for the cache's
         lifetime instead of opening/closing a fresh connection on every single
-        get/set — ``_get_redis``/``_set_redis``/``invalidate_doctype`` all
+        get/set - ``_get_redis``/``_set_redis``/``invalidate_doctype`` all
         share this one "skip if disabled or previously failed, else hand back
         the live client" path.
         """
@@ -194,7 +194,7 @@ class QueryCache:
         """Drop every cached list page and count for ``doctype``.
 
         Both namespaces share one invalidation call because they're driven by
-        the same event (a doc of this type was created/updated/deleted) — a
+        the same event (a doc of this type was created/updated/deleted) - a
         caller never needs to invalidate one without the other.
         """
         prefixes = (self._key_prefix(doctype), self._count_key_prefix(doctype))

@@ -72,7 +72,7 @@ class DocumentHistoryRPCMixin:
 
         result = await grunt.save_doc(doctype, doc_id, update_fields)
 
-        # Add audit log — via the shared write path (grunt.activity.record_activity),
+        # Add audit log - via the shared write path (grunt.activity.record_activity),
         # not a raw grunt.new_doc("ActivityLog", ...) call: ActivityLog.create is
         # restricted to System Manager to keep the audit trail tamper-proof, and
         # record_activity is the one path that's allowed to write as any user.
@@ -142,7 +142,7 @@ class DocumentHistoryRPCMixin:
         for r in act_rows:
             action = r.get("action")
             # When versions are tracked, each "Update" is reported as a richer
-            # "version" item below (with the actual old/new values) — skip the
+            # "version" item below (with the actual old/new values) - skip the
             # plain field-name-only entry to avoid showing the same edit twice.
             if track_changes and action in ("Update", "update"):
                 continue

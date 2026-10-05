@@ -8,7 +8,7 @@ import { useWidgetPropertyEditor } from '@/core/composables/useWidgetPropertyEdi
 const { t } = useI18n()
 const { widget, updateWidget } = useWidgetPropertyEditor()
 
-// IconPicker is a DocField-input component — this stub only needs the two
+// IconPicker is a DocField-input component - this stub only needs the two
 // properties it actually reads (label, read_only).
 const iconField = computed<DocField>(() => ({
   fieldname: 'icon',

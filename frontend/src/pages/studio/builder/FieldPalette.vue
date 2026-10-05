@@ -11,7 +11,7 @@ import { loadLucideLib } from '@/lib/lucide'
 
 const { t } = useI18n()
 
-// ── Lucide icon resolution ────────────────────────────────────────────────────
+// Lucide icon resolution
 type IconMap = Record<string, Component>
 const lucideIcons = shallowRef<IconMap>({})
 let lucideLoaded = false

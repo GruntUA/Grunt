@@ -15,7 +15,7 @@ const props = defineProps<{
   modelValue: unknown
   disabled?: boolean
   error?: string
-  /** Current document values — used to evaluate `link_filters` with an "eval:" prefix. */
+  /** Current document values - used to evaluate `link_filters` with an "eval:" prefix. */
   doc?: Record<string, unknown>
 }>()
 
@@ -23,17 +23,17 @@ const emit = defineEmits<{ 'update:modelValue': [value: unknown] }>()
 
 const { t } = useI18n()
 
-// ── State ────────────────────────────────────────────────────────────────────
+// State
 const query = ref('')
 const results = ref<LinkSearchItem[]>([])
 const isOpen = ref(false)
 const isLoading = ref(false)
 const activeIdx = ref(-1)
 
-// name → display label; seeded from search hits and resolved in bulk on load.
+// name -> display label; seeded from search hits and resolved in bulk on load.
 const labels = ref<Map<string, string>>(new Map())
 
-// Tree target DocType → values are picked in a dialog with the whole tree.
+// Tree target DocType -> values are picked in a dialog with the whole tree.
 const isTree = ref(false)
 const titleField = ref('name')
 const pickerOpen = ref(false)
@@ -49,7 +49,7 @@ let debounceTimer: ReturnType<typeof setTimeout> | undefined
 let blurTimer: ReturnType<typeof setTimeout> | undefined
 let searchSeq = 0
 
-// ── Derived ──────────────────────────────────────────────────────────────────
+// Derived
 const readonly = computed(() => !!props.disabled || !!props.field.read_only)
 
 const selectedValues = computed<string[]>(() => {
@@ -91,7 +91,7 @@ function labelFor(name: string): string {
   return labels.value.get(name) ?? name
 }
 
-// ── Label resolution (one request for every unresolved value) ─────────────────
+// Label resolution (one request for every unresolved value)
 async function resolveLabels(values: string[]) {
   const missing = values.filter((v) => !labels.value.has(v))
   if (!missing.length || !props.field.options) return
@@ -100,7 +100,7 @@ async function resolveLabels(values: string[]) {
     const hits = await docsApi.linkSearch(props.field.options, '', { name__in: missing }, missing.length)
     hits.forEach((h) => next.set(h.name, h.title || h.name))
   } catch {
-    /* fall through — unresolved names are shown as-is below */
+    /* fall through - unresolved names are shown as-is below */
   }
   missing.forEach((v) => { if (!next.has(v)) next.set(v, v) })
   labels.value = next
@@ -118,14 +118,14 @@ watch(
       titleField.value = meta.title_field || 'name'
       isTree.value = !!meta.is_tree
     } catch {
-      /* not readable as a tree — keep the plain search input */
+      /* not readable as a tree - keep the plain search input */
     }
   },
   { immediate: true },
 )
 watch(selectedValues, (vals) => { if (vals.length) resolveLabels(vals) })
 
-// ── Search ───────────────────────────────────────────────────────────────────
+// Search
 async function search(val: string) {
   if (!props.field.options) return
   const seq = ++searchSeq
@@ -187,7 +187,7 @@ function onKeydown(e: KeyboardEvent) {
   }
 }
 
-// ── Selection ────────────────────────────────────────────────────────────────
+// Selection
 function addItem(item: LinkSearchItem) {
   if (selectedValues.value.includes(item.name)) return
   labels.value = new Map(labels.value).set(item.name, item.title || item.name)
@@ -212,7 +212,7 @@ function onPicked(values: string[], picked: Map<string, string>) {
   emit('update:modelValue', values)
 }
 
-// ── Highlight (source text is user data → always escaped before v-html) ───────
+// Highlight (source text is user data -> always escaped before v-html)
 function highlight(text: string): string {
   const safe = escapeHtml(text)
   const q = query.value.trim()

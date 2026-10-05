@@ -26,7 +26,7 @@ import i18n from '@/plugins/i18n'
 
 const t = (key: string, params: Record<string, unknown> = {}): string => i18n.global.t(key, params)
 
-// ── Types ────────────────────────────────────────────────────────────────
+// Types
 
 export type DialogFieldType = 'Text' | 'LongText' | 'Code' | 'Int' | 'Float' | 'Date' | 'Datetime' | 'Select' | 'Check' | 'HTML' | 'Link' | 'Table' | 'Password'
 
@@ -34,10 +34,10 @@ export interface DialogTableColumn {
   /** Row property to read. */
   key: string
   label: string
-  /** CSS width — e.g. '120px', '30%'. */
+  /** CSS width - e.g. '120px', '30%'. */
   width?: string
   align?: 'left' | 'right' | 'center'
-  /** Custom cell → HTML string (plain text is auto-escaped when omitted). */
+  /** Custom cell -> HTML string (plain text is auto-escaped when omitted). */
   format?: (value: unknown, row: Record<string, unknown>) => string
 }
 
@@ -70,7 +70,7 @@ export interface DialogField {
   /** Password fields only: show a live checklist of the password policy. */
   show_strength?: boolean
 
-  // ── Table field ──────────────────────────────────────────────────────
+  // Table field
   /** Table: column spec. */
   columns?: DialogTableColumn[]
   /** Table: the rows to show. */
@@ -93,7 +93,7 @@ export interface DialogField {
 
 /**
  * Extra action button on a `form` dialog. Unlike the primary button it does
- * NOT close the dialog — it runs an in-dialog operation (add row, delete row,
+ * NOT close the dialog - it runs an in-dialog operation (add row, delete row,
  * refresh…) and can rewrite fields via the controller. Call `ctx.close()` to
  * dismiss.
  */
@@ -161,7 +161,7 @@ export interface DialogState {
   resolve: ((value: unknown) => void) | null
 }
 
-// ── Singleton state ──────────────────────────────────────────────────────
+// Singleton state
 
 const DEFAULT_STATE: Omit<DialogState, 'resolve' | 'proceedAction'> = {
   open: false,
@@ -188,7 +188,7 @@ function reset() {
   Object.assign(state, DEFAULT_STATE, { resolve: null, proceedAction: null })
 }
 
-// ── Public API ───────────────────────────────────────────────────────────
+// Public API
 
 export function useDialog() {
   /**
@@ -358,7 +358,7 @@ export function useDialog() {
   }
 
   /**
-   * Show/update a progress bar. Does not block — call repeatedly to update.
+   * Show/update a progress bar. Does not block - call repeatedly to update.
    */
   function progress(title: string, count: number, total: number, description?: string) {
     state.type = 'progress'

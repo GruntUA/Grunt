@@ -12,7 +12,7 @@ from grunt.document.versioning import _SKIP_FIELDS
 async def should_log_activity(doctype: str) -> bool | None:
     """Whether ``doctype`` writes ActivityLog rows at all (``DocType.track_activity``).
 
-    ``doctype`` is a free-text field on ActivityLog, not a Link — callers may
+    ``doctype`` is a free-text field on ActivityLog, not a Link - callers may
     pass names that aren't (or no longer are) real DocTypes, in which case
     nothing is logged.
     """
@@ -23,7 +23,7 @@ async def should_log_activity(doctype: str) -> bool | None:
 def _feed_hidden(dt: Any) -> bool:
     """True for doctypes that never log at all (``track_activity=False``) as well as
     ones that log but opt out of the global feed only (``hide_from_activity_feed``)
-    — config/admin records that stay visible in a specific document's own timeline.
+    - config/admin records that stay visible in a specific document's own timeline.
     """
     return not dt.track_activity or dt.hide_from_activity_feed
 
@@ -59,7 +59,7 @@ async def record_activity(
     Writes as SYSTEM_USER, not the ambient caller: `create` on ActivityLog
     is restricted to System Manager (write/delete always were, to keep the
     audit trail tamper-proof) precisely so a regular user can't forge an
-    entry via the generic docs CRUD — attributing an action to someone else,
+    entry via the generic docs CRUD - attributing an action to someone else,
     or inventing one that never happened. This is the *only* legitimate
     write path, so it must work regardless of the acting user's own role.
     """
@@ -90,8 +90,8 @@ async def _broadcast_activity(
 ) -> None:
     """Push a live activity event to the global site WebSocket channel.
 
-    Resolves the document title and the user's full name up front — same as
-    the REST feed (``list_activity``) — so a live-pushed entry never flashes a
+    Resolves the document title and the user's full name up front - same as
+    the REST feed (``list_activity``) - so a live-pushed entry never flashes a
     raw doc_id/email while the feed's own re-fetch would have shown a name.
     """
     try:
@@ -104,7 +104,7 @@ async def _broadcast_activity(
         user_name = user_email
         try:
             # System context: the "All" role can only read its own User row
-            # (match: name == user) — the broadcaster must resolve the
+            # (match: name == user) - the broadcaster must resolve the
             # *acting* user's name regardless of who ends up viewing the feed.
             async with grunt.system_context(grunt.get_session()):
                 rows = await grunt.get_list(
@@ -116,7 +116,7 @@ async def _broadcast_activity(
             pass
 
         created_at = doc.get("created_at")
-        # "site" is the authenticated site-wide channel. Never "public:site" —
+        # "site" is the authenticated site-wide channel. Never "public:site" -
         # that endpoint takes no token, which would stream user emails and
         # document ids to anyone who knows the URL.
         await manager.broadcast(
@@ -185,7 +185,7 @@ async def record_view(
     """``after_read`` hook: record per-user "seen" state and ViewLog entries.
 
     Acts only for DocTypes that opt in via ``track_seen`` / ``track_views``, and
-    only for single-document reads — the ``after_read`` fired by list, get_value
+    only for single-document reads - the ``after_read`` fired by list, get_value
     and get_all passes ``method=`` and/or no ``doc`` dict, so those are skipped.
     """
     if method or not doctype or not isinstance(doc, dict):
@@ -198,7 +198,7 @@ async def record_view(
     if dt is None:
         return
     # ``track_activity`` is not consulted here: seen/view tracking is a separate,
-    # opt-in concern via the flags below — none of the high-churn system logs set
+    # opt-in concern via the flags below - none of the high-churn system logs set
     # them. An operational log that *does* opt in (e.g. ErrorLog, so an admin can
     # tell which errors they've already triaged) is honoured regardless.
     if not (dt.track_seen or dt.track_views):

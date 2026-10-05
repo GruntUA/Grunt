@@ -60,7 +60,7 @@ export function useMapMarkers({
         if (colorMap.value[val]) return colorMap.value[val]
       }
     }
-    // Support CSS vars — resolve at runtime against the :root element
+    // Support CSS vars - resolve at runtime against the :root element
     const raw = defaultColor.value
     if (raw.startsWith('var(')) {
       const varName = raw.match(/var\(([^,)]+)/)?.[1]?.trim()
@@ -83,7 +83,7 @@ export function useMapMarkers({
     try {
       const fields = new Set([geoField.value, labelField.value, 'name', 'id'])
       if (colorField.value) {
-        // "object_type__color" → request base field "object_type"; backend injects __color
+        // "object_type__color" -> request base field "object_type"; backend injects __color
         const baseField = colorField.value.includes('__')
           ? colorField.value.split('__')[0]
           : colorField.value

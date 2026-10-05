@@ -8,7 +8,7 @@ const def: ViewDefinition = {
   order: 0,
   fillsViewport: true,
 
-  // No resolveField — list is always available
+  // No resolveField - list is always available
 
   component: () => import('./ListTableView.vue').then((m) => m.default),
 
@@ -45,7 +45,7 @@ const def: ViewDefinition = {
     onToggleGroup: (key: unknown) => ctx.emit.toggleGroup(key as string),
   }),
 
-  // ── Toolbar controls (columns, grouping, sorting) ──────────────────────────
+  // Toolbar controls (columns, grouping, sorting)
 
   toolbarControls: () => import('./ListToolbarControls.vue').then((m) => m.default),
 

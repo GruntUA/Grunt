@@ -1,5 +1,5 @@
 /**
- * useLinkCreate — manages the "create new from Link field" round-trip.
+ * useLinkCreate - manages the "create new from Link field" round-trip.
  *
  * Flow:
  *   1. User clicks "Create" in a Link field on form A.
@@ -26,7 +26,7 @@ export interface LinkReturnContext {
   linkedDoctype: string
 }
 
-// ── Write helpers ─────────────────────────────────────────────────────────────
+// Write helpers
 
 function draftKey(doctype: string, id: string | null): string {
   return `${DRAFT_PREFIX}${doctype}:${id ?? 'new'}`
@@ -51,7 +51,7 @@ export function clearDraft(doctype: string, id: string | null): void {
   localStorage.removeItem(draftKey(doctype, id))
 }
 
-// ── Return context ────────────────────────────────────────────────────────────
+// Return context
 
 export function saveReturnContext(ctx: LinkReturnContext): void {
   localStorage.setItem(RETURN_KEY, JSON.stringify(ctx))
@@ -70,7 +70,7 @@ export function clearReturnContext(): void {
   localStorage.removeItem(RETURN_KEY)
 }
 
-// ── Main composable ───────────────────────────────────────────────────────────
+// Main composable
 
 export function useLinkCreate() {
   const router = useRouter()
@@ -80,7 +80,7 @@ export function useLinkCreate() {
    *
    * @param linkedDoctype  The doctype to create (e.g. "Customer")
    * @param preset         Initial field values for the new doc, keyed by fieldname
-   *                       (never `name` — that stays under the doctype's own autoname)
+   *                       (never `name` - that stays under the doctype's own autoname)
    * @param fieldname      Which field on the current form to fill after return
    * @param currentDoctype The doctype of the current form
    * @param currentId      The document id (null for new documents)
@@ -145,7 +145,7 @@ export function useLinkCreate() {
   /**
    * Called on mount of any form.
    * Detects if we returned from a link-create flow, restores the draft,
-   * and returns the `{fieldname, value}` to set — or null if not applicable.
+   * and returns the `{fieldname, value}` to set - or null if not applicable.
    */
   function restoreLinkDraft(
     _doctype: string,

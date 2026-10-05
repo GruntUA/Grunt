@@ -2,7 +2,7 @@ import { ref } from 'vue'
 
 /**
  * Per-user, per-doctype override of which fields show as quick filters.
- * Purely local (localStorage) — never touches DocType metadata, so it never
+ * Purely local (localStorage) - never touches DocType metadata, so it never
  * triggers a DocType save (which would rewrite the doctype's JSON file and,
  * in dev, restart the backend via --reload-include '*.json').
  *

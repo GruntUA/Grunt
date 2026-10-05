@@ -65,7 +65,7 @@ const webPath = computed(() => {
   }
 })
 
-// ── Status badges ───────────────────────────────────────────────────────────
+// Status badges
 const statusBadge = computed(() => resolveStatusBadge(props.doctype, props.document))
 // Workflow state, when it lives in a field other than the status one (otherwise
 // the badge above already is the state). The form hides that field; its
@@ -86,7 +86,7 @@ const docstatusBadge = computed(() => {
   )
 })
 
-// ── Copy id ─────────────────────────────────────────────────────────────────
+// Copy id
 const copied = ref(false)
 async function copyId() {
   try {
@@ -98,7 +98,7 @@ async function copyId() {
   }
 }
 
-// ── Who / when rows ─────────────────────────────────────────────────────────
+// Who / when rows
 const people = computed(() => [
   { key: 'created', label: t('created'), email: props.document.owner, at: props.document.created_at },
   {

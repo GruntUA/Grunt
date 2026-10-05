@@ -2,7 +2,7 @@
  * Show/hide + width state for the document detail sidebar.
  *
  * Mirrors the shape of shadcn's `useSidebar` (state / open / toggle / isMobile),
- * but is a standalone module — the app-shell `<SidebarProvider>` is a singleton
+ * but is a standalone module - the app-shell `<SidebarProvider>` is a singleton
  * for the *left* nav (shared cookie + Cmd/Ctrl+B) and must not be reused here.
  *
  * Preference is persisted per-viewer in localStorage. Desktop collapses the
@@ -31,11 +31,11 @@ function persist(key: string, value: string): void {
   try {
     localStorage.setItem(key, value)
   } catch {
-    /* private mode / blocked storage — ignore */
+    /* private mode / blocked storage - ignore */
   }
 }
 
-// ── module-level state so the header toggle and the panel share one source ────
+// module-level state so the header toggle and the panel share one source
 const open = ref(read(OPEN_KEY, 'true') !== 'false')
 const width = ref(clampWidth(Number(read(WIDTH_KEY, String(DEFAULT_WIDTH)))))
 
@@ -66,7 +66,7 @@ export function useDocPanel() {
   if (!shortcutBound) {
     shortcutBound = true
     useEventListener('keydown', (e: KeyboardEvent) => {
-      // A form registers the toggle as an action with this shortcut — it ran already.
+      // A form registers the toggle as an action with this shortcut - it ran already.
       if (e.defaultPrevented) return
       if (matchesShortcut(e, SHORTCUT)) {
         e.preventDefault()

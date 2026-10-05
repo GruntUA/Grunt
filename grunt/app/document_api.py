@@ -114,7 +114,7 @@ class DocumentAPI:
             order = await grunt.get_doc(Order, order_id)    # typed -> Order
             order = await grunt.get_doc("Order", order_id)  # dict
 
-        For a singleton DocType the id is optional — there is only one row::
+        For a singleton DocType the id is optional - there is only one row::
 
             settings = await grunt.get_doc("SystemSettings")
         """
@@ -193,7 +193,7 @@ class DocumentAPI:
 
         Lifecycle hooks (notifications, assignment rules, backlink sync, activity
         log) fire inside ``create_document`` itself, so they run identically here
-        and via ``Document.insert()`` — see ``DocumentWriteMixin.create_document``.
+        and via ``Document.insert()`` - see ``DocumentWriteMixin.create_document``.
         """
         _dt, user, _session = await write_guard(doctype, "create")
         created = await self._doc().create_document(
@@ -204,7 +204,7 @@ class DocumentAPI:
             _, _, hidden_fields = await read_guard(doctype)
         except HTTPException:
             # A role granted "create" but no "read" at all (e.g. a public
-            # WebForm's Guest — create-only by design, so anonymous submitters
+            # WebForm's Guest - create-only by design, so anonymous submitters
             # can't list or re-read other people's submissions) still gets its
             # own just-created document back: create permission is already the
             # trust boundary here, and there is no read-permission rule to mask
@@ -222,7 +222,7 @@ class DocumentAPI:
     ) -> dict[str, Any]:
         """Update an existing document and return the updated version.
 
-        See :meth:`new_doc` — lifecycle hooks fire inside ``update_document``.
+        See :meth:`new_doc` - lifecycle hooks fire inside ``update_document``.
         """
         _dt, user, _session = await write_guard(doctype, "write")
         updated = await self._doc().update_document(
@@ -237,7 +237,7 @@ class DocumentAPI:
     ) -> None:
         """Delete a document.
 
-        See :meth:`new_doc` — lifecycle hooks fire inside ``delete_document``.
+        See :meth:`new_doc` - lifecycle hooks fire inside ``delete_document``.
 
         ``replace_with`` repoints every reference to the deleted document at
         this surviving document of the same DocType before removal.
@@ -376,7 +376,7 @@ class DocumentAPI:
 
         result = None
         # Virtual doctypes read from a controller-owned source (ring buffer, external
-        # API, ...) that can mutate outside create/update/delete — the only paths
+        # API, ...) that can mutate outside create/update/delete - the only paths
         # that invalidate this cache (_invalidate_list_cache). Caching them risks
         # serving a stale snapshot forever, so they're never cache-eligible here.
         cache_eligible = (
@@ -385,7 +385,7 @@ class DocumentAPI:
         cache = getattr(self, "query_cache", None)
         cache_key: str | None = None
 
-        # Keyset (cursor) pages are not cached — the cursor already scopes them.
+        # Keyset (cursor) pages are not cached - the cursor already scopes them.
         if cache_eligible and cache is not None and cursor is None:
             cache_key = cache.build_key(
                 doctype=doctype,
@@ -562,14 +562,14 @@ class DocumentAPI:
     ) -> int:
         """Count documents matching optional filters.
 
-        By default this is a raw table count (no permission check) — many
+        By default this is a raw table count (no permission check) - many
         internal callers (bootstrap, formulas, background jobs) rely on that.
         Pass ``respect_permissions=True`` to apply the same row-level ``match``
         filter ``grunt.get_list`` uses, so the number never includes rows the
         list view would hide. The internal system context sees the full count
         either way.
 
-        Permission-aware counts are cached per (doctype, user, filters) — cheap
+        Permission-aware counts are cached per (doctype, user, filters) - cheap
         to keep fresh because every create/update/delete already invalidates
         the doctype's cache entries (see ``_invalidate_list_cache``), so the
         TTL only covers the gap until that invalidation lands (e.g. a write
@@ -664,7 +664,7 @@ class DocumentAPI:
         fieldname: str | dict[str, Any],
         value: Any = None,
     ) -> None:
-        """Update one or more fields directly — lightweight, no lifecycle hooks.
+        """Update one or more fields directly - lightweight, no lifecycle hooks.
 
         Checks write permission then issues a single SQL UPDATE.
         Use :meth:`save_doc` when you need ``before_save``/``after_save`` hooks
@@ -683,7 +683,7 @@ class DocumentAPI:
     async def get_single(self, doctype: str, fieldname: str) -> Any:
         """Fetch a field value from a Single DocType (singleton document).
 
-        Single DocTypes hold global settings and have no id — they are stored
+        Single DocTypes hold global settings and have no id - they are stored
         as key/value rows rather than regular documents::
 
             currency = await grunt.get_single("SystemSettings", "default_currency")

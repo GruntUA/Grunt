@@ -40,7 +40,7 @@ async def get_shared_document(token: str) -> dict[str, Any]:
     doctype_name = share["doctype_name"]
     doc_id = share["doc_id"]
 
-    # Fetch without permission guards — this is a guest-accessible share link
+    # Fetch without permission guards - this is a guest-accessible share link
     dt = await grunt.get_meta(doctype_name)
     if dt is None:
         grunt.throw(_("DocType not found"), "NOT_FOUND")

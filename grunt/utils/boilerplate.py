@@ -18,7 +18,7 @@ if TYPE_CHECKING:
     from pathlib import Path
 
 
-# ── Validation ───────────────────────────────────────────────────────────────
+# Validation
 
 
 def is_valid_app_name(name: str) -> bool:
@@ -37,7 +37,7 @@ def is_valid_email(addr: str) -> bool:
         return False
 
 
-# ── Public entry point ────────────────────────────────────────────────────────
+# Public entry point
 
 
 def make_boilerplate(dest: Path, app_name: str, no_git: bool = False) -> None:
@@ -54,7 +54,7 @@ def make_boilerplate(dest: Path, app_name: str, no_git: bool = False) -> None:
     _create_app_boilerplate(dest, hooks, no_git=no_git)
 
 
-# ── Interactive prompts ───────────────────────────────────────────────────────
+# Interactive prompts
 
 
 def _prompt_validated(
@@ -123,7 +123,7 @@ def _get_user_inputs(app_name: str) -> dict:
     }
 
 
-# ── Directory scaffold ────────────────────────────────────────────────────────
+# Directory scaffold
 
 
 def _create_app_boilerplate(dest: Path, hooks: dict, no_git: bool = False) -> None:
@@ -177,7 +177,7 @@ def _create_app_boilerplate(dest: Path, hooks: dict, no_git: bool = False) -> No
     click.echo("  grunt serve --reload")
 
 
-# ── File writers ──────────────────────────────────────────────────────────────
+# File writers
 
 
 def _write_grunt_app_py(app_dir: Path, module: str, h: dict) -> None:
@@ -312,7 +312,7 @@ def _write_types_dts(app_dir: Path, module: str) -> None:
     )
 
 
-# ── Git ───────────────────────────────────────────────────────────────────────
+# Git
 
 
 def _init_git(app_dir: Path) -> None:

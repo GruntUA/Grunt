@@ -1,4 +1,4 @@
-"""Importer registry — pluggable document import formats."""
+"""Importer registry - pluggable document import formats."""
 
 from __future__ import annotations
 
@@ -54,7 +54,7 @@ class Importer(ABC):
         return ext in [e.lower() for e in self.accepted_extensions]
 
 
-# ── Registry ───────────────────────────────────────────────────────────────
+# Registry
 
 _registry: dict[str, Importer] = {}
 

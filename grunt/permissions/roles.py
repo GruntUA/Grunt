@@ -1,4 +1,4 @@
-"""Bare role-name check — no DocType involved.
+"""Bare role-name check - no DocType involved.
 
 Distinct from ``permission_checker``/``RoleAccess`` (``rbac.py``/``access.py``),
 which are always doctype+action shaped. This is the primitive behind

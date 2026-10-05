@@ -38,7 +38,7 @@ interface UseListClientScriptsParams {
     createReport: () => void
     /** Re-fetch the DocType definition from the server. */
     reloadMeta: () => Promise<void>
-    /** After a refresh — views that fetch on their own (tree, calendar…) reload too. */
+    /** After a refresh - views that fetch on their own (tree, calendar…) reload too. */
     refreshed?: () => void
   }
 }
@@ -49,7 +49,7 @@ export function useListClientScripts(params: UseListClientScriptsParams) {
   const listviewProxy = ref<ListViewProxy | null>(null)
   const gruntProxy = ref<GruntProxy | null>(null)
 
-  // Every button / menu item / bulk action of the list (core/actions.ts) —
+  // Every button / menu item / bulk action of the list (core/actions.ts) -
   // filled by global_list.js, the DocType's script and ClientScripts.
   const actions = createActionRegistry<ListViewProxy>(() => listviewProxy.value!, {
     confirm: (message) => params.dialog.confirm(message),

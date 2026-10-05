@@ -23,7 +23,7 @@ const appStore = useAppStore()
 const auth = useAuthStore()
 const toast = useToast()
 
-// ── State ─────────────────────────────────────────────────────────────────
+// State
 
 interface SearchResult {
   idx_id: string
@@ -41,7 +41,7 @@ const isLoading = ref(false)
 const isReindexing = ref(false)
 const activeDoctype = ref<string | null>(null)
 
-// ── Search ────────────────────────────────────────────────────────────────
+// Search
 
 async function runSearch() {
   const query = q.value.trim()
@@ -75,7 +75,7 @@ onMounted(async () => {
   if (q.value) runSearch()
 })
 
-// ── Grouping ──────────────────────────────────────────────────────────────
+// Grouping
 
 const filtered = computed(() =>
   activeDoctype.value
@@ -98,7 +98,7 @@ const doctypeChips = computed(() => {
   return [...m.entries()].map(([doctype, count]) => ({ doctype, count })).sort((a, b) => b.count - a.count)
 })
 
-// ── Navigation ────────────────────────────────────────────────────────────
+// Navigation
 
 function navigateToDoc(r: SearchResult) {
   const ws = appStore.workspaces.find(w => w.items?.some(i => i.link_to === r.doctype))
@@ -106,7 +106,7 @@ function navigateToDoc(r: SearchResult) {
   router.push(`/${workspace}/${r.doctype}/${r.id}`)
 }
 
-// ── Reindex ───────────────────────────────────────────────────────────────
+// Reindex
 
 async function reindex() {
   isReindexing.value = true
@@ -125,7 +125,7 @@ async function reindex() {
 <template>
   <div class="flex flex-col gap-6 p-6 max-w-5xl mx-auto w-full">
 
-    <!-- ── Header ── -->
+    <!-- Header -->
     <div class="flex items-center justify-between">
       <div>
         <h1 class="text-2xl font-semibold text-foreground">{{ t('Global search') }}</h1>
@@ -140,7 +140,7 @@ async function reindex() {
       ><RefreshCw class="size-4 mr-2" :class="{ 'animate-spin': isReindexing }" />{{ t('Rebuild index') }}</Button>
     </div>
 
-    <!-- ── Search Input ── -->
+    <!-- Search Input -->
     <div class="relative">
       <Search class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
       <Input
@@ -152,7 +152,7 @@ async function reindex() {
       <X v-if="inputQ" class="absolute right-3 top-1/2 -translate-y-1/2 size-4 cursor-pointer text-muted-foreground hover:text-foreground transition-colors" @click="inputQ = ''" />
     </div>
 
-    <!-- ── Loading ── -->
+    <!-- Loading -->
     <div v-if="isLoading" class="flex flex-col gap-2">
       <div class="h-[3px] w-full overflow-hidden rounded-full bg-primary/20">
         <div class="h-full w-1/3 rounded-full bg-primary animate-progress-indeterminate" />
@@ -160,13 +160,13 @@ async function reindex() {
       <p class="text-muted-foreground text-center">{{ t('Searching...') }}</p>
     </div>
 
-    <!-- ── Too short ── -->
+    <!-- Too short -->
     <div v-else-if="q.length < 2 && !isLoading" class="py-16 flex flex-col items-center gap-3 text-muted-foreground">
       <Search class="text-5xl opacity-20" />
       <p>{{ t('Type at least 2 characters to search') }}</p>
     </div>
 
-    <!-- ── Empty ── -->
+    <!-- Empty -->
     <div v-else-if="q.length >= 2 && !results.length && !isLoading" class="py-16 flex flex-col items-center gap-3">
       <Inbox class="text-5xl text-muted-foreground/30" />
       <p class="text-muted-foreground">
@@ -175,7 +175,7 @@ async function reindex() {
       <Button variant="ghost" v-if="auth.isSystemManager" size="sm" @click="reindex"><RefreshCw class="size-4 mr-2" />{{ t('Try rebuilding the index') }}</Button>
     </div>
 
-    <!-- ── Results ── -->
+    <!-- Results -->
     <template v-else-if="results.length">
 
       <!-- DocType filter chips -->

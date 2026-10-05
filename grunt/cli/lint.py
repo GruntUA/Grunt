@@ -6,7 +6,7 @@ from pathlib import Path
 
 import click
 
-# ── Discovery helpers ─────────────────────────────────────────────────────────
+# Discovery helpers
 
 
 def _is_bench_root(path: Path) -> bool:
@@ -39,7 +39,7 @@ def _discover_apps(bench_root: Path) -> list[Path]:
     return sorted(d for d in apps_dir.iterdir() if d.is_dir() and (d / "pyproject.toml").exists())
 
 
-# ── Linters ───────────────────────────────────────────────────────────────────
+# Linters
 
 
 def _print_status(name: str, ok: bool) -> None:
@@ -106,7 +106,7 @@ def _lint_app(app_root: Path, fix: bool, only_py: bool, only_js: bool) -> int:
     return 1 if any(c != 0 for c in codes) else 0
 
 
-# ── Modes ─────────────────────────────────────────────────────────────────────
+# Modes
 
 
 def _run_single(root: Path, fix: bool, only_py: bool, only_js: bool) -> None:
@@ -168,7 +168,7 @@ def _run_bench(
     click.echo(click.style("All good.", fg="green", bold=True))
 
 
-# ── Command ───────────────────────────────────────────────────────────────────
+# Command
 
 
 @click.command("lint")
@@ -196,7 +196,7 @@ def lint(fix: bool, only_py: bool, only_js: bool, path: str | None, apps: tuple[
         return
 
     if apps:
-        # --app вказано поза bench root → знайти bench вгору по дереву
+        # app вказано поза bench root -> знайти bench вгору по дереву
         bench = _find_bench_root(start)
         if bench is None:
             click.echo(

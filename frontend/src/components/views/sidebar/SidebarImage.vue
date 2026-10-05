@@ -67,7 +67,7 @@ function onFileInput(e: Event) {
   if (file) void upload(file)
 }
 
-// ── Drag & drop (drop onto the image replaces it) ───────────────────────────
+// Drag & drop (drop onto the image replaces it)
 function onDragOver(e: DragEvent) {
   if (!props.editable || uploading.value || !e.dataTransfer?.types.includes('Files')) return
   e.preventDefault()

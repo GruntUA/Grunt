@@ -65,7 +65,7 @@ function reseedFormValues() {
   tableSearch.value = search
 }
 
-// ── Table field helpers ─────────────────────────────────────────────────
+// Table field helpers
 function rowKeyOf(f: any, row: any): string {
   return String(row?.[f.rowKey || 'name'] ?? '')
 }

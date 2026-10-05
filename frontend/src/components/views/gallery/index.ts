@@ -8,7 +8,7 @@ const def: ViewDefinition = {
   icon: ImageIcon,
   order: 4,
 
-  // No resolveField — gallery is always available
+  // No resolveField - gallery is always available
 
   component: () => import('./GalleryViewWrapper.vue').then((m) => m.default),
 
@@ -39,7 +39,7 @@ const def: ViewDefinition = {
       ctx.emit.update(field as string, value),
   }),
 
-  // ── Toolbar controls: reuse the list control (columns pick card fields, plus sort) ──
+  // Toolbar controls: reuse the list control (columns pick card fields, plus sort)
   // Grouping is hidden (gallery renders a flat grid, not grouped buckets).
 
   toolbarControls: () => import('../list/ListToolbarControls.vue').then((m) => m.default),

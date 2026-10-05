@@ -23,7 +23,7 @@ _DELETE_ALL_BATCH = 5_000
 class BulkDeleteTask:
     """Background task that deletes many documents and streams progress.
 
-    Three independent strategies, each with different guarantees — pick by
+    Three independent strategies, each with different guarantees - pick by
     what the caller actually needs, not by which one runs first in this file:
 
     +---------------------+------------------+----------+-------------------------+
@@ -36,7 +36,7 @@ class BulkDeleteTask:
 
     ``run_fast_delete_all`` is the only one that bypasses the document
     lifecycle entirely (no before_delete/after_delete, no notification or
-    assignment rule evaluation, no per-row ActivityLog) — it exists purely
+    assignment rule evaluation, no per-row ActivityLog) - it exists purely
     for "empty this huge table" administration, not everyday bulk actions.
     """
 
@@ -45,7 +45,7 @@ class BulkDeleteTask:
 
         self._manager = manager
 
-    # ── Delete explicit list of IDs ───────────────────────────────────────
+    # Delete explicit list of IDs
 
     async def run(
         self,
@@ -89,7 +89,7 @@ class BulkDeleteTask:
                 },
             )
 
-    # ── Delete all matching filters in a loop ─────────────────────────────
+    # Delete all matching filters in a loop
 
     async def run_delete_all(
         self,
@@ -181,7 +181,7 @@ class BulkDeleteTask:
                 )
 
                 if deleted == 0:
-                    # No progress made — all docs in this batch failed (e.g. blocked
+                    # No progress made - all docs in this batch failed (e.g. blocked
                     # by a before_delete hook).  Stop to avoid an infinite loop.
                     log.warning(
                         "bulk_delete_all.no_progress",
@@ -191,7 +191,7 @@ class BulkDeleteTask:
                     break
 
                 if len(rows) < batch_size:
-                    # Last batch was smaller than requested → we're done.
+                    # Last batch was smaller than requested -> we're done.
                     break
 
             await self._manager.send_to_user(
@@ -226,7 +226,7 @@ class BulkDeleteTask:
                 },
             )
 
-    # ── Fast truncate (System Manager only, no hooks) ─────────────────────
+    # Fast truncate (System Manager only, no hooks)
 
     async def run_fast_delete_all(
         self,
@@ -237,7 +237,7 @@ class BulkDeleteTask:
         user_email: str,
         engine: Any,
     ) -> None:
-        """Delete records directly via SQL — no lifecycle hooks, no per-row overhead.
+        """Delete records directly via SQL - no lifecycle hooks, no per-row overhead.
 
         ~100× faster than ``run_delete_all()`` for large datasets.
         Only System Manager may call this method.
@@ -280,24 +280,24 @@ class BulkDeleteTask:
                     raise ValueError(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
                 table = dt.table
 
-                # ── 1. Delete main rows ──────────────────────────────────
+                # 1. Delete main rows
                 del_stmt = sa_delete(table)
                 if filters:
                     del_stmt = apply_filters(del_stmt, table, filters)
                 result = cast("CursorResult", await session.execute(del_stmt))
                 deleted: int = result.rowcount or 0
 
-                # ── 2. Delete MultiLinks ─────────────────────────────────
+                # 2. Delete MultiLinks
                 await session.execute(
                     sa_delete(MULTI_LINK_TABLE).where(MULTI_LINK_TABLE.c.parent_doctype == doctype)
                 )
 
-                # ── 3. Delete search index ───────────────────────────────
+                # 3. Delete search index
                 await session.execute(
                     sa_delete(_search_index_table).where(_search_index_table.c.doctype == doctype)
                 )
 
-                # ── 4. Summary ActivityLog entry ─────────────────────────
+                # 4. Summary ActivityLog entry
                 try:
                     dt_log = await grunt.get_meta("ActivityLog")
                     if dt_log is None:

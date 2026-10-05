@@ -63,7 +63,7 @@ const { t } = useI18n()
 const { cellError, cellDisplay } = useTableCell()
 const LAYOUT_TYPES = getLayoutTypeSet()
 
-// ── Child DocType & columns ─────────────────────────────────────────────────
+// Child DocType & columns
 const childDocType = ref<DocType | null>(null)
 const loading = ref(false)
 
@@ -94,10 +94,10 @@ const columns = computed(() => {
   return listed.length ? listed : fields.value.filter((f) => INLINE_TYPES.has(f.fieldtype))
 })
 
-/** A (usually hidden) field whose sub-form varies per row — see TableRowSheet. */
+/** A (usually hidden) field whose sub-form varies per row - see TableRowSheet. */
 const dynamicField = computed(() => childDocType.value?.fields.find((f) => f.dynamic_schema_source))
 
-/** Some fields live only in the row sheet — offer the "open row" action. */
+/** Some fields live only in the row sheet - offer the "open row" action. */
 const hasSheetOnlyFields = computed(() =>
   fields.value.some((f) => !columns.value.includes(f) || !INLINE_TYPES.has(f.fieldtype)),
 )
@@ -108,7 +108,7 @@ function blankRow(): Record<string, unknown> {
   )
 }
 
-// ── Rows ────────────────────────────────────────────────────────────────────
+// Rows
 const table = useTableRows({
   modelValue: () => props.modelValue,
   onChange: (rows) => emit('update:modelValue', rows),
@@ -122,7 +122,7 @@ function isInline(row: Row, f: DocField): boolean {
   return !props.disabled && !f.read_only && !isLayoutRow(row) && INLINE_TYPES.has(f.fieldtype)
 }
 
-/** "Loud" errors only — a wrong value, not a required cell that is still empty. */
+/** "Loud" errors only - a wrong value, not a required cell that is still empty. */
 function rowHasError(row: Row): boolean {
   return fields.value.some((f) => cellError(row, f, { includeRequired: false }) !== null)
 }
@@ -137,7 +137,7 @@ const canAddRow = computed(() => {
 // The child DocType's status field shows as a coloured badge, like in lists.
 const statusConfig = computed(() => statusConfigOf(childDocType.value))
 
-// ── Grouping (field.group_by) ───────────────────────────────────────────────
+// Grouping (field.group_by)
 const groupBy = computed(() => props.field.group_by || null)
 
 function groupLabel(row: Row): string {
@@ -147,7 +147,7 @@ function groupLabel(row: Row): string {
   const def = fields.value.find((f) => f.fieldname === gf)
   if (def?.fieldtype === 'Check') return value ? t('Yes') : t('No')
   const label = row[`${gf}__label`]
-  if (label === '') return '' // explicitly unlabelled group — no heading
+  if (label === '') return '' // explicitly unlabelled group - no heading
   return String(label ?? value)
 }
 
@@ -198,17 +198,17 @@ const CELL_WIDTH: Record<string, string> = {
   LongText: 'min-w-64 whitespace-normal',
 }
 
-/** Numbers line up by their last digit — right-aligned in the grid only, not in forms. */
+/** Numbers line up by their last digit - right-aligned in the grid only, not in forms. */
 const NUMERIC = new Set(['Int', 'Float', 'Currency', 'Percent', 'Duration'])
 const alignOf = (f: DocField) => (NUMERIC.has(f.fieldtype) ? 'text-right [&_input]:text-right' : '')
 
 const colSpan = computed(() => columns.value.length + (props.disabled ? 2 : 3))
 
-// ── Row actions ─────────────────────────────────────────────────────────────
+// Row actions
 function addRow() {
   if (!canAddRow.value) return
   const row = table.add()
-  // A required field the grid can't edit → go straight to the full form.
+  // A required field the grid can't edit -> go straight to the full form.
   if (fields.value.some((f) => f.required && !(columns.value.includes(f) && INLINE_TYPES.has(f.fieldtype)))) {
     openRow(row.__uid)
   }
@@ -220,7 +220,7 @@ function deleteRows(count: number) {
   toast.info(message, t('Deleted'), { action: { label: t('Undo'), onClick: table.undoRemove } })
 }
 
-// ── Row sheet ───────────────────────────────────────────────────────────────
+// Row sheet
 const editingUid = ref<string | null>(null)
 const editingRow = computed(() => rows.value.find((r) => r.__uid === editingUid.value) ?? null)
 
@@ -233,7 +233,7 @@ function saveRow(data: Record<string, unknown>) {
   editingUid.value = null
 }
 
-// ── Quick entry for "+ Create" in Link fields (grid cell or row sheet) ─────────
+// Quick entry for "+ Create" in Link fields (grid cell or row sheet)
 const quickEntry = ref<{ doctype: DocType; preset: Record<string, unknown>; apply: (name: string) => void } | null>(null)
 
 async function createLinked(doctype: string, preset: string, apply: (name: string) => void) {
@@ -252,7 +252,7 @@ function cellListeners(row: Row, f: DocField) {
   return listeners
 }
 
-// ── Bulk: set one column on every selected row ──────────────────────────────
+// Bulk: set one column on every selected row
 const bulkOpen = ref(false)
 const bulkFieldname = ref<string>('')
 const bulkValue = ref<unknown>(null)

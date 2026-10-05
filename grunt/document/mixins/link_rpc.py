@@ -29,7 +29,7 @@ async def _identifier_search(
     per_page: int,
 ) -> list[dict[str, Any]]:
     """Search a DocType's identifier columns only (name + title + search
-    fields) — the ``select``-permission path, which must not touch row-level
+    fields) - the ``select``-permission path, which must not touch row-level
     filters, hidden-field masking or read hooks.
 
     Filters are honoured only on identifier columns; any other key is dropped
@@ -54,7 +54,7 @@ async def _identifier_search(
 
 
 def _doctype_field_labels(dt: Any) -> dict[str, str]:
-    """Map DocType fieldnames → display label (falling back to the fieldname)."""
+    """Map DocType fieldnames -> display label (falling back to the fieldname)."""
     labels: dict[str, str] = {"name": "ID"}
     for field in list(getattr(dt, "fields", None) or []):
         if isinstance(field, dict):
@@ -94,14 +94,14 @@ class DocumentLinkRPCMixin:
         if dt is None:
             raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
         extra_filters: dict[str, Any] = filters or {}
-        # A numeric search term ("12345") can arrive coerced to int — normalise.
+        # A numeric search term ("12345") can arrive coerced to int - normalise.
         search = str(search or "").strip()
 
         # Gate, in order of precedence:
-        #   1. unrestricted "read"      → normal row-filtered, field-masked path
-        #   2. explicit "select" grant  → identifier-only search of every row
-        #   3. row-scoped "read" only   → normal path (returns the user's subset)
-        #   4. neither                  → 403 naming the DocType
+        #   1. unrestricted "read"      -> normal row-filtered, field-masked path
+        #   2. explicit "select" grant  -> identifier-only search of every row
+        #   3. row-scoped "read" only   -> normal path (returns the user's subset)
+        #   4. neither                  -> 403 naming the DocType
         # (2) has to beat (3): a role granted "select" alongside a match-scoped
         # "read" wants an unfiltered picker, and check(user, dt, "read") can't
         # see that its "read" is row-scoped when there's no doc to match against.
@@ -117,7 +117,7 @@ class DocumentLinkRPCMixin:
             await permission_checker.require(user, dt.doc, "select")  # raises 403
             has_read = False
 
-        # Virtual DocType — delegate to its controller's get_list
+        # Virtual DocType - delegate to its controller's get_list
         if dt.is_virtual:
             from grunt.document.virtual import _get_virtual_controller
 
@@ -143,7 +143,7 @@ class DocumentLinkRPCMixin:
         field_labels = _doctype_field_labels(dt)
         doctype_fields = set(field_labels)
 
-        # ── Columns to fetch ─────────────────────────────────────────────────
+        # Columns to fetch
         cols_needed: list[str] = ["name"]
         if title_field and title_field != "name" and title_field in doctype_fields:
             cols_needed.append(title_field)
@@ -165,7 +165,7 @@ class DocumentLinkRPCMixin:
         else:
             rows = await _identifier_search(dt, cols_needed, query, extra_filters, per_page)
 
-        # ── Shape response ────────────────────────────────────────────────
+        # Shape response
         items = []
         for row in rows:
             name_val = str(row.get("name") or "")

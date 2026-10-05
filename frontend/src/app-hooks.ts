@@ -1,5 +1,5 @@
 /**
- * App hooks — the single place where exporters, importers, and other
+ * App hooks - the single place where exporters, importers, and other
  * extensible registries get populated at startup.
  *
  * Pattern mirrors the backend hooks.py convention:
@@ -14,7 +14,7 @@
  *   registerExporter(myCustomExporter)
  */
 
-// ── Filter Operators & Inputs ──────────────────────────────────────────────
+// Filter Operators & Inputs
 import { registerFilterConfig } from '@/core/filterRegistry'
 import DefaultFilterInput from '@/components/fields/Default/FilterInput.vue'
 import CheckFilterInput from '@/components/fields/Check/FilterInput.vue'
@@ -44,7 +44,7 @@ registerFilterConfig('Check', { operators: ['='], filterInput: CheckFilterInput 
 registerFilterConfig('Select', { operators: ['=', '!=', ...LIST_OPS, ...EMPTY_OPS], filterInput: SelectFilterInput })
 registerFilterConfig('Link', { operators: ['=', '!=', ...LIST_OPS, 'child_of', ...EMPTY_OPS], filterInput: LinkFilterInput })
 
-// ── List Cell Renderers ────────────────────────────────────────────────────
+// List Cell Renderers
 import { registerListCell } from '@/core/listCellRegistry'
 import CheckListCell from '@/components/fields/Check/ListCell.vue'
 import SelectListCell from '@/components/fields/Select/ListCell.vue'
@@ -68,7 +68,7 @@ registerListCell('Link', LinkListCell)
 registerListCell('Image', ImageListCell)
 registerListCell('Currency', CurrencyListCell)
 
-// ── Exporters ──────────────────────────────────────────────────────────────
+// Exporters
 import { registerExporter } from '@/core/io'
 import { excelExporter } from '@/core/io/exporters/excelExporter'
 import { htmlExporter } from '@/core/io/exporters/htmlExporter'
@@ -76,11 +76,11 @@ import { htmlExporter } from '@/core/io/exporters/htmlExporter'
 registerExporter(excelExporter)
 registerExporter(htmlExporter)
 
-// ── Importers ──────────────────────────────────────────────────────────────
+// Importers
 // import { registerImporter } from '@/core/io'
 // registerImporter(csvImporter)
 
-// ── Attachment Channels ────────────────────────────────────────────────────
+// Attachment Channels
 import { registerAttachChannel } from '@/core/attachmentChannels/registry'
 import { localFileChannel } from '@/core/attachmentChannels/channels/LocalFileChannel'
 import { libraryChannel } from '@/core/attachmentChannels/channels/LibraryChannel'
@@ -92,6 +92,6 @@ registerAttachChannel(libraryChannel)
 registerAttachChannel(urlChannel)
 registerAttachChannel(cameraChannel)
 
-// ── infra_map ──────────────────────────────────────────────────────────────
+// infra_map
 // import { infraMapExporter } from '@/modules/infra_map/exporters'
 // registerExporter(infraMapExporter)

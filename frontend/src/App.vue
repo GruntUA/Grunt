@@ -70,7 +70,7 @@ onUnmounted(() => {
     <TaskProgressPanel />
     <ServerErrorModal />
     <ErrorBoundary>
-      <!-- Offline banner — persistent top bar, shown only when offline -->
+      <!-- Offline banner - persistent top bar, shown only when offline -->
       <Transition enter-active-class="transition-opacity duration-300" enter-from-class="opacity-0"
         leave-active-class="transition-opacity duration-200" leave-to-class="opacity-0">
         <!-- A pill, not a full-width bar: it must never cover the page toolbar (Save). -->

@@ -32,7 +32,7 @@ function commit(v: string | null) {
 function normalize(raw: string): string {
   let s = raw.trim().replace(/\s+/g, '')
   if (s && !s.startsWith('#')) s = `#${s}`
-  // #rgb → #rrggbb
+  // #rgb -> #rrggbb
   const short = /^#([0-9a-f])([0-9a-f])([0-9a-f])$/i.exec(s)
   if (short) s = `#${short[1]}${short[1]}${short[2]}${short[2]}${short[3]}${short[3]}`
   return s

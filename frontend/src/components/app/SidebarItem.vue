@@ -38,7 +38,7 @@ function getRoutePath(): string | null {
 }
 
 /**
- * A DocType item's `count_filters` also filters the list it opens — the badge
+ * A DocType item's `count_filters` also filters the list it opens - the badge
  * says "153", the click shows those 153 (list reads `filter[field__op]=value`).
  */
 const listQuery = computed<Record<string, string>>(() => {
@@ -76,7 +76,7 @@ function navigate(e: MouseEvent) {
 const displayCount = computed(() => {
   const n = props.count ?? 0
   if (n <= 0) return ''
-  // Show the real grouped number below 100k, then compact it: 123 456 → "123K", 1 200 000 → "1.2M".
+  // Show the real grouped number below 100k, then compact it: 123 456 -> "123K", 1 200 000 -> "1.2M".
   if (n < 100_000) return formatNumber(n)
   if (n < 1_000_000) return `${Math.round(n / 1000)}K`
   return `${(n / 1_000_000).toFixed(1).replace(/\.0$/, '')}M`

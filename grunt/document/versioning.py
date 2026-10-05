@@ -1,4 +1,4 @@
-"""Document versioning — stores JSON diffs for every document update.
+"""Document versioning - stores JSON diffs for every document update.
 
 Each version records which fields changed, their old and new values,
 and supports restoring a document to any previous version.
@@ -147,7 +147,7 @@ class VersionService:
         """Add ``old_label``/``new_label`` to Link-field changes, in place.
 
         Lets version diffs show a linked record's display title (e.g. an
-        Employee's name) instead of its raw id — mirrors the ``__label``
+        Employee's name) instead of its raw id - mirrors the ``__label``
         Link resolution already done for regular document reads
         (see ``grunt.document.relations``).
         """
@@ -261,7 +261,7 @@ class VersionService:
         """
         doc = dict(current_doc)
 
-        # Sort versions descending — we undo from newest to target
+        # Sort versions descending - we undo from newest to target
         for v in sorted(versions, key=lambda x: x["version"], reverse=True):
             if v["version"] <= target_version:
                 break

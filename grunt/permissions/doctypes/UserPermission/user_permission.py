@@ -1,4 +1,4 @@
-"""UserPermission DocType controller — record-level access restrictions.
+"""UserPermission DocType controller - record-level access restrictions.
 
 A ``UserPermission`` row means: *user* may only touch documents linked (via a
 Link field) to *for_value* of DocType *allow*. Multiple rows for the same
@@ -19,7 +19,7 @@ from grunt.document.base import Document
 class UserPermission(Document):
     """DocType controller for UserPermission.
 
-    NB: the "who" field is ``for_user`` (not ``user``) — ``user`` is a
+    NB: the "who" field is ``for_user`` (not ``user``) - ``user`` is a
     reserved attribute on ``Document`` (the acting user).
     """
 

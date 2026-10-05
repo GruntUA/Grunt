@@ -54,7 +54,7 @@ function patch(partial: Record<string, unknown>) {
   emit('update:modelValue', { ...props.modelValue, ...partial })
 }
 
-// ── Color scheme ─────────────────────────────────────────────────────────
+// Color scheme
 
 const COLOR_SCHEMES: Record<string, { bg: string; border: string; text: string }> = {
   gray: { bg: '#f3f4f6', border: '#9ca3af', text: '#374151' },
@@ -80,7 +80,7 @@ function nodeStyle(state: WorkflowStateRow, isSelected: boolean) {
   }
 }
 
-// ── Selection ────────────────────────────────────────────────────────────
+// Selection
 
 const selectedStateIdx = ref<number | null>(null)
 const selectedTransitionIdx = ref<number | null>(null)
@@ -91,7 +91,7 @@ const selectedTransition = computed(() =>
   selectedTransitionIdx.value !== null ? transitions.value[selectedTransitionIdx.value] : null
 )
 
-// ── Vue Flow nodes/edges ─────────────────────────────────────────────────
+// Vue Flow nodes/edges
 
 const { getNodes, fitView } = useVueFlow({ id: 'workflow-graph-tab' })
 
@@ -158,7 +158,7 @@ watch(() => states.value.length, async () => {
   setTimeout(() => fitView({ padding: 0.3 }), 50)
 })
 
-// ── Interactions ─────────────────────────────────────────────────────────
+// Interactions
 
 function selectState(idx: number) {
   selectedStateIdx.value = idx
@@ -198,7 +198,7 @@ function onConnect(connection: Connection) {
   })
 }
 
-// ── Add / edit / remove ──────────────────────────────────────────────────
+// Add / edit / remove
 
 function addState() {
   const value = `state_${states.value.length + 1}`

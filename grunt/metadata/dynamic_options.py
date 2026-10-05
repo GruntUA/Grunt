@@ -72,7 +72,7 @@ def resolve_field_options(field: DocField) -> str | None:
 def register_schema(source: str, key: str, fields: list[dict]) -> None:
     """Register the field-list variant *fields* under *source*/*key*.
 
-    E.g. source="grunt.website.block_type", key="hero" — a WebPageBlock row
+    E.g. source="grunt.website.block_type", key="hero" - a WebPageBlock row
     with block_type "hero" renders exactly these fields in its settings form.
     """
     _SCHEMA_REGISTRY.setdefault(source, {})[key] = fields

@@ -1,5 +1,5 @@
 /**
- * useDocActions — registers a DocType's declarative `actions` bindings in the
+ * useDocActions - registers a DocType's declarative `actions` bindings in the
  * form's action registry (core/actions.ts), next to script-registered actions.
  *
  * Each binding references an action registered in an app's Python code
@@ -26,7 +26,7 @@ interface UseDocActionsOptions {
   doctype: string
   id: string | null
   dt: Ref<DocType | null>
-  /** Current form/document data — the doc id source when running an action. */
+  /** Current form/document data - the doc id source when running an action. */
   form: MaybeRefOrGetter<Record<string, unknown>>
   /** The form's action registry to register the bindings in. */
   actions: ActionsApi<FormProxy>
@@ -109,7 +109,7 @@ export function useDocActions(options: UseDocActionsOptions) {
         try {
           await navigator.clipboard.writeText(String(payload.copy))
         } catch {
-          /* clipboard blocked — the message toast still shows the value */
+          /* clipboard blocked - the message toast still shows the value */
         }
       }
       toast.success(payload.message || `${label}: ${t('done')}`)

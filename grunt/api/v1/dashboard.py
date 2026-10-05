@@ -94,7 +94,7 @@ async def _compute_widget_data(
     global_since: datetime | None = None,
     global_until: datetime | None = None,
 ) -> Any:
-    """Compute data for a single widget row — dispatches via the WidgetType registry."""
+    """Compute data for a single widget row - dispatches via the WidgetType registry."""
 
     doctype_name: str = widget.get("doctype") or ""
     widget_type: str = widget.get("widget_type") or "metric"
@@ -104,7 +104,7 @@ async def _compute_widget_data(
         return None
 
     # A chart/donut widget may draw its data from a saved Report rather than a
-    # doctype aggregate — that path needs no doctype/date_field/group_by.
+    # doctype aggregate - that path needs no doctype/date_field/group_by.
     if widget.get("report") and widget_type in ("chart_bar", "chart_area", "donut"):
         return await _widget_report_series(widget)
 
@@ -156,7 +156,7 @@ async def _get_widget_data(
 ) -> dict[str, Any]:
     """Compute all widget values for a Page/Dashboard document.
 
-    Shared by get_page_data/get_dashboard_data — identical widget-computation
+    Shared by get_page_data/get_dashboard_data - identical widget-computation
     pipeline for both entity types, differing only in which doctype to load
     and the (localized) error messages.
     """
@@ -200,7 +200,7 @@ async def _get_widget_data(
 
     # Sequential, not asyncio.gather: all widgets share the request-scoped
     # AsyncSession, which SQLAlchemy does not allow to be driven from
-    # concurrent coroutines — gathering here races queries onto the same
+    # concurrent coroutines - gathering here races queries onto the same
     # session and raises IllegalStateChangeError under load.
     pairs = [await _safe_compute(w) for w in widgets]
     return dict(pairs)

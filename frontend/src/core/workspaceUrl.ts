@@ -19,7 +19,7 @@ export function workspaceForDoctype(doctype?: string | null): string {
   return workspaces[0]?.name || 'grunt'
 }
 
-/** `/app/<workspace>/<segments…>` — segments are joined as given (not encoded). */
+/** `/app/<workspace>/<segments…>` - segments are joined as given (not encoded). */
 export function workspaceUrl(workspace: string, ...segments: (string | number)[]): string {
   return ['/app', workspace, ...segments.map(String)].join('/')
 }

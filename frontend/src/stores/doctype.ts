@@ -28,7 +28,7 @@ export const useDocTypeStore = defineStore('doctype', () => {
     cache.value.delete(name)
   }
 
-  /** Drop every cached schema — e.g. after a UI language switch. */
+  /** Drop every cached schema - e.g. after a UI language switch. */
   function invalidateAll() {
     cache.value.clear()
   }

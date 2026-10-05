@@ -14,7 +14,7 @@ from grunt.document.base import Document
 
 
 def parse_count_filters(item: dict[str, Any]) -> dict[str, Any]:
-    """A sidebar item's ``count_filters`` JSON → filters dict (``{}`` when unset/invalid)."""
+    """A sidebar item's ``count_filters`` JSON -> filters dict (``{}`` when unset/invalid)."""
     raw = item.get("count_filters")
     if not raw:
         return {}
@@ -47,7 +47,7 @@ class AppMenu(Document):
     home_page: str
     sidebar_items: list[dict[str, Any]]
 
-    # Maps sidebar item type → doctype name used by DynamicLink for search.
+    # Maps sidebar item type -> doctype name used by DynamicLink for search.
     # Empty string means no link picker (DynamicLink falls back to plain text).
     _LINK_DOCTYPE: dict[str, str] = {
         "DocType": "DocType",
@@ -64,7 +64,7 @@ class AppMenu(Document):
 
         Counts go through ``grunt.count``, so each badge reflects only the
         rows the current user may actually see (same row-level permission
-        filter the list view applies) — never a raw table total.
+        filter the list view applies) - never a raw table total.
         """
         items = [
             item

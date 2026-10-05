@@ -2,7 +2,7 @@ import { Table2 } from '@lucide/vue'
 import type { ViewDefinition } from '@/core/viewRegistry'
 
 /**
- * Report view — a dense "Report" grid over the current list query.
+ * Report view - a dense "Report" grid over the current list query.
  *
  * Adds on top of the plain list: freely add / remove / reorder columns, an
  * optional single-level group-by with per-group subtotals, a per-column
@@ -15,7 +15,7 @@ const def: ViewDefinition = {
   icon: Table2,
   order: 6,
 
-  // No resolveField — the report view is always available.
+  // No resolveField - the report view is always available.
 
   component: () => import('./ReportGridView.vue').then((m) => m.default),
 

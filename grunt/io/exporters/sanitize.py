@@ -3,11 +3,11 @@
 A string cell value that happens to start with ``=``, ``+``, ``-``, ``@``
 (or a leading tab/CR used to sneak past a naive check for those) is
 auto-interpreted as a *live formula* by Excel/LibreOffice/Sheets when the
-exported file is later opened — regardless of whether the export format is
+exported file is later opened - regardless of whether the export format is
 .csv or .xlsx. Verified live: ``openpyxl`` sets ``cell.data_type = "f"`` for
 a plain string value starting with ``=``, meaning any document field under
 attacker control (any regular text field an authenticated user can set)
-becomes formula execution — data exfiltration via ``=HYPERLINK(...)``, or
+becomes formula execution - data exfiltration via ``=HYPERLINK(...)``, or
 worse, in whoever's spreadsheet application opens the export.
 """
 
@@ -20,7 +20,7 @@ def escape_formula(value: str) -> str:
     """Prefix *value* with a single quote if it would be auto-interpreted
     as a formula by spreadsheet software, otherwise return it unchanged.
 
-    A leading ``'`` is the standard Excel-recognized "force text" escape —
+    A leading ``'`` is the standard Excel-recognized "force text" escape -
     it is not itself rendered, and it's what Excel's own "keep leading
     apostrophe" convention already relies on.
     """

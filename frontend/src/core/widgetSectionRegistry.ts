@@ -1,7 +1,7 @@
 /**
  * Widget Config Section Registry
  *
- * Single source of truth for WidgetConfigPanel sections — the widget
+ * Single source of truth for WidgetConfigPanel sections - the widget
  * counterpart of propertySectionRegistry.ts. Kept as its own registry
  * (rather than sharing the field one) because section names are chosen
  * independently in each domain and can collide (e.g. both a field and a

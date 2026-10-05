@@ -26,7 +26,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-// Seed with the full document, not just prompt_fields — the filtered layout
+// Seed with the full document, not just prompt_fields - the filtered layout
 // can still include a Section/Column with a `depends_on` referencing other
 // doc fields (e.g. `doc.status`), which must resolve correctly for the
 // prompt fields inside it to actually render.
@@ -41,7 +41,7 @@ const reqdOverrides = computed(() =>
   Object.fromEntries(props.transition.prompt_fields.map(name => [name, true])),
 )
 
-// A `require_comment` transition's comment — the server adds it to the
+// A `require_comment` transition's comment - the server adds it to the
 // document's comments and the notification (values.__comment).
 const comment = ref('')
 const commentMissing = ref(false)
@@ -51,7 +51,7 @@ function onFormUpdate(updated: Record<string, unknown>) {
 }
 
 function onSubmit() {
-  // Only the declared prompt_fields go over the wire — the rest of `form`
+  // Only the declared prompt_fields go over the wire - the rest of `form`
   // exists purely so the layout's depends_on conditions resolve correctly.
   const values: Record<string, unknown> = Object.fromEntries(
     props.transition.prompt_fields.map(name => [name, form.value[name]]),

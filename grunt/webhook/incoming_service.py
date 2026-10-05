@@ -6,18 +6,16 @@ and dispatches configured actions (log_only / run_server_script / create_documen
 Endpoint: ``POST /api/v1/webhooks/incoming/{slug}``
 
 Signature verification
------------------------
 If the webhook is configured with a ``secret`` the request must include a
 header (``signature_header``) whose value is one of:
 
-* ``sha256=<hex>`` — HMAC-SHA256 of the raw request body
-* ``sha1=<hex>``  — HMAC-SHA1 of the raw request body
-* bare ``<hex>``  — treated as HMAC-SHA256
+* ``sha256=<hex>`` - HMAC-SHA256 of the raw request body
+* ``sha1=<hex>`` - HMAC-SHA1 of the raw request body
+* bare ``<hex>`` - treated as HMAC-SHA256
 
 The algorithm used is selected by ``signature_type`` (hmac_sha256 / hmac_sha1 / none).
 
 Field mapping (create_document action)
----------------------------------------
 ``field_mapping`` is a JSON object: ``{"doctype_field": "payload.nested.key"}``.
 Dotted paths are resolved against the parsed JSON payload.  Literal values can
 be prefixed with ``=``, e.g. ``{"status": "=Active"}``.
@@ -37,9 +35,7 @@ _MAX_PAYLOAD = 5 * 1024 * 1024  # 5 MB
 
 
 class IncomingWebhookService:
-    # ──────────────────────────────────────────────────────────────────
     # Public API
-    # ──────────────────────────────────────────────────────────────────
 
     async def receive(
         self,
@@ -49,17 +45,17 @@ class IncomingWebhookService:
     ) -> dict[str, Any]:
         """Process an incoming webhook request.
 
-        Caller must already have an active grunt context (session only —
+        Caller must already have an active grunt context (session only -
         this always runs as SYSTEM_USER internally, whatever the ambient
         user is or isn't, since it's driven by an unauthenticated external
         caller).
 
         Returns a response dict with ``accepted`` flag and optional ``detail``.
-        Never raises — all errors are logged and a safe response is returned.
+        Never raises - all errors are logged and a safe response is returned.
         """
         start = time.monotonic()
 
-        # ── 1. Load webhook config ─────────────────────────────────────
+        # 1. Load webhook config
         webhook = await self._load_webhook(slug)
         if webhook is None:
             return {"accepted": False, "detail": "Not found"}
@@ -73,7 +69,7 @@ class IncomingWebhookService:
         action_taken = action
         error_msg = ""
 
-        # ── 2. Verify signature ────────────────────────────────────────
+        # 2. Verify signature
         secret = (webhook.get("secret") or "").strip()
         sig_type = webhook.get("signature_type") or "hmac_sha256"
         if secret and sig_type != "none":
@@ -100,7 +96,7 @@ class IncomingWebhookService:
                 )
                 return {"accepted": False, "detail": "Invalid signature"}
 
-        # ── 3. Parse payload ───────────────────────────────────────────
+        # 3. Parse payload
         payload: Any = None
         try:
             if raw_body:
@@ -108,7 +104,7 @@ class IncomingWebhookService:
         except Exception:
             payload = raw_body.decode(errors="replace")
 
-        # ── 4. Dispatch action ─────────────────────────────────────────
+        # 4. Dispatch action
         try:
             if action == "run_server_script":
                 action_taken, error_msg = await self._run_server_script(webhook, payload)
@@ -125,7 +121,7 @@ class IncomingWebhookService:
 
         duration_ms = int((time.monotonic() - start) * 1000)
 
-        # ── 5. Write log ───────────────────────────────────────────────
+        # 5. Write log
         await self._write_log(
             webhook_id=webhook_id,
             slug=slug,
@@ -146,9 +142,7 @@ class IncomingWebhookService:
         )
         return {"accepted": True, "status": status}
 
-    # ──────────────────────────────────────────────────────────────────
     # Signature verification
-    # ──────────────────────────────────────────────────────────────────
 
     def _verify_signature(
         self,
@@ -171,7 +165,7 @@ class IncomingWebhookService:
         if candidate.startswith(expected_prefix):
             candidate = candidate[len(expected_prefix) :]
         elif candidate.startswith("sha256=") or candidate.startswith("sha1="):
-            # Wrong algorithm prefix — reject
+            # Wrong algorithm prefix - reject
             return False
 
         try:
@@ -179,9 +173,7 @@ class IncomingWebhookService:
         except Exception:
             return False
 
-    # ──────────────────────────────────────────────────────────────────
     # Action handlers
-    # ──────────────────────────────────────────────────────────────────
 
     async def _run_server_script(
         self,
@@ -255,9 +247,7 @@ class IncomingWebhookService:
 
         return f"create_document:{target_doctype}:{doc.get('id', '')}", ""
 
-    # ──────────────────────────────────────────────────────────────────
     # Helpers
-    # ──────────────────────────────────────────────────────────────────
 
     async def _load_webhook(self, slug: str) -> dict[str, Any] | None:
         import grunt
@@ -321,7 +311,7 @@ class IncomingWebhookService:
 def _resolve_path(data: dict[str, Any], path: str) -> Any:
     """Resolve a dot-separated path in a nested dict.
 
-    Example: ``_resolve_path({"a": {"b": 1}}, "a.b")`` → ``1``
+    Example: ``_resolve_path({"a": {"b": 1}}, "a.b")`` -> ``1``
     """
     parts = path.split(".")
     current: Any = data

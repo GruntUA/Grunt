@@ -46,7 +46,7 @@ function onReorderTabs(newTabs: LayoutTab[]) {
 }
 
 function onUpdateSection(tabIndex: number, sectionIndex: number, updatedSection: LayoutSection) {
-  // Section columns changed via drag-and-drop — rebuild flat fields
+  // Section columns changed via drag-and-drop - rebuild flat fields
   const currentLayout = builder.layout.map((tab, ti) => {
     if (ti !== tabIndex) return tab
     return {

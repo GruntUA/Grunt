@@ -1,13 +1,13 @@
 """Tests for the Reports module.
 
 Plain CRUD (list/get/create/update/delete) on the ``Report`` doctype is
-covered end-to-end through the generic ``/api/v1/docs/Report`` REST routes —
+covered end-to-end through the generic ``/api/v1/docs/Report`` REST routes -
 these tests exercise real permission enforcement (System-Manager-only
 write/create/delete, any-authenticated-user read) rather than calling
 Python functions directly under a System-Manager-bypassing context.
 
 Report *execution* (``run``/``preview``) and the xlsx export
-(``export_xlsx``) are RPC-only — those are still exercised as direct
+(``export_xlsx``) are RPC-only - those are still exercised as direct
 function calls under the ``ctx`` fixture (SYSTEM_USER), matching the
 pre-existing style for that part of the module.
 """
@@ -39,7 +39,7 @@ async def _register_regular_user(client: AsyncClient, email: str) -> dict[str, s
     return {"Authorization": f"Bearer {token}"}
 
 
-# ── Generic docs CRUD: permissions ──────────────────────────────────────
+# Generic docs CRUD: permissions
 
 
 @pytest.mark.asyncio
@@ -108,7 +108,7 @@ async def test_report_write_forbidden_for_regular_user(client: AsyncClient, auth
 
     Regression guard for the Report.json permissions weakening this test suite
     was written to catch: the doctype's permissions must not grant write to
-    any role broader than System Manager (see Report.json — only {"role": "All",
+    any role broader than System Manager (see Report.json - only {"role": "All",
     "read": true} is defined, so write/create/delete fall through to
     "nobody but System Manager").
     """
@@ -143,7 +143,7 @@ async def test_report_write_forbidden_for_regular_user(client: AsyncClient, auth
     assert r_delete_denied.status_code == 403
 
 
-# ── run_report / run_preview (RPC-only, unaffected by the CRUD migration) ──
+# run_report / run_preview (RPC-only, unaffected by the CRUD migration)
 
 
 @pytest.mark.asyncio
@@ -343,7 +343,7 @@ async def test_aggregated_list_report_carries_drilldown(ctx):
     assert "drilldown" not in plain["meta"]
 
 
-# ── export_report_xlsx ──────────────────────────────────────────────────
+# export_report_xlsx
 
 
 @pytest.mark.asyncio

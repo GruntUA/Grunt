@@ -1,5 +1,5 @@
 /**
- * useTaskTracker — singleton composable for tracking background task progress.
+ * useTaskTracker - singleton composable for tracking background task progress.
  *
  * Receives `progress` / `task_progress` / `task_done` WebSocket events and
  * maintains a reactive map of active tasks.  The TaskProgressPanel reads
@@ -21,19 +21,19 @@ import i18n from '@/plugins/i18n'
 
 const t = (key: string, params: Record<string, unknown> = {}): string => i18n.global.t(key, params)
 
-// ── Data model ───────────────────────────────────────────────────────────────
+// Data model
 
 export type TaskStatus = 'active' | 'done' | 'error' | 'cancelled'
 
 export interface TaskEntry {
-  /** Stable key — derived from title (trimmed lowercase) or explicit task_id. */
+  /** Stable key - derived from title (trimmed lowercase) or explicit task_id. */
   id: string
   title: string
   count: number
   total: number
   percent: number
   description?: string
-  /** 'bytes' — count/total are sizes (shown as MB/GB). */
+  /** 'bytes' - count/total are sizes (shown as MB/GB). */
   unit?: 'bytes' | null
   /** DocType whose open list refreshes when the task is done. */
   doctype?: string | null
@@ -46,22 +46,22 @@ export interface TaskEntry {
   /** «Step N of M» when the task has distinct parts (0 = none). */
   step?: number
   steps?: number
-  /** Seconds left at the pace of the last {@link ETA_WINDOW_MS} — unknown until it's measured. */
+  /** Seconds left at the pace of the last {@link ETA_WINDOW_MS} - unknown until it's measured. */
   etaSeconds?: number
   startedAt: number    // Date.now()
   updatedAt: number    // Date.now()
 }
 
-// ── Singleton module-level state ─────────────────────────────────────────────
+// Singleton module-level state
 
 const _tasks = ref<Map<string, TaskEntry>>(new Map())
 
-/** Height of the open task panel (0 when hidden) — toasts stack above it. */
+/** Height of the open task panel (0 when hidden) - toasts stack above it. */
 const _panelHeight = ref(0)
 
 /**
  * ETA follows the recent pace, not the average since the start: a backup's
- * database part flies, its files crawl — the average would promise "< 1 min"
+ * database part flies, its files crawl - the average would promise "< 1 min"
  * all through the slow part.
  */
 const ETA_WINDOW_MS = 15_000
@@ -86,7 +86,7 @@ function _titleToId(title: string): string {
   return title.trim().toLowerCase().replace(/\s+/g, '-').slice(0, 64)
 }
 
-// ── Mutations ────────────────────────────────────────────────────────────────
+// Mutations
 
 /** Update or create a task entry from a `progress` / `task_progress` event. */
 function update(data: {
@@ -100,7 +100,7 @@ function update(data: {
   cancellable?: boolean
   step?: number
   steps?: number
-  /** Server start time, epoch seconds — keeps the ETA right after a reload. */
+  /** Server start time, epoch seconds - keeps the ETA right after a reload. */
   started_at?: number
 }) {
   const title = data.title ?? t('Task')
@@ -203,11 +203,11 @@ async function restore() {
     const { data } = await client.post('/api/v1/method/grunt.progress.active_tasks', {})
     for (const task of (data?.data ?? []) as Parameters<typeof update>[0][]) update(task)
   } catch {
-    // not signed in / no Redis — nothing to restore
+    // not signed in / no Redis - nothing to restore
   }
 }
 
-// ── Public composable ─────────────────────────────────────────────────────────
+// Public composable
 
 export function useTaskTracker() {
   return {

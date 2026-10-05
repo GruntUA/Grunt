@@ -106,7 +106,7 @@ async def delete_document(
 ) -> None:
     """Delete a document.
 
-    ``replace_with`` — repoint every reference to this document at the given
+    ``replace_with`` - repoint every reference to this document at the given
     surviving document of the same DocType before deleting.
     """
     await grunt.delete_doc(doctype, doc_id, replace_with)
@@ -149,7 +149,7 @@ async def bulk_delete(
 
     if delete_all:
         if fast:
-            # ── Fast path: direct SQL DELETE, System Manager only ─────────
+            # Fast path: direct SQL DELETE, System Manager only
             async def _run_fast() -> None:
                 if active_site:
                     current_site.set(active_site)
@@ -179,7 +179,7 @@ async def bulk_delete(
         asyncio.create_task(_run_all())
         return {"started": True, "total": None}
 
-    # ── Explicit IDs path ─────────────────────────────────────────────────
+    # Explicit IDs path
     if not ids:
         grunt.throw(_("ids or delete_all is required"))
 

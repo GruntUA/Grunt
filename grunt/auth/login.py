@@ -1,7 +1,7 @@
 """The one place that turns an authenticated :class:`User` into a token payload.
 
-Every sign-in path — password (``login_api``), MFA second step
-(``mfa_login_api``), OIDC callback, WebAuthn assertion, any future provider —
+Every sign-in path - password (``login_api``), MFA second step
+(``mfa_login_api``), OIDC callback, WebAuthn assertion, any future provider -
 ends here so the response shape, the MFA gate and session tracking stay in a
 single implementation.
 """
@@ -26,7 +26,7 @@ async def issue_login(
     """Return the standard auth payload for *user*.
 
     When ``honor_mfa`` and the user has MFA enabled, this returns an
-    ``mfa_required`` challenge instead of real tokens — the caller must then
+    ``mfa_required`` challenge instead of real tokens - the caller must then
     complete ``mfa_login_api``. Pass ``honor_mfa=False`` from the MFA step
     itself (the factor has already been proven).
 
@@ -34,7 +34,7 @@ async def issue_login(
 
     When one of the user's roles has ``Role.require_mfa`` but MFA is off, the
     payload is the same challenge shape plus ``mfa_setup_required`` and an
-    ``mfa_setup`` token — the client enrolls via ``mfa_enroll_begin`` /
+    ``mfa_setup`` token - the client enrolls via ``mfa_enroll_begin`` /
     ``mfa_enroll_complete`` instead of verifying. No tokens until then.
     """
     from grunt.api.messages import throw
@@ -56,7 +56,7 @@ async def issue_login(
     if state == "rejected":
         throw(_("The registration request was rejected by an administrator."), "UNAUTHORIZED")
     if state == "pending":
-        # Not an error — the frontend shows a "waiting for approval" notice.
+        # Not an error - the frontend shows a "waiting for approval" notice.
         return {
             "access_token": None,
             "refresh_token": None,
@@ -106,7 +106,7 @@ async def find_or_create_external_user(email: str, full_name: str) -> User:
     """Resolve a local :class:`User` for an externally-authenticated identity
     (OIDC / SAML / email link / ...), creating a passwordless one if needed.
 
-    No password is set — ``hashed_password`` stays ``NULL``. Password sign-in is
+    No password is set - ``hashed_password`` stays ``NULL``. Password sign-in is
     simply unavailable for the account until the user sets one from their profile
     (``set_user_password_api`` treats a null hash as a first-time set, so no
     "current password" is asked for).
@@ -118,7 +118,7 @@ async def find_or_create_external_user(email: str, full_name: str) -> User:
         return user
 
     # The User controller needs a non-empty first *and* last name. External
-    # identities often carry only a single-word name (or none at all) — fall
+    # identities often carry only a single-word name (or none at all) - fall
     # back to the email local part so provisioning never fails on that.
     local = email.split("@", 1)[0]
     parts = (full_name or "").split(maxsplit=1)

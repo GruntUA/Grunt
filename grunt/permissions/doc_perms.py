@@ -1,4 +1,4 @@
-"""What the current user may do with one document — sent to the form as ``__perms``.
+"""What the current user may do with one document - sent to the form as ``__perms``.
 
 The same checks the write paths enforce (role rows, row-level ``match``, User
 Permissions, DocShare grants), evaluated up front so the UI hides actions the

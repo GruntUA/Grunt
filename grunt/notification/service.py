@@ -1,4 +1,4 @@
-"""NotificationService — evaluates notification rules and creates notifications.
+"""NotificationService - evaluates notification rules and creates notifications.
 
 Integrates with the hook system: after_save, after_insert, on_transition events
 trigger rule evaluation. Matching rules create system notifications and optionally
@@ -159,8 +159,8 @@ class NotificationService:
         """Deliver one notification to *user* directly (bypasses NotificationRule).
 
         System notification + web-push always; ``email`` also queues a mail.
-        For code paths that must ping a specific person — e.g. document
-        assignment — without a configurable rule in the loop.
+        For code paths that must ping a specific person - e.g. document
+        assignment - without a configurable rule in the loop.
         """
         if not user:
             return None
@@ -177,7 +177,7 @@ class NotificationService:
         await self._broadcast_ws(doctype, {"name": doc_id}, subject, [user])
         return name
 
-    # ── Internal helpers ──────────────────────────────────────────────────
+    # Internal helpers
 
     async def _create_notification(
         self,
@@ -229,13 +229,13 @@ class NotificationService:
         """Parse recipient spec into (emails, role names still needing async lookup).
 
         Supports:
-          - "owner"            → doc owner
-          - "role:Manager"     → all active users with this role (resolved by the
-                                  caller via _resolve_role_recipients — needs a DB
+          - "owner"            -> doc owner
+          - "role:Manager"     -> all active users with this role (resolved by the
+                                  caller via _resolve_role_recipients - needs a DB
                                   round-trip, so it can't happen inside this
                                   synchronous parse)
-          - "user@example.com" → literal email
-          - "{field:fieldname}" → value of a doc field
+          - "user@example.com" -> literal email
+          - "{field:fieldname}" -> value of a doc field
         """
         if not recipients_str:
             return [], []
@@ -292,7 +292,7 @@ class NotificationService:
                 if not user_ids:
                     return []
 
-                # Resolve to emails — only active users
+                # Resolve to emails - only active users
                 emails: list[str] = []
                 for user_id in user_ids:
                     user_rows = await grunt.db.get_all(

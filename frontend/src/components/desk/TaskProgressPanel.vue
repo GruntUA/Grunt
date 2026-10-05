@@ -79,7 +79,7 @@ function formatCount(task: TaskEntry): string {
   return `${fmt(task.count)} / ${fmt(task.total)}`
 }
 
-/** "~2 min" left at the recent pace (useTaskTracker measures it) — once it's known. */
+/** "~2 min" left at the recent pace (useTaskTracker measures it) - once it's known. */
 function eta(task: TaskEntry): string {
   const left = task.etaSeconds
   if (task.status !== 'active' || left == null) return ''

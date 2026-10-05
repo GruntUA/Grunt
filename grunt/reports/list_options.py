@@ -1,10 +1,10 @@
 """List-report options beyond plain columns: fixed conditions and date grouping.
 
-* ``conditions`` — ``[{"fieldname", "op", "value"}]`` always applied to the
+* ``conditions`` - ``[{"fieldname", "op", "value"}]`` always applied to the
   report (unlike ``filters_config``, which only offers filters to the viewer).
   Operators use the filter-bar vocabulary; a date value may be relative:
   ``today``, ``today-30``, ``today+7`` (days).
-* ``date_group`` on a grouping column — ``day`` / ``month`` / ``quarter`` /
+* ``date_group`` on a grouping column - ``day`` / ``month`` / ``quarter`` /
   ``year``: rows are grouped by that period, labelled ``2026-09-23``,
   ``2026-09``, ``2026-Q3``, ``2026``.
 """
@@ -17,7 +17,7 @@ from typing import Any
 
 from sqlalchemy import Integer, String, cast, func
 
-# Filter-bar operator → build_clauses key suffix.
+# Filter-bar operator -> build_clauses key suffix.
 _OP_SUFFIX = {
     "=": "",
     "!=": "__ne",
@@ -50,7 +50,7 @@ def _resolve_value(value: Any) -> Any:
 
 def compile_conditions(conditions: list[dict[str, Any]] | None) -> list[dict[str, Any]]:
     """Each condition as a one-key ``build_clauses`` filter (keys may repeat across
-    conditions — e.g. a date range — so they are not merged into one dict)."""
+    conditions - e.g. a date range - so they are not merged into one dict)."""
     out: list[dict[str, Any]] = []
     for c in conditions or []:
         field, op = c.get("fieldname"), c.get("op") or "="

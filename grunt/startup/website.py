@@ -5,7 +5,7 @@
 1. the framework's own DB-backed website pages (``grunt/website/``),
 2. ``/sitemap.xml`` and ``/robots.txt``,
 3. ``/assets/grunt`` static files,
-4. the ``/{path:path}`` catch-all — root static file → server-side page →
+4. the ``/{path:path}`` catch-all - root static file -> server-side page ->
    SPA fallback.
 
 The catch-all must be registered last (after every router and app page), so
@@ -49,7 +49,7 @@ def register_website_routes(app: FastAPI) -> None:
         "/robots.txt", robots_txt, methods=["GET"], include_in_schema=False, tags=["website"]
     )
 
-    # NOTE: Do NOT mount StaticFiles at "/" — it would intercept all paths
+    # NOTE: Do NOT mount StaticFiles at "/" - it would intercept all paths
     # (including SPA routes like /403) and return its own 404 before the
     # catch-all ever runs. Root-level static files are served in the catch-all.
     if _MAIN_PUBLIC_DIR.is_dir():
@@ -68,7 +68,7 @@ def register_website_routes(app: FastAPI) -> None:
 
 
 async def _website_catch_all(request: Request):
-    """Dynamic DB pages: root static file → server-side page → SPA fallback."""
+    """Dynamic DB pages: root static file -> server-side page -> SPA fallback."""
     from fastapi.responses import FileResponse, HTMLResponse
 
     from grunt.config import settings
@@ -77,7 +77,7 @@ async def _website_catch_all(request: Request):
     from grunt.website.spa import DIST_DIR, static_file
 
     # 1. Serve root-level static files (replaces a StaticFiles mount at "/").
-    #    In production the built SPA (dist/) comes first — Vite serves it in dev.
+    #    In production the built SPA (dist/) comes first - Vite serves it in dev.
     req_path = request.url.path.lstrip("/")
     if not settings.debug and (built := static_file(DIST_DIR, req_path)):
         # Vite content-hashes everything under assets/, so it never changes.
@@ -97,7 +97,7 @@ async def _website_catch_all(request: Request):
         if response:
             return response
 
-    # 3. No server-side page — fall back to the SPA so vue-router handles the
+    # 3. No server-side page - fall back to the SPA so vue-router handles the
     #    path (covers /403, /app/*, and any other frontend route).
     env = website_registry.get_env("grunt")
     if env is not None:

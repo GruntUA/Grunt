@@ -1,4 +1,4 @@
-"""chart_area / chart_bar widgets — backend data computation. Both render the
+"""chart_area / chart_bar widgets - backend data computation. Both render the
 same time-series shape; only the frontend rendering (line vs bar) differs.
 """
 

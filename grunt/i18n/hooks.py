@@ -1,6 +1,6 @@
 """Doc-event hooks for the i18n module.
 
-Wired from :mod:`grunt.core_hooks` — keeps the request-language negotiator's
+Wired from :mod:`grunt.core_hooks` - keeps the request-language negotiator's
 accepted-language set in sync with the ``geo.Language`` table.
 """
 

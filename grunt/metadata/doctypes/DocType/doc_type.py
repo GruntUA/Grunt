@@ -1,4 +1,4 @@
-"""Virtual DocType controller — DocType reads from grunt_meta_doctype."""
+"""Virtual DocType controller - DocType reads from grunt_meta_doctype."""
 
 from __future__ import annotations
 
@@ -24,7 +24,7 @@ def _row_to_doc(row: RowMapping) -> dict[str, Any]:
     data["module"] = row["module"]
     # Show the resolved physical table name (override, or the computed default)
     # so the read-only "Назва таблиці" field isn't a dead empty box in the form.
-    # Virtual DocTypes have no table of their own — leave it blank.
+    # Virtual DocTypes have no table of their own - leave it blank.
     if not data.get("is_virtual"):
         data["table_name"] = data.get("table_name") or get_table_name(row["module"], row["name"])
     created_at = row.get("created_at")
@@ -35,7 +35,7 @@ def _row_to_doc(row: RowMapping) -> dict[str, Any]:
 
 
 def _drop_default_table_name(dt: DocType) -> None:
-    """Don't persist ``table_name`` when it just equals the computed default —
+    """Don't persist ``table_name`` when it just equals the computed default -
     it's surfaced read-only in the form and would round-trip back as a
     spurious override that goes stale if the DocType is ever renamed."""
     if dt.table_name and dt.table_name == get_table_name(dt.module, dt.name):

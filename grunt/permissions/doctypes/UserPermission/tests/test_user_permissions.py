@@ -1,5 +1,5 @@
 """Integration tests: UserPermission restricts what a non-privileged user
-sees/touches — lists, counts, single-doc read/write, the Restrictions popup
+sees/touches - lists, counts, single-doc read/write, the Restrictions popup
 payload, is_default form defaults, and strict mode."""
 
 from __future__ import annotations
@@ -181,8 +181,8 @@ TREE_ASSET_DOCTYPE = {
 
 @pytest.mark.asyncio
 async def test_tree_allow_authorises_whole_subtree(ctx, db_session, engine):
-    """A UserPermission on a parent tree node also grants its descendants —
-    an institution → all its sub-units."""
+    """A UserPermission on a parent tree node also grants its descendants -
+    an institution -> all its sub-units."""
     import grunt
     from grunt.api.v1.meta import save_doctype
     from grunt.permissions.user_permissions import invalidate_user_permission_cache
@@ -219,7 +219,7 @@ async def test_strict_mode_hides_docs_without_link(ctx, setup, db_session, engin
     import grunt
     from grunt.permissions.user_permissions import invalidate_user_permission_cache
 
-    # A post with no team link — visible by default, hidden under strict mode.
+    # A post with no team link - visible by default, hidden under strict mode.
     orphan = (await ctx.new_doc("UPTestPost", {"title": "no team"}))["name"]
     await ctx.db._session().commit()
     invalidate_user_permission_cache()

@@ -1,4 +1,4 @@
-"""Document Links service — automatic backlinks between documents.
+"""Document Links service - automatic backlinks between documents.
 
 When a document with a Link field is saved, backlinks are created/updated
 in the grunt_doc_link table. This allows querying "which documents reference
@@ -39,7 +39,7 @@ class LinkService:
         doc_id: str,
         doc: dict[str, Any],
     ) -> int:
-        """Sync document links after a save — delete old links, insert new ones.
+        """Sync document links after a save - delete old links, insert new ones.
 
         Scans all Link fields in the DocType and creates backlink records
         for any non-empty Link values.
@@ -147,11 +147,11 @@ class LinkService:
         doctype: str,
         doc_ids: list[str],
     ) -> dict[str, Any]:
-        """Summarise what references *doc_ids* — the impact of deleting them.
+        """Summarise what references *doc_ids* - the impact of deleting them.
 
         Unlike :meth:`get_backlinks` (which reads the ``DocLink`` cache, direct
-        Link fields only) this scans every DocType's Link fields — including
-        those inside child tables — plus MultiLink rows, and returns grouped
+        Link fields only) this scans every DocType's Link fields - including
+        those inside child tables - plus MultiLink rows, and returns grouped
         counts::
 
             {"total": 11, "groups": [
@@ -163,7 +163,7 @@ class LinkService:
             ]}
 
         References originating from the documents being deleted themselves are
-        excluded — they disappear with the rows.
+        excluded - they disappear with the rows.
         """
         from grunt.document.meta import Meta
 
@@ -188,7 +188,7 @@ class LinkService:
                     continue
                 where = [ref_table.c[field.fieldname].in_(ids)]
                 # A row of the DocType itself that we're also deleting is not a
-                # dangling reference — skip self-references within the batch.
+                # dangling reference - skip self-references within the batch.
                 if other_dt.name == doctype and "name" in ref_table.c:
                     where.append(ref_table.c.name.notin_(ids))
                 count = (

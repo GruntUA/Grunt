@@ -1,4 +1,4 @@
-"""Hook registry — event-driven extensibility for Grunt apps.
+"""Hook registry - event-driven extensibility for Grunt apps.
 
 This module owns hook *registration* and *dispatch* only. The document event
 bus that fans a lifecycle event out to framework subsystems (Server Scripts,

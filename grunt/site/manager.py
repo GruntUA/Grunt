@@ -46,13 +46,13 @@ current_site: ContextVar[str] = ContextVar("current_site", default="")
 def text_sort_expr(col: Any, dialect_name: str) -> Any:
     """Return a dialect-aware sort expression for text columns.
 
-    * SQLite  — uses the custom ``uk_sort_key()`` SQLite function registered
+    * SQLite - uses the custom ``uk_sort_key()`` SQLite function registered
                 at connect time, which maps Ukrainian letters to Private Use
                 Area code points for correct alphabetical ordering.
-    * PostgreSQL — ``col COLLATE "C"`` with lower() for a portable fallback.
+    * PostgreSQL - ``col COLLATE "C"`` with lower() for a portable fallback.
                    For full Ukrainian ordering install the ``uk_UA`` ICU
                    collation and use ``col.collate('uk-x-icu')``.
-    * MySQL   — ``CONVERT(col USING utf8mb4) COLLATE utf8mb4_unicode_ci``
+    * MySQL - ``CONVERT(col USING utf8mb4) COLLATE utf8mb4_unicode_ci``
                 gives good case-insensitive, accent-sensitive ordering.
     """
     from sqlalchemy import func  # noqa: PLC0415
@@ -81,7 +81,7 @@ class SiteManager:
             Path(__file__).resolve()
         )
         if bench_dir is None:
-            # No ancestor of cwd or of this file has both apps/ and sites/ —
+            # No ancestor of cwd or of this file has both apps/ and sites/ -
             # guess two levels up from cwd (matches apps/<app>/ as cwd, the
             # common case when running a bench command from an app dir).
             bench_dir = Path.cwd().parent.parent.resolve()
@@ -140,12 +140,12 @@ class SiteManager:
 
     def get_primary_web_app(self) -> str | None:
         """App whose www/ pages mount at the site root (``primary_web_app`` in
-        ``grunt.site``), or ``None`` — then every app's pages live under
+        ``grunt.site``), or ``None`` - then every app's pages live under
         ``/{app_name}/...``.
 
         Routes are mounted once per process, so this is bench-wide: the first
         site (by name) that sets it wins, and a disagreeing site is logged.
-        Cached — changing it needs a restart anyway.
+        Cached - changing it needs a restart anyway.
         """
         if self._primary_web_app is not _UNSET:
             return self._primary_web_app
@@ -197,7 +197,7 @@ class SiteManager:
         if db_url:
             # Resolve relative SQLite paths relative to the site directory
             if "sqlite" in db_url and "///." in db_url:
-                # e.g. "sqlite+aiosqlite:///./grunt.db" → dialect + "./grunt.db"
+                # e.g. "sqlite+aiosqlite:///./grunt.db" -> dialect + "./grunt.db"
                 dialect, _, rel_path = db_url.partition("///")
                 abs_path = (self.sites_dir / site_name / rel_path).resolve()
                 return f"{dialect}///{abs_path}"
@@ -225,8 +225,8 @@ class SiteManager:
                 )
             elif "sqlite" in db_url:
                 # A real (small) pool instead of NullPool: NullPool opens a brand
-                # new aiosqlite connection — a new background thread plus the
-                # connect-time PRAGMAs below — on every single checkout, which
+                # new aiosqlite connection - a new background thread plus the
+                # connect-time PRAGMAs below - on every single checkout, which
                 # showed up as tens of ms hiding inside the profiler's "BEGIN"
                 # span on every request. WAL mode lets several connections read
                 # concurrently, and connect_args timeout is SQLite's busy_timeout
@@ -267,7 +267,7 @@ class SiteManager:
                 def _on_sqlite_begin(conn):
                     from grunt.db.write_intent import begin_statement  # noqa: PLC0415
 
-                    # IMMEDIATE for work that will write — see grunt/db/write_intent.py.
+                    # IMMEDIATE for work that will write - see grunt/db/write_intent.py.
                     conn.exec_driver_sql(begin_statement())
 
             if settings.debug:

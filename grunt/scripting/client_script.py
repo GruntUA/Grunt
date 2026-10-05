@@ -1,4 +1,4 @@
-"""Client Script service — manages JavaScript scripts injected into the frontend.
+"""Client Script service - manages JavaScript scripts injected into the frontend.
 
 Client scripts are stored in the database and served to the frontend per DocType.
 The frontend executor runs them in the form context (on_load, on_change, validate, etc.).

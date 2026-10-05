@@ -70,7 +70,7 @@ const emit = defineEmits<{
   'set-per-page': [n: number]
 }>()
 
-// ── Full load (opt-in) ──────────────────────────────────────────────────────
+// Full load (opt-in)
 // The list query returns one page at a time. Client-side subtotals only cover
 // the current page, so "Завантажити всі" bumps the page size to pull the whole
 // filtered set (capped) in a single request.
@@ -93,7 +93,7 @@ onBeforeUnmount(() => {
   if (loadedAll.value) emit('set-per-page', 20)
 })
 
-// ── Model ───────────────────────────────────────────────────────────────────
+// Model
 const model = useReportModel({
   doctype: () => props.doctype,
   dt: () => props.dt,
@@ -104,7 +104,7 @@ const model = useReportModel({
 const statusConfig = computed(() => statusConfigOf(props.dt))
 const normalizedSortKey = computed(() => props.sortKey || '')
 
-// ── Saved `Report` (type=List) round-trip ───────────────────────────────────
+// Saved `Report` (type=List) round-trip
 const router = useRouter()
 const auth = useAuthStore()
 const dialog = useDialog()
@@ -198,7 +198,7 @@ function toggleGroup(key: string) {
 // Reset collapse memory whenever the grouping field changes.
 watch(() => model.groupKey.value, () => { collapsed.value = new Set() })
 
-// ── Formatting ──────────────────────────────────────────────────────────────
+// Formatting
 const nf = { format: (v: number) => formatNumber(v, { maximumFractionDigits: 2 }) }
 function fmtNum(v: number | undefined): string {
   return v === undefined || !Number.isFinite(v) ? '' : nf.format(v)
@@ -250,7 +250,7 @@ function onAnchorClick(e: MouseEvent, row: Record<string, unknown>) {
   emit('row-click', row)
 }
 
-// ── CSV export of the rendered grid ─────────────────────────────────────────
+// CSV export of the rendered grid
 function csvCell(v: unknown): string {
   const s = v === null || v === undefined ? '' : String(v)
   return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s
@@ -294,7 +294,7 @@ function exportCsv() {
 
 const colsOpen = ref(false)
 
-// ── Inline editing (opt-in per field via `editable_in_grid`) ────────────────
+// Inline editing (opt-in per field via `editable_in_grid`)
 const NON_PHYSICAL = getNonPhysicalTypeSet()
 
 const editableKeys = computed(() => {

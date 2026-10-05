@@ -31,7 +31,7 @@ const emit = defineEmits<{
 }>()
 
 // Only show filters that are enabled for this scope AND have local mode.
-// External mode filters are driven by scripts only — no UI control rendered.
+// External mode filters are driven by scripts only - no UI control rendered.
 const activeDefs = computed(() =>
   props.defs.filter(ff =>
     ff.enabled_in.includes(props.scope) && ff.on_change.mode !== 'external'
@@ -43,7 +43,7 @@ function getField(ff: QuickFilter): DocField | undefined {
 }
 
 function getSelectOptions(ff: QuickFilter): { value: string, label: string }[] {
-  // A Check field is filtered as Yes / No — '0' is a real filter, distinct from "any".
+  // A Check field is filtered as Yes / No - '0' is a real filter, distinct from "any".
   if (ff.input_type === 'check') return [{ value: '1', label: t('Yes') }, { value: '0', label: t('No') }]
   if (ff.input_type === 'year') return yearOptions(ff)
   // Explicit options on the filter definition take priority over field.options
@@ -65,7 +65,7 @@ function onInput(ff: QuickFilter, value: string) {
   emit('update:modelValue', { ...props.modelValue, [ff.id]: value })
 }
 
-// ── Date ─────────────────────────────────────────────────────────────────────
+// Date
 // Values are stored as YYYY-MM-DD; the calendar works with DateValue.
 const openDateId = ref<string | null>(null)
 
@@ -83,7 +83,7 @@ function onDatePick(ff: QuickFilter, d: DateValue | undefined) {
   openDateId.value = null
 }
 
-// ── Year ─────────────────────────────────────────────────────────────────────
+// Year
 // Only the years present in the field's data are offered (newest first).
 const fieldYears = ref<Record<string, number[]>>({})
 
@@ -111,7 +111,7 @@ watch(
   { immediate: true },
 )
 
-// ── Link ─────────────────────────────────────────────────────────────────────
+// Link
 // Link filters store the linked document's id; its title is kept here for display.
 const linkTitles = ref<Record<string, string>>({})
 
@@ -132,7 +132,7 @@ function onLinkTitle(ff: QuickFilter, title: string) {
   if (id && title) linkTitles.value = { ...linkTitles.value, [linkTitleKey(ff, id)]: title }
 }
 
-// A value restored from saved view state arrives without a title — look it up.
+// A value restored from saved view state arrives without a title - look it up.
 watch(
   () => activeDefs.value.filter(ff => ff.input_type === 'link' && getValue(ff)).map(ff => linkTitleKey(ff)).join('|'),
   () => {

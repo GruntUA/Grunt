@@ -1,12 +1,12 @@
-"""HTML → PDF rendering via headless Chromium (Playwright).
+"""HTML -> PDF rendering via headless Chromium (Playwright).
 
-One predictable rendering path for every "print to PDF" feature — the document
+One predictable rendering path for every "print to PDF" feature - the document
 print RPC and any app-level PDF (e.g. correspondence letters). Unlike
 WeasyPrint, output does not depend on the host's Pango / cairo / fontconfig
 versions: the only moving parts are the pinned ``playwright`` package and the
 Chromium build it manages (``playwright install chromium``).
 
-The input HTML must be self-contained (inline CSS, ``data:`` URIs) — no network
+The input HTML must be self-contained (inline CSS, ``data:`` URIs) - no network
 load is awaited beyond ``load``. ``@page`` rules in the document drive the page
 size; page margins are forced to zero so the template's own padding is the
 single source of whitespace.

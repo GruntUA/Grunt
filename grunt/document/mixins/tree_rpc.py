@@ -1,9 +1,9 @@
 """Tree RPC methods, exposed as static methods of ``Document``.
 
 RPC: grunt.document.base.Document.get_tree
-RPC: grunt.document.base.Document.get_tree_children   — children of a node (or root)
-RPC: grunt.document.base.Document.get_tree_ancestors  — path from node up to the root
-RPC: grunt.document.base.Document.move_tree_node       — re-parent a node
+RPC: grunt.document.base.Document.get_tree_children - children of a node (or root)
+RPC: grunt.document.base.Document.get_tree_ancestors - path from node up to the root
+RPC: grunt.document.base.Document.move_tree_node - re-parent a node
 """
 
 from __future__ import annotations
@@ -20,9 +20,9 @@ from grunt.permissions.guards import write_guard
 async def _tree_read_gate(doctype: str) -> tuple[Any, list[str] | None]:
     """Permission gate for the read-only tree RPCs.
 
-    Full ``read`` → unrestricted (returns ``(dt, None)``). Only ``select`` →
+    Full ``read`` -> unrestricted (returns ``(dt, None)``). Only ``select`` ->
     the caller must limit nodes to identifier columns and ignore ad-hoc
-    filters, so returns ``(dt, [name, parent_field, title_field])``. Neither →
+    filters, so returns ``(dt, [name, parent_field, title_field])``. Neither ->
     a 403 naming the DocType.
     """
     from grunt.errors import not_found
@@ -36,7 +36,7 @@ async def _tree_read_gate(doctype: str) -> tuple[Any, list[str] | None]:
     access = RoleAccess(dt.doc, user)
 
     # An explicit ``select`` grant (without unrestricted ``read``) limits the
-    # tree to identifier columns — even when the user also has a row-scoped
+    # tree to identifier columns - even when the user also has a row-scoped
     # ``read`` that check(user, dt, "read") would otherwise wave through.
     if not access.has_unrestricted_read and access.has_explicit_select:
         parent_field = getattr(dt, "tree_parent_field", None) or "parent"
@@ -49,15 +49,15 @@ async def _tree_read_gate(doctype: str) -> tuple[Any, list[str] | None]:
     if await permission_checker.check(user, dt.doc, "read"):
         return dt, None
     await permission_checker.require(user, dt.doc, "select")  # raises 403
-    return dt, None  # unreachable — require() raised
+    return dt, None  # unreachable - require() raised
 
 
 async def _tree_row_scope(dt: Any, restricted: list[str] | None) -> Any | None:
     """``SELECT name`` of the nodes the current user may see, or ``None`` when
     nothing narrows them.
 
-    The same row-level rules the list applies — a role's ``match``, shares and
-    User Permissions — so a tree (list panel, tree view, Link picker) never
+    The same row-level rules the list applies - a role's ``match``, shares and
+    User Permissions - so a tree (list panel, tree view, Link picker) never
     shows more than the list does. The select-only path stays unfiltered, like
     the Link-search identifier path.
     """
@@ -188,7 +188,7 @@ class DocumentTreeRPCMixin:
     ) -> list[dict[str, Any]]:
         """Return the breadcrumb path from the root down to *node_id*'s parent.
 
-        Ordered from root → direct parent (closest ancestor last).
+        Ordered from root -> direct parent (closest ancestor last).
         """
 
         dt, restricted = await _tree_read_gate(doctype)

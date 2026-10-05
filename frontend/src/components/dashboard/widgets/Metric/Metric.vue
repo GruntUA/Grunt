@@ -19,7 +19,7 @@ const props = defineProps<{
 const router = useRouter()
 const { iconFor } = useLucideIcons()
 
-/** Card → the widget's list, filtered to the rows the value was computed over. */
+/** Card -> the widget's list, filtered to the rows the value was computed over. */
 const canOpen = computed(() => !!props.widget.doctype && !!props.data?.filters)
 
 function open() {

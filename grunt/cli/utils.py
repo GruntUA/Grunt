@@ -29,7 +29,7 @@ async def _site_session(site: str | None):
         eng = site_manager.get_engine(target_site)
         maker = site_manager.get_session_maker(target_site)
         async with maker() as session:
-            # Hydrate every DocType (core + Studio) from the DB — reads
+            # Hydrate every DocType (core + Studio) from the DB - reads
             # only. Re-parsing core JSON is `grunt db migrate`'s job, not this.
             await doctype_registry.load_all(session)
             document_registry.index_core_controllers()

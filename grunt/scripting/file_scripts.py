@@ -19,7 +19,7 @@ Server script metadata is parsed from comment headers::
     # Script Type: DocType Event
     # Event: before_save
 
-File-based scripts are treated as **trusted** — they bypass sandbox
+File-based scripts are treated as **trusted** - they bypass sandbox
 validation (no import blocking), since they are part of the app code.
 """
 
@@ -32,19 +32,19 @@ from typing import Any
 from grunt import log
 from grunt.utils.strings import to_snake_case
 
-# ── Registries ────────────────────────────────────────────────────────────
+# Registries
 
 # Server scripts: {("api", method): {...}} or {("doctype_event", doctype, event): {...}}
 FILE_SCRIPT_REGISTRY: dict[tuple[str, ...], dict[str, Any]] = {}
 
-# Client scripts: lazy cache — populated on first request per DocType
+# Client scripts: lazy cache - populated on first request per DocType
 # {doctype: [{name, script}]}
 FILE_CLIENT_SCRIPT_REGISTRY: dict[str, list[dict[str, str]]] = {}
 
 # Registered (app_name, doctypes_dir) pairs for lazy client script scanning
 _client_script_dirs: list[tuple[str, Path]] = []
 
-# Doctypes already scanned (including misses) — avoids repeated disk reads
+# Doctypes already scanned (including misses) - avoids repeated disk reads
 _client_script_scanned: set[str] = set()
 
 # Framework-only client scripts loaded before every DocType-local script:
@@ -146,13 +146,13 @@ def _load_doctype_dir_scripts(dt_dir: Path, app_name: str) -> None:
     """Load server-side scripts colocated with a DocType definition.
 
     Expects a directory like ``doctypes/Applicant/`` containing:
-    - ``Applicant.js``  → client script (registered for lazy loading, NOT read here)
-    - ``Applicant.py``  → server-side controller/script (trusted)
-    - Any other ``.py`` files → server scripts with metadata headers
+    - ``Applicant.js``  -> client script (registered for lazy loading, NOT read here)
+    - ``Applicant.py``  -> server-side controller/script (trusted)
+    - Any other ``.py`` files -> server scripts with metadata headers
     """
     doctype = dt_dir.name
     # Controller files are named either {snake_case}.py (preferred) or
-    # {PascalCase}.py (legacy fallback) — see
+    # {PascalCase}.py (legacy fallback) - see
     # DocumentRegistry.index_core_controllers, the actual controller loader
     # this must agree with. Comparing only against `doctype` (PascalCase)
     # missed every real controller (grunt/*/doctypes/*/*.py is snake_case in
@@ -164,7 +164,7 @@ def _load_doctype_dir_scripts(dt_dir: Path, app_name: str) -> None:
     for py_file in sorted(dt_dir.glob("*.py")):
         if py_file.name.startswith("__"):
             continue
-        # Skip the controller file — handled by document registry, not here.
+        # Skip the controller file - handled by document registry, not here.
         if py_file.stem in _controller_stems:
             continue
         source = py_file.read_text(encoding="utf-8")
@@ -204,7 +204,7 @@ def _load_doctype_dir_scripts(dt_dir: Path, app_name: str) -> None:
             log.info("file_scripts.server_loaded", app=app_name, type="API (auto)", method=method)
 
 
-# ── Lookup helpers (used by ServerScriptRunner) ──────────────────────────
+# Lookup helpers (used by ServerScriptRunner)
 
 
 def get_file_api_script(method: str) -> dict[str, Any] | None:
@@ -219,7 +219,7 @@ def get_file_doctype_scripts(doctype: str, event: str) -> list[dict[str, Any]]:
 
 
 def get_file_client_scripts(doctype: str) -> list[dict[str, str]]:
-    """Get file-based client scripts for a DocType (lazy — read from disk on first request)."""
+    """Get file-based client scripts for a DocType (lazy - read from disk on first request)."""
     from grunt.config import settings
 
     if not settings.debug:
@@ -251,7 +251,7 @@ def get_file_client_scripts(doctype: str) -> list[dict[str, str]]:
         log.debug("file_scripts.try_path", app=app_name, path=str(js_file), exists=js_file.exists())
 
         if not js_file.exists():
-            # Try first-letter-capitalized (e.g. hromsStaffingTable → HromsStaffingTable)
+            # Try first-letter-capitalized (e.g. hromsStaffingTable -> HromsStaffingTable)
             capitalized = doctype[0].upper() + doctype[1:] if doctype else doctype
             js_file = doctypes_dir / capitalized / f"{capitalized}.js"
 
@@ -284,6 +284,6 @@ def get_file_client_scripts(doctype: str) -> list[dict[str, str]]:
             )
 
     if not settings.debug:
-        # Cache result (including empty — to avoid repeated disk reads)
+        # Cache result (including empty - to avoid repeated disk reads)
         FILE_CLIENT_SCRIPT_REGISTRY[doctype] = results
     return results

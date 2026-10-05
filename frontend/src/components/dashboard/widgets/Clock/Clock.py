@@ -1,4 +1,4 @@
-"""clock widget — renders entirely client-side; no backend computation."""
+"""clock widget - renders entirely client-side; no backend computation."""
 
 from __future__ import annotations
 

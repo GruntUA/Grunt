@@ -14,7 +14,7 @@ interface UseBuilderLayoutParams {
  *
  * Every structural change follows the same shape: parse the flat `fields` array
  * into a `FormLayout` tree, mutate the tree, then flatten it back. No ad-hoc
- * splicing of the flat array — the tree is the single mental model. Orphaned
+ * splicing of the flat array - the tree is the single mental model. Orphaned
  * field selections are cleaned up by a watcher in the builder store.
  */
 export function useBuilderLayout({ doctype, selectField }: UseBuilderLayoutParams) {
@@ -42,7 +42,7 @@ export function useBuilderLayout({ doctype, selectField }: UseBuilderLayoutParam
     }
   }
 
-  /** Parse → mutate → flatten → commit as a fresh `fields` array. */
+  /** Parse -> mutate -> flatten -> commit as a fresh `fields` array. */
   function commit<T>(mutate: (layout: FormLayout) => T): T | undefined {
     if (!doctype.value) return undefined
     const layout = parseLayout(doctype.value.fields ?? [])

@@ -17,13 +17,13 @@ function render(): void {
   document.title = currentPart ? `${currentPart} · ${app}` : app
 }
 
-/** Set the descriptive part of the tab title. Empty/nullish → just the app name. */
+/** Set the descriptive part of the tab title. Empty/nullish -> just the app name. */
 export function setPageTitle(part?: string | null): void {
   currentPart = (part ?? '').trim()
   render()
 }
 
-/** Re-render with the current part — e.g. after the app name loads async. */
+/** Re-render with the current part - e.g. after the app name loads async. */
 export function refreshPageTitle(): void {
   render()
 }

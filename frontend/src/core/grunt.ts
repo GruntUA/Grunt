@@ -1,5 +1,5 @@
 /**
- * Global `grunt` helper — available as:
+ * Global `grunt` helper - available as:
  *   - ES import:  import { grunt } from '@/core/grunt'
  *   - Script ctx: grunt.show_alert(...)  (injected via window.grunt in main.ts)
  *
@@ -98,7 +98,7 @@ export const grunt = {
   },
 
   /**
-   * WebAuthn / passkey helpers — drive the `/api/v1/auth/webauthn/*` ceremonies
+   * WebAuthn / passkey helpers - drive the `/api/v1/auth/webauthn/*` ceremonies
    * from client scripts and app code without touching the browser API directly.
    *
    * @example
@@ -148,7 +148,7 @@ export const grunt = {
     },
   },
 
-  /** Browser health checks (service worker, offline cache & queue, storage) — see core/browserHealth.ts. */
+  /** Browser health checks (service worker, offline cache & queue, storage) - see core/browserHealth.ts. */
   health: {
     async diagnose_browser() {
       const { diagnoseBrowser } = await import('@/core/browserHealth')

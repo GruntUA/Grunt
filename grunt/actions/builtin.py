@@ -1,6 +1,6 @@
 """Built-in document actions shipped with core.
 
-Generic, DocType-agnostic (``doctypes=["*"]``) — they stay invisible until an
+Generic, DocType-agnostic (``doctypes=["*"]``) - they stay invisible until an
 admin binds one from a DocType's **Actions** tab. Handy as ready-made buttons
 and as worked examples of the ``@doc_action`` contract.
 
@@ -84,7 +84,7 @@ async def trash_restore(doc: dict[str, Any], *, args: dict[str, Any]) -> dict[st
     roles=["System Manager"],
 )
 async def trash_restore_as_copy(doc: dict[str, Any], *, args: dict[str, Any]) -> dict[str, Any]:
-    """Restore even when the original id is taken — a fresh id is generated."""
+    """Restore even when the original id is taken - a fresh id is generated."""
     from grunt.activity.doctypes.DeletedDocument.deleted_document import restore
 
     restored = await restore(doc["name"], allow_rename=True)
@@ -105,7 +105,7 @@ async def _set_todo_status(name: str, status: str) -> dict[str, Any]:
     variant="success",
 )
 async def todo_complete(doc: dict[str, Any], *, args: dict[str, Any]) -> dict[str, Any]:
-    """Close the task — the controller stamps completed_on/by and pings the assigner."""
+    """Close the task - the controller stamps completed_on/by and pings the assigner."""
     return {**await _set_todo_status(doc["name"], "Closed"), "message": _("Task completed")}
 
 
@@ -130,7 +130,7 @@ async def todo_cancel(doc: dict[str, Any], *, args: dict[str, Any]) -> dict[str,
     variant="outline",
 )
 async def todo_reopen(doc: dict[str, Any], *, args: dict[str, Any]) -> dict[str, Any]:
-    """Reopen a closed/cancelled task — the controller clears the completion stamp."""
+    """Reopen a closed/cancelled task - the controller clears the completion stamp."""
     return {**await _set_todo_status(doc["name"], "Open"), "message": _("Task reopened")}
 
 

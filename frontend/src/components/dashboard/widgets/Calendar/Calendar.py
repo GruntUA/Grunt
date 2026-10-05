@@ -1,4 +1,4 @@
-"""calendar widget — backend data computation."""
+"""calendar widget - backend data computation."""
 
 from __future__ import annotations
 

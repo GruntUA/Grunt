@@ -1,4 +1,4 @@
-"""Assignment Service — orchestration for automatic document assignment."""
+"""Assignment Service - orchestration for automatic document assignment."""
 
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ class AssignmentService:
     async def evaluate_and_assign(self, doctype: str, doc: dict[str, Any]) -> None:
         """Перевірити всі enabled правила для DocType та застосувати відповідні.
 
-        Caller must already have an active grunt context — called synchronously
+        Caller must already have an active grunt context - called synchronously
         from document lifecycle hooks (see hooks.py), which run inside the
         request's own write_guard-verified context.
 
@@ -112,9 +112,7 @@ class AssignmentService:
             ),
         }
 
-    # ------------------------------------------------------------------
     # Приватні допоміжні методи оркестратора
-    # ------------------------------------------------------------------
 
     async def _get_enabled_rules(self, doctype: str) -> list[dict]:
         """Завантажити всі enabled правила для DocType з БД."""
@@ -242,7 +240,7 @@ class AssignmentService:
     async def _create_todo(self, doctype: str, doc: dict[str, Any], owner_email: str) -> None:
         """Assign *doc* to *owner_email* via a ToDo row (idempotent per doc+user).
 
-        Goes through ``new_doc`` — not ``bulk_insert`` — so the ``ToDo``
+        Goes through ``new_doc`` - not ``bulk_insert`` - so the ``ToDo``
         ``after_insert`` hook fires and the assignee gets notified.
         """
 

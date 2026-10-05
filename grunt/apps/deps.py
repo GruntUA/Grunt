@@ -3,11 +3,11 @@
 An app declares its third-party packages in ``apps/<app>/pyproject.toml``.
 They are not part of the framework's ``uv.lock`` (the framework can't know
 which apps a bench has), so they are installed into the bench environment
-separately — each app as an editable package, which pulls in its
+separately - each app as an editable package, which pulls in its
 dependencies (like ``bench setup requirements`` in Frappe).
 
 Syncing the framework must therefore never prune packages outside its lock:
-``uv sync --inexact`` (see ``mise.toml`` → ``deps``), then ``grunt app deps``.
+``uv sync --inexact`` (see ``mise.toml`` -> ``deps``), then ``grunt app deps``.
 """
 
 from __future__ import annotations

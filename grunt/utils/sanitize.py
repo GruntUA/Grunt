@@ -11,7 +11,7 @@ import nh3
 
 # ammonia's safe default tag/attribute set covers everything the tiptap editor
 # emits (StarterKit, links, images, tables); on top of it:
-_EXTRA_TAGS = {"iframe"}  # video embeds — src limited to _EMBED_PREFIXES
+_EXTRA_TAGS = {"iframe"}  # video embeds - src limited to _EMBED_PREFIXES
 _EXTRA_ATTRIBUTES: dict[str, set[str]] = {
     # style: font-family / font-size marks, paragraph indent, column widths;
     # class: layout hooks of imported content (e.g. a portal's image galleries)
@@ -47,7 +47,7 @@ _cleaner = nh3.Cleaner(
         for tag in nh3.ALLOWED_ATTRIBUTES.keys() | _EXTRA_ATTRIBUTES.keys()
     },
     # YouTube refuses to play without a Referer (error 153), and a proxy may
-    # tighten the page policy to same-origin — pin it on the embed itself.
+    # tighten the page policy to same-origin - pin it on the embed itself.
     set_tag_attribute_values={"iframe": {"referrerpolicy": "strict-origin-when-cross-origin"}},
     attribute_filter=_filter_attribute,
     filter_style_properties=_ALLOWED_STYLES,

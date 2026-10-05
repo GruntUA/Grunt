@@ -1,4 +1,4 @@
-"""Public site configuration — the handful of SystemSettings values the SPA
+"""Public site configuration - the handful of SystemSettings values the SPA
 needs before (and without) authentication: branding, locale, date/time
 presentation, whether self-registration is open.
 
@@ -16,7 +16,7 @@ import grunt
 async def get_public_config() -> dict[str, Any]:
     """Return the non-sensitive SystemSettings values consumed by the frontend.
 
-    ``languages`` is the UI language switcher's list (``[{code, name}]``) —
+    ``languages`` is the UI language switcher's list (``[{code, name}]``) -
     every locale with a translation catalog, named in its own language.
     """
     from grunt.i18n import translation_service

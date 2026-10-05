@@ -35,7 +35,7 @@ if TYPE_CHECKING:
     from pathlib import Path
 
 
-# name → Validator instance (singleton per class)
+# name -> Validator instance (singleton per class)
 _REGISTRY: dict[str, Validator] = {}
 
 

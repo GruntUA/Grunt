@@ -1,4 +1,4 @@
-"""Workflow engine — state machine for DocType documents.
+"""Workflow engine - state machine for DocType documents.
 
 A transition is applied through the regular update pipeline (``grunt.save_doc``),
 so the controller's ``validate``/``after_save`` and every hook run as for any
@@ -6,8 +6,8 @@ save; :func:`current_transition` tells them which transition is in progress.
 
 While a DocType has an active workflow (see grunt/workflow/guard.py):
 
-* its state field changes only through transitions (the internal system user —
-  imports, fixtures, migrations — is exempt);
+* its state field changes only through transitions (the internal system user -
+  imports, fixtures, migrations - is exempt);
 * a state's ``edit_roles`` limits who may edit/delete the document in it;
 * an ``on_edit`` transition is applied automatically when a user allowed to
   take it edits the document in its ``from_state``.
@@ -41,7 +41,7 @@ COMMENT_KEY = "__comment"
 
 @dataclass(frozen=True, slots=True)
 class ActiveTransition:
-    """The transition being applied — visible to controllers via :func:`current_transition`."""
+    """The transition being applied - visible to controllers via :func:`current_transition`."""
 
     doctype: str
     doc_id: str
@@ -87,7 +87,7 @@ class WorkflowEngine:
         *,
         on_edit: bool = False,
     ) -> list[WorkflowTransition]:
-        """Transitions *user* may apply now — buttons, or with ``on_edit`` the automatic ones."""
+        """Transitions *user* may apply now - buttons, or with ``on_edit`` the automatic ones."""
         from grunt.workflow.registry import get_active_workflow
 
         workflow = await get_active_workflow(doctype.name)
@@ -102,7 +102,7 @@ class WorkflowEngine:
                 continue
             if not user_may_take(t, user):
                 continue
-            # Check condition — transitions with prompt_fields defer this check
+            # Check condition - transitions with prompt_fields defer this check
             # to apply_transition(), once the dialog values are merged in, since
             # the condition often depends on a field the dialog itself fills in.
             if (
@@ -156,7 +156,7 @@ class WorkflowEngine:
         updates: dict = state_updates(workflow, transition.to_state)
         if transition.prompt_fields:
             # Only fields the transition explicitly asks for can be written
-            # this way — an RPC caller can't sneak other fields in via `values`.
+            # this way - an RPC caller can't sneak other fields in via `values`.
             for fieldname in transition.prompt_fields:
                 if fieldname in values:
                     updates[fieldname] = values[fieldname]
@@ -178,7 +178,7 @@ class WorkflowEngine:
             transition=transition,
             comment=comment,
         )
-        # The full update pipeline (validate, after_save, hooks, versions) —
+        # The full update pipeline (validate, after_save, hooks, versions) -
         # `grunt.save_doc` also enforces the doctype's own write permission,
         # so a reader can't move a document through its workflow.
         token = _active.set(active)
@@ -201,7 +201,7 @@ class WorkflowEngine:
         from grunt.events import fire as fire_hook
         from grunt.workflow.notify import notify_transition, previous_actor
 
-        # Who performed the previous action — read before this one is logged.
+        # Who performed the previous action - read before this one is logged.
         previous = None
         if "previous" in active.transition.notify:
             with contextlib.suppress(Exception):

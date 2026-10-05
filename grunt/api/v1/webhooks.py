@@ -1,4 +1,4 @@
-"""Webhook API — management via methods, public receiver via router."""
+"""Webhook API - management via methods, public receiver via router."""
 
 from __future__ import annotations
 

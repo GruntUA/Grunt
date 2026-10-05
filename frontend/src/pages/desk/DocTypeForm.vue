@@ -99,7 +99,7 @@ watch(
   { immediate: true },
 )
 
-// Workflow bar state (the transitions themselves are actions — global_form.js).
+// Workflow bar state (the transitions themselves are actions - global_form.js).
 const workflowUi = reactive({
   transitions,
   pending: pendingTransition,
@@ -126,7 +126,7 @@ const sidebarImage = computed(() => {
   return typeof val === 'string' && val ? val : null
 })
 const sidebarImageEditable = computed(() => !!imageField.value && perms.value.write && !imageField.value.read_only && !isSaving.value)
-// Saved right away, like any other sidebar action — unless the form already
+// Saved right away, like any other sidebar action - unless the form already
 // has unsaved edits, which the user should review and save together.
 async function setSidebarImage(url: string | null) {
   const field = imageField.value?.fieldname

@@ -4,11 +4,11 @@
 on where a permission check happens:
 
 - Row-level list/count filtering (``permissions/query.py``) needs it as a
-  SQL condition — necessarily a narrow subset (``field == value`` /
+  SQL condition - necessarily a narrow subset (``field == value`` /
   ``field != value`` on a literal or ``user``), since translating arbitrary
   boolean expressions to SQL safely is a much bigger undertaking.
 - Per-document checks (``permissions/rbac.py``) need it evaluated in Python
-  against an already-fetched row, via ``simpleeval`` — which supports the
+  against an already-fetched row, via ``simpleeval`` - which supports the
   full expression syntax, not just the SQL-translatable subset.
 
 Before this class existed, those two evaluations were two independent
@@ -36,8 +36,8 @@ if TYPE_CHECKING:
 
 # "<field> == <value>" / "<field> != <value>".
 #   <field>  a document field, or "<link_field>.<target_field>" for a single
-#            Link hop — translated to an IN-subquery against the linked table.
-#   <value>  the bare word `user` (→ current user's email) or a quoted literal.
+#            Link hop - translated to an IN-subquery against the linked table.
+#   <value>  the bare word `user` (-> current user's email) or a quoted literal.
 _MATCH_RE = re.compile(
     r"^(?P<field>[a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)?)"
     r"\s*(?P<op>==|!=)\s*(?P<value>.+)$"
@@ -48,7 +48,7 @@ def _operand(raw_value: str, user: User) -> tuple[bool, str]:
     """Resolve the RHS of a match expression to a concrete string.
 
     ``(True, value)`` for the bare word ``user`` or a quoted literal;
-    ``(False, "")`` for anything else (numbers, bare names) — which the caller
+    ``(False, "")`` for anything else (numbers, bare names) - which the caller
     must treat as "outside the supported grammar" and reject.
     """
     if raw_value == "user":
@@ -95,7 +95,7 @@ class PermissionMatch:
     ) -> ColumnElement | None:
         """SQL condition for row-level list/count filtering.
 
-        Returns None when this expression can't be translated — the caller
+        Returns None when this expression can't be translated - the caller
         must treat that as "can't enforce this rule" (deny/skip), never as
         "unrestricted", or an unparseable rule would silently expose every
         row instead of none.
@@ -109,7 +109,7 @@ class PermissionMatch:
         field, op, raw_value = self._parsed
         ok, value = _operand(raw_value, user)
         if not ok:
-            return None  # numbers, bare names, etc. — outside the supported form
+            return None  # numbers, bare names, etc. - outside the supported form
 
         if "." not in field:
             if not hasattr(table.c, field):
@@ -140,8 +140,8 @@ class PermissionMatch:
         lookup (the ``owner``/literal forms and full simpleeval expressions
         are delegated to the synchronous :meth:`evaluate`).
 
-        Fails CLOSED on any resolution failure — unparseable operand, a Link
-        that can't be resolved, or no active DB session — same as
+        Fails CLOSED on any resolution failure - unparseable operand, a Link
+        that can't be resolved, or no active DB session - same as
         :meth:`evaluate`.
         """
         if self._parsed is None or "." not in self._parsed[0]:
@@ -178,7 +178,7 @@ class PermissionMatch:
         """Python-level evaluation against a single already-fetched document.
 
         Fails CLOSED: an unevaluable expression (typo, unsupported syntax,
-        field missing from *doc*, ...) denies rather than grants — the
+        field missing from *doc*, ...) denies rather than grants - the
         opposite default would turn a broken permission rule into an open
         one. Logged so a misconfigured rule is visible to admins.
         """
@@ -203,7 +203,7 @@ class PermissionMatch:
         """Fast path for the same narrow ``field (==|!=) (user|'literal')``
         form ``to_sql`` handles, evaluated the same structural way: *field*
         always names a document field, *value* is resolved from the
-        (`user`|literal) grammar — never from a shared namespace.
+        (`user`|literal) grammar - never from a shared namespace.
 
         Without this, the fallback ``simpleeval`` path below injects `user`
         as a bare name meaning "current user's email" into the *same*
@@ -211,8 +211,8 @@ class PermissionMatch:
         field that happens to be named ``user`` (e.g. ``"user == user"``,
         the natural way to write "this row's `user` field is me" for a
         DocType whose owning-user field is literally called `user`) would
-        silently evaluate as `user.email == user.email` — always True,
-        regardless of the document's actual `user` field — since the doc's
+        silently evaluate as `user.email == user.email` - always True,
+        regardless of the document's actual `user` field - since the doc's
         own `user` value is never consulted at all. That's not a rejected
         expression (which fails closed via the `except` below); it's a
         *wrong* answer with no error, which is worse.
@@ -230,7 +230,7 @@ class PermissionMatch:
         elif len(raw_value) >= 2 and raw_value[0] == raw_value[-1] and raw_value[0] in "'\"":
             value = raw_value[1:-1]
         else:
-            return None  # numeric/bare-name literals etc. — outside this form
+            return None  # numeric/bare-name literals etc. - outside this form
 
         if field not in doc:
             log.warning("permissions.match_eval_error", doctype=doctype_name, match=self.expr)

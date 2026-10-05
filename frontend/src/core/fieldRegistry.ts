@@ -30,9 +30,9 @@ import { defineAsyncComponent, type Component } from 'vue'
  *
  * Mirrors the backend `column_spec` column mapping (grunt/metadata/field.py) closely
  * enough to tell the user, when they change a field's `fieldtype` in the builder,
- * whether the underlying database column will be retyped — or added / dropped —
+ * whether the underlying database column will be retyped - or added / dropped -
  * during the next `doctype sync`. Declared per field type in its own manifest.json,
- * same as `is_layout` — not in a separate lookup table.
+ * same as `is_layout` - not in a separate lookup table.
  *
  * This is a UI heads-up only. Nothing here mutates the field: existing values
  * are kept as-is and the authoritative migration still runs on sync.
@@ -70,16 +70,16 @@ export type PropSection =
   | 'tab'
 
 export interface FieldDefinition {
-  /** Unique identifier — matches DocField.fieldtype */
+  /** Unique identifier - matches DocField.fieldtype */
   type: string
   /** Human-readable name shown in the palette and properties panel */
   label: string
-  /** Icon displayed in the palette — kebab-case Lucide name (e.g. "calendar-clock") or emoji fallback */
+  /** Icon displayed in the palette - kebab-case Lucide name (e.g. "calendar-clock") or emoji fallback */
   icon: string
   /** Group label for the palette (e.g. "Базові", "Медіа") */
   category: string
   /**
-   * Layout separators (Section / Column / Tab) — not stored in DB.
+   * Layout separators (Section / Column / Tab) - not stored in DB.
    * They are excluded from the draggable palette and handled separately.
    */
   is_layout?: boolean
@@ -105,11 +105,11 @@ export interface FieldDefinition {
   storage_class?: StorageClass
 }
 
-// ── Internal registry ────────────────────────────────────────────────────────
+// Internal registry
 
 const _registry = new Map<string, FieldDefinition>()
 
-// ── Public API ────────────────────────────────────────────────────────────────
+// Public API
 
 /** Register a field type. Can be called from any app before mount. */
 export function registerField(def: FieldDefinition): void {
@@ -128,7 +128,7 @@ export function getAllFieldTypes(): string[] {
 
 /**
  * Returns palette groups for the designer sidebar.
- * Layout fields are excluded — use getLayoutFields() for those.
+ * Layout fields are excluded - use getLayoutFields() for those.
  * Groups maintain registration order within each category.
  */
 export function getPaletteGroups(): Array<{ category: string; fields: FieldDefinition[] }> {
@@ -146,12 +146,12 @@ export function getLayoutFields(): FieldDefinition[] {
   return [..._registry.values()].filter((d) => !!d.is_layout)
 }
 
-/** Set of layout field type strings (Section, Column, Tab) — use instead of hardcoded Sets. */
+/** Set of layout field type strings (Section, Column, Tab) - use instead of hardcoded Sets. */
 export function getLayoutTypeSet(): Set<string> {
   return new Set([..._registry.values()].filter((d) => !!d.is_layout).map((d) => d.type))
 }
 
-/** Types with no DB column of their own (layout, Table, MultiLink, Button, HTML…) — per manifest storage_class. */
+/** Types with no DB column of their own (layout, Table, MultiLink, Button, HTML…) - per manifest storage_class. */
 export function getNonPhysicalTypeSet(): Set<string> {
   return new Set([..._registry.values()].filter((d) => !!d.is_layout || d.storage_class === 'none').map((d) => d.type))
 }
@@ -189,7 +189,7 @@ export function getAsyncFieldComponent(type: string): Component {
 }
 
 
-// ── Core field registrations ─────────────────────────────────────────────────
+// Core field registrations
 
 /**
  * Discover and register all fields from the components/fields/ directory.

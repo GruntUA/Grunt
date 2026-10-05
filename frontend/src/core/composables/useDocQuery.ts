@@ -28,7 +28,7 @@ import {
 import { docsApi, type ListParams } from '@/core/api'
 import type { GruntDocument } from '@/types'
 
-// ── Query key factory ────────────────────────────────────────────────────────
+// Query key factory
 
 export const docKeys = {
     /** All queries for a doctype: ['docs', 'Customer'] */
@@ -43,7 +43,7 @@ export const docKeys = {
         ['docs', doctype, id] as const,
 }
 
-// ── Single document ──────────────────────────────────────────────────────────
+// Single document
 
 /**
  * Fetch a single document by id. Result is cached and deduplicated.
@@ -62,11 +62,11 @@ export function useDoc<T extends GruntDocument = GruntDocument>(
     })
 }
 
-// ── Document list ────────────────────────────────────────────────────────────
+// Document list
 
 /**
  * Fetch a paginated/filtered list of documents.
- * `params` can be a reactive ref — query re-runs automatically on change.
+ * `params` can be a reactive ref - query re-runs automatically on change.
  */
 export function useDocList(
     doctype: string,
@@ -80,7 +80,7 @@ export function useDocList(
     })
 }
 
-// ── Mutations with cache invalidation ────────────────────────────────────────
+// Mutations with cache invalidation
 
 /**
  * Create a new document. Invalidates the list cache on success.
@@ -150,7 +150,7 @@ export function useDocSave<T extends GruntDocument = GruntDocument>(
     })
 }
 
-// ── Link search ──────────────────────────────────────────────────────────────
+// Link search
 
 /**
  * Reactive link field search with debounce-friendly query key.

@@ -204,7 +204,7 @@ class DataImport(Document):
         """Resolve the attached file reference to its blob's path and file name.
 
         Only resolves through a real `File` document + the storage
-        backend — `self.file` is a plain string field an authenticated
+        backend - `self.file` is a plain string field an authenticated
         user (anyone with create rights on DataImport) fully controls.
         Treating it as a raw filesystem path (as this used to, via
         `Path(self.file).exists()`) is a path-traversal / arbitrary local
@@ -222,7 +222,7 @@ class DataImport(Document):
 
                 path = get_storage_backend().path(doc["content_hash"])
                 if path.exists():
-                    # Blobs carry no extension — the importer goes by the name.
+                    # Blobs carry no extension - the importer goes by the name.
                     return path, doc["file_name"]
 
         raise FileNotFoundError(f"Import file not found: {self.file}")
@@ -239,9 +239,7 @@ class DataImport(Document):
             )
         return imp.read(file_path, limit=limit)
 
-    # ──────────────────────────────────────────────────────────────────
     # Export helpers (called from API endpoints)
-    # ──────────────────────────────────────────────────────────────────
 
     @classmethod
     async def export_doctype(

@@ -10,7 +10,7 @@ export interface SidebarGroup {
 
 /** Skip a sidebar-count refetch if the last successful one for this workspace is younger than this. */
 const COUNTS_TTL = 30_000
-/** Don't paint a persisted count cache older than this — stale-by-days numbers are worse than none. */
+/** Don't paint a persisted count cache older than this - stale-by-days numbers are worse than none. */
 const COUNTS_CACHE_MAX_AGE = 24 * 60 * 60 * 1000
 const COUNTS_CACHE_KEY = 'grunt:sidebar-counts'
 
@@ -28,7 +28,7 @@ function writeCountsCache(cache: CountsCache): void {
   try {
     localStorage.setItem(COUNTS_CACHE_KEY, JSON.stringify(cache))
   } catch {
-    // private mode / quota exceeded — the in-memory copy still works this session
+    // private mode / quota exceeded - the in-memory copy still works this session
   }
 }
 
@@ -60,7 +60,7 @@ export const useAppStore = defineStore('app', () => {
   const counts = ref<Record<string, number>>({})
   const loading = ref(false)
   const _stale = ref(new Set<string>())
-  /** workspace name → timestamp of its last successful get_counts call */
+  /** workspace name -> timestamp of its last successful get_counts call */
   const _countsFetchedAt = ref<Record<string, number>>({})
 
   function markStale(name: string) {

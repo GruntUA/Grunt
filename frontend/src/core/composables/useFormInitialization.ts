@@ -46,7 +46,7 @@ export function useFormInitialization(params: FormInitializationParams) {
     params.dt.value = await params.loadDocType(params.doctype)
 
     if (!params.id) {
-      // Apply field defaults (lowest priority — can be overridden by duplicate/query params)
+      // Apply field defaults (lowest priority - can be overridden by duplicate/query params)
       for (const field of params.dt.value?.fields ?? []) {
         if (field.default != null && params.form.value[field.fieldname] == null) {
           let val: unknown = field.default
@@ -65,7 +65,7 @@ export function useFormInitialization(params: FormInitializationParams) {
           if (params.form.value[fieldname] == null) params.form.value[fieldname] = value
         }
       } catch {
-        // no-op — defaults are a convenience, not a requirement
+        // no-op - defaults are a convenience, not a requirement
       }
 
       applyHistoryObject(params.form.value, 'duplicate')

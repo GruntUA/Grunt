@@ -1,5 +1,5 @@
 /**
- * "Clear cache" for the current browser — drops what the client keeps between
+ * "Clear cache" for the current browser - drops what the client keeps between
  * page loads (translation bundle version, sidebar counts, the service worker's
  * response caches) and reloads, so schemas, menus and translations are fetched
  * fresh. User preferences, list layouts, form drafts, the session and the
@@ -18,7 +18,7 @@ export async function clearClientCache(): Promise<void> {
       }
     }
   } catch {
-    // storage unavailable — nothing cached there
+    // storage unavailable - nothing cached there
   }
 
   if ('caches' in window) {

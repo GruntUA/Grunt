@@ -1,4 +1,4 @@
-"""Public logging API — grunt.log.
+"""Public logging API - grunt.log.
 
 Usage in app controllers and hooks:
     from grunt.log import log
@@ -12,7 +12,7 @@ Usage in app controllers and hooks:
     bound.info("import.started")  # every entry carries task=import_katottg
 
 Logs are automatically routed to the appropriate file based on the calling
-module (e.g. hrm.* → logs/apps/hrm/hrm.log, grunt.* → logs/system/grunt.log).
+module (e.g. hrm.* -> logs/apps/hrm/hrm.log, grunt.* -> logs/system/grunt.log).
 """
 
 from __future__ import annotations
@@ -64,7 +64,7 @@ class _BaseLogger:
         return BoundLogger(module, {**self._bound, **kwargs})
 
     def _emit(self, level: str, event: str, kwargs: dict[str, object]) -> None:
-        # stack: _caller_module (0) → _emit (1) → level method (2) → caller (3)
+        # stack: _caller_module (0) -> _emit (1) -> level method (2) -> caller (3)
         module = self._module or _caller_module(3)
         if self._bound:
             kwargs = {**self._bound, **kwargs}
@@ -76,7 +76,7 @@ class GruntLogger(_BaseLogger):
 
 
 class BoundLogger(_BaseLogger):
-    """A GruntLogger with pinned context — module and bound kwargs fixed at bind()."""
+    """A GruntLogger with pinned context - module and bound kwargs fixed at bind()."""
 
     def __init__(self, module: str, bound: dict[str, object]) -> None:
         self._module = module

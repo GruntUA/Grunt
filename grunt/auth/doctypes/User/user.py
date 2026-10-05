@@ -1,4 +1,4 @@
-"""User DocType controller — password hashing, authentication, and user CRUD.
+"""User DocType controller - password hashing, authentication, and user CRUD.
 
 All business logic related to the User document lives here.
 JWT access tokens live in ``grunt.auth.service``; per-device sessions and their
@@ -33,13 +33,13 @@ _LOCKOUT_MINUTES = 30
 # (System Manager) and internal/system code bypass this.
 #
 # Two tiers:
-#  * _GUARDED — user-meaningful privileged fields; changing one is a real
+#  * _GUARDED - user-meaningful privileged fields; changing one is a real
 #    escalation attempt, so reject loudly and name the field.
-#  * _SILENT_RESET — framework-managed / read-only fields the form just echoes
+#  * _SILENT_RESET - framework-managed / read-only fields the form just echoes
 #    back; a stale echo is not an attack, so quietly restore the stored value
 #    instead of failing the whole save.
 _GUARDED_USER_FIELDS: dict[str, str] = {
-    "email": N_("Email"),  # autoname source — renaming an account is an admin action
+    "email": N_("Email"),  # autoname source - renaming an account is an admin action
     "is_active": N_("Active"),
     "signup_state": N_("Signup state"),
     "password": N_("Password"),
@@ -60,7 +60,7 @@ _SILENT_RESET_USER_FIELDS: frozenset[str] = frozenset(
 
 # Columns needed to authorize and identify an already-logged-in user on an
 # ordinary request (see grunt.auth.dependencies.current_user/optional_user).
-# Deliberately excludes password/token/MFA-secret columns — those only ever
+# Deliberately excludes password/token/MFA-secret columns - those only ever
 # matter during login, password-reset, or MFA setup, which fetch the user
 # themselves via get_user_by_email/get_user_by_id without this restriction.
 AUTH_CONTEXT_FIELDS: list[str] = [
@@ -89,7 +89,7 @@ AUTH_CONTEXT_FIELDS: list[str] = [
     "last_login",
 ]
 
-# ── Document Controller ───────────────────────────────────────────────────
+# Document Controller
 
 
 class User(Document):
@@ -99,7 +99,7 @@ class User(Document):
     through the generic document API (form, import, etc.).
     """
 
-    # Field annotations for IDE support — values live in self.data at runtime.
+    # Field annotations for IDE support - values live in self.data at runtime.
     email: str
     first_name: str
     last_name: str
@@ -143,7 +143,7 @@ class User(Document):
 
         The ``{"role": "All", "match": "name == user"}`` permission on User lets
         any authenticated user save *their own* profile via the generic form.
-        This keeps that to profile fields only — roles, activation,
+        This keeps that to profile fields only - roles, activation,
         password and MFA state stay admin-only. System Manager and
         internal/system code (registration, fixtures, ``_assign_default_role``)
         are unrestricted.
@@ -162,7 +162,7 @@ class User(Document):
             grunt.throw(_("Not permitted to create users"), "FORBIDDEN")
 
         # Roles are only in the merged payload when the client actually submitted
-        # the child table (see update_document) — so key presence == an attempt.
+        # the child table (see update_document) - so key presence == an attempt.
         if "roles" in self.data:
             stored = await grunt.db.get_all(
                 "UserRole",
@@ -176,13 +176,13 @@ class User(Document):
             if submitted != {r["role_name"] for r in stored}:
                 grunt.throw(_("Not permitted to change roles"), "FORBIDDEN")
 
-        # Framework-managed fields the form only echoes back — quietly restore
+        # Framework-managed fields the form only echoes back - quietly restore
         # the stored value rather than failing the save.
         for field in _SILENT_RESET_USER_FIELDS:
             if field in self.data:
                 self.data[field] = await grunt.db.get_value("User", self.name, field)
 
-        # User-meaningful privileged fields — changing one is an escalation
+        # User-meaningful privileged fields - changing one is an escalation
         # attempt: reject and say exactly which field.
         for field, label in _GUARDED_USER_FIELDS.items():
             if field not in self.data:
@@ -211,7 +211,7 @@ class User(Document):
         raw = self.data.get("password")
         if raw:
             if not await _is_internal_context():
-                # Interactive create (admin form / import) — hold it to policy.
+                # Interactive create (admin form / import) - hold it to policy.
                 # The register_* endpoints already checked before reaching here.
                 from grunt.auth.password_policy import enforce_password_policy
 
@@ -253,7 +253,7 @@ class UserPublic(Schema):
 
 
 # Convenience system-user singleton for internal tasks. Admin rights come from
-# holding the "System Manager" role, same as any other user — no special-case
+# holding the "System Manager" role, same as any other user - no special-case
 # bypass for this identity.
 SYSTEM_USER = User(
     doctype="User",
@@ -269,14 +269,14 @@ SYSTEM_USER = User(
 
 
 def _norm_scalar(value: Any) -> str:
-    """Loose scalar comparison key for _enforce_self_edit_scope — treats
+    """Loose scalar comparison key for _enforce_self_edit_scope - treats
     None / "" / whitespace as equal and compares everything else by string."""
     if value is None:
         return ""
     return str(value).strip()
 
 
-# ── Password helpers ──────────────────────────────────────────────────────
+# Password helpers
 
 
 def _hash_password_sync(plain: str) -> str:
@@ -292,7 +292,7 @@ def _verify_password_sync(plain: str, hashed: str) -> bool:
 
 async def _is_internal_context() -> bool:
     """True when the active context is the internal SYSTEM_USER (bootstrap,
-    fixtures, registration flows) or has no user at all — those paths must not
+    fixtures, registration flows) or has no user at all - those paths must not
     be blocked by the interactive password policy."""
     try:
         current = grunt.get_user()
@@ -317,11 +317,11 @@ async def verify_password(plain: str, hashed: str | None) -> bool:
     return await anyio.to_thread.run_sync(_verify_password_sync, plain, hashed)
 
 
-# ── User CRUD ─────────────────────────────────────────────────────────────
+# User CRUD
 
 
 async def _get_user_by(fields: list[str] | None = None, **filter_kwargs: str) -> User | None:
-    """Look up a user by a single field (email or name). Runs as SYSTEM_USER —
+    """Look up a user by a single field (email or name). Runs as SYSTEM_USER -
     needed pre-login, when no real user is in context yet.
 
     ``fields`` restricts the SELECT to those columns (see ``AUTH_CONTEXT_FIELDS``);
@@ -347,7 +347,7 @@ async def get_user_by_email(email: str, *, fields: list[str] | None = None) -> U
 
 
 async def get_users_by_emails(emails: list[str], *, fields: list[str] | None = None) -> list[User]:
-    """Batch lookup by email — one query instead of N :func:`get_user_by_email` calls.
+    """Batch lookup by email - one query instead of N :func:`get_user_by_email` calls.
 
     Unlike :func:`get_user_by_email`, this does not attach ``roles`` (not
     needed by its current callers, e.g. the sidebar's people list).
@@ -370,7 +370,7 @@ async def get_user_by_id(user_id: str, *, fields: list[str] | None = None) -> Us
 
 
 async def get_auth_context_user(uid: str) -> User | None:
-    """Resolve the authenticated user for request context — email/is_active/roles
+    """Resolve the authenticated user for request context - email/is_active/roles
     plus display profile fields (``AUTH_CONTEXT_FIELDS``).
 
     Used by :func:`grunt.auth.dependencies.current_user`/``optional_user`` on
@@ -378,7 +378,7 @@ async def get_auth_context_user(uid: str) -> User | None:
     generic per-document cache, see ``grunt/cache/document_cache.py``) instead
     of hitting the DB each time. The cache is invalidated on every ``User``
     write (see ``DocumentAPI._invalidate_list_cache``), so a role change or
-    deactivation still takes effect on the very next request — a cache hit is
+    deactivation still takes effect on the very next request - a cache hit is
     never more than that stale-write race, not a TTL.
     """
     from grunt.config import settings
@@ -399,7 +399,7 @@ async def get_auth_context_user(uid: str) -> User | None:
 
 
 async def list_users() -> list[User]:
-    """List all users. Runs as SYSTEM_USER — callers (CLI, admin API) gate access
+    """List all users. Runs as SYSTEM_USER - callers (CLI, admin API) gate access
     themselves before calling this."""
     from grunt.auth.doctypes.UserRole.user_role import get_user_roles
     from grunt.site.manager import site_manager
@@ -445,7 +445,7 @@ async def create_user(
 
 
 async def _grant_system_manager(user_id: str) -> None:
-    """Ensure the "System Manager" role exists and assign it to *user_id* —
+    """Ensure the "System Manager" role exists and assign it to *user_id* -
     used to make the first user on a site an administrator."""
     from grunt.auth.doctypes.Role.role import Role
 
@@ -542,7 +542,7 @@ def _auth_user_dump(user: User) -> dict[str, Any]:
 async def _guard_registration() -> None:
     """Block self-service registration unless ``allow_user_registration`` is on.
 
-    The very first user is always allowed — that path is the setup wizard /
+    The very first user is always allowed - that path is the setup wizard /
     ``grunt site create`` bootstrap, not public sign-up.
     """
     from grunt.site.settings import get_setting
@@ -556,7 +556,7 @@ async def _guard_registration() -> None:
 async def _assign_default_role(user_id: str | None) -> None:
     """Give a freshly registered user the configured ``default_role`` (if any).
 
-    Runs as SYSTEM — registration happens in a guest context that cannot
+    Runs as SYSTEM - registration happens in a guest context that cannot
     write the admin-only ``User.roles`` table.
     """
     from grunt.site.settings import get_setting
@@ -952,7 +952,7 @@ async def _set_signup_state(user_id: str, state: str) -> bool:
 
 @grunt.whitelist(roles=["System Manager"])
 async def approve_user_api(user_id: str) -> bool:
-    """Approve a pending registration — the user can now sign in. System Manager only."""
+    """Approve a pending registration - the user can now sign in. System Manager only."""
     return await _set_signup_state(user_id, "approved")
 
 
@@ -970,7 +970,7 @@ async def set_user_password_api(
 
     A user may change *their own* password by passing their ``current_password``.
     When the account has no password yet (provisioned via OIDC / email link),
-    that check is skipped — it is a first-time set. Changing *someone else's*
+    that check is skipped - it is a first-time set. Changing *someone else's*
     password requires the System Manager role.
     """
     from grunt.auth.password_policy import enforce_password_policy
@@ -1073,7 +1073,7 @@ async def forgot_password_api(email: str, request: Request | None = None) -> boo
         from grunt.email.service import email_service
         from grunt.i18n import use_language
 
-        # The mail is for the account owner — render it in *their* language.
+        # The mail is for the account owner - render it in *their* language.
         with use_language(user.language):
             html_body = await grunt.render_template(
                 "password_reset.html",
@@ -1099,7 +1099,7 @@ async def forgot_password_api(email: str, request: Request | None = None) -> boo
         await session.flush()
         log.info("auth.forgot_password", email=user.email)
     except Exception:
-        # Stay silent to the caller (anti-enumeration), but keep the traceback —
+        # Stay silent to the caller (anti-enumeration), but keep the traceback -
         # a swallowed warning here left us blind when a request landed mid-reload.
         log.warning("auth.forgot_password_email_queue_failed", email=user.email, exc_info=True)
 

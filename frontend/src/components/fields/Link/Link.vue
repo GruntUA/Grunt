@@ -12,10 +12,10 @@ const props = defineProps<{
   modelValue: unknown
   disabled?: boolean
   error?: string
-  /** Current document values — used to evaluate link_filters with "eval:" prefix. */
+  /** Current document values - used to evaluate link_filters with "eval:" prefix. */
   doc?: Record<string, unknown>
   /**
-   * Flush "grid cell" look for use inside the inline child table — a
+   * Flush "grid cell" look for use inside the inline child table - a
    * borderless, transparent input the height of a table row, matching the
    * other inline cell editors instead of a standalone bordered search box.
    */

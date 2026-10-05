@@ -2,7 +2,7 @@ import { ref, computed, watchEffect } from 'vue'
 
 export type Theme = 'light' | 'dark' | 'system'
 
-// ── Singleton state ──────────────────────────────────────────────────────
+// Singleton state
 
 const systemDark = window.matchMedia('(prefers-color-scheme: dark)')
 const stored = localStorage.getItem('grunt_theme') as Theme | null
@@ -20,7 +20,7 @@ watchEffect(() => {
   document.documentElement.classList.toggle('dark', isDark.value)
 })
 
-// ── Public API ───────────────────────────────────────────────────────────
+// Public API
 
 export function useColorMode() {
   function setTheme(theme: Theme) {

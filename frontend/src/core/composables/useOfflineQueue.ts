@@ -1,11 +1,11 @@
 /**
- * Offline change queue — document create / update / delete made without a
+ * Offline change queue - document create / update / delete made without a
  * connection are kept in IndexedDB and sent when it returns.
  *
  * Safe by construction:
  *  - only document CRUD (`/api/v1/docs/...`) is queued; actions and other RPCs
  *    (send, sign, workflow…) fail instead of running later on stale state;
- *  - no credentials are stored — a replay uses whatever session is current,
+ *  - no credentials are stored - a replay uses whatever session is current,
  *    and only replays the changes of the user who made them;
  *  - an update carries the `modified_at` it was based on
  *    (`__base_modified_at`): if someone changed the document meanwhile the
@@ -21,7 +21,7 @@ import i18n from '@/plugins/i18n'
 const t = (key: string, params: Record<string, unknown> = {}): string => i18n.global.t(key, params)
 
 const DB_NAME = 'grunt_offline'
-const DB_VERSION = 2 // v1 stored bearer tokens — its store is dropped on upgrade
+const DB_VERSION = 2 // v1 stored bearer tokens - its store is dropped on upgrade
 const STORE = 'changes'
 
 export type ChangeStatus = 'pending' | 'conflict' | 'failed'
@@ -71,7 +71,7 @@ export function parseDocUrl(method: string, url: string): { doctype: string; doc
   return null
 }
 
-// ── IndexedDB ──────────────────────────────────────────────────────────────
+// IndexedDB
 
 function openDB(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
@@ -108,12 +108,12 @@ export async function refreshQueue(): Promise<void> {
 }
 
 async function put(change: QueuedChange): Promise<void> {
-  // Items read from `queue` are Vue proxies — IndexedDB can't structured-clone those.
+  // Items read from `queue` are Vue proxies - IndexedDB can't structured-clone those.
   const plain = JSON.parse(JSON.stringify(change)) as QueuedChange
   await tx('readwrite', (s) => s.put(plain))
 }
 
-// ── Public API ─────────────────────────────────────────────────────────────
+// Public API
 
 /** Queue a document change that failed for lack of a connection. */
 export async function enqueue(method: string, url: string, data: unknown): Promise<boolean> {
@@ -169,7 +169,7 @@ export async function flush(): Promise<number> {
       synced++
     } catch (err: any) {
       const status = err?.response?.status as number | undefined
-      if (!status || status >= 500) break // offline again / server trouble — try later
+      if (!status || status >= 500) break // offline again / server trouble - try later
       await put({ ...change, status: status === 409 ? 'conflict' : 'failed', error: errorMessage(err) })
     }
   }
@@ -182,7 +182,7 @@ export async function retry(id: number): Promise<number> {
   const change = queue.value.find((c) => c.id === id)
   if (!change) return 0
   const data = { ...change.data }
-  // Retrying a conflict means "apply mine anyway" — drop the stale base.
+  // Retrying a conflict means "apply mine anyway" - drop the stale base.
   if (change.status === 'conflict') delete data.__base_modified_at
   await put({ ...change, data, status: 'pending', error: undefined })
   return flush()

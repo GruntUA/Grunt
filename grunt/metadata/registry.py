@@ -1,9 +1,8 @@
-"""DocType Registry — in-memory cache of DocType definitions with lazy loading.
+"""DocType Registry - in-memory cache of DocType definitions with lazy loading.
 
 Source of truth: ``grunt_meta_doctype`` table (JSON column ``data``).
 
 Startup behaviour
------------------
 * Core/system DocTypes are loaded eagerly (they need table sync on first run).
 * User-created DocTypes are **lazy-loaded**: only their names are fetched at
   startup; the full definition is loaded from the DB the first time
@@ -80,7 +79,7 @@ _CORE_SYNCED_DOCTYPE_ATTRS = frozenset(
 )
 
 # Per-field properties that _inject_core() always overwrites from the bundled
-# core JSON — same rationale as _CORE_SYNCED_DOCTYPE_ATTRS, at field level.
+# core JSON - same rationale as _CORE_SYNCED_DOCTYPE_ATTRS, at field level.
 _CORE_SYNCED_FIELD_ATTRS = frozenset(
     {
         "fieldtype",
@@ -116,11 +115,11 @@ class DocTypeRegistry:
         self._known_names: set[str] = set()
 
         # O(1) case-insensitive lookup indices.
-        # Maps name.lower() → canonical name.  Updated by every write method.
+        # Maps name.lower() -> canonical name.  Updated by every write method.
         self._lower_index: dict[str, str] = {}  # for loaded _doctypes
         self._known_lower: dict[str, str] = {}  # for lazy _known_names
 
-    # ── Index helpers ─────────────────────────────────────────────────────
+    # Index helpers
 
     def _index_add(self, name: str) -> None:
         """Add *name* to the loaded-doctype index."""
@@ -155,12 +154,12 @@ class DocTypeRegistry:
         log.info("registry.cache_cleared")
 
     def reset(self) -> None:
-        """Discard ALL in-memory state — loaded DocTypes and the known-names
+        """Discard ALL in-memory state - loaded DocTypes and the known-names
         index alike.
 
         Test-harness use only: unlike :meth:`clear_cache` (which demotes
         loaded DocTypes to "known, reload from DB on next :meth:`get`"),
-        fixtures that repopulate the registry directly (bypassing the DB —
+        fixtures that repopulate the registry directly (bypassing the DB -
         parsing JSON files straight into ``_doctypes``) need every index
         wiped, not demoted, or a name reused across tests can resolve
         through a stale ``_lower_index``/``_known_lower`` entry left over
@@ -171,14 +170,14 @@ class DocTypeRegistry:
         self._lower_index.clear()
         self._known_lower.clear()
 
-    # ── Read ─────────────────────────────────────────────────────────────
+    # Read
 
     async def prefetch_names(self, session: AsyncSession) -> None:
         """Record names of ALL DocTypes (core and user-created alike) without
         loading their data.
 
-        Call this at startup instead of :meth:`load_all`. Full definitions —
-        core or user — are loaded lazily from ``grunt_meta_doctype`` on first
+        Call this at startup instead of :meth:`load_all`. Full definitions -
+        core or user - are loaded lazily from ``grunt_meta_doctype`` on first
         :meth:`get`. Schema/definition merging from bundled core JSON only
         happens via ``grunt db migrate``, which persists the merged result
         into ``grunt_meta_doctype`` so the server never needs to touch the
@@ -219,7 +218,7 @@ class DocTypeRegistry:
                 dt = DocType.model_validate(row["data"])
                 # Mirrors _lazy_load: a stale cached Table (compiler.py's
                 # _TABLE_CACHE) would keep excluding columns for fields added
-                # since it was built — e.g. after the hot-reload middleware's
+                # since it was built - e.g. after the hot-reload middleware's
                 # clear_cache() + list_all() picks up a schema change made by
                 # `grunt migrate` in another process, reads would silently
                 # keep missing the new column until a full restart.
@@ -238,13 +237,13 @@ class DocTypeRegistry:
         Prefers the ambient request/test session (whatever ``grunt.context()``
         currently has bound) over site_manager's own per-site session.
         site_manager resolves "the current site" via a process-global fallback
-        (``sites/currentsite.txt`` when no ContextVar is set) — correct for a
+        (``sites/currentsite.txt`` when no ContextVar is set) - correct for a
         real, single-site request, but wrong the moment more than one site's
         database is reachable from the same process (e.g. a dev box that also
         runs the test suite): an ambient session already means "this call is
         happening against a specific, known database", so reuse it instead of
         letting site_manager guess. Only falls back to site_manager when
-        nothing is bound — background tasks/schedulers with their own raw
+        nothing is bound - background tasks/schedulers with their own raw
         session still work exactly as before.
         """
         from grunt.local import _session_ctx
@@ -258,7 +257,7 @@ class DocTypeRegistry:
         else:
             from grunt.site.manager import site_manager
 
-            # Fail closed on ANY failure in this path — not just resolving
+            # Fail closed on ANY failure in this path - not just resolving
             # site_name/maker, but opening the connection and running the
             # query too (engine creation is lazy, so a nonexistent/misconfigured
             # site only fails once actually connected). A background task
@@ -301,27 +300,27 @@ class DocTypeRegistry:
         3. Case-insensitive match in lazy ``_known_names`` via ``_known_lower``,
            then load from DB.
 
-        Deliberately no singular/plural guessing — a DocType is matched by its
+        Deliberately no singular/plural guessing - a DocType is matched by its
         real name only, never by a heuristically inferred one.
         """
-        # 1. Exact match — O(1)
+        # 1. Exact match - O(1)
         dt = self._doctypes.get(name)
         if dt is not None:
             return dt
 
         name_lower = name.lower()
 
-        # 2. Case-insensitive match against loaded doctypes — O(1)
+        # 2. Case-insensitive match against loaded doctypes - O(1)
         canonical = self._lower_index.get(name_lower)
         if canonical:
             cached = self._doctypes.get(canonical)
             if cached is not None:
                 return cached
-            # Stale index entry (points at a name no longer in _doctypes) —
+            # Stale index entry (points at a name no longer in _doctypes) -
             # self-heal rather than KeyError, and fall through to lazy-load.
             self._index_remove(canonical)
 
-        # 3. Resolve against lazy known-names index — O(1)
+        # 3. Resolve against lazy known-names index - O(1)
         candidate = name if name in self._known_names else self._known_lower.get(name_lower)
 
         if candidate:
@@ -342,9 +341,9 @@ class DocTypeRegistry:
         field lookups, cached derived properties (``table``, ``get_valid_columns``,
         ...), or any other metadata query. Use :meth:`get` instead only when the
         raw pydantic :class:`DocType` model itself is required (compiling,
-        syncing, editing the definition) — it still raises ``404`` on a miss.
+        syncing, editing the definition) - it still raises ``404`` on a miss.
 
-        Unlike :meth:`get`, a missing DocType is not exceptional here — callers
+        Unlike :meth:`get`, a missing DocType is not exceptional here - callers
         that need the old "404 if missing" behaviour raise it themselves after
         a ``None`` check, so the choice is explicit at each call site instead of
         implicit in this shared accessor.
@@ -362,7 +361,7 @@ class DocTypeRegistry:
 
         For call sites that need an existence check or an optional lookup
         without eagerly assuming the DocType is already in memory (core
-        DocTypes are no longer guaranteed to be warm at boot — see
+        DocTypes are no longer guaranteed to be warm at boot - see
         :meth:`prefetch_names`).
         """
         try:
@@ -386,7 +385,7 @@ class DocTypeRegistry:
 
         return list(self._doctypes.values())
 
-    # ── Write ────────────────────────────────────────────────────────────
+    # Write
 
     @staticmethod
     def _merge_core_fields(active_dt: DocType, doctype: DocType) -> list[DocField]:
@@ -398,7 +397,7 @@ class DocTypeRegistry:
     def _sync_core_doctype_attrs(active_dt: DocType, doctype: DocType) -> None:
         """Overwrite ``active_dt``'s always-synced top-level attrs from the JSON source.
 
-        Only ``_CORE_SYNCED_DOCTYPE_ATTRS`` is touched — everything else (permissions,
+        Only ``_CORE_SYNCED_DOCTYPE_ATTRS`` is touched - everything else (permissions,
         autoname, ...) is a Studio/user customization and is left as-is.
         """
         for attr in _CORE_SYNCED_DOCTYPE_ATTRS:
@@ -450,7 +449,7 @@ class DocTypeRegistry:
             try:
                 active_dt = DocType.model_validate(existing["data"])
             except Exception:
-                # Stored data is invalid — fall back to JSON and repair.
+                # Stored data is invalid - fall back to JSON and repair.
                 log.warning(
                     "registry.core_stored_invalid",
                     name=doctype.name,
@@ -466,7 +465,7 @@ class DocTypeRegistry:
             else:
                 # `permissions` is deliberately excluded from
                 # _CORE_SYNCED_DOCTYPE_ATTRS (a Studio customisation, seeded
-                # once and never overwritten automatically) — but that means
+                # once and never overwritten automatically) - but that means
                 # a permissions change committed to the JSON source silently
                 # sits inert on every existing site until someone remembers
                 # to run `grunt doctype sync <Name>`. Surface the drift
@@ -579,7 +578,7 @@ class DocTypeRegistry:
     ) -> None:
         """Update an existing DocType, re-sync its table, refresh cache."""
         if doctype.name not in self._doctypes:
-            # DocType may be known but not yet lazy-loaded — check DB before failing.
+            # DocType may be known but not yet lazy-loaded - check DB before failing.
             exists = await session.scalar(
                 select(GruntMetaDoctype.c.name).where(GruntMetaDoctype.c.name == doctype.name)
             )
@@ -624,7 +623,7 @@ class DocTypeRegistry:
         invalidate_permission_cache(name)
         log.info("registry.deleted", name=name)
 
-    # ── Validation helpers ───────────────────────────────────────────────
+    # Validation helpers
 
     def _validate_new(self, doctype: DocType) -> None:
         """Ensure name is unique and fields are valid."""
@@ -667,11 +666,11 @@ class DocTypeRegistry:
                 )
 
 
-# ── Per-site resolution ──────────────────────────────────────────────────
+# Per-site resolution
 #
 # One process can serve multiple sites (tenants), selected per-request via
 # the ``current_site`` ContextVar (set by SiteContextMiddleware from the Host
-# header). A DocType registry must never be shared across sites — the same
+# header). A DocType registry must never be shared across sites - the same
 # name can mean a different definition per site. Instead of threading a site
 # argument through every one of the ~70 call sites that do
 # ``doctype_registry.get(...)``/``.list_all()``/``._doctypes...``, resolve
@@ -712,15 +711,15 @@ class _DocTypeRegistryProxy:
     """Forwards every attribute access to the current site's DocTypeRegistry.
 
     Keeps ``doctype_registry`` importable exactly as before at every existing
-    call site — ``doctype_registry.get(...)``, ``.list_all()``, even direct
-    ``._doctypes.clear()``/``[name] = x`` — while resolving which per-site
+    call site - ``doctype_registry.get(...)``, ``.list_all()``, even direct
+    ``._doctypes.clear()``/``[name] = x`` - while resolving which per-site
     instance backs the call freshly on every access.
 
     ``__delattr__`` forwards too, for the same reason ``__setattr__`` does:
     ``unittest.mock.patch("...doctype_registry.get", ...)`` sets the mock via
     ``setattr`` (forwarded onto the real registry instance, shadowing its
-    class method) but decides at teardown — based on whether "get" was ever
-    in *this proxy's own* ``__dict__``, which it never is — to restore via
+    class method) but decides at teardown - based on whether "get" was ever
+    in *this proxy's own* ``__dict__``, which it never is - to restore via
     ``delattr`` rather than ``setattr``. Without forwarding that delete too,
     teardown raises ``AttributeError`` on the proxy instead of removing the
     shadowing attribute from the real registry object.

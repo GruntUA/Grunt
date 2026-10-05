@@ -1,4 +1,4 @@
-"""Idempotent POSTs — a retried create must not create a second document.
+"""Idempotent POSTs - a retried create must not create a second document.
 
 A client that may resend a POST (the offline queue replaying a create whose
 first attempt's response was lost) sends ``Idempotency-Key: <uuid>``. The first

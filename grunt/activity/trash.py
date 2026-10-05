@@ -1,4 +1,4 @@
-"""Soft-delete snapshots — Ґрунтів кошик видалених документів.
+"""Soft-delete snapshots - Ґрунтів кошик видалених документів.
 
 Коли документ видаляється, ядро (:class:`~grunt.document.mixins.write.DocumentWriteMixin`)
 робить повний ``get_document`` знімок (скаляри + дочірні таблиці + MultiLink) і
@@ -6,7 +6,7 @@
 цей знімок і кладемо його у DocType ``DeletedDocument``, звідки документ можна
 відновити методом :func:`restore`.
 
-Реєстрація хука — у :mod:`grunt.main` (wildcard ``after_delete``), поряд із
+Реєстрація хука - у :mod:`grunt.main` (wildcard ``after_delete``), поряд із
 ``grunt.activity.log_activity``.
 """
 
@@ -38,7 +38,7 @@ def _title_of(dt: Any, doc: dict[str, Any]) -> str:
 async def snapshot_deleted_document(event: str, **kwargs: Any) -> None:
     """``after_delete`` wildcard hook: stash a restorable JSON snapshot.
 
-    Best-effort — a failure here is logged and never blocks the delete
+    Best-effort - a failure here is logged and never blocks the delete
     (``_call_hook`` already swallows exceptions, but we guard anyway so a
     partial snapshot is never written).
     """

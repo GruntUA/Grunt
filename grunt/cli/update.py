@@ -1,4 +1,4 @@
-"""grunt update — оновлення CLI, фреймворку та додатків через git."""
+"""grunt update - оновлення CLI, фреймворку та додатків через git."""
 
 from __future__ import annotations
 
@@ -16,9 +16,7 @@ from rich.console import Console
 console = Console(force_terminal=True, color_system="truecolor")
 
 
-# ---------------------------------------------------------------------------
 # Bench / site discovery
-# ---------------------------------------------------------------------------
 
 
 def _get_bench_dir() -> Path | None:
@@ -48,7 +46,7 @@ def _find_apps_dir() -> Path | None:
 
 
 def _grunt_app_dir() -> Path:
-    """apps/grunt/ — корінь фреймворку (де pyproject.toml і package.json)."""
+    """apps/grunt/ - корінь фреймворку (де pyproject.toml і package.json)."""
     return Path(__file__).resolve().parent.parent.parent
 
 
@@ -73,7 +71,7 @@ def _run_mise(cwd: Path, *args: str) -> bool:
         return False
     subprocess.run([mise, "trust"], cwd=str(cwd), capture_output=True)
     cmd = [mise]
-    # "install" — пряма команда mise, решта — задачі (mise run <task>)
+    # "install" - пряма команда mise, решта - задачі (mise run <task>)
     if args and args[0] in {"deps", "db:migrate", "serve", "dev", "bootstrap"}:
         cmd.append("run")
     cmd.extend(args)
@@ -81,9 +79,7 @@ def _run_mise(cwd: Path, *args: str) -> bool:
     return result.returncode == 0
 
 
-# ---------------------------------------------------------------------------
 # git helpers
-# ---------------------------------------------------------------------------
 
 
 def _git_pull(path: Path, label: str) -> bool:
@@ -179,20 +175,18 @@ def _install_deps(path: Path, label: str) -> None:
         _run_mise(path, "deps")
 
 
-# ---------------------------------------------------------------------------
 # package / npm / migrate helpers
-# ---------------------------------------------------------------------------
 
 
 def _run_package_update(upgrade: bool = False) -> None:
     """Синхронізує Python-оточення з ``uv.lock``.
 
     За замовчуванням застосовує САМЕ ті версії, що зафіксовані в lock-файлі
-    (який щойно підтягнув ``git pull``) — це не ламає оточення. ``--all-extras``
+    (який щойно підтягнув ``git pull``) - це не ламає оточення. ``--all-extras``
     гарантує, що dev-інструменти й драйвери БД лишаються на місці.
 
     ``upgrade=True`` (прапорець ``--upgrade-packages``) додатково піднімає всі
-    пакети до найновіших сумісних версій — робити свідомо.
+    пакети до найновіших сумісних версій - робити свідомо.
     """
     app_dir = _grunt_app_dir()
     uv = _find_uv()
@@ -218,7 +212,7 @@ def _run_package_update(upgrade: bool = False) -> None:
         console.print("  [green]✓[/green] Python packages synced")
 
 
-# dev tooling — an installable list for the pip fallback (uv reads the
+# dev tooling - an installable list for the pip fallback (uv reads the
 # [dependency-groups] table directly).
 _DEV_DEPS = ["pytest", "pytest-asyncio", "pytest-cov", "httpx", "ruff", "mypy"]
 
@@ -266,13 +260,13 @@ def _run_npm_install_for(app_dir: Path, upgrade: bool = False) -> None:
         else:
             console.print("  [yellow]⚠[/yellow]  npm update failed")
         return
-    # `npm ci` коли є lock — ставить РІВНО за package-lock.json, без правок.
+    # `npm ci` коли є lock - ставить РІВНО за package-lock.json, без правок.
     use_ci = (app_dir / "package-lock.json").exists()
     verb = "ci" if use_ci else "install"
     console.print(f"  [dim]npm {verb} ({app_dir.name})...[/dim]")
     result = subprocess.run([*npm_run, verb], cwd=str(app_dir), check=False)
     if result.returncode != 0 and use_ci:
-        # lock розійшовся з package.json — відкат на install
+        # lock розійшовся з package.json - відкат на install
         console.print("  [dim]npm ci failed, trying npm install...[/dim]")
         result = subprocess.run([*npm_run, "install"], cwd=str(app_dir), check=False)
     if result.returncode == 0:
@@ -289,7 +283,7 @@ def _run_migrations(site: str | None) -> None:
             console.print("  [dim]No sites, migrations skipped[/dim]")
             return
     except Exception:
-        pass  # site manager unavailable → let db_migrate decide
+        pass  # site manager unavailable -> let db_migrate decide
 
     from grunt.cli.db import db_migrate
 
@@ -299,13 +293,11 @@ def _run_migrations(site: str | None) -> None:
     except SystemExit as exc:
         if exc.code:
             console.print("  [yellow]⚠[/yellow]  Migrations failed")
-    except Exception as exc:  # noqa: BLE001 — update must not crash on migrate
+    except Exception as exc:  # noqa: BLE001 - update must not crash on migrate
         console.print(f"  [yellow]⚠[/yellow]  Migrations skipped: {exc}")
 
 
-# ---------------------------------------------------------------------------
 # Command
-# ---------------------------------------------------------------------------
 
 
 @click.group("update")
@@ -369,7 +361,7 @@ def update(
     console.print("[bold]⚡ Grunt Update[/bold]")
     console.print()
 
-    # ── 1. CLI ──────────────────────────────────────────────────────
+    # 1. CLI
     if update_all or update_cli:
         console.print("[bold cyan]CLI[/bold cyan]")
         cli_dir = Path.home() / ".grunt-cli"
@@ -381,7 +373,7 @@ def update(
             console.print("  [yellow]⚠[/yellow]  ~/.grunt-cli is not a git repository, skipping")
         console.print()
 
-    # ── 2. Framework ────────────────────────────────────────────────
+    # 2. Framework
     if update_all or update_framework:
         console.print("[bold cyan]Framework[/bold cyan]")
         framework_dir = _grunt_app_dir()
@@ -393,7 +385,7 @@ def update(
             console.print("  [yellow]⚠[/yellow]  Grunt framework not found")
         console.print()
 
-    # ── 3. Apps ─────────────────────────────────────────────────────
+    # 3. Apps
     if update_all or update_apps:
         console.print("[bold cyan]Apps[/bold cyan]")
         apps_dir = _find_apps_dir()
@@ -414,7 +406,7 @@ def update(
             console.print("  [dim]Apps directory not found[/dim]")
         console.print()
 
-    # ── 4. Python пакети ────────────────────────────────────────────
+    # 4. Python пакети
     if not skip_packages:
         console.print("[bold cyan]Python packages[/bold cyan]")
         _run_package_update(upgrade=upgrade_packages)
@@ -423,7 +415,7 @@ def update(
         console.print("[dim]Python packages skipped (--skip-packages)[/dim]")
         console.print()
 
-    # ── 5. npm пакети ───────────────────────────────────────────────
+    # 5. npm пакети
     if not skip_npm:
         console.print("[bold cyan]npm packages[/bold cyan]")
         grunt_dir = _grunt_app_dir()
@@ -436,7 +428,7 @@ def update(
         console.print("[dim]npm skipped (--skip-npm)[/dim]")
         console.print()
 
-    # ── 6. Міграція БД ──────────────────────────────────────────────
+    # 6. Міграція БД
     if not skip_migrate:
         console.print("[bold cyan]Database migration[/bold cyan]")
         _run_migrations(site)
@@ -448,9 +440,7 @@ def update(
     console.print("[bold green]✅ Update complete[/bold green]")
 
 
-# ---------------------------------------------------------------------------
 # grunt deps
-# ---------------------------------------------------------------------------
 
 
 @update_group.command("deps")

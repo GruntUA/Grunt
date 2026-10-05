@@ -14,7 +14,7 @@ async def resolve_reference_titles(
 ) -> dict[tuple[str, str], str]:
     """Resolve (doctype, id) references to display titles, one query per doctype.
 
-    Doctypes that no longer exist, or whose title lookup fails, are skipped —
+    Doctypes that no longer exist, or whose title lookup fails, are skipped -
     callers fall back to the raw id for those refs.
     """
     import grunt

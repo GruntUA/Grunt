@@ -18,7 +18,7 @@ window.grunt = grunt
 const pinia = createPinia()
 const app = createApp(App)
 app.use(pinia)
-// Kick off boot requests immediately — the router guard awaits the same
+// Kick off boot requests immediately - the router guard awaits the same
 // promises before resolving the first route.
 useAuthStore().prefetchMe()
 loadSiteConfig()
@@ -27,7 +27,7 @@ app.use(i18n)
 app.use(VueQueryPlugin, vueQueryOptions)
 app.mount('#app')
 
-// Register push notification service worker (production only — avoid breaking Vite HMR in dev)
+// Register push notification service worker (production only - avoid breaking Vite HMR in dev)
 if ('serviceWorker' in navigator && import.meta.env.PROD) {
   const swVersion = '2026-04-24-2'
   navigator.serviceWorker.register(`/sw.js?v=${swVersion}`).catch(() => {

@@ -102,7 +102,7 @@ function hit(e: ChartEvent, chart: ChartInstance): ActiveElement | undefined {
   return chart.getElementsAtEventForMode(e as unknown as Event, mode, { intersect: false }, false)[0]
 }
 
-/** Day (and group) → the widget's list filtered to it. */
+/** Day (and group) -> the widget's list filtered to it. */
 function onClick(e: ChartEvent, _els: ActiveElement[], chart: ChartInstance) {
   const { widget, data } = props
   const el = canOpen.value ? hit(e, chart) : undefined

@@ -1,7 +1,7 @@
 """Daily reminder for open ToDos whose ``due_date`` has arrived or passed.
 
 One digest notification (bell + email) per assignee, listing their due-today
-and overdue tasks. Runs from the framework scheduler — see
+and overdue tasks. Runs from the framework scheduler - see
 ``grunt.tasks.scheduler._register_framework_jobs``.
 """
 

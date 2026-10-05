@@ -14,7 +14,7 @@ const { isDev, altPressed } = useDevMode()
 
 const INLINE_LABEL_TYPES = new Set(['Check', 'Button', 'HTML', 'Section', 'Column', 'Tab', 'Table'])
 
-// Only some field components actually emit these — wiring the listener
+// Only some field components actually emit these - wiring the listener
 // unconditionally on every field type makes Vue warn about an extraneous
 // non-emits listener for the rest (worse for components whose root is a
 // fragment, which can't auto-inherit fallthrough attrs at all).
@@ -97,7 +97,7 @@ async function copyFieldname() {
     clearTimeout(copiedTimer)
     copiedTimer = setTimeout(() => (copied.value = false), 1000)
   } catch {
-    /* clipboard unavailable — ignore */
+    /* clipboard unavailable - ignore */
   }
 }
 </script>

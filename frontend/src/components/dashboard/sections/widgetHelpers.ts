@@ -1,6 +1,6 @@
 import type { DashboardWidget } from '@/types'
 
-/** Shared color swatch palette — used by the widget-level Color section and per-tile pickers. */
+/** Shared color swatch palette - used by the widget-level Color section and per-tile pickers. */
 export const WIDGET_COLORS: { value: string; bg: string }[] = [
   { value: 'primary', bg: '#2D6A4F' },
   { value: 'blue',    bg: '#3b82f6' },

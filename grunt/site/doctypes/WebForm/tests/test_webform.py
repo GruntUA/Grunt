@@ -1,4 +1,4 @@
-"""Tests for the Web Form service — validation, field resolution, and submission logic."""
+"""Tests for the Web Form service - validation, field resolution, and submission logic."""
 
 import pytest
 
@@ -7,7 +7,7 @@ from grunt.webform.service import WebFormError, WebFormService
 
 def _resolved_field(fieldname, fieldtype="Text", label=None, required=False):
     """A resolved field dict, the shape `get_form_fields()` returns and
-    `_validate_submission()` consumes — target DocType's live properties
+    `_validate_submission()` consumes - target DocType's live properties
     already merged with the WebFormField row's overrides.
     """
     return {
@@ -42,7 +42,7 @@ class TestValidateSubmission:
 
     def test_only_form_fields_pass_through(self):
         # get_form_fields() already limits the list to what the form
-        # exposes — a field not in that list simply isn't validated/kept,
+        # exposes - a field not in that list simply isn't validated/kept,
         # even if present in the raw POST data.
         fields = [_resolved_field("title")]
         result = self.svc._validate_submission(fields, {"title": "OK", "secret": "HACK"})

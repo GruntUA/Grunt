@@ -1,4 +1,4 @@
-"""grunt ui — керування shadcn-vue компонентами."""
+"""grunt ui - керування shadcn-vue компонентами."""
 
 from __future__ import annotations
 
@@ -8,12 +8,12 @@ from pathlib import Path
 
 import click
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
+# Helpers
 
 
 def _app_dir() -> Path:
     """Root of the grunt app (where package.json and components.json live)."""
-    # ui.py → cli/ → grunt/ → apps/grunt/
+    # ui.py -> cli/ -> grunt/ -> apps/grunt/
     return Path(__file__).resolve().parent.parent.parent
 
 
@@ -29,7 +29,7 @@ def _npm_runner() -> list[str]:
 
 
 # Components that live in ui/ but are NOT in the shadcn-vue registry
-# (the registry returns 404 for these names) — custom framework compositions
+# (the registry returns 404 for these names) - custom framework compositions
 # that must never be passed to the CLI.
 _CUSTOM_COMPONENTS = frozenset(
     {
@@ -60,7 +60,7 @@ def _shadcn(app_dir: Path, args: list[str]) -> int:
     return result.returncode
 
 
-# ── Command group ─────────────────────────────────────────────────────────────
+# Command group
 
 
 @click.group("ui")

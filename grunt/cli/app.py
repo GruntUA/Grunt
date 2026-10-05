@@ -80,7 +80,7 @@ async def _do_install(name: str, site: str | None = None) -> None:
         async with maker() as session:
             # New app: seed its core DocTypes into grunt_meta_doctype so the
             # server can lazy-load them without ever touching the JSON files
-            # again (sync_db=True — same as `grunt db migrate`).
+            # again (sync_db=True - same as `grunt db migrate`).
             await load_core_doctypes(session, sync_db=True)
             await doctype_registry.load_all(session)
             async with grunt.system_context(session, eng):
@@ -127,7 +127,7 @@ def app_install(name: str, site: str | None):
 async def _plan_app_uninstall(session, app_doctypes: list) -> list:
     """Compile each app DocType's table and count its rows.
 
-    Returns ``[(doctype_name, table, row_count | None)]`` — count is None
+    Returns ``[(doctype_name, table, row_count | None)]`` - count is None
     when the table doesn't exist (or can't be counted), used later to skip
     the DROP TABLE step for it.
     """
@@ -206,7 +206,7 @@ async def _delete_workspace_and_registration(
 async def _drop_app_tables(eng, plan: list) -> None:
     """DROP TABLE for each planned table, on a separate connection/transaction.
 
-    Run after the main session commits — doing DDL on the same SQLite
+    Run after the main session commits - doing DDL on the same SQLite
     connection while it still holds the delete transaction's lock fails.
     """
     async with eng.begin() as conn:
@@ -264,7 +264,7 @@ async def _do_uninstall(
         click.echo(f"  Apps: {', '.join(installed)}")
         return
 
-    # Модулі додатку — з app.json; якщо директорії вже немає, fallback на name
+    # Модулі додатку - з app.json; якщо директорії вже немає, fallback на name
     app_modules = [name]
     app_json = site_manager.bench_dir / "apps" / name / "app.json"
     if app_json.exists():
@@ -278,7 +278,7 @@ async def _do_uninstall(
 
         async with maker() as session:
             # Uninstalling: the app's DocTypes already exist in
-            # grunt_meta_doctype from when it was installed — hydrate from
+            # grunt_meta_doctype from when it was installed - hydrate from
             # there, no need to re-parse its JSON files.
             await doctype_registry.load_all(session)
 
@@ -322,7 +322,7 @@ async def _do_uninstall(
 
             await session.commit()
 
-        # DDL після коміту, окремим з'єднанням — інакше SQLite тримає lock
+        # DDL після коміту, окремим з'єднанням - інакше SQLite тримає lock
         await _drop_app_tables(eng, plan)
 
         if vacuum and eng.dialect.name == "sqlite":

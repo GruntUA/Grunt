@@ -1,10 +1,10 @@
-"""Retention — nightly deletion of documents older than their DocType allows.
+"""Retention - nightly deletion of documents older than their DocType allows.
 
 ``DocType.retention_days`` (+ optional ``retention_date_field``, default
 ``created_at``) sets the limit:
 
-* ``is_log`` DocTypes (ErrorLog, ActivityLog, …) always have one — their own,
-  else ``SystemSettings.log_retention_days``, else DEFAULT_LOG_RETENTION_DAYS —
+* ``is_log`` DocTypes (ErrorLog, ActivityLog, …) always have one - their own,
+  else ``SystemSettings.log_retention_days``, else DEFAULT_LOG_RETENTION_DAYS -
   and are purged with one bulk DELETE (no hooks: they are append-only logs).
 * Any other DocType opts in by setting ``retention_days``. Its documents are
   deleted one by one through the normal delete pipeline, so hooks run, child

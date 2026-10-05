@@ -14,12 +14,12 @@ The frontend's floating task panel (``TaskProgressPanel.vue``) shows it:
   :data:`FLUSH_SECONDS`, so a tight loop can report every chunk;
 * the state is kept in Redis while the task runs, so a page reload picks it up
   again (:func:`active_tasks`);
-* on exit ``task_done`` is sent — ``error`` with the message if the block
+* on exit ``task_done`` is sent - ``error`` with the message if the block
   raised (the exception propagates), and with *doctype* the open list of that
   DocType refreshes;
 * with ``cancellable=True`` the panel offers a cancel button
   (:func:`cancel_task`): the next :meth:`Progress.set`/:meth:`Progress.advance`
-  raises :class:`TaskCancelledError` — the work's own error handling cleans up —
+  raises :class:`TaskCancelledError` - the work's own error handling cleans up -
   and ``track_progress`` swallows it, reporting ``cancelled``.
 
 Without a *user* (a scheduled run) nothing is published; the calls are no-ops.
@@ -222,7 +222,7 @@ async def track_progress(
 
 @whitelist()
 async def active_tasks() -> list[dict[str, Any]]:
-    """The current user's running tasks — the task panel restores itself from this."""
+    """The current user's running tasks - the task panel restores itself from this."""
     import grunt
 
     redis = await _redis()

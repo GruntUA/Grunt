@@ -3,7 +3,7 @@
 Uses ``pywebpush`` to send encrypted push messages to browser endpoints.
 VAPID keys are generated once and stored in SystemSettings.
 
-If ``pywebpush`` is not installed the service silently skips sending —
+If ``pywebpush`` is not installed the service silently skips sending -
 all other notification channels (in-app, email) continue to work.
 """
 
@@ -117,7 +117,7 @@ class WebPushService:
         )
 
     async def remove_subscription(self, endpoint: str, user: str) -> None:
-        """Delete a push subscription by endpoint URL — only if it belongs to `user`."""
+        """Delete a push subscription by endpoint URL - only if it belongs to `user`."""
         import grunt
 
         await grunt.db.delete("PushSubscription", filters={"endpoint": endpoint, "user": user})

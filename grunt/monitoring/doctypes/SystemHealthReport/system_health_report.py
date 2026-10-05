@@ -10,7 +10,7 @@ from grunt.monitoring.health import build_report
 
 
 class SystemHealthReportController(VirtualDocType):
-    """«Стан системи» — computed live on every open, nothing is stored.
+    """«Стан системи» - computed live on every open, nothing is stored.
 
     The browser tab (``browser_checks``) is filled in by the page's client
     script (SystemHealthReport.js): those checks can only run in the browser.
@@ -20,7 +20,7 @@ class SystemHealthReportController(VirtualDocType):
         return {"name": self.doctype, "browser_checks": [], **await build_report()}
 
     async def get_list(self, *args: Any, **kwargs: Any) -> dict[str, Any]:
-        # The single row, without running the checks — lists and counts only need the name.
+        # The single row, without running the checks - lists and counts only need the name.
         return self.build_response([{"name": self.doctype}], 1, 1)
 
     async def create(self, data: dict[str, Any], **kwargs: Any) -> dict[str, Any]:

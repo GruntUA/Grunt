@@ -21,7 +21,7 @@ def test_extracts_python_calls(tmp_path):
 
     assert keyed[("Hello", "")]["origin"] == "grunt"
     assert ("Save", "button") in keyed
-    # ngettext → one plural entry, keyed by the singular msgid
+    # ngettext -> one plural entry, keyed by the singular msgid
     assert keyed[("%(n)d item", "")]["plural_source"] == "%(n)d items"
     assert ("%(n)d items", "") not in keyed
 
@@ -71,8 +71,8 @@ def test_extracts_doctype_json(tmp_path):
     assert ("Фу", "meta:Foo") in keyed
     assert ("Опис типу", "help:Foo") in keyed
     assert ("Стан", "meta:Foo.s") in keyed
-    assert ("Поточний стан", "help:Foo.s") in keyed  # description → help:
-    assert ("Оберіть…", "hint:Foo.s") in keyed  # placeholder → hint:
+    assert ("Поточний стан", "help:Foo.s") in keyed  # description -> help:
+    assert ("Оберіть…", "hint:Foo.s") in keyed  # placeholder -> hint:
     assert ("Новий", "select:Foo.s") in keyed  # icon suffix dropped
     assert not any(ctx == "select:Foo.c" for _, ctx in keyed)  # not translatable
     assert ("Новий", "status:Foo") in keyed

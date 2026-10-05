@@ -120,7 +120,7 @@ export function useFormSave(params: UseFormSaveParams) {
       }
     } catch (error: unknown) {
       // No connection: the change is queued (useOfflineQueue) and the client
-      // already told the user — nothing failed, so don't show an error.
+      // already told the user - nothing failed, so don't show an error.
       const { isOfflineQueued } = await import('@/core/composables/useOfflineQueue')
       if (isOfflineQueued(error)) {
         params.markAllowLeave()
@@ -142,7 +142,7 @@ export function useFormSave(params: UseFormSaveParams) {
       const apiMessage = err?.response?.data?.error?.message
       const detailMsg = err?.response?.data?.detail
 
-      // Any 4xx with a structured error message → show it directly
+      // Any 4xx with a structured error message -> show it directly
       if (status && status >= 400 && status < 500 && status !== 422 && (apiMessage || detailMsg)) {
         const msg = typeof apiMessage === 'string' && apiMessage.trim()
           ? apiMessage

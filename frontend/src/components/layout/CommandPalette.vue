@@ -47,7 +47,7 @@ const listRef = ref<any>(null)
 // Global shortcut: Mod+K
 useShortcut('Mod+K', () => uiStore.toggleCommandPalette(), { preventDefault: true, allowInInput: true })
 
-// Quick create: Alt+N (⌥N) — browsers reserve Ctrl+N and never deliver it
+// Quick create: Alt+N (⌥N) - browsers reserve Ctrl+N and never deliver it
 useShortcut('Alt+N', () => openQuickCreate(), { preventDefault: true })
 
 const handleToggleSearch = () => uiStore.toggleCommandPalette()
@@ -126,7 +126,7 @@ watch(search, async (val) => {
     try {
         const matched: any[] = []
 
-        // Inline calculator: "2+2*2" or "=2+2*2" → "= 6" (select to copy).
+        // Inline calculator: "2+2*2" or "=2+2*2" -> "= 6" (select to copy).
         const calcExpr = val.trim().replace(/^=\s*/, '')
         const calc = tryCalc(calcExpr)
         if (calc !== null) {
@@ -216,10 +216,10 @@ const groupedResults = computed(() => {
     return groups
 })
 
-// ── Manual keyboard highlight ────────────────────────────────────────────────
+// Manual keyboard highlight
 // shadcn's <Command> filters its own *static* children; this palette builds
 // results asynchronously, so its built-in filter is bypassed entirely
-// (no <CommandInput> → filterState.search stays empty → every item renders)
+// (no <CommandInput> -> filterState.search stays empty -> every item renders)
 // and we drive arrow-key navigation ourselves over the flat result list.
 const flatList = computed<any[]>(() => {
     if (quickCreateOpen.value) {

@@ -17,7 +17,7 @@ function onKey(e: KeyboardEvent) {
   capsLock.value = e.getModifierState?.('CapsLock') ?? false
 }
 
-// ── Password policy checklist (opt-in via field.show_strength) ──────────────
+// Password policy checklist (opt-in via field.show_strength)
 type Policy = {
   min_length: number
   require_uppercase: boolean
@@ -26,7 +26,7 @@ type Policy = {
   require_symbols: boolean
 }
 
-// Shared across every Password field on the page — the policy never changes
+// Shared across every Password field on the page - the policy never changes
 // within a session, so fetch it once.
 let _policy: Promise<Policy> | null = null
 function loadPolicy(): Promise<Policy> {

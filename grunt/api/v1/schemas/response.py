@@ -39,7 +39,7 @@ class ErrorResponse(BaseModel):
     error: ErrorDetail
 
 
-# ── Response helpers ──────────────────────────────────────────────────────────
+# Response helpers
 
 _MISSING = object()
 

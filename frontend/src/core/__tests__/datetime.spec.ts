@@ -68,7 +68,7 @@ describe('core/datetime', () => {
 
   it('treats a zone-less server timestamp as UTC, then re-localises', () => {
     setConfig({ dateFormat: 'yyyy-mm-dd', timezone: 'Europe/Kyiv' })
-    // 08:18 UTC → 11:18 Kyiv (UTC+3 in March DST), not 08:18
+    // 08:18 UTC -> 11:18 Kyiv (UTC+3 in March DST), not 08:18
     expect(formatDateTime('2026-08-31T08:18:52.318697')).toBe('2026-08-31 11:18')
     expect(formatDateTime('2026-08-31 08:18:52')).toBe('2026-08-31 11:18')
   })

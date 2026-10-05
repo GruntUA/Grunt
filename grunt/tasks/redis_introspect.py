@@ -1,9 +1,9 @@
 """Live introspection of the Redis Stream queue backing TaskIQ.
 
-Powers the ``BackgroundJob``/``BackgroundWorker`` virtual DocTypes — the
+Powers the ``BackgroundJob``/``BackgroundWorker`` virtual DocTypes - the
 analogue of Frappe's "RQ Job"/"RQ Worker": computed live from Redis on every
 request, nothing persisted to SQL. Returns empty results when the broker
-isn't Redis-backed (local dev's ``InMemoryBroker``) or Redis is unreachable —
+isn't Redis-backed (local dev's ``InMemoryBroker``) or Redis is unreachable -
 these are monitoring views, never a hard dependency.
 """
 
@@ -23,7 +23,7 @@ if TYPE_CHECKING:
 
 
 def stream_broker() -> RedisStreamBroker | None:
-    """The active broker, if it's Redis Stream-backed — ``None`` for InMemoryBroker."""
+    """The active broker, if it's Redis Stream-backed - ``None`` for InMemoryBroker."""
     from taskiq_redis import RedisStreamBroker
 
     from grunt.tasks.broker import broker
@@ -86,7 +86,7 @@ _UNAVAILABLE_MESSAGES = {
 def unavailable_message(reason: str) -> str:
     """Human-readable text for a ``_load_all()`` failure reason.
 
-    Redis-specific by design — callers (the BackgroundJob/BackgroundWorker
+    Redis-specific by design - callers (the BackgroundJob/BackgroundWorker
     controllers) put this straight in API ``meta`` for the frontend to
     display as-is, so no generic UI component ever needs to know Redis
     exists.

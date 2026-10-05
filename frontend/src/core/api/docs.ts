@@ -87,7 +87,7 @@ export interface SidebarBundle {
   bookmark: GruntDocument | null
   /** The current user's DocFollow row for this document, if they follow it */
   follow: { name: string } | null
-  /** email → display name + avatar, for everyone referenced above */
+  /** email -> display name + avatar, for everyone referenced above */
   people: Record<string, SidebarPerson>
 }
 
@@ -116,10 +116,10 @@ export const OP_MAP: Record<string, string> = {
 /** Operators whose value is a comma-separated list (`field__in=a,b`). */
 export const MULTI_VALUE_OPS = ['in', 'not in']
 
-/** Operators without a user-entered value — the value is fixed and sent as `field__is=<value>`. */
+/** Operators without a user-entered value - the value is fixed and sent as `field__is=<value>`. */
 export const NO_VALUE_OPS: Record<string, string> = { 'is set': 'set', 'is not set': 'not set' }
 
-/** Backend `field__op` + value → display operator (inverse of OP_MAP; `is` splits by value). */
+/** Backend `field__op` + value -> display operator (inverse of OP_MAP; `is` splits by value). */
 export function displayOp(backendOp: string, value: string): string {
   if (backendOp === 'is') return value === 'set' ? 'is set' : 'is not set'
   return Object.keys(OP_MAP).find(k => OP_MAP[k] === backendOp) ?? '='
@@ -149,7 +149,7 @@ export interface ListParams {
   search?: string
   fields?: string
   filters?: ActiveFilter[]
-  /** Raw backend filters — keys may already contain __op suffixes (e.g. { 'date__lte': '2024-01-31' }) */
+  /** Raw backend filters - keys may already contain __op suffixes (e.g. { 'date__lte': '2024-01-31' }) */
   rawFilters?: Record<string, string>
   /**
    * Fast filter values in backend format { 'field__op': 'value' }.
@@ -191,7 +191,7 @@ export const docsApi = {
   list: async (doctype: string, params: ListParams = {}): Promise<StandardListResponse<GruntDocument>> => {
     const { filters = [], rawFilters = {}, quickFilters = {}, sort, order, ...rest } = params
     const filterParams: Record<string, string> = {}
-    // Fast filters have lower precedence — sent first so backend override logic applies
+    // Fast filters have lower precedence - sent first so backend override logic applies
     for (const [k, v] of Object.entries(quickFilters)) {
       filterParams[`quick_filter[${k}]`] = v
     }
@@ -261,7 +261,7 @@ export const docsApi = {
       .then(r => r.data.data)
   },
 
-  /** What still references these documents — the impact of deleting them. */
+  /** What still references these documents - the impact of deleting them. */
   getDeleteImpact: (doctype: string, ids: string[]): Promise<DeleteImpact> =>
     client.post('/api/v1/method/grunt.document.base.Document.get_delete_impact', {
       doctype, doc_ids: ids,
@@ -277,7 +277,7 @@ export const docsApi = {
       doctype, doc_id: id, action, values,
     }).then(r => r.data),
 
-  /** Years present in a Date/Datetime field, newest first — options of a year quick filter. */
+  /** Years present in a Date/Datetime field, newest first - options of a year quick filter. */
   getFieldYears: (doctype: string, fieldname: string): Promise<number[]> =>
     client.get('/api/v1/method/grunt.document.base.Document.get_field_years', {
       params: { doctype, fieldname },
@@ -305,7 +305,7 @@ export const docsApi = {
     },
   ): Promise<any[]> => {
     // quick_filter[...] takes lower precedence than an explicit filter[...] for
-    // the same key — merge fast filters first so filters can override them.
+    // the same key - merge fast filters first so filters can override them.
     const merged: Record<string, string> = { ...(params?.quickFilters ?? {}) }
     for (const f of params?.filters ?? []) {
       const backendOp = OP_MAP[f.op] ?? 'eq'
@@ -340,7 +340,7 @@ export const docsApi = {
       params: { doctype, node_id: nodeId },
     }).then(r => r.data.data ?? []),
 
-  /** Re-parent a tree node (`null` → root). 409 when it would create a cycle. */
+  /** Re-parent a tree node (`null` -> root). 409 when it would create a cycle. */
   moveTreeNode: (doctype: string, nodeId: string, newParentId: string | null): Promise<GruntDocument> =>
     client.post('/api/v1/method/grunt.document.base.Document.move_tree_node', {
       doctype,
@@ -381,7 +381,7 @@ export const docsApi = {
   removeTag: (tagId: string): Promise<void> =>
     client.delete(`/api/v1/docs/DocTag/${tagId}`).then(() => undefined),
 
-  // ── Comments ────────────────────────────────────────────────────────────
+  // Comments
 
   addComment: (doctype: string, id: string, content: string): Promise<CommentItem> =>
     client.post('/api/v1/method/grunt.document.base.Document.add_comment', {
@@ -393,7 +393,7 @@ export const docsApi = {
       doctype, doc_id: id, comment_id: commentId,
     }).then(() => undefined),
 
-  // ── Bookmarks ────────────────────────────────────────────────────────────
+  // Bookmarks
 
   addBookmark: (doctype: string, id: string, title?: string): Promise<GruntDocument> =>
     client.post('/api/v1/method/grunt.document.base.Document.add_bookmark', {
@@ -405,7 +405,7 @@ export const docsApi = {
       doctype, doc_id: id,
     }).then(() => undefined),
 
-  // ── Timeline ─────────────────────────────────────────────────────────────
+  // Timeline
 
   getTimeline: (doctype: string, id: string): Promise<TimelineItem[]> =>
     client.get('/api/v1/method/grunt.document.base.Document.get_timeline', {
@@ -417,14 +417,14 @@ export const docsApi = {
       doctype, doc_id: id, version_id: versionId,
     }).then(r => r.data.data),
 
-  // ── Seen / views (track_seen / track_views) ─────────────────────────────
+  // Seen / views (track_seen / track_views)
 
   getViewInfo: (doctype: string, id: string): Promise<{ seen: string[]; views: number; viewers: number }> =>
     client.get('/api/v1/method/grunt.activity.get_view_info', {
       params: { doctype, doc_id: id },
     }).then(r => r.data.data ?? { seen: [], views: 0, viewers: 0 }),
 
-  // ── Bulk update ──────────────────────────────────────────────────────────
+  // Bulk update
 
   rename: <T extends GruntDocument = GruntDocument>(doctype: string, id: string, newId: string): Promise<T> =>
     client.post('/api/v1/method/grunt.api.v1.docs.crud.rename', {

@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 /**
- * PWAInstallPrompt — shows the browser "Add to Home Screen" install button.
+ * PWAInstallPrompt - shows the browser "Add to Home Screen" install button.
  *
  * The component listens for the `beforeinstallprompt` event (Chrome / Android).
- * On iOS Safari the `beforeinstallprompt` is not fired — we detect that separately
+ * On iOS Safari the `beforeinstallprompt` is not fired - we detect that separately
  * and show a manual instruction sheet.
  *
  * Usage: drop once in App.vue.
@@ -18,7 +18,7 @@ const { t } = useI18n()
 
 const { appName } = useSiteConfig()
 
-// ── State ──────────────────────────────────────────────────────────────────
+// State
 
 type InstallState = 'hidden' | 'available' | 'ios-hint'
 
@@ -28,7 +28,7 @@ let deferredPrompt: any = null
 
 const DISMISSED_KEY = 'grunt_pwa_install_dismissed'
 
-// ── Detection ──────────────────────────────────────────────────────────────
+// Detection
 
 function isStandalone() {
   return (
@@ -55,7 +55,7 @@ function onBeforeInstallPrompt(e: Event) {
 onMounted(() => {
   if (isStandalone() || wasDismissed()) return
   window.addEventListener('beforeinstallprompt', onBeforeInstallPrompt)
-  // iOS: no beforeinstallprompt event — show hint on mobile Safari
+  // iOS: no beforeinstallprompt event - show hint on mobile Safari
   if (isIOS() && !isStandalone()) {
     setTimeout(() => { if (!wasDismissed()) state.value = 'ios-hint' }, 3000)
   }
@@ -65,7 +65,7 @@ onUnmounted(() => {
   window.removeEventListener('beforeinstallprompt', onBeforeInstallPrompt)
 })
 
-// ── Actions ────────────────────────────────────────────────────────────────
+// Actions
 
 async function install() {
   if (!deferredPrompt) return

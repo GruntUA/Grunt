@@ -1,4 +1,4 @@
-"""Tests for grunt.print.filters — name formatting and Ukrainian declension."""
+"""Tests for grunt.print.filters - name formatting and Ukrainian declension."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ from grunt.print.filters import (
     name_format,
 )
 
-# ── name_format ───────────────────────────────────────────────────────────────
+# name_format
 
 
 class TestNameFormat:
@@ -27,7 +27,7 @@ class TestNameFormat:
         assert name_format(None) == ""
 
 
-# ── decline_name ──────────────────────────────────────────────────────────────
+# decline_name
 
 
 class TestDeclineName:
@@ -46,7 +46,7 @@ class TestDeclineName:
         assert parts[1] == "Михайлу"
         assert parts[2] == "Івановичу"
 
-    # Adjective-form surname (-ський) — shevchenko 1.0.0 bug, pymorphy3 fallback
+    # Adjective-form surname (-ський) - shevchenko 1.0.0 bug, pymorphy3 fallback
     def test_dative_masculine_adjective_surname(self):
         result = decline_name("Синягівський Ярослав Миколайович", "dative")
         family, given, patronymic = result.split()
@@ -75,7 +75,7 @@ class TestDeclineName:
         assert result == "Ярославу СИНЯГІВСЬКОМУ"
 
 
-# ── decline_position ──────────────────────────────────────────────────────────
+# decline_position
 
 
 class TestDeclinePosition:
@@ -122,7 +122,7 @@ class TestDeclinePosition:
         assert "Мелітопольської" in result
 
 
-# ── decline_dept_genitive ─────────────────────────────────────────────────────
+# decline_dept_genitive
 
 
 class TestDeclineDeptGenitive:
@@ -158,7 +158,7 @@ class TestDeclineDeptGenitive:
         assert "міської ради" in result
 
 
-# ── Integration: full addressee for EMP-0132 ─────────────────────────────────
+# Integration: full addressee for EMP-0132
 
 
 class TestFullAddresseeEmp0132:

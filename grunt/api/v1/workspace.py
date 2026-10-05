@@ -69,7 +69,7 @@ async def _workspace_to_dict(ws_data: Any) -> dict[str, Any]:
 
 
 async def _get_ws_controller(name: str) -> AppMenu:
-    # Precisely-typed overloads live on the GruntApp instance (grunt.app.grunt) —
+    # Precisely-typed overloads live on the GruntApp instance (grunt.app.grunt) -
     # the top-level `grunt` package facade's stub can't use `@overload` (mypy
     # requires a real implementation for that in a non-stub .py file), so it
     # falls back to a looser `dict[str, Any] | D` union that doesn't narrow here.
@@ -155,7 +155,7 @@ async def get_document_stats() -> dict[str, int]:
     (logs, sessions, versions, queues, config/metadata).
 
     Each per-doctype count goes through ``grunt.count(respect_permissions=True)``,
-    which is itself cached per (doctype, user, filters) — see its docstring —
+    which is itself cached per (doctype, user, filters) - see its docstring -
     so repeat page loads don't re-run dozens of COUNT queries.
     """
     from grunt.metadata.registry import doctype_registry
@@ -171,7 +171,7 @@ async def get_document_stats() -> dict[str, int]:
             total += await grunt.count(dt.name, respect_permissions=True)
             counted += 1
         except Exception:
-            # A doctype without a physical table yet — skip it silently.
+            # A doctype without a physical table yet - skip it silently.
             continue
 
     return {"total": total, "doctypes": counted}

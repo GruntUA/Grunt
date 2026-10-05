@@ -1,4 +1,4 @@
-"""Health check endpoints — liveness and readiness probes."""
+"""Health check endpoints - liveness and readiness probes."""
 
 from __future__ import annotations
 
@@ -14,13 +14,13 @@ router = APIRouter()
 
 @router.get("/health", tags=["health"])
 async def liveness() -> dict[str, Any]:
-    """Liveness probe — returns ok if the process is running."""
+    """Liveness probe - returns ok if the process is running."""
     return ok({"status": "ok"})
 
 
 @router.get("/ready", tags=["health"])
 async def readiness() -> dict[str, Any]:
-    """Readiness probe — verifies DB connectivity and Redis availability."""
+    """Readiness probe - verifies DB connectivity and Redis availability."""
     checks: dict[str, str] = {}
 
     # Database

@@ -26,7 +26,7 @@ class DocumentReadMixin:
     session: AsyncSession
     _ml: MultiLinkService
 
-    # ── Get ────────────────────────────────────────────────────────────
+    # Get
 
     async def get_document(
         self,
@@ -48,7 +48,7 @@ class DocumentReadMixin:
 
         table = dt.table
 
-        # Singleton — there is only ever one row; ``doc_id`` is irrelevant
+        # Singleton - there is only ever one row; ``doc_id`` is irrelevant
         # (callers may pass the doctype name, or nothing at all).
         if dt.is_singleton:
             query = select(table).limit(1)
@@ -88,7 +88,7 @@ class DocumentReadMixin:
                 )
 
         # expand=[] means the caller wants the bare row only (e.g. a
-        # permission check) — skip read_formula evaluation, which can run
+        # permission check) - skip read_formula evaluation, which can run
         # arbitrary queries (grunt.count/grunt.get_list) per field.
         if expand is None or expand_set:
             await evaluate_read_formulas(dt.doc, doc)

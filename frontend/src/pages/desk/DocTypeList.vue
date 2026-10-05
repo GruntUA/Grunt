@@ -60,24 +60,24 @@ const auth = useAuthStore()
 const queryClient = useQueryClient()
 const toast = useToast()
 
-// ── WebSocket ────────────────────────────────────────────────────────────────
+// WebSocket
 const listWs = useWebSocket(`/api/v1/ws/${props.doctype}`)
 listWs.onEvent('doc_change', () => {
   queryClient.invalidateQueries({ queryKey: ['documents', props.doctype] })
 })
 const { onUserEvent, offUserEvent } = useNotifications()
 
-// ── State ────────────────────────────────────────────────────────────────────
+// State
 const dt = ref<DocType | null>(null)
 const page = ref(1)
-// Bumped by the header's Refresh button — views with their own local fetch
+// Bumped by the header's Refresh button - views with their own local fetch
 // (tree/calendar/kanban) watch this to refetch; query-based views already
 // refetch automatically from invalidateQueries below and ignore it.
 const refreshKey = ref(0)
 const { viewMode, sortKey, sortOrder, groupBy, activeFilters, quickFilterValues, search, perPage } = useListViewState(props.doctype)
 const { inlineSearch, debouncedSearch, resetSearch } = useListSearch(page, search)
 
-// ── Quick filters ─────────────────────────────────────────────────────────────
+// Quick filters
 const quickFilterPrefs = useQuickFilterPrefs(props.doctype)
 const showQuickFilterDialog = ref(false)
 
@@ -276,7 +276,7 @@ const ownScrollView = computed(() => getViewDef(viewMode.value)?.managesOwnScrol
 // Page is bounded to the viewport; the view scrolls inside it (pager may still show).
 const boundedView = computed(() => ownScrollView.value || (getViewDef(viewMode.value)?.fillsViewport ?? false))
 
-// ── Tree navigation (DocType.list_tree_field) ─────────────────────────────────
+// Tree navigation (DocType.list_tree_field)
 // A Link to an `is_tree` DocType shown as a panel beside the list: its node is
 // a filter; rows dragged onto a node are re-linked. Views that manage their own
 // scroll (kanban, calendar…) keep the full width.
@@ -341,7 +341,7 @@ const { bulkUpdate, inlineUpdate } = useListActions({
 
 const { registerMapMenuItems, unregisterMapMenuItems } = useListMapMenuItems(listActions)
 
-// ── Grouping Logic ───────────────────────────────────────────────────────────
+// Grouping Logic
 const {
   collapsedGroups,
   groupableFields,
@@ -356,7 +356,7 @@ function setGroupBy(field: string | null) {
 }
 
 
-// ── Handlers ─────────────────────────────────────────────────────────────────
+// Handlers
 function onSort(key: string) {
   applySort(key)
 }
@@ -377,7 +377,7 @@ const { deleteProgress, bulkDelete, bulkFastDelete } = useBulkDeleteProgress({
 function navigateToDoc(row: Record<string, unknown>) {
   const docId = row.id ?? row.name
   if (docId === null || docId === undefined || String(docId).trim() === '') return
-  // Optimistically mark the row seen for the current user so it dims on return —
+  // Optimistically mark the row seen for the current user so it dims on return -
   // the server records it for real via the form's after_read hook (track_seen).
   const seen = row._seen
   const email = auth.user?.email

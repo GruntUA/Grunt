@@ -21,7 +21,7 @@ async def _optional(coro: Any, fallback: Any) -> Any:
 
     The sidebar bundles several auxiliary sections (assignees, shares, tags,
     bookmark). A viewer who lacks read on one of those system DocTypes should
-    just get an empty section — not a failed sidebar and a stray "access
+    just get an empty section - not a failed sidebar and a stray "access
     denied" toast.
     """
     from fastapi import HTTPException
@@ -54,7 +54,7 @@ class DocumentMetaRPCMixin:
     async def get_backlinks(doctype: str, doc_id: str) -> list[dict[str, Any]]:
         """Return all documents that link to this document (backlinks).
 
-        Each row carries ``title`` — the source document's title_field value
+        Each row carries ``title`` - the source document's title_field value
         (permission-aware, one query per source DocType), falling back to its id.
         """
 
@@ -79,7 +79,7 @@ class DocumentMetaRPCMixin:
         doc_id: str | None = None,
         doc_ids: list[str] | None = None,
     ) -> dict[str, Any]:
-        """Summarise what references the given document(s) — see LinkService."""
+        """Summarise what references the given document(s) - see LinkService."""
         from grunt.permissions.guards import doc_guard
 
         ids = list(doc_ids) if doc_ids else ([doc_id] if doc_id else [])
@@ -104,11 +104,11 @@ class DocumentMetaRPCMixin:
 
         ref = {"reference_doctype": doctype, "reference_id": doc_id}
 
-        # Auxiliary sections — independent of each other and of the doc load
+        # Auxiliary sections - independent of each other and of the doc load
         # above, but all run on the one request-scoped AsyncSession, which
         # SQLAlchemy does not allow to be driven from concurrent coroutines
         # (asyncio.gather here would race two queries onto the same session
-        # and raise IllegalStateChangeError under load) — so fetch them one
+        # and raise IllegalStateChangeError under load) - so fetch them one
         # at a time. A viewer who can't read one of these system DocTypes
         # just gets an empty section, not a broken sidebar. None of these
         # need pagination totals, so include_total is off to skip the extra

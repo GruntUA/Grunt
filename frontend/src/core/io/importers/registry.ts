@@ -25,7 +25,7 @@ export function registerImporter(imp: Importer): void {
   else _registry.push(imp)
 }
 
-/** Returns the live reactive array — safe to use in templates / computed */
+/** Returns the live reactive array - safe to use in templates / computed */
 export function getImporters(): Importer[] {
   return _registry
 }

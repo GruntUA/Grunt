@@ -1,4 +1,4 @@
-"""Signed file URLs — let the browser fetch a private file without a bearer token.
+"""Signed file URLs - let the browser fetch a private file without a bearer token.
 
 ``<img src>`` and plain links can't send ``Authorization``, so every
 ``get_content?file_id=…`` URL leaving the API gets ``&exp=…&sig=…`` appended
@@ -30,7 +30,7 @@ _URL_PREFIX = "/api/v1/method/grunt.storage.doctypes.File.file.get_content?file_
 _UNSIGNED = re.compile(
     re.escape(_URL_PREFIX).encode() + rb"([A-Za-z0-9_-]+)(?![A-Za-z0-9_-]|&exp=|&amp;exp=)"
 )
-# A signature as it comes back from the client — plain or HTML-escaped (rich text).
+# A signature as it comes back from the client - plain or HTML-escaped (rich text).
 _SIGNATURE = re.compile(
     r"(get_content\?file_id=[A-Za-z0-9_-]+)(?:&|&amp;)exp=\d+(?:&|&amp;)sig=[0-9a-f]+"
 )

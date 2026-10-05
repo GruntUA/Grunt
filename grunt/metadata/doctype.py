@@ -1,4 +1,4 @@
-"""DocType — the central metadata model of the Grunt framework.
+"""DocType - the central metadata model of the Grunt framework.
 
 A DocType describes a data structure (fields, views, workflow, permissions)
 and is the single source of truth for DB tables, REST API and UI forms.
@@ -11,7 +11,7 @@ from pydantic import BaseModel, model_validator
 from grunt.metadata.field import DocField
 from grunt.metadata.permission import DocPermission
 
-# ── Workflow sub-models ──────────────────────────────────────────────────
+# Workflow sub-models
 
 
 class WorkflowState(BaseModel):
@@ -23,7 +23,7 @@ class WorkflowState(BaseModel):
     is_initial: bool = False
     is_final: bool = False
     # Roles that may edit/delete the document while it is in this state
-    # (workflow actions are not affected); empty — anyone with write permission.
+    # (workflow actions are not affected); empty - anyone with write permission.
     edit_roles: list[str] = []
     # On entering this state, `update_value` is written into `update_field`.
     update_field: str | None = None
@@ -54,7 +54,7 @@ class WorkflowTransition(BaseModel):
     # document in `from_state` (e.g. an edited published page goes back to review).
     on_edit: bool = False
     # Who is notified: "owner", "previous" (who performed the previous workflow
-    # action) and/or "next" (who can take the next step — see grunt.workflow.notify).
+    # action) and/or "next" (who can take the next step - see grunt.workflow.notify).
     notify: list[str] = []
     notify_email: bool = False
 
@@ -68,9 +68,9 @@ def _split_csv(data: Any, keys: tuple[str, ...]) -> Any:
     """List fields of workflow rows are comma-separated ``LongText`` columns.
 
     A DB row predating the column (or simply never filled in) stores it as
-    SQL ``NULL`` — read back as ``None``, which a bare ``list[str]`` field
+    SQL ``NULL`` - read back as ``None``, which a bare ``list[str]`` field
     rejects, so that must become ``[]`` too rather than only splitting strings.
-    Check columns read back as ``None`` the same way — dropped so the default applies.
+    Check columns read back as ``None`` the same way - dropped so the default applies.
     """
     if isinstance(data, dict):
         updates: dict[str, Any] = {}
@@ -87,10 +87,10 @@ def _split_csv(data: Any, keys: tuple[str, ...]) -> Any:
     return data
 
 
-# ── Permission sub-model ─────────────────────────────────────────────────
+# Permission sub-model
 
 
-# ── View configuration sub-models ────────────────────────────────────────
+# View configuration sub-models
 
 # Quick filters are not configured here: the list/tree toolbar filter set is
 # derived entirely from fields flagged ``in_quick_filter`` in the designer
@@ -98,7 +98,7 @@ def _split_csv(data: Any, keys: tuple[str, ...]) -> Any:
 
 
 class CalendarSource(BaseModel):
-    """One extra document source overlaid on the calendar view — a row of the
+    """One extra document source overlaid on the calendar view - a row of the
     ``calendar_sources`` child table."""
 
     doctype: str
@@ -124,7 +124,7 @@ class DocTypeCalendarView(BaseModel):
 
 class DocTypeTreeView(BaseModel):
     """Resolved tree-view config. Assembled by ``DocType.tree_view`` from the
-    flat ``tree_*`` fields — it is not stored directly."""
+    flat ``tree_*`` fields - it is not stored directly."""
 
     parent_field: str  # fieldname of the Link field pointing to the same DocType
     title_field: str = "name"  # field displayed as node label
@@ -137,7 +137,7 @@ class DocTypeTreeView(BaseModel):
 
 class DocTypeGanttView(BaseModel):
     """Resolved Gantt-view config. Assembled by ``DocType.gantt_view`` from the
-    flat ``gantt_*`` fields — it is not stored directly.
+    flat ``gantt_*`` fields - it is not stored directly.
 
     Needs a start and an end Date/Datetime field. Optional extras: a numeric
     ``progress_field`` (0–100) fills the bar, ``color_field`` + ``color_map``
@@ -145,10 +145,10 @@ class DocTypeGanttView(BaseModel):
     or a Link) draws finish-to-start arrows between bars.
     """
 
-    start_field: str  # Date/Datetime — where the bar starts
-    end_field: str  # Date/Datetime — where the bar ends
+    start_field: str  # Date/Datetime - where the bar starts
+    end_field: str  # Date/Datetime - where the bar ends
     title_field: str = "name"  # field shown as the row/bar label
-    progress_field: str | None = None  # Float/Percent 0–100 → bar fill
+    progress_field: str | None = None  # Float/Percent 0–100 -> bar fill
     color_field: str | None = None  # field whose value drives the bar colour
     color_map: dict[str, str] | None = None  # { value: '#hex' } for color_field
     default_color: str | None = None  # fallback bar colour
@@ -156,7 +156,7 @@ class DocTypeGanttView(BaseModel):
 
 
 class DocTypeMapView(BaseModel):
-    """Configuration for the map view — requires a Geolocation field."""
+    """Configuration for the map view - requires a Geolocation field."""
 
     geo_field: str | None = None  # override auto-detected Geolocation field
     label_field: str | None = None  # field shown in marker popup (defaults to title_field)
@@ -165,7 +165,7 @@ class DocTypeMapView(BaseModel):
     default_color: str | None = None  # fallback marker color
 
 
-# ── Status indicators ───────────────────────────────────────────────────
+# Status indicators
 
 
 class StatusIndicator(BaseModel):
@@ -177,7 +177,7 @@ class StatusIndicator(BaseModel):
     label: str | None = None  # override display label (defaults to value)
 
 
-# ── Document actions ────────────────────────────────────────────────────
+# Document actions
 
 
 class DocTypeAction(BaseModel):
@@ -186,20 +186,20 @@ class DocTypeAction(BaseModel):
 
     ``action`` is the registry key; everything else overrides the registered
     defaults for this DocType only. ``condition`` is a JS expression evaluated
-    against ``doc`` on the client — falsy hides the button.
+    against ``doc`` on the client - falsy hides the button.
     """
 
     action: str = ""  # registered action key (blank row is pruned by DocType)
     label: str = ""  # override registered label
-    group: str = ""  # toolbar dropdown group (empty → standalone button)
+    group: str = ""  # toolbar dropdown group (empty -> standalone button)
     variant: str = ""  # button variant override (outline|default|secondary|destructive|success)
-    condition: str | None = None  # JS expression on `doc`; falsy → hidden
+    condition: str | None = None  # JS expression on `doc`; falsy -> hidden
     hidden: bool = False  # hard off-switch, keeps the row for later
 
     @model_validator(mode="before")
     @classmethod
     def _blank_none_strings(cls, data: Any) -> Any:
-        """The child-table editor sends ``null`` for empty cells — coerce to ``""``."""
+        """The child-table editor sends ``null`` for empty cells - coerce to ``""``."""
         if isinstance(data, dict):
             data = {
                 k: ("" if v is None and k in {"action", "label", "group", "variant"} else v)
@@ -208,7 +208,7 @@ class DocTypeAction(BaseModel):
         return data
 
 
-# ── Document links (Connections tab) ───────────────────────────────────
+# Document links (Connections tab)
 
 
 class DocTypeLink(BaseModel):
@@ -222,7 +222,7 @@ class DocTypeLink(BaseModel):
     """
 
     link_doctype: str = ""  # related DocType to list/count (blank row is pruned by DocType)
-    link_fieldname: str = ""  # Link field on link_doctype (or parent_doctype) → this doc
+    link_fieldname: str = ""  # Link field on link_doctype (or parent_doctype) -> this doc
     parent_doctype: str | None = None  # child DocType, when the link lives on a child row
     table_fieldname: str | None = None  # Table field on link_doctype holding those child rows
     group: str = ""  # section grouping on the panel
@@ -232,14 +232,14 @@ class DocTypeLink(BaseModel):
     @model_validator(mode="before")
     @classmethod
     def _blank_none_strings(cls, data: Any) -> Any:
-        """The child-table editor sends ``null`` for empty cells — coerce to ``""``."""
+        """The child-table editor sends ``null`` for empty cells - coerce to ``""``."""
         if isinstance(data, dict):
             str_keys = {"link_doctype", "link_fieldname", "group", "label"}
             data = {k: ("" if v is None and k in str_keys else v) for k, v in data.items()}
         return data
 
 
-# ── DocType — main model ─────────────────────────────────────────────────
+# DocType - main model
 
 
 class DocType(BaseModel):
@@ -249,101 +249,101 @@ class DocType(BaseModel):
     label: str  # "Договір постачання"
     module: str  # "crm"
     app: str | None = None  # installed app name (e.g. "hrm"); UI convenience, derived from module
-    description: str | None = None  # short human description — tooltips, Studio, docs
-    icon: str | None = None  # Lucide icon name (kebab-case) — menu & Workspace
+    description: str | None = None  # short human description - tooltips, Studio, docs
+    icon: str | None = None  # Lucide icon name (kebab-case) - menu & Workspace
 
     # Flags
-    is_child: bool = False  # True → used inside a TABLE field
+    is_child: bool = False  # True -> used inside a TABLE field
     is_submittable: bool = False  # adds Submit button
     is_singleton: bool = False  # only one document per DocType
-    is_virtual: bool = False  # True → no DB table, data from controller
-    is_tree: bool = False  # True → hierarchical; requires tree_view.parent_field
-    is_log: bool = False  # True → operational log, excluded from global search index
+    is_virtual: bool = False  # True -> no DB table, data from controller
+    is_tree: bool = False  # True -> hierarchical; requires tree_view.parent_field
+    is_log: bool = False  # True -> operational log, excluded from global search index
     # Documents older than this (by retention_date_field, default created_at)
     # are deleted by the nightly retention job (grunt.tasks.retention).
-    # is_log DocTypes fall back to SystemSettings.log_retention_days → 30.
+    # is_log DocTypes fall back to SystemSettings.log_retention_days -> 30.
     retention_days: int | None = None
     retention_date_field: str | None = None
     # to name the self-referential Link
     track_changes: bool = True  # audit log
     track_seen: bool = False  # record which users have opened each document (_seen column)
     track_views: bool = False  # log every document open to ViewLog (throttled 1/user/doc/hour)
-    track_deletions: bool = True  # False → skip the restorable DeletedDocument snapshot on delete
-    track_activity: bool = True  # False → never write ActivityLog rows (high-churn system doctypes)
-    # True → excluded from the GLOBAL feed only, still shown in this doctype's own
+    track_deletions: bool = True  # False -> skip the restorable DeletedDocument snapshot on delete
+    track_activity: bool = True  # False: no ActivityLog rows (high-churn system doctypes)
+    # True -> excluded from the GLOBAL feed only, still shown in this doctype's own
     # document timelines (for admin/config records: roles, print formats, etc.)
     hide_from_activity_feed: bool = False
-    # True → files uploaded to these documents default to is_public (public
+    # True -> files uploaded to these documents default to is_public (public
     # website content); otherwise an attachment is private to its document.
     public_attachments: bool = False
-    # [<doctype field>, <id field>] → rows are readable only by users who can
+    # [<doctype field>, <id field>] -> rows are readable only by users who can
     # read the referenced document (comments, tags, attachments).
     # See grunt.permissions.reference.
     inherit_permission_from: list[str] | None = None
-    quick_entry: bool = False  # True → "Create" opens a dialog instead of full form
+    quick_entry: bool = False  # True -> "Create" opens a dialog instead of full form
 
-    # Web view — each document is also a public page (see grunt.website.generator).
-    # URL: <app mount>/<web_route>/<doc route> — the app mount follows the www/
+    # Web view - each document is also a public page (see grunt.website.generator).
+    # URL: <app mount>/<web_route>/<doc route> - the app mount follows the www/
     # rule ("" for core/primary web app, "/<app>" otherwise); <doc route> is the
     # document's `route` field when it has one (auto-filled from the title),
-    # else its name. Only guest-visible pages are served — the site has no
+    # else its name. Only guest-visible pages are served - the site has no
     # login cookie, so a signed-in reader can't be told apart from a guest.
     has_web_view: bool = False
     allow_guest_to_view: bool = False
-    index_web_pages_for_search: bool = True  # False → noindex + left out of sitemap.xml
+    index_web_pages_for_search: bool = True  # False -> noindex + left out of sitemap.xml
     web_route: str | None = None  # URL prefix, e.g. "news"
-    is_published_field: str | None = None  # Check field gating the page; None → every doc
+    is_published_field: str | None = None  # Check field gating the page; None -> every doc
 
     # Lifecycle markers (UI-only; no behavioural effect)
-    beta: bool = False  # show a "Beta" badge — feature still under development
-    deprecated: bool = False  # show a warning banner — kept for compatibility, avoid new use
+    beta: bool = False  # show a "Beta" badge - feature still under development
+    deprecated: bool = False  # show a warning banner - kept for compatibility, avoid new use
 
     # Fields
     fields: list[DocField] = []
 
     # View configuration
     default_view: str | None = None  # "list" | "kanban" | "calendar" | "gantt" | "tree" | "map"
-    form_show_sidebar: bool = True  # False → hide the document detail sidebar on the form
+    form_show_sidebar: bool = True  # False -> hide the document detail sidebar on the form
     kanban_column_field: str | None = None  # Select field grouping the kanban columns
     map_view: DocTypeMapView | None = None
 
-    # Calendar view — principal date field + optional extra document sources.
+    # Calendar view - principal date field + optional extra document sources.
     # The assembled config is exposed via `.calendar_view`.
     calendar_date_field: str | None = None
     calendar_end_date_field: str | None = None
-    calendar_title_field: str | None = None  # None → falls back to title_field
+    calendar_title_field: str | None = None  # None -> falls back to title_field
     calendar_sources: list[CalendarSource] = []
 
-    # Gantt view — time-scaled bars. Needs start + end Date/Datetime fields;
+    # Gantt view - time-scaled bars. Needs start + end Date/Datetime fields;
     # the assembled config is exposed via `.gantt_view`.
     gantt_start_field: str | None = None
     gantt_end_field: str | None = None
-    gantt_title_field: str | None = None  # None → falls back to title_field
-    gantt_progress_field: str | None = None  # Float/Int/Percent 0–100 → bar fill
+    gantt_title_field: str | None = None  # None -> falls back to title_field
+    gantt_progress_field: str | None = None  # Float/Int/Percent 0–100 -> bar fill
     gantt_color_field: str | None = None
     gantt_color_map: dict[str, str] | None = None  # { value: '#hex' }
     gantt_default_color: str | None = None
     gantt_dependencies_field: str | None = None
 
-    # List navigation — a Link field to an ``is_tree`` DocType (e.g. File.folder
-    # → FileFolder). The list shows that tree beside it: a node filters the
+    # List navigation - a Link field to an ``is_tree`` DocType (e.g. File.folder
+    # -> FileFolder). The list shows that tree beside it: a node filters the
     # list, dropping rows on a node re-links them.
     list_tree_field: str | None = None
 
-    # Tree view — hierarchy via a self-referential Link (`tree_parent_field`).
+    # Tree view - hierarchy via a self-referential Link (`tree_parent_field`).
     # Gated by `is_tree`; the assembled config is exposed via `.tree_view`.
     tree_parent_field: str | None = None
-    tree_title_field: str | None = None  # node label; None → falls back to title_field
+    tree_title_field: str | None = None  # node label; None -> falls back to title_field
     tree_as_of_date_field: str | None = None  # Date field enabling the "as-of" picker
     tree_sort_by: str | None = None
     tree_sort_order: Literal["asc", "desc"] = "asc"
 
-    # Status display — field whose value is the document status, plus the
-    # value → colour/icon/label indicators used by list/form/kanban badges.
+    # Status display - field whose value is the document status, plus the
+    # value -> colour/icon/label indicators used by list/form/kanban badges.
     status_field: str | None = None
     status_indicators: list[StatusIndicator] = []
 
-    # Custom document actions — code-registered, bound here (see grunt.actions)
+    # Custom document actions - code-registered, bound here (see grunt.actions)
     actions: list[DocTypeAction] = []
 
     # Related document types shown on the "Зв'язки" panel (see grunt.document.connections)
@@ -360,12 +360,12 @@ class DocType(BaseModel):
     # Search
     search_fields: list[str] = []
 
-    # Composite (multi-column) indexes — single-column indexes use field.index
+    # Composite (multi-column) indexes - single-column indexes use field.index
     # instead. Each entry is an ordered list of fieldnames, e.g.
     # [["reference_doctype", "reference_id"]].
     indexes: list[list[str]] = []
 
-    # Override physical table name — used to pin core/system DocTypes to their
+    # Override physical table name - used to pin core/system DocTypes to their
     # legacy ORM table names (e.g. "grunt_server_script" instead of "grunt_core_server_script").
     table_name: str | None = None
 
@@ -375,7 +375,7 @@ class DocType(BaseModel):
     def calendar_view(self) -> DocTypeCalendarView | None:
         """Assembled calendar-view config from the flat ``calendar_*`` fields +
         ``calendar_sources``, or None when no principal date field is set.
-        Read-only — not serialised."""
+        Read-only - not serialised."""
         if not self.calendar_date_field:
             return None
         return DocTypeCalendarView(
@@ -388,7 +388,7 @@ class DocType(BaseModel):
     @property
     def gantt_view(self) -> DocTypeGanttView | None:
         """Assembled Gantt-view config from the flat ``gantt_*`` fields, or None
-        when no start/end field is set. Read-only — not serialised."""
+        when no start/end field is set. Read-only - not serialised."""
         if not self.gantt_start_field or not self.gantt_end_field:
             return None
         return DocTypeGanttView(
@@ -405,7 +405,7 @@ class DocType(BaseModel):
     @property
     def tree_view(self) -> DocTypeTreeView | None:
         """Assembled tree-view config from the flat ``tree_*`` fields, or None
-        when this DocType isn't a configured tree. Read-only — not serialised."""
+        when this DocType isn't a configured tree. Read-only - not serialised."""
         if not self.is_tree or not self.tree_parent_field:
             return None
         return DocTypeTreeView(

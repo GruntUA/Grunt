@@ -1,4 +1,4 @@
-"""``DeletedDocument`` — restorable JSON snapshots of deleted documents.
+"""``DeletedDocument`` - restorable JSON snapshots of deleted documents.
 
 Snapshots are written by the ``after_delete`` hook in :mod:`grunt.activity.trash`.
 This module holds the controller plus the whitelisted :func:`restore` /
@@ -29,9 +29,7 @@ class DeletedDocument(Document):
     data: dict
 
 
-# ──────────────────────────────────────────────────────────────────────────────
 # RPC
-# ──────────────────────────────────────────────────────────────────────────────
 
 
 def _require_system_manager() -> None:
@@ -57,7 +55,7 @@ def _snapshot_payload(snap: dict[str, Any]) -> dict[str, Any]:
 async def restore(name: str, allow_rename: bool = False) -> dict[str, Any]:
     """Відновити один видалений документ зі знімка ``name``.
 
-    Повертає відновлений документ. Якщо оригінальний ID зайнятий — кине
+    Повертає відновлений документ. Якщо оригінальний ID зайнятий - кине
     помилку, доки не передано ``allow_rename=True`` (тоді буде згенеровано
     новий ID за правилом autoname цільового DocType).
 

@@ -1,9 +1,9 @@
-"""Generic HTTP surface for pluggable auth providers — mounted at ``/api/v1/auth``.
+"""Generic HTTP surface for pluggable auth providers - mounted at ``/api/v1/auth``.
 
-    GET  /api/v1/auth/methods              → configured providers (login screen)
-    POST /api/v1/auth/{name}/begin         → start a sign-in ceremony
-    POST /api/v1/auth/{name}/complete      → finish it → standard token payload
-    POST /api/v1/auth/{name}/enroll/begin  → add the factor (signed-in user)
+    GET  /api/v1/auth/methods              -> configured providers (login screen)
+    POST /api/v1/auth/{name}/begin         -> start a sign-in ceremony
+    POST /api/v1/auth/{name}/complete      -> finish it -> standard token payload
+    POST /api/v1/auth/{name}/enroll/begin  -> add the factor (signed-in user)
     POST /api/v1/auth/{name}/enroll/complete
 
 ``complete`` funnels through :func:`grunt.auth.login.issue_login`, so its
@@ -44,7 +44,7 @@ def _ctx(request: Request, data: dict[str, Any] | None, user: User | None) -> Au
 
 @router.get("/methods")
 async def list_methods() -> dict:
-    """Metadata for every configured provider — drives the login screen."""
+    """Metadata for every configured provider - drives the login screen."""
     return ok(auth_providers.describe_available())
 
 

@@ -15,25 +15,25 @@ literally::
             c(['id'], stdout=-1).stdout.read()  # arbitrary shell command
 
 This was verified as a working exploit (real shell command execution)
-against the old implementation — see
+against the old implementation - see
 ``tests/unit/test_scripting_sandbox.py``, which must never pass again.
 
 RestrictedPython (used by Zope/Plone for this exact feature) fixes this at
 two levels:
 
 - Compile-time: the AST transformer rejects any identifier or attribute
-  name starting with ``"_"`` and disallows dangerous syntax outright — so
+  name starting with ``"_"`` and disallows dangerous syntax outright - so
   ``str.__mro__`` is a *compile* error, not something a runtime blocklist
   has to notice.
 - Run-time: every attribute access is routed through a guard function
   (``safer_getattr``), which independently blocks the same class of names
-  even when constructed dynamically (as in the payload above) — the two
+  even when constructed dynamically (as in the payload above) - the two
   layers don't rely on each other, so a single missed pattern can't reopen
   the hole the way the old text blocklist did.
 
 ``import``/``eval``/``exec``/``open`` etc. are blocked simply by never being
 present in the builtins dict handed to the compiled code (same mechanism
-the old sandbox used for *those* names — the difference here is attribute
+the old sandbox used for *those* names - the difference here is attribute
 traversal, not name lookup, was always the real gap).
 """
 
@@ -91,7 +91,7 @@ _EXTRA_SAFE_BUILTINS: dict[str, Any] = {
     "time": time,
     "timedelta": timedelta,
     "timezone": timezone,
-    # Math / json / re — safe: no I/O, no process/network access.
+    # Math / json / re - safe: no I/O, no process/network access.
     "math": math,
     "json": json,
     "re": re,
@@ -103,7 +103,7 @@ def compile_script(source: str) -> CompileResult:
 
     ``.errors`` is non-empty when the script isn't safe to run (syntax
     errors and AST-level violations alike); ``.code`` is the exec()-able
-    code object otherwise. This is the actual security boundary — the code
+    code object otherwise. This is the actual security boundary - the code
     object it returns is the *only* thing that should ever be exec()'d for
     a script that isn't fully trusted host code.
     """
@@ -127,7 +127,7 @@ def build_safe_globals(extra: dict[str, Any] | None = None) -> dict[str, Any]:
     Includes the guard hooks (``_getattr_``, ``_getitem_``, ``_getiter_``,
     ``_write_``, ``_print_``, ...) that RestrictedPython-compiled bytecode
     routes attribute/item access, iteration, assignment, and ``print``
-    through — required for restricted code to run at all, and where the
+    through - required for restricted code to run at all, and where the
     real access control lives (see module docstring).
     """
     builtins = dict(safe_builtins)

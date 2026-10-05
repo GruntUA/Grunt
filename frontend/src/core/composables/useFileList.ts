@@ -13,7 +13,7 @@ import { filesApi, type FileItem, type FileListParams, type FileSortField } from
 
 export type FileCategory = 'all' | 'image' | 'pdf' | 'document'
 
-/** Server-side `filters` fragments per category — no client-side filtering. */
+/** Server-side `filters` fragments per category - no client-side filtering. */
 const CATEGORY_FILTERS: Record<Exclude<FileCategory, 'all'>, Partial<FileListParams>> = {
   image: { contentTypeLike: 'image/' },
   pdf: { contentTypes: ['application/pdf'] },
@@ -35,7 +35,7 @@ const CATEGORY_FILTERS: Record<Exclude<FileCategory, 'all'>, Partial<FileListPar
 export interface UseFileListOptions {
   search?: MaybeRefOrGetter<string>
   category?: MaybeRefOrGetter<FileCategory>
-  /** Document a file may be attached to — used only when `scopedToDoc` is on. */
+  /** Document a file may be attached to - used only when `scopedToDoc` is on. */
   attachedToDoctype?: MaybeRefOrGetter<string | undefined>
   attachedToId?: MaybeRefOrGetter<string | undefined>
   /** Restrict the list to files attached to the document above. */
@@ -71,7 +71,7 @@ export function useFileList(opts: UseFileListOptions = {}) {
     getNextPageParam: (lastPage, allPages) => {
       const loaded = allPages.reduce((n, p) => n + p.items.length, 0)
       // Stop as soon as the server ran out of rows or we reached the (filtered)
-      // total — never keep polling empty pages.
+      // total - never keep polling empty pages.
       if (lastPage.items.length === 0) return undefined
       return loaded < lastPage.total ? allPages.length + 1 : undefined
     },

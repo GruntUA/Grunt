@@ -1,4 +1,4 @@
-"""API Key service — generation and verification of static API keys.
+"""API Key service - generation and verification of static API keys.
 
 Key format: ``grnt_<64 hex chars>``
   - first 8 chars after prefix = key_prefix (stored in DB, used for lookup)

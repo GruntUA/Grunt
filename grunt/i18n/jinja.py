@@ -1,4 +1,4 @@
-"""Jinja2 i18n globals — ``{{ _("Sign in") }}`` in website, print and mail templates.
+"""Jinja2 i18n globals - ``{{ _("Sign in") }}`` in website, print and mail templates.
 
 Strings resolve against the current language (request, or a
 :func:`grunt.i18n.use_language` block when rendering for someone else), and are

@@ -56,7 +56,7 @@ export const authApi = {
         return data.data
     },
 
-    /** Confirm the enrollment code — returns the login payload + `backup_codes`. */
+    /** Confirm the enrollment code - returns the login payload + `backup_codes`. */
     async mfaEnrollComplete(mfaToken: string, code: string) {
         const { data } = await client.post(`${METHOD}.mfa_enroll_complete`, {
             mfa_token: mfaToken,
@@ -73,7 +73,7 @@ export const authApi = {
         return data.data
     },
 
-    // ── Pluggable auth providers ──────────────────────────────────────────
+    // Pluggable auth providers
 
     async listMethods(): Promise<AuthMethod[]> {
         const { data } = await client.get('/api/v1/auth/methods')
@@ -100,7 +100,7 @@ export const authApi = {
         return data.data
     },
 
-    // ── Passkey management (signed-in user) ──────────────────────────────
+    // Passkey management (signed-in user)
 
     async listPasskeys(): Promise<Passkey[]> {
         const { data } = await client.get(`${PASSKEY}.list_my_passkeys`)

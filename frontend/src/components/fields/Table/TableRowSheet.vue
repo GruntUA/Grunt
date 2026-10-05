@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/sheet'
 
 /**
- * The whole row as a form — every field of the child DocType, including those
+ * The whole row as a form - every field of the child DocType, including those
  * the grid can't edit inline. Edits a draft; Save hands it back.
  */
 const props = defineProps<{

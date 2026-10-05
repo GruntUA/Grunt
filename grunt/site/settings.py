@@ -7,13 +7,13 @@ the whole settings row.
 
 The cache is invalidated two ways:
 
-* explicitly — the ``SystemSettings`` controller calls :func:`clear_settings_cache`
+* explicitly - the ``SystemSettings`` controller calls :func:`clear_settings_cache`
   from ``after_save`` (see ``grunt/site/doctypes/SystemSettings/SystemSettings.py``);
-* by TTL — a 60s backstop so that a settings change made in another worker
+* by TTL - a 60s backstop so that a settings change made in another worker
   process (production runs several) is picked up without a restart.
 
-All accessors expect an active grunt context with a session (the callers —
-auth, email, webpush — all run inside one).
+All accessors expect an active grunt context with a session (the callers -
+auth, email, webpush - all run inside one).
 """
 
 from __future__ import annotations
@@ -53,7 +53,7 @@ async def get_setting(field: str, default: Any = None) -> Any:
     """Return a single settings value, or *default* if unset.
 
     ``None`` (column NULL / missing) falls back to *default*; ``0``, ``False``
-    and ``""`` are returned as-is — they are legitimate stored values.
+    and ``""`` are returned as-is - they are legitimate stored values.
     """
     settings = await get_system_settings()
     value = settings.get(field)

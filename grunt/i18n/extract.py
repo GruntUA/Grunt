@@ -3,10 +3,10 @@
 Walks the bench for translatable strings and returns them as a flat list of
 ``{source, context, kind, origin, plural_source, occurrences}`` dicts:
 
-* Python  — ``_("...")``, ``pgettext("ctx", "...")``, ``ngettext("s", "p", n)``
-* Vue/TS  — ``t('...')`` / ``$t("...")`` / ``tn('s', 'p', n)``; client scripts — ``__('...')``
+* Python - ``_("...")``, ``pgettext("ctx", "...")``, ``ngettext("s", "p", n)``
+* Vue/TS - ``t('...')`` / ``$t("...")`` / ``tn('s', 'p', n)``; client scripts - ``__('...')``
   (``"ctx|msg"`` splits into context)
-* DocType JSON — ``label`` / ``description`` / ``placeholder`` / Select ``options``
+* DocType JSON - ``label`` / ``description`` / ``placeholder`` / Select ``options``
   / status indicators, keyed by the ``meta:`` / ``help:`` / ``hint:`` / ``select:``
   / ``status:`` msgctxt convention
 
@@ -30,16 +30,16 @@ _PY_FUNCS = {"_", "gettext", "pgettext", "ngettext", "N_", "NP_"}
 # where they are served (e.g. ``@doc_action(label=..., confirm=...)``).
 _PY_LABEL_CALLS = {"doc_action": ("label", "confirm"), "register_doc_action": ("label", "confirm")}
 # t('…') / $t('…') in Vue/TS, __('…') in client scripts (DocType .js files),
-# N_('…') — a marked-only key (module constants translated where rendered).
+# N_('…') - a marked-only key (module constants translated where rendered).
 _TS_CALL = re.compile(r"(?<![\w$])(?:\$?t|__|N_)\(\s*(['\"])(.+?)\1")
-# tn('1 apple', '{n} apples', n) — the frontend plural helper.
+# tn('1 apple', '{n} apples', n) - the frontend plural helper.
 _TS_PLURAL = re.compile(r"(?<![\w$])tn\(\s*(['\"])(.+?)\1\s*,\s*(['\"])(.+?)\3")
 # {{ _("…") }} / pgettext("ctx", "…") / ngettext("s", "p", n) in Jinja templates.
 _JINJA_CALL = re.compile(
     r"(?<![\w.])(_|pgettext|ngettext)\(\s*(['\"])(.+?)\2(?:\s*,\s*(['\"])(.+?)\4)?"
 )
 _JINJA_SUFFIXES = (".html", ".j2", ".jinja")
-# "10", "1.5", "30d", "365d", "50%" — codes / magnitudes, nothing to translate.
+# "10", "1.5", "30d", "365d", "50%" - codes / magnitudes, nothing to translate.
 _NUMERIC_TOKEN = re.compile(r"^\d+(?:[.,]\d+)?[a-z%]{0,3}$")
 _SKIP_DIRS = {
     "node_modules",
@@ -56,7 +56,7 @@ _SKIP_DIRS = {
     "test",
 }
 
-# ── in-process cache ────────────────────────────────────────────────────────
+# in-process cache
 _cache: list[dict[str, Any]] | None = None
 _cache_at: float = 0.0
 _CACHE_TTL = 120.0
@@ -84,7 +84,7 @@ def set_cache(rows: list[dict[str, Any]]) -> None:
     _cache_at = time.monotonic()
 
 
-# ── walker ─────────────────────────────────────────────────────────────────
+# walker
 def extract_all(
     bench_dir: Path | None = None, origins: set[str] | None = None
 ) -> list[dict[str, Any]]:
@@ -160,7 +160,7 @@ def _iter_files(root: Path):
 
 
 def _worth_translating(s: str) -> bool:
-    """Filter out numbers / codes: ``10``, ``1.5``, ``30d``, ``50%``, ``—``.
+    """Filter out numbers / codes: ``10``, ``1.5``, ``30d``, ``50%``, ``-``.
 
     A string with no letter at all, or a bare magnitude with a tiny unit
     suffix, is never a UI label.
@@ -221,7 +221,7 @@ def _scan_python(text: str, rel: str, origin: str, add) -> None:
 
 def _scan_field_dict(node: ast.Dict, rel: str, origin: str, add) -> None:
     """A DocField-shaped literal (``{"fieldname": ..., "label": "..."}``) built in
-    code — e.g. dynamic schemas, dialog fields — is served with ``_(label)``."""
+    code - e.g. dynamic schemas, dialog fields - is served with ``_(label)``."""
     keys = {
         k.value: v
         for k, v in zip(node.keys, node.values, strict=True)

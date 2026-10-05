@@ -72,7 +72,7 @@ onMounted(async () => {
   try {
     methods.value = await authApi.listMethods()
   } catch {
-    // Providers endpoint unavailable — password login still works.
+    // Providers endpoint unavailable - password login still works.
   }
 })
 

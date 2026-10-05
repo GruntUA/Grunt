@@ -21,7 +21,7 @@ const props = defineProps<{
 
 const router = useRouter()
 
-/** Gauge → the widget's list, filtered to the rows the value was computed over. */
+/** Gauge -> the widget's list, filtered to the rows the value was computed over. */
 const canOpen = computed(() => !!props.widget.doctype && !!props.data?.filters)
 
 function open() {
@@ -94,7 +94,7 @@ const trendPos = computed(() => (trend.value ?? 0) > 0)
     <div v-if="loading" class="flex-1 bg-muted animate-pulse rounded" />
 
     <div v-else class="flex-1 relative flex flex-col items-center justify-center" style="min-height:140px">
-      <!-- Half-doughnut canvas — top 55% of the area -->
+      <!-- Half-doughnut canvas - top 55% of the area -->
       <div class="w-full" style="height:55%">
         <Doughnut :data="chartData" :options="(chartOptions as any)" />
       </div>

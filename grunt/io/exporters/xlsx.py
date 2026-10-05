@@ -1,4 +1,4 @@
-"""XLSX exporter — produces a styled Excel workbook."""
+"""XLSX exporter - produces a styled Excel workbook."""
 
 from __future__ import annotations
 

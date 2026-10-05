@@ -1,14 +1,14 @@
 """Per-user/per-role rate limiting middleware.
 
 Tiers (configurable via settings):
-  System Manager      — unlimited
-  authenticated user  — settings.rate_limit_user  (default 200 req/min)
-  anonymous (IP)      — settings.rate_limit_anon  (default 30 req/min)
+  System Manager - unlimited
+  authenticated user - settings.rate_limit_user  (default 200 req/min)
+  anonymous (IP) - settings.rate_limit_anon  (default 30 req/min)
 
 Algorithm: fixed-window per 60-second bucket.
 Storage:   in-memory dict (no Redis dependency; use Redis for multi-process).
 
-JWT is decoded lightly — only to extract email + roles claims.
+JWT is decoded lightly - only to extract email + roles claims.
 The signature IS verified (same secret_key) so the tier cannot be spoofed.
 """
 
@@ -44,7 +44,7 @@ _AUTH_STRICT_PATHS: dict[str, int] = {
     "/api/v1/method/grunt.auth.doctypes.User.user.forgot_password_api": 5,
 }
 
-# Public web-form submissions — the SSR path (`/form/{route}`, POST) and its
+# Public web-form submissions - the SSR path (`/form/{route}`, POST) and its
 # JSON RPC twin. Both are wide open to anonymous, unauthenticated traffic by
 # design, so they get their own (tighter) strict tier rather than sharing the
 # general anon-IP bucket with every other unauthenticated GET on the site.
@@ -58,7 +58,7 @@ def _is_file_content_request(request: Request) -> bool:
     """File downloads (signed private files and public ones alike).
 
     Public website images carry no signature, and an unsigned request for a
-    private file is refused by get_content anyway — so the bucket keys on the
+    private file is refused by get_content anyway - so the bucket keys on the
     path; guessing random file ids at this rate is not a practical attack.
     """
     return request.url.path == _FILE_CONTENT_PATH
@@ -82,9 +82,9 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
     """Per-user / per-IP rate limiting with three tiers.
 
     Configuration via settings:
-        rate_limit_user  — max requests per minute for authenticated users
-        rate_limit_anon  — max requests per minute for anonymous (IP-based)
-        rate_limit_enabled — set False to disable entirely
+        rate_limit_user - max requests per minute for authenticated users
+        rate_limit_anon - max requests per minute for anonymous (IP-based)
+        rate_limit_enabled - set False to disable entirely
     """
 
     def __init__(self, app: Any, window_seconds: int = 60) -> None:
@@ -94,7 +94,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         self._counters: dict[str, _Window] = defaultdict(lambda: _Window(0.0))
         self._lock = asyncio.Lock()
 
-    # ── Core logic ───────────────────────────────────────────────────────────
+    # Core logic
 
     def _decode_token(self, authorization: str | None) -> dict | None:
         """Decode JWT bearer token and return payload, or None on any failure."""
@@ -142,7 +142,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             for k in stale:
                 del self._counters[k]
 
-    # ── Middleware dispatch ───────────────────────────────────────────────────
+    # Middleware dispatch
 
     async def dispatch(self, request: Request, call_next) -> Response:
         # Feature flag
@@ -186,7 +186,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                     headers={"Retry-After": str(reset_in)},
                 )
 
-        # Decode JWT (optional — does not affect auth, only rate limit tier)
+        # Decode JWT (optional - does not affect auth, only rate limit tier)
         payload = self._decode_token(request.headers.get("authorization"))
 
         if not payload and _is_file_content_request(request):

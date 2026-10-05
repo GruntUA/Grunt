@@ -53,7 +53,7 @@ def _process_params(params: dict[str, str], method: Any = None) -> dict[str, Any
                 args[key] = json.loads(val)
                 continue
             except Exception:
-                # Looked JSON-ish but wasn't — fall through and keep it as a
+                # Looked JSON-ish but wasn't - fall through and keep it as a
                 # plain string below. Routine, not an error: debug, not exception.
                 log.debug("method.param_not_json", key=key)
 
@@ -142,7 +142,7 @@ async def _invoke_with_context(
     async with grunt.context(session, engine, user):
         # Validate required parameters
         # (@grunt.whitelist(roles=..., require=...) enforcement happens inside
-        # `method` itself now — see grunt.api.context.whitelist — so it applies
+        # `method` itself now - see grunt.api.context.whitelist - so it applies
         # uniformly whether `method` is called via this dispatcher or directly.)
         import inspect
 
@@ -215,7 +215,7 @@ async def run_method_post(
             form_data = await request.form()
             args.update(dict(form_data))
         except Exception:
-            # No JSON body and no form body — routine for GET-like whitelisted
+            # No JSON body and no form body - routine for GET-like whitelisted
             # calls made via POST with no payload, not an error: debug, not exception.
             log.debug("method.no_body_or_form", path=path)
 

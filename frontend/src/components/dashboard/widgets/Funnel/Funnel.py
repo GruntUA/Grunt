@@ -1,4 +1,4 @@
-"""funnel widget — backend data computation."""
+"""funnel widget - backend data computation."""
 
 from __future__ import annotations
 

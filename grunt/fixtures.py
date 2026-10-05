@@ -1,4 +1,4 @@
-"""Fixtures — export configuration records from a site's database into an
+"""Fixtures - export configuration records from a site's database into an
 app's ``<module>/fixtures/*.json`` files, so they travel with the app's code.
 
 An app declares what to export in its ``hooks.py``::
@@ -12,12 +12,12 @@ An app declares what to export in its ``hooks.py``::
 ``grunt fixtures export <app>`` writes one file per entry in the format the
 fixture loader already reads (``{"doctype", "records"}``) plus ``"sync": true``.
 On install/migrate a *sync* file updates existing records to match it, while a
-hand-written seed file (no ``sync``) only inserts records that are missing —
+hand-written seed file (no ``sync``) only inserts records that are missing -
 see :func:`grunt.startup.fixtures._apply_doctype_fixture`.
 
 Only schema fields are exported: system columns (``id``, ``owner``,
 timestamps, …), virtual/layout fields and ``Password`` values never leave the
-site. Child rows keep their data fields only — the parent re-creates them.
+site. Child rows keep their data fields only - the parent re-creates them.
 """
 
 from __future__ import annotations

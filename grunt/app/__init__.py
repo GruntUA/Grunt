@@ -1,4 +1,4 @@
-"""Grunt developer API — the primary interface for building apps on the Grunt framework.
+"""Grunt developer API - the primary interface for building apps on the Grunt framework.
 
 This module provides a high-level, async-first API for app developers.
 It is context-aware: the current
@@ -18,13 +18,13 @@ from grunt.cache.query_cache import QueryCache
 from grunt.db import GruntDB
 from grunt.metadata.registry import doctype_registry
 
-# ── Main API ──────────────────────────────────────────────────────────────────
+# Main API
 
 
 class GruntApp(ContextAPI, RealtimeAPI, PermissionAPI, DocumentAPI, UtilityAPI):
     """Primary developer API for building Grunt apps.
 
-    Its methods are re-exported by the ``grunt`` package — app code uses them
+    Its methods are re-exported by the ``grunt`` package - app code uses them
     from there:
 
     .. code-block:: python
@@ -65,7 +65,7 @@ class GruntApp(ContextAPI, RealtimeAPI, PermissionAPI, DocumentAPI, UtilityAPI):
         self.doc_cache = DocumentCache()
 
 
-# ── Module-level singleton ────────────────────────────────────────────────────
+# Module-level singleton
 
 
 grunt = GruntApp()

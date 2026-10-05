@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { useAuthStore } from '@/stores/auth'
 
-// ── Mocks ──────────────────────────────────────────────────────────────────
+// Mocks
 
 const { mockPost, mockGet, mockPatch } = vi.hoisted(() => ({
   mockPost: vi.fn(),
@@ -26,7 +26,7 @@ vi.mock('@/core/composables/useColorMode', () => ({
   useColorMode: () => ({ setTheme: vi.fn() }),
 }))
 
-// ── Fixtures ───────────────────────────────────────────────────────────────
+// Fixtures
 
 const fakeUser = {
   id: 'usr-1',
@@ -48,7 +48,7 @@ function envelope<T>(data: T) {
   return { success: true, data }
 }
 
-// ── Tests ──────────────────────────────────────────────────────────────────
+// Tests
 
 describe('useAuthStore', () => {
   beforeEach(() => {

@@ -1,7 +1,7 @@
 """Fluent, typed query builder for :class:`~grunt.document.base.Document` subclasses.
 
 Accessed via ``Document.objects`` (see the ``_ObjectsDescriptor`` on
-:class:`~grunt.document.base.Document`). A thin wrapper — every method delegates
+:class:`~grunt.document.base.Document`). A thin wrapper - every method delegates
 to the existing guarded facade (``grunt.get_all``/``grunt.count``/``grunt.new_doc``),
 it does not build SQL itself::
 
@@ -12,7 +12,7 @@ it does not build SQL itself::
 
 Filter keys support the same operator suffixes as ``grunt.db`` (``__gt``, ``__gte``,
 ``__lt``, ``__lte``, ``__in``, ``__nin``, ``__like``, ``__ilike``, ``__isnull``, ``__ne``)
-— they are passed straight through to ``build_clauses``, nothing extra to learn.
+- they are passed straight through to ``build_clauses``, nothing extra to learn.
 """
 
 from __future__ import annotations
@@ -46,7 +46,7 @@ class QuerySet[T: Document]:
         clone._page = self._page
         return clone
 
-    # ── Chaining ─────────────────────────────────────────────────────────
+    # Chaining
 
     def filter(self, **kwargs: Any) -> QuerySet[T]:
         """Merge equality/operator-suffixed filters (e.g. ``created_at__gte=...``)."""
@@ -79,7 +79,7 @@ class QuerySet[T: Document]:
         clone._page = n
         return clone
 
-    # ── Execution ────────────────────────────────────────────────────────
+    # Execution
 
     async def all(self) -> list[T]:
         import grunt

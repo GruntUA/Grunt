@@ -1,4 +1,4 @@
-"""Document following — notify ``DocFollow`` subscribers about changes.
+"""Document following - notify ``DocFollow`` subscribers about changes.
 
 Followers get a notification (bell + web-push) when a followed document is
 updated (with the changed fields) or commented on. The author of the change is
@@ -51,7 +51,7 @@ async def _notify(
     users: list[str],
     compose: Callable[[], tuple[str, str]],
 ) -> None:
-    """Notify each follower; *compose* → ``(subject, message)`` runs in their language."""
+    """Notify each follower; *compose* -> ``(subject, message)`` runs in their language."""
     from grunt.notification.service import notification_service
 
     for user in users:
@@ -139,7 +139,7 @@ async def drop_follows(
     session: Any = None,
     **kwargs: Any,
 ) -> None:
-    """``*`` ``after_delete`` hook — a deleted document has nothing left to follow."""
+    """``*`` ``after_delete`` hook - a deleted document has nothing left to follow."""
     ref = doc_id or (doc.get("name") if isinstance(doc, dict) else None)
     if not doctype or not ref or session is None or doctype == "DocFollow":
         return

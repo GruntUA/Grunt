@@ -28,7 +28,7 @@ _APP_NAME = "Grunt"
 _BACKUP_CODE_COUNT = 8
 
 
-# ── Setup ─────────────────────────────────────────────────────────────────────
+# Setup
 
 
 def generate_mfa_secret() -> str:
@@ -65,7 +65,7 @@ def get_qr_code_svg(secret: str, email: str) -> str:
         svg = re.sub(r'height="[^"]+"', 'height="100%"', svg, count=1)
         return svg
     except ImportError:
-        # qrcode not installed — return the raw URI so the frontend can render it
+        # qrcode not installed - return the raw URI so the frontend can render it
         return uri
 
 
@@ -78,7 +78,7 @@ def _hash_backup_code(code: str) -> str:
     return hashlib.sha256(code.encode()).hexdigest()
 
 
-# ── Verification ──────────────────────────────────────────────────────────────
+# Verification
 
 
 def verify_totp(secret: str, code: str) -> bool:
@@ -93,7 +93,7 @@ def verify_totp(secret: str, code: str) -> bool:
 def verify_backup_code(stored_hashes: list[str], code: str) -> tuple[bool, list[str]]:
     """Check if the given code matches any stored backup code hash.
 
-    Returns ``(matched, remaining_hashes)`` — the matched hash is removed.
+    Returns ``(matched, remaining_hashes)`` - the matched hash is removed.
     """
     code_hash = _hash_backup_code(code.upper())
     if code_hash in stored_hashes:
@@ -102,7 +102,7 @@ def verify_backup_code(stored_hashes: list[str], code: str) -> tuple[bool, list[
     return False, stored_hashes
 
 
-# ── DB operations ─────────────────────────────────────────────────────────────
+# DB operations
 
 
 async def mfa_setup_required(user: User) -> bool:
@@ -186,7 +186,7 @@ async def check_mfa_code(user: User, code: str, session: AsyncSession | None = N
 
     Raises HTTP 401 on failure. Consumes a backup code if used (updates DB).
 
-    *session* — pass the SQLAlchemy session only when called from a pre-auth
+    *session* - pass the SQLAlchemy session only when called from a pre-auth
     context (e.g. ``/auth/mfa-login``) where the grunt request context is not
     yet active.  Omit when called from a GruntRouter endpoint where the context
     is already set by middleware.

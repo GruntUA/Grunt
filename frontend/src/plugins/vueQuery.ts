@@ -1,7 +1,7 @@
 import type { VueQueryPluginOptions } from '@tanstack/vue-query'
 import axios from 'axios'
 
-/** Retry transient failures only — a 4xx (auth, permission, not found, bad request)
+/** Retry transient failures only - a 4xx (auth, permission, not found, bad request)
  *  won't change on retry, so fail fast instead of hammering the endpoint. */
 function retry(failureCount: number, error: unknown): boolean {
   if (axios.isAxiosError(error)) {
@@ -18,7 +18,7 @@ export const vueQueryOptions: VueQueryPluginOptions = {
         staleTime: 60_000,
         retry,
         retryDelay: 1_000,
-        // Offline, still run the request — the service worker answers from its
+        // Offline, still run the request - the service worker answers from its
         // cache (public/sw.js); TanStack's default would just pause it.
         networkMode: 'offlineFirst',
       },

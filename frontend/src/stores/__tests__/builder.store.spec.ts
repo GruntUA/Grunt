@@ -48,7 +48,7 @@ describe('builder store — field CRUD', () => {
     b.updateField('amount', { fieldtype: 'Int' })
 
     expect(b.selectedField?.fieldtype).toBe('Int')
-    // no cleanup — sibling props are left intact by design
+    // no cleanup - sibling props are left intact by design
     expect(b.selectedField?.options).toBe('a\nb')
     expect(b.selectedField?.required).toBe(true)
     expect(b.selectedFieldName).toBe('amount')
@@ -185,7 +185,7 @@ describe('builder store — sections & columns', () => {
 
     b.addFieldToColumn('Data', 'sec_a', 0)
 
-    // new field lands in column 0 — before the column break
+    // new field lands in column 0 - before the column break
     const fields = b.doctype!.fields
     const colBreak = fields.findIndex((f) => f.fieldtype === 'Column')
     const newIdx = fields.findIndex((f) => f.fieldname === b.selectedFieldName)

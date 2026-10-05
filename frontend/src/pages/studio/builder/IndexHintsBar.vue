@@ -8,7 +8,7 @@ const { t } = useI18n()
 
 const builder = useBuilderStore()
 
-// All current hints are polymorphic-pair suggestions ("a+b") — see
+// All current hints are polymorphic-pair suggestions ("a+b") - see
 // core/indexHints.ts for why single-field hints were dropped.
 function applyHint(hint: IndexHint) {
   const [a, b] = hint.field.split('+')

@@ -107,7 +107,7 @@ const rest = computed(() => rows.value.slice(VISIBLE))
             </Tooltip>
           </div>
 
-          <!-- Short values: old → new -->
+          <!-- Short values: old -> new -->
           <div v-else class="flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
             <template v-if="row.old">
               <span class="max-w-full truncate text-muted-foreground line-through">{{ row.old }}</span>

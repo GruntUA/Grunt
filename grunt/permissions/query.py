@@ -29,7 +29,7 @@ async def apply_permission_filter(
 
     Safe-by-default: a permission rule whose `match` expression can't be
     translated to SQL contributes *no* rows (fails closed) rather than being
-    treated as unrestricted — the opposite default would let a rule nobody
+    treated as unrestricted - the opposite default would let a rule nobody
     could actually enforce quietly expose every row instead of none.
     """
     access = RoleAccess(doctype, user)
@@ -67,7 +67,7 @@ async def apply_permission_filter(
 
     if not conditions:
         # No read rule matched this user's roles (or every matching rule's
-        # `match` was unparseable) and nothing is shared — deny all rows
+        # `match` was unparseable) and nothing is shared - deny all rows
         # rather than guess.
         return query.where(false())
 

@@ -9,7 +9,7 @@ import i18n from '@/plugins/i18n'
 
 const t = (key: string, params: Record<string, unknown> = {}): string => i18n.global.t(key, params)
 
-// ── Shared state (singleton across components) ───────────────────────────
+// Shared state (singleton across components)
 
 const notifications = ref<GruntNotification[]>([])
 const unreadCount = ref(0)
@@ -27,7 +27,7 @@ const userChannel = new WebSocketChannel({
   pingIntervalMs: 30_000,
 })
 
-// Single wildcard handler — catches ALL events, including bulk_delete_progress/done
+// Single wildcard handler - catches ALL events, including bulk_delete_progress/done
 userChannel.on('*', (msg) => {
   const m = msg as { event: string; data?: unknown }
   handleRealtimeEvent({ event: m.event, data: (m.data ?? {}) as RealtimeEvent['data'] })
@@ -57,7 +57,7 @@ function handleRealtimeEvent(msg: RealtimeEvent) {
 
   switch (msg.event) {
     case 'notification': {
-      // Persistent notification pushed from server — refresh list
+      // Persistent notification pushed from server - refresh list
       unreadCount.value++
       if (msg.data.subject) {
         notifications.value.unshift({
@@ -85,7 +85,7 @@ function handleRealtimeEvent(msg: RealtimeEvent) {
           indicator: msg.data.indicator as string | undefined,
         })
       } else {
-        // Simple text — show as toast
+        // Simple text - show as toast
         const type = msg.data.type ?? 'info'
         if (type === 'error') toast.error(text)
         else if (type === 'success') toast.success(text)
@@ -137,7 +137,7 @@ function handleRealtimeEvent(msg: RealtimeEvent) {
   }
 }
 
-// ── Public composable ────────────────────────────────────────────────────
+// Public composable
 
 export function useNotifications() {
   async function load() {

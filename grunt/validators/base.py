@@ -30,7 +30,7 @@ class Validator:
     def validate(self, value: str, field_label: str) -> str | None:
         """Return an error string on failure, or ``None`` on success.
 
-        Empty / None values are always considered valid here —
+        Empty / None values are always considered valid here -
         required-field checks are handled separately.
         """
         if value is None or value == "":

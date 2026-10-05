@@ -33,7 +33,7 @@ export function initials(fullName: string): string {
  * Manages real-time presence and field locking for a document form.
  *
  * Pass the result of `useWebSocket(wsUrl)` so presence shares the
- * existing connection — no second WebSocket is opened.
+ * existing connection - no second WebSocket is opened.
  */
 export function usePresence(ws: ReturnType<typeof useWebSocket>) {
   const auth = useAuthStore()

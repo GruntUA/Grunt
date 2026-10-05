@@ -13,7 +13,7 @@ export function useListSelection() {
     // If "select all" is active, switching to manual mode excluding this one
     if (allSelected.value) {
       allSelected.value = false
-      // Can't easily exclude one from "all" — just deselect all
+      // Can't easily exclude one from "all" - just deselect all
       selectedIds.value = []
       return
     }

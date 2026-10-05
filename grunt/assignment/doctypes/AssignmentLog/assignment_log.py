@@ -27,7 +27,7 @@ class AssignmentLog(Document):
     ) -> None:
         """Зберегти запис про призначення в AssignmentLog.
 
-        Caller must already have an active grunt context — see AssignmentService.
+        Caller must already have an active grunt context - see AssignmentService.
 
         Args:
             rule_id: ID правила AssignmentRule (або None).
@@ -58,9 +58,7 @@ class AssignmentLog(Document):
             log.exception("assignment.log_error", exc_info=exc)
 
 
-# ------------------------------------------------------------------
 # Whitelisted API
-# ------------------------------------------------------------------
 
 
 @grunt.whitelist()

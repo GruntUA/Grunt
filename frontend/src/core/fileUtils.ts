@@ -1,5 +1,5 @@
 /**
- * View helpers for File records — kept separate from the `core/api/files`
+ * View helpers for File records - kept separate from the `core/api/files`
  * transport layer. Single home for the "is this an image?" / size-formatting /
  * file-id-from-URL logic that used to be copy-pasted across components.
  */

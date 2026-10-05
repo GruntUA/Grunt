@@ -1,4 +1,4 @@
-"""Virtual DocType controller — Hooks.
+"""Virtual DocType controller - Hooks.
 
 Exposes every registered event hook (global Python hooks, DocType Python hooks
 and database-backed Server Scripts) as a standard read-only Grunt DocType so it

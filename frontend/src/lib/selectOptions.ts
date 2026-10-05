@@ -7,7 +7,7 @@
  *   list|LayoutList
  *   kanban|LayoutGrid
  *
- * Only the part before `|` is ever stored or compared — the icon is display-only.
+ * Only the part before `|` is ever stored or compared - the icon is display-only.
  * A `translatable` field's schema also carries `option_labels` ({value: caption}
  * in the user's language); captions are display-only too.
  */
@@ -17,7 +17,7 @@ import { resolveLucideIcon } from '@/lib/lucide'
 
 export type SelectOption = {
   value: string
-  /** Caption to show — the translated label, or the value itself. */
+  /** Caption to show - the translated label, or the value itself. */
   label: string
   /** Lucide icon name given after `|`, or null. */
   icon: string | null
@@ -41,7 +41,7 @@ export function parseSelectOptions(
     })
 }
 
-/** Bare option values only — for surfaces that don't render icons. */
+/** Bare option values only - for surfaces that don't render icons. */
 export function parseSelectValues(
   options: string | string[] | null | undefined,
 ): string[] {
@@ -54,7 +54,7 @@ export function selectOptionLabel(field: Pick<DocField, 'option_labels'> | null 
   return field?.option_labels?.[v] ?? v
 }
 
-/** Resolve the icon names in parsed options into a name → component map. */
+/** Resolve the icon names in parsed options into a name -> component map. */
 export async function resolveOptionIcons(
   opts: SelectOption[],
 ): Promise<Record<string, Component>> {

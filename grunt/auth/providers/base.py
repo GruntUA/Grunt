@@ -1,16 +1,16 @@
 """Base contract for pluggable authentication providers.
 
-A *provider* encapsulates one way of proving who the user is — password,
+A *provider* encapsulates one way of proving who the user is - password,
 passkey (WebAuthn), an OIDC identity provider, a magic link, ... . Every
 provider drives the same two-step ceremony:
 
-* :meth:`AuthProvider.begin` — start the ceremony, hand the frontend whatever
+* :meth:`AuthProvider.begin` - start the ceremony, hand the frontend whatever
   it needs (a redirect URL, a WebAuthn challenge, ...).
-* :meth:`AuthProvider.complete` — verify the frontend's response and return the
+* :meth:`AuthProvider.complete` - verify the frontend's response and return the
   local :class:`~grunt.auth.doctypes.User.user.User` it authenticates.
 
 Token issuance (JWT access + refresh, MFA gating, session tracking) is *not* a
-provider concern — the generic router funnels every ``complete`` through
+provider concern - the generic router funnels every ``complete`` through
 :func:`grunt.auth.login.issue_login`.
 
 Providers that can also *enrol* a new factor for an already-signed-in user
@@ -74,7 +74,7 @@ class AuthProvider(ABC):
     #: Human label for the login screen.
     label: ClassVar[str]
     kind: ClassVar[ProviderKind]
-    #: Frontend rendering hint — a lucide icon name or a well-known slug.
+    #: Frontend rendering hint - a lucide icon name or a well-known slug.
     icon: ClassVar[str | None] = None
     #: ``begin`` needs an account identifier (email) up front.
     requires_identifier: ClassVar[bool] = False
@@ -100,7 +100,7 @@ class AuthProvider(ABC):
             "supports_enrollment": self.supports_enrollment,
         }
 
-    # ── Login ceremony ───────────────────────────────────────────────────────
+    # Login ceremony
 
     @abstractmethod
     async def begin(self, ctx: AuthFlowContext) -> dict[str, Any]:
@@ -110,7 +110,7 @@ class AuthProvider(ABC):
     async def complete(self, ctx: AuthFlowContext) -> User:
         """Verify the frontend's response, return the authenticated local user."""
 
-    # ── Optional: enrol a factor for a signed-in user ────────────────────────
+    # Optional: enrol a factor for a signed-in user
 
     async def enroll_begin(self, ctx: AuthFlowContext) -> dict[str, Any]:
         raise NotImplementedError(f"{self.name} does not support enrollment")

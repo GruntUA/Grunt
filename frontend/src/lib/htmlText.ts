@@ -1,6 +1,6 @@
 /**
  * Plain text out of stored rich text (comments, RichText / HTMLEditor values)
- * for places that show it as text — never rendered as HTML.
+ * for places that show it as text - never rendered as HTML.
  */
 
 const HTML_TAG = /<\/?[a-z][^>]*>/i

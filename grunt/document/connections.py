@@ -1,16 +1,16 @@
-"""Document Connections — the "Links" tab / dashboard.
+"""Document Connections - the "Links" tab / dashboard.
 
 A DocType declares related document types via its ``links`` child table
 (:class:`grunt.metadata.doctype.DocTypeLink`). For a given document this
 service returns, per declared link, a live count and a short preview of the
-documents on the other side — the data behind the form's "Зв'язки" panel and
+documents on the other side - the data behind the form's "Зв'язки" panel and
 its "+ Новий" shortcuts.
 
 Two link shapes are supported:
 
-* **direct** — ``link_doctype`` has a Link field ``link_fieldname`` pointing
+* **direct** - ``link_doctype`` has a Link field ``link_fieldname`` pointing
   back at this document;
-* **via child table** — ``parent_doctype`` (a child DocType) has the Link
+* **via child table** - ``parent_doctype`` (a child DocType) has the Link
   field ``link_fieldname``; the documents shown are the ``link_doctype``
   parents that own a matching child row. ``table_fieldname`` optionally pins
   which Table field on ``link_doctype`` holds those rows.
@@ -121,7 +121,7 @@ async def get_connections(doctype: str, doc_id: str) -> dict[str, Any]:
         raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
     doc_name = dt.name if dt.is_singleton else doc_id
     # The `links` table is authoritative. A DocType that declares no rows shows
-    # no connection chips — backlinks are never derived from reverse Link fields.
+    # no connection chips - backlinks are never derived from reverse Link fields.
     links = [link for link in (dt.links or []) if not link.hidden]
 
     groups: dict[str, list[dict[str, Any]]] = {}

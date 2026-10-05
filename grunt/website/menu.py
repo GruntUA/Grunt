@@ -1,4 +1,4 @@
-"""Site menus — WebsiteMenuItem trees, ready for templates.
+"""Site menus - WebsiteMenuItem trees, ready for templates.
 
 Templates call ``website_menu("main")`` (a Jinja global, see
 :mod:`grunt.website.router`) and get nested dicts::
@@ -10,7 +10,7 @@ address (its controller's ``get_web_url`` or the web view route, see
 :mod:`grunt.website.generator`), so renaming a page doesn't break the menu.
 Items whose document has no public page drop to ``url=None`` (rendered as a
 plain heading). Disabled items hide with their whole subtree. ``route`` is the
-item's section slug — apps that render section pages build its URL themselves.
+item's section slug - apps that render section pages build its URL themselves.
 
 Built trees are cached per menu for a short while; saving or deleting an item
 invalidates this process's cache (other processes catch up on expiry).
@@ -96,7 +96,7 @@ async def _build(menu: str) -> list[dict[str, Any]]:
 
 
 async def _document_urls(rows: list[dict[str, Any]]) -> dict[tuple[str, str], str]:
-    """(doctype, name) → public page URL, one query per linked DocType."""
+    """(doctype, name) -> public page URL, one query per linked DocType."""
     import grunt
     from grunt.document.registry import document_registry
     from grunt.website.generator import web_url

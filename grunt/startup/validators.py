@@ -1,8 +1,8 @@
-"""Startup — discover and load field validators.
+"""Startup - discover and load field validators.
 
 Scans:
-  1. grunt/validators/          — built-in validators shipped with the framework
-  2. {bench}/apps/{app}/{app}/validators/  — per-app custom validators
+  1. grunt/validators/ - built-in validators shipped with the framework
+  2. {bench}/apps/{app}/{app}/validators/ - per-app custom validators
 """
 
 from __future__ import annotations
@@ -11,7 +11,7 @@ from pathlib import Path
 
 from grunt import log
 
-_GRUNT_ROOT = Path(__file__).parent.parent  # grunt/startup/ → grunt/
+_GRUNT_ROOT = Path(__file__).parent.parent  # grunt/startup/ -> grunt/
 
 
 def _find_validator_dirs() -> list[Path]:

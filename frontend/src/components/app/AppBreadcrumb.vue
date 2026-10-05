@@ -13,7 +13,7 @@ const props = defineProps<{
   workspaceName: string
   doctype?: string
   docId?: string | null
-  /** Human title for the document — replaces the raw id as the last crumb. */
+  /** Human title for the document - replaces the raw id as the last crumb. */
   docLabel?: string | null
   /** Record count shown next to the last breadcrumb item (e.g. list page total). */
   count?: number | null

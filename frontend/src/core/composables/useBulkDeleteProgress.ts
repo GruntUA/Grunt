@@ -66,7 +66,7 @@ export function useBulkDeleteProgress(params: UseBulkDeleteProgressParams) {
     }
   }
 
-  /** Normal bulk delete — respects lifecycle hooks, streams batch progress. */
+  /** Normal bulk delete - respects lifecycle hooks, streams batch progress. */
   async function bulkDelete(replaceWith?: string) {
     const ids = params.allSelected.value ? [] : params.selectedIds.value
     if (!params.allSelected.value && !ids.length) return
@@ -89,7 +89,7 @@ export function useBulkDeleteProgress(params: UseBulkDeleteProgressParams) {
     }
   }
 
-  /** Fast delete — direct SQL, no hooks, System Manager only. Near-instant for large datasets. */
+  /** Fast delete - direct SQL, no hooks, System Manager only. Near-instant for large datasets. */
   async function bulkFastDelete() {
     const total = params.metaTotal.value
     const unsubscribe = _subscribeProgress(total)

@@ -13,9 +13,9 @@ interface UseListRouteSyncOptions {
   sortOrder: Ref<'asc' | 'desc'>
   activeFilters: Ref<any[]>
   quickFilterValues?: Ref<Record<string, string>>
-  /** Search box text — set from `?q=` when a link is opened. */
+  /** Search box text - set from `?q=` when a link is opened. */
   search?: Ref<string>
-  /** Debounced copy of `search` — written to `?q=` so typing doesn't spam history replaces. */
+  /** Debounced copy of `search` - written to `?q=` so typing doesn't spam history replaces. */
   debouncedSearch?: Ref<string>
   validViews: readonly string[]
   getDefaultView: () => string
@@ -25,12 +25,12 @@ interface UseListRouteSyncOptions {
 
 export function useListRouteSync(options: UseListRouteSyncOptions) {
   // Prevents the route.query watcher from calling applyRouteState() when we
-  // ourselves call router.replace (state→URL sync). Without this the loop is:
-  // activeFilters changed → router.replace → route.query changed → applyRouteState
-  // → activeFilters unchanged (same content) → no further loop, but one extra call.
+  // ourselves call router.replace (state->URL sync). Without this the loop is:
+  // activeFilters changed -> router.replace -> route.query changed -> applyRouteState
+  // -> activeFilters unchanged (same content) -> no further loop, but one extra call.
   let _syncingToUrl = false
 
-  // Sync state → URL
+  // Sync state -> URL
   watch([options.viewMode, options.activeFilters, options.quickFilterValues, options.debouncedSearch], () => {
     _syncingToUrl = true
 
@@ -112,8 +112,8 @@ export function useListRouteSync(options: UseListRouteSyncOptions) {
     })
 
     if (filters.length > 0) {
-      // Only assign a new array when the filter content actually changed — avoids
-      // triggering the state→URL sync watcher with an identical payload.
+      // Only assign a new array when the filter content actually changed - avoids
+      // triggering the state->URL sync watcher with an identical payload.
       const same =
         options.activeFilters.value.length === filters.length &&
         options.activeFilters.value.every((f, i) =>
@@ -143,7 +143,7 @@ export function useListRouteSync(options: UseListRouteSyncOptions) {
     }
   }
 
-  // Apply URL → state on mount (immediate) and whenever navigation changes the query
+  // Apply URL -> state on mount (immediate) and whenever navigation changes the query
   // from outside this composable (e.g. router.push from a form's dashboard button).
   watch(
     () => options.route.query,

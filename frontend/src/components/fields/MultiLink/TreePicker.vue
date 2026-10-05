@@ -58,7 +58,7 @@ function transform(raw: RawTreeNode[]): TreeNode[] {
 async function load() {
   loading.value = true
   try {
-    // Tree filters are plain equality — list-valued link filters don't apply here.
+    // Tree filters are plain equality - list-valued link filters don't apply here.
     const quickFilters: Record<string, string> = {}
     for (const [k, v] of Object.entries(props.filters)) if (typeof v === 'string') quickFilters[k] = v
     nodes.value = transform(await docsApi.getTree(props.doctype, { quickFilters }))

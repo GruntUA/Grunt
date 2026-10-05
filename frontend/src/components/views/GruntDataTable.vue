@@ -50,9 +50,9 @@ function getRowDocId(row: Record<string, unknown>): string | null {
   return normalized.length > 0 ? normalized : null
 }
 
-// ── Seen / unseen (track_seen) ────────────────────────────────────────────
+// Seen / unseen (track_seen)
 // `_seen` is only present in the row when the DocType opts into track_seen and
-// the list query requested it. Without it every row is "off" — untouched styling.
+// the list query requested it. Without it every row is "off" - untouched styling.
 const auth = useAuthStore()
 const currentEmail = computed(() => auth.user?.email ?? '')
 
@@ -62,7 +62,7 @@ function seenState(row: Record<string, unknown>): 'off' | 'seen' | 'unseen' {
   return seen.includes(currentEmail.value) ? 'seen' : 'unseen'
 }
 
-/** First-column (title) class — dim once the current user has opened the row. */
+/** First-column (title) class - dim once the current user has opened the row. */
 function firstColClass(row: Record<string, unknown>, key: string): string {
   if (['Image', 'Attach', 'Check'].includes(getFieldType(key))) return ''
   switch (seenState(row)) {
@@ -75,7 +75,7 @@ function firstColClass(row: Record<string, unknown>, key: string): string {
   }
 }
 
-// ── Inline editing ────────────────────────────────────────────────────────
+// Inline editing
 interface InlineEdit { rowId: string; field: string; value: string }
 const inlineEdit = ref<InlineEdit | null>(null)
 // shadcn <Input> renders a bare <input> as its root, so the component
@@ -105,7 +105,7 @@ function cancelEdit() {
   inlineEdit.value = null
 }
 
-// ── Helpers ────────────────────────────────────────────────────────────────
+// Helpers
 
 const fieldMap = computed(() => {
   const m: Record<string, DocField> = {}

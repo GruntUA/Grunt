@@ -1,4 +1,4 @@
-"""Context management for Grunt API — access session/user/engine without passing parameters.
+"""Context management for Grunt API - access session/user/engine without passing parameters.
 
 Uses contextvars (defined in grunt.core.context) to store the current session,
 user, engine, and site for the duration of each request or task.
@@ -99,9 +99,9 @@ def add_message(message: str, title: str = "", msg_type: str = "info") -> None:
 def whitelist(allow_guest: bool = False, *, roles: list[str] | None = None, require=None):
     """Decorator to mark a function as whitelisted for API access.
 
-    ``roles``/``require`` are enforced on every call — via the HTTP dispatcher
+    ``roles``/``require`` are enforced on every call - via the HTTP dispatcher
     (``api/v1/method.py``) *and* when the function is called directly from
-    other Python code (a hook, a test, another whitelisted method) — by reading
+    other Python code (a hook, a test, another whitelisted method) - by reading
     the caller's identity from the active grunt context at call time:
 
         @grunt.whitelist(roles=["System Manager"])
@@ -112,7 +112,7 @@ def whitelist(allow_guest: bool = False, *, roles: list[str] | None = None, requ
         )
         async def reset_own_or_admin(...): ...
 
-    A 403 is raised before the function body runs either way — there is no
+    A 403 is raised before the function body runs either way - there is no
     call path that skips the check, unlike gating done only in the dispatcher.
     """
 

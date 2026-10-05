@@ -23,7 +23,7 @@ function sig(v: unknown): string {
 const text = ref(formatValue(props.modelValue))
 let lastEmit = sig(props.modelValue)
 
-// Re-read only when the model changes from outside — our own echo would
+// Re-read only when the model changes from outside - our own echo would
 // otherwise reformat the textarea mid-typing and jump the caret.
 watch(() => props.modelValue, (v) => {
   if (sig(v) === lastEmit) return

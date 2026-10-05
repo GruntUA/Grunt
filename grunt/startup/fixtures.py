@@ -1,4 +1,4 @@
-"""Startup — fixture loading utilities for DocTypes and Workspaces."""
+"""Startup - fixture loading utilities for DocTypes and Workspaces."""
 
 from __future__ import annotations
 
@@ -106,7 +106,7 @@ def _load_app_meta(app_dir: Path) -> dict | None:
 def _coerce_fixture_value(fieldtype: str, value: object) -> object:
     """Coerce a JSON fixture value to the Python type expected by SQLAlchemy.
 
-    JSON has no native date/time/datetime types — everything arrives as str.
+    JSON has no native date/time/datetime types - everything arrives as str.
     SQLite (and other backends) reject raw strings for Time/Date/Datetime columns.
     """
     if value is None:
@@ -154,7 +154,7 @@ async def _apply_doctype_fixture(
 ) -> None:
     """Apply fixture records for a regular DocType.
 
-    Missing records are inserted. Existing ones are skipped — unless *sync*
+    Missing records are inserted. Existing ones are skipped - unless *sync*
     (a file written by ``grunt fixtures export``), then they are updated to
     match the file whenever the stored values differ.
     """
@@ -205,7 +205,7 @@ async def _apply_doctype_fixture(
 
 
 async def _sync_fixture_record(dt: Meta, doctype_name: str, doc_id: str, rec: dict) -> None:
-    """Update an existing record to the fixture's values — only if they differ.
+    """Update an existing record to the fixture's values - only if they differ.
 
     Compared in exported form (:func:`grunt.fixtures.clean_record`), so an
     unchanged record is never re-saved (no DocVersion/ActivityLog noise on

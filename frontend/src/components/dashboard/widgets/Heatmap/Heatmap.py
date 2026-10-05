@@ -1,4 +1,4 @@
-"""heatmap widget — backend data computation."""
+"""heatmap widget - backend data computation."""
 
 from __future__ import annotations
 

@@ -52,7 +52,7 @@ export function useAudio() {
     const audio = getAudio(name)
     audio.currentTime = 0
     audio.play().catch(() => {
-      // Browser blocked autoplay — will work after user gesture
+      // Browser blocked autoplay - will work after user gesture
     })
   }
 

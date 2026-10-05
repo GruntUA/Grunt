@@ -1,4 +1,4 @@
-"""Scheduled report delivery — email a ``Report`` as XLSX on a schedule.
+"""Scheduled report delivery - email a ``Report`` as XLSX on a schedule.
 
 A report opts in with ``schedule_frequency`` (Daily / Weekly / Monthly) and
 ``schedule_recipients``. The daily framework job (see
@@ -7,7 +7,7 @@ due; the ``report.send_now`` form action sends one immediately.
 
 The report runs as its owner, so row-level permissions apply exactly as they
 would for that user in the UI (falls back to the system user when the owner is
-not a real, active account — e.g. fixture-created reports).
+not a real, active account - e.g. fixture-created reports).
 """
 
 from __future__ import annotations
@@ -35,8 +35,8 @@ def parse_recipients(raw: str | None) -> list[str]:
 
 
 def is_due(frequency: str | None, last_sent_at: datetime | str | None, today: date) -> bool:
-    """Daily — not yet sent today; Weekly — 7+ days since the last send;
-    Monthly — not yet sent this calendar month. Never sent → due."""
+    """Daily - not yet sent today; Weekly - 7+ days since the last send;
+    Monthly - not yet sent this calendar month. Never sent -> due."""
     if not frequency:
         return False
     if last_sent_at is None or last_sent_at == "":

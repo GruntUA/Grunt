@@ -17,7 +17,7 @@ function onUpdate(v: string | number) {
   emit('update:modelValue', Number.isFinite(n) ? n : null)
 }
 
-// A focused number input changes its value when you scroll over it — silent
+// A focused number input changes its value when you scroll over it - silent
 // data corruption. Swallow the wheel while focused; page scroll still works
 // when the field isn't focused.
 function onWheel(e: WheelEvent) {

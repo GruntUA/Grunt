@@ -1,4 +1,4 @@
-"""``ErrorLog`` controller — read-only journal of unhandled errors.
+"""``ErrorLog`` controller - read-only journal of unhandled errors.
 
 Rows are written exclusively through
 :func:`grunt.monitoring.error_log.record_error` (exposed to apps as

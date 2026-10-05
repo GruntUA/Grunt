@@ -1,4 +1,4 @@
-"""DocFollow controller — you follow documents for yourself, and only ones you can read."""
+"""DocFollow controller - you follow documents for yourself, and only ones you can read."""
 
 from __future__ import annotations
 

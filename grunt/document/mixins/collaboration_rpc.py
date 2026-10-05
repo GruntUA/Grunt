@@ -79,7 +79,7 @@ class DocumentCollaborationRPCMixin:
             },
         )
 
-        # ── @mention notifications ──────────────────────────────────────────
+        # @mention notifications
         mentions = set(re.findall(r"@([\w.+\-]+@[\w.\-]+)", content))
         mentions.discard(grunt.get_user().email)  # do not notify self
         if mentions:

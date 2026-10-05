@@ -1,9 +1,9 @@
 /**
- * useNetworkStatus — is the app connected, and when did it come back?
+ * useNetworkStatus - is the app connected, and when did it come back?
  *
  * Two signals, because `navigator.onLine` only knows about the local network:
- *  - `isOnline`        — the browser's own online/offline state;
- *  - `serverReachable` — whether the last API call reached the server. It turns
+ *  - `isOnline` - the browser's own online/offline state;
+ *  - `serverReachable` - whether the last API call reached the server. It turns
  *    false on a network error or when the service worker answered from its
  *    offline cache (`X-Grunt-Offline` header), true on any real response.
  *
@@ -83,7 +83,7 @@ export function useNetworkStatus() {
     window.addEventListener('online', onOnline)
     window.addEventListener('offline', onOffline)
     if (!navigator.onLine) onOffline()
-    // Server outages don't fire browser events — keep retrying the queue.
+    // Server outages don't fire browser events - keep retrying the queue.
     timer = setInterval(() => void sync().catch(() => undefined), RETRY_MS)
   })
 

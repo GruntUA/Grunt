@@ -1,17 +1,17 @@
-"""'Sign in with email' provider — passwordless login by a one-time code or a
+"""'Sign in with email' provider - passwordless login by a one-time code or a
 magic link mailed to the address the user types in.
 
 One ``begin`` call, two ways to finish:
 
-* **code** — ``begin`` hands the browser a ``challenge_token`` and mails a
+* **code** - ``begin`` hands the browser a ``challenge_token`` and mails a
   6-digit code. ``complete`` needs *both*: the token proves this browser started
   the flow, the code proves the person controls the inbox.
-* **magic link** — the same mail carries
+* **magic link** - the same mail carries
   ``{base_url}/login#email_login_token=…``. ``Login.vue`` lifts the fragment and
   posts the self-contained ``token`` to ``complete``.
 
 Both JWTs point at one ``EmailLoginToken`` row (``tid`` claim). Signing in by
-*either* path marks that row ``consumed_at`` — so the other path (and any replay)
+*either* path marks that row ``consumed_at`` - so the other path (and any replay)
 immediately stops working. A fresh ``begin`` for the same address drops the
 previous row. The row also holds the code's keyed HMAC, so nothing brute-forceable
 ever leaves the server.
@@ -52,7 +52,7 @@ def _norm_email(raw: str | None) -> str:
 
 
 def _hash_code(email: str, code: str) -> str:
-    """Keyed digest of the code — stored server-side, never sent to the client."""
+    """Keyed digest of the code - stored server-side, never sent to the client."""
     msg = f"{email}:{code}".encode()
     return hmac.new(settings.secret_key.encode(), msg, hashlib.sha256).hexdigest()
 
@@ -64,7 +64,7 @@ class EmailLoginProvider(AuthProvider):
     icon = "mail"
     requires_identifier = True
 
-    # ── sign in ────────────────────────────────────────────────────────────
+    # sign in
 
     async def begin(self, ctx: AuthFlowContext) -> dict[str, Any]:
         email = _norm_email(ctx.get("email"))
@@ -89,7 +89,7 @@ class EmailLoginProvider(AuthProvider):
             register_failed_attempt,
         )
 
-        # ── magic link — the token came from the inbox, that's the proof ──
+        # magic link - the token came from the inbox, that's the proof
         magic = ctx.get("token")
         if magic:
             claims = verify_challenge_token(magic, _LINK_PURPOSE)
@@ -102,7 +102,7 @@ class EmailLoginProvider(AuthProvider):
             )
             return await self._resolve_user(str(claims["email"]))
 
-        # ── one-time code — needs the browser's token *and* the mailed code ──
+        # one-time code - needs the browser's token *and* the mailed code
         challenge_token = ctx.get("challenge_token")
         code = (ctx.get("code") or "").strip()
         if not challenge_token or not code:
@@ -130,17 +130,17 @@ class EmailLoginProvider(AuthProvider):
         if not hmac.compare_digest(str(row.get("code_hash") or ""), _hash_code(email, code)):
             if user is not None:
                 await register_failed_attempt(user)
-            # A wrong guess does NOT burn the token — the user can retry.
+            # A wrong guess does NOT burn the token - the user can retry.
             throw(_("Invalid verification code"), "UNAUTHORIZED")
 
         await self._mark_consumed(tid)
         if user is not None:
             await clear_failed_attempts(user)
             return user
-        # New address — provision only now that the code has checked out.
+        # New address - provision only now that the code has checked out.
         return await self._resolve_user(email)
 
-    # ── EmailLoginToken row lifecycle ───────────────────────────────────────
+    # EmailLoginToken row lifecycle
 
     async def _new_token(self, email: str, code_hash: str, ip: str | None) -> str:
         import grunt
@@ -198,7 +198,7 @@ class EmailLoginProvider(AuthProvider):
             throw(error, "UNAUTHORIZED")
         await self._mark_consumed(tid)
 
-    # ── helpers ────────────────────────────────────────────────────────────
+    # helpers
 
     async def _resolve_user(self, email: str) -> User:
         """Existing active user, or a freshly provisioned passwordless one."""
@@ -225,7 +225,7 @@ class EmailLoginProvider(AuthProvider):
         from grunt import _
         from grunt.email.service import email_service
 
-        # Rendered in the request language — the person asking is the recipient.
+        # Rendered in the request language - the person asking is the recipient.
         plain = "\n\n".join(
             [
                 _("Your sign-in code: %(code)s") % {"code": code},

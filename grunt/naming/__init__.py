@@ -1,4 +1,4 @@
-"""Naming Series module — document auto-naming with pattern support."""
+"""Naming Series module - document auto-naming with pattern support."""
 
 from grunt.naming.service import NamingService
 

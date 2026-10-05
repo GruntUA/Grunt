@@ -15,7 +15,7 @@ def load_app_hook_module(
     """Import ``<app_dir>/<hook_module>.py`` if it exists, else return None.
 
     Shared by ``cli.app`` (``before_uninstall``) and ``startup.app_install``
-    (``after_install``) — both need to run an optional lifecycle hook defined
+    (``after_install``) - both need to run an optional lifecycle hook defined
     in an app's own ``install.py`` without that app being on ``sys.path`` as
     an importable package.
     """
@@ -38,8 +38,8 @@ def _collect_template_dirs() -> list[str]:
     """Return all Jinja2 template directories in priority order.
 
     Search order (first match wins in Jinja2 FileSystemLoader):
-    1. ``bench_dir/apps/<app>/*/templates/``  — installed app templates
-    2. ``grunt/<module>/templates/``          — framework module templates
+    1. ``bench_dir/apps/<app>/*/templates/`` - installed app templates
+    2. ``grunt/<module>/templates/`` - framework module templates
     """
     from grunt.site.manager import site_manager
 

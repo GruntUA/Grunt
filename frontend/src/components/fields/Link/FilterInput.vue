@@ -54,7 +54,7 @@ const results = ref<LinkSearchItem[]>([])
 const isLoading = ref(false)
 const isOpen = ref(false)
 
-// ── Tree mode ────────────────────────────────────────────────────────────────
+// Tree mode
 const isTree = ref(false)
 const treeNodes = ref<TreeNode[]>([])
 const treeLoading = ref(false)
@@ -113,7 +113,7 @@ function onTreeSelect(id: string | null) {
   emit('update:displayValue', findTitle(treeNodes.value) || id)
 }
 
-// ── Search ───────────────────────────────────────────────────────────────────
+// Search
 let debounceTimer: ReturnType<typeof setTimeout>
 let searchSeq = 0
 
@@ -139,7 +139,7 @@ watch(query, (val) => {
 
 watch(isOpen, (open) => { if (open) search(query.value) })
 
-// ── Selection ────────────────────────────────────────────────────────────────
+// Selection
 function rememberTitles(ids: string[]) {
   for (const id of ids) {
     const hit = results.value.find(r => r.name === id)

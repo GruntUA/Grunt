@@ -2,7 +2,7 @@
 
 A ``File`` row going away never touches disk (other rows may share its blob,
 and the trash may restore it). Instead :func:`collect_garbage` drops blobs no
-``File`` row — nor a ``File`` snapshot still in the trash (DeletedDocument) —
+``File`` row - nor a ``File`` snapshot still in the trash (DeletedDocument) -
 refers to, once they are older than a grace period: a blob is written before
 its row exists, and a re-upload of known content freshens the blob's mtime,
 so a collection racing an upload leaves it alone.
@@ -89,8 +89,8 @@ def _sha256(path) -> str:
 
 
 async def verify(rehash: bool = False) -> dict[str, list[str]]:
-    """Find ``File`` rows whose blob is missing, unreferenced blobs, and — with
-    *rehash* — blobs whose bytes no longer match their name (disk corruption).
+    """Find ``File`` rows whose blob is missing, unreferenced blobs, and - with
+    *rehash* - blobs whose bytes no longer match their name (disk corruption).
     """
     storage = get_storage_backend()
     rows = await grunt.db.get_all("File", fields=["name", "content_hash"], limit=None)

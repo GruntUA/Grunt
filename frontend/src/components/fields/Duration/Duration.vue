@@ -21,14 +21,14 @@ function onUpdate(v: string | number) {
   emit('update:modelValue', Number.isFinite(n) ? n : null)
 }
 
-// A focused number input changes its value when you scroll over it — silent
+// A focused number input changes its value when you scroll over it - silent
 // data corruption. Swallow the wheel while focused; page scroll still works
 // when the field isn't focused.
 function onWheel(e: WheelEvent) {
   if (document.activeElement === e.target) e.preventDefault()
 }
 
-// Stored value is seconds — show a human-readable breakdown alongside the
+// Stored value is seconds - show a human-readable breakdown alongside the
 // raw number so entering e.g. "9000" is legible without doing the math.
 const readable = computed(() => {
   const total = props.modelValue

@@ -1,4 +1,4 @@
-"""Inherited read access — rows *about* another document (comments, tags,
+"""Inherited read access - rows *about* another document (comments, tags,
 attachments) are readable only by users who can read that document.
 
 A DocType opts in with ``inherit_permission_from = [<doctype field>, <id field>]``

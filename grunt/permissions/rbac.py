@@ -35,7 +35,7 @@ if TYPE_CHECKING:
 # Only populated for the doc=None path (list/count operations).
 # Invalidated per-doctype via invalidate_permission_cache().
 #
-# Unbounded, no TTL: entries accumulate for the process lifetime — bounded in
+# Unbounded, no TTL: entries accumulate for the process lifetime - bounded in
 # practice by (distinct users x distinct role-sets x DocTypes x actions),
 # which for a typical deployment (roles come from a small fixed Role table,
 # not per-request) stays small relative to available memory. If that stops
@@ -68,11 +68,11 @@ class PermissionChecker:
 
         ``doc=None`` has two effects, not one: it means "no specific document to
         check" (so any ``match`` expression on a matching permission row is
-        skipped — a list/count-style check), *and* it makes the result eligible
+        skipped - a list/count-style check), *and* it makes the result eligible
         for the per-(user, doctype, action) cache below, since without a doc
         there's nothing document-specific that could make the answer vary.
         Passing a ``doc`` disables caching for that call (match evaluation is
-        necessarily per-document) — there's no separate flag for this, the two
+        necessarily per-document) - there's no separate flag for this, the two
         behaviors are intentionally tied to the same argument.
         """
         access = RoleAccess(doctype, user)
@@ -98,7 +98,7 @@ class PermissionChecker:
         result = False
         for perm in access.matching_permissions():
             perm_val = getattr(perm, action, False)
-            # "read" implies "select" — a role that can read the whole
+            # "read" implies "select" - a role that can read the whole
             # document can certainly resolve its identifier for a picker.
             if not perm_val and action == "select":
                 perm_val = getattr(perm, "read", False)
@@ -135,7 +135,7 @@ class PermissionChecker:
     async def _shared(
         user: User, doctype: DocType | Meta, action: PermissionAction, doc: dict | None
     ) -> bool:
-        """Fallback when roles deny: a ``SharedWith`` grant (never cached — shares
+        """Fallback when roles deny: a ``SharedWith`` grant (never cached - shares
         change without touching the role cache). With ``doc`` only a share of
         that very document counts; without it, a share of any document of the
         DocType lets the doctype-level pre-flight pass so the per-document
@@ -175,7 +175,7 @@ class PermissionChecker:
 
         If no permissions are defined, returns empty set. For each matching
         role permission, the union of hidden_fields from the *most permissive*
-        (first matching) rule is used — i.e., if any matching rule exposes a
+        (first matching) rule is used - i.e., if any matching rule exposes a
         field, it is visible.
         """
         access = RoleAccess(doctype, user)

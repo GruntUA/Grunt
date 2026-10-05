@@ -48,7 +48,7 @@ async def process_email_queue():
                     log.warning("email.no_account_for_item", id=item["name"])
                     continue
 
-                # Atomically claim the row: flip Pending → Sending and bail if a
+                # Atomically claim the row: flip Pending -> Sending and bail if a
                 # concurrent run (on-commit kick overlapping the */5 cron tick)
                 # already took it. Without this both runs would send the mail.
                 claimed = await grunt.db.bulk_update(
@@ -109,7 +109,7 @@ async def pull_from_accounts():
                         user=SYSTEM_USER,
                     )
 
-                    # Delivery-status (DSN) / read-receipt (MDN) report —
+                    # Delivery-status (DSN) / read-receipt (MDN) report -
                     # update the referenced outgoing message, don't file it as
                     # a normal inbound letter.
                     report = email_data.get("report")

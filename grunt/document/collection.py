@@ -54,13 +54,13 @@ def _encode_cursor(sort_val: Any, doc_id: str) -> str:
 
 
 def _decode_cursor(cursor: str) -> tuple[str, str]:
-    """Decode cursor → (sort_value_str, doc_id)."""
+    """Decode cursor -> (sort_value_str, doc_id)."""
     raw = base64.urlsafe_b64decode(cursor.encode()).decode()
     sort_str, doc_id = raw.rsplit(_CURSOR_SEP, 1)
     return sort_str, doc_id
 
 
-# ── List ──────────────────────────────────────────────────────────────────
+# List
 
 
 async def _list_singleton(session: AsyncSession, table: Any) -> DocumentList:
@@ -80,7 +80,7 @@ def _select_columns(table: Any, fields: list[str] | None) -> list[Any]:
     """Return the SQLAlchemy column list for a list query.
 
     Always includes ``name``/``modified_at``/``docstatus`` even when *fields*
-    is a restricted subset — callers (list views, sorting) rely on them.
+    is a restricted subset - callers (list views, sorting) rely on them.
     """
     if not fields:
         return [table]
@@ -115,7 +115,7 @@ async def _apply_where(
     """Apply row-level permissions, the controller clause, filters, and search.
 
     Shared by the data query and the COUNT query so the two can never drift
-    out of sync with each other — including which rows count() reports as
+    out of sync with each other - including which rows count() reports as
     the pagination total. ``user_permission_conditions`` (from
     ``grunt.permissions.user_permissions.build_conditions``) is resolved by the
     async caller and passed in because it needs a DB round-trip.
@@ -255,7 +255,7 @@ async def list_documents(
             detail=_("DocType “%(doctype)s” not found") % {"doctype": doctype_name},
         )
 
-    # Virtual DocType or VirtualDocType controller — delegate to sub-module
+    # Virtual DocType or VirtualDocType controller - delegate to sub-module
     if is_virtual_routed(dt, doctype_name):
         return await virtual_list(
             doctype_name, user, page, per_page, sort_by, sort_order, filters, search
@@ -263,13 +263,13 @@ async def list_documents(
 
     table = dt.table
 
-    # Singleton — return at most 1 row, ignore pagination
+    # Singleton - return at most 1 row, ignore pagination
     if dt.is_singleton:
         return await _list_singleton(session, table)
 
     query = select(*_select_columns(table, fields))
 
-    # Controller hook: list_filter_extra — DocType controllers may inject
+    # Controller hook: list_filter_extra - DocType controllers may inject
     # extra WHERE clauses (e.g. temporal guards, visibility rules) without
     # modifying the framework core.
     extra_clause = await _resolve_list_filter_extra(session, doctype_name, filters, table)
@@ -331,7 +331,7 @@ async def count_documents(
     filters: dict[str, str] | None = None,
     search: str | None = None,
 ) -> int:
-    """Count rows the *user* is allowed to see — the same row-level permission
+    """Count rows the *user* is allowed to see - the same row-level permission
     filter ``list_documents`` applies to its pagination total, so a sidebar
     badge or a headline stat never reports rows the list itself hides.
     """
@@ -375,7 +375,7 @@ async def field_years(
     fieldname: str,
 ) -> list[int]:
     """Distinct calendar years of a Date/Datetime field, newest first, over the
-    rows the *user* may see — the options of a year quick filter.
+    rows the *user* may see - the options of a year quick filter.
 
     Under the same row-level permissions as ``count_documents``; the list's own
     filters are not applied, so picking one year doesn't hide the others.
@@ -416,7 +416,7 @@ async def field_years(
     return sorted({int(y) for y in rows if y is not None}, reverse=True)
 
 
-# ── Bulk delete ─────────────────────────────────────────────────────────────
+# Bulk delete
 
 
 async def bulk_delete(
@@ -434,7 +434,7 @@ async def bulk_delete(
     Runs per-document hooks (before/after_delete) but batches all DB
     writes (DELETE, multi-link cleanup, search index) into one flush.
 
-    ``replace_with`` — when given, every reference to each deleted id is
+    ``replace_with`` - when given, every reference to each deleted id is
     repointed to this surviving document (of the same DocType) before the
     rows are removed.
 
@@ -524,7 +524,7 @@ async def bulk_delete(
     return deleted, errors
 
 
-# ── Rename ──────────────────────────────────────────────────────────────────
+# Rename
 
 
 async def _rename_child_and_link_refs(
@@ -568,8 +568,8 @@ async def _rename_multilink_refs(
 ) -> None:
     """Update grunt_core_multi_link rows where *old_id* is either side of the link.
 
-    On ``is_merge`` (*new_id* already exists) the parent side is left alone —
-    the delete pipeline drops the source document's own multi-link rows — and
+    On ``is_merge`` (*new_id* already exists) the parent side is left alone -
+    the delete pipeline drops the source document's own multi-link rows - and
     the link side is de-duplicated: an incoming reference to *old_id* is
     removed rather than repointed when the same holder already references
     *new_id*.
@@ -665,7 +665,7 @@ async def repoint_references(
     """Repoint every reference from *old_id* to *new_id* across all DocTypes.
 
     Shared by :func:`rename_document` (*old_id* disappears, *new_id* is a fresh
-    id) and the replace-on-delete flow (``is_merge=True`` — *new_id* already
+    id) and the replace-on-delete flow (``is_merge=True`` - *new_id* already
     exists, so duplicate multi-link rows are pruned instead of blindly moved).
     Covers Link fields (top-level and child-table), child ``parent_name``,
     MultiLink rows and the hardcoded system references.
@@ -683,8 +683,8 @@ async def validate_replacement(
 ) -> None:
     """Guard a replace-on-delete request before any rows are touched.
 
-    Rejects a target that is the document itself, does not exist, or — for a
-    tree DocType — is a descendant of the document being deleted (which would
+    Rejects a target that is the document itself, does not exist, or - for a
+    tree DocType - is a descendant of the document being deleted (which would
     orphan the branch).
     """
     if source_id == target_id:

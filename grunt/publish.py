@@ -113,13 +113,13 @@ async def publish(
 ) -> None:
     """Send a transient realtime message to a specific user via WebSocket.
 
-    This is NOT stored in the database — it's a one-time push.
+    This is NOT stored in the database - it's a one-time push.
     Use for toasts, alerts, progress updates, etc.
 
     Args:
         user: User email to send to.
         event: Event name (e.g. "msgprint", "notification", "progress").
-        message: Message text (convenience — also added to data).
+        message: Message text (convenience - also added to data).
         type: Message type for UI styling: "success", "error", "info", "warning".
         data: Arbitrary payload dict.
     """
@@ -266,7 +266,7 @@ async def show_progress(
         count: Current progress value.
         total: Total value.
         description: Optional description text.
-        task_id: Unique task identifier — use when multiple tasks share the same title.
+        task_id: Unique task identifier - use when multiple tasks share the same title.
     """
     await publish(
         user=user,

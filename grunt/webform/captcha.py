@@ -1,9 +1,9 @@
 """CAPTCHA verification for public forms (web forms, app pages).
 
 A single provider (Cloudflare Turnstile) for now. The site-wide keys live in
-``SystemSettings`` (tab Security → CAPTCHA), with the ``captcha_*`` settings
+``SystemSettings`` (tab Security -> CAPTCHA), with the ``captcha_*`` settings
 of ``grunt.config`` as a fallback for sites configured through the
-environment — never on a form itself, since they're secrets rather than
+environment - never on a form itself, since they're secrets rather than
 per-form configuration. A form only opts in via its own flag (e.g.
 ``WebForm.captcha_enabled``); verification is a graceful no-op whenever the
 site hasn't configured a provider at all, even if a form asks for it.

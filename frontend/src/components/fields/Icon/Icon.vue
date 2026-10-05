@@ -20,7 +20,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{ 'update:modelValue': [value: unknown] }>()
 
-// ── Icon library (lazy-loaded once picker first opens) ──────────────────────
+// Icon library (lazy-loaded once picker first opens)
 type IconMap = Record<string, Component>
 const allIcons = shallowRef<IconMap>({})
 const allNames = ref<string[]>([])
@@ -39,7 +39,7 @@ async function ensureLoaded() {
   )
 }
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
+// Helpers
 function toPascal(kebab: string): string {
   return kebab.split('-').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join('')
 }
@@ -57,7 +57,7 @@ function getComponent(name: string): Component | null {
   return (allIcons.value[pascal] ?? null) as Component | null
 }
 
-// ── State ─────────────────────────────────────────────────────────────────────
+// State
 const isOpen = ref(false)
 const anchorEl = ref<HTMLElement | null>(null)
 const search = ref('')

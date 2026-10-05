@@ -9,7 +9,7 @@ from sqlalchemy import or_, select
 if TYPE_CHECKING:
     from grunt.metadata.doctype import DocType
 
-# Filter-clause building lives in grunt.db.filters.apply_filters — this module
+# Filter-clause building lives in grunt.db.filters.apply_filters - this module
 # used to have a second, same-named function here that just wrapped
 # build_clauses() again, which made "which apply_filters is this?" an
 # actual question when grepping. Import from grunt.db.filters directly instead.
@@ -85,7 +85,7 @@ async def _link_field_search_condition(
     document's title/search fields, not the raw id stored in the column.
 
     Returns ``None`` if the linked DocType can't be resolved (e.g. options
-    missing) — the caller then falls back to matching the raw column.
+    missing) - the caller then falls back to matching the raw column.
     """
     linked_doctype = getattr(field, "options", None)
     if not linked_doctype:

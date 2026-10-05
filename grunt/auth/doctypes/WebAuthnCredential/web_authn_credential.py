@@ -19,8 +19,8 @@ from grunt.document.base import Document
 class WebAuthnCredential(Document):
     """Controller for WebAuthnCredential.
 
-    Rows are created by the WebAuthn provider after a verified attestation —
-    never through the generic form — so there is no create-time validation to
+    Rows are created by the WebAuthn provider after a verified attestation -
+    never through the generic form - so there is no create-time validation to
     do here beyond what the metadata enforces.
     """
 

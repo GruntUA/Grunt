@@ -1,18 +1,18 @@
 """Naming pattern parser and formatter.
 
 Supported patterns:
-  - "field:title"           → value of the 'title' field
-  - "hash"                  → short UUID (first 10 chars)
-  - "prompt"                → user must supply 'name' in data
-  - "PREFIX-.YYYY.-.####"   → pattern-based with counter
-  - "INV-.MM.-.YYYY.-.#####" → any combination of tokens
+  - "field:title"           -> value of the 'title' field
+  - "hash"                  -> short UUID (first 10 chars)
+  - "prompt"                -> user must supply 'name' in data
+  - "PREFIX-.YYYY.-.####"   -> pattern-based with counter
+  - "INV-.MM.-.YYYY.-.#####" -> any combination of tokens
 
 Pattern tokens:
-  .YYYY.  → 4-digit year
-  .YY.    → 2-digit year
-  .MM.    → 2-digit month
-  .DD.    → 2-digit day
-  .####.  → zero-padded counter (width = number of #)
+  .YYYY.  -> 4-digit year
+  .YY.    -> 2-digit year
+  .MM.    -> 2-digit month
+  .DD.    -> 2-digit day
+  .####.  -> zero-padded counter (width = number of #)
 """
 
 from __future__ import annotations
@@ -72,7 +72,7 @@ def build_prefix(parts: list[str | tuple[str, int]], now: datetime | None = None
         else:
             token, width = part
             if token == "counter":
-                break  # Stop at counter — prefix is everything before it
+                break  # Stop at counter - prefix is everything before it
             prefix_parts.append(_format_date_token(token, now))
 
     return "".join(prefix_parts)

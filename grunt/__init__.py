@@ -1,4 +1,4 @@
-"""Ґрунт — Python Framework for Building CMS, ERP, and Business Apps.
+"""Ґрунт - Python Framework for Building CMS, ERP, and Business Apps.
 
 One namespace for app code::
 
@@ -26,10 +26,10 @@ from grunt.api.context import get_engine, get_session, get_user, whitelist
 from grunt.api.messages import msgprint, throw
 from grunt.monitoring.error_log import record_error as log_error
 
-from grunt.app import grunt as _app  # after the helpers above — see the module docstring
+from grunt.app import grunt as _app  # after the helpers above - see the module docstring
 # isort: on
 
-# ── Document & database API (GruntApp) ────────────────────────────────────────
+# Document & database API (GruntApp)
 db = _app.db
 query_cache = _app.query_cache
 doc_cache = _app.doc_cache

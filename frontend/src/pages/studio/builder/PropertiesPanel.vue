@@ -33,9 +33,9 @@ const sectionComponents = computed(() =>
   })
 )
 
-// ── Field-type switcher ──────────────────────────────────────────────────────
-// Layout separators (Section / Column / Tab) are structural — their type is
-// managed by the canvas, not here — so the switcher is hidden for them.
+// Field-type switcher
+// Layout separators (Section / Column / Tab) are structural - their type is
+// managed by the canvas, not here - so the switcher is hidden for them.
 const LAYOUT_TYPES = getLayoutTypeSet()
 const isLayoutField = computed(() => !!field.value && LAYOUT_TYPES.has(field.value.fieldtype))
 const typeGroups = getPaletteGroups()

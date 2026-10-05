@@ -101,7 +101,7 @@ function title(action: ResolvedAction) {
         <ActionIcon v-else-if="slot.items[0].icon" :name="slot.items[0].icon" class="size-4" />
         {{ slot.items[0].label }}
       </Button>
-      <!-- Filled buttons have no border to split them — shadcn puts a separator between. -->
+      <!-- Filled buttons have no border to split them - shadcn puts a separator between. -->
       <ButtonGroupSeparator v-if="style(slot.items[0]).variant !== 'outline'" />
       <DropdownMenu>
         <DropdownMenuTrigger as-child>

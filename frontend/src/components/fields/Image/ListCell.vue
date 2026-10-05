@@ -16,7 +16,7 @@ const imageUrl = computed(() => {
 })
 
 // Avatar-like fields (faces) should fill a circle; everything else is a
-// product/thumbnail — keep the whole subject visible on a neutral tile.
+// product/thumbnail - keep the whole subject visible on a neutral tile.
 const isAvatar = computed(() => {
     const name = props.field.fieldname.toLowerCase()
     return name.includes('avatar') || name.includes('user') || name.includes('profile')

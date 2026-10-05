@@ -1,4 +1,4 @@
-"""WebAuthn provider — registry wiring + a full (crypto-mocked) passkey ceremony."""
+"""WebAuthn provider - registry wiring + a full (crypto-mocked) passkey ceremony."""
 
 from __future__ import annotations
 
@@ -67,7 +67,7 @@ async def test_begin_authentication_returns_signed_challenge(client: AsyncClient
 @pytest.mark.asyncio
 async def test_cross_device_begin_is_discoverable_with_hybrid_hint(ctx, client: AsyncClient):
     """`mode=cross-device` (sign in with a phone / QR) must be a discoverable
-    request — never scoped to a credential list — and carry the hybrid hint."""
+    request - never scoped to a credential list - and carry the hybrid hint."""
     await _access_token(ctx, client, "cd@grunt.example.com")  # user with no passkey
 
     resp = await client.post(
@@ -108,7 +108,7 @@ async def test_oauth_callback_redirects_into_spa(client: AsyncClient):
 
 @pytest.mark.asyncio
 async def test_full_passkey_register_then_login(ctx, client: AsyncClient, monkeypatch):
-    """enroll → a WebAuthnCredential row → password-less sign-in, with the
+    """enroll -> a WebAuthnCredential row -> password-less sign-in, with the
     authenticator crypto stubbed out (no virtual authenticator in CI)."""
     import webauthn
 
@@ -127,7 +127,7 @@ async def test_full_passkey_register_then_login(ctx, client: AsyncClient, monkey
 
     monkeypatch.setattr(webauthn, "verify_registration_response", lambda **_: _Reg())
 
-    # ── enrol ────────────────────────────────────────────────────────────
+    # enrol
     begin = await client.post("/api/v1/auth/webauthn/enroll/begin", json={}, headers=auth_headers)
     assert begin.status_code == 200, begin.text
     reg_challenge = begin.json()["data"]["challenge_token"]
@@ -168,7 +168,7 @@ async def test_full_passkey_register_then_login(ctx, client: AsyncClient, monkey
     )
     assert dup.status_code == 409
 
-    # ── password-less sign-in ───────────────────────────────────────────
+    # password-less sign-in
     class _Auth:
         new_sign_count = 5
         credential_backed_up = True

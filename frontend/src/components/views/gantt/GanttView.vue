@@ -39,7 +39,7 @@ const router = useRouter()
 const toast = useToast()
 const dfLocale = computed(() => (siteConfigState().language.toLowerCase().startsWith('en') ? enUS : uk))
 
-// ── Config (assembled from the flat gantt_* fields) ───────────────────────
+// Config (assembled from the flat gantt_* fields)
 const cfg = computed(() => ({
   start_field: props.doctype.gantt_start_field ?? '',
   end_field: props.doctype.gantt_end_field ?? '',
@@ -68,7 +68,7 @@ const isConfigured = computed(() => !!startField.value && !!endField.value)
 const fieldType = (name: string) =>
   props.doctype.fields.find((f) => f.fieldname === name)?.fieldtype ?? 'Date'
 
-// ── Zoom ──────────────────────────────────────────────────────────────────
+// Zoom
 type Zoom = 'day' | 'week' | 'month'
 const zoom = ref<Zoom>('week')
 const DAY_WIDTH: Record<Zoom, number> = { day: 34, week: 16, month: 5 }
@@ -76,7 +76,7 @@ const dayWidth = computed(() => DAY_WIDTH[zoom.value])
 const ROW_H = 38
 const HEADER_H = 52
 
-// ── Data ──────────────────────────────────────────────────────────────────
+// Data
 interface GanttTask {
   id: string
   name: string
@@ -173,7 +173,7 @@ watch(() => props.refreshKey, (_v, old) => { if (old !== undefined) load() })
 watch([() => props.activeFilters, () => props.quickFilterValues], load, { deep: true })
 watch(() => props.doctype.name, load)
 
-// ── Timeline range ────────────────────────────────────────────────────────
+// Timeline range
 const range = computed(() => {
   const today = startOfDay(new Date())
   if (!tasks.value.length) {
@@ -197,7 +197,7 @@ function rowMid(i: number): number {
   return i * ROW_H + ROW_H / 2
 }
 
-// ── Header ticks ──────────────────────────────────────────────────────────
+// Header ticks
 interface Tick { x: number; label: string; sub?: string; width: number }
 const ticks = computed<Tick[]>(() => {
   const { start, end } = range.value
@@ -245,7 +245,7 @@ function nudge(dir: number) {
   scrollEl.value?.scrollBy({ left: dir * 320, behavior: 'smooth' })
 }
 
-// ── Dependency arrows ─────────────────────────────────────────────────────
+// Dependency arrows
 const arrows = computed(() => {
   if (!depsField.value) return [] as { d: string; head: string }[]
   const byName = new Map(tasks.value.map((t, i) => [t.name, { t, i }]))
@@ -268,7 +268,7 @@ const arrows = computed(() => {
   return out
 })
 
-// ── Drag to reschedule ────────────────────────────────────────────────────
+// Drag to reschedule
 type DragMode = 'move' | 'resize-start' | 'resize-end'
 interface DragState {
   id: string

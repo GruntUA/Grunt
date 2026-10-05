@@ -20,8 +20,8 @@ const props = defineProps<{
   preset?: Record<string, unknown>
   workspace?: string
   /**
-   * 'link' — after save, emit 'saved' with the doc name and close.
-   * 'list' — show two buttons: "Save and close" / "Save and open".
+   * 'link' - after save, emit 'saved' with the doc name and close.
+   * 'list' - show two buttons: "Save and close" / "Save and open".
    */
   mode: 'link' | 'list'
 }>()
@@ -44,7 +44,7 @@ onMounted(() => {
   if (props.preset) Object.assign(form.value, props.preset)
 })
 
-// ── Field filtering ───────────────────────────────────────────────────────────
+// Field filtering
 const LAYOUT_TYPES = getLayoutTypeSet()
 
 function filterForQuickEntry(fields: DocField[]): DocField[] {
@@ -66,7 +66,7 @@ const filteredDt = computed<DocType>(() => ({
   fields: filterForQuickEntry(props.dt.fields),
 }))
 
-// ── Save handlers ─────────────────────────────────────────────────────────────
+// Save handlers
 async function handleSave(openAfter: boolean) {
   validationErrors.value = {}
   try {

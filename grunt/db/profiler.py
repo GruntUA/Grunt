@@ -1,8 +1,8 @@
 """SQL query profiler for dev mode.
 
 Two layers:
-  1. Global ring buffer  — last N queries across all requests (always-on in debug mode)
-  2. Per-request context — queries grouped by request_id via contextvars
+  1. Global ring buffer - last N queries across all requests (always-on in debug mode)
+  2. Per-request context - queries grouped by request_id via contextvars
 
 The per-request collector is attached by RequestLoggingMiddleware:
 
@@ -33,7 +33,7 @@ if TYPE_CHECKING:
 
 F = TypeVar("F", bound=Callable[..., Any])
 
-# ── Data structures ────────────────────────────────────────────────────────
+# Data structures
 
 
 @dataclass
@@ -72,7 +72,7 @@ class RequestProfile:
         return d
 
 
-# ── Global ring buffer (last 200 requests) ────────────────────────────────
+# Global ring buffer (last 200 requests)
 
 _MAX_REQUESTS = 200
 _MAX_QUERIES = 1000  # per ring buffer (across all requests)
@@ -81,7 +81,7 @@ _request_buffer: deque[RequestProfile] = deque(maxlen=_MAX_REQUESTS)
 _query_buffer: deque[QueryRecord] = deque(maxlen=_MAX_QUERIES)
 _buffer_lock = threading.Lock()
 
-# ── Runtime settings (mutable via API) ────────────────────────────────────
+# Runtime settings (mutable via API)
 
 
 @dataclass
@@ -125,7 +125,7 @@ def get_n1_threshold() -> int:
     return _settings.n1_threshold
 
 
-# ── Per-request context ────────────────────────────────────────────────────
+# Per-request context
 
 # Holds list of QueryRecord being accumulated for the current request
 _request_queries: ContextVar[list[QueryRecord] | None] = ContextVar(
@@ -171,7 +171,7 @@ def finish_request(
     status_code: int,
     duration_ms: float,
 ) -> RequestProfile | None:
-    """Called after a request completes — flush per-request queries to ring buffer."""
+    """Called after a request completes - flush per-request queries to ring buffer."""
     queries: list[QueryRecord] | None = _request_queries.get(None)
     if queries is None:
         return None
@@ -228,7 +228,7 @@ def finish_request(
     return profile
 
 
-# ── Public API for the /dev/profiler endpoint ─────────────────────────────
+# Public API for the /dev/profiler endpoint
 
 
 def get_recent_requests(limit: int = 50) -> list[dict]:
@@ -269,7 +269,7 @@ def get_stats() -> dict:
     }
 
 
-# ── SQLAlchemy event hooks ─────────────────────────────────────────────────
+# SQLAlchemy event hooks
 
 
 def attach_query_profiler(engine: AsyncEngine, threshold_ms: float = 200.0) -> None:
@@ -333,7 +333,7 @@ def attach_query_profiler(engine: AsyncEngine, threshold_ms: float = 200.0) -> N
             )
 
 
-# ── Method span profiling ──────────────────────────────────────────────────
+# Method span profiling
 
 
 @asynccontextmanager

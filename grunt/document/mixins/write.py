@@ -56,7 +56,7 @@ class DocumentWriteMixin(DocumentReadMixin):
     """Write half of the Document pipeline.
 
     Extends :class:`DocumentReadMixin` because every write operation needs to
-    read the current row first (``get_document`` — for update's ``existing``,
+    read the current row first (``get_document`` - for update's ``existing``,
     delete's pre-delete snapshot, etc.). Inheriting directly means there is one
     fixed method resolution order, not an implicit one that depends on the
     order ``Document`` lists its base classes in.
@@ -87,7 +87,7 @@ class DocumentWriteMixin(DocumentReadMixin):
         """Call the named controller lifecycle hooks on *doc*, in order.
 
         A ``grunt.throw()`` from any hook becomes an HTTP error with the status
-        its code maps to — the one place that translates "controller rejected
+        its code maps to - the one place that translates "controller rejected
         the save" into HTTP, shared by create/update/delete.
         """
         try:
@@ -99,7 +99,7 @@ class DocumentWriteMixin(DocumentReadMixin):
     @staticmethod
     async def _require_user_permissions(dt: Any, row: dict[str, Any], user: User) -> None:
         """403 when the values being written fall outside *user*'s User
-        Permissions — the role check alone only looks at the stored row, so
+        Permissions - the role check alone only looks at the stored row, so
         without this a restricted user could create a record in (or move one
         to) a scope they may not touch."""
         from grunt.permissions.user_permissions import doc_violation
@@ -125,9 +125,9 @@ class DocumentWriteMixin(DocumentReadMixin):
         await fire(primary_event, doctype=doctype_name, doc=doc, user=user, session=self.session)
         await fire(secondary_event, doctype=doctype_name, doc=doc, user=user, session=self.session)
 
-    # ── Create ────────────────────────────────────────────────────────────
+    # Create
 
-    # ── create helpers ────────────────────────────────────────────────────
+    # create helpers
 
     async def _check_singleton(self, dt: Any, table: Any) -> None:
         """Raise 409 if the DocType is a singleton and a document already exists."""
@@ -157,11 +157,11 @@ class DocumentWriteMixin(DocumentReadMixin):
 
         # An explicit caller-supplied name wins over autoname for fixtures and
         # imports, which rely on stable names regardless of the DocType's
-        # naming scheme — but NOT for counter-based series (e.g.
+        # naming scheme - but NOT for counter-based series (e.g.
         # "ВХ-.YYYY.-.####"), where the counter is the source of truth and
         # must always be consulted. Otherwise any caller (a frontend bug, a
         # crafted API request) could pass an arbitrary `name` and silently
-        # hijack the series — the counter would never advance and a later,
+        # hijack the series - the counter would never advance and a later,
         # properly-generated name could collide with it.
         pattern = (dt.autoname or "").removeprefix("format:")
         if data.get("name") and not has_counter(parse_pattern(pattern)):
@@ -314,7 +314,7 @@ class DocumentWriteMixin(DocumentReadMixin):
         await attach_multi_link_values(self._ml, doctype_name, doc_id, dt.doc, row)
         return row
 
-    # ── Create ────────────────────────────────────────────────────────────
+    # Create
 
     async def create_document(
         self,
@@ -326,7 +326,7 @@ class DocumentWriteMixin(DocumentReadMixin):
     ) -> dict[str, Any]:
         """Run the full create pipeline: hooks -> validate -> insert -> hooks.
 
-        This is the single entry point for creating a document — both the
+        This is the single entry point for creating a document - both the
         ``grunt_app.new_doc`` facade and ``Document.insert()`` call through here,
         so global/DocType hooks (notifications, assignment rules, backlink sync,
         activity log) fire identically regardless of the caller.
@@ -378,7 +378,7 @@ class DocumentWriteMixin(DocumentReadMixin):
         await self._fire_write_hooks("after_insert", "after_save", doctype_name, created, user)
         return created
 
-    # ── update helpers ────────────────────────────────────────────────────
+    # update helpers
 
     def _build_update_payload(
         self,
@@ -453,7 +453,7 @@ class DocumentWriteMixin(DocumentReadMixin):
 
         await self.session.flush()
 
-    # ── Update ────────────────────────────────────────────────────────────
+    # Update
 
     async def update_document(
         self,
@@ -466,17 +466,17 @@ class DocumentWriteMixin(DocumentReadMixin):
     ) -> dict[str, Any]:
         """Run the full update pipeline: hooks -> validate -> update -> hooks.
 
-        Single entry point for updating a document — see :meth:`create_document`.
+        Single entry point for updating a document - see :meth:`create_document`.
         """
         from grunt.storage.signing import strip_file_signatures
 
         data = strip_file_signatures(data)
         # Optimistic-concurrency guard: the `modified_at` the client's edit was
-        # based on (sent by offline replays). A newer server copy → 409.
+        # based on (sent by offline replays). A newer server copy -> 409.
         base_modified_at = data.pop("__base_modified_at", None)
         dt = await self._resolve_dt(doctype_name)
 
-        # A singleton's first save arrives here, not at ``create_document`` —
+        # A singleton's first save arrives here, not at ``create_document`` -
         # the form always routes it as an update (``doc_id`` == DocType name)
         # because there is no separate "new" state. Upsert: if the sole row
         # does not exist yet, create it now (named after the DocType).
@@ -508,10 +508,10 @@ class DocumentWriteMixin(DocumentReadMixin):
         existing = await self.get_document(doctype_name, doc_id, user)
 
         # write_guard() (the facade's pre-check) only verifies doctype-level
-        # access — it calls permission_checker with doc=None, so a
+        # access - it calls permission_checker with doc=None, so a
         # `match`-restricted write permission (e.g. "owner == user") is never
         # evaluated there. `existing` is already fetched for the diff logic
-        # below, so this row-level check is free — no extra DB round trip.
+        # below, so this row-level check is free - no extra DB round trip.
         from grunt.permissions.rbac import permission_checker
 
         await permission_checker.require(user, dt, "write", existing)
@@ -541,7 +541,7 @@ class DocumentWriteMixin(DocumentReadMixin):
         merged = {**existing, **update_data}
         # Inject submitted child-table rows into merged so lifecycle hooks see the
         # incoming data (not the old DB rows) and their mutations are persisted.
-        # MultiLink lists too — visible to hooks, persisted from *data*.
+        # MultiLink lists too - visible to hooks, persisted from *data*.
         for _f in [*dt.get_child_table_fields(), *dt.get_multilink_fields()]:
             if _f.fieldname in data:
                 merged[_f.fieldname] = data[_f.fieldname]
@@ -558,7 +558,7 @@ class DocumentWriteMixin(DocumentReadMixin):
             await fill_route(dt, merged, self.session)
 
             # _persist_update_doc computes formulas then performs a single pass that
-            # writes back every physical field differing from `existing` — capturing
+            # writes back every physical field differing from `existing` - capturing
             # both hook mutations (e.g. read-only computed fields) and formula values.
             await self._persist_update_doc(
                 dt,
@@ -608,7 +608,7 @@ class DocumentWriteMixin(DocumentReadMixin):
             await workflow_engine.finish_transition(auto_transition, result, user, self.session)
         return result
 
-    # ── Delete ────────────────────────────────────────────────────────────
+    # Delete
 
     async def delete_document(
         self,
@@ -619,9 +619,9 @@ class DocumentWriteMixin(DocumentReadMixin):
     ) -> None:
         """Run the full delete pipeline: hooks -> delete -> hooks.
 
-        Single entry point for deleting a document — see :meth:`create_document`.
+        Single entry point for deleting a document - see :meth:`create_document`.
 
-        ``replace_with`` — id of a surviving document (same DocType) that every
+        ``replace_with`` - id of a surviving document (same DocType) that every
         reference to the deleted document is repointed to before it is removed.
         """
         dt = await self._resolve_dt(doctype_name)

@@ -42,7 +42,7 @@ export interface UseQuickFiltersReturn {
  * persists independently of this composable.
  *
  * @param defs             Reactive list of QuickFilter definitions
- * @param scope            'list' or 'tree' — only filters with matching enabled_in are active
+ * @param scope            'list' or 'tree' - only filters with matching enabled_in are active
  * @param quickFilterValues External ref containing { [filterId]: value }
  */
 export function useQuickFilters(

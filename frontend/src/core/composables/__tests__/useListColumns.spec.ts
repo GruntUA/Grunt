@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { useListColumns } from '@/core/composables/useListColumns'
 import type { DocField } from '@/types'
 
-// ── Fixtures ───────────────────────────────────────────────────────────────
+// Fixtures
 
 function makeField(overrides: Partial<DocField>): DocField {
   return {

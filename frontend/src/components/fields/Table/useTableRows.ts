@@ -3,7 +3,7 @@
  * emitted to the form as a fresh array), selection, and undo of the last delete.
  *
  * Every row carries a client-only `__uid` so identity survives reorder / insert /
- * delete — :key, selection and "which row was edited" stay put. The backend
+ * delete - :key, selection and "which row was edited" stay put. The backend
  * ignores the extra key and regenerates child `name`/`idx` itself.
  */
 import { computed, ref, watch, type Ref } from 'vue'
@@ -57,7 +57,7 @@ export function useTableRows(opts: {
     return { ...opts.blankRow(), __uid: genUid() }
   }
 
-  // ── Single-row mutations ────────────────────────────────────────────────
+  // Single-row mutations
   function add(): Row {
     const row = newRow()
     commit([...rows.value, row])
@@ -93,7 +93,7 @@ export function useTableRows(opts: {
     commit(ordered.map((r, i) => ({ ...r, idx: i })))
   }
 
-  // ── Selection ───────────────────────────────────────────────────────────
+  // Selection
   const selected = ref<Set<string>>(new Set())
 
   watch(rows, (list) => {
@@ -129,7 +129,7 @@ export function useTableRows(opts: {
     rows.value.filter((r) => selected.value.has(r.__uid)).map((r) => String(r.name ?? r.__uid)),
   )
 
-  // ── Bulk mutations on the selection ─────────────────────────────────────
+  // Bulk mutations on the selection
   function duplicateSelected(): void {
     const copies = rows.value.filter((r) => selected.value.has(r.__uid)).map(cloneRow)
     commit([...rows.value, ...copies])
@@ -140,7 +140,7 @@ export function useTableRows(opts: {
     commit(rows.value.map((r) => (selected.value.has(r.__uid) ? { ...r, [fieldname]: value } : r)))
   }
 
-  // ── Delete + undo ───────────────────────────────────────────────────────
+  // Delete + undo
   let lastDeleted: { rows: Row[]; at: number } | null = null
 
   function removeWhere(pick: (r: Row) => boolean): number {

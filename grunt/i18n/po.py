@@ -4,7 +4,7 @@
 merges it into every ``locales/<lang>/LC_MESSAGES/grunt.po`` (keeping existing
 translations, adding new empty entries, marking removed ones obsolete).
 ``grunt i18n stats`` reports per-locale coverage plus how many source strings
-are still Cyrillic — i.e. not yet moved to English in the code.
+are still Cyrillic - i.e. not yet moved to English in the code.
 """
 
 from __future__ import annotations
@@ -153,7 +153,7 @@ def coverage(
     }
 
 
-# ── source-language flip (Ukrainian → English in the code) ──────────────────
+# source-language flip (Ukrainian -> English in the code)
 def _doctype_json_paths(module: str) -> list[Path]:
     base = _GRUNT_PKG / module / "doctypes"
     return [p for p in sorted(base.glob("*/*.json")) if p.stem == p.parent.name]
@@ -162,7 +162,7 @@ def _doctype_json_paths(module: str) -> list[Path]:
 def _walk_slots(dt: dict, *, options: bool = True):
     """Yield ``(setter, msgctxt, text)`` for every translatable slot in a DocType
     dict. ``setter(new)`` mutates the dict in place. ``options=False`` skips
-    Select option values — those are stored data, not captions."""
+    Select option values - those are stored data, not captions."""
     name = dt.get("name") or ""
 
     def _s(obj, key):
@@ -200,7 +200,7 @@ def flip_module(
     """Replace Ukrainian strings in ``grunt/<module>/doctypes/**`` with their
     English *mapping*, moving the Ukrainian into ``locales/uk/LC_MESSAGES/grunt.po``.
 
-    Select option values are left alone unless *options* — they are what gets
+    Select option values are left alone unless *options* - they are what gets
     stored, so renaming them needs a data migration alongside.
 
     Dry-run by default. Returns ``{files, entries, unmapped}``.

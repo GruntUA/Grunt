@@ -1,4 +1,4 @@
-"""Virtual DocType adapter — base class for DocTypes backed by external data sources.
+"""Virtual DocType adapter - base class for DocTypes backed by external data sources.
 
 A Virtual DocType has `is_virtual=True` and does NOT create a database table.
 Instead, the developer implements a controller class that inherits from
@@ -19,9 +19,57 @@ Usage:
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from grunt.db.filters import as_list, split_key
+from grunt.db.filters import as_list, is_truthy, split_key
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+
+def _contains(raw: Any, val: Any) -> bool:
+    return str(val).lower().strip("%") in str(raw).lower()
+
+
+def _empty(raw: Any) -> bool:
+    return raw in (None, "")
+
+
+def _lte_or_null(raw: Any, val: Any) -> bool:
+    if _empty(raw):
+        return True
+    try:
+        return float(raw) <= float(val or 0)
+    except TypeError, ValueError:
+        return str(raw) <= str(val)
+
+
+# In-memory counterparts of grunt.db.filters._CLAUSES.
+_ROW_MATCHERS: dict[str, Callable[[Any, Any], bool]] = {
+    "eq": lambda raw, val: str(raw) == str(val),
+    "ne": lambda raw, val: str(raw) != str(val),
+    "neq": lambda raw, val: str(raw) != str(val),
+    "gt": lambda raw, val: float(raw or 0) > float(val or 0),
+    "gte": lambda raw, val: float(raw or 0) >= float(val or 0),
+    "lt": lambda raw, val: float(raw or 0) < float(val or 0),
+    "lte": lambda raw, val: float(raw or 0) <= float(val or 0),
+    "lte_or_null": _lte_or_null,
+    "like": _contains,
+    "ilike": _contains,
+    "nlike": lambda raw, val: raw is None or not _contains(raw, val),
+    "in": lambda raw, val: str(raw) in {str(v) for v in as_list(val)},
+    "nin": lambda raw, val: str(raw) not in {str(v) for v in as_list(val)},
+    "isnull": lambda raw, val: (raw is None) == is_truthy(val),
+    "is": lambda raw, val: _empty(raw) == (str(val).strip().lower() == "not set"),
+    "year": lambda raw, val: not _empty(raw) and str(raw)[:4] == f"{int(val):04d}",
+}
+
+
+def _matches(match: Callable[[Any, Any], bool], raw: Any, val: Any) -> bool:
+    try:
+        return match(raw, val)
+    except TypeError, ValueError:
+        return False
 
 
 class VirtualDocType:
@@ -88,81 +136,25 @@ class VirtualDocType:
         result = await self.get_list(filters=filters, page=1, per_page=1, **kwargs)
         return result.get("meta", {}).get("total", 0)
 
-    # ── In-memory helpers ─────────────────────────────────────────────────
+    # In-memory helpers
     # Useful for virtual DocTypes backed by in-memory data (ring buffers,
     # external API responses, etc.).  Subclasses may call these directly
     # instead of re-implementing filtering / sorting / pagination logic.
 
     def apply_filters(self, rows: list[dict], filters: dict[str, Any]) -> list[dict]:
-        """Filter *rows* using the standard Grunt filter syntax.
+        """Filter rows in memory with the same ``field__op`` syntax as SQL lists.
 
-        Supported operators (appended to fieldname with ``__``):
-            eq (default), ne, neq, gt, gte, lt, lte, lte_or_null, like, ilike,
-            nlike, in, nin, isnull, is (``set`` / ``not set``), year
-
-        Keys are parsed by ``grunt.db.filters.split_key``, the same as the
-        SQL-backed ``build_clauses``. An unknown operator (``status__typo``,
-        ``dept__child_of``) or one in ``FILTER_OPS`` not implemented below
-        raises rather than silently returning the wrong rows.
+        An operator the SQL side doesn't know (``dept__child_of``) raises
+        instead of quietly matching the wrong rows.
         """
         for key, val in filters.items():
             field, op = split_key(key)
             if "__" in field:
                 raise ValueError(f"Unsupported filter operator in {key!r}")
-
-            result: list[dict] = []
-            for r in rows:
-                raw = r.get(field)
-                try:
-                    if op == "eq":
-                        match = str(raw) == str(val)
-                    elif op in ("ne", "neq"):
-                        match = str(raw) != str(val)
-                    elif op in ("like", "ilike"):
-                        match = str(val).lower().strip("%") in str(raw).lower()
-                    elif op == "nlike":
-                        match = raw is None or str(val).lower().strip("%") not in str(raw).lower()
-                    elif op == "is":
-                        empty = raw in (None, "")
-                        match = empty if str(val).strip().lower() == "not set" else not empty
-                    elif op in ("gt", "gte", "lt", "lte"):
-                        a, b = float(raw or 0), float(val or 0)
-                        match = (
-                            a > b
-                            if op == "gt"
-                            else a >= b
-                            if op == "gte"
-                            else a < b
-                            if op == "lt"
-                            else a <= b
-                        )
-                    elif op == "lte_or_null":
-                        if raw in (None, ""):
-                            match = True
-                        else:
-                            try:
-                                match = float(raw) <= float(val or 0)
-                            except TypeError, ValueError:
-                                match = str(raw) <= str(val)
-                    elif op == "in":
-                        match = str(raw) in [str(v) for v in as_list(val)]
-                    elif op == "nin":
-                        match = str(raw) not in [str(v) for v in as_list(val)]
-                    elif op == "year":
-                        match = raw not in (None, "") and str(raw)[:4] == f"{int(val):04d}"
-                    elif op == "isnull":
-                        match = (
-                            (raw is None)
-                            if str(val).lower() in ("true", "1")
-                            else (raw is not None)
-                        )
-                    else:  # in FILTER_OPS but not handled here — not swallowed below
-                        raise NotImplementedError(f"Filter operator {op!r} not supported")
-                except TypeError, ValueError:
-                    match = False
-                if match:
-                    result.append(r)
-            rows = result
+            match = _ROW_MATCHERS.get(op)
+            if match is None:
+                raise NotImplementedError(f"Filter operator {op!r} not supported")
+            rows = [r for r in rows if _matches(match, r.get(field), val)]
         return rows
 
     def apply_sort(self, rows: list[dict], sort_by: str, sort_order: str) -> list[dict]:
@@ -196,11 +188,11 @@ class VirtualDocType:
     ) -> dict[str, Any]:
         """Paginate *rows* and wrap in the standard Grunt list response.
 
-        ``extra_meta`` is merged into ``meta`` as-is — e.g. a virtual DocType
+        ``extra_meta`` is merged into ``meta`` as-is - e.g. a virtual DocType
         backed by a live external source (Redis, an API) can flag
         ``{"unavailable": True, "unavailable_message": "Redis не налаштований"}``
         when an empty list means "source unreachable" rather than "nothing
-        there". The message is caller-supplied, ready-to-display text — the
+        there". The message is caller-supplied, ready-to-display text - the
         generic list UI never needs to know *why* a source is unavailable,
         only that it is.
         """

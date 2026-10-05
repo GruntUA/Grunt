@@ -14,7 +14,7 @@
 import type { Component } from 'vue'
 
 export interface PropertySectionDef {
-  /** Section name — must match a value in FieldDefinition.propertySections */
+  /** Section name - must match a value in FieldDefinition.propertySections */
   name: string
   /** Async loader for the Vue component that renders this section */
   component: () => Promise<Component>

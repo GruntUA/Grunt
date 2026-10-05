@@ -56,7 +56,7 @@ function handleSelectGroup(items: Record<string, unknown>[]) {
 
 <template>
   <div class="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-2 duration-700">
-    <!-- Shared column header (tables only — cards carry their own labels) -->
+    <!-- Shared column header (tables only - cards carry their own labels) -->
     <div v-if="!cardLayout" class="bg-card rounded-lg border border-border/60 overflow-hidden">
         <GruntDataTable
           :columns="columns"

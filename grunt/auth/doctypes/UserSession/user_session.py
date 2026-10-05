@@ -1,11 +1,11 @@
-"""UserSession — one row per signed-in device, holding that device's refresh token.
+"""UserSession - one row per signed-in device, holding that device's refresh token.
 
 The row name is the session id (``sid``) carried in every access token, so a
 token can be traced back to its device. The refresh token itself is stored
 only as a SHA-256 hash and is rotated on every refresh.
 
 A session ends when it is revoked (logout, "sign out other devices", password
-reset) or after ``SystemSettings.session_timeout`` minutes without a refresh —
+reset) or after ``SystemSettings.session_timeout`` minutes without a refresh -
 an idle timeout, not an absolute one: an active client keeps refreshing its
 short-lived access token and each refresh moves ``last_active_at`` forward.
 """
@@ -117,7 +117,7 @@ async def rotate_session(
     """Swap a refresh token for a new one. Returns ``(sid, refresh_token, user_id)``.
 
     None when the token is unknown, revoked, or its session went idle past
-    ``session_timeout``. An idle session isn't closed here — the caller turns
+    ``session_timeout``. An idle session isn't closed here - the caller turns
     None into an error, which rolls the request back; ``_deactivate_expired``
     closes it on the next login or session listing.
     """

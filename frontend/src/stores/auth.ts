@@ -143,7 +143,7 @@ export const useAuthStore = defineStore('auth', () => {
   /**
    * System Manager: open a short-lived session as `userId`. Stashes the real
    * session so `stopImpersonation()` can restore it, then swaps in the
-   * impersonation access token (which has no refresh token — it just expires).
+   * impersonation access token (which has no refresh token - it just expires).
    */
   async function startImpersonation(userId: string): Promise<void> {
     const { authAdminApi } = await import('@/core/api/auth-admin')
@@ -217,7 +217,7 @@ export const useAuthStore = defineStore('auth', () => {
 
     if (data.approval_pending) throw new Error('approval_pending')
     if (data.mfa_required) {
-      // Rare: user has MFA on top of a passkey — hand back to the MFA step.
+      // Rare: user has MFA on top of a passkey - hand back to the MFA step.
       const err: any = new Error('mfa_required')
       err.mfa = { mfa_token: data.mfa_token, user: data.user }
       throw err
@@ -227,7 +227,7 @@ export const useAuthStore = defineStore('auth', () => {
     applyUserPreferences(data.user)
   }
 
-  /** Passwordless "sign in with email" — step 1: mail a code + magic link. */
+  /** Passwordless "sign in with email" - step 1: mail a code + magic link. */
   async function beginEmailLogin(
     email: string,
   ): Promise<{ challenge_token: string; ttl_minutes: number }> {
@@ -236,7 +236,7 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   /**
-   * Passwordless "sign in with email" — step 2. Pass the mailed `code` together
+   * Passwordless "sign in with email" - step 2. Pass the mailed `code` together
    * with the `challenge_token` from step 1, or the `token` lifted from a magic
    * link. Adopts the session on success.
    */
@@ -298,7 +298,7 @@ export const useAuthStore = defineStore('auth', () => {
     if (!token.value) return
 
     if (isImpersonating.value) {
-      // No refresh token by design — an expired impersonation token just ends.
+      // No refresh token by design - an expired impersonation token just ends.
       if (isJwtExpired(token.value)) {
         await stopImpersonation()
         return

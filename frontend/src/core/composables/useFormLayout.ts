@@ -1,6 +1,6 @@
 import type { DocField, FieldType } from '@/types'
 
-// ── Layout types ─────────────────────────────────────────────────────────
+// Layout types
 
 export interface LayoutTab {
   type: 'tab'
@@ -23,14 +23,14 @@ export interface LayoutSection {
 
 export type FormLayout = LayoutTab[]
 
-// ── Counters for implicit layout nodes ───────────────────────────────────
+// Counters for implicit layout nodes
 
 let _implicitCounter = 0
 function implicitName(prefix: string): string {
   return `__${prefix}_${++_implicitCounter}`
 }
 
-// ── Parse flat DocField[] → hierarchical FormLayout ──────────────────────
+// Parse flat DocField[] -> hierarchical FormLayout
 
 export function parseLayout(fields: DocField[]): FormLayout {
   _implicitCounter = 0
@@ -127,7 +127,7 @@ export function parseLayout(fields: DocField[]): FormLayout {
   return tabs
 }
 
-// ── Flatten FormLayout → flat DocField[] ─────────────────────────────────
+// Flatten FormLayout -> flat DocField[]
 
 export function flattenLayout(layout: FormLayout): DocField[] {
   const result: DocField[] = []
@@ -165,7 +165,7 @@ export function flattenLayout(layout: FormLayout): DocField[] {
   return result
 }
 
-// ── Find insert position in flat array for a specific column ─────────────
+// Find insert position in flat array for a specific column
 
 export function findInsertPosition(
   fields: DocField[],
@@ -183,7 +183,7 @@ export function findInsertPosition(
           const idx = fields.findIndex((f) => f.fieldname === lastField.fieldname)
           return idx + 1
         }
-        // Empty column — find the position after the column break (or section break)
+        // Empty column - find the position after the column break (or section break)
         if (columnIndex === 0) {
           // After the section field itself
           if (section._field) {

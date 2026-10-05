@@ -22,7 +22,7 @@ if TYPE_CHECKING:
 
 
 # Target-doctype fields auto-injected alongside a Link field's __label (as
-# __color/__icon) when the target defines them — list-cell badges and map
+# __color/__icon) when the target defines them - list-cell badges and map
 # markers render a linked record's color/icon without a separate fetch.
 # See frontend/src/components/fields/Link/ListCell.vue and useMapMarkers.ts.
 _EXTRA_INJECT = ("color", "icon")
@@ -120,7 +120,7 @@ def _link_display_columns(
     for fname in extra_to_fetch:
         cols_to_fetch.append(target_table.c[fname])
 
-    # image_field is doctype-specific (e.g. "photo" on Employee) — always
+    # image_field is doctype-specific (e.g. "photo" on Employee) - always
     # surfaced to the caller as a fixed "image" key regardless of the
     # target's own field name, so list-cell renderers have one contract.
     image_field = target_meta.get_image_field()
@@ -180,7 +180,7 @@ def _apply_link_labels(
         if has_image:
             # Always set the key (even "") when the target doctype supports
             # avatars, so the frontend can render an initials-fallback circle
-            # for records with no image yet — distinct from Link fields with
+            # for records with no image yet - distinct from Link fields with
             # no avatar concept at all.
             row[image_key] = image_map.get(raw_str, "")
 
@@ -192,7 +192,7 @@ async def _resolve_attach_labels(
 ) -> None:
     """Inject ``fieldname__label`` (the real filename) for Attach fields.
 
-    An Attach value is a download URL keyed by ``file_id``, not a filename —
+    An Attach value is a download URL keyed by ``file_id``, not a filename -
     list/grid cells that show it raw are useless to the user (see
     frontend/src/components/fields/Table/Table.vue's ``cellDisplay``, which
     reads this the same way it reads a Link field's ``__label``).

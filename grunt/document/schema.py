@@ -1,6 +1,6 @@
 """Explicit response serialization for ``Document`` controllers.
 
-No magic — a ``Schema`` subclass just names the fields to expose, then
+No magic - a ``Schema`` subclass just names the fields to expose, then
 ``.dump()``/``.dump_many()`` are called explicitly at the point a whitelisted
 method builds its response::
 

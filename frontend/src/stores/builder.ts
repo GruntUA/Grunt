@@ -11,7 +11,7 @@ import type { IndexHint } from '@/types'
  * Designer-only state for the DocType "Конструктор" tab.
  *
  * The document itself (load / save / dirty tracking) is owned by
- * `useFormController` on the surrounding standard form — this store only holds
+ * `useFormController` on the surrounding standard form - this store only holds
  * the working copy the canvas mutates and the current field selection, keyed by
  * fieldname so it survives reorders and splices. `DesignerTab.vue` seeds
  * `doctype` on mount and mirrors every change back out via `update:modelValue`.
@@ -20,7 +20,7 @@ export const useBuilderStore = defineStore('builder', () => {
   const doctype = ref<DocType | null>(null)
   const selectedFieldName = ref<string | null>(null)
 
-  // ── Selection ────────────────────────────────────────────────────────
+  // Selection
 
   function selectField(fieldname: string | null) {
     if (fieldname === null || !doctype.value) {
@@ -44,7 +44,7 @@ export const useBuilderStore = defineStore('builder', () => {
     },
   )
 
-  // ── Computed ─────────────────────────────────────────────────────────
+  // Computed
 
   const selectedField = computed<DocField | null>(() => {
     if (!selectedFieldName.value || !doctype.value) return null
@@ -71,7 +71,7 @@ export const useBuilderStore = defineStore('builder', () => {
     addFieldToColumn,
   } = useBuilderLayout({ doctype, selectField })
 
-  // ── Field CRUD (by fieldname) ────────────────────────────────────────
+  // Field CRUD (by fieldname)
 
   function updateField(fieldname: string, patch: Partial<DocField>) {
     if (!doctype.value) return
@@ -105,7 +105,7 @@ export const useBuilderStore = defineStore('builder', () => {
     doctype.value = { ...doctype.value, ...patch }
   }
 
-  // ── Simple add (for palette click) ───────────────────────────────────
+  // Simple add (for palette click)
 
   function addField(fieldtype: FieldType) {
     if (!doctype.value) return

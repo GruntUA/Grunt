@@ -1,9 +1,9 @@
-"""Core framework hooks — "app zero".
+"""Core framework hooks - "app zero".
 
 Loaded by :func:`grunt.apps.load_core` at :mod:`grunt.main` import, through
 the same :data:`~grunt.apps.consumers.HOOK_CONSUMERS` path as any external
 app's ``hooks.py``. Everything the framework itself needs wired on every site
-lives here — declared, not imperatively registered in ``main.py``.
+lives here - declared, not imperatively registered in ``main.py``.
 """
 
 from __future__ import annotations
@@ -29,7 +29,7 @@ doc_events: dict[str, dict[str, list[str]]] = {
         "after_insert": ["grunt.activity.follow.notify_followers_of_comment"],
     },
     # ToDo assignment notifications live in its controller
-    # (grunt.tasks.doctypes.ToDo.to_do.ToDo) — create / reassign / complete.
+    # (grunt.tasks.doctypes.ToDo.to_do.ToDo) - create / reassign / complete.
     # Log every document lifecycle event to ActivityLog.
     "*": {
         "after_insert": ["grunt.activity.log_activity"],

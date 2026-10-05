@@ -36,7 +36,7 @@ SA_METADATA = MetaData()
 # key grunt.metadata.registry._resolve_site_key() resolves). One process can
 # serve multiple sites; a compiled Table's shape (columns) depends entirely
 # on that site's DocType definition, so it must never be shared across sites
-# — a stale/foreign Table object would build SQL against columns that don't
+# - a stale/foreign Table object would build SQL against columns that don't
 # exist in the site actually being queried (extend_existing=True only adds
 # columns, it never removes them).
 _SA_METADATA: dict[str, MetaData] = {}
@@ -63,10 +63,10 @@ class DuplicateDataError(Exception):
     """Raised when a unique constraint cannot be added due to duplicate values.
 
     Attributes:
-        table      — physical table name
-        constraint — constraint/index name
-        columns    — list of column names in the constraint
-        duplicates — list of {value, ids} dicts describing the offending rows
+        table - physical table name
+        constraint - constraint/index name
+        columns - list of column names in the constraint
+        duplicates - list of {value, ids} dicts describing the offending rows
     """
 
     def __init__(
@@ -106,7 +106,7 @@ def invalidate_table_cache(doctype_name: str) -> None:
 
 
 def clear_table_cache(site: str) -> None:
-    """Forget every compiled Table of *site* — they are rebuilt from the
+    """Forget every compiled Table of *site* - they are rebuilt from the
     (re-read) DocTypes on next use.
 
     Needed after a migration: a Table compiled before it still lists the old
@@ -117,7 +117,7 @@ def clear_table_cache(site: str) -> None:
     _SA_METADATA.pop(site, None)
 
 
-# ── MultiLink junction table ─────────────────────────────────────────────
+# MultiLink junction table
 
 MULTI_LINK_TABLE = Table(
     "grunt_core_multi_link",
@@ -139,7 +139,7 @@ MULTI_LINK_TABLE = Table(
 )
 
 
-# ── Helpers ──────────────────────────────────────────────────────────────
+# Helpers
 
 
 def get_table_name(module: str, doctype_name: str) -> str:
@@ -147,7 +147,7 @@ def get_table_name(module: str, doctype_name: str) -> str:
     return f"grunt_{module}_{to_snake_case(doctype_name)}"
 
 
-# ── Type comparison helpers ───────────────────────────────────────────────
+# Type comparison helpers
 
 # Normalize DB-reported type names to canonical SA type names for comparison.
 _TYPE_ALIASES: dict[str, str] = {
@@ -185,7 +185,7 @@ def _is_varchar_reduction(desired, current) -> bool:
     return bool(current_len and desired_len and desired_len < current_len)
 
 
-# ── Compiler ─────────────────────────────────────────────────────────────
+# Compiler
 
 
 def compile_doctype_to_table(doctype: DocType) -> Table:
@@ -230,11 +230,11 @@ def compile_doctype_to_table(doctype: DocType) -> Table:
             ]
         )
 
-    # track_seen → JSON list of user emails that have opened this document.
+    # track_seen -> JSON list of user emails that have opened this document.
     if getattr(doctype, "track_seen", False) and not doctype.is_child:
         columns.append(Column("_seen", JSON, default=list))
 
-    # Names already claimed by system columns — skip any user field that would conflict.
+    # Names already claimed by system columns - skip any user field that would conflict.
     _system_cols = frozenset(
         {
             "name",
@@ -255,7 +255,7 @@ def compile_doctype_to_table(doctype: DocType) -> Table:
     for field in doctype.fields:
         if field.fieldtype in NON_PHYSICAL_FIELDS:
             continue
-        if field.is_virtual:  # computed on read (read_formula) — no stored column
+        if field.is_virtual:  # computed on read (read_formula) - no stored column
             continue
         if field.fieldname in _system_cols:
             continue
@@ -263,7 +263,7 @@ def compile_doctype_to_table(doctype: DocType) -> Table:
         try:
             col = field.to_sa_column()
         except ValueError:
-            # Non-physical or unknown type — skip silently
+            # Non-physical or unknown type - skip silently
             continue
 
         col.nullable = True
@@ -302,7 +302,7 @@ def compile_doctype_to_table(doctype: DocType) -> Table:
     return table
 
 
-# ── Sync (create / alter) ───────────────────────────────────────────────
+# Sync (create / alter)
 
 
 def _backfill_default(field: Any) -> Any:
@@ -323,7 +323,7 @@ def _sync_columns(insp: Any, connection: Any, table: Table) -> None:
     """Add missing columns and ALTER type-changed ones (non-SQLite only).
 
     A new column is added as NULL (safe on tables with rows), then existing
-    rows get the field's static default — what a new document would get — so
+    rows get the field's static default - what a new document would get - so
     e.g. a new Check "enabled by default" on a settings singleton reads as on.
     """
     existing_col_map = {c["name"]: c["type"] for c in insp.get_columns(table.name)}
@@ -462,8 +462,8 @@ async def sync_table(
 ) -> None:
     """Apply DocType changes to the physical database.
 
-    1. Compile DocType → SA Table.
-    2. If the table does not exist — ``CREATE TABLE``.
+    1. Compile DocType -> SA Table.
+    2. If the table does not exist - ``CREATE TABLE``.
     3. If the table exists:
        - Add missing columns (always as NULL).
        - Alter columns whose type changed (with varchar-reduction safety check).

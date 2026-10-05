@@ -2,7 +2,7 @@
 
 The HTTP surface still lives at ``/api/v1/oauth/{provider}/authorize`` and
 ``/api/v1/oauth/{provider}/callback`` (the redirect URI registered with the
-IdP) — see :mod:`grunt.api.v1.oauth` — but the actual OIDC dance is here so it
+IdP) - see :mod:`grunt.api.v1.oauth` - but the actual OIDC dance is here so it
 goes through the same registry and :func:`grunt.auth.login.issue_login` as
 every other method.
 """
@@ -37,7 +37,7 @@ class OIDCProvider(AuthProvider):
     #: OIDC discovery document URL (may contain ``{tenant}``).
     conf_url: ClassVar[str] = ""
 
-    # ── deployment config ───────────────────────────────────────────────────
+    # deployment config
 
     def _client_id(self) -> str | None:  # pragma: no cover - trivial
         raise NotImplementedError
@@ -54,7 +54,7 @@ class OIDCProvider(AuthProvider):
     def _callback_url(self) -> str:
         return f"{settings.app_url}/api/v1/oauth/{self.name}/callback"
 
-    # ── OIDC helpers ────────────────────────────────────────────────────────
+    # OIDC helpers
 
     async def _discover(self) -> dict:
         import httpx
@@ -64,7 +64,7 @@ class OIDCProvider(AuthProvider):
             resp.raise_for_status()
             return resp.json()
 
-    # ── ceremony ───────────────────────────────────────────────────────────
+    # ceremony
 
     async def begin(self, ctx: AuthFlowContext) -> dict[str, Any]:
         oidc = await self._discover()
@@ -74,7 +74,7 @@ class OIDCProvider(AuthProvider):
             scope=self.scope,
         )
         url, _state = client.create_authorization_url(oidc["authorization_endpoint"])
-        await client.aclose()  # pyright: ignore[reportAttributeAccessIssue] — httpx.AsyncClient method
+        await client.aclose()  # pyright: ignore[reportAttributeAccessIssue] - httpx.AsyncClient method
         return {"redirect_url": url}
 
     async def complete(self, ctx: AuthFlowContext) -> User:

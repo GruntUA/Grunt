@@ -1,7 +1,7 @@
 """Per-document cache for hot get-by-id lookups.
 
 ``QueryCache`` caches *lists*, keyed by a whole query signature. This caches a
-single document's data, keyed by ``(doctype, name)`` — the shape needed by a
+single document's data, keyed by ``(doctype, name)`` - the shape needed by a
 hot "load this one document on every request" path. The first consumer is
 ``grunt.auth.doctypes.User.user.get_auth_context_user`` (the profile+roles
 lookup ``current_user``/``optional_user`` run on nearly every request), but
@@ -12,7 +12,7 @@ Same in-memory-always / Redis-when-configured layering as ``QueryCache``, and
 invalidated through the same choke point (``DocumentAPI._invalidate_list_cache``,
 which already runs on every write to keep ``QueryCache`` fresh). The TTL is a
 backstop for a write path that bypasses that hook (or a Redis outage), not the
-primary freshness mechanism — invalidation is.
+primary freshness mechanism - invalidation is.
 """
 
 from __future__ import annotations
@@ -98,7 +98,7 @@ class DocumentCache:
     async def set(self, doctype: str, name: str, payload: dict[str, Any]) -> None:
         # Normalize once (some columns, e.g. created_at/modified_at, are
         # datetimes) so a memory hit and a Redis hit return an identically
-        # shaped payload — callers that don't read those fields back as
+        # shaped payload - callers that don't read those fields back as
         # datetimes (the auth path doesn't) are unaffected either way.
         raw = json.dumps(payload, separators=(",", ":"), default=str)
         key = self._key(doctype, name)
@@ -125,7 +125,7 @@ class DocumentCache:
             log.warning("doc_cache.redis_invalidate_failed", error=str(exc))
 
     async def invalidate_doctype(self, doctype: str) -> None:
-        """Drop every cached document of this doctype — used when a write
+        """Drop every cached document of this doctype - used when a write
         touches an unknown set of names (e.g. a filtered bulk update)."""
         prefix = self._key_prefix(doctype)
         stale = [k for k in self._memory if k.startswith(prefix)]

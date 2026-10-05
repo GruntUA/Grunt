@@ -27,7 +27,7 @@ function toPascal(name: string): string {
     : name.charAt(0).toUpperCase() + name.slice(1)
 }
 
-/** kebab-case ("arrow-left") or PascalCase ("ArrowLeft") → component, or null. */
+/** kebab-case ("arrow-left") or PascalCase ("ArrowLeft") -> component, or null. */
 export async function resolveLucideIcon(
   name: string | null | undefined,
 ): Promise<Component | null> {

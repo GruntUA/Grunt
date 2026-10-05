@@ -1,7 +1,7 @@
 /**
  * List Cell Registry
  *
- * Maps fieldtype strings → Vue components used by DataTable to render cells.
+ * Maps fieldtype strings -> Vue components used by DataTable to render cells.
  * Built-in renderers are registered in app-hooks.ts.
  * External apps can register custom renderers before the Vue app mounts:
  *
@@ -10,10 +10,10 @@
  *   registerListCell('MyCustomType', MyCustomCell)
  *
  * Each cell component must accept these props:
- *   value:        unknown                    — raw cell value
- *   row:          Record<string, unknown>    — full row data (for __label / __icon suffixes)
- *   field:        DocField                   — field metadata
- *   statusConfig: DocTypeStatusConfig | null — status config for the doctype
+ *   value:        unknown - raw cell value
+ *   row:          Record<string, unknown> - full row data (for __label / __icon suffixes)
+ *   field:        DocField - field metadata
+ *   statusConfig: DocTypeStatusConfig | null - status config for the doctype
  */
 
 import type { Component } from 'vue'

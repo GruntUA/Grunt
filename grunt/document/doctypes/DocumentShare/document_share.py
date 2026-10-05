@@ -16,7 +16,7 @@ class DocumentShare(Document):
 
     async def before_insert(self) -> None:
         """Creating a share token grants guest-level read access to the
-        target document — get_shared_document() intentionally skips
+        target document - get_shared_document() intentionally skips
         permission guards, since the token itself IS the authorization.
         Checked here (not only at the create_share() call site) so the
         generic docs CRUD path (POST /api/v1/docs/DocumentShare) can't be

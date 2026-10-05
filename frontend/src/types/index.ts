@@ -1,5 +1,5 @@
 /**
- * Field type identifier. Fully open — the real set is resolved at runtime by
+ * Field type identifier. Fully open - the real set is resolved at runtime by
  * the field registry (src/core/fieldRegistry.ts), which discovers core types
  * from the manifest.json files under components/fields/ and lets any plugin
  * app add its own via registerField().
@@ -35,17 +35,17 @@ export interface DocField {
   in_list_view?: boolean
   in_filter?: boolean
   in_quick_filter?: boolean
-  /** Date/Datetime quick filter: 'year' — pick a calendar year (`field__year`) instead of a date. */
+  /** Date/Datetime quick filter: 'year' - pick a calendar year (`field__year`) instead of a date. */
   quick_filter_mode?: 'year' | null
   /** Editable inline in the Report (spreadsheet) grid view. */
   editable_in_grid?: boolean
   // Type-specific
   options?: string
-  /** Select / MultiSelect — captions go through the translation catalog. */
+  /** Select / MultiSelect - captions go through the translation catalog. */
   translatable?: boolean
   /** Served for `translatable` fields: {stored value: caption in the user's language}. */
   option_labels?: Record<string, string>
-  // Name of a backend registry source whose values replace `options` — see
+  // Name of a backend registry source whose values replace `options` - see
   // grunt.metadata.dynamic_options. Already resolved into `options` by the
   // time the schema reaches the frontend; kept here for completeness.
   options_source?: string | null
@@ -79,10 +79,10 @@ export interface DocField {
   // Layout
   columns?: number
   collapsible?: boolean
-  /** Tab fields only — render the "Зв'язки" (connections) panel inside this tab. */
+  /** Tab fields only - render the "Зв'язки" (connections) panel inside this tab. */
   show_connections?: boolean
   icon?: string
-  /** Tab fields only — mount a bespoke component as the tab body (e.g. "DesignerTab"). */
+  /** Tab fields only - mount a bespoke component as the tab body (e.g. "DesignerTab"). */
   tab_component?: string
   // Virtual
   is_virtual?: boolean
@@ -91,9 +91,9 @@ export interface DocField {
   fetch_from?: string | null
   // Named validator (e.g. "email", "phone", "url", "iban_ua")
   validator?: string | null
-  // Password field — show a live checklist of the SystemSettings password policy.
+  // Password field - show a live checklist of the SystemSettings password policy.
   show_strength?: boolean
-  // Table field — group rows by this child fieldname
+  // Table field - group rows by this child fieldname
   group_by?: string | null
 }
 
@@ -105,7 +105,7 @@ export interface DocTypeSummary {
   is_singleton?: boolean
 }
 
-// ── Permission types ──────────────────────────────────────────────────────
+// Permission types
 
 export interface DocPermission {
   role: string
@@ -119,7 +119,7 @@ export interface DocPermission {
   hidden_fields?: string[]
 }
 
-// ── View configuration types ─────────────────────────────────────────────
+// View configuration types
 
 export interface CalendarSource {
   doctype: string
@@ -140,7 +140,7 @@ export interface DocTypeCalendarView {
   sources?: CalendarSource[]
 }
 
-// ── Quick filter types ─────────────────────────────────────────────────────
+// Quick filter types
 
 export interface QuickFilterOnChange {
   mode: 'local' | 'external'
@@ -161,7 +161,7 @@ export interface QuickFilter {
   enabled_in: Array<'list' | 'tree'>
 }
 
-/** A single active filter — used by FilterBar, DocTypeList, and docsApi */
+/** A single active filter - used by FilterBar, DocTypeList, and docsApi */
 export interface ActiveFilter {
   fieldname: string
   label: string
@@ -188,7 +188,7 @@ export interface ScriptMenuItem {
   separator_before?: boolean
 }
 
-// ── Status indicators ────────────────────────────────────────────────────
+// Status indicators
 
 export interface StatusIndicator {
   value: string
@@ -199,7 +199,7 @@ export interface StatusIndicator {
 
 /**
  * Runtime bundle passed to list cells / exporters. Assembled from a DocType's
- * `status_field` + `status_indicators` by `statusConfigOf()` — it is not stored
+ * `status_field` + `status_indicators` by `statusConfigOf()` - it is not stored
  * on the DocType itself.
  */
 export interface DocTypeStatusConfig {
@@ -207,7 +207,7 @@ export interface DocTypeStatusConfig {
   indicators: StatusIndicator[]
 }
 
-// ── DocType ───────────────────────────────────────────────────────────────
+// DocType
 
 export interface DocType {
   name: string
@@ -232,7 +232,7 @@ export interface DocType {
   title_field?: string
   image_field?: string | null
   search_fields?: string[]
-  /** Composite (multi-column) indexes — [["reference_doctype", "reference_id"]]. */
+  /** Composite (multi-column) indexes - [["reference_doctype", "reference_id"]]. */
   indexes?: string[][]
   autoname?: string | null
   default_view?: string | null
@@ -267,7 +267,7 @@ export interface DocType {
   links?: DocTypeLink[]
 }
 
-/** One row of the DocType `links` table — a related DocType surfaced on the
+/** One row of the DocType `links` table - a related DocType surfaced on the
  *  document "Зв'язки" panel. */
 export interface DocTypeLink {
   link_doctype: string
@@ -294,7 +294,7 @@ export interface DocConnectionsResult {
   }[]
 }
 
-/** Input field an action prompts for before running — a subset of the
+/** Input field an action prompts for before running - a subset of the
  *  `DialogField` shape consumed by `useDialog().form()`. */
 export interface DocActionField {
   fieldname: string
@@ -306,7 +306,7 @@ export interface DocActionField {
   description?: string
 }
 
-/** One row of the DocType `actions` table — binds a registered action, with
+/** One row of the DocType `actions` table - binds a registered action, with
  *  optional presentation overrides. Keys prefixed `_` are resolved server-side
  *  from the code registry (see grunt.actions). */
 export interface DocTypeActionBinding {
@@ -336,7 +336,7 @@ export interface DocActionCatalogEntry {
   module?: string
 }
 
-// ── Report types ──────────────────────────────────────────────────────────
+// Report types
 
 export interface ReportColumn {
   fieldname: string
@@ -358,7 +358,7 @@ export interface ReportChartConfig {
 }
 
 export interface ReportSummary {
-  /** Doctype identifier (the `grunt_report` PK column — no separate `id`). */
+  /** Doctype identifier (the `grunt_report` PK column - no separate `id`). */
   name: string
   report_name: string
   report_type: string
@@ -385,7 +385,7 @@ export interface ReportResult {
   meta: { rows: number; time_ms: number }
 }
 
-// ── User types ────────────────────────────────────────────────────────────
+// User types
 
 export interface UserPublic {
   id: string
@@ -396,7 +396,7 @@ export interface UserPublic {
 }
 
 export interface GruntDocument {
-  /** Synthesized from `name` by the API client shim — use `name` as the canonical PK. */
+  /** Synthesized from `name` by the API client shim - use `name` as the canonical PK. */
   id?: string
   name: string
   owner: string
@@ -412,12 +412,12 @@ export interface PaginationMeta {
   page: number
   per_page: number
   pages: number
-  /** Opaque cursor for keyset pagination — present when more rows exist */
+  /** Opaque cursor for keyset pagination - present when more rows exist */
   next_cursor?: string
   /**
    * Set by a virtual DocType backed by a live external source (Redis, an
    * API) when an empty list means "source unreachable", not "nothing
-   * there" — e.g. BackgroundJob/BackgroundWorker without Redis configured.
+   * there" - e.g. BackgroundJob/BackgroundWorker without Redis configured.
    * ``unavailable_message`` is ready-to-display text from the backend.
    */
   unavailable?: boolean
@@ -440,7 +440,7 @@ export interface ApiError {
   error: { code: string; message: string; details: string[] }
 }
 
-// ── Dashboard ─────────────────────────────────────────────────────────────
+// Dashboard
 
 export type WidgetType = 'metric' | 'gauge' | 'chart_area' | 'chart_bar' | 'donut' | 'list'
   | 'shortcut' | 'shortcuts_grid' | 'text' | 'clock' | 'activity'
@@ -510,7 +510,7 @@ export interface Page {
 
 export interface PageSummary extends Omit<Page, 'widgets'> { }
 
-// ── Notifications ────────────────────────────────────────────────────────
+// Notifications
 
 export interface GruntNotification {
   id: string

@@ -1,4 +1,4 @@
-"""OAuth2 / OIDC redirect endpoints — Google and Microsoft.
+"""OAuth2 / OIDC redirect endpoints - Google and Microsoft.
 
 The provider logic lives in :mod:`grunt.auth.providers.oauth`; these routes are
 just the redirect plumbing the IdP needs (the ``/callback`` path is the
@@ -20,7 +20,7 @@ Flow:
 2. IdP redirects back to ``GET /api/v1/oauth/{provider}/callback?code=...``.
 3. This exchanges the code, finds/creates the local User, then **302-redirects
    the browser back to the SPA** at ``{APP_URL}/login#access_token=...`` (tokens
-   in the URL fragment — never sent to a server). ``Login.vue`` consumes the
+   in the URL fragment - never sent to a server). ``Login.vue`` consumes the
    fragment, stores the pair and strips it from the URL.
 """
 

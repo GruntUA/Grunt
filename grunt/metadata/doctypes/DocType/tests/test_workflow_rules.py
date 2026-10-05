@@ -1,4 +1,4 @@
-"""Workflow rules — review/approval out of the box (grunt/workflow/guard.py, notify.py).
+"""Workflow rules - review/approval out of the box (grunt/workflow/guard.py, notify.py).
 
 An author drafts and sends for review; a reviewer publishes or sends back with
 a comment; an author's edit of a published article sends it back to review.
@@ -169,11 +169,11 @@ async def test_edit_of_published_goes_back_to_review(article, db_session, engine
     assert await _state(doc["name"]) == ("Published", 1)
 
     async with grunt.context(db_session, engine, _as(AUTHOR, W)):
-        # The form sends the whole document back — unchanged values don't count.
+        # The form sends the whole document back - unchanged values don't count.
         same = await grunt.get_doc("Article", doc["name"])
         await grunt.save_doc("Article", doc["name"], {k: same[k] for k in ("title", "status")})
         assert await _state(doc["name"]) == ("Published", 1)
-        with pytest.raises(HTTPException):  # edits go to review — so does removal
+        with pytest.raises(HTTPException):  # edits go to review - so does removal
             await grunt.delete_doc("Article", doc["name"])
         await grunt.save_doc("Article", doc["name"], {"title": "Live, rewritten"})
     assert await _state(doc["name"]) == ("Review", 0)

@@ -5,7 +5,7 @@ from pathlib import Path
 
 import click
 
-# ── Discovery helpers ─────────────────────────────────────────────────────────
+# Discovery helpers
 
 
 def _is_bench_root(path: Path) -> bool:
@@ -21,7 +21,7 @@ def _find_bench_root(start: Path) -> Path | None:
     return None
 
 
-# ── Commands ──────────────────────────────────────────────────────────────────
+# Commands
 
 
 @click.group(name="fields")

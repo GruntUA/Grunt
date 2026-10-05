@@ -1,7 +1,7 @@
 """Store ``SystemSettings.language`` as a short UI-language code.
 
 The field used to be a static Select of locale tags (``uk-UA`` / ``en-US``);
-it now draws its options from the UI languages (``grunt.i18n.language`` —
+it now draws its options from the UI languages (``grunt.i18n.language`` -
 ``uk``, ``en``, …, whatever has a translation catalog), the same codes
 ``User.language`` stores.
 

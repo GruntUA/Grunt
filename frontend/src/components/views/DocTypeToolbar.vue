@@ -36,11 +36,11 @@ const localSearch = ref(props.inlineSearch)
 watch(() => props.inlineSearch, (v) => { localSearch.value = v })
 watch(localSearch, (v) => { emit('update:inlineSearch', v) })
 
-// Reset of search + filters + quick filters, provided by the list page —
+// Reset of search + filters + quick filters, provided by the list page -
 // wired into the ✕ of the Filter split button.
 const filterReset = inject(LIST_FILTER_RESET, null)
 
-// ── Active view's toolbar controls ───────────────────────────────────────────
+// Active view's toolbar controls
 
 const viewDef = computed(() => getViewDef(props.viewMode))
 

@@ -21,7 +21,7 @@ const builder = useBuilderStore()
 const isEditingLabel = ref(false)
 const editLabel = ref('')
 
-// Local mutable copy of columns — allows both drag events (remove + add)
+// Local mutable copy of columns - allows both drag events (remove + add)
 // to accumulate before we emit a single consistent update.
 const localColumns = ref<DocField[][]>([])
 

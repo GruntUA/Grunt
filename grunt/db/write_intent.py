@@ -2,17 +2,17 @@
 
 A plain (deferred) ``BEGIN`` starts as a reader. When it later writes and
 another process committed in between, SQLite in WAL mode cannot upgrade the
-stale snapshot and fails *immediately* with "database is locked" — the 30 s
+stale snapshot and fails *immediately* with "database is locked" - the 30 s
 ``busy_timeout`` never gets a chance. With two processes writing (web server +
 task worker) this is routine. ``BEGIN IMMEDIATE`` takes the write lock up
 front, so a competing writer simply waits for it.
 
-Reads keep the deferred ``BEGIN`` — under WAL they never block each other.
+Reads keep the deferred ``BEGIN`` - under WAL they never block each other.
 Which work intends to write:
 
 * HTTP requests other than GET/HEAD/OPTIONS (``SiteContextMiddleware``);
 * everything in the task worker (``grunt.tasks.worker`` sets the process
-  default) — so a task must not hold a transaction open across slow network
+  default) - so a task must not hold a transaction open across slow network
   I/O (SMTP, IMAP): commit before it.
 
 PostgreSQL ignores all of this.
@@ -29,7 +29,7 @@ READ_ONLY_METHODS = frozenset({"GET", "HEAD", "OPTIONS"})
 
 
 def set_write_intent(value: bool) -> None:
-    """Mark the current context (request, task) as going to write — or not."""
+    """Mark the current context (request, task) as going to write - or not."""
     _write_intent.set(value)
 
 

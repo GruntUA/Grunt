@@ -41,7 +41,7 @@ class TestResolveRecipients:
         assert set(recipients) == {"john@example.com", "manager@example.com"}
 
     def test_role_recipient_deferred_for_async_lookup(self):
-        """role:X parts aren't resolved here — they come back as role_parts for
+        """role:X parts aren't resolved here - they come back as role_parts for
         the caller to look up asynchronously (see _resolve_role_recipients)."""
         doc = {}
         recipients, role_parts = self.svc._resolve_recipients(

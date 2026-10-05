@@ -1,4 +1,4 @@
-"""Dashboard widget type registry — the WidgetType counterpart of grunt.metadata.field."""
+"""Dashboard widget type registry - the WidgetType counterpart of grunt.metadata.field."""
 
 from __future__ import annotations
 
@@ -12,7 +12,7 @@ if TYPE_CHECKING:
     from datetime import datetime
 
 
-# ── WidgetType base class ───────────────────────────────────────────────────
+# WidgetType base class
 
 
 class WidgetType:
@@ -20,7 +20,7 @@ class WidgetType:
 
     Subclass this and set ``name``, then call
     ``register_widget_type_class(MyWidgetType)`` (or define a ``register()``
-    function that does so) inside the widget type's Python file — see
+    function that does so) inside the widget type's Python file - see
     ``frontend/src/components/dashboard/widgets/<Type>/<Type>.py`` for the
     core types.
 
@@ -31,7 +31,7 @@ class WidgetType:
 
     name: ClassVar[str] = ""
     requires_backend_compute: ClassVar[bool] = True
-    # False for "activity" — it aggregates across all doctypes when none is set.
+    # False for "activity" - it aggregates across all doctypes when none is set.
     requires_doctype: ClassVar[bool] = True
 
     @classmethod
@@ -48,7 +48,7 @@ class WidgetType:
         raise NotImplementedError
 
 
-# ── Registry ──────────────────────────────────────────────────────────────────
+# Registry
 
 _WIDGET_TYPE_REGISTRY: dict[str, type[WidgetType]] = {}
 
@@ -68,7 +68,7 @@ def get_registered_widget_types() -> list[str]:
     return list(_WIDGET_TYPE_REGISTRY.keys())
 
 
-# ── Discovery ─────────────────────────────────────────────────────────────────
+# Discovery
 
 
 def _find_bench_dir_for_widgets(start: Path) -> Path | None:
@@ -89,7 +89,7 @@ def discover_widget_types() -> None:
     Scans every app directory for a 'dashboard_widgets' folder and registers
     any subdirectories that contain a [WidgetName].py with a register()
     function. Also scans the frontend components/dashboard/widgets for the
-    core types — same layout convention as grunt.metadata.field's discovery.
+    core types - same layout convention as grunt.metadata.field's discovery.
     """
     bench_dir = _find_bench_dir_for_widgets(Path.cwd()) or _find_bench_dir_for_widgets(
         Path(__file__).resolve()
@@ -133,7 +133,7 @@ def discover_widget_types() -> None:
                     log.exception("suppressed_error")
 
 
-# Runs once, as an import-time side effect — mirrors grunt.metadata.field's
+# Runs once, as an import-time side effect - mirrors grunt.metadata.field's
 # discover_field_types(): any `from grunt.metadata.widget import ...` scans
 # every app's dashboard_widgets/ dir on disk and registers each plugin's
 # WidgetType. Re-running discovery (e.g. after installing an app at runtime)

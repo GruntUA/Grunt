@@ -1,4 +1,4 @@
-"""grunt.io — pluggable export / import registry.
+"""grunt.io - pluggable export / import registry.
 
 Built-in exporters and importers are registered in grunt/main.py.
 External apps add their own via hooks.py:

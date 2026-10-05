@@ -1,4 +1,4 @@
-"""text widget — renders entirely client-side from `content`; no backend computation."""
+"""text widget - renders entirely client-side from `content`; no backend computation."""
 
 from __future__ import annotations
 

@@ -57,7 +57,7 @@ class ScheduledJobController(VirtualDocType):
         return _build_job(rows[0], stats.get(doc_id, {}))
 
     async def create(self, data: dict[str, Any], **kwargs: Any) -> dict[str, Any]:
-        """Not supported — ServerScript.script has no field on this view.
+        """Not supported - ServerScript.script has no field on this view.
 
         ScheduledJob only exposes job_id/cron_expression/enabled; the underlying
         ServerScript row also requires a `script` body, which this view never
@@ -71,7 +71,7 @@ class ScheduledJobController(VirtualDocType):
         )
 
     async def update(self, doc_id: str, data: dict[str, Any], **kwargs: Any) -> dict[str, Any]:
-        """Not supported — see create()."""
+        """Not supported - see create()."""
         from fastapi import HTTPException, status
 
         raise HTTPException(

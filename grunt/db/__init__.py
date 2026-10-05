@@ -1,4 +1,4 @@
-"""Database layer — engine, session, metadata, and high-level helpers."""
+"""Database layer - engine, session, metadata, and high-level helpers."""
 
 from typing import TYPE_CHECKING
 
@@ -17,7 +17,7 @@ __all__ = [
 
 # GruntDB/the module-level proxy are resolved lazily via __getattr__, not
 # imported at module scope: grunt.db.api imports grunt.metadata.registry,
-# which imports grunt.db.system_tables — a submodule of this package, so
+# which imports grunt.db.system_tables - a submodule of this package, so
 # reaching it always runs this __init__.py first. An eager import here
 # closes that loop back on grunt.metadata.registry before it has finished
 # defining `doctype_registry`, breaking any first-time import that starts

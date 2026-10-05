@@ -14,7 +14,7 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '
 
 const { t } = useI18n()
 
-/** Changes made offline that are waiting to be sent — and what to do with the stuck ones. */
+/** Changes made offline that are waiting to be sent - and what to do with the stuck ones. */
 const open = defineModel<boolean>('open', { default: false })
 
 const router = useRouter()

@@ -1,4 +1,4 @@
-"""Grunt metadata engine — DocType definitions and field types."""
+"""Grunt metadata engine - DocType definitions and field types."""
 
 from grunt.metadata.doctype import (
     DocPermission,

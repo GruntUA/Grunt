@@ -1,4 +1,4 @@
-"""Request logging middleware — adds request_id, duration_ms, status_code to logs."""
+"""Request logging middleware - adds request_id, duration_ms, status_code to logs."""
 
 from __future__ import annotations
 

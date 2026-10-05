@@ -1,4 +1,4 @@
-"""Storing files — the one way content becomes a ``File`` row.
+"""Storing files - the one way content becomes a ``File`` row.
 
 Everything that keeps bytes for later (uploads, web forms, mail attachments,
 exports, generated documents) goes through :func:`store`: MIME allowlist,
@@ -106,7 +106,7 @@ async def create_file(
         "File",
         {
             "file_name": filename,
-            "file_url": "",  # needs the generated name — set below
+            "file_url": "",  # needs the generated name - set below
             "content_hash": key,
             "content_type": content_type,
             "file_size": size,
@@ -143,7 +143,7 @@ async def store(
     """Store *content* (bytes or a binary stream) as a new ``File``; return the row.
 
     Raises FileTypeNotAllowedError / FileTooLargeError (both ValueError) before anything
-    is written. Private by default — pass ``is_public`` for website content.
+    is written. Private by default - pass ``is_public`` for website content.
     """
     content_type = content_type or "application/octet-stream"
     validate_mime_type(content_type)
@@ -162,7 +162,7 @@ async def store(
 
 
 async def read(file_id: str) -> bytes:
-    """Bytes of the ``File`` *file_id* (no permission check — callers gate access)."""
+    """Bytes of the ``File`` *file_id* (no permission check - callers gate access)."""
     key = await grunt.db.get_value("File", file_id, "content_hash")
     if not key:
         raise FileNotFoundError(f"File not found: {file_id}")

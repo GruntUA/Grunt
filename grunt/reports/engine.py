@@ -1,4 +1,4 @@
-"""Report engine — runs Query/Script/List reports."""
+"""Report engine - runs Query/Script/List reports."""
 
 from __future__ import annotations
 
@@ -73,7 +73,7 @@ class ReportEngine:
             detail=_("Report type “%(type)s” is not supported") % {"type": report_type},
         )
 
-    # ── Query report ──────────────────────────────────────────────────────────
+    # Query report
 
     async def _run_query_report(
         self,
@@ -86,7 +86,7 @@ class ReportEngine:
         if not query_str:
             raise HTTPException(400, detail=_("No query specified"))
 
-        # Security check — allow only SELECT
+        # Security check - allow only SELECT
         try:
             import sqlparse
 
@@ -111,7 +111,7 @@ class ReportEngine:
         elapsed = int((time.time() - start) * 1000)
 
         # A caller (e.g. a Script report that only *picked* the SQL) may declare
-        # column metadata — labels, fieldtypes, `total` flag. Match it to the
+        # column metadata - labels, fieldtypes, `total` flag. Match it to the
         # SQL result keys by fieldname; fall back to a plain text column.
         declared = {c["fieldname"]: c for c in (declared_columns or []) if c.get("fieldname")}
         columns = [declared.get(k, {"fieldname": k, "label": k, "fieldtype": "Text"}) for k in keys]
@@ -121,7 +121,7 @@ class ReportEngine:
             "meta": {"rows": len(rows), "time_ms": elapsed},
         }
 
-    # ── Script report ─────────────────────────────────────────────────────────
+    # Script report
 
     async def _run_script_report(
         self,
@@ -135,18 +135,18 @@ class ReportEngine:
         The sandbox has **no** database or network access. The script must
         satisfy exactly one of two output contracts:
 
-        1. ``result = {"columns": [...], "data": [...]}`` — the script builds
+        1. ``result = {"columns": [...], "data": [...]}`` - the script builds
            the rows itself from ``filters`` and plain Python. ``columns`` is a
            list of ``{fieldname, label, fieldtype}``; omit it to derive plain
            text columns from the first row's keys.
-        2. ``query = "SELECT ..."`` — the script only *chooses* a read-only
+        2. ``query = "SELECT ..."`` - the script only *chooses* a read-only
            SQL statement (typically per ``db_dialect``), which the engine
            then runs through the same SELECT-only guard as a Query report.
 
         Injected globals: ``filters`` (dict) and ``db_dialect`` (str, e.g.
         ``"sqlite"`` / ``"postgresql"``).
 
-        Example — portable "size per table" report::
+        Example - portable "size per table" report::
 
             if db_dialect == "postgresql":
                 query = "SELECT ... pg_total_relation_size(c.oid) ..."
@@ -163,7 +163,7 @@ class ReportEngine:
         from grunt.scripting.safe_globals import build_safe_globals, compile_script
 
         # Not plain compile()+exec(): see safe_globals.py's module docstring
-        # — a restricted __builtins__ dict alone doesn't stop attribute
+        # - a restricted __builtins__ dict alone doesn't stop attribute
         # traversal (e.g. str.__mro__[-1].__subclasses__()) from reaching
         # subprocess.Popen and similar regardless of what's in __builtins__.
         # compile_script() (RestrictedPython) is the actual sandbox; this
@@ -171,7 +171,7 @@ class ReportEngine:
         compiled = compile_script(script_src)
         if compiled.errors:
             raise HTTPException(400, detail="; ".join(compiled.errors))
-        assert compiled.code is not None  # no errors → compiled
+        assert compiled.code is not None  # no errors -> compiled
 
         engine = await _engine_factory()
         async with grunt.context(session, engine, user):
@@ -231,7 +231,7 @@ class ReportEngine:
             "meta": {"rows": len(result["data"]), "time_ms": elapsed},
         }
 
-    # ── List / Dynamic report ─────────────────────────────────────────────────
+    # List / Dynamic report
 
     async def _run_list_report(
         self,
@@ -294,7 +294,7 @@ class ReportEngine:
         group_by_cols = []
         group_fields: list[str] = []
         date_groups: dict[str, str] = {}
-        order_exprs: dict[str, Any] = {}  # result column → sortable expression
+        order_exprs: dict[str, Any] = {}  # result column -> sortable expression
         result_columns = []
 
         for col_def in col_defs:
@@ -311,7 +311,7 @@ class ReportEngine:
                 expr = agg_map[agg](sa_col)
                 select_cols.append(expr.label(fn))
             elif has_aggregation:
-                # Non-aggregated column when aggregation is present → GROUP BY,
+                # Non-aggregated column when aggregation is present -> GROUP BY,
                 # optionally by period for a date column.
                 bucket = col_def.get("date_group")
                 if bucket in DATE_BUCKETS:
@@ -335,7 +335,7 @@ class ReportEngine:
 
         stmt = select(*select_cols)
 
-        # Apply filters — operator-aware, same vocabulary as list views:
+        # Apply filters - operator-aware, same vocabulary as list views:
         # ``field__gte`` / ``__like`` / ``__ne`` / … ; a bare ``field`` means
         # equality. Empty values are dropped so an untouched filter is a no-op.
         from grunt.db.filters import build_clauses
@@ -386,7 +386,7 @@ class ReportEngine:
         meta: dict[str, Any] = {"rows": len(rows), "time_ms": elapsed}
         if group_by_cols:
             # Each result row summarises the documents sharing these group
-            # values — the client can open them as a filtered list. Date groups
+            # values - the client can open them as a filtered list. Date groups
             # are periods (the client turns the label into a date range), and
             # the report's own conditions narrow that list too.
             meta["drilldown"] = {
@@ -398,7 +398,7 @@ class ReportEngine:
 
         return {"columns": result_columns, "data": rows, "meta": meta}
 
-    # ── Excel export ──────────────────────────────────────────────────────────
+    # Excel export
 
     async def export_excel(self, result: dict, report_name: str) -> bytes:
         try:
@@ -432,7 +432,7 @@ class ReportEngine:
                     cell_value = escape_formula(cell_value)
                 ws.cell(row=ri, column=ci, value=cell_value)
 
-        # Totals row — sum every column flagged with `total: true`.
+        # Totals row - sum every column flagged with `total: true`.
         total_fields = {c["fieldname"] for c in columns if c.get("total")}
         if total_fields and data:
             tr = len(data) + 2

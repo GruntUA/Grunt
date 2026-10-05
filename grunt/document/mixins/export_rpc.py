@@ -1,9 +1,9 @@
 """Export and Print RPC methods, exposed as static methods of ``Document``.
 
-RPC: grunt.document.base.Document.export_csv   — CSV export (list view)
-RPC: grunt.document.base.Document.print        — single doc as html/pdf/xlsx/docx
-RPC: grunt.document.base.Document.preview      — render an ad-hoc Jinja2 template
-RPC: grunt.document.base.Document.export_file  — bulk export via io registry (any registered format)
+RPC: grunt.document.base.Document.export_csv - CSV export (list view)
+RPC: grunt.document.base.Document.print - single doc as html/pdf/xlsx/docx
+RPC: grunt.document.base.Document.preview - render an ad-hoc Jinja2 template
+RPC: grunt.document.base.Document.export_file - bulk export via io registry (any registered format)
 """
 
 from __future__ import annotations

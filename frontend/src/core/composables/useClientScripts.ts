@@ -66,7 +66,7 @@ export function useClientScripts(doctype: string, options: UseClientScriptsOptio
   const displayOverrides = reactive<Record<string, boolean>>({})
   const reqdOverrides = reactive<Record<string, boolean>>({})
   const dfPropOverrides = reactive<Record<string, Record<string, unknown>>>({})
-  // null → scripts left the sidebar decision to form_show_sidebar
+  // null -> scripts left the sidebar decision to form_show_sidebar
   const sidebarHidden = ref<boolean | null>(null)
 
   const messageListeners = new Map<string, Set<(data: unknown) => void>>()
@@ -84,7 +84,7 @@ export function useClientScripts(doctype: string, options: UseClientScriptsOptio
     })
   }
 
-  // Live proxy for doc — always reads current form values
+  // Live proxy for doc - always reads current form values
   const liveDoc = new Proxy({} as Record<string, unknown>, {
     get(_, prop: string) { return options.getDoc()[prop] },
     set(_, prop: string, val) { options.getDoc()[prop] = val; return true },
@@ -97,7 +97,7 @@ export function useClientScripts(doctype: string, options: UseClientScriptsOptio
     },
   })
 
-  // Single persistent FormProxy — buttons and other closures keep a stable reference
+  // Single persistent FormProxy - buttons and other closures keep a stable reference
   const frm: FormProxy = createFormProxy(
     doctype,
     liveDoc,
@@ -116,7 +116,7 @@ export function useClientScripts(doctype: string, options: UseClientScriptsOptio
     options.isNew(),
   )
 
-  // Every button / menu item of the form (core/actions.ts) — filled by
+  // Every button / menu item of the form (core/actions.ts) - filled by
   // global_form.js, the DocType's script and ClientScripts on on_load.
   const actions = createActionRegistry<FormProxy>(() => frm, {
     confirm: (message) => dialog.confirm(message),
@@ -166,7 +166,7 @@ export function useClientScripts(doctype: string, options: UseClientScriptsOptio
   async function runEvent(event: ClientScriptEvent, changedField?: string): Promise<boolean> {
     const grunt = ensureGrunt()
 
-    // doc is live via Proxy — just update fields and is_new
+    // doc is live via Proxy - just update fields and is_new
     frm.fields = options.getFields()
     frm.is_new = options.isNew()
 

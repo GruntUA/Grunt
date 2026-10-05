@@ -1,18 +1,18 @@
-"""User Permissions — per-user, record-level access restrictions.
+"""User Permissions - per-user, record-level access restrictions.
 
 A ``UserPermission`` row {user, allow, for_value} means *user* may only see /
 touch documents that link (via a Link field) to *for_value* of DocType *allow*.
 
 * Multiple rows with the same ``allow`` widen the allowed set (OR).
 * Different ``allow`` types narrow it (AND).
-* ``apply_to_all_doctypes`` — the rule binds every DocType with a Link to
+* ``apply_to_all_doctypes`` - the rule binds every DocType with a Link to
   ``allow``; otherwise only ``applicable_for``.
-* A Link field flagged ``ignore_user_permissions`` is skipped when matching —
+* A Link field flagged ``ignore_user_permissions`` is skipped when matching -
   lets a DocType keep a free-reference Link to ``allow`` alongside the one
   that actually scopes access.
-* ``is_default`` — ``for_value`` pre-fills the matching Link field on new docs.
+* ``is_default`` - ``for_value`` pre-fills the matching Link field on new docs.
 * When ``allow`` is a tree DocType, ``for_value`` also authorises the whole
-  subtree beneath it (a parent department → all its sub-units).
+  subtree beneath it (a parent department -> all its sub-units).
 
 Not applied to System Manager. When SystemSettings
 ``apply_strict_user_permissions`` is on, a restricted ``allow`` with no Link
@@ -99,7 +99,7 @@ async def get_user_permissions_for(user: User | None, doctype_name: str) -> dict
         try:
             by_allow = await _load(email)
         except RuntimeError:
-            # No active DB session (e.g. a bare permission_checker unit test) —
+            # No active DB session (e.g. a bare permission_checker unit test) -
             # there's nothing to load, so impose no restriction.
             return {}
         _UP_CACHE[email] = by_allow
@@ -115,9 +115,9 @@ async def get_user_permissions_for(user: User | None, doctype_name: str) -> dict
 async def _expand_tree_values(allow: str, values: set[str]) -> set[str]:
     """When *allow* is a tree DocType, widen *values* to every descendant so a
     UserPermission on a parent node authorises its whole subtree (an
-    institution → all its sub-departments).
+    institution -> all its sub-departments).
 
-    Non-tree ``allow`` — the common case — returns *values* unchanged after a
+    Non-tree ``allow`` - the common case - returns *values* unchanged after a
     single in-memory registry hit. Tree ``allow`` costs a couple of small
     indexed queries per list render; departments/units are few enough that
     caching isn't worth the staleness risk.
@@ -147,7 +147,7 @@ async def _expand_tree_values(allow: str, values: set[str]) -> set[str]:
 
 def _link_fieldnames(doctype: DocType | Meta, allow: str) -> list[str]:
     """Fields on *doctype* that Link to *allow* (plus ``name`` when the DocType
-    is itself restricted). DynamicLink fields are skipped — their target isn't
+    is itself restricted). DynamicLink fields are skipped - their target isn't
     statically known."""
     names: list[str] = []
     if allow == doctype.name:
@@ -197,7 +197,7 @@ async def build_conditions(
 async def doc_violation(
     user: User | None, doctype: DocType | Meta, doc: dict[str, Any]
 ) -> str | None:
-    """Python-level check of a single *doc* against *user*'s permissions — the
+    """Python-level check of a single *doc* against *user*'s permissions - the
     per-document counterpart of :func:`build_conditions`.
 
     Returns the offending Link fieldname (``""`` when strict mode denies a
@@ -234,14 +234,14 @@ async def doc_passes(user: User | None, doctype: DocType | Meta, doc: dict[str, 
 
 async def allowed_values(user: User | None, doctype_name: str, allow: str) -> set[str] | None:
     """Values of *allow* that *user* is limited to on *doctype_name* (tree
-    ``allow`` — with every descendant), or ``None`` when unrestricted."""
+    ``allow`` - with every descendant), or ``None`` when unrestricted."""
     values = (await get_user_permissions_for(user, doctype_name)).get(allow)
     if not values:
         return None
     return await _expand_tree_values(allow, values)
 
 
-# ── Whitelisted endpoints ────────────────────────────────────────────────
+# Whitelisted endpoints
 
 
 @grunt.whitelist()

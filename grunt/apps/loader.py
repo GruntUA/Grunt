@@ -1,14 +1,14 @@
-"""App loader — discover installed apps and wire their resources into the
+"""App loader - discover installed apps and wire their resources into the
 running framework.
 
 Two entry points:
 
-* :func:`load_core` — the framework's own resources ("app zero"): core
+* :func:`load_core` - the framework's own resources ("app zero"): core
   controller index, built-in importers/exporters, per-DocType client scripts,
   and :mod:`grunt.core_hooks`. Called once at :mod:`grunt.main` import.
-* :func:`load_external_apps` — every app under ``bench/apps/*`` that is
+* :func:`load_external_apps` - every app under ``bench/apps/*`` that is
   installed on at least one site. Called from the ASGI lifespan (it needs the
-  DB — to know which apps are installed — and the ``FastAPI`` instance — to
+  DB - to know which apps are installed - and the ``FastAPI`` instance - to
   mount routers, static files and pages).
 
 Both funnel each app's ``hooks.py`` through :data:`HOOK_CONSUMERS`
@@ -40,16 +40,14 @@ _GRUNT_PKG = Path(__file__).resolve().parent.parent  # grunt/apps/loader.py -> g
 
 def primary_web_app() -> str | None:
     """Name of the app whose www/ pages are mounted at the site root (instead
-    of under ``/{app_name}/...``), if any — ``primary_web_app`` in the site's
+    of under ``/{app_name}/...``), if any - ``primary_web_app`` in the site's
     ``grunt.site``."""
     from grunt.site.manager import site_manager
 
     return site_manager.get_primary_web_app()
 
 
-# ─────────────────────────────────────────────────────────────────────────────
 # App zero
-# ─────────────────────────────────────────────────────────────────────────────
 
 
 def load_core(fastapi_app: FastAPI | None = None) -> None:
@@ -57,7 +55,7 @@ def load_core(fastapi_app: FastAPI | None = None) -> None:
 
     Synchronous by design: it runs at :mod:`grunt.main` import time (before
     any event loop), and every core consumer is synchronous. ``core_hooks``
-    must not grow an ``on_startup`` — that belongs in the lifespan.
+    must not grow an ``on_startup`` - that belongs in the lifespan.
     """
     from grunt.document.registry import document_registry
 
@@ -96,9 +94,7 @@ def _load_core_client_scripts() -> None:
                 _load_doctype_dir_scripts(dt_dir, CORE_APP)
 
 
-# ─────────────────────────────────────────────────────────────────────────────
 # External apps
-# ─────────────────────────────────────────────────────────────────────────────
 
 
 async def load_external_apps(
@@ -109,7 +105,7 @@ async def load_external_apps(
 ) -> None:
     """Load every app under ``bench_dir/apps`` that is installed somewhere.
 
-    An app present on disk but installed on no site stays dormant — its hooks,
+    An app present on disk but installed on no site stays dormant - its hooks,
     controllers and startup tasks must not run (they would act on sites that
     never opted in).
     """
@@ -180,9 +176,7 @@ async def reload_app(app_name: str, fastapi_app: FastAPI | None = None) -> None:
         log.info("apps.reloaded", module=reloaded.__name__)
 
 
-# ─────────────────────────────────────────────────────────────────────────────
 # Internals
-# ─────────────────────────────────────────────────────────────────────────────
 
 
 def _ensure_on_syspath(path: Path) -> None:
@@ -215,7 +209,7 @@ def _apply_hooks_module(mod: object, ctx: LoadContext) -> None:
     """Run every registered consumer whose key the module defines.
 
     All consumers are synchronous (registry mutations). Anything that needs
-    to *await* at load time is a discrete step — see :func:`_run_on_startup`.
+    to *await* at load time is a discrete step - see :func:`_run_on_startup`.
     """
     for key, hook_consumer in HOOK_CONSUMERS.items():
         if not hasattr(mod, key):
@@ -227,7 +221,7 @@ def _apply_hooks_module(mod: object, ctx: LoadContext) -> None:
 
 
 async def _run_on_startup(mod: object, ctx: LoadContext) -> None:
-    """Await each ``on_startup`` handler an app declares — best-effort, isolated."""
+    """Await each ``on_startup`` handler an app declares - best-effort, isolated."""
     for path in getattr(mod, "on_startup", ()):
         try:
             result = _resolve(path)()
@@ -281,7 +275,7 @@ def _move_before_catch_all(fastapi_app: FastAPI, count: int = 1) -> None:
     """Re-slot the *count* routes just added so they precede the website catch-all.
 
     External apps load at lifespan startup, after grunt.startup.website has
-    already registered ``/{path:path}`` — appended routes would sit behind it
+    already registered ``/{path:path}`` - appended routes would sit behind it
     and never match (static files came back as the SPA shell; pages were only
     reached via the catch-all's own non-committing session; app routers' API
     routes were shadowed by the website pages).

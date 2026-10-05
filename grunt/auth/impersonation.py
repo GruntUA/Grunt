@@ -1,7 +1,7 @@
 """System Manager "view as another user" (impersonation).
 
 A System Manager opens a short-lived session that authenticates as a target
-user — same roles, same permissions — to verify what that user can and
+user - same roles, same permissions - to verify what that user can and
 cannot see. The session is a bare access token with no refresh token: it
 cannot be renewed and expires on its own after
 :data:`IMPERSONATION_TTL_MINUTES`. Nothing is written to the target's

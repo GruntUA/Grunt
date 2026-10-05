@@ -1,4 +1,4 @@
-"""App discovery and loading — see :mod:`grunt.apps.loader`."""
+"""App discovery and loading - see :mod:`grunt.apps.loader`."""
 
 from grunt.apps.consumers import HOOK_CONSUMERS, HookConsumer, LoadContext, consumer
 from grunt.apps.loader import (

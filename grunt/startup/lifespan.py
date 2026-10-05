@@ -1,10 +1,10 @@
-"""ASGI lifespan — everything that happens on server startup and shutdown.
+"""ASGI lifespan - everything that happens on server startup and shutdown.
 
 Kept out of :mod:`grunt.main` so the entry point stays a thin assembly of
 ``FastAPI(...)`` + middleware + route wiring. The startup sequence:
 
 1. configure logging, load validators
-2. bring every site up (search index table, DocType *names* only — full
+2. bring every site up (search index table, DocType *names* only - full
    definitions and schema sync are `grunt db migrate`'s job, not boot's)
 3. load external apps installed on at least one site
 4. the task broker and the scheduler
@@ -62,7 +62,7 @@ async def _bring_up_sites() -> None:
             await search_index_service.ensure_table(eng)
 
             async with maker() as session:
-                # Only names — for both core and user-created DocTypes. Full
+                # Only names - for both core and user-created DocTypes. Full
                 # definitions load lazily on first `doctype_registry.get()`.
                 # All schema/definition merging (core JSON -> DB) happens
                 # exclusively via `grunt db migrate`, never at boot.
@@ -78,7 +78,7 @@ async def _seed_supported_languages() -> None:
     """Widen the i18n language negotiator from active ``geo.Language`` rows and
     set the fallback language from ``SystemSettings.language``.
 
-    Best-effort and union across sites — the accepted-language set is a single
+    Best-effort and union across sites - the accepted-language set is a single
     process-global (as is the default: last site wins). ``en``/``uk`` stay
     supported even if the table is empty or absent (fresh install).
     """
@@ -119,7 +119,7 @@ async def boot(app: FastAPI | None = None) -> None:
     _configure()
     await _bring_up_sites()
 
-    # Only apps installed on at least one site are loaded — an app present in
+    # Only apps installed on at least one site are loaded - an app present in
     # apps/ but installed nowhere stays dormant (its hooks, controllers and
     # startup tasks must not act on sites that never opted in).
     await load_external_apps(
@@ -133,14 +133,14 @@ async def boot(app: FastAPI | None = None) -> None:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # ── Startup ──────────────────────────────────────────────────────
+    # Startup
     await boot(app)
     await broker.startup()
     await start_scheduler()
 
     yield
 
-    # ── Shutdown ─────────────────────────────────────────────────────
+    # Shutdown
     await stop_scheduler()
     await broker.shutdown()
     import grunt

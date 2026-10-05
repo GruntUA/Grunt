@@ -52,7 +52,7 @@ class DocumentWorkflowRPCMixin:
         """Apply a workflow transition to a document.
 
         ``values`` fills in the transition's ``prompt_fields`` (e.g. a note
-        entered in a dialog) — fields not declared on the transition are ignored;
+        entered in a dialog) - fields not declared on the transition are ignored;
         ``values["__comment"]`` is the comment of a ``require_comment`` transition.
         """
         from grunt.errors import not_found

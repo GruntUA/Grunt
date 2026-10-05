@@ -17,7 +17,7 @@ PASSWORD = "Str0ngPass"
 
 
 async def _bootstrap_admin(ctx) -> None:
-    """First user → System Manager."""
+    """First user -> System Manager."""
     from grunt.auth.doctypes.User.user import create_user
 
     async with ctx.system_context(ctx.db._session(), ctx.get_engine()):

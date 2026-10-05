@@ -1,12 +1,12 @@
 /**
- * Client Script executor — runs user-defined JS in the form context.
+ * Client Script executor - runs user-defined JS in the form context.
  *
  * Client scripts are fetched from the backend per DocType and executed
  * within a controlled scope providing form helpers.
  *
  * Available in scripts:
- * - `cur_frm` / `frm` — current form proxy (get_value, set_value, add_button, etc.)
- * - `grunt` — framework helpers (call, throw, confirm, msgprint, show_alert)
+ * - `cur_frm` / `frm` - current form proxy (get_value, set_value, add_button, etc.)
+ * - `grunt` - framework helpers (call, throw, confirm, msgprint, show_alert)
  */
 
 import client from '@/core/api/client'
@@ -17,9 +17,9 @@ import type { ActionsApi } from '@/core/actions'
 import { i18n, N_ } from '@/plugins/i18n'
 import type { DocPerms } from '@/core/permissions'
 
-// ── Types ────────────────────────────────────────────────────────────────
+// Types
 
-/** Callback registered via frm.set_query — returns filters for a link field. */
+/** Callback registered via frm.set_query - returns filters for a link field. */
 export type LinkQueryFn = (
   doc: Record<string, unknown>,
 ) => { filters: Record<string, string | string[]> } | Record<string, string | string[]>
@@ -47,7 +47,7 @@ export interface FormProxy {
   set_query: (fieldname: string, fn: LinkQueryFn) => void
   refresh_field: (fieldname: string) => void
   /**
-   * Buttons and menu items of this form — see core/actions.ts. The standard
+   * Buttons and menu items of this form - see core/actions.ts. The standard
    * ones (save, duplicate, rename, delete, print, …) come from the framework's
    * `global_form.js`; change or remove them by id.
    *
@@ -84,7 +84,7 @@ export interface FormProxy {
   print: (format?: string, options?: { autoprint?: boolean }) => void
   /** Workflow transitions the user may apply now (see the `on_transitions` event). */
   readonly transitions: WorkflowTransition[]
-  /** Apply a workflow transition — asks for its prompt fields first, then reloads the document. */
+  /** Apply a workflow transition - asks for its prompt fields first, then reloads the document. */
   apply_transition: (action: string) => Promise<void>
   get_selected: () => Record<string, string[]>
   /** Re-fetch the document from the server; with `{ meta: true }` also the DocType definition. */
@@ -105,7 +105,7 @@ export interface FormProxy {
   _df_props: Record<string, Record<string, unknown>>
   _queries: Record<string, LinkQueryFn>
   _selected_rows: Record<string, string[]>
-  /** undefined → script left the sidebar decision to config */
+  /** undefined -> script left the sidebar decision to config */
   _sidebar_hidden?: boolean
 }
 
@@ -119,7 +119,7 @@ export interface ListExporterInfo {
 export interface ListViewProxy {
   doctype: string
   /**
-   * Buttons and menu items of this list — see core/actions.ts. The standard
+   * Buttons and menu items of this list - see core/actions.ts. The standard
    * ones («Додати», refresh, export, bulk edit/delete…) come from the
    * framework's `global_list.js`; change or remove them by id.
    *
@@ -135,10 +135,10 @@ export interface ListViewProxy {
   readonly perm: DocPerms
   /** Names of the selected rows. */
   readonly selected: string[]
-  /** «Select all N» is on — the selection is every row matching the filters. */
+  /** «Select all N» is on - the selection is every row matching the filters. */
   readonly all_selected: boolean
   readonly is_fetching: boolean
-  /** Registered exporters (CSV, Excel…) — usable when `can_export`. */
+  /** Registered exporters (CSV, Excel…) - usable when `can_export`. */
   readonly exporters: ListExporterInfo[]
   /** The current view can be exported. */
   readonly can_export: boolean
@@ -248,7 +248,7 @@ export interface GruntProxy {
   show_progress: (title: string, count: number, total: number, description?: string) => void
   /**
    * Let the user pick files and upload them as File records (with progress).
-   * Resolves with the uploaded files — empty when the picker was cancelled.
+   * Resolves with the uploaded files - empty when the picker was cancelled.
    *
    * ```js
    * const files = await grunt.upload_files({ folder: 'a1b2c3', multiple: true })
@@ -305,7 +305,7 @@ export interface GruntProxy {
     remove: (name: string) => Promise<void>
   }
   /**
-   * Browser health checks for the «Стан системи» report — service worker,
+   * Browser health checks for the «Стан системи» report - service worker,
    * offline cache and queue, network, storage (core/browserHealth.ts).
    */
   health: {
@@ -316,7 +316,7 @@ export interface GruntProxy {
 
 /**
  * `on_transitions(frm)` runs whenever the workflow transitions allowed for the
- * document (re)load — `frm.transitions` holds them; global_form.js registers
+ * document (re)load - `frm.transitions` holds them; global_form.js registers
  * them as `workflow:<action>` actions.
  */
 export type ClientScriptEvent = 'on_load' | 'on_change' | 'validate' | 'before_save' | 'after_save' | 'on_transitions'
@@ -329,7 +329,7 @@ interface ClientScriptEntry {
 /** Cache: doctype -> scripts */
 const scriptCache = new Map<string, ClientScriptEntry[]>()
 
-// ── Script loading ───────────────────────────────────────────────────────
+// Script loading
 
 /**
  * Fetch client scripts for a DocType from the backend.
@@ -362,7 +362,7 @@ export function clearScriptCache(doctype?: string): void {
   }
 }
 
-// ── Proxy factories ──────────────────────────────────────────────────────
+// Proxy factories
 
 /**
  * Create a FormProxy from current form state.
@@ -898,7 +898,7 @@ function pickFiles(multiple: boolean, accept?: string): Promise<File[]> {
   })
 }
 
-/** `__('text')` in client scripts — the UI translation (and an extraction marker). */
+/** `__('text')` in client scripts - the UI translation (and an extraction marker). */
 function translate(text: string, params?: Record<string, unknown>): string {
   // With params vue-i18n fills `{n}` itself; the replace covers an untranslated key.
   if (!params) return i18n.global.t(text)
@@ -907,7 +907,7 @@ function translate(text: string, params?: Record<string, unknown>): string {
   return out
 }
 
-// ── Execution ────────────────────────────────────────────────────────────
+// Execution
 
 /**
  * Execute all client scripts for a DocType, filtering by event.
@@ -959,7 +959,7 @@ export async function executeClientScripts(
   return true
 }
 
-// ── ListView setup ────────────────────────────────────────────────────────
+// ListView setup
 
 /**
  * Create a ListView proxy for client scripts.

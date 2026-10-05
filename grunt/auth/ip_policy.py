@@ -1,4 +1,4 @@
-"""IP allowlists — for API keys (``ApiKey.allowed_ips``) and sign-in by role
+"""IP allowlists - for API keys (``ApiKey.allowed_ips``) and sign-in by role
 (``Role.allowed_ips``).
 
 Entries are single addresses or CIDR networks, separated by commas or newlines.
@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from grunt.auth.doctypes.User.user import User
 
 
-# https://www.cloudflare.com/ips/ — edge ranges that set CF-Connecting-IP.
+# https://www.cloudflare.com/ips/ - edge ranges that set CF-Connecting-IP.
 CLOUDFLARE_RANGES = frozenset(
     {
         "173.245.48.0/20",
@@ -70,7 +70,7 @@ def ip_allowed(client_ip: str | None, allowed: set[str]) -> bool:
 async def role_ip_allowlist(user: User) -> set[str] | None:
     """Union of ``allowed_ips`` over the user's roles that restrict sign-in.
 
-    ``None`` — no role of the user restricts it. Roles without a list never
+    ``None`` - no role of the user restricts it. Roles without a list never
     widen a restricted one, so holding "All" does not lift a restriction.
     """
     import grunt

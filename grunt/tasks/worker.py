@@ -2,13 +2,13 @@
 
 TaskIQ runs the worker in its own process and imports only the broker
 module, so a task is unknown to the worker unless the module defining it was
-imported — the web app gets those imports for free (routes, scheduler,
+imported - the web app gets those imports for free (routes, scheduler,
 hooks), the worker does not. Here every module that declares a task
 (``@task`` / ``@retryable_task`` at the top level) is imported: the
 framework's own and each app's under ``bench/apps/<app>/<app>/``.
 
 On start the worker boots like the web server (``grunt.startup.lifespan.boot``:
-sites, DocType registry, installed apps' hooks) — minus the scheduler, which
+sites, DocType registry, installed apps' hooks) - minus the scheduler, which
 runs in the web process and only enqueues.
 """
 
@@ -81,7 +81,7 @@ def _apps_dir() -> Path | None:
 
 import_task_modules(_apps_dir())
 
-# Tasks write — on SQLite take the write lock at BEGIN (grunt/db/write_intent.py).
+# Tasks write - on SQLite take the write lock at BEGIN (grunt/db/write_intent.py).
 set_process_default(True)
 
 

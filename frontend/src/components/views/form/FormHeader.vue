@@ -77,7 +77,7 @@ const primaryActions = props.actions.resolved('primary')
 const menuActions = props.actions.resolved('menu')
 const isRenaming = ref(false)
 
-// Details sidebar toggle — first in the «⋯» menu. Its shortcut (Mod+]) runs it
+// Details sidebar toggle - first in the «⋯» menu. Its shortcut (Mod+]) runs it
 // through the action registry; useDocPanel keeps a fallback for other pages.
 props.actions.add({
   id: 'toggle_details',
@@ -91,7 +91,7 @@ props.actions.add({
   action: () => togglePanel(),
 })
 
-// Table info (DocType editor only) — registered like any other action.
+// Table info (DocType editor only) - registered like any other action.
 props.actions.add({
   id: 'table_info',
   label: 'Table info',
@@ -108,7 +108,7 @@ const tableInfoLoading = ref(false)
 const tableInfoError = ref('')
 const tableNameCopied = ref(false)
 
-// Compaction (VACUUM / OPTIMIZE) — blocking, so it goes through a confirm step
+// Compaction (VACUUM / OPTIMIZE) - blocking, so it goes through a confirm step
 const confirmCompact = ref(false)
 const compacting = ref(false)
 const compactResult = ref<DocTypeCompactResult | null>(null)
@@ -194,7 +194,7 @@ async function createShare() {
     const json = await resp.json()
     if (json?.data?.token) {
       // /share/:token is a server-rendered website page (grunt/website/www/share/),
-      // not an SPA route — build the URL directly.
+      // not an SPA route - build the URL directly.
       shareLink.value = `${window.location.origin}/share/${json.data.token}`
     }
   } finally {
@@ -248,7 +248,7 @@ const statusBadge = computed(() => resolveStatusBadge(props.dt, props.document))
         <ActionButtons :toolbar="toolbarActions" compact />
 
 
-        <!-- Workflow transitions — next to Save; the state is in the sidebar -->
+        <!-- Workflow transitions - next to Save; the state is in the sidebar -->
         <WorkflowActions v-if="!isLoading && dt && id && document && dt.workflow_state_field" :doctype="dt"
           :doc="document as Record<string, unknown>" :actions="actions" :workflow="workflow" />
 

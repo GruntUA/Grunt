@@ -2,7 +2,7 @@
  * Type-change advisory for the DocType «Конструктор».
  *
  * Tells the user, when they change a field's `fieldtype` in the builder, whether
- * the underlying database column will be retyped — or added / dropped — during
+ * the underlying database column will be retyped - or added / dropped - during
  * the next `doctype sync`. Storage class itself is declared per field type in its
  * own manifest.json (see fieldRegistry.ts) rather than mirrored here.
  *
@@ -30,7 +30,7 @@ export interface TypeChangeNote {
 }
 
 /**
- * Retypes the database can widen losslessly — every existing value survives the
+ * Retypes the database can widen losslessly - every existing value survives the
  * implicit cast. Keyed `"<from>-><to>"` on storage class.
  */
 const SAFE_WIDENINGS = new Set<string>([
@@ -47,7 +47,7 @@ const SAFE_WIDENINGS = new Set<string>([
 ])
 
 /**
- * Describe what a `from` → `to` fieldtype change does to already-stored data.
+ * Describe what a `from` -> `to` fieldtype change does to already-stored data.
  * Returns `null` when the column is untouched (same storage class, e.g.
  * `Data` ↔ `Text` ↔ `Select`, or `from === to`).
  */

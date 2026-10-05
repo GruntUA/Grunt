@@ -1,7 +1,7 @@
-"""Startup — SystemSettings singleton seeding.
+"""Startup - SystemSettings singleton seeding.
 
 This is a bespoke seeding function for what is otherwise an ordinary
-singleton DocType — it could become a ``site/fixtures/SystemSettings.json``
+singleton DocType - it could become a ``site/fixtures/SystemSettings.json``
 record picked up by the generic ``load_core_fixtures()`` (see
 ``startup/fixtures.py``), same as every other core seed record. Not yet
 folded in because ``load_core_fixtures()`` currently only runs from

@@ -3,7 +3,7 @@ import { getLayoutTypeSet } from '@/core/fieldRegistry'
 
 /**
  * Keep only the given leaf fields plus whatever Tab/Section/Column wrappers
- * still contain at least one of them, preserving the original order — used
+ * still contain at least one of them, preserving the original order - used
  * to carve a small dialog form (quick entry, a workflow action prompt) out
  * of a DocType's full field list without losing its layout scaffolding.
  */

@@ -1,12 +1,12 @@
-"""DocType file scaffold — generates boilerplate files for new DocTypes.
+"""DocType file scaffold - generates boilerplate files for new DocTypes.
 
 When a DocType is created or updated via the API, this module writes
 the colocated file structure to disk::
 
     {app}/{module}/doctypes/{Name}/
-        {Name}.json   — DocType metadata (always overwritten)
-        {Name}.py     — Python controller with auto-generated types
-        {Name}.js     — Client script (only if missing)
+        {Name}.json - DocType metadata (always overwritten)
+        {Name}.py - Python controller with auto-generated types
+        {Name}.js - Client script (only if missing)
 """
 
 from __future__ import annotations
@@ -28,7 +28,7 @@ if TYPE_CHECKING:
 def _build_scaffold_context(doctype_name: str, fields: list[DocField]) -> dict:
     """Build Jinja template context for a new DocType controller.
 
-    ``fields`` is always ``DocType.fields`` from its one caller below — always
+    ``fields`` is always ``DocType.fields`` from its one caller below - always
     real ``DocField`` instances, never raw dicts (this used to also accept a
     dict per field with silently different defaulting/error behavior, but
     nothing ever called it that way).
@@ -66,7 +66,7 @@ def _build_scaffold_context(doctype_name: str, fields: list[DocField]) -> dict:
     }
 
 
-# ── Helpers ──────────────────────────────────────────────────────────────
+# Helpers
 
 
 def _find_app_dir(module: str, app_name: str | None = None) -> Path | None:
@@ -75,8 +75,8 @@ def _find_app_dir(module: str, app_name: str | None = None) -> Path | None:
     If *app_name* is given, we look for ``bench_dir/apps/{app_name}`` directly.
 
     Otherwise scans all app directories for:
-    1. apps/{app}/{module}  — module-based structure
-    2. apps/{app}           — flat structure where app == module
+    1. apps/{app}/{module} - module-based structure
+    2. apps/{app} - flat structure where app == module
     """
     apps_dir = site_manager.bench_dir / "apps"
 
@@ -105,15 +105,15 @@ def export_doctype_files(dt: DocType, app_name: str | None = None) -> str | None
     """Write DocType metadata and scaffold files to disk.
 
     Creates ``{app}/{doctype_dir}/`` with:
-    - ``{Name}.json`` — always overwritten with current metadata
-    - ``{Name}.py``  — controller with auto-generated type hints
-    - ``{Name}.js``  — client script (only if missing)
+    - ``{Name}.json`` - always overwritten with current metadata
+    - ``{Name}.py`` - controller with auto-generated type hints
+    - ``{Name}.js`` - client script (only if missing)
 
     Supports two directory structures:
     - apps/{app}/{module}/doctypes/{Name}/   (module-based)
     - apps/{app}/doctypes/{Name}/            (flat app structure)
 
-    *app_name* — when provided, used to locate the app directory directly
+    *app_name* - when provided, used to locate the app directory directly
     instead of scanning for a matching module subdirectory.  Pass this when
     the module directory may not yet exist on disk (e.g. freshly created).
 
@@ -138,7 +138,7 @@ def export_doctype_files(dt: DocType, app_name: str | None = None) -> str | None
     if module_dir.is_dir():
         dt_dir = module_dir / "doctypes" / dt.name
     elif app_name:
-        # Module dir doesn't exist yet — create it (new module)
+        # Module dir doesn't exist yet - create it (new module)
         module_dir.mkdir(parents=True, exist_ok=True)
         dt_dir = module_dir / "doctypes" / dt.name
     else:
@@ -147,7 +147,7 @@ def export_doctype_files(dt: DocType, app_name: str | None = None) -> str | None
 
     dt_dir.mkdir(parents=True, exist_ok=True)
 
-    # JSON — always overwrite with current state.
+    # JSON - always overwrite with current state.
     # exclude_defaults=True keeps only non-default values so the file stays
     # readable and diffs are meaningful (no noise from False/0/"" defaults).
     json_file = dt_dir / f"{dt.name}.json"
@@ -156,7 +156,7 @@ def export_doctype_files(dt: DocType, app_name: str | None = None) -> str | None
         encoding="utf-8",
     )
 
-    # Controller — create if missing, otherwise only sync the auto-generated type block
+    # Controller - create if missing, otherwise only sync the auto-generated type block
     py_file = dt_dir / f"{dt.name}.py"
     if py_file.exists():
         sync_controller_types(py_file, dt.name, [f.model_dump() for f in dt.fields])
@@ -167,7 +167,7 @@ def export_doctype_files(dt: DocType, app_name: str | None = None) -> str | None
             encoding="utf-8",
         )
 
-    # Client script — only create if missing
+    # Client script - only create if missing
     js_file = dt_dir / f"{dt.name}.js"
     if not js_file.exists():
         js_file.write_text(

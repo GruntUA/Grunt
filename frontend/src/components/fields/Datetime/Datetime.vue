@@ -26,7 +26,7 @@ const dateObj = computed<Date | null>({
       return
     }
     // Datetimes are stored as UTC (grunt/db/types.py treats a naive value as
-    // UTC), so send an explicit instant — a naive local wall-clock string
+    // UTC), so send an explicit instant - a naive local wall-clock string
     // would come back shifted by the viewer's UTC offset.
     emit('update:modelValue', val.toISOString())
   },

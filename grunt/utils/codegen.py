@@ -3,7 +3,7 @@
 Provides:
   - Template rendering via Jinja2 (with app-level override support)
   - Smart controller type-block sync (replaces only auto-generated section)
-  - Fieldtype → Python type mapping helpers
+  - Fieldtype -> Python type mapping helpers
 """
 
 from __future__ import annotations
@@ -18,9 +18,7 @@ from grunt.document.meta import LAYOUT_FIELDTYPES
 from grunt.metadata.field import get_python_type
 from grunt.utils.strings import to_snake_case
 
-# ---------------------------------------------------------------------------
 # Constants
-# ---------------------------------------------------------------------------
 
 _BEGIN_MARKER = "# begin: auto-generated types"
 _END_MARKER = "# end: auto-generated types"
@@ -28,9 +26,7 @@ _END_MARKER = "# end: auto-generated types"
 _NON_PHYSICAL = LAYOUT_FIELDTYPES | {"Empty"}
 
 
-# ---------------------------------------------------------------------------
 # Template environment
-# ---------------------------------------------------------------------------
 
 
 def _build_env(extra_template_dirs: list[Path] | None = None) -> Environment:
@@ -72,9 +68,7 @@ def render_template(
     return tmpl.render(**context)
 
 
-# ---------------------------------------------------------------------------
 # Field helpers
-# ---------------------------------------------------------------------------
 
 
 def build_controller_context(name: str, fields: list[dict]) -> dict[str, Any]:
@@ -103,9 +97,7 @@ def build_controller_context(name: str, fields: list[dict]) -> dict[str, Any]:
     }
 
 
-# ---------------------------------------------------------------------------
 # Smart controller sync
-# ---------------------------------------------------------------------------
 
 
 def _render_type_block(fields: list[dict], indent: str = "    ") -> str:
@@ -188,7 +180,7 @@ def sync_controller_types(py_path: Path, name: str, fields: list[dict]) -> bool:
         block_line_start = source.rfind("\n", 0, begin_idx) + 1
         marker_indent = source[block_line_start:begin_idx]
         # Class-scoped when the marker line is whitespace-indented (the normal
-        # case). Any spaces count — not just exactly four — so a file whose
+        # case). Any spaces count - not just exactly four - so a file whose
         # indentation has already crept stays recognised and gets normalised.
         block_is_class_scoped = marker_indent != "" and marker_indent.strip() == ""
 
@@ -216,9 +208,7 @@ def sync_controller_types(py_path: Path, name: str, fields: list[dict]) -> bool:
     return True
 
 
-# ---------------------------------------------------------------------------
 # Test generation helpers
-# ---------------------------------------------------------------------------
 
 _FAKE_VALUES: dict[str, object] = {
     "Data": "Test Value",

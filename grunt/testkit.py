@@ -13,7 +13,7 @@ Usage, in the app's ``tests/conftest.py``::
     from pathlib import Path
     from grunt.testkit import make_app_fixtures
 
-    # Fixtures must live in module globals for pytest to discover them —
+    # Fixtures must live in module globals for pytest to discover them -
     # the factory returns them as a dict for exactly that purpose.
     globals().update(make_app_fixtures(Path(__file__).parent.parent, "tsnap"))
 """
@@ -56,7 +56,7 @@ settings.rate_limit_enabled = False
 
 logger = logging.getLogger(__name__)
 
-# Fixed DocType-registry key for the whole test process — set explicitly via
+# Fixed DocType-registry key for the whole test process - set explicitly via
 # the same ContextVar production code uses, rather than relying on
 # SiteManager.get_active_site()'s file-based fallback (see conftest.py's
 # identical _TEST_SITE for the full rationale).
@@ -77,7 +77,7 @@ def make_app_fixtures(app_dir: Path, app_name: str) -> dict[str, Any]:
     for an external app's test suite.
 
     Set ``TEST_DATABASE_URL`` to point ``test_engine`` at Postgres/MySQL instead
-    of the in-memory sqlite default — same convention as grunt's own conftest.
+    of the in-memory sqlite default - same convention as grunt's own conftest.
     """
     # Must happen at conftest-import time, not inside a fixture: pytest imports
     # every test module during collection, before any fixture runs, so a test
@@ -89,7 +89,7 @@ def make_app_fixtures(app_dir: Path, app_name: str) -> dict[str, Any]:
 
     test_db_url = os.environ.get("TEST_DATABASE_URL", "sqlite+aiosqlite://")
     test_engine = create_async_engine(test_db_url, echo=False)
-    TestSessionLocal = async_sessionmaker(  # noqa: N806 — sessionmaker factory, PascalCase by convention
+    TestSessionLocal = async_sessionmaker(  # noqa: N806 - sessionmaker factory, PascalCase by convention
         test_engine, class_=AsyncSession, expire_on_commit=False
     )
 
@@ -117,7 +117,7 @@ def make_app_fixtures(app_dir: Path, app_name: str) -> dict[str, Any]:
         grunt core's own conftest): app test directories mix DB-backed tests
         with plain sync unit tests, and pytest-asyncio hard-errors when a sync
         test is forced to depend on an async autouse fixture. Pulled in
-        transitively by db_session/engine/ctx/client below — request one of
+        transitively by db_session/engine/ctx/client below - request one of
         those (or setup_db itself) in tests that need the database.
         """
         site_token = current_site.set(_TEST_SITE)
