@@ -62,13 +62,14 @@ function partOf(d: Date, p: 'd' | 'm' | 'y'): string {
   return p === 'm' ? pad(d.getMonth() + 1) : pad(d.getDate())
 }
 
-const displayText = computed(() => {
-  const d = props.modelValue
+function formatText(d: Date | null): string {
   if (!d) return ''
   let s = spec.value.order.map((p) => partOf(d, p)).join(spec.value.sep)
   if (props.showTime) s += ` ${pad(d.getHours())}:${pad(d.getMinutes())}`
   return s
-})
+}
+
+const displayText = computed(() => formatText(props.modelValue))
 
 function setTime(h: number, m: number) {
   const base = props.modelValue ? new Date(props.modelValue) : new Date()
@@ -143,8 +144,10 @@ function commit() {
   }
   const parsed = parseText(s)
   if (parsed) {
-    emit('update:modelValue', parsed)
-    text.value = displayText.value
+    // The new value, not displayText: the prop hasn't caught up yet, and Enter
+    // commits again on the blur that follows — it must not re-commit the old date.
+    if (parsed.getTime() !== props.modelValue?.getTime()) emit('update:modelValue', parsed)
+    text.value = formatText(parsed)
   } else {
     // Некоректний ввід — повертаємо останнє валідне значення
     text.value = displayText.value

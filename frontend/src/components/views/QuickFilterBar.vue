@@ -84,39 +84,28 @@ function onDatePick(ff: QuickFilter, d: DateValue | undefined) {
 }
 
 // ── Year ─────────────────────────────────────────────────────────────────────
-// Years run from the newest to the oldest value of the field in the data
-// (two one-row list calls); until they arrive — the last ten years.
-const yearRanges = ref<Record<string, [number, number]>>({})
-
-function yearOf(row: Record<string, unknown> | undefined, field: string): number | null {
-  const y = Number(String(row?.[field] ?? '').slice(0, 4))
-  return Number.isInteger(y) && y > 0 ? y : null
-}
-
-async function loadYearRange(ff: QuickFilter) {
-  const edge = (order: 'asc' | 'desc') => docsApi.list(props.dt.name, {
-    fields: ff.field, sort: ff.field, order, per_page: 1, rawFilters: { [`${ff.field}__is`]: 'set' },
-  }).then(r => yearOf(r.data?.[0], ff.field))
-  const [min, max] = await Promise.all([edge('asc'), edge('desc')])
-  if (min && max) yearRanges.value = { ...yearRanges.value, [ff.id]: [min, max] }
-}
+// Only the years present in the field's data are offered (newest first).
+const fieldYears = ref<Record<string, number[]>>({})
 
 function yearOptions(ff: QuickFilter): { value: string, label: string }[] {
-  const now = new Date().getFullYear()
-  let [min, max] = yearRanges.value[ff.id] ?? [now - 9, now]
-  // A year restored from saved view state stays pickable even outside the range.
+  const years = [...(fieldYears.value[ff.id] ?? [])]
+  // A year restored from saved view state stays pickable even if no row has it now.
   const picked = Number(getValue(ff))
-  if (Number.isInteger(picked) && picked > 0) { min = Math.min(min, picked); max = Math.max(max, picked) }
-  const years: { value: string, label: string }[] = []
-  for (let y = max; y >= min; y--) years.push({ value: String(y), label: String(y) })
-  return years
+  if (Number.isInteger(picked) && picked > 0 && !years.includes(picked)) {
+    years.push(picked)
+    years.sort((a, b) => b - a)
+  }
+  return years.map(y => ({ value: String(y), label: String(y) }))
 }
 
 watch(
   () => activeDefs.value.filter(ff => ff.input_type === 'year').map(ff => ff.id).join('|'),
   () => {
     for (const ff of activeDefs.value) {
-      if (ff.input_type === 'year' && !(ff.id in yearRanges.value)) loadYearRange(ff).catch(() => {})
+      if (ff.input_type !== 'year' || ff.id in fieldYears.value) continue
+      docsApi.getFieldYears(props.dt.name, ff.field)
+        .then(years => { fieldYears.value = { ...fieldYears.value, [ff.id]: years } })
+        .catch(() => {})
     }
   },
   { immediate: true },

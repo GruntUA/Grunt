@@ -2,6 +2,7 @@
 
 RPC: grunt.document.base.Document.get_backlinks
 RPC: grunt.document.base.Document.get_sidebar
+RPC: grunt.document.base.Document.get_field_years
 """
 
 from __future__ import annotations
@@ -35,6 +36,18 @@ async def _optional(coro: Any, fallback: Any) -> Any:
 
 class DocumentMetaRPCMixin:
     """Cross-document metadata (backlinks, sidebar bundle), exposed via the RPC dispatcher."""
+
+    @staticmethod
+    @grunt.whitelist()
+    async def get_field_years(doctype: str, fieldname: str) -> list[int]:
+        """Years present in a Date/Datetime field, newest first (year quick filter)."""
+        from grunt.document import collection
+        from grunt.permissions.guards import read_guard
+
+        _dt, user, hidden_fields = await read_guard(doctype)
+        if fieldname in hidden_fields:
+            return []
+        return await collection.field_years(grunt.get_session(), doctype, user, fieldname)
 
     @staticmethod
     @grunt.whitelist()

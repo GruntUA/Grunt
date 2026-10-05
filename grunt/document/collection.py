@@ -368,6 +368,54 @@ async def count_documents(
     return (await session.execute(count_q)).scalar() or 0
 
 
+async def field_years(
+    session: AsyncSession,
+    doctype_name: str,
+    user: User,
+    fieldname: str,
+) -> list[int]:
+    """Distinct calendar years of a Date/Datetime field, newest first, over the
+    rows the *user* may see — the options of a year quick filter.
+
+    Under the same row-level permissions as ``count_documents``; the list's own
+    filters are not applied, so picking one year doesn't hide the others.
+    """
+    import grunt
+
+    dt = await grunt.get_meta(doctype_name)
+    if dt is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=_("DocType “%(doctype)s” not found") % {"doctype": doctype_name},
+        )
+    field = dt.get_field(fieldname)
+    if dt.is_virtual or field is None or field.fieldtype not in ("Date", "Datetime"):
+        return []
+
+    table = dt.table
+    col = table.c.get(fieldname)
+    if col is None:
+        return []
+    year = func.extract("year", col)
+    extra_clause = await _resolve_list_filter_extra(session, doctype_name, None, table)
+
+    from grunt.permissions.user_permissions import build_conditions
+
+    up_conds = await build_conditions(table, user, dt.doc)
+    query = await _apply_where(
+        select(year).select_from(table).where(col.is_not(None)).distinct(),
+        table,
+        dt,
+        None,
+        None,
+        extra_clause,
+        user,
+        up_conds,
+    )
+    rows = (await session.execute(query)).scalars().all()
+    return sorted({int(y) for y in rows if y is not None}, reverse=True)
+
+
 # ── Bulk delete ─────────────────────────────────────────────────────────────
 
 

@@ -277,6 +277,12 @@ export const docsApi = {
       doctype, doc_id: id, action, values,
     }).then(r => r.data),
 
+  /** Years present in a Date/Datetime field, newest first — options of a year quick filter. */
+  getFieldYears: (doctype: string, fieldname: string): Promise<number[]> =>
+    client.get('/api/v1/method/grunt.document.base.Document.get_field_years', {
+      params: { doctype, fieldname },
+    }).then(r => r.data.data ?? []),
+
   getLinks: (doctype: string, id: string): Promise<BacklinkItem[]> =>
     client.get('/api/v1/method/grunt.document.base.Document.get_backlinks', {
       params: { doctype, doc_id: id },

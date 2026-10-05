@@ -10,6 +10,10 @@ import { matchesShortcut } from '@/core/shortcuts'
  *
  * Listens in the capture phase, so a field that stops keydown propagation
  * (an editor, a combobox) doesn't swallow Ctrl+S.
+ *
+ * The focused field is blurred before the action runs and refocused after:
+ * fields that commit on blur (a typed date) would otherwise be saved with
+ * their previous value.
  */
 export function useActionShortcuts(registry: ActionRegistry) {
   function onKeydown(event: KeyboardEvent) {
@@ -18,7 +22,18 @@ export function useActionShortcuts(registry: ActionRegistry) {
     if (!action) return
     event.preventDefault()
     // Held keys repeat: suppress «Save page» for every repeat, run once.
-    if (!event.repeat) void action.run()
+    if (!event.repeat) void runCommitted(action.run)
+  }
+
+  async function runCommitted(run: () => unknown) {
+    const focused = document.activeElement
+    const field = focused instanceof HTMLElement && focused !== document.body ? focused : null
+    field?.blur()
+    try {
+      await run()
+    } finally {
+      if (field?.isConnected && document.activeElement === document.body) field.focus()
+    }
   }
   onMounted(() => window.addEventListener('keydown', onKeydown, { capture: true }))
   onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown, { capture: true }))
