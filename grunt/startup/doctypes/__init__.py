@@ -13,7 +13,14 @@ from grunt import log
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
-from grunt.metadata.compiler import DuplicateDataError, compile_doctype_to_table
+import json
+
+from grunt.db.system_tables import GruntMetaDoctype
+from grunt.hooks import DOCTYPE_OVERRIDES
+from grunt.metadata.compiler import DuplicateDataError, compile_doctype_to_table, sync_table
+from grunt.metadata.doctype import DocType
+from grunt.metadata.field import DocField
+from grunt.metadata.registry import doctype_registry
 
 _GRUNT_ROOT = Path(__file__).parent.parent.parent  # grunt/startup/doctypes/ -> grunt/
 
@@ -41,11 +48,6 @@ async def apply_doctype_overrides(
     be lost the moment the DocType is next lazy-loaded from a fresh process).
     """
     from sqlalchemy import update
-
-    from grunt.db.system_tables import GruntMetaDoctype
-    from grunt.hooks import DOCTYPE_OVERRIDES
-    from grunt.metadata.field import DocField
-    from grunt.metadata.registry import doctype_registry
 
     if not DOCTYPE_OVERRIDES:
         return
@@ -96,11 +98,6 @@ async def load_core_doctypes(session: AsyncSession, sync_db: bool = False) -> No
     Scans all module-level doctypes/ directories within the grunt package.
     Uses _inject_core to bypass user-facing validation.
     """
-    import json
-
-    from grunt.metadata.doctype import DocType
-    from grunt.metadata.registry import doctype_registry
-
     dt_files = sorted(f for d in _find_doctype_dirs() for f in d.glob("**/*.json"))
 
     for dt_file in dt_files:
@@ -131,8 +128,6 @@ async def populate_system_doctypes(
 
     This keeps the DocType list view in sync with the registry.
     """
-    from grunt.metadata.registry import doctype_registry
-
     dt_def = doctype_registry._doctypes.get("DocType")
     if dt_def is None:
         log.warning("startup.doctype_def_missing")
@@ -140,7 +135,6 @@ async def populate_system_doctypes(
     table = compile_doctype_to_table(dt_def)
 
     # Ensure the physical table exists before querying it (idempotent on upgrades)
-    from grunt.metadata.compiler import sync_table
 
     await sync_table(dt_def, engine, session=session)
 
@@ -223,9 +217,6 @@ async def sync_all_doctypes(session: AsyncSession, engine: AsyncEngine) -> None:
     Iterates through all DocTypes and calls ``sync_table()`` for each.
     This ensures that new fields in JSON files are added to the DB.
     """
-    from grunt.metadata.compiler import sync_table
-    from grunt.metadata.registry import doctype_registry
-
     # Ensure all doctypes (even user-created ones) are in the registry memory
     await doctype_registry.load_all(session)
     doctypes = await doctype_registry.list_all()

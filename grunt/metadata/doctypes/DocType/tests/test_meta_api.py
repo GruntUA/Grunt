@@ -5,6 +5,9 @@ from __future__ import annotations
 
 import pytest
 
+from grunt.api.messages import ApplicationError
+from grunt.i18n import translation_service, use_language
+
 SAMPLE_DOCTYPE = {
     "name": "Task",
     "label": "Завдання",
@@ -83,9 +86,7 @@ async def test_doctype_crud_lifecycle(ctx):
 @pytest.mark.asyncio
 async def test_duplicate_doctype_rejected(ctx):
     """Creating a DocType whose name already exists -> ApplicationError."""
-    from grunt.api.messages import ApplicationError
     from grunt.api.v1.meta import save_doctype
-    from grunt.i18n import use_language
 
     await save_doctype(doctype_data=SAMPLE_DOCTYPE)
     with use_language("en"), pytest.raises(ApplicationError) as excinfo:
@@ -97,7 +98,6 @@ async def test_duplicate_doctype_rejected(ctx):
 async def test_language_select_draws_ui_languages(ctx):
     """User.language options come from the UI languages, labelled natively."""
     from grunt.api.v1.meta import get_doctype
-    from grunt.i18n import translation_service
 
     translation_service.set_language_names({"uk": "Українська"})
     schema = await get_doctype(name="User")

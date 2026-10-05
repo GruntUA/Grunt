@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import copy
-from datetime import UTC
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any, overload
 
 from fastapi import HTTPException
@@ -12,13 +12,21 @@ import grunt
 from grunt import _, log
 from grunt.config import settings
 from grunt.db.profiler import profile
+from grunt.document import collection
+from grunt.document.registry import document_registry
+from grunt.document.update_side_effects import write_bulk_delete_activity_log
+from grunt.errors import not_found
+from grunt.events import fire
 from grunt.local import require_engine, require_user
+from grunt.naming import naming_service
 from grunt.permissions.guards import (
     apply_hidden_fields_to_doc,
     apply_hidden_fields_to_rows,
     read_guard,
     write_guard,
 )
+from grunt.permissions.rbac import permission_checker
+from grunt.workflow.engine import workflow_engine
 
 if TYPE_CHECKING:
     from grunt.cache.document_cache import DocumentCache
@@ -118,9 +126,6 @@ class DocumentAPI:
 
             settings = await grunt.get_doc("SystemSettings")
         """
-        from grunt.events import fire
-        from grunt.permissions.rbac import permission_checker
-
         if isinstance(doctype, type):
             name: str = getattr(doctype, "doctype", doctype.__name__)
             dt, user, hidden_fields = await read_guard(name)
@@ -172,9 +177,6 @@ class DocumentAPI:
 
     async def get_doc_instance(self, doctype: str, id_or_name: str) -> Document:
         """Fetch a document and return it as an instantiated controller."""
-        from grunt.document.registry import document_registry
-        from grunt.permissions.rbac import permission_checker
-
         dt, user, hidden_fields = await read_guard(doctype)
         data = await self._doc().get_document(doctype, id_or_name, user)
         await permission_checker.require(user, dt, "read", data)
@@ -248,8 +250,6 @@ class DocumentAPI:
 
     async def rename_doc(self, doctype: str, old_id: str, new_id: str) -> dict[str, Any]:
         """Rename a document and cascade all references."""
-        from grunt.events import fire
-
         dt, user, session = await write_guard(doctype, "write")
         await fire(
             "before_rename",
@@ -259,8 +259,6 @@ class DocumentAPI:
             user=user,
             session=session,
         )
-
-        from grunt.document import collection
 
         res = await collection.rename_document(
             grunt.get_session(), require_engine(), doctype, old_id, new_id, user
@@ -301,11 +299,6 @@ class DocumentAPI:
         """
         if not ids:
             return 0, []
-
-        from grunt.document import collection
-        from grunt.document.update_side_effects import (
-            write_bulk_delete_activity_log,
-        )
 
         _dt, user, session = await write_guard(doctype, "delete")
         engine = require_engine()
@@ -358,8 +351,6 @@ class DocumentAPI:
         ``include_total=False`` skips the pagination ``COUNT(*)`` query for
         call sites that never read ``meta.total`` (e.g. sidebar widgets).
         """
-        from grunt.events import fire
-
         dt, user, hidden_fields = await read_guard(doctype)
         await fire(
             "before_read",
@@ -448,7 +439,6 @@ class DocumentAPI:
             users = await grunt.get_all(User, filters={"active": True})
         """
         from grunt.document.base import DocumentList
-        from grunt.events import fire
 
         doctype: str = getattr(model_class, "doctype", model_class.__name__)
         _, user, hidden_fields = await read_guard(doctype)
@@ -493,12 +483,6 @@ class DocumentAPI:
         records: list[dict[str, Any]],
     ) -> list[str]:
         """Create multiple documents in a single database round-trip."""
-        from datetime import datetime
-
-        import grunt
-        from grunt.errors import not_found
-        from grunt.naming import naming_service
-
         dt = await grunt.get_meta(doctype)
         if dt is None:
             raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
@@ -539,8 +523,6 @@ class DocumentAPI:
         values: dict[str, Any],
     ) -> int:
         """Update multiple documents matching ``filters`` in a single query."""
-        from datetime import datetime
-
         user = require_user()
 
         update_values = dict(values)
@@ -578,8 +560,6 @@ class DocumentAPI:
         if not respect_permissions:
             return await self.db.count(doctype, filters=filters)
 
-        from grunt.document import collection
-
         user = require_user()
         cache = getattr(self, "query_cache", None)
         cache_key: str | None = None
@@ -610,8 +590,6 @@ class DocumentAPI:
             if await grunt.exists("Invoice", {"number": "INV-001", "status": "Unpaid"}):
                 ...
         """
-        from grunt.events import fire
-
         _, user, _ = await read_guard(doctype)
         await fire("before_read", doctype=doctype, user=user, filters=filters, method="exists")
         exists = await self.db.exists(doctype, filters)
@@ -636,8 +614,6 @@ class DocumentAPI:
 
             status = await grunt.get_value("Invoice", invoice_id, "status")
         """
-        from grunt.events import fire
-
         _, user, _ = await read_guard(doctype)
         await fire(
             "before_read",
@@ -708,10 +684,6 @@ class DocumentAPI:
         ``values`` fills in the transition's ``prompt_fields`` (e.g. a note
         collected in a dialog before applying the transition).
         """
-        import grunt
-        from grunt.errors import not_found
-        from grunt.workflow.engine import workflow_engine
-
         dt = await grunt.get_meta(doctype)
         if dt is None:
             raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})

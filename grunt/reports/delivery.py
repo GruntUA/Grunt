@@ -18,6 +18,9 @@ from typing import TYPE_CHECKING, Any
 
 import grunt
 from grunt import _, log
+from grunt.auth.doctypes.User.user import SYSTEM_USER, get_user_by_email
+from grunt.email.service import email_service
+from grunt.reports.engine import report_engine
 from grunt.site.manager import site_manager
 from grunt.tasks.broker import retryable_task
 
@@ -54,8 +57,6 @@ def is_due(frequency: str | None, last_sent_at: datetime | str | None, today: da
 
 
 async def _run_as(report: dict[str, Any]) -> User:
-    from grunt.auth.doctypes.User.user import SYSTEM_USER, get_user_by_email
-
     owner = await get_user_by_email(report.get("owner") or "")
     return owner if owner is not None and owner.is_active else SYSTEM_USER
 
@@ -65,9 +66,6 @@ async def send_report(report: dict[str, Any], session: AsyncSession) -> int:
 
     Returns the number of queued emails. Must run inside a system context.
     """
-    from grunt.email.service import email_service
-    from grunt.reports.engine import report_engine
-
     recipients = parse_recipients(report.get("schedule_recipients"))
     if not recipients:
         return 0

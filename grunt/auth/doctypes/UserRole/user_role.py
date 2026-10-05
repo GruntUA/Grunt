@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import grunt
 from grunt.document.base import Document
 
 
@@ -13,8 +14,6 @@ class UserRole(Document):
 
 async def get_user_roles(user_id: str) -> list[str]:
     """Load role names for a user. Caller must already have an active grunt context."""
-    import grunt
-
     async with grunt.system_context(grunt.get_session()):
         rows = await grunt.db.get_all(
             "UserRole",

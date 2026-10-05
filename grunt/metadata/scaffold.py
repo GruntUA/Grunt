@@ -16,7 +16,9 @@ from typing import TYPE_CHECKING
 
 from grunt import log
 from grunt.document.base import SYS_FIELDS
+from grunt.metadata.field import get_python_type, is_physical_fieldtype
 from grunt.site.manager import site_manager
+from grunt.utils.codegen import render_template, sync_controller_types
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -33,8 +35,6 @@ def _build_scaffold_context(doctype_name: str, fields: list[DocField]) -> dict:
     dict per field with silently different defaulting/error behavior, but
     nothing ever called it that way).
     """
-    from grunt.metadata.field import get_python_type, is_physical_fieldtype
-
     physical_fields = []
     table_fields = []
 
@@ -120,8 +120,6 @@ def export_doctype_files(dt: DocType, app_name: str | None = None) -> str | None
     Returns the absolute path to the written JSON file, or ``None`` if export
     was skipped (module directory not found).
     """
-    from grunt.utils.codegen import render_template, sync_controller_types
-
     app_dir = _find_app_dir(dt.module, app_name=app_name)
     if not app_dir:
         log.warning(

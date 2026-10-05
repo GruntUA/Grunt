@@ -16,7 +16,9 @@ from __future__ import annotations
 import traceback as _tb
 from typing import TYPE_CHECKING, Any
 
+import grunt
 from grunt.log import log
+from grunt.site.manager import site_manager
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
@@ -56,8 +58,6 @@ def _clip(value: str | None, limit: int) -> str:
 
 async def _write_row(payload: dict[str, Any], session: AsyncSession | None) -> str | None:
     """Insert one ErrorLog row, either on *session* or a fresh isolated one."""
-    import grunt
-
     if session is not None:
         # Caller owns the transaction (e.g. the task middleware already holds a
         # system_context). Reuse it so the row commits with the caller's work.
@@ -66,7 +66,6 @@ async def _write_row(payload: dict[str, Any], session: AsyncSession | None) -> s
 
     # HTTP path: the request's own session is very likely in a failed
     # transaction by now, so open a fresh one bound to the active site.
-    from grunt.site.manager import site_manager
 
     site = site_manager.get_active_site()
     maker = site_manager.get_session_maker(site)

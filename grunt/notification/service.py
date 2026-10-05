@@ -7,11 +7,13 @@ queue emails.
 
 from __future__ import annotations
 
+import secrets
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
 
 import grunt
 from grunt import log
+from grunt.api.v1.ws import manager
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
@@ -188,8 +190,6 @@ class NotificationService:
         subject: str,
         message: str,
     ) -> str:
-        import secrets
-
         notif_name = f"notif-{user}-{secrets.token_urlsafe(6)}"
         now = datetime.now(UTC)
         async with grunt.system_context(session):
@@ -370,8 +370,6 @@ class NotificationService:
         recipients: list[str],
     ) -> None:
         """Send WebSocket notification to connected users."""
-        from grunt.api.v1.ws import manager
-
         for recipient in recipients:
             try:
                 await manager.send_to_user(

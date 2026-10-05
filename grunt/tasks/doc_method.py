@@ -4,7 +4,9 @@ from __future__ import annotations
 
 from typing import Any
 
+import grunt
 from grunt import log
+from grunt.auth.doctypes.User.user import get_user_by_email
 from grunt.site.manager import site_manager
 from grunt.tasks.broker import task
 
@@ -20,9 +22,6 @@ async def _run_doc_method(
     kwargs: dict[str, Any],
 ) -> None:
     """Execute ``doc.<method>(**kwargs)`` in a background worker."""
-    import grunt
-    from grunt.auth.doctypes.User.user import get_user_by_email
-
     maker = site_manager.get_session_maker(site)
     engine = site_manager.get_engine(site)
 

@@ -19,6 +19,7 @@ Usage:
 
 from __future__ import annotations
 
+import math
 from typing import TYPE_CHECKING, Any
 
 from grunt.db.filters import as_list, is_truthy, split_key
@@ -196,8 +197,6 @@ class VirtualDocType:
         generic list UI never needs to know *why* a source is unavailable,
         only that it is.
         """
-        import math
-
         total = len(rows)
         offset = (page - 1) * per_page
         page_rows = rows[offset : offset + per_page]

@@ -11,7 +11,9 @@ from typing import TYPE_CHECKING, Any
 
 import grunt
 from grunt import _, log
+from grunt.document.titles import resolve_reference_titles
 from grunt.i18n import language_of, use_language
+from grunt.notification.service import notification_service
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -30,8 +32,6 @@ async def _followers(doctype: str, doc_id: str, actor_email: str | None) -> list
 
 
 async def _title(doctype: str, doc_id: str) -> str:
-    from grunt.document.titles import resolve_reference_titles
-
     titles = await resolve_reference_titles([(doctype, str(doc_id))])
     return titles.get((doctype, str(doc_id))) or str(doc_id)
 
@@ -52,8 +52,6 @@ async def _notify(
     compose: Callable[[], tuple[str, str]],
 ) -> None:
     """Notify each follower; *compose* -> ``(subject, message)`` runs in their language."""
-    from grunt.notification.service import notification_service
-
     for user in users:
         try:
             with use_language(await language_of(user)):

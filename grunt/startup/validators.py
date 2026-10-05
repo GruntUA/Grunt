@@ -10,6 +10,8 @@ from __future__ import annotations
 from pathlib import Path
 
 from grunt import log
+from grunt.document.validators import load_from_dir
+from grunt.site.manager import site_manager
 
 _GRUNT_ROOT = Path(__file__).parent.parent  # grunt/startup/ -> grunt/
 
@@ -21,8 +23,6 @@ def _find_validator_dirs() -> list[Path]:
     grunt_validators = _GRUNT_ROOT / "validators"
     if grunt_validators.is_dir():
         dirs.append(grunt_validators)
-
-    from grunt.site.manager import site_manager
 
     bench_dir = site_manager.bench_dir
     if bench_dir:
@@ -49,8 +49,6 @@ def _find_validator_dirs() -> list[Path]:
 
 def load_validators() -> int:
     """Discover and register all validators. Returns total count loaded."""
-    from grunt.document.validators import load_from_dir
-
     total = 0
     for validator_dir in _find_validator_dirs():
         count = load_from_dir(validator_dir)

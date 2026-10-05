@@ -12,8 +12,12 @@ Example:
 
 from typing import NoReturn
 
-from grunt.api.context import get_session
+from grunt.api.context import add_message, get_session
+from grunt.email.service import email_service
 from grunt.errors import ApplicationError
+from grunt.local import _messages_ctx
+from grunt.notification.service import NotificationService
+from grunt.publish import notify as _notify
 
 
 def msgprint(message: str, title: str = "", msg_type: str = "info") -> None:
@@ -27,9 +31,6 @@ def msgprint(message: str, title: str = "", msg_type: str = "info") -> None:
         title: Optional title
         msg_type: "success", "info", "warning", "error" (default: "info")
     """
-    from grunt.api.context import add_message
-    from grunt.local import _messages_ctx
-
     if _messages_ctx.get() is None:
         _messages_ctx.set([])
     add_message(message, title=title, msg_type=msg_type)
@@ -76,9 +77,6 @@ async def notify_all(
         roles: List of role names (default: all active users if None)
         exclude_user: Optionally exclude a user email
     """
-    from grunt.notification.service import NotificationService
-    from grunt.publish import notify as _notify
-
     session = get_session()
     svc = NotificationService()
 
@@ -127,7 +125,5 @@ async def queue_email(
             "<h1>Invoice</h1><p>Amount: 1000 UAH</p>",
         )
     """
-    from grunt.email.service import email_service
-
     session = get_session()
     return await email_service.queue_email(session, recipient, subject, body)

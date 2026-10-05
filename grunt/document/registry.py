@@ -7,6 +7,8 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from grunt import log
+from grunt.metadata.virtual import VirtualDocType
+from grunt.startup.doctypes import _find_doctype_dirs
 from grunt.utils.strings import to_snake_case
 
 if TYPE_CHECKING:
@@ -74,7 +76,6 @@ class DocumentRegistry:
         Accepts both Document and VirtualDocType subclasses.
         """
         from grunt.document.base import Document
-        from grunt.metadata.virtual import VirtualDocType
 
         def _is_controller(obj) -> bool:
             return inspect.isclass(obj) and (
@@ -121,8 +122,6 @@ class DocumentRegistry:
         Prefers snake_case file names; falls back to PascalCase for backwards compatibility.
         No Python modules are imported.
         """
-        from grunt.startup.doctypes import _find_doctype_dirs
-
         count = 0
         for doctypes_dir in _find_doctype_dirs():
             # module name from path: grunt/{module}/doctypes -> "module"

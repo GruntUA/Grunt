@@ -19,6 +19,10 @@ from sqlalchemy import or_, select
 
 import grunt
 from grunt import _
+from grunt.errors import not_found
+from grunt.local import require_user
+from grunt.permissions.access import RoleAccess
+from grunt.permissions.rbac import permission_checker
 
 
 async def _identifier_search(
@@ -85,11 +89,6 @@ class DocumentLinkRPCMixin:
         filters: dict[str, Any] | None = None,
     ) -> list[dict[str, Any]]:
         """Search documents for a Link field dropdown."""
-        from grunt.errors import not_found
-        from grunt.local import require_user
-        from grunt.permissions.access import RoleAccess
-        from grunt.permissions.rbac import permission_checker
-
         dt = await grunt.get_meta(doctype)
         if dt is None:
             raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})

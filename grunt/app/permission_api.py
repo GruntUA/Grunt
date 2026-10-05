@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import Any
 
+import grunt
+from grunt.permissions.rbac import permission_checker
 from grunt.permissions.types import PermissionAction
 
 
@@ -24,9 +26,6 @@ class PermissionAPI:
             if not await grunt.has_permission("Invoice", "delete"):
                 grunt.throw("You cannot delete invoices")
         """
-        import grunt
-        from grunt.permissions.rbac import permission_checker
-
         dt = await grunt.get_meta(doctype)
         if dt is None:
             return False

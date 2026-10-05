@@ -8,6 +8,8 @@ from fastapi import HTTPException, Request
 
 import grunt
 from grunt.api.router import GruntRouter
+from grunt.webhook.incoming_service import incoming_webhook_service
+from grunt.webhook.service import webhook_service
 
 router = GruntRouter(optional_auth=True)
 
@@ -15,8 +17,6 @@ router = GruntRouter(optional_auth=True)
 @router.post("/incoming/{slug}")
 async def receive_incoming_webhook(slug: str, request: Request) -> dict[str, Any]:
     """Public receiver endpoint. Kept as router for stable external URL."""
-    from grunt.webhook.incoming_service import incoming_webhook_service
-
     body = await request.body()
     headers = {k.lower(): v for k, v in request.headers.items()}
 
@@ -33,8 +33,6 @@ async def receive_incoming_webhook(slug: str, request: Request) -> dict[str, Any
 @grunt.whitelist(roles=["System Manager"])
 async def test_outgoing_webhook(webhook_id: str) -> dict[str, Any]:
     """Send a test payload for an outgoing webhook."""
-    from grunt.webhook.service import webhook_service
-
     user = grunt.get_user()
     result = await webhook_service.test_delivery(grunt.get_session(), webhook_id, user.email)
     return result

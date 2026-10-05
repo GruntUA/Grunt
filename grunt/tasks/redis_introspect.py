@@ -14,6 +14,7 @@ from typing import TYPE_CHECKING, Any
 
 from grunt import log
 from grunt.i18n import N_, _
+from grunt.tasks.broker import broker
 
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator
@@ -25,8 +26,6 @@ if TYPE_CHECKING:
 def stream_broker() -> RedisStreamBroker | None:
     """The active broker, if it's Redis Stream-backed - ``None`` for InMemoryBroker."""
     from taskiq_redis import RedisStreamBroker
-
-    from grunt.tasks.broker import broker
 
     return broker if isinstance(broker, RedisStreamBroker) else None
 

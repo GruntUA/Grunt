@@ -15,6 +15,7 @@ from authlib.integrations.httpx_client import AsyncOAuth2Client
 
 from grunt import _
 from grunt.api.messages import throw
+from grunt.auth.login import find_or_create_external_user
 from grunt.auth.providers.base import AuthFlowContext, AuthProvider
 from grunt.auth.providers.registry import register
 from grunt.config import settings
@@ -78,8 +79,6 @@ class OIDCProvider(AuthProvider):
         return {"redirect_url": url}
 
     async def complete(self, ctx: AuthFlowContext) -> User:
-        from grunt.auth.login import find_or_create_external_user
-
         code = ctx.get("code")
         if not code:
             throw(_("Missing OAuth 'code'"), "VALIDATION_ERROR")

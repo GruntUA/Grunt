@@ -28,6 +28,7 @@ from datetime import date, datetime, time
 from decimal import Decimal
 from typing import TYPE_CHECKING, Any
 
+import grunt
 from grunt.utils.strings import to_snake_case
 
 if TYPE_CHECKING:
@@ -73,8 +74,6 @@ async def clean_record(meta: Meta, data: dict[str, Any], *, child: bool = False)
     matches on), every physical non-``Password`` field, MultiLink lists and
     child tables (recursively cleaned). ``None`` values are dropped.
     """
-    import grunt
-
     out: dict[str, Any] = {}
     if not child and data.get("name") is not None:
         out["name"] = data["name"]
@@ -118,8 +117,6 @@ async def export_records(spec: FixtureSpec) -> list[dict[str, Any]]:
 
     Must run inside a grunt context (e.g. ``grunt.system_context``).
     """
-    import grunt
-
     meta = await grunt.get_meta(spec.doctype)
     if meta is None:
         raise ValueError(f"DocType “{spec.doctype}” not found")

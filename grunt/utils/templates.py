@@ -5,6 +5,8 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import Any
 
+from grunt.i18n.jinja import install as install_i18n
+from grunt.local import _user_ctx
 from grunt.utils.app_helpers import _collect_template_dirs
 
 
@@ -31,12 +33,10 @@ async def render_template(
     )
 
     # Globals available in every grunt template.
-    from grunt.local import _user_ctx
 
     env.globals["grunt"] = app
     env.globals["user"] = _user_ctx.get()  # None when rendered outside a user's context
     env.globals["now"] = datetime.now(UTC)
-    from grunt.i18n.jinja import install as install_i18n
 
     install_i18n(env)
 

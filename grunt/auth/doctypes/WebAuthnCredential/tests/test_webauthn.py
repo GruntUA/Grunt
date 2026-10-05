@@ -6,6 +6,9 @@ from typing import TYPE_CHECKING
 
 import pytest
 
+from grunt.auth.doctypes.User.user import create_user
+from grunt.auth.service import verify_challenge_token
+
 if TYPE_CHECKING:
     from httpx import AsyncClient
 
@@ -13,8 +16,6 @@ _METHODS = "/api/v1/auth/methods"
 
 
 async def _access_token(ctx, client: AsyncClient, email: str = "pk@grunt.example.com") -> str:
-    from grunt.auth.doctypes.User.user import create_user
-
     async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         await create_user(email, "Str0ngPass", "Pass", "Key", None)
         await ctx.db._session().commit()
@@ -45,8 +46,6 @@ async def test_unknown_provider_is_404(client: AsyncClient):
 
 @pytest.mark.asyncio
 async def test_begin_authentication_returns_signed_challenge(client: AsyncClient):
-    from grunt.auth.service import verify_challenge_token
-
     resp = await client.post("/api/v1/auth/webauthn/begin", json={})
     assert resp.status_code == 200, resp.text
     data = resp.json()["data"]

@@ -14,8 +14,14 @@ pre-existing style for that part of the module.
 
 from __future__ import annotations
 
+import io
+
 import pytest
 from httpx import AsyncClient
+
+from grunt.api.messages import ApplicationError
+from grunt.reports.doctypes.Report.report import export_xlsx as export_report_xlsx
+from grunt.reports.doctypes.Report.report import run as run_report
 
 
 async def _register_regular_user(client: AsyncClient, email: str) -> dict[str, str]:
@@ -149,8 +155,6 @@ async def test_report_write_forbidden_for_regular_user(client: AsyncClient, auth
 @pytest.mark.asyncio
 async def test_run_query_report(ctx):
     """Run a SELECT query report."""
-    from grunt.reports.doctypes.Report.report import run as run_report
-
     await ctx.new_doc(
         "Report",
         {
@@ -168,8 +172,6 @@ async def test_run_query_report(ctx):
 @pytest.mark.asyncio
 async def test_run_script_report_result_contract(ctx):
     """A Script report may build rows itself via `result = {...}`."""
-    from grunt.reports.doctypes.Report.report import run as run_report
-
     await ctx.new_doc(
         "Report",
         {
@@ -192,8 +194,6 @@ async def test_run_script_report_result_contract(ctx):
 @pytest.mark.asyncio
 async def test_run_script_report_query_contract(ctx):
     """A Script report may just pick a read-only SQL string per `db_dialect`."""
-    from grunt.reports.doctypes.Report.report import run as run_report
-
     await ctx.new_doc(
         "Report",
         {
@@ -218,9 +218,6 @@ async def test_run_script_report_query_contract_still_select_only(ctx):
     """The `query =` escape hatch runs through the same SELECT-only guard."""
     from fastapi import HTTPException
 
-    from grunt.api.messages import ApplicationError
-    from grunt.reports.doctypes.Report.report import run as run_report
-
     await ctx.new_doc(
         "Report",
         {
@@ -240,8 +237,6 @@ async def test_run_report_forbids_delete(ctx):
     """DELETE SQL is blocked in query reports."""
     from fastapi import HTTPException
 
-    from grunt.reports.doctypes.Report.report import run as run_report
-
     await ctx.new_doc(
         "Report",
         {
@@ -252,8 +247,6 @@ async def test_run_report_forbids_delete(ctx):
     )
     await ctx.db._session().commit()
 
-    from grunt.api.messages import ApplicationError
-
     with pytest.raises((HTTPException, ApplicationError)):
         await run_report(name="Bad Report", filters={})
 
@@ -261,8 +254,6 @@ async def test_run_report_forbids_delete(ctx):
 @pytest.mark.asyncio
 async def test_run_list_report_operator_filters(ctx):
     """A List report applies operator-aware filters (``field__eq`` / ``__like`` / …)."""
-    from grunt.reports.doctypes.Report.report import run as run_report
-
     for rn, rt in [("L Alpha", "Query"), ("L Beta", "Query"), ("L Gamma", "Script")]:
         await ctx.new_doc(
             "Report",
@@ -305,8 +296,6 @@ async def test_run_list_report_operator_filters(ctx):
 @pytest.mark.asyncio
 async def test_aggregated_list_report_carries_drilldown(ctx):
     """A grouped List report tells the client how to open the rows behind a total."""
-    from grunt.reports.doctypes.Report.report import run as run_report
-
     for rn in ("D Alpha", "D Beta"):
         await ctx.new_doc(
             "Report", {"report_name": rn, "report_type": "Query", "query": "SELECT 1"}
@@ -349,12 +338,8 @@ async def test_aggregated_list_report_carries_drilldown(ctx):
 @pytest.mark.asyncio
 async def test_export_report_xlsx_returns_valid_workbook(ctx):
     """export_xlsx runs the report and returns a real xlsx file."""
-    import io
-
     import openpyxl
     from fastapi.responses import Response
-
-    from grunt.reports.doctypes.Report.report import export_xlsx as export_report_xlsx
 
     await ctx.new_doc(
         "Report",

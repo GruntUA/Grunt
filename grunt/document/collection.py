@@ -16,11 +16,13 @@ from typing import TYPE_CHECKING, Any
 from fastapi import HTTPException, status
 from sqlalchemy import and_, func, select, update
 
+import grunt
 from grunt import _, log
 from grunt.db.filters import apply_filters
 from grunt.document.base import Document, DocumentList
 from grunt.document.formula import evaluate_read_formulas
 from grunt.document.meta import Meta
+from grunt.document.multi_link import MultiLinkService
 from grunt.document.query import _apply_search, _expand_child_of_filters
 from grunt.document.registry import document_registry
 from grunt.document.relations import _resolve_attach_labels, _resolve_link_labels
@@ -33,7 +35,11 @@ from grunt.document.update_side_effects import (
     run_bulk_delete_writes,
 )
 from grunt.document.virtual import is_virtual_routed, virtual_list
+from grunt.metadata.compiler import MULTI_LINK_TABLE
 from grunt.metadata.registry import doctype_registry
+from grunt.permissions.query import apply_permission_filter
+from grunt.permissions.user_permissions import build_conditions
+from grunt.search.service import search_index_service
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
@@ -120,8 +126,6 @@ async def _apply_where(
     ``grunt.permissions.user_permissions.build_conditions``) is resolved by the
     async caller and passed in because it needs a DB round-trip.
     """
-    from grunt.permissions.query import apply_permission_filter
-
     query = await apply_permission_filter(query, table, user, dt.doc)
     if user_permission_conditions:
         query = query.where(and_(*user_permission_conditions))
@@ -246,8 +250,6 @@ async def list_documents(
     cursor: str | None = None,
     include_total: bool = True,
 ) -> DocumentList:
-    import grunt
-
     dt = await grunt.get_meta(doctype_name)
     if dt is None:
         raise HTTPException(
@@ -277,8 +279,6 @@ async def list_documents(
     # Expand tree-aware child_of operators before applying filters
     if filters and any(k.endswith("__child_of") for k in filters):
         filters = await _expand_child_of_filters(session, dt.doc, filters)
-
-    from grunt.permissions.user_permissions import build_conditions
 
     up_conds = await build_conditions(table, user, dt.doc)
 
@@ -335,8 +335,6 @@ async def count_documents(
     filter ``list_documents`` applies to its pagination total, so a sidebar
     badge or a headline stat never reports rows the list itself hides.
     """
-    import grunt
-
     dt = await grunt.get_meta(doctype_name)
     if dt is None:
         raise HTTPException(
@@ -351,8 +349,6 @@ async def count_documents(
     extra_clause = await _resolve_list_filter_extra(session, doctype_name, filters, table)
     if filters and any(k.endswith("__child_of") for k in filters):
         filters = await _expand_child_of_filters(session, dt.doc, filters)
-
-    from grunt.permissions.user_permissions import build_conditions
 
     up_conds = await build_conditions(table, user, dt.doc)
     count_q = await _apply_where(
@@ -380,8 +376,6 @@ async def field_years(
     Under the same row-level permissions as ``count_documents``; the list's own
     filters are not applied, so picking one year doesn't hide the others.
     """
-    import grunt
-
     dt = await grunt.get_meta(doctype_name)
     if dt is None:
         raise HTTPException(
@@ -398,8 +392,6 @@ async def field_years(
         return []
     year = func.extract("year", col)
     extra_clause = await _resolve_list_filter_extra(session, doctype_name, None, table)
-
-    from grunt.permissions.user_permissions import build_conditions
 
     up_conds = await build_conditions(table, user, dt.doc)
     query = await _apply_where(
@@ -446,9 +438,6 @@ async def bulk_delete(
     """
     if not ids:
         return 0, []
-
-    import grunt
-    from grunt.document.multi_link import MultiLinkService
 
     dt = await grunt.get_meta(doctype_name)
     if dt is None:
@@ -574,8 +563,6 @@ async def _rename_multilink_refs(
     removed rather than repointed when the same holder already references
     *new_id*.
     """
-    from grunt.metadata.compiler import MULTI_LINK_TABLE
-
     ml = MULTI_LINK_TABLE
 
     if not is_merge:
@@ -629,8 +616,6 @@ _RENAME_SYSTEM_REFS = [
 
 async def _rename_system_refs(session: AsyncSession, old_id: str, new_id: str) -> None:
     """Best-effort update of _RENAME_SYSTEM_REFS rows pointing at *old_id*."""
-    import grunt
-
     for sys_dt_name, sys_fieldname in _RENAME_SYSTEM_REFS:
         try:
             sys_dt = await grunt.get_meta(sys_dt_name)
@@ -735,8 +720,6 @@ async def rename_document(
     if old_id == new_id:
         return await _load(old_id)
 
-    import grunt
-
     dt = await grunt.get_meta(doctype_name)
     if dt is None:
         raise HTTPException(
@@ -766,7 +749,6 @@ async def rename_document(
     await session.flush()
 
     # Update search index: delete old, re-index under the new id.
-    from grunt.search.service import search_index_service
 
     await search_index_service.remove_document(session, doctype_name, old_id)
     new_doc = await _load(new_id)

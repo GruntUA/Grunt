@@ -20,9 +20,34 @@ if TYPE_CHECKING:
     from fastapi import Request
 
 import grunt
+from grunt.auth.doctypes.Role.role import Role
+from grunt.auth.doctypes.UserRole.user_role import get_user_roles
+from grunt.auth.doctypes.UserSession.user_session import (
+    client_ip,
+    client_user_agent,
+    end_session,
+    rotate_session,
+)
+from grunt.auth.impersonation import start_impersonation
+from grunt.auth.ip_policy import sign_in_ip_allowed
+from grunt.auth.login import issue_login
+from grunt.auth.mfa import begin_mfa_setup, check_mfa_code, confirm_mfa_setup, mfa_setup_required
+from grunt.auth.password_policy import enforce_password_policy
+from grunt.auth.service import (
+    access_token_minutes,
+    consume_password_reset_token,
+    create_access_token,
+    create_password_reset_token,
+    verify_mfa_setup_token,
+    verify_mfa_token,
+)
+from grunt.config import settings
 from grunt.document.base import Document
 from grunt.document.schema import Schema
 from grunt.permissions.roles import user_has_roles
+from grunt.site.manager import site_manager
+from grunt.site.settings import get_setting
+from grunt.utils.http import public_base_url
 
 _MAX_ATTEMPTS = 10
 _LOCKOUT_MINUTES = 30
@@ -125,8 +150,6 @@ class User(Document):
 
     def has_role(self, *roles: str) -> bool:
         """True if the user holds any of *roles*."""
-        from grunt.permissions.roles import user_has_roles
-
         return user_has_roles(self, list(roles))
 
     async def validate(self) -> None:
@@ -229,14 +252,10 @@ class User(Document):
 
     async def setup_mfa(self) -> dict:
         """Whitelisted method: Start MFA setup for the user."""
-        from grunt.auth.mfa import begin_mfa_setup
-
         return await begin_mfa_setup(self)
 
     async def confirm_mfa(self, code: str) -> list[str]:
         """Whitelisted method: Confirm MFA setup with TOTP code."""
-        from grunt.auth.mfa import confirm_mfa_setup
-
         return await confirm_mfa_setup(self, code)
 
     async def disable_mfa(self) -> None:
@@ -327,8 +346,6 @@ async def _get_user_by(fields: list[str] | None = None, **filter_kwargs: str) ->
     ``fields`` restricts the SELECT to those columns (see ``AUTH_CONTEXT_FIELDS``);
     omit it to fetch the full row, including password/token/MFA columns.
     """
-    from grunt.auth.doctypes.UserRole.user_role import get_user_roles
-
     session = grunt.get_session()
     async with grunt.system_context(session):
         query = User.objects.filter(**filter_kwargs)
@@ -381,8 +398,6 @@ async def get_auth_context_user(uid: str) -> User | None:
     deactivation still takes effect on the very next request - a cache hit is
     never more than that stale-write race, not a TTL.
     """
-    from grunt.config import settings
-
     if not settings.doc_cache_enabled:
         return await get_user_by_id(uid, fields=AUTH_CONTEXT_FIELDS)
 
@@ -401,9 +416,6 @@ async def get_auth_context_user(uid: str) -> User | None:
 async def list_users() -> list[User]:
     """List all users. Runs as SYSTEM_USER - callers (CLI, admin API) gate access
     themselves before calling this."""
-    from grunt.auth.doctypes.UserRole.user_role import get_user_roles
-    from grunt.site.manager import site_manager
-
     session = grunt.get_session()
     engine = site_manager.get_engine(site_manager.get_active_site())
     async with grunt.system_context(session, engine):
@@ -421,8 +433,6 @@ async def create_user(
     middle_name: str | None,
 ) -> User:
     """Create a new user. The first user automatically gets the "System Manager" role."""
-    from grunt.site.manager import site_manager
-
     session = grunt.get_session()
     engine = site_manager.get_engine(site_manager.get_active_site())
     async with grunt.system_context(session, engine):
@@ -447,8 +457,6 @@ async def create_user(
 async def _grant_system_manager(user_id: str) -> None:
     """Ensure the "System Manager" role exists and assign it to *user_id* -
     used to make the first user on a site an administrator."""
-    from grunt.auth.doctypes.Role.role import Role
-
     if not await grunt.db.exists("Role", {"role_name": "System Manager"}):
         await Role.objects.create(role_name="System Manager")
     await grunt.save_doc("User", user_id, {"roles": [{"role_name": "System Manager"}]})
@@ -472,8 +480,6 @@ async def register_failed_attempt(user: User) -> None:
 
     Shared by every authentication factor (password, email code, ...).
     """
-    from grunt.site.settings import get_setting
-
     max_attempts = int(await get_setting("max_login_attempts", _MAX_ATTEMPTS) or _MAX_ATTEMPTS)
     lockout_minutes = int(
         await get_setting("account_lockout_duration", _LOCKOUT_MINUTES) or _LOCKOUT_MINUTES
@@ -545,8 +551,6 @@ async def _guard_registration() -> None:
     The very first user is always allowed - that path is the setup wizard /
     ``grunt site create`` bootstrap, not public sign-up.
     """
-    from grunt.site.settings import get_setting
-
     if await grunt.db.count("User") == 0:
         return
     if not await get_setting("allow_user_registration", False):
@@ -559,8 +563,6 @@ async def _assign_default_role(user_id: str | None) -> None:
     Runs as SYSTEM - registration happens in a guest context that cannot
     write the admin-only ``User.roles`` table.
     """
-    from grunt.site.settings import get_setting
-
     role = await get_setting("default_role")
     if not role or not user_id:
         return
@@ -588,8 +590,6 @@ async def _apply_signup_approval(user: User) -> bool:
 
     Returns True when the user was left pending.
     """
-    from grunt.site.settings import get_setting
-
     if user_has_roles(user, ["System Manager"]) or not await get_setting(
         "require_signup_approval", False
     ):
@@ -613,8 +613,6 @@ async def register(
     middle_name: str | None = None,
 ) -> dict[str, Any]:
     """Register a new user."""
-    from grunt.auth.password_policy import enforce_password_policy
-
     await _guard_registration()
     await enforce_password_policy(password)
 
@@ -631,8 +629,6 @@ async def register(
 @grunt.whitelist(allow_guest=True)
 async def register_full_name_api(email: str, password: str, full_name: str) -> dict[str, Any]:
     """Register a new user using a single full_name string."""
-    from grunt.auth.password_policy import enforce_password_policy
-
     await _guard_registration()
     await enforce_password_policy(password)
 
@@ -648,9 +644,6 @@ async def register_full_name_api(email: str, password: str, full_name: str) -> d
 @grunt.whitelist(allow_guest=True)
 async def login_api(email: str, password: str, request: Request | None = None) -> dict[str, Any]:
     """Authenticate a user and issue auth tokens or MFA challenge token."""
-    from grunt.auth.doctypes.UserSession.user_session import client_ip, client_user_agent
-    from grunt.auth.login import issue_login
-
     try:
         user = await authenticate(email, password)
     except ValueError as exc:
@@ -673,11 +666,6 @@ async def mfa_login_api(
     request: Request | None = None,
 ) -> dict[str, Any]:
     """Verify MFA challenge token+code and issue full auth tokens."""
-    from grunt.auth.doctypes.UserSession.user_session import client_ip, client_user_agent
-    from grunt.auth.login import issue_login
-    from grunt.auth.mfa import check_mfa_code
-    from grunt.auth.service import verify_mfa_token
-
     payload = verify_mfa_token(mfa_token)
     if not payload:
         grunt.throw(_("Invalid or expired MFA token"), "UNAUTHORIZED")
@@ -703,9 +691,6 @@ async def mfa_login_api(
 
 async def _user_for_mfa_setup(mfa_token: str) -> User:
     """Resolve the user behind an ``mfa_setup`` token who still has to enroll."""
-    from grunt.auth.mfa import mfa_setup_required
-    from grunt.auth.service import verify_mfa_setup_token
-
     payload = verify_mfa_setup_token(mfa_token)
     if not payload:
         grunt.throw(_("Invalid or expired MFA setup token"), "UNAUTHORIZED")
@@ -718,8 +703,6 @@ async def _user_for_mfa_setup(mfa_token: str) -> User:
 @grunt.whitelist(allow_guest=True)
 async def mfa_enroll_begin(mfa_token: str) -> dict[str, Any]:
     """Login-time MFA enrollment, step 1: a fresh TOTP secret + QR code."""
-    from grunt.auth.mfa import begin_mfa_setup
-
     return await begin_mfa_setup(await _user_for_mfa_setup(mfa_token))
 
 
@@ -733,10 +716,6 @@ async def mfa_enroll_complete(
 
     Returns the regular login payload plus ``backup_codes`` to show once.
     """
-    from grunt.auth.doctypes.UserSession.user_session import client_ip, client_user_agent
-    from grunt.auth.login import issue_login
-    from grunt.auth.mfa import confirm_mfa_setup
-
     user = await _user_for_mfa_setup(mfa_token)
     backup_codes = await confirm_mfa_setup(user, code)
     user.mfa_enabled = True
@@ -813,9 +792,6 @@ async def update_me_api(
 @grunt.whitelist(allow_guest=True)
 async def refresh_api(refresh_token: str, request: Request | None = None) -> dict[str, Any]:
     """Exchange a session's refresh token for a new access+refresh pair."""
-    from grunt.auth.doctypes.UserSession.user_session import client_ip, rotate_session
-    from grunt.auth.service import access_token_minutes, create_access_token
-
     rotated = await rotate_session(refresh_token, client_ip(request))
     if rotated is None:
         grunt.throw(_("Invalid or expired refresh token"), "UNAUTHORIZED")
@@ -828,8 +804,6 @@ async def refresh_api(refresh_token: str, request: Request | None = None) -> dic
     # A role started requiring MFA after this session was opened (or MFA was
     # turned off), or the session moved to an address the user's role does not
     # allow: end the session so the next sign-in goes through the policy.
-    from grunt.auth.ip_policy import sign_in_ip_allowed
-    from grunt.auth.mfa import mfa_setup_required
 
     if not await sign_in_ip_allowed(user, client_ip(request)):
         from grunt.auth.doctypes.UserSession.user_session import end_session
@@ -858,8 +832,6 @@ async def refresh_api(refresh_token: str, request: Request | None = None) -> dic
 @grunt.whitelist()
 async def logout_api() -> bool:
     """End the current device's session (other devices stay signed in)."""
-    from grunt.auth.doctypes.UserSession.user_session import end_session
-
     user = grunt.get_user()
     if sid := user.data.get("_sid"):
         await end_session(sid)
@@ -873,8 +845,6 @@ async def start_impersonation_api(user_id: str) -> dict[str, Any]:
     Returns an access token (no refresh token) that authenticates as
     ``user_id`` with that user's roles, plus an ``impersonated_by`` block.
     """
-    from grunt.auth.impersonation import start_impersonation
-
     actor = grunt.get_user()
     return await start_impersonation(actor, user_id)
 
@@ -973,8 +943,6 @@ async def set_user_password_api(
     that check is skipped - it is a first-time set. Changing *someone else's*
     password requires the System Manager role.
     """
-    from grunt.auth.password_policy import enforce_password_policy
-
     user = await get_user_by_id(user_id)
     if not user or not user.id:
         grunt.throw(_("User not found"), "NOT_FOUND")
@@ -1029,8 +997,6 @@ async def confirm_mfa(code: str) -> dict[str, Any]:
 @grunt.whitelist()
 async def verify_mfa(code: str) -> bool:
     """Verify a TOTP or backup code for the current user."""
-    from grunt.auth.mfa import check_mfa_code
-
     current = grunt.get_user()
     assert current.id is not None
     user = await get_user_by_id(current.id)
@@ -1056,9 +1022,6 @@ async def disable_mfa() -> bool:
 @grunt.whitelist(allow_guest=True)
 async def forgot_password_api(email: str, request: Request | None = None) -> bool:
     """Queue a password reset email if the user exists (always returns success)."""
-    from grunt.auth.service import create_password_reset_token
-    from grunt.utils.http import public_base_url
-
     user = await get_user_by_email(email)
     if user is None or not user.id:
         return True
@@ -1109,9 +1072,6 @@ async def forgot_password_api(email: str, request: Request | None = None) -> boo
 @grunt.whitelist(allow_guest=True)
 async def reset_password_api(token: str, new_password: str) -> bool:
     """Reset password using a valid reset token."""
-    from grunt.auth.password_policy import enforce_password_policy
-    from grunt.auth.service import consume_password_reset_token
-
     await enforce_password_policy(new_password)
 
     reset_ok = await consume_password_reset_token(token, new_password)

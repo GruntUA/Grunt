@@ -12,6 +12,7 @@ from grunt.document.base import Document
 from grunt.local import _user_ctx
 from grunt.storage import files
 from grunt.storage.backends import FileTooLargeError, get_storage_backend
+from grunt.storage.signing import verify
 from grunt.storage.thumbnails import THUMB_MIMETYPE, can_thumbnail
 
 
@@ -150,8 +151,6 @@ async def get_content(
     A private file needs either a valid signature (``exp`` + ``sig``, appended
     to every file URL the API hands out) or a user allowed to read it.
     """
-    from grunt.storage.signing import verify
-
     # Use grunt.db directly to avoid permission checks that require an active user.
     doc = await grunt.db.get_values(
         "File",

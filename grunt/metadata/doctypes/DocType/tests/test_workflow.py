@@ -9,6 +9,10 @@ from __future__ import annotations
 
 import pytest
 
+import grunt
+from grunt.api.v1.meta import save_doctype
+from grunt.api.v1.workflow import get_transitions
+
 # Helpers
 
 DOCTYPE_PAYLOAD = {
@@ -52,8 +56,6 @@ async def _create_workflow(ctx, payload: dict) -> dict:
 @pytest.mark.asyncio
 async def test_create_doctype_with_workflow(ctx):
     """A Workflow document can be created for a DocType."""
-    from grunt.api.v1.meta import save_doctype
-
     await save_doctype(DOCTYPE_PAYLOAD)
     await ctx.db._session().commit()
 
@@ -65,9 +67,6 @@ async def test_create_doctype_with_workflow(ctx):
 @pytest.mark.asyncio
 async def test_workflow_transitions_empty_for_no_workflow(ctx):
     """A DocType without a Workflow document returns empty transitions list."""
-    from grunt.api.v1.meta import save_doctype
-    from grunt.api.v1.workflow import get_transitions
-
     # Create a simple doctype without workflow
     await save_doctype({"name": "Note", "label": "Нотатка", "module": "core", "fields": []})
     await ctx.db._session().commit()
@@ -84,9 +83,6 @@ async def test_workflow_transitions_empty_for_no_workflow(ctx):
 @pytest.mark.asyncio
 async def test_workflow_initial_transitions(ctx):
     """A doc in Draft state shows Submit transition."""
-    from grunt.api.v1.meta import save_doctype
-    from grunt.api.v1.workflow import get_transitions
-
     # Create doctype + workflow
     await save_doctype(DOCTYPE_PAYLOAD)
     await ctx.db._session().commit()
@@ -104,8 +100,6 @@ async def test_workflow_initial_transitions(ctx):
 @pytest.mark.asyncio
 async def test_workflow_apply_transition(ctx):
     """Applying a transition changes the document state."""
-    from grunt.api.v1.meta import save_doctype
-
     await save_doctype(DOCTYPE_PAYLOAD)
     await ctx.db._session().commit()
     await _create_workflow(ctx, CONTRACT_WORKFLOW)
@@ -122,8 +116,6 @@ async def test_workflow_apply_transition(ctx):
 async def test_workflow_invalid_transition_rejected(ctx):
     """Applying a non-available transition returns 409 (Conflict)."""
     from fastapi import HTTPException
-
-    from grunt.api.v1.meta import save_doctype
 
     await save_doctype(DOCTYPE_PAYLOAD)
     await ctx.db._session().commit()
@@ -177,8 +169,6 @@ async def test_apply_transition_requires_write_permission(ctx, db_session, engin
     """
     from fastapi import HTTPException
 
-    import grunt
-    from grunt.api.v1.meta import save_doctype
     from tests.support import make_user
 
     await save_doctype(doctype_data={**GUARDED_WORKFLOW_DOCTYPE, "__is_new": True})
@@ -204,8 +194,6 @@ async def test_apply_transition_requires_write_permission(ctx, db_session, engin
 @pytest.mark.asyncio
 async def test_workflow_multi_step(ctx):
     """Full workflow: Draft -> Submitted -> Approved."""
-    from grunt.api.v1.meta import save_doctype
-
     await save_doctype(DOCTYPE_PAYLOAD)
     await ctx.db._session().commit()
     await _create_workflow(ctx, CONTRACT_WORKFLOW)
@@ -256,9 +244,6 @@ PROMPT_FIELD_WORKFLOW = {
 async def test_workflow_prompt_fields_shown_before_values_filled(ctx):
     """A transition with prompt_fields stays available even before its
     condition field has a value - the dialog is what collects it."""
-    from grunt.api.v1.meta import save_doctype
-    from grunt.api.v1.workflow import get_transitions
-
     await save_doctype(PROMPT_FIELD_DOCTYPE)
     await ctx.db._session().commit()
     await _create_workflow(ctx, PROMPT_FIELD_WORKFLOW)
@@ -276,8 +261,6 @@ async def test_workflow_prompt_fields_rejects_empty_values(ctx):
     """Applying a prompt_fields transition without the required value fails."""
     from fastapi import HTTPException
 
-    from grunt.api.v1.meta import save_doctype
-
     await save_doctype(PROMPT_FIELD_DOCTYPE)
     await ctx.db._session().commit()
     await _create_workflow(ctx, PROMPT_FIELD_WORKFLOW)
@@ -294,8 +277,6 @@ async def test_workflow_prompt_fields_rejects_empty_values(ctx):
 async def test_workflow_prompt_fields_applies_dialog_values(ctx):
     """Applying a prompt_fields transition writes the dialog values and the
     new state in the same update - only fields listed in prompt_fields."""
-    from grunt.api.v1.meta import save_doctype
-
     await save_doctype(PROMPT_FIELD_DOCTYPE)
     await ctx.db._session().commit()
     await _create_workflow(ctx, PROMPT_FIELD_WORKFLOW)

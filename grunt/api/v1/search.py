@@ -6,6 +6,8 @@ from typing import Any
 
 import grunt
 from grunt import _
+from grunt.permissions.rbac import permission_checker
+from grunt.search.service import search_index_service
 
 
 @grunt.whitelist()
@@ -22,9 +24,6 @@ async def global_search(
         grunt.throw(_("Parameter 'limit' must be positive"), "VALIDATION_ERROR")
     if limit > 50:
         grunt.throw(_("Parameter 'limit' too high"), "VALIDATION_ERROR")
-
-    from grunt.permissions.rbac import permission_checker
-    from grunt.search.service import search_index_service
 
     raw = await search_index_service.search(
         session=grunt.get_session(),
@@ -67,8 +66,6 @@ async def global_search(
 @grunt.whitelist(roles=["System Manager"])
 async def rebuild_index() -> dict[str, Any]:
     """Rebuild the entire search index from scratch. System Manager only."""
-    from grunt.search.service import search_index_service
-
     session = grunt.get_session()
     count = await search_index_service.reindex_all(session, grunt.get_engine())
     return {"indexed": count}

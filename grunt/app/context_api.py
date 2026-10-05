@@ -5,6 +5,7 @@ from __future__ import annotations
 import contextlib
 from typing import TYPE_CHECKING
 
+from grunt.auth.doctypes.User.user import SYSTEM_USER
 from grunt.local import (
     _bootstrap_ctx,
     _engine_ctx,
@@ -86,8 +87,6 @@ class ContextAPI:
             async with grunt.system_context(session):
                 await grunt.new_doc("ActivityLog", {...})
         """
-        from grunt.auth.doctypes.User.user import SYSTEM_USER
-
         async with self.context(session, engine, SYSTEM_USER):
             yield
 

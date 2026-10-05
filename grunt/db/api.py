@@ -7,8 +7,10 @@ from typing import TYPE_CHECKING, Any, Literal, cast, overload
 
 from sqlalchemy import CursorResult, func, or_, select, update
 
+import grunt
 from grunt import _
 from grunt.db.filters import apply_filters, build_clauses
+from grunt.errors import not_found
 from grunt.local import _session_ctx
 from grunt.utils.attr_dict import AttrDict
 
@@ -148,9 +150,6 @@ class GruntDB:
 
         Returns ``None`` when no document matches (or no requested field exists).
         """
-        import grunt
-        from grunt.errors import not_found
-
         dt = await grunt.get_meta(doctype)
         if dt is None:
             raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
@@ -190,9 +189,6 @@ class GruntDB:
         value: Any = None,
     ) -> None:
         """Update one or more fields on a document."""
-        import grunt
-        from grunt.errors import not_found
-
         dt = await grunt.get_meta(doctype)
         if dt is None:
             raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
@@ -207,9 +203,6 @@ class GruntDB:
         filters: str | dict[str, Any],
     ) -> str | None:
         """Return the document name if a match exists, else ``None``."""
-        import grunt
-        from grunt.errors import not_found
-
         dt = await grunt.get_meta(doctype)
         if dt is None:
             raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
@@ -265,9 +258,6 @@ class GruntDB:
         order: str = "desc",
     ) -> list[dict[str, Any]] | list[Any]:
         """Fetch a list of documents as plain dicts."""
-        import grunt
-        from grunt.errors import not_found
-
         dt = await grunt.get_meta(doctype)
         if dt is None:
             raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
@@ -312,9 +302,6 @@ class GruntDB:
         fieldnames: list[str],
     ) -> dict[str, Any] | None:
         """Return multiple field values from the first matching document."""
-        import grunt
-        from grunt.errors import not_found
-
         dt = await grunt.get_meta(doctype)
         if dt is None:
             raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
@@ -334,9 +321,6 @@ class GruntDB:
 
     async def get_single_value(self, doctype: str, fieldname: str) -> Any:
         """Return a field value from a Singleton DocType (e.g. SystemSettings)."""
-        import grunt
-        from grunt.errors import not_found
-
         dt = await grunt.get_meta(doctype)
         if dt is None:
             raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
@@ -355,9 +339,6 @@ class GruntDB:
         Low-level - no permission guards. Use ``grunt.get_doc`` for
         authenticated reads with RBAC enforcement.
         """
-        import grunt
-        from grunt.errors import not_found
-
         dt = await grunt.get_meta(doctype)
         if dt is None:
             raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
@@ -374,9 +355,6 @@ class GruntDB:
         or_filters: dict[str, Any] | None = None,
     ) -> int:
         """Count documents matching optional filters (``or_filters`` - as in get_all)."""
-        import grunt
-        from grunt.errors import not_found
-
         dt = await grunt.get_meta(doctype)
         if dt is None:
             raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
@@ -400,9 +378,6 @@ class GruntDB:
         if not filters:
             raise ValueError("grunt.db.delete requires at least one filter.")
 
-        import grunt
-        from grunt.errors import not_found
-
         dt = await grunt.get_meta(doctype)
         if dt is None:
             raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
@@ -422,9 +397,6 @@ class GruntDB:
         Caller is responsible for providing required standard fields
         (`name`, timestamps, owner, etc.) when needed.
         """
-        import grunt
-        from grunt.errors import not_found
-
         dt = await grunt.get_meta(doctype)
         if dt is None:
             raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
@@ -436,9 +408,6 @@ class GruntDB:
         """Insert multiple rows into a DocType table and flush the session."""
         if not rows:
             return 0
-
-        import grunt
-        from grunt.errors import not_found
 
         dt = await grunt.get_meta(doctype)
         if dt is None:
@@ -455,9 +424,6 @@ class GruntDB:
         values: dict[str, Any],
     ) -> int:
         """Update multiple rows matching exact-match filters and flush session."""
-        import grunt
-        from grunt.errors import not_found
-
         dt = await grunt.get_meta(doctype)
         if dt is None:
             raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
@@ -486,9 +452,6 @@ class GruntDB:
         order: str = "desc",
     ) -> list[dict[str, Any]]:
         """Fetch aggregated data (GROUP BY, SUM, COUNT, etc)."""
-        import grunt
-        from grunt.errors import not_found
-
         dt = await grunt.get_meta(doctype)
         if dt is None:
             raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})

@@ -19,6 +19,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+import grunt
+from grunt.local import require_user
+
 if TYPE_CHECKING:
     from grunt.document.base import Document
 
@@ -82,8 +85,6 @@ class QuerySet[T: Document]:
     # Execution
 
     async def all(self) -> list[T]:
-        import grunt
-
         return await grunt.get_all(
             self._model_cls,
             filters=self._filters or None,
@@ -99,8 +100,6 @@ class QuerySet[T: Document]:
         return results[0] if results else None
 
     async def count(self) -> int:
-        import grunt
-
         return await grunt.count(self._doctype, filters=self._filters or None)
 
     async def exists(self) -> bool:
@@ -108,9 +107,6 @@ class QuerySet[T: Document]:
 
     async def create(self, **data: Any) -> T:
         """Create a new document and return it as a typed controller instance."""
-        import grunt
-        from grunt.local import require_user
-
         created = await grunt.new_doc(self._doctype, data)
         return self._model_cls(
             doctype=self._doctype,

@@ -9,9 +9,13 @@ all other notification channels (in-app, email) continue to work.
 
 from __future__ import annotations
 
+import base64
+import importlib.util
 import json
 
+import grunt
 from grunt import log
+from grunt.site.settings import get_setting
 
 _VAPID_PRIVATE_KEY_FIELD = "webpush_vapid_private"
 _VAPID_PUBLIC_KEY_FIELD = "webpush_vapid_public"
@@ -20,8 +24,6 @@ _VAPID_CLAIMS_SUB = "mailto:system@grunt.local"
 
 def _generate_vapid_keys() -> tuple[str, str]:
     """Generate a new VAPID key pair. Returns (private_pem, public_b64url)."""
-    import base64
-
     from cryptography.hazmat.primitives import serialization
     from py_vapid import Vapid
 
@@ -50,8 +52,6 @@ def _generate_vapid_keys() -> tuple[str, str]:
 class WebPushService:
     async def get_vapid_public_key(self) -> str | None:
         """Return the VAPID public key stored in SystemSettings, or None."""
-        import grunt
-
         try:
             return await grunt.get_single("SystemSettings", _VAPID_PUBLIC_KEY_FIELD)
         except Exception:
@@ -59,13 +59,9 @@ class WebPushService:
 
     async def ensure_vapid_keys(self) -> str | None:
         """Ensure VAPID keys exist in SystemSettings; generate if missing. Returns public key."""
-        import importlib.util
-
         if importlib.util.find_spec("py_vapid") is None:
             log.warning("webpush.pywebpush_not_installed")
             return None
-
-        import grunt
 
         try:
             public_key = await grunt.get_single("SystemSettings", _VAPID_PUBLIC_KEY_FIELD)
@@ -99,8 +95,6 @@ class WebPushService:
         user_agent: str = "",
     ) -> None:
         """Upsert a push subscription for a user (one per endpoint)."""
-        import grunt
-
         # Remove old subscription at this endpoint if any using db.delete for performance
         await grunt.db.delete("PushSubscription", filters={"endpoint": endpoint})
 
@@ -118,8 +112,6 @@ class WebPushService:
 
     async def remove_subscription(self, endpoint: str, user: str) -> None:
         """Delete a push subscription by endpoint URL - only if it belongs to `user`."""
-        import grunt
-
         await grunt.db.delete("PushSubscription", filters={"endpoint": endpoint, "user": user})
 
     async def send_push(
@@ -130,8 +122,6 @@ class WebPushService:
         url: str = "/",
     ) -> None:
         """Send a Web Push notification to all subscriptions of a user."""
-        from grunt.site.settings import get_setting
-
         if not await get_setting("enable_web_push", False):
             return
 
@@ -139,8 +129,6 @@ class WebPushService:
             from pywebpush import webpush
         except ImportError:
             return  # Silently skip if not installed
-
-        import grunt
 
         # Get VAPID private key
         try:

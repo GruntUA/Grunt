@@ -9,6 +9,8 @@ from sqlalchemy import Table, false, or_
 from grunt import log
 from grunt.permissions.access import RoleAccess
 from grunt.permissions.match import PermissionMatch
+from grunt.permissions.reference import apply_reference_filter
+from grunt.permissions.shares import shared_names_clause
 
 if TYPE_CHECKING:
     from sqlalchemy.sql import Select
@@ -36,13 +38,9 @@ async def apply_permission_filter(
     if access.is_unrestricted:
         return query
 
-    from grunt.permissions.reference import apply_reference_filter
-
     query = await apply_reference_filter(query, table, user, doctype)
     if access.has_unrestricted_read:
         return query
-
-    from grunt.permissions.shares import shared_names_clause
 
     conditions = []
     shared = await shared_names_clause(table, user, doctype.name)

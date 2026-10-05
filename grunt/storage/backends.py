@@ -33,6 +33,8 @@ from pathlib import Path
 from typing import TYPE_CHECKING, BinaryIO
 
 from grunt import log
+from grunt.config import settings
+from grunt.site.manager import site_manager
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
@@ -191,16 +193,11 @@ _backends: dict[str, StorageBackend] = {}
 
 def _resolve_local_upload_dir(site: str) -> str:
     """Return the uploads directory for the given site."""
-    from grunt.site.manager import site_manager
-
     return str(site_manager.sites_dir / site / "uploads")
 
 
 def get_storage_backend() -> StorageBackend:
     """Return the storage backend for the current site."""
-    from grunt.config import settings
-    from grunt.site.manager import site_manager
-
     try:
         # Not just current_site: task workers and the CLI bind none, and used
         # to write into ./uploads of whatever directory they ran in.

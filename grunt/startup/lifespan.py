@@ -17,11 +17,16 @@ from __future__ import annotations
 from contextlib import asynccontextmanager
 from typing import TYPE_CHECKING
 
+import grunt
 from grunt import log
 from grunt.apps import load_external_apps
 from grunt.config import settings
+from grunt.i18n import translation_service
+from grunt.logging_config import configure_logging
 from grunt.metadata.registry import doctype_registry
 from grunt.site.manager import current_site, site_manager
+from grunt.site.settings import get_setting
+from grunt.startup import load_validators
 from grunt.tasks.broker import broker
 from grunt.tasks.scheduler import start_scheduler, stop_scheduler
 
@@ -30,9 +35,6 @@ if TYPE_CHECKING:
 
 
 def _configure() -> None:
-    from grunt.logging_config import configure_logging
-    from grunt.startup import load_validators
-
     configure_logging(
         bench_dir=site_manager.bench_dir,
         site_names=site_manager.get_sites(),
@@ -82,10 +84,6 @@ async def _seed_supported_languages() -> None:
     process-global (as is the default: last site wins). ``en``/``uk`` stay
     supported even if the table is empty or absent (fresh install).
     """
-    import grunt
-    from grunt.i18n import translation_service
-    from grunt.site.settings import get_setting
-
     codes: set[str] = set()
     for site in site_manager.get_sites():
         token = current_site.set(site)
@@ -143,7 +141,6 @@ async def lifespan(app: FastAPI):
     # Shutdown
     await stop_scheduler()
     await broker.shutdown()
-    import grunt
 
     await grunt.query_cache.aclose()
     for eng in site_manager.engines.values():

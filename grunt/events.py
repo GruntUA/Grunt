@@ -26,8 +26,15 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
 from grunt import log
+from grunt.assignment import assignment_service
+from grunt.document.links import link_service
 from grunt.hooks import dispatch as _dispatch_hooks
 from grunt.local import _bootstrap_ctx
+from grunt.metadata.registry import doctype_registry
+from grunt.notification import rule_index
+from grunt.notification.tasks import evaluate_notification_rules_task
+from grunt.scripting import server_script_runner
+from grunt.storage.references import claim_referenced_files
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable, Iterable
@@ -158,8 +165,6 @@ async def _run_server_scripts(**kwargs: Any) -> None:
     if not doctype or not kwargs.get("session"):
         return
 
-    from grunt.scripting import server_script_runner
-
     await server_script_runner.run_doctype_event(
         session=kwargs["session"],
         doctype=doctype,
@@ -177,8 +182,6 @@ async def _sync_document_links(**kwargs: Any) -> None:
     if not doctype or not doc or not session:
         return
 
-    from grunt.document.links import link_service
-
     doc_id = str(doc.get("name", ""))
     if kwargs["event"] == "after_delete":
         await link_service.delete_links(session, doctype, doc_id)
@@ -190,8 +193,6 @@ async def _claim_referenced_files(**kwargs: Any) -> None:
     """Bind pending uploads the saved document points at (grunt.storage.references)."""
     if not kwargs.get("session"):
         return
-
-    from grunt.storage.references import claim_referenced_files
 
     await claim_referenced_files(**kwargs)
 
@@ -208,8 +209,6 @@ async def _evaluate_notification_rules(**kwargs: Any) -> None:
     if doctype == "Notification":
         return
 
-    from grunt.metadata.registry import doctype_registry
-
     try:
         dt = await doctype_registry.get(doctype)
     except Exception:
@@ -217,14 +216,10 @@ async def _evaluate_notification_rules(**kwargs: Any) -> None:
     if dt is not None and getattr(dt, "is_log", False):
         return
 
-    from grunt.notification import rule_index
-
     # Skip the worker hop entirely unless a rule could actually match -
     # otherwise every document write queues a task and a log row.
     if not await rule_index.has_rules(doctype, event):
         return
-
-    from grunt.notification.tasks import evaluate_notification_rules_task
 
     await evaluate_notification_rules_task.kiq(
         event=event,
@@ -238,8 +233,6 @@ async def _evaluate_assignment_rules(**kwargs: Any) -> None:
     doctype = kwargs.get("doctype")
     if not doctype or not kwargs.get("doc") or not kwargs.get("session"):
         return
-
-    from grunt.assignment import assignment_service
 
     await assignment_service.evaluate_and_assign(doctype=doctype, doc=kwargs["doc"])
 

@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import importlib
+import inspect
+import json
 from inspect import iscoroutinefunction
 from typing import TYPE_CHECKING, Any
 
@@ -9,6 +11,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 import grunt
 from grunt import _, log
 from grunt.auth.dependencies import _oauth2_scheme_optional, optional_user
+from grunt.auth.dependencies import current_user as get_current_user
 from grunt.db.session import get_engine as get_engine_dep
 from grunt.db.session import get_session
 
@@ -25,8 +28,6 @@ def _string_params(method: Any) -> set[str]:
     which breaks a method that asked for a string (e.g. a Link search for a
     numeric term). Such params keep their raw value.
     """
-    import inspect
-
     try:
         params = inspect.signature(method).parameters.values()
     except TypeError, ValueError:
@@ -38,8 +39,6 @@ def _string_params(method: Any) -> set[str]:
 
 def _process_params(params: dict[str, str], method: Any = None) -> dict[str, Any]:
     """Parse JSON strings and convert numeric/bool types in parameters."""
-    import json
-
     string_params = _string_params(method) if method is not None else set()
 
     args = {}
@@ -126,7 +125,6 @@ async def _invoke_with_context(
     allow_guest = getattr(method, "_allow_guest", False)
 
     # Authenticate user manually using the core logic but passing the token
-    from grunt.auth.dependencies import current_user as get_current_user
 
     user = None
     try:

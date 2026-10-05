@@ -15,7 +15,9 @@ from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import select, update
 
+import grunt
 from grunt import _, log
+from grunt.errors import not_found
 from grunt.naming.patterns import (
     build_prefix,
     format_name,
@@ -88,9 +90,6 @@ class NamingService:
 
         Uses SELECT ... FOR UPDATE to prevent race conditions.
         """
-        import grunt
-        from grunt.errors import not_found
-
         ns_dt = await grunt.get_meta("NamingSeries")
         if ns_dt is None:
             raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": "NamingSeries"})

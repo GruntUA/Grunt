@@ -17,6 +17,7 @@ import httpx
 
 from grunt import log
 from grunt.config import settings
+from grunt.site.settings import get_setting
 
 _VERIFY_URLS = {
     "turnstile": "https://challenges.cloudflare.com/turnstile/v0/siteverify",
@@ -35,8 +36,6 @@ class CaptchaConfig:
 
 async def captcha_config() -> CaptchaConfig:
     """Site CAPTCHA settings: SystemSettings first, then ``grunt.config``."""
-    from grunt.site.settings import get_setting
-
     provider = await get_setting("captcha_provider")
     if provider:
         return CaptchaConfig(

@@ -11,7 +11,9 @@ from __future__ import annotations
 
 from typing import Any
 
+import grunt
 from grunt import _
+from grunt.hooks import DOC_EVENT_REGISTRY, HOOK_REGISTRY
 from grunt.metadata.virtual import VirtualDocType
 
 _SEARCH_FIELDS = ["event", "handler", "reference_doctype", "source"]
@@ -28,8 +30,6 @@ def _handler_name(handler: Any) -> str:
 
 def _collect() -> list[dict[str, Any]]:
     """Gather every Python hook (global + DocType) into row dicts."""
-    from grunt.hooks import DOC_EVENT_REGISTRY, HOOK_REGISTRY
-
     rows: list[dict[str, Any]] = []
 
     for event, entries in HOOK_REGISTRY.items():
@@ -62,8 +62,6 @@ def _collect() -> list[dict[str, Any]]:
 
 async def _collect_server_scripts() -> list[dict[str, Any]]:
     """Gather enabled Server Scripts registered as event/API hooks."""
-    import grunt
-
     rows: list[dict[str, Any]] = []
     try:
         scripts = await grunt.get_list(

@@ -10,6 +10,8 @@ import ipaddress
 import re
 from typing import TYPE_CHECKING
 
+import grunt
+
 if TYPE_CHECKING:
     from grunt.auth.doctypes.User.user import User
 
@@ -73,8 +75,6 @@ async def role_ip_allowlist(user: User) -> set[str] | None:
     ``None`` - no role of the user restricts it. Roles without a list never
     widen a restricted one, so holding "All" does not lift a restriction.
     """
-    import grunt
-
     roles = list(getattr(user, "roles", None) or [])
     if not roles:
         return None

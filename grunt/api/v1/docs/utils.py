@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import io
 from datetime import date, datetime
+from html import escape
 from typing import TYPE_CHECKING, Any
 
 import openpyxl
@@ -96,8 +97,6 @@ def _generate_html_single(dt: Any, doc: dict[str, Any]) -> str:
     as print/renderer.py's _render_fallback (a field value containing HTML
     is document data, not markup, and this doesn't get autoescape for free).
     """
-    from html import escape
-
     rows = ""
     for field in _non_layout_fields(dt):
         val = _fmt(doc.get(field.fieldname))

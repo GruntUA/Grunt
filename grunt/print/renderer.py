@@ -8,13 +8,20 @@ Supports:
 
 from __future__ import annotations
 
+import io
 from datetime import UTC, datetime
+from html import escape
 from pathlib import Path
 from typing import Any
 
 from jinja2 import BaseLoader, Environment, FileSystemLoader, TemplateNotFound, select_autoescape
 
+from grunt.app import GruntDB
+from grunt.document.meta import LAYOUT_FIELDTYPES
+from grunt.i18n.jinja import install as install_i18n
+from grunt.local import _session_ctx
 from grunt.print.filters import JINJA_FILTERS
+from grunt.site.manager import site_manager
 
 # Core templates directory
 _CORE_TEMPLATE_DIR = Path(__file__).parent / "templates"
@@ -22,8 +29,6 @@ _CORE_TEMPLATE_DIR = Path(__file__).parent / "templates"
 
 def _get_template_dirs() -> list[str]:
     """Collect all template directories from installed apps."""
-    from grunt.site.manager import site_manager
-
     dirs: list[str] = []
     ext_apps_dir = site_manager.bench_dir / "apps"
     if ext_apps_dir.is_dir():
@@ -42,7 +47,6 @@ def _get_jinja_env() -> Environment:
         autoescape=select_autoescape(["html"]),
     )
     env.filters.update(JINJA_FILTERS)
-    from grunt.i18n.jinja import install as install_i18n
 
     return install_i18n(env)
 
@@ -97,9 +101,6 @@ async def get_print_format_template(
     Returns:
         Tuple of (template_content, template_type) or None.
     """
-    from grunt.app import GruntDB
-    from grunt.local import _session_ctx
-
     token = _session_ctx.set(session)
     try:
         rows = await GruntDB().get_all(
@@ -129,8 +130,6 @@ def render_docx(template_path: str, doc: dict[str, Any]) -> bytes:
     Returns:
         DOCX file content as bytes.
     """
-    import io
-
     from docxtpl import DocxTemplate
 
     tpl = DocxTemplate(template_path)
@@ -150,10 +149,6 @@ def _render_fallback(doctype_label: str, fields: list[Any], doc: dict[str, Any])
     HTML/script becomes a stored XSS in the print/HTML view every viewer of
     that document opens.
     """
-    from html import escape
-
-    from grunt.document.meta import LAYOUT_FIELDTYPES
-
     rows = ""
     for field in fields:
         if field.fieldtype in LAYOUT_FIELDTYPES or field.fieldtype == "Table":

@@ -13,6 +13,9 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy import select
 
+import grunt
+from grunt.local import _session_ctx
+
 if TYPE_CHECKING:
     from sqlalchemy import ColumnElement, Table
 
@@ -35,9 +38,6 @@ async def has_share(user: User, doctype: str, action: str, doc_name: str | None 
     its documents - which is what the doctype-level pre-flight guards need;
     the document-level check that follows still requires a share on that doc.
     """
-    import grunt
-    from grunt.local import _session_ctx
-
     levels = _LEVELS.get(action)
     # No bound session: a pure in-memory check (unit tests, startup) - there is
     # no DB to hold shares, so roles alone decide.
@@ -55,8 +55,6 @@ async def has_share(user: User, doctype: str, action: str, doc_name: str | None 
 
 async def shared_names_clause(table: Table, user: User, doctype: str) -> ColumnElement[bool] | None:
     """``name IN (<docs of doctype shared with user>)`` for list queries."""
-    import grunt
-
     if not user.email or "name" not in table.c:
         return None
     meta = await grunt.get_meta("SharedWith")

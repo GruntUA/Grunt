@@ -14,7 +14,9 @@ from __future__ import annotations
 
 import time
 
+import grunt
 from grunt import _, log
+from grunt.local import _session_ctx
 
 # Upper bound on how long a process keeps serving a stale snapshot when the rule
 # change happened in *another* process (the invalidation hook only fires in the
@@ -39,9 +41,6 @@ def invalidate_on_change(**_kwargs: object) -> None:
 async def _load() -> frozenset[tuple[str, str]] | None:
     """Read every enabled rule's ``(doctype, event)``; ``None`` if no session bound."""
     from sqlalchemy import select
-
-    import grunt
-    from grunt.local import _session_ctx
 
     session = _session_ctx.get()
     if session is None:

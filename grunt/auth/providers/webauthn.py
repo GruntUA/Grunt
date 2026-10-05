@@ -16,8 +16,10 @@ from urllib.parse import urlparse
 
 import webauthn
 
+import grunt
 from grunt import _, log
 from grunt.api.messages import throw
+from grunt.auth.doctypes.User.user import get_user_by_email, get_user_by_id
 from grunt.auth.providers.base import AuthFlowContext, AuthProvider
 from grunt.auth.providers.registry import register
 from grunt.auth.service import create_challenge_token, verify_challenge_token
@@ -89,8 +91,6 @@ def _resolve_rp(request: Any) -> tuple[str, str]:
 
 
 async def _credentials_for_user(user_id: str) -> list[dict]:
-    import grunt
-
     async with grunt.system_context(grunt.get_session()):
         return await grunt.get_list(
             _CRED,
@@ -101,8 +101,6 @@ async def _credentials_for_user(user_id: str) -> list[dict]:
 
 
 async def _credential_by_id(credential_id: str) -> dict | None:
-    import grunt
-
     async with grunt.system_context(grunt.get_session()):
         rows = await grunt.get_list(
             _CRED,
@@ -153,8 +151,6 @@ class WebAuthnProvider(AuthProvider):
     async def begin(self, ctx: AuthFlowContext) -> dict[str, Any]:
         from webauthn.helpers.structs import UserVerificationRequirement
 
-        from grunt.auth.doctypes.User.user import get_user_by_email
-
         # "cross-device" = sign in with a passkey on a phone (QR/Bluetooth hybrid
         # transport). It must be a discoverable-credential request - the phone
         # can then present any passkey for this RP - so we never scope it to a
@@ -188,9 +184,6 @@ class WebAuthnProvider(AuthProvider):
         return {"options": options_json, "challenge_token": token}
 
     async def complete(self, ctx: AuthFlowContext) -> User:
-        import grunt
-        from grunt.auth.doctypes.User.user import get_user_by_id
-
         response = ctx.get("response") or ctx.get("credential")
         token = ctx.get("challenge_token")
         if not response or not token:
@@ -289,8 +282,6 @@ class WebAuthnProvider(AuthProvider):
         return {"options": options_json, "challenge_token": token}
 
     async def enroll_complete(self, ctx: AuthFlowContext) -> dict[str, Any]:
-        import grunt
-
         user = ctx.user
         if user is None or not user.id:
             throw(_("Authentication required"), "UNAUTHORIZED")

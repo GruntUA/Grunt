@@ -9,6 +9,7 @@ from __future__ import annotations
 from typing import Any
 
 from grunt import _
+from grunt.db.profiler import get_recent_requests
 from grunt.metadata.virtual import VirtualDocType
 
 
@@ -23,8 +24,6 @@ class SqlProfilerRequest(VirtualDocType):
         search: str | None = None,
         **kwargs: Any,
     ) -> dict[str, Any]:
-        from grunt.db.profiler import get_recent_requests
-
         rows = get_recent_requests(limit=200)
 
         if search:
@@ -39,8 +38,6 @@ class SqlProfilerRequest(VirtualDocType):
 
     async def get(self, doc_id: str, **kwargs: Any) -> dict[str, Any]:
         from fastapi import HTTPException, status
-
-        from grunt.db.profiler import get_recent_requests
 
         rows = get_recent_requests(limit=200)
         for row in rows:

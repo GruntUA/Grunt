@@ -6,6 +6,8 @@ accepted-language set in sync with the ``geo.Language`` table.
 
 from __future__ import annotations
 
+import grunt
+from grunt.i18n import translation_service
 from grunt.log import log
 
 
@@ -15,9 +17,6 @@ async def refresh_supported_languages(**_kwargs: object) -> None:
     Doc-event target for ``Language`` after_save / after_delete. Runs inside the
     saving request, so a grunt context/session is already bound.
     """
-    import grunt
-    from grunt.i18n import translation_service
-
     try:
         rows = await grunt.db.get_all(
             "Language", filters={"is_active": True}, fields=["code", "native_name"], limit=None

@@ -8,6 +8,9 @@ from typing import TYPE_CHECKING
 import pyotp
 import pytest
 
+from grunt.auth.doctypes.User.user import create_user, get_user_by_email
+from grunt.auth.service import create_mfa_token
+
 if TYPE_CHECKING:
     from httpx import AsyncClient
 
@@ -18,8 +21,6 @@ PASSWORD = "Str0ngPass"
 
 async def _bootstrap_admin(ctx) -> None:
     """First user -> System Manager."""
-    from grunt.auth.doctypes.User.user import create_user
-
     async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         await create_user(EMAIL, PASSWORD, "Root", "Admin", None)
         await ctx.db._session().commit()
@@ -83,9 +84,6 @@ async def test_login_forces_enrollment_then_signs_in(ctx, client: AsyncClient):
 
 @pytest.mark.asyncio
 async def test_mfa_token_cannot_be_used_for_enrollment(ctx, client: AsyncClient):
-    from grunt.auth.doctypes.User.user import get_user_by_email
-    from grunt.auth.service import create_mfa_token
-
     await _bootstrap_admin(ctx)
     await _require_mfa_for_system_manager(ctx)
     async with ctx.system_context(ctx.db._session(), ctx.get_engine()):

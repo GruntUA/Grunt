@@ -5,6 +5,7 @@ from __future__ import annotations
 from grunt import _
 from grunt.document.base import Document
 from grunt.utils.slug import slugify
+from grunt.website.menu import invalidate
 
 
 class WebsiteMenuItem(Document):
@@ -24,11 +25,7 @@ class WebsiteMenuItem(Document):
             self.route = slugify(str(self.route)) or None
 
     async def after_save(self) -> None:
-        from grunt.website.menu import invalidate
-
         invalidate()
 
     async def after_delete(self) -> None:
-        from grunt.website.menu import invalidate
-
         invalidate()

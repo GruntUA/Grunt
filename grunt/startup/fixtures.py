@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
+import json
 from datetime import UTC
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
+import grunt
 from grunt import log
+from grunt.fixtures import clean_record, to_json_compatible
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
@@ -23,8 +26,6 @@ async def load_core_fixtures(session: AsyncSession, eng: AsyncEngine) -> None:
     Scans all grunt/<module>/fixtures/ directories and applies records
     that don't yet exist in the database. Safe to call repeatedly.
     """
-    import json
-
     for fixtures_dir in sorted(_GRUNT_ROOT.glob("*/fixtures")):
         for fx_file in sorted(fixtures_dir.glob("*.json")):
             try:
@@ -47,8 +48,6 @@ def _load_app_meta(app_dir: Path) -> dict | None:
     Priority: app.json values override grunt_app.py values.
     Guarantees presence of: name, title, version, modules, icon, color, description.
     """
-    import json
-
     app_json = app_dir / "app.json"
     grunt_app = app_dir / "grunt_app.py"
 
@@ -158,8 +157,6 @@ async def _apply_doctype_fixture(
     (a file written by ``grunt fixtures export``), then they are updated to
     match the file whenever the stored values differ.
     """
-    import grunt
-
     dt = await grunt.get_meta(doctype_name)
     if dt is None:
         log.warning("startup.fixture_doctype_not_found", doctype=doctype_name)
@@ -211,9 +208,6 @@ async def _sync_fixture_record(dt: Meta, doctype_name: str, doc_id: str, rec: di
     unchanged record is never re-saved (no DocVersion/ActivityLog noise on
     every migrate). Fields absent from the fixture are left untouched.
     """
-    import grunt
-    from grunt.fixtures import clean_record, to_json_compatible
-
     current = await clean_record(dt, await grunt.get_doc(doctype_name, doc_id))
     desired = to_json_compatible(rec)
     changed = {k: v for k, v in desired.items() if k != "name" and current.get(k) != v}

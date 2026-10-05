@@ -12,7 +12,11 @@ from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import and_, delete, func, select
 
+import grunt
 from grunt import _, log
+from grunt.document.meta import Meta
+from grunt.errors import not_found
+from grunt.metadata.compiler import MULTI_LINK_TABLE
 from grunt.metadata.registry import doctype_registry
 
 if TYPE_CHECKING:
@@ -46,9 +50,6 @@ class LinkService:
 
         Returns the number of links created.
         """
-        import grunt
-        from grunt.errors import not_found
-
         doclink_dt = await grunt.get_meta("DocLink")
         if doclink_dt is None:
             raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": "DocLink"})
@@ -116,9 +117,6 @@ class LinkService:
 
         Returns a list of dicts with source_doctype, source_id, link_fieldname.
         """
-        import grunt
-        from grunt.errors import not_found
-
         dt_doc_link = await grunt.get_meta("DocLink")
         if dt_doc_link is None:
             raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": "DocLink"})
@@ -165,8 +163,6 @@ class LinkService:
         References originating from the documents being deleted themselves are
         excluded - they disappear with the rows.
         """
-        from grunt.document.meta import Meta
-
         ids = [i for i in doc_ids if i]
         if not ids:
             return {"total": 0, "groups": []}
@@ -211,7 +207,6 @@ class LinkService:
                 )
 
         # MultiLink references pointing at any of the ids.
-        from grunt.metadata.compiler import MULTI_LINK_TABLE
 
         ml_count = (
             await session.scalar(
@@ -249,9 +244,6 @@ class LinkService:
         doc_id: str,
     ) -> None:
         """Remove all links from and to a document (on delete)."""
-        import grunt
-        from grunt.errors import not_found
-
         dt_doc_link = await grunt.get_meta("DocLink")
         if dt_doc_link is None:
             raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": "DocLink"})

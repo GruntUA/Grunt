@@ -9,7 +9,12 @@ from pathlib import Path
 
 import pytest
 
+import grunt.i18n.service as svc
+from grunt.i18n import LANGUAGE_OPTIONS_SOURCE, _, ngettext, pgettext
+from grunt.i18n.meta import translate_doctype_meta
+from grunt.i18n.plurals import plural_form_count, plural_index
 from grunt.i18n.service import TranslationService, _parse_po_file, translation_service
+from grunt.metadata.dynamic_options import get_option_labels, get_options
 
 REAL_LOCALES_DIR = Path(__file__).parent.parent / "locales"
 
@@ -73,8 +78,6 @@ msgstr "Name"
 @pytest.fixture(autouse=True)
 def fixture_catalog(tmp_path, monkeypatch):
     """Point the translation service at the fixture catalog, no app catalogs."""
-    import grunt.i18n.service as svc
-
     for lang, text in (("uk", _UK_PO), ("en", _EN_PO)):
         po_dir = tmp_path / lang / "LC_MESSAGES"
         po_dir.mkdir(parents=True)
@@ -187,7 +190,6 @@ class TestTranslationService:
 class TestRuntimeProvider:
     def teardown_method(self):
         # Drop the test provider so it can't leak into other tests.
-        import grunt.i18n.service as svc
 
         svc._provider = None
         translation_service.invalidate()
@@ -218,8 +220,6 @@ class TestRuntimeProvider:
 
 class TestMetaTranslation:
     def teardown_method(self):
-        import grunt.i18n.service as svc
-
         svc._provider = None
         translation_service.invalidate()
 
@@ -245,8 +245,6 @@ class TestMetaTranslation:
         }
 
     def test_description_and_placeholder_use_own_contexts(self):
-        from grunt.i18n.meta import translate_doctype_meta
-
         translation_service.register_provider(
             lambda _l: {
                 "help:Widget.status|Стан віджета": "Widget state",
@@ -259,8 +257,6 @@ class TestMetaTranslation:
         assert out["fields"][0]["label"] == "Статус"  # label context untouched
 
     def test_translates_label_field_and_options(self):
-        from grunt.i18n.meta import translate_doctype_meta
-
         translation_service.register_provider(
             lambda _l: {
                 "meta:Widget|Віджет": "Widget",
@@ -280,16 +276,12 @@ class TestMetaTranslation:
         assert out["status_indicators"][0]["label"] == "New"
 
     def test_noop_without_entries(self):
-        from grunt.i18n.meta import translate_doctype_meta
-
         out = translate_doctype_meta(self._dt(), lang="uk")
         assert out["label"] == "Віджет"
         assert out["fields"][0]["options"] == "Новий\nЗакритий"
         assert "option_labels" not in out["fields"][0]
 
     def test_non_translatable_select_is_left_alone(self):
-        from grunt.i18n.meta import translate_doctype_meta
-
         # A context-free "Новий" must not leak into a plain Select's options.
         translation_service.register_provider(lambda _l: {"Новий": "New"})
         out = translate_doctype_meta(self._dt(), lang="uk")
@@ -300,14 +292,10 @@ class TestMetaTranslation:
 
 class TestPlurals:
     def teardown_method(self):
-        import grunt.i18n.service as svc
-
         svc._provider = None
         translation_service.invalidate()
 
     def test_plural_index_rules(self):
-        from grunt.i18n.plurals import plural_form_count, plural_index
-
         assert plural_form_count("uk") == 3
         assert plural_form_count("en") == 2
         assert [plural_index("uk", n) for n in (1, 2, 5, 11, 21, 22)] == [0, 1, 2, 2, 0, 1]
@@ -360,8 +348,6 @@ class TestUiLanguages:
         assert "pl" in translation_service.supported_langs()
 
     def test_provider_extras_and_names(self, monkeypatch):
-        import grunt.i18n.service as svc
-
         monkeypatch.setattr(svc, "_extra_ui_langs", set())
         translation_service.add_ui_languages(["de-DE"])
         assert "de" in translation_service.ui_languages()
@@ -370,9 +356,6 @@ class TestUiLanguages:
         assert translation_service.language_name("xx") == "xx"
 
     def test_language_select_options(self):
-        from grunt.i18n import LANGUAGE_OPTIONS_SOURCE
-        from grunt.metadata.dynamic_options import get_option_labels, get_options
-
         translation_service.set_language_names({"uk": "Українська"})
         assert get_options(LANGUAGE_OPTIONS_SOURCE) == ["en", "uk"]
         assert get_option_labels(LANGUAGE_OPTIONS_SOURCE)["uk"] == "Українська"
@@ -380,7 +363,6 @@ class TestUiLanguages:
 
 class TestConvenienceFunctions:
     def test_underscore_function(self):
-        from grunt.i18n import _, ngettext, pgettext
         from grunt.i18n.service import translation_service
 
         translation_service.set_lang("uk")

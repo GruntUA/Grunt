@@ -19,6 +19,7 @@ from typing import Any
 from grunt import _, log
 from grunt.document.base import Document
 from grunt.i18n import language_of, use_language
+from grunt.notification.service import notification_service
 
 _DONE_STATES = ("Closed", "Cancelled")
 
@@ -117,7 +118,6 @@ class ToDo(Document):
     async def _deliver(self, user: str, subject: str, message: str) -> None:
         ref_dt = (self.get("reference_doctype") or "").strip()
         ref_id = str(self.get("reference_id") or "").strip()
-        from grunt.notification.service import notification_service
 
         await notification_service.notify(
             self.session,

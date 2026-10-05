@@ -6,6 +6,7 @@ backed by the ``mfa_secret`` and ``mfa_backup_codes`` fields on the User DocType
 
 from __future__ import annotations
 
+import contextlib
 import hashlib
 import io
 import json
@@ -191,8 +192,6 @@ async def check_mfa_code(user: User, code: str, session: AsyncSession | None = N
     yet active.  Omit when called from a GruntRouter endpoint where the context
     is already set by middleware.
     """
-    import contextlib
-
     if session is not None:
         from grunt.site.manager import site_manager
 

@@ -9,6 +9,7 @@ from fastapi import HTTPException, status
 from sqlalchemy.exc import IntegrityError
 
 from grunt import _
+from grunt.document.meta import Meta
 
 _NOT_NULL_RE = re.compile(r"NOT NULL constraint failed:\s*\S+\.(\w+)", re.IGNORECASE)
 _UNIQUE_SQLITE_RE = re.compile(r"UNIQUE constraint failed:\s*\S+\.(\w+)", re.IGNORECASE)
@@ -19,7 +20,6 @@ _UNIQUE_POSTGRES_RE = re.compile(r'"uq_[^"]+?_(\w+)"')
 def _field_label(dt: Any, col_name: str) -> str:
     if dt is None:
         return col_name
-    from grunt.document.meta import Meta
 
     return Meta(dt).get_label(col_name)
 

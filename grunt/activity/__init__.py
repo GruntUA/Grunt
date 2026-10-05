@@ -7,6 +7,7 @@ import grunt
 import grunt as _grunt
 from grunt import _, log
 from grunt.document.versioning import _SKIP_FIELDS
+from grunt.metadata.registry import doctype_registry
 
 
 async def should_log_activity(doctype: str) -> bool | None:
@@ -30,8 +31,6 @@ def _feed_hidden(dt: Any) -> bool:
 
 async def feed_hidden_doctypes() -> list[str]:
     """All doctype names currently excluded from the global activity feed."""
-    from grunt.metadata.registry import doctype_registry
-
     return [dt.name for dt in await doctype_registry.list_all() if _feed_hidden(dt)]
 
 

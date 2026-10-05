@@ -9,11 +9,10 @@ from grunt.backups import BackupSet, delete_backup, get_backup, list_backups
 from grunt.backups.api import download_url
 from grunt.metadata.virtual import VirtualDocType
 from grunt.monitoring.health import human_size
+from grunt.site.manager import site_manager
 
 
 def _site() -> str:
-    from grunt.site.manager import site_manager
-
     return site_manager.get_active_site()
 
 

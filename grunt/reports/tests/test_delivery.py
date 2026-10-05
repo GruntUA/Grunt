@@ -7,7 +7,7 @@ from datetime import UTC, date, datetime
 
 import pytest
 
-from grunt.reports.delivery import is_due, parse_recipients
+from grunt.reports.delivery import is_due, parse_recipients, send_report_now
 
 TODAY = date(2026, 9, 23)  # a Wednesday
 
@@ -60,7 +60,6 @@ async def test_send_report_queues_xlsx_and_stamps_last_sent(ctx):
     import openpyxl
 
     from grunt.email.service import decode_attachments
-    from grunt.reports.delivery import send_report_now
 
     doc = await ctx.new_doc(
         "Report",

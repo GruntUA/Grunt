@@ -2,11 +2,18 @@
 
 from __future__ import annotations
 
+import uuid
 from collections.abc import Awaitable, Callable, Sequence
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any, cast
 
 import grunt
 from grunt import _, log
+from grunt.api.v1.ws import manager
+from grunt.db.filters import apply_filters
+from grunt.db.session import async_session_factory
+from grunt.metadata.compiler import MULTI_LINK_TABLE
+from grunt.search.service import _search_index_table
 
 if TYPE_CHECKING:
     from grunt.auth.doctypes.User.user import User
@@ -41,8 +48,6 @@ class BulkDeleteTask:
     """
 
     def __init__(self) -> None:
-        from grunt.api.v1.ws import manager
-
         self._manager = manager
 
     # Delete explicit list of IDs
@@ -58,8 +63,6 @@ class BulkDeleteTask:
         replace_with: str | None = None,
     ) -> None:
         """Delete document IDs and send progress/done events to one user."""
-        from grunt.db.session import async_session_factory
-
         total = len(ids)
         progress_cb = self._make_progress_cb(user_email, total)
 
@@ -109,8 +112,6 @@ class BulkDeleteTask:
         deletes them, until no records remain.  Progress is streamed via
         WebSocket after every batch.
         """
-        from grunt.db.session import async_session_factory
-
         total_deleted = 0
         all_errors: list[str] = []
 
@@ -248,16 +249,8 @@ class BulkDeleteTask:
         3. DELETE FROM grunt_search_index WHERE doctype = doctype
         4. Write one summary ActivityLog entry
         """
-        import uuid
-        from datetime import UTC, datetime
-
         from sqlalchemy import delete as sa_delete
         from sqlalchemy.engine import CursorResult
-
-        from grunt.db.filters import apply_filters
-        from grunt.db.session import async_session_factory
-        from grunt.metadata.compiler import MULTI_LINK_TABLE
-        from grunt.search.service import _search_index_table
 
         if "System Manager" not in (getattr(user, "roles", None) or []):
             await self._manager.send_to_user(

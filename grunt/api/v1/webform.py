@@ -6,6 +6,9 @@ from typing import TYPE_CHECKING, Any
 
 import grunt
 from grunt import _
+from grunt.local import _user_ctx
+from grunt.webform import web_form_service
+from grunt.webform.captcha import captcha_site_key, verify_captcha
 
 if TYPE_CHECKING:
     from fastapi import Request
@@ -14,8 +17,6 @@ if TYPE_CHECKING:
 @grunt.whitelist(allow_guest=True)
 async def get_form(route: str) -> dict[str, Any]:
     """Load a published web form definition (public, no auth required)."""
-    from grunt.webform import web_form_service
-
     form = await web_form_service.get_form(route)
     if not form:
         grunt.throw(_("Form not found"), "NOT_FOUND")
@@ -37,10 +38,6 @@ async def submit_form(
     ``grunt.api.v1.method._invoke_with_context``) - never passed by a caller -
     purely to get the caller's IP for CAPTCHA verification below.
     """
-    from grunt.local import _user_ctx
-    from grunt.webform import web_form_service
-    from grunt.webform.captcha import captcha_site_key, verify_captcha
-
     # A guest may submit (allow_guest=True puts user=None into context), so
     # read the context directly - grunt.get_user() would raise a 401 here.
     user = _user_ctx.get()

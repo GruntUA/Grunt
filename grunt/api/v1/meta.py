@@ -6,11 +6,15 @@ from typing import Any
 
 import grunt
 from grunt import _, log
+from grunt.actions import enrich_doctype_actions
+from grunt.document.validators import list_validators as _list
+from grunt.errors import not_found
 from grunt.metadata.compiler import DuplicateDataError, get_table_name, sync_table
 from grunt.metadata.doctype import DocType
 from grunt.metadata.dynamic_options import get_option_labels, get_schemas, resolve_field_options
 from grunt.metadata.registry import doctype_registry
 from grunt.metadata.scaffold import export_doctype_files
+from grunt.workflow.registry import get_active_workflow
 
 
 async def _dump_doctype(dt: DocType, *, translate: bool = False) -> dict[str, Any]:
@@ -30,8 +34,6 @@ async def _dump_doctype(dt: DocType, *, translate: bool = False) -> dict[str, An
     layer for the current request language (see grunt.i18n.meta). Only the
     presentational render paths pass it - never file export / sync.
     """
-    from grunt.workflow.registry import get_active_workflow
-
     data = dt.model_dump()
     for field, fdata in zip(dt.fields, data["fields"], strict=True):
         if field.options_source:
@@ -54,7 +56,6 @@ async def _dump_doctype(dt: DocType, *, translate: bool = False) -> dict[str, An
 
     # Enrich `actions` bindings with defaults from the code registry and attach
     # `_action_catalog` for the binding editor - see grunt.actions.
-    from grunt.actions import enrich_doctype_actions
 
     enrich_doctype_actions(data)
 
@@ -155,8 +156,6 @@ async def delete_doctype(name: str) -> bool:
 @grunt.whitelist(roles=["System Manager"])
 async def sync_doctype(name: str) -> dict[str, Any]:
     """Force sync a DocType's physical table. Admin only."""
-    from grunt.errors import not_found
-
     meta = await grunt.get_meta(name)
     if meta is None:
         raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": name})
@@ -219,8 +218,6 @@ async def compact_table(name: str) -> dict[str, Any]:
     (clamped at 0 - a table can legitimately grow slightly after a rewrite).
     """
     import sqlalchemy as sa
-
-    from grunt.errors import not_found
 
     dt = await grunt.get_meta(name)
     if dt is None:
@@ -305,8 +302,6 @@ async def table_info(name: str) -> dict[str, Any]:
     byte fields stay null.
     """
     import sqlalchemy as sa
-
-    from grunt.errors import not_found
 
     dt = await grunt.get_meta(name)
     if dt is None:
@@ -412,6 +407,4 @@ async def table_info(name: str) -> dict[str, Any]:
 @grunt.whitelist()
 async def list_validators() -> list[dict[str, object]]:
     """Return all registered field validators for the Studio UI."""
-    from grunt.document.validators import list_validators as _list
-
     return _list()

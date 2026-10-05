@@ -35,7 +35,9 @@ from __future__ import annotations
 
 from typing import Any, Literal
 
+import grunt
 from grunt import _, log
+from grunt.api.v1.ws import manager
 
 MessageType = Literal["success", "error", "info", "warning"]
 
@@ -69,8 +71,6 @@ async def notify(
     Returns:
         List of created notification IDs.
     """
-    import grunt
-
     ids: list[str] = []
     for user_email in users:
         doc = await grunt.new_doc(
@@ -123,8 +123,6 @@ async def publish(
         type: Message type for UI styling: "success", "error", "info", "warning".
         data: Arbitrary payload dict.
     """
-    from grunt.api.v1.ws import manager
-
     payload: dict[str, Any] = {
         "event": event,
         "data": {
@@ -156,8 +154,6 @@ async def broadcast(
         type: Message type for UI styling.
         data: Arbitrary payload dict.
     """
-    from grunt.api.v1.ws import manager
-
     payload: dict[str, Any] = {
         "event": event,
         "data": {
@@ -198,8 +194,6 @@ async def publish_channel(
         event: Event name for the frontend to handle.
         data: Arbitrary payload dict.
     """
-    from grunt.api.v1.ws import manager
-
     full_channel = f"public:{channel}"
     try:
         await manager.broadcast(full_channel, event, data or {})

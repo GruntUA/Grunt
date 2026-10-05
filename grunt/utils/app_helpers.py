@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
+import importlib.util
 from pathlib import Path
 from typing import TYPE_CHECKING
+
+from grunt.site.manager import site_manager
 
 if TYPE_CHECKING:
     from types import ModuleType
@@ -19,8 +22,6 @@ def load_app_hook_module(
     in an app's own ``install.py`` without that app being on ``sys.path`` as
     an importable package.
     """
-    import importlib.util
-
     path = app_dir / f"{hook_module}.py"
     if not path.exists():
         return None
@@ -41,8 +42,6 @@ def _collect_template_dirs() -> list[str]:
     1. ``bench_dir/apps/<app>/*/templates/`` - installed app templates
     2. ``grunt/<module>/templates/`` - framework module templates
     """
-    from grunt.site.manager import site_manager
-
     dirs: list[str] = []
 
     # 1. Installed external apps

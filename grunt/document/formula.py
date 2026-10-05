@@ -31,6 +31,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
 
+import grunt
 from grunt import log
 from grunt.document.meta import NUMERIC_FIELDTYPES, Meta
 
@@ -84,7 +85,6 @@ async def _evaluate_formulas(dt: DocType, row: dict[str, Any], attr: str) -> dic
         return row
 
     # Build evaluation namespace
-    import grunt
 
     async def _count(doctype: str, filters: dict[str, Any] | None = None) -> int:
         return await grunt.count(doctype, filters=filters)

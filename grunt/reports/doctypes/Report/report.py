@@ -21,13 +21,12 @@ from typing import Any
 from fastapi.responses import Response
 
 import grunt
+from grunt.reports.engine import report_engine
 
 
 @grunt.whitelist()
 async def run(name: str, filters: dict[str, Any] | None = None) -> dict[str, Any]:
     """Execute a report and return results."""
-    from grunt.reports.engine import report_engine
-
     result = await report_engine.run(name, filters or {}, grunt.get_user(), grunt.get_session())
     return result
 
@@ -43,8 +42,6 @@ async def preview(
     row_limit: int | None = None,
 ) -> dict[str, Any]:
     """Execute an ad-hoc List report configuration (the builder's preview)."""
-    from grunt.reports.engine import report_engine
-
     result = await report_engine._run_list_report(
         doctype,
         {
@@ -68,8 +65,6 @@ async def export_xlsx(
     token: str | None = None,  # unused: absorbs ?token= query param consumed by auth, not by us
 ) -> Response:
     """Run a report and return the result as an xlsx file download."""
-    from grunt.reports.engine import report_engine
-
     result = await report_engine.run(name, filters or {}, grunt.get_user(), grunt.get_session())
     xlsx_bytes = await report_engine.export_excel(result, name)
     return Response(

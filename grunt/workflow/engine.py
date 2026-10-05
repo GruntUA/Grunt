@@ -23,11 +23,16 @@ import contextlib
 from contextvars import ContextVar
 from dataclasses import dataclass
 from datetime import datetime
+from html import escape
 from typing import TYPE_CHECKING, Any
 
 from fastapi import HTTPException, status
 
+import grunt
 from grunt import _, log
+from grunt.events import fire as fire_hook
+from grunt.workflow.notify import notify_transition, previous_actor
+from grunt.workflow.registry import get_active_workflow
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
@@ -68,8 +73,6 @@ def current_transition() -> ActiveTransition | None:
 
 class WorkflowEngine:
     async def get_state(self, doctype: DocType, doc: dict) -> WorkflowState | None:
-        from grunt.workflow.registry import get_active_workflow
-
         workflow = await get_active_workflow(doctype.name)
         if not workflow:
             return None
@@ -88,8 +91,6 @@ class WorkflowEngine:
         on_edit: bool = False,
     ) -> list[WorkflowTransition]:
         """Transitions *user* may apply now - buttons, or with ``on_edit`` the automatic ones."""
-        from grunt.workflow.registry import get_active_workflow
-
         workflow = await get_active_workflow(doctype.name)
         if not workflow:
             return []
@@ -124,9 +125,6 @@ class WorkflowEngine:
         engine: AsyncEngine,
         values: dict | None = None,
     ) -> dict:
-        import grunt
-        from grunt.workflow.registry import get_active_workflow
-
         doc = await grunt.get_doc(doctype.name, doc_id)
 
         available = await self.get_available_transitions(doctype, doc, user)
@@ -198,9 +196,6 @@ class WorkflowEngine:
         session: AsyncSession,
     ) -> None:
         """After a transition is saved: log, comment, notify, hooks, broadcast."""
-        from grunt.events import fire as fire_hook
-        from grunt.workflow.notify import notify_transition, previous_actor
-
         # Who performed the previous action - read before this one is logged.
         previous = None
         if "previous" in active.transition.notify:
@@ -267,8 +262,6 @@ class WorkflowEngine:
         details: dict,
         session: AsyncSession,
     ) -> None:
-        import grunt
-
         async with grunt.system_context(session):
             await grunt.new_doc(
                 "ActivityLog",
@@ -313,10 +306,6 @@ def state_updates(workflow: Any, to_state: str) -> dict[str, Any]:
 
 async def _add_comment(active: ActiveTransition) -> None:
     """The transition's comment on the document's comment thread."""
-    from html import escape
-
-    import grunt
-
     text = escape(active.comment or "").replace("\n", "<br>")
     await grunt.new_doc(
         "Comment",

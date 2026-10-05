@@ -30,6 +30,9 @@ from sqlalchemy.dialects.mysql import insert as mysql_insert
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 from grunt import log
+from grunt.document.meta import Meta
+from grunt.metadata.compiler import compile_doctype_to_table
+from grunt.metadata.registry import doctype_registry
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
@@ -81,7 +84,6 @@ def _build_content(dt: DocType, doc: dict[str, Any]) -> str:
         parts.append(str(title))
 
     # All other text-ish fields
-    from grunt.document.meta import Meta
 
     for field in Meta(dt).get_searchable_fields():
         val = doc.get(field.fieldname)
@@ -293,9 +295,6 @@ class SearchIndexService:
         engine: AsyncEngine,
     ) -> int:
         """Rebuild the entire search index from all DocType tables. Returns count."""
-        from grunt.metadata.compiler import compile_doctype_to_table
-        from grunt.metadata.registry import doctype_registry
-
         # Clear index
         await session.execute(delete(_search_index_table))
 

@@ -11,7 +11,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from grunt.local import _engine_ctx, _messages_ctx, _session_ctx, _site_ctx, _user_ctx
+from grunt.errors import forbidden
+from grunt.local import _engine_ctx, _messages_ctx, _session_ctx, _site_ctx, _user_ctx, require_user
+from grunt.permissions.roles import user_has_roles
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
@@ -129,10 +131,6 @@ def whitelist(allow_guest: bool = False, *, roles: list[str] | None = None, requ
 
             @functools.wraps(fn)
             async def wrapper(*args, **kwargs):
-                from grunt.errors import forbidden
-                from grunt.local import require_user
-                from grunt.permissions.roles import user_has_roles
-
                 try:
                     user = require_user()
                 except RuntimeError:

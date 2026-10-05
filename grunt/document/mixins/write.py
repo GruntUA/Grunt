@@ -18,6 +18,7 @@ if TYPE_CHECKING:
 
     from grunt.auth.doctypes.User.user import User
 
+import grunt
 from grunt.db.errors import friendly_integrity_error
 from grunt.document.aggregate import compute_aggregations
 from grunt.document.formula import compute_formulas
@@ -44,10 +45,22 @@ from grunt.document.virtual import (
     virtual_delete,
     virtual_update,
 )
-from grunt.errors import ApplicationError
+from grunt.errors import ApplicationError, not_found
 from grunt.events import fire
 from grunt.metadata.registry import doctype_registry
+from grunt.naming import naming_service
+from grunt.naming.patterns import has_counter, parse_pattern
+from grunt.permissions.access import RoleAccess
+from grunt.permissions.rbac import permission_checker
+from grunt.permissions.reference import reference_readable
+from grunt.permissions.user_permissions import doc_violation
+from grunt.search.service import search_index_service
+from grunt.storage.signing import strip_file_signatures
+from grunt.webhook.service import webhook_service
 from grunt.website.generator import fill_route
+from grunt.workflow.engine import _active
+from grunt.workflow.guard import check_delete, check_update
+from grunt.workflow.registry import get_active_workflow
 
 PROTECTED_FIELDS = frozenset({"name", "owner", "created_at", "docstatus"})
 
@@ -72,9 +85,6 @@ class DocumentWriteMixin(DocumentReadMixin):
 
     async def _resolve_dt(self, doctype_name: str) -> Any:
         """Return the freshest DocType definition, forcing a lazy reload if needed."""
-        import grunt
-        from grunt.errors import not_found
-
         fresh = await doctype_registry._lazy_load(doctype_name)
         if fresh is not None:
             return Meta(fresh)
@@ -102,8 +112,6 @@ class DocumentWriteMixin(DocumentReadMixin):
         Permissions - the role check alone only looks at the stored row, so
         without this a restricted user could create a record in (or move one
         to) a scope they may not touch."""
-        from grunt.permissions.user_permissions import doc_violation
-
         fieldname = await doc_violation(user, dt, row)
         if fieldname is None:
             return
@@ -152,9 +160,6 @@ class DocumentWriteMixin(DocumentReadMixin):
 
         Returns ``(doc_id, row)``.
         """
-        from grunt.naming import naming_service
-        from grunt.naming.patterns import has_counter, parse_pattern
-
         # An explicit caller-supplied name wins over autoname for fixtures and
         # imports, which rely on stable names regardless of the DocType's
         # naming scheme - but NOT for counter-based series (e.g.
@@ -187,8 +192,6 @@ class DocumentWriteMixin(DocumentReadMixin):
         for f in dt.get_multilink_fields():
             if f.fieldname in data:
                 row[f.fieldname] = data[f.fieldname]
-
-        from grunt.workflow.registry import get_active_workflow
 
         workflow = await get_active_workflow(dt.name)
         if workflow:
@@ -300,9 +303,6 @@ class DocumentWriteMixin(DocumentReadMixin):
 
     async def _fire_create_services(self, doctype_name: str, dt: Any, row: dict[str, Any]) -> None:
         """Update the search index and fire outgoing webhooks after a successful insert."""
-        from grunt.search.service import search_index_service
-        from grunt.webhook.service import webhook_service
-
         await search_index_service.index_document(self.session, doctype_name, dt.doc, row)
         await webhook_service.fire(self.session, "after_insert", doctype_name, row)
 
@@ -331,8 +331,6 @@ class DocumentWriteMixin(DocumentReadMixin):
         so global/DocType hooks (notifications, assignment rules, backlink sync,
         activity log) fire identically regardless of the caller.
         """
-        from grunt.storage.signing import strip_file_signatures
-
         data = strip_file_signatures(data)
         await fire(
             "before_save", doctype=doctype_name, doc=dict(data), user=user, session=self.session
@@ -352,8 +350,6 @@ class DocumentWriteMixin(DocumentReadMixin):
             raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=errors)
 
         # A comment / tag / attachment may only be added to a readable document.
-        from grunt.permissions.access import RoleAccess
-        from grunt.permissions.reference import reference_readable
 
         if not RoleAccess(dt, user).is_unrestricted and not await reference_readable(
             user, dt, data
@@ -468,8 +464,6 @@ class DocumentWriteMixin(DocumentReadMixin):
 
         Single entry point for updating a document - see :meth:`create_document`.
         """
-        from grunt.storage.signing import strip_file_signatures
-
         data = strip_file_signatures(data)
         # Optimistic-concurrency guard: the `modified_at` the client's edit was
         # based on (sent by offline replays). A newer server copy -> 409.
@@ -512,7 +506,6 @@ class DocumentWriteMixin(DocumentReadMixin):
         # `match`-restricted write permission (e.g. "owner == user") is never
         # evaluated there. `existing` is already fetched for the diff logic
         # below, so this row-level check is free - no extra DB round trip.
-        from grunt.permissions.rbac import permission_checker
 
         await permission_checker.require(user, dt, "write", existing)
 
@@ -527,7 +520,6 @@ class DocumentWriteMixin(DocumentReadMixin):
 
         # Workflow: the state moves only by transitions; an edit may itself be
         # an `on_edit` transition (then *data* carries the new state).
-        from grunt.workflow.guard import check_update
 
         data = dict(data)
         auto_transition = await check_update(doctype_name, existing, data, user)
@@ -547,7 +539,6 @@ class DocumentWriteMixin(DocumentReadMixin):
                 merged[_f.fieldname] = data[_f.fieldname]
 
         _tokens = self._set_grunt_context(user)
-        from grunt.workflow.engine import _active
 
         transition_token = _active.set(auto_transition) if auto_transition else None
         try:
@@ -648,11 +639,8 @@ class DocumentWriteMixin(DocumentReadMixin):
         # Same reasoning as update_document: write_guard()'s pre-check can't
         # see `match`-restricted delete permissions (doc=None there); this
         # reuses the `existing` fetch already needed below, so it's free.
-        from grunt.permissions.rbac import permission_checker
 
         await permission_checker.require(user, dt, "delete", existing)
-
-        from grunt.workflow.guard import check_delete
 
         await check_delete(doctype_name, existing, user)
 

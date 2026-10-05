@@ -8,6 +8,7 @@ Select dropdown reflects the live set.
 
 from __future__ import annotations
 
+import inspect
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
@@ -54,8 +55,6 @@ class DocAction:
         return doctype in self.doctypes
 
     async def run(self, doc: dict, *, args: dict) -> Any:
-        import inspect
-
         result = self.handler(doc, args=args)
         if inspect.isawaitable(result):
             return await result

@@ -6,6 +6,9 @@ from datetime import date, timedelta
 
 import pytest
 
+from grunt.api.v1.meta import save_doctype
+from grunt.reports.engine import report_engine
+
 SALE = {
     "name": "RptSale",
     "label": "Rpt Sale",
@@ -29,8 +32,6 @@ ROWS = [
 
 @pytest.fixture
 async def sales(ctx):
-    from grunt.api.v1.meta import save_doctype
-
     await save_doctype(doctype_data={**SALE, "__is_new": True})
     for region, sold_on, amount in ROWS:
         await ctx.new_doc("RptSale", {"region": region, "sold_on": sold_on, "amount": amount})
@@ -38,8 +39,6 @@ async def sales(ctx):
 
 
 async def _run(ctx, **report):
-    from grunt.reports.engine import report_engine
-
     return await report_engine._run_list_report(
         "RptSale", report, {}, ctx.get_user(), ctx.db._session()
     )

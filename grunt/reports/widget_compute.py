@@ -15,6 +15,9 @@ from typing import Any
 
 import grunt
 from grunt import log
+from grunt.activity import feed_hidden_doctypes
+from grunt.document.meta import Meta
+from grunt.reports.engine import report_engine
 
 
 def _log_widget_failed(doctype_name: str, widget_type: str) -> None:
@@ -35,8 +38,6 @@ def _bound(dt: Any, date_field: str, when: datetime, *, upper: bool = False) -> 
     ``upper`` bound rounds up to the minute, so rows from the current minute
     stay in range.
     """
-    from grunt.document.meta import Meta
-
     field = Meta(dt).get_field(date_field) if dt is not None else None
     if field is not None and field.fieldtype == "Date":
         return when.date().isoformat()
@@ -63,8 +64,6 @@ async def _widget_report_series(widget: Any) -> Any:
     using the report's own ``chart_config`` (``label_field`` / ``value_fields``)
     or, absent that, the first column as labels and the second as values.
     """
-    from grunt.reports.engine import report_engine
-
     report_name = widget.get("report") or ""
     try:
         user = grunt.get_user()
@@ -375,8 +374,6 @@ async def _widget_table(widget, dt, doctype_name, since, until, days, base_filte
 
 async def _widget_activity(widget, dt, doctype_name, since, until, days, base_filters) -> Any:
     """activity - recent ActivityLog entries, optionally scoped to one doctype."""
-    from grunt.activity import feed_hidden_doctypes
-
     try:
         filters = dict(base_filters)
         if doctype_name:

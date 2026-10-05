@@ -4,6 +4,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from grunt.local import require_user
+from grunt.metadata.registry import doctype_registry
+from grunt.site.manager import site_manager
+from grunt.tasks.doc_method import enqueue_doc_method
 from grunt.utils.templates import render_template as _render_template
 
 if TYPE_CHECKING:
@@ -27,10 +31,6 @@ class UtilityAPI:
 
             await grunt.enqueue_doc("Report", report_id, "generate", format="pdf")
         """
-        from grunt.local import require_user
-        from grunt.site.manager import site_manager
-        from grunt.tasks.doc_method import enqueue_doc_method
-
         user = require_user()
         await enqueue_doc_method(
             site=site_manager.get_active_site(),
@@ -45,8 +45,6 @@ class UtilityAPI:
         """Return the :class:`~grunt.document.meta.Meta` wrapper, or ``None``
         if ``doctype`` isn't a registered DocType.
         """
-        from grunt.metadata.registry import doctype_registry
-
         return await doctype_registry.get_meta(doctype)
 
     async def render_template(

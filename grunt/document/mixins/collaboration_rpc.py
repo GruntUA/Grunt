@@ -18,6 +18,7 @@ from fastapi import HTTPException, status
 import grunt
 from grunt import _
 from grunt.i18n import language_of, use_language
+from grunt.permissions.guards import doc_guard
 
 
 class DocumentCollaborationRPCMixin:
@@ -27,8 +28,6 @@ class DocumentCollaborationRPCMixin:
     @grunt.whitelist()
     async def get_comments(doctype: str, doc_id: str) -> list[dict[str, Any]]:
         """Return all comments for a document."""
-        from grunt.permissions.guards import doc_guard
-
         await doc_guard(doctype, doc_id)
 
         rows = await grunt.get_list(
@@ -59,8 +58,6 @@ class DocumentCollaborationRPCMixin:
         comment_type: str = "Comment",
     ) -> dict[str, Any]:
         """Add a comment to a document. Parses @email mentions."""
-        from grunt.permissions.guards import doc_guard
-
         content = (content or "").strip()
         if not content:
             raise HTTPException(
@@ -114,8 +111,6 @@ class DocumentCollaborationRPCMixin:
     @grunt.whitelist()
     async def get_bookmark(doctype: str, doc_id: str) -> dict[str, Any] | None:
         """Return the current user's bookmark."""
-        from grunt.permissions.guards import doc_guard
-
         await doc_guard(doctype, doc_id)
 
         rows = await grunt.get_list(
@@ -137,8 +132,6 @@ class DocumentCollaborationRPCMixin:
     @grunt.whitelist()
     async def add_bookmark(doctype: str, doc_id: str, title: str = "") -> dict[str, Any]:
         """Bookmark a document."""
-        from grunt.permissions.guards import doc_guard
-
         await doc_guard(doctype, doc_id)
 
         return await grunt.new_doc(

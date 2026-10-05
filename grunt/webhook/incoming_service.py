@@ -29,7 +29,11 @@ import json
 import time
 from typing import Any
 
+import grunt
 from grunt import log
+from grunt.auth.doctypes.User.user import SYSTEM_USER
+from grunt.metadata.registry import doctype_registry
+from grunt.scripting.server_script import ServerScriptRunner
 
 _MAX_PAYLOAD = 5 * 1024 * 1024  # 5 MB
 
@@ -181,10 +185,6 @@ class IncomingWebhookService:
         payload: Any,
     ) -> tuple[str, str]:
         """Execute the linked ServerScript.  Returns (action_taken, error)."""
-        import grunt
-        from grunt.auth.doctypes.User.user import SYSTEM_USER
-        from grunt.scripting.server_script import ServerScriptRunner
-
         server_script_engine = ServerScriptRunner()
 
         script_id = webhook.get("server_script")
@@ -218,8 +218,6 @@ class IncomingWebhookService:
         payload: Any,
     ) -> tuple[str, str]:
         """Create a DocType document from the payload using field_mapping."""
-        import grunt
-
         target_doctype = webhook.get("target_doctype")
         if not target_doctype:
             return "create_document", "target_doctype not configured"
@@ -250,9 +248,6 @@ class IncomingWebhookService:
     # Helpers
 
     async def _load_webhook(self, slug: str) -> dict[str, Any] | None:
-        import grunt
-        from grunt.metadata.registry import doctype_registry
-
         if await doctype_registry.get_or_none("IncomingWebhook") is None:
             return None
 
@@ -277,9 +272,6 @@ class IncomingWebhookService:
         error: str,
         duration_ms: int,
     ) -> None:
-        import grunt
-        from grunt.metadata.registry import doctype_registry
-
         if await doctype_registry.get_or_none("IncomingWebhookLog") is None:
             return
 

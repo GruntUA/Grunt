@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from grunt import _
 from grunt.document.base import Document
+from grunt.permissions.rbac import permission_checker
 
 
 class DocFollow(Document):
@@ -11,8 +12,6 @@ class DocFollow(Document):
     reference_id: str
 
     async def validate(self) -> None:
-        from grunt.permissions.rbac import permission_checker
-
         # ``user`` is a field here, but ``self.user`` is the acting user.
         if self.user is not None and self.user.email:
             self.data["user"] = self.user.email

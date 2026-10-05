@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
+from datetime import date
 from typing import Any
 
 import grunt
+from grunt.document.titles import resolve_reference_titles
+from grunt.metadata.registry import doctype_registry
 from grunt.site.doctypes.AppMenu.app_menu import AppMenu, count_key, parse_count_filters
 
 
@@ -80,8 +83,6 @@ async def _get_ws_controller(name: str) -> AppMenu:
 @grunt.whitelist()
 async def list_workspaces() -> list[dict[str, Any]]:
     """List workspaces visible to the current user."""
-    from grunt.metadata.registry import doctype_registry
-
     # Sidebar items across all workspaces touch most of the app's DocTypes.
     # Batch-load them in one query up front instead of letting
     # _workspace_to_dict's per-item grunt.get_meta() lazy-load each one
@@ -158,8 +159,6 @@ async def get_document_stats() -> dict[str, int]:
     which is itself cached per (doctype, user, filters) - see its docstring -
     so repeat page loads don't re-run dozens of COUNT queries.
     """
-    from grunt.metadata.registry import doctype_registry
-
     total = 0
     counted = 0
     for dt in await doctype_registry.list_all():
@@ -183,8 +182,6 @@ async def get_my_work() -> dict[str, Any]:
 
     open tasks assigned to them (flagged when overdue) and unread notifications.
     """
-    from datetime import date
-
     user = grunt.get_user()
     email = user.email
     today = date.today().isoformat()
@@ -208,8 +205,6 @@ async def get_my_work() -> dict[str, Any]:
         )
     except Exception:
         todos = []
-
-    from grunt.document.titles import resolve_reference_titles
 
     titles = await resolve_reference_titles(
         [(t.get("reference_doctype") or "", t.get("reference_id") or "") for t in todos]

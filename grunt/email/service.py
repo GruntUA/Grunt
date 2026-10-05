@@ -15,7 +15,10 @@ from typing import TYPE_CHECKING, Any
 import aioimaplib
 import aiosmtplib
 
+import grunt
 from grunt import _, log
+from grunt.site.settings import get_setting
+from grunt.storage import store
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
@@ -467,8 +470,6 @@ class EmailService:
     @staticmethod
     async def apply_report(report: dict[str, Any], session: AsyncSession | None = None) -> None:
         """Update the referenced outgoing ``EmailMessage`` from a DSN/MDN report."""
-        import grunt
-
         try:
             import grunt
 
@@ -525,8 +526,6 @@ class EmailService:
     @staticmethod
     async def store_bytes(content: bytes, filename: str, mimetype: str | None) -> str | None:
         """Save raw bytes through the storage backend as a private File; return its URL."""
-        from grunt.storage import store
-
         try:
             # Mail attachments are private; the UI opens them via signed URLs
             # (grunt.storage.signing).
@@ -559,8 +558,6 @@ class EmailService:
         session: AsyncSession | None = None,
     ) -> str | None:
         """Best-effort: persist one ``EmailMessage`` row (dedup by Message-ID)."""
-        import grunt
-
         try:
             import grunt
 
@@ -629,9 +626,6 @@ class EmailService:
         ``SystemSettings.default_email_account`` when it points at a real account,
         otherwise the first ``EmailAccount`` with ``enable_outgoing=True``.
         """
-        import grunt
-        from grunt.site.settings import get_setting
-
         async with grunt.system_context(session):
             configured = await get_setting("default_email_account")
             if configured and await grunt.db.exists("EmailAccount", {"name": configured}):
@@ -662,9 +656,6 @@ class EmailService:
         ``attachments`` - ``[{"filename", "mimetype", "content": bytes}]``; kept
         base64-encoded on the queue row (never as public File records).
         """
-        import grunt
-        from grunt.site.settings import get_setting
-
         # Resolve the outgoing account id (best-effort - None if unconfigured)
         email_account_id: str | None = None
         footer: str = ""

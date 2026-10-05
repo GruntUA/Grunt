@@ -14,6 +14,10 @@ from fastapi import HTTPException
 
 import grunt
 from grunt import _
+from grunt.activity import record_activity
+from grunt.document.versioning import version_service
+from grunt.errors import not_found
+from grunt.permissions.guards import doc_guard
 
 
 class DocumentHistoryRPCMixin:
@@ -23,12 +27,8 @@ class DocumentHistoryRPCMixin:
     @grunt.whitelist()
     async def get_versions(doctype: str, doc_id: str) -> list[dict[str, Any]]:
         """Return version history for a document."""
-        from grunt.permissions.guards import doc_guard
-
         # Ensure document exists and user has access
         await doc_guard(doctype, doc_id)
-
-        from grunt.document.versioning import version_service
 
         return await version_service.get_versions(grunt.get_session(), doctype, doc_id)
 
@@ -36,8 +36,6 @@ class DocumentHistoryRPCMixin:
     @grunt.whitelist()
     async def restore_version(doctype: str, doc_id: str, version_id: str) -> dict[str, Any]:
         """Restore a document to a previous version."""
-        from grunt.document.versioning import version_service
-
         # Get current doc and verify access
         current_doc = await grunt.get_doc(doctype, doc_id)
 
@@ -59,7 +57,6 @@ class DocumentHistoryRPCMixin:
         )
 
         # Apply as a regular update
-        from grunt.errors import not_found
 
         meta = await grunt.get_meta(doctype)
         if meta is None:
@@ -76,7 +73,6 @@ class DocumentHistoryRPCMixin:
         # not a raw grunt.new_doc("ActivityLog", ...) call: ActivityLog.create is
         # restricted to System Manager to keep the audit trail tamper-proof, and
         # record_activity is the one path that's allowed to write as any user.
-        from grunt.activity import record_activity
 
         await record_activity(
             doctype,
@@ -94,8 +90,6 @@ class DocumentHistoryRPCMixin:
         doctype: str, doc_id: str, per_page: int = 10
     ) -> list[dict[str, Any]]:
         """Return the activity log for a document."""
-        from grunt.permissions.guards import doc_guard
-
         await doc_guard(doctype, doc_id)
 
         per_page = max(1, min(per_page, 100))
@@ -123,8 +117,6 @@ class DocumentHistoryRPCMixin:
     @grunt.whitelist()
     async def get_timeline(doctype: str, doc_id: str) -> list[dict[str, Any]]:
         """Return a merged timeline of activity, field-value versions and comments."""
-        from grunt.permissions.guards import doc_guard
-
         await doc_guard(doctype, doc_id)
 
         dt = await grunt.get_meta(doctype)

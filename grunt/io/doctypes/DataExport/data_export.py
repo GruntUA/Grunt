@@ -6,12 +6,14 @@
 
 from __future__ import annotations
 
+import io
 import json
 from typing import Any
 
 from grunt import log
 from grunt.document.base import Document
 from grunt.io.doctypes.DataImport.data_import import DataImport
+from grunt.storage import store
 
 
 class DataExport(Document):
@@ -72,8 +74,6 @@ class DataExport(Document):
 
     async def _save_file(self, filename: str, content: bytes, fmt: str) -> dict[str, Any]:
         """Store export bytes as a private File record."""
-        from grunt.storage import store
-
         mime = (
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             if fmt == "xlsx"
@@ -84,8 +84,6 @@ class DataExport(Document):
 
     @staticmethod
     def _count_xlsx_rows(file_bytes: bytes) -> int:
-        import io
-
         import openpyxl
 
         try:

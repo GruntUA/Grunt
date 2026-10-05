@@ -21,7 +21,10 @@ from __future__ import annotations
 import time
 from typing import Any
 
+import grunt
 from grunt import log
+from grunt.document.registry import document_registry
+from grunt.website.generator import web_url
 
 DOCTYPE = "WebsiteMenuItem"
 _TTL = 60.0
@@ -46,8 +49,6 @@ async def get_menu(menu: str = "main") -> list[dict[str, Any]]:
 
 
 async def _build(menu: str) -> list[dict[str, Any]]:
-    import grunt
-
     rows = await grunt.db.get_all(
         DOCTYPE,
         filters={"menu": menu, "enabled": 1},
@@ -97,10 +98,6 @@ async def _build(menu: str) -> list[dict[str, Any]]:
 
 async def _document_urls(rows: list[dict[str, Any]]) -> dict[tuple[str, str], str]:
     """(doctype, name) -> public page URL, one query per linked DocType."""
-    import grunt
-    from grunt.document.registry import document_registry
-    from grunt.website.generator import web_url
-
     wanted: dict[str, set[str]] = {}
     for row in rows:
         if row.get("link_doctype") and row.get("link_name"):

@@ -9,15 +9,15 @@ from __future__ import annotations
 
 from typing import Any
 
+import grunt
+from grunt.local import require_user
+from grunt.permissions.rbac import permission_checker
+
 PERMS_KEY = "__perms"
 _ACTIONS = ("write", "delete", "create")
 
 
 async def doc_permissions(doctype: str, doc: dict[str, Any]) -> dict[str, bool]:
-    import grunt
-    from grunt.local import require_user
-    from grunt.permissions.rbac import permission_checker
-
     dt = await grunt.get_meta(doctype)
     if dt is None:
         return dict.fromkeys(_ACTIONS, False)

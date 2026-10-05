@@ -20,6 +20,14 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
 from grunt import log
+from grunt.actions import load_app_doc_actions
+from grunt.document.registry import document_registry
+from grunt.document.tree import register_tree_title_resolver
+from grunt.hooks import register_doc_events, register_doctype_overrides
+from grunt.io import register_exporter, register_importer
+from grunt.tasks.scheduler import register_scheduler_events
+from grunt.website import website_registry
+from grunt.website.block_types import register_block_type
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable
@@ -79,36 +87,26 @@ def _resolve(path: str) -> Any:
 
 @consumer("doc_events")
 def _doc_events(value: dict, ctx: LoadContext) -> None:
-    from grunt.hooks import register_doc_events
-
     register_doc_events(value)
 
 
 @consumer("doctype_overrides")
 def _doctype_overrides(value: dict, ctx: LoadContext) -> None:
-    from grunt.hooks import register_doctype_overrides
-
     register_doctype_overrides(value)
 
 
 @consumer("override_doctype_class")
 def _override_doctype_class(value: dict, ctx: LoadContext) -> None:
-    from grunt.document.registry import document_registry
-
     document_registry.register_overrides(value)
 
 
 @consumer("scheduler_events")
 def _scheduler_events(value: dict, ctx: LoadContext) -> None:
-    from grunt.tasks.scheduler import register_scheduler_events
-
     register_scheduler_events(value)
 
 
 @consumer("io_exporters")
 def _io_exporters(value: list, ctx: LoadContext) -> None:
-    from grunt.io import register_exporter
-
     for exp in value:
         register_exporter(exp)
         log.info("io.exporter.registered", id=exp.id, app=ctx.app_name)
@@ -116,8 +114,6 @@ def _io_exporters(value: list, ctx: LoadContext) -> None:
 
 @consumer("io_importers")
 def _io_importers(value: list, ctx: LoadContext) -> None:
-    from grunt.io import register_importer
-
     for imp in value:
         register_importer(imp)
         log.info("io.importer.registered", id=imp.id, app=ctx.app_name)
@@ -125,9 +121,6 @@ def _io_importers(value: list, ctx: LoadContext) -> None:
 
 @consumer("website_block_types")
 def _website_block_types(value: list[dict], ctx: LoadContext) -> None:
-    from grunt.website import website_registry
-    from grunt.website.block_types import register_block_type
-
     website_registry.add_template_source("grunt", ctx.app_dir / "www")
     for bt in value:
         register_block_type(bt["name"], bt["template"], bt.get("fields"))
@@ -136,8 +129,6 @@ def _website_block_types(value: list[dict], ctx: LoadContext) -> None:
 
 @consumer("tree_title_resolvers")
 def _tree_title_resolvers(value: dict[str, str], ctx: LoadContext) -> None:
-    from grunt.document.tree import register_tree_title_resolver
-
     for doctype, path in value.items():
         try:
             register_tree_title_resolver(doctype, _resolve(path))
@@ -148,6 +139,4 @@ def _tree_title_resolvers(value: dict[str, str], ctx: LoadContext) -> None:
 
 @consumer("doc_actions")
 def _doc_actions(value: list[str], ctx: LoadContext) -> None:
-    from grunt.actions import load_app_doc_actions
-
     load_app_doc_actions(list(value), app=ctx.app_name)

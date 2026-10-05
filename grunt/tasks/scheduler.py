@@ -8,6 +8,9 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 
 from grunt import log
+from grunt.db.session import async_session_factory
+from grunt.email.tasks import send_notification_digest
+from grunt.scripting.server_script import ServerScriptRunner
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
@@ -117,13 +120,9 @@ def _register_framework_jobs() -> None:
     _add_scheduled_job("grunt.email.tasks.pull_from_accounts", "*/10 * * * *")  # every 10 min
 
     async def _daily_digest():
-        from grunt.email.tasks import send_notification_digest
-
         await send_notification_digest.kiq(period="daily")
 
     async def _weekly_digest():
-        from grunt.email.tasks import send_notification_digest
-
         await send_notification_digest.kiq(period="weekly")
 
     scheduler.add_job(
@@ -173,8 +172,6 @@ async def _register_server_script_jobs() -> None:
 
 def _register_server_script_cron(name: str, script: str, cron_expr: str) -> None:
     """Register a single server script as an APScheduler cron job."""
-    from grunt.db.session import async_session_factory
-    from grunt.scripting.server_script import ServerScriptRunner
 
     async def _run() -> None:
         log.info("scheduler.server_script_run", name=name)

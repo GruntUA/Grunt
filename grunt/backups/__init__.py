@@ -36,6 +36,7 @@ from typing import TYPE_CHECKING
 
 from grunt import _, log
 from grunt.progress import Progress
+from grunt.site.manager import site_manager
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -69,8 +70,6 @@ class BackupSet:
 
 
 def site_dir(site: str) -> Path:
-    from grunt.site.manager import site_manager
-
     return site_manager.sites_dir / site
 
 
@@ -81,8 +80,6 @@ def backups_dir(site: str) -> Path:
 
 
 def _db_url(site: str):
-    from grunt.site.manager import site_manager
-
     return site_manager.get_engine(site).url
 
 

@@ -35,7 +35,11 @@ import uuid
 from contextlib import asynccontextmanager
 from typing import TYPE_CHECKING, Any, Literal
 
+import grunt
 from grunt import log, whitelist
+from grunt.api.v1.ws import manager
+from grunt.config import settings
+from grunt.utils.redis import connect
 
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator
@@ -59,11 +63,8 @@ class TaskCancelledError(Exception):
 
 
 async def _redis():
-    from grunt.config import settings
-
     if not settings.redis_url:
         return None
-    from grunt.utils.redis import connect
 
     return connect(socket_connect_timeout=1)
 
@@ -145,8 +146,6 @@ class Progress:
 
 
 async def _send(user: str, event: str, data: dict[str, Any]) -> None:
-    from grunt.api.v1.ws import manager
-
     try:
         await manager.send_to_user(user, {"event": event, "data": data})
     except Exception:
@@ -223,8 +222,6 @@ async def track_progress(
 @whitelist()
 async def active_tasks() -> list[dict[str, Any]]:
     """The current user's running tasks - the task panel restores itself from this."""
-    import grunt
-
     redis = await _redis()
     if redis is None:
         return []
@@ -242,8 +239,6 @@ async def active_tasks() -> list[dict[str, Any]]:
 @whitelist()
 async def cancel_task(task_id: str) -> bool:
     """Ask the current user's running *task_id* to stop; False if there is no such task."""
-    import grunt
-
     redis = await _redis()
     if redis is None:
         return False

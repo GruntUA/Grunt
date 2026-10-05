@@ -9,6 +9,10 @@ from typing import TYPE_CHECKING
 import pytest
 from fastapi import HTTPException
 
+import grunt
+from grunt.api.v1.meta import save_doctype
+from grunt.permissions.user_permissions import get_active_restrictions
+from grunt.site.settings import clear_settings_cache
 from tests.support import make_user
 
 if TYPE_CHECKING:
@@ -34,7 +38,6 @@ def _employee(email: str) -> User:
 
 @pytest.fixture
 async def setup(ctx):
-    from grunt.api.v1.meta import save_doctype
     from grunt.permissions.user_permissions import invalidate_user_permission_cache
 
     await save_doctype(doctype_data={**POST_DOCTYPE, "__is_new": True})
@@ -53,8 +56,6 @@ async def setup(ctx):
 
 @pytest.mark.asyncio
 async def test_list_and_count_are_restricted(ctx, setup, db_session, engine):
-    import grunt
-
     async with grunt.context(db_session, engine, _employee("alice@example.com")):
         rows = await grunt.get_list("UPTestPost")
         assert [r["name"] for r in rows] == [setup["red"]]
@@ -65,8 +66,6 @@ async def test_list_and_count_are_restricted(ctx, setup, db_session, engine):
 
 @pytest.mark.asyncio
 async def test_unrestricted_user_sees_everything(ctx, setup, db_session, engine):
-    import grunt
-
     async with grunt.context(db_session, engine, _employee("nobody@example.com")):
         rows = await grunt.get_list("UPTestPost")
         assert len(rows) == 2
@@ -74,8 +73,6 @@ async def test_unrestricted_user_sees_everything(ctx, setup, db_session, engine)
 
 @pytest.mark.asyncio
 async def test_single_doc_read_and_write_blocked(ctx, setup, db_session, engine):
-    import grunt
-
     async with grunt.context(db_session, engine, _employee("alice@example.com")):
         assert (await grunt.get_doc("UPTestPost", setup["red"]))["name"] == setup["red"]
         with pytest.raises(HTTPException) as exc:
@@ -89,8 +86,6 @@ async def test_single_doc_read_and_write_blocked(ctx, setup, db_session, engine)
 async def test_new_values_are_checked_on_create_and_update(ctx, setup, db_session, engine):
     """The stored row alone isn't enough: a restricted user may neither create
     a record outside their scope nor move one of theirs out of it."""
-    import grunt
-
     async with grunt.context(db_session, engine, _employee("alice@example.com")):
         with pytest.raises(HTTPException) as exc:
             await grunt.new_doc("UPTestPost", {"title": "sneaky", "team": "Blue"})
@@ -106,8 +101,6 @@ async def test_new_values_are_checked_on_create_and_update(ctx, setup, db_sessio
 
 @pytest.mark.asyncio
 async def test_system_manager_is_exempt(ctx, setup, db_session, engine):
-    import grunt
-
     sm = make_user("sm@example.com", roles=["System Manager", "Employee"])
     async with grunt.context(db_session, engine, sm):
         rows = await grunt.get_list("UPTestPost")
@@ -116,9 +109,6 @@ async def test_system_manager_is_exempt(ctx, setup, db_session, engine):
 
 @pytest.mark.asyncio
 async def test_restrictions_popup_payload(ctx, setup, db_session, engine):
-    import grunt
-    from grunt.permissions.user_permissions import get_active_restrictions
-
     async with grunt.context(db_session, engine, _employee("alice@example.com")):
         restrictions = await get_active_restrictions("UPTestPost")
     assert restrictions == [{"field": "Team", "fieldname": "team", "allow": "Role", "value": "Red"}]
@@ -126,7 +116,6 @@ async def test_restrictions_popup_payload(ctx, setup, db_session, engine):
 
 @pytest.mark.asyncio
 async def test_is_default_form_defaults(ctx, setup, db_session, engine):
-    import grunt
     from grunt.permissions.user_permissions import (
         get_user_permission_defaults,
         invalidate_user_permission_cache,
@@ -183,8 +172,6 @@ TREE_ASSET_DOCTYPE = {
 async def test_tree_allow_authorises_whole_subtree(ctx, db_session, engine):
     """A UserPermission on a parent tree node also grants its descendants -
     an institution -> all its sub-units."""
-    import grunt
-    from grunt.api.v1.meta import save_doctype
     from grunt.permissions.user_permissions import invalidate_user_permission_cache
 
     await save_doctype(doctype_data={**TREE_DOCTYPE, "__is_new": True})
@@ -216,7 +203,6 @@ async def test_tree_allow_authorises_whole_subtree(ctx, db_session, engine):
 
 @pytest.mark.asyncio
 async def test_strict_mode_hides_docs_without_link(ctx, setup, db_session, engine):
-    import grunt
     from grunt.permissions.user_permissions import invalidate_user_permission_cache
 
     # A post with no team link - visible by default, hidden under strict mode.
@@ -232,7 +218,6 @@ async def test_strict_mode_hides_docs_without_link(ctx, setup, db_session, engin
         "SystemSettings", "SystemSettings", {"apply_strict_user_permissions": True}
     )
     await ctx.db._session().commit()
-    from grunt.site.settings import clear_settings_cache
 
     clear_settings_cache()
 

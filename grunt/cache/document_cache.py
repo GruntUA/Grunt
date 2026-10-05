@@ -30,6 +30,7 @@ if TYPE_CHECKING:
     from redis.asyncio import Redis
 
 from grunt.config import settings
+from grunt.utils.redis import connect
 
 
 class DocumentCache:
@@ -64,7 +65,6 @@ class DocumentCache:
         if self._redis_failed or not settings.redis_url:
             yield None
             return
-        from grunt.utils.redis import connect
 
         r = connect(socket_connect_timeout=1)
         try:

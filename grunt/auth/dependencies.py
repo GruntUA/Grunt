@@ -8,6 +8,7 @@ import jwt
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer
 
+import grunt
 from grunt import _, log
 from grunt.auth.doctypes.User.user import (
     User,
@@ -15,6 +16,8 @@ from grunt.auth.doctypes.User.user import (
 )
 from grunt.config import settings
 from grunt.db.session import get_engine, get_session
+from grunt.local import _messages_ctx
+from grunt.permissions.roles import user_has_roles
 
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator
@@ -91,8 +94,6 @@ async def current_user(
     if not uid:
         raise credentials_exception
 
-    import grunt
-
     async with grunt.context(session):
         user = await get_auth_context_user(uid)
     if user is None or user.email != email or not user.is_active:
@@ -110,9 +111,6 @@ async def current_user(
             "email": payload.get("imp_email"),
             "full_name": payload.get("imp_name"),
         }
-
-    from grunt.api.context import set_user
-    from grunt.i18n.middleware import apply_user_language
 
     set_user(user)
     apply_user_language(request, user.data.get("language"))
@@ -134,7 +132,6 @@ async def optional_user(
             return None
     except jwt.PyJWTError:
         return None
-    import grunt
 
     async with grunt.context(session):
         user = await get_auth_context_user(uid)
@@ -147,8 +144,6 @@ async def superadmin_user(
     user: User = Depends(current_user),
 ) -> User:
     """Ensure the current user holds the "System Manager" role."""
-    from grunt.permissions.roles import user_has_roles
-
     if not user_has_roles(user, ["System Manager"]):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -174,9 +169,6 @@ async def grunt_context(
             items = await grunt.get_list("MyDocType", filters={"status": "Active"})
             return {"data": items}
     """
-    import grunt
-    from grunt.local import _messages_ctx
-
     tokens = grunt.set_context(session, engine, user)
     _messages_ctx.set([])
     try:
@@ -203,8 +195,6 @@ async def grunt_context_optional(
     user: User | None = Depends(optional_user),
 ) -> AsyncGenerator[None, Any]:
     """FastAPI dependency: sets up grunt SDK context for the request, with an optional user."""
-    import grunt
-
     tokens = grunt.set_context(session, engine, user)
     try:
         yield

@@ -11,6 +11,7 @@ from __future__ import annotations
 from typing import Any, BinaryIO
 
 import grunt
+from grunt.config import settings
 from grunt.storage.backends import get_storage_backend
 from grunt.storage.thumbnails import can_thumbnail, make_thumbnail
 
@@ -50,8 +51,6 @@ def validate_mime_type(content_type: str) -> None:
 
 def upload_limit() -> int:
     """Size limit for user uploads, in bytes (``settings.max_upload_size_mb``)."""
-    from grunt.config import settings
-
     return settings.max_upload_size_mb * 1024 * 1024
 
 

@@ -13,9 +13,14 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy import select
 
+import grunt
 from grunt import _
+from grunt.document.relations import _load_child_tables
+from grunt.document.serde import serialize_datetimes
 from grunt.hooks import on_doc
+from grunt.local import _session_ctx
 from grunt.metadata.doctype import WorkflowState, WorkflowTransition
+from grunt.site.manager import site_manager
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
@@ -78,13 +83,9 @@ async def _get_session() -> AsyncSession | None:
     one site's DB is reachable from the same process), and only fall back to
     ``site_manager`` when nothing is bound (background tasks/schedulers).
     """
-    from grunt.local import _session_ctx
-
     session = _session_ctx.get()
     if session is not None:
         return session
-
-    from grunt.site.manager import site_manager
 
     try:
         site_name = site_manager.get_active_site()
@@ -100,10 +101,6 @@ async def get_active_workflow(document_type: str) -> ResolvedWorkflow | None:
     """Return the active ``Workflow`` for *document_type*, cached in memory."""
     if document_type in _CACHE:
         return _CACHE[document_type]
-
-    import grunt
-    from grunt.document.relations import _load_child_tables
-    from grunt.document.serde import serialize_datetimes
 
     session = await _get_session()
     if session is None:

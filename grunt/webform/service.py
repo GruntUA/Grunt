@@ -10,6 +10,11 @@ from typing import TYPE_CHECKING, Any
 
 import grunt
 from grunt import _, log
+from grunt.auth.doctypes.User.user import User as _User
+from grunt.config import settings
+from grunt.email import templates as email_templates
+from grunt.storage import FileTooLargeError, store
+from grunt.storage.files import upload_limit
 
 if TYPE_CHECKING:
     from grunt.auth.doctypes.User.user import User
@@ -26,8 +31,6 @@ _LAYOUT_FIELDTYPES = {"Tab", "Section", "Column"}
 
 def _guest_user() -> User:
     """Synthetic, non-admin identity for anonymous webform submissions."""
-    from grunt.auth.doctypes.User.user import User as _User
-
     return _User(
         doctype="User",
         data={
@@ -275,8 +278,6 @@ class WebFormService:
         if not recipients:
             return
 
-        from grunt.email import templates as email_templates
-
         session = grunt.get_session()
         context = {**validated, "doc_id": doc_id, "webform_title": form["title"]}
         for addr in recipients:
@@ -299,10 +300,6 @@ class WebFormService:
         the File doctype itself; the target DocType's own Guest create
         permission (checked by ``submit()``) remains the real access gate.
         """
-        from grunt.config import settings
-        from grunt.storage import FileTooLargeError, store
-        from grunt.storage.files import upload_limit
-
         try:
             async with grunt.system_context(grunt.get_session()):
                 file_doc = await store(

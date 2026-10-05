@@ -1,7 +1,9 @@
 from typing import Any
 
 import grunt
+from grunt.activity import feed_hidden_doctypes
 from grunt.document.base import Document
+from grunt.document.titles import resolve_reference_titles
 
 
 class ActivityLog(Document):
@@ -74,8 +76,6 @@ async def list_activity(
     by config/session/log churn. A per-document timeline (``doc_id`` set) is
     never filtered - it must stay complete.
     """
-    from grunt.activity import feed_hidden_doctypes
-
     filters: dict[str, Any] = {}
     if doctype:
         filters["doctype"] = doctype
@@ -127,8 +127,6 @@ async def _attach_titles(entries: list[dict[str, Any]]) -> None:
     Falls back to the raw ``doc_id`` for deleted docs or doctypes without a
     title field. Mutates ``entries`` in place, adding a ``title`` key.
     """
-    from grunt.document.titles import resolve_reference_titles
-
     refs = [(e["doctype"], e["doc_id"]) for e in entries if e.get("doctype") and e.get("doc_id")]
     titles = await resolve_reference_titles(refs)
 

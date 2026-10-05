@@ -11,6 +11,7 @@ from grunt.backups import DEFAULT_COMPRESSION_LEVEL, create_backup, list_backups
 from grunt.i18n import language_of, use_language
 from grunt.progress import TaskCancelledError, track_progress
 from grunt.site.manager import site_manager
+from grunt.site.settings import get_setting
 from grunt.tasks.broker import task
 
 # A backup counts as due a little early, so a job that fires on the hour
@@ -19,8 +20,6 @@ _DUE_SLACK = timedelta(minutes=10)
 
 
 async def _settings() -> dict:
-    from grunt.site.settings import get_setting
-
     return {
         "enabled": bool(await get_setting("backup_enabled", True)),
         "interval": int(await get_setting("backup_interval_hours", 24) or 24),

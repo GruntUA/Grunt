@@ -26,12 +26,23 @@ import secrets
 from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING, Any, ClassVar
 
+import grunt
 from grunt import _, log
 from grunt.api.messages import throw
+from grunt.auth.doctypes.User.user import (
+    _apply_signup_approval,
+    _guard_registration,
+    clear_failed_attempts,
+    get_user_by_email,
+    is_account_locked,
+    register_failed_attempt,
+)
+from grunt.auth.login import find_or_create_external_user
 from grunt.auth.providers.base import AuthFlowContext, AuthProvider
 from grunt.auth.providers.registry import register
 from grunt.auth.service import create_challenge_token, verify_challenge_token
 from grunt.config import settings
+from grunt.email.service import email_service
 
 if TYPE_CHECKING:
     from grunt.auth.doctypes.User.user import User
@@ -82,13 +93,6 @@ class EmailLoginProvider(AuthProvider):
         return {"challenge_token": challenge_token, "ttl_minutes": _TTL_MINUTES}
 
     async def complete(self, ctx: AuthFlowContext) -> User:
-        from grunt.auth.doctypes.User.user import (
-            clear_failed_attempts,
-            get_user_by_email,
-            is_account_locked,
-            register_failed_attempt,
-        )
-
         # magic link - the token came from the inbox, that's the proof
         magic = ctx.get("token")
         if magic:
@@ -143,8 +147,6 @@ class EmailLoginProvider(AuthProvider):
     # EmailLoginToken row lifecycle
 
     async def _new_token(self, email: str, code_hash: str, ip: str | None) -> str:
-        import grunt
-
         now = datetime.now(UTC)
         async with grunt.system_context(grunt.get_session()):
             # One live token per address, and opportunistically sweep expired rows.
@@ -165,7 +167,6 @@ class EmailLoginProvider(AuthProvider):
         """The row for *tid* if it exists, is unconsumed and unexpired."""
         if not tid:
             return None
-        import grunt
 
         async with grunt.system_context(grunt.get_session()):
             rows = await grunt.get_list(
@@ -187,8 +188,6 @@ class EmailLoginProvider(AuthProvider):
         return row
 
     async def _mark_consumed(self, tid: str) -> None:
-        import grunt
-
         async with grunt.system_context(grunt.get_session()):
             await grunt.db.set_value(_TOKEN_DT, tid, {"consumed_at": datetime.now(UTC)})
 
@@ -202,13 +201,6 @@ class EmailLoginProvider(AuthProvider):
 
     async def _resolve_user(self, email: str) -> User:
         """Existing active user, or a freshly provisioned passwordless one."""
-        from grunt.auth.doctypes.User.user import (
-            _apply_signup_approval,
-            _guard_registration,
-            get_user_by_email,
-        )
-        from grunt.auth.login import find_or_create_external_user
-
         user = await get_user_by_email(email)
         if user is not None:
             if not user.is_active:
@@ -221,9 +213,7 @@ class EmailLoginProvider(AuthProvider):
         return user
 
     async def _send_mail(self, email: str, code: str, login_url: str) -> None:
-        import grunt
         from grunt import _
-        from grunt.email.service import email_service
 
         # Rendered in the request language - the person asking is the recipient.
         plain = "\n\n".join(

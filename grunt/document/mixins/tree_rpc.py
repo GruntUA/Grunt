@@ -14,7 +14,12 @@ from typing import Any
 import grunt
 from grunt import _
 from grunt.document.tree import TREE_TITLE_RESOLVERS, tree_service
+from grunt.errors import not_found
+from grunt.permissions.access import RoleAccess
 from grunt.permissions.guards import write_guard
+from grunt.permissions.query import apply_permission_filter
+from grunt.permissions.rbac import permission_checker
+from grunt.permissions.user_permissions import build_conditions
 
 
 async def _tree_read_gate(doctype: str) -> tuple[Any, list[str] | None]:
@@ -25,10 +30,6 @@ async def _tree_read_gate(doctype: str) -> tuple[Any, list[str] | None]:
     filters, so returns ``(dt, [name, parent_field, title_field])``. Neither ->
     a 403 naming the DocType.
     """
-    from grunt.errors import not_found
-    from grunt.permissions.access import RoleAccess
-    from grunt.permissions.rbac import permission_checker
-
     dt = await grunt.get_meta(doctype)
     if dt is None:
         raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
@@ -64,9 +65,6 @@ async def _tree_row_scope(dt: Any, restricted: list[str] | None) -> Any | None:
     if restricted is not None:
         return None
     from sqlalchemy import and_, select
-
-    from grunt.permissions.query import apply_permission_filter
-    from grunt.permissions.user_permissions import build_conditions
 
     user = grunt.get_user()
     table = dt.table

@@ -2,6 +2,7 @@
 
 import pytest
 
+import grunt.hooks as hooks
 from grunt.scripting.doctypes.Hook import hook as hook_mod
 from grunt.scripting.doctypes.Hook.hook import Hook
 
@@ -13,8 +14,6 @@ def _sample_handler():  # pragma: no cover - only its name is used
 @pytest.fixture
 def registries(monkeypatch):
     """Populate the in-memory hook registries with a known shape."""
-    import grunt.hooks as hooks
-
     monkeypatch.setattr(
         hooks, "HOOK_REGISTRY", {"after_migrate": [{"handler": _sample_handler, "priority": 5}]}
     )

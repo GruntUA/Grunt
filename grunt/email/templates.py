@@ -11,7 +11,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+import grunt
 from grunt import _
+from grunt.email.service import email_service
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
@@ -36,8 +38,6 @@ async def render(name: str, context: dict[str, Any]) -> tuple[str, str, str | No
     including one acting as a synthetic Guest (e.g. a public WebForm
     submission queuing its own confirmation e-mail).
     """
-    import grunt
-
     async with grunt.system_context(grunt.get_session()):
         rows = await grunt.db.get_all(
             "EmailTemplate",
@@ -60,8 +60,6 @@ async def render(name: str, context: dict[str, Any]) -> tuple[str, str, str | No
 
 async def queue(session: AsyncSession, *, to: str, name: str, context: dict[str, Any]) -> str:
     """Render EmailTemplate *name* against *context* and queue it in one call."""
-    from grunt.email.service import email_service
-
     subject, body_text, body_html = await render(name, context)
     return await email_service.queue_email(
         session=session, to=to, subject=subject, body=body_text, html_body=body_html

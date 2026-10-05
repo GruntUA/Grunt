@@ -10,6 +10,7 @@ from typing import Any
 
 import grunt
 from grunt import _, log
+from grunt.document.query import _expand_child_of_filters
 from grunt.metadata.widget import get_widget_type_class
 from grunt.reports.widget_compute import _widget_report_series
 
@@ -130,7 +131,6 @@ async def _compute_widget_data(
 
     # `field__child_of` is expanded to the subtree (`field__in=…`) only by list
     # queries; grunt.db.aggregate would silently drop it, so expand it here.
-    from grunt.document.query import _expand_child_of_filters
 
     session = grunt.get_session()
     expanded = await _expand_child_of_filters(session, dt.doc, base_filters)

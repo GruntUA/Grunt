@@ -1,3 +1,4 @@
+import json
 import unicodedata
 from contextlib import suppress
 from contextvars import ContextVar
@@ -15,6 +16,7 @@ from sqlalchemy.ext.asyncio import (
 
 from grunt import log
 from grunt.config import settings
+from grunt.db.write_intent import begin_statement
 
 _UK_ALPHABET = "абвгґдеєжзиіїйклмнопрстуфхцчшщьюя"
 _UK_ORDER = {ch: i for i, ch in enumerate(_UK_ALPHABET)}
@@ -123,8 +125,6 @@ class SiteManager:
 
     def get_site_config(self, site_name: str) -> dict[str, Any]:
         """Return a site's ``grunt.site`` config (empty if missing/unreadable)."""
-        import json
-
         site_file = self.sites_dir / site_name / "grunt.site"
         if not site_file.exists():
             return {}
@@ -265,8 +265,6 @@ class SiteManager:
 
                 @event.listens_for(engine.sync_engine, "begin")
                 def _on_sqlite_begin(conn):
-                    from grunt.db.write_intent import begin_statement  # noqa: PLC0415
-
                     # IMMEDIATE for work that will write - see grunt/db/write_intent.py.
                     conn.exec_driver_sql(begin_statement())
 

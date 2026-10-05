@@ -16,6 +16,7 @@ from grunt.auth.dependencies import current_user
 from grunt.auth.doctypes.User.user import User
 from grunt.document.bulk_ops import BulkDeleteTask
 from grunt.permissions.doc_perms import PERMS_KEY, with_permissions
+from grunt.site.manager import current_site
 from grunt.website.generator import WEB_URL_KEY, with_web_url
 
 router = GruntRouter()
@@ -139,8 +140,6 @@ async def bulk_delete(
     optional ``filters``/``search`` (delete all matching, in rolling batches
     so datasets of any size are supported).
     """
-    from grunt.site.manager import current_site
-
     user = grunt.get_user()
     user_email = user.email
     engine = grunt.get_engine()

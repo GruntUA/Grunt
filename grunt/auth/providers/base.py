@@ -26,6 +26,7 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, ClassVar, Literal
 
 from grunt import _
+from grunt.utils.http import public_base_url
 
 if TYPE_CHECKING:
     from fastapi import Request
@@ -60,8 +61,6 @@ class AuthFlowContext:
 
     def base_url(self) -> str:
         """The public origin the browser is actually on, for links back into the SPA."""
-        from grunt.utils.http import public_base_url
-
         return public_base_url(self.request)
 
 

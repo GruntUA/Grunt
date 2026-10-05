@@ -20,6 +20,9 @@ from typing import TYPE_CHECKING, Any
 
 import grunt
 from grunt import _
+from grunt.auth.ip_policy import CLOUDFLARE_RANGES, ip_allowed
+from grunt.auth.service import session_ttl_minutes
+from grunt.config import settings
 
 if TYPE_CHECKING:
     from fastapi import Request
@@ -45,9 +48,6 @@ def client_ip(request: Request | None) -> str | None:
     ``settings.trust_cloudflare``, from a Cloudflare edge (CF-Connecting-IP
     only); otherwise they could be forged.
     """
-    from grunt.auth.ip_policy import CLOUDFLARE_RANGES, ip_allowed
-    from grunt.config import settings
-
     if request is None:
         return None
     peer = request.client.host if request.client else None
@@ -88,8 +88,6 @@ async def open_session(
     user_agent: str | None,
 ) -> tuple[str, str]:
     """Start a session for a successful login. Returns ``(sid, refresh_token)``."""
-    from grunt.auth.service import session_ttl_minutes
-
     sid = uuid.uuid4().hex
     refresh_token = secrets.token_hex(32)
 
@@ -121,8 +119,6 @@ async def rotate_session(
     None into an error, which rolls the request back; ``_deactivate_expired``
     closes it on the next login or session listing.
     """
-    from grunt.auth.service import session_ttl_minutes
-
     async with grunt.system_context(grunt.get_session()):
         rows = await grunt.db.get_all(
             "UserSession",
@@ -172,8 +168,6 @@ async def end_all_sessions(user_id: str, keep_sid: str | None = None) -> int:
 @grunt.whitelist()
 async def list_my_sessions() -> list[dict[str, Any]]:
     """Active sessions of the current user; ``current`` marks this device."""
-    from grunt.auth.service import session_ttl_minutes
-
     current = grunt.get_user()
     assert current.id is not None
     async with grunt.system_context(grunt.get_session()):

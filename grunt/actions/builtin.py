@@ -14,6 +14,8 @@ from typing import Any
 import grunt
 from grunt import _
 from grunt.actions.registry import doc_action
+from grunt.activity.doctypes.DeletedDocument.deleted_document import restore
+from grunt.reports.delivery import send_report_now
 
 
 @doc_action(
@@ -69,8 +71,6 @@ async def copy_reference(doc: dict[str, Any], *, args: dict[str, Any]) -> dict[s
 )
 async def trash_restore(doc: dict[str, Any], *, args: dict[str, Any]) -> dict[str, Any]:
     """Recreate the deleted document from its snapshot, keeping the original id."""
-    from grunt.activity.doctypes.DeletedDocument.deleted_document import restore
-
     restored = await restore(doc["name"])
     return {"message": _("Restored: %(name)s") % {"name": restored["name"]}, "refresh": True}
 
@@ -85,8 +85,6 @@ async def trash_restore(doc: dict[str, Any], *, args: dict[str, Any]) -> dict[st
 )
 async def trash_restore_as_copy(doc: dict[str, Any], *, args: dict[str, Any]) -> dict[str, Any]:
     """Restore even when the original id is taken - a fresh id is generated."""
-    from grunt.activity.doctypes.DeletedDocument.deleted_document import restore
-
     restored = await restore(doc["name"], allow_rename=True)
     return {"message": _("Restored as: %(name)s") % {"name": restored["name"]}, "refresh": True}
 
@@ -145,8 +143,6 @@ async def todo_reopen(doc: dict[str, Any], *, args: dict[str, Any]) -> dict[str,
 )
 async def report_send_now(doc: dict[str, Any], *, args: dict[str, Any]) -> dict[str, Any]:
     """Email the report to its scheduled recipients right away."""
-    from grunt.reports.delivery import send_report_now
-
     sent = await send_report_now(doc["name"])
     return {
         "message": _("Report queued for %(count)s recipients") % {"count": sent},

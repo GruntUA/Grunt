@@ -9,8 +9,14 @@ the page itself: ``frontend/src/core/browserHealth.ts``.
 
 from __future__ import annotations
 
+import asyncio
+import importlib.metadata
+import json
+import re
 import shutil
 import time
+import tomllib
+import uuid
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
@@ -19,7 +25,16 @@ from sqlalchemy import text
 
 import grunt
 from grunt import log, whitelist
+from grunt.api.v1.ws import manager
+from grunt.apps.deps import app_packages
+from grunt.backups import list_backups
 from grunt.i18n import N_, _
+from grunt.metadata.registry import doctype_registry
+from grunt.site.manager import site_manager
+from grunt.site.settings import get_setting
+from grunt.tasks.redis_introspect import redis_conn, s, stream_broker
+from grunt.tasks.scheduler import failed_jobs, scheduler
+from grunt.utils.redis import connect
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
@@ -106,8 +121,6 @@ async def _database_size(session, dialect: str) -> int | None:
 
 async def largest_tables() -> list[Row]:
     """Top DocTypes by row count - what grows (logs usually) and may need retention."""
-    from grunt.metadata.registry import doctype_registry
-
     counts: list[tuple[str, int]] = []
     for dt in await doctype_registry.list_all():
         if dt.is_virtual or dt.is_singleton:
@@ -134,8 +147,6 @@ async def largest_tables() -> list[Row]:
 
 
 async def check_background_jobs() -> list[Row]:
-    from grunt.tasks.redis_introspect import redis_conn, s, stream_broker
-
     cat = _("Background jobs")
     sb = stream_broker()
     if sb is None:
@@ -199,8 +210,6 @@ async def check_background_jobs() -> list[Row]:
 
 
 async def check_scheduler() -> list[Row]:
-    from grunt.tasks.scheduler import failed_jobs, scheduler
-
     cat = _("Scheduler")
     rows = [
         row(
@@ -364,8 +373,6 @@ async def check_config() -> list[Row]:
 
 
 async def check_storage() -> list[Row]:
-    from grunt.site.manager import site_manager
-
     cat = _("Files")
     count = await grunt.db.count("File")
     [agg] = await grunt.db.aggregate("File", aggregations={"size": "sum(file_size)"})
@@ -397,10 +404,6 @@ REDIS_ROUNDTRIP_TIMEOUT = 2.0
 async def check_realtime() -> list[Row]:
     """Connections of this process + the Redis pub/sub relay that carries
     realtime messages between processes (web workers, the task worker)."""
-    import asyncio
-    import uuid
-
-    from grunt.api.v1.ws import manager
     from grunt.config import settings
 
     cat = _("WebSockets")
@@ -429,8 +432,6 @@ async def check_realtime() -> list[Row]:
             )
         )
         return rows
-
-    from grunt.utils.redis import connect
 
     key = f"grunt:ws:__health__:{uuid.uuid4().hex}"
     r = connect(socket_connect_timeout=1)
@@ -485,8 +486,6 @@ async def check_realtime() -> list[Row]:
 async def ws_echo(nonce: str) -> dict[str, Any]:
     """Push a test event to the caller's own user channel - the browser half
     of the report checks it arrives exactly once (grunt/api/v1/ws.py)."""
-    from grunt.api.v1.ws import manager
-
     await manager.send_to_user(
         grunt.get_user().email, {"event": WS_ECHO_EVENT, "data": {"nonce": nonce}}
     )
@@ -497,10 +496,6 @@ async def ws_echo(nonce: str) -> dict[str, Any]:
 
 
 async def check_backups() -> list[Row]:
-    from grunt.backups import list_backups
-    from grunt.site.manager import site_manager
-    from grunt.site.settings import get_setting
-
     cat = _("Backups")
     site = site_manager.get_active_site()
     backups = list_backups(site)
@@ -563,19 +558,11 @@ async def check_backups() -> list[Row]:
 
 
 def _requirement_name(spec: str) -> str:
-    import re
-
     return re.split(r"[\s\[<>=!~;@]", spec.strip(), maxsplit=1)[0]
 
 
 async def check_app_dependencies() -> list[Row]:
     """Every package an app declares in its pyproject.toml is installed."""
-    import importlib.metadata
-    import tomllib
-
-    from grunt.apps.deps import app_packages
-    from grunt.site.manager import site_manager
-
     missing: list[str] = []
     apps = app_packages(site_manager.bench_dir / "apps")
     for app in apps:
@@ -604,8 +591,6 @@ async def check_app_dependencies() -> list[Row]:
 
 async def check_offline_build() -> list[Row]:
     """The service worker exists only in the production build - check it is there."""
-    import json
-
     cat = _("Offline mode")
     manifest = FRONTEND_DIST / "precache-manifest.json"
     if not manifest.exists():

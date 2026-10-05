@@ -21,6 +21,7 @@ from grunt.i18n.service import (
     translation_service,
     use_language,
 )
+from grunt.metadata.dynamic_options import register_option_provider
 
 #: Register the runtime translation provider (see :meth:`TranslationService.register_provider`).
 register_provider = translation_service.register_provider
@@ -35,8 +36,6 @@ def _language_options() -> list[str | tuple[str, str]]:
 
 
 def _register_language_options() -> None:
-    from grunt.metadata.dynamic_options import register_option_provider
-
     register_option_provider(LANGUAGE_OPTIONS_SOURCE, _language_options)
 
 

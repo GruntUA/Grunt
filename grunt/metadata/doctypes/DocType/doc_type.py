@@ -10,10 +10,12 @@ if TYPE_CHECKING:
 
 from sqlalchemy import func, select
 
+import grunt
 from grunt.db.system_tables import GruntMetaDoctype
-from grunt.metadata.compiler import get_table_name
+from grunt.metadata.compiler import get_table_name, sync_table
 from grunt.metadata.doctype import DocType
 from grunt.metadata.registry import doctype_registry
+from grunt.metadata.scaffold import export_doctype_files
 from grunt.metadata.virtual import VirtualDocType
 
 
@@ -46,8 +48,6 @@ class DocTypeController(VirtualDocType):
     """Serves DocType list/get from grunt_meta_doctype (single source of truth)."""
 
     def _session(self):
-        import grunt
-
         return grunt.get_session()
 
     async def get_list(
@@ -107,10 +107,6 @@ class DocTypeController(VirtualDocType):
 
     async def create(self, data: dict[str, Any], **kwargs: Any) -> dict[str, Any]:
         """Create a new DocType."""
-        import grunt
-        from grunt.metadata.compiler import sync_table
-        from grunt.metadata.scaffold import export_doctype_files
-
         dt = DocType(**data)
         _drop_default_table_name(dt)
         session = self._session()
@@ -132,10 +128,6 @@ class DocTypeController(VirtualDocType):
 
     async def update(self, doc_id: str, data: dict[str, Any], **kwargs: Any) -> dict[str, Any]:
         """Update an existing DocType."""
-        import grunt
-        from grunt.metadata.compiler import sync_table
-        from grunt.metadata.scaffold import export_doctype_files
-
         dt = DocType(**data)
         _drop_default_table_name(dt)
         session = self._session()

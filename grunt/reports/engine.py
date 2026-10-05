@@ -8,7 +8,17 @@ from typing import TYPE_CHECKING, Any, cast
 from fastapi import HTTPException
 from sqlalchemy import func, select, text
 
+import grunt
 from grunt import _, log
+from grunt.db.filters import build_clauses
+from grunt.db.session import get_engine as _engine_factory
+from grunt.errors import not_found
+from grunt.io.exporters.sanitize import escape_formula
+from grunt.permissions.query import apply_permission_filter
+from grunt.permissions.rbac import permission_checker
+from grunt.permissions.user_permissions import build_conditions
+from grunt.reports.list_options import DATE_BUCKETS, compile_conditions, date_bucket
+from grunt.scripting.safe_globals import build_safe_globals, compile_script
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -27,8 +37,6 @@ class ReportEngine:
         user: User,
         session: AsyncSession,
     ) -> dict[str, Any]:
-        import grunt
-
         async with grunt.context(session, None, user):
             rows = await grunt.get_list(
                 "Report",
@@ -153,14 +161,9 @@ class ReportEngine:
             else:
                 query = "SELECT ... FROM dbstat ..."
         """
-        import grunt
-        from grunt.db.session import get_engine as _engine_factory
-
         script_src = report.get("script", "").strip()
         if not script_src:
             raise HTTPException(400, detail=_("No script specified"))
-
-        from grunt.scripting.safe_globals import build_safe_globals, compile_script
 
         # Not plain compile()+exec(): see safe_globals.py's module docstring
         # - a restricted __builtins__ dict alone doesn't stop attribute
@@ -257,10 +260,6 @@ class ReportEngine:
         Columns without an aggregation are treated as GROUP BY columns when
         any aggregation column is present; otherwise a plain SELECT is used.
         """
-        import grunt
-        from grunt.errors import not_found
-        from grunt.permissions.rbac import permission_checker
-
         dt = await grunt.get_meta(doctype)
         if dt is None:
             raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
@@ -284,8 +283,6 @@ class ReportEngine:
             "min": func.min,
             "max": func.max,
         }
-
-        from grunt.reports.list_options import DATE_BUCKETS, compile_conditions, date_bucket
 
         dialect = session.get_bind().dialect.name
         # "none" (the builder's "no aggregation") is not an aggregation.
@@ -338,7 +335,6 @@ class ReportEngine:
         # Apply filters - operator-aware, same vocabulary as list views:
         # ``field__gte`` / ``__like`` / ``__ne`` / … ; a bare ``field`` means
         # equality. Empty values are dropped so an untouched filter is a no-op.
-        from grunt.db.filters import build_clauses
 
         active_filters = {k: v for k, v in filters.items() if v not in (None, "", [])}
         for clause in build_clauses(table, active_filters):
@@ -351,8 +347,6 @@ class ReportEngine:
                 stmt = stmt.where(clause)
 
         # Row-level security
-        from grunt.permissions.query import apply_permission_filter
-        from grunt.permissions.user_permissions import build_conditions
 
         stmt = await apply_permission_filter(stmt, table, user, dt)
         up_conds = await build_conditions(table, user, dt)
@@ -423,7 +417,6 @@ class ReportEngine:
             cell.font = Font(bold=True)
 
         # Data rows
-        from grunt.io.exporters.sanitize import escape_formula
 
         for ri, row in enumerate(data, 2):
             for ci, col in enumerate(columns, 1):

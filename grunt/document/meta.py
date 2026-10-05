@@ -7,6 +7,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from grunt.metadata.compiler import compile_doctype_to_table, get_table_name
+
 if TYPE_CHECKING:
     from collections.abc import Iterable
 
@@ -58,8 +60,6 @@ class Meta:
     @property
     def table_name(self) -> str:
         """Return the physical table name, computing it if not explicitly set."""
-        from grunt.metadata.compiler import get_table_name
-
         return self.doc.table_name or get_table_name(self.doc.module, self.doc.name)
 
     @property
@@ -70,8 +70,6 @@ class Meta:
         DocType name - cheap to call repeatedly, kept here for callers that
         already hold a :class:`Meta` and shouldn't need a second import.
         """
-        from grunt.metadata.compiler import compile_doctype_to_table
-
         return compile_doctype_to_table(self.doc)
 
     def get_field(self, fieldname: str) -> DocField | None:
@@ -239,8 +237,6 @@ class Meta:
             return
 
         from sqlalchemy import inspect, text
-
-        from grunt.metadata.compiler import get_table_name
 
         table_name = self.doc.table_name or get_table_name(self.doc.module, self.doc.name)
 

@@ -8,6 +8,7 @@ from grunt.errors import forbidden
 from grunt.i18n import NP_, _, pgettext
 from grunt.permissions.access import RoleAccess
 from grunt.permissions.match import PermissionMatch
+from grunt.permissions.shares import SHAREABLE_ACTIONS, has_share
 from grunt.permissions.types import PermissionAction
 
 # Human-readable action names for the "insufficient permissions" message, so a
@@ -140,8 +141,6 @@ class PermissionChecker:
         that very document counts; without it, a share of any document of the
         DocType lets the doctype-level pre-flight pass so the per-document
         check can decide."""
-        from grunt.permissions.shares import SHAREABLE_ACTIONS, has_share
-
         if action not in SHAREABLE_ACTIONS or getattr(doctype, "is_singleton", False):
             return False
         if doc is not None:

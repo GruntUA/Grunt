@@ -2,9 +2,13 @@
 
 from __future__ import annotations
 
+import datetime
+
 import pytest
 
-from grunt.assignment.doctypes.AssignmentRule.assignment_rule import AssignmentRule
+from grunt.assignment import assignment_service
+from grunt.assignment.doctypes.AssignmentLog.assignment_log import list_logs
+from grunt.assignment.doctypes.AssignmentRule.assignment_rule import AssignmentRule, test_rule
 
 
 def _match(doc: dict, filters: dict) -> bool:
@@ -45,8 +49,6 @@ class TestAssignmentIntegration:
     @pytest.mark.asyncio
     async def test_evaluate_and_assign_no_rules(self, ctx):
         """When no rules exist, nothing happens."""
-        from grunt.assignment import assignment_service
-
         await assignment_service.evaluate_and_assign(
             doctype="Invoice",
             doc={"id": "1", "status": "Draft"},
@@ -59,8 +61,6 @@ class TestAssignmentAPI:
     @pytest.mark.asyncio
     async def test_test_assignment_rule_api(self, ctx):
         """Test the assignment rule test logic directly."""
-        from grunt.assignment.doctypes.AssignmentRule.assignment_rule import test_rule
-
         # 1. Create a rule via documents API
         rule_data = {
             "name": "Test Rule API",
@@ -81,10 +81,6 @@ class TestAssignmentAPI:
 
     async def test_list_assignment_logs_api(self, ctx):
         """Test the assignment log listing logic directly."""
-        import datetime
-
-        from grunt.assignment.doctypes.AssignmentLog.assignment_log import list_logs
-
         log_doc = {
             "doctype_affected": "Invoice",
             "document_id": "INV-TEST",

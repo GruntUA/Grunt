@@ -9,6 +9,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 from grunt import log
+from grunt.app import GruntDB
+from grunt.local import _session_ctx
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
@@ -22,9 +24,6 @@ async def get_client_scripts(
 
     Returns a list of dicts with `name` and `script` keys.
     """
-    from grunt.app import GruntDB
-    from grunt.local import _session_ctx
-
     token = _session_ctx.set(session)
     try:
         rows = await GruntDB().get_all(

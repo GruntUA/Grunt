@@ -17,7 +17,9 @@ import secrets
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
+import grunt
 from grunt import log
+from grunt.auth.doctypes.User.user import get_user_by_id
 from grunt.auth.ip_policy import ip_allowed, parse_ip_list
 
 if TYPE_CHECKING:
@@ -73,9 +75,6 @@ async def authenticate_api_key(
         return None
 
     key_prefix = raw[:8]
-
-    import grunt
-    from grunt.auth.doctypes.User.user import get_user_by_id
 
     async with grunt.system_context(session):
         rows = await grunt.db.get_all(

@@ -11,6 +11,11 @@ import pytest_asyncio
 from fastapi import HTTPException
 
 import grunt
+from grunt.api.v1.meta import save_doctype
+from grunt.document.base import Document
+from grunt.hooks import on_doc
+from grunt.workflow.engine import current_transition
+from grunt.workflow.registry import clear_cache
 
 AUTHOR = "author@grunt.example.com"
 REVIEWER = "reviewer@grunt.example.com"
@@ -60,9 +65,6 @@ WORKFLOW = {
 
 @pytest_asyncio.fixture
 async def article(ctx, db_session):
-    from grunt.api.v1.meta import save_doctype
-    from grunt.workflow.registry import clear_cache
-
     await save_doctype(doctype_data={**ARTICLE, "__is_new": True})
     for role in (W, E):
         await ctx.new_doc("Role", {"role_name": role})
@@ -94,8 +96,6 @@ async def _state(name: str) -> tuple[str, int]:
 
 
 async def _buttons(name: str) -> set[str]:
-    from grunt.document.base import Document
-
     return {t["action"] for t in await Document.get_workflow_transitions("Article", name)}
 
 
@@ -182,9 +182,6 @@ async def test_edit_of_published_goes_back_to_review(article, db_session, engine
 
 @pytest.mark.asyncio
 async def test_controller_sees_current_transition(article, db_session, engine):
-    from grunt.hooks import on_doc
-    from grunt.workflow.engine import current_transition
-
     seen: list[tuple[str | None, str]] = []
 
     @on_doc("Article", "before_save")

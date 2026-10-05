@@ -14,6 +14,7 @@ from __future__ import annotations
 import grunt
 from grunt import _
 from grunt.document.base import Document
+from grunt.permissions.user_permissions import invalidate_user_permission_cache
 
 
 class UserPermission(Document):
@@ -58,6 +59,4 @@ class UserPermission(Document):
 
 
 def _invalidate(user_id: str | None) -> None:
-    from grunt.permissions.user_permissions import invalidate_user_permission_cache
-
     invalidate_user_permission_cache(user_id)

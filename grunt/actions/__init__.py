@@ -70,8 +70,6 @@ def load_app_doc_actions(module_paths: list[str], *, app: str | None = None) -> 
     Called from ``grunt.main`` for every installed app that declares
     ``doc_actions = [...]`` in its ``hooks.py``.
     """
-    import importlib
-
     for mod_path in module_paths:
         try:
             importlib.import_module(mod_path)
@@ -144,8 +142,6 @@ async def list_doc_actions(doctype: str | None = None) -> list[dict]:
 
 
 def _all_specs():
-    from grunt.actions.registry import _REGISTRY
-
     return _REGISTRY.values()
 
 
@@ -158,8 +154,6 @@ async def run(doctype: str, action: str, doc_id: str, args: dict | None = None) 
     exists in the registry, so the set of runnable actions per DocType stays
     exactly what the metadata declares.
     """
-    from grunt.errors import not_found
-
     dt = await grunt.get_meta(doctype)
     if dt is None:
         raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
@@ -201,4 +195,8 @@ async def run(doctype: str, action: str, doc_id: str, args: dict | None = None) 
 
 
 # Register the core built-in actions (core.duplicate / core.recalc / …).
+import importlib
+
 from grunt.actions import builtin  # noqa: E402,F401
+from grunt.actions.registry import _REGISTRY
+from grunt.errors import not_found

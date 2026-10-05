@@ -21,6 +21,8 @@ from __future__ import annotations
 import time
 from typing import Any
 
+import grunt
+
 _SINGLETON = "SystemSettings"
 _TTL_SECONDS = 60.0
 
@@ -38,8 +40,6 @@ async def get_system_settings(*, fresh: bool = False) -> dict[str, Any]:
 
     if not fresh and _cache is not None and (time.monotonic() - _cache_ts) < _TTL_SECONDS:
         return _cache
-
-    import grunt
 
     # A singleton has exactly one row; read it positionally rather than by name
     # (the row may be autonamed to a hash on some sites).

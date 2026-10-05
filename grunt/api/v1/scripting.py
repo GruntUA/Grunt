@@ -6,21 +6,19 @@ from typing import Any
 
 import grunt
 from grunt import _
+from grunt.scripting import server_script_runner
+from grunt.scripting.client_script import get_client_scripts as _get
 
 
 @grunt.whitelist()
 async def get_client_scripts(doctype: str) -> list[dict[str, Any]]:
     """Return all enabled client scripts for a DocType."""
-    from grunt.scripting.client_script import get_client_scripts as _get
-
     return await _get(grunt.get_session(), doctype)
 
 
 @grunt.whitelist()
 async def run_server_script(method: str, params: dict[str, Any] | None = None) -> dict[str, Any]:
     """Execute a Server Script of type 'API'."""
-    from grunt.scripting import server_script_runner
-
     session = grunt.get_session()
     script = await server_script_runner.load_api_script(session, method)
     if not script:

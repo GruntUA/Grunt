@@ -7,12 +7,15 @@ Called by: grunt create-app <name>
 
 from __future__ import annotations
 
+import email.headerregistry
 import json
 import re
 import subprocess
 from typing import TYPE_CHECKING
 
 import click
+
+from grunt.utils.codegen import render_template
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -28,8 +31,6 @@ def is_valid_app_name(name: str) -> bool:
 
 def is_valid_email(addr: str) -> bool:
     """Validate email address format."""
-    import email.headerregistry
-
     try:
         email.headerregistry.Address(addr_spec=addr)
         return "@" in addr
@@ -181,8 +182,6 @@ def _create_app_boilerplate(dest: Path, hooks: dict, no_git: bool = False) -> No
 
 
 def _write_grunt_app_py(app_dir: Path, module: str, h: dict) -> None:
-    from grunt.utils.codegen import render_template
-
     (app_dir / "grunt_app.py").write_text(
         render_template("app/app.py.jinja", {**h, "module": module}),
         encoding="utf-8",
@@ -209,8 +208,6 @@ def _write_app_json(app_dir: Path, module: str, h: dict) -> None:
 
 
 def _write_install_py(app_dir: Path, h: dict) -> None:
-    from grunt.utils.codegen import render_template
-
     (app_dir / "install.py").write_text(
         render_template("app/install.py.jinja", h),
         encoding="utf-8",
@@ -218,8 +215,6 @@ def _write_install_py(app_dir: Path, h: dict) -> None:
 
 
 def _write_readme(app_dir: Path, h: dict) -> None:
-    from grunt.utils.codegen import render_template
-
     (app_dir / "README.md").write_text(
         render_template("app/README.md.jinja", h),
         encoding="utf-8",
@@ -227,8 +222,6 @@ def _write_readme(app_dir: Path, h: dict) -> None:
 
 
 def _write_gitignore(app_dir: Path) -> None:
-    from grunt.utils.codegen import render_template
-
     (app_dir / ".gitignore").write_text(
         render_template("app/.gitignore.jinja", {}),
         encoding="utf-8",
@@ -243,8 +236,6 @@ def _write_module_init(app_dir: Path, module: str, h: dict) -> None:
 
 
 def _write_hooks_py(app_dir: Path, module: str, h: dict) -> None:
-    from grunt.utils.codegen import render_template
-
     (app_dir / module / "hooks.py").write_text(
         render_template("app/hooks.py.jinja", h),
         encoding="utf-8",
@@ -252,8 +243,6 @@ def _write_hooks_py(app_dir: Path, module: str, h: dict) -> None:
 
 
 def _write_tasks_py(app_dir: Path, module: str, h: dict) -> None:
-    from grunt.utils.codegen import render_template
-
     (app_dir / module / "tasks.py").write_text(
         render_template("app/tasks.py.jinja", h),
         encoding="utf-8",
@@ -261,8 +250,6 @@ def _write_tasks_py(app_dir: Path, module: str, h: dict) -> None:
 
 
 def _write_routes_py(app_dir: Path, module: str, h: dict) -> None:
-    from grunt.utils.codegen import render_template
-
     (app_dir / module / "routes.py").write_text(
         render_template("app/routes.py.jinja", h),
         encoding="utf-8",
@@ -295,8 +282,6 @@ def _write_workspace_fixture(app_dir: Path, module: str, h: dict) -> None:
 
 
 def _write_jsconfig(app_dir: Path, module: str) -> None:
-    from grunt.utils.codegen import render_template
-
     (app_dir / "jsconfig.json").write_text(
         render_template("app/jsconfig.json.jinja", {"module": module}),
         encoding="utf-8",
@@ -304,8 +289,6 @@ def _write_jsconfig(app_dir: Path, module: str) -> None:
 
 
 def _write_types_dts(app_dir: Path, module: str) -> None:
-    from grunt.utils.codegen import render_template
-
     (app_dir / module / "types.d.ts").write_text(
         render_template("app/types.d.ts.jinja", {}),
         encoding="utf-8",

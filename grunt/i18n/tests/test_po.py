@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import json as _json
 
 import polib
 import pytest
@@ -81,8 +82,6 @@ def test_merge_locale_keeps_translations_and_marks_obsolete(bench, locale_dir):
 @pytest.fixture
 def flip_pkg(tmp_path, monkeypatch):
     """A fake grunt package with a `demo` module holding one DocType JSON."""
-    import json as _json
-
     pkg = tmp_path / "grunt"
     dt_dir = pkg / "demo" / "doctypes" / "Widget"
     dt_dir.mkdir(parents=True)
@@ -117,8 +116,6 @@ def test_flip_module_dry_run_reports_unmapped(flip_pkg):
 
 
 def test_flip_module_apply_rewrites_json_and_fills_uk_po(flip_pkg):
-    import json as _json
-
     mapping = {
         "Віджет": "Widget",
         "Назва": "Name",
@@ -146,8 +143,6 @@ def test_flip_module_apply_rewrites_json_and_fills_uk_po(flip_pkg):
 
 
 def test_flip_module_leaves_select_values_by_default(flip_pkg):
-    import json as _json
-
     r = po.flip_module(
         "demo", {"Віджет": "Widget", "Назва": "Name", "Статус": "Status"}, apply=True
     )

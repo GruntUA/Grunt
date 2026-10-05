@@ -6,6 +6,7 @@ turn a raw document reference into a display label without one query per row.
 
 from __future__ import annotations
 
+import grunt
 from grunt import log
 
 
@@ -17,8 +18,6 @@ async def resolve_reference_titles(
     Doctypes that no longer exist, or whose title lookup fails, are skipped -
     callers fall back to the raw id for those refs.
     """
-    import grunt
-
     by_doctype: dict[str, set[str]] = {}
     for dt_name, doc_id in refs:
         if dt_name and doc_id:

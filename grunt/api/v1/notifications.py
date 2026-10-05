@@ -6,6 +6,8 @@ from typing import Any
 
 import grunt
 from grunt import _
+from grunt.site.settings import get_setting
+from grunt.webpush.service import webpush_service
 
 
 @grunt.whitelist()
@@ -68,9 +70,6 @@ async def get_vapid_public_key() -> str | None:
     ``None`` when Web Push is disabled in SystemSettings - the client then
     shows "server not configured for push".
     """
-    from grunt.site.settings import get_setting
-    from grunt.webpush.service import webpush_service
-
     if not await get_setting("enable_web_push", False):
         return None
 
@@ -83,13 +82,10 @@ async def get_vapid_public_key() -> str | None:
 @grunt.whitelist()
 async def subscribe_push(endpoint: str, p256dh: str, auth: str, user_agent: str = "") -> bool:
     """Save a browser push subscription for the current user."""
-    from grunt.site.settings import get_setting
-
     if not await get_setting("enable_web_push", False):
         grunt.throw(_("Web Push is disabled in the system settings"), "FORBIDDEN")
 
     user = grunt.get_user()
-    from grunt.webpush.service import webpush_service
 
     await webpush_service.save_subscription(user.email, endpoint, p256dh, auth, user_agent)
     return True
@@ -99,7 +95,6 @@ async def subscribe_push(endpoint: str, p256dh: str, auth: str, user_agent: str 
 async def unsubscribe_push(endpoint: str) -> bool:
     """Remove a browser push subscription for the current user."""
     user = grunt.get_user()
-    from grunt.webpush.service import webpush_service
 
     await webpush_service.remove_subscription(endpoint, user.email)
     return True

@@ -27,7 +27,9 @@ from sqlalchemy import distinct, func, select
 
 import grunt
 from grunt import _, log
+from grunt.errors import not_found
 from grunt.metadata.doctype import DocTypeLink
+from grunt.permissions.guards import doc_guard
 
 _PREVIEW_LIMIT = 5
 
@@ -110,11 +112,7 @@ async def get_connections(doctype: str, doc_id: str) -> dict[str, Any]:
           ]
         }
     """
-    from grunt.permissions.guards import doc_guard
-
     await doc_guard(doctype, doc_id)  # permission check
-
-    from grunt.errors import not_found
 
     dt = await grunt.get_meta(doctype)
     if dt is None:

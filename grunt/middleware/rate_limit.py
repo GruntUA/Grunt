@@ -25,6 +25,7 @@ from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from grunt import _, log
+from grunt.auth.doctypes.UserSession.user_session import client_ip
 from grunt.config import settings
 from grunt.errors import error_body
 
@@ -130,8 +131,6 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         return allowed, remaining, reset_in
 
     def _client_ip(self, request: Request) -> str:
-        from grunt.auth.doctypes.UserSession.user_session import client_ip
-
         return client_ip(request) or "unknown"
 
     async def _cleanup(self) -> None:

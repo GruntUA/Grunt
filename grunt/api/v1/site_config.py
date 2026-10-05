@@ -10,6 +10,9 @@ from __future__ import annotations
 from typing import Any
 
 import grunt
+from grunt.i18n import translation_service
+from grunt.i18n.service import normalize_lang
+from grunt.site.settings import get_system_settings
 
 
 @grunt.whitelist(allow_guest=True)
@@ -19,10 +22,6 @@ async def get_public_config() -> dict[str, Any]:
     ``languages`` is the UI language switcher's list (``[{code, name}]``) -
     every locale with a translation catalog, named in its own language.
     """
-    from grunt.i18n import translation_service
-    from grunt.i18n.service import normalize_lang
-    from grunt.site.settings import get_system_settings
-
     s = await get_system_settings()
     return {
         "app_name": s.get("app_name") or "Ґрунт",

@@ -24,8 +24,19 @@ import sys
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from grunt import log
+from grunt import core_hooks, log
 from grunt.apps.consumers import HOOK_CONSUMERS, LoadContext, _resolve
+from grunt.document.registry import document_registry
+from grunt.io import register_exporter, register_importer
+from grunt.io.exporters.csv import CsvExporter
+from grunt.io.exporters.xlsx import XlsxExporter
+from grunt.io.importers.csv import CsvImporter
+from grunt.io.importers.xlsx import XlsxImporter
+from grunt.scripting.file_scripts import _load_doctype_dir_scripts, register_client_script_dir
+from grunt.scripting.file_scripts import discover_file_scripts as _discover_scripts
+from grunt.site.manager import site_manager
+from grunt.startup.doctypes import _find_doctype_dirs
+from grunt.website import make_website_handler, website_registry
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
@@ -42,8 +53,6 @@ def primary_web_app() -> str | None:
     """Name of the app whose www/ pages are mounted at the site root (instead
     of under ``/{app_name}/...``), if any - ``primary_web_app`` in the site's
     ``grunt.site``."""
-    from grunt.site.manager import site_manager
-
     return site_manager.get_primary_web_app()
 
 
@@ -57,15 +66,7 @@ def load_core(fastapi_app: FastAPI | None = None) -> None:
     any event loop), and every core consumer is synchronous. ``core_hooks``
     must not grow an ``on_startup`` - that belongs in the lifespan.
     """
-    from grunt.document.registry import document_registry
-
     document_registry.index_core_controllers()
-
-    from grunt.io import register_exporter, register_importer
-    from grunt.io.exporters.csv import CsvExporter
-    from grunt.io.exporters.xlsx import XlsxExporter
-    from grunt.io.importers.csv import CsvImporter
-    from grunt.io.importers.xlsx import XlsxImporter
 
     register_exporter(XlsxExporter())
     register_exporter(CsvExporter())
@@ -74,19 +75,11 @@ def load_core(fastapi_app: FastAPI | None = None) -> None:
 
     _load_core_client_scripts()
 
-    from grunt import core_hooks
-
     ctx = LoadContext(app_name=CORE_APP, app_dir=_GRUNT_PKG, fastapi_app=fastapi_app)
     _apply_hooks_module(core_hooks, ctx)
 
 
 def _load_core_client_scripts() -> None:
-    from grunt.scripting.file_scripts import (
-        _load_doctype_dir_scripts,
-        register_client_script_dir,
-    )
-    from grunt.startup.doctypes import _find_doctype_dirs
-
     for doctypes_dir in _find_doctype_dirs():
         register_client_script_dir(CORE_APP, doctypes_dir)
         for dt_dir in sorted(doctypes_dir.iterdir()):
@@ -139,9 +132,6 @@ async def load_app(fastapi_app: FastAPI | None, app_dir: Path) -> None:
     static assets and pages."""
     ctx = LoadContext(app_name=app_dir.name, app_dir=app_dir, fastapi_app=fastapi_app)
 
-    from grunt.document.registry import document_registry
-    from grunt.scripting.file_scripts import discover_file_scripts as _discover_scripts
-
     _discover_scripts(app_dir.parent, app_filter=ctx.app_name)
     document_registry.index_external_app_controllers(app_dir)
 
@@ -161,8 +151,6 @@ async def reload_app(app_name: str, fastapi_app: FastAPI | None = None) -> None:
     registries de-dupe by name/fieldname, but treat this as a convenience for
     iterating on hooks, not a replacement for a restart.
     """
-    from grunt.site.manager import site_manager
-
     app_dir = site_manager.bench_dir / "apps" / app_name
     if not app_dir.is_dir():
         log.warning("apps.reload.not_found", app=app_name)
@@ -294,7 +282,6 @@ def _move_before_catch_all(fastapi_app: FastAPI, count: int = 1) -> None:
 def _register_app_pages(ctx: LoadContext, *, is_main_app: bool = False) -> None:
     if ctx.fastapi_app is None:
         return
-    from grunt.website import make_website_handler, website_registry
 
     for page in website_registry.discover_app(ctx.app_dir, ctx.app_name, is_main_app=is_main_app):
         ctx.fastapi_app.add_api_route(

@@ -32,6 +32,8 @@ from sqlalchemy import and_, false, or_
 
 import grunt
 from grunt import _
+from grunt.errors import not_found
+from grunt.site.settings import get_setting
 
 if TYPE_CHECKING:
     from sqlalchemy import Table
@@ -63,8 +65,6 @@ def user_permissions_apply_to(user: User | None) -> bool:
 
 
 async def _strict_mode() -> bool:
-    from grunt.site.settings import get_setting
-
     return bool(await get_setting("apply_strict_user_permissions", False))
 
 
@@ -248,8 +248,6 @@ async def allowed_values(user: User | None, doctype_name: str, allow: str) -> se
 async def get_active_restrictions(doctype: str) -> list[dict[str, Any]]:
     """Rows for the list-view "Restrictions" popup: which fields on *doctype*
     are constrained, and to which values, for the current user."""
-    from grunt.errors import not_found
-
     user = grunt.get_user()
     dt = await grunt.get_meta(doctype)
     if dt is None:
@@ -271,8 +269,6 @@ async def get_active_restrictions(doctype: str) -> list[dict[str, Any]]:
 async def get_user_permission_defaults(doctype: str) -> dict[str, str]:
     """``{fieldname: value}`` to pre-fill on a new *doctype* form from the
     current user's ``is_default`` UserPermission rows."""
-    from grunt.errors import not_found
-
     user = grunt.get_user()
     if not user_permissions_apply_to(user):
         return {}

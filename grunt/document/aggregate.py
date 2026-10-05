@@ -21,6 +21,7 @@ from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import func, select
 
+import grunt
 from grunt import log
 from grunt.document.meta import Meta
 
@@ -40,8 +41,6 @@ async def compute_aggregations(
 
     Returns an empty dict if no aggregate fields are defined.
     """
-    import grunt
-
     meta = Meta(dt)
     agg_fields = meta.get_aggregate_fields()
     if not agg_fields:

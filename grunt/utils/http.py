@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from grunt.config import settings
+
 if TYPE_CHECKING:
     from fastapi import Request
 
@@ -16,8 +18,6 @@ def public_base_url(request: Request | None) -> str:
     not the ``APP_URL`` default. Falls back to ``settings.app_url`` when no
     usable headers are present (or there is no request at all).
     """
-    from grunt.config import settings
-
     fallback = settings.app_url.rstrip("/")
     if request is None:
         return fallback

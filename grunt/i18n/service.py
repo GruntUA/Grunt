@@ -28,6 +28,7 @@ from contextvars import ContextVar, Token
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+import grunt
 from grunt.i18n.plurals import plural_index
 from grunt.log import log
 
@@ -447,7 +448,6 @@ async def language_of(user: str | None) -> str | None:
     """
     if not user:
         return None
-    import grunt
 
     try:
         return await grunt.db.get_value("User", user, "language")

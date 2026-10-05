@@ -14,6 +14,8 @@ from typing import Any
 import grunt
 from grunt import _, log
 from grunt.document.base import Document
+from grunt.metadata.registry import doctype_registry
+from grunt.permissions.roles import user_has_roles
 
 # Ключі знімка, які не можна передавати в insert відновлюваного документа:
 # per-user "seen" стан і аудит-поля (ядро проставляє власні).
@@ -33,8 +35,6 @@ class DeletedDocument(Document):
 
 
 def _require_system_manager() -> None:
-    from grunt.permissions.roles import user_has_roles
-
     if not user_has_roles(grunt.get_user(), ["System Manager"]):
         grunt.throw(_("Only a System Manager can restore documents"), code="FORBIDDEN")
 
@@ -62,8 +62,6 @@ async def restore(name: str, allow_rename: bool = False) -> dict[str, Any]:
     Обмеження: зв'язки з/на інші документи, почищені каскадно при видаленні,
     назад не відновлюються; ``owner`` та час створення стають поточними.
     """
-    from grunt.metadata.registry import doctype_registry
-
     _require_system_manager()
 
     snap = await grunt.get_doc("DeletedDocument", name)

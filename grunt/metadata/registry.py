@@ -22,10 +22,12 @@ from sqlalchemy.exc import IntegrityError
 
 from grunt import _, log
 from grunt.db.system_tables import GruntMetaDoctype
+from grunt.local import _session_ctx
 from grunt.metadata.compiler import invalidate_table_cache, sync_table
 from grunt.metadata.doctype import DocType
 from grunt.metadata.field import DocField
 from grunt.permissions.rbac import invalidate_permission_cache
+from grunt.site.manager import current_site, site_manager
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
@@ -246,8 +248,6 @@ class DocTypeRegistry:
         nothing is bound - background tasks/schedulers with their own raw
         session still work exactly as before.
         """
-        from grunt.local import _session_ctx
-
         active_session = _session_ctx.get()
         if active_session is not None:
             result = await active_session.execute(
@@ -683,8 +683,6 @@ _DEFAULT_KEY = "__no_site__"  # process has no ambient site concept at all
 
 
 def _resolve_site_key() -> str:
-    from grunt.site.manager import current_site, site_manager
-
     site = current_site.get()
     if site:
         return site

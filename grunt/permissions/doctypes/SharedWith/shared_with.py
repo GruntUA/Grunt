@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from grunt import _
 from grunt.document.base import Document
+from grunt.permissions.rbac import permission_checker
 
 
 class SharedWith(Document):
@@ -30,8 +31,6 @@ class SharedWith(Document):
         await self._require_write_on_reference()
 
     async def _require_write_on_reference(self) -> None:
-        from grunt.permissions.rbac import permission_checker
-
         if self.user is None:
             return
         dt = await self.grunt.get_meta(self.reference_doctype)

@@ -30,6 +30,7 @@ from pathlib import Path
 from typing import Any
 
 from grunt import log
+from grunt.config import settings
 from grunt.utils.strings import to_snake_case
 
 # Registries
@@ -220,8 +221,6 @@ def get_file_doctype_scripts(doctype: str, event: str) -> list[dict[str, Any]]:
 
 def get_file_client_scripts(doctype: str) -> list[dict[str, str]]:
     """Get file-based client scripts for a DocType (lazy - read from disk on first request)."""
-    from grunt.config import settings
-
     if not settings.debug:
         if doctype in FILE_CLIENT_SCRIPT_REGISTRY:
             return FILE_CLIENT_SCRIPT_REGISTRY[doctype]

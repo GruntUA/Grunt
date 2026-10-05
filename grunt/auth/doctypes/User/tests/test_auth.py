@@ -6,6 +6,11 @@ from typing import TYPE_CHECKING
 
 import pytest
 
+from grunt.api.messages import ApplicationError
+from grunt.auth.login import find_or_create_external_user
+from grunt.auth.service import create_access_token
+from grunt.site.settings import clear_settings_cache
+
 if TYPE_CHECKING:
     from httpx import AsyncClient
 
@@ -107,7 +112,6 @@ async def test_invalid_token_returns_401(client: AsyncClient):
 async def test_authenticated_requests_load_current_roles(ctx, client: AsyncClient):
     """A role removed after login must not remain active in the JWT."""
     from grunt.auth.doctypes.User.user import create_user
-    from grunt.auth.service import create_access_token
 
     async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         user = await create_user("roles@grunt.example.com", "Str0ngPass", "Role", "Test", None)
@@ -165,8 +169,6 @@ async def test_self_edit_scope(ctx):
 
 
 async def _set_settings(ctx, **values) -> None:
-    from grunt.site.settings import clear_settings_cache
-
     await ctx.db.set_value("SystemSettings", "SystemSettings", values)
     await ctx.db._session().commit()
     clear_settings_cache()
@@ -176,7 +178,6 @@ async def _set_settings(ctx, **values) -> None:
 async def test_first_user_system_manager_and_registration_gate(ctx):
     """First user is always allowed and gets the "System Manager" role; later
     self-signup obeys allow_user_registration and receives default_role."""
-    from grunt.api.messages import ApplicationError
     from grunt.auth.doctypes.User.user import get_user_by_email, register
 
     async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
@@ -279,7 +280,6 @@ async def test_register_via_http_assigns_default_role(ctx, client: AsyncClient):
 @pytest.mark.asyncio
 async def test_register_rejects_weak_password(ctx):
     """The register endpoint enforces the SystemSettings password policy."""
-    from grunt.api.messages import ApplicationError
     from grunt.auth.doctypes.User.user import register
 
     async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
@@ -481,7 +481,6 @@ async def test_set_password_first_time_for_passwordless_user(ctx, client: AsyncC
         set_user_password_api,
         whoami,
     )
-    from grunt.auth.login import find_or_create_external_user
 
     async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         # First user -> System Manager.

@@ -21,8 +21,11 @@ from pathlib import Path
 
 from taskiq import TaskiqEvents, TaskiqState
 
+import grunt
 from grunt import log
 from grunt.db.write_intent import set_process_default
+from grunt.site.manager import site_manager
+from grunt.startup.lifespan import boot
 from grunt.tasks.broker import broker
 
 __all__ = ["broker", "import_task_modules"]
@@ -49,8 +52,6 @@ def _task_modules(package_dir: Path) -> list[str]:
 
 def import_task_modules(apps_dir: Path | None = None) -> list[str]:
     """Import every task-declaring module of the framework and the bench's apps."""
-    import grunt
-
     packages = [Path(grunt.__file__).parent]
     if apps_dir is not None and apps_dir.is_dir():
         for app_dir in sorted(apps_dir.iterdir()):
@@ -74,8 +75,6 @@ def import_task_modules(apps_dir: Path | None = None) -> list[str]:
 
 
 def _apps_dir() -> Path | None:
-    from grunt.site.manager import site_manager
-
     return site_manager.bench_dir / "apps"
 
 
@@ -87,6 +86,4 @@ set_process_default(True)
 
 @broker.on_event(TaskiqEvents.WORKER_STARTUP)
 async def _boot_worker(state: TaskiqState) -> None:
-    from grunt.startup.lifespan import boot
-
     await boot()

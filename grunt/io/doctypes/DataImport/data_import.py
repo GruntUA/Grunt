@@ -1,9 +1,13 @@
 import json
 from pathlib import Path
 from typing import Any
+from urllib.parse import parse_qs, urlparse
 
+import grunt
 from grunt import _, log
 from grunt.document.base import Document
+from grunt.io.exporters.registry import get_exporter
+from grunt.io.importers.registry import get_importer_for_file
 
 
 class DataImport(Document):
@@ -212,8 +216,6 @@ class DataImport(Document):
         path readable by the app process) would be "imported" and its
         contents surfaced back through get_preview()'s headers/rows.
         """
-        from urllib.parse import parse_qs, urlparse
-
         file_id = parse_qs(urlparse(self.file).query).get("file_id", [None])[0]
         if file_id:
             doc = await self.grunt.find_doc("File", file_id)
@@ -230,8 +232,6 @@ class DataImport(Document):
     @staticmethod
     def _read_file(file_path: Path, file_name: str, limit: int | None = None) -> list[list[Any]]:
         """Read CSV or XLSX file via the io importer registry."""
-        from grunt.io.importers.registry import get_importer_for_file
-
         imp = get_importer_for_file(file_name)
         if imp is None:
             raise ValueError(
@@ -256,8 +256,6 @@ class DataImport(Document):
 
         Returns ``(file_bytes, filename)``.
         """
-        from grunt.io.exporters.registry import get_exporter
-
         exporter = get_exporter(fmt)
         if exporter is None:
             raise ValueError(_("Unknown export format: %(format)s") % {"format": fmt})
@@ -287,9 +285,6 @@ class DataImport(Document):
         fmt: str = "csv",
     ) -> tuple[bytes, str]:
         """Return an empty import template (headers only) for *doctype*."""
-        import grunt
-        from grunt.io.exporters.registry import get_exporter
-
         exporter = get_exporter(fmt)
         if exporter is None:
             raise ValueError(_("Unknown format: %(format)s") % {"format": fmt})

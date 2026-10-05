@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING, Any, ClassVar
 
 import grunt
 from grunt import log
+from grunt.api.v1.ws import manager
 from grunt.document.mixins.collaboration_rpc import DocumentCollaborationRPCMixin
 from grunt.document.mixins.export_rpc import DocumentExportRPCMixin
 from grunt.document.mixins.history_rpc import DocumentHistoryRPCMixin
@@ -20,6 +21,8 @@ from grunt.document.mixins.meta_rpc import DocumentMetaRPCMixin
 from grunt.document.mixins.tree_rpc import DocumentTreeRPCMixin
 from grunt.document.mixins.workflow_rpc import DocumentWorkflowRPCMixin
 from grunt.document.mixins.write import DocumentWriteMixin
+from grunt.document.queryset import QuerySet
+from grunt.document.registry import document_registry
 from grunt.local import require_engine, require_user
 
 if TYPE_CHECKING:
@@ -83,8 +86,6 @@ class _ObjectsDescriptor:
     """``Document.objects`` - returns a QuerySet for the controller class."""
 
     def __get__(self, instance: Any, owner: type[Document]) -> Any:
-        from grunt.document.queryset import QuerySet
-
         return QuerySet(owner)
 
 
@@ -306,8 +307,6 @@ class Document(
         user: User | None = None,
     ) -> Document:
         """Load a document as an instance of its registered controller."""
-        from grunt.document.registry import document_registry
-
         controller_cls = document_registry.get(doctype)
         doc = controller_cls(doctype, {}, user=user, session=session, engine=engine)
         doc._bind()
@@ -420,8 +419,6 @@ class Document(
         doc_id = self.data.get("name")
         if not doc_id:
             return
-
-        from grunt.api.v1.ws import manager
 
         payload: dict[str, object] = {"processed": processed, "total": total}
         if message is not None:

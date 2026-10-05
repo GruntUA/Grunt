@@ -6,22 +6,20 @@ from typing import Any
 
 import grunt
 from grunt import _
+from grunt.errors import not_found
+from grunt.workflow.engine import workflow_engine
+from grunt.workflow.registry import get_active_workflow
 
 
 @grunt.whitelist()
 async def get_transitions(doctype: str, doc_id: str) -> list[dict[str, Any]]:
     """Return available workflow transitions for a document."""
-    from grunt.errors import not_found
-
     dt = await grunt.get_meta(doctype)
     if dt is None:
         raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
-    from grunt.workflow.registry import get_active_workflow
 
     if not await get_active_workflow(doctype):
         return []
-
-    from grunt.workflow.engine import workflow_engine
 
     doc = await grunt.get_doc(doctype, doc_id)
     user = grunt.get_user()
@@ -42,12 +40,9 @@ async def apply_transition(
     doctype: str, doc_id: str, action: str, values: dict[str, Any] | None = None
 ) -> dict[str, Any]:
     """Apply a workflow transition to a document."""
-    from grunt.errors import not_found
-
     dt = await grunt.get_meta(doctype)
     if dt is None:
         raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
-    from grunt.workflow.engine import workflow_engine
 
     user = grunt.get_user()
     session = grunt.get_session()

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
+import grunt
 from grunt import _
 from grunt.document.base import Document
 from grunt.permissions.roles import user_has_roles
@@ -38,8 +39,6 @@ class Comment(Document):
         is_private: bool = False,
     ) -> dict[str, Any]:
         """Add a comment to a document."""
-        import grunt
-
         return await grunt.new_doc(
             "Comment",
             {
@@ -54,8 +53,6 @@ class Comment(Document):
     @classmethod
     async def get_all(cls, doctype: str, doc_id: str) -> list[dict[str, Any]]:
         """Get all comments on a document."""
-        import grunt
-
         return await grunt.get_list(
             "Comment",
             filters={"reference_doctype": doctype, "reference_id": doc_id},

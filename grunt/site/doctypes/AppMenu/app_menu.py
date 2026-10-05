@@ -11,6 +11,8 @@ from typing import Any, cast
 import grunt
 from grunt import log
 from grunt.document.base import Document
+from grunt.document.registry import document_registry
+from grunt.metadata.virtual import VirtualDocType
 
 
 def parse_count_filters(item: dict[str, Any]) -> dict[str, Any]:
@@ -105,9 +107,6 @@ class AppMenu(Document):
 
     async def _get_virtual_count(self, doctype: str, filters: dict[str, Any]) -> int:
         """Fetch count for a Virtual DocType by calling its controller."""
-        from grunt.document.registry import document_registry  # noqa: PLC0415
-        from grunt.metadata.virtual import VirtualDocType  # noqa: PLC0415
-
         try:
             ctrl_cls = cast("type[VirtualDocType]", document_registry.get(doctype))
             ctrl = ctrl_cls(doctype, user=self.user)

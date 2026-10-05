@@ -21,7 +21,11 @@ from fastapi import HTTPException, Request
 from fastapi.staticfiles import StaticFiles
 
 from grunt import _, log
+from grunt.config import settings
+from grunt.site.manager import site_manager
 from grunt.website import make_website_handler, robots_txt, sitemap_xml, website_registry
+from grunt.website.router import render_page_by_route
+from grunt.website.spa import DIST_DIR, static_file
 
 if TYPE_CHECKING:
     from fastapi import FastAPI
@@ -70,11 +74,6 @@ def register_website_routes(app: FastAPI) -> None:
 async def _website_catch_all(request: Request):
     """Dynamic DB pages: root static file -> server-side page -> SPA fallback."""
     from fastapi.responses import FileResponse, HTMLResponse
-
-    from grunt.config import settings
-    from grunt.site.manager import site_manager
-    from grunt.website.router import render_page_by_route
-    from grunt.website.spa import DIST_DIR, static_file
 
     # 1. Serve root-level static files (replaces a StaticFiles mount at "/").
     #    In production the built SPA (dist/) comes first - Vite serves it in dev.

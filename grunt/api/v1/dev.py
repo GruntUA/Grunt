@@ -6,6 +6,7 @@ from typing import Any
 
 import grunt
 from grunt.config import settings
+from grunt.db.profiler import clear_buffers, get_recent_requests, get_stats
 
 
 def _require_debug() -> None:
@@ -17,7 +18,6 @@ def _require_debug() -> None:
 async def get_profiler_requests(limit: int = 50) -> list[dict[str, Any]]:
     """Recent requests with per-request query breakdown."""
     _require_debug()
-    from grunt.db.profiler import get_recent_requests
 
     return get_recent_requests(limit=int(limit))
 
@@ -35,7 +35,6 @@ async def get_slow_queries(limit: int = 100) -> list[dict[str, Any]]:
 async def get_profiler_stats() -> dict[str, Any]:
     """Aggregate stats: request count, slow query count, avg/p95 duration."""
     _require_debug()
-    from grunt.db.profiler import get_stats
 
     return get_stats()
 
@@ -44,7 +43,6 @@ async def get_profiler_stats() -> dict[str, Any]:
 async def clear_profiler() -> bool:
     """Clear both ring buffers."""
     _require_debug()
-    from grunt.db.profiler import clear_buffers
 
     clear_buffers()
     return True

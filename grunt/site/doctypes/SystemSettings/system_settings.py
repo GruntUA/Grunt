@@ -9,14 +9,12 @@ language to the i18n service.
 from __future__ import annotations
 
 from grunt.document.base import Document
+from grunt.i18n import translation_service
+from grunt.site.settings import clear_settings_cache
 
 
 class SystemSettings(Document):
     async def after_save(self) -> None:
-        from grunt.site.settings import clear_settings_cache
-
         clear_settings_cache()
-
-        from grunt.i18n import translation_service
 
         translation_service.set_default(self.get("language"))

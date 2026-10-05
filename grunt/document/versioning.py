@@ -11,7 +11,10 @@ from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import func, select
 
+import grunt
 from grunt import _, log
+from grunt.document.meta import Meta
+from grunt.metadata.registry import doctype_registry
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
@@ -49,8 +52,6 @@ class VersionService:
         changes = self._compute_diff(old_doc, new_doc)
         if not changes:
             return None
-
-        import grunt
 
         dt_version = await grunt.get_meta("DocVersion")
         if dt_version is None:
@@ -104,8 +105,6 @@ class VersionService:
         doc_id: str,
     ) -> list[dict[str, Any]]:
         """Get all versions for a document, newest first."""
-        import grunt
-
         dt_version = await grunt.get_meta("DocVersion")
         if dt_version is None:
             from grunt.errors import not_found
@@ -171,9 +170,6 @@ class VersionService:
         if not ids_by_target:
             return
 
-        from grunt.document.meta import Meta
-        from grunt.metadata.registry import doctype_registry
-
         label_maps: dict[str, dict[str, str]] = {}
         for target_name, ids in ids_by_target.items():
             try:
@@ -217,8 +213,6 @@ class VersionService:
         version_id: str,
     ) -> dict[str, Any] | None:
         """Get a specific version by ID."""
-        import grunt
-
         dt_version = await grunt.get_meta("DocVersion")
         if dt_version is None:
             from grunt.errors import not_found

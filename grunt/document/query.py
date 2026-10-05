@@ -6,6 +6,9 @@ from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import or_, select
 
+import grunt
+from grunt.document.meta import Meta
+
 if TYPE_CHECKING:
     from grunt.metadata.doctype import DocType
 
@@ -91,8 +94,6 @@ async def _link_field_search_condition(
     if not linked_doctype:
         return None
 
-    import grunt
-
     linked_dt = await grunt.get_meta(linked_doctype)
     if linked_dt is None:
         return None
@@ -122,8 +123,6 @@ async def _apply_search(query: Any, table: Any, dt: DocType, search: str) -> Any
     column, since a user searching a list types the person/item's name,
     not its internal id.
     """
-    from grunt.document.meta import Meta
-
     meta = Meta(dt)
     conditions = [table.c.name.ilike(f"%{search}%")]
     if dt.search_fields:
