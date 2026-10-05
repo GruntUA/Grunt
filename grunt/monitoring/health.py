@@ -88,7 +88,7 @@ def _session():
 
 async def check_database() -> list[Row]:
     session = _session()
-    dialect = session.bind.dialect.name
+    dialect = session.get_bind().dialect.name
     started = time.perf_counter()
     if dialect == "sqlite":
         version = (await session.execute(text("select sqlite_version()"))).scalar()

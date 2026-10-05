@@ -180,10 +180,7 @@ class ReportEngine:
         async with grunt.context(session, engine, user):
             extra_globals = build_safe_globals()
             extra_globals["filters"] = filters
-            try:
-                extra_globals["db_dialect"] = session.bind.dialect.name
-            except AttributeError:
-                extra_globals["db_dialect"] = ""
+            extra_globals["db_dialect"] = session.get_bind().dialect.name
 
             # grunt.result will be set by the script
             _grunt_ns = extra_globals.get("grunt") or extra_globals.get("_grunt")

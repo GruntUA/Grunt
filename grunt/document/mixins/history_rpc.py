@@ -185,7 +185,7 @@ class DocumentHistoryRPCMixin:
             users = await get_users_by_emails(list(emails), fields=["email", "full_name", "avatar"])
             people = {u.email: (getattr(u, "full_name", None), u.data.get("avatar")) for u in users}
             for i in items:
-                name, avatar = people.get(i.get("user"), (None, None))
+                name, avatar = people.get(i.get("user") or "", (None, None))
                 i["user_name"] = name or None
                 i["user_avatar"] = avatar or None
 

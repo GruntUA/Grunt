@@ -19,7 +19,9 @@ from typing import TYPE_CHECKING, Any
 
 from fastapi import HTTPException, status
 
+import grunt
 from grunt import _
+from grunt.errors import not_found
 
 if TYPE_CHECKING:
     from grunt.auth.doctypes.User.user import User
@@ -31,11 +33,11 @@ _SYSTEM_FIELDS = frozenset(
 )
 
 
-def _exempt(user: User | None) -> bool:
+def _exempt(user: User) -> bool:
     from grunt.auth.doctypes.User.user import SYSTEM_USER
     from grunt.workflow.engine import current_transition
 
-    return current_transition() is not None or user is None or user.email == SYSTEM_USER.email
+    return current_transition() is not None or user.email == SYSTEM_USER.email
 
 
 def _norm(value: Any) -> str:
@@ -71,7 +73,7 @@ async def check_create(doctype: str, data: dict[str, Any], user: User | None) ->
     from grunt.workflow.registry import get_active_workflow
 
     workflow = await get_active_workflow(doctype)
-    if not workflow or _exempt(user):
+    if not workflow or user is None or _exempt(user):
         return
     value = data.get(workflow.state_field)
     initial = next((s.state for s in workflow.states if s.is_initial), None)
@@ -95,7 +97,7 @@ async def check_update(
     from grunt.workflow.registry import get_active_workflow
 
     workflow = await get_active_workflow(doctype)
-    if not workflow or _exempt(user):
+    if not workflow or user is None or _exempt(user):
         return None
     field = workflow.state_field
     state = existing.get(field)
@@ -137,7 +139,7 @@ async def check_delete(doctype: str, existing: dict[str, Any], user: User | None
     from grunt.workflow.registry import get_active_workflow
 
     workflow = await get_active_workflow(doctype)
-    if not workflow or _exempt(user):
+    if not workflow or user is None or _exempt(user):
         return
     state = existing.get(workflow.state_field)
     _check_edit_roles(workflow, state, user)
@@ -165,7 +167,7 @@ def _check_edit_roles(workflow: Any, state: str | None, user: User | None) -> No
 
 
 async def _meta(doctype: str) -> Any:
-    import grunt
-
     meta = await grunt.get_meta(doctype)
+    if meta is None:
+        raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
     return meta.doc

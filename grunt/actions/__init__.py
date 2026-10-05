@@ -39,9 +39,12 @@ bare string (treated as ``{"message": ...}``), or nothing.
 
 from __future__ import annotations
 
+import importlib
+
 import grunt
 from grunt import _, log
 from grunt.actions.registry import (
+    _REGISTRY,
     DOC_ACTION_SOURCE,
     DocAction,
     actions_for_doctype,
@@ -49,6 +52,7 @@ from grunt.actions.registry import (
     get_doc_action,
     register_doc_action,
 )
+from grunt.errors import not_found
 
 __all__ = [
     "DOC_ACTION_SOURCE",
@@ -195,8 +199,4 @@ async def run(doctype: str, action: str, doc_id: str, args: dict | None = None) 
 
 
 # Register the core built-in actions (core.duplicate / core.recalc / …).
-import importlib
-
 from grunt.actions import builtin  # noqa: E402,F401
-from grunt.actions.registry import _REGISTRY
-from grunt.errors import not_found

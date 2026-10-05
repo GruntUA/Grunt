@@ -471,10 +471,8 @@ class EmailService:
     async def apply_report(report: dict[str, Any], session: AsyncSession | None = None) -> None:
         """Update the referenced outgoing ``EmailMessage`` from a DSN/MDN report."""
         try:
-            import grunt
-
             sess = session or grunt.get_session()
-        except Exception:
+        except RuntimeError:
             return
 
         orig = (report.get("orig_message_id") or "").strip()
@@ -559,10 +557,8 @@ class EmailService:
     ) -> str | None:
         """Best-effort: persist one ``EmailMessage`` row (dedup by Message-ID)."""
         try:
-            import grunt
-
             sess = session or grunt.get_session()
-        except Exception:
+        except RuntimeError:
             log.warning("email.record_no_session")
             return None
 

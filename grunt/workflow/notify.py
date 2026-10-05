@@ -83,6 +83,8 @@ async def next_actors(doctype: str, doc: dict[str, Any]) -> list[str]:
         return []
 
     meta = await grunt.get_meta(doctype)
+    if meta is None:
+        return []
     session = grunt.get_session()
     result: list[str] = []
     async with grunt.system_context(session):

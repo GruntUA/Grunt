@@ -10,12 +10,14 @@ from fastapi.security import OAuth2PasswordBearer
 
 import grunt
 from grunt import _, log
+from grunt.api.context import set_user
 from grunt.auth.doctypes.User.user import (
     User,
     get_auth_context_user,
 )
 from grunt.config import settings
 from grunt.db.session import get_engine, get_session
+from grunt.i18n.middleware import apply_user_language
 from grunt.local import _messages_ctx
 from grunt.permissions.roles import user_has_roles
 
@@ -68,9 +70,6 @@ async def current_user(
         user = await authenticate_api_key(api_key_header, session, client_ip(request))
         if user is None:
             raise credentials_exception
-
-        from grunt.api.context import set_user
-        from grunt.i18n.middleware import apply_user_language
 
         set_user(user)
         apply_user_language(request, user.data.get("language"))
