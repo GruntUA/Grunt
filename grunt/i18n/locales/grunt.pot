@@ -220,7 +220,7 @@ msgstr ""
 
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue:240
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue:243
-#: grunt/frontend/src/components/views/list/ListTreePanel.vue:279
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:287
 msgid "Access"
 msgstr ""
 
@@ -253,7 +253,7 @@ msgstr ""
 #: grunt/frontend/src/components/layout/CommandPalette.vue:97
 #: grunt/frontend/src/components/layout/CommandPalette.vue:100
 #: grunt/frontend/src/components/layout/CommandPalette.vue:101
-#: grunt/frontend/src/components/views/list/ListTreePanel.vue:412
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:420
 #: grunt/frontend/src/components/views/actions/ActionMenu.vue:37
 msgid "Actions"
 msgstr ""
@@ -278,7 +278,7 @@ msgstr ""
 msgid "Active users"
 msgstr ""
 
-#: grunt/frontend/src/pages/desk/DocTypeForm.vue:241
+#: grunt/frontend/src/pages/desk/DocTypeForm.vue:242
 msgid "Activity"
 msgstr ""
 
@@ -379,19 +379,23 @@ msgstr ""
 msgid "Aggregation"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:263
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:289
 msgid "Align center"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:262
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:288
 msgid "Align left"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:264
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:290
 msgid "Align right"
 msgstr ""
 
-#: grunt/frontend/src/components/views/list/ListTreePanel.vue:359
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:658
+msgid "Alignment"
+msgstr ""
+
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:367
 #: grunt/frontend/src/pages/app/SearchResultsPage.vue:191
 msgid "All"
 msgstr ""
@@ -611,8 +615,7 @@ msgstr ""
 msgid "Author"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:114
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:562
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:119
 #: grunt/frontend/src/pages/app/AppPage.vue:270
 msgid "Auto"
 msgstr ""
@@ -751,7 +754,7 @@ msgid ""
 "Beta: this document type is still in development; its behavior may change."
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:569
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:626
 msgid "Bold"
 msgstr ""
 
@@ -800,7 +803,7 @@ msgstr ""
 msgid "Bulk Update"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:609
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:644
 msgid "Bulleted list"
 msgstr ""
 
@@ -1151,7 +1154,7 @@ msgstr ""
 msgid "Close"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:641
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:280
 msgid "Code block"
 msgstr ""
 
@@ -1163,7 +1166,7 @@ msgstr ""
 #: grunt/frontend/src/components/views/DocSidebar.vue:73
 #: grunt/frontend/src/components/views/DocSidebar.vue:78
 #: grunt/frontend/src/components/ui/tree-select/TreeSelectNode.vue:65
-#: grunt/frontend/src/components/views/list/ListTreePanel.vue:390
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:398
 msgid "Collapse"
 msgstr ""
 
@@ -1449,7 +1452,7 @@ msgstr ""
 msgid "Could not get your location"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:437
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:493
 msgid "Could not import document"
 msgstr ""
 
@@ -1710,13 +1713,12 @@ msgstr ""
 msgid "December"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:637
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:785
 msgid "Decrease indent"
 msgstr ""
 
 #: grunt/frontend/src/components/views/list/ListToolbarControls.vue:184
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:109
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:551
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:114
 msgid "Default"
 msgstr ""
 
@@ -1729,7 +1731,7 @@ msgstr ""
 #: grunt/frontend/src/components/dashboard/WidgetCard.vue:55
 #: grunt/frontend/src/components/dashboard/sections/FiltersSection.vue:82
 #: grunt/frontend/src/components/views/form/FormModals.vue:140
-#: grunt/frontend/src/components/views/list/ListTreePanel.vue:425
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:433
 #: grunt/frontend/src/components/fields/Table/Table.vue:481
 msgid "Delete"
 msgstr ""
@@ -1775,6 +1777,10 @@ msgstr ""
 msgid "Delete state"
 msgstr ""
 
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:822
+msgid "Delete table"
+msgstr ""
+
 #: grunt/frontend/src/core/attachmentChannels/channels/LibraryChannel/LibraryChannel.vue:217
 msgid "Delete this file from the library?"
 msgstr ""
@@ -1794,7 +1800,7 @@ msgid ""
 "ActivityLog."
 msgstr ""
 
-#: grunt/frontend/src/components/views/list/ListTreePanel.vue:311
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:319
 msgid "Delete «{name}»?"
 msgstr ""
 
@@ -2120,7 +2126,7 @@ msgstr ""
 #: grunt/grunt/auth/doctypes/User/user.py:67
 #: grunt/grunt/website/www/login.ssr.html:75
 #: grunt/grunt/website/www/signup.ssr.html:92
-#: grunt/frontend/src/components/views/list/ListTreePanel.vue:290
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:298
 msgid "Email"
 msgstr ""
 
@@ -2270,10 +2276,15 @@ msgstr ""
 msgid "Excel (.xlsx)"
 msgstr ""
 
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:840
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:841
+msgid "Exit full screen"
+msgstr ""
+
 #: grunt/frontend/src/components/desk/TaskProgressPanel.vue:111
 #: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue:426
 #: grunt/frontend/src/components/ui/tree-select/TreeSelectNode.vue:65
-#: grunt/frontend/src/components/views/list/ListTreePanel.vue:390
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:398
 msgid "Expand"
 msgstr ""
 
@@ -2458,7 +2469,7 @@ msgstr ""
 
 #: grunt/grunt/monitoring/health.py:376 grunt/grunt/monitoring/health.py:648
 #: grunt/grunt/monitoring/health.py:379
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:724
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:712
 msgid "Files"
 msgstr ""
 
@@ -2565,11 +2576,11 @@ msgstr ""
 msgid "Following"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:546
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:788
 msgid "Font"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:557
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:799
 msgid "Font size"
 msgstr ""
 
@@ -2601,7 +2612,7 @@ msgstr ""
 msgid "Format:"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:541
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:602
 msgid "Formatting"
 msgstr ""
 
@@ -2643,6 +2654,11 @@ msgstr ""
 msgid "Full name"
 msgstr ""
 
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:840
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:841
+msgid "Full screen"
+msgstr ""
+
 #: grunt/frontend/src/pages/studio/builder/sections/AggregateSection.vue:43
 msgid "Function"
 msgstr ""
@@ -2652,7 +2668,7 @@ msgid "GB"
 msgstr ""
 
 #: grunt/frontend/src/components/views/gallery/index.ts:7
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:728
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:713
 msgid "Gallery"
 msgstr ""
 
@@ -2748,11 +2764,11 @@ msgstr ""
 msgid "HTML code"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:596
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:271
 msgid "Heading 2"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:601
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:274
 msgid "Heading 3"
 msgstr ""
 
@@ -2761,7 +2777,7 @@ msgid "Hello {name}"
 msgstr ""
 
 #: grunt/grunt/email/templates/password_reset.html:49
-#: grunt/grunt/auth/doctypes/User/user.py:1048
+#: grunt/grunt/auth/doctypes/User/user.py:1062
 msgid "Hello, %(name)s,"
 msgstr ""
 
@@ -2791,11 +2807,11 @@ msgstr ""
 msgid "Hook '%(doc_id)s' not found"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:646
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:719
 msgid "Horizontal rule"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:446
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:502
 msgid "Horizontal text"
 msgstr ""
 
@@ -2844,7 +2860,7 @@ msgid ""
 msgstr ""
 
 #: grunt/grunt/email/templates/password_reset.html:57
-#: grunt/grunt/auth/doctypes/User/user.py:1051
+#: grunt/grunt/auth/doctypes/User/user.py:1065
 msgid "If you did not request this, just ignore this email."
 msgstr ""
 
@@ -2858,12 +2874,12 @@ msgid "If you received it, sending email through this account works."
 msgstr ""
 
 #: grunt/grunt/website/block_types.py:52
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:677
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:684
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:710
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:728
 msgid "Image"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:686
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:730
 msgid "Image URL"
 msgstr ""
 
@@ -2875,7 +2891,7 @@ msgstr ""
 msgid "Image changed. Save the document to apply it."
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:342
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:398
 msgid "Image upload failed"
 msgstr ""
 
@@ -2891,7 +2907,7 @@ msgstr ""
 msgid "Import finished"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:734
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:721
 msgid "Import from Word (.docx)"
 msgstr ""
 
@@ -2903,7 +2919,7 @@ msgstr ""
 msgid "Import started"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:435
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:491
 msgid "Imported with warnings"
 msgstr ""
 
@@ -2921,7 +2937,7 @@ msgstr ""
 msgid "In the “%(state)s” state the document can't be edited"
 msgstr ""
 
-#: grunt/frontend/src/components/views/list/ListTreePanel.vue:339
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:347
 msgid "Include nested"
 msgstr ""
 
@@ -2929,7 +2945,7 @@ msgstr ""
 msgid "Incorrect email or password"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:634
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:784
 msgid "Increase indent"
 msgstr ""
 
@@ -2958,8 +2974,13 @@ msgstr ""
 msgid "Initial state"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:587
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:781
 msgid "Inline code"
+msgstr ""
+
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:702
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:705
+msgid "Insert"
 msgstr ""
 
 #: grunt/frontend/src/components/fields/Table/Table.vue:418
@@ -3055,7 +3076,7 @@ msgstr ""
 msgid "Invalid language value"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:386
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:442
 msgid "Invalid link"
 msgstr ""
 
@@ -3076,7 +3097,7 @@ msgstr ""
 msgid "Invalid or expired refresh token"
 msgstr ""
 
-#: grunt/grunt/auth/doctypes/User/user.py:1080
+#: grunt/grunt/auth/doctypes/User/user.py:1094
 msgid "Invalid or expired reset token"
 msgstr ""
 
@@ -3112,7 +3133,7 @@ msgstr ""
 msgid "Is set"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:575
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:631
 msgid "Italic"
 msgstr ""
 
@@ -3152,7 +3173,7 @@ msgstr ""
 msgid "June"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:265
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:291
 msgid "Justify"
 msgstr ""
 
@@ -3256,13 +3277,13 @@ msgstr ""
 msgid "Line"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:654
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:662
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:677
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:685
 msgid "Link"
 msgstr ""
 
 #: grunt/grunt/website/block_types.py:22
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:664
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:687
 msgid "Link URL"
 msgstr ""
 
@@ -3520,6 +3541,7 @@ msgid "Months"
 msgstr ""
 
 #: grunt/frontend/src/components/mobile/MobileBottomNav.vue:100
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:774
 msgid "More"
 msgstr ""
 
@@ -3531,7 +3553,7 @@ msgstr ""
 msgid "Moved"
 msgstr ""
 
-#: grunt/frontend/src/components/views/list/ListTreePanel.vue:222
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:230
 msgid "Moved: {n}"
 msgstr ""
 
@@ -3562,9 +3584,9 @@ msgstr ""
 #: grunt/frontend/src/core/composables/useFormValidation.ts:97
 #: grunt/frontend/src/core/attachmentChannels/channels/LibraryChannel/LibraryChannel.vue:291
 #: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:318
-#: grunt/frontend/src/components/views/list/ListTreePanel.vue:238
-#: grunt/frontend/src/components/views/list/ListTreePanel.vue:255
-#: grunt/frontend/src/components/views/list/ListTreePanel.vue:289
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:246
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:263
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:297
 #: grunt/frontend/src/components/views/list/ListToolbarControls.vue:67
 #: grunt/frontend/src/pages/app/SearchResultsPage.vue:214
 msgid "Name"
@@ -3609,8 +3631,8 @@ msgstr ""
 msgid "New comment: “%(title)s”"
 msgstr ""
 
-#: grunt/frontend/src/components/views/list/ListTreePanel.vue:238
-#: grunt/frontend/src/components/views/list/ListTreePanel.vue:345
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:246
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:353
 msgid "New folder"
 msgstr ""
 
@@ -3638,7 +3660,7 @@ msgid "New report"
 msgstr ""
 
 #: grunt/frontend/src/core/scripting/executor.ts:962
-#: grunt/frontend/src/components/views/list/ListTreePanel.vue:418
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:426
 msgid "New subfolder"
 msgstr ""
 
@@ -3936,7 +3958,7 @@ msgstr ""
 msgid "Not included (need aggregation): {columns}"
 msgstr ""
 
-#: grunt/frontend/src/components/views/list/ListTreePanel.vue:229
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:237
 msgid "Not moved: {n}"
 msgstr ""
 
@@ -3945,7 +3967,7 @@ msgstr ""
 msgid "Not permitted"
 msgstr ""
 
-#: grunt/grunt/auth/doctypes/User/user.py:963
+#: grunt/grunt/auth/doctypes/User/user.py:977
 msgid "Not permitted to change another user's password"
 msgstr ""
 
@@ -3969,7 +3991,7 @@ msgstr ""
 msgid "Not permitted to set the password; use the Change password action"
 msgstr ""
 
-#: grunt/frontend/src/components/views/list/ListTreePanel.vue:371
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:379
 msgid "Not set"
 msgstr ""
 
@@ -4027,7 +4049,7 @@ msgstr ""
 msgid "November"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:614
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:649
 msgid "Numbered list"
 msgstr ""
 
@@ -4085,7 +4107,7 @@ msgstr ""
 msgid "Only the author or an administrator can delete a comment"
 msgstr ""
 
-#: grunt/frontend/src/components/views/list/ListTreePanel.vue:339
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:347
 msgid "Only this level"
 msgstr ""
 
@@ -4093,7 +4115,7 @@ msgstr ""
 #: grunt/frontend/src/components/desk/AppCard.vue:46
 #: grunt/frontend/src/components/layout/OfflineQueueSheet.vue:83
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:171
-#: grunt/frontend/src/components/views/list/ListTreePanel.vue:422
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:430
 #: grunt/frontend/src/components/views/calendar/CalendarView.vue:461
 msgid "Open"
 msgstr ""
@@ -4236,6 +4258,10 @@ msgid ""
 "device and sent once the connection is back."
 msgstr ""
 
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:268
+msgid "Paragraph"
+msgstr ""
+
 #: grunt/grunt/api/v1/search.py:24
 msgid "Parameter 'limit' must be positive"
 msgstr ""
@@ -4290,11 +4316,11 @@ msgid "Password must be at least 8 characters"
 msgstr ""
 
 #: grunt/grunt/email/templates/password_reset.html:46
-#: grunt/grunt/auth/doctypes/User/user.py:1054
+#: grunt/grunt/auth/doctypes/User/user.py:1068
 msgid "Password reset"
 msgstr ""
 
-#: grunt/grunt/auth/doctypes/User/user.py:1049
+#: grunt/grunt/auth/doctypes/User/user.py:1063
 msgid "Password reset link (valid for 1 hour):"
 msgstr ""
 
@@ -4308,7 +4334,7 @@ msgstr ""
 msgid "Passwords do not match"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:386
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:442
 msgid "Paste a YouTube video link"
 msgstr ""
 
@@ -4462,7 +4488,7 @@ msgstr ""
 msgid "Quota"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:619
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:277
 msgid "Quote"
 msgstr ""
 
@@ -4492,8 +4518,8 @@ msgstr ""
 
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue:139
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue:260
-#: grunt/frontend/src/components/views/list/ListTreePanel.vue:281
-#: grunt/frontend/src/components/views/list/ListTreePanel.vue:282
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:289
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:290
 msgid "Read"
 msgstr ""
 
@@ -4559,7 +4585,7 @@ msgstr ""
 msgid "Redis unavailable"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:777
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:835
 msgid "Redo"
 msgstr ""
 
@@ -4640,7 +4666,7 @@ msgstr ""
 msgid "Remove image"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:668
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:691
 msgid "Remove link"
 msgstr ""
 
@@ -4652,7 +4678,7 @@ msgstr ""
 msgid "Remove the image from the document?"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:715
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:752
 msgid "Remove video"
 msgstr ""
 
@@ -4670,8 +4696,8 @@ msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/global_form.js:162
 #: grunt/frontend/src/components/views/form/FormHeader.vue:337
-#: grunt/frontend/src/components/views/list/ListTreePanel.vue:255
-#: grunt/frontend/src/components/views/list/ListTreePanel.vue:419
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:263
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:427
 msgid "Rename"
 msgstr ""
 
@@ -4861,7 +4887,7 @@ msgstr ""
 msgid "Retry"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:474
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:530
 msgid "Rich text"
 msgstr ""
 
@@ -5291,7 +5317,7 @@ msgid "Setup"
 msgstr ""
 
 #: grunt/frontend/src/components/pwa/PWAInstallPrompt.vue:138
-#: grunt/frontend/src/components/views/list/ListTreePanel.vue:275
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:283
 msgid "Share"
 msgstr ""
 
@@ -5304,7 +5330,7 @@ msgstr ""
 msgid "Share link"
 msgstr ""
 
-#: grunt/frontend/src/components/views/list/ListTreePanel.vue:273
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:281
 msgid "Share «{name}»"
 msgstr ""
 
@@ -5312,11 +5338,11 @@ msgstr ""
 msgid "Shared"
 msgstr ""
 
-#: grunt/frontend/src/components/views/list/ListTreePanel.vue:303
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:311
 msgid "Shared with: {n}"
 msgstr ""
 
-#: grunt/frontend/src/components/views/list/ListTreePanel.vue:420
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:428
 msgid "Share…"
 msgstr ""
 
@@ -5446,7 +5472,7 @@ msgstr ""
 msgid "Smith"
 msgstr ""
 
-#: grunt/frontend/src/components/views/list/ListTreePanel.vue:325
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:333
 #: grunt/frontend/src/pages/auth/ResetPassword.vue:50
 msgid "Something went wrong"
 msgstr ""
@@ -5519,7 +5545,7 @@ msgstr ""
 msgid "Storage"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:581
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:636
 msgid "Strikethrough"
 msgstr ""
 
@@ -5634,7 +5660,7 @@ msgstr ""
 msgid "Tab"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:754
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:717
 #: grunt/frontend/src/pages/reports/ReportView.vue:198
 msgid "Table"
 msgstr ""
@@ -5745,6 +5771,10 @@ msgstr ""
 msgid "Text"
 msgstr ""
 
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:609
+msgid "Text style"
+msgstr ""
+
 #: grunt/grunt/website/www/form/{route}.html:132
 msgid "Thank you!"
 msgstr ""
@@ -5821,7 +5851,7 @@ msgstr ""
 msgid "The comment cannot be empty"
 msgstr ""
 
-#: grunt/grunt/auth/doctypes/User/user.py:968
+#: grunt/grunt/auth/doctypes/User/user.py:982
 msgid "The current password is incorrect"
 msgstr ""
 
@@ -6297,7 +6327,7 @@ msgstr ""
 msgid "Unassign"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:772
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:830
 #: grunt/frontend/src/components/fields/Signature/Signature.vue:229
 #: grunt/frontend/src/components/fields/Signature/Signature.vue:230
 #: grunt/frontend/src/components/fields/Table/Table.vue:220
@@ -6398,7 +6428,7 @@ msgstr ""
 msgid "Upload failed"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:692
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:736
 msgid "Upload file"
 msgstr ""
 
@@ -6432,7 +6462,7 @@ msgid "Uploading..."
 msgstr ""
 
 #: grunt/frontend/src/core/attachmentChannels/channels/LibraryChannel/LibraryChannel.vue:434
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:692
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:736
 msgid "Uploading…"
 msgstr ""
 
@@ -6442,12 +6472,12 @@ msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/user.py:676
 #: grunt/grunt/auth/doctypes/User/user.py:789
-#: grunt/grunt/auth/doctypes/User/user.py:914
-#: grunt/grunt/auth/doctypes/User/user.py:949
-#: grunt/grunt/auth/doctypes/User/user.py:982
-#: grunt/grunt/auth/doctypes/User/user.py:993
-#: grunt/grunt/auth/doctypes/User/user.py:1005
-#: grunt/grunt/auth/doctypes/User/user.py:1018
+#: grunt/grunt/auth/doctypes/User/user.py:928
+#: grunt/grunt/auth/doctypes/User/user.py:963
+#: grunt/grunt/auth/doctypes/User/user.py:996
+#: grunt/grunt/auth/doctypes/User/user.py:1007
+#: grunt/grunt/auth/doctypes/User/user.py:1019
+#: grunt/grunt/auth/doctypes/User/user.py:1032
 msgid "User not found"
 msgstr ""
 
@@ -6467,7 +6497,7 @@ msgstr ""
 msgid "User “%(user)s” not found"
 msgstr ""
 
-#: grunt/frontend/src/components/views/list/ListTreePanel.vue:286
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:294
 msgid "Users"
 msgstr ""
 
@@ -6516,15 +6546,15 @@ msgstr ""
 msgid "Version {n}"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:448
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:504
 msgid "Vertical text, bottom to top"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:447
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:503
 msgid "Vertical text, top to bottom"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:712
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:749
 msgid "Video URL"
 msgstr ""
 
@@ -6550,7 +6580,7 @@ msgstr ""
 msgid "View report"
 msgstr ""
 
-#: grunt/frontend/src/pages/desk/DocTypeForm.vue:226
+#: grunt/frontend/src/pages/desk/DocTypeForm.vue:227
 msgid "Viewed by:"
 msgstr ""
 
@@ -6677,8 +6707,8 @@ msgstr ""
 msgid "Workflow"
 msgstr ""
 
-#: grunt/frontend/src/components/views/list/ListTreePanel.vue:281
-#: grunt/frontend/src/components/views/list/ListTreePanel.vue:300
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:289
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:308
 msgid "Write"
 msgstr ""
 
@@ -6762,8 +6792,8 @@ msgstr ""
 msgid "You only see records matching these values."
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:700
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:709
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:711
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:746
 msgid "YouTube video"
 msgstr ""
 
@@ -7546,11 +7576,11 @@ msgstr ""
 msgid "{used} of {quota} used"
 msgstr ""
 
-#: grunt/frontend/src/pages/desk/DocTypeForm.vue:223
+#: grunt/frontend/src/pages/desk/DocTypeForm.vue:224
 msgid "{views} views · {viewers} users"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:827
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:892
 msgid "{words} w · {chars} ch"
 msgstr ""
 

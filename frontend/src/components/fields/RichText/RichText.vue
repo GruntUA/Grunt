@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, inject, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, inject, nextTick, onBeforeUnmount, ref, watch } from 'vue'
+import { useEventListener } from '@vueuse/core'
 import { useI18n } from 'vue-i18n'
 import { useEditor, EditorContent } from '@tiptap/vue-3'
 import { Extension } from '@tiptap/core'
@@ -20,7 +21,7 @@ import '@fontsource-variable/geist'
 
 import {
   Bold, Italic, Strikethrough,
-  Heading2, Heading3,
+  Heading2, Heading3, Pilcrow,
   List, ListOrdered,
   Quote, Undo, Redo,
   Code, Code2,
@@ -30,6 +31,7 @@ import {
   Upload, IndentIncrease, IndentDecrease,
   TextAlignStart, TextAlignCenter, TextAlignEnd, TextAlignJustify,
   FileUp, Loader2, Paperclip, Images, Video, Trash2, Type,
+  ChevronDown, Plus, Ellipsis, Maximize2, Minimize2, ALargeSmall,
 } from '@lucide/vue'
 import type { DocField } from '@/types'
 import { filesApi } from '@/core/api/files'
@@ -45,7 +47,11 @@ import { useToast } from '@/core/composables/useToast'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuRadioGroup,
+  DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuShortcut, DropdownMenuSub, DropdownMenuSubContent,
+  DropdownMenuSubTrigger, DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { Separator } from '@/components/ui/separator'
 
 const props = defineProps<{
@@ -80,9 +86,8 @@ const maxLen = computed(() => props.maxLength ?? props.field.max_length)
 const placeholderText = computed(() => props.placeholder ?? props.field.placeholder ?? '')
 
 // Font & Indent data
-// Reka-ui's Select reserves the empty string for "no selection" internally, so
-// SelectItem can't use value="" for the placeholder/default entry - a sentinel
-// stands in for it and gets translated back to "" at the apply/read boundary.
+// A sentinel stands in for "no explicit font" in the radio groups and gets
+// translated back to "" at the apply/read boundary.
 const FONT_DEFAULT = '__default__'
 
 const STATIC_FONT_FAMILIES = [
@@ -257,6 +262,27 @@ const IndentExt = Extension.create({
   },
 })
 
+// Block style (the "Paragraph / Heading" dropdown). Paragraph is the fallback
+// when no other style is active.
+const BLOCK_STYLES = [
+  { key: 'paragraph', label: t('Paragraph'), icon: Pilcrow, shortcut: 'Ctrl+Alt+0',
+    active: () => true,
+    run: () => editor.value?.chain().focus().clearNodes().run() },
+  { key: 'h2', label: t('Heading 2'), icon: Heading2, shortcut: 'Ctrl+Alt+2',
+    active: () => !!editor.value?.isActive('heading', { level: 2 }),
+    run: () => editor.value?.chain().focus().setHeading({ level: 2 }).run() },
+  { key: 'h3', label: t('Heading 3'), icon: Heading3, shortcut: 'Ctrl+Alt+3',
+    active: () => !!editor.value?.isActive('heading', { level: 3 }),
+    run: () => editor.value?.chain().focus().setHeading({ level: 3 }).run() },
+  { key: 'quote', label: t('Quote'), icon: Quote, shortcut: 'Ctrl+Shift+B',
+    active: () => !!editor.value?.isActive('blockquote'),
+    run: () => editor.value?.chain().focus().toggleBlockquote().run() },
+  { key: 'code', label: t('Code block'), icon: Code2, shortcut: 'Ctrl+Alt+C',
+    active: () => !!editor.value?.isActive('codeBlock'),
+    run: () => editor.value?.chain().focus().toggleCodeBlock().run() },
+]
+const currentBlockStyle = () => BLOCK_STYLES.slice(1).find(s => s.active()) ?? BLOCK_STYLES[0]!
+
 // Alignment
 const ALIGNMENTS = [
   { value: 'left', label: t('Align left'), icon: TextAlignStart },
@@ -264,6 +290,36 @@ const ALIGNMENTS = [
   { value: 'right', label: t('Align right'), icon: TextAlignEnd },
   { value: 'justify', label: t('Justify'), icon: TextAlignJustify },
 ]
+const currentAlignment = () => ALIGNMENTS.find(a => editor.value?.isActive({ textAlign: a.value })) ?? ALIGNMENTS[0]!
+
+// Full screen: the editor is teleported to <body> and fills the viewport.
+// Escape leaves it - unless a menu / popover is open (reka-ui closes that
+// first) - and never reaches the form's "Escape = back to list" shortcut.
+const fullscreen = ref(false)
+
+function toggleFullscreen() {
+  fullscreen.value = !fullscreen.value
+  nextTick(() => editor.value?.commands.focus())
+}
+
+useEventListener(window, 'keydown', (e: KeyboardEvent) => {
+  if (!fullscreen.value || e.key !== 'Escape') return
+  if (document.querySelector('[data-dismissable-layer]')) return
+  e.stopPropagation()
+  toggleFullscreen()
+}, { capture: true })
+
+// Closing a toolbar menu returns focus to the text, not to the menu button.
+// (The "Insert" menu just keeps focus where it is: its image / video popovers
+// would close if the editor took focus back.)
+function refocusEditor(e: Event) {
+  e.preventDefault()
+  editor.value?.commands.focus()
+}
+
+// Popovers opened from the "Insert" menu anchor to its trigger.
+const insertTriggerEl = ref<{ $el: HTMLElement } | null>(null)
+const insertAnchor = () => insertTriggerEl.value?.$el ?? null
 
 // Bubble menu
 const wrapperEl = ref<HTMLElement | null>(null)
@@ -317,9 +373,9 @@ const imageAnchorEl = ref<HTMLElement | null>(null)
 const imageUrl       = ref('')
 const imageUploading = ref(false)
 
-function openImagePopover(event: Event) {
-    imageAnchorEl.value = event.currentTarget as HTMLElement
-    isImageOpen.value = !isImageOpen.value
+function openImagePopover(anchor: HTMLElement | null) {
+  imageAnchorEl.value = anchor
+  isImageOpen.value = true
 }
 
 function insertImageUrl() {
@@ -365,12 +421,12 @@ const videoUrl = ref('')
 
 // A selected video is edited in place: the popover shows its link as a regular
 // watch URL, and inserting over the node selection replaces it.
-function openVideoPopover(event: Event) {
+function openVideoPopover(anchor: HTMLElement | null) {
   const src: string = editor.value?.isActive('youtube') ? editor.value.getAttributes('youtube').src ?? '' : ''
   const id = src.match(/\/embed\/([\w-]+)/)?.[1]
   videoUrl.value = id ? `https://www.youtube.com/watch?v=${id}` : src
-  videoAnchorEl.value = event.currentTarget as HTMLElement
-  isVideoOpen.value = !isVideoOpen.value
+  videoAnchorEl.value = anchor
+  isVideoOpen.value = true
 }
 
 function removeVideo() {
@@ -532,128 +588,96 @@ const doOutdent = () => (editor.value?.commands as any)?.outdent?.()
 </script>
 
 <template>
-  <div class="flex flex-col gap-1.5">
+  <div>
+  <Teleport to="body" :disabled="!fullscreen">
+  <div
+    class="flex flex-col gap-1.5"
+    :class="fullscreen ? 'fixed inset-0 z-50 overflow-y-auto bg-background px-4 pb-4 sm:px-[max(1rem,calc(50vw-32rem))]' : ''"
+  >
 
     <!-- Toolbar -->
     <div
       v-if="editor && isEditable()"
       role="toolbar"
       :aria-label="t('Formatting')"
-      class="flex items-center gap-0.5 rounded-t-md border border-b-0 border-border bg-muted/50 p-1 flex-wrap text-foreground"
+      class="@container sticky z-10 flex flex-wrap items-center gap-0.5 rounded-t-md border border-b-0 border-border bg-muted p-1 text-muted-foreground"
+      :class="fullscreen ? 'top-0 mt-4' : 'top-[var(--richtext-sticky-top,0px)]'"
     >
-      <!-- Font family -->
-      <Select :model-value="currentFontFamily" @update:model-value="(v: unknown) => applyFontFamily(String(v))">
-        <SelectTrigger class="h-7 w-36 text-xs" :aria-label="t('Font')">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem v-for="opt in FONT_FAMILIES" :key="opt.value" :value="opt.value">
-            {{ opt.value === FONT_DEFAULT ? t('Default') : opt.label }}
-          </SelectItem>
-        </SelectContent>
-      </Select>
-      <!-- Font size -->
-      <Select :model-value="currentFontSize" @update:model-value="(v: unknown) => applyFontSize(String(v))">
-        <SelectTrigger class="h-7 w-[4.5rem] text-xs" :aria-label="t('Font size')">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem v-for="opt in FONT_SIZES" :key="opt.value" :value="opt.value">
-            {{ opt.value === FONT_DEFAULT ? t('Auto') : opt.label }}
-          </SelectItem>
-        </SelectContent>
-      </Select>
+      <!-- Block style -->
+      <DropdownMenu>
+        <DropdownMenuTrigger as-child>
+          <Button size="sm" variant="ghost" class="gap-0.5 px-1.5 text-foreground @lg:w-32 @lg:justify-between @lg:px-2" :aria-label="t('Text style')">
+            <component :is="currentBlockStyle().icon" class="@lg:hidden" />
+            <span class="hidden truncate @lg:inline">{{ currentBlockStyle().label }}</span>
+            <ChevronDown class="size-3.5 opacity-60" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" class="w-56" @close-auto-focus="refocusEditor">
+          <DropdownMenuItem v-for="s in BLOCK_STYLES" :key="s.key"
+            :class="currentBlockStyle().key === s.key ? 'bg-accent/60' : ''" @select="s.run()">
+            <component :is="s.icon" />
+            {{ s.label }}
+            <DropdownMenuShortcut>{{ s.shortcut }}</DropdownMenuShortcut>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
 
       <Separator orientation="vertical" class="!mx-1 !h-6 !my-0" />
 
-      <Button size="sm" variant="ghost" :title="t('Bold')" :aria-label="t('Bold')" :aria-pressed="editor.isActive('bold')"
-        :class="editor.isActive('bold') ? 'text-primary bg-accent' : 'text-muted-foreground'"
-        :disabled="!editor.can().chain().focus().toggleBold().run()"
+      <Button size="icon-sm" variant="ghost" :title="`${t('Bold')} · Ctrl+B`" :aria-label="t('Bold')" :aria-pressed="editor.isActive('bold')"
+        :class="editor.isActive('bold') && 'text-primary bg-accent'"
         @click="editor.chain().focus().toggleBold().run()">
-        <Bold class="size-4" />
+        <Bold />
       </Button>
-      <Button size="sm" variant="ghost" :title="t('Italic')" :aria-label="t('Italic')" :aria-pressed="editor.isActive('italic')"
-        :class="editor.isActive('italic') ? 'text-primary bg-accent' : 'text-muted-foreground'"
-        :disabled="!editor.can().chain().focus().toggleItalic().run()"
+      <Button size="icon-sm" variant="ghost" :title="`${t('Italic')} · Ctrl+I`" :aria-label="t('Italic')" :aria-pressed="editor.isActive('italic')"
+        :class="editor.isActive('italic') && 'text-primary bg-accent'"
         @click="editor.chain().focus().toggleItalic().run()">
-        <Italic class="size-4" />
+        <Italic />
       </Button>
-      <Button size="sm" variant="ghost" :title="t('Strikethrough')" :aria-label="t('Strikethrough')" :aria-pressed="editor.isActive('strike')"
-        :class="editor.isActive('strike') ? 'text-primary bg-accent' : 'text-muted-foreground'"
-        :disabled="!editor.can().chain().focus().toggleStrike().run()"
+      <Button size="icon-sm" variant="ghost" :title="`${t('Strikethrough')} · Ctrl+Shift+S`" :aria-label="t('Strikethrough')" :aria-pressed="editor.isActive('strike')"
+        :class="editor.isActive('strike') && 'text-primary bg-accent'"
         @click="editor.chain().focus().toggleStrike().run()">
-        <Strikethrough class="size-4" />
-      </Button>
-      <Button size="sm" variant="ghost" :title="t('Inline code')" :aria-label="t('Inline code')" :aria-pressed="editor.isActive('code')"
-        :class="editor.isActive('code') ? 'text-primary bg-accent' : 'text-muted-foreground'"
-        :disabled="!editor.can().chain().focus().toggleCode().run()"
-        @click="editor.chain().focus().toggleCode().run()">
-        <Code class="size-4" />
+        <Strikethrough />
       </Button>
 
       <Separator orientation="vertical" class="!mx-1 !h-6 !my-0" />
 
-      <Button size="sm" variant="ghost" :title="t('Heading 2')" :aria-label="t('Heading 2')" :aria-pressed="editor.isActive('heading', { level: 2 })"
-        :class="editor.isActive('heading', { level: 2 }) ? 'text-primary bg-accent' : 'text-muted-foreground'"
-        @click="editor.chain().focus().toggleHeading({ level: 2 }).run()">
-        <Heading2 class="size-4" />
-      </Button>
-      <Button size="sm" variant="ghost" :title="t('Heading 3')" :aria-label="t('Heading 3')" :aria-pressed="editor.isActive('heading', { level: 3 })"
-        :class="editor.isActive('heading', { level: 3 }) ? 'text-primary bg-accent' : 'text-muted-foreground'"
-        @click="editor.chain().focus().toggleHeading({ level: 3 }).run()">
-        <Heading3 class="size-4" />
-      </Button>
-
-      <Separator orientation="vertical" class="!mx-1 !h-6 !my-0" />
-
-      <Button size="sm" variant="ghost" :title="t('Bulleted list')" :aria-label="t('Bulleted list')" :aria-pressed="editor.isActive('bulletList')"
-        :class="editor.isActive('bulletList') ? 'text-primary bg-accent' : 'text-muted-foreground'"
+      <Button size="icon-sm" variant="ghost" :title="`${t('Bulleted list')} · Ctrl+Shift+8`" :aria-label="t('Bulleted list')" :aria-pressed="editor.isActive('bulletList')"
+        :class="editor.isActive('bulletList') && 'text-primary bg-accent'"
         @click="editor.chain().focus().toggleBulletList().run()">
-        <List class="size-4" />
+        <List />
       </Button>
-      <Button size="sm" variant="ghost" :title="t('Numbered list')" :aria-label="t('Numbered list')" :aria-pressed="editor.isActive('orderedList')"
-        :class="editor.isActive('orderedList') ? 'text-primary bg-accent' : 'text-muted-foreground'"
+      <Button size="icon-sm" variant="ghost" :title="`${t('Numbered list')} · Ctrl+Shift+7`" :aria-label="t('Numbered list')" :aria-pressed="editor.isActive('orderedList')"
+        :class="editor.isActive('orderedList') && 'text-primary bg-accent'"
         @click="editor.chain().focus().toggleOrderedList().run()">
-        <ListOrdered class="size-4" />
-      </Button>
-      <Button size="sm" variant="ghost" :title="t('Quote')" :aria-label="t('Quote')" :aria-pressed="editor.isActive('blockquote')"
-        :class="editor.isActive('blockquote') ? 'text-primary bg-accent' : 'text-muted-foreground'"
-        @click="editor.chain().focus().toggleBlockquote().run()">
-        <Quote class="size-4" />
+        <ListOrdered />
       </Button>
 
       <!-- Alignment -->
-      <Button v-for="a in ALIGNMENTS" :key="a.value" size="sm" variant="ghost" :title="a.label" :aria-label="a.label"
-        :aria-pressed="editor.isActive({ textAlign: a.value })"
-        :class="editor.isActive({ textAlign: a.value }) ? 'text-primary bg-accent' : 'text-muted-foreground'"
-        @click="editor.chain().focus().toggleTextAlign(a.value).run()">
-        <component :is="a.icon" class="size-4" />
-      </Button>
-
-      <!-- Indent / Outdent -->
-      <Button size="sm" variant="ghost" :title="t('Increase indent')" :aria-label="t('Increase indent')" @click="doIndent">
-        <IndentIncrease class="size-4" />
-      </Button>
-      <Button size="sm" variant="ghost" :title="t('Decrease indent')" :aria-label="t('Decrease indent')" @click="doOutdent">
-        <IndentDecrease class="size-4" />
-      </Button>
-
-      <Button size="sm" variant="ghost" :title="t('Code block')" :aria-label="t('Code block')" :aria-pressed="editor.isActive('codeBlock')"
-        :class="editor.isActive('codeBlock') ? 'text-primary bg-accent' : 'text-muted-foreground'"
-        @click="editor.chain().focus().toggleCodeBlock().run()">
-        <Code2 class="size-4" />
-      </Button>
-      <Button size="sm" variant="ghost" :title="t('Horizontal rule')" :aria-label="t('Horizontal rule')"
-        @click="editor.chain().focus().setHorizontalRule().run()">
-        <Minus class="size-4" />
-      </Button>
+      <DropdownMenu>
+        <DropdownMenuTrigger as-child>
+          <Button size="sm" variant="ghost" class="gap-0.5 px-1.5" :title="t('Alignment')" :aria-label="t('Alignment')">
+            <component :is="currentAlignment().icon" />
+            <ChevronDown class="size-3 opacity-60" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" @close-auto-focus="refocusEditor">
+          <DropdownMenuRadioGroup :model-value="currentAlignment().value"
+            @update:model-value="(v) => editor?.chain().focus().setTextAlign(String(v)).run()">
+            <DropdownMenuRadioItem v-for="a in ALIGNMENTS" :key="a.value" :value="a.value">
+              <component :is="a.icon" />
+              {{ a.label }}
+            </DropdownMenuRadioItem>
+          </DropdownMenuRadioGroup>
+        </DropdownMenuContent>
+      </DropdownMenu>
 
       <Separator orientation="vertical" class="!mx-1 !h-6 !my-0" />
 
       <!-- Link -->
-      <Button size="sm" variant="ghost" :title="t('Link')" :aria-label="t('Link')" :aria-pressed="editor.isActive('link')"
-        :class="editor.isActive('link') ? 'text-primary bg-accent' : 'text-muted-foreground'" @click="openLinkPopover">
-        <LinkIcon class="size-4" />
+      <Button size="icon-sm" variant="ghost" :title="`${t('Link')} · Ctrl+K`" :aria-label="t('Link')" :aria-pressed="editor.isActive('link')"
+        :class="editor.isActive('link') && 'text-primary bg-accent'" @click="openLinkPopover">
+        <LinkIcon />
       </Button>
       <Popover v-model:open="isLinkOpen">
         <PopoverAnchor :reference="linkAnchorEl ?? undefined" />
@@ -673,10 +697,31 @@ const doOutdent = () => (editor.value?.commands as any)?.outdent?.()
         </PopoverContent>
       </Popover>
 
-      <!-- Image -->
-      <Button size="sm" variant="ghost" :title="t('Image')" :aria-label="t('Image')" @click="openImagePopover">
-        <ImageIcon class="size-4" />
-      </Button>
+      <!-- Insert -->
+      <DropdownMenu>
+        <DropdownMenuTrigger as-child>
+          <Button ref="insertTriggerEl" size="sm" variant="ghost" class="gap-1 px-1.5" :aria-label="t('Insert')">
+            <Loader2 v-if="docxImporting || imageUploading" class="animate-spin" />
+            <Plus v-else />
+            <span class="hidden @2xl:inline">{{ t('Insert') }}</span>
+            <ChevronDown class="hidden size-3 opacity-60 @2xl:block" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" class="w-56" @close-auto-focus.prevent>
+          <DropdownMenuItem @select="openImagePopover(insertAnchor())"><ImageIcon /> {{ t('Image') }}…</DropdownMenuItem>
+          <DropdownMenuItem @select="openVideoPopover(insertAnchor())"><Video /> {{ t('YouTube video') }}…</DropdownMenuItem>
+          <DropdownMenuItem @select="insertFileBlock('fileList')"><Paperclip /> {{ t('Files') }}…</DropdownMenuItem>
+          <DropdownMenuItem @select="insertFileBlock('gallery')"><Images /> {{ t('Gallery') }}…</DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem :disabled="editor.isActive('table')"
+            @select="editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()">
+            <TableIcon /> {{ t('Table') }}
+          </DropdownMenuItem>
+          <DropdownMenuItem @select="editor.chain().focus().setHorizontalRule().run()"><Minus /> {{ t('Horizontal rule') }}</DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem :disabled="docxImporting" @select="triggerDocxImport"><FileUp /> {{ t('Import from Word (.docx)') }}…</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
       <Popover v-model:open="isImageOpen">
         <PopoverAnchor :reference="imageAnchorEl ?? undefined" />
         <PopoverContent class="w-auto p-0">
@@ -695,13 +740,6 @@ const doOutdent = () => (editor.value?.commands as any)?.outdent?.()
           </div>
         </PopoverContent>
       </Popover>
-
-      <!-- YouTube video -->
-      <Button size="sm" variant="ghost" :title="t('YouTube video')" :aria-label="t('YouTube video')"
-        :aria-pressed="editor.isActive('youtube')"
-        :class="editor.isActive('youtube') ? 'text-primary bg-accent' : 'text-muted-foreground'" @click="openVideoPopover">
-        <Video class="size-4" />
-      </Button>
       <Popover v-model:open="isVideoOpen">
         <PopoverAnchor :reference="videoAnchorEl ?? undefined" />
         <PopoverContent class="w-auto p-0">
@@ -719,23 +757,6 @@ const doOutdent = () => (editor.value?.commands as any)?.outdent?.()
           </div>
         </PopoverContent>
       </Popover>
-
-      <!-- File list / gallery -->
-      <Button size="sm" variant="ghost" :title="t('Files')" :aria-label="t('Files')" class="text-muted-foreground"
-        @click="insertFileBlock('fileList')">
-        <Paperclip class="size-4" />
-      </Button>
-      <Button size="sm" variant="ghost" :title="t('Gallery')" :aria-label="t('Gallery')" class="text-muted-foreground"
-        @click="insertFileBlock('gallery')">
-        <Images class="size-4" />
-      </Button>
-
-      <!-- Import from Word -->
-      <Button size="sm" variant="ghost" :title="t('Import from Word (.docx)')" :aria-label="t('Import from Word (.docx)')" :disabled="docxImporting"
-        class="text-muted-foreground" @click="triggerDocxImport">
-        <Loader2 v-if="docxImporting" class="size-4 animate-spin" />
-        <FileUp v-else class="size-4" />
-      </Button>
       <input ref="docxInputEl" type="file" accept=".docx" class="hidden" @change="importDocx" />
       <AttachPicker
         :open="!!picker"
@@ -748,47 +769,92 @@ const doOutdent = () => (editor.value?.commands as any)?.outdent?.()
         @select-many="onPicked"
       />
 
-      <Separator orientation="vertical" class="!mx-1 !h-6 !my-0" />
+      <!-- Rarely used: inline code, indent, font -->
+      <DropdownMenu>
+        <DropdownMenuTrigger as-child>
+          <Button size="icon-sm" variant="ghost" :title="t('More')" :aria-label="t('More')">
+            <Ellipsis />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" class="w-60" @close-auto-focus="refocusEditor">
+          <DropdownMenuCheckboxItem :model-value="editor.isActive('code')"
+            @select="editor.chain().focus().toggleCode().run()">
+            <Code /> {{ t('Inline code') }}
+            <DropdownMenuShortcut>Ctrl+E</DropdownMenuShortcut>
+          </DropdownMenuCheckboxItem>
+          <DropdownMenuItem @select="doIndent"><IndentIncrease /> {{ t('Increase indent') }}<DropdownMenuShortcut>Tab</DropdownMenuShortcut></DropdownMenuItem>
+          <DropdownMenuItem @select="doOutdent"><IndentDecrease /> {{ t('Decrease indent') }}<DropdownMenuShortcut>Shift+Tab</DropdownMenuShortcut></DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger><ALargeSmall /> {{ t('Font') }}</DropdownMenuSubTrigger>
+            <DropdownMenuSubContent>
+              <DropdownMenuRadioGroup :model-value="currentFontFamily" @update:model-value="(v) => applyFontFamily(String(v))">
+                <DropdownMenuRadioItem v-for="opt in FONT_FAMILIES" :key="opt.value" :value="opt.value"
+                  :style="opt.value !== FONT_DEFAULT ? { fontFamily: opt.value } : undefined">
+                  {{ opt.label }}
+                </DropdownMenuRadioItem>
+              </DropdownMenuRadioGroup>
+            </DropdownMenuSubContent>
+          </DropdownMenuSub>
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger><Type /> {{ t('Font size') }}</DropdownMenuSubTrigger>
+            <DropdownMenuSubContent>
+              <DropdownMenuRadioGroup :model-value="currentFontSize" @update:model-value="(v) => applyFontSize(String(v))">
+                <DropdownMenuRadioItem v-for="opt in FONT_SIZES" :key="opt.value" :value="opt.value">
+                  {{ opt.label }}
+                </DropdownMenuRadioItem>
+              </DropdownMenuRadioGroup>
+            </DropdownMenuSubContent>
+          </DropdownMenuSub>
+        </DropdownMenuContent>
+      </DropdownMenu>
 
-      <!-- Table -->
-      <Button size="sm" variant="ghost" :title="t('Table')" :aria-label="t('Table')" :aria-pressed="editor.isActive('table')"
-        :class="editor.isActive('table') ? 'text-primary bg-accent' : 'text-muted-foreground'"
-        @click="editor.isActive('table')
-          ? editor.chain().focus().deleteTable().run()
-          : editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()">
-        <TableIcon class="size-4" />
-      </Button>
-      <Button v-if="editor.isActive('table')" size="sm" variant="ghost"
-        :title="TEXT_DIRECTION_LABELS[cellTextDirection() ?? 'none']"
-        :aria-label="TEXT_DIRECTION_LABELS[cellTextDirection() ?? 'none']"
-        :class="cellTextDirection() ? 'text-primary bg-accent' : 'text-muted-foreground'"
-        @click="cycleTextDirection">
-        <Type class="size-4 transition-transform"
-          :class="{ 'rotate-90': cellTextDirection() === 'tb', '-rotate-90': cellTextDirection() === 'bt' }" />
-      </Button>
+      <!-- Table (only while the cursor is in one) -->
+      <template v-if="editor.isActive('table')">
+        <Separator orientation="vertical" class="!mx-1 !h-6 !my-0" />
+        <Button size="icon-sm" variant="ghost"
+          :title="TEXT_DIRECTION_LABELS[cellTextDirection() ?? 'none']"
+          :aria-label="TEXT_DIRECTION_LABELS[cellTextDirection() ?? 'none']"
+          :class="cellTextDirection() && 'text-primary bg-accent'"
+          @click="cycleTextDirection">
+          <Type class="transition-transform"
+            :class="{ 'rotate-90': cellTextDirection() === 'tb', '-rotate-90': cellTextDirection() === 'bt' }" />
+        </Button>
+        <Button size="icon-sm" variant="ghost" class="hover:text-destructive" :title="t('Delete table')" :aria-label="t('Delete table')"
+          @click="editor.chain().focus().deleteTable().run()">
+          <Trash2 />
+        </Button>
+      </template>
 
       <div class="flex-1" />
 
-      <Button size="sm" variant="ghost" :title="t('Undo')" :aria-label="t('Undo')"
-        :disabled="!editor.can().chain().focus().undo().run()"
+      <Button size="icon-sm" variant="ghost" class="hidden @xl:inline-flex" :title="`${t('Undo')} · Ctrl+Z`" :aria-label="t('Undo')"
+        :disabled="!editor.can().undo()"
         @click="editor.chain().focus().undo().run()">
-        <Undo class="size-4" />
+        <Undo />
       </Button>
-      <Button size="sm" variant="ghost" :title="t('Redo')" :aria-label="t('Redo')"
-        :disabled="!editor.can().chain().focus().redo().run()"
+      <Button size="icon-sm" variant="ghost" class="hidden @xl:inline-flex" :title="`${t('Redo')} · Ctrl+Shift+Z`" :aria-label="t('Redo')"
+        :disabled="!editor.can().redo()"
         @click="editor.chain().focus().redo().run()">
-        <Redo class="size-4" />
+        <Redo />
+      </Button>
+      <Button size="icon-sm" variant="ghost" :title="fullscreen ? `${t('Exit full screen')} · Esc` : t('Full screen')"
+        :aria-label="fullscreen ? t('Exit full screen') : t('Full screen')" :aria-pressed="fullscreen"
+        @click="toggleFullscreen">
+        <Minimize2 v-if="fullscreen" />
+        <Maximize2 v-else />
       </Button>
     </div>
 
     <!-- Editor area -->
     <div
       ref="wrapperEl"
-      class="relative border border-border min-h-[120px] focus-within:ring-1 focus-within:ring-primary focus-within:border-primary transition-colors"
+      class="relative border border-border focus-within:ring-1 focus-within:ring-primary focus-within:border-primary transition-colors"
       :class="[
         isEditable() ? 'rounded-b-md' : 'rounded-md',
         error ? '!border-destructive focus-within:!ring-destructive' : '',
         !isEditable() ? 'bg-muted/30' : '',
+        fullscreen ? 'min-h-[calc(100svh-6rem)] bg-card' : 'min-h-[120px]',
       ]"
     >
       <!-- Bubble menu -->
@@ -828,6 +894,8 @@ const doOutdent = () => (editor.value?.commands as any)?.outdent?.()
       </p>
     </div>
 
+  </div>
+  </Teleport>
   </div>
 </template>
 

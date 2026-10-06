@@ -205,7 +205,8 @@ const initials = (email: string) => email.slice(0, 2).toUpperCase()
         <!-- Left Column -->
         <div class="min-w-0 flex flex-col gap-4">
           <!-- Main Form Card -->
-          <div class="bg-card border border-border rounded-md shadow-sm p-5 overflow-hidden">
+          <!-- overflow-clip, not -hidden: keeps sticky children (RichText toolbar) working; offset = FormHeader height -->
+          <div class="bg-card border border-border rounded-md shadow-sm p-5 overflow-clip [--richtext-sticky-top:3.25rem]">
             <FormRenderer :doctype="dt" :model-value="form" :disabled="isSaving || !perms.write" :errors="validationErrors"
               v-model:active-tab="activeTab" :workspace="props.workspace"
               :overrides="displayOverrides" :reqd-overrides="reqdOverrides" :df-prop-overrides="dfPropOverrides" :field-locks="fieldLocks"
