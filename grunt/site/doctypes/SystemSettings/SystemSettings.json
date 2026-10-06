@@ -119,6 +119,18 @@
       "description": "Log records (errors, background jobs, views, etc.) older than this many days are deleted automatically every day. An individual DocType may override this with its own setting."
     },
     {
+      "fieldname": "sec_files",
+      "label": "Files",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "personal_storage_quota_mb",
+      "label": "Personal space quota, MB",
+      "fieldtype": "Int",
+      "default": 1024,
+      "description": "How much each user's “My files” may hold; 0 - no limit. A user's own quota (User → Security) overrides it"
+    },
+    {
       "fieldname": "tab_security",
       "label": "Security",
       "fieldtype": "Tab",

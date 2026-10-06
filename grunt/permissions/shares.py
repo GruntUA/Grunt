@@ -36,7 +36,8 @@ async def has_share(user: User, doctype: str, action: str, doc_name: str | None 
 
     ``doc_name=None`` asks about the DocType as a whole - any share on any of
     its documents - which is what the doctype-level pre-flight guards need;
-    the document-level check that follows still requires a share on that doc.
+    the document-level check that follows still requires a share on that doc
+    (or, with ``shares_cover_subtree``, on one of its tree ancestors).
     """
     levels = _LEVELS.get(action)
     # No bound session: a pure in-memory check (unit tests, startup) - there is
@@ -49,8 +50,27 @@ async def has_share(user: User, doctype: str, action: str, doc_name: str | None 
         "permission__in": list(levels),
     }
     if doc_name is not None:
-        filters["reference_id"] = str(doc_name)
+        filters["reference_id__in"] = await _with_ancestors(doctype, str(doc_name))
     return bool(await grunt.db.exists("SharedWith", filters))
+
+
+async def _subtree_parent_field(doctype: str) -> str | None:
+    meta = await grunt.get_meta(doctype)
+    if meta is None or not getattr(meta, "shares_cover_subtree", False):
+        return None
+    return getattr(meta, "tree_parent_field", None) if getattr(meta, "is_tree", False) else None
+
+
+async def _with_ancestors(doctype: str, name: str) -> list[str]:
+    """*name* plus, when shares cover subtrees, every ancestor of it."""
+    parent_field = await _subtree_parent_field(doctype)
+    out = [name]
+    while parent_field:
+        parent = await grunt.db.get_value(doctype, out[-1], parent_field)
+        if not parent or parent in out:
+            break
+        out.append(parent)
+    return out
 
 
 async def shared_names_clause(table: Table, user: User, doctype: str) -> ColumnElement[bool] | None:
@@ -65,4 +85,10 @@ async def shared_names_clause(table: Table, user: User, doctype: str) -> ColumnE
         share.c.reference_doctype == doctype,
         share.c.user == user.email,
     )
-    return table.c.name.in_(shared)
+    if await _subtree_parent_field(doctype) is None:
+        return table.c.name.in_(shared)
+
+    from grunt.permissions.user_permissions import expand_tree_values
+
+    roots = set((await grunt.get_session().execute(shared)).scalars().all())
+    return table.c.name.in_(await expand_tree_values(doctype, roots)) if roots else None

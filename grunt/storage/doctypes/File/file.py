@@ -36,6 +36,33 @@ class File(Document):
     attached_to_id: str | None
     folder: str | None
 
+    _prev_folder: str | None = None
+
+    async def before_save(self) -> None:
+        """Filing into a folder needs write access to it and room in its space;
+        a file in a personal space is never public."""
+        if not self.folder:
+            return
+        if self.id and self._prev_folder is None:
+            self._prev_folder = await grunt.db.get_value("File", self.id, "folder") or ""
+        if self.folder == self._prev_folder:
+            return
+        from grunt.storage import quota
+        from grunt.storage.doctypes.FileFolder.file_folder import require_folder_write
+
+        folder = await grunt.db.get_value("FileFolder", self.folder, "*")
+        if folder is None:
+            grunt.throw(_("Folder “%(folder)s” not found") % {"folder": self.folder})
+        await require_folder_write(folder)
+        prev_space = (
+            await grunt.db.get_value("FileFolder", self._prev_folder, "space_user")
+            if self._prev_folder
+            else None
+        )
+        if folder["space_user"] != prev_space:
+            await quota.ensure_room(folder["space_user"], self.file_size or 0)
+        self.is_public = False
+
 
 @whitelist()
 async def upload(
@@ -47,17 +74,25 @@ async def upload(
 ) -> dict[str, Any]:
     """Whitelisted method: Upload a file and create a File document.
 
-    An attachment (``attached_to_*`` set) is private unless ``is_public`` is
-    passed explicitly or its DocType sets ``public_attachments`` - readable
-    only with its document, via a signed URL (see :mod:`grunt.storage.signing`).
-    A free-standing library file stays public; ``folder`` files it into the
-    library tree (FileFolder).
+    A file is private - readable via a signed URL (see
+    :mod:`grunt.storage.signing`) by whoever may read it - unless ``is_public``
+    is passed explicitly or the attachment's DocType sets
+    ``public_attachments``. ``folder`` files it into a personal space
+    (FileFolder) - that needs write access to the folder and room in its quota.
     """
     if is_public is None:
         meta = await grunt.get_meta(attached_to_doctype) if attached_to_doctype else None
-        is_public = not attached_to_doctype or bool(meta and meta.public_attachments)
+        is_public = bool(meta and meta.public_attachments)
     if not file.filename:
         raise HTTPException(400, _("No filename provided"))
+    if folder:
+        # Fail before streaming the body; File.before_save re-checks with the size.
+        from grunt.storage.doctypes.FileFolder.file_folder import require_folder_write
+
+        row = await grunt.db.get_value("FileFolder", folder, "*")
+        if row is None:
+            raise HTTPException(404, _("Folder “%(folder)s” not found") % {"folder": folder})
+        await require_folder_write(row)
 
     content_type = file.content_type or "application/octet-stream"
     try:

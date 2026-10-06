@@ -94,13 +94,16 @@ async def test_comment_on_readable_document_allowed(ctx, cases, db_session, engi
 
 
 @pytest.mark.asyncio
-async def test_unattached_files_keep_role_access(ctx, cases, db_session, engine):
+async def test_unattached_files_follow_role_match(ctx, cases, db_session, engine):
+    """A file pointing at nothing falls back to the role rule - only its owner."""
     import grunt
 
     async with grunt.context(db_session, engine, _ann()):
+        await grunt.new_doc(
+            "File", {"file_name": "own.txt", "content_hash": "d" * 64, "file_url": "/o"}
+        )
         names = {r["file_name"] for r in await grunt.get_list("File", limit=100)}
-    assert "lib.txt" in names
-    assert "evidence.txt" not in names
+    assert names == {"own.txt"}
 
 
 @pytest.mark.asyncio

@@ -112,7 +112,7 @@ async def get_user_permissions_for(user: User | None, doctype_name: str) -> dict
     return result
 
 
-async def _expand_tree_values(allow: str, values: set[str]) -> set[str]:
+async def expand_tree_values(allow: str, values: set[str]) -> set[str]:
     """When *allow* is a tree DocType, widen *values* to every descendant so a
     UserPermission on a parent node authorises its whole subtree (an
     institution -> all its sub-departments).
@@ -177,7 +177,7 @@ async def build_conditions(
     strict = await _strict_mode()
     conds: list[ColumnElement] = []
     for allow, values in up.items():
-        values = await _expand_tree_values(allow, values)
+        values = await expand_tree_values(allow, values)
         fields = [fn for fn in _link_fieldnames(doctype, allow) if fn in table.c]
         if not fields:
             if strict:
@@ -209,7 +209,7 @@ async def doc_violation(
 
     strict = await _strict_mode()
     for allow, values in up.items():
-        values = await _expand_tree_values(allow, values)
+        values = await expand_tree_values(allow, values)
         fields = _link_fieldnames(doctype, allow)
         checkable = [fn for fn in fields if fn == "name" or fn in doc]
         if not checkable:
@@ -238,7 +238,7 @@ async def allowed_values(user: User | None, doctype_name: str, allow: str) -> se
     values = (await get_user_permissions_for(user, doctype_name)).get(allow)
     if not values:
         return None
-    return await _expand_tree_values(allow, values)
+    return await expand_tree_values(allow, values)
 
 
 # Whitelisted endpoints

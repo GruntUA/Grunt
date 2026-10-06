@@ -256,6 +256,7 @@ export interface DocType {
   tree_as_of_date_field?: string | null
   tree_sort_by?: string | null
   tree_sort_order?: 'asc' | 'desc'
+  shares_cover_subtree?: boolean
   map_view?: DocTypeMapView | null
   status_field?: string | null
   status_indicators?: StatusIndicator[]
@@ -393,6 +394,14 @@ export interface UserPublic {
   full_name: string
   roles: string[]
   created_at?: string | null
+}
+
+/** A person in the directory any signed-in user may pick from (share, assign, @mention). */
+export interface Colleague {
+  id: string
+  email: string
+  full_name: string
+  avatar?: string | null
 }
 
 export interface GruntDocument {

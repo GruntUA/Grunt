@@ -276,10 +276,11 @@ class DocType(BaseModel):
     # True -> files uploaded to these documents default to is_public (public
     # website content); otherwise an attachment is private to its document.
     public_attachments: bool = False
-    # [<doctype field>, <id field>] -> rows are readable only by users who can
-    # read the referenced document (comments, tags, attachments).
+    # Sources of read access: [<doctype field>, <id field>] pairs and/or Link
+    # fieldnames - a row pointing at a document is readable exactly when that
+    # document is (comments, tags, attachments, files in a folder).
     # See grunt.permissions.reference.
-    inherit_permission_from: list[str] | None = None
+    inherit_permission_from: list[str | list[str]] | None = None
     quick_entry: bool = False  # True -> "Create" opens a dialog instead of full form
 
     # Web view - each document is also a public page (see grunt.website.generator).
@@ -337,6 +338,8 @@ class DocType(BaseModel):
     tree_as_of_date_field: str | None = None  # Date field enabling the "as-of" picker
     tree_sort_by: str | None = None
     tree_sort_order: Literal["asc", "desc"] = "asc"
+    # True -> sharing a node (SharedWith) also shares its whole subtree
+    shares_cover_subtree: bool = False
 
     # Status display - field whose value is the document status, plus the
     # value -> colour/icon/label indicators used by list/form/kanban badges.

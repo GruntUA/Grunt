@@ -392,6 +392,13 @@
       "depends_on": "is_tree"
     },
     {
+      "fieldname": "shares_cover_subtree",
+      "label": "Sharing covers subtree",
+      "fieldtype": "Check",
+      "description": "Sharing a node with a user (Share) also gives access to all its descendants",
+      "depends_on": "is_tree"
+    },
+    {
       "fieldname": "tab_web_view",
       "label": "Web View",
       "fieldtype": "Tab",

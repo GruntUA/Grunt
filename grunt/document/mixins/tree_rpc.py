@@ -215,5 +215,4 @@ class DocumentTreeRPCMixin:
             doctype,
             node_id,
             new_parent_id=new_parent_id,
-            user=grunt.get_user(),
         )

@@ -165,11 +165,20 @@ export interface ListViewProxy {
    * listview.set_filters([{ fieldname: 'language', op: '=', value: 'uk', label: 'Мова' }])
    * ```
    */
-  set_filters: (filters: Array<{ fieldname: string; op: string; value: string; label?: string; fieldtype?: string }>) => void
+  set_filters: (filters: Array<{ fieldname: string; op: string; value: string; label?: string; fieldtype?: string; displayValue?: string }>) => void
   /** Set a single quick-filter value by its id. */
   set_quick_filter_value: (id: string, value: string) => void
   /** Replace all quick-filter values at once. */
   set_quick_filters: (values: Record<string, string>) => void
+  /**
+   * Set it to accept files dragged in from the desktop - onto the list or onto
+   * a node of the tree panel (`target` is that node, else `null`).
+   *
+   * ```js
+   * listview.drop_files = (lv, files, target) => grunt.upload_files({ files, folder: target })
+   * ```
+   */
+  drop_files?: (listview: ListViewProxy, files: File[], target: string | null) => unknown
 }
 
 export interface ListQuickFilterChange {
@@ -248,15 +257,20 @@ export interface GruntProxy {
   show_progress: (title: string, count: number, total: number, description?: string) => void
   /**
    * Let the user pick files and upload them as File records (with progress).
-   * Resolves with the uploaded files - empty when the picker was cancelled.
+   * Resolves with the uploaded files - empty when cancelled.
+   *
+   * `choose_folder` asks where to put them (`folder` is the preselected one,
+   * else «My files»); `files` skips the picker (e.g. files dropped in).
    *
    * ```js
-   * const files = await grunt.upload_files({ folder: 'a1b2c3', multiple: true })
+   * const files = await grunt.upload_files({ folder: 'a1b2c3', choose_folder: true })
    * ```
    */
   upload_files: (opts?: {
     multiple?: boolean
     accept?: string
+    files?: File[]
+    choose_folder?: boolean
     folder?: string | null
     attached_to_doctype?: string
     attached_to_id?: string
@@ -785,8 +799,15 @@ export function createGruntProxy(
     },
 
     async upload_files(opts = {}) {
-      const picked = await pickFiles(opts.multiple ?? true, opts.accept)
+      const picked = opts.files?.length ? opts.files : await pickFiles(opts.multiple ?? true, opts.accept)
+      if (!picked.length) return []
       const { filesApi } = await import('@/core/api/files')
+      let folder = opts.folder ?? undefined
+      if (opts.choose_folder) {
+        const chosen = await chooseUploadFolder(this, picked, folder)
+        if (!chosen) return []
+        folder = chosen
+      }
       const uploaded: import('@/core/api/files').FileItem[] = []
       for (const [i, file] of picked.entries()) {
         if (picked.length > 1) {
@@ -797,7 +818,7 @@ export function createGruntProxy(
             await filesApi.upload(file, {
               attachedToDoctype: opts.attached_to_doctype,
               attachedToId: opts.attached_to_id,
-              folder: opts.folder ?? undefined,
+              folder,
               isPublic: opts.is_public,
             }),
           )
@@ -898,6 +919,88 @@ function pickFiles(multiple: boolean, accept?: string): Promise<File[]> {
   })
 }
 
+/**
+ * The «Upload files» dialog: where the picked files go (a folder, optionally a
+ * new subfolder in it) and how full «My files» is. Resolves with the folder,
+ * or `null` when cancelled.
+ */
+async function chooseUploadFolder(
+  g: Pick<GruntProxy, 'form' | 'show_alert'>,
+  files: File[],
+  preselected: string | undefined,
+): Promise<string | null> {
+  const { filesApi } = await import('@/core/api/files')
+  const { docsApi } = await import('@/core/api/docs')
+  const { formatFileSize } = await import('@/core/fileUtils')
+  const [home, usage] = await Promise.all([
+    filesApi.homeFolder(),
+    filesApi.storageUsage().catch(() => null),
+  ])
+  const total = files.reduce((sum, f) => sum + f.size, 0)
+  const list = files
+    .map((f) => `<li class="flex justify-between gap-3"><span class="truncate">${escapeHtml(f.name)}</span>`
+      + `<span class="shrink-0 text-muted-foreground">${formatFileSize(f.size)}</span></li>`)
+    .join('')
+  const fields: unknown[] = [
+    {
+      fieldname: 'files',
+      label: translate(N_('Files: {n}'), { n: files.length }),
+      fieldtype: 'HTML',
+      plain: true,
+      default: `<ul class="max-h-40 space-y-0.5 overflow-y-auto">${list}</ul>`,
+    },
+    {
+      fieldname: 'folder',
+      label: translate(N_('Folder')),
+      fieldtype: 'Link',
+      options: 'FileFolder',
+      required: true,
+      default: preselected || home.name,
+    },
+    {
+      fieldname: 'new_folder',
+      label: translate(N_('New subfolder')),
+      fieldtype: 'Text',
+      placeholder: translate(N_('Optional - created inside the chosen folder')),
+    },
+  ]
+  if (usage?.quota) {
+    const percent = Math.min(100, Math.round((usage.used / usage.quota) * 100))
+    const full = usage.used + total > usage.quota
+    fields.push({
+      fieldname: 'quota',
+      label: translate(N_('My files')),
+      fieldtype: 'HTML',
+      plain: true,
+      default:
+        `<p class="${full ? 'text-destructive' : 'text-muted-foreground'}">`
+        + escapeHtml(translate(N_('{used} of {quota} used'), {
+          used: formatFileSize(usage.used), quota: formatFileSize(usage.quota),
+        }))
+        + (full ? ` — ${escapeHtml(translate(N_('not enough space for these files')))}` : '')
+        + `</p><div class="mt-1 h-1.5 overflow-hidden rounded-full bg-muted">`
+        + `<div class="h-full ${full ? 'bg-destructive' : 'bg-primary'}" style="width:${percent}%"></div></div>`,
+    })
+  }
+  const values = await g.form({ title: translate(N_('Upload files')), fields, primaryLabel: translate(N_('Upload')) })
+  if (!values) return null
+  const target = String(values.folder)
+  const subfolder = String(values.new_folder ?? '').trim()
+  if (!subfolder) return target
+  try {
+    const created = await docsApi.create('FileFolder', { folder_name: subfolder, parent_folder: target })
+    return String(created.name)
+  } catch (err) {
+    const detail = (err as { response?: { data?: { detail?: string } } }).response?.data?.detail
+    g.show_alert(typeof detail === 'string' ? detail : translate(N_('Upload failed')), 'error')
+    return null
+  }
+}
+
+function escapeHtml(text: string): string {
+  return text.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`)
+}
+
 /** `__('text')` in client scripts - the UI translation (and an extraction marker). */
 function translate(text: string, params?: Record<string, unknown>): string {
   // With params vue-i18n fills `{n}` itself; the replace covers an untranslated key.
@@ -986,7 +1089,7 @@ export function createListViewProxy(
     exportWith?: (exporterId: string) => void
     customizeQuickFilters?: () => void
     createReport?: () => void
-    setFilters?: (filters: Array<{ fieldname: string; op: string; value: string; label?: string; fieldtype?: string }>) => void
+    setFilters?: (filters: Array<{ fieldname: string; op: string; value: string; label?: string; fieldtype?: string; displayValue?: string }>) => void
     setQuickFilterValue?: (id: string, value: string) => void
     setQuickFilters?: (values: Record<string, string>) => void
   } = {},

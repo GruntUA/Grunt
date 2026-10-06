@@ -5,7 +5,8 @@
  *
  * The open node *is* a list filter (`field = node`, `child_of` with nested,
  * `is not set` for «without»), so it lives in the URL like any other filter.
- * Dropping list rows on a node re-links them; dropping a node re-parents it.
+ * Dropping list rows on a node re-links them; dropping a node re-parents it;
+ * files from the desktop go to the list's `drop_files` hook (`acceptsFiles`).
  */
 import { useI18n } from 'vue-i18n'
 import { computed, onMounted, reactive, ref, watch } from 'vue'
@@ -14,6 +15,7 @@ import {
   ChevronRight, Folder, FolderOpen, FolderPlus, FolderX, Layers, ListTree, MoreHorizontal,
 } from '@lucide/vue'
 import { docsApi, type TreeNode } from '@/core/api/docs'
+import { authApi } from '@/core/api/auth-admin'
 import { useDocTypeStore } from '@/stores/doctype'
 import { useAuthStore } from '@/stores/auth'
 import { useDialog } from '@/core/composables/useDialog'
@@ -32,11 +34,17 @@ const props = defineProps<{
   field: DocField
   filters: ActiveFilter[]
   workspace?: string
+  /** Files dragged in from the desktop may be dropped on a node. */
+  acceptsFiles?: boolean
+  /** Bumped when the list is refreshed - the loaded nodes reload too. */
+  refreshKey?: number
 }>()
 const emit = defineEmits<{
   'update:filters': [filters: ActiveFilter[]]
   /** Rows were re-linked - the list refetches. */
   moved: []
+  /** Desktop files dropped on a node (`null` - «Not set»). */
+  'drop-files': [target: string | null, files: File[]]
 }>()
 
 const { t } = useI18n()
@@ -74,6 +82,7 @@ async function loadChildren(parent: string) {
 }
 
 function nodeTitle(node: TreeNode): string {
+  if (typeof node.display_title === 'string' && node.display_title) return node.display_title
   const value = node[titleField.value]
   return value === null || value === undefined || value === '' ? node.name : String(value)
 }
@@ -146,6 +155,8 @@ async function revealSelected() {
     if (!childrenOf.has(node.name)) await loadChildren(node.name)
     expanded.add(node.name)
   }
+  // A node created after the panel loaded (a fresh root, a new subfolder).
+  if (!isVisible(key)) await loadChildren(path.at(-1)?.name ?? '')
 }
 
 function isVisible(name: string) {
@@ -158,19 +169,28 @@ onMounted(async () => {
   await revealSelected()
 })
 watch(selected, revealSelected)
+watch(() => props.refreshKey, async () => {
+  await reloadLoaded()
+  await revealSelected()
+})
 
 // Drag & drop
 const dropTarget = ref<string | null>(null)
 
+function draggingFiles(e: DragEvent): boolean {
+  return !!props.acceptsFiles && !!e.dataTransfer?.types.includes('Files')
+}
+
 function accepts(e: DragEvent): boolean {
   const types = e.dataTransfer?.types ?? []
-  return (types.includes(ROW_DRAG_MIME) && canMoveRows.value) || types.includes(NODE_MIME)
+  return (types.includes(ROW_DRAG_MIME) && canMoveRows.value) || types.includes(NODE_MIME) || draggingFiles(e)
 }
 
 function onDragOver(e: DragEvent, key: string) {
   if (!accepts(e)) return
   e.preventDefault()
-  if (e.dataTransfer) e.dataTransfer.dropEffect = 'move'
+  e.stopPropagation() // the list behind takes desktop files too
+  if (e.dataTransfer) e.dataTransfer.dropEffect = draggingFiles(e) ? 'copy' : 'move'
   dropTarget.value = key
 }
 
@@ -182,6 +202,13 @@ function onNodeDragStart(e: DragEvent, node: TreeNode) {
 async function onDrop(e: DragEvent, key: string) {
   dropTarget.value = null
   const target = key === NONE ? null : key
+  if (draggingFiles(e)) {
+    e.preventDefault()
+    e.stopPropagation()
+    const files = Array.from(e.dataTransfer?.files ?? [])
+    if (files.length) emit('drop-files', target, files)
+    return
+  }
   const node = e.dataTransfer?.getData(NODE_MIME)
   try {
     if (node) {
@@ -241,6 +268,47 @@ async function renameNode(node: TreeNode) {
     await reloadLoaded()
     if (selected.value === node.name) select(node.name) // refresh the chip label
     emit('moved')
+  } catch (err) {
+    toast.error(errorText(err))
+  }
+}
+
+/** Give users access to a node (SharedWith) - with `shares_cover_subtree`, to everything under it. */
+async function shareNode(node: TreeNode) {
+  const users = await authApi.listColleagues().catch(() => [])
+  const me = auth.user?.email
+  const values = await dialog.form({
+    title: t('Share «{name}»', { name: nodeTitle(node) }),
+    size: 'large',
+    primaryLabel: t('Share'),
+    fields: [
+      {
+        fieldname: 'permission',
+        label: t('Access'),
+        fieldtype: 'Select',
+        options: [t('Read'), t('Write')].join('\n'),
+        default: t('Read'),
+      },
+      {
+        fieldname: 'users',
+        label: t('Users'),
+        fieldtype: 'Table',
+        columns: [
+          { key: 'full_name', label: t('Name') },
+          { key: 'email', label: t('Email') },
+        ],
+        rows: users.filter((u) => u.email !== me).map((u) => ({ ...u, full_name: u.full_name || u.email })),
+        rowKey: 'email',
+        multiple: true,
+      },
+    ],
+  })
+  const rows = (values?.users ?? []) as Array<{ email: string }>
+  if (!rows.length) return
+  const permission = values?.permission === t('Write') ? 'Write' : 'Read'
+  try {
+    await Promise.all(rows.map((u) => docsApi.share(treeDoctype.value, node.name, u.email, permission)))
+    toast.success(t('Shared with: {n}', { n: String(rows.length) }))
   } catch (err) {
     toast.error(errorText(err))
   }
@@ -357,6 +425,7 @@ function errorText(err: unknown): string {
         <DropdownMenuContent align="start">
           <DropdownMenuItem v-if="canCreate" @click="createNode(node.name)">{{ t('New subfolder') }}</DropdownMenuItem>
           <DropdownMenuItem @click="renameNode(node)">{{ t('Rename') }}</DropdownMenuItem>
+          <DropdownMenuItem @click="shareNode(node)">{{ t('Share…') }}</DropdownMenuItem>
           <DropdownMenuItem as-child>
             <RouterLink :to="docUrl(treeDoctype, node.name, workspace)">{{ t('Open') }}</RouterLink>
           </DropdownMenuItem>

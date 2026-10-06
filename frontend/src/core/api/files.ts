@@ -91,6 +91,21 @@ export const filesApi = {
         } : null
     },
 
+    /** The current user's home folder («My files»), created on first use. */
+    homeFolder: async (): Promise<{ name: string; folder_name: string }> => {
+        const res = await client.get('/api/v1/method/grunt.storage.doctypes.FileFolder.file_folder.get_home_folder')
+        return res.data.data
+    },
+
+    /** Bytes used in a personal space and its quota (`null` - unlimited). */
+    storageUsage: async (user?: string): Promise<{ used: number; quota: number | null }> => {
+        const res = await client.get(
+            '/api/v1/method/grunt.storage.doctypes.FileFolder.file_folder.get_storage_usage',
+            { params: user ? { user } : {} },
+        )
+        return res.data.data
+    },
+
     delete: async (id: string): Promise<void> => {
         await client.post('/api/v1/method/grunt.storage.doctypes.File.file.remove', { file_id: id })
     },

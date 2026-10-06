@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import type { UserPublic } from '@/types'
+import type { Colleague } from '@/types'
 import type { DocSidebarState } from './useDocSidebar'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import {
@@ -19,13 +19,13 @@ const props = defineProps<{ sb: DocSidebarState; exclude?: string[] }>()
 const emit = defineEmits<{ select: [email: string] }>()
 
 const { t } = useI18n()
-const users = ref<UserPublic[]>([])
+const users = ref<Colleague[]>([])
 
 onMounted(async () => {
   users.value = await props.sb.searchUsers('')
 })
 
-function initials(u: UserPublic): string {
+function initials(u: Colleague): string {
   return (u.full_name || u.email).slice(0, 2).toUpperCase()
 }
 </script>

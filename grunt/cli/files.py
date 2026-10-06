@@ -77,3 +77,31 @@ def files_verify(site: str | None, rehash: bool):
             raise SystemExit(1)
 
     asyncio.run(_run())
+
+
+@files_group.command("assign-spaces")
+@click.option("--site", default=None, help="Site name")
+@click.option("--apply", is_flag=True, help="Carry out the move (default: only show it)")
+@click.option("--fallback-owner", default=None, help="Owner for items whose author is gone")
+def files_assign_spaces(site: str | None, apply: bool, fallback_owner: str | None):
+    """Move library folders and unfiled files into their authors' personal spaces."""
+
+    async def _run():
+        import grunt
+        from grunt.storage.spaces import assign_spaces
+
+        async with _site_session(site) as (session, eng), grunt.system_context(session, eng):
+            report = await assign_spaces(apply=apply, fallback_owner=fallback_owner)
+        for item in report["folders"]:
+            click.echo(f"folder  {item['folder']}  ->  {item['owner']}")
+        for item in report["files"]:
+            click.echo(f"file    {item['file']}  ->  {item['owner']}")
+        for item in report["skipped"]:
+            click.echo(f"skipped {item} - no such user (use --fallback-owner)")
+        click.echo(
+            f"Folders: {len(report['folders'])}, files: {len(report['files'])}, "
+            f"skipped: {len(report['skipped'])}"
+            + ("" if apply else " - dry run, pass --apply to move")
+        )
+
+    asyncio.run(_run())

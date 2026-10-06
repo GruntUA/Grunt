@@ -68,6 +68,7 @@ _GUARDED_USER_FIELDS: dict[str, str] = {
     "is_active": N_("Active"),
     "signup_state": N_("Signup state"),
     "password": N_("Password"),
+    "storage_quota_mb": N_("Personal space quota, MB"),
 }
 _SILENT_RESET_USER_FIELDS: frozenset[str] = frozenset(
     {
@@ -871,6 +872,20 @@ async def stop_impersonation_api() -> bool:
 async def list_users_api() -> list[dict[str, Any]]:
     """List all users. System Manager only (enforced by the whitelist gate)."""
     return UserPublic.dump_many(await list_users())
+
+
+@grunt.whitelist()
+async def list_colleagues_api() -> list[dict[str, Any]]:
+    """The people directory for any signed-in user: active accounts with just
+    what a picker shows (sharing, assigning) - no roles, no account state."""
+    rows = await grunt.db.get_all(
+        "User",
+        filters={"is_active": 1},
+        fields=["name", "email", "full_name", "avatar"],
+        order_by="full_name",
+        limit=10_000,
+    )
+    return [r for r in rows if r.get("email") != SYSTEM_USER.email]
 
 
 @grunt.whitelist(roles=["System Manager"])

@@ -152,6 +152,8 @@ const {
   actions: listActions,
   runListClientSetup,
   runQuickFilterOnChange,
+  canDropFiles,
+  dropFiles,
 } = useListClientScripts({
   doctype: props.doctype,
   activeFilters,
@@ -287,6 +289,28 @@ const treeNavField = computed(() => {
 })
 const showTreeNav = computed(() => !!treeNavField.value && !ownScrollView.value)
 provideRowDrag({ doctype: props.doctype, enabled: showTreeNav, selectedIds })
+
+// Files dragged in from the desktop (DocType script sets `listview.drop_files`)
+const filesOver = ref(false)
+function draggingFiles(e: DragEvent): boolean {
+  return canDropFiles.value && !!e.dataTransfer?.types.includes('Files')
+}
+function onFilesDragOver(e: DragEvent) {
+  if (!draggingFiles(e)) return
+  e.preventDefault()
+  if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy'
+  filesOver.value = true
+}
+function onFilesDragLeave(e: DragEvent) {
+  const to = e.relatedTarget as Node | null
+  if (!to || !(e.currentTarget as HTMLElement).contains(to)) filesOver.value = false
+}
+function onFilesDrop(e: DragEvent) {
+  filesOver.value = false
+  if (!draggingFiles(e)) return
+  e.preventDefault()
+  dropFiles(Array.from(e.dataTransfer?.files ?? []), null)
+}
 
 function onTreeRowsMoved() {
   clearSelection()
@@ -441,10 +465,14 @@ watch(() => props.doctype, async (newDoctype) => {
       class="hidden w-56 shrink-0 md:block">
       <div class="sticky top-4 max-h-[calc(100vh-6rem)] overflow-y-auto pr-1">
         <ListTreePanel :dt="dt" :field="treeNavField" :workspace="workspace" :filters="activeFilters"
-          @update:filters="activeFilters = $event" @moved="onTreeRowsMoved" />
+          :accepts-files="canDropFiles" :refresh-key="refreshKey"
+          @update:filters="activeFilters = $event" @moved="onTreeRowsMoved"
+          @drop-files="(target, files) => dropFiles(files, target)" />
       </div>
     </aside>
-    <div class="flex min-h-0 min-w-0 flex-1 flex-col gap-3">
+    <div class="flex min-h-0 min-w-0 flex-1 flex-col gap-3 rounded-md"
+      :class="filesOver && 'ring-2 ring-primary ring-offset-2'"
+      @dragover="onFilesDragOver" @dragleave="onFilesDragLeave" @drop="onFilesDrop">
     <ListViewRouter
       v-if="dt && colState"
       :view-mode="viewMode"

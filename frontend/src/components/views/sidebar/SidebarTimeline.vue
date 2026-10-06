@@ -3,10 +3,10 @@ import { useI18n } from 'vue-i18n'
 import { ref, computed, onMounted } from 'vue'
 import { ArrowRight, Trash2, Send } from '@lucide/vue'
 import { docsApi, type TimelineItem, type DocVersionChange } from '@/core/api/docs'
-import { authAdminApi } from '@/core/api/auth-admin'
+import { authApi } from '@/core/api/auth-admin'
 import { useAuthStore } from '@/stores/auth'
 import { useDialog } from '@/core/composables/useDialog'
-import type { DocType, GruntDocument, UserPublic } from '@/types'
+import type { Colleague, DocType, GruntDocument } from '@/types'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
@@ -233,14 +233,14 @@ async function deleteComment(item: TimelineItem) {
 }
 
 // @mention autocomplete logic (retained for functionality)
-const allUsers = ref<UserPublic[]>([])
-const mentionDropdown = ref<UserPublic[]>([])
+const allUsers = ref<Colleague[]>([])
+const mentionDropdown = ref<Colleague[]>([])
 const mentionIndex = ref(0)
 const mentionQuery = ref('')
 
 async function ensureUsers() {
   if (allUsers.value.length) return
-  try { allUsers.value = await authAdminApi.listUsers() } catch { /* silent */ }
+  try { allUsers.value = await authApi.listColleagues() } catch { /* silent */ }
 }
 
 function onCommentInput(e: Event) {
@@ -265,7 +265,7 @@ function onCommentInput(e: Event) {
   }
 }
 
-function insertMention(user: UserPublic) {
+function insertMention(user: Colleague) {
   const before = commentInput.value
   const pos = before.lastIndexOf('@' + mentionQuery.value)
   commentInput.value = before.slice(0, pos) + `@${user.email} ` + before.slice(pos + 1 + mentionQuery.value.length)

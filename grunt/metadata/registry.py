@@ -73,6 +73,7 @@ _CORE_SYNCED_DOCTYPE_ATTRS = frozenset(
         "tree_as_of_date_field",
         "tree_sort_by",
         "tree_sort_order",
+        "shares_cover_subtree",
         "search_fields",
         "label",
         "module",

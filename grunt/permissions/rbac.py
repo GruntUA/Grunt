@@ -96,6 +96,16 @@ class PermissionChecker:
             if cached is not None:
                 return cached or await self._shared(user, doctype, action, doc)
 
+        # Comments / tags / attachments / files in a folder: a row that points
+        # at a document is readable exactly when that document is - the
+        # role's `match` only governs rows that point at nothing.
+        inherited: bool | None = None
+        if doc is not None and action in ("read", "select"):
+            from grunt.permissions.reference import reference_readable, reference_sources
+
+            if reference_sources(doctype):
+                inherited = await reference_readable(user, doctype, doc)
+
         result = False
         for perm in access.matching_permissions():
             perm_val = getattr(perm, action, False)
@@ -107,7 +117,7 @@ class PermissionChecker:
                 continue
             # Check match expression
             match_expr = perm.match if hasattr(perm, "match") else None
-            if match_expr and doc:
+            if match_expr and doc and inherited is None:
                 matched = await PermissionMatch(match_expr).evaluate_doc(doc, user, doctype)
                 if not matched:
                     continue
@@ -122,11 +132,8 @@ class PermissionChecker:
             if not await doc_passes(user, doctype, doc):
                 result = False
 
-        # Comments / tags / attachments: readable only with the referenced doc.
-        if result and doc is not None and action in ("read", "select"):
-            from grunt.permissions.reference import reference_readable
-
-            result = await reference_readable(user, doctype, doc)
+        if inherited is False:
+            result = False
 
         if cache_key is not None:
             _PERM_CACHE[cache_key] = result

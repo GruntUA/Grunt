@@ -202,6 +202,17 @@
       "options": "UserRole"
     },
     {
+      "fieldname": "sec_storage",
+      "label": "Files",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "storage_quota_mb",
+      "label": "Personal space quota, MB",
+      "fieldtype": "Int",
+      "description": "Empty - the system default (System Settings → Files)"
+    },
+    {
       "fieldname": "sec_mfa",
       "label": "MFA & lockout",
       "fieldtype": "Section",

@@ -1,7 +1,11 @@
 import client from './client'
-import type { UserPublic } from '@/types'
+import type { Colleague, UserPublic } from '@/types'
 
 export const authApi = {
+  /** Active users - for share / assign / @mention pickers (any signed-in user). */
+  listColleagues: (): Promise<Colleague[]> =>
+    client.get('/api/v1/method/grunt.auth.doctypes.User.user.list_colleagues_api').then(r => r.data.data),
+
   forgotPassword: (email: string): Promise<{ success: boolean }> =>
     client.post('/api/v1/method/grunt.auth.doctypes.User.user.forgot_password_api', { email }).then(r => r.data),
 

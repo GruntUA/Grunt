@@ -350,9 +350,9 @@ class DocumentWriteMixin(DocumentReadMixin):
             raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=errors)
 
         # A comment / tag / attachment may only be added to a readable document.
-
-        if not RoleAccess(dt, user).is_unrestricted and not await reference_readable(
-            user, dt, data
+        if (
+            not RoleAccess(dt, user).is_unrestricted
+            and await reference_readable(user, dt, data) is False
         ):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN, detail=_("No access to the document")

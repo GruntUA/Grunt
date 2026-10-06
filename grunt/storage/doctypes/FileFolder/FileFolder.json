@@ -13,8 +13,9 @@
   "tree_title_field": "folder_name",
   "tree_sort_by": "folder_name",
   "tree_sort_order": "asc",
+  "shares_cover_subtree": true,
   "default_view": "tree",
-  "description": "Folders of the file library. They only organise File records — moving a file between folders never touches the stored content.",
+  "description": "Folders of personal file spaces. Each user has a home folder; every other folder lives inside one and belongs to its owner's space. Sharing a folder shares everything below it. Moving a file between folders never touches the stored content.",
   "fields": [
     {
       "fieldname": "folder_name",
@@ -32,19 +33,37 @@
       "in_list_view": true,
       "in_filter": true,
       "index": true
+    },
+    {
+      "fieldname": "space_user",
+      "label": "Space owner",
+      "fieldtype": "Link",
+      "options": "User",
+      "read_only": true,
+      "in_list_view": true,
+      "in_filter": true,
+      "index": true,
+      "description": "Whose personal space the folder belongs to - taken from the parent folder"
+    },
+    {
+      "fieldname": "is_home",
+      "label": "Home folder",
+      "fieldtype": "Check",
+      "read_only": true,
+      "description": "The root folder of the owner's space"
     }
   ],
   "permissions": [
     {
       "role": "All",
-      "read": true,
       "create": true
     },
     {
       "role": "All",
+      "read": true,
       "write": true,
       "delete": true,
-      "match": "owner == user"
+      "match": "space_user == user"
     },
     {
       "role": "System Manager",

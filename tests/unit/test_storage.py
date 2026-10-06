@@ -237,6 +237,12 @@ async def test_download_supports_range_and_etag_over_http(client, auth_headers, 
 # ── folders ──────────────────────────────────────────────────────────────
 
 
+async def _home() -> str:
+    from grunt.storage.doctypes.FileFolder.file_folder import get_home_folder
+
+    return (await get_home_folder())["name"]
+
+
 @pytest.mark.asyncio
 async def test_file_list_navigates_by_folder_tree(ctx):
     meta = await grunt.get_meta("File")
@@ -247,8 +253,16 @@ async def test_file_list_navigates_by_folder_tree(ctx):
 
 @pytest.mark.asyncio
 async def test_upload_into_folder_and_move_without_touching_disk(ctx, storage):
-    reports = (await grunt.new_doc("FileFolder", {"folder_name": "Reports"}))["name"]
-    archive = (await grunt.new_doc("FileFolder", {"folder_name": "Archive"}))["name"]
+    reports = (
+        await grunt.new_doc(
+            "FileFolder", {"folder_name": "Reports", "parent_folder": await _home()}
+        )
+    )["name"]
+    archive = (
+        await grunt.new_doc(
+            "FileFolder", {"folder_name": "Archive", "parent_folder": await _home()}
+        )
+    )["name"]
 
     up = await upload(_upload_file("q3.txt", b"quarter three"), folder=reports)
     assert await grunt.db.get_value("File", up["id"], "folder") == reports
@@ -263,8 +277,12 @@ async def test_upload_into_folder_and_move_without_touching_disk(ctx, storage):
 
 @pytest.mark.asyncio
 async def test_same_file_in_two_folders_is_two_rows(ctx, storage):
-    a = (await grunt.new_doc("FileFolder", {"folder_name": "A"}))["name"]
-    b = (await grunt.new_doc("FileFolder", {"folder_name": "B"}))["name"]
+    a = (await grunt.new_doc("FileFolder", {"folder_name": "A", "parent_folder": await _home()}))[
+        "name"
+    ]
+    b = (await grunt.new_doc("FileFolder", {"folder_name": "B", "parent_folder": await _home()}))[
+        "name"
+    ]
 
     first = await upload(_upload_file("logo.txt", b"logo"), folder=a)
     second = await upload(_upload_file("logo.txt", b"logo"), folder=b)
@@ -275,7 +293,9 @@ async def test_same_file_in_two_folders_is_two_rows(ctx, storage):
 
 @pytest.mark.asyncio
 async def test_only_an_empty_folder_can_be_deleted(ctx, storage):
-    parent = (await grunt.new_doc("FileFolder", {"folder_name": "Parent"}))["name"]
+    parent = (
+        await grunt.new_doc("FileFolder", {"folder_name": "Parent", "parent_folder": await _home()})
+    )["name"]
     child = (await grunt.new_doc("FileFolder", {"folder_name": "Child", "parent_folder": parent}))[
         "name"
     ]
@@ -291,3 +311,7 @@ async def test_only_an_empty_folder_can_be_deleted(ctx, storage):
     await remove(up["id"])
     await grunt.delete_doc("FileFolder", child)
     await grunt.delete_doc("FileFolder", parent)
+
+    with pytest.raises(HTTPException) as home:
+        await grunt.delete_doc("FileFolder", await _home())
+    assert home.value.status_code == 422

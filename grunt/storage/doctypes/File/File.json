@@ -6,8 +6,8 @@
   "image_field": "thumbnail_url",
   "default_view": "gallery",
   "inherit_permission_from": [
-    "attached_to_doctype",
-    "attached_to_id"
+    ["attached_to_doctype", "attached_to_id"],
+    "folder"
   ],
   "fields": [
     {
@@ -100,14 +100,24 @@
   "permissions": [
     {
       "role": "All",
-      "read": true,
       "create": true
+    },
+    {
+      "role": "All",
+      "read": true,
+      "match": "owner == user"
     },
     {
       "role": "All",
       "write": true,
       "delete": true,
       "match": "owner == user"
+    },
+    {
+      "role": "All",
+      "write": true,
+      "delete": true,
+      "match": "folder.space_user == user"
     },
     {
       "role": "System Manager",

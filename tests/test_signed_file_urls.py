@@ -58,15 +58,17 @@ async def test_attachment_is_private_and_opens_only_with_signature(client, auth_
 
 
 @pytest.mark.asyncio
-async def test_library_upload_stays_public(client, auth_headers):
+async def test_unattached_upload_is_private(client, auth_headers):
     up = await client.post(
         f"{M}.upload",
-        files={"file": ("logo.txt", b"public bits", "text/plain")},
+        files={"file": ("notes.txt", b"private bits", "text/plain")},
         headers=auth_headers,
     )
     assert up.status_code == 200, up.text
-    file_id = parse_qs(urlparse(up.json()["data"]["url"]).query)["file_id"][0]
-    assert (await client.get(f"{URL}{file_id}")).status_code == 200
+    url = up.json()["data"]["url"]
+    file_id = parse_qs(urlparse(url).query)["file_id"][0]
+    assert (await client.get(f"{URL}{file_id}")).status_code == 401
+    assert (await client.get(url)).status_code == 200
 
 
 def test_signatures_are_stripped_before_saving():

@@ -7,8 +7,8 @@
  */
 import { ref, toValue, watch, type MaybeRefOrGetter } from 'vue'
 import { docsApi, type SidebarBundle } from '@/core/api/docs'
-import { authAdminApi } from '@/core/api/auth-admin'
-import type { UserPublic } from '@/types'
+import { authApi } from '@/core/api/auth-admin'
+import type { Colleague } from '@/types'
 
 const EMPTY: SidebarBundle = {
   assignees: [],
@@ -20,7 +20,7 @@ const EMPTY: SidebarBundle = {
 }
 
 // Users are shared across all sidebar instances and rarely change within a session.
-let usersCache: UserPublic[] | null = null
+let usersCache: Colleague[] | null = null
 // Tags already used on each DocType - suggestions for the tag picker.
 const tagsCache = new Map<string, string[]>()
 
@@ -150,10 +150,10 @@ export function useDocSidebar(
   }
 
   // User search (assign / share pickers)
-  async function searchUsers(query: string): Promise<UserPublic[]> {
+  async function searchUsers(query: string): Promise<Colleague[]> {
     if (!usersCache) {
       try {
-        usersCache = await authAdminApi.listUsers()
+        usersCache = await authApi.listColleagues()
       } catch {
         return []
       }

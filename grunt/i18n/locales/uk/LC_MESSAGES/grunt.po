@@ -16,15 +16,15 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : 2);\n"
 
-#: grunt/grunt/permissions/doctypes/SharedWith/shared_with.py:40
+#: grunt/grunt/permissions/doctypes/SharedWith/shared_with.py:39
 #: grunt/grunt/api/v1/share.py:50
-#: grunt/grunt/activity/doctypes/DocFollow/doc_follow.py:25
+#: grunt/grunt/activity/doctypes/DocFollow/doc_follow.py:24
 #: grunt/frontend/src/plugins/i18n.ts:16
 msgid "Document not found"
 msgstr "Документ не знайдено"
 
 #: grunt/grunt/startup/errors.py:100 grunt/grunt/startup/errors.py:129
-#: grunt/grunt/assignment/doctypes/AssignmentRule/assignment_rule.py:33
+#: grunt/grunt/assignment/doctypes/AssignmentRule/assignment_rule.py:31
 #: grunt/frontend/src/core/composables/useFormSave.ts:219
 #: grunt/frontend/src/components/views/QuickEntryDialog.vue:106
 msgid "Validation error"
@@ -46,24 +46,26 @@ msgstr "Зберегти"
 msgid "No data"
 msgstr "Немає даних"
 
-#: grunt/grunt/website/doc_layout.py:49 grunt/grunt/api/v1/docs/utils.py:44
+#: grunt/grunt/website/doc_layout.py:49 grunt/grunt/api/v1/docs/utils.py:45
 #: grunt/frontend/src/components/pwa/PWAInstallPrompt.vue:108
+#: grunt/frontend/src/components/views/QuickFilterBar.vue:47
 #: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:123
 #: grunt/frontend/src/components/views/sidebar/TimelineChanges.vue:49
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:235
 #: grunt/frontend/src/components/views/list/ListGroupedView.vue:48
-#: grunt/frontend/src/components/fields/Check/FilterInput.vue:30
+#: grunt/frontend/src/components/fields/Check/FilterInput.vue:31
 #: grunt/frontend/src/components/fields/Table/Table.vue:148
 #: grunt/frontend/src/components/fields/Table/useTableCell.ts:79
 msgid "Yes"
 msgstr "Так"
 
-#: grunt/grunt/website/doc_layout.py:49 grunt/grunt/api/v1/docs/utils.py:44
+#: grunt/grunt/website/doc_layout.py:49 grunt/grunt/api/v1/docs/utils.py:45
+#: grunt/frontend/src/components/views/QuickFilterBar.vue:47
 #: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:123
 #: grunt/frontend/src/components/views/sidebar/TimelineChanges.vue:49
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:235
 #: grunt/frontend/src/components/views/list/ListGroupedView.vue:48
-#: grunt/frontend/src/components/fields/Check/FilterInput.vue:38
+#: grunt/frontend/src/components/fields/Check/FilterInput.vue:32
 #: grunt/frontend/src/components/fields/Table/Table.vue:148
 #: grunt/frontend/src/components/fields/Table/useTableCell.ts:79
 msgid "No"
@@ -74,12 +76,13 @@ msgid "File deleted"
 msgstr "Файл видалено"
 
 #: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:278
-#: grunt/frontend/src/components/fields/Link/FilterInput.vue:245
+#: grunt/frontend/src/components/fields/Link/FilterInput.vue:228
 #: grunt/frontend/src/components/fields/Link/Link.vue:102
 msgid "Search {doctype}…"
 msgstr "Пошук {doctype}…"
 
-#: grunt/frontend/src/components/fields/Link/FilterInput.vue:221
+#: grunt/frontend/src/components/fields/Link/FilterInput.vue:183
+#: grunt/frontend/src/components/fields/Link/FilterInput.vue:206
 #: grunt/frontend/src/components/fields/Link/Link.vue:78
 msgid "Select {doctype}…"
 msgstr "Оберіть {doctype}…"
@@ -95,7 +98,8 @@ msgstr "Фільтр:"
 
 #: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue:340
 #: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue:183
-#: grunt/frontend/src/components/fields/Link/FilterInput.vue:262
+#: grunt/frontend/src/components/fields/Link/FilterInput.vue:213
+#: grunt/frontend/src/components/fields/Link/FilterInput.vue:214
 #: grunt/frontend/src/components/fields/Link/Link.vue:139
 #: grunt/frontend/src/components/fields/Link/Link.vue:140
 #: grunt/frontend/src/components/fields/Color/Color.vue:73
@@ -207,7 +211,7 @@ msgstr "Пошук іконки…"
 #: grunt/frontend/src/components/views/list/QuickFilterSettingsDialog.vue:103
 #: grunt/frontend/src/components/views/list/ListToolbarControls.vue:187
 #: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue:177
-#: grunt/frontend/src/components/fields/Link/FilterInput.vue:298
+#: grunt/frontend/src/components/fields/Link/FilterInput.vue:232
 #: grunt/frontend/src/components/fields/Icon/Icon.vue:132
 msgid "Nothing found"
 msgstr "Нічого не знайдено"
@@ -2870,7 +2874,7 @@ msgstr "Доступ заборонено"
 #: grunt/frontend/src/components/layout/CommandPalette.vue:97
 #: grunt/frontend/src/components/layout/CommandPalette.vue:100
 #: grunt/frontend/src/components/layout/CommandPalette.vue:101
-#: grunt/frontend/src/components/views/list/ListTreePanel.vue:352
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:412
 #: grunt/frontend/src/components/views/actions/ActionMenu.vue:37
 msgid "Actions"
 msgstr "Дії"
@@ -2886,7 +2890,7 @@ msgstr "Журнал активності"
 msgid "Add"
 msgstr "Додати"
 
-#: grunt/frontend/src/components/views/FilterBar.vue:295
+#: grunt/frontend/src/components/views/FilterBar.vue:306
 msgid "Add a Filter"
 msgstr "Додати фільтр"
 
@@ -2907,7 +2911,7 @@ msgstr "Будь-хто з посиланням може переглядати 
 msgid "Apply"
 msgstr "Застосувати"
 
-#: grunt/frontend/src/components/views/FilterBar.vue:343
+#: grunt/frontend/src/components/views/FilterBar.vue:354
 msgid "Apply Filters"
 msgstr "Застосувати фільтри"
 
@@ -2961,7 +2965,7 @@ msgstr "Помилка камери: {msg}"
 msgid "Camera unavailable."
 msgstr "Камера недоступна."
 
-#: grunt/grunt/actions/builtin.py:112
+#: grunt/grunt/actions/builtin.py:110
 #: grunt/frontend/src/core/attachmentChannels/channels/CameraChannel/CameraChannel.vue:118
 #: grunt/frontend/src/components/desk/GruntDialog.vue:438
 #: grunt/frontend/src/components/desk/GruntDialog.vue:442
@@ -2971,6 +2975,7 @@ msgstr "Камера недоступна."
 #: grunt/frontend/src/components/views/BulkActionBar.vue:274
 #: grunt/frontend/src/components/views/BulkActionBar.vue:300
 #: grunt/frontend/src/components/views/BulkActionBar.vue:344
+#: grunt/frontend/src/components/views/FilterBar.vue:344
 #: grunt/frontend/src/components/workflow/WorkflowActionDialog.vue:105
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue:347
 #: grunt/frontend/src/components/views/form/FormModals.vue:138
@@ -2980,7 +2985,6 @@ msgstr "Камера недоступна."
 #: grunt/frontend/src/components/views/list/QuickFilterSettingsDialog.vue:112
 #: grunt/frontend/src/components/views/map/MapView.vue:206
 #: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue:184
-#: grunt/frontend/src/components/fields/Table/TableRowSheet.vue:108
 msgid "Cancel"
 msgstr "Скасувати"
 
@@ -2990,8 +2994,8 @@ msgid "Check the form for errors"
 msgstr "Перевірте форму на помилки"
 
 #: grunt/frontend/src/components/views/ListEmptyState.vue:46
-#: grunt/frontend/src/components/views/FilterBar.vue:229
-#: grunt/frontend/src/components/views/FilterBar.vue:321
+#: grunt/frontend/src/components/views/FilterBar.vue:240
+#: grunt/frontend/src/components/views/FilterBar.vue:332
 msgid "Clear Filters"
 msgstr "Скинути фільтри"
 
@@ -3084,7 +3088,7 @@ msgstr "Поле дати"
 #: grunt/frontend/src/components/dashboard/WidgetCard.vue:55
 #: grunt/frontend/src/components/dashboard/sections/FiltersSection.vue:82
 #: grunt/frontend/src/components/views/form/FormModals.vue:140
-#: grunt/frontend/src/components/views/list/ListTreePanel.vue:364
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:425
 #: grunt/frontend/src/components/fields/Table/Table.vue:481
 msgid "Delete"
 msgstr "Видалити"
@@ -3154,7 +3158,7 @@ msgstr "Готово"
 msgid "Drop files to upload"
 msgstr "Перетягніть файли для завантаження"
 
-#: grunt/grunt/actions/builtin.py:19
+#: grunt/grunt/actions/builtin.py:21
 #: grunt/grunt/metadata/doctypes/DocType/global_form.js:110
 #: grunt/frontend/src/components/fields/Table/Table.vue:443
 msgid "Duplicate"
@@ -3198,8 +3202,8 @@ msgstr "Зовнішній URL"
 msgid "Failed to load files"
 msgstr "Не вдалося завантажити файли"
 
-#: grunt/grunt/api/v1/docs/utils.py:73
-#: grunt/frontend/src/components/views/FilterBar.vue:245
+#: grunt/grunt/api/v1/docs/utils.py:74
+#: grunt/frontend/src/components/views/FilterBar.vue:256
 #: grunt/frontend/src/components/dashboard/sections/AggregationSection.vue:41
 #: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:181
 #: grunt/frontend/src/components/views/list/ListHeader.vue:128
@@ -3207,8 +3211,8 @@ msgstr "Не вдалося завантажити файли"
 msgid "Field"
 msgstr "Поле"
 
-#: grunt/grunt/monitoring/health.py:369 grunt/grunt/monitoring/health.py:663
-#: grunt/grunt/monitoring/health.py:372
+#: grunt/grunt/monitoring/health.py:376 grunt/grunt/monitoring/health.py:648
+#: grunt/grunt/monitoring/health.py:379
 #: grunt/frontend/src/components/fields/RichText/RichText.vue:724
 msgid "Files"
 msgstr "Файли"
@@ -3217,7 +3221,7 @@ msgstr "Файли"
 msgid "Fill in the current row first"
 msgstr "Спершу заповніть поточний рядок"
 
-#: grunt/frontend/src/components/views/FilterBar.vue:224
+#: grunt/frontend/src/components/views/FilterBar.vue:235
 msgid "Filter"
 msgstr "Фільтр"
 
@@ -3344,8 +3348,9 @@ msgstr "Має бути числом"
 #: grunt/frontend/src/core/composables/useFormValidation.ts:97
 #: grunt/frontend/src/core/attachmentChannels/channels/LibraryChannel/LibraryChannel.vue:291
 #: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:318
-#: grunt/frontend/src/components/views/list/ListTreePanel.vue:219
-#: grunt/frontend/src/components/views/list/ListTreePanel.vue:236
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:238
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:255
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:289
 #: grunt/frontend/src/components/views/list/ListToolbarControls.vue:67
 #: grunt/frontend/src/pages/app/SearchResultsPage.vue:214
 msgid "Name"
@@ -3381,7 +3386,7 @@ msgstr "Найновіші"
 msgid "No attachment sources available"
 msgstr "Немає доступних джерел вкладень"
 
-#: grunt/frontend/src/components/views/FilterBar.vue:284
+#: grunt/frontend/src/components/views/FilterBar.vue:295
 msgid "No fields available"
 msgstr "Немає доступних полів"
 
@@ -3400,7 +3405,7 @@ msgstr "Немає сповіщень"
 
 #: grunt/frontend/src/components/dashboard/widgets/List/List.vue:51
 #: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:354
-#: grunt/frontend/src/components/fields/Link/FilterInput.vue:299
+#: grunt/frontend/src/components/fields/Link/FilterInput.vue:233
 #: grunt/frontend/src/components/fields/Link/Link.vue:195
 msgid "No records"
 msgstr "Немає записів"
@@ -3450,7 +3455,7 @@ msgstr "Інше"
 msgid "Page"
 msgstr "Сторінка"
 
-#: grunt/grunt/startup/website.py:113 grunt/grunt/startup/errors.py:256
+#: grunt/grunt/startup/website.py:112 grunt/grunt/startup/errors.py:256
 #: grunt/grunt/api/v1/pages.py:66 grunt/grunt/api/v1/dashboard.py:221
 #: grunt/frontend/src/router/index.ts:190
 msgid "Page not found"
@@ -3460,7 +3465,7 @@ msgstr "Сторінку не знайдено"
 msgid "Period"
 msgstr "Період"
 
-#: grunt/frontend/src/components/views/FilterBar.vue:328
+#: grunt/frontend/src/components/views/FilterBar.vue:339
 msgid "Preset name"
 msgstr "Назва пресету"
 
@@ -3494,8 +3499,8 @@ msgstr "Оновити"
 
 #: grunt/grunt/metadata/doctypes/DocType/global_form.js:162
 #: grunt/frontend/src/components/views/form/FormHeader.vue:337
-#: grunt/frontend/src/components/views/list/ListTreePanel.vue:236
-#: grunt/frontend/src/components/views/list/ListTreePanel.vue:359
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:255
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:419
 msgid "Rename"
 msgstr "Перейменувати"
 
@@ -3551,7 +3556,7 @@ msgstr "Зберегти й закрити"
 msgid "Save and open"
 msgstr "Зберегти й відкрити"
 
-#: grunt/frontend/src/components/views/FilterBar.vue:337
+#: grunt/frontend/src/components/views/FilterBar.vue:348
 msgid "Save as preset"
 msgstr "Зберегти як пресет"
 
@@ -3566,7 +3571,7 @@ msgstr "Помилка збереження"
 msgid "Saved"
 msgstr "Збережено"
 
-#: grunt/frontend/src/components/views/FilterBar.vue:301
+#: grunt/frontend/src/components/views/FilterBar.vue:312
 msgid "Saved filters"
 msgstr "Збережені фільтри"
 
@@ -3611,7 +3616,7 @@ msgid "Search {dt}..."
 msgstr "Пошук: {dt}..."
 
 #: grunt/frontend/src/components/app/AppSidebar.vue:126
-#: grunt/frontend/src/components/views/DocTypeToolbar.vue:83
+#: grunt/frontend/src/components/views/DocTypeToolbar.vue:88
 #: grunt/frontend/src/components/views/form/DocLinksDialog.vue:81
 #: grunt/frontend/src/components/views/list/QuickFilterSettingsDialog.vue:84
 msgid "Search..."
@@ -3619,7 +3624,7 @@ msgstr "Пошук..."
 
 #: grunt/frontend/src/components/layout/CommandPalette.vue:287
 #: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:352
-#: grunt/frontend/src/components/fields/Link/FilterInput.vue:297
+#: grunt/frontend/src/components/fields/Link/FilterInput.vue:231
 #: grunt/frontend/src/components/fields/Link/Link.vue:193
 #: grunt/frontend/src/pages/app/SearchResultsPage.vue:160
 msgid "Searching..."
@@ -3702,7 +3707,7 @@ msgstr "Увійти"
 msgid "Sign up"
 msgstr "Зареєструватися"
 
-#: grunt/grunt/monitoring/health.py:94
+#: grunt/grunt/monitoring/health.py:109
 #: grunt/frontend/src/core/attachmentChannels/channels/LibraryChannel/LibraryChannel.vue:292
 msgid "Size"
 msgstr "Розмір"
@@ -3780,7 +3785,8 @@ msgstr "Не збережено"
 msgid "Unsaved changes"
 msgstr "Незбережені зміни"
 
-#: grunt/frontend/src/core/scripting/executor.ts:806
+#: grunt/frontend/src/core/scripting/executor.ts:827
+#: grunt/frontend/src/core/scripting/executor.ts:995
 #: grunt/frontend/src/core/attachmentChannels/channels/LibraryChannel/LibraryChannel.vue:194
 msgid "Upload failed"
 msgstr "Не вдалося завантажити"
@@ -5201,7 +5207,7 @@ msgstr "PDF"
 msgid "Print"
 msgstr "Друк"
 
-#: grunt/frontend/src/core/scripting/executor.ts:901
+#: grunt/frontend/src/core/scripting/executor.ts:1004
 msgid "text"
 msgstr ""
 
@@ -5437,7 +5443,7 @@ msgstr "Записів не знайдено"
 msgid "No records match your filters"
 msgstr "Нічого не знайдено за фільтрами"
 
-#: grunt/grunt/tasks/redis_introspect.py:95
+#: grunt/grunt/tasks/redis_introspect.py:94
 #: grunt/frontend/src/components/views/ListEmptyState.vue:27
 msgid "The data source is temporarily unavailable."
 msgstr "Джерело даних тимчасово недоступне."
@@ -5701,12 +5707,12 @@ msgstr "Кільцева"
 msgid "New value"
 msgstr "Нове значення"
 
-#: grunt/grunt/actions/builtin.py:62
+#: grunt/grunt/actions/builtin.py:64
 #: grunt/frontend/src/pages/desk/DocTypeForm.vue:188
 msgid "Restore"
 msgstr "Відновити"
 
-#: grunt/grunt/reports/engine.py:444
+#: grunt/grunt/reports/engine.py:434
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:283
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:609
 #: grunt/frontend/src/pages/reports/ReportView.vue:283
@@ -5741,7 +5747,7 @@ msgstr "МБ"
 msgid "GB"
 msgstr "ГБ"
 
-#: grunt/grunt/monitoring/health.py:59
+#: grunt/grunt/monitoring/health.py:74
 #: grunt/frontend/src/core/browserHealth.ts:55
 #: grunt/frontend/src/components/views/form/FormHeader.vue:168
 msgid "TB"
@@ -5759,7 +5765,7 @@ msgstr "Назва таблиці"
 msgid "DBMS"
 msgstr "СКБД"
 
-#: grunt/grunt/api/v1/meta.py:261
+#: grunt/grunt/api/v1/meta.py:258
 #: grunt/frontend/src/components/views/form/FormHeader.vue:380
 msgid "The table has not been created in the database yet"
 msgstr "Таблиця ще не створена в базі даних"
@@ -5958,12 +5964,13 @@ msgstr "Відповідальні"
 msgid "Remove {name}"
 msgstr "Прибрати {name}"
 
-#: grunt/grunt/monitoring/health.py:526
+#: grunt/grunt/monitoring/health.py:521
 msgid "none"
 msgstr "нема"
 
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue:240
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue:243
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:279
 msgid "Access"
 msgstr "Доступ"
 
@@ -6011,6 +6018,8 @@ msgstr "Що потрібно зробити?"
 
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue:139
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue:260
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:281
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:282
 msgid "Read"
 msgstr "Читання"
 
@@ -6134,55 +6143,55 @@ msgstr "Оберіть поле"
 msgid "This updates the field on all {n} selected records."
 msgstr "Це оновить поле для всіх {n} виділених записів."
 
-#: grunt/frontend/src/components/views/FilterBar.vue:181
+#: grunt/frontend/src/components/views/FilterBar.vue:192
 msgid "Equals"
 msgstr "Дорівнює"
 
-#: grunt/frontend/src/components/views/FilterBar.vue:182
+#: grunt/frontend/src/components/views/FilterBar.vue:193
 msgid "Not equals"
 msgstr "Не дорівнює"
 
-#: grunt/frontend/src/components/views/FilterBar.vue:183
+#: grunt/frontend/src/components/views/FilterBar.vue:194
 msgid "Contains"
 msgstr "Містить"
 
-#: grunt/frontend/src/components/views/FilterBar.vue:184
+#: grunt/frontend/src/components/views/FilterBar.vue:195
 msgid "Does not contain"
 msgstr "Не містить"
 
-#: grunt/frontend/src/components/views/FilterBar.vue:185
+#: grunt/frontend/src/components/views/FilterBar.vue:196
 msgid "Is empty"
 msgstr "Порожнє"
 
-#: grunt/frontend/src/components/views/FilterBar.vue:186
+#: grunt/frontend/src/components/views/FilterBar.vue:197
 msgid "Is set"
 msgstr "Заповнене"
 
-#: grunt/frontend/src/components/views/FilterBar.vue:187
+#: grunt/frontend/src/components/views/FilterBar.vue:198
 msgid "Greater than"
 msgstr "Більше"
 
-#: grunt/frontend/src/components/views/FilterBar.vue:188
+#: grunt/frontend/src/components/views/FilterBar.vue:199
 msgid "Less than"
 msgstr "Менше"
 
-#: grunt/frontend/src/components/views/FilterBar.vue:189
+#: grunt/frontend/src/components/views/FilterBar.vue:200
 msgid "Greater than or equal"
 msgstr "Більше або дорівнює"
 
-#: grunt/frontend/src/components/views/FilterBar.vue:190
+#: grunt/frontend/src/components/views/FilterBar.vue:201
 msgid "Less than or equal"
 msgstr "Менше або дорівнює"
 
-#: grunt/frontend/src/components/views/FilterBar.vue:191
+#: grunt/frontend/src/components/views/FilterBar.vue:202
 msgid "Descendant of"
 msgstr "Підпорядковано"
 
-#: grunt/frontend/src/components/views/FilterBar.vue:192
+#: grunt/frontend/src/components/views/FilterBar.vue:203
 msgid "Is one of"
 msgstr "Одне з"
 
-#: grunt/frontend/src/components/views/FilterBar.vue:193
+#: grunt/frontend/src/components/views/FilterBar.vue:204
 msgid "Is none of"
 msgstr "Жодне з"
 
@@ -6190,7 +6199,7 @@ msgstr "Жодне з"
 msgid "Last updated"
 msgstr "Дата оновлення"
 
-#: grunt/grunt/api/v1/docs/utils.py:125
+#: grunt/grunt/api/v1/docs/utils.py:124
 #: grunt/grunt/website/www/share/{token}.py:55
 #: grunt/frontend/src/components/views/list/ListToolbarControls.vue:66
 msgid "Created on"
@@ -6375,7 +6384,7 @@ msgstr "Невірний email або пароль"
 msgid "Too many failed attempts. The account is temporarily locked."
 msgstr "Забагато невдалих спроб. Акаунт тимчасово заблоковано."
 
-#: grunt/grunt/publish.py:304 grunt/grunt/startup/errors.py:257
+#: grunt/grunt/publish.py:298 grunt/grunt/startup/errors.py:257
 #: grunt/grunt/io/doctypes/DataImport/DataImport.js:98
 #: grunt/grunt/webhook/doctypes/OutgoingWebhook/OutgoingWebhook.js:84
 #: grunt/grunt/webhook/doctypes/OutgoingWebhook/OutgoingWebhook.js:199
@@ -6459,7 +6468,7 @@ msgstr "Повне ім'я"
 msgid "John Smith"
 msgstr "Іваненко Іван Іванович"
 
-#: grunt/grunt/auth/doctypes/User/user.py:45
+#: grunt/grunt/auth/doctypes/User/user.py:70
 #: grunt/grunt/website/www/login.ssr.html:81
 #: grunt/grunt/website/www/signup.ssr.html:97
 #: grunt/frontend/src/pages/auth/Login.vue:412
@@ -6564,7 +6573,7 @@ msgstr "Підтвердити вхід"
 msgid "Invalid or missing reset token."
 msgstr "Недійсний або відсутній токен скидання."
 
-#: grunt/frontend/src/components/views/list/ListTreePanel.vue:265
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:325
 #: grunt/frontend/src/pages/auth/ResetPassword.vue:50
 msgid "Something went wrong"
 msgstr "Щось пішло не так"
@@ -6659,7 +6668,7 @@ msgstr "{apps} додатків · {docs} документів у системі
 msgid "{n} installed"
 msgstr "{n} встановлено"
 
-#: grunt/frontend/src/pages/desk/DocTypeList.vue:536
+#: grunt/frontend/src/pages/desk/DocTypeList.vue:566
 msgid "Errors: {n}"
 msgstr "Помилок: {n}"
 
@@ -6714,11 +6723,11 @@ msgstr "Немає встановлених додатків"
 msgid "As of date"
 msgstr "Станом на дату"
 
-#: grunt/frontend/src/pages/desk/DocTypeList.vue:513
+#: grunt/frontend/src/pages/desk/DocTypeList.vue:543
 msgid "Deleting records"
 msgstr "Видалення записів"
 
-#: grunt/frontend/src/pages/desk/DocTypeList.vue:518
+#: grunt/frontend/src/pages/desk/DocTypeList.vue:548
 msgid "Deleting records…"
 msgstr "Видалення записів…"
 
@@ -6814,7 +6823,7 @@ msgstr "Введіть мінімум 2 символи для пошуку"
 msgid "Try rebuilding the index"
 msgstr "Спробувати перебудувати індекс"
 
-#: grunt/frontend/src/components/views/list/ListTreePanel.vue:299
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:359
 #: grunt/frontend/src/pages/app/SearchResultsPage.vue:191
 msgid "All"
 msgstr "Усі"
@@ -6836,7 +6845,7 @@ msgstr "Створив(ла)"
 msgid "Updated"
 msgstr "Оновив(ла)"
 
-#: grunt/grunt/tasks/doctypes/ToDo/to_do.py:111
+#: grunt/grunt/tasks/doctypes/ToDo/to_do.py:112
 #: grunt/frontend/src/components/dashboard/ActivityStream.vue:139
 msgid "document"
 msgstr "документ"
@@ -6861,12 +6870,13 @@ msgstr ""
 msgid "Waiting for connection…"
 msgstr "Чекаємо на зв'язок…"
 
-#: grunt/grunt/actions/builtin.py:137
+#: grunt/grunt/actions/builtin.py:135
 #: grunt/frontend/src/components/layout/OfflineQueueSheet.vue:109
 msgid "Send now"
 msgstr "Надіслати зараз"
 
-#: grunt/grunt/storage/doctypes/File/File.js:10
+#: grunt/grunt/storage/doctypes/File/File.js:26
+#: grunt/frontend/src/core/scripting/executor.ts:985
 msgid "Upload"
 msgstr "Завантажити"
 
@@ -6874,7 +6884,7 @@ msgstr "Завантажити"
 #: grunt/frontend/src/components/desk/AppCard.vue:46
 #: grunt/frontend/src/components/layout/OfflineQueueSheet.vue:83
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:171
-#: grunt/frontend/src/components/views/list/ListTreePanel.vue:361
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:422
 #: grunt/frontend/src/components/views/calendar/CalendarView.vue:461
 msgid "Open"
 msgstr "Відкрити"
@@ -6908,7 +6918,8 @@ msgstr "Перевів(ла)"
 msgid "No activity"
 msgstr "Немає активності"
 
-#: grunt/frontend/src/components/fields/Link/FilterInput.vue:235
+#: grunt/frontend/src/components/views/FilterBar.vue:289
+#: grunt/frontend/src/components/views/FilterBar.vue:320
 #: grunt/frontend/src/components/fields/RichText/fileBlocks.ts:133
 #: grunt/frontend/src/components/fields/RichText/fileBlocks.ts:134
 msgid "Remove"
@@ -7337,7 +7348,7 @@ msgstr "Обмеження"
 msgid "You only see records matching these values."
 msgstr "Ви бачите лише записи, що відповідають цим значенням."
 
-#: grunt/grunt/api/v1/docs/utils.py:74
+#: grunt/grunt/api/v1/docs/utils.py:75
 #: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:43
 #: grunt/frontend/src/components/views/list/ListHeader.vue:129
 #: grunt/frontend/src/components/fields/Default/FilterInput.vue:27
@@ -7355,7 +7366,7 @@ msgstr "прострочено"
 msgid "{n} records"
 msgstr "{n} записів"
 
-#: grunt/grunt/monitoring/health.py:88 grunt/grunt/monitoring/health.py:454
+#: grunt/grunt/monitoring/health.py:103 grunt/grunt/monitoring/health.py:455
 #: grunt/grunt/webhook/doctypes/OutgoingWebhook/OutgoingWebhook.js:85
 #: grunt/grunt/webhook/doctypes/OutgoingWebhook/OutgoingWebhook.js:191
 #: grunt/frontend/src/core/browserHealth.ts:130
@@ -7378,8 +7389,8 @@ msgstr "Рядків: {n}"
 msgid "Select {id}"
 msgstr "Вибрати {id}"
 
-#: grunt/frontend/src/components/views/QuickFilterBar.vue:195
-#: grunt/frontend/src/components/views/QuickFilterBar.vue:206
+#: grunt/frontend/src/components/views/QuickFilterBar.vue:238
+#: grunt/frontend/src/components/views/QuickFilterBar.vue:239
 msgid "Clear «{label}»"
 msgstr "Очистити «{label}»"
 
@@ -7464,10 +7475,6 @@ msgstr "Швидке додавання..."
 msgid "Owner"
 msgstr "Власник"
 
-#: grunt/frontend/src/components/views/QuickFilterBar.vue:136
-msgid "— Any —"
-msgstr "— Будь-який —"
-
 #: grunt/frontend/src/components/views/DocSidebar.vue:69
 #: grunt/frontend/src/components/views/DocSidebar.vue:97
 msgid "Details"
@@ -7515,7 +7522,7 @@ msgstr "Експорт HTML"
 msgid "No connection"
 msgstr "Немає з'єднання"
 
-#: grunt/grunt/monitoring/health.py:86
+#: grunt/grunt/monitoring/health.py:101
 #: grunt/frontend/src/core/composables/useNetworkStatus.ts:33
 #: grunt/frontend/src/core/composables/useNetworkStatus.ts:56
 msgid "Connection"
@@ -7618,6 +7625,7 @@ msgid "Tap"
 msgstr "Натисніть"
 
 #: grunt/frontend/src/components/pwa/PWAInstallPrompt.vue:138
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:275
 msgid "Share"
 msgstr "Поділитись"
 
@@ -7897,7 +7905,7 @@ msgid "Report «{name}» not found"
 msgstr "Звіт «{name}» не знайдено"
 
 #: grunt/frontend/src/core/grunt.ts:121 grunt/frontend/src/stores/auth.ts:206
-#: grunt/frontend/src/core/scripting/executor.ts:851
+#: grunt/frontend/src/core/scripting/executor.ts:872
 msgid "This browser does not support passkeys"
 msgstr "Цей браузер не підтримує ключі доступу"
 
@@ -8110,7 +8118,7 @@ msgstr "немає відповіді"
 msgid "Push notifications"
 msgstr "Push-сповіщення"
 
-#: grunt/grunt/monitoring/health.py:679
+#: grunt/grunt/monitoring/health.py:664
 #: grunt/frontend/src/core/browserHealth.ts:278
 msgid "check failed"
 msgstr "перевірка впала"
@@ -8137,7 +8145,7 @@ msgstr "Тип з'єднання"
 msgid "not connected"
 msgstr "не підключено"
 
-#: grunt/grunt/monitoring/health.py:609 grunt/grunt/monitoring/health.py:667
+#: grunt/grunt/monitoring/health.py:594 grunt/grunt/monitoring/health.py:652
 #: grunt/frontend/src/core/browserHealth.ts:34
 msgid "Offline mode"
 msgstr "Офлайн-режим"
@@ -8169,7 +8177,7 @@ msgstr "підключено"
 msgid "denied"
 msgstr "заборонено"
 
-#: grunt/grunt/monitoring/health.py:406 grunt/grunt/monitoring/health.py:665
+#: grunt/grunt/monitoring/health.py:409 grunt/grunt/monitoring/health.py:650
 #: grunt/frontend/src/core/browserHealth.ts:38
 #: grunt/frontend/src/core/browserHealth.ts:290
 msgid "WebSockets"
@@ -8179,7 +8187,7 @@ msgstr "Вебсокети"
 msgid "saved"
 msgstr "збережена"
 
-#: grunt/grunt/monitoring/health.py:460 grunt/grunt/monitoring/health.py:473
+#: grunt/grunt/monitoring/health.py:461 grunt/grunt/monitoring/health.py:474
 #: grunt/frontend/src/core/browserHealth.ts:135
 msgid "not working"
 msgstr "не працює"
@@ -8196,8 +8204,8 @@ msgstr "дозволено"
 msgid "empty"
 msgstr "порожній"
 
-#: grunt/grunt/monitoring/health.py:550 grunt/grunt/monitoring/health.py:617
-#: grunt/grunt/monitoring/health.py:637
+#: grunt/grunt/monitoring/health.py:545 grunt/grunt/monitoring/health.py:602
+#: grunt/grunt/monitoring/health.py:622
 #: grunt/frontend/src/core/browserHealth.ts:110
 msgid "missing"
 msgstr "відсутня"
@@ -8236,7 +8244,7 @@ msgstr "Збірка"
 msgid "Server"
 msgstr "Сервер"
 
-#: grunt/grunt/monitoring/health.py:473 grunt/grunt/monitoring/health.py:454
+#: grunt/grunt/monitoring/health.py:474 grunt/grunt/monitoring/health.py:455
 #: grunt/frontend/src/core/browserHealth.ts:134
 msgid "working"
 msgstr "працює"
@@ -9206,13 +9214,13 @@ msgstr "Відкрити конструктор"
 msgid "View report"
 msgstr "Переглянути звіт"
 
-#: grunt/grunt/monitoring/health.py:656 grunt/grunt/monitoring/health.py:85
-#: grunt/grunt/monitoring/health.py:94
+#: grunt/grunt/monitoring/health.py:641 grunt/grunt/monitoring/health.py:100
+#: grunt/grunt/monitoring/health.py:109
 #: grunt/grunt/backups/doctypes/Backup/Backup.js:45
 msgid "Database"
 msgstr "База даних"
 
-#: grunt/grunt/monitoring/health.py:342 grunt/grunt/monitoring/health.py:662
+#: grunt/grunt/monitoring/health.py:351 grunt/grunt/monitoring/health.py:647
 msgid "Configuration"
 msgstr "Конфігурація"
 
@@ -12352,18 +12360,18 @@ msgctxt "select:Region.region_type"
 msgid "Other"
 msgstr "Інше"
 
-#: grunt/grunt/auth/doctypes/User/user.py:687
-#: grunt/grunt/auth/doctypes/User/user.py:809
-#: grunt/grunt/auth/doctypes/User/user.py:943
-#: grunt/grunt/auth/doctypes/User/user.py:980
-#: grunt/grunt/auth/doctypes/User/user.py:1013
-#: grunt/grunt/auth/doctypes/User/user.py:1024
-#: grunt/grunt/auth/doctypes/User/user.py:1038
-#: grunt/grunt/auth/doctypes/User/user.py:1051
+#: grunt/grunt/auth/doctypes/User/user.py:676
+#: grunt/grunt/auth/doctypes/User/user.py:789
+#: grunt/grunt/auth/doctypes/User/user.py:914
+#: grunt/grunt/auth/doctypes/User/user.py:949
+#: grunt/grunt/auth/doctypes/User/user.py:982
+#: grunt/grunt/auth/doctypes/User/user.py:993
+#: grunt/grunt/auth/doctypes/User/user.py:1005
+#: grunt/grunt/auth/doctypes/User/user.py:1018
 msgid "User not found"
 msgstr "Користувача не знайдено"
 
-#: grunt/grunt/monitoring/health.py:327
+#: grunt/grunt/monitoring/health.py:336
 msgid "Active sessions"
 msgstr "Активні сесії"
 
@@ -12385,12 +12393,12 @@ msgid "Or follow this link:"
 msgstr "Або перейдіть за посиланням:"
 
 #: grunt/grunt/email/templates/email_login.html:64
-#: grunt/grunt/auth/providers/email_link.py:232
+#: grunt/grunt/auth/providers/email_link.py:222
 msgid "The code and link are valid for %(minutes)s minutes."
 msgstr "Код і посилання дійсні %(minutes)s хв."
 
 #: grunt/grunt/email/templates/email_login.html:65
-#: grunt/grunt/auth/providers/email_link.py:235
+#: grunt/grunt/auth/providers/email_link.py:225
 msgid "If you did not try to sign in, just ignore this email."
 msgstr "Якщо ви не намагалися увійти — просто проігноруйте цей лист."
 
@@ -12401,12 +12409,12 @@ msgid "Automated message, please do not reply."
 msgstr "Автоматичне повідомлення, не відповідайте на цей лист."
 
 #: grunt/grunt/email/templates/password_reset.html:46
-#: grunt/grunt/auth/doctypes/User/user.py:1090
+#: grunt/grunt/auth/doctypes/User/user.py:1054
 msgid "Password reset"
 msgstr "Скидання пароля"
 
 #: grunt/grunt/email/templates/password_reset.html:49
-#: grunt/grunt/auth/doctypes/User/user.py:1084
+#: grunt/grunt/auth/doctypes/User/user.py:1048
 msgid "Hello, %(name)s,"
 msgstr "Привіт, %(name)s,"
 
@@ -12419,7 +12427,7 @@ msgid "The link is valid for 1 hour."
 msgstr "Посилання дійсне 1 годину."
 
 #: grunt/grunt/email/templates/password_reset.html:57
-#: grunt/grunt/auth/doctypes/User/user.py:1087
+#: grunt/grunt/auth/doctypes/User/user.py:1051
 msgid "If you did not request this, just ignore this email."
 msgstr "Якщо ви не надсилали цей запит — просто проігноруйте цей лист."
 
@@ -12427,23 +12435,23 @@ msgstr "Якщо ви не надсилали цей запит — просто
 msgid "… and %(count)s more"
 msgstr "… і ще %(count)s"
 
-#: grunt/grunt/auth/doctypes/User/user.py:1085
+#: grunt/grunt/auth/doctypes/User/user.py:1049
 msgid "Password reset link (valid for 1 hour):"
 msgstr "Посилання для скидання пароля (дійсне 1 годину):"
 
-#: grunt/grunt/auth/providers/email_link.py:231
+#: grunt/grunt/auth/providers/email_link.py:221
 msgid "Your sign-in code: %(code)s"
 msgstr "Ваш код для входу: %(code)s"
 
-#: grunt/grunt/auth/providers/email_link.py:234
+#: grunt/grunt/auth/providers/email_link.py:224
 msgid "Or sign in right away via this link:"
 msgstr "Або увійдіть одразу за посиланням:"
 
-#: grunt/grunt/auth/providers/email_link.py:250
+#: grunt/grunt/auth/providers/email_link.py:240
 msgid "Email sign-in is unavailable: no mail server is configured"
 msgstr "Вхід через пошту недоступний — не налаштовано поштовий сервер"
 
-#: grunt/grunt/auth/providers/email_link.py:256
+#: grunt/grunt/auth/providers/email_link.py:246
 msgid "Sign-in code"
 msgstr "Код для входу"
 
@@ -12455,31 +12463,31 @@ msgstr "Щоденний дайджест сповіщень"
 msgid "Weekly notification digest"
 msgstr "Тижневий дайджест сповіщень"
 
-#: grunt/grunt/monitoring/health.py:89
+#: grunt/grunt/monitoring/health.py:104
 msgid "Slow database response."
 msgstr "Повільна відповідь бази даних."
 
-#: grunt/grunt/monitoring/health.py:126
+#: grunt/grunt/monitoring/health.py:139
 msgid "kept for %(days)s days"
 msgstr "зберігається %(days)s дн."
 
-#: grunt/grunt/monitoring/health.py:128
+#: grunt/grunt/monitoring/health.py:141
 msgid "log: general log retention period"
 msgstr "журнал — загальний строк зберігання логів"
 
-#: grunt/grunt/monitoring/health.py:139 grunt/grunt/monitoring/health.py:657
+#: grunt/grunt/monitoring/health.py:150 grunt/grunt/monitoring/health.py:642
 msgid "Background jobs"
 msgstr "Фонові задачі"
 
-#: grunt/grunt/monitoring/health.py:145
+#: grunt/grunt/monitoring/health.py:156
 msgid "Job queue"
 msgstr "Черга задач"
 
-#: grunt/grunt/monitoring/health.py:147
+#: grunt/grunt/monitoring/health.py:158
 msgid "in-process (no Redis)"
 msgstr "у процесі (без Redis)"
 
-#: grunt/grunt/monitoring/health.py:148
+#: grunt/grunt/monitoring/health.py:159
 msgid ""
 "REDIS_URL is not set: jobs run inside the server process and are lost on "
 "restart. Configure Redis and a worker for production."
@@ -12487,195 +12495,196 @@ msgstr ""
 "REDIS_URL не задано: задачі виконуються в процесі сервера й губляться при "
 "перезапуску. Для production налаштуйте Redis і воркер."
 
-#: grunt/grunt/monitoring/health.py:161
+#: grunt/grunt/monitoring/health.py:172
 msgid "available"
 msgstr "доступний"
 
-#: grunt/grunt/monitoring/health.py:166 grunt/grunt/monitoring/health.py:176
+#: grunt/grunt/monitoring/health.py:177 grunt/grunt/monitoring/health.py:187
 msgid "Workers"
 msgstr "Воркери"
 
-#: grunt/grunt/monitoring/health.py:169
+#: grunt/grunt/monitoring/health.py:180
 msgid "No worker is connected: background jobs are not running."
 msgstr "Жоден воркер не підключений — фонові задачі не виконуються."
 
-#: grunt/grunt/monitoring/health.py:178
+#: grunt/grunt/monitoring/health.py:189
 msgid "%(count)s active"
 msgstr "%(count)s активних"
 
-#: grunt/grunt/monitoring/health.py:179
+#: grunt/grunt/monitoring/health.py:190
 msgid "%(count)s idle"
 msgstr "%(count)s без активності"
 
-#: grunt/grunt/monitoring/health.py:180
+#: grunt/grunt/monitoring/health.py:191
 msgid "A worker idle for over 10 min may have crashed; see Queue Workers."
 msgstr "Воркер без активності понад 10 хв міг впасти — див. «Воркери черги»."
 
-#: grunt/grunt/monitoring/health.py:192
+#: grunt/grunt/monitoring/health.py:203
 msgid "Queue"
 msgstr "Черга"
 
-#: grunt/grunt/monitoring/health.py:194
+#: grunt/grunt/monitoring/health.py:205
 msgid "%(queued)s queued, %(running)s running"
 msgstr "%(queued)s у черзі, %(running)s виконується"
 
-#: grunt/grunt/monitoring/health.py:195
+#: grunt/grunt/monitoring/health.py:206
 msgid "Jobs are piling up faster than they are processed."
 msgstr "Задачі накопичуються швидше, ніж виконуються."
 
-#: grunt/grunt/monitoring/health.py:204 grunt/grunt/monitoring/health.py:658
-#: grunt/grunt/monitoring/health.py:208
+#: grunt/grunt/monitoring/health.py:213 grunt/grunt/monitoring/health.py:643
+#: grunt/grunt/monitoring/health.py:217
 msgid "Scheduler"
 msgstr "Планувальник"
 
-#: grunt/grunt/monitoring/health.py:210
+#: grunt/grunt/monitoring/health.py:219
 msgid "running, %(count)s jobs"
 msgstr "працює, %(count)s задач"
 
-#: grunt/grunt/monitoring/health.py:212
+#: grunt/grunt/monitoring/health.py:221
 msgid "stopped"
 msgstr "зупинений"
 
-#: grunt/grunt/monitoring/health.py:215
+#: grunt/grunt/monitoring/health.py:224
 msgid "Scheduled jobs (mailings, cleanup, digests) are not running."
 msgstr "Запланові задачі (розсилки, чистка, дайджести) не запускаються."
 
-#: grunt/grunt/monitoring/health.py:221
+#: grunt/grunt/monitoring/health.py:230
 msgid "Unregistered jobs"
 msgstr "Незареєстровані задачі"
 
-#: grunt/grunt/monitoring/health.py:226
+#: grunt/grunt/monitoring/health.py:235
 msgid "fix the path in scheduler_events (hooks.py)."
 msgstr "виправте шлях у scheduler_events (hooks.py)."
 
-#: grunt/grunt/monitoring/health.py:237
+#: grunt/grunt/monitoring/health.py:246
 msgid "Failed runs in the last day"
 msgstr "Невдалі запуски за добу"
 
-#: grunt/grunt/monitoring/health.py:240
+#: grunt/grunt/monitoring/health.py:249
 msgid "Details in the Scheduled Job Log."
 msgstr "Подробиці — у «Журнал запланованих задач»."
 
-#: grunt/grunt/monitoring/health.py:659 grunt/grunt/monitoring/health.py:254
+#: grunt/grunt/monitoring/health.py:644 grunt/grunt/monitoring/health.py:263
 msgid "Errors"
 msgstr "Помилки"
 
-#: grunt/grunt/monitoring/health.py:255
+#: grunt/grunt/monitoring/health.py:264
 msgid "Errors in the last day"
 msgstr "Помилок за добу"
 
-#: grunt/grunt/monitoring/health.py:258
+#: grunt/grunt/monitoring/health.py:267
 msgid "See the Error Log."
 msgstr "Див. «Журнал помилок»."
 
-#: grunt/grunt/monitoring/health.py:273
+#: grunt/grunt/monitoring/health.py:282
 msgid "in 7 days"
 msgstr "за 7 днів"
 
-#: grunt/grunt/monitoring/health.py:278 grunt/grunt/monitoring/health.py:660
-#: grunt/grunt/auth/doctypes/User/user.py:42
+#: grunt/grunt/monitoring/health.py:287 grunt/grunt/monitoring/health.py:645
+#: grunt/grunt/auth/doctypes/User/user.py:67
 #: grunt/grunt/website/www/login.ssr.html:75
 #: grunt/grunt/website/www/signup.ssr.html:92
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:290
 msgid "Email"
 msgstr "Електронна пошта"
 
-#: grunt/grunt/monitoring/health.py:283
+#: grunt/grunt/monitoring/health.py:292
 msgid "Outgoing email account"
 msgstr "Обліковий запис для надсилання"
 
-#: grunt/grunt/monitoring/health.py:286
+#: grunt/grunt/monitoring/health.py:295
 msgid "Emails (password reset, notifications) will not be sent."
 msgstr "Листи (скидання пароля, сповіщення) не надсилатимуться."
 
-#: grunt/grunt/monitoring/health.py:292
+#: grunt/grunt/monitoring/health.py:301
 msgid "Sending errors in 7 days"
 msgstr "Помилки надсилання за 7 днів"
 
-#: grunt/grunt/monitoring/health.py:300
+#: grunt/grunt/monitoring/health.py:309
 msgid "Stuck emails"
 msgstr "Застряглі листи"
 
-#: grunt/grunt/monitoring/health.py:303
+#: grunt/grunt/monitoring/health.py:312
 msgid "Emails have been waiting over 30 min; check the worker and SMTP."
 msgstr "Листи чекають понад 30 хв — перевірте воркер і SMTP."
 
-#: grunt/grunt/monitoring/health.py:313 grunt/grunt/monitoring/health.py:661
+#: grunt/grunt/monitoring/health.py:322 grunt/grunt/monitoring/health.py:646
 msgid "Users and security"
 msgstr "Користувачі та безпека"
 
-#: grunt/grunt/monitoring/health.py:326
+#: grunt/grunt/monitoring/health.py:335
 msgid "Active users"
 msgstr "Активні користувачі"
 
-#: grunt/grunt/monitoring/health.py:330
+#: grunt/grunt/monitoring/health.py:339
 msgid "Administrators without 2FA"
 msgstr "Адміністратори без 2FA"
 
-#: grunt/grunt/monitoring/health.py:335
+#: grunt/grunt/monitoring/health.py:344
 msgid "Locked accounts"
 msgstr "Заблоковані облікові записи"
 
-#: grunt/grunt/monitoring/health.py:346
+#: grunt/grunt/monitoring/health.py:355
 msgid "Debug mode"
 msgstr "Режим налагодження"
 
-#: grunt/grunt/monitoring/health.py:348
+#: grunt/grunt/monitoring/health.py:357
 msgid "enabled"
 msgstr "увімкнено"
 
-#: grunt/grunt/monitoring/health.py:348 grunt/grunt/monitoring/health.py:516
+#: grunt/grunt/monitoring/health.py:357 grunt/grunt/monitoring/health.py:511
 msgid "disabled"
 msgstr "вимкнено"
 
-#: grunt/grunt/monitoring/health.py:349
+#: grunt/grunt/monitoring/health.py:358
 msgid "DEBUG=true in production exposes extra error details."
 msgstr "DEBUG=true у production відкриває зайві подробиці помилок."
 
-#: grunt/grunt/monitoring/health.py:353
+#: grunt/grunt/monitoring/health.py:362
 msgid "Secret key"
 msgstr "Секретний ключ"
 
-#: grunt/grunt/monitoring/health.py:355
+#: grunt/grunt/monitoring/health.py:364
 msgid "default"
 msgstr "стандартний"
 
-#: grunt/grunt/monitoring/health.py:355
+#: grunt/grunt/monitoring/health.py:364
 msgid "custom"
 msgstr "власний"
 
-#: grunt/grunt/monitoring/health.py:356
+#: grunt/grunt/monitoring/health.py:365
 msgid "Set SECRET_KEY: with the default key, tokens can be forged."
 msgstr "Задайте SECRET_KEY — зі стандартним ключем токени можна підробити."
 
-#: grunt/grunt/monitoring/health.py:380
+#: grunt/grunt/monitoring/health.py:387
 msgid "Free disk space"
 msgstr "Вільне місце на диску"
 
-#: grunt/grunt/monitoring/health.py:382
+#: grunt/grunt/monitoring/health.py:389
 msgid "%(free)s of %(total)s"
 msgstr "%(free)s з %(total)s"
 
-#: grunt/grunt/monitoring/health.py:385
+#: grunt/grunt/monitoring/health.py:392
 msgid "Free up space: uploads and the database may stop working."
 msgstr "Звільніть місце — завантаження й база можуть зупинитися."
 
-#: grunt/grunt/monitoring/health.py:412
+#: grunt/grunt/monitoring/health.py:415
 msgid "Connections (this process)"
 msgstr "Підключення (цей процес)"
 
-#: grunt/grunt/monitoring/health.py:414
+#: grunt/grunt/monitoring/health.py:417
 msgid "%(connections)s connections, %(users)s users"
 msgstr "%(connections)s з'єднань, %(users)s користувачів"
 
-#: grunt/grunt/monitoring/health.py:422
+#: grunt/grunt/monitoring/health.py:425
 msgid "Cross-process relay"
 msgstr "Ретрансляція між процесами"
 
-#: grunt/grunt/monitoring/health.py:424
+#: grunt/grunt/monitoring/health.py:427
 msgid "no Redis"
 msgstr "без Redis"
 
-#: grunt/grunt/monitoring/health.py:425
+#: grunt/grunt/monitoring/health.py:428
 msgid ""
 "Messages reach only this process's clients, which is enough for a single "
 "server process without a separate worker."
@@ -12683,11 +12692,11 @@ msgstr ""
 "Повідомлення доходять лише до клієнтів цього процесу — достатньо для одного "
 "процесу сервера без окремого воркера."
 
-#: grunt/grunt/monitoring/health.py:454 grunt/grunt/monitoring/health.py:458
+#: grunt/grunt/monitoring/health.py:455 grunt/grunt/monitoring/health.py:459
 msgid "Redis relay"
 msgstr "Ретрансляція через Redis"
 
-#: grunt/grunt/monitoring/health.py:461
+#: grunt/grunt/monitoring/health.py:462
 msgid ""
 "Messages from the worker and other processes (import progress, "
 "notifications) will not reach the browser."
@@ -12695,81 +12704,81 @@ msgstr ""
 "Повідомлення з воркера й інших процесів (прогрес імпорту, сповіщення) не "
 "дійдуть до браузера."
 
-#: grunt/grunt/monitoring/health.py:471
+#: grunt/grunt/monitoring/health.py:472
 msgid "Redis listener in this process"
 msgstr "Слухач Redis у цьому процесі"
 
-#: grunt/grunt/monitoring/health.py:476
+#: grunt/grunt/monitoring/health.py:477
 msgid ""
 "There are connections but the listener is down: Redis messages are not "
 "delivered."
 msgstr ""
 "Є з'єднання, але слухач не працює — повідомлення з Redis не доставляються."
 
-#: grunt/grunt/monitoring/health.py:504 grunt/grunt/monitoring/health.py:664
+#: grunt/grunt/monitoring/health.py:499 grunt/grunt/monitoring/health.py:649
 msgid "Backups"
 msgstr "Резервні копії"
 
-#: grunt/grunt/monitoring/health.py:514
+#: grunt/grunt/monitoring/health.py:509
 msgid "Schedule"
 msgstr "Розклад"
 
-#: grunt/grunt/monitoring/health.py:517
+#: grunt/grunt/monitoring/health.py:512
 msgid "Enable it in System Settings → Backups."
 msgstr "Увімкніть: Системні налаштування → Резервні копії."
 
-#: grunt/grunt/monitoring/health.py:539 grunt/grunt/monitoring/health.py:524
+#: grunt/grunt/monitoring/health.py:534 grunt/grunt/monitoring/health.py:519
 msgid "Latest backup"
 msgstr "Остання копія"
 
-#: grunt/grunt/monitoring/health.py:527
+#: grunt/grunt/monitoring/health.py:522
 msgid "Click Create now in Backups, or run `grunt db backup`."
 msgstr "Натисніть «Створити зараз» у «Резервні копії» або `grunt db backup`."
 
-#: grunt/grunt/monitoring/health.py:541
+#: grunt/grunt/monitoring/health.py:536
 msgid "%(hours)s h ago"
 msgstr "%(hours)s год тому"
 
-#: grunt/grunt/monitoring/health.py:544
+#: grunt/grunt/monitoring/health.py:539
 msgid ""
 "Backups are not being created on schedule; check the worker and the error "
 "log."
 msgstr ""
 "Копії не створюються за розкладом — перевірте воркер і журнал помилок."
 
-#: grunt/grunt/monitoring/health.py:550
+#: grunt/grunt/monitoring/health.py:545
 msgid "Database in the latest backup"
 msgstr "База в останній копії"
 
-#: grunt/grunt/monitoring/health.py:554
+#: grunt/grunt/monitoring/health.py:549
 msgid "Backups kept"
 msgstr "Зберігається копій"
 
-#: grunt/grunt/monitoring/health.py:666 grunt/grunt/monitoring/health.py:591
+#: grunt/grunt/monitoring/health.py:651 grunt/grunt/monitoring/health.py:578
 msgid "App dependencies"
 msgstr "Залежності додатків"
 
-#: grunt/grunt/monitoring/health.py:592
+#: grunt/grunt/monitoring/health.py:579
 msgid "Apps' Python packages"
 msgstr "Python-пакети додатків"
 
-#: grunt/grunt/monitoring/health.py:594
+#: grunt/grunt/monitoring/health.py:581
 msgid "%(count)s missing"
 msgstr "бракує %(count)s"
 
-#: grunt/grunt/monitoring/health.py:596
+#: grunt/grunt/monitoring/health.py:583
 msgid "%(count)s apps, all installed"
 msgstr "%(count)s додатків, усе встановлено"
 
-#: grunt/grunt/monitoring/health.py:597
+#: grunt/grunt/monitoring/health.py:584
 msgid "Run `grunt app deps`. Missing:"
 msgstr "Виконайте `grunt app deps`. Бракує:"
 
-#: grunt/grunt/monitoring/health.py:630 grunt/grunt/monitoring/health.py:615
+#: grunt/grunt/monitoring/health.py:615 grunt/grunt/monitoring/health.py:600
 msgid "Production build"
 msgstr "Production-збірка"
 
-#: grunt/grunt/monitoring/health.py:618
+#: grunt/grunt/monitoring/health.py:603
 msgid ""
 "No dist/precache-manifest.json: offline mode works only with a production "
 "build (`npm run build`). In development (Vite dev) the service worker is not"
@@ -12779,118 +12788,118 @@ msgstr ""
 "(`npm run build`). У режимі розробки (Vite dev) service worker не "
 "реєструється."
 
-#: grunt/grunt/monitoring/health.py:632
+#: grunt/grunt/monitoring/health.py:617
 msgid "%(count)s files"
 msgstr "%(count)s файлів"
 
-#: grunt/grunt/monitoring/health.py:637 grunt/grunt/monitoring/health.py:642
-#: grunt/grunt/monitoring/health.py:649
+#: grunt/grunt/monitoring/health.py:622 grunt/grunt/monitoring/health.py:627
+#: grunt/grunt/monitoring/health.py:634
 msgid "Service worker in the build"
 msgstr "Service worker у збірці"
 
-#: grunt/grunt/monitoring/health.py:644
+#: grunt/grunt/monitoring/health.py:629
 msgid "outdated"
 msgstr "застарілий"
 
-#: grunt/grunt/monitoring/health.py:645
+#: grunt/grunt/monitoring/health.py:630
 msgid "public/sw.js changed after the build; rebuild the frontend."
 msgstr "public/sw.js змінено після збірки — перезберіть фронтенд."
 
-#: grunt/grunt/monitoring/health.py:649
+#: grunt/grunt/monitoring/health.py:634
 msgid "up to date"
 msgstr "актуальний"
 
-#: grunt/grunt/auth/doctypes/User/user.py:134
+#: grunt/grunt/auth/doctypes/User/user.py:158
 msgid "Email is required"
 msgstr "Email є обов'язковим"
 
-#: grunt/grunt/auth/doctypes/User/user.py:136
+#: grunt/grunt/auth/doctypes/User/user.py:160
 msgid "First name is required"
 msgstr "Ім'я є обов'язковим"
 
-#: grunt/grunt/auth/doctypes/User/user.py:138
+#: grunt/grunt/auth/doctypes/User/user.py:162
 msgid "Last name is required"
 msgstr "Прізвище є обов'язковим"
 
-#: grunt/grunt/auth/doctypes/User/user.py:162
+#: grunt/grunt/auth/doctypes/User/user.py:186
 msgid "Not permitted to create users"
 msgstr "Недостатньо прав для створення користувача"
 
-#: grunt/grunt/auth/doctypes/User/user.py:177
+#: grunt/grunt/auth/doctypes/User/user.py:201
 msgid "Not permitted to change roles"
 msgstr "Недостатньо прав для зміни ролей"
 
-#: grunt/grunt/auth/doctypes/User/user.py:193
+#: grunt/grunt/auth/doctypes/User/user.py:217
 msgid "Not permitted to set the password; use the Change password action"
 msgstr ""
 "Недостатньо прав, щоб задати пароль — скористайтесь дією «Змінити пароль»"
 
-#: grunt/grunt/auth/doctypes/User/user.py:553
+#: grunt/grunt/auth/doctypes/User/user.py:558
 msgid "Registration of new users is disabled"
 msgstr "Реєстрація нових користувачів вимкнена"
 
-#: grunt/grunt/auth/doctypes/User/user.py:683
+#: grunt/grunt/auth/doctypes/User/user.py:672
 msgid "Invalid or expired MFA token"
 msgstr "Невалідний або прострочений MFA токен"
 
-#: grunt/grunt/auth/doctypes/User/user.py:711
+#: grunt/grunt/auth/doctypes/User/user.py:697
 msgid "Invalid or expired MFA setup token"
 msgstr "Невалідний або прострочений токен налаштування MFA"
 
-#: grunt/grunt/auth/doctypes/User/user.py:714
+#: grunt/grunt/auth/doctypes/User/user.py:700
 msgid "MFA setup is unavailable"
 msgstr "Налаштування MFA недоступне"
 
-#: grunt/grunt/auth/doctypes/User/user.py:838
+#: grunt/grunt/auth/doctypes/User/user.py:813
 msgid "Sign-in from this IP address is not allowed for your role"
 msgstr "Вхід з цієї IP-адреси заборонено для вашої ролі"
 
-#: grunt/grunt/auth/doctypes/User/user.py:845
+#: grunt/grunt/auth/doctypes/User/user.py:820
 msgid "Your role requires two-factor authentication; sign in again"
 msgstr "Ваша роль вимагає двофакторної автентифікації — увійдіть знову"
 
-#: grunt/grunt/auth/doctypes/User/user.py:994
+#: grunt/grunt/auth/doctypes/User/user.py:963
 msgid "Not permitted to change another user's password"
 msgstr "Недостатньо прав, щоб змінити пароль іншого користувача"
 
-#: grunt/grunt/auth/doctypes/User/user.py:999
+#: grunt/grunt/auth/doctypes/User/user.py:968
 msgid "The current password is incorrect"
 msgstr "Поточний пароль вказано невірно"
 
-#: grunt/grunt/auth/providers/email_link.py:50
+#: grunt/grunt/auth/providers/email_link.py:61
 msgid "Enter a valid email address"
 msgstr "Введіть коректну адресу електронної пошти"
 
-#: grunt/grunt/backups/api.py:49 grunt/grunt/auth/providers/email_link.py:97
+#: grunt/grunt/backups/api.py:49 grunt/grunt/auth/providers/email_link.py:101
 msgid "The link is invalid or expired"
 msgstr "Посилання недійсне або застаріле"
 
-#: grunt/grunt/auth/providers/email_link.py:101
+#: grunt/grunt/auth/providers/email_link.py:105
 msgid "The link is invalid or already used. Request a new code."
 msgstr "Посилання недійсне або вже використане. Запросіть новий код."
 
-#: grunt/grunt/auth/providers/email_link.py:109
+#: grunt/grunt/auth/providers/email_link.py:113
 msgid "Enter the verification code"
 msgstr "Введіть код підтвердження"
 
-#: grunt/grunt/auth/providers/email_link.py:113
+#: grunt/grunt/auth/providers/email_link.py:117
 msgid "The code has expired. Request a new one."
 msgstr "Час дії коду вичерпано. Запросіть новий."
 
-#: grunt/grunt/auth/providers/email_link.py:120
+#: grunt/grunt/auth/providers/email_link.py:124
 msgid "The code is invalid or already used. Request a new one."
 msgstr "Код недійсний або вже використаний. Запросіть новий."
 
-#: grunt/grunt/auth/providers/email_link.py:126
-#: grunt/grunt/auth/providers/email_link.py:215
+#: grunt/grunt/auth/providers/email_link.py:130
+#: grunt/grunt/auth/providers/email_link.py:207
 msgid "The account is deactivated"
 msgstr "Обліковий запис деактивовано"
 
-#: grunt/grunt/auth/providers/email_link.py:128
+#: grunt/grunt/auth/providers/email_link.py:132
 msgid "Too many failed attempts. Try again later."
 msgstr "Забагато невдалих спроб. Спробуйте пізніше."
 
-#: grunt/grunt/auth/providers/email_link.py:134
+#: grunt/grunt/auth/providers/email_link.py:138
 msgid "Invalid verification code"
 msgstr "Невірний код підтвердження"
 
@@ -12910,23 +12919,23 @@ msgstr "містити цифру"
 msgid "contain a special character"
 msgstr "містити спеціальний символ"
 
-#: grunt/grunt/auth/mfa.py:126
+#: grunt/grunt/auth/mfa.py:127
 msgid "MFA is already enabled. Disable it first to set it up again."
 msgstr "MFA вже увімкнено. Спочатку вимкніть його, щоб переналаштувати."
 
-#: grunt/grunt/auth/mfa.py:147
+#: grunt/grunt/auth/mfa.py:148
 msgid "MFA is not set up. Run the setup first."
 msgstr "MFA не налаштовано. Спочатку запустіть setup."
 
-#: grunt/grunt/auth/mfa.py:151
+#: grunt/grunt/auth/mfa.py:152
 msgid "Invalid TOTP code"
 msgstr "Невірний TOTP код"
 
-#: grunt/grunt/auth/mfa.py:212
+#: grunt/grunt/auth/mfa.py:211
 msgid "MFA is not set up"
 msgstr "MFA не налаштовано"
 
-#: grunt/grunt/auth/mfa.py:231
+#: grunt/grunt/auth/mfa.py:230
 msgid "Invalid MFA code"
 msgstr "Невірний код MFA"
 
@@ -12974,15 +12983,15 @@ msgstr "Немає полів для оновлення"
 msgid "No access to this key"
 msgstr "Немає доступу до цього ключа"
 
-#: grunt/grunt/auth/doctypes/User/user.py:200
+#: grunt/grunt/auth/doctypes/User/user.py:224
 msgid "Not permitted to change the field “%(field)s”"
 msgstr "Недостатньо прав, щоб змінити поле «%(field)s»"
 
-#: grunt/grunt/auth/doctypes/User/user.py:43
+#: grunt/grunt/auth/doctypes/User/user.py:68
 msgid "Active"
 msgstr "Активний"
 
-#: grunt/grunt/auth/doctypes/User/user.py:44
+#: grunt/grunt/auth/doctypes/User/user.py:69
 msgid "Signup state"
 msgstr "Стан реєстрації"
 
@@ -13012,48 +13021,49 @@ msgstr[2] "%(count)d непрочитаних сповіщень за остан
 msgid "Text"
 msgstr "Текст"
 
-#: grunt/grunt/webform/service.py:89 grunt/grunt/app/document_api.py:504
-#: grunt/grunt/app/document_api.py:717 grunt/grunt/metadata/registry.py:333
-#: grunt/grunt/metadata/registry.py:614 grunt/grunt/metadata/registry.py:588
-#: grunt/grunt/notification/rule_index.py:54
-#: grunt/grunt/activity/__init__.py:265 grunt/grunt/actions/__init__.py:165
-#: grunt/grunt/document/connections.py:41
-#: grunt/grunt/document/connections.py:66
-#: grunt/grunt/document/connections.py:87
-#: grunt/grunt/document/connections.py:121
-#: grunt/grunt/document/collection.py:255
-#: grunt/grunt/document/collection.py:344
-#: grunt/grunt/document/collection.py:409
-#: grunt/grunt/document/collection.py:696 grunt/grunt/document/links.py:54
-#: grunt/grunt/document/links.py:58 grunt/grunt/document/links.py:124
+#: grunt/grunt/webform/service.py:92 grunt/grunt/app/document_api.py:488
+#: grunt/grunt/app/document_api.py:689 grunt/grunt/metadata/registry.py:334
+#: grunt/grunt/metadata/registry.py:615 grunt/grunt/metadata/registry.py:589
+#: grunt/grunt/notification/rule_index.py:53
+#: grunt/grunt/activity/__init__.py:264 grunt/grunt/actions/__init__.py:163
+#: grunt/grunt/document/connections.py:43
+#: grunt/grunt/document/connections.py:68
+#: grunt/grunt/document/connections.py:89
+#: grunt/grunt/document/connections.py:119
+#: grunt/grunt/document/collection.py:257
+#: grunt/grunt/document/collection.py:342
+#: grunt/grunt/document/collection.py:383
+#: grunt/grunt/document/collection.py:446
+#: grunt/grunt/document/collection.py:727 grunt/grunt/document/links.py:55
+#: grunt/grunt/document/links.py:59
 msgid "DocType “%(doctype)s” not found"
 msgstr "DocType «%(doctype)s» не знайдено"
 
-#: grunt/grunt/actions/builtin.py:46
+#: grunt/grunt/actions/builtin.py:48
 msgid "Document re-saved; formulas and hooks recalculated"
 msgstr "Документ перезбережено, формули та хуки перераховано"
 
-#: grunt/grunt/actions/builtin.py:109
+#: grunt/grunt/actions/builtin.py:107
 msgid "Task completed"
 msgstr "Завдання виконано"
 
-#: grunt/grunt/actions/builtin.py:122
+#: grunt/grunt/actions/builtin.py:120
 msgid "Task cancelled"
 msgstr "Завдання скасовано"
 
-#: grunt/grunt/actions/builtin.py:134
+#: grunt/grunt/actions/builtin.py:132
 msgid "Task reopened"
 msgstr "Завдання відкрито"
 
-#: grunt/grunt/actions/builtin.py:29
+#: grunt/grunt/actions/builtin.py:31
 msgid "Copy created: %(name)s"
 msgstr "Створено копію: %(name)s"
 
-#: grunt/grunt/actions/builtin.py:32
+#: grunt/grunt/actions/builtin.py:34
 msgid "Recalculate"
 msgstr "Перерахувати"
 
-#: grunt/grunt/actions/builtin.py:32
+#: grunt/grunt/actions/builtin.py:34
 msgid ""
 "Re-save the document? Formulas are recalculated and validate/before_save "
 "hooks run."
@@ -13061,7 +13071,7 @@ msgstr ""
 "Перезберегти документ? Перерахуються формули й запустяться хуки "
 "validate/before_save."
 
-#: grunt/grunt/actions/builtin.py:49
+#: grunt/grunt/actions/builtin.py:51
 msgid "Copy link"
 msgstr "Скопіювати посилання"
 
@@ -13073,57 +13083,57 @@ msgstr "Відновлено: %(name)s"
 msgid "Restore with a new ID"
 msgstr "Відновити з новим ID"
 
-#: grunt/grunt/actions/builtin.py:91
+#: grunt/grunt/actions/builtin.py:89
 msgid "Restored as: %(name)s"
 msgstr "Відновлено як: %(name)s"
 
-#: grunt/grunt/actions/builtin.py:100
+#: grunt/grunt/actions/builtin.py:98
 msgid "Mark as done"
 msgstr "Позначити виконаним"
 
-#: grunt/grunt/actions/builtin.py:112
+#: grunt/grunt/actions/builtin.py:110
 msgid "Cancel the task?"
 msgstr "Скасувати завдання?"
 
-#: grunt/grunt/actions/builtin.py:125
+#: grunt/grunt/actions/builtin.py:123
 msgid "Reopen"
 msgstr "Відкрити знову"
 
-#: grunt/grunt/actions/builtin.py:137
+#: grunt/grunt/actions/builtin.py:135
 msgid "Send the report to its recipients now?"
 msgstr "Надіслати звіт отримувачам розсилки зараз?"
 
-#: grunt/grunt/actions/builtin.py:152
+#: grunt/grunt/actions/builtin.py:148
 msgid "Report queued for %(count)s recipients"
 msgstr "Звіт поставлено в чергу для %(count)s отримувачів"
 
-#: grunt/grunt/actions/__init__.py:185
+#: grunt/grunt/actions/__init__.py:183
 msgid "Not permitted to run this action"
 msgstr "Недостатньо прав для цієї дії"
 
-#: grunt/grunt/actions/__init__.py:169
+#: grunt/grunt/actions/__init__.py:167
 msgid "Action “%(action)s” is not bound to %(doctype)s"
 msgstr "Дію «%(action)s» не підключено до %(doctype)s"
 
-#: grunt/grunt/actions/__init__.py:176
+#: grunt/grunt/actions/__init__.py:174
 msgid "Action “%(action)s” is not registered"
 msgstr "Дію «%(action)s» не зареєстровано"
 
-#: grunt/grunt/io/doctypes/DataImport/data_import.py:128
-#: grunt/grunt/io/doctypes/DataImport/data_import.py:137
+#: grunt/grunt/io/doctypes/DataImport/data_import.py:132
+#: grunt/grunt/io/doctypes/DataImport/data_import.py:141
 msgid "The update key is not specified"
 msgstr "Ключ для оновлення не вказаний"
 
-#: grunt/grunt/io/doctypes/DataImport/data_import.py:121
+#: grunt/grunt/io/doctypes/DataImport/data_import.py:125
 msgid "Required fields are missing or empty: %(fields)s"
 msgstr "Обов'язкові поля відсутні або порожні: %(fields)s"
 
-#: grunt/grunt/io/doctypes/DataImport/data_import.py:131
-#: grunt/grunt/io/doctypes/DataImport/data_import.py:141
+#: grunt/grunt/io/doctypes/DataImport/data_import.py:135
+#: grunt/grunt/io/doctypes/DataImport/data_import.py:145
 msgid "The key value “%(key)s” is missing in the row"
 msgstr "Значення ключа «%(key)s» відсутнє в рядку"
 
-#: grunt/grunt/io/doctypes/DataImport/data_import.py:156
+#: grunt/grunt/io/doctypes/DataImport/data_import.py:160
 msgid "Document with %(key)s=%(value)s not found"
 msgstr "Документ з %(key)s=%(value)s не знайдено"
 
@@ -13131,39 +13141,39 @@ msgstr "Документ з %(key)s=%(value)s не знайдено"
 msgid "Unsupported file format: %(format)s"
 msgstr "Непідтримуваний формат файлу: %(format)s"
 
-#: grunt/grunt/io/doctypes/DataImport/data_import.py:265
+#: grunt/grunt/io/doctypes/DataImport/data_import.py:261
 msgid "Unknown export format: %(format)s"
 msgstr "Невідомий формат експорту: %(format)s"
 
-#: grunt/grunt/io/doctypes/DataImport/data_import.py:297
+#: grunt/grunt/io/doctypes/DataImport/data_import.py:290
 msgid "Unknown format: %(format)s"
 msgstr "Невідомий формат: %(format)s"
 
-#: grunt/grunt/reports/engine.py:87
+#: grunt/grunt/reports/engine.py:95
 msgid "No query specified"
 msgstr "Запит не вказано"
 
-#: grunt/grunt/reports/engine.py:97
+#: grunt/grunt/reports/engine.py:105
 msgid "Only SELECT is allowed"
 msgstr "Дозволено тільки SELECT"
 
-#: grunt/grunt/reports/engine.py:161
+#: grunt/grunt/reports/engine.py:166
 msgid "No script specified"
 msgstr "Скрипт не вказано"
 
-#: grunt/grunt/reports/engine.py:410
+#: grunt/grunt/reports/engine.py:401
 msgid "openpyxl is not installed"
 msgstr "openpyxl не встановлено"
 
-#: grunt/grunt/reports/engine.py:53 grunt/grunt/reports/delivery.py:138
+#: grunt/grunt/reports/engine.py:61 grunt/grunt/reports/delivery.py:136
 msgid "Report “%(name)s” not found"
 msgstr "Звіт «%(name)s» не знайдено"
 
-#: grunt/grunt/reports/engine.py:73
+#: grunt/grunt/reports/engine.py:81
 msgid "Report type “%(type)s” is not supported"
 msgstr "Тип звіту «%(type)s» не підтримується"
 
-#: grunt/grunt/reports/engine.py:105
+#: grunt/grunt/reports/engine.py:113
 msgid "Forbidden: %(word)s"
 msgstr "Заборонено: %(word)s"
 
@@ -13179,7 +13189,7 @@ msgstr ""
 "Скрипт повинен присвоїти `result = {'columns': [...], 'data': [...]}` або "
 "`query = 'SELECT ...'`"
 
-#: grunt/grunt/webform/service.py:239 grunt/grunt/document/validation.py:40
+#: grunt/grunt/webform/service.py:242 grunt/grunt/document/validation.py:40
 msgid "Field “%(label)s” is required"
 msgstr "Поле «%(label)s» є обов'язковим"
 
@@ -13247,11 +13257,11 @@ msgstr "Опис 2"
 msgid "Description 3"
 msgstr "Опис 3"
 
-#: grunt/grunt/api/v1/meta.py:229 grunt/grunt/api/v1/meta.py:315
+#: grunt/grunt/api/v1/meta.py:226 grunt/grunt/api/v1/meta.py:310
 msgid "A virtual DocType has no physical table"
 msgstr "Віртуальний тип документа не має фізичної таблиці"
 
-#: grunt/grunt/api/v1/meta.py:245
+#: grunt/grunt/api/v1/meta.py:242
 msgid "Compaction is not supported for the “%(dialect)s” database"
 msgstr "Стиснення не підтримується для СКБД «%(dialect)s»"
 
@@ -13297,70 +13307,70 @@ msgstr "Зразок"
 msgid "Template error:"
 msgstr "Помилка шаблону:"
 
-#: grunt/grunt/backups/__init__.py:181
+#: grunt/grunt/backups/__init__.py:178
 msgid "pg_dump not found; install the PostgreSQL client"
 msgstr "pg_dump не знайдено — встановіть клієнт PostgreSQL"
 
-#: grunt/grunt/backups/__init__.py:374
+#: grunt/grunt/backups/__init__.py:371
 msgid "This backup has no database"
 msgstr "У цій копії немає бази даних"
 
-#: grunt/grunt/backups/__init__.py:400
+#: grunt/grunt/backups/__init__.py:397
 msgid "pg_restore not found; install the PostgreSQL client"
 msgstr "pg_restore не знайдено — встановіть клієнт PostgreSQL"
 
-#: grunt/grunt/backups/__init__.py:163
+#: grunt/grunt/backups/__init__.py:160
 msgid "The database snapshot is corrupted: %(result)s"
 msgstr "Знімок бази пошкоджений: %(result)s"
 
-#: grunt/grunt/backups/__init__.py:271
+#: grunt/grunt/backups/__init__.py:268
 msgid "Backups of %(backend)s are not supported"
 msgstr "Резервне копіювання %(backend)s не підтримується"
 
-#: grunt/grunt/backups/__init__.py:91
+#: grunt/grunt/backups/__init__.py:88
 msgid "The SQLite database has no file to back up"
 msgstr "База даних SQLite не має файлу для резервного копіювання"
 
-#: grunt/grunt/backups/__init__.py:391
+#: grunt/grunt/backups/__init__.py:388
 msgid "The database backup is corrupted: %(result)s"
 msgstr "Копія бази пошкоджена: %(result)s"
 
-#: grunt/grunt/backups/__init__.py:415
+#: grunt/grunt/backups/__init__.py:412
 msgid "Restoring %(backend)s is not supported"
 msgstr "Відновлення %(backend)s не підтримується"
 
-#: grunt/grunt/permissions/rbac.py:165
+#: grunt/grunt/permissions/rbac.py:171
 msgid "No access: %(action)s “%(doctype)s”"
 msgstr "Немає доступу: %(action)s «%(doctype)s»"
 
-#: grunt/grunt/webform/service.py:155 grunt/grunt/api/v1/webform.py:21
+#: grunt/grunt/webform/service.py:158 grunt/grunt/api/v1/webform.py:22
 #: grunt/grunt/website/www/form/{route}.py:102
 #: grunt/grunt/website/www/form/{route}.py:103
 msgid "Form not found"
 msgstr "Форму не знайдено"
 
-#: grunt/grunt/webform/service.py:158
+#: grunt/grunt/webform/service.py:161
 msgid "You need to sign in to fill in this form"
 msgstr "Для заповнення цієї форми потрібна авторизація"
 
-#: grunt/grunt/webform/service.py:164
+#: grunt/grunt/webform/service.py:167
 msgid "The maximum number of responses has been reached"
 msgstr "Досягнуто максимальну кількість відповідей"
 
-#: grunt/grunt/webform/service.py:320
-#: grunt/grunt/storage/doctypes/File/file.py:71
+#: grunt/grunt/webform/service.py:317
+#: grunt/grunt/storage/doctypes/File/file.py:107
 msgid "The file is too large (max %(size)s MB)"
 msgstr "Файл завеликий (макс. %(size)s МБ)"
 
-#: grunt/grunt/document/collection.py:645
+#: grunt/grunt/document/collection.py:678
 msgid "The replacement cannot be the document being deleted"
 msgstr "Заміна не може збігатися з документом, що видаляється"
 
-#: grunt/grunt/document/collection.py:669
+#: grunt/grunt/document/collection.py:702
 msgid "A descendant cannot be used as the replacement"
 msgstr "Не можна підставити підлеглий елемент як заміну"
 
-#: grunt/grunt/document/collection.py:654
+#: grunt/grunt/document/collection.py:687
 msgid "Replacement document “%(name)s” not found"
 msgstr "Документ-заміну «%(name)s» не знайдено"
 
@@ -13384,42 +13394,42 @@ msgstr "%(actor)s позначив завдання виконаним: %(task)s
 msgid "The assignee"
 msgstr "Виконавець"
 
-#: grunt/grunt/permissions/rbac.py:17
+#: grunt/grunt/permissions/rbac.py:18
 msgctxt "permission"
 msgid "read"
 msgstr "читання"
 
-#: grunt/grunt/permissions/rbac.py:18
+#: grunt/grunt/permissions/rbac.py:19
 msgctxt "permission"
 msgid "select in a field"
 msgstr "вибір у полі"
 
-#: grunt/grunt/permissions/rbac.py:19
+#: grunt/grunt/permissions/rbac.py:20
 msgctxt "permission"
 msgid "write"
 msgstr "редагування"
 
-#: grunt/grunt/permissions/rbac.py:20
+#: grunt/grunt/permissions/rbac.py:21
 msgctxt "permission"
 msgid "create"
 msgstr "створення"
 
-#: grunt/grunt/permissions/rbac.py:21
+#: grunt/grunt/permissions/rbac.py:22
 msgctxt "permission"
 msgid "delete"
 msgstr "видалення"
 
-#: grunt/grunt/permissions/rbac.py:22
+#: grunt/grunt/permissions/rbac.py:23
 msgctxt "permission"
 msgid "submit"
 msgstr "проведення"
 
-#: grunt/grunt/permissions/rbac.py:23
+#: grunt/grunt/permissions/rbac.py:24
 msgctxt "permission"
 msgid "cancel"
 msgstr "скасування"
 
-#: grunt/grunt/permissions/rbac.py:24
+#: grunt/grunt/permissions/rbac.py:25
 msgctxt "permission"
 msgid "reports"
 msgstr "звіти"
@@ -13430,27 +13440,27 @@ msgstr "звіти"
 msgid "Internal server error"
 msgstr "Внутрішня помилка сервера"
 
-#: grunt/grunt/activity/doctypes/DeletedDocument/deleted_document.py:41
+#: grunt/grunt/activity/doctypes/DeletedDocument/deleted_document.py:39
 msgid "Only a System Manager can restore documents"
 msgstr "Відновлювати документи може лише System Manager"
 
-#: grunt/grunt/activity/doctypes/DeletedDocument/deleted_document.py:50
+#: grunt/grunt/activity/doctypes/DeletedDocument/deleted_document.py:48
 msgid "The snapshot is corrupted: invalid JSON"
 msgstr "Знімок пошкоджено — некоректний JSON"
 
-#: grunt/grunt/activity/doctypes/DeletedDocument/deleted_document.py:52
+#: grunt/grunt/activity/doctypes/DeletedDocument/deleted_document.py:50
 msgid "The snapshot is empty"
 msgstr "Знімок порожній"
 
-#: grunt/grunt/activity/doctypes/DeletedDocument/deleted_document.py:74
+#: grunt/grunt/activity/doctypes/DeletedDocument/deleted_document.py:70
 msgid "Already restored as “%(name)s”"
 msgstr "Уже відновлено як «%(name)s»"
 
-#: grunt/grunt/activity/doctypes/DeletedDocument/deleted_document.py:83
+#: grunt/grunt/activity/doctypes/DeletedDocument/deleted_document.py:79
 msgid "DocType “%(doctype)s” no longer exists"
 msgstr "DocType «%(doctype)s» більше не існує"
 
-#: grunt/grunt/activity/doctypes/DeletedDocument/deleted_document.py:93
+#: grunt/grunt/activity/doctypes/DeletedDocument/deleted_document.py:89
 msgid "Document “%(name)s” already exists. Restore with a new ID?"
 msgstr "Документ «%(name)s» уже існує. Відновити з новим ID?"
 
@@ -13476,45 +13486,45 @@ msgstr "Оновлено"
 msgid "Valid until"
 msgstr "Дійсно до"
 
-#: grunt/grunt/reports/delivery.py:82
+#: grunt/grunt/reports/delivery.py:80
 msgid "Report “%(name)s”, %(date)s"
 msgstr "Звіт «%(name)s» — %(date)s"
 
-#: grunt/grunt/reports/delivery.py:83
+#: grunt/grunt/reports/delivery.py:81
 msgid "Report “%(name)s” as of %(date)s: %(rows)s rows. The file is attached."
 msgstr ""
 "Звіт «%(name)s» станом на %(date)s: %(rows)s рядків. Файл у вкладенні."
 
-#: grunt/grunt/api/v1/docs/utils.py:125
+#: grunt/grunt/api/v1/docs/utils.py:124
 msgid "Author"
 msgstr "Автор"
 
-#: grunt/grunt/website/www/form/{route}.py:133
+#: grunt/grunt/website/www/form/{route}.py:132
 msgid "Thank you! Your submission has been received."
 msgstr "Дякуємо! Вашу заявку прийнято."
 
-#: grunt/grunt/website/www/form/{route}.py:145
+#: grunt/grunt/website/www/form/{route}.py:141
 msgid "Could not verify that you are not a robot. Please try again."
 msgstr "Не вдалося підтвердити, що ви не робот. Спробуйте ще раз."
 
-#: grunt/grunt/website/www/form/{route}.py:184
+#: grunt/grunt/website/www/form/{route}.py:180
 msgid "Submission error"
 msgstr "Помилка надсилання"
 
-#: grunt/grunt/website/www/form/{route}.py:192
+#: grunt/grunt/website/www/form/{route}.py:188
 msgid "The form has been submitted successfully."
 msgstr "Форму успішно надіслано."
 
-#: grunt/grunt/metadata/compiler.py:96
+#: grunt/grunt/metadata/compiler.py:97
 msgid "Fix the duplicates and try again."
 msgstr "Виправте дублікати та повторіть операцію."
 
-#: grunt/grunt/metadata/compiler.py:87
+#: grunt/grunt/metadata/compiler.py:88
 msgid "Cannot add a unique constraint on “%(field)s”: duplicates found:"
 msgstr ""
 "Неможливо додати унікальне обмеження на «%(field)s»: знайдено дублікати:"
 
-#: grunt/grunt/metadata/compiler.py:93
+#: grunt/grunt/metadata/compiler.py:94
 msgid "value %(value)s, records: %(ids)s"
 msgstr "значення %(value)s — записи: %(ids)s"
 
@@ -13526,11 +13536,11 @@ msgstr "%(count)s прострочено"
 msgid "today"
 msgstr "сьогодні"
 
-#: grunt/grunt/document/links.py:233
+#: grunt/grunt/document/links.py:228
 msgid "Multiple links"
 msgstr "Множинні зв'язки"
 
-#: grunt/grunt/permissions/guards.py:90 grunt/grunt/document/mixins/read.py:63
+#: grunt/grunt/permissions/guards.py:87 grunt/grunt/document/mixins/read.py:63
 msgid "Document “%(name)s” not found"
 msgstr "Документ «%(name)s» не знайдено"
 
@@ -13547,33 +13557,33 @@ msgid "The value of field “%(label)s” already exists. Enter a unique value."
 msgstr ""
 "Значення поля «%(label)s» вже існує в системі. Введіть унікальне значення."
 
-#: grunt/grunt/permissions/doctypes/SharedWith/shared_with.py:21
-#: grunt/grunt/activity/doctypes/DocFollow/doc_follow.py:20
+#: grunt/grunt/permissions/doctypes/SharedWith/shared_with.py:22
+#: grunt/grunt/activity/doctypes/DocFollow/doc_follow.py:19
 msgid "Specify a user"
 msgstr "Вкажіть користувача"
 
-#: grunt/grunt/permissions/doctypes/SharedWith/shared_with.py:43
+#: grunt/grunt/permissions/doctypes/SharedWith/shared_with.py:42
 msgid "Only someone who can edit the document can share it"
 msgstr "Поділитися документом може лише той, хто має право його змінювати"
 
-#: grunt/grunt/permissions/doctypes/SharedWith/shared_with.py:26
+#: grunt/grunt/permissions/doctypes/SharedWith/shared_with.py:27
 msgid "User “%(user)s” not found"
 msgstr "Користувача «%(user)s» не знайдено"
 
-#: grunt/grunt/document/mixins/write.py:362
-#: grunt/grunt/activity/doctypes/DocFollow/doc_follow.py:27
+#: grunt/grunt/document/mixins/write.py:358
+#: grunt/grunt/activity/doctypes/DocFollow/doc_follow.py:26
 msgid "No access to the document"
 msgstr "Немає доступу до документа"
 
-#: grunt/grunt/document/mixins/write.py:662
+#: grunt/grunt/document/mixins/write.py:650
 msgid "Cancel the document before deleting it"
 msgstr "Скасуйте документ перед видаленням"
 
-#: grunt/grunt/document/mixins/write.py:679
+#: grunt/grunt/document/mixins/write.py:667
 msgid "Could not reassign the links: uniqueness conflict"
 msgstr "Не вдалося перепризначити посилання — конфлікт унікальності"
 
-#: grunt/grunt/document/mixins/write.py:522
+#: grunt/grunt/document/mixins/write.py:515
 msgid ""
 "The document was changed after you started editing. Open it again and repeat"
 " your changes."
@@ -13610,15 +13620,15 @@ msgstr ""
 msgid "and %(count)s more"
 msgstr "і ще %(count)s"
 
-#: grunt/grunt/activity/follow.py:97
+#: grunt/grunt/activity/follow.py:95
 msgid "%(doctype)s “%(title)s” changed"
 msgstr "%(doctype)s «%(title)s» змінено"
 
-#: grunt/grunt/activity/follow.py:98
+#: grunt/grunt/activity/follow.py:96
 msgid "Changed: %(fields)s"
 msgstr "Змінено: %(fields)s"
 
-#: grunt/grunt/activity/follow.py:127
+#: grunt/grunt/activity/follow.py:125
 msgid "New comment: “%(title)s”"
 msgstr "Новий коментар: «%(title)s»"
 
@@ -13646,11 +13656,12 @@ msgstr "Дашборд не знайдено"
 msgid "The dashboard is not published"
 msgstr "Дашборд не опубліковано"
 
-#: grunt/grunt/activity/doctypes/DocFollow/doc_follow.py:38
+#: grunt/grunt/activity/doctypes/DocFollow/doc_follow.py:37
 msgid "You are already following this document"
 msgstr "Ви вже стежите за цим документом"
 
 #: grunt/grunt/errors.py:90
+#: grunt/grunt/storage/doctypes/FileFolder/file_folder.py:163
 msgid "Not permitted"
 msgstr "Недостатньо прав"
 
@@ -13658,54 +13669,54 @@ msgstr "Недостатньо прав"
 msgid "Not found"
 msgstr "Не знайдено"
 
-#: grunt/grunt/errors.py:118 grunt/grunt/middleware/rate_limit.py:223
-#: grunt/grunt/middleware/rate_limit.py:168
-#: grunt/grunt/middleware/rate_limit.py:184
+#: grunt/grunt/errors.py:118 grunt/grunt/middleware/rate_limit.py:222
+#: grunt/grunt/middleware/rate_limit.py:167
+#: grunt/grunt/middleware/rate_limit.py:183
 msgid "Too many requests. Try again later."
 msgstr "Забагато запитів. Спробуйте пізніше."
 
-#: grunt/grunt/tasks/redis_introspect.py:81
+#: grunt/grunt/tasks/redis_introspect.py:80
 msgid "Redis is not configured: REDIS_URL is not set, live monitoring is off."
 msgstr ""
 "Redis не налаштований — REDIS_URL не задано, живий моніторинг вимкнено."
 
-#: grunt/grunt/tasks/redis_introspect.py:82
+#: grunt/grunt/tasks/redis_introspect.py:81
 msgid "Redis is unreachable; check that it is running."
 msgstr "Redis недоступний — перевірте, чи він запущений."
 
-#: grunt/grunt/document/bulk_ops.py:270
+#: grunt/grunt/document/bulk_ops.py:263
 msgid "Only a superadmin can run a fast delete"
 msgstr "Тільки суперадмін може виконати швидке видалення"
 
-#: grunt/grunt/workflow/engine.py:138
+#: grunt/grunt/workflow/engine.py:136
 msgid "The transition is unavailable"
 msgstr "Перехід недоступний"
 
-#: grunt/grunt/workflow/engine.py:145
+#: grunt/grunt/workflow/engine.py:143
 msgid "The document has no Workflow configured"
 msgstr "Документ не має налаштованого Workflow"
 
-#: grunt/grunt/workflow/engine.py:169
+#: grunt/grunt/workflow/engine.py:167
 msgid "Fill in the required fields"
 msgstr "Заповніть обов'язкові поля"
 
-#: grunt/grunt/document/mixins/history_rpc.py:47
+#: grunt/grunt/document/mixins/history_rpc.py:45
 msgid "Version not found"
 msgstr "Версію не знайдено"
 
-#: grunt/grunt/document/mixins/history_rpc.py:50
+#: grunt/grunt/document/mixins/history_rpc.py:48
 msgid "The version does not belong to this document"
 msgstr "Версія не належить цьому документу"
 
-#: grunt/grunt/backups/doctypes/Backup/backup.py:59
+#: grunt/grunt/backups/doctypes/Backup/backup.py:58
 msgid "Backup not found"
 msgstr "Резервну копію не знайдено"
 
-#: grunt/grunt/backups/doctypes/Backup/backup.py:67
+#: grunt/grunt/backups/doctypes/Backup/backup.py:66
 msgid "Backups are created with the Create now button"
 msgstr "Копію створює кнопка «Створити зараз»"
 
-#: grunt/grunt/backups/doctypes/Backup/backup.py:71
+#: grunt/grunt/backups/doctypes/Backup/backup.py:70
 msgid "A backup cannot be changed"
 msgstr "Резервну копію не можна змінити"
 
@@ -13723,28 +13734,28 @@ msgstr "Віртуальний DocType «%(doctype)s» не має окреми�
 msgid "Email template “%(name)s” not found or disabled"
 msgstr "Email-шаблон «%(name)s» не знайдено або вимкнено"
 
-#: grunt/grunt/permissions/doctypes/UserPermission/user_permission.py:35
+#: grunt/grunt/permissions/doctypes/UserPermission/user_permission.py:36
 msgid "Set “Only for document” or enable “Apply to all documents”"
 msgstr ""
 "Вкажіть «Лише для документа» або увімкніть «Застосувати до всіх документів»"
 
-#: grunt/grunt/permissions/doctypes/UserPermission/user_permission.py:51
+#: grunt/grunt/permissions/doctypes/UserPermission/user_permission.py:52
 msgid "This user permission already exists"
 msgstr "Такий дозвіл користувача вже існує"
 
-#: grunt/grunt/assignment/doctypes/AssignmentRule/assignment_rule.py:31
+#: grunt/grunt/assignment/doctypes/AssignmentRule/assignment_rule.py:29
 msgid "The “Filters (JSON)” field must contain valid JSON."
 msgstr "Поле «Filters (JSON)» має містити валідний JSON."
 
-#: grunt/grunt/document/doctypes/Comment/comment.py:20
+#: grunt/grunt/document/doctypes/Comment/comment.py:21
 msgid "The comment cannot be empty"
 msgstr "Вміст коментаря не може бути порожнім"
 
-#: grunt/grunt/document/doctypes/Comment/comment.py:28
+#: grunt/grunt/document/doctypes/Comment/comment.py:29
 msgid "Only the author or an administrator can delete a comment"
 msgstr "Видалити коментар може лише автор або адміністратор"
 
-#: grunt/grunt/api/v1/webform.py:56
+#: grunt/grunt/api/v1/webform.py:52
 msgid "Could not verify that you are not a robot"
 msgstr "Не вдалося підтвердити, що ви не робот"
 
@@ -13752,7 +13763,7 @@ msgstr "Не вдалося підтвердити, що ви не робот"
 msgid "route is required"
 msgstr "route є обов'язковим"
 
-#: grunt/grunt/api/v1/scripting.py:27
+#: grunt/grunt/api/v1/scripting.py:25
 msgid "API method “%(method)s” not found"
 msgstr "API метод «%(method)s» не знайдено"
 
@@ -13816,15 +13827,15 @@ msgstr "Поле «{label}»: невірний формат email"
 msgid "Field “{label}”: invalid value"
 msgstr "Поле «{label}»: невірне значення"
 
-#: grunt/grunt/email/service.py:135
+#: grunt/grunt/email/service.py:138
 msgid "This message is in HTML format."
 msgstr "Це повідомлення у форматі HTML."
 
-#: grunt/grunt/webhook/service.py:105
+#: grunt/grunt/webhook/service.py:102
 msgid "Webhook not found"
 msgstr "Вебхук не знайдено"
 
-#: grunt/grunt/storage/doctypes/File/file.py:183
+#: grunt/grunt/storage/doctypes/File/file.py:217
 msgid "No access to the file"
 msgstr "Немає доступу до файлу"
 
@@ -13832,11 +13843,11 @@ msgstr "Немає доступу до файлу"
 msgid "A city is required: pick one from the list or type it in"
 msgstr "Необхідно вказати місто: оберіть зі списку або введіть текстом"
 
-#: grunt/grunt/document/mixins/collaboration_rpc.py:88
+#: grunt/grunt/document/mixins/collaboration_rpc.py:85
 msgid "%(user)s mentioned you in a comment"
 msgstr "%(user)s згадав вас у коментарі"
 
-#: grunt/grunt/api/v1/notifications.py:89
+#: grunt/grunt/api/v1/notifications.py:86
 msgid "Web Push is disabled in the system settings"
 msgstr "Web Push вимкнено в налаштуваннях системи"
 
@@ -13986,32 +13997,32 @@ msgstr "Service worker"
 msgid "code 4001"
 msgstr ""
 
-#: grunt/grunt/storage/doctypes/File/file.py:171
+#: grunt/grunt/storage/doctypes/File/file.py:205
 msgid "File not found"
 msgstr "Файл не знайдено"
 
-#: grunt/grunt/auth/doctypes/UserSession/user_session.py:200
+#: grunt/grunt/auth/doctypes/UserSession/user_session.py:194
 msgid "Session not found"
 msgstr "Сесію не знайдено"
 
-#: grunt/grunt/document/mixins/write.py:140
+#: grunt/grunt/document/mixins/write.py:148
 msgid "'%(name)s' is a singleton."
 msgstr "«%(name)s» — singleton (єдиний запис)."
 
-#: grunt/grunt/site/doctypes/WebsiteMenuItem/website_menu_item.py:14
+#: grunt/grunt/site/doctypes/WebsiteMenuItem/website_menu_item.py:15
 msgid "A menu item can't be its own parent"
 msgstr "Пункт меню не може бути батьківським сам для себе"
 
-#: grunt/grunt/auth/doctypes/User/user.py:658
+#: grunt/grunt/auth/doctypes/User/user.py:652
 msgid "Account temporarily locked. Try again later."
 msgstr "Обліковий запис тимчасово заблоковано. Спробуйте пізніше."
 
-#: grunt/grunt/api/context.py:55 grunt/grunt/auth/providers/webauthn.py:252
-#: grunt/grunt/auth/providers/webauthn.py:296
+#: grunt/grunt/api/context.py:57 grunt/grunt/auth/providers/webauthn.py:245
+#: grunt/grunt/auth/providers/webauthn.py:287
 msgid "Authentication required"
 msgstr "Потрібна автентифікація"
 
-#: grunt/grunt/storage/doctypes/File/file.py:178
+#: grunt/grunt/storage/doctypes/File/file.py:212
 msgid "Authentication required to access this file"
 msgstr "Для доступу до файлу потрібна автентифікація"
 
@@ -14036,19 +14047,19 @@ msgid ""
 msgstr ""
 "BackgroundWorker — живий перегляд групи споживачів, його не можна редагувати"
 
-#: grunt/grunt/document/tree.py:482
+#: grunt/grunt/document/tree.py:480
 msgid "Cannot move a node into its own subtree (cycle detected)"
 msgstr "Не можна перемістити вузол у власне піддерево (виявлено цикл)"
 
-#: grunt/grunt/document/collection.py:701
+#: grunt/grunt/document/collection.py:732
 msgid "Cannot rename virtual documents"
 msgstr "Віртуальні документи не можна перейменовувати"
 
-#: grunt/grunt/document/tree.py:161
+#: grunt/grunt/document/tree.py:156
 msgid "Column '%(parent_field)s' not found in table for '%(doctype)s'"
 msgstr "Колонку «%(parent_field)s» не знайдено в таблиці «%(doctype)s»"
 
-#: grunt/grunt/auth/dependencies.py:55
+#: grunt/grunt/auth/dependencies.py:60
 msgid "Could not validate credentials"
 msgstr "Не вдалося перевірити облікові дані"
 
@@ -14056,26 +14067,26 @@ msgstr "Не вдалося перевірити облікові дані"
 msgid "Create a ServerScript with script_type='Scheduler Event' instead"
 msgstr "Натомість створіть ServerScript із script_type='Scheduler Event'"
 
-#: grunt/grunt/api/v1/data_import.py:27
+#: grunt/grunt/api/v1/data_import.py:33
 msgid "DataImport not found"
 msgstr "Імпорт даних не знайдено"
 
-#: grunt/grunt/document/tree.py:90
+#: grunt/grunt/document/tree.py:87
 msgid ""
 "DocType '%(name)s' is not a tree (is_tree=false or tree_view not configured)"
 msgstr ""
 "DocType «%(name)s» не є деревом (is_tree=false або tree_view не налаштовано)"
 
-#: grunt/grunt/metadata/registry.py:541 grunt/grunt/metadata/registry.py:633
-#: grunt/grunt/metadata/registry.py:559 grunt/grunt/api/v1/meta.py:133
+#: grunt/grunt/metadata/registry.py:542 grunt/grunt/metadata/registry.py:634
+#: grunt/grunt/metadata/registry.py:560 grunt/grunt/api/v1/meta.py:134
 msgid "DocType “%(doctype)s” already exists"
 msgstr "DocType «%(doctype)s» вже існує"
 
-#: grunt/grunt/document/collection.py:711
+#: grunt/grunt/document/collection.py:742
 msgid "Document with name '%(new_id)s' already exists"
 msgstr "Документ з назвою «%(new_id)s» вже існує"
 
-#: grunt/grunt/metadata/registry.py:645
+#: grunt/grunt/metadata/registry.py:646
 msgid "Duplicate fieldname '%(fieldname)s' in DocType '%(name)s'"
 msgstr "Дубльоване поле «%(fieldname)s» у DocType «%(name)s»"
 
@@ -14083,28 +14094,28 @@ msgstr "Дубльоване поле «%(fieldname)s» у DocType «%(name)s»"
 msgid "Edit the underlying ServerScript instead"
 msgstr "Натомість редагуйте відповідний ServerScript"
 
-#: grunt/grunt/auth/providers/webauthn.py:201
-#: grunt/grunt/auth/providers/webauthn.py:306
+#: grunt/grunt/auth/providers/webauthn.py:194
+#: grunt/grunt/auth/providers/webauthn.py:297
 msgid "Expired or invalid WebAuthn challenge"
 msgstr "WebAuthn-виклик прострочений або недійсний"
 
-#: grunt/grunt/metadata/registry.py:664
+#: grunt/grunt/metadata/registry.py:665
 msgid "Fieldname '%(fieldname)s' exceeds %(max)s characters"
 msgstr "Назва поля «%(fieldname)s» довша за %(max)s символів"
 
-#: grunt/grunt/storage/doctypes/File/file.py:196
+#: grunt/grunt/storage/doctypes/File/file.py:230
 msgid "File not found on storage"
 msgstr "Файл не знайдено в сховищі"
 
-#: grunt/grunt/scripting/doctypes/Hook/hook.py:133
+#: grunt/grunt/scripting/doctypes/Hook/hook.py:131
 msgid "Hook '%(doc_id)s' not found"
 msgstr "Хук «%(doc_id)s» не знайдено"
 
-#: grunt/grunt/auth/doctypes/User/user.py:662
+#: grunt/grunt/auth/doctypes/User/user.py:656
 msgid "Incorrect email or password"
 msgstr "Невірна електронна пошта або пароль"
 
-#: grunt/grunt/metadata/registry.py:654
+#: grunt/grunt/metadata/registry.py:655
 msgid ""
 "Invalid fieldname '%(fieldname)s': must start with a-z and contain only a-z,"
 " 0-9, _"
@@ -14112,20 +14123,20 @@ msgstr ""
 "Недійсна назва поля «%(fieldname)s»: має починатися з a-z і містити лише "
 "a-z, 0-9, _"
 
-#: grunt/grunt/auth/doctypes/User/user.py:798
+#: grunt/grunt/auth/doctypes/User/user.py:778
 msgid "Invalid language value"
 msgstr "Недійсне значення мови"
 
-#: grunt/grunt/auth/doctypes/User/user.py:821
-#: grunt/grunt/auth/doctypes/User/user.py:826
+#: grunt/grunt/auth/doctypes/User/user.py:798
+#: grunt/grunt/auth/doctypes/User/user.py:803
 msgid "Invalid or expired refresh token"
 msgstr "Недійсний або прострочений refresh-токен"
 
-#: grunt/grunt/auth/doctypes/User/user.py:1119
+#: grunt/grunt/auth/doctypes/User/user.py:1080
 msgid "Invalid or expired reset token"
 msgstr "Недійсний або прострочений токен скидання"
 
-#: grunt/grunt/auth/doctypes/User/user.py:791
+#: grunt/grunt/auth/doctypes/User/user.py:771
 msgid "Invalid theme value"
 msgstr "Недійсне значення теми"
 
@@ -14133,40 +14144,36 @@ msgstr "Недійсне значення теми"
 msgid "Label is required"
 msgstr "Назва обов'язкова"
 
-#: grunt/grunt/reports/engine.py:69
+#: grunt/grunt/reports/engine.py:77
 msgid "List report requires a DocType"
 msgstr "Звіт-список потребує DocType"
 
-#: grunt/grunt/api/v1/method.py:111
+#: grunt/grunt/api/v1/method.py:110
 msgid "Method %(method_path)s is not whitelisted"
 msgstr "Метод %(method_path)s не дозволено (не в whitelist)"
 
-#: grunt/grunt/api/v1/method.py:101
+#: grunt/grunt/api/v1/method.py:100
 msgid "Method %(method_path)s not found"
 msgstr "Метод %(method_path)s не знайдено"
 
-#: grunt/grunt/auth/providers/oauth.py:85
+#: grunt/grunt/auth/providers/oauth.py:84
 msgid "Missing OAuth 'code'"
 msgstr "Відсутній OAuth-параметр 'code'"
 
-#: grunt/grunt/auth/providers/webauthn.py:197
-#: grunt/grunt/auth/providers/webauthn.py:302
+#: grunt/grunt/auth/providers/webauthn.py:190
+#: grunt/grunt/auth/providers/webauthn.py:293
 msgid "Missing WebAuthn response"
 msgstr "Відсутня відповідь WebAuthn"
 
-#: grunt/grunt/api/v1/method.py:166
+#: grunt/grunt/api/v1/method.py:164
 msgid "Missing required parameters: %(items)s"
 msgstr "Бракує обов'язкових параметрів: %(items)s"
 
-#: grunt/grunt/storage/doctypes/File/file.py:59
+#: grunt/grunt/storage/doctypes/File/file.py:87
 msgid "No filename provided"
 msgstr "Не вказано назву файлу"
 
-#: grunt/grunt/document/tree.py:499
-msgid "Node not found"
-msgstr "Вузол не знайдено"
-
-#: grunt/grunt/document/mixins/collaboration_rpc.py:109
+#: grunt/grunt/document/mixins/collaboration_rpc.py:106
 msgid "Not allowed"
 msgstr "Не дозволено"
 
@@ -14175,19 +14182,19 @@ msgstr "Не дозволено"
 msgid "Not authorized"
 msgstr "Немає дозволу"
 
-#: grunt/grunt/auth/providers/oauth.py:104
+#: grunt/grunt/auth/providers/oauth.py:103
 msgid "OAuth provider did not return an email address"
 msgstr "OAuth-провайдер не повернув адресу електронної пошти"
 
-#: grunt/grunt/api/v1/search.py:22
+#: grunt/grunt/api/v1/search.py:24
 msgid "Parameter 'limit' must be positive"
 msgstr "Параметр 'limit' має бути додатним"
 
-#: grunt/grunt/api/v1/search.py:24
+#: grunt/grunt/api/v1/search.py:26
 msgid "Parameter 'limit' too high"
 msgstr "Параметр 'limit' завеликий"
 
-#: grunt/grunt/api/v1/search.py:18
+#: grunt/grunt/api/v1/search.py:20
 msgid "Parameter 'q' is required"
 msgstr "Параметр 'q' обов'язковий"
 
@@ -14195,11 +14202,11 @@ msgstr "Параметр 'q' обов'язковий"
 msgid "Passkey not found"
 msgstr "Ключ доступу не знайдено"
 
-#: grunt/grunt/auth/providers/webauthn.py:320
+#: grunt/grunt/auth/providers/webauthn.py:311
 msgid "Passkey registration failed"
 msgstr "Не вдалося зареєструвати ключ доступу"
 
-#: grunt/grunt/auth/providers/webauthn.py:222
+#: grunt/grunt/auth/providers/webauthn.py:215
 msgid "Passkey verification failed"
 msgstr "Не вдалося перевірити ключ доступу"
 
@@ -14213,15 +14220,15 @@ msgstr "Брокер Redis не налаштовано"
 msgid "Redis unavailable"
 msgstr "Redis недоступний"
 
-#: grunt/grunt/monitoring/doctypes/SqlProfilerRequest/sql_profiler_request.py:51
+#: grunt/grunt/monitoring/doctypes/SqlProfilerRequest/sql_profiler_request.py:48
 msgid "SqlProfilerRequest '%(doc_id)s' not found"
 msgstr "SqlProfilerRequest «%(doc_id)s» не знайдено"
 
-#: grunt/grunt/auth/dependencies.py:155
+#: grunt/grunt/auth/dependencies.py:149
 msgid "System Manager privileges required"
 msgstr "Потрібні права System Manager"
 
-#: grunt/grunt/auth/providers/webauthn.py:324
+#: grunt/grunt/auth/providers/webauthn.py:315
 msgid "This passkey is already registered"
 msgstr "Цей ключ доступу вже зареєстровано"
 
@@ -14229,19 +14236,19 @@ msgstr "Цей ключ доступу вже зареєстровано"
 msgid "Unknown auth provider: %(name)s"
 msgstr "Невідомий провайдер автентифікації: %(name)s"
 
-#: grunt/grunt/auth/providers/webauthn.py:207
+#: grunt/grunt/auth/providers/webauthn.py:200
 msgid "Unknown passkey"
 msgstr "Невідомий ключ доступу"
 
-#: grunt/grunt/auth/providers/webauthn.py:237
+#: grunt/grunt/auth/providers/webauthn.py:230
 msgid "User not found or inactive"
 msgstr "Користувача не знайдено або він неактивний"
 
-#: grunt/grunt/auth/doctypes/User/user.py:623
+#: grunt/grunt/auth/doctypes/User/user.py:622
 msgid "User with email '%(email)s' already exists"
 msgstr "Користувач з адресою «%(email)s» вже існує"
 
-#: grunt/grunt/document/mixins/collaboration_rpc.py:67
+#: grunt/grunt/document/mixins/collaboration_rpc.py:64
 msgid "content is required"
 msgstr "content обов'язковий"
 
@@ -14249,15 +14256,15 @@ msgstr "content обов'язковий"
 msgid "doctype_name and doc_id are required"
 msgstr "doctype_name і doc_id обов'язкові"
 
-#: grunt/grunt/api/v1/docs/crud.py:215
+#: grunt/grunt/api/v1/docs/crud.py:214
 msgid "field is required"
 msgstr "field обов'язковий"
 
-#: grunt/grunt/api/v1/docs/crud.py:213
+#: grunt/grunt/api/v1/docs/crud.py:212
 msgid "ids is required"
 msgstr "ids обов'язковий"
 
-#: grunt/grunt/api/v1/docs/crud.py:184
+#: grunt/grunt/api/v1/docs/crud.py:183
 msgid "ids or delete_all is required"
 msgstr "Потрібен ids або delete_all"
 
@@ -14274,7 +14281,7 @@ msgctxt "help:User.language"
 msgid "Interface language. Empty = the site default."
 msgstr "Мова інтерфейсу. Порожнє — мова сайту за замовчуванням."
 
-#: grunt/grunt/storage/doctypes/File/File.js:17
+#: grunt/grunt/storage/doctypes/File/File.js:19
 msgid "File uploaded"
 msgstr "Файл завантажено"
 
@@ -14290,12 +14297,12 @@ msgstr "Завантажені файли"
 msgid "Configuration (.env)"
 msgstr "Конфігурація (.env)"
 
-#: grunt/grunt/backups/api.py:64
+#: grunt/grunt/backups/api.py:62
 #: grunt/grunt/backups/doctypes/Backup/Backup.js:52
 msgid "Choose at least one part to back up"
 msgstr "Оберіть хоча б одну частину для резервної копії"
 
-#: grunt/grunt/backups/__init__.py:330
+#: grunt/grunt/backups/__init__.py:327
 msgid "Nothing to back up"
 msgstr "Немає що зберігати в резервній копії"
 
@@ -14310,7 +14317,7 @@ msgstr "~{n} хв"
 #: grunt/frontend/src/components/desk/TaskProgressPanel.vue:111
 #: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue:426
 #: grunt/frontend/src/components/ui/tree-select/TreeSelectNode.vue:65
-#: grunt/frontend/src/components/views/list/ListTreePanel.vue:330
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:390
 msgid "Expand"
 msgstr "Розгорнути"
 
@@ -14318,7 +14325,7 @@ msgstr "Розгорнути"
 #: grunt/frontend/src/components/views/DocSidebar.vue:73
 #: grunt/frontend/src/components/views/DocSidebar.vue:78
 #: grunt/frontend/src/components/ui/tree-select/TreeSelectNode.vue:65
-#: grunt/frontend/src/components/views/list/ListTreePanel.vue:330
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:390
 msgid "Collapse"
 msgstr "Згорнути"
 
@@ -14326,7 +14333,7 @@ msgstr "Згорнути"
 msgid "Dismiss"
 msgstr "Закрити"
 
-#: grunt/grunt/backups/tasks.py:101
+#: grunt/grunt/backups/tasks.py:100
 msgid "Backup"
 msgstr "Резервна копія"
 
@@ -14334,27 +14341,27 @@ msgstr "Резервна копія"
 msgid "Backup started"
 msgstr "Резервне копіювання запущено"
 
-#: grunt/grunt/backups/__init__.py:278
+#: grunt/grunt/backups/__init__.py:275
 msgid "Preparing"
 msgstr "Підготовка"
 
-#: grunt/grunt/backups/__init__.py:153
+#: grunt/grunt/backups/__init__.py:150
 msgid "Copying the database"
 msgstr "Копіювання бази даних"
 
-#: grunt/grunt/backups/__init__.py:156
+#: grunt/grunt/backups/__init__.py:153
 msgid "Checking the database copy"
 msgstr "Перевірка копії бази даних"
 
-#: grunt/grunt/backups/__init__.py:165
+#: grunt/grunt/backups/__init__.py:162
 msgid "Compressing the database"
 msgstr "Стиснення бази даних"
 
-#: grunt/grunt/backups/__init__.py:183
+#: grunt/grunt/backups/__init__.py:180
 msgid "Dumping the database"
 msgstr "Вивантаження бази даних"
 
-#: grunt/grunt/backups/__init__.py:214
+#: grunt/grunt/backups/__init__.py:211
 msgid "Archiving files"
 msgstr "Архівування файлів"
 
@@ -14375,7 +14382,7 @@ msgstr "Зупинити «{title}»? Уже виконане буде відк�
 msgid "step {n} of {m}"
 msgstr "крок {n} з {m}"
 
-#: grunt/grunt/backups/__init__.py:226
+#: grunt/grunt/backups/__init__.py:223
 msgid "Copying the configuration"
 msgstr "Копіювання конфігурації"
 
@@ -14383,7 +14390,7 @@ msgstr "Копіювання конфігурації"
 msgid "Back to home page"
 msgstr "На головну"
 
-#: grunt/frontend/src/components/views/list/ListTreePanel.vue:251
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:311
 msgid "Delete «{name}»?"
 msgstr "Видалити «{name}»?"
 
@@ -14391,11 +14398,11 @@ msgstr "Видалити «{name}»?"
 msgid "Failed"
 msgstr ""
 
-#: grunt/grunt/storage/doctypes/File/File.js:17
+#: grunt/grunt/storage/doctypes/File/File.js:19
 msgid "Files uploaded: {n}"
 msgstr "Завантажено файлів: {n}"
 
-#: grunt/frontend/src/components/views/list/ListTreePanel.vue:279
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:339
 msgid "Include nested"
 msgstr "З вкладеними"
 
@@ -14403,32 +14410,33 @@ msgstr "З вкладеними"
 msgid "Login required"
 msgstr ""
 
-#: grunt/frontend/src/components/views/list/ListTreePanel.vue:203
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:222
 msgid "Moved: {n}"
 msgstr "Переміщено: {n}"
 
-#: grunt/frontend/src/components/views/list/ListTreePanel.vue:219
-#: grunt/frontend/src/components/views/list/ListTreePanel.vue:285
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:238
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:345
 msgid "New folder"
 msgstr "Нова тека"
 
-#: grunt/frontend/src/components/views/list/ListTreePanel.vue:358
+#: grunt/frontend/src/core/scripting/executor.ts:962
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:418
 msgid "New subfolder"
 msgstr "Нова підтека"
 
-#: grunt/frontend/src/components/views/list/ListTreePanel.vue:311
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:371
 msgid "Not set"
 msgstr "Не вказано"
 
-#: grunt/frontend/src/components/views/list/ListTreePanel.vue:279
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:339
 msgid "Only this level"
 msgstr "Лише цей рівень"
 
-#: grunt/grunt/storage/doctypes/FileFolder/file_folder.py:19
+#: grunt/grunt/storage/doctypes/FileFolder/file_folder.py:109
 msgid "The folder has subfolders: move or delete them first"
 msgstr "У теці є підтеки: спершу перемістіть або видаліть їх"
 
-#: grunt/grunt/storage/doctypes/FileFolder/file_folder.py:17
+#: grunt/grunt/storage/doctypes/FileFolder/file_folder.py:107
 msgid "The folder is not empty: move or delete its files first"
 msgstr "Тека не порожня: спершу перемістіть або видаліть її файли"
 
@@ -14442,15 +14450,6 @@ msgstr ""
 "Link-поле на ієрархічний DocType (наприклад, теку чи підрозділ). Список "
 "показує це дерево збоку: вибір вузла фільтрує записи, перетягування записів "
 "на вузол переміщує їх."
-
-#: grunt/grunt/storage/doctypes/FileFolder/FileFolder.json
-msgctxt "help:FileFolder"
-msgid ""
-"Folders of the file library. They only organise File records — moving a file"
-" between folders never touches the stored content."
-msgstr ""
-"Теки бібліотеки файлів. Вони лише впорядковують записи File — переміщення "
-"файлу між теками не зачіпає збережений вміст."
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgctxt "help:SystemSettings.backup_compression_level"
@@ -14507,12 +14506,12 @@ msgctxt "meta:WebsiteMenuItem.route"
 msgid "Section route"
 msgstr ""
 
-#: grunt/frontend/src/core/scripting/executor.ts:793
-#: grunt/frontend/src/core/scripting/executor.ts:810
+#: grunt/frontend/src/core/scripting/executor.ts:814
+#: grunt/frontend/src/core/scripting/executor.ts:831
 msgid "Uploading files"
 msgstr "Завантаження файлів"
 
-#: grunt/frontend/src/components/views/list/ListTreePanel.vue:210
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:229
 msgid "Not moved: {n}"
 msgstr "Не переміщено: {n}"
 
@@ -14565,7 +14564,7 @@ msgstr "Видалити список файлів"
 msgid "Delete gallery"
 msgstr "Видалити галерею"
 
-#: grunt/grunt/document/mixins/write.py:113
+#: grunt/grunt/document/mixins/write.py:121
 msgid "No access: “%(field)s” is outside your user permissions"
 msgstr "Немає доступу: значення поля «%(field)s» поза вашими дозволами"
 
@@ -14586,32 +14585,32 @@ msgstr "Вибрано: {n}"
 msgid "Tick the items you need in the tree"
 msgstr "Позначте потрібні пункти в дереві"
 
-#: grunt/grunt/workflow/notify.py:137
+#: grunt/grunt/workflow/notify.py:139
 msgid "%(user)s: “%(action)s” — %(from)s → %(to)s"
 msgstr "%(user)s: «%(action)s» — %(from)s → %(to)s"
 
-#: grunt/grunt/workflow/guard.py:81
+#: grunt/grunt/workflow/guard.py:83
 msgid "A new document starts in the “%(state)s” state"
 msgstr "Новий документ створюється у стані «%(state)s»"
 
-#: grunt/grunt/workflow/engine.py:153
+#: grunt/grunt/workflow/engine.py:151
 #: grunt/frontend/src/components/workflow/WorkflowActionDialog.vue:98
 msgid "Add a comment"
 msgstr "Напишіть коментар"
 
-#: grunt/grunt/workflow/notify.py:146
+#: grunt/grunt/workflow/notify.py:148
 msgid "Comment:"
 msgstr "Коментар:"
 
-#: grunt/grunt/workflow/guard.py:148
+#: grunt/grunt/workflow/guard.py:150
 msgid "In the “%(state)s” state the document can't be deleted"
 msgstr "У стані «%(state)s» документ не можна видалити"
 
-#: grunt/grunt/workflow/guard.py:162
+#: grunt/grunt/workflow/guard.py:164
 msgid "In the “%(state)s” state the document can't be edited"
 msgstr "У стані «%(state)s» документ не можна редагувати"
 
-#: grunt/grunt/workflow/guard.py:105
+#: grunt/grunt/workflow/guard.py:107
 msgid "The state changes only through workflow actions"
 msgstr "Стан змінюється лише діями робочого процесу (кнопки біля «Зберегти»)"
 
@@ -14910,6 +14909,194 @@ msgstr "Ключ сайту"
 msgctxt "meta:SystemSettings.sec_captcha"
 msgid "CAPTCHA (Cloudflare Turnstile)"
 msgstr "CAPTCHA (Cloudflare Turnstile)"
+
+#: grunt/grunt/storage/doctypes/FileFolder/file_folder.py:41
+msgid "A folder must be inside another folder"
+msgstr "Тека має бути всередині іншої теки"
+
+#: grunt/grunt/storage/doctypes/FileFolder/file_folder.py:105
+msgid "A home folder can't be deleted"
+msgstr "Домашню теку не можна видалити"
+
+#: grunt/grunt/storage/doctypes/FileFolder/file_folder.py:56
+msgid "A home folder can't be moved"
+msgstr "Домашню теку не можна перемістити"
+
+#: grunt/grunt/storage/doctypes/File/file.py:55
+#: grunt/grunt/storage/doctypes/File/file.py:94
+#: grunt/grunt/storage/doctypes/FileFolder/file_folder.py:47
+msgid "Folder “%(folder)s” not found"
+msgstr "Теку «%(folder)s» не знайдено"
+
+#: grunt/grunt/storage/doctypes/FileFolder/file_folder.py:121
+msgid "No access to the folder “%(folder)s”"
+msgstr "Немає доступу до теки «%(folder)s»"
+
+#: grunt/grunt/storage/quota.py:60
+msgid ""
+"Not enough space: %(used)s MB of %(quota)s MB used, the file needs %(size)s "
+"MB"
+msgstr ""
+"Недостатньо місця: зайнято %(used)s МБ з %(quota)s МБ, файлу потрібно "
+"%(size)s МБ"
+
+#: grunt/grunt/auth/doctypes/User/user.py:71
+msgid "Personal space quota, MB"
+msgstr "Квота особистого простору, МБ"
+
+#: grunt/grunt/storage/doctypes/FileFolder/file_folder.py:66
+msgid "This user already has a home folder"
+msgstr "Цей користувач уже має домашню теку"
+
+#: grunt/grunt/storage/doctypes/FileFolder/file_folder.py:64
+msgid "You can only create your own home folder"
+msgstr "Можна створити лише власну домашню теку"
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgctxt "help:DocType.shares_cover_subtree"
+msgid ""
+"Sharing a node with a user (Share) also gives access to all its descendants"
+msgstr "Надання доступу до вузла (Поділитися) відкриває й усі вкладені вузли"
+
+#: grunt/grunt/storage/doctypes/FileFolder/FileFolder.json
+msgctxt "help:FileFolder"
+msgid ""
+"Folders of personal file spaces. Each user has a home folder; every other "
+"folder lives inside one and belongs to its owner's space. Sharing a folder "
+"shares everything below it. Moving a file between folders never touches the "
+"stored content."
+msgstr ""
+"Теки особистих файлових просторів. Кожен користувач має домашню теку; решта "
+"тек лежить усередині неї й належить простору її власника. Якщо поділитися "
+"текою, доступ відкривається до всього, що в ній. Переміщення файлу між "
+"теками не чіпає збережений вміст."
+
+#: grunt/grunt/storage/doctypes/FileFolder/FileFolder.json
+msgctxt "help:FileFolder.is_home"
+msgid "The root folder of the owner's space"
+msgstr "Коренева тека простору власника"
+
+#: grunt/grunt/storage/doctypes/FileFolder/FileFolder.json
+msgctxt "help:FileFolder.space_user"
+msgid ""
+"Whose personal space the folder belongs to - taken from the parent folder"
+msgstr ""
+"Чиєму особистому простору належить тека — береться з батьківської теки"
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgctxt "help:SystemSettings.personal_storage_quota_mb"
+msgid ""
+"How much each user's “My files” may hold; 0 - no limit. A user's own quota "
+"(User → Security) overrides it"
+msgstr ""
+"Скільки може вмістити «Мої файли» кожного користувача; 0 — без обмежень. "
+"Власна квота користувача (Користувач → Безпека) має пріоритет"
+
+#: grunt/grunt/auth/doctypes/User/User.json
+msgctxt "help:User.storage_quota_mb"
+msgid "Empty - the system default (System Settings → Files)"
+msgstr "Порожнє — системне значення (Налаштування системи → Файли)"
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgctxt "meta:DocType.shares_cover_subtree"
+msgid "Sharing covers subtree"
+msgstr "Доступ поширюється на піддерево"
+
+#: grunt/grunt/storage/doctypes/FileFolder/FileFolder.json
+msgctxt "meta:FileFolder.is_home"
+msgid "Home folder"
+msgstr "Домашня тека"
+
+#: grunt/grunt/storage/doctypes/FileFolder/FileFolder.json
+msgctxt "meta:FileFolder.space_user"
+msgid "Space owner"
+msgstr "Власник простору"
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgctxt "meta:SystemSettings.personal_storage_quota_mb"
+msgid "Personal space quota, MB"
+msgstr "Квота особистого простору, МБ"
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgctxt "meta:SystemSettings.sec_files"
+msgid "Files"
+msgstr "Файли"
+
+#: grunt/grunt/auth/doctypes/User/User.json
+msgctxt "meta:User.sec_storage"
+msgid "Files"
+msgstr "Файли"
+
+#: grunt/grunt/auth/doctypes/User/User.json
+msgctxt "meta:User.storage_quota_mb"
+msgid "Personal space quota, MB"
+msgstr "Квота особистого простору, МБ"
+
+#: grunt/grunt/storage/doctypes/File/File.js:42
+#: grunt/frontend/src/core/scripting/executor.ts:954
+msgid "Folder"
+msgstr "Тека"
+
+#: grunt/grunt/storage/doctypes/File/File.js:44
+#: grunt/grunt/storage/doctypes/FileFolder/file_folder.py:99
+#: grunt/frontend/src/core/scripting/executor.ts:972
+msgid "My files"
+msgstr "Мої файли"
+
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:273
+msgid "Share «{name}»"
+msgstr "Поділитись «{name}»"
+
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:303
+msgid "Shared with: {n}"
+msgstr "Надано доступ: {n}"
+
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:420
+msgid "Share…"
+msgstr "Поділитись…"
+
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:286
+msgid "Users"
+msgstr "Користувачі"
+
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:281
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:300
+msgid "Write"
+msgstr "Запис"
+
+#: grunt/frontend/src/core/scripting/executor.ts:947
+msgid "Files: {n}"
+msgstr "Файли: {n}"
+
+#: grunt/frontend/src/core/scripting/executor.ts:964
+msgid "Optional - created inside the chosen folder"
+msgstr "Необов’язково — буде створена у вибраній теці"
+
+#: grunt/frontend/src/core/scripting/executor.ts:985
+msgid "Upload files"
+msgstr "Завантаження файлів"
+
+#: grunt/frontend/src/core/scripting/executor.ts:980
+msgid "not enough space for these files"
+msgstr "для цих файлів не вистачає місця"
+
+#: grunt/frontend/src/core/scripting/executor.ts:977
+msgid "{used} of {quota} used"
+msgstr "Зайнято {used} з {quota}"
+
+#~ msgid "— Any —"
+#~ msgstr "— Будь-який —"
+
+#~ msgid "Node not found"
+#~ msgstr "Вузол не знайдено"
+
+#~ msgctxt "help:FileFolder"
+#~ msgid ""
+#~ "Folders of the file library. They only organise File records — moving a file"
+#~ " between folders never touches the stored content."
+#~ msgstr ""
+#~ "Теки бібліотеки файлів. Вони лише впорядковують записи File — переміщення "
+#~ "файлу між теками не зачіпає збережений вміст."
 
 #~ msgid "Ctrl+Enter to send"
 #~ msgstr "Ctrl+Enter щоб надіслати"

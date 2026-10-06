@@ -17,7 +17,7 @@ Public API
 ``tree_service.get_ancestors(session, doctype, node_id, ...)``
     Ordered list from direct parent up to the root.
 
-``tree_service.move_node(session, doctype, node_id, new_parent_id, user)``
+``tree_service.move_node(session, doctype, node_id, new_parent_id)``
     Re-parent a node; prevents cycles.
 """
 
@@ -36,8 +36,6 @@ if TYPE_CHECKING:
 
     from sqlalchemy.ext.asyncio import AsyncSession
     from sqlalchemy.sql import Select
-
-    from grunt.auth.doctypes.User.user import User
 
 
 # doctype -> async fn(session, nodes, as_of_date) -> {node_id: display_title}
@@ -195,6 +193,17 @@ class TreeService:
         for row in rows:
             row["has_children"] = row["name"] in child_parent_ids
 
+        from grunt.document.base import Document
+
+        ctrl_cls = document_registry.get(doctype)
+        if ctrl_cls.tree_sort_children is not Document.tree_sort_children:
+            rows = await ctrl_cls.tree_sort_children(
+                session,
+                rows,
+                parent={"name": parent_id} if parent_id else None,
+                sort_by=sort_by,
+                sort_order=sort_order,
+            )
         return rows
 
     async def get_tree(
@@ -446,16 +455,11 @@ class TreeService:
         doctype: str,
         node_id: str,
         new_parent_id: str | None,
-        user: User,
     ) -> dict[str, Any]:
         """Re-parent *node_id* to *new_parent_id* (or make it a root node).
 
         Prevents cycles: new_parent must not be in the node's own subtree.
         """
-        from datetime import UTC, datetime
-
-        from sqlalchemy import update as sa_update
-
         import grunt
 
         dt = await grunt.get_meta(doctype)
@@ -465,7 +469,6 @@ class TreeService:
                 detail=_("DocType “%(doctype)s” not found") % {"doctype": doctype},
             )
         parent_field = _require_tree(dt)
-        table = dt.table
 
         # Cycle guard: get subtree ids of the node being moved
         if new_parent_id:
@@ -477,24 +480,12 @@ class TreeService:
                     detail=_("Cannot move a node into its own subtree (cycle detected)"),
                 )
 
-        stmt = (
-            sa_update(table)
-            .where(table.c.name == node_id)
-            .values(
-                **{parent_field: new_parent_id or None},
-                modified_at=datetime.now(UTC),
-                modified_by=user.email,
-            )
-            .returning(*table.c)
-        )
-        result = await session.execute(stmt)
-        await session.commit()
-        row = result.fetchone()
-        if not row:
-            raise HTTPException(status.HTTP_404_NOT_FOUND, detail=_("Node not found"))
+        # Through the update pipeline: per-document write permission, the
+        # controller's hooks (a folder carries its space down) and the audit log.
+        row = await grunt.save_doc(doctype, node_id, {parent_field: new_parent_id or None})
 
         log.info("tree.node_moved", doctype=doctype, node=node_id, new_parent=new_parent_id)
-        return dict(row._mapping)
+        return row
 
     # Helpers
 

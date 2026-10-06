@@ -32,7 +32,7 @@ if TYPE_CHECKING:
 @pytest.fixture(autouse=True)
 def _no_document_shares(monkeypatch):
     """Role logic in isolation — SharedWith grants are covered by tests/test_doc_shares.py."""
-    from grunt.permissions import shares
+    from grunt.permissions import query, shares
 
     async def _no_share(*_a, **_kw):
         return False
@@ -42,6 +42,7 @@ def _no_document_shares(monkeypatch):
 
     monkeypatch.setattr(shares, "has_share", _no_share)
     monkeypatch.setattr(shares, "shared_names_clause", _no_clause)
+    monkeypatch.setattr(query, "shared_names_clause", _no_clause)
 
 
 _META = MetaData()
