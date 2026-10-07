@@ -2,6 +2,14 @@ import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest'
 
 import { WebSocketChannel, openChannelCount } from '@/core/ws/WebSocketChannel'
 
+const refreshSession = vi.hoisted(() => vi.fn())
+vi.mock('@/core/api/client', () => ({ refreshSession }))
+
+function jwt(expSecondsFromNow: number): string {
+  const payload = btoa(JSON.stringify({ exp: Math.floor(Date.now() / 1000) + expSecondsFromNow }))
+  return `h.${payload.replace(/=+$/, '')}.s`
+}
+
 class MockWebSocket {
   static instances: MockWebSocket[] = []
   static CONNECTING = 0
@@ -73,6 +81,34 @@ describe('WebSocketChannel', () => {
     const socket = MockWebSocket.instances[0]!
     expect(socket.url).toMatch(/\/api\/v1\/ws\/user$/)
     expect(socket.protocols).toEqual(['grunt.auth', 'test-token'])
+  })
+
+  it('renews an expired access token before connecting', async () => {
+    localStorage.setItem('grunt_token', jwt(-60))
+    refreshSession.mockImplementation(async () => {
+      localStorage.setItem('grunt_token', jwt(900))
+      return true
+    })
+    const channel = new WebSocketChannel({ url: '/api/v1/ws/user' })
+
+    channel.connect()
+    expect(MockWebSocket.instances).toHaveLength(0)
+    await vi.waitFor(() => expect(MockWebSocket.instances).toHaveLength(1))
+
+    expect(refreshSession).toHaveBeenCalledOnce()
+    expect(MockWebSocket.instances[0]!.protocols?.[1]).toBe(localStorage.getItem('grunt_token'))
+  })
+
+  it('does not connect when the token cannot be renewed', async () => {
+    localStorage.setItem('grunt_token', jwt(-60))
+    refreshSession.mockResolvedValue(false)
+    const channel = new WebSocketChannel({ url: '/api/v1/ws/user' })
+
+    channel.connect()
+    await Promise.resolve()
+    await Promise.resolve()
+
+    expect(MockWebSocket.instances).toHaveLength(0)
   })
 
   it('counts open channels per URL for the health report', () => {

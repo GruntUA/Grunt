@@ -100,4 +100,4 @@ def worker():
     (TaskIQ starts it as a separate process, so imports here are not visible to it).
     """
     click.echo("Starting the TaskIQ worker...")
-    subprocess.run(["taskiq", "worker", "grunt.tasks.worker:broker"])
+    subprocess.run(["taskiq", "worker", "grunt.tasks.worker:broker", "--no-configure-logging"])

@@ -50,7 +50,7 @@ if [ -n "$RELOAD" ]; then
     [ "$name" != grunt ] && [ -d "$app$name" ] && RELOAD_ARGS="$RELOAD_ARGS --reload-dir $app$name"
   done
 fi
-uv run taskiq worker grunt.tasks.worker:broker --workers ${WORKERS:-1} $RELOAD_ARGS &
+uv run taskiq worker grunt.tasks.worker:broker --workers ${WORKERS:-1} --no-configure-logging $RELOAD_ARGS &
 CHILD=$!
 wait $CHILD
 """

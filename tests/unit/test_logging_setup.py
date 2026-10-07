@@ -20,6 +20,7 @@ def test_websocket_handshake_lines_are_dropped() -> None:
     assert not f.filter(_record('%s - "WebSocket %s" 403', "1.2.3.4:0", "/api/v1/ws/user"))
     assert not f.filter(_record("connection open"))
     assert not f.filter(_record("connection closed"))
+    assert not f.filter(_record("connection rejected (%d %s)", 403, "Forbidden"))
     assert f.filter(_record("Application startup complete."))
 
 

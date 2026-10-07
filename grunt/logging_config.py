@@ -161,15 +161,15 @@ def configure_console_logging(log_level: str = "INFO", *, debug: bool = False) -
 
 class _WebSocketHandshakeFilter(logging.Filter):
     """Drop uvicorn's per-connection WebSocket lines (``"WebSocket /path"
-    [accepted]``, ``connection open/closed``): behind a proxy they carry the
-    proxy's address, not the client's - ``grunt.api.v1.ws`` logs connects
-    with the real IP itself."""
+    [accepted]``, ``connection open/closed/rejected``): behind a proxy they
+    carry the proxy's address, not the client's - ``grunt.api.v1.ws`` logs
+    connects and rejections with the real IP itself."""
+
+    _MESSAGES = ("connection open", "connection closed", "connection rejected (%d %s)")
 
     def filter(self, record: logging.LogRecord) -> bool:
         msg = record.msg if isinstance(record.msg, str) else ""
-        return not (
-            msg in ("connection open", "connection closed") or '"WebSocket %s"' in msg
-        )
+        return not (msg in self._MESSAGES or '"WebSocket %s"' in msg)
 
 
 def configure_logging(

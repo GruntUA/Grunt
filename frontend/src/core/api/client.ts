@@ -62,6 +62,18 @@ client.interceptors.request.use(async (config) => {
 
 // Track whether a refresh is in flight to avoid parallel refresh loops
 let _refreshing: Promise<boolean> | null = null
+
+/** Swap the refresh token for a new access token; concurrent callers (the 401
+ * interceptor, WebSocket channels) share one attempt. */
+export function refreshSession(): Promise<boolean> {
+  if (!_refreshing) {
+    _refreshing = (async () => {
+      const { useAuthStore } = await import('@/stores/auth')
+      return useAuthStore().refresh()
+    })().finally(() => { _refreshing = null })
+  }
+  return _refreshing
+}
 let _lastForbiddenMessage: string | null = null
 let _forbiddenToastReset: ReturnType<typeof setTimeout> | null = null
 
@@ -132,16 +144,7 @@ client.interceptors.response.use(
         }
       }
 
-      // Coalesce concurrent refresh attempts into one
-      if (!_refreshing) {
-        _refreshing = (async () => {
-          const { useAuthStore } = await import('@/stores/auth')
-          const auth = useAuthStore()
-          return auth.refresh()
-        })().finally(() => { _refreshing = null })
-      }
-
-      const ok = await _refreshing
+      const ok = await refreshSession()
       if (ok) {
         // Retry original request with new token
         const newToken = localStorage.getItem('grunt_token')

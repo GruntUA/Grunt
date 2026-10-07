@@ -1,5 +1,8 @@
 import { ref } from 'vue'
 
+import { refreshSession } from '@/core/api/client'
+import { isJwtExpired } from '@/core/jwt'
+
 type EventHandler = (data: unknown) => void
 
 interface WebSocketChannelOptions {
@@ -49,6 +52,7 @@ export class WebSocketChannel {
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null
   private pingTimer: ReturnType<typeof setInterval> | null = null
   private manualClose = false
+  private refreshing = false
   private readonly eventHandlers = new Map<string, Set<EventHandler>>()
   private readonly includeAuthToken: boolean
   private readonly reconnectDelayMs: number
@@ -83,7 +87,8 @@ export class WebSocketChannel {
       return
     }
 
-    if (this.includeAuthToken && !localStorage.getItem('grunt_token')) {
+    const token = this.includeAuthToken ? localStorage.getItem('grunt_token') : null
+    if (this.includeAuthToken && !token) {
       this.disconnect()
       return
     }
@@ -93,6 +98,19 @@ export class WebSocketChannel {
     }
 
     this.manualClose = false
+    // A rejected handshake reaches the browser only as code 1006, so an
+    // expired access token would be retried forever - renew it first, the
+    // same way the HTTP client does on a 401.
+    if (token && isJwtExpired(token)) {
+      if (this.refreshing) return
+      this.refreshing = true
+      void refreshSession().then((ok) => {
+        this.refreshing = false
+        if (ok && !this.manualClose) this.connect()
+      })
+      return
+    }
+
     const fullUrl = buildWebSocketUrl(this.url)
     this.ws = new WebSocket(fullUrl, this.includeAuthToken ? authProtocols() : undefined)
 
