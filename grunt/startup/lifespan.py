@@ -41,6 +41,7 @@ def _configure() -> None:
         log_level=settings.log_level,
         log_to_file=settings.log_to_file,
         debug=settings.debug,
+        rich_tracebacks=settings.log_rich_tracebacks,
     )
     log.info("grunt.startup", version="0.1.0")
     load_validators()

@@ -12,15 +12,21 @@ After that, all structlog.get_logger(name) calls are routed automatically:
 
 from __future__ import annotations
 
+import contextlib
 import logging
 import logging.handlers
-from typing import TYPE_CHECKING, Any
+import re
+import sysconfig
+import traceback
+from pathlib import Path
+from typing import TYPE_CHECKING, Any, TextIO
 
 import structlog
 
 if TYPE_CHECKING:
     from collections.abc import MutableMapping
-    from pathlib import Path
+
+    from structlog.typing import ExcInfo
 
 _LOG_SUBDIRS = ("system", "web", "apps", "sites", "db", "scheduler")
 
@@ -30,6 +36,91 @@ _SCHEDULER_LOGGERS = ("grunt.tasks", "grunt.worker", "grunt.tasks.scheduler")
 _SEP = "─" * 80
 
 _console_handler: logging.Handler | None = None
+
+# Frames from these roots are library code - the compact traceback skips them.
+_LIBRARY_ROOTS = tuple(
+    {p for p in (sysconfig.get_paths().get("purelib"), sysconfig.get_paths().get("stdlib")) if p}
+)
+_COMPACT_FRAMES = 6
+_COMPACT_MESSAGE_CHARS = 600
+_COMPACT_SQL_CHARS = 200
+# apps/grunt/grunt/logging_config.py -> apps/: project frames print relative to it
+_APPS_DIR = str(Path(__file__).resolve().parents[2]) + "/"
+
+
+def _short_path(filename: str) -> str:
+    _, sep, rest = filename.partition("site-packages/")
+    if sep:
+        return rest
+    if filename.startswith(_APPS_DIR):
+        return filename[len(_APPS_DIR) :]
+    return filename
+
+
+def _is_library_frame(filename: str) -> bool:
+    return (
+        filename.startswith(_LIBRARY_ROOTS)
+        or "site-packages" in filename
+        or filename.startswith("<")
+    )
+
+
+def _one_line(value: object, limit: int) -> str:
+    text = re.sub(r"\s+", " ", str(value)).strip()
+    return text[:limit] + "…" if len(text) > limit else text
+
+
+def _short_message(exc: BaseException) -> str:
+    """``str(exc)`` on one line, capped. A SQLAlchemy DB error is shown as its
+    driver message plus the start of the statement - its ``str()`` carries
+    the whole statement and parameters."""
+    orig, statement = getattr(exc, "orig", None), getattr(exc, "statement", None)
+    if orig is not None and statement:
+        return (
+            f"{_one_line(orig, _COMPACT_MESSAGE_CHARS)}\n"
+            f"  SQL: {_one_line(statement, _COMPACT_SQL_CHARS)}"
+        )
+    return _one_line(exc, _COMPACT_MESSAGE_CHARS)
+
+
+def compact_exception_formatter(sio: TextIO, exc_info: ExcInfo) -> None:
+    """Exception type and message plus the project's own frames (innermost
+    last), and where in library code it was finally raised. The full
+    traceback lands in logs/system/grunt.log (and ErrorLog for HTTP 500s)."""
+    exc_type, exc, tb = exc_info
+    frames = traceback.extract_tb(tb)
+    own = [
+        f
+        for f in frames
+        if not _is_library_frame(f.filename) and "call_next(" not in (f.line or "")
+    ][-_COMPACT_FRAMES:]  # middleware pass-through frames say nothing
+
+    sio.write("\n")
+    for f in own:
+        sio.write(f"  {_short_path(f.filename)}:{f.lineno} in {f.name}\n")
+        if f.line:
+            sio.write(f"    {f.line.strip()}\n")
+    if frames and (not own or frames[-1] is not own[-1]):
+        last = frames[-1]
+        sio.write(f"  … raised in {_short_path(last.filename)}:{last.lineno} in {last.name}\n")
+    name = getattr(exc_type, "__name__", str(exc_type))
+    sio.write(f"{name}: {_short_message(exc) if exc is not None else ''}")
+
+
+class _HandledExceptionFilter(logging.Filter):
+    """Drop uvicorn's ``Exception in ASGI application`` for an exception the
+    app's 500 handler already logged - Starlette's ServerErrorMiddleware
+    re-raises it after sending the response, so it would print twice."""
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        exc = record.exc_info[1] if record.exc_info else None
+        return not getattr(exc, "__grunt_logged__", False)
+
+
+def mark_logged(exc: BaseException) -> None:
+    """Flag *exc* as already logged, see :class:`_HandledExceptionFilter`."""
+    with contextlib.suppress(AttributeError, TypeError):
+        exc.__grunt_logged__ = True  # type: ignore[attr-defined]
 
 
 def _slow_query_renderer(
@@ -77,7 +168,9 @@ def _slow_query_renderer(
     return "\n".join(parts)
 
 
-def configure_console_logging(log_level: str = "INFO", *, debug: bool = False) -> int:
+def configure_console_logging(
+    log_level: str = "INFO", *, debug: bool = False, rich_tracebacks: bool = False
+) -> int:
     """structlog + the console handler; returns the numeric level.
 
     Runs at ``grunt.log`` import (so lines logged while modules load already
@@ -104,20 +197,21 @@ def configure_console_logging(log_level: str = "INFO", *, debug: bool = False) -
         cache_logger_on_first_use=True,
     )
 
-    # Console output - always enabled. structlog.dev.ConsoleRenderer()'s default
-    # exception_formatter is a RichTracebackFormatter with show_locals=True,
-    # which walks and pretty-prints every local in every frame - on a deep
-    # SQLAlchemy stack (huge Select/dialect object reprs) this alone can take
-    # more than a second *per logged exception* (measured: ~18x a plain
-    # traceback), silently turning any `log.warning(..., exc_info=True)` in a
-    # request path into a multi-second stall. Keep rich's colouring/formatting
-    # but only pay for locals when a human is actually attached (debug=True).
+    # Console output - always enabled. Tracebacks are compact by default: the
+    # rich formatter prints a box per frame (hundreds of lines for one SQL
+    # error), and with show_locals it also pretty-prints every local of every
+    # frame - on a deep SQLAlchemy stack that alone took over a second per
+    # logged exception. Locals are never printed; rich_tracebacks brings back
+    # the boxed frames.
+    exception_formatter = (
+        structlog.dev.RichTracebackFormatter(show_locals=False, max_frames=30)
+        if rich_tracebacks
+        else compact_exception_formatter
+    )
     console_formatter = structlog.stdlib.ProcessorFormatter(
         processors=[
             structlog.stdlib.ProcessorFormatter.remove_processors_meta,
-            structlog.dev.ConsoleRenderer(
-                exception_formatter=structlog.dev.RichTracebackFormatter(show_locals=debug),
-            ),
+            structlog.dev.ConsoleRenderer(exception_formatter=exception_formatter),
         ],
     )
     console_handler = logging.StreamHandler()
@@ -153,8 +247,9 @@ def configure_console_logging(log_level: str = "INFO", *, debug: bool = False) -
         logging.getLogger(_name).setLevel(logging.WARNING)
 
     uvicorn_error = logging.getLogger("uvicorn.error")
-    if not any(isinstance(f, _WebSocketHandshakeFilter) for f in uvicorn_error.filters):
-        uvicorn_error.addFilter(_WebSocketHandshakeFilter())
+    for filter_cls in (_WebSocketHandshakeFilter, _HandledExceptionFilter):
+        if not any(isinstance(f, filter_cls) for f in uvicorn_error.filters):
+            uvicorn_error.addFilter(filter_cls())
 
     return numeric_level
 
@@ -178,6 +273,7 @@ def configure_logging(
     log_level: str = "INFO",
     log_to_file: bool = True,
     debug: bool = False,
+    rich_tracebacks: bool = False,
 ) -> None:
     """Configure structlog with stdlib backend and optional file handlers.
 
@@ -189,15 +285,19 @@ def configure_logging(
     if log_to_file:
         _ensure_dirs(log_dir, site_names, bench_dir / "apps")
 
-    numeric_level = configure_console_logging(log_level, debug=debug)
+    numeric_level = configure_console_logging(
+        log_level, debug=debug, rich_tracebacks=rich_tracebacks
+    )
 
     if not log_to_file:
         return
 
-    # JSON formatter for files
+    # JSON formatter for files - format_exc_info turns exc_info into the full
+    # traceback text (without it the file only said "exc_info": true).
     json_formatter = structlog.stdlib.ProcessorFormatter(
         processors=[
             structlog.stdlib.ProcessorFormatter.remove_processors_meta,
+            structlog.processors.format_exc_info,
             structlog.processors.JSONRenderer(),
         ],
     )

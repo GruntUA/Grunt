@@ -18,6 +18,7 @@ from grunt import _, log
 from grunt.api.messages import ApplicationError
 from grunt.config import settings
 from grunt.errors import error_body
+from grunt.logging_config import mark_logged
 
 if TYPE_CHECKING:
     from fastapi import FastAPI
@@ -192,7 +193,8 @@ async def _persist_error_log(request: Request, exc: Exception) -> None:
 
 
 async def _generic_exception(request: Request, exc: Exception) -> Response:
-    log.exception("unhandled_error", error=str(exc))
+    log.exception("unhandled_error", path=request.url.path)
+    mark_logged(exc)
     await _persist_error_log(request, exc)
 
     if not settings.debug:

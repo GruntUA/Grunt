@@ -29,6 +29,10 @@ class Settings(BaseSettings):
     # Logging
     log_level: str = "INFO"
     log_to_file: bool = True
+    # Console tracebacks: compact (exception + project frames) by default; the
+    # full one always goes to logs/system/grunt.log and ErrorLog. True prints
+    # rich's boxed traceback with every frame instead.
+    log_rich_tracebacks: bool = False
 
     # Database
     database_url: str = "sqlite+aiosqlite:///./grunt.db"
