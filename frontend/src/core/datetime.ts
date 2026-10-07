@@ -181,3 +181,21 @@ export function formatRelative(value: DateInput): string {
   }
   return rtf.format(0, 'second')
 }
+
+/**
+ * Compact age for dense lists, Frappe-style: "5 хв", "3 дн.", "9 міс.", "1 р.".
+ * No "ago" suffix - the column header carries the meaning.
+ */
+export function formatAge(value: DateInput): string {
+  const d = toDate(value)
+  if (!d) return EMPTY_DATE
+  const seconds = Math.max(0, Math.round((Date.now() - d.getTime()) / 1000))
+  if (seconds < 60) return t('just now')
+  for (const [unit, secs] of REL_STEPS) {
+    if (seconds >= secs) {
+      return new Intl.NumberFormat(localeTag(), { style: 'unit', unit, unitDisplay: 'short' })
+        .format(Math.floor(seconds / secs))
+    }
+  }
+  return t('just now')
+}

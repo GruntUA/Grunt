@@ -68,6 +68,7 @@ function handleSelectGroup(items: Record<string, unknown>[]) {
           :selected-ids="[]"
           :status-config="statusConfigOf(dt)"
           :hide-body="true"
+          :doctype="doctype"
           @sort="emit('sort', $event)"
           @select-all="emit('selectAll')"
         />
@@ -128,6 +129,7 @@ function handleSelectGroup(items: Record<string, unknown>[]) {
                 :rows="group.items"
                 :fields="dt?.fields ?? []"
                 :row-link-base="`/app/${workspace}/${doctype}`"
+                :doctype="doctype"
                 :is-loading="false"
                 :sort-key="sortKey"
                 :sort-order="sortOrder"

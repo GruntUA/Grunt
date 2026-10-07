@@ -5,6 +5,7 @@ import {
   formatDateTime,
   formatTime,
   dateFormatSpec,
+  formatAge,
   EMPTY_DATE,
 } from '@/core/datetime'
 
@@ -83,5 +84,14 @@ describe('core/datetime', () => {
     expect(dateFormatSpec()).toEqual({ sep: '-', order: ['y', 'm', 'd'], placeholder: 'YYYY-MM-DD' })
     setConfig({ dateFormat: 'dd/mm/yyyy' })
     expect(dateFormatSpec()).toEqual({ sep: '/', order: ['d', 'm', 'y'], placeholder: 'DD/MM/YYYY' })
+  })
+
+  it('formatAge gives a compact Frappe-style age', () => {
+    const ago = (secs: number) => new Date(Date.now() - secs * 1000)
+    expect(formatAge(null)).toBe(EMPTY_DATE)
+    expect(formatAge(ago(5))).toBe('just now')
+    expect(formatAge(ago(5 * 60))).toMatch(/^5\s/)
+    expect(formatAge(ago(3 * 86400))).toMatch(/^3\s/)
+    expect(formatAge(ago(400 * 86400))).toMatch(/^1\s/)
   })
 })

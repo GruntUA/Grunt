@@ -1258,6 +1258,10 @@ msgstr ""
 msgid "Commented"
 msgstr ""
 
+#: grunt/frontend/src/components/views/list/ListRowMeta.vue:22
+msgid "Comments"
+msgstr ""
+
 #: grunt/frontend/src/components/views/form/FormHeader.vue:449
 msgid "Compact"
 msgstr ""
@@ -2023,6 +2027,7 @@ msgstr ""
 #: grunt/grunt/permissions/doctypes/SharedWith/shared_with.py:39
 #: grunt/grunt/api/v1/share.py:50
 #: grunt/grunt/activity/doctypes/DocFollow/doc_follow.py:24
+#: grunt/grunt/activity/doctypes/DocLike/doc_like.py:24
 #: grunt/frontend/src/plugins/i18n.ts:16
 msgid "Document not found"
 msgstr ""
@@ -2819,7 +2824,7 @@ msgstr ""
 #: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:91
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:276
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:389
-#: grunt/frontend/src/components/views/list/ListGroupedView.vue:93
+#: grunt/frontend/src/components/views/list/ListGroupedView.vue:94
 msgid "Group"
 msgstr ""
 
@@ -3352,6 +3357,8 @@ msgstr ""
 msgid "Last page"
 msgstr ""
 
+#: grunt/frontend/src/components/views/GruntDataTable.vue:186
+#: grunt/frontend/src/components/views/list/ListRowMeta.vue:19
 #: grunt/frontend/src/components/views/list/ListToolbarControls.vue:65
 msgid "Last updated"
 msgstr ""
@@ -3388,6 +3395,10 @@ msgstr ""
 #: grunt/frontend/src/pages/DeskPage.vue:148
 #: grunt/frontend/src/components/app/AppSidebar.vue:279
 msgid "Light"
+msgstr ""
+
+#: grunt/frontend/src/components/views/list/ListRowMeta.vue:27
+msgid "Like"
 msgstr ""
 
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:444
@@ -3839,6 +3850,7 @@ msgstr ""
 
 #: grunt/grunt/document/mixins/write.py:358
 #: grunt/grunt/activity/doctypes/DocFollow/doc_follow.py:26
+#: grunt/grunt/activity/doctypes/DocLike/doc_like.py:26
 msgid "No access to the document"
 msgstr ""
 
@@ -5368,7 +5380,7 @@ msgstr ""
 msgid "Select {doctype}…"
 msgstr ""
 
-#: grunt/frontend/src/components/views/list/ListCards.vue:134
+#: grunt/frontend/src/components/views/list/ListCards.vue:138
 msgid "Select {id}"
 msgstr ""
 
@@ -5682,6 +5694,7 @@ msgstr ""
 
 #: grunt/grunt/permissions/doctypes/SharedWith/shared_with.py:22
 #: grunt/grunt/activity/doctypes/DocFollow/doc_follow.py:19
+#: grunt/grunt/activity/doctypes/DocLike/doc_like.py:19
 msgid "Specify a user"
 msgstr ""
 
@@ -6583,6 +6596,10 @@ msgstr ""
 msgid "Unknown passkey"
 msgstr ""
 
+#: grunt/frontend/src/components/views/list/ListRowMeta.vue:27
+msgid "Unlike"
+msgstr ""
+
 #: grunt/grunt/monitoring/health.py:230
 msgid "Unregistered jobs"
 msgstr ""
@@ -6599,8 +6616,8 @@ msgstr ""
 msgid "Unsaved changes found ({time}). Restore the draft?"
 msgstr ""
 
-#: grunt/frontend/src/components/views/GruntDataTable.vue:197
-#: grunt/frontend/src/components/views/list/ListCards.vue:143
+#: grunt/frontend/src/components/views/GruntDataTable.vue:220
+#: grunt/frontend/src/components/views/list/ListCards.vue:147
 msgid "Unseen"
 msgstr ""
 
@@ -6963,6 +6980,10 @@ msgstr ""
 msgid "Yes"
 msgstr ""
 
+#: grunt/grunt/activity/doctypes/DocLike/doc_like.py:37
+msgid "You already like this document"
+msgstr ""
+
 #: grunt/frontend/src/components/views/BulkActionBar.vue:234
 msgid "You are about to delete {n} records. This cannot be undone."
 msgstr ""
@@ -7320,6 +7341,8 @@ msgid "is set"
 msgstr ""
 
 #: grunt/frontend/src/pages/DeskPage.vue:102
+#: grunt/frontend/src/core/datetime.ts:193
+#: grunt/frontend/src/core/datetime.ts:200
 #: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:68
 msgid "just now"
 msgstr ""
@@ -8017,6 +8040,11 @@ msgctxt "help:DocFollow"
 msgid ""
 "A user following one document: they are notified when it changes or gets a "
 "comment."
+msgstr ""
+
+#: grunt/grunt/activity/doctypes/DocLike/DocLike.json
+msgctxt "help:DocLike"
+msgid "A user's like on one document (the heart in list views)."
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
@@ -10205,6 +10233,26 @@ msgstr ""
 
 #: grunt/grunt/activity/doctypes/DocFollow/DocFollow.json
 msgctxt "meta:DocFollow.user"
+msgid "User"
+msgstr ""
+
+#: grunt/grunt/activity/doctypes/DocLike/DocLike.json
+msgctxt "meta:DocLike"
+msgid "Document like"
+msgstr ""
+
+#: grunt/grunt/activity/doctypes/DocLike/DocLike.json
+msgctxt "meta:DocLike.reference_doctype"
+msgid "Document type"
+msgstr ""
+
+#: grunt/grunt/activity/doctypes/DocLike/DocLike.json
+msgctxt "meta:DocLike.reference_id"
+msgid "Document"
+msgstr ""
+
+#: grunt/grunt/activity/doctypes/DocLike/DocLike.json
+msgctxt "meta:DocLike.user"
 msgid "User"
 msgstr ""
 

@@ -175,6 +175,13 @@ export interface LinkSearchItem {
   fields?: LinkSearchFieldValue[]
 }
 
+/** Per-row counters shown next to the age in list views. */
+export interface ListBadge {
+  comments: number
+  likes: number
+  liked: boolean
+}
+
 export const docsApi = {
   linkSearch: async (
     doctype: string,
@@ -423,6 +430,16 @@ export const docsApi = {
     client.get('/api/v1/method/grunt.activity.get_view_info', {
       params: { doctype, doc_id: id },
     }).then(r => r.data.data ?? { seen: [], views: 0, viewers: 0 }),
+
+  // List row badges (comments / likes) and likes
+
+  getListBadges: (doctype: string, ids: string[]): Promise<Record<string, ListBadge>> =>
+    client.post('/api/v1/method/grunt.activity.likes.get_list_badges', { doctype, ids })
+      .then(r => r.data.data ?? {}),
+
+  toggleLike: (doctype: string, id: string): Promise<{ liked: boolean; likes: number }> =>
+    client.post('/api/v1/method/grunt.activity.likes.toggle_like', { doctype, doc_id: id })
+      .then(r => r.data.data),
 
   // Bulk update
 

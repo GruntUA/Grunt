@@ -38,6 +38,7 @@ doc_events: dict[str, dict[str, list[str]]] = {
             "grunt.activity.trash.snapshot_deleted_document",
             "grunt.activity.log_activity",
             "grunt.activity.follow.drop_follows",
+            "grunt.activity.likes.drop_likes",
         ],
         # Record per-user "seen" state / ViewLog for DocTypes that opt in via
         # track_seen / track_views (no-op for everything else).

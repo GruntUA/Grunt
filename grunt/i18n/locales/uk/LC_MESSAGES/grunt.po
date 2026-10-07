@@ -19,6 +19,7 @@ msgstr ""
 #: grunt/grunt/permissions/doctypes/SharedWith/shared_with.py:39
 #: grunt/grunt/api/v1/share.py:50
 #: grunt/grunt/activity/doctypes/DocFollow/doc_follow.py:24
+#: grunt/grunt/activity/doctypes/DocLike/doc_like.py:24
 #: grunt/frontend/src/plugins/i18n.ts:16
 msgid "Document not found"
 msgstr "Документ не знайдено"
@@ -6155,6 +6156,8 @@ msgstr "Одне з"
 msgid "Is none of"
 msgstr "Жодне з"
 
+#: grunt/frontend/src/components/views/GruntDataTable.vue:186
+#: grunt/frontend/src/components/views/list/ListRowMeta.vue:19
 #: grunt/frontend/src/components/views/list/ListToolbarControls.vue:65
 msgid "Last updated"
 msgstr "Дата оновлення"
@@ -6591,6 +6594,8 @@ msgid "Good evening, {name}"
 msgstr "Доброго вечора, {name}"
 
 #: grunt/frontend/src/pages/DeskPage.vue:102
+#: grunt/frontend/src/core/datetime.ts:193
+#: grunt/frontend/src/core/datetime.ts:200
 #: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:68
 msgid "just now"
 msgstr "щойно"
@@ -7070,7 +7075,7 @@ msgstr "Застосовано «{name}»"
 #: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:91
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:276
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:389
-#: grunt/frontend/src/components/views/list/ListGroupedView.vue:93
+#: grunt/frontend/src/components/views/list/ListGroupedView.vue:94
 msgid "Group"
 msgstr "Група"
 
@@ -7345,7 +7350,7 @@ msgstr "{type} звіт"
 msgid "Rows: {n}"
 msgstr "Рядків: {n}"
 
-#: grunt/frontend/src/components/views/list/ListCards.vue:134
+#: grunt/frontend/src/components/views/list/ListCards.vue:138
 msgid "Select {id}"
 msgstr "Вибрати {id}"
 
@@ -7422,8 +7427,8 @@ msgstr "Відкрити документи"
 msgid "Report execution error"
 msgstr "Помилка виконання звіту"
 
-#: grunt/frontend/src/components/views/GruntDataTable.vue:197
-#: grunt/frontend/src/components/views/list/ListCards.vue:143
+#: grunt/frontend/src/components/views/GruntDataTable.vue:220
+#: grunt/frontend/src/components/views/list/ListCards.vue:147
 msgid "Unseen"
 msgstr "Не переглянуто"
 
@@ -13445,6 +13450,7 @@ msgstr ""
 
 #: grunt/grunt/permissions/doctypes/SharedWith/shared_with.py:22
 #: grunt/grunt/activity/doctypes/DocFollow/doc_follow.py:19
+#: grunt/grunt/activity/doctypes/DocLike/doc_like.py:19
 msgid "Specify a user"
 msgstr "Вкажіть користувача"
 
@@ -13458,6 +13464,7 @@ msgstr "Користувача «%(user)s» не знайдено"
 
 #: grunt/grunt/document/mixins/write.py:358
 #: grunt/grunt/activity/doctypes/DocFollow/doc_follow.py:26
+#: grunt/grunt/activity/doctypes/DocLike/doc_like.py:26
 msgid "No access to the document"
 msgstr "Немає доступу до документа"
 
@@ -15330,6 +15337,47 @@ msgstr "Перезняти"
 #: grunt/frontend/src/components/files/CameraCapture.vue:125
 msgid "Switch camera"
 msgstr "Перемкнути камеру"
+
+#: grunt/frontend/src/components/views/list/ListRowMeta.vue:22
+msgid "Comments"
+msgstr "Коментарі"
+
+#: grunt/frontend/src/components/views/list/ListRowMeta.vue:27
+msgid "Like"
+msgstr "Подобається"
+
+#: grunt/frontend/src/components/views/list/ListRowMeta.vue:27
+msgid "Unlike"
+msgstr "Більше не подобається"
+
+#: grunt/grunt/activity/doctypes/DocLike/doc_like.py:37
+msgid "You already like this document"
+msgstr "Вам уже подобається цей документ"
+
+#: grunt/grunt/activity/doctypes/DocLike/DocLike.json
+msgctxt "help:DocLike"
+msgid "A user's like on one document (the heart in list views)."
+msgstr "Позначка «подобається» користувача на документі (сердечко у списках)."
+
+#: grunt/grunt/activity/doctypes/DocLike/DocLike.json
+msgctxt "meta:DocLike"
+msgid "Document like"
+msgstr "Вподобання документа"
+
+#: grunt/grunt/activity/doctypes/DocLike/DocLike.json
+msgctxt "meta:DocLike.reference_doctype"
+msgid "Document type"
+msgstr ""
+
+#: grunt/grunt/activity/doctypes/DocLike/DocLike.json
+msgctxt "meta:DocLike.reference_id"
+msgid "Document"
+msgstr ""
+
+#: grunt/grunt/activity/doctypes/DocLike/DocLike.json
+msgctxt "meta:DocLike.user"
+msgid "User"
+msgstr ""
 
 #~ msgid "File deleted"
 #~ msgstr "Файл видалено"

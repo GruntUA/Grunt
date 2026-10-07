@@ -14,6 +14,8 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { TableBody, TableCell } from '@/components/ui/table'
 import ListEmptyState from '@/components/views/ListEmptyState.vue'
 import { useRowDrag } from '@/core/composables/useRowDrag'
+import { useListBadges } from '@/core/composables/useListBadges'
+import ListRowMeta from '@/components/views/list/ListRowMeta.vue'
 
 const { t } = useI18n()
 const props = defineProps<{
@@ -30,6 +32,8 @@ const props = defineProps<{
   hideHeader?: boolean
   hideBody?: boolean
   meta?: Pick<PaginationMeta, 'unavailable' | 'unavailable_message'>
+  /** Set for DocType lists: adds the trailing system column (age · comments · like). */
+  doctype?: string
 }>()
 
 const emit = defineEmits<{
@@ -49,6 +53,14 @@ function getRowDocId(row: Record<string, unknown>): string | null {
   const normalized = String(raw)
   return normalized.length > 0 ? normalized : null
 }
+
+// Trailing system column
+const showMeta = computed(() => !!props.doctype)
+const { badges, toggleLike } = useListBadges(
+  () => (props.hideBody ? undefined : props.doctype),
+  () => props.rows.map(r => getRowDocId(r)).filter((id): id is string => !!id),
+)
+const colCount = computed(() => props.columns.length + 1 + (showMeta.value ? 1 : 0))
 
 // Seen / unseen (track_seen)
 // `_seen` is only present in the row when the DocType opts into track_seen and
@@ -117,6 +129,14 @@ function getFieldType(key: string): string {
   return fieldMap.value[key]?.fieldtype ?? 'Text'
 }
 
+function colField(col: ListColumn): DocField {
+  return fieldMap.value[col.key] ?? ({ fieldname: col.key, fieldtype: 'Data', label: col.label } as DocField)
+}
+
+function colCell(col: ListColumn) {
+  return getListCell(colField(col).fieldtype) ?? DefaultListCell
+}
+
 function rowHref(row: Record<string, unknown>): string | null {
   if (!props.rowLinkBase) return null
   const id = getRowDocId(row)
@@ -162,6 +182,9 @@ function isRowSelected(row: Record<string, unknown>): boolean {
             </template>
           </span>
         </TableHead>
+        <TableHead v-if="showMeta" class="w-px border-b border-border/40 px-3 py-2.5">
+          <span class="sr-only">{{ t('Last updated') }}</span>
+        </TableHead>
       </TableRow>
     </TableHeader>
 
@@ -169,7 +192,7 @@ function isRowSelected(row: Record<string, unknown>): boolean {
       <!-- Skeleton loading -->
       <template v-if="isLoading && !rows.length">
         <TableRow v-for="i in 8" :key="i" class="border-b border-border/20 last:border-0">
-          <TableCell :colspan="columns.length + 1" class="px-3 py-2.5">
+          <TableCell :colspan="colCount" class="px-3 py-2.5">
             <Skeleton class="h-[1.5rem]" />
           </TableCell>
         </TableRow>
@@ -177,7 +200,7 @@ function isRowSelected(row: Record<string, unknown>): boolean {
 
       <!-- Empty state -->
       <TableRow v-else-if="!isLoading && !rows.length">
-        <TableCell :colspan="columns.length + 1" class="border-0 p-0">
+        <TableCell :colspan="colCount" class="border-0 p-0">
           <ListEmptyState class="py-16" :meta="meta" />
         </TableCell>
       </TableRow>
@@ -216,18 +239,21 @@ function isRowSelected(row: Record<string, unknown>): boolean {
               <a v-if="rowHref(row)" :href="rowHref(row)!" class="block"
                 :class="ci === 0 ? firstColClass(row, col.key) : (seenState(row) === 'seen' ? 'text-muted-foreground/70' : '')"
                 @click.stop="onRowAnchorClick($event, row)">
-                <component :is="getListCell(getFieldType(col.key)) ?? DefaultListCell" :value="row[col.key]" :row="row"
-                  :field="fieldMap[col.key] ?? { fieldname: col.key, fieldtype: 'Data', label: col.label }"
+                <component :is="colCell(col)" :value="row[col.key]" :row="row" :field="colField(col)"
                   :status-config="statusConfig" />
               </a>
               <div v-else
                 :class="ci === 0 ? firstColClass(row, col.key) : (seenState(row) === 'seen' ? 'text-muted-foreground/70' : '')">
-                <component :is="getListCell(getFieldType(col.key)) ?? DefaultListCell" :value="row[col.key]" :row="row"
-                  :field="fieldMap[col.key] ?? { fieldname: col.key, fieldtype: 'Data', label: col.label }"
+                <component :is="colCell(col)" :value="row[col.key]" :row="row" :field="colField(col)"
                   :status-config="statusConfig" />
               </div>
             </template>
           </div>
+        </TableCell>
+
+        <TableCell v-if="showMeta" class="w-px px-3 py-2.5 border-b border-border/10">
+          <ListRowMeta :modified-at="row.modified_at" :badge="badges[getRowDocId(row) ?? '']"
+            @like="toggleLike(getRowDocId(row) ?? '')" />
         </TableCell>
       </TableRow>
     </TableBody>

@@ -137,6 +137,7 @@ function rowDocId(row: Record<string, unknown>): string {
             :fields="fields"
             :meta="meta"
             :row-link-base="`/app/${workspace}/${doctype}`"
+            :doctype="doctype"
             :is-loading="isLoading"
             :sort-key="normalizedSortKey"
             :sort-order="sortOrder"

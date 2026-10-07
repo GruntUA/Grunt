@@ -7,6 +7,8 @@ import { getListCell } from '@/core/listCellRegistry'
 import { resolveStatusBadge, statusConfigOf } from '@/core/status'
 import { docUrl } from '@/core/workspaceUrl'
 import { useAuthStore } from '@/stores/auth'
+import { useListBadges } from '@/core/composables/useListBadges'
+import ListRowMeta from '@/components/views/list/ListRowMeta.vue'
 import DefaultListCell from '@/components/fields/Default/ListCell.vue'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
@@ -95,6 +97,8 @@ function isUnseen(row: Record<string, unknown>): boolean {
   return Array.isArray(row._seen) && !row._seen.includes(auth.user?.email ?? '')
 }
 
+const { badges, toggleLike } = useListBadges(() => props.doctype, () => props.rows.map(rowId).filter(Boolean))
+
 function href(row: Record<string, unknown>): string {
   return docUrl(props.doctype, rowId(row), props.workspace)
 }
@@ -172,6 +176,9 @@ function onTitleClick(event: MouseEvent, row: Record<string, unknown>) {
           </template>
         </template>
       </dl>
+
+      <ListRowMeta class="pl-7" :modified-at="row.modified_at" :badge="badges[rowId(row)]"
+        @like="toggleLike(rowId(row))" />
     </Card>
   </div>
 </template>
