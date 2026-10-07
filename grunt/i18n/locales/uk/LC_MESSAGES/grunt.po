@@ -50,7 +50,7 @@ msgstr "Немає даних"
 #: grunt/grunt/website/doc_layout.py:49 grunt/grunt/api/v1/docs/utils.py:45
 #: grunt/frontend/src/components/pwa/PWAInstallPrompt.vue:108
 #: grunt/frontend/src/components/views/QuickFilterBar.vue:47
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:123
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:139
 #: grunt/frontend/src/components/views/sidebar/TimelineChanges.vue:49
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:235
 #: grunt/frontend/src/components/views/list/ListGroupedView.vue:48
@@ -62,7 +62,7 @@ msgstr "Так"
 
 #: grunt/grunt/website/doc_layout.py:49 grunt/grunt/api/v1/docs/utils.py:45
 #: grunt/frontend/src/components/views/QuickFilterBar.vue:47
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:123
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:139
 #: grunt/frontend/src/components/views/sidebar/TimelineChanges.vue:49
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:235
 #: grunt/frontend/src/components/views/list/ListGroupedView.vue:48
@@ -2946,7 +2946,7 @@ msgid "Barcode not found in image."
 msgstr "На зображенні не знайдено штрихкоду."
 
 #: grunt/frontend/src/components/views/BulkActionBar.vue:313
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:107
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:123
 msgid "Bulk Update"
 msgstr "Масове оновлення"
 
@@ -3190,7 +3190,7 @@ msgstr "Зовнішній URL"
 #: grunt/grunt/api/v1/docs/utils.py:74
 #: grunt/frontend/src/components/views/FilterBar.vue:256
 #: grunt/frontend/src/components/dashboard/sections/AggregationSection.vue:41
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:181
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:197
 #: grunt/frontend/src/components/views/list/ListHeader.vue:128
 #: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:345
 msgid "Field"
@@ -5984,75 +5984,76 @@ msgstr "Що потрібно зробити?"
 msgid "Read"
 msgstr "Читання"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:101
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:102
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:117
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:118
 msgid "Created the document"
 msgstr "Створив документ"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:103
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:104
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:119
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:120
 msgid "Updated the document"
 msgstr "Оновив документ"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:105
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:106
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:121
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:122
 msgid "Deleted the document"
 msgstr "Видалив документ"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:108
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:124
 msgid "Restored a version"
 msgstr "Відновив версію"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:109
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:125
 msgid "Changed the status"
 msgstr "Змінив статус"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:129
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:145
 #: grunt/frontend/src/components/views/sidebar/TimelineChanges.vue:54
 #: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:553
 msgid "{n} rows"
 msgstr "{n} рядків"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:166
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:182
 msgid "Version {n}"
 msgstr "Версія {n}"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:166
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:182
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:379
 msgid "Changes"
 msgstr "Зміни"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:182
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:198
 msgid "Before"
 msgstr "Було"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:183
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:199
 msgid "After"
 msgstr "Стало"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:187
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:203
 msgid "Restore this version"
 msgstr "Відновити цю версію"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:190
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:206
 msgid ""
 "Restore the document to this version? Current field values will be replaced."
 msgstr ""
 "Відновити документ до цієї версії? Поточні значення полів буде замінено."
 
 #: grunt/frontend/src/plugins/__tests__/i18n.spec.ts:29
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:318
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:334
 msgid "Write a comment... @ to mention"
 msgstr "Напишіть коментар... @ для згадки"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:324
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:340
 msgid "Mention a user"
 msgstr "Згадати користувача"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:351
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:367
 msgid "Send"
 msgstr "Надіслати"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:357
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:373
 msgid "No activity yet"
 msgstr "Поки що немає активності"
 
@@ -6788,6 +6789,7 @@ msgstr "Введіть мінімум 2 символи для пошуку"
 msgid "Try rebuilding the index"
 msgstr "Спробувати перебудувати індекс"
 
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:379
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:367
 #: grunt/frontend/src/pages/app/SearchResultsPage.vue:191
 msgid "All"
@@ -14711,7 +14713,7 @@ msgstr "Не вдалося зберегти тег"
 msgid "Add tag…"
 msgstr "Додати тег…"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:387
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:415
 msgid "Delete comment"
 msgstr "Видалити коментар"
 
@@ -14719,7 +14721,7 @@ msgstr "Видалити коментар"
 msgid "Optional. Without it the task only links to the document."
 msgstr "Необов’язково. Без тексту задача лише посилатиметься на документ."
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:346
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:362
 msgid "to send"
 msgstr "— надіслати"
 
@@ -14731,7 +14733,7 @@ msgstr "Порівняти й відновити"
 msgid "Show less"
 msgstr "Згорнути"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:152
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:168
 msgid "changed {n} field"
 msgid_plural "changed {n} fields"
 msgstr[0] "змінив(ла) {n} поле"
@@ -14743,7 +14745,7 @@ msgstr[2] "змінив(ла) {n} полів"
 msgid "cleared"
 msgstr "очищено"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:149
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:165
 msgid "commented"
 msgstr "прокоментував(ла)"
 
@@ -14762,11 +14764,11 @@ msgstr[0] "Ще {n} зміна"
 msgstr[1] "Ще {n} зміни"
 msgstr[2] "Ще {n} змін"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:156
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:172
 msgid "applied «{action}»"
 msgstr "виконав(ла) «{action}»"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:156
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:172
 msgid "changed the state"
 msgstr "змінив(ла) стан"
 
@@ -15338,6 +15340,7 @@ msgstr "Перезняти"
 msgid "Switch camera"
 msgstr "Перемкнути камеру"
 
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:379
 #: grunt/frontend/src/components/views/list/ListRowMeta.vue:22
 msgid "Comments"
 msgstr "Коментарі"
@@ -15378,6 +15381,14 @@ msgstr ""
 msgctxt "meta:DocLike.user"
 msgid "User"
 msgstr ""
+
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:385
+msgid "No changes yet"
+msgstr "Поки що немає змін"
+
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:385
+msgid "No comments yet"
+msgstr "Поки що немає коментарів"
 
 #~ msgid "File deleted"
 #~ msgstr "Файл видалено"

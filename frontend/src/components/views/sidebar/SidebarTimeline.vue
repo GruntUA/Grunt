@@ -21,6 +21,8 @@ import TimelineChanges from './TimelineChanges.vue'
 import { htmlToLine, htmlToText, looksLikeHtml } from '@/lib/htmlText'
 import { statusBadgeFor } from '@/core/status'
 import { Badge } from '@/components/ui/badge'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import { useLocalStorage } from '@vueuse/core'
 
 const { t } = useI18n()
 
@@ -80,6 +82,20 @@ const reversedTimeline = computed(() =>
     return changes.length && !isWorkflowEcho(item, changes) ? [{ ...item, changes }] : []
   }),
 )
+
+type TimelineFilter = 'all' | 'comments' | 'changes'
+const filter = useLocalStorage<TimelineFilter>('grunt.timeline.filter', 'all')
+
+const filterCounts = computed(() => {
+  const comments = reversedTimeline.value.filter((i) => i.type === 'comment').length
+  return { all: reversedTimeline.value.length, comments, changes: reversedTimeline.value.length - comments }
+})
+
+const visibleTimeline = computed(() => {
+  if (filter.value === 'all') return reversedTimeline.value
+  const wantComments = filter.value === 'comments'
+  return reversedTimeline.value.filter((i) => (i.type === 'comment') === wantComments)
+})
 
 function workflowState(item: TimelineItem, key: 'from' | 'to') {
   const state = item.details?.[key]
@@ -357,15 +373,27 @@ onMounted(loadTimeline)
       {{ t('No activity yet') }}
     </div>
 
+    <ToggleGroup v-else type="single" variant="outline" size="sm" class="self-start"
+      :model-value="filter" @update:model-value="(v) => { if (v) filter = v as TimelineFilter }">
+      <ToggleGroupItem v-for="f in (['all', 'comments', 'changes'] as const)" :key="f" :value="f" class="px-2.5">
+        {{ f === 'all' ? t('All') : f === 'comments' ? t('Comments') : t('Changes') }}
+        <span class="text-muted-foreground tabular-nums">{{ filterCounts[f] }}</span>
+      </ToggleGroupItem>
+    </ToggleGroup>
+
+    <div v-if="timeline.length && !visibleTimeline.length" class="py-8 text-center text-muted-foreground">
+      {{ filter === 'comments' ? t('No comments yet') : t('No changes yet') }}
+    </div>
+
     <!-- Timeline -->
-    <ol v-else class="w-full">
-      <li v-for="(item, idx) in reversedTimeline" :key="item.id ?? idx" class="group flex gap-3">
+    <ol v-if="visibleTimeline.length" class="w-full">
+      <li v-for="(item, idx) in visibleTimeline" :key="item.id ?? idx" class="group flex gap-3">
         <div class="flex shrink-0 flex-col items-center">
           <Avatar class="size-7">
             <AvatarImage v-if="item.user_avatar" :src="item.user_avatar" />
             <AvatarFallback class="text-[10px]">{{ initials(item) }}</AvatarFallback>
           </Avatar>
-          <div v-if="idx < reversedTimeline.length - 1" class="my-1 w-px flex-1 bg-border" />
+          <div v-if="idx < visibleTimeline.length - 1" class="my-1 w-px flex-1 bg-border" />
         </div>
         <div class="flex min-w-0 flex-1 flex-col gap-2 pb-6">
           <div class="flex min-h-7 items-center gap-2">
