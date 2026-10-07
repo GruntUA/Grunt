@@ -40,6 +40,8 @@ function formatCell(val: unknown): string {
   <span
     v-if="value !== null && value !== undefined && value !== ''"
     class="inline-flex items-center gap-2 text-foreground/90 font-medium"
+    :data-preview-doctype="field.options || undefined"
+    :data-preview-name="String(value)"
   >
     <Avatar v-if="(field.fieldname + '__image') in row" class="size-6 shrink-0">
       <AvatarImage v-if="row[field.fieldname + '__image']" :src="row[field.fieldname + '__image'] as string" alt="" />

@@ -42,5 +42,9 @@ const isDateField = computed(() => field.value.fieldtype === 'Date' || field.val
       <Checkbox :model-value="!!field.in_quick_entry" @update:model-value="updateField('in_quick_entry', $event)" />
       <label class="font-medium">In Quick Entry</label>
     </div>
+    <div class="flex items-center gap-2">
+      <Checkbox :model-value="!!field.in_preview" @update:model-value="updateField('in_preview', $event)" />
+      <label class="font-medium">In Preview</label>
+    </div>
   </div>
 </template>

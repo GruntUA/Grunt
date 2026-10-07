@@ -80,6 +80,15 @@ export interface SidebarTag { name: string; tag: string }
 
 export interface SidebarPerson { name: string; avatar: string | null }
 
+/** Link hover card payload (Document.get_preview). */
+export interface DocPreview {
+  name: string
+  title: string
+  image: string | null
+  row: Record<string, unknown>
+  fields: { fieldname: string; label: string; fieldtype: string; options?: string | null }[]
+}
+
 export interface SidebarBundle {
   assignees: SidebarAssignee[]
   shares: SidebarShare[]
@@ -294,6 +303,11 @@ export const docsApi = {
     client.get('/api/v1/method/grunt.document.base.Document.get_backlinks', {
       params: { doctype, doc_id: id },
     }).then(r => r.data.data ?? []),
+
+  getPreview: (doctype: string, id: string): Promise<DocPreview | null> =>
+    client.get('/api/v1/method/grunt.document.base.Document.get_preview', {
+      params: { doctype, doc_id: id },
+    }).then(r => r.data.data ?? null),
 
   getSidebar: (doctype: string, id: string): Promise<SidebarBundle> =>
     client.get('/api/v1/method/grunt.document.base.Document.get_sidebar', {

@@ -85,11 +85,11 @@ msgid "Select {doctype}…"
 msgstr "Оберіть {doctype}…"
 
 #: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:353
-#: grunt/frontend/src/components/fields/Link/Link.vue:194
+#: grunt/frontend/src/components/fields/Link/Link.vue:196
 msgid "Nothing found for “{query}”"
 msgstr "Нічого не знайдено за запитом «{query}»"
 
-#: grunt/frontend/src/components/fields/Link/Link.vue:228
+#: grunt/frontend/src/components/fields/Link/Link.vue:230
 msgid "Filter:"
 msgstr "Фільтр:"
 
@@ -97,8 +97,8 @@ msgstr "Фільтр:"
 #: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue:183
 #: grunt/frontend/src/components/fields/Link/FilterInput.vue:213
 #: grunt/frontend/src/components/fields/Link/FilterInput.vue:214
-#: grunt/frontend/src/components/fields/Link/Link.vue:139
-#: grunt/frontend/src/components/fields/Link/Link.vue:140
+#: grunt/frontend/src/components/fields/Link/Link.vue:141
+#: grunt/frontend/src/components/fields/Link/Link.vue:142
 #: grunt/frontend/src/components/fields/Color/Color.vue:73
 #: grunt/frontend/src/components/fields/Select/Select.vue:81
 #: grunt/frontend/src/components/fields/Signature/Signature.vue:186
@@ -3045,11 +3045,11 @@ msgstr "Кількість (COUNT)"
 
 #: grunt/frontend/src/components/layout/OfflineQueueSheet.vue:24
 #: grunt/frontend/src/components/files/FileExplorer.vue:673
-#: grunt/frontend/src/components/fields/Link/Link.vue:216
+#: grunt/frontend/src/components/fields/Link/Link.vue:218
 msgid "Create"
 msgstr "Створити"
 
-#: grunt/frontend/src/components/fields/Link/Link.vue:220
+#: grunt/frontend/src/components/fields/Link/Link.vue:222
 msgid "Create new"
 msgstr "Створити новий"
 
@@ -3382,7 +3382,7 @@ msgstr "Немає сповіщень"
 #: grunt/frontend/src/components/dashboard/widgets/List/List.vue:51
 #: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:354
 #: grunt/frontend/src/components/fields/Link/FilterInput.vue:233
-#: grunt/frontend/src/components/fields/Link/Link.vue:195
+#: grunt/frontend/src/components/fields/Link/Link.vue:197
 msgid "No records"
 msgstr "Немає записів"
 
@@ -3414,7 +3414,7 @@ msgid "Notifications"
 msgstr "Сповіщення"
 
 #: grunt/frontend/src/components/fields/Link/Link.vue:86
-#: grunt/frontend/src/components/fields/Link/Link.vue:130
+#: grunt/frontend/src/components/fields/Link/Link.vue:132
 msgid "Open {doctype}"
 msgstr "Відкрити {doctype}"
 
@@ -3596,7 +3596,7 @@ msgstr "Пошук..."
 #: grunt/frontend/src/components/layout/CommandPalette.vue:287
 #: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:352
 #: grunt/frontend/src/components/fields/Link/FilterInput.vue:231
-#: grunt/frontend/src/components/fields/Link/Link.vue:193
+#: grunt/frontend/src/components/fields/Link/Link.vue:195
 #: grunt/frontend/src/pages/app/SearchResultsPage.vue:160
 msgid "Searching..."
 msgstr "Пошук..."
@@ -7650,11 +7650,11 @@ msgstr "Багато"
 msgid "No options"
 msgstr "Немає варіантів"
 
-#: grunt/frontend/src/App.vue:86
+#: grunt/frontend/src/App.vue:87
 msgid "{n} queued"
 msgstr "{n} в черзі"
 
-#: grunt/frontend/src/App.vue:96
+#: grunt/frontend/src/App.vue:97
 msgid "{n} unsynced changes"
 msgstr "{n} несинхронізованих змін"
 
@@ -7701,7 +7701,7 @@ msgstr "Зміни збережено на пристрої — надішлем
 msgid "records"
 msgstr "записів"
 
-#: grunt/frontend/src/App.vue:83
+#: grunt/frontend/src/App.vue:84
 msgid "No connection — viewing from cache, changes are saved on this device"
 msgstr "Немає з'єднання — перегляд з кешу, зміни зберігаються на пристрої"
 
@@ -12915,8 +12915,8 @@ msgid "Text"
 msgstr "Текст"
 
 #: grunt/grunt/webform/service.py:92 grunt/grunt/app/document_api.py:488
-#: grunt/grunt/app/document_api.py:689 grunt/grunt/metadata/registry.py:338
-#: grunt/grunt/metadata/registry.py:622 grunt/grunt/metadata/registry.py:596
+#: grunt/grunt/app/document_api.py:689 grunt/grunt/metadata/registry.py:340
+#: grunt/grunt/metadata/registry.py:624 grunt/grunt/metadata/registry.py:598
 #: grunt/grunt/notification/rule_index.py:53
 #: grunt/grunt/activity/__init__.py:264 grunt/grunt/actions/__init__.py:163
 #: grunt/grunt/document/connections.py:43
@@ -13972,8 +13972,8 @@ msgid ""
 msgstr ""
 "DocType «%(name)s» не є деревом (is_tree=false або tree_view не налаштовано)"
 
-#: grunt/grunt/metadata/registry.py:549 grunt/grunt/metadata/registry.py:641
-#: grunt/grunt/metadata/registry.py:567 grunt/grunt/api/v1/meta.py:134
+#: grunt/grunt/metadata/registry.py:551 grunt/grunt/metadata/registry.py:643
+#: grunt/grunt/metadata/registry.py:569 grunt/grunt/api/v1/meta.py:134
 msgid "DocType “%(doctype)s” already exists"
 msgstr "DocType «%(doctype)s» вже існує"
 
@@ -13981,7 +13981,7 @@ msgstr "DocType «%(doctype)s» вже існує"
 msgid "Document with name '%(new_id)s' already exists"
 msgstr "Документ з назвою «%(new_id)s» вже існує"
 
-#: grunt/grunt/metadata/registry.py:653
+#: grunt/grunt/metadata/registry.py:655
 msgid "Duplicate fieldname '%(fieldname)s' in DocType '%(name)s'"
 msgstr "Дубльоване поле «%(fieldname)s» у DocType «%(name)s»"
 
@@ -13994,7 +13994,7 @@ msgstr "Натомість редагуйте відповідний ServerScrip
 msgid "Expired or invalid WebAuthn challenge"
 msgstr "WebAuthn-виклик прострочений або недійсний"
 
-#: grunt/grunt/metadata/registry.py:672
+#: grunt/grunt/metadata/registry.py:674
 msgid "Fieldname '%(fieldname)s' exceeds %(max)s characters"
 msgstr "Назва поля «%(fieldname)s» довша за %(max)s символів"
 
@@ -14010,7 +14010,7 @@ msgstr "Хук «%(doc_id)s» не знайдено"
 msgid "Incorrect email or password"
 msgstr "Невірна електронна пошта або пароль"
 
-#: grunt/grunt/metadata/registry.py:662
+#: grunt/grunt/metadata/registry.py:664
 msgid ""
 "Invalid fieldname '%(fieldname)s': must start with a-z and contain only a-z,"
 " 0-9, _"
@@ -15389,6 +15389,20 @@ msgstr "Поки що немає змін"
 #: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:385
 msgid "No comments yet"
 msgstr "Поки що немає коментарів"
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgctxt "help:DocType.show_preview_popup"
+msgid ""
+"Hovering a link to a document shows a card with its title, image and the "
+"\"In preview\" fields"
+msgstr ""
+"При наведенні на посилання на документ показується картка з його назвою, "
+"зображенням і полями «У перегляді»"
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgctxt "meta:DocType.show_preview_popup"
+msgid "Show preview popup"
+msgstr "Спливаюча картка попереднього перегляду"
 
 #~ msgid "File deleted"
 #~ msgstr "Файл видалено"

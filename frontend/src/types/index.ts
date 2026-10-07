@@ -76,6 +76,8 @@ export interface DocField {
   link_filters?: string | null
   // Quick Entry
   in_quick_entry?: boolean
+  /** Shown in the link hover card (DocType.show_preview_popup). */
+  in_preview?: boolean
   // Layout
   columns?: number
   collapsible?: boolean
@@ -225,6 +227,7 @@ export interface DocType {
   track_seen?: boolean
   track_views?: boolean
   quick_entry?: boolean
+  show_preview_popup?: boolean
   beta?: boolean
   deprecated?: boolean
   table_name?: string | null

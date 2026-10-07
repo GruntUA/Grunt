@@ -237,6 +237,8 @@ function isRowSelected(row: Record<string, unknown>): boolean {
             <!-- Field-type cell renderer (registry) -->
             <template v-else>
               <a v-if="rowHref(row)" :href="rowHref(row)!" class="block"
+                :data-preview-doctype="ci === 0 ? doctype : undefined"
+                :data-preview-name="ci === 0 ? getRowDocId(row) : undefined"
                 :class="ci === 0 ? firstColClass(row, col.key) : (seenState(row) === 'seen' ? 'text-muted-foreground/70' : '')"
                 @click.stop="onRowAnchorClick($event, row)">
                 <component :is="colCell(col)" :value="row[col.key]" :row="row" :field="colField(col)"

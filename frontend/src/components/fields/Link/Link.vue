@@ -107,6 +107,8 @@ const {
           error ? 'border-destructive focus-visible:ring-destructive' : '',
         ]"
         autocomplete="off"
+        :data-preview-doctype="isSelected && field.options ? field.options : undefined"
+        :data-preview-name="isSelected ? String(modelValue) : undefined"
         role="combobox"
         aria-autocomplete="list"
         :aria-label="field.label"

@@ -282,6 +282,9 @@ class DocType(BaseModel):
     # See grunt.permissions.reference.
     inherit_permission_from: list[str | list[str]] | None = None
     quick_entry: bool = False  # True -> "Create" opens a dialog instead of full form
+    # Hovering a link to a document of this DocType pops up a card with its
+    # title, image and the in_preview fields (required fields when none set).
+    show_preview_popup: bool = False
 
     # Web view - each document is also a public page (see grunt.website.generator).
     # URL: <app mount>/<web_route>/<doc route> - the app mount follows the www/

@@ -8,6 +8,7 @@ import FolderPickerDialog from '@/components/files/FolderPickerDialog.vue'
 import TaskProgressPanel from '@/components/desk/TaskProgressPanel.vue'
 import ErrorBoundary from '@/components/ErrorBoundary.vue'
 import CommandPalette from '@/components/layout/CommandPalette.vue'
+import LinkPreview from '@/components/layout/LinkPreview.vue'
 import PWAInstallPrompt from '@/components/pwa/PWAInstallPrompt.vue'
 import ServerErrorModal from '@/components/debug/ServerErrorModal.vue'
 import { loadRemoteTranslations } from '@/plugins/i18n'
@@ -102,6 +103,7 @@ onUnmounted(() => {
         :offset="toastOffset" :mobile-offset="toastOffset" />
 
       <CommandPalette />
+      <LinkPreview />
       <PWAInstallPrompt />
     </ErrorBoundary>
   </TooltipProvider>

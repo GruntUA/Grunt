@@ -1130,8 +1130,8 @@ msgstr ""
 #: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue:183
 #: grunt/frontend/src/components/fields/Link/FilterInput.vue:213
 #: grunt/frontend/src/components/fields/Link/FilterInput.vue:214
-#: grunt/frontend/src/components/fields/Link/Link.vue:139
-#: grunt/frontend/src/components/fields/Link/Link.vue:140
+#: grunt/frontend/src/components/fields/Link/Link.vue:141
+#: grunt/frontend/src/components/fields/Link/Link.vue:142
 #: grunt/frontend/src/components/fields/Color/Color.vue:73
 #: grunt/frontend/src/components/fields/Select/Select.vue:81
 #: grunt/frontend/src/components/fields/Signature/Signature.vue:186
@@ -1600,7 +1600,7 @@ msgstr ""
 
 #: grunt/frontend/src/components/layout/OfflineQueueSheet.vue:24
 #: grunt/frontend/src/components/files/FileExplorer.vue:673
-#: grunt/frontend/src/components/fields/Link/Link.vue:216
+#: grunt/frontend/src/components/fields/Link/Link.vue:218
 msgid "Create"
 msgstr ""
 
@@ -1621,7 +1621,7 @@ msgstr ""
 msgid "Create backup"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/Link/Link.vue:220
+#: grunt/frontend/src/components/fields/Link/Link.vue:222
 msgid "Create new"
 msgstr ""
 
@@ -1986,8 +1986,8 @@ msgstr ""
 msgid "DocType not found"
 msgstr ""
 
-#: grunt/grunt/metadata/registry.py:549 grunt/grunt/metadata/registry.py:641
-#: grunt/grunt/metadata/registry.py:567 grunt/grunt/api/v1/meta.py:134
+#: grunt/grunt/metadata/registry.py:551 grunt/grunt/metadata/registry.py:643
+#: grunt/grunt/metadata/registry.py:569 grunt/grunt/api/v1/meta.py:134
 msgid "DocType “%(doctype)s” already exists"
 msgstr ""
 
@@ -1996,8 +1996,8 @@ msgid "DocType “%(doctype)s” no longer exists"
 msgstr ""
 
 #: grunt/grunt/webform/service.py:92 grunt/grunt/app/document_api.py:488
-#: grunt/grunt/app/document_api.py:689 grunt/grunt/metadata/registry.py:338
-#: grunt/grunt/metadata/registry.py:622 grunt/grunt/metadata/registry.py:596
+#: grunt/grunt/app/document_api.py:689 grunt/grunt/metadata/registry.py:340
+#: grunt/grunt/metadata/registry.py:624 grunt/grunt/metadata/registry.py:598
 #: grunt/grunt/notification/rule_index.py:53
 #: grunt/grunt/activity/__init__.py:264 grunt/grunt/actions/__init__.py:163
 #: grunt/grunt/document/connections.py:43
@@ -2140,7 +2140,7 @@ msgstr ""
 msgid "Duplicate"
 msgstr ""
 
-#: grunt/grunt/metadata/registry.py:653
+#: grunt/grunt/metadata/registry.py:655
 msgid "Duplicate fieldname '%(fieldname)s' in DocType '%(name)s'"
 msgstr ""
 
@@ -2493,7 +2493,7 @@ msgstr ""
 msgid "Field “{label}”: invalid value"
 msgstr ""
 
-#: grunt/grunt/metadata/registry.py:672
+#: grunt/grunt/metadata/registry.py:674
 msgid "Fieldname '%(fieldname)s' exceeds %(max)s characters"
 msgstr ""
 
@@ -2572,7 +2572,7 @@ msgstr ""
 msgid "Filter by DocType"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/Link/Link.vue:228
+#: grunt/frontend/src/components/fields/Link/Link.vue:230
 msgid "Filter:"
 msgstr ""
 
@@ -3191,7 +3191,7 @@ msgstr ""
 msgid "Invalid email or password"
 msgstr ""
 
-#: grunt/grunt/metadata/registry.py:662
+#: grunt/grunt/metadata/registry.py:664
 msgid ""
 "Invalid fieldname '%(fieldname)s': must start with a-z and contain only a-z,"
 " 0-9, _"
@@ -3925,7 +3925,7 @@ msgid ""
 "automatically"
 msgstr ""
 
-#: grunt/frontend/src/App.vue:83
+#: grunt/frontend/src/App.vue:84
 msgid "No connection — viewing from cache, changes are saved on this device"
 msgstr ""
 
@@ -4015,7 +4015,7 @@ msgstr ""
 #: grunt/frontend/src/components/dashboard/widgets/List/List.vue:51
 #: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:354
 #: grunt/frontend/src/components/fields/Link/FilterInput.vue:233
-#: grunt/frontend/src/components/fields/Link/Link.vue:195
+#: grunt/frontend/src/components/fields/Link/Link.vue:197
 msgid "No records"
 msgstr ""
 
@@ -4190,7 +4190,7 @@ msgid "Nothing found for"
 msgstr ""
 
 #: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:353
-#: grunt/frontend/src/components/fields/Link/Link.vue:194
+#: grunt/frontend/src/components/fields/Link/Link.vue:196
 msgid "Nothing found for “{query}”"
 msgstr ""
 
@@ -4330,7 +4330,7 @@ msgid ""
 msgstr ""
 
 #: grunt/frontend/src/components/fields/Link/Link.vue:86
-#: grunt/frontend/src/components/fields/Link/Link.vue:130
+#: grunt/frontend/src/components/fields/Link/Link.vue:132
 msgid "Open {doctype}"
 msgstr ""
 
@@ -5309,7 +5309,7 @@ msgstr ""
 #: grunt/frontend/src/components/layout/CommandPalette.vue:287
 #: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:352
 #: grunt/frontend/src/components/fields/Link/FilterInput.vue:231
-#: grunt/frontend/src/components/fields/Link/Link.vue:193
+#: grunt/frontend/src/components/fields/Link/Link.vue:195
 #: grunt/frontend/src/pages/app/SearchResultsPage.vue:160
 msgid "Searching..."
 msgstr ""
@@ -7763,7 +7763,7 @@ msgstr[1] ""
 msgid "{n} of {max}"
 msgstr ""
 
-#: grunt/frontend/src/App.vue:86
+#: grunt/frontend/src/App.vue:87
 msgid "{n} queued"
 msgstr ""
 
@@ -7798,7 +7798,7 @@ msgstr ""
 msgid "{n} selected"
 msgstr ""
 
-#: grunt/frontend/src/App.vue:96
+#: grunt/frontend/src/App.vue:97
 msgid "{n} unsynced changes"
 msgstr ""
 
@@ -8289,6 +8289,13 @@ msgstr ""
 msgctxt "help:DocType.shares_cover_subtree"
 msgid ""
 "Sharing a node with a user (Share) also gives access to all its descendants"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgctxt "help:DocType.show_preview_popup"
+msgid ""
+"Hovering a link to a document shows a card with its title, image and the "
+"\"In preview\" fields"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
@@ -10685,6 +10692,11 @@ msgstr ""
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgctxt "meta:DocType.shares_cover_subtree"
 msgid "Sharing covers subtree"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgctxt "meta:DocType.show_preview_popup"
+msgid "Show preview popup"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json

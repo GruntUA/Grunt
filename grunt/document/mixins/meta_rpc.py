@@ -2,6 +2,7 @@
 
 RPC: grunt.document.base.Document.get_backlinks
 RPC: grunt.document.base.Document.get_sidebar
+RPC: grunt.document.base.Document.get_preview
 RPC: grunt.document.base.Document.get_field_years
 """
 
@@ -10,6 +11,7 @@ from __future__ import annotations
 from typing import Any
 
 import grunt
+from grunt.i18n import _
 
 
 def _iso(value: Any) -> str | None:
@@ -89,6 +91,57 @@ class DocumentMetaRPCMixin:
         from grunt.document.links import link_service
 
         return await link_service.get_delete_impact(grunt.get_session(), doctype, ids)
+
+    @staticmethod
+    @grunt.whitelist()
+    async def get_preview(doctype: str, doc_id: str) -> dict[str, Any] | None:
+        """Link hover card: title, image and the ``in_preview`` fields of a document.
+
+        ``None`` when the DocType has ``show_preview_popup`` off or the reader
+        can't see the document. Without ``in_preview`` fields the required
+        ones are shown instead (as Frappe does).
+        """
+        meta = await grunt.get_meta(doctype)
+        if meta is None or not meta.doc.show_preview_popup:
+            return None
+
+        physical = [f for f in meta.get_physical_fields() if f.fieldtype != "Password"]
+        fields = [f for f in physical if f.in_preview] or [f for f in physical if f.required]
+        title_field = meta.get_title_field()
+        image_field = meta.get_image_field()
+        fieldnames = {"name", title_field, *(f.fieldname for f in fields)}
+        if image_field:
+            fieldnames.add(image_field)
+
+        rows = await _optional(
+            grunt.get_list(
+                doctype,
+                filters={"name": doc_id},
+                fields=sorted(fieldnames),
+                limit=1,
+                include_total=False,
+            ),
+            [],
+        )
+        if not rows:
+            return None
+        row = dict(rows[0])
+        return {
+            "name": str(row.get("name") or doc_id),
+            "title": str(row.get(title_field) or doc_id),
+            "image": row.get(image_field) if image_field else None,
+            "row": row,
+            "fields": [
+                {
+                    "fieldname": f.fieldname,
+                    "label": _(f.label or f.fieldname),
+                    "fieldtype": f.fieldtype,
+                    "options": f.options,
+                }
+                for f in fields
+                if f.fieldname not in (title_field, image_field)
+            ],
+        }
 
     @staticmethod
     @grunt.whitelist()

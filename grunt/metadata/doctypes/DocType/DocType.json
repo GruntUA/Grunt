@@ -251,6 +251,12 @@
       "description": "\"Create\" opens a mini-dialog with the required fields instead of the full form"
     },
     {
+      "fieldname": "show_preview_popup",
+      "label": "Show preview popup",
+      "fieldtype": "Check",
+      "description": "Hovering a link to a document shows a card with its title, image and the \"In preview\" fields"
+    },
+    {
       "fieldname": "sec_lifecycle",
       "label": "Lifecycle",
       "fieldtype": "Section"
