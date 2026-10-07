@@ -11,7 +11,7 @@ import pytest
 from grunt.config import settings as cfg
 
 if TYPE_CHECKING:
-    from httpx import AsyncClient
+    from httpx2 import AsyncClient
 
 _M = "/api/v1/method/grunt.auth.doctypes"
 _LOGIN = f"{_M}.User.user.login_api"

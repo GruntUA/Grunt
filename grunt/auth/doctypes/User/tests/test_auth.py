@@ -12,7 +12,7 @@ from grunt.auth.service import create_access_token
 from grunt.site.settings import clear_settings_cache
 
 if TYPE_CHECKING:
-    from httpx import AsyncClient
+    from httpx2 import AsyncClient
 
 
 @pytest.mark.asyncio

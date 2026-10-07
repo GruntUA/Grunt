@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-import httpx
+import httpx2
 from fastapi import HTTPException, Request, Response, UploadFile
 from fastapi.responses import FileResponse
 
@@ -157,7 +157,7 @@ async def upload_from_url(url: str, folder: str | None = None) -> dict[str, Any]
         doc = await fetch_file(url.strip(), folder=folder or None)
     except RemoteFileError as exc:
         raise HTTPException(422, str(exc)) from exc
-    except httpx.HTTPError as exc:
+    except httpx2.HTTPError as exc:
         raise HTTPException(
             422, _("Could not download the file: %(error)s") % {"error": exc}
         ) from exc

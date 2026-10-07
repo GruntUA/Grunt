@@ -23,7 +23,7 @@ def register_dev_proxy(app: FastAPI) -> None:
     if not settings.debug:
         return
 
-    import httpx
+    import httpx2
     from fastapi import HTTPException, Request
     from fastapi.responses import StreamingResponse
 
@@ -37,7 +37,7 @@ def register_dev_proxy(app: FastAPI) -> None:
         query = request.url.query
         target_url = f"{VITE_SERVER_URL}{path}{'?' + query if query else ''}"
 
-        async with httpx.AsyncClient() as client:
+        async with httpx2.AsyncClient() as client:
             # Skip content-length so StreamingResponse can set it.
             headers = {
                 k: v

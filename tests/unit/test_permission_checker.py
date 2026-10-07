@@ -9,7 +9,7 @@ from grunt.metadata.permission import DocPermission
 from grunt.permissions.rbac import permission_checker
 from tests.support import make_user
 
-# No TYPE_CHECKING needed for httpx in direct tests
+# No TYPE_CHECKING needed for httpx2 in direct tests
 
 # ── Unit tests for PermissionChecker ─────────────────────────────────────
 

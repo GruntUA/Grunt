@@ -3,7 +3,7 @@ follows redirects with the same check, and files the download like an upload."""
 
 from __future__ import annotations
 
-import httpx
+import httpx2
 import pytest
 
 from grunt.storage import backends, remote
@@ -41,12 +41,12 @@ def test_filename_from_disposition_or_path():
 
 
 def _mock_client(monkeypatch, handler):
-    real = httpx.AsyncClient
+    real = httpx2.AsyncClient
 
     def factory(**kwargs):
-        return real(transport=httpx.MockTransport(handler), **kwargs)
+        return real(transport=httpx2.MockTransport(handler), **kwargs)
 
-    monkeypatch.setattr(remote.httpx, "AsyncClient", factory)
+    monkeypatch.setattr(remote.httpx2, "AsyncClient", factory)
 
     async def public(url):
         if "internal" in url:
@@ -57,10 +57,10 @@ def _mock_client(monkeypatch, handler):
 
 @pytest.mark.asyncio
 async def test_download_follows_redirects_and_guesses_type_by_name(ctx, storage, monkeypatch):
-    def handler(request: httpx.Request) -> httpx.Response:
+    def handler(request: httpx2.Request) -> httpx2.Response:
         if request.url.path == "/go":
-            return httpx.Response(302, headers={"location": "/files/decision.docx"})
-        return httpx.Response(
+            return httpx2.Response(302, headers={"location": "/files/decision.docx"})
+        return httpx2.Response(
             200, content=b"PK docx bytes", headers={"content-type": "application/octet-stream"}
         )
 
@@ -73,8 +73,8 @@ async def test_download_follows_redirects_and_guesses_type_by_name(ctx, storage,
 
 @pytest.mark.asyncio
 async def test_redirect_to_an_internal_address_is_refused(ctx, storage, monkeypatch):
-    def handler(request: httpx.Request) -> httpx.Response:
-        return httpx.Response(302, headers={"location": "http://internal/secret"})
+    def handler(request: httpx2.Request) -> httpx2.Response:
+        return httpx2.Response(302, headers={"location": "http://internal/secret"})
 
     _mock_client(monkeypatch, handler)
     with pytest.raises(remote.RemoteFileError):
@@ -85,8 +85,8 @@ async def test_redirect_to_an_internal_address_is_refused(ctx, storage, monkeypa
 async def test_too_large_download_is_refused(ctx, storage, monkeypatch):
     monkeypatch.setattr(remote.files, "upload_limit", lambda: 10)
 
-    def handler(request: httpx.Request) -> httpx.Response:
-        return httpx.Response(200, content=b"x" * 100, headers={"content-type": "text/plain"})
+    def handler(request: httpx2.Request) -> httpx2.Response:
+        return httpx2.Response(200, content=b"x" * 100, headers={"content-type": "text/plain"})
 
     _mock_client(monkeypatch, handler)
     with pytest.raises(remote.RemoteFileError):

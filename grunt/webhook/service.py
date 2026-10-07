@@ -15,7 +15,7 @@ import json
 import time
 from typing import TYPE_CHECKING, Any
 
-import httpx
+import httpx2
 
 import grunt
 from grunt import _, log
@@ -163,7 +163,7 @@ class WebhookService:
         start = time.monotonic()
 
         try:
-            async with httpx.AsyncClient(timeout=timeout) as client:
+            async with httpx2.AsyncClient(timeout=timeout) as client:
                 resp = await client.post(url, content=payload, headers=headers)
                 status_code = resp.status_code
                 response_body = resp.text[:4000]

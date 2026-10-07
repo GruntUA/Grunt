@@ -13,7 +13,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-import httpx
+import httpx2
 
 from grunt import log
 from grunt.config import settings
@@ -74,7 +74,7 @@ async def verify_captcha(token: str | None, remote_ip: str) -> bool:
         return False
 
     try:
-        async with httpx.AsyncClient(timeout=10.0) as client:
+        async with httpx2.AsyncClient(timeout=10.0) as client:
             resp = await client.post(
                 verify_url,
                 data={
@@ -85,6 +85,6 @@ async def verify_captcha(token: str | None, remote_ip: str) -> bool:
             )
             resp.raise_for_status()
             return bool(resp.json().get("success"))
-    except httpx.HTTPError:
+    except httpx2.HTTPError:
         log.exception("webform.captcha_verify_failed", provider=config.provider)
         return False

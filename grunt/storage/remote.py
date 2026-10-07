@@ -18,14 +18,14 @@ import tempfile
 from typing import Any, BinaryIO, cast
 from urllib.parse import unquote, urljoin, urlsplit
 
-import httpx
+import httpx2
 
 from grunt import _
 from grunt.storage import files
 from grunt.storage.backends import get_storage_backend
 
 _MAX_REDIRECTS = 5
-_TIMEOUT = httpx.Timeout(30.0, connect=10.0)
+_TIMEOUT = httpx2.Timeout(30.0, connect=10.0)
 _FILENAME = re.compile(r"filename\*?=(?:UTF-8'')?\"?([^\";]+)\"?", re.IGNORECASE)
 
 
@@ -52,8 +52,8 @@ async def fetch_file(url: str, *, folder: str | None = None) -> dict[str, Any]:
     return await files.create_file(key, size, name, content_type, folder=folder)
 
 
-async def _download(url: str, buffer: Any, limit: int) -> tuple[httpx.Headers, str]:
-    async with httpx.AsyncClient(follow_redirects=False, timeout=_TIMEOUT) as client:
+async def _download(url: str, buffer: Any, limit: int) -> tuple[httpx2.Headers, str]:
+    async with httpx2.AsyncClient(follow_redirects=False, timeout=_TIMEOUT) as client:
         for _hop in range(_MAX_REDIRECTS + 1):
             await _check_public(url)
             async with client.stream("GET", url) as response:

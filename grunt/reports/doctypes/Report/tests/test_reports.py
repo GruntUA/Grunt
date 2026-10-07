@@ -17,7 +17,7 @@ from __future__ import annotations
 import io
 
 import pytest
-from httpx import AsyncClient
+from httpx2 import AsyncClient
 
 from grunt.api.messages import ApplicationError
 from grunt.reports.doctypes.Report.report import export_xlsx as export_report_xlsx

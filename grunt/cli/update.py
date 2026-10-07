@@ -191,16 +191,7 @@ def _run_package_update(upgrade: bool = False) -> None:
     app_dir = _grunt_app_dir()
     uv = _find_uv()
     if uv:
-        cmd = [uv, "sync", "--all-extras"]
-        if upgrade:
-            cmd.append("--upgrade")
-        console.print(f"  [dim]{' '.join(cmd[1:])}...[/dim]")
-        env = {k: v for k, v in os.environ.items() if k != "VIRTUAL_ENV"}
-        env["PWD"] = str(app_dir)
-        result = subprocess.run(cmd, cwd=str(app_dir), check=False, env=env)
-        if result.returncode != 0:
-            console.print("  [yellow]⚠[/yellow]  uv sync failed")
-        else:
+        if _uv_sync(uv, app_dir, upgrade):
             _verify_toolchain(app_dir)
             console.print("  [green]✓[/green] Python packages synced")
         return
@@ -212,9 +203,31 @@ def _run_package_update(upgrade: bool = False) -> None:
         console.print("  [green]✓[/green] Python packages synced")
 
 
+def _uv_sync(uv: str, app_dir: Path, upgrade: bool) -> bool:
+    """``uv sync`` the framework, then reinstall the apps' own packages.
+
+    ``--inexact``: the apps and their dependencies are not in the framework's
+    lock, and an exact sync would uninstall them (see grunt.apps.deps).
+    """
+    cmd = [uv, "sync", "--all-extras", "--inexact"]
+    if upgrade:
+        cmd.append("--upgrade")
+    console.print(f"  [dim]{' '.join(cmd[1:])}...[/dim]")
+    env = {k: v for k, v in os.environ.items() if k != "VIRTUAL_ENV"}
+    env["PWD"] = str(app_dir)
+    if subprocess.run(cmd, cwd=str(app_dir), check=False, env=env).returncode != 0:
+        console.print("  [yellow]⚠[/yellow]  uv sync failed")
+        return False
+    app_deps = [uv, "run", "python", "-m", "grunt.cli.main", "app", "deps"]
+    if subprocess.run(app_deps, cwd=str(app_dir), check=False, env=env).returncode != 0:
+        console.print("  [yellow]⚠[/yellow]  app packages failed to install (grunt app deps)")
+        return False
+    return True
+
+
 # dev tooling - an installable list for the pip fallback (uv reads the
 # [dependency-groups] table directly).
-_DEV_DEPS = ["pytest", "pytest-asyncio", "pytest-cov", "httpx", "ruff", "mypy"]
+_DEV_DEPS = ["pytest", "pytest-asyncio", "pytest-cov", "ruff", "mypy"]
 
 
 def _pip_install_cmd(upgrade: bool) -> list[str]:
@@ -240,7 +253,7 @@ def _verify_toolchain(app_dir: Path) -> None:
     if not has_pytest or not (venv / "ruff").exists():
         console.print(
             "  [yellow]⚠[/yellow]  .venv is missing dev packages (pytest / ruff). "
-            "Restore them: [cyan]uv sync --all-extras[/cyan]"
+            "Restore them: [cyan]uv sync --all-extras --inexact[/cyan]"
         )
 
 
@@ -340,7 +353,8 @@ def update(
     \b
     Steps:
       1. git pull --rebase for the CLI, framework and apps
-      2. uv sync --all-extras (Python packages exactly as in the lock file)
+      2. uv sync --all-extras --inexact (framework packages as in the lock
+         file) + grunt app deps (the apps' own packages)
       3. npm install
       4. grunt migrate
 
@@ -469,19 +483,9 @@ def deps(upgrade: bool, python_only: bool, npm_only: bool) -> None:
         console.print("[bold cyan]Python packages[/bold cyan]")
         uv = _find_uv()
         app_dir = _grunt_app_dir()
-        env = {k: v for k, v in os.environ.items() if k != "VIRTUAL_ENV"}
-        env["PWD"] = str(app_dir)
         if uv:
-            cmd = [uv, "sync", "--all-extras"]
-            if upgrade:
-                cmd.append("--upgrade")
-            label = "uv sync --all-extras" + (" --upgrade" if upgrade else "")
-            console.print(f"  [dim]{label}...[/dim]")
-            result = subprocess.run(cmd, cwd=str(app_dir), check=False, env=env)
-            if result.returncode == 0:
+            if _uv_sync(uv, app_dir, upgrade):
                 console.print("  [green]✓[/green] Python packages installed")
-            else:
-                console.print("  [yellow]⚠[/yellow]  uv sync failed")
         else:
             console.print("  [dim]uv not found, using pip...[/dim]")
             result = subprocess.run(_pip_install_cmd(upgrade), cwd=str(app_dir), check=False)

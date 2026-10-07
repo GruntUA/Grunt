@@ -58,9 +58,9 @@ class OIDCProvider(AuthProvider):
     # OIDC helpers
 
     async def _discover(self) -> dict:
-        import httpx
+        import httpx2
 
-        async with httpx.AsyncClient() as http:
+        async with httpx2.AsyncClient() as http:
             resp = await http.get(self._discovery_url())
             resp.raise_for_status()
             return resp.json()
@@ -75,7 +75,7 @@ class OIDCProvider(AuthProvider):
             scope=self.scope,
         )
         url, _state = client.create_authorization_url(oidc["authorization_endpoint"])
-        await client.aclose()  # pyright: ignore[reportAttributeAccessIssue] - httpx.AsyncClient method
+        await client.aclose()  # pyright: ignore[reportAttributeAccessIssue] - httpx2.AsyncClient method
         return {"redirect_url": url}
 
     async def complete(self, ctx: AuthFlowContext) -> User:

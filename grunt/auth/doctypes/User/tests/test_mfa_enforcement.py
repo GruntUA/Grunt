@@ -12,7 +12,7 @@ from grunt.auth.doctypes.User.user import create_user, get_user_by_email
 from grunt.auth.service import create_mfa_token
 
 if TYPE_CHECKING:
-    from httpx import AsyncClient
+    from httpx2 import AsyncClient
 
 M = "/api/v1/method/grunt.auth.doctypes.User.user"
 EMAIL = "root@grunt.example.com"

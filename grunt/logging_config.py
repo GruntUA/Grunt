@@ -236,8 +236,8 @@ def configure_console_logging(
         "multipart",
         "python_multipart",
         "taskiq",
-        "httpcore",
-        "httpx",
+        "httpcore2",
+        "httpx2",
         "apscheduler",  # job add/remove/wakeup spam
         "apscheduler.scheduler",
         "apscheduler.executors",

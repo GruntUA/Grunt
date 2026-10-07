@@ -13,7 +13,7 @@ from grunt.auth.doctypes.UserSession.user_session import client_ip
 from grunt.auth.ip_policy import ip_allowed, parse_ip_list
 
 if TYPE_CHECKING:
-    from httpx import AsyncClient
+    from httpx2 import AsyncClient
 
 M = "/api/v1/method/grunt.auth.doctypes.User.user"
 EMAIL = "root@grunt.example.com"

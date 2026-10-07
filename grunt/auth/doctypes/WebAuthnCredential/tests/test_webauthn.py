@@ -10,7 +10,7 @@ from grunt.auth.doctypes.User.user import create_user
 from grunt.auth.service import verify_challenge_token
 
 if TYPE_CHECKING:
-    from httpx import AsyncClient
+    from httpx2 import AsyncClient
 
 _METHODS = "/api/v1/auth/methods"
 
