@@ -65,7 +65,7 @@ async def _create_webform(ctx, target_doctype_name: str, route: str):
         {
             "title": "Test Form",
             "route": route,
-            "doctype": target_doctype_name,
+            "ref_doctype": target_doctype_name,
             "fields": [{"fieldname": "title"}],
             "is_published": True,
             "login_required": False,
@@ -163,7 +163,7 @@ async def _create_webform_login_required(ctx, target_doctype_name: str, route: s
         {
             "title": "Test Form",
             "route": route,
-            "doctype": target_doctype_name,
+            "ref_doctype": target_doctype_name,
             "fields": [{"fieldname": "title"}],
             "is_published": True,
             "login_required": True,
@@ -233,7 +233,7 @@ async def test_get_form_fields_preserves_builder_order_and_label_override(ctx):
         {
             "title": "Ordered Form",
             "route": "ordered-form",
-            "doctype": "WebFormTargetWithEmail",
+            "ref_doctype": "WebFormTargetWithEmail",
             "is_published": True,
             "fields": [
                 {"fieldname": "notes"},
@@ -266,7 +266,7 @@ async def test_get_form_fields_includes_layout_markers(ctx):
         {
             "title": "Sectioned Form",
             "route": "sectioned-form",
-            "doctype": "WebFormTargetWithEmail",
+            "ref_doctype": "WebFormTargetWithEmail",
             "is_published": True,
             "fields": [
                 {"fieldname": "sec_contact", "fieldtype": "Section", "label": "Контакти"},
@@ -299,7 +299,7 @@ async def test_required_override_forces_required(ctx):
         {
             "title": "Required Override Form",
             "route": "required-override-form",
-            "doctype": "WebFormTargetWithEmail",
+            "ref_doctype": "WebFormTargetWithEmail",
             "is_published": True,
             "fields": [
                 {"fieldname": "title"},
@@ -343,7 +343,7 @@ async def test_submit_queues_confirmation_email_to_submitter_and_notify_list(ctx
         {
             "title": "Email Form",
             "route": "email-form",
-            "doctype": "WebFormTargetWithEmail",
+            "ref_doctype": "WebFormTargetWithEmail",
             "is_published": True,
             "confirmation_template": "webform-confirmation",
             "notify_emails": "staff@example.com,\nsecond@example.com",
@@ -382,7 +382,7 @@ async def test_submit_notify_failure_does_not_fail_submission(ctx):
         {
             "title": "Broken Email Form",
             "route": "broken-email-form",
-            "doctype": "WebFormTargetWithEmail",
+            "ref_doctype": "WebFormTargetWithEmail",
             "is_published": True,
             "confirmation_template": "does-not-exist",
             "fields": [{"fieldname": "title"}, {"fieldname": "email"}],

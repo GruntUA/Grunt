@@ -156,7 +156,7 @@ async def test_web_page_and_web_form_report_their_own_urls(ctx, client, auth_hea
     page = await ctx.new_doc("WebPage", {"title": "About", "route": "/about", "published": 1})
     form = await ctx.new_doc(
         "WebForm",
-        {"title": "Feedback", "route": "feedback", "doctype": "User", "is_published": 1},
+        {"title": "Feedback", "route": "feedback", "ref_doctype": "User", "is_published": 1},
     )
     draft = await ctx.new_doc("WebPage", {"title": "Soon", "route": "/soon"})
     await ctx.db._session().commit()

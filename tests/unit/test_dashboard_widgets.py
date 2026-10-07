@@ -45,7 +45,7 @@ def _widget(widget_type: str, **kwargs) -> dict:
     return {
         "name": f"w-{widget_type}",
         "widget_type": widget_type,
-        "doctype": "WidgetSourceItem",
+        "ref_doctype": "WidgetSourceItem",
         "period": "last_month",
         **kwargs,
     }
@@ -157,7 +157,7 @@ async def test_chart_widget_sourced_from_report(ctx, widget_source):
         {
             "report_name": "Widget Src By Status",
             "report_type": "List",
-            "doctype": "WidgetSourceItem",
+            "ref_doctype": "WidgetSourceItem",
             "columns": [
                 {"fieldname": "status", "label": "Status"},
                 {
@@ -198,8 +198,8 @@ async def test_get_page_data_computes_all_widgets_by_name(ctx, widget_source):
             "label": "Test Page",
             "is_published": True,
             "widgets": [
-                {"widget_type": "metric", "doctype": "WidgetSourceItem"},
-                {"widget_type": "shortcut", "doctype": "WidgetSourceItem"},
+                {"widget_type": "metric", "ref_doctype": "WidgetSourceItem"},
+                {"widget_type": "shortcut", "ref_doctype": "WidgetSourceItem"},
             ],
         },
     )
@@ -224,7 +224,7 @@ async def test_get_dashboard_data_matches_get_page_data_shape(ctx, widget_source
             "label": "Test Dashboard",
             "is_published": True,
             "widgets": [
-                {"widget_type": "shortcut", "doctype": "WidgetSourceItem"},
+                {"widget_type": "shortcut", "ref_doctype": "WidgetSourceItem"},
             ],
         },
     )
@@ -292,7 +292,7 @@ async def test_metric_widget_expands_child_of_filter(ctx):
         {
             "name": "w-tree",
             "widget_type": "metric",
-            "doctype": "WidgetTreeItem",
+            "ref_doctype": "WidgetTreeItem",
             "aggregation": "count",
             "filters": {"node__child_of": root["name"]},
         }

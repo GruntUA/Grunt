@@ -182,7 +182,7 @@ function addWidget(type: WidgetType) {
     title: t(getWidgetDef(type)?.label ?? t('New')),
     cols: type === 'shortcut' || type === 'clock' ? 1 : type === 'gauge' ? 1 : 2,
     color: 'primary',
-    doctype: '',
+    ref_doctype: '',
     aggregation: 'count',
     field: '',
     period: '30d',

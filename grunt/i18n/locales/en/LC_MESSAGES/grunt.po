@@ -1730,11 +1730,6 @@ msgid "Fieldname on the source DocType holding the event date"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocTypeCalendarSource/DocTypeCalendarSource.json
-msgctxt "help:DocTypeCalendarSource.doctype"
-msgid "The document type added to the calendar as a separate source"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/DocTypeCalendarSource/DocTypeCalendarSource.json
 msgctxt "help:DocTypeCalendarSource.filters"
 msgid "{ \"status\": \"Active\" }"
 msgstr ""
@@ -2208,11 +2203,6 @@ msgstr ""
 #: grunt/grunt/site/doctypes/Bookmark/Bookmark.json
 msgctxt "meta:Bookmark.title"
 msgid "Name"
-msgstr ""
-
-#: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
-msgctxt "meta:Dashboard Widget.doctype"
-msgid "DocType"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocField/DocField.json
@@ -2701,11 +2691,6 @@ msgid "Date field"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocTypeCalendarSource/DocTypeCalendarSource.json
-msgctxt "meta:DocTypeCalendarSource.doctype"
-msgid "DocType"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/DocTypeCalendarSource/DocTypeCalendarSource.json
 msgctxt "meta:DocTypeCalendarSource.end_date_field"
 msgid "End date field"
 msgstr ""
@@ -2928,11 +2913,6 @@ msgstr ""
 #: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
 msgctxt "meta:PageWidget.description"
 msgid "Description / Subtitle"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
-msgctxt "meta:PageWidget.doctype"
-msgid "DocType"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
@@ -3548,11 +3528,6 @@ msgstr ""
 #: grunt/grunt/site/doctypes/WebForm/WebForm.json
 msgctxt "meta:WebForm.allow_edit"
 msgid "Allow editing"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebForm/WebForm.json
-msgctxt "meta:WebForm.doctype"
-msgid "Document type"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/WebForm/WebForm.json
@@ -6677,8 +6652,8 @@ msgstr ""
 msgid "DocType not found"
 msgstr ""
 
-#: grunt/grunt/metadata/registry.py:523 grunt/grunt/metadata/registry.py:602
-#: grunt/grunt/metadata/registry.py:535 grunt/grunt/api/v1/meta.py:134
+#: grunt/grunt/metadata/registry.py:524 grunt/grunt/metadata/registry.py:603
+#: grunt/grunt/metadata/registry.py:536 grunt/grunt/api/v1/meta.py:134
 msgid "DocType “%(doctype)s” already exists"
 msgstr ""
 
@@ -6686,9 +6661,9 @@ msgstr ""
 msgid "DocType “%(doctype)s” no longer exists"
 msgstr ""
 
-#: grunt/grunt/webform/service.py:92 grunt/grunt/app/document_api.py:499
-#: grunt/grunt/app/document_api.py:701 grunt/grunt/metadata/registry.py:332
-#: grunt/grunt/metadata/registry.py:583 grunt/grunt/metadata/registry.py:561
+#: grunt/grunt/webform/service.py:92 grunt/grunt/app/document_api.py:516
+#: grunt/grunt/app/document_api.py:718 grunt/grunt/metadata/registry.py:333
+#: grunt/grunt/metadata/registry.py:584 grunt/grunt/metadata/registry.py:562
 #: grunt/grunt/notification/rule_index.py:53
 #: grunt/grunt/activity/__init__.py:264 grunt/grunt/actions/__init__.py:163
 #: grunt/grunt/document/connections.py:43
@@ -6773,7 +6748,7 @@ msgstr ""
 msgid "Dumping the database"
 msgstr ""
 
-#: grunt/grunt/metadata/registry.py:614
+#: grunt/grunt/metadata/registry.py:615
 msgid "Duplicate fieldname '%(fieldname)s' in DocType '%(name)s'"
 msgstr ""
 
@@ -7057,7 +7032,7 @@ msgstr ""
 msgid "Field “{label}”: invalid value"
 msgstr ""
 
-#: grunt/grunt/metadata/registry.py:633
+#: grunt/grunt/metadata/registry.py:634
 msgid "Fieldname '%(fieldname)s' exceeds %(max)s characters"
 msgstr ""
 
@@ -7487,7 +7462,7 @@ msgstr ""
 msgid "Invalid email or password"
 msgstr ""
 
-#: grunt/grunt/metadata/registry.py:623
+#: grunt/grunt/metadata/registry.py:624
 msgid ""
 "Invalid fieldname '%(fieldname)s': must start with a-z and contain only a-z,"
 " 0-9, _"
@@ -7932,7 +7907,7 @@ msgstr ""
 msgid "No TABLE fields in this DocType"
 msgstr ""
 
-#: grunt/grunt/document/mixins/lifecycle.py:356
+#: grunt/grunt/document/mixins/lifecycle.py:358
 #: grunt/grunt/activity/doctypes/DocFollow/doc_follow.py:26
 #: grunt/grunt/activity/doctypes/DocLike/doc_like.py:26
 msgid "No access to the document"
@@ -9443,7 +9418,7 @@ msgstr ""
 msgid "The document has no Workflow configured"
 msgstr ""
 
-#: grunt/grunt/document/mixins/lifecycle.py:428
+#: grunt/grunt/document/mixins/lifecycle.py:430
 msgid ""
 "The document was changed after you started editing. Open it again and repeat"
 " your changes."
@@ -11259,11 +11234,6 @@ msgid "Document ID"
 msgstr ""
 
 #: grunt/grunt/activity/doctypes/ActivityLog/ActivityLog.json
-msgctxt "meta:ActivityLog.doctype"
-msgid "Document type"
-msgstr ""
-
-#: grunt/grunt/activity/doctypes/ActivityLog/ActivityLog.json
 msgctxt "meta:ActivityLog.user"
 msgid "User"
 msgstr ""
@@ -11471,11 +11441,6 @@ msgstr ""
 #: grunt/grunt/scripting/doctypes/ClientScript/ClientScript.json
 msgctxt "meta:ClientScript"
 msgid "Client Script"
-msgstr ""
-
-#: grunt/grunt/scripting/doctypes/ClientScript/ClientScript.json
-msgctxt "meta:ClientScript.doctype"
-msgid "Document type"
 msgstr ""
 
 #: grunt/grunt/scripting/doctypes/ClientScript/ClientScript.json
@@ -11769,11 +11734,6 @@ msgid "Color"
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/DashboardChart/DashboardChart.json
-msgctxt "meta:DashboardChart.doctype"
-msgid "Document type"
-msgstr ""
-
-#: grunt/grunt/reports/doctypes/DashboardChart/DashboardChart.json
 msgctxt "meta:DashboardChart.filters"
 msgid "Filters (JSON)"
 msgstr ""
@@ -12041,11 +12001,6 @@ msgstr ""
 #: grunt/grunt/document/doctypes/DocVersion/DocVersion.json
 msgctxt "meta:DocVersion.doc_id"
 msgid "Document ID"
-msgstr ""
-
-#: grunt/grunt/document/doctypes/DocVersion/DocVersion.json
-msgctxt "meta:DocVersion.doctype"
-msgid "Document type"
 msgstr ""
 
 #: grunt/grunt/document/doctypes/DocVersion/DocVersion.json
@@ -12814,11 +12769,6 @@ msgid "Document ID"
 msgstr ""
 
 #: grunt/grunt/notification/doctypes/Notification/Notification.json
-msgctxt "meta:Notification.doctype"
-msgid "Document type"
-msgstr ""
-
-#: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgctxt "meta:Notification.is_read"
 msgid "Read"
 msgstr ""
@@ -12851,11 +12801,6 @@ msgstr ""
 #: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
 msgctxt "meta:NotificationRule.condition"
 msgid "Condition (Python)"
-msgstr ""
-
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
-msgctxt "meta:NotificationRule.doctype"
-msgid "Document type"
 msgstr ""
 
 #: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
@@ -12896,11 +12841,6 @@ msgstr ""
 #: grunt/grunt/reports/doctypes/NumberCard/NumberCard.json
 msgctxt "meta:NumberCard.color"
 msgid "Color"
-msgstr ""
-
-#: grunt/grunt/reports/doctypes/NumberCard/NumberCard.json
-msgctxt "meta:NumberCard.doctype"
-msgid "Document type"
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/NumberCard/NumberCard.json
@@ -12981,16 +12921,6 @@ msgstr ""
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.json
 msgctxt "meta:PrintFormat.app"
 msgid "App"
-msgstr ""
-
-#: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.json
-msgctxt "meta:PrintFormat.doctype"
-msgid "Document type"
-msgstr ""
-
-#: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.json
-msgctxt "meta:PrintFormat.is_app_format"
-msgid "Save in app"
 msgstr ""
 
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.json
@@ -13081,11 +13011,6 @@ msgstr ""
 #: grunt/grunt/reports/doctypes/Report/Report.json
 msgctxt "meta:Report.columns"
 msgid "Columns (JSON)"
-msgstr ""
-
-#: grunt/grunt/reports/doctypes/Report/Report.json
-msgctxt "meta:Report.doctype"
-msgid "Document type"
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/Report/Report.json
@@ -13226,11 +13151,6 @@ msgstr ""
 #: grunt/grunt/scripting/doctypes/ServerScript/ServerScript.json
 msgctxt "meta:ServerScript.cron"
 msgid "Cron expression"
-msgstr ""
-
-#: grunt/grunt/scripting/doctypes/ServerScript/ServerScript.json
-msgctxt "meta:ServerScript.doctype"
-msgid "Document type"
 msgstr ""
 
 #: grunt/grunt/scripting/doctypes/ServerScript/ServerScript.json
@@ -13641,11 +13561,6 @@ msgstr ""
 #: grunt/grunt/activity/doctypes/ViewLog/ViewLog.json
 msgctxt "meta:ViewLog.doc_id"
 msgid "Document ID"
-msgstr ""
-
-#: grunt/grunt/activity/doctypes/ViewLog/ViewLog.json
-msgctxt "meta:ViewLog.doctype"
-msgid "Document type"
 msgstr ""
 
 #: grunt/grunt/activity/doctypes/ViewLog/ViewLog.json
@@ -15061,6 +14976,341 @@ msgstr ""
 msgctxt "meta:DocType.definition"
 msgid "Definition"
 msgstr ""
+
+#: grunt/grunt/scripting/doctypes/ClientScript/ClientScript.json
+msgctxt "help:ClientScript.is_standard"
+msgid "Ships with the app as JSON files - edits are saved to the app"
+msgstr ""
+
+#: grunt/grunt/reports/doctypes/Dashboard/Dashboard.json
+msgctxt "help:Dashboard.is_standard"
+msgid "Ships with the app as JSON files - edits are saved to the app"
+msgstr ""
+
+#: grunt/grunt/reports/doctypes/DashboardChart/DashboardChart.json
+msgctxt "help:DashboardChart.is_standard"
+msgid "Ships with the app as JSON files - edits are saved to the app"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgctxt "help:DocType.standard_records"
+msgid ""
+"Records marked standard ship with their app as JSON files (saved there in "
+"developer mode, applied by migrate)"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocTypeCalendarSource/DocTypeCalendarSource.json
+msgctxt "help:DocTypeCalendarSource.ref_doctype"
+msgid "The document type added to the calendar as a separate source"
+msgstr ""
+
+#: grunt/grunt/email/doctypes/EmailTemplate/EmailTemplate.json
+msgctxt "help:EmailTemplate.is_standard"
+msgid "Ships with the app as JSON files - edits are saved to the app"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+msgctxt "help:NotificationRule.is_standard"
+msgid "Ships with the app as JSON files - edits are saved to the app"
+msgstr ""
+
+#: grunt/grunt/reports/doctypes/NumberCard/NumberCard.json
+msgctxt "help:NumberCard.is_standard"
+msgid "Ships with the app as JSON files - edits are saved to the app"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/Page/Page.json
+msgctxt "help:Page.is_standard"
+msgid "Ships with the app as JSON files - edits are saved to the app"
+msgstr ""
+
+#: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.json
+msgctxt "help:PrintFormat.is_standard"
+msgid "Ships with the app as JSON files - edits are saved to the app"
+msgstr ""
+
+#: grunt/grunt/reports/doctypes/Report/Report.json
+msgctxt "help:Report.is_standard"
+msgid "Ships with the app as JSON files - edits are saved to the app"
+msgstr ""
+
+#: grunt/grunt/scripting/doctypes/ServerScript/ServerScript.json
+msgctxt "help:ServerScript.is_standard"
+msgid "Ships with the app as JSON files - edits are saved to the app"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/WebForm/WebForm.json
+msgctxt "help:WebForm.is_standard"
+msgid "Ships with the app as JSON files - edits are saved to the app"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/Workflow/Workflow.json
+msgctxt "help:Workflow.is_standard"
+msgid "Ships with the app as JSON files - edits are saved to the app"
+msgstr ""
+
+#: grunt/grunt/activity/doctypes/ActivityLog/ActivityLog.json
+msgctxt "meta:ActivityLog.ref_doctype"
+msgid "Document type"
+msgstr ""
+
+#: grunt/grunt/scripting/doctypes/ClientScript/ClientScript.json
+msgctxt "meta:ClientScript.app"
+msgid "App"
+msgstr ""
+
+#: grunt/grunt/scripting/doctypes/ClientScript/ClientScript.json
+msgctxt "meta:ClientScript.is_standard"
+msgid "Standard"
+msgstr ""
+
+#: grunt/grunt/scripting/doctypes/ClientScript/ClientScript.json
+msgctxt "meta:ClientScript.ref_doctype"
+msgid "Document type"
+msgstr ""
+
+#: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
+msgctxt "meta:Dashboard Widget.ref_doctype"
+msgid "DocType"
+msgstr ""
+
+#: grunt/grunt/reports/doctypes/Dashboard/Dashboard.json
+msgctxt "meta:Dashboard.app"
+msgid "App"
+msgstr ""
+
+#: grunt/grunt/reports/doctypes/Dashboard/Dashboard.json
+msgctxt "meta:Dashboard.is_standard"
+msgid "Standard"
+msgstr ""
+
+#: grunt/grunt/reports/doctypes/DashboardChart/DashboardChart.json
+msgctxt "meta:DashboardChart.app"
+msgid "App"
+msgstr ""
+
+#: grunt/grunt/reports/doctypes/DashboardChart/DashboardChart.json
+msgctxt "meta:DashboardChart.is_standard"
+msgid "Standard"
+msgstr ""
+
+#: grunt/grunt/reports/doctypes/DashboardChart/DashboardChart.json
+msgctxt "meta:DashboardChart.ref_doctype"
+msgid "Document type"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgctxt "meta:DocType.standard_records"
+msgid "Standard records"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocTypeCalendarSource/DocTypeCalendarSource.json
+msgctxt "meta:DocTypeCalendarSource.ref_doctype"
+msgid "DocType"
+msgstr ""
+
+#: grunt/grunt/document/doctypes/DocVersion/DocVersion.json
+msgctxt "meta:DocVersion.ref_doctype"
+msgid "Document type"
+msgstr ""
+
+#: grunt/grunt/email/doctypes/EmailTemplate/EmailTemplate.json
+msgctxt "meta:EmailTemplate.app"
+msgid "App"
+msgstr ""
+
+#: grunt/grunt/email/doctypes/EmailTemplate/EmailTemplate.json
+msgctxt "meta:EmailTemplate.is_standard"
+msgid "Standard"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgctxt "meta:Notification.ref_doctype"
+msgid "Document type"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+msgctxt "meta:NotificationRule.app"
+msgid "App"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+msgctxt "meta:NotificationRule.is_standard"
+msgid "Standard"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+msgctxt "meta:NotificationRule.ref_doctype"
+msgid "Document type"
+msgstr ""
+
+#: grunt/grunt/reports/doctypes/NumberCard/NumberCard.json
+msgctxt "meta:NumberCard.app"
+msgid "App"
+msgstr ""
+
+#: grunt/grunt/reports/doctypes/NumberCard/NumberCard.json
+msgctxt "meta:NumberCard.is_standard"
+msgid "Standard"
+msgstr ""
+
+#: grunt/grunt/reports/doctypes/NumberCard/NumberCard.json
+msgctxt "meta:NumberCard.ref_doctype"
+msgid "Document type"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/Page/Page.json
+msgctxt "meta:Page.app"
+msgid "App"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/Page/Page.json
+msgctxt "meta:Page.is_standard"
+msgid "Standard"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
+msgctxt "meta:PageWidget.ref_doctype"
+msgid "DocType"
+msgstr ""
+
+#: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.json
+msgctxt "meta:PrintFormat.is_standard"
+msgid "Standard"
+msgstr ""
+
+#: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.json
+msgctxt "meta:PrintFormat.ref_doctype"
+msgid "Document type"
+msgstr ""
+
+#: grunt/grunt/reports/doctypes/Report/Report.json
+msgctxt "meta:Report.app"
+msgid "App"
+msgstr ""
+
+#: grunt/grunt/reports/doctypes/Report/Report.json
+msgctxt "meta:Report.is_standard"
+msgid "Standard"
+msgstr ""
+
+#: grunt/grunt/reports/doctypes/Report/Report.json
+msgctxt "meta:Report.ref_doctype"
+msgid "Document type"
+msgstr ""
+
+#: grunt/grunt/scripting/doctypes/ServerScript/ServerScript.json
+msgctxt "meta:ServerScript.app"
+msgid "App"
+msgstr ""
+
+#: grunt/grunt/scripting/doctypes/ServerScript/ServerScript.json
+msgctxt "meta:ServerScript.is_standard"
+msgid "Standard"
+msgstr ""
+
+#: grunt/grunt/scripting/doctypes/ServerScript/ServerScript.json
+msgctxt "meta:ServerScript.ref_doctype"
+msgid "Document type"
+msgstr ""
+
+#: grunt/grunt/activity/doctypes/ViewLog/ViewLog.json
+msgctxt "meta:ViewLog.ref_doctype"
+msgid "Document type"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/WebForm/WebForm.json
+msgctxt "meta:WebForm.app"
+msgid "App"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/WebForm/WebForm.json
+msgctxt "meta:WebForm.is_standard"
+msgid "Standard"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/WebForm/WebForm.json
+msgctxt "meta:WebForm.ref_doctype"
+msgid "Document type"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/Workflow/Workflow.json
+msgctxt "meta:Workflow.app"
+msgid "App"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/Workflow/Workflow.json
+msgctxt "meta:Workflow.is_standard"
+msgid "Standard"
+msgstr ""
+
+#~ msgctxt "help:DocTypeCalendarSource.doctype"
+#~ msgid "The document type added to the calendar as a separate source"
+#~ msgstr ""
+
+#~ msgctxt "meta:Dashboard Widget.doctype"
+#~ msgid "DocType"
+#~ msgstr ""
+
+#~ msgctxt "meta:DocTypeCalendarSource.doctype"
+#~ msgid "DocType"
+#~ msgstr ""
+
+#~ msgctxt "meta:PageWidget.doctype"
+#~ msgid "DocType"
+#~ msgstr ""
+
+#~ msgctxt "meta:WebForm.doctype"
+#~ msgid "Document type"
+#~ msgstr ""
+
+#~ msgctxt "meta:ActivityLog.doctype"
+#~ msgid "Document type"
+#~ msgstr ""
+
+#~ msgctxt "meta:ClientScript.doctype"
+#~ msgid "Document type"
+#~ msgstr ""
+
+#~ msgctxt "meta:DashboardChart.doctype"
+#~ msgid "Document type"
+#~ msgstr ""
+
+#~ msgctxt "meta:DocVersion.doctype"
+#~ msgid "Document type"
+#~ msgstr ""
+
+#~ msgctxt "meta:Notification.doctype"
+#~ msgid "Document type"
+#~ msgstr ""
+
+#~ msgctxt "meta:NotificationRule.doctype"
+#~ msgid "Document type"
+#~ msgstr ""
+
+#~ msgctxt "meta:NumberCard.doctype"
+#~ msgid "Document type"
+#~ msgstr ""
+
+#~ msgctxt "meta:PrintFormat.doctype"
+#~ msgid "Document type"
+#~ msgstr ""
+
+#~ msgctxt "meta:PrintFormat.is_app_format"
+#~ msgid "Save in app"
+#~ msgstr ""
+
+#~ msgctxt "meta:Report.doctype"
+#~ msgid "Document type"
+#~ msgstr ""
+
+#~ msgctxt "meta:ServerScript.doctype"
+#~ msgid "Document type"
+#~ msgstr ""
+
+#~ msgctxt "meta:ViewLog.doctype"
+#~ msgid "Document type"
+#~ msgstr ""
 
 #~ msgid "A backup cannot be changed"
 #~ msgstr ""

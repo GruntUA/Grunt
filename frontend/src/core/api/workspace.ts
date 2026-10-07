@@ -58,7 +58,7 @@ export interface AssignedTask {
 export interface UserNotification {
   name: string
   subject: string
-  doctype: string | null
+  ref_doctype: string | null
   doc_id: string | null
   created_at: string
 }

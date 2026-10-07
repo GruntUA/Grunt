@@ -93,7 +93,10 @@ async def test_export_strips_system_and_password_fields(ctx, fx_doctype, tmp_pat
         "code": "alpha",
         "title": "Alpha",
         "limit_qty": 5,
-        "rows": [{"label": "a", "amount": 1}, {"label": "b", "amount": 2}],
+        "rows": [
+            {"doctype": "FxConfigRow", "label": "a", "amount": 1},
+            {"doctype": "FxConfigRow", "label": "b", "amount": 2},
+        ],
     }
 
 
@@ -165,3 +168,18 @@ async def test_sync_fixture_inserts_missing_record(ctx, fx_doctype, db_session, 
     fresh = await ctx.get_doc("FxConfig", "gamma")
     assert fresh["title"] == "G"
     assert [r["label"] for r in fresh["rows"]] == ["x"]
+
+
+@pytest.mark.asyncio
+async def test_sync_fixture_leaves_matching_record_alone(ctx, fx_doctype, db_session, engine):
+    """Child rows compare on the fixture's keys - a stored row also holds empty fillers."""
+    from grunt.startup.fixtures import _apply_doctype_fixture
+
+    doc = await _make(ctx)
+    before = (await ctx.get_doc("FxConfig", doc["name"]))["modified_at"]
+    rec = {"name": doc["name"], "code": "alpha", "rows": [{"label": "a"}, {"label": "b"}]}
+
+    await _apply_doctype_fixture("FxConfig", [rec], db_session, engine, sync=True)
+    await db_session.commit()
+
+    assert (await ctx.get_doc("FxConfig", doc["name"]))["modified_at"] == before

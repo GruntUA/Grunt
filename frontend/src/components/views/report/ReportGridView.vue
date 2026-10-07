@@ -117,7 +117,7 @@ async function loadSavedReports() {
   try {
     const all = await reportsApi.list()
     savedReports.value = all.filter(
-      (r) => r.report_type === 'List' && r.doctype === props.doctype,
+      (r) => r.report_type === 'List' && r.ref_doctype === props.doctype,
     )
   } catch {
     savedReports.value = []
@@ -154,7 +154,7 @@ async function saveAsReport() {
   try {
     await reportsApi.create({
       report_name: name,
-      doctype: props.doctype,
+      ref_doctype: props.doctype,
       report_type: 'List',
       columns,
       filters_config: buildFiltersConfig(),

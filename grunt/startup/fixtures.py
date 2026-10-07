@@ -216,16 +216,30 @@ def _without_doctype(value: Any) -> Any:
     return value
 
 
+def _matches(current: Any, desired: Any) -> bool:
+    """Whether the stored *current* value already is the fixture's *desired* one.
+
+    Child rows compare on the keys the fixture gives: a saved row also holds
+    the empty values its other fields were filled with.
+    """
+    if isinstance(desired, dict) and isinstance(current, dict):
+        return all(_matches(current.get(k), v) for k, v in desired.items())
+    if isinstance(desired, list) and isinstance(current, list):
+        return len(current) == len(desired) and all(map(_matches, current, desired, strict=True))
+    return current == desired
+
+
 async def _sync_fixture_record(dt: Meta, doctype_name: str, doc_id: str, rec: dict) -> None:
     """Update an existing record to the fixture's values - only if they differ.
 
     Compared in exported form (:func:`grunt.fixtures.clean_record`), so an
     unchanged record is never re-saved (no DocVersion/ActivityLog noise on
-    every migrate). Fields absent from the fixture are left untouched.
+    every migrate). Fields absent from the fixture - in child rows too - are
+    left untouched.
     """
     current = _without_doctype(await clean_record(dt, await grunt.get_doc(doctype_name, doc_id)))
     desired = _without_doctype(to_json_compatible(rec))
-    changed = {k: v for k, v in desired.items() if k != "name" and current.get(k) != v}
+    changed = {k: v for k, v in desired.items() if k != "name" and not _matches(current.get(k), v)}
     if not changed:
         return
 

@@ -33,7 +33,7 @@ async def _published_form(ctx):
         {
             "title": "Contact us",
             "route": "contact-us",
-            "doctype": "WebFormPageTarget",
+            "ref_doctype": "WebFormPageTarget",
             "fields": [{"fieldname": "full_name"}, {"fieldname": "note"}],
             "introduction": "Tell us what you need",
             "success_message": "We got it.",

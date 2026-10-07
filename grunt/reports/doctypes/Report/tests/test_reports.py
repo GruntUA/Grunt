@@ -269,7 +269,7 @@ async def test_run_list_report_operator_filters(ctx):
         {
             "report_name": "List Over Reports",
             "report_type": "List",
-            "doctype": "Report",
+            "ref_doctype": "Report",
             "columns": [
                 {"fieldname": "report_name", "label": "Name"},
                 {"fieldname": "report_type", "label": "Type"},
@@ -300,7 +300,7 @@ async def test_aggregated_list_report_carries_drilldown(ctx):
         await ctx.new_doc(
             "Report", {"report_name": rn, "report_type": "Query", "query": "SELECT 1"}
         )
-    base = {"report_type": "List", "doctype": "Report"}
+    base = {"report_type": "List", "ref_doctype": "Report"}
     await ctx.new_doc(
         "Report",
         {

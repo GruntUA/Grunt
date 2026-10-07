@@ -163,11 +163,47 @@ Counts and previews come from `grunt.document.connections.get_connections`.
 field to render the panel at the top of that tab. If no tab opts in, it
 renders at the top of the first tab.
 
-## Fixtures (shipping configuration records)
+## Documents as JSON
 
-Records that are part of the app's configuration — roles, workflows, home
-pages, print formats — live in `my_crm/fixtures/*.json` and are applied on
-install/migrate, in filename order:
+Every document the API returns is a JSON object that names its own DocType —
+child rows included — and that JSON is enough to build the document again:
+
+```python
+doc = await grunt.get_doc("Deal", "D-0001")
+# {"doctype": "Deal", "name": "D-0001", ..., "items": [{"doctype": "DealItem", ...}]}
+
+deal = await grunt.get_doc({"doctype": "Deal", "title": "Big one", "items": [...]})
+await deal.insert()          # an unsaved controller - `create` permission checked
+deal.as_dict(), deal.as_json()
+```
+
+`doctype` is therefore a reserved fieldname: a field naming *another* DocType
+is called `ref_doctype`.
+
+## Standard records (configuration as files)
+
+Reports, pages, print formats, web forms, scripts, notification rules,
+workflows, email templates — every DocType with **Standard records**
+(`"standard_records": true`) — can ship with the app. Mark a record
+**Standard** and pick its **App**; in developer mode (`DEBUG=true`) each save
+writes it to the app:
+
+```
+my_crm/records/report/deals_by_stage/
+  deals_by_stage.json      ← the document's JSON (no system columns)
+  query.sql                ← each non-empty Code field as a file of its own
+```
+
+Deleting the record, or unmarking it, removes the folder. `grunt migrate`
+applies the folders: missing records are inserted, changed ones updated —
+the files are the source of truth — unchanged ones are not touched. Commit
+the folder with the app's code.
+
+## Fixtures (shipping data records)
+
+Records that are part of the app's data — roles, home pages, seed rows — live
+in `my_crm/fixtures/*.json` and are applied on install/migrate, in filename
+order:
 
 ```json title="my_crm/fixtures/00_roles.json"
 {"doctype": "Role", "records": [{"name": "Sales Manager"}]}
@@ -181,7 +217,7 @@ declare them in `hooks.py` and export them from a site:
 fixtures = [
     {"doctype": "Role", "filters": {"name__in": ["Sales Manager"]}, "file": "00_roles.json"},
     {"doctype": "Workflow", "filters": {"document_type": "Deal"}, "file": "02_workflow.json"},
-    "PrintFormat",  # every record, written to print_format.json
+    "LeadSource",  # every record, written to lead_source.json
 ]
 ```
 

@@ -1246,11 +1246,6 @@ msgid "Calendar source"
 msgstr "Джерело календаря"
 
 #: grunt/grunt/metadata/doctypes/DocTypeCalendarSource/DocTypeCalendarSource.json
-msgctxt "help:DocTypeCalendarSource.doctype"
-msgid "The document type added to the calendar as a separate source"
-msgstr "Тип документів, які додаються на календар окремим джерелом"
-
-#: grunt/grunt/metadata/doctypes/DocTypeCalendarSource/DocTypeCalendarSource.json
 msgctxt "meta:DocTypeCalendarSource.date_field"
 msgid "Date field"
 msgstr "Поле дати"
@@ -2036,11 +2031,6 @@ msgstr "Заголовок"
 msgctxt "meta:WebForm.route"
 msgid "URL route"
 msgstr "URL маршрут"
-
-#: grunt/grunt/site/doctypes/WebForm/WebForm.json
-msgctxt "meta:WebForm.doctype"
-msgid "Document type"
-msgstr "Тип документа"
 
 #: grunt/grunt/site/doctypes/WebForm/WebForm.json
 msgctxt "meta:WebForm.introduction"
@@ -3880,11 +3870,6 @@ msgctxt "meta:AssignmentRule.section_meta"
 msgid "Metadata"
 msgstr "Метадані"
 
-#: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
-msgctxt "meta:Dashboard Widget.doctype"
-msgid "DocType"
-msgstr "DocType"
-
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgctxt "meta:DocType.beta"
 msgid "Beta"
@@ -3894,11 +3879,6 @@ msgstr "Бета"
 msgctxt "meta:DocType.sec_kanban_view"
 msgid "Kanban"
 msgstr "Канбан"
-
-#: grunt/grunt/metadata/doctypes/DocTypeCalendarSource/DocTypeCalendarSource.json
-msgctxt "meta:DocTypeCalendarSource.doctype"
-msgid "DocType"
-msgstr "DocType"
 
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 msgctxt "meta:EmailMessage.body_html"
@@ -3929,11 +3909,6 @@ msgstr "DocType"
 msgctxt "meta:IncomingWebhookLog.slug"
 msgid "Slug"
 msgstr "Slug"
-
-#: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
-msgctxt "meta:PageWidget.doctype"
-msgid "DocType"
-msgstr "DocType"
 
 #: grunt/grunt/webpush/doctypes/PushSubscription/PushSubscription.json
 msgctxt "meta:PushSubscription.endpoint"
@@ -9060,11 +9035,6 @@ msgid "Activity Log"
 msgstr "Журнал активності"
 
 #: grunt/grunt/activity/doctypes/ActivityLog/ActivityLog.json
-msgctxt "meta:ActivityLog.doctype"
-msgid "Document type"
-msgstr "Тип документа"
-
-#: grunt/grunt/activity/doctypes/ActivityLog/ActivityLog.json
 msgctxt "meta:ActivityLog.doc_id"
 msgid "Document ID"
 msgstr "ID документа"
@@ -9138,11 +9108,6 @@ msgstr "Знімок (JSON)"
 msgctxt "meta:ViewLog"
 msgid "View Log"
 msgstr "Журнал переглядів"
-
-#: grunt/grunt/activity/doctypes/ViewLog/ViewLog.json
-msgctxt "meta:ViewLog.doctype"
-msgid "Document type"
-msgstr "Тип документа"
 
 #: grunt/grunt/activity/doctypes/ViewLog/ViewLog.json
 msgctxt "meta:ViewLog.doc_id"
@@ -9278,11 +9243,6 @@ msgstr "Тег"
 msgctxt "meta:DocVersion"
 msgid "Document Version"
 msgstr "Версія документа"
-
-#: grunt/grunt/document/doctypes/DocVersion/DocVersion.json
-msgctxt "meta:DocVersion.doctype"
-msgid "Document type"
-msgstr "Тип документа"
 
 #: grunt/grunt/document/doctypes/DocVersion/DocVersion.json
 msgctxt "meta:DocVersion.doc_id"
@@ -10762,11 +10722,6 @@ msgid "Message"
 msgstr "Повідомлення"
 
 #: grunt/grunt/notification/doctypes/Notification/Notification.json
-msgctxt "meta:Notification.doctype"
-msgid "Document type"
-msgstr "Тип документа"
-
-#: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgctxt "meta:Notification.doc_id"
 msgid "Document ID"
 msgstr "ID документа"
@@ -10780,11 +10735,6 @@ msgstr "Прочитано"
 msgctxt "meta:NotificationRule"
 msgid "Notification Rule"
 msgstr "Правило нотифікації"
-
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
-msgctxt "meta:NotificationRule.doctype"
-msgid "Document type"
-msgstr "Тип документа"
 
 #: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
 msgctxt "meta:NotificationRule.event"
@@ -10914,11 +10864,6 @@ msgid "Print Format"
 msgstr "Формат друку"
 
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.json
-msgctxt "meta:PrintFormat.doctype"
-msgid "Document type"
-msgstr "Тип документа"
-
-#: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.json
 msgctxt "meta:PrintFormat.template_type"
 msgid "Template type"
 msgstr "Тип шаблону"
@@ -10927,11 +10872,6 @@ msgstr "Тип шаблону"
 msgctxt "meta:PrintFormat.is_default"
 msgid "Default"
 msgstr "За замовчуванням"
-
-#: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.json
-msgctxt "meta:PrintFormat.is_app_format"
-msgid "Save in app"
-msgstr "Зберігати в додатку"
 
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.json
 msgctxt "meta:PrintFormat.app"
@@ -10992,11 +10932,6 @@ msgstr "Графік дашборду"
 msgctxt "meta:DashboardChart.chart_type"
 msgid "Chart type"
 msgstr "Тип графіка"
-
-#: grunt/grunt/reports/doctypes/DashboardChart/DashboardChart.json
-msgctxt "meta:DashboardChart.doctype"
-msgid "Document type"
-msgstr "Тип документа"
 
 #: grunt/grunt/reports/doctypes/DashboardChart/DashboardChart.json
 msgctxt "meta:DashboardChart.value_field"
@@ -11134,11 +11069,6 @@ msgid "Name"
 msgstr "Назва"
 
 #: grunt/grunt/reports/doctypes/NumberCard/NumberCard.json
-msgctxt "meta:NumberCard.doctype"
-msgid "Document type"
-msgstr "Тип документа"
-
-#: grunt/grunt/reports/doctypes/NumberCard/NumberCard.json
 msgctxt "meta:NumberCard.aggregation"
 msgid "Aggregation"
 msgstr "Агрегація"
@@ -11184,11 +11114,6 @@ msgid "Type"
 msgstr "Тип"
 
 #: grunt/grunt/reports/doctypes/Report/Report.json
-msgctxt "meta:Report.doctype"
-msgid "Document type"
-msgstr "Тип документа"
-
-#: grunt/grunt/reports/doctypes/Report/Report.json
 msgctxt "meta:Report.columns"
 msgid "Columns (JSON)"
 msgstr "Колонки (JSON)"
@@ -11222,11 +11147,6 @@ msgstr "Скрипт"
 msgctxt "meta:ClientScript"
 msgid "Client Script"
 msgstr "Клієнтський скрипт"
-
-#: grunt/grunt/scripting/doctypes/ClientScript/ClientScript.json
-msgctxt "meta:ClientScript.doctype"
-msgid "Document type"
-msgstr "Тип документа"
 
 #: grunt/grunt/scripting/doctypes/ClientScript/ClientScript.json
 msgctxt "meta:ClientScript.script"
@@ -11272,11 +11192,6 @@ msgstr "Серверний скрипт"
 msgctxt "meta:ServerScript.script_type"
 msgid "Type"
 msgstr "Тип"
-
-#: grunt/grunt/scripting/doctypes/ServerScript/ServerScript.json
-msgctxt "meta:ServerScript.doctype"
-msgid "Document type"
-msgstr "Тип документа"
 
 #: grunt/grunt/scripting/doctypes/ServerScript/ServerScript.json
 msgctxt "meta:ServerScript.event"
@@ -12765,9 +12680,9 @@ msgstr[2] "%(count)d непрочитаних сповіщень за остан
 msgid "Text"
 msgstr "Текст"
 
-#: grunt/grunt/webform/service.py:92 grunt/grunt/app/document_api.py:499
-#: grunt/grunt/app/document_api.py:701 grunt/grunt/metadata/registry.py:332
-#: grunt/grunt/metadata/registry.py:583 grunt/grunt/metadata/registry.py:561
+#: grunt/grunt/webform/service.py:92 grunt/grunt/app/document_api.py:516
+#: grunt/grunt/app/document_api.py:718 grunt/grunt/metadata/registry.py:333
+#: grunt/grunt/metadata/registry.py:584 grunt/grunt/metadata/registry.py:562
 #: grunt/grunt/notification/rule_index.py:53
 #: grunt/grunt/activity/__init__.py:264 grunt/grunt/actions/__init__.py:163
 #: grunt/grunt/document/connections.py:43
@@ -13305,7 +13220,7 @@ msgstr "Поділитися документом може лише той, хт
 msgid "User “%(user)s” not found"
 msgstr "Користувача «%(user)s» не знайдено"
 
-#: grunt/grunt/document/mixins/lifecycle.py:356
+#: grunt/grunt/document/mixins/lifecycle.py:358
 #: grunt/grunt/activity/doctypes/DocFollow/doc_follow.py:26
 #: grunt/grunt/activity/doctypes/DocLike/doc_like.py:26
 msgid "No access to the document"
@@ -13315,7 +13230,7 @@ msgstr "Немає доступу до документа"
 msgid "Could not reassign the links: uniqueness conflict"
 msgstr "Не вдалося перепризначити посилання — конфлікт унікальності"
 
-#: grunt/grunt/document/mixins/lifecycle.py:428
+#: grunt/grunt/document/mixins/lifecycle.py:430
 msgid ""
 "The document was changed after you started editing. Open it again and repeat"
 " your changes."
@@ -13774,8 +13689,8 @@ msgid ""
 msgstr ""
 "DocType «%(name)s» не є деревом (is_tree=false або tree_view не налаштовано)"
 
-#: grunt/grunt/metadata/registry.py:523 grunt/grunt/metadata/registry.py:602
-#: grunt/grunt/metadata/registry.py:535 grunt/grunt/api/v1/meta.py:134
+#: grunt/grunt/metadata/registry.py:524 grunt/grunt/metadata/registry.py:603
+#: grunt/grunt/metadata/registry.py:536 grunt/grunt/api/v1/meta.py:134
 msgid "DocType “%(doctype)s” already exists"
 msgstr "DocType «%(doctype)s» вже існує"
 
@@ -13783,7 +13698,7 @@ msgstr "DocType «%(doctype)s» вже існує"
 msgid "Document with name '%(new_id)s' already exists"
 msgstr "Документ з назвою «%(new_id)s» вже існує"
 
-#: grunt/grunt/metadata/registry.py:614
+#: grunt/grunt/metadata/registry.py:615
 msgid "Duplicate fieldname '%(fieldname)s' in DocType '%(name)s'"
 msgstr "Дубльоване поле «%(fieldname)s» у DocType «%(name)s»"
 
@@ -13792,7 +13707,7 @@ msgstr "Дубльоване поле «%(fieldname)s» у DocType «%(name)s»"
 msgid "Expired or invalid WebAuthn challenge"
 msgstr "WebAuthn-виклик прострочений або недійсний"
 
-#: grunt/grunt/metadata/registry.py:633
+#: grunt/grunt/metadata/registry.py:634
 msgid "Fieldname '%(fieldname)s' exceeds %(max)s characters"
 msgstr "Назва поля «%(fieldname)s» довша за %(max)s символів"
 
@@ -13808,7 +13723,7 @@ msgstr "Хук «%(doc_id)s» не знайдено"
 msgid "Incorrect email or password"
 msgstr "Невірна електронна пошта або пароль"
 
-#: grunt/grunt/metadata/registry.py:623
+#: grunt/grunt/metadata/registry.py:624
 msgid ""
 "Invalid fieldname '%(fieldname)s': must start with a-z and contain only a-z,"
 " 0-9, _"
@@ -15354,6 +15269,343 @@ msgstr ""
 msgctxt "meta:DocType.definition"
 msgid "Definition"
 msgstr ""
+
+#: grunt/grunt/scripting/doctypes/ClientScript/ClientScript.json
+msgctxt "help:ClientScript.is_standard"
+msgid "Ships with the app as JSON files - edits are saved to the app"
+msgstr "Постачається з додатком як JSON-файли — зміни зберігаються в додаток"
+
+#: grunt/grunt/reports/doctypes/Dashboard/Dashboard.json
+msgctxt "help:Dashboard.is_standard"
+msgid "Ships with the app as JSON files - edits are saved to the app"
+msgstr "Постачається з додатком як JSON-файли — зміни зберігаються в додаток"
+
+#: grunt/grunt/reports/doctypes/DashboardChart/DashboardChart.json
+msgctxt "help:DashboardChart.is_standard"
+msgid "Ships with the app as JSON files - edits are saved to the app"
+msgstr "Постачається з додатком як JSON-файли — зміни зберігаються в додаток"
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgctxt "help:DocType.standard_records"
+msgid ""
+"Records marked standard ship with their app as JSON files (saved there in "
+"developer mode, applied by migrate)"
+msgstr ""
+"Записи, позначені стандартними, постачаються з додатком як JSON-файли "
+"(записуються туди в режимі розробника, застосовуються під час migrate)"
+
+#: grunt/grunt/metadata/doctypes/DocTypeCalendarSource/DocTypeCalendarSource.json
+msgctxt "help:DocTypeCalendarSource.ref_doctype"
+msgid "The document type added to the calendar as a separate source"
+msgstr "Тип документів, які додаються на календар окремим джерелом"
+
+#: grunt/grunt/email/doctypes/EmailTemplate/EmailTemplate.json
+msgctxt "help:EmailTemplate.is_standard"
+msgid "Ships with the app as JSON files - edits are saved to the app"
+msgstr "Постачається з додатком як JSON-файли — зміни зберігаються в додаток"
+
+#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+msgctxt "help:NotificationRule.is_standard"
+msgid "Ships with the app as JSON files - edits are saved to the app"
+msgstr "Постачається з додатком як JSON-файли — зміни зберігаються в додаток"
+
+#: grunt/grunt/reports/doctypes/NumberCard/NumberCard.json
+msgctxt "help:NumberCard.is_standard"
+msgid "Ships with the app as JSON files - edits are saved to the app"
+msgstr "Постачається з додатком як JSON-файли — зміни зберігаються в додаток"
+
+#: grunt/grunt/site/doctypes/Page/Page.json
+msgctxt "help:Page.is_standard"
+msgid "Ships with the app as JSON files - edits are saved to the app"
+msgstr "Постачається з додатком як JSON-файли — зміни зберігаються в додаток"
+
+#: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.json
+msgctxt "help:PrintFormat.is_standard"
+msgid "Ships with the app as JSON files - edits are saved to the app"
+msgstr "Постачається з додатком як JSON-файли — зміни зберігаються в додаток"
+
+#: grunt/grunt/reports/doctypes/Report/Report.json
+msgctxt "help:Report.is_standard"
+msgid "Ships with the app as JSON files - edits are saved to the app"
+msgstr "Постачається з додатком як JSON-файли — зміни зберігаються в додаток"
+
+#: grunt/grunt/scripting/doctypes/ServerScript/ServerScript.json
+msgctxt "help:ServerScript.is_standard"
+msgid "Ships with the app as JSON files - edits are saved to the app"
+msgstr "Постачається з додатком як JSON-файли — зміни зберігаються в додаток"
+
+#: grunt/grunt/site/doctypes/WebForm/WebForm.json
+msgctxt "help:WebForm.is_standard"
+msgid "Ships with the app as JSON files - edits are saved to the app"
+msgstr "Постачається з додатком як JSON-файли — зміни зберігаються в додаток"
+
+#: grunt/grunt/metadata/doctypes/Workflow/Workflow.json
+msgctxt "help:Workflow.is_standard"
+msgid "Ships with the app as JSON files - edits are saved to the app"
+msgstr "Постачається з додатком як JSON-файли — зміни зберігаються в додаток"
+
+#: grunt/grunt/activity/doctypes/ActivityLog/ActivityLog.json
+msgctxt "meta:ActivityLog.ref_doctype"
+msgid "Document type"
+msgstr "Тип документа"
+
+#: grunt/grunt/scripting/doctypes/ClientScript/ClientScript.json
+msgctxt "meta:ClientScript.app"
+msgid "App"
+msgstr "Додаток"
+
+#: grunt/grunt/scripting/doctypes/ClientScript/ClientScript.json
+msgctxt "meta:ClientScript.is_standard"
+msgid "Standard"
+msgstr "Стандартний"
+
+#: grunt/grunt/scripting/doctypes/ClientScript/ClientScript.json
+msgctxt "meta:ClientScript.ref_doctype"
+msgid "Document type"
+msgstr "Тип документа"
+
+#: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
+msgctxt "meta:Dashboard Widget.ref_doctype"
+msgid "DocType"
+msgstr "DocType"
+
+#: grunt/grunt/reports/doctypes/Dashboard/Dashboard.json
+msgctxt "meta:Dashboard.app"
+msgid "App"
+msgstr "Додаток"
+
+#: grunt/grunt/reports/doctypes/Dashboard/Dashboard.json
+msgctxt "meta:Dashboard.is_standard"
+msgid "Standard"
+msgstr "Стандартний"
+
+#: grunt/grunt/reports/doctypes/DashboardChart/DashboardChart.json
+msgctxt "meta:DashboardChart.app"
+msgid "App"
+msgstr "Додаток"
+
+#: grunt/grunt/reports/doctypes/DashboardChart/DashboardChart.json
+msgctxt "meta:DashboardChart.is_standard"
+msgid "Standard"
+msgstr "Стандартний"
+
+#: grunt/grunt/reports/doctypes/DashboardChart/DashboardChart.json
+msgctxt "meta:DashboardChart.ref_doctype"
+msgid "Document type"
+msgstr "Тип документа"
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgctxt "meta:DocType.standard_records"
+msgid "Standard records"
+msgstr "Стандартні записи"
+
+#: grunt/grunt/metadata/doctypes/DocTypeCalendarSource/DocTypeCalendarSource.json
+msgctxt "meta:DocTypeCalendarSource.ref_doctype"
+msgid "DocType"
+msgstr "DocType"
+
+#: grunt/grunt/document/doctypes/DocVersion/DocVersion.json
+msgctxt "meta:DocVersion.ref_doctype"
+msgid "Document type"
+msgstr "Тип документа"
+
+#: grunt/grunt/email/doctypes/EmailTemplate/EmailTemplate.json
+msgctxt "meta:EmailTemplate.app"
+msgid "App"
+msgstr "Додаток"
+
+#: grunt/grunt/email/doctypes/EmailTemplate/EmailTemplate.json
+msgctxt "meta:EmailTemplate.is_standard"
+msgid "Standard"
+msgstr "Стандартний"
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgctxt "meta:Notification.ref_doctype"
+msgid "Document type"
+msgstr "Тип документа"
+
+#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+msgctxt "meta:NotificationRule.app"
+msgid "App"
+msgstr "Додаток"
+
+#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+msgctxt "meta:NotificationRule.is_standard"
+msgid "Standard"
+msgstr "Стандартний"
+
+#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+msgctxt "meta:NotificationRule.ref_doctype"
+msgid "Document type"
+msgstr "Тип документа"
+
+#: grunt/grunt/reports/doctypes/NumberCard/NumberCard.json
+msgctxt "meta:NumberCard.app"
+msgid "App"
+msgstr "Додаток"
+
+#: grunt/grunt/reports/doctypes/NumberCard/NumberCard.json
+msgctxt "meta:NumberCard.is_standard"
+msgid "Standard"
+msgstr "Стандартний"
+
+#: grunt/grunt/reports/doctypes/NumberCard/NumberCard.json
+msgctxt "meta:NumberCard.ref_doctype"
+msgid "Document type"
+msgstr "Тип документа"
+
+#: grunt/grunt/site/doctypes/Page/Page.json
+msgctxt "meta:Page.app"
+msgid "App"
+msgstr "Додаток"
+
+#: grunt/grunt/site/doctypes/Page/Page.json
+msgctxt "meta:Page.is_standard"
+msgid "Standard"
+msgstr "Стандартний"
+
+#: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
+msgctxt "meta:PageWidget.ref_doctype"
+msgid "DocType"
+msgstr "DocType"
+
+#: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.json
+msgctxt "meta:PrintFormat.is_standard"
+msgid "Standard"
+msgstr "Стандартний"
+
+#: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.json
+msgctxt "meta:PrintFormat.ref_doctype"
+msgid "Document type"
+msgstr "Тип документа"
+
+#: grunt/grunt/reports/doctypes/Report/Report.json
+msgctxt "meta:Report.app"
+msgid "App"
+msgstr "Додаток"
+
+#: grunt/grunt/reports/doctypes/Report/Report.json
+msgctxt "meta:Report.is_standard"
+msgid "Standard"
+msgstr "Стандартний"
+
+#: grunt/grunt/reports/doctypes/Report/Report.json
+msgctxt "meta:Report.ref_doctype"
+msgid "Document type"
+msgstr "Тип документа"
+
+#: grunt/grunt/scripting/doctypes/ServerScript/ServerScript.json
+msgctxt "meta:ServerScript.app"
+msgid "App"
+msgstr "Додаток"
+
+#: grunt/grunt/scripting/doctypes/ServerScript/ServerScript.json
+msgctxt "meta:ServerScript.is_standard"
+msgid "Standard"
+msgstr "Стандартний"
+
+#: grunt/grunt/scripting/doctypes/ServerScript/ServerScript.json
+msgctxt "meta:ServerScript.ref_doctype"
+msgid "Document type"
+msgstr "Тип документа"
+
+#: grunt/grunt/activity/doctypes/ViewLog/ViewLog.json
+msgctxt "meta:ViewLog.ref_doctype"
+msgid "Document type"
+msgstr "Тип документа"
+
+#: grunt/grunt/site/doctypes/WebForm/WebForm.json
+msgctxt "meta:WebForm.app"
+msgid "App"
+msgstr "Додаток"
+
+#: grunt/grunt/site/doctypes/WebForm/WebForm.json
+msgctxt "meta:WebForm.is_standard"
+msgid "Standard"
+msgstr "Стандартний"
+
+#: grunt/grunt/site/doctypes/WebForm/WebForm.json
+msgctxt "meta:WebForm.ref_doctype"
+msgid "Document type"
+msgstr "Тип документа"
+
+#: grunt/grunt/metadata/doctypes/Workflow/Workflow.json
+msgctxt "meta:Workflow.app"
+msgid "App"
+msgstr "Додаток"
+
+#: grunt/grunt/metadata/doctypes/Workflow/Workflow.json
+msgctxt "meta:Workflow.is_standard"
+msgid "Standard"
+msgstr "Стандартний"
+
+#~ msgctxt "help:DocTypeCalendarSource.doctype"
+#~ msgid "The document type added to the calendar as a separate source"
+#~ msgstr "Тип документів, які додаються на календар окремим джерелом"
+
+#~ msgctxt "meta:WebForm.doctype"
+#~ msgid "Document type"
+#~ msgstr "Тип документа"
+
+#~ msgctxt "meta:Dashboard Widget.doctype"
+#~ msgid "DocType"
+#~ msgstr "DocType"
+
+#~ msgctxt "meta:DocTypeCalendarSource.doctype"
+#~ msgid "DocType"
+#~ msgstr "DocType"
+
+#~ msgctxt "meta:PageWidget.doctype"
+#~ msgid "DocType"
+#~ msgstr "DocType"
+
+#~ msgctxt "meta:ActivityLog.doctype"
+#~ msgid "Document type"
+#~ msgstr "Тип документа"
+
+#~ msgctxt "meta:ViewLog.doctype"
+#~ msgid "Document type"
+#~ msgstr "Тип документа"
+
+#~ msgctxt "meta:DocVersion.doctype"
+#~ msgid "Document type"
+#~ msgstr "Тип документа"
+
+#~ msgctxt "meta:Notification.doctype"
+#~ msgid "Document type"
+#~ msgstr "Тип документа"
+
+#~ msgctxt "meta:NotificationRule.doctype"
+#~ msgid "Document type"
+#~ msgstr "Тип документа"
+
+#~ msgctxt "meta:PrintFormat.doctype"
+#~ msgid "Document type"
+#~ msgstr "Тип документа"
+
+#~ msgctxt "meta:PrintFormat.is_app_format"
+#~ msgid "Save in app"
+#~ msgstr "Зберігати в додатку"
+
+#~ msgctxt "meta:DashboardChart.doctype"
+#~ msgid "Document type"
+#~ msgstr "Тип документа"
+
+#~ msgctxt "meta:NumberCard.doctype"
+#~ msgid "Document type"
+#~ msgstr "Тип документа"
+
+#~ msgctxt "meta:Report.doctype"
+#~ msgid "Document type"
+#~ msgstr "Тип документа"
+
+#~ msgctxt "meta:ClientScript.doctype"
+#~ msgid "Document type"
+#~ msgstr "Тип документа"
+
+#~ msgctxt "meta:ServerScript.doctype"
+#~ msgid "Document type"
+#~ msgstr "Тип документа"
 
 #~ msgid "Backups are created with the Create now button"
 #~ msgstr "Копію створює кнопка «Створити зараз»"

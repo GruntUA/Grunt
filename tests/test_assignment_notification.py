@@ -11,7 +11,7 @@ async def _notifs_for(ctx, user: str) -> list[dict]:
     return await ctx.db.get_all(
         "Notification",
         filters={"user": user},
-        fields=["subject", "message", "doctype", "doc_id"],
+        fields=["subject", "message", "ref_doctype", "doc_id"],
         limit=10,
     )
 
@@ -50,7 +50,7 @@ async def test_assigning_a_todo_notifies_the_assignee(ctx):
     assert len(notifs) == 1
     assert notifs[0]["message"] == "Передати роутер на склад"
     assert "User someone@example.com" in notifs[0]["subject"]
-    assert notifs[0]["doctype"] == "User"
+    assert notifs[0]["ref_doctype"] == "User"
     assert len(mails) == 1
     assert "Передати роутер на склад" in mails[0]["content"]
 

@@ -210,10 +210,11 @@ Email, search, notifications, webhooks — не окремі пакети, а м
         {ReportName}.json        ← схема звіту
         {ReportName}.py          ← логіка звіту
         tests/
-    print_formats/
-      {FormatName}/
-        {FormatName}.json        ← схема формату
-        {FormatName}.html        ← Jinja-шаблон
+    records/                     ← стандартні записи (DocType.standard_records)
+      print_format/
+        {record}/
+          {record}.json          ← JSON документа
+          template.html          ← Code-поле окремим файлом
     fixtures/                    ← початкові дані модуля (YAML/JSON)
     {service}.py                 ← бізнес-логіка модуля
   grunt_app.py                   ← маніфест + hooks
@@ -241,10 +242,11 @@ hrm/
       EmployeeList/
         EmployeeList.json
         EmployeeList.py
-    print_formats/
-      EmployeeCard/
-        EmployeeCard.json
-        EmployeeCard.html
+    records/
+      print_format/
+        employee_card/
+          employee_card.json
+          template.html
     fixtures/
     service.py
   leave/                         ← модуль "leave"

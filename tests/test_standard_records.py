@@ -17,6 +17,7 @@ _PARENT = {
     "module": "core",
     "autoname": "field:code",
     "standard_records": True,
+    "title_field": "title",
     "fields": [
         {"fieldname": "code", "label": "Code", "fieldtype": "Data", "required": True},
         {"fieldname": "title", "label": "Title", "fieldtype": "Data"},
