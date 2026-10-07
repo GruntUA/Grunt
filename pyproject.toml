@@ -59,9 +59,6 @@ dependencies = [
     "nh3>=0.3",
 ]
 
-[project.scripts]
-grunt = "grunt.cli.main:cli"
-
 [project.optional-dependencies]
 postgres = [
     "asyncpg>=0.29.0",       # async driver (runtime)

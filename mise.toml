@@ -6,7 +6,7 @@ uv = "latest"
 [tasks.deps]
 run = """
 uv sync --all-extras --all-packages --inexact
-uv run grunt app deps
+uv run python -m grunt.cli.main app deps
 npm install
 """
 description = "Sync Python and Node.js dependencies"

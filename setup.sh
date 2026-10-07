@@ -175,7 +175,7 @@ else
     echo -e "  Frontend:${BOLD}cd frontend && npm run dev${NC}"
     echo ""
     echo -e "  Або разом через grunt CLI:"
-    echo -e "           ${BOLD}uv run grunt serve${NC}"
+    echo -e "           ${BOLD}grunt serve${NC}"
 fi
 
 echo ""
