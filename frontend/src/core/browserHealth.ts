@@ -10,7 +10,7 @@
 import client from '@/core/api/client'
 import { queue, refreshQueue } from '@/core/composables/useOfflineQueue'
 import { isOnline, serverReachable } from '@/core/composables/useNetworkStatus'
-import { openChannelCount } from '@/core/ws/WebSocketChannel'
+import { authProtocols, buildWebSocketUrl, openChannelCount } from '@/core/ws/WebSocketChannel'
 import i18n, { N_ } from '@/plugins/i18n'
 
 const t = (key: string, params: Record<string, unknown> = {}): string => i18n.global.t(key, params)
@@ -183,7 +183,7 @@ async function storageChecks(): Promise<HealthRow[]> {
 /** Open a test socket; resolves once it is open, rejects with the close code. */
 function openSocket(url: string): Promise<WebSocket> {
   return new Promise((resolve, reject) => {
-    const ws = new WebSocket(url)
+    const ws = new WebSocket(buildWebSocketUrl(url), authProtocols())
     const timer = setTimeout(() => { ws.close(); reject(new Error('timeout')) }, WS_TIMEOUT_MS)
     ws.onopen = () => { clearTimeout(timer); resolve(ws) }
     ws.onclose = (e) => { clearTimeout(timer); reject(new Error(`code ${e.code}`)) }
@@ -223,13 +223,10 @@ async function realtimeChecks(): Promise<HealthRow[]> {
         N_('Notifications and document updates will not arrive live.'))]
   if (!('WebSocket' in window)) return [...rows, row(REALTIME, N_('Test connection'), 'Error', N_('not supported'))]
 
-  const token = localStorage.getItem('grunt_token') ?? ''
-  const proto = location.protocol === 'https:' ? 'wss:' : 'ws:'
-  const url = `${proto}//${location.host}/api/v1/ws/user?token=${encodeURIComponent(token)}`
   const started = performance.now()
   let ws: WebSocket
   try {
-    ws = await openSocket(url)
+    ws = await openSocket('/api/v1/ws/user')
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e)
     return [...rows, row(REALTIME, N_('Test connection'), 'Error', msg === N_('code 4001') ? N_('token rejected') : msg,

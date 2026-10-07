@@ -111,7 +111,7 @@ class WebsiteRegistry:
             page = WebsitePage(html_file, www_dir, app_name, url_pattern)
             self._pages.append(page)
             discovered.append(page)
-            log.info("website.page.discovered", app=app_name, url=url_pattern)
+            log.debug("website.page.discovered", app=app_name, url=url_pattern)
 
         return discovered
 

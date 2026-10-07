@@ -132,7 +132,7 @@ def _tree_title_resolvers(value: dict[str, str], ctx: LoadContext) -> None:
     for doctype, path in value.items():
         try:
             register_tree_title_resolver(doctype, _resolve(path))
-            log.info("tree.title_resolver.registered", doctype=doctype, app=ctx.app_name)
+            log.debug("tree.title_resolver.registered", doctype=doctype, app=ctx.app_name)
         except Exception as e:
             log.warning("tree.title_resolver.error", doctype=doctype, handler=path, error=str(e))
 

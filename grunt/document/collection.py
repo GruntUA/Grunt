@@ -34,7 +34,7 @@ from grunt.document.update_side_effects import (
     run_bulk_before_delete_hooks,
     run_bulk_delete_writes,
 )
-from grunt.document.virtual import is_virtual_routed, virtual_list
+from grunt.document.virtual import is_virtual_routed, virtual_count, virtual_list
 from grunt.metadata.compiler import MULTI_LINK_TABLE
 from grunt.metadata.registry import doctype_registry
 from grunt.permissions.query import apply_permission_filter
@@ -341,9 +341,9 @@ async def count_documents(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=_("DocType “%(doctype)s” not found") % {"doctype": doctype_name},
         )
-    if dt.is_virtual:
-        # Virtual DocTypes own their storage; fall back to the plain count.
-        return await grunt.db.count(doctype_name, filters=filters)
+    if is_virtual_routed(dt, doctype_name):
+        # Virtual DocTypes own their storage - the controller counts its rows.
+        return await virtual_count(doctype_name, user, filters)
 
     table = dt.table
     extra_clause = await _resolve_list_filter_extra(session, doctype_name, filters, table)
@@ -383,7 +383,10 @@ async def field_years(
             detail=_("DocType “%(doctype)s” not found") % {"doctype": doctype_name},
         )
     field = dt.get_field(fieldname)
-    if dt.is_virtual or field is None or field.fieldtype not in ("Date", "Datetime"):
+    if is_virtual_routed(dt, doctype_name) or field is None or field.fieldtype not in (
+        "Date",
+        "Datetime",
+    ):
         return []
 
     table = dt.table

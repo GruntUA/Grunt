@@ -361,7 +361,7 @@ class TranslationService:
         _provider = fn
         _provider_cache.clear()
         self._bump_version()
-        log.info("i18n.provider_registered", provider=getattr(fn, "__qualname__", repr(fn)))
+        log.debug("i18n.provider_registered", provider=getattr(fn, "__qualname__", repr(fn)))
 
     def invalidate(self, lang: str | None = None) -> None:
         """Drop cached provider/app catalogs (all locales, or just *lang*)."""
@@ -428,7 +428,7 @@ class TranslationService:
         if new != _supported:
             _supported = new
             self._bump_version()
-            log.info("i18n.supported_langs", langs=sorted(_supported))
+            log.debug("i18n.supported_langs", langs=sorted(_supported))
 
     def reload(self) -> None:
         """Clear every cache (forces reload from files / provider)."""

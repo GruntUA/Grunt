@@ -104,3 +104,10 @@ async def virtual_delete(doctype_name: str, user: User, doc_id: str):
     if ctrl is None:
         raise _no_controller(doctype_name)
     return await ctrl.delete(doc_id)
+
+
+async def virtual_count(doctype_name: str, user: User, filters: dict[str, Any] | None = None) -> int:
+    ctrl = _get_virtual_controller(doctype_name, user)
+    if ctrl is None:
+        return 0
+    return await ctrl.get_count(filters=filters)

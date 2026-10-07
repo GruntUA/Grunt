@@ -17,17 +17,25 @@ module (e.g. hrm.* -> logs/apps/hrm/hrm.log, grunt.* -> logs/system/grunt.log).
 
 from __future__ import annotations
 
-import inspect
+import os
+import sys
 
 import structlog
 
+from grunt.logging_config import configure_console_logging
+
 
 def _caller_module(depth: int) -> str:
-    """Return __name__ of the frame `depth` levels above this function."""
-    stack = inspect.stack()
-    if len(stack) <= depth:
+    """Return __name__ of the frame `depth` levels above this function.
+
+    ``sys._getframe`` rather than ``inspect.stack()``: the latter reads source
+    lines for every frame of the stack and cost ~10 ms per log call.
+    """
+    try:
+        frame = sys._getframe(depth)
+    except ValueError:
         return "grunt"
-    return stack[depth][0].f_globals.get("__name__", "grunt")
+    return frame.f_globals.get("__name__", "grunt")
 
 
 class _BaseLogger:
@@ -84,3 +92,9 @@ class BoundLogger(_BaseLogger):
 
 
 log = GruntLogger()
+
+# Lines logged while modules are still importing (hooks, actions, website
+# pages registering themselves) must not fall through to structlog's
+# unconfigured default - it prints DEBUG in its own format. The site's
+# settings take over in grunt.startup.lifespan via configure_logging().
+configure_console_logging(os.environ.get("LOG_LEVEL", "INFO"))

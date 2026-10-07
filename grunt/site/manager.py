@@ -279,7 +279,7 @@ class SiteManager:
             )
             # Safe logging: avoid logging password
             safe_url = db_url.split("@")[-1] if "@" in db_url else db_url
-            log.info("site_manager.engine_created", site=site_name, db_url=safe_url)
+            log.debug("site_manager.engine_created", site=site_name, db_url=safe_url)
 
         return self.engines[site_name]
 

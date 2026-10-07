@@ -9,7 +9,7 @@ import jwt
 import pytest
 from starlette.testclient import TestClient
 
-from grunt.api.v1.ws import manager
+from grunt.api.v1.ws import AUTH_SUBPROTOCOL, manager
 from grunt.config import settings
 from grunt.main import app
 
@@ -19,27 +19,42 @@ def _token(sub: str) -> str:
 
 
 def test_user_channel_ping_pong():
-    with TestClient(app).websocket_connect(f"/api/v1/ws/user?token={_token('a@x.com')}") as ws:
+    with TestClient(app).websocket_connect(
+        "/api/v1/ws/user", subprotocols=[AUTH_SUBPROTOCOL, _token("a@x.com")]
+    ) as ws:
+        assert ws.accepted_subprotocol == AUTH_SUBPROTOCOL  # the token is not echoed back
         ws.send_text(json.dumps({"action": "ping"}))
         assert ws.receive_json() == {"event": "pong"}
 
 
-def test_user_channel_rejects_bad_token():
+@pytest.mark.parametrize("subprotocols", [None, [AUTH_SUBPROTOCOL, "forged"]])
+def test_user_channel_rejects_missing_or_bad_token(subprotocols):
     from starlette.websockets import WebSocketDisconnect
 
     with (
         pytest.raises(WebSocketDisconnect) as exc,
-        TestClient(app).websocket_connect("/api/v1/ws/user?token=forged") as ws,
+        TestClient(app).websocket_connect("/api/v1/ws/user", subprotocols=subprotocols) as ws,
     ):
         ws.receive_text()
     assert exc.value.code == 4001
+
+
+def test_query_token_is_ignored():
+    """``?token=`` leaked the JWT into access logs - it no longer authenticates."""
+    from starlette.websockets import WebSocketDisconnect
+
+    with (
+        pytest.raises(WebSocketDisconnect),
+        TestClient(app).websocket_connect(f"/api/v1/ws/user?token={_token('a@x.com')}") as ws,
+    ):
+        ws.receive_text()
 
 
 class _FakeSocket:
     def __init__(self) -> None:
         self.sent: list[dict] = []
 
-    async def accept(self) -> None: ...
+    async def accept(self, subprotocol: str | None = None) -> None: ...
 
     async def send_text(self, text: str) -> None:
         self.sent.append(json.loads(text))

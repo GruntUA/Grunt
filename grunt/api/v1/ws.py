@@ -6,12 +6,19 @@ import asyncio
 import json
 from typing import Any
 
-from fastapi import APIRouter, Query, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
 import grunt
 from grunt import log
+from grunt.auth.doctypes.UserSession.user_session import client_ip
 
 router = APIRouter()
+
+# The browser WebSocket API can't set headers, so the client offers the JWT as
+# the second subprotocol: ``Sec-WebSocket-Protocol: grunt.auth, <jwt>``. Unlike
+# a ``?token=`` query param it never ends up in access logs. The server answers
+# with ``grunt.auth`` only - the token is not echoed back.
+AUTH_SUBPROTOCOL = "grunt.auth"
 
 
 class ConnectionManager:
@@ -44,11 +51,13 @@ class ConnectionManager:
     def _total_connections(self) -> int:
         return sum(len(v) for v in self._connections.values())
 
-    async def connect(self, ws: WebSocket, channel: str) -> None:
-        await ws.accept()
+    async def connect(self, ws: WebSocket, channel: str, subprotocol: str | None = None) -> None:
+        await ws.accept(subprotocol=subprotocol)
         self._connections.setdefault(channel, []).append(ws)
         await self.ensure_redis_listener()
-        log.debug("ws.connect", channel=channel, total=self._total_connections())
+        log.debug(
+            "ws.connect", channel=channel, ip=client_ip(ws), total=self._total_connections()
+        )
 
     def disconnect(self, ws: WebSocket, channel: str) -> None:
         conns = self._connections.get(channel, [])
@@ -238,12 +247,21 @@ class ConnectionManager:
 manager = ConnectionManager()
 
 
-async def _authenticate_ws(websocket: WebSocket, token: str | None) -> str | None:
-    """Validate JWT token for WebSocket connections.
+def _subprotocol_token(websocket: WebSocket) -> str | None:
+    protocols = websocket.scope.get("subprotocols") or []
+    if len(protocols) == 2 and protocols[0] == AUTH_SUBPROTOCOL:
+        return protocols[1]
+    return None
+
+
+async def _authenticate_ws(websocket: WebSocket) -> str | None:
+    """Validate the JWT offered via ``Sec-WebSocket-Protocol``.
 
     Returns the user email (subject) on success, or None on failure.
     """
+    token = _subprotocol_token(websocket)
     if not token:
+        log.info("ws.rejected", path=websocket.url.path, ip=client_ip(websocket), reason="no token")
         await websocket.close(code=4001)
         return None
     try:
@@ -256,18 +274,21 @@ async def _authenticate_ws(websocket: WebSocket, token: str | None) -> str | Non
         if not sub:
             raise ValueError("No subject in token")
         return sub
-    except Exception:
+    except Exception as e:
+        log.info("ws.rejected", path=websocket.url.path, ip=client_ip(websocket), reason=str(e))
         await websocket.close(code=4001)
         return None
 
 
-async def _run_simple_channel(websocket: WebSocket, channel: str) -> None:
+async def _run_simple_channel(
+    websocket: WebSocket, channel: str, subprotocol: str | None = None
+) -> None:
     """Connect, relay ping/pong until disconnect - shared by ws_user/ws_site/ws_public.
 
     All three are the same channel lifecycle; they differ only in how
     *channel* is computed (and whether that requires authenticating first).
     """
-    await manager.connect(websocket, channel)
+    await manager.connect(websocket, channel, subprotocol)
     try:
         while True:
             raw = await websocket.receive_text()
@@ -284,28 +305,26 @@ async def _run_simple_channel(websocket: WebSocket, channel: str) -> None:
 @router.websocket("/ws/user")
 async def ws_user(
     websocket: WebSocket,
-    token: str | None = Query(default=None),
 ) -> None:
     """Per-user channel for notifications and realtime messages."""
-    user_email = await _authenticate_ws(websocket, token)
+    user_email = await _authenticate_ws(websocket)
     if not user_email:
         return
-    await _run_simple_channel(websocket, f"user:{user_email}")
+    await _run_simple_channel(websocket, f"user:{user_email}", AUTH_SUBPROTOCOL)
 
 
 @router.websocket("/ws/site")
 async def ws_site(
     websocket: WebSocket,
-    token: str | None = Query(default=None),
 ) -> None:
     """Site-wide channel for authenticated users (activity feed, etc.).
 
     Declared before ``/ws/{doctype}`` so the literal path wins the match.
     """
-    user_email = await _authenticate_ws(websocket, token)
+    user_email = await _authenticate_ws(websocket)
     if not user_email:
         return
-    await _run_simple_channel(websocket, "site")
+    await _run_simple_channel(websocket, "site", AUTH_SUBPROTOCOL)
 
 
 @router.websocket("/ws/public/{channel:path}")
@@ -322,7 +341,6 @@ async def ws_document(
     websocket: WebSocket,
     doctype: str,
     doc_id: str,
-    token: str | None = Query(default=None),
 ) -> None:
     """Subscribe to changes on a specific document.
 
@@ -342,7 +360,7 @@ async def ws_document(
       { "event": "field_locked",     "data": { "field": "...", "user": { ... } } }
       { "event": "field_unlocked",   "data": { "field": "..." } }
     """
-    user_email = await _authenticate_ws(websocket, token)
+    user_email = await _authenticate_ws(websocket)
     if not user_email:
         return
 
@@ -350,7 +368,7 @@ async def ws_document(
     normalized_doctype = dt.name if dt is not None else doctype
 
     channel = f"doc:{normalized_doctype}:{doc_id}"
-    await manager.connect(websocket, channel)
+    await manager.connect(websocket, channel, AUTH_SUBPROTOCOL)
     try:
         while True:
             raw = await websocket.receive_text()
@@ -386,10 +404,9 @@ async def ws_document(
 async def ws_list(
     websocket: WebSocket,
     doctype: str,
-    token: str | None = Query(default=None),
 ) -> None:
     """Subscribe to list-level changes for a DocType."""
-    user_email = await _authenticate_ws(websocket, token)
+    user_email = await _authenticate_ws(websocket)
     if not user_email:
         return
 
@@ -397,7 +414,7 @@ async def ws_list(
     normalized_doctype = dt.name if dt is not None else doctype
 
     channel = f"list:{normalized_doctype}"
-    await manager.connect(websocket, channel)
+    await manager.connect(websocket, channel, AUTH_SUBPROTOCOL)
     try:
         while True:
             raw = await websocket.receive_text()

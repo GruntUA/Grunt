@@ -10,6 +10,7 @@ class MockWebSocket {
   static CLOSED = 3
 
   readonly url: string
+  readonly protocols: string[] | undefined
   readyState = MockWebSocket.CONNECTING
   onopen: (() => void) | null = null
   onclose: (() => void) | null = null
@@ -17,8 +18,9 @@ class MockWebSocket {
   onmessage: ((event: { data: string }) => void) | null = null
   sent: string[] = []
 
-  constructor(url: string) {
+  constructor(url: string, protocols?: string[]) {
     this.url = url
+    this.protocols = protocols
     MockWebSocket.instances.push(this)
   }
 
@@ -63,12 +65,14 @@ describe('WebSocketChannel', () => {
     globalThis.WebSocket = originalWebSocket
   })
 
-  it('appends auth token for relative authenticated URLs', () => {
+  it('offers the auth token as a subprotocol, not in the URL', () => {
     const channel = new WebSocketChannel({ url: '/api/v1/ws/user', includeAuthToken: true })
 
     channel.connect()
 
-    expect(MockWebSocket.instances[0]?.url).toContain('/api/v1/ws/user?token=test-token')
+    const socket = MockWebSocket.instances[0]!
+    expect(socket.url).toMatch(/\/api\/v1\/ws\/user$/)
+    expect(socket.protocols).toEqual(['grunt.auth', 'test-token'])
   })
 
   it('counts open channels per URL for the health report', () => {

@@ -53,8 +53,8 @@ def load_validators() -> int:
     for validator_dir in _find_validator_dirs():
         count = load_from_dir(validator_dir)
         if count:
-            log.info("validators.loaded", dir=str(validator_dir), count=count)
+            log.debug("validators.loaded", dir=str(validator_dir), count=count)
         total += count
 
-    log.info("validators.total", count=total)
+    log.debug("validators.total", count=total)
     return total

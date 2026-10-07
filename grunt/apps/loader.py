@@ -108,6 +108,7 @@ async def load_external_apps(
 
     _ensure_on_syspath(ext_apps_dir)
 
+    loaded: list[str] = []
     for app_dir in sorted(ext_apps_dir.iterdir()):
         if not _is_loadable_app(app_dir, installed_apps):
             continue
@@ -116,6 +117,8 @@ async def load_external_apps(
         # as a namespace package.
         _ensure_on_syspath(app_dir)
         await load_app(fastapi_app, app_dir)
+        loaded.append(app_dir.name)
+    log.info("apps.loaded", apps=loaded)
 
 
 def _is_loadable_app(app_dir: Path, installed_apps: set[str]) -> bool:
@@ -189,7 +192,7 @@ def _iter_hooks_modules(app_dir: Path) -> Iterator[ModuleType]:
         except Exception as e:  # noqa: BLE001 - one bad app must not break the rest
             log.warning("hooks.load_error", module=import_path, error=str(e))
             continue
-        log.info("hooks.loaded", module=import_path)
+        log.debug("hooks.loaded", module=import_path)
         yield mod
 
 
@@ -215,7 +218,7 @@ async def _run_on_startup(mod: object, ctx: LoadContext) -> None:
             result = _resolve(path)()
             if inspect.isawaitable(result):
                 await result
-            log.info("apps.on_startup.called", app=ctx.app_name, handler=path)
+            log.debug("apps.on_startup.called", app=ctx.app_name, handler=path)
         except Exception as e:  # noqa: BLE001 - one bad handler must not stop the rest
             log.warning("apps.on_startup.error", app=ctx.app_name, handler=path, error=str(e))
 
@@ -239,7 +242,7 @@ def _include_app_routers(ctx: LoadContext) -> None:
             before = len(ctx.fastapi_app.router.routes)
             ctx.fastapi_app.include_router(mod.router, prefix=f"/api/v1/app/{ctx.app_name}")
             _move_before_catch_all(ctx.fastapi_app, len(ctx.fastapi_app.router.routes) - before)
-            log.info("app_router.registered", app=ctx.app_name, module=module_name)
+            log.debug("app_router.registered", app=ctx.app_name, module=module_name)
 
 
 def _mount_app_static(ctx: LoadContext) -> None:
@@ -256,7 +259,7 @@ def _mount_app_static(ctx: LoadContext) -> None:
         name=f"assets_{ctx.app_name}",
     )
     _move_before_catch_all(ctx.fastapi_app)
-    log.info("www.assets.mounted", app=ctx.app_name)
+    log.debug("www.assets.mounted", app=ctx.app_name)
 
 
 def _move_before_catch_all(fastapi_app: FastAPI, count: int = 1) -> None:

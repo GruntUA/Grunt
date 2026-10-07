@@ -26,6 +26,7 @@ from grunt.config import settings
 
 if TYPE_CHECKING:
     from fastapi import Request
+    from starlette.requests import HTTPConnection
 
 
 def _hash(token: str) -> str:
@@ -40,7 +41,7 @@ def _as_utc(value: Any) -> datetime | None:
     return value if value.tzinfo else value.replace(tzinfo=UTC)
 
 
-def client_ip(request: Request | None) -> str | None:
+def client_ip(request: HTTPConnection | None) -> str | None:
     """The caller's real IP behind Cloudflare / a reverse proxy.
 
     Forwarded-IP headers are honoured only when the connection itself comes

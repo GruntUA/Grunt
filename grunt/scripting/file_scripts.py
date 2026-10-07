@@ -184,12 +184,12 @@ def _load_doctype_dir_scripts(dt_dir: Path, app_name: str) -> None:
             entry_dict["api_method"] = method
             entry_dict["allow_guest"] = meta.get("allow_guest", "").lower() == "true"
             FILE_SCRIPT_REGISTRY[("api", method)] = entry_dict
-            log.info("file_scripts.server_loaded", app=app_name, type="API", method=method)
+            log.debug("file_scripts.server_loaded", app=app_name, type="API", method=method)
         elif script_type in ("doctype_event", "doctype event"):
             event = meta.get("event")
             if event:
                 FILE_SCRIPT_REGISTRY[("doctype_event", doctype, event)] = entry_dict
-                log.info(
+                log.debug(
                     "file_scripts.server_loaded",
                     app=app_name,
                     type="DocType Event",
@@ -202,7 +202,7 @@ def _load_doctype_dir_scripts(dt_dir: Path, app_name: str) -> None:
             entry_dict["api_method"] = method
             entry_dict["allow_guest"] = False
             FILE_SCRIPT_REGISTRY[("api", method)] = entry_dict
-            log.info("file_scripts.server_loaded", app=app_name, type="API (auto)", method=method)
+            log.debug("file_scripts.server_loaded", app=app_name, type="API (auto)", method=method)
 
 
 # Lookup helpers (used by ServerScriptRunner)

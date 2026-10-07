@@ -13,6 +13,7 @@ This keeps startup fast regardless of how many DocTypes an application has.
 
 from __future__ import annotations
 
+import asyncio
 import re
 from typing import TYPE_CHECKING
 
@@ -121,6 +122,9 @@ class DocTypeRegistry:
         # Maps name.lower() -> canonical name.  Updated by every write method.
         self._lower_index: dict[str, str] = {}  # for loaded _doctypes
         self._known_lower: dict[str, str] = {}  # for lazy _known_names
+        # Concurrent list_all() callers (e.g. several requests right after
+        # boot) wait for one load instead of each re-reading every row.
+        self._list_all_lock = asyncio.Lock()
 
     # Index helpers
 
@@ -198,7 +202,7 @@ class DocTypeRegistry:
         self._known_names = all_names - set(self._doctypes)
         # Rebuild the known-names index in one pass
         self._known_lower = {n.lower(): n for n in self._known_names}
-        log.info(
+        log.debug(
             "registry.names_prefetched",
             core=len(self._doctypes),
             lazy=len(self._known_names),
@@ -373,18 +377,21 @@ class DocTypeRegistry:
     async def list_all(self) -> list[DocType]:
         """Return all registered DocTypes, loading any that are still lazy."""
         if self._known_names:
-            # Load remaining lazy DocTypes so the list is complete
-            from grunt.site.manager import site_manager
-
-            try:
-                site_name = site_manager.get_active_site()
-                maker = site_manager.get_session_maker(site_name)
-                async with maker() as session:
-                    await self.load_all(session)
-            except Exception as exc:
-                log.warning("registry.list_all_lazy_failed", error=str(exc))
+            async with self._list_all_lock:
+                if self._known_names:  # another caller may have loaded them meanwhile
+                    await self._load_lazy()
 
         return list(self._doctypes.values())
+
+    async def _load_lazy(self) -> None:
+        """Load the remaining lazy DocTypes of the active site."""
+        try:
+            site_name = site_manager.get_active_site()
+            maker = site_manager.get_session_maker(site_name)
+            async with maker() as session:
+                await self.load_all(session)
+        except Exception as exc:
+            log.warning("registry.list_all_lazy_failed", error=str(exc))
 
     # Write
 

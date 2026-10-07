@@ -77,7 +77,7 @@ def load_app_doc_actions(module_paths: list[str], *, app: str | None = None) -> 
     for mod_path in module_paths:
         try:
             importlib.import_module(mod_path)
-            log.info("doc_actions.module_loaded", module=mod_path, app=app)
+            log.debug("doc_actions.module_loaded", module=mod_path, app=app)
         except Exception as exc:  # pragma: no cover - defensive, mirrors hooks loader
             log.warning("doc_actions.module_error", module=mod_path, app=app, error=str(exc))
 

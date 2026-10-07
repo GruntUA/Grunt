@@ -40,3 +40,17 @@ async def test_workspace_items_carry_count_filters_and_key(ctx) -> None:
     assert filtered["count_filters"] == '{"menu": "mlt_portal"}'
     assert filtered["count_key"] == "WebsiteMenuItem_mlt_portal"
     assert plain["count_key"] == "WebsiteMenuItem"
+
+
+@pytest.mark.asyncio
+async def test_count_of_virtual_routed_doctype_uses_its_controller(ctx) -> None:
+    """``DocType`` is stored as is_virtual=False but served by a VirtualDocType
+    controller - its sidebar badge must come from that controller, not from
+    the table count path (which crashed on ``list_filter_extra``)."""
+    from grunt.auth.doctypes.User.user import SYSTEM_USER
+    from grunt.document.collection import count_documents
+
+    from grunt.metadata.doctypes.DocType.doc_type import DocTypeController
+
+    expected = await DocTypeController("DocType", SYSTEM_USER).get_count()
+    assert await count_documents(ctx.get_session(), "DocType", SYSTEM_USER) == expected

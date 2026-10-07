@@ -36,7 +36,7 @@ if settings.redis_url:
         BackgroundTaskLoggingMiddleware(),
         _retry_middleware,
     )
-    log.info("tasks.broker_initialized", type="redis_stream", url=settings.redis_url)
+    log.debug("tasks.broker_initialized", type="redis_stream", url=settings.redis_url)
 else:
     # Fallback to In-Memory broker for local dev without Redis
     broker = InMemoryBroker().with_middlewares(

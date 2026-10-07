@@ -10,26 +10,22 @@ interface WebSocketChannelOptions {
   pingPayload?: unknown
 }
 
-function buildWebSocketUrl(url: string, includeAuthToken: boolean): string {
+/** Subprotocol name the server answers with; the JWT rides as the second
+ * offered protocol so it never lands in a URL (and so in access logs). */
+const AUTH_SUBPROTOCOL = 'grunt.auth'
+
+export function buildWebSocketUrl(url: string): string {
   if (url.startsWith('ws://') || url.startsWith('wss://')) {
     return url
   }
-
   const proto = location.protocol === 'https:' ? 'wss:' : 'ws:'
-  let fullUrl = `${proto}//${location.host}${url}`
+  return `${proto}//${location.host}${url}`
+}
 
-  if (!includeAuthToken) {
-    return fullUrl
-  }
-
+/** `Sec-WebSocket-Protocol` offer carrying the stored JWT, or `undefined` without one. */
+export function authProtocols(): string[] | undefined {
   const token = localStorage.getItem('grunt_token')
-  if (!token) {
-    return fullUrl
-  }
-
-  const sep = fullUrl.includes('?') ? '&' : '?'
-  fullUrl += `${sep}token=${encodeURIComponent(token)}`
-  return fullUrl
+  return token ? [AUTH_SUBPROTOCOL, token] : undefined
 }
 
 /** Open channels across the app - each component owns its own WebSocketChannel. */
@@ -97,8 +93,8 @@ export class WebSocketChannel {
     }
 
     this.manualClose = false
-    const fullUrl = buildWebSocketUrl(this.url, this.includeAuthToken)
-    this.ws = new WebSocket(fullUrl)
+    const fullUrl = buildWebSocketUrl(this.url)
+    this.ws = new WebSocket(fullUrl, this.includeAuthToken ? authProtocols() : undefined)
 
     this.ws.onopen = () => {
       this.isConnected.value = true

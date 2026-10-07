@@ -6,13 +6,12 @@ Encapsulates logic for workspace navigation and sidebar counts.
 from __future__ import annotations
 
 import json
-from typing import Any, cast
+from typing import Any
 
 import grunt
 from grunt import log
 from grunt.document.base import Document
-from grunt.document.registry import document_registry
-from grunt.metadata.virtual import VirtualDocType
+from grunt.document.virtual import is_virtual_routed, virtual_count
 
 
 def parse_count_filters(item: dict[str, Any]) -> dict[str, Any]:
@@ -86,7 +85,7 @@ class AppMenu(Document):
             filters = self._parse_filters(item)
             key = self._generate_count_key(link_to, filters)
 
-            if dt.is_virtual:
+            if is_virtual_routed(dt, link_to):
                 counts[key] = await self._get_virtual_count(link_to, filters)
                 continue
 
@@ -108,13 +107,10 @@ class AppMenu(Document):
     async def _get_virtual_count(self, doctype: str, filters: dict[str, Any]) -> int:
         """Fetch count for a Virtual DocType by calling its controller."""
         try:
-            ctrl_cls = cast("type[VirtualDocType]", document_registry.get(doctype))
-            ctrl = ctrl_cls(doctype, user=self.user)
-            if hasattr(ctrl, "get_count"):
-                return await ctrl.get_count(filters=filters)
+            return await virtual_count(doctype, self.user, filters)
         except Exception as e:
             log.warning("workspace.virtual_count_error", doctype=doctype, error=str(e))
-        return 0
+            return 0
 
     def has_access(self, user: Any) -> bool:
         """Check if user has access to this workspace based on roles."""
