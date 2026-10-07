@@ -64,7 +64,7 @@ function handleRealtimeEvent(msg: RealtimeEvent) {
           id: String(Date.now()),
           subject: msg.data.subject ?? '',
           message: msg.data.message ?? '',
-          doctype: msg.data.doctype ?? null,
+          ref_doctype: msg.data.ref_doctype ?? null,
           doc_id: msg.data.doc_id ?? null,
           is_read: false,
           created_at: new Date().toISOString(),

@@ -33,8 +33,8 @@ function openTask(t: MyWork['assigned'][number]) {
 }
 
 function openNotification(n: MyWork['notifications'][number]) {
-  if (n.doctype && n.doc_id) {
-    router.push(docUrl(n.doctype, n.doc_id))
+  if (n.ref_doctype && n.doc_id) {
+    router.push(docUrl(n.ref_doctype, n.doc_id))
   }
 }
 
@@ -113,7 +113,7 @@ onMounted(async () => {
           </div>
           <button v-for="n in data!.notifications.slice(0, 8)" :key="n.name"
             class="group flex w-full items-start gap-3 border-b px-4 py-3 text-left transition-colors last:border-0 hover:bg-accent"
-            :class="{ 'cursor-default': !n.doctype }"
+            :class="{ 'cursor-default': !n.ref_doctype }"
             @click="openNotification(n)">
             <div class="mt-1.5 size-1.5 shrink-0 rounded-full bg-info" />
             <p class="min-w-0 flex-1 text-foreground transition-colors group-hover:text-primary">

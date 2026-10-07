@@ -60,9 +60,9 @@ function handleNotificationClick(n: NotificationItem) {
         markAsRead(n.id)
     }
 
-    if (n.doctype && n.doc_id) {
+    if (n.ref_doctype && n.doc_id) {
         isOpen.value = false
-        router.push(docUrl(n.doctype, n.doc_id, props.workspace))
+        router.push(docUrl(n.ref_doctype, n.doc_id, props.workspace))
     }
 }
 
@@ -152,7 +152,7 @@ onUnmounted(() => {
                                     </p>
                                     <div class="flex items-center gap-2 mt-1 text-muted-foreground/70">
                                         <span>{{ formatDate(n.created_at) }}</span>
-                                        <span v-if="n.doctype" class="uppercase tracking-wide">{{ n.doctype }}</span>
+                                        <span v-if="n.ref_doctype" class="uppercase tracking-wide">{{ n.ref_doctype }}</span>
                                     </div>
                                 </div>
                                 <button v-if="!n.is_read"

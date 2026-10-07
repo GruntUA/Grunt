@@ -32,7 +32,7 @@ const iconBg = computed(() => colorMap[props.widget.color] ?? colorMap.primary)
 
 function navigate() {
   const linkType = props.widget.link_type ?? 'DocType'
-  const target = props.widget.doctype ?? ''
+  const target = props.widget.ref_doctype ?? ''
   const ws = props.workspaceName ?? ''
   if (linkType === 'URL') {
     window.open(target, '_blank')

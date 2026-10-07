@@ -471,7 +471,7 @@ class ServerScriptRunner:
                 "ServerScript",
                 filters={
                     "script_type": "DocType Event",
-                    "doctype": doctype,
+                    "ref_doctype": doctype,
                     "event": event,
                     "is_enabled": True,
                 },

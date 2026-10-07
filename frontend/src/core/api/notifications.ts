@@ -5,7 +5,7 @@ export interface NotificationItem {
   user: string
   subject: string
   message: string
-  doctype?: string | null
+  ref_doctype?: string | null
   doc_id?: string | null
   is_read: boolean
   created_at: string

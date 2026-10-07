@@ -28,14 +28,14 @@ const COLOR_MAP: Record<string, string> = {
 
 const color = computed(() => COLOR_MAP[props.widget.color] ?? COLOR_MAP.primary)
 
-const canOpen = computed(() => !!props.widget.doctype && !!props.widget.group_by && !!props.data?.filters)
+const canOpen = computed(() => !!props.widget.ref_doctype && !!props.widget.group_by && !!props.data?.filters)
 
 /** Stage -> the widget's list filtered to that group. */
 function open(stage: Stage) {
   const { widget, data } = props
   if (!canOpen.value || !stage.count) return
   router.push(filteredListUrl(
-    widget.doctype, { ...data!.filters, ...groupFilter(widget.group_by!, stage.key) }, props.workspaceName,
+    widget.ref_doctype, { ...data!.filters, ...groupFilter(widget.group_by!, stage.key) }, props.workspaceName,
   ))
 }
 

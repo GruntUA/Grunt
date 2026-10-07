@@ -15,10 +15,10 @@ const doctypeNames = computed(() => dtStore.doctypes.filter(d => !d.is_child).ma
   <div v-if="!isReportSourced(widget)" class="flex flex-col gap-1.5 mb-4">
     <label class="font-medium">DocType</label>
     <DocTypeCombobox
-      :model-value="widget.doctype"
+      :model-value="widget.ref_doctype"
       :options="doctypeNames"
       class="w-full"
-      @update:model-value="updateWidget('doctype', $event)"
+      @update:model-value="updateWidget('ref_doctype', $event)"
     />
   </div>
 </template>

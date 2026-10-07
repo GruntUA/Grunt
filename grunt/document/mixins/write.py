@@ -19,7 +19,7 @@ from grunt.document.relations import (
     _save_child_tables,
     attach_multi_link_values,
 )
-from grunt.document.serde import serialize_datetimes
+from grunt.document.serde import serialize_datetimes, with_doctype
 from grunt.document.update_side_effects import (
     delete_row_and_links,
     fire_delete_services,
@@ -190,7 +190,7 @@ class DocumentWriteMixin(DocumentReadMixin):
         if reload_children:
             await _load_child_tables(self.session, dt.doc, result)
         await attach_multi_link_values(self._ml, self.doctype, result["name"], dt.doc, result)
-        return result
+        return with_doctype(self.doctype, result)
 
     async def _after_insert(self, dt: Any) -> None:
         """Update the search index and fire outgoing webhooks after a successful insert."""

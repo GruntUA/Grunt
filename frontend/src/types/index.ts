@@ -123,7 +123,7 @@ export interface DocPermission {
 // View configuration types
 
 export interface CalendarSource {
-  doctype: string
+  ref_doctype: string
   date_field: string
   end_date_field?: string
   label_field?: string
@@ -364,7 +364,7 @@ export interface ReportSummary {
   name: string
   report_name: string
   report_type: string
-  doctype?: string | null
+  ref_doctype?: string | null
   created_at?: string | null
 }
 
@@ -406,6 +406,8 @@ export interface Colleague {
 }
 
 export interface GruntDocument {
+  /** The document's own DocType - every document (and child row) the API returns names it. */
+  doctype?: string
   /** Synthesized from `name` by the API client shim - use `name` as the canonical PK. */
   id?: string
   name: string
@@ -473,7 +475,7 @@ export interface DashboardWidget {
   dashboard_id?: string
   widget_type: WidgetType
   title: string
-  doctype: string
+  ref_doctype: string
   field?: string | null
   aggregation: WidgetAggregation
   group_by?: string | null
@@ -525,7 +527,7 @@ export interface GruntNotification {
   id: string
   subject: string
   message: string
-  doctype?: string | null
+  ref_doctype?: string | null
   doc_id?: string | null
   is_read: boolean
   created_at: string | null
@@ -540,6 +542,7 @@ export interface RealtimeEvent {
     type?: RealtimeMessageType
     subject?: string
     doctype?: string
+    ref_doctype?: string
     doc_id?: string
     [key: string]: unknown
   }

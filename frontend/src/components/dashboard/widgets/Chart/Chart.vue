@@ -94,7 +94,7 @@ const chartData = computed(() => {
 })
 
 // Report-sourced charts carry no `filters` and stay non-clickable.
-const canOpen = computed(() => !!props.widget.doctype && !!props.widget.date_field && !!props.data?.filters)
+const canOpen = computed(() => !!props.widget.ref_doctype && !!props.widget.date_field && !!props.data?.filters)
 
 /** The day column under the pointer (and, for a grouped chart, the nearest series). */
 function hit(e: ChartEvent, chart: ChartInstance): ActiveElement | undefined {
@@ -113,7 +113,7 @@ function onClick(e: ChartEvent, _els: ActiveElement[], chart: ChartInstance) {
   if (isGrouped.value && widget.group_by) {
     filters[widget.group_by] = Object.keys(data!.groups!)[el.datasetIndex]
   }
-  router.push(filteredListUrl(widget.doctype, filters, props.workspaceName))
+  router.push(filteredListUrl(widget.ref_doctype, filters, props.workspaceName))
 }
 
 function onHover(e: ChartEvent, _els: ActiveElement[], chart: ChartInstance) {

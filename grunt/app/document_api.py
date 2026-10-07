@@ -125,6 +125,9 @@ class DocumentAPI:
         expand: list[str] | None = None,
     ) -> D: ...
 
+    @overload
+    async def get_doc(self, doctype: dict[str, Any]) -> BaseDocument: ...
+
     @profile("grunt.get_doc")
     async def get_doc(self, doctype, id_or_name=None, *, expand=None):
         """Fetch a single document by id or name.
@@ -138,7 +141,21 @@ class DocumentAPI:
         For a singleton DocType the id is optional - there is only one row::
 
             settings = await grunt.get_doc("SystemSettings")
+
+        A document's JSON (its ``"doctype"`` key names the DocType, child rows
+        included) gives a new, unsaved controller - the caller's ``create``
+        permission is checked here::
+
+            todo = await grunt.get_doc({"doctype": "ToDo", "description": "Call"})
+            await todo.insert()
         """
+        if isinstance(doctype, dict):
+            target = doctype.get("doctype")
+            if not isinstance(target, str) or not target:
+                raise ValueError("Document JSON has no 'doctype'")
+            _dt, user, _session = await write_guard(target, "create")
+            return await self._new(target, copy.deepcopy(doctype), user)
+
         if isinstance(doctype, type):
             name: str = getattr(doctype, "doctype", doctype.__name__)
             dt, user, hidden_fields = await read_guard(name)

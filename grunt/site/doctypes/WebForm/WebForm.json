@@ -2,6 +2,7 @@
   "name": "WebForm",
   "label": "Web form",
   "module": "site",
+  "standard_records": true,
   "table_name": "grunt_web_form",
   "hide_from_activity_feed": true,
   "fields": [
@@ -20,7 +21,7 @@
       "in_list_view": true
     },
     {
-      "fieldname": "doctype",
+      "fieldname": "ref_doctype",
       "label": "Document type",
       "fieldtype": "Link",
       "options": "DocType",
@@ -107,6 +108,22 @@
       "fieldtype": "Check",
       "default": false,
       "description": "Requires a captcha_provider to be configured for the site — otherwise ignored"
+    },
+    {
+      "fieldname": "is_standard",
+      "label": "Standard",
+      "fieldtype": "Check",
+      "in_list_view": true,
+      "in_filter": true,
+      "description": "Ships with the app as JSON files - edits are saved to the app"
+    },
+    {
+      "fieldname": "app",
+      "label": "App",
+      "fieldtype": "Link",
+      "options": "GruntInstalledApp",
+      "depends_on": "is_standard",
+      "mandatory_depends_on": "is_standard"
     },
     {
       "fieldname": "tab_designer",

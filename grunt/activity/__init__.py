@@ -13,7 +13,7 @@ from grunt.metadata.registry import doctype_registry
 async def should_log_activity(doctype: str) -> bool | None:
     """Whether ``doctype`` writes ActivityLog rows at all (``DocType.track_activity``).
 
-    ``doctype`` is a free-text field on ActivityLog, not a Link - callers may
+    ``ref_doctype`` is a free-text field on ActivityLog, not a Link - callers may
     pass names that aren't (or no longer are) real DocTypes, in which case
     nothing is logged.
     """
@@ -69,7 +69,7 @@ async def record_activity(
             doc = await grunt.new_doc(
                 "ActivityLog",
                 {
-                    "doctype": doctype,
+                    "ref_doctype": doctype,
                     "doc_id": str(doc_id),
                     "user": user_email,
                     "action": action,
@@ -123,7 +123,7 @@ async def _broadcast_activity(
             "activity",
             {
                 "name": doc.get("name"),
-                "doctype": doctype,
+                "ref_doctype": doctype,
                 "doc_id": doc_id,
                 "title": title,
                 "action": action,
@@ -227,7 +227,7 @@ async def record_view(
                 recent = await grunt.db.get_all(
                     "ViewLog",
                     filters={
-                        "doctype": doctype,
+                        "ref_doctype": doctype,
                         "doc_id": str(doc_id),
                         "viewed_by": user_email,
                         "viewed_at__gte": datetime.now(UTC) - _VIEW_LOG_THROTTLE,
@@ -239,7 +239,7 @@ async def record_view(
                     await grunt.new_doc(
                         "ViewLog",
                         {
-                            "doctype": doctype,
+                            "ref_doctype": doctype,
                             "doc_id": str(doc_id),
                             "viewed_by": user_email,
                             "viewed_at": datetime.now(UTC),
@@ -271,7 +271,7 @@ async def get_view_info(doctype: str, doc_id: str) -> dict[str, Any]:
     if dt.track_views:
         rows = await grunt.db.get_all(
             "ViewLog",
-            filters={"doctype": doctype, "doc_id": str(doc_id)},
+            filters={"ref_doctype": doctype, "doc_id": str(doc_id)},
             fields=["viewed_by"],
             limit=100000,
         )

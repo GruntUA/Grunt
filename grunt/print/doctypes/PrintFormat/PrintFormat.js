@@ -23,7 +23,7 @@ function on_load(frm) {
 }
 
 function on_change(frm, fieldname) {
-  if (fieldname !== 'template' && fieldname !== 'doctype') return
+  if (fieldname !== 'template' && fieldname !== 'ref_doctype') return
   if (!_previewPanel || !_previewPanel.isConnected) return
 
   clearTimeout(_debounceTimer)
@@ -180,7 +180,7 @@ function _destroyPreview() {
 // ── API call ──────────────────────────────────────────────────────────────────
 
 async function _refreshPreview(frm) {
-  const doctype = frm.get_value('doctype')
+  const doctype = frm.get_value('ref_doctype')
   const template = frm.get_value('template')
 
   if (!doctype || !template) {
@@ -220,7 +220,7 @@ async function _refreshPreview(frm) {
 }
 
 async function _openInNewTab(frm) {
-  const doctype = frm.get_value('doctype')
+  const doctype = frm.get_value('ref_doctype')
   const template = frm.get_value('template')
   if (!doctype || !template) return
 

@@ -28,7 +28,7 @@ async def get_client_scripts(
     try:
         rows = await GruntDB().get_all(
             "ClientScript",
-            filters={"doctype": doctype, "is_enabled": True},
+            filters={"ref_doctype": doctype, "is_enabled": True},
             fields=["name", "script"],
             limit=10_000,
             order_by="name",

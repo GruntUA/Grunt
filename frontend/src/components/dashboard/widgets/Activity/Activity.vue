@@ -17,7 +17,7 @@ const props = defineProps<{
 
 interface ActivityItem {
   id: string
-  doctype: string
+  ref_doctype: string
   doc_id: string
   action: string
   user: string
@@ -70,7 +70,7 @@ function formatTime(val: string): string {
 }
 
 function goToDoc(item: ActivityItem) {
-  router.push(docUrl(item.doctype, item.doc_id, props.workspaceName))
+  router.push(docUrl(item.ref_doctype, item.doc_id, props.workspaceName))
 }
 </script>
 
@@ -113,7 +113,7 @@ function goToDoc(item: ActivityItem) {
           </div>
           <p class="text-muted-foreground mt-0.5 leading-snug">
             <span class="text-foreground/80">{{ getActionLabel(item.action) }}</span>
-            <span class="font-medium text-foreground/60 ml-1">{{ item.doctype }}</span>
+            <span class="font-medium text-foreground/60 ml-1">{{ item.ref_doctype }}</span>
             <span class="text-primary font-medium ml-1 truncate">{{ item.doc_id }}</span>
           </p>
         </div>

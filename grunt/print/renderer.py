@@ -107,7 +107,7 @@ async def get_print_format_template(
             "PrintFormat",
             filters={"name": format_name}
             if format_name
-            else {"doctype": doctype, "is_default": True},
+            else {"ref_doctype": doctype, "is_default": True},
             fields=["template", "template_type"],
             limit=1,
         )

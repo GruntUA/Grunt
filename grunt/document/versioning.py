@@ -63,7 +63,7 @@ class VersionService:
         # Get next version number
         stmt = (
             select(func.coalesce(func.max(table.c.version), 0))
-            .where(table.c.doctype == doctype)
+            .where(table.c.ref_doctype == doctype)
             .where(table.c.doc_id == doc_id)
         )
         result = await session.execute(stmt)
@@ -79,7 +79,7 @@ class VersionService:
                 created_at=now,
                 modified_at=now,
                 modified_by=user,
-                doctype=doctype,
+                ref_doctype=doctype,
                 doc_id=doc_id,
                 version=next_version,
                 changes=changes,
@@ -112,7 +112,7 @@ class VersionService:
         table = dt_version.table
         stmt = (
             select(table)
-            .where(table.c.doctype == doctype)
+            .where(table.c.ref_doctype == doctype)
             .where(table.c.doc_id == doc_id)
             .order_by(table.c.version.desc())
         )
@@ -226,7 +226,7 @@ class VersionService:
 
         return {
             "id": row["name"],
-            "doctype": row["doctype"],
+            "ref_doctype": row["ref_doctype"],
             "doc_id": row["doc_id"],
             "version": row["version"],
             "changes": row["changes"],

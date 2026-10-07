@@ -24,7 +24,8 @@ async def load_core_fixtures(session: AsyncSession, eng: AsyncEngine) -> None:
     """Load seed fixtures from grunt/*/fixtures/*.json (core module data).
 
     Scans all grunt/<module>/fixtures/ directories and applies records
-    that don't yet exist in the database. Safe to call repeatedly.
+    that don't yet exist in the database, then the core standard records
+    (grunt/<module>/records/). Safe to call repeatedly.
     """
     for fixtures_dir in sorted(_GRUNT_ROOT.glob("*/fixtures")):
         for fx_file in sorted(fixtures_dir.glob("*.json")):
@@ -40,6 +41,10 @@ async def load_core_fixtures(session: AsyncSession, eng: AsyncEngine) -> None:
                 log.info("startup.core_fixture_applied", file=fx_file.name, doctype=fx_doctype)
             except Exception as e:
                 log.warning("startup.core_fixture_failed", file=fx_file.name, error=str(e))
+
+    from grunt.standard_records import apply_records
+
+    await apply_records("grunt", session, eng)
 
 
 def _load_app_meta(app_dir: Path) -> dict | None:
@@ -201,6 +206,16 @@ async def _apply_doctype_fixture(
     await session.flush()
 
 
+def _without_doctype(value: Any) -> Any:
+    """*value* without the ``"doctype"`` keys a document's JSON names itself with -
+    a fixture written before child rows carried them still compares equal."""
+    if isinstance(value, dict):
+        return {k: _without_doctype(v) for k, v in value.items() if k != "doctype"}
+    if isinstance(value, list):
+        return [_without_doctype(v) for v in value]
+    return value
+
+
 async def _sync_fixture_record(dt: Meta, doctype_name: str, doc_id: str, rec: dict) -> None:
     """Update an existing record to the fixture's values - only if they differ.
 
@@ -208,8 +223,8 @@ async def _sync_fixture_record(dt: Meta, doctype_name: str, doc_id: str, rec: di
     unchanged record is never re-saved (no DocVersion/ActivityLog noise on
     every migrate). Fields absent from the fixture are left untouched.
     """
-    current = await clean_record(dt, await grunt.get_doc(doctype_name, doc_id))
-    desired = to_json_compatible(rec)
+    current = _without_doctype(await clean_record(dt, await grunt.get_doc(doctype_name, doc_id)))
+    desired = _without_doctype(to_json_compatible(rec))
     changed = {k: v for k, v in desired.items() if k != "name" and current.get(k) != v}
     if not changed:
         return

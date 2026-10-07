@@ -237,7 +237,7 @@ async def get_my_work() -> dict[str, Any]:
         notifications = await grunt.get_list(
             "Notification",
             filters={"user": email, "is_read": False},
-            fields=["name", "subject", "doctype", "doc_id", "created_at"],
+            fields=["name", "subject", "ref_doctype", "doc_id", "created_at"],
             order_by="created_at",
             order="desc",
             limit=20,

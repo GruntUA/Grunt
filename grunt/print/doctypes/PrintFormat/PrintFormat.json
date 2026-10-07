@@ -4,9 +4,10 @@
   "module": "print",
   "table_name": "grunt_print_format",
   "hide_from_activity_feed": true,
+  "standard_records": true,
   "fields": [
     {
-      "fieldname": "doctype",
+      "fieldname": "ref_doctype",
       "label": "Document type",
       "fieldtype": "Link",
       "options": "DocType",
@@ -30,17 +31,20 @@
       "in_list_view": true
     },
     {
-      "fieldname": "is_app_format",
-      "label": "Save in app",
+      "fieldname": "is_standard",
+      "label": "Standard",
       "fieldtype": "Check",
       "default": false,
-      "in_list_view": true
+      "in_list_view": true,
+      "description": "Ships with the app as JSON files - edits are saved to the app"
     },
     {
       "fieldname": "app",
       "label": "App",
       "fieldtype": "Link",
-      "options": "GruntInstalledApp"
+      "options": "GruntInstalledApp",
+      "depends_on": "is_standard",
+      "mandatory_depends_on": "is_standard"
     },
     {
       "fieldname": "sec_template",

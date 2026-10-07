@@ -6,7 +6,7 @@
   "is_child": true,
   "fields": [
     {
-      "fieldname": "doctype",
+      "fieldname": "ref_doctype",
       "label": "DocType",
       "fieldtype": "Link",
       "options": "DocType",

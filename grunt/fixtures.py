@@ -17,18 +17,18 @@ see :func:`grunt.startup.fixtures._apply_doctype_fixture`.
 
 Only schema fields are exported: system columns (``id``, ``owner``,
 timestamps, …), virtual/layout fields and ``Password`` values never leave the
-site. Child rows keep their data fields only - the parent re-creates them.
+site. Child rows keep their ``doctype`` and data fields only - the parent
+re-creates them.
 """
 
 from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
-from datetime import date, datetime, time
-from decimal import Decimal
 from typing import TYPE_CHECKING, Any
 
 import grunt
+from grunt.document.serde import to_json, with_doctype
 from grunt.utils.strings import to_snake_case
 
 if TYPE_CHECKING:
@@ -89,7 +89,10 @@ async def clean_record(meta: Meta, data: dict[str, Any], *, child: bool = False)
             child_meta = await grunt.get_meta(f.options or "")
             if child_meta is None or not value:
                 continue
-            out[f.fieldname] = [await clean_record(child_meta, row, child=True) for row in value]
+            out[f.fieldname] = [
+                with_doctype(child_meta.doc.name, await clean_record(child_meta, row, child=True))
+                for row in value
+            ]
         elif f.fieldname in multilink_fieldnames:
             if value:
                 out[f.fieldname] = list(value)
@@ -101,15 +104,7 @@ async def clean_record(meta: Meta, data: dict[str, Any], *, child: bool = False)
 
 def to_json_compatible(value: Any) -> Any:
     """Round-trip through JSON so dates/decimals compare equal to a fixture file."""
-    return json.loads(json.dumps(value, ensure_ascii=False, default=_json_default))
-
-
-def _json_default(value: Any) -> Any:
-    if isinstance(value, datetime | date | time):
-        return value.isoformat()
-    if isinstance(value, Decimal):
-        return float(value)
-    return str(value)
+    return json.loads(to_json(value))
 
 
 async def export_records(spec: FixtureSpec) -> list[dict[str, Any]]:

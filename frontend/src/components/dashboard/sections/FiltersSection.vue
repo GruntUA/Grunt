@@ -14,7 +14,7 @@ const dtStore = useDocTypeStore()
 const { widget, updateWidget } = useWidgetPropertyEditor()
 
 const dt = ref<DocType | null>(null)
-watch(() => widget.value.doctype, async (name) => {
+watch(() => widget.value.ref_doctype, async (name) => {
   dt.value = name ? await dtStore.get(name).catch(() => null) : null
 }, { immediate: true })
 

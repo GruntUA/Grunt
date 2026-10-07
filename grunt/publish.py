@@ -79,7 +79,7 @@ async def notify(
                 "user": user_email,
                 "subject": subject,
                 "message": message,
-                "doctype": doctype,
+                "ref_doctype": doctype,
                 "doc_id": doc_id,
                 "is_read": False,
             },
@@ -94,7 +94,7 @@ async def notify(
                 data={
                     "subject": subject,
                     "message": message,
-                    "doctype": doctype,
+                    "ref_doctype": doctype,
                     "doc_id": doc_id,
                 },
             )

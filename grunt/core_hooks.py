@@ -33,12 +33,16 @@ doc_events: dict[str, dict[str, list[str]]] = {
     # Log every document lifecycle event to ActivityLog.
     "*": {
         "after_insert": ["grunt.activity.log_activity"],
+        # Standard records (DocType.standard_records) -> JSON files in their app.
+        "after_save": ["grunt.standard_records.sync_files"],
+        "after_rename": ["grunt.standard_records.sync_files"],
         # Snapshot the doc first (restorable trash bin), then log the delete.
         "after_delete": [
             "grunt.activity.trash.snapshot_deleted_document",
             "grunt.activity.log_activity",
             "grunt.activity.follow.drop_follows",
             "grunt.activity.likes.drop_likes",
+            "grunt.standard_records.sync_files",
         ],
         # Record per-user "seen" state / ViewLog for DocTypes that opt in via
         # track_seen / track_views (no-op for everything else).

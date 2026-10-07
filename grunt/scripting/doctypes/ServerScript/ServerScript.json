@@ -2,6 +2,7 @@
   "name": "ServerScript",
   "label": "Server Script",
   "module": "scripting",
+  "standard_records": true,
   "table_name": "grunt_server_script",
   "hide_from_activity_feed": true,
   "fields": [
@@ -16,7 +17,7 @@
       "in_filter": true
     },
     {
-      "fieldname": "doctype",
+      "fieldname": "ref_doctype",
       "label": "Document type",
       "fieldtype": "Link",
       "options": "DocType",
@@ -57,6 +58,22 @@
       "label": "Allow guests",
       "fieldtype": "Check",
       "default": false
+    },
+    {
+      "fieldname": "is_standard",
+      "label": "Standard",
+      "fieldtype": "Check",
+      "in_list_view": true,
+      "in_filter": true,
+      "description": "Ships with the app as JSON files - edits are saved to the app"
+    },
+    {
+      "fieldname": "app",
+      "label": "App",
+      "fieldtype": "Link",
+      "options": "GruntInstalledApp",
+      "depends_on": "is_standard",
+      "mandatory_depends_on": "is_standard"
     }
   ],
   "permissions": [

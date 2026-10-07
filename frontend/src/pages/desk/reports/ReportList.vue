@@ -57,7 +57,7 @@ onMounted(load)
           <span class="font-medium text-muted-foreground/70 uppercase">{{ report.report_type }}</span>
         </div>
         <h3 class="font-medium text-foreground mb-1">{{ report.report_name }}</h3>
-        <p v-if="report.doctype" class="text-muted-foreground">{{ report.doctype }}</p>
+        <p v-if="report.ref_doctype" class="text-muted-foreground">{{ report.ref_doctype }}</p>
       </div>
     </div>
   </div>

@@ -24,7 +24,7 @@ from sqlalchemy.exc import IntegrityError
 from grunt import _, log
 from grunt.db.errors import friendly_integrity_error
 from grunt.document.relations import apply_field_values
-from grunt.document.serde import audit_fields, serialize_datetimes
+from grunt.document.serde import audit_fields, serialize_datetimes, with_doctype
 from grunt.document.validation import _validate_data
 from grunt.errors import ApplicationError
 from grunt.events import fire
@@ -165,7 +165,7 @@ class DocumentLifecycleMixin:
 
     async def _output(self, dt: Any, *, reload_children: bool) -> dict[str, Any]:
         """The saved document as the API returns it."""
-        return serialize_datetimes(dict(self.data))
+        return with_doctype(self.doctype, serialize_datetimes(dict(self.data)))
 
     async def _after_insert(self, dt: Any) -> None:
         await webhook_service.fire(self.session, "after_insert", self.doctype, self.data)
@@ -272,7 +272,9 @@ class DocumentLifecycleMixin:
 
         columns = self._columns(dt)
         row: dict[str, Any] = (
-            {} if columns is not None else {k: v for k, v in data.items() if k[:2] != "__"}
+            {}
+            if columns is not None
+            else {k: v for k, v in data.items() if k[:2] != "__" and k != "doctype"}
         )
         standard: dict[str, Any] = {"name": doc_name, **audit_fields(user.email, now)}
         for k, v in standard.items():
@@ -309,7 +311,7 @@ class DocumentLifecycleMixin:
         update_data: dict[str, Any] = {}
         if columns is None:
             for key, value in data.items():
-                if key in PROTECTED_FIELDS or key[:2] == "__":
+                if key in PROTECTED_FIELDS or key[:2] == "__" or key == "doctype":
                     continue
                 field = dt.get_field(key)
                 update_data[key] = field.coerce(value) if field and field.is_physical else value

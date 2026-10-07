@@ -238,7 +238,7 @@ async def send_notification_digest(period: str = "daily") -> None:
                 # Group by doctype
                 groups: dict[str, list] = {}
                 for n in rows:
-                    key = str(n.get("doctype") or "")
+                    key = str(n.get("ref_doctype") or "")
                     groups.setdefault(key, []).append(n)
 
                 with use_language(user_language):

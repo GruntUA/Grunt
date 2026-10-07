@@ -22,14 +22,14 @@ const props = defineProps<{
 const router = useRouter()
 
 // Report-sourced donuts carry no `keys`/`filters` and stay non-clickable.
-const canOpen = computed(() => !!props.widget.doctype && !!props.widget.group_by && !!props.data?.keys)
+const canOpen = computed(() => !!props.widget.ref_doctype && !!props.widget.group_by && !!props.data?.keys)
 
 /** Segment -> the widget's list filtered to that group. */
 function onClick(_e: ChartEvent, els: ActiveElement[]) {
   const { widget, data } = props
   if (!canOpen.value || !els.length) return
   router.push(filteredListUrl(
-    widget.doctype,
+    widget.ref_doctype,
     { ...data!.filters, ...groupFilter(widget.group_by!, data!.keys![els[0].index]) },
     props.workspaceName,
   ))

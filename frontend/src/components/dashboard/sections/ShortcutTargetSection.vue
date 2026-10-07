@@ -29,12 +29,12 @@ const linkSearchDoctype = computed(() => {
   return (lt === 'DocType' || lt === 'Report' || lt === 'Page') ? lt : null
 })
 
-watch(() => widget.value.doctype, (v) => { linkQuery.value = v ?? '' }, { immediate: true })
-watch(linkSearchDoctype, () => { linkQuery.value = widget.value.doctype ?? '' })
+watch(() => widget.value.ref_doctype, (v) => { linkQuery.value = v ?? '' }, { immediate: true })
+watch(linkSearchDoctype, () => { linkQuery.value = widget.value.ref_doctype ?? '' })
 
 async function onLinkInput(val: string) {
   linkQuery.value = val
-  updateWidget('doctype', val)
+  updateWidget('ref_doctype', val)
   if (!linkSearchDoctype.value) return
   clearTimeout(linkTimer)
   linkTimer = setTimeout(async () => {
@@ -61,7 +61,7 @@ function onLinkBlur() {
 function selectLink(item: LinkSearchItem) {
   linkQuery.value = item.title
   linkOpen.value = false
-  updateWidget('doctype', item.name)
+  updateWidget('ref_doctype', item.name)
 }
 </script>
 
@@ -108,10 +108,10 @@ function selectLink(item: LinkSearchItem) {
     </div>
     <Input
       v-else
-      :model-value="widget.doctype"
+      :model-value="widget.ref_doctype"
       placeholder="https://…"
       class="w-full"
-      @update:model-value="updateWidget('doctype', $event)"
+      @update:model-value="updateWidget('ref_doctype', $event)"
     />
   </div>
 </template>

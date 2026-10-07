@@ -101,7 +101,7 @@ class CalendarSource(BaseModel):
     """One extra document source overlaid on the calendar view - a row of the
     ``calendar_sources`` child table."""
 
-    doctype: str
+    ref_doctype: str
     date_field: str
     end_date_field: str | None = None
     label_field: str | None = None
@@ -275,6 +275,10 @@ class DocType(BaseModel):
     # True -> files uploaded to these documents default to is_public (public
     # website content); otherwise an attachment is private to its document.
     public_attachments: bool = False
+    # True -> a record marked is_standard ships with its app as JSON files
+    # (grunt.standard_records): written on save in developer mode, applied by
+    # `grunt migrate`. Adds the is_standard / app fields when missing.
+    standard_records: bool = False
     # Sources of read access: [<doctype field>, <id field>] pairs and/or Link
     # fieldnames - a row pointing at a document is readable exactly when that
     # document is (comments, tags, attachments, files in a folder).
@@ -426,6 +430,44 @@ class DocType(BaseModel):
         """Drop half-filled ``actions`` / ``links`` rows left behind in the editor."""
         self.actions = [a for a in self.actions if a.action.strip()]
         self.links = [link for link in self.links if link.link_doctype.strip()]
+        return self
+
+    @model_validator(mode="after")
+    def _forbid_doctype_field(self) -> DocType:
+        """A document's JSON names its DocType under ``"doctype"`` - no field may take it."""
+        if any(f.fieldname == "doctype" for f in self.fields):
+            raise ValueError(
+                f"DocType '{self.name}': 'doctype' is reserved, name the field 'ref_doctype'"
+            )
+        return self
+
+    @model_validator(mode="after")
+    def _add_standard_record_fields(self) -> DocType:
+        if not self.standard_records:
+            return self
+        names = {f.fieldname for f in self.fields}
+        if "is_standard" not in names:
+            self.fields.append(
+                DocField(
+                    fieldname="is_standard",
+                    label="Standard",
+                    fieldtype="Check",
+                    in_list_view=True,
+                    in_filter=True,
+                    description="Ships with the app as JSON files - edits are saved to the app",
+                )
+            )
+        if "app" not in names:
+            self.fields.append(
+                DocField(
+                    fieldname="app",
+                    label="App",
+                    fieldtype="Link",
+                    options="GruntInstalledApp",
+                    depends_on="is_standard",
+                    mandatory_depends_on="is_standard",
+                )
+            )
         return self
 
     @model_validator(mode="after")

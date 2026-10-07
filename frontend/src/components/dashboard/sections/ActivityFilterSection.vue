@@ -18,11 +18,11 @@ const doctypeNames = computed(() => dtStore.doctypes.filter(d => !d.is_child).ma
       {{ t('Filter by DocType') }} <span class="font-normal text-muted-foreground">({{ t('optional') }})</span>
     </label>
     <DocTypeCombobox
-      :model-value="widget.doctype"
+      :model-value="widget.ref_doctype"
       :options="doctypeNames"
       :placeholder="t('— All —')"
       class="w-full"
-      @update:model-value="updateWidget('doctype', $event)"
+      @update:model-value="updateWidget('ref_doctype', $event)"
     />
   </div>
 </template>

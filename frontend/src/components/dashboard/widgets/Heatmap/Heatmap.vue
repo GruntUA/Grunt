@@ -103,10 +103,10 @@ function fmtDay(d: Date | string): string {
 /** Day cell -> the widget's list filtered to that day. */
 function open(cell: Cell) {
   const { widget, data } = props
-  if (!cell.count || !widget.doctype || !widget.date_field || !data?.filters) return
+  if (!cell.count || !widget.ref_doctype || !widget.date_field || !data?.filters) return
   const next = new Date(cell.date)
   next.setDate(next.getDate() + 1)
-  router.push(filteredListUrl(widget.doctype, {
+  router.push(filteredListUrl(widget.ref_doctype, {
     ...data.filters,
     [`${widget.date_field}__gte`]: cell.key,
     [`${widget.date_field}__lt`]: dayKey(next),

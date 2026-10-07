@@ -2,6 +2,7 @@
   "name": "NumberCard",
   "label": "Number Card",
   "module": "reports",
+  "standard_records": true,
   "hide_from_activity_feed": true,
   "fields": [
     {
@@ -12,7 +13,7 @@
       "in_list_view": true
     },
     {
-      "fieldname": "doctype",
+      "fieldname": "ref_doctype",
       "label": "Document type",
       "fieldtype": "Link",
       "options": "DocType",
@@ -54,6 +55,22 @@
       "label": "Public",
       "fieldtype": "Check",
       "default": true
+    },
+    {
+      "fieldname": "is_standard",
+      "label": "Standard",
+      "fieldtype": "Check",
+      "in_list_view": true,
+      "in_filter": true,
+      "description": "Ships with the app as JSON files - edits are saved to the app"
+    },
+    {
+      "fieldname": "app",
+      "label": "App",
+      "fieldtype": "Link",
+      "options": "GruntInstalledApp",
+      "depends_on": "is_standard",
+      "mandatory_depends_on": "is_standard"
     }
   ],
   "permissions": [

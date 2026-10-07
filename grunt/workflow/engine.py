@@ -266,7 +266,7 @@ class WorkflowEngine:
             await grunt.new_doc(
                 "ActivityLog",
                 {
-                    "doctype": doctype,
+                    "ref_doctype": doctype,
                     "doc_id": doc_id,
                     "action": action,
                     "user": user,

@@ -8,14 +8,14 @@
   "track_activity": false,
   "indexes": [
     [
-      "doctype",
+      "ref_doctype",
       "doc_id",
       "viewed_by"
     ]
   ],
   "fields": [
     {
-      "fieldname": "doctype",
+      "fieldname": "ref_doctype",
       "label": "Document type",
       "fieldtype": "Link",
       "options": "DocType",

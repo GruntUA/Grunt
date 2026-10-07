@@ -2,6 +2,7 @@
   "name": "EmailTemplate",
   "label": "Email Template",
   "module": "email",
+  "standard_records": true,
   "title_field": "label",
   "track_changes": true,
   "search_fields": [
@@ -49,6 +50,22 @@
       "label": "Text (HTML)",
       "fieldtype": "HTMLEditor",
       "description": "Optional. If set, the email is sent as HTML with the text version as a fallback"
+    },
+    {
+      "fieldname": "is_standard",
+      "label": "Standard",
+      "fieldtype": "Check",
+      "in_list_view": true,
+      "in_filter": true,
+      "description": "Ships with the app as JSON files - edits are saved to the app"
+    },
+    {
+      "fieldname": "app",
+      "label": "App",
+      "fieldtype": "Link",
+      "options": "GruntInstalledApp",
+      "depends_on": "is_standard",
+      "mandatory_depends_on": "is_standard"
     },
     {
       "fieldname": "sec_help",

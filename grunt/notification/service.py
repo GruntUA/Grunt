@@ -45,7 +45,7 @@ class NotificationService:
         async with grunt.system_context(session):
             rules = await grunt.db.get_all(
                 "NotificationRule",
-                filters={"doctype": doctype, "event": event, "is_enabled": True},
+                filters={"ref_doctype": doctype, "event": event, "is_enabled": True},
                 limit=100,
             )
 
@@ -116,7 +116,15 @@ class NotificationService:
             rows = await grunt.db.get_all(
                 "Notification",
                 filters=filters,
-                fields=["name", "subject", "message", "doctype", "doc_id", "is_read", "created_at"],
+                fields=[
+                    "name",
+                    "subject",
+                    "message",
+                    "ref_doctype",
+                    "doc_id",
+                    "is_read",
+                    "created_at",
+                ],
                 limit=limit,
                 offset=offset,
                 order_by="created_at",
@@ -202,7 +210,7 @@ class NotificationService:
                     "modified_at": now,
                     "modified_by": user,
                     "user": user,
-                    "doctype": doctype,
+                    "ref_doctype": doctype,
                     "doc_id": doc_id,
                     "subject": subject,
                     "message": message,
@@ -377,7 +385,7 @@ class NotificationService:
                         "event": "notification",
                         "data": {
                             "subject": subject,
-                            "doctype": doctype,
+                            "ref_doctype": doctype,
                             "doc_id": str(doc.get("name", "")),
                         },
                     },

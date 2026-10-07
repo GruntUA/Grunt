@@ -76,7 +76,7 @@ onMounted(load)
         <h1 class="text-xl font-semibold text-foreground">{{ reportName }}</h1>
         <p v-if="report" class="text-muted-foreground mt-0.5">
           {{ t('{type} report', { type: report.report_type }) }}
-          <span v-if="report.doctype"> · {{ report.doctype }}</span>
+          <span v-if="report.ref_doctype"> · {{ report.ref_doctype }}</span>
         </p>
       </div>
       <div class="flex gap-2">

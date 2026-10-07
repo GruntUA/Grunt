@@ -2,10 +2,11 @@
   "name": "NotificationRule",
   "label": "Notification Rule",
   "module": "notification",
+  "standard_records": true,
   "table_name": "grunt_notification_rule",
   "fields": [
     {
-      "fieldname": "doctype",
+      "fieldname": "ref_doctype",
       "label": "Document type",
       "fieldtype": "Link",
       "options": "DocType",
@@ -61,6 +62,22 @@
       "default": true,
       "in_list_view": true,
       "in_filter": true
+    },
+    {
+      "fieldname": "is_standard",
+      "label": "Standard",
+      "fieldtype": "Check",
+      "in_list_view": true,
+      "in_filter": true,
+      "description": "Ships with the app as JSON files - edits are saved to the app"
+    },
+    {
+      "fieldname": "app",
+      "label": "App",
+      "fieldtype": "Link",
+      "options": "GruntInstalledApp",
+      "depends_on": "is_standard",
+      "mandatory_depends_on": "is_standard"
     }
   ],
   "permissions": [

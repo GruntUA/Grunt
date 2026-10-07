@@ -330,7 +330,7 @@ async def _load_child_tables(
                 .where(child_table.c.parent_name == doc["name"])
                 .order_by(child_table.c.idx)
             )
-            rows = [dict(r._mapping) for r in result.all()]
+            rows = [{"doctype": child_dt.name, **r._mapping} for r in result.all()]
             for row in rows:
                 serialize_datetimes(row)
             await _resolve_link_labels(session, child_dt, rows)

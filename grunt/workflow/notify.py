@@ -117,7 +117,7 @@ async def previous_actor(doctype: str, doc_id: str) -> str | None:
     async with grunt.system_context(session):
         rows = await grunt.db.get_all(
             "ActivityLog",
-            filters={"doctype": doctype, "doc_id": doc_id, "action": "Workflow"},
+            filters={"ref_doctype": doctype, "doc_id": doc_id, "action": "Workflow"},
             fields=["user"],
             order_by="created_at",
             order="desc",

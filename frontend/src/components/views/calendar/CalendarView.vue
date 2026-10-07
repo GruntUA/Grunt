@@ -116,7 +116,7 @@ async function loadDocuments() {
     const secondaryFetches = sources.map(source => {
       const sourceFields = new Set(['name', source.date_field, source.label_field || 'name'])
       if (source.end_date_field) sourceFields.add(source.end_date_field)
-      return docsApi.list(source.doctype, {
+      return docsApi.list(source.ref_doctype, {
         rawFilters: {
           ...(source.filters || {}),
           ...(!source.recurring ? { [`${source.date_field}__lte`]: endStr } : {}),
@@ -180,7 +180,7 @@ async function loadDocuments() {
               title,
               date: d_start,
               end_date: d_end,
-              doctype: source.doctype,
+              doctype: source.ref_doctype,
               color: source.color,
               recurring: source.recurring,
               event_type: source.event_type || 'default',
@@ -290,7 +290,7 @@ async function onDrop(e: DragEvent, day: Date) {
   if (event.recurring) return
   const dateField = event.doctype === props.doctype.name
     ? props.dateField
-    : props.doctype.calendar_sources?.find(s => s.doctype === event.doctype)?.date_field
+    : props.doctype.calendar_sources?.find(s => s.ref_doctype === event.doctype)?.date_field
 
   if (!dateField) return
 

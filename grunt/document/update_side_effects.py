@@ -303,7 +303,7 @@ async def write_bulk_delete_activity_log(
         def _make_row(doc_id: str) -> dict:
             raw = {
                 "name": uuid.uuid4().hex[:10],
-                "doctype": doctype_name,
+                "ref_doctype": doctype_name,
                 "doc_id": doc_id,
                 "user": user_email,
                 "action": "Delete",

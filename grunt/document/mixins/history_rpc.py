@@ -43,7 +43,7 @@ class DocumentHistoryRPCMixin:
         target = await version_service.get_version(session, version_id)
         if target is None:
             raise HTTPException(status_code=404, detail=_("Version not found"))
-        if target["doctype"] != doctype or target["doc_id"] != doc_id:
+        if target["ref_doctype"] != doctype or target["doc_id"] != doc_id:
             raise HTTPException(
                 status_code=400, detail=_("The version does not belong to this document")
             )
@@ -96,7 +96,7 @@ class DocumentHistoryRPCMixin:
 
         entries = await grunt.get_list(
             "ActivityLog",
-            filters={"doctype": doctype, "doc_id": doc_id},
+            filters={"ref_doctype": doctype, "doc_id": doc_id},
             order_by="created_at",
             order="desc",
             limit=per_page,
@@ -123,7 +123,7 @@ class DocumentHistoryRPCMixin:
         track_changes = bool(dt and dt.track_changes)
 
         act_rows = await grunt.get_list(
-            "ActivityLog", filters={"doctype": doctype, "doc_id": doc_id}, limit=1000
+            "ActivityLog", filters={"ref_doctype": doctype, "doc_id": doc_id}, limit=1000
         )
 
         comment_rows = await grunt.get_list(

@@ -2,6 +2,7 @@
   "name": "Page",
   "label": "Page",
   "module": "site",
+  "standard_records": true,
   "hide_from_activity_feed": true,
   "is_child": false,
   "autoname": "prompt",
@@ -37,6 +38,22 @@
       "label": "Widgets",
       "fieldtype": "Table",
       "options": "PageWidget"
+    },
+    {
+      "fieldname": "is_standard",
+      "label": "Standard",
+      "fieldtype": "Check",
+      "in_list_view": true,
+      "in_filter": true,
+      "description": "Ships with the app as JSON files - edits are saved to the app"
+    },
+    {
+      "fieldname": "app",
+      "label": "App",
+      "fieldtype": "Link",
+      "options": "GruntInstalledApp",
+      "depends_on": "is_standard",
+      "mandatory_depends_on": "is_standard"
     }
   ],
   "permissions": [

@@ -1,4 +1,4 @@
-"""Startup - sync installed apps: DocTypes, fixtures, print formats, workspace.
+"""Startup - sync installed apps: DocTypes, fixtures, standard records, workspace.
 
 Runs on every ``grunt migrate`` / ``grunt app install`` / ``grunt site create``:
 re-reads each installed app's metadata from disk and applies it to the DB.
@@ -112,10 +112,11 @@ async def _apply_app_fixtures(
     app_modules: set[str],
     app_meta: dict,
 ) -> bool:
-    """Apply every fixture file for the app. Returns True if an AppMenu fixture ran.
+    """Apply the app's fixture files and standard records. Returns True if an
+    AppMenu fixture ran.
 
     AppMenu fixtures are deferred to the end: they may reference records
-    created by other fixtures (e.g. home_page -> Page).
+    created by other fixtures or standard records (e.g. home_page -> Page).
     """
     import json
 
@@ -145,6 +146,12 @@ async def _apply_app_fixtures(
             except Exception as e:
                 log.warning("startup.fixture_failed", app=app_name, file=fx_file.name, error=str(e))
 
+    from grunt.standard_records import apply_records
+
+    count = await apply_records(app_name, session, eng)
+    if count:
+        log.info("startup.standard_records_applied", app=app_name, count=count)
+
     for fx_file, records in deferred_menus:
         try:
             workspace_from_fixture = await _apply_workspace_fixture(records, app_name, app_meta)
@@ -153,64 +160,6 @@ async def _apply_app_fixtures(
             log.warning("startup.fixture_failed", app=app_name, file=fx_file.name, error=str(e))
 
     return workspace_from_fixture
-
-
-async def _sync_app_print_formats(
-    session: AsyncSession, eng: Any, app_dir: Any, app_name: str, app_modules: set[str]
-) -> None:
-    """Register/sync PrintFormats from the app's ``<module>/print_formats/`` dirs.
-
-    Formats flagged is_app_format=true treat the file as the source of
-    truth: re-sync overwrites the DB template from disk every migrate
-    (mirrors the after_save hook that writes DB -> disk for the same flag).
-    Formats without the flag (created via the UI) stay skip-if-exists so
-    manual in-app edits are never clobbered by a migrate.
-    """
-    import json
-
-    import grunt
-    from grunt.startup.fixtures import _apply_doctype_fixture
-
-    for module in app_modules:
-        pf_dir = app_dir / module / "print_formats"
-        if not pf_dir.exists():
-            continue
-        for pf_meta in sorted(pf_dir.glob("*.json")):
-            try:
-                data = json.loads(pf_meta.read_text(encoding="utf-8"))
-                base_name = pf_meta.stem
-                html_file = pf_dir / f"{base_name}.html"
-                if html_file.exists():
-                    data["template"] = html_file.read_text(encoding="utf-8")
-
-                pf_name = data.get("name")
-                if data.get("is_app_format") and pf_name:
-                    async with grunt.system_context(session, eng):
-                        exists = await grunt.exists("PrintFormat", {"name": pf_name})
-                        if exists:
-                            await grunt.db.set_value(
-                                "PrintFormat",
-                                str(pf_name),
-                                {
-                                    "template": data.get("template", ""),
-                                    "template_type": data.get("template_type", "html"),
-                                    "is_default": bool(data.get("is_default", False)),
-                                },
-                            )
-                    if exists:
-                        await session.commit()
-                        log.info("startup.print_format_synced", app=app_name, name=pf_name)
-                        continue
-
-                await _apply_doctype_fixture("PrintFormat", [data], session, eng)
-                log.info("startup.print_format_registered", app=app_name, name=data.get("name"))
-            except Exception as e:
-                log.warning(
-                    "startup.print_format_failed",
-                    app=app_name,
-                    file=pf_meta.name,
-                    error=str(e),
-                )
 
 
 async def _seed_app_singletons(app_name: str) -> None:
@@ -267,13 +216,13 @@ async def _run_after_install_hook(
 
 
 async def sync_installed_apps(session: AsyncSession, site_name: str) -> None:
-    """Sync DocTypes, fixtures, print formats and the workspace for every installed app.
+    """Sync DocTypes, fixtures, standard records and the workspace for every installed app.
 
     Reads ``grunt.site`` -> ``installed_apps``, loads each app's metadata
     (``grunt_app.py`` or ``app.json``), auto-registers DocTypes from the app's
     ``doctypes/`` directories if not yet in the registry, applies fixtures and
-    print formats, then creates/updates a workspace with the app's DocTypes as
-    sidebar items.
+    standard records, then creates/updates a workspace with the app's DocTypes
+    as sidebar items.
     """
     import json
 
@@ -321,7 +270,6 @@ async def sync_installed_apps(session: AsyncSession, site_name: str) -> None:
             workspace_from_fixture = await _apply_app_fixtures(
                 session, eng, app_dir, app_name, app_modules, app_meta
             )
-            await _sync_app_print_formats(session, eng, app_dir, app_name, app_modules)
             await _seed_app_singletons(app_name)
 
             if not workspace_from_fixture:

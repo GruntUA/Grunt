@@ -63,7 +63,7 @@ function exportChartPng() {
 async function loadFilterFields() {
     filterFieldsLoaded = true
     const cfg = report.value?.filters_config
-    const doctype = report.value?.doctype
+    const doctype = report.value?.ref_doctype
     if (!Array.isArray(cfg) || cfg.length === 0 || !doctype) {
         filterFields.value = []
         return
@@ -226,7 +226,7 @@ function openBuilder() {
         <div v-if="filterFields.length" class="p-3 rounded-lg border bg-card/50">
             <FilterBar
                 :fields="filterFields"
-                :doctype="report?.doctype || undefined"
+                :doctype="report?.ref_doctype || undefined"
                 @change="onFiltersChange"
             />
         </div>

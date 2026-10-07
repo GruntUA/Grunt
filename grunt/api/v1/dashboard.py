@@ -97,7 +97,7 @@ async def _compute_widget_data(
 ) -> Any:
     """Compute data for a single widget row - dispatches via the WidgetType registry."""
 
-    doctype_name: str = widget.get("doctype") or ""
+    doctype_name: str = widget.get("ref_doctype") or ""
     widget_type: str = widget.get("widget_type") or "metric"
 
     cls = get_widget_type_class(widget_type)

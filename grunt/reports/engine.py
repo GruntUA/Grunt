@@ -47,7 +47,7 @@ class ReportEngine:
                     "query",
                     "script",
                     "columns",
-                    "doctype",
+                    "ref_doctype",
                     "conditions",
                     "sort_by",
                     "sort_order",
@@ -72,7 +72,7 @@ class ReportEngine:
                 session,
             )
         if report_type == "List":
-            doctype = report.get("doctype")
+            doctype = report.get("ref_doctype")
             if not doctype:
                 raise HTTPException(400, detail=_("List report requires a DocType"))
             return await self._run_list_report(doctype, report, filters, user, session)

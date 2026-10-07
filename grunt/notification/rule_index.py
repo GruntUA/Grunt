@@ -53,7 +53,7 @@ async def _load() -> frozenset[tuple[str, str]] | None:
         raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": "NotificationRule"})
     table = dt.table
     result = await session.execute(
-        select(table.c.doctype, table.c.event).where(table.c.is_enabled.is_(True))
+        select(table.c.ref_doctype, table.c.event).where(table.c.is_enabled.is_(True))
     )
     return frozenset((str(d), str(e)) for d, e in result.all() if d and e)
 

@@ -24,7 +24,7 @@ const emit = defineEmits<{
 // `doctype` (the prop above) is the meta of *this* document's own DocType -
 // i.e. WebForm itself, the same way DesignerTab.vue gets DocType's meta when
 // editing a DocType. What the canvas needs to edit is the *target* DocType
-// named in `modelValue.doctype` (e.g. "CitizenAppeal"), fetched separately.
+// named in `modelValue.ref_doctype` (e.g. "CitizenAppeal"), fetched separately.
 const builder = useBuilderStore()
 const ready = ref(false)
 const loading = ref(false)
@@ -85,7 +85,7 @@ function flattenToRows(fields: DocField[]): Record<string, any>[] {
 }
 
 async function load() {
-  const targetDoctype = props.modelValue.doctype
+  const targetDoctype = props.modelValue.ref_doctype
   if (!targetDoctype) {
     targetFieldsByName.value = {}
     builder.doctype = { fields: [] } as unknown as DocType
@@ -126,7 +126,7 @@ onMounted(load)
 
 <template>
   <div class="flex flex-col h-[75vh] min-h-[30rem] overflow-hidden -mx-5 -mb-5 border-t border-border bg-background">
-    <div v-if="!modelValue.doctype" class="flex-1 flex items-center justify-center text-muted-foreground">
+    <div v-if="!modelValue.ref_doctype" class="flex-1 flex items-center justify-center text-muted-foreground">
       {{ t('First choose a DocType in the tab above') }}
     </div>
     <div v-else-if="loading" class="flex-1 flex items-center justify-center text-muted-foreground">

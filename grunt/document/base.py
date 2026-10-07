@@ -13,6 +13,7 @@ there for IDEs and type checkers.
 from __future__ import annotations
 
 import contextlib
+import copy
 from typing import TYPE_CHECKING, Any, ClassVar
 
 import grunt
@@ -29,6 +30,7 @@ from grunt.document.mixins.workflow_rpc import DocumentWorkflowRPCMixin
 from grunt.document.mixins.write import DocumentWriteMixin
 from grunt.document.queryset import QuerySet
 from grunt.document.registry import document_registry
+from grunt.document.serde import to_json, with_doctype
 from grunt.errors import not_found
 from grunt.local import require_engine, require_user
 
@@ -218,7 +220,11 @@ class BaseDocument(DocumentLifecycleMixin):
         return grunt
 
     def as_dict(self) -> dict[str, Any]:
-        return dict(self.data)
+        """The document as a JSON object naming its DocType - child rows included."""
+        return copy.deepcopy(with_doctype(self.doctype, self.data))
+
+    def as_json(self, *, indent: int | None = 2) -> str:
+        return to_json(self.as_dict(), indent=indent)
 
     def update(self, values: dict[str, Any]) -> None:
         self.data.update(values)
@@ -572,4 +578,5 @@ async def load_document(
     await doc.load_from_db(expand=expand)
     if type(doc).on_load is not BaseDocument.on_load:
         await doc.on_load()
+    doc.data = with_doctype(doctype, doc.data)
     return doc

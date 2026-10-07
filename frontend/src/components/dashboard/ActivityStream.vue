@@ -23,7 +23,7 @@ const { t } = useI18n()
 
 interface ActivityEntry {
     id: string
-    doctype: string
+    ref_doctype: string
     doc_id: string
     title?: string
     action: string
@@ -87,7 +87,7 @@ function formatDate(val: string) {
 
 function goToDoc(item: ActivityEntry) {
     // Need to find workspace. For now default to grunt or try to infer.
-    router.push(`/grunt/${item.doctype}/${item.doc_id}`)
+    router.push(`/grunt/${item.ref_doctype}/${item.doc_id}`)
 }
 
 watch(() => auth.isLoggedIn, (loggedIn) => {
@@ -137,7 +137,7 @@ watch(() => auth.isLoggedIn, (loggedIn) => {
                                         t('Updated') : item.action }}
                                 </span>
                                 {{ t('document') }}
-                                <span class="font-semibold lowercase text-foreground/80">{{ item.doctype }}</span>:
+                                <span class="font-semibold lowercase text-foreground/80">{{ item.ref_doctype }}</span>:
                                 <span class="font-medium text-primary">{{ item.title || item.doc_id }}</span>
                             </p>
 

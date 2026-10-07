@@ -7,8 +7,9 @@ from grunt.document.titles import resolve_reference_titles
 
 
 class ActivityLog(Document):
-    # NOTE: 'doctype' and 'user' are reserved names in Document base class.
-    # Access these fields via self.data.get("doctype") / self.data.get("user").
+    # NOTE: 'user' is a reserved name in the Document base class.
+    # Access this field via self.data.get("user").
+    ref_doctype: str
     doc_id: str
     action: str
     details: dict
@@ -32,7 +33,7 @@ class ActivityLog(Document):
         return await grunt.new_doc(
             "ActivityLog",
             {
-                "doctype": doctype,
+                "ref_doctype": doctype,
                 "doc_id": doc_id,
                 "action": action,
                 "details": details or {},
@@ -49,7 +50,7 @@ class ActivityLog(Document):
         """Get activity log for a document (newest first)."""
         return await grunt.get_list(
             "ActivityLog",
-            filters={"doctype": doctype, "doc_id": doc_id},
+            filters={"ref_doctype": doctype, "doc_id": doc_id},
             order_by="created_at",
             order="desc",
             limit=limit,
@@ -78,7 +79,7 @@ async def list_activity(
     """
     filters: dict[str, Any] = {}
     if doctype:
-        filters["doctype"] = doctype
+        filters["ref_doctype"] = doctype
     if doc_id:
         filters["doc_id"] = doc_id
     if user:
@@ -94,7 +95,7 @@ async def list_activity(
     if not doctype and not doc_id:
         hidden = await feed_hidden_doctypes()
         if hidden:
-            filters["doctype__nin"] = hidden
+            filters["ref_doctype__nin"] = hidden
 
     page = int(page)
     per_page = int(per_page)
@@ -102,7 +103,7 @@ async def list_activity(
     entries = await grunt.get_list(
         "ActivityLog",
         filters=filters,
-        fields=["name", "doctype", "doc_id", "action", "user", "details", "created_at"],
+        fields=["name", "ref_doctype", "doc_id", "action", "user", "details", "created_at"],
         limit=per_page,
         page=page,
         order_by=sort_by,
@@ -127,11 +128,13 @@ async def _attach_titles(entries: list[dict[str, Any]]) -> None:
     Falls back to the raw ``doc_id`` for deleted docs or doctypes without a
     title field. Mutates ``entries`` in place, adding a ``title`` key.
     """
-    refs = [(e["doctype"], e["doc_id"]) for e in entries if e.get("doctype") and e.get("doc_id")]
+    refs = [
+        (e["ref_doctype"], e["doc_id"]) for e in entries if e.get("ref_doctype") and e.get("doc_id")
+    ]
     titles = await resolve_reference_titles(refs)
 
     for e in entries:
-        dt_name = e.get("doctype") or ""
+        dt_name = e.get("ref_doctype") or ""
         doc_ref = e.get("doc_id") or ""
         e["title"] = titles.get((dt_name, doc_ref)) or doc_ref
 

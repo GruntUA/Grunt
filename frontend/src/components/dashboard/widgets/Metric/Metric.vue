@@ -20,11 +20,11 @@ const router = useRouter()
 const { iconFor } = useLucideIcons()
 
 /** Card -> the widget's list, filtered to the rows the value was computed over. */
-const canOpen = computed(() => !!props.widget.doctype && !!props.data?.filters)
+const canOpen = computed(() => !!props.widget.ref_doctype && !!props.data?.filters)
 
 function open() {
   if (!canOpen.value) return
-  router.push(filteredListUrl(props.widget.doctype, props.data!.filters!, props.workspaceName))
+  router.push(filteredListUrl(props.widget.ref_doctype, props.data!.filters!, props.workspaceName))
 }
 
 const iconComponent = computed(() => iconFor(props.widget.icon))

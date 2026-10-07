@@ -302,7 +302,7 @@ class BulkDeleteTask:
                     table_cols = {c.name for c in t_log.c}
                     log_row: dict[str, Any] = {
                         "name": uuid.uuid4().hex[:10],
-                        "doctype": doctype,
+                        "ref_doctype": doctype,
                         "doc_id": "fast-bulk-delete",
                         "user": user_email,
                         "action": "Delete",

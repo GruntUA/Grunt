@@ -29,7 +29,7 @@ function getTitle(item: Record<string, unknown>): string {
 
 function open(item: Record<string, unknown>) {
   if (!props.workspaceName) return
-  router.push(docUrl(props.widget.doctype, item.id, props.workspaceName))
+  router.push(docUrl(props.widget.ref_doctype, item.id, props.workspaceName))
 }
 </script>
 

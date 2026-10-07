@@ -85,11 +85,11 @@ class WebFormService:
         if not form:
             return []
 
-        meta = await grunt.get_meta(form["doctype"])
+        meta = await grunt.get_meta(form["ref_doctype"])
         if meta is None:
             from grunt.errors import not_found
 
-            raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": form["doctype"]})
+            raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": form["ref_doctype"]})
 
         result: list[dict[str, Any]] = []
         for row in form["fields"] or []:
@@ -162,7 +162,7 @@ class WebFormService:
 
         # Check max submissions
         if form.get("max_submissions", 0) > 0:
-            count = await self._count_submissions(form["doctype"])
+            count = await self._count_submissions(form["ref_doctype"])
             if count >= form["max_submissions"]:
                 raise WebFormError(_("The maximum number of responses has been reached"))
 
@@ -173,7 +173,7 @@ class WebFormService:
             # Authenticated submitter - the ambient request context is
             # already scoped to this user by the API layer; new_doc's
             # audit_fields will set owner=user_email from it.
-            doc = await grunt.new_doc(form["doctype"], validated)
+            doc = await grunt.new_doc(form["ref_doctype"], validated)
             owner = user_email
         else:
             # Anonymous - run the create as a synthetic Guest identity.
@@ -186,7 +186,7 @@ class WebFormService:
             # permission checks meaningful: the target DocType must have an
             # explicit `role: "Guest"` (or "All") create permission.
             async with grunt.context(grunt.get_session(), user=_guest_user()):
-                doc = await grunt.new_doc(form["doctype"], validated)
+                doc = await grunt.new_doc(form["ref_doctype"], validated)
             owner = GUEST_USER
 
         doc_id = doc["name"]
@@ -194,7 +194,7 @@ class WebFormService:
         log.info(
             "webform.submitted",
             form=form["name"],
-            doctype=form["doctype"],
+            doctype=form["ref_doctype"],
             doc_id=doc_id,
             user=owner,
         )

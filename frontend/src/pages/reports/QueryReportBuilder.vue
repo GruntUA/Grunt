@@ -121,7 +121,7 @@ onMounted(async () => {
     if (props.reportName && props.reportName !== 'new') {
         const rep = await reportsApi.get(props.reportName)
         reportDocName.value = rep.name
-        selectedDoctype.value = rep.doctype ?? ''
+        selectedDoctype.value = rep.ref_doctype ?? ''
         columns.value = rep.columns ?? []
         filterConfigs.value = Array.isArray(rep.filters_config) ? rep.filters_config as any[] : []
         if (rep.chart_config && rep.chart_config.type) {

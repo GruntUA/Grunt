@@ -50,12 +50,12 @@ function barWidth(value: number): number {
 /** Single-row group -> that document; Link group -> the linked record; else the filtered list. */
 function open(row: Row) {
   const { widget, data } = props
-  if (row.doc) return router.push(docUrl(widget.doctype, row.doc))
+  if (row.doc) return router.push(docUrl(widget.ref_doctype, row.doc))
   const isNull = row.key === null || row.key === undefined
   if (data?.link_doctype && !isNull) return router.push(docUrl(data.link_doctype, row.key))
   if (!widget.group_by || !data?.filters) return
   router.push(filteredListUrl(
-    widget.doctype, { ...data.filters, ...groupFilter(widget.group_by, row.key) }, props.workspaceName,
+    widget.ref_doctype, { ...data.filters, ...groupFilter(widget.group_by, row.key) }, props.workspaceName,
   ))
 }
 

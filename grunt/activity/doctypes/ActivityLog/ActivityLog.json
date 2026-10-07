@@ -8,7 +8,7 @@
   "track_activity": false,
   "fields": [
     {
-      "fieldname": "doctype",
+      "fieldname": "ref_doctype",
       "label": "Document type",
       "fieldtype": "Link",
       "options": "DocType",

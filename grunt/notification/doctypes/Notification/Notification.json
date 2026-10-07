@@ -30,7 +30,7 @@
       "required": true
     },
     {
-      "fieldname": "doctype",
+      "fieldname": "ref_doctype",
       "label": "Document type",
       "fieldtype": "Text",
       "in_list_view": true
