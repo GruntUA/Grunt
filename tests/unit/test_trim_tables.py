@@ -61,7 +61,7 @@ async def test_trim_tables_dry_run(ctx, engine):
 async def test_valid_columns_include_system_columns(ctx):
     """Trimming must never drop the compiler's system columns (modified_by, child links)."""
     user = set((await grunt.get_meta("User")).get_valid_columns())
-    assert {"name", "owner", "created_at", "modified_at", "modified_by", "docstatus"} <= user
+    assert {"name", "owner", "created_at", "modified_at", "modified_by"} <= user
 
     child = set((await grunt.get_meta("UserRole")).get_valid_columns())
     assert {"parent_name", "parent_doctype", "parent_field", "idx"} <= child

@@ -53,18 +53,6 @@
       "default": false
     },
     {
-      "fieldname": "submit",
-      "label": "Submit",
-      "fieldtype": "Check",
-      "default": false
-    },
-    {
-      "fieldname": "cancel",
-      "label": "Cancel",
-      "fieldtype": "Check",
-      "default": false
-    },
-    {
       "fieldname": "report",
       "label": "Reports",
       "fieldtype": "Check",
@@ -84,15 +72,6 @@
       "fieldname": "hidden_fields",
       "label": "Hidden fields (comma-separated)",
       "fieldtype": "LongText"
-    }
-  ],
-  "permissions": [
-    {
-      "role": "System Manager",
-      "read": true,
-      "write": true,
-      "create": true,
-      "delete": true
     }
   ]
 }

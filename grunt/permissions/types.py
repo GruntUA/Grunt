@@ -15,7 +15,7 @@ from typing import Literal
 # *identifier* columns (name, title_field, search_fields) for a Link-field
 # picker, without granting list access, full-document read, or field
 # unmasking. Any role with "read" implicitly has "select" too.
-PermissionAction = Literal["read", "write", "create", "delete", "submit", "select"]
+PermissionAction = Literal["read", "write", "create", "delete", "select"]
 
 # Mutating actions only - the subset accepted by write-side guards.
-WriteAction = Literal["create", "write", "delete", "submit"]
+WriteAction = Literal["create", "write", "delete"]

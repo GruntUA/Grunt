@@ -311,7 +311,6 @@ class BulkDeleteTask:
                         "created_at": now,
                         "modified_at": now,
                         "modified_by": user_email,
-                        "docstatus": 0,
                     }
                     await session.execute(
                         t_log.insert().values(

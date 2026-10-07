@@ -140,7 +140,6 @@ async def setup_db():
                         created_at=_now,
                         modified_at=_now,
                         modified_by="system@grunt.local",
-                        docstatus=0,
                         allow_user_registration=True,
                         password_min_length=1,
                         password_require_uppercase=False,

@@ -56,7 +56,10 @@ def _system_manager() -> User:
 @pytest.mark.parametrize("doctype_name", list(_DOCTYPE_JSON))
 def test_shipped_doctype_has_permissions_defined(doctype_name):
     dt = _load(doctype_name)
-    assert dt.permissions, f"{doctype_name} must declare permissions, not be open by default"
+    # A child table takes its access from the parent (grunt.permissions.child).
+    assert dt.permissions or dt.is_child, (
+        f"{doctype_name} must declare permissions, not be open by default"
+    )
 
 
 @pytest.mark.parametrize("doctype_name", list(_DOCTYPE_JSON))

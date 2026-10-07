@@ -30,6 +30,19 @@ function _seed_status_indicators(frm) {
     })))
 }
 
+// Views a DocType can open in: [value, icon, is it usable with these fields?]
+// Mirrors each view's resolveField in frontend/src/components/views/*/index.ts.
+const VIEWS = [
+    ['list', 'LayoutList', () => true],
+    ['report', 'Table2', () => true],
+    ['gallery', 'Image', () => true],
+    ['kanban', 'LayoutGrid', ({ selects }) => selects.length > 0],
+    ['calendar', 'CalendarDays', ({ dates }) => dates.length > 0],
+    ['gantt', 'ChartGantt', ({ dates }) => dates.length > 1],
+    ['tree', 'GitBranch', ({ doc }) => !!doc.is_tree],
+    ['map', 'Map', ({ geo }) => geo.length > 0],
+]
+
 /**
  * Refresh title_field, image_field, and status_field options based on current fields list.
  * title_field / status_field — all non-layout fields; image_field — only
@@ -76,6 +89,12 @@ function _refresh_field_selects(frm) {
     frm.set_df_property('calendar_end_date_field', 'options', opt(dateFieldnames))
     frm.set_df_property('calendar_title_field', 'options', opt(allFieldnames))
     frm.set_df_property('is_published_field', 'options', opt(checkFieldnames))
+    frm.set_df_property('retention_date_field', 'options', opt(dateFieldnames))
+
+    const available = { doc: frm.doc, selects: selectFieldnames, dates: dateFieldnames,
+        geo: pick(f => f.fieldtype === 'Geolocation') }
+    const views = VIEWS.filter(([, , usable]) => usable(available))
+    frm.set_df_property('default_view', 'options', opt(views.map(([value, icon]) => `${value}|${icon}`)))
 }
 
 async function on_load(frm) {
@@ -115,7 +134,7 @@ async function on_load(frm) {
 
 async function on_change(frm, fieldname) {
     // Refresh field selects whenever the fields table changes
-    if (fieldname === 'fields') {
+    if (fieldname === 'fields' || fieldname === 'is_tree') {
         _refresh_field_selects(frm)
         return
     }

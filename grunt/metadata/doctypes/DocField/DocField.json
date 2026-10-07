@@ -25,7 +25,7 @@
       "fieldtype": "Select",
       "in_list_view": true,
       "required": true,
-      "options": "Text\nLongText\nRichText\nInt\nFloat\nCheck\nDate\nDatetime\nTime\nSelect\nLink\nMultiLink\nTable\nAttach\nImage\nJSON\nCode\nSection\nColumn\nTab\nSignature\nGeolocation\nRating\nIcon"
+      "options": "Data\nText\nLongText\nRichText\nHTMLEditor\nCode\nJSON\nPassword\nInt\nFloat\nCurrency\nPercent\nDuration\nRating\nCheck\nDate\nDatetime\nTime\nSelect\nMultiSelect\nLink\nDynamicLink\nMultiLink\nTable\nEmbeddedForm\nAttach\nImage\nSignature\nGeolocation\nBarCode\nColor\nIcon\nColumnMapping\nButton\nHTML\nSection\nColumn\nTab"
     },
     {
       "fieldname": "options",
@@ -98,15 +98,6 @@
       "label": "Depends on",
       "fieldtype": "Text",
       "description": "Display condition (Python/JS)"
-    }
-  ],
-  "permissions": [
-    {
-      "role": "System Manager",
-      "read": true,
-      "write": true,
-      "create": true,
-      "delete": true
     }
   ]
 }

@@ -43,7 +43,6 @@ _CHILD_SKIP_COLS: frozenset[str] = frozenset(
         "created_at",
         "modified_at",
         "modified_by",
-        "docstatus",
     }
 )
 

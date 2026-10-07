@@ -69,9 +69,54 @@
       "description": "Pick an App first"
     },
     {
+      "fieldname": "sec_data_model",
+      "label": "Type",
+      "fieldtype": "Section",
+      "description": "Decides which of the settings below apply"
+    },
+    {
+      "fieldname": "col_dm_1",
+      "label": "",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "is_child",
+      "label": "Child (Child Table)",
+      "fieldtype": "Check",
+      "in_list_view": true,
+      "in_filter": true,
+      "description": "Used inside another DocType's Table field"
+    },
+    {
+      "fieldname": "is_singleton",
+      "label": "Singleton",
+      "fieldtype": "Check",
+      "description": "Only one document of this type (settings, profile)",
+      "depends_on": "eval:!doc.is_child"
+    },
+    {
+      "fieldname": "col_dm_2",
+      "label": "",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "is_virtual",
+      "label": "Virtual",
+      "fieldtype": "Check",
+      "description": "No physical table — data comes from a controller"
+    },
+    {
+      "fieldname": "is_tree",
+      "label": "Is tree",
+      "fieldtype": "Check",
+      "description": "Enables the hierarchical view and TreeSelect widget",
+      "depends_on": "eval:!doc.is_child && !doc.is_singleton"
+    },
+    {
       "fieldname": "sec_doc_identity",
-      "label": "Document identity",
-      "fieldtype": "Section"
+      "label": "Naming and display",
+      "fieldtype": "Section",
+      "depends_on": "eval:!doc.is_child && !doc.is_singleton"
     },
     {
       "fieldname": "col_di_1",
@@ -97,196 +142,11 @@
       "fieldtype": "Column"
     },
     {
-      "fieldname": "default_view",
-      "label": "Default view",
-      "fieldtype": "Select",
-      "options": "\nlist|LayoutList\nkanban|LayoutGrid\ncalendar|CalendarDays\ngantt|ChartGantt\ntree|GitBranch\ngallery|Image\nmap|Map",
-      "translatable": true
-    },
-    {
       "fieldname": "image_field",
       "label": "Image field",
       "fieldtype": "Select",
       "options": "",
       "description": "An Image or Attach field for the document avatar"
-    },
-    {
-      "fieldname": "tab_designer",
-      "label": "Builder",
-      "fieldtype": "Tab",
-      "tab_component": "DesignerTab",
-      "icon": "LayoutTemplate"
-    },
-    {
-      "fieldname": "tab_permissions",
-      "label": "Permissions",
-      "fieldtype": "Tab",
-      "icon": "ShieldLock"
-    },
-    {
-      "fieldname": "permissions",
-      "label": "Permissions",
-      "fieldtype": "Table",
-      "options": "DocPermission"
-    },
-    {
-      "fieldname": "tab_behavior",
-      "label": "Behaviour",
-      "fieldtype": "Tab",
-      "icon": "Settings"
-    },
-    {
-      "fieldname": "sec_data_model",
-      "label": "Data model",
-      "fieldtype": "Section"
-    },
-    {
-      "fieldname": "col_dm_1",
-      "label": "",
-      "fieldtype": "Column"
-    },
-    {
-      "fieldname": "is_child",
-      "label": "Child (Child Table)",
-      "fieldtype": "Check",
-      "in_list_view": true,
-      "in_filter": true,
-      "description": "Used inside another DocType's Table field"
-    },
-    {
-      "fieldname": "is_singleton",
-      "label": "Singleton",
-      "fieldtype": "Check",
-      "description": "Only one document of this type (settings, profile)"
-    },
-    {
-      "fieldname": "col_dm_2",
-      "label": "",
-      "fieldtype": "Column"
-    },
-    {
-      "fieldname": "is_virtual",
-      "label": "Virtual",
-      "fieldtype": "Check",
-      "description": "No physical table — data comes from a controller"
-    },
-    {
-      "fieldname": "is_submittable",
-      "label": "Submittable",
-      "fieldtype": "Check",
-      "description": "Adds a Submit button and a docstatus field"
-    },
-    {
-      "fieldname": "sec_audit",
-      "label": "Audit & logging",
-      "fieldtype": "Section"
-    },
-    {
-      "fieldname": "track_changes",
-      "label": "Track changes",
-      "fieldtype": "Check",
-      "description": "Keep a document version on every save"
-    },
-    {
-      "fieldname": "track_seen",
-      "label": "Track views (who opened the document)",
-      "fieldtype": "Check",
-      "description": "Remember which users have already opened the document (_seen column)"
-    },
-    {
-      "fieldname": "track_views",
-      "label": "View log",
-      "fieldtype": "Check",
-      "description": "Log every document open to ViewLog (at most once per hour per user)"
-    },
-    {
-      "fieldname": "track_deletions",
-      "label": "Trash (restore deleted)",
-      "fieldtype": "Check",
-      "default": 1,
-      "description": "Keep a JSON snapshot of the document in DeletedDocument on delete, for later restore"
-    },
-    {
-      "fieldname": "track_activity",
-      "label": "Activity log",
-      "fieldtype": "Check",
-      "default": 1,
-      "description": "Write an ActivityLog entry on create/update/delete. Turn off for high-frequency system churn (sessions, queues, logs) — never for ordinary business records"
-    },
-    {
-      "fieldname": "public_attachments",
-      "label": "Public attachments",
-      "fieldtype": "Check",
-      "description": "Files uploaded to these documents are public by default (website content: news covers, page images). Otherwise attachments are private and readable only with the document"
-    },
-    {
-      "fieldname": "hide_from_activity_feed",
-      "label": "Hide from global feed",
-      "fieldtype": "Check",
-      "description": "Keep entries out of the site-wide activity feed only — they still appear in each document's own timeline. For admin/config records (roles, print formats, workspace layout, …)"
-    },
-    {
-      "fieldname": "retention_days",
-      "label": "Retention, days",
-      "fieldtype": "Int",
-      "description": "Delete documents older than this many days (nightly, through the normal delete — trash snapshot, hooks). Empty — keep forever; for logs — the site default"
-    },
-    {
-      "fieldname": "retention_date_field",
-      "label": "Retention date field",
-      "fieldtype": "Data",
-      "depends_on": "retention_days",
-      "placeholder": "created_at",
-      "description": "Date/Datetime field the age is counted from (default: creation time)"
-    },
-    {
-      "fieldname": "sec_ux",
-      "label": "Interaction",
-      "fieldtype": "Section"
-    },
-    {
-      "fieldname": "quick_entry",
-      "label": "Quick entry (dialog)",
-      "fieldtype": "Check",
-      "description": "\"Create\" opens a mini-dialog with the required fields instead of the full form"
-    },
-    {
-      "fieldname": "show_preview_popup",
-      "label": "Show preview popup",
-      "fieldtype": "Check",
-      "description": "Hovering a link to a document shows a card with its title, image and the \"In preview\" fields"
-    },
-    {
-      "fieldname": "sec_lifecycle",
-      "label": "Lifecycle",
-      "fieldtype": "Section"
-    },
-    {
-      "fieldname": "col_lc_1",
-      "label": "",
-      "fieldtype": "Column"
-    },
-    {
-      "fieldname": "beta",
-      "label": "Beta",
-      "fieldtype": "Check",
-      "description": "Show a \"Beta\" badge — this DocType is still under development"
-    },
-    {
-      "fieldname": "col_lc_2",
-      "label": "",
-      "fieldtype": "Column"
-    },
-    {
-      "fieldname": "deprecated",
-      "label": "Deprecated",
-      "fieldtype": "Check",
-      "description": "Show a warning — kept for compatibility, do not use in new code"
-    },
-    {
-      "fieldname": "sec_search",
-      "label": "Search",
-      "fieldtype": "Section"
     },
     {
       "fieldname": "search_fields",
@@ -301,17 +161,41 @@
       "collapsible": true
     },
     {
+      "fieldname": "col_sys_1",
+      "label": "",
+      "fieldtype": "Column"
+    },
+    {
       "fieldname": "table_name",
       "label": "Table name",
       "fieldtype": "Data",
       "read_only": true,
-      "description": "This type's physical table in the database"
+      "description": "This type's physical table in the database",
+      "depends_on": "eval:!doc.is_virtual"
     },
     {
-      "fieldname": "tab_fields",
-      "label": "Fields",
+      "fieldname": "col_sys_2",
+      "label": "",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "beta",
+      "label": "Beta",
+      "fieldtype": "Check",
+      "description": "Show a \"Beta\" badge — this DocType is still under development"
+    },
+    {
+      "fieldname": "deprecated",
+      "label": "Deprecated",
+      "fieldtype": "Check",
+      "description": "Show a warning — kept for compatibility, do not use in new code"
+    },
+    {
+      "fieldname": "tab_designer",
+      "label": "Builder",
       "fieldtype": "Tab",
-      "icon": "List"
+      "tab_component": "DesignerTab",
+      "icon": "LayoutTemplate"
     },
     {
       "fieldname": "fields",
@@ -320,49 +204,112 @@
       "options": "DocField"
     },
     {
-      "fieldname": "tab_actions",
-      "label": "Actions",
+      "fieldname": "tab_views",
+      "label": "Views",
       "fieldtype": "Tab",
-      "icon": "Zap"
+      "icon": "PanelsTopLeft",
+      "depends_on": "eval:!doc.is_child"
     },
     {
-      "fieldname": "actions",
-      "label": "Document actions",
-      "fieldtype": "Table",
-      "options": "DocTypeAction",
-      "description": "Buttons in the form toolbar. Each row binds an action registered by the app in code (@doc_action)."
+      "fieldname": "sec_form_view",
+      "label": "Form",
+      "fieldtype": "Section"
     },
     {
-      "fieldname": "tab_links",
-      "label": "Links",
-      "fieldtype": "Tab",
-      "icon": "Link"
+      "fieldname": "col_fv_1",
+      "label": "",
+      "fieldtype": "Column"
     },
     {
-      "fieldname": "links",
-      "label": "Document links",
-      "fieldtype": "Table",
-      "options": "DocTypeLink",
-      "description": "Related document types on the form's Links panel. If empty, links are derived automatically from reverse Link fields."
-    },
-    {
-      "fieldname": "tab_tree",
-      "label": "Hierarchy",
-      "fieldtype": "Tab",
-      "icon": "GitBranch"
-    },
-    {
-      "fieldname": "is_tree",
-      "label": "Is tree",
+      "fieldname": "form_show_sidebar",
+      "label": "Sidebar on the form",
       "fieldtype": "Check",
-      "description": "Enables the hierarchical view and TreeSelect widget"
+      "default": 1,
+      "description": "Show the details / tags / links panel next to the form"
+    },
+    {
+      "fieldname": "col_fv_2",
+      "label": "",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "quick_entry",
+      "label": "Quick entry (dialog)",
+      "fieldtype": "Check",
+      "description": "\"Create\" opens a mini-dialog with the required fields instead of the full form",
+      "depends_on": "eval:!doc.is_singleton"
+    },
+    {
+      "fieldname": "show_preview_popup",
+      "label": "Show preview popup",
+      "fieldtype": "Check",
+      "description": "Hovering a link to a document shows a card with its title, image and the \"In preview\" fields",
+      "depends_on": "eval:!doc.is_singleton"
+    },
+    {
+      "fieldname": "sec_list_view",
+      "label": "List",
+      "fieldtype": "Section",
+      "depends_on": "eval:!doc.is_singleton"
+    },
+    {
+      "fieldname": "col_lv_1",
+      "label": "",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "default_view",
+      "label": "Default view",
+      "fieldtype": "Select",
+      "options": "\nlist|LayoutList\nreport|Table2\ngallery|Image\nkanban|LayoutGrid\ncalendar|CalendarDays\ngantt|ChartGantt\ntree|GitBranch\nmap|Map",
+      "translatable": true
+    },
+    {
+      "fieldname": "col_lv_2",
+      "label": "",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "list_tree_field",
+      "label": "Tree navigation field",
+      "fieldtype": "Select",
+      "options": "",
+      "description": "Link field to a hierarchical DocType (e.g. a folder or department). The list shows that tree on the side: pick a node to filter, drag records onto a node to move them."
+    },
+    {
+      "fieldname": "sec_status_config",
+      "label": "Statuses",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "status_field",
+      "label": "Status field",
+      "fieldtype": "Select",
+      "options": "",
+      "description": "The DocType field that holds the document status (e.g. \"status\")"
+    },
+    {
+      "fieldname": "status_indicators",
+      "label": "Indicators",
+      "fieldtype": "Table",
+      "options": "DocTypeStatusIndicator"
+    },
+    {
+      "fieldname": "sec_tree",
+      "label": "Tree",
+      "fieldtype": "Section",
+      "depends_on": "is_tree"
+    },
+    {
+      "fieldname": "col_tree_1",
+      "label": "",
+      "fieldtype": "Column"
     },
     {
       "fieldname": "tree_parent_field",
       "label": "Parent field",
       "fieldtype": "Select",
       "options": "",
-      "depends_on": "is_tree",
       "description": "Link field pointing at this same DocType (node hierarchy)"
     },
     {
@@ -370,7 +317,6 @@
       "label": "Node title field",
       "fieldtype": "Select",
       "options": "",
-      "depends_on": "is_tree",
       "description": "Which field to show as the node label (default: title field)"
     },
     {
@@ -378,15 +324,18 @@
       "label": "\"As of\" date field",
       "fieldtype": "Select",
       "options": "",
-      "depends_on": "is_tree",
       "description": "Date field that enables the date picker in the tree panel"
+    },
+    {
+      "fieldname": "col_tree_2",
+      "label": "",
+      "fieldtype": "Column"
     },
     {
       "fieldname": "tree_sort_by",
       "label": "Sort by",
       "fieldtype": "Select",
-      "options": "",
-      "depends_on": "is_tree"
+      "options": ""
     },
     {
       "fieldname": "tree_sort_order",
@@ -394,8 +343,160 @@
       "fieldtype": "Select",
       "options": "asc\ndesc",
       "translatable": true,
-      "default": "asc",
-      "depends_on": "is_tree"
+      "default": "asc"
+    },
+    {
+      "fieldname": "sec_kanban_view",
+      "label": "Kanban",
+      "fieldtype": "Section",
+      "collapsible": true,
+      "depends_on": "eval:!doc.is_singleton"
+    },
+    {
+      "fieldname": "kanban_column_field",
+      "label": "Columns field",
+      "fieldtype": "Select",
+      "options": "",
+      "description": "Select field whose values group the kanban columns (default: first Select field in the list view)"
+    },
+    {
+      "fieldname": "sec_calendar_view",
+      "label": "Calendar",
+      "fieldtype": "Section",
+      "collapsible": true,
+      "depends_on": "eval:!doc.is_singleton"
+    },
+    {
+      "fieldname": "col_cal_1",
+      "label": "",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "calendar_date_field",
+      "label": "Date field",
+      "fieldtype": "Select",
+      "options": "",
+      "description": "Primary Date/Datetime field that places the event on the calendar"
+    },
+    {
+      "fieldname": "calendar_end_date_field",
+      "label": "End date field",
+      "fieldtype": "Select",
+      "options": "",
+      "description": "Event end Date/Datetime field (for multi-day events)"
+    },
+    {
+      "fieldname": "col_cal_2",
+      "label": "",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "calendar_title_field",
+      "label": "Title field",
+      "fieldtype": "Select",
+      "options": "",
+      "description": "Event label (default: title field)"
+    },
+    {
+      "fieldname": "calendar_sources",
+      "label": "Extra sources",
+      "fieldtype": "Table",
+      "options": "DocTypeCalendarSource",
+      "description": "Other document types overlaid on this calendar"
+    },
+    {
+      "fieldname": "sec_gantt_view",
+      "label": "Gantt chart",
+      "fieldtype": "Section",
+      "collapsible": true,
+      "depends_on": "eval:!doc.is_singleton"
+    },
+    {
+      "fieldname": "col_gantt_1",
+      "label": "",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "gantt_start_field",
+      "label": "Start field",
+      "fieldtype": "Select",
+      "options": "",
+      "description": "Date/Datetime field where the bar starts"
+    },
+    {
+      "fieldname": "gantt_end_field",
+      "label": "End field",
+      "fieldtype": "Select",
+      "options": "",
+      "description": "Date/Datetime field where the bar ends"
+    },
+    {
+      "fieldname": "gantt_title_field",
+      "label": "Title field",
+      "fieldtype": "Select",
+      "options": "",
+      "description": "Row/bar label (default: title field)"
+    },
+    {
+      "fieldname": "gantt_progress_field",
+      "label": "Progress field (0–100)",
+      "fieldtype": "Select",
+      "options": "",
+      "description": "Float/Int/Percent — bar fill"
+    },
+    {
+      "fieldname": "col_gantt_2",
+      "label": "",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "gantt_dependencies_field",
+      "label": "Dependencies field",
+      "fieldtype": "Select",
+      "options": "",
+      "description": "A text field listing predecessor document names, comma-separated — arrows are drawn between them"
+    },
+    {
+      "fieldname": "gantt_color_field",
+      "label": "Colour by field",
+      "fieldtype": "Select",
+      "options": ""
+    },
+    {
+      "fieldname": "gantt_color_map",
+      "label": "Colour map",
+      "fieldtype": "JSON",
+      "depends_on": "gantt_color_field",
+      "description": "{\"In progress\": \"#f59e0b\", \"Done\": \"#16a34a\"}"
+    },
+    {
+      "fieldname": "gantt_default_color",
+      "label": "Default colour",
+      "fieldtype": "Color"
+    },
+    {
+      "fieldname": "tab_permissions",
+      "label": "Permissions",
+      "fieldtype": "Tab",
+      "icon": "ShieldLock",
+      "depends_on": "eval:!doc.is_child"
+    },
+    {
+      "fieldname": "permissions",
+      "label": "Permissions",
+      "fieldtype": "Table",
+      "options": "DocPermission"
+    },
+    {
+      "fieldname": "sec_access_extra",
+      "label": "Sharing and files",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "public_attachments",
+      "label": "Public attachments",
+      "fieldtype": "Check",
+      "description": "Files uploaded to these documents are public by default (website content: news covers, page images). Otherwise attachments are private and readable only with the document"
     },
     {
       "fieldname": "shares_cover_subtree",
@@ -405,10 +506,130 @@
       "depends_on": "is_tree"
     },
     {
-      "fieldname": "tab_web_view",
-      "label": "Web View",
+      "fieldname": "tab_behavior",
+      "label": "Logging",
       "fieldtype": "Tab",
-      "icon": "Globe"
+      "icon": "History",
+      "depends_on": "eval:!doc.is_child && !doc.is_virtual"
+    },
+    {
+      "fieldname": "sec_audit",
+      "label": "Logging",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "col_audit_1",
+      "label": "",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "track_changes",
+      "label": "Track changes",
+      "fieldtype": "Check",
+      "description": "Keep a document version on every save",
+      "default": 1
+    },
+    {
+      "fieldname": "track_activity",
+      "label": "Activity log",
+      "fieldtype": "Check",
+      "default": 1,
+      "description": "Write an ActivityLog entry on create/update/delete. Turn off for high-frequency system churn (sessions, queues, logs) — never for ordinary business records"
+    },
+    {
+      "fieldname": "hide_from_activity_feed",
+      "label": "Hide from global feed",
+      "fieldtype": "Check",
+      "description": "Keep entries out of the site-wide activity feed only — they still appear in each document's own timeline. For admin/config records (roles, print formats, workspace layout, …)",
+      "depends_on": "track_activity"
+    },
+    {
+      "fieldname": "col_audit_2",
+      "label": "",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "track_seen",
+      "label": "Track views (who opened the document)",
+      "fieldtype": "Check",
+      "description": "Remember which users have already opened the document (_seen column)"
+    },
+    {
+      "fieldname": "track_views",
+      "label": "View log",
+      "fieldtype": "Check",
+      "description": "Log every document open to ViewLog (at most once per hour per user)"
+    },
+    {
+      "fieldname": "sec_retention",
+      "label": "Deletion and retention",
+      "fieldtype": "Section",
+      "depends_on": "eval:!doc.is_singleton"
+    },
+    {
+      "fieldname": "col_ret_1",
+      "label": "",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "track_deletions",
+      "label": "Trash (restore deleted)",
+      "fieldtype": "Check",
+      "default": 1,
+      "description": "Keep a JSON snapshot of the document in DeletedDocument on delete, for later restore"
+    },
+    {
+      "fieldname": "col_ret_2",
+      "label": "",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "retention_days",
+      "label": "Retention, days",
+      "fieldtype": "Int",
+      "description": "Delete documents older than this many days (nightly, through the normal delete — trash snapshot, hooks). Empty — keep forever; for logs — the site default"
+    },
+    {
+      "fieldname": "retention_date_field",
+      "label": "Retention date field",
+      "fieldtype": "Select",
+      "depends_on": "retention_days",
+      "description": "Date/Datetime field the age is counted from (default: creation time)",
+      "options": ""
+    },
+    {
+      "fieldname": "tab_actions",
+      "label": "Actions and links",
+      "fieldtype": "Tab",
+      "icon": "Zap",
+      "depends_on": "eval:!doc.is_child"
+    },
+    {
+      "fieldname": "actions",
+      "label": "Document actions",
+      "fieldtype": "Table",
+      "options": "DocTypeAction",
+      "description": "Buttons in the form toolbar. Each row binds an action registered by the app in code (@doc_action)."
+    },
+    {
+      "fieldname": "sec_links",
+      "label": "Links",
+      "fieldtype": "Section",
+      "depends_on": "eval:!doc.is_singleton"
+    },
+    {
+      "fieldname": "links",
+      "label": "Document links",
+      "fieldtype": "Table",
+      "options": "DocTypeLink",
+      "description": "Related document types on the form's Links panel. If empty, links are derived automatically from reverse Link fields."
+    },
+    {
+      "fieldname": "tab_web_view",
+      "label": "Web page",
+      "fieldtype": "Tab",
+      "icon": "Globe",
+      "depends_on": "eval:!doc.is_child && !doc.is_singleton && !doc.is_virtual"
     },
     {
       "fieldname": "has_web_view",
@@ -446,158 +667,6 @@
       "options": "",
       "depends_on": "has_web_view",
       "description": "Check field that publishes the document; empty — every document is published"
-    },
-    {
-      "fieldname": "tab_views",
-      "label": "Views",
-      "fieldtype": "Tab",
-      "icon": "PanelsTopLeft"
-    },
-    {
-      "fieldname": "sec_form_view",
-      "label": "Form",
-      "fieldtype": "Section"
-    },
-    {
-      "fieldname": "form_show_sidebar",
-      "label": "Sidebar on the form",
-      "fieldtype": "Check",
-      "default": "1",
-      "description": "Show the details / tags / links panel next to the form"
-    },
-    {
-      "fieldname": "sec_list_view",
-      "label": "List",
-      "fieldtype": "Section"
-    },
-    {
-      "fieldname": "list_tree_field",
-      "label": "Tree navigation field",
-      "fieldtype": "Select",
-      "options": "",
-      "description": "Link field to a hierarchical DocType (e.g. a folder or department). The list shows that tree on the side: pick a node to filter, drag records onto a node to move them."
-    },
-    {
-      "fieldname": "sec_status_config",
-      "label": "Statuses",
-      "fieldtype": "Section"
-    },
-    {
-      "fieldname": "status_field",
-      "label": "Status field",
-      "fieldtype": "Select",
-      "options": "",
-      "description": "The DocType field that holds the document status (e.g. \"status\")"
-    },
-    {
-      "fieldname": "status_indicators",
-      "label": "Indicators",
-      "fieldtype": "Table",
-      "options": "DocTypeStatusIndicator"
-    },
-    {
-      "fieldname": "sec_kanban_view",
-      "label": "Kanban",
-      "fieldtype": "Section"
-    },
-    {
-      "fieldname": "kanban_column_field",
-      "label": "Columns field",
-      "fieldtype": "Select",
-      "options": "",
-      "description": "Select field whose values group the kanban columns (default: first Select field in the list view)"
-    },
-    {
-      "fieldname": "sec_calendar_view",
-      "label": "Calendar",
-      "fieldtype": "Section"
-    },
-    {
-      "fieldname": "calendar_date_field",
-      "label": "Date field",
-      "fieldtype": "Select",
-      "options": "",
-      "description": "Primary Date/Datetime field that places the event on the calendar"
-    },
-    {
-      "fieldname": "calendar_end_date_field",
-      "label": "End date field",
-      "fieldtype": "Select",
-      "options": "",
-      "description": "Event end Date/Datetime field (for multi-day events)"
-    },
-    {
-      "fieldname": "calendar_title_field",
-      "label": "Title field",
-      "fieldtype": "Select",
-      "options": "",
-      "description": "Event label (default: title field)"
-    },
-    {
-      "fieldname": "calendar_sources",
-      "label": "Extra sources",
-      "fieldtype": "Table",
-      "options": "DocTypeCalendarSource",
-      "description": "Other document types overlaid on this calendar"
-    },
-    {
-      "fieldname": "sec_gantt_view",
-      "label": "Gantt chart",
-      "fieldtype": "Section"
-    },
-    {
-      "fieldname": "gantt_start_field",
-      "label": "Start field",
-      "fieldtype": "Select",
-      "options": "",
-      "description": "Date/Datetime field where the bar starts"
-    },
-    {
-      "fieldname": "gantt_end_field",
-      "label": "End field",
-      "fieldtype": "Select",
-      "options": "",
-      "description": "Date/Datetime field where the bar ends"
-    },
-    {
-      "fieldname": "gantt_title_field",
-      "label": "Title field",
-      "fieldtype": "Select",
-      "options": "",
-      "description": "Row/bar label (default: title field)"
-    },
-    {
-      "fieldname": "gantt_progress_field",
-      "label": "Progress field (0–100)",
-      "fieldtype": "Select",
-      "options": "",
-      "description": "Float/Int/Percent — bar fill"
-    },
-    {
-      "fieldname": "gantt_color_field",
-      "label": "Colour by field",
-      "fieldtype": "Select",
-      "options": ""
-    },
-    {
-      "fieldname": "gantt_color_map",
-      "label": "Colour map",
-      "fieldtype": "JSON",
-      "depends_on": "gantt_color_field",
-      "description": "{\"In progress\": \"#f59e0b\", \"Done\": \"#16a34a\"}"
-    },
-    {
-      "fieldname": "gantt_default_color",
-      "label": "Default colour",
-      "fieldtype": "Data",
-      "description": "#2563eb or var(--primary)"
-    },
-    {
-      "fieldname": "gantt_dependencies_field",
-      "label": "Dependencies field",
-      "fieldtype": "Select",
-      "options": "",
-      "description": "A text field listing predecessor document names, comma-separated — arrows are drawn between them"
     }
   ],
   "permissions": [

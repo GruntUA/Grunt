@@ -201,7 +201,6 @@ class NotificationService:
                     "created_at": now,
                     "modified_at": now,
                     "modified_by": user,
-                    "docstatus": 0,
                     "user": user,
                     "doctype": doctype,
                     "doc_id": doc_id,

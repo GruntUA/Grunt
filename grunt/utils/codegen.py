@@ -266,7 +266,6 @@ def build_test_context(dt: dict) -> dict[str, Any]:
     skip_names = {
         "name",
         "id",
-        "docstatus",
         "idx",
         "owner",
         "creation",

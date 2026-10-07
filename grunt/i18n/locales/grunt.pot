@@ -237,7 +237,7 @@ msgstr ""
 msgid "Access denied"
 msgstr ""
 
-#: grunt/grunt/auth/doctypes/User/user.py:652
+#: grunt/grunt/auth/doctypes/User/user.py:651
 msgid "Account temporarily locked. Try again later."
 msgstr ""
 
@@ -795,13 +795,13 @@ msgstr ""
 msgid "Bold"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:275
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:281
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:258
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:264
 msgid "Bookmark"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:275
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:281
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:258
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:264
 msgid "Bookmarked"
 msgstr ""
 
@@ -930,16 +930,11 @@ msgstr ""
 msgid "Cancel task"
 msgstr ""
 
-#: grunt/grunt/document/mixins/write.py:650
-msgid "Cancel the document before deleting it"
-msgstr ""
-
 #: grunt/grunt/actions/builtin.py:110
 msgid "Cancel the task?"
 msgstr ""
 
 #: grunt/frontend/src/core/composables/useTaskTracker.ts:164
-#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:56
 msgid "Cancelled"
 msgstr ""
 
@@ -961,6 +956,10 @@ msgstr ""
 
 #: grunt/frontend/src/components/views/form/FormModals.vue:117
 msgid "Cannot replace with the document being deleted."
+msgstr ""
+
+#: grunt/frontend/src/pages/studio/builder/DesignerTab.vue:64
+msgid "Canvas"
 msgstr ""
 
 #: grunt/frontend/src/components/fields/Password/Password.vue:92
@@ -1256,7 +1255,7 @@ msgstr ""
 msgid "Comment:"
 msgstr ""
 
-#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:57
+#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:54
 msgid "Commented"
 msgstr ""
 
@@ -1421,7 +1420,7 @@ msgstr ""
 #: grunt/frontend/src/core/renderer/FieldRenderer.vue:143
 #: grunt/frontend/src/components/desk/GruntDialog.vue:362
 #: grunt/frontend/src/components/layout/CommandPalette.vue:142
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:179
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:162
 #: grunt/frontend/src/components/views/form/FormHeader.vue:461
 msgid "Copied"
 msgstr ""
@@ -1442,8 +1441,8 @@ msgstr ""
 msgid "Copy"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:174
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:179
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:157
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:162
 msgid "Copy ID"
 msgstr ""
 
@@ -1488,7 +1487,7 @@ msgstr ""
 msgid "Could not apply the transition"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:97
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:87
 msgid "Could not copy"
 msgstr ""
 
@@ -1520,7 +1519,7 @@ msgstr ""
 msgid "Could not load the fields of the chosen DocType"
 msgstr ""
 
-#: grunt/grunt/metadata/doctypes/DocType/DocType.js:112
+#: grunt/grunt/metadata/doctypes/DocType/DocType.js:131
 msgid "Could not load the list of apps"
 msgstr ""
 
@@ -1528,7 +1527,7 @@ msgstr ""
 msgid "Could not open the report"
 msgstr ""
 
-#: grunt/grunt/document/mixins/write.py:667
+#: grunt/grunt/document/mixins/write.py:661
 msgid "Could not reassign the links: uniqueness conflict"
 msgstr ""
 
@@ -1647,7 +1646,7 @@ msgid "Create the first one"
 msgstr ""
 
 #: grunt/frontend/src/components/dashboard/ActivityStream.vue:136
-#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:55
+#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:53
 msgid "Created"
 msgstr ""
 
@@ -1868,7 +1867,7 @@ msgid "Delete «{name}»?"
 msgstr ""
 
 #: grunt/frontend/src/core/composables/useFormActions.ts:45
-#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:55
+#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:53
 #: grunt/frontend/src/components/fields/Table/Table.vue:220
 msgid "Deleted"
 msgstr ""
@@ -1986,8 +1985,8 @@ msgstr ""
 msgid "DocType not found"
 msgstr ""
 
-#: grunt/grunt/metadata/registry.py:551 grunt/grunt/metadata/registry.py:643
-#: grunt/grunt/metadata/registry.py:569 grunt/grunt/api/v1/meta.py:134
+#: grunt/grunt/metadata/registry.py:553 grunt/grunt/metadata/registry.py:645
+#: grunt/grunt/metadata/registry.py:571 grunt/grunt/api/v1/meta.py:134
 msgid "DocType “%(doctype)s” already exists"
 msgstr ""
 
@@ -1995,9 +1994,9 @@ msgstr ""
 msgid "DocType “%(doctype)s” no longer exists"
 msgstr ""
 
-#: grunt/grunt/webform/service.py:92 grunt/grunt/app/document_api.py:488
-#: grunt/grunt/app/document_api.py:689 grunt/grunt/metadata/registry.py:340
-#: grunt/grunt/metadata/registry.py:624 grunt/grunt/metadata/registry.py:598
+#: grunt/grunt/webform/service.py:92 grunt/grunt/app/document_api.py:487
+#: grunt/grunt/app/document_api.py:687 grunt/grunt/metadata/registry.py:342
+#: grunt/grunt/metadata/registry.py:626 grunt/grunt/metadata/registry.py:600
 #: grunt/grunt/notification/rule_index.py:53
 #: grunt/grunt/activity/__init__.py:264 grunt/grunt/actions/__init__.py:163
 #: grunt/grunt/document/connections.py:43
@@ -2015,10 +2014,6 @@ msgstr ""
 
 #: grunt/frontend/src/components/layout/CommandPalette.vue:173
 msgid "DocTypes"
-msgstr ""
-
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:163
-msgid "Document"
 msgstr ""
 
 #: grunt/frontend/src/components/layout/OfflineQueueSheet.vue:59
@@ -2105,10 +2100,6 @@ msgstr ""
 msgid "Download Excel"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:82
-msgid "Draft"
-msgstr ""
-
 #: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:277
 msgid "Drag from the edge of a node to another node to create a transition"
 msgstr ""
@@ -2140,7 +2131,7 @@ msgstr ""
 msgid "Duplicate"
 msgstr ""
 
-#: grunt/grunt/metadata/registry.py:655
+#: grunt/grunt/metadata/registry.py:657
 msgid "Duplicate fieldname '%(fieldname)s' in DocType '%(name)s'"
 msgstr ""
 
@@ -2201,7 +2192,7 @@ msgstr ""
 msgid "Email"
 msgstr ""
 
-#: grunt/grunt/auth/doctypes/User/user.py:158
+#: grunt/grunt/auth/doctypes/User/user.py:157
 msgid "Email is required"
 msgstr ""
 
@@ -2493,7 +2484,7 @@ msgstr ""
 msgid "Field “{label}”: invalid value"
 msgstr ""
 
-#: grunt/grunt/metadata/registry.py:674
+#: grunt/grunt/metadata/registry.py:676
 msgid "Fieldname '%(fieldname)s' exceeds %(max)s characters"
 msgstr ""
 
@@ -2606,7 +2597,7 @@ msgstr ""
 msgid "First name"
 msgstr ""
 
-#: grunt/grunt/auth/doctypes/User/user.py:160
+#: grunt/grunt/auth/doctypes/User/user.py:159
 msgid "First name is required"
 msgstr ""
 
@@ -2644,11 +2635,11 @@ msgstr ""
 msgid "Folders"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:261
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:244
 msgid "Follow"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:261
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:244
 msgid "Following"
 msgstr ""
 
@@ -2765,7 +2756,7 @@ msgstr ""
 msgid "Generate link"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:265
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:248
 msgid "Get notified about changes and comments"
 msgstr ""
 
@@ -2878,7 +2869,7 @@ msgid "Hello {name}"
 msgstr ""
 
 #: grunt/grunt/email/templates/password_reset.html:49
-#: grunt/grunt/auth/doctypes/User/user.py:1062
+#: grunt/grunt/auth/doctypes/User/user.py:1061
 msgid "Hello, %(name)s,"
 msgstr ""
 
@@ -2965,7 +2956,7 @@ msgid ""
 msgstr ""
 
 #: grunt/grunt/email/templates/password_reset.html:57
-#: grunt/grunt/auth/doctypes/User/user.py:1065
+#: grunt/grunt/auth/doctypes/User/user.py:1064
 msgid "If you did not request this, just ignore this email."
 msgstr ""
 
@@ -3056,7 +3047,7 @@ msgstr ""
 msgid "Include nested"
 msgstr ""
 
-#: grunt/grunt/auth/doctypes/User/user.py:656
+#: grunt/grunt/auth/doctypes/User/user.py:655
 msgid "Incorrect email or password"
 msgstr ""
 
@@ -3191,7 +3182,7 @@ msgstr ""
 msgid "Invalid email or password"
 msgstr ""
 
-#: grunt/grunt/metadata/registry.py:664
+#: grunt/grunt/metadata/registry.py:666
 msgid ""
 "Invalid fieldname '%(fieldname)s': must start with a-z and contain only a-z,"
 " 0-9, _"
@@ -3201,7 +3192,7 @@ msgstr ""
 msgid "Invalid format"
 msgstr ""
 
-#: grunt/grunt/auth/doctypes/User/user.py:778
+#: grunt/grunt/auth/doctypes/User/user.py:777
 msgid "Invalid language value"
 msgstr ""
 
@@ -3209,11 +3200,11 @@ msgstr ""
 msgid "Invalid link"
 msgstr ""
 
-#: grunt/grunt/auth/doctypes/User/user.py:697
+#: grunt/grunt/auth/doctypes/User/user.py:696
 msgid "Invalid or expired MFA setup token"
 msgstr ""
 
-#: grunt/grunt/auth/doctypes/User/user.py:672
+#: grunt/grunt/auth/doctypes/User/user.py:671
 msgid "Invalid or expired MFA token"
 msgstr ""
 
@@ -3221,12 +3212,12 @@ msgstr ""
 msgid "Invalid or expired code"
 msgstr ""
 
-#: grunt/grunt/auth/doctypes/User/user.py:798
-#: grunt/grunt/auth/doctypes/User/user.py:803
+#: grunt/grunt/auth/doctypes/User/user.py:797
+#: grunt/grunt/auth/doctypes/User/user.py:802
 msgid "Invalid or expired refresh token"
 msgstr ""
 
-#: grunt/grunt/auth/doctypes/User/user.py:1094
+#: grunt/grunt/auth/doctypes/User/user.py:1093
 msgid "Invalid or expired reset token"
 msgstr ""
 
@@ -3238,7 +3229,7 @@ msgstr ""
 msgid "Invalid phone format"
 msgstr ""
 
-#: grunt/grunt/auth/doctypes/User/user.py:771
+#: grunt/grunt/auth/doctypes/User/user.py:770
 msgid "Invalid theme value"
 msgstr ""
 
@@ -3352,7 +3343,7 @@ msgstr ""
 msgid "Last name"
 msgstr ""
 
-#: grunt/grunt/auth/doctypes/User/user.py:162
+#: grunt/grunt/auth/doctypes/User/user.py:161
 msgid "Last name is required"
 msgstr ""
 
@@ -3548,7 +3539,7 @@ msgstr ""
 msgid "MFA setup"
 msgstr ""
 
-#: grunt/grunt/auth/doctypes/User/user.py:700
+#: grunt/grunt/auth/doctypes/User/user.py:699
 msgid "MFA setup is unavailable"
 msgstr ""
 
@@ -3701,7 +3692,7 @@ msgstr ""
 msgid "More actions"
 msgstr ""
 
-#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:57
+#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:54
 msgid "Moved"
 msgstr ""
 
@@ -3709,7 +3700,7 @@ msgstr ""
 msgid "Moved: {n}"
 msgstr ""
 
-#: grunt/grunt/document/links.py:228
+#: grunt/grunt/document/links.py:227
 msgid "Multiple links"
 msgstr ""
 
@@ -3771,7 +3762,7 @@ msgstr ""
 msgid "New"
 msgstr ""
 
-#: grunt/grunt/metadata/doctypes/DocType/DocType.js:168
+#: grunt/grunt/metadata/doctypes/DocType/DocType.js:187
 msgid "New DocType"
 msgstr ""
 
@@ -3869,7 +3860,7 @@ msgstr ""
 msgid "No access to this key"
 msgstr ""
 
-#: grunt/grunt/permissions/rbac.py:171
+#: grunt/grunt/permissions/rbac.py:173
 msgid "No access: %(action)s “%(doctype)s”"
 msgstr ""
 
@@ -3882,7 +3873,7 @@ msgstr ""
 msgid "No account?"
 msgstr ""
 
-#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:95
+#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:92
 msgid "No activity"
 msgstr ""
 
@@ -4125,19 +4116,19 @@ msgstr ""
 msgid "Not permitted"
 msgstr ""
 
-#: grunt/grunt/auth/doctypes/User/user.py:977
+#: grunt/grunt/auth/doctypes/User/user.py:976
 msgid "Not permitted to change another user's password"
 msgstr ""
 
-#: grunt/grunt/auth/doctypes/User/user.py:201
+#: grunt/grunt/auth/doctypes/User/user.py:200
 msgid "Not permitted to change roles"
 msgstr ""
 
-#: grunt/grunt/auth/doctypes/User/user.py:224
+#: grunt/grunt/auth/doctypes/User/user.py:223
 msgid "Not permitted to change the field “%(field)s”"
 msgstr ""
 
-#: grunt/grunt/auth/doctypes/User/user.py:186
+#: grunt/grunt/auth/doctypes/User/user.py:185
 msgid "Not permitted to create users"
 msgstr ""
 
@@ -4145,7 +4136,7 @@ msgstr ""
 msgid "Not permitted to run this action"
 msgstr ""
 
-#: grunt/grunt/auth/doctypes/User/user.py:217
+#: grunt/grunt/auth/doctypes/User/user.py:216
 msgid "Not permitted to set the password; use the Change password action"
 msgstr ""
 
@@ -4234,7 +4225,7 @@ msgstr ""
 msgid "Offline page"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:184
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:167
 msgid "On website"
 msgstr ""
 
@@ -4483,11 +4474,11 @@ msgid "Password must be at least 8 characters"
 msgstr ""
 
 #: grunt/grunt/email/templates/password_reset.html:46
-#: grunt/grunt/auth/doctypes/User/user.py:1068
+#: grunt/grunt/auth/doctypes/User/user.py:1067
 msgid "Password reset"
 msgstr ""
 
-#: grunt/grunt/auth/doctypes/User/user.py:1063
+#: grunt/grunt/auth/doctypes/User/user.py:1062
 msgid "Password reset link (valid for 1 hour):"
 msgstr ""
 
@@ -4589,8 +4580,8 @@ msgid "Previous page"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/global_form.js:54
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:285
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:289
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:268
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:272
 #: grunt/frontend/src/components/views/map/MapView.vue:205
 msgid "Print"
 msgstr ""
@@ -4797,7 +4788,7 @@ msgstr ""
 msgid "Registration approved — the user can sign in"
 msgstr ""
 
-#: grunt/grunt/auth/doctypes/User/user.py:558
+#: grunt/grunt/auth/doctypes/User/user.py:557
 msgid "Registration of new users is disabled"
 msgstr ""
 
@@ -5541,7 +5532,7 @@ msgstr ""
 msgid "Share «{name}»"
 msgstr ""
 
-#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:57
+#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:54
 msgid "Shared"
 msgstr ""
 
@@ -5646,7 +5637,7 @@ msgstr ""
 msgid "Sign-in code"
 msgstr ""
 
-#: grunt/grunt/auth/doctypes/User/user.py:813
+#: grunt/grunt/auth/doctypes/User/user.py:812
 msgid "Sign-in from this IP address is not allowed for your role"
 msgstr ""
 
@@ -5731,11 +5722,11 @@ msgstr ""
 
 #: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:272
 #: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:310
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:154
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:144
 msgid "State"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:145
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:135
 msgid "Status"
 msgstr ""
 
@@ -5778,11 +5769,6 @@ msgstr ""
 
 #: grunt/grunt/website/www/form/{route}.html:210
 msgid "Submit"
-msgstr ""
-
-#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:56
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:83
-msgid "Submitted"
 msgstr ""
 
 #: grunt/frontend/src/components/fields/RichText/editor/commands.ts:51
@@ -5889,6 +5875,7 @@ msgstr ""
 #: grunt/frontend/src/components/fields/RichText/editor/useRichEditor.ts:73
 #: grunt/frontend/src/components/fields/RichText/ui/InsertMenu.vue:93
 #: grunt/frontend/src/pages/reports/ReportView.vue:198
+#: grunt/frontend/src/pages/studio/builder/DesignerTab.vue:67
 msgid "Table"
 msgstr ""
 
@@ -6074,7 +6061,7 @@ msgstr ""
 msgid "The comment cannot be empty"
 msgstr ""
 
-#: grunt/grunt/auth/doctypes/User/user.py:982
+#: grunt/grunt/auth/doctypes/User/user.py:981
 msgid "The current password is incorrect"
 msgstr ""
 
@@ -6647,7 +6634,7 @@ msgstr ""
 
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.js:213
 #: grunt/frontend/src/components/dashboard/ActivityStream.vue:137
-#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:55
+#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:53
 msgid "Updated"
 msgstr ""
 
@@ -6715,14 +6702,14 @@ msgstr ""
 msgid "Used"
 msgstr ""
 
-#: grunt/grunt/auth/doctypes/User/user.py:676
-#: grunt/grunt/auth/doctypes/User/user.py:789
-#: grunt/grunt/auth/doctypes/User/user.py:928
-#: grunt/grunt/auth/doctypes/User/user.py:963
-#: grunt/grunt/auth/doctypes/User/user.py:996
-#: grunt/grunt/auth/doctypes/User/user.py:1007
-#: grunt/grunt/auth/doctypes/User/user.py:1019
-#: grunt/grunt/auth/doctypes/User/user.py:1032
+#: grunt/grunt/auth/doctypes/User/user.py:675
+#: grunt/grunt/auth/doctypes/User/user.py:788
+#: grunt/grunt/auth/doctypes/User/user.py:927
+#: grunt/grunt/auth/doctypes/User/user.py:962
+#: grunt/grunt/auth/doctypes/User/user.py:995
+#: grunt/grunt/auth/doctypes/User/user.py:1006
+#: grunt/grunt/auth/doctypes/User/user.py:1018
+#: grunt/grunt/auth/doctypes/User/user.py:1031
 msgid "User not found"
 msgstr ""
 
@@ -6734,7 +6721,7 @@ msgstr ""
 msgid "User not found."
 msgstr ""
 
-#: grunt/grunt/auth/doctypes/User/user.py:622
+#: grunt/grunt/auth/doctypes/User/user.py:621
 msgid "User with email '%(email)s' already exists"
 msgstr ""
 
@@ -7023,7 +7010,7 @@ msgstr ""
 msgid "You did not allow notifications"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:265
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:248
 msgid "You get notified about changes and comments"
 msgstr ""
 
@@ -7084,7 +7071,7 @@ msgid ""
 "authenticator app and enter the 6-digit code."
 msgstr ""
 
-#: grunt/grunt/auth/doctypes/User/user.py:820
+#: grunt/grunt/auth/doctypes/User/user.py:819
 msgid "Your role requires two-factor authentication; sign in again"
 msgstr ""
 
@@ -7216,7 +7203,7 @@ msgstr ""
 msgid "count — number of rows"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:103
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:93
 msgid "created"
 msgstr ""
 
@@ -7354,7 +7341,7 @@ msgstr ""
 #: grunt/frontend/src/pages/DeskPage.vue:102
 #: grunt/frontend/src/core/datetime.ts:193
 #: grunt/frontend/src/core/datetime.ts:200
-#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:68
+#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:65
 msgid "just now"
 msgstr ""
 
@@ -7396,7 +7383,7 @@ msgstr ""
 msgid "missing"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:106
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:96
 msgid "modified"
 msgstr ""
 
@@ -7726,7 +7713,7 @@ msgstr ""
 msgid "{n} h"
 msgstr ""
 
-#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:71
+#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:68
 msgid "{n} h ago"
 msgstr ""
 
@@ -7749,7 +7736,7 @@ msgstr[1] ""
 msgid "{n} min"
 msgstr ""
 
-#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:69
+#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:66
 msgid "{n} min ago"
 msgstr ""
 
@@ -8132,11 +8119,6 @@ msgid "{\"In progress\": \"#f59e0b\", \"Done\": \"#16a34a\"}"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
-msgctxt "help:DocType.gantt_default_color"
-msgid "#2563eb or var(--primary)"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgctxt "help:DocType.gantt_dependencies_field"
 msgid ""
 "A text field listing predecessor document names, comma-separated — arrows "
@@ -8210,11 +8192,6 @@ msgid "Only one document of this type (settings, profile)"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
-msgctxt "help:DocType.is_submittable"
-msgid "Adds a Submit button and a docstatus field"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgctxt "help:DocType.is_tree"
 msgid "Enables the hierarchical view and TreeSelect widget"
 msgstr ""
@@ -8283,6 +8260,11 @@ msgstr ""
 msgctxt "help:DocType.search_fields"
 msgid ""
 "Fields for full-text search in the list view (name is added automatically)"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgctxt "help:DocType.sec_data_model"
+msgid "Decides which of the settings below apply"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
@@ -9157,11 +9139,6 @@ msgctxt "help:WorkflowTransition.require_comment"
 msgid ""
 "Ask for a comment before applying; it is added to the document comments and "
 "the notification"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/DocType/DocType.json
-msgctxt "hint:DocType.retention_date_field"
-msgid "created_at"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
@@ -10310,11 +10287,6 @@ msgid "Permission"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
-msgctxt "meta:DocPermission.cancel"
-msgid "Cancel"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
 msgctxt "meta:DocPermission.create"
 msgid "Create"
 msgstr ""
@@ -10362,11 +10334,6 @@ msgstr ""
 #: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
 msgctxt "meta:DocPermission.select"
 msgid "Field picker"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
-msgctxt "meta:DocPermission.submit"
-msgid "Submit"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
@@ -10550,11 +10517,6 @@ msgid "Singleton"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
-msgctxt "meta:DocType.is_submittable"
-msgid "Submittable"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgctxt "meta:DocType.is_tree"
 msgid "Is tree"
 msgstr ""
@@ -10620,8 +10582,13 @@ msgid "Search fields"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgctxt "meta:DocType.sec_access_extra"
+msgid "Sharing and files"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgctxt "meta:DocType.sec_audit"
-msgid "Audit & logging"
+msgid "Logging"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
@@ -10631,12 +10598,12 @@ msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgctxt "meta:DocType.sec_data_model"
-msgid "Data model"
+msgid "Type"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgctxt "meta:DocType.sec_doc_identity"
-msgid "Document identity"
+msgid "Naming and display"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
@@ -10660,8 +10627,8 @@ msgid "Kanban"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
-msgctxt "meta:DocType.sec_lifecycle"
-msgid "Lifecycle"
+msgctxt "meta:DocType.sec_links"
+msgid "Links"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
@@ -10670,8 +10637,8 @@ msgid "List"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
-msgctxt "meta:DocType.sec_search"
-msgid "Search"
+msgctxt "meta:DocType.sec_retention"
+msgid "Deletion and retention"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
@@ -10685,8 +10652,8 @@ msgid "Statuses"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
-msgctxt "meta:DocType.sec_ux"
-msgid "Interaction"
+msgctxt "meta:DocType.sec_tree"
+msgid "Tree"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
@@ -10711,27 +10678,17 @@ msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgctxt "meta:DocType.tab_actions"
-msgid "Actions"
+msgid "Actions and links"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgctxt "meta:DocType.tab_behavior"
-msgid "Behaviour"
+msgid "Logging"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgctxt "meta:DocType.tab_designer"
 msgid "Builder"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/DocType/DocType.json
-msgctxt "meta:DocType.tab_fields"
-msgid "Fields"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/DocType/DocType.json
-msgctxt "meta:DocType.tab_links"
-msgid "Links"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
@@ -10745,18 +10702,13 @@ msgid "Permissions"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
-msgctxt "meta:DocType.tab_tree"
-msgid "Hierarchy"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgctxt "meta:DocType.tab_views"
 msgid "Views"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgctxt "meta:DocType.tab_web_view"
-msgid "Web View"
+msgid "Web page"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
@@ -14134,42 +14086,32 @@ msgctxt "meta:WorkspaceSidebarItem.type"
 msgid "Type"
 msgstr ""
 
-#: grunt/grunt/permissions/rbac.py:24
-msgctxt "permission"
-msgid "cancel"
-msgstr ""
-
-#: grunt/grunt/permissions/rbac.py:21
+#: grunt/grunt/permissions/rbac.py:22
 msgctxt "permission"
 msgid "create"
 msgstr ""
 
-#: grunt/grunt/permissions/rbac.py:22
+#: grunt/grunt/permissions/rbac.py:23
 msgctxt "permission"
 msgid "delete"
 msgstr ""
 
-#: grunt/grunt/permissions/rbac.py:18
+#: grunt/grunt/permissions/rbac.py:19
 msgctxt "permission"
 msgid "read"
 msgstr ""
 
-#: grunt/grunt/permissions/rbac.py:25
+#: grunt/grunt/permissions/rbac.py:24
 msgctxt "permission"
 msgid "reports"
 msgstr ""
 
-#: grunt/grunt/permissions/rbac.py:19
+#: grunt/grunt/permissions/rbac.py:20
 msgctxt "permission"
 msgid "select in a field"
 msgstr ""
 
-#: grunt/grunt/permissions/rbac.py:23
-msgctxt "permission"
-msgid "submit"
-msgstr ""
-
-#: grunt/grunt/permissions/rbac.py:20
+#: grunt/grunt/permissions/rbac.py:21
 msgctxt "permission"
 msgid "write"
 msgstr ""
@@ -14182,11 +14124,6 @@ msgstr ""
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue:73
 msgctxt "priority"
 msgid "Urgent"
-msgstr ""
-
-#: grunt/grunt/activity/doctypes/ActivityLog/ActivityLog.json
-msgctxt "select:ActivityLog.action"
-msgid "Cancel"
 msgstr ""
 
 #: grunt/grunt/activity/doctypes/ActivityLog/ActivityLog.json
@@ -14207,11 +14144,6 @@ msgstr ""
 #: grunt/grunt/activity/doctypes/ActivityLog/ActivityLog.json
 msgctxt "select:ActivityLog.action"
 msgid "Share"
-msgstr ""
-
-#: grunt/grunt/activity/doctypes/ActivityLog/ActivityLog.json
-msgctxt "select:ActivityLog.action"
-msgid "Submit"
 msgstr ""
 
 #: grunt/grunt/activity/doctypes/ActivityLog/ActivityLog.json
@@ -14472,6 +14404,11 @@ msgstr ""
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgctxt "select:DocType.default_view"
 msgid "map"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgctxt "select:DocType.default_view"
+msgid "report"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
@@ -15022,11 +14959,6 @@ msgstr ""
 #: grunt/grunt/site/doctypes/WorkspaceSidebarItem/WorkspaceSidebarItem.json
 msgctxt "select:WorkspaceSidebarItem.type"
 msgid "URL"
-msgstr ""
-
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:84
-msgctxt "status"
-msgid "Cancelled"
 msgstr ""
 
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue:69

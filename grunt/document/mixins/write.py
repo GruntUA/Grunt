@@ -62,7 +62,7 @@ from grunt.workflow.engine import _active
 from grunt.workflow.guard import check_delete, check_update
 from grunt.workflow.registry import get_active_workflow
 
-PROTECTED_FIELDS = frozenset({"name", "owner", "created_at", "docstatus"})
+PROTECTED_FIELDS = frozenset({"name", "owner", "created_at"})
 
 
 class DocumentWriteMixin(DocumentReadMixin):
@@ -643,12 +643,6 @@ class DocumentWriteMixin(DocumentReadMixin):
         await permission_checker.require(user, dt, "delete", existing)
 
         await check_delete(doctype_name, existing, user)
-
-        if dt.is_submittable and existing.get("docstatus") == 1:
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail=_("Cancel the document before deleting it"),
-            )
 
         real_id = existing["name"]
 

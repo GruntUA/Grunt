@@ -254,7 +254,6 @@ class DocType(BaseModel):
 
     # Flags
     is_child: bool = False  # True -> used inside a TABLE field
-    is_submittable: bool = False  # adds Submit button
     is_singleton: bool = False  # only one document per DocType
     is_virtual: bool = False  # True -> no DB table, data from controller
     is_tree: bool = False  # True -> hierarchical; requires tree_view.parent_field
@@ -427,4 +426,11 @@ class DocType(BaseModel):
         """Drop half-filled ``actions`` / ``links`` rows left behind in the editor."""
         self.actions = [a for a in self.actions if a.action.strip()]
         self.links = [link for link in self.links if link.link_doctype.strip()]
+        return self
+
+    @model_validator(mode="after")
+    def _drop_child_permissions(self) -> DocType:
+        """Child rows take their access from the parent document (grunt.permissions.child)."""
+        if self.is_child:
+            self.permissions = []
         return self

@@ -60,7 +60,6 @@ class DocumentAPI:
                     bool(getattr(p, "write", False)),
                     bool(getattr(p, "create", False)),
                     bool(getattr(p, "delete", False)),
-                    bool(getattr(p, "submit", False)),
                 )
             ):
                 return False
@@ -504,7 +503,6 @@ class DocumentAPI:
                 "created_at": now,
                 "modified_at": now,
                 "modified_by": user.email,
-                "docstatus": 0,
             }
             for k, v in standard.items():
                 if k in table.c:

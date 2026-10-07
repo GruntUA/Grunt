@@ -29,7 +29,7 @@ if TYPE_CHECKING:
 
 # Never compared when deciding whether an edit changed the document.
 _SYSTEM_FIELDS = frozenset(
-    {"name", "owner", "created_at", "modified_at", "modified_by", "docstatus", "idx"}
+    {"name", "owner", "created_at", "modified_at", "modified_by", "idx"}
 )
 
 

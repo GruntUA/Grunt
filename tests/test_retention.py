@@ -96,7 +96,6 @@ async def test_log_doctypes_use_site_default(ctx):
             "created_at": NOW - timedelta(days=40),
             "modified_at": NOW - timedelta(days=40),
             "modified_by": "system",
-            "docstatus": 0,
         },
     )
     await ctx.db._session().commit()

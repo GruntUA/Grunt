@@ -68,7 +68,7 @@ async def test_compile_produces_correct_columns():
     col_names = {c.name for c in table.columns}
 
     # System columns
-    for sys_col in ("name", "owner", "created_at", "modified_at", "modified_by", "docstatus"):
+    for sys_col in ("name", "owner", "created_at", "modified_at", "modified_by"):
         assert sys_col in col_names, f"Missing system column: {sys_col}"
 
     # User-defined physical columns

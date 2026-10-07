@@ -216,7 +216,6 @@ def compile_doctype_to_table(doctype: DocType) -> Table:
         Column("created_at", UtcDateTime()),
         Column("modified_at", UtcDateTime()),
         Column("modified_by", String(255)),
-        Column("docstatus", Integer, default=0),
     ]
 
     # Child-table specific columns
@@ -242,7 +241,6 @@ def compile_doctype_to_table(doctype: DocType) -> Table:
             "created_at",
             "modified_at",
             "modified_by",
-            "docstatus",
             "_seen",
             "parent_name",
             "parent_doctype",

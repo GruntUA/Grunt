@@ -53,14 +53,5 @@
       "fieldtype": "Code",
       "description": "JS expression over `doc`; falsy hides the button. E.g. doc.status === 'Draft'"
     }
-  ],
-  "permissions": [
-    {
-      "role": "System Manager",
-      "read": true,
-      "write": true,
-      "create": true,
-      "delete": true
-    }
   ]
 }

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import type { DashboardWidget } from '@/types'
-import { FileText, Plus, RefreshCcw, Trash2, Send, Share2, MessageSquare, GitBranch } from '@lucide/vue'
+import { FileText, Plus, RefreshCcw, Trash2, Share2, MessageSquare, GitBranch } from '@lucide/vue'
 import { useRouter } from 'vue-router'
 import { formatDayMonth } from '@/core/datetime'
 import { docUrl } from '@/core/workspaceUrl'
@@ -31,7 +31,6 @@ function getActionIcon(action: string) {
     case 'create':   return Plus
     case 'update':   return RefreshCcw
     case 'delete':   return Trash2
-    case 'submit':   return Send
     case 'share':    return Share2
     case 'comment':  return MessageSquare
     case 'workflow': return GitBranch
@@ -44,7 +43,6 @@ function getActionColor(action: string): string {
     case 'create':   return 'text-emerald-600 bg-emerald-500/10'
     case 'update':   return 'text-amber-600 bg-amber-500/10'
     case 'delete':   return 'text-rose-600 bg-rose-500/10'
-    case 'submit':   return 'text-blue-600 bg-blue-500/10'
     case 'workflow': return 'text-violet-600 bg-violet-500/10'
     default:         return 'text-muted-foreground bg-muted'
   }
@@ -53,7 +51,6 @@ function getActionColor(action: string): string {
 function getActionLabel(action: string): string {
   const map: Record<string, string> = {
     create: t('Created'), update: t('Updated'), delete: t('Deleted'),
-    submit: t('Submitted'), cancel: t('Cancelled'),
     share: t('Shared'), comment: t('Commented'), workflow: t('Moved'),
   }
   return map[action?.toLowerCase()] ?? action

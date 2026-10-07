@@ -28,8 +28,6 @@ class DocPermission(BaseModel):
     write: bool = False
     create: bool = False
     delete: bool = False
-    submit: bool = False
-    cancel: bool = False
     report: bool = False
     # Row-level filter - e.g. "owner == user"
     match: str | None = None

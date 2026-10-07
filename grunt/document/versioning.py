@@ -79,7 +79,6 @@ class VersionService:
                 created_at=now,
                 modified_at=now,
                 modified_by=user,
-                docstatus=0,
                 doctype=doctype,
                 doc_id=doc_id,
                 version=next_version,

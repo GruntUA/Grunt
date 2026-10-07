@@ -40,7 +40,6 @@ SYS_FIELDS: frozenset[str] = frozenset(
         "id",
         "name",
         "owner",
-        "docstatus",
         "idx",
         "created_at",
         "modified_at",
@@ -183,11 +182,6 @@ class Document(
     @property
     def owner(self) -> str | None:
         return self.data.get("owner")
-
-    @property
-    def docstatus(self) -> int:
-        """0 = Draft, 1 = Submitted, 2 = Cancelled."""
-        return self.data.get("docstatus", 0)
 
     @property
     def idx(self) -> int:

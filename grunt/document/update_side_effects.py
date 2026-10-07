@@ -263,9 +263,6 @@ async def collect_bulk_delete_candidates(
         if doc is None:
             errors.append(f"{doc_id}: not found")
             continue
-        if dt.is_submittable and doc.get("docstatus") == 1:
-            errors.append(f"{doc_id}: submitted — cancel before delete")
-            continue
         to_delete.append(doc)
 
     return to_delete, errors

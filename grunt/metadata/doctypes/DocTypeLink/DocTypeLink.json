@@ -66,14 +66,5 @@
       "fieldtype": "Text",
       "description": "Name of the Table field on the related DocType that holds those child rows"
     }
-  ],
-  "permissions": [
-    {
-      "role": "System Manager",
-      "read": true,
-      "write": true,
-      "create": true,
-      "delete": true
-    }
   ]
 }

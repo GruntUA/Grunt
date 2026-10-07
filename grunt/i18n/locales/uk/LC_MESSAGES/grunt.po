@@ -424,6 +424,7 @@ msgstr "Вертикальний текст, знизу догори"
 #: grunt/frontend/src/components/fields/RichText/editor/useRichEditor.ts:73
 #: grunt/frontend/src/components/fields/RichText/ui/InsertMenu.vue:93
 #: grunt/frontend/src/pages/reports/ReportView.vue:198
+#: grunt/frontend/src/pages/studio/builder/DesignerTab.vue:67
 msgid "Table"
 msgstr "Таблиця"
 
@@ -650,16 +651,6 @@ msgid "Delete"
 msgstr "Видаляти"
 
 #: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
-msgctxt "meta:DocPermission.submit"
-msgid "Submit"
-msgstr "Підтверджувати"
-
-#: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
-msgctxt "meta:DocPermission.cancel"
-msgid "Cancel"
-msgstr "Скасовувати"
-
-#: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
 msgctxt "meta:DocPermission.report"
 msgid "Reports"
 msgstr "Звіти"
@@ -737,11 +728,6 @@ msgid "Pick an App first"
 msgstr "Спочатку оберіть Додаток"
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
-msgctxt "meta:DocType.sec_doc_identity"
-msgid "Document identity"
-msgstr "Ідентифікація документа"
-
-#: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgctxt "meta:DocType.autoname"
 msgid "Autoname"
 msgstr "Автонумерація"
@@ -792,16 +778,6 @@ msgid "Permissions"
 msgstr "Дозволи"
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
-msgctxt "meta:DocType.tab_behavior"
-msgid "Behaviour"
-msgstr "Поведінка"
-
-#: grunt/grunt/metadata/doctypes/DocType/DocType.json
-msgctxt "meta:DocType.sec_data_model"
-msgid "Data model"
-msgstr "Модель даних"
-
-#: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgctxt "meta:DocType.is_child"
 msgid "Child (Child Table)"
 msgstr "Дочірній (Child Table)"
@@ -830,21 +806,6 @@ msgstr "Віртуальний"
 msgctxt "help:DocType.is_virtual"
 msgid "No physical table — data comes from a controller"
 msgstr "Без фізичної таблиці — дані з контролера"
-
-#: grunt/grunt/metadata/doctypes/DocType/DocType.json
-msgctxt "meta:DocType.is_submittable"
-msgid "Submittable"
-msgstr "Можна подати (Submittable)"
-
-#: grunt/grunt/metadata/doctypes/DocType/DocType.json
-msgctxt "help:DocType.is_submittable"
-msgid "Adds a Submit button and a docstatus field"
-msgstr "Додає кнопку Submit та поле docstatus"
-
-#: grunt/grunt/metadata/doctypes/DocType/DocType.json
-msgctxt "meta:DocType.sec_audit"
-msgid "Audit & logging"
-msgstr "Аудит і журналювання"
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgctxt "meta:DocType.track_changes"
@@ -894,11 +855,6 @@ msgstr ""
 "подальшого відновлення"
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
-msgctxt "meta:DocType.sec_ux"
-msgid "Interaction"
-msgstr "Взаємодія"
-
-#: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgctxt "meta:DocType.quick_entry"
 msgid "Quick entry (dialog)"
 msgstr "Швидке створення (діалог)"
@@ -910,11 +866,6 @@ msgid ""
 "form"
 msgstr ""
 "«Створити» відкриває міні-діалог з обов'язковими полями замість повної форми"
-
-#: grunt/grunt/metadata/doctypes/DocType/DocType.json
-msgctxt "meta:DocType.sec_lifecycle"
-msgid "Lifecycle"
-msgstr "Життєвий цикл"
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgctxt "help:DocType.beta"
@@ -932,11 +883,6 @@ msgid "Show a warning — kept for compatibility, do not use in new code"
 msgstr ""
 "Показувати попередження — тип лишено для сумісності, не використовувати в "
 "новому коді"
-
-#: grunt/grunt/metadata/doctypes/DocType/DocType.json
-msgctxt "meta:DocType.sec_search"
-msgid "Search"
-msgstr "Пошук"
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgctxt "meta:DocType.search_fields"
@@ -965,19 +911,9 @@ msgid "This type's physical table in the database"
 msgstr "Фізична таблиця цього типу в базі даних"
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
-msgctxt "meta:DocType.tab_fields"
-msgid "Fields"
-msgstr "Поля"
-
-#: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgctxt "meta:DocType.fields"
 msgid "Field list"
 msgstr "Список полів"
-
-#: grunt/grunt/metadata/doctypes/DocType/DocType.json
-msgctxt "meta:DocType.tab_actions"
-msgid "Actions"
-msgstr "Дії"
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgctxt "meta:DocType.actions"
@@ -994,11 +930,6 @@ msgstr ""
 "застосунком у коді (@doc_action)."
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
-msgctxt "meta:DocType.tab_links"
-msgid "Links"
-msgstr "Зв'язки"
-
-#: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgctxt "meta:DocType.links"
 msgid "Document links"
 msgstr "Зв'язки документа"
@@ -1011,11 +942,6 @@ msgid ""
 msgstr ""
 "Пов'язані типи документів на панелі «Зв'язки» картки. Якщо порожньо — "
 "зв'язки визначаються автоматично зі зворотних Link-полів."
-
-#: grunt/grunt/metadata/doctypes/DocType/DocType.json
-msgctxt "meta:DocType.tab_tree"
-msgid "Hierarchy"
-msgstr "Ієрархія"
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgctxt "meta:DocType.is_tree"
@@ -1230,11 +1156,6 @@ msgstr "{\"В роботі\": \"#f59e0b\", \"Готово\": \"#16a34a\"}"
 msgctxt "meta:DocType.gantt_default_color"
 msgid "Default colour"
 msgstr "Колір за замовчуванням"
-
-#: grunt/grunt/metadata/doctypes/DocType/DocType.json
-msgctxt "help:DocType.gantt_default_color"
-msgid "#2563eb or var(--primary)"
-msgstr "#2563eb або var(--primary)"
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgctxt "meta:DocType.gantt_dependencies_field"
@@ -3102,7 +3023,7 @@ msgid "Delete row"
 msgstr "Видалити рядок"
 
 #: grunt/frontend/src/core/composables/useFormActions.ts:45
-#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:55
+#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:53
 #: grunt/frontend/src/components/fields/Table/Table.vue:220
 msgid "Deleted"
 msgstr "Видалено"
@@ -4101,11 +4022,6 @@ msgstr "Надання доступу"
 
 #: grunt/grunt/activity/doctypes/ActivityLog/ActivityLog.json
 msgctxt "select:ActivityLog.action"
-msgid "Submit"
-msgstr "Проведення"
-
-#: grunt/grunt/activity/doctypes/ActivityLog/ActivityLog.json
-msgctxt "select:ActivityLog.action"
 msgid "Update"
 msgstr "Оновлення"
 
@@ -4619,7 +4535,7 @@ msgstr "Приховати із загальної стрічки"
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgctxt "meta:DocType.track_activity"
 msgid "Activity log"
-msgstr ""
+msgstr "Журнал активності"
 
 #: grunt/grunt/reports/doctypes/Report/Report.json
 msgctxt "meta:Report.sec_schedule"
@@ -4904,11 +4820,6 @@ msgstr ""
 "переходу. Якщо задано, Умова (за наявності) перевіряється за значеннями, "
 "введеними в діалозі."
 
-#: grunt/grunt/metadata/doctypes/DocType/DocType.json
-msgctxt "hint:DocType.retention_date_field"
-msgid "created_at"
-msgstr ""
-
 #: grunt/grunt/backups/doctypes/Backup/Backup.json
 msgctxt "meta:Backup.config_url"
 msgid "config_url"
@@ -5146,7 +5057,7 @@ msgstr "Швидке видалення"
 msgid "HTML"
 msgstr "HTML"
 
-#: grunt/grunt/metadata/doctypes/DocType/DocType.js:168
+#: grunt/grunt/metadata/doctypes/DocType/DocType.js:187
 msgid "New DocType"
 msgstr "Новий DocType"
 
@@ -5161,8 +5072,8 @@ msgid "PDF"
 msgstr "PDF"
 
 #: grunt/grunt/metadata/doctypes/DocType/global_form.js:54
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:285
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:289
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:268
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:272
 #: grunt/frontend/src/components/views/map/MapView.vue:205
 msgid "Print"
 msgstr "Друк"
@@ -5255,11 +5166,6 @@ msgstr "Індексувати для пошуковиків"
 msgctxt "meta:DocType.is_published_field"
 msgid "Is published field"
 msgstr "Поле «Опубліковано»"
-
-#: grunt/grunt/metadata/doctypes/DocType/DocType.json
-msgctxt "meta:DocType.tab_web_view"
-msgid "Web View"
-msgstr "Веб-перегляд"
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgctxt "meta:DocType.web_route"
@@ -5424,11 +5330,6 @@ msgstr "Видалення"
 
 #: grunt/grunt/activity/doctypes/ActivityLog/ActivityLog.json
 msgctxt "select:ActivityLog.action"
-msgid "Cancel"
-msgstr "Скасування"
-
-#: grunt/grunt/activity/doctypes/ActivityLog/ActivityLog.json
-msgctxt "select:ActivityLog.action"
 msgid "Workflow"
 msgstr "Робочий процес"
 
@@ -5491,41 +5392,6 @@ msgstr "Сторінка"
 msgctxt "select:WorkspaceSidebarItem.type"
 msgid "URL"
 msgstr "URL"
-
-#: grunt/grunt/metadata/doctypes/DocType/DocType.json
-msgctxt "select:DocType.default_view"
-msgid "list"
-msgstr "Список"
-
-#: grunt/grunt/metadata/doctypes/DocType/DocType.json
-msgctxt "select:DocType.default_view"
-msgid "kanban"
-msgstr "Канбан"
-
-#: grunt/grunt/metadata/doctypes/DocType/DocType.json
-msgctxt "select:DocType.default_view"
-msgid "calendar"
-msgstr "Календар"
-
-#: grunt/grunt/metadata/doctypes/DocType/DocType.json
-msgctxt "select:DocType.default_view"
-msgid "gantt"
-msgstr "Гант"
-
-#: grunt/grunt/metadata/doctypes/DocType/DocType.json
-msgctxt "select:DocType.default_view"
-msgid "tree"
-msgstr "Дерево"
-
-#: grunt/grunt/metadata/doctypes/DocType/DocType.json
-msgctxt "select:DocType.default_view"
-msgid "gallery"
-msgstr "Галерея"
-
-#: grunt/grunt/metadata/doctypes/DocType/DocType.json
-msgctxt "select:DocType.default_view"
-msgid "map"
-msgstr "Карта"
 
 #: grunt/grunt/geo/doctypes/Language/Language.json
 msgctxt "select:Language.script"
@@ -5798,7 +5664,7 @@ msgstr "Стиснути"
 #: grunt/frontend/src/core/renderer/FieldRenderer.vue:143
 #: grunt/frontend/src/components/desk/GruntDialog.vue:362
 #: grunt/frontend/src/components/layout/CommandPalette.vue:142
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:179
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:162
 #: grunt/frontend/src/components/views/form/FormHeader.vue:461
 msgid "Copied"
 msgstr "Скопійовано"
@@ -5853,21 +5719,7 @@ msgstr ""
 "Ви внесли зміни, які буде втрачено, якщо ви покинете сторінку. Покинути без "
 "збереження?"
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:82
-msgid "Draft"
-msgstr "Чернетка"
-
-#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:56
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:83
-msgid "Submitted"
-msgstr "Зафіксував(ла)"
-
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:84
-msgctxt "status"
-msgid "Cancelled"
-msgstr "Скасовано"
-
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:97
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:87
 msgid "Could not copy"
 msgstr "Не вдалося скопіювати"
 
@@ -5899,12 +5751,12 @@ msgstr "Високий"
 msgid "Remove {name} from assignees?"
 msgstr "Прибрати {name} з відповідальних?"
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:145
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:135
 msgid "Status"
 msgstr "Статус"
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:174
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:179
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:157
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:162
 msgid "Copy ID"
 msgstr "Скопіювати ідентифікатор"
 
@@ -5939,29 +5791,29 @@ msgstr "Доступ"
 msgid "Tags"
 msgstr "Теги"
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:265
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:248
 msgid "You get notified about changes and comments"
 msgstr "Ви отримуєте сповіщення про зміни та коментарі"
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:265
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:248
 msgid "Get notified about changes and comments"
 msgstr "Отримувати сповіщення про зміни та коментарі"
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:261
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:244
 msgid "Following"
 msgstr "Стежу"
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:261
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:244
 msgid "Follow"
 msgstr "Стежити"
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:275
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:281
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:258
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:264
 msgid "Bookmarked"
 msgstr "У закладках"
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:275
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:281
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:258
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:264
 msgid "Bookmark"
 msgstr "Закладка"
 
@@ -6597,7 +6449,7 @@ msgstr "Доброго вечора, {name}"
 #: grunt/frontend/src/pages/DeskPage.vue:102
 #: grunt/frontend/src/core/datetime.ts:193
 #: grunt/frontend/src/core/datetime.ts:200
-#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:68
+#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:65
 msgid "just now"
 msgstr "щойно"
 
@@ -6802,13 +6654,13 @@ msgid "Module"
 msgstr "Модуль"
 
 #: grunt/frontend/src/components/dashboard/ActivityStream.vue:136
-#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:55
+#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:53
 msgid "Created"
 msgstr "Створив(ла)"
 
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.js:213
 #: grunt/frontend/src/components/dashboard/ActivityStream.vue:137
-#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:55
+#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:53
 msgid "Updated"
 msgstr "Оновив(ла)"
 
@@ -6817,11 +6669,11 @@ msgstr "Оновив(ла)"
 msgid "document"
 msgstr "документ"
 
-#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:69
+#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:66
 msgid "{n} min ago"
 msgstr "{n} хв тому"
 
-#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:71
+#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:68
 msgid "{n} h ago"
 msgstr "{n} год тому"
 
@@ -6864,23 +6716,22 @@ msgid "No recent activity"
 msgstr "Немає недавньої активності"
 
 #: grunt/frontend/src/core/composables/useTaskTracker.ts:164
-#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:56
 msgid "Cancelled"
 msgstr "Скасував(ла)"
 
-#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:57
+#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:54
 msgid "Shared"
 msgstr "Поділився(-лась)"
 
-#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:57
+#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:54
 msgid "Commented"
 msgstr "Прокоментував(ла)"
 
-#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:57
+#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:54
 msgid "Moved"
 msgstr "Перевів(ла)"
 
-#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:95
+#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:92
 msgid "No activity"
 msgstr "Немає активності"
 
@@ -8495,7 +8346,7 @@ msgstr "Перехід"
 
 #: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:272
 #: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:310
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:154
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:144
 msgid "State"
 msgstr "Стан"
 
@@ -8941,7 +8792,7 @@ msgstr "Звіт скопійовано в буфер обміну"
 msgid "Clipboard unavailable:"
 msgstr "Буфер обміну недоступний:"
 
-#: grunt/grunt/metadata/doctypes/DocType/DocType.js:112
+#: grunt/grunt/metadata/doctypes/DocType/DocType.js:131
 msgid "Could not load the list of apps"
 msgstr "Не вдалося завантажити список додатків"
 
@@ -12253,14 +12104,14 @@ msgctxt "select:Region.region_type"
 msgid "Other"
 msgstr "Інше"
 
-#: grunt/grunt/auth/doctypes/User/user.py:676
-#: grunt/grunt/auth/doctypes/User/user.py:789
-#: grunt/grunt/auth/doctypes/User/user.py:928
-#: grunt/grunt/auth/doctypes/User/user.py:963
-#: grunt/grunt/auth/doctypes/User/user.py:996
-#: grunt/grunt/auth/doctypes/User/user.py:1007
-#: grunt/grunt/auth/doctypes/User/user.py:1019
-#: grunt/grunt/auth/doctypes/User/user.py:1032
+#: grunt/grunt/auth/doctypes/User/user.py:675
+#: grunt/grunt/auth/doctypes/User/user.py:788
+#: grunt/grunt/auth/doctypes/User/user.py:927
+#: grunt/grunt/auth/doctypes/User/user.py:962
+#: grunt/grunt/auth/doctypes/User/user.py:995
+#: grunt/grunt/auth/doctypes/User/user.py:1006
+#: grunt/grunt/auth/doctypes/User/user.py:1018
+#: grunt/grunt/auth/doctypes/User/user.py:1031
 msgid "User not found"
 msgstr "Користувача не знайдено"
 
@@ -12302,12 +12153,12 @@ msgid "Automated message, please do not reply."
 msgstr "Автоматичне повідомлення, не відповідайте на цей лист."
 
 #: grunt/grunt/email/templates/password_reset.html:46
-#: grunt/grunt/auth/doctypes/User/user.py:1068
+#: grunt/grunt/auth/doctypes/User/user.py:1067
 msgid "Password reset"
 msgstr "Скидання пароля"
 
 #: grunt/grunt/email/templates/password_reset.html:49
-#: grunt/grunt/auth/doctypes/User/user.py:1062
+#: grunt/grunt/auth/doctypes/User/user.py:1061
 msgid "Hello, %(name)s,"
 msgstr "Привіт, %(name)s,"
 
@@ -12320,7 +12171,7 @@ msgid "The link is valid for 1 hour."
 msgstr "Посилання дійсне 1 годину."
 
 #: grunt/grunt/email/templates/password_reset.html:57
-#: grunt/grunt/auth/doctypes/User/user.py:1065
+#: grunt/grunt/auth/doctypes/User/user.py:1064
 msgid "If you did not request this, just ignore this email."
 msgstr "Якщо ви не надсилали цей запит — просто проігноруйте цей лист."
 
@@ -12328,7 +12179,7 @@ msgstr "Якщо ви не надсилали цей запит — просто
 msgid "… and %(count)s more"
 msgstr "… і ще %(count)s"
 
-#: grunt/grunt/auth/doctypes/User/user.py:1063
+#: grunt/grunt/auth/doctypes/User/user.py:1062
 msgid "Password reset link (valid for 1 hour):"
 msgstr "Посилання для скидання пароля (дійсне 1 годину):"
 
@@ -12702,60 +12553,60 @@ msgstr "public/sw.js змінено після збірки — перезбер
 msgid "up to date"
 msgstr "актуальний"
 
-#: grunt/grunt/auth/doctypes/User/user.py:158
+#: grunt/grunt/auth/doctypes/User/user.py:157
 msgid "Email is required"
 msgstr "Email є обов'язковим"
 
-#: grunt/grunt/auth/doctypes/User/user.py:160
+#: grunt/grunt/auth/doctypes/User/user.py:159
 msgid "First name is required"
 msgstr "Ім'я є обов'язковим"
 
-#: grunt/grunt/auth/doctypes/User/user.py:162
+#: grunt/grunt/auth/doctypes/User/user.py:161
 msgid "Last name is required"
 msgstr "Прізвище є обов'язковим"
 
-#: grunt/grunt/auth/doctypes/User/user.py:186
+#: grunt/grunt/auth/doctypes/User/user.py:185
 msgid "Not permitted to create users"
 msgstr "Недостатньо прав для створення користувача"
 
-#: grunt/grunt/auth/doctypes/User/user.py:201
+#: grunt/grunt/auth/doctypes/User/user.py:200
 msgid "Not permitted to change roles"
 msgstr "Недостатньо прав для зміни ролей"
 
-#: grunt/grunt/auth/doctypes/User/user.py:217
+#: grunt/grunt/auth/doctypes/User/user.py:216
 msgid "Not permitted to set the password; use the Change password action"
 msgstr ""
 "Недостатньо прав, щоб задати пароль — скористайтесь дією «Змінити пароль»"
 
-#: grunt/grunt/auth/doctypes/User/user.py:558
+#: grunt/grunt/auth/doctypes/User/user.py:557
 msgid "Registration of new users is disabled"
 msgstr "Реєстрація нових користувачів вимкнена"
 
-#: grunt/grunt/auth/doctypes/User/user.py:672
+#: grunt/grunt/auth/doctypes/User/user.py:671
 msgid "Invalid or expired MFA token"
 msgstr "Невалідний або прострочений MFA токен"
 
-#: grunt/grunt/auth/doctypes/User/user.py:697
+#: grunt/grunt/auth/doctypes/User/user.py:696
 msgid "Invalid or expired MFA setup token"
 msgstr "Невалідний або прострочений токен налаштування MFA"
 
-#: grunt/grunt/auth/doctypes/User/user.py:700
+#: grunt/grunt/auth/doctypes/User/user.py:699
 msgid "MFA setup is unavailable"
 msgstr "Налаштування MFA недоступне"
 
-#: grunt/grunt/auth/doctypes/User/user.py:813
+#: grunt/grunt/auth/doctypes/User/user.py:812
 msgid "Sign-in from this IP address is not allowed for your role"
 msgstr "Вхід з цієї IP-адреси заборонено для вашої ролі"
 
-#: grunt/grunt/auth/doctypes/User/user.py:820
+#: grunt/grunt/auth/doctypes/User/user.py:819
 msgid "Your role requires two-factor authentication; sign in again"
 msgstr "Ваша роль вимагає двофакторної автентифікації — увійдіть знову"
 
-#: grunt/grunt/auth/doctypes/User/user.py:977
+#: grunt/grunt/auth/doctypes/User/user.py:976
 msgid "Not permitted to change another user's password"
 msgstr "Недостатньо прав, щоб змінити пароль іншого користувача"
 
-#: grunt/grunt/auth/doctypes/User/user.py:982
+#: grunt/grunt/auth/doctypes/User/user.py:981
 msgid "The current password is incorrect"
 msgstr "Поточний пароль вказано невірно"
 
@@ -12876,7 +12727,7 @@ msgstr "Немає полів для оновлення"
 msgid "No access to this key"
 msgstr "Немає доступу до цього ключа"
 
-#: grunt/grunt/auth/doctypes/User/user.py:224
+#: grunt/grunt/auth/doctypes/User/user.py:223
 msgid "Not permitted to change the field “%(field)s”"
 msgstr "Недостатньо прав, щоб змінити поле «%(field)s»"
 
@@ -12914,9 +12765,9 @@ msgstr[2] "%(count)d непрочитаних сповіщень за остан
 msgid "Text"
 msgstr "Текст"
 
-#: grunt/grunt/webform/service.py:92 grunt/grunt/app/document_api.py:488
-#: grunt/grunt/app/document_api.py:689 grunt/grunt/metadata/registry.py:340
-#: grunt/grunt/metadata/registry.py:624 grunt/grunt/metadata/registry.py:598
+#: grunt/grunt/webform/service.py:92 grunt/grunt/app/document_api.py:487
+#: grunt/grunt/app/document_api.py:687 grunt/grunt/metadata/registry.py:342
+#: grunt/grunt/metadata/registry.py:626 grunt/grunt/metadata/registry.py:600
 #: grunt/grunt/notification/rule_index.py:53
 #: grunt/grunt/activity/__init__.py:264 grunt/grunt/actions/__init__.py:163
 #: grunt/grunt/document/connections.py:43
@@ -13232,7 +13083,7 @@ msgstr "Копія бази пошкоджена: %(result)s"
 msgid "Restoring %(backend)s is not supported"
 msgstr "Відновлення %(backend)s не підтримується"
 
-#: grunt/grunt/permissions/rbac.py:171
+#: grunt/grunt/permissions/rbac.py:173
 msgid "No access: %(action)s “%(doctype)s”"
 msgstr "Немає доступу: %(action)s «%(doctype)s»"
 
@@ -13287,42 +13138,32 @@ msgstr "%(actor)s позначив завдання виконаним: %(task)s
 msgid "The assignee"
 msgstr "Виконавець"
 
-#: grunt/grunt/permissions/rbac.py:18
+#: grunt/grunt/permissions/rbac.py:19
 msgctxt "permission"
 msgid "read"
 msgstr "читання"
 
-#: grunt/grunt/permissions/rbac.py:19
+#: grunt/grunt/permissions/rbac.py:20
 msgctxt "permission"
 msgid "select in a field"
 msgstr "вибір у полі"
 
-#: grunt/grunt/permissions/rbac.py:20
+#: grunt/grunt/permissions/rbac.py:21
 msgctxt "permission"
 msgid "write"
 msgstr "редагування"
 
-#: grunt/grunt/permissions/rbac.py:21
+#: grunt/grunt/permissions/rbac.py:22
 msgctxt "permission"
 msgid "create"
 msgstr "створення"
 
-#: grunt/grunt/permissions/rbac.py:22
+#: grunt/grunt/permissions/rbac.py:23
 msgctxt "permission"
 msgid "delete"
 msgstr "видалення"
 
-#: grunt/grunt/permissions/rbac.py:23
-msgctxt "permission"
-msgid "submit"
-msgstr "проведення"
-
 #: grunt/grunt/permissions/rbac.py:24
-msgctxt "permission"
-msgid "cancel"
-msgstr "скасування"
-
-#: grunt/grunt/permissions/rbac.py:25
 msgctxt "permission"
 msgid "reports"
 msgstr "звіти"
@@ -13429,7 +13270,7 @@ msgstr "%(count)s прострочено"
 msgid "today"
 msgstr "сьогодні"
 
-#: grunt/grunt/document/links.py:228
+#: grunt/grunt/document/links.py:227
 msgid "Multiple links"
 msgstr "Множинні зв'язки"
 
@@ -13470,11 +13311,7 @@ msgstr "Користувача «%(user)s» не знайдено"
 msgid "No access to the document"
 msgstr "Немає доступу до документа"
 
-#: grunt/grunt/document/mixins/write.py:650
-msgid "Cancel the document before deleting it"
-msgstr "Скасуйте документ перед видаленням"
-
-#: grunt/grunt/document/mixins/write.py:667
+#: grunt/grunt/document/mixins/write.py:661
 msgid "Could not reassign the links: uniqueness conflict"
 msgstr "Не вдалося перепризначити посилання — конфлікт унікальності"
 
@@ -13908,7 +13745,7 @@ msgstr "«%(name)s» — singleton (єдиний запис)."
 msgid "A menu item can't be its own parent"
 msgstr "Пункт меню не може бути батьківським сам для себе"
 
-#: grunt/grunt/auth/doctypes/User/user.py:652
+#: grunt/grunt/auth/doctypes/User/user.py:651
 msgid "Account temporarily locked. Try again later."
 msgstr "Обліковий запис тимчасово заблоковано. Спробуйте пізніше."
 
@@ -13972,8 +13809,8 @@ msgid ""
 msgstr ""
 "DocType «%(name)s» не є деревом (is_tree=false або tree_view не налаштовано)"
 
-#: grunt/grunt/metadata/registry.py:551 grunt/grunt/metadata/registry.py:643
-#: grunt/grunt/metadata/registry.py:569 grunt/grunt/api/v1/meta.py:134
+#: grunt/grunt/metadata/registry.py:553 grunt/grunt/metadata/registry.py:645
+#: grunt/grunt/metadata/registry.py:571 grunt/grunt/api/v1/meta.py:134
 msgid "DocType “%(doctype)s” already exists"
 msgstr "DocType «%(doctype)s» вже існує"
 
@@ -13981,7 +13818,7 @@ msgstr "DocType «%(doctype)s» вже існує"
 msgid "Document with name '%(new_id)s' already exists"
 msgstr "Документ з назвою «%(new_id)s» вже існує"
 
-#: grunt/grunt/metadata/registry.py:655
+#: grunt/grunt/metadata/registry.py:657
 msgid "Duplicate fieldname '%(fieldname)s' in DocType '%(name)s'"
 msgstr "Дубльоване поле «%(fieldname)s» у DocType «%(name)s»"
 
@@ -13994,7 +13831,7 @@ msgstr "Натомість редагуйте відповідний ServerScrip
 msgid "Expired or invalid WebAuthn challenge"
 msgstr "WebAuthn-виклик прострочений або недійсний"
 
-#: grunt/grunt/metadata/registry.py:674
+#: grunt/grunt/metadata/registry.py:676
 msgid "Fieldname '%(fieldname)s' exceeds %(max)s characters"
 msgstr "Назва поля «%(fieldname)s» довша за %(max)s символів"
 
@@ -14006,11 +13843,11 @@ msgstr "Файл не знайдено в сховищі"
 msgid "Hook '%(doc_id)s' not found"
 msgstr "Хук «%(doc_id)s» не знайдено"
 
-#: grunt/grunt/auth/doctypes/User/user.py:656
+#: grunt/grunt/auth/doctypes/User/user.py:655
 msgid "Incorrect email or password"
 msgstr "Невірна електронна пошта або пароль"
 
-#: grunt/grunt/metadata/registry.py:664
+#: grunt/grunt/metadata/registry.py:666
 msgid ""
 "Invalid fieldname '%(fieldname)s': must start with a-z and contain only a-z,"
 " 0-9, _"
@@ -14018,20 +13855,20 @@ msgstr ""
 "Недійсна назва поля «%(fieldname)s»: має починатися з a-z і містити лише "
 "a-z, 0-9, _"
 
-#: grunt/grunt/auth/doctypes/User/user.py:778
+#: grunt/grunt/auth/doctypes/User/user.py:777
 msgid "Invalid language value"
 msgstr "Недійсне значення мови"
 
-#: grunt/grunt/auth/doctypes/User/user.py:798
-#: grunt/grunt/auth/doctypes/User/user.py:803
+#: grunt/grunt/auth/doctypes/User/user.py:797
+#: grunt/grunt/auth/doctypes/User/user.py:802
 msgid "Invalid or expired refresh token"
 msgstr "Недійсний або прострочений refresh-токен"
 
-#: grunt/grunt/auth/doctypes/User/user.py:1094
+#: grunt/grunt/auth/doctypes/User/user.py:1093
 msgid "Invalid or expired reset token"
 msgstr "Недійсний або прострочений токен скидання"
 
-#: grunt/grunt/auth/doctypes/User/user.py:771
+#: grunt/grunt/auth/doctypes/User/user.py:770
 msgid "Invalid theme value"
 msgstr "Недійсне значення теми"
 
@@ -14139,7 +13976,7 @@ msgstr "Невідомий ключ доступу"
 msgid "User not found or inactive"
 msgstr "Користувача не знайдено або він неактивний"
 
-#: grunt/grunt/auth/doctypes/User/user.py:622
+#: grunt/grunt/auth/doctypes/User/user.py:621
 msgid "User with email '%(email)s' already exists"
 msgstr "Користувач з адресою «%(email)s» вже існує"
 
@@ -14620,10 +14457,6 @@ msgstr ""
 msgid "Could not upload the image"
 msgstr "Не вдалося завантажити зображення"
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:163
-msgid "Document"
-msgstr "Документ"
-
 #: grunt/frontend/src/components/views/sidebar/SidebarImage.vue:158
 msgid "Drop a file or click to choose"
 msgstr "Перетягніть файл або натисніть, щоб вибрати"
@@ -14656,7 +14489,7 @@ msgstr "Нікого не призначено"
 msgid "Not shared with anyone"
 msgstr "Ні з ким не поширено"
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:184
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:167
 msgid "On website"
 msgstr "На сайті"
 
@@ -14697,11 +14530,11 @@ msgstr "Завантажити з комп’ютера"
 msgid "Workflow"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:103
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:93
 msgid "created"
 msgstr "створив(ла)"
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:106
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:96
 msgid "modified"
 msgstr "змінив(ла)"
 
@@ -15403,6 +15236,209 @@ msgstr ""
 msgctxt "meta:DocType.show_preview_popup"
 msgid "Show preview popup"
 msgstr "Спливаюча картка попереднього перегляду"
+
+#: grunt/frontend/src/pages/studio/builder/DesignerTab.vue:64
+msgid "Canvas"
+msgstr "Полотно"
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgctxt "help:DocType.sec_data_model"
+msgid "Decides which of the settings below apply"
+msgstr "Визначає, які з налаштувань нижче мають сенс"
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgctxt "meta:DocType.sec_access_extra"
+msgid "Sharing and files"
+msgstr "Спільний доступ і файли"
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgctxt "meta:DocType.sec_audit"
+msgid "Logging"
+msgstr "Журнали"
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgctxt "meta:DocType.sec_data_model"
+msgid "Type"
+msgstr "Тип"
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgctxt "meta:DocType.sec_doc_identity"
+msgid "Naming and display"
+msgstr "Іменування і відображення"
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgctxt "meta:DocType.sec_links"
+msgid "Links"
+msgstr "Зв'язки"
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgctxt "meta:DocType.sec_retention"
+msgid "Deletion and retention"
+msgstr "Видалення і зберігання"
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgctxt "meta:DocType.sec_tree"
+msgid "Tree"
+msgstr "Дерево"
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgctxt "meta:DocType.tab_actions"
+msgid "Actions and links"
+msgstr "Дії та зв'язки"
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgctxt "meta:DocType.tab_behavior"
+msgid "Logging"
+msgstr "Журнали"
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgctxt "meta:DocType.tab_web_view"
+msgid "Web page"
+msgstr "Веб-сторінка"
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgctxt "select:DocType.default_view"
+msgid "list"
+msgstr "Список"
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgctxt "select:DocType.default_view"
+msgid "kanban"
+msgstr "Канбан"
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgctxt "select:DocType.default_view"
+msgid "calendar"
+msgstr "Календар"
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgctxt "select:DocType.default_view"
+msgid "gantt"
+msgstr "Гант"
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgctxt "select:DocType.default_view"
+msgid "tree"
+msgstr "Дерево"
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgctxt "select:DocType.default_view"
+msgid "gallery"
+msgstr "Галерея"
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgctxt "select:DocType.default_view"
+msgid "map"
+msgstr "Карта"
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgctxt "select:DocType.default_view"
+msgid "report"
+msgstr "Звіт"
+
+#~ msgctxt "meta:DocPermission.submit"
+#~ msgid "Submit"
+#~ msgstr "Підтверджувати"
+
+#~ msgctxt "meta:DocPermission.cancel"
+#~ msgid "Cancel"
+#~ msgstr "Скасовувати"
+
+#~ msgctxt "meta:DocType.sec_doc_identity"
+#~ msgid "Document identity"
+#~ msgstr "Ідентифікація документа"
+
+#~ msgctxt "meta:DocType.tab_behavior"
+#~ msgid "Behaviour"
+#~ msgstr "Поведінка"
+
+#~ msgctxt "meta:DocType.sec_data_model"
+#~ msgid "Data model"
+#~ msgstr "Модель даних"
+
+#~ msgctxt "meta:DocType.is_submittable"
+#~ msgid "Submittable"
+#~ msgstr "Можна подати (Submittable)"
+
+#~ msgctxt "help:DocType.is_submittable"
+#~ msgid "Adds a Submit button and a docstatus field"
+#~ msgstr "Додає кнопку Submit та поле docstatus"
+
+#~ msgctxt "meta:DocType.sec_audit"
+#~ msgid "Audit & logging"
+#~ msgstr "Аудит і журналювання"
+
+#~ msgctxt "meta:DocType.sec_ux"
+#~ msgid "Interaction"
+#~ msgstr "Взаємодія"
+
+#~ msgctxt "meta:DocType.sec_lifecycle"
+#~ msgid "Lifecycle"
+#~ msgstr "Життєвий цикл"
+
+#~ msgctxt "meta:DocType.sec_search"
+#~ msgid "Search"
+#~ msgstr "Пошук"
+
+#~ msgctxt "meta:DocType.tab_fields"
+#~ msgid "Fields"
+#~ msgstr "Поля"
+
+#~ msgctxt "meta:DocType.tab_actions"
+#~ msgid "Actions"
+#~ msgstr "Дії"
+
+#~ msgctxt "meta:DocType.tab_links"
+#~ msgid "Links"
+#~ msgstr "Зв'язки"
+
+#~ msgctxt "meta:DocType.tab_tree"
+#~ msgid "Hierarchy"
+#~ msgstr "Ієрархія"
+
+#~ msgctxt "help:DocType.gantt_default_color"
+#~ msgid "#2563eb or var(--primary)"
+#~ msgstr "#2563eb або var(--primary)"
+
+#~ msgctxt "select:ActivityLog.action"
+#~ msgid "Submit"
+#~ msgstr "Проведення"
+
+#~ msgctxt "hint:DocType.retention_date_field"
+#~ msgid "created_at"
+#~ msgstr ""
+
+#~ msgctxt "meta:DocType.tab_web_view"
+#~ msgid "Web View"
+#~ msgstr "Веб-перегляд"
+
+#~ msgctxt "select:ActivityLog.action"
+#~ msgid "Cancel"
+#~ msgstr "Скасування"
+
+#~ msgid "Draft"
+#~ msgstr "Чернетка"
+
+#~ msgid "Submitted"
+#~ msgstr "Зафіксував(ла)"
+
+#~ msgctxt "status"
+#~ msgid "Cancelled"
+#~ msgstr "Скасовано"
+
+#~ msgctxt "permission"
+#~ msgid "submit"
+#~ msgstr "проведення"
+
+#~ msgctxt "permission"
+#~ msgid "cancel"
+#~ msgstr "скасування"
+
+#~ msgid "Cancel the document before deleting it"
+#~ msgstr "Скасуйте документ перед видаленням"
+
+#~ msgid "Document"
+#~ msgstr "Документ"
 
 #~ msgid "File deleted"
 #~ msgstr "Файл видалено"

@@ -95,7 +95,6 @@ AUTH_CONTEXT_FIELDS: list[str] = [
     "created_at",
     "modified_at",
     "modified_by",
-    "docstatus",
     "first_name",
     "last_name",
     "middle_name",

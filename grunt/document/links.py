@@ -91,7 +91,6 @@ class LinkService:
                     created_at=now,
                     modified_at=now,
                     modified_by="system",
-                    docstatus=0,
                     source_doctype=doctype,
                     source_id=doc_id,
                     target_doctype=target_doctype,

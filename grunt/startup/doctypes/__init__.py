@@ -163,7 +163,6 @@ async def populate_system_doctypes(
             **_col("app", dt.app),
             **_col("module", dt.module),
             **_col("is_child", dt.is_child),
-            **_col("is_submittable", dt.is_submittable),
             **_col("is_singleton", dt.is_singleton),
             **_col("is_virtual", dt.is_virtual),
             **_col("track_changes", dt.track_changes),
@@ -196,7 +195,6 @@ async def populate_system_doctypes(
                     created_at=now,
                     modified_at=now,
                     modified_by="system",
-                    docstatus=0,
                     **scalar_fields,
                 )
             )

@@ -25,7 +25,7 @@ interface UseDocTypeListDataOptions {
 
 export function useDocTypeListData(options: UseDocTypeListDataOptions) {
   const listFields = computed(() => {
-    const fields = new Set([...options.visibleKeys.value, 'modified_at', 'docstatus'])
+    const fields = new Set([...options.visibleKeys.value, 'modified_at'])
     if (options.groupBy.value) fields.add(options.groupBy.value)
     if (options.sortKey.value) fields.add(options.sortKey.value)
     if (options.dt.value?.status_field) fields.add(options.dt.value.status_field)

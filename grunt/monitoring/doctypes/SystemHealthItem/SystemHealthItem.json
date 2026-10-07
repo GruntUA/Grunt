@@ -28,11 +28,5 @@
       "in_list_view": true,
       "read_only": true
     }
-  ],
-  "permissions": [
-    {
-      "role": "System Manager",
-      "read": true
-    }
   ]
 }

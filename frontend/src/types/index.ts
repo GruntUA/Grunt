@@ -115,7 +115,6 @@ export interface DocPermission {
   write?: boolean
   create?: boolean
   delete?: boolean
-  submit?: boolean
   report?: boolean
   match?: string | null
   hidden_fields?: string[]
@@ -219,7 +218,6 @@ export interface DocType {
   icon?: string | null
   app?: string | null
   is_child?: boolean
-  is_submittable?: boolean
   is_singleton?: boolean
   is_virtual?: boolean
   is_tree?: boolean
@@ -415,7 +413,6 @@ export interface GruntDocument {
   created_at: string
   modified_at: string
   modified_by: string
-  docstatus: 0 | 1 | 2
   [key: string]: unknown
 }
 

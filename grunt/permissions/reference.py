@@ -69,7 +69,7 @@ async def reference_readable(user: User, doctype: Any, doc: dict[str, Any]) -> b
     return False if bound else None
 
 
-async def _readable_names(user: User, parent_meta: Any) -> Any | None:
+async def readable_names(user: User, parent_meta: Any) -> Any | None:
     """``SELECT name`` of the *parent_meta* rows *user* may read, or ``None``."""
     from grunt.permissions.query import apply_permission_filter
     from grunt.permissions.rbac import permission_checker
@@ -109,7 +109,7 @@ async def reference_conditions(
             target = _link_target(doctype, id_field)
             parent_meta = await grunt.get_meta(target) if target else None
             if parent_meta is not None:
-                names = await _readable_names(user, parent_meta)
+                names = await readable_names(user, parent_meta)
                 if names is not None:
                     readable.append(id_col.in_(names))
             continue
@@ -124,7 +124,7 @@ async def reference_conditions(
             if parent_meta is None:
                 empty.append(dt_col == ref_doctype)  # orphans of a removed DocType
                 continue
-            names = await _readable_names(user, parent_meta)
+            names = await readable_names(user, parent_meta)
             if names is not None:
                 readable.append(and_(dt_col == ref_doctype, id_col.in_(names)))
         unbound.append(or_(*empty))

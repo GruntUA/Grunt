@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, provide, ref, type Component } from 'vue'
+import { computed, onMounted, onUnmounted, provide, ref, watch, type Component } from 'vue'
 import type { DocField, DocType } from '@/types'
 import { parseLayout } from '@/core/composables/useFormLayout'
 import { evalDependsOn } from '@/core/dependsOn'
@@ -46,7 +46,13 @@ provide(FORM_ERRORS, {
   prefix: '',
 })
 
-const layout = computed(() => parseLayout(props.doctype.fields))
+const parsedLayout = computed(() => parseLayout(props.doctype.fields))
+// A Tab's own `depends_on` hides the whole tab (e.g. tree settings for a non-tree DocType).
+const layout = computed(() =>
+  parsedLayout.value.filter(
+    (tab) => !tab._field || (!tab._field.hidden && evalDependsOn(tab._field.depends_on, props.modelValue ?? {})),
+  ),
+)
 const hasTabs = computed(() => layout.value.length > 1 || (layout.value[0]?.label !== '' && layout.value[0]?.label !== 'Main'))
 
 // The "Зв'язки" panel is placed inside whichever Tab has `show_connections`
@@ -61,7 +67,10 @@ const connectionsTabId = computed<string | null>(() => {
 })
 
 const currentTab = computed({
-  get: () => props.activeTab || layout.value[0]?._fieldname || '',
+  get: () =>
+    (props.activeTab && layout.value.some((t) => t._fieldname === props.activeTab)
+      ? props.activeTab
+      : layout.value[0]?._fieldname) || '',
   set: (val) => emit('update:activeTab', val)
 })
 
@@ -137,8 +146,37 @@ function sectionGridClass(section: LayoutSection): string {
   return SECTION_GRID_CLASS[Math.min(section.columns.length, 4)] ?? ''
 }
 
+// A collapsible section starts folded when every field in it is empty. Decided
+// once per document (not live, so clearing a field doesn't fold the section
+// under the cursor); the user's own toggles stick.
+const collapsedSections = ref<Record<string, boolean>>({})
+
+function isFilled(value: unknown): boolean {
+  if (Array.isArray(value)) return value.length > 0
+  return value !== null && value !== undefined && value !== '' && value !== false && value !== 0
+}
+
+watch(
+  [parsedLayout, () => props.modelValue?.name],
+  () => {
+    const state: Record<string, boolean> = {}
+    for (const section of parsedLayout.value.flatMap((tab) => tab.sections)) {
+      if (!section.collapsible) continue
+      state[section._fieldname] = !section.columns.some((col) =>
+        col.some((f) => isFilled(props.modelValue?.[f.fieldname])),
+      )
+    }
+    collapsedSections.value = state
+  },
+  { immediate: true },
+)
+
+function isCollapsed(section: LayoutSection): boolean {
+  return section.collapsible && !!collapsedSections.value[section._fieldname]
+}
+
 function toggleSection(section: LayoutSection) {
-  if (section.collapsible) section.collapsed = !section.collapsed
+  if (section.collapsible) collapsedSections.value[section._fieldname] = !isCollapsed(section)
 }
 
 function isSectionVisible(section: LayoutSection): boolean {
@@ -161,7 +199,7 @@ function getVisibleSections(tab: LayoutTab): LayoutSection[] {
         <ChevronLeft class="size-4" />
       </Button>
       <TabsList ref="tabsListRef" class="flex-1 min-w-0 justify-start overflow-x-auto scrollbar-none" @scroll="updateTabScrollState">
-        <TabsTrigger v-for="(tab, ti) in layout" :key="ti" :value="tab._fieldname" class="flex-none px-3">
+        <TabsTrigger v-for="tab in layout" :key="tab._fieldname" :value="tab._fieldname" class="flex-none px-3">
           <AppIcon v-if="tab._field?.icon" :icon="tab._field.icon" class="size-3.5 shrink-0" />
           <span>{{ tab.label || 'Main' }}</span>
         </TabsTrigger>
@@ -172,7 +210,7 @@ function getVisibleSections(tab: LayoutTab): LayoutSection[] {
     </div>
 
     <!-- Sections -->
-    <TabsContent v-for="(tab, ti) in layout" :key="ti" :value="tab._fieldname"
+    <TabsContent v-for="tab in layout" :key="tab._fieldname" :value="tab._fieldname"
       class="mt-0 flex flex-col gap-4 focus-visible:ring-0">
       <!-- Connections panel, when this Tab has `show_connections` set -->
       <DocConnections
@@ -188,7 +226,7 @@ function getVisibleSections(tab: LayoutTab): LayoutSection[] {
           :model-value="modelValue" @update:model-value="emit('update:modelValue', $event)" />
       </template>
       <template v-else>
-        <div v-for="(section, si) in getVisibleSections(tab)" :key="si"
+        <div v-for="section in getVisibleSections(tab)" :key="section._fieldname"
           :class="[section.label ? 'form-section' : '', '@container mb-3 last:mb-0']">
 
           <!-- Section header -->
@@ -196,13 +234,13 @@ function getVisibleSections(tab: LayoutTab): LayoutSection[] {
             :class="{ 'cursor-pointer select-none': section.collapsible }" @click="toggleSection(section)">
             <ChevronDown v-if="section.collapsible"
               class="size-3.5 text-muted-foreground transition-transform duration-200"
-              :class="{ '-rotate-90': section.collapsed }" />
+              :class="{ '-rotate-90': isCollapsed(section) }" />
             <span>{{ section.label }}</span>
           </div>
 
           <!-- Fields layout -->
           <Transition name="section">
-            <div v-if="!section.collapsed" class="grid grid-cols-1 gap-x-5 gap-y-5"
+            <div v-if="!isCollapsed(section)" class="grid grid-cols-1 gap-x-5 gap-y-5"
               :class="[section.label ? 'form-section-body' : '', sectionGridClass(section)]">
               <div v-for="(col, ci) in section.columns" :key="ci" class="flex-1 flex flex-col gap-3 min-w-0">
                 <div v-for="f in col" v-show="overrides?.[f.fieldname] !== false" :key="f.fieldname"

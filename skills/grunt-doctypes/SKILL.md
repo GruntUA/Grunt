@@ -40,8 +40,7 @@ description: Довідник по всіх типах полів, налашт�
 | `search_fields` | list[str] | Поля для full-text пошуку |
 | `track_changes` | bool | Зберігати версії документа (default: `true`) |
 | `default_view` | str | `"list"` / `"kanban"` / `"calendar"` / `"tree"` / `"map"` |
-| `is_child` | bool | Дочірня таблиця (для `Table` поля) |
-| `is_submittable` | bool | Можна Submit/Cancel (додає docstatus) |
+| `is_child` | bool | Дочірня таблиця (для `Table` поля). Власних прав не має: рядок читається, коли читається батьківський документ; змінюється лише збереженням батька |
 | `is_singleton` | bool | Єдиний екземпляр (для налаштувань) |
 | `is_tree` | bool | Ієрархічна структура |
 | `quick_entry` | bool | Діалог швидкого створення |
@@ -70,8 +69,8 @@ description: Довідник по всіх типах полів, налашт�
 ```
 
 - Групує поля в рамках вкладки
-- `collapsible: true` — можна згорнути/розгорнути
-- `depends_on` на Section приховує весь розділ
+- `collapsible: true` — можна згорнути/розгорнути; стартує згорнутою, якщо всі поля в ній порожні
+- `depends_on` на Section приховує весь розділ, на Tab — всю вкладку
 
 ### Column (колонка)
 
@@ -271,9 +270,11 @@ description: Довідник по всіх типах полів, налашт�
 
 ### `depends_on` — умова видимості
 
-Вираз JavaScript з префіксом `eval:`. Доступна змінна `doc`.
+Вираз JavaScript з префіксом `eval:` (доступна змінна `doc`) або просто ім'я поля —
+тоді умова «поле заповнене/увімкнене».
 
 ```json
+{ "depends_on": "has_discount" }
 { "depends_on": "eval: doc.order_type === 'Відпустка'" }
 { "depends_on": "eval: doc.has_discount" }
 { "depends_on": "eval: doc.amount > 0 && doc.status !== 'Скасовано'" }

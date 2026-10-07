@@ -20,8 +20,8 @@ class PermissionAPI:
     ) -> bool:
         """Check whether the current user has the given permission.
 
-        ``action`` is one of ``"read"``, ``"write"``, ``"create"``, ``"delete"``,
-        ``"submit"``::
+        ``action`` is one of ``"read"``, ``"select"``, ``"write"``, ``"create"``,
+        ``"delete"``::
 
             if not await grunt.has_permission("Invoice", "delete"):
                 grunt.throw("You cannot delete invoices")

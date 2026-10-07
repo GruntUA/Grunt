@@ -51,7 +51,6 @@ _CORE_SYNCED_DOCTYPE_ATTRS = frozenset(
         "is_virtual",
         "is_tree",
         "is_log",
-        "is_submittable",
         "track_seen",
         "track_views",
         "track_activity",
@@ -108,6 +107,9 @@ _CORE_SYNCED_FIELD_ATTRS = frozenset(
         "read_formula",
         "validator",
         "tab_component",
+        "collapsible",
+        "icon",
+        "placeholder",
     }
 )
 

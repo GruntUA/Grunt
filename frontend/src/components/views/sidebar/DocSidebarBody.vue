@@ -7,7 +7,7 @@ import type { PresenceUser } from '@/core/composables/usePresence'
 import { useDocSidebar } from './useDocSidebar'
 import { useToast } from '@/core/composables/useToast'
 import { formatFull, formatRelative } from '@/core/datetime'
-import { resolveStatusBadge, statusBadgeFor, statusToneClass } from '@/core/status'
+import { resolveStatusBadge, statusBadgeFor } from '@/core/status'
 import SidebarImage from './SidebarImage.vue'
 import SidebarPeople from './SidebarPeople.vue'
 import SidebarTags from './SidebarTags.vue'
@@ -74,16 +74,6 @@ const workflowBadge = computed(() => {
   const field = props.doctype.workflow_state_field
   if (!field || field === (props.doctype.status_field || 'status')) return null
   return statusBadgeFor(props.doctype, props.document[field])
-})
-const docstatusBadge = computed(() => {
-  if (!props.doctype.is_submittable) return null
-  return (
-    [
-      { label: t('Draft'), class: statusToneClass('secondary') },
-      { label: t('Submitted'), class: statusToneClass('info') },
-      { label: t('status|Cancelled'), class: statusToneClass('danger') },
-    ][props.document.docstatus] ?? null
-  )
 })
 
 // Copy id
@@ -156,13 +146,6 @@ function printDoc() {
           <Badge variant="outline" :class="workflowBadge.class">
             {{ workflowBadge.label }}
           </Badge>
-        </dd>
-      </template>
-
-      <template v-if="docstatusBadge">
-        <dt class="text-muted-foreground">{{ t('Document') }}</dt>
-        <dd>
-          <Badge variant="outline" :class="docstatusBadge.class">{{ docstatusBadge.label }}</Badge>
         </dd>
       </template>
 

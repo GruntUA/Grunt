@@ -42,14 +42,5 @@
       "in_list_view": true,
       "description": "Display label; if empty, the field value is used"
     }
-  ],
-  "permissions": [
-    {
-      "role": "System Manager",
-      "read": true,
-      "write": true,
-      "create": true,
-      "delete": true
-    }
   ]
 }

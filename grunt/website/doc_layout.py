@@ -10,7 +10,7 @@ from grunt import _
 from grunt.utils.sanitize import sanitize_html
 
 # Framework bookkeeping fields never shown in the read-only share view.
-_SKIP_FIELDS = {"id", "name", "owner", "created_at", "modified_at", "modified_by", "docstatus"}
+_SKIP_FIELDS = {"id", "name", "owner", "created_at", "modified_at", "modified_by"}
 _MULTILINE = {"LongText", "Text", "HTML", "Code", "Markdown"}
 # Rendered as markup (``row.html``) - sanitized again here, for rows written
 # before RichText was sanitized on save.

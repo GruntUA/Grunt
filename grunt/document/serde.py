@@ -25,5 +25,4 @@ def audit_fields(user_email: str, now: datetime) -> dict[str, Any]:
         "created_at": now,
         "modified_at": now,
         "modified_by": user_email,
-        "docstatus": 0,
     }

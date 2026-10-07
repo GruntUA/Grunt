@@ -85,12 +85,12 @@ async def _list_singleton(session: AsyncSession, table: Any) -> DocumentList:
 def _select_columns(table: Any, fields: list[str] | None) -> list[Any]:
     """Return the SQLAlchemy column list for a list query.
 
-    Always includes ``name``/``modified_at``/``docstatus`` even when *fields*
+    Always includes ``name``/``modified_at`` even when *fields*
     is a restricted subset - callers (list views, sorting) rely on them.
     """
     if not fields:
         return [table]
-    required = {"name", "modified_at", "docstatus"}
+    required = {"name", "modified_at"}
     requested = required | set(fields)
     return [table.c[c] for c in requested if c in table.c]
 

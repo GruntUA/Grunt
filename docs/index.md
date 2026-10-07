@@ -16,7 +16,7 @@ Grunt is a **framework for frameworks**. You describe your data model using **Do
 DocType "Invoice"
 ├── fields: title, amount, status, customer (Link)
 ├── workflow: Draft → Submitted → Paid → Cancelled
-└── permissions: Accountant (read/write), Manager (submit)
+└── permissions: Accountant (read/write), Manager (read/write/delete)
 
 → Automatically generates:
    ├── grunt_app_invoice table in DB

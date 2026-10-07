@@ -692,7 +692,6 @@ class EmailService:
                         "created_at": now,
                         "modified_at": now,
                         "modified_by": "system",
-                        "docstatus": 0,
                         "recipient": to,
                         "subject": subject,
                         "content": content,

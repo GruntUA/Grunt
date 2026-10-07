@@ -66,14 +66,5 @@
       "fieldtype": "JSON",
       "description": "{ \"status\": \"Active\" }"
     }
-  ],
-  "permissions": [
-    {
-      "role": "System Manager",
-      "read": true,
-      "write": true,
-      "create": true,
-      "delete": true
-    }
   ]
 }

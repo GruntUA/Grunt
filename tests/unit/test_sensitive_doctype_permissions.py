@@ -92,13 +92,17 @@ def test_shipped_doctype_has_permissions_defined(doctype_name):
     quietly coming back (e.g. someone reverting the JSON edit by accident).
     """
     dt = _load(doctype_name)
-    assert dt.permissions, f"{doctype_name} must declare permissions, not be open by default"
+    # A child table takes its access from the parent (grunt.permissions.child).
+    assert dt.permissions or dt.is_child, (
+        f"{doctype_name} must declare permissions, not be open by default"
+    )
 
 
 # User is the one exception: it also ships a `{"role": "All", "match":
 # "name == user"}` row so a signed-in user can save *their own* profile via the
 # generic form. Its self-service model is covered by the dedicated tests below.
-_GENERIC_LOCKED = [n for n in _DOCTYPE_JSON if n != "User"]
+# UserRole rows follow it: a user reads their own roles, never writes any.
+_GENERIC_LOCKED = [n for n in _DOCTYPE_JSON if n not in ("User", "UserRole")]
 
 
 @pytest.mark.parametrize("doctype_name", _GENERIC_LOCKED)
@@ -108,6 +112,15 @@ async def test_plain_user_has_no_access(doctype_name, action):
     dt = _load(doctype_name)
     allowed = await permission_checker.check(_plain_user(), dt, action)
     assert allowed is False
+
+
+@pytest.mark.parametrize("action", ["write", "create", "delete"])
+@pytest.mark.asyncio
+async def test_plain_user_cannot_change_role_rows(action):
+    """Self-assigning "System Manager" through a direct UserRole insert/edit
+    must stay impossible - roles change only by saving the User."""
+    dt = _load("UserRole")
+    assert await permission_checker.check(_plain_user(), dt, action) is False
 
 
 @pytest.mark.parametrize("action", ["create", "delete"])
@@ -141,7 +154,8 @@ async def test_plain_user_write_is_scoped_to_own_row():
 async def test_system_manager_has_full_access(doctype_name, action):
     dt = _load(doctype_name)
     allowed = await permission_checker.check(_system_manager(), dt, action)
-    assert allowed is True
+    # Child rows change only through the parent's save - for everyone.
+    assert allowed is (action == "read" or not dt.is_child)
 
 
 @pytest.mark.asyncio

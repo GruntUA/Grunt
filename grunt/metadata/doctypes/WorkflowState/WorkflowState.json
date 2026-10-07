@@ -58,14 +58,5 @@
       "fieldtype": "Text",
       "depends_on": "eval:doc.update_field"
     }
-  ],
-  "permissions": [
-    {
-      "role": "System Manager",
-      "read": true,
-      "write": true,
-      "create": true,
-      "delete": true
-    }
   ]
 }

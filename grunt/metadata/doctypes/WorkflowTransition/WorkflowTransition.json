@@ -68,14 +68,5 @@
       "default": false,
       "depends_on": "eval:doc.notify"
     }
-  ],
-  "permissions": [
-    {
-      "role": "System Manager",
-      "read": true,
-      "write": true,
-      "create": true,
-      "delete": true
-    }
   ]
 }

@@ -9,7 +9,7 @@ DocType-driven - defined in core/doctypes/*.json.
 
 from __future__ import annotations
 
-from sqlalchemy import JSON, Column, Integer, String, Table, func, text
+from sqlalchemy import JSON, Column, String, Table, func, text
 
 from grunt.db.base import metadata
 from grunt.db.types import UtcDateTime
@@ -32,7 +32,6 @@ GruntInstalledApp = Table(
     Column("version", String(50), nullable=False, server_default=text("'0.1.0'")),
     Column("modules", JSON, nullable=False, server_default=text("'[]'")),
     Column("owner", String(255), nullable=False, server_default=text("'system'")),
-    Column("docstatus", Integer, server_default=text("0")),
     Column("created_at", UtcDateTime(), server_default=func.now()),
     Column("modified_at", UtcDateTime(), server_default=func.now()),
     Column("modified_by", String(255), nullable=True),

@@ -8,6 +8,7 @@ from sqlalchemy import Table, and_, false, or_, true
 
 from grunt import log
 from grunt.permissions.access import RoleAccess
+from grunt.permissions.child import child_conditions, is_child
 from grunt.permissions.match import PermissionMatch
 from grunt.permissions.reference import reference_conditions
 from grunt.permissions.shares import shared_names_clause
@@ -38,6 +39,9 @@ async def apply_permission_filter(
     access = RoleAccess(doctype, user)
     if access.is_unrestricted:
         return query
+
+    if is_child(doctype):
+        return query.where(await child_conditions(table, user, doctype))
 
     own = await _own_conditions(table, user, doctype, access)
     ref = await reference_conditions(table, user, doctype)

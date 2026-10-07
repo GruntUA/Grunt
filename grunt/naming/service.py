@@ -117,7 +117,6 @@ class NamingService:
                 created_at=now,
                 modified_at=now,
                 modified_by="system",
-                docstatus=0,
                 prefix=prefix,
                 current=1,
             )

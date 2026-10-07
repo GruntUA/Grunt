@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 from grunt.errors import forbidden
 from grunt.i18n import NP_, _, pgettext
 from grunt.permissions.access import RoleAccess
+from grunt.permissions.child import child_allowed, is_child
 from grunt.permissions.match import PermissionMatch
 from grunt.permissions.shares import SHAREABLE_ACTIONS, has_share
 from grunt.permissions.types import PermissionAction
@@ -20,8 +21,6 @@ _ACTION_VERBS: dict[str, str] = {
     "write": NP_("permission", "write"),
     "create": NP_("permission", "create"),
     "delete": NP_("permission", "delete"),
-    "submit": NP_("permission", "submit"),
-    "cancel": NP_("permission", "cancel"),
     "report": NP_("permission", "reports"),
 }
 
@@ -79,6 +78,9 @@ class PermissionChecker:
         access = RoleAccess(doctype, user)
         if access.is_unrestricted:
             return True
+
+        if is_child(doctype):
+            return await child_allowed(user, doctype, action, doc)
 
         # Cache only when doc is None (list/count); match-expression checks are doc-specific.
         # Include id(doctype.permissions) so that different DocType objects with the same
