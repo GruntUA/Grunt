@@ -23,11 +23,11 @@ import grunt
 from grunt.local import require_user
 
 if TYPE_CHECKING:
-    from grunt.document.base import Document
+    from grunt.document.base import BaseDocument
 
 
-class QuerySet[T: Document]:
-    """Immutable, chainable query builder bound to a single ``Document`` subclass."""
+class QuerySet[T: BaseDocument]:
+    """Immutable, chainable query builder bound to a single controller class."""
 
     def __init__(self, model_cls: type[T]) -> None:
         self._model_cls = model_cls

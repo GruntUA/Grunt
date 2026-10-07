@@ -1,121 +1,43 @@
-"""Tests for Virtual DocType - base class and delegation logic."""
+"""BaseDocument storage defaults - what a virtual DocType controller overrides."""
 
 import pytest
+from fastapi import HTTPException
 
+from grunt.auth.doctypes.User.user import SYSTEM_USER
+from grunt.document.base import BaseDocument, DocumentList
 from grunt.metadata.doctype import DocType
-from grunt.metadata.virtual import VirtualDocType
 
 
-class TestVirtualDocTypeBase:
-    def test_init(self):
-        vdt = VirtualDocType("ExternalCustomer", user="admin@test.com")
-        assert vdt.doctype == "ExternalCustomer"
-        assert vdt.user == "admin@test.com"
+class TestStorageDefaults:
+    @pytest.mark.asyncio
+    async def test_load_without_storage_is_404(self):
+        doc = BaseDocument("ExternalCustomer", {"name": "42"})
+        with pytest.raises(HTTPException) as exc:
+            await doc.load_from_db()
+        assert exc.value.status_code == 404
 
     @pytest.mark.asyncio
-    async def test_get_list_not_implemented(self):
-        vdt = VirtualDocType("Test")
-        with pytest.raises(NotImplementedError, match="get_list"):
-            await vdt.get_list()
+    @pytest.mark.parametrize("method", ["db_insert", "db_update", "db_delete"])
+    async def test_writes_without_storage_are_405(self, method):
+        doc = BaseDocument("ExternalCustomer", {"name": "42"})
+        with pytest.raises(HTTPException) as exc:
+            await getattr(doc, method)()
+        assert exc.value.status_code == 405
 
     @pytest.mark.asyncio
-    async def test_get_not_implemented(self):
-        vdt = VirtualDocType("Test")
-        with pytest.raises(NotImplementedError, match="get"):
-            await vdt.get("123")
+    async def test_list_without_storage_is_empty(self):
+        result = await BaseDocument.get_list("ExternalCustomer", session=None, user=SYSTEM_USER)
+        assert list(result) == []
+        assert result.meta["total"] == 0
 
     @pytest.mark.asyncio
-    async def test_create_not_implemented(self):
-        vdt = VirtualDocType("Test")
-        with pytest.raises(NotImplementedError, match="create"):
-            await vdt.create({"name": "x"})
+    async def test_get_count_reads_list_total(self):
+        class External(BaseDocument):
+            @classmethod
+            async def get_list(cls, doctype, *, page=1, per_page=20, **kwargs):
+                return DocumentList([], {"total": 42, "page": page, "per_page": per_page})
 
-    @pytest.mark.asyncio
-    async def test_update_not_implemented(self):
-        vdt = VirtualDocType("Test")
-        with pytest.raises(NotImplementedError, match="update"):
-            await vdt.update("123", {"name": "y"})
-
-    @pytest.mark.asyncio
-    async def test_delete_not_implemented(self):
-        vdt = VirtualDocType("Test")
-        with pytest.raises(NotImplementedError, match="delete"):
-            await vdt.delete("123")
-
-
-class TestVirtualDocTypeSubclass:
-    """Test a concrete implementation of VirtualDocType."""
-
-    @pytest.mark.asyncio
-    async def test_custom_get_list(self):
-        class MockAPI(VirtualDocType):
-            async def get_list(self, *args, **kwargs):
-                return {
-                    "data": [{"id": "1", "name": "Customer A"}],
-                    "meta": {"total": 1, "page": 1, "per_page": 20},
-                }
-
-        ctrl = MockAPI("ExternalCustomer")
-        result = await ctrl.get_list()
-        assert result["data"][0]["name"] == "Customer A"
-        assert result["meta"]["total"] == 1
-
-    @pytest.mark.asyncio
-    async def test_custom_get(self):
-        class MockAPI(VirtualDocType):
-            async def get(self, doc_id, **kwargs):
-                return {"id": doc_id, "name": f"Customer {doc_id}"}
-
-        ctrl = MockAPI("ExternalCustomer")
-        result = await ctrl.get("42")
-        assert result["id"] == "42"
-        assert result["name"] == "Customer 42"
-
-    @pytest.mark.asyncio
-    async def test_custom_create(self):
-        class MockAPI(VirtualDocType):
-            async def create(self, data, **kwargs):
-                return {"id": "new-1", **data}
-
-        ctrl = MockAPI("ExternalCustomer")
-        result = await ctrl.create({"name": "New Customer"})
-        assert result["id"] == "new-1"
-        assert result["name"] == "New Customer"
-
-    @pytest.mark.asyncio
-    async def test_custom_update(self):
-        class MockAPI(VirtualDocType):
-            async def update(self, doc_id, data, **kwargs):
-                return {"id": doc_id, **data}
-
-        ctrl = MockAPI("ExternalCustomer")
-        result = await ctrl.update("42", {"name": "Updated"})
-        assert result["name"] == "Updated"
-
-    @pytest.mark.asyncio
-    async def test_custom_delete(self):
-        class MockAPI(VirtualDocType):
-            _deleted = []
-
-            async def delete(self, doc_id, **kwargs):
-                self._deleted.append(doc_id)
-
-        ctrl = MockAPI("ExternalCustomer")
-        await ctrl.delete("42")
-        assert "42" in ctrl._deleted
-
-    @pytest.mark.asyncio
-    async def test_get_count_default(self):
-        class MockAPI(VirtualDocType):
-            async def get_list(self, *args, **kwargs):
-                return {
-                    "data": [],
-                    "meta": {"total": 42, "page": 1, "per_page": 1},
-                }
-
-        ctrl = MockAPI("ExternalCustomer")
-        count = await ctrl.get_count()
-        assert count == 42
+        assert await External.get_count("ExternalCustomer", session=None, user=SYSTEM_USER) == 42
 
 
 class TestDocTypeIsVirtual:

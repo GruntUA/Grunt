@@ -4,7 +4,7 @@ Exposes every registered event hook (global Python hooks, DocType Python hooks
 and database-backed Server Scripts) as a standard read-only Grunt DocType so it
 can be browsed through the normal ListView instead of a bespoke admin page.
 
-Read-only: list + get. Create/update/delete are not supported.
+Read-only: list + load. Insert/update/delete are not supported.
 """
 
 from __future__ import annotations
@@ -12,9 +12,10 @@ from __future__ import annotations
 from typing import Any
 
 import grunt
-from grunt import _
-from grunt.hooks import DOC_EVENT_REGISTRY, HOOK_REGISTRY
-from grunt.metadata.virtual import VirtualDocType
+from grunt import _, hooks
+from grunt.document.base import BaseDocument, DocumentList
+from grunt.document.in_memory import apply_filters, apply_search, apply_sort, build_response
+from grunt.errors import not_found
 
 _SEARCH_FIELDS = ["event", "handler", "reference_doctype", "source"]
 
@@ -32,7 +33,7 @@ def _collect() -> list[dict[str, Any]]:
     """Gather every Python hook (global + DocType) into row dicts."""
     rows: list[dict[str, Any]] = []
 
-    for event, entries in HOOK_REGISTRY.items():
+    for event, entries in hooks.HOOK_REGISTRY.items():
         for h in entries:
             rows.append(
                 {
@@ -44,7 +45,7 @@ def _collect() -> list[dict[str, Any]]:
                 }
             )
 
-    for doctype, events in DOC_EVENT_REGISTRY.items():
+    for doctype, events in hooks.DOC_EVENT_REGISTRY.items():
         for event, entries in events.items():
             for h in entries:
                 rows.append(
@@ -95,53 +96,39 @@ def _with_name(row: dict[str, Any]) -> dict[str, Any]:
     return {"id": name, "name": name, **row}
 
 
-class Hook(VirtualDocType):
+class Hook(BaseDocument):
+    @classmethod
     async def get_list(
-        self,
-        filters: dict[str, Any] | None = None,
+        cls,
+        doctype: str,
+        *,
         page: int = 1,
         per_page: int = 20,
         sort_by: str = "reference_doctype",
         sort_order: str = "asc",
+        filters: dict[str, Any] | None = None,
         search: str | None = None,
         **kwargs: Any,
-    ) -> dict[str, Any]:
+    ) -> DocumentList:
         rows = _collect() + await _collect_server_scripts()
 
         if search:
-            rows = self.apply_search(rows, search, _SEARCH_FIELDS)
+            rows = apply_search(rows, search, _SEARCH_FIELDS)
         if filters:
-            rows = self.apply_filters(rows, filters)
-        rows = self.apply_sort(rows, sort_by or "reference_doctype", sort_order)
+            rows = apply_filters(rows, filters)
+        # A list view sorts by modified_at by default - hooks have no such field.
+        if not sort_by or sort_by == "modified_at":
+            sort_by = "reference_doctype"
+        rows = apply_sort(rows, sort_by, sort_order)
 
-        response = self.build_response(rows, page, per_page)
-        response["data"] = [_with_name(r) for r in response["data"]]
-        return response
+        response = build_response(rows, page, per_page)
+        return DocumentList([_with_name(r) for r in response], response.meta)
 
-    async def get(self, doc_id: str, **kwargs: Any) -> dict[str, Any]:
-        from fastapi import HTTPException, status
-
+    async def load_from_db(self, *, expand: list[str] | None = None) -> None:
         rows = _collect() + await _collect_server_scripts()
         for row in rows:
             named = _with_name(row)
-            if named["name"] == doc_id:
-                return named
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=_("Hook '%(doc_id)s' not found") % {"doc_id": doc_id},
-        )
-
-    async def create(self, data: dict[str, Any], **kwargs: Any) -> dict[str, Any]:
-        from fastapi import HTTPException, status
-
-        raise HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED, detail="Read-only")
-
-    async def update(self, doc_id: str, data: dict[str, Any], **kwargs: Any) -> dict[str, Any]:
-        from fastapi import HTTPException, status
-
-        raise HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED, detail="Read-only")
-
-    async def delete(self, doc_id: str, **kwargs: Any) -> None:
-        from fastapi import HTTPException, status
-
-        raise HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED, detail="Read-only")
+            if named["name"] == self.name:
+                self.data = named
+                return
+        raise not_found(_("Hook '%(doc_id)s' not found") % {"doc_id": self.name})

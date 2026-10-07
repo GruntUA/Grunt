@@ -7,7 +7,8 @@ from fastapi import HTTPException, status
 from grunt import _
 from grunt.backups import BackupSet, delete_backup, get_backup, list_backups
 from grunt.backups.api import download_url
-from grunt.metadata.virtual import VirtualDocType
+from grunt.document.base import BaseDocument, DocumentList
+from grunt.document.in_memory import apply_search, apply_sort, build_response
 from grunt.monitoring.health import human_size
 from grunt.site.manager import site_manager
 
@@ -31,40 +32,38 @@ def _row(site: str, backup: BackupSet) -> dict[str, Any]:
     }
 
 
-class BackupController(VirtualDocType):
-    """The backup sets on disk - made by the scheduler or «Створити зараз»."""
+class BackupController(BaseDocument):
+    """The backup sets on disk - made by the scheduler or «Створити зараз».
 
+    Created only by the Create now button and never changed: insert and
+    update are left unsupported.
+    """
+
+    @classmethod
     async def get_list(
-        self,
-        filters: dict[str, Any] | None = None,
+        cls,
+        doctype: str,
+        *,
         page: int = 1,
         per_page: int = 20,
         sort_by: str = "name",
         sort_order: str = "desc",
         search: str | None = None,
         **kwargs: Any,
-    ) -> dict[str, Any]:
+    ) -> DocumentList:
         site = _site()
         rows = [_row(site, b) for b in list_backups(site)]
         if search:
-            rows = self.apply_search(rows, search, ["name"])
-        rows = self.apply_sort(rows, sort_by if sort_by != "modified_at" else "name", sort_order)
-        return self.build_response(rows, page, per_page)
+            rows = apply_search(rows, search, ["name"])
+        rows = apply_sort(rows, sort_by if sort_by != "modified_at" else "name", sort_order)
+        return build_response(rows, page, per_page)
 
-    async def get(self, doc_id: str, **kwargs: Any) -> dict[str, Any]:
+    async def load_from_db(self, *, expand: list[str] | None = None) -> None:
         site = _site()
-        backup = get_backup(site, doc_id)
+        backup = get_backup(site, str(self.name))
         if backup is None:
             raise HTTPException(status.HTTP_404_NOT_FOUND, _("Backup not found"))
-        return _row(site, backup)
+        self.data = _row(site, backup)
 
-    async def delete(self, doc_id: str, **kwargs: Any) -> None:
-        delete_backup(_site(), doc_id)
-
-    async def create(self, data: dict[str, Any], **kwargs: Any) -> dict[str, Any]:
-        raise HTTPException(
-            status.HTTP_405_METHOD_NOT_ALLOWED, _("Backups are created with the Create now button")
-        )
-
-    async def update(self, doc_id: str, data: dict[str, Any], **kwargs: Any) -> dict[str, Any]:
-        raise HTTPException(status.HTTP_405_METHOD_NOT_ALLOWED, _("A backup cannot be changed"))
+    async def db_delete(self) -> None:
+        delete_backup(_site(), str(self.name))

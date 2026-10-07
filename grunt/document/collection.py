@@ -19,7 +19,7 @@ from sqlalchemy import and_, func, select, update
 import grunt
 from grunt import _, log
 from grunt.db.filters import apply_filters
-from grunt.document.base import Document, DocumentList
+from grunt.document.base import Document, DocumentList, controller_class, load_document
 from grunt.document.formula import evaluate_read_formulas
 from grunt.document.meta import Meta
 from grunt.document.multi_link import MultiLinkService
@@ -28,17 +28,11 @@ from grunt.document.registry import document_registry
 from grunt.document.relations import _resolve_attach_labels, _resolve_link_labels
 from grunt.document.serde import serialize_datetimes
 from grunt.document.update_side_effects import (
-    bulk_delete_virtual,
+    bulk_delete_one_by_one,
     collect_bulk_delete_candidates,
     run_bulk_after_delete_hooks,
     run_bulk_before_delete_hooks,
     run_bulk_delete_writes,
-)
-from grunt.document.virtual import (
-    is_virtual_listed,
-    is_virtual_routed,
-    virtual_count,
-    virtual_list,
 )
 from grunt.metadata.compiler import MULTI_LINK_TABLE
 from grunt.metadata.registry import doctype_registry
@@ -107,7 +101,7 @@ async def _resolve_list_filter_extra(
     table: Any,
 ) -> Any | None:
     """Return the controller's ``list_filter_extra`` WHERE clause, if overridden."""
-    # A VirtualDocType controller listing from its table has no such hook.
+    # A controller listing Document's table without being one has no such hook.
     hook = getattr(document_registry.get(doctype_name), "list_filter_extra", None)
     if hook is None or hook == Document.list_filter_extra:
         return None
@@ -263,12 +257,39 @@ async def list_documents(
             detail=_("DocType “%(doctype)s” not found") % {"doctype": doctype_name},
         )
 
-    # Virtual DocType or VirtualDocType controller - delegate to sub-module
-    if is_virtual_listed(dt, doctype_name):
-        return await virtual_list(
-            doctype_name, user, page, per_page, sort_by, sort_order, filters, search
-        )
+    return await controller_class(dt).get_list(
+        doctype_name,
+        session=session,
+        user=user,
+        page=page,
+        per_page=per_page,
+        sort_by=sort_by,
+        sort_order=sort_order,
+        filters=filters,
+        search=search,
+        fields=fields,
+        cursor=cursor,
+        include_total=include_total,
+    )
 
+
+async def table_list(
+    session: AsyncSession,
+    dt: Any,
+    user: User,
+    *,
+    page: int,
+    per_page: int,
+    sort_by: str,
+    sort_order: str,
+    filters: dict[str, Any] | None,
+    search: str | None,
+    fields: list[str] | None,
+    cursor: str | None,
+    include_total: bool,
+) -> DocumentList:
+    """A page of *dt*'s table rows the *user* may see - ``Document.get_list``."""
+    doctype_name = dt.name
     table = dt.table
 
     # Singleton - return at most 1 row, ignore pagination
@@ -347,10 +368,21 @@ async def count_documents(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=_("DocType “%(doctype)s” not found") % {"doctype": doctype_name},
         )
-    if is_virtual_listed(dt, doctype_name):
-        # Virtual DocTypes own their storage - the controller counts its rows.
-        return await virtual_count(doctype_name, user, filters)
+    return await controller_class(dt).get_count(
+        doctype_name, session=session, user=user, filters=filters, search=search
+    )
 
+
+async def table_count(
+    session: AsyncSession,
+    dt: Any,
+    user: User,
+    *,
+    filters: dict[str, Any] | None,
+    search: str | None,
+) -> int:
+    """How many of *dt*'s table rows the *user* may see - ``Document.get_count``."""
+    doctype_name = dt.name
     table = dt.table
     extra_clause = await _resolve_list_filter_extra(session, doctype_name, filters, table)
     if filters and any(k.endswith("__child_of") for k in filters):
@@ -390,7 +422,7 @@ async def field_years(
         )
     field = dt.get_field(fieldname)
     if (
-        is_virtual_listed(dt, doctype_name)
+        dt.is_virtual
         or field is None
         or field.fieldtype
         not in (
@@ -460,8 +492,8 @@ async def bulk_delete(
             detail=_("DocType “%(doctype)s” not found") % {"doctype": doctype_name},
         )
 
-    if is_virtual_routed(dt, doctype_name):
-        return await bulk_delete_virtual(doctype_name=doctype_name, ids=ids, user=user)
+    if not issubclass(controller_class(dt), Document):
+        return await bulk_delete_one_by_one(session, engine, doctype_name, ids, user)
 
     table = dt.table
 
@@ -728,7 +760,7 @@ async def rename_document(
     """Update the primary ID of a document and cascade changes to all references."""
 
     async def _load(doc_id: str) -> dict[str, Any]:
-        doc = await Document.load(doctype_name, doc_id, session=session, engine=engine, user=user)
+        doc = await load_document(doctype_name, doc_id, session=session, engine=engine, user=user)
         return doc.as_dict()
 
     if old_id == new_id:
@@ -740,7 +772,7 @@ async def rename_document(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=_("DocType “%(doctype)s” not found") % {"doctype": doctype_name},
         )
-    if is_virtual_routed(dt, doctype_name):
+    if not issubclass(controller_class(dt), Document):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=_("Cannot rename virtual documents"),

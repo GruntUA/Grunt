@@ -3,6 +3,7 @@
 import pytest
 
 import grunt.hooks as hooks
+from grunt.auth.doctypes.User.user import SYSTEM_USER
 from grunt.scripting.doctypes.Hook import hook as hook_mod
 from grunt.scripting.doctypes.Hook.hook import Hook
 
@@ -32,9 +33,13 @@ def _async_return(value):
     return _inner
 
 
+async def _list(**kwargs):
+    return await Hook.get_list("Hook", session=None, user=SYSTEM_USER, **kwargs)
+
+
 @pytest.mark.asyncio
 async def test_get_list_merges_global_and_doctype_hooks(registries):
-    result = await Hook("Hook").get_list()
+    result = await _list()
 
     assert result["meta"]["total"] == 2
     by_event = {r["event"]: r for r in result["data"]}
@@ -52,34 +57,32 @@ async def test_get_list_merges_global_and_doctype_hooks(registries):
 
 @pytest.mark.asyncio
 async def test_get_list_search_filters_rows(registries):
-    result = await Hook("Hook").get_list(search="after_migrate")
+    result = await _list(search="after_migrate")
     assert [r["event"] for r in result["data"]] == ["after_migrate"]
 
 
 @pytest.mark.asyncio
-async def test_get_returns_single_hook_by_name(registries):
-    listing = await Hook("Hook").get_list()
-    target = listing["data"][0]
-    fetched = await Hook("Hook").get(target["name"])
-    assert fetched == target
+async def test_load_returns_single_hook_by_name(registries):
+    target = (await _list())["data"][0]
+    doc = Hook("Hook", {"name": target["name"]})
+    await doc.load_from_db()
+    assert doc.data == target
 
 
 @pytest.mark.asyncio
-async def test_get_unknown_raises_404(registries):
+async def test_load_unknown_raises_404(registries):
     from fastapi import HTTPException
 
     with pytest.raises(HTTPException) as exc:
-        await Hook("Hook").get("Nope::nope::nope")
+        await Hook("Hook", {"name": "Nope::nope::nope"}).load_from_db()
     assert exc.value.status_code == 404
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("op", ["create", "update", "delete"])
-async def test_mutations_are_rejected(registries, op):
+@pytest.mark.parametrize("op", ["db_insert", "db_update", "db_delete"])
+async def test_writes_are_rejected(registries, op):
     from fastapi import HTTPException
 
-    ctrl = Hook("Hook")
-    args = {"create": ({},), "update": ("x", {}), "delete": ("x",)}[op]
     with pytest.raises(HTTPException) as exc:
-        await getattr(ctrl, op)(*args)
+        await getattr(Hook("Hook", {"name": "x"}), op)()
     assert exc.value.status_code == 405

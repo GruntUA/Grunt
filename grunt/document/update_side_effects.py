@@ -17,7 +17,6 @@ from grunt import _, log
 from grunt.document.registry import document_registry
 from grunt.document.serde import audit_fields
 from grunt.document.versioning import version_service
-from grunt.document.virtual import virtual_delete
 from grunt.errors import ApplicationError
 from grunt.search.service import search_index_service
 from grunt.webhook.service import webhook_service
@@ -203,18 +202,25 @@ async def run_bulk_delete_writes(
     await search_index_service.remove_documents(session, doctype_name, final_ids)
 
 
-async def bulk_delete_virtual(
-    *,
+async def bulk_delete_one_by_one(
+    session: AsyncSession,
+    engine: Any,
     doctype_name: str,
     ids: list[str],
     user: User,
 ) -> tuple[int, list[str]]:
-    """Delete virtual documents one-by-one and aggregate errors."""
+    """Delete documents one at a time through the delete pipeline - for a
+    controller without a table to batch the DELETE on. Aggregates errors."""
+    from grunt.document.base import new_document
+
     deleted = 0
     errors: list[str] = []
     for doc_id in ids:
         try:
-            await virtual_delete(doctype_name, user, doc_id)
+            doc = await new_document(
+                doctype_name, {"name": doc_id}, user=user, session=session, engine=engine
+            )
+            await doc.delete()
             deleted += 1
         except Exception as e:
             errors.append(f"{doc_id}: {e}")

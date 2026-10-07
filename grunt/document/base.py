@@ -1,4 +1,9 @@
-"""Base class for DocType controllers.
+"""Base classes for DocType controllers.
+
+``BaseDocument`` is a document with its lifecycle and no storage of its own -
+the base of a controller backed by an API, Redis or files (a virtual DocType).
+``Document`` is a ``BaseDocument`` stored in the DocType's table, the default
+for every DocType.
 
 Field values live in ``self.data``; ``__getattr__``/``__setattr__`` route
 ``doc.amount`` to ``doc.data["amount"]``. Annotations on a subclass are only
@@ -11,11 +16,12 @@ import contextlib
 from typing import TYPE_CHECKING, Any, ClassVar
 
 import grunt
-from grunt import log
+from grunt import _, log
 from grunt.api.v1.ws import manager
 from grunt.document.mixins.collaboration_rpc import DocumentCollaborationRPCMixin
 from grunt.document.mixins.export_rpc import DocumentExportRPCMixin
 from grunt.document.mixins.history_rpc import DocumentHistoryRPCMixin
+from grunt.document.mixins.lifecycle import DocumentLifecycleMixin
 from grunt.document.mixins.link_rpc import DocumentLinkRPCMixin
 from grunt.document.mixins.meta_rpc import DocumentMetaRPCMixin
 from grunt.document.mixins.tree_rpc import DocumentTreeRPCMixin
@@ -23,6 +29,7 @@ from grunt.document.mixins.workflow_rpc import DocumentWorkflowRPCMixin
 from grunt.document.mixins.write import DocumentWriteMixin
 from grunt.document.queryset import QuerySet
 from grunt.document.registry import document_registry
+from grunt.errors import not_found
 from grunt.local import require_engine, require_user
 
 if TYPE_CHECKING:
@@ -49,6 +56,13 @@ SYS_FIELDS: frozenset[str] = frozenset(
         "parenttype",
     }
 )
+
+
+async def _meta(doctype: str) -> Any:
+    dt = await grunt.get_meta(doctype)
+    if dt is None:
+        raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
+    return dt
 
 
 class DocumentList(list):
@@ -84,31 +98,23 @@ class DocumentList(list):
 class _ObjectsDescriptor:
     """``Document.objects`` - returns a QuerySet for the controller class."""
 
-    def __get__(self, instance: Any, owner: type[Document]) -> Any:
+    def __get__(self, instance: Any, owner: type[BaseDocument]) -> Any:
         return QuerySet(owner)
 
 
-class Document(
-    DocumentWriteMixin,
-    DocumentTreeRPCMixin,
-    DocumentLinkRPCMixin,
-    DocumentExportRPCMixin,
-    DocumentHistoryRPCMixin,
-    DocumentCollaborationRPCMixin,
-    DocumentWorkflowRPCMixin,
-    DocumentMetaRPCMixin,
-):
-    """Base class for all DocType controllers.
+class BaseDocument(DocumentLifecycleMixin):
+    """A document with its lifecycle hooks and no storage of its own.
 
-    Subclass it and override the lifecycle hooks below (all async, all optional)::
+    Subclass it for a DocType whose documents live somewhere else and override
+    the storage methods - see :mod:`grunt.document.mixins.lifecycle`::
 
-        class Invoice(Document):
-            amount: float
-            customer: str
+        class Backup(BaseDocument):
+            @classmethod
+            async def get_list(cls, doctype, *, page=1, per_page=20, **kwargs):
+                return build_response(list_backups(), page, per_page)
 
-            async def validate(self) -> None:
-                if self.amount <= 0:
-                    grunt.throw("Сума повинна бути більше нуля")
+            async def load_from_db(self, *, expand=None):
+                self.data = get_backup(self.name)
     """
 
     objects: ClassVar[_ObjectsDescriptor] = _ObjectsDescriptor()
@@ -136,17 +142,9 @@ class Document(
         self.session = session
         self.engine = engine
         self._ml = None  # MultiLinkService, created in _bind() once there is a session
-
-    @classmethod
-    def bare(
-        cls,
-        session: AsyncSession | None = None,
-        engine: AsyncEngine | None = None,
-    ) -> Document:
-        """An empty bound document, for running the CRUD pipeline on plain dicts."""
-        doc = cls("", {}, session=session, engine=engine)
-        doc._bind()
-        return doc
+        self._dt = None
+        self._submitted = {}
+        self._existing = None
 
     # Attribute routing
 
@@ -263,49 +261,58 @@ class Document(
 
     # Persistence
 
+    def _keep(self, original: dict[str, Any], result: dict[str, Any]) -> None:
+        # Back into the caller's dict: callers may still hold a reference to self.data.
+        if original is not result:
+            original.clear()
+            original.update(result)
+        self.data = original
+
     async def insert(self, *, ignore_required: bool = False) -> dict[str, Any]:
         """Run the full create pipeline on this document and return the saved row."""
-        self._bind()
-        result = await self.create_document(
-            self.doctype, self.data, self.user, ignore_required=ignore_required
-        )
-        self._replace_data(result)
+        original = self.data
+        result = await self._insert(ignore_required=ignore_required)
+        self._keep(original, result)
         return result
 
     async def save(self, *, ignore_required: bool = False) -> dict[str, Any]:
         """Run the full update pipeline on this document and return the saved row."""
-        self._bind()
         if self.id is None:
             raise ValueError(f"Cannot save {self.doctype}: document has no name")
-        result = await self.update_document(
-            self.doctype, self.id, self.data, self.user, ignore_required=ignore_required
-        )
-        self._replace_data(result)
+        original = self.data
+        result = await self._update(self.id, dict(original), ignore_required=ignore_required)
+        self._keep(original, result)
         return result
 
-    async def delete(self) -> None:
-        self._bind()
+    async def delete(self, *, replace_with: str | None = None) -> None:
+        """Run the full delete pipeline on this document.
+
+        ``replace_with`` - id of a surviving document (same DocType) that every
+        reference to this one is repointed to before it is removed.
+        """
         if self.id is None:
             raise ValueError(f"Cannot delete {self.doctype}: document has no name")
-        await self.delete_document(self.doctype, self.id, self.user)
+        original = self.data
+        try:
+            await self._delete(replace_with=replace_with)
+        finally:
+            self.data = original
 
     @classmethod
     async def load(
         cls,
         doctype: str,
-        name: str,
+        name: str | None = None,
         *,
         expand: list[str] | None = None,
         session: AsyncSession | None = None,
         engine: AsyncEngine | None = None,
         user: User | None = None,
-    ) -> Document:
+    ) -> BaseDocument:
         """Load a document as an instance of its registered controller."""
-        controller_cls = document_registry.get(doctype)
-        doc = controller_cls(doctype, {}, user=user, session=session, engine=engine)
-        doc._bind()
-        doc._replace_data(await doc.get_document(doctype, name, doc.user, expand=expand))
-        return doc
+        return await load_document(
+            doctype, name, expand=expand, session=session, engine=engine, user=user
+        )
 
     # Lifecycle hooks
 
@@ -332,6 +339,123 @@ class Document(
 
     async def validate(self) -> None:
         """Before every write. Call ``grunt.throw()`` to abort the save."""
+
+    async def publish_progress(
+        self,
+        processed: int,
+        total: int,
+        *,
+        message: str | None = None,
+        commit: bool = True,
+    ) -> None:
+        """Send an ``import_progress`` event to clients watching this document.
+
+        Also sets ``processed_rows``/``total_rows`` in ``self.data`` when the
+        DocType has those fields, and commits the session unless ``commit=False``.
+        The fields themselves are not written until the document is saved.
+        """
+        if "processed_rows" in self.data:
+            self.data["processed_rows"] = processed
+        if "total_rows" in self.data:
+            self.data["total_rows"] = total
+
+        if commit and self.session is not None:
+            await self.session.commit()
+
+        doc_id = self.data.get("name")
+        if not doc_id:
+            return
+
+        payload: dict[str, object] = {"processed": processed, "total": total}
+        if message is not None:
+            payload["message"] = message
+        try:
+            await manager.broadcast_doc(self.doctype, str(doc_id), "import_progress", payload)
+        except Exception:
+            log.exception("document.progress_broadcast_failed", doctype=self.doctype, doc=doc_id)
+
+    def __repr__(self) -> str:
+        return f"<{self.doctype} id={self.data.get('name', '?')!r}>"
+
+
+class Document(
+    DocumentWriteMixin,
+    DocumentTreeRPCMixin,
+    DocumentLinkRPCMixin,
+    DocumentExportRPCMixin,
+    DocumentHistoryRPCMixin,
+    DocumentCollaborationRPCMixin,
+    DocumentWorkflowRPCMixin,
+    DocumentMetaRPCMixin,
+    BaseDocument,
+):
+    """A document stored in its DocType's table - the default controller.
+
+    Subclass it and override the lifecycle hooks below (all async, all optional)::
+
+        class Invoice(Document):
+            amount: float
+            customer: str
+
+            async def validate(self) -> None:
+                if self.amount <= 0:
+                    grunt.throw("Сума повинна бути більше нуля")
+    """
+
+    # Lists
+
+    @classmethod
+    async def get_list(
+        cls,
+        doctype: str,
+        *,
+        session: AsyncSession,
+        user: User,
+        page: int = 1,
+        per_page: int = 20,
+        sort_by: str = "modified_at",
+        sort_order: str = "desc",
+        filters: dict[str, Any] | None = None,
+        search: str | None = None,
+        fields: list[str] | None = None,
+        cursor: str | None = None,
+        include_total: bool = True,
+        **kwargs: Any,
+    ) -> DocumentList:
+        """A page of the documents *user* may see, read from the DocType's table."""
+        from grunt.document.collection import table_list
+
+        return await table_list(
+            session,
+            await _meta(doctype),
+            user,
+            page=page,
+            per_page=per_page,
+            sort_by=sort_by,
+            sort_order=sort_order,
+            filters=filters,
+            search=search,
+            fields=fields,
+            cursor=cursor,
+            include_total=include_total,
+        )
+
+    @classmethod
+    async def get_count(
+        cls,
+        doctype: str,
+        *,
+        session: AsyncSession,
+        user: User,
+        filters: dict[str, Any] | None = None,
+        search: str | None = None,
+    ) -> int:
+        """How many documents *user* may see, under the same rules as :meth:`get_list`."""
+        from grunt.document.collection import table_count
+
+        return await table_count(
+            session, await _meta(doctype), user, filters=filters, search=search
+        )
 
     @classmethod
     async def list_filter_extra(
@@ -388,39 +512,55 @@ class Document(
         """Reorder child nodes when one ``sort_by`` field isn't enough."""
         return children
 
-    async def publish_progress(
-        self,
-        processed: int,
-        total: int,
-        *,
-        message: str | None = None,
-        commit: bool = True,
-    ) -> None:
-        """Send an ``import_progress`` event to clients watching this document.
 
-        Also sets ``processed_rows``/``total_rows`` in ``self.data`` when the
-        DocType has those fields, and commits the session unless ``commit=False``.
-        The fields themselves are not written until the document is saved.
-        """
-        if "processed_rows" in self.data:
-            self.data["processed_rows"] = processed
-        if "total_rows" in self.data:
-            self.data["total_rows"] = total
+def controller_class(dt: Any) -> type[BaseDocument]:
+    """The controller of the DocType *dt*.
 
-        if commit and self.session is not None:
-            await self.session.commit()
+    A virtual DocType without a controller of its own has no documents - it
+    gets ``BaseDocument``, not the table-backed default.
+    """
+    controller_cls = document_registry.get(dt.name)
+    if controller_cls is Document and dt.is_virtual:
+        return BaseDocument
+    return controller_cls
 
-        doc_id = self.data.get("name")
-        if not doc_id:
-            return
 
-        payload: dict[str, object] = {"processed": processed, "total": total}
-        if message is not None:
-            payload["message"] = message
-        try:
-            await manager.broadcast_doc(self.doctype, str(doc_id), "import_progress", payload)
-        except Exception:
-            log.exception("document.progress_broadcast_failed", doctype=self.doctype, doc=doc_id)
+async def new_document(
+    doctype: str,
+    data: dict[str, Any],
+    *,
+    user: User | None = None,
+    session: AsyncSession | None = None,
+    engine: AsyncEngine | None = None,
+) -> BaseDocument:
+    """An instance of *doctype*'s controller holding *data*, bound to the context."""
+    doc = controller_class(await _meta(doctype))(
+        doctype, data, user=user, session=session, engine=engine
+    )
+    doc._bind()
+    return doc
 
-    def __repr__(self) -> str:
-        return f"<{self.doctype} id={self.data.get('name', '?')!r}>"
+
+async def load_document(
+    doctype: str,
+    name: str | None = None,
+    *,
+    expand: list[str] | None = None,
+    session: AsyncSession | None = None,
+    engine: AsyncEngine | None = None,
+    user: User | None = None,
+) -> BaseDocument:
+    """The stored document *name* as an instance of its controller.
+
+    A singleton needs no *name*. *expand* - see ``load_from_db``.
+    """
+    dt = await _meta(doctype)
+    doc = controller_class(dt)(
+        doctype, {"name": name or doctype}, user=user, session=session, engine=engine
+    )
+    doc._bind()
+    doc._dt = dt
+    await doc.load_from_db(expand=expand)
+    if type(doc).on_load is not BaseDocument.on_load:
+        await doc.on_load()
+    return doc

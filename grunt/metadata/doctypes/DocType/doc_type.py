@@ -12,12 +12,14 @@ if TYPE_CHECKING:
     from collections.abc import Mapping
 
 import grunt
+from grunt import _
+from grunt.document.base import BaseDocument, Document, DocumentList
+from grunt.errors import not_found
 from grunt.metadata import store
 from grunt.metadata.compiler import get_table_name, sync_table
 from grunt.metadata.doctype import DocType
 from grunt.metadata.registry import doctype_registry
 from grunt.metadata.scaffold import export_doctype_files
-from grunt.metadata.virtual import VirtualDocType
 
 
 def _row_to_doc(row: Mapping[str, Any]) -> dict[str, Any]:
@@ -44,55 +46,52 @@ def _drop_default_table_name(dt: DocType) -> None:
         dt.table_name = None
 
 
-class DocTypeController(VirtualDocType):
-    lists_from_table = True
+class DocTypeController(BaseDocument):
+    """Single DocTypes are read from and written through the registry; lists
+    and counts query the DocType table like any table-backed DocType."""
 
-    def _session(self):
-        return grunt.get_session()
+    @classmethod
+    async def get_list(cls, doctype: str, **kwargs: Any) -> DocumentList:
+        return await Document.get_list(doctype, **kwargs)
 
-    async def get(self, doc_id: str, **kwargs: Any) -> dict[str, Any]:
-        row = await store.get_row(self._session(), doc_id)
-        return _row_to_doc(row) if row else {}
+    @classmethod
+    async def get_count(cls, doctype: str, **kwargs: Any) -> int:
+        return await Document.get_count(doctype, **kwargs)
 
-    async def create(self, data: dict[str, Any], **kwargs: Any) -> dict[str, Any]:
-        """Create a new DocType."""
-        dt = DocType(**data)
+    async def load_from_db(self, *, expand: list[str] | None = None) -> None:
+        row = await store.get_row(grunt.get_session(), str(self.name))
+        if row is None:
+            raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": self.name})
+        self.data = _row_to_doc(row)
+
+    async def db_insert(self) -> None:
+        """Register the new DocType, create its table and export its files."""
+        dt = DocType(**self.data)
         _drop_default_table_name(dt)
-        session = self._session()
+        session = grunt.get_session()
         engine = grunt.get_engine()
 
         if await doctype_registry.get_or_none(dt.name) is not None:
             raise ValueError(f"DocType '{dt.name}' already exists")
 
         await doctype_registry.register(dt, session, engine)
-
-        # Sync physical table if not virtual/child
         if not dt.is_virtual and not dt.is_child:
             await sync_table(dt, engine, session=session)
-
-        # Export to files if applicable
         export_doctype_files(dt, app_name=dt.app or None)
+        self.data = dt.model_dump()
 
-        return dt.model_dump()
-
-    async def update(self, doc_id: str, data: dict[str, Any], **kwargs: Any) -> dict[str, Any]:
-        """Update an existing DocType."""
-        dt = DocType(**data)
+    async def db_update(self) -> None:
+        """Update the DocType, sync its table and export its files."""
+        dt = DocType(**self.data)
         _drop_default_table_name(dt)
-        session = self._session()
+        session = grunt.get_session()
         engine = grunt.get_engine()
 
         await doctype_registry.update(dt, session, engine)
-
-        # Sync physical table if not virtual/child
         if not dt.is_virtual and not dt.is_child:
             await sync_table(dt, engine, session=session)
-
-        # Export to files
         export_doctype_files(dt, app_name=dt.app or None)
+        self.data = dt.model_dump()
 
-        return dt.model_dump()
-
-    async def delete(self, doc_id: str, **kwargs: Any) -> None:
-        """Delete a DocType."""
-        await doctype_registry.delete(doc_id, self._session())
+    async def db_delete(self) -> None:
+        await doctype_registry.delete(str(self.name), grunt.get_session())

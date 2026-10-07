@@ -50,13 +50,14 @@ async def test_count_of_virtual_doctype_uses_its_controller(ctx) -> None:
     from grunt.document.collection import count_documents
     from grunt.scripting.doctypes.Hook.hook import Hook
 
-    expected = await Hook("Hook", SYSTEM_USER).get_count()
-    assert await count_documents(ctx.get_session(), "Hook", SYSTEM_USER) == expected
+    session = ctx.get_session()
+    expected = await Hook.get_count("Hook", session=session, user=SYSTEM_USER)
+    assert await count_documents(session, "Hook", SYSTEM_USER) == expected
 
 
 @pytest.mark.asyncio
 async def test_count_of_doctype_comes_from_its_table(ctx) -> None:
-    """``DocType`` is served by a VirtualDocType controller for single documents,
+    """``DocType`` reads and writes single documents through the registry,
     but its definitions are rows of its own table - the count reads that table."""
     from grunt.auth.doctypes.User.user import SYSTEM_USER
     from grunt.document.collection import count_documents

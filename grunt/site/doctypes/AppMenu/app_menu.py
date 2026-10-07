@@ -11,7 +11,6 @@ from typing import Any
 import grunt
 from grunt import log
 from grunt.document.base import Document
-from grunt.document.virtual import is_virtual_listed, virtual_count
 
 
 def parse_count_filters(item: dict[str, Any]) -> dict[str, Any]:
@@ -85,15 +84,11 @@ class AppMenu(Document):
             filters = self._parse_filters(item)
             key = self._generate_count_key(link_to, filters)
 
-            if is_virtual_listed(dt, link_to):
-                counts[key] = await self._get_virtual_count(link_to, filters)
-                continue
-
             try:
                 counts[key] = await grunt.count(
                     link_to, filters=filters or None, respect_permissions=True
                 )
-            except Exception as e:  # table not built yet
+            except Exception as e:  # table not built yet, source unreachable
                 log.warning("workspace.count_error", doctype=link_to, error=str(e))
 
         return counts
@@ -103,14 +98,6 @@ class AppMenu(Document):
 
     def _generate_count_key(self, doctype: str, filters: dict[str, Any]) -> str:
         return count_key(doctype, filters)
-
-    async def _get_virtual_count(self, doctype: str, filters: dict[str, Any]) -> int:
-        """Fetch count for a Virtual DocType by calling its controller."""
-        try:
-            return await virtual_count(doctype, self.user, filters)
-        except Exception as e:
-            log.warning("workspace.virtual_count_error", doctype=doctype, error=str(e))
-            return 0
 
     def has_access(self, user: Any) -> bool:
         """Check if user has access to this workspace based on roles."""

@@ -19,7 +19,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
 # Operators a filter key may end with (``field__<op>``; no suffix = ``eq``).
-# Shared with in-memory filtering of virtual DocTypes (grunt.metadata.virtual).
+# Shared with in-memory filtering of virtual DocTypes (grunt.document.in_memory).
 # Ordered longest-first so multi-word suffixes (``__lte_or_null``) win over
 # their prefixes.
 FILTER_OPS = (
@@ -157,7 +157,7 @@ def build_clauses(table: Any, filters: dict[str, Any]) -> list[Any]:
     """WHERE clauses for a filter dict. Unknown columns are skipped.
 
     Virtual DocTypes filter in memory with the same syntax, see
-    ``VirtualDocType.apply_filters``.
+    ``grunt.document.in_memory.apply_filters``.
     """
     clauses: list[Any] = []
     for key, value in filters.items():

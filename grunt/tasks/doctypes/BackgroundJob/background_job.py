@@ -6,7 +6,9 @@ from typing import Any
 from fastapi import HTTPException, status
 
 from grunt import _, log
-from grunt.metadata.virtual import VirtualDocType
+from grunt.document.base import BaseDocument, DocumentList
+from grunt.document.in_memory import apply_filters, apply_search, apply_sort, build_response
+from grunt.errors import not_found
 from grunt.tasks.redis_introspect import (
     decode_message,
     entry_timestamp_ms,
@@ -17,46 +19,50 @@ from grunt.tasks.redis_introspect import (
 )
 
 
-class BackgroundJobController(VirtualDocType):
+class BackgroundJobController(BaseDocument):
     """Live view of in-flight (delivered, not yet acked) Redis Stream entries.
 
     Read-only except for ``delete``, which acks a stuck entry off the pending
     list - a manual "dismiss" for a job that will never finish on its own.
     """
 
+    @classmethod
     async def get_list(
-        self,
-        filters: dict[str, Any] | None = None,
+        cls,
+        doctype: str,
+        *,
         page: int = 1,
         per_page: int = 20,
         sort_by: str = "queued_at",
         sort_order: str = "desc",
+        filters: dict[str, Any] | None = None,
         search: str | None = None,
         **kwargs: Any,
-    ) -> dict[str, Any]:
-        rows, reason = await self._load_all()
+    ) -> DocumentList:
+        rows, reason = await cls._load_all()
 
         if search:
-            rows = self.apply_search(rows, search, ["task_name", "task_id", "consumer"])
+            rows = apply_search(rows, search, ["task_name", "task_id", "consumer"])
         if filters:
-            rows = self.apply_filters(rows, filters)
-        rows = self.apply_sort(rows, sort_by, sort_order)
+            rows = apply_filters(rows, filters)
+        rows = apply_sort(rows, sort_by, sort_order)
 
         extra_meta = (
             {"unavailable": True, "unavailable_message": unavailable_message(reason)}
             if reason
             else None
         )
-        return self.build_response(rows, page, per_page, extra_meta=extra_meta)
+        return build_response(rows, page, per_page, extra_meta=extra_meta)
 
-    async def get(self, doc_id: str, **kwargs: Any) -> dict[str, Any]:
+    async def load_from_db(self, *, expand: list[str] | None = None) -> None:
         rows, _reason = await self._load_all()
         for row in rows:
-            if row["name"] == doc_id:
-                return row
-        return {}
+            if row["name"] == self.name:
+                self.data = row
+                return
+        raise not_found(_("“%(name)s” not found") % {"name": self.name})
 
-    async def delete(self, doc_id: str, **kwargs: Any) -> None:
+    async def db_delete(self) -> None:
         """Ack the entry - removes it from the pending list without retrying it."""
         sb = stream_broker()
         if sb is None:
@@ -68,21 +74,10 @@ class BackgroundJobController(VirtualDocType):
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND, detail=_("Redis unavailable")
                 )
-            await conn.xack(sb.queue_name, sb.consumer_group_name, doc_id)
+            await conn.xack(sb.queue_name, sb.consumer_group_name, str(self.name))
 
-    async def create(self, data: dict[str, Any], **kwargs: Any) -> dict[str, Any]:
-        raise HTTPException(
-            status_code=status.HTTP_405_METHOD_NOT_ALLOWED,
-            detail=_("BackgroundJob is a live view of the queue — it can't be created directly"),
-        )
-
-    async def update(self, doc_id: str, data: dict[str, Any], **kwargs: Any) -> dict[str, Any]:
-        raise HTTPException(
-            status_code=status.HTTP_405_METHOD_NOT_ALLOWED,
-            detail=_("BackgroundJob is a live view of the queue — it can't be edited"),
-        )
-
-    async def _load_all(self) -> tuple[list[dict[str, Any]], str | None]:
+    @staticmethod
+    async def _load_all() -> tuple[list[dict[str, Any]], str | None]:
         """Returns ``(rows, unavailable_reason)`` - reason is ``None`` on a genuine empty list."""
         sb = stream_broker()
         if sb is None:

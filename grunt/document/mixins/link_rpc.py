@@ -118,10 +118,16 @@ class DocumentLinkRPCMixin:
 
         # Virtual DocType - delegate to its controller's get_list
         if dt.is_virtual:
-            from grunt.document.virtual import _get_virtual_controller
+            from grunt.document.base import controller_class
 
-            ctrl = _get_virtual_controller(doctype, grunt.get_user())
-            result = await ctrl.get_list(search=search, page=1, per_page=per_page) if ctrl else {}
+            result = await controller_class(dt).get_list(
+                doctype,
+                session=grunt.get_session(),
+                user=user,
+                search=search,
+                page=1,
+                per_page=per_page,
+            )
             title_field = dt.title_field or "name"
             items = []
             for row in result.get("data", []):

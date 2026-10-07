@@ -37,6 +37,8 @@ if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
     from sqlalchemy.sql import Select
 
+    from grunt.document.base import Document
+
 
 # doctype -> async fn(session, nodes, as_of_date) -> {node_id: display_title}
 #
@@ -137,7 +139,7 @@ class TreeService:
             explicit_sort_order=sort_order,
             fallback_field=title_col,
             fallback_if_missing=True,
-            controller_cls=document_registry.get(doctype),
+            controller_cls=_tree_controller(doctype),
         )
 
         select_cols = self._build_select_cols(
@@ -195,7 +197,7 @@ class TreeService:
 
         from grunt.document.base import Document
 
-        ctrl_cls = document_registry.get(doctype)
+        ctrl_cls = _tree_controller(doctype)
         if ctrl_cls.tree_sort_children is not Document.tree_sort_children:
             rows = await ctrl_cls.tree_sort_children(
                 session,
@@ -243,7 +245,7 @@ class TreeService:
         table = dt.table
         title_col = _title_field(dt)
 
-        ctrl_cls = document_registry.get(doctype)
+        ctrl_cls = _tree_controller(doctype)
         controller_filters = filters or {}
         sort_by, sort_order = await self._resolve_sort_config(
             session,
@@ -650,3 +652,11 @@ class TreeService:
 
 
 tree_service = TreeService()
+
+
+def _tree_controller(doctype: str) -> type[Document]:
+    """The controller whose tree hooks apply - a tree is always a table's."""
+    from grunt.document.base import Document
+
+    controller_cls = document_registry.get(doctype)
+    return controller_cls if issubclass(controller_cls, Document) else Document

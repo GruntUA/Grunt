@@ -17,6 +17,7 @@ import pytest
 from sqlalchemy import Column, Date, Integer, MetaData, String, Table, select
 
 from grunt.db.filters import FILTER_OPS, apply_filters, build_clauses, split_key
+from grunt.document.in_memory import apply_filters as filter_rows
 
 _META = MetaData()
 _TABLE = Table(
@@ -133,15 +134,13 @@ class TestApplyFilters:
         assert via_apply_filters == via_build_clauses
 
 
-class TestVirtualDocTypeInFilter:
-    """VirtualDocType.apply_filters mirrors build_clauses' in / nin operand parsing."""
+class TestInMemoryInFilter:
+    """In-memory apply_filters mirrors build_clauses' in / nin operand parsing."""
 
     ROWS = [{"s": "A"}, {"s": "B"}, {"s": "C"}]
 
     def _apply(self, filters):
-        from grunt.metadata.virtual import VirtualDocType
-
-        return [r["s"] for r in VirtualDocType("T").apply_filters(self.ROWS, filters)]
+        return [r["s"] for r in filter_rows(self.ROWS, filters)]
 
     def test_in_list_and_csv(self):
         assert self._apply({"s__in": ["A", "B"]}) == ["A", "B"]
@@ -151,13 +150,11 @@ class TestVirtualDocTypeInFilter:
         assert self._apply({"s__nin": ["A"]}) == ["B", "C"]
 
 
-class TestVirtualDocTypeYearFilter:
+class TestInMemoryYearFilter:
     ROWS = [{"d": "2021-12-31"}, {"d": "2022-01-01"}, {"d": "2022-12-31 23:59"}, {"d": None}]
 
     def _apply(self, filters):
-        from grunt.metadata.virtual import VirtualDocType
-
-        return [r["d"] for r in VirtualDocType("T").apply_filters(self.ROWS, filters)]
+        return [r["d"] for r in filter_rows(self.ROWS, filters)]
 
     def test_year(self):
         assert self._apply({"d__year": "2022"}) == ["2022-01-01", "2022-12-31 23:59"]
@@ -182,25 +179,20 @@ class TestSplitKey:
 def test_every_operator_is_handled_by_sql_and_virtual(op):
     """FILTER_OPS is the one list both backends are driven by — each operator
     must yield a SQL clause *and* be implemented for in-memory rows."""
-    from grunt.metadata.virtual import VirtualDocType
-
     value = "set" if op == "is" else "1"
     assert len(build_clauses(_TABLE, {f"qty__{op}": value})) == 1
-    VirtualDocType("T").apply_filters([{"qty": 1}], {f"qty__{op}": value})
+    filter_rows([{"qty": 1}], {f"qty__{op}": value})
 
 
 def test_virtual_rejects_unknown_operator():
-    from grunt.metadata.virtual import VirtualDocType
-
     with pytest.raises(ValueError, match="child_of"):
-        VirtualDocType("T").apply_filters([{"dept": "A"}], {"dept__child_of": "A"})
+        filter_rows([{"dept": "A"}], {"dept__child_of": "A"})
 
 
 @pytest.mark.parametrize("value", ["yes", "true", "1", True, "no", "false", "0", False])
 def test_virtual_isnull_reads_value_like_sql(value):
     from grunt.db.filters import is_truthy
-    from grunt.metadata.virtual import VirtualDocType
 
     rows = [{"qty": None}, {"qty": 1}]
     expected = [rows[0]] if is_truthy(value) else [rows[1]]
-    assert VirtualDocType("T").apply_filters(rows, {"qty__isnull": value}) == expected
+    assert filter_rows(rows, {"qty__isnull": value}) == expected

@@ -7,12 +7,11 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from grunt import log
-from grunt.metadata.virtual import VirtualDocType
 from grunt.startup.doctypes import _find_doctype_dirs
 from grunt.utils.strings import to_snake_case
 
 if TYPE_CHECKING:
-    from grunt.document.base import Document
+    from grunt.document.base import BaseDocument
 
 
 class DocumentRegistry:
@@ -24,14 +23,14 @@ class DocumentRegistry:
     """
 
     def __init__(self) -> None:
-        self._controllers: dict[str, type[Document]] = {}
+        self._controllers: dict[str, type[BaseDocument]] = {}
         # Lazy index: doctype name -> dotted module path to import
         self._index: dict[str, str] = {}
         self._overrides: dict[str, str] = {}
 
     # Eager registration (used for explicit overrides from hooks)
 
-    def register(self, doctype: str, controller: type[Document]) -> None:
+    def register(self, doctype: str, controller: type[BaseDocument]) -> None:
         """Register an already-imported controller class."""
         self._controllers[doctype] = controller
         log.debug("document.registered", doctype=doctype, controller=controller.__name__)
@@ -48,7 +47,7 @@ class DocumentRegistry:
 
     # Lazy get
 
-    def get(self, doctype: str) -> type[Document]:
+    def get(self, doctype: str) -> type[BaseDocument]:
         """Return the controller for a DocType, importing it on first access."""
         from grunt.document.base import Document
 
@@ -67,20 +66,21 @@ class DocumentRegistry:
         return Path(spec.origin).parent if spec and spec.origin else None
 
     def _import_controller(self, doctype: str, module_path: str) -> None:
-        """Import a module path and register the Document subclass found in it.
+        """Import a module path and register the controller class found in it.
 
         Supports two formats:
         - ``grunt.auth.doctypes.User.user``          -> scan module for Document subclass
         - ``myapp.module.MyController``              -> explicit class path (overrides)
 
-        Accepts both Document and VirtualDocType subclasses.
+        A controller is a subclass of ``Document`` or ``BaseDocument``.
         """
-        from grunt.document.base import Document
+        from grunt.document.base import BaseDocument, Document
 
         def _is_controller(obj) -> bool:
-            return inspect.isclass(obj) and (
-                (issubclass(obj, Document) and obj is not Document)
-                or (issubclass(obj, VirtualDocType) and obj is not VirtualDocType)
+            return (
+                inspect.isclass(obj)
+                and issubclass(obj, BaseDocument)
+                and obj not in (BaseDocument, Document)
             )
 
         # Check if it's an explicit class path (override format: "module.ClassName")
@@ -101,7 +101,7 @@ class DocumentRegistry:
                 )
                 return
 
-        # Scan module for Document or VirtualDocType subclass
+        # Scan module for a controller class
         try:
             module = importlib.import_module(module_path)
             for _name, obj in inspect.getmembers(module):

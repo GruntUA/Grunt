@@ -1,7 +1,7 @@
 """Virtual DocType controller - SQL Profiler Requests.
 
 Exposes the in-memory profiler ring buffer as a standard Grunt DocType.
-Read-only: list + get. Create/update/delete are not supported.
+Read-only: list + load. Insert/update/delete are not supported.
 """
 
 from __future__ import annotations
@@ -10,58 +10,42 @@ from typing import Any
 
 from grunt import _
 from grunt.db.profiler import get_recent_requests
-from grunt.metadata.virtual import VirtualDocType
+from grunt.document.base import BaseDocument, DocumentList
+from grunt.document.in_memory import apply_filters, apply_search, apply_sort, build_response
+from grunt.errors import not_found
 
 
-class SqlProfilerRequest(VirtualDocType):
+class SqlProfilerRequest(BaseDocument):
+    @classmethod
     async def get_list(
-        self,
-        filters: dict[str, Any] | None = None,
+        cls,
+        doctype: str,
+        *,
         page: int = 1,
         per_page: int = 20,
         sort_by: str = "duration_ms",
         sort_order: str = "desc",
+        filters: dict[str, Any] | None = None,
         search: str | None = None,
         **kwargs: Any,
-    ) -> dict[str, Any]:
+    ) -> DocumentList:
         rows = get_recent_requests(limit=200)
 
         if search:
-            rows = self.apply_search(rows, search, ["path", "method"])
+            rows = apply_search(rows, search, ["path", "method"])
         if filters:
-            rows = self.apply_filters(rows, filters)
-        rows = self.apply_sort(rows, sort_by, sort_order)
+            rows = apply_filters(rows, filters)
+        rows = apply_sort(rows, sort_by, sort_order)
 
-        response = self.build_response(rows, page, per_page)
-        response["data"] = [self._to_doc(r) for r in response["data"]]
-        return response
+        response = build_response(rows, page, per_page)
+        return DocumentList([cls._to_doc(r) for r in response], response.meta)
 
-    async def get(self, doc_id: str, **kwargs: Any) -> dict[str, Any]:
-        from fastapi import HTTPException, status
-
-        rows = get_recent_requests(limit=200)
-        for row in rows:
-            if row["request_id"] == doc_id:
-                return self._to_doc(row)
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=_("SqlProfilerRequest '%(doc_id)s' not found") % {"doc_id": doc_id},
-        )
-
-    async def create(self, data: dict[str, Any], **kwargs: Any) -> dict[str, Any]:
-        from fastapi import HTTPException, status
-
-        raise HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED, detail="Read-only")
-
-    async def update(self, doc_id: str, data: dict[str, Any], **kwargs: Any) -> dict[str, Any]:
-        from fastapi import HTTPException, status
-
-        raise HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED, detail="Read-only")
-
-    async def delete(self, doc_id: str, **kwargs: Any) -> None:
-        from fastapi import HTTPException, status
-
-        raise HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED, detail="Read-only")
+    async def load_from_db(self, *, expand: list[str] | None = None) -> None:
+        for row in get_recent_requests(limit=200):
+            if row["request_id"] == self.name:
+                self.data = self._to_doc(row)
+                return
+        raise not_found(_("SqlProfilerRequest '%(doc_id)s' not found") % {"doc_id": self.name})
 
     @staticmethod
     def _to_doc(row: dict[str, Any]) -> dict[str, Any]:

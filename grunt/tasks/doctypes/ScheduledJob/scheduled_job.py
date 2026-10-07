@@ -7,22 +7,29 @@ from apscheduler.triggers.cron import CronTrigger
 
 import grunt
 from grunt import _
-from grunt.metadata.virtual import VirtualDocType
+from grunt.document.base import BaseDocument, DocumentList
+from grunt.document.in_memory import build_response
+from grunt.errors import not_found
 
 
-class ScheduledJobController(VirtualDocType):
-    """Virtual DocType controller for Scheduled Jobs (ServerScript with Scheduler Event type)."""
+class ScheduledJobController(BaseDocument):
+    """Scheduled Jobs - ServerScripts of the Scheduler Event type.
 
+    No insert or update: the underlying ServerScript row also requires a
+    `script` body, which this view never collects - create or edit the
+    ServerScript itself (script_type="Scheduler Event").
+    """
+
+    @classmethod
     async def get_list(
-        self,
-        filters: dict[str, Any] | None = None,
+        cls,
+        doctype: str,
+        *,
         page: int = 1,
         per_page: int = 50,
-        sort_by: str = "name",
-        sort_order: str = "asc",
         search: str | None = None,
         **kwargs: Any,
-    ) -> dict[str, Any]:
+    ) -> DocumentList:
         """Get list of scheduled jobs from ServerScript."""
         rows = await grunt.db.get_all(
             "ServerScript",
@@ -37,53 +44,32 @@ class ScheduledJobController(VirtualDocType):
             rows = [r for r in rows if search.lower() in str(r.get("name", "")).lower()]
 
         job_names = [row["name"] for row in rows]
-        stats = await self._load_job_stats(job_names)
+        stats = await cls._load_job_stats(job_names)
         items = [_build_job(row, stats.get(row["name"], {})) for row in rows]
 
-        return self.build_response(items, page, per_page)
+        return build_response(items, page, per_page)
 
-    async def get(self, doc_id: str, **kwargs: Any) -> dict[str, Any]:
+    async def load_from_db(self, *, expand: list[str] | None = None) -> None:
         """Get single scheduled job by name."""
+        name = str(self.name)
         rows = await grunt.db.get_all(
             "ServerScript",
-            filters={"name": doc_id, "script_type": "Scheduler Event"},
+            filters={"name": name, "script_type": "Scheduler Event"},
             fields=["name", "is_enabled", "cron"],
             limit=1,
         )
         if not rows:
-            return {}
+            raise not_found(_("Scheduled job “%(name)s” not found") % {"name": name})
 
-        stats = await self._load_job_stats([doc_id])
-        return _build_job(rows[0], stats.get(doc_id, {}))
+        stats = await self._load_job_stats([name])
+        self.data = _build_job(rows[0], stats.get(name, {}))
 
-    async def create(self, data: dict[str, Any], **kwargs: Any) -> dict[str, Any]:
-        """Not supported - ServerScript.script has no field on this view.
-
-        ScheduledJob only exposes job_id/cron_expression/enabled; the underlying
-        ServerScript row also requires a `script` body, which this view never
-        collects. Create the ServerScript directly (script_type="Scheduler Event").
-        """
-        from fastapi import HTTPException, status
-
-        raise HTTPException(
-            status_code=status.HTTP_405_METHOD_NOT_ALLOWED,
-            detail=_("Create a ServerScript with script_type='Scheduler Event' instead"),
-        )
-
-    async def update(self, doc_id: str, data: dict[str, Any], **kwargs: Any) -> dict[str, Any]:
-        """Not supported - see create()."""
-        from fastapi import HTTPException, status
-
-        raise HTTPException(
-            status_code=status.HTTP_405_METHOD_NOT_ALLOWED,
-            detail=_("Edit the underlying ServerScript instead"),
-        )
-
-    async def delete(self, doc_id: str, **kwargs: Any) -> None:
+    async def db_delete(self) -> None:
         """Delete scheduled job by deleting the underlying ServerScript."""
-        await grunt.delete_doc("ServerScript", doc_id)
+        await grunt.delete_doc("ServerScript", str(self.name))
 
-    async def _load_job_stats(self, job_names: list[str]) -> dict[str, dict[str, Any]]:
+    @staticmethod
+    async def _load_job_stats(job_names: list[str]) -> dict[str, dict[str, Any]]:
         """Load last execution stats and run counts from ScheduledJobLog."""
         if not job_names:
             return {}

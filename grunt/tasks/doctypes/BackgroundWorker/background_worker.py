@@ -5,11 +5,13 @@ from typing import Any
 from fastapi import HTTPException, status
 
 from grunt import _, log
-from grunt.metadata.virtual import VirtualDocType
+from grunt.document.base import BaseDocument, DocumentList
+from grunt.document.in_memory import apply_filters, apply_search, apply_sort, build_response
+from grunt.errors import not_found
 from grunt.tasks.redis_introspect import redis_conn, s, stream_broker, unavailable_message
 
 
-class BackgroundWorkerController(VirtualDocType):
+class BackgroundWorkerController(BaseDocument):
     """Live view of the TaskIQ consumer group's members (``XINFO CONSUMERS``).
 
     Read-only except for ``delete``, which drops a dead consumer's
@@ -17,39 +19,43 @@ class BackgroundWorkerController(VirtualDocType):
     crashed and left an idle entry behind.
     """
 
+    @classmethod
     async def get_list(
-        self,
-        filters: dict[str, Any] | None = None,
+        cls,
+        doctype: str,
+        *,
         page: int = 1,
         per_page: int = 20,
         sort_by: str = "name",
         sort_order: str = "asc",
+        filters: dict[str, Any] | None = None,
         search: str | None = None,
         **kwargs: Any,
-    ) -> dict[str, Any]:
-        rows, reason = await self._load_all()
+    ) -> DocumentList:
+        rows, reason = await cls._load_all()
 
         if search:
-            rows = self.apply_search(rows, search, ["name"])
+            rows = apply_search(rows, search, ["name"])
         if filters:
-            rows = self.apply_filters(rows, filters)
-        rows = self.apply_sort(rows, sort_by, sort_order)
+            rows = apply_filters(rows, filters)
+        rows = apply_sort(rows, sort_by, sort_order)
 
         extra_meta = (
             {"unavailable": True, "unavailable_message": unavailable_message(reason)}
             if reason
             else None
         )
-        return self.build_response(rows, page, per_page, extra_meta=extra_meta)
+        return build_response(rows, page, per_page, extra_meta=extra_meta)
 
-    async def get(self, doc_id: str, **kwargs: Any) -> dict[str, Any]:
+    async def load_from_db(self, *, expand: list[str] | None = None) -> None:
         rows, _reason = await self._load_all()
         for row in rows:
-            if row["name"] == doc_id:
-                return row
-        return {}
+            if row["name"] == self.name:
+                self.data = row
+                return
+        raise not_found(_("“%(name)s” not found") % {"name": self.name})
 
-    async def delete(self, doc_id: str, **kwargs: Any) -> None:
+    async def db_delete(self) -> None:
         sb = stream_broker()
         if sb is None:
             raise HTTPException(
@@ -60,21 +66,10 @@ class BackgroundWorkerController(VirtualDocType):
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND, detail=_("Redis unavailable")
                 )
-            await conn.xgroup_delconsumer(sb.queue_name, sb.consumer_group_name, doc_id)
+            await conn.xgroup_delconsumer(sb.queue_name, sb.consumer_group_name, str(self.name))
 
-    async def create(self, data: dict[str, Any], **kwargs: Any) -> dict[str, Any]:
-        raise HTTPException(
-            status_code=status.HTTP_405_METHOD_NOT_ALLOWED,
-            detail=_("BackgroundWorker is a live view of the consumer group — it can't be created"),
-        )
-
-    async def update(self, doc_id: str, data: dict[str, Any], **kwargs: Any) -> dict[str, Any]:
-        raise HTTPException(
-            status_code=status.HTTP_405_METHOD_NOT_ALLOWED,
-            detail=_("BackgroundWorker is a live view of the consumer group — it can't be edited"),
-        )
-
-    async def _load_all(self) -> tuple[list[dict[str, Any]], str | None]:
+    @staticmethod
+    async def _load_all() -> tuple[list[dict[str, Any]], str | None]:
         """Returns ``(rows, unavailable_reason)`` - reason is ``None`` on a genuine empty list."""
         sb = stream_broker()
         if sb is None:

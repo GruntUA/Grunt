@@ -13,7 +13,6 @@ from grunt import _, log
 from grunt.config import settings
 from grunt.db.profiler import profile
 from grunt.document import collection
-from grunt.document.registry import document_registry
 from grunt.document.update_side_effects import write_bulk_delete_activity_log
 from grunt.errors import not_found
 from grunt.events import fire
@@ -32,7 +31,7 @@ if TYPE_CHECKING:
     from grunt.cache.document_cache import DocumentCache
     from grunt.cache.query_cache import QueryCache
     from grunt.db import GruntDB
-    from grunt.document.base import Document, DocumentList
+    from grunt.document.base import BaseDocument, DocumentList
 
 
 class DocumentAPI:
@@ -87,11 +86,26 @@ class DocumentAPI:
         except Exception as exc:
             log.warning("doc_cache.invalidate_failed", doctype=doctype, error=str(exc))
 
-    def _doc(self):
-        """Build a session/engine-bound host document to run single-doc pipeline methods on."""
-        from grunt.document.base import Document
+    async def _load(
+        self, doctype: str, id_or_name: str | None, user: Any, expand: list[str] | None = None
+    ) -> BaseDocument:
+        from grunt.document.base import load_document
 
-        return Document.bare(grunt.get_session(), require_engine())
+        return await load_document(
+            doctype,
+            id_or_name,
+            expand=expand,
+            session=grunt.get_session(),
+            engine=require_engine(),
+            user=user,
+        )
+
+    async def _new(self, doctype: str, data: dict[str, Any], user: Any) -> BaseDocument:
+        from grunt.document.base import new_document
+
+        return await new_document(
+            doctype, data, user=user, session=grunt.get_session(), engine=require_engine()
+        )
 
     @overload
     async def get_doc(
@@ -103,7 +117,7 @@ class DocumentAPI:
     ) -> dict[str, Any]: ...
 
     @overload
-    async def get_doc[D: Document](
+    async def get_doc[D: BaseDocument](
         self,
         doctype: type[D],
         id_or_name: str | None = None,
@@ -129,7 +143,7 @@ class DocumentAPI:
             name: str = getattr(doctype, "doctype", doctype.__name__)
             dt, user, hidden_fields = await read_guard(name)
             await fire("before_read", doctype=name, user=user, doc_id=id_or_name)
-            data = await self._doc().get_document(name, id_or_name, user, expand=expand)
+            data = (await self._load(name, id_or_name, user, expand)).data
             await permission_checker.require(user, dt, "read", data)
             data = apply_hidden_fields_to_doc(data, hidden_fields)
             await fire("after_read", doctype=name, user=user, doc=data)
@@ -137,7 +151,7 @@ class DocumentAPI:
 
         dt, user, hidden_fields = await read_guard(doctype)
         await fire("before_read", doctype=doctype, user=user, doc_id=id_or_name)
-        doc = await self._doc().get_document(doctype, id_or_name, user, expand=expand)
+        doc = (await self._load(doctype, id_or_name, user, expand)).data
         await permission_checker.require(user, dt, "read", doc)
         doc = apply_hidden_fields_to_doc(doc, hidden_fields)
         await fire("after_read", doctype=doctype, user=user, doc=doc)
@@ -153,7 +167,7 @@ class DocumentAPI:
     ) -> dict[str, Any] | None: ...
 
     @overload
-    async def find_doc[D: Document](
+    async def find_doc[D: BaseDocument](
         self,
         doctype: type[D],
         id_or_name: str | None = None,
@@ -174,14 +188,13 @@ class DocumentAPI:
                 return None
             raise
 
-    async def get_doc_instance(self, doctype: str, id_or_name: str) -> Document:
+    async def get_doc_instance(self, doctype: str, id_or_name: str) -> BaseDocument:
         """Fetch a document and return it as an instantiated controller."""
         dt, user, hidden_fields = await read_guard(doctype)
-        data = await self._doc().get_document(doctype, id_or_name, user)
-        await permission_checker.require(user, dt, "read", data)
-        data = apply_hidden_fields_to_doc(data, hidden_fields)
-        controller_cls = document_registry.get(doctype)
-        return controller_cls(doctype, data, user, grunt.get_session())
+        doc = await self._load(doctype, id_or_name, user)
+        await permission_checker.require(user, dt, "read", doc.data)
+        doc.data = apply_hidden_fields_to_doc(doc.data, hidden_fields)
+        return doc
 
     async def new_doc(
         self,
@@ -193,13 +206,12 @@ class DocumentAPI:
         """Create a new document and return it.
 
         Lifecycle hooks (notifications, assignment rules, backlink sync, activity
-        log) fire inside ``create_document`` itself, so they run identically here
-        and via ``Document.insert()`` - see ``DocumentWriteMixin.create_document``.
+        log) fire inside the insert pipeline itself, so they run identically here
+        and via ``Document.insert()`` - see ``DocumentLifecycleMixin._insert``.
         """
         _dt, user, _session = await write_guard(doctype, "create")
-        created = await self._doc().create_document(
-            doctype, data, user, ignore_required=ignore_required
-        )
+        doc = await self._new(doctype, dict(data), user)
+        created = await doc._insert(ignore_required=ignore_required)
         await self._invalidate_list_cache(doctype, created.get("name"))
         try:
             _, _, hidden_fields = await read_guard(doctype)
@@ -223,12 +235,11 @@ class DocumentAPI:
     ) -> dict[str, Any]:
         """Update an existing document and return the updated version.
 
-        See :meth:`new_doc` - lifecycle hooks fire inside ``update_document``.
+        See :meth:`new_doc` - lifecycle hooks fire inside the update pipeline.
         """
         _dt, user, _session = await write_guard(doctype, "write")
-        updated = await self._doc().update_document(
-            doctype, id_or_name, data, user, ignore_required=ignore_required
-        )
+        doc = await self._new(doctype, {}, user)
+        updated = await doc._update(id_or_name, data, ignore_required=ignore_required)
         await self._invalidate_list_cache(doctype, id_or_name)
         _, _, hidden_fields = await read_guard(doctype)
         return apply_hidden_fields_to_doc(updated, hidden_fields)
@@ -238,13 +249,14 @@ class DocumentAPI:
     ) -> None:
         """Delete a document.
 
-        See :meth:`new_doc` - lifecycle hooks fire inside ``delete_document``.
+        See :meth:`new_doc` - lifecycle hooks fire inside the delete pipeline.
 
         ``replace_with`` repoints every reference to the deleted document at
         this surviving document of the same DocType before removal.
         """
         _dt, user, _session = await write_guard(doctype, "delete")
-        await self._doc().delete_document(doctype, id_or_name, user, replace_with)
+        doc = await self._new(doctype, {"name": id_or_name}, user)
+        await doc._delete(replace_with=replace_with)
         await self._invalidate_list_cache(doctype, id_or_name)
 
     async def rename_doc(self, doctype: str, old_id: str, new_id: str) -> dict[str, Any]:
@@ -561,7 +573,9 @@ class DocumentAPI:
         user = require_user()
         cache = getattr(self, "query_cache", None)
         cache_key: str | None = None
-        if settings.query_cache_enabled and cache is not None:
+        # A virtual DocType's source changes outside the pipeline - never cached.
+        dt = await grunt.get_meta(doctype)
+        if settings.query_cache_enabled and cache is not None and dt and not dt.is_virtual:
             cache_key = cache.build_count_key(
                 doctype=doctype, user_email=getattr(user, "email", ""), filters=filters
             )

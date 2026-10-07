@@ -8,7 +8,8 @@ import pytest
 
 from grunt.assignment import assignment_service
 from grunt.assignment.doctypes.AssignmentLog.assignment_log import list_logs
-from grunt.assignment.doctypes.AssignmentRule.assignment_rule import AssignmentRule, test_rule
+from grunt.assignment.doctypes.AssignmentRule import assignment_rule
+from grunt.assignment.doctypes.AssignmentRule.assignment_rule import AssignmentRule
 
 
 def _match(doc: dict, filters: dict) -> bool:
@@ -74,7 +75,7 @@ class TestAssignmentAPI:
 
         # 2. Test the rule
         test_doc = {"status": "Draft", "amount": 100}
-        data = await test_rule(rule_id=rule["name"], test_doc=test_doc)
+        data = await assignment_rule.test_rule(rule_id=rule["name"], test_doc=test_doc)
 
         assert data["matched"] is True
         assert data["will_assign_to"] == ["admin@grunt.local"]
