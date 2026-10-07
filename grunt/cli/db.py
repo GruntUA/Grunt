@@ -30,7 +30,6 @@ def db_migrate(dry_run: bool, site: str | None, no_alembic: bool) -> None:
     async def _run() -> list[str]:
         from taskiq import InMemoryBroker
 
-        from grunt.db.base import metadata
         from grunt.metadata.compiler import SA_METADATA, sync_table
         from grunt.metadata.registry import doctype_registry
         from grunt.site.manager import current_site, site_manager
@@ -38,7 +37,6 @@ def db_migrate(dry_run: bool, site: str | None, no_alembic: bool) -> None:
             apply_doctype_overrides,
             load_core_doctypes,
             load_core_fixtures,
-            populate_system_doctypes,
             seed_grunt_workspace,
             seed_system_settings,
             sync_installed_apps,
@@ -64,38 +62,32 @@ def db_migrate(dry_run: bool, site: str | None, no_alembic: bool) -> None:
                     eng = site_manager.get_engine(site_name)
                     maker = site_manager.get_session_maker(site_name)
 
-                    # 1. System ORM tables
-                    click.echo("  [1/5] System tables (metadata.create_all)...")
-                    async with eng.begin() as conn:
-                        await conn.run_sync(metadata.create_all)
-
-                    # 2. Shared infrastructure tables (MultiLink junction, etc.)
-                    click.echo("  [2/5] Infrastructure tables (SA_METADATA)...")
+                    # 1. Shared infrastructure tables (MultiLink junction, etc.)
+                    click.echo("  [1/4] Infrastructure tables (SA_METADATA)...")
                     async with eng.begin() as conn:
                         await conn.run_sync(SA_METADATA.create_all)
 
-                    # 3. Alembic history - schema patches on top of create_all.
+                    # 2. Alembic history - schema/data patches for existing sites.
                     #    Fresh site -> stamp head; existing -> upgrade. Not
                     #    offline-previewable, so --dry-run skips it.
                     if no_alembic or dry_run:
                         why = "--no-alembic" if no_alembic else "dry-run"
-                        click.echo(f"  [3/5] Alembic: skipped ({why}).")
+                        click.echo(f"  [2/4] Alembic: skipped ({why}).")
                     else:
                         from grunt.db.alembic_utils import sync_site
 
                         db_url = site_manager.get_database_url(site_name)
                         outcome = await asyncio.to_thread(sync_site, db_url)
-                        click.echo(f"  [3/5] Alembic — {outcome}.")
+                        click.echo(f"  [2/4] Alembic — {outcome}.")
 
-                    # 4. DocType tables
-                    click.echo("  [4/5] DocType tables (sync_table)...")
+                    # 3. DocType tables
+                    click.echo("  [3/4] DocType tables (sync_table)...")
                     async with maker() as session:
                         await load_core_doctypes(session, sync_db=True)
                         await apply_doctype_overrides(session, eng, sync_db=True)
                         # Hydrate Studio-created DocTypes too - list_all()'s
                         # lazy branch only fires once _known_names is populated.
                         await doctype_registry.load_all(session)
-                        await populate_system_doctypes(session, eng)
 
                         all_dts = await doctype_registry.list_all()
 
@@ -122,9 +114,9 @@ def db_migrate(dry_run: bool, site: str | None, no_alembic: bool) -> None:
 
                     # 4. Seed fixtures (skip on dry-run)
                     if dry_run:
-                        click.echo("  [5/5] Seed fixtures: skipped (dry-run).")
+                        click.echo("  [4/4] Seed fixtures: skipped (dry-run).")
                     else:
-                        click.echo("  [5/5] Seed fixtures...")
+                        click.echo("  [4/4] Seed fixtures...")
                         async with maker() as session:
                             await seed_system_settings(session, eng)
                             await load_core_fixtures(session, eng)

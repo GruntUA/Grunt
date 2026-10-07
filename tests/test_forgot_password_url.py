@@ -36,7 +36,7 @@ def _patched_user(monkeypatch):
         return "TOK123"
 
     monkeypatch.setattr(user_mod, "get_user_by_email", _get_user_by_email)
-    monkeypatch.setattr("grunt.auth.service.create_password_reset_token", _make_token)
+    monkeypatch.setattr(user_mod, "create_password_reset_token", _make_token)
 
 
 async def _queued_bodies(ctx) -> tuple[str, str]:

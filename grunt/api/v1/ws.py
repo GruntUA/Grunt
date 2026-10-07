@@ -55,9 +55,7 @@ class ConnectionManager:
         await ws.accept(subprotocol=subprotocol)
         self._connections.setdefault(channel, []).append(ws)
         await self.ensure_redis_listener()
-        log.debug(
-            "ws.connect", channel=channel, ip=client_ip(ws), total=self._total_connections()
-        )
+        log.debug("ws.connect", channel=channel, ip=client_ip(ws), total=self._total_connections())
 
     def disconnect(self, ws: WebSocket, channel: str) -> None:
         conns = self._connections.get(channel, [])

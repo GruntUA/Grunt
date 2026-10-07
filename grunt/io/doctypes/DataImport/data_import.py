@@ -13,7 +13,7 @@ from grunt.io.importers.registry import get_importer_for_file
 class DataImport(Document):
     """DocType controller for DataImport."""
 
-    async def get_preview(self) -> dict[str, Any]:
+    async def get_import_preview(self) -> dict[str, Any]:
         """Extract headers and first 5 data rows for column mapping."""
         file_path, file_name = await self._resolve_file_path()
         data = self._read_file(file_path, file_name, limit=6)  # header + 5 rows
@@ -214,7 +214,7 @@ class DataImport(Document):
         `Path(self.file).exists()`) is a path-traversal / arbitrary local
         file read: `{"file": "/etc/passwd"}` (or any other server-local
         path readable by the app process) would be "imported" and its
-        contents surfaced back through get_preview()'s headers/rows.
+        contents surfaced back through get_import_preview()'s headers/rows.
         """
         file_id = parse_qs(urlparse(self.file).query).get("file_id", [None])[0]
         if file_id:

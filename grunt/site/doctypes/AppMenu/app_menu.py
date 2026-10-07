@@ -11,7 +11,7 @@ from typing import Any
 import grunt
 from grunt import log
 from grunt.document.base import Document
-from grunt.document.virtual import is_virtual_routed, virtual_count
+from grunt.document.virtual import is_virtual_listed, virtual_count
 
 
 def parse_count_filters(item: dict[str, Any]) -> dict[str, Any]:
@@ -85,7 +85,7 @@ class AppMenu(Document):
             filters = self._parse_filters(item)
             key = self._generate_count_key(link_to, filters)
 
-            if is_virtual_routed(dt, link_to):
+            if is_virtual_listed(dt, link_to):
                 counts[key] = await self._get_virtual_count(link_to, filters)
                 continue
 

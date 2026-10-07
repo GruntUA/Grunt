@@ -43,14 +43,24 @@ async def test_workspace_items_carry_count_filters_and_key(ctx) -> None:
 
 
 @pytest.mark.asyncio
-async def test_count_of_virtual_routed_doctype_uses_its_controller(ctx) -> None:
-    """``DocType`` is stored as is_virtual=False but served by a VirtualDocType
-    controller - its sidebar badge must come from that controller, not from
+async def test_count_of_virtual_doctype_uses_its_controller(ctx) -> None:
+    """A virtual DocType's sidebar badge comes from its controller, not from
     the table count path (which crashed on ``list_filter_extra``)."""
     from grunt.auth.doctypes.User.user import SYSTEM_USER
     from grunt.document.collection import count_documents
+    from grunt.scripting.doctypes.Hook.hook import Hook
 
-    from grunt.metadata.doctypes.DocType.doc_type import DocTypeController
+    expected = await Hook("Hook", SYSTEM_USER).get_count()
+    assert await count_documents(ctx.get_session(), "Hook", SYSTEM_USER) == expected
 
-    expected = await DocTypeController("DocType", SYSTEM_USER).get_count()
-    assert await count_documents(ctx.get_session(), "DocType", SYSTEM_USER) == expected
+
+@pytest.mark.asyncio
+async def test_count_of_doctype_comes_from_its_table(ctx) -> None:
+    """``DocType`` is served by a VirtualDocType controller for single documents,
+    but its definitions are rows of its own table - the count reads that table."""
+    from grunt.auth.doctypes.User.user import SYSTEM_USER
+    from grunt.document.collection import count_documents
+    from grunt.metadata import store
+
+    session = ctx.get_session()
+    assert await count_documents(session, "DocType", SYSTEM_USER) == len(await store.names(session))

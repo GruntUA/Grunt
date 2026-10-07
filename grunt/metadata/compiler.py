@@ -313,7 +313,7 @@ def _backfill_default(field: Any) -> Any:
         return None
     try:
         return field.coerce(field.default)
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         return None
 
 
@@ -455,7 +455,7 @@ def _sync_indexes(insp: Any, connection: Any, table: Table) -> None:
 
 async def sync_table(
     doctype: DocType,
-    async_engine: AsyncEngine,
+    async_engine: AsyncEngine | None,
     session: AsyncSession | None = None,
 ) -> None:
     """Apply DocType changes to the physical database.
@@ -493,5 +493,7 @@ async def sync_table(
         conn = await session.connection()
         await conn.run_sync(_sync)
     else:
+        if async_engine is None:
+            raise ValueError("sync_table needs an engine or a session")
         async with async_engine.begin() as conn:
             await conn.run_sync(_sync)

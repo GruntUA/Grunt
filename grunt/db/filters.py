@@ -11,7 +11,7 @@ import operator
 from datetime import date, datetime
 from typing import TYPE_CHECKING, Any
 
-from sqlalchemy import Date, String, and_, false, or_
+from sqlalchemy import Date, String, and_, cast, false, or_
 
 from grunt.db.types import UtcDateTime
 
@@ -124,6 +124,11 @@ def _year_clause(col: Any, value: Any) -> Any:
     return and_(col >= lo, col < hi)
 
 
+def _as_text(col: Any) -> Any:
+    """LIKE needs a string column - a number or date is matched by its text."""
+    return col if isinstance(col.type, String) else cast(col, String)
+
+
 # Operators whose value is compared with the column, so ISO date strings
 # have to be parsed into date/datetime first.
 _COMPARISONS = frozenset({"eq", "ne", "neq", "gt", "gte", "lt", "lte", "lte_or_null"})
@@ -137,9 +142,9 @@ _CLAUSES: dict[str, Callable[[Any, Any], Any]] = {
     "lt": operator.lt,
     "lte": operator.le,
     "lte_or_null": lambda col, v: or_(col <= v, col.is_(None)),
-    "like": lambda col, v: col.like(f"%{v}%"),
-    "ilike": lambda col, v: col.ilike(f"%{v}%"),
-    "nlike": lambda col, v: or_(col.is_(None), ~col.ilike(f"%{v}%")),
+    "like": lambda col, v: _as_text(col).like(f"%{v}%"),
+    "ilike": lambda col, v: _as_text(col).ilike(f"%{v}%"),
+    "nlike": lambda col, v: or_(col.is_(None), ~_as_text(col).ilike(f"%{v}%")),
     "in": lambda col, v: col.in_(as_list(v)),
     "nin": lambda col, v: col.not_in(as_list(v)),
     "isnull": lambda col, v: col.is_(None) if is_truthy(v) else col.isnot(None),

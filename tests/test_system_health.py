@@ -95,11 +95,17 @@ async def test_missing_app_dependency_is_reported(tmp_path, monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_unregistered_scheduler_job_is_reported(ctx, monkeypatch):
+async def test_unregistered_scheduler_job_is_reported(ctx):
     from grunt.tasks import scheduler
 
-    monkeypatch.setattr(scheduler, "failed_jobs", {})
-    scheduler._add_scheduled_job("no_such_app.tasks.nope", "0 8 * * *")
-    rows = await health.check_scheduler()
+    # health holds a reference to this very dict - mutate it, don't replace it.
+    saved = dict(scheduler.failed_jobs)
+    scheduler.failed_jobs.clear()
+    try:
+        scheduler._add_scheduled_job("no_such_app.tasks.nope", "0 8 * * *")
+        rows = await health.check_scheduler()
+    finally:
+        scheduler.failed_jobs.clear()
+        scheduler.failed_jobs.update(saved)
     [bad] = [r for r in rows if r["check"] == "Незареєстровані задачі"]
     assert bad["status"] == "Error" and "no_such_app.tasks.nope" in bad["hint"]

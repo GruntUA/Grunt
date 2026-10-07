@@ -15,7 +15,6 @@ from sqlalchemy.ext.asyncio import (
 )
 
 from grunt.config import settings
-from grunt.db.base import metadata
 from grunt.db.session import get_engine as _get_engine_dep
 from grunt.db.session import get_session
 from grunt.main import app
@@ -71,9 +70,6 @@ async def setup_db():
     """Create tables before each test, drop after. Clear registry."""
     site_token = current_site.set(_TEST_SITE)
     try:
-        async with test_engine.begin() as conn:
-            await conn.run_sync(metadata.drop_all)
-            await conn.run_sync(metadata.create_all)
         doctype_registry.reset()
 
         # Tables were just dropped/recreated directly (not through
@@ -158,7 +154,6 @@ async def setup_db():
         async with test_engine.begin() as conn:
             await conn.run_sync(compiled_metadata.drop_all)
             await conn.run_sync(SA_METADATA.drop_all)
-            await conn.run_sync(metadata.drop_all)
 
         # Remove dynamic doctype tables from the compiled-table MetaData; next
         # test's setup_db rebuilds them from scratch.

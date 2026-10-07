@@ -10,7 +10,7 @@ instance, specifically blocks file I/O). The old implementation did
 resolve `self.file` as a real uploaded File reference — so
 `{"file": "/etc/passwd"}` (or any other server-local path readable by the
 app process, e.g. a `.env` with SECRET_KEY) would be "imported" and its
-contents surfaced back through get_preview()'s headers/rows.
+contents surfaced back through get_import_preview()'s headers/rows.
 """
 
 from __future__ import annotations

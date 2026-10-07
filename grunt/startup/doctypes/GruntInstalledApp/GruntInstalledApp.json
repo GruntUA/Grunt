@@ -16,7 +16,8 @@
       "fieldname": "version",
       "label": "Version",
       "fieldtype": "Text",
-      "in_list_view": true
+      "in_list_view": true,
+      "default": "0.1.0"
     },
     {
       "fieldname": "installed_at",

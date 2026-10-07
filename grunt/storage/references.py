@@ -67,7 +67,8 @@ async def claim_referenced_files(**kwargs: Any) -> None:
     ids = await referenced_file_ids(doctype, doc)
     if not ids:
         return
-    if meta.public_attachments and (not meta.is_published_field or doc.get(meta.is_published_field)):
+    published = not meta.is_published_field or doc.get(meta.is_published_field)
+    if meta.public_attachments and published:
         await _publish(ids, user)
     claimed = await grunt.db.bulk_update(
         "File",
@@ -90,7 +91,9 @@ async def _publish(ids: set[str], user: Any) -> None:
     meta = await grunt.get_meta("File")
     if meta is None:
         return
-    rows = await grunt.db.get_all("File", filters={"name__in": sorted(ids)}, fields=["*"], limit=None)
+    rows = await grunt.db.get_all(
+        "File", filters={"name__in": sorted(ids)}, fields=["*"], limit=None
+    )
     readable = [
         r["name"]
         for r in rows

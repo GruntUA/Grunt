@@ -34,7 +34,12 @@ from grunt.document.update_side_effects import (
     run_bulk_before_delete_hooks,
     run_bulk_delete_writes,
 )
-from grunt.document.virtual import is_virtual_routed, virtual_count, virtual_list
+from grunt.document.virtual import (
+    is_virtual_listed,
+    is_virtual_routed,
+    virtual_count,
+    virtual_list,
+)
 from grunt.metadata.compiler import MULTI_LINK_TABLE
 from grunt.metadata.registry import doctype_registry
 from grunt.permissions.query import apply_permission_filter
@@ -102,10 +107,11 @@ async def _resolve_list_filter_extra(
     table: Any,
 ) -> Any | None:
     """Return the controller's ``list_filter_extra`` WHERE clause, if overridden."""
-    controller_cls = document_registry.get(doctype_name)
-    if controller_cls.list_filter_extra is Document.list_filter_extra:
+    # A VirtualDocType controller listing from its table has no such hook.
+    hook = getattr(document_registry.get(doctype_name), "list_filter_extra", None)
+    if hook is None or hook == Document.list_filter_extra:
         return None
-    return await controller_cls.list_filter_extra(session, filters or {}, table)
+    return await hook(session, filters or {}, table)
 
 
 async def _apply_where(
@@ -258,7 +264,7 @@ async def list_documents(
         )
 
     # Virtual DocType or VirtualDocType controller - delegate to sub-module
-    if is_virtual_routed(dt, doctype_name):
+    if is_virtual_listed(dt, doctype_name):
         return await virtual_list(
             doctype_name, user, page, per_page, sort_by, sort_order, filters, search
         )
@@ -341,7 +347,7 @@ async def count_documents(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=_("DocType “%(doctype)s” not found") % {"doctype": doctype_name},
         )
-    if is_virtual_routed(dt, doctype_name):
+    if is_virtual_listed(dt, doctype_name):
         # Virtual DocTypes own their storage - the controller counts its rows.
         return await virtual_count(doctype_name, user, filters)
 
@@ -383,9 +389,14 @@ async def field_years(
             detail=_("DocType “%(doctype)s” not found") % {"doctype": doctype_name},
         )
     field = dt.get_field(fieldname)
-    if is_virtual_routed(dt, doctype_name) or field is None or field.fieldtype not in (
-        "Date",
-        "Datetime",
+    if (
+        is_virtual_listed(dt, doctype_name)
+        or field is None
+        or field.fieldtype
+        not in (
+            "Date",
+            "Datetime",
+        )
     ):
         return []
 

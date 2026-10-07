@@ -39,7 +39,6 @@ from sqlalchemy.ext.asyncio import (
 import grunt
 from grunt.auth.doctypes.User.user import SYSTEM_USER
 from grunt.config import settings
-from grunt.db.base import metadata
 from grunt.db.session import get_engine as _get_engine_dep
 from grunt.db.session import get_session
 from grunt.document.registry import document_registry
@@ -124,9 +123,6 @@ def make_app_fixtures(app_dir: Path, app_name: str) -> dict[str, Any]:
         """
         site_token = current_site.set(_TEST_SITE)
         try:
-            async with test_engine.begin() as conn:
-                await conn.run_sync(metadata.drop_all)
-                await conn.run_sync(metadata.create_all)
             doctype_registry.reset()
 
             compiled_metadata = get_compiled_metadata()
@@ -159,7 +155,6 @@ def make_app_fixtures(app_dir: Path, app_name: str) -> dict[str, Any]:
             async with test_engine.begin() as conn:
                 await conn.run_sync(compiled_metadata.drop_all)
                 await conn.run_sync(SA_METADATA.drop_all)
-                await conn.run_sync(metadata.drop_all)
 
             to_remove = [t for t in compiled_metadata.tables if t.startswith("grunt_")]
             for name in to_remove:

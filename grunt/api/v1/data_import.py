@@ -22,7 +22,7 @@ async def get_import_preview(data_import_id: str) -> dict[str, Any]:
     """Return column headers, preview rows, and auto-suggested field mapping."""
 
     di_doc = cast("DataImport", await grunt.get_doc_instance("DataImport", data_import_id))
-    return await di_doc.get_preview()
+    return await di_doc.get_import_preview()
 
 
 @grunt.whitelist()

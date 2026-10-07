@@ -32,7 +32,9 @@ async def test_internal_and_odd_links_are_refused(url):
 
 
 def test_filename_from_disposition_or_path():
-    assert remote._filename('attachment; filename="Рішення 1.docx"', "https://x/y") == "Рішення 1.docx"
+    assert (
+        remote._filename('attachment; filename="Рішення 1.docx"', "https://x/y") == "Рішення 1.docx"
+    )
     assert remote._filename("attachment; filename*=UTF-8''%D0%90.pdf", "https://x/y") == "А.pdf"
     assert remote._filename(None, "https://x/files/%D0%91.doc?v=1") == "Б.doc"
     assert remote._filename(None, "https://x/") == "download"
@@ -58,7 +60,9 @@ async def test_download_follows_redirects_and_guesses_type_by_name(ctx, storage,
     def handler(request: httpx.Request) -> httpx.Response:
         if request.url.path == "/go":
             return httpx.Response(302, headers={"location": "/files/decision.docx"})
-        return httpx.Response(200, content=b"PK docx bytes", headers={"content-type": "application/octet-stream"})
+        return httpx.Response(
+            200, content=b"PK docx bytes", headers={"content-type": "application/octet-stream"}
+        )
 
     _mock_client(monkeypatch, handler)
     row = await remote.fetch_file("https://example.com/go")

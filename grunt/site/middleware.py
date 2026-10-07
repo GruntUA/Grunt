@@ -20,7 +20,7 @@ async def _apply_hot_reload_if_triggered(site: str) -> None:
     present (written by `grunt db migrate` / `grunt doctype sync`).
 
     Clearing the DocType cache makes the next lazy-load re-read the DocType's
-    *stored* JSON blob (grunt_meta_doctype), which is the single source of
+    *stored* JSON definition (DocType table), which is the single source of
     truth for `permissions` too (edited in the Studio DocType builder,
     persisted in that blob); the compiled Tables go too, or queries would
     keep the columns of before the migration.

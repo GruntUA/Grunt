@@ -1,7 +1,8 @@
-"""Alembic env.py - configured for Grunt system tables.
+"""Alembic env.py - hand-written schema/data patches for existing sites.
 
 Reads database_url from grunt.config.settings so the URL lives in .env only.
-target_metadata points to the shared MetaData that includes all system tables.
+Tables themselves come from DocType JSON (sync_table), so there is no
+target_metadata and autogenerate is not used.
 """
 
 from logging.config import fileConfig
@@ -11,11 +12,7 @@ from sqlalchemy import engine_from_config, pool
 
 # Grunt imports
 from grunt.config import settings
-
-# Ensure system table definitions are imported so metadata knows about them
-from grunt.db import system_tables as _system_tables  # noqa: F401
 from grunt.db.alembic_utils import async_url_to_sync
-from grunt.db.base import metadata
 from grunt.site.manager import site_manager
 
 # Alembic config
@@ -36,7 +33,7 @@ config.set_main_option("sqlalchemy.url", db_url)
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-target_metadata = metadata
+target_metadata = None
 
 
 def run_migrations_offline() -> None:

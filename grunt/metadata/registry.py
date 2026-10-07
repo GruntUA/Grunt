@@ -1,6 +1,7 @@
 """DocType Registry - in-memory cache of DocType definitions with lazy loading.
 
-Source of truth: ``grunt_meta_doctype`` table (JSON column ``data``).
+Source of truth: the DocType DocType's own table (JSON column ``definition``,
+see :mod:`grunt.metadata.store`).
 
 Startup behaviour
 * Core/system DocTypes are loaded eagerly (they need table sync on first run).
@@ -18,12 +19,11 @@ import re
 from typing import TYPE_CHECKING
 
 from fastapi import HTTPException, status
-from sqlalchemy import delete, insert, select, update
 from sqlalchemy.exc import IntegrityError
 
 from grunt import _, log
-from grunt.db.system_tables import GruntMetaDoctype
 from grunt.local import _session_ctx
+from grunt.metadata import store
 from grunt.metadata.compiler import invalidate_table_cache, sync_table
 from grunt.metadata.doctype import DocType
 from grunt.metadata.field import DocField
@@ -188,18 +188,17 @@ class DocTypeRegistry:
         loading their data.
 
         Call this at startup instead of :meth:`load_all`. Full definitions -
-        core or user - are loaded lazily from ``grunt_meta_doctype`` on first
+        core or user - are loaded lazily from the DocType table on first
         :meth:`get`. Schema/definition merging from bundled core JSON only
         happens via ``grunt db migrate``, which persists the merged result
-        into ``grunt_meta_doctype`` so the server never needs to touch the
+        into the DocType table so the server never needs to touch the
         JSON files at runtime.
 
-        Swallows a missing/not-yet-migrated ``grunt_meta_doctype`` table so a
+        Swallows a missing/not-yet-migrated DocType table so a
         brand-new site can still boot before its first ``grunt db migrate``.
         """
         try:
-            result = await session.execute(select(GruntMetaDoctype.c.name))
-            all_names = {row[0] for row in result}
+            all_names = await store.names(session)
         except Exception:
             log.info("registry.prefetch_names_table_missing", hint="run `grunt db migrate` first")
             all_names = set()
@@ -219,14 +218,11 @@ class DocTypeRegistry:
         available synchronously. For the web server, prefer
         :meth:`prefetch_names` + lazy loading via :meth:`get`.
         """
-        result = await session.execute(select(GruntMetaDoctype))
-        rows = result.mappings().all()
-
-        for row in rows:
-            if row["name"] in self._doctypes:
+        for definition in await store.all_definitions(session):
+            if definition.get("name") in self._doctypes:
                 continue  # already loaded (core doctype)
             try:
-                dt = DocType.model_validate(row["data"])
+                dt = DocType.model_validate(definition)
                 # Mirrors _lazy_load: a stale cached Table (compiler.py's
                 # _TABLE_CACHE) would keep excluding columns for fields added
                 # since it was built - e.g. after the hot-reload middleware's
@@ -239,7 +235,7 @@ class DocTypeRegistry:
                 self._known_names.discard(dt.name)
                 self._known_index_remove(dt.name)
             except Exception:
-                log.warning("registry.skip_invalid", name=row.name)
+                log.warning("registry.skip_invalid", name=definition.get("name"))
         log.info("registry.loaded", count=len(self._doctypes))
 
     async def _lazy_load(self, name: str) -> DocType | None:
@@ -259,10 +255,7 @@ class DocTypeRegistry:
         """
         active_session = _session_ctx.get()
         if active_session is not None:
-            result = await active_session.execute(
-                select(GruntMetaDoctype).where(GruntMetaDoctype.c.name == name)
-            )
-            row = result.mappings().one_or_none()
+            definition = await store.get_definition(active_session, name)
         else:
             from grunt.site.manager import site_manager
 
@@ -276,18 +269,15 @@ class DocTypeRegistry:
                 site_name = site_manager.get_active_site()
                 maker = site_manager.get_session_maker(site_name)
                 async with maker() as session:
-                    result = await session.execute(
-                        select(GruntMetaDoctype).where(GruntMetaDoctype.c.name == name)
-                    )
-                    row = result.mappings().one_or_none()
+                    definition = await store.get_definition(session, name)
             except Exception:
                 return None
 
-        if row is None:
+        if definition is None:
             return None
 
         try:
-            dt = DocType.model_validate(row["data"])
+            dt = DocType.model_validate(definition)
         except Exception:
             log.warning("registry.lazy_load_invalid", name=name)
             return None
@@ -448,18 +438,15 @@ class DocTypeRegistry:
         """Register a core DocType from JSON.
 
         Loads the definition into the registry. If sync_db is True, keeps
-        ``grunt_meta_doctype`` up to date (seeding on first run, merging new fields
+        the DocType table up to date (seeding on first run, merging new fields
         on upgrades). If False, only merges new fields in memory.
         """
-        existing_row = await session.execute(
-            select(GruntMetaDoctype).where(GruntMetaDoctype.c.name == doctype.name)
-        )
-        existing = existing_row.mappings().one_or_none()
+        existing = await store.get_definition(session, doctype.name)
 
         if existing:
             # Load the stored definition (preserves Studio customisations).
             try:
-                active_dt = DocType.model_validate(existing["data"])
+                active_dt = DocType.model_validate(existing)
             except Exception:
                 # Stored data is invalid - fall back to JSON and repair.
                 log.warning(
@@ -469,11 +456,7 @@ class DocTypeRegistry:
                 )
                 active_dt = doctype
                 if sync_db:
-                    await session.execute(
-                        update(GruntMetaDoctype)
-                        .where(GruntMetaDoctype.c.name == doctype.name)
-                        .values(module=doctype.module, data=doctype.model_dump())
-                    )
+                    await store.update_doctype(session, doctype)
             else:
                 # `permissions` is deliberately excluded from
                 # _CORE_SYNCED_DOCTYPE_ATTRS (a Studio customisation, seeded
@@ -508,23 +491,13 @@ class DocTypeRegistry:
                 self._reorder_core_fields(active_dt, doctype)
 
                 if sync_db:
-                    await session.execute(
-                        update(GruntMetaDoctype)
-                        .where(GruntMetaDoctype.c.name == doctype.name)
-                        .values(module=doctype.module, data=active_dt.model_dump())
-                    )
+                    await store.update_doctype(session, active_dt)
                     await session.flush()
         else:
             # First run: seed from the bundled JSON file.
             active_dt = doctype
             if sync_db:
-                await session.execute(
-                    insert(GruntMetaDoctype).values(
-                        name=doctype.name,
-                        module=doctype.module,
-                        data=doctype.model_dump(),
-                    )
-                )
+                await store.insert_doctype(session, doctype)
                 await session.flush()
 
         self._doctypes[active_dt.name] = active_dt
@@ -544,10 +517,7 @@ class DocTypeRegistry:
         self._validate_new(doctype)
 
         # Registry may be partially lazy-loaded; always re-check DB uniqueness.
-        existing = await session.scalar(
-            select(GruntMetaDoctype.c.name).where(GruntMetaDoctype.c.name == doctype.name)
-        )
-        if existing:
+        if await store.exists(session, doctype.name):
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
                 detail=_("DocType “%(doctype)s” already exists") % {"doctype": doctype.name},
@@ -555,17 +525,11 @@ class DocTypeRegistry:
 
         # Persist to DB
         try:
-            await session.execute(
-                insert(GruntMetaDoctype).values(
-                    name=doctype.name,
-                    module=doctype.module,
-                    data=doctype.model_dump(),
-                )
-            )
+            await store.insert_doctype(session, doctype)
             await session.flush()
         except IntegrityError as exc:
             # DB-level fallback for race conditions / stale cache.
-            if "grunt_meta_doctype.name" in str(exc):
+            if f"{store.meta_table().name}.name" in str(exc):
                 raise HTTPException(
                     status_code=status.HTTP_409_CONFLICT,
                     detail=_("DocType “%(doctype)s” already exists") % {"doctype": doctype.name},
@@ -591,10 +555,7 @@ class DocTypeRegistry:
         """Update an existing DocType, re-sync its table, refresh cache."""
         if doctype.name not in self._doctypes:
             # DocType may be known but not yet lazy-loaded - check DB before failing.
-            exists = await session.scalar(
-                select(GruntMetaDoctype.c.name).where(GruntMetaDoctype.c.name == doctype.name)
-            )
-            if not exists:
+            if not await store.exists(session, doctype.name):
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
                     detail=_("DocType “%(doctype)s” not found") % {"doctype": doctype.name},
@@ -602,11 +563,7 @@ class DocTypeRegistry:
             await self._lazy_load(doctype.name)
         self._validate_fields(doctype)
 
-        await session.execute(
-            update(GruntMetaDoctype)
-            .where(GruntMetaDoctype.c.name == doctype.name)
-            .values(module=doctype.module, data=doctype.model_dump())
-        )
+        await store.update_doctype(session, doctype)
         await session.flush()
 
         # Invalidate caches BEFORE sync so compile_doctype_to_table() rebuilds
@@ -625,7 +582,7 @@ class DocTypeRegistry:
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=_("DocType “%(doctype)s” not found") % {"doctype": name},
             )
-        await session.execute(delete(GruntMetaDoctype).where(GruntMetaDoctype.c.name == name))
+        await store.delete_doctype(session, name)
         await session.flush()
         self._doctypes.pop(name, None)
         self._index_remove(name)

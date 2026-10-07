@@ -25,7 +25,7 @@ async def test_lazy_load_uses_ambient_session_not_site_manager(
     from grunt.metadata.registry import doctype_registry
     from grunt.site.manager import site_manager
 
-    # register() both inserts the GruntMetaDoctype row and loads it into
+    # register() both inserts the DocType table row and loads it into
     # memory — _lazy_load needs a real DB row to find, which testkit's
     # bulk JSON loader (in-memory dict assignment only) doesn't create.
     dt_in = DocType(name="LazyLoadTarget", label="Lazy Load Target", module="test", fields=[])

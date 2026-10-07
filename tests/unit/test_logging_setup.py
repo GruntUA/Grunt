@@ -4,10 +4,9 @@ console handler instead of stacking a second one."""
 
 from __future__ import annotations
 
+import io
 import logging
 import sys
-
-import io
 
 from sqlalchemy.exc import OperationalError
 

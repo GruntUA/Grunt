@@ -12,7 +12,7 @@ effect on the next hot-reload (`_apply_hot_reload_if_triggered` clears the
 DocType cache), bypassing the System Manager gate that
 `api/v1/meta.py:save_doctype` puts on the *intended* schema-editing path.
 Permissions now live only inline on the DocType (edited in the Studio
-builder, persisted in `grunt_meta_doctype.data`), so locking DocType down to
+builder, persisted in the DocType table's `definition`), so locking DocType down to
 System Manager also closes the "grant yourself access" path.
 
 These tests load the *actual* shipped DocType JSON (not a hand-built
@@ -22,7 +22,7 @@ delete forces a DocType reload via DocTypeRegistry._lazy_load(). That reload
 goes through `site_manager`, which in this test process still points at the
 real configured site (session/engine DI overrides in conftest.py only cover
 FastAPI-injected routes) — so a full end-to-end facade test here would
-silently read the live site's `grunt_meta_doctype` row instead of the
+silently read the live site's DocType table row instead of the
 DocType this test just constructed. Testing permission_checker directly
 against the real JSON avoids that trap while still proving the actual
 shipped permissions are correct.

@@ -2,11 +2,8 @@
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
 from pathlib import Path
 from typing import TYPE_CHECKING
-
-from sqlalchemy import select
 
 from grunt import log
 
@@ -15,9 +12,9 @@ if TYPE_CHECKING:
 
 import json
 
-from grunt.db.system_tables import GruntMetaDoctype
 from grunt.hooks import DOCTYPE_OVERRIDES
-from grunt.metadata.compiler import DuplicateDataError, compile_doctype_to_table, sync_table
+from grunt.metadata import store
+from grunt.metadata.compiler import DuplicateDataError, sync_table
 from grunt.metadata.doctype import DocType
 from grunt.metadata.field import DocField
 from grunt.metadata.registry import doctype_registry
@@ -43,12 +40,10 @@ async def apply_doctype_overrides(
     ``grunt migrate`` to synchronise DB schema with DocType definitions.
 
     Only called from ``grunt db migrate`` (with ``sync_db=True``, so the
-    merged result is persisted into ``grunt_meta_doctype`` - the server never
+    merged result is persisted into the DocType table - the server never
     re-runs this merge at boot, so without persistence the added fields would
     be lost the moment the DocType is next lazy-loaded from a fresh process).
     """
-    from sqlalchemy import update
-
     if not DOCTYPE_OVERRIDES:
         return
 
@@ -84,11 +79,7 @@ async def apply_doctype_overrides(
                 added_fields=added,
             )
             if sync_db:
-                await session.execute(
-                    update(GruntMetaDoctype)
-                    .where(GruntMetaDoctype.c.name == doctype_name)
-                    .values(data=dt.model_dump())
-                )
+                await store.update_doctype(session, dt)
                 await session.flush()
 
 
@@ -98,6 +89,9 @@ async def load_core_doctypes(session: AsyncSession, sync_db: bool = False) -> No
     Scans all module-level doctypes/ directories within the grunt package.
     Uses _inject_core to bypass user-facing validation.
     """
+    if sync_db:
+        await store.ensure_table(session)
+
     dt_files = sorted(f for d in _find_doctype_dirs() for f in d.glob("**/*.json"))
 
     for dt_file in dt_files:
@@ -114,99 +108,10 @@ async def load_core_doctypes(session: AsyncSession, sync_db: bool = False) -> No
                 log.info("startup.core_doctype_injected", doctype=dt_name)
         except Exception as e:
             # Boot tolerates a broken file; a sync (migrate) must not report
-            # success with grunt_meta_doctype left stale.
+            # success with the DocType table left stale.
             if sync_db:
                 raise RuntimeError(f"core DocType {dt_file.name}: {e}") from e
             log.warning("startup.core_doctype_failed", file=dt_file.name, error=str(e))
-
-
-async def populate_system_doctypes(
-    session: AsyncSession,
-    engine: AsyncEngine,
-) -> None:
-    """Ensure every registered DocType has a row in the ``DocType`` document table.
-
-    This keeps the DocType list view in sync with the registry.
-    """
-    dt_def = doctype_registry._doctypes.get("DocType")
-    if dt_def is None:
-        log.warning("startup.doctype_def_missing")
-        return
-    table = compile_doctype_to_table(dt_def)
-
-    # Ensure the physical table exists before querying it (idempotent on upgrades)
-
-    await sync_table(dt_def, engine, session=session)
-
-    all_doctypes = await doctype_registry.list_all()
-
-    conn = await session.connection()
-    try:
-        result = await conn.execute(select(table.c.name))
-        existing_names = {row[0] for row in result}
-    except Exception:
-        existing_names = set()
-
-    now = datetime.now(UTC)
-
-    # Only include columns that actually exist in the compiled table to
-    # avoid errors when the schema hasn't been migrated yet.
-    col_names = {c.name for c in table.columns}
-
-    def _col(name: str, value: object) -> dict:
-        return {name: value} if name in col_names else {}
-
-    for dt in all_doctypes:
-        scalar_fields: dict = {
-            **_col("label", dt.label),
-            **_col("description", dt.description),
-            **_col("app", dt.app),
-            **_col("module", dt.module),
-            **_col("is_child", dt.is_child),
-            **_col("is_singleton", dt.is_singleton),
-            **_col("is_virtual", dt.is_virtual),
-            **_col("track_changes", dt.track_changes),
-            **_col("autoname", dt.autoname),
-            **_col("title_field", dt.title_field),
-            **_col("image_field", dt.image_field),
-            **_col("default_view", dt.default_view),
-            **_col("table_name", dt.table_name),
-            **_col("search_fields", dt.search_fields if dt.search_fields else None),
-            **_col("is_tree", dt.is_tree),
-            **_col("tree_parent_field", dt.tree_parent_field),
-            **_col("tree_title_field", dt.tree_title_field),
-            **_col("tree_as_of_date_field", dt.tree_as_of_date_field),
-            **_col("tree_sort_by", dt.tree_sort_by),
-            **_col("tree_sort_order", dt.tree_sort_order),
-            **_col("fetch_from", getattr(dt, "fetch_from", None)),
-        }
-
-        if dt.name in existing_names:
-            await conn.execute(
-                table.update()
-                .where(table.c.name == dt.name)
-                .values(modified_at=now, **scalar_fields)
-            )
-        else:
-            await conn.execute(
-                table.insert().values(
-                    name=dt.name,
-                    owner="system",
-                    created_at=now,
-                    modified_at=now,
-                    modified_by="system",
-                    **scalar_fields,
-                )
-            )
-
-    registered_names = {dt.name for dt in all_doctypes}
-    stale = existing_names - registered_names
-    for name in stale:
-        await conn.execute(table.delete().where(table.c.name == name))
-
-    if stale:
-        log.info("startup.doctype_table_cleaned", removed=sorted(stale))
-    log.info("startup.doctype_table_synced", count=len(all_doctypes))
 
 
 async def sync_all_doctypes(session: AsyncSession, engine: AsyncEngine) -> None:

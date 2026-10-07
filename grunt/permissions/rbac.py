@@ -6,10 +6,10 @@ from typing import TYPE_CHECKING
 
 from grunt.errors import forbidden
 from grunt.i18n import NP_, _, pgettext
+from grunt.permissions import shares
 from grunt.permissions.access import RoleAccess
 from grunt.permissions.child import child_allowed, is_child
 from grunt.permissions.match import PermissionMatch
-from grunt.permissions.shares import SHAREABLE_ACTIONS, has_share
 from grunt.permissions.types import PermissionAction
 
 # Human-readable action names for the "insufficient permissions" message, so a
@@ -150,13 +150,13 @@ class PermissionChecker:
         that very document counts; without it, a share of any document of the
         DocType lets the doctype-level pre-flight pass so the per-document
         check can decide."""
-        if action not in SHAREABLE_ACTIONS or getattr(doctype, "is_singleton", False):
+        if action not in shares.SHAREABLE_ACTIONS or getattr(doctype, "is_singleton", False):
             return False
         if doc is not None:
             if not doc.get("name"):
                 return False
-            return await has_share(user, doctype.name, action, doc["name"])
-        return await has_share(user, doctype.name, action)
+            return await shares.has_share(user, doctype.name, action, doc["name"])
+        return await shares.has_share(user, doctype.name, action)
 
     async def require(
         self,

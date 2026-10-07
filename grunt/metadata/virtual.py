@@ -83,6 +83,11 @@ class VirtualDocType:
     matching the DocType field structure.
     """
 
+    # True when the DocType still has a table of its own that mirrors the
+    # documents: list, count and date stats then query it like any regular
+    # DocType, and only single-document reads and writes go through here.
+    lists_from_table: bool = False
+
     def __init__(self, doctype: str, user: Any = None) -> None:
         self.doctype = doctype
         self.user = user

@@ -30,6 +30,18 @@ def is_virtual_routed(dt: Any, doctype_name: str) -> bool:
     return ctrl_cls is not Document and issubclass(ctrl_cls, VirtualDocType)
 
 
+def is_virtual_listed(dt: Any, doctype_name: str) -> bool:
+    """True якщо список/лічильник треба брати з контролера, а не з таблиці.
+
+    Те саме, що :func:`is_virtual_routed`, крім контролерів з
+    ``lists_from_table`` - їхні документи дзеркаляться у власній таблиці.
+    """
+    if not is_virtual_routed(dt, doctype_name):
+        return False
+    ctrl_cls = document_registry.get(doctype_name)
+    return dt.is_virtual or not getattr(ctrl_cls, "lists_from_table", False)
+
+
 def _get_virtual_controller(doctype_name: str, user: User):
     """Get the VirtualDocType controller instance for a virtual DocType, or
     ``None`` when it has none (e.g. a virtual child table whose rows exist only
@@ -106,7 +118,9 @@ async def virtual_delete(doctype_name: str, user: User, doc_id: str):
     return await ctrl.delete(doc_id)
 
 
-async def virtual_count(doctype_name: str, user: User, filters: dict[str, Any] | None = None) -> int:
+async def virtual_count(
+    doctype_name: str, user: User, filters: dict[str, Any] | None = None
+) -> int:
     ctrl = _get_virtual_controller(doctype_name, user)
     if ctrl is None:
         return 0

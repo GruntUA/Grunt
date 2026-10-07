@@ -246,14 +246,12 @@ def _run_migrate_for_site(site_name: str) -> None:
     """Run DB migration for a single site (reuses db migrate logic inline)."""
 
     async def _migrate() -> None:
-        from grunt.db.base import metadata
         from grunt.metadata.compiler import SA_METADATA, sync_table
         from grunt.metadata.registry import doctype_registry
         from grunt.site.manager import current_site, site_manager
         from grunt.startup import (
             apply_doctype_overrides,
             load_core_doctypes,
-            populate_system_doctypes,
             seed_grunt_workspace,
             seed_system_settings,
             sync_installed_apps,
@@ -265,19 +263,15 @@ def _run_migrate_for_site(site_name: str) -> None:
             maker = site_manager.get_session_maker(site_name)
 
             async with eng.begin() as conn:
-                await conn.run_sync(metadata.create_all)
-
-            async with eng.begin() as conn:
                 await conn.run_sync(SA_METADATA.create_all)
 
             async with maker() as session:
-                # New site: seed core DocTypes into grunt_meta_doctype so the
+                # New site: seed core DocTypes into the DocType table so the
                 # server can lazy-load them without ever touching the JSON
                 # files again (sync_db=True - same as `grunt db migrate`).
                 await load_core_doctypes(session, sync_db=True)
                 await apply_doctype_overrides(session, eng, sync_db=True)
                 await doctype_registry.load_all(session)
-                await populate_system_doctypes(session, eng)
 
                 for dt in await doctype_registry.list_all():
                     if not dt.is_virtual:

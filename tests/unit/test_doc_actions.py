@@ -147,18 +147,14 @@ def test_builtin_core_actions_are_registered():
 
 async def test_run_rejects_unbound_key(sample_action, monkeypatch):
     """A registered but unbound action must not run on a DocType."""
+    import grunt
     from grunt import actions as actions_mod
+    from grunt.document.meta import Meta
 
-    class _Reg:
-        async def get(self, name):
-            return DocType(name=name, label=name, module="core", actions=[])
+    async def _get_meta(name):
+        return Meta(DocType(name=name, label=name, module="core", actions=[]))
 
-        async def get_meta(self, name):
-            from grunt.document.meta import Meta
-
-            return Meta(await self.get(name))
-
-    monkeypatch.setattr("grunt.metadata.registry.doctype_registry", _Reg())
+    monkeypatch.setattr(grunt, "get_meta", _get_meta)
 
     with pytest.raises(Exception) as exc:
         await actions_mod.run("Widget", sample_action.key, "W-1")

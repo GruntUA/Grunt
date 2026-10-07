@@ -28,9 +28,7 @@ if TYPE_CHECKING:
     from grunt.workflow.engine import ActiveTransition
 
 # Never compared when deciding whether an edit changed the document.
-_SYSTEM_FIELDS = frozenset(
-    {"name", "owner", "created_at", "modified_at", "modified_by", "idx"}
-)
+_SYSTEM_FIELDS = frozenset({"name", "owner", "created_at", "modified_at", "modified_by", "idx"})
 
 
 def _exempt(user: User) -> bool:

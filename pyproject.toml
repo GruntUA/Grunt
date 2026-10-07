@@ -96,7 +96,11 @@ packages = ["grunt"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
-asyncio_default_fixture_loop_scope = "function"
+# One loop for the whole run: the in-memory test DB is a single shared
+# connection (StaticPool), and its asyncio lock binds to the loop it first
+# waited in - a per-test loop broke whichever later test contended for it.
+asyncio_default_fixture_loop_scope = "session"
+asyncio_default_test_loop_scope = "session"
 testpaths = ["tests"]
 
 [tool.ruff]
@@ -111,10 +115,6 @@ ignore = [
     "TC001", # Pydantic model fields need runtime imports for get_type_hints()
     "TC002", # same for third-party types used in Pydantic fields
 ]
-
-[tool.ruff.lint.per-file-ignores]
-"grunt/db/base.py" = ["TC003"]       # datetime in Mapped[] needs runtime for SQLAlchemy
-"grunt/db/system_tables.py" = ["TC003"]  # same
 
 [tool.mypy]
 python_version = "3.14"

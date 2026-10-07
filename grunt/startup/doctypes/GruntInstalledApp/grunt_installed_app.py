@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import shutil
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -12,6 +13,12 @@ from grunt.document.base import Document
 
 class GruntInstalledApp(Document):
     """GruntInstalledApp DocType controller."""
+
+    async def before_insert(self) -> None:
+        if not self.data.get("installed_at"):
+            self.data["installed_at"] = datetime.now(UTC)
+        if self.data.get("modules") is None:
+            self.data["modules"] = []
 
     async def after_delete(self) -> None:
         """Called automatically after the App document is deleted from the DB."""
