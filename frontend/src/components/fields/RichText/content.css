@@ -1,0 +1,264 @@
+/* Content typography of the RichText editor (.richtext-content). */
+.richtext-content .tiptap {
+  outline: none;
+  min-height: 96px;
+  font-family: 'Geist Variable', 'Inter', ui-sans-serif, system-ui, sans-serif;
+}
+.richtext-content .tiptap > :first-child { margin-top: 0; }
+
+/* Placeholder */
+.richtext-content .tiptap p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  color: var(--muted-foreground);
+  pointer-events: none;
+  float: left;
+  height: 0;
+}
+
+.richtext-content .tiptap p { margin: 0.25rem 0; }
+
+/* Document style: mirrors official-letter print formatting (first-line indent,
+   justified text) so editing looks like the printed result. Opt-in via
+   field.options === 'document'. */
+.richtext-content.richtext-document .tiptap {
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 14pt; /* matches the OutgoingLetter print format body */
+}
+.richtext-content.richtext-document .tiptap p {
+  text-align: justify;
+  text-indent: 1.25cm;
+  margin: 0;
+}
+.richtext-content.richtext-document .tiptap p.is-editor-empty:first-child::before {
+  text-indent: 0;
+}
+
+.richtext-content .tiptap ul,
+.richtext-content .tiptap ol {
+  padding: 0 1rem;
+  margin: 0.5rem 0 0.5rem 0.4rem;
+}
+.richtext-content .tiptap ul { list-style-type: disc; }
+.richtext-content .tiptap ol { list-style-type: decimal; }
+.richtext-content .tiptap li p { margin: 0.15em 0; }
+
+.richtext-content .tiptap h1,
+.richtext-content .tiptap h2,
+.richtext-content .tiptap h3,
+.richtext-content .tiptap h4,
+.richtext-content .tiptap h5,
+.richtext-content .tiptap h6 {
+  line-height: 1.2;
+  margin-top: 1.25rem;
+  margin-bottom: 0.4rem;
+  font-weight: 600;
+}
+.richtext-content .tiptap h1 { font-size: 1.4rem; }
+.richtext-content .tiptap h2 { font-size: 1.2rem; }
+.richtext-content .tiptap h3 { font-size: 1.1rem; }
+.richtext-content .tiptap h4,
+.richtext-content .tiptap h5,
+.richtext-content .tiptap h6 { font-size: 1rem; }
+
+.richtext-content .tiptap code {
+  background-color: var(--muted);
+  border-radius: 0.3rem;
+  font-size: 0.85em;
+  padding: 0.2em 0.4em;
+  font-family: ui-monospace, monospace;
+}
+.richtext-content .tiptap pre {
+  background: var(--foreground);
+  color: var(--background);
+  border-radius: 0.5rem;
+  margin: 0.75rem 0;
+  padding: 0.75rem 1rem;
+  font-family: ui-monospace, monospace;
+  overflow-x: auto;
+}
+.richtext-content .tiptap pre code {
+  background: none;
+  color: inherit;
+  font-size: 0.85em;
+  padding: 0;
+}
+
+.richtext-content .tiptap blockquote {
+  border-left: 3px solid var(--border);
+  margin: 0.75rem 0;
+  padding-left: 1rem;
+  color: var(--muted-foreground);
+}
+.richtext-content .tiptap hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 1.25rem 0;
+}
+.richtext-content .tiptap a {
+  color: var(--primary);
+  text-decoration: underline;
+  cursor: pointer;
+}
+.richtext-content .tiptap img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.375rem;
+  margin: 0.5rem 0;
+}
+.richtext-content .tiptap img.ProseMirror-selectednode {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* YouTube embeds: full width, 16:9 */
+.richtext-content .tiptap div[data-youtube-video] { margin: 0.5rem 0; }
+.richtext-content .tiptap iframe {
+  display: block;
+  width: 100%;
+  max-width: 640px;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  border: 0;
+  border-radius: 0.375rem;
+  pointer-events: none; /* let clicks select the node instead of playing */
+}
+.richtext-content .tiptap div[data-youtube-video].ProseMirror-selectednode iframe {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* File list / gallery blocks (fileBlocks.ts) */
+.richtext-content .rt-file-block {
+  margin: 0.75rem 0;
+  padding: 0.5rem;
+  border: 1px dashed var(--border);
+  border-radius: 0.5rem;
+}
+.richtext-content .rt-file-block .file-list { display: flex; flex-direction: column; gap: 0.25rem; }
+.richtext-content .rt-file-block .gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 0.5rem;
+}
+.richtext-content .rt-file-block__item { position: relative; cursor: grab; }
+.richtext-content .rt-file-block__item a { cursor: grab; }
+.richtext-content .rt-file-block .file-list__meta { color: var(--muted-foreground); font-size: 0.85em; }
+.richtext-content .rt-file-block .gallery__item { display: block; aspect-ratio: 4 / 3; overflow: hidden; border-radius: 0.375rem; }
+.richtext-content .rt-file-block .gallery__item img { width: 100%; height: 100%; object-fit: cover; margin: 0; border-radius: 0; }
+.richtext-content .rt-file-block__remove {
+  position: absolute;
+  top: 0.25rem;
+  right: 0.25rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  line-height: 1;
+  font-size: 1rem;
+  border-radius: 9999px;
+  background: var(--background);
+  color: var(--muted-foreground);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.2);
+  opacity: 0.85;
+}
+.richtext-content .rt-file-block__item:hover .rt-file-block__remove,
+.richtext-content .rt-file-block__remove:focus-visible { opacity: 1; }
+.richtext-content .rt-file-block__remove:hover { color: var(--destructive); }
+.richtext-content .rt-file-block__actions { display: flex; gap: 1rem; margin-top: 0.5rem; }
+.richtext-content .rt-file-block__add { color: var(--primary); }
+.richtext-content .rt-file-block__delete { margin-left: auto; color: var(--muted-foreground); }
+.richtext-content .rt-file-block__delete:hover { color: var(--destructive); }
+.richtext-content .rt-file-block__add:hover,
+.richtext-content .rt-file-block__delete:hover { text-decoration: underline; }
+
+/* Tables */
+.richtext-content .tiptap table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0.75rem 0;
+  font-size: 0.875em;
+}
+.richtext-content .tiptap td,
+.richtext-content .tiptap th {
+  /* Dashed, not solid: this is an editing guide for cell boundaries, not
+     ink - print formats don't style <table> at all, so a table imported
+     from a borderless Word layout (e.g. a signature block) still prints
+     without a border even though it shows a guide here while editing. */
+  border: 1px dashed var(--border);
+  padding: 0.4rem 0.6rem;
+  vertical-align: top;
+  position: relative;
+}
+/* Cells without a set width (new tables) don't collapse; Word widths win. */
+.richtext-content .tiptap td:not([colwidth]),
+.richtext-content .tiptap th:not([colwidth]) { min-width: 80px; }
+/* Vertical cells: centre the text along the cell, as Word does. */
+.richtext-content .tiptap td[style*="writing-mode"],
+.richtext-content .tiptap th[style*="writing-mode"] { vertical-align: middle; text-align: center; }
+.richtext-content .tiptap th {
+  background-color: var(--muted);
+  font-weight: 600;
+}
+.richtext-content .tiptap .selectedCell::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--primary);
+  opacity: 0.1;
+  pointer-events: none;
+}
+.richtext-content .tiptap .column-resize-handle {
+  position: absolute;
+  right: -2px;
+  top: 0; bottom: 0;
+  width: 4px;
+  background-color: var(--primary);
+  cursor: col-resize;
+  pointer-events: all;
+}
+.richtext-content .tiptap .tableWrapper { overflow-x: auto; }
+
+/* Highlight, collapsible block */
+.richtext-content .tiptap mark {
+  background-color: rgba(250, 204, 21, 0.35);
+  color: inherit;
+  border-radius: 0.15em;
+  padding: 0 0.1em;
+}
+.richtext-content .tiptap .details {
+  margin: 0.5rem 0;
+  padding: 0.4rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+}
+.richtext-content .tiptap .details summary { font-weight: 600; list-style: none; }
+/* Editing view (tiptap node view). The block is always expanded while
+   editing - Enter in the summary then goes into the content - and collapsed
+   on the public page; the toggle button only marks the block. */
+.richtext-content .tiptap div[data-type="details"] { display: flex; gap: 0.4rem; }
+.richtext-content .tiptap div[data-type="details"] > button {
+  flex-shrink: 0;
+  width: 1.25rem;
+  height: 1.5rem;
+  color: var(--muted-foreground);
+  pointer-events: none;
+}
+.richtext-content .tiptap div[data-type="details"] > button::before { content: '▾'; }
+.richtext-content .tiptap div[data-type="details"] > div { flex: 1; min-width: 0; }
+/* Tailwind's preflight hides [hidden] with !important inside @layer base; an
+   important rule only beats it from the same layer (then specificity wins). */
+@layer base {
+  .richtext-content .tiptap div[data-type="detailsContent"][hidden] { display: block !important; }
+}
+.richtext-content .tiptap div[data-type="detailsContent"] {
+  margin-top: 0.25rem;
+  padding-top: 0.25rem;
+  border-top: 1px dashed var(--border);
+}
+
+/* Block drag handle (ui/BlockHandle.vue) - positioned by the plugin */
+.richtext-drag-handle { z-index: 10; transition: opacity 0.1s; }
+.richtext-drag-handle[style*="hidden"] { opacity: 0; }
+.richtext-content .tiptap .ProseMirror-selectednode:not(img) {
+  outline: 2px solid color-mix(in oklch, var(--primary) 40%, transparent);
+  outline-offset: 2px;
+  border-radius: 0.25rem;
+}

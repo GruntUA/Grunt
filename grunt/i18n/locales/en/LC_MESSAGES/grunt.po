@@ -127,7 +127,8 @@ msgstr ""
 msgid "Attach an image…"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:119
+#: grunt/frontend/src/components/fields/RichText/ui/MoreMenu.vue:34
+#: grunt/frontend/src/components/fields/RichText/ui/ImageBubble.vue:79
 #: grunt/frontend/src/pages/app/AppPage.vue:270
 msgid "Auto"
 msgstr ""
@@ -141,7 +142,7 @@ msgstr ""
 msgid "Barcode not found in image."
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:626
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:47
 msgid "Bold"
 msgstr ""
 
@@ -150,7 +151,7 @@ msgstr ""
 msgid "Bulk Update"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:644
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:57
 msgid "Bulleted list"
 msgstr ""
 
@@ -228,7 +229,7 @@ msgstr ""
 msgid "Clear selection"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:280
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:44
 msgid "Code block"
 msgstr ""
 
@@ -278,7 +279,7 @@ msgstr ""
 msgid "Could not get your location"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:493
+#: grunt/frontend/src/components/fields/RichText/editor/useRichEditor.ts:169
 msgid "Could not import document"
 msgstr ""
 
@@ -320,12 +321,12 @@ msgstr ""
 msgid "Date field"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:785
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:64
 msgid "Decrease indent"
 msgstr ""
 
 #: grunt/frontend/src/components/views/list/ListToolbarControls.vue:184
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:114
+#: grunt/frontend/src/components/fields/RichText/ui/MoreMenu.vue:23
 msgid "Default"
 msgstr ""
 
@@ -340,6 +341,9 @@ msgstr ""
 #: grunt/frontend/src/components/views/form/FormModals.vue:140
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:433
 #: grunt/frontend/src/components/fields/Table/Table.vue:481
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:98
+#: grunt/frontend/src/components/fields/RichText/ui/BlockHandle.vue:71
+#: grunt/frontend/src/components/fields/RichText/ui/TableBubble.vue:116
 msgid "Delete"
 msgstr ""
 
@@ -352,6 +356,7 @@ msgid "Delete file"
 msgstr ""
 
 #: grunt/frontend/src/components/fields/Table/Table.vue:425
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:77
 msgid "Delete row"
 msgstr ""
 
@@ -418,6 +423,7 @@ msgstr ""
 #: grunt/grunt/actions/builtin.py:21
 #: grunt/grunt/metadata/doctypes/DocType/global_form.js:110
 #: grunt/frontend/src/components/fields/Table/Table.vue:443
+#: grunt/frontend/src/components/fields/RichText/ui/BlockHandle.vue:70
 msgid "Duplicate"
 msgstr ""
 
@@ -482,7 +488,8 @@ msgstr ""
 
 #: grunt/grunt/monitoring/health.py:376 grunt/grunt/monitoring/health.py:648
 #: grunt/grunt/monitoring/health.py:379
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:712
+#: grunt/frontend/src/components/fields/RichText/editor/useRichEditor.ts:80
+#: grunt/frontend/src/components/fields/RichText/ui/InsertMenu.vue:89
 msgid "Files"
 msgstr ""
 
@@ -506,11 +513,11 @@ msgstr ""
 msgid "First choose a DocType and upload a file"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:788
+#: grunt/frontend/src/components/fields/RichText/ui/MoreMenu.vue:67
 msgid "Font"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:799
+#: grunt/frontend/src/components/fields/RichText/ui/MoreMenu.vue:80
 msgid "Font size"
 msgstr ""
 
@@ -518,7 +525,7 @@ msgstr ""
 msgid "Format"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:602
+#: grunt/frontend/src/components/fields/RichText/ui/EditorToolbar.vue:24
 msgid "Formatting"
 msgstr ""
 
@@ -539,11 +546,11 @@ msgstr ""
 msgid "Group by"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:271
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:41
 msgid "Heading 2"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:274
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:42
 msgid "Heading 3"
 msgstr ""
 
@@ -557,7 +564,7 @@ msgstr ""
 msgid "Home"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:719
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:65
 msgid "Horizontal rule"
 msgstr ""
 
@@ -568,52 +575,56 @@ msgid "Icon (lucide)"
 msgstr ""
 
 #: grunt/grunt/website/block_types.py:52
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:710
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:728
+#: grunt/frontend/src/components/fields/RichText/editor/useRichEditor.ts:74
+#: grunt/frontend/src/components/fields/RichText/ui/InsertMenu.vue:87
+#: grunt/frontend/src/components/fields/RichText/ui/InsertMenu.vue:108
 msgid "Image"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:730
+#: grunt/frontend/src/components/fields/RichText/ui/InsertMenu.vue:113
 msgid "Image URL"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:398
+#: grunt/frontend/src/components/fields/RichText/editor/useRichEditor.ts:140
+#: grunt/frontend/src/components/fields/RichText/ui/ImageBubble.vue:60
 msgid "Image upload failed"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:721
+#: grunt/frontend/src/components/fields/RichText/ui/InsertMenu.vue:101
 msgid "Import from Word (.docx)"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:502
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:87
 msgid "Horizontal text"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:503
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:88
 msgid "Vertical text, top to bottom"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:504
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:89
 msgid "Vertical text, bottom to top"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:491
+#: grunt/frontend/src/components/fields/RichText/editor/useRichEditor.ts:172
 msgid "Imported with warnings"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:784
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:63
 msgid "Increase indent"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:781
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:54
 msgid "Inline code"
 msgstr ""
 
 #: grunt/frontend/src/components/fields/Table/Table.vue:418
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:73
 msgid "Insert row above"
 msgstr ""
 
 #: grunt/frontend/src/components/fields/Table/Table.vue:421
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:74
 msgid "Insert row below"
 msgstr ""
 
@@ -625,7 +636,7 @@ msgstr ""
 msgid "Invalid format"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:631
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:48
 msgid "Italic"
 msgstr ""
 
@@ -638,13 +649,12 @@ msgstr ""
 msgid "Leave"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:677
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:685
+#: grunt/frontend/src/components/fields/RichText/ui/LinkPopover.vue:51
 msgid "Link"
 msgstr ""
 
 #: grunt/grunt/website/block_types.py:22
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:687
+#: grunt/frontend/src/components/fields/RichText/ui/LinkPopover.vue:53
 msgid "Link URL"
 msgstr ""
 
@@ -858,6 +868,7 @@ msgstr ""
 #: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue:177
 #: grunt/frontend/src/components/fields/Link/FilterInput.vue:232
 #: grunt/frontend/src/components/fields/Icon/Icon.vue:132
+#: grunt/frontend/src/components/fields/RichText/ui/SlashMenu.vue:45
 msgid "Nothing found"
 msgstr ""
 
@@ -877,7 +888,7 @@ msgstr ""
 msgid "Notifications"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:649
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:58
 msgid "Numbered list"
 msgstr ""
 
@@ -942,7 +953,7 @@ msgstr ""
 msgid "Quick create"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:277
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:43
 msgid "Quote"
 msgstr ""
 
@@ -954,7 +965,7 @@ msgstr ""
 msgid "Reading file structure…"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:835
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:70
 msgid "Redo"
 msgstr ""
 
@@ -976,7 +987,8 @@ msgstr ""
 msgid "Remove attachment"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:691
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:92
+#: grunt/frontend/src/components/fields/RichText/ui/LinkPopover.vue:57
 msgid "Remove link"
 msgstr ""
 
@@ -1002,6 +1014,7 @@ msgstr ""
 
 #: grunt/frontend/src/components/views/sidebar/SidebarImage.vue:116
 #: grunt/frontend/src/components/fields/Image/Image.vue:34
+#: grunt/frontend/src/components/fields/RichText/ui/ImageBubble.vue:112
 msgid "Replace image"
 msgstr ""
 
@@ -1032,7 +1045,7 @@ msgstr ""
 msgid "Retry"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:530
+#: grunt/frontend/src/components/fields/RichText/editor/useRichEditor.ts:95
 msgid "Rich text"
 msgstr ""
 
@@ -1255,6 +1268,7 @@ msgstr ""
 
 #: grunt/grunt/monitoring/health.py:109
 #: grunt/frontend/src/core/attachmentChannels/channels/LibraryChannel/LibraryChannel.vue:292
+#: grunt/frontend/src/components/fields/RichText/ui/ImageBubble.vue:77
 msgid "Size"
 msgstr ""
 
@@ -1274,7 +1288,7 @@ msgstr ""
 msgid "Stop"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:636
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:53
 msgid "Strikethrough"
 msgstr ""
 
@@ -1296,7 +1310,8 @@ msgstr ""
 msgid "System settings"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:717
+#: grunt/frontend/src/components/fields/RichText/editor/useRichEditor.ts:72
+#: grunt/frontend/src/components/fields/RichText/ui/InsertMenu.vue:93
 #: grunt/frontend/src/pages/reports/ReportView.vue:198
 msgid "Table"
 msgstr ""
@@ -1340,10 +1355,10 @@ msgstr ""
 msgid "URL or name..."
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:830
 #: grunt/frontend/src/components/fields/Signature/Signature.vue:229
 #: grunt/frontend/src/components/fields/Signature/Signature.vue:230
 #: grunt/frontend/src/components/fields/Table/Table.vue:220
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:69
 msgid "Undo"
 msgstr ""
 
@@ -1358,10 +1373,11 @@ msgstr ""
 #: grunt/frontend/src/core/scripting/executor.ts:827
 #: grunt/frontend/src/core/scripting/executor.ts:995
 #: grunt/frontend/src/core/attachmentChannels/channels/LibraryChannel/LibraryChannel.vue:194
+#: grunt/frontend/src/components/fields/RichText/editor/useRichEditor.ts:147
 msgid "Upload failed"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:736
+#: grunt/frontend/src/components/fields/RichText/ui/InsertMenu.vue:130
 msgid "Upload file"
 msgstr ""
 
@@ -1370,7 +1386,7 @@ msgid "Upload image with barcode"
 msgstr ""
 
 #: grunt/frontend/src/core/attachmentChannels/channels/LibraryChannel/LibraryChannel.vue:434
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:736
+#: grunt/frontend/src/components/fields/RichText/ui/InsertMenu.vue:130
 msgid "Uploading…"
 msgstr ""
 
@@ -1475,7 +1491,7 @@ msgstr ""
 msgid "{n} selected"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:892
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:76
 msgid "{words} w · {chars} ch"
 msgstr ""
 
@@ -5686,11 +5702,11 @@ msgstr ""
 msgid "Add fields from the list below"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/fileBlocks.ts:146
+#: grunt/frontend/src/components/fields/RichText/extensions/fileBlocks.ts:146
 msgid "Add files"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/fileBlocks.ts:146
+#: grunt/frontend/src/components/fields/RichText/extensions/fileBlocks.ts:146
 msgid "Add images"
 msgstr ""
 
@@ -7415,7 +7431,8 @@ msgid "GB"
 msgstr ""
 
 #: grunt/frontend/src/components/views/gallery/index.ts:7
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:713
+#: grunt/frontend/src/components/fields/RichText/editor/useRichEditor.ts:82
+#: grunt/frontend/src/components/fields/RichText/ui/InsertMenu.vue:90
 msgid "Gallery"
 msgstr ""
 
@@ -7707,7 +7724,7 @@ msgstr ""
 msgid "Invalid language value"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:442
+#: grunt/frontend/src/components/fields/RichText/ui/InsertMenu.vue:43
 msgid "Invalid link"
 msgstr ""
 
@@ -8063,7 +8080,7 @@ msgid "Months"
 msgstr ""
 
 #: grunt/frontend/src/components/mobile/MobileBottomNav.vue:100
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:774
+#: grunt/frontend/src/components/fields/RichText/ui/MoreMenu.vue:54
 msgid "More"
 msgstr ""
 
@@ -8591,7 +8608,7 @@ msgstr ""
 msgid "Passwords do not match"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:442
+#: grunt/frontend/src/components/fields/RichText/ui/InsertMenu.vue:43
 msgid "Paste a YouTube video link"
 msgstr ""
 
@@ -8832,8 +8849,8 @@ msgstr[1] ""
 
 #: grunt/frontend/src/components/views/FilterBar.vue:289
 #: grunt/frontend/src/components/views/FilterBar.vue:320
-#: grunt/frontend/src/components/fields/RichText/fileBlocks.ts:133
-#: grunt/frontend/src/components/fields/RichText/fileBlocks.ts:134
+#: grunt/frontend/src/components/fields/RichText/extensions/fileBlocks.ts:133
+#: grunt/frontend/src/components/fields/RichText/extensions/fileBlocks.ts:134
 msgid "Remove"
 msgstr ""
 
@@ -10211,7 +10228,7 @@ msgstr ""
 msgid "Version {n}"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:749
+#: grunt/frontend/src/components/fields/RichText/ui/InsertMenu.vue:113
 msgid "Video URL"
 msgstr ""
 
@@ -10396,8 +10413,8 @@ msgstr ""
 msgid "You only see records matching these values."
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:711
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:746
+#: grunt/frontend/src/components/fields/RichText/ui/InsertMenu.vue:88
+#: grunt/frontend/src/components/fields/RichText/ui/InsertMenu.vue:108
 msgid "YouTube video"
 msgstr ""
 
@@ -14270,15 +14287,15 @@ msgctxt "website"
 msgid "Links"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:752
+#: grunt/frontend/src/components/fields/RichText/ui/InsertMenu.vue:119
 msgid "Remove video"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/fileBlocks.ts:154
+#: grunt/frontend/src/components/fields/RichText/extensions/fileBlocks.ts:154
 msgid "Delete file list"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/fileBlocks.ts:154
+#: grunt/frontend/src/components/fields/RichText/extensions/fileBlocks.ts:154
 msgid "Delete gallery"
 msgstr ""
 
@@ -14299,15 +14316,15 @@ msgstr ""
 msgid "Add image"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:289
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:60
 msgid "Align center"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:288
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:59
 msgid "Align left"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:290
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:61
 msgid "Align right"
 msgstr ""
 
@@ -14372,7 +14389,7 @@ msgstr ""
 msgid "In the “%(state)s” state the document can't be edited"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:291
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:62
 msgid "Justify"
 msgstr ""
 
@@ -14792,35 +14809,197 @@ msgstr ""
 msgid "{used} of {quota} used"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:658
+#: grunt/frontend/src/components/fields/RichText/ui/EditorToolbar.vue:37
 msgid "Alignment"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:822
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:79
 msgid "Delete table"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:840
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:841
+#: grunt/frontend/src/components/fields/RichText/ui/EditorToolbar.vue:49
+#: grunt/frontend/src/components/fields/RichText/ui/EditorToolbar.vue:50
 msgid "Exit full screen"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:840
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:841
+#: grunt/frontend/src/components/fields/RichText/ui/EditorToolbar.vue:49
+#: grunt/frontend/src/components/fields/RichText/ui/EditorToolbar.vue:50
 msgid "Full screen"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:702
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:705
+#: grunt/frontend/src/components/fields/RichText/ui/InsertMenu.vue:78
+#: grunt/frontend/src/components/fields/RichText/ui/InsertMenu.vue:81
 msgid "Insert"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:268
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:40
 msgid "Paragraph"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:609
+#: grunt/frontend/src/components/fields/RichText/ui/EditorToolbar.vue:28
 msgid "Text style"
+msgstr ""
+
+#: grunt/frontend/src/components/fields/RichText/ui/TableBubble.vue:31
+msgid "Blue"
+msgstr ""
+
+#: grunt/frontend/src/components/fields/RichText/ui/TableBubble.vue:30
+msgid "Green"
+msgstr ""
+
+#: grunt/frontend/src/components/fields/RichText/ui/TableBubble.vue:32
+msgid "Red"
+msgstr ""
+
+#: grunt/frontend/src/components/fields/RichText/ui/TableBubble.vue:29
+msgid "Yellow"
+msgstr ""
+
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:86
+msgid "Align bottom"
+msgstr ""
+
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:85
+msgid "Align middle"
+msgstr ""
+
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:84
+msgid "Align top"
+msgstr ""
+
+#: grunt/frontend/src/components/fields/RichText/ui/TableBubble.vue:82
+msgid "Cell"
+msgstr ""
+
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:78
+msgid "Delete column"
+msgstr ""
+
+#: grunt/frontend/src/components/fields/RichText/ui/TableBubble.vue:28
+msgid "Gray"
+msgstr ""
+
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:83
+msgid "Header column"
+msgstr ""
+
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:82
+msgid "Header row"
+msgstr ""
+
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:75
+msgid "Insert column left"
+msgstr ""
+
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:76
+msgid "Insert column right"
+msgstr ""
+
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:80
+msgid "Merge cells"
+msgstr ""
+
+#: grunt/frontend/src/components/fields/RichText/ui/TableBubble.vue:100
+msgid "No shading"
+msgstr ""
+
+#: grunt/frontend/src/components/fields/RichText/ui/TableBubble.vue:33
+msgid "Purple"
+msgstr ""
+
+#: grunt/frontend/src/components/fields/RichText/ui/TableBubble.vue:96
+msgid "Shading"
+msgstr ""
+
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:81
+msgid "Split cell"
+msgstr ""
+
+#: grunt/frontend/src/components/fields/RichText/ui/TableGridPicker.vue:29
+msgid "Table size"
+msgstr ""
+
+#: grunt/frontend/src/components/fields/RichText/ui/TableGridPicker.vue:21
+msgid "{rows} × {cols} table"
+msgstr ""
+
+#: grunt/frontend/src/components/fields/RichText/ui/ImageBubble.vue:98
+#: grunt/frontend/src/components/fields/RichText/ui/ImageBubble.vue:103
+#: grunt/frontend/src/components/fields/RichText/ui/ImageBubble.vue:106
+msgid "Alt text"
+msgstr ""
+
+#: grunt/frontend/src/components/fields/RichText/ui/ImageBubble.vue:104
+msgid "Describes the image for screen readers and search engines."
+msgstr ""
+
+#: grunt/frontend/src/components/fields/RichText/ui/LinkBubble.vue:34
+msgid "Edit link"
+msgstr ""
+
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:96
+msgid "Image centered"
+msgstr ""
+
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:95
+msgid "Image left, text wraps"
+msgstr ""
+
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:97
+msgid "Image right, text wraps"
+msgstr ""
+
+#: grunt/frontend/src/components/fields/RichText/ui/LinkBubble.vue:28
+msgid "Open link"
+msgstr ""
+
+#: grunt/frontend/src/components/fields/RichText/ui/ImageBubble.vue:88
+msgid "Original size"
+msgstr ""
+
+#: grunt/frontend/src/components/fields/RichText/ui/ImageBubble.vue:90
+msgid "{size} of text width"
+msgstr ""
+
+#: grunt/frontend/src/components/fields/RichText/ui/BlockHandle.vue:56
+msgid "Block options"
+msgstr ""
+
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:66
+msgid "Collapsible block"
+msgstr ""
+
+#: grunt/frontend/src/components/fields/RichText/ui/BlockHandle.vue:56
+msgid "Drag to move, click for options"
+msgstr ""
+
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:50
+msgid "Highlight"
+msgstr ""
+
+#: grunt/frontend/src/components/fields/RichText/ui/SlashMenu.vue:33
+msgid "Insert block"
+msgstr ""
+
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:51
+msgid "Subscript"
+msgstr ""
+
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:52
+msgid "Superscript"
+msgstr ""
+
+#: grunt/frontend/src/components/fields/RichText/ui/BlockHandle.vue:64
+msgid "Turn into"
+msgstr ""
+
+#: grunt/frontend/src/components/fields/RichText/editor/useRichEditor.ts:99
+msgid "Type / for commands"
+msgstr ""
+
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:49
+msgid "Underline"
 msgstr ""
 
 #~ msgid "Node not found"
@@ -18105,9 +18284,6 @@ msgstr ""
 #~ msgid "Top utility bar items"
 #~ msgstr ""
 
-#~ msgid "Blue"
-#~ msgstr ""
-
 #~ msgid "Calendar"
 #~ msgstr ""
 
@@ -18132,9 +18308,6 @@ msgstr ""
 #~ msgid "Gauge"
 #~ msgstr ""
 
-#~ msgid "Green"
-#~ msgstr ""
-
 #~ msgid "Heatmap"
 #~ msgstr ""
 
@@ -18148,9 +18321,6 @@ msgstr ""
 #~ msgstr ""
 
 #~ msgid "No saved versions"
-#~ msgstr ""
-
-#~ msgid "Red"
 #~ msgstr ""
 
 #~ msgid "Restore document to this version?"
@@ -18169,9 +18339,6 @@ msgstr ""
 #~ msgstr ""
 
 #~ msgid "Violet"
-#~ msgstr ""
-
-#~ msgid "Yellow"
 #~ msgstr ""
 
 #~ msgid "row copied"

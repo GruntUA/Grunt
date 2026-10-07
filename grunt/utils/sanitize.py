@@ -13,7 +13,8 @@ import nh3
 # emits (StarterKit, links, images, tables); on top of it:
 _EXTRA_TAGS = {"iframe"}  # video embeds - src limited to _EMBED_PREFIXES
 _EXTRA_ATTRIBUTES: dict[str, set[str]] = {
-    # style: font-family / font-size marks, paragraph indent, column widths;
+    # style: font-family / font-size marks, paragraph indent, column widths,
+    # cell shading / alignment, image size and wrapping;
     # class: layout hooks of imported content (e.g. a portal's image galleries)
     "*": {"style", "class"},
     "a": {"title", "target"},
@@ -30,6 +31,11 @@ _ALLOWED_STYLES = {
     "width",
     "min-width",
     "writing-mode",  # vertical text in table cells
+    "background-color",  # table cell shading
+    "vertical-align",  # table cell alignment
+    "float",  # image wrapped by text
+    "display",  # centered image
+    "margin-right",
 }
 _EMBED_PREFIXES = ("https://www.youtube.com/embed/", "https://www.youtube-nocookie.com/embed/")
 

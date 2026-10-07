@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { Editor } from '@tiptap/core'
 import StarterKit from '@tiptap/starter-kit'
 import Image from '@tiptap/extension-image'
-import { FileList, Gallery, toFileEntry } from '../fileBlocks'
+import { FileList, Gallery, toFileEntry } from '../extensions/fileBlocks'
 
 const URL = '/api/v1/method/grunt.storage.doctypes.File.file.get_content?file_id='
 

@@ -213,6 +213,7 @@ msgstr "Пошук іконки…"
 #: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue:177
 #: grunt/frontend/src/components/fields/Link/FilterInput.vue:232
 #: grunt/frontend/src/components/fields/Icon/Icon.vue:132
+#: grunt/frontend/src/components/fields/RichText/ui/SlashMenu.vue:45
 msgid "Nothing found"
 msgstr "Нічого не знайдено"
 
@@ -245,6 +246,7 @@ msgstr "Замінити файл"
 
 #: grunt/frontend/src/components/views/sidebar/SidebarImage.vue:116
 #: grunt/frontend/src/components/fields/Image/Image.vue:34
+#: grunt/frontend/src/components/fields/RichText/ui/ImageBubble.vue:112
 msgid "Replace image"
 msgstr "Замінити зображення"
 
@@ -263,10 +265,10 @@ msgstr "Не підписано"
 msgid "Sign here"
 msgstr "Підпишіть тут"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:830
 #: grunt/frontend/src/components/fields/Signature/Signature.vue:229
 #: grunt/frontend/src/components/fields/Signature/Signature.vue:230
 #: grunt/frontend/src/components/fields/Table/Table.vue:220
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:69
 msgid "Undo"
 msgstr "Відмінити"
 
@@ -278,171 +280,175 @@ msgstr "Форматувати"
 msgid "Invalid JSON"
 msgstr "Невалідний JSON"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:530
+#: grunt/frontend/src/components/fields/RichText/editor/useRichEditor.ts:95
 msgid "Rich text"
 msgstr "Форматований текст"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:602
+#: grunt/frontend/src/components/fields/RichText/ui/EditorToolbar.vue:24
 msgid "Formatting"
 msgstr "Форматування"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:788
+#: grunt/frontend/src/components/fields/RichText/ui/MoreMenu.vue:67
 msgid "Font"
 msgstr "Шрифт"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:799
+#: grunt/frontend/src/components/fields/RichText/ui/MoreMenu.vue:80
 msgid "Font size"
 msgstr "Розмір шрифту"
 
 #: grunt/frontend/src/components/views/list/ListToolbarControls.vue:184
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:114
+#: grunt/frontend/src/components/fields/RichText/ui/MoreMenu.vue:23
 msgid "Default"
 msgstr "За замовчуванням"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:119
+#: grunt/frontend/src/components/fields/RichText/ui/MoreMenu.vue:34
+#: grunt/frontend/src/components/fields/RichText/ui/ImageBubble.vue:79
 #: grunt/frontend/src/pages/app/AppPage.vue:270
 msgid "Auto"
 msgstr "Авто"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:626
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:47
 msgid "Bold"
 msgstr "Жирний"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:631
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:48
 msgid "Italic"
 msgstr "Курсив"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:636
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:53
 msgid "Strikethrough"
 msgstr "Закреслений"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:781
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:54
 msgid "Inline code"
 msgstr "Код у рядку"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:271
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:41
 msgid "Heading 2"
 msgstr "Заголовок 2"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:274
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:42
 msgid "Heading 3"
 msgstr "Заголовок 3"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:644
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:57
 msgid "Bulleted list"
 msgstr "Маркований список"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:649
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:58
 msgid "Numbered list"
 msgstr "Нумерований список"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:277
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:43
 msgid "Quote"
 msgstr "Цитата"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:288
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:59
 msgid "Align left"
 msgstr "По лівому краю"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:289
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:60
 msgid "Align center"
 msgstr "По центру"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:290
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:61
 msgid "Align right"
 msgstr "По правому краю"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:291
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:62
 msgid "Justify"
 msgstr "По ширині"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:784
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:63
 msgid "Increase indent"
 msgstr "Збільшити відступ"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:785
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:64
 msgid "Decrease indent"
 msgstr "Зменшити відступ"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:280
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:44
 msgid "Code block"
 msgstr "Блок коду"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:719
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:65
 msgid "Horizontal rule"
 msgstr "Горизонтальна лінія"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:677
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:685
+#: grunt/frontend/src/components/fields/RichText/ui/LinkPopover.vue:51
 msgid "Link"
 msgstr "Посилання"
 
 #: grunt/grunt/website/block_types.py:22
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:687
+#: grunt/frontend/src/components/fields/RichText/ui/LinkPopover.vue:53
 msgid "Link URL"
 msgstr "URL посилання"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:691
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:92
+#: grunt/frontend/src/components/fields/RichText/ui/LinkPopover.vue:57
 msgid "Remove link"
 msgstr "Прибрати посилання"
 
 #: grunt/grunt/website/block_types.py:52
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:710
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:728
+#: grunt/frontend/src/components/fields/RichText/editor/useRichEditor.ts:74
+#: grunt/frontend/src/components/fields/RichText/ui/InsertMenu.vue:87
+#: grunt/frontend/src/components/fields/RichText/ui/InsertMenu.vue:108
 msgid "Image"
 msgstr "Зображення"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:730
+#: grunt/frontend/src/components/fields/RichText/ui/InsertMenu.vue:113
 msgid "Image URL"
 msgstr "URL зображення"
 
 #: grunt/frontend/src/core/attachmentChannels/channels/LibraryChannel/LibraryChannel.vue:434
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:736
+#: grunt/frontend/src/components/fields/RichText/ui/InsertMenu.vue:130
 msgid "Uploading…"
 msgstr "Завантаження…"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:736
+#: grunt/frontend/src/components/fields/RichText/ui/InsertMenu.vue:130
 msgid "Upload file"
 msgstr "Завантажити файл"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:721
+#: grunt/frontend/src/components/fields/RichText/ui/InsertMenu.vue:101
 msgid "Import from Word (.docx)"
 msgstr "Імпорт з Word (.docx)"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:502
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:87
 msgid "Horizontal text"
 msgstr "Горизонтальний текст"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:503
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:88
 msgid "Vertical text, top to bottom"
 msgstr "Вертикальний текст, згори донизу"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:504
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:89
 msgid "Vertical text, bottom to top"
 msgstr "Вертикальний текст, знизу догори"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:717
+#: grunt/frontend/src/components/fields/RichText/editor/useRichEditor.ts:72
+#: grunt/frontend/src/components/fields/RichText/ui/InsertMenu.vue:93
 #: grunt/frontend/src/pages/reports/ReportView.vue:198
 msgid "Table"
 msgstr "Таблиця"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:835
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:70
 msgid "Redo"
 msgstr "Повторити"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:398
+#: grunt/frontend/src/components/fields/RichText/editor/useRichEditor.ts:140
+#: grunt/frontend/src/components/fields/RichText/ui/ImageBubble.vue:60
 msgid "Image upload failed"
 msgstr "Не вдалося завантажити зображення"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:491
+#: grunt/frontend/src/components/fields/RichText/editor/useRichEditor.ts:172
 msgid "Imported with warnings"
 msgstr "Імпортовано з попередженнями"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:493
+#: grunt/frontend/src/components/fields/RichText/editor/useRichEditor.ts:169
 msgid "Could not import document"
 msgstr "Не вдалося імпортувати документ"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:892
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:76
 msgid "{words} w · {chars} ch"
 msgstr "{words} сл. · {chars} симв."
 
@@ -3088,6 +3094,9 @@ msgstr "Поле дати"
 #: grunt/frontend/src/components/views/form/FormModals.vue:140
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:433
 #: grunt/frontend/src/components/fields/Table/Table.vue:481
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:98
+#: grunt/frontend/src/components/fields/RichText/ui/BlockHandle.vue:71
+#: grunt/frontend/src/components/fields/RichText/ui/TableBubble.vue:116
 msgid "Delete"
 msgstr "Видалити"
 
@@ -3100,6 +3109,7 @@ msgid "Delete file"
 msgstr "Видалити файл"
 
 #: grunt/frontend/src/components/fields/Table/Table.vue:425
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:77
 msgid "Delete row"
 msgstr "Видалити рядок"
 
@@ -3159,6 +3169,7 @@ msgstr "Перетягніть файли для завантаження"
 #: grunt/grunt/actions/builtin.py:21
 #: grunt/grunt/metadata/doctypes/DocType/global_form.js:110
 #: grunt/frontend/src/components/fields/Table/Table.vue:443
+#: grunt/frontend/src/components/fields/RichText/ui/BlockHandle.vue:70
 msgid "Duplicate"
 msgstr "Дублювати"
 
@@ -3211,7 +3222,8 @@ msgstr "Поле"
 
 #: grunt/grunt/monitoring/health.py:376 grunt/grunt/monitoring/health.py:648
 #: grunt/grunt/monitoring/health.py:379
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:712
+#: grunt/frontend/src/components/fields/RichText/editor/useRichEditor.ts:80
+#: grunt/frontend/src/components/fields/RichText/ui/InsertMenu.vue:89
 msgid "Files"
 msgstr "Файли"
 
@@ -3257,10 +3269,12 @@ msgid "Icon (lucide)"
 msgstr "Іконка (lucide)"
 
 #: grunt/frontend/src/components/fields/Table/Table.vue:418
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:73
 msgid "Insert row above"
 msgstr "Вставити рядок вище"
 
 #: grunt/frontend/src/components/fields/Table/Table.vue:421
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:74
 msgid "Insert row below"
 msgstr "Вставити рядок нижче"
 
@@ -3707,6 +3721,7 @@ msgstr "Зареєструватися"
 
 #: grunt/grunt/monitoring/health.py:109
 #: grunt/frontend/src/core/attachmentChannels/channels/LibraryChannel/LibraryChannel.vue:292
+#: grunt/frontend/src/components/fields/RichText/ui/ImageBubble.vue:77
 msgid "Size"
 msgstr "Розмір"
 
@@ -3786,6 +3801,7 @@ msgstr "Незбережені зміни"
 #: grunt/frontend/src/core/scripting/executor.ts:827
 #: grunt/frontend/src/core/scripting/executor.ts:995
 #: grunt/frontend/src/core/attachmentChannels/channels/LibraryChannel/LibraryChannel.vue:194
+#: grunt/frontend/src/components/fields/RichText/editor/useRichEditor.ts:147
 msgid "Upload failed"
 msgstr "Не вдалося завантажити"
 
@@ -5668,7 +5684,8 @@ msgid "Tree"
 msgstr "Дерево"
 
 #: grunt/frontend/src/components/views/gallery/index.ts:7
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:713
+#: grunt/frontend/src/components/fields/RichText/editor/useRichEditor.ts:82
+#: grunt/frontend/src/components/fields/RichText/ui/InsertMenu.vue:90
 msgid "Gallery"
 msgstr "Галерея"
 
@@ -6918,8 +6935,8 @@ msgstr "Немає активності"
 
 #: grunt/frontend/src/components/views/FilterBar.vue:289
 #: grunt/frontend/src/components/views/FilterBar.vue:320
-#: grunt/frontend/src/components/fields/RichText/fileBlocks.ts:133
-#: grunt/frontend/src/components/fields/RichText/fileBlocks.ts:134
+#: grunt/frontend/src/components/fields/RichText/extensions/fileBlocks.ts:133
+#: grunt/frontend/src/components/fields/RichText/extensions/fileBlocks.ts:134
 msgid "Remove"
 msgstr "Прибрати"
 
@@ -7797,7 +7814,7 @@ msgid "No connection — viewing from cache, changes are saved on this device"
 msgstr "Немає з'єднання — перегляд з кешу, зміни зберігаються на пристрої"
 
 #: grunt/frontend/src/components/mobile/MobileBottomNav.vue:100
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:774
+#: grunt/frontend/src/components/fields/RichText/ui/MoreMenu.vue:54
 msgid "More"
 msgstr "Ще"
 
@@ -14514,11 +14531,11 @@ msgstr "Завантаження файлів"
 msgid "Not moved: {n}"
 msgstr "Не переміщено: {n}"
 
-#: grunt/frontend/src/components/fields/RichText/fileBlocks.ts:146
+#: grunt/frontend/src/components/fields/RichText/extensions/fileBlocks.ts:146
 msgid "Add files"
 msgstr "Додати файли"
 
-#: grunt/frontend/src/components/fields/RichText/fileBlocks.ts:146
+#: grunt/frontend/src/components/fields/RichText/extensions/fileBlocks.ts:146
 msgid "Add images"
 msgstr "Додати зображення"
 
@@ -14534,32 +14551,32 @@ msgstr ""
 msgid "Saved {time}"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:442
+#: grunt/frontend/src/components/fields/RichText/ui/InsertMenu.vue:43
 msgid "Invalid link"
 msgstr "Некоректне посилання"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:442
+#: grunt/frontend/src/components/fields/RichText/ui/InsertMenu.vue:43
 msgid "Paste a YouTube video link"
 msgstr "Вставте посилання на відео YouTube"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:749
+#: grunt/frontend/src/components/fields/RichText/ui/InsertMenu.vue:113
 msgid "Video URL"
 msgstr "Посилання на відео"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:711
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:746
+#: grunt/frontend/src/components/fields/RichText/ui/InsertMenu.vue:88
+#: grunt/frontend/src/components/fields/RichText/ui/InsertMenu.vue:108
 msgid "YouTube video"
 msgstr "Відео YouTube"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:752
+#: grunt/frontend/src/components/fields/RichText/ui/InsertMenu.vue:119
 msgid "Remove video"
 msgstr "Видалити відео"
 
-#: grunt/frontend/src/components/fields/RichText/fileBlocks.ts:154
+#: grunt/frontend/src/components/fields/RichText/extensions/fileBlocks.ts:154
 msgid "Delete file list"
 msgstr "Видалити список файлів"
 
-#: grunt/frontend/src/components/fields/RichText/fileBlocks.ts:154
+#: grunt/frontend/src/components/fields/RichText/extensions/fileBlocks.ts:154
 msgid "Delete gallery"
 msgstr "Видалити галерею"
 
@@ -15083,36 +15100,198 @@ msgstr "для цих файлів не вистачає місця"
 msgid "{used} of {quota} used"
 msgstr "Зайнято {used} з {quota}"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:658
+#: grunt/frontend/src/components/fields/RichText/ui/EditorToolbar.vue:37
 msgid "Alignment"
 msgstr "Вирівнювання"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:822
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:79
 msgid "Delete table"
 msgstr "Видалити таблицю"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:840
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:841
+#: grunt/frontend/src/components/fields/RichText/ui/EditorToolbar.vue:49
+#: grunt/frontend/src/components/fields/RichText/ui/EditorToolbar.vue:50
 msgid "Exit full screen"
 msgstr "Вийти з повноекранного режиму"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:840
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:841
+#: grunt/frontend/src/components/fields/RichText/ui/EditorToolbar.vue:49
+#: grunt/frontend/src/components/fields/RichText/ui/EditorToolbar.vue:50
 msgid "Full screen"
 msgstr "На весь екран"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:702
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:705
+#: grunt/frontend/src/components/fields/RichText/ui/InsertMenu.vue:78
+#: grunt/frontend/src/components/fields/RichText/ui/InsertMenu.vue:81
 msgid "Insert"
 msgstr "Вставити"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:268
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:40
 msgid "Paragraph"
 msgstr "Абзац"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:609
+#: grunt/frontend/src/components/fields/RichText/ui/EditorToolbar.vue:28
 msgid "Text style"
 msgstr "Стиль тексту"
+
+#: grunt/frontend/src/components/fields/RichText/ui/TableBubble.vue:31
+msgid "Blue"
+msgstr "Синій"
+
+#: grunt/frontend/src/components/fields/RichText/ui/TableBubble.vue:30
+msgid "Green"
+msgstr "Зелений"
+
+#: grunt/frontend/src/components/fields/RichText/ui/TableBubble.vue:32
+msgid "Red"
+msgstr "Червоний"
+
+#: grunt/frontend/src/components/fields/RichText/ui/TableBubble.vue:29
+msgid "Yellow"
+msgstr "Жовтий"
+
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:86
+msgid "Align bottom"
+msgstr "Вирівняти донизу"
+
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:85
+msgid "Align middle"
+msgstr "Вирівняти посередині"
+
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:84
+msgid "Align top"
+msgstr "Вирівняти догори"
+
+#: grunt/frontend/src/components/fields/RichText/ui/TableBubble.vue:82
+msgid "Cell"
+msgstr "Клітинка"
+
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:78
+msgid "Delete column"
+msgstr "Видалити колонку"
+
+#: grunt/frontend/src/components/fields/RichText/ui/TableBubble.vue:28
+msgid "Gray"
+msgstr "Сірий"
+
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:83
+msgid "Header column"
+msgstr "Колонка заголовків"
+
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:82
+msgid "Header row"
+msgstr "Рядок заголовків"
+
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:75
+msgid "Insert column left"
+msgstr "Вставити колонку ліворуч"
+
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:76
+msgid "Insert column right"
+msgstr "Вставити колонку праворуч"
+
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:80
+msgid "Merge cells"
+msgstr "Об'єднати клітинки"
+
+#: grunt/frontend/src/components/fields/RichText/ui/TableBubble.vue:100
+msgid "No shading"
+msgstr "Без заливки"
+
+#: grunt/frontend/src/components/fields/RichText/ui/TableBubble.vue:33
+msgid "Purple"
+msgstr "Фіолетовий"
+
+#: grunt/frontend/src/components/fields/RichText/ui/TableBubble.vue:96
+msgid "Shading"
+msgstr "Заливка"
+
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:81
+msgid "Split cell"
+msgstr "Розбити клітинку"
+
+#: grunt/frontend/src/components/fields/RichText/ui/TableGridPicker.vue:29
+msgid "Table size"
+msgstr "Розмір таблиці"
+
+#: grunt/frontend/src/components/fields/RichText/ui/TableGridPicker.vue:21
+msgid "{rows} × {cols} table"
+msgstr "Таблиця {rows} × {cols}"
+
+#: grunt/frontend/src/components/fields/RichText/ui/ImageBubble.vue:98
+#: grunt/frontend/src/components/fields/RichText/ui/ImageBubble.vue:103
+#: grunt/frontend/src/components/fields/RichText/ui/ImageBubble.vue:106
+msgid "Alt text"
+msgstr "Альтернативний текст"
+
+#: grunt/frontend/src/components/fields/RichText/ui/ImageBubble.vue:104
+msgid "Describes the image for screen readers and search engines."
+msgstr "Опис зображення для екранних читачів і пошукових систем."
+
+#: grunt/frontend/src/components/fields/RichText/ui/LinkBubble.vue:34
+msgid "Edit link"
+msgstr "Змінити посилання"
+
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:96
+msgid "Image centered"
+msgstr "Зображення по центру"
+
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:95
+msgid "Image left, text wraps"
+msgstr "Зображення ліворуч, текст обтікає"
+
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:97
+msgid "Image right, text wraps"
+msgstr "Зображення праворуч, текст обтікає"
+
+#: grunt/frontend/src/components/fields/RichText/ui/LinkBubble.vue:28
+msgid "Open link"
+msgstr "Відкрити посилання"
+
+#: grunt/frontend/src/components/fields/RichText/ui/ImageBubble.vue:88
+msgid "Original size"
+msgstr "Оригінальний розмір"
+
+#: grunt/frontend/src/components/fields/RichText/ui/ImageBubble.vue:90
+msgid "{size} of text width"
+msgstr "{size} ширини тексту"
+
+#: grunt/frontend/src/components/fields/RichText/ui/BlockHandle.vue:56
+msgid "Block options"
+msgstr "Дії з блоком"
+
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:66
+msgid "Collapsible block"
+msgstr "Блок, що розгортається"
+
+#: grunt/frontend/src/components/fields/RichText/ui/BlockHandle.vue:56
+msgid "Drag to move, click for options"
+msgstr "Перетягніть, щоб перемістити; клікніть для дій"
+
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:50
+msgid "Highlight"
+msgstr "Виділити маркером"
+
+#: grunt/frontend/src/components/fields/RichText/ui/SlashMenu.vue:33
+msgid "Insert block"
+msgstr "Вставити блок"
+
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:51
+msgid "Subscript"
+msgstr "Нижній індекс"
+
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:52
+msgid "Superscript"
+msgstr "Верхній індекс"
+
+#: grunt/frontend/src/components/fields/RichText/ui/BlockHandle.vue:64
+msgid "Turn into"
+msgstr "Перетворити на"
+
+#: grunt/frontend/src/components/fields/RichText/editor/useRichEditor.ts:99
+msgid "Type / for commands"
+msgstr "Введіть / для команд"
+
+#: grunt/frontend/src/components/fields/RichText/editor/commands.ts:49
+msgid "Underline"
+msgstr "Підкреслений"
 
 #~ msgid "— Any —"
 #~ msgstr "— Будь-який —"
@@ -18447,9 +18626,6 @@ msgstr "Стиль тексту"
 #~ msgid "Top menu items"
 #~ msgstr "Пункти верхнього меню"
 
-#~ msgid "Blue"
-#~ msgstr ""
-
 #~ msgid "Calendar"
 #~ msgstr "Календар"
 
@@ -18474,9 +18650,6 @@ msgstr "Стиль тексту"
 #~ msgid "Gauge"
 #~ msgstr ""
 
-#~ msgid "Green"
-#~ msgstr ""
-
 #~ msgid "Heatmap"
 #~ msgstr ""
 
@@ -18490,9 +18663,6 @@ msgstr "Стиль тексту"
 #~ msgstr ""
 
 #~ msgid "No saved versions"
-#~ msgstr ""
-
-#~ msgid "Red"
 #~ msgstr ""
 
 #~ msgid "Restore document to this version?"
@@ -18511,9 +18681,6 @@ msgstr "Стиль тексту"
 #~ msgstr ""
 
 #~ msgid "Violet"
-#~ msgstr ""
-
-#~ msgid "Yellow"
 #~ msgstr ""
 
 #~ msgid "row copied"

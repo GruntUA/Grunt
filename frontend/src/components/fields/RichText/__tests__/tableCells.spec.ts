@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { Editor } from '@tiptap/core'
 import StarterKit from '@tiptap/starter-kit'
 import { TableKit } from '@tiptap/extension-table'
-import { RichTableCell, RichTableHeader, applyDocxTableLayout } from '../tableCells'
+import { RichTableCell, RichTableHeader } from '../extensions/tableCells'
+import { applyDocxTableLayout } from '../extensions/docx'
 
 function editorWith(html: string): Editor {
   return new Editor({
