@@ -284,3 +284,92 @@ async def test_colleagues_directory_is_open_to_everyone_without_roles(
     emails = {p["email"] for p in people_list}
     assert {ANN, BOB} <= emails
     assert all(set(p) <= {"name", "email", "full_name", "avatar"} for p in people_list)
+
+
+@pytest.mark.asyncio
+async def test_linking_from_website_content_publishes_readable_files(
+    ctx, people, storage, db_session, engine
+):
+    import grunt
+    from grunt.api.v1.meta import save_doctype
+    from grunt.storage.doctypes.File.file import upload
+    from grunt.storage.doctypes.FileFolder.file_folder import get_home_folder
+
+    await save_doctype(
+        doctype_data={
+            "name": "PublicNote",
+            "label": "Public Note",
+            "module": "core",
+            "public_attachments": True,
+            "fields": [{"fieldname": "content", "label": "Content", "fieldtype": "RichText"}],
+            "permissions": [{"role": "All", "read": True, "write": True, "create": True}],
+            "__is_new": True,
+        }
+    )
+    uploaded = {}
+    for email in (ANN, BOB):
+        async with grunt.context(db_session, engine, _as(email)):
+            home = (await get_home_folder())["name"]
+            uploaded[email] = await upload(_file(f"{email}.txt"), folder=home)
+            await db_session.commit()
+
+    links = "".join(f'<a href="{u["url"]}">{e}</a>' for e, u in uploaded.items())
+    async with grunt.context(db_session, engine, _as(ANN)):
+        await grunt.new_doc("PublicNote", {"content": f"<p>{links}</p>"})
+        await db_session.commit()
+
+    assert await ctx.db.get_value("File", uploaded[ANN]["id"], "is_public")
+    # Bob's file is not Ann's to publish.
+    assert not await ctx.db.get_value("File", uploaded[BOB]["id"], "is_public")
+
+
+@pytest.mark.asyncio
+async def test_copy_items_duplicates_folders_and_files_without_new_blobs(
+    ctx, people, storage, db_session, engine
+):
+    import grunt
+    from grunt.storage.doctypes.FileFolder.file_folder import copy_items
+
+    home, work, drafts = await _ann_space(db_session, engine)
+    async with grunt.context(db_session, engine, _as(ANN)):
+        [plan] = await grunt.get_list(
+            "File", filters={"folder": drafts}, fields=["name", "content_hash"]
+        )
+        await copy_items(drafts, files=[plan["name"]])  # same folder - renamed copy
+        result = await copy_items(home, folders=[work])  # Work/Drafts/{2 files} -> home
+        with pytest.raises(ApplicationError):
+            await copy_items(drafts, folders=[work])  # into itself
+        await db_session.commit()
+
+    names = sorted(
+        r["file_name"]
+        for r in await ctx.db.get_all("File", filters={"folder": drafts}, fields=["file_name"])
+    )
+    assert names == ["plan (копія).txt", "plan.txt"]
+    assert result == {"copied": 4}  # Work copy, Drafts copy, 2 files
+    hashes = {
+        r["content_hash"] for r in await ctx.db.get_all("File", fields=["content_hash"], limit=100)
+    }
+    assert hashes == {plan["content_hash"]}
+    work_copies = await ctx.db.get_all(
+        "FileFolder", filters={"folder_name": "Work (копія)"}, fields=["space_user"]
+    )
+    assert work_copies == [{"space_user": ANN}]
+
+
+@pytest.mark.asyncio
+async def test_delete_items_removes_a_folder_with_its_contents(
+    ctx, people, storage, db_session, engine
+):
+    import grunt
+    from grunt.storage.doctypes.FileFolder.file_folder import delete_items
+
+    home, work, drafts = await _ann_space(db_session, engine)
+    async with grunt.context(db_session, engine, _as(BOB)):
+        with pytest.raises(HTTPException):
+            await delete_items(folders=[work])
+    async with grunt.context(db_session, engine, _as(ANN)):
+        assert await delete_items(folders=[work]) == {"deleted": 3}
+        await db_session.commit()
+    assert await ctx.db.count("FileFolder", {"space_user": ANN}) == 1  # the home
+    assert await ctx.db.count("File", {"folder": drafts}) == 0

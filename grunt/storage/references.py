@@ -10,6 +10,12 @@ permissions.
 
 Only the saving user's own pending uploads are claimed: library files, files
 of another document and someone else's uploads are merely *referenced*.
+
+A DocType with ``public_attachments`` is website content: linking a file from
+it publishes the file - every referenced file the saving user can read becomes
+``is_public``, so site visitors can download it by its plain URL (a file from
+someone's private folder included; it stays out of other people's lists).
+With ``is_published_field`` set, only a published document does that.
 """
 
 from __future__ import annotations
@@ -61,6 +67,8 @@ async def claim_referenced_files(**kwargs: Any) -> None:
     ids = await referenced_file_ids(doctype, doc)
     if not ids:
         return
+    if meta.public_attachments and (not meta.is_published_field or doc.get(meta.is_published_field)):
+        await _publish(ids, user)
     claimed = await grunt.db.bulk_update(
         "File",
         {
@@ -73,3 +81,21 @@ async def claim_referenced_files(**kwargs: Any) -> None:
     )
     if claimed:
         log.debug("storage.files_claimed", doctype=doctype, doc_id=doc["name"], count=claimed)
+
+
+async def _publish(ids: set[str], user: Any) -> None:
+    """Make the private files among *ids* that *user* may read public."""
+    from grunt.permissions.rbac import permission_checker
+
+    meta = await grunt.get_meta("File")
+    if meta is None:
+        return
+    rows = await grunt.db.get_all("File", filters={"name__in": sorted(ids)}, fields=["*"], limit=None)
+    readable = [
+        r["name"]
+        for r in rows
+        if not r.get("is_public") and await permission_checker.check(user, meta, "read", r)
+    ]
+    if readable:
+        await grunt.db.bulk_update("File", {"name__in": readable}, {"is_public": 1})
+        log.debug("storage.files_published", count=len(readable))

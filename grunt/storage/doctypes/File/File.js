@@ -12,6 +12,19 @@ function setup_list(listview) {
     return open ? open.value : null
   }
 
+  const showFolder = async (lv, folder) => {
+    const doc = await grunt.api.get(`/api/v1/docs/FileFolder/${folder}`)
+    const row = doc.data ?? doc
+    lv.set_filters([{
+      fieldname: 'folder',
+      op: '=',
+      value: folder,
+      label: __('Folder'),
+      fieldtype: 'Link',
+      displayValue: row.is_home && row.space_user === grunt.session.user ? __('My files') : row.folder_name,
+    }])
+  }
+
   const upload = async (lv, opts) => {
     const files = await grunt.upload_files({ multiple: true, ...opts })
     if (!files.length) return
@@ -19,6 +32,9 @@ function setup_list(listview) {
       files.length === 1 ? __('File uploaded') : __('Files uploaded: {n}', { n: files.length }),
       'success',
     )
+    // Like Explorer: end up in the folder the files went to.
+    const target = files[0].folder
+    if (target && target !== openFolder(lv)) await showFolder(lv, target)
     lv.refresh()
   }
 
@@ -34,15 +50,7 @@ function setup_list(listview) {
 
   // Nothing filtered (the menu link, a fresh visit) - open «My files».
   if (!listview.filters.length) {
-    grunt.call('grunt.storage.doctypes.FileFolder.file_folder.get_home_folder').then((home) => {
-      listview.set_filters([{
-        fieldname: 'folder',
-        op: '=',
-        value: home.name,
-        label: __('Folder'),
-        fieldtype: 'Link',
-        displayValue: __('My files'),
-      }])
-    })
+    grunt.call('grunt.storage.doctypes.FileFolder.file_folder.get_home_folder')
+      .then((home) => showFolder(listview, home.name))
   }
 }

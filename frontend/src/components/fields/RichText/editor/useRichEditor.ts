@@ -1,10 +1,10 @@
 import { inject, onBeforeUnmount, provide, reactive, ref, watch, type InjectionKey, type ShallowRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useEditor, type Editor } from '@tiptap/vue-3'
-import { Image as ImageIcon, Images, Paperclip, Table as TableIcon } from '@lucide/vue'
+import { FileSymlink, Image as ImageIcon, Images, Paperclip, Table as TableIcon } from '@lucide/vue'
 import type { DocField } from '@/types'
 import { filesApi, type FileItem } from '@/core/api/files'
-import type { AttachmentResult } from '@/core/attachmentChannels/types'
+import type { AttachmentResult } from '@/components/fields/Attach/attachment'
 import type { DocContext } from '@/components/fields/Attach/useAttachmentField'
 import { useToast } from '@/core/composables/useToast'
 import { buildExtensions } from '../extensions'
@@ -42,12 +42,13 @@ export function useRichEditor(props: RichEditorProps, emit: (e: 'update:modelVal
     attachedToId: docContext?.getId() ?? undefined,
   })
 
-  // File picker (AttachPicker) for the file list / gallery blocks
-  const picker = ref<{ kind: FileBlockKind; resolve: (r: AttachmentResult[]) => void } | null>(null)
+  // File picker (AttachPicker): file list / gallery blocks, a link to a file
+  // `currentUrl` - the file being replaced: the picker opens on it.
+  const picker = ref<{ kind: PickerKind; currentUrl?: string; resolve: (r: AttachmentResult[]) => void } | null>(null)
 
-  function pickFiles(kind: FileBlockKind): Promise<AttachmentResult[]> {
+  function pickFiles(kind: PickerKind, currentUrl?: string): Promise<AttachmentResult[]> {
     picker.value?.resolve([])
-    return new Promise((resolve) => { picker.value = { kind, resolve } })
+    return new Promise((resolve) => { picker.value = { kind, currentUrl, resolve } })
   }
 
   function onPicked(results: AttachmentResult[]) {
@@ -79,6 +80,8 @@ export function useRichEditor(props: RichEditorProps, emit: (e: 'update:modelVal
       } },
     { id: 'files', keywords: 'attachment pdf', label: t('Files'), icon: Paperclip,
       run: (e, range) => { e.chain().focus().deleteRange(range).run(); insertFileBlock('fileList') } },
+    { id: 'fileLink', keywords: 'link file document doc', label: t('Link to a file…'), icon: FileSymlink,
+      run: (e, range) => { e.chain().focus().deleteRange(range).run(); linkToFile() } },
     { id: 'gallery', keywords: 'images photos', label: t('Gallery'), icon: Images,
       run: (e, range) => { e.chain().focus().deleteRange(range).run(); insertFileBlock('gallery') } },
   ]
@@ -165,6 +168,22 @@ export function useRichEditor(props: RichEditorProps, emit: (e: 'update:modelVal
     editor.value?.chain().focus().insertContent(content).run()
   }
 
+  /** Turn the selection into a link to a chosen file - or insert the file's name as one. */
+  async function linkToFile() {
+    const e = editor.value
+    if (!e) return
+    const { from, to, empty } = e.state.selection
+    const href = e.isActive('link') ? (e.getAttributes('link').href as string | undefined) : undefined
+    const [file] = await pickFiles('link', href)
+    if (!file) return
+    const chain = e.chain().focus()
+    if (empty && !e.isActive('link')) {
+      chain.insertContent({ type: 'text', text: file.filename, marks: [{ type: 'link', attrs: { href: file.url } }] }).run()
+    } else {
+      chain.setTextSelection({ from, to }).extendMarkRange('link').setLink({ href: file.url }).run()
+    }
+  }
+
   async function importDocx(file: File) {
     const result = await busy(() => docxToHtml(file), t('Could not import document'))
     if (!result) return
@@ -200,9 +219,13 @@ export function useRichEditor(props: RichEditorProps, emit: (e: 'update:modelVal
     uploading,
     uploadImage,
     insertFileBlock,
+    linkToFile,
     importDocx,
   }
 }
+
+/** What the AttachPicker is open for. */
+export type PickerKind = FileBlockKind | 'link'
 
 const fileEntry = (f: FileItem) => toFileEntry({ url: f.url, filename: f.filename, contentType: f.content_type, fileItem: f })
 

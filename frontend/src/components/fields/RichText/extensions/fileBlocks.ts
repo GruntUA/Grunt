@@ -17,7 +17,7 @@
 import { Node } from '@tiptap/core'
 import type { Node as PmNode } from '@tiptap/pm/model'
 import type { NodeView, EditorView } from '@tiptap/pm/view'
-import type { AttachmentResult } from '@/core/attachmentChannels/types'
+import type { AttachmentResult } from '@/components/fields/Attach/attachment'
 import { fileTypeLabel, formatFileSize } from '@/core/fileUtils'
 
 export interface FileEntry {

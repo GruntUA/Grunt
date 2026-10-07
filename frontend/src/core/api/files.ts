@@ -13,6 +13,8 @@ export interface FileItem {
     uploaded_by: string
     attached_to_doctype?: string | null
     attached_to_id?: string | null
+    /** The folder an upload went to (`upload`). */
+    folder?: string | null
     /** Set by `upload` when byte-identical content was already stored. */
     deduped?: boolean
 }
@@ -29,6 +31,8 @@ export interface FileListParams {
     contentTypeLike?: string
     attachedToDoctype?: string
     attachedToId?: string
+    /** Files filed in this folder (FileFolder). */
+    folder?: string
     orderBy?: FileSortField
     order?: 'asc' | 'desc'
 }
@@ -42,6 +46,7 @@ export const filesApi = {
         if (p.contentTypeLike) filters.content_type__ilike = p.contentTypeLike
         if (p.attachedToDoctype) filters.attached_to_doctype = p.attachedToDoctype
         if (p.attachedToId) filters.attached_to_id = p.attachedToId
+        if (p.folder) filters.folder = p.folder
 
         const params: Record<string, unknown> = {
             page: p.page ?? 1,
@@ -104,6 +109,33 @@ export const filesApi = {
             { params: user ? { user } : {} },
         )
         return res.data.data
+    },
+
+    /** Download a file from the internet into a folder (server-side, public links only). */
+    uploadFromUrl: async (url: string, folder?: string): Promise<FileItem> => {
+        const res = await client.post(
+            '/api/v1/method/grunt.storage.doctypes.File.file.upload_from_url',
+            { url, folder },
+        )
+        return res.data.data
+    },
+
+    /** Copy files and folders (with their contents) into a folder - no new disk space. */
+    copyItems: async (target: string, items: { files: string[]; folders: string[] }): Promise<number> => {
+        const res = await client.post(
+            '/api/v1/method/grunt.storage.doctypes.FileFolder.file_folder.copy_items',
+            { target, ...items },
+        )
+        return res.data.data.copied
+    },
+
+    /** Delete files and folders - a folder together with everything in it (to the trash). */
+    deleteItems: async (items: { files: string[]; folders: string[] }): Promise<number> => {
+        const res = await client.post(
+            '/api/v1/method/grunt.storage.doctypes.FileFolder.file_folder.delete_items',
+            items,
+        )
+        return res.data.data.deleted
     },
 
     delete: async (id: string): Promise<void> => {

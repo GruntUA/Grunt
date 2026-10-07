@@ -11,7 +11,7 @@ const props = defineProps<BaseFieldProps>()
 const emit = defineEmits<{ 'update:modelValue': [value: unknown] }>()
 
 const { t } = useI18n()
-const { docContext, isDisabled, currentUrl, filename, onSelect, remove } = useAttachmentField(props, emit)
+const { isDisabled, currentUrl, filename, onSelect, remove } = useAttachmentField(props, emit)
 
 const pickerOpen = ref(false)
 
@@ -64,8 +64,6 @@ function openPicker() {
     <AttachPicker
       v-model:open="pickerOpen"
       :image-only="true"
-      :attached-to-doctype="docContext?.doctype"
-      :attached-to-id="docContext?.getId() ?? undefined"
       :current-url="currentUrl"
       @select="onSelect"
     />

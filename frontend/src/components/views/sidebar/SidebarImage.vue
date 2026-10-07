@@ -5,7 +5,7 @@ import { Ellipsis, ExternalLink, ImagePlus, ImageUp, Trash2, Upload } from '@luc
 import { filesApi } from '@/core/api/files'
 import { useToast } from '@/core/composables/useToast'
 import { useDialog } from '@/core/composables/useDialog'
-import type { AttachmentResult } from '@/core/attachmentChannels/types'
+import type { AttachmentResult } from '@/components/fields/Attach/attachment'
 import AttachPicker from '@/components/fields/Attach/AttachPicker.vue'
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
@@ -171,8 +171,6 @@ async function remove() {
       v-if="editable"
       v-model:open="pickerOpen"
       :image-only="true"
-      :attached-to-doctype="doctype"
-      :attached-to-id="docId"
       :current-url="url"
       @select="onPick"
     />

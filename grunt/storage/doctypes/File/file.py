@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
+import httpx
 from fastapi import HTTPException, Request, Response, UploadFile
 from fastapi.responses import FileResponse
 
@@ -139,6 +140,30 @@ async def upload(
     return _upload_payload(doc, deduped=False)
 
 
+@whitelist()
+async def upload_from_url(url: str, folder: str | None = None) -> dict[str, Any]:
+    """Whitelisted method: download a file from the internet into *folder*
+    (see :mod:`grunt.storage.remote` for what links are allowed)."""
+    from grunt.storage.remote import RemoteFileError, fetch_file
+
+    if folder:
+        from grunt.storage.doctypes.FileFolder.file_folder import require_folder_write
+
+        row = await grunt.db.get_value("FileFolder", folder, "*")
+        if row is None:
+            raise HTTPException(404, _("Folder “%(folder)s” not found") % {"folder": folder})
+        await require_folder_write(row)
+    try:
+        doc = await fetch_file(url.strip(), folder=folder or None)
+    except RemoteFileError as exc:
+        raise HTTPException(422, str(exc)) from exc
+    except httpx.HTTPError as exc:
+        raise HTTPException(
+            422, _("Could not download the file: %(error)s") % {"error": exc}
+        ) from exc
+    return _upload_payload(doc, deduped=False)
+
+
 def _upload_payload(doc: dict[str, Any], *, deduped: bool) -> dict[str, Any]:
     """Response shape shared by a fresh upload and a de-duplicated hit."""
     return {
@@ -148,6 +173,7 @@ def _upload_payload(doc: dict[str, Any], *, deduped: bool) -> dict[str, Any]:
         "content_type": doc["content_type"],
         "size_bytes": doc["file_size"],
         "thumbnail_url": doc.get("thumbnail_url"),
+        "folder": doc.get("folder"),
         "deduped": deduped,
     }
 

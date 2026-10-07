@@ -4,6 +4,7 @@ import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useQueryClient } from '@tanstack/vue-query'
 import { RouterView } from 'vue-router'
 import GruntDialog from '@/components/desk/GruntDialog.vue'
+import FolderPickerDialog from '@/components/files/FolderPickerDialog.vue'
 import TaskProgressPanel from '@/components/desk/TaskProgressPanel.vue'
 import ErrorBoundary from '@/components/ErrorBoundary.vue'
 import CommandPalette from '@/components/layout/CommandPalette.vue'
@@ -67,6 +68,7 @@ onUnmounted(() => {
 <template>
   <TooltipProvider>
     <GruntDialog />
+    <FolderPickerDialog />
     <TaskProgressPanel />
     <ServerErrorModal />
     <ErrorBoundary>

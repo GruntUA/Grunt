@@ -4,7 +4,7 @@ import { EditorContent } from '@tiptap/vue-3'
 // Geist is the editor typeface only - loaded with this (lazy) chunk, not app-wide.
 import '@fontsource-variable/geist'
 import type { DocField } from '@/types'
-import type { AttachmentResult } from '@/core/attachmentChannels/types'
+import type { AttachmentResult } from '@/components/fields/Attach/attachment'
 import AttachPicker from '@/components/fields/Attach/AttachPicker.vue'
 import { provideRichEditor, useRichEditor } from './editor/useRichEditor'
 import { useFullscreen } from './editor/useFullscreen'
@@ -32,7 +32,7 @@ const { t } = useI18n()
 
 const rich = useRichEditor(props, (_, v) => emit('update:modelValue', v))
 provideRichEditor(rich)
-const { editor, editable, maxLength, picker, onPicked, uploadTarget } = rich
+const { editor, editable, maxLength, picker, onPicked } = rich
 
 const documentStyle = props.field.options === 'document'
 const fullscreen = useFullscreen(() => editor.value?.commands.focus())
@@ -80,9 +80,10 @@ const words = () => editor.value?.storage.characterCount.words() ?? 0
         <AttachPicker
           :open="!!picker"
           :image-only="picker?.kind === 'gallery'"
-          multiple
-          :attached-to-doctype="uploadTarget().attachedToDoctype"
-          :attached-to-id="uploadTarget().attachedToId"
+          :multiple="picker?.kind !== 'link'"
+          :current-url="picker?.currentUrl"
+          :title="picker?.kind === 'link' ? t('Link to a file') : undefined"
+          :action-label="picker?.kind === 'link' ? t('Insert link') : undefined"
           @update:open="(open: boolean) => { if (!open) onPicked([]) }"
           @select="(r: AttachmentResult) => onPicked([r])"
           @select-many="onPicked"

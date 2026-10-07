@@ -805,7 +805,8 @@ export function createGruntProxy(
       const { filesApi } = await import('@/core/api/files')
       let folder = opts.folder ?? undefined
       if (opts.choose_folder) {
-        const chosen = await chooseUploadFolder(this, picked, folder)
+        const { useFolderPicker } = await import('@/core/composables/useFolderPicker')
+        const chosen = await useFolderPicker().pick({ files: picked, folder })
         if (!chosen) return []
         folder = chosen
       }
@@ -918,88 +919,6 @@ function pickFiles(multiple: boolean, accept?: string): Promise<File[]> {
     input.addEventListener('cancel', () => resolve([]))
     input.click()
   })
-}
-
-/**
- * The «Upload files» dialog: where the picked files go (a folder, optionally a
- * new subfolder in it) and how full «My files» is. Resolves with the folder,
- * or `null` when cancelled.
- */
-async function chooseUploadFolder(
-  g: Pick<GruntProxy, 'form' | 'show_alert'>,
-  files: File[],
-  preselected: string | undefined,
-): Promise<string | null> {
-  const { filesApi } = await import('@/core/api/files')
-  const { docsApi } = await import('@/core/api/docs')
-  const { formatFileSize } = await import('@/core/fileUtils')
-  const [home, usage] = await Promise.all([
-    filesApi.homeFolder(),
-    filesApi.storageUsage().catch(() => null),
-  ])
-  const total = files.reduce((sum, f) => sum + f.size, 0)
-  const list = files
-    .map((f) => `<li class="flex justify-between gap-3"><span class="truncate">${escapeHtml(f.name)}</span>`
-      + `<span class="shrink-0 text-muted-foreground">${formatFileSize(f.size)}</span></li>`)
-    .join('')
-  const fields: unknown[] = [
-    {
-      fieldname: 'files',
-      label: translate(N_('Files: {n}'), { n: files.length }),
-      fieldtype: 'HTML',
-      plain: true,
-      default: `<ul class="max-h-40 space-y-0.5 overflow-y-auto">${list}</ul>`,
-    },
-    {
-      fieldname: 'folder',
-      label: translate(N_('Folder')),
-      fieldtype: 'Link',
-      options: 'FileFolder',
-      required: true,
-      default: preselected || home.name,
-    },
-    {
-      fieldname: 'new_folder',
-      label: translate(N_('New subfolder')),
-      fieldtype: 'Text',
-      placeholder: translate(N_('Optional - created inside the chosen folder')),
-    },
-  ]
-  if (usage?.quota) {
-    const percent = Math.min(100, Math.round((usage.used / usage.quota) * 100))
-    const full = usage.used + total > usage.quota
-    fields.push({
-      fieldname: 'quota',
-      label: translate(N_('My files')),
-      fieldtype: 'HTML',
-      plain: true,
-      default:
-        `<p class="${full ? 'text-destructive' : 'text-muted-foreground'}">`
-        + escapeHtml(translate(N_('{used} of {quota} used'), {
-          used: formatFileSize(usage.used), quota: formatFileSize(usage.quota),
-        }))
-        + (full ? ` — ${escapeHtml(translate(N_('not enough space for these files')))}` : '')
-        + `</p><div class="mt-1 h-1.5 overflow-hidden rounded-full bg-muted">`
-        + `<div class="h-full ${full ? 'bg-destructive' : 'bg-primary'}" style="width:${percent}%"></div></div>`,
-    })
-  }
-  const values = await g.form({ title: translate(N_('Upload files')), fields, primaryLabel: translate(N_('Upload')) })
-  if (!values) return null
-  const target = String(values.folder)
-  const subfolder = String(values.new_folder ?? '').trim()
-  if (!subfolder) return target
-  try {
-    const created = await docsApi.create('FileFolder', { folder_name: subfolder, parent_folder: target })
-    return String(created.name)
-  } catch (err) {
-    const detail = (err as { response?: { data?: { detail?: string } } }).response?.data?.detail
-    g.show_alert(typeof detail === 'string' ? detail : translate(N_('Upload failed')), 'error')
-    return null
-  }
-}
-
-function escapeHtml(text: string): string {
-  return text.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`)
 }
 
 /** `__('text')` in client scripts - the UI translation (and an extraction marker). */

@@ -3,7 +3,7 @@
  * resolves its display name via the files API, and exposes select / remove.
  */
 import { ref, computed, watch, inject } from 'vue'
-import type { AttachmentResult } from '@/core/attachmentChannels/types'
+import type { AttachmentResult } from '@/components/fields/Attach/attachment'
 import { filesApi } from '@/core/api/files'
 import { extractFileId } from '@/core/fileUtils'
 

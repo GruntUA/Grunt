@@ -80,18 +80,6 @@ registerExporter(htmlExporter)
 // import { registerImporter } from '@/core/io'
 // registerImporter(csvImporter)
 
-// Attachment Channels
-import { registerAttachChannel } from '@/core/attachmentChannels/registry'
-import { localFileChannel } from '@/core/attachmentChannels/channels/LocalFileChannel'
-import { libraryChannel } from '@/core/attachmentChannels/channels/LibraryChannel'
-import { urlChannel } from '@/core/attachmentChannels/channels/UrlChannel'
-import { cameraChannel } from '@/core/attachmentChannels/channels/CameraChannel'
-
-registerAttachChannel(localFileChannel)
-registerAttachChannel(libraryChannel)
-registerAttachChannel(urlChannel)
-registerAttachChannel(cameraChannel)
-
 // infra_map
 // import { infraMapExporter } from '@/modules/infra_map/exporters'
 // registerExporter(infraMapExporter)

@@ -38,8 +38,8 @@ msgstr ""
 msgid "A special character"
 msgstr ""
 
-#: grunt/grunt/startup/errors.py:255 grunt/frontend/src/router/index.ts:189
-#: grunt/frontend/src/core/api/client.ts:161
+#: grunt/grunt/startup/errors.py:257 grunt/frontend/src/router/index.ts:189
+#: grunt/frontend/src/core/api/client.ts:164
 msgid "Access denied"
 msgstr ""
 
@@ -105,11 +105,11 @@ msgstr ""
 msgid "At least {min} characters"
 msgstr ""
 
-#: grunt/frontend/src/core/attachmentChannels/channels/LibraryChannel/LibraryChannel.vue:426
+#: grunt/frontend/src/components/fields/Attach/AttachPicker.vue:84
 msgid "Attach"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/Attach/AttachPicker.vue:56
+#: grunt/frontend/src/components/fields/Attach/AttachPicker.vue:75
 msgid "Attach a file"
 msgstr ""
 
@@ -118,7 +118,7 @@ msgstr ""
 msgid "Attach a file…"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/Attach/AttachPicker.vue:56
+#: grunt/frontend/src/components/fields/Attach/AttachPicker.vue:75
 msgid "Attach an image"
 msgstr ""
 
@@ -155,12 +155,12 @@ msgstr ""
 msgid "Bulleted list"
 msgstr ""
 
-#: grunt/frontend/src/core/attachmentChannels/channels/CameraChannel/CameraChannel.vue:38
+#: grunt/frontend/src/components/files/CameraCapture.vue:55
 #: grunt/frontend/src/components/fields/BarCode/BarCode.vue:117
 msgid "Camera access denied. Allow access in browser settings."
 msgstr ""
 
-#: grunt/frontend/src/core/attachmentChannels/channels/CameraChannel/CameraChannel.vue:39
+#: grunt/frontend/src/components/files/CameraCapture.vue:58
 #: grunt/frontend/src/components/fields/BarCode/BarCode.vue:118
 msgid "Camera error: {msg}"
 msgstr ""
@@ -170,7 +170,6 @@ msgid "Camera unavailable."
 msgstr ""
 
 #: grunt/grunt/actions/builtin.py:110
-#: grunt/frontend/src/core/attachmentChannels/channels/CameraChannel/CameraChannel.vue:118
 #: grunt/frontend/src/components/desk/GruntDialog.vue:438
 #: grunt/frontend/src/components/desk/GruntDialog.vue:442
 #: grunt/frontend/src/components/desk/GruntDialog.vue:459
@@ -180,15 +179,16 @@ msgstr ""
 #: grunt/frontend/src/components/views/BulkActionBar.vue:300
 #: grunt/frontend/src/components/views/BulkActionBar.vue:344
 #: grunt/frontend/src/components/views/FilterBar.vue:344
+#: grunt/frontend/src/components/files/CameraCapture.vue:136
+#: grunt/frontend/src/components/files/FolderPickerDialog.vue:44
+#: grunt/frontend/src/components/files/FileExplorer.vue:730
+#: grunt/frontend/src/components/files/FileExplorer.vue:858
 #: grunt/frontend/src/components/workflow/WorkflowActionDialog.vue:105
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue:347
 #: grunt/frontend/src/components/views/form/FormModals.vue:138
 #: grunt/frontend/src/components/views/form/FormHeader.vue:288
 #: grunt/frontend/src/components/views/form/FormHeader.vue:334
 #: grunt/frontend/src/components/views/form/FormHeader.vue:448
-#: grunt/frontend/src/components/views/list/QuickFilterSettingsDialog.vue:112
-#: grunt/frontend/src/components/views/map/MapView.vue:206
-#: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue:184
 msgid "Cancel"
 msgstr ""
 
@@ -266,20 +266,17 @@ msgstr ""
 
 #: grunt/frontend/src/components/desk/GruntDialog.vue:362
 #: grunt/frontend/src/components/debug/ServerErrorModal.vue:72
+#: grunt/frontend/src/components/files/FileExplorer.vue:695
 #: grunt/frontend/src/components/views/form/FormHeader.vue:370
 #: grunt/frontend/src/pages/app/AppPage.vue:482
 msgid "Copy"
-msgstr ""
-
-#: grunt/frontend/src/core/attachmentChannels/channels/LibraryChannel/LibraryChannel.vue:225
-msgid "Could not delete the file"
 msgstr ""
 
 #: grunt/frontend/src/components/fields/Geolocation/Geolocation.vue:72
 msgid "Could not get your location"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/editor/useRichEditor.ts:169
+#: grunt/frontend/src/components/fields/RichText/editor/useRichEditor.ts:188
 msgid "Could not import document"
 msgstr ""
 
@@ -289,6 +286,7 @@ msgid "Count (COUNT)"
 msgstr ""
 
 #: grunt/frontend/src/components/layout/OfflineQueueSheet.vue:24
+#: grunt/frontend/src/components/files/FileExplorer.vue:673
 #: grunt/frontend/src/components/fields/Link/Link.vue:216
 msgid "Create"
 msgstr ""
@@ -303,10 +301,6 @@ msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/global_list.js:78
 msgid "Create report"
-msgstr ""
-
-#: grunt/frontend/src/core/attachmentChannels/channels/LibraryChannel/LibraryChannel.vue:379
-msgid "Currently attached"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/global_list.js:68
@@ -337,6 +331,8 @@ msgstr ""
 #: grunt/frontend/src/components/views/BulkActionBar.vue:303
 #: grunt/frontend/src/components/dashboard/WidgetConfigPanel.vue:77
 #: grunt/frontend/src/components/dashboard/WidgetCard.vue:55
+#: grunt/frontend/src/components/files/FileExplorer.vue:708
+#: grunt/frontend/src/components/files/FileExplorer.vue:859
 #: grunt/frontend/src/components/dashboard/sections/FiltersSection.vue:82
 #: grunt/frontend/src/components/views/form/FormModals.vue:140
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:433
@@ -351,17 +347,9 @@ msgstr ""
 msgid "Delete document?"
 msgstr ""
 
-#: grunt/frontend/src/core/attachmentChannels/channels/LibraryChannel/LibraryChannel.vue:395
-msgid "Delete file"
-msgstr ""
-
 #: grunt/frontend/src/components/fields/Table/Table.vue:425
 #: grunt/frontend/src/components/fields/RichText/editor/commands.ts:77
 msgid "Delete row"
-msgstr ""
-
-#: grunt/frontend/src/core/attachmentChannels/channels/LibraryChannel/LibraryChannel.vue:217
-msgid "Delete this file from the library?"
 msgstr ""
 
 #: grunt/frontend/src/core/composables/useFormActions.ts:45
@@ -416,10 +404,6 @@ msgstr ""
 msgid "Done"
 msgstr ""
 
-#: grunt/frontend/src/core/attachmentChannels/channels/LibraryChannel/LibraryChannel.vue:258
-msgid "Drop files to upload"
-msgstr ""
-
 #: grunt/grunt/actions/builtin.py:21
 #: grunt/grunt/metadata/doctypes/DocType/global_form.js:110
 #: grunt/frontend/src/components/fields/Table/Table.vue:443
@@ -461,10 +445,6 @@ msgstr ""
 msgid "External URL"
 msgstr ""
 
-#: grunt/frontend/src/core/attachmentChannels/channels/LibraryChannel/LibraryChannel.vue:322
-msgid "Failed to load files"
-msgstr ""
-
 #: grunt/frontend/src/components/fields/ColumnMapping/ColumnMapping.vue:75
 msgid "Failed to load preview"
 msgstr ""
@@ -482,13 +462,9 @@ msgstr ""
 msgid "File column"
 msgstr ""
 
-#: grunt/frontend/src/core/attachmentChannels/channels/LibraryChannel/LibraryChannel.vue:223
-msgid "File deleted"
-msgstr ""
-
 #: grunt/grunt/monitoring/health.py:376 grunt/grunt/monitoring/health.py:648
 #: grunt/grunt/monitoring/health.py:379
-#: grunt/frontend/src/components/fields/RichText/editor/useRichEditor.ts:80
+#: grunt/frontend/src/components/fields/RichText/editor/useRichEditor.ts:81
 #: grunt/frontend/src/components/fields/RichText/ui/InsertMenu.vue:89
 msgid "Files"
 msgstr ""
@@ -575,7 +551,7 @@ msgid "Icon (lucide)"
 msgstr ""
 
 #: grunt/grunt/website/block_types.py:52
-#: grunt/frontend/src/components/fields/RichText/editor/useRichEditor.ts:74
+#: grunt/frontend/src/components/fields/RichText/editor/useRichEditor.ts:75
 #: grunt/frontend/src/components/fields/RichText/ui/InsertMenu.vue:87
 #: grunt/frontend/src/components/fields/RichText/ui/InsertMenu.vue:108
 msgid "Image"
@@ -585,7 +561,7 @@ msgstr ""
 msgid "Image URL"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/editor/useRichEditor.ts:140
+#: grunt/frontend/src/components/fields/RichText/editor/useRichEditor.ts:143
 #: grunt/frontend/src/components/fields/RichText/ui/ImageBubble.vue:60
 msgid "Image upload failed"
 msgstr ""
@@ -606,7 +582,7 @@ msgstr ""
 msgid "Vertical text, bottom to top"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/editor/useRichEditor.ts:172
+#: grunt/frontend/src/components/fields/RichText/editor/useRichEditor.ts:191
 msgid "Imported with warnings"
 msgstr ""
 
@@ -649,12 +625,12 @@ msgstr ""
 msgid "Leave"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/ui/LinkPopover.vue:51
+#: grunt/frontend/src/components/fields/RichText/ui/LinkPopover.vue:80
 msgid "Link"
 msgstr ""
 
 #: grunt/grunt/website/block_types.py:22
-#: grunt/frontend/src/components/fields/RichText/ui/LinkPopover.vue:53
+#: grunt/frontend/src/components/fields/RichText/ui/LinkPopover.vue:84
 msgid "Link URL"
 msgstr ""
 
@@ -751,7 +727,7 @@ msgstr ""
 #: grunt/grunt/cli/doctype.py:166 grunt/grunt/auth/doctypes/User/User.js:180
 #: grunt/frontend/src/core/composables/useFormValidation.ts:83
 #: grunt/frontend/src/core/composables/useFormValidation.ts:97
-#: grunt/frontend/src/core/attachmentChannels/channels/LibraryChannel/LibraryChannel.vue:291
+#: grunt/frontend/src/components/files/FileExplorer.vue:768
 #: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:318
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:246
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:263
@@ -783,10 +759,6 @@ msgstr ""
 msgid "New notification"
 msgstr ""
 
-#: grunt/frontend/src/core/attachmentChannels/channels/LibraryChannel/LibraryChannel.vue:290
-msgid "Newest"
-msgstr ""
-
 #: grunt/grunt/website/doc_layout.py:49 grunt/grunt/api/v1/docs/utils.py:45
 #: grunt/frontend/src/components/views/QuickFilterBar.vue:47
 #: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:123
@@ -797,10 +769,6 @@ msgstr ""
 #: grunt/frontend/src/components/fields/Table/Table.vue:148
 #: grunt/frontend/src/components/fields/Table/useTableCell.ts:79
 msgid "No"
-msgstr ""
-
-#: grunt/frontend/src/components/fields/Attach/AttachPicker.vue:91
-msgid "No attachment sources available"
 msgstr ""
 
 #: grunt/frontend/src/components/dashboard/widgets/Donut/Donut.vue:87
@@ -815,10 +783,6 @@ msgstr ""
 
 #: grunt/frontend/src/components/views/FilterBar.vue:295
 msgid "No fields available"
-msgstr ""
-
-#: grunt/frontend/src/core/attachmentChannels/channels/LibraryChannel/LibraryChannel.vue:338
-msgid "No files found"
 msgstr ""
 
 #: grunt/frontend/src/components/dashboard/sections/LinksSection.vue:53
@@ -892,10 +856,6 @@ msgstr ""
 msgid "Numbered list"
 msgstr ""
 
-#: grunt/frontend/src/core/attachmentChannels/channels/LibraryChannel/LibraryChannel.vue:301
-msgid "Only files from this document"
-msgstr ""
-
 #: grunt/frontend/src/components/fields/Geolocation/Geolocation.vue:136
 msgid "Open in map"
 msgstr ""
@@ -914,7 +874,7 @@ msgstr ""
 msgid "Page"
 msgstr ""
 
-#: grunt/grunt/startup/website.py:112 grunt/grunt/startup/errors.py:256
+#: grunt/grunt/startup/website.py:112 grunt/grunt/startup/errors.py:258
 #: grunt/grunt/api/v1/pages.py:66 grunt/grunt/api/v1/dashboard.py:221
 #: grunt/frontend/src/router/index.ts:190
 msgid "Page not found"
@@ -974,6 +934,7 @@ msgstr ""
 #: grunt/grunt/metadata/doctypes/DocType/global_form.js:41
 #: grunt/grunt/metadata/doctypes/DocType/global_list.js:34
 #: grunt/frontend/src/components/dashboard/ActivityStream.vue:105
+#: grunt/frontend/src/components/files/FileExplorer.vue:658
 #: grunt/frontend/src/pages/app/AppPage.vue:288
 #: grunt/frontend/src/pages/reports/ReportView.vue:212
 #: grunt/frontend/src/pages/desk/reports/ReportView.vue:83
@@ -988,7 +949,7 @@ msgid "Remove attachment"
 msgstr ""
 
 #: grunt/frontend/src/components/fields/RichText/editor/commands.ts:92
-#: grunt/frontend/src/components/fields/RichText/ui/LinkPopover.vue:57
+#: grunt/frontend/src/components/fields/RichText/ui/LinkPopover.vue:88
 msgid "Remove link"
 msgstr ""
 
@@ -997,6 +958,7 @@ msgid "Remove {item}"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/global_form.js:162
+#: grunt/frontend/src/components/files/FileExplorer.vue:703
 #: grunt/frontend/src/components/views/form/FormHeader.vue:337
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:263
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:427
@@ -1045,7 +1007,7 @@ msgstr ""
 msgid "Retry"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/editor/useRichEditor.ts:95
+#: grunt/frontend/src/components/fields/RichText/editor/useRichEditor.ts:98
 msgid "Rich text"
 msgstr ""
 
@@ -1063,6 +1025,7 @@ msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/global_form.js:28
 #: grunt/frontend/src/components/views/QuickEntryDialog.vue:161
+#: grunt/frontend/src/components/files/CameraCapture.vue:133
 #: grunt/frontend/src/components/views/list/QuickFilterSettingsDialog.vue:113
 #: grunt/frontend/src/components/fields/Table/TableRowSheet.vue:110
 #: grunt/frontend/src/pages/app/AppPage.vue:369
@@ -1127,10 +1090,6 @@ msgstr ""
 #: grunt/frontend/src/components/layout/CommandPalette.vue:272
 #: grunt/frontend/src/components/layout/CommandPalette.vue:278
 msgid "Search documents, apps or actions..."
-msgstr ""
-
-#: grunt/frontend/src/core/attachmentChannels/channels/LibraryChannel/LibraryChannel.vue:266
-msgid "Search files…"
 msgstr ""
 
 #: grunt/frontend/src/components/fields/Icon/Icon.vue:117
@@ -1267,7 +1226,7 @@ msgid "Sign up"
 msgstr ""
 
 #: grunt/grunt/monitoring/health.py:109
-#: grunt/frontend/src/core/attachmentChannels/channels/LibraryChannel/LibraryChannel.vue:292
+#: grunt/frontend/src/components/files/FileExplorer.vue:771
 #: grunt/frontend/src/components/fields/RichText/ui/ImageBubble.vue:77
 msgid "Size"
 msgstr ""
@@ -1310,7 +1269,7 @@ msgstr ""
 msgid "System settings"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/editor/useRichEditor.ts:72
+#: grunt/frontend/src/components/fields/RichText/editor/useRichEditor.ts:73
 #: grunt/frontend/src/components/fields/RichText/ui/InsertMenu.vue:93
 #: grunt/frontend/src/pages/reports/ReportView.vue:198
 msgid "Table"
@@ -1324,6 +1283,7 @@ msgstr ""
 msgid "Tile {n}"
 msgstr ""
 
+#: grunt/frontend/src/components/files/FileExplorer.vue:713
 #: grunt/frontend/src/components/dashboard/sections/TilesSection.vue:49
 msgid "Tiles"
 msgstr ""
@@ -1334,15 +1294,12 @@ msgstr ""
 msgid "Title"
 msgstr ""
 
-#: grunt/frontend/src/core/attachmentChannels/channels/LibraryChannel/LibraryChannel.vue:328
-msgid "Try again"
-msgstr ""
-
 #: grunt/frontend/src/router/index.ts:186
 msgid "Two-factor authentication"
 msgstr ""
 
 #: grunt/frontend/src/components/dashboard/WidgetConfigPanel.vue:85
+#: grunt/frontend/src/components/files/FileExplorer.vue:770
 msgid "Type"
 msgstr ""
 
@@ -1370,10 +1327,8 @@ msgstr ""
 msgid "Unsaved changes"
 msgstr ""
 
-#: grunt/frontend/src/core/scripting/executor.ts:827
-#: grunt/frontend/src/core/scripting/executor.ts:995
-#: grunt/frontend/src/core/attachmentChannels/channels/LibraryChannel/LibraryChannel.vue:194
-#: grunt/frontend/src/components/fields/RichText/editor/useRichEditor.ts:147
+#: grunt/frontend/src/core/scripting/executor.ts:829
+#: grunt/frontend/src/components/fields/RichText/editor/useRichEditor.ts:150
 msgid "Upload failed"
 msgstr ""
 
@@ -1385,12 +1340,11 @@ msgstr ""
 msgid "Upload image with barcode"
 msgstr ""
 
-#: grunt/frontend/src/core/attachmentChannels/channels/LibraryChannel/LibraryChannel.vue:434
 #: grunt/frontend/src/components/fields/RichText/ui/InsertMenu.vue:130
 msgid "Uploading…"
 msgstr ""
 
-#: grunt/grunt/startup/errors.py:100 grunt/grunt/startup/errors.py:129
+#: grunt/grunt/startup/errors.py:101 grunt/grunt/startup/errors.py:130
 #: grunt/grunt/assignment/doctypes/AssignmentRule/assignment_rule.py:31
 #: grunt/frontend/src/core/composables/useFormSave.ts:219
 #: grunt/frontend/src/components/views/QuickEntryDialog.vue:106
@@ -1474,19 +1428,10 @@ msgid_plural "{n} files"
 msgstr[0] ""
 msgstr[1] ""
 
-#: grunt/frontend/src/core/attachmentChannels/channels/LibraryChannel/LibraryChannel.vue:184
-msgid "{n} file(s) uploaded"
-msgstr ""
-
-#: grunt/frontend/src/core/attachmentChannels/channels/LibraryChannel/LibraryChannel.vue:185
-msgid "{n} file(s) were already in the library"
-msgstr ""
-
 #: grunt/frontend/src/components/fields/Rating/Rating.vue:55
 msgid "{n} of {max}"
 msgstr ""
 
-#: grunt/frontend/src/core/attachmentChannels/channels/LibraryChannel/LibraryChannel.vue:417
 #: grunt/frontend/src/components/views/ListPagination.vue:45
 msgid "{n} selected"
 msgstr ""
@@ -5199,7 +5144,7 @@ msgstr ""
 msgid "Print"
 msgstr ""
 
-#: grunt/frontend/src/core/scripting/executor.ts:1004
+#: grunt/frontend/src/core/scripting/executor.ts:924
 msgid "text"
 msgstr ""
 
@@ -5464,11 +5409,7 @@ msgstr ""
 msgid "Total"
 msgstr ""
 
-#: grunt/frontend/src/core/attachmentChannels/channels/UrlChannel/index.ts:9
-msgid "URL"
-msgstr "URL"
-
-#: grunt/grunt/startup/errors.py:88
+#: grunt/grunt/startup/errors.py:89
 msgid "Back to home page"
 msgstr ""
 
@@ -5604,7 +5545,7 @@ msgstr ""
 msgid "A city is required: pick one from the list or type it in"
 msgstr ""
 
-#: grunt/grunt/document/collection.py:702
+#: grunt/grunt/document/collection.py:705
 msgid "A descendant cannot be used as the replacement"
 msgstr ""
 
@@ -5895,7 +5836,7 @@ msgstr ""
 msgid "Authentication required"
 msgstr ""
 
-#: grunt/grunt/storage/doctypes/File/file.py:212
+#: grunt/grunt/storage/doctypes/File/file.py:238
 msgid "Authentication required to access this file"
 msgstr ""
 
@@ -5926,6 +5867,7 @@ msgstr ""
 msgid "B"
 msgstr ""
 
+#: grunt/frontend/src/components/files/FileExplorer.vue:632
 #: grunt/frontend/src/pages/setup/SetupWizard.vue:174
 msgid "Back"
 msgstr ""
@@ -6039,8 +5981,8 @@ msgid "Both"
 msgstr ""
 
 #: grunt/frontend/src/core/browserHealth.ts:37
-#: grunt/frontend/src/core/browserHealth.ts:269
-#: grunt/frontend/src/core/browserHealth.ts:292
+#: grunt/frontend/src/core/browserHealth.ts:266
+#: grunt/frontend/src/core/browserHealth.ts:289
 msgid "Browser"
 msgstr ""
 
@@ -6092,7 +6034,7 @@ msgstr ""
 msgid "By year"
 msgstr ""
 
-#: grunt/frontend/src/core/browserHealth.ts:286
+#: grunt/frontend/src/core/browserHealth.ts:283
 msgid "Cache"
 msgstr ""
 
@@ -6106,10 +6048,6 @@ msgstr ""
 
 #: grunt/frontend/src/components/layout/CommandPalette.vue:139
 msgid "Calculator"
-msgstr ""
-
-#: grunt/frontend/src/core/attachmentChannels/channels/CameraChannel/index.ts:9
-msgid "Camera"
 msgstr ""
 
 #: grunt/frontend/src/components/desk/TaskProgressPanel.vue:45
@@ -6142,7 +6080,7 @@ msgstr ""
 msgid "Cannot move a node into its own subtree (cycle detected)"
 msgstr ""
 
-#: grunt/grunt/document/collection.py:732
+#: grunt/grunt/document/collection.py:735
 msgid "Cannot rename virtual documents"
 msgstr ""
 
@@ -6163,7 +6101,7 @@ msgid "Change password"
 msgstr ""
 
 #: grunt/frontend/src/core/browserHealth.ts:145
-#: grunt/frontend/src/core/browserHealth.ts:288
+#: grunt/frontend/src/core/browserHealth.ts:285
 msgid "Change queue"
 msgstr ""
 
@@ -6179,7 +6117,7 @@ msgstr ""
 msgid "Changes"
 msgstr ""
 
-#: grunt/frontend/src/core/api/client.ts:197
+#: grunt/frontend/src/core/api/client.ts:200
 msgid ""
 "Changes saved on this device — they will be sent once the connection is back"
 msgstr ""
@@ -6197,7 +6135,7 @@ msgstr ""
 msgid "Check again"
 msgstr ""
 
-#: grunt/frontend/src/core/browserHealth.ts:236
+#: grunt/frontend/src/core/browserHealth.ts:233
 msgid ""
 "Check that the proxy (nginx/Cloudflare) passes WebSocket through on "
 "/api/v1/ws/."
@@ -6328,6 +6266,7 @@ msgstr ""
 #: grunt/frontend/src/components/desk/TaskProgressPanel.vue:111
 #: grunt/frontend/src/components/views/DocSidebar.vue:73
 #: grunt/frontend/src/components/views/DocSidebar.vue:78
+#: grunt/frontend/src/components/files/FileExplorer.vue:744
 #: grunt/frontend/src/components/ui/tree-select/TreeSelectNode.vue:65
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:398
 msgid "Collapse"
@@ -6398,7 +6337,6 @@ msgstr ""
 msgid "Configure the key system settings for a confident start."
 msgstr ""
 
-#: grunt/frontend/src/core/attachmentChannels/channels/UrlChannel/UrlChannel.vue:66
 #: grunt/frontend/src/components/desk/GruntDialog.vue:439
 #: grunt/frontend/src/components/desk/GruntDialog.vue:471
 #: grunt/frontend/src/pages/auth/Login.vue:338
@@ -6425,10 +6363,6 @@ msgstr ""
 
 #: grunt/frontend/src/core/browserHealth.ts:154
 msgid "Conflicts and rejected changes"
-msgstr ""
-
-#: grunt/frontend/src/core/attachmentChannels/channels/CameraChannel/CameraChannel.vue:102
-msgid "Connecting to the camera..."
 msgstr ""
 
 #: grunt/grunt/monitoring/health.py:101
@@ -6597,10 +6531,6 @@ msgstr ""
 
 #: grunt/frontend/src/pages/auth/MfaVerify.vue:45
 msgid "Could not start 2FA setup."
-msgstr ""
-
-#: grunt/frontend/src/core/attachmentChannels/channels/CameraChannel/CameraChannel.vue:65
-msgid "Could not take a photo"
 msgstr ""
 
 #: grunt/frontend/src/components/views/gantt/GanttView.vue:354
@@ -6833,6 +6763,7 @@ msgstr ""
 
 #: grunt/frontend/src/components/views/DocSidebar.vue:69
 #: grunt/frontend/src/components/views/DocSidebar.vue:97
+#: grunt/frontend/src/components/files/FileExplorer.vue:713
 msgid "Details"
 msgstr ""
 
@@ -6878,8 +6809,8 @@ msgstr ""
 msgid "DocType not found"
 msgstr ""
 
-#: grunt/grunt/metadata/registry.py:542 grunt/grunt/metadata/registry.py:634
-#: grunt/grunt/metadata/registry.py:560 grunt/grunt/api/v1/meta.py:134
+#: grunt/grunt/metadata/registry.py:549 grunt/grunt/metadata/registry.py:641
+#: grunt/grunt/metadata/registry.py:567 grunt/grunt/api/v1/meta.py:134
 msgid "DocType “%(doctype)s” already exists"
 msgstr ""
 
@@ -6888,8 +6819,8 @@ msgid "DocType “%(doctype)s” no longer exists"
 msgstr ""
 
 #: grunt/grunt/webform/service.py:92 grunt/grunt/app/document_api.py:488
-#: grunt/grunt/app/document_api.py:689 grunt/grunt/metadata/registry.py:334
-#: grunt/grunt/metadata/registry.py:615 grunt/grunt/metadata/registry.py:589
+#: grunt/grunt/app/document_api.py:689 grunt/grunt/metadata/registry.py:338
+#: grunt/grunt/metadata/registry.py:622 grunt/grunt/metadata/registry.py:596
 #: grunt/grunt/notification/rule_index.py:53
 #: grunt/grunt/activity/__init__.py:264 grunt/grunt/actions/__init__.py:163
 #: grunt/grunt/document/connections.py:43
@@ -6899,8 +6830,8 @@ msgstr ""
 #: grunt/grunt/document/collection.py:257
 #: grunt/grunt/document/collection.py:342
 #: grunt/grunt/document/collection.py:383
-#: grunt/grunt/document/collection.py:446
-#: grunt/grunt/document/collection.py:727 grunt/grunt/document/links.py:55
+#: grunt/grunt/document/collection.py:449
+#: grunt/grunt/document/collection.py:730 grunt/grunt/document/links.py:55
 #: grunt/grunt/document/links.py:59
 msgid "DocType “%(doctype)s” not found"
 msgstr ""
@@ -6929,7 +6860,7 @@ msgstr ""
 msgid "Document with %(key)s=%(value)s not found"
 msgstr ""
 
-#: grunt/grunt/document/collection.py:742
+#: grunt/grunt/document/collection.py:745
 msgid "Document with name '%(new_id)s' already exists"
 msgstr ""
 
@@ -6954,6 +6885,7 @@ msgid "Does not contain"
 msgstr ""
 
 #: grunt/grunt/backups/doctypes/Backup/Backup.js:22
+#: grunt/frontend/src/components/files/FileExplorer.vue:728
 msgid "Download"
 msgstr ""
 
@@ -6973,15 +6905,11 @@ msgstr ""
 msgid "Drag section"
 msgstr ""
 
-#: grunt/frontend/src/core/attachmentChannels/channels/LocalFileChannel/LocalFileChannel.vue:74
-msgid "Drop a file or"
-msgstr ""
-
 #: grunt/grunt/backups/__init__.py:180
 msgid "Dumping the database"
 msgstr ""
 
-#: grunt/grunt/metadata/registry.py:646
+#: grunt/grunt/metadata/registry.py:653
 msgid "Duplicate fieldname '%(fieldname)s' in DocType '%(name)s'"
 msgstr ""
 
@@ -6995,7 +6923,7 @@ msgid ""
 "will not be shown again."
 msgstr ""
 
-#: grunt/frontend/src/core/browserHealth.ts:258
+#: grunt/frontend/src/core/browserHealth.ts:255
 msgid "Each message arrives several times — notifications are duplicated."
 msgstr ""
 
@@ -7073,14 +7001,6 @@ msgid ""
 "Encryption and port mismatch. Gmail needs port 587 (STARTTLS) or 465 (SSL)."
 msgstr ""
 
-#: grunt/frontend/src/core/attachmentChannels/channels/UrlChannel/UrlChannel.vue:32
-msgid "Enter a URL"
-msgstr ""
-
-#: grunt/frontend/src/core/attachmentChannels/channels/UrlChannel/UrlChannel.vue:47
-msgid "Enter a direct link to a file on the internet."
-msgstr ""
-
 #: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:204
 msgid "Enter a name and a document type"
 msgstr ""
@@ -7113,7 +7033,7 @@ msgstr ""
 msgid "Equals"
 msgstr ""
 
-#: grunt/grunt/publish.py:298 grunt/grunt/startup/errors.py:257
+#: grunt/grunt/publish.py:298 grunt/grunt/startup/errors.py:259
 #: grunt/grunt/io/doctypes/DataImport/DataImport.js:98
 #: grunt/grunt/webhook/doctypes/OutgoingWebhook/OutgoingWebhook.js:84
 #: grunt/grunt/webhook/doctypes/OutgoingWebhook/OutgoingWebhook.js:199
@@ -7155,6 +7075,7 @@ msgid "Examples:"
 msgstr ""
 
 #: grunt/frontend/src/components/desk/TaskProgressPanel.vue:111
+#: grunt/frontend/src/components/files/FileExplorer.vue:744
 #: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue:426
 #: grunt/frontend/src/components/ui/tree-select/TreeSelectNode.vue:65
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:398
@@ -7276,7 +7197,7 @@ msgstr ""
 msgid "Field “{label}”: invalid value"
 msgstr ""
 
-#: grunt/grunt/metadata/registry.py:665
+#: grunt/grunt/metadata/registry.py:672
 msgid "Fieldname '%(fieldname)s' exceeds %(max)s characters"
 msgstr ""
 
@@ -7290,19 +7211,19 @@ msgid ""
 " the report itself)."
 msgstr ""
 
-#: grunt/grunt/storage/doctypes/File/file.py:205
+#: grunt/grunt/storage/doctypes/File/file.py:231
 msgid "File not found"
 msgstr ""
 
-#: grunt/grunt/storage/doctypes/File/file.py:230
+#: grunt/grunt/storage/doctypes/File/file.py:256
 msgid "File not found on storage"
 msgstr ""
 
-#: grunt/grunt/storage/doctypes/File/File.js:19
+#: grunt/grunt/storage/doctypes/File/File.js:32
 msgid "File uploaded"
 msgstr ""
 
-#: grunt/grunt/storage/doctypes/File/File.js:19
+#: grunt/grunt/storage/doctypes/File/File.js:32
 msgid "Files uploaded: {n}"
 msgstr ""
 
@@ -7431,7 +7352,7 @@ msgid "GB"
 msgstr ""
 
 #: grunt/frontend/src/components/views/gallery/index.ts:7
-#: grunt/frontend/src/components/fields/RichText/editor/useRichEditor.ts:82
+#: grunt/frontend/src/components/fields/RichText/editor/useRichEditor.ts:85
 #: grunt/frontend/src/components/fields/RichText/ui/InsertMenu.vue:90
 msgid "Gallery"
 msgstr ""
@@ -7588,10 +7509,6 @@ msgstr ""
 msgid "If you received it, sending email through this account works."
 msgstr ""
 
-#: grunt/frontend/src/core/attachmentChannels/channels/LocalFileChannel/LocalFileChannel.vue:75
-msgid "Images only"
-msgstr ""
-
 #: grunt/grunt/io/doctypes/DataImport/DataImport.js:138
 msgid "Import error"
 msgstr ""
@@ -7659,9 +7576,9 @@ msgstr ""
 msgid "Interface language"
 msgstr ""
 
-#: grunt/grunt/startup/errors.py:238 grunt/grunt/startup/errors.py:257
-#: grunt/grunt/startup/errors.py:200 grunt/grunt/startup/errors.py:245
-#: grunt/grunt/startup/errors.py:207
+#: grunt/grunt/startup/errors.py:240 grunt/grunt/startup/errors.py:259
+#: grunt/grunt/startup/errors.py:202 grunt/grunt/startup/errors.py:247
+#: grunt/grunt/startup/errors.py:209
 msgid "Internal server error"
 msgstr ""
 
@@ -7689,10 +7606,6 @@ msgstr ""
 msgid "Invalid TOTP code"
 msgstr ""
 
-#: grunt/frontend/src/core/attachmentChannels/channels/UrlChannel/UrlChannel.vue:40
-msgid "Invalid URL"
-msgstr ""
-
 #: grunt/frontend/src/core/validators.ts:28
 msgid "Invalid URL format"
 msgstr ""
@@ -7714,7 +7627,7 @@ msgstr ""
 msgid "Invalid email or password"
 msgstr ""
 
-#: grunt/grunt/metadata/registry.py:655
+#: grunt/grunt/metadata/registry.py:662
 msgid ""
 "Invalid fieldname '%(fieldname)s': must start with a-z and contain only a-z,"
 " 0-9, _"
@@ -7891,10 +7804,6 @@ msgstr ""
 msgid "Less than or equal"
 msgstr ""
 
-#: grunt/frontend/src/core/attachmentChannels/channels/LibraryChannel/index.ts:9
-msgid "Library"
-msgstr ""
-
 #: grunt/frontend/src/pages/DeskPage.vue:148
 #: grunt/frontend/src/components/app/AppSidebar.vue:279
 msgid "Light"
@@ -7938,15 +7847,11 @@ msgstr ""
 msgid "Loading…"
 msgstr ""
 
-#: grunt/frontend/src/core/attachmentChannels/channels/LocalFileChannel/index.ts:9
-msgid "Local file"
-msgstr ""
-
 #: grunt/grunt/monitoring/health.py:344
 msgid "Locked accounts"
 msgstr ""
 
-#: grunt/grunt/startup/errors.py:254
+#: grunt/grunt/startup/errors.py:256
 msgid "Login required"
 msgstr ""
 
@@ -8110,7 +8015,7 @@ msgid "Navigate"
 msgstr ""
 
 #: grunt/frontend/src/core/browserHealth.ts:35
-#: grunt/frontend/src/core/browserHealth.ts:289
+#: grunt/frontend/src/core/browserHealth.ts:286
 msgid "Network"
 msgstr ""
 
@@ -8122,6 +8027,7 @@ msgstr ""
 msgid "New comment: “%(title)s”"
 msgstr ""
 
+#: grunt/frontend/src/components/files/FileExplorer.vue:309
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:246
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:353
 msgid "New folder"
@@ -8141,7 +8047,6 @@ msgstr ""
 msgid "New report"
 msgstr ""
 
-#: grunt/frontend/src/core/scripting/executor.ts:962
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:426
 msgid "New subfolder"
 msgstr ""
@@ -8170,7 +8075,7 @@ msgstr ""
 msgid "No access to the document"
 msgstr ""
 
-#: grunt/grunt/storage/doctypes/File/file.py:217
+#: grunt/grunt/storage/doctypes/File/file.py:243
 msgid "No access to the file"
 msgstr ""
 
@@ -8207,7 +8112,7 @@ msgstr ""
 msgid "No changes waiting to be sent."
 msgstr ""
 
-#: grunt/frontend/src/core/api/client.ts:197
+#: grunt/frontend/src/core/api/client.ts:200
 #: grunt/frontend/src/core/composables/useNetworkStatus.ts:33
 msgid "No connection"
 msgstr ""
@@ -8218,7 +8123,7 @@ msgid ""
 "automatically"
 msgstr ""
 
-#: grunt/frontend/src/App.vue:81
+#: grunt/frontend/src/App.vue:83
 msgid "No connection — viewing from cache, changes are saved on this device"
 msgstr ""
 
@@ -8245,7 +8150,7 @@ msgstr ""
 msgid "No fields to update"
 msgstr ""
 
-#: grunt/grunt/storage/doctypes/File/file.py:87
+#: grunt/grunt/storage/doctypes/File/file.py:88
 msgid "No filename provided"
 msgstr ""
 
@@ -8340,12 +8245,13 @@ msgstr ""
 msgid "Not included (need aggregation): {columns}"
 msgstr ""
 
+#: grunt/frontend/src/components/files/FileExplorer.vue:395
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:237
 msgid "Not moved: {n}"
 msgstr ""
 
 #: grunt/grunt/errors.py:90
-#: grunt/grunt/storage/doctypes/FileFolder/file_folder.py:163
+#: grunt/grunt/storage/doctypes/FileFolder/file_folder.py:164
 msgid "Not permitted"
 msgstr ""
 
@@ -8636,8 +8542,8 @@ msgstr ""
 msgid "Pie"
 msgstr ""
 
-#: grunt/frontend/src/core/browserHealth.ts:245
-#: grunt/frontend/src/core/browserHealth.ts:246
+#: grunt/frontend/src/core/browserHealth.ts:242
+#: grunt/frontend/src/core/browserHealth.ts:243
 msgid "Ping → pong"
 msgstr ""
 
@@ -8694,7 +8600,7 @@ msgstr ""
 msgid "Provider unavailable"
 msgstr ""
 
-#: grunt/frontend/src/core/browserHealth.ts:270
+#: grunt/frontend/src/core/browserHealth.ts:267
 msgid "Push notifications"
 msgstr ""
 
@@ -8875,7 +8781,7 @@ msgstr ""
 msgid "Replace with"
 msgstr ""
 
-#: grunt/grunt/document/collection.py:687
+#: grunt/grunt/document/collection.py:690
 msgid "Replacement document “%(name)s” not found"
 msgstr ""
 
@@ -9191,7 +9097,7 @@ msgstr ""
 #: grunt/frontend/src/core/browserHealth.ts:129
 #: grunt/frontend/src/core/browserHealth.ts:130
 #: grunt/frontend/src/core/browserHealth.ts:140
-#: grunt/frontend/src/core/browserHealth.ts:287
+#: grunt/frontend/src/core/browserHealth.ts:284
 msgid "Server"
 msgstr ""
 
@@ -9199,9 +9105,9 @@ msgstr ""
 msgid "Server connection"
 msgstr ""
 
-#: grunt/frontend/src/core/browserHealth.ts:253
-#: grunt/frontend/src/core/browserHealth.ts:255
-#: grunt/frontend/src/core/browserHealth.ts:257
+#: grunt/frontend/src/core/browserHealth.ts:250
+#: grunt/frontend/src/core/browserHealth.ts:252
+#: grunt/frontend/src/core/browserHealth.ts:254
 msgid "Server delivery"
 msgstr ""
 
@@ -9212,7 +9118,7 @@ msgstr ""
 #: grunt/frontend/src/core/browserHealth.ts:68
 #: grunt/frontend/src/core/browserHealth.ts:72
 #: grunt/frontend/src/core/browserHealth.ts:76
-#: grunt/frontend/src/core/browserHealth.ts:285
+#: grunt/frontend/src/core/browserHealth.ts:282
 msgid "Service worker"
 msgstr ""
 
@@ -9221,7 +9127,7 @@ msgstr ""
 msgid "Service worker in the build"
 msgstr ""
 
-#: grunt/grunt/auth/doctypes/UserSession/user_session.py:194
+#: grunt/grunt/auth/doctypes/UserSession/user_session.py:195
 msgid "Session not found"
 msgstr ""
 
@@ -9337,6 +9243,7 @@ msgstr ""
 msgid "Smith"
 msgstr ""
 
+#: grunt/frontend/src/components/files/FileExplorer.vue:620
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:333
 #: grunt/frontend/src/pages/auth/ResetPassword.vue:50
 msgid "Something went wrong"
@@ -9390,7 +9297,7 @@ msgstr ""
 msgid "Stop «{title}»? What is done so far is discarded."
 msgstr ""
 
-#: grunt/frontend/src/core/browserHealth.ts:291
+#: grunt/frontend/src/core/browserHealth.ts:288
 msgid "Storage"
 msgstr ""
 
@@ -9503,14 +9410,6 @@ msgstr ""
 msgid "Tags"
 msgstr ""
 
-#: grunt/frontend/src/core/attachmentChannels/channels/CameraChannel/CameraChannel.vue:86
-msgid "Take a photo with the device camera"
-msgstr ""
-
-#: grunt/frontend/src/core/attachmentChannels/channels/CameraChannel/CameraChannel.vue:114
-msgid "Take photo"
-msgstr ""
-
 #: grunt/frontend/src/components/pwa/PWAInstallPrompt.vue:138
 msgid "Tap"
 msgstr ""
@@ -9572,8 +9471,8 @@ msgid "Test"
 msgstr ""
 
 #: grunt/frontend/src/core/browserHealth.ts:224
-#: grunt/frontend/src/core/browserHealth.ts:235
-#: grunt/frontend/src/core/browserHealth.ts:239
+#: grunt/frontend/src/core/browserHealth.ts:232
+#: grunt/frontend/src/core/browserHealth.ts:236
 msgid "Test connection"
 msgstr ""
 
@@ -9603,10 +9502,6 @@ msgstr ""
 
 #: grunt/grunt/backups/__init__.py:88
 msgid "The SQLite database has no file to back up"
-msgstr ""
-
-#: grunt/frontend/src/core/attachmentChannels/channels/UrlChannel/UrlChannel.vue:63
-msgid "The URL does not look like an image"
 msgstr ""
 
 #: grunt/grunt/auth/providers/email_link.py:130
@@ -9699,16 +9594,16 @@ msgstr ""
 msgid "The document was updated by another user"
 msgstr ""
 
-#: grunt/grunt/webform/service.py:317
-#: grunt/grunt/storage/doctypes/File/file.py:107
+#: grunt/grunt/webform/service.py:317 grunt/grunt/storage/remote.py:73
+#: grunt/grunt/storage/doctypes/File/file.py:108
 msgid "The file is too large (max %(size)s MB)"
 msgstr ""
 
-#: grunt/grunt/storage/doctypes/FileFolder/file_folder.py:109
+#: grunt/grunt/storage/doctypes/FileFolder/file_folder.py:110
 msgid "The folder has subfolders: move or delete them first"
 msgstr ""
 
-#: grunt/grunt/storage/doctypes/FileFolder/file_folder.py:107
+#: grunt/grunt/storage/doctypes/FileFolder/file_folder.py:108
 msgid "The folder is not empty: move or delete its files first"
 msgstr ""
 
@@ -9794,7 +9689,7 @@ msgstr ""
 msgid "The replacement cannot be one of the records being deleted."
 msgstr ""
 
-#: grunt/grunt/document/collection.py:678
+#: grunt/grunt/document/collection.py:681
 msgid "The replacement cannot be the document being deleted"
 msgstr ""
 
@@ -9818,7 +9713,7 @@ msgstr ""
 msgid "The server is not set up for push notifications (VAPID key missing)"
 msgstr ""
 
-#: grunt/frontend/src/core/browserHealth.ts:256
+#: grunt/frontend/src/core/browserHealth.ts:253
 msgid ""
 "The server sent an event but the browser did not receive it — check the "
 "Redis relay."
@@ -9909,8 +9804,8 @@ msgstr ""
 msgid "This backup has no database"
 msgstr ""
 
-#: grunt/frontend/src/core/grunt.ts:121 grunt/frontend/src/stores/auth.ts:206
-#: grunt/frontend/src/core/scripting/executor.ts:872
+#: grunt/frontend/src/core/grunt.ts:121 grunt/frontend/src/stores/auth.ts:191
+#: grunt/frontend/src/core/scripting/executor.ts:874
 msgid "This browser does not support passkeys"
 msgstr ""
 
@@ -10042,10 +9937,6 @@ msgstr ""
 msgid "Tue"
 msgstr ""
 
-#: grunt/frontend/src/core/attachmentChannels/channels/CameraChannel/CameraChannel.vue:89
-msgid "Turn on camera"
-msgstr ""
-
 #: grunt/frontend/src/pages/auth/MfaVerify.vue:108
 msgid "Two-factor verification"
 msgstr ""
@@ -10132,31 +10023,17 @@ msgstr ""
 msgid "Updating…"
 msgstr ""
 
-#: grunt/grunt/storage/doctypes/File/File.js:26
-#: grunt/frontend/src/core/scripting/executor.ts:985
+#: grunt/grunt/storage/doctypes/File/File.js:42
 msgid "Upload"
-msgstr ""
-
-#: grunt/frontend/src/core/attachmentChannels/channels/CameraChannel/CameraChannel.vue:71
-#: grunt/frontend/src/core/attachmentChannels/channels/LocalFileChannel/LocalFileChannel.vue:38
-msgid "Upload error"
 msgstr ""
 
 #: grunt/grunt/backups/doctypes/Backup/Backup.js:46
 msgid "Uploaded files"
 msgstr ""
 
-#: grunt/frontend/src/core/scripting/executor.ts:814
-#: grunt/frontend/src/core/scripting/executor.ts:831
+#: grunt/frontend/src/core/scripting/executor.ts:816
+#: grunt/frontend/src/core/scripting/executor.ts:833
 msgid "Uploading files"
-msgstr ""
-
-#: grunt/frontend/src/core/attachmentChannels/channels/CameraChannel/CameraChannel.vue:127
-msgid "Uploading photo..."
-msgstr ""
-
-#: grunt/frontend/src/core/attachmentChannels/channels/LocalFileChannel/LocalFileChannel.vue:69
-msgid "Uploading..."
 msgstr ""
 
 #: grunt/frontend/src/core/browserHealth.ts:176
@@ -10296,7 +10173,7 @@ msgstr ""
 
 #: grunt/grunt/monitoring/health.py:409 grunt/grunt/monitoring/health.py:650
 #: grunt/frontend/src/core/browserHealth.ts:38
-#: grunt/frontend/src/core/browserHealth.ts:290
+#: grunt/frontend/src/core/browserHealth.ts:287
 msgid "WebSockets"
 msgstr ""
 
@@ -10476,7 +10353,7 @@ msgstr ""
 msgid "all {n}"
 msgstr ""
 
-#: grunt/frontend/src/core/browserHealth.ts:267
+#: grunt/frontend/src/core/browserHealth.ts:264
 msgid "allowed"
 msgstr ""
 
@@ -10517,15 +10394,11 @@ msgid "busiest {day}"
 msgstr ""
 
 #: grunt/grunt/monitoring/health.py:664
-#: grunt/frontend/src/core/browserHealth.ts:278
+#: grunt/frontend/src/core/browserHealth.ts:275
 msgid "check failed"
 msgstr ""
 
-#: grunt/frontend/src/core/attachmentChannels/channels/LocalFileChannel/LocalFileChannel.vue:74
-msgid "click to choose"
-msgstr ""
-
-#: grunt/frontend/src/core/browserHealth.ts:235
+#: grunt/frontend/src/core/browserHealth.ts:232
 msgid "code 4001"
 msgstr ""
 
@@ -10581,7 +10454,7 @@ msgstr ""
 msgid "default"
 msgstr ""
 
-#: grunt/frontend/src/core/browserHealth.ts:267
+#: grunt/frontend/src/core/browserHealth.ts:264
 msgid "denied"
 msgstr ""
 
@@ -10638,7 +10511,7 @@ msgstr ""
 msgid "error"
 msgstr ""
 
-#: grunt/frontend/src/core/browserHealth.ts:253
+#: grunt/frontend/src/core/browserHealth.ts:250
 msgid "exactly one copy"
 msgstr ""
 
@@ -10753,7 +10626,7 @@ msgstr ""
 #: grunt/grunt/webhook/doctypes/OutgoingWebhook/OutgoingWebhook.js:85
 #: grunt/grunt/webhook/doctypes/OutgoingWebhook/OutgoingWebhook.js:191
 #: grunt/frontend/src/core/browserHealth.ts:130
-#: grunt/frontend/src/core/browserHealth.ts:245
+#: grunt/frontend/src/core/browserHealth.ts:242
 #: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:554
 #: grunt/frontend/src/pages/reports/ReportView.vue:190
 #: grunt/frontend/src/pages/desk/reports/ReportView.vue:95
@@ -10781,7 +10654,7 @@ msgstr ""
 msgid "no change"
 msgstr ""
 
-#: grunt/frontend/src/core/browserHealth.ts:246
+#: grunt/frontend/src/core/browserHealth.ts:243
 msgid "no response"
 msgstr ""
 
@@ -10797,7 +10670,7 @@ msgstr ""
 msgid "not connected"
 msgstr ""
 
-#: grunt/frontend/src/core/browserHealth.ts:255
+#: grunt/frontend/src/core/browserHealth.ts:252
 msgid "not delivered"
 msgstr ""
 
@@ -10805,7 +10678,7 @@ msgstr ""
 msgid "not registered"
 msgstr ""
 
-#: grunt/frontend/src/core/browserHealth.ts:267
+#: grunt/frontend/src/core/browserHealth.ts:264
 msgid "not requested"
 msgstr ""
 
@@ -10831,7 +10704,7 @@ msgstr ""
 msgid "online"
 msgstr ""
 
-#: grunt/frontend/src/core/browserHealth.ts:239
+#: grunt/frontend/src/core/browserHealth.ts:236
 msgid "opened in {n} ms"
 msgstr ""
 
@@ -10931,7 +10804,7 @@ msgstr ""
 msgid "today"
 msgstr ""
 
-#: grunt/frontend/src/core/browserHealth.ts:235
+#: grunt/frontend/src/core/browserHealth.ts:232
 msgid "token rejected"
 msgstr ""
 
@@ -10985,7 +10858,7 @@ msgstr ""
 msgid "{n} API responses"
 msgstr ""
 
-#: grunt/frontend/src/core/browserHealth.ts:257
+#: grunt/frontend/src/core/browserHealth.ts:254
 msgid "{n} copies"
 msgstr ""
 
@@ -11034,7 +10907,7 @@ msgstr ""
 msgid "{n} min ago"
 msgstr ""
 
-#: grunt/frontend/src/App.vue:84
+#: grunt/frontend/src/App.vue:86
 msgid "{n} queued"
 msgstr ""
 
@@ -11065,7 +10938,7 @@ msgstr ""
 msgid "{n} s"
 msgstr ""
 
-#: grunt/frontend/src/App.vue:94
+#: grunt/frontend/src/App.vue:96
 msgid "{n} unsynced changes"
 msgstr ""
 
@@ -14437,6 +14310,7 @@ msgstr ""
 msgid "Remove the image from the document?"
 msgstr ""
 
+#: grunt/frontend/src/components/files/FileExplorer.vue:869
 #: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue:181
 msgid "Selected: {n}"
 msgstr ""
@@ -14611,25 +14485,27 @@ msgstr ""
 msgid "changed the state"
 msgstr ""
 
-#: grunt/grunt/storage/doctypes/FileFolder/file_folder.py:41
+#: grunt/grunt/storage/doctypes/FileFolder/file_folder.py:42
 msgid "A folder must be inside another folder"
 msgstr ""
 
-#: grunt/grunt/storage/doctypes/FileFolder/file_folder.py:105
+#: grunt/grunt/storage/doctypes/FileFolder/file_folder.py:106
 msgid "A home folder can't be deleted"
 msgstr ""
 
-#: grunt/grunt/storage/doctypes/FileFolder/file_folder.py:56
+#: grunt/grunt/storage/doctypes/FileFolder/file_folder.py:57
 msgid "A home folder can't be moved"
 msgstr ""
 
-#: grunt/grunt/storage/doctypes/File/file.py:55
-#: grunt/grunt/storage/doctypes/File/file.py:94
-#: grunt/grunt/storage/doctypes/FileFolder/file_folder.py:47
+#: grunt/grunt/storage/doctypes/File/file.py:56
+#: grunt/grunt/storage/doctypes/File/file.py:95
+#: grunt/grunt/storage/doctypes/File/file.py:154
+#: grunt/grunt/storage/doctypes/FileFolder/file_folder.py:186
+#: grunt/grunt/storage/doctypes/FileFolder/file_folder.py:48
 msgid "Folder “%(folder)s” not found"
 msgstr ""
 
-#: grunt/grunt/storage/doctypes/FileFolder/file_folder.py:121
+#: grunt/grunt/storage/doctypes/FileFolder/file_folder.py:122
 msgid "No access to the folder “%(folder)s”"
 msgstr ""
 
@@ -14643,11 +14519,11 @@ msgstr ""
 msgid "Personal space quota, MB"
 msgstr ""
 
-#: grunt/grunt/storage/doctypes/FileFolder/file_folder.py:66
+#: grunt/grunt/storage/doctypes/FileFolder/file_folder.py:67
 msgid "This user already has a home folder"
 msgstr ""
 
-#: grunt/grunt/storage/doctypes/FileFolder/file_folder.py:64
+#: grunt/grunt/storage/doctypes/FileFolder/file_folder.py:65
 msgid "You can only create your own home folder"
 msgstr ""
 
@@ -14757,14 +14633,15 @@ msgctxt "meta:User.storage_quota_mb"
 msgid "Personal space quota, MB"
 msgstr ""
 
-#: grunt/grunt/storage/doctypes/File/File.js:42
-#: grunt/frontend/src/core/scripting/executor.ts:954
+#: grunt/grunt/storage/doctypes/File/File.js:22
+#: grunt/frontend/src/components/files/FileExplorer.vue:677
+#: grunt/frontend/src/components/files/FileExplorer.vue:800
 msgid "Folder"
 msgstr ""
 
-#: grunt/grunt/storage/doctypes/File/File.js:44
-#: grunt/grunt/storage/doctypes/FileFolder/file_folder.py:99
-#: grunt/frontend/src/core/scripting/executor.ts:972
+#: grunt/grunt/storage/doctypes/File/File.js:24
+#: grunt/grunt/storage/doctypes/FileFolder/file_folder.py:100
+#: grunt/frontend/src/components/files/FileExplorer.vue:98
 msgid "My files"
 msgstr ""
 
@@ -14789,27 +14666,19 @@ msgstr ""
 msgid "Write"
 msgstr ""
 
-#: grunt/frontend/src/core/scripting/executor.ts:947
+#: grunt/frontend/src/components/files/FolderPickerDialog.vue:34
 msgid "Files: {n}"
 msgstr ""
 
-#: grunt/frontend/src/core/scripting/executor.ts:964
-msgid "Optional - created inside the chosen folder"
-msgstr ""
-
-#: grunt/frontend/src/core/scripting/executor.ts:985
+#: grunt/frontend/src/components/files/FolderPickerDialog.vue:30
 msgid "Upload files"
 msgstr ""
 
-#: grunt/frontend/src/core/scripting/executor.ts:980
-msgid "not enough space for these files"
-msgstr ""
-
-#: grunt/frontend/src/core/scripting/executor.ts:977
+#: grunt/frontend/src/components/files/FileExplorer.vue:875
 msgid "{used} of {quota} used"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/ui/EditorToolbar.vue:37
+#: grunt/frontend/src/components/fields/RichText/ui/EditorToolbar.vue:38
 msgid "Alignment"
 msgstr ""
 
@@ -14817,13 +14686,13 @@ msgstr ""
 msgid "Delete table"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/ui/EditorToolbar.vue:49
 #: grunt/frontend/src/components/fields/RichText/ui/EditorToolbar.vue:50
+#: grunt/frontend/src/components/fields/RichText/ui/EditorToolbar.vue:51
 msgid "Exit full screen"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/ui/EditorToolbar.vue:49
 #: grunt/frontend/src/components/fields/RichText/ui/EditorToolbar.vue:50
+#: grunt/frontend/src/components/fields/RichText/ui/EditorToolbar.vue:51
 msgid "Full screen"
 msgstr ""
 
@@ -14994,13 +14863,287 @@ msgstr ""
 msgid "Turn into"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/editor/useRichEditor.ts:99
+#: grunt/frontend/src/components/fields/RichText/editor/useRichEditor.ts:102
 msgid "Type / for commands"
 msgstr ""
 
 #: grunt/frontend/src/components/fields/RichText/editor/commands.ts:49
 msgid "Underline"
 msgstr ""
+
+#: grunt/frontend/src/components/files/FolderPickerDialog.vue:37
+msgid "Choose a folder"
+msgstr ""
+
+#: grunt/frontend/src/components/files/FileExplorer.vue:769
+msgid "Date modified"
+msgstr ""
+
+#: grunt/frontend/src/components/files/FileExplorer.vue:642
+msgid "Folder path"
+msgstr ""
+
+#: grunt/frontend/src/components/files/FileExplorer.vue:735
+msgid "Folders"
+msgstr ""
+
+#: grunt/frontend/src/components/files/FileExplorer.vue:635
+msgid "Forward"
+msgstr ""
+
+#: grunt/frontend/src/components/files/FileExplorer.vue:868
+msgid "Items: {n}"
+msgstr ""
+
+#: grunt/frontend/src/components/files/FileExplorer.vue:846
+msgid "This folder is empty"
+msgstr ""
+
+#: grunt/frontend/src/components/files/FileExplorer.vue:638
+msgid "Up"
+msgstr ""
+
+#: grunt/frontend/src/components/files/FolderPickerDialog.vue:46
+msgid "Upload to «{name}»"
+msgstr ""
+
+#: grunt/frontend/src/components/fields/Attach/AttachPicker.vue:84
+msgid "Attach ({n})"
+msgstr ""
+
+#: grunt/frontend/src/components/fields/RichText/editor/useRichEditor.ts:83
+#: grunt/frontend/src/components/fields/RichText/ui/LinkPopover.vue:94
+msgid "Link to a file…"
+msgstr ""
+
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:86
+msgid "Insert link"
+msgstr ""
+
+#: grunt/frontend/src/components/files/FileExplorer.vue:726
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:85
+msgid "Link to a file"
+msgstr ""
+
+#: grunt/frontend/src/components/fields/RichText/ui/LinkPopover.vue:81
+msgid "Link text"
+msgstr ""
+
+#: grunt/grunt/storage/doctypes/FileFolder/file_folder.py:194
+msgid "A folder can't be copied into itself"
+msgstr ""
+
+#: grunt/grunt/storage/doctypes/FileFolder/file_folder.py:257
+msgctxt "file name"
+msgid "copy"
+msgstr ""
+
+#: grunt/frontend/src/components/files/FileExplorer.vue:691
+msgid "Cut"
+msgstr ""
+
+#: grunt/frontend/src/components/files/FileExplorer.vue:855
+msgid "Delete selected: {n}? Folders go with everything in them."
+msgstr ""
+
+#: grunt/frontend/src/components/files/FileExplorer.vue:700
+msgid "Paste"
+msgstr ""
+
+#: grunt/frontend/src/components/files/FileExplorer.vue:546
+msgid "Could not download the file"
+msgstr ""
+
+#: grunt/grunt/storage/doctypes/File/file.py:162
+msgid "Could not download the file: %(error)s"
+msgstr ""
+
+#: grunt/frontend/src/components/files/FileExplorer.vue:680
+msgid "Files from the computer…"
+msgstr ""
+
+#: grunt/frontend/src/components/files/FileExplorer.vue:681
+msgid "Folder from the computer…"
+msgstr ""
+
+#: grunt/frontend/src/components/files/FileExplorer.vue:683
+msgid "From a link…"
+msgstr ""
+
+#: grunt/grunt/storage/remote.py:98
+msgid "Links to internal network addresses are not allowed"
+msgstr ""
+
+#: grunt/frontend/src/components/files/FileExplorer.vue:507
+msgid "Not uploaded: {n}"
+msgstr ""
+
+#: grunt/grunt/storage/remote.py:84
+msgid "Only http:// and https:// links can be downloaded"
+msgstr ""
+
+#: grunt/frontend/src/components/files/FileExplorer.vue:682
+msgid "Photo from the camera"
+msgstr ""
+
+#: grunt/grunt/storage/remote.py:65
+msgid "The link answered with an error (%(code)s)"
+msgstr ""
+
+#: grunt/grunt/storage/remote.py:93
+msgid "The site “%(host)s” was not found"
+msgstr ""
+
+#: grunt/grunt/storage/remote.py:78
+msgid "Too many redirects"
+msgstr ""
+
+#: grunt/frontend/src/components/files/FileExplorer.vue:865
+msgid "Uploading {done} of {total}…"
+msgstr ""
+
+#: grunt/frontend/src/components/files/FileExplorer.vue:663
+#: grunt/frontend/src/components/files/FileExplorer.vue:664
+msgid "Search all files"
+msgstr ""
+
+#: grunt/frontend/src/components/files/FileExplorer.vue:645
+msgid "Search results for «{q}»"
+msgstr ""
+
+#: grunt/frontend/src/components/files/CameraCapture.vue:122
+msgid "Try again"
+msgstr ""
+
+#: grunt/frontend/src/components/files/CameraCapture.vue:117
+msgid "Connecting to the camera..."
+msgstr ""
+
+#: grunt/frontend/src/components/files/CameraCapture.vue:135
+msgid "Take photo"
+msgstr ""
+
+#: grunt/frontend/src/components/files/CameraCapture.vue:57
+msgid "No camera found"
+msgstr ""
+
+#: grunt/frontend/src/components/files/CameraCapture.vue:96
+#: grunt/frontend/src/components/files/CameraCapture.vue:115
+msgid "Photo"
+msgstr ""
+
+#: grunt/frontend/src/components/files/CameraCapture.vue:132
+msgid "Retake"
+msgstr ""
+
+#: grunt/frontend/src/components/files/CameraCapture.vue:125
+msgid "Switch camera"
+msgstr ""
+
+#~ msgid "Could not delete the file"
+#~ msgstr ""
+
+#~ msgid "Currently attached"
+#~ msgstr ""
+
+#~ msgid "Delete file"
+#~ msgstr ""
+
+#~ msgid "Delete this file from the library?"
+#~ msgstr ""
+
+#~ msgid "Drop files to upload"
+#~ msgstr ""
+
+#~ msgid "Failed to load files"
+#~ msgstr ""
+
+#~ msgid "File deleted"
+#~ msgstr ""
+
+#~ msgid "Newest"
+#~ msgstr ""
+
+#~ msgid "No attachment sources available"
+#~ msgstr ""
+
+#~ msgid "No files found"
+#~ msgstr ""
+
+#~ msgid "Only files from this document"
+#~ msgstr ""
+
+#~ msgid "Search files…"
+#~ msgstr ""
+
+#~ msgid "{n} file(s) uploaded"
+#~ msgstr ""
+
+#~ msgid "{n} file(s) were already in the library"
+#~ msgstr ""
+
+#~ msgid "URL"
+#~ msgstr "URL"
+
+#~ msgid "Camera"
+#~ msgstr ""
+
+#~ msgid "Could not take a photo"
+#~ msgstr ""
+
+#~ msgid "Drop a file or"
+#~ msgstr ""
+
+#~ msgid "Enter a URL"
+#~ msgstr ""
+
+#~ msgid "Enter a direct link to a file on the internet."
+#~ msgstr ""
+
+#~ msgid "Images only"
+#~ msgstr ""
+
+#~ msgid "Invalid URL"
+#~ msgstr ""
+
+#~ msgid "Local file"
+#~ msgstr ""
+
+#~ msgid "Take a photo with the device camera"
+#~ msgstr ""
+
+#~ msgid "The URL does not look like an image"
+#~ msgstr ""
+
+#~ msgid "Turn on camera"
+#~ msgstr ""
+
+#~ msgid "Upload error"
+#~ msgstr ""
+
+#~ msgid "Uploading photo..."
+#~ msgstr ""
+
+#~ msgid "Uploading..."
+#~ msgstr ""
+
+#~ msgid "click to choose"
+#~ msgstr ""
+
+#~ msgid "All files"
+#~ msgstr ""
+
+#~ msgid "Upload here"
+#~ msgstr ""
+
+#~ msgid "Library"
+#~ msgstr ""
+
+#~ msgid "Optional - created inside the chosen folder"
+#~ msgstr ""
+
+#~ msgid "not enough space for these files"
+#~ msgstr ""
 
 #~ msgid "Node not found"
 #~ msgstr ""
