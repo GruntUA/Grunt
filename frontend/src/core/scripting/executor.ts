@@ -340,29 +340,30 @@ interface ClientScriptEntry {
   script: string
 }
 
-/** Cache: doctype -> scripts */
-const scriptCache = new Map<string, ClientScriptEntry[]>()
+/** Cache: doctype -> scripts. The pending request is cached too, so callers
+ * that open a form at the same time (on_load, list setup…) share one fetch. */
+const scriptCache = new Map<string, Promise<ClientScriptEntry[]>>()
 
 // Script loading
 
 /**
  * Fetch client scripts for a DocType from the backend.
  */
-export async function loadClientScripts(doctype: string): Promise<ClientScriptEntry[]> {
-  if (scriptCache.has(doctype)) {
-    return scriptCache.get(doctype)!
-  }
-
-  try {
-    const { data } = await client.get<{ data: ClientScriptEntry[] }>(
-      `/api/v1/method/grunt.api.v1.scripting.get_client_scripts?doctype=${encodeURIComponent(doctype)}`
-    )
-    const scripts = data?.data ?? []
+export function loadClientScripts(doctype: string): Promise<ClientScriptEntry[]> {
+  let scripts = scriptCache.get(doctype)
+  if (!scripts) {
+    scripts = client
+      .get<{ data: ClientScriptEntry[] }>(
+        `/api/v1/method/grunt.api.v1.scripting.get_client_scripts?doctype=${encodeURIComponent(doctype)}`
+      )
+      .then(({ data }) => data?.data ?? [])
+      .catch(() => {
+        scriptCache.delete(doctype) // don't pin a failed fetch - retry next time
+        return []
+      })
     scriptCache.set(doctype, scripts)
-    return scripts
-  } catch {
-    return []
   }
+  return scripts
 }
 
 /**

@@ -40,14 +40,14 @@ async def get_client_scripts(
     scripts: list[dict[str, Any]] = [
         {"name": str(r.get("name") or ""), "script": str(r.get("script") or "")} for r in rows
     ]
-    log.info("client_scripts.db_scripts", doctype=doctype, count=len(scripts))
+    log.debug("client_scripts.db_scripts", doctype=doctype, count=len(scripts))
 
     # Append file-based client scripts (from app directories)
     try:
         from grunt.scripting.file_scripts import get_file_client_scripts
 
         file_scripts = get_file_client_scripts(doctype)
-        log.info(
+        log.debug(
             "client_scripts.file_scripts",
             doctype=doctype,
             count=len(file_scripts),
@@ -61,5 +61,5 @@ async def get_client_scripts(
             doctype=doctype,
         )
 
-    log.info("client_scripts.total", doctype=doctype, total=len(scripts))
+    log.debug("client_scripts.total", doctype=doctype, total=len(scripts))
     return scripts
