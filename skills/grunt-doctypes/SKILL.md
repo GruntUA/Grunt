@@ -44,6 +44,45 @@ description: Довідник по всіх типах полів, налашт�
 | `is_singleton` | bool | Єдиний екземпляр (для налаштувань) |
 | `is_tree` | bool | Ієрархічна структура |
 | `quick_entry` | bool | Діалог швидкого створення |
+| `is_virtual` | bool | Без власної таблиці — документи дає контролер на `BaseDocument` (див. нижче) |
+
+### Віртуальний DocType — контролер на `BaseDocument`
+
+`Document` зберігає документи в таблиці; `BaseDocument` — той самий документ без сховища.
+Контролер віртуального доктайпа наслідує `BaseDocument` і перевизначає лише сховище —
+конвеєр (події, `validate`/`before_save`/…, права на рядок, workflow, вебхуки) спільний.
+
+```python
+from grunt.document.base import BaseDocument, DocumentList
+from grunt.document.in_memory import apply_filters, apply_search, apply_sort, build_response
+
+class ExternalCustomer(BaseDocument):
+    @classmethod
+    async def get_list(cls, doctype, *, page=1, per_page=20, sort_by="name",
+                       sort_order="asc", filters=None, search=None, **kwargs) -> DocumentList:
+        rows = await api.list_customers()
+        if filters: rows = apply_filters(rows, filters)   # той самий синтаксис field__op
+        if search: rows = apply_search(rows, search, ["title"])
+        return build_response(apply_sort(rows, sort_by, sort_order), page, per_page)
+
+    async def load_from_db(self, *, expand=None):   # self.name → self.data, 404 якщо нема
+        self.data = await api.get_customer(self.name)
+
+    async def db_insert(self):  # self.data — новий документ; можна замінити self.data збереженим
+        self.data = await api.create_customer(self.data)
+
+    async def db_update(self):  # self.data — збережений + зміни; self.doc_before_save — до змін
+        self.data = await api.update_customer(self.name, self.data)
+
+    async def db_delete(self):
+        await api.delete_customer(self.name)
+```
+
+- Не перевизначений метод → 405 (`db_*`), 404 (`load_from_db`), порожній список (`get_list`).
+  `get_count` за замовчуванням бере `meta.total` з `get_list(per_page=1)`.
+- Подані значення (часткові зміни) — `self.input_data`.
+- Гібрид «список з таблиці, документ — звідкись ще» (як `DocType`): `get_list`/`get_count`
+  делегують у `Document.get_list`/`Document.get_count`.
 
 ---
 

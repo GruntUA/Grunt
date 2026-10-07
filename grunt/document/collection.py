@@ -19,8 +19,15 @@ from sqlalchemy import and_, func, select, update
 import grunt
 from grunt import _, log
 from grunt.db.filters import apply_filters
-from grunt.document.base import Document, DocumentList, controller_class, load_document
+from grunt.document.base import (
+    Document,
+    DocumentList,
+    controller_class,
+    is_table_backed,
+    load_document,
+)
 from grunt.document.formula import evaluate_read_formulas
+from grunt.document.in_memory import build_response
 from grunt.document.meta import Meta
 from grunt.document.multi_link import MultiLinkService
 from grunt.document.query import _apply_search, _expand_child_of_filters
@@ -36,8 +43,10 @@ from grunt.document.update_side_effects import (
 )
 from grunt.metadata.compiler import MULTI_LINK_TABLE
 from grunt.metadata.registry import doctype_registry
+from grunt.permissions.access import RoleAccess
 from grunt.permissions.query import apply_permission_filter
-from grunt.permissions.user_permissions import build_conditions
+from grunt.permissions.rbac import permission_checker
+from grunt.permissions.user_permissions import build_conditions, get_user_permissions_for
 from grunt.search.service import search_index_service
 
 if TYPE_CHECKING:
@@ -257,6 +266,19 @@ async def list_documents(
             detail=_("DocType “%(doctype)s” not found") % {"doctype": doctype_name},
         )
 
+    if not is_table_backed(dt) and await _row_scoped(dt, user):
+        readable = await _readable_rows(
+            session,
+            dt,
+            user,
+            sort_by=sort_by,
+            sort_order=sort_order,
+            filters=filters,
+            search=search,
+        )
+        extra_meta = {k: v for k, v in readable.meta.items() if k not in _PAGE_META}
+        return build_response(list(readable), page, per_page, extra_meta=extra_meta or None)
+
     return await controller_class(dt).get_list(
         doctype_name,
         session=session,
@@ -368,9 +390,60 @@ async def count_documents(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=_("DocType “%(doctype)s” not found") % {"doctype": doctype_name},
         )
+    if not is_table_backed(dt) and await _row_scoped(dt, user):
+        readable = await _readable_rows(session, dt, user, filters=filters, search=search)
+        return len(readable)
     return await controller_class(dt).get_count(
         doctype_name, session=session, user=user, filters=filters, search=search
     )
+
+
+# A controller's list (no table to filter in SQL) is checked row by row when the
+# user may read only some documents; this is how many rows it is asked for.
+_ROW_SCOPED_LIMIT = 5000
+_PAGE_META = frozenset({"total", "page", "per_page", "pages", "next_cursor"})
+
+
+async def _row_scoped(dt: Any, user: User) -> bool:
+    """True when *user* may read only some of *dt*'s documents - a ``match``
+    rule or User Permissions, which a table query applies in SQL."""
+    if RoleAccess(dt, user).has_unrestricted_read:
+        return bool(await get_user_permissions_for(user, dt.name))
+    return True
+
+
+async def _readable_rows(
+    session: AsyncSession,
+    dt: Any,
+    user: User,
+    *,
+    sort_by: str = "modified_at",
+    sort_order: str = "desc",
+    filters: dict[str, Any] | None,
+    search: str | None,
+) -> DocumentList:
+    """The controller's rows *user* may read, in its order, with its meta.
+
+    A row is checked as the document it lists, so a ``match`` on a field the
+    list leaves out fails closed.
+    """
+    rows = await controller_class(dt).get_list(
+        dt.name,
+        session=session,
+        user=user,
+        page=1,
+        per_page=_ROW_SCOPED_LIMIT,
+        sort_by=sort_by,
+        sort_order=sort_order,
+        filters=filters,
+        search=search,
+    )
+    if (rows.meta.get("total") or 0) > len(rows):
+        log.warning(
+            "collection.row_scoped_list_truncated", doctype=dt.name, limit=_ROW_SCOPED_LIMIT
+        )
+    readable = [r for r in rows if await permission_checker.check(user, dt, "read", r)]
+    return DocumentList(readable, rows.meta)
 
 
 async def table_count(
@@ -492,7 +565,7 @@ async def bulk_delete(
             detail=_("DocType “%(doctype)s” not found") % {"doctype": doctype_name},
         )
 
-    if not issubclass(controller_class(dt), Document):
+    if not is_table_backed(dt):
         return await bulk_delete_one_by_one(session, engine, doctype_name, ids, user)
 
     table = dt.table
@@ -772,7 +845,7 @@ async def rename_document(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=_("DocType “%(doctype)s” not found") % {"doctype": doctype_name},
         )
-    if not issubclass(controller_class(dt), Document):
+    if not is_table_backed(dt):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=_("Cannot rename virtual documents"),

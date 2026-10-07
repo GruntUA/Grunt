@@ -297,7 +297,7 @@ class DocumentAPI:
     ) -> tuple[int, list[str]]:
         """Delete multiple documents efficiently with a single batch transaction.
 
-        Uses the optimised ``DocumentWriteMixin.bulk_delete`` path:
+        Uses the optimised ``collection.bulk_delete`` path:
         - 1 SELECT to fetch all candidates
         - Per-document ``before_delete`` / ``after_delete`` controller hooks
         - 1 batch DELETE statement

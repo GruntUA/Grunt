@@ -9,6 +9,7 @@ from grunt import _, log
 from grunt.document.base import BaseDocument, DocumentList
 from grunt.document.in_memory import apply_filters, apply_search, apply_sort, build_response
 from grunt.errors import not_found
+from grunt.i18n import N_
 from grunt.tasks.redis_introspect import (
     decode_message,
     entry_timestamp_ms,
@@ -25,6 +26,10 @@ class BackgroundJobController(BaseDocument):
     Read-only except for ``delete``, which acks a stuck entry off the pending
     list - a manual "dismiss" for a job that will never finish on its own.
     """
+
+    not_supported_message = N_(
+        "BackgroundJob is a live view of the queue — it can't be created or edited"
+    )
 
     @classmethod
     async def get_list(

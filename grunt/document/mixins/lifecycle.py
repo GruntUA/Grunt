@@ -16,7 +16,7 @@ series, child tables, search index, versions).
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, ClassVar
 
 from fastapi import HTTPException, status
 from sqlalchemy.exc import IntegrityError
@@ -49,13 +49,6 @@ if TYPE_CHECKING:
 PROTECTED_FIELDS = frozenset({"name", "owner", "created_at"})
 
 
-def not_supported(doctype: str) -> HTTPException:
-    return HTTPException(
-        status_code=status.HTTP_405_METHOD_NOT_ALLOWED,
-        detail=_("“%(doctype)s” does not support this operation") % {"doctype": doctype},
-    )
-
-
 class DocumentLifecycleMixin:
     doctype: str
     data: dict[str, Any]
@@ -63,10 +56,15 @@ class DocumentLifecycleMixin:
     session: Any
     engine: Any
     # Set while a pipeline runs: the DocType meta, the values as the caller
-    # submitted them, and (update/delete) the stored document before the change.
+    # gave them (on update - only the changes), and (update/delete) the stored
+    # document before the change.
     _dt: Any
-    _submitted: dict[str, Any]
-    _existing: dict[str, Any] | None
+    input_data: dict[str, Any]
+    doc_before_save: dict[str, Any] | None
+
+    #: Why an insert/update/delete the storage doesn't implement is refused
+    #: (405) - mark it with ``N_()``; translated when raised.
+    not_supported_message: ClassVar[str | None] = None
 
     def _bind(self) -> None: ...
     def _set_grunt_context(self, user: User) -> tuple: ...  # type: ignore[empty-body]
@@ -93,18 +91,18 @@ class DocumentLifecycleMixin:
 
         May replace ``self.data`` with what was stored (e.g. a generated name).
         """
-        raise not_supported(self.doctype)
+        raise self._not_supported()
 
     async def db_update(self) -> None:
         """Store ``self.data`` - the stored document with the changes applied.
 
-        The stored version is ``self._existing``. May replace ``self.data``.
+        The stored version is ``self.doc_before_save``. May replace ``self.data``.
         """
-        raise not_supported(self.doctype)
+        raise self._not_supported()
 
     async def db_delete(self) -> None:
         """Remove the stored document ``self.name``."""
-        raise not_supported(self.doctype)
+        raise self._not_supported()
 
     @classmethod
     async def get_list(
@@ -141,6 +139,13 @@ class DocumentLifecycleMixin:
             doctype, session=session, user=user, page=1, per_page=1, filters=filters, search=search
         )
         return result.meta.get("total") or 0
+
+    def _not_supported(self) -> HTTPException:
+        if self.not_supported_message:
+            detail = _(self.not_supported_message)
+        else:
+            detail = _("“%(doctype)s” does not support this operation") % {"doctype": self.doctype}
+        return HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED, detail=detail)
 
     # Pipeline steps of a storage
 
@@ -351,7 +356,7 @@ class DocumentLifecycleMixin:
                 status_code=status.HTTP_403_FORBIDDEN, detail=_("No access to the document")
             )
 
-        self._submitted = data
+        self.input_data = data
         self.data = await self._build_initial_row(dt, data, datetime.now(UTC))
 
         tokens = self._set_grunt_context(user)
@@ -445,8 +450,8 @@ class DocumentLifecycleMixin:
             if f.fieldname in data:
                 merged[f.fieldname] = data[f.fieldname]
 
-        self._submitted = data
-        self._existing = existing
+        self.input_data = data
+        self.doc_before_save = existing
         self.data = merged
 
         tokens = self._set_grunt_context(user)
@@ -512,7 +517,7 @@ class DocumentLifecycleMixin:
             "before_delete", doctype=self.doctype, doc=existing, user=user, session=self.session
         )
 
-        self._existing = existing
+        self.doc_before_save = existing
         self.data = existing
         tokens = self._set_grunt_context(user)
         try:

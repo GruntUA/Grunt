@@ -41,8 +41,8 @@ class DocumentWriteMixin(DocumentReadMixin):
     """
 
     engine: AsyncEngine
-    _submitted: dict[str, Any]
-    _existing: dict[str, Any] | None
+    input_data: dict[str, Any]
+    doc_before_save: dict[str, Any] | None
 
     # Storage
 
@@ -54,7 +54,7 @@ class DocumentWriteMixin(DocumentReadMixin):
         dt = self._dt
         table = dt.table
         row = self.data
-        data = self._submitted
+        data = self.input_data
         doc_id = row["name"]
         db_row = {k: v for k, v in row.items() if k in table.c}
         await self.session.execute(table.insert().values(**db_row))
@@ -76,11 +76,11 @@ class DocumentWriteMixin(DocumentReadMixin):
         dt = self._dt
         table = dt.table
         row = self.data
-        existing = self._existing or {}
+        existing = self.doc_before_save or {}
         real_id = existing["name"]
         await compute_formulas(dt.doc, row)
 
-        update_data = self._build_update_payload(dt, self._submitted)
+        update_data = self._build_update_payload(dt, self.input_data)
         table_cols = {c.name for c in table.columns}
         for field in dt.get_physical_fields():
             if field.fieldname in PROTECTED_FIELDS or field.fieldname not in table_cols:
@@ -99,7 +99,7 @@ class DocumentWriteMixin(DocumentReadMixin):
         await _save_child_tables(self.session, dt.doc, real_id, row, self.user, datetime.now(UTC))
         await self._apply_aggregations(dt, table, real_id, row)
 
-        await self._sync_multi_links(dt, real_id, self._submitted, only_present=True)
+        await self._sync_multi_links(dt, real_id, self.input_data, only_present=True)
 
         await self.session.flush()
 

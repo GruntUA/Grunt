@@ -76,9 +76,9 @@ async def doc_guard(doctype: str, doc_id: str, action: PermissionAction = "read"
     if dt is None:
         raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
     user = require_user()
-    from grunt.document.base import Document, controller_class
+    from grunt.document.base import is_table_backed
 
-    if not issubclass(controller_class(dt), Document):
+    if not is_table_backed(dt):
         # No table to look the row up in - the DocType-level check is all there is.
         await permission_checker.require(user, dt, action)
         return

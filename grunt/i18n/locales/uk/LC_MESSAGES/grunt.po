@@ -3252,7 +3252,7 @@ msgstr "Мінімум"
 msgid "Must be a number"
 msgstr "Має бути числом"
 
-#: grunt/grunt/cli/doctype.py:166 grunt/grunt/auth/doctypes/User/User.js:180
+#: grunt/grunt/cli/doctype.py:159 grunt/grunt/auth/doctypes/User/User.js:180
 #: grunt/frontend/src/core/composables/useFormValidation.ts:83
 #: grunt/frontend/src/core/composables/useFormValidation.ts:97
 #: grunt/frontend/src/components/files/FileExplorer.vue:768
@@ -12765,20 +12765,20 @@ msgstr[2] "%(count)d непрочитаних сповіщень за остан
 msgid "Text"
 msgstr "Текст"
 
-#: grunt/grunt/webform/service.py:92 grunt/grunt/app/document_api.py:487
-#: grunt/grunt/app/document_api.py:687 grunt/grunt/metadata/registry.py:342
-#: grunt/grunt/metadata/registry.py:626 grunt/grunt/metadata/registry.py:600
+#: grunt/grunt/webform/service.py:92 grunt/grunt/app/document_api.py:499
+#: grunt/grunt/app/document_api.py:701 grunt/grunt/metadata/registry.py:332
+#: grunt/grunt/metadata/registry.py:583 grunt/grunt/metadata/registry.py:561
 #: grunt/grunt/notification/rule_index.py:53
 #: grunt/grunt/activity/__init__.py:264 grunt/grunt/actions/__init__.py:163
 #: grunt/grunt/document/connections.py:43
 #: grunt/grunt/document/connections.py:68
 #: grunt/grunt/document/connections.py:89
 #: grunt/grunt/document/connections.py:119
-#: grunt/grunt/document/collection.py:257
-#: grunt/grunt/document/collection.py:342
-#: grunt/grunt/document/collection.py:383
-#: grunt/grunt/document/collection.py:449
-#: grunt/grunt/document/collection.py:730 grunt/grunt/document/links.py:55
+#: grunt/grunt/document/collection.py:266
+#: grunt/grunt/document/collection.py:391
+#: grunt/grunt/document/collection.py:494
+#: grunt/grunt/document/collection.py:565
+#: grunt/grunt/document/collection.py:846 grunt/grunt/document/links.py:55
 #: grunt/grunt/document/links.py:59
 msgid "DocType “%(doctype)s” not found"
 msgstr "DocType «%(doctype)s» не знайдено"
@@ -13009,24 +13009,24 @@ msgstr "Віртуальний тип документа не має фізич�
 msgid "Compaction is not supported for the “%(dialect)s” database"
 msgstr "Стиснення не підтримується для СКБД «%(dialect)s»"
 
-#: grunt/grunt/startup/doctypes/GruntInstalledApp/grunt_installed_app.py:75
+#: grunt/grunt/startup/doctypes/GruntInstalledApp/grunt_installed_app.py:82
 msgid "name is required"
 msgstr "name є обов'язковим"
 
-#: grunt/grunt/startup/doctypes/GruntInstalledApp/grunt_installed_app.py:105
+#: grunt/grunt/startup/doctypes/GruntInstalledApp/grunt_installed_app.py:112
 msgid "module is required"
 msgstr "module є обов'язковим"
 
-#: grunt/grunt/startup/doctypes/GruntInstalledApp/grunt_installed_app.py:79
+#: grunt/grunt/startup/doctypes/GruntInstalledApp/grunt_installed_app.py:86
 msgid "App “%(app)s” is already installed"
 msgstr "Додаток «%(app)s» вже встановлено"
 
-#: grunt/grunt/startup/doctypes/GruntInstalledApp/grunt_installed_app.py:98
-#: grunt/grunt/startup/doctypes/GruntInstalledApp/grunt_installed_app.py:126
+#: grunt/grunt/startup/doctypes/GruntInstalledApp/grunt_installed_app.py:105
+#: grunt/grunt/startup/doctypes/GruntInstalledApp/grunt_installed_app.py:133
 msgid "App “%(app)s” not found"
 msgstr "Додаток «%(app)s» не знайдено"
 
-#: grunt/grunt/startup/doctypes/GruntInstalledApp/grunt_installed_app.py:109
+#: grunt/grunt/startup/doctypes/GruntInstalledApp/grunt_installed_app.py:116
 msgid "Module “%(module)s” already exists"
 msgstr "Модуль «%(module)s» вже існує"
 
@@ -13106,15 +13106,15 @@ msgstr "Досягнуто максимальну кількість відпо�
 msgid "The file is too large (max %(size)s MB)"
 msgstr "Файл завеликий (макс. %(size)s МБ)"
 
-#: grunt/grunt/document/collection.py:681
+#: grunt/grunt/document/collection.py:797
 msgid "The replacement cannot be the document being deleted"
 msgstr "Заміна не може збігатися з документом, що видаляється"
 
-#: grunt/grunt/document/collection.py:705
+#: grunt/grunt/document/collection.py:821
 msgid "A descendant cannot be used as the replacement"
 msgstr "Не можна підставити підлеглий елемент як заміну"
 
-#: grunt/grunt/document/collection.py:690
+#: grunt/grunt/document/collection.py:806
 msgid "Replacement document “%(name)s” not found"
 msgstr "Документ-заміну «%(name)s» не знайдено"
 
@@ -13274,7 +13274,7 @@ msgstr "сьогодні"
 msgid "Multiple links"
 msgstr "Множинні зв'язки"
 
-#: grunt/grunt/permissions/guards.py:87 grunt/grunt/document/mixins/read.py:63
+#: grunt/grunt/permissions/guards.py:88 grunt/grunt/document/mixins/read.py:53
 msgid "Document “%(name)s” not found"
 msgstr "Документ «%(name)s» не знайдено"
 
@@ -13305,17 +13305,17 @@ msgstr "Поділитися документом може лише той, хт
 msgid "User “%(user)s” not found"
 msgstr "Користувача «%(user)s» не знайдено"
 
-#: grunt/grunt/document/mixins/write.py:358
+#: grunt/grunt/document/mixins/lifecycle.py:356
 #: grunt/grunt/activity/doctypes/DocFollow/doc_follow.py:26
 #: grunt/grunt/activity/doctypes/DocLike/doc_like.py:26
 msgid "No access to the document"
 msgstr "Немає доступу до документа"
 
-#: grunt/grunt/document/mixins/write.py:661
+#: grunt/grunt/document/mixins/write.py:229
 msgid "Could not reassign the links: uniqueness conflict"
 msgstr "Не вдалося перепризначити посилання — конфлікт унікальності"
 
-#: grunt/grunt/document/mixins/write.py:515
+#: grunt/grunt/document/mixins/lifecycle.py:428
 msgid ""
 "The document was changed after you started editing. Open it again and repeat"
 " your changes."
@@ -13440,25 +13440,15 @@ msgstr "Версію не знайдено"
 msgid "The version does not belong to this document"
 msgstr "Версія не належить цьому документу"
 
-#: grunt/grunt/backups/doctypes/Backup/backup.py:58
+#: grunt/grunt/backups/doctypes/Backup/backup.py:70
 msgid "Backup not found"
 msgstr "Резервну копію не знайдено"
 
-#: grunt/grunt/backups/doctypes/Backup/backup.py:66
-msgid "Backups are created with the Create now button"
-msgstr "Копію створює кнопка «Створити зараз»"
-
-#: grunt/grunt/backups/doctypes/Backup/backup.py:70
-msgid "A backup cannot be changed"
-msgstr "Резервну копію не можна змінити"
-
-#: grunt/grunt/monitoring/doctypes/SystemHealthReport/system_health_report.py:28
-#: grunt/grunt/monitoring/doctypes/SystemHealthReport/system_health_report.py:33
-#: grunt/grunt/monitoring/doctypes/SystemHealthReport/system_health_report.py:38
+#: grunt/grunt/monitoring/doctypes/SystemHealthReport/system_health_report.py:18
 msgid "The system health report is read-only"
 msgstr "Звіт про стан системи лише для читання"
 
-#: grunt/grunt/document/virtual.py:48
+#: grunt/grunt/document/mixins/lifecycle.py:85
 msgid "Virtual DocType “%(doctype)s” has no individual documents"
 msgstr "Віртуальний DocType «%(doctype)s» не має окремих документів"
 
@@ -13737,7 +13727,7 @@ msgstr "Файл не знайдено"
 msgid "Session not found"
 msgstr "Сесію не знайдено"
 
-#: grunt/grunt/document/mixins/write.py:148
+#: grunt/grunt/document/mixins/write.py:172
 msgid "'%(name)s' is a singleton."
 msgstr "«%(name)s» — singleton (єдиний запис)."
 
@@ -13758,36 +13748,15 @@ msgstr "Потрібна автентифікація"
 msgid "Authentication required to access this file"
 msgstr "Для доступу до файлу потрібна автентифікація"
 
-#: grunt/grunt/tasks/doctypes/BackgroundJob/background_job.py:76
-msgid ""
-"BackgroundJob is a live view of the queue — it can't be created directly"
-msgstr "BackgroundJob — живий перегляд черги, його не можна створити напряму"
-
-#: grunt/grunt/tasks/doctypes/BackgroundJob/background_job.py:82
-msgid "BackgroundJob is a live view of the queue — it can't be edited"
-msgstr "BackgroundJob — живий перегляд черги, його не можна редагувати"
-
-#: grunt/grunt/tasks/doctypes/BackgroundWorker/background_worker.py:68
-msgid ""
-"BackgroundWorker is a live view of the consumer group — it can't be created"
-msgstr ""
-"BackgroundWorker — живий перегляд групи споживачів, його не можна створити"
-
-#: grunt/grunt/tasks/doctypes/BackgroundWorker/background_worker.py:74
-msgid ""
-"BackgroundWorker is a live view of the consumer group — it can't be edited"
-msgstr ""
-"BackgroundWorker — живий перегляд групи споживачів, його не можна редагувати"
-
-#: grunt/grunt/document/tree.py:480
+#: grunt/grunt/document/tree.py:482
 msgid "Cannot move a node into its own subtree (cycle detected)"
 msgstr "Не можна перемістити вузол у власне піддерево (виявлено цикл)"
 
-#: grunt/grunt/document/collection.py:735
+#: grunt/grunt/document/collection.py:851
 msgid "Cannot rename virtual documents"
 msgstr "Віртуальні документи не можна перейменовувати"
 
-#: grunt/grunt/document/tree.py:156
+#: grunt/grunt/document/tree.py:158
 msgid "Column '%(parent_field)s' not found in table for '%(doctype)s'"
 msgstr "Колонку «%(parent_field)s» не знайдено в таблиці «%(doctype)s»"
 
@@ -13795,43 +13764,35 @@ msgstr "Колонку «%(parent_field)s» не знайдено в табли�
 msgid "Could not validate credentials"
 msgstr "Не вдалося перевірити облікові дані"
 
-#: grunt/grunt/tasks/doctypes/ScheduledJob/scheduled_job.py:70
-msgid "Create a ServerScript with script_type='Scheduler Event' instead"
-msgstr "Натомість створіть ServerScript із script_type='Scheduler Event'"
-
 #: grunt/grunt/api/v1/data_import.py:33
 msgid "DataImport not found"
 msgstr "Імпорт даних не знайдено"
 
-#: grunt/grunt/document/tree.py:87
+#: grunt/grunt/document/tree.py:89
 msgid ""
 "DocType '%(name)s' is not a tree (is_tree=false or tree_view not configured)"
 msgstr ""
 "DocType «%(name)s» не є деревом (is_tree=false або tree_view не налаштовано)"
 
-#: grunt/grunt/metadata/registry.py:553 grunt/grunt/metadata/registry.py:645
-#: grunt/grunt/metadata/registry.py:571 grunt/grunt/api/v1/meta.py:134
+#: grunt/grunt/metadata/registry.py:523 grunt/grunt/metadata/registry.py:602
+#: grunt/grunt/metadata/registry.py:535 grunt/grunt/api/v1/meta.py:134
 msgid "DocType “%(doctype)s” already exists"
 msgstr "DocType «%(doctype)s» вже існує"
 
-#: grunt/grunt/document/collection.py:745
+#: grunt/grunt/document/collection.py:861
 msgid "Document with name '%(new_id)s' already exists"
 msgstr "Документ з назвою «%(new_id)s» вже існує"
 
-#: grunt/grunt/metadata/registry.py:657
+#: grunt/grunt/metadata/registry.py:614
 msgid "Duplicate fieldname '%(fieldname)s' in DocType '%(name)s'"
 msgstr "Дубльоване поле «%(fieldname)s» у DocType «%(name)s»"
-
-#: grunt/grunt/tasks/doctypes/ScheduledJob/scheduled_job.py:79
-msgid "Edit the underlying ServerScript instead"
-msgstr "Натомість редагуйте відповідний ServerScript"
 
 #: grunt/grunt/auth/providers/webauthn.py:194
 #: grunt/grunt/auth/providers/webauthn.py:297
 msgid "Expired or invalid WebAuthn challenge"
 msgstr "WebAuthn-виклик прострочений або недійсний"
 
-#: grunt/grunt/metadata/registry.py:676
+#: grunt/grunt/metadata/registry.py:633
 msgid "Fieldname '%(fieldname)s' exceeds %(max)s characters"
 msgstr "Назва поля «%(fieldname)s» довша за %(max)s символів"
 
@@ -13839,7 +13800,7 @@ msgstr "Назва поля «%(fieldname)s» довша за %(max)s симво
 msgid "File not found on storage"
 msgstr "Файл не знайдено в сховищі"
 
-#: grunt/grunt/scripting/doctypes/Hook/hook.py:131
+#: grunt/grunt/scripting/doctypes/Hook/hook.py:137
 msgid "Hook '%(doc_id)s' not found"
 msgstr "Хук «%(doc_id)s» не знайдено"
 
@@ -13847,7 +13808,7 @@ msgstr "Хук «%(doc_id)s» не знайдено"
 msgid "Incorrect email or password"
 msgstr "Невірна електронна пошта або пароль"
 
-#: grunt/grunt/metadata/registry.py:666
+#: grunt/grunt/metadata/registry.py:623
 msgid ""
 "Invalid fieldname '%(fieldname)s': must start with a-z and contain only a-z,"
 " 0-9, _"
@@ -13909,8 +13870,8 @@ msgstr "Не вказано назву файлу"
 msgid "Not allowed"
 msgstr "Не дозволено"
 
-#: grunt/grunt/startup/doctypes/GruntInstalledApp/grunt_installed_app.py:72
-#: grunt/grunt/startup/doctypes/GruntInstalledApp/grunt_installed_app.py:122
+#: grunt/grunt/startup/doctypes/GruntInstalledApp/grunt_installed_app.py:79
+#: grunt/grunt/startup/doctypes/GruntInstalledApp/grunt_installed_app.py:129
 msgid "Not authorized"
 msgstr "Немає дозволу"
 
@@ -13942,17 +13903,17 @@ msgstr "Не вдалося зареєструвати ключ доступу"
 msgid "Passkey verification failed"
 msgstr "Не вдалося перевірити ключ доступу"
 
-#: grunt/grunt/tasks/doctypes/BackgroundWorker/background_worker.py:56
-#: grunt/grunt/tasks/doctypes/BackgroundJob/background_job.py:64
+#: grunt/grunt/tasks/doctypes/BackgroundWorker/background_worker.py:67
+#: grunt/grunt/tasks/doctypes/BackgroundJob/background_job.py:75
 msgid "Redis broker not configured"
 msgstr "Брокер Redis не налаштовано"
 
-#: grunt/grunt/tasks/doctypes/BackgroundWorker/background_worker.py:61
-#: grunt/grunt/tasks/doctypes/BackgroundJob/background_job.py:69
+#: grunt/grunt/tasks/doctypes/BackgroundWorker/background_worker.py:72
+#: grunt/grunt/tasks/doctypes/BackgroundJob/background_job.py:80
 msgid "Redis unavailable"
 msgstr "Redis недоступний"
 
-#: grunt/grunt/monitoring/doctypes/SqlProfilerRequest/sql_profiler_request.py:48
+#: grunt/grunt/monitoring/doctypes/SqlProfilerRequest/sql_profiler_request.py:51
 msgid "SqlProfilerRequest '%(doc_id)s' not found"
 msgstr "SqlProfilerRequest «%(doc_id)s» не знайдено"
 
@@ -14299,7 +14260,7 @@ msgstr "Видалити список файлів"
 msgid "Delete gallery"
 msgstr "Видалити галерею"
 
-#: grunt/grunt/document/mixins/write.py:121
+#: grunt/grunt/document/mixins/lifecycle.py:231
 msgid "No access: “%(field)s” is outside your user permissions"
 msgstr "Немає доступу: значення поля «%(field)s» поза вашими дозволами"
 
@@ -14325,7 +14286,7 @@ msgstr "Позначте потрібні пункти в дереві"
 msgid "%(user)s: “%(action)s” — %(from)s → %(to)s"
 msgstr "%(user)s: «%(action)s» — %(from)s → %(to)s"
 
-#: grunt/grunt/workflow/guard.py:83
+#: grunt/grunt/workflow/guard.py:81
 msgid "A new document starts in the “%(state)s” state"
 msgstr "Новий документ створюється у стані «%(state)s»"
 
@@ -14338,15 +14299,15 @@ msgstr "Напишіть коментар"
 msgid "Comment:"
 msgstr "Коментар:"
 
-#: grunt/grunt/workflow/guard.py:150
+#: grunt/grunt/workflow/guard.py:148
 msgid "In the “%(state)s” state the document can't be deleted"
 msgstr "У стані «%(state)s» документ не можна видалити"
 
-#: grunt/grunt/workflow/guard.py:164
+#: grunt/grunt/workflow/guard.py:162
 msgid "In the “%(state)s” state the document can't be edited"
 msgstr "У стані «%(state)s» документ не можна редагувати"
 
-#: grunt/grunt/workflow/guard.py:107
+#: grunt/grunt/workflow/guard.py:105
 msgid "The state changes only through workflow actions"
 msgstr "Стан змінюється лише діями робочого процесу (кнопки біля «Зберегти»)"
 
@@ -15335,6 +15296,93 @@ msgstr "Карта"
 msgctxt "select:DocType.default_view"
 msgid "report"
 msgstr "Звіт"
+
+#: grunt/grunt/tasks/doctypes/BackgroundJob/background_job.py:30
+msgid ""
+"BackgroundJob is a live view of the queue — it can't be created or edited"
+msgstr "Фонові задачі — живий перегляд черги: їх не можна створити чи змінити"
+
+#: grunt/grunt/tasks/doctypes/BackgroundWorker/background_worker.py:23
+msgid ""
+"BackgroundWorker is a live view of the consumer group — it can't be created "
+"or edited"
+msgstr ""
+"Фонові воркери — живий перегляд групи споживачів: їх не можна створити чи "
+"змінити"
+
+#: grunt/grunt/backups/doctypes/Backup/backup.py:43
+msgid "Backups are created with the Create now button and cannot be changed"
+msgstr "Резервні копії створюються кнопкою «Створити зараз» і не змінюються"
+
+#: grunt/grunt/tasks/doctypes/ScheduledJob/scheduled_job.py:24
+msgid ""
+"Create or edit a ServerScript with script_type='Scheduler Event' instead"
+msgstr "Створіть або змініть ServerScript з script_type='Scheduler Event'"
+
+#: grunt/grunt/scripting/doctypes/Hook/hook.py:101
+msgid "Hooks are read-only: they come from the code and Server Scripts"
+msgstr "Хуки лише для читання: вони беруться з коду та серверних скриптів"
+
+#: grunt/grunt/monitoring/doctypes/SqlProfilerRequest/sql_profiler_request.py:20
+msgid "Profiled requests are read-only"
+msgstr "Профільовані запити лише для читання"
+
+#: grunt/grunt/tasks/doctypes/ScheduledJob/scheduled_job.py:67
+msgid "Scheduled job “%(name)s” not found"
+msgstr "Заплановану задачу «%(name)s» не знайдено"
+
+#: grunt/grunt/document/mixins/lifecycle.py:182
+msgid "“%(doctype)s” does not support replacing references"
+msgstr "«%(doctype)s» не підтримує заміну посилань"
+
+#: grunt/grunt/document/mixins/lifecycle.py:147
+msgid "“%(doctype)s” does not support this operation"
+msgstr "«%(doctype)s» не підтримує цю операцію"
+
+#: grunt/grunt/tasks/doctypes/BackgroundWorker/background_worker.py:61
+#: grunt/grunt/tasks/doctypes/BackgroundJob/background_job.py:68
+msgid "“%(name)s” not found"
+msgstr "«%(name)s» не знайдено"
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgctxt "help:DocType.definition"
+msgid ""
+"Full DocType definition - the source of truth the columns are copied from"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgctxt "meta:DocType.definition"
+msgid "Definition"
+msgstr ""
+
+#~ msgid "Backups are created with the Create now button"
+#~ msgstr "Копію створює кнопка «Створити зараз»"
+
+#~ msgid "A backup cannot be changed"
+#~ msgstr "Резервну копію не можна змінити"
+
+#~ msgid ""
+#~ "BackgroundJob is a live view of the queue — it can't be created directly"
+#~ msgstr "BackgroundJob — живий перегляд черги, його не можна створити напряму"
+
+#~ msgid "BackgroundJob is a live view of the queue — it can't be edited"
+#~ msgstr "BackgroundJob — живий перегляд черги, його не можна редагувати"
+
+#~ msgid ""
+#~ "BackgroundWorker is a live view of the consumer group — it can't be created"
+#~ msgstr ""
+#~ "BackgroundWorker — живий перегляд групи споживачів, його не можна створити"
+
+#~ msgid ""
+#~ "BackgroundWorker is a live view of the consumer group — it can't be edited"
+#~ msgstr ""
+#~ "BackgroundWorker — живий перегляд групи споживачів, його не можна редагувати"
+
+#~ msgid "Create a ServerScript with script_type='Scheduler Event' instead"
+#~ msgstr "Натомість створіть ServerScript із script_type='Scheduler Event'"
+
+#~ msgid "Edit the underlying ServerScript instead"
+#~ msgstr "Натомість редагуйте відповідний ServerScript"
 
 #~ msgctxt "meta:DocPermission.submit"
 #~ msgid "Submit"

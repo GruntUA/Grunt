@@ -13,9 +13,12 @@ from grunt.db.profiler import get_recent_requests
 from grunt.document.base import BaseDocument, DocumentList
 from grunt.document.in_memory import apply_filters, apply_search, apply_sort, build_response
 from grunt.errors import not_found
+from grunt.i18n import N_
 
 
 class SqlProfilerRequest(BaseDocument):
+    not_supported_message = N_("Profiled requests are read-only")
+
     @classmethod
     async def get_list(
         cls,

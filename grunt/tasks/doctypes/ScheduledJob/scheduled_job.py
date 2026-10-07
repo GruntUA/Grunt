@@ -10,6 +10,7 @@ from grunt import _
 from grunt.document.base import BaseDocument, DocumentList
 from grunt.document.in_memory import build_response
 from grunt.errors import not_found
+from grunt.i18n import N_
 
 
 class ScheduledJobController(BaseDocument):
@@ -19,6 +20,10 @@ class ScheduledJobController(BaseDocument):
     `script` body, which this view never collects - create or edit the
     ServerScript itself (script_type="Scheduler Event").
     """
+
+    not_supported_message = N_(
+        "Create or edit a ServerScript with script_type='Scheduler Event' instead"
+    )
 
     @classmethod
     async def get_list(

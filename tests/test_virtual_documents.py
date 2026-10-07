@@ -215,3 +215,49 @@ async def test_doctype_document_round_trip(ctx, db_session):
 
     await ctx.delete_doc("DocType", "RoundTripItem")
     assert await ctx.find_doc("DocType", "RoundTripItem") is None
+
+
+@pytest.mark.asyncio
+async def test_unsupported_write_explains_itself(ctx):
+    with pytest.raises(HTTPException) as exc:
+        await ctx.new_doc("Backup", {"name": "x"})
+    assert "Create now" in str(exc.value.detail)
+
+
+@pytest.mark.asyncio
+async def test_row_level_match_filters_list_count_and_get(ctx, db_session, engine):
+    import grunt
+    from grunt.api.v1.meta import save_doctype
+    from grunt.document.registry import document_registry
+    from tests.support import make_user
+
+    await save_doctype(
+        doctype_data={
+            "name": "VirtualOwnedNote",
+            "label": "Virtual Owned Note",
+            "module": "core",
+            "is_virtual": True,
+            "fields": [{"fieldname": "title", "label": "Title", "fieldtype": "Data"}],
+            "permissions": [{"role": "Employee", "read": True, "match": "owner == user"}],
+            "__is_new": True,
+        }
+    )
+    await ctx.db._session().commit()
+    _Notes.store = {
+        "a": {"name": "a", "title": "Alice's", "owner": "alice@example.com"},
+        "b": {"name": "b", "title": "Bob's", "owner": "bob@example.com"},
+    }
+    document_registry.register("VirtualOwnedNote", _Notes)
+    try:
+        alice = make_user("alice@example.com", roles=["Employee"])
+        async with grunt.context(db_session, engine, alice):
+            rows = await grunt.get_list("VirtualOwnedNote")
+            assert [r["name"] for r in rows] == ["a"]
+            assert rows.meta["total"] == 1
+            assert await grunt.count("VirtualOwnedNote", respect_permissions=True) == 1
+            assert (await grunt.get_doc("VirtualOwnedNote", "a"))["title"] == "Alice's"
+            with pytest.raises(HTTPException) as exc:
+                await grunt.get_doc("VirtualOwnedNote", "b")
+            assert exc.value.status_code == 403
+    finally:
+        document_registry._controllers.pop("VirtualOwnedNote", None)

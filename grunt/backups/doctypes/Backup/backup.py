@@ -9,6 +9,7 @@ from grunt.backups import BackupSet, delete_backup, get_backup, list_backups
 from grunt.backups.api import download_url
 from grunt.document.base import BaseDocument, DocumentList
 from grunt.document.in_memory import apply_search, apply_sort, build_response
+from grunt.i18n import N_
 from grunt.monitoring.health import human_size
 from grunt.site.manager import site_manager
 
@@ -38,6 +39,10 @@ class BackupController(BaseDocument):
     Created only by the Create now button and never changed: insert and
     update are left unsupported.
     """
+
+    not_supported_message = N_(
+        "Backups are created with the Create now button and cannot be changed"
+    )
 
     @classmethod
     async def get_list(

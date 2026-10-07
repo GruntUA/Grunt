@@ -8,6 +8,7 @@ from grunt import _, log
 from grunt.document.base import BaseDocument, DocumentList
 from grunt.document.in_memory import apply_filters, apply_search, apply_sort, build_response
 from grunt.errors import not_found
+from grunt.i18n import N_
 from grunt.tasks.redis_introspect import redis_conn, s, stream_broker, unavailable_message
 
 
@@ -18,6 +19,10 @@ class BackgroundWorkerController(BaseDocument):
     registration (``XGROUP DELCONSUMER``) - for a worker process that
     crashed and left an idle entry behind.
     """
+
+    not_supported_message = N_(
+        "BackgroundWorker is a live view of the consumer group — it can't be created or edited"
+    )
 
     @classmethod
     async def get_list(

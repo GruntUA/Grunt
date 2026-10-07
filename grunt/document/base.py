@@ -39,7 +39,9 @@ if TYPE_CHECKING:
 
 
 # Real instance attributes; everything else is routed into self.data.
-_RESERVED = frozenset({"doctype", "data", "user", "session", "engine"})
+_RESERVED = frozenset(
+    {"doctype", "data", "user", "session", "engine", "input_data", "doc_before_save"}
+)
 
 # Read-only on the controller. Set them through self.data if you really must.
 SYS_FIELDS: frozenset[str] = frozenset(
@@ -143,8 +145,8 @@ class BaseDocument(DocumentLifecycleMixin):
         self.engine = engine
         self._ml = None  # MultiLinkService, created in _bind() once there is a session
         self._dt = None
-        self._submitted = {}
-        self._existing = None
+        self.input_data = {}
+        self.doc_before_save = None
 
     # Attribute routing
 
@@ -523,6 +525,13 @@ def controller_class(dt: Any) -> type[BaseDocument]:
     if controller_cls is Document and dt.is_virtual:
         return BaseDocument
     return controller_cls
+
+
+def is_table_backed(dt: Any) -> bool:
+    """True when *dt*'s documents are rows of its table - its controller is a
+    ``Document`` - so table-only work (row lookups, batched DELETE, rename,
+    trees) applies; False for a controller that keeps them elsewhere."""
+    return issubclass(controller_class(dt), Document)
 
 
 async def new_document(

@@ -185,7 +185,7 @@ class User(Document):
             grunt.throw(_("Not permitted to create users"), "FORBIDDEN")
 
         # Roles are only in the merged payload when the client actually submitted
-        # the child table (see update_document) - so key presence == an attempt.
+        # the child table (see the update pipeline) - so key presence == an attempt.
         if "roles" in self.data:
             stored = await grunt.db.get_all(
                 "UserRole",

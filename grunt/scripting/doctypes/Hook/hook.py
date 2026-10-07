@@ -16,6 +16,7 @@ from grunt import _, hooks
 from grunt.document.base import BaseDocument, DocumentList
 from grunt.document.in_memory import apply_filters, apply_search, apply_sort, build_response
 from grunt.errors import not_found
+from grunt.i18n import N_
 
 _SEARCH_FIELDS = ["event", "handler", "reference_doctype", "source"]
 
@@ -97,6 +98,8 @@ def _with_name(row: dict[str, Any]) -> dict[str, Any]:
 
 
 class Hook(BaseDocument):
+    not_supported_message = N_("Hooks are read-only: they come from the code and Server Scripts")
+
     @classmethod
     async def get_list(
         cls,
@@ -118,7 +121,7 @@ class Hook(BaseDocument):
             rows = apply_filters(rows, filters)
         # A list view sorts by modified_at by default - hooks have no such field.
         if not sort_by or sort_by == "modified_at":
-            sort_by = "reference_doctype"
+            sort_by, sort_order = "reference_doctype", "asc"
         rows = apply_sort(rows, sort_by, sort_order)
 
         response = build_response(rows, page, per_page)

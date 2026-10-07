@@ -80,7 +80,7 @@ msgstr ""
 msgid "%(user)s: “%(action)s” — %(from)s → %(to)s"
 msgstr ""
 
-#: grunt/grunt/document/mixins/write.py:148
+#: grunt/grunt/document/mixins/write.py:172
 msgid "'%(name)s' is a singleton."
 msgstr ""
 
@@ -146,15 +146,11 @@ msgid ""
 "A Link field to Currency in this document, or a fixed ISO currency code"
 msgstr ""
 
-#: grunt/grunt/backups/doctypes/Backup/backup.py:70
-msgid "A backup cannot be changed"
-msgstr ""
-
 #: grunt/grunt/geo/doctypes/Address/address.py:22
 msgid "A city is required: pick one from the list or type it in"
 msgstr ""
 
-#: grunt/grunt/document/collection.py:705
+#: grunt/grunt/document/collection.py:821
 msgid "A descendant cannot be used as the replacement"
 msgstr ""
 
@@ -186,7 +182,7 @@ msgstr ""
 msgid "A menu item can't be its own parent"
 msgstr ""
 
-#: grunt/grunt/workflow/guard.py:83
+#: grunt/grunt/workflow/guard.py:81
 msgid "A new document starts in the “%(state)s” state"
 msgstr ""
 
@@ -489,12 +485,12 @@ msgstr ""
 msgid "App realtime"
 msgstr ""
 
-#: grunt/grunt/startup/doctypes/GruntInstalledApp/grunt_installed_app.py:79
+#: grunt/grunt/startup/doctypes/GruntInstalledApp/grunt_installed_app.py:86
 msgid "App “%(app)s” is already installed"
 msgstr ""
 
-#: grunt/grunt/startup/doctypes/GruntInstalledApp/grunt_installed_app.py:98
-#: grunt/grunt/startup/doctypes/GruntInstalledApp/grunt_installed_app.py:126
+#: grunt/grunt/startup/doctypes/GruntInstalledApp/grunt_installed_app.py:105
+#: grunt/grunt/startup/doctypes/GruntInstalledApp/grunt_installed_app.py:133
 msgid "App “%(app)s” not found"
 msgstr ""
 
@@ -701,23 +697,15 @@ msgstr ""
 msgid "Background jobs"
 msgstr ""
 
-#: grunt/grunt/tasks/doctypes/BackgroundJob/background_job.py:76
+#: grunt/grunt/tasks/doctypes/BackgroundJob/background_job.py:30
 msgid ""
-"BackgroundJob is a live view of the queue — it can't be created directly"
+"BackgroundJob is a live view of the queue — it can't be created or edited"
 msgstr ""
 
-#: grunt/grunt/tasks/doctypes/BackgroundJob/background_job.py:82
-msgid "BackgroundJob is a live view of the queue — it can't be edited"
-msgstr ""
-
-#: grunt/grunt/tasks/doctypes/BackgroundWorker/background_worker.py:68
+#: grunt/grunt/tasks/doctypes/BackgroundWorker/background_worker.py:23
 msgid ""
-"BackgroundWorker is a live view of the consumer group — it can't be created"
-msgstr ""
-
-#: grunt/grunt/tasks/doctypes/BackgroundWorker/background_worker.py:74
-msgid ""
-"BackgroundWorker is a live view of the consumer group — it can't be edited"
+"BackgroundWorker is a live view of the consumer group — it can't be created "
+"or edited"
 msgstr ""
 
 #: grunt/grunt/backups/tasks.py:100
@@ -732,7 +720,7 @@ msgstr ""
 msgid "Backup file not found"
 msgstr ""
 
-#: grunt/grunt/backups/doctypes/Backup/backup.py:58
+#: grunt/grunt/backups/doctypes/Backup/backup.py:70
 msgid "Backup not found"
 msgstr ""
 
@@ -744,8 +732,8 @@ msgstr ""
 msgid "Backups"
 msgstr ""
 
-#: grunt/grunt/backups/doctypes/Backup/backup.py:66
-msgid "Backups are created with the Create now button"
+#: grunt/grunt/backups/doctypes/Backup/backup.py:43
+msgid "Backups are created with the Create now button and cannot be changed"
 msgstr ""
 
 #: grunt/grunt/monitoring/health.py:539
@@ -946,11 +934,11 @@ msgstr ""
 msgid "Cannot add a unique constraint on “%(field)s”: duplicates found:"
 msgstr ""
 
-#: grunt/grunt/document/tree.py:480
+#: grunt/grunt/document/tree.py:482
 msgid "Cannot move a node into its own subtree (cycle detected)"
 msgstr ""
 
-#: grunt/grunt/document/collection.py:735
+#: grunt/grunt/document/collection.py:851
 msgid "Cannot rename virtual documents"
 msgstr ""
 
@@ -1233,7 +1221,7 @@ msgstr ""
 msgid "Column"
 msgstr ""
 
-#: grunt/grunt/document/tree.py:156
+#: grunt/grunt/document/tree.py:158
 msgid "Column '%(parent_field)s' not found in table for '%(doctype)s'"
 msgstr ""
 
@@ -1527,7 +1515,7 @@ msgstr ""
 msgid "Could not open the report"
 msgstr ""
 
-#: grunt/grunt/document/mixins/write.py:661
+#: grunt/grunt/document/mixins/write.py:229
 msgid "Could not reassign the links: uniqueness conflict"
 msgstr ""
 
@@ -1607,10 +1595,6 @@ msgstr ""
 msgid "Create a"
 msgstr ""
 
-#: grunt/grunt/tasks/doctypes/ScheduledJob/scheduled_job.py:70
-msgid "Create a ServerScript with script_type='Scheduler Event' instead"
-msgstr ""
-
 #: grunt/grunt/website/www/signup.ssr.html:69
 #: grunt/frontend/src/pages/auth/Login.vue:53
 msgid "Create an account"
@@ -1631,6 +1615,11 @@ msgstr ""
 #: grunt/grunt/backups/doctypes/Backup/Backup.js:37
 #: grunt/grunt/backups/doctypes/Backup/Backup.js:43
 msgid "Create now"
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/ScheduledJob/scheduled_job.py:24
+msgid ""
+"Create or edit a ServerScript with script_type='Scheduler Event' instead"
 msgstr ""
 
 #: grunt/frontend/src/pages/app/AppPage.vue:317
@@ -1964,7 +1953,7 @@ msgstr ""
 msgid "Dismiss"
 msgstr ""
 
-#: grunt/grunt/document/tree.py:87
+#: grunt/grunt/document/tree.py:89
 msgid ""
 "DocType '%(name)s' is not a tree (is_tree=false or tree_view not configured)"
 msgstr ""
@@ -1985,8 +1974,8 @@ msgstr ""
 msgid "DocType not found"
 msgstr ""
 
-#: grunt/grunt/metadata/registry.py:553 grunt/grunt/metadata/registry.py:645
-#: grunt/grunt/metadata/registry.py:571 grunt/grunt/api/v1/meta.py:134
+#: grunt/grunt/metadata/registry.py:523 grunt/grunt/metadata/registry.py:602
+#: grunt/grunt/metadata/registry.py:535 grunt/grunt/api/v1/meta.py:134
 msgid "DocType “%(doctype)s” already exists"
 msgstr ""
 
@@ -1994,20 +1983,20 @@ msgstr ""
 msgid "DocType “%(doctype)s” no longer exists"
 msgstr ""
 
-#: grunt/grunt/webform/service.py:92 grunt/grunt/app/document_api.py:487
-#: grunt/grunt/app/document_api.py:687 grunt/grunt/metadata/registry.py:342
-#: grunt/grunt/metadata/registry.py:626 grunt/grunt/metadata/registry.py:600
+#: grunt/grunt/webform/service.py:92 grunt/grunt/app/document_api.py:499
+#: grunt/grunt/app/document_api.py:701 grunt/grunt/metadata/registry.py:332
+#: grunt/grunt/metadata/registry.py:583 grunt/grunt/metadata/registry.py:561
 #: grunt/grunt/notification/rule_index.py:53
 #: grunt/grunt/activity/__init__.py:264 grunt/grunt/actions/__init__.py:163
 #: grunt/grunt/document/connections.py:43
 #: grunt/grunt/document/connections.py:68
 #: grunt/grunt/document/connections.py:89
 #: grunt/grunt/document/connections.py:119
-#: grunt/grunt/document/collection.py:257
-#: grunt/grunt/document/collection.py:342
-#: grunt/grunt/document/collection.py:383
-#: grunt/grunt/document/collection.py:449
-#: grunt/grunt/document/collection.py:730 grunt/grunt/document/links.py:55
+#: grunt/grunt/document/collection.py:266
+#: grunt/grunt/document/collection.py:391
+#: grunt/grunt/document/collection.py:494
+#: grunt/grunt/document/collection.py:565
+#: grunt/grunt/document/collection.py:846 grunt/grunt/document/links.py:55
 #: grunt/grunt/document/links.py:59
 msgid "DocType “%(doctype)s” not found"
 msgstr ""
@@ -2052,7 +2041,7 @@ msgstr ""
 msgid "Document with %(key)s=%(value)s not found"
 msgstr ""
 
-#: grunt/grunt/document/collection.py:745
+#: grunt/grunt/document/collection.py:861
 msgid "Document with name '%(new_id)s' already exists"
 msgstr ""
 
@@ -2060,7 +2049,7 @@ msgstr ""
 msgid "Document “%(name)s” already exists. Restore with a new ID?"
 msgstr ""
 
-#: grunt/grunt/permissions/guards.py:87 grunt/grunt/document/mixins/read.py:63
+#: grunt/grunt/permissions/guards.py:88 grunt/grunt/document/mixins/read.py:53
 msgid "Document “%(name)s” not found"
 msgstr ""
 
@@ -2131,7 +2120,7 @@ msgstr ""
 msgid "Duplicate"
 msgstr ""
 
-#: grunt/grunt/metadata/registry.py:657
+#: grunt/grunt/metadata/registry.py:614
 msgid "Duplicate fieldname '%(fieldname)s' in DocType '%(name)s'"
 msgstr ""
 
@@ -2178,10 +2167,6 @@ msgstr ""
 
 #: grunt/frontend/src/pages/app/AppPage.vue:356
 msgid "Edit mode"
-msgstr ""
-
-#: grunt/grunt/tasks/doctypes/ScheduledJob/scheduled_job.py:79
-msgid "Edit the underlying ServerScript instead"
 msgstr ""
 
 #: grunt/grunt/monitoring/health.py:287 grunt/grunt/monitoring/health.py:645
@@ -2484,7 +2469,7 @@ msgstr ""
 msgid "Field “{label}”: invalid value"
 msgstr ""
 
-#: grunt/grunt/metadata/registry.py:676
+#: grunt/grunt/metadata/registry.py:633
 msgid "Fieldname '%(fieldname)s' exceeds %(max)s characters"
 msgstr ""
 
@@ -2899,8 +2884,12 @@ msgstr ""
 msgid "Home"
 msgstr ""
 
-#: grunt/grunt/scripting/doctypes/Hook/hook.py:131
+#: grunt/grunt/scripting/doctypes/Hook/hook.py:137
 msgid "Hook '%(doc_id)s' not found"
+msgstr ""
+
+#: grunt/grunt/scripting/doctypes/Hook/hook.py:101
+msgid "Hooks are read-only: they come from the code and Server Scripts"
 msgstr ""
 
 #: grunt/frontend/src/components/fields/RichText/editor/commands.ts:65
@@ -3035,11 +3024,11 @@ msgid ""
 "production build."
 msgstr ""
 
-#: grunt/grunt/workflow/guard.py:150
+#: grunt/grunt/workflow/guard.py:148
 msgid "In the “%(state)s” state the document can't be deleted"
 msgstr ""
 
-#: grunt/grunt/workflow/guard.py:164
+#: grunt/grunt/workflow/guard.py:162
 msgid "In the “%(state)s” state the document can't be edited"
 msgstr ""
 
@@ -3182,7 +3171,7 @@ msgstr ""
 msgid "Invalid email or password"
 msgstr ""
 
-#: grunt/grunt/metadata/registry.py:666
+#: grunt/grunt/metadata/registry.py:623
 msgid ""
 "Invalid fieldname '%(fieldname)s': must start with a-z and contain only a-z,"
 " 0-9, _"
@@ -3669,7 +3658,7 @@ msgstr ""
 msgid "Module"
 msgstr ""
 
-#: grunt/grunt/startup/doctypes/GruntInstalledApp/grunt_installed_app.py:109
+#: grunt/grunt/startup/doctypes/GruntInstalledApp/grunt_installed_app.py:116
 msgid "Module “%(module)s” already exists"
 msgstr ""
 
@@ -3722,7 +3711,7 @@ msgstr ""
 msgid "NO"
 msgstr ""
 
-#: grunt/grunt/cli/doctype.py:166 grunt/grunt/auth/doctypes/User/User.js:180
+#: grunt/grunt/cli/doctype.py:159 grunt/grunt/auth/doctypes/User/User.js:180
 #: grunt/frontend/src/core/composables/useFormValidation.ts:83
 #: grunt/frontend/src/core/composables/useFormValidation.ts:97
 #: grunt/frontend/src/components/files/FileExplorer.vue:768
@@ -3842,7 +3831,7 @@ msgstr ""
 msgid "No TABLE fields in this DocType"
 msgstr ""
 
-#: grunt/grunt/document/mixins/write.py:358
+#: grunt/grunt/document/mixins/lifecycle.py:356
 #: grunt/grunt/activity/doctypes/DocFollow/doc_follow.py:26
 #: grunt/grunt/activity/doctypes/DocLike/doc_like.py:26
 msgid "No access to the document"
@@ -3864,7 +3853,7 @@ msgstr ""
 msgid "No access: %(action)s “%(doctype)s”"
 msgstr ""
 
-#: grunt/grunt/document/mixins/write.py:121
+#: grunt/grunt/document/mixins/lifecycle.py:231
 msgid "No access: “%(field)s” is outside your user permissions"
 msgstr ""
 
@@ -4079,8 +4068,8 @@ msgstr ""
 msgid "Not allowed"
 msgstr ""
 
-#: grunt/grunt/startup/doctypes/GruntInstalledApp/grunt_installed_app.py:72
-#: grunt/grunt/startup/doctypes/GruntInstalledApp/grunt_installed_app.py:122
+#: grunt/grunt/startup/doctypes/GruntInstalledApp/grunt_installed_app.py:79
+#: grunt/grunt/startup/doctypes/GruntInstalledApp/grunt_installed_app.py:129
 msgid "Not authorized"
 msgstr ""
 
@@ -4610,6 +4599,10 @@ msgstr ""
 msgid "Production build"
 msgstr ""
 
+#: grunt/grunt/monitoring/doctypes/SqlProfilerRequest/sql_profiler_request.py:20
+msgid "Profiled requests are read-only"
+msgstr ""
+
 #: grunt/frontend/src/pages/setup/SetupWizard.vue:92
 msgid "Protect the main account"
 msgstr ""
@@ -4738,8 +4731,8 @@ msgstr ""
 msgid "Red"
 msgstr ""
 
-#: grunt/grunt/tasks/doctypes/BackgroundWorker/background_worker.py:56
-#: grunt/grunt/tasks/doctypes/BackgroundJob/background_job.py:64
+#: grunt/grunt/tasks/doctypes/BackgroundWorker/background_worker.py:67
+#: grunt/grunt/tasks/doctypes/BackgroundJob/background_job.py:75
 msgid "Redis broker not configured"
 msgstr ""
 
@@ -4759,8 +4752,8 @@ msgstr ""
 msgid "Redis relay"
 msgstr ""
 
-#: grunt/grunt/tasks/doctypes/BackgroundWorker/background_worker.py:61
-#: grunt/grunt/tasks/doctypes/BackgroundJob/background_job.py:69
+#: grunt/grunt/tasks/doctypes/BackgroundWorker/background_worker.py:72
+#: grunt/grunt/tasks/doctypes/BackgroundJob/background_job.py:80
 msgid "Redis unavailable"
 msgstr ""
 
@@ -4911,7 +4904,7 @@ msgstr ""
 msgid "Replace with"
 msgstr ""
 
-#: grunt/grunt/document/collection.py:690
+#: grunt/grunt/document/collection.py:806
 msgid "Replacement document “%(name)s” not found"
 msgstr ""
 
@@ -5219,6 +5212,10 @@ msgstr ""
 
 #: grunt/grunt/monitoring/health.py:509
 msgid "Schedule"
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/ScheduledJob/scheduled_job.py:67
+msgid "Scheduled job “%(name)s” not found"
 msgstr ""
 
 #: grunt/grunt/monitoring/health.py:224
@@ -5704,7 +5701,7 @@ msgstr ""
 msgid "Split cell"
 msgstr ""
 
-#: grunt/grunt/monitoring/doctypes/SqlProfilerRequest/sql_profiler_request.py:48
+#: grunt/grunt/monitoring/doctypes/SqlProfilerRequest/sql_profiler_request.py:51
 msgid "SqlProfilerRequest '%(doc_id)s' not found"
 msgstr ""
 
@@ -6098,7 +6095,7 @@ msgstr ""
 msgid "The document has no Workflow configured"
 msgstr ""
 
-#: grunt/grunt/document/mixins/write.py:515
+#: grunt/grunt/document/mixins/lifecycle.py:428
 msgid ""
 "The document was changed after you started editing. Open it again and repeat"
 " your changes."
@@ -6207,7 +6204,7 @@ msgstr ""
 msgid "The replacement cannot be one of the records being deleted."
 msgstr ""
 
-#: grunt/grunt/document/collection.py:681
+#: grunt/grunt/document/collection.py:797
 msgid "The replacement cannot be the document being deleted"
 msgstr ""
 
@@ -6267,13 +6264,11 @@ msgstr ""
 msgid "The snapshot is empty"
 msgstr ""
 
-#: grunt/grunt/workflow/guard.py:107
+#: grunt/grunt/workflow/guard.py:105
 msgid "The state changes only through workflow actions"
 msgstr ""
 
-#: grunt/grunt/monitoring/doctypes/SystemHealthReport/system_health_report.py:28
-#: grunt/grunt/monitoring/doctypes/SystemHealthReport/system_health_report.py:33
-#: grunt/grunt/monitoring/doctypes/SystemHealthReport/system_health_report.py:38
+#: grunt/grunt/monitoring/doctypes/SystemHealthReport/system_health_report.py:18
 msgid "The system health report is read-only"
 msgstr ""
 
@@ -6821,7 +6816,7 @@ msgstr ""
 msgid "Viewing as {name}"
 msgstr ""
 
-#: grunt/grunt/document/virtual.py:48
+#: grunt/grunt/document/mixins/lifecycle.py:85
 msgid "Virtual DocType “%(doctype)s” has no individual documents"
 msgstr ""
 
@@ -7387,7 +7382,7 @@ msgstr ""
 msgid "modified"
 msgstr ""
 
-#: grunt/grunt/startup/doctypes/GruntInstalledApp/grunt_installed_app.py:105
+#: grunt/grunt/startup/doctypes/GruntInstalledApp/grunt_installed_app.py:112
 msgid "module is required"
 msgstr ""
 
@@ -7408,7 +7403,7 @@ msgstr ""
 msgid "ms"
 msgstr ""
 
-#: grunt/grunt/startup/doctypes/GruntInstalledApp/grunt_installed_app.py:75
+#: grunt/grunt/startup/doctypes/GruntInstalledApp/grunt_installed_app.py:82
 msgid "name is required"
 msgstr ""
 
@@ -7856,6 +7851,19 @@ msgstr ""
 msgid "— select —"
 msgstr ""
 
+#: grunt/grunt/document/mixins/lifecycle.py:182
+msgid "“%(doctype)s” does not support replacing references"
+msgstr ""
+
+#: grunt/grunt/document/mixins/lifecycle.py:147
+msgid "“%(doctype)s” does not support this operation"
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/BackgroundWorker/background_worker.py:61
+#: grunt/grunt/tasks/doctypes/BackgroundJob/background_job.py:68
+msgid "“%(name)s” not found"
+msgstr ""
+
 #: grunt/grunt/email/templates/notification_digest.html:70
 msgid "… and %(count)s more"
 msgstr ""
@@ -8095,6 +8103,12 @@ msgstr ""
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgctxt "help:DocType.calendar_title_field"
 msgid "Event label (default: title field)"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgctxt "help:DocType.definition"
+msgid ""
+"Full DocType definition - the source of truth the columns are copied from"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
@@ -10414,6 +10428,11 @@ msgstr ""
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgctxt "meta:DocType.default_view"
 msgid "Default view"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgctxt "meta:DocType.definition"
+msgid "Definition"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
