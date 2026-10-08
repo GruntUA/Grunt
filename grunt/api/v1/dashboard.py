@@ -62,6 +62,49 @@ def _resolve_relative_date(value: Any) -> Any:
     return now.isoformat() if base_token.lower() == "now" else now.date().isoformat()
 
 
+# Values only known at query time: the viewer, or a setting kept in a singleton
+# (``@HromadaSettings.current_period``) - a static fixture can't hold either.
+_SETTING_TOKEN_RE = re.compile(r"^@([A-Z][A-Za-z0-9_]*)\.([a-z_][a-z0-9_]*)$")
+
+
+async def _resolve_context_tokens(filters: dict[str, Any]) -> dict[str, Any]:
+    """Resolve ``@me`` and ``@<Singleton>.<field>`` filter values.
+
+    A setting is used only when the viewer may read that singleton and the field
+    is not a Password - the resolved value goes back to the browser with the
+    widget's drill-down filters. Otherwise the filter matches nothing.
+    """
+    resolved: dict[str, Any] = {}
+    for key, value in filters.items():
+        if value == "@me":
+            resolved[key] = grunt.get_user().email
+            continue
+        match = _SETTING_TOKEN_RE.match(value) if isinstance(value, str) else None
+        if match is None:
+            resolved[key] = value
+            continue
+        doctype, fieldname = match.groups()
+        meta = await grunt.get_meta(doctype)
+        field = meta.get_field(fieldname) if meta is not None else None
+        allowed = (
+            meta is not None
+            and meta.is_singleton
+            and field is not None
+            and field.fieldtype != "Password"
+            and await permission_checker.check(grunt.get_user(), meta, "read")
+        )
+        resolved[key] = await grunt.get_single(doctype, fieldname) if allowed else None
+        if resolved[key] is None:
+            log.info("dashboard.filter_token_unresolved", token=value)
+            resolved[key] = _NO_MATCH
+    return resolved
+
+
+# Stands in for a token that resolved to nothing, so the filter matches no rows
+# instead of being dropped (which would widen the widget to every row).
+_NO_MATCH = "\x00unresolved"
+
+
 def _widget_filters(widget: Any) -> dict[str, Any]:
     """Return the widget's filters as a dict, with relative dates resolved.
 
@@ -129,7 +172,7 @@ async def _compute_widget_data(
     now = datetime.now(UTC)
     since = global_since if global_since is not None else now - timedelta(days=days)
     until = global_until if global_until is not None else now
-    base_filters = _widget_filters(widget)
+    base_filters = await _resolve_context_tokens(_widget_filters(widget))
     tree_filters = {k: v for k, v in base_filters.items() if k.endswith("__child_of")}
     if not tree_filters or dt is None:
         return await cls.compute(widget, dt, doctype_name, since, until, days, base_filters)

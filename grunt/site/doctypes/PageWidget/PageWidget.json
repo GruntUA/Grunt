@@ -40,6 +40,18 @@
       "fieldtype": "Text"
     },
     {
+      "fieldname": "value_label",
+      "label": "Value label",
+      "fieldtype": "Text",
+      "description": "Heading of the value column (default: the aggregation, e.g. Sum)"
+    },
+    {
+      "fieldname": "row_limit",
+      "label": "Rows",
+      "fieldtype": "Int",
+      "description": "How many rows the table shows (default 20)"
+    },
+    {
       "fieldname": "group_by",
       "label": "Group by",
       "fieldtype": "Text"

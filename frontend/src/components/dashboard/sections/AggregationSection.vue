@@ -46,4 +46,27 @@ const needsField = computed(() => ['sum', 'avg', 'min', 'max'].includes(widget.v
       @update:model-value="updateWidget('field', $event)"
     />
   </div>
+  <template v-if="widget.widget_type === 'table'">
+    <div class="flex flex-col gap-1.5 mb-4">
+      <label class="font-medium">{{ t('Value label') }}</label>
+      <Input
+        :model-value="widget.value_label ?? ''"
+        :placeholder="AGGREGATIONS.find((a) => a.value === widget.aggregation)?.label"
+        class="w-full"
+        @update:model-value="updateWidget('value_label', $event || null)"
+      />
+    </div>
+    <div class="flex flex-col gap-1.5 mb-4">
+      <label class="font-medium">{{ t('Rows') }}</label>
+      <Input
+        type="number"
+        min="1"
+        max="100"
+        :model-value="widget.row_limit ?? ''"
+        placeholder="20"
+        class="w-full"
+        @update:model-value="updateWidget('row_limit', $event ? Number($event) : null)"
+      />
+    </div>
+  </template>
 </template>

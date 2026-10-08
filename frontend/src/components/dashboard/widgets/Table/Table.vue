@@ -69,6 +69,7 @@ function formatVal(v: number): string {
     <!-- Header -->
     <div class="px-4 pt-3 pb-2 shrink-0">
       <p class="font-medium text-muted-foreground">{{ widget.title }}</p>
+      <p v-if="widget.description" class="text-muted-foreground/80">{{ widget.description }}</p>
     </div>
 
     <!-- Skeleton -->
@@ -91,7 +92,7 @@ function formatVal(v: number): string {
               {{ data?.group_label || widget.group_by || t('Group') }}
             </th>
             <th class="w-24 px-4 py-2 text-right font-medium text-muted-foreground">
-              {{ aggLabel }}
+              {{ widget.value_label || aggLabel }}
             </th>
           </tr>
         </thead>

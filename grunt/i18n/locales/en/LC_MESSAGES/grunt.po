@@ -776,7 +776,7 @@ msgstr ""
 #: grunt/frontend/src/components/dashboard/widgets/Donut/Donut.vue:87
 #: grunt/frontend/src/components/dashboard/widgets/Chart/Chart.vue:155
 #: grunt/frontend/src/components/dashboard/widgets/Funnel/Funnel.vue:60
-#: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:82
+#: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:83
 #: grunt/frontend/src/pages/reports/ReportView.vue:235
 #: grunt/frontend/src/pages/reports/ReportView.vue:260
 #: grunt/frontend/src/pages/desk/reports/ReportView.vue:112
@@ -878,7 +878,7 @@ msgid "Page"
 msgstr ""
 
 #: grunt/grunt/startup/website.py:112 grunt/grunt/startup/errors.py:258
-#: grunt/grunt/api/v1/pages.py:66 grunt/grunt/api/v1/dashboard.py:226
+#: grunt/grunt/api/v1/pages.py:66 grunt/grunt/api/v1/dashboard.py:269
 #: grunt/frontend/src/router/index.ts:204
 msgid "Page not found"
 msgstr ""
@@ -6487,7 +6487,7 @@ msgstr ""
 msgid "Dark"
 msgstr ""
 
-#: grunt/grunt/api/v1/dashboard.py:243
+#: grunt/grunt/api/v1/dashboard.py:286
 msgid "Dashboard not found"
 msgstr ""
 
@@ -7245,7 +7245,7 @@ msgstr ""
 msgid "Greater than or equal"
 msgstr ""
 
-#: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:91
+#: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:92
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:274
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:387
 #: grunt/frontend/src/components/views/list/ListGroupedView.vue:95
@@ -8752,6 +8752,7 @@ msgstr ""
 msgid "Row {n}:"
 msgstr ""
 
+#: grunt/frontend/src/components/dashboard/sections/AggregationSection.vue:60
 #: grunt/frontend/src/components/views/form/FormHeader.vue:383
 msgid "Rows"
 msgstr ""
@@ -9392,7 +9393,7 @@ msgstr ""
 msgid "The current password is incorrect"
 msgstr ""
 
-#: grunt/grunt/api/v1/dashboard.py:244
+#: grunt/grunt/api/v1/dashboard.py:287
 msgid "The dashboard is not published"
 msgstr ""
 
@@ -9504,7 +9505,7 @@ msgstr ""
 msgid "The page is empty"
 msgstr ""
 
-#: grunt/grunt/api/v1/dashboard.py:227
+#: grunt/grunt/api/v1/dashboard.py:270
 msgid "The page is not published"
 msgstr ""
 
@@ -10487,7 +10488,7 @@ msgstr ""
 msgid "no Redis"
 msgstr ""
 
-#: grunt/frontend/src/components/dashboard/widgets/Metric/Metric.vue:82
+#: grunt/frontend/src/components/dashboard/widgets/Metric/Metric.vue:83
 msgid "no change"
 msgstr ""
 
@@ -10561,8 +10562,8 @@ msgstr ""
 msgid "outdated"
 msgstr ""
 
-#: grunt/frontend/src/components/dashboard/widgets/Metric/Metric.vue:87
-#: grunt/frontend/src/components/dashboard/widgets/Metric/Metric.vue:92
+#: grunt/frontend/src/components/dashboard/widgets/Metric/Metric.vue:88
+#: grunt/frontend/src/components/dashboard/widgets/Metric/Metric.vue:93
 msgid "over {period}"
 msgstr ""
 
@@ -16204,6 +16205,30 @@ msgstr ""
 
 #: grunt/frontend/src/components/files/FileExplorer.vue:746
 msgid "Keep the link to the file without downloading it"
+msgstr ""
+
+#: grunt/frontend/src/components/dashboard/sections/AggregationSection.vue:51
+msgid "Value label"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
+msgctxt "help:PageWidget.row_limit"
+msgid "How many rows the table shows (default 20)"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
+msgctxt "help:PageWidget.value_label"
+msgid "Heading of the value column (default: the aggregation, e.g. Sum)"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
+msgctxt "meta:PageWidget.row_limit"
+msgid "Rows"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
+msgctxt "meta:PageWidget.value_label"
+msgid "Value label"
 msgstr ""
 
 #~ msgctxt "help:DocTypeCalendarSource.doctype"

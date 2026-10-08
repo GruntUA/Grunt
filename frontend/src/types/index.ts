@@ -489,6 +489,10 @@ export interface DashboardWidget {
   icon?: string | null
   link_type?: LinkType | null
   description?: string | null
+  /** table: heading of the value column instead of the aggregation name. */
+  value_label?: string | null
+  /** table: how many rows to show (default 20). */
+  row_limit?: number | null
   /** For chart_bar/chart_area/donut: draw data from this saved Report (report_name) instead of a doctype aggregate. */
   report?: string | null
   content?: string | null

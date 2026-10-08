@@ -40,7 +40,7 @@ msgstr "Зберегти"
 #: grunt/frontend/src/components/dashboard/widgets/Donut/Donut.vue:87
 #: grunt/frontend/src/components/dashboard/widgets/Chart/Chart.vue:155
 #: grunt/frontend/src/components/dashboard/widgets/Funnel/Funnel.vue:60
-#: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:82
+#: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:83
 #: grunt/frontend/src/pages/reports/ReportView.vue:235
 #: grunt/frontend/src/pages/reports/ReportView.vue:260
 #: grunt/frontend/src/pages/desk/reports/ReportView.vue:112
@@ -3341,7 +3341,7 @@ msgid "Page"
 msgstr "Сторінка"
 
 #: grunt/grunt/startup/website.py:112 grunt/grunt/startup/errors.py:258
-#: grunt/grunt/api/v1/pages.py:66 grunt/grunt/api/v1/dashboard.py:226
+#: grunt/grunt/api/v1/pages.py:66 grunt/grunt/api/v1/dashboard.py:269
 #: grunt/frontend/src/router/index.ts:204
 msgid "Page not found"
 msgstr "Сторінку не знайдено"
@@ -5574,6 +5574,7 @@ msgstr "СКБД"
 msgid "The table has not been created in the database yet"
 msgstr "Таблиця ще не створена в базі даних"
 
+#: grunt/frontend/src/components/dashboard/sections/AggregationSection.vue:60
 #: grunt/frontend/src/components/views/form/FormHeader.vue:383
 msgid "Rows"
 msgstr "Рядків"
@@ -6903,7 +6904,7 @@ msgstr "Не включено (потребують агрегації): {column
 msgid "Applied «{name}»"
 msgstr "Застосовано «{name}»"
 
-#: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:91
+#: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:92
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:274
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:387
 #: grunt/frontend/src/components/views/list/ListGroupedView.vue:95
@@ -7496,8 +7497,8 @@ msgid "Shown only in debug mode · Click outside or press ESC to close"
 msgstr ""
 "Показується лише в режимі debug · Клацніть поза вікном або ESC, щоб закрити"
 
-#: grunt/frontend/src/components/dashboard/widgets/Metric/Metric.vue:87
-#: grunt/frontend/src/components/dashboard/widgets/Metric/Metric.vue:92
+#: grunt/frontend/src/components/dashboard/widgets/Metric/Metric.vue:88
+#: grunt/frontend/src/components/dashboard/widgets/Metric/Metric.vue:93
 msgid "over {period}"
 msgstr "за {period}"
 
@@ -7547,7 +7548,7 @@ msgstr "Всі розділи"
 msgid "Copied!"
 msgstr "Скопійовано!"
 
-#: grunt/frontend/src/components/dashboard/widgets/Metric/Metric.vue:82
+#: grunt/frontend/src/components/dashboard/widgets/Metric/Metric.vue:83
 msgid "no change"
 msgstr "без змін"
 
@@ -13294,15 +13295,15 @@ msgstr "Термін дії посилання закінчився"
 msgid "DocType not found"
 msgstr "DocType не знайдено"
 
-#: grunt/grunt/api/v1/dashboard.py:227
+#: grunt/grunt/api/v1/dashboard.py:270
 msgid "The page is not published"
 msgstr "Сторінку не опубліковано"
 
-#: grunt/grunt/api/v1/dashboard.py:243
+#: grunt/grunt/api/v1/dashboard.py:286
 msgid "Dashboard not found"
 msgstr "Дашборд не знайдено"
 
-#: grunt/grunt/api/v1/dashboard.py:244
+#: grunt/grunt/api/v1/dashboard.py:287
 msgid "The dashboard is not published"
 msgstr "Дашборд не опубліковано"
 
@@ -16532,6 +16533,31 @@ msgstr "Поле «%(label)s» має містити файл або посил�
 #: grunt/frontend/src/components/files/FileExplorer.vue:746
 msgid "Keep the link to the file without downloading it"
 msgstr "Зберегти посилання на файл, не завантажуючи його"
+
+#: grunt/frontend/src/components/dashboard/sections/AggregationSection.vue:51
+msgid "Value label"
+msgstr "Підпис значення"
+
+#: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
+msgctxt "help:PageWidget.row_limit"
+msgid "How many rows the table shows (default 20)"
+msgstr "Скільки рядків показує таблиця (за замовчуванням 20)"
+
+#: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
+msgctxt "help:PageWidget.value_label"
+msgid "Heading of the value column (default: the aggregation, e.g. Sum)"
+msgstr ""
+"Заголовок колонки значень (за замовчуванням — агрегація, напр. «Сума»)"
+
+#: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
+msgctxt "meta:PageWidget.row_limit"
+msgid "Rows"
+msgstr "Рядків"
+
+#: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
+msgctxt "meta:PageWidget.value_label"
+msgid "Value label"
+msgstr "Підпис значення"
 
 #~ msgctxt "help:DocTypeCalendarSource.doctype"
 #~ msgid "The document type added to the calendar as a separate source"

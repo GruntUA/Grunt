@@ -362,7 +362,7 @@ async def _widget_table(widget, dt, doctype_name, since, until, days, base_filte
             aggregations={"value": agg_expr, "_doc": "min(name)", "_n": "count"},
             order_by="value",
             order="desc",
-            limit=20,
+            limit=min(max(int(widget.get("row_limit") or 20), 1), 100),
         )
         group_field = Meta(dt).get_field(group_by)
         by_title = group_by in ("name", dt.title_field)
