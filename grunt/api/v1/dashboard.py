@@ -12,6 +12,7 @@ import grunt
 from grunt import _, log
 from grunt.document.query import _expand_child_of_filters
 from grunt.metadata.widget import get_widget_type_class
+from grunt.permissions.rbac import permission_checker
 from grunt.reports.widget_compute import _widget_report_series
 
 _TIMESPAN_DAYS = {
@@ -117,6 +118,10 @@ async def _compute_widget_data(
         dt = await grunt.get_meta(doctype_name)
         if dt is None:
             log.warning("dashboard.unknown_doctype", doctype=doctype_name)
+            return None
+        # No read access -> no data, not even counts (row-level rules and
+        # hidden fields are applied by the queries themselves).
+        if not await permission_checker.check(grunt.get_user(), dt, "read"):
             return None
 
     period_key = widget.get("period") or "last_month"

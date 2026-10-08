@@ -5,13 +5,21 @@ files under `frontend/src/components/dashboard/widgets/`) - kept in one
 importable module, rather than duplicated across those dynamically-loaded
 plugin files, since several widget types share a computation (gauge reuses
 `_widget_metric`, chart_bar reuses `_widget_chart`).
+
+Every query runs as the viewer: ``grunt.aggregate`` / ``grunt.get_list`` /
+``grunt.count(respect_permissions=True)`` apply read permission, row-level
+``match`` rules and permission-hidden fields, so a dashboard never shows
+numbers about rows its viewer could not open.
 """
 
 from __future__ import annotations
 
 import json
+import sys
 from datetime import datetime, timedelta
 from typing import Any
+
+from fastapi import HTTPException
 
 import grunt
 from grunt import log
@@ -21,6 +29,12 @@ from grunt.reports.engine import report_engine
 
 
 def _log_widget_failed(doctype_name: str, widget_type: str) -> None:
+    # A widget over a field the viewer may not see (permission-hidden) simply
+    # stays empty for them - that is not a failure worth a warning.
+    exc = sys.exc_info()[1]
+    if isinstance(exc, HTTPException) and exc.status_code == 403:
+        log.debug("dashboard.widget_forbidden", doctype=doctype_name, widget_type=widget_type)
+        return
     log.warning(
         "dashboard.widget_failed",
         doctype=doctype_name,
@@ -112,12 +126,12 @@ async def _widget_metric(widget, dt, doctype_name, since, until, days, base_filt
 
     agg_expr = f"{agg}({field})" if agg != "count" else "count"
     try:
-        curr_data = await grunt.db.aggregate(
+        curr_data = await grunt.aggregate(
             doctype_name, filters=filters if filters else None, aggregations={"val": agg_expr}
         )
         val = curr_data[0].get("val") or 0
         if date_field:
-            prev_data = await grunt.db.aggregate(
+            prev_data = await grunt.aggregate(
                 doctype_name, filters=prev_filters, aggregations={"val": agg_expr}
             )
             prev_val = prev_data[0].get("val") or 0
@@ -146,7 +160,7 @@ async def _widget_chart(widget, dt, doctype_name, since, until, days, base_filte
             f"{date_field}__lte": _bound(dt, date_field, until, upper=True),
         }
         if group_by:
-            rows = await grunt.db.aggregate(
+            rows = await grunt.aggregate(
                 doctype_name,
                 filters=filters,
                 group_by=[date_expr, group_by],
@@ -166,7 +180,7 @@ async def _widget_chart(widget, dt, doctype_name, since, until, days, base_filte
             groups = {gv: [lookup.get((lbl, gv), 0) for lbl in all_labels] for gv in group_values}
             return {"labels": all_labels, "groups": groups, "filters": filters}
         else:
-            rows = await grunt.db.aggregate(
+            rows = await grunt.aggregate(
                 doctype_name,
                 filters=filters,
                 group_by=date_expr,
@@ -190,7 +204,7 @@ async def _widget_donut(widget, dt, doctype_name, since, until, days, base_filte
     if not group_by:
         return {"labels": [], "values": []}
     try:
-        rows = await grunt.db.aggregate(
+        rows = await grunt.aggregate(
             doctype_name,
             filters=base_filters or None,
             group_by=group_by,
@@ -232,7 +246,10 @@ async def _widget_shortcut(widget, dt, doctype_name, since, until, days, base_fi
     try:
         if dt.is_singleton:
             return {"count": 1}
-        return {"count": await grunt.count(doctype_name, filters=base_filters or None)}
+        count = await grunt.count(
+            doctype_name, filters=base_filters or None, respect_permissions=True
+        )
+        return {"count": count}
     except Exception:
         _log_widget_failed(doctype_name, "shortcut")
         return None
@@ -250,7 +267,7 @@ async def _widget_calendar(widget, dt, doctype_name, since, until, days, base_fi
             f"{date_field}__gte": _bound(dt, date_field, since),
             f"{date_field}__lte": _bound(dt, date_field, until, upper=True),
         }
-        rows = await grunt.db.aggregate(
+        rows = await grunt.aggregate(
             doctype_name, filters=filters, group_by=group_by_expr, aggregations={"cnt": "count"}
         )
         return {"days": {str(r.get(group_by_expr)): r.get("cnt") for r in rows}}
@@ -267,7 +284,7 @@ async def _widget_heatmap(widget, dt, doctype_name, since, until, days, base_fil
     try:
         group_by_expr = f"date({date_field})"
         filters = {**base_filters, f"{date_field}__gte": _bound(dt, date_field, since)}
-        rows = await grunt.db.aggregate(
+        rows = await grunt.aggregate(
             doctype_name,
             filters=filters,
             group_by=group_by_expr,
@@ -300,7 +317,7 @@ async def _widget_funnel(widget, dt, doctype_name, since, until, days, base_filt
         date_field = widget.get("date_field")
         if date_field:
             filters[f"{date_field}__gte"] = _bound(dt, date_field, since)
-        rows = await grunt.db.aggregate(
+        rows = await grunt.aggregate(
             doctype_name,
             filters=filters if filters else None,
             group_by=group_by,
@@ -336,7 +353,7 @@ async def _widget_table(widget, dt, doctype_name, since, until, days, base_filte
         if date_field:
             filters[f"{date_field}__gte"] = _bound(dt, date_field, since)
             filters[f"{date_field}__lte"] = _bound(dt, date_field, until, upper=True)
-        rows = await grunt.db.aggregate(
+        rows = await grunt.aggregate(
             doctype_name,
             filters=filters if filters else None,
             group_by=group_by,
