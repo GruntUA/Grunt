@@ -164,6 +164,10 @@ router.beforeEach(async (to) => {
   if (to.meta.public) return true
   if (!auth.isLoggedIn) return { name: 'login' }
   if (!auth.user) await auth.fetchMe()
+  // fetchMe clears a stale session (expired refresh token, 401/403 on whoami) -
+  // go to the login page now instead of rendering the protected page, letting
+  // its API calls fail and only then bouncing to /login from the 401 handler.
+  if (!auth.isLoggedIn) return { name: 'login' }
   return true
 })
 
