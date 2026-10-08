@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 import grunt
+from grunt.api.v1.docs.utils import default_sort
 
 
 @grunt.whitelist()
@@ -25,17 +26,18 @@ async def get_list(
     limit: int = 20,
     page: int = 1,
     order_by: str | None = None,
-    order: str = "desc",
+    order: str | None = None,
     search: str | None = None,
 ) -> dict[str, Any]:
     """Get a list of documents with metadata."""
+    order_by, order = await default_sort(doctype, order_by, order)
     res = await grunt.get_list(
         doctype,
         filters=filters,
         fields=fields,
         limit=limit,
         page=page,
-        order_by=order_by or "modified_at",
+        order_by=order_by,
         order=order,
         search=search,
     )

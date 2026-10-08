@@ -10,12 +10,28 @@ from typing import TYPE_CHECKING, Any
 import openpyxl
 from openpyxl.styles import Alignment, Font, PatternFill
 
+import grunt
 from grunt import _
 from grunt.document.meta import Meta
 from grunt.io.exporters.sanitize import escape_formula
 
 if TYPE_CHECKING:
     from fastapi import Request
+
+
+async def default_sort(
+    doctype: str, sort_by: str | None, sort_order: str | None
+) -> tuple[str, str]:
+    """The order a list request asked for, else the DocType's ``sort_field``/``sort_order``.
+
+    Without either the list is newest-modified first.
+    """
+    if sort_by:
+        return sort_by, sort_order or "desc"
+    meta = await grunt.get_meta(doctype)
+    if meta is not None and meta.doc.sort_field:
+        return meta.doc.sort_field, sort_order or meta.doc.sort_order
+    return "modified_at", sort_order or "desc"
 
 
 def parse_query_filters(request: Request) -> dict[str, str]:

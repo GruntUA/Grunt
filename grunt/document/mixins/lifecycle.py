@@ -23,6 +23,7 @@ from sqlalchemy.exc import IntegrityError
 
 from grunt import _, log
 from grunt.db.errors import friendly_integrity_error
+from grunt.document.fetch import apply_fetch_from
 from grunt.document.relations import apply_field_values
 from grunt.document.serde import audit_fields, serialize_datetimes, with_doctype
 from grunt.document.validation import _validate_data
@@ -363,6 +364,7 @@ class DocumentLifecycleMixin:
 
         tokens = self._set_grunt_context(user)
         try:
+            await apply_fetch_from(dt.doc, self.data)
             await self._run_lifecycle_hooks("validate", "before_insert", "before_save")
             await self._require_user_permissions(dt, self.data, user)
             await self._before_db_write(dt, insert=True)
@@ -459,6 +461,7 @@ class DocumentLifecycleMixin:
         tokens = self._set_grunt_context(user)
         transition_token = _active.set(auto_transition) if auto_transition else None
         try:
+            await apply_fetch_from(dt.doc, self.data, existing)
             await self._run_lifecycle_hooks("validate", "before_save")
             await self._require_user_permissions(dt, self.data, user)
             await self._before_db_write(dt, insert=False)

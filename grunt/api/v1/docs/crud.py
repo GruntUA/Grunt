@@ -10,7 +10,7 @@ from fastapi import Body, Depends, Query, Request, status
 import grunt
 from grunt import _
 from grunt.api.router import GruntRouter
-from grunt.api.v1.docs.utils import parse_query_filters
+from grunt.api.v1.docs.utils import default_sort, parse_query_filters
 from grunt.api.v1.schemas.response import ok
 from grunt.auth.dependencies import current_user
 from grunt.auth.doctypes.User.user import User
@@ -33,8 +33,8 @@ async def list_documents(
     request: Request,
     page: int = Query(1, ge=1),
     per_page: int = Query(20, ge=1, le=10000),
-    sort_by: str = "modified_at",
-    sort_order: str = Query("desc", pattern="^(asc|desc)$"),
+    sort_by: str | None = None,
+    sort_order: str | None = Query(None, pattern="^(asc|desc)$"),
     search: str | None = None,
     fields: str | None = None,
     cursor: str | None = Query(None, description="Opaque cursor for keyset pagination"),
@@ -44,14 +44,15 @@ async def list_documents(
     merged_filters = parse_query_filters(request)
     field_list = [f.strip() for f in fields.split(",") if f.strip()] if fields else None
 
+    order_by, order = await default_sort(doctype, sort_by, sort_order)
     result = await grunt.get_list(
         doctype,
         filters=merged_filters if merged_filters else None,
         fields=field_list,
         limit=per_page,
         page=page,
-        order_by=sort_by,
-        order=sort_order,
+        order_by=order_by,
+        order=order,
         search=search,
         cursor=cursor,
     )

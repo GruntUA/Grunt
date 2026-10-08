@@ -70,6 +70,7 @@ function _refresh_field_selects(frm) {
 
     const opt = names => '\n' + names.join('\n')
     frm.set_df_property('title_field', 'options', opt(allFieldnames))
+    frm.set_df_property('sort_field', 'options', opt([...allFieldnames, 'name', 'created_at', 'modified_at']))
     frm.set_df_property('search_fields', 'options', opt(textFieldnames))
     frm.set_df_property('image_field', 'options', opt(imageFieldnames))
     frm.set_df_property('status_field', 'options', opt(allFieldnames))

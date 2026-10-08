@@ -310,6 +310,8 @@ class DocType(BaseModel):
 
     # View configuration
     default_view: str | None = None  # "list" | "kanban" | "calendar" | "gantt" | "tree" | "map"
+    sort_field: str | None = None  # list order when the request sends none (else modified_at)
+    sort_order: Literal["asc", "desc"] = "desc"
     form_show_sidebar: bool = True  # False -> hide the document detail sidebar on the form
     kanban_column_field: str | None = None  # Select field grouping the kanban columns
     map_view: DocTypeMapView | None = None

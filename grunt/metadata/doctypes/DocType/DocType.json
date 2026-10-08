@@ -280,6 +280,22 @@
       "translatable": true
     },
     {
+      "fieldname": "sort_field",
+      "label": "Sort by",
+      "fieldtype": "Select",
+      "options": "",
+      "description": "Default order of the list, report and API when no sort is chosen (default: last modified)"
+    },
+    {
+      "fieldname": "sort_order",
+      "label": "Sort order",
+      "fieldtype": "Select",
+      "options": "desc\nasc",
+      "default": "desc",
+      "translatable": true,
+      "depends_on": "eval:doc.sort_field"
+    },
+    {
       "fieldname": "col_lv_2",
       "label": "",
       "fieldtype": "Column"
