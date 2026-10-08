@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import { computed, ref } from 'vue'
-import { Bell, Bookmark, Check, Copy, ExternalLink, Printer } from '@lucide/vue'
+import { AlarmClock, Bell, Bookmark, Check, Copy, ExternalLink, Printer, X } from '@lucide/vue'
 import type { DocType, GruntDocument } from '@/types'
 import type { PresenceUser } from '@/core/composables/usePresence'
 import { useDocSidebar } from './useDocSidebar'
 import { useToast } from '@/core/composables/useToast'
-import { formatFull, formatRelative } from '@/core/datetime'
+import { useDialog } from '@/core/composables/useDialog'
+import { formatDateTime, formatFull, formatRelative } from '@/core/datetime'
 import { resolveStatusBadge, statusBadgeFor } from '@/core/status'
 import SidebarImage from './SidebarImage.vue'
 import SidebarPeople from './SidebarPeople.vue'
@@ -103,6 +104,39 @@ const people = computed(() => [
 function bookmarkTitle(): string {
   const tf = props.doctype.title_field ?? 'name'
   return String(props.document[tf] ?? props.document.name)
+}
+
+// Remind me: tomorrow 09:00 by default; the picker emits UTC ISO.
+const dialog = useDialog()
+async function remindMe() {
+  const tomorrow = new Date()
+  tomorrow.setDate(tomorrow.getDate() + 1)
+  tomorrow.setHours(9, 0, 0, 0)
+  const inAnHour = new Date(Date.now() + 3600_000)
+  inAnHour.setSeconds(0, 0)
+  // One-click presets: close with that time, keeping a note already typed.
+  const preset = (label: string, at: Date) => ({
+    label,
+    variant: 'outline' as const,
+    action: (ctx: { values: Record<string, unknown>; close: (v?: unknown) => void }) =>
+      ctx.close({ ...ctx.values, remind_at: at.toISOString() }),
+  })
+  const values = await dialog.form({
+    title: t('Remind me'),
+    primaryLabel: t('Remind me'),
+    fields: [
+      { fieldname: 'remind_at', label: t('When'), fieldtype: 'Datetime', required: true, default: tomorrow.toISOString() },
+      { fieldname: 'description', label: t('Note'), fieldtype: 'Text' },
+    ],
+    buttons: [preset(t('In an hour'), inAnHour), preset(t('Tomorrow at 9:00'), tomorrow)],
+  })
+  if (!values) return
+  try {
+    await sb.addReminder(String(values.remind_at), String(values.description ?? ''))
+    toast.success(t('I will remind you {when}', { when: formatDateTime(String(values.remind_at)) }))
+  } catch {
+    /* the API error toast says why */
+  }
 }
 
 function printDoc() {
@@ -220,6 +254,24 @@ function printDoc() {
       <SidebarPeople :sb="sb" :workspace="workspace" />
       <Separator />
       <SidebarTags :sb="sb" />
+      <template v-if="sb.bundle.value.reminders?.length">
+        <Separator />
+        <ItemGroup class="-mx-2 gap-0.5">
+          <div class="px-2 text-xs font-medium text-muted-foreground">{{ t('My reminders') }}</div>
+          <Item v-for="r in sb.bundle.value.reminders" :key="r.name" size="sm" class="group gap-2.5 px-2 py-1.5">
+            <ItemMedia><AlarmClock class="size-4 text-muted-foreground" /></ItemMedia>
+            <ItemContent class="min-w-0 gap-0">
+              <ItemTitle class="w-full"><time :datetime="r.remind_at ?? undefined">{{ formatDateTime(r.remind_at) }}</time></ItemTitle>
+              <ItemDescription v-if="r.description" class="truncate text-xs">{{ r.description }}</ItemDescription>
+            </ItemContent>
+            <Button variant="ghost" size="icon-xs" :aria-label="t('Cancel reminder')"
+              class="opacity-0 group-hover:opacity-100 focus-visible:opacity-100 [@media(hover:none)]:opacity-100"
+              @click="sb.removeReminder(r.name)">
+              <X />
+            </Button>
+          </Item>
+        </ItemGroup>
+      </template>
       <template v-if="sb.bundle.value.milestones?.length">
         <Separator />
         <SidebarMilestones :doctype="doctype" :milestones="sb.bundle.value.milestones" />
@@ -267,6 +319,14 @@ function printDoc() {
           </Toggle>
         </TooltipTrigger>
         <TooltipContent>{{ isBookmarked ? t('Bookmarked') : t('Bookmark') }}</TooltipContent>
+      </Tooltip>
+      <Tooltip>
+        <TooltipTrigger as-child>
+          <Button variant="outline" size="icon-sm" :aria-label="t('Remind me')" @click="remindMe">
+            <AlarmClock />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>{{ t('Remind me') }}</TooltipContent>
       </Tooltip>
       <Tooltip>
         <TooltipTrigger as-child>

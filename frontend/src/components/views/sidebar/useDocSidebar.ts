@@ -149,6 +149,27 @@ export function useDocSidebar(
     return (parts[0]?.[0] ?? '?').concat(parts[1]?.[0] ?? '').toUpperCase()
   }
 
+  // Reminders (personal "remind me")
+  async function addReminder(remindAt: string, description = ''): Promise<void> {
+    const d = dt()
+    const i = id()
+    if (!d || !i) return
+    const row = await docsApi.addReminder(d, i, remindAt, description)
+    const list = [...(bundle.value.reminders ?? []), {
+      name: row.name, remind_at: row.remind_at, description: row.description ?? null,
+    }]
+    list.sort((a, b) => String(a.remind_at).localeCompare(String(b.remind_at)))
+    bundle.value = { ...bundle.value, reminders: list }
+  }
+
+  async function removeReminder(name: string): Promise<void> {
+    await docsApi.delete('Reminder', name)
+    bundle.value = {
+      ...bundle.value,
+      reminders: (bundle.value.reminders ?? []).filter((r) => r.name !== name),
+    }
+  }
+
   // User search (assign / share pickers)
   async function searchUsers(query: string): Promise<Colleague[]> {
     if (!usersCache) {
@@ -181,6 +202,8 @@ export function useDocSidebar(
     knownTags,
     toggleBookmark,
     toggleFollow,
+    addReminder,
+    removeReminder,
     searchUsers,
     personName,
     personAvatar,

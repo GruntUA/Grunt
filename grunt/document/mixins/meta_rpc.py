@@ -223,6 +223,24 @@ class DocumentMetaRPCMixin:
 
         milestones = await _optional(milestone_history(doctype, doc_id), [])
 
+        reminders = await _optional(
+            grunt.get_list(
+                "Reminder",
+                filters={
+                    "reference_doctype": doctype,
+                    "reference_name": doc_id,
+                    "owner": grunt.get_user().email,
+                    "notified": False,
+                },
+                fields=["name", "remind_at", "description"],
+                order_by="remind_at",
+                order="asc",
+                limit=20,
+                include_total=False,
+            ),
+            [],
+        )
+
         bookmark = dict(bookmarks[0]) if bookmarks else None
         if bookmark and bookmark.get("created_at"):
             bookmark["created_at"] = _iso(bookmark["created_at"])
@@ -277,6 +295,14 @@ class DocumentMetaRPCMixin:
             "bookmark": bookmark,
             "follow": {"name": str(follows[0]["name"])} if follows else None,
             "people": people,
+            "reminders": [
+                {
+                    "name": str(r["name"]),
+                    "remind_at": _iso(r.get("remind_at")),
+                    "description": r.get("description"),
+                }
+                for r in reminders
+            ],
             "milestones": [
                 {
                     "name": str(m["name"]),

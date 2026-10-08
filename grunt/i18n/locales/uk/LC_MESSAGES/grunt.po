@@ -200,7 +200,7 @@ msgid "Search icon…"
 msgstr "Пошук іконки…"
 
 #: grunt/frontend/src/components/DocTypeCombobox.vue:59
-#: grunt/frontend/src/components/desk/GruntDialog.vue:329
+#: grunt/frontend/src/components/desk/GruntDialog.vue:331
 #: grunt/frontend/src/components/ui/multi-select/MultiSelect.vue:113
 #: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue:372
 #: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue:422
@@ -281,24 +281,25 @@ msgstr "Невалідний JSON"
 msgid "Rich text"
 msgstr "Форматований текст"
 
-#: grunt/frontend/src/components/fields/RichText/ui/EditorToolbar.vue:24
+#: grunt/frontend/src/components/fields/RichText/ui/EditorToolbar.vue:25
 msgid "Formatting"
 msgstr "Форматування"
 
-#: grunt/frontend/src/components/fields/RichText/ui/MoreMenu.vue:67
+#: grunt/frontend/src/components/fields/RichText/ui/FontMenus.vue:62
 msgid "Font"
 msgstr "Шрифт"
 
-#: grunt/frontend/src/components/fields/RichText/ui/MoreMenu.vue:80
+#: grunt/frontend/src/components/fields/RichText/ui/FontMenus.vue:88
 msgid "Font size"
 msgstr "Розмір шрифту"
 
 #: grunt/frontend/src/components/views/list/ListToolbarControls.vue:184
-#: grunt/frontend/src/components/fields/RichText/ui/MoreMenu.vue:23
+#: grunt/frontend/src/components/fields/RichText/ui/FontMenus.vue:21
 msgid "Default"
 msgstr "За замовчуванням"
 
-#: grunt/frontend/src/components/fields/RichText/ui/MoreMenu.vue:34
+#: grunt/frontend/src/components/fields/RichText/ui/FontMenus.vue:32
+#: grunt/frontend/src/components/fields/RichText/ui/FontMenus.vue:44
 #: grunt/frontend/src/components/fields/RichText/ui/ImageBubble.vue:79
 #: grunt/frontend/src/pages/app/AppPage.vue:270
 msgid "Auto"
@@ -2877,10 +2878,10 @@ msgid "Camera unavailable."
 msgstr "Камера недоступна."
 
 #: grunt/grunt/actions/builtin.py:148
-#: grunt/frontend/src/components/desk/GruntDialog.vue:438
-#: grunt/frontend/src/components/desk/GruntDialog.vue:442
-#: grunt/frontend/src/components/desk/GruntDialog.vue:459
-#: grunt/frontend/src/components/desk/GruntDialog.vue:470
+#: grunt/frontend/src/components/desk/GruntDialog.vue:450
+#: grunt/frontend/src/components/desk/GruntDialog.vue:454
+#: grunt/frontend/src/components/desk/GruntDialog.vue:471
+#: grunt/frontend/src/components/desk/GruntDialog.vue:482
 #: grunt/frontend/src/components/views/QuickEntryDialog.vue:147
 #: grunt/frontend/src/components/views/BulkActionBar.vue:274
 #: grunt/frontend/src/components/views/BulkActionBar.vue:300
@@ -2941,7 +2942,7 @@ msgstr "Вміст (HTML/текст)"
 msgid "Conversion:"
 msgstr "Конверсія:"
 
-#: grunt/frontend/src/components/desk/GruntDialog.vue:362
+#: grunt/frontend/src/components/desk/GruntDialog.vue:364
 #: grunt/frontend/src/components/debug/ServerErrorModal.vue:72
 #: grunt/frontend/src/components/files/FileExplorer.vue:695
 #: grunt/frontend/src/components/views/form/FormHeader.vue:370
@@ -3310,6 +3311,7 @@ msgid "No tiles — click «Add»"
 msgstr "Немає плиток — натисніть «Додати»"
 
 #: grunt/frontend/src/components/dashboard/sections/DescriptionSection.vue:10
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:129
 msgid "Note"
 msgstr "Примітка"
 
@@ -3537,7 +3539,7 @@ msgstr "Виділити рядок"
 msgid "Select value"
 msgstr "Оберіть значення"
 
-#: grunt/frontend/src/components/desk/GruntDialog.vue:337
+#: grunt/frontend/src/components/desk/GruntDialog.vue:339
 #: grunt/frontend/src/components/fields/Table/Table.vue:440
 msgid "Selected:"
 msgstr "Вибрано:"
@@ -4648,7 +4650,7 @@ msgid "Row"
 msgstr "Рядок"
 
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.js:101
-#: grunt/frontend/src/components/desk/GruntDialog.vue:456
+#: grunt/frontend/src/components/desk/GruntDialog.vue:468
 #: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue:428
 #: grunt/frontend/src/components/fields/Table/TableRowSheet.vue:108
 msgid "Close"
@@ -5047,8 +5049,8 @@ msgid "PDF"
 msgstr "PDF"
 
 #: grunt/grunt/metadata/doctypes/DocType/global_form.js:54
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:273
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:277
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:333
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:337
 #: grunt/frontend/src/components/views/map/MapView.vue:205
 msgid "Print"
 msgstr "Друк"
@@ -5637,9 +5639,9 @@ msgid "Compact"
 msgstr "Стиснути"
 
 #: grunt/frontend/src/core/renderer/FieldRenderer.vue:143
-#: grunt/frontend/src/components/desk/GruntDialog.vue:362
+#: grunt/frontend/src/components/desk/GruntDialog.vue:364
 #: grunt/frontend/src/components/layout/CommandPalette.vue:142
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:163
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:197
 #: grunt/frontend/src/components/views/form/FormHeader.vue:461
 msgid "Copied"
 msgstr "Скопійовано"
@@ -5694,7 +5696,7 @@ msgstr ""
 "Ви внесли зміни, які буде втрачено, якщо ви покинете сторінку. Покинути без "
 "збереження?"
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:88
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:89
 msgid "Could not copy"
 msgstr "Не вдалося скопіювати"
 
@@ -5726,12 +5728,12 @@ msgstr "Високий"
 msgid "Remove {name} from assignees?"
 msgstr "Прибрати {name} з відповідальних?"
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:136
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:170
 msgid "Status"
 msgstr "Статус"
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:158
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:163
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:192
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:197
 msgid "Copy ID"
 msgstr "Скопіювати ідентифікатор"
 
@@ -5766,29 +5768,29 @@ msgstr "Доступ"
 msgid "Tags"
 msgstr "Теги"
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:253
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:305
 msgid "You get notified about changes and comments"
 msgstr "Ви отримуєте сповіщення про зміни та коментарі"
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:253
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:305
 msgid "Get notified about changes and comments"
 msgstr "Отримувати сповіщення про зміни та коментарі"
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:249
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:301
 msgid "Following"
 msgstr "Стежу"
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:249
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:301
 msgid "Follow"
 msgstr "Стежити"
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:263
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:269
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:315
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:321
 msgid "Bookmarked"
 msgstr "У закладках"
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:263
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:269
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:315
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:321
 msgid "Bookmark"
 msgstr "Закладка"
 
@@ -6224,8 +6226,8 @@ msgstr "Заявку надіслано"
 msgid "Code from the email"
 msgstr "Код із листа"
 
-#: grunt/frontend/src/components/desk/GruntDialog.vue:439
-#: grunt/frontend/src/components/desk/GruntDialog.vue:471
+#: grunt/frontend/src/components/desk/GruntDialog.vue:451
+#: grunt/frontend/src/components/desk/GruntDialog.vue:483
 #: grunt/frontend/src/pages/auth/Login.vue:338
 msgid "Confirm"
 msgstr "Підтвердити"
@@ -6731,14 +6733,14 @@ msgstr "Оберіть значення з дерева"
 msgid "Clear search"
 msgstr "Очистити пошук"
 
-#: grunt/frontend/src/components/desk/GruntDialog.vue:263
+#: grunt/frontend/src/components/desk/GruntDialog.vue:265
 #: grunt/frontend/src/components/ui/multi-select/MultiSelect.vue:99
 #: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue:388
 #: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue:148
 msgid "Search…"
 msgstr "Пошук…"
 
-#: grunt/frontend/src/components/desk/GruntDialog.vue:220
+#: grunt/frontend/src/components/desk/GruntDialog.vue:222
 msgid "Dialog"
 msgstr "Діалог"
 
@@ -7533,7 +7535,7 @@ msgid "No connection — viewing from cache, changes are saved on this device"
 msgstr "Немає з'єднання — перегляд з кешу, зміни зберігаються на пристрої"
 
 #: grunt/frontend/src/components/mobile/MobileBottomNav.vue:100
-#: grunt/frontend/src/components/fields/RichText/ui/MoreMenu.vue:54
+#: grunt/frontend/src/components/fields/RichText/ui/MoreMenu.vue:17
 msgid "More"
 msgstr "Ще"
 
@@ -8322,7 +8324,7 @@ msgstr "Перехід"
 
 #: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:272
 #: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:310
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:145
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:179
 msgid "State"
 msgstr "Стан"
 
@@ -14366,7 +14368,7 @@ msgstr "Нікого не призначено"
 msgid "Not shared with anyone"
 msgstr "Ні з ким не поширено"
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:168
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:202
 msgid "On website"
 msgstr "На сайті"
 
@@ -14407,11 +14409,11 @@ msgstr "Завантажити з комп’ютера"
 msgid "Workflow"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:94
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:95
 msgid "created"
 msgstr "створив(ла)"
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:97
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:98
 msgid "modified"
 msgstr "змінив(ла)"
 
@@ -14689,7 +14691,7 @@ msgstr "Завантаження файлів"
 msgid "{used} of {quota} used"
 msgstr "Зайнято {used} з {quota}"
 
-#: grunt/frontend/src/components/fields/RichText/ui/EditorToolbar.vue:38
+#: grunt/frontend/src/components/fields/RichText/ui/EditorToolbar.vue:40
 msgid "Alignment"
 msgstr "Вирівнювання"
 
@@ -14697,13 +14699,13 @@ msgstr "Вирівнювання"
 msgid "Delete table"
 msgstr "Видалити таблицю"
 
-#: grunt/frontend/src/components/fields/RichText/ui/EditorToolbar.vue:50
-#: grunt/frontend/src/components/fields/RichText/ui/EditorToolbar.vue:51
+#: grunt/frontend/src/components/fields/RichText/ui/EditorToolbar.vue:52
+#: grunt/frontend/src/components/fields/RichText/ui/EditorToolbar.vue:53
 msgid "Exit full screen"
 msgstr "Вийти з повноекранного режиму"
 
-#: grunt/frontend/src/components/fields/RichText/ui/EditorToolbar.vue:50
-#: grunt/frontend/src/components/fields/RichText/ui/EditorToolbar.vue:51
+#: grunt/frontend/src/components/fields/RichText/ui/EditorToolbar.vue:52
+#: grunt/frontend/src/components/fields/RichText/ui/EditorToolbar.vue:53
 msgid "Full screen"
 msgstr "На весь екран"
 
@@ -14716,7 +14718,7 @@ msgstr "Вставити"
 msgid "Paragraph"
 msgstr "Абзац"
 
-#: grunt/frontend/src/components/fields/RichText/ui/EditorToolbar.vue:28
+#: grunt/frontend/src/components/fields/RichText/ui/EditorToolbar.vue:29
 msgid "Text style"
 msgstr "Стиль тексту"
 
@@ -16395,6 +16397,96 @@ msgstr ""
 msgctxt "meta:MilestoneTracker.track_field"
 msgid "Field"
 msgstr "Поле"
+
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:267
+msgid "Cancel reminder"
+msgstr "Скасувати нагадування"
+
+#: grunt/grunt/tasks/doctypes/Reminder/reminder.py:35
+msgid "Choose when to remind"
+msgstr "Оберіть, коли нагадати"
+
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:136
+msgid "I will remind you {when}"
+msgstr "Нагадаю {when}"
+
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:260
+msgid "My reminders"
+msgstr "Мої нагадування"
+
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:125
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:126
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:325
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:329
+msgid "Remind me"
+msgstr "Нагадати мені"
+
+#: grunt/grunt/tasks/reminders.py:42
+msgid "Reminder"
+msgstr "Нагадування"
+
+#: grunt/grunt/tasks/reminders.py:42
+msgid "Reminder: %(title)s"
+msgstr "Нагадування: %(title)s"
+
+#: grunt/grunt/tasks/doctypes/Reminder/reminder.py:48
+msgid "Set both the document type and the document"
+msgstr "Вкажіть і тип документа, і документ"
+
+#: grunt/grunt/tasks/doctypes/Reminder/reminder.py:43
+msgid "The reminder time is in the past"
+msgstr "Час нагадування вже минув"
+
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:128
+msgid "When"
+msgstr "Коли"
+
+#: grunt/grunt/tasks/reminders.py:43
+msgid "You asked to be reminded"
+msgstr "Ви просили нагадати"
+
+#: grunt/grunt/tasks/doctypes/Reminder/Reminder.json
+msgctxt "help:Reminder"
+msgid "A personal \"remind me\" about a document at a chosen time"
+msgstr "Особисте «нагадати мені» про документ у вибраний час"
+
+#: grunt/grunt/tasks/doctypes/Reminder/Reminder.json
+msgctxt "meta:Reminder"
+msgid "Reminder"
+msgstr "Нагадування"
+
+#: grunt/grunt/tasks/doctypes/Reminder/Reminder.json
+msgctxt "meta:Reminder.description"
+msgid "Note"
+msgstr "Нотатка"
+
+#: grunt/grunt/tasks/doctypes/Reminder/Reminder.json
+msgctxt "meta:Reminder.notified"
+msgid "Sent"
+msgstr "Надіслано"
+
+#: grunt/grunt/tasks/doctypes/Reminder/Reminder.json
+msgctxt "meta:Reminder.reference_doctype"
+msgid "Document type"
+msgstr "Тип документа"
+
+#: grunt/grunt/tasks/doctypes/Reminder/Reminder.json
+msgctxt "meta:Reminder.reference_name"
+msgid "Document"
+msgstr "Документ"
+
+#: grunt/grunt/tasks/doctypes/Reminder/Reminder.json
+msgctxt "meta:Reminder.remind_at"
+msgid "Remind at"
+msgstr "Нагадати о"
+
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:131
+msgid "In an hour"
+msgstr "Через годину"
+
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:131
+msgid "Tomorrow at 9:00"
+msgstr "Завтра о 9:00"
 
 #~ msgctxt "help:DocTypeCalendarSource.doctype"
 #~ msgid "The document type added to the calendar as a separate source"

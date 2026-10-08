@@ -91,6 +91,13 @@ export interface DocPreview {
   fields: { fieldname: string; label: string; fieldtype: string; options?: string | null }[]
 }
 
+/** The current user's pending "remind me" about this document. */
+export interface SidebarReminder {
+  name: string
+  remind_at: string | null
+  description: string | null
+}
+
 /** One stay of the document in a value of a tracked field (MilestoneTracker). */
 export interface SidebarMilestone {
   name: string
@@ -113,6 +120,8 @@ export interface SidebarBundle {
   follow: { name: string } | null
   /** email -> display name + avatar, for everyone referenced above */
   people: Record<string, SidebarPerson>
+  /** The current user's unsent reminders about this document, soonest first. */
+  reminders?: SidebarReminder[]
   /** Time-in-status history, oldest first (empty unless a field is tracked). */
   milestones?: SidebarMilestone[]
 }
@@ -430,6 +439,13 @@ export const docsApi = {
     client.post('/api/v1/method/grunt.document.base.Document.delete_comment', {
       doctype, doc_id: id, comment_id: commentId,
     }).then(() => undefined),
+
+  // Reminders
+
+  addReminder: (doctype: string, id: string, remindAt: string, description = ''): Promise<SidebarReminder> =>
+    client.post('/api/v1/method/grunt.document.base.Document.add_reminder', {
+      doctype, doc_id: id, remind_at: remindAt, description,
+    }).then(r => r.data.data),
 
   // Bookmarks
 

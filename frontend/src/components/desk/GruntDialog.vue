@@ -5,6 +5,8 @@ import type { Component } from 'vue'
 import { AlertCircle, AlertTriangle, CheckCircle2, Info } from '@lucide/vue'
 import { useDialog } from '@/core/composables/useDialog'
 import LinkField from '@/components/fields/Link/Link.vue'
+import DateField from '@/components/fields/Date/Date.vue'
+import DatetimeField from '@/components/fields/Datetime/Datetime.vue'
 import PasswordField from '@/components/fields/Password/Password.vue'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
@@ -388,6 +390,16 @@ function onOpenChange(v: boolean) {
                             read_only: field.read_only,
                             show_strength: field.show_strength,
                         }"
+                        :model-value="formValues[field.fieldname]"
+                        @update:model-value="formValues[field.fieldname] = $event"
+                    />
+                </template>
+                <template v-else-if="field.fieldtype === 'Date' || field.fieldtype === 'Datetime'">
+                    <label :for="field.fieldname" class="font-medium text-foreground">{{ field.label }}</label>
+                    <p v-if="field.description" class="text-muted-foreground -mt-1">{{ field.description }}</p>
+                    <component
+                        :is="field.fieldtype === 'Date' ? DateField : DatetimeField"
+                        :field="{ fieldname: field.fieldname, fieldtype: field.fieldtype, label: field.label }"
                         :model-value="formValues[field.fieldname]"
                         @update:model-value="formValues[field.fieldname] = $event"
                     />

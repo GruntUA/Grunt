@@ -1,0 +1,83 @@
+{
+  "name": "Reminder",
+  "label": "Reminder",
+  "module": "tasks",
+  "icon": "alarm-clock",
+  "description": "A personal \"remind me\" about a document at a chosen time",
+  "autoname": "hash",
+  "title_field": "description",
+  "search_fields": [
+    "description",
+    "reference_name"
+  ],
+  "track_activity": false,
+  "hide_from_activity_feed": true,
+  "default_view": "list",
+  "calendar_date_field": "remind_at",
+  "calendar_title_field": "description",
+  "indexes": [
+    [
+      "notified",
+      "remind_at"
+    ],
+    [
+      "reference_doctype",
+      "reference_name"
+    ]
+  ],
+  "fields": [
+    {
+      "fieldname": "remind_at",
+      "label": "Remind at",
+      "fieldtype": "Datetime",
+      "required": true,
+      "in_list_view": true,
+      "bold": true
+    },
+    {
+      "fieldname": "description",
+      "label": "Note",
+      "fieldtype": "Text",
+      "in_list_view": true
+    },
+    {
+      "fieldname": "col_main",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "reference_doctype",
+      "label": "Document type",
+      "fieldtype": "Link",
+      "options": "DocType",
+      "in_list_view": true
+    },
+    {
+      "fieldname": "reference_name",
+      "label": "Document",
+      "fieldtype": "DynamicLink",
+      "options": "reference_doctype",
+      "in_list_view": true
+    },
+    {
+      "fieldname": "notified",
+      "label": "Sent",
+      "fieldtype": "Check",
+      "default": false,
+      "read_only": true,
+      "in_list_view": true
+    }
+  ],
+  "permissions": [
+    {
+      "role": "All",
+      "create": true
+    },
+    {
+      "role": "All",
+      "read": true,
+      "write": true,
+      "delete": true,
+      "match": "owner == user"
+    }
+  ]
+}

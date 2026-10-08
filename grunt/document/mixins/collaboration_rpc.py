@@ -136,6 +136,23 @@ class DocumentCollaborationRPCMixin:
 
     @staticmethod
     @grunt.whitelist()
+    async def add_reminder(
+        doctype: str, doc_id: str, remind_at: str, description: str = ""
+    ) -> dict[str, Any]:
+        """Remind the current user about this document at *remind_at*."""
+        await doc_guard(doctype, doc_id)
+        return await grunt.new_doc(
+            "Reminder",
+            {
+                "reference_doctype": doctype,
+                "reference_name": doc_id,
+                "remind_at": remind_at,
+                "description": (description or "").strip() or None,
+            },
+        )
+
+    @staticmethod
+    @grunt.whitelist()
     async def get_bookmark(doctype: str, doc_id: str) -> dict[str, Any] | None:
         """Return the current user's bookmark."""
         await doc_guard(doctype, doc_id)
