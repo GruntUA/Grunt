@@ -105,6 +105,14 @@ async def _resolve_context_tokens(filters: dict[str, Any]) -> dict[str, Any]:
 _NO_MATCH = "\x00unresolved"
 
 
+async def resolve_filter_tokens(filters: dict[str, Any]) -> dict[str, Any]:
+    """Every query-time token in *filters*: ``@today±N<d|w|m|y>``, ``@now``, ``@me``,
+    ``@<Singleton>.<field>`` - for any stored filter set (widgets, apps' own rules)."""
+    return await _resolve_context_tokens(
+        {key: _resolve_relative_date(value) for key, value in filters.items()}
+    )
+
+
 def _widget_filters(widget: Any) -> dict[str, Any]:
     """Return the widget's filters as a dict, with relative dates resolved.
 
