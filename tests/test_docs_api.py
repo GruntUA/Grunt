@@ -536,7 +536,7 @@ async def test_get_list_injects_link_field_labels_and_extras(ctx, link_label_doc
     """list_documents resolves Link fields to __label/__color/__icon/__image."""
     target = await ctx.new_doc(
         "LinkLabelTarget",
-        {"title": "Widget", "color": "#ff0000", "icon": "star", "photo": "widget.png"},
+        {"title": "Widget", "color": "#ff0000", "icon": "star", "photo": "/files/widget.png"},
     )
     await ctx.new_doc("LinkLabelSource", {"target": target["name"]})
     await ctx.db._session().commit()
@@ -547,7 +547,7 @@ async def test_get_list_injects_link_field_labels_and_extras(ctx, link_label_doc
     assert row["target__label"] == "Widget"
     assert row["target__color"] == "#ff0000"
     assert row["target__icon"] == "star"
-    assert row["target__image"] == "widget.png"
+    assert row["target__image"] == "/files/widget.png"
 
 
 @pytest.mark.asyncio
