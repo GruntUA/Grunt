@@ -120,6 +120,7 @@ def _register_framework_jobs() -> None:
     _add_scheduled_job("grunt.email.tasks.pull_from_accounts", "*/10 * * * *")  # every 10 min
     _add_scheduled_job("grunt.tasks.auto_repeat.run_auto_repeats", "0 1 * * *")  # 01:00 daily
     _add_scheduled_job("grunt.notification.sla.check_deadlines", "*/10 * * * *")  # every 10 min
+    _add_scheduled_job("grunt.notification.date_rules.check_date_rules", "0 8 * * *")  # 08:00
 
     async def _daily_digest():
         await send_notification_digest.kiq(period="daily")

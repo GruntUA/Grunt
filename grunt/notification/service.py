@@ -51,41 +51,7 @@ class NotificationService:
 
         count = 0
         for rule in rules:
-            # Check condition
-            if rule["condition"] and not self._eval_condition(rule["condition"], doc, user_email):
-                continue
-
-            # Resolve recipients (sync part + async role lookup)
-            recipients, role_parts = self._resolve_recipients(rule["recipients"], doc, user_email)
-            if role_parts:
-                role_emails = await self._resolve_role_recipients(role_parts, session)
-                recipients = list(set(recipients) | set(role_emails) - {user_email})
-            if not recipients:
-                continue
-
-            # Format subject and message
-            subject = self._format_template(rule["subject_template"], doctype, doc, event)
-            message = self._format_template(rule["message_template"], doctype, doc, event)
-
-            # Create notifications
-            for recipient in recipients:
-                await self._create_notification(
-                    session=session,
-                    user=recipient,
-                    doctype=doctype,
-                    doc_id=str(doc.get("name", "")),
-                    subject=subject,
-                    message=message,
-                )
-                count += 1
-
-                # Send email if channel includes email
-                if rule["channel"] in ("email", "both"):
-                    await self._queue_email(session, recipient, subject, message)
-
-            # Broadcast via WebSocket if channel includes system
-            if rule["channel"] in ("system", "both"):
-                await self._broadcast_ws(doctype, doc, subject, recipients)
+            count += await self.apply_rule(session, rule, doctype, doc, user_email, event)
 
         if count > 0:
             await session.flush()
@@ -98,6 +64,54 @@ class NotificationService:
             )
 
         return count
+
+    async def apply_rule(
+        self,
+        session: AsyncSession,
+        rule: dict[str, Any],
+        doctype: str,
+        doc: dict[str, Any],
+        user_email: str,
+        event: str,
+    ) -> int:
+        """Run one rule against one document: condition, recipients, delivery.
+
+        Returns the number of notifications created.
+        """
+        condition = rule.get("condition")
+        if condition and not self._eval_condition(condition, doc, user_email):
+            return 0
+        channel = rule.get("channel") or "system"
+
+        # Resolve recipients (sync part + async role lookup)
+        recipients, role_parts = self._resolve_recipients(
+            rule.get("recipients") or "", doc, user_email
+        )
+        if role_parts:
+            role_emails = await self._resolve_role_recipients(role_parts, session)
+            recipients = list(set(recipients) | set(role_emails) - {user_email})
+        if not recipients:
+            return 0
+
+        subject = self._format_template(rule.get("subject_template") or "", doctype, doc, event)
+        message = self._format_template(rule.get("message_template") or "", doctype, doc, event)
+
+        for recipient in recipients:
+            await self._create_notification(
+                session=session,
+                user=recipient,
+                doctype=doctype,
+                doc_id=str(doc.get("name", "")),
+                subject=subject,
+                message=message,
+                rule=rule.get("name"),
+            )
+            if channel in ("email", "both"):
+                await self._queue_email(session, recipient, subject, message)
+
+        if channel in ("system", "both"):
+            await self._broadcast_ws(doctype, doc, subject, recipients)
+        return len(recipients)
 
     async def get_notifications(
         self,
@@ -197,6 +211,7 @@ class NotificationService:
         doc_id: str,
         subject: str,
         message: str,
+        rule: str | None = None,
     ) -> str:
         notif_name = f"notif-{user}-{secrets.token_urlsafe(6)}"
         now = datetime.now(UTC)
@@ -215,6 +230,7 @@ class NotificationService:
                     "subject": subject,
                     "message": message,
                     "is_read": False,
+                    "notification_rule": rule,
                 },
             )
         # Send Web Push (best-effort)

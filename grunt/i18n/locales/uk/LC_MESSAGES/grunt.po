@@ -3339,7 +3339,7 @@ msgid "Page"
 msgstr "Сторінка"
 
 #: grunt/grunt/startup/website.py:112 grunt/grunt/startup/errors.py:258
-#: grunt/grunt/api/v1/pages.py:66 grunt/grunt/api/v1/dashboard.py:221
+#: grunt/grunt/api/v1/pages.py:66 grunt/grunt/api/v1/dashboard.py:226
 #: grunt/frontend/src/router/index.ts:194
 msgid "Page not found"
 msgstr "Сторінку не знайдено"
@@ -13291,15 +13291,15 @@ msgstr "Термін дії посилання закінчився"
 msgid "DocType not found"
 msgstr "DocType не знайдено"
 
-#: grunt/grunt/api/v1/dashboard.py:222
+#: grunt/grunt/api/v1/dashboard.py:227
 msgid "The page is not published"
 msgstr "Сторінку не опубліковано"
 
-#: grunt/grunt/api/v1/dashboard.py:238
+#: grunt/grunt/api/v1/dashboard.py:243
 msgid "Dashboard not found"
 msgstr "Дашборд не знайдено"
 
-#: grunt/grunt/api/v1/dashboard.py:239
+#: grunt/grunt/api/v1/dashboard.py:244
 msgid "The dashboard is not published"
 msgstr "Дашборд не опубліковано"
 
@@ -15597,6 +15597,7 @@ msgid "You are not allowed to create “%(doctype)s” documents"
 msgstr "Ви не можете створювати документи «%(doctype)s»"
 
 #: grunt/grunt/tasks/doctypes/AutoRepeat/auto_repeat.py:101
+#: grunt/grunt/notification/doctypes/NotificationRule/notification_rule.py:34
 msgid "“%(field)s” is not a date field of %(doctype)s"
 msgstr "«%(field)s» не є полем дати в %(doctype)s"
 
@@ -16092,6 +16093,56 @@ msgstr "Коментар, на який це відповідь (гілки ма
 msgctxt "meta:Comment.parent_comment"
 msgid "Reply to"
 msgstr "Відповідь на"
+
+#: grunt/grunt/notification/doctypes/NotificationRule/notification_rule.py:27
+msgid "Choose the date field to count from"
+msgstr "Оберіть поле дати, від якого рахувати"
+
+#: grunt/grunt/notification/doctypes/NotificationRule/notification_rule.py:25
+msgid "Days cannot be negative"
+msgstr "Кількість днів не може бути від'ємною"
+
+#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+msgctxt "help:NotificationRule.date_field"
+msgid ""
+"Date/Datetime field of the document the reminder is counted from, e.g. "
+"contract_end"
+msgstr ""
+"Поле Date/Datetime документа, від якого рахується нагадування, напр. "
+"contract_end"
+
+#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+msgctxt "help:NotificationRule.days"
+msgid ""
+"How many days before/after the date; 0: on the day itself. Sent once a day "
+"at 08:00"
+msgstr ""
+"За скільки днів до / після дати; 0 — у сам день. Надсилається щодня о 08:00"
+
+#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+msgctxt "help:NotificationRule.every_year"
+msgid "Match only day and month - birthdays, work anniversaries"
+msgstr "Враховувати лише день і місяць — дні народження, річниці роботи"
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgctxt "meta:Notification.notification_rule"
+msgid "Notification Rule"
+msgstr "Правило сповіщення"
+
+#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+msgctxt "meta:NotificationRule.date_field"
+msgid "Date field"
+msgstr "Поле дати"
+
+#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+msgctxt "meta:NotificationRule.days"
+msgid "Days"
+msgstr "Днів"
+
+#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+msgctxt "meta:NotificationRule.every_year"
+msgid "Every year"
+msgstr "Щороку"
 
 #~ msgctxt "help:DocTypeCalendarSource.doctype"
 #~ msgid "The document type added to the calendar as a separate source"

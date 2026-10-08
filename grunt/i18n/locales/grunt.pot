@@ -1137,6 +1137,10 @@ msgstr ""
 msgid "Choose from the tree"
 msgstr ""
 
+#: grunt/grunt/notification/doctypes/NotificationRule/notification_rule.py:27
+msgid "Choose the date field to count from"
+msgstr ""
+
 #: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:542
 msgid "Choose the first available DocType"
 msgstr ""
@@ -1740,7 +1744,7 @@ msgstr ""
 msgid "Dark"
 msgstr ""
 
-#: grunt/grunt/api/v1/dashboard.py:238
+#: grunt/grunt/api/v1/dashboard.py:243
 msgid "Dashboard not found"
 msgstr ""
 
@@ -1788,6 +1792,10 @@ msgstr ""
 
 #: grunt/frontend/src/components/views/gantt/GanttView.vue:384
 msgid "Days"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/NotificationRule/notification_rule.py:25
+msgid "Days cannot be negative"
 msgstr ""
 
 #: grunt/frontend/src/components/views/form/FormHeader.vue:413
@@ -4472,7 +4480,7 @@ msgid "Page"
 msgstr ""
 
 #: grunt/grunt/startup/website.py:112 grunt/grunt/startup/errors.py:258
-#: grunt/grunt/api/v1/pages.py:66 grunt/grunt/api/v1/dashboard.py:221
+#: grunt/grunt/api/v1/pages.py:66 grunt/grunt/api/v1/dashboard.py:226
 #: grunt/frontend/src/router/index.ts:194
 msgid "Page not found"
 msgstr ""
@@ -6170,7 +6178,7 @@ msgstr ""
 msgid "The current password is incorrect"
 msgstr ""
 
-#: grunt/grunt/api/v1/dashboard.py:239
+#: grunt/grunt/api/v1/dashboard.py:244
 msgid "The dashboard is not published"
 msgstr ""
 
@@ -6299,7 +6307,7 @@ msgstr ""
 msgid "The page is empty"
 msgstr ""
 
-#: grunt/grunt/api/v1/dashboard.py:222
+#: grunt/grunt/api/v1/dashboard.py:227
 msgid "The page is not published"
 msgstr ""
 
@@ -8000,6 +8008,7 @@ msgid "“%(doctype)s” has no table to aggregate"
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/AutoRepeat/auto_repeat.py:101
+#: grunt/grunt/notification/doctypes/NotificationRule/notification_rule.py:34
 msgid "“%(field)s” is not a date field of %(doctype)s"
 msgstr ""
 
@@ -8870,6 +8879,25 @@ msgstr ""
 #: grunt/grunt/geo/doctypes/Language/Language.json
 msgctxt "help:Language.native_name"
 msgid "Language name in the language itself (Українська, English, Deutsch)"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+msgctxt "help:NotificationRule.date_field"
+msgid ""
+"Date/Datetime field of the document the reminder is counted from, e.g. "
+"contract_end"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+msgctxt "help:NotificationRule.days"
+msgid ""
+"How many days before/after the date; 0: on the day itself. Sent once a day "
+"at 08:00"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+msgctxt "help:NotificationRule.every_year"
+msgid "Match only day and month - birthdays, work anniversaries"
 msgstr ""
 
 #: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
@@ -12286,6 +12314,11 @@ msgid "Message"
 msgstr ""
 
 #: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgctxt "meta:Notification.notification_rule"
+msgid "Notification Rule"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgctxt "meta:Notification.ref_doctype"
 msgid "Document type"
 msgstr ""
@@ -12321,8 +12354,23 @@ msgid "Condition (Python)"
 msgstr ""
 
 #: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+msgctxt "meta:NotificationRule.date_field"
+msgid "Date field"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+msgctxt "meta:NotificationRule.days"
+msgid "Days"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
 msgctxt "meta:NotificationRule.event"
 msgid "Event"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+msgctxt "meta:NotificationRule.every_year"
+msgid "Every year"
 msgstr ""
 
 #: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json

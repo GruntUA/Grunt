@@ -18,10 +18,35 @@
       "fieldname": "event",
       "label": "Event",
       "fieldtype": "Select",
-      "options": "after_insert\nafter_save\non_transition\nvalue_change",
+      "options": "after_insert\nafter_save\non_transition\nvalue_change\ndays_before\ndays_after",
       "required": true,
       "in_list_view": true,
       "in_filter": true
+    },
+    {
+      "fieldname": "date_field",
+      "label": "Date field",
+      "fieldtype": "Data",
+      "depends_on": "eval: ['days_before', 'days_after'].includes(doc.event)",
+      "mandatory_depends_on": "eval: ['days_before', 'days_after'].includes(doc.event)",
+      "description": "Date/Datetime field of the document the reminder is counted from, e.g. contract_end"
+    },
+    {
+      "fieldname": "days",
+      "label": "Days",
+      "fieldtype": "Int",
+      "default": 0,
+      "min_value": 0,
+      "depends_on": "eval: ['days_before', 'days_after'].includes(doc.event)",
+      "description": "How many days before/after the date; 0: on the day itself. Sent once a day at 08:00"
+    },
+    {
+      "fieldname": "every_year",
+      "label": "Every year",
+      "fieldtype": "Check",
+      "default": false,
+      "depends_on": "eval: ['days_before', 'days_after'].includes(doc.event)",
+      "description": "Match only day and month - birthdays, work anniversaries"
     },
     {
       "fieldname": "channel",
