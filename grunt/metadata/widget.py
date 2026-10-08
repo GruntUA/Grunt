@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, ClassVar
 
 from grunt import log
+from grunt.metadata.dynamic_options import register_option_provider
 
 if TYPE_CHECKING:
     from datetime import datetime
@@ -66,6 +67,11 @@ def get_widget_type_class(name: str) -> type[WidgetType] | None:
 def get_registered_widget_types() -> list[str]:
     """Return every registered widget type name, in registration order."""
     return list(_WIDGET_TYPE_REGISTRY.keys())
+
+
+# PageWidget.widget_type offers every registered type - apps' own included.
+WIDGET_TYPE_SOURCE = "grunt.widget_type"
+register_option_provider(WIDGET_TYPE_SOURCE, get_registered_widget_types)
 
 
 # Discovery

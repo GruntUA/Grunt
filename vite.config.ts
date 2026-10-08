@@ -59,6 +59,9 @@ function isVueVendorModule(id: string): boolean {
 }
 
 const appAliases = discoverAppAliases()
+// Bench apps/ - apps ship frontend pieces the core discovers by glob (e.g.
+// dashboard widgets: @apps/<app>/dashboard_widgets/<Name>/).
+const appsDir = path.resolve(import.meta.dirname, '../')
 const allowedHosts = discoverAllowedHosts()
 
 // Match frontend routes that should be proxied to backend clean-URL handling.
@@ -121,6 +124,7 @@ export default defineConfig({
     resolve: {
         alias: {
             '@': path.resolve(import.meta.dirname, './frontend/src'),
+            '@apps': appsDir,
             ...appAliases,
         },
     },
@@ -193,6 +197,8 @@ export default defineConfig({
         port: 5173,
         host: true,
         allowedHosts: allowedHosts,
+        // App files (dashboard widgets) live beside the framework, outside its root.
+        fs: { allow: [appsDir] },
         hmr: {
             // When accessed through a reverse proxy / tunnel (e.g. dev2.itmlt.win),
             // tell the browser to connect HMR WebSocket on the standard HTTPS port

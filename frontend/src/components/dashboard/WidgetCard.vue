@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { DashboardWidget } from '@/types'
-import { getAsyncWidgetComponent, widgetColSpan } from '@/core/widgetRegistry'
+import { getAsyncWidgetComponent, getWidgetDef, widgetColSpan } from '@/core/widgetRegistry'
 
 const props = defineProps<{
   widget: DashboardWidget
@@ -23,17 +23,12 @@ const widgetComponent = computed(() => getAsyncWidgetComponent(props.widget.widg
 
 const colSpanClass = computed(() => widgetColSpan(props.widget.cols))
 
-const minH = computed(() => {
-  if (props.widget.widget_type === 'metric') return 'min-h-[120px]'
-  if (props.widget.widget_type === 'shortcut') return 'min-h-[120px]'
-  if (props.widget.widget_type === 'clock') return 'min-h-[140px]'
-  if (props.widget.widget_type === 'links') return 'min-h-[100px]'
-  return 'min-h-[220px]'
-})
+// Each widget type declares its own height in manifest.json (apps' widgets too).
+const minHeight = computed(() => getWidgetDef(props.widget.widget_type)?.minHeight ?? '220px')
 </script>
 
 <template>
-  <div :class="[colSpanClass, minH,
+  <div :style="{ minHeight }" :class="[colSpanClass,
     'group relative min-w-0 bg-card border rounded-lg shadow-sm overflow-hidden',
     editMode ? 'ring-2 ring-primary/20 cursor-grab active:cursor-grabbing' : '',
   ]">

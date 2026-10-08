@@ -1,1 +1,1 @@
-{"type": "clock", "label": "Clock", "icon": "clock", "category": "Інше", "configSections": ["title", "description", "width", "color"]}
+{"type": "clock", "label": "Clock", "icon": "clock", "category": "Інше", "configSections": ["title", "description", "width", "color"], "minHeight": "140px"}

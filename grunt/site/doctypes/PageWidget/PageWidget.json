@@ -10,10 +10,10 @@
       "fieldname": "widget_type",
       "label": "Type",
       "fieldtype": "Select",
-      "options": "metric\ngauge\nchart_area\nchart_bar\ndonut\nlist\nshortcut\nshortcuts_grid\ntext\nclock\nactivity\ncalendar\nheatmap\nfunnel\ntable",
       "required": true,
       "in_list_view": true,
-      "default": "metric"
+      "default": "metric",
+      "options_source": "grunt.widget_type"
     },
     {
       "fieldname": "title",

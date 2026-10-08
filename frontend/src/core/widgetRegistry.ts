@@ -57,6 +57,8 @@ export interface WidgetDefinition {
   component: () => Promise<Component>
   /** Property sections shown in WidgetConfigPanel, in order */
   configSections: WidgetConfigSection[]
+  /** Minimum card height (CSS length); default 220px - compact cards (a number) set less */
+  minHeight?: string
 }
 
 // Internal registry
@@ -128,9 +130,22 @@ function isValidManifestEntry(v: unknown): v is ManifestEntry {
 }
 
 function discoverWidgets() {
-  const manifests = import.meta.glob('@/components/dashboard/widgets/*/manifest.json', { eager: true })
-  const allVues = import.meta.glob('@/components/dashboard/widgets/*/*.vue')
+  // Core widgets, then apps' own: bench/apps/<app>/dashboard_widgets/<Name>/ -
+  // the same directory the backend scans for <Name>.py (grunt.metadata.widget).
+  registerFrom(
+    import.meta.glob('@/components/dashboard/widgets/*/manifest.json', { eager: true }),
+    import.meta.glob('@/components/dashboard/widgets/*/*.vue'),
+  )
+  registerFrom(
+    import.meta.glob('@apps/*/dashboard_widgets/*/manifest.json', { eager: true }),
+    import.meta.glob('@apps/*/dashboard_widgets/*/*.vue'),
+  )
+}
 
+function registerFrom(
+  manifests: Record<string, unknown>,
+  allVues: Record<string, () => Promise<unknown>>,
+) {
   for (const path in manifests) {
     try {
       const raw = (manifests[path] as any).default

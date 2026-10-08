@@ -453,9 +453,6 @@ export interface ApiError {
 
 // Dashboard
 
-export type WidgetType = 'metric' | 'gauge' | 'chart_area' | 'chart_bar' | 'donut' | 'list'
-  | 'shortcut' | 'shortcuts_grid' | 'text' | 'clock' | 'activity'
-  | 'calendar' | 'heatmap' | 'funnel' | 'table' | 'links'
 export type WidgetAggregation = 'count' | 'sum' | 'avg' | 'min' | 'max'
 export type WidgetPeriod = '7d' | '30d' | '90d' | '365d'
 export type WidgetCols = 1 | 2 | 3 | 4
@@ -473,7 +470,8 @@ export interface ShortcutItem {
 export interface DashboardWidget {
   id: string
   dashboard_id?: string
-  widget_type: WidgetType
+  /** A registered widget type (core or an app's) - see core/widgetRegistry. */
+  widget_type: string
   title: string
   ref_doctype: string
   field?: string | null

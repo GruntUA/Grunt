@@ -12,7 +12,7 @@ import { getPageData } from '@/core/api/pages'
 import WidgetCard from '@/components/dashboard/WidgetCard.vue'
 import WidgetConfigPanel from '@/components/dashboard/WidgetConfigPanel.vue'
 import { getPaletteGroups, getWidgetDef, widgetColSpan } from '@/core/widgetRegistry'
-import type { DashboardWidget, WidgetType } from '@/types'
+import type { DashboardWidget } from '@/types'
 import { useToast } from '@/core/composables/useToast'
 import { setPageTitle } from '@/core/composables/usePageTitle'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -173,7 +173,7 @@ function cancelEdit() {
 
 function generateId() { return 'w-' + Math.random().toString(36).substring(2, 9) }
 
-function addWidget(type: WidgetType) {
+function addWidget(type: string) {
   if (!page.value) return
   const id = generateId()
   const newWidget: DashboardWidget = {
@@ -387,7 +387,7 @@ const printPage = () => window.print()
                   v-for="wt in group.widgets"
                   :key="wt.type"
                   class="w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-left hover:bg-background transition-colors border border-transparent hover:border-border"
-                  @click="addWidget(wt.type as WidgetType)"
+                  @click="addWidget(wt.type)"
                 >
                   <AppIcon :icon="wt.icon" class="size-4 shrink-0 text-muted-foreground" />
                   <span>{{ t(wt.label) }}</span>

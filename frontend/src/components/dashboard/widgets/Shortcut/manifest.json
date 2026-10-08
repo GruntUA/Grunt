@@ -1,1 +1,1 @@
-{"type": "shortcut", "label": "Shortcut", "icon": "link", "category": "Навігація", "configSections": ["title", "shortcutTarget", "description", "width", "color", "icon"]}
+{"type": "shortcut", "label": "Shortcut", "icon": "link", "category": "Навігація", "configSections": ["title", "shortcutTarget", "description", "width", "color", "icon"], "minHeight": "120px"}
