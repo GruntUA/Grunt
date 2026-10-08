@@ -172,6 +172,7 @@ class DocumentHistoryRPCMixin:
                     "name": str(r["name"]),
                     "content": r.get("content"),
                     "comment_type": r.get("comment_type"),
+                    "parent_comment": r.get("parent_comment") or None,
                     "user": r.get("owner"),
                     "created_at": str(r["created_at"]) if r.get("created_at") else None,
                 }

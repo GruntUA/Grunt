@@ -56,8 +56,12 @@ class DocumentCollaborationRPCMixin:
         doc_id: str,
         content: str,
         comment_type: str = "Comment",
+        parent_comment: str | None = None,
     ) -> dict[str, Any]:
-        """Add a comment to a document. Parses @email mentions."""
+        """Add a comment to a document. Parses @email mentions.
+
+        ``parent_comment`` makes it a reply; the parent's author is notified.
+        """
         content = (content or "").strip()
         if not content:
             raise HTTPException(
@@ -73,6 +77,7 @@ class DocumentCollaborationRPCMixin:
                 "reference_id": doc_id,
                 "content": content,
                 "comment_type": comment_type,
+                "parent_comment": parent_comment or None,
             },
         )
 
@@ -87,6 +92,28 @@ class DocumentCollaborationRPCMixin:
                     }
                 await grunt.notify(
                     users=[mention],
+                    subject=subject,
+                    message=content,
+                    doctype=doctype,
+                    doc_id=doc_id,
+                )
+
+        # Reply: tell the author of the thread's root (unless already @mentioned).
+        root = comment.get("parent_comment")
+        if root:
+            async with grunt.system_context(grunt.get_session()):
+                root_author = await grunt.db.get_value("Comment", root, "owner")
+            if (
+                root_author
+                and root_author != grunt.get_user().email
+                and root_author not in mentions
+            ):
+                with use_language(await language_of(root_author)):
+                    subject = _("%(user)s replied to your comment") % {
+                        "user": grunt.get_user().email
+                    }
+                await grunt.notify(
+                    users=[root_author],
                     subject=subject,
                     message=content,
                     doctype=doctype,

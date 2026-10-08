@@ -72,19 +72,23 @@ async def notify(
         List of created notification IDs.
     """
     ids: list[str] = []
-    for user_email in users:
-        doc = await grunt.new_doc(
-            "Notification",
-            {
-                "user": user_email,
-                "subject": subject,
-                "message": message,
-                "ref_doctype": doctype,
-                "doc_id": doc_id,
-                "is_read": False,
-            },
-        )
-        ids.append(doc["name"])
+    # A notification is the system telling someone - creating one must not
+    # depend on the acting user's rights (nobody but admins may create
+    # Notification rows directly).
+    async with grunt.system_context(grunt.get_session()):
+        for user_email in users:
+            doc = await grunt.new_doc(
+                "Notification",
+                {
+                    "user": user_email,
+                    "subject": subject,
+                    "message": message,
+                    "ref_doctype": doctype,
+                    "doc_id": doc_id,
+                    "is_read": False,
+                },
+            )
+            ids.append(doc["name"])
 
     if push:
         for user_email in users:

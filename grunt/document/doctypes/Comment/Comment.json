@@ -6,10 +6,16 @@
     [
       "reference_doctype",
       "reference_id"
+    ],
+    [
+      "parent_comment"
     ]
   ],
   "inherit_permission_from": [
-    ["reference_doctype", "reference_id"]
+    [
+      "reference_doctype",
+      "reference_id"
+    ]
   ],
   "fields": [
     {
@@ -38,6 +44,14 @@
       "options": "Comment\nInfo\nWarning\nError",
       "translatable": true,
       "default": "Comment"
+    },
+    {
+      "fieldname": "parent_comment",
+      "label": "Reply to",
+      "fieldtype": "Link",
+      "options": "Comment",
+      "read_only": true,
+      "description": "The comment this one replies to (threads are one level deep)"
     }
   ],
   "permissions": [
@@ -51,6 +65,13 @@
       "write": true,
       "delete": true,
       "match": "owner == user"
+    },
+    {
+      "role": "System Manager",
+      "read": true,
+      "write": true,
+      "create": true,
+      "delete": true
     }
   ]
 }

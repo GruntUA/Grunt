@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import { ref, computed, onMounted } from 'vue'
-import { ArrowRight, Trash2, Send } from '@lucide/vue'
+import { ArrowRight, Trash2, Send, Reply } from '@lucide/vue'
 import { docsApi, type TimelineItem, type DocVersionChange } from '@/core/api/docs'
 import { authApi } from '@/core/api/auth-admin'
 import { useAuthStore } from '@/stores/auth'
@@ -91,10 +91,26 @@ const filterCounts = computed(() => {
   return { all: reversedTimeline.value.length, comments, changes: reversedTimeline.value.length - comments }
 })
 
+// Replies sit under their root comment, oldest first, instead of in the feed.
+const repliesOf = computed(() => {
+  const roots = new Set(timeline.value.filter((i) => i.type === 'comment').map((i) => i.id))
+  const map: Record<string, TimelineItem[]> = {}
+  for (const item of timeline.value) {
+    if (item.type === 'comment' && item.parent_comment && roots.has(item.parent_comment)) {
+      (map[item.parent_comment] ??= []).push(item)
+    }
+  }
+  return map
+})
+
+const isReply = (item: TimelineItem) =>
+  item.type === 'comment' && !!item.parent_comment && !!repliesOf.value[item.parent_comment]
+
 const visibleTimeline = computed(() => {
-  if (filter.value === 'all') return reversedTimeline.value
+  const feed = reversedTimeline.value.filter((i) => !isReply(i))
+  if (filter.value === 'all') return feed
   const wantComments = filter.value === 'comments'
-  return reversedTimeline.value.filter((i) => (i.type === 'comment') === wantComments)
+  return feed.filter((i) => (i.type === 'comment') === wantComments)
 })
 
 function workflowState(item: TimelineItem, key: 'from' | 'to') {
@@ -244,8 +260,43 @@ async function sendComment() {
 async function deleteComment(item: TimelineItem) {
   try {
     await docsApi.deleteComment(props.doctype.name, props.document.name, item.id)
-    timeline.value = timeline.value.filter(t => t.id !== item.id)
+    // A deleted root takes its replies along.
+    timeline.value = timeline.value.filter(t => t.id !== item.id && t.parent_comment !== item.id)
   } catch { /* silent */ }
+}
+
+const canDelete = (item: TimelineItem) =>
+  item.type === 'comment' && (item.user === auth.user?.email || auth.isSystemManager)
+
+// Reply box - one open at a time, under the thread it answers.
+const replyTo = ref<string | null>(null)
+const replyInput = ref('')
+const replySending = ref(false)
+
+function openReply(item: TimelineItem) {
+  replyTo.value = item.id
+  replyInput.value = ''
+}
+
+async function sendReply() {
+  const text = replyInput.value.trim()
+  if (!text || !replyTo.value) return
+  replySending.value = true
+  try {
+    await docsApi.addComment(props.doctype.name, props.document.name, text, replyTo.value)
+    replyTo.value = null
+    replyInput.value = ''
+    await loadTimeline()
+  } catch { /* silent */ }
+  finally { replySending.value = false }
+}
+
+function onReplyKeydown(e: KeyboardEvent) {
+  if (e.key === 'Escape') replyTo.value = null
+  else if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+    e.preventDefault()
+    sendReply()
+  }
 }
 
 // @mention autocomplete logic (retained for functionality)
@@ -409,7 +460,13 @@ onMounted(loadTimeline)
               </TooltipTrigger>
               <TooltipContent>{{ formatFull(item.created_at) }}</TooltipContent>
             </Tooltip>
-            <Button v-if="item.type === 'comment' && (item.user === auth.user?.email || auth.isSystemManager)"
+            <Button v-if="item.type === 'comment'" variant="ghost" size="icon-xs"
+              class="opacity-0 group-hover:opacity-100 focus-visible:opacity-100 [@media(hover:none)]:opacity-100"
+              :aria-label="t('Reply')"
+              @click="openReply(item)">
+              <Reply />
+            </Button>
+            <Button v-if="canDelete(item)"
               variant="ghost" size="icon-xs"
               class="opacity-0 group-hover:opacity-100 focus-visible:opacity-100 hover:bg-destructive/10 hover:text-destructive [@media(hover:none)]:opacity-100"
               :aria-label="t('Delete comment')"
@@ -433,6 +490,48 @@ onMounted(loadTimeline)
             class="rounded-md border bg-muted/40 px-3 py-2 text-sm break-words whitespace-pre-line">
             {{ htmlToText(item.content ?? '') }}
           </p>
+
+          <!-- Thread: replies, then the reply box -->
+          <ol v-if="repliesOf[item.id]?.length" class="flex flex-col gap-3 border-l pl-3">
+            <li v-for="reply in repliesOf[item.id]" :key="reply.id" class="group/reply flex gap-2">
+              <Avatar class="size-6">
+                <AvatarImage v-if="reply.user_avatar" :src="reply.user_avatar" />
+                <AvatarFallback class="text-[9px]">{{ initials(reply) }}</AvatarFallback>
+              </Avatar>
+              <div class="flex min-w-0 flex-1 flex-col gap-1">
+                <div class="flex min-h-6 items-center gap-2 text-sm">
+                  <span class="min-w-0 flex-1 truncate font-medium">{{ reply.user_name || reply.user }}</span>
+                  <Tooltip>
+                    <TooltipTrigger as-child>
+                      <time class="shrink-0 text-xs text-muted-foreground" :datetime="reply.created_at ?? undefined">
+                        {{ fmtDate(reply.created_at) }}
+                      </time>
+                    </TooltipTrigger>
+                    <TooltipContent>{{ formatFull(reply.created_at) }}</TooltipContent>
+                  </Tooltip>
+                  <Button v-if="canDelete(reply)" variant="ghost" size="icon-xs"
+                    class="opacity-0 group-hover/reply:opacity-100 focus-visible:opacity-100 hover:bg-destructive/10 hover:text-destructive [@media(hover:none)]:opacity-100"
+                    :aria-label="t('Delete comment')"
+                    @click="deleteComment(reply)">
+                    <Trash2 />
+                  </Button>
+                </div>
+                <p class="text-sm break-words whitespace-pre-line">{{ htmlToText(reply.content ?? '') }}</p>
+              </div>
+            </li>
+          </ol>
+          <div v-if="replyTo === item.id" class="flex flex-col gap-2 pl-3">
+            <Textarea v-model="replyInput" rows="2" autofocus class="resize-none"
+              :placeholder="t('Write a reply...')" @keydown="onReplyKeydown" />
+            <div class="flex justify-end gap-2">
+              <Button size="sm" variant="ghost" @click="replyTo = null">{{ t('Cancel') }}</Button>
+              <Button size="sm" :disabled="!replyInput.trim() || replySending" @click="sendReply">
+                <Spinner v-if="replySending" />
+                <Send v-else />
+                {{ t('Reply') }}
+              </Button>
+            </div>
+          </div>
         </div>
       </li>
     </ol>

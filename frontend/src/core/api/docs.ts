@@ -32,6 +32,8 @@ export interface TimelineItem {
   action?: string
   content?: string
   comment_type?: string
+  /** comment items only: the root comment this one replies to. */
+  parent_comment?: string | null
   /** version items only: the version number and its field-level diff. */
   version?: number
   changes?: DocVersionChange[] | null
@@ -404,9 +406,9 @@ export const docsApi = {
 
   // Comments
 
-  addComment: (doctype: string, id: string, content: string): Promise<CommentItem> =>
+  addComment: (doctype: string, id: string, content: string, parentComment?: string): Promise<CommentItem> =>
     client.post('/api/v1/method/grunt.document.base.Document.add_comment', {
-      doctype, doc_id: id, content,
+      doctype, doc_id: id, content, parent_comment: parentComment ?? null,
     }).then(r => r.data.data),
 
   deleteComment: (doctype: string, id: string, commentId: string): Promise<void> =>

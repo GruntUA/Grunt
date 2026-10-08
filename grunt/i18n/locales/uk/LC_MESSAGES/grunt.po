@@ -50,7 +50,7 @@ msgstr "Немає даних"
 #: grunt/grunt/website/doc_layout.py:49 grunt/grunt/api/v1/docs/utils.py:45
 #: grunt/frontend/src/components/pwa/PWAInstallPrompt.vue:108
 #: grunt/frontend/src/components/views/QuickFilterBar.vue:47
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:139
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:155
 #: grunt/frontend/src/components/views/sidebar/TimelineChanges.vue:49
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:235
 #: grunt/frontend/src/components/views/list/ListGroupedView.vue:48
@@ -62,7 +62,7 @@ msgstr "Так"
 
 #: grunt/grunt/website/doc_layout.py:49 grunt/grunt/api/v1/docs/utils.py:45
 #: grunt/frontend/src/components/views/QuickFilterBar.vue:47
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:139
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:155
 #: grunt/frontend/src/components/views/sidebar/TimelineChanges.vue:49
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:235
 #: grunt/frontend/src/components/views/list/ListGroupedView.vue:48
@@ -2857,7 +2857,7 @@ msgid "Barcode not found in image."
 msgstr "На зображенні не знайдено штрихкоду."
 
 #: grunt/frontend/src/components/views/BulkActionBar.vue:313
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:123
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:139
 msgid "Bulk Update"
 msgstr "Масове оновлення"
 
@@ -2891,11 +2891,11 @@ msgstr "Камера недоступна."
 #: grunt/frontend/src/components/files/FileExplorer.vue:730
 #: grunt/frontend/src/components/files/FileExplorer.vue:858
 #: grunt/frontend/src/components/workflow/WorkflowActionDialog.vue:105
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:527
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue:347
 #: grunt/frontend/src/components/views/form/FormModals.vue:138
 #: grunt/frontend/src/components/views/form/FormHeader.vue:288
 #: grunt/frontend/src/components/views/form/FormHeader.vue:334
-#: grunt/frontend/src/components/views/form/FormHeader.vue:448
 msgid "Cancel"
 msgstr "Скасувати"
 
@@ -3101,7 +3101,7 @@ msgstr "Зовнішній URL"
 #: grunt/grunt/api/v1/docs/utils.py:74
 #: grunt/frontend/src/components/views/FilterBar.vue:256
 #: grunt/frontend/src/components/dashboard/sections/AggregationSection.vue:41
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:197
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:213
 #: grunt/frontend/src/components/views/list/ListHeader.vue:128
 #: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:345
 msgid "Field"
@@ -5811,76 +5811,76 @@ msgstr "Що потрібно зробити?"
 msgid "Read"
 msgstr "Читання"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:117
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:118
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:133
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:134
 msgid "Created the document"
 msgstr "Створив документ"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:119
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:120
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:135
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:136
 msgid "Updated the document"
 msgstr "Оновив документ"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:121
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:122
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:137
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:138
 msgid "Deleted the document"
 msgstr "Видалив документ"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:124
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:140
 msgid "Restored a version"
 msgstr "Відновив версію"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:125
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:141
 msgid "Changed the status"
 msgstr "Змінив статус"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:145
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:161
 #: grunt/frontend/src/components/views/sidebar/TimelineChanges.vue:54
 #: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:553
 msgid "{n} rows"
 msgstr "{n} рядків"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:182
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:198
 msgid "Version {n}"
 msgstr "Версія {n}"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:182
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:379
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:198
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:430
 msgid "Changes"
 msgstr "Зміни"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:198
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:214
 msgid "Before"
 msgstr "Було"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:199
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:215
 msgid "After"
 msgstr "Стало"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:203
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:219
 msgid "Restore this version"
 msgstr "Відновити цю версію"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:206
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:222
 msgid ""
 "Restore the document to this version? Current field values will be replaced."
 msgstr ""
 "Відновити документ до цієї версії? Поточні значення полів буде замінено."
 
 #: grunt/frontend/src/plugins/__tests__/i18n.spec.ts:29
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:334
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:385
 msgid "Write a comment... @ to mention"
 msgstr "Напишіть коментар... @ для згадки"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:340
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:391
 msgid "Mention a user"
 msgstr "Згадати користувача"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:367
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:418
 msgid "Send"
 msgstr "Надіслати"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:373
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:424
 msgid "No activity yet"
 msgstr "Поки що немає активності"
 
@@ -6175,7 +6175,7 @@ msgstr "Невірний email або пароль"
 msgid "Too many failed attempts. The account is temporarily locked."
 msgstr "Забагато невдалих спроб. Акаунт тимчасово заблоковано."
 
-#: grunt/grunt/publish.py:298 grunt/grunt/startup/errors.py:259
+#: grunt/grunt/publish.py:302 grunt/grunt/startup/errors.py:259
 #: grunt/grunt/io/doctypes/DataImport/DataImport.js:98
 #: grunt/grunt/webhook/doctypes/OutgoingWebhook/OutgoingWebhook.js:84
 #: grunt/grunt/webhook/doctypes/OutgoingWebhook/OutgoingWebhook.js:199
@@ -6616,7 +6616,7 @@ msgstr "Введіть мінімум 2 символи для пошуку"
 msgid "Try rebuilding the index"
 msgstr "Спробувати перебудувати індекс"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:379
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:430
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:367
 #: grunt/frontend/src/pages/app/SearchResultsPage.vue:191
 msgid "All"
@@ -13388,7 +13388,7 @@ msgstr "Поле «Filters (JSON)» має містити валідний JSON.
 msgid "The comment cannot be empty"
 msgstr "Вміст коментаря не може бути порожнім"
 
-#: grunt/grunt/document/doctypes/Comment/comment.py:29
+#: grunt/grunt/document/doctypes/Comment/comment.py:50
 msgid "Only the author or an administrator can delete a comment"
 msgstr "Видалити коментар може лише автор або адміністратор"
 
@@ -13480,7 +13480,7 @@ msgstr "Немає доступу до файлу"
 msgid "A city is required: pick one from the list or type it in"
 msgstr "Необхідно вказати місто: оберіть зі списку або введіть текстом"
 
-#: grunt/grunt/document/mixins/collaboration_rpc.py:85
+#: grunt/grunt/document/mixins/collaboration_rpc.py:90
 msgid "%(user)s mentioned you in a comment"
 msgstr "%(user)s згадав вас у коментарі"
 
@@ -13781,7 +13781,7 @@ msgstr "Бракує обов'язкових параметрів: %(items)s"
 msgid "No filename provided"
 msgstr "Не вказано назву файлу"
 
-#: grunt/grunt/document/mixins/collaboration_rpc.py:106
+#: grunt/grunt/document/mixins/collaboration_rpc.py:133
 msgid "Not allowed"
 msgstr "Не дозволено"
 
@@ -13856,7 +13856,7 @@ msgstr "Користувача не знайдено або він неакти�
 msgid "User with email '%(email)s' already exists"
 msgstr "Користувач з адресою «%(email)s» вже існує"
 
-#: grunt/grunt/document/mixins/collaboration_rpc.py:64
+#: grunt/grunt/document/mixins/collaboration_rpc.py:68
 msgid "content is required"
 msgstr "content обов'язковий"
 
@@ -14422,7 +14422,8 @@ msgstr "Не вдалося зберегти тег"
 msgid "Add tag…"
 msgstr "Додати тег…"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:415
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:472
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:514
 msgid "Delete comment"
 msgstr "Видалити коментар"
 
@@ -14430,7 +14431,7 @@ msgstr "Видалити коментар"
 msgid "Optional. Without it the task only links to the document."
 msgstr "Необов’язково. Без тексту задача лише посилатиметься на документ."
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:362
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:413
 msgid "to send"
 msgstr "— надіслати"
 
@@ -14442,7 +14443,7 @@ msgstr "Порівняти й відновити"
 msgid "Show less"
 msgstr "Згорнути"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:168
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:184
 msgid "changed {n} field"
 msgid_plural "changed {n} fields"
 msgstr[0] "змінив(ла) {n} поле"
@@ -14454,7 +14455,7 @@ msgstr[2] "змінив(ла) {n} полів"
 msgid "cleared"
 msgstr "очищено"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:165
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:181
 msgid "commented"
 msgstr "прокоментував(ла)"
 
@@ -14473,11 +14474,11 @@ msgstr[0] "Ще {n} зміна"
 msgstr[1] "Ще {n} зміни"
 msgstr[2] "Ще {n} змін"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:172
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:188
 msgid "applied «{action}»"
 msgstr "виконав(ла) «{action}»"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:172
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:188
 msgid "changed the state"
 msgstr "змінив(ла) стан"
 
@@ -15049,7 +15050,7 @@ msgstr "Перезняти"
 msgid "Switch camera"
 msgstr "Перемкнути камеру"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:379
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:430
 #: grunt/frontend/src/components/views/list/ListRowMeta.vue:22
 msgid "Comments"
 msgstr "Коментарі"
@@ -15091,11 +15092,11 @@ msgctxt "meta:DocLike.user"
 msgid "User"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:385
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:436
 msgid "No changes yet"
 msgstr "Поки що немає змін"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:385
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:436
 msgid "No comments yet"
 msgstr "Поки що немає коментарів"
 
@@ -16050,6 +16051,47 @@ msgstr "Виконано із запізненням"
 msgctxt "status:ServiceLevelStatus"
 msgid "On track"
 msgstr "У строк"
+
+#: grunt/grunt/document/mixins/collaboration_rpc.py:112
+msgid "%(user)s replied to your comment"
+msgstr "%(user)s відповів(-ла) на ваш коментар"
+
+#: grunt/grunt/document/doctypes/Comment/comment.py:30
+msgid "A comment cannot reply to itself"
+msgstr "Коментар не може відповідати сам собі"
+
+#: grunt/grunt/document/doctypes/Comment/comment.py:43
+msgid "A reply must belong to the same document"
+msgstr "Відповідь має стосуватися того самого документа"
+
+#: grunt/grunt/document/doctypes/Comment/comment.py:60
+msgid ""
+"Others replied to this comment - only an administrator can delete the thread"
+msgstr ""
+"На цей коментар відповіли інші — видалити гілку може лише адміністратор"
+
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:465
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:531
+msgid "Reply"
+msgstr "Відповісти"
+
+#: grunt/grunt/document/doctypes/Comment/comment.py:38
+msgid "The comment you reply to no longer exists"
+msgstr "Коментар, на який ви відповідаєте, уже видалено"
+
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:525
+msgid "Write a reply..."
+msgstr "Напишіть відповідь..."
+
+#: grunt/grunt/document/doctypes/Comment/Comment.json
+msgctxt "help:Comment.parent_comment"
+msgid "The comment this one replies to (threads are one level deep)"
+msgstr "Коментар, на який це відповідь (гілки мають один рівень)"
+
+#: grunt/grunt/document/doctypes/Comment/Comment.json
+msgctxt "meta:Comment.parent_comment"
+msgid "Reply to"
+msgstr "Відповідь на"
 
 #~ msgctxt "help:DocTypeCalendarSource.doctype"
 #~ msgid "The document type added to the calendar as a separate source"
