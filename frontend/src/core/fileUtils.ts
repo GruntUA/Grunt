@@ -41,3 +41,18 @@ export function extractFileId(url: string): string | null {
     return m ? decodeURIComponent(m[1]) : null
   }
 }
+
+/** An http(s) link to a file elsewhere (an Attach field may keep one as is). */
+export function isExternalUrl(url: string): boolean {
+  return /^https?:\/\//i.test(url)
+}
+
+/** The file name of a link: the last part of its path, decoded, without the query. */
+export function linkFilename(url: string): string {
+  try {
+    const name = new URL(url, window.location.origin).pathname.replace(/\/+$/, '').split('/').pop()
+    return name ? decodeURIComponent(name) : url
+  } catch {
+    return url
+  }
+}

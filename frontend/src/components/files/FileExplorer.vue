@@ -61,6 +61,8 @@ const props = withDefaults(defineProps<{
   uploads?: boolean
   /** A file (id) in `folder` to select and scroll to on opening - the one being replaced. */
   focusFile?: string | null
+  /** «From a link» can also hand the link back as is, without downloading it (an Attach field). */
+  linkAsIs?: boolean
 }>(), { mode: 'folder', folder: null, view: 'details', incomingSize: 0, uploads: true })
 
 const emit = defineEmits<{
@@ -70,6 +72,8 @@ const emit = defineEmits<{
   'update:selection': [files: FileItem[]]
   /** File mode: a file was double-clicked (or Enter). */
   activate: [file: FileItem]
+  /** «Attach as a link» in the «From a link» bar (`linkAsIs`): the typed http(s) URL. */
+  link: [url: string]
 }>()
 
 const { t } = useI18n()
@@ -549,6 +553,17 @@ async function commitLink() {
   }
 }
 
+function attachLinkAsIs() {
+  const url = linkUrl.value.trim()
+  if (!/^https?:\/\/\S+$/i.test(url)) {
+    toast.error(t('Enter an http(s) link'))
+    focusLink()
+    return
+  }
+  linkOpen.value = false
+  emit('link', url)
+}
+
 // Quota of «My files»
 const usage = ref<{ used: number; quota: number | null } | null>(null)
 const usagePercent = computed(() =>
@@ -726,6 +741,10 @@ const ROW = 'grid w-full grid-cols-[minmax(0,1fr)_9rem_5rem_5rem] items-center g
         :aria-label="t('Link to a file')" :disabled="linkBusy" @keydown.esc.stop.prevent="linkOpen = false" />
       <Button type="submit" size="sm" :disabled="linkBusy">
         <RefreshCw v-if="linkBusy" class="animate-spin" />{{ t('Download') }}
+      </Button>
+      <Button v-if="linkAsIs" type="button" variant="outline" size="sm" :disabled="linkBusy"
+        :title="t('Keep the link to the file without downloading it')" @click="attachLinkAsIs">
+        {{ t('Attach as a link') }}
       </Button>
       <Button type="button" variant="ghost" size="sm" @click="linkOpen = false">{{ t('Cancel') }}</Button>
     </form>

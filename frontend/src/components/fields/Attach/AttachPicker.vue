@@ -9,7 +9,7 @@ import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { docsApi } from '@/core/api/docs'
 import type { FileItem } from '@/core/api/files'
-import { extractFileId } from '@/core/fileUtils'
+import { extractFileId, linkFilename } from '@/core/fileUtils'
 import FileExplorer from '@/components/files/FileExplorer.vue'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -59,6 +59,12 @@ function toResult(item: FileItem): AttachmentResult {
   return { url: item.url, filename: item.filename, contentType: item.content_type, fileItem: item }
 }
 
+/** «Attach as a link»: the URL is stored as is; the name is the last part of its path. */
+function attachLink(url: string) {
+  emit('select', { url, filename: linkFilename(url) })
+  emit('update:open', false)
+}
+
 function attach(items: FileItem[]) {
   if (!items.length) return
   if (props.multiple) emit('selectMany', items.map(toResult))
@@ -78,7 +84,8 @@ function attach(items: FileItem[]) {
       <FileExplorer v-if="ready" mode="file" :multiple="multiple" :image-only="imageOnly"
         :folder="startFolder" :focus-file="startFolder ? currentFile : null"
         :view="imageOnly ? 'tiles' : 'details'"
-        @update:selection="selection = $event" @activate="attach([$event])">
+        :link-as-is="!multiple"
+        @update:selection="selection = $event" @activate="attach([$event])" @link="attachLink">
         <template #footer>
           <Button :disabled="!selection.length" @click="attach(selection)">
             {{ actionLabel ?? (selection.length > 1 ? t('Attach ({n})', { n: selection.length }) : t('Attach')) }}

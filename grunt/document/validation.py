@@ -13,6 +13,13 @@ if TYPE_CHECKING:
     from grunt.metadata.doctype import DocType
 
 
+# Attach / Image hold a stored file (a site-relative URL) or a link to a file
+# elsewhere, kept as is without downloading it. Nothing else - a stored
+# ``javascript:`` value would become a clickable link in the form.
+_FILE_URL_TYPES = frozenset({"Attach", "Image"})
+_FILE_URL = re.compile(r"^(?:/(?!/)|https?://[^\s/]+)", re.IGNORECASE)
+
+
 def _label(field: Any) -> dict[str, str]:
     """``{"label": <translated field label>}`` for message interpolation."""
     return {"label": _(field.label or field.fieldname)}
@@ -39,6 +46,17 @@ def _validate_data(
                 errors.append(
                     f"{field.fieldname}: " + _("Field “%(label)s” is required") % _label(field)
                 )
+
+        if (
+            field.fieldtype in _FILE_URL_TYPES
+            and isinstance(value, str)
+            and value
+            and not _FILE_URL.match(value)
+        ):
+            errors.append(
+                f"{field.fieldname}: "
+                + _("Field “%(label)s” must be a file or an http(s) link") % _label(field)
+            )
 
         if field.validator and value is not None and value != "":
             error = validate_field_value(

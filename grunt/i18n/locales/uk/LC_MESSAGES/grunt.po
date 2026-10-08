@@ -227,7 +227,7 @@ msgid "Point the camera at a barcode or QR code"
 msgstr "Наведіть камеру на штрих-код або QR-код"
 
 #: grunt/frontend/src/components/fields/Attach/Attach.vue:35
-#: grunt/frontend/src/components/fields/Attach/Attach.vue:57
+#: grunt/frontend/src/components/fields/Attach/Attach.vue:59
 msgid "Attach a file…"
 msgstr "Прикріпити файл…"
 
@@ -236,8 +236,8 @@ msgstr "Прикріпити файл…"
 msgid "Attach an image…"
 msgstr "Прикріпити зображення…"
 
-#: grunt/frontend/src/components/fields/Attach/Attach.vue:63
-#: grunt/frontend/src/components/fields/Attach/Attach.vue:64
+#: grunt/frontend/src/components/fields/Attach/Attach.vue:65
+#: grunt/frontend/src/components/fields/Attach/Attach.vue:66
 msgid "Replace file"
 msgstr "Замінити файл"
 
@@ -247,8 +247,8 @@ msgstr "Замінити файл"
 msgid "Replace image"
 msgstr "Замінити зображення"
 
-#: grunt/frontend/src/components/fields/Attach/Attach.vue:74
-#: grunt/frontend/src/components/fields/Attach/Attach.vue:75
+#: grunt/frontend/src/components/fields/Attach/Attach.vue:76
+#: grunt/frontend/src/components/fields/Attach/Attach.vue:77
 #: grunt/frontend/src/components/fields/Image/Image.vue:55
 #: grunt/frontend/src/components/fields/Image/Image.vue:56
 msgid "Remove attachment"
@@ -2836,15 +2836,15 @@ msgstr "Застосувати до"
 msgid "Apps"
 msgstr "Додатки"
 
-#: grunt/frontend/src/components/fields/Attach/AttachPicker.vue:84
+#: grunt/frontend/src/components/fields/Attach/AttachPicker.vue:91
 msgid "Attach"
 msgstr "Прикріпити"
 
-#: grunt/frontend/src/components/fields/Attach/AttachPicker.vue:75
+#: grunt/frontend/src/components/fields/Attach/AttachPicker.vue:81
 msgid "Attach a file"
 msgstr "Прикріпити файл"
 
-#: grunt/frontend/src/components/fields/Attach/AttachPicker.vue:75
+#: grunt/frontend/src/components/fields/Attach/AttachPicker.vue:81
 msgid "Attach an image"
 msgstr "Прикріпити зображення"
 
@@ -2889,8 +2889,8 @@ msgstr "Камера недоступна."
 #: grunt/frontend/src/components/views/FilterBar.vue:344
 #: grunt/frontend/src/components/files/CameraCapture.vue:136
 #: grunt/frontend/src/components/files/FolderPickerDialog.vue:44
-#: grunt/frontend/src/components/files/FileExplorer.vue:730
-#: grunt/frontend/src/components/files/FileExplorer.vue:858
+#: grunt/frontend/src/components/files/FileExplorer.vue:749
+#: grunt/frontend/src/components/files/FileExplorer.vue:877
 #: grunt/frontend/src/components/workflow/WorkflowActionDialog.vue:105
 #: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:527
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue:347
@@ -2944,7 +2944,7 @@ msgstr "Конверсія:"
 
 #: grunt/frontend/src/components/desk/GruntDialog.vue:364
 #: grunt/frontend/src/components/debug/ServerErrorModal.vue:72
-#: grunt/frontend/src/components/files/FileExplorer.vue:695
+#: grunt/frontend/src/components/files/FileExplorer.vue:710
 #: grunt/frontend/src/components/views/form/FormHeader.vue:369
 #: grunt/frontend/src/pages/app/AppPage.vue:482
 msgid "Copy"
@@ -2956,7 +2956,7 @@ msgid "Count (COUNT)"
 msgstr "Кількість (COUNT)"
 
 #: grunt/frontend/src/components/layout/OfflineQueueSheet.vue:24
-#: grunt/frontend/src/components/files/FileExplorer.vue:673
+#: grunt/frontend/src/components/files/FileExplorer.vue:688
 #: grunt/frontend/src/components/fields/Link/Link.vue:218
 msgid "Create"
 msgstr "Створити"
@@ -2992,8 +2992,8 @@ msgstr "Поле дати"
 #: grunt/frontend/src/components/views/BulkActionBar.vue:303
 #: grunt/frontend/src/components/dashboard/WidgetConfigPanel.vue:77
 #: grunt/frontend/src/components/dashboard/WidgetCard.vue:55
-#: grunt/frontend/src/components/files/FileExplorer.vue:708
-#: grunt/frontend/src/components/files/FileExplorer.vue:859
+#: grunt/frontend/src/components/files/FileExplorer.vue:723
+#: grunt/frontend/src/components/files/FileExplorer.vue:878
 #: grunt/frontend/src/components/dashboard/sections/FiltersSection.vue:82
 #: grunt/frontend/src/components/views/form/FormModals.vue:140
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:433
@@ -3246,7 +3246,7 @@ msgstr "Має бути числом"
 #: grunt/grunt/cli/doctype.py:162 grunt/grunt/auth/doctypes/User/User.js:180
 #: grunt/frontend/src/core/composables/useFormValidation.ts:83
 #: grunt/frontend/src/core/composables/useFormValidation.ts:97
-#: grunt/frontend/src/components/files/FileExplorer.vue:768
+#: grunt/frontend/src/components/files/FileExplorer.vue:787
 #: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:318
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:246
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:263
@@ -3376,7 +3376,7 @@ msgstr "Швидке створення"
 #: grunt/grunt/metadata/doctypes/DocType/global_form.js:41
 #: grunt/grunt/metadata/doctypes/DocType/global_list.js:34
 #: grunt/frontend/src/components/dashboard/ActivityStream.vue:105
-#: grunt/frontend/src/components/files/FileExplorer.vue:658
+#: grunt/frontend/src/components/files/FileExplorer.vue:673
 #: grunt/frontend/src/pages/app/AppPage.vue:288
 #: grunt/frontend/src/pages/reports/ReportView.vue:209
 #: grunt/frontend/src/pages/desk/reports/ReportView.vue:83
@@ -3384,7 +3384,7 @@ msgid "Refresh"
 msgstr "Оновити"
 
 #: grunt/grunt/metadata/doctypes/DocType/global_form.js:162
-#: grunt/frontend/src/components/files/FileExplorer.vue:703
+#: grunt/frontend/src/components/files/FileExplorer.vue:718
 #: grunt/frontend/src/components/views/form/FormHeader.vue:336
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:263
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:427
@@ -3592,7 +3592,7 @@ msgid "Sign up"
 msgstr "Зареєструватися"
 
 #: grunt/grunt/monitoring/health.py:109
-#: grunt/frontend/src/components/files/FileExplorer.vue:771
+#: grunt/frontend/src/components/files/FileExplorer.vue:790
 #: grunt/frontend/src/components/fields/RichText/ui/ImageBubble.vue:77
 msgid "Size"
 msgstr "Розмір"
@@ -3635,7 +3635,7 @@ msgstr "Ціль"
 msgid "Tile {n}"
 msgstr "Плитка {n}"
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:713
+#: grunt/frontend/src/components/files/FileExplorer.vue:728
 #: grunt/frontend/src/components/dashboard/sections/TilesSection.vue:49
 msgid "Tiles"
 msgstr "Плитки"
@@ -3651,7 +3651,7 @@ msgid "Two-factor authentication"
 msgstr "Двофакторна автентифікація"
 
 #: grunt/frontend/src/components/dashboard/WidgetConfigPanel.vue:85
-#: grunt/frontend/src/components/files/FileExplorer.vue:770
+#: grunt/frontend/src/components/files/FileExplorer.vue:789
 msgid "Type"
 msgstr "Тип"
 
@@ -6365,7 +6365,7 @@ msgstr "Підтвердити вхід"
 msgid "Invalid or missing reset token."
 msgstr "Недійсний або відсутній токен скидання."
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:620
+#: grunt/frontend/src/components/files/FileExplorer.vue:635
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:333
 #: grunt/frontend/src/pages/auth/ResetPassword.vue:50
 msgid "Something went wrong"
@@ -6789,7 +6789,7 @@ msgid "Apply mine"
 msgstr "Застосувати мої"
 
 #: grunt/grunt/backups/doctypes/Backup/Backup.js:22
-#: grunt/frontend/src/components/files/FileExplorer.vue:728
+#: grunt/frontend/src/components/files/FileExplorer.vue:743
 msgid "Download"
 msgstr "Завантажити"
 
@@ -7273,7 +7273,7 @@ msgstr "Власник"
 
 #: grunt/frontend/src/components/views/DocSidebar.vue:69
 #: grunt/frontend/src/components/views/DocSidebar.vue:97
-#: grunt/frontend/src/components/files/FileExplorer.vue:713
+#: grunt/frontend/src/components/files/FileExplorer.vue:728
 msgid "Details"
 msgstr "Деталі"
 
@@ -8298,7 +8298,7 @@ msgstr "Доступ адміністратора"
 msgid "Set a strong password for the main account."
 msgstr "Встановіть надійний пароль для головного акаунту."
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:632
+#: grunt/frontend/src/components/files/FileExplorer.vue:647
 #: grunt/frontend/src/pages/setup/SetupWizard.vue:174
 msgid "Back"
 msgstr "Назад"
@@ -12851,23 +12851,23 @@ msgstr ""
 "Скрипт повинен присвоїти `result = {'columns': [...], 'data': [...]}` або "
 "`query = 'SELECT ...'`"
 
-#: grunt/grunt/webform/service.py:242 grunt/grunt/document/validation.py:40
+#: grunt/grunt/webform/service.py:242 grunt/grunt/document/validation.py:47
 msgid "Field “%(label)s” is required"
 msgstr "Поле «%(label)s» є обов'язковим"
 
-#: grunt/grunt/document/validation.py:60
+#: grunt/grunt/document/validation.py:78
 msgid "Field “%(label)s” is too long (maximum %(max)s characters)"
 msgstr "Поле «%(label)s» занадто довге (максимум %(max)s символів)"
 
-#: grunt/grunt/document/validation.py:72
+#: grunt/grunt/document/validation.py:90
 msgid "Field “%(label)s” must be at least %(min)s"
 msgstr "Поле «%(label)s» має бути не менше %(min)s"
 
-#: grunt/grunt/document/validation.py:78
+#: grunt/grunt/document/validation.py:96
 msgid "Field “%(label)s” must be at most %(max)s"
 msgstr "Поле «%(label)s» має бути не більше %(max)s"
 
-#: grunt/grunt/document/validation.py:91
+#: grunt/grunt/document/validation.py:109
 msgid "Field “%(label)s” does not match the format"
 msgstr "Поле «%(label)s» не відповідає формату"
 
@@ -13926,7 +13926,7 @@ msgid "~{n} min"
 msgstr "~{n} хв"
 
 #: grunt/frontend/src/components/desk/TaskProgressPanel.vue:111
-#: grunt/frontend/src/components/files/FileExplorer.vue:744
+#: grunt/frontend/src/components/files/FileExplorer.vue:763
 #: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue:426
 #: grunt/frontend/src/components/ui/tree-select/TreeSelectNode.vue:65
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:398
@@ -13936,7 +13936,7 @@ msgstr "Розгорнути"
 #: grunt/frontend/src/components/desk/TaskProgressPanel.vue:111
 #: grunt/frontend/src/components/views/DocSidebar.vue:73
 #: grunt/frontend/src/components/views/DocSidebar.vue:78
-#: grunt/frontend/src/components/files/FileExplorer.vue:744
+#: grunt/frontend/src/components/files/FileExplorer.vue:763
 #: grunt/frontend/src/components/ui/tree-select/TreeSelectNode.vue:65
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:398
 msgid "Collapse"
@@ -14027,7 +14027,7 @@ msgstr ""
 msgid "Moved: {n}"
 msgstr "Переміщено: {n}"
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:309
+#: grunt/frontend/src/components/files/FileExplorer.vue:313
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:246
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:353
 msgid "New folder"
@@ -14124,7 +14124,7 @@ msgstr ""
 msgid "Uploading files"
 msgstr "Завантаження файлів"
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:395
+#: grunt/frontend/src/components/files/FileExplorer.vue:399
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:237
 msgid "Not moved: {n}"
 msgstr "Не переміщено: {n}"
@@ -14191,7 +14191,7 @@ msgstr "Змінити…"
 msgid "Choose from the tree"
 msgstr "Вибрати з дерева"
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:869
+#: grunt/frontend/src/components/files/FileExplorer.vue:888
 #: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue:181
 msgid "Selected: {n}"
 msgstr "Вибрано: {n}"
@@ -14647,14 +14647,14 @@ msgid "Personal space quota, MB"
 msgstr "Квота особистого простору, МБ"
 
 #: grunt/grunt/storage/doctypes/File/File.js:22
-#: grunt/frontend/src/components/files/FileExplorer.vue:677
-#: grunt/frontend/src/components/files/FileExplorer.vue:800
+#: grunt/frontend/src/components/files/FileExplorer.vue:692
+#: grunt/frontend/src/components/files/FileExplorer.vue:819
 msgid "Folder"
 msgstr "Тека"
 
 #: grunt/grunt/storage/doctypes/File/File.js:24
 #: grunt/grunt/storage/doctypes/FileFolder/file_folder.py:100
-#: grunt/frontend/src/components/files/FileExplorer.vue:98
+#: grunt/frontend/src/components/files/FileExplorer.vue:102
 msgid "My files"
 msgstr "Мої файли"
 
@@ -14687,7 +14687,7 @@ msgstr "Файли: {n}"
 msgid "Upload files"
 msgstr "Завантаження файлів"
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:875
+#: grunt/frontend/src/components/files/FileExplorer.vue:894
 msgid "{used} of {quota} used"
 msgstr "Зайнято {used} з {quota}"
 
@@ -14888,31 +14888,31 @@ msgstr "Підкреслений"
 msgid "Choose a folder"
 msgstr "Оберіть теку"
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:769
+#: grunt/frontend/src/components/files/FileExplorer.vue:788
 msgid "Date modified"
 msgstr "Дата зміни"
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:642
+#: grunt/frontend/src/components/files/FileExplorer.vue:657
 msgid "Folder path"
 msgstr "Шлях до теки"
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:735
+#: grunt/frontend/src/components/files/FileExplorer.vue:754
 msgid "Folders"
 msgstr "Теки"
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:635
+#: grunt/frontend/src/components/files/FileExplorer.vue:650
 msgid "Forward"
 msgstr "Вперед"
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:868
+#: grunt/frontend/src/components/files/FileExplorer.vue:887
 msgid "Items: {n}"
 msgstr "Елементів: {n}"
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:846
+#: grunt/frontend/src/components/files/FileExplorer.vue:865
 msgid "This folder is empty"
 msgstr "Ця тека порожня"
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:638
+#: grunt/frontend/src/components/files/FileExplorer.vue:653
 msgid "Up"
 msgstr "Вгору"
 
@@ -14920,7 +14920,7 @@ msgstr "Вгору"
 msgid "Upload to «{name}»"
 msgstr "Завантажити в «{name}»"
 
-#: grunt/frontend/src/components/fields/Attach/AttachPicker.vue:84
+#: grunt/frontend/src/components/fields/Attach/AttachPicker.vue:91
 msgid "Attach ({n})"
 msgstr "Прикріпити ({n})"
 
@@ -14933,7 +14933,7 @@ msgstr "Посилання на файл…"
 msgid "Insert link"
 msgstr "Вставити посилання"
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:726
+#: grunt/frontend/src/components/files/FileExplorer.vue:741
 #: grunt/frontend/src/components/fields/RichText/RichText.vue:85
 msgid "Link to a file"
 msgstr "Посилання на файл"
@@ -14951,19 +14951,19 @@ msgctxt "file name"
 msgid "copy"
 msgstr "копія"
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:691
+#: grunt/frontend/src/components/files/FileExplorer.vue:706
 msgid "Cut"
 msgstr "Вирізати"
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:855
+#: grunt/frontend/src/components/files/FileExplorer.vue:874
 msgid "Delete selected: {n}? Folders go with everything in them."
 msgstr "Видалити вибране ({n})? Теки — разом з усім вмістом."
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:700
+#: grunt/frontend/src/components/files/FileExplorer.vue:715
 msgid "Paste"
 msgstr "Вставити"
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:546
+#: grunt/frontend/src/components/files/FileExplorer.vue:550
 msgid "Could not download the file"
 msgstr "Не вдалося завантажити файл"
 
@@ -14971,15 +14971,15 @@ msgstr "Не вдалося завантажити файл"
 msgid "Could not download the file: %(error)s"
 msgstr "Не вдалося завантажити файл: %(error)s"
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:680
+#: grunt/frontend/src/components/files/FileExplorer.vue:695
 msgid "Files from the computer…"
 msgstr "Файли з комп’ютера…"
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:681
+#: grunt/frontend/src/components/files/FileExplorer.vue:696
 msgid "Folder from the computer…"
 msgstr "Теку з комп’ютера…"
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:683
+#: grunt/frontend/src/components/files/FileExplorer.vue:698
 msgid "From a link…"
 msgstr "За посиланням…"
 
@@ -14987,7 +14987,7 @@ msgstr "За посиланням…"
 msgid "Links to internal network addresses are not allowed"
 msgstr "Посилання на адреси внутрішньої мережі заборонені"
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:507
+#: grunt/frontend/src/components/files/FileExplorer.vue:511
 msgid "Not uploaded: {n}"
 msgstr "Не завантажено: {n}"
 
@@ -14995,7 +14995,7 @@ msgstr "Не завантажено: {n}"
 msgid "Only http:// and https:// links can be downloaded"
 msgstr "Завантажити можна лише посилання http:// і https://"
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:682
+#: grunt/frontend/src/components/files/FileExplorer.vue:697
 msgid "Photo from the camera"
 msgstr "Фото з камери"
 
@@ -15011,16 +15011,16 @@ msgstr "Сайт «%(host)s» не знайдено"
 msgid "Too many redirects"
 msgstr "Забагато переадресацій"
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:865
+#: grunt/frontend/src/components/files/FileExplorer.vue:884
 msgid "Uploading {done} of {total}…"
 msgstr "Завантаження {done} з {total}…"
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:663
-#: grunt/frontend/src/components/files/FileExplorer.vue:664
+#: grunt/frontend/src/components/files/FileExplorer.vue:678
+#: grunt/frontend/src/components/files/FileExplorer.vue:679
 msgid "Search all files"
 msgstr "Пошук у всіх файлах"
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:645
+#: grunt/frontend/src/components/files/FileExplorer.vue:660
 msgid "Search results for «{q}»"
 msgstr "Результати пошуку «{q}»"
 
@@ -16516,6 +16516,22 @@ msgstr "За зростанням"
 msgctxt "select:DocType.sort_order"
 msgid "desc"
 msgstr "За спаданням"
+
+#: grunt/frontend/src/components/files/FileExplorer.vue:747
+msgid "Attach as a link"
+msgstr "Прикріпити посиланням"
+
+#: grunt/frontend/src/components/files/FileExplorer.vue:559
+msgid "Enter an http(s) link"
+msgstr "Введіть посилання http(s)"
+
+#: grunt/grunt/document/validation.py:58
+msgid "Field “%(label)s” must be a file or an http(s) link"
+msgstr "Поле «%(label)s» має містити файл або посилання http(s)"
+
+#: grunt/frontend/src/components/files/FileExplorer.vue:746
+msgid "Keep the link to the file without downloading it"
+msgstr "Зберегти посилання на файл, не завантажуючи його"
 
 #~ msgctxt "help:DocTypeCalendarSource.doctype"
 #~ msgid "The document type added to the calendar as a separate source"

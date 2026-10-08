@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { BaseFieldProps } from '@/types'
-import { Paperclip, X, ExternalLink } from '@lucide/vue'
+import { Paperclip, X, ExternalLink, Link2 } from '@lucide/vue'
 import { cn } from '@/lib/utils'
 import AttachPicker from './AttachPicker.vue'
 import { useAttachmentField } from './useAttachmentField'
@@ -11,7 +11,7 @@ const props = defineProps<BaseFieldProps>()
 const emit = defineEmits<{ 'update:modelValue': [value: unknown] }>()
 
 const { t } = useI18n()
-const { isDisabled, currentUrl, filename, onSelect, remove } = useAttachmentField(props, emit)
+const { isDisabled, currentUrl, isExternal, filename, onSelect, remove } = useAttachmentField(props, emit)
 
 const pickerOpen = ref(false)
 
@@ -38,12 +38,14 @@ function openPicker() {
       @keydown.enter.prevent="!currentUrl && openPicker()"
       @keydown.space.prevent="!currentUrl && openPicker()"
     >
-      <Paperclip class="size-4 shrink-0 text-muted-foreground" />
+      <Link2 v-if="isExternal" class="size-4 shrink-0 text-muted-foreground" />
+      <Paperclip v-else class="size-4 shrink-0 text-muted-foreground" />
 
-      <!-- File attached: filename opens the file in a new tab -->
+      <!-- File attached: filename opens the file in a new tab; a link shows its address on hover -->
       <a
         v-if="currentUrl"
         :href="currentUrl"
+        :title="isExternal ? currentUrl : undefined"
         target="_blank"
         rel="noopener noreferrer"
         class="flex min-w-0 flex-1 items-center gap-1 truncate text-primary hover:underline"

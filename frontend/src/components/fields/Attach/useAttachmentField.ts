@@ -5,7 +5,7 @@
 import { ref, computed, watch, inject } from 'vue'
 import type { AttachmentResult } from '@/components/fields/Attach/attachment'
 import { filesApi } from '@/core/api/files'
-import { extractFileId } from '@/core/fileUtils'
+import { extractFileId, isExternalUrl, linkFilename } from '@/core/fileUtils'
 
 export interface DocContext {
   doctype: string
@@ -30,6 +30,9 @@ export function useAttachmentField(
     typeof props.modelValue === 'string' && props.modelValue ? props.modelValue : null,
   )
 
+  /** A link to a file elsewhere, kept without downloading it. */
+  const isExternal = computed(() => !!currentUrl.value && isExternalUrl(currentUrl.value))
+
   const filename = ref<string | null>(null)
 
   watch(
@@ -41,7 +44,7 @@ export function useAttachmentField(
       }
       const fileId = extractFileId(url)
       if (!fileId) {
-        filename.value = url.split('/').pop() ?? url
+        filename.value = linkFilename(url)
         return
       }
       try {
@@ -63,5 +66,5 @@ export function useAttachmentField(
     emit('update:modelValue', null)
   }
 
-  return { docContext, isDisabled, currentUrl, filename, onSelect, remove }
+  return { docContext, isDisabled, currentUrl, isExternal, filename, onSelect, remove }
 }

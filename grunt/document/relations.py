@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 from typing import TYPE_CHECKING, Any
+from urllib.parse import unquote, urlsplit
 
 from sqlalchemy import select
 
@@ -212,6 +213,7 @@ async def _inject_attach_field_labels(
 ) -> None:
     """Resolve each row's stored ``file_id`` to its real filename via ``File``."""
     file_id_by_row_idx: dict[int, str] = {}
+    label_key = f"{af.fieldname}__label"
     for i, row in enumerate(rows):
         raw = row.get(af.fieldname)
         if not raw:
@@ -219,6 +221,11 @@ async def _inject_attach_field_labels(
         match = _ATTACH_FILE_ID_RE.search(str(raw))
         if match:
             file_id_by_row_idx[i] = match.group(1)
+        elif str(raw).lower().startswith(("http://", "https://")):
+            # A link to a file elsewhere: its name is the last part of the path.
+            name = unquote(urlsplit(str(raw)).path.rstrip("/").rpartition("/")[2])
+            if name:
+                rows[i][label_key] = name
 
     if not file_id_by_row_idx:
         return
@@ -244,7 +251,6 @@ async def _inject_attach_field_labels(
         log.warning("attach_labels.fetch_error", field=af.fieldname, error=str(exc))
         return
 
-    label_key = f"{af.fieldname}__label"
     for i, file_id in file_id_by_row_idx.items():
         label = name_map.get(file_id)
         if label:
