@@ -24,6 +24,10 @@ doc_events: dict[str, dict[str, list[str]]] = {
         "after_save": ["grunt.i18n.hooks.refresh_supported_languages"],
         "after_delete": ["grunt.i18n.hooks.refresh_supported_languages"],
     },
+    # Keep the milestone tracker cache (grunt.activity.milestones) fresh.
+    "MilestoneTracker": {
+        "after_delete": ["grunt.activity.milestones.invalidate"],
+    },
     # Keep the SLA policy cache (grunt.notification.sla) fresh.
     "ServiceLevel": {
         "after_save": ["grunt.notification.sla.invalidate"],
@@ -43,6 +47,8 @@ doc_events: dict[str, dict[str, list[str]]] = {
             "grunt.standard_records.sync_files",
             # Start / move / stop SLA clocks (no-op without a ServiceLevel).
             "grunt.notification.sla.on_document_saved",
+            # Time-in-status history (no-op without a MilestoneTracker).
+            "grunt.activity.milestones.on_document_saved",
         ],
         "after_rename": ["grunt.standard_records.sync_files"],
         # Snapshot the doc first (restorable trash bin), then log the delete.
@@ -53,6 +59,7 @@ doc_events: dict[str, dict[str, list[str]]] = {
             "grunt.activity.likes.drop_likes",
             "grunt.standard_records.sync_files",
             "grunt.notification.sla.on_document_deleted",
+            "grunt.activity.milestones.on_document_deleted",
         ],
         # Record per-user "seen" state / ViewLog for DocTypes that opt in via
         # track_seen / track_views (no-op for everything else).

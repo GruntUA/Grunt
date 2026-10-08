@@ -1,0 +1,134 @@
+{
+  "name": "Milestone",
+  "label": "Milestone",
+  "module": "activity",
+  "icon": "milestone",
+  "description": "A document's stay in one value of a tracked field",
+  "autoname": "hash",
+  "title_field": "value",
+  "search_fields": [
+    "ref_name",
+    "value"
+  ],
+  "track_activity": false,
+  "hide_from_activity_feed": true,
+  "default_view": "list",
+  "indexes": [
+    [
+      "ref_doctype",
+      "ref_name"
+    ],
+    [
+      "ref_doctype",
+      "track_field",
+      "value"
+    ]
+  ],
+  "inherit_permission_from": [
+    [
+      "ref_doctype",
+      "ref_name"
+    ]
+  ],
+  "fields": [
+    {
+      "fieldname": "ref_doctype",
+      "label": "Document type",
+      "fieldtype": "Link",
+      "options": "DocType",
+      "read_only": true,
+      "in_list_view": true,
+      "in_quick_filter": true
+    },
+    {
+      "fieldname": "ref_name",
+      "label": "Document",
+      "fieldtype": "DynamicLink",
+      "options": "ref_doctype",
+      "read_only": true,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "track_field",
+      "label": "Field",
+      "fieldtype": "Data",
+      "read_only": true
+    },
+    {
+      "fieldname": "col_value",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "value",
+      "label": "Value",
+      "fieldtype": "Data",
+      "read_only": true,
+      "in_list_view": true,
+      "bold": true,
+      "in_quick_filter": true
+    },
+    {
+      "fieldname": "previous_value",
+      "label": "Previous value",
+      "fieldtype": "Data",
+      "read_only": true
+    },
+    {
+      "fieldname": "sec_time",
+      "label": "Time",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "entered_at",
+      "label": "Entered",
+      "fieldtype": "Datetime",
+      "read_only": true,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "left_at",
+      "label": "Left",
+      "fieldtype": "Datetime",
+      "read_only": true
+    },
+    {
+      "fieldname": "col_time",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "duration_hours",
+      "label": "Hours",
+      "fieldtype": "Float",
+      "read_only": true,
+      "in_list_view": true,
+      "description": "Empty while the document is still in this value"
+    },
+    {
+      "fieldname": "entered_by",
+      "label": "Changed by",
+      "fieldtype": "Link",
+      "options": "User",
+      "read_only": true
+    },
+    {
+      "fieldname": "approximate",
+      "label": "Approximate",
+      "fieldtype": "Check",
+      "default": false,
+      "read_only": true,
+      "description": "Seeded when tracking started - the entry time is the document's last modification"
+    }
+  ],
+  "permissions": [
+    {
+      "role": "All",
+      "read": true
+    },
+    {
+      "role": "System Manager",
+      "read": true,
+      "write": true,
+      "delete": true
+    }
+  ]
+}

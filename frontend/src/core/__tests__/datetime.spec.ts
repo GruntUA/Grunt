@@ -6,6 +6,7 @@ import {
   formatTime,
   dateFormatSpec,
   formatAge,
+  formatSpan,
   EMPTY_DATE,
 } from '@/core/datetime'
 
@@ -93,5 +94,16 @@ describe('core/datetime', () => {
     expect(formatAge(ago(5 * 60))).toMatch(/^5\s/)
     expect(formatAge(ago(3 * 86400))).toMatch(/^3\s/)
     expect(formatAge(ago(400 * 86400))).toMatch(/^1\s/)
+  })
+
+  it('formatSpan shows the two largest units of a duration', () => {
+    expect(formatSpan(null)).toBe(EMPTY_DATE)
+    expect(formatSpan(30)).toBe('just now')
+    expect(formatSpan(45 * 60)).toMatch(/^45\s\S+$/)
+    // 3 days 4 hours 10 minutes -> days and hours only
+    const parts = formatSpan(3 * 86400 + 4 * 3600 + 600).split(/\s+/)
+    expect(parts[0]).toBe('3')
+    expect(parts).toContain('4')
+    expect(parts).not.toContain('10')
   })
 })

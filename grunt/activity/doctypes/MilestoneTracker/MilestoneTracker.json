@@ -1,0 +1,57 @@
+{
+  "name": "MilestoneTracker",
+  "label": "Milestone Tracker",
+  "module": "activity",
+  "icon": "flag",
+  "description": "Records when documents enter each value of a field (usually the status) and how long they stay there",
+  "autoname": "hash",
+  "title_field": "ref_doctype",
+  "search_fields": [
+    "ref_doctype",
+    "track_field"
+  ],
+  "track_changes": true,
+  "hide_from_activity_feed": true,
+  "fields": [
+    {
+      "fieldname": "ref_doctype",
+      "label": "Document type",
+      "fieldtype": "Link",
+      "options": "DocType",
+      "required": true,
+      "in_list_view": true,
+      "bold": true
+    },
+    {
+      "fieldname": "track_field",
+      "label": "Field",
+      "fieldtype": "Data",
+      "in_list_view": true,
+      "description": "Fieldname to track; empty: the DocType's status field"
+    },
+    {
+      "fieldname": "col_main",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "disabled",
+      "label": "Disabled",
+      "fieldtype": "Check",
+      "default": false,
+      "in_list_view": true
+    }
+  ],
+  "permissions": [
+    {
+      "role": "All",
+      "read": true
+    },
+    {
+      "role": "System Manager",
+      "read": true,
+      "write": true,
+      "create": true,
+      "delete": true
+    }
+  ]
+}

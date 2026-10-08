@@ -219,6 +219,10 @@ class DocumentMetaRPCMixin:
             [],
         )
 
+        from grunt.activity.milestones import history as milestone_history
+
+        milestones = await _optional(milestone_history(doctype, doc_id), [])
+
         bookmark = dict(bookmarks[0]) if bookmarks else None
         if bookmark and bookmark.get("created_at"):
             bookmark["created_at"] = _iso(bookmark["created_at"])
@@ -273,4 +277,16 @@ class DocumentMetaRPCMixin:
             "bookmark": bookmark,
             "follow": {"name": str(follows[0]["name"])} if follows else None,
             "people": people,
+            "milestones": [
+                {
+                    "name": str(m["name"]),
+                    "field": m.get("track_field"),
+                    "value": m.get("value"),
+                    "entered_at": _iso(m.get("entered_at")),
+                    "left_at": _iso(m.get("left_at")),
+                    "duration_hours": m.get("duration_hours"),
+                    "approximate": bool(m.get("approximate")),
+                }
+                for m in milestones
+            ],
         }

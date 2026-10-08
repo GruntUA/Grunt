@@ -5047,8 +5047,8 @@ msgid "PDF"
 msgstr "PDF"
 
 #: grunt/grunt/metadata/doctypes/DocType/global_form.js:54
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:268
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:272
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:273
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:277
 #: grunt/frontend/src/components/views/map/MapView.vue:205
 msgid "Print"
 msgstr "Друк"
@@ -5639,7 +5639,7 @@ msgstr "Стиснути"
 #: grunt/frontend/src/core/renderer/FieldRenderer.vue:143
 #: grunt/frontend/src/components/desk/GruntDialog.vue:362
 #: grunt/frontend/src/components/layout/CommandPalette.vue:142
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:162
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:163
 #: grunt/frontend/src/components/views/form/FormHeader.vue:461
 msgid "Copied"
 msgstr "Скопійовано"
@@ -5694,7 +5694,7 @@ msgstr ""
 "Ви внесли зміни, які буде втрачено, якщо ви покинете сторінку. Покинути без "
 "збереження?"
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:87
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:88
 msgid "Could not copy"
 msgstr "Не вдалося скопіювати"
 
@@ -5726,12 +5726,12 @@ msgstr "Високий"
 msgid "Remove {name} from assignees?"
 msgstr "Прибрати {name} з відповідальних?"
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:135
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:136
 msgid "Status"
 msgstr "Статус"
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:157
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:162
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:158
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:163
 msgid "Copy ID"
 msgstr "Скопіювати ідентифікатор"
 
@@ -5766,29 +5766,29 @@ msgstr "Доступ"
 msgid "Tags"
 msgstr "Теги"
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:248
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:253
 msgid "You get notified about changes and comments"
 msgstr "Ви отримуєте сповіщення про зміни та коментарі"
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:248
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:253
 msgid "Get notified about changes and comments"
 msgstr "Отримувати сповіщення про зміни та коментарі"
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:244
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:249
 msgid "Following"
 msgstr "Стежу"
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:244
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:249
 msgid "Follow"
 msgstr "Стежити"
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:258
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:264
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:263
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:269
 msgid "Bookmarked"
 msgstr "У закладках"
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:258
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:264
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:263
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:269
 msgid "Bookmark"
 msgstr "Закладка"
 
@@ -6422,8 +6422,9 @@ msgid "Good evening, {name}"
 msgstr "Доброго вечора, {name}"
 
 #: grunt/frontend/src/pages/DeskPage.vue:102
-#: grunt/frontend/src/core/datetime.ts:193
-#: grunt/frontend/src/core/datetime.ts:200
+#: grunt/frontend/src/core/datetime.ts:192
+#: grunt/frontend/src/core/datetime.ts:212
+#: grunt/frontend/src/core/datetime.ts:219
 #: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:65
 msgid "just now"
 msgstr "щойно"
@@ -8321,7 +8322,7 @@ msgstr "Перехід"
 
 #: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:272
 #: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:310
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:144
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:145
 msgid "State"
 msgstr "Стан"
 
@@ -14365,7 +14366,7 @@ msgstr "Нікого не призначено"
 msgid "Not shared with anyone"
 msgstr "Ні з ким не поширено"
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:167
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:168
 msgid "On website"
 msgstr "На сайті"
 
@@ -14406,11 +14407,11 @@ msgstr "Завантажити з комп’ютера"
 msgid "Workflow"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:93
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:94
 msgid "created"
 msgstr "створив(ла)"
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:96
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:97
 msgid "modified"
 msgstr "змінив(ла)"
 
@@ -16241,6 +16242,159 @@ msgstr "Бланк"
 msgctxt "meta:PrintFormat.no_letter_head"
 msgid "Without letter head"
 msgstr "Без бланка"
+
+#: grunt/grunt/activity/doctypes/MilestoneTracker/milestone_tracker.py:39
+msgid "%(doctype)s has no status field - choose the field to track"
+msgstr "%(doctype)s не має поля статусу — оберіть поле для відстеження"
+
+#: grunt/grunt/activity/doctypes/MilestoneTracker/milestone_tracker.py:58
+msgid "%(doctype)s.%(field)s is already tracked"
+msgstr "%(doctype)s.%(field)s уже відстежується"
+
+#: grunt/frontend/src/components/views/sidebar/SidebarMilestones.vue:65
+msgid "Approximate: recorded when tracking started"
+msgstr "Приблизно: зафіксовано на початку відстеження"
+
+#: grunt/frontend/src/components/views/sidebar/SidebarMilestones.vue:62
+msgid "Entered"
+msgstr "Увійшов"
+
+#: grunt/frontend/src/components/views/sidebar/SidebarMilestones.vue:63
+msgid "Left"
+msgstr "Вийшов"
+
+#: grunt/grunt/activity/doctypes/MilestoneTracker/milestone_tracker.py:32
+msgid "Milestones cannot be tracked on “%(doctype)s”"
+msgstr "Етапи не можна відстежувати для «%(doctype)s»"
+
+#: grunt/frontend/src/components/views/sidebar/SidebarMilestones.vue:47
+msgid "Time in status"
+msgstr "Час у статусах"
+
+#: grunt/frontend/src/components/views/sidebar/SidebarMilestones.vue:47
+msgid "Time in «{field}»"
+msgstr "Час у «{field}»"
+
+#: grunt/frontend/src/components/views/sidebar/SidebarMilestones.vue:58
+msgid "now"
+msgstr "досі"
+
+#: grunt/grunt/activity/doctypes/MilestoneTracker/milestone_tracker.py:46
+msgid "“%(field)s” is not a field of %(doctype)s that can be tracked"
+msgstr "«%(field)s» не є полем %(doctype)s, яке можна відстежувати"
+
+#: grunt/grunt/activity/doctypes/Milestone/Milestone.json
+msgctxt "help:Milestone"
+msgid "A document's stay in one value of a tracked field"
+msgstr "Перебування документа в одному значенні відстежуваного поля"
+
+#: grunt/grunt/activity/doctypes/Milestone/Milestone.json
+msgctxt "help:Milestone.approximate"
+msgid ""
+"Seeded when tracking started - the entry time is the document's last "
+"modification"
+msgstr ""
+"Створено на початку відстеження — час входу дорівнює останній зміні "
+"документа"
+
+#: grunt/grunt/activity/doctypes/Milestone/Milestone.json
+msgctxt "help:Milestone.duration_hours"
+msgid "Empty while the document is still in this value"
+msgstr "Порожньо, поки документ у цьому значенні"
+
+#: grunt/grunt/activity/doctypes/MilestoneTracker/MilestoneTracker.json
+msgctxt "help:MilestoneTracker"
+msgid ""
+"Records when documents enter each value of a field (usually the status) and "
+"how long they stay there"
+msgstr ""
+"Фіксує, коли документи потрапляють у кожне значення поля (зазвичай статус) і"
+" скільки там перебувають"
+
+#: grunt/grunt/activity/doctypes/MilestoneTracker/MilestoneTracker.json
+msgctxt "help:MilestoneTracker.track_field"
+msgid "Fieldname to track; empty: the DocType's status field"
+msgstr "Поле для відстеження; порожньо — поле статусу DocType"
+
+#: grunt/grunt/activity/doctypes/Milestone/Milestone.json
+msgctxt "meta:Milestone"
+msgid "Milestone"
+msgstr "Етап"
+
+#: grunt/grunt/activity/doctypes/Milestone/Milestone.json
+msgctxt "meta:Milestone.approximate"
+msgid "Approximate"
+msgstr "Приблизно"
+
+#: grunt/grunt/activity/doctypes/Milestone/Milestone.json
+msgctxt "meta:Milestone.duration_hours"
+msgid "Hours"
+msgstr "Годин"
+
+#: grunt/grunt/activity/doctypes/Milestone/Milestone.json
+msgctxt "meta:Milestone.entered_at"
+msgid "Entered"
+msgstr "Увійшов"
+
+#: grunt/grunt/activity/doctypes/Milestone/Milestone.json
+msgctxt "meta:Milestone.entered_by"
+msgid "Changed by"
+msgstr "Змінив"
+
+#: grunt/grunt/activity/doctypes/Milestone/Milestone.json
+msgctxt "meta:Milestone.left_at"
+msgid "Left"
+msgstr "Вийшов"
+
+#: grunt/grunt/activity/doctypes/Milestone/Milestone.json
+msgctxt "meta:Milestone.previous_value"
+msgid "Previous value"
+msgstr "Попереднє значення"
+
+#: grunt/grunt/activity/doctypes/Milestone/Milestone.json
+msgctxt "meta:Milestone.ref_doctype"
+msgid "Document type"
+msgstr ""
+
+#: grunt/grunt/activity/doctypes/Milestone/Milestone.json
+msgctxt "meta:Milestone.ref_name"
+msgid "Document"
+msgstr "Документ"
+
+#: grunt/grunt/activity/doctypes/Milestone/Milestone.json
+msgctxt "meta:Milestone.sec_time"
+msgid "Time"
+msgstr "Час"
+
+#: grunt/grunt/activity/doctypes/Milestone/Milestone.json
+msgctxt "meta:Milestone.track_field"
+msgid "Field"
+msgstr "Поле"
+
+#: grunt/grunt/activity/doctypes/Milestone/Milestone.json
+msgctxt "meta:Milestone.value"
+msgid "Value"
+msgstr "Значення"
+
+#: grunt/grunt/activity/doctypes/MilestoneTracker/MilestoneTracker.json
+msgctxt "meta:MilestoneTracker"
+msgid "Milestone Tracker"
+msgstr "Відстеження етапів"
+
+#: grunt/grunt/activity/doctypes/MilestoneTracker/MilestoneTracker.json
+msgctxt "meta:MilestoneTracker.disabled"
+msgid "Disabled"
+msgstr "Вимкнено"
+
+#: grunt/grunt/activity/doctypes/MilestoneTracker/MilestoneTracker.json
+msgctxt "meta:MilestoneTracker.ref_doctype"
+msgid "Document type"
+msgstr ""
+
+#: grunt/grunt/activity/doctypes/MilestoneTracker/MilestoneTracker.json
+msgctxt "meta:MilestoneTracker.track_field"
+msgid "Field"
+msgstr "Поле"
 
 #~ msgctxt "help:DocTypeCalendarSource.doctype"
 #~ msgid "The document type added to the calendar as a separate source"

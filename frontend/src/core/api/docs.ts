@@ -91,6 +91,19 @@ export interface DocPreview {
   fields: { fieldname: string; label: string; fieldtype: string; options?: string | null }[]
 }
 
+/** One stay of the document in a value of a tracked field (MilestoneTracker). */
+export interface SidebarMilestone {
+  name: string
+  field: string
+  value: string
+  entered_at: string | null
+  /** Null while the document is still in this value. */
+  left_at: string | null
+  duration_hours: number | null
+  /** Seeded when tracking started - the entry time is only an estimate. */
+  approximate: boolean
+}
+
 export interface SidebarBundle {
   assignees: SidebarAssignee[]
   shares: SidebarShare[]
@@ -100,6 +113,8 @@ export interface SidebarBundle {
   follow: { name: string } | null
   /** email -> display name + avatar, for everyone referenced above */
   people: Record<string, SidebarPerson>
+  /** Time-in-status history, oldest first (empty unless a field is tracked). */
+  milestones?: SidebarMilestone[]
 }
 
 // Maps FilterBar display operators to backend query suffixes

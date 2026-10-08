@@ -183,6 +183,25 @@ export function formatRelative(value: DateInput): string {
 }
 
 /**
+ * A length of time as its two largest units: "3 дн. 4 год", "45 хв", "2 міс. 1 тиж.".
+ * For durations (time in a status), not points in time.
+ */
+export function formatSpan(seconds: number | null | undefined): string {
+  if (seconds == null || !Number.isFinite(seconds)) return EMPTY_DATE
+  let left = Math.max(0, Math.round(seconds))
+  if (left < 60) return t('just now')
+  const parts: string[] = []
+  for (const [unit, secs] of REL_STEPS) {
+    if (left < secs) continue
+    const n = Math.floor(left / secs)
+    parts.push(new Intl.NumberFormat(localeTag(), { style: 'unit', unit, unitDisplay: 'short' }).format(n))
+    left -= n * secs
+    if (parts.length === 2) break
+  }
+  return parts.join(' ')
+}
+
+/**
  * Compact age for dense lists, Frappe-style: "5 хв", "3 дн.", "9 міс.", "1 р.".
  * No "ago" suffix - the column header carries the meaning.
  */

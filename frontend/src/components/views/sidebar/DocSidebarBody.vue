@@ -11,6 +11,7 @@ import { resolveStatusBadge, statusBadgeFor } from '@/core/status'
 import SidebarImage from './SidebarImage.vue'
 import SidebarPeople from './SidebarPeople.vue'
 import SidebarTags from './SidebarTags.vue'
+import SidebarMilestones from './SidebarMilestones.vue'
 import SidebarPersonCard from './SidebarPersonCard.vue'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
@@ -219,6 +220,10 @@ function printDoc() {
       <SidebarPeople :sb="sb" :workspace="workspace" />
       <Separator />
       <SidebarTags :sb="sb" />
+      <template v-if="sb.bundle.value.milestones?.length">
+        <Separator />
+        <SidebarMilestones :doctype="doctype" :milestones="sb.bundle.value.milestones" />
+      </template>
     </template>
     <div v-else class="flex flex-col gap-3">
       <Skeleton class="h-4 w-24" />

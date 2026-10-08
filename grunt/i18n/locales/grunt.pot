@@ -50,8 +50,16 @@ msgstr ""
 msgid "%(count)s overdue"
 msgstr ""
 
+#: grunt/grunt/activity/doctypes/MilestoneTracker/milestone_tracker.py:39
+msgid "%(doctype)s has no status field - choose the field to track"
+msgstr ""
+
 #: grunt/grunt/activity/follow.py:95
 msgid "%(doctype)s “%(title)s” changed"
+msgstr ""
+
+#: grunt/grunt/activity/doctypes/MilestoneTracker/milestone_tracker.py:58
+msgid "%(doctype)s.%(field)s is already tracked"
 msgstr ""
 
 #: grunt/grunt/monitoring/health.py:389
@@ -538,6 +546,10 @@ msgstr ""
 msgid "Approve registration"
 msgstr ""
 
+#: grunt/frontend/src/components/views/sidebar/SidebarMilestones.vue:65
+msgid "Approximate: recorded when tracking started"
+msgstr ""
+
 #: grunt/frontend/src/components/app/AppSidebar.vue:99
 #: grunt/frontend/src/components/layout/CommandPalette.vue:159
 msgid "Apps"
@@ -815,13 +827,13 @@ msgstr ""
 msgid "Bold"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:258
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:264
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:263
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:269
 msgid "Bookmark"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:258
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:264
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:263
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:269
 msgid "Bookmarked"
 msgstr ""
 
@@ -1444,7 +1456,7 @@ msgstr ""
 #: grunt/frontend/src/core/renderer/FieldRenderer.vue:143
 #: grunt/frontend/src/components/desk/GruntDialog.vue:362
 #: grunt/frontend/src/components/layout/CommandPalette.vue:142
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:162
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:163
 #: grunt/frontend/src/components/views/form/FormHeader.vue:461
 msgid "Copied"
 msgstr ""
@@ -1465,8 +1477,8 @@ msgstr ""
 msgid "Copy"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:157
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:162
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:158
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:163
 msgid "Copy ID"
 msgstr ""
 
@@ -1511,7 +1523,7 @@ msgstr ""
 msgid "Could not apply the transition"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:87
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:88
 msgid "Could not copy"
 msgstr ""
 
@@ -2339,6 +2351,10 @@ msgstr ""
 msgid "Enter your email address first"
 msgstr ""
 
+#: grunt/frontend/src/components/views/sidebar/SidebarMilestones.vue:62
+msgid "Entered"
+msgstr ""
+
 #: grunt/frontend/src/components/views/FilterBar.vue:192
 msgid "Equals"
 msgstr ""
@@ -2697,11 +2713,11 @@ msgstr ""
 msgid "Folders"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:244
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:249
 msgid "Follow"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:244
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:249
 msgid "Following"
 msgstr ""
 
@@ -2822,7 +2838,7 @@ msgstr ""
 msgid "Generate link"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:248
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:253
 msgid "Get notified about changes and comments"
 msgstr ""
 
@@ -3448,6 +3464,10 @@ msgstr ""
 msgid "Leave this field empty"
 msgstr ""
 
+#: grunt/frontend/src/components/views/sidebar/SidebarMilestones.vue:63
+msgid "Left"
+msgstr ""
+
 #: grunt/frontend/src/components/views/FilterBar.vue:199
 msgid "Less than"
 msgstr ""
@@ -3699,6 +3719,10 @@ msgstr ""
 
 #: grunt/grunt/api/v1/method.py:100
 msgid "Method %(method_path)s not found"
+msgstr ""
+
+#: grunt/grunt/activity/doctypes/MilestoneTracker/milestone_tracker.py:32
+msgid "Milestones cannot be tracked on “%(doctype)s”"
 msgstr ""
 
 #: grunt/frontend/src/components/dashboard/sections/GaugeRangeSection.vue:16
@@ -4299,7 +4323,7 @@ msgstr ""
 msgid "Offline page"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:167
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:168
 msgid "On website"
 msgstr ""
 
@@ -4659,8 +4683,8 @@ msgid "Previous page"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/global_form.js:54
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:268
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:272
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:273
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:277
 #: grunt/frontend/src/components/views/map/MapView.vue:205
 msgid "Print"
 msgstr ""
@@ -5831,11 +5855,11 @@ msgstr ""
 
 #: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:272
 #: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:310
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:144
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:145
 msgid "State"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:135
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:136
 msgid "Status"
 msgstr ""
 
@@ -6536,6 +6560,14 @@ msgstr ""
 msgid "Time allowed must be at least 1"
 msgstr ""
 
+#: grunt/frontend/src/components/views/sidebar/SidebarMilestones.vue:47
+msgid "Time in status"
+msgstr ""
+
+#: grunt/frontend/src/components/views/sidebar/SidebarMilestones.vue:47
+msgid "Time in «{field}»"
+msgstr ""
+
 #: grunt/frontend/src/components/dashboard/sections/TilesSection.vue:71
 #: grunt/frontend/src/components/dashboard/sections/LinksSection.vue:85
 #: grunt/frontend/src/components/dashboard/sections/TitleSection.vue:12
@@ -7149,7 +7181,7 @@ msgstr ""
 msgid "You did not allow notifications"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:248
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:253
 msgid "You get notified about changes and comments"
 msgstr ""
 
@@ -7342,7 +7374,7 @@ msgstr ""
 msgid "count — number of rows"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:93
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:94
 msgid "created"
 msgstr ""
 
@@ -7478,8 +7510,9 @@ msgid "is set"
 msgstr ""
 
 #: grunt/frontend/src/pages/DeskPage.vue:102
-#: grunt/frontend/src/core/datetime.ts:193
-#: grunt/frontend/src/core/datetime.ts:200
+#: grunt/frontend/src/core/datetime.ts:192
+#: grunt/frontend/src/core/datetime.ts:212
+#: grunt/frontend/src/core/datetime.ts:219
 #: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:65
 msgid "just now"
 msgstr ""
@@ -7522,7 +7555,7 @@ msgstr ""
 msgid "missing"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:96
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:97
 msgid "modified"
 msgstr ""
 
@@ -7604,6 +7637,10 @@ msgstr ""
 #: grunt/grunt/monitoring/health.py:461 grunt/grunt/monitoring/health.py:474
 #: grunt/frontend/src/core/browserHealth.ts:135
 msgid "not working"
+msgstr ""
+
+#: grunt/frontend/src/components/views/sidebar/SidebarMilestones.vue:58
+msgid "now"
 msgstr ""
 
 #: grunt/frontend/src/core/browserHealth.ts:163
@@ -8010,6 +8047,10 @@ msgstr ""
 #: grunt/grunt/tasks/doctypes/AutoRepeat/auto_repeat.py:101
 #: grunt/grunt/notification/doctypes/NotificationRule/notification_rule.py:34
 msgid "“%(field)s” is not a date field of %(doctype)s"
+msgstr ""
+
+#: grunt/grunt/activity/doctypes/MilestoneTracker/milestone_tracker.py:46
+msgid "“%(field)s” is not a field of %(doctype)s that can be tracked"
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/BackgroundWorker/background_worker.py:61
@@ -8910,6 +8951,35 @@ msgctxt "help:LetterHead.logo"
 msgid ""
 "Available in the templates as {{ letter_head.logo }} - embedded, so it also "
 "works in PDF"
+msgstr ""
+
+#: grunt/grunt/activity/doctypes/Milestone/Milestone.json
+msgctxt "help:Milestone"
+msgid "A document's stay in one value of a tracked field"
+msgstr ""
+
+#: grunt/grunt/activity/doctypes/Milestone/Milestone.json
+msgctxt "help:Milestone.approximate"
+msgid ""
+"Seeded when tracking started - the entry time is the document's last "
+"modification"
+msgstr ""
+
+#: grunt/grunt/activity/doctypes/Milestone/Milestone.json
+msgctxt "help:Milestone.duration_hours"
+msgid "Empty while the document is still in this value"
+msgstr ""
+
+#: grunt/grunt/activity/doctypes/MilestoneTracker/MilestoneTracker.json
+msgctxt "help:MilestoneTracker"
+msgid ""
+"Records when documents enter each value of a field (usually the status) and "
+"how long they stay there"
+msgstr ""
+
+#: grunt/grunt/activity/doctypes/MilestoneTracker/MilestoneTracker.json
+msgctxt "help:MilestoneTracker.track_field"
+msgid "Fieldname to track; empty: the DocType's status field"
 msgstr ""
 
 #: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
@@ -12357,6 +12427,86 @@ msgstr ""
 #: grunt/grunt/print/doctypes/LetterHead/LetterHead.json
 msgctxt "meta:LetterHead.title"
 msgid "Title"
+msgstr ""
+
+#: grunt/grunt/activity/doctypes/Milestone/Milestone.json
+msgctxt "meta:Milestone"
+msgid "Milestone"
+msgstr ""
+
+#: grunt/grunt/activity/doctypes/Milestone/Milestone.json
+msgctxt "meta:Milestone.approximate"
+msgid "Approximate"
+msgstr ""
+
+#: grunt/grunt/activity/doctypes/Milestone/Milestone.json
+msgctxt "meta:Milestone.duration_hours"
+msgid "Hours"
+msgstr ""
+
+#: grunt/grunt/activity/doctypes/Milestone/Milestone.json
+msgctxt "meta:Milestone.entered_at"
+msgid "Entered"
+msgstr ""
+
+#: grunt/grunt/activity/doctypes/Milestone/Milestone.json
+msgctxt "meta:Milestone.entered_by"
+msgid "Changed by"
+msgstr ""
+
+#: grunt/grunt/activity/doctypes/Milestone/Milestone.json
+msgctxt "meta:Milestone.left_at"
+msgid "Left"
+msgstr ""
+
+#: grunt/grunt/activity/doctypes/Milestone/Milestone.json
+msgctxt "meta:Milestone.previous_value"
+msgid "Previous value"
+msgstr ""
+
+#: grunt/grunt/activity/doctypes/Milestone/Milestone.json
+msgctxt "meta:Milestone.ref_doctype"
+msgid "Document type"
+msgstr ""
+
+#: grunt/grunt/activity/doctypes/Milestone/Milestone.json
+msgctxt "meta:Milestone.ref_name"
+msgid "Document"
+msgstr ""
+
+#: grunt/grunt/activity/doctypes/Milestone/Milestone.json
+msgctxt "meta:Milestone.sec_time"
+msgid "Time"
+msgstr ""
+
+#: grunt/grunt/activity/doctypes/Milestone/Milestone.json
+msgctxt "meta:Milestone.track_field"
+msgid "Field"
+msgstr ""
+
+#: grunt/grunt/activity/doctypes/Milestone/Milestone.json
+msgctxt "meta:Milestone.value"
+msgid "Value"
+msgstr ""
+
+#: grunt/grunt/activity/doctypes/MilestoneTracker/MilestoneTracker.json
+msgctxt "meta:MilestoneTracker"
+msgid "Milestone Tracker"
+msgstr ""
+
+#: grunt/grunt/activity/doctypes/MilestoneTracker/MilestoneTracker.json
+msgctxt "meta:MilestoneTracker.disabled"
+msgid "Disabled"
+msgstr ""
+
+#: grunt/grunt/activity/doctypes/MilestoneTracker/MilestoneTracker.json
+msgctxt "meta:MilestoneTracker.ref_doctype"
+msgid "Document type"
+msgstr ""
+
+#: grunt/grunt/activity/doctypes/MilestoneTracker/MilestoneTracker.json
+msgctxt "meta:MilestoneTracker.track_field"
+msgid "Field"
 msgstr ""
 
 #: grunt/grunt/naming/doctypes/NamingSeries/NamingSeries.json
