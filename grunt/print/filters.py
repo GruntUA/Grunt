@@ -8,6 +8,8 @@ import re
 from datetime import date, datetime
 from typing import TYPE_CHECKING, Any, cast
 
+from markupsafe import Markup
+
 if TYPE_CHECKING:
     from shevchenko import GenderDetectionInput
 
@@ -323,6 +325,21 @@ def from_json(value: str | None) -> Any:
         return {}
 
 
+def qr(value: Any, size: str = "30mm", border: int = 1) -> Markup:
+    """A QR code of *value* as an embedded SVG ``<img>`` - works in HTML and PDF.
+
+    ``{{ "https://example.com/doc/42" | qr }}``, ``{{ doc.reg_number | qr("20mm") }}``.
+    Empty values render nothing.
+    """
+    import segno
+
+    text = "" if value is None else str(value)
+    if not text:
+        return Markup("")
+    uri = segno.make(text, error="m").svg_data_uri(border=border)
+    return Markup('<img src="{}" alt="QR" style="width:{};height:{}">').format(uri, size, size)
+
+
 JINJA_FILTERS = {
     "date_format": date_format,
     "datetime_format": datetime_format,
@@ -332,4 +349,5 @@ JINJA_FILTERS = {
     "decline_name": decline_name,
     "decline_position": decline_position,
     "decline_dept_genitive": decline_dept_genitive,
+    "qr": qr,
 }

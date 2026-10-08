@@ -31,6 +31,21 @@
       "in_list_view": true
     },
     {
+      "fieldname": "letter_head",
+      "label": "Letter Head",
+      "fieldtype": "Link",
+      "options": "LetterHead",
+      "depends_on": "eval: doc.template_type !== 'docx' && !doc.no_letter_head",
+      "description": "Empty: the default letterhead"
+    },
+    {
+      "fieldname": "no_letter_head",
+      "label": "Without letter head",
+      "fieldtype": "Check",
+      "default": false,
+      "depends_on": "eval: doc.template_type !== 'docx'"
+    },
+    {
       "fieldname": "is_standard",
       "label": "Standard",
       "fieldtype": "Check",

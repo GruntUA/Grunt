@@ -5215,7 +5215,7 @@ msgstr ""
 msgid "Run validation (without writing)?"
 msgstr ""
 
-#: grunt/grunt/document/mixins/export_rpc.py:261
+#: grunt/grunt/document/mixins/export_rpc.py:252
 msgid "Sample"
 msgstr ""
 
@@ -6058,7 +6058,7 @@ msgstr ""
 msgid "Tasks running"
 msgstr ""
 
-#: grunt/grunt/document/mixins/export_rpc.py:266
+#: grunt/grunt/document/mixins/export_rpc.py:267
 msgid "Template error:"
 msgstr ""
 
@@ -6713,7 +6713,7 @@ msgstr ""
 msgid "Unknown format: %(format)s"
 msgstr ""
 
-#: grunt/grunt/document/mixins/export_rpc.py:227
+#: grunt/grunt/document/mixins/export_rpc.py:212
 msgid "Unknown format: %(format)s. Supported: html, pdf, xlsx, docx"
 msgstr ""
 
@@ -7735,7 +7735,7 @@ msgstr ""
 msgid "task"
 msgstr ""
 
-#: grunt/grunt/document/mixins/export_rpc.py:243
+#: grunt/grunt/document/mixins/export_rpc.py:234
 msgid "template is required"
 msgstr ""
 
@@ -8881,6 +8881,37 @@ msgctxt "help:Language.native_name"
 msgid "Language name in the language itself (Українська, English, Deutsch)"
 msgstr ""
 
+#: grunt/grunt/print/doctypes/LetterHead/LetterHead.json
+msgctxt "help:LetterHead"
+msgid ""
+"Organisation letterhead (logo, details, footer) added to printed documents "
+"and PDFs"
+msgstr ""
+
+#: grunt/grunt/print/doctypes/LetterHead/LetterHead.json
+msgctxt "help:LetterHead.footer"
+msgid "Jinja HTML at the end of the document - same variables as the header"
+msgstr ""
+
+#: grunt/grunt/print/doctypes/LetterHead/LetterHead.json
+msgctxt "help:LetterHead.header"
+msgid ""
+"Jinja HTML at the top of the document. Available: doc, letter_head.logo, "
+"site_url, now; filters such as | qr"
+msgstr ""
+
+#: grunt/grunt/print/doctypes/LetterHead/LetterHead.json
+msgctxt "help:LetterHead.is_default"
+msgid "Used by every print format that does not pick a letterhead of its own"
+msgstr ""
+
+#: grunt/grunt/print/doctypes/LetterHead/LetterHead.json
+msgctxt "help:LetterHead.logo"
+msgid ""
+"Available in the templates as {{ letter_head.logo }} - embedded, so it also "
+"works in PDF"
+msgstr ""
+
 #: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
 msgctxt "help:NotificationRule.date_field"
 msgid ""
@@ -8918,6 +8949,11 @@ msgstr ""
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.json
 msgctxt "help:PrintFormat.is_standard"
 msgid "Ships with the app as JSON files - edits are saved to the app"
+msgstr ""
+
+#: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.json
+msgctxt "help:PrintFormat.letter_head"
+msgid "Empty: the default letterhead"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Region/Region.json
@@ -12278,6 +12314,51 @@ msgctxt "meta:Language.title"
 msgid "Name (English)"
 msgstr ""
 
+#: grunt/grunt/print/doctypes/LetterHead/LetterHead.json
+msgctxt "meta:LetterHead"
+msgid "Letter Head"
+msgstr ""
+
+#: grunt/grunt/print/doctypes/LetterHead/LetterHead.json
+msgctxt "meta:LetterHead.disabled"
+msgid "Disabled"
+msgstr ""
+
+#: grunt/grunt/print/doctypes/LetterHead/LetterHead.json
+msgctxt "meta:LetterHead.footer"
+msgid "Footer HTML"
+msgstr ""
+
+#: grunt/grunt/print/doctypes/LetterHead/LetterHead.json
+msgctxt "meta:LetterHead.header"
+msgid "Header HTML"
+msgstr ""
+
+#: grunt/grunt/print/doctypes/LetterHead/LetterHead.json
+msgctxt "meta:LetterHead.is_default"
+msgid "Default"
+msgstr ""
+
+#: grunt/grunt/print/doctypes/LetterHead/LetterHead.json
+msgctxt "meta:LetterHead.logo"
+msgid "Logo"
+msgstr ""
+
+#: grunt/grunt/print/doctypes/LetterHead/LetterHead.json
+msgctxt "meta:LetterHead.sec_footer"
+msgid "Footer"
+msgstr ""
+
+#: grunt/grunt/print/doctypes/LetterHead/LetterHead.json
+msgctxt "meta:LetterHead.sec_header"
+msgid "Header"
+msgstr ""
+
+#: grunt/grunt/print/doctypes/LetterHead/LetterHead.json
+msgctxt "meta:LetterHead.title"
+msgid "Title"
+msgstr ""
+
 #: grunt/grunt/naming/doctypes/NamingSeries/NamingSeries.json
 msgctxt "meta:NamingSeries"
 msgid "Naming Series"
@@ -12661,6 +12742,16 @@ msgstr ""
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.json
 msgctxt "meta:PrintFormat.is_standard"
 msgid "Standard"
+msgstr ""
+
+#: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.json
+msgctxt "meta:PrintFormat.letter_head"
+msgid "Letter Head"
+msgstr ""
+
+#: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.json
+msgctxt "meta:PrintFormat.no_letter_head"
+msgid "Without letter head"
 msgstr ""
 
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.json

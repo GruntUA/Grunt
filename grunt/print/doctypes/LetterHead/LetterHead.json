@@ -1,0 +1,85 @@
+{
+  "name": "LetterHead",
+  "label": "Letter Head",
+  "module": "print",
+  "icon": "stamp",
+  "description": "Organisation letterhead (logo, details, footer) added to printed documents and PDFs",
+  "autoname": "field:title",
+  "title_field": "title",
+  "image_field": "logo",
+  "hide_from_activity_feed": true,
+  "track_changes": true,
+  "fields": [
+    {
+      "fieldname": "title",
+      "label": "Title",
+      "fieldtype": "Data",
+      "required": true,
+      "unique": true,
+      "in_list_view": true,
+      "bold": true
+    },
+    {
+      "fieldname": "is_default",
+      "label": "Default",
+      "fieldtype": "Check",
+      "default": false,
+      "in_list_view": true,
+      "description": "Used by every print format that does not pick a letterhead of its own"
+    },
+    {
+      "fieldname": "disabled",
+      "label": "Disabled",
+      "fieldtype": "Check",
+      "default": false
+    },
+    {
+      "fieldname": "col_logo",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "logo",
+      "label": "Logo",
+      "fieldtype": "Image",
+      "description": "Available in the templates as {{ letter_head.logo }} - embedded, so it also works in PDF"
+    },
+    {
+      "fieldname": "sec_header",
+      "label": "Header",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "header",
+      "label": "Header HTML",
+      "fieldtype": "Code",
+      "options": "html",
+      "default": "<div style=\"display:flex;align-items:center;gap:16px;border-bottom:2px solid #333;padding-bottom:12px;margin-bottom:24px\">\n  {% if letter_head.logo %}<img src=\"{{ letter_head.logo }}\" style=\"height:64px\">{% endif %}\n  <div>\n    <div style=\"font-size:14pt;font-weight:bold\">Organisation name</div>\n    <div style=\"font-size:9pt\">Address · phone · email · code</div>\n  </div>\n</div>",
+      "description": "Jinja HTML at the top of the document. Available: doc, letter_head.logo, site_url, now; filters such as | qr"
+    },
+    {
+      "fieldname": "sec_footer",
+      "label": "Footer",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "footer",
+      "label": "Footer HTML",
+      "fieldtype": "Code",
+      "options": "html",
+      "description": "Jinja HTML at the end of the document - same variables as the header"
+    }
+  ],
+  "permissions": [
+    {
+      "role": "All",
+      "read": true
+    },
+    {
+      "role": "System Manager",
+      "read": true,
+      "write": true,
+      "create": true,
+      "delete": true
+    }
+  ]
+}

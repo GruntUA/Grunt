@@ -178,25 +178,10 @@ class DocumentExportRPCMixin:
             )
 
         if fmt in ("pdf", "html"):
-            from grunt.print.renderer import (
-                get_print_format_template,
-                render_from_string,
-                render_standard,
-            )
+            from grunt.print.renderer import render_print_html
 
-            html = None
-
-            import contextlib
-
-            # 1. Try custom PrintFormat from DB
-            pf = await get_print_format_template(session, doctype, print_format)
-            if pf and pf[1] == "html":
-                with contextlib.suppress(Exception):
-                    html = render_from_string(pf[0], doc, doctype_label=dt.label, fields=dt.fields)
-
-            # 2. Standard template (auto-generated from fields)
-            if html is None:
-                html = render_standard(dt.label, dt.fields, doc)
+            # PrintFormat (or the standard template) + letterhead.
+            html = await render_print_html(doctype, doc, print_format)
 
             from grunt.storage.signing import sign_file_urls_in_html
 
@@ -234,8 +219,14 @@ class DocumentExportRPCMixin:
         doctype: str,
         template: str,
         doc_id: str | None = None,
+        letter_head: str | None = None,
+        no_letter_head: bool = False,
     ) -> Response:
-        """Render an arbitrary Jinja2 HTML template against a document (or sample)."""
+        """Render an arbitrary Jinja2 HTML template against a document (or sample).
+
+        Like the real print, the letterhead (``letter_head`` or the default one)
+        is added unless ``no_letter_head``.
+        """
         from grunt.print.renderer import render_from_string
 
         template_str = (template or "").strip()
@@ -260,10 +251,23 @@ class DocumentExportRPCMixin:
                 doc: dict[str, str | None] = {f.fieldname: None for f in dt.fields}
                 doc.setdefault("name", _("Sample"))
 
+        from grunt.print.renderer import apply_letter_head, load_letter_head, render_letter_head
+
+        lh = None if no_letter_head else await load_letter_head(letter_head or None)
+        rendered_lh = render_letter_head(lh, doc) if lh else None
         try:
-            html = render_from_string(template_str, doc, doctype_label=dt.label, fields=dt.fields)
+            html = render_from_string(
+                template_str,
+                doc,
+                doctype_label=dt.label,
+                fields=dt.fields,
+                letter_head=rendered_lh,
+            )
         except Exception as e:
             html = f"<pre style='color:red;padding:1rem'>{_('Template error:')}\n{e}</pre>"
+        else:
+            if rendered_lh and "letter_head" not in template_str:
+                html = apply_letter_head(html, rendered_lh)
 
         from grunt.storage.signing import sign_file_urls_in_html
 

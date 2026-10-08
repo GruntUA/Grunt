@@ -57,6 +57,7 @@ dependencies = [
     "polib>=1.2.0",              # PO/POT read/write for `grunt i18n` (i18n/extract.py)
     "pypdfium2>=5.13.0",
     "nh3>=0.3",
+    "segno>=1.6.6",             # QR codes in print templates (grunt/print/filters.py)
 ]
 
 [project.optional-dependencies]

@@ -12954,15 +12954,15 @@ msgstr "Шаблон DOCX не знайдено. Створіть PrintFormat з
 msgid "Unknown format “%(format)s”. Available: %(available)s"
 msgstr "Невідомий формат «%(format)s». Доступні: %(available)s"
 
-#: grunt/grunt/document/mixins/export_rpc.py:227
+#: grunt/grunt/document/mixins/export_rpc.py:212
 msgid "Unknown format: %(format)s. Supported: html, pdf, xlsx, docx"
 msgstr "Невідомий формат: %(format)s. Підтримуються: html, pdf, xlsx, docx"
 
-#: grunt/grunt/document/mixins/export_rpc.py:261
+#: grunt/grunt/document/mixins/export_rpc.py:252
 msgid "Sample"
 msgstr "Зразок"
 
-#: grunt/grunt/document/mixins/export_rpc.py:266
+#: grunt/grunt/document/mixins/export_rpc.py:267
 msgid "Template error:"
 msgstr "Помилка шаблону:"
 
@@ -13876,7 +13876,7 @@ msgstr "ids обов'язковий"
 msgid "ids or delete_all is required"
 msgstr "Потрібен ids або delete_all"
 
-#: grunt/grunt/document/mixins/export_rpc.py:243
+#: grunt/grunt/document/mixins/export_rpc.py:234
 msgid "template is required"
 msgstr "template обов'язковий"
 
@@ -16143,6 +16143,104 @@ msgstr "Днів"
 msgctxt "meta:NotificationRule.every_year"
 msgid "Every year"
 msgstr "Щороку"
+
+#: grunt/grunt/print/doctypes/LetterHead/LetterHead.json
+msgctxt "help:LetterHead"
+msgid ""
+"Organisation letterhead (logo, details, footer) added to printed documents "
+"and PDFs"
+msgstr ""
+"Бланк установи (логотип, реквізити, підвал), що додається до друкованих "
+"документів і PDF"
+
+#: grunt/grunt/print/doctypes/LetterHead/LetterHead.json
+msgctxt "help:LetterHead.footer"
+msgid "Jinja HTML at the end of the document - same variables as the header"
+msgstr "Jinja HTML наприкінці документа — ті самі змінні, що й у шапці"
+
+#: grunt/grunt/print/doctypes/LetterHead/LetterHead.json
+msgctxt "help:LetterHead.header"
+msgid ""
+"Jinja HTML at the top of the document. Available: doc, letter_head.logo, "
+"site_url, now; filters such as | qr"
+msgstr ""
+"Jinja HTML на початку документа. Доступно: doc, letter_head.logo, site_url, "
+"now; фільтри, напр. | qr"
+
+#: grunt/grunt/print/doctypes/LetterHead/LetterHead.json
+msgctxt "help:LetterHead.is_default"
+msgid "Used by every print format that does not pick a letterhead of its own"
+msgstr ""
+"Використовується всіма друкованими формами, які не обрали власний бланк"
+
+#: grunt/grunt/print/doctypes/LetterHead/LetterHead.json
+msgctxt "help:LetterHead.logo"
+msgid ""
+"Available in the templates as {{ letter_head.logo }} - embedded, so it also "
+"works in PDF"
+msgstr ""
+"У шаблонах доступний як {{ letter_head.logo }} — вбудовується, тож працює і "
+"в PDF"
+
+#: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.json
+msgctxt "help:PrintFormat.letter_head"
+msgid "Empty: the default letterhead"
+msgstr "Порожньо — бланк за замовчуванням"
+
+#: grunt/grunt/print/doctypes/LetterHead/LetterHead.json
+msgctxt "meta:LetterHead"
+msgid "Letter Head"
+msgstr "Бланк"
+
+#: grunt/grunt/print/doctypes/LetterHead/LetterHead.json
+msgctxt "meta:LetterHead.disabled"
+msgid "Disabled"
+msgstr "Вимкнено"
+
+#: grunt/grunt/print/doctypes/LetterHead/LetterHead.json
+msgctxt "meta:LetterHead.footer"
+msgid "Footer HTML"
+msgstr "HTML підвалу"
+
+#: grunt/grunt/print/doctypes/LetterHead/LetterHead.json
+msgctxt "meta:LetterHead.header"
+msgid "Header HTML"
+msgstr "HTML шапки"
+
+#: grunt/grunt/print/doctypes/LetterHead/LetterHead.json
+msgctxt "meta:LetterHead.is_default"
+msgid "Default"
+msgstr "За замовчуванням"
+
+#: grunt/grunt/print/doctypes/LetterHead/LetterHead.json
+msgctxt "meta:LetterHead.logo"
+msgid "Logo"
+msgstr "Логотип"
+
+#: grunt/grunt/print/doctypes/LetterHead/LetterHead.json
+msgctxt "meta:LetterHead.sec_footer"
+msgid "Footer"
+msgstr "Підвал"
+
+#: grunt/grunt/print/doctypes/LetterHead/LetterHead.json
+msgctxt "meta:LetterHead.sec_header"
+msgid "Header"
+msgstr "Шапка"
+
+#: grunt/grunt/print/doctypes/LetterHead/LetterHead.json
+msgctxt "meta:LetterHead.title"
+msgid "Title"
+msgstr "Назва"
+
+#: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.json
+msgctxt "meta:PrintFormat.letter_head"
+msgid "Letter Head"
+msgstr "Бланк"
+
+#: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.json
+msgctxt "meta:PrintFormat.no_letter_head"
+msgid "Without letter head"
+msgstr "Без бланка"
 
 #~ msgctxt "help:DocTypeCalendarSource.doctype"
 #~ msgid "The document type added to the calendar as a separate source"
