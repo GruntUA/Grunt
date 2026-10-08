@@ -7,7 +7,8 @@ import { useEditorInstance } from '../editor/useRichEditor'
 import CommandButton from './CommandButton.vue'
 import LinkPopover from './LinkPopover.vue'
 
-// Quick formatting over a text selection.
+// Quick formatting for a text selection. It opens below the selection: above,
+// it would cover the (sticky) toolbar while the first lines are selected.
 const editor = useEditorInstance()
 
 function shouldShow({ editor: e }: { editor: Editor }) {
@@ -21,6 +22,7 @@ function shouldShow({ editor: e }: { editor: Editor }) {
 <template>
   <BubbleMenu
     v-if="editor" :editor plugin-key="textBubble" :should-show
+    :options="{ placement: 'bottom-start', offset: 8 }"
     class="richtext-bubble z-20 flex items-center gap-0.5 rounded-md border border-border bg-popover p-1 text-muted-foreground shadow-md"
   >
     <CommandButton id="bold" />

@@ -7,6 +7,7 @@ import { N_ } from '@/plugins/i18n'
 import { ALIGNMENTS, BLOCK_STYLES } from '../editor/commands'
 import CommandButton from './CommandButton.vue'
 import CommandGroupMenu from './CommandGroupMenu.vue'
+import FontMenus from './FontMenus.vue'
 import LinkPopover from './LinkPopover.vue'
 import InsertMenu from './InsertMenu.vue'
 import MoreMenu from './MoreMenu.vue'
@@ -26,6 +27,7 @@ const { t } = useI18n()
     :class="fullscreen ? 'top-0 mt-4' : 'top-[var(--richtext-sticky-top,0px)]'"
   >
     <CommandGroupMenu :group="BLOCK_STYLES" :label="N_('Text style')" show-name />
+    <FontMenus :document-style />
     <Separator orientation="vertical" class="!mx-0.5 !h-6 !my-0" />
     <CommandButton id="bold" />
     <CommandButton id="italic" />
@@ -39,7 +41,7 @@ const { t } = useI18n()
     <Separator orientation="vertical" class="!mx-0.5 !h-6 !my-0" />
     <LinkPopover />
     <InsertMenu />
-    <MoreMenu :document-style />
+    <MoreMenu />
 
     <div class="flex-1" />
 
