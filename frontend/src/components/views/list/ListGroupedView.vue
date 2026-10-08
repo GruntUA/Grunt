@@ -9,6 +9,7 @@ import ListCards from '@/components/views/list/ListCards.vue'
 import { useCardLayout } from '@/components/views/list/useCardLayout'
 import { Badge } from '@/components/ui/badge'
 import { statusConfigOf } from '@/core/status'
+import { docUrl } from '@/core/workspaceUrl'
 
 const { t } = useI18n()
 
@@ -128,7 +129,7 @@ function handleSelectGroup(items: Record<string, unknown>[]) {
                 :columns="columns"
                 :rows="group.items"
                 :fields="dt?.fields ?? []"
-                :row-link-base="`/app/${workspace}/${doctype}`"
+                :row-link-base="docUrl(doctype, null, workspace)"
                 :doctype="doctype"
                 :is-loading="false"
                 :sort-key="sortKey"

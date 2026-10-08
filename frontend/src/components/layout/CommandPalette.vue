@@ -23,7 +23,7 @@ import { useShortcut } from '@/core/composables/useShortcuts'
 import { useToast } from '@/core/composables/useToast'
 import { tryCalc, formatCalcResult } from '@/lib/calc'
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog'
-import { docUrl, workspaceUrl } from '@/core/workspaceUrl'
+import { appUrl, docUrl } from '@/core/workspaceUrl'
 import { Command, CommandList, CommandGroup, CommandItem, CommandShortcut } from '@/components/ui/command'
 import { Kbd } from '@/components/ui/kbd'
 import { formatShortcut } from '@/core/shortcuts'
@@ -157,7 +157,7 @@ watch(search, async (val) => {
                     title: ws.label,
                     icon: LayoutGrid,
                     category: t('Apps'),
-                    run: () => navigateTo(workspaceUrl(ws.name)),
+                    run: () => navigateTo(appUrl({ type: 'Workspace', name: ws.name })),
                 })
             }
         })
@@ -173,9 +173,7 @@ watch(search, async (val) => {
                     category: t('DocTypes'),
                     run: () => {
                         const ws = appStore.workspaces.find(w => w.items.some((i: any) => i.link_to === dt.name))
-                        navigateTo(dt.is_singleton
-                            ? docUrl(dt.name, dt.name, ws?.name)
-                            : docUrl(dt.name, null, ws?.name))
+                        navigateTo(docUrl(dt.name, null, ws?.name))
                     },
                 })
             }

@@ -3,7 +3,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import type { DashboardWidget } from '@/types'
-import { docUrl, workspaceUrl } from '@/core/workspaceUrl'
+import { appUrl } from '@/core/workspaceUrl'
 import type { WorkspaceLinkItem } from '@/core/api/workspace'
 
 const props = defineProps<{
@@ -23,16 +23,8 @@ const links = computed<WorkspaceLinkItem[]>(() => {
 })
 
 function navigate(link: WorkspaceLinkItem) {
-  const ws = props.workspaceName
-  if (link.type === 'DocType' && ws) {
-    router.push(docUrl(link.link_to, null, ws))
-  } else if (link.type === 'Report' && ws) {
-    router.push(workspaceUrl(ws, 'report', encodeURIComponent(link.link_to)))
-  } else if (link.type === 'Page' && ws) {
-    router.push(workspaceUrl(ws, 'page', encodeURIComponent(link.link_to)))
-  } else if (link.type === 'URL') {
-    window.open(link.link_to, '_blank')
-  }
+  if (link.type === 'URL') window.open(link.link_to, '_blank')
+  else router.push(appUrl({ type: link.type, name: link.link_to, workspace: props.workspaceName }))
 }
 </script>
 

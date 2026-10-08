@@ -19,10 +19,10 @@ export function useFormDocumentView(params: UseFormDocumentViewParams) {
       return params.id ? '...' : t('New {doctype}', { doctype: params.dt.value?.label ?? '' })
     }
 
+    // A singleton is one settings-like record: its id means nothing to people.
+    if (params.dt.value?.is_singleton) return params.dt.value.label
+
     const titleField = params.dt.value?.title_field
-    if (params.dt.value?.is_singleton && !titleField) {
-      return params.dt.value.label
-    }
 
     const titleValue = titleField ? params.document.value[titleField] : undefined
     const nameValue = params.document.value.name

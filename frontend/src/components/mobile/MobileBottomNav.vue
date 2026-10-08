@@ -13,7 +13,7 @@ import { useAppStore } from '@/stores/app'
 import AppIcon from '@/components/AppIcon.vue'
 import { MoreHorizontal, Home } from '@lucide/vue'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
-import { docUrl, workspaceUrl } from '@/core/workspaceUrl'
+import { appUrl } from '@/core/workspaceUrl'
 
 const { t } = useI18n()
 
@@ -49,10 +49,8 @@ function isActive(link_to: string) {
 
 function navigate(item: { type: string; link_to: string }) {
   showOverflow.value = false
-  if (item.type === 'DocType') {
-    router.push(docUrl(item.link_to, null, props.workspaceName))
-  } else if (item.type === 'Report') {
-    router.push(workspaceUrl(props.workspaceName, 'report', encodeURIComponent(item.link_to)))
+  if (item.type === 'DocType' || item.type === 'Report') {
+    router.push(appUrl({ type: item.type, name: item.link_to, workspace: props.workspaceName }))
   }
 }
 

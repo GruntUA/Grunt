@@ -42,6 +42,7 @@ import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, Table
 import { Skeleton } from '@/components/ui/skeleton'
 import ListEmptyState from '@/components/views/ListEmptyState.vue'
 import { useReportModel, isNumericField, type AggFn } from './useReportModel'
+import { appUrl, docUrl } from '@/core/workspaceUrl'
 
 const { t } = useI18n()
 
@@ -169,10 +170,7 @@ async function saveAsReport() {
   toast.success(t('Report saved'), t('Done'), {
     action: {
       label: t('Open'),
-      onClick: () => router.push({
-        name: 'workspace-report',
-        params: { workspaceName: props.workspace, reportName: name },
-      }),
+      onClick: () => router.push(appUrl({ type: 'Report', name, workspace: props.workspace })),
     },
   })
   await loadSavedReports()
@@ -242,7 +240,7 @@ function rowDocId(row: Record<string, unknown>): string {
 }
 function rowHref(row: Record<string, unknown>): string | null {
   const id = rowDocId(row)
-  return id ? `/app/${props.workspace}/${props.doctype}/${encodeURIComponent(id)}` : null
+  return id ? docUrl(props.doctype, id, props.workspace) : null
 }
 function onAnchorClick(e: MouseEvent, row: Record<string, unknown>) {
   if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return

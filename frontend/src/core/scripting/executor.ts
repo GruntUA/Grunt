@@ -12,6 +12,7 @@
 import client from '@/core/api/client'
 import { useAuthStore } from '@/stores/auth'
 import { grunt as appGrunt } from '@/core/grunt'
+import { appUrl } from '@/core/workspaceUrl'
 import type { DialogSize } from '@/core/composables/useDialog'
 import type { ActionsApi } from '@/core/actions'
 import { i18n, N_ } from '@/plugins/i18n'
@@ -581,28 +582,11 @@ export function createGruntProxy(
     return 'grunt'
   }
 
-  const buildListQuery = (filters?: Record<string, unknown> | null): string => {
-    if (!filters) return ''
-    const params = new URLSearchParams()
-    for (const [rawKey, rawVal] of Object.entries(filters)) {
-      if (rawVal == null) continue
-      const key = rawKey.includes('__') ? rawKey : `${rawKey}__eq`
-      params.append(`filter[${key}]`, String(rawVal))
-    }
-    const q = params.toString()
-    return q ? `?${q}` : ''
-  }
-
-  const buildQuery = (paramsObject?: Record<string, unknown> | null): string => {
-    if (!paramsObject) return ''
-    const params = new URLSearchParams()
-    for (const [key, rawVal] of Object.entries(paramsObject)) {
-      if (rawVal == null) continue
-      params.append(key, String(rawVal))
-    }
-    const q = params.toString()
-    return q ? `?${q}` : ''
-  }
+  // `{ status: 'Open', date__gt: … }` -> list-URL query `filter[status__eq]=Open&…`.
+  const listQuery = (filters?: Record<string, unknown> | null): Record<string, unknown> =>
+    Object.fromEntries(
+      Object.entries(filters ?? {}).map(([key, val]) => [`filter[${key.includes('__') ? key : `${key}__eq`}]`, val]),
+    )
 
   const normalizeRouteParts = (route: unknown[]): string[] => {
     const parts = route.length === 1 && Array.isArray(route[0])
@@ -618,41 +602,28 @@ export function createGruntProxy(
     filters?: Record<string, unknown> | null,
   ): string | null => {
     if (!routeParts.length) return null
-    const ws = encodeURIComponent(currentWorkspace())
+    const workspace = currentWorkspace()
     const [kind, ...rest] = routeParts
     const lowerKind = kind.toLowerCase()
 
     if (lowerKind === 'list') {
-      const doctype = rest[0]
-      if (!doctype) return null
-      return `/app/${ws}/${encodeURIComponent(doctype)}${buildListQuery(filters)}`
+      return rest[0] ? appUrl({ name: rest[0], workspace, query: listQuery(filters) }) : null
     }
-
     if (lowerKind === 'form') {
-      const doctype = rest[0]
-      const docId = rest[1]
+      const [doctype, docId] = rest
       if (!doctype) return null
       if (!docId || docId.toLowerCase() === 'new') {
-        return `/app/${ws}/${encodeURIComponent(doctype)}/new${buildQuery(filters)}`
+        return appUrl({ name: doctype, id: 'new', workspace, query: filters })
       }
-      return `/app/${ws}/${encodeURIComponent(doctype)}/${encodeURIComponent(docId)}`
+      return appUrl({ name: doctype, id: docId, workspace })
     }
-
     if (lowerKind === 'report') {
-      const reportName = rest[0]
-      if (!reportName) return null
-      return `/app/${ws}/report/${encodeURIComponent(reportName)}`
+      return rest[0] ? appUrl({ type: 'Report', name: rest[0], workspace }) : null
     }
-
     if (routeParts.length === 1) {
-      return `/app/${ws}/${encodeURIComponent(kind)}${buildListQuery(filters)}`
+      return appUrl({ name: kind, workspace, query: listQuery(filters) })
     }
-
-    if (routeParts.length >= 2) {
-      return `/app/${ws}/${encodeURIComponent(routeParts[0])}/${encodeURIComponent(routeParts[1])}`
-    }
-
-    return null
+    return appUrl({ name: routeParts[0], id: routeParts[1], workspace })
   }
 
   let routeOptions: Record<string, unknown> | null = null

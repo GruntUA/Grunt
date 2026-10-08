@@ -16,6 +16,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import FilterBar from '@/components/views/FilterBar.vue'
 import ReportChart from '@/components/reports/ReportChart.vue'
 import { setPageTitle } from '@/core/composables/usePageTitle'
+import { appUrl } from '@/core/workspaceUrl'
 
 const { t } = useI18n()
 
@@ -163,11 +164,7 @@ function drilldownQuery(row: Record<string, any>): Record<string, string> | null
 function openDrilldown(row: Record<string, any>) {
     const query = drilldownQuery(row)
     if (!query) return
-    router.push({
-        name: 'workspace-list',
-        params: { workspaceName: props.workspaceName, doctype: meta.value.drilldown.doctype },
-        query,
-    })
+    router.push(appUrl({ name: meta.value.drilldown.doctype, workspace: props.workspaceName, query }))
 }
 
 function openBuilder() {

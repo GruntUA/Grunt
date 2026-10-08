@@ -25,6 +25,7 @@ import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGrou
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { DropdownMenuRadioGroup, DropdownMenuRadioItem } from '@/components/ui/dropdown-menu'
 import { SidebarFooter, SidebarRail } from '@/components/ui/sidebar'
+import { appUrl } from '@/core/workspaceUrl'
 const props = defineProps<{ workspaceName: string }>()
 
 const appStore = useAppStore()
@@ -99,7 +100,7 @@ watch(() => router.currentRoute.value.path, () => { if (appStore.active) appStor
               <DropdownMenuLabel class="text-xs text-muted-foreground">{{ t('Apps') }}</DropdownMenuLabel>
               <DropdownMenuItem
                 v-for="ws in appStore.workspaces" :key="ws.name" class="gap-2 p-2"
-                @click="router.push(`/${ws.name}`)"
+                @click="router.push(appUrl({ type: 'Workspace', name: ws.name }))"
               >
                 <div class="flex size-6 items-center justify-center rounded-md border">
                   <AppIcon :icon="ws.icon" class="size-3.5 shrink-0" />
@@ -130,7 +131,7 @@ watch(() => router.currentRoute.value.path, () => { if (appStore.active) appStor
         <SidebarMenuItem>
           <NotificationsPopover :workspace="appStore.active?.name" />
         </SidebarMenuItem>
-        <RouterLink :to="`/app/${workspaceName}`" custom v-slot="{ navigate }">
+        <RouterLink :to="appUrl({ type: 'Workspace', name: workspaceName })" custom v-slot="{ navigate }">
           <SidebarItem
             :item="{ type: 'DocType', link_to: '', label: t('Overview'), icon: 'layout-dashboard', section: '', sequence: 0, show_count: false, roles: '' }"
             :workspace-name="workspaceName" @click="navigate" />

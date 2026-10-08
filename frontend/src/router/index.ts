@@ -3,6 +3,7 @@ import { useAuthStore } from '@/stores/auth'
 import { loadSiteConfig } from '@/core/composables/useSiteConfig'
 import { setPageTitle } from '@/core/composables/usePageTitle'
 import { i18n } from '@/plugins/i18n'
+import { useDocTypeStore } from '@/stores/doctype'
 
 const router = createRouter({
   history: createWebHistory('/'),
@@ -168,6 +169,15 @@ router.beforeEach(async (to) => {
   // go to the login page now instead of rendering the protected page, letting
   // its API calls fail and only then bouncing to /login from the 401 handler.
   if (!auth.isLoggedIn) return { name: 'login' }
+
+  // A singleton's only document lives at /app/<ws>/<DocType>; a long
+  // /<DocType>/<id> URL (old bookmarks, links from the server) collapses to it.
+  if (to.name === 'workspace-form' && to.params.id !== 'new') {
+    const dt = await useDocTypeStore().get(String(to.params.doctype)).catch(() => null)
+    if (dt?.is_singleton) {
+      return { name: 'workspace-list', params: { workspaceName: to.params.workspaceName, doctype: to.params.doctype }, query: to.query, hash: to.hash, replace: true }
+    }
+  }
   return true
 })
 

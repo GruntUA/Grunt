@@ -12,6 +12,7 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
 import type { DocType, DocConnectionsResult } from '@/types'
+import { appUrl, docUrl } from '@/core/workspaceUrl'
 
 const { t } = useI18n()
 
@@ -56,18 +57,11 @@ async function load() {
 watch(() => [props.dt?.name, props.document?.name], load, { immediate: true })
 
 function listTo(link: { link_doctype: string; fieldname: string }) {
-  return {
-    name: 'workspace-list',
-    params: { workspaceName: props.workspace || 'grunt', doctype: link.link_doctype },
+  return appUrl({
+    name: link.link_doctype,
+    workspace: props.workspace,
     query: { [`filter[${link.fieldname}__eq]`]: docLinkValue() },
-  }
-}
-
-function docTo(link_doctype: string, name: string) {
-  return {
-    name: 'workspace-form',
-    params: { workspaceName: props.workspace || 'grunt', doctype: link_doctype, id: name },
-  }
+  })
 }
 
 function handleAdd(link: { link_doctype: string; fieldname: string; via_child: boolean }) {
@@ -138,7 +132,7 @@ const hasAny = computed(() => (result.value?.groups ?? []).some((g) => g.links.l
               <RouterLink
                 v-for="row in link.preview"
                 :key="row.name"
-                :to="docTo(link.link_doctype, row.name)"
+                :to="docUrl(link.link_doctype, row.name, workspace)"
                 class="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-background no-underline text-foreground"
               >
                 <ChevronRight class="size-3 text-muted-foreground/40" />

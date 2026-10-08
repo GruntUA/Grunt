@@ -20,6 +20,7 @@ import SidebarTimeline from '@/components/views/sidebar/SidebarTimeline.vue'
 import FormHeader from '@/components/views/form/FormHeader.vue'
 import FormModals from '@/components/views/form/FormModals.vue'
 import { Spinner } from '@/components/ui/spinner'
+import { docUrl } from '@/core/workspaceUrl'
 
 const props = defineProps<{ doctype: string; id: string | null; workspace?: string }>()
 const emit = defineEmits<{
@@ -158,14 +159,7 @@ const initials = (email: string) => email.slice(0, 2).toUpperCase()
       @rename="async (newId) => {
         try {
           await rename(newId)
-          router.push({
-            name: 'workspace-form',
-            params: { 
-              workspaceName: workspace || 'grunt', 
-              doctype: doctype, 
-              id: newId 
-            }
-          })
+          router.push(docUrl(doctype, newId, workspace))
           toast.success(t('Document renamed'))
         } catch (e: any) {
           toast.error(e.response?.data?.detail || e.message)

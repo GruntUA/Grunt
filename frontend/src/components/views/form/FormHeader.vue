@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { formatNumber } from '@/core/currency'
 import { ref, computed, watch } from 'vue'
-import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import type { DocType } from '@/types'
@@ -26,6 +25,7 @@ import WorkflowActions, { type WorkflowUi } from '@/components/views/WorkflowAct
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { docUrl } from '@/core/workspaceUrl'
 const props = defineProps<{
   dt: DocType | null
   doctype: string
@@ -53,7 +53,6 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 const auth = useAuthStore()
-const router = useRouter()
 const { open: panelOpen, toggle: togglePanel } = useDocPanel()
 
 const shareLink = ref<string | null>(null)
@@ -306,7 +305,7 @@ const statusBadge = computed(() => resolveStatusBadge(props.dt, props.document))
         </div>
         <p class="text-muted-foreground">
           {{ t('Link copied to clipboard when you click the copy button.') }}
-          <a :href="router.resolve({ name: 'workspace-list', params: { workspaceName: props.workspace ?? 'grunt', doctype: 'DocumentShare' } }).href" target="_blank" class="text-primary hover:underline ml-1">{{ t('Manage shares') }} →</a>
+          <a :href="docUrl('DocumentShare', null, props.workspace)" target="_blank" class="text-primary hover:underline ml-1">{{ t('Manage shares') }} →</a>
         </p>
         <DialogFooter>
           <Button variant="outline" size="sm" @click="shareLink = null; shareExpires = ''">{{ t('New link') }}</Button>

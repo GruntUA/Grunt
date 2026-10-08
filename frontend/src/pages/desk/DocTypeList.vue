@@ -415,10 +415,6 @@ function navigateToDoc(row: Record<string, unknown>) {
 watch(() => props.doctype, async (newDoctype) => {
   dt.value = await dtStore.get(newDoctype)
   setPageTitle(dt.value?.label || newDoctype)
-  if (dt.value?.is_singleton) {
-    router.replace(docUrl(newDoctype, newDoctype, props.workspace))
-    return
-  }
   applyRouteState()
   await runListClientSetup()
 }, { immediate: true })

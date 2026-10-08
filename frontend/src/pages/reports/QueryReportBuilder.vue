@@ -17,6 +17,7 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Spinner } from '@/components/ui/spinner'
+import { appUrl } from '@/core/workspaceUrl'
 
 const { t } = useI18n()
 
@@ -223,7 +224,7 @@ async function saveReport() {
             await reportsApi.create(payload)
         }
 
-        router.push({ name: 'workspace-report', params: { workspaceName: props.workspaceName, reportName: reportTitle.value } })
+        router.push(appUrl({ type: 'Report', name: reportTitle.value, workspace: props.workspaceName }))
     } finally {
         loading.value = false
     }

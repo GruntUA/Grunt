@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { docUrl } from '@/core/workspaceUrl'
 
 const { t } = useI18n()
 
@@ -101,9 +102,7 @@ const doctypeChips = computed(() => {
 // Navigation
 
 function navigateToDoc(r: SearchResult) {
-  const ws = appStore.workspaces.find(w => w.items?.some(i => i.link_to === r.doctype))
-  const workspace = ws?.name ?? props.workspaceName ?? 'grunt'
-  router.push(`/${workspace}/${r.doctype}/${r.id}`)
+  router.push(docUrl(r.doctype, r.id))
 }
 
 // Reindex

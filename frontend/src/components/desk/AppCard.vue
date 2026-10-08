@@ -3,6 +3,7 @@ import { useI18n } from 'vue-i18n'
 import type { Workspace } from '@/core/api/workspace'
 import { ArrowUpRight, Layers } from '@lucide/vue'
 import AppIcon from '@/components/AppIcon.vue'
+import { appUrl } from '@/core/workspaceUrl'
 
 const { t } = useI18n()
 
@@ -19,7 +20,7 @@ function totalCount(): number {
 
 <template>
   <router-link
-    :to="{ name: 'workspace-home', params: { workspaceName: workspace.name } }"
+    :to="appUrl({ type: 'Workspace', name: workspace.name })"
     :title="workspace.description || workspace.label"
     class="group relative flex items-center gap-3 rounded-lg border bg-card p-3 transition-colors hover:border-primary/40"
     :style="{ borderLeftWidth: '3px', borderLeftColor: workspace.color || 'var(--primary)' }"

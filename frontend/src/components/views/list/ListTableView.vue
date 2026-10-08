@@ -9,6 +9,7 @@ import ListGroupedView from '@/components/views/list/ListGroupedView.vue'
 import ListCards from '@/components/views/list/ListCards.vue'
 import { useCardLayout } from '@/components/views/list/useCardLayout'
 import { statusConfigOf } from '@/core/status'
+import { docUrl } from '@/core/workspaceUrl'
 
 interface TableMeta {
   page: number
@@ -136,7 +137,7 @@ function rowDocId(row: Record<string, unknown>): string {
             :rows="rows"
             :fields="fields"
             :meta="meta"
-            :row-link-base="`/app/${workspace}/${doctype}`"
+            :row-link-base="docUrl(doctype, null, workspace)"
             :doctype="doctype"
             :is-loading="isLoading"
             :sort-key="normalizedSortKey"

@@ -4,6 +4,7 @@ import { computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import type { WorkspaceLink } from '@/core/api/workspace'
 import AppIcon from '@/components/AppIcon.vue'
+import { appUrl } from '@/core/workspaceUrl'
 import { SidebarMenuBadge, SidebarMenuButton, SidebarMenuItem, SidebarMenuSubButton, SidebarMenuSubItem } from '@/components/ui/sidebar'
 
 const props = defineProps<{
@@ -25,17 +26,6 @@ const isActive = computed(() => {
   return false
 })
 
-function getRoutePath(): string | null {
-  switch (props.item.type) {
-    case 'DocType':
-      return props.item.is_singleton
-        ? `/${props.workspaceName}/${props.item.link_to}/${props.item.link_to}`
-        : `/${props.workspaceName}/${props.item.link_to}`
-    case 'Report': return `/${props.workspaceName}/report/${props.item.link_to}`
-    case 'Page': return `/${props.workspaceName}/page/${props.item.link_to}`
-    default: return null
-  }
-}
 
 /**
  * A DocType item's `count_filters` also filters the list it opens - the badge
@@ -56,21 +46,16 @@ const listQuery = computed<Record<string, string>>(() => {
   }
 })
 
-const itemHref = computed(() => {
-  if (props.item.type === 'URL') return props.item.link_to
-  const path = getRoutePath()
-  if (!path) return '#'
-  const query = new URLSearchParams(listQuery.value).toString()
-  return query ? `${path}?${query}` : path
-})
+const itemHref = computed(() => props.item.type === 'Divider'
+  ? '#'
+  : appUrl({ type: props.item.type, name: props.item.link_to, workspace: props.workspaceName, query: listQuery.value }))
 
 function navigate(e: MouseEvent) {
   // Let middle-click and Ctrl/Meta+click fall through to default <a> behavior
   if (e.button === 1 || e.ctrlKey || e.metaKey || e.shiftKey) return
   e.preventDefault()
   if (props.item.type === 'URL') { window.open(props.item.link_to, '_blank'); return }
-  const path = getRoutePath()
-  if (path) router.push({ path, query: listQuery.value })
+  if (props.item.type !== 'Divider') router.push(itemHref.value)
 }
 
 const displayCount = computed(() => {

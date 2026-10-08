@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 import type { DashboardWidget, ShortcutItem } from '@/types'
 import { ExternalLink } from '@lucide/vue'
 import { useRouter } from 'vue-router'
-import { docUrl } from '@/core/workspaceUrl'
+import { appUrl } from '@/core/workspaceUrl'
 import { useLucideIcons } from '@/core/composables/useLucideIcons'
 
 const props = defineProps<{
@@ -33,12 +33,8 @@ function navigate(tile: ShortcutItem) {
   const ws = props.workspaceName ?? ''
   if (tile.link_type === 'URL') {
     window.open(tile.link_to, '_blank')
-  } else if (tile.link_type === 'Report') {
-    router.push({ name: 'workspace-report', params: { workspaceName: ws, reportName: tile.link_to } })
-  } else if (tile.link_type === 'Page') {
-    router.push({ name: 'workspace-page', params: { workspaceName: ws, pageName: tile.link_to } })
   } else {
-    router.push(docUrl(tile.link_to, null, ws))
+    router.push(appUrl({ type: tile.link_type, name: tile.link_to, workspace: ws }))
   }
 }
 </script>

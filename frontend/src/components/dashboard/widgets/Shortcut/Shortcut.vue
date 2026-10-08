@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import type { DashboardWidget } from '@/types'
 import { ExternalLink } from '@lucide/vue'
-import { docUrl } from '@/core/workspaceUrl'
+import { appUrl } from '@/core/workspaceUrl'
 import { useLucideIcons } from '@/core/composables/useLucideIcons'
 import { useRouter } from 'vue-router'
 
@@ -36,12 +36,8 @@ function navigate() {
   const ws = props.workspaceName ?? ''
   if (linkType === 'URL') {
     window.open(target, '_blank')
-  } else if (linkType === 'Report') {
-    router.push({ name: 'workspace-report', params: { workspaceName: ws, reportName: target } })
-  } else if (linkType === 'Page') {
-    router.push({ name: 'workspace-page', params: { workspaceName: ws, pageName: target } })
   } else {
-    router.push(docUrl(target, null, ws))
+    router.push(appUrl({ type: linkType, name: target, workspace: ws }))
   }
 }
 </script>

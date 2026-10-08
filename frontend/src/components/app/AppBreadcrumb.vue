@@ -9,6 +9,7 @@ import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbS
 import { SidebarTrigger } from '@/components/ui/sidebar'
 import { Badge } from '@/components/ui/badge'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { appUrl, docUrl } from '@/core/workspaceUrl'
 const props = defineProps<{
   workspaceName: string
   doctype?: string
@@ -60,19 +61,21 @@ const items = computed(() => {
     {
       label: workspaceLabel.value,
       icon: workspaceIcon.value || undefined,
-      route: `/${props.workspaceName}`,
+      route: appUrl({ type: 'Workspace', name: props.workspaceName }),
     },
   ]
+  // A singleton's form is the DocType page itself - no list to link back to, no id crumb.
+  const singleton = !!(props.doctype && dtStore.cache?.get?.(props.doctype)?.is_singleton)
   if (props.doctype) {
     result.push({
       label: doctypeLabel.value,
       icon: doctypeIcon.value,
       // Link back to the list whenever the DocType crumb is not the current page.
-      route: props.docId || props.isNew ? `/${props.workspaceName}/${props.doctype}` : undefined,
+      route: !singleton && (props.docId || props.isNew) ? docUrl(props.doctype, null, props.workspaceName) : undefined,
       title: doctypeDescription.value,
     })
   }
-  if (props.docId) {
+  if (props.docId && !singleton) {
     const label = props.docLabel?.trim() || String(props.docId)
     result.push({
       label,
