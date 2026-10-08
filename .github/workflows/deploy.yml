@@ -78,7 +78,7 @@ jobs:
             cd /opt/grunt
             docker compose pull
             docker compose up -d --remove-orphans
-            docker compose exec -T backend grunt db migrate
+            docker compose exec -T backend grunt migrate
             echo "Deployed ${{ needs.build.outputs.image_tag }}"
         # Skip if SSH secrets not configured (e.g., in forks)
         continue-on-error: true

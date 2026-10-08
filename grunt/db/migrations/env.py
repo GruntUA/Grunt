@@ -18,7 +18,7 @@ from grunt.site.manager import site_manager
 # Alembic config
 config = context.config
 
-# A caller (e.g. `grunt db migrate`, which iterates every site) can pin the
+# A caller (e.g. `grunt migrate`, which iterates every site) can pin the
 # target DB explicitly. Otherwise resolve the active site's URL - that keeps
 # a bare `alembic upgrade head` working from the shell.
 db_url = config.attributes.get("target_db_url")

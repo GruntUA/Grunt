@@ -1,0 +1,163 @@
+{
+  "name": "ServiceLevel",
+  "label": "Service Level",
+  "module": "notification",
+  "icon": "timer",
+  "description": "Deadline policy (SLA) for documents: due time, early warning and escalation on breach",
+  "autoname": "field:title",
+  "title_field": "title",
+  "search_fields": [
+    "title",
+    "ref_doctype"
+  ],
+  "track_changes": true,
+  "fields": [
+    {
+      "fieldname": "title",
+      "label": "Title",
+      "fieldtype": "Data",
+      "required": true,
+      "unique": true,
+      "in_list_view": true,
+      "bold": true
+    },
+    {
+      "fieldname": "ref_doctype",
+      "label": "Document type",
+      "fieldtype": "Link",
+      "options": "DocType",
+      "required": true,
+      "in_list_view": true,
+      "in_quick_filter": true
+    },
+    {
+      "fieldname": "col_main",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "is_enabled",
+      "label": "Enabled",
+      "fieldtype": "Check",
+      "default": true,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "condition",
+      "label": "Applies when",
+      "fieldtype": "Code",
+      "options": "Python",
+      "description": "Optional expression on doc, e.g. doc.get('priority') == 'High'. Empty: every document"
+    },
+    {
+      "fieldname": "sec_deadline",
+      "label": "Deadline",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "target",
+      "label": "Time allowed",
+      "fieldtype": "Int",
+      "required": true,
+      "min_value": 1,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "target_unit",
+      "label": "Unit",
+      "fieldtype": "Select",
+      "options": "Hours\nDays\nWorking days",
+      "default": "Days",
+      "required": true,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "start_field",
+      "label": "Count from field",
+      "fieldtype": "Data",
+      "default": "created_at",
+      "description": "Date/Datetime field the clock starts from (default: creation time)"
+    },
+    {
+      "fieldname": "col_deadline",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "due_field",
+      "label": "Deadline field",
+      "fieldtype": "Data",
+      "description": "Optional Date/Datetime field of the document: filled with the deadline when empty; a value set by hand overrides the policy"
+    },
+    {
+      "fieldname": "warn_before",
+      "label": "Warn hours before",
+      "fieldtype": "Int",
+      "default": 24,
+      "min_value": 0,
+      "description": "0: no early warning"
+    },
+    {
+      "fieldname": "sec_done",
+      "label": "Done when",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "done_states",
+      "label": "Done statuses",
+      "fieldtype": "Text",
+      "description": "One status per line; reaching any of them stops the clock"
+    },
+    {
+      "fieldname": "col_done",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "done_condition",
+      "label": "Or done when",
+      "fieldtype": "Code",
+      "options": "Python",
+      "description": "Optional expression on doc, e.g. bool(doc.get('reply'))"
+    },
+    {
+      "fieldname": "sec_notify",
+      "label": "Notifications",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "notify",
+      "label": "Notify",
+      "fieldtype": "Text",
+      "default": "owner",
+      "description": "Warned before and on breach. Comma-separated: owner, role:Manager, user@example.com, {field:assigned_to}, {field:executor.user_id} (follows a Link)"
+    },
+    {
+      "fieldname": "escalate_to",
+      "label": "Escalate to",
+      "fieldtype": "Text",
+      "description": "Also notified on breach - same syntax"
+    },
+    {
+      "fieldname": "col_notify",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "channel",
+      "label": "Channel",
+      "fieldtype": "Select",
+      "options": "system\nemail\nboth",
+      "default": "system"
+    }
+  ],
+  "permissions": [
+    {
+      "role": "All",
+      "read": true
+    },
+    {
+      "role": "System Manager",
+      "read": true,
+      "write": true,
+      "create": true,
+      "delete": true
+    }
+  ]
+}

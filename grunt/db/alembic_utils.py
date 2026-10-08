@@ -1,6 +1,6 @@
 """Helpers for running Alembic migrations programmatically, per site.
 
-``grunt db migrate`` calls :func:`upgrade_site` for every site so the Alembic
+``grunt migrate`` calls :func:`upgrade_site` for every site so the Alembic
 version history is applied alongside the metadata/table sync. Standalone
 ``alembic upgrade head`` still works - ``env.py`` falls back to the active site
 when no explicit URL is handed in through ``config.attributes["target_db_url"]``.

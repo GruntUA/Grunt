@@ -15,8 +15,6 @@ import re
 from datetime import date, timedelta
 from typing import Any
 
-from sqlalchemy import Integer, String, cast, func
-
 # Filter-bar operator -> build_clauses key suffix.
 _OP_SUFFIX = {
     "=": "",
@@ -34,7 +32,6 @@ _OP_SUFFIX = {
 }
 OPERATORS = tuple(_OP_SUFFIX)
 
-DATE_BUCKETS = ("day", "month", "quarter", "year")
 
 _RELATIVE_DATE = re.compile(r"^today(?:([+-])(\d+))?$", re.IGNORECASE)
 
@@ -69,16 +66,3 @@ def compile_conditions(conditions: list[dict[str, Any]] | None) -> list[dict[str
             continue
         out.append({f"{field}{_OP_SUFFIX[op]}": value})
     return out
-
-
-def date_bucket(column: Any, bucket: str, dialect: str) -> Any:
-    """SQL expression labelling *column* with its day / month / quarter / year."""
-    if dialect == "postgresql":
-        fmt = {"day": "YYYY-MM-DD", "month": "YYYY-MM", "quarter": 'YYYY-"Q"Q', "year": "YYYY"}
-        return func.to_char(column, fmt[bucket])
-    # SQLite (and anything else with strftime)
-    if bucket == "quarter":
-        quarter = (cast(func.strftime("%m", column), Integer) + 2) // 3
-        return func.strftime("%Y", column).op("||")("-Q").op("||")(cast(quarter, String))
-    fmt = {"day": "%Y-%m-%d", "month": "%Y-%m", "year": "%Y"}
-    return func.strftime(fmt[bucket], column)

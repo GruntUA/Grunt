@@ -28,6 +28,7 @@ claude mcp add --transport http grunt https://your-site.example.com/api/v1/mcp \
 | `describe_doctype` | Fields, types, Select options, Link/Table targets, child-table fields |
 | `get_list` | Filtered, sorted, paged query; `meta.total` gives the count |
 | `get_doc` | One record with its child tables |
+| `aggregate` | Count / sum / avg / min / max grouped by fields or by `day/month/quarter/year(field)` |
 | `search` | Global full-text search |
 | `create_doc` / `update_doc` | Write records (controllers and hooks run as usual) |
 | `delete_doc` | Delete a record (marked destructive) |

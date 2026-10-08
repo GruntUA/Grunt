@@ -39,7 +39,7 @@ async def apply_doctype_overrides(
     Physical table changes (ALTER TABLE) are NOT applied here - run
     ``grunt migrate`` to synchronise DB schema with DocType definitions.
 
-    Only called from ``grunt db migrate`` (with ``sync_db=True``, so the
+    Only called from ``grunt migrate`` (with ``sync_db=True``, so the
     merged result is persisted into the DocType table - the server never
     re-runs this merge at boot, so without persistence the added fields would
     be lost the moment the DocType is next lazy-loaded from a fresh process).

@@ -214,6 +214,60 @@ async def get_doc(doctype: str, name: str) -> dict[str, Any]:
 
 
 @mcp_tool(
+    "aggregate",
+    title="Aggregate records",
+    description=(
+        "Answer 'how many / how much / per what' questions without paging through "
+        "records: GROUP BY with count/sum/avg/min/max over the records the user can "
+        "read. group_by entries are fieldnames or a date period: day(field), "
+        "month(field), quarter(field), year(field). aggregations map an output name "
+        "to 'count()' or 'sum(field)' / 'avg(field)' / 'min(field)' / 'max(field)'. "
+        "Example: group_by=['month(created_at)', 'status'], "
+        "aggregations={'n': 'count()', 'total': 'sum(amount)'}. " + _FILTERS_HELP
+    ),
+    input_schema={
+        "type": "object",
+        "properties": {
+            "doctype": _DOCTYPE_ARG,
+            "group_by": {"type": "array", "items": {"type": "string"}},
+            "aggregations": {
+                "type": "object",
+                "additionalProperties": {"type": "string"},
+                "description": "Output name -> expression; default {'count': 'count()'}.",
+            },
+            "filters": {"type": "object", "description": _FILTERS_HELP},
+            "order_by": {
+                "type": "string",
+                "description": "An aggregation name or group_by entry to sort by.",
+            },
+            "order": {"type": "string", "enum": ["asc", "desc"]},
+            "limit": {"type": "integer", "minimum": 1, "maximum": 1000, "default": 100},
+        },
+        "required": ["doctype"],
+    },
+    read_only=True,
+)
+async def aggregate(
+    doctype: str,
+    group_by: list[str] | None = None,
+    aggregations: dict[str, str] | None = None,
+    filters: dict[str, Any] | None = None,
+    order_by: str | None = None,
+    order: str = "desc",
+    limit: int = 100,
+) -> list[dict[str, Any]]:
+    return await grunt.aggregate(
+        doctype,
+        filters=filters,
+        group_by=group_by,
+        aggregations=aggregations,
+        order_by=order_by,
+        order=order,
+        limit=max(1, min(int(limit), 1000)),
+    )
+
+
+@mcp_tool(
     "search",
     title="Global search",
     description=(

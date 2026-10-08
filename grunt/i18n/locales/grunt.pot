@@ -62,6 +62,14 @@ msgstr ""
 msgid "%(hours)s h ago"
 msgstr ""
 
+#: grunt/grunt/notification/doctypes/ServiceLevel/service_level.py:49
+msgid "%(label)s: “%(field)s” is not a date field of %(doctype)s"
+msgstr ""
+
+#: grunt/grunt/notification/sla.py:299
+msgid "%(policy)s - due %(due)s"
+msgstr ""
+
 #: grunt/grunt/monitoring/health.py:205
 msgid "%(queued)s queued, %(running)s running"
 msgstr ""
@@ -1597,6 +1605,10 @@ msgstr ""
 msgid "Count (COUNT)"
 msgstr ""
 
+#: grunt/grunt/notification/doctypes/ServiceLevel/service_level.py:41
+msgid "Count from field"
+msgstr ""
+
 #: grunt/frontend/src/components/layout/OfflineQueueSheet.vue:24
 #: grunt/frontend/src/components/files/FileExplorer.vue:673
 #: grunt/frontend/src/components/fields/Link/Link.vue:218
@@ -1768,6 +1780,18 @@ msgstr ""
 
 #: grunt/frontend/src/components/views/form/FormHeader.vue:413
 msgid "Dead rows: {n}"
+msgstr ""
+
+#: grunt/grunt/notification/sla.py:298
+msgid "Deadline approaching: %(doctype)s %(name)s"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/ServiceLevel/service_level.py:42
+msgid "Deadline field"
+msgstr ""
+
+#: grunt/grunt/notification/sla.py:296
+msgid "Deadline missed: %(doctype)s %(name)s"
 msgstr ""
 
 #: grunt/grunt/monitoring/health.py:355
@@ -2004,7 +2028,7 @@ msgid "DocType “%(doctype)s” no longer exists"
 msgstr ""
 
 #: grunt/grunt/webform/service.py:92 grunt/grunt/app/document_api.py:516
-#: grunt/grunt/app/document_api.py:718 grunt/grunt/metadata/registry.py:333
+#: grunt/grunt/app/document_api.py:800 grunt/grunt/metadata/registry.py:333
 #: grunt/grunt/metadata/registry.py:584 grunt/grunt/metadata/registry.py:562
 #: grunt/grunt/notification/rule_index.py:53
 #: grunt/grunt/activity/__init__.py:264 grunt/grunt/actions/__init__.py:163
@@ -2672,7 +2696,7 @@ msgstr ""
 msgid "For example: My ERP"
 msgstr ""
 
-#: grunt/grunt/reports/engine.py:113
+#: grunt/grunt/reports/engine.py:114
 msgid "Forbidden: %(word)s"
 msgstr ""
 
@@ -3482,7 +3506,7 @@ msgstr ""
 msgid "Links to internal network addresses are not allowed"
 msgstr ""
 
-#: grunt/grunt/reports/engine.py:77
+#: grunt/grunt/reports/engine.py:78
 msgid "List report requires a DocType"
 msgstr ""
 
@@ -3747,7 +3771,7 @@ msgstr ""
 msgid "NO"
 msgstr ""
 
-#: grunt/grunt/cli/doctype.py:159 grunt/grunt/auth/doctypes/User/User.js:180
+#: grunt/grunt/cli/doctype.py:162 grunt/grunt/auth/doctypes/User/User.js:180
 #: grunt/frontend/src/core/composables/useFormValidation.ts:83
 #: grunt/frontend/src/core/composables/useFormValidation.ts:97
 #: grunt/frontend/src/components/files/FileExplorer.vue:768
@@ -4016,7 +4040,7 @@ msgstr ""
 msgid "No options"
 msgstr ""
 
-#: grunt/grunt/reports/engine.py:95
+#: grunt/grunt/reports/engine.py:96
 msgid "No query specified"
 msgstr ""
 
@@ -4055,7 +4079,7 @@ msgstr ""
 msgid "No rows"
 msgstr ""
 
-#: grunt/grunt/reports/engine.py:166
+#: grunt/grunt/reports/engine.py:167
 msgid "No script specified"
 msgstr ""
 
@@ -4165,6 +4189,10 @@ msgstr ""
 msgid "Not permitted to set the password; use the Change password action"
 msgstr ""
 
+#: grunt/grunt/app/document_api.py:668
+msgid "Not permitted to use fields: %(fields)s"
+msgstr ""
+
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:379
 msgid "Not set"
 msgstr ""
@@ -4258,7 +4286,7 @@ msgstr ""
 msgid "One option per line"
 msgstr ""
 
-#: grunt/grunt/reports/engine.py:105
+#: grunt/grunt/reports/engine.py:106
 msgid "Only SELECT is allowed"
 msgstr ""
 
@@ -4980,7 +5008,7 @@ msgstr ""
 msgid "Report saved"
 msgstr ""
 
-#: grunt/grunt/reports/engine.py:81
+#: grunt/grunt/reports/engine.py:82
 msgid "Report type “%(type)s” is not supported"
 msgstr ""
 
@@ -4992,7 +5020,7 @@ msgstr ""
 msgid "Report “%(name)s” as of %(date)s: %(rows)s rows. The file is attached."
 msgstr ""
 
-#: grunt/grunt/reports/engine.py:61 grunt/grunt/reports/delivery.py:136
+#: grunt/grunt/reports/engine.py:62 grunt/grunt/reports/delivery.py:136
 msgid "Report “%(name)s” not found"
 msgstr ""
 
@@ -5267,7 +5295,7 @@ msgstr ""
 msgid "Scheduler"
 msgstr ""
 
-#: grunt/grunt/reports/engine.py:196
+#: grunt/grunt/reports/engine.py:197
 msgid "Script execution error: %(error)s"
 msgstr ""
 
@@ -5491,6 +5519,10 @@ msgstr ""
 msgid "Service Worker is not ready. Reload the page."
 msgstr ""
 
+#: grunt/grunt/notification/doctypes/ServiceLevel/service_level.py:32
+msgid "Service levels cannot track “%(doctype)s” documents"
+msgstr ""
+
 #: grunt/frontend/src/core/browserHealth.ts:68
 #: grunt/frontend/src/core/browserHealth.ts:72
 #: grunt/frontend/src/core/browserHealth.ts:76
@@ -5513,6 +5545,11 @@ msgstr ""
 
 #: grunt/frontend/src/pages/setup/SetupWizard.vue:147
 msgid "Set a strong password for the main account."
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/ServiceLevel/service_level.py:61
+msgid ""
+"Set done statuses or a done condition - otherwise the clock never stops"
 msgstr ""
 
 #: grunt/frontend/src/pages/auth/ResetPassword.vue:100
@@ -6135,6 +6172,10 @@ msgstr ""
 msgid "The database snapshot is corrupted: %(result)s"
 msgstr ""
 
+#: grunt/grunt/notification/doctypes/ServiceLevel/service_level.py:54
+msgid "The deadline field must be a field of the document"
+msgstr ""
+
 #: grunt/grunt/workflow/engine.py:143
 msgid "The document has no Workflow configured"
 msgstr ""
@@ -6260,7 +6301,7 @@ msgstr ""
 msgid "The response came from the offline cache."
 msgstr ""
 
-#: grunt/grunt/reports/engine.py:217
+#: grunt/grunt/reports/engine.py:218
 msgid ""
 "The script must assign `result = {'columns': [...], 'data': [...]}` or "
 "`query = 'SELECT ...'`"
@@ -6456,6 +6497,10 @@ msgstr ""
 msgid "Tiles"
 msgstr ""
 
+#: grunt/grunt/notification/doctypes/ServiceLevel/service_level.py:36
+msgid "Time allowed must be at least 1"
+msgstr ""
+
 #: grunt/frontend/src/components/dashboard/sections/TilesSection.vue:71
 #: grunt/frontend/src/components/dashboard/sections/LinksSection.vue:85
 #: grunt/frontend/src/components/dashboard/sections/TitleSection.vue:12
@@ -6501,7 +6546,7 @@ msgstr ""
 msgid "Too many requests. Try again later."
 msgstr ""
 
-#: grunt/grunt/reports/engine.py:434
+#: grunt/grunt/reports/engine.py:435
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:283
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:609
 #: grunt/frontend/src/pages/reports/ReportView.vue:283
@@ -6619,6 +6664,10 @@ msgstr ""
 
 #: grunt/grunt/io/doctypes/DataImport/data_import.py:261
 msgid "Unknown export format: %(format)s"
+msgstr ""
+
+#: grunt/grunt/app/document_api.py:665
+msgid "Unknown fields: %(fields)s"
 msgstr ""
 
 #: grunt/grunt/document/mixins/export_rpc.py:42
@@ -7534,7 +7583,7 @@ msgstr ""
 msgid "opened in {n} ms"
 msgstr ""
 
-#: grunt/grunt/reports/engine.py:401
+#: grunt/grunt/reports/engine.py:402
 msgid "openpyxl is not installed"
 msgstr ""
 
@@ -7913,6 +7962,10 @@ msgstr ""
 
 #: grunt/grunt/document/mixins/lifecycle.py:147
 msgid "“%(doctype)s” does not support this operation"
+msgstr ""
+
+#: grunt/grunt/app/document_api.py:643
+msgid "“%(doctype)s” has no table to aggregate"
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/AutoRepeat/auto_repeat.py:101
@@ -8875,6 +8928,65 @@ msgstr ""
 #: grunt/grunt/scripting/doctypes/ServerScript/ServerScript.json
 msgctxt "help:ServerScript.is_standard"
 msgid "Ships with the app as JSON files - edits are saved to the app"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
+msgctxt "help:ServiceLevel"
+msgid ""
+"Deadline policy (SLA) for documents: due time, early warning and escalation "
+"on breach"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
+msgctxt "help:ServiceLevel.condition"
+msgid ""
+"Optional expression on doc, e.g. doc.get('priority') == 'High'. Empty: every"
+" document"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
+msgctxt "help:ServiceLevel.done_condition"
+msgid "Optional expression on doc, e.g. bool(doc.get('reply'))"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
+msgctxt "help:ServiceLevel.done_states"
+msgid "One status per line; reaching any of them stops the clock"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
+msgctxt "help:ServiceLevel.due_field"
+msgid ""
+"Optional Date/Datetime field of the document: filled with the deadline when "
+"empty; a value set by hand overrides the policy"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
+msgctxt "help:ServiceLevel.escalate_to"
+msgid "Also notified on breach - same syntax"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
+msgctxt "help:ServiceLevel.notify"
+msgid ""
+"Warned before and on breach. Comma-separated: owner, role:Manager, "
+"user@example.com, {field:assigned_to}, {field:executor.user_id} (follows a "
+"Link)"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
+msgctxt "help:ServiceLevel.start_field"
+msgid "Date/Datetime field the clock starts from (default: creation time)"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
+msgctxt "help:ServiceLevel.warn_before"
+msgid "0: no early warning"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/ServiceLevelStatus/ServiceLevelStatus.json
+msgctxt "help:ServiceLevelStatus"
+msgid "Deadline tracking of one document under one Service Level"
 msgstr ""
 
 #: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
@@ -12832,6 +12944,151 @@ msgctxt "meta:ServerScript.script_type"
 msgid "Type"
 msgstr ""
 
+#: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
+msgctxt "meta:ServiceLevel"
+msgid "Service Level"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
+msgctxt "meta:ServiceLevel.channel"
+msgid "Channel"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
+msgctxt "meta:ServiceLevel.condition"
+msgid "Applies when"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
+msgctxt "meta:ServiceLevel.done_condition"
+msgid "Or done when"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
+msgctxt "meta:ServiceLevel.done_states"
+msgid "Done statuses"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
+msgctxt "meta:ServiceLevel.due_field"
+msgid "Deadline field"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
+msgctxt "meta:ServiceLevel.escalate_to"
+msgid "Escalate to"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
+msgctxt "meta:ServiceLevel.is_enabled"
+msgid "Enabled"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
+msgctxt "meta:ServiceLevel.notify"
+msgid "Notify"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
+msgctxt "meta:ServiceLevel.ref_doctype"
+msgid "Document type"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
+msgctxt "meta:ServiceLevel.sec_deadline"
+msgid "Deadline"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
+msgctxt "meta:ServiceLevel.sec_done"
+msgid "Done when"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
+msgctxt "meta:ServiceLevel.sec_notify"
+msgid "Notifications"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
+msgctxt "meta:ServiceLevel.start_field"
+msgid "Count from field"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
+msgctxt "meta:ServiceLevel.target"
+msgid "Time allowed"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
+msgctxt "meta:ServiceLevel.target_unit"
+msgid "Unit"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
+msgctxt "meta:ServiceLevel.title"
+msgid "Title"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
+msgctxt "meta:ServiceLevel.warn_before"
+msgid "Warn hours before"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/ServiceLevelStatus/ServiceLevelStatus.json
+msgctxt "meta:ServiceLevelStatus"
+msgid "Service Level Status"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/ServiceLevelStatus/ServiceLevelStatus.json
+msgctxt "meta:ServiceLevelStatus.breached_at"
+msgid "Breached"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/ServiceLevelStatus/ServiceLevelStatus.json
+msgctxt "meta:ServiceLevelStatus.due_at"
+msgid "Deadline"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/ServiceLevelStatus/ServiceLevelStatus.json
+msgctxt "meta:ServiceLevelStatus.met_at"
+msgid "Done"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/ServiceLevelStatus/ServiceLevelStatus.json
+msgctxt "meta:ServiceLevelStatus.ref_doctype"
+msgid "Document type"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/ServiceLevelStatus/ServiceLevelStatus.json
+msgctxt "meta:ServiceLevelStatus.ref_name"
+msgid "Document"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/ServiceLevelStatus/ServiceLevelStatus.json
+msgctxt "meta:ServiceLevelStatus.sec_times"
+msgid "Timeline"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/ServiceLevelStatus/ServiceLevelStatus.json
+msgctxt "meta:ServiceLevelStatus.service_level"
+msgid "Service Level"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/ServiceLevelStatus/ServiceLevelStatus.json
+msgctxt "meta:ServiceLevelStatus.started_at"
+msgid "Started"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/ServiceLevelStatus/ServiceLevelStatus.json
+msgctxt "meta:ServiceLevelStatus.status"
+msgid "Status"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/ServiceLevelStatus/ServiceLevelStatus.json
+msgctxt "meta:ServiceLevelStatus.warned_at"
+msgid "Warned"
+msgstr ""
+
 #: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
 msgctxt "meta:SharedWith"
 msgid "Access"
@@ -15385,6 +15642,31 @@ msgstr ""
 #: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
 msgctxt "status:AutoRepeat"
 msgid "Disabled"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/ServiceLevelStatus/ServiceLevelStatus.json
+msgctxt "status:ServiceLevelStatus"
+msgid "At risk"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/ServiceLevelStatus/ServiceLevelStatus.json
+msgctxt "status:ServiceLevelStatus"
+msgid "Breached"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/ServiceLevelStatus/ServiceLevelStatus.json
+msgctxt "status:ServiceLevelStatus"
+msgid "Met"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/ServiceLevelStatus/ServiceLevelStatus.json
+msgctxt "status:ServiceLevelStatus"
+msgid "Met late"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/ServiceLevelStatus/ServiceLevelStatus.json
+msgctxt "status:ServiceLevelStatus"
+msgid "On track"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/SystemHealthCheck/SystemHealthCheck.json

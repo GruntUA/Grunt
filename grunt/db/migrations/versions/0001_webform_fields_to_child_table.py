@@ -1,7 +1,7 @@
 """Backfill WebFormField rows from the legacy WebForm.fields JSON column.
 
 WebForm.fields changed from a JSON blob to a Table(WebFormField) child
-relation. Schema sync (``grunt db migrate``'s DocType-table step) only adds
+relation. Schema sync (``grunt migrate``'s DocType-table step) only adds
 columns/tables - it never migrates data across a type change, so any site
 that already had a WebForm before this change loses that form's field list
 the moment the new schema lands (the old JSON blob is left behind, orphaned,

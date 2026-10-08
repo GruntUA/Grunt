@@ -10,7 +10,7 @@ def db_group():
     pass
 
 
-@db_group.command("migrate")
+@click.command("migrate")
 @click.option(
     "--dry-run", is_flag=True, help="Show the SQL without running it (for DocType tables)"
 )

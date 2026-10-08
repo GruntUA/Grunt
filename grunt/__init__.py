@@ -52,6 +52,7 @@ submit = _app.submit
 get_list = _app.get_list
 get_all = _app.get_all
 count = _app.count
+aggregate = _app.aggregate
 exists = _app.exists
 get_value = _app.get_value
 set_value = _app.set_value
@@ -69,6 +70,7 @@ render_template = _app.render_template
 
 __all__ = [
     "_",
+    "aggregate",
     "bootstrap_context",
     "bulk_delete_docs",
     "bulk_insert",

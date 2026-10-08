@@ -191,17 +191,17 @@ class DocTypeRegistry:
         Call this at startup instead of :meth:`load_all`. Full definitions -
         core or user - are loaded lazily from the DocType table on first
         :meth:`get`. Schema/definition merging from bundled core JSON only
-        happens via ``grunt db migrate``, which persists the merged result
+        happens via ``grunt migrate``, which persists the merged result
         into the DocType table so the server never needs to touch the
         JSON files at runtime.
 
         Swallows a missing/not-yet-migrated DocType table so a
-        brand-new site can still boot before its first ``grunt db migrate``.
+        brand-new site can still boot before its first ``grunt migrate``.
         """
         try:
             all_names = await store.names(session)
         except Exception:
-            log.info("registry.prefetch_names_table_missing", hint="run `grunt db migrate` first")
+            log.info("registry.prefetch_names_table_missing", hint="run `grunt migrate` first")
             all_names = set()
         self._known_names = all_names - set(self._doctypes)
         # Rebuild the known-names index in one pass

@@ -80,6 +80,6 @@ the site until it is reviewed again.
 
 Ship it with the app as a fixture (`fixtures/02_workflow.json` with
 `"doctype": "Workflow"` and `"sync": true`) and apply it with
-`grunt db migrate`. A real-world case: `apps/mlt_portal/mlt_portal/fixtures/02_workflow.json`
+`grunt migrate`. A real-world case: `apps/mlt_portal/mlt_portal/fixtures/02_workflow.json`
 (authors scoped to sections by User Permissions — `next` notifies only the
 reviewers of that section).

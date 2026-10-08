@@ -9,16 +9,22 @@ from sqlalchemy import CursorResult, func, or_, select, update
 
 import grunt
 from grunt import _
+from grunt.db.buckets import DATE_BUCKETS, date_bucket
 from grunt.db.filters import apply_filters, build_clauses
 from grunt.errors import not_found
 from grunt.local import _session_ctx
 from grunt.utils.attr_dict import AttrDict
 
 if TYPE_CHECKING:
+    from collections.abc import Awaitable, Callable
+
+    from sqlalchemy import Select, Table
     from sqlalchemy.ext.asyncio import AsyncSession
 
 # "sum(amount)" / "count()" - see _parse_aggregation_expr.
 _AGG_EXPR_RE = re.compile(r"^([a-z_]+)(?:\((.*)\))?$")
+# "month(created_at)" / "date(due)" - see _build_group_by_column.
+_GROUP_FN_RE = re.compile(rf"^(date|{'|'.join(DATE_BUCKETS)})\((.+)\)$", re.IGNORECASE)
 
 
 def _parse_aggregation_expr(expr: str) -> tuple[str, str | None]:
@@ -51,15 +57,20 @@ def _build_aggregation_column(table: Any, fn_name: str, field_name: str | None) 
     raise ValueError(f"Unsupported aggregation function: {fn_name}")
 
 
-def _build_group_by_column(table: Any, gb: str) -> tuple[Any, Any]:
+def _build_group_by_column(table: Any, gb: str, dialect: str) -> tuple[Any, Any]:
     """Build (select_expr, group_by_expr) for one ``group_by`` entry.
 
-    Supports a bare column name, or ``date(field)`` to group by calendar day.
+    Supports a bare column name, ``date(field)`` (calendar day), or a period
+    bucket ``day(field)`` / ``month(field)`` / ``quarter(field)`` /
+    ``year(field)`` labelled ``2026-09-23`` / ``2026-09`` / ``2026-Q3`` / ``2026``.
     """
     gb = gb.strip()
-    if gb.startswith("date(") and gb.endswith(")"):
-        field = gb[5:-1].strip()
-        expr = func.date(table.c[field])
+    m = _GROUP_FN_RE.match(gb)
+    if m:
+        fn, field = m.group(1).lower(), m.group(2).strip()
+        expr = (
+            func.date(table.c[field]) if fn == "date" else date_bucket(table.c[field], fn, dialect)
+        )
         return expr.label(gb), expr
     col = table.c[gb]
     return col.label(gb), col
@@ -450,8 +461,14 @@ class GruntDB:
         limit: int | None = None,
         order_by: str | None = None,
         order: str = "desc",
+        scope: Callable[[Select, Table], Awaitable[Select]] | None = None,
     ) -> list[dict[str, Any]]:
-        """Fetch aggregated data (GROUP BY, SUM, COUNT, etc)."""
+        """Fetch aggregated data (GROUP BY, SUM, COUNT, etc).
+
+        No permission checks - ``grunt.aggregate`` is the permission-aware
+        variant. ``scope`` lets it narrow the statement (row-level rules)
+        before grouping.
+        """
         dt = await grunt.get_meta(doctype)
         if dt is None:
             raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
@@ -466,8 +483,9 @@ class GruntDB:
         if isinstance(group_by, str):
             group_by = [group_by]
 
+        dialect = self._session().bind.dialect.name
         for gb in group_by or []:
-            select_expr, group_expr = _build_group_by_column(table, gb)
+            select_expr, group_expr = _build_group_by_column(table, gb, dialect)
             select_exprs.append(select_expr)
             group_by_exprs.append(group_expr)
             labeled[gb.strip()] = select_expr
@@ -486,6 +504,8 @@ class GruntDB:
         stmt = select(*select_exprs).select_from(table)
         if filters:
             stmt = apply_filters(stmt, table, filters)
+        if scope is not None:
+            stmt = await scope(stmt, table)
 
         if group_by_exprs:
             stmt = stmt.group_by(*group_by_exprs)

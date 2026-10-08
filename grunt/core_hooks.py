@@ -24,6 +24,11 @@ doc_events: dict[str, dict[str, list[str]]] = {
         "after_save": ["grunt.i18n.hooks.refresh_supported_languages"],
         "after_delete": ["grunt.i18n.hooks.refresh_supported_languages"],
     },
+    # Keep the SLA policy cache (grunt.notification.sla) fresh.
+    "ServiceLevel": {
+        "after_save": ["grunt.notification.sla.invalidate"],
+        "after_delete": ["grunt.notification.sla.invalidate"],
+    },
     # Tell a document's followers (DocFollow) about new comments on it.
     "Comment": {
         "after_insert": ["grunt.activity.follow.notify_followers_of_comment"],
@@ -34,7 +39,11 @@ doc_events: dict[str, dict[str, list[str]]] = {
     "*": {
         "after_insert": ["grunt.activity.log_activity"],
         # Standard records (DocType.standard_records) -> JSON files in their app.
-        "after_save": ["grunt.standard_records.sync_files"],
+        "after_save": [
+            "grunt.standard_records.sync_files",
+            # Start / move / stop SLA clocks (no-op without a ServiceLevel).
+            "grunt.notification.sla.on_document_saved",
+        ],
         "after_rename": ["grunt.standard_records.sync_files"],
         # Snapshot the doc first (restorable trash bin), then log the delete.
         "after_delete": [
@@ -43,6 +52,7 @@ doc_events: dict[str, dict[str, list[str]]] = {
             "grunt.activity.follow.drop_follows",
             "grunt.activity.likes.drop_likes",
             "grunt.standard_records.sync_files",
+            "grunt.notification.sla.on_document_deleted",
         ],
         # Record per-user "seen" state / ViewLog for DocTypes that opt in via
         # track_seen / track_views (no-op for everything else).

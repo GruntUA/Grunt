@@ -1,0 +1,155 @@
+{
+  "name": "ServiceLevelStatus",
+  "label": "Service Level Status",
+  "module": "notification",
+  "icon": "alarm-clock",
+  "description": "Deadline tracking of one document under one Service Level",
+  "autoname": "hash",
+  "title_field": "ref_name",
+  "search_fields": [
+    "ref_name",
+    "service_level"
+  ],
+  "indexes": [
+    [
+      "ref_doctype",
+      "ref_name"
+    ],
+    [
+      "status",
+      "due_at"
+    ]
+  ],
+  "status_field": "status",
+  "default_view": "list",
+  "track_activity": false,
+  "calendar_date_field": "due_at",
+  "calendar_title_field": "ref_name",
+  "inherit_permission_from": [
+    [
+      "ref_doctype",
+      "ref_name"
+    ]
+  ],
+  "status_indicators": [
+    {
+      "value": "On track",
+      "color": "primary",
+      "label": "On track"
+    },
+    {
+      "value": "At risk",
+      "color": "warn",
+      "label": "At risk"
+    },
+    {
+      "value": "Breached",
+      "color": "danger",
+      "label": "Breached"
+    },
+    {
+      "value": "Met",
+      "color": "success",
+      "label": "Met"
+    },
+    {
+      "value": "Met late",
+      "color": "secondary",
+      "label": "Met late"
+    }
+  ],
+  "fields": [
+    {
+      "fieldname": "ref_doctype",
+      "label": "Document type",
+      "fieldtype": "Link",
+      "options": "DocType",
+      "read_only": true,
+      "in_list_view": true,
+      "in_quick_filter": true
+    },
+    {
+      "fieldname": "ref_name",
+      "label": "Document",
+      "fieldtype": "DynamicLink",
+      "options": "ref_doctype",
+      "read_only": true,
+      "in_list_view": true,
+      "bold": true
+    },
+    {
+      "fieldname": "service_level",
+      "label": "Service Level",
+      "fieldtype": "Link",
+      "options": "ServiceLevel",
+      "read_only": true,
+      "in_quick_filter": true
+    },
+    {
+      "fieldname": "col_main",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "status",
+      "label": "Status",
+      "fieldtype": "Select",
+      "options": "On track\nAt risk\nBreached\nMet\nMet late",
+      "default": "On track",
+      "read_only": true,
+      "in_list_view": true,
+      "in_quick_filter": true
+    },
+    {
+      "fieldname": "due_at",
+      "label": "Deadline",
+      "fieldtype": "Datetime",
+      "read_only": true,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "sec_times",
+      "label": "Timeline",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "started_at",
+      "label": "Started",
+      "fieldtype": "Datetime",
+      "read_only": true
+    },
+    {
+      "fieldname": "met_at",
+      "label": "Done",
+      "fieldtype": "Datetime",
+      "read_only": true
+    },
+    {
+      "fieldname": "col_times",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "warned_at",
+      "label": "Warned",
+      "fieldtype": "Datetime",
+      "read_only": true
+    },
+    {
+      "fieldname": "breached_at",
+      "label": "Breached",
+      "fieldtype": "Datetime",
+      "read_only": true
+    }
+  ],
+  "permissions": [
+    {
+      "role": "All",
+      "read": true
+    },
+    {
+      "role": "System Manager",
+      "read": true,
+      "write": true,
+      "delete": true
+    }
+  ]
+}

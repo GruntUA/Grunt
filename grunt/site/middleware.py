@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 
 async def _apply_hot_reload_if_triggered(site: str) -> None:
     """Refresh *this site's* in-memory DocType cache if `.reload_meta` is
-    present (written by `grunt db migrate` / `grunt doctype sync`).
+    present (written by `grunt migrate` / `grunt doctype sync`).
 
     Clearing the DocType cache makes the next lazy-load re-read the DocType's
     *stored* JSON definition (DocType table), which is the single source of

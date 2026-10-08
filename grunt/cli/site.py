@@ -222,7 +222,7 @@ def site_create(
         click.echo("  ◀ Set as the active site")
 
     if no_migrate:
-        click.echo("\nHint: run 'grunt db migrate' to initialize the schema.")
+        click.echo("\nHint: run 'grunt migrate' to initialize the schema.")
         click.echo(f"Admin password: {password}")
         return
 
@@ -243,7 +243,7 @@ def site_create(
 
 
 def _run_migrate_for_site(site_name: str) -> None:
-    """Run DB migration for a single site (reuses db migrate logic inline)."""
+    """Run DB migration for a single site (reuses migrate logic inline)."""
 
     async def _migrate() -> None:
         from grunt.metadata.compiler import SA_METADATA, sync_table
@@ -268,7 +268,7 @@ def _run_migrate_for_site(site_name: str) -> None:
             async with maker() as session:
                 # New site: seed core DocTypes into the DocType table so the
                 # server can lazy-load them without ever touching the JSON
-                # files again (sync_db=True - same as `grunt db migrate`).
+                # files again (sync_db=True - same as `grunt migrate`).
                 await load_core_doctypes(session, sync_db=True)
                 await apply_doctype_overrides(session, eng, sync_db=True)
                 await doctype_registry.load_all(session)

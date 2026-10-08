@@ -10,6 +10,7 @@ from sqlalchemy import func, select, text
 
 import grunt
 from grunt import _, log
+from grunt.db.buckets import DATE_BUCKETS, date_bucket
 from grunt.db.filters import build_clauses
 from grunt.db.session import get_engine as _engine_factory
 from grunt.errors import not_found
@@ -17,7 +18,7 @@ from grunt.io.exporters.sanitize import escape_formula
 from grunt.permissions.query import apply_permission_filter
 from grunt.permissions.rbac import permission_checker
 from grunt.permissions.user_permissions import build_conditions
-from grunt.reports.list_options import DATE_BUCKETS, compile_conditions, date_bucket
+from grunt.reports.list_options import compile_conditions
 from grunt.scripting.safe_globals import build_safe_globals, compile_script
 
 if TYPE_CHECKING:

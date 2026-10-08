@@ -78,7 +78,7 @@ async def _do_install(name: str, site: str | None = None) -> None:
         async with maker() as session:
             # New app: seed its core DocTypes into the DocType table so the
             # server can lazy-load them without ever touching the JSON files
-            # again (sync_db=True - same as `grunt db migrate`).
+            # again (sync_db=True - same as `grunt migrate`).
             await load_core_doctypes(session, sync_db=True)
             await doctype_registry.load_all(session)
             async with grunt.system_context(session, eng):

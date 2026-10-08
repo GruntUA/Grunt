@@ -2,7 +2,7 @@
 DocType whenever the incoming JSON differed from what was already loaded,
 with no check on which app actually owns that name. Two apps (or an app and
 grunt core) defining a doctype with the same name would silently clobber
-each other on every `grunt db migrate` — whichever synced last "won", with
+each other on every `grunt migrate` — whichever synced last "won", with
 no warning. Found via a real collision: cms's WebPage/WebsiteSettings share
 a name with grunt core's own built-in WebPage/WebsiteSettings doctypes.
 """

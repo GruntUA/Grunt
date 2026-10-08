@@ -3242,7 +3242,7 @@ msgstr "Мінімум"
 msgid "Must be a number"
 msgstr "Має бути числом"
 
-#: grunt/grunt/cli/doctype.py:159 grunt/grunt/auth/doctypes/User/User.js:180
+#: grunt/grunt/cli/doctype.py:162 grunt/grunt/auth/doctypes/User/User.js:180
 #: grunt/frontend/src/core/composables/useFormValidation.ts:83
 #: grunt/frontend/src/core/composables/useFormValidation.ts:97
 #: grunt/frontend/src/components/files/FileExplorer.vue:768
@@ -5514,7 +5514,7 @@ msgstr "Нове значення"
 msgid "Restore"
 msgstr "Відновити"
 
-#: grunt/grunt/reports/engine.py:434
+#: grunt/grunt/reports/engine.py:435
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:283
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:609
 #: grunt/frontend/src/pages/reports/ReportView.vue:283
@@ -12681,7 +12681,7 @@ msgid "Text"
 msgstr "Текст"
 
 #: grunt/grunt/webform/service.py:92 grunt/grunt/app/document_api.py:516
-#: grunt/grunt/app/document_api.py:718 grunt/grunt/metadata/registry.py:333
+#: grunt/grunt/app/document_api.py:800 grunt/grunt/metadata/registry.py:333
 #: grunt/grunt/metadata/registry.py:584 grunt/grunt/metadata/registry.py:562
 #: grunt/grunt/notification/rule_index.py:53
 #: grunt/grunt/activity/__init__.py:264 grunt/grunt/actions/__init__.py:163
@@ -12808,39 +12808,39 @@ msgstr "Невідомий формат експорту: %(format)s"
 msgid "Unknown format: %(format)s"
 msgstr "Невідомий формат: %(format)s"
 
-#: grunt/grunt/reports/engine.py:95
+#: grunt/grunt/reports/engine.py:96
 msgid "No query specified"
 msgstr "Запит не вказано"
 
-#: grunt/grunt/reports/engine.py:105
+#: grunt/grunt/reports/engine.py:106
 msgid "Only SELECT is allowed"
 msgstr "Дозволено тільки SELECT"
 
-#: grunt/grunt/reports/engine.py:166
+#: grunt/grunt/reports/engine.py:167
 msgid "No script specified"
 msgstr "Скрипт не вказано"
 
-#: grunt/grunt/reports/engine.py:401
+#: grunt/grunt/reports/engine.py:402
 msgid "openpyxl is not installed"
 msgstr "openpyxl не встановлено"
 
-#: grunt/grunt/reports/engine.py:61 grunt/grunt/reports/delivery.py:136
+#: grunt/grunt/reports/engine.py:62 grunt/grunt/reports/delivery.py:136
 msgid "Report “%(name)s” not found"
 msgstr "Звіт «%(name)s» не знайдено"
 
-#: grunt/grunt/reports/engine.py:81
+#: grunt/grunt/reports/engine.py:82
 msgid "Report type “%(type)s” is not supported"
 msgstr "Тип звіту «%(type)s» не підтримується"
 
-#: grunt/grunt/reports/engine.py:113
+#: grunt/grunt/reports/engine.py:114
 msgid "Forbidden: %(word)s"
 msgstr "Заборонено: %(word)s"
 
-#: grunt/grunt/reports/engine.py:196
+#: grunt/grunt/reports/engine.py:197
 msgid "Script execution error: %(error)s"
 msgstr "Помилка виконання скрипту: %(error)s"
 
-#: grunt/grunt/reports/engine.py:217
+#: grunt/grunt/reports/engine.py:218
 msgid ""
 "The script must assign `result = {'columns': [...], 'data': [...]}` or "
 "`query = 'SELECT ...'`"
@@ -13752,7 +13752,7 @@ msgstr "Недійсне значення теми"
 msgid "Label is required"
 msgstr "Назва обов'язкова"
 
-#: grunt/grunt/reports/engine.py:77
+#: grunt/grunt/reports/engine.py:78
 msgid "List report requires a DocType"
 msgstr "Звіт-список потребує DocType"
 
@@ -15758,6 +15758,298 @@ msgstr "Завершено"
 msgctxt "status:AutoRepeat"
 msgid "Disabled"
 msgstr "Вимкнено"
+
+#: grunt/grunt/notification/doctypes/ServiceLevel/service_level.py:49
+msgid "%(label)s: “%(field)s” is not a date field of %(doctype)s"
+msgstr "%(label)s: «%(field)s» не є полем дати в %(doctype)s"
+
+#: grunt/grunt/notification/sla.py:299
+msgid "%(policy)s - due %(due)s"
+msgstr "%(policy)s — строк до %(due)s"
+
+#: grunt/grunt/notification/doctypes/ServiceLevel/service_level.py:41
+msgid "Count from field"
+msgstr "Відлік від поля"
+
+#: grunt/grunt/notification/sla.py:298
+msgid "Deadline approaching: %(doctype)s %(name)s"
+msgstr "Наближається строк: %(doctype)s %(name)s"
+
+#: grunt/grunt/notification/doctypes/ServiceLevel/service_level.py:42
+msgid "Deadline field"
+msgstr "Поле строку"
+
+#: grunt/grunt/notification/sla.py:296
+msgid "Deadline missed: %(doctype)s %(name)s"
+msgstr "Строк порушено: %(doctype)s %(name)s"
+
+#: grunt/grunt/app/document_api.py:668
+msgid "Not permitted to use fields: %(fields)s"
+msgstr "Немає доступу до полів: %(fields)s"
+
+#: grunt/grunt/notification/doctypes/ServiceLevel/service_level.py:32
+msgid "Service levels cannot track “%(doctype)s” documents"
+msgstr "SLA не може відстежувати документи «%(doctype)s»"
+
+#: grunt/grunt/notification/doctypes/ServiceLevel/service_level.py:61
+msgid ""
+"Set done statuses or a done condition - otherwise the clock never stops"
+msgstr ""
+"Вкажіть статуси завершення або умову — інакше відлік ніколи не зупиниться"
+
+#: grunt/grunt/notification/doctypes/ServiceLevel/service_level.py:54
+msgid "The deadline field must be a field of the document"
+msgstr "Поле строку має бути полем документа"
+
+#: grunt/grunt/notification/doctypes/ServiceLevel/service_level.py:36
+msgid "Time allowed must be at least 1"
+msgstr "Відведений час має бути не менше 1"
+
+#: grunt/grunt/app/document_api.py:665
+msgid "Unknown fields: %(fields)s"
+msgstr "Невідомі поля: %(fields)s"
+
+#: grunt/grunt/app/document_api.py:643
+msgid "“%(doctype)s” has no table to aggregate"
+msgstr "«%(doctype)s» не має таблиці для агрегації"
+
+#: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
+msgctxt "help:ServiceLevel"
+msgid ""
+"Deadline policy (SLA) for documents: due time, early warning and escalation "
+"on breach"
+msgstr ""
+"Політика строків (SLA) для документів: строк виконання, попередження та "
+"ескалація при порушенні"
+
+#: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
+msgctxt "help:ServiceLevel.condition"
+msgid ""
+"Optional expression on doc, e.g. doc.get('priority') == 'High'. Empty: every"
+" document"
+msgstr ""
+"Необов'язковий вираз над doc, напр. doc.get('priority') == 'High'. Порожньо "
+"— для всіх документів"
+
+#: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
+msgctxt "help:ServiceLevel.done_condition"
+msgid "Optional expression on doc, e.g. bool(doc.get('reply'))"
+msgstr "Необов'язковий вираз над doc, напр. bool(doc.get('reply'))"
+
+#: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
+msgctxt "help:ServiceLevel.done_states"
+msgid "One status per line; reaching any of them stops the clock"
+msgstr "Один статус на рядок; досягнення будь-якого зупиняє відлік"
+
+#: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
+msgctxt "help:ServiceLevel.due_field"
+msgid ""
+"Optional Date/Datetime field of the document: filled with the deadline when "
+"empty; a value set by hand overrides the policy"
+msgstr ""
+"Необов'язкове поле Date/Datetime документа: заповнюється строком, якщо "
+"порожнє; значення, задане вручну, має пріоритет над політикою"
+
+#: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
+msgctxt "help:ServiceLevel.escalate_to"
+msgid "Also notified on breach - same syntax"
+msgstr "Також сповіщаються при порушенні строку — той самий синтаксис"
+
+#: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
+msgctxt "help:ServiceLevel.notify"
+msgid ""
+"Warned before and on breach. Comma-separated: owner, role:Manager, "
+"user@example.com, {field:assigned_to}, {field:executor.user_id} (follows a "
+"Link)"
+msgstr ""
+"Отримують попередження та сповіщення про порушення. Через кому: owner, "
+"role:Manager, user@example.com, {field:assigned_to}, "
+"{field:executor.user_id} (через Link)"
+
+#: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
+msgctxt "help:ServiceLevel.start_field"
+msgid "Date/Datetime field the clock starts from (default: creation time)"
+msgstr "Поле Date/Datetime, від якого йде відлік (типово — час створення)"
+
+#: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
+msgctxt "help:ServiceLevel.warn_before"
+msgid "0: no early warning"
+msgstr "0 — без попередження"
+
+#: grunt/grunt/notification/doctypes/ServiceLevelStatus/ServiceLevelStatus.json
+msgctxt "help:ServiceLevelStatus"
+msgid "Deadline tracking of one document under one Service Level"
+msgstr "Відстеження строку одного документа за однією політикою SLA"
+
+#: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
+msgctxt "meta:ServiceLevel"
+msgid "Service Level"
+msgstr "Політика SLA"
+
+#: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
+msgctxt "meta:ServiceLevel.channel"
+msgid "Channel"
+msgstr "Канал"
+
+#: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
+msgctxt "meta:ServiceLevel.condition"
+msgid "Applies when"
+msgstr "Застосовується, коли"
+
+#: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
+msgctxt "meta:ServiceLevel.done_condition"
+msgid "Or done when"
+msgstr "Або завершено, коли"
+
+#: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
+msgctxt "meta:ServiceLevel.done_states"
+msgid "Done statuses"
+msgstr "Статуси завершення"
+
+#: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
+msgctxt "meta:ServiceLevel.due_field"
+msgid "Deadline field"
+msgstr "Поле строку"
+
+#: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
+msgctxt "meta:ServiceLevel.escalate_to"
+msgid "Escalate to"
+msgstr "Ескалювати до"
+
+#: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
+msgctxt "meta:ServiceLevel.is_enabled"
+msgid "Enabled"
+msgstr "Увімкнено"
+
+#: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
+msgctxt "meta:ServiceLevel.notify"
+msgid "Notify"
+msgstr "Сповіщати"
+
+#: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
+msgctxt "meta:ServiceLevel.ref_doctype"
+msgid "Document type"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
+msgctxt "meta:ServiceLevel.sec_deadline"
+msgid "Deadline"
+msgstr "Строк"
+
+#: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
+msgctxt "meta:ServiceLevel.sec_done"
+msgid "Done when"
+msgstr "Завершено, коли"
+
+#: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
+msgctxt "meta:ServiceLevel.sec_notify"
+msgid "Notifications"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
+msgctxt "meta:ServiceLevel.start_field"
+msgid "Count from field"
+msgstr "Відлік від поля"
+
+#: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
+msgctxt "meta:ServiceLevel.target"
+msgid "Time allowed"
+msgstr "Відведений час"
+
+#: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
+msgctxt "meta:ServiceLevel.target_unit"
+msgid "Unit"
+msgstr "Одиниця"
+
+#: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
+msgctxt "meta:ServiceLevel.title"
+msgid "Title"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
+msgctxt "meta:ServiceLevel.warn_before"
+msgid "Warn hours before"
+msgstr "Попередити за (год)"
+
+#: grunt/grunt/notification/doctypes/ServiceLevelStatus/ServiceLevelStatus.json
+msgctxt "meta:ServiceLevelStatus"
+msgid "Service Level Status"
+msgstr "Стан SLA"
+
+#: grunt/grunt/notification/doctypes/ServiceLevelStatus/ServiceLevelStatus.json
+msgctxt "meta:ServiceLevelStatus.breached_at"
+msgid "Breached"
+msgstr "Порушено"
+
+#: grunt/grunt/notification/doctypes/ServiceLevelStatus/ServiceLevelStatus.json
+msgctxt "meta:ServiceLevelStatus.due_at"
+msgid "Deadline"
+msgstr "Строк"
+
+#: grunt/grunt/notification/doctypes/ServiceLevelStatus/ServiceLevelStatus.json
+msgctxt "meta:ServiceLevelStatus.met_at"
+msgid "Done"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/ServiceLevelStatus/ServiceLevelStatus.json
+msgctxt "meta:ServiceLevelStatus.ref_doctype"
+msgid "Document type"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/ServiceLevelStatus/ServiceLevelStatus.json
+msgctxt "meta:ServiceLevelStatus.ref_name"
+msgid "Document"
+msgstr "Документ"
+
+#: grunt/grunt/notification/doctypes/ServiceLevelStatus/ServiceLevelStatus.json
+msgctxt "meta:ServiceLevelStatus.sec_times"
+msgid "Timeline"
+msgstr "Хронологія"
+
+#: grunt/grunt/notification/doctypes/ServiceLevelStatus/ServiceLevelStatus.json
+msgctxt "meta:ServiceLevelStatus.service_level"
+msgid "Service Level"
+msgstr "Політика SLA"
+
+#: grunt/grunt/notification/doctypes/ServiceLevelStatus/ServiceLevelStatus.json
+msgctxt "meta:ServiceLevelStatus.started_at"
+msgid "Started"
+msgstr "Розпочато"
+
+#: grunt/grunt/notification/doctypes/ServiceLevelStatus/ServiceLevelStatus.json
+msgctxt "meta:ServiceLevelStatus.status"
+msgid "Status"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/ServiceLevelStatus/ServiceLevelStatus.json
+msgctxt "meta:ServiceLevelStatus.warned_at"
+msgid "Warned"
+msgstr "Попереджено"
+
+#: grunt/grunt/notification/doctypes/ServiceLevelStatus/ServiceLevelStatus.json
+msgctxt "status:ServiceLevelStatus"
+msgid "At risk"
+msgstr "Під загрозою"
+
+#: grunt/grunt/notification/doctypes/ServiceLevelStatus/ServiceLevelStatus.json
+msgctxt "status:ServiceLevelStatus"
+msgid "Breached"
+msgstr "Прострочено"
+
+#: grunt/grunt/notification/doctypes/ServiceLevelStatus/ServiceLevelStatus.json
+msgctxt "status:ServiceLevelStatus"
+msgid "Met"
+msgstr "Виконано вчасно"
+
+#: grunt/grunt/notification/doctypes/ServiceLevelStatus/ServiceLevelStatus.json
+msgctxt "status:ServiceLevelStatus"
+msgid "Met late"
+msgstr "Виконано із запізненням"
+
+#: grunt/grunt/notification/doctypes/ServiceLevelStatus/ServiceLevelStatus.json
+msgctxt "status:ServiceLevelStatus"
+msgid "On track"
+msgstr "У строк"
 
 #~ msgctxt "help:DocTypeCalendarSource.doctype"
 #~ msgid "The document type added to the calendar as a separate source"

@@ -5,7 +5,7 @@ Kept out of :mod:`grunt.main` so the entry point stays a thin assembly of
 
 1. configure logging, load validators
 2. bring every site up (search index table, DocType *names* only - full
-   definitions and schema sync are `grunt db migrate`'s job, not boot's)
+   definitions and schema sync are `grunt migrate`'s job, not boot's)
 3. load external apps installed on at least one site
 4. the task broker and the scheduler
 
@@ -68,7 +68,7 @@ async def _bring_up_sites() -> None:
                 # Only names - for both core and user-created DocTypes. Full
                 # definitions load lazily on first `doctype_registry.get()`.
                 # All schema/definition merging (core JSON -> DB) happens
-                # exclusively via `grunt db migrate`, never at boot.
+                # exclusively via `grunt migrate`, never at boot.
                 await doctype_registry.prefetch_names(session)
                 await session.commit()
         except Exception as e:

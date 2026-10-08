@@ -156,7 +156,7 @@ core вже надає "з коробки". `permissions`, додані в cms's
 | Плюс | Мінус / ризик |
 |---|---|
 | Нові doctype за замовчуванням безпечні — не треба пам'ятати додати права | Кожен НОВИЙ core doctype без `permissions` одразу закритий для всіх, крім superadmin — розробники мусять явно додати permissions row одразу, інакше "працює тільки в мене" |
-| Живий сайт отримав реально діючий RBAC для 60+41 doctype, де він раніше існував лише на папері | `_inject_core`'s "seed once" правило означає: будь-яка МАЙБУТНЯ зміна `permissions` в JSON core doctype знову не підхопиться автоматичним `grunt db migrate` — треба пам'ятати `grunt doctype sync <Name>` |
+| Живий сайт отримав реально діючий RBAC для 60+41 doctype, де він раніше існував лише на папері | `_inject_core`'s "seed once" правило означає: будь-яка МАЙБУТНЯ зміна `permissions` в JSON core doctype знову не підхопиться автоматичним `grunt migrate` — треба пам'ятати `grunt doctype sync <Name>` |
 | CLI-команда `grunt doctype sync`/`grunt doctype list` знову працює (циклічний імпорт пофіксовано) | — |
 
 ## Доповнення: три знахідки цього заходу закриті (2026-08-20, наступного дня)
@@ -198,7 +198,7 @@ cms's `WebPage` тимчасово переписав core-версію в ць�
 `registry.core_permissions_drifted` warning у `_inject_core()`: щоразу, як
 JSON-права doctype відрізняються від того, що реально збережено, лунає
 явне попередження з підказкою (`grunt doctype sync <Name>`) — при кожному
-старті сервера чи `grunt db migrate`, а не лише коли хтось випадково це
+старті сервера чи `grunt migrate`, а не лише коли хтось випадково це
 помітить. Регресія: `tests/unit/test_core_permissions_drift_warning.py` —
 підтверджує і сам warning, і що збережені (Studio) права й далі не
 перезаписуються автоматично.

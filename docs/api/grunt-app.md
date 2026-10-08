@@ -143,6 +143,28 @@ Count documents matching filters.
 total = await grunt.count("Order", filters={"status": "Open"})
 ```
 
+### `grunt.aggregate(doctype, *, filters, group_by, aggregations, order_by, order, limit)`
+
+GROUP BY over the rows the current user may read: read permission, row-level
+`match` rules and shares apply, and permission-hidden fields cannot be used.
+`group_by` takes fieldnames or a period: `day(f)`, `month(f)`, `quarter(f)`,
+`year(f)` (labels `2026-09-23`, `2026-09`, `2026-Q3`, `2026`). Without
+`aggregations`, each group gets a `count`.
+
+```python
+rows = await grunt.aggregate(
+    "Invoice",
+    filters={"status": "Paid"},
+    group_by="month(posting_date)",
+    aggregations={"total": "sum(amount)", "n": "count()"},
+    order_by="month(posting_date)",
+    order="asc",
+)
+# [{"month(posting_date)": "2026-09", "total": 4200.0, "n": 7}, ...]
+```
+
+`grunt.db.aggregate` takes the same arguments without any permission checks.
+
 ### `grunt.bulk_insert(doctype, records)`
 
 Create multiple documents in a single DB round-trip (no hooks).

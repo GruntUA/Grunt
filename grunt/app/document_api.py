@@ -607,6 +607,88 @@ class DocumentAPI:
             await cache.set_count(cache_key, result)
         return result
 
+    @profile("grunt.aggregate")
+    async def aggregate(
+        self,
+        doctype: str,
+        *,
+        filters: dict[str, Any] | None = None,
+        group_by: str | list[str] | None = None,
+        aggregations: dict[str, str] | None = None,
+        limit: int | None = None,
+        order_by: str | None = None,
+        order: str = "desc",
+    ) -> list[dict[str, Any]]:
+        """GROUP BY / SUM / COUNT over the rows the current user may read.
+
+        Same arguments as ``grunt.db.aggregate``, but read permission, row-level
+        ``match`` rules and shares apply, and permission-hidden fields can be
+        neither grouped, aggregated nor filtered on. Without ``aggregations``
+        each group gets a ``count``::
+
+            rows = await grunt.aggregate(
+                "Invoice",
+                filters={"status": "Paid"},
+                group_by="month(posting_date)",
+                aggregations={"total": "sum(amount)", "n": "count()"},
+            )
+        """
+        from grunt.db.api import _GROUP_FN_RE, _parse_aggregation_expr
+        from grunt.db.filters import FILTER_OPS
+        from grunt.errors import forbidden, unprocessable
+        from grunt.permissions.query import apply_permission_filter
+
+        dt, user, hidden = await read_guard(doctype)
+        if dt.doc.is_virtual:
+            raise unprocessable(_("“%(doctype)s” has no table to aggregate") % {"doctype": doctype})
+
+        group_by = [group_by] if isinstance(group_by, str) else list(group_by or [])
+        aggregations = aggregations or {"count": "count()"}
+        referenced: set[str] = set()
+        for gb in group_by:
+            m = _GROUP_FN_RE.match(gb.strip())
+            referenced.add(m.group(2).strip() if m else gb.strip())
+        for expr in (aggregations or {}).values():
+            try:
+                field = _parse_aggregation_expr(expr)[1]
+            except ValueError as e:
+                raise unprocessable(str(e)) from None
+            if field and field != "*":
+                referenced.add(field)
+        for key in filters or {}:
+            field, _sep, op = key.rpartition("__")
+            referenced.add(field if field and op in FILTER_OPS else key)
+
+        columns = set(dt.table.c.keys())
+        unknown = sorted(referenced - columns)
+        if unknown:
+            raise unprocessable(_("Unknown fields: %(fields)s") % {"fields": ", ".join(unknown)})
+        if referenced & hidden:
+            raise forbidden(
+                _("Not permitted to use fields: %(fields)s")
+                % {"fields": ", ".join(sorted(referenced & hidden))}
+            )
+
+        async def scope(stmt: Any, table: Any) -> Any:
+            return await apply_permission_filter(stmt, table, user, dt.doc)
+
+        await fire("before_read", doctype=doctype, user=user, filters=filters, method="aggregate")
+        try:
+            rows = await self.db.aggregate(
+                doctype,
+                filters=filters,
+                group_by=group_by or None,
+                aggregations=aggregations,
+                limit=limit,
+                order_by=order_by,
+                order=order,
+                scope=scope,
+            )
+        except ValueError as e:
+            raise unprocessable(str(e)) from None
+        await fire("after_read", doctype=doctype, user=user, data=rows, method="aggregate")
+        return rows
+
     async def exists(
         self,
         doctype: str,
