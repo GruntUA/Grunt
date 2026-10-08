@@ -140,3 +140,14 @@ def _tree_title_resolvers(value: dict[str, str], ctx: LoadContext) -> None:
 @consumer("doc_actions")
 def _doc_actions(value: list[str], ctx: LoadContext) -> None:
     load_app_doc_actions(list(value), app=ctx.app_name)
+
+
+@consumer("mcp_tools")
+def _mcp_tools(value: list[str], ctx: LoadContext) -> None:
+    # Each path names a function decorated with ``@mcp_tool`` - importing it registers it.
+    for path in value:
+        try:
+            _resolve(path)
+            log.debug("mcp.tool.loaded", handler=path, app=ctx.app_name)
+        except Exception as e:
+            log.warning("mcp.tool.error", handler=path, app=ctx.app_name, error=str(e))

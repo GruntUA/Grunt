@@ -62,6 +62,44 @@ async def copy_reference(doc: dict[str, Any], *, args: dict[str, Any]) -> dict[s
 
 
 @doc_action(
+    "core.auto_repeat",
+    label="Repeat",
+    doctypes=["*"],
+    icon="repeat",
+    variant="outline",
+    fields=[
+        {
+            "fieldname": "frequency",
+            "label": "Frequency",
+            "fieldtype": "Select",
+            "options": "Daily\nWeekly\nMonthly\nQuarterly\nHalf-yearly\nYearly",
+            "default": "Monthly",
+            "required": True,
+        },
+        {"fieldname": "start_date", "label": "Start date", "fieldtype": "Date", "required": True},
+        {"fieldname": "end_date", "label": "End date", "fieldtype": "Date"},
+    ],
+)
+async def auto_repeat(doc: dict[str, Any], *, args: dict[str, Any]) -> dict[str, Any]:
+    """Create an AutoRepeat rule that copies this document on a schedule."""
+    rule = await grunt.new_doc(
+        "AutoRepeat",
+        {
+            "reference_doctype": doc["doctype"],
+            "reference_document": doc["name"],
+            "frequency": args.get("frequency") or "Monthly",
+            "start_date": args.get("start_date"),
+            "end_date": args.get("end_date") or None,
+        },
+    )
+    return {
+        "message": _("Auto repeat %(rule)s created, next copy on %(date)s")
+        % {"rule": rule["name"], "date": rule.get("next_schedule_date")},
+        "refresh": False,
+    }
+
+
+@doc_action(
     "trash.restore",
     label="Restore",
     doctypes=["DeletedDocument"],

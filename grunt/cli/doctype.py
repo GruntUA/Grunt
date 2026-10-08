@@ -71,6 +71,9 @@ def doctype_sync(name: str, site: str | None):
         async with _site_session(site) as (session, eng):
             from grunt.metadata import store
 
+            # The DocType table itself may lag behind DocType.json (new property
+            # columns) when only alembic ran - bring it up to date first.
+            await store.ensure_table(session)
             existing_data = await store.get_definition(session, dt.name)
             if existing_data is not None:
                 existing_app = existing_data.get("app")

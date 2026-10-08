@@ -37,6 +37,7 @@
 | 3.3 | ✅ | **Document diff (версії)** | Реалізовано: `VersionHistoryPanel.vue` відображає список версій з inline diff (старе → нове значення поля), кнопкою відновлення. Вбудовано у `DocTypeForm.vue` через боковий sidebar. |
 | 3.4 | 💡 | **Реакції на коментарі** | Emoji-реакції (👍 ✅ ❓) на коментарях через окрему таблицю `CommentReaction`. Невелика, але дає соціальну динаміку. |
 | 3.5 | ✅ | **Гостьовий доступ до документа** | Генерація захищеного посилання на документ для перегляду/підпису зовнішнім користувачем (без логіну в систему). |
+| 3.6 | ✅ | **Auto Repeat (повторювані документи)** | DocType `AutoRepeat` (`grunt/tasks/doctypes/AutoRepeat`): копія документа-шаблону за розкладом (щодня … щороку, день місяця / останній день, start/end). Щоденна задача `grunt.tasks.auto_repeat.run_auto_repeats` (01:00) створює копії від імені власника правила (права й хуки DocType діють), наздоганяє пропущені дні (≤12), ставить дату в `date_field`, лінкує копію через поле `auto_repeat` (якщо є), сповіщає власника. Кнопка «Повторювати» — дія `core.auto_repeat` (прив'язується у вкладці Actions DocType). |
 
 ---
 
@@ -48,6 +49,7 @@
 | 4.2 | ✅ | **OAuth-провайдери** | Pluggable auth-провайдери (реєстр + `/api/v1/auth` + `issue_login`): OIDC (`grunt/auth/providers/oauth.py`), WebAuthn/passkey. |
 | 4.3 | 💡 | **REST API Connector** | DocType `ApiConnector` — конфігурація зовнішнього REST API (base URL, auth, headers). `grunt.call_api("MyConnector", "/endpoint", data)` у Server Scripts. |
 | 4.4 | ✅ | **Zapier / Make (n8n) webhooks** | Реалізовано DocType `IncomingWebhook` (`grunt/webhook/`) з `field_mapping` → створення документа. |
+| 4.6 | ✅ | **MCP-сервер для AI-агентів** | `POST /api/v1/mcp` (Streamable HTTP, stateless). Інструменти `list_doctypes`, `describe_doctype`, `get_list`, `get_doc`, `search`, `create_doc`, `update_doc`, `delete_doc` — від імені власника API-ключа, з усіма правами. Додатки додають свої через `@mcp_tool` + `mcp_tools` у `hooks.py`. Документація: `docs/guide/mcp.md`. Далі: агрегати/звіти (`run_report`), AI-асистент у Desk. |
 | 4.5 | ❌ | **S3-compatible storage UI** | Відхилено (28.09.2026): S3-бекенд (aioboto3) прибрано з ядра, файли лише локально (`sites/<site>/uploads`). |
 
 ---

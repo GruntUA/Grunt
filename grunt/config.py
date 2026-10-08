@@ -88,6 +88,9 @@ class Settings(BaseSettings):
     rate_limit_webform: int = 10  # req/min per-IP for public web-form submissions
     rate_limit_files: int = 600  # req/min per-IP for signed file URLs (<img> grids)
 
+    # MCP server for AI agents at /api/v1/mcp (grunt.mcp)
+    mcp_enabled: bool = True
+
     # CAPTCHA (Turnstile) - used only by WebForm submissions that opt in via
     # their own captcha_enabled flag. Leave captcha_provider unset to disable
     # site-wide, even if a form asks for it.

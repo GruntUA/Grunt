@@ -2776,7 +2776,7 @@ msgstr "30 днів"
 msgid "7 days"
 msgstr "7 днів"
 
-#: grunt/grunt/startup/errors.py:257 grunt/frontend/src/router/index.ts:189
+#: grunt/grunt/startup/errors.py:257 grunt/frontend/src/router/index.ts:193
 #: grunt/frontend/src/core/api/client.ts:164
 msgid "Access denied"
 msgstr "Доступ заборонено"
@@ -2876,7 +2876,7 @@ msgstr "Помилка камери: {msg}"
 msgid "Camera unavailable."
 msgstr "Камера недоступна."
 
-#: grunt/grunt/actions/builtin.py:110
+#: grunt/grunt/actions/builtin.py:148
 #: grunt/frontend/src/components/desk/GruntDialog.vue:438
 #: grunt/frontend/src/components/desk/GruntDialog.vue:442
 #: grunt/frontend/src/components/desk/GruntDialog.vue:459
@@ -3143,7 +3143,7 @@ msgstr "Перейти до списку {label}"
 msgid "Group by"
 msgstr "Групувати за"
 
-#: grunt/frontend/src/router/index.ts:188
+#: grunt/frontend/src/router/index.ts:192
 #: grunt/frontend/src/components/app/AppSidebar.vue:115
 #: grunt/frontend/src/components/mobile/MobileBottomNav.vue:78
 msgid "Home"
@@ -3255,7 +3255,7 @@ msgstr "Має бути числом"
 msgid "Name"
 msgstr "Назва"
 
-#: grunt/frontend/src/router/index.ts:197
+#: grunt/frontend/src/router/index.ts:201
 #: grunt/frontend/src/components/app/AppBreadcrumb.vue:82
 #: grunt/frontend/src/components/dashboard/sections/TilesSection.vue:32
 #: grunt/frontend/src/components/dashboard/sections/LinksSection.vue:29
@@ -3340,7 +3340,7 @@ msgstr "Сторінка"
 
 #: grunt/grunt/startup/website.py:112 grunt/grunt/startup/errors.py:258
 #: grunt/grunt/api/v1/pages.py:66 grunt/grunt/api/v1/dashboard.py:221
-#: grunt/frontend/src/router/index.ts:190
+#: grunt/frontend/src/router/index.ts:194
 msgid "Page not found"
 msgstr "Сторінку не знайдено"
 
@@ -3405,8 +3405,8 @@ msgid "Required"
 msgstr "Обов'язкове"
 
 #: grunt/grunt/email/templates/password_reset.html:54
-#: grunt/frontend/src/router/index.ts:184
-#: grunt/frontend/src/router/index.ts:185
+#: grunt/frontend/src/router/index.ts:188
+#: grunt/frontend/src/router/index.ts:189
 #: grunt/frontend/src/pages/auth/ForgotPassword.vue:42
 msgid "Reset password"
 msgstr "Скинути пароль"
@@ -3481,7 +3481,7 @@ msgstr "Сканування не підтримується в цьому бр�
 msgid "Scanning is not supported in this browser. Use image upload."
 msgstr "Сканування не підтримується в цьому браузері. Завантажте зображення."
 
-#: grunt/frontend/src/router/index.ts:193
+#: grunt/frontend/src/router/index.ts:197
 #: grunt/frontend/src/components/app/AppSidebar.vue:124
 msgid "Search"
 msgstr "Пошук"
@@ -3553,7 +3553,7 @@ msgstr "Встановити значення"
 msgid "Settings"
 msgstr "Налаштування"
 
-#: grunt/frontend/src/router/index.ts:187
+#: grunt/frontend/src/router/index.ts:191
 #: grunt/frontend/src/pages/setup/SetupWizard.vue:65
 msgid "Setup"
 msgstr "Початкове налаштування"
@@ -3571,7 +3571,7 @@ msgstr "Поділитися посиланням"
 #: grunt/grunt/website/www/login.py:9
 #: grunt/grunt/website/www/signup.ssr.html:119
 #: grunt/grunt/website/www/form/{route}.html:140
-#: grunt/frontend/src/router/index.ts:182
+#: grunt/frontend/src/router/index.ts:186
 #: grunt/frontend/src/pages/auth/Login.vue:57
 #: grunt/frontend/src/pages/auth/Login.vue:452
 #: grunt/frontend/src/pages/setup/SetupWizard.vue:197
@@ -3583,7 +3583,7 @@ msgstr "Увійти"
 #: grunt/grunt/website/www/signup.py:9
 #: grunt/grunt/website/www/signup.ssr.html:3
 #: grunt/grunt/website/www/signup.ssr.html:114
-#: grunt/frontend/src/router/index.ts:183
+#: grunt/frontend/src/router/index.ts:187
 #: grunt/frontend/src/pages/auth/Login.vue:57
 #: grunt/frontend/src/pages/auth/Login.vue:456
 msgid "Sign up"
@@ -3644,7 +3644,7 @@ msgstr "Плитки"
 msgid "Title"
 msgstr "Заголовок"
 
-#: grunt/frontend/src/router/index.ts:186
+#: grunt/frontend/src/router/index.ts:190
 msgid "Two-factor authentication"
 msgstr "Двофакторна автентифікація"
 
@@ -5509,7 +5509,7 @@ msgstr "Кільцева"
 msgid "New value"
 msgstr "Нове значення"
 
-#: grunt/grunt/actions/builtin.py:64
+#: grunt/grunt/actions/builtin.py:102
 #: grunt/frontend/src/pages/desk/DocTypeForm.vue:188
 msgid "Restore"
 msgstr "Відновити"
@@ -6664,7 +6664,7 @@ msgstr ""
 msgid "Waiting for connection…"
 msgstr "Чекаємо на зв'язок…"
 
-#: grunt/grunt/actions/builtin.py:135
+#: grunt/grunt/actions/builtin.py:173
 #: grunt/frontend/src/components/layout/OfflineQueueSheet.vue:109
 msgid "Send now"
 msgstr "Надіслати зараз"
@@ -12702,15 +12702,15 @@ msgstr "DocType «%(doctype)s» не знайдено"
 msgid "Document re-saved; formulas and hooks recalculated"
 msgstr "Документ перезбережено, формули та хуки перераховано"
 
-#: grunt/grunt/actions/builtin.py:107
+#: grunt/grunt/actions/builtin.py:145
 msgid "Task completed"
 msgstr "Завдання виконано"
 
-#: grunt/grunt/actions/builtin.py:120
+#: grunt/grunt/actions/builtin.py:158
 msgid "Task cancelled"
 msgstr "Завдання скасовано"
 
-#: grunt/grunt/actions/builtin.py:132
+#: grunt/grunt/actions/builtin.py:170
 msgid "Task reopened"
 msgstr "Завдання відкрито"
 
@@ -12734,35 +12734,35 @@ msgstr ""
 msgid "Copy link"
 msgstr "Скопіювати посилання"
 
-#: grunt/grunt/actions/builtin.py:75
+#: grunt/grunt/actions/builtin.py:113
 msgid "Restored: %(name)s"
 msgstr "Відновлено: %(name)s"
 
-#: grunt/grunt/actions/builtin.py:78
+#: grunt/grunt/actions/builtin.py:116
 msgid "Restore with a new ID"
 msgstr "Відновити з новим ID"
 
-#: grunt/grunt/actions/builtin.py:89
+#: grunt/grunt/actions/builtin.py:127
 msgid "Restored as: %(name)s"
 msgstr "Відновлено як: %(name)s"
 
-#: grunt/grunt/actions/builtin.py:98
+#: grunt/grunt/actions/builtin.py:136
 msgid "Mark as done"
 msgstr "Позначити виконаним"
 
-#: grunt/grunt/actions/builtin.py:110
+#: grunt/grunt/actions/builtin.py:148
 msgid "Cancel the task?"
 msgstr "Скасувати завдання?"
 
-#: grunt/grunt/actions/builtin.py:123
+#: grunt/grunt/actions/builtin.py:161
 msgid "Reopen"
 msgstr "Відкрити знову"
 
-#: grunt/grunt/actions/builtin.py:135
+#: grunt/grunt/actions/builtin.py:173
 msgid "Send the report to its recipients now?"
 msgstr "Надіслати звіт отримувачам розсилки зараз?"
 
-#: grunt/grunt/actions/builtin.py:148
+#: grunt/grunt/actions/builtin.py:186
 msgid "Report queued for %(count)s recipients"
 msgstr "Звіт поставлено в чергу для %(count)s отримувачів"
 
@@ -15079,7 +15079,7 @@ msgstr "Вподобання документа"
 #: grunt/grunt/activity/doctypes/DocLike/DocLike.json
 msgctxt "meta:DocLike.reference_doctype"
 msgid "Document type"
-msgstr ""
+msgstr "Тип документа"
 
 #: grunt/grunt/activity/doctypes/DocLike/DocLike.json
 msgctxt "meta:DocLike.reference_id"
@@ -15538,6 +15538,226 @@ msgstr "Додаток"
 msgctxt "meta:Workflow.is_standard"
 msgid "Standard"
 msgstr "Стандартний"
+
+#: grunt/grunt/tasks/auto_repeat.py:189
+msgid "Auto repeat %(rule)s"
+msgstr "Автоповтор %(rule)s"
+
+#: grunt/grunt/actions/builtin.py:96
+msgid "Auto repeat %(rule)s created, next copy on %(date)s"
+msgstr "Автоповтор %(rule)s створено, наступна копія %(date)s"
+
+#: grunt/grunt/tasks/auto_repeat.py:194
+msgid "Auto repeat %(rule)s failed"
+msgstr "Автоповтор %(rule)s: помилка"
+
+#: grunt/grunt/tasks/auto_repeat.py:187
+msgid "Created %(doctype)s %(name)s"
+msgstr "Створено %(doctype)s %(name)s"
+
+#: grunt/grunt/tasks/doctypes/AutoRepeat/auto_repeat.py:111
+msgid "Day of month must be between 1 and 31"
+msgstr "День місяця має бути від 1 до 31"
+
+#: grunt/grunt/tasks/doctypes/AutoRepeat/auto_repeat.py:81
+msgid "Documents of “%(doctype)s” cannot be repeated"
+msgstr "Документи «%(doctype)s» не можна повторювати"
+
+#: grunt/grunt/actions/builtin.py:80
+msgid "End date"
+msgstr "Дата завершення"
+
+#: grunt/grunt/tasks/doctypes/AutoRepeat/auto_repeat.py:117
+msgid "End date cannot be before the start date"
+msgstr "Дата завершення не може бути раніше дати початку"
+
+#: grunt/grunt/actions/builtin.py:71
+msgid "Frequency"
+msgstr "Періодичність"
+
+#: grunt/grunt/actions/builtin.py:64
+msgid "Repeat"
+msgstr "Повторювати"
+
+#: grunt/grunt/actions/builtin.py:79
+msgid "Start date"
+msgstr "Дата початку"
+
+#: grunt/grunt/tasks/auto_repeat.py:164
+msgid "The owner of this rule is missing or inactive"
+msgstr "Власник цього правила відсутній або деактивований"
+
+#: grunt/grunt/tasks/doctypes/AutoRepeat/auto_repeat.py:108
+msgid "Unknown frequency: %(f)s"
+msgstr "Невідома періодичність: %(f)s"
+
+#: grunt/grunt/tasks/doctypes/AutoRepeat/auto_repeat.py:91
+msgid "You are not allowed to create “%(doctype)s” documents"
+msgstr "Ви не можете створювати документи «%(doctype)s»"
+
+#: grunt/grunt/tasks/doctypes/AutoRepeat/auto_repeat.py:101
+msgid "“%(field)s” is not a date field of %(doctype)s"
+msgstr "«%(field)s» не є полем дати в %(doctype)s"
+
+#: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
+msgctxt "help:AutoRepeat"
+msgid ""
+"Creates copies of a document on a schedule (monthly invoices, recurring "
+"orders, reminders)"
+msgstr ""
+"Створює копії документа за розкладом (щомісячні рахунки, регулярні "
+"замовлення, нагадування)"
+
+#: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
+msgctxt "help:AutoRepeat.date_field"
+msgid ""
+"Fieldname of a Date/Datetime field in the copy to set to the scheduled date "
+"(e.g. posting_date)"
+msgstr ""
+"Назва поля типу Date/Datetime у копії, яке отримає дату за розкладом (напр. "
+"posting_date)"
+
+#: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
+msgctxt "help:AutoRepeat.end_date"
+msgid "Empty: repeat until disabled"
+msgstr "Порожньо — повторювати, доки не вимкнено"
+
+#: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
+msgctxt "help:AutoRepeat.notify"
+msgid "Notify the owner of this rule when a copy is created or fails"
+msgstr "Сповіщати власника правила про створення копії або помилку"
+
+#: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
+msgctxt "help:AutoRepeat.reference_document"
+msgid "Every repetition is a copy of this document"
+msgstr "Кожне повторення — копія цього документа"
+
+#: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
+msgctxt "help:AutoRepeat.repeat_on_day"
+msgid "Empty: the day of the start date. Short months use their last day"
+msgstr "Порожньо — день дати початку. У коротших місяцях — останній день"
+
+#: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
+msgctxt "help:AutoRepeat.start_date"
+msgid ""
+"The first copy is created on the first scheduled day on or after this date"
+msgstr ""
+"Перша копія створюється в перший запланований день, не раніше цієї дати"
+
+#: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
+msgctxt "meta:AutoRepeat"
+msgid "Auto Repeat"
+msgstr "Автоповтор"
+
+#: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
+msgctxt "meta:AutoRepeat.created_count"
+msgid "Copies created"
+msgstr "Створено копій"
+
+#: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
+msgctxt "meta:AutoRepeat.date_field"
+msgid "Date field"
+msgstr "Поле дати"
+
+#: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
+msgctxt "meta:AutoRepeat.disabled"
+msgid "Disabled"
+msgstr "Вимкнено"
+
+#: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
+msgctxt "meta:AutoRepeat.end_date"
+msgid "End date"
+msgstr "Дата завершення"
+
+#: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
+msgctxt "meta:AutoRepeat.frequency"
+msgid "Frequency"
+msgstr "Періодичність"
+
+#: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
+msgctxt "meta:AutoRepeat.last_document"
+msgid "Last copy"
+msgstr "Остання копія"
+
+#: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
+msgctxt "meta:AutoRepeat.last_error"
+msgid "Last error"
+msgstr "Остання помилка"
+
+#: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
+msgctxt "meta:AutoRepeat.last_run_at"
+msgid "Last run"
+msgstr "Останній запуск"
+
+#: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
+msgctxt "meta:AutoRepeat.next_schedule_date"
+msgid "Next run"
+msgstr "Наступний запуск"
+
+#: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
+msgctxt "meta:AutoRepeat.notify"
+msgid "Notify me"
+msgstr "Сповіщати мене"
+
+#: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
+msgctxt "meta:AutoRepeat.reference_doctype"
+msgid "Document type"
+msgstr "Тип документа"
+
+#: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
+msgctxt "meta:AutoRepeat.reference_document"
+msgid "Template document"
+msgstr "Документ-шаблон"
+
+#: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
+msgctxt "meta:AutoRepeat.repeat_on_day"
+msgid "Day of month"
+msgstr "День місяця"
+
+#: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
+msgctxt "meta:AutoRepeat.repeat_on_last_day"
+msgid "Last day of month"
+msgstr "Останній день місяця"
+
+#: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
+msgctxt "meta:AutoRepeat.sec_copy"
+msgid "Copy"
+msgstr "Копіювання"
+
+#: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
+msgctxt "meta:AutoRepeat.sec_log"
+msgid "History"
+msgstr "Історія"
+
+#: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
+msgctxt "meta:AutoRepeat.sec_schedule"
+msgid "Schedule"
+msgstr "Розклад"
+
+#: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
+msgctxt "meta:AutoRepeat.start_date"
+msgid "Start date"
+msgstr "Дата початку"
+
+#: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
+msgctxt "meta:AutoRepeat.status"
+msgid "Status"
+msgstr "Статус"
+
+#: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
+msgctxt "status:AutoRepeat"
+msgid "Active"
+msgstr "Активний"
+
+#: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
+msgctxt "status:AutoRepeat"
+msgid "Completed"
+msgstr "Завершено"
+
+#: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
+msgctxt "status:AutoRepeat"
+msgid "Disabled"
+msgstr "Вимкнено"
 
 #~ msgctxt "help:DocTypeCalendarSource.doctype"
 #~ msgid "The document type added to the calendar as a separate source"

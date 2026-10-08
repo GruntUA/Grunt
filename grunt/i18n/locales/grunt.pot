@@ -228,7 +228,7 @@ msgstr ""
 msgid "Access code"
 msgstr ""
 
-#: grunt/grunt/startup/errors.py:257 grunt/frontend/src/router/index.ts:189
+#: grunt/grunt/startup/errors.py:257 grunt/frontend/src/router/index.ts:193
 #: grunt/frontend/src/core/api/client.ts:164
 msgid "Access denied"
 msgstr ""
@@ -644,6 +644,18 @@ msgstr ""
 msgid "Auto"
 msgstr ""
 
+#: grunt/grunt/tasks/auto_repeat.py:189
+msgid "Auto repeat %(rule)s"
+msgstr ""
+
+#: grunt/grunt/actions/builtin.py:96
+msgid "Auto repeat %(rule)s created, next copy on %(date)s"
+msgstr ""
+
+#: grunt/grunt/tasks/auto_repeat.py:194
+msgid "Auto repeat %(rule)s failed"
+msgstr ""
+
 #: grunt/frontend/src/pages/studio/builder/sections/OptionsSection.vue:36
 msgid "Autocomplete suggestions — one per line"
 msgstr ""
@@ -890,7 +902,7 @@ msgstr ""
 msgid "Camera unavailable."
 msgstr ""
 
-#: grunt/grunt/actions/builtin.py:110
+#: grunt/grunt/actions/builtin.py:148
 #: grunt/frontend/src/components/desk/GruntDialog.vue:438
 #: grunt/frontend/src/components/desk/GruntDialog.vue:442
 #: grunt/frontend/src/components/desk/GruntDialog.vue:459
@@ -918,7 +930,7 @@ msgstr ""
 msgid "Cancel task"
 msgstr ""
 
-#: grunt/grunt/actions/builtin.py:110
+#: grunt/grunt/actions/builtin.py:148
 msgid "Cancel the task?"
 msgstr ""
 
@@ -1639,6 +1651,10 @@ msgstr ""
 msgid "Created"
 msgstr ""
 
+#: grunt/grunt/tasks/auto_repeat.py:187
+msgid "Created %(doctype)s %(name)s"
+msgstr ""
+
 #: grunt/grunt/api/v1/docs/utils.py:124
 #: grunt/grunt/website/www/share/{token}.py:55
 #: grunt/frontend/src/components/views/list/ListToolbarControls.vue:66
@@ -1740,6 +1756,10 @@ msgstr ""
 
 #: grunt/frontend/src/components/files/FileExplorer.vue:769
 msgid "Date modified"
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/AutoRepeat/auto_repeat.py:111
+msgid "Day of month must be between 1 and 31"
 msgstr ""
 
 #: grunt/frontend/src/components/views/gantt/GanttView.vue:384
@@ -2065,6 +2085,10 @@ msgstr ""
 msgid "Documents linked to"
 msgstr ""
 
+#: grunt/grunt/tasks/doctypes/AutoRepeat/auto_repeat.py:81
+msgid "Documents of “%(doctype)s” cannot be repeated"
+msgstr ""
+
 #: grunt/frontend/src/components/views/FilterBar.vue:195
 msgid "Does not contain"
 msgstr ""
@@ -2232,6 +2256,14 @@ msgstr ""
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.js:89
 msgid ""
 "Encryption and port mismatch. Gmail needs port 587 (STARTTLS) or 465 (SSL)."
+msgstr ""
+
+#: grunt/grunt/actions/builtin.py:80
+msgid "End date"
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/AutoRepeat/auto_repeat.py:117
+msgid "End date cannot be before the start date"
 msgstr ""
 
 #: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:204
@@ -2692,6 +2724,10 @@ msgstr ""
 msgid "Freed {size} in the database file"
 msgstr ""
 
+#: grunt/grunt/actions/builtin.py:71
+msgid "Frequency"
+msgstr ""
+
 #: grunt/frontend/src/components/dashboard/widgets/Heatmap/Heatmap.vue:23
 #: grunt/frontend/src/components/dashboard/widgets/Calendar/Calendar.vue:21
 #: grunt/frontend/src/components/views/calendar/CalendarView.vue:324
@@ -2878,7 +2914,7 @@ msgstr ""
 msgid "Highlight"
 msgstr ""
 
-#: grunt/frontend/src/router/index.ts:188
+#: grunt/frontend/src/router/index.ts:192
 #: grunt/frontend/src/components/app/AppSidebar.vue:115
 #: grunt/frontend/src/components/mobile/MobileBottomNav.vue:78
 msgid "Home"
@@ -3557,7 +3593,7 @@ msgstr ""
 msgid "Mark all as read"
 msgstr ""
 
-#: grunt/grunt/actions/builtin.py:98
+#: grunt/grunt/actions/builtin.py:136
 msgid "Mark as done"
 msgstr ""
 
@@ -3742,7 +3778,7 @@ msgstr ""
 msgid "Network error:"
 msgstr ""
 
-#: grunt/frontend/src/router/index.ts:197
+#: grunt/frontend/src/router/index.ts:201
 #: grunt/frontend/src/components/app/AppBreadcrumb.vue:82
 #: grunt/frontend/src/components/dashboard/sections/TilesSection.vue:32
 #: grunt/frontend/src/components/dashboard/sections/LinksSection.vue:29
@@ -4391,7 +4427,7 @@ msgstr ""
 
 #: grunt/grunt/startup/website.py:112 grunt/grunt/startup/errors.py:258
 #: grunt/grunt/api/v1/pages.py:66 grunt/grunt/api/v1/dashboard.py:221
-#: grunt/frontend/src/router/index.ts:190
+#: grunt/frontend/src/router/index.ts:194
 msgid "Page not found"
 msgstr ""
 
@@ -4880,8 +4916,12 @@ msgstr ""
 msgid "Rename document"
 msgstr ""
 
-#: grunt/grunt/actions/builtin.py:123
+#: grunt/grunt/actions/builtin.py:161
 msgid "Reopen"
+msgstr ""
+
+#: grunt/grunt/actions/builtin.py:64
+msgid "Repeat"
 msgstr ""
 
 #: grunt/frontend/src/pages/auth/Login.vue:434
@@ -4932,7 +4972,7 @@ msgstr ""
 msgid "Report name"
 msgstr ""
 
-#: grunt/grunt/actions/builtin.py:148
+#: grunt/grunt/actions/builtin.py:186
 msgid "Report queued for %(count)s recipients"
 msgstr ""
 
@@ -4993,8 +5033,8 @@ msgid "Reset"
 msgstr ""
 
 #: grunt/grunt/email/templates/password_reset.html:54
-#: grunt/frontend/src/router/index.ts:184
-#: grunt/frontend/src/router/index.ts:185
+#: grunt/frontend/src/router/index.ts:188
+#: grunt/frontend/src/router/index.ts:189
 #: grunt/frontend/src/pages/auth/ForgotPassword.vue:42
 msgid "Reset password"
 msgstr ""
@@ -5016,7 +5056,7 @@ msgstr ""
 msgid "Response caching"
 msgstr ""
 
-#: grunt/grunt/actions/builtin.py:64
+#: grunt/grunt/actions/builtin.py:102
 #: grunt/frontend/src/pages/desk/DocTypeForm.vue:188
 msgid "Restore"
 msgstr ""
@@ -5030,7 +5070,7 @@ msgstr ""
 msgid "Restore this version"
 msgstr ""
 
-#: grunt/grunt/actions/builtin.py:78
+#: grunt/grunt/actions/builtin.py:116
 msgid "Restore with a new ID"
 msgstr ""
 
@@ -5038,11 +5078,11 @@ msgstr ""
 msgid "Restored a version"
 msgstr ""
 
-#: grunt/grunt/actions/builtin.py:89
+#: grunt/grunt/actions/builtin.py:127
 msgid "Restored as: %(name)s"
 msgstr ""
 
-#: grunt/grunt/actions/builtin.py:75
+#: grunt/grunt/actions/builtin.py:113
 msgid "Restored: %(name)s"
 msgstr ""
 
@@ -5231,7 +5271,7 @@ msgstr ""
 msgid "Script execution error: %(error)s"
 msgstr ""
 
-#: grunt/frontend/src/router/index.ts:193
+#: grunt/frontend/src/router/index.ts:197
 #: grunt/frontend/src/components/app/AppSidebar.vue:124
 msgid "Search"
 msgstr ""
@@ -5405,12 +5445,12 @@ msgstr ""
 msgid "Send link"
 msgstr ""
 
-#: grunt/grunt/actions/builtin.py:135
+#: grunt/grunt/actions/builtin.py:173
 #: grunt/frontend/src/components/layout/OfflineQueueSheet.vue:109
 msgid "Send now"
 msgstr ""
 
-#: grunt/grunt/actions/builtin.py:135
+#: grunt/grunt/actions/builtin.py:173
 msgid "Send the report to its recipients now?"
 msgstr ""
 
@@ -5502,7 +5542,7 @@ msgstr ""
 msgid "Settings"
 msgstr ""
 
-#: grunt/frontend/src/router/index.ts:187
+#: grunt/frontend/src/router/index.ts:191
 #: grunt/frontend/src/pages/setup/SetupWizard.vue:65
 msgid "Setup"
 msgstr ""
@@ -5593,7 +5633,7 @@ msgstr ""
 #: grunt/grunt/website/www/login.py:9
 #: grunt/grunt/website/www/signup.ssr.html:119
 #: grunt/grunt/website/www/form/{route}.html:140
-#: grunt/frontend/src/router/index.ts:182
+#: grunt/frontend/src/router/index.ts:186
 #: grunt/frontend/src/pages/auth/Login.vue:57
 #: grunt/frontend/src/pages/auth/Login.vue:452
 #: grunt/frontend/src/pages/setup/SetupWizard.vue:197
@@ -5624,7 +5664,7 @@ msgstr ""
 #: grunt/grunt/website/www/signup.py:9
 #: grunt/grunt/website/www/signup.ssr.html:3
 #: grunt/grunt/website/www/signup.ssr.html:114
-#: grunt/frontend/src/router/index.ts:183
+#: grunt/frontend/src/router/index.ts:187
 #: grunt/frontend/src/pages/auth/Login.vue:57
 #: grunt/frontend/src/pages/auth/Login.vue:456
 msgid "Sign up"
@@ -5707,6 +5747,10 @@ msgstr ""
 
 #: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:473
 msgid "Stacked"
+msgstr ""
+
+#: grunt/grunt/actions/builtin.py:79
+msgid "Start date"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/SqlProfilerRequest/SqlProfilerRequest.js:27
@@ -5913,11 +5957,11 @@ msgstr ""
 msgid "Task"
 msgstr ""
 
-#: grunt/grunt/actions/builtin.py:120
+#: grunt/grunt/actions/builtin.py:158
 msgid "Task cancelled"
 msgstr ""
 
-#: grunt/grunt/actions/builtin.py:107
+#: grunt/grunt/actions/builtin.py:145
 msgid "Task completed"
 msgstr ""
 
@@ -5925,7 +5969,7 @@ msgstr ""
 msgid "Task completed: %(target)s"
 msgstr ""
 
-#: grunt/grunt/actions/builtin.py:132
+#: grunt/grunt/actions/builtin.py:170
 msgid "Task reopened"
 msgstr ""
 
@@ -6173,6 +6217,10 @@ msgid ""
 "The new type stores values differently (a separate column or a child table)."
 " Existing data of this field is not moved automatically — export it before "
 "migrating."
+msgstr ""
+
+#: grunt/grunt/tasks/auto_repeat.py:164
+msgid "The owner of this rule is missing or inactive"
 msgstr ""
 
 #: grunt/frontend/src/pages/app/AppPage.vue:313
@@ -6508,7 +6556,7 @@ msgstr ""
 msgid "Turn into"
 msgstr ""
 
-#: grunt/frontend/src/router/index.ts:186
+#: grunt/frontend/src/router/index.ts:190
 msgid "Two-factor authentication"
 msgstr ""
 
@@ -6583,6 +6631,10 @@ msgstr ""
 
 #: grunt/grunt/document/mixins/export_rpc.py:227
 msgid "Unknown format: %(format)s. Supported: html, pdf, xlsx, docx"
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/AutoRepeat/auto_repeat.py:108
+msgid "Unknown frequency: %(f)s"
 msgstr ""
 
 #: grunt/grunt/auth/providers/webauthn.py:200
@@ -6983,6 +7035,10 @@ msgstr ""
 
 #: grunt/grunt/activity/doctypes/DocFollow/doc_follow.py:37
 msgid "You are already following this document"
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/AutoRepeat/auto_repeat.py:91
+msgid "You are not allowed to create “%(doctype)s” documents"
 msgstr ""
 
 #: grunt/frontend/src/pages/auth/ResetPassword.vue:73
@@ -7859,6 +7915,10 @@ msgstr ""
 msgid "“%(doctype)s” does not support this operation"
 msgstr ""
 
+#: grunt/grunt/tasks/doctypes/AutoRepeat/auto_repeat.py:101
+msgid "“%(field)s” is not a date field of %(doctype)s"
+msgstr ""
+
 #: grunt/grunt/tasks/doctypes/BackgroundWorker/background_worker.py:61
 #: grunt/grunt/tasks/doctypes/BackgroundJob/background_job.py:68
 msgid "“%(name)s” not found"
@@ -7891,6 +7951,46 @@ msgstr ""
 #: grunt/grunt/geo/doctypes/Address/Address.json
 msgctxt "help:Address.full_address"
 msgid "Built automatically from the address fields"
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
+msgctxt "help:AutoRepeat"
+msgid ""
+"Creates copies of a document on a schedule (monthly invoices, recurring "
+"orders, reminders)"
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
+msgctxt "help:AutoRepeat.date_field"
+msgid ""
+"Fieldname of a Date/Datetime field in the copy to set to the scheduled date "
+"(e.g. posting_date)"
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
+msgctxt "help:AutoRepeat.end_date"
+msgid "Empty: repeat until disabled"
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
+msgctxt "help:AutoRepeat.notify"
+msgid "Notify the owner of this rule when a copy is created or fails"
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
+msgctxt "help:AutoRepeat.reference_document"
+msgid "Every repetition is a copy of this document"
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
+msgctxt "help:AutoRepeat.repeat_on_day"
+msgid "Empty: the day of the start date. Short months use their last day"
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
+msgctxt "help:AutoRepeat.start_date"
+msgid ""
+"The first copy is created on the first scheduled day on or after this date"
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/BackgroundJob/BackgroundJob.json
@@ -9530,6 +9630,106 @@ msgstr ""
 #: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
 msgctxt "meta:AssignmentRule.section_meta"
 msgid "Metadata"
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
+msgctxt "meta:AutoRepeat"
+msgid "Auto Repeat"
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
+msgctxt "meta:AutoRepeat.created_count"
+msgid "Copies created"
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
+msgctxt "meta:AutoRepeat.date_field"
+msgid "Date field"
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
+msgctxt "meta:AutoRepeat.disabled"
+msgid "Disabled"
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
+msgctxt "meta:AutoRepeat.end_date"
+msgid "End date"
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
+msgctxt "meta:AutoRepeat.frequency"
+msgid "Frequency"
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
+msgctxt "meta:AutoRepeat.last_document"
+msgid "Last copy"
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
+msgctxt "meta:AutoRepeat.last_error"
+msgid "Last error"
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
+msgctxt "meta:AutoRepeat.last_run_at"
+msgid "Last run"
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
+msgctxt "meta:AutoRepeat.next_schedule_date"
+msgid "Next run"
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
+msgctxt "meta:AutoRepeat.notify"
+msgid "Notify me"
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
+msgctxt "meta:AutoRepeat.reference_doctype"
+msgid "Document type"
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
+msgctxt "meta:AutoRepeat.reference_document"
+msgid "Template document"
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
+msgctxt "meta:AutoRepeat.repeat_on_day"
+msgid "Day of month"
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
+msgctxt "meta:AutoRepeat.repeat_on_last_day"
+msgid "Last day of month"
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
+msgctxt "meta:AutoRepeat.sec_copy"
+msgid "Copy"
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
+msgctxt "meta:AutoRepeat.sec_log"
+msgid "History"
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
+msgctxt "meta:AutoRepeat.sec_schedule"
+msgid "Schedule"
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
+msgctxt "meta:AutoRepeat.start_date"
+msgid "Start date"
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
+msgctxt "meta:AutoRepeat.status"
+msgid "Status"
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/BackgroundJob/BackgroundJob.json
@@ -15170,6 +15370,21 @@ msgstr ""
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue:69
 msgctxt "status"
 msgid "Open"
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
+msgctxt "status:AutoRepeat"
+msgid "Active"
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
+msgctxt "status:AutoRepeat"
+msgid "Completed"
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
+msgctxt "status:AutoRepeat"
+msgid "Disabled"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/SystemHealthCheck/SystemHealthCheck.json
