@@ -31,7 +31,7 @@ const { t } = useI18n()
     <Separator orientation="vertical" class="!mx-0.5 !h-6 !my-0" />
     <CommandButton id="bold" />
     <CommandButton id="italic" />
-    <!-- also in the selection bubble, so a narrow toolbar can drop them -->
+    <!-- also in the right-click menu, so a narrow toolbar can drop them -->
     <CommandButton id="underline" class="hidden @md:inline-flex" />
     <CommandButton id="strike" class="hidden @md:inline-flex" />
     <Separator orientation="vertical" class="!mx-0.5 !h-6 !my-0" />

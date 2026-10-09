@@ -5,12 +5,12 @@ import { useI18n } from 'vue-i18n'
 import { FileSymlink, Link as LinkIcon, Link2Off } from '@lucide/vue'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Popover, PopoverAnchor, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { useRichEditorContext } from '../editor/useRichEditor'
 
-// Link button + its URL form. Used by the toolbar, the selection bubble and
-// (as "Edit link") the link bubble.
-const props = defineProps<{ icon?: Component; label?: string }>()
+// Link button + its URL form. Used by the toolbar, (as "Edit link") the link
+// bubble and - without a button, opened by show() at a point - the right-click menu.
+const props = defineProps<{ icon?: Component; label?: string; at?: { x: number; y: number } }>()
 
 const { t } = useI18n()
 const title = computed(() => t(props.label ?? 'Link'))
@@ -59,6 +59,8 @@ function toFile() {
   linkToFile()
 }
 
+defineExpose({ show: () => onOpen(true) })
+
 function remove() {
   editor.value?.chain().focus().extendMarkRange('link').unsetLink().run()
   open.value = false
@@ -67,7 +69,10 @@ function remove() {
 
 <template>
   <Popover :open @update:open="onOpen">
-    <PopoverTrigger as-child>
+    <PopoverAnchor v-if="at" as-child>
+      <span class="pointer-events-none fixed size-0" :style="{ left: `${at.x}px`, top: `${at.y}px` }" />
+    </PopoverAnchor>
+    <PopoverTrigger v-else as-child>
       <Button
         size="icon-sm" variant="ghost"
         :title :aria-label="title" :aria-pressed="icon ? undefined : editor?.isActive('link')"

@@ -20545,3 +20545,7 @@ msgstr "Підпис значення"
 #~ msgstr ""
 #~ "zstd, 1–19. Вищий — менший файл, але довше: 9 — оптимальний баланс, 19 — "
 #~ "найменший розмір. Застосовується і до «Створити зараз»."
+
+#: grunt/frontend/src/components/fields/RichText/ui/EditorContextMenu.vue
+msgid "The browser did not allow reading the clipboard. Use Ctrl+V."
+msgstr "Браузер не дозволив прочитати буфер обміну. Скористайтеся Ctrl+V."

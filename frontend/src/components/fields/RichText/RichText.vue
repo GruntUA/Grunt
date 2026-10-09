@@ -9,8 +9,7 @@ import AttachPicker from '@/components/fields/Attach/AttachPicker.vue'
 import { provideRichEditor, useRichEditor } from './editor/useRichEditor'
 import { useFullscreen } from './editor/useFullscreen'
 import EditorToolbar from './ui/EditorToolbar.vue'
-import TextBubble from './ui/TextBubble.vue'
-import TableBubble from './ui/TableBubble.vue'
+import EditorContextMenu from './ui/EditorContextMenu.vue'
 import LinkBubble from './ui/LinkBubble.vue'
 import ImageBubble from './ui/ImageBubble.vue'
 import BlockHandle from './ui/BlockHandle.vue'
@@ -59,15 +58,15 @@ const words = () => editor.value?.storage.characterCount.words() ?? 0
             fullscreen ? 'min-h-[calc(100svh-6rem)] bg-card' : 'min-h-[120px]',
           ]"
         >
-          <TextBubble />
-          <TableBubble />
           <LinkBubble />
           <ImageBubble />
           <BlockHandle v-if="editable()" />
-          <EditorContent
-            :editor class="richtext-content py-3 pr-3 text-foreground"
-            :class="[documentStyle && 'richtext-document', editable() ? 'pl-8' : 'pl-3']"
-          />
+          <EditorContextMenu>
+            <EditorContent
+              :editor class="richtext-content py-3 pr-3 text-foreground"
+              :class="[documentStyle && 'richtext-document', editable() ? 'pl-8' : 'pl-3']"
+            />
+          </EditorContextMenu>
         </div>
 
         <!-- Error is rendered by FieldRenderer -->
