@@ -40,8 +40,12 @@ class File(Document):
     _prev_folder: str | None = None
 
     async def before_save(self) -> None:
-        """Filing into a folder needs write access to it and room in its space;
-        a file in a personal space is never public."""
+        """Filing into a folder needs write access to it and room in its space.
+
+        Moving keeps ``is_public``: a file is published by the website content
+        that links it (see :mod:`grunt.storage.references`), not by its folder,
+        so tidying an image into another folder must not break a published page.
+        Approved by the site owner (maks4a@gmail.com), 2026-10-09."""
         if not self.folder:
             return
         if self.id and self._prev_folder is None:
@@ -62,7 +66,6 @@ class File(Document):
         )
         if folder["space_user"] != prev_space:
             await quota.ensure_room(folder["space_user"], self.file_size or 0)
-        self.is_public = False
 
 
 @whitelist()

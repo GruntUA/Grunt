@@ -373,3 +373,19 @@ async def test_delete_items_removes_a_folder_with_its_contents(
         await db_session.commit()
     assert await ctx.db.count("FileFolder", {"space_user": ANN}) == 1  # the home
     assert await ctx.db.count("File", {"folder": drafts}) == 0
+
+
+@pytest.mark.asyncio
+async def test_moving_a_published_file_keeps_it_public(ctx, people, storage, db_session, engine):
+    """Tidying a page's image into another folder must not hide it from the website."""
+    import grunt
+    from grunt.storage.doctypes.File.file import upload
+
+    _, work, drafts = await _ann_space(db_session, engine)
+    async with grunt.context(db_session, engine, _as(ANN)):
+        uploaded = await upload(_file("cover.png"), folder=drafts, is_public=True)
+        await db_session.commit()
+        await grunt.save_doc("File", uploaded["id"], {"folder": work})
+        await db_session.commit()
+    moved = await ctx.db.get_value("File", uploaded["id"], ["folder", "is_public"], as_dict=True)
+    assert moved["folder"] == work and moved["is_public"]
