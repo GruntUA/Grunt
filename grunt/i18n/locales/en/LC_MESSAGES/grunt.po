@@ -20171,3 +20171,7 @@ msgstr ""
 
 #~ msgid "Вебхук"
 #~ msgstr "Webhook"
+
+#: grunt/frontend/src/components/views/explorer/index.ts:7
+msgid "Explorer"
+msgstr ""

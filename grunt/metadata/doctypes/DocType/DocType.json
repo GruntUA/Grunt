@@ -276,7 +276,7 @@
       "fieldname": "default_view",
       "label": "Default view",
       "fieldtype": "Select",
-      "options": "\nlist|LayoutList\nreport|Table2\ngallery|Image\nkanban|LayoutGrid\ncalendar|CalendarDays\ngantt|ChartGantt\ntree|GitBranch\nmap|Map",
+      "options": "\nlist|LayoutList\nreport|Table2\ngallery|Image\nexplorer|FolderOpen\nkanban|LayoutGrid\ncalendar|CalendarDays\ngantt|ChartGantt\ntree|GitBranch\nmap|Map",
       "translatable": true
     },
     {

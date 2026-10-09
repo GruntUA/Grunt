@@ -20549,3 +20549,7 @@ msgstr "Підпис значення"
 #: grunt/frontend/src/components/fields/RichText/ui/EditorContextMenu.vue
 msgid "The browser did not allow reading the clipboard. Use Ctrl+V."
 msgstr "Браузер не дозволив прочитати буфер обміну. Скористайтеся Ctrl+V."
+
+#: grunt/frontend/src/components/views/explorer/index.ts:7
+msgid "Explorer"
+msgstr "Провідник"
