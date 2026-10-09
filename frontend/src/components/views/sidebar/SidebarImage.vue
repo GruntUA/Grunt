@@ -25,7 +25,8 @@ const props = defineProps<{
   /** Upload / replace / remove allowed (write permission, field not read-only). */
   editable: boolean
   doctype: string
-  docId: string
+  /** Missing for a new document - the file is uploaded unattached. */
+  docId?: string
   alt?: string
 }>()
 

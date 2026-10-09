@@ -21,6 +21,8 @@ defineProps<{
   users?: PresenceUser[]
   imageUrl?: string | null
   imageEditable?: boolean
+  /** Unsaved document: the body shows only the image. */
+  isNew?: boolean
 }>()
 
 const emit = defineEmits<{ 'set-image': [url: string | null] }>()
@@ -84,7 +86,7 @@ function startResize(e: PointerEvent) {
       <CardContent class="p-4">
         <DocSidebarBody
           :doctype="doctype" :document="document" :workspace="workspace" :users="users"
-          :image-url="imageUrl" :image-editable="imageEditable" @set-image="emit('set-image', $event)"
+          :image-url="imageUrl" :image-editable="imageEditable" :is-new="isNew" @set-image="emit('set-image', $event)"
         />
       </CardContent>
     </Card>
@@ -99,7 +101,7 @@ function startResize(e: PointerEvent) {
       <div class="p-4">
         <DocSidebarBody
           :doctype="doctype" :document="document" :workspace="workspace" :users="users"
-          :image-url="imageUrl" :image-editable="imageEditable" @set-image="emit('set-image', $event)"
+          :image-url="imageUrl" :image-editable="imageEditable" :is-new="isNew" @set-image="emit('set-image', $event)"
         />
       </div>
     </SheetContent>

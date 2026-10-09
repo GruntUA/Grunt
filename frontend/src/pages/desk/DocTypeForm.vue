@@ -127,11 +127,18 @@ const sidebarImage = computed(() => {
   return typeof val === 'string' && val ? val : null
 })
 const sidebarImageEditable = computed(() => !!imageField.value && perms.value.write && !imageField.value.read_only && !isSaving.value)
+// A new document gets the sidebar too when there is a cover to pick - it only
+// shows the image there (assignees, tags... need a saved document).
+const sidebarVisible = computed(() => showSidebar.value && (props.id ? !!document.value : !!imageField.value))
 // Saved right away, like any other sidebar action - unless the form already
-// has unsaved edits, which the user should review and save together.
+// has unsaved edits (or is a new document), which the user saves together.
 async function setSidebarImage(url: string | null) {
   const field = imageField.value?.fieldname
   if (!field) return
+  if (!props.id) {
+    onFormUpdate({ [field]: url })
+    return
+  }
   const wasDirty = isDirty.value
   onFormUpdate({ [field]: url })
   if (wasDirty) toast.info(t('Image changed. Save the document to apply it.'))
@@ -154,7 +161,7 @@ const initials = (email: string) => email.slice(0, 2).toUpperCase()
   <div class="flex flex-1 flex-col">
     <!-- Sticky header: breadcrumb + actions + document title -->
     <FormHeader :doc-title="docTitle || doctype" :dt="dt" :doctype="doctype" :id="id" :workspace="workspace" :document="form" :actions="actions" :workflow="workflowUi" :is-dirty="isDirty"
-      :is-loading="isLoading" :hide-panel-toggle="!showSidebar"
+      :is-loading="isLoading" :hide-panel-toggle="!sidebarVisible"
       v-model:share-open="showShareDialog" v-model:rename-open="showRenameDialog" v-model:links-open="showLinksDialog"
       @rename="async (newId) => {
         try {
@@ -242,7 +249,7 @@ const initials = (email: string) => email.slice(0, 2).toUpperCase()
         </div>
 
         <!-- Right Column: Sidebar -->
-        <DocSidebar v-if="id && document && showSidebar" :doctype="dt" :document="document as GruntDocument"
+        <DocSidebar v-if="sidebarVisible" :doctype="dt" :document="(id ? document : form) as GruntDocument" :is-new="!id"
           :workspace="workspace" :users="presenceUsers" :image-url="sidebarImage" :image-editable="sidebarImageEditable"
           class="lg:sticky lg:top-14 lg:self-start" @set-image="setSidebarImage" />
       </div>

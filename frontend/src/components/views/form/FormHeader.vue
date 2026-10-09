@@ -86,7 +86,7 @@ props.actions.add({
   group: 'view',
   order: 10,
   shortcut: 'Mod+]',
-  visible: () => !!props.id && !props.hidePanelToggle,
+  visible: () => !props.hidePanelToggle,
   action: () => togglePanel(),
 })
 

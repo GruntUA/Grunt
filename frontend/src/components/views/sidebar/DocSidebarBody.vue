@@ -35,6 +35,8 @@ const props = defineProps<{
   imageUrl?: string | null
   /** Upload / replace / remove the image from the sidebar. */
   imageEditable?: boolean
+  /** Unsaved document: only the image (everything else needs a saved id). */
+  isNew?: boolean
 }>()
 
 const emit = defineEmits<{ 'set-image': [url: string | null] }>()
@@ -42,7 +44,7 @@ const emit = defineEmits<{ 'set-image': [url: string | null] }>()
 const toast = useToast()
 const sb = useDocSidebar(
   () => props.doctype.name,
-  () => props.document.name,
+  () => (props.isNew ? undefined : props.document.name),
 )
 
 const image = computed(() => {
@@ -103,7 +105,7 @@ const people = computed(() => [
 
 function bookmarkTitle(): string {
   const tf = props.doctype.title_field ?? 'name'
-  return String(props.document[tf] ?? props.document.name)
+  return String(props.document[tf] ?? props.document.name ?? '')
 }
 
 // Remind me: tomorrow 09:00 by default; the picker emits UTC ISO.
@@ -159,11 +161,12 @@ function printDoc() {
       :url="image"
       :editable="!!imageEditable"
       :doctype="doctype.name"
-      :doc-id="document.name"
+      :doc-id="isNew ? undefined : document.name"
       :alt="bookmarkTitle()"
       @change="emit('set-image', $event)"
     />
 
+    <template v-if="!isNew">
     <!-- Properties -->
     <dl class="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-4 gap-y-2.5">
       <template v-if="statusBadge">
@@ -337,5 +340,6 @@ function printDoc() {
         <TooltipContent>{{ t('Print') }}</TooltipContent>
       </Tooltip>
     </ButtonGroup>
+    </template>
   </div>
 </template>
