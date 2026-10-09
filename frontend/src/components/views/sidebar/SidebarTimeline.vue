@@ -63,25 +63,37 @@ function isRealChange(c: DocVersionChange): boolean {
 
 const isWorkflow = (item: TimelineItem) => item.type === 'activity' && item.action?.toLowerCase() === 'workflow'
 
-// A workflow action also writes a version that only flips the state field -
-// the workflow entry already says that, so the version is dropped.
-function isWorkflowEcho(item: TimelineItem, changes: DocVersionChange[]): boolean {
+// A workflow action also writes a version: the state flip plus the state's
+// `update_field`, if any. The workflow entry already shows the flip, so that
+// version is folded into it, keeping only the other fields.
+function workflowOf(item: TimelineItem, changes: DocVersionChange[]): TimelineItem | undefined {
   const stateField = props.doctype.workflow_state_field
-  if (!stateField || changes.some((c) => c.field !== stateField)) return false
+  if (!stateField || !changes.some((c) => c.field === stateField)) return undefined
   const at = Date.parse(item.created_at ?? '')
-  return timeline.value.some(
+  return timeline.value.find(
     (w) => isWorkflow(w) && w.user === item.user && Math.abs(Date.parse(w.created_at ?? '') - at) < 10_000,
   )
 }
 
 // Newest first; versions keep only real changes and drop out when none are left.
-const reversedTimeline = computed(() =>
-  [...timeline.value].reverse().flatMap((item) => {
+// `folded` maps a workflow entry's id to its version (without the state flip).
+const timelineView = computed(() => {
+  const folded: Record<string, TimelineItem> = {}
+  const feed = [...timeline.value].reverse().flatMap((item) => {
     if (item.type !== 'version') return [item]
     const changes = (item.changes ?? []).filter(isRealChange)
-    return changes.length && !isWorkflowEcho(item, changes) ? [{ ...item, changes }] : []
-  }),
-)
+    const workflow = workflowOf(item, changes)
+    if (workflow) {
+      const rest = changes.filter((c) => c.field !== props.doctype.workflow_state_field)
+      if (rest.length) folded[workflow.id] = { ...item, changes: rest }
+      return []
+    }
+    return changes.length ? [{ ...item, changes }] : []
+  })
+  return { feed, folded }
+})
+const reversedTimeline = computed(() => timelineView.value.feed)
+const foldedVersion = (item: TimelineItem) => timelineView.value.folded[item.id]
 
 type TimelineFilter = 'all' | 'comments' | 'changes'
 const filter = useLocalStorage<TimelineFilter>('grunt.timeline.filter', 'all')
@@ -486,6 +498,9 @@ onMounted(loadTimeline)
               {{ workflowState(item, 'to')!.label }}
             </Badge>
           </div>
+          <TimelineChanges v-if="isWorkflow(item) && foldedVersion(item)"
+            :changes="foldedVersion(item)!.changes!" :fields="doctype.fields ?? []"
+            @compare="openVersionDiff(foldedVersion(item)!)" />
           <p v-if="item.type === 'comment'"
             class="rounded-md border bg-muted/40 px-3 py-2 text-sm break-words whitespace-pre-line">
             {{ htmlToText(item.content ?? '') }}
