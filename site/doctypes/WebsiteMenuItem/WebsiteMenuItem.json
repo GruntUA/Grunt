@@ -1,0 +1,178 @@
+{
+  "name": "WebsiteMenuItem",
+  "label": "Site menu item",
+  "module": "site",
+  "app": "grunt",
+  "description": "Public site navigation as a tree: top-level items are menu sections, their children — groups and links. Several menus can live side by side (main, top bar, an app's own menu).",
+  "icon": "Menu",
+  "is_tree": true,
+  "fields": [
+    {
+      "fieldname": "sec_item",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "col_1",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "label",
+      "label": "Name",
+      "fieldtype": "Text",
+      "required": true,
+      "in_list_view": true,
+      "bold": true
+    },
+    {
+      "fieldname": "parent_menu_item",
+      "label": "Parent item",
+      "fieldtype": "Link",
+      "in_list_view": true,
+      "in_filter": true,
+      "options": "WebsiteMenuItem",
+      "ignore_user_permissions": true
+    },
+    {
+      "fieldname": "menu",
+      "label": "Menu",
+      "fieldtype": "Data",
+      "required": true,
+      "in_list_view": true,
+      "in_filter": true,
+      "options": "main\ntop",
+      "default": "main",
+      "description": "main — the primary navbar, top — the slim bar above it; an app may use its own key (e.g. mlt_portal). Children inherit their parent's menu.",
+      "in_quick_filter": true
+    },
+    {
+      "fieldname": "col_2",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "enabled",
+      "label": "Show",
+      "fieldtype": "Check",
+      "in_list_view": true,
+      "default": 1
+    },
+    {
+      "fieldname": "sequence",
+      "label": "Order",
+      "fieldtype": "Int",
+      "default": 0,
+      "description": "Among items with the same parent, smaller first"
+    },
+    {
+      "fieldname": "open_in_new_tab",
+      "label": "Open in a new tab",
+      "fieldtype": "Check"
+    },
+    {
+      "fieldname": "sec_link",
+      "label": "Link",
+      "fieldtype": "Section",
+      "description": "Point at a document (its page address is used and follows renames) or type a URL. Leave both empty for a section/group heading."
+    },
+    {
+      "fieldname": "col_3",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "link_doctype",
+      "label": "Document type",
+      "fieldtype": "Link",
+      "options": "DocType"
+    },
+    {
+      "fieldname": "link_name",
+      "label": "Document",
+      "fieldtype": "DynamicLink",
+      "options": "link_doctype",
+      "depends_on": "eval:doc.link_doctype"
+    },
+    {
+      "fieldname": "col_4",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "url",
+      "label": "URL",
+      "fieldtype": "Text",
+      "description": "/news, https://… — used when no document is chosen"
+    },
+    {
+      "fieldname": "route",
+      "label": "Section route",
+      "fieldtype": "Data",
+      "unique": true,
+      "description": "Address slug of this item as a site section — an app renders the section page with the pages filed under it (e.g. the portal: /page/<route>). The app's menu links there when no document or URL is set."
+    },
+    {
+      "fieldname": "sec_look",
+      "label": "Appearance",
+      "fieldtype": "Section",
+      "collapsible": true
+    },
+    {
+      "fieldname": "col_5",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "icon",
+      "label": "Icon",
+      "fieldtype": "Icon"
+    },
+    {
+      "fieldname": "col_6",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "highlight",
+      "label": "Highlight",
+      "fieldtype": "Check",
+      "description": "Show as a button"
+    }
+  ],
+  "default_view": "tree",
+  "tree_parent_field": "parent_menu_item",
+  "tree_title_field": "label",
+  "tree_sort_by": "sequence",
+  "links": [
+    {
+      "link_doctype": "MltPage",
+      "link_fieldname": "section"
+    }
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "read": true,
+      "write": true,
+      "create": true,
+      "delete": true
+    },
+    {
+      "role": "Адміністратор порталу",
+      "read": true,
+      "write": true,
+      "create": true,
+      "delete": true,
+      "match": "menu == 'mlt_portal'"
+    },
+    {
+      "role": "Модератор порталу",
+      "read": true
+    },
+    {
+      "role": "Автор порталу",
+      "read": true
+    }
+  ],
+  "autoname": "hash",
+  "title_field": "label",
+  "search_fields": [
+    "label",
+    "url",
+    "route"
+  ]
+}
