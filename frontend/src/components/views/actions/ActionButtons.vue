@@ -26,7 +26,7 @@ const { t } = useI18n()
 const props = defineProps<{
   toolbar: ResolvedAction[]
   primary?: ResolvedAction[]
-  /** Hide labelled toolbar buttons on narrow screens (the menu still has everything important). */
+  /** Hide labelled toolbar buttons on narrow screens - pass the toolbar to ActionMenu, which lists them there. */
   compact?: boolean
 }>()
 

@@ -53,7 +53,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 const auth = useAuthStore()
-const { open: panelOpen, toggle: togglePanel } = useDocPanel()
+const { open: panelOpen, isMobile: panelIsMobile, toggle: togglePanel } = useDocPanel()
 
 const shareLink = ref<string | null>(null)
 const shareLoading = ref(false)
@@ -80,7 +80,7 @@ const isRenaming = ref(false)
 // through the action registry; useDocPanel keeps a fallback for other pages.
 props.actions.add({
   id: 'toggle_details',
-  label: () => (panelOpen.value ? 'Hide details' : 'Show details'),
+  label: () => (panelOpen.value && !panelIsMobile.value ? 'Hide details' : 'Show details'),
   icon: 'panel-right',
   placement: 'menu',
   group: 'view',
@@ -235,7 +235,7 @@ const statusBadge = computed(() => resolveStatusBadge(props.dt, props.document))
           :is-new="id === null"
           class="mb-0! min-w-0 flex-1"
         />
-        <Badge v-if="statusBadge && (hidePanelToggle || !panelOpen)" variant="outline" :class="['animate-in fade-in slide-in-from-left-2 duration-300', statusBadge.class]">
+        <Badge v-if="statusBadge && (hidePanelToggle || !panelOpen || panelIsMobile)" variant="outline" :class="['animate-in fade-in slide-in-from-left-2 duration-300', statusBadge.class]">
           {{ statusBadge.label }}
         </Badge>
         <Badge v-if="isDirty" variant="secondary" class="animate-in fade-in slide-in-from-left-2 duration-300 text-xs h-5 px-1.5 shrink-0">
@@ -252,7 +252,7 @@ const statusBadge = computed(() => resolveStatusBadge(props.dt, props.document))
           :doc="document as Record<string, unknown>" :actions="actions" :workflow="workflow" />
 
         <ActionButtons :toolbar="[]" :primary="primaryActions" />
-        <ActionMenu :actions="menuActions" trigger-variant="ghost" />
+        <ActionMenu :actions="menuActions" :toolbar="toolbarActions" trigger-variant="ghost" />
       </div>
     </div>
   </div>

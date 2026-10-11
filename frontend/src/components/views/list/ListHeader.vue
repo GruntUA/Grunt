@@ -104,7 +104,7 @@ watch(() => props.doctype, loadRestrictions)
           <Ban class="size-4" />
         </Button>
 
-        <ActionMenu :actions="menuActions" />
+        <ActionMenu :actions="menuActions" :toolbar="toolbarActions" />
       </div>
 
       <ActionButtons :toolbar="[]" :primary="primaryActions" />

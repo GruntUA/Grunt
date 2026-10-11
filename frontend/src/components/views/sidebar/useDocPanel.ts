@@ -38,6 +38,8 @@ function persist(key: string, value: string): void {
 // module-level state so the header toggle and the panel share one source
 const open = ref(read(OPEN_KEY, 'true') !== 'false')
 const width = ref(clampWidth(Number(read(WIDTH_KEY, String(DEFAULT_WIDTH)))))
+// The mobile sheet is opened from the header's «⋯» menu but rendered by DocSidebar.
+const openMobile = ref(false)
 
 function clampWidth(px: number): number {
   if (!Number.isFinite(px)) return DEFAULT_WIDTH
@@ -51,7 +53,6 @@ let shortcutBound = false
 
 export function useDocPanel() {
   const isMobile = useMediaQuery('(max-width: 1023px)')
-  const openMobile = ref(false)
 
   function toggle(): void {
     if (isMobile.value) openMobile.value = !openMobile.value
