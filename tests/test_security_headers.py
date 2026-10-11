@@ -33,3 +33,17 @@ def test_endpoint_header_not_overwritten() -> None:
     headers = _client().get("/framed").headers
     assert headers["x-frame-options"] == "SAMEORIGIN"
     assert headers["x-content-type-options"] == "nosniff"
+
+
+def test_csp_follows_frame_options() -> None:
+    client = _client()
+    assert "frame-ancestors 'none'" in client.get("/plain").headers["content-security-policy"]
+    framed = client.get("/framed").headers["content-security-policy"]
+    assert "frame-ancestors 'self'" in framed
+    assert "object-src 'none'" in framed
+
+
+def test_hsts_only_over_https() -> None:
+    assert "strict-transport-security" not in _client().get("/plain").headers
+    https = TestClient(_client().app, base_url="https://testserver")
+    assert https.get("/plain").headers["strict-transport-security"].startswith("max-age=")

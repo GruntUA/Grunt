@@ -249,8 +249,21 @@ async def render_page(
     # Templates query too (website_menu) - render inside the grunt context.
     async with grunt.context(session, user=SYSTEM_USER):
         html = await template.render_async(**context)
-    # A controller may set e.g. ``context["status_code"] = 404`` for a missing record.
-    return HTMLResponse(content=html, status_code=context.get("status_code") or 200)
+    # A controller may set e.g. ``context["status_code"] = 404`` for a missing record,
+    # ``content_type`` for a non-HTML page (an RSS feed), ``cache_seconds`` to let
+    # browsers and a CDN keep a page that is the same for every reader and
+    # ``headers`` of its own (``X-Frame-Options: SAMEORIGIN`` for an embeddable form).
+    status_code = context.get("status_code") or 200
+    headers: dict[str, str] = dict(context.get("headers") or {})
+    cache_seconds = int(context.get("cache_seconds") or 0)
+    if cache_seconds > 0 and status_code == 200 and request.method in ("GET", "HEAD"):
+        headers["Cache-Control"] = f"public, max-age={cache_seconds}"
+    return HTMLResponse(
+        content=html,
+        status_code=status_code,
+        headers=headers,
+        media_type=context.get("content_type") or "text/html",
+    )
 
 
 _PARAM_TOKEN_RE = re.compile(r"\{(\w+)\}")
@@ -360,6 +373,8 @@ async def render_not_found(request: Request, session: Any) -> Response | None:
         response = await render_page(page, request, session=session)
         if response.status_code == 200:
             response.status_code = 404
+            if "cache-control" in response.headers:
+                del response.headers["cache-control"]
         return response
     return None
 

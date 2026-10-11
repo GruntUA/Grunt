@@ -36,7 +36,7 @@ def spa_assets() -> Markup:
         return Markup("")
     if _cache is None or _cache[0] != mtime:
         html = index.read_text(encoding="utf-8")
-        # Google Fonts stylesheet lives in _spa.html itself - keep only local assets.
+        # Only local assets - anything external belongs in _spa.html itself.
         tags = [t for t in _ASSET_TAG_RE.findall(html) if "://" not in t]
         _cache = (mtime, Markup("\n".join(tags)))
     return _cache[1]

@@ -96,6 +96,8 @@ async def get_context(context: dict[str, Any]) -> dict[str, Any]:
     from grunt.webform import web_form_service
     from grunt.webform.captcha import captcha_site_key
 
+    # The "form_embed" website block shows the form in an <iframe> on the site.
+    context["headers"] = {"X-Frame-Options": "SAMEORIGIN"}
     route = (context.get("path_params") or {}).get("route", "")
     form = await web_form_service.get_form(route)
     if not form:

@@ -21,12 +21,12 @@
                 <img src="{{ website_settings.brand_logo }}" alt="Logo" style="height: 2.25rem;">
             {% else %}
                 <div style="width: 2.25rem; height: 2.25rem; background: var(--primary); border-radius: 0.5rem; display: flex; align-items: center; justify-content: center;">
-                    <span style="color: white; font-weight: 700; font-family: 'Outfit';">
+                    <span style="color: white; font-weight: 700; font-family: 'Inter Variable', 'Inter';">
                         {{ (website_settings.site_name or "Ґ")[0] }}
                     </span>
                 </div>
             {% endif %}
-            <span style="font-family: 'Outfit'; font-weight: 700; font-size: 1.25rem; letter-spacing: -0.025em;">
+            <span style="font-family: 'Inter Variable', 'Inter'; font-weight: 700; font-size: 1.25rem; letter-spacing: -0.025em;">
                 {{ website_settings.site_name or "Ґрунт" }}
             </span>
         </a>

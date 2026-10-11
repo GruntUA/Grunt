@@ -32,7 +32,7 @@ async def test_link_is_stored_as_is_and_listed_by_name(ctx, al_doctype):
         "AlDoc", {"title": "x", "doc_file": LINK, "photo": "https://x.test/a.png"}
     )
     assert doc["doc_file"] == LINK
-    rows = await ctx.get_list("AlDoc", fields=["name", "doc_file"])
+    rows = await ctx.get_list("AlDoc", filters={"name": doc["name"]}, fields=["name", "doc_file"])
     assert rows[0]["doc_file__label"] == "А b.pdf"
 
 

@@ -10,6 +10,7 @@ import { useAuthStore } from '@/stores/auth'
 import { loadSiteConfig } from '@/core/composables/useSiteConfig'
 import '@/app-hooks'
 
+import '@fontsource-variable/inter'
 import './assets/main.css'
 import 'vue-sonner/style.css'
 // Expose globally for client scripts (JS controllers)
