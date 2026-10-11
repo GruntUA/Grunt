@@ -190,6 +190,12 @@ class WebsiteRegistry:
                     FileSystemLoader(str(path)),
                     loader.loaders[-1],
                 ]
+            # A template loaded before would keep coming from the old place.
+            if env.cache is not None:
+                env.cache.clear()
+        from grunt.website.generator import _template_envs
+
+        _template_envs.clear()
 
     def add_global(self, name: str, value: Any) -> None:
         """A Jinja global in every app's env (``website_menu`` of the CMS)."""

@@ -160,4 +160,5 @@ async def test_app_hooks_resolve_paths_and_extend_context_and_templates(ctx, db_
         router._context_processors.remove(processor)
         router._template_dirs.remove(layouts)
         for env in router.website_registry._envs.values():
+            env.cache.clear()
             env.loader.loaders = [x for x in env.loader.loaders if str(layouts) not in x.searchpath]

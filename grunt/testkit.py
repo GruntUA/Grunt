@@ -130,6 +130,20 @@ def make_app_fixtures(app_dir: Path, app_name: str) -> dict[str, Any]:
 
     app.dependency_overrides[_get_engine_dep] = override_get_engine
 
+    dependencies_loaded = False
+
+    async def load_dependencies() -> None:
+        """Load the apps this one depends on the way production does (hooks,
+        pages, assets) - their website hooks shape this app's pages too."""
+        nonlocal dependencies_loaded
+        if dependencies_loaded:
+            return
+        from grunt.apps.loader import load_app
+
+        for path in app_dirs[:-1]:
+            await load_app(app, path)
+        dependencies_loaded = True
+
     @pytest_asyncio.fixture
     async def setup_db():
         """Create tables before each test, drop after. Clear registry.
@@ -166,6 +180,7 @@ def make_app_fixtures(app_dir: Path, app_name: str) -> dict[str, Any]:
 
             for path in app_dirs:
                 document_registry.index_external_app_controllers(path)
+            await load_dependencies()
 
             async with test_engine.begin() as conn:
                 await conn.run_sync(SA_METADATA.create_all)
