@@ -1,0 +1,228 @@
+{
+  "name": "PerfStat",
+  "label": "Performance Stat",
+  "module": "monitoring",
+  "icon": "gauge",
+  "is_log": true,
+  "track_activity": false,
+  "track_changes": false,
+  "title_field": "endpoint",
+  "sort_field": "period_start",
+  "sort_order": "desc",
+  "default_view": "list",
+  "search_fields": [
+    "endpoint",
+    "ref_doctype"
+  ],
+  "description": "Hourly timing aggregates of HTTP routes, RPC methods, document saves, background tasks and profiled spans. Written by every server process once a minute; see Performance Trend to compare periods. Turn off in System Settings → Logs & maintenance.",
+  "fields": [
+    {
+      "fieldname": "period_start",
+      "label": "Hour",
+      "fieldtype": "Datetime",
+      "in_list_view": true,
+      "in_filter": true,
+      "index": true,
+      "read_only": true
+    },
+    {
+      "fieldname": "kind",
+      "label": "Kind",
+      "fieldtype": "Select",
+      "options": "HTTP\nRPC\nPage\nDocument\nTask\nSpan",
+      "in_list_view": true,
+      "in_filter": true,
+      "in_quick_filter": true,
+      "index": true,
+      "read_only": true
+    },
+    {
+      "fieldname": "endpoint",
+      "label": "Endpoint",
+      "fieldtype": "Data",
+      "in_list_view": true,
+      "in_filter": true,
+      "index": true,
+      "read_only": true
+    },
+    {
+      "fieldname": "ref_doctype",
+      "label": "DocType",
+      "fieldtype": "Link",
+      "options": "DocType",
+      "in_list_view": true,
+      "in_filter": true,
+      "read_only": true
+    },
+    {
+      "fieldname": "sec_timing",
+      "label": "Timing",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "calls",
+      "label": "Calls",
+      "fieldtype": "Int",
+      "in_list_view": true,
+      "read_only": true
+    },
+    {
+      "fieldname": "errors",
+      "label": "Errors",
+      "fieldtype": "Int",
+      "read_only": true
+    },
+    {
+      "fieldname": "total_ms",
+      "label": "Total, ms",
+      "fieldtype": "Float",
+      "read_only": true
+    },
+    {
+      "fieldname": "col_timing",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "avg_ms",
+      "label": "Average, ms",
+      "fieldtype": "Float",
+      "in_list_view": true,
+      "read_only": true
+    },
+    {
+      "fieldname": "p50_ms",
+      "label": "Median, ms",
+      "fieldtype": "Float",
+      "read_only": true
+    },
+    {
+      "fieldname": "p95_ms",
+      "label": "p95, ms",
+      "fieldtype": "Float",
+      "in_list_view": true,
+      "read_only": true
+    },
+    {
+      "fieldname": "max_ms",
+      "label": "Max, ms",
+      "fieldtype": "Float",
+      "read_only": true
+    },
+    {
+      "fieldname": "col_sql",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "sql_calls",
+      "label": "SQL queries",
+      "fieldtype": "Int",
+      "read_only": true
+    },
+    {
+      "fieldname": "avg_sql",
+      "label": "SQL per call",
+      "fieldtype": "Float",
+      "in_list_view": true,
+      "read_only": true
+    },
+    {
+      "fieldname": "sql_ms",
+      "label": "SQL time, ms",
+      "fieldtype": "Float",
+      "read_only": true
+    },
+    {
+      "fieldname": "sec_hist",
+      "label": "Latency distribution (calls)",
+      "fieldtype": "Section",
+      "collapsible": true
+    },
+    {
+      "fieldname": "h_0",
+      "label": "≤ 5 ms",
+      "fieldtype": "Int",
+      "read_only": true
+    },
+    {
+      "fieldname": "h_1",
+      "label": "≤ 10 ms",
+      "fieldtype": "Int",
+      "read_only": true
+    },
+    {
+      "fieldname": "h_2",
+      "label": "≤ 25 ms",
+      "fieldtype": "Int",
+      "read_only": true
+    },
+    {
+      "fieldname": "h_3",
+      "label": "≤ 50 ms",
+      "fieldtype": "Int",
+      "read_only": true
+    },
+    {
+      "fieldname": "col_hist_4",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "h_4",
+      "label": "≤ 100 ms",
+      "fieldtype": "Int",
+      "read_only": true
+    },
+    {
+      "fieldname": "h_5",
+      "label": "≤ 250 ms",
+      "fieldtype": "Int",
+      "read_only": true
+    },
+    {
+      "fieldname": "h_6",
+      "label": "≤ 500 ms",
+      "fieldtype": "Int",
+      "read_only": true
+    },
+    {
+      "fieldname": "h_7",
+      "label": "≤ 1 s",
+      "fieldtype": "Int",
+      "read_only": true
+    },
+    {
+      "fieldname": "col_hist_8",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "h_8",
+      "label": "≤ 2.5 s",
+      "fieldtype": "Int",
+      "read_only": true
+    },
+    {
+      "fieldname": "h_9",
+      "label": "≤ 5 s",
+      "fieldtype": "Int",
+      "read_only": true
+    },
+    {
+      "fieldname": "h_10",
+      "label": "≤ 10 s",
+      "fieldtype": "Int",
+      "read_only": true
+    },
+    {
+      "fieldname": "h_11",
+      "label": "> 10 s",
+      "fieldtype": "Int",
+      "read_only": true
+    }
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "read": true,
+      "delete": true
+    }
+  ]
+}

@@ -48,7 +48,7 @@ msgstr ""
 #: grunt/frontend/src/components/layout/CommandPalette.vue:100
 #: grunt/frontend/src/components/layout/CommandPalette.vue:101
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:420
-#: grunt/frontend/src/components/views/actions/ActionMenu.vue:37
+#: grunt/frontend/src/components/views/actions/ActionMenu.vue:52
 msgid "Actions"
 msgstr ""
 
@@ -148,7 +148,7 @@ msgid "Bold"
 msgstr ""
 
 #: grunt/frontend/src/components/views/BulkActionBar.vue:313
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:139
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:151
 msgid "Bulk Update"
 msgstr ""
 
@@ -185,7 +185,7 @@ msgstr ""
 #: grunt/frontend/src/components/files/FileExplorer.vue:749
 #: grunt/frontend/src/components/files/FileExplorer.vue:877
 #: grunt/frontend/src/components/workflow/WorkflowActionDialog.vue:105
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:527
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:542
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue:347
 #: grunt/frontend/src/components/views/form/FormModals.vue:138
 #: grunt/frontend/src/components/views/form/FormHeader.vue:287
@@ -243,7 +243,7 @@ msgstr ""
 msgid "Column"
 msgstr ""
 
-#: grunt/frontend/src/components/dashboard/WidgetCard.vue:46
+#: grunt/frontend/src/components/dashboard/WidgetCard.vue:41
 #: grunt/frontend/src/pages/app/AppPage.vue:282
 #: grunt/frontend/src/pages/app/AppPage.vue:329
 msgid "Configure"
@@ -269,6 +269,7 @@ msgstr ""
 #: grunt/frontend/src/components/debug/ServerErrorModal.vue:72
 #: grunt/frontend/src/components/files/FileExplorer.vue:710
 #: grunt/frontend/src/components/views/form/FormHeader.vue:369
+#: grunt/frontend/src/components/fields/RichText/ui/EditorContextMenu.vue:113
 #: grunt/frontend/src/pages/app/AppPage.vue:482
 msgid "Copy"
 msgstr ""
@@ -331,7 +332,7 @@ msgstr ""
 #: grunt/frontend/src/components/views/BulkActionBar.vue:276
 #: grunt/frontend/src/components/views/BulkActionBar.vue:303
 #: grunt/frontend/src/components/dashboard/WidgetConfigPanel.vue:77
-#: grunt/frontend/src/components/dashboard/WidgetCard.vue:55
+#: grunt/frontend/src/components/dashboard/WidgetCard.vue:50
 #: grunt/frontend/src/components/files/FileExplorer.vue:723
 #: grunt/frontend/src/components/files/FileExplorer.vue:878
 #: grunt/frontend/src/components/dashboard/sections/FiltersSection.vue:82
@@ -340,7 +341,6 @@ msgstr ""
 #: grunt/frontend/src/components/fields/Table/Table.vue:481
 #: grunt/frontend/src/components/fields/RichText/editor/commands.ts:98
 #: grunt/frontend/src/components/fields/RichText/ui/BlockHandle.vue:71
-#: grunt/frontend/src/components/fields/RichText/ui/TableBubble.vue:116
 msgid "Delete"
 msgstr ""
 
@@ -391,7 +391,7 @@ msgstr ""
 msgid "Document not found"
 msgstr ""
 
-#: grunt/frontend/src/pages/desk/DocTypeForm.vue:163
+#: grunt/frontend/src/pages/desk/DocTypeForm.vue:170
 msgid "Document renamed"
 msgstr ""
 
@@ -454,7 +454,7 @@ msgstr ""
 #: grunt/grunt/api/v1/docs/utils.py:90
 #: grunt/frontend/src/components/views/FilterBar.vue:256
 #: grunt/frontend/src/components/dashboard/sections/AggregationSection.vue:41
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:213
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:225
 #: grunt/frontend/src/components/views/list/ListHeader.vue:128
 #: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:346
 msgid "Field"
@@ -552,7 +552,6 @@ msgstr ""
 msgid "Icon (lucide)"
 msgstr ""
 
-#: grunt/grunt/website/block_types.py:52
 #: grunt/frontend/src/components/fields/RichText/editor/useRichEditor.ts:75
 #: grunt/frontend/src/components/fields/RichText/ui/InsertMenu.vue:87
 #: grunt/frontend/src/components/fields/RichText/ui/InsertMenu.vue:108
@@ -627,12 +626,11 @@ msgstr ""
 msgid "Leave"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/ui/LinkPopover.vue:80
+#: grunt/frontend/src/components/fields/RichText/ui/LinkPopover.vue:85
 msgid "Link"
 msgstr ""
 
-#: grunt/grunt/website/block_types.py:22
-#: grunt/frontend/src/components/fields/RichText/ui/LinkPopover.vue:84
+#: grunt/frontend/src/components/fields/RichText/ui/LinkPopover.vue:89
 msgid "Link URL"
 msgstr ""
 
@@ -763,7 +761,7 @@ msgstr ""
 
 #: grunt/grunt/website/doc_layout.py:49 grunt/grunt/api/v1/docs/utils.py:61
 #: grunt/frontend/src/components/views/QuickFilterBar.vue:47
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:155
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:167
 #: grunt/frontend/src/components/views/sidebar/TimelineChanges.vue:49
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:233
 #: grunt/frontend/src/components/views/list/ListGroupedView.vue:49
@@ -820,7 +818,7 @@ msgid "Not signed"
 msgstr ""
 
 #: grunt/frontend/src/components/dashboard/sections/DescriptionSection.vue:10
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:129
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:131
 msgid "Note"
 msgstr ""
 
@@ -877,9 +875,9 @@ msgstr ""
 msgid "Page"
 msgstr ""
 
-#: grunt/grunt/startup/website.py:112 grunt/grunt/startup/errors.py:258
-#: grunt/grunt/api/v1/pages.py:66 grunt/grunt/api/v1/dashboard.py:269
-#: grunt/frontend/src/router/index.ts:204
+#: grunt/grunt/startup/website.py:175 grunt/grunt/startup/website.py:161
+#: grunt/grunt/startup/errors.py:258 grunt/grunt/api/v1/pages.py:66
+#: grunt/grunt/api/v1/dashboard.py:277 grunt/frontend/src/router/index.ts:204
 msgid "Page not found"
 msgstr ""
 
@@ -952,7 +950,7 @@ msgid "Remove attachment"
 msgstr ""
 
 #: grunt/frontend/src/components/fields/RichText/editor/commands.ts:92
-#: grunt/frontend/src/components/fields/RichText/ui/LinkPopover.vue:88
+#: grunt/frontend/src/components/fields/RichText/ui/LinkPopover.vue:93
 msgid "Remove link"
 msgstr ""
 
@@ -977,7 +975,7 @@ msgstr ""
 msgid "Replace file"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/SidebarImage.vue:116
+#: grunt/frontend/src/components/views/sidebar/SidebarImage.vue:117
 #: grunt/frontend/src/components/fields/Image/Image.vue:34
 #: grunt/frontend/src/components/fields/RichText/ui/ImageBubble.vue:112
 msgid "Replace image"
@@ -1204,25 +1202,15 @@ msgstr ""
 
 #: grunt/grunt/email/templates/email_login.html:51
 #: grunt/grunt/email/templates/email_login.html:61
-#: grunt/grunt/website/templates/_navbar.html:64
-#: grunt/grunt/website/www/login.ssr.html:3
-#: grunt/grunt/website/www/login.ssr.html:93
-#: grunt/grunt/website/www/login.py:9
-#: grunt/grunt/website/www/signup.ssr.html:119
-#: grunt/grunt/website/www/form/{route}.html:140
-#: grunt/frontend/src/router/index.ts:196
+#: grunt/grunt/website/templates/_navbar.html:17
+#: grunt/grunt/website/www/login.py:11 grunt/frontend/src/router/index.ts:196
 #: grunt/frontend/src/pages/auth/Login.vue:57
 #: grunt/frontend/src/pages/auth/Login.vue:452
 #: grunt/frontend/src/pages/setup/SetupWizard.vue:197
 msgid "Sign in"
 msgstr ""
 
-#: grunt/grunt/website/templates/_navbar.html:65
-#: grunt/grunt/website/www/login.ssr.html:98
-#: grunt/grunt/website/www/signup.py:9
-#: grunt/grunt/website/www/signup.ssr.html:3
-#: grunt/grunt/website/www/signup.ssr.html:114
-#: grunt/frontend/src/router/index.ts:197
+#: grunt/grunt/website/www/signup.py:11 grunt/frontend/src/router/index.ts:197
 #: grunt/frontend/src/pages/auth/Login.vue:57
 #: grunt/frontend/src/pages/auth/Login.vue:456
 msgid "Sign up"
@@ -1254,7 +1242,6 @@ msgstr ""
 msgid "Strikethrough"
 msgstr ""
 
-#: grunt/grunt/website/block_types.py:21
 #: grunt/frontend/src/components/dashboard/sections/DescriptionSection.vue:10
 msgid "Subtitle"
 msgstr ""
@@ -1273,6 +1260,7 @@ msgid "System settings"
 msgstr ""
 
 #: grunt/frontend/src/components/fields/RichText/editor/useRichEditor.ts:73
+#: grunt/frontend/src/components/fields/RichText/ui/EditorContextMenu.vue:163
 #: grunt/frontend/src/components/fields/RichText/ui/InsertMenu.vue:93
 #: grunt/frontend/src/pages/reports/ReportView.vue:195
 #: grunt/frontend/src/pages/studio/builder/DesignerTab.vue:67
@@ -1380,7 +1368,7 @@ msgstr ""
 #: grunt/grunt/website/doc_layout.py:49 grunt/grunt/api/v1/docs/utils.py:61
 #: grunt/frontend/src/components/pwa/PWAInstallPrompt.vue:108
 #: grunt/frontend/src/components/views/QuickFilterBar.vue:47
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:155
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:167
 #: grunt/frontend/src/components/views/sidebar/TimelineChanges.vue:49
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:233
 #: grunt/frontend/src/components/views/list/ListGroupedView.vue:49
@@ -1440,7 +1428,7 @@ msgstr ""
 msgid "{n} selected"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:76
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:75
 msgid "{words} w · {chars} ch"
 msgstr ""
 
@@ -1948,18 +1936,6 @@ msgstr ""
 #: grunt/grunt/auth/doctypes/WebAuthnCredential/WebAuthnCredential.json
 msgctxt "help:WebAuthnCredential.transports"
 msgid "Comma-separated list: usb, nfc, ble, internal, hybrid"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebsiteSettings/WebsiteSettings.json
-msgctxt "help:WebsiteSettings.footer_items"
-msgid "The 'Group' field sets the column heading in the footer"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebsiteSettings/WebsiteSettings.json
-msgctxt "help:WebsiteSettings.home_route"
-msgid ""
-"Route of the published WebPage used as the home page (a file-based "
-"www/index.html always takes priority)"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/Workflow/Workflow.json
@@ -3522,219 +3498,9 @@ msgctxt "meta:WebAuthnCredential.user"
 msgid "User"
 msgstr ""
 
-#: grunt/grunt/site/doctypes/WebForm/WebForm.json
-msgctxt "meta:WebForm"
-msgid "Web form"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebForm/WebForm.json
-msgctxt "meta:WebForm.allow_edit"
-msgid "Allow editing"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebForm/WebForm.json
-msgctxt "meta:WebForm.introduction"
-msgid "Introduction"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebForm/WebForm.json
-msgctxt "meta:WebForm.is_published"
-msgid "Published"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebForm/WebForm.json
-msgctxt "meta:WebForm.login_required"
-msgid "Login required"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebForm/WebForm.json
-msgctxt "meta:WebForm.max_submissions"
-msgid "Max responses"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebForm/WebForm.json
-msgctxt "meta:WebForm.route"
-msgid "URL route"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebForm/WebForm.json
-msgctxt "meta:WebForm.submit_label"
-msgid "Button text"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebForm/WebForm.json
-msgctxt "meta:WebForm.success_message"
-msgid "Success message"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebForm/WebForm.json
-msgctxt "meta:WebForm.success_url"
-msgid "URL after submit"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebForm/WebForm.json
-msgctxt "meta:WebForm.title"
-msgid "Title"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebPage/WebPage.json
-msgctxt "meta:WebPage"
-msgid "Web page"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebPage/WebPage.json
-msgctxt "meta:WebPage.blocks"
-msgid "Content blocks"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebPage/WebPage.json
-msgctxt "meta:WebPage.content"
-msgid "Content"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebPage/WebPage.json
-msgctxt "meta:WebPage.menu_title"
-msgid "Menu label"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebPage/WebPage.json
-msgctxt "meta:WebPage.meta_description"
-msgid "Meta description (SEO)"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebPage/WebPage.json
-msgctxt "meta:WebPage.og_image"
-msgid "Social image (OG)"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebPage/WebPage.json
-msgctxt "meta:WebPage.published"
-msgid "Published"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebPage/WebPage.json
-msgctxt "meta:WebPage.route"
-msgid "URL route"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebPage/WebPage.json
-msgctxt "meta:WebPage.show_in_navbar"
-msgid "Show in navigation"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebPage/WebPage.json
-msgctxt "meta:WebPage.title"
-msgid "Title"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebPageBlock/WebPageBlock.json
-msgctxt "meta:WebPageBlock"
-msgid "Page content block"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebPageBlock/WebPageBlock.json
-msgctxt "meta:WebPageBlock.block_type"
-msgid "Block type"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebPageBlock/WebPageBlock.json
-msgctxt "meta:WebPageBlock.sequence"
-msgid "Order"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebPageBlock/WebPageBlock.json
-msgctxt "meta:WebPageBlock.settings"
-msgid "Block settings"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebPageBlock/WebPageBlock.json
-msgctxt "meta:WebPageBlock.title"
-msgid "Title"
-msgstr ""
-
 #: grunt/grunt/webhook/doctypes/WebhookLog/WebhookLog.json
 msgctxt "meta:WebhookLog.url"
 msgid "URL"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebsiteNavItem/WebsiteNavItem.json
-msgctxt "meta:WebsiteNavItem.group"
-msgid "Group (for the footer)"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebsiteNavItem/WebsiteNavItem.json
-msgctxt "meta:WebsiteNavItem.is_external"
-msgid "External link"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebsiteNavItem/WebsiteNavItem.json
-msgctxt "meta:WebsiteNavItem.label"
-msgid "Name"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebsiteNavItem/WebsiteNavItem.json
-msgctxt "meta:WebsiteNavItem.sequence"
-msgid "Order"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebsiteNavItem/WebsiteNavItem.json
-msgctxt "meta:WebsiteNavItem.url"
-msgid "URL"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebsiteSettings/WebsiteSettings.json
-msgctxt "meta:WebsiteSettings"
-msgid "Site settings"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebsiteSettings/WebsiteSettings.json
-msgctxt "meta:WebsiteSettings.brand_logo"
-msgid "Logo"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebsiteSettings/WebsiteSettings.json
-msgctxt "meta:WebsiteSettings.copyright_text"
-msgid "Copyright text"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebsiteSettings/WebsiteSettings.json
-msgctxt "meta:WebsiteSettings.default_meta_description"
-msgid "Default meta description"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebsiteSettings/WebsiteSettings.json
-msgctxt "meta:WebsiteSettings.default_og_image"
-msgid "Default social image"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebsiteSettings/WebsiteSettings.json
-msgctxt "meta:WebsiteSettings.footer_items"
-msgid "Footer links"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebsiteSettings/WebsiteSettings.json
-msgctxt "meta:WebsiteSettings.home_route"
-msgid "Home page route"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebsiteSettings/WebsiteSettings.json
-msgctxt "meta:WebsiteSettings.sec_brand"
-msgid "Branding"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebsiteSettings/WebsiteSettings.json
-msgctxt "meta:WebsiteSettings.sec_footer"
-msgid "Site footer"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebsiteSettings/WebsiteSettings.json
-msgctxt "meta:WebsiteSettings.sec_seo"
-msgid "Default SEO"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebsiteSettings/WebsiteSettings.json
-msgctxt "meta:WebsiteSettings.site_name"
-msgid "Site name"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/Workflow/Workflow.json
@@ -4689,74 +4455,6 @@ msgctxt "help:SystemSettings.backup_keep"
 msgid "Older ones are deleted after each new backup."
 msgstr ""
 
-#: grunt/grunt/site/doctypes/WebForm/WebForm.json
-msgctxt "help:WebForm.captcha_enabled"
-msgid ""
-"Requires a captcha_provider to be configured for the site — otherwise "
-"ignored"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebForm/WebForm.json
-msgctxt "help:WebForm.confirmation_template"
-msgid ""
-"Sent to the submitter's own email field (if any) and to every address in "
-"Notify emails below"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebForm/WebForm.json
-msgctxt "help:WebForm.notify_emails"
-msgid ""
-"One address per line or comma-separated — staff to alert on every submission"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
-msgctxt "help:WebFormField.collapsible"
-msgid "Section rows only"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
-msgctxt "help:WebFormField.fieldtype"
-msgid ""
-"Empty for an ordinary field (its real type is always resolved live from the "
-"target DocType); set only to mark a Tab/Section/Column layout row"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
-msgctxt "help:WebFormField.label"
-msgid "Required for Tab/Section rows; optional override for ordinary fields"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
-msgctxt "help:WebFormField.required"
-msgid "OR'd with the target field's own required flag"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebsiteFooterColumn/WebsiteFooterColumn.json
-msgctxt "help:WebsiteFooterColumn.title"
-msgid ""
-"Must match the 'Group' field on the footer links this column should show"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebsiteNavItem/WebsiteNavItem.json
-msgctxt "help:WebsiteNavItem.group"
-msgid ""
-"Used only in the site footer to group links under a heading — must match a "
-"Site footer column's title"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebsiteNavItem/WebsiteNavItem.json
-msgctxt "help:WebsiteNavItem.highlight"
-msgid ""
-"Render this item as a call-to-action (e.g. a button) instead of a plain link"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebsiteSettings/WebsiteSettings.json
-msgctxt "help:WebsiteSettings.footer_columns"
-msgid ""
-"Controls which footer columns show and in what order. Leave empty to auto-"
-"group footer links by their 'Group' field instead."
-msgstr ""
-
 #: grunt/grunt/metadata/doctypes/WorkflowTransition/WorkflowTransition.json
 msgctxt "help:WorkflowTransition.prompt_fields"
 msgid ""
@@ -4833,106 +4531,6 @@ msgstr ""
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgctxt "meta:SystemSettings.tab_backups"
 msgid "Backups"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebForm/WebForm.json
-msgctxt "meta:WebForm.captcha_enabled"
-msgid "Require CAPTCHA"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebForm/WebForm.json
-msgctxt "meta:WebForm.confirmation_template"
-msgid "Confirmation email template"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebForm/WebForm.json
-msgctxt "meta:WebForm.fields"
-msgid "Fields"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebForm/WebForm.json
-msgctxt "meta:WebForm.notify_emails"
-msgid "Notify emails"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebForm/WebForm.json
-msgctxt "meta:WebForm.sec_antispam"
-msgid "Anti-spam"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebForm/WebForm.json
-msgctxt "meta:WebForm.sec_notifications"
-msgid "Notifications"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
-msgctxt "meta:WebFormField"
-msgid "Web form field"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
-msgctxt "meta:WebFormField.collapsible"
-msgid "Collapsible"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
-msgctxt "meta:WebFormField.description"
-msgid "Help text override"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
-msgctxt "meta:WebFormField.fieldname"
-msgid "Fieldname"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
-msgctxt "meta:WebFormField.fieldtype"
-msgid "Field type"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
-msgctxt "meta:WebFormField.hidden"
-msgid "Hidden"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
-msgctxt "meta:WebFormField.label"
-msgid "Label override"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
-msgctxt "meta:WebFormField.required"
-msgid "Required on this form"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebsiteFooterColumn/WebsiteFooterColumn.json
-msgctxt "meta:WebsiteFooterColumn"
-msgid "Site footer column"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebsiteFooterColumn/WebsiteFooterColumn.json
-msgctxt "meta:WebsiteFooterColumn.enabled"
-msgid "Enabled"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebsiteFooterColumn/WebsiteFooterColumn.json
-msgctxt "meta:WebsiteFooterColumn.title"
-msgid "Column heading"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebsiteNavItem/WebsiteNavItem.json
-msgctxt "meta:WebsiteNavItem.highlight"
-msgid "Highlight"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebsiteNavItem/WebsiteNavItem.json
-msgctxt "meta:WebsiteNavItem.icon"
-msgid "Icon"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebsiteSettings/WebsiteSettings.json
-msgctxt "meta:WebsiteSettings.footer_columns"
-msgid "Footer columns"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/WorkflowTransition/WorkflowTransition.json
@@ -5013,7 +4611,7 @@ msgstr ""
 
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.js:120
 #: grunt/grunt/metadata/doctypes/DocType/global_form.js:66
-#: grunt/frontend/src/components/views/sidebar/SidebarImage.vue:124
+#: grunt/frontend/src/components/views/sidebar/SidebarImage.vue:125
 msgid "Open in new tab"
 msgstr ""
 
@@ -5022,8 +4620,8 @@ msgid "PDF"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/global_form.js:54
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:333
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:337
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:336
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:340
 #: grunt/frontend/src/components/views/map/MapView.vue:205
 msgid "Print"
 msgstr ""
@@ -5115,7 +4713,7 @@ msgctxt "meta:DocType.web_route"
 msgid "Route"
 msgstr ""
 
-#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+#: grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
 msgctxt "help:WebsiteMenuItem"
 msgid ""
 "Public site navigation as a tree: top-level items are menu sections, their "
@@ -5123,108 +4721,103 @@ msgid ""
 "bar, an app's own menu)."
 msgstr ""
 
-#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+#: grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
 msgctxt "help:WebsiteMenuItem.highlight"
 msgid "Show as a button"
 msgstr ""
 
-#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+#: grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
 msgctxt "help:WebsiteMenuItem.menu"
 msgid ""
 "main — the primary navbar, top — the slim bar above it; an app may use its "
 "own key (e.g. mlt_portal). Children inherit their parent's menu."
 msgstr ""
 
-#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+#: grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
 msgctxt "help:WebsiteMenuItem.sec_link"
 msgid ""
 "Point at a document (its page address is used and follows renames) or type a"
 " URL. Leave both empty for a section/group heading."
 msgstr ""
 
-#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+#: grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
 msgctxt "help:WebsiteMenuItem.sequence"
 msgid "Among items with the same parent, smaller first"
 msgstr ""
 
-#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+#: grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
 msgctxt "help:WebsiteMenuItem.url"
 msgid "/news, https://… — used when no document is chosen"
 msgstr ""
 
-#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+#: grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
 msgctxt "meta:WebsiteMenuItem"
 msgid "Site menu item"
 msgstr ""
 
-#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+#: grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
 msgctxt "meta:WebsiteMenuItem.enabled"
 msgid "Show"
 msgstr ""
 
-#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+#: grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
 msgctxt "meta:WebsiteMenuItem.highlight"
 msgid "Highlight"
 msgstr ""
 
-#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+#: grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
 msgctxt "meta:WebsiteMenuItem.icon"
 msgid "Icon"
 msgstr ""
 
-#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+#: grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
 msgctxt "meta:WebsiteMenuItem.label"
 msgid "Name"
 msgstr ""
 
-#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+#: grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
 msgctxt "meta:WebsiteMenuItem.link_doctype"
 msgid "Document type"
 msgstr ""
 
-#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+#: grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
 msgctxt "meta:WebsiteMenuItem.link_name"
 msgid "Document"
 msgstr ""
 
-#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+#: grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
 msgctxt "meta:WebsiteMenuItem.menu"
 msgid "Menu"
 msgstr ""
 
-#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+#: grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
 msgctxt "meta:WebsiteMenuItem.open_in_new_tab"
 msgid "Open in a new tab"
 msgstr ""
 
-#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+#: grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
 msgctxt "meta:WebsiteMenuItem.parent_menu_item"
 msgid "Parent item"
 msgstr ""
 
-#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+#: grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
 msgctxt "meta:WebsiteMenuItem.sec_link"
 msgid "Link"
 msgstr ""
 
-#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+#: grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
 msgctxt "meta:WebsiteMenuItem.sec_look"
 msgid "Appearance"
 msgstr ""
 
-#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+#: grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
 msgctxt "meta:WebsiteMenuItem.sequence"
 msgid "Order"
 msgstr ""
 
-#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+#: grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
 msgctxt "meta:WebsiteMenuItem.url"
 msgid "URL"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebsiteNavItem/WebsiteNavItem.json
-msgctxt "meta:WebsiteNavItem"
-msgid "Site footer link"
 msgstr ""
 
 #: grunt/frontend/src/components/views/ListEmptyState.vue:35
@@ -5254,7 +4847,7 @@ msgstr ""
 msgid "Try adjusting your filters to see more results."
 msgstr ""
 
-#: grunt/frontend/src/pages/desk/DocTypeForm.vue:236
+#: grunt/frontend/src/pages/desk/DocTypeForm.vue:243
 msgid "Activity"
 msgstr ""
 
@@ -5273,12 +4866,8 @@ msgid "New value"
 msgstr ""
 
 #: grunt/grunt/actions/builtin.py:102
-#: grunt/frontend/src/pages/desk/DocTypeForm.vue:182
+#: grunt/frontend/src/pages/desk/DocTypeForm.vue:189
 msgid "Restore"
-msgstr ""
-
-#: grunt/grunt/website/block_types.py:26
-msgid "Text"
 msgstr ""
 
 #: grunt/grunt/reports/engine.py:435
@@ -5352,12 +4941,6 @@ msgstr ""
 msgid "%(queued)s queued, %(running)s running"
 msgstr ""
 
-#: grunt/grunt/website/templates/_footer.html:7
-msgid ""
-"%(site)s is a powerful framework for building modern business applications "
-"with a Ukrainian soul and global standards."
-msgstr ""
-
 #: grunt/grunt/document/mixins/collaboration_rpc.py:90
 msgid "%(user)s mentioned you in a comment"
 msgstr ""
@@ -5424,10 +5007,6 @@ msgstr ""
 msgid "A descendant cannot be used as the replacement"
 msgstr ""
 
-#: grunt/grunt/site/doctypes/WebsiteMenuItem/website_menu_item.py:15
-msgid "A menu item can't be its own parent"
-msgstr ""
-
 #: grunt/grunt/db/errors.py:57
 msgid "A record with this value already exists. Enter a unique value."
 msgstr ""
@@ -5448,12 +5027,8 @@ msgstr ""
 msgid "API method “%(method)s” not found"
 msgstr ""
 
-#: grunt/grunt/website/www/share/{token}.html:210
+#: grunt/grunt/website/www/share/{token}.html:207
 msgid "About the document"
-msgstr ""
-
-#: grunt/grunt/website/templates/_footer.html:5
-msgid "About the platform"
 msgstr ""
 
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue:240
@@ -5466,7 +5041,7 @@ msgstr ""
 msgid "Access code"
 msgstr ""
 
-#: grunt/grunt/auth/doctypes/User/user.py:651
+#: grunt/grunt/auth/doctypes/User/user.py:663
 msgid "Account temporarily locked. Try again later."
 msgstr ""
 
@@ -5558,11 +5133,11 @@ msgstr ""
 msgid "Administrators without 2FA"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:215
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:227
 msgid "After"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:430
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:442
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:367
 #: grunt/frontend/src/pages/app/SearchResultsPage.vue:190
 msgid "All"
@@ -5588,7 +5163,6 @@ msgstr ""
 msgid "Allowed roles (comma-separated)"
 msgstr ""
 
-#: grunt/grunt/website/www/signup.ssr.html:119
 #: grunt/frontend/src/pages/auth/Login.vue:451
 msgid "Already have an account?"
 msgstr ""
@@ -5676,7 +5250,7 @@ msgstr ""
 msgid "Ascending"
 msgstr ""
 
-#: grunt/grunt/website/www/share/{token}.html:172
+#: grunt/grunt/website/www/share/{token}.html:169
 msgid "Ask the document owner for a new link."
 msgstr ""
 
@@ -5693,7 +5267,6 @@ msgstr ""
 msgid "Assignees"
 msgstr ""
 
-#: grunt/grunt/website/www/signup.ssr.html:98
 #: grunt/frontend/src/pages/auth/Login.vue:426
 #: grunt/frontend/src/pages/setup/SetupWizard.vue:166
 msgid "At least 8 characters"
@@ -5712,7 +5285,7 @@ msgstr ""
 msgid "Authentication required"
 msgstr ""
 
-#: grunt/grunt/storage/doctypes/File/file.py:238
+#: grunt/grunt/storage/doctypes/File/file.py:243
 msgid "Authentication required to access this file"
 msgstr ""
 
@@ -5810,22 +5383,22 @@ msgstr ""
 msgid "Basics"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:214
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:226
 msgid "Before"
 msgstr ""
 
-#: grunt/frontend/src/pages/desk/DocTypeForm.vue:195
+#: grunt/frontend/src/pages/desk/DocTypeForm.vue:202
 msgid ""
 "Beta: this document type is still in development; its behavior may change."
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:315
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:321
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:318
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:324
 msgid "Bookmark"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:315
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:321
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:318
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:324
 msgid "Bookmarked"
 msgstr ""
 
@@ -5857,10 +5430,6 @@ msgstr ""
 
 #: grunt/frontend/src/pages/reports/ReportView.vue:217
 msgid "Builder"
-msgstr ""
-
-#: grunt/grunt/website/block_types.py:23
-msgid "Button text"
 msgstr ""
 
 #: grunt/frontend/src/pages/auth/Login.vue:464
@@ -5953,7 +5522,7 @@ msgstr ""
 msgid "Change queue"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:141
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:153
 msgid "Changed the status"
 msgstr ""
 
@@ -5961,8 +5530,8 @@ msgstr ""
 msgid "Changed: %(fields)s"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:198
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:430
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:210
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:442
 msgid "Changes"
 msgstr ""
 
@@ -6113,8 +5682,8 @@ msgid "Code from the email"
 msgstr ""
 
 #: grunt/frontend/src/components/desk/TaskProgressPanel.vue:111
-#: grunt/frontend/src/components/views/DocSidebar.vue:73
-#: grunt/frontend/src/components/views/DocSidebar.vue:78
+#: grunt/frontend/src/components/views/DocSidebar.vue:75
+#: grunt/frontend/src/components/views/DocSidebar.vue:80
 #: grunt/frontend/src/components/files/FileExplorer.vue:763
 #: grunt/frontend/src/components/ui/tree-select/TreeSelectNode.vue:65
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:398
@@ -6193,7 +5762,6 @@ msgid "Confirm"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.js:42
-#: grunt/grunt/website/www/signup.ssr.html:102
 #: grunt/frontend/src/pages/auth/ResetPassword.vue:85
 msgid "Confirm password"
 msgstr ""
@@ -6263,7 +5831,7 @@ msgstr ""
 #: grunt/frontend/src/core/renderer/FieldRenderer.vue:143
 #: grunt/frontend/src/components/desk/GruntDialog.vue:364
 #: grunt/frontend/src/components/layout/CommandPalette.vue:142
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:197
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:200
 #: grunt/frontend/src/components/views/form/FormHeader.vue:460
 msgid "Copied"
 msgstr ""
@@ -6276,8 +5844,8 @@ msgstr ""
 msgid "Copied!"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:192
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:197
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:195
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:200
 msgid "Copy ID"
 msgstr ""
 
@@ -6322,7 +5890,7 @@ msgstr ""
 msgid "Could not apply the transition"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:89
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:91
 msgid "Could not copy"
 msgstr ""
 
@@ -6390,14 +5958,6 @@ msgstr ""
 msgid "Could not validate credentials"
 msgstr ""
 
-#: grunt/grunt/api/v1/webform.py:52
-msgid "Could not verify that you are not a robot"
-msgstr ""
-
-#: grunt/grunt/website/www/form/{route}.py:141
-msgid "Could not verify that you are not a robot. Please try again."
-msgstr ""
-
 #: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:41
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:226
 msgid "Count"
@@ -6407,7 +5967,6 @@ msgstr ""
 msgid "Create a"
 msgstr ""
 
-#: grunt/grunt/website/www/signup.ssr.html:69
 #: grunt/frontend/src/pages/auth/Login.vue:53
 msgid "Create an account"
 msgstr ""
@@ -6440,8 +5999,8 @@ msgstr ""
 msgid "Created on"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:133
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:134
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:145
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:146
 msgid "Created the document"
 msgstr ""
 
@@ -6487,7 +6046,7 @@ msgstr ""
 msgid "Dark"
 msgstr ""
 
-#: grunt/grunt/api/v1/dashboard.py:286
+#: grunt/grunt/api/v1/dashboard.py:294
 msgid "Dashboard not found"
 msgstr ""
 
@@ -6565,8 +6124,8 @@ msgstr ""
 msgid "Delete «{name}»?"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:137
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:138
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:149
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:150
 msgid "Deleted the document"
 msgstr ""
 
@@ -6594,20 +6153,8 @@ msgstr ""
 msgid "Descending"
 msgstr ""
 
-#: grunt/grunt/website/block_types.py:73
-msgid "Description 1"
-msgstr ""
-
-#: grunt/grunt/website/block_types.py:76
-msgid "Description 2"
-msgstr ""
-
-#: grunt/grunt/website/block_types.py:79
-msgid "Description 3"
-msgstr ""
-
-#: grunt/frontend/src/components/views/DocSidebar.vue:69
-#: grunt/frontend/src/components/views/DocSidebar.vue:97
+#: grunt/frontend/src/components/views/DocSidebar.vue:71
+#: grunt/frontend/src/components/views/DocSidebar.vue:99
 #: grunt/frontend/src/components/files/FileExplorer.vue:728
 msgid "Details"
 msgstr ""
@@ -6633,7 +6180,7 @@ msgid "Disable MFA"
 msgstr ""
 
 #: grunt/frontend/src/components/layout/OfflineQueueSheet.vue:101
-#: grunt/frontend/src/pages/desk/DocTypeForm.vue:183
+#: grunt/frontend/src/pages/desk/DocTypeForm.vue:190
 msgid "Discard"
 msgstr ""
 
@@ -6663,11 +6210,11 @@ msgstr ""
 msgid "DocType “%(doctype)s” no longer exists"
 msgstr ""
 
-#: grunt/grunt/webform/service.py:92 grunt/grunt/app/document_api.py:516
-#: grunt/grunt/app/document_api.py:800 grunt/grunt/metadata/registry.py:333
-#: grunt/grunt/metadata/registry.py:584 grunt/grunt/metadata/registry.py:562
+#: grunt/grunt/app/document_api.py:516 grunt/grunt/app/document_api.py:800
+#: grunt/grunt/metadata/registry.py:333 grunt/grunt/metadata/registry.py:584
+#: grunt/grunt/metadata/registry.py:562
 #: grunt/grunt/notification/rule_index.py:53
-#: grunt/grunt/activity/__init__.py:264 grunt/grunt/actions/__init__.py:163
+#: grunt/grunt/activity/__init__.py:266 grunt/grunt/actions/__init__.py:163
 #: grunt/grunt/document/connections.py:43
 #: grunt/grunt/document/connections.py:68
 #: grunt/grunt/document/connections.py:89
@@ -6677,7 +6224,7 @@ msgstr ""
 #: grunt/grunt/document/collection.py:494
 #: grunt/grunt/document/collection.py:565
 #: grunt/grunt/document/collection.py:846 grunt/grunt/document/links.py:55
-#: grunt/grunt/document/links.py:59
+#: grunt/grunt/document/links.py:59 grunt/grunt/document/links.py:121
 msgid "DocType “%(doctype)s” not found"
 msgstr ""
 
@@ -6696,7 +6243,7 @@ msgstr ""
 msgid "Document type"
 msgstr ""
 
-#: grunt/grunt/website/www/share/{token}.html:141
+#: grunt/grunt/website/www/share/{token}.html:138
 #: grunt/grunt/website/www/share/{token}.py:21
 msgid "Document view"
 msgstr ""
@@ -6715,10 +6262,6 @@ msgstr ""
 
 #: grunt/grunt/permissions/guards.py:88 grunt/grunt/document/mixins/read.py:53
 msgid "Document “%(name)s” not found"
-msgstr ""
-
-#: grunt/grunt/website/templates/_footer.html:57
-msgid "Documentation"
 msgstr ""
 
 #: grunt/frontend/src/components/views/form/DocLinksDialog.vue:77
@@ -6779,8 +6322,6 @@ msgstr ""
 
 #: grunt/grunt/monitoring/health.py:287 grunt/grunt/monitoring/health.py:645
 #: grunt/grunt/auth/doctypes/User/user.py:67
-#: grunt/grunt/website/www/login.ssr.html:75
-#: grunt/grunt/website/www/signup.ssr.html:92
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:298
 msgid "Email"
 msgstr ""
@@ -6982,7 +6523,7 @@ msgstr ""
 msgid "Field “%(label)s” does not match the format"
 msgstr ""
 
-#: grunt/grunt/webform/service.py:242 grunt/grunt/document/validation.py:47
+#: grunt/grunt/document/validation.py:47
 msgid "Field “%(label)s” is required"
 msgstr ""
 
@@ -7048,11 +6589,11 @@ msgid ""
 " the report itself)."
 msgstr ""
 
-#: grunt/grunt/storage/doctypes/File/file.py:231
+#: grunt/grunt/storage/doctypes/File/file.py:236
 msgid "File not found"
 msgstr ""
 
-#: grunt/grunt/storage/doctypes/File/file.py:256
+#: grunt/grunt/storage/doctypes/File/file.py:268
 msgid "File not found on storage"
 msgstr ""
 
@@ -7098,10 +6639,6 @@ msgstr ""
 msgid "First choose a mail service or enter an SMTP server."
 msgstr ""
 
-#: grunt/grunt/website/www/signup.ssr.html:82
-msgid "First name"
-msgstr ""
-
 #: grunt/grunt/auth/doctypes/User/user.py:159
 msgid "First name is required"
 msgstr ""
@@ -7114,11 +6651,11 @@ msgstr ""
 msgid "Fix the duplicates and try again."
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:301
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:304
 msgid "Follow"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:301
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:304
 msgid "Following"
 msgstr ""
 
@@ -7130,15 +6667,8 @@ msgstr ""
 msgid "Forbidden: %(word)s"
 msgstr ""
 
-#: grunt/grunt/website/www/login.ssr.html:82
 #: grunt/frontend/src/pages/auth/Login.vue:418
 msgid "Forgot password?"
-msgstr ""
-
-#: grunt/grunt/webform/service.py:158 grunt/grunt/api/v1/webform.py:22
-#: grunt/grunt/website/www/form/{route}.py:102
-#: grunt/grunt/website/www/form/{route}.py:103
-msgid "Form not found"
 msgstr ""
 
 #: grunt/frontend/src/components/views/map/MapView.vue:193
@@ -7198,7 +6728,7 @@ msgstr ""
 msgid "Gantt chart"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:305
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:308
 msgid "Get notified about changes and comments"
 msgstr ""
 
@@ -7210,7 +6740,7 @@ msgstr ""
 msgid "Go to sign in"
 msgstr ""
 
-#: grunt/grunt/website/templates/_navbar.html:61
+#: grunt/grunt/website/templates/_navbar.html:14
 msgid "Go to the app"
 msgstr ""
 
@@ -7257,16 +6787,8 @@ msgstr ""
 msgid "Grouping"
 msgstr ""
 
-#: grunt/grunt/website/templates/_footer.html:63
-msgid "Grunt platform"
-msgstr ""
-
 #: grunt/grunt/api/v1/email.py:76
 msgid "Grunt test email"
-msgstr ""
-
-#: grunt/grunt/website/block_types.py:59
-msgid "HTML code"
 msgstr ""
 
 #: grunt/frontend/src/plugins/__tests__/i18n.spec.ts:17
@@ -7274,7 +6796,7 @@ msgid "Hello {name}"
 msgstr ""
 
 #: grunt/grunt/email/templates/password_reset.html:49
-#: grunt/grunt/auth/doctypes/User/user.py:1061
+#: grunt/grunt/auth/doctypes/User/user.py:1073
 msgid "Hello, %(name)s,"
 msgstr ""
 
@@ -7294,28 +6816,12 @@ msgstr ""
 msgid "Hook '%(doc_id)s' not found"
 msgstr ""
 
-#: grunt/grunt/website/www/signup.ssr.html:109
-msgid "I agree to the"
-msgstr ""
-
 #: grunt/grunt/validators/iban_ua.py:18
 msgid "IBAN (Ukraine)"
 msgstr ""
 
 #: grunt/grunt/validators/iban.py:19
 msgid "IBAN (international)"
-msgstr ""
-
-#: grunt/grunt/website/block_types.py:71
-msgid "Icon 1 (emoji)"
-msgstr ""
-
-#: grunt/grunt/website/block_types.py:74
-msgid "Icon 2 (emoji)"
-msgstr ""
-
-#: grunt/grunt/website/block_types.py:77
-msgid "Icon 3 (emoji)"
 msgstr ""
 
 #: grunt/grunt/website/www/share/{token}.py:52
@@ -7333,7 +6839,7 @@ msgid ""
 msgstr ""
 
 #: grunt/grunt/email/templates/password_reset.html:57
-#: grunt/grunt/auth/doctypes/User/user.py:1064
+#: grunt/grunt/auth/doctypes/User/user.py:1076
 msgid "If you did not request this, just ignore this email."
 msgstr ""
 
@@ -7372,7 +6878,7 @@ msgstr ""
 msgid "Include nested"
 msgstr ""
 
-#: grunt/grunt/auth/doctypes/User/user.py:655
+#: grunt/grunt/auth/doctypes/User/user.py:667
 msgid "Incorrect email or password"
 msgstr ""
 
@@ -7470,7 +6976,7 @@ msgid ""
 " 0-9, _"
 msgstr ""
 
-#: grunt/grunt/auth/doctypes/User/user.py:777
+#: grunt/grunt/auth/doctypes/User/user.py:789
 msgid "Invalid language value"
 msgstr ""
 
@@ -7478,11 +6984,11 @@ msgstr ""
 msgid "Invalid link"
 msgstr ""
 
-#: grunt/grunt/auth/doctypes/User/user.py:696
+#: grunt/grunt/auth/doctypes/User/user.py:708
 msgid "Invalid or expired MFA setup token"
 msgstr ""
 
-#: grunt/grunt/auth/doctypes/User/user.py:671
+#: grunt/grunt/auth/doctypes/User/user.py:683
 msgid "Invalid or expired MFA token"
 msgstr ""
 
@@ -7490,12 +6996,12 @@ msgstr ""
 msgid "Invalid or expired code"
 msgstr ""
 
-#: grunt/grunt/auth/doctypes/User/user.py:797
-#: grunt/grunt/auth/doctypes/User/user.py:802
+#: grunt/grunt/auth/doctypes/User/user.py:809
+#: grunt/grunt/auth/doctypes/User/user.py:814
 msgid "Invalid or expired refresh token"
 msgstr ""
 
-#: grunt/grunt/auth/doctypes/User/user.py:1093
+#: grunt/grunt/auth/doctypes/User/user.py:1105
 msgid "Invalid or expired reset token"
 msgstr ""
 
@@ -7507,7 +7013,7 @@ msgstr ""
 msgid "Invalid phone format"
 msgstr ""
 
-#: grunt/grunt/auth/doctypes/User/user.py:770
+#: grunt/grunt/auth/doctypes/User/user.py:782
 msgid "Invalid theme value"
 msgstr ""
 
@@ -7547,16 +7053,8 @@ msgstr ""
 msgid "Jobs are piling up faster than they are processed."
 msgstr ""
 
-#: grunt/grunt/website/www/signup.ssr.html:83
-msgid "John"
-msgstr ""
-
 #: grunt/frontend/src/pages/auth/Login.vue:400
 msgid "John Smith"
-msgstr ""
-
-#: grunt/grunt/website/www/signup.ssr.html:70
-msgid "Join our community today"
 msgstr ""
 
 #: grunt/frontend/src/components/dashboard/widgets/Calendar/Calendar.vue:20
@@ -7605,10 +7103,6 @@ msgstr ""
 msgid "Language"
 msgstr ""
 
-#: grunt/grunt/website/www/signup.ssr.html:86
-msgid "Last name"
-msgstr ""
-
 #: grunt/grunt/auth/doctypes/User/user.py:161
 msgid "Last name is required"
 msgstr ""
@@ -7629,10 +7123,6 @@ msgstr ""
 
 #: grunt/grunt/monitoring/health.py:534 grunt/grunt/monitoring/health.py:519
 msgid "Latest backup"
-msgstr ""
-
-#: grunt/grunt/website/www/form/{route}.html:152
-msgid "Leave this field empty"
 msgstr ""
 
 #: grunt/frontend/src/components/views/FilterBar.vue:199
@@ -7726,7 +7216,7 @@ msgstr ""
 msgid "MFA setup"
 msgstr ""
 
-#: grunt/grunt/auth/doctypes/User/user.py:699
+#: grunt/grunt/auth/doctypes/User/user.py:711
 msgid "MFA setup is unavailable"
 msgstr ""
 
@@ -7758,7 +7248,7 @@ msgstr ""
 msgid "May"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:391
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:403
 msgid "Mention a user"
 msgstr ""
 
@@ -7824,6 +7314,7 @@ msgid "Months"
 msgstr ""
 
 #: grunt/frontend/src/components/mobile/MobileBottomNav.vue:98
+#: grunt/frontend/src/components/fields/RichText/ui/EditorContextMenu.vue:126
 #: grunt/frontend/src/components/fields/RichText/ui/MoreMenu.vue:17
 msgid "More"
 msgstr ""
@@ -7915,7 +7406,7 @@ msgstr ""
 msgid "No access to the document"
 msgstr ""
 
-#: grunt/grunt/storage/doctypes/File/file.py:243
+#: grunt/grunt/storage/doctypes/File/file.py:248
 msgid "No access to the file"
 msgstr ""
 
@@ -7927,7 +7418,6 @@ msgstr ""
 msgid "No access: %(action)s “%(doctype)s”"
 msgstr ""
 
-#: grunt/grunt/website/www/login.ssr.html:98
 #: grunt/frontend/src/pages/auth/Login.vue:455
 msgid "No account?"
 msgstr ""
@@ -7936,7 +7426,7 @@ msgstr ""
 msgid "No activity"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:424
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:436
 msgid "No activity yet"
 msgstr ""
 
@@ -7990,7 +7480,7 @@ msgstr ""
 msgid "No fields to update"
 msgstr ""
 
-#: grunt/grunt/storage/doctypes/File/file.py:88
+#: grunt/grunt/storage/doctypes/File/file.py:91
 msgid "No filename provided"
 msgstr ""
 
@@ -8095,7 +7585,7 @@ msgstr ""
 msgid "Not permitted"
 msgstr ""
 
-#: grunt/grunt/auth/doctypes/User/user.py:976
+#: grunt/grunt/auth/doctypes/User/user.py:988
 msgid "Not permitted to change another user's password"
 msgstr ""
 
@@ -8319,8 +7809,6 @@ msgid "Passkeys"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/user.py:70
-#: grunt/grunt/website/www/login.ssr.html:81
-#: grunt/grunt/website/www/signup.ssr.html:97
 #: grunt/frontend/src/pages/auth/Login.vue:412
 #: grunt/frontend/src/pages/setup/SetupWizard.vue:162
 msgid "Password"
@@ -8336,11 +7824,11 @@ msgid "Password must be at least 8 characters"
 msgstr ""
 
 #: grunt/grunt/email/templates/password_reset.html:46
-#: grunt/grunt/auth/doctypes/User/user.py:1067
+#: grunt/grunt/auth/doctypes/User/user.py:1079
 msgid "Password reset"
 msgstr ""
 
-#: grunt/grunt/auth/doctypes/User/user.py:1062
+#: grunt/grunt/auth/doctypes/User/user.py:1074
 msgid "Password reset link (valid for 1 hour):"
 msgstr ""
 
@@ -8412,16 +7900,8 @@ msgstr ""
 msgid "Print / PDF"
 msgstr ""
 
-#: grunt/grunt/website/templates/_footer.html:65
-msgid "Privacy"
-msgstr ""
-
 #: grunt/frontend/src/pages/auth/Login.vue:465
 msgid "Privacy Policy"
-msgstr ""
-
-#: grunt/grunt/website/www/signup.ssr.html:109
-msgid "Privacy policy"
 msgstr ""
 
 #: grunt/grunt/io/doctypes/DataImport/DataImport.js:172
@@ -8491,7 +7971,7 @@ msgstr ""
 msgid "Read Only (recommended)"
 msgstr ""
 
-#: grunt/grunt/website/www/share/{token}.html:219
+#: grunt/grunt/website/www/share/{token}.html:216
 msgid "Read only"
 msgstr ""
 
@@ -8553,7 +8033,7 @@ msgstr ""
 msgid "Registration approved — the user can sign in"
 msgstr ""
 
-#: grunt/grunt/auth/doctypes/User/user.py:557
+#: grunt/grunt/auth/doctypes/User/user.py:569
 msgid "Registration of new users is disabled"
 msgstr ""
 
@@ -8581,10 +8061,6 @@ msgstr ""
 #: grunt/frontend/src/components/app/AppSidebar.vue:300
 msgid ""
 "Reload translations, menus and schemas; your settings and drafts are kept"
-msgstr ""
-
-#: grunt/grunt/website/www/login.ssr.html:89
-msgid "Remember me"
 msgstr ""
 
 #: grunt/grunt/tasks/todo_reminders.py:66
@@ -8711,12 +8187,12 @@ msgstr ""
 msgid "Response caching"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:222
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:234
 msgid ""
 "Restore the document to this version? Current field values will be replaced."
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:219
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:231
 msgid "Restore this version"
 msgstr ""
 
@@ -8724,7 +8200,7 @@ msgstr ""
 msgid "Restore with a new ID"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:140
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:152
 msgid "Restored a version"
 msgstr ""
 
@@ -8867,7 +8343,7 @@ msgstr ""
 msgid "Section"
 msgstr ""
 
-#: grunt/grunt/website/www/share/{token}.html:191
+#: grunt/grunt/website/www/share/{token}.html:188
 msgid "Section %(n)s"
 msgstr ""
 
@@ -8879,7 +8355,6 @@ msgstr ""
 msgid "See the Error Log."
 msgstr ""
 
-#: grunt/grunt/website/www/form/{route}.html:184
 #: grunt/frontend/src/components/layout/CommandPalette.vue:335
 #: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue:427
 msgid "Select"
@@ -8902,7 +8377,7 @@ msgstr ""
 msgid "Selected columns"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:418
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:430
 msgid "Send"
 msgstr ""
 
@@ -9041,10 +8516,6 @@ msgstr ""
 msgid "Sign in to your account"
 msgstr ""
 
-#: grunt/grunt/website/www/login.ssr.html:64
-msgid "Sign in to your account to continue"
-msgstr ""
-
 #: grunt/grunt/auth/doctypes/User/User.js:168
 msgid ""
 "Sign in without a password — with a fingerprint, Face ID or PIN. When "
@@ -9056,16 +8527,12 @@ msgstr ""
 msgid "Sign-in code"
 msgstr ""
 
-#: grunt/grunt/auth/doctypes/User/user.py:812
+#: grunt/grunt/auth/doctypes/User/user.py:824
 msgid "Sign-in from this IP address is not allowed for your role"
 msgstr ""
 
 #: grunt/grunt/auth/login.py:53
 msgid "Sign-in from this IP address is not allowed for your role."
-msgstr ""
-
-#: grunt/grunt/website/www/form/{route}.html:138
-msgid "Sign-in required"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/user.py:69
@@ -9078,10 +8545,6 @@ msgstr ""
 
 #: grunt/grunt/monitoring/health.py:104
 msgid "Slow database response."
-msgstr ""
-
-#: grunt/grunt/website/www/signup.ssr.html:87
-msgid "Smith"
 msgstr ""
 
 #: grunt/frontend/src/components/files/FileExplorer.vue:635
@@ -9123,11 +8586,11 @@ msgstr ""
 
 #: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:272
 #: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:310
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:179
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:182
 msgid "State"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:170
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:173
 msgid "Status"
 msgstr ""
 
@@ -9150,14 +8613,6 @@ msgstr ""
 
 #: grunt/grunt/monitoring/health.py:309
 msgid "Stuck emails"
-msgstr ""
-
-#: grunt/grunt/website/www/form/{route}.py:180
-msgid "Submission error"
-msgstr ""
-
-#: grunt/grunt/website/www/form/{route}.html:210
-msgid "Submit"
 msgstr ""
 
 #: grunt/frontend/src/core/composables/useWebPush.ts:104
@@ -9297,11 +8752,6 @@ msgstr ""
 msgid "Terms of Service"
 msgstr ""
 
-#: grunt/grunt/website/templates/_footer.html:66
-#: grunt/grunt/website/www/signup.ssr.html:109
-msgid "Terms of use"
-msgstr ""
-
 #: grunt/grunt/webhook/doctypes/OutgoingWebhook/OutgoingWebhook.js:36
 #: grunt/grunt/webhook/doctypes/OutgoingWebhook/OutgoingWebhook.js:56
 msgid "Test"
@@ -9319,14 +8769,6 @@ msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.js:144
 msgid "Test email sent to {to}."
-msgstr ""
-
-#: grunt/grunt/website/www/form/{route}.html:132
-msgid "Thank you!"
-msgstr ""
-
-#: grunt/grunt/website/www/form/{route}.py:132
-msgid "Thank you! Your submission has been received."
 msgstr ""
 
 #: grunt/frontend/src/components/views/gantt/GanttView.vue:421
@@ -9389,11 +8831,11 @@ msgstr ""
 msgid "The comment cannot be empty"
 msgstr ""
 
-#: grunt/grunt/auth/doctypes/User/user.py:981
+#: grunt/grunt/auth/doctypes/User/user.py:993
 msgid "The current password is incorrect"
 msgstr ""
 
-#: grunt/grunt/api/v1/dashboard.py:287
+#: grunt/grunt/api/v1/dashboard.py:295
 msgid "The dashboard is not published"
 msgstr ""
 
@@ -9431,8 +8873,8 @@ msgstr ""
 msgid "The document was updated by another user"
 msgstr ""
 
-#: grunt/grunt/webform/service.py:317 grunt/grunt/storage/remote.py:73
-#: grunt/grunt/storage/doctypes/File/file.py:108
+#: grunt/grunt/storage/remote.py:73
+#: grunt/grunt/storage/doctypes/File/file.py:111
 msgid "The file is too large (max %(size)s MB)"
 msgstr ""
 
@@ -9442,10 +8884,6 @@ msgstr ""
 
 #: grunt/grunt/storage/doctypes/FileFolder/file_folder.py:108
 msgid "The folder is not empty: move or delete its files first"
-msgstr ""
-
-#: grunt/grunt/website/www/form/{route}.py:188
-msgid "The form has been submitted successfully."
 msgstr ""
 
 #: grunt/frontend/src/pages/app/AppHome.vue:91
@@ -9469,7 +8907,7 @@ msgstr ""
 msgid "The link is invalid or expired"
 msgstr ""
 
-#: grunt/grunt/website/www/share/{token}.html:171
+#: grunt/grunt/website/www/share/{token}.html:168
 #: grunt/grunt/website/www/share/{token}.py:29
 msgid "The link is unavailable"
 msgstr ""
@@ -9484,10 +8922,6 @@ msgstr ""
 
 #: grunt/frontend/src/components/views/list/ListHeader.vue:101
 msgid "The list is limited by your access rights"
-msgstr ""
-
-#: grunt/grunt/webform/service.py:167
-msgid "The maximum number of responses has been reached"
 msgstr ""
 
 #: grunt/frontend/src/core/fieldStorage.ts:64
@@ -9505,7 +8939,7 @@ msgstr ""
 msgid "The page is empty"
 msgstr ""
 
-#: grunt/grunt/api/v1/dashboard.py:270
+#: grunt/grunt/api/v1/dashboard.py:278
 msgid "The page is not published"
 msgstr ""
 
@@ -9654,14 +9088,10 @@ msgid ""
 "only to bulk-clean test or imported data."
 msgstr ""
 
-#: grunt/frontend/src/pages/desk/DocTypeForm.vue:190
+#: grunt/frontend/src/pages/desk/DocTypeForm.vue:197
 msgid ""
 "This document type is deprecated. It still works, but do not use it in new "
 "code."
-msgstr ""
-
-#: grunt/grunt/website/www/form/{route}.html:139
-msgid "This form is available only to signed-in users."
 msgstr ""
 
 #: grunt/grunt/api/v1/email.py:79
@@ -9701,18 +9131,6 @@ msgstr ""
 msgid "Thu"
 msgstr ""
 
-#: grunt/grunt/website/block_types.py:72
-msgid "Title 1"
-msgstr ""
-
-#: grunt/grunt/website/block_types.py:75
-msgid "Title 2"
-msgstr ""
-
-#: grunt/grunt/website/block_types.py:78
-msgid "Title 3"
-msgstr ""
-
 #: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:362
 msgid "To state"
 msgstr ""
@@ -9730,9 +9148,7 @@ msgstr ""
 msgid "Too many failed attempts. Try again later."
 msgstr ""
 
-#: grunt/grunt/errors.py:118 grunt/grunt/middleware/rate_limit.py:222
-#: grunt/grunt/middleware/rate_limit.py:167
-#: grunt/grunt/middleware/rate_limit.py:183
+#: grunt/grunt/errors.py:118 grunt/grunt/middleware/rate_limit.py:75
 msgid "Too many requests. Try again later."
 msgstr ""
 
@@ -9820,7 +9236,7 @@ msgstr ""
 msgid "Unregistered jobs"
 msgstr ""
 
-#: grunt/frontend/src/pages/desk/DocTypeForm.vue:181
+#: grunt/frontend/src/pages/desk/DocTypeForm.vue:188
 msgid "Unsaved changes found ({time}). Restore the draft?"
 msgstr ""
 
@@ -9844,8 +9260,8 @@ msgstr ""
 msgid "Updated"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:135
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:136
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:147
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:148
 msgid "Updated the document"
 msgstr ""
 
@@ -9875,14 +9291,14 @@ msgstr ""
 msgid "Used"
 msgstr ""
 
-#: grunt/grunt/auth/doctypes/User/user.py:675
-#: grunt/grunt/auth/doctypes/User/user.py:788
-#: grunt/grunt/auth/doctypes/User/user.py:927
-#: grunt/grunt/auth/doctypes/User/user.py:962
-#: grunt/grunt/auth/doctypes/User/user.py:995
-#: grunt/grunt/auth/doctypes/User/user.py:1006
+#: grunt/grunt/auth/doctypes/User/user.py:687
+#: grunt/grunt/auth/doctypes/User/user.py:800
+#: grunt/grunt/auth/doctypes/User/user.py:939
+#: grunt/grunt/auth/doctypes/User/user.py:974
+#: grunt/grunt/auth/doctypes/User/user.py:1007
 #: grunt/grunt/auth/doctypes/User/user.py:1018
-#: grunt/grunt/auth/doctypes/User/user.py:1031
+#: grunt/grunt/auth/doctypes/User/user.py:1030
+#: grunt/grunt/auth/doctypes/User/user.py:1043
 msgid "User not found"
 msgstr ""
 
@@ -9894,7 +9310,7 @@ msgstr ""
 msgid "User not found."
 msgstr ""
 
-#: grunt/grunt/auth/doctypes/User/user.py:621
+#: grunt/grunt/auth/doctypes/User/user.py:633
 msgid "User with email '%(email)s' already exists"
 msgstr ""
 
@@ -9936,7 +9352,7 @@ msgstr ""
 msgid "Version not found"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:198
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:210
 msgid "Version {n}"
 msgstr ""
 
@@ -9952,7 +9368,7 @@ msgstr ""
 msgid "View report"
 msgstr ""
 
-#: grunt/frontend/src/pages/desk/DocTypeForm.vue:221
+#: grunt/frontend/src/pages/desk/DocTypeForm.vue:228
 msgid "Viewed by:"
 msgstr ""
 
@@ -10002,10 +9418,6 @@ msgstr ""
 msgid "Web Push is disabled in the system settings"
 msgstr ""
 
-#: grunt/grunt/website/block_types.py:64
-msgid "Web form route"
-msgstr ""
-
 #: grunt/grunt/monitoring/health.py:409 grunt/grunt/monitoring/health.py:650
 #: grunt/frontend/src/core/browserHealth.ts:38
 #: grunt/frontend/src/core/browserHealth.ts:287
@@ -10028,10 +9440,6 @@ msgstr ""
 
 #: grunt/frontend/src/components/views/gantt/GanttView.vue:385
 msgid "Weeks"
-msgstr ""
-
-#: grunt/grunt/website/www/login.ssr.html:63
-msgid "Welcome"
 msgstr ""
 
 #: grunt/frontend/src/pages/auth/Login.vue:53
@@ -10067,7 +9475,7 @@ msgid "Workers"
 msgstr ""
 
 #: grunt/frontend/src/plugins/__tests__/i18n.spec.ts:29
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:385
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:397
 msgid "Write a comment... @ to mention"
 msgstr ""
 
@@ -10103,7 +9511,7 @@ msgstr ""
 msgid "You did not allow notifications"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:305
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:308
 msgid "You get notified about changes and comments"
 msgstr ""
 
@@ -10115,10 +9523,6 @@ msgstr ""
 msgid ""
 "You have changes that will be lost if you leave this page. Leave without "
 "saving?"
-msgstr ""
-
-#: grunt/grunt/webform/service.py:161
-msgid "You need to sign in to fill in this form"
 msgstr ""
 
 #: grunt/frontend/src/components/views/list/ListHeader.vue:123
@@ -10164,7 +9568,7 @@ msgid ""
 "authenticator app and enter the 6-digit code."
 msgstr ""
 
-#: grunt/grunt/auth/doctypes/User/user.py:819
+#: grunt/grunt/auth/doctypes/User/user.py:831
 msgid "Your role requires two-factor authentication; sign in again"
 msgstr ""
 
@@ -10202,10 +9606,6 @@ msgstr ""
 
 #: grunt/frontend/src/pages/app/AppHome.vue:94
 msgid "and set it in the «Home page» field of the AppMenu settings."
-msgstr ""
-
-#: grunt/grunt/website/www/signup.ssr.html:109
-msgid "and the"
 msgstr ""
 
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue:84
@@ -10766,7 +10166,7 @@ msgid_plural "{n} results"
 msgstr[0] ""
 msgstr[1] ""
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:161
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:173
 #: grunt/frontend/src/components/views/sidebar/TimelineChanges.vue:54
 #: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:554
 msgid "{n} rows"
@@ -10788,7 +10188,7 @@ msgstr ""
 msgid "{type} report"
 msgstr ""
 
-#: grunt/frontend/src/pages/desk/DocTypeForm.vue:218
+#: grunt/frontend/src/pages/desk/DocTypeForm.vue:225
 msgid "{views} views · {viewers} users"
 msgstr ""
 
@@ -11204,7 +10604,7 @@ msgctxt "help:UserPermission.is_default"
 msgid "Fill this value into the matching Link field of new documents."
 msgstr ""
 
-#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+#: grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
 msgctxt "help:WebsiteMenuItem.route"
 msgid ""
 "Address slug of this item as a site section — an app renders the section "
@@ -13577,11 +12977,6 @@ msgctxt "meta:ViewLog.viewed_by"
 msgid "Viewed by"
 msgstr ""
 
-#: grunt/grunt/site/doctypes/WebForm/WebForm.json
-msgctxt "meta:WebForm.tab_designer"
-msgid "Builder"
-msgstr ""
-
 #: grunt/grunt/webhook/doctypes/WebhookLog/WebhookLog.json
 msgctxt "meta:WebhookLog"
 msgid "Webhook Log"
@@ -13627,7 +13022,7 @@ msgctxt "meta:WebhookLog.webhook"
 msgid "Webhook"
 msgstr ""
 
-#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+#: grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
 msgctxt "meta:WebsiteMenuItem.route"
 msgid "Section route"
 msgstr ""
@@ -13882,12 +13277,6 @@ msgctxt "status:ToDo"
 msgid "Open"
 msgstr ""
 
-#: grunt/grunt/website/templates/_footer.html:31
-#: grunt/grunt/website/templates/_footer.html:55
-msgctxt "website"
-msgid "Links"
-msgstr ""
-
 #: grunt/frontend/src/components/fields/RichText/ui/InsertMenu.vue:119
 msgid "Remove video"
 msgstr ""
@@ -13913,7 +13302,7 @@ msgstr ""
 msgid "Add a comment"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/SidebarImage.vue:163
+#: grunt/frontend/src/components/views/sidebar/SidebarImage.vue:164
 msgid "Add image"
 msgstr ""
 
@@ -13958,23 +13347,23 @@ msgstr ""
 msgid "Comment:"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/SidebarImage.vue:57
+#: grunt/frontend/src/components/views/sidebar/SidebarImage.vue:58
 msgid "Could not upload the image"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/SidebarImage.vue:158
+#: grunt/frontend/src/components/views/sidebar/SidebarImage.vue:159
 msgid "Drop a file or click to choose"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/SidebarImage.vue:142
+#: grunt/frontend/src/components/views/sidebar/SidebarImage.vue:143
 msgid "Drop to replace"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/SidebarImage.vue:107
+#: grunt/frontend/src/components/views/sidebar/SidebarImage.vue:108
 msgid "Image actions"
 msgstr ""
 
-#: grunt/frontend/src/pages/desk/DocTypeForm.vue:137
+#: grunt/frontend/src/pages/desk/DocTypeForm.vue:144
 msgid "Image changed. Save the document to apply it."
 msgstr ""
 
@@ -14010,11 +13399,11 @@ msgstr ""
 msgid "Not shared with anyone"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:202
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:205
 msgid "On website"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/SidebarImage.vue:49
+#: grunt/frontend/src/components/views/sidebar/SidebarImage.vue:50
 msgid "Only images can be used here"
 msgstr ""
 
@@ -14022,7 +13411,7 @@ msgstr ""
 msgid "Open task"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/SidebarImage.vue:129
+#: grunt/frontend/src/components/views/sidebar/SidebarImage.vue:130
 msgid "Remove image"
 msgstr ""
 
@@ -14030,7 +13419,7 @@ msgstr ""
 msgid "Remove tag {tag}"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/SidebarImage.vue:86
+#: grunt/frontend/src/components/views/sidebar/SidebarImage.vue:87
 msgid "Remove the image from the document?"
 msgstr ""
 
@@ -14055,7 +13444,7 @@ msgstr ""
 msgid "Unassign"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/SidebarImage.vue:120
+#: grunt/frontend/src/components/views/sidebar/SidebarImage.vue:121
 msgid "Upload from computer"
 msgstr ""
 
@@ -14136,11 +13525,11 @@ msgctxt "meta:WorkflowTransition.require_comment"
 msgid "Comment required"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:95
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:97
 msgid "created"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:98
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:100
 msgid "modified"
 msgstr ""
 
@@ -14152,8 +13541,8 @@ msgstr ""
 msgid "Add tag…"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:472
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:514
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:484
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:529
 msgid "Delete comment"
 msgstr ""
 
@@ -14161,7 +13550,7 @@ msgstr ""
 msgid "Optional. Without it the task only links to the document."
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:413
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:425
 msgid "to send"
 msgstr ""
 
@@ -14173,7 +13562,7 @@ msgstr ""
 msgid "Show less"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:184
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:196
 msgid "changed {n} field"
 msgid_plural "changed {n} fields"
 msgstr[0] ""
@@ -14184,7 +13573,7 @@ msgstr[1] ""
 msgid "cleared"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:181
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:193
 msgid "commented"
 msgstr ""
 
@@ -14202,11 +13591,11 @@ msgid_plural "{n} more changes"
 msgstr[0] ""
 msgstr[1] ""
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:188
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:200
 msgid "applied «{action}»"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:188
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:200
 msgid "changed the state"
 msgstr ""
 
@@ -14222,9 +13611,9 @@ msgstr ""
 msgid "A home folder can't be moved"
 msgstr ""
 
-#: grunt/grunt/storage/doctypes/File/file.py:56
-#: grunt/grunt/storage/doctypes/File/file.py:95
-#: grunt/grunt/storage/doctypes/File/file.py:154
+#: grunt/grunt/storage/doctypes/File/file.py:60
+#: grunt/grunt/storage/doctypes/File/file.py:98
+#: grunt/grunt/storage/doctypes/File/file.py:157
 #: grunt/grunt/storage/doctypes/FileFolder/file_folder.py:186
 #: grunt/grunt/storage/doctypes/FileFolder/file_folder.py:48
 msgid "Folder “%(folder)s” not found"
@@ -14404,6 +13793,7 @@ msgid "{used} of {quota} used"
 msgstr ""
 
 #: grunt/frontend/src/components/fields/RichText/ui/EditorToolbar.vue:40
+#: grunt/frontend/src/components/fields/RichText/ui/EditorContextMenu.vue:151
 msgid "Alignment"
 msgstr ""
 
@@ -14431,22 +13821,23 @@ msgid "Paragraph"
 msgstr ""
 
 #: grunt/frontend/src/components/fields/RichText/ui/EditorToolbar.vue:29
+#: grunt/frontend/src/components/fields/RichText/ui/EditorContextMenu.vue:142
 msgid "Text style"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/ui/TableBubble.vue:31
+#: grunt/frontend/src/components/fields/RichText/ui/EditorContextMenu.vue:38
 msgid "Blue"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/ui/TableBubble.vue:30
+#: grunt/frontend/src/components/fields/RichText/ui/EditorContextMenu.vue:37
 msgid "Green"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/ui/TableBubble.vue:32
+#: grunt/frontend/src/components/fields/RichText/ui/EditorContextMenu.vue:39
 msgid "Red"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/ui/TableBubble.vue:29
+#: grunt/frontend/src/components/fields/RichText/ui/EditorContextMenu.vue:36
 msgid "Yellow"
 msgstr ""
 
@@ -14462,7 +13853,7 @@ msgstr ""
 msgid "Align top"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/ui/TableBubble.vue:82
+#: grunt/frontend/src/components/fields/RichText/ui/EditorContextMenu.vue:181
 msgid "Cell"
 msgstr ""
 
@@ -14470,7 +13861,7 @@ msgstr ""
 msgid "Delete column"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/ui/TableBubble.vue:28
+#: grunt/frontend/src/components/fields/RichText/ui/EditorContextMenu.vue:35
 msgid "Gray"
 msgstr ""
 
@@ -14494,15 +13885,15 @@ msgstr ""
 msgid "Merge cells"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/ui/TableBubble.vue:100
+#: grunt/frontend/src/components/fields/RichText/ui/EditorContextMenu.vue:195
 msgid "No shading"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/ui/TableBubble.vue:33
+#: grunt/frontend/src/components/fields/RichText/ui/EditorContextMenu.vue:40
 msgid "Purple"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/ui/TableBubble.vue:96
+#: grunt/frontend/src/components/fields/RichText/ui/EditorContextMenu.vue:191
 msgid "Shading"
 msgstr ""
 
@@ -14637,20 +14028,20 @@ msgid "Attach ({n})"
 msgstr ""
 
 #: grunt/frontend/src/components/fields/RichText/editor/useRichEditor.ts:83
-#: grunt/frontend/src/components/fields/RichText/ui/LinkPopover.vue:94
+#: grunt/frontend/src/components/fields/RichText/ui/LinkPopover.vue:99
 msgid "Link to a file…"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:86
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:85
 msgid "Insert link"
 msgstr ""
 
 #: grunt/frontend/src/components/files/FileExplorer.vue:741
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:85
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:84
 msgid "Link to a file"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/ui/LinkPopover.vue:81
+#: grunt/frontend/src/components/fields/RichText/ui/LinkPopover.vue:86
 msgid "Link text"
 msgstr ""
 
@@ -14664,6 +14055,7 @@ msgid "copy"
 msgstr ""
 
 #: grunt/frontend/src/components/files/FileExplorer.vue:706
+#: grunt/frontend/src/components/fields/RichText/ui/EditorContextMenu.vue:110
 msgid "Cut"
 msgstr ""
 
@@ -14672,6 +14064,7 @@ msgid "Delete selected: {n}? Folders go with everything in them."
 msgstr ""
 
 #: grunt/frontend/src/components/files/FileExplorer.vue:715
+#: grunt/frontend/src/components/fields/RichText/ui/EditorContextMenu.vue:116
 msgid "Paste"
 msgstr ""
 
@@ -14679,7 +14072,7 @@ msgstr ""
 msgid "Could not download the file"
 msgstr ""
 
-#: grunt/grunt/storage/doctypes/File/file.py:162
+#: grunt/grunt/storage/doctypes/File/file.py:165
 msgid "Could not download the file: %(error)s"
 msgstr ""
 
@@ -14765,7 +14158,7 @@ msgstr ""
 msgid "Switch camera"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:430
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:442
 #: grunt/frontend/src/components/views/list/ListRowMeta.vue:22
 msgid "Comments"
 msgstr ""
@@ -14807,11 +14200,11 @@ msgctxt "meta:DocLike.user"
 msgid "User"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:436
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:448
 msgid "No changes yet"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:436
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:448
 msgid "No comments yet"
 msgstr ""
 
@@ -15044,11 +14437,6 @@ msgctxt "help:ServerScript.is_standard"
 msgid "Ships with the app as JSON files - edits are saved to the app"
 msgstr ""
 
-#: grunt/grunt/site/doctypes/WebForm/WebForm.json
-msgctxt "help:WebForm.is_standard"
-msgid "Ships with the app as JSON files - edits are saved to the app"
-msgstr ""
-
 #: grunt/grunt/metadata/doctypes/Workflow/Workflow.json
 msgctxt "help:Workflow.is_standard"
 msgid "Ships with the app as JSON files - edits are saved to the app"
@@ -15221,21 +14609,6 @@ msgstr ""
 
 #: grunt/grunt/activity/doctypes/ViewLog/ViewLog.json
 msgctxt "meta:ViewLog.ref_doctype"
-msgid "Document type"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebForm/WebForm.json
-msgctxt "meta:WebForm.app"
-msgid "App"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebForm/WebForm.json
-msgctxt "meta:WebForm.is_standard"
-msgid "Standard"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/WebForm/WebForm.json
-msgctxt "meta:WebForm.ref_doctype"
 msgid "Document type"
 msgstr ""
 
@@ -15764,8 +15137,8 @@ msgid ""
 "Others replied to this comment - only an administrator can delete the thread"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:465
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:531
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:477
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:546
 msgid "Reply"
 msgstr ""
 
@@ -15773,7 +15146,7 @@ msgstr ""
 msgid "The comment you reply to no longer exists"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:525
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:540
 msgid "Write a reply..."
 msgstr ""
 
@@ -16074,7 +15447,7 @@ msgctxt "meta:MilestoneTracker.track_field"
 msgid "Field"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:267
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:270
 msgid "Cancel reminder"
 msgstr ""
 
@@ -16082,18 +15455,18 @@ msgstr ""
 msgid "Choose when to remind"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:136
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:138
 msgid "I will remind you {when}"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:260
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:263
 msgid "My reminders"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:125
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:126
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:325
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:329
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:127
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:128
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:328
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:332
 msgid "Remind me"
 msgstr ""
 
@@ -16113,7 +15486,7 @@ msgstr ""
 msgid "The reminder time is in the past"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:128
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:130
 msgid "When"
 msgstr ""
 
@@ -16156,11 +15529,11 @@ msgctxt "meta:Reminder.remind_at"
 msgid "Remind at"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:131
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:133
 msgid "In an hour"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:131
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:133
 msgid "Tomorrow at 9:00"
 msgstr ""
 
@@ -16230,6 +15603,789 @@ msgstr ""
 msgctxt "meta:PageWidget.value_label"
 msgid "Value label"
 msgstr ""
+
+#: grunt/frontend/src/components/views/explorer/index.ts:7
+msgid "Explorer"
+msgstr ""
+
+#: grunt/grunt/monitoring/doctypes/PerfTrend/perf_trend.py:129
+msgid "Performance trend is read-only"
+msgstr ""
+
+#: grunt/grunt/monitoring/doctypes/PerfTrend/perf_trend.py:160
+msgid "Performance trend “%(name)s” not found"
+msgstr ""
+
+#: grunt/frontend/src/components/fields/RichText/ui/EditorContextMenu.vue:98
+msgid "The browser did not allow reading the clipboard. Use Ctrl+V."
+msgstr ""
+
+#: grunt/grunt/monitoring/doctypes/PerfStat/PerfStat.json
+msgctxt "help:PerfStat"
+msgid ""
+"Hourly timing aggregates of HTTP routes, RPC methods, document saves, "
+"background tasks and profiled spans. Written by every server process once a "
+"minute; see Performance Trend to compare periods. Turn off in System "
+"Settings → Logs & maintenance."
+msgstr ""
+
+#: grunt/grunt/monitoring/doctypes/PerfTrend/PerfTrend.json
+msgctxt "help:PerfTrend"
+msgid ""
+"Compares the last N days of Performance Stat with the N days before: which "
+"endpoints got slower or faster. A change is shown only when both periods "
+"have at least 10 calls."
+msgstr ""
+
+#: grunt/grunt/monitoring/doctypes/PerfTrend/PerfTrend.json
+msgctxt "help:PerfTrend.period"
+msgid "Days in each compared period."
+msgstr ""
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgctxt "help:SystemSettings.perf_monitoring_enabled"
+msgid ""
+"Hourly timings of requests, RPC methods, document saves and background tasks"
+" go to Performance Stat (compare periods in Performance Trend). Kept as long"
+" as other logs."
+msgstr ""
+
+#: grunt/grunt/monitoring/doctypes/PerfStat/PerfStat.json
+msgctxt "meta:PerfStat"
+msgid "Performance Stat"
+msgstr ""
+
+#: grunt/grunt/monitoring/doctypes/PerfStat/PerfStat.json
+msgctxt "meta:PerfStat.avg_ms"
+msgid "Average, ms"
+msgstr ""
+
+#: grunt/grunt/monitoring/doctypes/PerfStat/PerfStat.json
+msgctxt "meta:PerfStat.avg_sql"
+msgid "SQL per call"
+msgstr ""
+
+#: grunt/grunt/monitoring/doctypes/PerfStat/PerfStat.json
+msgctxt "meta:PerfStat.calls"
+msgid "Calls"
+msgstr ""
+
+#: grunt/grunt/monitoring/doctypes/PerfStat/PerfStat.json
+msgctxt "meta:PerfStat.endpoint"
+msgid "Endpoint"
+msgstr ""
+
+#: grunt/grunt/monitoring/doctypes/PerfStat/PerfStat.json
+msgctxt "meta:PerfStat.errors"
+msgid "Errors"
+msgstr ""
+
+#: grunt/grunt/monitoring/doctypes/PerfStat/PerfStat.json
+msgctxt "meta:PerfStat.h_0"
+msgid "≤ 5 ms"
+msgstr ""
+
+#: grunt/grunt/monitoring/doctypes/PerfStat/PerfStat.json
+msgctxt "meta:PerfStat.h_1"
+msgid "≤ 10 ms"
+msgstr ""
+
+#: grunt/grunt/monitoring/doctypes/PerfStat/PerfStat.json
+msgctxt "meta:PerfStat.h_10"
+msgid "≤ 10 s"
+msgstr ""
+
+#: grunt/grunt/monitoring/doctypes/PerfStat/PerfStat.json
+msgctxt "meta:PerfStat.h_11"
+msgid "> 10 s"
+msgstr ""
+
+#: grunt/grunt/monitoring/doctypes/PerfStat/PerfStat.json
+msgctxt "meta:PerfStat.h_2"
+msgid "≤ 25 ms"
+msgstr ""
+
+#: grunt/grunt/monitoring/doctypes/PerfStat/PerfStat.json
+msgctxt "meta:PerfStat.h_3"
+msgid "≤ 50 ms"
+msgstr ""
+
+#: grunt/grunt/monitoring/doctypes/PerfStat/PerfStat.json
+msgctxt "meta:PerfStat.h_4"
+msgid "≤ 100 ms"
+msgstr ""
+
+#: grunt/grunt/monitoring/doctypes/PerfStat/PerfStat.json
+msgctxt "meta:PerfStat.h_5"
+msgid "≤ 250 ms"
+msgstr ""
+
+#: grunt/grunt/monitoring/doctypes/PerfStat/PerfStat.json
+msgctxt "meta:PerfStat.h_6"
+msgid "≤ 500 ms"
+msgstr ""
+
+#: grunt/grunt/monitoring/doctypes/PerfStat/PerfStat.json
+msgctxt "meta:PerfStat.h_7"
+msgid "≤ 1 s"
+msgstr ""
+
+#: grunt/grunt/monitoring/doctypes/PerfStat/PerfStat.json
+msgctxt "meta:PerfStat.h_8"
+msgid "≤ 2.5 s"
+msgstr ""
+
+#: grunt/grunt/monitoring/doctypes/PerfStat/PerfStat.json
+msgctxt "meta:PerfStat.h_9"
+msgid "≤ 5 s"
+msgstr ""
+
+#: grunt/grunt/monitoring/doctypes/PerfStat/PerfStat.json
+msgctxt "meta:PerfStat.kind"
+msgid "Kind"
+msgstr ""
+
+#: grunt/grunt/monitoring/doctypes/PerfStat/PerfStat.json
+msgctxt "meta:PerfStat.max_ms"
+msgid "Max, ms"
+msgstr ""
+
+#: grunt/grunt/monitoring/doctypes/PerfStat/PerfStat.json
+msgctxt "meta:PerfStat.p50_ms"
+msgid "Median, ms"
+msgstr ""
+
+#: grunt/grunt/monitoring/doctypes/PerfStat/PerfStat.json
+msgctxt "meta:PerfStat.p95_ms"
+msgid "p95, ms"
+msgstr ""
+
+#: grunt/grunt/monitoring/doctypes/PerfStat/PerfStat.json
+msgctxt "meta:PerfStat.period_start"
+msgid "Hour"
+msgstr ""
+
+#: grunt/grunt/monitoring/doctypes/PerfStat/PerfStat.json
+msgctxt "meta:PerfStat.ref_doctype"
+msgid "DocType"
+msgstr ""
+
+#: grunt/grunt/monitoring/doctypes/PerfStat/PerfStat.json
+msgctxt "meta:PerfStat.sec_hist"
+msgid "Latency distribution (calls)"
+msgstr ""
+
+#: grunt/grunt/monitoring/doctypes/PerfStat/PerfStat.json
+msgctxt "meta:PerfStat.sec_timing"
+msgid "Timing"
+msgstr ""
+
+#: grunt/grunt/monitoring/doctypes/PerfStat/PerfStat.json
+msgctxt "meta:PerfStat.sql_calls"
+msgid "SQL queries"
+msgstr ""
+
+#: grunt/grunt/monitoring/doctypes/PerfStat/PerfStat.json
+msgctxt "meta:PerfStat.sql_ms"
+msgid "SQL time, ms"
+msgstr ""
+
+#: grunt/grunt/monitoring/doctypes/PerfStat/PerfStat.json
+msgctxt "meta:PerfStat.total_ms"
+msgid "Total, ms"
+msgstr ""
+
+#: grunt/grunt/monitoring/doctypes/PerfTrend/PerfTrend.json
+msgctxt "meta:PerfTrend"
+msgid "Performance Trend"
+msgstr ""
+
+#: grunt/grunt/monitoring/doctypes/PerfTrend/PerfTrend.json
+msgctxt "meta:PerfTrend.avg_change"
+msgid "Average change, %"
+msgstr ""
+
+#: grunt/grunt/monitoring/doctypes/PerfTrend/PerfTrend.json
+msgctxt "meta:PerfTrend.avg_ms"
+msgid "Average, ms"
+msgstr ""
+
+#: grunt/grunt/monitoring/doctypes/PerfTrend/PerfTrend.json
+msgctxt "meta:PerfTrend.avg_sql"
+msgid "SQL per call"
+msgstr ""
+
+#: grunt/grunt/monitoring/doctypes/PerfTrend/PerfTrend.json
+msgctxt "meta:PerfTrend.calls"
+msgid "Calls"
+msgstr ""
+
+#: grunt/grunt/monitoring/doctypes/PerfTrend/PerfTrend.json
+msgctxt "meta:PerfTrend.endpoint"
+msgid "Endpoint"
+msgstr ""
+
+#: grunt/grunt/monitoring/doctypes/PerfTrend/PerfTrend.json
+msgctxt "meta:PerfTrend.errors"
+msgid "Errors"
+msgstr ""
+
+#: grunt/grunt/monitoring/doctypes/PerfTrend/PerfTrend.json
+msgctxt "meta:PerfTrend.kind"
+msgid "Kind"
+msgstr ""
+
+#: grunt/grunt/monitoring/doctypes/PerfTrend/PerfTrend.json
+msgctxt "meta:PerfTrend.p95_change"
+msgid "p95 change, %"
+msgstr ""
+
+#: grunt/grunt/monitoring/doctypes/PerfTrend/PerfTrend.json
+msgctxt "meta:PerfTrend.p95_ms"
+msgid "p95, ms"
+msgstr ""
+
+#: grunt/grunt/monitoring/doctypes/PerfTrend/PerfTrend.json
+msgctxt "meta:PerfTrend.period"
+msgid "Period"
+msgstr ""
+
+#: grunt/grunt/monitoring/doctypes/PerfTrend/PerfTrend.json
+msgctxt "meta:PerfTrend.prev_avg_ms"
+msgid "Average, ms"
+msgstr ""
+
+#: grunt/grunt/monitoring/doctypes/PerfTrend/PerfTrend.json
+msgctxt "meta:PerfTrend.prev_avg_sql"
+msgid "SQL per call"
+msgstr ""
+
+#: grunt/grunt/monitoring/doctypes/PerfTrend/PerfTrend.json
+msgctxt "meta:PerfTrend.prev_calls"
+msgid "Calls"
+msgstr ""
+
+#: grunt/grunt/monitoring/doctypes/PerfTrend/PerfTrend.json
+msgctxt "meta:PerfTrend.prev_p95_ms"
+msgid "p95, ms"
+msgstr ""
+
+#: grunt/grunt/monitoring/doctypes/PerfTrend/PerfTrend.json
+msgctxt "meta:PerfTrend.ref_doctype"
+msgid "DocType"
+msgstr ""
+
+#: grunt/grunt/monitoring/doctypes/PerfTrend/PerfTrend.json
+msgctxt "meta:PerfTrend.sec_change"
+msgid "Change"
+msgstr ""
+
+#: grunt/grunt/monitoring/doctypes/PerfTrend/PerfTrend.json
+msgctxt "meta:PerfTrend.sec_current"
+msgid "Current period"
+msgstr ""
+
+#: grunt/grunt/monitoring/doctypes/PerfTrend/PerfTrend.json
+msgctxt "meta:PerfTrend.sec_previous"
+msgid "Previous period"
+msgstr ""
+
+#: grunt/grunt/monitoring/doctypes/PerfTrend/PerfTrend.json
+msgctxt "meta:PerfTrend.sql_change"
+msgid "SQL per call change"
+msgstr ""
+
+#: grunt/grunt/monitoring/doctypes/PerfTrend/PerfTrend.json
+msgctxt "meta:PerfTrend.total_ms"
+msgid "Total, ms"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgctxt "meta:SystemSettings.perf_monitoring_enabled"
+msgid "Record performance stats"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgctxt "select:DocType.default_view"
+msgid "explorer"
+msgstr ""
+
+#~ msgctxt "help:WebsiteSettings.footer_items"
+#~ msgid "The 'Group' field sets the column heading in the footer"
+#~ msgstr ""
+
+#~ msgctxt "help:WebsiteSettings.home_route"
+#~ msgid ""
+#~ "Route of the published WebPage used as the home page (a file-based "
+#~ "www/index.html always takes priority)"
+#~ msgstr ""
+
+#~ msgctxt "meta:WebForm"
+#~ msgid "Web form"
+#~ msgstr ""
+
+#~ msgctxt "meta:WebForm.allow_edit"
+#~ msgid "Allow editing"
+#~ msgstr ""
+
+#~ msgctxt "meta:WebForm.introduction"
+#~ msgid "Introduction"
+#~ msgstr ""
+
+#~ msgctxt "meta:WebForm.is_published"
+#~ msgid "Published"
+#~ msgstr ""
+
+#~ msgctxt "meta:WebForm.login_required"
+#~ msgid "Login required"
+#~ msgstr ""
+
+#~ msgctxt "meta:WebForm.max_submissions"
+#~ msgid "Max responses"
+#~ msgstr ""
+
+#~ msgctxt "meta:WebForm.route"
+#~ msgid "URL route"
+#~ msgstr ""
+
+#~ msgctxt "meta:WebForm.submit_label"
+#~ msgid "Button text"
+#~ msgstr ""
+
+#~ msgctxt "meta:WebForm.success_message"
+#~ msgid "Success message"
+#~ msgstr ""
+
+#~ msgctxt "meta:WebForm.success_url"
+#~ msgid "URL after submit"
+#~ msgstr ""
+
+#~ msgctxt "meta:WebForm.title"
+#~ msgid "Title"
+#~ msgstr ""
+
+#~ msgctxt "meta:WebPage"
+#~ msgid "Web page"
+#~ msgstr ""
+
+#~ msgctxt "meta:WebPage.blocks"
+#~ msgid "Content blocks"
+#~ msgstr ""
+
+#~ msgctxt "meta:WebPage.content"
+#~ msgid "Content"
+#~ msgstr ""
+
+#~ msgctxt "meta:WebPage.menu_title"
+#~ msgid "Menu label"
+#~ msgstr ""
+
+#~ msgctxt "meta:WebPage.meta_description"
+#~ msgid "Meta description (SEO)"
+#~ msgstr ""
+
+#~ msgctxt "meta:WebPage.og_image"
+#~ msgid "Social image (OG)"
+#~ msgstr ""
+
+#~ msgctxt "meta:WebPage.published"
+#~ msgid "Published"
+#~ msgstr ""
+
+#~ msgctxt "meta:WebPage.route"
+#~ msgid "URL route"
+#~ msgstr ""
+
+#~ msgctxt "meta:WebPage.show_in_navbar"
+#~ msgid "Show in navigation"
+#~ msgstr ""
+
+#~ msgctxt "meta:WebPage.title"
+#~ msgid "Title"
+#~ msgstr ""
+
+#~ msgctxt "meta:WebPageBlock"
+#~ msgid "Page content block"
+#~ msgstr ""
+
+#~ msgctxt "meta:WebPageBlock.block_type"
+#~ msgid "Block type"
+#~ msgstr ""
+
+#~ msgctxt "meta:WebPageBlock.sequence"
+#~ msgid "Order"
+#~ msgstr ""
+
+#~ msgctxt "meta:WebPageBlock.settings"
+#~ msgid "Block settings"
+#~ msgstr ""
+
+#~ msgctxt "meta:WebPageBlock.title"
+#~ msgid "Title"
+#~ msgstr ""
+
+#~ msgctxt "meta:WebsiteNavItem.group"
+#~ msgid "Group (for the footer)"
+#~ msgstr ""
+
+#~ msgctxt "meta:WebsiteNavItem.is_external"
+#~ msgid "External link"
+#~ msgstr ""
+
+#~ msgctxt "meta:WebsiteNavItem.label"
+#~ msgid "Name"
+#~ msgstr ""
+
+#~ msgctxt "meta:WebsiteNavItem.sequence"
+#~ msgid "Order"
+#~ msgstr ""
+
+#~ msgctxt "meta:WebsiteNavItem.url"
+#~ msgid "URL"
+#~ msgstr ""
+
+#~ msgctxt "meta:WebsiteSettings"
+#~ msgid "Site settings"
+#~ msgstr ""
+
+#~ msgctxt "meta:WebsiteSettings.brand_logo"
+#~ msgid "Logo"
+#~ msgstr ""
+
+#~ msgctxt "meta:WebsiteSettings.copyright_text"
+#~ msgid "Copyright text"
+#~ msgstr ""
+
+#~ msgctxt "meta:WebsiteSettings.default_meta_description"
+#~ msgid "Default meta description"
+#~ msgstr ""
+
+#~ msgctxt "meta:WebsiteSettings.default_og_image"
+#~ msgid "Default social image"
+#~ msgstr ""
+
+#~ msgctxt "meta:WebsiteSettings.footer_items"
+#~ msgid "Footer links"
+#~ msgstr ""
+
+#~ msgctxt "meta:WebsiteSettings.home_route"
+#~ msgid "Home page route"
+#~ msgstr ""
+
+#~ msgctxt "meta:WebsiteSettings.sec_brand"
+#~ msgid "Branding"
+#~ msgstr ""
+
+#~ msgctxt "meta:WebsiteSettings.sec_footer"
+#~ msgid "Site footer"
+#~ msgstr ""
+
+#~ msgctxt "meta:WebsiteSettings.sec_seo"
+#~ msgid "Default SEO"
+#~ msgstr ""
+
+#~ msgctxt "meta:WebsiteSettings.site_name"
+#~ msgid "Site name"
+#~ msgstr ""
+
+#~ msgctxt "help:WebForm.captcha_enabled"
+#~ msgid ""
+#~ "Requires a captcha_provider to be configured for the site — otherwise "
+#~ "ignored"
+#~ msgstr ""
+
+#~ msgctxt "help:WebForm.confirmation_template"
+#~ msgid ""
+#~ "Sent to the submitter's own email field (if any) and to every address in "
+#~ "Notify emails below"
+#~ msgstr ""
+
+#~ msgctxt "help:WebForm.notify_emails"
+#~ msgid ""
+#~ "One address per line or comma-separated — staff to alert on every submission"
+#~ msgstr ""
+
+#~ msgctxt "help:WebFormField.collapsible"
+#~ msgid "Section rows only"
+#~ msgstr ""
+
+#~ msgctxt "help:WebFormField.fieldtype"
+#~ msgid ""
+#~ "Empty for an ordinary field (its real type is always resolved live from the "
+#~ "target DocType); set only to mark a Tab/Section/Column layout row"
+#~ msgstr ""
+
+#~ msgctxt "help:WebFormField.label"
+#~ msgid "Required for Tab/Section rows; optional override for ordinary fields"
+#~ msgstr ""
+
+#~ msgctxt "help:WebFormField.required"
+#~ msgid "OR'd with the target field's own required flag"
+#~ msgstr ""
+
+#~ msgctxt "help:WebsiteFooterColumn.title"
+#~ msgid ""
+#~ "Must match the 'Group' field on the footer links this column should show"
+#~ msgstr ""
+
+#~ msgctxt "help:WebsiteNavItem.group"
+#~ msgid ""
+#~ "Used only in the site footer to group links under a heading — must match a "
+#~ "Site footer column's title"
+#~ msgstr ""
+
+#~ msgctxt "help:WebsiteNavItem.highlight"
+#~ msgid ""
+#~ "Render this item as a call-to-action (e.g. a button) instead of a plain link"
+#~ msgstr ""
+
+#~ msgctxt "help:WebsiteSettings.footer_columns"
+#~ msgid ""
+#~ "Controls which footer columns show and in what order. Leave empty to auto-"
+#~ "group footer links by their 'Group' field instead."
+#~ msgstr ""
+
+#~ msgctxt "meta:WebForm.captcha_enabled"
+#~ msgid "Require CAPTCHA"
+#~ msgstr ""
+
+#~ msgctxt "meta:WebForm.confirmation_template"
+#~ msgid "Confirmation email template"
+#~ msgstr ""
+
+#~ msgctxt "meta:WebForm.fields"
+#~ msgid "Fields"
+#~ msgstr ""
+
+#~ msgctxt "meta:WebForm.notify_emails"
+#~ msgid "Notify emails"
+#~ msgstr ""
+
+#~ msgctxt "meta:WebForm.sec_antispam"
+#~ msgid "Anti-spam"
+#~ msgstr ""
+
+#~ msgctxt "meta:WebForm.sec_notifications"
+#~ msgid "Notifications"
+#~ msgstr ""
+
+#~ msgctxt "meta:WebFormField"
+#~ msgid "Web form field"
+#~ msgstr ""
+
+#~ msgctxt "meta:WebFormField.collapsible"
+#~ msgid "Collapsible"
+#~ msgstr ""
+
+#~ msgctxt "meta:WebFormField.description"
+#~ msgid "Help text override"
+#~ msgstr ""
+
+#~ msgctxt "meta:WebFormField.fieldname"
+#~ msgid "Fieldname"
+#~ msgstr ""
+
+#~ msgctxt "meta:WebFormField.fieldtype"
+#~ msgid "Field type"
+#~ msgstr ""
+
+#~ msgctxt "meta:WebFormField.hidden"
+#~ msgid "Hidden"
+#~ msgstr ""
+
+#~ msgctxt "meta:WebFormField.label"
+#~ msgid "Label override"
+#~ msgstr ""
+
+#~ msgctxt "meta:WebFormField.required"
+#~ msgid "Required on this form"
+#~ msgstr ""
+
+#~ msgctxt "meta:WebsiteFooterColumn"
+#~ msgid "Site footer column"
+#~ msgstr ""
+
+#~ msgctxt "meta:WebsiteFooterColumn.enabled"
+#~ msgid "Enabled"
+#~ msgstr ""
+
+#~ msgctxt "meta:WebsiteFooterColumn.title"
+#~ msgid "Column heading"
+#~ msgstr ""
+
+#~ msgctxt "meta:WebsiteNavItem.highlight"
+#~ msgid "Highlight"
+#~ msgstr ""
+
+#~ msgctxt "meta:WebsiteNavItem.icon"
+#~ msgid "Icon"
+#~ msgstr ""
+
+#~ msgctxt "meta:WebsiteSettings.footer_columns"
+#~ msgid "Footer columns"
+#~ msgstr ""
+
+#~ msgctxt "meta:WebsiteNavItem"
+#~ msgid "Site footer link"
+#~ msgstr ""
+
+#~ msgid "Text"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "%(site)s is a powerful framework for building modern business applications "
+#~ "with a Ukrainian soul and global standards."
+#~ msgstr ""
+
+#~ msgid "A menu item can't be its own parent"
+#~ msgstr ""
+
+#~ msgid "About the platform"
+#~ msgstr ""
+
+#~ msgid "Button text"
+#~ msgstr ""
+
+#~ msgid "Could not verify that you are not a robot"
+#~ msgstr ""
+
+#~ msgid "Could not verify that you are not a robot. Please try again."
+#~ msgstr ""
+
+#~ msgid "Description 1"
+#~ msgstr ""
+
+#~ msgid "Description 2"
+#~ msgstr ""
+
+#~ msgid "Description 3"
+#~ msgstr ""
+
+#~ msgid "Documentation"
+#~ msgstr ""
+
+#~ msgid "First name"
+#~ msgstr ""
+
+#~ msgid "Form not found"
+#~ msgstr ""
+
+#~ msgid "Grunt platform"
+#~ msgstr ""
+
+#~ msgid "HTML code"
+#~ msgstr ""
+
+#~ msgid "I agree to the"
+#~ msgstr ""
+
+#~ msgid "Icon 1 (emoji)"
+#~ msgstr ""
+
+#~ msgid "Icon 2 (emoji)"
+#~ msgstr ""
+
+#~ msgid "Icon 3 (emoji)"
+#~ msgstr ""
+
+#~ msgid "John"
+#~ msgstr ""
+
+#~ msgid "Join our community today"
+#~ msgstr ""
+
+#~ msgid "Last name"
+#~ msgstr ""
+
+#~ msgid "Leave this field empty"
+#~ msgstr ""
+
+#~ msgid "Privacy"
+#~ msgstr ""
+
+#~ msgid "Privacy policy"
+#~ msgstr ""
+
+#~ msgid "Remember me"
+#~ msgstr ""
+
+#~ msgid "Sign in to your account to continue"
+#~ msgstr ""
+
+#~ msgid "Sign-in required"
+#~ msgstr ""
+
+#~ msgid "Smith"
+#~ msgstr ""
+
+#~ msgid "Submission error"
+#~ msgstr ""
+
+#~ msgid "Submit"
+#~ msgstr ""
+
+#~ msgid "Terms of use"
+#~ msgstr ""
+
+#~ msgid "Thank you!"
+#~ msgstr ""
+
+#~ msgid "Thank you! Your submission has been received."
+#~ msgstr ""
+
+#~ msgid "The form has been submitted successfully."
+#~ msgstr ""
+
+#~ msgid "The maximum number of responses has been reached"
+#~ msgstr ""
+
+#~ msgid "This form is available only to signed-in users."
+#~ msgstr ""
+
+#~ msgid "Title 1"
+#~ msgstr ""
+
+#~ msgid "Title 2"
+#~ msgstr ""
+
+#~ msgid "Title 3"
+#~ msgstr ""
+
+#~ msgid "Web form route"
+#~ msgstr ""
+
+#~ msgid "Welcome"
+#~ msgstr ""
+
+#~ msgid "You need to sign in to fill in this form"
+#~ msgstr ""
+
+#~ msgid "and the"
+#~ msgstr ""
+
+#~ msgctxt "meta:WebForm.tab_designer"
+#~ msgid "Builder"
+#~ msgstr ""
+
+#~ msgctxt "website"
+#~ msgid "Links"
+#~ msgstr ""
+
+#~ msgctxt "help:WebForm.is_standard"
+#~ msgid "Ships with the app as JSON files - edits are saved to the app"
+#~ msgstr ""
+
+#~ msgctxt "meta:WebForm.app"
+#~ msgid "App"
+#~ msgstr ""
+
+#~ msgctxt "meta:WebForm.is_standard"
+#~ msgid "Standard"
+#~ msgstr ""
+
+#~ msgctxt "meta:WebForm.ref_doctype"
+#~ msgid "Document type"
+#~ msgstr ""
 
 #~ msgctxt "help:DocTypeCalendarSource.doctype"
 #~ msgid "The document type added to the calendar as a separate source"
@@ -20171,7 +20327,3 @@ msgstr ""
 
 #~ msgid "Вебхук"
 #~ msgstr "Webhook"
-
-#: grunt/frontend/src/components/views/explorer/index.ts:7
-msgid "Explorer"
-msgstr ""

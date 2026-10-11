@@ -7,14 +7,15 @@ Kept out of :mod:`grunt.main` so the entry point stays a thin assembly of
 2. bring every site up (search index table, DocType *names* only - full
    definitions and schema sync are `grunt migrate`'s job, not boot's)
 3. load external apps installed on at least one site
-4. the task broker and the scheduler
+4. the task broker, the scheduler and the perf-stats flush loop
 
 Steps 1–3 are :func:`boot`, which the task worker runs too.
 """
 
 from __future__ import annotations
 
-from contextlib import asynccontextmanager
+import asyncio
+from contextlib import asynccontextmanager, suppress
 from typing import TYPE_CHECKING
 
 import grunt
@@ -24,6 +25,7 @@ from grunt.config import settings
 from grunt.i18n import translation_service
 from grunt.logging_config import configure_logging
 from grunt.metadata.registry import doctype_registry
+from grunt.monitoring import perf
 from grunt.site.manager import current_site, site_manager
 from grunt.site.settings import get_setting
 from grunt.startup import load_validators
@@ -136,10 +138,14 @@ async def lifespan(app: FastAPI):
     await boot(app)
     await broker.startup()
     await start_scheduler()
+    perf_flush = asyncio.create_task(perf.run_flush_loop())
 
     yield
 
     # Shutdown
+    perf_flush.cancel()
+    with suppress(asyncio.CancelledError):
+        await perf_flush
     await stop_scheduler()
     await broker.shutdown()
 

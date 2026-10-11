@@ -33,6 +33,7 @@ from grunt.document.registry import document_registry
 from grunt.document.serde import to_json, with_doctype
 from grunt.errors import not_found
 from grunt.local import require_engine, require_user
+from grunt.monitoring import perf
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
@@ -279,7 +280,8 @@ class BaseDocument(DocumentLifecycleMixin):
     async def insert(self, *, ignore_required: bool = False) -> dict[str, Any]:
         """Run the full create pipeline on this document and return the saved row."""
         original = self.data
-        result = await self._insert(ignore_required=ignore_required)
+        with perf.measure("Document", "insert", self.doctype):
+            result = await self._insert(ignore_required=ignore_required)
         self._keep(original, result)
         return result
 
@@ -288,7 +290,8 @@ class BaseDocument(DocumentLifecycleMixin):
         if self.id is None:
             raise ValueError(f"Cannot save {self.doctype}: document has no name")
         original = self.data
-        result = await self._update(self.id, dict(original), ignore_required=ignore_required)
+        with perf.measure("Document", "save", self.doctype):
+            result = await self._update(self.id, dict(original), ignore_required=ignore_required)
         self._keep(original, result)
         return result
 
@@ -302,7 +305,8 @@ class BaseDocument(DocumentLifecycleMixin):
             raise ValueError(f"Cannot delete {self.doctype}: document has no name")
         original = self.data
         try:
-            await self._delete(replace_with=replace_with)
+            with perf.measure("Document", "delete", self.doctype):
+                await self._delete(replace_with=replace_with)
         finally:
             self.data = original
 

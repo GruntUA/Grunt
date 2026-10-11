@@ -268,6 +268,10 @@ class SiteManager:
                     # IMMEDIATE for work that will write - see grunt/db/write_intent.py.
                     conn.exec_driver_sql(begin_statement())
 
+            from grunt.monitoring.perf import attach_sql_counter  # noqa: PLC0415
+
+            attach_sql_counter(engine)
+
             if settings.debug:
                 from grunt.db.profiler import attach_query_profiler  # noqa: PLC0415
 

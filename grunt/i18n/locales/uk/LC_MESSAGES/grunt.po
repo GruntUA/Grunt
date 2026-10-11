@@ -50,7 +50,7 @@ msgstr "Немає даних"
 #: grunt/grunt/website/doc_layout.py:49 grunt/grunt/api/v1/docs/utils.py:61
 #: grunt/frontend/src/components/pwa/PWAInstallPrompt.vue:108
 #: grunt/frontend/src/components/views/QuickFilterBar.vue:47
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:155
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:167
 #: grunt/frontend/src/components/views/sidebar/TimelineChanges.vue:49
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:233
 #: grunt/frontend/src/components/views/list/ListGroupedView.vue:49
@@ -62,7 +62,7 @@ msgstr "Так"
 
 #: grunt/grunt/website/doc_layout.py:49 grunt/grunt/api/v1/docs/utils.py:61
 #: grunt/frontend/src/components/views/QuickFilterBar.vue:47
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:155
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:167
 #: grunt/frontend/src/components/views/sidebar/TimelineChanges.vue:49
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:233
 #: grunt/frontend/src/components/views/list/ListGroupedView.vue:49
@@ -241,7 +241,7 @@ msgstr "Прикріпити зображення…"
 msgid "Replace file"
 msgstr "Замінити файл"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarImage.vue:116
+#: grunt/frontend/src/components/views/sidebar/SidebarImage.vue:117
 #: grunt/frontend/src/components/fields/Image/Image.vue:34
 #: grunt/frontend/src/components/fields/RichText/ui/ImageBubble.vue:112
 msgid "Replace image"
@@ -373,21 +373,19 @@ msgstr "Блок коду"
 msgid "Horizontal rule"
 msgstr "Горизонтальна лінія"
 
-#: grunt/frontend/src/components/fields/RichText/ui/LinkPopover.vue:80
+#: grunt/frontend/src/components/fields/RichText/ui/LinkPopover.vue:85
 msgid "Link"
 msgstr "Посилання"
 
-#: grunt/grunt/website/block_types.py:22
-#: grunt/frontend/src/components/fields/RichText/ui/LinkPopover.vue:84
+#: grunt/frontend/src/components/fields/RichText/ui/LinkPopover.vue:89
 msgid "Link URL"
 msgstr "URL посилання"
 
 #: grunt/frontend/src/components/fields/RichText/editor/commands.ts:92
-#: grunt/frontend/src/components/fields/RichText/ui/LinkPopover.vue:88
+#: grunt/frontend/src/components/fields/RichText/ui/LinkPopover.vue:93
 msgid "Remove link"
 msgstr "Прибрати посилання"
 
-#: grunt/grunt/website/block_types.py:52
 #: grunt/frontend/src/components/fields/RichText/editor/useRichEditor.ts:75
 #: grunt/frontend/src/components/fields/RichText/ui/InsertMenu.vue:87
 #: grunt/frontend/src/components/fields/RichText/ui/InsertMenu.vue:108
@@ -423,6 +421,7 @@ msgid "Vertical text, bottom to top"
 msgstr "Вертикальний текст, знизу догори"
 
 #: grunt/frontend/src/components/fields/RichText/editor/useRichEditor.ts:73
+#: grunt/frontend/src/components/fields/RichText/ui/EditorContextMenu.vue:163
 #: grunt/frontend/src/components/fields/RichText/ui/InsertMenu.vue:93
 #: grunt/frontend/src/pages/reports/ReportView.vue:195
 #: grunt/frontend/src/pages/studio/builder/DesignerTab.vue:67
@@ -446,7 +445,7 @@ msgstr "Імпортовано з попередженнями"
 msgid "Could not import document"
 msgstr "Не вдалося імпортувати документ"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:76
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:75
 msgid "{words} w · {chars} ch"
 msgstr "{words} сл. · {chars} симв."
 
@@ -2018,225 +2017,6 @@ msgctxt "meta:SystemSettings.is_setup_complete"
 msgid "System configured"
 msgstr "Систему налаштовано"
 
-#: grunt/grunt/site/doctypes/WebForm/WebForm.json
-msgctxt "meta:WebForm"
-msgid "Web form"
-msgstr "Веб-форма"
-
-#: grunt/grunt/site/doctypes/WebForm/WebForm.json
-msgctxt "meta:WebForm.title"
-msgid "Title"
-msgstr "Заголовок"
-
-#: grunt/grunt/site/doctypes/WebForm/WebForm.json
-msgctxt "meta:WebForm.route"
-msgid "URL route"
-msgstr "URL маршрут"
-
-#: grunt/grunt/site/doctypes/WebForm/WebForm.json
-msgctxt "meta:WebForm.introduction"
-msgid "Introduction"
-msgstr "Вступ"
-
-#: grunt/grunt/site/doctypes/WebForm/WebForm.json
-msgctxt "meta:WebForm.success_message"
-msgid "Success message"
-msgstr "Повідомлення успіху"
-
-#: grunt/grunt/site/doctypes/WebForm/WebForm.json
-msgctxt "meta:WebForm.success_url"
-msgid "URL after submit"
-msgstr "URL після відправки"
-
-#: grunt/grunt/site/doctypes/WebForm/WebForm.json
-msgctxt "meta:WebForm.login_required"
-msgid "Login required"
-msgstr "Потрібна авторизація"
-
-#: grunt/grunt/site/doctypes/WebForm/WebForm.json
-msgctxt "meta:WebForm.is_published"
-msgid "Published"
-msgstr "Опубліковано"
-
-#: grunt/grunt/site/doctypes/WebForm/WebForm.json
-msgctxt "meta:WebForm.max_submissions"
-msgid "Max responses"
-msgstr "Макс. відповідей"
-
-#: grunt/grunt/site/doctypes/WebForm/WebForm.json
-msgctxt "meta:WebForm.submit_label"
-msgid "Button text"
-msgstr "Текст кнопки"
-
-#: grunt/grunt/site/doctypes/WebForm/WebForm.json
-msgctxt "meta:WebForm.allow_edit"
-msgid "Allow editing"
-msgstr "Дозволити редагування"
-
-#: grunt/grunt/site/doctypes/WebPage/WebPage.json
-msgctxt "meta:WebPage"
-msgid "Web page"
-msgstr "Веб-сторінка"
-
-#: grunt/grunt/site/doctypes/WebPage/WebPage.json
-msgctxt "meta:WebPage.title"
-msgid "Title"
-msgstr "Заголовок"
-
-#: grunt/grunt/site/doctypes/WebPage/WebPage.json
-msgctxt "meta:WebPage.route"
-msgid "URL route"
-msgstr "URL маршрут"
-
-#: grunt/grunt/site/doctypes/WebPage/WebPage.json
-msgctxt "meta:WebPage.published"
-msgid "Published"
-msgstr "Опубліковано"
-
-#: grunt/grunt/site/doctypes/WebPage/WebPage.json
-msgctxt "meta:WebPage.content"
-msgid "Content"
-msgstr "Вміст"
-
-#: grunt/grunt/site/doctypes/WebPage/WebPage.json
-msgctxt "meta:WebPage.meta_description"
-msgid "Meta description (SEO)"
-msgstr "Meta-опис (SEO)"
-
-#: grunt/grunt/site/doctypes/WebPage/WebPage.json
-msgctxt "meta:WebPage.og_image"
-msgid "Social image (OG)"
-msgstr "Зображення для соцмереж (OG)"
-
-#: grunt/grunt/site/doctypes/WebPage/WebPage.json
-msgctxt "meta:WebPage.show_in_navbar"
-msgid "Show in navigation"
-msgstr "Показувати в навігації"
-
-#: grunt/grunt/site/doctypes/WebPage/WebPage.json
-msgctxt "meta:WebPage.menu_title"
-msgid "Menu label"
-msgstr "Назва в меню"
-
-#: grunt/grunt/site/doctypes/WebPage/WebPage.json
-msgctxt "meta:WebPage.blocks"
-msgid "Content blocks"
-msgstr "Блоки контенту"
-
-#: grunt/grunt/site/doctypes/WebPageBlock/WebPageBlock.json
-msgctxt "meta:WebPageBlock"
-msgid "Page content block"
-msgstr "Блок контенту сторінки"
-
-#: grunt/grunt/site/doctypes/WebPageBlock/WebPageBlock.json
-msgctxt "meta:WebPageBlock.block_type"
-msgid "Block type"
-msgstr "Тип блоку"
-
-#: grunt/grunt/site/doctypes/WebPageBlock/WebPageBlock.json
-msgctxt "meta:WebPageBlock.title"
-msgid "Title"
-msgstr "Заголовок"
-
-#: grunt/grunt/site/doctypes/WebPageBlock/WebPageBlock.json
-msgctxt "meta:WebPageBlock.settings"
-msgid "Block settings"
-msgstr "Налаштування блоку"
-
-#: grunt/grunt/site/doctypes/WebPageBlock/WebPageBlock.json
-msgctxt "meta:WebPageBlock.sequence"
-msgid "Order"
-msgstr "Порядок"
-
-#: grunt/grunt/site/doctypes/WebsiteNavItem/WebsiteNavItem.json
-msgctxt "meta:WebsiteNavItem.label"
-msgid "Name"
-msgstr "Назва"
-
-#: grunt/grunt/site/doctypes/WebsiteNavItem/WebsiteNavItem.json
-msgctxt "meta:WebsiteNavItem.is_external"
-msgid "External link"
-msgstr "Зовнішнє посилання"
-
-#: grunt/grunt/site/doctypes/WebsiteNavItem/WebsiteNavItem.json
-msgctxt "meta:WebsiteNavItem.group"
-msgid "Group (for the footer)"
-msgstr "Група (для підвалу)"
-
-#: grunt/grunt/site/doctypes/WebsiteNavItem/WebsiteNavItem.json
-msgctxt "meta:WebsiteNavItem.sequence"
-msgid "Order"
-msgstr "Порядок"
-
-#: grunt/grunt/site/doctypes/WebsiteSettings/WebsiteSettings.json
-msgctxt "meta:WebsiteSettings"
-msgid "Site settings"
-msgstr "Налаштування сайту"
-
-#: grunt/grunt/site/doctypes/WebsiteSettings/WebsiteSettings.json
-msgctxt "meta:WebsiteSettings.sec_brand"
-msgid "Branding"
-msgstr "Бренд"
-
-#: grunt/grunt/site/doctypes/WebsiteSettings/WebsiteSettings.json
-msgctxt "meta:WebsiteSettings.site_name"
-msgid "Site name"
-msgstr "Назва сайту"
-
-#: grunt/grunt/site/doctypes/WebsiteSettings/WebsiteSettings.json
-msgctxt "meta:WebsiteSettings.brand_logo"
-msgid "Logo"
-msgstr "Логотип"
-
-#: grunt/grunt/site/doctypes/WebsiteSettings/WebsiteSettings.json
-msgctxt "meta:WebsiteSettings.home_route"
-msgid "Home page route"
-msgstr "Маршрут головної сторінки"
-
-#: grunt/grunt/site/doctypes/WebsiteSettings/WebsiteSettings.json
-msgctxt "help:WebsiteSettings.home_route"
-msgid ""
-"Route of the published WebPage used as the home page (a file-based "
-"www/index.html always takes priority)"
-msgstr ""
-"Route опублікованої WebPage, що використовується як домашня (файлова "
-"www/index.html завжди має пріоритет)"
-
-#: grunt/grunt/site/doctypes/WebsiteSettings/WebsiteSettings.json
-msgctxt "meta:WebsiteSettings.sec_footer"
-msgid "Site footer"
-msgstr "Підвал сайту"
-
-#: grunt/grunt/site/doctypes/WebsiteSettings/WebsiteSettings.json
-msgctxt "meta:WebsiteSettings.copyright_text"
-msgid "Copyright text"
-msgstr "Текст копірайту"
-
-#: grunt/grunt/site/doctypes/WebsiteSettings/WebsiteSettings.json
-msgctxt "meta:WebsiteSettings.footer_items"
-msgid "Footer links"
-msgstr "Посилання в підвалі"
-
-#: grunt/grunt/site/doctypes/WebsiteSettings/WebsiteSettings.json
-msgctxt "help:WebsiteSettings.footer_items"
-msgid "The 'Group' field sets the column heading in the footer"
-msgstr "Поле 'Група' визначає заголовок колонки в підвалі"
-
-#: grunt/grunt/site/doctypes/WebsiteSettings/WebsiteSettings.json
-msgctxt "meta:WebsiteSettings.sec_seo"
-msgid "Default SEO"
-msgstr "SEO за замовчуванням"
-
-#: grunt/grunt/site/doctypes/WebsiteSettings/WebsiteSettings.json
-msgctxt "meta:WebsiteSettings.default_meta_description"
-msgid "Default meta description"
-msgstr "Meta-опис за замовчуванням"
-
-#: grunt/grunt/site/doctypes/WebsiteSettings/WebsiteSettings.json
-msgctxt "meta:WebsiteSettings.default_og_image"
-msgid "Default social image"
-msgstr "Зображення для соцмереж за замовчуванням"
-
 #: grunt/grunt/site/doctypes/WorkspaceSidebarItem/WorkspaceSidebarItem.json
 msgctxt "meta:WorkspaceSidebarItem"
 msgid "App menu item"
@@ -2787,7 +2567,7 @@ msgstr "Доступ заборонено"
 #: grunt/frontend/src/components/layout/CommandPalette.vue:100
 #: grunt/frontend/src/components/layout/CommandPalette.vue:101
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:420
-#: grunt/frontend/src/components/views/actions/ActionMenu.vue:37
+#: grunt/frontend/src/components/views/actions/ActionMenu.vue:52
 msgid "Actions"
 msgstr "Дії"
 
@@ -2858,7 +2638,7 @@ msgid "Barcode not found in image."
 msgstr "На зображенні не знайдено штрихкоду."
 
 #: grunt/frontend/src/components/views/BulkActionBar.vue:313
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:139
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:151
 msgid "Bulk Update"
 msgstr "Масове оновлення"
 
@@ -2892,7 +2672,7 @@ msgstr "Камера недоступна."
 #: grunt/frontend/src/components/files/FileExplorer.vue:749
 #: grunt/frontend/src/components/files/FileExplorer.vue:877
 #: grunt/frontend/src/components/workflow/WorkflowActionDialog.vue:105
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:527
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:542
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue:347
 #: grunt/frontend/src/components/views/form/FormModals.vue:138
 #: grunt/frontend/src/components/views/form/FormHeader.vue:287
@@ -2924,7 +2704,7 @@ msgstr "Колір"
 msgid "Column"
 msgstr "Колонка"
 
-#: grunt/frontend/src/components/dashboard/WidgetCard.vue:46
+#: grunt/frontend/src/components/dashboard/WidgetCard.vue:41
 #: grunt/frontend/src/pages/app/AppPage.vue:282
 #: grunt/frontend/src/pages/app/AppPage.vue:329
 msgid "Configure"
@@ -2946,6 +2726,7 @@ msgstr "Конверсія:"
 #: grunt/frontend/src/components/debug/ServerErrorModal.vue:72
 #: grunt/frontend/src/components/files/FileExplorer.vue:710
 #: grunt/frontend/src/components/views/form/FormHeader.vue:369
+#: grunt/frontend/src/components/fields/RichText/ui/EditorContextMenu.vue:113
 #: grunt/frontend/src/pages/app/AppPage.vue:482
 msgid "Copy"
 msgstr "Копіювати"
@@ -2991,7 +2772,7 @@ msgstr "Поле дати"
 #: grunt/frontend/src/components/views/BulkActionBar.vue:276
 #: grunt/frontend/src/components/views/BulkActionBar.vue:303
 #: grunt/frontend/src/components/dashboard/WidgetConfigPanel.vue:77
-#: grunt/frontend/src/components/dashboard/WidgetCard.vue:55
+#: grunt/frontend/src/components/dashboard/WidgetCard.vue:50
 #: grunt/frontend/src/components/files/FileExplorer.vue:723
 #: grunt/frontend/src/components/files/FileExplorer.vue:878
 #: grunt/frontend/src/components/dashboard/sections/FiltersSection.vue:82
@@ -3000,7 +2781,6 @@ msgstr "Поле дати"
 #: grunt/frontend/src/components/fields/Table/Table.vue:481
 #: grunt/frontend/src/components/fields/RichText/editor/commands.ts:98
 #: grunt/frontend/src/components/fields/RichText/ui/BlockHandle.vue:71
-#: grunt/frontend/src/components/fields/RichText/ui/TableBubble.vue:116
 msgid "Delete"
 msgstr "Видалити"
 
@@ -3043,7 +2823,7 @@ msgstr "Агрегат DocType"
 msgid "DocTypes"
 msgstr "DocType-и"
 
-#: grunt/frontend/src/pages/desk/DocTypeForm.vue:163
+#: grunt/frontend/src/pages/desk/DocTypeForm.vue:170
 msgid "Document renamed"
 msgstr "Документ перейменовано"
 
@@ -3102,7 +2882,7 @@ msgstr "Зовнішній URL"
 #: grunt/grunt/api/v1/docs/utils.py:90
 #: grunt/frontend/src/components/views/FilterBar.vue:256
 #: grunt/frontend/src/components/dashboard/sections/AggregationSection.vue:41
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:213
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:225
 #: grunt/frontend/src/components/views/list/ListHeader.vue:128
 #: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:346
 msgid "Field"
@@ -3311,7 +3091,7 @@ msgid "No tiles — click «Add»"
 msgstr "Немає плиток — натисніть «Додати»"
 
 #: grunt/frontend/src/components/dashboard/sections/DescriptionSection.vue:10
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:129
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:131
 msgid "Note"
 msgstr "Примітка"
 
@@ -3340,9 +3120,9 @@ msgstr "Інше"
 msgid "Page"
 msgstr "Сторінка"
 
-#: grunt/grunt/startup/website.py:112 grunt/grunt/startup/errors.py:258
-#: grunt/grunt/api/v1/pages.py:66 grunt/grunt/api/v1/dashboard.py:269
-#: grunt/frontend/src/router/index.ts:204
+#: grunt/grunt/startup/website.py:175 grunt/grunt/startup/website.py:161
+#: grunt/grunt/startup/errors.py:258 grunt/grunt/api/v1/pages.py:66
+#: grunt/grunt/api/v1/dashboard.py:277 grunt/frontend/src/router/index.ts:204
 msgid "Page not found"
 msgstr "Сторінку не знайдено"
 
@@ -3567,25 +3347,15 @@ msgstr "Поділитися посиланням"
 
 #: grunt/grunt/email/templates/email_login.html:51
 #: grunt/grunt/email/templates/email_login.html:61
-#: grunt/grunt/website/templates/_navbar.html:64
-#: grunt/grunt/website/www/login.ssr.html:3
-#: grunt/grunt/website/www/login.ssr.html:93
-#: grunt/grunt/website/www/login.py:9
-#: grunt/grunt/website/www/signup.ssr.html:119
-#: grunt/grunt/website/www/form/{route}.html:140
-#: grunt/frontend/src/router/index.ts:196
+#: grunt/grunt/website/templates/_navbar.html:17
+#: grunt/grunt/website/www/login.py:11 grunt/frontend/src/router/index.ts:196
 #: grunt/frontend/src/pages/auth/Login.vue:57
 #: grunt/frontend/src/pages/auth/Login.vue:452
 #: grunt/frontend/src/pages/setup/SetupWizard.vue:197
 msgid "Sign in"
 msgstr "Увійти"
 
-#: grunt/grunt/website/templates/_navbar.html:65
-#: grunt/grunt/website/www/login.ssr.html:98
-#: grunt/grunt/website/www/signup.py:9
-#: grunt/grunt/website/www/signup.ssr.html:3
-#: grunt/grunt/website/www/signup.ssr.html:114
-#: grunt/frontend/src/router/index.ts:197
+#: grunt/grunt/website/www/signup.py:11 grunt/frontend/src/router/index.ts:197
 #: grunt/frontend/src/pages/auth/Login.vue:57
 #: grunt/frontend/src/pages/auth/Login.vue:456
 msgid "Sign up"
@@ -3613,7 +3383,6 @@ msgstr "Залишитися"
 msgid "Stop"
 msgstr "Зупинити"
 
-#: grunt/grunt/website/block_types.py:21
 #: grunt/frontend/src/components/dashboard/sections/DescriptionSection.vue:10
 msgid "Subtitle"
 msgstr "Підзаголовок"
@@ -3969,11 +3738,6 @@ msgstr "ID облікових даних"
 
 #: grunt/grunt/webhook/doctypes/WebhookLog/WebhookLog.json
 msgctxt "meta:WebhookLog.url"
-msgid "URL"
-msgstr "URL"
-
-#: grunt/grunt/site/doctypes/WebsiteNavItem/WebsiteNavItem.json
-msgctxt "meta:WebsiteNavItem.url"
 msgid "URL"
 msgstr "URL"
 
@@ -4704,88 +4468,6 @@ msgctxt "help:SystemSettings.backup_keep"
 msgid "Older ones are deleted after each new backup."
 msgstr "Старіші видаляються після кожної нової копії."
 
-#: grunt/grunt/site/doctypes/WebForm/WebForm.json
-msgctxt "help:WebForm.captcha_enabled"
-msgid ""
-"Requires a captcha_provider to be configured for the site — otherwise "
-"ignored"
-msgstr ""
-"Потребує налаштованого для сайту captcha_provider — інакше ігнорується"
-
-#: grunt/grunt/site/doctypes/WebForm/WebForm.json
-msgctxt "help:WebForm.confirmation_template"
-msgid ""
-"Sent to the submitter's own email field (if any) and to every address in "
-"Notify emails below"
-msgstr ""
-"Надсилається на email самого відправника (якщо є таке поле) і на кожну "
-"адресу з «Email для сповіщень» нижче"
-
-#: grunt/grunt/site/doctypes/WebForm/WebForm.json
-msgctxt "help:WebForm.notify_emails"
-msgid ""
-"One address per line or comma-separated — staff to alert on every submission"
-msgstr ""
-"По адресі на рядок або через кому — співробітники, яких сповіщати про кожне "
-"надсилання"
-
-#: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
-msgctxt "help:WebFormField.collapsible"
-msgid "Section rows only"
-msgstr "Лише для рядків Section"
-
-#: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
-msgctxt "help:WebFormField.fieldtype"
-msgid ""
-"Empty for an ordinary field (its real type is always resolved live from the "
-"target DocType); set only to mark a Tab/Section/Column layout row"
-msgstr ""
-"Порожнє для звичайного поля (його справжній тип завжди береться з цільового "
-"DocType); задавайте лише для рядків розмітки Tab/Section/Column"
-
-#: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
-msgctxt "help:WebFormField.label"
-msgid "Required for Tab/Section rows; optional override for ordinary fields"
-msgstr ""
-"Обов'язково для рядків Tab/Section; для звичайних полів — необов'язкове "
-"перевизначення"
-
-#: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
-msgctxt "help:WebFormField.required"
-msgid "OR'd with the target field's own required flag"
-msgstr "Поєднується через АБО з власною ознакою обов'язковості цільового поля"
-
-#: grunt/grunt/site/doctypes/WebsiteFooterColumn/WebsiteFooterColumn.json
-msgctxt "help:WebsiteFooterColumn.title"
-msgid ""
-"Must match the 'Group' field on the footer links this column should show"
-msgstr "Має збігатися з полем «Група» посилань футера, які показує ця колонка"
-
-#: grunt/grunt/site/doctypes/WebsiteNavItem/WebsiteNavItem.json
-msgctxt "help:WebsiteNavItem.group"
-msgid ""
-"Used only in the site footer to group links under a heading — must match a "
-"Site footer column's title"
-msgstr ""
-"Використовується лише у футері сайту для групування посилань під заголовком "
-"— має збігатися із заголовком колонки футера"
-
-#: grunt/grunt/site/doctypes/WebsiteNavItem/WebsiteNavItem.json
-msgctxt "help:WebsiteNavItem.highlight"
-msgid ""
-"Render this item as a call-to-action (e.g. a button) instead of a plain link"
-msgstr ""
-"Показувати пункт як заклик до дії (напр. кнопку), а не як звичайне посилання"
-
-#: grunt/grunt/site/doctypes/WebsiteSettings/WebsiteSettings.json
-msgctxt "help:WebsiteSettings.footer_columns"
-msgid ""
-"Controls which footer columns show and in what order. Leave empty to auto-"
-"group footer links by their 'Group' field instead."
-msgstr ""
-"Визначає, які колонки футера показувати і в якому порядку. Залиште порожнім,"
-" щоб посилання футера автоматично групувалися за полем «Група»."
-
 #: grunt/grunt/metadata/doctypes/WorkflowTransition/WorkflowTransition.json
 msgctxt "help:WorkflowTransition.prompt_fields"
 msgid ""
@@ -4867,106 +4549,6 @@ msgctxt "meta:SystemSettings.tab_backups"
 msgid "Backups"
 msgstr "Резервні копії"
 
-#: grunt/grunt/site/doctypes/WebForm/WebForm.json
-msgctxt "meta:WebForm.captcha_enabled"
-msgid "Require CAPTCHA"
-msgstr "Вимагати CAPTCHA"
-
-#: grunt/grunt/site/doctypes/WebForm/WebForm.json
-msgctxt "meta:WebForm.confirmation_template"
-msgid "Confirmation email template"
-msgstr "Шаблон листа-підтвердження"
-
-#: grunt/grunt/site/doctypes/WebForm/WebForm.json
-msgctxt "meta:WebForm.fields"
-msgid "Fields"
-msgstr "Поля"
-
-#: grunt/grunt/site/doctypes/WebForm/WebForm.json
-msgctxt "meta:WebForm.notify_emails"
-msgid "Notify emails"
-msgstr "Email для сповіщень"
-
-#: grunt/grunt/site/doctypes/WebForm/WebForm.json
-msgctxt "meta:WebForm.sec_antispam"
-msgid "Anti-spam"
-msgstr "Антиспам"
-
-#: grunt/grunt/site/doctypes/WebForm/WebForm.json
-msgctxt "meta:WebForm.sec_notifications"
-msgid "Notifications"
-msgstr "Сповіщення"
-
-#: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
-msgctxt "meta:WebFormField"
-msgid "Web form field"
-msgstr "Поле веб-форми"
-
-#: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
-msgctxt "meta:WebFormField.collapsible"
-msgid "Collapsible"
-msgstr "Згортається"
-
-#: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
-msgctxt "meta:WebFormField.description"
-msgid "Help text override"
-msgstr "Власний текст підказки"
-
-#: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
-msgctxt "meta:WebFormField.fieldname"
-msgid "Fieldname"
-msgstr "Ім'я поля"
-
-#: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
-msgctxt "meta:WebFormField.fieldtype"
-msgid "Field type"
-msgstr "Тип поля"
-
-#: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
-msgctxt "meta:WebFormField.hidden"
-msgid "Hidden"
-msgstr "Приховане"
-
-#: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
-msgctxt "meta:WebFormField.label"
-msgid "Label override"
-msgstr "Власна назва"
-
-#: grunt/grunt/site/doctypes/WebFormField/WebFormField.json
-msgctxt "meta:WebFormField.required"
-msgid "Required on this form"
-msgstr "Обов'язкове в цій формі"
-
-#: grunt/grunt/site/doctypes/WebsiteFooterColumn/WebsiteFooterColumn.json
-msgctxt "meta:WebsiteFooterColumn"
-msgid "Site footer column"
-msgstr "Колонка футера сайту"
-
-#: grunt/grunt/site/doctypes/WebsiteFooterColumn/WebsiteFooterColumn.json
-msgctxt "meta:WebsiteFooterColumn.enabled"
-msgid "Enabled"
-msgstr "Увімкнено"
-
-#: grunt/grunt/site/doctypes/WebsiteFooterColumn/WebsiteFooterColumn.json
-msgctxt "meta:WebsiteFooterColumn.title"
-msgid "Column heading"
-msgstr "Заголовок колонки"
-
-#: grunt/grunt/site/doctypes/WebsiteNavItem/WebsiteNavItem.json
-msgctxt "meta:WebsiteNavItem.highlight"
-msgid "Highlight"
-msgstr "Виділяти"
-
-#: grunt/grunt/site/doctypes/WebsiteNavItem/WebsiteNavItem.json
-msgctxt "meta:WebsiteNavItem.icon"
-msgid "Icon"
-msgstr "Іконка"
-
-#: grunt/grunt/site/doctypes/WebsiteSettings/WebsiteSettings.json
-msgctxt "meta:WebsiteSettings.footer_columns"
-msgid "Footer columns"
-msgstr "Колонки футера"
-
 #: grunt/grunt/metadata/doctypes/WorkflowTransition/WorkflowTransition.json
 msgctxt "meta:WorkflowTransition.prompt_fields"
 msgid "Dialog fields (comma-separated)"
@@ -5040,7 +4622,7 @@ msgstr "Новий DocType"
 
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.js:120
 #: grunt/grunt/metadata/doctypes/DocType/global_form.js:66
-#: grunt/frontend/src/components/views/sidebar/SidebarImage.vue:124
+#: grunt/frontend/src/components/views/sidebar/SidebarImage.vue:125
 msgid "Open in new tab"
 msgstr "Відкрити в новій вкладці"
 
@@ -5049,8 +4631,8 @@ msgid "PDF"
 msgstr "PDF"
 
 #: grunt/grunt/metadata/doctypes/DocType/global_form.js:54
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:333
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:337
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:336
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:340
 #: grunt/frontend/src/components/views/map/MapView.vue:205
 msgid "Print"
 msgstr "Друк"
@@ -5149,7 +4731,7 @@ msgctxt "meta:DocType.web_route"
 msgid "Route"
 msgstr "Маршрут"
 
-#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+#: grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
 msgctxt "help:WebsiteMenuItem"
 msgid ""
 "Public site navigation as a tree: top-level items are menu sections, their "
@@ -5160,12 +4742,12 @@ msgstr ""
 "їхні дочірні — групи й посилання. Поруч можуть жити кілька меню (головне, "
 "верхня смуга, власне меню додатка)."
 
-#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+#: grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
 msgctxt "help:WebsiteMenuItem.highlight"
 msgid "Show as a button"
 msgstr "Показувати кнопкою"
 
-#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+#: grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
 msgctxt "help:WebsiteMenuItem.menu"
 msgid ""
 "main — the primary navbar, top — the slim bar above it; an app may use its "
@@ -5174,7 +4756,7 @@ msgstr ""
 "main — головне меню, top — тонка смуга над ним; додаток може мати власний "
 "ключ (напр. mlt_portal). Дочірні пункти успадковують меню батька."
 
-#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+#: grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
 msgctxt "help:WebsiteMenuItem.sec_link"
 msgid ""
 "Point at a document (its page address is used and follows renames) or type a"
@@ -5183,90 +4765,85 @@ msgstr ""
 "Вкажіть документ (береться адреса його сторінки й не ламається при "
 "перейменуванні) або введіть URL. Порожньо — заголовок розділу чи групи."
 
-#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+#: grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
 msgctxt "help:WebsiteMenuItem.sequence"
 msgid "Among items with the same parent, smaller first"
 msgstr "Серед пунктів з одним батьком — менший спершу"
 
-#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+#: grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
 msgctxt "help:WebsiteMenuItem.url"
 msgid "/news, https://… — used when no document is chosen"
 msgstr "/news, https://… — коли документ не вибрано"
 
-#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+#: grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
 msgctxt "meta:WebsiteMenuItem"
 msgid "Site menu item"
 msgstr "Пункт меню сайту"
 
-#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+#: grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
 msgctxt "meta:WebsiteMenuItem.enabled"
 msgid "Show"
 msgstr "Показувати"
 
-#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+#: grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
 msgctxt "meta:WebsiteMenuItem.highlight"
 msgid "Highlight"
 msgstr "Виділити"
 
-#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+#: grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
 msgctxt "meta:WebsiteMenuItem.icon"
 msgid "Icon"
 msgstr "Іконка"
 
-#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+#: grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
 msgctxt "meta:WebsiteMenuItem.label"
 msgid "Name"
 msgstr "Назва"
 
-#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+#: grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
 msgctxt "meta:WebsiteMenuItem.link_doctype"
 msgid "Document type"
 msgstr "Тип документа"
 
-#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+#: grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
 msgctxt "meta:WebsiteMenuItem.link_name"
 msgid "Document"
 msgstr "Документ"
 
-#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+#: grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
 msgctxt "meta:WebsiteMenuItem.menu"
 msgid "Menu"
 msgstr "Меню"
 
-#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+#: grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
 msgctxt "meta:WebsiteMenuItem.open_in_new_tab"
 msgid "Open in a new tab"
 msgstr "Відкривати в новій вкладці"
 
-#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+#: grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
 msgctxt "meta:WebsiteMenuItem.parent_menu_item"
 msgid "Parent item"
 msgstr "Батьківський пункт"
 
-#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+#: grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
 msgctxt "meta:WebsiteMenuItem.sec_link"
 msgid "Link"
 msgstr "Посилання"
 
-#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+#: grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
 msgctxt "meta:WebsiteMenuItem.sec_look"
 msgid "Appearance"
 msgstr "Вигляд"
 
-#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+#: grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
 msgctxt "meta:WebsiteMenuItem.sequence"
 msgid "Order"
 msgstr "Порядок"
 
-#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+#: grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
 msgctxt "meta:WebsiteMenuItem.url"
 msgid "URL"
 msgstr "URL"
-
-#: grunt/grunt/site/doctypes/WebsiteNavItem/WebsiteNavItem.json
-msgctxt "meta:WebsiteNavItem"
-msgid "Site footer link"
-msgstr "Посилання підвалу сайту"
 
 #: grunt/frontend/src/components/views/ListEmptyState.vue:35
 msgid "Data source unavailable"
@@ -5493,7 +5070,7 @@ msgstr[0] "{n} запис"
 msgstr[1] "{n} записи"
 msgstr[2] "{n} записів"
 
-#: grunt/frontend/src/pages/desk/DocTypeForm.vue:236
+#: grunt/frontend/src/pages/desk/DocTypeForm.vue:243
 msgid "Activity"
 msgstr "Активність"
 
@@ -5512,7 +5089,7 @@ msgid "New value"
 msgstr "Нове значення"
 
 #: grunt/grunt/actions/builtin.py:102
-#: grunt/frontend/src/pages/desk/DocTypeForm.vue:182
+#: grunt/frontend/src/pages/desk/DocTypeForm.vue:189
 msgid "Restore"
 msgstr "Відновити"
 
@@ -5642,7 +5219,7 @@ msgstr "Стиснути"
 #: grunt/frontend/src/core/renderer/FieldRenderer.vue:143
 #: grunt/frontend/src/components/desk/GruntDialog.vue:364
 #: grunt/frontend/src/components/layout/CommandPalette.vue:142
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:197
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:200
 #: grunt/frontend/src/components/views/form/FormHeader.vue:460
 msgid "Copied"
 msgstr "Скопійовано"
@@ -5697,7 +5274,7 @@ msgstr ""
 "Ви внесли зміни, які буде втрачено, якщо ви покинете сторінку. Покинути без "
 "збереження?"
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:89
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:91
 msgid "Could not copy"
 msgstr "Не вдалося скопіювати"
 
@@ -5729,12 +5306,12 @@ msgstr "Високий"
 msgid "Remove {name} from assignees?"
 msgstr "Прибрати {name} з відповідальних?"
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:170
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:173
 msgid "Status"
 msgstr "Статус"
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:192
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:197
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:195
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:200
 msgid "Copy ID"
 msgstr "Скопіювати ідентифікатор"
 
@@ -5769,29 +5346,29 @@ msgstr "Доступ"
 msgid "Tags"
 msgstr "Теги"
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:305
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:308
 msgid "You get notified about changes and comments"
 msgstr "Ви отримуєте сповіщення про зміни та коментарі"
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:305
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:308
 msgid "Get notified about changes and comments"
 msgstr "Отримувати сповіщення про зміни та коментарі"
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:301
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:304
 msgid "Following"
 msgstr "Стежу"
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:301
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:304
 msgid "Follow"
 msgstr "Стежити"
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:315
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:321
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:318
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:324
 msgid "Bookmarked"
 msgstr "У закладках"
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:315
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:321
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:318
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:324
 msgid "Bookmark"
 msgstr "Закладка"
 
@@ -5814,76 +5391,76 @@ msgstr "Що потрібно зробити?"
 msgid "Read"
 msgstr "Читання"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:133
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:134
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:145
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:146
 msgid "Created the document"
 msgstr "Створив документ"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:135
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:136
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:147
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:148
 msgid "Updated the document"
 msgstr "Оновив документ"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:137
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:138
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:149
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:150
 msgid "Deleted the document"
 msgstr "Видалив документ"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:140
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:152
 msgid "Restored a version"
 msgstr "Відновив версію"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:141
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:153
 msgid "Changed the status"
 msgstr "Змінив статус"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:161
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:173
 #: grunt/frontend/src/components/views/sidebar/TimelineChanges.vue:54
 #: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:554
 msgid "{n} rows"
 msgstr "{n} рядків"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:198
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:210
 msgid "Version {n}"
 msgstr "Версія {n}"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:198
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:430
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:210
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:442
 msgid "Changes"
 msgstr "Зміни"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:214
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:226
 msgid "Before"
 msgstr "Було"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:215
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:227
 msgid "After"
 msgstr "Стало"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:219
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:231
 msgid "Restore this version"
 msgstr "Відновити цю версію"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:222
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:234
 msgid ""
 "Restore the document to this version? Current field values will be replaced."
 msgstr ""
 "Відновити документ до цієї версії? Поточні значення полів буде замінено."
 
 #: grunt/frontend/src/plugins/__tests__/i18n.spec.ts:29
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:385
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:397
 msgid "Write a comment... @ to mention"
 msgstr "Напишіть коментар... @ для згадки"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:391
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:403
 msgid "Mention a user"
 msgstr "Згадати користувача"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:418
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:430
 msgid "Send"
 msgstr "Надіслати"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:424
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:436
 msgid "No activity yet"
 msgstr "Поки що немає активності"
 
@@ -6141,7 +5718,6 @@ msgstr ""
 "Ваш акаунт зареєстровано та очікує підтвердження адміністратора. Спробуйте "
 "увійти пізніше."
 
-#: grunt/grunt/website/www/signup.ssr.html:69
 #: grunt/frontend/src/pages/auth/Login.vue:53
 msgid "Create an account"
 msgstr "Створити акаунт"
@@ -6262,19 +5838,15 @@ msgid "John Smith"
 msgstr "Іваненко Іван Іванович"
 
 #: grunt/grunt/auth/doctypes/User/user.py:70
-#: grunt/grunt/website/www/login.ssr.html:81
-#: grunt/grunt/website/www/signup.ssr.html:97
 #: grunt/frontend/src/pages/auth/Login.vue:412
 #: grunt/frontend/src/pages/setup/SetupWizard.vue:162
 msgid "Password"
 msgstr "Пароль доступу"
 
-#: grunt/grunt/website/www/login.ssr.html:82
 #: grunt/frontend/src/pages/auth/Login.vue:418
 msgid "Forgot password?"
 msgstr "Забули пароль?"
 
-#: grunt/grunt/website/www/signup.ssr.html:98
 #: grunt/frontend/src/pages/auth/Login.vue:426
 #: grunt/frontend/src/pages/setup/SetupWizard.vue:166
 msgid "At least 8 characters"
@@ -6284,12 +5856,10 @@ msgstr "Мінімум 8 символів"
 msgid "Repeat password"
 msgstr "Повторіть пароль"
 
-#: grunt/grunt/website/www/signup.ssr.html:119
 #: grunt/frontend/src/pages/auth/Login.vue:451
 msgid "Already have an account?"
 msgstr "Вже маєте акаунт?"
 
-#: grunt/grunt/website/www/login.ssr.html:98
 #: grunt/frontend/src/pages/auth/Login.vue:455
 msgid "No account?"
 msgstr "Немає акаунту?"
@@ -6395,7 +5965,6 @@ msgid "Go to sign in"
 msgstr "Перейти до входу"
 
 #: grunt/grunt/auth/doctypes/User/User.js:42
-#: grunt/grunt/website/www/signup.ssr.html:102
 #: grunt/frontend/src/pages/auth/ResetPassword.vue:85
 msgid "Confirm password"
 msgstr "Підтвердіть пароль"
@@ -6473,16 +6042,16 @@ msgstr "Помилок: {n}"
 msgid "Index rebuilt: {n} documents"
 msgstr "Індекс перебудовано: {n} документів"
 
-#: grunt/frontend/src/pages/desk/DocTypeForm.vue:181
+#: grunt/frontend/src/pages/desk/DocTypeForm.vue:188
 msgid "Unsaved changes found ({time}). Restore the draft?"
 msgstr "Знайдено незбережені зміни ({time}). Відновити чернетку?"
 
 #: grunt/frontend/src/components/layout/OfflineQueueSheet.vue:101
-#: grunt/frontend/src/pages/desk/DocTypeForm.vue:183
+#: grunt/frontend/src/pages/desk/DocTypeForm.vue:190
 msgid "Discard"
 msgstr "Відкинути"
 
-#: grunt/frontend/src/pages/desk/DocTypeForm.vue:190
+#: grunt/frontend/src/pages/desk/DocTypeForm.vue:197
 msgid ""
 "This document type is deprecated. It still works, but do not use it in new "
 "code."
@@ -6490,16 +6059,16 @@ msgstr ""
 "Цей тип документа позначено як неактуальний (deprecated). Він продовжує "
 "працювати, але не використовуйте його в новому коді."
 
-#: grunt/frontend/src/pages/desk/DocTypeForm.vue:195
+#: grunt/frontend/src/pages/desk/DocTypeForm.vue:202
 msgid ""
 "Beta: this document type is still in development; its behavior may change."
 msgstr "Beta: цей тип документа ще в розробці, поведінка може змінитися."
 
-#: grunt/frontend/src/pages/desk/DocTypeForm.vue:218
+#: grunt/frontend/src/pages/desk/DocTypeForm.vue:225
 msgid "{views} views · {viewers} users"
 msgstr "{views} переглядів · {viewers} користувачів"
 
-#: grunt/frontend/src/pages/desk/DocTypeForm.vue:221
+#: grunt/frontend/src/pages/desk/DocTypeForm.vue:228
 msgid "Viewed by:"
 msgstr "Переглянули:"
 
@@ -6620,7 +6189,7 @@ msgstr "Введіть мінімум 2 символи для пошуку"
 msgid "Try rebuilding the index"
 msgstr "Спробувати перебудувати індекс"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:430
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:442
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:367
 #: grunt/frontend/src/pages/app/SearchResultsPage.vue:190
 msgid "All"
@@ -7216,7 +6785,6 @@ msgstr "Калькулятор"
 msgid "Navigate"
 msgstr "Навігація"
 
-#: grunt/grunt/website/www/form/{route}.html:184
 #: grunt/frontend/src/components/layout/CommandPalette.vue:335
 #: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue:427
 msgid "Select"
@@ -7272,8 +6840,8 @@ msgstr "Швидке додавання..."
 msgid "Owner"
 msgstr "Власник"
 
-#: grunt/frontend/src/components/views/DocSidebar.vue:69
-#: grunt/frontend/src/components/views/DocSidebar.vue:97
+#: grunt/frontend/src/components/views/DocSidebar.vue:71
+#: grunt/frontend/src/components/views/DocSidebar.vue:99
 #: grunt/frontend/src/components/files/FileExplorer.vue:728
 msgid "Details"
 msgstr "Деталі"
@@ -7536,6 +7104,7 @@ msgid "No connection — viewing from cache, changes are saved on this device"
 msgstr "Немає з'єднання — перегляд з кешу, зміни зберігаються на пристрої"
 
 #: grunt/frontend/src/components/mobile/MobileBottomNav.vue:98
+#: grunt/frontend/src/components/fields/RichText/ui/EditorContextMenu.vue:126
 #: grunt/frontend/src/components/fields/RichText/ui/MoreMenu.vue:17
 msgid "More"
 msgstr "Ще"
@@ -8325,7 +7894,7 @@ msgstr "Перехід"
 
 #: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:272
 #: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:310
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:179
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:182
 msgid "State"
 msgstr "Стан"
 
@@ -11237,11 +10806,6 @@ msgstr ""
 "sites/<site>/backups/. Переглянути, завантажити чи створити копію вручну — у"
 " «Резервні копії»."
 
-#: grunt/grunt/site/doctypes/WebForm/WebForm.json
-msgctxt "meta:WebForm.tab_designer"
-msgid "Builder"
-msgstr "Конструктор"
-
 #: grunt/grunt/startup/doctypes/GruntInstalledApp/GruntInstalledApp.json
 msgctxt "meta:GruntInstalledApp"
 msgid "App Store"
@@ -12023,14 +11587,14 @@ msgctxt "select:Region.region_type"
 msgid "Other"
 msgstr "Інше"
 
-#: grunt/grunt/auth/doctypes/User/user.py:675
-#: grunt/grunt/auth/doctypes/User/user.py:788
-#: grunt/grunt/auth/doctypes/User/user.py:927
-#: grunt/grunt/auth/doctypes/User/user.py:962
-#: grunt/grunt/auth/doctypes/User/user.py:995
-#: grunt/grunt/auth/doctypes/User/user.py:1006
+#: grunt/grunt/auth/doctypes/User/user.py:687
+#: grunt/grunt/auth/doctypes/User/user.py:800
+#: grunt/grunt/auth/doctypes/User/user.py:939
+#: grunt/grunt/auth/doctypes/User/user.py:974
+#: grunt/grunt/auth/doctypes/User/user.py:1007
 #: grunt/grunt/auth/doctypes/User/user.py:1018
-#: grunt/grunt/auth/doctypes/User/user.py:1031
+#: grunt/grunt/auth/doctypes/User/user.py:1030
+#: grunt/grunt/auth/doctypes/User/user.py:1043
 msgid "User not found"
 msgstr "Користувача не знайдено"
 
@@ -12072,12 +11636,12 @@ msgid "Automated message, please do not reply."
 msgstr "Автоматичне повідомлення, не відповідайте на цей лист."
 
 #: grunt/grunt/email/templates/password_reset.html:46
-#: grunt/grunt/auth/doctypes/User/user.py:1067
+#: grunt/grunt/auth/doctypes/User/user.py:1079
 msgid "Password reset"
 msgstr "Скидання пароля"
 
 #: grunt/grunt/email/templates/password_reset.html:49
-#: grunt/grunt/auth/doctypes/User/user.py:1061
+#: grunt/grunt/auth/doctypes/User/user.py:1073
 msgid "Hello, %(name)s,"
 msgstr "Привіт, %(name)s,"
 
@@ -12090,7 +11654,7 @@ msgid "The link is valid for 1 hour."
 msgstr "Посилання дійсне 1 годину."
 
 #: grunt/grunt/email/templates/password_reset.html:57
-#: grunt/grunt/auth/doctypes/User/user.py:1064
+#: grunt/grunt/auth/doctypes/User/user.py:1076
 msgid "If you did not request this, just ignore this email."
 msgstr "Якщо ви не надсилали цей запит — просто проігноруйте цей лист."
 
@@ -12098,7 +11662,7 @@ msgstr "Якщо ви не надсилали цей запит — просто
 msgid "… and %(count)s more"
 msgstr "… і ще %(count)s"
 
-#: grunt/grunt/auth/doctypes/User/user.py:1062
+#: grunt/grunt/auth/doctypes/User/user.py:1074
 msgid "Password reset link (valid for 1 hour):"
 msgstr "Посилання для скидання пароля (дійсне 1 годину):"
 
@@ -12245,8 +11809,6 @@ msgstr "за 7 днів"
 
 #: grunt/grunt/monitoring/health.py:287 grunt/grunt/monitoring/health.py:645
 #: grunt/grunt/auth/doctypes/User/user.py:67
-#: grunt/grunt/website/www/login.ssr.html:75
-#: grunt/grunt/website/www/signup.ssr.html:92
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:298
 msgid "Email"
 msgstr "Електронна пошта"
@@ -12497,35 +12059,35 @@ msgid "Not permitted to set the password; use the Change password action"
 msgstr ""
 "Недостатньо прав, щоб задати пароль — скористайтесь дією «Змінити пароль»"
 
-#: grunt/grunt/auth/doctypes/User/user.py:557
+#: grunt/grunt/auth/doctypes/User/user.py:569
 msgid "Registration of new users is disabled"
 msgstr "Реєстрація нових користувачів вимкнена"
 
-#: grunt/grunt/auth/doctypes/User/user.py:671
+#: grunt/grunt/auth/doctypes/User/user.py:683
 msgid "Invalid or expired MFA token"
 msgstr "Невалідний або прострочений MFA токен"
 
-#: grunt/grunt/auth/doctypes/User/user.py:696
+#: grunt/grunt/auth/doctypes/User/user.py:708
 msgid "Invalid or expired MFA setup token"
 msgstr "Невалідний або прострочений токен налаштування MFA"
 
-#: grunt/grunt/auth/doctypes/User/user.py:699
+#: grunt/grunt/auth/doctypes/User/user.py:711
 msgid "MFA setup is unavailable"
 msgstr "Налаштування MFA недоступне"
 
-#: grunt/grunt/auth/doctypes/User/user.py:812
+#: grunt/grunt/auth/doctypes/User/user.py:824
 msgid "Sign-in from this IP address is not allowed for your role"
 msgstr "Вхід з цієї IP-адреси заборонено для вашої ролі"
 
-#: grunt/grunt/auth/doctypes/User/user.py:819
+#: grunt/grunt/auth/doctypes/User/user.py:831
 msgid "Your role requires two-factor authentication; sign in again"
 msgstr "Ваша роль вимагає двофакторної автентифікації — увійдіть знову"
 
-#: grunt/grunt/auth/doctypes/User/user.py:976
+#: grunt/grunt/auth/doctypes/User/user.py:988
 msgid "Not permitted to change another user's password"
 msgstr "Недостатньо прав, щоб змінити пароль іншого користувача"
 
-#: grunt/grunt/auth/doctypes/User/user.py:981
+#: grunt/grunt/auth/doctypes/User/user.py:993
 msgid "The current password is incorrect"
 msgstr "Поточний пароль вказано невірно"
 
@@ -12680,15 +12242,11 @@ msgstr[0] "%(count)d непрочитане сповіщення за остан
 msgstr[1] "%(count)d непрочитані сповіщення за останній тиждень"
 msgstr[2] "%(count)d непрочитаних сповіщень за останній тиждень"
 
-#: grunt/grunt/website/block_types.py:26
-msgid "Text"
-msgstr "Текст"
-
-#: grunt/grunt/webform/service.py:92 grunt/grunt/app/document_api.py:516
-#: grunt/grunt/app/document_api.py:800 grunt/grunt/metadata/registry.py:333
-#: grunt/grunt/metadata/registry.py:584 grunt/grunt/metadata/registry.py:562
+#: grunt/grunt/app/document_api.py:516 grunt/grunt/app/document_api.py:800
+#: grunt/grunt/metadata/registry.py:333 grunt/grunt/metadata/registry.py:584
+#: grunt/grunt/metadata/registry.py:562
 #: grunt/grunt/notification/rule_index.py:53
-#: grunt/grunt/activity/__init__.py:264 grunt/grunt/actions/__init__.py:163
+#: grunt/grunt/activity/__init__.py:266 grunt/grunt/actions/__init__.py:163
 #: grunt/grunt/document/connections.py:43
 #: grunt/grunt/document/connections.py:68
 #: grunt/grunt/document/connections.py:89
@@ -12698,7 +12256,7 @@ msgstr "Текст"
 #: grunt/grunt/document/collection.py:494
 #: grunt/grunt/document/collection.py:565
 #: grunt/grunt/document/collection.py:846 grunt/grunt/document/links.py:55
-#: grunt/grunt/document/links.py:59
+#: grunt/grunt/document/links.py:59 grunt/grunt/document/links.py:121
 msgid "DocType “%(doctype)s” not found"
 msgstr "DocType «%(doctype)s» не знайдено"
 
@@ -12852,7 +12410,7 @@ msgstr ""
 "Скрипт повинен присвоїти `result = {'columns': [...], 'data': [...]}` або "
 "`query = 'SELECT ...'`"
 
-#: grunt/grunt/webform/service.py:242 grunt/grunt/document/validation.py:47
+#: grunt/grunt/document/validation.py:47
 msgid "Field “%(label)s” is required"
 msgstr "Поле «%(label)s» є обов'язковим"
 
@@ -12871,54 +12429,6 @@ msgstr "Поле «%(label)s» має бути не більше %(max)s"
 #: grunt/grunt/document/validation.py:109
 msgid "Field “%(label)s” does not match the format"
 msgstr "Поле «%(label)s» не відповідає формату"
-
-#: grunt/grunt/website/block_types.py:23
-msgid "Button text"
-msgstr "Текст кнопки"
-
-#: grunt/grunt/website/block_types.py:59
-msgid "HTML code"
-msgstr "HTML-код"
-
-#: grunt/grunt/website/block_types.py:64
-msgid "Web form route"
-msgstr "Маршрут веб-форми"
-
-#: grunt/grunt/website/block_types.py:71
-msgid "Icon 1 (emoji)"
-msgstr "Іконка 1 (emoji)"
-
-#: grunt/grunt/website/block_types.py:74
-msgid "Icon 2 (emoji)"
-msgstr "Іконка 2 (emoji)"
-
-#: grunt/grunt/website/block_types.py:77
-msgid "Icon 3 (emoji)"
-msgstr "Іконка 3 (emoji)"
-
-#: grunt/grunt/website/block_types.py:72
-msgid "Title 1"
-msgstr "Заголовок 1"
-
-#: grunt/grunt/website/block_types.py:75
-msgid "Title 2"
-msgstr "Заголовок 2"
-
-#: grunt/grunt/website/block_types.py:78
-msgid "Title 3"
-msgstr "Заголовок 3"
-
-#: grunt/grunt/website/block_types.py:73
-msgid "Description 1"
-msgstr "Опис 1"
-
-#: grunt/grunt/website/block_types.py:76
-msgid "Description 2"
-msgstr "Опис 2"
-
-#: grunt/grunt/website/block_types.py:79
-msgid "Description 3"
-msgstr "Опис 3"
 
 #: grunt/grunt/api/v1/meta.py:226 grunt/grunt/api/v1/meta.py:310
 msgid "A virtual DocType has no physical table"
@@ -13006,22 +12516,8 @@ msgstr "Відновлення %(backend)s не підтримується"
 msgid "No access: %(action)s “%(doctype)s”"
 msgstr "Немає доступу: %(action)s «%(doctype)s»"
 
-#: grunt/grunt/webform/service.py:158 grunt/grunt/api/v1/webform.py:22
-#: grunt/grunt/website/www/form/{route}.py:102
-#: grunt/grunt/website/www/form/{route}.py:103
-msgid "Form not found"
-msgstr "Форму не знайдено"
-
-#: grunt/grunt/webform/service.py:161
-msgid "You need to sign in to fill in this form"
-msgstr "Для заповнення цієї форми потрібна авторизація"
-
-#: grunt/grunt/webform/service.py:167
-msgid "The maximum number of responses has been reached"
-msgstr "Досягнуто максимальну кількість відповідей"
-
-#: grunt/grunt/webform/service.py:317 grunt/grunt/storage/remote.py:73
-#: grunt/grunt/storage/doctypes/File/file.py:108
+#: grunt/grunt/storage/remote.py:73
+#: grunt/grunt/storage/doctypes/File/file.py:111
 msgid "The file is too large (max %(size)s MB)"
 msgstr "Файл завеликий (макс. %(size)s МБ)"
 
@@ -13117,12 +12613,12 @@ msgstr "DocType «%(doctype)s» більше не існує"
 msgid "Document “%(name)s” already exists. Restore with a new ID?"
 msgstr "Документ «%(name)s» уже існує. Відновити з новим ID?"
 
-#: grunt/grunt/website/www/share/{token}.html:141
+#: grunt/grunt/website/www/share/{token}.html:138
 #: grunt/grunt/website/www/share/{token}.py:21
 msgid "Document view"
 msgstr "Перегляд документа"
 
-#: grunt/grunt/website/www/share/{token}.html:171
+#: grunt/grunt/website/www/share/{token}.html:168
 #: grunt/grunt/website/www/share/{token}.py:29
 msgid "The link is unavailable"
 msgstr "Посилання недоступне"
@@ -13151,22 +12647,6 @@ msgstr ""
 #: grunt/grunt/api/v1/docs/utils.py:140
 msgid "Author"
 msgstr "Автор"
-
-#: grunt/grunt/website/www/form/{route}.py:132
-msgid "Thank you! Your submission has been received."
-msgstr "Дякуємо! Вашу заявку прийнято."
-
-#: grunt/grunt/website/www/form/{route}.py:141
-msgid "Could not verify that you are not a robot. Please try again."
-msgstr "Не вдалося підтвердити, що ви не робот. Спробуйте ще раз."
-
-#: grunt/grunt/website/www/form/{route}.py:180
-msgid "Submission error"
-msgstr "Помилка надсилання"
-
-#: grunt/grunt/website/www/form/{route}.py:188
-msgid "The form has been submitted successfully."
-msgstr "Форму успішно надіслано."
 
 #: grunt/grunt/metadata/compiler.py:97
 msgid "Fix the duplicates and try again."
@@ -13295,15 +12775,15 @@ msgstr "Термін дії посилання закінчився"
 msgid "DocType not found"
 msgstr "DocType не знайдено"
 
-#: grunt/grunt/api/v1/dashboard.py:270
+#: grunt/grunt/api/v1/dashboard.py:278
 msgid "The page is not published"
 msgstr "Сторінку не опубліковано"
 
-#: grunt/grunt/api/v1/dashboard.py:286
+#: grunt/grunt/api/v1/dashboard.py:294
 msgid "Dashboard not found"
 msgstr "Дашборд не знайдено"
 
-#: grunt/grunt/api/v1/dashboard.py:287
+#: grunt/grunt/api/v1/dashboard.py:295
 msgid "The dashboard is not published"
 msgstr "Дашборд не опубліковано"
 
@@ -13320,9 +12800,7 @@ msgstr "Недостатньо прав"
 msgid "Not found"
 msgstr "Не знайдено"
 
-#: grunt/grunt/errors.py:118 grunt/grunt/middleware/rate_limit.py:222
-#: grunt/grunt/middleware/rate_limit.py:167
-#: grunt/grunt/middleware/rate_limit.py:183
+#: grunt/grunt/errors.py:118 grunt/grunt/middleware/rate_limit.py:75
 msgid "Too many requests. Try again later."
 msgstr "Забагато запитів. Спробуйте пізніше."
 
@@ -13395,10 +12873,6 @@ msgstr "Вміст коментаря не може бути порожнім"
 #: grunt/grunt/document/doctypes/Comment/comment.py:50
 msgid "Only the author or an administrator can delete a comment"
 msgstr "Видалити коментар може лише автор або адміністратор"
-
-#: grunt/grunt/api/v1/webform.py:52
-msgid "Could not verify that you are not a robot"
-msgstr "Не вдалося підтвердити, що ви не робот"
 
 #: grunt/grunt/api/v1/pages.py:45
 msgid "route is required"
@@ -13476,7 +12950,7 @@ msgstr "Це повідомлення у форматі HTML."
 msgid "Webhook not found"
 msgstr "Вебхук не знайдено"
 
-#: grunt/grunt/storage/doctypes/File/file.py:243
+#: grunt/grunt/storage/doctypes/File/file.py:248
 msgid "No access to the file"
 msgstr "Немає доступу до файлу"
 
@@ -13499,124 +12973,25 @@ msgstr[0] "Нагадування: %(count)d завдання з терміно�
 msgstr[1] "Нагадування: %(count)d завдання з терміном"
 msgstr[2] "Нагадування: %(count)d завдань з терміном"
 
-#: grunt/grunt/website/templates/_navbar.html:61
+#: grunt/grunt/website/templates/_navbar.html:14
 msgid "Go to the app"
 msgstr "Увійти в систему"
 
-#: grunt/grunt/website/templates/_footer.html:5
-msgid "About the platform"
-msgstr "Про платформу"
-
-#: grunt/grunt/website/templates/_footer.html:7
-msgid ""
-"%(site)s is a powerful framework for building modern business applications "
-"with a Ukrainian soul and global standards."
-msgstr ""
-"%(site)s — це потужний фреймворк для створення сучасних бізнес-додатків з "
-"українською душею та глобальними стандартами."
-
-#: grunt/grunt/website/templates/_footer.html:57
-msgid "Documentation"
-msgstr "Документація"
-
-#: grunt/grunt/website/templates/_footer.html:63
-msgid "Grunt platform"
-msgstr "Платформа Ґрунт"
-
-#: grunt/grunt/website/templates/_footer.html:65
-msgid "Privacy"
-msgstr "Конфіденційність"
-
-#: grunt/grunt/website/templates/_footer.html:66
-#: grunt/grunt/website/www/signup.ssr.html:109
-msgid "Terms of use"
-msgstr "Умови використання"
-
-#: grunt/grunt/website/www/login.ssr.html:63
-msgid "Welcome"
-msgstr "Ласкаво просимо"
-
-#: grunt/grunt/website/www/login.ssr.html:64
-msgid "Sign in to your account to continue"
-msgstr "Увійдіть у свій акаунт, щоб продовжити"
-
-#: grunt/grunt/website/www/login.ssr.html:89
-msgid "Remember me"
-msgstr "Запам'ятати мене"
-
-#: grunt/grunt/website/www/signup.ssr.html:70
-msgid "Join our community today"
-msgstr "Приєднуйтесь до нашої спільноти сьогодні"
-
-#: grunt/grunt/website/www/signup.ssr.html:82
-msgid "First name"
-msgstr "Ім'я"
-
-#: grunt/grunt/website/www/signup.ssr.html:83
-msgid "John"
-msgstr "Іван"
-
-#: grunt/grunt/website/www/signup.ssr.html:86
-msgid "Last name"
-msgstr "Прізвище"
-
-#: grunt/grunt/website/www/signup.ssr.html:87
-msgid "Smith"
-msgstr "Франко"
-
-#: grunt/grunt/website/www/signup.ssr.html:109
-msgid "I agree to the"
-msgstr "Я погоджуюся з"
-
-#: grunt/grunt/website/www/signup.ssr.html:109
-msgid "and the"
-msgstr "та"
-
-#: grunt/grunt/website/www/signup.ssr.html:109
-msgid "Privacy policy"
-msgstr "Політикою конфіденційності"
-
-#: grunt/grunt/website/www/form/{route}.html:132
-msgid "Thank you!"
-msgstr "Дякуємо!"
-
-#: grunt/grunt/website/www/form/{route}.html:138
-msgid "Sign-in required"
-msgstr "Потрібна авторизація"
-
-#: grunt/grunt/website/www/form/{route}.html:139
-msgid "This form is available only to signed-in users."
-msgstr "Ця форма доступна лише авторизованим користувачам."
-
-#: grunt/grunt/website/www/form/{route}.html:152
-msgid "Leave this field empty"
-msgstr "Залиште це поле порожнім"
-
-#: grunt/grunt/website/www/form/{route}.html:210
-msgid "Submit"
-msgstr "Надіслати"
-
-#: grunt/grunt/website/www/share/{token}.html:172
+#: grunt/grunt/website/www/share/{token}.html:169
 msgid "Ask the document owner for a new link."
 msgstr "Зверніться до власника документа за новим посиланням."
 
-#: grunt/grunt/website/www/share/{token}.html:191
+#: grunt/grunt/website/www/share/{token}.html:188
 msgid "Section %(n)s"
 msgstr "Розділ %(n)s"
 
-#: grunt/grunt/website/www/share/{token}.html:210
+#: grunt/grunt/website/www/share/{token}.html:207
 msgid "About the document"
 msgstr "Про документ"
 
-#: grunt/grunt/website/www/share/{token}.html:219
+#: grunt/grunt/website/www/share/{token}.html:216
 msgid "Read only"
 msgstr "Лише для читання"
-
-#: grunt/grunt/website/templates/_footer.html:31
-#: grunt/grunt/website/templates/_footer.html:55
-msgctxt "website"
-msgid "Links"
-msgstr "Посилання"
 
 #: grunt/frontend/src/core/browserHealth.ts:85
 msgid "Cache Storage"
@@ -13638,7 +13013,7 @@ msgstr "Service worker"
 msgid "code 4001"
 msgstr ""
 
-#: grunt/grunt/storage/doctypes/File/file.py:231
+#: grunt/grunt/storage/doctypes/File/file.py:236
 msgid "File not found"
 msgstr "Файл не знайдено"
 
@@ -13650,11 +13025,7 @@ msgstr "Сесію не знайдено"
 msgid "'%(name)s' is a singleton."
 msgstr "«%(name)s» — singleton (єдиний запис)."
 
-#: grunt/grunt/site/doctypes/WebsiteMenuItem/website_menu_item.py:15
-msgid "A menu item can't be its own parent"
-msgstr "Пункт меню не може бути батьківським сам для себе"
-
-#: grunt/grunt/auth/doctypes/User/user.py:651
+#: grunt/grunt/auth/doctypes/User/user.py:663
 msgid "Account temporarily locked. Try again later."
 msgstr "Обліковий запис тимчасово заблоковано. Спробуйте пізніше."
 
@@ -13663,7 +13034,7 @@ msgstr "Обліковий запис тимчасово заблоковано.
 msgid "Authentication required"
 msgstr "Потрібна автентифікація"
 
-#: grunt/grunt/storage/doctypes/File/file.py:238
+#: grunt/grunt/storage/doctypes/File/file.py:243
 msgid "Authentication required to access this file"
 msgstr "Для доступу до файлу потрібна автентифікація"
 
@@ -13715,7 +13086,7 @@ msgstr "WebAuthn-виклик прострочений або недійсний
 msgid "Fieldname '%(fieldname)s' exceeds %(max)s characters"
 msgstr "Назва поля «%(fieldname)s» довша за %(max)s символів"
 
-#: grunt/grunt/storage/doctypes/File/file.py:256
+#: grunt/grunt/storage/doctypes/File/file.py:268
 msgid "File not found on storage"
 msgstr "Файл не знайдено в сховищі"
 
@@ -13723,7 +13094,7 @@ msgstr "Файл не знайдено в сховищі"
 msgid "Hook '%(doc_id)s' not found"
 msgstr "Хук «%(doc_id)s» не знайдено"
 
-#: grunt/grunt/auth/doctypes/User/user.py:655
+#: grunt/grunt/auth/doctypes/User/user.py:667
 msgid "Incorrect email or password"
 msgstr "Невірна електронна пошта або пароль"
 
@@ -13735,20 +13106,20 @@ msgstr ""
 "Недійсна назва поля «%(fieldname)s»: має починатися з a-z і містити лише "
 "a-z, 0-9, _"
 
-#: grunt/grunt/auth/doctypes/User/user.py:777
+#: grunt/grunt/auth/doctypes/User/user.py:789
 msgid "Invalid language value"
 msgstr "Недійсне значення мови"
 
-#: grunt/grunt/auth/doctypes/User/user.py:797
-#: grunt/grunt/auth/doctypes/User/user.py:802
+#: grunt/grunt/auth/doctypes/User/user.py:809
+#: grunt/grunt/auth/doctypes/User/user.py:814
 msgid "Invalid or expired refresh token"
 msgstr "Недійсний або прострочений refresh-токен"
 
-#: grunt/grunt/auth/doctypes/User/user.py:1093
+#: grunt/grunt/auth/doctypes/User/user.py:1105
 msgid "Invalid or expired reset token"
 msgstr "Недійсний або прострочений токен скидання"
 
-#: grunt/grunt/auth/doctypes/User/user.py:770
+#: grunt/grunt/auth/doctypes/User/user.py:782
 msgid "Invalid theme value"
 msgstr "Недійсне значення теми"
 
@@ -13781,7 +13152,7 @@ msgstr "Відсутня відповідь WebAuthn"
 msgid "Missing required parameters: %(items)s"
 msgstr "Бракує обов'язкових параметрів: %(items)s"
 
-#: grunt/grunt/storage/doctypes/File/file.py:88
+#: grunt/grunt/storage/doctypes/File/file.py:91
 msgid "No filename provided"
 msgstr "Не вказано назву файлу"
 
@@ -13856,7 +13227,7 @@ msgstr "Невідомий ключ доступу"
 msgid "User not found or inactive"
 msgstr "Користувача не знайдено або він неактивний"
 
-#: grunt/grunt/auth/doctypes/User/user.py:621
+#: grunt/grunt/auth/doctypes/User/user.py:633
 msgid "User with email '%(email)s' already exists"
 msgstr "Користувач з адресою «%(email)s» вже існує"
 
@@ -13935,8 +13306,8 @@ msgid "Expand"
 msgstr "Розгорнути"
 
 #: grunt/frontend/src/components/desk/TaskProgressPanel.vue:111
-#: grunt/frontend/src/components/views/DocSidebar.vue:73
-#: grunt/frontend/src/components/views/DocSidebar.vue:78
+#: grunt/frontend/src/components/views/DocSidebar.vue:75
+#: grunt/frontend/src/components/views/DocSidebar.vue:80
 #: grunt/frontend/src/components/files/FileExplorer.vue:763
 #: grunt/frontend/src/components/ui/tree-select/TreeSelectNode.vue:65
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:398
@@ -14072,7 +13443,7 @@ msgid ""
 "smallest. Also used by «Create now»."
 msgstr ""
 
-#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+#: grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
 msgctxt "help:WebsiteMenuItem.route"
 msgid ""
 "Address slug of this item as a site section — an app renders the section "
@@ -14115,7 +13486,7 @@ msgctxt "meta:SystemSettings.backup_compression_level"
 msgid "Compression level"
 msgstr ""
 
-#: grunt/grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
+#: grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
 msgctxt "meta:WebsiteMenuItem.route"
 msgid "Section route"
 msgstr ""
@@ -14313,7 +13684,7 @@ msgctxt "meta:WorkflowTransition.notify_email"
 msgid "Also by email"
 msgstr "Також на email"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarImage.vue:163
+#: grunt/frontend/src/components/views/sidebar/SidebarImage.vue:164
 msgid "Add image"
 msgstr "Додати зображення"
 
@@ -14333,23 +13704,23 @@ msgstr "Відповідальний"
 msgid "Comment"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/SidebarImage.vue:57
+#: grunt/frontend/src/components/views/sidebar/SidebarImage.vue:58
 msgid "Could not upload the image"
 msgstr "Не вдалося завантажити зображення"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarImage.vue:158
+#: grunt/frontend/src/components/views/sidebar/SidebarImage.vue:159
 msgid "Drop a file or click to choose"
 msgstr "Перетягніть файл або натисніть, щоб вибрати"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarImage.vue:142
+#: grunt/frontend/src/components/views/sidebar/SidebarImage.vue:143
 msgid "Drop to replace"
 msgstr "Відпустіть, щоб замінити"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarImage.vue:107
+#: grunt/frontend/src/components/views/sidebar/SidebarImage.vue:108
 msgid "Image actions"
 msgstr "Дії із зображенням"
 
-#: grunt/frontend/src/pages/desk/DocTypeForm.vue:137
+#: grunt/frontend/src/pages/desk/DocTypeForm.vue:144
 msgid "Image changed. Save the document to apply it."
 msgstr "Зображення змінено. Збережіть документ, щоб застосувати."
 
@@ -14369,11 +13740,11 @@ msgstr "Нікого не призначено"
 msgid "Not shared with anyone"
 msgstr "Ні з ким не поширено"
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:202
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:205
 msgid "On website"
 msgstr "На сайті"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarImage.vue:49
+#: grunt/frontend/src/components/views/sidebar/SidebarImage.vue:50
 msgid "Only images can be used here"
 msgstr "Тут можна використати лише зображення"
 
@@ -14381,7 +13752,7 @@ msgstr "Тут можна використати лише зображення"
 msgid "Open task"
 msgstr "Відкрити задачу"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarImage.vue:129
+#: grunt/frontend/src/components/views/sidebar/SidebarImage.vue:130
 msgid "Remove image"
 msgstr "Видалити зображення"
 
@@ -14389,7 +13760,7 @@ msgstr "Видалити зображення"
 msgid "Remove tag {tag}"
 msgstr "Прибрати тег {tag}"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarImage.vue:86
+#: grunt/frontend/src/components/views/sidebar/SidebarImage.vue:87
 msgid "Remove the image from the document?"
 msgstr "Прибрати зображення з документа?"
 
@@ -14401,7 +13772,7 @@ msgstr "Відповідальний отримає задачу, пов’яз�
 msgid "Unassign"
 msgstr "Зняти призначення"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarImage.vue:120
+#: grunt/frontend/src/components/views/sidebar/SidebarImage.vue:121
 msgid "Upload from computer"
 msgstr "Завантажити з комп’ютера"
 
@@ -14410,11 +13781,11 @@ msgstr "Завантажити з комп’ютера"
 msgid "Workflow"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:95
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:97
 msgid "created"
 msgstr "створив(ла)"
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:98
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:100
 msgid "modified"
 msgstr "змінив(ла)"
 
@@ -14426,8 +13797,8 @@ msgstr "Не вдалося зберегти тег"
 msgid "Add tag…"
 msgstr "Додати тег…"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:472
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:514
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:484
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:529
 msgid "Delete comment"
 msgstr "Видалити коментар"
 
@@ -14435,7 +13806,7 @@ msgstr "Видалити коментар"
 msgid "Optional. Without it the task only links to the document."
 msgstr "Необов’язково. Без тексту задача лише посилатиметься на документ."
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:413
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:425
 msgid "to send"
 msgstr "— надіслати"
 
@@ -14447,7 +13818,7 @@ msgstr "Порівняти й відновити"
 msgid "Show less"
 msgstr "Згорнути"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:184
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:196
 msgid "changed {n} field"
 msgid_plural "changed {n} fields"
 msgstr[0] "змінив(ла) {n} поле"
@@ -14459,7 +13830,7 @@ msgstr[2] "змінив(ла) {n} полів"
 msgid "cleared"
 msgstr "очищено"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:181
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:193
 msgid "commented"
 msgstr "прокоментував(ла)"
 
@@ -14478,11 +13849,11 @@ msgstr[0] "Ще {n} зміна"
 msgstr[1] "Ще {n} зміни"
 msgstr[2] "Ще {n} змін"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:188
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:200
 msgid "applied «{action}»"
 msgstr "виконав(ла) «{action}»"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:188
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:200
 msgid "changed the state"
 msgstr "змінив(ла) стан"
 
@@ -14535,9 +13906,9 @@ msgstr "Домашню теку не можна видалити"
 msgid "A home folder can't be moved"
 msgstr "Домашню теку не можна перемістити"
 
-#: grunt/grunt/storage/doctypes/File/file.py:56
-#: grunt/grunt/storage/doctypes/File/file.py:95
-#: grunt/grunt/storage/doctypes/File/file.py:154
+#: grunt/grunt/storage/doctypes/File/file.py:60
+#: grunt/grunt/storage/doctypes/File/file.py:98
+#: grunt/grunt/storage/doctypes/File/file.py:157
 #: grunt/grunt/storage/doctypes/FileFolder/file_folder.py:186
 #: grunt/grunt/storage/doctypes/FileFolder/file_folder.py:48
 msgid "Folder “%(folder)s” not found"
@@ -14693,6 +14064,7 @@ msgid "{used} of {quota} used"
 msgstr "Зайнято {used} з {quota}"
 
 #: grunt/frontend/src/components/fields/RichText/ui/EditorToolbar.vue:40
+#: grunt/frontend/src/components/fields/RichText/ui/EditorContextMenu.vue:151
 msgid "Alignment"
 msgstr "Вирівнювання"
 
@@ -14720,22 +14092,23 @@ msgid "Paragraph"
 msgstr "Абзац"
 
 #: grunt/frontend/src/components/fields/RichText/ui/EditorToolbar.vue:29
+#: grunt/frontend/src/components/fields/RichText/ui/EditorContextMenu.vue:142
 msgid "Text style"
 msgstr "Стиль тексту"
 
-#: grunt/frontend/src/components/fields/RichText/ui/TableBubble.vue:31
+#: grunt/frontend/src/components/fields/RichText/ui/EditorContextMenu.vue:38
 msgid "Blue"
 msgstr "Синій"
 
-#: grunt/frontend/src/components/fields/RichText/ui/TableBubble.vue:30
+#: grunt/frontend/src/components/fields/RichText/ui/EditorContextMenu.vue:37
 msgid "Green"
 msgstr "Зелений"
 
-#: grunt/frontend/src/components/fields/RichText/ui/TableBubble.vue:32
+#: grunt/frontend/src/components/fields/RichText/ui/EditorContextMenu.vue:39
 msgid "Red"
 msgstr "Червоний"
 
-#: grunt/frontend/src/components/fields/RichText/ui/TableBubble.vue:29
+#: grunt/frontend/src/components/fields/RichText/ui/EditorContextMenu.vue:36
 msgid "Yellow"
 msgstr "Жовтий"
 
@@ -14751,7 +14124,7 @@ msgstr "Вирівняти посередині"
 msgid "Align top"
 msgstr "Вирівняти догори"
 
-#: grunt/frontend/src/components/fields/RichText/ui/TableBubble.vue:82
+#: grunt/frontend/src/components/fields/RichText/ui/EditorContextMenu.vue:181
 msgid "Cell"
 msgstr "Клітинка"
 
@@ -14759,7 +14132,7 @@ msgstr "Клітинка"
 msgid "Delete column"
 msgstr "Видалити колонку"
 
-#: grunt/frontend/src/components/fields/RichText/ui/TableBubble.vue:28
+#: grunt/frontend/src/components/fields/RichText/ui/EditorContextMenu.vue:35
 msgid "Gray"
 msgstr "Сірий"
 
@@ -14783,15 +14156,15 @@ msgstr "Вставити колонку праворуч"
 msgid "Merge cells"
 msgstr "Об'єднати клітинки"
 
-#: grunt/frontend/src/components/fields/RichText/ui/TableBubble.vue:100
+#: grunt/frontend/src/components/fields/RichText/ui/EditorContextMenu.vue:195
 msgid "No shading"
 msgstr "Без заливки"
 
-#: grunt/frontend/src/components/fields/RichText/ui/TableBubble.vue:33
+#: grunt/frontend/src/components/fields/RichText/ui/EditorContextMenu.vue:40
 msgid "Purple"
 msgstr "Фіолетовий"
 
-#: grunt/frontend/src/components/fields/RichText/ui/TableBubble.vue:96
+#: grunt/frontend/src/components/fields/RichText/ui/EditorContextMenu.vue:191
 msgid "Shading"
 msgstr "Заливка"
 
@@ -14926,20 +14299,20 @@ msgid "Attach ({n})"
 msgstr "Прикріпити ({n})"
 
 #: grunt/frontend/src/components/fields/RichText/editor/useRichEditor.ts:83
-#: grunt/frontend/src/components/fields/RichText/ui/LinkPopover.vue:94
+#: grunt/frontend/src/components/fields/RichText/ui/LinkPopover.vue:99
 msgid "Link to a file…"
 msgstr "Посилання на файл…"
 
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:86
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:85
 msgid "Insert link"
 msgstr "Вставити посилання"
 
 #: grunt/frontend/src/components/files/FileExplorer.vue:741
-#: grunt/frontend/src/components/fields/RichText/RichText.vue:85
+#: grunt/frontend/src/components/fields/RichText/RichText.vue:84
 msgid "Link to a file"
 msgstr "Посилання на файл"
 
-#: grunt/frontend/src/components/fields/RichText/ui/LinkPopover.vue:81
+#: grunt/frontend/src/components/fields/RichText/ui/LinkPopover.vue:86
 msgid "Link text"
 msgstr "Текст посилання"
 
@@ -14953,6 +14326,7 @@ msgid "copy"
 msgstr "копія"
 
 #: grunt/frontend/src/components/files/FileExplorer.vue:706
+#: grunt/frontend/src/components/fields/RichText/ui/EditorContextMenu.vue:110
 msgid "Cut"
 msgstr "Вирізати"
 
@@ -14961,6 +14335,7 @@ msgid "Delete selected: {n}? Folders go with everything in them."
 msgstr "Видалити вибране ({n})? Теки — разом з усім вмістом."
 
 #: grunt/frontend/src/components/files/FileExplorer.vue:715
+#: grunt/frontend/src/components/fields/RichText/ui/EditorContextMenu.vue:116
 msgid "Paste"
 msgstr "Вставити"
 
@@ -14968,7 +14343,7 @@ msgstr "Вставити"
 msgid "Could not download the file"
 msgstr "Не вдалося завантажити файл"
 
-#: grunt/grunt/storage/doctypes/File/file.py:162
+#: grunt/grunt/storage/doctypes/File/file.py:165
 msgid "Could not download the file: %(error)s"
 msgstr "Не вдалося завантажити файл: %(error)s"
 
@@ -15054,7 +14429,7 @@ msgstr "Перезняти"
 msgid "Switch camera"
 msgstr "Перемкнути камеру"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:430
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:442
 #: grunt/frontend/src/components/views/list/ListRowMeta.vue:22
 msgid "Comments"
 msgstr "Коментарі"
@@ -15096,11 +14471,11 @@ msgctxt "meta:DocLike.user"
 msgid "User"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:436
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:448
 msgid "No changes yet"
 msgstr "Поки що немає змін"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:436
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:448
 msgid "No comments yet"
 msgstr "Поки що немає коментарів"
 
@@ -15339,11 +14714,6 @@ msgctxt "help:ServerScript.is_standard"
 msgid "Ships with the app as JSON files - edits are saved to the app"
 msgstr "Постачається з додатком як JSON-файли — зміни зберігаються в додаток"
 
-#: grunt/grunt/site/doctypes/WebForm/WebForm.json
-msgctxt "help:WebForm.is_standard"
-msgid "Ships with the app as JSON files - edits are saved to the app"
-msgstr "Постачається з додатком як JSON-файли — зміни зберігаються в додаток"
-
 #: grunt/grunt/metadata/doctypes/Workflow/Workflow.json
 msgctxt "help:Workflow.is_standard"
 msgid "Ships with the app as JSON files - edits are saved to the app"
@@ -15516,21 +14886,6 @@ msgstr "Тип документа"
 
 #: grunt/grunt/activity/doctypes/ViewLog/ViewLog.json
 msgctxt "meta:ViewLog.ref_doctype"
-msgid "Document type"
-msgstr "Тип документа"
-
-#: grunt/grunt/site/doctypes/WebForm/WebForm.json
-msgctxt "meta:WebForm.app"
-msgid "App"
-msgstr "Додаток"
-
-#: grunt/grunt/site/doctypes/WebForm/WebForm.json
-msgctxt "meta:WebForm.is_standard"
-msgid "Standard"
-msgstr "Стандартний"
-
-#: grunt/grunt/site/doctypes/WebForm/WebForm.json
-msgctxt "meta:WebForm.ref_doctype"
 msgid "Document type"
 msgstr "Тип документа"
 
@@ -16075,8 +15430,8 @@ msgid ""
 msgstr ""
 "На цей коментар відповіли інші — видалити гілку може лише адміністратор"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:465
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:531
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:477
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:546
 msgid "Reply"
 msgstr "Відповісти"
 
@@ -16084,7 +15439,7 @@ msgstr "Відповісти"
 msgid "The comment you reply to no longer exists"
 msgstr "Коментар, на який ви відповідаєте, уже видалено"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:525
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:540
 msgid "Write a reply..."
 msgstr "Напишіть відповідь..."
 
@@ -16399,7 +15754,7 @@ msgctxt "meta:MilestoneTracker.track_field"
 msgid "Field"
 msgstr "Поле"
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:267
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:270
 msgid "Cancel reminder"
 msgstr "Скасувати нагадування"
 
@@ -16407,18 +15762,18 @@ msgstr "Скасувати нагадування"
 msgid "Choose when to remind"
 msgstr "Оберіть, коли нагадати"
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:136
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:138
 msgid "I will remind you {when}"
 msgstr "Нагадаю {when}"
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:260
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:263
 msgid "My reminders"
 msgstr "Мої нагадування"
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:125
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:126
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:325
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:329
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:127
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:128
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:328
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:332
 msgid "Remind me"
 msgstr "Нагадати мені"
 
@@ -16438,7 +15793,7 @@ msgstr "Вкажіть і тип документа, і документ"
 msgid "The reminder time is in the past"
 msgstr "Час нагадування вже минув"
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:128
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:130
 msgid "When"
 msgstr "Коли"
 
@@ -16481,11 +15836,11 @@ msgctxt "meta:Reminder.remind_at"
 msgid "Remind at"
 msgstr "Нагадати о"
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:131
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:133
 msgid "In an hour"
 msgstr "Через годину"
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:131
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:133
 msgid "Tomorrow at 9:00"
 msgstr "Завтра о 9:00"
 
@@ -16558,6 +15913,819 @@ msgstr "Рядків"
 msgctxt "meta:PageWidget.value_label"
 msgid "Value label"
 msgstr "Підпис значення"
+
+#: grunt/frontend/src/components/fields/RichText/ui/EditorContextMenu.vue:98
+msgid "The browser did not allow reading the clipboard. Use Ctrl+V."
+msgstr "Браузер не дозволив прочитати буфер обміну. Скористайтеся Ctrl+V."
+
+#: grunt/frontend/src/components/views/explorer/index.ts:7
+msgid "Explorer"
+msgstr "Провідник"
+
+#: grunt/grunt/monitoring/doctypes/PerfTrend/perf_trend.py:129
+msgid "Performance trend is read-only"
+msgstr "Динаміка продуктивності доступна лише для читання"
+
+#: grunt/grunt/monitoring/doctypes/PerfTrend/perf_trend.py:160
+msgid "Performance trend “%(name)s” not found"
+msgstr "Запис динаміки продуктивності «%(name)s» не знайдено"
+
+#: grunt/grunt/monitoring/doctypes/PerfStat/PerfStat.json
+msgctxt "help:PerfStat"
+msgid ""
+"Hourly timing aggregates of HTTP routes, RPC methods, document saves, "
+"background tasks and profiled spans. Written by every server process once a "
+"minute; see Performance Trend to compare periods. Turn off in System "
+"Settings → Logs & maintenance."
+msgstr ""
+"Погодинна статистика часу виконання HTTP-маршрутів, RPC-методів, збережень "
+"документів, фонових задач і профільованих ділянок коду. Кожен серверний "
+"процес записує її раз на хвилину; порівняти періоди можна в «Динаміці "
+"продуктивності». Вимкнути — у Налаштуваннях системи → Журнали та "
+"обслуговування."
+
+#: grunt/grunt/monitoring/doctypes/PerfTrend/PerfTrend.json
+msgctxt "help:PerfTrend"
+msgid ""
+"Compares the last N days of Performance Stat with the N days before: which "
+"endpoints got slower or faster. A change is shown only when both periods "
+"have at least 10 calls."
+msgstr ""
+"Порівнює останні N днів статистики продуктивності з попередніми N днями: що "
+"стало повільнішим, а що швидшим. Зміна показується, лише коли в обох "
+"періодах щонайменше 10 викликів."
+
+#: grunt/grunt/monitoring/doctypes/PerfTrend/PerfTrend.json
+msgctxt "help:PerfTrend.period"
+msgid "Days in each compared period."
+msgstr "Кількість днів у кожному з порівнюваних періодів."
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgctxt "help:SystemSettings.perf_monitoring_enabled"
+msgid ""
+"Hourly timings of requests, RPC methods, document saves and background tasks"
+" go to Performance Stat (compare periods in Performance Trend). Kept as long"
+" as other logs."
+msgstr ""
+"Погодинний час виконання запитів, RPC-методів, збережень документів і "
+"фонових задач записується у «Статистику продуктивності» (порівняння періодів"
+" — у «Динаміці продуктивності»). Зберігається стільки ж, скільки інші "
+"журнали."
+
+#: grunt/grunt/monitoring/doctypes/PerfStat/PerfStat.json
+msgctxt "meta:PerfStat"
+msgid "Performance Stat"
+msgstr "Статистика продуктивності"
+
+#: grunt/grunt/monitoring/doctypes/PerfStat/PerfStat.json
+msgctxt "meta:PerfStat.avg_ms"
+msgid "Average, ms"
+msgstr "Середнє, мс"
+
+#: grunt/grunt/monitoring/doctypes/PerfStat/PerfStat.json
+msgctxt "meta:PerfStat.avg_sql"
+msgid "SQL per call"
+msgstr "SQL на виклик"
+
+#: grunt/grunt/monitoring/doctypes/PerfStat/PerfStat.json
+msgctxt "meta:PerfStat.calls"
+msgid "Calls"
+msgstr "Викликів"
+
+#: grunt/grunt/monitoring/doctypes/PerfStat/PerfStat.json
+msgctxt "meta:PerfStat.endpoint"
+msgid "Endpoint"
+msgstr "Точка входу"
+
+#: grunt/grunt/monitoring/doctypes/PerfStat/PerfStat.json
+msgctxt "meta:PerfStat.errors"
+msgid "Errors"
+msgstr "Помилок"
+
+#: grunt/grunt/monitoring/doctypes/PerfStat/PerfStat.json
+msgctxt "meta:PerfStat.h_0"
+msgid "≤ 5 ms"
+msgstr "≤ 5 мс"
+
+#: grunt/grunt/monitoring/doctypes/PerfStat/PerfStat.json
+msgctxt "meta:PerfStat.h_1"
+msgid "≤ 10 ms"
+msgstr "≤ 10 мс"
+
+#: grunt/grunt/monitoring/doctypes/PerfStat/PerfStat.json
+msgctxt "meta:PerfStat.h_10"
+msgid "≤ 10 s"
+msgstr "≤ 10 с"
+
+#: grunt/grunt/monitoring/doctypes/PerfStat/PerfStat.json
+msgctxt "meta:PerfStat.h_11"
+msgid "> 10 s"
+msgstr "> 10 с"
+
+#: grunt/grunt/monitoring/doctypes/PerfStat/PerfStat.json
+msgctxt "meta:PerfStat.h_2"
+msgid "≤ 25 ms"
+msgstr "≤ 25 мс"
+
+#: grunt/grunt/monitoring/doctypes/PerfStat/PerfStat.json
+msgctxt "meta:PerfStat.h_3"
+msgid "≤ 50 ms"
+msgstr "≤ 50 мс"
+
+#: grunt/grunt/monitoring/doctypes/PerfStat/PerfStat.json
+msgctxt "meta:PerfStat.h_4"
+msgid "≤ 100 ms"
+msgstr "≤ 100 мс"
+
+#: grunt/grunt/monitoring/doctypes/PerfStat/PerfStat.json
+msgctxt "meta:PerfStat.h_5"
+msgid "≤ 250 ms"
+msgstr "≤ 250 мс"
+
+#: grunt/grunt/monitoring/doctypes/PerfStat/PerfStat.json
+msgctxt "meta:PerfStat.h_6"
+msgid "≤ 500 ms"
+msgstr "≤ 500 мс"
+
+#: grunt/grunt/monitoring/doctypes/PerfStat/PerfStat.json
+msgctxt "meta:PerfStat.h_7"
+msgid "≤ 1 s"
+msgstr "≤ 1 с"
+
+#: grunt/grunt/monitoring/doctypes/PerfStat/PerfStat.json
+msgctxt "meta:PerfStat.h_8"
+msgid "≤ 2.5 s"
+msgstr "≤ 2,5 с"
+
+#: grunt/grunt/monitoring/doctypes/PerfStat/PerfStat.json
+msgctxt "meta:PerfStat.h_9"
+msgid "≤ 5 s"
+msgstr "≤ 5 с"
+
+#: grunt/grunt/monitoring/doctypes/PerfStat/PerfStat.json
+msgctxt "meta:PerfStat.kind"
+msgid "Kind"
+msgstr "Тип"
+
+#: grunt/grunt/monitoring/doctypes/PerfStat/PerfStat.json
+msgctxt "meta:PerfStat.max_ms"
+msgid "Max, ms"
+msgstr "Максимум, мс"
+
+#: grunt/grunt/monitoring/doctypes/PerfStat/PerfStat.json
+msgctxt "meta:PerfStat.p50_ms"
+msgid "Median, ms"
+msgstr "Медіана, мс"
+
+#: grunt/grunt/monitoring/doctypes/PerfStat/PerfStat.json
+msgctxt "meta:PerfStat.p95_ms"
+msgid "p95, ms"
+msgstr "p95, мс"
+
+#: grunt/grunt/monitoring/doctypes/PerfStat/PerfStat.json
+msgctxt "meta:PerfStat.period_start"
+msgid "Hour"
+msgstr "Година"
+
+#: grunt/grunt/monitoring/doctypes/PerfStat/PerfStat.json
+msgctxt "meta:PerfStat.ref_doctype"
+msgid "DocType"
+msgstr "DocType"
+
+#: grunt/grunt/monitoring/doctypes/PerfStat/PerfStat.json
+msgctxt "meta:PerfStat.sec_hist"
+msgid "Latency distribution (calls)"
+msgstr "Розподіл часу (викликів)"
+
+#: grunt/grunt/monitoring/doctypes/PerfStat/PerfStat.json
+msgctxt "meta:PerfStat.sec_timing"
+msgid "Timing"
+msgstr "Час виконання"
+
+#: grunt/grunt/monitoring/doctypes/PerfStat/PerfStat.json
+msgctxt "meta:PerfStat.sql_calls"
+msgid "SQL queries"
+msgstr "SQL-запитів"
+
+#: grunt/grunt/monitoring/doctypes/PerfStat/PerfStat.json
+msgctxt "meta:PerfStat.sql_ms"
+msgid "SQL time, ms"
+msgstr "Час SQL, мс"
+
+#: grunt/grunt/monitoring/doctypes/PerfStat/PerfStat.json
+msgctxt "meta:PerfStat.total_ms"
+msgid "Total, ms"
+msgstr "Сумарно, мс"
+
+#: grunt/grunt/monitoring/doctypes/PerfTrend/PerfTrend.json
+msgctxt "meta:PerfTrend"
+msgid "Performance Trend"
+msgstr "Динаміка продуктивності"
+
+#: grunt/grunt/monitoring/doctypes/PerfTrend/PerfTrend.json
+msgctxt "meta:PerfTrend.avg_change"
+msgid "Average change, %"
+msgstr "Зміна середнього, %"
+
+#: grunt/grunt/monitoring/doctypes/PerfTrend/PerfTrend.json
+msgctxt "meta:PerfTrend.avg_ms"
+msgid "Average, ms"
+msgstr "Середнє, мс"
+
+#: grunt/grunt/monitoring/doctypes/PerfTrend/PerfTrend.json
+msgctxt "meta:PerfTrend.avg_sql"
+msgid "SQL per call"
+msgstr "SQL на виклик"
+
+#: grunt/grunt/monitoring/doctypes/PerfTrend/PerfTrend.json
+msgctxt "meta:PerfTrend.calls"
+msgid "Calls"
+msgstr "Викликів"
+
+#: grunt/grunt/monitoring/doctypes/PerfTrend/PerfTrend.json
+msgctxt "meta:PerfTrend.endpoint"
+msgid "Endpoint"
+msgstr "Точка входу"
+
+#: grunt/grunt/monitoring/doctypes/PerfTrend/PerfTrend.json
+msgctxt "meta:PerfTrend.errors"
+msgid "Errors"
+msgstr "Помилок"
+
+#: grunt/grunt/monitoring/doctypes/PerfTrend/PerfTrend.json
+msgctxt "meta:PerfTrend.kind"
+msgid "Kind"
+msgstr "Тип"
+
+#: grunt/grunt/monitoring/doctypes/PerfTrend/PerfTrend.json
+msgctxt "meta:PerfTrend.p95_change"
+msgid "p95 change, %"
+msgstr "Зміна p95, %"
+
+#: grunt/grunt/monitoring/doctypes/PerfTrend/PerfTrend.json
+msgctxt "meta:PerfTrend.p95_ms"
+msgid "p95, ms"
+msgstr "p95, мс"
+
+#: grunt/grunt/monitoring/doctypes/PerfTrend/PerfTrend.json
+msgctxt "meta:PerfTrend.period"
+msgid "Period"
+msgstr "Період"
+
+#: grunt/grunt/monitoring/doctypes/PerfTrend/PerfTrend.json
+msgctxt "meta:PerfTrend.prev_avg_ms"
+msgid "Average, ms"
+msgstr "Середнє, мс"
+
+#: grunt/grunt/monitoring/doctypes/PerfTrend/PerfTrend.json
+msgctxt "meta:PerfTrend.prev_avg_sql"
+msgid "SQL per call"
+msgstr "SQL на виклик"
+
+#: grunt/grunt/monitoring/doctypes/PerfTrend/PerfTrend.json
+msgctxt "meta:PerfTrend.prev_calls"
+msgid "Calls"
+msgstr "Викликів"
+
+#: grunt/grunt/monitoring/doctypes/PerfTrend/PerfTrend.json
+msgctxt "meta:PerfTrend.prev_p95_ms"
+msgid "p95, ms"
+msgstr "p95, мс"
+
+#: grunt/grunt/monitoring/doctypes/PerfTrend/PerfTrend.json
+msgctxt "meta:PerfTrend.ref_doctype"
+msgid "DocType"
+msgstr "DocType"
+
+#: grunt/grunt/monitoring/doctypes/PerfTrend/PerfTrend.json
+msgctxt "meta:PerfTrend.sec_change"
+msgid "Change"
+msgstr "Зміна"
+
+#: grunt/grunt/monitoring/doctypes/PerfTrend/PerfTrend.json
+msgctxt "meta:PerfTrend.sec_current"
+msgid "Current period"
+msgstr "Поточний період"
+
+#: grunt/grunt/monitoring/doctypes/PerfTrend/PerfTrend.json
+msgctxt "meta:PerfTrend.sec_previous"
+msgid "Previous period"
+msgstr "Попередній період"
+
+#: grunt/grunt/monitoring/doctypes/PerfTrend/PerfTrend.json
+msgctxt "meta:PerfTrend.sql_change"
+msgid "SQL per call change"
+msgstr "Зміна SQL на виклик"
+
+#: grunt/grunt/monitoring/doctypes/PerfTrend/PerfTrend.json
+msgctxt "meta:PerfTrend.total_ms"
+msgid "Total, ms"
+msgstr "Сумарно, мс"
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgctxt "meta:SystemSettings.perf_monitoring_enabled"
+msgid "Record performance stats"
+msgstr "Записувати статистику продуктивності"
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgctxt "select:DocType.default_view"
+msgid "explorer"
+msgstr ""
+
+#~ msgctxt "meta:WebForm"
+#~ msgid "Web form"
+#~ msgstr "Веб-форма"
+
+#~ msgctxt "meta:WebForm.title"
+#~ msgid "Title"
+#~ msgstr "Заголовок"
+
+#~ msgctxt "meta:WebForm.route"
+#~ msgid "URL route"
+#~ msgstr "URL маршрут"
+
+#~ msgctxt "meta:WebForm.introduction"
+#~ msgid "Introduction"
+#~ msgstr "Вступ"
+
+#~ msgctxt "meta:WebForm.success_message"
+#~ msgid "Success message"
+#~ msgstr "Повідомлення успіху"
+
+#~ msgctxt "meta:WebForm.success_url"
+#~ msgid "URL after submit"
+#~ msgstr "URL після відправки"
+
+#~ msgctxt "meta:WebForm.login_required"
+#~ msgid "Login required"
+#~ msgstr "Потрібна авторизація"
+
+#~ msgctxt "meta:WebForm.is_published"
+#~ msgid "Published"
+#~ msgstr "Опубліковано"
+
+#~ msgctxt "meta:WebForm.max_submissions"
+#~ msgid "Max responses"
+#~ msgstr "Макс. відповідей"
+
+#~ msgctxt "meta:WebForm.submit_label"
+#~ msgid "Button text"
+#~ msgstr "Текст кнопки"
+
+#~ msgctxt "meta:WebForm.allow_edit"
+#~ msgid "Allow editing"
+#~ msgstr "Дозволити редагування"
+
+#~ msgctxt "meta:WebPage"
+#~ msgid "Web page"
+#~ msgstr "Веб-сторінка"
+
+#~ msgctxt "meta:WebPage.title"
+#~ msgid "Title"
+#~ msgstr "Заголовок"
+
+#~ msgctxt "meta:WebPage.route"
+#~ msgid "URL route"
+#~ msgstr "URL маршрут"
+
+#~ msgctxt "meta:WebPage.published"
+#~ msgid "Published"
+#~ msgstr "Опубліковано"
+
+#~ msgctxt "meta:WebPage.content"
+#~ msgid "Content"
+#~ msgstr "Вміст"
+
+#~ msgctxt "meta:WebPage.meta_description"
+#~ msgid "Meta description (SEO)"
+#~ msgstr "Meta-опис (SEO)"
+
+#~ msgctxt "meta:WebPage.og_image"
+#~ msgid "Social image (OG)"
+#~ msgstr "Зображення для соцмереж (OG)"
+
+#~ msgctxt "meta:WebPage.show_in_navbar"
+#~ msgid "Show in navigation"
+#~ msgstr "Показувати в навігації"
+
+#~ msgctxt "meta:WebPage.menu_title"
+#~ msgid "Menu label"
+#~ msgstr "Назва в меню"
+
+#~ msgctxt "meta:WebPage.blocks"
+#~ msgid "Content blocks"
+#~ msgstr "Блоки контенту"
+
+#~ msgctxt "meta:WebPageBlock"
+#~ msgid "Page content block"
+#~ msgstr "Блок контенту сторінки"
+
+#~ msgctxt "meta:WebPageBlock.block_type"
+#~ msgid "Block type"
+#~ msgstr "Тип блоку"
+
+#~ msgctxt "meta:WebPageBlock.title"
+#~ msgid "Title"
+#~ msgstr "Заголовок"
+
+#~ msgctxt "meta:WebPageBlock.settings"
+#~ msgid "Block settings"
+#~ msgstr "Налаштування блоку"
+
+#~ msgctxt "meta:WebPageBlock.sequence"
+#~ msgid "Order"
+#~ msgstr "Порядок"
+
+#~ msgctxt "meta:WebsiteNavItem.label"
+#~ msgid "Name"
+#~ msgstr "Назва"
+
+#~ msgctxt "meta:WebsiteNavItem.is_external"
+#~ msgid "External link"
+#~ msgstr "Зовнішнє посилання"
+
+#~ msgctxt "meta:WebsiteNavItem.group"
+#~ msgid "Group (for the footer)"
+#~ msgstr "Група (для підвалу)"
+
+#~ msgctxt "meta:WebsiteNavItem.sequence"
+#~ msgid "Order"
+#~ msgstr "Порядок"
+
+#~ msgctxt "meta:WebsiteSettings"
+#~ msgid "Site settings"
+#~ msgstr "Налаштування сайту"
+
+#~ msgctxt "meta:WebsiteSettings.sec_brand"
+#~ msgid "Branding"
+#~ msgstr "Бренд"
+
+#~ msgctxt "meta:WebsiteSettings.site_name"
+#~ msgid "Site name"
+#~ msgstr "Назва сайту"
+
+#~ msgctxt "meta:WebsiteSettings.brand_logo"
+#~ msgid "Logo"
+#~ msgstr "Логотип"
+
+#~ msgctxt "meta:WebsiteSettings.home_route"
+#~ msgid "Home page route"
+#~ msgstr "Маршрут головної сторінки"
+
+#~ msgctxt "help:WebsiteSettings.home_route"
+#~ msgid ""
+#~ "Route of the published WebPage used as the home page (a file-based "
+#~ "www/index.html always takes priority)"
+#~ msgstr ""
+#~ "Route опублікованої WebPage, що використовується як домашня (файлова "
+#~ "www/index.html завжди має пріоритет)"
+
+#~ msgctxt "meta:WebsiteSettings.sec_footer"
+#~ msgid "Site footer"
+#~ msgstr "Підвал сайту"
+
+#~ msgctxt "meta:WebsiteSettings.copyright_text"
+#~ msgid "Copyright text"
+#~ msgstr "Текст копірайту"
+
+#~ msgctxt "meta:WebsiteSettings.footer_items"
+#~ msgid "Footer links"
+#~ msgstr "Посилання в підвалі"
+
+#~ msgctxt "help:WebsiteSettings.footer_items"
+#~ msgid "The 'Group' field sets the column heading in the footer"
+#~ msgstr "Поле 'Група' визначає заголовок колонки в підвалі"
+
+#~ msgctxt "meta:WebsiteSettings.sec_seo"
+#~ msgid "Default SEO"
+#~ msgstr "SEO за замовчуванням"
+
+#~ msgctxt "meta:WebsiteSettings.default_meta_description"
+#~ msgid "Default meta description"
+#~ msgstr "Meta-опис за замовчуванням"
+
+#~ msgctxt "meta:WebsiteSettings.default_og_image"
+#~ msgid "Default social image"
+#~ msgstr "Зображення для соцмереж за замовчуванням"
+
+#~ msgctxt "meta:WebsiteNavItem.url"
+#~ msgid "URL"
+#~ msgstr "URL"
+
+#~ msgctxt "help:WebForm.captcha_enabled"
+#~ msgid ""
+#~ "Requires a captcha_provider to be configured for the site — otherwise "
+#~ "ignored"
+#~ msgstr ""
+#~ "Потребує налаштованого для сайту captcha_provider — інакше ігнорується"
+
+#~ msgctxt "help:WebForm.confirmation_template"
+#~ msgid ""
+#~ "Sent to the submitter's own email field (if any) and to every address in "
+#~ "Notify emails below"
+#~ msgstr ""
+#~ "Надсилається на email самого відправника (якщо є таке поле) і на кожну "
+#~ "адресу з «Email для сповіщень» нижче"
+
+#~ msgctxt "help:WebForm.notify_emails"
+#~ msgid ""
+#~ "One address per line or comma-separated — staff to alert on every submission"
+#~ msgstr ""
+#~ "По адресі на рядок або через кому — співробітники, яких сповіщати про кожне "
+#~ "надсилання"
+
+#~ msgctxt "help:WebFormField.collapsible"
+#~ msgid "Section rows only"
+#~ msgstr "Лише для рядків Section"
+
+#~ msgctxt "help:WebFormField.fieldtype"
+#~ msgid ""
+#~ "Empty for an ordinary field (its real type is always resolved live from the "
+#~ "target DocType); set only to mark a Tab/Section/Column layout row"
+#~ msgstr ""
+#~ "Порожнє для звичайного поля (його справжній тип завжди береться з цільового "
+#~ "DocType); задавайте лише для рядків розмітки Tab/Section/Column"
+
+#~ msgctxt "help:WebFormField.label"
+#~ msgid "Required for Tab/Section rows; optional override for ordinary fields"
+#~ msgstr ""
+#~ "Обов'язково для рядків Tab/Section; для звичайних полів — необов'язкове "
+#~ "перевизначення"
+
+#~ msgctxt "help:WebFormField.required"
+#~ msgid "OR'd with the target field's own required flag"
+#~ msgstr "Поєднується через АБО з власною ознакою обов'язковості цільового поля"
+
+#~ msgctxt "help:WebsiteFooterColumn.title"
+#~ msgid ""
+#~ "Must match the 'Group' field on the footer links this column should show"
+#~ msgstr "Має збігатися з полем «Група» посилань футера, які показує ця колонка"
+
+#~ msgctxt "help:WebsiteNavItem.group"
+#~ msgid ""
+#~ "Used only in the site footer to group links under a heading — must match a "
+#~ "Site footer column's title"
+#~ msgstr ""
+#~ "Використовується лише у футері сайту для групування посилань під заголовком "
+#~ "— має збігатися із заголовком колонки футера"
+
+#~ msgctxt "help:WebsiteNavItem.highlight"
+#~ msgid ""
+#~ "Render this item as a call-to-action (e.g. a button) instead of a plain link"
+#~ msgstr ""
+#~ "Показувати пункт як заклик до дії (напр. кнопку), а не як звичайне посилання"
+
+#~ msgctxt "help:WebsiteSettings.footer_columns"
+#~ msgid ""
+#~ "Controls which footer columns show and in what order. Leave empty to auto-"
+#~ "group footer links by their 'Group' field instead."
+#~ msgstr ""
+#~ "Визначає, які колонки футера показувати і в якому порядку. Залиште порожнім,"
+#~ " щоб посилання футера автоматично групувалися за полем «Група»."
+
+#~ msgctxt "meta:WebForm.captcha_enabled"
+#~ msgid "Require CAPTCHA"
+#~ msgstr "Вимагати CAPTCHA"
+
+#~ msgctxt "meta:WebForm.confirmation_template"
+#~ msgid "Confirmation email template"
+#~ msgstr "Шаблон листа-підтвердження"
+
+#~ msgctxt "meta:WebForm.fields"
+#~ msgid "Fields"
+#~ msgstr "Поля"
+
+#~ msgctxt "meta:WebForm.notify_emails"
+#~ msgid "Notify emails"
+#~ msgstr "Email для сповіщень"
+
+#~ msgctxt "meta:WebForm.sec_antispam"
+#~ msgid "Anti-spam"
+#~ msgstr "Антиспам"
+
+#~ msgctxt "meta:WebForm.sec_notifications"
+#~ msgid "Notifications"
+#~ msgstr "Сповіщення"
+
+#~ msgctxt "meta:WebFormField"
+#~ msgid "Web form field"
+#~ msgstr "Поле веб-форми"
+
+#~ msgctxt "meta:WebFormField.collapsible"
+#~ msgid "Collapsible"
+#~ msgstr "Згортається"
+
+#~ msgctxt "meta:WebFormField.description"
+#~ msgid "Help text override"
+#~ msgstr "Власний текст підказки"
+
+#~ msgctxt "meta:WebFormField.fieldname"
+#~ msgid "Fieldname"
+#~ msgstr "Ім'я поля"
+
+#~ msgctxt "meta:WebFormField.fieldtype"
+#~ msgid "Field type"
+#~ msgstr "Тип поля"
+
+#~ msgctxt "meta:WebFormField.hidden"
+#~ msgid "Hidden"
+#~ msgstr "Приховане"
+
+#~ msgctxt "meta:WebFormField.label"
+#~ msgid "Label override"
+#~ msgstr "Власна назва"
+
+#~ msgctxt "meta:WebFormField.required"
+#~ msgid "Required on this form"
+#~ msgstr "Обов'язкове в цій формі"
+
+#~ msgctxt "meta:WebsiteFooterColumn"
+#~ msgid "Site footer column"
+#~ msgstr "Колонка футера сайту"
+
+#~ msgctxt "meta:WebsiteFooterColumn.enabled"
+#~ msgid "Enabled"
+#~ msgstr "Увімкнено"
+
+#~ msgctxt "meta:WebsiteFooterColumn.title"
+#~ msgid "Column heading"
+#~ msgstr "Заголовок колонки"
+
+#~ msgctxt "meta:WebsiteNavItem.highlight"
+#~ msgid "Highlight"
+#~ msgstr "Виділяти"
+
+#~ msgctxt "meta:WebsiteNavItem.icon"
+#~ msgid "Icon"
+#~ msgstr "Іконка"
+
+#~ msgctxt "meta:WebsiteSettings.footer_columns"
+#~ msgid "Footer columns"
+#~ msgstr "Колонки футера"
+
+#~ msgctxt "meta:WebsiteNavItem"
+#~ msgid "Site footer link"
+#~ msgstr "Посилання підвалу сайту"
+
+#~ msgctxt "meta:WebForm.tab_designer"
+#~ msgid "Builder"
+#~ msgstr "Конструктор"
+
+#~ msgid "Text"
+#~ msgstr "Текст"
+
+#~ msgid "Button text"
+#~ msgstr "Текст кнопки"
+
+#~ msgid "HTML code"
+#~ msgstr "HTML-код"
+
+#~ msgid "Web form route"
+#~ msgstr "Маршрут веб-форми"
+
+#~ msgid "Icon 1 (emoji)"
+#~ msgstr "Іконка 1 (emoji)"
+
+#~ msgid "Icon 2 (emoji)"
+#~ msgstr "Іконка 2 (emoji)"
+
+#~ msgid "Icon 3 (emoji)"
+#~ msgstr "Іконка 3 (emoji)"
+
+#~ msgid "Title 1"
+#~ msgstr "Заголовок 1"
+
+#~ msgid "Title 2"
+#~ msgstr "Заголовок 2"
+
+#~ msgid "Title 3"
+#~ msgstr "Заголовок 3"
+
+#~ msgid "Description 1"
+#~ msgstr "Опис 1"
+
+#~ msgid "Description 2"
+#~ msgstr "Опис 2"
+
+#~ msgid "Description 3"
+#~ msgstr "Опис 3"
+
+#~ msgid "Form not found"
+#~ msgstr "Форму не знайдено"
+
+#~ msgid "You need to sign in to fill in this form"
+#~ msgstr "Для заповнення цієї форми потрібна авторизація"
+
+#~ msgid "The maximum number of responses has been reached"
+#~ msgstr "Досягнуто максимальну кількість відповідей"
+
+#~ msgid "Thank you! Your submission has been received."
+#~ msgstr "Дякуємо! Вашу заявку прийнято."
+
+#~ msgid "Could not verify that you are not a robot. Please try again."
+#~ msgstr "Не вдалося підтвердити, що ви не робот. Спробуйте ще раз."
+
+#~ msgid "Submission error"
+#~ msgstr "Помилка надсилання"
+
+#~ msgid "The form has been submitted successfully."
+#~ msgstr "Форму успішно надіслано."
+
+#~ msgid "Could not verify that you are not a robot"
+#~ msgstr "Не вдалося підтвердити, що ви не робот"
+
+#~ msgid "About the platform"
+#~ msgstr "Про платформу"
+
+#~ msgid ""
+#~ "%(site)s is a powerful framework for building modern business applications "
+#~ "with a Ukrainian soul and global standards."
+#~ msgstr ""
+#~ "%(site)s — це потужний фреймворк для створення сучасних бізнес-додатків з "
+#~ "українською душею та глобальними стандартами."
+
+#~ msgid "Documentation"
+#~ msgstr "Документація"
+
+#~ msgid "Grunt platform"
+#~ msgstr "Платформа Ґрунт"
+
+#~ msgid "Privacy"
+#~ msgstr "Конфіденційність"
+
+#~ msgid "Terms of use"
+#~ msgstr "Умови використання"
+
+#~ msgid "Welcome"
+#~ msgstr "Ласкаво просимо"
+
+#~ msgid "Sign in to your account to continue"
+#~ msgstr "Увійдіть у свій акаунт, щоб продовжити"
+
+#~ msgid "Remember me"
+#~ msgstr "Запам'ятати мене"
+
+#~ msgid "Join our community today"
+#~ msgstr "Приєднуйтесь до нашої спільноти сьогодні"
+
+#~ msgid "First name"
+#~ msgstr "Ім'я"
+
+#~ msgid "John"
+#~ msgstr "Іван"
+
+#~ msgid "Last name"
+#~ msgstr "Прізвище"
+
+#~ msgid "Smith"
+#~ msgstr "Франко"
+
+#~ msgid "I agree to the"
+#~ msgstr "Я погоджуюся з"
+
+#~ msgid "and the"
+#~ msgstr "та"
+
+#~ msgid "Privacy policy"
+#~ msgstr "Політикою конфіденційності"
+
+#~ msgid "Thank you!"
+#~ msgstr "Дякуємо!"
+
+#~ msgid "Sign-in required"
+#~ msgstr "Потрібна авторизація"
+
+#~ msgid "This form is available only to signed-in users."
+#~ msgstr "Ця форма доступна лише авторизованим користувачам."
+
+#~ msgid "Leave this field empty"
+#~ msgstr "Залиште це поле порожнім"
+
+#~ msgid "Submit"
+#~ msgstr "Надіслати"
+
+#~ msgctxt "website"
+#~ msgid "Links"
+#~ msgstr "Посилання"
+
+#~ msgid "A menu item can't be its own parent"
+#~ msgstr "Пункт меню не може бути батьківським сам для себе"
+
+#~ msgctxt "help:WebForm.is_standard"
+#~ msgid "Ships with the app as JSON files - edits are saved to the app"
+#~ msgstr "Постачається з додатком як JSON-файли — зміни зберігаються в додаток"
+
+#~ msgctxt "meta:WebForm.app"
+#~ msgid "App"
+#~ msgstr "Додаток"
+
+#~ msgctxt "meta:WebForm.is_standard"
+#~ msgid "Standard"
+#~ msgstr "Стандартний"
+
+#~ msgctxt "meta:WebForm.ref_doctype"
+#~ msgid "Document type"
+#~ msgstr "Тип документа"
 
 #~ msgctxt "help:DocTypeCalendarSource.doctype"
 #~ msgid "The document type added to the calendar as a separate source"
@@ -20545,11 +20713,3 @@ msgstr "Підпис значення"
 #~ msgstr ""
 #~ "zstd, 1–19. Вищий — менший файл, але довше: 9 — оптимальний баланс, 19 — "
 #~ "найменший розмір. Застосовується і до «Створити зараз»."
-
-#: grunt/frontend/src/components/fields/RichText/ui/EditorContextMenu.vue
-msgid "The browser did not allow reading the clipboard. Use Ctrl+V."
-msgstr "Браузер не дозволив прочитати буфер обміну. Скористайтеся Ctrl+V."
-
-#: grunt/frontend/src/components/views/explorer/index.ts:7
-msgid "Explorer"
-msgstr "Провідник"

@@ -14,9 +14,11 @@ runs in the web process and only enqueues.
 
 from __future__ import annotations
 
+import asyncio
 import importlib
 import re
 import sys
+from contextlib import suppress
 from pathlib import Path
 
 from taskiq import TaskiqEvents, TaskiqState
@@ -24,6 +26,7 @@ from taskiq import TaskiqEvents, TaskiqState
 import grunt
 from grunt import log
 from grunt.db.write_intent import set_process_default
+from grunt.monitoring import perf
 from grunt.site.manager import site_manager
 from grunt.startup.lifespan import boot
 from grunt.tasks.broker import broker
@@ -87,3 +90,13 @@ set_process_default(True)
 @broker.on_event(TaskiqEvents.WORKER_STARTUP)
 async def _boot_worker(state: TaskiqState) -> None:
     await boot()
+    state.perf_flush = asyncio.create_task(perf.run_flush_loop())
+
+
+@broker.on_event(TaskiqEvents.WORKER_SHUTDOWN)
+async def _stop_worker(state: TaskiqState) -> None:
+    flush = getattr(state, "perf_flush", None)
+    if flush is not None:
+        flush.cancel()
+        with suppress(asyncio.CancelledError):
+            await flush

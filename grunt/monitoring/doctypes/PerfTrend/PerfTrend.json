@@ -1,0 +1,176 @@
+{
+  "name": "PerfTrend",
+  "label": "Performance Trend",
+  "module": "monitoring",
+  "icon": "trending-up",
+  "is_virtual": true,
+  "track_activity": false,
+  "track_changes": false,
+  "title_field": "endpoint",
+  "sort_field": "p95_change",
+  "sort_order": "desc",
+  "default_view": "list",
+  "search_fields": [
+    "endpoint",
+    "ref_doctype"
+  ],
+  "description": "Compares the last N days of Performance Stat with the N days before: which endpoints got slower or faster. A change is shown only when both periods have at least 10 calls.",
+  "fields": [
+    {
+      "fieldname": "period",
+      "label": "Period",
+      "fieldtype": "Select",
+      "options": "1\n7\n30",
+      "default": "7",
+      "in_quick_filter": true,
+      "description": "Days in each compared period."
+    },
+    {
+      "fieldname": "kind",
+      "label": "Kind",
+      "fieldtype": "Select",
+      "options": "HTTP\nRPC\nPage\nDocument\nTask\nSpan",
+      "in_list_view": true,
+      "in_filter": true,
+      "in_quick_filter": true,
+      "read_only": true
+    },
+    {
+      "fieldname": "endpoint",
+      "label": "Endpoint",
+      "fieldtype": "Data",
+      "in_list_view": true,
+      "in_filter": true,
+      "read_only": true
+    },
+    {
+      "fieldname": "ref_doctype",
+      "label": "DocType",
+      "fieldtype": "Link",
+      "options": "DocType",
+      "in_list_view": true,
+      "in_filter": true,
+      "read_only": true
+    },
+    {
+      "fieldname": "sec_current",
+      "label": "Current period",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "calls",
+      "label": "Calls",
+      "fieldtype": "Int",
+      "in_list_view": true,
+      "read_only": true
+    },
+    {
+      "fieldname": "errors",
+      "label": "Errors",
+      "fieldtype": "Int",
+      "read_only": true
+    },
+    {
+      "fieldname": "total_ms",
+      "label": "Total, ms",
+      "fieldtype": "Float",
+      "read_only": true
+    },
+    {
+      "fieldname": "col_current",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "avg_ms",
+      "label": "Average, ms",
+      "fieldtype": "Float",
+      "in_list_view": true,
+      "read_only": true
+    },
+    {
+      "fieldname": "p95_ms",
+      "label": "p95, ms",
+      "fieldtype": "Float",
+      "in_list_view": true,
+      "read_only": true
+    },
+    {
+      "fieldname": "avg_sql",
+      "label": "SQL per call",
+      "fieldtype": "Float",
+      "read_only": true
+    },
+    {
+      "fieldname": "sec_previous",
+      "label": "Previous period",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "prev_calls",
+      "label": "Calls",
+      "fieldtype": "Int",
+      "read_only": true
+    },
+    {
+      "fieldname": "prev_avg_ms",
+      "label": "Average, ms",
+      "fieldtype": "Float",
+      "read_only": true
+    },
+    {
+      "fieldname": "col_previous",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "prev_p95_ms",
+      "label": "p95, ms",
+      "fieldtype": "Float",
+      "read_only": true
+    },
+    {
+      "fieldname": "prev_avg_sql",
+      "label": "SQL per call",
+      "fieldtype": "Float",
+      "read_only": true
+    },
+    {
+      "fieldname": "sec_change",
+      "label": "Change",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "avg_change",
+      "label": "Average change, %",
+      "fieldtype": "Float",
+      "read_only": true
+    },
+    {
+      "fieldname": "col_change",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "p95_change",
+      "label": "p95 change, %",
+      "fieldtype": "Float",
+      "in_list_view": true,
+      "read_only": true
+    },
+    {
+      "fieldname": "col_change_sql",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "sql_change",
+      "label": "SQL per call change",
+      "fieldtype": "Float",
+      "in_list_view": true,
+      "read_only": true
+    }
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "read": true
+    }
+  ]
+}

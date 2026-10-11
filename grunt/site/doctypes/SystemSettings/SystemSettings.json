@@ -119,6 +119,14 @@
       "description": "Log records (errors, background jobs, views, etc.) older than this many days are deleted automatically every day. An individual DocType may override this with its own setting."
     },
     {
+      "fieldname": "perf_monitoring_enabled",
+      "label": "Record performance stats",
+      "fieldtype": "Check",
+      "default": true,
+      "columns": 6,
+      "description": "Hourly timings of requests, RPC methods, document saves and background tasks go to Performance Stat (compare periods in Performance Trend). Kept as long as other logs."
+    },
+    {
       "fieldname": "sec_files",
       "label": "Files",
       "fieldtype": "Section"

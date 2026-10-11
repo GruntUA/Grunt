@@ -84,3 +84,12 @@ class BackgroundTaskLoggingMiddleware(TaskiqMiddleware):
                 task=message.task_name,
                 exc_info=True,
             )
+
+
+class TaskPerfMiddleware(TaskiqMiddleware):
+    """Feeds every finished task run into the perf stats (kind ``Task``)."""
+
+    def post_execute(self, message: TaskiqMessage, result: TaskiqResult[Any]) -> None:
+        from grunt.monitoring import perf
+
+        perf.record("Task", message.task_name, result.execution_time * 1000, error=result.is_err)

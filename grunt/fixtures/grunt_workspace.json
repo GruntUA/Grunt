@@ -374,6 +374,24 @@
     {
       "section": "Моніторинг",
       "type": "DocType",
+      "label": "Динаміка продуктивності",
+      "icon": "trending-up",
+      "link_to": "PerfTrend",
+      "show_count": false,
+      "sequence": 78
+    },
+    {
+      "section": "Моніторинг",
+      "type": "DocType",
+      "label": "Статистика продуктивності",
+      "icon": "gauge",
+      "link_to": "PerfStat",
+      "show_count": false,
+      "sequence": 78
+    },
+    {
+      "section": "Моніторинг",
+      "type": "DocType",
       "label": "Активні фонові задачі",
       "icon": "loader",
       "link_to": "BackgroundJob",

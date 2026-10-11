@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 from taskiq_redis import RedisStreamBroker
 
 from grunt.config import settings
-from grunt.tasks.middleware import BackgroundTaskLoggingMiddleware
+from grunt.tasks.middleware import BackgroundTaskLoggingMiddleware, TaskPerfMiddleware
 from grunt.utils.redis import connection_options
 
 _P = ParamSpec("_P")
@@ -34,6 +34,7 @@ _retry_middleware = SmartRetryMiddleware(
 if settings.redis_url:
     broker = RedisStreamBroker(settings.redis_url, **connection_options()).with_middlewares(
         BackgroundTaskLoggingMiddleware(),
+        TaskPerfMiddleware(),
         _retry_middleware,
     )
     log.debug("tasks.broker_initialized", type="redis_stream", url=settings.redis_url)
@@ -41,6 +42,7 @@ else:
     # Fallback to In-Memory broker for local dev without Redis
     broker = InMemoryBroker().with_middlewares(
         BackgroundTaskLoggingMiddleware(),
+        TaskPerfMiddleware(),
         _retry_middleware,
     )
     log.warning("tasks.broker_initialized", type="in_memory", reason="REDIS_URL not set")

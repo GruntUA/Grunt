@@ -338,25 +338,25 @@ def attach_query_profiler(engine: AsyncEngine, threshold_ms: float = 200.0) -> N
 
 @asynccontextmanager
 async def profile_span(name: str) -> AsyncGenerator[None]:
-    """Async context manager that records a named span in the current request profile.
+    """Async context manager that records a named span in the current request
+    profile (dev) and in the persistent perf stats (:mod:`grunt.monitoring.perf`).
 
     Usage::
 
         async with profile_span("grunt.get_doc"):
             doc = await session.execute(...)
     """
-    if not _settings.enabled:
-        yield
-        return
+    from grunt.monitoring import perf
 
     start = time.perf_counter()
-    try:
-        yield
-    finally:
-        duration_ms = (time.perf_counter() - start) * 1000
-        spans = _request_spans.get(None)
-        if spans is not None:
-            spans.append(SpanRecord(name=name, duration_ms=round(duration_ms, 2)))
+    with perf.measure("Span", name):
+        try:
+            yield
+        finally:
+            duration_ms = (time.perf_counter() - start) * 1000
+            spans = _request_spans.get(None)
+            if _settings.enabled and spans is not None:
+                spans.append(SpanRecord(name=name, duration_ms=round(duration_ms, 2)))
 
 
 def profile(name: str) -> Callable[[F], F]:
