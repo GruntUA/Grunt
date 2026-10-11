@@ -14,7 +14,7 @@ from grunt.local import _user_ctx
 from grunt.storage import files
 from grunt.storage.backends import FileTooLargeError, get_storage_backend
 from grunt.storage.signing import verify
-from grunt.storage.thumbnails import THUMB_MIMETYPE, can_thumbnail
+from grunt.storage.thumbnails import THUMB_MIMETYPE, THUMB_WIDTH, WEB_WIDTHS, can_thumbnail
 
 
 class File(Document):
@@ -208,9 +208,11 @@ async def get_content(
     exp: int | None = None,
     sig: str | None = None,
     thumb: bool = False,
+    w: int | None = None,
     request: Request | None = None,
 ) -> Response:
-    """Whitelisted method: Stream file content from storage (``thumb`` - its preview).
+    """Whitelisted method: Stream file content from storage (``thumb`` - its preview,
+    ``w`` - a preview that wide, one of ``WEB_WIDTHS``, for ``srcset`` on pages).
 
     A private file needs either a valid signature (``exp`` + ``sig``, appended
     to every file URL the API hands out) or a user allowed to read it.
@@ -247,12 +249,19 @@ async def get_content(
 
     key = doc.get("content_hash") or ""
     storage = get_storage_backend()
+    # A sized preview for a page's srcset, made on first request. A width
+    # outside WEB_WIDTHS or a file without previews (SVG) gets the original.
+    width = None
+    if w in WEB_WIDTHS and await files.ensure_thumbnail(key, doc.get("content_type"), w):
+        width, thumb = (None if w == THUMB_WIDTH else w), True
     # A blob never changes (it is named by its hash) - let the browser keep
-    # it and revalidate by ETag. "private": access is per user.
-    etag = f'"{key}-thumb"' if thumb else f'"{key}"'
-    headers = {"ETag": etag, "Cache-Control": "private, max-age=86400"}
+    # it and revalidate by ETag. A public file (website images) may sit in a
+    # shared cache (CDN); anything else is per user.
+    etag = f'"{key}-{width or "thumb"}"' if thumb else f'"{key}"'
+    scope = "public" if doc.get("is_public") else "private"
+    headers = {"ETag": etag, "Cache-Control": f"{scope}, max-age=86400"}
     try:
-        path = storage.thumbnail_path(key) if thumb else storage.path(key)
+        path = storage.thumbnail_path(key, width) if thumb else storage.path(key)
     except FileNotFoundError:
         path = None
     if path is None or not path.exists():

@@ -28,6 +28,7 @@ from grunt.io import register_exporter, register_importer
 from grunt.tasks.scheduler import register_scheduler_events
 from grunt.website import website_registry
 from grunt.website.block_types import register_block_type
+from grunt.website.router import register_sitemap_source
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable
@@ -125,6 +126,15 @@ def _website_block_types(value: list[dict], ctx: LoadContext) -> None:
     for bt in value:
         register_block_type(bt["name"], bt["template"], bt.get("fields"))
         log.info("website.block_type.registered", name=bt["name"], app=ctx.app_name)
+
+
+@consumer("website_sitemap")
+def _website_sitemap(value: list[str], ctx: LoadContext) -> None:
+    for path in value:
+        try:
+            register_sitemap_source(_resolve(path))
+        except Exception as e:
+            log.warning("website.sitemap.source_error", app=ctx.app_name, source=path, error=str(e))
 
 
 @consumer("tree_title_resolvers")

@@ -483,7 +483,7 @@ class GruntDB:
         if isinstance(group_by, str):
             group_by = [group_by]
 
-        dialect = self._session().bind.dialect.name
+        dialect = self._session().get_bind().dialect.name
         for gb in group_by or []:
             select_expr, group_expr = _build_group_by_column(table, gb, dialect)
             select_exprs.append(select_expr)

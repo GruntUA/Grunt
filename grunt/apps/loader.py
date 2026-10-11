@@ -37,6 +37,7 @@ from grunt.scripting.file_scripts import discover_file_scripts as _discover_scri
 from grunt.site.manager import site_manager
 from grunt.startup.doctypes import _find_doctype_dirs
 from grunt.website import make_website_handler, website_registry
+from grunt.website.router import PAGE_METHODS
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
@@ -290,7 +291,7 @@ def _register_app_pages(ctx: LoadContext, *, is_main_app: bool = False) -> None:
         ctx.fastapi_app.add_api_route(
             page.url_pattern,
             make_website_handler(page),
-            methods=["GET", "POST"],
+            methods=PAGE_METHODS,
             include_in_schema=False,
             tags=["www"],
         )

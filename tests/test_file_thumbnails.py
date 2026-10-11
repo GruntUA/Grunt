@@ -75,3 +75,50 @@ async def test_uploaded_pdf_serves_signed_thumbnail(client, auth_headers):
     listed = await client.get(f"{M}.get_list", params={"search": "scan"}, headers=auth_headers)
     [item] = [i for i in listed.json()["data"]["items"] if i["name"] == file_id]
     assert "&thumb=1" in item["thumbnail_url"]
+
+
+@pytest.mark.asyncio
+async def test_thumbnail_width_is_capped_and_never_upscaled():
+    wide = await make_thumbnail(_png(), "image/png", 960)
+    assert wide is not None and _size(wide)[0] == 960
+    small = await make_thumbnail(_png(300, 200), "image/png", 1600)
+    assert small is not None and _size(small)[0] == 300
+
+
+def test_srcset_only_for_stored_files():
+    from grunt.storage.files import CONTENT_URL, image_srcset, sized_url
+
+    url = CONTENT_URL.format("abc")
+    assert sized_url(url, 960) == f"{url}&w=960"
+    assert image_srcset(url) == f"{url}&w=480 480w, {url}&w=960 960w, {url}&w=1600 1600w"
+    # Static assets and unknown widths stay as they are.
+    assert sized_url("/assets/app/logo.png", 960) == "/assets/app/logo.png"
+    assert sized_url(url, 123) == url
+    assert image_srcset("/assets/app/logo.png") == ""
+
+
+@pytest.mark.asyncio
+async def test_public_image_serves_sized_previews_cacheable(client, auth_headers):
+    up = await client.post(
+        f"{M}.upload",
+        files={"file": ("cover.png", _png(), "image/png")},
+        data={"is_public": "true"},
+        headers=auth_headers,
+    )
+    assert up.status_code == 200, up.text
+    url = up.json()["data"]["url"]
+
+    r = await client.get(url + "&w=960")
+    assert r.status_code == 200
+    assert r.headers["content-type"] == "image/webp"
+    assert _size(r.content)[0] == 960
+    # Website images may sit in a shared cache (CDN).
+    assert r.headers["cache-control"].startswith("public")
+
+    again = await client.get(url + "&w=960", headers={"If-None-Match": r.headers["etag"]})
+    assert again.status_code == 304
+
+    # A width outside WEB_WIDTHS gets the original.
+    original = await client.get(url + "&w=123")
+    assert original.status_code == 200
+    assert original.headers["content-type"] == "image/png"

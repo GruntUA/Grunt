@@ -8,13 +8,22 @@ import importlib.util
 import inspect
 import re
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from fastapi import Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse, PlainTextResponse, Response
 from jinja2 import ChoiceLoader, Environment, FileSystemLoader, select_autoescape
 
 from grunt import log
+
+if TYPE_CHECKING:
+    from types import ModuleType
+
+# www/*.py controllers by path: (mtime, module)
+_controllers: dict[Path, tuple[float, ModuleType]] = {}
+
+# GET pages answer HEAD too (uptime monitors, link checkers, some crawlers).
+PAGE_METHODS = ["GET", "HEAD", "POST"]
 
 # Grunt-level base templates directory (apps can extend _base.html from here)
 _GRUNT_WWW_TEMPLATES_DIR = Path(__file__).parent / "templates"
@@ -38,6 +47,32 @@ class WebsitePage:
     def py_file(self) -> Path | None:
         f = self.html_file.with_suffix(".py")
         return f if f.exists() else None
+
+    def controller(self) -> ModuleType | None:
+        """The page's ``.py`` module - loaded once, reloaded when the file changes."""
+        py = self.py_file
+        if py is None:
+            return None
+        mtime = py.stat().st_mtime
+        cached = _controllers.get(py)
+        if cached is not None and cached[0] == mtime:
+            return cached[1]
+        spec = importlib.util.spec_from_file_location("_www_controller", py)
+        if spec is None or spec.loader is None:
+            return None
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        _controllers[py] = (mtime, mod)
+        return mod
+
+    @property
+    def in_sitemap(self) -> bool:
+        """Static pages are listed unless the controller says ``sitemap = False``
+        (redirects, sign-in, per-visitor pages)."""
+        if "{" in self.url_pattern:
+            return False
+        mod = self.controller()
+        return getattr(mod, "sitemap", True) is not False
 
     def __repr__(self) -> str:
         return f"<WebsitePage app={self.app!r} url={self.url_pattern!r}>"
@@ -81,6 +116,11 @@ class WebsiteRegistry:
         from grunt.website.spa import spa_assets
 
         env.globals["spa_assets"] = spa_assets
+        # <img src="{{ image_url(doc.image, 960) }}" srcset="{{ image_srcset(doc.image) }}">
+        from grunt.storage.files import image_srcset, sized_url
+
+        env.globals["image_url"] = sized_url
+        env.globals["image_srcset"] = image_srcset
         self._envs[app_name] = env
 
         discovered: list[WebsitePage] = []
@@ -179,31 +219,26 @@ async def render_page(
         # Controller errors propagate to the exception handlers (HTML error page):
         # rendering the template without the controller's context only turns
         # the real error into a misleading "'x' is undefined".
-        if page.py_file:
-            spec = importlib.util.spec_from_file_location("_www_controller", page.py_file)
-            if spec and spec.loader:
-                mod = importlib.util.module_from_spec(spec)
-                spec.loader.exec_module(mod)  # type: ignore[arg-type]
+        mod = page.controller()
+        # Handle POST logic if present
+        if mod is not None and request.method == "POST" and hasattr(mod, "handle_post"):
+            result = mod.handle_post(context)
+            if inspect.isawaitable(result):
+                result = await result
+            # A returned response (e.g. a redirect) goes out as is.
+            if isinstance(result, Response):
+                return result
+            if isinstance(result, dict):
+                context.update(result)
 
-                # Handle POST logic if present
-                if request.method == "POST" and hasattr(mod, "handle_post"):
-                    result = mod.handle_post(context)
-                    if inspect.isawaitable(result):
-                        result = await result
-                    # A returned response (e.g. a redirect) goes out as is.
-                    if isinstance(result, Response):
-                        return result
-                    if isinstance(result, dict):
-                        context.update(result)
-
-                if hasattr(mod, "get_context"):
-                    result = mod.get_context(context)
-                    if inspect.isawaitable(result):
-                        result = await result
-                    if isinstance(result, Response):  # e.g. RedirectResponse
-                        return result
-                    if isinstance(result, dict):
-                        context.update(result)
+        if mod is not None and hasattr(mod, "get_context"):
+            result = mod.get_context(context)
+            if inspect.isawaitable(result):
+                result = await result
+            if isinstance(result, Response):  # e.g. RedirectResponse
+                return result
+            if isinstance(result, dict):
+                context.update(result)
 
     env = website_registry.get_env(page.app)
     if env is None:
@@ -304,6 +339,31 @@ async def render_page_by_route(
     return None
 
 
+NOT_FOUND_TEMPLATE = "_404.html"
+
+
+async def render_not_found(request: Request, session: Any) -> Response | None:
+    """404 in the site's own layout: ``www/_404.html`` (+ optional ``_404.py``
+    controller) of the app the path belongs to - the one mounted at
+    ``/<app>/...``, else the primary web app. ``None`` when that app has none.
+    """
+    from grunt.apps.loader import primary_web_app
+
+    first = request.url.path.strip("/").split("/", 1)[0]
+    for app in (first, primary_web_app()):
+        if not app or website_registry.get_env(app) is None:
+            continue
+        www_dir = next((p.www_dir for p in website_registry.pages if p.app == app), None)
+        if www_dir is None or not (www_dir / NOT_FOUND_TEMPLATE).is_file():
+            continue
+        page = WebsitePage(www_dir / NOT_FOUND_TEMPLATE, www_dir, app, request.url.path)
+        response = await render_page(page, request, session=session)
+        if response.status_code == 200:
+            response.status_code = 404
+        return response
+    return None
+
+
 async def render_db_page(doc: dict[str, Any], request: Request, session: Any) -> HTMLResponse:
     """Render a dynamic page from the database using a generic template."""
     import grunt
@@ -353,38 +413,86 @@ def make_website_handler(page: WebsitePage):
     return _handler
 
 
+# A sitemap.xml file may hold at most 50 000 URLs (sitemaps.org).
+SITEMAP_LIMIT = 50_000
+
+SitemapEntry = str | tuple[str, Any]  # path, or (path, last modified)
+_sitemap_sources: list[Any] = []
+
+
+def register_sitemap_source(fn: Any) -> None:
+    """Add ``async fn() -> Iterable[SitemapEntry]`` - pages an app serves that
+    the sitemap can't discover itself (dynamic ``www/{param}`` routes).
+
+    Registered from hooks.py: ``website_sitemap = ["app.module.fn"]``. Called
+    as the system user; paths are site-relative (``/news/slug``).
+    """
+    if fn not in _sitemap_sources:
+        _sitemap_sources.append(fn)
+
+
+def _lastmod(value: Any) -> str:
+    if isinstance(value, str):
+        return value[:10]
+    return value.strftime("%Y-%m-%d") if hasattr(value, "strftime") else ""
+
+
+async def sitemap_entries() -> list[SitemapEntry]:
+    """Every listed page: www pages, published WebPage docs, web view documents
+    and every app's ``website_sitemap`` source (caller holds a grunt context)."""
+    import grunt
+    from grunt.website.generator import sitemap_urls
+
+    entries: list[SitemapEntry] = [p.url_pattern for p in website_registry.pages if p.in_sitemap]
+    pages = await grunt.db.get_all(
+        "WebPage", filters={"published": 1}, fields=["route", "modified_at"], limit=None
+    )
+    entries.extend((p["route"], p.get("modified_at")) for p in pages)
+    entries.extend(await sitemap_urls())
+    for source in _sitemap_sources:
+        try:
+            entries.extend(await source())
+        except Exception as e:  # noqa: BLE001 - one app's bug must not drop the sitemap
+            log.warning("website.sitemap.source_failed", source=repr(source), error=str(e))
+    return entries
+
+
+def render_sitemap(base: str, entries: list[SitemapEntry]) -> str:
+    """sitemap.xml of *entries* (duplicates dropped, at most ``SITEMAP_LIMIT``)."""
+    from xml.sax.saxutils import escape
+
+    seen: set[str] = set()
+    lines: list[str] = []
+    for entry in entries:
+        path, modified = entry if isinstance(entry, tuple) else (entry, None)
+        if not path or path in seen:
+            continue
+        seen.add(path)
+        lastmod = _lastmod(modified) if modified else ""
+        lastmod_tag = f"<lastmod>{lastmod}</lastmod>" if lastmod else ""
+        lines.append(f"  <url><loc>{escape(base + path)}</loc>{lastmod_tag}</url>\n")
+    if len(lines) > SITEMAP_LIMIT:
+        log.warning("website.sitemap.truncated", total=len(lines), limit=SITEMAP_LIMIT)
+        lines = lines[:SITEMAP_LIMIT]
+    return (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+        f"{''.join(lines)}"
+        "</urlset>"
+    )
+
+
 async def sitemap_xml(request: Request) -> Response:
-    """Generate /sitemap.xml: www pages, published WebPage docs, web view documents."""
+    """Generate /sitemap.xml (see :func:`sitemap_entries`)."""
     import grunt
     from grunt.auth.doctypes.User.user import SYSTEM_USER
     from grunt.site.manager import site_manager
-    from grunt.website.generator import sitemap_urls
-
-    base = str(request.base_url).rstrip("/")
-
-    urls = [
-        base + page.url_pattern for page in website_registry.pages if "{" not in page.url_pattern
-    ]
 
     site = site_manager.get_active_site()
     maker = site_manager.get_session_maker(site)
     async with maker() as session, grunt.context(session, user=SYSTEM_USER):
-        pages = await grunt.db.get_all(
-            "WebPage",
-            filters={"published": 1},
-            fields=["route"],
-            limit=None,
-        )
-        urls.extend(base + p["route"] for p in pages)
-        urls.extend(base + url for url in await sitemap_urls())
-
-    entries = "".join(f"  <url><loc>{url}</loc></url>\n" for url in urls)
-    body = (
-        '<?xml version="1.0" encoding="UTF-8"?>\n'
-        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
-        f"{entries}"
-        "</urlset>"
-    )
+        entries = await sitemap_entries()
+    body = render_sitemap(str(request.base_url).rstrip("/"), entries)
     return Response(content=body, media_type="application/xml")
 
 

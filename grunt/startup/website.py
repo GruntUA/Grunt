@@ -24,7 +24,7 @@ from grunt import _, log
 from grunt.config import settings
 from grunt.site.manager import site_manager
 from grunt.website import make_website_handler, robots_txt, sitemap_xml, website_registry
-from grunt.website.router import render_page_by_route
+from grunt.website.router import PAGE_METHODS, render_not_found, render_page_by_route
 from grunt.website.spa import DIST_DIR, static_file
 
 if TYPE_CHECKING:
@@ -36,21 +36,75 @@ _CORE_WEBSITE_DIR = _GRUNT_PKG / "website"
 _MAIN_PUBLIC_DIR = _GRUNT_PKG.parent / "public"
 
 
+# Top-level routes of the Desk SPA (frontend/src/router/index.ts) - the only
+# paths that get the SPA shell when no server-side page claims them.
+_SPA_ROUTES = (
+    "/app",
+    "/setup",
+    "/login",
+    "/signup",
+    "/forgot-password",
+    "/reset-password",
+    "/mfa-verify",
+    "/403",
+)
+
+
+def _is_spa_path(path: str) -> bool:
+    path = path.rstrip("/") or "/"
+    return path == "/" or any(path == r or path.startswith(r + "/") for r in _SPA_ROUTES)
+
+
+async def _legacy_workspace_url(request: Request, session) -> str | None:
+    """``/app/<path>`` for an old bare ``/<workspace>/...`` bookmark, else None.
+
+    Under an app's own website prefix (``/<app>/...`` with www pages, where
+    the workspace is often named after the app) only ``/<app>/<DocType>/...``
+    is taken for a bookmark - the rest is that site's 404.
+    """
+    import grunt
+    from grunt.auth.doctypes.User.user import SYSTEM_USER
+
+    first, _sep, rest = request.url.path.strip("/").partition("/")
+    if not first:
+        return None
+    has_site = any(page.app == first for page in website_registry.pages)
+    try:
+        async with grunt.context(session, user=SYSTEM_USER):
+            if not await grunt.db.exists("AppMenu", first):
+                return None
+            if has_site and await grunt.get_meta(rest.split("/", 1)[0]) is None:
+                return None
+    except Exception as e:  # noqa: BLE001 - a lookup failure must not turn a 404 into a 500
+        log.warning("website.legacy_workspace.error", path=request.url.path, error=str(e))
+        return None
+    query = request.url.query
+    return f"/app{request.url.path}" + (f"?{query}" if query else "")
+
+
 def register_website_routes(app: FastAPI) -> None:
     for page in website_registry.discover_app(_CORE_WEBSITE_DIR, "grunt", is_main_app=True):
         app.add_api_route(
             page.url_pattern,
             make_website_handler(page),
-            methods=["GET", "POST"],
+            methods=PAGE_METHODS,
             include_in_schema=False,
             tags=["website"],
         )
 
     app.add_api_route(
-        "/sitemap.xml", sitemap_xml, methods=["GET"], include_in_schema=False, tags=["website"]
+        "/sitemap.xml",
+        sitemap_xml,
+        methods=["GET", "HEAD"],
+        include_in_schema=False,
+        tags=["website"],
     )
     app.add_api_route(
-        "/robots.txt", robots_txt, methods=["GET"], include_in_schema=False, tags=["website"]
+        "/robots.txt",
+        robots_txt,
+        methods=["GET", "HEAD"],
+        include_in_schema=False,
+        tags=["website"],
     )
 
     # NOTE: Do NOT mount StaticFiles at "/" - it would intercept all paths
@@ -66,14 +120,14 @@ def register_website_routes(app: FastAPI) -> None:
     app.add_api_route(
         "/{path:path}",
         _website_catch_all,
-        methods=["GET"],
+        methods=["GET", "HEAD"],
         include_in_schema=False,
     )
 
 
 async def _website_catch_all(request: Request):
     """Dynamic DB pages: root static file -> server-side page -> SPA fallback."""
-    from fastapi.responses import FileResponse, HTMLResponse
+    from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 
     # 1. Serve root-level static files (replaces a StaticFiles mount at "/").
     #    In production the built SPA (dist/) comes first - Vite serves it in dev.
@@ -96,8 +150,17 @@ async def _website_catch_all(request: Request):
         if response:
             return response
 
-    # 3. No server-side page - fall back to the SPA so vue-router handles the
-    #    path (covers /403, /app/*, and any other frontend route).
+        # 3. Anything that is not a Desk route is a missing page, not the SPA
+        #    shell with a 200 (a "soft 404" for search engines and a blank
+        #    Desk for a reader of the public site).
+        if not _is_spa_path(request.url.path):
+            if workspace_url := await _legacy_workspace_url(request, session):
+                return RedirectResponse(workspace_url, status_code=301)
+            if response := await render_not_found(request, session):
+                return response
+            raise HTTPException(status_code=404, detail=_("Page not found"))
+
+    # 4. A Desk route - the SPA shell, vue-router takes it from here.
     env = website_registry.get_env("grunt")
     if env is not None:
         try:

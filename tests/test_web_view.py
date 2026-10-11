@@ -57,7 +57,7 @@ async def _get(session, path: str) -> str:
 async def _sitemap() -> list[str]:
     from grunt.website.generator import sitemap_urls
 
-    return await sitemap_urls()
+    return [path for path, _modified in await sitemap_urls()]
 
 
 async def _article(ctx, title: str, **data) -> dict:

@@ -13,7 +13,7 @@ from typing import Any, BinaryIO
 import grunt
 from grunt.config import settings
 from grunt.storage.backends import get_storage_backend
-from grunt.storage.thumbnails import can_thumbnail, make_thumbnail
+from grunt.storage.thumbnails import THUMB_WIDTH, WEB_WIDTHS, can_thumbnail, make_thumbnail
 
 CONTENT_URL = "/api/v1/method/grunt.storage.doctypes.File.file.get_content?file_id={}"
 
@@ -63,25 +63,48 @@ def thumbnail_url(file_id: str, key: str, content_type: str | None) -> str | Non
     return None
 
 
-async def ensure_thumbnail(key: str, content_type: str | None) -> bool:
-    """Make the blob's preview unless it exists; False when it can't have one.
+async def ensure_thumbnail(key: str, content_type: str | None, width: int | None = None) -> bool:
+    """Make the blob's preview (*width* px wide - one of ``WEB_WIDTHS``; the
+    standard one by default) unless it exists; False when it can't have one.
 
     Previews are keyed by content, so every File with the same bytes shares one.
     """
     if not can_thumbnail(content_type):
         return False
+    width = None if width == THUMB_WIDTH else width
     storage = get_storage_backend()
-    if storage.thumbnail_path(key).exists():
+    if storage.thumbnail_path(key, width).exists():
         return True
     try:
         content = await storage.get(key)
     except FileNotFoundError:
         return False
-    thumb = await make_thumbnail(content, content_type)
+    thumb = await make_thumbnail(content, content_type, width or THUMB_WIDTH)
     if thumb is None:
         return False
-    await storage.put_thumbnail(key, thumb)
+    await storage.put_thumbnail(key, thumb, width)
     return True
+
+
+def _content_url(url: str | None) -> bool:
+    return bool(url) and str(url).startswith(CONTENT_URL.format(""))
+
+
+def sized_url(url: str | None, width: int) -> str:
+    """*url* of a stored image as its *width* px WebP preview (a page's ``<img src>``).
+
+    Anything else (a static asset, an external link, an SVG) is returned as is.
+    """
+    if not _content_url(url) or width not in WEB_WIDTHS:
+        return url or ""
+    return f"{url}&w={width}"
+
+
+def image_srcset(url: str | None) -> str:
+    """``srcset`` of every web preview width for *url*; empty when it has none."""
+    if not _content_url(url):
+        return ""
+    return ", ".join(f"{url}&w={w} {w}w" for w in WEB_WIDTHS)
 
 
 async def create_file(

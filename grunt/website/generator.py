@@ -280,18 +280,18 @@ async def _render(dt: Any, context: dict[str, Any]) -> HTMLResponse | None:
     return HTMLResponse(content=html, status_code=context.get("status_code") or 200)
 
 
-async def sitemap_urls() -> list[str]:
-    """Paths of every indexed web view page (caller holds a grunt context)."""
+async def sitemap_urls() -> list[tuple[str, Any]]:
+    """``(path, modified)`` of every indexed web view page (caller holds a grunt context)."""
     import grunt
     from grunt.metadata.registry import doctype_registry
 
-    urls: list[str] = []
+    urls: list[tuple[str, Any]] = []
     for dt in await doctype_registry.list_all():
         if not is_public(dt) or not dt.index_web_pages_for_search:
             continue
         filters = {dt.is_published_field: 1} if dt.is_published_field else None
         extra = (ROUTE_FIELD, dt.is_published_field)
-        fields = ["name", *[f for f in extra if f and _has_field(dt, f)]]
+        fields = ["name", "modified_at", *[f for f in extra if f and _has_field(dt, f)]]
         rows = await grunt.db.get_all(dt.name, filters=filters, fields=fields, limit=None)
-        urls.extend(url for row in rows if (url := web_url(dt, row)))
+        urls.extend((url, row.get("modified_at")) for row in rows if (url := web_url(dt, row)))
     return urls

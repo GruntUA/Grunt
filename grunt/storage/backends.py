@@ -70,10 +70,11 @@ class StorageBackend(ABC):
         """Drop the blob and its preview."""
 
     @abstractmethod
-    async def put_thumbnail(self, key: str, content: bytes) -> None: ...
+    async def put_thumbnail(self, key: str, content: bytes, width: int | None = None) -> None: ...
 
     @abstractmethod
-    def thumbnail_path(self, key: str) -> Path: ...
+    def thumbnail_path(self, key: str, width: int | None = None) -> Path:
+        """The standard preview, or the one *width* px wide (``WEB_WIDTHS``)."""
 
     @abstractmethod
     def iter_keys(self) -> Iterator[tuple[str, float]]:
@@ -104,8 +105,8 @@ class LocalStorageBackend(StorageBackend):
     def path(self, key: str) -> Path:
         return self._shard("blobs", key)
 
-    def thumbnail_path(self, key: str) -> Path:
-        return self._shard("thumbs", key, ".webp")
+    def thumbnail_path(self, key: str, width: int | None = None) -> Path:
+        return self._shard("thumbs", key, f"-{width}.webp" if width else ".webp")
 
     def _put_sync(self, source: BinaryIO, max_bytes: int | None) -> tuple[str, int]:
         tmp_dir = self.root / "tmp"
@@ -155,7 +156,8 @@ class LocalStorageBackend(StorageBackend):
         return self.path(key).exists()
 
     async def delete(self, key: str) -> None:
-        for full in (self.path(key), self.thumbnail_path(key)):
+        thumbs = self.thumbnail_path(key)
+        for full in (self.path(key), thumbs, *thumbs.parent.glob(f"{key}-*.webp")):
             await asyncio.to_thread(full.unlink, True)
 
     def _write_sync(self, dest: Path, content: bytes) -> None:
@@ -164,8 +166,8 @@ class LocalStorageBackend(StorageBackend):
         tmp.write_bytes(content)
         os.replace(tmp, dest)
 
-    async def put_thumbnail(self, key: str, content: bytes) -> None:
-        await asyncio.to_thread(self._write_sync, self.thumbnail_path(key), content)
+    async def put_thumbnail(self, key: str, content: bytes, width: int | None = None) -> None:
+        await asyncio.to_thread(self._write_sync, self.thumbnail_path(key, width), content)
 
     def iter_keys(self) -> Iterator[tuple[str, float]]:
         blobs = self.root / "blobs"

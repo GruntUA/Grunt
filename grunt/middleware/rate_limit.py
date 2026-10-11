@@ -4,6 +4,7 @@ Tiers (configurable via settings):
   System Manager - unlimited
   authenticated user - settings.rate_limit_user  (default 200 req/min)
   anonymous (IP) - settings.rate_limit_anon  (default 30 req/min)
+  anonymous website page views (IP) - settings.rate_limit_pages  (default 300 req/min)
 
 Algorithm: fixed-window per 60-second bucket.
 Storage:   in-memory dict (no Redis dependency; use Redis for multi-process).
@@ -17,11 +18,12 @@ from __future__ import annotations
 import asyncio
 import time
 from collections import defaultdict
+from html import escape
 from typing import TYPE_CHECKING, Any
 
 import jwt
 from fastapi import status
-from fastapi.responses import JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from grunt import _, log
@@ -65,6 +67,29 @@ def _is_file_content_request(request: Request) -> bool:
     return request.url.path == _FILE_CONTENT_PATH
 
 
+def _is_page_view(path: str, method: str) -> bool:
+    """A website page (or the SPA shell) - not the API.
+
+    Readers behind one address (an office NAT, a mobile carrier's CGNAT) share
+    the bucket, so it is far wider than the API's anonymous one.
+    """
+    return method in ("GET", "HEAD") and not path.startswith("/api/")
+
+
+def _too_many_requests(path: str, reset_in: int, headers: dict[str, str]) -> Response:
+    """429 as JSON for the API, as a plain page for a browser on the website."""
+    message = _("Too many requests. Try again later.")
+    headers = {"Retry-After": str(reset_in), **headers}
+    if path.startswith("/api/"):
+        return JSONResponse(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            content=error_body("RATE_LIMIT_EXCEEDED", message),
+            headers=headers,
+        )
+    body = f'<!DOCTYPE html><meta charset="utf-8"><title>429</title><p>{escape(message)}</p>'
+    return HTMLResponse(body, status_code=status.HTTP_429_TOO_MANY_REQUESTS, headers=headers)
+
+
 def _is_webform_submit(path: str, method: str) -> bool:
     return method == "POST" and (path.startswith("/form/") or path == _WEBFORM_SUBMIT_RPC_PATH)
 
@@ -84,7 +109,8 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
 
     Configuration via settings:
         rate_limit_user - max requests per minute for authenticated users
-        rate_limit_anon - max requests per minute for anonymous (IP-based)
+        rate_limit_anon - max requests per minute for anonymous (IP-based) API calls
+        rate_limit_pages - the same for anonymous website page views
         rate_limit_enabled - set False to disable entirely
     """
 
@@ -161,13 +187,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             allowed, remaining, reset_in = await self._check(strict_key, strict_limit)
             if not allowed:
                 log.warning("rate_limit.auth_exceeded", path=path, ip=ip)
-                return JSONResponse(
-                    status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                    content=error_body(
-                        "RATE_LIMIT_EXCEEDED", _("Too many requests. Try again later.")
-                    ),
-                    headers={"Retry-After": str(reset_in)},
-                )
+                return _too_many_requests(path, reset_in, {})
 
         # Strict IP-based limit for anonymous web-form submissions
         if _is_webform_submit(path, request.method):
@@ -177,13 +197,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             allowed, remaining, reset_in = await self._check(webform_key, webform_limit)
             if not allowed:
                 log.warning("rate_limit.webform_exceeded", path=path, ip=ip)
-                return JSONResponse(
-                    status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                    content=error_body(
-                        "RATE_LIMIT_EXCEEDED", _("Too many requests. Try again later.")
-                    ),
-                    headers={"Retry-After": str(reset_in)},
-                )
+                return _too_many_requests(path, reset_in, {})
 
         # Decode JWT (optional - does not affect auth, only rate limit tier)
         payload = self._decode_token(request.headers.get("authorization"))
@@ -204,6 +218,9 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
 
             limit: int = getattr(settings, "rate_limit_user", 200)
             key = f"user:{email}"
+        elif _is_page_view(path, request.method):
+            limit = getattr(settings, "rate_limit_pages", 300)
+            key = f"pages:{self._client_ip(request)}"
         else:
             limit = getattr(settings, "rate_limit_anon", 30)
             key = f"ip:{self._client_ip(request)}"
@@ -217,11 +234,10 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                 limit=limit,
                 path=path,
             )
-            return JSONResponse(
-                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                content=error_body("RATE_LIMIT_EXCEEDED", _("Too many requests. Try again later.")),
-                headers={
-                    "Retry-After": str(reset_in),
+            return _too_many_requests(
+                path,
+                reset_in,
+                {
                     "X-RateLimit-Limit": str(limit),
                     "X-RateLimit-Remaining": "0",
                     "X-RateLimit-Reset": str(reset_in),

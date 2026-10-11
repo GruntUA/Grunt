@@ -13,13 +13,13 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Callable, Sequence
 
     from grunt.metadata.field import DocField
 
 _REGISTRY: dict[str, list[str]] = {}
 # Computed sources: called at schema-serve time; items are values or (value, label).
-_PROVIDERS: dict[str, Callable[[], list[str | tuple[str, str]]]] = {}
+_PROVIDERS: dict[str, Callable[[], Sequence[str | tuple[str, str]]]] = {}
 _SCHEMA_REGISTRY: dict[str, dict[str, list[dict]]] = {}
 
 
@@ -30,7 +30,9 @@ def register_option(source: str, value: str) -> None:
         values.append(value)
 
 
-def register_option_provider(source: str, fn: Callable[[], list[str | tuple[str, str]]]) -> None:
+def register_option_provider(
+    source: str, fn: Callable[[], Sequence[str | tuple[str, str]]]
+) -> None:
     """Compute *source*'s options on every schema serve (e.g. the UI languages).
 
     *fn* returns values or ``(value, label)`` pairs; labels reach the frontend
