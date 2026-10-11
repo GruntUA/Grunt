@@ -106,3 +106,58 @@ def test_page_views_have_their_own_rate_limit_tier():
     assert page.headers["content-type"].startswith("text/html")
     assert api.headers["content-type"].startswith("application/json")
     assert page.headers["retry-after"] == "10"
+
+
+@pytest.mark.asyncio
+async def test_app_hooks_resolve_paths_and_extend_context_and_templates(ctx, db_session, tmp_path):
+    """website_resolvers / website_context / website_templates - how an app
+    (the CMS) serves its own paths and lays out every app's pages."""
+    from fastapi.responses import HTMLResponse
+    from starlette.requests import Request
+
+    from grunt.website import router
+
+    layouts = tmp_path / "layouts"
+    layouts.mkdir()
+    (layouts / "_base.html").write_text("<site>{{ shout }}|{% block body %}{% endblock %}</site>")
+
+    async def resolver(request, session):
+        if request.url.path != "/from-app":
+            return None
+        context = await router.page_context(request, session)
+        env = router.website_registry.get_env("grunt")
+        html = await env.from_string(
+            '{% extends "_base.html" %}{% block body %}hi{% endblock %}'
+        ).render_async(**context)
+        return HTMLResponse(html)
+
+    def processor(context):
+        return {"shout": context["site_name"].upper()}
+
+    def request(path):
+        return Request(
+            {
+                "type": "http",
+                "method": "GET",
+                "path": path,
+                "query_string": b"",
+                "headers": [],
+                "scheme": "http",
+                "server": ("t", 80),
+                "root_path": "",
+            }
+        )
+
+    router.website_registry.add_template_dir(layouts)
+    router.register_page_resolver(resolver)
+    router.register_context_processor(processor)
+    try:
+        response = await router.render_page_by_route(request("/from-app"), db_session)
+        assert response is not None and response.body.decode() == "<site>ҐРУНТ|hi</site>"
+        assert await router.render_page_by_route(request("/elsewhere"), db_session) is None
+    finally:
+        router._page_resolvers.remove(resolver)
+        router._context_processors.remove(processor)
+        router._template_dirs.remove(layouts)
+        for env in router.website_registry._envs.values():
+            env.loader.loaders = [x for x in env.loader.loaders if str(layouts) not in x.searchpath]

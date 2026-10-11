@@ -64,12 +64,30 @@ logger = logging.getLogger(__name__)
 _TEST_SITE = "__pytest__"
 
 
-def _app_doctype_dirs(app_dir: Path, app_name: str) -> list[Path]:
-    app_json = app_dir / "app.json"
+def _app_meta(app_dir: Path) -> dict[str, Any]:
     try:
-        modules = json.loads(app_json.read_text(encoding="utf-8")).get("modules", [app_name])
+        return json.loads((app_dir / "app.json").read_text(encoding="utf-8"))
     except FileNotFoundError:
-        modules = [app_name]
+        return {}
+
+
+def _with_dependencies(app_dir: Path) -> list[Path]:
+    """*app_dir* and the apps it ``depends_on`` (sibling dirs), dependencies first."""
+    ordered: list[Path] = []
+
+    def visit(path: Path) -> None:
+        if path in ordered or not path.is_dir():
+            return
+        for dep in _app_meta(path).get("depends_on", []):
+            visit(path.parent / dep)
+        ordered.append(path)
+
+    visit(app_dir)
+    return ordered
+
+
+def _app_doctype_dirs(app_dir: Path) -> list[Path]:
+    modules = _app_meta(app_dir).get("modules", [app_dir.name])
     return [d for m in modules if (d := app_dir / m / "doctypes").is_dir()]
 
 
@@ -84,9 +102,11 @@ def make_app_fixtures(app_dir: Path, app_name: str) -> dict[str, Any]:
     # every test module during collection, before any fixture runs, so a test
     # file's module-level `from car_ua.services... import ...` needs this on
     # sys.path already.
-    app_dir_str = str(app_dir)
-    if app_dir_str not in sys.path:
-        sys.path.insert(0, app_dir_str)
+    # The app's dependencies come along: their doctypes, controllers and modules.
+    app_dirs = _with_dependencies(app_dir)
+    for path in app_dirs:
+        if str(path) not in sys.path:
+            sys.path.insert(0, str(path))
 
     test_db_url = os.environ.get("TEST_DATABASE_URL", "sqlite+aiosqlite://")
     test_engine = create_async_engine(test_db_url, echo=False)
@@ -130,20 +150,22 @@ def make_app_fixtures(app_dir: Path, app_name: str) -> dict[str, Any]:
             for name in to_remove:
                 compiled_metadata.remove(compiled_metadata.tables[name])
 
-            dt_dirs = [*_find_doctype_dirs(), *_app_doctype_dirs(app_dir, app_name)]
+            dt_dirs = [*_find_doctype_dirs(), *(d for a in app_dirs for d in _app_doctype_dirs(a))]
             dt_files = sorted(f for d in dt_dirs for f in d.glob("**/*.json"))
             for dt_file in dt_files:
                 try:
                     dt_data = json.loads(dt_file.read_text(encoding="utf-8"))
                     dt_obj = DocType.model_validate(dt_data)
                     if not dt_obj.app:
-                        dt_obj.app = app_name if dt_file.is_relative_to(app_dir) else "grunt"
+                        owner = next((a for a in app_dirs if dt_file.is_relative_to(a)), None)
+                        dt_obj.app = owner.name if owner else "grunt"
                     compile_doctype_to_table(dt_obj)
                     doctype_registry._doctypes[dt_obj.name] = dt_obj
                 except Exception as exc:
                     logger.warning("Failed to load or compile doctype from %s: %s", dt_file, exc)
 
-            document_registry.index_external_app_controllers(app_dir)
+            for path in app_dirs:
+                document_registry.index_external_app_controllers(path)
 
             async with test_engine.begin() as conn:
                 await conn.run_sync(SA_METADATA.create_all)

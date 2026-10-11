@@ -1,6 +1,6 @@
 """In-memory registry of document actions.
 
-Mirrors ``grunt.metadata.field`` / ``grunt.website.block_types``: apps register
+Mirrors ``grunt.metadata.field`` / ``cms.blocks``: apps register
 at import time and resolution happens at schema-serve / call time. Registering a
 key also adds it to the dynamic-options registry so ``DocTypeAction.action``'s
 Select dropdown reflects the live set.

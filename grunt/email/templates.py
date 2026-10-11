@@ -35,7 +35,7 @@ async def render(name: str, context: dict[str, Any]) -> tuple[str, str, str | No
 
     Runs under ``system_context`` - EmailTemplate is System-Manager-only to
     edit, but any server-side code path needs to be able to render one,
-    including one acting as a synthetic Guest (e.g. a public WebForm
+    including one acting as a synthetic Guest (e.g. a public CMS WebForm
     submission queuing its own confirmation e-mail).
     """
     async with grunt.system_context(grunt.get_session()):

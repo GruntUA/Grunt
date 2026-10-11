@@ -27,8 +27,11 @@ from grunt.hooks import register_doc_events, register_doctype_overrides
 from grunt.io import register_exporter, register_importer
 from grunt.tasks.scheduler import register_scheduler_events
 from grunt.website import website_registry
-from grunt.website.block_types import register_block_type
-from grunt.website.router import register_sitemap_source
+from grunt.website.router import (
+    register_context_processor,
+    register_page_resolver,
+    register_sitemap_source,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable
@@ -120,12 +123,29 @@ def _io_importers(value: list, ctx: LoadContext) -> None:
         log.info("io.importer.registered", id=imp.id, app=ctx.app_name)
 
 
-@consumer("website_block_types")
-def _website_block_types(value: list[dict], ctx: LoadContext) -> None:
-    website_registry.add_template_source("grunt", ctx.app_dir / "www")
-    for bt in value:
-        register_block_type(bt["name"], bt["template"], bt.get("fields"))
-        log.info("website.block_type.registered", name=bt["name"], app=ctx.app_name)
+@consumer("website_templates")
+def _website_templates(value: list[str], ctx: LoadContext) -> None:
+    """Template dirs (relative to the app dir) searched before the core ones."""
+    for path in value:
+        website_registry.add_template_dir(ctx.app_dir / path)
+
+
+@consumer("website_globals")
+def _website_globals(value: dict[str, str], ctx: LoadContext) -> None:
+    for name, path in value.items():
+        website_registry.add_global(name, _resolve(path))
+
+
+@consumer("website_context")
+def _website_context(value: list[str], ctx: LoadContext) -> None:
+    for path in value:
+        register_context_processor(_resolve(path))
+
+
+@consumer("website_resolvers")
+def _website_resolvers(value: list[str], ctx: LoadContext) -> None:
+    for path in value:
+        register_page_resolver(_resolve(path))
 
 
 @consumer("website_sitemap")

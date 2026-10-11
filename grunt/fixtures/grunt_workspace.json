@@ -20,7 +20,6 @@
       "show_count": true,
       "sequence": 1
     },
-
     {
       "section": "Користувачі та безпека",
       "type": "DocType",
@@ -57,7 +56,6 @@
       "show_count": true,
       "sequence": 13
     },
-
     {
       "section": "Пошта та сповіщення",
       "type": "DocType",
@@ -121,7 +119,6 @@
       "show_count": true,
       "sequence": 26
     },
-
     {
       "section": "Автоматизація",
       "type": "DocType",
@@ -140,7 +137,6 @@
       "show_count": true,
       "sequence": 36
     },
-
     {
       "section": "Розробка",
       "type": "DocType",
@@ -198,22 +194,12 @@
     {
       "section": "Розробка",
       "type": "DocType",
-      "label": "Веб-форми",
-      "icon": "pen-line",
-      "link_to": "WebForm",
-      "show_count": true,
-      "sequence": 46
-    },
-    {
-      "section": "Розробка",
-      "type": "DocType",
       "label": "Сторінки",
       "icon": "file",
       "link_to": "Page",
       "show_count": true,
       "sequence": 47
     },
-
     {
       "section": "Документи та файли",
       "type": "DocType",
@@ -259,7 +245,6 @@
       "show_count": true,
       "sequence": 54
     },
-
     {
       "section": "Налаштування",
       "type": "DocType",
@@ -296,7 +281,6 @@
       "show_count": true,
       "sequence": 63
     },
-
     {
       "section": "Моніторинг",
       "type": "DocType",

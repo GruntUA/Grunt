@@ -1,4 +1,4 @@
-"""CAPTCHA verification for public forms (web forms, app pages).
+"""CAPTCHA verification for public forms (CMS web forms, app pages).
 
 A single provider (Cloudflare Turnstile) for now. The site-wide keys live in
 ``SystemSettings`` (tab Security -> CAPTCHA), with the ``captcha_*`` settings

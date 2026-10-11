@@ -9,8 +9,8 @@ its label / button group / variant or gates it with a JS ``condition``.
 
 Registering an action also feeds its key into the dynamic-options registry
 under ``DOC_ACTION_SOURCE`` so ``DocTypeAction.action``'s Select dropdown
-always reflects the currently-registered set - mirroring how
-``grunt.website.block_types`` populates ``WebPageBlock.block_type``.
+always reflects the currently-registered set - mirroring how the CMS's block
+types (``cms.blocks``) populate ``WebPageBlock.block_type``.
 
 Flow at runtime:
 

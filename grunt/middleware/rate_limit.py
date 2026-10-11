@@ -5,6 +5,7 @@ Tiers (configurable via settings):
   authenticated user - settings.rate_limit_user  (default 200 req/min)
   anonymous (IP) - settings.rate_limit_anon  (default 30 req/min)
   anonymous website page views (IP) - settings.rate_limit_pages  (default 300 req/min)
+  public form submissions (IP) - settings.rate_limit_forms  (default 10 req/min)
 
 Algorithm: fixed-window per 60-second bucket.
 Storage:   in-memory dict (no Redis dependency; use Redis for multi-process).
@@ -47,13 +48,6 @@ _AUTH_STRICT_PATHS: dict[str, int] = {
     "/api/v1/method/grunt.auth.doctypes.User.user.forgot_password_api": 5,
 }
 
-# Public web-form submissions - the SSR path (`/form/{route}`, POST) and its
-# JSON RPC twin. Both are wide open to anonymous, unauthenticated traffic by
-# design, so they get their own (tighter) strict tier rather than sharing the
-# general anon-IP bucket with every other unauthenticated GET on the site.
-_WEBFORM_SUBMIT_RPC_PATH = "/api/v1/method/grunt.api.v1.webform.submit_form"
-
-
 _FILE_CONTENT_PATH = "/api/v1/method/grunt.storage.doctypes.File.file.get_content"
 
 
@@ -90,8 +84,11 @@ def _too_many_requests(path: str, reset_in: int, headers: dict[str, str]) -> Res
     return HTMLResponse(body, status_code=status.HTTP_429_TOO_MANY_REQUESTS, headers=headers)
 
 
-def _is_webform_submit(path: str, method: str) -> bool:
-    return method == "POST" and (path.startswith("/form/") or path == _WEBFORM_SUBMIT_RPC_PATH)
+def _is_form_submit(path: str, method: str) -> bool:
+    """A POST to a website page - a public form (CMS web form, an app's own
+    form). Open to anonymous traffic by design, so it gets its own tighter
+    bucket rather than the general anonymous one."""
+    return method == "POST" and not path.startswith("/api/")
 
 
 class _Window:
@@ -189,14 +186,14 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                 log.warning("rate_limit.auth_exceeded", path=path, ip=ip)
                 return _too_many_requests(path, reset_in, {})
 
-        # Strict IP-based limit for anonymous web-form submissions
-        if _is_webform_submit(path, request.method):
-            webform_limit = getattr(settings, "rate_limit_webform", 10)
+        # Strict IP-based limit for public form submissions
+        if _is_form_submit(path, request.method):
+            form_limit = getattr(settings, "rate_limit_forms", 10)
             ip = self._client_ip(request)
-            webform_key = f"webform:{path}:{ip}"
-            allowed, remaining, reset_in = await self._check(webform_key, webform_limit)
+            form_key = f"form:{path}:{ip}"
+            allowed, remaining, reset_in = await self._check(form_key, form_limit)
             if not allowed:
-                log.warning("rate_limit.webform_exceeded", path=path, ip=ip)
+                log.warning("rate_limit.form_exceeded", path=path, ip=ip)
                 return _too_many_requests(path, reset_in, {})
 
         # Decode JWT (optional - does not affect auth, only rate limit tier)

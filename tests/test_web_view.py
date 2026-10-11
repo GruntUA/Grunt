@@ -152,25 +152,6 @@ async def test_name_is_the_route_without_a_route_field(ctx, db_session):
 
 
 @pytest.mark.asyncio
-async def test_web_page_and_web_form_report_their_own_urls(ctx, client, auth_headers):
-    page = await ctx.new_doc("WebPage", {"title": "About", "route": "/about", "published": 1})
-    form = await ctx.new_doc(
-        "WebForm",
-        {"title": "Feedback", "route": "feedback", "ref_doctype": "User", "is_published": 1},
-    )
-    draft = await ctx.new_doc("WebPage", {"title": "Soon", "route": "/soon"})
-    await ctx.db._session().commit()
-
-    async def url(doctype: str, name: str) -> str | None:
-        resp = await client.get(f"/api/v1/docs/{doctype}/{name}", headers=auth_headers)
-        return resp.json()["data"].get("__web_url")
-
-    assert await url("WebPage", page["name"]) == "/about"
-    assert await url("WebForm", form["name"]) == "/form/feedback"
-    assert await url("WebPage", draft["name"]) is None
-
-
-@pytest.mark.asyncio
 async def test_missing_page_uses_controller_not_found_hook(ctx, db_session, monkeypatch):
     from grunt.document.base import Document
     from grunt.document.registry import document_registry

@@ -1,5 +1,5 @@
-"""Regression: Page, AppMenu, Dashboard, NumberCard, DashboardChart and
-WebPage used to have no `permissions` at all. All six had a dedicated
+"""Regression: Page, AppMenu, Dashboard, NumberCard, DashboardChart (and the
+CMS's WebPage) used to have no `permissions` at all. All of them had a dedicated
 whitelisted method gating create/delete to System Manager (register_page/
 delete_page, save_workspace/delete_workspace, ...) or no dedicated writer at
 all (Dashboard/NumberCard/DashboardChart/WebPage are managed purely through
@@ -13,11 +13,7 @@ this fix, any authenticated user could create a *published* Page/Dashboard
 with a widget aggregating a locked-down DocType (e.g. User) and read
 cross-permission-boundary aggregate data just by viewing their own page.
 
-WebPage additionally renders `content` (RichText) directly on the public
-website — unrestricted write there is a stored-XSS-to-every-visitor vector,
-not just a defacement one.
-
-Fixed the same way for all six: `read` stays open (these are meant to be
+Fixed the same way for all of them: `read` stays open (these are meant to be
 broadly/publicly visible once published), `write`/`create`/`delete` are
 System Manager only.
 """
@@ -42,7 +38,6 @@ _GRUNT_ROOT = Path(__file__).resolve().parents[2] / "grunt"
 _DOCTYPE_JSON = {
     "Page": _GRUNT_ROOT / "site/doctypes/Page/Page.json",
     "AppMenu": _GRUNT_ROOT / "site/doctypes/AppMenu/AppMenu.json",
-    "WebPage": _GRUNT_ROOT / "site/doctypes/WebPage/WebPage.json",
     "Dashboard": _GRUNT_ROOT / "reports/doctypes/Dashboard/Dashboard.json",
     "NumberCard": _GRUNT_ROOT / "reports/doctypes/NumberCard/NumberCard.json",
     "DashboardChart": _GRUNT_ROOT / "reports/doctypes/DashboardChart/DashboardChart.json",

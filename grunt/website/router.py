@@ -28,6 +28,28 @@ PAGE_METHODS = ["GET", "HEAD", "POST"]
 # Grunt-level base templates directory (apps can extend _base.html from here)
 _GRUNT_WWW_TEMPLATES_DIR = Path(__file__).parent / "templates"
 
+# Extension points an app (the CMS) fills from hooks.py - see grunt.apps.consumers:
+# template dirs searched before the core templates, Jinja globals, context
+# processors run for every page and resolvers for paths no file page claims.
+_template_dirs: list[Path] = []
+_template_globals: dict[str, Any] = {}
+_context_processors: list[Any] = []
+_page_resolvers: list[Any] = []
+
+
+def register_context_processor(fn: Any) -> None:
+    """``async fn(context) -> dict | None`` - adds to every page's context."""
+    if fn not in _context_processors:
+        _context_processors.append(fn)
+
+
+def register_page_resolver(fn: Any) -> None:
+    """``async fn(request, session) -> Response | None`` - serves a path that no
+    www page or web view claims (a CMS page, a redirect). It opens its own
+    grunt context, like :func:`grunt.website.generator.render_doc_page`."""
+    if fn not in _page_resolvers:
+        _page_resolvers.append(fn)
+
 
 class WebsitePage:
     """A single public web page discovered from an app's www/ directory."""
@@ -95,6 +117,7 @@ class WebsiteRegistry:
             return []
 
         loaders: list[FileSystemLoader] = [FileSystemLoader(str(www_dir))]
+        loaders.extend(FileSystemLoader(str(d)) for d in _template_dirs)
         if _GRUNT_WWW_TEMPLATES_DIR.is_dir():
             loaders.append(FileSystemLoader(str(_GRUNT_WWW_TEMPLATES_DIR)))
 
@@ -104,15 +127,9 @@ class WebsiteRegistry:
             enable_async=True,
         )
         from grunt.i18n.jinja import install as install_i18n
-        from grunt.website.block_types import get_block_template
 
         install_i18n(env)
 
-        env.globals["block_template"] = get_block_template
-        # {% set menu = website_menu("main") %} - WebsiteMenuItem tree (async, auto-awaited)
-        from grunt.website.menu import get_menu
-
-        env.globals["website_menu"] = get_menu
         from grunt.website.spa import spa_assets
 
         env.globals["spa_assets"] = spa_assets
@@ -121,6 +138,7 @@ class WebsiteRegistry:
 
         env.globals["image_url"] = sized_url
         env.globals["image_srcset"] = image_srcset
+        env.globals.update(_template_globals)
         self._envs[app_name] = env
 
         discovered: list[WebsitePage] = []
@@ -158,20 +176,26 @@ class WebsiteRegistry:
     def get_env(self, app_name: str) -> Environment | None:
         return self._envs.get(app_name)
 
-    def add_template_source(self, app_name: str, path: Path) -> None:
-        """Append *path* as a template search directory for *app_name*'s env.
-
-        Lets an installed app contribute templates (e.g. custom block-type
-        renderers) that resolve inside another app's environment - used by
-        external apps that register `website_block_types` in hooks.py but
-        render through the shared "grunt" env.
-        """
-        env = self._envs.get(app_name)
-        if env is None or not path.is_dir():
+    def add_template_dir(self, path: Path) -> None:
+        """Search *path* before the core templates in every app's env - an app's
+        ``_base.html`` there becomes the site layout of apps without their own."""
+        if not path.is_dir() or path in _template_dirs:
             return
-        loader = env.loader
-        if isinstance(loader, ChoiceLoader):
-            loader.loaders = [*loader.loaders, FileSystemLoader(str(path))]
+        _template_dirs.append(path)
+        for env in self._envs.values():
+            loader = env.loader
+            if isinstance(loader, ChoiceLoader):
+                loader.loaders = [
+                    *loader.loaders[:-1],
+                    FileSystemLoader(str(path)),
+                    loader.loaders[-1],
+                ]
+
+    def add_global(self, name: str, value: Any) -> None:
+        """A Jinja global in every app's env (``website_menu`` of the CMS)."""
+        _template_globals[name] = value
+        for env in self._envs.values():
+            env.globals[name] = value
 
     @property
     def pages(self) -> list[WebsitePage]:
@@ -179,6 +203,33 @@ class WebsiteRegistry:
 
 
 website_registry = WebsiteRegistry()
+
+
+async def page_context(request: Request, session: Any, **extra: Any) -> dict[str, Any]:
+    """The context every page starts from, context processors applied (the
+    caller holds a grunt context)."""
+    from grunt.config import settings
+    from grunt.site.settings import get_setting
+
+    context: dict[str, Any] = {
+        "request": request,
+        "path_params": {},
+        "query_params": dict(request.query_params),
+        "session": session,
+        "title": "",
+        "description": "",
+        "dev_mode": settings.debug,
+        "site_name": await get_setting("app_name") or "Ґрунт",
+        "site_logo": await get_setting("app_logo"),
+        **extra,
+    }
+    for processor in _context_processors:
+        result = processor(context)
+        if inspect.isawaitable(result):
+            result = await result
+        if isinstance(result, dict):
+            context.update(result)
+    return context
 
 
 async def render_page(
@@ -194,27 +245,10 @@ async def render_page(
     ``RedirectResponse``) - it is sent as is.
     """
     import grunt
-    from grunt.config import settings
-
-    context: dict[str, Any] = {
-        "request": request,
-        "path_params": path_params or {},
-        "query_params": dict(request.query_params),
-        "session": session,
-        "title": "",
-        "description": "",
-        "dev_mode": settings.debug,
-    }
-
     from grunt.auth.doctypes.User.user import SYSTEM_USER
 
     async with grunt.context(session, user=SYSTEM_USER):
-        try:
-            # Fetch global website settings (Singleton)
-            ws = await grunt.get_doc("WebsiteSettings")
-            context["website_settings"] = ws
-        except Exception:
-            context["website_settings"] = None
+        context = await page_context(request, session, path_params=path_params or {})
 
         # Controller errors propagate to the exception handlers (HTML error page):
         # rendering the template without the controller's context only turns
@@ -294,9 +328,8 @@ async def render_page_by_route(
     request: Request,
     session: Any,
 ) -> Response | None:
-    """Try to render a page by its route, checking both files and database."""
-    import grunt
-
+    """The page at the request's path: www files, web view documents, then the
+    registered page resolvers."""
     path = request.url.path
     # Clean trailing slash for matching
     if path != "/" and path.endswith("/"):
@@ -328,26 +361,11 @@ async def render_page_by_route(
     if response is not None:
         return response
 
-    # 3. Try database-based pages (WebPage)
-    from grunt.auth.doctypes.User.user import SYSTEM_USER
-
-    try:
-        async with grunt.context(session, user=SYSTEM_USER):
-            pages = await grunt.db.get_all(
-                "WebPage",
-                filters={"route": path, "published": 1},
-                limit=1,
-            )
-            if not pages:
-                return None
-            doc = await grunt.get_doc("WebPage", pages[0]["name"])
-        return await render_db_page(doc, request, session=session)
-    except HTTPException as exc:
-        if exc.status_code == 404 and "DocType 'WebPage' not found" in str(exc.detail):
-            return None
-        log.warning("website.db_page.error", route=path, error=str(exc))
-    except Exception as e:
-        log.warning("website.db_page.error", route=path, error=str(e))
+    # 3. Paths an app resolves itself (CMS pages, redirects)
+    for resolver in _page_resolvers:
+        response = await resolver(request, session)
+        if response is not None:
+            return response
 
     return None
 
@@ -377,40 +395,6 @@ async def render_not_found(request: Request, session: Any) -> Response | None:
                 del response.headers["cache-control"]
         return response
     return None
-
-
-async def render_db_page(doc: dict[str, Any], request: Request, session: Any) -> HTMLResponse:
-    """Render a dynamic page from the database using a generic template."""
-    import grunt
-    from grunt.config import settings
-
-    context: dict[str, Any] = {
-        "request": request,
-        "doc": doc,
-        "title": doc["title"],
-        "description": doc.get("meta_description") or "",
-        "content": doc.get("content"),
-        "dev_mode": settings.debug,
-    }
-
-    from grunt.auth.doctypes.User.user import SYSTEM_USER
-
-    async with grunt.context(session, user=SYSTEM_USER):
-        try:
-            ws = await grunt.get_doc("WebsiteSettings")
-            context["website_settings"] = ws
-        except Exception:
-            context["website_settings"] = None
-
-    # Use main app env for generic templates
-    env = website_registry.get_env("grunt")
-    if env is None:
-        raise ValueError("No Jinja2 environment found")
-
-    template = env.get_template("web_page.html")
-    async with grunt.context(session, user=SYSTEM_USER):
-        html = await template.render_async(**context)
-    return HTMLResponse(content=html)
 
 
 def make_website_handler(page: WebsitePage):
@@ -453,16 +437,11 @@ def _lastmod(value: Any) -> str:
 
 
 async def sitemap_entries() -> list[SitemapEntry]:
-    """Every listed page: www pages, published WebPage docs, web view documents
-    and every app's ``website_sitemap`` source (caller holds a grunt context)."""
-    import grunt
+    """Every listed page: www pages, web view documents and every app's
+    ``website_sitemap`` source (caller holds a grunt context)."""
     from grunt.website.generator import sitemap_urls
 
     entries: list[SitemapEntry] = [p.url_pattern for p in website_registry.pages if p.in_sitemap]
-    pages = await grunt.db.get_all(
-        "WebPage", filters={"published": 1}, fields=["route", "modified_at"], limit=None
-    )
-    entries.extend((p["route"], p.get("modified_at")) for p in pages)
     entries.extend(await sitemap_urls())
     for source in _sitemap_sources:
         try:

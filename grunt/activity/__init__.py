@@ -203,8 +203,10 @@ async def record_view(
     if not (dt.track_seen or dt.track_views):
         return
 
+    from grunt.auth.doctypes.User.user import GUEST_USER
+
     user_email = getattr(user, "email", None) or str(user or "")
-    if not user_email or user_email in ("guest@grunt.local", "system", "Guest"):
+    if not user_email or user_email in (GUEST_USER, "system", "Guest"):
         return
 
     session = grunt.get_session()

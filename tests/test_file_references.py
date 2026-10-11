@@ -44,32 +44,48 @@ async def _attached_to(client, auth_headers, file_id: str) -> tuple[str | None, 
     return doc.get("attached_to_doctype"), doc.get("attached_to_id")
 
 
+ARTICLE = {
+    "name": "FileRefArticle",
+    "label": "File Ref Article",
+    "module": "core",
+    "fields": [
+        {"fieldname": "title", "label": "Title", "fieldtype": "Text"},
+        {"fieldname": "content", "label": "Content", "fieldtype": "RichText"},
+        {"fieldname": "cover", "label": "Cover", "fieldtype": "Image"},
+    ],
+    "permissions": [{"role": "System Manager", "read": True, "write": True, "create": True}],
+}
+
+
 @pytest.mark.asyncio
-async def test_save_claims_referenced_pending_uploads(client, auth_headers):
-    inline_url, inline_id = await _upload(client, auth_headers, "inline.txt", "WebPage")
-    cover_url, cover_id = await _upload(client, auth_headers, "cover.txt", "WebPage")
-    stray_url, stray_id = await _upload(client, auth_headers, "stray.txt", "WebPage")
+async def test_save_claims_referenced_pending_uploads(ctx, client, auth_headers):
+    from grunt.api.v1.meta import save_doctype
+
+    await save_doctype(doctype_data={**ARTICLE, "__is_new": True})
+    await ctx.db._session().commit()
+    inline_url, inline_id = await _upload(client, auth_headers, "inline.txt", "FileRefArticle")
+    cover_url, cover_id = await _upload(client, auth_headers, "cover.txt", "FileRefArticle")
+    stray_url, stray_id = await _upload(client, auth_headers, "stray.txt", "FileRefArticle")
     lib_url, lib_id = await _upload(client, auth_headers, "library.txt")
     other_url, other_id = await _upload(client, auth_headers, "other.txt", "User")
 
     resp = await client.post(
-        "/api/v1/docs/WebPage",
+        "/api/v1/docs/FileRefArticle",
         json={
             "title": "Files",
-            "route": "/files-claim",
             "content": (
                 f'<p><a href="{inline_url}">inline</a> <a href="{lib_url}">lib</a> '
                 f'<a href="{other_url}">other</a></p>'
             ),
-            "og_image": cover_url,
+            "cover": cover_url,
         },
         headers=auth_headers,
     )
     assert resp.status_code in (200, 201), resp.text
     page = resp.json()["data"]["name"]
 
-    assert await _attached_to(client, auth_headers, inline_id) == ("WebPage", page)
-    assert await _attached_to(client, auth_headers, cover_id) == ("WebPage", page)
+    assert await _attached_to(client, auth_headers, inline_id) == ("FileRefArticle", page)
+    assert await _attached_to(client, auth_headers, cover_id) == ("FileRefArticle", page)
     # Not referenced → still pending.
     assert (await _attached_to(client, auth_headers, stray_id))[1] in (None, "")
     # Library file and another DocType's pending upload are only referenced.
@@ -78,9 +94,9 @@ async def test_save_claims_referenced_pending_uploads(client, auth_headers):
 
     # A later edit claims newly referenced pending uploads too.
     resp = await client.put(
-        f"/api/v1/docs/WebPage/{page}",
+        f"/api/v1/docs/FileRefArticle/{page}",
         json={"content": f'<a href="{stray_url}">stray</a>'},
         headers=auth_headers,
     )
     assert resp.status_code == 200, resp.text
-    assert await _attached_to(client, auth_headers, stray_id) == ("WebPage", page)
+    assert await _attached_to(client, auth_headers, stray_id) == ("FileRefArticle", page)

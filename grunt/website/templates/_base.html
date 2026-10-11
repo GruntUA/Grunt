@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}{{ title or "Ґрунт" }}{% endblock %}</title>
+    <title>{% block title %}{{ title or site_name }}{% endblock %}</title>
     
     <!-- SEO -->
-    {% set meta_description = description or (website_settings and website_settings.default_meta_description) %}
+    {% set meta_description = description or default_description %}
     {% if meta_description %}<meta name="description" content="{{ meta_description }}">{% endif %}
     <meta name="robots" content="{{ 'noindex, nofollow' if noindex else 'index, follow' }}">
     

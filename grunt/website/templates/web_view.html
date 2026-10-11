@@ -3,7 +3,7 @@
 {% extends "_base.html" %}
 
 {% block head %}
-{% set og_image = image or (website_settings and website_settings.default_og_image) %}
+{% set og_image = image or default_og_image %}
 {% if og_image %}<meta property="og:image" content="{{ og_image }}">{% endif %}
 <meta property="og:title" content="{{ title }}">
 <style>

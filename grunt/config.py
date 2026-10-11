@@ -86,15 +86,15 @@ class Settings(BaseSettings):
     rate_limit_user: int = 200  # req/min for authenticated users
     rate_limit_anon: int = 30  # req/min for anonymous (IP-based)
     rate_limit_pages: int = 300  # req/min per-IP for anonymous website page views (GET)
-    rate_limit_webform: int = 10  # req/min per-IP for public web-form submissions
+    rate_limit_forms: int = 10  # req/min per-IP for public form submissions (POST to a page)
     rate_limit_files: int = 600  # req/min per-IP for signed file URLs (<img> grids)
 
     # MCP server for AI agents at /api/v1/mcp (grunt.mcp)
     mcp_enabled: bool = True
 
-    # CAPTCHA (Turnstile) - used only by WebForm submissions that opt in via
-    # their own captcha_enabled flag. Leave captcha_provider unset to disable
-    # site-wide, even if a form asks for it.
+    # CAPTCHA (Turnstile, grunt.utils.captcha) - used by public forms that opt
+    # in (e.g. the CMS's WebForm.captcha_enabled). Leave captcha_provider unset
+    # to disable site-wide, even if a form asks for it.
     captcha_provider: str | None = None  # "turnstile" is the only provider for now
     captcha_site_key: str | None = None
     captcha_secret_key: str | None = None

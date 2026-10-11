@@ -1,6 +1,0 @@
-{% macro render_block(block) %}
-{% set template = block_template(block.block_type) %}
-{% if template %}
-    {% include template %}
-{% endif %}
-{% endmacro %}

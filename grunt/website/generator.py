@@ -16,8 +16,8 @@ Rendering: ``<doctype dir>/templates/<Name>.html`` when the DocType ships one
 ``_base.html``), else the generic ``web_view.html`` layout. The controller may
 add to the template context with ``async def get_web_context(self, context)``.
 
-A page served some other way (``WebPage``, ``WebForm``) reports its URL with a
-controller ``@staticmethod get_web_url(doc) -> str | None`` instead.
+A page served some other way (the CMS's ``WebPage`` and ``WebForm``) reports
+its URL with a controller ``@staticmethod get_web_url(doc) -> str | None`` instead.
 
 Pages without ``allow_guest_to_view`` are never served: the site has no login
 cookie, so a signed-in reader can't be told apart from a guest.
@@ -63,13 +63,17 @@ def is_public(dt: Any) -> bool:
     return bool(dt.has_web_view and dt.allow_guest_to_view and (dt.web_route or "").strip("/"))
 
 
-def route_prefix(dt: Any) -> str:
-    """``/news`` or ``/<app>/news`` - the URL every page of *dt* starts with."""
+def app_mount(app: str | None) -> str:
+    """Where *app*'s pages live: ``""`` for the core and the primary web app,
+    ``/<app>`` for every other app (the www/ rule)."""
     from grunt.apps.loader import CORE_APP, primary_web_app
 
-    app = dt.app
-    mount = "" if not app or app in (CORE_APP, primary_web_app()) else f"/{app}"
-    return f"{mount}/{dt.web_route.strip('/')}"
+    return "" if not app or app in (CORE_APP, primary_web_app()) else f"/{app}"
+
+
+def route_prefix(dt: Any) -> str:
+    """``/news`` or ``/<app>/news`` - the URL every page of *dt* starts with."""
+    return f"{app_mount(dt.app)}/{dt.web_route.strip('/')}"
 
 
 def is_published(dt: Any, doc: dict[str, Any]) -> bool:
@@ -188,9 +192,9 @@ async def render_doc_page(request: Request, session: Any) -> HTMLResponse | None
     """
     import grunt
     from grunt.auth.doctypes.User.user import SYSTEM_USER
-    from grunt.config import settings
     from grunt.document.registry import document_registry
     from grunt.website.doc_layout import build_tabs
+    from grunt.website.router import page_context
 
     path = request.url.path.rstrip("/")
     async with grunt.context(session, user=SYSTEM_USER):
@@ -200,20 +204,9 @@ async def render_doc_page(request: Request, session: Any) -> HTMLResponse | None
         dt, name = found
         controller_cls = document_registry.get(dt.name)
 
-        context: dict[str, Any] = {
-            "request": request,
-            "path_params": {},
-            "query_params": dict(request.query_params),
-            "session": session,
-            "dev_mode": settings.debug,
-            "doctype": dt,
-            "description": "",
-            "noindex": not dt.index_web_pages_for_search,
-        }
-        try:
-            context["website_settings"] = await grunt.get_doc("WebsiteSettings")
-        except Exception:
-            context["website_settings"] = None
+        context = await page_context(
+            request, session, doctype=dt, noindex=not dt.index_web_pages_for_search
+        )
 
         if name is None:
             hook = getattr(controller_cls, "get_web_not_found_context", None)

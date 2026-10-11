@@ -129,10 +129,9 @@
     </style>
 </head>
 <body>
-    {% set site_name = (website_settings and website_settings.site_name) or "Ґрунт" %}
     <header class="topbar">
-        {% if website_settings and website_settings.brand_logo %}
-            <img src="{{ website_settings.brand_logo }}" alt="{{ site_name }}">
+        {% if site_logo %}
+            <img src="{{ site_logo }}" alt="{{ site_name }}">
         {% endif %}
         <span class="brand">{{ site_name }}</span>
         <span class="sep">·</span>

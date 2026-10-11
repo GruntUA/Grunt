@@ -287,6 +287,18 @@ SYSTEM_USER = User(
 )
 
 
+# Anonymous visitors of the public site (form submissions, uploads) act as
+# this identity - the Guest role's permissions only.
+GUEST_USER = "guest@grunt.local"
+
+
+def guest_user() -> User:
+    return User(
+        doctype="User",
+        data={"email": GUEST_USER, "full_name": "Guest", "roles": ["Guest"], "is_active": True},
+    )
+
+
 def _norm_scalar(value: Any) -> str:
     """Loose scalar comparison key for _enforce_self_edit_scope - treats
     None / "" / whitespace as equal and compares everything else by string."""
