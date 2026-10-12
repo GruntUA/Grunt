@@ -35,6 +35,7 @@ from grunt.site.settings import get_setting
 from grunt.tasks.redis_introspect import redis_conn, s, stream_broker
 from grunt.tasks.scheduler import failed_jobs, scheduler
 from grunt.utils.redis import connect
+from grunt.version import app_version, compatibility_error
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
@@ -586,6 +587,30 @@ async def check_app_dependencies() -> list[Row]:
     ]
 
 
+# Versions
+
+
+async def check_versions() -> list[Row]:
+    """Framework and app versions (git tags), and apps whose ``required_grunt``
+    the running framework does not satisfy - those are not loaded."""
+    cat = _("Versions")
+    rows = [row(cat, "grunt", INFO, grunt.__version__)]
+    for app_dir in sorted((site_manager.bench_dir / "apps").iterdir()):
+        if app_dir.name == "grunt" or not (app_dir / "app.json").exists():
+            continue
+        problem = compatibility_error(app_dir)
+        rows.append(
+            row(
+                cat,
+                app_dir.name,
+                ERROR if problem else INFO,
+                app_version(app_dir),
+                (_("Not loaded: %(reason)s") % {"reason": problem}) if problem else "",
+            )
+        )
+    return rows
+
+
 # Offline mode (server side)
 
 
@@ -649,6 +674,7 @@ CHECKS: list[tuple[str, Callable[[], Awaitable[list[Row]]]]] = [
     (N_("Backups"), check_backups),
     (N_("WebSockets"), check_realtime),
     (N_("App dependencies"), check_app_dependencies),
+    (N_("Versions"), check_versions),
     (N_("Offline mode"), check_offline_build),
 ]
 

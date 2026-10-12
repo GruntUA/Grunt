@@ -1,15 +1,17 @@
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
 
 [project]
 name = "grunt"
-version = "0.1.0"
+# From git tags vX.Y.Z (hatch-vcs); grunt.version computes the same at runtime.
+dynamic = ["version"]
 description = "Metadata-driven application framework"
 requires-python = ">=3.14"
 dependencies = [
     # Web framework
     "fastapi>=0.111.0",
+    "packaging>=24.0",         # versions and required_grunt specifiers
     "uvicorn[standard]>=0.29.0",
     "click>=8.1.0",
     # Database (core — SQLAlchemy multi-DB)
@@ -91,6 +93,15 @@ dev = [
     "mypy>=1.10.0",
 ]
 
+[tool.hatch.version]
+source = "vcs"
+# An archive without .git still builds.
+raw-options = { fallback_version = "0.0.0" }
+
+[tool.uv]
+# Rebuild the editable install's metadata when HEAD or the tags move.
+cache-keys = [{ file = "pyproject.toml" }, { git = { commit = true, tags = true } }]
+
 [tool.hatch.build.targets.wheel]
 packages = ["grunt"]
 
@@ -101,7 +112,7 @@ asyncio_mode = "auto"
 # waited in - a per-test loop broke whichever later test contended for it.
 asyncio_default_fixture_loop_scope = "session"
 asyncio_default_test_loop_scope = "session"
-testpaths = ["tests"]
+testpaths = ["tests", "grunt"]
 
 [tool.ruff]
 target-version = "py314"

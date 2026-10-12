@@ -13,20 +13,37 @@ if TYPE_CHECKING:
 @click.argument("app", required=False)
 @click.option("--doctype", help="Name of the DocType to test")
 @click.option("--site", help="Site to run tests for")
+@click.option(
+    "--changed",
+    is_flag=True,
+    help="Only what the uncommitted changes can break (ruff, pytest, vitest related)",
+)
+@click.option(
+    "--base", default="HEAD", show_default=True, help="With --changed: compare to this ref"
+)
 @click.argument("pytest_args", nargs=-1, type=click.UNPROCESSED)
 def test(
     app: str | None = None,
     doctype: str | None = None,
     site: str | None = None,
+    changed: bool = False,
+    base: str = "HEAD",
     pytest_args: tuple[str, ...] = (),
 ):
-    """Run tests for the framework, specific app, or DocType."""
+    """Run tests for the framework, specific app, or DocType.
+
+    The full suite runs in CI (GitHub Actions); locally use --changed.
+    """
     from grunt.site.manager import site_manager
 
     # If app starts with '-', treat it as a pytest arg
     if app and app.startswith("-"):
         pytest_args = (app, *pytest_args)
         app = None
+
+    if changed:
+        repo = site_manager.bench_dir / "apps" / (app or "grunt")
+        sys.exit(_run_changed(repo, base, pytest_args))
 
     # 1. Base test paths
     test_paths = []
@@ -131,3 +148,58 @@ def _add_tests_from_dir(dt_dir: Path, test_paths: list[str]):
     # Look for test_*.py files in the DocType dir itself
     for test_file in dt_dir.glob("test_*.py"):
         test_paths.append(str(test_file))
+
+
+def _run_changed(repo: Path, base: str, pytest_args: tuple[str, ...]) -> int:
+    import shutil
+    import subprocess
+
+    from grunt.cli.changed_tests import changed_files, select
+
+    if not (repo / ".git").exists():
+        click.echo(f"Error: {repo} is not a git repository", err=True)
+        return 1
+    files = changed_files(repo, base)
+    if not files:
+        click.echo(f"No changes against {base}.")
+        return 0
+    sel = select(repo, files)
+
+    def run(title: str, cmd: list[str]) -> int:
+        click.echo(click.style(f"\n▶ {title}", bold=True))
+        return subprocess.run(cmd, cwd=str(repo)).returncode
+
+    def rel(paths) -> list[str]:
+        return sorted(str(p.relative_to(repo)) for p in paths)
+
+    codes: list[int] = []
+    if sel.python:
+        codes.append(run("ruff", [sys.executable, "-m", "ruff", "check", *rel(sel.python)]))
+    if sel.full:
+        codes.append(
+            run(
+                f"pytest: all ({sel.full} changed)",
+                [sys.executable, "-m", "pytest", "-q", *pytest_args],
+            )
+        )
+    elif sel.tests:
+        tests = rel(sel.tests)
+        codes.append(
+            run(
+                f"pytest: {len(tests)} files",
+                [sys.executable, "-m", "pytest", "-q", *tests, *pytest_args],
+            )
+        )
+    if sel.frontend and (npx := shutil.which("npx")):
+        codes.append(
+            run(
+                "vitest related",
+                [npx, "vitest", "related", "--run", "--passWithNoTests", *rel(sel.frontend)],
+            )
+        )
+
+    if sel.uncovered and not sel.full:
+        click.echo(click.style("\nNo tests name these changes (CI runs everything):", fg="yellow"))
+        for name in rel(sel.uncovered):
+            click.echo(f"  {name}")
+    return max(codes, default=0)

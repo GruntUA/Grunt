@@ -3,7 +3,7 @@
 Run with: pytest tests/unit/test_api.py -v
 """
 
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import ANY, AsyncMock, Mock, patch
 
 import pytest
 from fastapi import HTTPException
@@ -348,6 +348,7 @@ class TestGruntAppLayerPermissions:
         dt.name = "Invoice"
         dt.permissions = []
         dt.fields = []
+        dt.is_virtual = False
         rows = [{"name": "INV-001", "status": "Draft"}]
 
         with (
@@ -382,7 +383,10 @@ class TestGruntAppLayerPermissions:
                 offset=10,
                 order_by="modified_at",
                 order="desc",
+                scope=ANY,
             )
+            # Row-level permission filter (match rules, shares) is applied.
+            assert callable(mock_db_get_all.await_args.kwargs["scope"])
             assert mock_fire.await_count == 2
 
 

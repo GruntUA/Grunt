@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING, Any
 import grunt
 from grunt import log
 from grunt.fixtures import clean_record, to_json_compatible
+from grunt.version import app_version
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
@@ -104,6 +105,7 @@ def _load_app_meta(app_dir: Path) -> dict | None:
         except Exception:
             log.exception("suppressed_error")
 
+    result["version"] = app_version(app_dir, result["version"])
     return result
 
 

@@ -36,6 +36,7 @@ from grunt.scripting.file_scripts import _load_doctype_dir_scripts, register_cli
 from grunt.scripting.file_scripts import discover_file_scripts as _discover_scripts
 from grunt.site.manager import site_manager
 from grunt.startup.doctypes import _find_doctype_dirs
+from grunt.version import compatibility_error
 from grunt.website import make_website_handler, website_registry
 from grunt.website.router import PAGE_METHODS
 
@@ -112,6 +113,12 @@ async def load_external_apps(
     loaded: list[str] = []
     for app_dir in sorted(ext_apps_dir.iterdir()):
         if not _is_loadable_app(app_dir, installed_apps):
+            continue
+        # required_grunt in app.json: an app written for another framework
+        # version stays unloaded instead of failing somewhere at runtime.
+        incompatible = compatibility_error(app_dir)
+        if incompatible:
+            log.error("apps.incompatible", app=app_dir.name, reason=incompatible)
             continue
         # Put the app dir itself on sys.path so `import {app}` resolves the
         # inner package (apps/{app}/{app}/) rather than treating apps/{app}/

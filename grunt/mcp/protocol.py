@@ -21,7 +21,7 @@ from grunt.mcp.registry import get_tool, list_tools
 # Newest first; the first entry is offered when the client asks for one we lack.
 PROTOCOL_VERSIONS = ("2025-11-25", "2025-06-18", "2025-03-26")
 
-SERVER_INFO = {"name": "grunt", "title": "Ґрунт", "version": "0.1.0"}
+SERVER_INFO = {"name": "grunt", "title": "Ґрунт", "version": grunt.__version__}
 
 INSTRUCTIONS = (
     "Ґрунт is a metadata-driven business application platform: all data lives in "

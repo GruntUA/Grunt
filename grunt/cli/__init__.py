@@ -11,6 +11,7 @@ from grunt.cli.files import files_group
 from grunt.cli.fixtures import fixtures_group
 from grunt.cli.i18n import i18n_group
 from grunt.cli.lint import lint
+from grunt.cli.release import release, version
 from grunt.cli.server import init, serve, worker
 from grunt.cli.site import site_group
 from grunt.cli.skills import skills_group
@@ -19,9 +20,11 @@ from grunt.cli.ui import ui_group
 from grunt.cli.update import update_group
 from grunt.cli.user import users_group
 from grunt.db.write_intent import set_process_default
+from grunt.version import framework_version
 
 
 @click.group()
+@click.version_option(framework_version(), prog_name="grunt")
 def cli():
     """Grunt CLI: the framework management tool."""
     # CLI commands write (migrate, doctype sync, fixtures…) while the dev server
@@ -67,6 +70,8 @@ cli.add_command(i18n_group)
 cli.add_command(site_group)
 cli.add_command(db_migrate, name="migrate")
 cli.add_command(lint)
+cli.add_command(release)
+cli.add_command(version)
 cli.add_command(ui_group)
 cli.add_command(skills_group)
 

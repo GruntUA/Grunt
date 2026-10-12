@@ -25,6 +25,7 @@ from grunt.i18n import _
 from grunt.api.context import get_engine, get_session, get_user, whitelist
 from grunt.api.messages import msgprint, throw
 from grunt.monitoring.error_log import record_error as log_error
+from grunt.version import framework_version
 
 from grunt.app import grunt as _app  # after the helpers above - see the module docstring
 # isort: on
@@ -68,7 +69,10 @@ publish = _app.publish
 enqueue_doc = _app.enqueue_doc
 render_template = _app.render_template
 
+__version__ = framework_version()
+
 __all__ = [
+    "__version__",
     "_",
     "aggregate",
     "bootstrap_context",
