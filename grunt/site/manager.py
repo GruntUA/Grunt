@@ -272,7 +272,7 @@ class SiteManager:
 
             attach_sql_counter(engine)
 
-            if settings.debug:
+            if settings.sql_profiler_enabled:
                 from grunt.db.profiler import attach_query_profiler  # noqa: PLC0415
 
                 attach_query_profiler(engine, threshold_ms=settings.slow_query_threshold_ms)

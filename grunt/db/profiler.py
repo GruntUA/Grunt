@@ -1,7 +1,7 @@
 """SQL query profiler for dev mode.
 
 Two layers:
-  1. Global ring buffer - last N queries across all requests (always-on in debug mode)
+  1. Global ring buffer - last N queries across all requests
   2. Per-request context - queries grouped by request_id via contextvars
 
 The per-request collector is attached by RequestLoggingMiddleware:
@@ -9,7 +9,9 @@ The per-request collector is attached by RequestLoggingMiddleware:
     with collect_for_request(request_id):
         response = await call_next(request)
 
-Results are exposed via /api/v1/dev/profiler.
+Results are exposed via /api/v1/dev/profiler. The hooks are installed when
+``settings.sql_profiler_enabled``, but nothing is recorded until someone presses
+"Start recording" (``set_enabled(True)``) - the flag is per worker process.
 """
 
 from __future__ import annotations
@@ -86,7 +88,7 @@ _buffer_lock = threading.Lock()
 
 @dataclass
 class _ProfilerSettings:
-    enabled: bool = True
+    enabled: bool = False
     threshold_ms: float = 10.0
     slow_request_db_ms: float = 20.0
     slow_request_ms: float = 100.0
@@ -286,6 +288,8 @@ def attach_query_profiler(engine: AsyncEngine, threshold_ms: float = 200.0) -> N
 
     @event.listens_for(sync, "before_cursor_execute")
     def _before(conn, cursor, statement, parameters, context, executemany):
+        if not _settings.enabled:
+            return
         conn.info.setdefault("_query_start", []).append(time.perf_counter())
 
     @event.listens_for(sync, "after_cursor_execute")

@@ -40,6 +40,10 @@ class Settings(BaseSettings):
     slow_query_threshold_ms: float = 10.0  # individual SQL query slow threshold (dev only)
     slow_request_db_ms: float = 20.0  # total DB time per request slow threshold
     slow_request_ms: float = 100.0  # total request duration slow threshold
+    # SQL profiler (grunt.db.profiler, SqlProfilerRequest): per-request query
+    # capture into an in-memory ring buffer. Unset follows `debug`, so it is on
+    # in development and off in production unless SQL_PROFILER=true.
+    sql_profiler: bool | None = None
 
     # Redis (optional)
     redis_url: str | None = None
@@ -119,6 +123,10 @@ class Settings(BaseSettings):
     webauthn_rp_id: str | None = None  # DNS name only, e.g. "app.example.com"
     webauthn_rp_name: str | None = None  # display name shown by the authenticator
     webauthn_origin: str | None = None  # full origin, e.g. "https://app.example.com"
+
+    @property
+    def sql_profiler_enabled(self) -> bool:
+        return self.debug if self.sql_profiler is None else self.sql_profiler
 
     @model_validator(mode="after")
     def _forbid_default_secret_outside_debug(self) -> Settings:

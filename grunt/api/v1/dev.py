@@ -1,4 +1,4 @@
-"""Dev-mode profiler whitelisted methods."""
+"""SQL profiler and query-cache RPC (System Manager only)."""
 
 from __future__ import annotations
 
@@ -14,50 +14,55 @@ def _require_debug() -> None:
         grunt.throw("Not found", "NOT_FOUND")
 
 
-@grunt.whitelist()
+def _require_profiler() -> None:
+    if not settings.sql_profiler_enabled:
+        grunt.throw("Not found", "NOT_FOUND")
+
+
+@grunt.whitelist(roles=["System Manager"])
 async def get_profiler_requests(limit: int = 50) -> list[dict[str, Any]]:
     """Recent requests with per-request query breakdown."""
-    _require_debug()
+    _require_profiler()
 
     return get_recent_requests(limit=int(limit))
 
 
-@grunt.whitelist()
+@grunt.whitelist(roles=["System Manager"])
 async def get_slow_queries(limit: int = 100) -> list[dict[str, Any]]:
     """All slow queries from the global ring buffer."""
-    _require_debug()
+    _require_profiler()
     from grunt.db.profiler import get_slow_queries
 
     return get_slow_queries(limit=int(limit))
 
 
-@grunt.whitelist()
+@grunt.whitelist(roles=["System Manager"])
 async def get_profiler_stats() -> dict[str, Any]:
     """Aggregate stats: request count, slow query count, avg/p95 duration."""
-    _require_debug()
+    _require_profiler()
 
     return get_stats()
 
 
-@grunt.whitelist()
+@grunt.whitelist(roles=["System Manager"])
 async def clear_profiler() -> bool:
     """Clear both ring buffers."""
-    _require_debug()
+    _require_profiler()
 
     clear_buffers()
     return True
 
 
-@grunt.whitelist()
+@grunt.whitelist(roles=["System Manager"])
 async def get_profiler_settings() -> dict[str, Any]:
     """Return current profiler runtime settings."""
-    _require_debug()
+    _require_profiler()
     from grunt.db.profiler import get_settings
 
     return get_settings()
 
 
-@grunt.whitelist()
+@grunt.whitelist(roles=["System Manager"])
 async def update_profiler_settings(
     enabled: bool | None = None,
     threshold_ms: float | None = None,
@@ -66,7 +71,7 @@ async def update_profiler_settings(
     n1_threshold: int | None = None,
 ) -> dict[str, Any]:
     """Update profiler thresholds at runtime."""
-    _require_debug()
+    _require_profiler()
     from grunt.db.profiler import (
         get_settings,
         set_enabled,
@@ -90,7 +95,7 @@ async def update_profiler_settings(
     return get_settings()
 
 
-@grunt.whitelist()
+@grunt.whitelist(roles=["System Manager"])
 async def get_query_cache_stats() -> dict[str, Any]:
     """Return query cache runtime stats and config."""
     _require_debug()
@@ -112,7 +117,7 @@ async def get_query_cache_stats() -> dict[str, Any]:
     }
 
 
-@grunt.whitelist()
+@grunt.whitelist(roles=["System Manager"])
 async def clear_query_cache() -> bool:
     """Clear in-memory query cache (dev helper)."""
     _require_debug()

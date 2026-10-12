@@ -17,7 +17,7 @@ function on_load(frm) {
 async function setup_list(listview) {
   listview.actions.remove('add') // read-only ring buffer view — records aren't created by hand
 
-  let isRecording = true
+  let isRecording = false
   try {
     const settings = await grunt.call({ method: 'grunt.api.v1.dev.get_profiler_settings' })
     isRecording = settings.enabled

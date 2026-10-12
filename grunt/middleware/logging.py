@@ -77,7 +77,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         request.state.request_id = request_id
 
         path = request.url.path
-        use_profiler = settings.debug and not path.startswith(_PROFILER_PREFIX)
+        use_profiler = settings.sql_profiler_enabled and not path.startswith(_PROFILER_PREFIX)
 
         with perf.sql_tally() as tally:
             try:
