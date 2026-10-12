@@ -167,18 +167,15 @@ def discover_field_types() -> None:
     subdirectories that contain a [FieldName].py with a register() function.
     Also scans the frontend components/fields for convenience.
     """
+    # The built-in types sit next to the package, wherever the checkout is
+    # (a CI runner clones the repo outside any bench).
+    scan_paths = [Path(__file__).resolve().parents[2] / "frontend/src/components/fields"]
+
     bench_dir = _find_bench_dir_for_fields(Path.cwd()) or _find_bench_dir_for_fields(
         Path(__file__).resolve()
     )
-    if not bench_dir:
-        return
-
-    scan_paths = [
-        bench_dir / "apps/grunt/frontend/src/components/fields",
-    ]
-
-    apps_dir = bench_dir / "apps"
-    if apps_dir.exists():
+    apps_dir = bench_dir / "apps" if bench_dir else None
+    if apps_dir and apps_dir.exists():
         for app_dir in apps_dir.iterdir():
             if not app_dir.is_dir():
                 continue

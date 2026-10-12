@@ -8,6 +8,11 @@ import click
 if TYPE_CHECKING:
     from pathlib import Path
 
+# pytest-xdist; a file stays on one worker, so tests sharing state within a
+# file keep their order.
+PARALLEL = ["-n", "auto", "--dist", "loadfile"]
+PARALLEL_FROM_FILES = 8
+
 
 @click.command("test", context_settings={"ignore_unknown_options": True})
 @click.argument("app", required=False)
@@ -175,21 +180,14 @@ def _run_changed(repo: Path, base: str, pytest_args: tuple[str, ...]) -> int:
     codes: list[int] = []
     if sel.python:
         codes.append(run("ruff", [sys.executable, "-m", "ruff", "check", *rel(sel.python)]))
+    pytest = [sys.executable, "-m", "pytest", "-q"]
     if sel.full:
-        codes.append(
-            run(
-                f"pytest: all ({sel.full} changed)",
-                [sys.executable, "-m", "pytest", "-q", *pytest_args],
-            )
-        )
+        codes.append(run(f"pytest: all ({sel.full} changed)", [*pytest, *PARALLEL, *pytest_args]))
     elif sel.tests:
         tests = rel(sel.tests)
-        codes.append(
-            run(
-                f"pytest: {len(tests)} files",
-                [sys.executable, "-m", "pytest", "-q", *tests, *pytest_args],
-            )
-        )
+        # Starting workers costs a few seconds - only worth it for a bigger batch.
+        parallel = PARALLEL if len(tests) >= PARALLEL_FROM_FILES else []
+        codes.append(run(f"pytest: {len(tests)} files", [*pytest, *parallel, *tests, *pytest_args]))
     if sel.frontend and (npx := shutil.which("npx")):
         codes.append(
             run(

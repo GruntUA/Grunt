@@ -595,7 +595,8 @@ async def check_versions() -> list[Row]:
     the running framework does not satisfy - those are not loaded."""
     cat = _("Versions")
     rows = [row(cat, "grunt", INFO, grunt.__version__)]
-    for app_dir in sorted((site_manager.bench_dir / "apps").iterdir()):
+    apps_dir = site_manager.bench_dir / "apps"
+    for app_dir in sorted(apps_dir.iterdir() if apps_dir.is_dir() else []):
         if app_dir.name == "grunt" or not (app_dir / "app.json").exists():
             continue
         problem = compatibility_error(app_dir)

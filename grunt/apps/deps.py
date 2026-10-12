@@ -23,6 +23,8 @@ if TYPE_CHECKING:
 
 def app_packages(apps_dir: Path, names: list[str] | None = None) -> list[Path]:
     """App directories that are Python packages (have a pyproject.toml)."""
+    if not apps_dir.is_dir():  # a framework checkout outside a bench (CI)
+        return []
     dirs = [
         d
         for d in sorted(apps_dir.iterdir())

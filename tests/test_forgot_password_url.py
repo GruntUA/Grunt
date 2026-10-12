@@ -72,7 +72,9 @@ async def test_reset_url_uses_request_origin(ctx, _patched_user, monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_reset_url_uses_host_and_forwarded_proto(ctx, _patched_user):
+async def test_reset_url_uses_host_and_forwarded_proto(ctx, _patched_user, monkeypatch):
+    # A host this deployment serves - not relying on a site directory of that name.
+    monkeypatch.setattr(settings, "allowed_origins", ["https://dev2.itmlt.win"])
     async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         await ctx.new_doc(
             "EmailAccount", {"email_address": "o@example.com", "enable_outgoing": True}

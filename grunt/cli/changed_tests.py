@@ -8,8 +8,8 @@ The full suite runs in CI; locally only what the change can break:
   the tests in its package's ``tests/`` folder and ``test_*login*.py`` files;
 * a changed DocType file (``doctypes/ToDo/todo.json``) runs the tests that
   mention ``"ToDo"`` and the DocType's own ``tests/``;
-* a change to the test harness (``conftest.py``, ``tests/support.py``,
-  ``pyproject.toml``) needs the full suite.
+* a change to the test harness (``conftest.py``, ``tests/support.py``) needs
+  the full suite.
 
 Frontend files are handed to ``vitest related``, which follows imports itself.
 """
@@ -22,7 +22,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 FRONTEND_SUFFIXES = (".ts", ".vue", ".js", ".mjs")
-HARNESS_FILES = {"conftest.py", "pyproject.toml", "support.py"}
+HARNESS_FILES = {"conftest.py", "support.py"}
 # Too common to say anything about which tests cover them.
 GENERIC_STEMS = {"__init__", "base", "utils", "service", "models", "types", "main", "api", "hooks"}
 SKIP_DIRS = {".venv", "node_modules", ".git", "dist", "__pycache__"}

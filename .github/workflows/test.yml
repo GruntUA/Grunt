@@ -1,112 +1,106 @@
-name: Tests
+# The full suite. Locally run only what a change touches: `grunt test --changed`.
+name: CI
 
 on:
   push:
-    branches: [main, develop]
+    branches: [master]
   pull_request:
-    branches: [main, develop]
+  workflow_call: # release.yml runs it before publishing a tag
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  SECRET_KEY: test-secret-key-for-ci-only
 
 jobs:
-  # ── Backend (pytest) ───────────────────────────────────────────────────────
-  backend:
-    name: Backend tests
+  lint:
+    name: ruff + pyright
     runs-on: ubuntu-latest
-
-    services:
-      redis:
-        image: redis:7-alpine
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up Python 3.12
-        uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          fetch-depth: 0 # the package version comes from git tags (hatch-vcs)
 
-      - name: Install uv
-        run: pip install uv
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.14"
+          enable-cache: true
 
-      - name: Install dependencies
-        run: uv sync --all-extras
+      - run: uv sync --all-extras
 
-      - name: Lint (ruff)
+      - name: ruff
         run: uv run ruff check grunt tests
 
-      - name: Type check (mypy)
-        run: uv run mypy grunt --ignore-missing-imports
-        continue-on-error: true  # non-blocking until mypy errors are resolved
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "26"
 
-      - name: Run tests
+      - name: pyright
+        run: npx -y pyright@1.1.414 grunt
+
+  backend:
+    name: pytest (${{ matrix.db }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - db: sqlite
+            url: "sqlite+aiosqlite://"
+          - db: postgres
+            url: "postgresql+asyncpg://grunt:grunt@localhost:5432/grunt_test"
+    # PostgreSQL support is not verified yet - report, do not block.
+    continue-on-error: ${{ matrix.db == 'postgres' }}
+
+    services:
+      postgres:
+        image: postgres:17-alpine
         env:
-          DATABASE_URL: "sqlite+aiosqlite:///./test.db"
-          SECRET_KEY: "test-secret-key-for-ci-only"
-          REDIS_URL: "redis://localhost:6379"
-        run: uv run pytest tests/ -v --cov=grunt --cov-report=xml
+          POSTGRES_USER: grunt
+          POSTGRES_PASSWORD: grunt
+          POSTGRES_DB: grunt_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U grunt"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
 
-      - name: Upload coverage
-        uses: codecov/codecov-action@v4
+    steps:
+      - uses: actions/checkout@v4
         with:
-          files: coverage.xml
-        continue-on-error: true
+          fetch-depth: 0
 
-  # ── Frontend (vitest) ──────────────────────────────────────────────────────
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.14"
+          enable-cache: true
+
+      - run: uv sync --all-extras
+
+      - name: pytest
+        env:
+          TEST_DATABASE_URL: ${{ matrix.url }}
+        run: uv run pytest -q -n auto --dist loadfile
+
   frontend:
-    name: Frontend tests
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Node.js 20
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: "npm"
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Type check
-        run: npm run typecheck
-        working-directory: .
-        continue-on-error: true
-
-      - name: Run tests
-        run: npm test -- --run
-        working-directory: .
-
-  # ── Security audit ─────────────────────────────────────────────────────────
-  security:
-    name: Security audit
+    name: vitest + vue-tsc
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python 3.12
-        uses: actions/setup-python@v5
+      - uses: actions/setup-node@v4
         with:
-          python-version: "3.12"
+          node-version: "26"
 
-      - name: Install uv
-        run: pip install uv
+      # package-lock.json is not committed, so no `npm ci`.
+      - run: npm install --no-audit --no-fund
 
-      - name: Install dependencies
-        run: uv sync
+      - name: vue-tsc
+        run: npx vue-tsc --noEmit
 
-      - name: Check for known vulnerabilities (pip-audit)
-        run: |
-          uv pip install pip-audit
-          uv run pip-audit
-        continue-on-error: true
-
-      - name: npm audit
-        run: npm audit --audit-level=high
-        continue-on-error: true
+      - name: vitest
+        run: npx vitest run

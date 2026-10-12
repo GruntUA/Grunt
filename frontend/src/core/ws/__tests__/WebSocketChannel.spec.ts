@@ -21,7 +21,7 @@ class MockWebSocket {
   readonly protocols: string[] | undefined
   readyState = MockWebSocket.CONNECTING
   onopen: (() => void) | null = null
-  onclose: (() => void) | null = null
+  onclose: ((event?: { code: number }) => void) | null = null
   onerror: (() => void) | null = null
   onmessage: ((event: { data: string }) => void) | null = null
   sent: string[] = []

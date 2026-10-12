@@ -70,11 +70,15 @@ description = "Reset developer database (CAUTION: wipes all data)"
 
 [tasks.test]
 depends = ["test-py", "test-js"]
-description = "Run all tests"
+description = "Run all tests (the full suite - normally left to CI)"
 
 [tasks.test-py]
-run = "uv run pytest tests/ -v --tb=short"
+run = "uv run pytest -q --tb=short -n auto --dist loadfile"
 description = "Run Python backend tests"
+
+[tasks.test-changed]
+run = "uv run python -m grunt.cli.main test --changed"
+description = "Run only the checks and tests the uncommitted changes touch (CI runs everything)"
 
 [tasks.test-js]
 run = "npm test -- --run"
@@ -85,7 +89,7 @@ run = "uv run ruff check . --fix && npm run lint 2>/dev/null || true"
 description = "Run linting for Python and JavaScript"
 
 [tasks.typecheck]
-run = "uv run mypy -p grunt && npm run typecheck"
+run = "npx -y pyright@1.1.414 grunt && npm run typecheck"
 description = "Run type checks for Python and TypeScript"
 
 [tasks.build]

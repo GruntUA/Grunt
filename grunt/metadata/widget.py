@@ -97,18 +97,14 @@ def discover_widget_types() -> None:
     function. Also scans the frontend components/dashboard/widgets for the
     core types - same layout convention as grunt.metadata.field's discovery.
     """
+    # Core types next to the package, wherever the checkout is (see field.py).
+    scan_paths = [Path(__file__).resolve().parents[2] / "frontend/src/components/dashboard/widgets"]
+
     bench_dir = _find_bench_dir_for_widgets(Path.cwd()) or _find_bench_dir_for_widgets(
         Path(__file__).resolve()
     )
-    if not bench_dir:
-        return
-
-    scan_paths = [
-        bench_dir / "apps/grunt/frontend/src/components/dashboard/widgets",
-    ]
-
-    apps_dir = bench_dir / "apps"
-    if apps_dir.exists():
+    apps_dir = bench_dir / "apps" if bench_dir else None
+    if apps_dir and apps_dir.exists():
         for app_dir in apps_dir.iterdir():
             if not app_dir.is_dir():
                 continue
