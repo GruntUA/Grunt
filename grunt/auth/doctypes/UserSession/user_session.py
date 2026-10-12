@@ -4,6 +4,12 @@ The row name is the session id (``sid``) carried in every access token, so a
 token can be traced back to its device. The refresh token itself is stored
 only as a SHA-256 hash and is rotated on every refresh.
 
+A device is a browser profile: the SPA keeps a random id in the
+``grunt_device`` cookie. Signing in again from the same browser reuses its row
+(new refresh token, same ``sid``) and appends to ``logins``, the last
+``SystemSettings.session_login_history`` sign-ins. Without the cookie every
+sign-in opens a row of its own.
+
 A session ends when it is revoked (logout, "sign out other devices", password
 reset) or after ``SystemSettings.session_timeout`` minutes without a refresh -
 an idle timeout, not an absolute one: an active client keeps refreshing its
@@ -13,6 +19,7 @@ short-lived access token and each refresh moves ``last_active_at`` forward.
 from __future__ import annotations
 
 import hashlib
+import re
 import secrets
 import uuid
 from datetime import UTC, datetime, timedelta
@@ -23,10 +30,16 @@ from grunt import _
 from grunt.auth.ip_policy import CLOUDFLARE_RANGES, ip_allowed
 from grunt.auth.service import session_ttl_minutes
 from grunt.config import settings
+from grunt.site.settings import get_setting
 
 if TYPE_CHECKING:
     from fastapi import Request
     from starlette.requests import HTTPConnection
+
+
+DEVICE_COOKIE = "grunt_device"
+_DEVICE_ID = re.compile(r"[0-9a-f]{32}")
+DEFAULT_LOGIN_HISTORY = 20
 
 
 def _hash(token: str) -> str:
@@ -69,43 +82,92 @@ def client_user_agent(request: Request | None) -> str | None:
     return request.headers.get("user-agent") if request is not None else None
 
 
-async def _deactivate_expired(user_id: str, ttl_minutes: int) -> None:
-    """Close the user's sessions that went idle past the timeout."""
+def client_device_id(request: HTTPConnection | None) -> str | None:
+    """The browser's ``grunt_device`` cookie, if it looks like one."""
+    value = request.cookies.get(DEVICE_COOKIE) if request is not None else None
+    return value if value and _DEVICE_ID.fullmatch(value) else None
+
+
+async def deactivate_expired(user_id: str | None, ttl_minutes: int) -> int:
+    """Close sessions (of one user, or everyone's) that went idle past the timeout."""
     cutoff = datetime.now(UTC) - timedelta(minutes=ttl_minutes)
+    filters: dict[str, Any] = {"is_active": True}
+    if user_id is not None:
+        filters["user"] = user_id
     rows = await grunt.db.get_all(
-        "UserSession",
-        filters={"user": user_id, "is_active": True},
-        fields=["name", "last_active_at"],
+        "UserSession", filters=filters, fields=["name", "last_active_at"], limit=None
     )
+    closed = 0
     for row in rows:
         last = _as_utc(row.get("last_active_at"))
         if last is None or last < cutoff:
             await grunt.db.set_value("UserSession", row["name"], "is_active", False)
+            closed += 1
+    return closed
 
 
 async def open_session(
     user_id: str,
     ip_address: str | None,
     user_agent: str | None,
+    *,
+    device_id: str | None = None,
+    method: str | None = None,
 ) -> tuple[str, str]:
-    """Start a session for a successful login. Returns ``(sid, refresh_token)``."""
-    sid = uuid.uuid4().hex
+    """Start a session for a successful login. Returns ``(sid, refresh_token)``.
+
+    A known ``device_id`` of this user takes over that device's row instead
+    of opening a new one; the old refresh token stops working.
+    """
     refresh_token = secrets.token_hex(32)
+    now = datetime.now(UTC)
+    user_agent = (user_agent or "")[:512]
+    values: dict[str, Any] = {
+        "refresh_token_hash": _hash(refresh_token),
+        "ip_address": ip_address or "",
+        "user_agent": user_agent,
+        "last_active_at": now,
+        "is_active": True,
+    }
+    login = {
+        "login_at": now,
+        "ip_address": ip_address or "",
+        "user_agent": user_agent,
+        "method": method or "",
+    }
 
     async with grunt.system_context(grunt.get_session()):
-        await _deactivate_expired(user_id, await session_ttl_minutes())
-        await grunt.new_doc(
-            "UserSession",
-            {
-                "name": sid,
-                "user": user_id,
-                "refresh_token_hash": _hash(refresh_token),
-                "ip_address": ip_address or "",
-                "user_agent": (user_agent or "")[:512],
-                "last_active_at": datetime.now(UTC),
-                "is_active": True,
-            },
-        )
+        await deactivate_expired(user_id, await session_ttl_minutes())
+        rows = []
+        if device_id:
+            rows = await grunt.db.get_all(
+                "UserSession",
+                filters={"user": user_id, "device_id": device_id},
+                fields=["name"],
+                order_by="last_active_at",
+                order="desc",
+                limit=1,
+            )
+        if not rows:
+            sid = uuid.uuid4().hex
+            await grunt.new_doc(
+                "UserSession",
+                {
+                    "name": sid,
+                    "user": user_id,
+                    "device_id": device_id or "",
+                    **values,
+                    "logins": [login],
+                },
+            )
+            return sid, refresh_token
+
+        sid = rows[0]["name"]
+        keep = await get_setting("session_login_history", DEFAULT_LOGIN_HISTORY)
+        doc = await grunt.get_doc("UserSession", sid)
+        logins = [{key: row.get(key) for key in login} for row in doc.get("logins") or []]
+        logins = [*logins, login][-max(int(keep or 1), 1) :]
+        await grunt.save_doc("UserSession", sid, {**values, "logins": logins})
     return sid, refresh_token
 
 
@@ -117,7 +179,7 @@ async def rotate_session(
 
     None when the token is unknown, revoked, or its session went idle past
     ``session_timeout``. An idle session isn't closed here - the caller turns
-    None into an error, which rolls the request back; ``_deactivate_expired``
+    None into an error, which rolls the request back; ``deactivate_expired``
     closes it on the next login or session listing.
     """
     async with grunt.system_context(grunt.get_session()):
@@ -159,6 +221,7 @@ async def end_all_sessions(user_id: str, keep_sid: str | None = None) -> int:
             "UserSession",
             filters={"user": user_id, "is_active": True},
             fields=["name"],
+            limit=None,
         )
         ended = [row["name"] for row in rows if row["name"] != keep_sid]
         for sid in ended:
@@ -172,13 +235,14 @@ async def list_my_sessions() -> list[dict[str, Any]]:
     current = grunt.get_user()
     assert current.id is not None
     async with grunt.system_context(grunt.get_session()):
-        await _deactivate_expired(current.id, await session_ttl_minutes())
+        await deactivate_expired(current.id, await session_ttl_minutes())
         rows = await grunt.db.get_all(
             "UserSession",
             filters={"user": current.id, "is_active": True},
             fields=["name", "ip_address", "user_agent", "last_active_at", "created_at"],
             order_by="last_active_at",
             order="desc",
+            limit=None,
         )
     sid = current.data.get("_sid")
     return [{**row, "current": row["name"] == sid} for row in rows]

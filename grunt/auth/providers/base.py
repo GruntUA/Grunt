@@ -55,6 +55,8 @@ class AuthFlowContext:
     user: User | None = None
     ip_address: str | None = None
     user_agent: str | None = None
+    #: The browser's ``grunt_device`` cookie - sign-ins from it share one UserSession.
+    device_id: str | None = None
 
     def get(self, key: str, default: Any = None) -> Any:
         return self.data.get(key, default)

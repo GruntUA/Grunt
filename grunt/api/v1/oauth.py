@@ -36,7 +36,7 @@ from grunt.api.messages import ApplicationError
 from grunt.api.router import GruntRouter
 from grunt.api.v1.schemas.response import ok
 from grunt.auth import providers as auth_providers
-from grunt.auth.doctypes.UserSession.user_session import client_ip
+from grunt.auth.doctypes.UserSession.user_session import client_device_id, client_ip
 from grunt.auth.login import issue_login
 from grunt.auth.providers.base import AuthFlowContext
 from grunt.config import settings
@@ -104,9 +104,16 @@ async def oauth_callback(
             data={"code": code},
             ip_address=client_ip(request),
             user_agent=request.headers.get("user-agent"),
+            device_id=client_device_id(request),
         )
         user = await prov.complete(ctx)
-        payload = await issue_login(user, ip_address=ctx.ip_address, user_agent=ctx.user_agent)
+        payload = await issue_login(
+            user,
+            ip_address=ctx.ip_address,
+            user_agent=ctx.user_agent,
+            device_id=ctx.device_id,
+            method=provider,
+        )
     except ApplicationError as exc:
         return _spa_redirect({"error": exc.code})
 

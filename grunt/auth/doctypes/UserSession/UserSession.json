@@ -3,6 +3,7 @@
   "label": "User session",
   "module": "auth",
   "is_log": true,
+  "retention_date_field": "last_active_at",
   "track_activity": false,
   "track_changes": false,
   "fields": [
@@ -18,6 +19,12 @@
     {
       "fieldname": "refresh_token_hash",
       "label": "Refresh token hash",
+      "fieldtype": "Text",
+      "hidden": true
+    },
+    {
+      "fieldname": "device_id",
+      "label": "Device ID",
       "fieldtype": "Text",
       "hidden": true
     },
@@ -45,6 +52,12 @@
       "default": true,
       "in_list_view": true,
       "in_filter": true
+    },
+    {
+      "fieldname": "logins",
+      "label": "Sign-ins",
+      "fieldtype": "Table",
+      "options": "UserSessionLogin"
     }
   ],
   "permissions": [

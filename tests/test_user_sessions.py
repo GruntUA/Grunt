@@ -34,12 +34,16 @@ async def account(ctx):
         return user.id
 
 
-async def _login(client: AsyncClient, ua: str = "TestBrowser/1.0") -> dict:
-    resp = await client.post(
-        _LOGIN,
-        json={"email": EMAIL, "password": PASSWORD},
-        headers={"User-Agent": ua, "CF-Connecting-IP": "203.0.113.7"},
-    )
+async def _login(
+    client: AsyncClient,
+    ua: str = "TestBrowser/1.0",
+    device: str | None = None,
+    ip: str = "203.0.113.7",
+) -> dict:
+    headers = {"User-Agent": ua, "CF-Connecting-IP": ip}
+    if device:
+        headers["Cookie"] = f"grunt_device={device}"
+    resp = await client.post(_LOGIN, json={"email": EMAIL, "password": PASSWORD}, headers=headers)
     assert resp.status_code == 200, resp.text
     return resp.json()["data"]
 
@@ -157,3 +161,93 @@ async def test_password_reset_ends_all_sessions(ctx, client: AsyncClient, accoun
         await ctx.db._session().commit()
 
     assert (await _refresh(client, data["refresh_token"])).status_code == 401
+
+
+LAPTOP = "a" * 32
+PHONE = "b" * 32
+
+
+async def _logins(ctx, sid: str) -> list[dict]:
+    return await ctx.db.get_all(
+        "UserSessionLogin",
+        filters={"parent_doctype": "UserSession", "parent_name": sid},
+        fields=["ip_address", "method"],
+        order_by="idx",
+        order="asc",
+        limit=None,
+    )
+
+
+@pytest.mark.asyncio
+async def test_same_browser_reuses_its_session(ctx, client: AsyncClient, account):
+    first = await _login(client, device=LAPTOP, ip="203.0.113.7")
+    again = await _login(client, device=LAPTOP, ip="198.51.100.2")
+    phone = await _login(client, device=PHONE)
+
+    sid = _sid(first["access_token"])
+    assert _sid(again["access_token"]) == sid
+    assert _sid(phone["access_token"]) != sid
+    assert await ctx.db.count("UserSession", {"user": account}) == 2
+
+    assert (await _session_row(ctx, sid))["ip_address"] == "198.51.100.2"
+    logins = await _logins(ctx, sid)
+    assert [r["ip_address"] for r in logins] == ["203.0.113.7", "198.51.100.2"]
+    assert {r["method"] for r in logins} == {"password"}
+
+    # The device's earlier refresh token is replaced, the other device keeps its own.
+    assert (await _refresh(client, first["refresh_token"])).status_code == 401
+    assert (await _refresh(client, again["refresh_token"])).status_code == 200
+    assert (await _refresh(client, phone["refresh_token"])).status_code == 200
+
+
+@pytest.mark.asyncio
+async def test_signed_out_browser_reopens_its_session(ctx, client: AsyncClient, account):
+    first = await _login(client, device=LAPTOP)
+    resp = await client.post(_LOGOUT, headers=_auth(first))
+    assert resp.status_code == 200, resp.text
+
+    again = await _login(client, device=LAPTOP)
+    sid = _sid(again["access_token"])
+    assert sid == _sid(first["access_token"])
+    assert (await _session_row(ctx, sid))["is_active"]
+
+
+@pytest.mark.asyncio
+async def test_login_history_is_capped(ctx, client: AsyncClient, account):
+    from grunt.site.settings import clear_settings_cache
+
+    await ctx.db.set_value("SystemSettings", "SystemSettings", {"session_login_history": 2})
+    await ctx.db._session().commit()
+    clear_settings_cache()
+    try:
+        for ip in ("10.0.0.1", "10.0.0.2", "10.0.0.3"):
+            data = await _login(client, device=LAPTOP, ip=ip)
+        rows = await _logins(ctx, _sid(data["access_token"]))
+        assert [r["ip_address"] for r in rows] == ["10.0.0.2", "10.0.0.3"]
+    finally:
+        await ctx.db.set_value("SystemSettings", "SystemSettings", {"session_login_history": 20})
+        await ctx.db._session().commit()
+        clear_settings_cache()
+
+
+@pytest.mark.asyncio
+async def test_malformed_device_cookie_is_ignored(ctx, client: AsyncClient, account):
+    first = await _login(client, device="not-a-device")
+    second = await _login(client, device="not-a-device")
+    assert _sid(first["access_token"]) != _sid(second["access_token"])
+
+
+@pytest.mark.asyncio
+async def test_idle_sessions_closed_for_everyone(ctx, client: AsyncClient, account):
+    from grunt.auth.doctypes.UserSession.user_session import deactivate_expired
+
+    data = await _login(client)
+    sid = _sid(data["access_token"])
+    await ctx.db.set_value(
+        "UserSession", sid, "last_active_at", datetime.now(UTC) - timedelta(days=2)
+    )
+    await ctx.db._session().commit()
+
+    async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
+        assert await deactivate_expired(None, 60) >= 1
+    assert not (await _session_row(ctx, sid))["is_active"]

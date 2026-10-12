@@ -23,7 +23,7 @@ from grunt.api.v1.schemas.response import ok
 from grunt.auth import providers as auth_providers
 from grunt.auth.dependencies import current_user, optional_user
 from grunt.auth.doctypes.User.user import User
-from grunt.auth.doctypes.UserSession.user_session import client_ip
+from grunt.auth.doctypes.UserSession.user_session import client_device_id, client_ip
 from grunt.auth.login import issue_login
 from grunt.auth.providers.base import AuthFlowContext
 
@@ -39,6 +39,7 @@ def _ctx(request: Request, data: dict[str, Any] | None, user: User | None) -> Au
         user=user,
         ip_address=client_ip(request),
         user_agent=request.headers.get("user-agent"),
+        device_id=client_device_id(request),
     )
 
 
@@ -69,7 +70,15 @@ async def complete(
     provider = auth_providers.get(name)
     ctx = _ctx(request, payload, user)
     authed = await provider.complete(ctx)
-    return ok(await issue_login(authed, ip_address=ctx.ip_address, user_agent=ctx.user_agent))
+    return ok(
+        await issue_login(
+            authed,
+            ip_address=ctx.ip_address,
+            user_agent=ctx.user_agent,
+            device_id=ctx.device_id,
+            method=name,
+        )
+    )
 
 
 @router.post("/{name}/enroll/begin")

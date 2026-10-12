@@ -24,6 +24,7 @@ import grunt
 from grunt.auth.doctypes.Role.role import Role
 from grunt.auth.doctypes.UserRole.user_role import get_user_roles
 from grunt.auth.doctypes.UserSession.user_session import (
+    client_device_id,
     client_ip,
     client_user_agent,
     end_session,
@@ -712,7 +713,11 @@ async def login_api(email: str, password: str, request: Request | None = None) -
         grunt.throw(_("Incorrect email or password"), "UNAUTHORIZED")
 
     return await issue_login(
-        user, ip_address=client_ip(request), user_agent=client_user_agent(request)
+        user,
+        ip_address=client_ip(request),
+        user_agent=client_user_agent(request),
+        device_id=client_device_id(request),
+        method="password",
     )
 
 
@@ -750,6 +755,8 @@ async def mfa_login_api(
         user,
         ip_address=client_ip(request),
         user_agent=client_user_agent(request),
+        device_id=client_device_id(request),
+        method="password",
         honor_mfa=False,
     )
 
@@ -788,6 +795,8 @@ async def mfa_enroll_complete(
         user,
         ip_address=client_ip(request),
         user_agent=client_user_agent(request),
+        device_id=client_device_id(request),
+        method="password",
         honor_mfa=False,
     )
     return {**payload, "backup_codes": backup_codes}

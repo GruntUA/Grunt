@@ -21,6 +21,8 @@ async def issue_login(
     *,
     ip_address: str | None = None,
     user_agent: str | None = None,
+    device_id: str | None = None,
+    method: str | None = None,
     honor_mfa: bool = True,
 ) -> dict[str, Any]:
     """Return the standard auth payload for *user*.
@@ -98,7 +100,9 @@ async def issue_login(
 
     await clear_failed_attempts(user)
 
-    sid, refresh_token = await open_session(user.id, ip_address, user_agent)
+    sid, refresh_token = await open_session(
+        user.id, ip_address, user_agent, device_id=device_id, method=method
+    )
     access_token = create_access_token(user, await access_token_minutes(), sid=sid)
 
     return {

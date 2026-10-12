@@ -1,0 +1,32 @@
+{
+  "name": "UserSessionLogin",
+  "label": "Session sign-in",
+  "module": "auth",
+  "hide_from_activity_feed": true,
+  "is_child": true,
+  "fields": [
+    {
+      "fieldname": "login_at",
+      "label": "Signed in at",
+      "fieldtype": "Datetime",
+      "in_list_view": true
+    },
+    {
+      "fieldname": "ip_address",
+      "label": "IP address",
+      "fieldtype": "Text",
+      "in_list_view": true
+    },
+    {
+      "fieldname": "method",
+      "label": "Method",
+      "fieldtype": "Text",
+      "in_list_view": true
+    },
+    {
+      "fieldname": "user_agent",
+      "label": "Browser / client",
+      "fieldtype": "LongText"
+    }
+  ]
+}

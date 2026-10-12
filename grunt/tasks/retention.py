@@ -36,7 +36,13 @@ def _date_field(dt: DocType) -> str:
 
 
 async def _purge_log(dt: DocType, cutoff: datetime) -> int:
-    return await grunt.db.delete(dt.name, {f"{_date_field(dt)}__lt": cutoff})
+    filters = {f"{_date_field(dt)}__lt": cutoff}
+    children = {f.options for f in dt.fields if f.fieldtype == "Table" and f.options}
+    if children:
+        names = await grunt.db.get_all(dt.name, filters=filters, pluck="name", limit=None)
+        for child in children if names else ():
+            await grunt.db.delete(child, {"parent_doctype": dt.name, "parent_name__in": names})
+    return await grunt.db.delete(dt.name, filters)
 
 
 async def _purge_documents(dt: DocType, cutoff: datetime) -> int:

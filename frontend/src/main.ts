@@ -8,6 +8,7 @@ import { vueQueryOptions } from './plugins/vueQuery'
 import { grunt } from '@/core/grunt'
 import { useAuthStore } from '@/stores/auth'
 import { loadSiteConfig } from '@/core/composables/useSiteConfig'
+import { ensureDeviceId } from '@/core/deviceId'
 import '@/app-hooks'
 
 import '@fontsource-variable/inter'
@@ -15,6 +16,7 @@ import './assets/main.css'
 import 'vue-sonner/style.css'
 // Expose globally for client scripts (JS controllers)
 window.grunt = grunt
+ensureDeviceId()
 
 const pinia = createPinia()
 const app = createApp(App)

@@ -202,6 +202,15 @@
       "description": "After how many minutes of inactivity a re-login is required."
     },
     {
+      "fieldname": "session_login_history",
+      "label": "Sign-ins kept per device",
+      "fieldtype": "Int",
+      "default": 20,
+      "min_value": 1,
+      "columns": 6,
+      "description": "A browser keeps one session record; its latest sign-ins are listed inside it."
+    },
+    {
       "fieldname": "max_login_attempts",
       "label": "Max login attempts",
       "fieldtype": "Int",

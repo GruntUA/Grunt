@@ -102,3 +102,31 @@ async def test_log_doctypes_use_site_default(ctx):
 
     assert await purge_doctype(meta.doc, NOW, log_default=30) >= 1
     assert not await ctx.db.exists("ErrorLog", "old-err")
+
+
+@pytest.mark.asyncio
+async def test_log_purge_takes_child_rows_along(ctx):
+    from grunt.tasks.retention import purge_doctype
+
+    stale = NOW - timedelta(days=40)
+    from grunt.auth.doctypes.User.user import create_user
+
+    async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
+        user = await create_user("purge@grunt.example.com", "Str0ngPass", "P", "U", None)
+        await ctx.new_doc(
+            "UserSession",
+            {
+                "name": "old-device",
+                "user": user.id,
+                "last_active_at": stale,
+                "logins": [{"login_at": stale, "ip_address": "10.0.0.1"}],
+            },
+        )
+    await ctx.db._session().commit()
+
+    meta = await ctx.get_meta("UserSession")
+    assert await purge_doctype(meta.doc, NOW, log_default=30) >= 1
+    assert not await ctx.db.exists("UserSession", "old-device")
+    assert not await ctx.db.get_all(
+        "UserSessionLogin", filters={"parent_name": "old-device"}, limit=None
+    )
