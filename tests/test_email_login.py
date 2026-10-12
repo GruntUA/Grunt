@@ -164,9 +164,7 @@ async def test_magic_link_flow_signs_in(client, captured_mail):
 
 
 @pytest.mark.asyncio
-async def test_magic_link_points_at_request_origin_not_app_url(
-    client, captured_mail, monkeypatch
-):
+async def test_magic_link_points_at_request_origin_not_app_url(client, captured_mail, monkeypatch):
     """The link must resolve to the host the user is actually on (reverse proxy),
     not the ``APP_URL`` default - when that host is one the deployment serves."""
     from grunt.config import settings

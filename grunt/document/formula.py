@@ -88,11 +88,7 @@ _BLOCKED_ATTR_PREFIXES = ("cr_", "gi_", "ag_", "f_", "tb_", "co_")
 
 
 def _attr_is_blocked(name: str) -> bool:
-    return (
-        name.startswith("_")
-        or name in _BLOCKED_ATTRS
-        or name.startswith(_BLOCKED_ATTR_PREFIXES)
-    )
+    return name.startswith("_") or name in _BLOCKED_ATTRS or name.startswith(_BLOCKED_ATTR_PREFIXES)
 
 
 @lru_cache(maxsize=512)

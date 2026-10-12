@@ -44,7 +44,8 @@ async def test_avatar_becomes_public_and_visible_to_others(client, auth_headers)
     assert (await client.get(bare)).status_code == 401
 
     r = await client.put(
-        f"/api/v1/docs/User/{me}", json={"avatar": f"{M}.get_content?file_id={file_id}"},
+        f"/api/v1/docs/User/{me}",
+        json={"avatar": f"{M}.get_content?file_id={file_id}"},
         headers=auth_headers,
     )
     assert r.status_code == 200, r.text

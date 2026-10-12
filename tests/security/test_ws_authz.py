@@ -71,16 +71,12 @@ async def _secret(ctx):
 
 
 @pytest.mark.asyncio
-async def test_non_reader_cannot_join_document_room(
-    ctx, _secret, _point_site_manager_at_test_db
-):
+async def test_non_reader_cannot_join_document_room(ctx, _secret, _point_site_manager_at_test_db):
     from grunt.api.v1.ws import _ws_user_can_read
 
     # Owner may read it; a stranger may not.
     assert await _ws_user_can_read(_StubWS(), "owner@grunt.example.com", "WsSecret", _secret)
-    assert not await _ws_user_can_read(
-        _StubWS(), "stranger@grunt.example.com", "WsSecret", _secret
-    )
+    assert not await _ws_user_can_read(_StubWS(), "stranger@grunt.example.com", "WsSecret", _secret)
 
 
 @pytest.mark.asyncio
@@ -93,9 +89,7 @@ async def test_non_reader_cannot_join_list_room(ctx, _secret, _point_site_manage
 
 
 @pytest.mark.asyncio
-async def test_virtual_doctype_room_uses_doctype_level_check(
-    ctx, _point_site_manager_at_test_db
-):
+async def test_virtual_doctype_room_uses_doctype_level_check(ctx, _point_site_manager_at_test_db):
     """A virtual DocType has no table; the document-room check must fall back to
     the DocType-level read grant instead of raising on a missing table and then
     failing closed for everyone."""

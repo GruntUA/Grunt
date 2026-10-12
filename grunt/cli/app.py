@@ -1,4 +1,5 @@
 import asyncio
+import subprocess
 from pathlib import Path
 
 import click
@@ -101,13 +102,22 @@ def _apps_dir() -> Path:
 @app_group.command("deps")
 @click.argument("names", nargs=-1)
 def app_deps(names: tuple[str, ...]):
-    """Install the Python dependencies of bench apps (apps/<app>/pyproject.toml).
+    """Fetch the apps bench apps depend on, then install their Python dependencies.
 
-    Without arguments, all apps. Runs after the framework's `uv sync`.
+    Clones the missing ``depends_on`` apps (from their ``url``), then installs
+    apps/<app>/pyproject.toml packages. Without arguments, all apps. Runs after
+    the framework's `uv sync` (so `grunt update` brings new dependencies in).
     """
     from grunt.apps.deps import install_app_packages
+    from grunt.apps.required import clone_missing
 
-    installed = install_app_packages(_apps_dir(), list(names) or None)
+    try:
+        cloned = clone_missing(_apps_dir(), list(names) or None)
+    except subprocess.CalledProcessError as e:
+        raise click.ClickException(f"git clone failed: {' '.join(map(str, e.cmd))}") from e
+    if cloned:
+        click.echo(f"Cloned dependencies: {', '.join(cloned)}")
+    installed = install_app_packages(_apps_dir(), [*names, *cloned] if names else None)
     click.echo(f"App dependencies: {', '.join(installed) or 'no apps with pyproject.toml'}")
 
 

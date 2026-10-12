@@ -58,9 +58,7 @@ def verify(file_id: str, exp: int | None, sig: str | None, now: float | None = N
 # ``<img src="https://evil.example/api/v1/.../get_content?file_id=X">`` does not
 # match and a valid signature is never appended onto a link to another origin.
 _UNSIGNED_STR = re.compile(
-    r"(?<![\w.\-/])"
-    + re.escape(_URL_PREFIX)
-    + r"([A-Za-z0-9_-]+)(?![A-Za-z0-9_-]|&exp=|&amp;exp=)"
+    r"(?<![\w.\-/])" + re.escape(_URL_PREFIX) + r"([A-Za-z0-9_-]+)(?![A-Za-z0-9_-]|&exp=|&amp;exp=)"
 )
 
 
