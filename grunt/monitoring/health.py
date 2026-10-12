@@ -690,25 +690,66 @@ def stray_venvs_row(apps_dir: Path) -> Row:
 
 
 async def check_versions() -> list[Row]:
-    """Framework and app versions (git tags), and apps whose ``required_grunt``
-    the running framework does not satisfy - those are not loaded."""
+    """Framework and app versions (git tags) next to the versions this site's
+    database was last migrated with, the Alembic migration state, and apps
+    whose ``required_grunt`` the running framework does not satisfy - those
+    are not loaded."""
     cat = _("Versions")
-    rows = [row(cat, "grunt", INFO, grunt.__version__)]
+    migrated = {
+        r["name"]: r.get("version") or ""
+        for r in await grunt.get_list("GruntInstalledApp", fields=["name", "version"])
+    }
+
+    def version_row(name: str, code: str, problem: str | None = None) -> Row:
+        if problem:
+            return row(cat, name, ERROR, code, _("Not loaded: %(reason)s") % {"reason": problem})
+        db = migrated.get(name)
+        if db and db != code:
+            return row(
+                cat,
+                name,
+                WARNING,
+                code,
+                _("The database was migrated with %(version)s. Run `grunt migrate`.")
+                % {"version": db},
+            )
+        return row(cat, name, INFO, code)
+
+    rows = [version_row("grunt", grunt.__version__)]
     apps_dir = site_manager.bench_dir / "apps"
     for app_dir in sorted(apps_dir.iterdir() if apps_dir.is_dir() else []):
         if app_dir.name == "grunt" or not (app_dir / "app.json").exists():
             continue
-        problem = compatibility_error(app_dir)
-        rows.append(
-            row(
-                cat,
-                app_dir.name,
-                ERROR if problem else INFO,
-                app_version(app_dir),
-                (_("Not loaded: %(reason)s") % {"reason": problem}) if problem else "",
-            )
-        )
+        rows.append(version_row(app_dir.name, app_version(app_dir), compatibility_error(app_dir)))
+    rows.append(await _migrations_row(cat))
     return rows
+
+
+async def _migrations_row(cat: str) -> Row:
+    from grunt.db.alembic_utils import migration_state
+    from grunt.site.manager import current_site
+
+    state = await asyncio.to_thread(
+        migration_state, site_manager.get_database_url(current_site.get())
+    )
+    check = _("Database migrations")
+    if not state.known:
+        return row(
+            cat,
+            check,
+            ERROR,
+            str(state.current),
+            _("The database was migrated by a newer release than the running code."),
+        )
+    if state.current == state.head:
+        return row(cat, check, OK, state.current or "-")
+    return row(
+        cat,
+        check,
+        WARNING,
+        f"{state.current or '-'} → {state.head}",
+        _("Pending migrations. Run `grunt migrate`."),
+    )
 
 
 # Offline mode (server side)

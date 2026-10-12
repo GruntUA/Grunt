@@ -6,13 +6,10 @@ from __future__ import annotations
 import re
 import subprocess
 from datetime import date
-from typing import TYPE_CHECKING
+from pathlib import Path
 
 import click
 from packaging.version import InvalidVersion, Version
-
-if TYPE_CHECKING:
-    from pathlib import Path
 
 CHANGELOG = "CHANGELOG.md"
 _CONVENTIONAL = re.compile(
@@ -42,6 +39,20 @@ def last_tag(repo: Path) -> str | None:
         return None
 
 
+def new_migrations(repo: Path, since: str) -> list[str]:
+    """Names of the Alembic migration files added after the ``since`` tag."""
+    out = _git(
+        repo,
+        "diff",
+        "--name-only",
+        "--diff-filter=A",
+        f"{since}..HEAD",
+        "--",
+        ":(glob)**/migrations/versions/*.py",
+    )
+    return sorted(Path(line).stem for line in out.splitlines())
+
+
 def next_version(current: Version | None, bump: str) -> Version:
     """``patch`` / ``minor`` / ``major`` after ``current``, or an explicit ``X.Y.Z``."""
     major, minor, patch = (*(current.release if current else ()), 0, 0, 0)[:3]
@@ -61,8 +72,16 @@ def next_version(current: Version | None, bump: str) -> Version:
     return target
 
 
-def changelog_section(version: Version, subjects: list[str], today: date | None = None) -> str:
-    """Markdown section for one release, commits grouped by conventional type."""
+def changelog_section(
+    version: Version,
+    subjects: list[str],
+    today: date | None = None,
+    migrations: list[str] | None = None,
+) -> str:
+    """Markdown section for one release, commits grouped by conventional type.
+
+    ``migrations`` - database migration files added since the previous release:
+    rolling back past this release needs a backup restore, so they are listed."""
     groups: dict[str, list[str]] = {name: [] for name in _SECTION_ORDER}
     for subject in subjects:
         m = _CONVENTIONAL.match(subject)
@@ -78,6 +97,8 @@ def changelog_section(version: Version, subjects: list[str], today: date | None 
     for name in _SECTION_ORDER:
         if groups[name]:
             lines += ["", f"### {name}", "", *(f"- {item}" for item in groups[name])]
+    if migrations:
+        lines += ["", "### Database migrations", "", *(f"- `{m}`" for m in migrations)]
     return "\n".join(lines) + "\n"
 
 
@@ -125,7 +146,11 @@ def release(bump: str, app_name: str, dry_run: bool) -> None:
     if tag and not subjects:
         raise click.ClickException(f"no commits since {tag}")
 
-    section = changelog_section(target, subjects.splitlines() if tag else ["Initial release"])
+    section = changelog_section(
+        target,
+        subjects.splitlines() if tag else ["Initial release"],
+        migrations=new_migrations(repo, tag) if tag else None,
+    )
     click.echo(section)
     if dry_run:
         return

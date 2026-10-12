@@ -9,11 +9,14 @@ when no explicit URL is handed in through ``config.attributes["target_db_url"]``
 from __future__ import annotations
 
 from pathlib import Path
+from typing import NamedTuple
 
 import sqlalchemy as sa
 from alembic import command
 from alembic.config import Config
+from alembic.runtime.migration import MigrationContext
 from alembic.script import ScriptDirectory
+from alembic.util.exc import CommandError
 
 # apps/grunt/alembic.ini
 _ALEMBIC_INI = Path(__file__).resolve().parents[2] / "alembic.ini"
@@ -56,6 +59,42 @@ def upgrade_site(db_url: str, revision: str = "head", *, sql: bool = False) -> N
     command.upgrade(make_config(db_url), revision, sql=sql)
 
 
+class DatabaseAheadError(Exception):
+    """The site's database was migrated by newer code than is running now."""
+
+    def __init__(self, revision: str) -> None:
+        self.revision = revision
+        super().__init__(
+            f"the database is at migration {revision!r}, which this code does not have - "
+            "it was migrated by a newer release. Switch the code back to that release, "
+            "or restore a backup taken before the upgrade (grunt db restore)."
+        )
+
+
+class MigrationState(NamedTuple):
+    current: str | None  # the database's revision
+    head: str | None  # the code's newest revision
+    known: bool  # the code has the database's revision (False = newer release migrated it)
+
+
+def migration_state(db_url: str) -> MigrationState:
+    """Where a site's database stands against this code's Alembic history."""
+    script = ScriptDirectory.from_config(make_config(db_url))
+    engine = sa.create_engine(async_url_to_sync(db_url), poolclass=sa.pool.NullPool)
+    try:
+        with engine.connect() as conn:
+            current = MigrationContext.configure(conn).get_current_revision()
+    finally:
+        engine.dispose()
+    known = True
+    if current is not None:
+        try:
+            script.get_revision(current)
+        except CommandError:
+            known = False
+    return MigrationState(current, script.get_current_head(), known)
+
+
 def sync_site(db_url: str) -> str:
     """Bring a site's Alembic history in line.
 
@@ -70,11 +109,15 @@ def sync_site(db_url: str) -> str:
       records that without running any migration.
     * **``alembic_version`` present**: ``upgrade head`` applies whatever is pending.
 
-    Returns ``"no migrations"``, ``"stamped"`` or ``"upgraded"``.
+    A revision this code does not know (the code was rolled back past a
+    migration) raises :class:`DatabaseAheadError` before anything is touched.
+
+    Returns ``"no migrations"``, ``"stamped"``, ``"up to date"`` or ``"upgraded"``.
     """
     cfg = make_config(db_url)
+    script = ScriptDirectory.from_config(cfg)
 
-    if not list(ScriptDirectory.from_config(cfg).walk_revisions()):
+    if not list(script.walk_revisions()):
         return "no migrations"
 
     sync_url = async_url_to_sync(db_url)
@@ -85,6 +128,11 @@ def sync_site(db_url: str) -> str:
         engine.dispose()
 
     if has_version:
+        state = migration_state(db_url)
+        if not state.known:
+            raise DatabaseAheadError(str(state.current))
+        if state.current == state.head:
+            return "up to date"
         command.upgrade(cfg, "head")
         return "upgraded"
     command.stamp(cfg, "head")

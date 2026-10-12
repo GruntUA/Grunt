@@ -103,7 +103,7 @@ async def seed_grunt_workspace(session: AsyncSession, eng: Any) -> None:
                 {
                     "name": "grunt",
                     "title": "Grunt",
-                    "version": "0.1.0",
+                    "version": grunt.__version__,
                     "modules": ["core"],
                 },
             )

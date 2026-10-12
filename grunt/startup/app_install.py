@@ -23,6 +23,28 @@ def _ensure_on_syspath(path: Path) -> None:
         sys.path.insert(0, entry)
 
 
+def _installed_version(app_name: str) -> str:
+    """Version of the code of ``app_name`` that is on disk now (git tag or app.json)."""
+    from grunt.site.manager import site_manager
+    from grunt.version import app_version, framework_version
+
+    if app_name == "grunt":
+        return framework_version()
+    return app_version(site_manager.bench_dir / "apps" / app_name)
+
+
+async def record_migrated_versions() -> None:
+    """Store in each GruntInstalledApp row the code version the site's database
+    was just migrated with - "Стан системи" compares it with the running code.
+    Runs inside a grunt context."""
+    import grunt
+
+    for row in await grunt.get_list("GruntInstalledApp", fields=["name", "version"]):
+        version = _installed_version(row["name"])
+        if row.get("version") != version:
+            await grunt.set_value("GruntInstalledApp", row["name"], "version", version)
+
+
 async def _register_app_if_new(app_name: str, app_meta: dict) -> bool:
     """Create the GruntInstalledApp row if this is the app's first install.
 
@@ -37,7 +59,7 @@ async def _register_app_if_new(app_name: str, app_meta: dict) -> bool:
             {
                 "name": app_name,
                 "title": app_meta.get("title", app_name),
-                "version": app_meta.get("version", "0.1.0"),
+                "version": _installed_version(app_name),
                 "modules": app_meta.get("modules", []),
             },
         )

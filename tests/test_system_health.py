@@ -123,3 +123,20 @@ def test_stray_app_venv_is_reported(tmp_path):
     found = stray_venvs_row(tmp_path)
     assert found["status"] == WARNING
     assert "apps/hrm/.venv" in found["hint"]
+
+
+@pytest.mark.asyncio
+async def test_version_the_database_was_migrated_with(ctx):
+    import grunt
+    from grunt.startup.app_install import record_migrated_versions
+
+    if await grunt.exists("GruntInstalledApp", {"name": "grunt"}) is None:
+        await grunt.new_doc("GruntInstalledApp", {"name": "grunt", "title": "Grunt"})
+    await grunt.save_doc("GruntInstalledApp", "grunt", {"version": "0.0.1"})
+
+    [stale] = [r for r in await health.check_versions() if r["check"] == "grunt"]
+    assert stale["status"] == "Warning" and "0.0.1" in stale["hint"]
+
+    await record_migrated_versions()
+    [fresh] = [r for r in await health.check_versions() if r["check"] == "grunt"]
+    assert fresh["status"] == "Info" and fresh["value"] == grunt.__version__

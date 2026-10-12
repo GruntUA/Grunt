@@ -42,6 +42,7 @@ def db_migrate(dry_run: bool, site: str | None, no_alembic: bool) -> None:
             seed_system_settings,
             sync_installed_apps,
         )
+        from grunt.startup.app_install import record_migrated_versions
         from grunt.tasks.broker import broker
 
         broker_started = False
@@ -75,10 +76,15 @@ def db_migrate(dry_run: bool, site: str | None, no_alembic: bool) -> None:
                         why = "--no-alembic" if no_alembic else "dry-run"
                         click.echo(f"  [2/4] Alembic: skipped ({why}).")
                     else:
-                        from grunt.db.alembic_utils import sync_site
+                        from grunt.db.alembic_utils import DatabaseAheadError, sync_site
 
                         db_url = site_manager.get_database_url(site_name)
-                        outcome = await asyncio.to_thread(sync_site, db_url)
+                        try:
+                            outcome = await asyncio.to_thread(sync_site, db_url)
+                        except DatabaseAheadError as e:
+                            failed.append(f"{site_name}: {e}")
+                            click.echo(f"  [2/4] Alembic — [error] {e}", err=True)
+                            continue
                         click.echo(f"  [2/4] Alembic — {outcome}.")
 
                     # 3. DocType tables
@@ -132,6 +138,14 @@ def db_migrate(dry_run: bool, site: str | None, no_alembic: bool) -> None:
                         except (MissingAppError, DependencyCycleError) as e:
                             failed.append(f"{site_name}: {e}")
                             click.echo(f"    [error] {e}", err=True)
+
+                        # The versions this database is now migrated to.
+                        if not any(f.startswith(f"{site_name}:") for f in failed):
+                            import grunt
+
+                            async with maker() as session, grunt.system_context(session, eng):
+                                await record_migrated_versions()
+                                await session.commit()
 
                     # 5. Trigger hot-reload for running servers
                     reload_file = site_manager.sites_dir / site_name / ".reload_meta"

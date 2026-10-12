@@ -13,7 +13,7 @@ from packaging.version import Version
 
 from grunt import version as versions
 from grunt.cli.changed_tests import select
-from grunt.cli.release import changelog_section, next_version, prepend_changelog
+from grunt.cli.release import changelog_section, new_migrations, next_version, prepend_changelog
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -114,6 +114,23 @@ def test_changelog_groups_conventional_commits():
     assert "### Fixes\n\n- lockout counter" in section
     assert "### Other\n\n- tidy imports" in section
     assert "v1.0.0" not in section
+
+
+def test_changelog_lists_new_migrations(repo: Path):
+    git(repo, "tag", "-a", "v1.0.0", "-m", "v1.0.0")
+    versions_dir = repo / "grunt" / "db" / "migrations" / "versions"
+    versions_dir.mkdir(parents=True)
+    (versions_dir / "0002_b.py").write_text("")
+    (versions_dir / "0001_a.py").write_text("")
+    (repo / "notes.py").write_text("")
+    git(repo, "add", ".")
+    git(repo, "commit", "-qm", "feat: migrations")
+
+    found = new_migrations(repo, "v1.0.0")
+    assert found == ["0001_a", "0002_b"]
+    section = changelog_section(Version("1.1.0"), ["feat: x"], migrations=found)
+    assert "### Database migrations\n\n- `0001_a`\n- `0002_b`" in section
+    assert "Database migrations" not in changelog_section(Version("1.1.0"), ["feat: x"])
 
 
 def test_prepend_changelog_keeps_newest_first(tmp_path: Path):
