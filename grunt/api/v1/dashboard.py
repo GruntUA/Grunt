@@ -201,6 +201,18 @@ async def _compute_widget_data(
     return data
 
 
+def page_visible(page: dict[str, Any], user: Any) -> bool:
+    """A Page (or Dashboard) is shown to a user when it is published and, if it
+    lists roles, the user has one of them. System Manager sees every page."""
+    roles = set(user.roles or [])
+    if "System Manager" in roles:
+        return True
+    if not page.get("is_published"):
+        return False
+    allowed = {r.strip() for r in str(page.get("roles") or "").split(",") if r.strip()}
+    return not allowed or bool(allowed & roles)
+
+
 async def _get_widget_data(
     entity_doctype: str,
     name: str,
@@ -222,8 +234,7 @@ async def _get_widget_data(
         grunt.throw(not_found_msg, "NOT_FOUND")
     dashboard = dict(doc)
 
-    user = grunt.get_user()
-    if "System Manager" not in (user.roles or []) and not dashboard.get("is_published"):
+    if not page_visible(dashboard, grunt.get_user()):
         grunt.throw(unpublished_msg, "PERMISSION_DENIED")
 
     widgets: list[dict[str, Any]] = sorted(

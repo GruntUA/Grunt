@@ -6,15 +6,43 @@ from datetime import date
 from typing import Any
 
 import grunt
+from grunt.api.v1.dashboard import page_visible
 from grunt.document.titles import resolve_reference_titles
 from grunt.metadata.registry import doctype_registry
 from grunt.site.doctypes.AppMenu.app_menu import AppMenu, count_key, parse_count_filters
 
 
-async def _workspace_to_dict(ws_data: Any) -> dict[str, Any]:
+async def _visible_pages() -> list[dict[str, Any]]:
+    """Pages the current user may open, as dashboard candidates for the apps."""
+    user = grunt.get_user()
+    pages = await grunt.get_list(
+        "Page",
+        fields=["name", "label", "app", "is_published", "roles"],
+        limit=1000,
+        include_total=False,
+    )
+    visible = [p for p in pages if page_visible(p, user)]
+    return sorted(visible, key=lambda p: str(p.get("label") or p["name"]).casefold())
+
+
+def _dashboards(ws_data: Any, pages: list[dict[str, Any]]) -> list[dict[str, str]]:
+    """The app's dashboards for the switcher on its home: the home page first,
+    then the other pages of the same app, each only if the user may open it."""
+    home = ws_data.get("home_page")
+    app = ws_data.get("app")
+    picked = [p for p in pages if p["name"] == home]
+    picked += [p for p in pages if app and p.get("app") == app and p["name"] != home]
+    return [{"name": p["name"], "label": p.get("label") or p["name"]} for p in picked]
+
+
+async def _workspace_to_dict(
+    ws_data: Any, pages: list[dict[str, Any]] | None = None
+) -> dict[str, Any]:
     """Convert AppMenu document data to dict, filtering items by role."""
 
     user = grunt.get_user()
+    if pages is None:
+        pages = await _visible_pages()
 
     items = []
     sidebar_items = ws_data.get("sidebar_items") or []
@@ -67,6 +95,7 @@ async def _workspace_to_dict(ws_data: Any) -> dict[str, Any]:
         "is_hidden": ws_data.get("is_hidden", False),
         "roles": ws_data.get("roles", ""),
         "home_page": ws_data.get("home_page") or None,
+        "dashboards": _dashboards(ws_data, pages),
         "items": items,
     }
 
@@ -94,6 +123,7 @@ async def list_workspaces() -> list[dict[str, Any]]:
     user = grunt.get_user()
     if not user:
         return []
+    pages = await _visible_pages()
 
     for ws_brief in all_ws:
         try:
@@ -101,7 +131,7 @@ async def list_workspaces() -> list[dict[str, Any]]:
             if ws_data.get("is_hidden") and "System Manager" not in (user.roles or []):
                 continue
             # Basic role check could be added here
-            data.append(await _workspace_to_dict(ws_data))
+            data.append(await _workspace_to_dict(ws_data, pages))
         except Exception:
             continue
     return data

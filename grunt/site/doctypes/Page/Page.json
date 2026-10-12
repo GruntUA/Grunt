@@ -52,8 +52,8 @@
       "label": "App",
       "fieldtype": "Link",
       "options": "GruntInstalledApp",
-      "depends_on": "is_standard",
-      "mandatory_depends_on": "is_standard"
+      "mandatory_depends_on": "is_standard",
+      "description": "A published page of an app is offered as a dashboard on the app's home"
     }
   ],
   "permissions": [

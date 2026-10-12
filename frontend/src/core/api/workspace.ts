@@ -34,6 +34,8 @@ export interface Workspace {
   is_hidden: boolean
   roles: string
   home_page: string | null
+  /** Pages offered on the app's home (home page first), only those the user may open. */
+  dashboards: { name: string; label: string }[]
   items: WorkspaceLink[]
 }
 
