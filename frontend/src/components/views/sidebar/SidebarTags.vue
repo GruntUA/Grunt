@@ -5,6 +5,7 @@ import { ListboxContent, ListboxFilter, ListboxItem, ListboxRoot, useFilter } fr
 import type { DocSidebarState } from './useDocSidebar'
 import { useToast } from '@/core/composables/useToast'
 import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover'
+import { Badge } from '@/components/ui/badge'
 import {
   TagsInput,
   TagsInputInput,
@@ -70,7 +71,11 @@ watch(search, (q) => {
   <section class="flex flex-col gap-2">
     <h3 class="text-sm font-medium">{{ t('Tags') }}</h3>
 
-    <Popover v-model:open="open">
+    <div v-if="sb.bundle.value.perms?.tag === false" class="flex flex-wrap gap-1">
+      <Badge v-for="tag in model" :key="tag" variant="secondary" class="font-normal">{{ tag }}</Badge>
+      <p v-if="!model.length" class="text-sm text-muted-foreground">{{ t('No tags') }}</p>
+    </div>
+    <Popover v-else v-model:open="open">
       <ListboxRoot v-model="model" multiple highlight-on-hover>
         <PopoverAnchor as-child>
           <TagsInput v-model="model" delimiter="," add-on-paste class="w-full px-1.5">

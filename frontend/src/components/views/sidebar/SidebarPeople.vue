@@ -145,7 +145,7 @@ function permissionLabel(p: string): string {
   <section class="flex flex-col gap-2">
     <div class="flex items-center justify-between">
       <h3 class="text-sm font-medium">{{ t('Assignees') }}</h3>
-      <Popover v-model:open="assignOpen">
+      <Popover v-if="sb.bundle.value.perms?.assign !== false" v-model:open="assignOpen">
         <PopoverTrigger as-child>
           <Button variant="ghost" size="icon-sm" class="size-7 -mr-1.5" :aria-label="t('Assign')">
             <UserPlus />
@@ -241,7 +241,7 @@ function permissionLabel(p: string): string {
         <Badge variant="secondary" class="px-1.5 font-normal tabular-nums">{{ shares.length }}</Badge>
       </CollapsibleTrigger>
       <h3 v-else class="text-sm font-medium">{{ t('Access') }}</h3>
-      <Popover v-model:open="shareOpen">
+      <Popover v-if="sb.bundle.value.perms?.share !== false" v-model:open="shareOpen">
         <PopoverTrigger as-child>
           <Button variant="ghost" size="icon-sm" class="size-7 -mr-1.5" :aria-label="t('Share document')">
             <Share2 />

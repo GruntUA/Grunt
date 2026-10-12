@@ -8,7 +8,8 @@ import { useDocSidebar } from './useDocSidebar'
 import { useToast } from '@/core/composables/useToast'
 import { useDialog } from '@/core/composables/useDialog'
 import { formatDateTime, formatFull, formatRelative } from '@/core/datetime'
-import { resolveStatusBadge, statusBadgeFor } from '@/core/status'
+import { resolveStatusBadge, statusBadgeFor, statusToneClass } from '@/core/status'
+import { RouterLink } from 'vue-router'
 import SidebarImage from './SidebarImage.vue'
 import SidebarPeople from './SidebarPeople.vue'
 import SidebarTags from './SidebarTags.vue'
@@ -278,6 +279,26 @@ function printDoc() {
       <template v-if="sb.bundle.value.milestones?.length">
         <Separator />
         <SidebarMilestones :doctype="doctype" :milestones="sb.bundle.value.milestones" />
+      </template>
+      <!-- Apps' sections (sidebar_sections hook): label -> value rows -->
+      <template v-for="sec in sb.bundle.value.sections" :key="sec.name">
+        <Separator />
+        <section class="flex flex-col gap-2">
+          <h3 class="text-sm font-medium">{{ sec.label }}</h3>
+          <dl class="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-4 gap-y-1.5">
+            <template v-for="(row, i) in sec.rows" :key="i">
+              <dt class="text-muted-foreground">{{ row.label }}</dt>
+              <dd class="min-w-0 truncate">
+                <component :is="row.link ? (row.link.startsWith('/') ? RouterLink : 'a') : 'span'"
+                  v-bind="row.link ? (row.link.startsWith('/') ? { to: row.link } : { href: row.link, target: '_blank', rel: 'noopener' }) : {}"
+                  :class="row.link && 'hover:text-primary hover:underline'">
+                  <Badge v-if="row.indicator" variant="outline" :class="statusToneClass(row.indicator)">{{ row.value }}</Badge>
+                  <template v-else>{{ row.value ?? '' }}</template>
+                </component>
+              </dd>
+            </template>
+          </dl>
+        </section>
       </template>
     </template>
     <div v-else class="flex flex-col gap-3">

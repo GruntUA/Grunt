@@ -163,6 +163,41 @@ Counts and previews come from `grunt.document.connections.get_connections`.
 field to render the panel at the top of that tab. If no tab opts in, it
 renders at the top of the first tab.
 
+## Sidebar sections
+
+Add rows to the document sidebar without writing any Vue. A section is a
+function that returns `label → value` rows; the desk draws every section the
+same way, under the built-in ones.
+
+```python title="my_crm/hooks.py"
+sidebar_sections = [
+    {
+        "name": "deal_totals",
+        "label": "Totals",
+        "method": "my_crm.sidebar.deal_totals",
+        "doctypes": ["Customer"],  # omitted - every DocType
+        "roles": ["Sales"],  # omitted - everyone who can read the document
+    },
+]
+```
+
+```python title="my_crm/sidebar.py"
+import grunt
+
+
+async def deal_totals(doctype: str, doc_id: str, doc: dict) -> list[dict]:
+    won = await grunt.db.count("Deal", {"customer": doc_id, "status": "Won"})
+    return [
+        {"label": "Won deals", "value": won, "link": f"/app/crm/Deal?customer={doc_id}"},
+        {"label": "Tier", "value": doc.get("tier"), "indicator": "green"},
+    ]
+```
+
+The document has already passed the read check. Return `None` or `[]` to hide
+the section. `link` is a desk path (opened in place) or a URL (new tab);
+`indicator` (green, red, orange, yellow, blue, gray) shows the value as a
+coloured badge. A section that raises is logged and skipped.
+
 ## Documents as JSON
 
 Every document the API returns is a JSON object that names its own DocType —

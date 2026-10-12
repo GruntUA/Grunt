@@ -181,3 +181,26 @@ def _mcp_tools(value: list[str], ctx: LoadContext) -> None:
             log.debug("mcp.tool.loaded", handler=path, app=ctx.app_name)
         except Exception as e:
             log.warning("mcp.tool.error", handler=path, app=ctx.app_name, error=str(e))
+
+
+@consumer("sidebar_sections")
+def _sidebar_sections(value: list[dict[str, Any]], ctx: LoadContext) -> None:
+    from grunt.document.sidebar import SidebarSection, register_sidebar_section
+
+    for spec in value:
+        try:
+            register_sidebar_section(
+                SidebarSection(
+                    name=spec["name"],
+                    label=spec.get("label") or spec["name"],
+                    method=_resolve(spec["method"]),
+                    doctypes=tuple(spec.get("doctypes") or ()),
+                    roles=tuple(spec.get("roles") or ()),
+                    app=ctx.app_name,
+                )
+            )
+            log.debug("sidebar.section.registered", section=spec["name"], app=ctx.app_name)
+        except Exception as e:
+            log.warning(
+                "sidebar.section.error", section=spec.get("name"), app=ctx.app_name, error=str(e)
+            )

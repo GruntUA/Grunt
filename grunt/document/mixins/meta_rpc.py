@@ -148,9 +148,9 @@ class DocumentMetaRPCMixin:
     async def get_sidebar(doctype: str, doc_id: str) -> dict[str, Any]:
         """Return the whole document-sidebar payload in one round-trip.
 
-        Bundles assignees, shares, tags and the current user's
-        bookmark so the desk sidebar needs a single request instead of one
-        per section.
+        Bundles assignees, shares, tags, the current user's bookmark, what
+        the user may add (``perms``) and the apps' ``sidebar_sections``, so
+        the desk sidebar needs a single request instead of one per section.
         """
 
         doc = await grunt.get_doc(doctype, doc_id, expand=[])  # also the permission check
@@ -241,6 +241,25 @@ class DocumentMetaRPCMixin:
             [],
         )
 
+        from grunt.document.sidebar import collect_sections
+        from grunt.permissions.rbac import permission_checker
+        from grunt.permissions.types import PermissionAction
+
+        user = grunt.get_user()
+        dt = await grunt.get_meta(doctype)
+
+        async def can(target: str, action: PermissionAction, row: dict | None = None) -> bool:
+            meta = dt if target == doctype else await grunt.get_meta(target)
+            return meta is not None and await permission_checker.check(user, meta, action, row)
+
+        # The same checks the add endpoints enforce, so the UI hides what would be refused.
+        perms = {
+            "assign": await can("ToDo", "create"),
+            "share": await can(doctype, "write", doc),
+            "tag": await can("DocTag", "create"),
+        }
+        sections = await collect_sections(doctype, doc_id, doc)
+
         bookmark = dict(bookmarks[0]) if bookmarks else None
         if bookmark and bookmark.get("created_at"):
             bookmark["created_at"] = _iso(bookmark["created_at"])
@@ -295,6 +314,8 @@ class DocumentMetaRPCMixin:
             "bookmark": bookmark,
             "follow": {"name": str(follows[0]["name"])} if follows else None,
             "people": people,
+            "perms": perms,
+            "sections": sections,
             "reminders": [
                 {
                     "name": str(r["name"]),

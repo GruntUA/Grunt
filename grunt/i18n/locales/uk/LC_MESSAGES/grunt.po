@@ -21825,3 +21825,6 @@ msgstr "Реакції на коментарі"
 
 msgid "Emoji people can put under comments, separated by spaces. Empty - reactions are off"
 msgstr "Емодзі, які можна ставити під коментарями, через пробіл. Порожньо - реакції вимкнено"
+
+msgid "No tags"
+msgstr "Без тегів"

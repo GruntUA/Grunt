@@ -135,6 +135,23 @@ export interface SidebarBundle {
   reminders?: SidebarReminder[]
   /** Time-in-status history, oldest first (empty unless a field is tracked). */
   milestones?: SidebarMilestone[]
+  /** What the current user may add here - the checks the add endpoints enforce. */
+  perms?: { assign: boolean; share: boolean; tag: boolean }
+  /** Apps' `sidebar_sections` that apply to this document and have rows. */
+  sections?: SidebarSection[]
+}
+
+export interface SidebarSection {
+  name: string
+  label: string
+  rows: {
+    label: string
+    value?: string | number
+    /** Desk path (`/app/...`) or a full URL. */
+    link?: string
+    /** Status colour: green, red, orange, yellow, blue, gray. */
+    indicator?: string
+  }[]
 }
 
 // Maps FilterBar display operators to backend query suffixes
