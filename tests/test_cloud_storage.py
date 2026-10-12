@@ -329,17 +329,20 @@ async def test_only_one_files_remote_and_location_locked_while_files_live_there(
     await ctx.new_doc(
         "StorageRemote", {**_remote(tmp_path, name="a"), "title": "a", "use_for_files": 1}
     )
-    with pytest.raises(Exception, match="only one storage can hold files"):
-        await ctx.new_doc(
-            "StorageRemote", {**_remote(tmp_path, name="b"), "title": "b", "use_for_files": 1}
-        )
+    from grunt.i18n import use_language
 
-    row = await _old_file(ctx, b"kept remotely")
-    await ctx.db.set_value("File", row["name"], {"storage_remote": "a"})
-    with pytest.raises(Exception, match="return them to the server first"):
-        await ctx.save_doc("StorageRemote", "a", {"root_folder": str(tmp_path / "elsewhere")})
-    with pytest.raises(Exception, match="before deleting it"):
-        await ctx.delete_doc("StorageRemote", "a")
+    with use_language("en"):  # the messages below are matched in English
+        with pytest.raises(Exception, match="only one storage can hold files"):
+            await ctx.new_doc(
+                "StorageRemote", {**_remote(tmp_path, name="b"), "title": "b", "use_for_files": 1}
+            )
+
+        row = await _old_file(ctx, b"kept remotely")
+        await ctx.db.set_value("File", row["name"], {"storage_remote": "a"})
+        with pytest.raises(Exception, match="return them to the server first"):
+            await ctx.save_doc("StorageRemote", "a", {"root_folder": str(tmp_path / "elsewhere")})
+        with pytest.raises(Exception, match="before deleting it"):
+            await ctx.delete_doc("StorageRemote", "a")
 
 
 @pytest.mark.asyncio
