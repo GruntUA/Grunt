@@ -21,6 +21,7 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
+from packaging.version import InvalidVersion, Version
 from sqlalchemy import text
 
 import grunt
@@ -689,6 +690,23 @@ def stray_venvs_row(apps_dir: Path) -> Row:
 # Versions
 
 
+def _commit(version: str) -> str:
+    """The version without the ``.dYYYYMMDD`` mark of uncommitted changes:
+    an edited working tree is not a different release, and the date in that
+    mark changes daily on its own."""
+    return re.sub(r"\.d\d{8}$", "", version)
+
+
+def _older(code: str, db: str) -> bool:
+    """Whether the running code predates the version the database was
+    migrated with - the server was started before a newer checkout ran
+    `grunt migrate`, so migrating again changes nothing; a restart does."""
+    try:
+        return Version(code) < Version(db)
+    except InvalidVersion:
+        return False
+
+
 async def check_versions() -> list[Row]:
     """Framework and app versions (git tags) next to the versions this site's
     database was last migrated with, the Alembic migration state, and apps
@@ -703,8 +721,19 @@ async def check_versions() -> list[Row]:
     def version_row(name: str, code: str, problem: str | None = None) -> Row:
         if problem:
             return row(cat, name, ERROR, code, _("Not loaded: %(reason)s") % {"reason": problem})
-        db = migrated.get(name)
-        if db and db != code:
+        db = _commit(migrated.get(name) or "")
+        if db == _commit(code):
+            db = ""
+        if db and _older(_commit(code), db):
+            return row(
+                cat,
+                name,
+                WARNING,
+                code,
+                _("The database was migrated with newer code (%(version)s). Restart the server.")
+                % {"version": db},
+            )
+        if db:
             return row(
                 cat,
                 name,
