@@ -28,7 +28,7 @@ jobs:
           python-version: "3.14"
           enable-cache: true
 
-      - run: uv sync --all-extras
+      - run: uv sync --locked --all-extras
 
       - name: ruff
         run: uv run ruff check grunt tests
@@ -79,7 +79,7 @@ jobs:
           python-version: "3.14"
           enable-cache: true
 
-      - run: uv sync --all-extras
+      - run: uv sync --locked --all-extras
 
       - name: pytest
         env:
@@ -95,9 +95,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "26"
+          cache: npm
 
-      # package-lock.json is not committed, so no `npm ci`.
-      - run: npm install --no-audit --no-fund
+      - run: npm ci --no-audit --no-fund
 
       - name: vue-tsc
         run: npx vue-tsc --noEmit

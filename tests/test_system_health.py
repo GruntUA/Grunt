@@ -88,7 +88,7 @@ async def test_missing_app_dependency_is_reported(tmp_path, monkeypatch):
         '[project]\nname = "demo"\ndependencies = ["surely-not-installed-pkg>=1", "pydantic"]\n'
     )
     monkeypatch.setattr(site_manager, "bench_dir", tmp_path)
-    [r] = await health.check_app_dependencies()
+    r, _venvs = await health.check_app_dependencies()
     assert r["status"] == "Error"
     assert "demo: demo" in r["hint"] and "surely-not-installed-pkg" in r["hint"]
     assert "pydantic" not in r["hint"]
@@ -109,3 +109,17 @@ async def test_unregistered_scheduler_job_is_reported(ctx):
         scheduler.failed_jobs.update(saved)
     [bad] = [r for r in rows if r["check"] == "Незареєстровані задачі"]
     assert bad["status"] == "Error" and "no_such_app.tasks.nope" in bad["hint"]
+
+
+def test_stray_app_venv_is_reported(tmp_path):
+    from grunt.monitoring.health import WARNING, stray_venvs_row
+
+    (tmp_path / "grunt" / ".venv").mkdir(parents=True)
+    (tmp_path / "grunt" / ".venv" / "pyvenv.cfg").write_text("")
+    assert stray_venvs_row(tmp_path)["status"] == "OK"
+
+    (tmp_path / "hrm" / ".venv").mkdir(parents=True)
+    (tmp_path / "hrm" / ".venv" / "pyvenv.cfg").write_text("")
+    found = stray_venvs_row(tmp_path)
+    assert found["status"] == WARNING
+    assert "apps/hrm/.venv" in found["hint"]

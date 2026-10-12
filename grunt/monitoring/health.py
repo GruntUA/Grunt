@@ -583,8 +583,29 @@ async def check_app_dependencies() -> list[Row]:
             if missing
             else _("%(count)s apps, all installed") % {"count": len(apps)},
             (_("Run `grunt app deps`. Missing:") + " " + ", ".join(missing)) if missing else "",
-        )
+        ),
+        stray_venvs_row(site_manager.bench_dir / "apps"),
     ]
+
+
+def stray_venvs_row(apps_dir: Path) -> Row:
+    """Apps run from the framework's venv; a .venv inside an app (left by
+    `uv run` in its folder) gets picked up by editors and shells instead."""
+    stray = sorted(
+        d.name
+        for d in (apps_dir.iterdir() if apps_dir.is_dir() else [])
+        if d.name != "grunt" and (d / ".venv" / "pyvenv.cfg").exists()
+    )
+    return row(
+        _("App dependencies"),
+        _("Separate app environments"),
+        WARNING if stray else OK,
+        ", ".join(stray) if stray else _("none"),
+        _("Apps use apps/grunt/.venv. Delete: %(paths)s")
+        % {"paths": " ".join(f"apps/{name}/.venv" for name in stray)}
+        if stray
+        else "",
+    )
 
 
 # Versions
