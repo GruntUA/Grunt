@@ -8,17 +8,18 @@ from urllib.parse import parse_qs, urlparse
 
 import pytest
 
-from grunt.storage.signing import sign_file_urls, verify
+from grunt.storage.signing import sign_all_file_urls, verify
 
 M = "/api/v1/method/grunt.storage.doctypes.File.file"
 URL = f"{M}.get_content?file_id="
 
 
 def test_sign_and_verify():
-    body = f'{{"a": "{URL}abc123", "b": "{URL}abc123&exp=1&sig=x"}}'.encode()
-    signed = sign_file_urls(body).decode()
-    assert signed.count("&exp=") == 2  # the already-signed URL is left alone
-    qs = parse_qs(urlparse(signed.split('"a": "')[1].split('"')[0]).query)
+    data = {"a": f"{URL}abc123", "b": f"{URL}abc123&exp=1&sig=x"}
+    signed = sign_all_file_urls(data)
+    assert "&exp=" in signed["a"]  # unsigned URL gets a signature
+    assert signed["b"].count("&exp=") == 1  # already-signed URL left alone
+    qs = parse_qs(urlparse(signed["a"]).query)
     exp, sig = int(qs["exp"][0]), qs["sig"][0]
     assert verify("abc123", exp, sig)
     assert not verify("other", exp, sig)
@@ -29,8 +30,15 @@ def test_sign_and_verify():
 
 
 def test_body_without_file_urls_untouched():
-    body = b'{"x": 1}'
-    assert sign_file_urls(body) is body
+    data = {"x": 1}
+    assert sign_all_file_urls(data) is data
+
+
+def test_signature_not_appended_to_a_foreign_host_url():
+    """A get_content path riding on another origin must never be signed."""
+    data = {"evil": f"https://evil.example{URL}stolenid"}
+    signed = sign_all_file_urls(data)
+    assert "&sig=" not in signed["evil"]
 
 
 @pytest.mark.asyncio
@@ -74,7 +82,7 @@ async def test_unattached_upload_is_private(client, auth_headers):
 def test_signatures_are_stripped_before_saving():
     from grunt.storage.signing import strip_file_signatures
 
-    signed = sign_file_urls(f'"{URL}abc"'.encode()).decode().strip('"')
+    signed = sign_all_file_urls(f"{URL}abc")
     html_signed = f'<img src="{signed.replace("&", "&amp;")}">'
     data = {"photo": signed, "rows": [{"body": html_signed}], "n": 3}
     assert strip_file_signatures(data) == {
@@ -87,7 +95,7 @@ def test_signatures_are_stripped_before_saving():
 @pytest.mark.asyncio
 async def test_saved_attach_value_is_stored_unsigned(ctx):
     await ctx.new_doc("User", {"email": "pic@example.com", "first_name": "P", "last_name": "C"})
-    signed = sign_file_urls(f'"{URL}pic1"'.encode()).decode().strip('"')
+    signed = sign_all_file_urls(f"{URL}pic1")
     await ctx.save_doc("User", "pic@example.com", {"avatar": signed})
     await ctx.db._session().commit()
     assert await ctx.db.get_value("User", "pic@example.com", "avatar") == f"{URL}pic1"
@@ -98,7 +106,7 @@ def test_rate_limiter_recognises_file_content_requests():
 
     from grunt.middleware.rate_limit import _is_file_content_request
 
-    signed = sign_file_urls(f'"{URL}f1"'.encode()).decode().strip('"')
+    signed = sign_all_file_urls(f"{URL}f1")
 
     def req(url: str) -> Request:
         path, _, query = url.partition("?")

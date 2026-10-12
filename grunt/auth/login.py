@@ -89,6 +89,15 @@ async def issue_login(
         }
 
     assert user.id is not None
+    # Login is fully complete here (every challenge - MFA verify, MFA setup,
+    # pending approval - returned earlier, above). Only now reset the failed
+    # attempt counter: clearing it at the password step would let a known
+    # password reset the counter that wrong MFA codes increment, defeating the
+    # lockout on the 6-digit second factor.
+    from grunt.auth.doctypes.User.user import clear_failed_attempts
+
+    await clear_failed_attempts(user)
+
     sid, refresh_token = await open_session(user.id, ip_address, user_agent)
     access_token = create_access_token(user, await access_token_minutes(), sid=sid)
 

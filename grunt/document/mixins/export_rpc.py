@@ -183,9 +183,9 @@ class DocumentExportRPCMixin:
             # PrintFormat (or the standard template) + letterhead.
             html = await render_print_html(doctype, doc, print_format)
 
-            from grunt.storage.signing import sign_authorized_file_urls_in_text
+            from grunt.storage.signing import sign_authorized_file_urls
 
-            html = await sign_authorized_file_urls_in_text(html, grunt.get_user())
+            html = await sign_authorized_file_urls(html, grunt.get_user())
             if fmt == "html":
                 if autoprint:
                     html = html.replace("</body>", f"{_AUTOPRINT_SCRIPT}</body>", 1)
@@ -269,9 +269,9 @@ class DocumentExportRPCMixin:
             if rendered_lh and "letter_head" not in template_str:
                 html = apply_letter_head(html, rendered_lh)
 
-        from grunt.storage.signing import sign_authorized_file_urls_in_text
+        from grunt.storage.signing import sign_authorized_file_urls
 
-        signed = await sign_authorized_file_urls_in_text(html, grunt.get_user())
+        signed = await sign_authorized_file_urls(html, grunt.get_user())
         return Response(content=signed, media_type="text/html")
 
     @staticmethod

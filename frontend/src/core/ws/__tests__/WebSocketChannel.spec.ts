@@ -50,9 +50,9 @@ class MockWebSocket {
     this.onmessage?.({ data: typeof data === 'string' ? data : JSON.stringify(data) })
   }
 
-  serverClose() {
+  serverClose(code?: number) {
     this.readyState = MockWebSocket.CLOSED
-    this.onclose?.()
+    this.onclose?.(code === undefined ? undefined : { code })
   }
 }
 
@@ -165,5 +165,21 @@ describe('WebSocketChannel', () => {
 
     expect(MockWebSocket.instances).toHaveLength(2)
     expect(MockWebSocket.instances[1]?.url).toContain('/api/v1/ws/public/site')
+  })
+
+  it('does not reconnect after a 4403 (forbidden) close', () => {
+    const channel = new WebSocketChannel({
+      url: '/api/v1/ws/SomeDoc/row1',
+      includeAuthToken: false,
+      reconnectDelayMs: 3000,
+    })
+    channel.connect()
+    MockWebSocket.instances[0].open()
+
+    MockWebSocket.instances[0].serverClose(4403)
+    vi.advanceTimersByTime(3000)
+
+    // Terminal: no second socket opened.
+    expect(MockWebSocket.instances).toHaveLength(1)
   })
 })

@@ -579,7 +579,9 @@ async def authenticate(email: str, password: str) -> User | None:
         await register_failed_attempt(user)
         return None
 
-    await clear_failed_attempts(user)
+    # NB: the counter is cleared in issue_login (full-login completion), not
+    # here - a password success that still owes an MFA code must not reset the
+    # lockout that guards the second factor.
     return user
 
 
@@ -741,8 +743,8 @@ async def mfa_login_api(
     except Exception as exc:
         log.error("auth.mfa_verify_error", error=str(exc))
         raise
-    await clear_failed_attempts(user)
 
+    # Counter cleared by issue_login once the full login completes below.
     # honor_mfa=False: the second factor has just been proven here.
     return await issue_login(
         user,

@@ -61,3 +61,35 @@ async def test_wrong_mfa_codes_lock_the_account(ctx, client):
         assert r.status_code in (401, 429)
     r = await client.post(f"{M}.mfa_login_api", json={"mfa_token": token, "code": "000000"})
     assert r.status_code == 429, r.text
+
+
+@pytest.mark.asyncio
+async def test_mfa_lockout_not_reset_by_re_entering_password(ctx, client):
+    """The MFA-code counter must not be wiped by a fresh password login - else a
+    known password lets an attacker reset the lockout and brute-force the code."""
+    import pyotp
+
+    await _setup(ctx)
+    async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
+        await ctx.db.set_value(
+            "User", EMAIL, {"mfa_enabled": True, "mfa_secret": pyotp.random_base32()}
+        )
+        await ctx.db._session().commit()
+
+    # Alternate: password login (would previously clear the counter) then a
+    # wrong MFA code. After enough wrong codes the account must lock despite the
+    # interleaved successful password steps.
+    locked = False
+    for _ in range(5):
+        pw = await client.post(
+            f"{M}.login_api", json={"email": EMAIL, "password": "Correct-horse-1"}
+        )
+        if pw.status_code == 429:
+            locked = True
+            break
+        token = pw.json()["data"]["mfa_token"]
+        code = await client.post(f"{M}.mfa_login_api", json={"mfa_token": token, "code": "000000"})
+        if code.status_code == 429:
+            locked = True
+            break
+    assert locked, "account never locked despite repeated wrong MFA codes"

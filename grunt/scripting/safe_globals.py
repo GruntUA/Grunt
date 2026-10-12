@@ -105,16 +105,22 @@ _EXTRA_SAFE_BUILTINS: dict[str, Any] = {
                 "ceil", "floor", "trunc", "sqrt", "isqrt", "pow", "exp", "log",
                 "log2", "log10", "fabs", "factorial", "gcd", "hypot", "fmod",
                 "copysign", "sin", "cos", "tan", "asin", "acos", "atan", "atan2",
-                "degrees", "radians", "isfinite", "isnan", "isinf", "pi", "e", "tau",
+                "degrees", "radians", "isfinite", "isnan", "isinf", "isclose",
+                "prod", "comb", "perm", "dist", "remainder", "pi", "e", "tau",
+                "inf", "nan",
             )
         }
     ),
-    "json": SimpleNamespace(loads=json.loads, dumps=json.dumps),
+    "json": SimpleNamespace(
+        loads=json.loads, dumps=json.dumps, JSONDecodeError=json.JSONDecodeError
+    ),
     "re": SimpleNamespace(
         match=re.match, search=re.search, fullmatch=re.fullmatch, sub=re.sub,
         subn=re.subn, findall=re.findall, finditer=re.finditer, split=re.split,
-        compile=re.compile, escape=re.escape, IGNORECASE=re.IGNORECASE,
-        MULTILINE=re.MULTILINE, DOTALL=re.DOTALL,
+        compile=re.compile, escape=re.escape, error=re.error,
+        IGNORECASE=re.IGNORECASE, I=re.IGNORECASE, MULTILINE=re.MULTILINE,
+        M=re.MULTILINE, DOTALL=re.DOTALL, S=re.DOTALL, VERBOSE=re.VERBOSE,
+        X=re.VERBOSE, ASCII=re.ASCII, A=re.ASCII,
     ),
 }
 

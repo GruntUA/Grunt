@@ -32,7 +32,6 @@ from grunt.api.messages import throw
 from grunt.auth.doctypes.User.user import (
     _apply_signup_approval,
     _guard_registration,
-    clear_failed_attempts,
     get_user_by_email,
     is_account_locked,
     register_failed_attempt,
@@ -139,7 +138,7 @@ class EmailLoginProvider(AuthProvider):
 
         await self._mark_consumed(tid)
         if user is not None:
-            await clear_failed_attempts(user)
+            # Counter cleared by issue_login when the login completes.
             return user
         # New address - provision only now that the code has checked out.
         return await self._resolve_user(email)

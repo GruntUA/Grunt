@@ -62,15 +62,28 @@ async def _download(url: str, buffer: Any, limit: int) -> tuple[httpx2.Headers, 
             # verification still work.
             ip = await _check_public(url)
             parts = urlsplit(url)
-            host_header = parts.netloc
+            # Host header is hostname[:port] only - never the userinfo that may
+            # sit in netloc (``user:pass@host``), which would leak credentials
+            # in a header and make servers reject the request.
+            host_header = parts.hostname or ""
+            if parts.port:
+                host_header = f"{host_header}:{parts.port}"
             ip_host = f"[{ip}]" if ":" in ip else ip
             connect_url = parts._replace(
                 netloc=f"{ip_host}:{parts.port}" if parts.port else ip_host
             ).geturl()
             headers = {"Host": host_header}
             extensions = {"sni_hostname": parts.hostname} if parts.scheme == "https" else {}
+            # Credentials in the URL (``user:pass@``) are dropped from the IP
+            # connect URL - carry them as Basic auth instead, so an authenticated
+            # link still works.
+            auth = (
+                (unquote(parts.username or ""), unquote(parts.password or ""))
+                if parts.username
+                else None
+            )
             async with client.stream(
-                "GET", connect_url, headers=headers, extensions=extensions
+                "GET", connect_url, headers=headers, extensions=extensions, auth=auth
             ) as response:
                 if response.is_redirect and "location" in response.headers:
                     url = urljoin(url, response.headers["location"])

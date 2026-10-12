@@ -53,6 +53,12 @@ ESCAPES = [
     "(1).__class__.__bases__",
     "'{0.__class__}'.format(now)",
     "now.__class__.__init__.__globals__",
+    # Frame/coroutine/generator attributes carry no leading underscore but reach
+    # the real builtins (cr_frame -> f_builtins). These must be rejected too.
+    "count('X').cr_frame",
+    "count('X').cr_frame.f_builtins",
+    "(x for x in []).gi_frame.f_globals",
+    "count('X').cr_code.co_consts",
 ]
 
 

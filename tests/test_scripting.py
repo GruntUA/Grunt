@@ -27,10 +27,13 @@ class TestBuildSafeGlobals:
         assert g["__builtins__"]["datetime"] is datetime
 
     def test_has_json(self):
-        import json
-
+        # A narrow facade, NOT the live module: a live module object would let
+        # restricted code traverse public attributes to os (see safe_globals).
         g = build_safe_globals()
-        assert g["__builtins__"]["json"] is json
+        json_ns = g["__builtins__"]["json"]
+        assert json_ns.loads('{"a": 1}') == {"a": 1}
+        assert json_ns.dumps({"a": 1}) == '{"a": 1}'
+        assert json_ns.JSONDecodeError is not None
 
     def test_extra_injected(self):
         g = build_safe_globals(extra={"doc": {"name": "TEST"}})

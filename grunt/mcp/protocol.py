@@ -67,9 +67,9 @@ async def _to_text(value: Any) -> str:
     # read (grunt.storage.signing) - never blanket-signed, or the payload would
     # become an oracle for any file id. No user in context -> public files only.
     from grunt.local import _user_ctx
-    from grunt.storage.signing import sign_authorized_file_urls_in_text
+    from grunt.storage.signing import sign_authorized_file_urls
 
-    return await sign_authorized_file_urls_in_text(text, _user_ctx.get())
+    return await sign_authorized_file_urls(text, _user_ctx.get())
 
 
 def _tool_error(message: str) -> dict[str, Any]:

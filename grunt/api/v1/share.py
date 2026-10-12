@@ -65,14 +65,23 @@ async def get_shared_document(token: str) -> dict[str, Any]:
     doc_out = {k: (str(v) if v is not None else None) for k, v in doc.items()}
     await _inject_top_level_link_labels(meta, doc_out)
 
-    return {
-        "doctype": doctype_name,
-        "doctype_label": dt.label,
-        "doc_id": doc_id,
-        "expires_at": share.get("expires_at"),
-        "doc": doc_out,
-        "fields": visible_fields,
-    }
+    from grunt.storage.signing import sign_all_file_urls
+
+    # The share token authorises this whole document (and its attachments) for a
+    # guest who has no user to permission-check per file, so sign every file URL
+    # in the payload. Bounded to our own relative URLs, so it cannot sign a link
+    # to another host.
+    payload = sign_all_file_urls(
+        {
+            "doctype": doctype_name,
+            "doctype_label": dt.label,
+            "doc_id": doc_id,
+            "expires_at": share.get("expires_at"),
+            "doc": doc_out,
+            "fields": visible_fields,
+        }
+    )
+    return payload
 
 
 async def _inject_top_level_link_labels(meta: Any, doc: dict[str, Any]) -> None:

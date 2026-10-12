@@ -33,6 +33,7 @@ from __future__ import annotations
 
 import ast
 from datetime import UTC, datetime
+from functools import lru_cache
 from typing import TYPE_CHECKING, Any
 
 import grunt
@@ -77,10 +78,24 @@ _SAFE_BUILTINS: dict[str, Any] = {
 # ``.format`` spec traversal (``"{0.__class__}".format(x)``). An empty
 # ``__builtins__`` does not stop either - only refusing the attribute access
 # does. ``_``-prefixed attrs cover every dunder plus private helpers
-# (``grunt.db._session``); ``format``/``format_map`` are the format-spec gap.
+# (``grunt.db._session``); the rest are the non-underscore escape vectors:
+#  * ``format``/``format_map`` - the format-spec traversal gap;
+#  * frame/coroutine/generator/traceback/code attributes - a helper that
+#    returns a coroutine (``count(...)``) exposes ``cr_frame`` -> ``f_builtins``
+#    -> the real builtins, all without a single ``_``. Blocked by prefix.
 _BLOCKED_ATTRS = frozenset({"format", "format_map"})
+_BLOCKED_ATTR_PREFIXES = ("cr_", "gi_", "ag_", "f_", "tb_", "co_")
 
 
+def _attr_is_blocked(name: str) -> bool:
+    return (
+        name.startswith("_")
+        or name in _BLOCKED_ATTRS
+        or name.startswith(_BLOCKED_ATTR_PREFIXES)
+    )
+
+
+@lru_cache(maxsize=512)
 def _formula_is_safe(formula: str) -> bool:
     """Reject a formula expression that could escape the restricted namespace.
 
@@ -89,7 +104,10 @@ def _formula_is_safe(formula: str) -> bool:
     AST level (so ``formula``/``read_formula``, authored by a System Manager,
     cannot turn a document read into arbitrary code execution). Legitimate
     formulas - arithmetic, ``str``/``int``, ``' '.join(...)``, ``.date()``,
-    slicing, f-strings, ``count(...)`` - use no ``_``-prefixed attribute.
+    slicing, f-strings, ``count(...)`` - use none of the blocked attributes.
+
+    Cached on the (static, metadata) formula text so a 500-row list does not
+    re-parse the same expressions 500 times.
     """
     try:
         tree = ast.parse(formula, mode="eval")
@@ -97,7 +115,7 @@ def _formula_is_safe(formula: str) -> bool:
         return False
     for node in ast.walk(tree):
         if isinstance(node, ast.Attribute):
-            if node.attr.startswith("_") or node.attr in _BLOCKED_ATTRS:
+            if _attr_is_blocked(node.attr):
                 return False
         elif isinstance(node, ast.Name) and node.id.startswith("__"):
             return False

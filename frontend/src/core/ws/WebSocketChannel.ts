@@ -120,11 +120,21 @@ export class WebSocketChannel {
       this.startPing()
     }
 
-    this.ws.onclose = () => {
+    this.ws.onclose = (event) => {
       this.isConnected.value = false
       openChannels.delete(this)
       this.stopPing()
       this.ws = null
+
+      // The server closes with 4001 (bad/absent token) or 4403 (authenticated
+      // but not allowed to read this room). Reconnecting cannot change the
+      // outcome, so treat these as terminal - otherwise a forbidden or missing
+      // document loops a reconnect every few seconds, re-authenticating and
+      // opening a DB session on the server each time.
+      if (event?.code === 4001 || event?.code === 4403) {
+        this.manualClose = true
+        return
+      }
 
       if (!this.manualClose && this.url) {
         this.stopReconnect()

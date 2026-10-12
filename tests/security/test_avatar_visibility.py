@@ -72,7 +72,7 @@ async def test_cannot_publish_another_users_file_via_own_avatar(client, auth_hea
     # Attacker (a different user) points their own avatar at the victim's file.
     attacker = await _login(client, "idor@grunt.example.com")
     r = await client.put(
-        f"/api/v1/docs/User/idor@grunt.example.com",
+        "/api/v1/docs/User/idor@grunt.example.com",
         json={"avatar": bare},
         headers=attacker,
     )
