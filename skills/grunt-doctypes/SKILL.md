@@ -56,16 +56,29 @@ description: Довідник по всіх типах полів, налашт�
 from grunt.document.base import BaseDocument, DocumentList
 from grunt.document.in_memory import apply_filters, apply_search, apply_sort, build_response
 
+
 class ExternalCustomer(BaseDocument):
     @classmethod
-    async def get_list(cls, doctype, *, page=1, per_page=20, sort_by="name",
-                       sort_order="asc", filters=None, search=None, **kwargs) -> DocumentList:
+    async def get_list(
+        cls,
+        doctype,
+        *,
+        page=1,
+        per_page=20,
+        sort_by="name",
+        sort_order="asc",
+        filters=None,
+        search=None,
+        **kwargs,
+    ) -> DocumentList:
         rows = await api.list_customers()
-        if filters: rows = apply_filters(rows, filters)   # той самий синтаксис field__op
-        if search: rows = apply_search(rows, search, ["title"])
+        if filters:
+            rows = apply_filters(rows, filters)  # той самий синтаксис field__op
+        if search:
+            rows = apply_search(rows, search, ["title"])
         return build_response(apply_sort(rows, sort_by, sort_order), page, per_page)
 
-    async def load_from_db(self, *, expand=None):   # self.name → self.data, 404 якщо нема
+    async def load_from_db(self, *, expand=None):  # self.name → self.data, 404 якщо нема
         self.data = await api.get_customer(self.name)
 
     async def db_insert(self):  # self.data — новий документ; можна замінити self.data збереженим

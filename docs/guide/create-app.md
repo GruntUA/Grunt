@@ -173,7 +173,7 @@ doc = await grunt.get_doc("Deal", "D-0001")
 # {"doctype": "Deal", "name": "D-0001", ..., "items": [{"doctype": "DealItem", ...}]}
 
 deal = await grunt.get_doc({"doctype": "Deal", "title": "Big one", "items": [...]})
-await deal.insert()          # an unsaved controller - `create` permission checked
+await deal.insert()  # an unsaved controller - `create` permission checked
 deal.as_dict(), deal.as_json()
 ```
 

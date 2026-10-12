@@ -8,6 +8,8 @@ Provides:
 
 from __future__ import annotations
 
+import ast
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -24,6 +26,8 @@ _BEGIN_MARKER = "# begin: auto-generated types"
 _END_MARKER = "# end: auto-generated types"
 
 _NON_PHYSICAL = LAYOUT_FIELDTYPES | {"Empty"}
+
+_DATETIME_NAMES = ("date", "datetime", "time")
 
 
 # Template environment
@@ -134,6 +138,50 @@ def _render_type_block(fields: list[dict], indent: str = "    ") -> str:
     )
 
 
+def _ensure_datetime_import(source: str, fields: list[dict]) -> str:
+    """Make sure `from datetime import ...` covers the date types the block annotates."""
+    used = {
+        get_python_type(f["fieldtype"]).split(" ", 1)[0]
+        for f in fields
+        if f.get("fieldtype") not in _NON_PHYSICAL and f.get("fieldname") not in SYS_FIELDS
+    }
+    needed = [n for n in _DATETIME_NAMES if n in used]
+    if not needed:
+        return source
+
+    try:
+        tree = ast.parse(source)
+    except SyntaxError:
+        return source
+    lines = source.splitlines(keepends=True)
+
+    for node in tree.body:
+        if isinstance(node, ast.ImportFrom) and node.module == "datetime" and not node.level:
+            have = [a.name for a in node.names]
+            if all(n in have for n in needed):
+                return source
+            if node.end_lineno != node.lineno or any(a.asname for a in node.names):
+                return source
+            merged = [n for n in _DATETIME_NAMES if n in have or n in needed]
+            merged += [n for n in have if n not in merged]
+            lines[node.lineno - 1] = f"from datetime import {', '.join(merged)}\n"
+            return "".join(lines)
+
+    stmt = f"from datetime import {', '.join(needed)}\n"
+    for node in tree.body:
+        if (
+            isinstance(node, ast.Import | ast.ImportFrom)
+            and getattr(node, "module", None) != "__future__"
+        ):
+            top = (node.names[0].name if isinstance(node, ast.Import) else node.module or "").split(
+                "."
+            )[0]
+            sep = "" if top in sys.stdlib_module_names else "\n"
+            lines.insert(node.lineno - 1, stmt + sep)
+            return "".join(lines)
+    return source
+
+
 def sync_controller_types(py_path: Path, name: str, fields: list[dict]) -> bool:
     """Update only the auto-generated types block inside an existing controller file.
 
@@ -200,6 +248,8 @@ def sync_controller_types(py_path: Path, name: str, fields: list[dict]) -> bool:
             new_source = _insert_block_into_class(source_without_legacy_block, new_block)
     else:
         new_source = _insert_block_into_class(source, new_block)
+
+    new_source = _ensure_datetime_import(new_source, fields)
 
     if new_source == source:
         return False

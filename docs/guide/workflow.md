@@ -20,6 +20,7 @@ While a DocType has an active workflow:
   ```python
   from grunt.workflow.engine import current_transition
 
+
   async def validate(self):
       if (t := current_transition()) and t.to_state == "Approved":
           self.approved_by = self.user.email

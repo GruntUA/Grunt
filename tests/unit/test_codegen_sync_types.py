@@ -89,3 +89,23 @@ def test_fresh_controller_render_is_valid_python_with_one_field_per_line(tmp_pat
     assert "    a: str | None  # Назва\n" in out
     assert "    b: int | None  # Кількість\n" in out
     assert "    rows: list[dict]  # Table: WidgetRow\n" in out
+
+
+def test_sync_adds_missing_datetime_import(tmp_path):
+    py = tmp_path / "Widget.py"
+    py.write_text(_CONTROLLER, encoding="utf-8")
+    fields = [
+        {"fieldname": "start", "fieldtype": "Date"},
+        {"fieldname": "at", "fieldtype": "Time"},
+    ]
+
+    sync_controller_types(py, "Widget", fields)
+    src = py.read_text(encoding="utf-8")
+    assert "from datetime import date, time\n\nfrom grunt.document.base" in src
+
+    fields.append({"fieldname": "stamp", "fieldtype": "Datetime"})
+    sync_controller_types(py, "Widget", fields)
+    src = py.read_text(encoding="utf-8")
+    assert src.count("from datetime import") == 1
+    assert "from datetime import date, datetime, time\n" in src
+    assert sync_controller_types(py, "Widget", fields) is False

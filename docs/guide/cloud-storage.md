@@ -159,7 +159,7 @@ from grunt.storage.cloud import Rclone, load_remote
 
 async with Rclone(await load_remote("Archive")) as rc:
     await rc.put_file(path, "reports/2026/q3.pdf")
-    data = await rc.cat("reports/2026/q3.pdf")       # offset= / count= for a slice
+    data = await rc.cat("reports/2026/q3.pdf")  # offset= / count= for a slice
     entries = await rc.list("reports", recursive=True)
     await rc.delete_file("reports/2026/q3.pdf")
 ```
