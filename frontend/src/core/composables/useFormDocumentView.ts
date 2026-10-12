@@ -30,14 +30,26 @@ export function useFormDocumentView(params: UseFormDocumentViewParams) {
   })
 
   function onFormUpdate(updated: Record<string, unknown>) {
+    // A Button field's "value" is just a click (a timestamp): it fires
+    // on_change but never lands in the document - or the form would turn
+    // unsaved on every click.
+    const buttons = new Set(
+      (params.dt.value?.fields ?? []).filter((f) => f.fieldtype === 'Button').map((f) => f.fieldname),
+    )
     const changedFields: string[] = []
+    const values: Record<string, unknown> = {}
     for (const key of Object.keys(updated)) {
+      if (buttons.has(key)) {
+        if (updated[key] !== undefined && updated[key] !== params.form.value[key]) changedFields.push(key)
+        continue
+      }
+      values[key] = updated[key]
       if (updated[key] !== params.form.value[key]) {
         changedFields.push(key)
       }
     }
 
-    Object.assign(params.form.value, updated)
+    Object.assign(params.form.value, values)
     for (const field of changedFields) {
       params.runOnChange(field)
     }

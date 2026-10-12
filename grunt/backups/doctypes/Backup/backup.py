@@ -12,13 +12,14 @@ from grunt.document.in_memory import apply_search, apply_sort, build_response
 from grunt.i18n import N_
 from grunt.monitoring.health import human_size
 from grunt.site.manager import site_manager
+from grunt.storage.cloud.backups import load_state
 
 
 def _site() -> str:
     return site_manager.get_active_site()
 
 
-def _row(site: str, backup: BackupSet) -> dict[str, Any]:
+def _row(site: str, backup: BackupSet, cloud: dict[str, dict[str, str]]) -> dict[str, Any]:
     def size(kind: str) -> str:
         return human_size(backup.size(kind)) if kind in backup.files else ""
 
@@ -29,6 +30,7 @@ def _row(site: str, backup: BackupSet) -> dict[str, Any]:
         "database_size": size("database"),
         "files_size": size("files"),
         "has_config": "config" in backup.files,
+        "in_cloud": ", ".join(sorted(cloud.get(backup.id, {}))),
         **{f"{kind}_url": download_url(site, path.name) for kind, path in backup.files.items()},
     }
 
@@ -57,7 +59,8 @@ class BackupController(BaseDocument):
         **kwargs: Any,
     ) -> DocumentList:
         site = _site()
-        rows = [_row(site, b) for b in list_backups(site)]
+        cloud = load_state(site)
+        rows = [_row(site, b, cloud) for b in list_backups(site)]
         if search:
             rows = apply_search(rows, search, ["name"])
         rows = apply_sort(rows, sort_by if sort_by != "modified_at" else "name", sort_order)
@@ -68,7 +71,7 @@ class BackupController(BaseDocument):
         backup = get_backup(site, str(self.name))
         if backup is None:
             raise HTTPException(status.HTTP_404_NOT_FOUND, _("Backup not found"))
-        self.data = _row(site, backup)
+        self.data = _row(site, backup, load_state(site))
 
     async def db_delete(self) -> None:
         delete_backup(_site(), str(self.name))

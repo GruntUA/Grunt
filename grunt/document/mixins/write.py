@@ -85,8 +85,12 @@ class DocumentWriteMixin(DocumentReadMixin):
         for field in dt.get_physical_fields():
             if field.fieldname in PROTECTED_FIELDS or field.fieldname not in table_cols:
                 continue
-            if row.get(field.fieldname) != existing.get(field.fieldname):
-                update_data[field.fieldname] = row[field.fieldname]
+            # A hook may have put the stored value back (a masked secret sent
+            # unchanged) - the document wins over the request payload then too.
+            if field.fieldname in update_data or row.get(field.fieldname) != existing.get(
+                field.fieldname
+            ):
+                update_data[field.fieldname] = row.get(field.fieldname)
         # The audit stamps of the merged doc, not fresh ones.
         for key in ("modified_at", "modified_by"):
             if key in update_data:

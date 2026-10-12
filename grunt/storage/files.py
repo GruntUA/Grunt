@@ -75,8 +75,10 @@ async def ensure_thumbnail(key: str, content_type: str | None, width: int | None
     storage = get_storage_backend()
     if storage.thumbnail_path(key, width).exists():
         return True
+    from grunt.storage.cloud.files import read_blob
+
     try:
-        content = await storage.get(key)
+        content = await read_blob(key)  # may be fetched from cloud storage
     except FileNotFoundError:
         return False
     thumb = await make_thumbnail(content, content_type, width or THUMB_WIDTH)
@@ -188,4 +190,6 @@ async def read(file_id: str) -> bytes:
     key = await grunt.db.get_value("File", file_id, "content_hash")
     if not key:
         raise FileNotFoundError(f"File not found: {file_id}")
-    return await get_storage_backend().get(key)
+    from grunt.storage.cloud.files import read_blob
+
+    return await read_blob(key)

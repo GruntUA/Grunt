@@ -6,7 +6,10 @@
   "image_field": "thumbnail_url",
   "default_view": "explorer",
   "inherit_permission_from": [
-    ["attached_to_doctype", "attached_to_id"],
+    [
+      "attached_to_doctype",
+      "attached_to_id"
+    ],
     "folder"
   ],
   "fields": [
@@ -77,6 +80,16 @@
       "default": true,
       "in_list_view": true,
       "in_filter": true
+    },
+    {
+      "fieldname": "storage_remote",
+      "label": "In cloud storage",
+      "fieldtype": "Link",
+      "options": "StorageRemote",
+      "read_only": true,
+      "in_filter": true,
+      "index": true,
+      "description": "The contents were moved off the server disk into this storage; they are fetched back on request (grunt.storage.cloud.files)."
     },
     {
       "fieldname": "sec_attachment",

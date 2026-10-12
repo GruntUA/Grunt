@@ -7,7 +7,8 @@ One backup is a *set* of files sharing an id (``20260923-020000``) in
   backup API (consistent under WAL, unlike copying the file), checked with
   ``PRAGMA quick_check`` before it is kept; or ``<id>-database.pgdump`` -
   PostgreSQL ``pg_dump -Fc``;
-* ``<id>-files.tar.zst`` - the site's ``uploads/`` (local storage only);
+* ``<id>-files.tar.zst`` - the site's ``uploads/`` - only what is on this
+  disk: files moved to cloud storage are kept there, not in the set;
 * ``<id>-config.env`` - the site ``.env`` (SECRET_KEY, DB credentials - a
   restore needs it); readable by the owner only.
 
@@ -208,15 +209,20 @@ class _CountingTarFile(tarfile.TarFile):
         super().addfile(tarinfo, fileobj)
 
 
+_SKIPPED_UPLOADS = ("uploads/tmp/", "uploads/cache/")
+
+
 def _backup_files(uploads: Path, dest: Path, level: int, progress: Progress) -> None:
     progress.set(stage=_("Archiving files"))
     with _CountingTarFile.open(dest, "w:zst", options=_zstd_options(level)) as tar:
         tar.progress = progress
-        # Uploads still in flight (tmp/) are not files yet.
+        # Uploads still in flight (tmp/) are not files yet; cache/ holds copies
+        # of files kept in cloud storage (grunt.storage.cloud.files) - they
+        # are safe there and would only bloat every set.
         tar.add(
             uploads,
             arcname="uploads",
-            filter=lambda info: None if info.name.startswith("uploads/tmp/") else info,
+            filter=lambda info: None if info.name.startswith(_SKIPPED_UPLOADS) else info,
         )
 
 
@@ -247,7 +253,15 @@ def _remove_stale_parts(out: Path) -> None:
 
 
 def _tree_size(path: Path) -> int:
-    return sum(p.stat().st_size for p in path.rglob("*") if p.is_file() and not p.is_symlink())
+    """Bytes the files archive reads - what _backup_files skips doesn't count."""
+    skipped = tuple(path / p.removeprefix("uploads/") for p in _SKIPPED_UPLOADS)
+    return sum(
+        p.stat().st_size
+        for p in path.rglob("*")
+        if p.is_file()
+        and not p.is_symlink()
+        and not any(p.is_relative_to(folder) for folder in skipped)
+    )
 
 
 def _create_backup_sync(

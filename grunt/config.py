@@ -65,6 +65,8 @@ class Settings(BaseSettings):
     # Storage
     upload_dir: str = "./uploads"
     max_upload_size_mb: int = 50
+    # rclone (cloud storage remotes, grunt.storage.cloud): name in PATH or full path
+    rclone_binary: str = "rclone"
 
     # Reverse proxies whose forwarded client-IP headers (CF-Connecting-IP,
     # X-Real-IP, X-Forwarded-For) are believed. A request from any other

@@ -13,6 +13,10 @@ doc_events: dict[str, dict[str, list[str]]] = {
     "EmailAccount": {
         "after_read": ["grunt.email.hooks.mask_smtp_password"],
     },
+    # Cloud storage credentials never leave the server (grunt.storage.cloud).
+    "StorageRemote": {
+        "after_read": ["grunt.storage.cloud.mask_secrets"],
+    },
     # Keep the notification-rule index (grunt.events "notification_rules"
     # stage) fresh.
     "NotificationRule": {

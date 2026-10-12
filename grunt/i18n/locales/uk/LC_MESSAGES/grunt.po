@@ -20713,3 +20713,1085 @@ msgstr ""
 #~ msgstr ""
 #~ "zstd, 1–19. Вищий — менший файл, але довше: 9 — оптимальний баланс, 19 — "
 #~ "найменший розмір. Застосовується і до «Створити зараз»."
+
+#: grunt/grunt/auth/doctypes/UserSession/UserSession.json
+msgctxt "meta:UserSession.device_id"
+msgid "Device ID"
+msgstr "ID пристрою"
+
+#: grunt/grunt/auth/doctypes/UserSession/UserSession.json
+msgctxt "meta:UserSession.logins"
+msgid "Sign-ins"
+msgstr "Входи"
+
+#: grunt/grunt/auth/doctypes/UserSessionLogin/UserSessionLogin.json
+msgctxt "meta:UserSessionLogin"
+msgid "Session sign-in"
+msgstr "Вхід у сесію"
+
+#: grunt/grunt/auth/doctypes/UserSessionLogin/UserSessionLogin.json
+msgctxt "meta:UserSessionLogin.login_at"
+msgid "Signed in at"
+msgstr "Час входу"
+
+#: grunt/grunt/auth/doctypes/UserSessionLogin/UserSessionLogin.json
+msgctxt "meta:UserSessionLogin.ip_address"
+msgid "IP address"
+msgstr "IP-адреса"
+
+#: grunt/grunt/auth/doctypes/UserSessionLogin/UserSessionLogin.json
+msgctxt "meta:UserSessionLogin.method"
+msgid "Method"
+msgstr "Спосіб"
+
+#: grunt/grunt/auth/doctypes/UserSessionLogin/UserSessionLogin.json
+msgctxt "meta:UserSessionLogin.user_agent"
+msgid "Browser / client"
+msgstr "Браузер / клієнт"
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgctxt "meta:SystemSettings.session_login_history"
+msgid "Sign-ins kept per device"
+msgstr "Скільки входів зберігати на пристрій"
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgctxt "help:SystemSettings.session_login_history"
+msgid "A browser keeps one session record; its latest sign-ins are listed inside it."
+msgstr "Один браузер — один запис сесії; останні входи з нього показано всередині запису."
+
+#: grunt/grunt/storage/doctypes/StorageRemote/storage_remote.py:146
+msgid "%(free)s free of %(total)s"
+msgstr "вільно %(free)s з %(total)s"
+
+#: grunt/grunt/storage/cloud/files.py:295
+msgid "%(n)s files could not be returned (missing or damaged in the storage)"
+msgstr ""
+"Не вдалося повернути файлів: %(n)s (у сховищі їх немає або вони пошкоджені)"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/storage_remote.py:151
+msgid "%(used)s used"
+msgstr "використано %(used)s"
+
+#: grunt/grunt/monitoring/health.py:682
+msgid "Apps use apps/grunt/.venv. Delete: %(paths)s"
+msgstr "Додатки використовують apps/grunt/.venv. Видаліть: %(paths)s"
+
+#: grunt/grunt/storage/cloud/backups.py:194
+msgid "Backup %(id)s is already on the server"
+msgstr "Резервна копія %(id)s уже є на сервері"
+
+#: grunt/grunt/storage/cloud/backups.py:199
+msgid "Backup %(id)s not found in the storage"
+msgstr "Резервну копію %(id)s не знайдено у сховищі"
+
+#: grunt/grunt/monitoring/health.py:618
+msgid "Backups are not reaching this storage; see its status."
+msgstr "Резервні копії не потрапляють у це сховище — перегляньте його стан."
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:148
+#: grunt/grunt/backups/doctypes/Backup/Backup.js:93
+msgid "Backups in the storage"
+msgstr "Резервні копії у сховищі"
+
+#: grunt/grunt/monitoring/health.py:569
+msgid "Backups stay on this server only."
+msgstr "Резервні копії зберігаються лише на цьому сервері."
+
+#: grunt/grunt/monitoring/health.py:595
+msgid "Click Test connection in the storage."
+msgstr "Натисніть «Перевірити з'єднання» у сховищі."
+
+#: grunt/grunt/monitoring/health.py:564 grunt/grunt/monitoring/health.py:775
+#: grunt/grunt/backups/doctypes/Backup/Backup.js:84
+msgid "Cloud storage"
+msgstr "Хмарні сховища"
+
+#: grunt/grunt/storage/cloud/__init__.py:133
+msgid "Cloud storage “%(name)s” is failing"
+msgstr "Хмарне сховище «%(name)s» не працює"
+
+#: grunt/grunt/storage/cloud/__init__.py:106
+msgid "Cloud storage “%(name)s”: %(error)s"
+msgstr "Хмарне сховище «%(name)s»: %(error)s"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:67
+msgid "Connect"
+msgstr "Підключити"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:58
+msgid "Connection works"
+msgstr "З'єднання працює"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:78
+msgid "Copy the whole line rclone prints (it starts with access_token) and paste it below"
+msgstr "Скопіюйте весь рядок, який виведе rclone (він починається з access_token), і вставте нижче"
+
+#: grunt/grunt/storage/cloud/oauth.py:143
+msgid "Could not read the OneDrive drive of this account"
+msgstr "Не вдалося прочитати диск OneDrive цього облікового запису"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:134
+msgid "Download every file kept in this storage back to the server disk?"
+msgstr "Завантажити всі файли з цього сховища назад на диск сервера?"
+
+#: grunt/grunt/storage/cloud/tasks.py:78
+msgid "Download from cloud storage"
+msgstr "Завантаження з хмарного сховища"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:166
+#: grunt/grunt/backups/doctypes/Backup/Backup.js:111
+msgid "Download started"
+msgstr "Завантаження розпочато"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:150
+#: grunt/grunt/backups/doctypes/Backup/Backup.js:95
+msgid "Download to the server"
+msgstr "Завантажити на сервер"
+
+#: grunt/grunt/storage/cloud/files.py:263
+msgid "Downloading %(n)s files"
+msgstr "Завантаження файлів: %(n)s"
+
+#: grunt/grunt/storage/cloud/rclone.py:101
+msgid "Encryption is on, but no encryption password is set"
+msgstr "Шифрування увімкнено, але пароль шифрування не задано"
+
+#: grunt/grunt/storage/cloud/oauth.py:180
+msgid "Enter the Client ID and secret of your app and save first"
+msgstr "Спершу введіть Client ID і секрет свого додатка та збережіть"
+
+#: grunt/grunt/storage/cloud/providers.py:139
+msgid "Enter the rclone backend type"
+msgstr "Вкажіть тип бекенда rclone"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/storage_remote.py:85
+msgid "Files are already moved to “%(name)s”; only one storage can hold files"
+msgstr ""
+"Файли вже переносяться в «%(name)s»; зберігати файли може лише одне сховище"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/storage_remote.py:109
+msgid ""
+"Files are kept in this storage: return them to the server before deleting it"
+msgstr ""
+"У цьому сховищі зберігаються файли: поверніть їх на сервер, перш ніж "
+"видаляти його"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/storage_remote.py:100
+msgid ""
+"Files are kept in this storage: return them to the server first (Files → "
+"Return all files), then change where or how they are stored"
+msgstr ""
+"У цьому сховищі зберігаються файли: спершу поверніть їх на сервер («Файли» →"
+" «Повернути всі файли на сервер»), потім змінюйте, де або як вони "
+"зберігаються"
+
+#: grunt/grunt/monitoring/health.py:625
+msgid "Files in “%(name)s”"
+msgstr "Файли в «%(name)s»"
+
+#: grunt/grunt/backups/doctypes/Backup/Backup.js:73
+#: grunt/grunt/backups/doctypes/Backup/Backup.js:82
+msgid "From cloud storage"
+msgstr "З хмарного сховища"
+
+#: grunt/grunt/monitoring/health.py:578
+msgid "Install rclone: https://rclone.org/install/"
+msgstr "Встановіть rclone: https://rclone.org/install/"
+
+#: grunt/grunt/monitoring/health.py:611
+msgid "Latest backup in “%(name)s”"
+msgstr "Остання копія в «%(name)s»"
+
+#: grunt/grunt/monitoring/health.py:632
+msgid "Local cache of cloud files"
+msgstr "Локальний кеш хмарних файлів"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:128
+msgid "Move the files that fit the rules to the storage now?"
+msgstr "Перенести у сховище файли, що відповідають правилам, зараз?"
+
+#: grunt/grunt/storage/cloud/files.py:218
+msgid "Moving %(n)s files to the storage"
+msgstr "Перенесення файлів у сховище: %(n)s"
+
+#: grunt/grunt/storage/cloud/tasks.py:112
+msgid "Moving files to cloud storage"
+msgstr "Перенесення файлів у хмарне сховище"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:130
+msgid "Moving started"
+msgstr "Перенесення розпочато"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:144
+#: grunt/grunt/backups/doctypes/Backup/Backup.js:89
+msgid "No backups in this storage yet"
+msgstr "У цьому сховищі ще немає резервних копій"
+
+#: grunt/grunt/storage/cloud/oauth.py:215
+msgid "No code returned"
+msgstr "Код авторизації не повернуто"
+
+#: grunt/grunt/storage/cloud/files.py:259
+msgid "Not enough free disk space: %(need)s MB needed, %(free)s MB free"
+msgstr ""
+"Недостатньо вільного місця на диску: потрібно %(need)s МБ, вільно %(free)s "
+"МБ"
+
+#: grunt/grunt/monitoring/health.py:708
+msgid "Not loaded: %(reason)s"
+msgstr "Не завантажено: %(reason)s"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:75
+msgid "On any computer with a browser install rclone"
+msgstr "На будь-якому комп'ютері з браузером встановіть rclone"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:156
+#: grunt/grunt/backups/doctypes/Backup/Backup.js:101
+msgid "On the server"
+msgstr "На сервері"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:154
+#: grunt/grunt/backups/doctypes/Backup/Backup.js:99
+msgid "Parts"
+msgstr "Частини"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:66
+msgid "Paste a token from rclone"
+msgstr "Вставити токен з rclone"
+
+#: grunt/grunt/storage/cloud/tasks.py:124
+msgid "Returning files from cloud storage"
+msgstr "Повернення файлів із хмарного сховища"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:136
+msgid "Returning started"
+msgstr "Повернення розпочато"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:76
+msgid "Run in a terminal"
+msgstr "Виконайте в терміналі"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:112
+msgid ""
+"Save it as rclone.conf somewhere outside this system. Passwords are only "
+"obscured, not encrypted — keep the file private. To get a backup back: "
+"rclone copy secret:backups/<site>/ ./ (or remote: without encryption)."
+msgstr ""
+"Збережіть це як rclone.conf десь поза цією системою. Паролі в ньому лише "
+"замасковані, не зашифровані — тримайте файл у таємниці. Щоб забрати резервну"
+" копію: rclone copy secret:backups/<site>/ ./ (без шифрування — remote:)."
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:29
+msgid "Save the storage first"
+msgstr "Спершу збережіть сховище"
+
+#: grunt/grunt/monitoring/health.py:679
+msgid "Separate app environments"
+msgstr "Окремі середовища додатків"
+
+#: grunt/grunt/backups/doctypes/Backup/Backup.js:83
+msgid "Show backups"
+msgstr "Показати копії"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:77
+msgid "Sign in in the browser window that opens and allow access"
+msgstr "Увійдіть у вікні браузера, що відкриється, і дозвольте доступ"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:94
+msgid "Sign in through the browser"
+msgstr "Увійти через браузер"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:18
+msgid "Sign-in failed"
+msgstr "Не вдалося увійти"
+
+#: grunt/grunt/storage/cloud/__init__.py:55
+msgid "Storage “%(name)s” not found"
+msgstr "Сховище «%(name)s» не знайдено"
+
+#: grunt/grunt/monitoring/health.py:569
+msgid "Storages"
+msgstr "Сховища"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:17
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:86
+msgid "The account is connected"
+msgstr "Обліковий запис підключено"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:151
+#: grunt/grunt/backups/doctypes/Backup/Backup.js:96
+msgid ""
+"The chosen set appears in Backups; restore it with «grunt db restore <id>» "
+"on the server."
+msgstr ""
+"Вибраний набір з'явиться в «Резервних копіях»; відновіть його на сервері "
+"командою «grunt db restore <id>»."
+
+#: grunt/grunt/storage/cloud/files.py:123
+msgid "The file from the storage is damaged: %(key)s"
+msgstr "Файл зі сховища пошкоджено: %(key)s"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:93
+msgid "The redirect URI registered in your app must be exactly"
+msgstr "Redirect URI, зареєстрований у вашому додатку, має бути саме таким"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/storage_remote.py:142
+msgid "The test file read back differs from what was written"
+msgstr "Прочитаний тестовий файл відрізняється від записаного"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:162
+#: grunt/grunt/backups/doctypes/Backup/Backup.js:107
+msgid "This backup is already on the server"
+msgstr "Ця резервна копія вже є на сервері"
+
+#: grunt/grunt/storage/cloud/oauth.py:104
+msgid ""
+"This is not an rclone token: paste the whole {…} line printed by rclone "
+"authorize"
+msgstr ""
+"Це не токен rclone: вставте весь рядок {…}, який виводить rclone authorize"
+
+#: grunt/grunt/storage/cloud/oauth.py:178
+#: grunt/grunt/storage/cloud/oauth.py:220
+msgid "This storage type does not sign in through a browser"
+msgstr "Для цього типу сховища вхід через браузер не передбачено"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:81
+msgid "Token"
+msgstr "Токен"
+
+#: grunt/grunt/storage/cloud/providers.py:183
+msgid "Unknown storage type: %(name)s"
+msgstr "Невідомий тип сховища: %(name)s"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:120
+msgid "Upload started"
+msgstr "Вивантаження розпочато"
+
+#: grunt/grunt/storage/cloud/tasks.py:56
+msgid "Upload to cloud storage"
+msgstr "Вивантаження в хмарне сховище"
+
+#: grunt/grunt/storage/cloud/backups.py:161
+msgid "Uploading to “%(name)s”"
+msgstr "Вивантаження в «%(name)s»"
+
+#: grunt/grunt/monitoring/health.py:695 grunt/grunt/monitoring/health.py:778
+msgid "Versions"
+msgstr "Версії"
+
+#: grunt/grunt/monitoring/health.py:594
+msgid "not checked"
+msgstr "не перевірено"
+
+#: grunt/grunt/monitoring/health.py:577
+msgid "not installed"
+msgstr "не встановлено"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:102
+msgid "rclone config"
+msgstr "Конфіг rclone"
+
+#: grunt/grunt/storage/cloud/rclone.py:244
+msgid "rclone exited with code %(code)s"
+msgstr "rclone завершився з кодом %(code)s"
+
+#: grunt/grunt/storage/cloud/rclone.py:78
+msgid "rclone is not installed on the server (https://rclone.org/install/)"
+msgstr "rclone не встановлено на сервері (https://rclone.org/install/)"
+
+#: grunt/grunt/monitoring/health.py:587
+msgid "works"
+msgstr "працює"
+
+#: grunt/grunt/backups/doctypes/Backup/Backup.json
+msgctxt "help:Backup"
+msgid ""
+"Site backups in sites/<site>/backups/: database, uploaded files, "
+"configuration. Schedule and number of copies — in System Settings → Backups."
+" Copies in cloud storage — Cloud Storage."
+msgstr ""
+"Резервні копії сайту в sites/<site>/backups/: база даних, завантажені файли,"
+" конфігурація. Розклад і кількість копій — у «Налаштуваннях системи» → "
+"«Резервні копії». Копії в хмарі — «Хмарні сховища»."
+
+#: grunt/grunt/backups/doctypes/Backup/Backup.json
+msgctxt "help:Backup.in_cloud"
+msgid ""
+"Cloud storages holding a copy of this set (Cloud Storage → «Upload backups "
+"here»)."
+msgstr ""
+"Хмарні сховища, де є копія цього набору («Хмарні сховища» → «Вивантажувати "
+"резервні копії сюди»)."
+
+#: grunt/grunt/storage/doctypes/File/File.json
+msgctxt "help:File.storage_remote"
+msgid ""
+"The contents were moved off the server disk into this storage; they are "
+"fetched back on request (grunt.storage.cloud.files)."
+msgstr ""
+"Вміст перенесено з диска сервера в це сховище; на запит він завантажується "
+"назад (grunt.storage.cloud.files)."
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "help:StorageRemote"
+msgid ""
+"Connections to external storage (Google Drive, Dropbox, OneDrive, MEGA, S3, "
+"WebDAV/Nextcloud, SFTP, SMB) through rclone: backup copies and moving old "
+"files off the server disk."
+msgstr ""
+"Підключення до зовнішніх сховищ (Google Drive, Dropbox, OneDrive, MEGA, S3, "
+"WebDAV/Nextcloud, SFTP, SMB) через rclone: копії резервних копій і "
+"перенесення старих файлів з диска сервера."
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "help:StorageRemote.authorize"
+msgid ""
+"Needs your own Client ID and secret. Opens the provider's sign-in page and "
+"returns here."
+msgstr ""
+"Потрібні власні Client ID і секрет. Відкриває сторінку входу провайдера й "
+"повертає сюди."
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "help:StorageRemote.backup_keep"
+msgid ""
+"Older sets in this storage are deleted after each upload; independent of how"
+" many are kept on the server."
+msgstr ""
+"Старіші набори в цьому сховищі видаляються після кожного вивантаження; не "
+"залежить від того, скільки копій зберігається на сервері."
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "help:StorageRemote.browse_backups"
+msgid ""
+"Lists the sets in the storage; the chosen one is downloaded to the server "
+"and appears in Backups, ready for «grunt db restore»."
+msgstr ""
+"Показує набори у сховищі; вибраний завантажується на сервер і з'являється в "
+"«Резервних копіях», готовий до «grunt db restore»."
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "help:StorageRemote.cache_size_mb"
+msgid ""
+"Files fetched back from the storage are kept on the server up to this size; "
+"the least recently used are dropped at night."
+msgstr ""
+"Файли, завантажені назад зі сховища, зберігаються на сервері до цього "
+"обсягу; найдавніше використані видаляються вночі."
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "help:StorageRemote.client_id"
+msgid ""
+"Optional: your own OAuth app (Google Cloud console / Dropbox App Console / "
+"Microsoft Entra). Its redirect URI must be https://<your "
+"site>/api/v1/method/grunt.storage.cloud.oauth.callback"
+msgstr ""
+"Необов'язково: власний OAuth-додаток (Google Cloud console / Dropbox App "
+"Console / Microsoft Entra). Його redirect URI має бути https://<ваш "
+"сайт>/api/v1/method/grunt.storage.cloud.oauth.callback"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "help:StorageRemote.client_secret"
+msgid "A saved secret is not shown again — to change it, enter a new one."
+msgstr "Збережений секрет більше не показується — щоб змінити, введіть новий."
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "help:StorageRemote.encrypt"
+msgid ""
+"File contents are encrypted on the server (rclone crypt, XSalsa20-Poly1305) — the cloud keeps only ciphertext. Names stay readable.\n"
+"\n"
+"Keep the password somewhere outside this system (or use «rclone config»): without it no backup can be restored, and the password itself lives in the database you will be restoring."
+msgstr ""
+"Вміст файлів шифрується на сервері (rclone crypt, XSalsa20-Poly1305) — у хмарі лежить лише шифротекст. Імена лишаються читабельними.\n"
+"\n"
+"Збережіть пароль десь поза цією системою (або скористайтеся «rclone config»): без нього жодну копію не відновити, а сам пароль зберігається в базі, яку ви відновлюватимете."
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "help:StorageRemote.encryption_password"
+msgid "Changing it later makes everything already uploaded unreadable."
+msgstr "Якщо змінити його пізніше, усе вже вивантажене стане нечитабельним."
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "help:StorageRemote.encryption_salt"
+msgid "Optional, recommended. Same rules as the password."
+msgstr "Необов'язково, але рекомендовано. Ті самі правила, що й для пароля."
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "help:StorageRemote.endpoint"
+msgid ""
+"WebDAV — the server URL (Nextcloud: "
+"https://<server>/remote.php/dav/files/<user>/). S3 — endpoint; empty for "
+"AWS."
+msgstr ""
+"WebDAV — адреса сервера (Nextcloud: "
+"https://<сервер>/remote.php/dav/files/<користувач>/). S3 — endpoint; для AWS"
+" порожньо."
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "help:StorageRemote.oauth_account"
+msgid "Empty — not connected yet. Connect with one of the buttons below."
+msgstr "Порожньо — ще не підключено. Підключіть однією з кнопок нижче."
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "help:StorageRemote.offload_after_days"
+msgid "Files uploaded earlier than this are moved by the nightly job (04:00)."
+msgstr ""
+"Файли, завантажені раніше за цей строк, переносить нічна задача (04:00)."
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "help:StorageRemote.offload_doctypes"
+msgid ""
+"DocType names, one per line, whose attachments are moved. Empty — any file, "
+"including the library and personal files."
+msgstr ""
+"Назви DocType, по одній у рядку, вкладення яких переносяться. Порожньо — "
+"будь-які файли, зокрема бібліотека й особисті файли."
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "help:StorageRemote.offload_min_size_kb"
+msgid "0 — any size. Small files cost a request each and save little space."
+msgstr ""
+"0 — будь-якого розміру. Дрібні файли коштують запиту кожен і майже не "
+"звільняють місця."
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "help:StorageRemote.offload_public"
+msgid ""
+"Website images are better kept on the server: they are read all the time."
+msgstr "Зображення сайту краще лишати на сервері: їх читають постійно."
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "help:StorageRemote.password"
+msgid ""
+"Nextcloud — better an app password (Settings → Security). A saved password "
+"is not shown again — to change it, enter a new one."
+msgstr ""
+"Для Nextcloud краще пароль додатка (Налаштування → Безпека). Збережений "
+"пароль більше не показується — щоб змінити, введіть новий."
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "help:StorageRemote.paste_token"
+msgid ""
+"The simplest way, no app registration needed: on any computer with a browser"
+" install rclone and run the command shown in the dialog (e.g. rclone "
+"authorize \"drive\"), sign in, then paste the printed token here. Leave "
+"Client ID empty."
+msgstr ""
+"Найпростіший спосіб, без реєстрації додатка: на будь-якому комп'ютері з "
+"браузером встановіть rclone і виконайте команду з діалогу (напр. rclone "
+"authorize \"drive\"), увійдіть, потім вставте сюди виведений токен. Client "
+"ID залиште порожнім."
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "help:StorageRemote.port"
+msgid "Empty — the standard one (SFTP 22, SMB 445)."
+msgstr "Порожньо — стандартний (SFTP 22, SMB 445)."
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "help:StorageRemote.provider"
+msgid ""
+"S3 — Amazon, Cloudflare R2, Backblaze, Wasabi, MinIO and other S3-compatible"
+" storage. WebDAV — Nextcloud, ownCloud and the like. SMB — a Windows/NAS "
+"network share. Server folder — a mounted disk or NAS on this server. Other —"
+" any rclone backend (https://rclone.org/overview/)."
+msgstr ""
+"S3 — Amazon, Cloudflare R2, Backblaze, Wasabi, MinIO та інші S3-сумісні "
+"сховища. WebDAV — Nextcloud, ownCloud тощо. SMB — мережева тека Windows/NAS."
+" Тека на сервері — змонтований диск або NAS на цьому сервері. Інше — будь-"
+"який бекенд rclone (https://rclone.org/overview/)."
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "help:StorageRemote.rclone_options"
+msgid ""
+"Extra backend options, one «key = value» per line; they override the "
+"generated ones. Option names — in the backend's page on rclone.org."
+msgstr ""
+"Додаткові параметри бекенда, по одному «ключ = значення» в рядку; вони "
+"перекривають згенеровані. Назви параметрів — на сторінці бекенда на "
+"rclone.org."
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "help:StorageRemote.rclone_type"
+msgid ""
+"Name from https://rclone.org/overview/ (pcloud, yandex, b2, box, koofr…)."
+msgstr ""
+"Назва з https://rclone.org/overview/ (pcloud, yandex, b2, box, koofr…)."
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "help:StorageRemote.recall_files"
+msgid ""
+"Downloads every file kept in this storage back to the server disk (check the"
+" free space first)."
+msgstr ""
+"Завантажує всі файли з цього сховища назад на диск сервера (спершу перевірте"
+" вільне місце)."
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "help:StorageRemote.root_folder"
+msgid ""
+"Everything is kept under this folder: backups/<site>/ and files/<site>/. For"
+" S3 — bucket/path (e.g. my-bucket/grunt); for SMB — share/path; for a server"
+" folder — an absolute path (/mnt/nas/grunt)."
+msgstr ""
+"Усе зберігається в цій теці: backups/<site>/ і files/<site>/. Для S3 — "
+"bucket/шлях (напр. my-bucket/grunt); для SMB — спільна тека/шлях; для теки "
+"на сервері — абсолютний шлях (/mnt/nas/grunt)."
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "help:StorageRemote.sec_backups"
+msgid ""
+"Every new backup set (System Settings → Backups) is uploaded to each storage"
+" with this option, right after it is made, into <root "
+"folder>/backups/<site>/."
+msgstr ""
+"Кожен новий набір резервних копій («Налаштування системи» → «Резервні "
+"копії») одразу після створення вивантажується в кожне сховище з цим "
+"параметром, у <коренева тека>/backups/<site>/."
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "help:StorageRemote.sec_files"
+msgid ""
+"Moves the contents of rarely used files off the server disk. The File "
+"record, previews and access rules stay; on the first request the file is "
+"fetched back into a local cache. Only one storage can hold files."
+msgstr ""
+"Переносить вміст рідко використовуваних файлів з диска сервера. Запис File, "
+"прев'ю й права доступу лишаються; при першому запиті файл завантажується "
+"назад у локальний кеш. Зберігати файли може лише одне сховище."
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "help:StorageRemote.secret_access_key"
+msgid "A saved secret is not shown again — to change it, enter a new one."
+msgstr "Збережений секрет більше не показується — щоб змінити, введіть новий."
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "help:StorageRemote.show_config"
+msgid ""
+"The same storage as an rclone.conf section — keep it outside the system to "
+"get backups back with plain rclone if the server is lost."
+msgstr ""
+"Це сховище як секція rclone.conf — збережіть її поза системою, щоб забрати "
+"копії звичайним rclone, якщо сервер буде втрачено."
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "help:StorageRemote.ssh_private_key"
+msgid ""
+"Instead of a password: the PEM key (-----BEGIN OPENSSH PRIVATE KEY----- …). "
+"Not shown again after saving."
+msgstr ""
+"Замість пароля: PEM-ключ (-----BEGIN OPENSSH PRIVATE KEY----- …). Після "
+"збереження не показується."
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "help:StorageRemote.test_connection"
+msgid ""
+"Creates the root folder, writes and deletes a small test file. Save your "
+"changes first."
+msgstr ""
+"Створює кореневу теку, записує й видаляє невеликий тестовий файл. Спершу "
+"збережіть зміни."
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "help:StorageRemote.title"
+msgid "How this storage is shown in lists and in the backup status."
+msgstr "Як це сховище показується у списках і в стані резервних копій."
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "help:StorageRemote.username"
+msgid "MEGA — the account email."
+msgstr "MEGA — email облікового запису."
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "hint:StorageRemote.endpoint"
+msgid "https://cloud.example.com/remote.php/dav/files/user/"
+msgstr "https://cloud.example.com/remote.php/dav/files/user/"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "hint:StorageRemote.offload_doctypes"
+msgid ""
+"IncomingLetter\n"
+"OutgoingLetter"
+msgstr ""
+"IncomingLetter\n"
+"OutgoingLetter"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "hint:StorageRemote.rclone_options"
+msgid "chunk_size = 64M"
+msgstr "chunk_size = 64M"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "hint:StorageRemote.rclone_type"
+msgid "pcloud"
+msgstr "pcloud"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "hint:StorageRemote.title"
+msgid "Google Drive of the IT department"
+msgstr "Google Drive ІТ-відділу"
+
+#: grunt/grunt/backups/doctypes/Backup/Backup.json
+msgctxt "meta:Backup.in_cloud"
+msgid "In cloud storage"
+msgstr "У хмарних сховищах"
+
+#: grunt/grunt/storage/doctypes/File/File.json
+msgctxt "meta:File.storage_remote"
+msgid "In cloud storage"
+msgstr "У хмарному сховищі"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote"
+msgid "Cloud Storage"
+msgstr "Хмарне сховище"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.access_key_id"
+msgid "Access key ID"
+msgstr "Access key ID"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.authorize"
+msgid "Sign in through the browser"
+msgstr "Увійти через браузер"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.backup_keep"
+msgid "Copies to keep here"
+msgstr "Скільки копій тримати тут"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.browse_backups"
+msgid "Backups in this storage"
+msgstr "Резервні копії в цьому сховищі"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.cache_size_mb"
+msgid "Local cache, MB"
+msgstr "Локальний кеш, МБ"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.client_id"
+msgid "Client ID"
+msgstr "Client ID"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.client_secret"
+msgid "Client secret"
+msgstr "Client secret"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.domain"
+msgid "Domain"
+msgstr "Домен"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.enabled"
+msgid "Enabled"
+msgstr "Увімкнено"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.encrypt"
+msgid "Encrypt before sending"
+msgstr "Шифрувати перед відправкою"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.encryption_password"
+msgid "Encryption password"
+msgstr "Пароль шифрування"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.encryption_salt"
+msgid "Second password (salt)"
+msgstr "Другий пароль (сіль)"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.endpoint"
+msgid "Address (URL)"
+msgstr "Адреса (URL)"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.host"
+msgid "Host"
+msgstr "Хост"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.last_backup_at"
+msgid "Last upload"
+msgstr "Останнє вивантаження"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.last_backup_id"
+msgid "Last uploaded set"
+msgstr "Останній вивантажений набір"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.last_check_at"
+msgid "Last checked"
+msgstr "Остання перевірка"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.last_error"
+msgid "Last error"
+msgstr "Остання помилка"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.last_status"
+msgid "Status"
+msgstr "Стан"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.oauth_account"
+msgid "Connected account"
+msgstr "Підключений обліковий запис"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.oauth_connected_at"
+msgid "Connected at"
+msgstr "Підключено"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.oauth_extra"
+msgid "OAuth extra"
+msgstr "Дані OAuth"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.oauth_token"
+msgid "OAuth token"
+msgstr "OAuth-токен"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.offload_after_days"
+msgid "Older than, days"
+msgstr "Старші за, днів"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.offload_doctypes"
+msgid "Only files of"
+msgstr "Лише файли з"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.offload_min_size_kb"
+msgid "Larger than, KB"
+msgstr "Більші за, КБ"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.offload_now"
+msgid "Move files now"
+msgstr "Перенести файли зараз"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.offload_public"
+msgid "Public files too"
+msgstr "І публічні файли"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.offloaded_files"
+msgid "Files in the storage"
+msgstr "Файлів у сховищі"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.offloaded_size"
+msgid "Their size"
+msgstr "Їхній розмір"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.password"
+msgid "Password"
+msgstr "Пароль"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.paste_token"
+msgid "Paste a token from rclone"
+msgstr "Вставити токен з rclone"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.port"
+msgid "Port"
+msgstr "Порт"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.provider"
+msgid "Storage type"
+msgstr "Тип сховища"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.quota"
+msgid "Space"
+msgstr "Місце"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.rclone_options"
+msgid "rclone options"
+msgstr "Параметри rclone"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.rclone_type"
+msgid "rclone backend"
+msgstr "Бекенд rclone"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.recall_files"
+msgid "Return all files to the server"
+msgstr "Повернути всі файли на сервер"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.region"
+msgid "Region"
+msgstr "Регіон"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.root_folder"
+msgid "Root folder"
+msgstr "Коренева тека"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.s3_provider"
+msgid "S3 provider"
+msgstr "Провайдер S3"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.sec_advanced"
+msgid "Advanced (rclone)"
+msgstr "Додатково (rclone)"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.sec_creds"
+msgid "Credentials"
+msgstr "Облікові дані"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.sec_encryption"
+msgid "Encryption"
+msgstr "Шифрування"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.sec_oauth"
+msgid "Account access"
+msgstr "Доступ до облікового запису"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.secret_access_key"
+msgid "Secret access key"
+msgstr "Secret access key"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.show_config"
+msgid "Show rclone config"
+msgstr "Показати конфіг rclone"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.ssh_private_key"
+msgid "SSH private key"
+msgstr "Приватний SSH-ключ"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.tab_backups"
+msgid "Backups"
+msgstr "Резервні копії"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.tab_connection"
+msgid "Connection"
+msgstr "Підключення"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.tab_files"
+msgid "Files"
+msgstr "Файли"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.test_connection"
+msgid "Test connection"
+msgstr "Перевірити з'єднання"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.title"
+msgid "Name"
+msgstr "Назва"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.upload_latest"
+msgid "Upload the latest backup now"
+msgstr "Вивантажити останню копію зараз"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.use_for_backups"
+msgid "Upload backups here"
+msgstr "Вивантажувати резервні копії сюди"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.use_for_files"
+msgid "Move old files here"
+msgstr "Переносити старі файли сюди"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.username"
+msgid "User"
+msgstr "Користувач"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.webdav_vendor"
+msgid "WebDAV server"
+msgstr "Сервер WebDAV"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "select:StorageRemote.last_status"
+msgid "Error"
+msgstr "Помилка"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "select:StorageRemote.last_status"
+msgid "OK"
+msgstr "OK"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "select:StorageRemote.provider"
+msgid "Dropbox"
+msgstr "Dropbox"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "select:StorageRemote.provider"
+msgid "Google Drive"
+msgstr "Google Drive"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "select:StorageRemote.provider"
+msgid "MEGA"
+msgstr "MEGA"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "select:StorageRemote.provider"
+msgid "OneDrive"
+msgstr "OneDrive"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "select:StorageRemote.provider"
+msgid "Other"
+msgstr "Інше (rclone)"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "select:StorageRemote.provider"
+msgid "S3"
+msgstr "S3"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "select:StorageRemote.provider"
+msgid "SFTP"
+msgstr "SFTP"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "select:StorageRemote.provider"
+msgid "SMB"
+msgstr "SMB (мережева тека)"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "select:StorageRemote.provider"
+msgid "Server folder"
+msgstr "Тека на сервері"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "select:StorageRemote.provider"
+msgid "WebDAV"
+msgstr "WebDAV"

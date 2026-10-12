@@ -12,9 +12,30 @@ function show(
   opts?: { life?: number; group?: string } & Record<string, unknown>,
 ) {
   const { life, group, ...rest } = opts ?? {}
-  const id = sonnerToast[severity](summary, { description: message, duration: life, ...rest })
+  // Errors and warnings get a Copy button - their text goes into bug reports.
+  const action = severity === 'error' || severity === 'warning'
+    ? { label: i18n.global.t('Copy'), onClick: () => copyText(message ? `${summary}: ${message}` : summary) }
+    : undefined
+  const id = sonnerToast[severity](summary, { description: message, duration: life, action, ...rest })
   if (group) groupIds.set(group, id)
   return id
+}
+
+async function copyText(text: string) {
+  try {
+    await navigator.clipboard.writeText(text)
+  } catch {
+    // No Clipboard API (plain http) - the old selection trick still works.
+    const area = document.createElement('textarea')
+    area.value = text
+    area.style.position = 'fixed'
+    area.style.opacity = '0'
+    document.body.appendChild(area)
+    area.select()
+    document.execCommand('copy')
+    area.remove()
+  }
+  sonnerToast.success(i18n.global.t('Copied'), { duration: 1500 })
 }
 
 function removeGroup(group: string) {

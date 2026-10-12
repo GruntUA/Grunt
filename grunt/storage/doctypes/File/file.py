@@ -13,6 +13,7 @@ from grunt.document.base import Document
 from grunt.local import _user_ctx
 from grunt.storage import files
 from grunt.storage.backends import FileTooLargeError, get_storage_backend
+from grunt.storage.cloud.files import blob_path
 from grunt.storage.signing import verify
 from grunt.storage.thumbnails import THUMB_MIMETYPE, THUMB_WIDTH, WEB_WIDTHS, can_thumbnail
 
@@ -36,6 +37,7 @@ class File(Document):
     attached_to_doctype: str | None
     attached_to_id: str | None
     folder: str | None
+    storage_remote: str | None
 
     _prev_folder: str | None = None
 
@@ -260,14 +262,15 @@ async def get_content(
     etag = f'"{key}-{width or "thumb"}"' if thumb else f'"{key}"'
     scope = "public" if doc.get("is_public") else "private"
     headers = {"ETag": etag, "Cache-Control": f"{scope}, max-age=86400"}
+    if isinstance(request, Request) and request.headers.get("if-none-match") == etag:
+        return Response(status_code=304, headers=headers)
     try:
-        path = storage.thumbnail_path(key, width) if thumb else storage.path(key)
+        # The original may be in cloud storage - fetched into the local cache.
+        path = storage.thumbnail_path(key, width) if thumb else await blob_path(key)
     except FileNotFoundError:
         path = None
     if path is None or not path.exists():
         raise HTTPException(404, _("File not found on storage"))
-    if isinstance(request, Request) and request.headers.get("if-none-match") == etag:
-        return Response(status_code=304, headers=headers)
     if thumb:
         return FileResponse(path, media_type=THUMB_MIMETYPE, headers=headers)
     # Streamed from disk, with Range support (video, large PDFs).

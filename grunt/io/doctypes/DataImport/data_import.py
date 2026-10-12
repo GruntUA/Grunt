@@ -220,9 +220,9 @@ class DataImport(Document):
         if file_id:
             doc = await self.grunt.find_doc("File", file_id)
             if doc and doc.get("content_hash"):
-                from grunt.storage import get_storage_backend
+                from grunt.storage.cloud.files import blob_path
 
-                path = get_storage_backend().path(doc["content_hash"])
+                path = await blob_path(doc["content_hash"])
                 if path.exists():
                     # Blobs carry no extension - the importer goes by the name.
                     return path, doc["file_name"]

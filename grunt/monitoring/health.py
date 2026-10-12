@@ -554,6 +554,85 @@ async def check_backups() -> list[Row]:
     return rows
 
 
+# Cloud storage
+
+
+async def check_cloud() -> list[Row]:
+    from grunt.storage.cloud.files import cache_root
+    from grunt.storage.cloud.rclone import is_installed
+
+    cat = _("Cloud storage")
+    remotes = await grunt.db.get_all(
+        "StorageRemote", filters={"enabled": 1}, fields=["*"], limit=None
+    )
+    if not remotes:
+        return [row(cat, _("Storages"), INFO, _("none"), _("Backups stay on this server only."))]
+    rows = []
+    if not is_installed():
+        rows.append(
+            row(
+                cat,
+                "rclone",
+                ERROR,
+                _("not installed"),
+                _("Install rclone: https://rclone.org/install/"),
+            )
+        )
+    interval = int(await get_setting("backup_interval_hours", 24) or 24)
+    for remote in remotes:
+        title = remote["title"] or remote["name"]
+        if remote.get("last_status") == "Error":
+            rows.append(row(cat, title, ERROR, _("error"), remote.get("last_error") or ""))
+        elif remote.get("last_status") == "OK":
+            rows.append(row(cat, title, OK, remote.get("quota") or _("works")))
+        else:
+            rows.append(
+                row(
+                    cat,
+                    title,
+                    WARNING,
+                    _("not checked"),
+                    _("Click Test connection in the storage."),
+                )
+            )
+        if remote.get("use_for_backups"):
+            last = remote.get("last_backup_at")
+            hours = (datetime.now(UTC) - last).total_seconds() / 3600 if last else None
+            status = (
+                ERROR
+                if hours is None or hours >= 2 * interval + 2
+                else WARNING
+                if hours >= interval + 2
+                else OK
+            )
+            rows.append(
+                row(
+                    cat,
+                    _("Latest backup in “%(name)s”") % {"name": title},
+                    status,
+                    _("none")
+                    if hours is None
+                    else _("%(hours)s h ago") % {"hours": f"{hours:.0f}"},
+                    ""
+                    if status == OK
+                    else _("Backups are not reaching this storage; see its status."),
+                )
+            )
+        if remote.get("use_for_files"):
+            rows.append(
+                row(
+                    cat,
+                    _("Files in “%(name)s”") % {"name": title},
+                    INFO,
+                    f"{remote.get('offloaded_files') or 0} · {remote.get('offloaded_size') or '0'}",
+                )
+            )
+            cache = cache_root()
+            size = sum(p.stat().st_size for p in cache.glob("*/*/*")) if cache.is_dir() else 0
+            rows.append(row(cat, _("Local cache of cloud files"), INFO, human_size(size)))
+    return rows
+
+
 # Apps' Python dependencies
 
 
@@ -693,6 +772,7 @@ CHECKS: list[tuple[str, Callable[[], Awaitable[list[Row]]]]] = [
     (N_("Configuration"), check_config),
     (N_("Files"), check_storage),
     (N_("Backups"), check_backups),
+    (N_("Cloud storage"), check_cloud),
     (N_("WebSockets"), check_realtime),
     (N_("App dependencies"), check_app_dependencies),
     (N_("Versions"), check_versions),

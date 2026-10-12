@@ -9,7 +9,7 @@
   "default_view": "list",
   "sort_field": "name",
   "sort_order": "desc",
-  "description": "Site backups in sites/<site>/backups/: database, uploaded files, configuration. Schedule and number of copies — in System Settings → Backups.",
+  "description": "Site backups in sites/<site>/backups/: database, uploaded files, configuration. Schedule and number of copies — in System Settings → Backups. Copies in cloud storage — Cloud Storage.",
   "fields": [
     {
       "fieldname": "created_at",
@@ -45,6 +45,14 @@
       "fieldtype": "Check",
       "in_list_view": true,
       "read_only": true
+    },
+    {
+      "fieldname": "in_cloud",
+      "label": "In cloud storage",
+      "fieldtype": "Data",
+      "in_list_view": true,
+      "read_only": true,
+      "description": "Cloud storages holding a copy of this set (Cloud Storage → «Upload backups here»)."
     },
     {
       "fieldname": "database_url",

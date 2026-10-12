@@ -302,6 +302,15 @@
     {
       "section": "Моніторинг",
       "type": "DocType",
+      "label": "Хмарні сховища",
+      "icon": "cloud",
+      "link_to": "StorageRemote",
+      "show_count": false,
+      "sequence": 69
+    },
+    {
+      "section": "Моніторинг",
+      "type": "DocType",
       "label": "Лог активності",
       "icon": "clipboard-list",
       "link_to": "ActivityLog",

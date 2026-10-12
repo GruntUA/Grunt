@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import asyncio
 import base64
+import contextlib
 import io
 import json
 import re
@@ -72,6 +73,7 @@ def data_export(output: Path, specs: tuple[str, ...], site: str | None):
     async def _collect():
         import grunt
         from grunt.storage.backends import get_storage_backend
+        from grunt.storage.cloud.files import blob_path
 
         async with _site_session(site) as (session, eng), grunt.system_context(session, eng):
             doctypes = []
@@ -107,8 +109,15 @@ def data_export(output: Path, specs: tuple[str, ...], site: str | None):
             blobs = {}
             for f in files:
                 key = f.get("content_hash")
+                # The archive carries the blob itself - not a cloud storage
+                # the other site doesn't have.
+                f.pop("storage_remote", None)
                 if key and key not in blobs:
-                    blobs[key] = (backend.path(key), backend.thumbnail_path(key))
+                    path = backend.path(key)
+                    if not path.exists():
+                        with contextlib.suppress(FileNotFoundError):
+                            path = await blob_path(key)  # moved to cloud storage
+                    blobs[key] = (path, backend.thumbnail_path(key))
         return doctypes, files, blobs
 
     doctypes, files, blobs = asyncio.run(_collect())

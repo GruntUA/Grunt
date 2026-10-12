@@ -51,6 +51,7 @@ def is_due(site: str, interval_hours: int, now: datetime | None = None) -> bool:
 
 
 async def _run(site: str, *, keep: int, **options: Any) -> str:
+    progress = options.get("progress")
     try:
         backup = await create_backup(site, **options)
     except TaskCancelledError:
@@ -62,6 +63,11 @@ async def _run(site: str, *, keep: int, **options: Any) -> str:
     removed = rotate(site, keep)
     if removed:
         log.info("backup.rotated", site=site, removed=removed)
+    # Copies in cloud storage (StorageRemote «Upload backups here»); a failing
+    # remote is recorded there and never fails the backup itself.
+    from grunt.storage.cloud.backups import upload_to_remotes
+
+    await upload_to_remotes(site, backup, progress)
     return backup.id
 
 

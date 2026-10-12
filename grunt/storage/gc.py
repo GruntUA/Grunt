@@ -6,6 +6,9 @@ and the trash may restore it). Instead :func:`collect_garbage` drops blobs no
 refers to, once they are older than a grace period: a blob is written before
 its row exists, and a re-upload of known content freshens the blob's mtime,
 so a collection racing an upload leaves it alone.
+
+Blobs moved to cloud storage (grunt.storage.cloud.files) are collected there
+the same way, and the local cache of fetched copies is trimmed.
 """
 
 from __future__ import annotations
@@ -76,6 +79,9 @@ async def collect_garbage(grace_seconds: int = GRACE_SECONDS) -> dict[str, Any]:
     tmp_removed = await asyncio.to_thread(storage.sweep_tmp, cutoff)
 
     report = {"freed_blobs": freed, "freed_bytes": freed_bytes, "tmp_removed": tmp_removed}
+    from grunt.storage.cloud.files import collect_remote_garbage
+
+    report |= await collect_remote_garbage(grace_seconds)
     log.info("storage.gc", **report)
     return report
 
@@ -92,15 +98,28 @@ async def verify(rehash: bool = False) -> dict[str, list[str]]:
     """Find ``File`` rows whose blob is missing, unreferenced blobs, and - with
     *rehash* - blobs whose bytes no longer match their name (disk corruption).
     """
+    from grunt.storage.cloud.files import remote_listing
+
     storage = get_storage_backend()
-    rows = await grunt.db.get_all("File", fields=["name", "content_hash"], limit=None)
+    rows = await grunt.db.get_all(
+        "File", fields=["name", "content_hash", "storage_remote"], limit=None
+    )
     await grunt.get_session().commit()
 
-    missing = [
-        str(r["name"])
-        for r in rows
-        if not r["content_hash"] or not storage.path(r["content_hash"]).exists()
-    ]
+    # Blobs moved to cloud storage are checked against its listing.
+    in_remote: dict[str, set[str]] = {}
+    for remote in {r["storage_remote"] for r in rows if r["storage_remote"]}:
+        in_remote[remote] = await remote_listing(remote)
+
+    def present(r) -> bool:
+        key = r["content_hash"]
+        if not key:
+            return False
+        if r["storage_remote"]:
+            return key in in_remote[r["storage_remote"]] or storage.path(key).exists()
+        return storage.path(key).exists()
+
+    missing = [str(r["name"]) for r in rows if not present(r)]
     on_disk = await asyncio.to_thread(lambda: [key for key, _ in storage.iter_keys()])
     referenced = {r["content_hash"] for r in rows if r["content_hash"]}
     unreferenced = sorted(set(on_disk) - referenced)

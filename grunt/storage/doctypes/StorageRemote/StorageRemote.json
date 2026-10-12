@@ -1,0 +1,486 @@
+{
+  "name": "StorageRemote",
+  "label": "Cloud Storage",
+  "module": "storage",
+  "icon": "cloud",
+  "autoname": "field:title",
+  "title_field": "title",
+  "track_changes": false,
+  "sort_field": "title",
+  "sort_order": "asc",
+  "description": "Connections to external storage (Google Drive, Dropbox, OneDrive, MEGA, S3, WebDAV/Nextcloud, SFTP, SMB) through rclone: backup copies and moving old files off the server disk.",
+  "fields": [
+    {
+      "fieldname": "tab_connection",
+      "label": "Connection",
+      "fieldtype": "Tab",
+      "icon": "cloud"
+    },
+    {
+      "fieldname": "sec_main",
+      "label": "",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "title",
+      "label": "Name",
+      "fieldtype": "Data",
+      "required": true,
+      "in_list_view": true,
+      "placeholder": "Google Drive of the IT department",
+      "description": "How this storage is shown in lists and in the backup status."
+    },
+    {
+      "fieldname": "provider",
+      "label": "Storage type",
+      "fieldtype": "Select",
+      "required": true,
+      "in_list_view": true,
+      "in_filter": true,
+      "translatable": true,
+      "default": "Google Drive",
+      "options": "Google Drive\nDropbox\nOneDrive\nMEGA\nS3\nWebDAV\nSFTP\nSMB\nServer folder\nOther",
+      "description": "S3 — Amazon, Cloudflare R2, Backblaze, Wasabi, MinIO and other S3-compatible storage. WebDAV — Nextcloud, ownCloud and the like. SMB — a Windows/NAS network share. Server folder — a mounted disk or NAS on this server. Other — any rclone backend (https://rclone.org/overview/)."
+    },
+    {
+      "fieldname": "col_main",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "enabled",
+      "label": "Enabled",
+      "fieldtype": "Check",
+      "default": true,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "root_folder",
+      "label": "Root folder",
+      "fieldtype": "Data",
+      "default": "grunt",
+      "description": "Everything is kept under this folder: backups/<site>/ and files/<site>/. For S3 — bucket/path (e.g. my-bucket/grunt); for SMB — share/path; for a server folder — an absolute path (/mnt/nas/grunt)."
+    },
+    {
+      "fieldname": "sec_oauth",
+      "label": "Account access",
+      "fieldtype": "Section",
+      "depends_on": "eval: ['Google Drive','Dropbox','OneDrive','Other'].includes(doc.provider)"
+    },
+    {
+      "fieldname": "oauth_account",
+      "label": "Connected account",
+      "fieldtype": "Data",
+      "read_only": true,
+      "description": "Empty — not connected yet. Connect with one of the buttons below."
+    },
+    {
+      "fieldname": "oauth_connected_at",
+      "label": "Connected at",
+      "fieldtype": "Datetime",
+      "read_only": true
+    },
+    {
+      "fieldname": "paste_token",
+      "label": "Paste a token from rclone",
+      "fieldtype": "Button",
+      "options": "secondary",
+      "icon": "clipboard-paste",
+      "description": "The simplest way, no app registration needed: on any computer with a browser install rclone and run the command shown in the dialog (e.g. rclone authorize \"drive\"), sign in, then paste the printed token here. Leave Client ID empty."
+    },
+    {
+      "fieldname": "col_oauth",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "client_id",
+      "label": "Client ID",
+      "fieldtype": "Data",
+      "description": "Optional: your own OAuth app (Google Cloud console / Dropbox App Console / Microsoft Entra). Its redirect URI must be https://<your site>/api/v1/method/grunt.storage.cloud.oauth.callback"
+    },
+    {
+      "fieldname": "client_secret",
+      "label": "Client secret",
+      "fieldtype": "Password",
+      "description": "A saved secret is not shown again — to change it, enter a new one."
+    },
+    {
+      "fieldname": "authorize",
+      "label": "Sign in through the browser",
+      "fieldtype": "Button",
+      "options": "outline",
+      "icon": "log-in",
+      "description": "Needs your own Client ID and secret. Opens the provider's sign-in page and returns here."
+    },
+    {
+      "fieldname": "oauth_token",
+      "label": "OAuth token",
+      "fieldtype": "LongText",
+      "hidden": true
+    },
+    {
+      "fieldname": "oauth_extra",
+      "label": "OAuth extra",
+      "fieldtype": "LongText",
+      "hidden": true
+    },
+    {
+      "fieldname": "sec_creds",
+      "label": "Credentials",
+      "fieldtype": "Section",
+      "depends_on": "eval: ['MEGA', 'S3', 'WebDAV', 'SFTP', 'SMB'].includes(doc.provider)"
+    },
+    {
+      "fieldname": "s3_provider",
+      "label": "S3 provider",
+      "fieldtype": "Select",
+      "depends_on": "eval: ['S3'].includes(doc.provider)",
+      "default": "Other",
+      "options": "AWS\nCloudflare\nMinio\nWasabi\nDigitalOcean\nHetzner\nScaleway\nOther"
+    },
+    {
+      "fieldname": "endpoint",
+      "label": "Address (URL)",
+      "fieldtype": "Data",
+      "depends_on": "eval: ['S3','WebDAV'].includes(doc.provider)",
+      "mandatory_depends_on": "eval: ['WebDAV'].includes(doc.provider)",
+      "placeholder": "https://cloud.example.com/remote.php/dav/files/user/",
+      "description": "WebDAV — the server URL (Nextcloud: https://<server>/remote.php/dav/files/<user>/). S3 — endpoint; empty for AWS."
+    },
+    {
+      "fieldname": "region",
+      "label": "Region",
+      "fieldtype": "Data",
+      "depends_on": "eval: ['S3'].includes(doc.provider)"
+    },
+    {
+      "fieldname": "webdav_vendor",
+      "label": "WebDAV server",
+      "fieldtype": "Select",
+      "depends_on": "eval: ['WebDAV'].includes(doc.provider)",
+      "default": "nextcloud",
+      "options": "nextcloud\nowncloud\nsharepoint\nother"
+    },
+    {
+      "fieldname": "host",
+      "label": "Host",
+      "fieldtype": "Data",
+      "depends_on": "eval: ['SFTP','SMB'].includes(doc.provider)",
+      "mandatory_depends_on": "eval: ['SFTP','SMB'].includes(doc.provider)"
+    },
+    {
+      "fieldname": "port",
+      "label": "Port",
+      "fieldtype": "Int",
+      "depends_on": "eval: ['SFTP','SMB'].includes(doc.provider)",
+      "description": "Empty — the standard one (SFTP 22, SMB 445)."
+    },
+    {
+      "fieldname": "domain",
+      "label": "Domain",
+      "fieldtype": "Data",
+      "depends_on": "eval: ['SMB'].includes(doc.provider)"
+    },
+    {
+      "fieldname": "col_creds",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "access_key_id",
+      "label": "Access key ID",
+      "fieldtype": "Data",
+      "depends_on": "eval: ['S3'].includes(doc.provider)",
+      "mandatory_depends_on": "eval: ['S3'].includes(doc.provider)"
+    },
+    {
+      "fieldname": "secret_access_key",
+      "label": "Secret access key",
+      "fieldtype": "Password",
+      "depends_on": "eval: ['S3'].includes(doc.provider)",
+      "description": "A saved secret is not shown again — to change it, enter a new one."
+    },
+    {
+      "fieldname": "username",
+      "label": "User",
+      "fieldtype": "Data",
+      "depends_on": "eval: ['MEGA','WebDAV','SFTP','SMB'].includes(doc.provider)",
+      "mandatory_depends_on": "eval: ['MEGA','SFTP'].includes(doc.provider)",
+      "description": "MEGA — the account email."
+    },
+    {
+      "fieldname": "password",
+      "label": "Password",
+      "fieldtype": "Password",
+      "depends_on": "eval: ['MEGA','WebDAV','SFTP','SMB'].includes(doc.provider)",
+      "description": "Nextcloud — better an app password (Settings → Security). A saved password is not shown again — to change it, enter a new one."
+    },
+    {
+      "fieldname": "ssh_private_key",
+      "label": "SSH private key",
+      "fieldtype": "LongText",
+      "depends_on": "eval: ['SFTP'].includes(doc.provider)",
+      "description": "Instead of a password: the PEM key (-----BEGIN OPENSSH PRIVATE KEY----- …). Not shown again after saving."
+    },
+    {
+      "fieldname": "sec_advanced",
+      "label": "Advanced (rclone)",
+      "fieldtype": "Section",
+      "collapsible": true
+    },
+    {
+      "fieldname": "rclone_type",
+      "label": "rclone backend",
+      "fieldtype": "Data",
+      "depends_on": "eval: ['Other'].includes(doc.provider)",
+      "mandatory_depends_on": "eval: ['Other'].includes(doc.provider)",
+      "placeholder": "pcloud",
+      "description": "Name from https://rclone.org/overview/ (pcloud, yandex, b2, box, koofr…)."
+    },
+    {
+      "fieldname": "rclone_options",
+      "label": "rclone options",
+      "fieldtype": "LongText",
+      "placeholder": "chunk_size = 64M",
+      "description": "Extra backend options, one «key = value» per line; they override the generated ones. Option names — in the backend's page on rclone.org."
+    },
+    {
+      "fieldname": "sec_encryption",
+      "label": "Encryption",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "encrypt",
+      "label": "Encrypt before sending",
+      "fieldtype": "Check",
+      "description": "File contents are encrypted on the server (rclone crypt, XSalsa20-Poly1305) — the cloud keeps only ciphertext. Names stay readable.\n\nKeep the password somewhere outside this system (or use «rclone config»): without it no backup can be restored, and the password itself lives in the database you will be restoring."
+    },
+    {
+      "fieldname": "col_encryption",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "encryption_password",
+      "label": "Encryption password",
+      "fieldtype": "Password",
+      "depends_on": "eval: doc.encrypt",
+      "mandatory_depends_on": "eval: doc.encrypt",
+      "description": "Changing it later makes everything already uploaded unreadable."
+    },
+    {
+      "fieldname": "encryption_salt",
+      "label": "Second password (salt)",
+      "fieldtype": "Password",
+      "depends_on": "eval: doc.encrypt",
+      "description": "Optional, recommended. Same rules as the password."
+    },
+    {
+      "fieldname": "sec_check",
+      "label": "",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "test_connection",
+      "label": "Test connection",
+      "fieldtype": "Button",
+      "options": "secondary",
+      "icon": "plug-zap",
+      "description": "Creates the root folder, writes and deletes a small test file. Save your changes first."
+    },
+    {
+      "fieldname": "show_config",
+      "label": "Show rclone config",
+      "fieldtype": "Button",
+      "options": "ghost",
+      "icon": "file-key",
+      "description": "The same storage as an rclone.conf section — keep it outside the system to get backups back with plain rclone if the server is lost."
+    },
+    {
+      "fieldname": "col_check",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "last_status",
+      "label": "Status",
+      "fieldtype": "Select",
+      "options": "\nOK\nError",
+      "read_only": true,
+      "in_list_view": true,
+      "in_filter": true,
+      "translatable": true
+    },
+    {
+      "fieldname": "last_check_at",
+      "label": "Last checked",
+      "fieldtype": "Datetime",
+      "read_only": true
+    },
+    {
+      "fieldname": "quota",
+      "label": "Space",
+      "fieldtype": "Data",
+      "read_only": true
+    },
+    {
+      "fieldname": "last_error",
+      "label": "Last error",
+      "fieldtype": "LongText",
+      "read_only": true,
+      "depends_on": "eval: doc.last_status === 'Error'"
+    },
+    {
+      "fieldname": "tab_backups",
+      "label": "Backups",
+      "fieldtype": "Tab",
+      "icon": "archive"
+    },
+    {
+      "fieldname": "sec_backups",
+      "label": "",
+      "fieldtype": "Section",
+      "description": "Every new backup set (System Settings → Backups) is uploaded to each storage with this option, right after it is made, into <root folder>/backups/<site>/."
+    },
+    {
+      "fieldname": "use_for_backups",
+      "label": "Upload backups here",
+      "fieldtype": "Check",
+      "in_list_view": true
+    },
+    {
+      "fieldname": "backup_keep",
+      "label": "Copies to keep here",
+      "fieldtype": "Int",
+      "default": 14,
+      "depends_on": "eval: doc.use_for_backups",
+      "description": "Older sets in this storage are deleted after each upload; independent of how many are kept on the server."
+    },
+    {
+      "fieldname": "upload_latest",
+      "label": "Upload the latest backup now",
+      "fieldtype": "Button",
+      "options": "secondary",
+      "icon": "upload",
+      "depends_on": "eval: doc.use_for_backups"
+    },
+    {
+      "fieldname": "browse_backups",
+      "label": "Backups in this storage",
+      "fieldtype": "Button",
+      "options": "outline",
+      "icon": "cloud-download",
+      "description": "Lists the sets in the storage; the chosen one is downloaded to the server and appears in Backups, ready for «grunt db restore»."
+    },
+    {
+      "fieldname": "col_backups",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "last_backup_at",
+      "label": "Last upload",
+      "fieldtype": "Datetime",
+      "read_only": true
+    },
+    {
+      "fieldname": "last_backup_id",
+      "label": "Last uploaded set",
+      "fieldtype": "Data",
+      "read_only": true
+    },
+    {
+      "fieldname": "tab_files",
+      "label": "Files",
+      "fieldtype": "Tab",
+      "icon": "files"
+    },
+    {
+      "fieldname": "sec_files",
+      "label": "",
+      "fieldtype": "Section",
+      "description": "Moves the contents of rarely used files off the server disk. The File record, previews and access rules stay; on the first request the file is fetched back into a local cache. Only one storage can hold files."
+    },
+    {
+      "fieldname": "use_for_files",
+      "label": "Move old files here",
+      "fieldtype": "Check",
+      "in_list_view": true
+    },
+    {
+      "fieldname": "offload_after_days",
+      "label": "Older than, days",
+      "fieldtype": "Int",
+      "default": 90,
+      "depends_on": "eval: doc.use_for_files",
+      "description": "Files uploaded earlier than this are moved by the nightly job (04:00)."
+    },
+    {
+      "fieldname": "offload_min_size_kb",
+      "label": "Larger than, KB",
+      "fieldtype": "Int",
+      "default": 0,
+      "depends_on": "eval: doc.use_for_files",
+      "description": "0 — any size. Small files cost a request each and save little space."
+    },
+    {
+      "fieldname": "offload_public",
+      "label": "Public files too",
+      "fieldtype": "Check",
+      "depends_on": "eval: doc.use_for_files",
+      "description": "Website images are better kept on the server: they are read all the time."
+    },
+    {
+      "fieldname": "offload_doctypes",
+      "label": "Only files of",
+      "fieldtype": "LongText",
+      "depends_on": "eval: doc.use_for_files",
+      "placeholder": "IncomingLetter\nOutgoingLetter",
+      "description": "DocType names, one per line, whose attachments are moved. Empty — any file, including the library and personal files."
+    },
+    {
+      "fieldname": "col_files",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "cache_size_mb",
+      "label": "Local cache, MB",
+      "fieldtype": "Int",
+      "default": 1024,
+      "depends_on": "eval: doc.use_for_files",
+      "description": "Files fetched back from the storage are kept on the server up to this size; the least recently used are dropped at night."
+    },
+    {
+      "fieldname": "offloaded_files",
+      "label": "Files in the storage",
+      "fieldtype": "Int",
+      "read_only": true
+    },
+    {
+      "fieldname": "offloaded_size",
+      "label": "Their size",
+      "fieldtype": "Data",
+      "read_only": true
+    },
+    {
+      "fieldname": "offload_now",
+      "label": "Move files now",
+      "fieldtype": "Button",
+      "options": "secondary",
+      "icon": "cloud-upload",
+      "depends_on": "eval: doc.use_for_files"
+    },
+    {
+      "fieldname": "recall_files",
+      "label": "Return all files to the server",
+      "fieldtype": "Button",
+      "options": "outline",
+      "icon": "hard-drive-download",
+      "description": "Downloads every file kept in this storage back to the server disk (check the free space first)."
+    }
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "read": true,
+      "write": true,
+      "create": true,
+      "delete": true
+    }
+  ]
+}

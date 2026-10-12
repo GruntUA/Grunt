@@ -310,3 +310,91 @@ def db_restore(backup_id: str, site: str | None, with_files: bool, yes: bool):
     except BackupError as e:
         raise click.ClickException(str(e)) from e
     click.echo(f"Restored from {backup_id}. Previous state: {aside}")
+
+
+def _cloud_remote(site: str, name: str):
+    """Run *fn(remote, session)* inside the site's context - see the cloud commands."""
+    from grunt.cli.utils import _site_session
+
+    async def run(fn):
+        import grunt
+        from grunt.storage.cloud import load_remote
+
+        async with _site_session(site) as (session, eng), grunt.system_context(session, eng):
+            remote = await load_remote(name)
+            await session.commit()
+            result = await fn(remote)
+            await session.commit()
+            return result
+
+    return run
+
+
+@db_group.command("cloud-backups")
+@click.argument("remote")
+@click.option("--site", default=None, help="Site name")
+def db_cloud_backups(remote: str, site: str | None):
+    """Show the backups kept in the cloud storage REMOTE (a StorageRemote name)."""
+    from grunt.monitoring.health import human_size
+    from grunt.storage.cloud import Rclone, RemoteError
+    from grunt.storage.cloud.backups import list_remote_backups
+
+    target = _resolve_site(site)
+
+    async def listing(row):
+        async with Rclone(row) as rc:
+            return await list_remote_backups(rc, target)
+
+    try:
+        rows = asyncio.run(_cloud_remote(target, remote)(listing))
+    except RemoteError as e:
+        raise click.ClickException(str(e)) from e
+    for row in rows:
+        mark = "  (on the server)" if row["on_server"] else ""
+        click.echo(f"{row['id']}  {human_size(row['size']):>10}  {', '.join(row['kinds'])}{mark}")
+
+
+@db_group.command("fetch-backup")
+@click.argument("remote")
+@click.argument("backup_id")
+@click.option("--site", default=None, help="Site name")
+def db_fetch_backup(remote: str, backup_id: str, site: str | None):
+    """Download the backup BACKUP_ID from the cloud storage REMOTE into backups/.
+
+    Then restore it with `grunt db restore BACKUP_ID`. Without a working
+    database (no StorageRemote to read), use plain rclone with the config
+    saved from the storage's «Show rclone config».
+    """
+    from grunt.storage.cloud import RemoteError
+    from grunt.storage.cloud.backups import fetch_backup
+
+    target = _resolve_site(site)
+    try:
+        backup = asyncio.run(
+            _cloud_remote(target, remote)(lambda row: fetch_backup(target, row, backup_id))
+        )
+    except RemoteError as e:
+        raise click.ClickException(str(e)) from e
+    for kind, path in sorted(backup.files.items()):
+        click.echo(f"{kind:9} {path}")
+
+
+@db_group.command("upload-backup")
+@click.argument("remote")
+@click.argument("backup_id", required=False)
+@click.option("--site", default=None, help="Site name")
+def db_upload_backup(remote: str, backup_id: str | None, site: str | None):
+    """Upload a backup (the newest by default) to the cloud storage REMOTE."""
+    from grunt.backups import get_backup, list_backups
+    from grunt.storage.cloud import RemoteError
+    from grunt.storage.cloud.backups import upload_backup
+
+    target = _resolve_site(site)
+    backup = get_backup(target, backup_id) if backup_id else next(iter(list_backups(target)), None)
+    if backup is None:
+        raise click.ClickException("No such backup; see `grunt db backups`")
+    try:
+        asyncio.run(_cloud_remote(target, remote)(lambda row: upload_backup(target, backup, row)))
+    except RemoteError as e:
+        raise click.ClickException(str(e)) from e
+    click.echo(f"Uploaded {backup.id} to {remote}")
