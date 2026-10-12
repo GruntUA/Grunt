@@ -30,6 +30,7 @@ const semantics = computed(() => (props.field.validator ? SEMANTICS[props.field.
 
 // Render a read-only linkable value as an anchor rather than a dead input.
 const asLink = computed(() => !!props.field.read_only && !!semantics.value && !!value.value)
+const editable = computed(() => !props.disabled && !props.field.read_only)
 
 function onUpdate(v: string | number) {
   emit('update:modelValue', String(v ?? ''))
@@ -53,6 +54,14 @@ function onBlur(e: FocusEvent) {
   >
     {{ value }}
   </a>
+
+  <!-- Read-only: a box that looks like the input but wraps long values. -->
+  <div
+    v-else-if="!editable"
+    aria-disabled="true"
+    class="min-h-9 w-full cursor-not-allowed rounded-md border border-input px-3 py-1.5 text-base whitespace-pre-line break-words opacity-50 shadow-xs dark:bg-input/30 md:text-sm"
+    :class="field.bold && 'font-medium'"
+  >{{ value }}</div>
 
   <Input
     v-else

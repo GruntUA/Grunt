@@ -9,8 +9,7 @@
       "fieldname": "label",
       "label": "Label",
       "fieldtype": "Text",
-      "in_list_view": true,
-      "required": true
+      "in_list_view": true
     },
     {
       "fieldname": "fieldname",
@@ -30,7 +29,7 @@
     {
       "fieldname": "options",
       "label": "Options",
-      "fieldtype": "Text",
+      "fieldtype": "LongText",
       "description": "DocType for Link/Table, or the option list for Select"
     },
     {
@@ -86,17 +85,17 @@
     {
       "fieldname": "description",
       "label": "Description",
-      "fieldtype": "Text"
+      "fieldtype": "LongText"
     },
     {
       "fieldname": "default",
       "label": "Default value",
-      "fieldtype": "Text"
+      "fieldtype": "LongText"
     },
     {
       "fieldname": "depends_on",
       "label": "Depends on",
-      "fieldtype": "Text",
+      "fieldtype": "LongText",
       "description": "Display condition (Python/JS)"
     }
   ]

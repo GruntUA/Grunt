@@ -2,7 +2,9 @@ import { nextTick, ref, type Ref } from 'vue'
 
 import { getNonPhysicalTypeSet } from '@/core/fieldRegistry'
 import { parseLayout } from '@/core/composables/useFormLayout'
-import type { DocType } from '@/types'
+import { cellError } from '@/components/fields/Table/useTableCell'
+import { useDocTypeStore } from '@/stores/doctype'
+import type { DocField, DocType } from '@/types'
 import i18n from '@/plugins/i18n'
 
 const t = (key: string, params: Record<string, unknown> = {}): string => i18n.global.t(key, params)
@@ -52,6 +54,24 @@ export function useFormValidation(params: UseFormValidationParams) {
     })
   }
 
+  /**
+   * First invalid cell of a child table, as "Row 2: Qty - Required". The child
+   * schema comes from the DocType store cache the Table field fills when it
+   * renders; a table not rendered yet is left to the server check.
+   */
+  function tableError(field: DocField, rows: unknown, nonPhysicalTypes: Set<string>): string | null {
+    const child = field.options ? useDocTypeStore().cache.get(field.options) : undefined
+    if (!child || !Array.isArray(rows)) return null
+    const childFields = child.fields.filter((f) => !nonPhysicalTypes.has(f.fieldtype) && !f.hidden)
+    for (const [i, row] of rows.entries()) {
+      for (const f of childFields) {
+        const error = cellError(row as Record<string, unknown>, f)
+        if (error) return t('Row {row}: {field} - {error}', { row: i + 1, field: f.label || f.fieldname, error })
+      }
+    }
+    return null
+  }
+
   function validateForm(): boolean {
     resetValidationErrors()
 
@@ -59,10 +79,15 @@ export function useFormValidation(params: UseFormValidationParams) {
       return true
     }
 
-    const nonPhysical = getNonPhysicalTypeSet()
+    const nonPhysicalTypes = getNonPhysicalTypeSet()
+    const tableErrors: Record<string, string> = {}
     for (const field of params.dt.value.fields) {
-      if (nonPhysical.has(field.fieldtype)) continue
       if (params.displayOverrides[field.fieldname] === false) continue
+      if (field.fieldtype === 'Table') {
+        const error = tableError(field, params.form.value[field.fieldname], nonPhysicalTypes)
+        if (error) tableErrors[field.fieldname] = error
+      }
+      if (nonPhysicalTypes.has(field.fieldtype)) continue
 
       const isRequired = params.reqdOverrides[field.fieldname] !== undefined
         ? params.reqdOverrides[field.fieldname]
@@ -90,6 +115,15 @@ export function useFormValidation(params: UseFormValidationParams) {
           validationErrors.value[core.key] = t('Field "{label}" is required', { label: core.label })
         }
       }
+    }
+
+    if (Object.keys(validationErrors.value).length === 0 && Object.keys(tableErrors).length > 0) {
+      validationErrors.value = tableErrors
+      const [fieldname, error] = Object.entries(tableErrors)[0]
+      const label = params.dt.value.fields.find((f) => f.fieldname === fieldname)?.label || fieldname
+      params.toast.error(`${label}: ${error}`)
+      focusFirstError()
+      return false
     }
 
     if (Object.keys(validationErrors.value).length > 0) {

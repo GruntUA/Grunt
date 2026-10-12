@@ -6,6 +6,7 @@ class TabField(FieldType):
     column_spec = None  # non-physical: UI layout element only
     searchable = False
     python_type = "None"
+    is_layout = True
 
 
 def register():

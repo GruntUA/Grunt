@@ -3,8 +3,7 @@
  * read-only cell shows, and per-cell validation (mirrors the backend so the
  * user fixes a row before Save).
  */
-import { useI18n } from 'vue-i18n'
-
+import i18n from '@/plugins/i18n'
 import type { DocField } from '@/types'
 import { getLayoutTypeSet } from '@/core/fieldRegistry'
 import { validateFieldValue } from '@/core/validators'
@@ -37,41 +36,48 @@ function isEmpty(v: unknown): boolean {
   return v === null || v === undefined || v === ''
 }
 
-export function useTableCell() {
-  const { t } = useI18n()
+const t = (key: string): string => i18n.global.t(key)
 
-  /**
-   * First validation message for a cell, or null. `includeRequired: false`
-   * reports only wrong values, not "not filled in yet" - for the row summary
-   * and the Add-row gate, so untouched required cells don't cry wolf.
-   */
-  function cellError(
-    row: Record<string, unknown>,
-    f: DocField,
-    opts: { includeRequired?: boolean } = {},
-  ): string | null {
-    if (isLayoutRow(row)) return null
-    const v = row[f.fieldname]
-    if (isEmpty(v)) return f.required && opts.includeRequired !== false ? t('Required') : null
+/** VARCHAR length of a Data / Text column - mirrors the server's column_spec. */
+function textLimit(f: DocField): number | null {
+  if (f.fieldtype !== 'Data' && f.fieldtype !== 'Text') return f.max_length || null
+  return Math.max(64, Math.min(f.max_length || 255, 1000))
+}
 
-    const s = String(v)
-    if (f.max_length && s.length > f.max_length) return `${t('Max length')}: ${f.max_length}`
-    if (f.regex) {
-      try {
-        if (!new RegExp(f.regex).test(s)) return t('Invalid format')
-      } catch {
-        /* bad regex in metadata - ignore */
-      }
+/**
+ * First validation message for a cell, or null. `includeRequired: false`
+ * reports only wrong values, not "not filled in yet" - for the row summary
+ * and the Add-row gate, so untouched required cells don't cry wolf.
+ */
+export function cellError(
+  row: Record<string, unknown>,
+  f: DocField,
+  opts: { includeRequired?: boolean } = {},
+): string | null {
+  if (isLayoutRow(row)) return null
+  const v = row[f.fieldname]
+  if (isEmpty(v)) return f.required && opts.includeRequired !== false ? t('Required') : null
+
+  const s = String(v)
+  const limit = textLimit(f)
+  if (limit && s.length > limit) return `${t('Max length')}: ${limit}`
+  if (f.regex) {
+    try {
+      if (!new RegExp(f.regex).test(s)) return t('Invalid format')
+    } catch {
+      /* bad regex in metadata - ignore */
     }
-    if (f.fieldtype === 'Int' || f.fieldtype === 'Float' || f.fieldtype === 'Currency') {
-      const n = Number(v)
-      if (Number.isNaN(n)) return t('Must be a number')
-      if (f.min_value != null && n < f.min_value) return `${t('Min')}: ${f.min_value}`
-      if (f.max_value != null && n > f.max_value) return `${t('Max')}: ${f.max_value}`
-    }
-    return f.validator ? validateFieldValue(f.validator, v) : null
   }
+  if (f.fieldtype === 'Int' || f.fieldtype === 'Float' || f.fieldtype === 'Currency') {
+    const n = Number(v)
+    if (Number.isNaN(n)) return t('Must be a number')
+    if (f.min_value != null && n < f.min_value) return `${t('Min')}: ${f.min_value}`
+    if (f.max_value != null && n > f.max_value) return `${t('Max')}: ${f.max_value}`
+  }
+  return f.validator ? validateFieldValue(f.validator, v) : null
+}
 
+export function useTableCell() {
   /** Text of a cell that is not edited inline (read-only table, complex type). */
   function cellDisplay(row: Record<string, unknown>, f: DocField): string {
     const v = row[f.fieldname]

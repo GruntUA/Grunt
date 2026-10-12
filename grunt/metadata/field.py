@@ -60,6 +60,7 @@ class FieldType:
     searchable: ClassVar[bool] = True
     empty_as_null: ClassVar[bool] = False
     python_type: ClassVar[str] = "Any | None"
+    is_layout: ClassVar[bool] = False  # Tab / Section / Column - structure, no value
 
     @classmethod
     def coerce(cls, value: Any) -> Any:

@@ -1,3 +1,4 @@
+import type { ComputedRef, InjectionKey } from 'vue'
 import type { DocType, DocTypeStatusConfig } from '@/types'
 
 const NEUTRAL = 'border-muted-foreground/20 bg-muted/40 text-muted-foreground'
@@ -39,6 +40,13 @@ export interface StatusBadge {
   class: string
   icon: string | null
 }
+
+/**
+ * Status config of the DocType whose fields render below - a Select bound to
+ * its status field shows coloured badges. Provided by the Table field for its
+ * child DocType (grid cells + row sheet).
+ */
+export const STATUS_CONFIG: InjectionKey<ComputedRef<DocTypeStatusConfig | null>> = Symbol('statusConfig')
 
 /**
  * Bundle a DocType's `status_field` + `status_indicators` into the shape list

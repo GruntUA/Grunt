@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, provide, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { VueDraggable } from 'vue-draggable-plus'
 import {
@@ -16,7 +16,7 @@ import {
   X,
 } from '@lucide/vue'
 import type { DocField, DocType } from '@/types'
-import { metaApi } from '@/core/api'
+import { useDocTypeStore } from '@/stores/doctype'
 import { getAsyncFieldComponent, getLayoutTypeSet } from '@/core/fieldRegistry'
 import { toast } from '@/core/composables/useToast'
 import QuickEntryDialog from '@/components/views/QuickEntryDialog.vue'
@@ -35,9 +35,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import SelectListCell from '@/components/fields/Select/ListCell.vue'
-import { statusConfigOf } from '@/core/status'
+import { STATUS_CONFIG, statusConfigOf } from '@/core/status'
 import TableRowSheet from './TableRowSheet.vue'
-import { INLINE_TYPES, isLayoutRow, useTableCell } from './useTableCell'
+import { INLINE_TYPES, cellError, isLayoutRow, useTableCell } from './useTableCell'
 import { useTableRows, type Row } from './useTableRows'
 
 /**
@@ -60,7 +60,8 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
-const { cellError, cellDisplay } = useTableCell()
+const { cellDisplay } = useTableCell()
+const dtStore = useDocTypeStore()
 const LAYOUT_TYPES = getLayoutTypeSet()
 
 // Child DocType & columns
@@ -73,7 +74,8 @@ watch(
     if (!doctype) return
     loading.value = true
     try {
-      childDocType.value = await metaApi.get(doctype)
+      // Through the store: the form's Save check reads the child schema from its cache.
+      childDocType.value = await dtStore.get(doctype)
     } catch {
       childDocType.value = null
     } finally {
@@ -136,6 +138,7 @@ const canAddRow = computed(() => {
 
 // The child DocType's status field shows as a coloured badge, like in lists.
 const statusConfig = computed(() => statusConfigOf(childDocType.value))
+provide(STATUS_CONFIG, statusConfig)
 
 // Grouping (field.group_by)
 const groupBy = computed(() => props.field.group_by || null)
@@ -237,7 +240,7 @@ function saveRow(data: Record<string, unknown>) {
 const quickEntry = ref<{ doctype: DocType; preset: Record<string, unknown>; apply: (name: string) => void } | null>(null)
 
 async function createLinked(doctype: string, preset: string, apply: (name: string) => void) {
-  const dt = await metaApi.get(doctype)
+  const dt = await dtStore.get(doctype)
   if (dt) quickEntry.value = { doctype: dt, preset: preset ? { name: preset } : {}, apply }
 }
 
@@ -358,7 +361,7 @@ function applyBulk() {
               <TableCell
                 v-for="f in columns"
                 :key="f.fieldname"
-                :class="[CELL_WIDTH[f.fieldtype] ?? 'min-w-40', alignOf(f)]"
+                :class="[CELL_WIDTH[f.fieldtype] ?? 'min-w-40', alignOf(f), !isInline(item.row, f) && 'whitespace-pre-line break-words']"
                 :title="cellError(item.row, f) || undefined"
               >
                 <Checkbox

@@ -107,5 +107,13 @@ function onBlur(e: FocusEvent) {
     </ComboboxList>
   </Combobox>
 
+  <!-- Read-only: a box that looks like the input but wraps long values. -->
+  <div
+    v-else-if="!editable"
+    aria-disabled="true"
+    class="min-h-9 w-full cursor-not-allowed rounded-md border border-input px-3 py-1.5 text-base whitespace-pre-line break-words opacity-50 shadow-xs dark:bg-input/30 md:text-sm"
+    :class="field.bold && 'font-medium'"
+  >{{ value }}</div>
+
   <Input v-else v-bind="inputProps" @update:model-value="onUpdate" @blur="onBlur" />
 </template>

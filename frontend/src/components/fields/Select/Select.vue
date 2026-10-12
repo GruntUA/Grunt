@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { computed, shallowRef, watchEffect, type Component } from 'vue'
+import { computed, inject, shallowRef, watchEffect, type Component } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { X } from '@lucide/vue'
 import type { BaseFieldProps } from '@/types'
 import { parseSelectOptions, resolveOptionIcons } from '@/lib/selectOptions'
+import { STATUS_CONFIG, statusToneClass } from '@/core/status'
+import { Badge } from '@/components/ui/badge'
 import {
   Select as ShadcnSelect,
   SelectContent,
@@ -24,12 +26,23 @@ watchEffect(async () => {
   iconMap.value = await resolveOptionIcons(parsedOptions.value)
 })
 
+// On the status field of the surrounding DocType options render as the same
+// coloured badges as in lists.
+const statusConfig = inject(STATUS_CONFIG, null)
+const indicators = computed(() =>
+  statusConfig?.value?.field === props.field.fieldname ? statusConfig.value.indicators : null,
+)
+
 const resolvedOptions = computed(() =>
-  parsedOptions.value.map((o) => ({
-    value: o.value,
-    label: o.label,
-    icon: o.icon ? (iconMap.value[o.icon] ?? null) : null,
-  })),
+  parsedOptions.value.map((o) => {
+    const ind = indicators.value?.find((i) => i.value === o.value)
+    return {
+      value: o.value,
+      label: ind?.label || o.label,
+      icon: o.icon ? (iconMap.value[o.icon] ?? null) : null,
+      tone: indicators.value ? statusToneClass(ind?.color) : null,
+    }
+  }),
 )
 
 const current = computed(() => {
@@ -48,7 +61,14 @@ const clearable = computed(() => !readonly.value && !props.field.required && cur
 </script>
 
 <template>
-  <div class="relative w-full">
+  <div v-if="readonly && currentOption?.tone" class="flex min-h-9 items-center">
+    <Badge variant="outline" :class="['font-normal', currentOption.tone]">
+      <component :is="currentOption.icon" v-if="currentOption.icon" class="size-3.5" />
+      {{ currentOption.label }}
+    </Badge>
+  </div>
+
+  <div v-else class="relative w-full">
     <ShadcnSelect
       :model-value="current"
       :disabled="readonly"
@@ -60,7 +80,11 @@ const clearable = computed(() => !readonly.value && !props.field.required && cur
         :aria-invalid="error ? true : undefined"
         :aria-label="field.label"
       >
-        <span v-if="currentOption" class="flex items-center gap-2">
+        <Badge v-if="currentOption?.tone" variant="outline" :class="['font-normal', currentOption.tone]">
+          <component :is="currentOption.icon" v-if="currentOption.icon" class="size-3.5" />
+          {{ currentOption.label }}
+        </Badge>
+        <span v-else-if="currentOption" class="flex items-center gap-2">
           <component :is="currentOption.icon" v-if="currentOption.icon" class="size-4 text-muted-foreground" />
           {{ currentOption.label }}
         </span>
@@ -68,8 +92,14 @@ const clearable = computed(() => !readonly.value && !props.field.required && cur
       </SelectTrigger>
       <SelectContent>
         <SelectItem v-for="opt in resolvedOptions" :key="opt.value" :value="opt.value">
-          <component :is="opt.icon" v-if="opt.icon" class="size-4" />
-          {{ opt.label }}
+          <Badge v-if="opt.tone" variant="outline" :class="['font-normal', opt.tone]">
+            <component :is="opt.icon" v-if="opt.icon" class="size-3.5" />
+            {{ opt.label }}
+          </Badge>
+          <template v-else>
+            <component :is="opt.icon" v-if="opt.icon" class="size-4" />
+            {{ opt.label }}
+          </template>
         </SelectItem>
       </SelectContent>
     </ShadcnSelect>
