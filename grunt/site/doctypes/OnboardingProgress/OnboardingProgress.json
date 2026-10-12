@@ -1,0 +1,46 @@
+{
+  "name": "OnboardingProgress",
+  "label": "Onboarding progress",
+  "description": "Steps marked done or skipped and checklists hidden - for the site or per user.",
+  "module": "site",
+  "autoname": "hash",
+  "track_changes": false,
+  "track_activity": false,
+  "hide_from_activity_feed": true,
+  "indexes": [["onboarding", "user"]],
+  "fields": [
+    {
+      "fieldname": "onboarding",
+      "label": "Onboarding",
+      "fieldtype": "Link",
+      "options": "ModuleOnboarding",
+      "required": true,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "step_id",
+      "label": "Step",
+      "fieldtype": "Data",
+      "in_list_view": true,
+      "description": "Empty - the whole checklist (hidden)"
+    },
+    {
+      "fieldname": "user",
+      "label": "User",
+      "fieldtype": "Data",
+      "in_list_view": true,
+      "description": "Empty - the site's progress"
+    },
+    {
+      "fieldname": "status",
+      "label": "Status",
+      "fieldtype": "Select",
+      "options": "Completed\nSkipped\nHidden",
+      "required": true,
+      "in_list_view": true
+    }
+  ],
+  "permissions": [
+    {"role": "System Manager", "read": true, "create": true, "write": true, "delete": true}
+  ]
+}

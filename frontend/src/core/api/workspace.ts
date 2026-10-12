@@ -71,6 +71,31 @@ export interface MyWork {
   counts: { assigned: number; overdue: number; unread: number }
 }
 
+export type OnboardingStepStatus = 'Pending' | 'Completed' | 'Skipped'
+
+export interface OnboardingStep {
+  step_id: string
+  title: string
+  description?: string | null
+  action: string
+  action_label?: string | null
+  /** Where the button leads (`appUrl` link); `type: 'URL'` - a desk path or a full URL. */
+  target: { type: string; name: string; id?: string } | null
+  status: OnboardingStepStatus
+}
+
+export interface Onboarding {
+  name: string
+  title: string
+  subtitle?: string | null
+  app?: string | null
+  success_message?: string | null
+  documentation_url?: string | null
+  steps: OnboardingStep[]
+  done: number
+  total: number
+}
+
 export const workspaceApi = {
   list: async (): Promise<Workspace[]> => {
     const r = await client.get('/api/v1/method/grunt.api.v1.workspace.list_workspaces')
@@ -117,4 +142,17 @@ export const workspaceApi = {
     return r.data.data
   },
 
+  getOnboardings: async (app?: string | null): Promise<Onboarding[]> => {
+    const r = await client.get('/api/v1/method/grunt.site.onboarding.get_onboardings', { params: { app: app || undefined } })
+    return r.data.data ?? []
+  },
+
+  markOnboardingStep: async (onboarding: string, stepId: string, status: OnboardingStepStatus): Promise<Onboarding> => {
+    const r = await client.post('/api/v1/method/grunt.site.onboarding.mark_step', { onboarding, step_id: stepId, status })
+    return r.data.data
+  },
+
+  hideOnboarding: async (onboarding: string): Promise<void> => {
+    await client.post('/api/v1/method/grunt.site.onboarding.hide_onboarding', { onboarding })
+  },
 }

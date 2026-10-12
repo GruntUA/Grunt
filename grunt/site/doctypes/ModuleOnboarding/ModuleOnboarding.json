@@ -1,0 +1,58 @@
+{
+  "name": "ModuleOnboarding",
+  "label": "Module onboarding",
+  "description": "A \"first steps\" checklist shown on an app's home and on the desk home until its steps are done.",
+  "module": "site",
+  "standard_records": true,
+  "hide_from_activity_feed": true,
+  "autoname": "prompt",
+  "title_field": "title",
+  "fields": [
+    {"fieldname": "title", "label": "Title", "fieldtype": "Data", "required": true, "in_list_view": true},
+    {"fieldname": "subtitle", "label": "Subtitle", "fieldtype": "Text"},
+    {
+      "fieldname": "app",
+      "label": "App",
+      "fieldtype": "Link",
+      "options": "GruntInstalledApp",
+      "in_list_view": true,
+      "in_filter": true,
+      "description": "Shown on this app's home; on the desk home in any case"
+    },
+    {
+      "fieldname": "is_published",
+      "label": "Published",
+      "fieldtype": "Check",
+      "default": true,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "roles",
+      "label": "Roles (comma-separated)",
+      "fieldtype": "Text",
+      "description": "Who sees the checklist; empty - everyone. System Manager always does"
+    },
+    {
+      "fieldname": "progress_scope",
+      "label": "Progress",
+      "fieldtype": "Select",
+      "options": "Site\nUser",
+      "default": "Site",
+      "description": "Site - one shared checklist (system setup). User - everyone goes through it on their own (a step counts their own records)"
+    },
+    {"fieldname": "success_message", "label": "Success message", "fieldtype": "Text"},
+    {"fieldname": "documentation_url", "label": "Documentation URL", "fieldtype": "Data"},
+    {"fieldname": "steps", "label": "Steps", "fieldtype": "Table", "options": "OnboardingStep"},
+    {
+      "fieldname": "is_standard",
+      "label": "Standard",
+      "fieldtype": "Check",
+      "in_filter": true,
+      "description": "Ships with the app as JSON files - edits are saved to the app"
+    }
+  ],
+  "permissions": [
+    {"role": "All", "read": true},
+    {"role": "System Manager", "write": true, "create": true, "delete": true}
+  ]
+}

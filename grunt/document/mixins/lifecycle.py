@@ -362,6 +362,11 @@ class DocumentLifecycleMixin:
 
         self.input_data = data
         self.data = await self._build_initial_row(dt, data, datetime.now(UTC))
+        # As on update: hooks see the submitted child rows and MultiLink lists,
+        # and their in-place changes are persisted (db_insert writes from *data*).
+        for f in [*dt.get_child_table_fields(), *dt.get_multilink_fields()]:
+            if f.fieldname in data:
+                self.data[f.fieldname] = data[f.fieldname]
 
         tokens = self._set_grunt_context(user)
         try:

@@ -1,0 +1,70 @@
+{
+  "name": "OnboardingStep",
+  "label": "Onboarding step",
+  "module": "site",
+  "is_child": true,
+  "hide_from_activity_feed": true,
+  "title_field": "title",
+  "fields": [
+    {"fieldname": "title", "label": "Title", "fieldtype": "Data", "required": true, "in_list_view": true},
+    {"fieldname": "description", "label": "Description", "fieldtype": "Text"},
+    {
+      "fieldname": "action",
+      "label": "Action",
+      "fieldtype": "Select",
+      "options": "Create Entry\nUpdate Settings\nGo to Page\nView Report\nRead Docs\nWatch Video",
+      "default": "Create Entry",
+      "required": true,
+      "in_list_view": true,
+      "description": "Create Entry and Update Settings complete by themselves once the record exists or the setting is filled in; the others - when opened"
+    },
+    {
+      "fieldname": "reference_doctype",
+      "label": "Document type",
+      "fieldtype": "Link",
+      "options": "DocType",
+      "in_list_view": true,
+      "depends_on": "eval: ['Create Entry', 'Update Settings'].includes(doc.action)",
+      "mandatory_depends_on": "eval: ['Create Entry', 'Update Settings'].includes(doc.action)"
+    },
+    {
+      "fieldname": "field",
+      "label": "Field",
+      "fieldtype": "Data",
+      "depends_on": "eval: doc.action === 'Update Settings'",
+      "mandatory_depends_on": "eval: doc.action === 'Update Settings'",
+      "description": "Settings field that has to be filled in"
+    },
+    {
+      "fieldname": "value_to_validate",
+      "label": "Expected value",
+      "fieldtype": "Data",
+      "depends_on": "eval: doc.action === 'Update Settings'",
+      "description": "Empty or % - any non-empty value"
+    },
+    {
+      "fieldname": "report",
+      "label": "Report",
+      "fieldtype": "Link",
+      "options": "Report",
+      "depends_on": "eval: doc.action === 'View Report'",
+      "mandatory_depends_on": "eval: doc.action === 'View Report'"
+    },
+    {
+      "fieldname": "route",
+      "label": "Address",
+      "fieldtype": "Data",
+      "depends_on": "eval: ['Go to Page', 'Read Docs', 'Watch Video'].includes(doc.action)",
+      "mandatory_depends_on": "eval: ['Go to Page', 'Read Docs', 'Watch Video'].includes(doc.action)",
+      "description": "Desk path (/app/...) or a full URL"
+    },
+    {"fieldname": "action_label", "label": "Button label", "fieldtype": "Data"},
+    {
+      "fieldname": "step_id",
+      "label": "Step ID",
+      "fieldtype": "Data",
+      "read_only": true,
+      "description": "Keeps the step's progress when the checklist changes; set from the title"
+    }
+  ]
+}

@@ -198,6 +198,19 @@ the section. `link` is a desk path (opened in place) or a URL (new tab);
 `indicator` (green, red, orange, yellow, blue, gray) shows the value as a
 coloured badge. A section that raises is logged and skipped.
 
+## First-steps checklists
+
+A **Module onboarding** record is a checklist shown on the app's home and on
+the desk home until its steps are done (or someone hides it). It is a standard
+record, so mark it **Standard**, pick the app, and it ships as files.
+
+Each step has an **Action**: *Create Entry* and *Update Settings* complete by
+themselves - once a record of the DocType exists, or the settings field is
+filled in (or equals **Expected value**); *Go to Page*, *View Report*, *Read
+Docs* and *Watch Video* count once opened. Any step can be skipped.
+**Progress** is either the site's (one shared setup checklist) or each user's
+(a step counts the user's own records).
+
 ## Documents as JSON
 
 Every document the API returns is a JSON object that names its own DocType —

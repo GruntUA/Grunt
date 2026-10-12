@@ -19,6 +19,7 @@ msgstr ""
 #: grunt/grunt/permissions/doctypes/SharedWith/shared_with.py:39
 #: grunt/grunt/api/v1/share.py:50
 #: grunt/grunt/activity/doctypes/DocFollow/doc_follow.py:24
+#: grunt/grunt/activity/doctypes/CommentReaction/comment_reaction.py:33
 #: grunt/grunt/activity/doctypes/DocLike/doc_like.py:24
 #: grunt/frontend/src/plugins/i18n.ts:16
 msgid "Document not found"
@@ -50,25 +51,25 @@ msgstr "Немає даних"
 #: grunt/grunt/website/doc_layout.py:49 grunt/grunt/api/v1/docs/utils.py:61
 #: grunt/frontend/src/components/pwa/PWAInstallPrompt.vue:108
 #: grunt/frontend/src/components/views/QuickFilterBar.vue:47
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:167
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:168
 #: grunt/frontend/src/components/views/sidebar/TimelineChanges.vue:49
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:233
 #: grunt/frontend/src/components/views/list/ListGroupedView.vue:49
 #: grunt/frontend/src/components/fields/Check/FilterInput.vue:31
-#: grunt/frontend/src/components/fields/Table/Table.vue:148
-#: grunt/frontend/src/components/fields/Table/useTableCell.ts:79
+#: grunt/frontend/src/components/fields/Table/Table.vue:151
+#: grunt/frontend/src/components/fields/Table/useTableCell.ts:85
 msgid "Yes"
 msgstr "Так"
 
 #: grunt/grunt/website/doc_layout.py:49 grunt/grunt/api/v1/docs/utils.py:61
 #: grunt/frontend/src/components/views/QuickFilterBar.vue:47
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:167
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:168
 #: grunt/frontend/src/components/views/sidebar/TimelineChanges.vue:49
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:233
 #: grunt/frontend/src/components/views/list/ListGroupedView.vue:49
 #: grunt/frontend/src/components/fields/Check/FilterInput.vue:32
-#: grunt/frontend/src/components/fields/Table/Table.vue:148
-#: grunt/frontend/src/components/fields/Table/useTableCell.ts:79
+#: grunt/frontend/src/components/fields/Table/Table.vue:151
+#: grunt/frontend/src/components/fields/Table/useTableCell.ts:85
 msgid "No"
 msgstr "Ні"
 
@@ -100,7 +101,7 @@ msgstr "Фільтр:"
 #: grunt/frontend/src/components/fields/Link/Link.vue:141
 #: grunt/frontend/src/components/fields/Link/Link.vue:142
 #: grunt/frontend/src/components/fields/Color/Color.vue:73
-#: grunt/frontend/src/components/fields/Select/Select.vue:81
+#: grunt/frontend/src/components/fields/Select/Select.vue:111
 #: grunt/frontend/src/components/fields/Signature/Signature.vue:186
 #: grunt/frontend/src/components/fields/Signature/Signature.vue:241
 #: grunt/frontend/src/components/fields/Icon/Icon.vue:167
@@ -111,7 +112,7 @@ msgstr "Очистити"
 msgid "Remove {item}"
 msgstr "Прибрати {item}"
 
-#: grunt/frontend/src/components/fields/Select/Select.vue:67
+#: grunt/frontend/src/components/fields/Select/Select.vue:91
 #: grunt/frontend/src/components/fields/MultiSelect/MultiSelect.vue:46
 msgid "— select —"
 msgstr "— оберіть —"
@@ -262,9 +263,11 @@ msgstr "Не підписано"
 msgid "Sign here"
 msgstr "Підпишіть тут"
 
+#: grunt/frontend/src/components/desk/OnboardingChecklists.vue:117
+#: grunt/frontend/src/components/desk/OnboardingChecklists.vue:123
 #: grunt/frontend/src/components/fields/Signature/Signature.vue:229
 #: grunt/frontend/src/components/fields/Signature/Signature.vue:230
-#: grunt/frontend/src/components/fields/Table/Table.vue:220
+#: grunt/frontend/src/components/fields/Table/Table.vue:223
 #: grunt/frontend/src/components/fields/RichText/editor/commands.ts:69
 msgid "Undo"
 msgstr "Відмінити"
@@ -2586,7 +2589,7 @@ msgstr "Додати"
 msgid "Add a Filter"
 msgstr "Додати фільтр"
 
-#: grunt/frontend/src/components/fields/Table/Table.vue:496
+#: grunt/frontend/src/components/fields/Table/Table.vue:499
 msgid "Add row"
 msgstr "Додати рядок"
 
@@ -2607,7 +2610,7 @@ msgstr "Застосувати"
 msgid "Apply Filters"
 msgstr "Застосувати фільтри"
 
-#: grunt/frontend/src/components/fields/Table/Table.vue:476
+#: grunt/frontend/src/components/fields/Table/Table.vue:479
 msgid "Apply to"
 msgstr "Застосувати до"
 
@@ -2638,7 +2641,7 @@ msgid "Barcode not found in image."
 msgstr "На зображенні не знайдено штрихкоду."
 
 #: grunt/frontend/src/components/views/BulkActionBar.vue:313
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:151
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:152
 msgid "Bulk Update"
 msgstr "Масове оновлення"
 
@@ -2672,7 +2675,7 @@ msgstr "Камера недоступна."
 #: grunt/frontend/src/components/files/FileExplorer.vue:749
 #: grunt/frontend/src/components/files/FileExplorer.vue:877
 #: grunt/frontend/src/components/workflow/WorkflowActionDialog.vue:105
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:542
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:545
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue:347
 #: grunt/frontend/src/components/views/form/FormModals.vue:138
 #: grunt/frontend/src/components/views/form/FormHeader.vue:287
@@ -2691,7 +2694,7 @@ msgstr "Перевірте форму на помилки"
 msgid "Clear Filters"
 msgstr "Скинути фільтри"
 
-#: grunt/frontend/src/components/fields/Table/Table.vue:483
+#: grunt/frontend/src/components/fields/Table/Table.vue:486
 msgid "Clear selection"
 msgstr "Зняти виділення"
 
@@ -2700,7 +2703,7 @@ msgstr "Зняти виділення"
 msgid "Color"
 msgstr "Колір"
 
-#: grunt/frontend/src/components/fields/Table/Table.vue:452
+#: grunt/frontend/src/components/fields/Table/Table.vue:455
 msgid "Column"
 msgstr "Колонка"
 
@@ -2722,6 +2725,7 @@ msgstr "Вміст (HTML/текст)"
 msgid "Conversion:"
 msgstr "Конверсія:"
 
+#: grunt/frontend/src/core/composables/useToast.ts:17
 #: grunt/frontend/src/components/desk/GruntDialog.vue:364
 #: grunt/frontend/src/components/debug/ServerErrorModal.vue:72
 #: grunt/frontend/src/components/files/FileExplorer.vue:710
@@ -2736,6 +2740,7 @@ msgstr "Копіювати"
 msgid "Count (COUNT)"
 msgstr "Кількість (COUNT)"
 
+#: grunt/frontend/src/components/desk/OnboardingChecklists.vue:49
 #: grunt/frontend/src/components/layout/OfflineQueueSheet.vue:24
 #: grunt/frontend/src/components/files/FileExplorer.vue:688
 #: grunt/frontend/src/components/fields/Link/Link.vue:218
@@ -2778,7 +2783,7 @@ msgstr "Поле дати"
 #: grunt/frontend/src/components/dashboard/sections/FiltersSection.vue:82
 #: grunt/frontend/src/components/views/form/FormModals.vue:140
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:433
-#: grunt/frontend/src/components/fields/Table/Table.vue:481
+#: grunt/frontend/src/components/fields/Table/Table.vue:484
 #: grunt/frontend/src/components/fields/RichText/editor/commands.ts:98
 #: grunt/frontend/src/components/fields/RichText/ui/BlockHandle.vue:71
 msgid "Delete"
@@ -2788,14 +2793,14 @@ msgstr "Видалити"
 msgid "Delete document?"
 msgstr "Видалити документ?"
 
-#: grunt/frontend/src/components/fields/Table/Table.vue:425
+#: grunt/frontend/src/components/fields/Table/Table.vue:428
 #: grunt/frontend/src/components/fields/RichText/editor/commands.ts:77
 msgid "Delete row"
 msgstr "Видалити рядок"
 
 #: grunt/frontend/src/core/composables/useFormActions.ts:45
-#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:53
-#: grunt/frontend/src/components/fields/Table/Table.vue:220
+#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:55
+#: grunt/frontend/src/components/fields/Table/Table.vue:223
 msgid "Deleted"
 msgstr "Видалено"
 
@@ -2840,21 +2845,22 @@ msgstr "Готово"
 
 #: grunt/grunt/actions/builtin.py:21
 #: grunt/grunt/metadata/doctypes/DocType/global_form.js:110
-#: grunt/frontend/src/components/fields/Table/Table.vue:443
+#: grunt/frontend/src/components/fields/Table/Table.vue:446
 #: grunt/frontend/src/components/fields/RichText/ui/BlockHandle.vue:70
 msgid "Duplicate"
 msgstr "Дублювати"
 
-#: grunt/frontend/src/components/fields/Table/Table.vue:415
+#: grunt/frontend/src/components/fields/Table/Table.vue:418
 msgid "Duplicate row"
 msgstr "Дублювати рядок"
 
 #: grunt/grunt/metadata/doctypes/DocType/global_list.js:89
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue:139
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue:261
-#: grunt/frontend/src/components/fields/Table/Table.vue:398
-#: grunt/frontend/src/components/fields/Table/Table.vue:399
-#: grunt/frontend/src/components/fields/Table/Table.vue:412
+#: grunt/frontend/src/components/fields/Table/Table.vue:401
+#: grunt/frontend/src/components/fields/Table/Table.vue:402
+#: grunt/frontend/src/components/fields/Table/Table.vue:415
+#: grunt/frontend/src/pages/app/AppHome.vue:107
 msgid "Edit"
 msgstr "Редагувати"
 
@@ -2882,20 +2888,20 @@ msgstr "Зовнішній URL"
 #: grunt/grunt/api/v1/docs/utils.py:90
 #: grunt/frontend/src/components/views/FilterBar.vue:256
 #: grunt/frontend/src/components/dashboard/sections/AggregationSection.vue:41
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:225
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:226
 #: grunt/frontend/src/components/views/list/ListHeader.vue:128
 #: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:346
 msgid "Field"
 msgstr "Поле"
 
-#: grunt/grunt/monitoring/health.py:376 grunt/grunt/monitoring/health.py:648
-#: grunt/grunt/monitoring/health.py:379
+#: grunt/grunt/monitoring/health.py:377 grunt/grunt/monitoring/health.py:843
+#: grunt/grunt/monitoring/health.py:380
 #: grunt/frontend/src/components/fields/RichText/editor/useRichEditor.ts:81
 #: grunt/frontend/src/components/fields/RichText/ui/InsertMenu.vue:89
 msgid "Files"
 msgstr "Файли"
 
-#: grunt/frontend/src/components/fields/Table/Table.vue:493
+#: grunt/frontend/src/components/fields/Table/Table.vue:496
 msgid "Fill in the current row first"
 msgstr "Спершу заповніть поточний рядок"
 
@@ -2936,17 +2942,17 @@ msgstr "Головна"
 msgid "Icon (lucide)"
 msgstr "Іконка (lucide)"
 
-#: grunt/frontend/src/components/fields/Table/Table.vue:418
+#: grunt/frontend/src/components/fields/Table/Table.vue:421
 #: grunt/frontend/src/components/fields/RichText/editor/commands.ts:73
 msgid "Insert row above"
 msgstr "Вставити рядок вище"
 
-#: grunt/frontend/src/components/fields/Table/Table.vue:421
+#: grunt/frontend/src/components/fields/Table/Table.vue:424
 #: grunt/frontend/src/components/fields/RichText/editor/commands.ts:74
 msgid "Insert row below"
 msgstr "Вставити рядок нижче"
 
-#: grunt/frontend/src/components/fields/Table/useTableCell.ts:61
+#: grunt/frontend/src/components/fields/Table/useTableCell.ts:66
 msgid "Invalid format"
 msgstr "Неправильний формат"
 
@@ -2995,11 +3001,11 @@ msgstr "Позначити як прочитане"
 
 #: grunt/frontend/src/components/dashboard/sections/GaugeRangeSection.vue:25
 #: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:41
-#: grunt/frontend/src/components/fields/Table/useTableCell.ts:70
+#: grunt/frontend/src/components/fields/Table/useTableCell.ts:75
 msgid "Max"
 msgstr "Макс."
 
-#: grunt/frontend/src/components/fields/Table/useTableCell.ts:58
+#: grunt/frontend/src/components/fields/Table/useTableCell.ts:63
 msgid "Max length"
 msgstr "Макс. довжина"
 
@@ -3010,7 +3016,7 @@ msgstr "Максимум"
 
 #: grunt/frontend/src/components/dashboard/sections/GaugeRangeSection.vue:16
 #: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:41
-#: grunt/frontend/src/components/fields/Table/useTableCell.ts:69
+#: grunt/frontend/src/components/fields/Table/useTableCell.ts:74
 msgid "Min"
 msgstr "Мін."
 
@@ -3019,13 +3025,13 @@ msgstr "Мін."
 msgid "Minimum"
 msgstr "Мінімум"
 
-#: grunt/frontend/src/components/fields/Table/useTableCell.ts:68
+#: grunt/frontend/src/components/fields/Table/useTableCell.ts:73
 msgid "Must be a number"
 msgstr "Має бути числом"
 
 #: grunt/grunt/cli/doctype.py:162 grunt/grunt/auth/doctypes/User/User.js:180
-#: grunt/frontend/src/core/composables/useFormValidation.ts:83
-#: grunt/frontend/src/core/composables/useFormValidation.ts:97
+#: grunt/frontend/src/core/composables/useFormValidation.ts:108
+#: grunt/frontend/src/core/composables/useFormValidation.ts:131
 #: grunt/frontend/src/components/files/FileExplorer.vue:787
 #: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:318
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:246
@@ -3078,7 +3084,7 @@ msgstr "Немає сповіщень"
 msgid "No records"
 msgstr "Немає записів"
 
-#: grunt/frontend/src/components/fields/Table/Table.vue:316
+#: grunt/frontend/src/components/fields/Table/Table.vue:319
 msgid "No rows"
 msgstr "Немає рядків"
 
@@ -3091,7 +3097,7 @@ msgid "No tiles — click «Add»"
 msgstr "Немає плиток — натисніть «Додати»"
 
 #: grunt/frontend/src/components/dashboard/sections/DescriptionSection.vue:10
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:131
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:132
 msgid "Note"
 msgstr "Примітка"
 
@@ -3122,7 +3128,7 @@ msgstr "Сторінка"
 
 #: grunt/grunt/startup/website.py:175 grunt/grunt/startup/website.py:161
 #: grunt/grunt/startup/errors.py:258 grunt/grunt/api/v1/pages.py:66
-#: grunt/grunt/api/v1/dashboard.py:277 grunt/frontend/src/router/index.ts:204
+#: grunt/grunt/api/v1/dashboard.py:288 grunt/frontend/src/router/index.ts:204
 msgid "Page not found"
 msgstr "Сторінку не знайдено"
 
@@ -3181,7 +3187,7 @@ msgstr "Перейменувати документ"
 msgid "Report"
 msgstr "Звіт"
 
-#: grunt/frontend/src/components/fields/Table/useTableCell.ts:55
+#: grunt/frontend/src/components/fields/Table/useTableCell.ts:59
 #: grunt/frontend/src/pages/studio/builder/webform/WebFormFieldPropertiesPanel.vue:44
 msgid "Required"
 msgstr "Обов'язкове"
@@ -3198,11 +3204,11 @@ msgstr "Скинути пароль"
 msgid "Retry"
 msgstr "Повторити"
 
-#: grunt/frontend/src/components/fields/Table/Table.vue:406
+#: grunt/frontend/src/components/fields/Table/Table.vue:409
 msgid "Row actions"
 msgstr "Дії з рядком"
 
-#: grunt/frontend/src/components/fields/Table/Table.vue:219
+#: grunt/frontend/src/components/fields/Table/Table.vue:222
 msgid "Row deleted"
 msgstr "Рядок видалено"
 
@@ -3268,7 +3274,7 @@ msgstr "Сканування не підтримується в цьому бр�
 msgid "Search"
 msgstr "Пошук"
 
-#: grunt/frontend/src/pages/DeskPage.vue:194
+#: grunt/frontend/src/pages/DeskPage.vue:195
 #: grunt/frontend/src/components/layout/CommandPalette.vue:269
 #: grunt/frontend/src/components/layout/CommandPalette.vue:270
 #: grunt/frontend/src/components/layout/CommandPalette.vue:276
@@ -3302,7 +3308,7 @@ msgstr "Оберіть DocType, щоб створити новий запис"
 msgid "Select a widget on the canvas or add a new one from the palette"
 msgstr "Оберіть віджет на полотні або додайте новий з палітри"
 
-#: grunt/frontend/src/components/fields/Table/Table.vue:290
+#: grunt/frontend/src/components/fields/Table/Table.vue:293
 msgid "Select all"
 msgstr "Виділити все"
 
@@ -3310,7 +3316,7 @@ msgstr "Виділити все"
 msgid "Select field..."
 msgstr "Оберіть поле..."
 
-#: grunt/frontend/src/components/fields/Table/Table.vue:346
+#: grunt/frontend/src/components/fields/Table/Table.vue:349
 msgid "Select row"
 msgstr "Виділити рядок"
 
@@ -3320,11 +3326,11 @@ msgid "Select value"
 msgstr "Оберіть значення"
 
 #: grunt/frontend/src/components/desk/GruntDialog.vue:339
-#: grunt/frontend/src/components/fields/Table/Table.vue:440
+#: grunt/frontend/src/components/fields/Table/Table.vue:443
 msgid "Selected:"
 msgstr "Вибрано:"
 
-#: grunt/frontend/src/components/fields/Table/Table.vue:447
+#: grunt/frontend/src/components/fields/Table/Table.vue:450
 msgid "Set value"
 msgstr "Встановити значення"
 
@@ -3361,7 +3367,9 @@ msgstr "Увійти"
 msgid "Sign up"
 msgstr "Зареєструватися"
 
-#: grunt/grunt/monitoring/health.py:109
+#: grunt/grunt/monitoring/health.py:110
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:155
+#: grunt/grunt/backups/doctypes/Backup/Backup.js:100
 #: grunt/frontend/src/components/files/FileExplorer.vue:790
 #: grunt/frontend/src/components/fields/RichText/ui/ImageBubble.vue:77
 msgid "Size"
@@ -3447,8 +3455,8 @@ msgid "Upload image with barcode"
 msgstr "Завантажити зображення зі штрихкодом"
 
 #: grunt/frontend/src/components/dashboard/ActivityStream.vue:148
-#: grunt/frontend/src/components/fields/Table/Table.vue:398
-#: grunt/frontend/src/components/fields/Table/Table.vue:399
+#: grunt/frontend/src/components/fields/Table/Table.vue:401
+#: grunt/frontend/src/components/fields/Table/Table.vue:402
 msgid "View"
 msgstr "Переглянути"
 
@@ -3473,15 +3481,15 @@ msgstr "Рік"
 msgid "optional"
 msgstr "необов'язково"
 
-#: grunt/frontend/src/components/fields/Table/Table.vue:500
+#: grunt/frontend/src/components/fields/Table/Table.vue:503
 msgid "row needs attention"
 msgstr "рядок потребує уваги"
 
-#: grunt/frontend/src/components/fields/Table/Table.vue:219
+#: grunt/frontend/src/components/fields/Table/Table.vue:222
 msgid "rows deleted"
 msgstr "рядків видалено"
 
-#: grunt/frontend/src/components/fields/Table/Table.vue:500
+#: grunt/frontend/src/components/fields/Table/Table.vue:503
 msgid "rows need attention"
 msgstr "рядків потребують уваги"
 
@@ -4413,6 +4421,7 @@ msgstr "Поле дати, від якого рахується вік (за з�
 msgid "Row"
 msgstr "Рядок"
 
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:103
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.js:101
 #: grunt/frontend/src/components/desk/GruntDialog.vue:468
 #: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue:428
@@ -4631,8 +4640,8 @@ msgid "PDF"
 msgstr "PDF"
 
 #: grunt/grunt/metadata/doctypes/DocType/global_form.js:54
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:336
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:340
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:357
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:361
 #: grunt/frontend/src/components/views/map/MapView.vue:205
 msgid "Print"
 msgstr "Друк"
@@ -4863,7 +4872,7 @@ msgstr "Записів не знайдено"
 msgid "No records match your filters"
 msgstr "Нічого не знайдено за фільтрами"
 
-#: grunt/grunt/tasks/redis_introspect.py:94
+#: grunt/grunt/tasks/redis_introspect.py:135
 #: grunt/frontend/src/components/views/ListEmptyState.vue:27
 msgid "The data source is temporarily unavailable."
 msgstr "Джерело даних тимчасово недоступне."
@@ -4960,27 +4969,27 @@ msgstr "Перекладається"
 msgid "Option captions are translated; stored values stay unchanged."
 msgstr "Підписи опцій перекладаються; збережені значення не змінюються."
 
-#: grunt/frontend/src/pages/DeskPage.vue:170
+#: grunt/frontend/src/pages/DeskPage.vue:171
 #: grunt/frontend/src/components/app/AppSidebar.vue:261
 msgid "Open my profile"
 msgstr "Відкрити мій профіль"
 
-#: grunt/frontend/src/pages/DeskPage.vue:140
+#: grunt/frontend/src/pages/DeskPage.vue:141
 #: grunt/frontend/src/components/app/AppSidebar.vue:276
 msgid "Theme"
 msgstr "Тема"
 
-#: grunt/frontend/src/pages/DeskPage.vue:148
+#: grunt/frontend/src/pages/DeskPage.vue:149
 #: grunt/frontend/src/components/app/AppSidebar.vue:280
 msgid "Light"
 msgstr "Світла"
 
-#: grunt/frontend/src/pages/DeskPage.vue:152
+#: grunt/frontend/src/pages/DeskPage.vue:153
 #: grunt/frontend/src/components/app/AppSidebar.vue:284
 msgid "Dark"
 msgstr "Темна"
 
-#: grunt/grunt/email/tasks.py:185 grunt/frontend/src/pages/DeskPage.vue:156
+#: grunt/grunt/email/tasks.py:185 grunt/frontend/src/pages/DeskPage.vue:157
 #: grunt/frontend/src/components/app/AppSidebar.vue:288
 msgid "System"
 msgstr "Системна"
@@ -5128,7 +5137,7 @@ msgstr "МБ"
 msgid "GB"
 msgstr "ГБ"
 
-#: grunt/grunt/monitoring/health.py:74
+#: grunt/grunt/monitoring/health.py:75
 #: grunt/frontend/src/core/browserHealth.ts:55
 #: grunt/frontend/src/components/views/form/FormHeader.vue:167
 msgid "TB"
@@ -5217,9 +5226,10 @@ msgid "Compact"
 msgstr "Стиснути"
 
 #: grunt/frontend/src/core/renderer/FieldRenderer.vue:143
+#: grunt/frontend/src/core/composables/useToast.ts:38
 #: grunt/frontend/src/components/desk/GruntDialog.vue:364
 #: grunt/frontend/src/components/layout/CommandPalette.vue:142
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:200
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:201
 #: grunt/frontend/src/components/views/form/FormHeader.vue:460
 msgid "Copied"
 msgstr "Скопійовано"
@@ -5274,7 +5284,7 @@ msgstr ""
 "Ви внесли зміни, які буде втрачено, якщо ви покинете сторінку. Покинути без "
 "збереження?"
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:91
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:92
 msgid "Could not copy"
 msgstr "Не вдалося скопіювати"
 
@@ -5306,12 +5316,12 @@ msgstr "Високий"
 msgid "Remove {name} from assignees?"
 msgstr "Прибрати {name} з відповідальних?"
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:173
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:174
 msgid "Status"
 msgstr "Статус"
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:195
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:200
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:196
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:201
 msgid "Copy ID"
 msgstr "Скопіювати ідентифікатор"
 
@@ -5332,7 +5342,8 @@ msgstr "Відповідальні"
 msgid "Remove {name}"
 msgstr "Прибрати {name}"
 
-#: grunt/grunt/monitoring/health.py:521
+#: grunt/grunt/monitoring/health.py:682 grunt/grunt/monitoring/health.py:522
+#: grunt/grunt/monitoring/health.py:570 grunt/grunt/monitoring/health.py:614
 msgid "none"
 msgstr "нема"
 
@@ -5342,33 +5353,33 @@ msgstr "нема"
 msgid "Access"
 msgstr "Доступ"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTags.vue:71
+#: grunt/frontend/src/components/views/sidebar/SidebarTags.vue:72
 msgid "Tags"
 msgstr "Теги"
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:308
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:329
 msgid "You get notified about changes and comments"
 msgstr "Ви отримуєте сповіщення про зміни та коментарі"
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:308
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:329
 msgid "Get notified about changes and comments"
 msgstr "Отримувати сповіщення про зміни та коментарі"
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:304
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:325
 msgid "Following"
 msgstr "Стежу"
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:304
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:325
 msgid "Follow"
 msgstr "Стежити"
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:318
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:324
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:339
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:345
 msgid "Bookmarked"
 msgstr "У закладках"
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:318
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:324
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:339
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:345
 msgid "Bookmark"
 msgstr "Закладка"
 
@@ -5384,6 +5395,7 @@ msgstr "Текст задачі"
 msgid "What needs to be done?"
 msgstr "Що потрібно зробити?"
 
+#: grunt/frontend/src/components/desk/OnboardingChecklists.vue:52
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue:139
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue:260
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:289
@@ -5391,76 +5403,76 @@ msgstr "Що потрібно зробити?"
 msgid "Read"
 msgstr "Читання"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:145
 #: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:146
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:147
 msgid "Created the document"
 msgstr "Створив документ"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:147
 #: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:148
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:149
 msgid "Updated the document"
 msgstr "Оновив документ"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:149
 #: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:150
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:151
 msgid "Deleted the document"
 msgstr "Видалив документ"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:152
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:153
 msgid "Restored a version"
 msgstr "Відновив версію"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:153
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:154
 msgid "Changed the status"
 msgstr "Змінив статус"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:173
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:174
 #: grunt/frontend/src/components/views/sidebar/TimelineChanges.vue:54
 #: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:554
 msgid "{n} rows"
 msgstr "{n} рядків"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:210
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:211
 msgid "Version {n}"
 msgstr "Версія {n}"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:210
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:442
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:211
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:443
 msgid "Changes"
 msgstr "Зміни"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:226
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:227
 msgid "Before"
 msgstr "Було"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:227
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:228
 msgid "After"
 msgstr "Стало"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:231
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:232
 msgid "Restore this version"
 msgstr "Відновити цю версію"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:234
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:235
 msgid ""
 "Restore the document to this version? Current field values will be replaced."
 msgstr ""
 "Відновити документ до цієї версії? Поточні значення полів буде замінено."
 
 #: grunt/frontend/src/plugins/__tests__/i18n.spec.ts:29
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:397
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:398
 msgid "Write a comment... @ to mention"
 msgstr "Напишіть коментар... @ для згадки"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:403
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:404
 msgid "Mention a user"
 msgstr "Згадати користувача"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:430
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:431
 msgid "Send"
 msgstr "Надіслати"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:436
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:437
 msgid "No activity yet"
 msgstr "Поки що немає активності"
 
@@ -5734,6 +5746,7 @@ msgstr "Заповніть форму для реєстрації"
 msgid "Sign in to your account"
 msgstr "Увійдіть у свій акаунт"
 
+#: grunt/grunt/storage/cloud/oauth.py:213
 #: grunt/frontend/src/pages/auth/Login.vue:103
 msgid "The sign-in link is invalid or expired"
 msgstr "Посилання для входу недійсне або застаріле"
@@ -5762,8 +5775,8 @@ msgstr "Забагато невдалих спроб. Акаунт тимчас�
 #: grunt/grunt/monitoring/doctypes/SqlProfilerRequest/SqlProfilerRequest.js:62
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.js:207
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.js:218
-#: grunt/frontend/src/core/composables/useToast.ts:31
-#: grunt/frontend/src/core/composables/useToast.ts:44
+#: grunt/frontend/src/core/composables/useToast.ts:52
+#: grunt/frontend/src/core/composables/useToast.ts:65
 #: grunt/frontend/src/core/composables/useOfflineQueue.ts:146
 #: grunt/frontend/src/core/composables/useFormSave.ts:151
 #: grunt/frontend/src/pages/auth/Login.vue:176
@@ -5837,7 +5850,7 @@ msgstr "Повне ім'я"
 msgid "John Smith"
 msgstr "Іваненко Іван Іванович"
 
-#: grunt/grunt/auth/doctypes/User/user.py:70
+#: grunt/grunt/auth/doctypes/User/user.py:72
 #: grunt/frontend/src/pages/auth/Login.vue:412
 #: grunt/frontend/src/pages/setup/SetupWizard.vue:162
 msgid "Password"
@@ -5909,7 +5922,7 @@ msgstr "2FA увімкнено. Збережіть резервні коди"
 msgid "Copy codes"
 msgstr "Скопіювати коди"
 
-#: grunt/frontend/src/pages/DeskPage.vue:206
+#: grunt/frontend/src/pages/DeskPage.vue:207
 #: grunt/frontend/src/core/composables/useDialog.ts:261
 #: grunt/frontend/src/pages/auth/MfaVerify.vue:133
 #: grunt/frontend/src/pages/setup/SetupWizard.vue:137
@@ -5973,64 +5986,64 @@ msgstr "Підтвердіть пароль"
 msgid "Set new password"
 msgstr "Встановити новий пароль"
 
-#: grunt/frontend/src/pages/DeskPage.vue:59
+#: grunt/frontend/src/pages/DeskPage.vue:60
 msgid "user"
 msgstr "користувач"
 
-#: grunt/frontend/src/pages/DeskPage.vue:60
+#: grunt/frontend/src/pages/DeskPage.vue:61
 msgid "Good night, {name}"
 msgstr "Добраніч, {name}"
 
-#: grunt/frontend/src/pages/DeskPage.vue:61
+#: grunt/frontend/src/pages/DeskPage.vue:62
 msgid "Good morning, {name}"
 msgstr "Доброго ранку, {name}"
 
-#: grunt/frontend/src/pages/DeskPage.vue:62
+#: grunt/frontend/src/pages/DeskPage.vue:63
 msgid "Good afternoon, {name}"
 msgstr "Доброго дня, {name}"
 
-#: grunt/frontend/src/pages/DeskPage.vue:63
+#: grunt/frontend/src/pages/DeskPage.vue:64
 msgid "Good evening, {name}"
 msgstr "Доброго вечора, {name}"
 
-#: grunt/frontend/src/pages/DeskPage.vue:102
+#: grunt/frontend/src/pages/DeskPage.vue:103
 #: grunt/frontend/src/core/datetime.ts:192
 #: grunt/frontend/src/core/datetime.ts:212
 #: grunt/frontend/src/core/datetime.ts:219
-#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:65
+#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:67
 msgid "just now"
 msgstr "щойно"
 
-#: grunt/frontend/src/pages/DeskPage.vue:103
+#: grunt/frontend/src/pages/DeskPage.vue:104
 #: grunt/frontend/src/components/fields/Duration/Duration.vue:44
 msgid "{n} min"
 msgstr "{n} хв"
 
-#: grunt/frontend/src/pages/DeskPage.vue:105
+#: grunt/frontend/src/pages/DeskPage.vue:106
 #: grunt/frontend/src/components/fields/Duration/Duration.vue:43
 msgid "{n} h"
 msgstr "{n} год"
 
-#: grunt/frontend/src/pages/DeskPage.vue:107
+#: grunt/frontend/src/pages/DeskPage.vue:108
 #: grunt/frontend/src/components/fields/Duration/Duration.vue:42
 msgid "{n} d"
 msgstr "{n} дн"
 
-#: grunt/frontend/src/pages/DeskPage.vue:182
+#: grunt/frontend/src/pages/DeskPage.vue:183
 #: grunt/frontend/src/components/app/AppSidebar.vue:225
 msgid "Viewing as {name}"
 msgstr "Перегляд як {name}"
 
-#: grunt/frontend/src/pages/DeskPage.vue:184
+#: grunt/frontend/src/pages/DeskPage.vue:185
 #: grunt/frontend/src/components/app/AppSidebar.vue:230
 msgid "switch back"
 msgstr "повернутися до себе"
 
-#: grunt/frontend/src/pages/DeskPage.vue:200
+#: grunt/frontend/src/pages/DeskPage.vue:201
 msgid "{apps} apps · {docs} documents in the system"
 msgstr "{apps} додатків · {docs} документів у системі"
 
-#: grunt/frontend/src/pages/DeskPage.vue:241
+#: grunt/frontend/src/pages/DeskPage.vue:247
 msgid "{n} installed"
 msgstr "{n} встановлено"
 
@@ -6072,15 +6085,15 @@ msgstr "{views} переглядів · {viewers} користувачів"
 msgid "Viewed by:"
 msgstr "Переглянули:"
 
-#: grunt/frontend/src/pages/DeskPage.vue:176
+#: grunt/frontend/src/pages/DeskPage.vue:177
 msgid "What are you planning to do today?"
 msgstr "Що плануєте зробити сьогодні?"
 
-#: grunt/frontend/src/pages/DeskPage.vue:239
+#: grunt/frontend/src/pages/DeskPage.vue:245
 msgid "Your apps"
 msgstr "Ваші додатки"
 
-#: grunt/frontend/src/pages/DeskPage.vue:253
+#: grunt/frontend/src/pages/DeskPage.vue:259
 msgid "No apps installed"
 msgstr "Немає встановлених додатків"
 
@@ -6189,26 +6202,26 @@ msgstr "Введіть мінімум 2 символи для пошуку"
 msgid "Try rebuilding the index"
 msgstr "Спробувати перебудувати індекс"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:442
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:443
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:367
 #: grunt/frontend/src/pages/app/SearchResultsPage.vue:190
 msgid "All"
 msgstr "Усі"
 
-#: grunt/frontend/src/core/composables/useFormValidation.ts:85
-#: grunt/frontend/src/core/composables/useFormValidation.ts:99
+#: grunt/frontend/src/core/composables/useFormValidation.ts:110
+#: grunt/frontend/src/core/composables/useFormValidation.ts:133
 #: grunt/frontend/src/pages/app/SearchResultsPage.vue:214
 msgid "Module"
 msgstr "Модуль"
 
 #: grunt/frontend/src/components/dashboard/ActivityStream.vue:136
-#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:53
+#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:55
 msgid "Created"
 msgstr "Створив(ла)"
 
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.js:213
 #: grunt/frontend/src/components/dashboard/ActivityStream.vue:137
-#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:53
+#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:55
 msgid "Updated"
 msgstr "Оновив(ла)"
 
@@ -6217,11 +6230,11 @@ msgstr "Оновив(ла)"
 msgid "document"
 msgstr "документ"
 
-#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:66
+#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:68
 msgid "{n} min ago"
 msgstr "{n} хв тому"
 
-#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:68
+#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:70
 msgid "{n} h ago"
 msgstr "{n} год тому"
 
@@ -6247,6 +6260,7 @@ msgid "Upload"
 msgstr "Завантажити"
 
 #: grunt/frontend/src/core/composables/useMapMarkers.ts:148
+#: grunt/frontend/src/components/desk/OnboardingChecklists.vue:55
 #: grunt/frontend/src/components/desk/AppCard.vue:47
 #: grunt/frontend/src/components/layout/OfflineQueueSheet.vue:83
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:172
@@ -6267,19 +6281,19 @@ msgstr "Немає недавньої активності"
 msgid "Cancelled"
 msgstr "Скасував(ла)"
 
-#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:54
+#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:56
 msgid "Shared"
 msgstr "Поділився(-лась)"
 
-#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:54
+#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:56
 msgid "Commented"
 msgstr "Прокоментував(ла)"
 
-#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:54
+#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:56
 msgid "Moved"
 msgstr "Перевів(ла)"
 
-#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:92
+#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:94
 msgid "No activity"
 msgstr "Немає активності"
 
@@ -6358,23 +6372,23 @@ msgstr "новий документ"
 msgid "Apply mine"
 msgstr "Застосувати мої"
 
-#: grunt/grunt/backups/doctypes/Backup/Backup.js:22
+#: grunt/grunt/backups/doctypes/Backup/Backup.js:26
 #: grunt/frontend/src/components/files/FileExplorer.vue:743
 msgid "Download"
 msgstr "Завантажити"
 
-#: grunt/frontend/src/core/composables/useFormValidation.ts:75
-#: grunt/frontend/src/core/composables/useFormValidation.ts:90
+#: grunt/frontend/src/core/composables/useFormValidation.ts:100
+#: grunt/frontend/src/core/composables/useFormValidation.ts:115
 msgid "Field \"{label}\" is required"
 msgstr "Поле \"{label}\" є обов'язковим"
 
-#: grunt/frontend/src/core/composables/useFormValidation.ts:84
-#: grunt/frontend/src/core/composables/useFormValidation.ts:98
+#: grunt/frontend/src/core/composables/useFormValidation.ts:109
+#: grunt/frontend/src/core/composables/useFormValidation.ts:132
 #: grunt/frontend/src/pages/studio/builder/webform/WebFormFieldPropertiesPanel.vue:32
 msgid "Label"
 msgstr "Підпис"
 
-#: grunt/frontend/src/core/composables/useFormValidation.ts:105
+#: grunt/frontend/src/core/composables/useFormValidation.ts:139
 msgid "Fill in the required fields: {fields}"
 msgstr "Заповніть обов'язкові поля: {fields}"
 
@@ -6445,18 +6459,18 @@ msgid "DD.MM.YYYY"
 msgstr "ДД.ММ.РРРР"
 
 #: grunt/grunt/webhook/doctypes/OutgoingWebhook/OutgoingWebhook.js:84
-#: grunt/frontend/src/core/composables/useToast.ts:30
-#: grunt/frontend/src/core/composables/useToast.ts:43
+#: grunt/frontend/src/core/composables/useToast.ts:51
+#: grunt/frontend/src/core/composables/useToast.ts:64
 msgid "Success"
 msgstr "Успіх"
 
-#: grunt/frontend/src/core/composables/useToast.ts:32
-#: grunt/frontend/src/core/composables/useToast.ts:45
+#: grunt/frontend/src/core/composables/useToast.ts:53
+#: grunt/frontend/src/core/composables/useToast.ts:66
 msgid "Info"
 msgstr "Інформація"
 
-#: grunt/frontend/src/core/composables/useToast.ts:33
-#: grunt/frontend/src/core/composables/useToast.ts:46
+#: grunt/frontend/src/core/composables/useToast.ts:54
+#: grunt/frontend/src/core/composables/useToast.ts:67
 msgid "Warning"
 msgstr "Увага"
 
@@ -6732,7 +6746,7 @@ msgstr "прострочено"
 msgid "{n} records"
 msgstr "{n} записів"
 
-#: grunt/grunt/monitoring/health.py:103 grunt/grunt/monitoring/health.py:455
+#: grunt/grunt/monitoring/health.py:104 grunt/grunt/monitoring/health.py:456
 #: grunt/grunt/webhook/doctypes/OutgoingWebhook/OutgoingWebhook.js:85
 #: grunt/grunt/webhook/doctypes/OutgoingWebhook/OutgoingWebhook.js:191
 #: grunt/frontend/src/core/browserHealth.ts:130
@@ -6888,7 +6902,7 @@ msgstr "Експорт HTML"
 msgid "No connection"
 msgstr "Немає з'єднання"
 
-#: grunt/grunt/monitoring/health.py:101
+#: grunt/grunt/monitoring/health.py:102
 #: grunt/frontend/src/core/composables/useNetworkStatus.ts:33
 #: grunt/frontend/src/core/composables/useNetworkStatus.ts:56
 msgid "Connection"
@@ -7070,11 +7084,11 @@ msgstr ""
 msgid "over {period}"
 msgstr "за {period}"
 
-#: grunt/frontend/src/pages/app/AppHome.vue:93
+#: grunt/frontend/src/pages/app/AppHome.vue:145
 msgid "Create a"
 msgstr "Створіть"
 
-#: grunt/frontend/src/pages/app/AppHome.vue:94
+#: grunt/frontend/src/pages/app/AppHome.vue:146
 msgid "and set it in the «Home page» field of the AppMenu settings."
 msgstr "і вкажіть її у полі «Домашня сторінка» в налаштуваннях AppMenu."
 
@@ -7086,6 +7100,7 @@ msgstr "Клацніть, щоб скопіювати «{name}»"
 msgid "done"
 msgstr "готово"
 
+#: grunt/grunt/monitoring/health.py:586
 #: grunt/frontend/src/core/composables/useDocActions.ts:121
 msgid "error"
 msgstr "помилка"
@@ -7121,7 +7136,7 @@ msgstr "Скопійовано!"
 msgid "no change"
 msgstr "без змін"
 
-#: grunt/frontend/src/pages/app/AppHome.vue:91
+#: grunt/frontend/src/pages/app/AppHome.vue:143
 msgid "The home page is not set up."
 msgstr "Домашня сторінка не налаштована."
 
@@ -7170,7 +7185,7 @@ msgstr "Помилка застосування переходу"
 msgid "Delete error"
 msgstr "Помилка видалення"
 
-#: grunt/frontend/src/pages/app/AppHome.vue:93
+#: grunt/frontend/src/pages/app/AppHome.vue:145
 msgctxt "link"
 msgid "Page"
 msgstr "Сторінку"
@@ -7409,7 +7424,7 @@ msgstr "немає відповіді"
 msgid "Push notifications"
 msgstr "Push-сповіщення"
 
-#: grunt/grunt/monitoring/health.py:664
+#: grunt/grunt/monitoring/health.py:861
 #: grunt/frontend/src/core/browserHealth.ts:275
 msgid "check failed"
 msgstr "перевірка впала"
@@ -7436,7 +7451,7 @@ msgstr "Тип з'єднання"
 msgid "not connected"
 msgstr "не підключено"
 
-#: grunt/grunt/monitoring/health.py:594 grunt/grunt/monitoring/health.py:652
+#: grunt/grunt/monitoring/health.py:789 grunt/grunt/monitoring/health.py:849
 #: grunt/frontend/src/core/browserHealth.ts:34
 msgid "Offline mode"
 msgstr "Офлайн-режим"
@@ -7460,6 +7475,7 @@ msgstr "не запитано"
 msgid "Change queue"
 msgstr "Черга змін"
 
+#: grunt/grunt/storage/cloud/oauth.py:150
 #: grunt/frontend/src/core/browserHealth.ts:221
 msgid "connected"
 msgstr "підключено"
@@ -7468,7 +7484,7 @@ msgstr "підключено"
 msgid "denied"
 msgstr "заборонено"
 
-#: grunt/grunt/monitoring/health.py:409 grunt/grunt/monitoring/health.py:650
+#: grunt/grunt/monitoring/health.py:410 grunt/grunt/monitoring/health.py:846
 #: grunt/frontend/src/core/browserHealth.ts:38
 #: grunt/frontend/src/core/browserHealth.ts:287
 msgid "WebSockets"
@@ -7478,7 +7494,7 @@ msgstr "Вебсокети"
 msgid "saved"
 msgstr "збережена"
 
-#: grunt/grunt/monitoring/health.py:461 grunt/grunt/monitoring/health.py:474
+#: grunt/grunt/monitoring/health.py:462 grunt/grunt/monitoring/health.py:475
 #: grunt/frontend/src/core/browserHealth.ts:135
 msgid "not working"
 msgstr "не працює"
@@ -7495,8 +7511,8 @@ msgstr "дозволено"
 msgid "empty"
 msgstr "порожній"
 
-#: grunt/grunt/monitoring/health.py:545 grunt/grunt/monitoring/health.py:602
-#: grunt/grunt/monitoring/health.py:622
+#: grunt/grunt/monitoring/health.py:546 grunt/grunt/monitoring/health.py:797
+#: grunt/grunt/monitoring/health.py:817
 #: grunt/frontend/src/core/browserHealth.ts:110
 msgid "missing"
 msgstr "відсутня"
@@ -7535,7 +7551,7 @@ msgstr "Збірка"
 msgid "Server"
 msgstr "Сервер"
 
-#: grunt/grunt/monitoring/health.py:474 grunt/grunt/monitoring/health.py:455
+#: grunt/grunt/monitoring/health.py:475 grunt/grunt/monitoring/health.py:456
 #: grunt/frontend/src/core/browserHealth.ts:134
 msgid "working"
 msgstr "працює"
@@ -7552,6 +7568,7 @@ msgstr "офлайн"
 msgid "Quota"
 msgstr "Квота"
 
+#: grunt/grunt/storage/doctypes/StorageRemote/storage_remote.py:196
 #: grunt/grunt/auth/doctypes/User/User.js:181
 #: grunt/frontend/src/core/browserHealth.ts:78
 #: grunt/frontend/src/core/browserHealth.ts:165
@@ -7894,7 +7911,7 @@ msgstr "Перехід"
 
 #: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:272
 #: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:310
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:182
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:183
 msgid "State"
 msgstr "Стан"
 
@@ -8356,6 +8373,7 @@ msgstr "Спочатку оберіть поштову службу або вк�
 msgid "Enter the SMTP password (for Gmail — an app password)."
 msgstr "Вкажіть пароль SMTP (для Gmail — пароль додатка)."
 
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:56
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.js:108
 msgid "Checking the connection…"
 msgstr "Перевіряємо з'єднання…"
@@ -8503,21 +8521,22 @@ msgid "Open builder"
 msgstr "Відкрити конструктор"
 
 #: grunt/grunt/reports/doctypes/Report/Report.js:6
+#: grunt/frontend/src/components/desk/OnboardingChecklists.vue:51
 msgid "View report"
 msgstr "Переглянути звіт"
 
-#: grunt/grunt/monitoring/health.py:641 grunt/grunt/monitoring/health.py:100
-#: grunt/grunt/monitoring/health.py:109
-#: grunt/grunt/backups/doctypes/Backup/Backup.js:45
+#: grunt/grunt/monitoring/health.py:836 grunt/grunt/monitoring/health.py:101
+#: grunt/grunt/monitoring/health.py:110
+#: grunt/grunt/backups/doctypes/Backup/Backup.js:49
 msgid "Database"
 msgstr "База даних"
 
-#: grunt/grunt/monitoring/health.py:351 grunt/grunt/monitoring/health.py:647
+#: grunt/grunt/monitoring/health.py:352 grunt/grunt/monitoring/health.py:842
 msgid "Configuration"
 msgstr "Конфігурація"
 
-#: grunt/grunt/backups/doctypes/Backup/Backup.js:37
-#: grunt/grunt/backups/doctypes/Backup/Backup.js:43
+#: grunt/grunt/backups/doctypes/Backup/Backup.js:41
+#: grunt/grunt/backups/doctypes/Backup/Backup.js:47
 msgid "Create now"
 msgstr "Створити зараз"
 
@@ -8701,16 +8720,6 @@ msgstr "Час перегляду"
 msgctxt "meta:Backup"
 msgid "Backups"
 msgstr "Резервні копії"
-
-#: grunt/grunt/backups/doctypes/Backup/Backup.json
-msgctxt "help:Backup"
-msgid ""
-"Site backups in sites/<site>/backups/: database, uploaded files, "
-"configuration. Schedule and number of copies — in System Settings → Backups."
-msgstr ""
-"Резервні копії сайту в sites/<site>/backups/: база даних, завантажені файли,"
-" конфігурація. Розклад і кількість копій — у Системних налаштуваннях → "
-"Backups."
 
 #: grunt/grunt/backups/doctypes/Backup/Backup.json
 msgctxt "meta:Backup.created_at"
@@ -11587,18 +11596,18 @@ msgctxt "select:Region.region_type"
 msgid "Other"
 msgstr "Інше"
 
-#: grunt/grunt/auth/doctypes/User/user.py:687
-#: grunt/grunt/auth/doctypes/User/user.py:800
-#: grunt/grunt/auth/doctypes/User/user.py:939
-#: grunt/grunt/auth/doctypes/User/user.py:974
-#: grunt/grunt/auth/doctypes/User/user.py:1007
-#: grunt/grunt/auth/doctypes/User/user.py:1018
-#: grunt/grunt/auth/doctypes/User/user.py:1030
-#: grunt/grunt/auth/doctypes/User/user.py:1043
+#: grunt/grunt/auth/doctypes/User/user.py:737
+#: grunt/grunt/auth/doctypes/User/user.py:862
+#: grunt/grunt/auth/doctypes/User/user.py:1001
+#: grunt/grunt/auth/doctypes/User/user.py:1036
+#: grunt/grunt/auth/doctypes/User/user.py:1069
+#: grunt/grunt/auth/doctypes/User/user.py:1080
+#: grunt/grunt/auth/doctypes/User/user.py:1092
+#: grunt/grunt/auth/doctypes/User/user.py:1105
 msgid "User not found"
 msgstr "Користувача не знайдено"
 
-#: grunt/grunt/monitoring/health.py:336
+#: grunt/grunt/monitoring/health.py:337
 msgid "Active sessions"
 msgstr "Активні сесії"
 
@@ -11620,12 +11629,12 @@ msgid "Or follow this link:"
 msgstr "Або перейдіть за посиланням:"
 
 #: grunt/grunt/email/templates/email_login.html:64
-#: grunt/grunt/auth/providers/email_link.py:222
+#: grunt/grunt/auth/providers/email_link.py:221
 msgid "The code and link are valid for %(minutes)s minutes."
 msgstr "Код і посилання дійсні %(minutes)s хв."
 
 #: grunt/grunt/email/templates/email_login.html:65
-#: grunt/grunt/auth/providers/email_link.py:225
+#: grunt/grunt/auth/providers/email_link.py:224
 msgid "If you did not try to sign in, just ignore this email."
 msgstr "Якщо ви не намагалися увійти — просто проігноруйте цей лист."
 
@@ -11636,12 +11645,12 @@ msgid "Automated message, please do not reply."
 msgstr "Автоматичне повідомлення, не відповідайте на цей лист."
 
 #: grunt/grunt/email/templates/password_reset.html:46
-#: grunt/grunt/auth/doctypes/User/user.py:1079
+#: grunt/grunt/auth/doctypes/User/user.py:1141
 msgid "Password reset"
 msgstr "Скидання пароля"
 
 #: grunt/grunt/email/templates/password_reset.html:49
-#: grunt/grunt/auth/doctypes/User/user.py:1073
+#: grunt/grunt/auth/doctypes/User/user.py:1135
 msgid "Hello, %(name)s,"
 msgstr "Привіт, %(name)s,"
 
@@ -11654,7 +11663,7 @@ msgid "The link is valid for 1 hour."
 msgstr "Посилання дійсне 1 годину."
 
 #: grunt/grunt/email/templates/password_reset.html:57
-#: grunt/grunt/auth/doctypes/User/user.py:1076
+#: grunt/grunt/auth/doctypes/User/user.py:1138
 msgid "If you did not request this, just ignore this email."
 msgstr "Якщо ви не надсилали цей запит — просто проігноруйте цей лист."
 
@@ -11662,23 +11671,23 @@ msgstr "Якщо ви не надсилали цей запит — просто
 msgid "… and %(count)s more"
 msgstr "… і ще %(count)s"
 
-#: grunt/grunt/auth/doctypes/User/user.py:1074
+#: grunt/grunt/auth/doctypes/User/user.py:1136
 msgid "Password reset link (valid for 1 hour):"
 msgstr "Посилання для скидання пароля (дійсне 1 годину):"
 
-#: grunt/grunt/auth/providers/email_link.py:221
+#: grunt/grunt/auth/providers/email_link.py:220
 msgid "Your sign-in code: %(code)s"
 msgstr "Ваш код для входу: %(code)s"
 
-#: grunt/grunt/auth/providers/email_link.py:224
+#: grunt/grunt/auth/providers/email_link.py:223
 msgid "Or sign in right away via this link:"
 msgstr "Або увійдіть одразу за посиланням:"
 
-#: grunt/grunt/auth/providers/email_link.py:240
+#: grunt/grunt/auth/providers/email_link.py:239
 msgid "Email sign-in is unavailable: no mail server is configured"
 msgstr "Вхід через пошту недоступний — не налаштовано поштовий сервер"
 
-#: grunt/grunt/auth/providers/email_link.py:246
+#: grunt/grunt/auth/providers/email_link.py:245
 msgid "Sign-in code"
 msgstr "Код для входу"
 
@@ -11690,31 +11699,31 @@ msgstr "Щоденний дайджест сповіщень"
 msgid "Weekly notification digest"
 msgstr "Тижневий дайджест сповіщень"
 
-#: grunt/grunt/monitoring/health.py:104
+#: grunt/grunt/monitoring/health.py:105
 msgid "Slow database response."
 msgstr "Повільна відповідь бази даних."
 
-#: grunt/grunt/monitoring/health.py:139
+#: grunt/grunt/monitoring/health.py:140
 msgid "kept for %(days)s days"
 msgstr "зберігається %(days)s дн."
 
-#: grunt/grunt/monitoring/health.py:141
+#: grunt/grunt/monitoring/health.py:142
 msgid "log: general log retention period"
 msgstr "журнал — загальний строк зберігання логів"
 
-#: grunt/grunt/monitoring/health.py:150 grunt/grunt/monitoring/health.py:642
+#: grunt/grunt/monitoring/health.py:151 grunt/grunt/monitoring/health.py:837
 msgid "Background jobs"
 msgstr "Фонові задачі"
 
-#: grunt/grunt/monitoring/health.py:156
+#: grunt/grunt/monitoring/health.py:157
 msgid "Job queue"
 msgstr "Черга задач"
 
-#: grunt/grunt/monitoring/health.py:158
+#: grunt/grunt/monitoring/health.py:159
 msgid "in-process (no Redis)"
 msgstr "у процесі (без Redis)"
 
-#: grunt/grunt/monitoring/health.py:159
+#: grunt/grunt/monitoring/health.py:160
 msgid ""
 "REDIS_URL is not set: jobs run inside the server process and are lost on "
 "restart. Configure Redis and a worker for production."
@@ -11722,194 +11731,194 @@ msgstr ""
 "REDIS_URL не задано: задачі виконуються в процесі сервера й губляться при "
 "перезапуску. Для production налаштуйте Redis і воркер."
 
-#: grunt/grunt/monitoring/health.py:172
+#: grunt/grunt/monitoring/health.py:173
 msgid "available"
 msgstr "доступний"
 
-#: grunt/grunt/monitoring/health.py:177 grunt/grunt/monitoring/health.py:187
+#: grunt/grunt/monitoring/health.py:178 grunt/grunt/monitoring/health.py:188
 msgid "Workers"
 msgstr "Воркери"
 
-#: grunt/grunt/monitoring/health.py:180
+#: grunt/grunt/monitoring/health.py:181
 msgid "No worker is connected: background jobs are not running."
 msgstr "Жоден воркер не підключений — фонові задачі не виконуються."
 
-#: grunt/grunt/monitoring/health.py:189
+#: grunt/grunt/monitoring/health.py:190
 msgid "%(count)s active"
 msgstr "%(count)s активних"
 
-#: grunt/grunt/monitoring/health.py:190
+#: grunt/grunt/monitoring/health.py:191
 msgid "%(count)s idle"
 msgstr "%(count)s без активності"
 
-#: grunt/grunt/monitoring/health.py:191
+#: grunt/grunt/monitoring/health.py:192
 msgid "A worker idle for over 10 min may have crashed; see Queue Workers."
 msgstr "Воркер без активності понад 10 хв міг впасти — див. «Воркери черги»."
 
-#: grunt/grunt/monitoring/health.py:203
+#: grunt/grunt/monitoring/health.py:204
 msgid "Queue"
 msgstr "Черга"
 
-#: grunt/grunt/monitoring/health.py:205
+#: grunt/grunt/monitoring/health.py:206
 msgid "%(queued)s queued, %(running)s running"
 msgstr "%(queued)s у черзі, %(running)s виконується"
 
-#: grunt/grunt/monitoring/health.py:206
+#: grunt/grunt/monitoring/health.py:207
 msgid "Jobs are piling up faster than they are processed."
 msgstr "Задачі накопичуються швидше, ніж виконуються."
 
-#: grunt/grunt/monitoring/health.py:213 grunt/grunt/monitoring/health.py:643
-#: grunt/grunt/monitoring/health.py:217
+#: grunt/grunt/monitoring/health.py:214 grunt/grunt/monitoring/health.py:838
+#: grunt/grunt/monitoring/health.py:218
 msgid "Scheduler"
 msgstr "Планувальник"
 
-#: grunt/grunt/monitoring/health.py:219
+#: grunt/grunt/monitoring/health.py:220
 msgid "running, %(count)s jobs"
 msgstr "працює, %(count)s задач"
 
-#: grunt/grunt/monitoring/health.py:221
+#: grunt/grunt/monitoring/health.py:222
 msgid "stopped"
 msgstr "зупинений"
 
-#: grunt/grunt/monitoring/health.py:224
+#: grunt/grunt/monitoring/health.py:225
 msgid "Scheduled jobs (mailings, cleanup, digests) are not running."
 msgstr "Запланові задачі (розсилки, чистка, дайджести) не запускаються."
 
-#: grunt/grunt/monitoring/health.py:230
+#: grunt/grunt/monitoring/health.py:231
 msgid "Unregistered jobs"
 msgstr "Незареєстровані задачі"
 
-#: grunt/grunt/monitoring/health.py:235
+#: grunt/grunt/monitoring/health.py:236
 msgid "fix the path in scheduler_events (hooks.py)."
 msgstr "виправте шлях у scheduler_events (hooks.py)."
 
-#: grunt/grunt/monitoring/health.py:246
+#: grunt/grunt/monitoring/health.py:247
 msgid "Failed runs in the last day"
 msgstr "Невдалі запуски за добу"
 
-#: grunt/grunt/monitoring/health.py:249
+#: grunt/grunt/monitoring/health.py:250
 msgid "Details in the Scheduled Job Log."
 msgstr "Подробиці — у «Журнал запланованих задач»."
 
-#: grunt/grunt/monitoring/health.py:644 grunt/grunt/monitoring/health.py:263
+#: grunt/grunt/monitoring/health.py:839 grunt/grunt/monitoring/health.py:264
 msgid "Errors"
 msgstr "Помилки"
 
-#: grunt/grunt/monitoring/health.py:264
+#: grunt/grunt/monitoring/health.py:265
 msgid "Errors in the last day"
 msgstr "Помилок за добу"
 
-#: grunt/grunt/monitoring/health.py:267
+#: grunt/grunt/monitoring/health.py:268
 msgid "See the Error Log."
 msgstr "Див. «Журнал помилок»."
 
-#: grunt/grunt/monitoring/health.py:282
+#: grunt/grunt/monitoring/health.py:283
 msgid "in 7 days"
 msgstr "за 7 днів"
 
-#: grunt/grunt/monitoring/health.py:287 grunt/grunt/monitoring/health.py:645
-#: grunt/grunt/auth/doctypes/User/user.py:67
+#: grunt/grunt/monitoring/health.py:288 grunt/grunt/monitoring/health.py:840
+#: grunt/grunt/auth/doctypes/User/user.py:69
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:298
 msgid "Email"
 msgstr "Електронна пошта"
 
-#: grunt/grunt/monitoring/health.py:292
+#: grunt/grunt/monitoring/health.py:293
 msgid "Outgoing email account"
 msgstr "Обліковий запис для надсилання"
 
-#: grunt/grunt/monitoring/health.py:295
+#: grunt/grunt/monitoring/health.py:296
 msgid "Emails (password reset, notifications) will not be sent."
 msgstr "Листи (скидання пароля, сповіщення) не надсилатимуться."
 
-#: grunt/grunt/monitoring/health.py:301
+#: grunt/grunt/monitoring/health.py:302
 msgid "Sending errors in 7 days"
 msgstr "Помилки надсилання за 7 днів"
 
-#: grunt/grunt/monitoring/health.py:309
+#: grunt/grunt/monitoring/health.py:310
 msgid "Stuck emails"
 msgstr "Застряглі листи"
 
-#: grunt/grunt/monitoring/health.py:312
+#: grunt/grunt/monitoring/health.py:313
 msgid "Emails have been waiting over 30 min; check the worker and SMTP."
 msgstr "Листи чекають понад 30 хв — перевірте воркер і SMTP."
 
-#: grunt/grunt/monitoring/health.py:322 grunt/grunt/monitoring/health.py:646
+#: grunt/grunt/monitoring/health.py:323 grunt/grunt/monitoring/health.py:841
 msgid "Users and security"
 msgstr "Користувачі та безпека"
 
-#: grunt/grunt/monitoring/health.py:335
+#: grunt/grunt/monitoring/health.py:336
 msgid "Active users"
 msgstr "Активні користувачі"
 
-#: grunt/grunt/monitoring/health.py:339
+#: grunt/grunt/monitoring/health.py:340
 msgid "Administrators without 2FA"
 msgstr "Адміністратори без 2FA"
 
-#: grunt/grunt/monitoring/health.py:344
+#: grunt/grunt/monitoring/health.py:345
 msgid "Locked accounts"
 msgstr "Заблоковані облікові записи"
 
-#: grunt/grunt/monitoring/health.py:355
+#: grunt/grunt/monitoring/health.py:356
 msgid "Debug mode"
 msgstr "Режим налагодження"
 
-#: grunt/grunt/monitoring/health.py:357
+#: grunt/grunt/monitoring/health.py:358
 msgid "enabled"
 msgstr "увімкнено"
 
-#: grunt/grunt/monitoring/health.py:357 grunt/grunt/monitoring/health.py:511
+#: grunt/grunt/monitoring/health.py:358 grunt/grunt/monitoring/health.py:512
 msgid "disabled"
 msgstr "вимкнено"
 
-#: grunt/grunt/monitoring/health.py:358
+#: grunt/grunt/monitoring/health.py:359
 msgid "DEBUG=true in production exposes extra error details."
 msgstr "DEBUG=true у production відкриває зайві подробиці помилок."
 
-#: grunt/grunt/monitoring/health.py:362
+#: grunt/grunt/monitoring/health.py:363
 msgid "Secret key"
 msgstr "Секретний ключ"
 
-#: grunt/grunt/monitoring/health.py:364
+#: grunt/grunt/monitoring/health.py:365
 msgid "default"
 msgstr "стандартний"
 
-#: grunt/grunt/monitoring/health.py:364
+#: grunt/grunt/monitoring/health.py:365
 msgid "custom"
 msgstr "власний"
 
-#: grunt/grunt/monitoring/health.py:365
+#: grunt/grunt/monitoring/health.py:366
 msgid "Set SECRET_KEY: with the default key, tokens can be forged."
 msgstr "Задайте SECRET_KEY — зі стандартним ключем токени можна підробити."
 
-#: grunt/grunt/monitoring/health.py:387
+#: grunt/grunt/monitoring/health.py:388
 msgid "Free disk space"
 msgstr "Вільне місце на диску"
 
-#: grunt/grunt/monitoring/health.py:389
+#: grunt/grunt/monitoring/health.py:390
 msgid "%(free)s of %(total)s"
 msgstr "%(free)s з %(total)s"
 
-#: grunt/grunt/monitoring/health.py:392
+#: grunt/grunt/monitoring/health.py:393
 msgid "Free up space: uploads and the database may stop working."
 msgstr "Звільніть місце — завантаження й база можуть зупинитися."
 
-#: grunt/grunt/monitoring/health.py:415
+#: grunt/grunt/monitoring/health.py:416
 msgid "Connections (this process)"
 msgstr "Підключення (цей процес)"
 
-#: grunt/grunt/monitoring/health.py:417
+#: grunt/grunt/monitoring/health.py:418
 msgid "%(connections)s connections, %(users)s users"
 msgstr "%(connections)s з'єднань, %(users)s користувачів"
 
-#: grunt/grunt/monitoring/health.py:425
+#: grunt/grunt/monitoring/health.py:426
 msgid "Cross-process relay"
 msgstr "Ретрансляція між процесами"
 
-#: grunt/grunt/monitoring/health.py:427
+#: grunt/grunt/monitoring/health.py:428
 msgid "no Redis"
 msgstr "без Redis"
 
-#: grunt/grunt/monitoring/health.py:428
+#: grunt/grunt/monitoring/health.py:429
 msgid ""
 "Messages reach only this process's clients, which is enough for a single "
 "server process without a separate worker."
@@ -11917,11 +11926,11 @@ msgstr ""
 "Повідомлення доходять лише до клієнтів цього процесу — достатньо для одного "
 "процесу сервера без окремого воркера."
 
-#: grunt/grunt/monitoring/health.py:455 grunt/grunt/monitoring/health.py:459
+#: grunt/grunt/monitoring/health.py:456 grunt/grunt/monitoring/health.py:460
 msgid "Redis relay"
 msgstr "Ретрансляція через Redis"
 
-#: grunt/grunt/monitoring/health.py:462
+#: grunt/grunt/monitoring/health.py:463
 msgid ""
 "Messages from the worker and other processes (import progress, "
 "notifications) will not reach the browser."
@@ -11929,81 +11938,82 @@ msgstr ""
 "Повідомлення з воркера й інших процесів (прогрес імпорту, сповіщення) не "
 "дійдуть до браузера."
 
-#: grunt/grunt/monitoring/health.py:472
+#: grunt/grunt/monitoring/health.py:473
 msgid "Redis listener in this process"
 msgstr "Слухач Redis у цьому процесі"
 
-#: grunt/grunt/monitoring/health.py:477
+#: grunt/grunt/monitoring/health.py:478
 msgid ""
 "There are connections but the listener is down: Redis messages are not "
 "delivered."
 msgstr ""
 "Є з'єднання, але слухач не працює — повідомлення з Redis не доставляються."
 
-#: grunt/grunt/monitoring/health.py:499 grunt/grunt/monitoring/health.py:649
+#: grunt/grunt/monitoring/health.py:500 grunt/grunt/monitoring/health.py:844
 msgid "Backups"
 msgstr "Резервні копії"
 
-#: grunt/grunt/monitoring/health.py:509
+#: grunt/grunt/monitoring/health.py:510
 msgid "Schedule"
 msgstr "Розклад"
 
-#: grunt/grunt/monitoring/health.py:512
+#: grunt/grunt/monitoring/health.py:513
 msgid "Enable it in System Settings → Backups."
 msgstr "Увімкніть: Системні налаштування → Резервні копії."
 
-#: grunt/grunt/monitoring/health.py:534 grunt/grunt/monitoring/health.py:519
+#: grunt/grunt/monitoring/health.py:535 grunt/grunt/monitoring/health.py:520
 msgid "Latest backup"
 msgstr "Остання копія"
 
-#: grunt/grunt/monitoring/health.py:522
+#: grunt/grunt/monitoring/health.py:523
 msgid "Click Create now in Backups, or run `grunt db backup`."
 msgstr "Натисніть «Створити зараз» у «Резервні копії» або `grunt db backup`."
 
-#: grunt/grunt/monitoring/health.py:536
+#: grunt/grunt/monitoring/health.py:537 grunt/grunt/monitoring/health.py:616
 msgid "%(hours)s h ago"
 msgstr "%(hours)s год тому"
 
-#: grunt/grunt/monitoring/health.py:539
+#: grunt/grunt/monitoring/health.py:540
 msgid ""
 "Backups are not being created on schedule; check the worker and the error "
 "log."
 msgstr ""
 "Копії не створюються за розкладом — перевірте воркер і журнал помилок."
 
-#: grunt/grunt/monitoring/health.py:545
+#: grunt/grunt/monitoring/health.py:546
 msgid "Database in the latest backup"
 msgstr "База в останній копії"
 
-#: grunt/grunt/monitoring/health.py:549
+#: grunt/grunt/monitoring/health.py:550
 msgid "Backups kept"
 msgstr "Зберігається копій"
 
-#: grunt/grunt/monitoring/health.py:651 grunt/grunt/monitoring/health.py:578
+#: grunt/grunt/monitoring/health.py:679 grunt/grunt/monitoring/health.py:847
+#: grunt/grunt/monitoring/health.py:658
 msgid "App dependencies"
 msgstr "Залежності додатків"
 
-#: grunt/grunt/monitoring/health.py:579
+#: grunt/grunt/monitoring/health.py:659
 msgid "Apps' Python packages"
 msgstr "Python-пакети додатків"
 
-#: grunt/grunt/monitoring/health.py:581
+#: grunt/grunt/monitoring/health.py:661
 msgid "%(count)s missing"
 msgstr "бракує %(count)s"
 
-#: grunt/grunt/monitoring/health.py:583
+#: grunt/grunt/monitoring/health.py:663
 msgid "%(count)s apps, all installed"
 msgstr "%(count)s додатків, усе встановлено"
 
-#: grunt/grunt/monitoring/health.py:584
+#: grunt/grunt/monitoring/health.py:664
 msgid "Run `grunt app deps`. Missing:"
 msgstr "Виконайте `grunt app deps`. Бракує:"
 
-#: grunt/grunt/monitoring/health.py:615 grunt/grunt/monitoring/health.py:600
+#: grunt/grunt/monitoring/health.py:810 grunt/grunt/monitoring/health.py:795
 msgid "Production build"
 msgstr "Production-збірка"
 
-#: grunt/grunt/monitoring/health.py:603
+#: grunt/grunt/monitoring/health.py:798
 msgid ""
 "No dist/precache-manifest.json: offline mode works only with a production "
 "build (`npm run build`). In development (Vite dev) the service worker is not"
@@ -12013,118 +12023,119 @@ msgstr ""
 "(`npm run build`). У режимі розробки (Vite dev) service worker не "
 "реєструється."
 
-#: grunt/grunt/monitoring/health.py:617
+#: grunt/grunt/monitoring/health.py:812
 msgid "%(count)s files"
 msgstr "%(count)s файлів"
 
-#: grunt/grunt/monitoring/health.py:622 grunt/grunt/monitoring/health.py:627
-#: grunt/grunt/monitoring/health.py:634
+#: grunt/grunt/monitoring/health.py:817 grunt/grunt/monitoring/health.py:822
+#: grunt/grunt/monitoring/health.py:829
 msgid "Service worker in the build"
 msgstr "Service worker у збірці"
 
-#: grunt/grunt/monitoring/health.py:629
+#: grunt/grunt/monitoring/health.py:824
 msgid "outdated"
 msgstr "застарілий"
 
-#: grunt/grunt/monitoring/health.py:630
+#: grunt/grunt/monitoring/health.py:825
 msgid "public/sw.js changed after the build; rebuild the frontend."
 msgstr "public/sw.js змінено після збірки — перезберіть фронтенд."
 
-#: grunt/grunt/monitoring/health.py:634
+#: grunt/grunt/monitoring/health.py:829
 msgid "up to date"
 msgstr "актуальний"
 
-#: grunt/grunt/auth/doctypes/User/user.py:157
+#: grunt/grunt/auth/doctypes/User/user.py:159
 msgid "Email is required"
 msgstr "Email є обов'язковим"
 
-#: grunt/grunt/auth/doctypes/User/user.py:159
+#: grunt/grunt/auth/doctypes/User/user.py:161
 msgid "First name is required"
 msgstr "Ім'я є обов'язковим"
 
-#: grunt/grunt/auth/doctypes/User/user.py:161
+#: grunt/grunt/auth/doctypes/User/user.py:163
 msgid "Last name is required"
 msgstr "Прізвище є обов'язковим"
 
-#: grunt/grunt/auth/doctypes/User/user.py:185
+#: grunt/grunt/auth/doctypes/User/user.py:187
 msgid "Not permitted to create users"
 msgstr "Недостатньо прав для створення користувача"
 
-#: grunt/grunt/auth/doctypes/User/user.py:200
+#: grunt/grunt/auth/doctypes/User/user.py:202
 msgid "Not permitted to change roles"
 msgstr "Недостатньо прав для зміни ролей"
 
-#: grunt/grunt/auth/doctypes/User/user.py:216
+#: grunt/grunt/auth/doctypes/User/user.py:218
 msgid "Not permitted to set the password; use the Change password action"
 msgstr ""
 "Недостатньо прав, щоб задати пароль — скористайтесь дією «Змінити пароль»"
 
-#: grunt/grunt/auth/doctypes/User/user.py:569
+#: grunt/grunt/auth/doctypes/User/user.py:615
 msgid "Registration of new users is disabled"
 msgstr "Реєстрація нових користувачів вимкнена"
 
-#: grunt/grunt/auth/doctypes/User/user.py:683
+#: grunt/grunt/auth/doctypes/User/user.py:733
 msgid "Invalid or expired MFA token"
 msgstr "Невалідний або прострочений MFA токен"
 
-#: grunt/grunt/auth/doctypes/User/user.py:708
+#: grunt/grunt/auth/doctypes/User/user.py:768
 msgid "Invalid or expired MFA setup token"
 msgstr "Невалідний або прострочений токен налаштування MFA"
 
-#: grunt/grunt/auth/doctypes/User/user.py:711
+#: grunt/grunt/auth/doctypes/User/user.py:771
 msgid "MFA setup is unavailable"
 msgstr "Налаштування MFA недоступне"
 
-#: grunt/grunt/auth/doctypes/User/user.py:824
+#: grunt/grunt/auth/doctypes/User/user.py:886
 msgid "Sign-in from this IP address is not allowed for your role"
 msgstr "Вхід з цієї IP-адреси заборонено для вашої ролі"
 
-#: grunt/grunt/auth/doctypes/User/user.py:831
+#: grunt/grunt/auth/doctypes/User/user.py:893
 msgid "Your role requires two-factor authentication; sign in again"
 msgstr "Ваша роль вимагає двофакторної автентифікації — увійдіть знову"
 
-#: grunt/grunt/auth/doctypes/User/user.py:988
+#: grunt/grunt/auth/doctypes/User/user.py:1050
 msgid "Not permitted to change another user's password"
 msgstr "Недостатньо прав, щоб змінити пароль іншого користувача"
 
-#: grunt/grunt/auth/doctypes/User/user.py:993
+#: grunt/grunt/auth/doctypes/User/user.py:1055
 msgid "The current password is incorrect"
 msgstr "Поточний пароль вказано невірно"
 
-#: grunt/grunt/auth/providers/email_link.py:61
+#: grunt/grunt/auth/providers/email_link.py:60
 msgid "Enter a valid email address"
 msgstr "Введіть коректну адресу електронної пошти"
 
-#: grunt/grunt/backups/api.py:49 grunt/grunt/auth/providers/email_link.py:101
+#: grunt/grunt/backups/api.py:49 grunt/grunt/auth/providers/email_link.py:100
 msgid "The link is invalid or expired"
 msgstr "Посилання недійсне або застаріле"
 
-#: grunt/grunt/auth/providers/email_link.py:105
+#: grunt/grunt/auth/providers/email_link.py:104
 msgid "The link is invalid or already used. Request a new code."
 msgstr "Посилання недійсне або вже використане. Запросіть новий код."
 
-#: grunt/grunt/auth/providers/email_link.py:113
+#: grunt/grunt/auth/providers/email_link.py:112
 msgid "Enter the verification code"
 msgstr "Введіть код підтвердження"
 
-#: grunt/grunt/auth/providers/email_link.py:117
+#: grunt/grunt/auth/providers/email_link.py:116
 msgid "The code has expired. Request a new one."
 msgstr "Час дії коду вичерпано. Запросіть новий."
 
-#: grunt/grunt/auth/providers/email_link.py:124
+#: grunt/grunt/auth/providers/email_link.py:123
 msgid "The code is invalid or already used. Request a new one."
 msgstr "Код недійсний або вже використаний. Запросіть новий."
 
-#: grunt/grunt/auth/providers/email_link.py:130
-#: grunt/grunt/auth/providers/email_link.py:207
+#: grunt/grunt/auth/providers/oauth.py:136
+#: grunt/grunt/auth/providers/email_link.py:129
+#: grunt/grunt/auth/providers/email_link.py:206
 msgid "The account is deactivated"
 msgstr "Обліковий запис деактивовано"
 
-#: grunt/grunt/auth/providers/email_link.py:132
+#: grunt/grunt/auth/providers/email_link.py:131
 msgid "Too many failed attempts. Try again later."
 msgstr "Забагато невдалих спроб. Спробуйте пізніше."
 
-#: grunt/grunt/auth/providers/email_link.py:138
+#: grunt/grunt/auth/providers/email_link.py:137
 msgid "Invalid verification code"
 msgstr "Невірний код підтвердження"
 
@@ -12184,11 +12195,11 @@ msgstr "Не можна увійти під іншим адміністрато�
 msgid "The account is disabled."
 msgstr "Обліковий запис вимкнено."
 
-#: grunt/grunt/auth/login.py:53
+#: grunt/grunt/auth/login.py:55
 msgid "Sign-in from this IP address is not allowed for your role."
 msgstr "Вхід з цієї IP-адреси заборонено для вашої ролі."
 
-#: grunt/grunt/auth/login.py:57
+#: grunt/grunt/auth/login.py:59
 msgid "The registration request was rejected by an administrator."
 msgstr "Заявку на реєстрацію відхилено адміністратором."
 
@@ -12208,15 +12219,15 @@ msgstr "Немає полів для оновлення"
 msgid "No access to this key"
 msgstr "Немає доступу до цього ключа"
 
-#: grunt/grunt/auth/doctypes/User/user.py:223
+#: grunt/grunt/auth/doctypes/User/user.py:225
 msgid "Not permitted to change the field “%(field)s”"
 msgstr "Недостатньо прав, щоб змінити поле «%(field)s»"
 
-#: grunt/grunt/auth/doctypes/User/user.py:68
+#: grunt/grunt/auth/doctypes/User/user.py:70
 msgid "Active"
 msgstr "Активний"
 
-#: grunt/grunt/auth/doctypes/User/user.py:69
+#: grunt/grunt/auth/doctypes/User/user.py:71
 msgid "Signup state"
 msgstr "Стан реєстрації"
 
@@ -12242,11 +12253,11 @@ msgstr[0] "%(count)d непрочитане сповіщення за остан
 msgstr[1] "%(count)d непрочитані сповіщення за останній тиждень"
 msgstr[2] "%(count)d непрочитаних сповіщень за останній тиждень"
 
-#: grunt/grunt/app/document_api.py:516 grunt/grunt/app/document_api.py:800
+#: grunt/grunt/app/document_api.py:524 grunt/grunt/app/document_api.py:808
 #: grunt/grunt/metadata/registry.py:333 grunt/grunt/metadata/registry.py:584
 #: grunt/grunt/metadata/registry.py:562
 #: grunt/grunt/notification/rule_index.py:53
-#: grunt/grunt/activity/__init__.py:266 grunt/grunt/actions/__init__.py:163
+#: grunt/grunt/activity/__init__.py:312 grunt/grunt/actions/__init__.py:163
 #: grunt/grunt/document/connections.py:43
 #: grunt/grunt/document/connections.py:68
 #: grunt/grunt/document/connections.py:89
@@ -12480,35 +12491,35 @@ msgstr "Зразок"
 msgid "Template error:"
 msgstr "Помилка шаблону:"
 
-#: grunt/grunt/backups/__init__.py:178
+#: grunt/grunt/backups/__init__.py:180
 msgid "pg_dump not found; install the PostgreSQL client"
 msgstr "pg_dump не знайдено — встановіть клієнт PostgreSQL"
 
-#: grunt/grunt/backups/__init__.py:371
+#: grunt/grunt/backups/__init__.py:386
 msgid "This backup has no database"
 msgstr "У цій копії немає бази даних"
 
-#: grunt/grunt/backups/__init__.py:397
+#: grunt/grunt/backups/__init__.py:412
 msgid "pg_restore not found; install the PostgreSQL client"
 msgstr "pg_restore не знайдено — встановіть клієнт PostgreSQL"
 
-#: grunt/grunt/backups/__init__.py:160
+#: grunt/grunt/backups/__init__.py:162
 msgid "The database snapshot is corrupted: %(result)s"
 msgstr "Знімок бази пошкоджений: %(result)s"
 
-#: grunt/grunt/backups/__init__.py:268
+#: grunt/grunt/backups/__init__.py:283
 msgid "Backups of %(backend)s are not supported"
 msgstr "Резервне копіювання %(backend)s не підтримується"
 
-#: grunt/grunt/backups/__init__.py:88
+#: grunt/grunt/backups/__init__.py:90
 msgid "The SQLite database has no file to back up"
 msgstr "База даних SQLite не має файлу для резервного копіювання"
 
-#: grunt/grunt/backups/__init__.py:388
+#: grunt/grunt/backups/__init__.py:403
 msgid "The database backup is corrupted: %(result)s"
 msgstr "Копія бази пошкоджена: %(result)s"
 
-#: grunt/grunt/backups/__init__.py:412
+#: grunt/grunt/backups/__init__.py:427
 msgid "Restoring %(backend)s is not supported"
 msgstr "Відновлення %(backend)s не підтримується"
 
@@ -12516,8 +12527,8 @@ msgstr "Відновлення %(backend)s не підтримується"
 msgid "No access: %(action)s “%(doctype)s”"
 msgstr "Немає доступу: %(action)s «%(doctype)s»"
 
-#: grunt/grunt/storage/remote.py:73
-#: grunt/grunt/storage/doctypes/File/file.py:111
+#: grunt/grunt/storage/remote.py:101
+#: grunt/grunt/storage/doctypes/File/file.py:113
 msgid "The file is too large (max %(size)s MB)"
 msgstr "Файл завеликий (макс. %(size)s МБ)"
 
@@ -12692,6 +12703,7 @@ msgstr ""
 
 #: grunt/grunt/permissions/doctypes/SharedWith/shared_with.py:22
 #: grunt/grunt/activity/doctypes/DocFollow/doc_follow.py:19
+#: grunt/grunt/activity/doctypes/CommentReaction/comment_reaction.py:20
 #: grunt/grunt/activity/doctypes/DocLike/doc_like.py:19
 msgid "Specify a user"
 msgstr "Вкажіть користувача"
@@ -12704,17 +12716,18 @@ msgstr "Поділитися документом може лише той, хт
 msgid "User “%(user)s” not found"
 msgstr "Користувача «%(user)s» не знайдено"
 
-#: grunt/grunt/document/mixins/lifecycle.py:359
+#: grunt/grunt/document/mixins/lifecycle.py:360
 #: grunt/grunt/activity/doctypes/DocFollow/doc_follow.py:26
+#: grunt/grunt/activity/doctypes/CommentReaction/comment_reaction.py:35
 #: grunt/grunt/activity/doctypes/DocLike/doc_like.py:26
 msgid "No access to the document"
 msgstr "Немає доступу до документа"
 
-#: grunt/grunt/document/mixins/write.py:229
+#: grunt/grunt/document/mixins/write.py:233
 msgid "Could not reassign the links: uniqueness conflict"
 msgstr "Не вдалося перепризначити посилання — конфлікт унікальності"
 
-#: grunt/grunt/document/mixins/lifecycle.py:432
+#: grunt/grunt/document/mixins/lifecycle.py:438
 msgid ""
 "The document was changed after you started editing. Open it again and repeat"
 " your changes."
@@ -12775,15 +12788,15 @@ msgstr "Термін дії посилання закінчився"
 msgid "DocType not found"
 msgstr "DocType не знайдено"
 
-#: grunt/grunt/api/v1/dashboard.py:278
+#: grunt/grunt/api/v1/dashboard.py:289
 msgid "The page is not published"
 msgstr "Сторінку не опубліковано"
 
-#: grunt/grunt/api/v1/dashboard.py:294
+#: grunt/grunt/api/v1/dashboard.py:305
 msgid "Dashboard not found"
 msgstr "Дашборд не знайдено"
 
-#: grunt/grunt/api/v1/dashboard.py:295
+#: grunt/grunt/api/v1/dashboard.py:306
 msgid "The dashboard is not published"
 msgstr "Дашборд не опубліковано"
 
@@ -12791,25 +12804,25 @@ msgstr "Дашборд не опубліковано"
 msgid "You are already following this document"
 msgstr "Ви вже стежите за цим документом"
 
-#: grunt/grunt/errors.py:90
+#: grunt/grunt/errors.py:91
 #: grunt/grunt/storage/doctypes/FileFolder/file_folder.py:164
 msgid "Not permitted"
 msgstr "Недостатньо прав"
 
-#: grunt/grunt/errors.py:95
+#: grunt/grunt/errors.py:96
 msgid "Not found"
 msgstr "Не знайдено"
 
-#: grunt/grunt/errors.py:118 grunt/grunt/middleware/rate_limit.py:75
+#: grunt/grunt/errors.py:119 grunt/grunt/middleware/rate_limit.py:84
 msgid "Too many requests. Try again later."
 msgstr "Забагато запитів. Спробуйте пізніше."
 
-#: grunt/grunt/tasks/redis_introspect.py:80
+#: grunt/grunt/tasks/redis_introspect.py:121
 msgid "Redis is not configured: REDIS_URL is not set, live monitoring is off."
 msgstr ""
 "Redis не налаштований — REDIS_URL не задано, живий моніторинг вимкнено."
 
-#: grunt/grunt/tasks/redis_introspect.py:81
+#: grunt/grunt/tasks/redis_introspect.py:122
 msgid "Redis is unreachable; check that it is running."
 msgstr "Redis недоступний — перевірте, чи він запущений."
 
@@ -12837,7 +12850,7 @@ msgstr "Версію не знайдено"
 msgid "The version does not belong to this document"
 msgstr "Версія не належить цьому документу"
 
-#: grunt/grunt/backups/doctypes/Backup/backup.py:70
+#: grunt/grunt/backups/doctypes/Backup/backup.py:73
 msgid "Backup not found"
 msgstr "Резервну копію не знайдено"
 
@@ -12950,7 +12963,7 @@ msgstr "Це повідомлення у форматі HTML."
 msgid "Webhook not found"
 msgstr "Вебхук не знайдено"
 
-#: grunt/grunt/storage/doctypes/File/file.py:248
+#: grunt/grunt/storage/doctypes/File/file.py:250
 msgid "No access to the file"
 msgstr "Немає доступу до файлу"
 
@@ -13013,28 +13026,29 @@ msgstr "Service worker"
 msgid "code 4001"
 msgstr ""
 
-#: grunt/grunt/storage/doctypes/File/file.py:236
+#: grunt/grunt/storage/doctypes/File/file.py:238
 msgid "File not found"
 msgstr "Файл не знайдено"
 
-#: grunt/grunt/auth/doctypes/UserSession/user_session.py:195
+#: grunt/grunt/auth/doctypes/UserSession/user_session.py:259
 msgid "Session not found"
 msgstr "Сесію не знайдено"
 
-#: grunt/grunt/document/mixins/write.py:172
+#: grunt/grunt/document/mixins/write.py:176
 msgid "'%(name)s' is a singleton."
 msgstr "«%(name)s» — singleton (єдиний запис)."
 
-#: grunt/grunt/auth/doctypes/User/user.py:663
+#: grunt/grunt/auth/doctypes/User/user.py:742
+#: grunt/grunt/auth/doctypes/User/user.py:709
 msgid "Account temporarily locked. Try again later."
 msgstr "Обліковий запис тимчасово заблоковано. Спробуйте пізніше."
 
-#: grunt/grunt/api/context.py:57 grunt/grunt/auth/providers/webauthn.py:245
-#: grunt/grunt/auth/providers/webauthn.py:287
+#: grunt/grunt/api/context.py:57 grunt/grunt/auth/providers/webauthn.py:242
+#: grunt/grunt/auth/providers/webauthn.py:284
 msgid "Authentication required"
 msgstr "Потрібна автентифікація"
 
-#: grunt/grunt/storage/doctypes/File/file.py:243
+#: grunt/grunt/storage/doctypes/File/file.py:245
 msgid "Authentication required to access this file"
 msgstr "Для доступу до файлу потрібна автентифікація"
 
@@ -13050,7 +13064,7 @@ msgstr "Віртуальні документи не можна переймен
 msgid "Column '%(parent_field)s' not found in table for '%(doctype)s'"
 msgstr "Колонку «%(parent_field)s» не знайдено в таблиці «%(doctype)s»"
 
-#: grunt/grunt/auth/dependencies.py:60
+#: grunt/grunt/auth/dependencies.py:59
 msgid "Could not validate credentials"
 msgstr "Не вдалося перевірити облікові дані"
 
@@ -13077,8 +13091,8 @@ msgstr "Документ з назвою «%(new_id)s» вже існує"
 msgid "Duplicate fieldname '%(fieldname)s' in DocType '%(name)s'"
 msgstr "Дубльоване поле «%(fieldname)s» у DocType «%(name)s»"
 
-#: grunt/grunt/auth/providers/webauthn.py:194
-#: grunt/grunt/auth/providers/webauthn.py:297
+#: grunt/grunt/auth/providers/webauthn.py:191
+#: grunt/grunt/auth/providers/webauthn.py:294
 msgid "Expired or invalid WebAuthn challenge"
 msgstr "WebAuthn-виклик прострочений або недійсний"
 
@@ -13086,7 +13100,7 @@ msgstr "WebAuthn-виклик прострочений або недійсний
 msgid "Fieldname '%(fieldname)s' exceeds %(max)s characters"
 msgstr "Назва поля «%(fieldname)s» довша за %(max)s символів"
 
-#: grunt/grunt/storage/doctypes/File/file.py:268
+#: grunt/grunt/storage/doctypes/File/file.py:273
 msgid "File not found on storage"
 msgstr "Файл не знайдено в сховищі"
 
@@ -13094,7 +13108,7 @@ msgstr "Файл не знайдено в сховищі"
 msgid "Hook '%(doc_id)s' not found"
 msgstr "Хук «%(doc_id)s» не знайдено"
 
-#: grunt/grunt/auth/doctypes/User/user.py:667
+#: grunt/grunt/auth/doctypes/User/user.py:713
 msgid "Incorrect email or password"
 msgstr "Невірна електронна пошта або пароль"
 
@@ -13106,20 +13120,20 @@ msgstr ""
 "Недійсна назва поля «%(fieldname)s»: має починатися з a-z і містити лише "
 "a-z, 0-9, _"
 
-#: grunt/grunt/auth/doctypes/User/user.py:789
+#: grunt/grunt/auth/doctypes/User/user.py:851
 msgid "Invalid language value"
 msgstr "Недійсне значення мови"
 
-#: grunt/grunt/auth/doctypes/User/user.py:809
-#: grunt/grunt/auth/doctypes/User/user.py:814
+#: grunt/grunt/auth/doctypes/User/user.py:871
+#: grunt/grunt/auth/doctypes/User/user.py:876
 msgid "Invalid or expired refresh token"
 msgstr "Недійсний або прострочений refresh-токен"
 
-#: grunt/grunt/auth/doctypes/User/user.py:1105
+#: grunt/grunt/auth/doctypes/User/user.py:1167
 msgid "Invalid or expired reset token"
 msgstr "Недійсний або прострочений токен скидання"
 
-#: grunt/grunt/auth/doctypes/User/user.py:782
+#: grunt/grunt/auth/doctypes/User/user.py:844
 msgid "Invalid theme value"
 msgstr "Недійсне значення теми"
 
@@ -13139,12 +13153,12 @@ msgstr "Метод %(method_path)s не дозволено (не в whitelist)"
 msgid "Method %(method_path)s not found"
 msgstr "Метод %(method_path)s не знайдено"
 
-#: grunt/grunt/auth/providers/oauth.py:84
+#: grunt/grunt/auth/providers/oauth.py:100
 msgid "Missing OAuth 'code'"
 msgstr "Відсутній OAuth-параметр 'code'"
 
-#: grunt/grunt/auth/providers/webauthn.py:190
-#: grunt/grunt/auth/providers/webauthn.py:293
+#: grunt/grunt/auth/providers/webauthn.py:187
+#: grunt/grunt/auth/providers/webauthn.py:290
 msgid "Missing WebAuthn response"
 msgstr "Відсутня відповідь WebAuthn"
 
@@ -13152,7 +13166,7 @@ msgstr "Відсутня відповідь WebAuthn"
 msgid "Missing required parameters: %(items)s"
 msgstr "Бракує обов'язкових параметрів: %(items)s"
 
-#: grunt/grunt/storage/doctypes/File/file.py:91
+#: grunt/grunt/storage/doctypes/File/file.py:93
 msgid "No filename provided"
 msgstr "Не вказано назву файлу"
 
@@ -13165,7 +13179,7 @@ msgstr "Не дозволено"
 msgid "Not authorized"
 msgstr "Немає дозволу"
 
-#: grunt/grunt/auth/providers/oauth.py:103
+#: grunt/grunt/auth/providers/oauth.py:119
 msgid "OAuth provider did not return an email address"
 msgstr "OAuth-провайдер не повернув адресу електронної пошти"
 
@@ -13185,11 +13199,11 @@ msgstr "Параметр 'q' обов'язковий"
 msgid "Passkey not found"
 msgstr "Ключ доступу не знайдено"
 
-#: grunt/grunt/auth/providers/webauthn.py:311
+#: grunt/grunt/auth/providers/webauthn.py:308
 msgid "Passkey registration failed"
 msgstr "Не вдалося зареєструвати ключ доступу"
 
-#: grunt/grunt/auth/providers/webauthn.py:215
+#: grunt/grunt/auth/providers/webauthn.py:212
 msgid "Passkey verification failed"
 msgstr "Не вдалося перевірити ключ доступу"
 
@@ -13207,11 +13221,11 @@ msgstr "Redis недоступний"
 msgid "SqlProfilerRequest '%(doc_id)s' not found"
 msgstr "SqlProfilerRequest «%(doc_id)s» не знайдено"
 
-#: grunt/grunt/auth/dependencies.py:149
+#: grunt/grunt/auth/dependencies.py:146
 msgid "System Manager privileges required"
 msgstr "Потрібні права System Manager"
 
-#: grunt/grunt/auth/providers/webauthn.py:315
+#: grunt/grunt/auth/providers/webauthn.py:312
 msgid "This passkey is already registered"
 msgstr "Цей ключ доступу вже зареєстровано"
 
@@ -13219,15 +13233,15 @@ msgstr "Цей ключ доступу вже зареєстровано"
 msgid "Unknown auth provider: %(name)s"
 msgstr "Невідомий провайдер автентифікації: %(name)s"
 
-#: grunt/grunt/auth/providers/webauthn.py:200
+#: grunt/grunt/auth/providers/webauthn.py:197
 msgid "Unknown passkey"
 msgstr "Невідомий ключ доступу"
 
-#: grunt/grunt/auth/providers/webauthn.py:230
+#: grunt/grunt/auth/providers/webauthn.py:227
 msgid "User not found or inactive"
 msgstr "Користувача не знайдено або він неактивний"
 
-#: grunt/grunt/auth/doctypes/User/user.py:633
+#: grunt/grunt/auth/doctypes/User/user.py:679
 msgid "User with email '%(email)s' already exists"
 msgstr "Користувач з адресою «%(email)s» вже існує"
 
@@ -13235,19 +13249,19 @@ msgstr "Користувач з адресою «%(email)s» вже існує"
 msgid "content is required"
 msgstr "content обов'язковий"
 
-#: grunt/grunt/api/v1/share.py:109
+#: grunt/grunt/api/v1/share.py:118
 msgid "doctype_name and doc_id are required"
 msgstr "doctype_name і doc_id обов'язкові"
 
-#: grunt/grunt/api/v1/docs/crud.py:215
+#: grunt/grunt/api/v1/docs/crud.py:221
 msgid "field is required"
 msgstr "field обов'язковий"
 
-#: grunt/grunt/api/v1/docs/crud.py:213
+#: grunt/grunt/api/v1/docs/crud.py:219
 msgid "ids is required"
 msgstr "ids обов'язковий"
 
-#: grunt/grunt/api/v1/docs/crud.py:184
+#: grunt/grunt/api/v1/docs/crud.py:190
 msgid "ids or delete_all is required"
 msgstr "Потрібен ids або delete_all"
 
@@ -13268,24 +13282,24 @@ msgstr "Мова інтерфейсу. Порожнє — мова сайту з
 msgid "File uploaded"
 msgstr "Файл завантажено"
 
-#: grunt/grunt/backups/doctypes/Backup/Backup.js:42
+#: grunt/grunt/backups/doctypes/Backup/Backup.js:46
 msgid "Create backup"
 msgstr "Створити резервну копію"
 
-#: grunt/grunt/backups/doctypes/Backup/Backup.js:46
+#: grunt/grunt/backups/doctypes/Backup/Backup.js:50
 msgid "Uploaded files"
 msgstr "Завантажені файли"
 
-#: grunt/grunt/backups/doctypes/Backup/Backup.js:47
+#: grunt/grunt/backups/doctypes/Backup/Backup.js:51
 msgid "Configuration (.env)"
 msgstr "Конфігурація (.env)"
 
 #: grunt/grunt/backups/api.py:62
-#: grunt/grunt/backups/doctypes/Backup/Backup.js:52
+#: grunt/grunt/backups/doctypes/Backup/Backup.js:56
 msgid "Choose at least one part to back up"
 msgstr "Оберіть хоча б одну частину для резервної копії"
 
-#: grunt/grunt/backups/__init__.py:327
+#: grunt/grunt/backups/__init__.py:342
 msgid "Nothing to back up"
 msgstr "Немає що зберігати в резервній копії"
 
@@ -13318,35 +13332,37 @@ msgstr "Згорнути"
 msgid "Dismiss"
 msgstr "Закрити"
 
-#: grunt/grunt/backups/tasks.py:100
+#: grunt/grunt/backups/tasks.py:106
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:153
+#: grunt/grunt/backups/doctypes/Backup/Backup.js:98
 msgid "Backup"
 msgstr "Резервна копія"
 
-#: grunt/grunt/backups/doctypes/Backup/Backup.js:64
+#: grunt/grunt/backups/doctypes/Backup/Backup.js:68
 msgid "Backup started"
 msgstr "Резервне копіювання запущено"
 
-#: grunt/grunt/backups/__init__.py:275
+#: grunt/grunt/backups/__init__.py:290
 msgid "Preparing"
 msgstr "Підготовка"
 
-#: grunt/grunt/backups/__init__.py:150
+#: grunt/grunt/backups/__init__.py:152
 msgid "Copying the database"
 msgstr "Копіювання бази даних"
 
-#: grunt/grunt/backups/__init__.py:153
+#: grunt/grunt/backups/__init__.py:155
 msgid "Checking the database copy"
 msgstr "Перевірка копії бази даних"
 
-#: grunt/grunt/backups/__init__.py:162
+#: grunt/grunt/backups/__init__.py:164
 msgid "Compressing the database"
 msgstr "Стиснення бази даних"
 
-#: grunt/grunt/backups/__init__.py:180
+#: grunt/grunt/backups/__init__.py:182
 msgid "Dumping the database"
 msgstr "Вивантаження бази даних"
 
-#: grunt/grunt/backups/__init__.py:211
+#: grunt/grunt/backups/__init__.py:216
 msgid "Archiving files"
 msgstr "Архівування файлів"
 
@@ -13367,7 +13383,7 @@ msgstr "Зупинити «{title}»? Уже виконане буде відк�
 msgid "step {n} of {m}"
 msgstr "крок {n} з {m}"
 
-#: grunt/grunt/backups/__init__.py:223
+#: grunt/grunt/backups/__init__.py:230
 msgid "Copying the configuration"
 msgstr "Копіювання конфігурації"
 
@@ -13442,6 +13458,8 @@ msgid ""
 "zstd, 1–19. Higher is smaller but slower: 9 is a good balance, 19 is the "
 "smallest. Also used by «Create now»."
 msgstr ""
+"zstd, 1–19. Вищий - менший файл, але повільніше: 9 - добрий баланс, 19 - "
+"найменший. Діє і для «Створити зараз»."
 
 #: grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
 msgctxt "help:WebsiteMenuItem.route"
@@ -13484,7 +13502,7 @@ msgstr "Батьківська тека"
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgctxt "meta:SystemSettings.backup_compression_level"
 msgid "Compression level"
-msgstr ""
+msgstr "Рівень стиснення"
 
 #: grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
 msgctxt "meta:WebsiteMenuItem.route"
@@ -13740,7 +13758,7 @@ msgstr "Нікого не призначено"
 msgid "Not shared with anyone"
 msgstr "Ні з ким не поширено"
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:205
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:206
 msgid "On website"
 msgstr "На сайті"
 
@@ -13756,7 +13774,7 @@ msgstr "Відкрити задачу"
 msgid "Remove image"
 msgstr "Видалити зображення"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTags.vue:79
+#: grunt/frontend/src/components/views/sidebar/SidebarTags.vue:84
 msgid "Remove tag {tag}"
 msgstr "Прибрати тег {tag}"
 
@@ -13781,24 +13799,24 @@ msgstr "Завантажити з комп’ютера"
 msgid "Workflow"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:97
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:98
 msgid "created"
 msgstr "створив(ла)"
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:100
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:101
 msgid "modified"
 msgstr "змінив(ла)"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTags.vue:45
+#: grunt/frontend/src/components/views/sidebar/SidebarTags.vue:46
 msgid "Could not save the tag"
 msgstr "Не вдалося зберегти тег"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTags.vue:84
+#: grunt/frontend/src/components/views/sidebar/SidebarTags.vue:89
 msgid "Add tag…"
 msgstr "Додати тег…"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:484
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:529
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:485
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:531
 msgid "Delete comment"
 msgstr "Видалити коментар"
 
@@ -13806,7 +13824,7 @@ msgstr "Видалити коментар"
 msgid "Optional. Without it the task only links to the document."
 msgstr "Необов’язково. Без тексту задача лише посилатиметься на документ."
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:425
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:426
 msgid "to send"
 msgstr "— надіслати"
 
@@ -13818,7 +13836,7 @@ msgstr "Порівняти й відновити"
 msgid "Show less"
 msgstr "Згорнути"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:196
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:197
 msgid "changed {n} field"
 msgid_plural "changed {n} fields"
 msgstr[0] "змінив(ла) {n} поле"
@@ -13830,7 +13848,7 @@ msgstr[2] "змінив(ла) {n} полів"
 msgid "cleared"
 msgstr "очищено"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:193
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:194
 msgid "commented"
 msgstr "прокоментував(ла)"
 
@@ -13849,11 +13867,11 @@ msgstr[0] "Ще {n} зміна"
 msgstr[1] "Ще {n} зміни"
 msgstr[2] "Ще {n} змін"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:200
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:201
 msgid "applied «{action}»"
 msgstr "виконав(ла) «{action}»"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:200
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:201
 msgid "changed the state"
 msgstr "змінив(ла) стан"
 
@@ -13906,9 +13924,9 @@ msgstr "Домашню теку не можна видалити"
 msgid "A home folder can't be moved"
 msgstr "Домашню теку не можна перемістити"
 
-#: grunt/grunt/storage/doctypes/File/file.py:60
-#: grunt/grunt/storage/doctypes/File/file.py:98
-#: grunt/grunt/storage/doctypes/File/file.py:157
+#: grunt/grunt/storage/doctypes/File/file.py:62
+#: grunt/grunt/storage/doctypes/File/file.py:100
+#: grunt/grunt/storage/doctypes/File/file.py:159
 #: grunt/grunt/storage/doctypes/FileFolder/file_folder.py:186
 #: grunt/grunt/storage/doctypes/FileFolder/file_folder.py:48
 msgid "Folder “%(folder)s” not found"
@@ -13926,7 +13944,7 @@ msgstr ""
 "Недостатньо місця: зайнято %(used)s МБ з %(quota)s МБ, файлу потрібно "
 "%(size)s МБ"
 
-#: grunt/grunt/auth/doctypes/User/user.py:71
+#: grunt/grunt/auth/doctypes/User/user.py:73
 msgid "Personal space quota, MB"
 msgstr "Квота особистого простору, МБ"
 
@@ -14343,7 +14361,7 @@ msgstr "Вставити"
 msgid "Could not download the file"
 msgstr "Не вдалося завантажити файл"
 
-#: grunt/grunt/storage/doctypes/File/file.py:165
+#: grunt/grunt/storage/doctypes/File/file.py:167
 msgid "Could not download the file: %(error)s"
 msgstr "Не вдалося завантажити файл: %(error)s"
 
@@ -14359,7 +14377,7 @@ msgstr "Теку з комп’ютера…"
 msgid "From a link…"
 msgstr "За посиланням…"
 
-#: grunt/grunt/storage/remote.py:98
+#: grunt/grunt/storage/remote.py:133
 msgid "Links to internal network addresses are not allowed"
 msgstr "Посилання на адреси внутрішньої мережі заборонені"
 
@@ -14367,7 +14385,7 @@ msgstr "Посилання на адреси внутрішньої мережі
 msgid "Not uploaded: {n}"
 msgstr "Не завантажено: {n}"
 
-#: grunt/grunt/storage/remote.py:84
+#: grunt/grunt/storage/remote.py:118
 msgid "Only http:// and https:// links can be downloaded"
 msgstr "Завантажити можна лише посилання http:// і https://"
 
@@ -14375,15 +14393,15 @@ msgstr "Завантажити можна лише посилання http:// і
 msgid "Photo from the camera"
 msgstr "Фото з камери"
 
-#: grunt/grunt/storage/remote.py:65
+#: grunt/grunt/storage/remote.py:93
 msgid "The link answered with an error (%(code)s)"
 msgstr "За посиланням відповіли помилкою (%(code)s)"
 
-#: grunt/grunt/storage/remote.py:93
+#: grunt/grunt/storage/remote.py:137 grunt/grunt/storage/remote.py:127
 msgid "The site “%(host)s” was not found"
 msgstr "Сайт «%(host)s» не знайдено"
 
-#: grunt/grunt/storage/remote.py:78
+#: grunt/grunt/storage/remote.py:106
 msgid "Too many redirects"
 msgstr "Забагато переадресацій"
 
@@ -14429,7 +14447,7 @@ msgstr "Перезняти"
 msgid "Switch camera"
 msgstr "Перемкнути камеру"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:442
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:443
 #: grunt/frontend/src/components/views/list/ListRowMeta.vue:22
 msgid "Comments"
 msgstr "Коментарі"
@@ -14471,11 +14489,11 @@ msgctxt "meta:DocLike.user"
 msgid "User"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:448
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:449
 msgid "No changes yet"
 msgstr "Поки що немає змін"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:448
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:449
 msgid "No comments yet"
 msgstr "Поки що немає коментарів"
 
@@ -14605,7 +14623,7 @@ msgstr ""
 "Фонові воркери — живий перегляд групи споживачів: їх не можна створити чи "
 "змінити"
 
-#: grunt/grunt/backups/doctypes/Backup/backup.py:43
+#: grunt/grunt/backups/doctypes/Backup/backup.py:45
 msgid "Backups are created with the Create now button and cannot be changed"
 msgstr "Резервні копії створюються кнопкою «Створити зараз» і не змінюються"
 
@@ -15144,7 +15162,7 @@ msgstr "Поле строку"
 msgid "Deadline missed: %(doctype)s %(name)s"
 msgstr "Строк порушено: %(doctype)s %(name)s"
 
-#: grunt/grunt/app/document_api.py:668
+#: grunt/grunt/app/document_api.py:676
 msgid "Not permitted to use fields: %(fields)s"
 msgstr "Немає доступу до полів: %(fields)s"
 
@@ -15166,11 +15184,11 @@ msgstr "Поле строку має бути полем документа"
 msgid "Time allowed must be at least 1"
 msgstr "Відведений час має бути не менше 1"
 
-#: grunt/grunt/app/document_api.py:665
+#: grunt/grunt/app/document_api.py:673
 msgid "Unknown fields: %(fields)s"
 msgstr "Невідомі поля: %(fields)s"
 
-#: grunt/grunt/app/document_api.py:643
+#: grunt/grunt/app/document_api.py:651
 msgid "“%(doctype)s” has no table to aggregate"
 msgstr "«%(doctype)s» не має таблиці для агрегації"
 
@@ -15430,8 +15448,8 @@ msgid ""
 msgstr ""
 "На цей коментар відповіли інші — видалити гілку може лише адміністратор"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:477
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:546
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:478
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:549
 msgid "Reply"
 msgstr "Відповісти"
 
@@ -15439,7 +15457,7 @@ msgstr "Відповісти"
 msgid "The comment you reply to no longer exists"
 msgstr "Коментар, на який ви відповідаєте, уже видалено"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:540
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:543
 msgid "Write a reply..."
 msgstr "Напишіть відповідь..."
 
@@ -15754,7 +15772,7 @@ msgctxt "meta:MilestoneTracker.track_field"
 msgid "Field"
 msgstr "Поле"
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:270
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:271
 msgid "Cancel reminder"
 msgstr "Скасувати нагадування"
 
@@ -15762,18 +15780,18 @@ msgstr "Скасувати нагадування"
 msgid "Choose when to remind"
 msgstr "Оберіть, коли нагадати"
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:138
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:139
 msgid "I will remind you {when}"
 msgstr "Нагадаю {when}"
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:263
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:264
 msgid "My reminders"
 msgstr "Мої нагадування"
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:127
 #: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:128
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:328
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:332
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:129
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:349
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:353
 msgid "Remind me"
 msgstr "Нагадати мені"
 
@@ -15793,7 +15811,7 @@ msgstr "Вкажіть і тип документа, і документ"
 msgid "The reminder time is in the past"
 msgstr "Час нагадування вже минув"
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:130
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:131
 msgid "When"
 msgstr "Коли"
 
@@ -15836,11 +15854,11 @@ msgctxt "meta:Reminder.remind_at"
 msgid "Remind at"
 msgstr "Нагадати о"
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:133
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:134
 msgid "In an hour"
 msgstr "Через годину"
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:133
+#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:134
 msgid "Tomorrow at 9:00"
 msgstr "Завтра о 9:00"
 
@@ -16231,6 +16249,1472 @@ msgstr "Записувати статистику продуктивності"
 msgctxt "select:DocType.default_view"
 msgid "explorer"
 msgstr ""
+
+#: grunt/frontend/src/components/desk/OnboardingChecklists.vue:75
+msgid "Documentation"
+msgstr "Документація"
+
+#: grunt/grunt/auth/doctypes/UserSession/UserSession.json
+msgctxt "meta:UserSession.device_id"
+msgid "Device ID"
+msgstr "ID пристрою"
+
+#: grunt/grunt/auth/doctypes/UserSession/UserSession.json
+msgctxt "meta:UserSession.logins"
+msgid "Sign-ins"
+msgstr "Входи"
+
+#: grunt/grunt/auth/doctypes/UserSessionLogin/UserSessionLogin.json
+msgctxt "meta:UserSessionLogin"
+msgid "Session sign-in"
+msgstr "Вхід у сесію"
+
+#: grunt/grunt/auth/doctypes/UserSessionLogin/UserSessionLogin.json
+msgctxt "meta:UserSessionLogin.login_at"
+msgid "Signed in at"
+msgstr "Час входу"
+
+#: grunt/grunt/auth/doctypes/UserSessionLogin/UserSessionLogin.json
+msgctxt "meta:UserSessionLogin.ip_address"
+msgid "IP address"
+msgstr "IP-адреса"
+
+#: grunt/grunt/auth/doctypes/UserSessionLogin/UserSessionLogin.json
+msgctxt "meta:UserSessionLogin.method"
+msgid "Method"
+msgstr "Спосіб"
+
+#: grunt/grunt/auth/doctypes/UserSessionLogin/UserSessionLogin.json
+msgctxt "meta:UserSessionLogin.user_agent"
+msgid "Browser / client"
+msgstr "Браузер / клієнт"
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgctxt "meta:SystemSettings.session_login_history"
+msgid "Sign-ins kept per device"
+msgstr "Скільки входів зберігати на пристрій"
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgctxt "help:SystemSettings.session_login_history"
+msgid ""
+"A browser keeps one session record; its latest sign-ins are listed inside "
+"it."
+msgstr ""
+"Один браузер — один запис сесії; останні входи з нього показано всередині "
+"запису."
+
+#: grunt/grunt/storage/doctypes/StorageRemote/storage_remote.py:146
+msgid "%(free)s free of %(total)s"
+msgstr "вільно %(free)s з %(total)s"
+
+#: grunt/grunt/storage/cloud/files.py:295
+msgid "%(n)s files could not be returned (missing or damaged in the storage)"
+msgstr ""
+"Не вдалося повернути файлів: %(n)s (у сховищі їх немає або вони пошкоджені)"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/storage_remote.py:151
+msgid "%(used)s used"
+msgstr "використано %(used)s"
+
+#: grunt/grunt/monitoring/health.py:683
+msgid "Apps use apps/grunt/.venv. Delete: %(paths)s"
+msgstr "Додатки використовують apps/grunt/.venv. Видаліть: %(paths)s"
+
+#: grunt/grunt/storage/cloud/backups.py:194
+msgid "Backup %(id)s is already on the server"
+msgstr "Резервна копія %(id)s уже є на сервері"
+
+#: grunt/grunt/storage/cloud/backups.py:199
+msgid "Backup %(id)s not found in the storage"
+msgstr "Резервну копію %(id)s не знайдено у сховищі"
+
+#: grunt/grunt/monitoring/health.py:619
+msgid "Backups are not reaching this storage; see its status."
+msgstr "Резервні копії не потрапляють у це сховище — перегляньте його стан."
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:148
+#: grunt/grunt/backups/doctypes/Backup/Backup.js:93
+msgid "Backups in the storage"
+msgstr "Резервні копії у сховищі"
+
+#: grunt/grunt/monitoring/health.py:570
+msgid "Backups stay on this server only."
+msgstr "Резервні копії зберігаються лише на цьому сервері."
+
+#: grunt/grunt/monitoring/health.py:596
+msgid "Click Test connection in the storage."
+msgstr "Натисніть «Перевірити з'єднання» у сховищі."
+
+#: grunt/grunt/monitoring/health.py:565 grunt/grunt/monitoring/health.py:845
+#: grunt/grunt/backups/doctypes/Backup/Backup.js:84
+msgid "Cloud storage"
+msgstr "Хмарні сховища"
+
+#: grunt/grunt/storage/cloud/__init__.py:133
+msgid "Cloud storage “%(name)s” is failing"
+msgstr "Хмарне сховище «%(name)s» не працює"
+
+#: grunt/grunt/storage/cloud/__init__.py:106
+msgid "Cloud storage “%(name)s”: %(error)s"
+msgstr "Хмарне сховище «%(name)s»: %(error)s"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:67
+msgid "Connect"
+msgstr "Підключити"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:58
+msgid "Connection works"
+msgstr "З'єднання працює"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:78
+msgid ""
+"Copy the whole line rclone prints (it starts with access_token) and paste it"
+" below"
+msgstr ""
+"Скопіюйте весь рядок, який виведе rclone (він починається з access_token), і"
+" вставте нижче"
+
+#: grunt/grunt/storage/cloud/oauth.py:143
+msgid "Could not read the OneDrive drive of this account"
+msgstr "Не вдалося прочитати диск OneDrive цього облікового запису"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:134
+msgid "Download every file kept in this storage back to the server disk?"
+msgstr "Завантажити всі файли з цього сховища назад на диск сервера?"
+
+#: grunt/grunt/storage/cloud/tasks.py:78
+msgid "Download from cloud storage"
+msgstr "Завантаження з хмарного сховища"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:166
+#: grunt/grunt/backups/doctypes/Backup/Backup.js:111
+msgid "Download started"
+msgstr "Завантаження розпочато"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:150
+#: grunt/grunt/backups/doctypes/Backup/Backup.js:95
+msgid "Download to the server"
+msgstr "Завантажити на сервер"
+
+#: grunt/grunt/storage/cloud/files.py:263
+msgid "Downloading %(n)s files"
+msgstr "Завантаження файлів: %(n)s"
+
+#: grunt/grunt/storage/cloud/rclone.py:101
+msgid "Encryption is on, but no encryption password is set"
+msgstr "Шифрування увімкнено, але пароль шифрування не задано"
+
+#: grunt/grunt/storage/cloud/oauth.py:180
+msgid "Enter the Client ID and secret of your app and save first"
+msgstr "Спершу введіть Client ID і секрет свого додатка та збережіть"
+
+#: grunt/grunt/storage/cloud/providers.py:139
+msgid "Enter the rclone backend type"
+msgstr "Вкажіть тип бекенда rclone"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/storage_remote.py:85
+msgid "Files are already moved to “%(name)s”; only one storage can hold files"
+msgstr ""
+"Файли вже переносяться в «%(name)s»; зберігати файли може лише одне сховище"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/storage_remote.py:109
+msgid ""
+"Files are kept in this storage: return them to the server before deleting it"
+msgstr ""
+"У цьому сховищі зберігаються файли: поверніть їх на сервер, перш ніж "
+"видаляти його"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/storage_remote.py:100
+msgid ""
+"Files are kept in this storage: return them to the server first (Files → "
+"Return all files), then change where or how they are stored"
+msgstr ""
+"У цьому сховищі зберігаються файли: спершу поверніть їх на сервер («Файли» →"
+" «Повернути всі файли на сервер»), потім змінюйте, де або як вони "
+"зберігаються"
+
+#: grunt/grunt/monitoring/health.py:626
+msgid "Files in “%(name)s”"
+msgstr "Файли в «%(name)s»"
+
+#: grunt/grunt/backups/doctypes/Backup/Backup.js:73
+#: grunt/grunt/backups/doctypes/Backup/Backup.js:82
+msgid "From cloud storage"
+msgstr "З хмарного сховища"
+
+#: grunt/grunt/monitoring/health.py:579
+msgid "Install rclone: https://rclone.org/install/"
+msgstr "Встановіть rclone: https://rclone.org/install/"
+
+#: grunt/grunt/monitoring/health.py:612
+msgid "Latest backup in “%(name)s”"
+msgstr "Остання копія в «%(name)s»"
+
+#: grunt/grunt/monitoring/health.py:633
+msgid "Local cache of cloud files"
+msgstr "Локальний кеш хмарних файлів"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:128
+msgid "Move the files that fit the rules to the storage now?"
+msgstr "Перенести у сховище файли, що відповідають правилам, зараз?"
+
+#: grunt/grunt/storage/cloud/files.py:218
+msgid "Moving %(n)s files to the storage"
+msgstr "Перенесення файлів у сховище: %(n)s"
+
+#: grunt/grunt/storage/cloud/tasks.py:112
+msgid "Moving files to cloud storage"
+msgstr "Перенесення файлів у хмарне сховище"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:130
+msgid "Moving started"
+msgstr "Перенесення розпочато"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:144
+#: grunt/grunt/backups/doctypes/Backup/Backup.js:89
+msgid "No backups in this storage yet"
+msgstr "У цьому сховищі ще немає резервних копій"
+
+#: grunt/grunt/storage/cloud/oauth.py:215
+msgid "No code returned"
+msgstr "Код авторизації не повернуто"
+
+#: grunt/grunt/storage/cloud/files.py:259
+msgid "Not enough free disk space: %(need)s MB needed, %(free)s MB free"
+msgstr ""
+"Недостатньо вільного місця на диску: потрібно %(need)s МБ, вільно %(free)s "
+"МБ"
+
+#: grunt/grunt/monitoring/health.py:723
+msgid "Not loaded: %(reason)s"
+msgstr "Не завантажено: %(reason)s"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:75
+msgid "On any computer with a browser install rclone"
+msgstr "На будь-якому комп'ютері з браузером встановіть rclone"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:156
+#: grunt/grunt/backups/doctypes/Backup/Backup.js:101
+msgid "On the server"
+msgstr "На сервері"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:154
+#: grunt/grunt/backups/doctypes/Backup/Backup.js:99
+msgid "Parts"
+msgstr "Частини"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:66
+msgid "Paste a token from rclone"
+msgstr "Вставити токен з rclone"
+
+#: grunt/grunt/storage/cloud/tasks.py:124
+msgid "Returning files from cloud storage"
+msgstr "Повернення файлів із хмарного сховища"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:136
+msgid "Returning started"
+msgstr "Повернення розпочато"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:76
+msgid "Run in a terminal"
+msgstr "Виконайте в терміналі"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:112
+msgid ""
+"Save it as rclone.conf somewhere outside this system. Passwords are only "
+"obscured, not encrypted — keep the file private. To get a backup back: "
+"rclone copy secret:backups/<site>/ ./ (or remote: without encryption)."
+msgstr ""
+"Збережіть це як rclone.conf десь поза цією системою. Паролі в ньому лише "
+"замасковані, не зашифровані — тримайте файл у таємниці. Щоб забрати резервну"
+" копію: rclone copy secret:backups/<site>/ ./ (без шифрування — remote:)."
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:29
+msgid "Save the storage first"
+msgstr "Спершу збережіть сховище"
+
+#: grunt/grunt/monitoring/health.py:680
+msgid "Separate app environments"
+msgstr "Окремі середовища додатків"
+
+#: grunt/grunt/backups/doctypes/Backup/Backup.js:83
+msgid "Show backups"
+msgstr "Показати копії"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:77
+msgid "Sign in in the browser window that opens and allow access"
+msgstr "Увійдіть у вікні браузера, що відкриється, і дозвольте доступ"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:94
+msgid "Sign in through the browser"
+msgstr "Увійти через браузер"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:18
+msgid "Sign-in failed"
+msgstr "Не вдалося увійти"
+
+#: grunt/grunt/storage/cloud/__init__.py:55
+msgid "Storage “%(name)s” not found"
+msgstr "Сховище «%(name)s» не знайдено"
+
+#: grunt/grunt/monitoring/health.py:570
+msgid "Storages"
+msgstr "Сховища"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:17
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:86
+msgid "The account is connected"
+msgstr "Обліковий запис підключено"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:151
+#: grunt/grunt/backups/doctypes/Backup/Backup.js:96
+msgid ""
+"The chosen set appears in Backups; restore it with «grunt db restore <id>» "
+"on the server."
+msgstr ""
+"Вибраний набір з'явиться в «Резервних копіях»; відновіть його на сервері "
+"командою «grunt db restore <id>»."
+
+#: grunt/grunt/storage/cloud/files.py:123
+msgid "The file from the storage is damaged: %(key)s"
+msgstr "Файл зі сховища пошкоджено: %(key)s"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:93
+msgid "The redirect URI registered in your app must be exactly"
+msgstr "Redirect URI, зареєстрований у вашому додатку, має бути саме таким"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/storage_remote.py:142
+msgid "The test file read back differs from what was written"
+msgstr "Прочитаний тестовий файл відрізняється від записаного"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:162
+#: grunt/grunt/backups/doctypes/Backup/Backup.js:107
+msgid "This backup is already on the server"
+msgstr "Ця резервна копія вже є на сервері"
+
+#: grunt/grunt/storage/cloud/oauth.py:104
+msgid ""
+"This is not an rclone token: paste the whole {…} line printed by rclone "
+"authorize"
+msgstr ""
+"Це не токен rclone: вставте весь рядок {…}, який виводить rclone authorize"
+
+#: grunt/grunt/storage/cloud/oauth.py:178
+#: grunt/grunt/storage/cloud/oauth.py:220
+msgid "This storage type does not sign in through a browser"
+msgstr "Для цього типу сховища вхід через браузер не передбачено"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:81
+msgid "Token"
+msgstr "Токен"
+
+#: grunt/grunt/storage/cloud/providers.py:183
+msgid "Unknown storage type: %(name)s"
+msgstr "Невідомий тип сховища: %(name)s"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:120
+msgid "Upload started"
+msgstr "Вивантаження розпочато"
+
+#: grunt/grunt/storage/cloud/tasks.py:56
+msgid "Upload to cloud storage"
+msgstr "Вивантаження в хмарне сховище"
+
+#: grunt/grunt/storage/cloud/backups.py:161
+msgid "Uploading to “%(name)s”"
+msgstr "Вивантаження в «%(name)s»"
+
+#: grunt/grunt/monitoring/health.py:715 grunt/grunt/monitoring/health.py:848
+msgid "Versions"
+msgstr "Версії"
+
+#: grunt/grunt/monitoring/health.py:595
+msgid "not checked"
+msgstr "не перевірено"
+
+#: grunt/grunt/monitoring/health.py:578
+msgid "not installed"
+msgstr "не встановлено"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:102
+msgid "rclone config"
+msgstr "Конфіг rclone"
+
+#: grunt/grunt/storage/cloud/rclone.py:244
+msgid "rclone exited with code %(code)s"
+msgstr "rclone завершився з кодом %(code)s"
+
+#: grunt/grunt/storage/cloud/rclone.py:78
+msgid "rclone is not installed on the server (https://rclone.org/install/)"
+msgstr "rclone не встановлено на сервері (https://rclone.org/install/)"
+
+#: grunt/grunt/monitoring/health.py:588
+msgid "works"
+msgstr "працює"
+
+#: grunt/grunt/backups/doctypes/Backup/Backup.json
+msgctxt "help:Backup"
+msgid ""
+"Site backups in sites/<site>/backups/: database, uploaded files, "
+"configuration. Schedule and number of copies — in System Settings → Backups."
+" Copies in cloud storage — Cloud Storage."
+msgstr ""
+"Резервні копії сайту в sites/<site>/backups/: база даних, завантажені файли,"
+" конфігурація. Розклад і кількість копій — у «Налаштуваннях системи» → "
+"«Резервні копії». Копії в хмарі — «Хмарні сховища»."
+
+#: grunt/grunt/backups/doctypes/Backup/Backup.json
+msgctxt "help:Backup.in_cloud"
+msgid ""
+"Cloud storages holding a copy of this set (Cloud Storage → «Upload backups "
+"here»)."
+msgstr ""
+"Хмарні сховища, де є копія цього набору («Хмарні сховища» → «Вивантажувати "
+"резервні копії сюди»)."
+
+#: grunt/grunt/storage/doctypes/File/File.json
+msgctxt "help:File.storage_remote"
+msgid ""
+"The contents were moved off the server disk into this storage; they are "
+"fetched back on request (grunt.storage.cloud.files)."
+msgstr ""
+"Вміст перенесено з диска сервера в це сховище; на запит він завантажується "
+"назад (grunt.storage.cloud.files)."
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "help:StorageRemote"
+msgid ""
+"Connections to external storage (Google Drive, Dropbox, OneDrive, MEGA, S3, "
+"WebDAV/Nextcloud, SFTP, SMB) through rclone: backup copies and moving old "
+"files off the server disk."
+msgstr ""
+"Підключення до зовнішніх сховищ (Google Drive, Dropbox, OneDrive, MEGA, S3, "
+"WebDAV/Nextcloud, SFTP, SMB) через rclone: копії резервних копій і "
+"перенесення старих файлів з диска сервера."
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "help:StorageRemote.authorize"
+msgid ""
+"Needs your own Client ID and secret. Opens the provider's sign-in page and "
+"returns here."
+msgstr ""
+"Потрібні власні Client ID і секрет. Відкриває сторінку входу провайдера й "
+"повертає сюди."
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "help:StorageRemote.backup_keep"
+msgid ""
+"Older sets in this storage are deleted after each upload; independent of how"
+" many are kept on the server."
+msgstr ""
+"Старіші набори в цьому сховищі видаляються після кожного вивантаження; не "
+"залежить від того, скільки копій зберігається на сервері."
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "help:StorageRemote.browse_backups"
+msgid ""
+"Lists the sets in the storage; the chosen one is downloaded to the server "
+"and appears in Backups, ready for «grunt db restore»."
+msgstr ""
+"Показує набори у сховищі; вибраний завантажується на сервер і з'являється в "
+"«Резервних копіях», готовий до «grunt db restore»."
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "help:StorageRemote.cache_size_mb"
+msgid ""
+"Files fetched back from the storage are kept on the server up to this size; "
+"the least recently used are dropped at night."
+msgstr ""
+"Файли, завантажені назад зі сховища, зберігаються на сервері до цього "
+"обсягу; найдавніше використані видаляються вночі."
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "help:StorageRemote.client_id"
+msgid ""
+"Optional: your own OAuth app (Google Cloud console / Dropbox App Console / "
+"Microsoft Entra). Its redirect URI must be https://<your "
+"site>/api/v1/method/grunt.storage.cloud.oauth.callback"
+msgstr ""
+"Необов'язково: власний OAuth-додаток (Google Cloud console / Dropbox App "
+"Console / Microsoft Entra). Його redirect URI має бути https://<ваш "
+"сайт>/api/v1/method/grunt.storage.cloud.oauth.callback"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "help:StorageRemote.client_secret"
+msgid "A saved secret is not shown again — to change it, enter a new one."
+msgstr "Збережений секрет більше не показується — щоб змінити, введіть новий."
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "help:StorageRemote.encrypt"
+msgid ""
+"File contents are encrypted on the server (rclone crypt, XSalsa20-Poly1305) — the cloud keeps only ciphertext. Names stay readable.\n"
+"\n"
+"Keep the password somewhere outside this system (or use «rclone config»): without it no backup can be restored, and the password itself lives in the database you will be restoring."
+msgstr ""
+"Вміст файлів шифрується на сервері (rclone crypt, XSalsa20-Poly1305) — у хмарі лежить лише шифротекст. Імена лишаються читабельними.\n"
+"\n"
+"Збережіть пароль десь поза цією системою (або скористайтеся «rclone config»): без нього жодну копію не відновити, а сам пароль зберігається в базі, яку ви відновлюватимете."
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "help:StorageRemote.encryption_password"
+msgid "Changing it later makes everything already uploaded unreadable."
+msgstr "Якщо змінити його пізніше, усе вже вивантажене стане нечитабельним."
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "help:StorageRemote.encryption_salt"
+msgid "Optional, recommended. Same rules as the password."
+msgstr "Необов'язково, але рекомендовано. Ті самі правила, що й для пароля."
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "help:StorageRemote.endpoint"
+msgid ""
+"WebDAV — the server URL (Nextcloud: "
+"https://<server>/remote.php/dav/files/<user>/). S3 — endpoint; empty for "
+"AWS."
+msgstr ""
+"WebDAV — адреса сервера (Nextcloud: "
+"https://<сервер>/remote.php/dav/files/<користувач>/). S3 — endpoint; для AWS"
+" порожньо."
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "help:StorageRemote.oauth_account"
+msgid "Empty — not connected yet. Connect with one of the buttons below."
+msgstr "Порожньо — ще не підключено. Підключіть однією з кнопок нижче."
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "help:StorageRemote.offload_after_days"
+msgid "Files uploaded earlier than this are moved by the nightly job (04:00)."
+msgstr ""
+"Файли, завантажені раніше за цей строк, переносить нічна задача (04:00)."
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "help:StorageRemote.offload_doctypes"
+msgid ""
+"DocType names, one per line, whose attachments are moved. Empty — any file, "
+"including the library and personal files."
+msgstr ""
+"Назви DocType, по одній у рядку, вкладення яких переносяться. Порожньо — "
+"будь-які файли, зокрема бібліотека й особисті файли."
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "help:StorageRemote.offload_min_size_kb"
+msgid "0 — any size. Small files cost a request each and save little space."
+msgstr ""
+"0 — будь-якого розміру. Дрібні файли коштують запиту кожен і майже не "
+"звільняють місця."
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "help:StorageRemote.offload_public"
+msgid ""
+"Website images are better kept on the server: they are read all the time."
+msgstr "Зображення сайту краще лишати на сервері: їх читають постійно."
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "help:StorageRemote.password"
+msgid ""
+"Nextcloud — better an app password (Settings → Security). A saved password "
+"is not shown again — to change it, enter a new one."
+msgstr ""
+"Для Nextcloud краще пароль додатка (Налаштування → Безпека). Збережений "
+"пароль більше не показується — щоб змінити, введіть новий."
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "help:StorageRemote.paste_token"
+msgid ""
+"The simplest way, no app registration needed: on any computer with a browser"
+" install rclone and run the command shown in the dialog (e.g. rclone "
+"authorize \"drive\"), sign in, then paste the printed token here. Leave "
+"Client ID empty."
+msgstr ""
+"Найпростіший спосіб, без реєстрації додатка: на будь-якому комп'ютері з "
+"браузером встановіть rclone і виконайте команду з діалогу (напр. rclone "
+"authorize \"drive\"), увійдіть, потім вставте сюди виведений токен. Client "
+"ID залиште порожнім."
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "help:StorageRemote.port"
+msgid "Empty — the standard one (SFTP 22, SMB 445)."
+msgstr "Порожньо — стандартний (SFTP 22, SMB 445)."
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "help:StorageRemote.provider"
+msgid ""
+"S3 — Amazon, Cloudflare R2, Backblaze, Wasabi, MinIO and other S3-compatible"
+" storage. WebDAV — Nextcloud, ownCloud and the like. SMB — a Windows/NAS "
+"network share. Server folder — a mounted disk or NAS on this server. Other —"
+" any rclone backend (https://rclone.org/overview/)."
+msgstr ""
+"S3 — Amazon, Cloudflare R2, Backblaze, Wasabi, MinIO та інші S3-сумісні "
+"сховища. WebDAV — Nextcloud, ownCloud тощо. SMB — мережева тека Windows/NAS."
+" Тека на сервері — змонтований диск або NAS на цьому сервері. Інше — будь-"
+"який бекенд rclone (https://rclone.org/overview/)."
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "help:StorageRemote.rclone_options"
+msgid ""
+"Extra backend options, one «key = value» per line; they override the "
+"generated ones. Option names — in the backend's page on rclone.org."
+msgstr ""
+"Додаткові параметри бекенда, по одному «ключ = значення» в рядку; вони "
+"перекривають згенеровані. Назви параметрів — на сторінці бекенда на "
+"rclone.org."
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "help:StorageRemote.rclone_type"
+msgid ""
+"Name from https://rclone.org/overview/ (pcloud, yandex, b2, box, koofr…)."
+msgstr ""
+"Назва з https://rclone.org/overview/ (pcloud, yandex, b2, box, koofr…)."
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "help:StorageRemote.recall_files"
+msgid ""
+"Downloads every file kept in this storage back to the server disk (check the"
+" free space first)."
+msgstr ""
+"Завантажує всі файли з цього сховища назад на диск сервера (спершу перевірте"
+" вільне місце)."
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "help:StorageRemote.root_folder"
+msgid ""
+"Everything is kept under this folder: backups/<site>/ and files/<site>/. For"
+" S3 — bucket/path (e.g. my-bucket/grunt); for SMB — share/path; for a server"
+" folder — an absolute path (/mnt/nas/grunt)."
+msgstr ""
+"Усе зберігається в цій теці: backups/<site>/ і files/<site>/. Для S3 — "
+"bucket/шлях (напр. my-bucket/grunt); для SMB — спільна тека/шлях; для теки "
+"на сервері — абсолютний шлях (/mnt/nas/grunt)."
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "help:StorageRemote.sec_backups"
+msgid ""
+"Every new backup set (System Settings → Backups) is uploaded to each storage"
+" with this option, right after it is made, into <root "
+"folder>/backups/<site>/."
+msgstr ""
+"Кожен новий набір резервних копій («Налаштування системи» → «Резервні "
+"копії») одразу після створення вивантажується в кожне сховище з цим "
+"параметром, у <коренева тека>/backups/<site>/."
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "help:StorageRemote.sec_files"
+msgid ""
+"Moves the contents of rarely used files off the server disk. The File "
+"record, previews and access rules stay; on the first request the file is "
+"fetched back into a local cache. Only one storage can hold files."
+msgstr ""
+"Переносить вміст рідко використовуваних файлів з диска сервера. Запис File, "
+"прев'ю й права доступу лишаються; при першому запиті файл завантажується "
+"назад у локальний кеш. Зберігати файли може лише одне сховище."
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "help:StorageRemote.secret_access_key"
+msgid "A saved secret is not shown again — to change it, enter a new one."
+msgstr "Збережений секрет більше не показується — щоб змінити, введіть новий."
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "help:StorageRemote.show_config"
+msgid ""
+"The same storage as an rclone.conf section — keep it outside the system to "
+"get backups back with plain rclone if the server is lost."
+msgstr ""
+"Це сховище як секція rclone.conf — збережіть її поза системою, щоб забрати "
+"копії звичайним rclone, якщо сервер буде втрачено."
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "help:StorageRemote.ssh_private_key"
+msgid ""
+"Instead of a password: the PEM key (-----BEGIN OPENSSH PRIVATE KEY----- …). "
+"Not shown again after saving."
+msgstr ""
+"Замість пароля: PEM-ключ (-----BEGIN OPENSSH PRIVATE KEY----- …). Після "
+"збереження не показується."
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "help:StorageRemote.test_connection"
+msgid ""
+"Creates the root folder, writes and deletes a small test file. Save your "
+"changes first."
+msgstr ""
+"Створює кореневу теку, записує й видаляє невеликий тестовий файл. Спершу "
+"збережіть зміни."
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "help:StorageRemote.title"
+msgid "How this storage is shown in lists and in the backup status."
+msgstr "Як це сховище показується у списках і в стані резервних копій."
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "help:StorageRemote.username"
+msgid "MEGA — the account email."
+msgstr "MEGA — email облікового запису."
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "hint:StorageRemote.endpoint"
+msgid "https://cloud.example.com/remote.php/dav/files/user/"
+msgstr "https://cloud.example.com/remote.php/dav/files/user/"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "hint:StorageRemote.offload_doctypes"
+msgid ""
+"IncomingLetter\n"
+"OutgoingLetter"
+msgstr ""
+"IncomingLetter\n"
+"OutgoingLetter"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "hint:StorageRemote.rclone_options"
+msgid "chunk_size = 64M"
+msgstr "chunk_size = 64M"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "hint:StorageRemote.rclone_type"
+msgid "pcloud"
+msgstr "pcloud"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "hint:StorageRemote.title"
+msgid "Google Drive of the IT department"
+msgstr "Google Drive ІТ-відділу"
+
+#: grunt/grunt/backups/doctypes/Backup/Backup.json
+msgctxt "meta:Backup.in_cloud"
+msgid "In cloud storage"
+msgstr "У хмарних сховищах"
+
+#: grunt/grunt/storage/doctypes/File/File.json
+msgctxt "meta:File.storage_remote"
+msgid "In cloud storage"
+msgstr "У хмарному сховищі"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote"
+msgid "Cloud Storage"
+msgstr "Хмарне сховище"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.access_key_id"
+msgid "Access key ID"
+msgstr "Access key ID"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.authorize"
+msgid "Sign in through the browser"
+msgstr "Увійти через браузер"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.backup_keep"
+msgid "Copies to keep here"
+msgstr "Скільки копій тримати тут"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.browse_backups"
+msgid "Backups in this storage"
+msgstr "Резервні копії в цьому сховищі"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.cache_size_mb"
+msgid "Local cache, MB"
+msgstr "Локальний кеш, МБ"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.client_id"
+msgid "Client ID"
+msgstr "Client ID"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.client_secret"
+msgid "Client secret"
+msgstr "Client secret"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.domain"
+msgid "Domain"
+msgstr "Домен"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.enabled"
+msgid "Enabled"
+msgstr "Увімкнено"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.encrypt"
+msgid "Encrypt before sending"
+msgstr "Шифрувати перед відправкою"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.encryption_password"
+msgid "Encryption password"
+msgstr "Пароль шифрування"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.encryption_salt"
+msgid "Second password (salt)"
+msgstr "Другий пароль (сіль)"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.endpoint"
+msgid "Address (URL)"
+msgstr "Адреса (URL)"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.host"
+msgid "Host"
+msgstr "Хост"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.last_backup_at"
+msgid "Last upload"
+msgstr "Останнє вивантаження"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.last_backup_id"
+msgid "Last uploaded set"
+msgstr "Останній вивантажений набір"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.last_check_at"
+msgid "Last checked"
+msgstr "Остання перевірка"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.last_error"
+msgid "Last error"
+msgstr "Остання помилка"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.last_status"
+msgid "Status"
+msgstr "Стан"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.oauth_account"
+msgid "Connected account"
+msgstr "Підключений обліковий запис"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.oauth_connected_at"
+msgid "Connected at"
+msgstr "Підключено"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.oauth_extra"
+msgid "OAuth extra"
+msgstr "Дані OAuth"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.oauth_token"
+msgid "OAuth token"
+msgstr "OAuth-токен"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.offload_after_days"
+msgid "Older than, days"
+msgstr "Старші за, днів"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.offload_doctypes"
+msgid "Only files of"
+msgstr "Лише файли з"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.offload_min_size_kb"
+msgid "Larger than, KB"
+msgstr "Більші за, КБ"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.offload_now"
+msgid "Move files now"
+msgstr "Перенести файли зараз"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.offload_public"
+msgid "Public files too"
+msgstr "І публічні файли"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.offloaded_files"
+msgid "Files in the storage"
+msgstr "Файлів у сховищі"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.offloaded_size"
+msgid "Their size"
+msgstr "Їхній розмір"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.password"
+msgid "Password"
+msgstr "Пароль"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.paste_token"
+msgid "Paste a token from rclone"
+msgstr "Вставити токен з rclone"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.port"
+msgid "Port"
+msgstr "Порт"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.provider"
+msgid "Storage type"
+msgstr "Тип сховища"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.quota"
+msgid "Space"
+msgstr "Місце"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.rclone_options"
+msgid "rclone options"
+msgstr "Параметри rclone"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.rclone_type"
+msgid "rclone backend"
+msgstr "Бекенд rclone"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.recall_files"
+msgid "Return all files to the server"
+msgstr "Повернути всі файли на сервер"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.region"
+msgid "Region"
+msgstr "Регіон"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.root_folder"
+msgid "Root folder"
+msgstr "Коренева тека"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.s3_provider"
+msgid "S3 provider"
+msgstr "Провайдер S3"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.sec_advanced"
+msgid "Advanced (rclone)"
+msgstr "Додатково (rclone)"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.sec_creds"
+msgid "Credentials"
+msgstr "Облікові дані"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.sec_encryption"
+msgid "Encryption"
+msgstr "Шифрування"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.sec_oauth"
+msgid "Account access"
+msgstr "Доступ до облікового запису"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.secret_access_key"
+msgid "Secret access key"
+msgstr "Secret access key"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.show_config"
+msgid "Show rclone config"
+msgstr "Показати конфіг rclone"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.ssh_private_key"
+msgid "SSH private key"
+msgstr "Приватний SSH-ключ"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.tab_backups"
+msgid "Backups"
+msgstr "Резервні копії"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.tab_connection"
+msgid "Connection"
+msgstr "Підключення"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.tab_files"
+msgid "Files"
+msgstr "Файли"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.test_connection"
+msgid "Test connection"
+msgstr "Перевірити з'єднання"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.title"
+msgid "Name"
+msgstr "Назва"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.upload_latest"
+msgid "Upload the latest backup now"
+msgstr "Вивантажити останню копію зараз"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.use_for_backups"
+msgid "Upload backups here"
+msgstr "Вивантажувати резервні копії сюди"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.use_for_files"
+msgid "Move old files here"
+msgstr "Переносити старі файли сюди"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.username"
+msgid "User"
+msgstr "Користувач"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "meta:StorageRemote.webdav_vendor"
+msgid "WebDAV server"
+msgstr "Сервер WebDAV"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "select:StorageRemote.last_status"
+msgid "Error"
+msgstr "Помилка"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "select:StorageRemote.last_status"
+msgid "OK"
+msgstr "OK"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "select:StorageRemote.provider"
+msgid "Dropbox"
+msgstr "Dropbox"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "select:StorageRemote.provider"
+msgid "Google Drive"
+msgstr "Google Drive"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "select:StorageRemote.provider"
+msgid "MEGA"
+msgstr "MEGA"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "select:StorageRemote.provider"
+msgid "OneDrive"
+msgstr "OneDrive"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "select:StorageRemote.provider"
+msgid "Other"
+msgstr "Інше (rclone)"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "select:StorageRemote.provider"
+msgid "S3"
+msgstr "S3"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "select:StorageRemote.provider"
+msgid "SFTP"
+msgstr "SFTP"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "select:StorageRemote.provider"
+msgid "SMB"
+msgstr "SMB (мережева тека)"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "select:StorageRemote.provider"
+msgid "Server folder"
+msgstr "Тека на сервері"
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+msgctxt "select:StorageRemote.provider"
+msgid "WebDAV"
+msgstr "WebDAV"
+
+#: grunt/frontend/src/components/views/sidebar/CommentReactions.vue:51
+msgid "Add reaction"
+msgstr "Додати реакцію"
+
+#: grunt/grunt/activity/doctypes/CommentReaction/comment_reaction.py:23
+msgid "This reaction is not available"
+msgstr "Така реакція недоступна"
+
+#: grunt/grunt/activity/doctypes/CommentReaction/comment_reaction.py:42
+msgid "You already reacted this way"
+msgstr "Ви вже залишили таку реакцію"
+
+#: grunt/grunt/activity/reactions.py:80
+#: grunt/grunt/activity/doctypes/CommentReaction/comment_reaction.py:29
+msgid "Comment not found"
+msgstr "Коментар не знайдено"
+
+#: grunt/frontend/src/components/views/sidebar/SidebarTags.vue:76
+msgid "No tags"
+msgstr "Без тегів"
+
+#: grunt/frontend/src/components/desk/OnboardingChecklists.vue:92
+msgid "All set - every step is done."
+msgstr "Готово - усі кроки виконано."
+
+#: grunt/grunt/monitoring/health.py:764
+msgid "Database migrations"
+msgstr ""
+
+#: grunt/frontend/src/components/desk/OnboardingChecklists.vue:79
+#: grunt/frontend/src/components/desk/OnboardingChecklists.vue:81
+msgid "Hide checklist"
+msgstr "Сховати чеклист"
+
+#: grunt/grunt/site/onboarding.py:144
+msgid "Onboarding not found"
+msgstr "Чеклист не знайдено"
+
+#: grunt/grunt/monitoring/health.py:780
+msgid "Pending migrations. Run `grunt migrate`."
+msgstr ""
+
+#: grunt/grunt/document/validation.py:140
+msgid "Row %(idx)s: %(error)s"
+msgstr ""
+
+#: grunt/frontend/src/core/composables/useFormValidation.ts:69
+msgid "Row {row}: {field} - {error}"
+msgstr ""
+
+#: grunt/frontend/src/components/desk/OnboardingChecklists.vue:50
+msgid "Set up"
+msgstr "Налаштувати"
+
+#: grunt/frontend/src/components/desk/OnboardingChecklists.vue:111
+msgid "Skip"
+msgstr "Пропустити"
+
+#: grunt/grunt/site/onboarding.py:162
+msgid "Step not found"
+msgstr "Крок не знайдено"
+
+#: grunt/grunt/site/doctypes/ModuleOnboarding/module_onboarding.py:29
+msgid "Step “%(step)s”: DocType “%(doctype)s” not found"
+msgstr "Крок «%(step)s»: DocType «%(doctype)s» не знайдено"
+
+#: grunt/grunt/monitoring/health.py:771
+msgid "The database was migrated by a newer release than the running code."
+msgstr ""
+
+#: grunt/grunt/monitoring/health.py:742
+msgid "The database was migrated with %(version)s. Run `grunt migrate`."
+msgstr ""
+
+#: grunt/grunt/monitoring/health.py:733
+msgid ""
+"The database was migrated with newer code (%(version)s). Restart the server."
+msgstr ""
+
+#: grunt/grunt/auth/providers/oauth.py:121
+msgid "The provider did not confirm this email address"
+msgstr ""
+
+#: grunt/grunt/site/onboarding.py:164
+msgid "Unknown step status"
+msgstr "Невідомий статус кроку"
+
+#: grunt/frontend/src/components/desk/OnboardingChecklists.vue:53
+msgid "Watch"
+msgstr "Переглянути"
+
+#: grunt/grunt/activity/doctypes/CommentReaction/CommentReaction.json
+msgctxt "help:CommentReaction"
+msgid ""
+"A user's emoji reaction on one comment (the chips under comments in the "
+"timeline)."
+msgstr ""
+"Емодзі-реакція користувача на коментар (позначки під коментарями в "
+"хронології)."
+
+#: grunt/grunt/site/doctypes/ModuleOnboarding/ModuleOnboarding.json
+msgctxt "help:ModuleOnboarding"
+msgid ""
+"A \"first steps\" checklist shown on an app's home and on the desk home "
+"until its steps are done."
+msgstr ""
+"Чеклист «перших кроків» на головній сторінці додатка і на стартовій, доки "
+"кроки не виконано."
+
+#: grunt/grunt/site/doctypes/ModuleOnboarding/ModuleOnboarding.json
+msgctxt "help:ModuleOnboarding.app"
+msgid "Shown on this app's home; on the desk home in any case"
+msgstr ""
+"Показується на головній сторінці цього додатка; на стартовій - у будь-якому "
+"разі"
+
+#: grunt/grunt/site/doctypes/ModuleOnboarding/ModuleOnboarding.json
+msgctxt "help:ModuleOnboarding.is_standard"
+msgid "Ships with the app as JSON files - edits are saved to the app"
+msgstr "Постачається з додатком як JSON-файли - зміни зберігаються в додаток"
+
+#: grunt/grunt/site/doctypes/ModuleOnboarding/ModuleOnboarding.json
+msgctxt "help:ModuleOnboarding.progress_scope"
+msgid ""
+"Site - one shared checklist (system setup). User - everyone goes through it "
+"on their own (a step counts their own records)"
+msgstr ""
+"Сайт - один спільний чеклист (налаштування системи). Користувач - кожен "
+"проходить сам (крок враховує його власні записи)"
+
+#: grunt/grunt/site/doctypes/ModuleOnboarding/ModuleOnboarding.json
+msgctxt "help:ModuleOnboarding.roles"
+msgid "Who sees the checklist; empty - everyone. System Manager always does"
+msgstr "Хто бачить чеклист; порожньо - усі. System Manager бачить завжди"
+
+#: grunt/grunt/site/doctypes/OnboardingProgress/OnboardingProgress.json
+msgctxt "help:OnboardingProgress"
+msgid ""
+"Steps marked done or skipped and checklists hidden - for the site or per "
+"user."
+msgstr ""
+"Кроки, позначені виконаними чи пропущеними, і сховані чеклисти - для сайту "
+"або для користувача."
+
+#: grunt/grunt/site/doctypes/OnboardingProgress/OnboardingProgress.json
+msgctxt "help:OnboardingProgress.step_id"
+msgid "Empty - the whole checklist (hidden)"
+msgstr "Порожньо - увесь чеклист (схований)"
+
+#: grunt/grunt/site/doctypes/OnboardingProgress/OnboardingProgress.json
+msgctxt "help:OnboardingProgress.user"
+msgid "Empty - the site's progress"
+msgstr "Порожньо - прогрес сайту"
+
+#: grunt/grunt/site/doctypes/OnboardingStep/OnboardingStep.json
+msgctxt "help:OnboardingStep.action"
+msgid ""
+"Create Entry and Update Settings complete by themselves once the record "
+"exists or the setting is filled in; the others - when opened"
+msgstr ""
+"«Створити запис» і «Оновити налаштування» виконуються самі, щойно запис "
+"з'явився чи налаштування заповнено; решта - коли їх відкрито"
+
+#: grunt/grunt/site/doctypes/OnboardingStep/OnboardingStep.json
+msgctxt "help:OnboardingStep.field"
+msgid "Settings field that has to be filled in"
+msgstr "Поле налаштувань, яке має бути заповнене"
+
+#: grunt/grunt/site/doctypes/OnboardingStep/OnboardingStep.json
+msgctxt "help:OnboardingStep.route"
+msgid "Desk path (/app/...) or a full URL"
+msgstr "Шлях у системі (/app/...) або повна адреса"
+
+#: grunt/grunt/site/doctypes/OnboardingStep/OnboardingStep.json
+msgctxt "help:OnboardingStep.step_id"
+msgid ""
+"Keeps the step's progress when the checklist changes; set from the title"
+msgstr "Зберігає прогрес кроку, коли чеклист змінюється; задається з назви"
+
+#: grunt/grunt/site/doctypes/OnboardingStep/OnboardingStep.json
+msgctxt "help:OnboardingStep.value_to_validate"
+msgid "Empty or % - any non-empty value"
+msgstr "Порожньо або % - будь-яке непорожнє значення"
+
+#: grunt/grunt/site/doctypes/Page/Page.json
+msgctxt "help:Page.app"
+msgid "A published page of an app is offered as a dashboard on the app's home"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgctxt "help:SystemSettings.comment_reactions"
+msgid ""
+"Emoji people can put under comments, separated by spaces. Empty - reactions "
+"are off"
+msgstr ""
+"Емодзі, які можна ставити під коментарями, через пробіл. Порожньо - реакції "
+"вимкнено"
+
+#: grunt/grunt/activity/doctypes/CommentReaction/CommentReaction.json
+msgctxt "meta:CommentReaction"
+msgid "Comment reaction"
+msgstr "Реакція на коментар"
+
+#: grunt/grunt/activity/doctypes/CommentReaction/CommentReaction.json
+msgctxt "meta:CommentReaction.comment"
+msgid "Comment"
+msgstr "Коментар"
+
+#: grunt/grunt/activity/doctypes/CommentReaction/CommentReaction.json
+msgctxt "meta:CommentReaction.emoji"
+msgid "Reaction"
+msgstr "Реакція"
+
+#: grunt/grunt/activity/doctypes/CommentReaction/CommentReaction.json
+msgctxt "meta:CommentReaction.user"
+msgid "User"
+msgstr "Користувач"
+
+#: grunt/grunt/site/doctypes/ModuleOnboarding/ModuleOnboarding.json
+msgctxt "meta:ModuleOnboarding"
+msgid "Module onboarding"
+msgstr "Перші кроки модуля"
+
+#: grunt/grunt/site/doctypes/ModuleOnboarding/ModuleOnboarding.json
+msgctxt "meta:ModuleOnboarding.app"
+msgid "App"
+msgstr "Додаток"
+
+#: grunt/grunt/site/doctypes/ModuleOnboarding/ModuleOnboarding.json
+msgctxt "meta:ModuleOnboarding.documentation_url"
+msgid "Documentation URL"
+msgstr "Посилання на документацію"
+
+#: grunt/grunt/site/doctypes/ModuleOnboarding/ModuleOnboarding.json
+msgctxt "meta:ModuleOnboarding.is_published"
+msgid "Published"
+msgstr "Опубліковано"
+
+#: grunt/grunt/site/doctypes/ModuleOnboarding/ModuleOnboarding.json
+msgctxt "meta:ModuleOnboarding.is_standard"
+msgid "Standard"
+msgstr "Стандартний"
+
+#: grunt/grunt/site/doctypes/ModuleOnboarding/ModuleOnboarding.json
+msgctxt "meta:ModuleOnboarding.progress_scope"
+msgid "Progress"
+msgstr "Прогрес"
+
+#: grunt/grunt/site/doctypes/ModuleOnboarding/ModuleOnboarding.json
+msgctxt "meta:ModuleOnboarding.roles"
+msgid "Roles (comma-separated)"
+msgstr "Ролі (через кому)"
+
+#: grunt/grunt/site/doctypes/ModuleOnboarding/ModuleOnboarding.json
+msgctxt "meta:ModuleOnboarding.steps"
+msgid "Steps"
+msgstr "Кроки"
+
+#: grunt/grunt/site/doctypes/ModuleOnboarding/ModuleOnboarding.json
+msgctxt "meta:ModuleOnboarding.subtitle"
+msgid "Subtitle"
+msgstr "Підзаголовок"
+
+#: grunt/grunt/site/doctypes/ModuleOnboarding/ModuleOnboarding.json
+msgctxt "meta:ModuleOnboarding.success_message"
+msgid "Success message"
+msgstr "Повідомлення про завершення"
+
+#: grunt/grunt/site/doctypes/ModuleOnboarding/ModuleOnboarding.json
+msgctxt "meta:ModuleOnboarding.title"
+msgid "Title"
+msgstr "Назва"
+
+#: grunt/grunt/site/doctypes/OnboardingProgress/OnboardingProgress.json
+msgctxt "meta:OnboardingProgress"
+msgid "Onboarding progress"
+msgstr "Прогрес перших кроків"
+
+#: grunt/grunt/site/doctypes/OnboardingProgress/OnboardingProgress.json
+msgctxt "meta:OnboardingProgress.onboarding"
+msgid "Onboarding"
+msgstr "Чеклист"
+
+#: grunt/grunt/site/doctypes/OnboardingProgress/OnboardingProgress.json
+msgctxt "meta:OnboardingProgress.status"
+msgid "Status"
+msgstr "Статус"
+
+#: grunt/grunt/site/doctypes/OnboardingProgress/OnboardingProgress.json
+msgctxt "meta:OnboardingProgress.step_id"
+msgid "Step"
+msgstr "Крок"
+
+#: grunt/grunt/site/doctypes/OnboardingProgress/OnboardingProgress.json
+msgctxt "meta:OnboardingProgress.user"
+msgid "User"
+msgstr "Користувач"
+
+#: grunt/grunt/site/doctypes/OnboardingStep/OnboardingStep.json
+msgctxt "meta:OnboardingStep"
+msgid "Onboarding step"
+msgstr "Крок перших кроків"
+
+#: grunt/grunt/site/doctypes/OnboardingStep/OnboardingStep.json
+msgctxt "meta:OnboardingStep.action"
+msgid "Action"
+msgstr "Дія"
+
+#: grunt/grunt/site/doctypes/OnboardingStep/OnboardingStep.json
+msgctxt "meta:OnboardingStep.action_label"
+msgid "Button label"
+msgstr "Напис на кнопці"
+
+#: grunt/grunt/site/doctypes/OnboardingStep/OnboardingStep.json
+msgctxt "meta:OnboardingStep.description"
+msgid "Description"
+msgstr "Опис"
+
+#: grunt/grunt/site/doctypes/OnboardingStep/OnboardingStep.json
+msgctxt "meta:OnboardingStep.field"
+msgid "Field"
+msgstr "Поле"
+
+#: grunt/grunt/site/doctypes/OnboardingStep/OnboardingStep.json
+msgctxt "meta:OnboardingStep.reference_doctype"
+msgid "Document type"
+msgstr "Тип документа"
+
+#: grunt/grunt/site/doctypes/OnboardingStep/OnboardingStep.json
+msgctxt "meta:OnboardingStep.report"
+msgid "Report"
+msgstr "Звіт"
+
+#: grunt/grunt/site/doctypes/OnboardingStep/OnboardingStep.json
+msgctxt "meta:OnboardingStep.route"
+msgid "Address"
+msgstr "Адреса"
+
+#: grunt/grunt/site/doctypes/OnboardingStep/OnboardingStep.json
+msgctxt "meta:OnboardingStep.step_id"
+msgid "Step ID"
+msgstr "ID кроку"
+
+#: grunt/grunt/site/doctypes/OnboardingStep/OnboardingStep.json
+msgctxt "meta:OnboardingStep.title"
+msgid "Title"
+msgstr "Назва"
+
+#: grunt/grunt/site/doctypes/OnboardingStep/OnboardingStep.json
+msgctxt "meta:OnboardingStep.value_to_validate"
+msgid "Expected value"
+msgstr "Очікуване значення"
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgctxt "meta:SystemSettings.comment_reactions"
+msgid "Comment reactions"
+msgstr "Реакції на коментарі"
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgctxt "meta:SystemSettings.sec_collaboration"
+msgid "Collaboration"
+msgstr "Спільна робота"
+
+#~ msgctxt "help:Backup"
+#~ msgid ""
+#~ "Site backups in sites/<site>/backups/: database, uploaded files, "
+#~ "configuration. Schedule and number of copies — in System Settings → Backups."
+#~ msgstr ""
+#~ "Резервні копії сайту в sites/<site>/backups/: база даних, завантажені файли,"
+#~ " конфігурація. Розклад і кількість копій — у Системних налаштуваннях → "
+#~ "Backups."
 
 #~ msgctxt "meta:WebForm"
 #~ msgid "Web form"
@@ -16643,9 +18127,6 @@ msgstr ""
 #~ msgstr ""
 #~ "%(site)s — це потужний фреймворк для створення сучасних бізнес-додатків з "
 #~ "українською душею та глобальними стандартами."
-
-#~ msgid "Documentation"
-#~ msgstr "Документація"
 
 #~ msgid "Grunt platform"
 #~ msgstr "Платформа Ґрунт"
@@ -20714,1117 +22195,28 @@ msgstr ""
 #~ "zstd, 1–19. Вищий — менший файл, але довше: 9 — оптимальний баланс, 19 — "
 #~ "найменший розмір. Застосовується і до «Створити зараз»."
 
-#: grunt/grunt/auth/doctypes/UserSession/UserSession.json
-msgctxt "meta:UserSession.device_id"
-msgid "Device ID"
-msgstr "ID пристрою"
-
-#: grunt/grunt/auth/doctypes/UserSession/UserSession.json
-msgctxt "meta:UserSession.logins"
-msgid "Sign-ins"
-msgstr "Входи"
-
-#: grunt/grunt/auth/doctypes/UserSessionLogin/UserSessionLogin.json
-msgctxt "meta:UserSessionLogin"
-msgid "Session sign-in"
-msgstr "Вхід у сесію"
-
-#: grunt/grunt/auth/doctypes/UserSessionLogin/UserSessionLogin.json
-msgctxt "meta:UserSessionLogin.login_at"
-msgid "Signed in at"
-msgstr "Час входу"
-
-#: grunt/grunt/auth/doctypes/UserSessionLogin/UserSessionLogin.json
-msgctxt "meta:UserSessionLogin.ip_address"
-msgid "IP address"
-msgstr "IP-адреса"
-
-#: grunt/grunt/auth/doctypes/UserSessionLogin/UserSessionLogin.json
-msgctxt "meta:UserSessionLogin.method"
-msgid "Method"
-msgstr "Спосіб"
-
-#: grunt/grunt/auth/doctypes/UserSessionLogin/UserSessionLogin.json
-msgctxt "meta:UserSessionLogin.user_agent"
-msgid "Browser / client"
-msgstr "Браузер / клієнт"
-
-#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
-msgctxt "meta:SystemSettings.session_login_history"
-msgid "Sign-ins kept per device"
-msgstr "Скільки входів зберігати на пристрій"
-
-#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
-msgctxt "help:SystemSettings.session_login_history"
-msgid "A browser keeps one session record; its latest sign-ins are listed inside it."
-msgstr "Один браузер — один запис сесії; останні входи з нього показано всередині запису."
-
-#: grunt/grunt/storage/doctypes/StorageRemote/storage_remote.py:146
-msgid "%(free)s free of %(total)s"
-msgstr "вільно %(free)s з %(total)s"
-
-#: grunt/grunt/storage/cloud/files.py:295
-msgid "%(n)s files could not be returned (missing or damaged in the storage)"
-msgstr ""
-"Не вдалося повернути файлів: %(n)s (у сховищі їх немає або вони пошкоджені)"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/storage_remote.py:151
-msgid "%(used)s used"
-msgstr "використано %(used)s"
-
-#: grunt/grunt/monitoring/health.py:682
-msgid "Apps use apps/grunt/.venv. Delete: %(paths)s"
-msgstr "Додатки використовують apps/grunt/.venv. Видаліть: %(paths)s"
-
-#: grunt/grunt/storage/cloud/backups.py:194
-msgid "Backup %(id)s is already on the server"
-msgstr "Резервна копія %(id)s уже є на сервері"
-
-#: grunt/grunt/storage/cloud/backups.py:199
-msgid "Backup %(id)s not found in the storage"
-msgstr "Резервну копію %(id)s не знайдено у сховищі"
-
-#: grunt/grunt/monitoring/health.py:618
-msgid "Backups are not reaching this storage; see its status."
-msgstr "Резервні копії не потрапляють у це сховище — перегляньте його стан."
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:148
-#: grunt/grunt/backups/doctypes/Backup/Backup.js:93
-msgid "Backups in the storage"
-msgstr "Резервні копії у сховищі"
-
-#: grunt/grunt/monitoring/health.py:569
-msgid "Backups stay on this server only."
-msgstr "Резервні копії зберігаються лише на цьому сервері."
-
-#: grunt/grunt/monitoring/health.py:595
-msgid "Click Test connection in the storage."
-msgstr "Натисніть «Перевірити з'єднання» у сховищі."
-
-#: grunt/grunt/monitoring/health.py:564 grunt/grunt/monitoring/health.py:775
-#: grunt/grunt/backups/doctypes/Backup/Backup.js:84
-msgid "Cloud storage"
-msgstr "Хмарні сховища"
-
-#: grunt/grunt/storage/cloud/__init__.py:133
-msgid "Cloud storage “%(name)s” is failing"
-msgstr "Хмарне сховище «%(name)s» не працює"
-
-#: grunt/grunt/storage/cloud/__init__.py:106
-msgid "Cloud storage “%(name)s”: %(error)s"
-msgstr "Хмарне сховище «%(name)s»: %(error)s"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:67
-msgid "Connect"
-msgstr "Підключити"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:58
-msgid "Connection works"
-msgstr "З'єднання працює"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:78
-msgid "Copy the whole line rclone prints (it starts with access_token) and paste it below"
-msgstr "Скопіюйте весь рядок, який виведе rclone (він починається з access_token), і вставте нижче"
-
-#: grunt/grunt/storage/cloud/oauth.py:143
-msgid "Could not read the OneDrive drive of this account"
-msgstr "Не вдалося прочитати диск OneDrive цього облікового запису"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:134
-msgid "Download every file kept in this storage back to the server disk?"
-msgstr "Завантажити всі файли з цього сховища назад на диск сервера?"
-
-#: grunt/grunt/storage/cloud/tasks.py:78
-msgid "Download from cloud storage"
-msgstr "Завантаження з хмарного сховища"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:166
-#: grunt/grunt/backups/doctypes/Backup/Backup.js:111
-msgid "Download started"
-msgstr "Завантаження розпочато"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:150
-#: grunt/grunt/backups/doctypes/Backup/Backup.js:95
-msgid "Download to the server"
-msgstr "Завантажити на сервер"
-
-#: grunt/grunt/storage/cloud/files.py:263
-msgid "Downloading %(n)s files"
-msgstr "Завантаження файлів: %(n)s"
-
-#: grunt/grunt/storage/cloud/rclone.py:101
-msgid "Encryption is on, but no encryption password is set"
-msgstr "Шифрування увімкнено, але пароль шифрування не задано"
-
-#: grunt/grunt/storage/cloud/oauth.py:180
-msgid "Enter the Client ID and secret of your app and save first"
-msgstr "Спершу введіть Client ID і секрет свого додатка та збережіть"
-
-#: grunt/grunt/storage/cloud/providers.py:139
-msgid "Enter the rclone backend type"
-msgstr "Вкажіть тип бекенда rclone"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/storage_remote.py:85
-msgid "Files are already moved to “%(name)s”; only one storage can hold files"
-msgstr ""
-"Файли вже переносяться в «%(name)s»; зберігати файли може лише одне сховище"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/storage_remote.py:109
-msgid ""
-"Files are kept in this storage: return them to the server before deleting it"
-msgstr ""
-"У цьому сховищі зберігаються файли: поверніть їх на сервер, перш ніж "
-"видаляти його"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/storage_remote.py:100
-msgid ""
-"Files are kept in this storage: return them to the server first (Files → "
-"Return all files), then change where or how they are stored"
-msgstr ""
-"У цьому сховищі зберігаються файли: спершу поверніть їх на сервер («Файли» →"
-" «Повернути всі файли на сервер»), потім змінюйте, де або як вони "
-"зберігаються"
-
-#: grunt/grunt/monitoring/health.py:625
-msgid "Files in “%(name)s”"
-msgstr "Файли в «%(name)s»"
-
-#: grunt/grunt/backups/doctypes/Backup/Backup.js:73
-#: grunt/grunt/backups/doctypes/Backup/Backup.js:82
-msgid "From cloud storage"
-msgstr "З хмарного сховища"
-
-#: grunt/grunt/monitoring/health.py:578
-msgid "Install rclone: https://rclone.org/install/"
-msgstr "Встановіть rclone: https://rclone.org/install/"
-
-#: grunt/grunt/monitoring/health.py:611
-msgid "Latest backup in “%(name)s”"
-msgstr "Остання копія в «%(name)s»"
-
-#: grunt/grunt/monitoring/health.py:632
-msgid "Local cache of cloud files"
-msgstr "Локальний кеш хмарних файлів"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:128
-msgid "Move the files that fit the rules to the storage now?"
-msgstr "Перенести у сховище файли, що відповідають правилам, зараз?"
-
-#: grunt/grunt/storage/cloud/files.py:218
-msgid "Moving %(n)s files to the storage"
-msgstr "Перенесення файлів у сховище: %(n)s"
-
-#: grunt/grunt/storage/cloud/tasks.py:112
-msgid "Moving files to cloud storage"
-msgstr "Перенесення файлів у хмарне сховище"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:130
-msgid "Moving started"
-msgstr "Перенесення розпочато"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:144
-#: grunt/grunt/backups/doctypes/Backup/Backup.js:89
-msgid "No backups in this storage yet"
-msgstr "У цьому сховищі ще немає резервних копій"
-
-#: grunt/grunt/storage/cloud/oauth.py:215
-msgid "No code returned"
-msgstr "Код авторизації не повернуто"
-
-#: grunt/grunt/storage/cloud/files.py:259
-msgid "Not enough free disk space: %(need)s MB needed, %(free)s MB free"
-msgstr ""
-"Недостатньо вільного місця на диску: потрібно %(need)s МБ, вільно %(free)s "
-"МБ"
-
-#: grunt/grunt/monitoring/health.py:708
-msgid "Not loaded: %(reason)s"
-msgstr "Не завантажено: %(reason)s"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:75
-msgid "On any computer with a browser install rclone"
-msgstr "На будь-якому комп'ютері з браузером встановіть rclone"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:156
-#: grunt/grunt/backups/doctypes/Backup/Backup.js:101
-msgid "On the server"
-msgstr "На сервері"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:154
-#: grunt/grunt/backups/doctypes/Backup/Backup.js:99
-msgid "Parts"
-msgstr "Частини"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:66
-msgid "Paste a token from rclone"
-msgstr "Вставити токен з rclone"
-
-#: grunt/grunt/storage/cloud/tasks.py:124
-msgid "Returning files from cloud storage"
-msgstr "Повернення файлів із хмарного сховища"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:136
-msgid "Returning started"
-msgstr "Повернення розпочато"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:76
-msgid "Run in a terminal"
-msgstr "Виконайте в терміналі"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:112
-msgid ""
-"Save it as rclone.conf somewhere outside this system. Passwords are only "
-"obscured, not encrypted — keep the file private. To get a backup back: "
-"rclone copy secret:backups/<site>/ ./ (or remote: without encryption)."
-msgstr ""
-"Збережіть це як rclone.conf десь поза цією системою. Паролі в ньому лише "
-"замасковані, не зашифровані — тримайте файл у таємниці. Щоб забрати резервну"
-" копію: rclone copy secret:backups/<site>/ ./ (без шифрування — remote:)."
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:29
-msgid "Save the storage first"
-msgstr "Спершу збережіть сховище"
-
-#: grunt/grunt/monitoring/health.py:679
-msgid "Separate app environments"
-msgstr "Окремі середовища додатків"
-
-#: grunt/grunt/backups/doctypes/Backup/Backup.js:83
-msgid "Show backups"
-msgstr "Показати копії"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:77
-msgid "Sign in in the browser window that opens and allow access"
-msgstr "Увійдіть у вікні браузера, що відкриється, і дозвольте доступ"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:94
-msgid "Sign in through the browser"
-msgstr "Увійти через браузер"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:18
-msgid "Sign-in failed"
-msgstr "Не вдалося увійти"
-
-#: grunt/grunt/storage/cloud/__init__.py:55
-msgid "Storage “%(name)s” not found"
-msgstr "Сховище «%(name)s» не знайдено"
-
-#: grunt/grunt/monitoring/health.py:569
-msgid "Storages"
-msgstr "Сховища"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:17
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:86
-msgid "The account is connected"
-msgstr "Обліковий запис підключено"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:151
-#: grunt/grunt/backups/doctypes/Backup/Backup.js:96
-msgid ""
-"The chosen set appears in Backups; restore it with «grunt db restore <id>» "
-"on the server."
-msgstr ""
-"Вибраний набір з'явиться в «Резервних копіях»; відновіть його на сервері "
-"командою «grunt db restore <id>»."
-
-#: grunt/grunt/storage/cloud/files.py:123
-msgid "The file from the storage is damaged: %(key)s"
-msgstr "Файл зі сховища пошкоджено: %(key)s"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:93
-msgid "The redirect URI registered in your app must be exactly"
-msgstr "Redirect URI, зареєстрований у вашому додатку, має бути саме таким"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/storage_remote.py:142
-msgid "The test file read back differs from what was written"
-msgstr "Прочитаний тестовий файл відрізняється від записаного"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:162
-#: grunt/grunt/backups/doctypes/Backup/Backup.js:107
-msgid "This backup is already on the server"
-msgstr "Ця резервна копія вже є на сервері"
-
-#: grunt/grunt/storage/cloud/oauth.py:104
-msgid ""
-"This is not an rclone token: paste the whole {…} line printed by rclone "
-"authorize"
-msgstr ""
-"Це не токен rclone: вставте весь рядок {…}, який виводить rclone authorize"
-
-#: grunt/grunt/storage/cloud/oauth.py:178
-#: grunt/grunt/storage/cloud/oauth.py:220
-msgid "This storage type does not sign in through a browser"
-msgstr "Для цього типу сховища вхід через браузер не передбачено"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:81
-msgid "Token"
-msgstr "Токен"
-
-#: grunt/grunt/storage/cloud/providers.py:183
-msgid "Unknown storage type: %(name)s"
-msgstr "Невідомий тип сховища: %(name)s"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:120
-msgid "Upload started"
-msgstr "Вивантаження розпочато"
-
-#: grunt/grunt/storage/cloud/tasks.py:56
-msgid "Upload to cloud storage"
-msgstr "Вивантаження в хмарне сховище"
-
-#: grunt/grunt/storage/cloud/backups.py:161
-msgid "Uploading to “%(name)s”"
-msgstr "Вивантаження в «%(name)s»"
-
-#: grunt/grunt/monitoring/health.py:695 grunt/grunt/monitoring/health.py:778
-msgid "Versions"
-msgstr "Версії"
-
-#: grunt/grunt/monitoring/health.py:594
-msgid "not checked"
-msgstr "не перевірено"
-
-#: grunt/grunt/monitoring/health.py:577
-msgid "not installed"
-msgstr "не встановлено"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:102
-msgid "rclone config"
-msgstr "Конфіг rclone"
-
-#: grunt/grunt/storage/cloud/rclone.py:244
-msgid "rclone exited with code %(code)s"
-msgstr "rclone завершився з кодом %(code)s"
-
-#: grunt/grunt/storage/cloud/rclone.py:78
-msgid "rclone is not installed on the server (https://rclone.org/install/)"
-msgstr "rclone не встановлено на сервері (https://rclone.org/install/)"
-
-#: grunt/grunt/monitoring/health.py:587
-msgid "works"
-msgstr "працює"
-
-#: grunt/grunt/backups/doctypes/Backup/Backup.json
-msgctxt "help:Backup"
-msgid ""
-"Site backups in sites/<site>/backups/: database, uploaded files, "
-"configuration. Schedule and number of copies — in System Settings → Backups."
-" Copies in cloud storage — Cloud Storage."
-msgstr ""
-"Резервні копії сайту в sites/<site>/backups/: база даних, завантажені файли,"
-" конфігурація. Розклад і кількість копій — у «Налаштуваннях системи» → "
-"«Резервні копії». Копії в хмарі — «Хмарні сховища»."
-
-#: grunt/grunt/backups/doctypes/Backup/Backup.json
-msgctxt "help:Backup.in_cloud"
-msgid ""
-"Cloud storages holding a copy of this set (Cloud Storage → «Upload backups "
-"here»)."
-msgstr ""
-"Хмарні сховища, де є копія цього набору («Хмарні сховища» → «Вивантажувати "
-"резервні копії сюди»)."
-
-#: grunt/grunt/storage/doctypes/File/File.json
-msgctxt "help:File.storage_remote"
-msgid ""
-"The contents were moved off the server disk into this storage; they are "
-"fetched back on request (grunt.storage.cloud.files)."
-msgstr ""
-"Вміст перенесено з диска сервера в це сховище; на запит він завантажується "
-"назад (grunt.storage.cloud.files)."
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "help:StorageRemote"
-msgid ""
-"Connections to external storage (Google Drive, Dropbox, OneDrive, MEGA, S3, "
-"WebDAV/Nextcloud, SFTP, SMB) through rclone: backup copies and moving old "
-"files off the server disk."
-msgstr ""
-"Підключення до зовнішніх сховищ (Google Drive, Dropbox, OneDrive, MEGA, S3, "
-"WebDAV/Nextcloud, SFTP, SMB) через rclone: копії резервних копій і "
-"перенесення старих файлів з диска сервера."
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "help:StorageRemote.authorize"
-msgid ""
-"Needs your own Client ID and secret. Opens the provider's sign-in page and "
-"returns here."
-msgstr ""
-"Потрібні власні Client ID і секрет. Відкриває сторінку входу провайдера й "
-"повертає сюди."
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "help:StorageRemote.backup_keep"
-msgid ""
-"Older sets in this storage are deleted after each upload; independent of how"
-" many are kept on the server."
-msgstr ""
-"Старіші набори в цьому сховищі видаляються після кожного вивантаження; не "
-"залежить від того, скільки копій зберігається на сервері."
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "help:StorageRemote.browse_backups"
-msgid ""
-"Lists the sets in the storage; the chosen one is downloaded to the server "
-"and appears in Backups, ready for «grunt db restore»."
-msgstr ""
-"Показує набори у сховищі; вибраний завантажується на сервер і з'являється в "
-"«Резервних копіях», готовий до «grunt db restore»."
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "help:StorageRemote.cache_size_mb"
-msgid ""
-"Files fetched back from the storage are kept on the server up to this size; "
-"the least recently used are dropped at night."
-msgstr ""
-"Файли, завантажені назад зі сховища, зберігаються на сервері до цього "
-"обсягу; найдавніше використані видаляються вночі."
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "help:StorageRemote.client_id"
-msgid ""
-"Optional: your own OAuth app (Google Cloud console / Dropbox App Console / "
-"Microsoft Entra). Its redirect URI must be https://<your "
-"site>/api/v1/method/grunt.storage.cloud.oauth.callback"
-msgstr ""
-"Необов'язково: власний OAuth-додаток (Google Cloud console / Dropbox App "
-"Console / Microsoft Entra). Його redirect URI має бути https://<ваш "
-"сайт>/api/v1/method/grunt.storage.cloud.oauth.callback"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "help:StorageRemote.client_secret"
-msgid "A saved secret is not shown again — to change it, enter a new one."
-msgstr "Збережений секрет більше не показується — щоб змінити, введіть новий."
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "help:StorageRemote.encrypt"
-msgid ""
-"File contents are encrypted on the server (rclone crypt, XSalsa20-Poly1305) — the cloud keeps only ciphertext. Names stay readable.\n"
-"\n"
-"Keep the password somewhere outside this system (or use «rclone config»): without it no backup can be restored, and the password itself lives in the database you will be restoring."
-msgstr ""
-"Вміст файлів шифрується на сервері (rclone crypt, XSalsa20-Poly1305) — у хмарі лежить лише шифротекст. Імена лишаються читабельними.\n"
-"\n"
-"Збережіть пароль десь поза цією системою (або скористайтеся «rclone config»): без нього жодну копію не відновити, а сам пароль зберігається в базі, яку ви відновлюватимете."
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "help:StorageRemote.encryption_password"
-msgid "Changing it later makes everything already uploaded unreadable."
-msgstr "Якщо змінити його пізніше, усе вже вивантажене стане нечитабельним."
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "help:StorageRemote.encryption_salt"
-msgid "Optional, recommended. Same rules as the password."
-msgstr "Необов'язково, але рекомендовано. Ті самі правила, що й для пароля."
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "help:StorageRemote.endpoint"
-msgid ""
-"WebDAV — the server URL (Nextcloud: "
-"https://<server>/remote.php/dav/files/<user>/). S3 — endpoint; empty for "
-"AWS."
-msgstr ""
-"WebDAV — адреса сервера (Nextcloud: "
-"https://<сервер>/remote.php/dav/files/<користувач>/). S3 — endpoint; для AWS"
-" порожньо."
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "help:StorageRemote.oauth_account"
-msgid "Empty — not connected yet. Connect with one of the buttons below."
-msgstr "Порожньо — ще не підключено. Підключіть однією з кнопок нижче."
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "help:StorageRemote.offload_after_days"
-msgid "Files uploaded earlier than this are moved by the nightly job (04:00)."
-msgstr ""
-"Файли, завантажені раніше за цей строк, переносить нічна задача (04:00)."
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "help:StorageRemote.offload_doctypes"
-msgid ""
-"DocType names, one per line, whose attachments are moved. Empty — any file, "
-"including the library and personal files."
-msgstr ""
-"Назви DocType, по одній у рядку, вкладення яких переносяться. Порожньо — "
-"будь-які файли, зокрема бібліотека й особисті файли."
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "help:StorageRemote.offload_min_size_kb"
-msgid "0 — any size. Small files cost a request each and save little space."
-msgstr ""
-"0 — будь-якого розміру. Дрібні файли коштують запиту кожен і майже не "
-"звільняють місця."
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "help:StorageRemote.offload_public"
-msgid ""
-"Website images are better kept on the server: they are read all the time."
-msgstr "Зображення сайту краще лишати на сервері: їх читають постійно."
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "help:StorageRemote.password"
-msgid ""
-"Nextcloud — better an app password (Settings → Security). A saved password "
-"is not shown again — to change it, enter a new one."
-msgstr ""
-"Для Nextcloud краще пароль додатка (Налаштування → Безпека). Збережений "
-"пароль більше не показується — щоб змінити, введіть новий."
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "help:StorageRemote.paste_token"
-msgid ""
-"The simplest way, no app registration needed: on any computer with a browser"
-" install rclone and run the command shown in the dialog (e.g. rclone "
-"authorize \"drive\"), sign in, then paste the printed token here. Leave "
-"Client ID empty."
-msgstr ""
-"Найпростіший спосіб, без реєстрації додатка: на будь-якому комп'ютері з "
-"браузером встановіть rclone і виконайте команду з діалогу (напр. rclone "
-"authorize \"drive\"), увійдіть, потім вставте сюди виведений токен. Client "
-"ID залиште порожнім."
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "help:StorageRemote.port"
-msgid "Empty — the standard one (SFTP 22, SMB 445)."
-msgstr "Порожньо — стандартний (SFTP 22, SMB 445)."
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "help:StorageRemote.provider"
-msgid ""
-"S3 — Amazon, Cloudflare R2, Backblaze, Wasabi, MinIO and other S3-compatible"
-" storage. WebDAV — Nextcloud, ownCloud and the like. SMB — a Windows/NAS "
-"network share. Server folder — a mounted disk or NAS on this server. Other —"
-" any rclone backend (https://rclone.org/overview/)."
-msgstr ""
-"S3 — Amazon, Cloudflare R2, Backblaze, Wasabi, MinIO та інші S3-сумісні "
-"сховища. WebDAV — Nextcloud, ownCloud тощо. SMB — мережева тека Windows/NAS."
-" Тека на сервері — змонтований диск або NAS на цьому сервері. Інше — будь-"
-"який бекенд rclone (https://rclone.org/overview/)."
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "help:StorageRemote.rclone_options"
-msgid ""
-"Extra backend options, one «key = value» per line; they override the "
-"generated ones. Option names — in the backend's page on rclone.org."
-msgstr ""
-"Додаткові параметри бекенда, по одному «ключ = значення» в рядку; вони "
-"перекривають згенеровані. Назви параметрів — на сторінці бекенда на "
-"rclone.org."
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "help:StorageRemote.rclone_type"
-msgid ""
-"Name from https://rclone.org/overview/ (pcloud, yandex, b2, box, koofr…)."
-msgstr ""
-"Назва з https://rclone.org/overview/ (pcloud, yandex, b2, box, koofr…)."
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "help:StorageRemote.recall_files"
-msgid ""
-"Downloads every file kept in this storage back to the server disk (check the"
-" free space first)."
-msgstr ""
-"Завантажує всі файли з цього сховища назад на диск сервера (спершу перевірте"
-" вільне місце)."
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "help:StorageRemote.root_folder"
-msgid ""
-"Everything is kept under this folder: backups/<site>/ and files/<site>/. For"
-" S3 — bucket/path (e.g. my-bucket/grunt); for SMB — share/path; for a server"
-" folder — an absolute path (/mnt/nas/grunt)."
-msgstr ""
-"Усе зберігається в цій теці: backups/<site>/ і files/<site>/. Для S3 — "
-"bucket/шлях (напр. my-bucket/grunt); для SMB — спільна тека/шлях; для теки "
-"на сервері — абсолютний шлях (/mnt/nas/grunt)."
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "help:StorageRemote.sec_backups"
-msgid ""
-"Every new backup set (System Settings → Backups) is uploaded to each storage"
-" with this option, right after it is made, into <root "
-"folder>/backups/<site>/."
-msgstr ""
-"Кожен новий набір резервних копій («Налаштування системи» → «Резервні "
-"копії») одразу після створення вивантажується в кожне сховище з цим "
-"параметром, у <коренева тека>/backups/<site>/."
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "help:StorageRemote.sec_files"
-msgid ""
-"Moves the contents of rarely used files off the server disk. The File "
-"record, previews and access rules stay; on the first request the file is "
-"fetched back into a local cache. Only one storage can hold files."
-msgstr ""
-"Переносить вміст рідко використовуваних файлів з диска сервера. Запис File, "
-"прев'ю й права доступу лишаються; при першому запиті файл завантажується "
-"назад у локальний кеш. Зберігати файли може лише одне сховище."
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "help:StorageRemote.secret_access_key"
-msgid "A saved secret is not shown again — to change it, enter a new one."
-msgstr "Збережений секрет більше не показується — щоб змінити, введіть новий."
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "help:StorageRemote.show_config"
-msgid ""
-"The same storage as an rclone.conf section — keep it outside the system to "
-"get backups back with plain rclone if the server is lost."
-msgstr ""
-"Це сховище як секція rclone.conf — збережіть її поза системою, щоб забрати "
-"копії звичайним rclone, якщо сервер буде втрачено."
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "help:StorageRemote.ssh_private_key"
-msgid ""
-"Instead of a password: the PEM key (-----BEGIN OPENSSH PRIVATE KEY----- …). "
-"Not shown again after saving."
-msgstr ""
-"Замість пароля: PEM-ключ (-----BEGIN OPENSSH PRIVATE KEY----- …). Після "
-"збереження не показується."
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "help:StorageRemote.test_connection"
-msgid ""
-"Creates the root folder, writes and deletes a small test file. Save your "
-"changes first."
-msgstr ""
-"Створює кореневу теку, записує й видаляє невеликий тестовий файл. Спершу "
-"збережіть зміни."
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "help:StorageRemote.title"
-msgid "How this storage is shown in lists and in the backup status."
-msgstr "Як це сховище показується у списках і в стані резервних копій."
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "help:StorageRemote.username"
-msgid "MEGA — the account email."
-msgstr "MEGA — email облікового запису."
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "hint:StorageRemote.endpoint"
-msgid "https://cloud.example.com/remote.php/dav/files/user/"
-msgstr "https://cloud.example.com/remote.php/dav/files/user/"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "hint:StorageRemote.offload_doctypes"
-msgid ""
-"IncomingLetter\n"
-"OutgoingLetter"
-msgstr ""
-"IncomingLetter\n"
-"OutgoingLetter"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "hint:StorageRemote.rclone_options"
-msgid "chunk_size = 64M"
-msgstr "chunk_size = 64M"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "hint:StorageRemote.rclone_type"
-msgid "pcloud"
-msgstr "pcloud"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "hint:StorageRemote.title"
-msgid "Google Drive of the IT department"
-msgstr "Google Drive ІТ-відділу"
-
-#: grunt/grunt/backups/doctypes/Backup/Backup.json
-msgctxt "meta:Backup.in_cloud"
-msgid "In cloud storage"
-msgstr "У хмарних сховищах"
-
-#: grunt/grunt/storage/doctypes/File/File.json
-msgctxt "meta:File.storage_remote"
-msgid "In cloud storage"
-msgstr "У хмарному сховищі"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "meta:StorageRemote"
-msgid "Cloud Storage"
-msgstr "Хмарне сховище"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "meta:StorageRemote.access_key_id"
-msgid "Access key ID"
-msgstr "Access key ID"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "meta:StorageRemote.authorize"
-msgid "Sign in through the browser"
-msgstr "Увійти через браузер"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "meta:StorageRemote.backup_keep"
-msgid "Copies to keep here"
-msgstr "Скільки копій тримати тут"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "meta:StorageRemote.browse_backups"
-msgid "Backups in this storage"
-msgstr "Резервні копії в цьому сховищі"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "meta:StorageRemote.cache_size_mb"
-msgid "Local cache, MB"
-msgstr "Локальний кеш, МБ"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "meta:StorageRemote.client_id"
-msgid "Client ID"
-msgstr "Client ID"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "meta:StorageRemote.client_secret"
-msgid "Client secret"
-msgstr "Client secret"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "meta:StorageRemote.domain"
-msgid "Domain"
-msgstr "Домен"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "meta:StorageRemote.enabled"
-msgid "Enabled"
-msgstr "Увімкнено"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "meta:StorageRemote.encrypt"
-msgid "Encrypt before sending"
-msgstr "Шифрувати перед відправкою"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "meta:StorageRemote.encryption_password"
-msgid "Encryption password"
-msgstr "Пароль шифрування"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "meta:StorageRemote.encryption_salt"
-msgid "Second password (salt)"
-msgstr "Другий пароль (сіль)"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "meta:StorageRemote.endpoint"
-msgid "Address (URL)"
-msgstr "Адреса (URL)"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "meta:StorageRemote.host"
-msgid "Host"
-msgstr "Хост"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "meta:StorageRemote.last_backup_at"
-msgid "Last upload"
-msgstr "Останнє вивантаження"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "meta:StorageRemote.last_backup_id"
-msgid "Last uploaded set"
-msgstr "Останній вивантажений набір"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "meta:StorageRemote.last_check_at"
-msgid "Last checked"
-msgstr "Остання перевірка"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "meta:StorageRemote.last_error"
-msgid "Last error"
-msgstr "Остання помилка"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "meta:StorageRemote.last_status"
-msgid "Status"
-msgstr "Стан"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "meta:StorageRemote.oauth_account"
-msgid "Connected account"
-msgstr "Підключений обліковий запис"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "meta:StorageRemote.oauth_connected_at"
-msgid "Connected at"
-msgstr "Підключено"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "meta:StorageRemote.oauth_extra"
-msgid "OAuth extra"
-msgstr "Дані OAuth"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "meta:StorageRemote.oauth_token"
-msgid "OAuth token"
-msgstr "OAuth-токен"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "meta:StorageRemote.offload_after_days"
-msgid "Older than, days"
-msgstr "Старші за, днів"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "meta:StorageRemote.offload_doctypes"
-msgid "Only files of"
-msgstr "Лише файли з"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "meta:StorageRemote.offload_min_size_kb"
-msgid "Larger than, KB"
-msgstr "Більші за, КБ"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "meta:StorageRemote.offload_now"
-msgid "Move files now"
-msgstr "Перенести файли зараз"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "meta:StorageRemote.offload_public"
-msgid "Public files too"
-msgstr "І публічні файли"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "meta:StorageRemote.offloaded_files"
-msgid "Files in the storage"
-msgstr "Файлів у сховищі"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "meta:StorageRemote.offloaded_size"
-msgid "Their size"
-msgstr "Їхній розмір"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "meta:StorageRemote.password"
-msgid "Password"
-msgstr "Пароль"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "meta:StorageRemote.paste_token"
-msgid "Paste a token from rclone"
-msgstr "Вставити токен з rclone"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "meta:StorageRemote.port"
-msgid "Port"
-msgstr "Порт"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "meta:StorageRemote.provider"
-msgid "Storage type"
-msgstr "Тип сховища"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "meta:StorageRemote.quota"
-msgid "Space"
-msgstr "Місце"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "meta:StorageRemote.rclone_options"
-msgid "rclone options"
-msgstr "Параметри rclone"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "meta:StorageRemote.rclone_type"
-msgid "rclone backend"
-msgstr "Бекенд rclone"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "meta:StorageRemote.recall_files"
-msgid "Return all files to the server"
-msgstr "Повернути всі файли на сервер"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "meta:StorageRemote.region"
-msgid "Region"
-msgstr "Регіон"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "meta:StorageRemote.root_folder"
-msgid "Root folder"
-msgstr "Коренева тека"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "meta:StorageRemote.s3_provider"
-msgid "S3 provider"
-msgstr "Провайдер S3"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "meta:StorageRemote.sec_advanced"
-msgid "Advanced (rclone)"
-msgstr "Додатково (rclone)"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "meta:StorageRemote.sec_creds"
-msgid "Credentials"
-msgstr "Облікові дані"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "meta:StorageRemote.sec_encryption"
-msgid "Encryption"
-msgstr "Шифрування"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "meta:StorageRemote.sec_oauth"
-msgid "Account access"
-msgstr "Доступ до облікового запису"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "meta:StorageRemote.secret_access_key"
-msgid "Secret access key"
-msgstr "Secret access key"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "meta:StorageRemote.show_config"
-msgid "Show rclone config"
-msgstr "Показати конфіг rclone"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "meta:StorageRemote.ssh_private_key"
-msgid "SSH private key"
-msgstr "Приватний SSH-ключ"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "meta:StorageRemote.tab_backups"
-msgid "Backups"
-msgstr "Резервні копії"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "meta:StorageRemote.tab_connection"
-msgid "Connection"
-msgstr "Підключення"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "meta:StorageRemote.tab_files"
-msgid "Files"
-msgstr "Файли"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "meta:StorageRemote.test_connection"
-msgid "Test connection"
-msgstr "Перевірити з'єднання"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "meta:StorageRemote.title"
-msgid "Name"
-msgstr "Назва"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "meta:StorageRemote.upload_latest"
-msgid "Upload the latest backup now"
-msgstr "Вивантажити останню копію зараз"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "meta:StorageRemote.use_for_backups"
-msgid "Upload backups here"
-msgstr "Вивантажувати резервні копії сюди"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "meta:StorageRemote.use_for_files"
-msgid "Move old files here"
-msgstr "Переносити старі файли сюди"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "meta:StorageRemote.username"
-msgid "User"
-msgstr "Користувач"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "meta:StorageRemote.webdav_vendor"
-msgid "WebDAV server"
-msgstr "Сервер WebDAV"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "select:StorageRemote.last_status"
-msgid "Error"
-msgstr "Помилка"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "select:StorageRemote.last_status"
-msgid "OK"
-msgstr "OK"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "select:StorageRemote.provider"
-msgid "Dropbox"
-msgstr "Dropbox"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "select:StorageRemote.provider"
-msgid "Google Drive"
-msgstr "Google Drive"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "select:StorageRemote.provider"
-msgid "MEGA"
-msgstr "MEGA"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "select:StorageRemote.provider"
-msgid "OneDrive"
-msgstr "OneDrive"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "select:StorageRemote.provider"
-msgid "Other"
-msgstr "Інше (rclone)"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "select:StorageRemote.provider"
-msgid "S3"
-msgstr "S3"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "select:StorageRemote.provider"
-msgid "SFTP"
-msgstr "SFTP"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "select:StorageRemote.provider"
-msgid "SMB"
-msgstr "SMB (мережева тека)"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "select:StorageRemote.provider"
-msgid "Server folder"
-msgstr "Тека на сервері"
-
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgctxt "select:StorageRemote.provider"
-msgid "WebDAV"
-msgstr "WebDAV"
-
-msgid "Comment reaction"
-msgstr "Реакція на коментар"
-
-msgid "A user's emoji reaction on one comment (the chips under comments in the timeline)."
-msgstr "Емодзі-реакція користувача на коментар (позначки під коментарями в хронології)."
-
-msgid "Reaction"
-msgstr "Реакція"
-
-msgid "Add reaction"
-msgstr "Додати реакцію"
-
-msgid "This reaction is not available"
-msgstr "Така реакція недоступна"
-
-msgid "You already reacted this way"
-msgstr "Ви вже залишили таку реакцію"
-
-msgid "Comment not found"
-msgstr "Коментар не знайдено"
-
-msgid "Collaboration"
-msgstr "Спільна робота"
-
-msgid "Comment reactions"
-msgstr "Реакції на коментарі"
-
-msgid "Emoji people can put under comments, separated by spaces. Empty - reactions are off"
-msgstr "Емодзі, які можна ставити під коментарями, через пробіл. Порожньо - реакції вимкнено"
-
-msgid "No tags"
-msgstr "Без тегів"
+#~ msgid "Comment reaction"
+#~ msgstr "Реакція на коментар"
+
+#~ msgid ""
+#~ "A user's emoji reaction on one comment (the chips under comments in the "
+#~ "timeline)."
+#~ msgstr ""
+#~ "Емодзі-реакція користувача на коментар (позначки під коментарями в "
+#~ "хронології)."
+
+#~ msgid "Reaction"
+#~ msgstr "Реакція"
+
+#~ msgid "Collaboration"
+#~ msgstr "Спільна робота"
+
+#~ msgid "Comment reactions"
+#~ msgstr "Реакції на коментарі"
+
+#~ msgid ""
+#~ "Emoji people can put under comments, separated by spaces. Empty - reactions "
+#~ "are off"
+#~ msgstr ""
+#~ "Емодзі, які можна ставити під коментарями, через пробіл. Порожньо - реакції "
+#~ "вимкнено"

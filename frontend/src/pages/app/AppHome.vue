@@ -12,6 +12,7 @@ import { docsApi } from '@/core/api/docs'
 import { getPageData } from '@/core/api/pages'
 import AppIcon from '@/components/AppIcon.vue'
 import WidgetCard from '@/components/dashboard/WidgetCard.vue'
+import OnboardingChecklists from '@/components/desk/OnboardingChecklists.vue'
 import { setPageTitle } from '@/core/composables/usePageTitle'
 import type { DashboardWidget } from '@/types'
 import { docUrl } from '@/core/workspaceUrl'
@@ -114,6 +115,10 @@ watch(
         <TabsTrigger v-for="d in dashboards" :key="d.name" :value="d.name">{{ d.label }}</TabsTrigger>
       </TabsList>
     </Tabs>
+
+    <!-- First steps of this app (ModuleOnboarding) -->
+    <OnboardingChecklists v-if="appStore.active?.app" :key="appStore.active.name"
+      :app="appStore.active.app" :workspace="workspaceName" />
 
     <!-- Loading skeleton -->
     <div v-if="loading" class="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">

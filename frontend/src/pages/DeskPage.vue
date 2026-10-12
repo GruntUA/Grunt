@@ -8,6 +8,7 @@ import { useAppStore } from '@/stores/app'
 import { useUIStore } from '@/stores/ui'
 import { workspaceApi } from '@/core/api/workspace'
 import AppCard from '@/components/desk/AppCard.vue'
+import OnboardingChecklists from '@/components/desk/OnboardingChecklists.vue'
 import ActivityStream from '@/components/dashboard/ActivityStream.vue'
 import MyWorkPanel from '@/components/dashboard/MyWorkPanel.vue'
 import { readRecent, looksLikeId, type RecentDoc } from '@/core/recentDocs'
@@ -227,6 +228,11 @@ function docInitials(doc: RecentDoc): string {
           </button>
         </div>
       </section>
+
+      <!-- First steps (ModuleOnboarding) - until done or hidden -->
+      <div class="flex flex-col gap-4 empty:hidden pb-10">
+        <OnboardingChecklists />
+      </div>
 
       <!-- MAIN: apps launcher + attention sidebar -->
       <div class="grid grid-cols-1 items-start gap-8 pb-12 lg:grid-cols-[1fr_340px]">
