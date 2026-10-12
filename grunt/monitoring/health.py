@@ -32,7 +32,7 @@ from grunt.i18n import N_, _
 from grunt.metadata.registry import doctype_registry
 from grunt.site.manager import site_manager
 from grunt.site.settings import get_setting
-from grunt.tasks.redis_introspect import redis_conn, s, stream_broker
+from grunt.tasks.redis_introspect import DEAD_CONSUMER_IDLE_MS, redis_conn, s, stream_broker
 from grunt.tasks.scheduler import failed_jobs, scheduler
 from grunt.utils.redis import connect
 from grunt.version import app_version, compatibility_error
@@ -47,7 +47,6 @@ ERRORS_ERROR_PER_DAY = 100
 STUCK_EMAIL_AFTER = timedelta(minutes=30)
 DISK_WARN_FREE = 0.10
 DISK_ERROR_FREE = 0.05
-DEAD_WORKER_IDLE_MS = 10 * 60 * 1000
 TOP_N = 10
 
 _ROOT = Path(__file__).resolve().parents[2]  # apps/grunt
@@ -168,7 +167,7 @@ async def check_background_jobs() -> list[Row]:
         await conn.ping()
         consumers = await conn.xinfo_consumers(sb.queue_name, sb.consumer_group_name)
         groups = await conn.xinfo_groups(sb.queue_name)
-    alive = [c for c in consumers if int(c.get("idle", 0)) < DEAD_WORKER_IDLE_MS]
+    alive = [c for c in consumers if int(c.get("idle", 0)) < DEAD_CONSUMER_IDLE_MS]
     dead = len(consumers) - len(alive)
     rows = [row(cat, "Redis", OK, _("available"))]
     if not consumers:

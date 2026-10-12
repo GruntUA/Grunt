@@ -30,6 +30,7 @@ from grunt.monitoring import perf
 from grunt.site.manager import site_manager
 from grunt.startup.lifespan import boot
 from grunt.tasks.broker import broker
+from grunt.tasks.redis_introspect import prune_dead_consumers, unregister_consumer
 
 __all__ = ["broker", "import_task_modules"]
 
@@ -90,6 +91,11 @@ set_process_default(True)
 @broker.on_event(TaskiqEvents.WORKER_STARTUP)
 async def _boot_worker(state: TaskiqState) -> None:
     await boot()
+    try:
+        if removed := await prune_dead_consumers():
+            log.info("worker.dead_consumers_pruned", count=removed)
+    except Exception as e:  # noqa: BLE001 - housekeeping must not stop the worker
+        log.warning("worker.prune_consumers_failed", error=str(e))
     state.perf_flush = asyncio.create_task(perf.run_flush_loop())
 
 
@@ -100,3 +106,7 @@ async def _stop_worker(state: TaskiqState) -> None:
         flush.cancel()
         with suppress(asyncio.CancelledError):
             await flush
+    try:
+        await unregister_consumer()
+    except Exception as e:  # noqa: BLE001
+        log.warning("worker.unregister_consumer_failed", error=str(e))

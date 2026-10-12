@@ -44,6 +44,47 @@ async def redis_conn() -> AsyncIterator[Redis | None]:
         yield conn
 
 
+# A live worker polls XREADGROUP every few seconds, which resets its ``idle``;
+# past this it has stopped polling - crashed or restarted under a new name.
+DEAD_CONSUMER_IDLE_MS = 10 * 60 * 1000
+
+
+async def prune_dead_consumers(min_idle_ms: int = DEAD_CONSUMER_IDLE_MS) -> int:
+    """Drop consumer-group members that stopped polling and own no pending messages.
+
+    Every worker process registers under a fresh uuid, so each restart leaves
+    the old name behind in ``XINFO CONSUMERS``. ``XGROUP DELCONSUMER`` discards
+    the consumer's pending entries, so one that still holds any is kept until a
+    live worker ``XAUTOCLAIM``s them. Returns the number removed.
+    """
+    sb = stream_broker()
+    if sb is None:
+        return 0
+    removed = 0
+    async with redis_conn() as conn:
+        assert conn is not None
+        for c in await conn.xinfo_consumers(sb.queue_name, sb.consumer_group_name):
+            if int(c.get("pending", 0)) or int(c.get("idle", 0)) < min_idle_ms:
+                continue
+            await conn.xgroup_delconsumer(sb.queue_name, sb.consumer_group_name, s(c["name"]))
+            removed += 1
+    return removed
+
+
+async def unregister_consumer() -> None:
+    """Remove this process's own consumer on graceful shutdown, unless it holds pending work."""
+    sb = stream_broker()
+    if sb is None:
+        return
+    async with redis_conn() as conn:
+        assert conn is not None
+        for c in await conn.xinfo_consumers(sb.queue_name, sb.consumer_group_name):
+            if s(c.get("name")) == sb.consumer_name and not int(c.get("pending", 0)):
+                await conn.xgroup_delconsumer(
+                    sb.queue_name, sb.consumer_group_name, sb.consumer_name
+                )
+
+
 def s(value: Any) -> Any:
     """Decode a bytes value from a non-``decode_responses`` client; pass through others."""
     return value.decode() if isinstance(value, bytes) else value
