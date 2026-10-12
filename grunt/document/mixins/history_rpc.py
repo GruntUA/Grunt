@@ -178,6 +178,13 @@ class DocumentHistoryRPCMixin:
                 }
             )
 
+        from grunt.activity.reactions import reactions_for
+
+        reactions = await reactions_for([str(r["name"]) for r in comment_rows])
+        for i in items:
+            if i["type"] == "comment":
+                i["reactions"] = reactions.get(i["name"], [])
+
         # Display names/avatars of the authors, so the UI needn't list all users.
         emails = {i["user"] for i in items if i.get("user")}
         if emails:

@@ -139,6 +139,18 @@
       "description": "How much each user's “My files” may hold; 0 - no limit. A user's own quota (User → Security) overrides it"
     },
     {
+      "fieldname": "sec_collaboration",
+      "label": "Collaboration",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "comment_reactions",
+      "label": "Comment reactions",
+      "fieldtype": "Data",
+      "default": "👍 ✅ ❓ 🎉 👀",
+      "description": "Emoji people can put under comments, separated by spaces. Empty - reactions are off"
+    },
+    {
       "fieldname": "tab_security",
       "label": "Security",
       "fieldtype": "Tab",

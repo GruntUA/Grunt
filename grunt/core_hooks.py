@@ -61,6 +61,7 @@ doc_events: dict[str, dict[str, list[str]]] = {
             "grunt.activity.log_activity",
             "grunt.activity.follow.drop_follows",
             "grunt.activity.likes.drop_likes",
+            "grunt.activity.reactions.drop_reactions",
             "grunt.standard_records.sync_files",
             "grunt.notification.sla.on_document_deleted",
             "grunt.activity.milestones.on_document_deleted",

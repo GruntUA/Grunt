@@ -18,6 +18,7 @@ import { formatFull, formatIntl } from '@/core/datetime'
 import { tn } from '@/plugins/i18n'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import TimelineChanges from './TimelineChanges.vue'
+import CommentReactions from './CommentReactions.vue'
 import { htmlToLine, htmlToText, looksLikeHtml } from '@/lib/htmlText'
 import { statusBadgeFor } from '@/core/status'
 import { Badge } from '@/components/ui/badge'
@@ -505,6 +506,7 @@ onMounted(loadTimeline)
             class="rounded-md border bg-muted/40 px-3 py-2 text-sm break-words whitespace-pre-line">
             {{ htmlToText(item.content ?? '') }}
           </p>
+          <CommentReactions v-if="item.type === 'comment'" v-model="item.reactions" :comment="item.id" />
 
           <!-- Thread: replies, then the reply box -->
           <ol v-if="repliesOf[item.id]?.length" class="flex flex-col gap-3 border-l pl-3">
@@ -532,6 +534,7 @@ onMounted(loadTimeline)
                   </Button>
                 </div>
                 <p class="text-sm break-words whitespace-pre-line">{{ htmlToText(reply.content ?? '') }}</p>
+                <CommentReactions v-model="reply.reactions" :comment="reply.id" reply />
               </div>
             </li>
           </ol>

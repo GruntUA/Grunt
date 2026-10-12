@@ -43,6 +43,17 @@ export interface TimelineItem {
   user_avatar?: string | null
   details?: Record<string, unknown> | null
   created_at: string | null
+  /** comment items only: emoji reactions, in the order of the configured choices. */
+  reactions?: CommentReaction[]
+}
+
+export interface CommentReaction {
+  emoji: string
+  count: number
+  /** The current user is among those who reacted. */
+  mine: boolean
+  /** Display names of those who reacted. */
+  users: string[]
 }
 
 export interface BacklinkItem {
@@ -483,6 +494,14 @@ export const docsApi = {
   getListBadges: (doctype: string, ids: string[]): Promise<Record<string, ListBadge>> =>
     client.post('/api/v1/method/grunt.activity.likes.get_list_badges', { doctype, ids })
       .then(r => r.data.data ?? {}),
+
+  getReactionChoices: (): Promise<string[]> =>
+    client.get('/api/v1/method/grunt.activity.reactions.get_reaction_choices')
+      .then(r => r.data.data ?? []),
+
+  toggleReaction: (comment: string, emoji: string): Promise<CommentReaction[]> =>
+    client.post('/api/v1/method/grunt.activity.reactions.toggle_reaction', { comment, emoji })
+      .then(r => r.data.data ?? []),
 
   toggleLike: (doctype: string, id: string): Promise<{ liked: boolean; likes: number }> =>
     client.post('/api/v1/method/grunt.activity.likes.toggle_like', { doctype, doc_id: id })

@@ -1,0 +1,38 @@
+{
+  "name": "CommentReaction",
+  "label": "Comment reaction",
+  "description": "A user's emoji reaction on one comment (the chips under comments in the timeline).",
+  "module": "activity",
+  "autoname": "hash",
+  "track_changes": false,
+  "track_activity": false,
+  "hide_from_activity_feed": true,
+  "indexes": [["comment"], ["user"]],
+  "fields": [
+    {
+      "fieldname": "comment",
+      "label": "Comment",
+      "fieldtype": "Link",
+      "options": "Comment",
+      "required": true,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "emoji",
+      "label": "Reaction",
+      "fieldtype": "Data",
+      "required": true,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "user",
+      "label": "User",
+      "fieldtype": "Text",
+      "in_list_view": true
+    }
+  ],
+  "permissions": [
+    {"role": "All", "read": true, "create": true, "delete": true, "match": "user == user"},
+    {"role": "System Manager", "read": true, "create": true, "write": true, "delete": true}
+  ]
+}

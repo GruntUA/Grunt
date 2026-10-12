@@ -21795,3 +21795,33 @@ msgstr "Тека на сервері"
 msgctxt "select:StorageRemote.provider"
 msgid "WebDAV"
 msgstr "WebDAV"
+
+msgid "Comment reaction"
+msgstr "Реакція на коментар"
+
+msgid "A user's emoji reaction on one comment (the chips under comments in the timeline)."
+msgstr "Емодзі-реакція користувача на коментар (позначки під коментарями в хронології)."
+
+msgid "Reaction"
+msgstr "Реакція"
+
+msgid "Add reaction"
+msgstr "Додати реакцію"
+
+msgid "This reaction is not available"
+msgstr "Така реакція недоступна"
+
+msgid "You already reacted this way"
+msgstr "Ви вже залишили таку реакцію"
+
+msgid "Comment not found"
+msgstr "Коментар не знайдено"
+
+msgid "Collaboration"
+msgstr "Спільна робота"
+
+msgid "Comment reactions"
+msgstr "Реакції на коментарі"
+
+msgid "Emoji people can put under comments, separated by spaces. Empty - reactions are off"
+msgstr "Емодзі, які можна ставити під коментарями, через пробіл. Порожньо - реакції вимкнено"

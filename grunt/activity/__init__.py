@@ -80,7 +80,6 @@ async def attach_user_names(entries: list[dict[str, Any]]) -> None:
         e["user_name"] = names.get(email) or email
 
 
-
 _ACTION_MAP = {
     "after_insert": "Create",
     "after_update": "Update",
