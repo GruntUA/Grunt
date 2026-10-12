@@ -110,3 +110,33 @@ def _validate_data(
                     )
 
     return errors
+
+
+async def validate_child_rows(
+    doctype: DocType, data: dict[str, Any], ignore_required: bool = False
+) -> list[str]:
+    """Validate the rows of every child table present in *data* against the
+    child DocType - each error is reported on the table field with its row
+    number (``items: Row 2: Field “Qty” is required``)."""
+    from grunt.document.meta import Meta
+    from grunt.metadata.registry import doctype_registry
+
+    errors: list[str] = []
+    for field in Meta(doctype).get_child_table_fields():
+        rows = data.get(field.fieldname)
+        if not isinstance(rows, list) or not rows:
+            continue
+        child_dt = await doctype_registry.get(field.options)
+        for idx, row in enumerate(rows, start=1):
+            if not isinstance(row, dict):
+                continue
+            # A structural row (Tab / Section / Column in a DocField table) holds no data.
+            if get_field_type_class(row.get("fieldtype", "")).is_layout:
+                continue
+            for error in _validate_data(child_dt, row, ignore_required=ignore_required):
+                message = error.split(": ", 1)[-1]
+                errors.append(
+                    f"{field.fieldname}: "
+                    + _("Row %(idx)s: %(error)s") % {"idx": idx, "error": message}
+                )
+    return errors

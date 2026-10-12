@@ -26,7 +26,7 @@ from grunt.db.errors import friendly_integrity_error
 from grunt.document.fetch import apply_fetch_from
 from grunt.document.relations import apply_field_values
 from grunt.document.serde import audit_fields, serialize_datetimes, with_doctype
-from grunt.document.validation import _validate_data
+from grunt.document.validation import _validate_data, validate_child_rows
 from grunt.errors import ApplicationError
 from grunt.events import fire
 from grunt.naming import naming_service
@@ -347,6 +347,7 @@ class DocumentLifecycleMixin:
         await self._check_can_insert(dt)
 
         errors = _validate_data(dt, data, ignore_required=ignore_required)
+        errors += await validate_child_rows(dt, data, ignore_required=ignore_required)
         if errors:
             raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=errors)
 
@@ -441,6 +442,7 @@ class DocumentLifecycleMixin:
         auto_transition = await check_update(self.doctype, existing, data, user)
 
         errors = _validate_data(dt, data, partial=True, ignore_required=ignore_required)
+        errors += await validate_child_rows(dt, data, ignore_required=ignore_required)
         if errors:
             raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=errors)
 
