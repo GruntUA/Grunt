@@ -1,9 +1,8 @@
 from typing import Any
 
 import grunt
-from grunt.activity import feed_hidden_doctypes
+from grunt.activity import attach_titles, attach_user_names, feed_hidden_doctypes
 from grunt.document.base import Document
-from grunt.document.titles import resolve_reference_titles
 
 
 class ActivityLog(Document):
@@ -110,8 +109,8 @@ async def list_activity(
         order=sort_order,
     )
 
-    await _attach_titles(entries)
-    await _attach_user_names(entries)
+    await attach_titles(entries)
+    await attach_user_names(entries)
 
     return {
         "items": entries,
@@ -120,48 +119,3 @@ async def list_activity(
         "per_page": per_page,
         "pages": -(-total // per_page),
     }
-
-
-async def _attach_titles(entries: list[dict[str, Any]]) -> None:
-    """Resolve a human-readable ``title`` for each entry's referenced document.
-
-    Falls back to the raw ``doc_id`` for deleted docs or doctypes without a
-    title field. Mutates ``entries`` in place, adding a ``title`` key.
-    """
-    refs = [
-        (e["ref_doctype"], e["doc_id"]) for e in entries if e.get("ref_doctype") and e.get("doc_id")
-    ]
-    titles = await resolve_reference_titles(refs)
-
-    for e in entries:
-        dt_name = e.get("ref_doctype") or ""
-        doc_ref = e.get("doc_id") or ""
-        e["title"] = titles.get((dt_name, doc_ref)) or doc_ref
-
-
-async def _attach_user_names(entries: list[dict[str, Any]]) -> None:
-    """Resolve each entry's ``user`` (an email) to the account's ``full_name``.
-
-    Mutates ``entries`` in place, adding a ``user_name`` key. Falls back to the
-    raw email when the account no longer exists or has no name set.
-
-    Runs as SYSTEM_USER: the ``User`` doctype's "All" role can only read its
-    own row (``match: name == user``), and the activity feed must show every
-    author's name to every viewer, not just the viewer's own.
-    """
-    emails = {e["user"] for e in entries if e.get("user")}
-    if not emails:
-        return
-
-    async with grunt.system_context(grunt.get_session()):
-        rows = await grunt.get_list(
-            "User",
-            filters={"name__in": list(emails)},
-            fields=["name", "full_name"],
-            limit=len(emails),
-        )
-    names = {r["name"]: r["full_name"] for r in rows if r.get("full_name")}
-
-    for e in entries:
-        email = e.get("user") or ""
-        e["user_name"] = names.get(email) or email

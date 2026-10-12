@@ -98,7 +98,7 @@ function formatVal(v: number): string {
         </thead>
         <tbody class="divide-y divide-border/40">
           <tr v-for="row in rows" :key="row.label"
-            class="hover:bg-muted/30 transition-colors group cursor-pointer" @click="open(row)">
+            class="hover:bg-muted/30 transition-colors group/row cursor-pointer" @click="open(row)">
             <td class="px-4 py-2">
               <div class="flex items-center gap-2">
                 <!-- Bar -->
@@ -106,7 +106,7 @@ function formatVal(v: number): string {
                   <div class="h-full bg-primary/60 rounded-full transition-all"
                     :style="{ width: barWidth(row.value) + '%' }" />
                 </div>
-                <span class="min-w-0 truncate text-foreground/80 group-hover:text-primary group-hover:underline" :title="row.label">{{ row.label }}</span>
+                <span class="min-w-0 truncate text-foreground/80 group-hover/row:text-primary" :title="row.label">{{ row.label }}</span>
               </div>
             </td>
             <td class="px-4 py-2 text-right font-semibold tabular-nums text-foreground">

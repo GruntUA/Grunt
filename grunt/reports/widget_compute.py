@@ -23,7 +23,7 @@ from fastapi import HTTPException
 
 import grunt
 from grunt import log
-from grunt.activity import feed_hidden_doctypes
+from grunt.activity import attach_titles, attach_user_names, feed_hidden_doctypes
 from grunt.document.meta import Meta
 from grunt.reports.engine import report_engine
 
@@ -400,6 +400,8 @@ async def _widget_activity(widget, dt, doctype_name, since, until, days, base_fi
         items = await grunt.get_list(
             "ActivityLog", filters=filters, order_by="created_at", order="desc", limit=20
         )
+        await attach_titles(items)
+        await attach_user_names(items)
         return {"items": items}
     except Exception:
         _log_widget_failed(doctype_name, "activity")

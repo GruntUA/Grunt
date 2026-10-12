@@ -19,8 +19,10 @@ interface ActivityItem {
   id: string
   ref_doctype: string
   doc_id: string
+  title?: string
   action: string
   user: string
+  user_name?: string
   created_at: string
 }
 
@@ -108,13 +110,13 @@ function goToDoc(item: ActivityItem) {
         <!-- Content -->
         <div class="flex-1 min-w-0">
           <div class="flex items-baseline justify-between gap-2">
-            <span class="font-semibold text-foreground truncate">{{ item.user }}</span>
+            <span class="font-semibold text-foreground truncate">{{ item.user_name || item.user }}</span>
             <span class="text-muted-foreground tabular-nums shrink-0">{{ formatTime(item.created_at) }}</span>
           </div>
           <p class="text-muted-foreground mt-0.5 leading-snug">
             <span class="text-foreground/80">{{ getActionLabel(item.action) }}</span>
             <span class="font-medium text-foreground/60 ml-1">{{ item.ref_doctype }}</span>
-            <span class="text-primary font-medium ml-1 truncate">{{ item.doc_id }}</span>
+            <span class="text-primary font-medium ml-1 truncate">{{ item.title || item.doc_id }}</span>
           </p>
         </div>
       </div>
