@@ -89,7 +89,7 @@ async def _do_install(name: str, site: str | None = None) -> None:
 
     title = app_meta.get("title", name)
     print(f"✓ App {title} installed on site {target_site}")
-    print(f"  Apps: {', '.join(site_config.get('installed_apps', []))}")
+    print(f"  Apps: {', '.join(site_manager.get_installed_apps(target_site))}")
 
 
 def _apps_dir() -> Path:
@@ -115,11 +115,18 @@ def app_deps(names: tuple[str, ...]):
 @click.argument("name")
 @click.option("--site", default=None, help="Site name")
 def app_install(name: str, site: str | None):
-    """Install an app and register its workspace right away."""
+    """Install an app (and the apps it depends_on) and register its workspace right away."""
     from grunt.apps.deps import install_app_packages
+    from grunt.apps.required import DependencyCycleError, MissingAppError, clone_missing
 
-    install_app_packages(_apps_dir(), [name])  # its Python dependencies first
-    asyncio.run(_do_install(name, site))
+    cloned = clone_missing(_apps_dir(), [name])
+    if cloned:
+        click.echo(f"Cloned dependencies: {', '.join(cloned)}")
+    install_app_packages(_apps_dir(), [name, *cloned])  # their Python dependencies first
+    try:
+        asyncio.run(_do_install(name, site))
+    except (MissingAppError, DependencyCycleError) as e:
+        raise click.ClickException(str(e)) from e
 
 
 async def _plan_app_uninstall(session, app_doctypes: list) -> list:

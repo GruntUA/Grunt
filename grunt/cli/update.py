@@ -175,6 +175,21 @@ def _install_deps(path: Path, label: str) -> None:
         _run_mise(path, "deps")
 
 
+def _clone_missing_apps(apps_dir: Path, no_deps: bool) -> None:
+    """Clone the apps that bench apps depend on but the bench lacks (``depends_on`` url)."""
+    from grunt.apps.required import clone_missing
+
+    try:
+        cloned = clone_missing(apps_dir)
+    except subprocess.CalledProcessError as exc:
+        console.print(f"  [red]✗[/red] git clone failed: {' '.join(map(str, exc.cmd))}")
+        return
+    for name in cloned:
+        console.print(f"  [green]✓[/green] {name}: cloned (a dependency)")
+        if not no_deps:
+            _install_deps(apps_dir / name, name)
+
+
 # package / npm / migrate helpers
 
 
@@ -353,6 +368,7 @@ def update(
     \b
     Steps:
       1. git pull --rebase for the CLI, framework and apps
+         (+ git clone of the apps they depends_on that the bench lacks)
       2. uv sync --all-extras --inexact (framework packages as in the lock
          file) + grunt app deps (the apps' own packages)
       3. npm install
@@ -416,6 +432,7 @@ def update(
                         _install_deps(app_dir, app_dir.name)
             else:
                 console.print("  [dim]No apps with a git repository[/dim]")
+            _clone_missing_apps(apps_dir, no_deps)
         else:
             console.print("  [dim]Apps directory not found[/dim]")
         console.print()

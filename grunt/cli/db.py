@@ -30,6 +30,7 @@ def db_migrate(dry_run: bool, site: str | None, no_alembic: bool) -> None:
     async def _run() -> list[str]:
         from taskiq import InMemoryBroker
 
+        from grunt.apps.required import DependencyCycleError, MissingAppError
         from grunt.metadata.compiler import SA_METADATA, sync_table
         from grunt.metadata.registry import doctype_registry
         from grunt.site.manager import current_site, site_manager
@@ -123,11 +124,14 @@ def db_migrate(dry_run: bool, site: str | None, no_alembic: bool) -> None:
                             await seed_grunt_workspace(session, eng)
                             await session.commit()
 
-                        async with maker() as session:
-                            await sync_installed_apps(session, site_name)
-                            await session.commit()
-
-                        click.echo("  Fixtures applied.")
+                        try:
+                            async with maker() as session:
+                                await sync_installed_apps(session, site_name)
+                                await session.commit()
+                            click.echo("  Fixtures applied.")
+                        except (MissingAppError, DependencyCycleError) as e:
+                            failed.append(f"{site_name}: {e}")
+                            click.echo(f"    [error] {e}", err=True)
 
                     # 5. Trigger hot-reload for running servers
                     reload_file = site_manager.sites_dir / site_name / ".reload_meta"

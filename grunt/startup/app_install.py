@@ -218,7 +218,8 @@ async def _run_after_install_hook(
 async def sync_installed_apps(session: AsyncSession, site_name: str) -> None:
     """Sync DocTypes, fixtures, standard records and the workspace for every installed app.
 
-    Reads ``grunt.site`` -> ``installed_apps``, loads each app's metadata
+    Reads ``grunt.site`` -> ``installed_apps`` (first adding the apps they
+    ``depends_on``, see :mod:`grunt.apps.required`), loads each app's metadata
     (``grunt_app.py`` or ``app.json``), auto-registers DocTypes from the app's
     ``doctypes/`` directories if not yet in the registry, applies fixtures and
     standard records, then creates/updates a workspace with the app's DocTypes
@@ -235,6 +236,11 @@ async def sync_installed_apps(session: AsyncSession, site_name: str) -> None:
     site_file = site_manager.sites_dir / site_name / "grunt.site"
     if not site_file.exists():
         return
+
+    from grunt.apps.required import ensure_site_dependencies
+
+    for app_name in ensure_site_dependencies(site_file, site_manager.bench_dir / "apps"):
+        log.info("startup.app_dependency_added", site=site_name, app=app_name)
 
     site_config = json.loads(site_file.read_text())
     installed_apps = site_config.get("installed_apps", [])

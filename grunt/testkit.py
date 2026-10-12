@@ -37,6 +37,7 @@ from sqlalchemy.ext.asyncio import (
 )
 
 import grunt
+from grunt.apps.required import dependencies
 from grunt.auth.doctypes.User.user import SYSTEM_USER
 from grunt.config import settings
 from grunt.db.session import get_engine as _get_engine_dep
@@ -78,8 +79,8 @@ def _with_dependencies(app_dir: Path) -> list[Path]:
     def visit(path: Path) -> None:
         if path in ordered or not path.is_dir():
             return
-        for dep in _app_meta(path).get("depends_on", []):
-            visit(path.parent / dep)
+        for dep in dependencies(path):
+            visit(path.parent / dep.name)
         ordered.append(path)
 
     visit(app_dir)
