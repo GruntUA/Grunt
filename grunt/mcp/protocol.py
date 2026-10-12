@@ -17,7 +17,6 @@ import grunt
 from grunt import log
 from grunt.errors import ApplicationError
 from grunt.mcp.registry import get_tool, list_tools
-from grunt.storage.signing import sign_file_urls
 
 # Newest first; the first entry is offered when the client asks for one we lack.
 PROTOCOL_VERSIONS = ("2025-11-25", "2025-06-18", "2025-03-26")
@@ -62,11 +61,15 @@ def _initialize(params: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def _to_text(value: Any) -> str:
+async def _to_text(value: Any) -> str:
     text = json.dumps(jsonable_encoder(value), ensure_ascii=False, default=str)
-    # Private file URLs in the payload get the same short-lived signature the
-    # regular JSON API adds (grunt.storage.signing).
-    return sign_file_urls(text.encode()).decode()
+    # File URLs get a short-lived signature, but only for files the caller may
+    # read (grunt.storage.signing) - never blanket-signed, or the payload would
+    # become an oracle for any file id. No user in context -> public files only.
+    from grunt.local import _user_ctx
+    from grunt.storage.signing import sign_authorized_file_urls_in_text
+
+    return await sign_authorized_file_urls_in_text(text, _user_ctx.get())
 
 
 def _tool_error(message: str) -> dict[str, Any]:
@@ -106,7 +109,7 @@ async def _call_tool(params: dict[str, Any]) -> dict[str, Any]:
         return _tool_error("Internal error while running the tool")
 
     log.info("mcp.tool_called", tool=tool.name)
-    return {"content": [{"type": "text", "text": _to_text(result)}], "isError": False}
+    return {"content": [{"type": "text", "text": await _to_text(result)}], "isError": False}
 
 
 async def _dispatch(method: str, params: dict[str, Any]) -> dict[str, Any]:

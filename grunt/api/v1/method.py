@@ -164,9 +164,24 @@ async def _invoke_with_context(
                 detail=_("Missing required parameters: %(items)s") % {"items": ", ".join(missing)},
             )
 
-        if iscoroutinefunction(method):
-            return await method(**args)
-        return method(**args)
+        from grunt.storage.signing import sign_authorized_file_urls
+
+        result = await method(**args) if iscoroutinefunction(method) else method(**args)
+        # Sign file URLs the caller is authorized to read (never blanket-sign:
+        # that turns any echoed field into a signing oracle). A Response is
+        # returned verbatim - FileResponse/StreamingResponse, already signed.
+        if isinstance(result, Response):
+            return result
+        # The signer walks dict/list/str. A method that returns some other
+        # object (e.g. a Pydantic model) carrying a private-file URL would
+        # otherwise ship it unsigned; reduce it to primitives first (the result
+        # is JSON-serialised into the envelope below regardless).
+        _walkable = (str, dict, list, tuple, bool, int, float)
+        if result is not None and not isinstance(result, _walkable):
+            from fastapi.encoders import jsonable_encoder
+
+            result = jsonable_encoder(result)
+        return await sign_authorized_file_urls(result, user)
 
 
 @router.get("/{path:path}")

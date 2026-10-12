@@ -164,15 +164,31 @@ async def test_magic_link_flow_signs_in(client, captured_mail):
 
 
 @pytest.mark.asyncio
-async def test_magic_link_points_at_request_origin_not_app_url(client, captured_mail):
+async def test_magic_link_points_at_request_origin_not_app_url(
+    client, captured_mail, monkeypatch
+):
     """The link must resolve to the host the user is actually on (reverse proxy),
-    not the ``APP_URL`` default."""
+    not the ``APP_URL`` default - when that host is one the deployment serves."""
+    from grunt.config import settings
+
+    monkeypatch.setattr(settings, "allowed_origins", ["https://dev2.example.com"])
     await client.post(
         _BEGIN,
         json={"email": "host@grunt.example.com"},
         headers={"origin": "https://dev2.example.com"},
     )
     assert "https://dev2.example.com/login#email_login_token=" in captured_mail[0]["body"]
+
+
+@pytest.mark.asyncio
+async def test_magic_link_ignores_forged_origin(client, captured_mail):
+    """A forged Origin must not put the sign-in token on the attacker's domain."""
+    await client.post(
+        _BEGIN,
+        json={"email": "forged@grunt.example.com"},
+        headers={"origin": "https://evil.example", "host": "evil.example"},
+    )
+    assert "evil.example" not in captured_mail[0]["body"]
 
 
 @pytest.mark.asyncio

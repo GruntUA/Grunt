@@ -9,6 +9,7 @@ every other method.
 
 from __future__ import annotations
 
+import secrets
 from typing import TYPE_CHECKING, Any, ClassVar
 
 from authlib.integrations.httpx_client import AsyncOAuth2Client
@@ -27,6 +28,8 @@ _GOOGLE_CONF_URL = "https://accounts.google.com/.well-known/openid-configuration
 _MICROSOFT_CONF_URL = (
     "https://login.microsoftonline.com/{tenant}/v2.0/.well-known/openid-configuration"
 )
+# Multi-tenant endpoints: any Microsoft tenant can sign in through them.
+_MICROSOFT_SHARED_TENANTS = frozenset({"common", "organizations", "consumers"})
 
 
 class OIDCProvider(AuthProvider):
@@ -74,9 +77,22 @@ class OIDCProvider(AuthProvider):
             redirect_uri=self._callback_url(),
             scope=self.scope,
         )
-        url, _state = client.create_authorization_url(oidc["authorization_endpoint"])
+        # ``state`` is returned to the caller, which binds it to the browser
+        # (an HttpOnly cookie, see grunt.api.v1.oauth) and checks it on the
+        # callback - a callback whose state the browser never started is refused.
+        state = secrets.token_urlsafe(32)
+        url, _ = client.create_authorization_url(oidc["authorization_endpoint"], state=state)
         await client.aclose()  # pyright: ignore[reportAttributeAccessIssue] - httpx2.AsyncClient method
-        return {"redirect_url": url}
+        return {"redirect_url": url, "state": state}
+
+    def _email_is_verified(self, profile: dict[str, Any]) -> bool:
+        """Whether the IdP vouches that the signed-in identity owns ``email``.
+
+        An account is matched by email, so an unverified address must never be
+        accepted - it would let one identity sign in as another local user.
+        """
+        verified = profile.get("email_verified")
+        return verified is True or str(verified).lower() == "true"
 
     async def complete(self, ctx: AuthFlowContext) -> User:
         code = ctx.get("code")
@@ -98,11 +114,31 @@ class OIDCProvider(AuthProvider):
         finally:
             await oa.aclose()  # pyright: ignore[reportAttributeAccessIssue]
 
-        email = profile.get("email", "")
+        email = (profile.get("email") or "").strip()
         if not email:
             throw(_("OAuth provider did not return an email address"), "VALIDATION_ERROR")
+        if not self._email_is_verified(profile):
+            throw(_("The provider did not confirm this email address"), "UNAUTHORIZED")
         full_name = profile.get("name") or profile.get("given_name") or email.split("@")[0]
-        return await find_or_create_external_user(email, full_name)
+
+        # Same rules as the other sign-in methods (see email_link._resolve_user):
+        # an existing account must be active; a new one is subject to the
+        # registration switch and admin approval, not provisioned silently.
+        from grunt.auth.doctypes.User.user import (
+            _apply_signup_approval,
+            _guard_registration,
+            get_user_by_email,
+        )
+
+        existing = await get_user_by_email(email)
+        if existing is not None:
+            if not existing.is_active:
+                throw(_("The account is deactivated"), "UNAUTHORIZED")
+            return existing
+        await _guard_registration()
+        user = await find_or_create_external_user(email, full_name)
+        await _apply_signup_approval(user)
+        return user
 
 
 class GoogleProvider(OIDCProvider):
@@ -125,6 +161,16 @@ class MicrosoftProvider(OIDCProvider):
 
     def _discovery_url(self) -> str:
         return _MICROSOFT_CONF_URL.format(tenant=settings.oauth_microsoft_tenant_id)
+
+    def _email_is_verified(self, profile: dict[str, Any]) -> bool:
+        # Microsoft's userinfo carries no ``email_verified``. An address is
+        # trusted only from one configured organisation tenant, whose directory
+        # its admins control - never from the multi-tenant endpoints, where the
+        # email claim is not verified by Microsoft.
+        if super()._email_is_verified(profile):
+            return True
+        tenant = (settings.oauth_microsoft_tenant_id or "").strip().lower()
+        return bool(tenant) and tenant not in _MICROSOFT_SHARED_TENANTS
 
     def _client_id(self) -> str | None:
         return settings.oauth_microsoft_client_id

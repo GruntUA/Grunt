@@ -113,9 +113,10 @@ async def authenticate_api_key(
             log.info("api_key.expired", prefix=key_prefix)
             return None
 
-    # Check IP allowlist
+    # Check IP allowlist. Fail closed: a key restricted to certain IPs must not
+    # authenticate a request whose source IP could not be determined.
     allowed = parse_ip_list(matched_row.get("allowed_ips"))
-    if allowed and client_ip and not ip_allowed(client_ip, allowed):
+    if allowed and not ip_allowed(client_ip, allowed):
         log.warning("api_key.ip_rejected", prefix=key_prefix, ip=client_ip)
         return None
 

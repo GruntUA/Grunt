@@ -47,16 +47,13 @@ def _rp_name() -> str:
 
 
 def _origin_from_request(request: Any) -> str | None:
+    # Only a host this deployment serves (see public_base_url) - never an
+    # arbitrary client-supplied Origin/Host as the expected ceremony origin.
     if request is None:
         return None
-    origin = request.headers.get("origin")
-    if origin:
-        return origin.rstrip("/")
-    host = request.headers.get("host")
-    if host:
-        scheme = request.headers.get("x-forwarded-proto") or request.url.scheme
-        return f"{scheme}://{host}"
-    return None
+    from grunt.utils.http import public_base_url
+
+    return public_base_url(request)
 
 
 def _resolve_rp(request: Any) -> tuple[str, str]:

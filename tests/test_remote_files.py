@@ -51,6 +51,7 @@ def _mock_client(monkeypatch, handler):
     async def public(url):
         if "internal" in url:
             raise remote.RemoteFileError("internal")
+        return "93.184.216.34"  # a public IP to connect to
 
     monkeypatch.setattr(remote, "_check_public", public)
 
@@ -91,3 +92,23 @@ async def test_too_large_download_is_refused(ctx, storage, monkeypatch):
     _mock_client(monkeypatch, handler)
     with pytest.raises(remote.RemoteFileError):
         await remote.fetch_file("https://example.com/big.txt")
+
+
+@pytest.mark.asyncio
+async def test_connection_pins_validated_ip_not_the_hostname(ctx, storage, monkeypatch):
+    """SSRF/DNS-rebinding guard: the HTTP connection targets the IP returned by
+    _check_public, with the real hostname kept only in the Host header and TLS
+    SNI - so the client cannot re-resolve the name to a private address."""
+    seen = {}
+
+    def handler(request: httpx2.Request) -> httpx2.Response:
+        seen["host"] = request.url.host
+        seen["host_header"] = request.headers.get("host")
+        seen["sni"] = request.extensions.get("sni_hostname")
+        return httpx2.Response(200, content=b"ok", headers={"content-type": "text/plain"})
+
+    _mock_client(monkeypatch, handler)
+    await remote.fetch_file("https://example.com/a.txt")
+    assert seen["host"] == "93.184.216.34"  # connected to the validated IP
+    assert seen["host_header"] == "example.com"  # vhost routing preserved
+    assert seen["sni"] == "example.com"  # cert verified against the real name

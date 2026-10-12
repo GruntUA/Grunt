@@ -22,7 +22,6 @@ from grunt.startup.dev import register_dev_proxy
 from grunt.startup.errors import register_exception_handlers
 from grunt.startup.lifespan import lifespan
 from grunt.startup.website import register_website_routes
-from grunt.storage.signing import SignedFileURLResponse
 
 # Wire the framework's own hooks/resources ("app zero"). External apps are
 # loaded from the lifespan, once the DB says which are installed.
@@ -34,8 +33,9 @@ app = FastAPI(
     lifespan=lifespan,
     docs_url="/api/docs",
     redoc_url="/api/redoc",
-    # Signs private-file URLs in every JSON response (grunt.storage.signing).
-    default_response_class=SignedFileURLResponse,
+    # File URLs are signed per-response, only for files the caller may read
+    # (grunt.storage.signing.sign_authorized_file_urls at the API chokepoints).
+    # Never blanket-signed here: that would sign any echoed id -> an oracle.
 )
 
 app.add_middleware(IdempotencyMiddleware)

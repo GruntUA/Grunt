@@ -46,7 +46,16 @@ _AUTH_STRICT_PATHS: dict[str, int] = {
     "/api/v1/method/grunt.auth.doctypes.User.user.login_api": 20,
     "/api/v1/method/grunt.auth.doctypes.User.user.register_full_name_api": 10,
     "/api/v1/method/grunt.auth.doctypes.User.user.forgot_password_api": 5,
+    "/api/v1/method/grunt.auth.doctypes.User.user.reset_password_api": 10,
+    # Second factor / one-time codes: short and guessable, keep them slow.
+    "/api/v1/method/grunt.auth.doctypes.User.user.mfa_login_api": 10,
+    "/api/v1/method/grunt.auth.doctypes.User.user.mfa_enroll_complete": 10,
+    "/api/v1/method/grunt.auth.doctypes.User.user.register": 10,
 }
+
+# /api/v1/auth/{method}/begin|complete|enroll/* - per-IP limit/minute.
+_AUTH_METHODS_PREFIX = "/api/v1/auth/"
+_AUTH_METHODS_LIMIT = 20
 
 _FILE_CONTENT_PATH = "/api/v1/method/grunt.storage.doctypes.File.file.get_content"
 
@@ -177,8 +186,15 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             return await call_next(request)
 
         # Strict IP-based limits for sensitive auth paths (regardless of user tier)
-        if path in _AUTH_STRICT_PATHS:
-            strict_limit = _AUTH_STRICT_PATHS[path]
+        strict_limit = _AUTH_STRICT_PATHS.get(path)
+        if (
+            strict_limit is None
+            and request.method == "POST"
+            and path.startswith(_AUTH_METHODS_PREFIX)
+        ):
+            # Pluggable sign-in methods (email code, passkey, ...): one bucket each.
+            strict_limit = _AUTH_METHODS_LIMIT
+        if strict_limit is not None:
             ip = self._client_ip(request)
             strict_key = f"auth:{path}:{ip}"
             allowed, remaining, reset_in = await self._check(strict_key, strict_limit)

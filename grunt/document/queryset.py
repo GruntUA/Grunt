@@ -100,7 +100,17 @@ class QuerySet[T: BaseDocument]:
         return results[0] if results else None
 
     async def count(self) -> int:
-        return await grunt.count(self._doctype, filters=self._filters or None)
+        # Permission-aware when a user is bound, to match .all()/.first() (which
+        # go through grunt.get_all and are row-level filtered) - otherwise a
+        # restricted user's total would include rows the list hides. With no
+        # user in context (background task, bootstrap) fall back to a raw count
+        # rather than raising, mirroring the old behaviour there.
+        from grunt.local import _user_ctx
+
+        respect = _user_ctx.get() is not None
+        return await grunt.count(
+            self._doctype, filters=self._filters or None, respect_permissions=respect
+        )
 
     async def exists(self) -> bool:
         return await self.count() > 0

@@ -26,9 +26,10 @@ Flow:
 
 from __future__ import annotations
 
+import hmac
 from urllib.parse import urlencode
 
-from fastapi import Request
+from fastapi import Request, Response
 from fastapi.responses import RedirectResponse
 
 from grunt.api.messages import ApplicationError
@@ -45,15 +46,41 @@ router = GruntRouter(prefix="", tags=["oauth"], optional_auth=True)
 
 def _spa_redirect(fragment: dict[str, str]) -> RedirectResponse:
     base = settings.app_url.rstrip("/")
-    return RedirectResponse(f"{base}/login#{urlencode(fragment)}", status_code=302)
+    resp = RedirectResponse(f"{base}/login#{urlencode(fragment)}", status_code=302)
+    resp.delete_cookie(_STATE_COOKIE, path="/api/v1/oauth")  # one-shot
+    return resp
+
+
+# The ``state`` this browser started the flow with (HttpOnly, short-lived). The
+# callback only completes when the IdP echoes the same value - so a callback
+# link crafted elsewhere cannot sign this browser in to someone else's account.
+_STATE_COOKIE = "grunt_oauth_state"
+_STATE_TTL_SECONDS = 600
 
 
 @router.get("/{provider}/authorize")
-async def oauth_authorize(provider: str, request: Request) -> dict:
+async def oauth_authorize(provider: str, request: Request, response: Response) -> dict:
     """Return the IdP authorization URL for the frontend to redirect to."""
     prov = auth_providers.get(provider)
     result = await prov.begin(AuthFlowContext(request=request))
+    if result.get("state"):
+        response.set_cookie(
+            _STATE_COOKIE,
+            result["state"],
+            max_age=_STATE_TTL_SECONDS,
+            path="/api/v1/oauth",
+            httponly=True,
+            samesite="lax",
+            secure=settings.app_url.startswith("https://"),
+        )
     return ok({"url": result["redirect_url"]})
+
+
+def _state_matches(request: Request, state: str | None) -> bool:
+    expected = request.cookies.get(_STATE_COOKIE)
+    if not expected or not state:
+        return False
+    return hmac.compare_digest(expected, state)
 
 
 @router.get("/{provider}/callback")
@@ -62,10 +89,13 @@ async def oauth_callback(
     request: Request,
     code: str | None = None,
     error: str | None = None,
+    state: str | None = None,
 ) -> RedirectResponse:
     """Exchange the authorization code and bounce back into the SPA."""
     if error or not code:
         return _spa_redirect({"error": error or "missing_code"})
+    if not _state_matches(request, state):
+        return _spa_redirect({"error": "invalid_state"})
 
     try:
         prov = auth_providers.get(provider)

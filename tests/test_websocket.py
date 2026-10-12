@@ -15,7 +15,15 @@ from grunt.main import app
 
 
 def _token(sub: str) -> str:
-    return jwt.encode({"sub": sub}, settings.secret_key, algorithm=settings.algorithm)
+    # A real session access token carries typ="access"; a challenge token does
+    # not, and _authenticate_ws rejects anything that isn't an access token.
+    from grunt.auth.service import ACCESS_TOKEN_TYPE
+
+    return jwt.encode(
+        {"typ": ACCESS_TOKEN_TYPE, "sub": sub},
+        settings.secret_key,
+        algorithm=settings.algorithm,
+    )
 
 
 def test_user_channel_ping_pong():

@@ -55,8 +55,23 @@ async def fetch_file(url: str, *, folder: str | None = None) -> dict[str, Any]:
 async def _download(url: str, buffer: Any, limit: int) -> tuple[httpx2.Headers, str]:
     async with httpx2.AsyncClient(follow_redirects=False, timeout=_TIMEOUT) as client:
         for _hop in range(_MAX_REDIRECTS + 1):
-            await _check_public(url)
-            async with client.stream("GET", url) as response:
+            # Resolve + validate, then connect to *that* IP. Re-resolving inside
+            # the HTTP client (as a plain GET url would) reopens a DNS-rebinding
+            # SSRF: the check sees a public IP, the connection a private one. The
+            # Host header and TLS SNI stay the real hostname so vhosts and cert
+            # verification still work.
+            ip = await _check_public(url)
+            parts = urlsplit(url)
+            host_header = parts.netloc
+            ip_host = f"[{ip}]" if ":" in ip else ip
+            connect_url = parts._replace(
+                netloc=f"{ip_host}:{parts.port}" if parts.port else ip_host
+            ).geturl()
+            headers = {"Host": host_header}
+            extensions = {"sni_hostname": parts.hostname} if parts.scheme == "https" else {}
+            async with client.stream(
+                "GET", connect_url, headers=headers, extensions=extensions
+            ) as response:
                 if response.is_redirect and "location" in response.headers:
                     url = urljoin(url, response.headers["location"])
                     continue
@@ -78,7 +93,13 @@ async def _download(url: str, buffer: Any, limit: int) -> tuple[httpx2.Headers, 
     raise RemoteFileError(_("Too many redirects"))
 
 
-async def _check_public(url: str) -> None:
+async def _check_public(url: str) -> str:
+    """Validate *url* and return one resolved, public IP to connect to.
+
+    Every address the host resolves to must be global; the returned IP is the
+    one the caller must connect to (so the connection can't be re-resolved to a
+    private address between check and connect - DNS rebinding).
+    """
     parts = urlsplit(url)
     if parts.scheme not in ("http", "https") or not parts.hostname:
         raise RemoteFileError(_("Only http:// and https:// links can be downloaded"))
@@ -92,10 +113,16 @@ async def _check_public(url: str) -> None:
         raise RemoteFileError(
             _("The site “%(host)s” was not found") % {"host": parts.hostname}
         ) from exc
+    chosen: str | None = None
     for info in infos:
         address = ipaddress.ip_address(info[4][0])
         if not address.is_global:
             raise RemoteFileError(_("Links to internal network addresses are not allowed"))
+        if chosen is None:
+            chosen = str(address)
+    if chosen is None:
+        raise RemoteFileError(_("The site “%(host)s” was not found") % {"host": parts.hostname})
+    return chosen
 
 
 def _filename(disposition: str | None, url: str) -> str:

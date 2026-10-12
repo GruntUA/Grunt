@@ -44,6 +44,7 @@ import math
 import re
 from datetime import date, datetime, time, timedelta, timezone
 from decimal import Decimal
+from types import SimpleNamespace
 from typing import Any
 
 from RestrictedPython.compile import CompileResult, compile_restricted_exec
@@ -91,10 +92,30 @@ _EXTRA_SAFE_BUILTINS: dict[str, Any] = {
     "time": time,
     "timedelta": timedelta,
     "timezone": timezone,
-    # Math / json / re - safe: no I/O, no process/network access.
-    "math": math,
-    "json": json,
-    "re": re,
+    # Math / json / re: a LIVE module object is NOT safe to expose here -
+    # ``safer_getattr`` only blocks ``_``-prefixed names, so a chain of public
+    # module attributes reaches other modules (``re.enum.sys.modules[...]`` ->
+    # ``os`` -> process/filesystem). Expose narrow facades carrying only the
+    # callables scripts need; a bound function's dangerous attributes
+    # (``__globals__`` et al.) are all ``_``-prefixed and stay blocked.
+    "math": SimpleNamespace(
+        **{
+            name: getattr(math, name)
+            for name in (
+                "ceil", "floor", "trunc", "sqrt", "isqrt", "pow", "exp", "log",
+                "log2", "log10", "fabs", "factorial", "gcd", "hypot", "fmod",
+                "copysign", "sin", "cos", "tan", "asin", "acos", "atan", "atan2",
+                "degrees", "radians", "isfinite", "isnan", "isinf", "pi", "e", "tau",
+            )
+        }
+    ),
+    "json": SimpleNamespace(loads=json.loads, dumps=json.dumps),
+    "re": SimpleNamespace(
+        match=re.match, search=re.search, fullmatch=re.fullmatch, sub=re.sub,
+        subn=re.subn, findall=re.findall, finditer=re.finditer, split=re.split,
+        compile=re.compile, escape=re.escape, IGNORECASE=re.IGNORECASE,
+        MULTILINE=re.MULTILINE, DOTALL=re.DOTALL,
+    ),
 }
 
 

@@ -45,7 +45,8 @@ KINDS = ("database", "files", "config")
 # zstd 9: ~40% smaller than gzip 6 and faster; 19 squeezes more at ~25× the time.
 DEFAULT_COMPRESSION_LEVEL = 9
 MAX_COMPRESSION_LEVEL = 19
-_NAME = re.compile(r"^(\d{8}-\d{6})-(database|files|config)(\..+)$")
+# The name becomes a path: the suffix is extension characters only (no "/").
+_NAME = re.compile(r"^(\d{8}-\d{6})-(database|files|config)(\.[A-Za-z0-9.]+)$")
 
 
 class BackupError(RuntimeError):

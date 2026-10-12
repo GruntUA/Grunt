@@ -14,12 +14,9 @@ from __future__ import annotations
 import time
 from collections import OrderedDict
 
-import jwt
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import Response
-
-from grunt.config import settings
 
 _TTL_SECONDS = 24 * 3600
 _MAX_ENTRIES = 5000
@@ -34,11 +31,10 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
         auth = request.headers.get("authorization") or ""
         if not auth.lower().startswith("bearer "):
             return None
-        try:
-            payload = jwt.decode(auth[7:], settings.secret_key, algorithms=[settings.algorithm])
-        except jwt.PyJWTError:
-            return None
-        return payload.get("sub")
+        from grunt.auth.service import decode_access_token
+
+        payload = decode_access_token(auth[7:])
+        return payload.get("sub") if payload else None
 
     async def dispatch(self, request: Request, call_next) -> Response:
         key = request.headers.get("idempotency-key")

@@ -24,6 +24,26 @@ if TYPE_CHECKING:
 # its refresh token) is what carries the login across the idle timeout.
 ACCESS_TOKEN_MAX_MINUTES = 15
 
+# ``typ`` claim of a session access token (see create_access_token).
+ACCESS_TOKEN_TYPE = "access"
+
+
+def decode_access_token(token: str) -> dict | None:
+    """The payload of a valid, unexpired *access* token, else ``None``.
+
+    The one place that decides what authenticates a request: a challenge token
+    (MFA, MFA enrollment, email sign-in, passkey) is signed with the same key
+    and may carry ``sub``/``uid``, so ``typ`` must be checked, not just the
+    signature.
+    """
+    try:
+        payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
+    except jwt.PyJWTError:
+        return None
+    if payload.get("typ") != ACCESS_TOKEN_TYPE:
+        return None
+    return payload
+
 
 async def session_ttl_minutes() -> int:
     """Idle timeout of a UserSession, from ``SystemSettings.session_timeout``."""
@@ -57,6 +77,11 @@ def create_access_token(
     minutes = expire_minutes if expire_minutes is not None else settings.access_token_expire_minutes
     expire = datetime.now(UTC) + timedelta(minutes=minutes)
     payload = {
+        # Marks this as a session access token. Challenge tokens (MFA, MFA
+        # enrollment, email sign-in, passkey) share the signing key and carry
+        # sub/uid too - without this claim being required, an MFA challenge
+        # handed out after the password step would authenticate as the user.
+        "typ": ACCESS_TOKEN_TYPE,
         "sub": user.email,
         "uid": user.id,
         "full_name": user.full_name,

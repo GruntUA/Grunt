@@ -1,5 +1,7 @@
 """The password-reset link is built from the caller's real origin
-(Host / Origin / X-Forwarded-Proto), not the localhost APP_URL default."""
+(Host / Origin / X-Forwarded-Proto), not the localhost APP_URL default - but
+only for a host this deployment serves; a forged origin falls back to APP_URL
+(otherwise the victim is mailed a real token on the attacker's domain)."""
 
 from __future__ import annotations
 
@@ -51,7 +53,8 @@ async def _queued_bodies(ctx) -> tuple[str, str]:
 
 
 @pytest.mark.asyncio
-async def test_reset_url_uses_request_origin(ctx, _patched_user):
+async def test_reset_url_uses_request_origin(ctx, _patched_user, monkeypatch):
+    monkeypatch.setattr(settings, "allowed_origins", ["https://reset.example.com"])
     async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         await ctx.new_doc(
             "EmailAccount", {"email_address": "o@example.com", "enable_outgoing": True}
@@ -101,8 +104,9 @@ async def test_reset_url_falls_back_to_app_url_without_request(ctx, _patched_use
 
 
 @pytest.mark.asyncio
-async def test_endpoint_injects_request_into_method(client, ctx):
+async def test_endpoint_injects_request_into_method(client, ctx, monkeypatch):
     """The /method dispatcher supplies `request` so the link uses the caller host."""
+    monkeypatch.setattr(settings, "allowed_origins", ["https://portal.example"])
     await client.post(
         "/api/v1/method/grunt.auth.doctypes.User.user.register_full_name_api",
         json={"email": "ep@example.com", "password": "secret", "full_name": "Ep User"},
@@ -129,3 +133,21 @@ async def test_endpoint_injects_request_into_method(client, ctx):
         )
     assert rows
     assert "https://portal.example/reset-password?token=" in rows[0]["text_content"]
+
+
+@pytest.mark.asyncio
+async def test_reset_url_ignores_untrusted_origin(ctx, _patched_user, monkeypatch):
+    monkeypatch.setattr(settings, "app_url", "https://app.example.org")
+    async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
+        await ctx.new_doc(
+            "EmailAccount", {"email_address": "o@example.com", "enable_outgoing": True}
+        )
+        await ctx.db._session().commit()
+
+        req = _StubRequest({"origin": "https://evil.example", "host": "evil.example"})
+        assert await user_mod.forgot_password_api(_User.email, request=req) is True
+
+        html, text = await _queued_bodies(ctx)
+
+    assert "evil.example" not in html and "evil.example" not in text
+    assert "https://app.example.org/reset-password?token=TOK123" in text

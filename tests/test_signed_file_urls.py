@@ -109,3 +109,18 @@ def test_rate_limiter_recognises_file_content_requests():
     assert _is_file_content_request(req(signed))
     assert _is_file_content_request(req(f"{URL}f1"))  # public files are unsigned
     assert not _is_file_content_request(req("/api/v1/method/grunt.api.v1.docs.get_list"))
+
+
+@pytest.mark.asyncio
+async def test_authorized_signing_handles_tuples_and_keeps_container_types(ctx):
+    """_sign_in_structure must sign file URLs nested in a tuple (JSON-serialised
+    as an array) and must not deep-copy/retype dict/list containers."""
+    from grunt.storage import signing
+
+    data = {"row": ("x", f"{URL}pub1"), "items": [f"{URL}pub1"]}
+    # Pretend pub1 is authorized.
+    signed = signing._sign_in_structure(data, {"pub1"}, signing._expiry())
+    assert "&sig=" in signed["row"][1]  # tuple element signed
+    assert "&sig=" in signed["items"][0]  # list element signed
+    assert isinstance(signed["row"], tuple) and isinstance(signed["items"], list)
+    assert signed is data  # mutated in place, same dict object

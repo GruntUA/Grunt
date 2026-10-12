@@ -18,13 +18,19 @@ async def render_template(
     autoescape: bool = True,
 ) -> str:
     """Render a Jinja2 template using current Grunt app/session context."""
-    from jinja2 import DictLoader, Environment, FileSystemLoader, select_autoescape
+    from jinja2 import DictLoader, FileSystemLoader, select_autoescape
+    from jinja2.sandbox import SandboxedEnvironment
 
     ctx = context or {}
     file_extensions = (".html", ".txt", ".md", ".xml", ".jinja", ".j2")
     is_file = any(template.endswith(ext) for ext in file_extensions)
 
-    env = Environment(
+    # Sandboxed: this helper can be handed a raw template string (the DictLoader
+    # branch) and injects the whole ``grunt`` facade as a global, so a plain
+    # Environment would be an SSTI -> RCE sink the moment any caller forwards
+    # user input. SandboxedEnvironment blocks ``__``/private attribute access
+    # and unsafe callables while leaving ordinary templating intact.
+    env = SandboxedEnvironment(
         loader=FileSystemLoader(_collect_template_dirs())
         if is_file
         else DictLoader({"_": template}),

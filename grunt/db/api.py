@@ -238,6 +238,7 @@ class GruntDB:
         offset: int = ...,
         order_by: str | None = ...,
         order: str = ...,
+        scope: Callable[[Select, Table], Awaitable[Select]] | None = ...,
     ) -> list[Any]: ...
 
     @overload
@@ -253,6 +254,7 @@ class GruntDB:
         offset: int = ...,
         order_by: str | None = ...,
         order: str = ...,
+        scope: Callable[[Select, Table], Awaitable[Select]] | None = ...,
     ) -> list[dict[str, Any]]: ...
 
     async def get_all(
@@ -267,8 +269,15 @@ class GruntDB:
         offset: int = 0,
         order_by: str | None = None,
         order: str = "desc",
+        scope: Callable[[Select, Table], Awaitable[Select]] | None = None,
     ) -> list[dict[str, Any]] | list[Any]:
-        """Fetch a list of documents as plain dicts."""
+        """Fetch a list of documents as plain dicts.
+
+        No permission checks on its own - ``grunt.get_all`` is the
+        permission-aware variant. ``scope`` lets a caller narrow the
+        statement (row-level rules) before sort/pagination, the same way
+        ``aggregate`` does.
+        """
         dt = await grunt.get_meta(doctype)
         if dt is None:
             raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
@@ -288,6 +297,9 @@ class GruntDB:
             or_clauses = build_clauses(table, or_filters)
             if or_clauses:
                 stmt = stmt.where(or_(*or_clauses))
+
+        if scope is not None:
+            stmt = await scope(stmt, table)
 
         sort_col = table.c.get(order_by or "modified_at")
         if sort_col is None:

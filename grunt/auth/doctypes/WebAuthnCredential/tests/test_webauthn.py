@@ -45,7 +45,11 @@ async def test_unknown_provider_is_404(client: AsyncClient):
 
 
 @pytest.mark.asyncio
-async def test_begin_authentication_returns_signed_challenge(client: AsyncClient):
+async def test_begin_authentication_returns_signed_challenge(client: AsyncClient, monkeypatch):
+    from grunt.config import settings
+
+    # The test client's host; a ceremony origin is taken only from a served host.
+    monkeypatch.setattr(settings, "allowed_origins", ["http://test"])
     resp = await client.post("/api/v1/auth/webauthn/begin", json={})
     assert resp.status_code == 200, resp.text
     data = resp.json()["data"]
@@ -61,6 +65,19 @@ async def test_begin_authentication_returns_signed_challenge(client: AsyncClient
     assert claims["origin"] == "http://test"
     # A token minted for one purpose can't be replayed into another.
     assert verify_challenge_token(data["challenge_token"], "webauthn-reg") is None
+
+
+@pytest.mark.asyncio
+async def test_begin_ignores_forged_origin(client: AsyncClient):
+    """A client-chosen Origin/Host must not become the expected ceremony origin."""
+    resp = await client.post(
+        "/api/v1/auth/webauthn/begin",
+        json={},
+        headers={"origin": "https://evil.example", "host": "evil.example"},
+    )
+    assert resp.status_code == 200, resp.text
+    claims = verify_challenge_token(resp.json()["data"]["challenge_token"], "webauthn-auth")
+    assert claims and "evil.example" not in claims["origin"]
 
 
 @pytest.mark.asyncio

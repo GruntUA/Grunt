@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-import jwt
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer
 
@@ -15,7 +14,7 @@ from grunt.auth.doctypes.User.user import (
     User,
     get_auth_context_user,
 )
-from grunt.config import settings
+from grunt.auth.service import decode_access_token
 from grunt.db.session import get_engine, get_session
 from grunt.i18n.middleware import apply_user_language
 from grunt.local import _messages_ctx
@@ -81,13 +80,12 @@ async def current_user(
     if not token:
         raise credentials_exception
 
-    try:
-        payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
-        email: str | None = payload.get("sub")
-        if email is None:
-            raise credentials_exception
-    except jwt.PyJWTError:
-        raise credentials_exception from None
+    payload = decode_access_token(token)
+    if payload is None:
+        raise credentials_exception
+    email: str | None = payload.get("sub")
+    if email is None:
+        raise credentials_exception
 
     uid: str | None = payload.get("uid")
     if not uid:
@@ -123,13 +121,12 @@ async def optional_user(
     """Return the authenticated user if a valid token is present, else None."""
     if not token:
         return None
-    try:
-        payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
-        email: str | None = payload.get("sub")
-        uid: str | None = payload.get("uid")
-        if not email or not uid:
-            return None
-    except jwt.PyJWTError:
+    payload = decode_access_token(token)
+    if payload is None:
+        return None
+    email: str | None = payload.get("sub")
+    uid: str | None = payload.get("uid")
+    if not email or not uid:
         return None
 
     async with grunt.context(session):

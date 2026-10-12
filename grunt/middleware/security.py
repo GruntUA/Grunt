@@ -30,6 +30,14 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         headers.setdefault("Content-Security-Policy", _CSP.format(ancestors))
         headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
         headers.setdefault("Permissions-Policy", "geolocation=(), microphone=()")
-        if request.url.scheme == "https":
+        # Behind a TLS-terminating proxy (the usual prod setup: nginx -> uvicorn)
+        # the request reaches the app as plain HTTP, so request.url.scheme is
+        # "http" and HSTS would never be sent. Trust X-Forwarded-Proto too - a
+        # browser only honours HSTS received over real HTTPS, so emitting it on a
+        # genuinely-HTTP response (were the header forged) is simply ignored.
+        forwarded_proto = (
+            (request.headers.get("x-forwarded-proto") or "").split(",")[0].strip().lower()
+        )
+        if request.url.scheme == "https" or forwarded_proto == "https":
             headers.setdefault("Strict-Transport-Security", HSTS)
         return response

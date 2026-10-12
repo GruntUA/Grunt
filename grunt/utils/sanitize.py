@@ -58,6 +58,9 @@ _cleaner = nh3.Cleaner(
     attribute_filter=_filter_attribute,
     filter_style_properties=_ALLOWED_STYLES,
     url_schemes={"http", "https", "mailto", "tel"},
+    # `a target="_blank"` is allowed above; force rel so the opened page can't
+    # reach back through window.opener (reverse tabnabbing) and isn't a referrer leak.
+    link_rel="noopener noreferrer",
 )
 
 

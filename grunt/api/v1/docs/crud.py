@@ -24,7 +24,10 @@ router = GruntRouter()
 
 async def _decorate(doctype: str, doc: Any) -> Any:
     """The form's computed extras: ``__perms`` and, for a web page, ``__web_url``."""
-    return await with_web_url(doctype, await with_permissions(doctype, doc))
+    from grunt.storage.signing import sign_authorized_file_urls
+
+    decorated = await with_web_url(doctype, await with_permissions(doctype, doc))
+    return await sign_authorized_file_urls(decorated, grunt.get_user())
 
 
 @router.get("/{doctype}")
@@ -56,7 +59,10 @@ async def list_documents(
         search=search,
         cursor=cursor,
     )
-    return ok(**result.to_dict())
+    from grunt.storage.signing import sign_authorized_file_urls
+
+    payload = await sign_authorized_file_urls(result.to_dict(), user)
+    return ok(**payload)
 
 
 @router.post("/{doctype}", status_code=status.HTTP_201_CREATED)

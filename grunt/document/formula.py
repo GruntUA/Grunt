@@ -13,7 +13,10 @@ All field values of the current document are available as plain variables:
     # Conditional
     formula = "price * qty * (1 - discount / 100) if discount else price * qty"
 
-Available built-ins (sandboxed - no imports, no file I/O):
+Available built-ins (restricted - no ``__builtins__``, no imports, and
+attribute traversal to ``_``-prefixed / ``format`` names is rejected before
+evaluation, see ``_formula_is_safe``; a ``formula`` is authored only by a
+System Manager, but this keeps it from becoming code execution on every read):
 
     abs, round, min, max, sum, len, str, int, float, bool,
     all, any, sorted, reversed, enumerate, zip, map, filter,
@@ -28,6 +31,7 @@ is logged.  This ensures a bad formula never blocks a save.
 
 from __future__ import annotations
 
+import ast
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
 
@@ -67,6 +71,39 @@ _SAFE_BUILTINS: dict[str, Any] = {
 }
 
 
+# Attribute names that re-open the "empty builtins" sandbox: every escape from
+# an expression sandbox walks object internals (``().__class__.__mro__`` ->
+# ``__subclasses__`` -> a class whose module has ``os``) or uses string
+# ``.format`` spec traversal (``"{0.__class__}".format(x)``). An empty
+# ``__builtins__`` does not stop either - only refusing the attribute access
+# does. ``_``-prefixed attrs cover every dunder plus private helpers
+# (``grunt.db._session``); ``format``/``format_map`` are the format-spec gap.
+_BLOCKED_ATTRS = frozenset({"format", "format_map"})
+
+
+def _formula_is_safe(formula: str) -> bool:
+    """Reject a formula expression that could escape the restricted namespace.
+
+    The namespace already withholds ``__builtins__`` and ``import``; the one
+    remaining class of escape is attribute traversal, which this blocks at the
+    AST level (so ``formula``/``read_formula``, authored by a System Manager,
+    cannot turn a document read into arbitrary code execution). Legitimate
+    formulas - arithmetic, ``str``/``int``, ``' '.join(...)``, ``.date()``,
+    slicing, f-strings, ``count(...)`` - use no ``_``-prefixed attribute.
+    """
+    try:
+        tree = ast.parse(formula, mode="eval")
+    except SyntaxError:
+        return False
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Attribute):
+            if node.attr.startswith("_") or node.attr in _BLOCKED_ATTRS:
+                return False
+        elif isinstance(node, ast.Name) and node.id.startswith("__"):
+            return False
+    return True
+
+
 async def compute_formulas(dt: DocType, row: dict[str, Any]) -> dict[str, Any]:
     """Evaluate all formula fields in *row* and return the updated dict."""
     return await _evaluate_formulas(dt, row, "formula")
@@ -95,11 +132,14 @@ async def _evaluate_formulas(dt: DocType, row: dict[str, Any], attr: str) -> dic
         return sum(float(r.get(fieldname) or 0) for r in rows)
 
     _now = datetime.now(UTC)
+    # NB: ``grunt`` is deliberately NOT exposed here - a formula only needs the
+    # sanctioned ``count``/``sum_docs`` helpers, and handing it the whole facade
+    # widens the namespace (``grunt.new_doc`` etc. running in the reader's
+    # context) for no formula in the codebase that uses it.
     ns: dict[str, Any] = {
         **_SAFE_BUILTINS,
         "count": _count,
         "sum_docs": _sum,  # renamed to avoid conflict with built-in sum
-        "grunt": grunt,
         "now": _now,
         "today": _now.date(),
     }
@@ -110,6 +150,9 @@ async def _evaluate_formulas(dt: DocType, row: dict[str, Any], attr: str) -> dic
     for field in formula_fields:
         formula = getattr(field, attr)
         if not formula or not formula.strip():
+            continue
+        if not _formula_is_safe(formula):
+            log.warning("formula.unsafe_blocked", doctype=dt.name, field=field.fieldname)
             continue
         try:
             # Wrap formula in an async function to allow await of helpers

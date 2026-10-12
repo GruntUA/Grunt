@@ -263,11 +263,13 @@ async def _authenticate_ws(websocket: WebSocket) -> str | None:
         await websocket.close(code=4001)
         return None
     try:
-        import jwt
+        from grunt.auth.service import decode_access_token
 
-        from grunt.config import settings
-
-        payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
+        # Access tokens only - an MFA/enrollment challenge token carries a
+        # ``sub`` too and must not open the user's realtime channel.
+        payload = decode_access_token(token)
+        if payload is None:
+            raise ValueError("Invalid or non-access token")
         sub = payload.get("sub")
         if not sub:
             raise ValueError("No subject in token")
@@ -276,6 +278,66 @@ async def _authenticate_ws(websocket: WebSocket) -> str | None:
         log.info("ws.rejected", path=websocket.url.path, ip=client_ip(websocket), reason=str(e))
         await websocket.close(code=4001)
         return None
+
+
+def _ws_site(websocket: WebSocket) -> str:
+    """Resolve the site for a WebSocket (no SiteContextMiddleware on WS scope).
+
+    Mirrors ``SiteContextMiddleware``: the Host header if it names a known site,
+    otherwise the active-site fallback.
+    """
+    from grunt.site.manager import site_manager
+
+    host = (websocket.headers.get("host") or "").split(":")[0]
+    if host and host in site_manager.get_sites():
+        return host
+    return site_manager.get_active_site()
+
+
+async def _ws_user_can_read(
+    websocket: WebSocket, user_email: str, doctype: str, doc_id: str | None
+) -> bool:
+    """Whether *user_email* may read this DocType (``doc_id`` None = list room)
+    or this specific document - the same gate the REST read paths apply.
+
+    A realtime room carries document data (``doc_change``) and other users'
+    presence, so joining it must require read access, not just a valid login.
+    """
+    from grunt.auth.doctypes.User.user import get_user_by_email
+    from grunt.local import _site_ctx
+    from grunt.permissions.rbac import permission_checker
+    from grunt.site.manager import site_manager
+
+    site = _ws_site(websocket)
+    site_token = _site_ctx.set(site)
+    try:
+        maker = site_manager.get_session_maker(site)
+        engine = site_manager.get_engine(site)
+        async with maker() as session, grunt.context(session, engine):
+            user = await get_user_by_email(user_email)
+            if user is None or not user.is_active:
+                return False
+            dt = await grunt.get_meta(doctype)
+            if dt is None:
+                return False
+            from grunt.document.base import is_table_backed
+
+            if doc_id is None or not is_table_backed(dt):
+                # List room, or a virtual DocType with no table to look a row up
+                # in: the DocType-level read grant is all there is to check.
+                return await permission_checker.check(user, dt, "read")
+            # Document room: the row-level check, against the real row - the
+            # user is passed explicitly, so no user needs to be bound to the
+            # context (this helper loads it, it does not run as it).
+            row = await grunt.db.get_value(doctype, doc_id, "*")
+            if row is None:
+                return False
+            return await permission_checker.check(user, dt, "read", row)
+    except Exception:
+        log.warning("ws.authz_failed", doctype=doctype, doc_id=doc_id)
+        return False
+    finally:
+        _site_ctx.reset(site_token)
 
 
 async def _run_simple_channel(
@@ -365,6 +427,10 @@ async def ws_document(
     dt = await grunt.get_meta(doctype)
     normalized_doctype = dt.name if dt is not None else doctype
 
+    if not await _ws_user_can_read(websocket, user_email, normalized_doctype, doc_id):
+        await websocket.close(code=4403)
+        return
+
     channel = f"doc:{normalized_doctype}:{doc_id}"
     await manager.connect(websocket, channel, AUTH_SUBPROTOCOL)
     try:
@@ -410,6 +476,10 @@ async def ws_list(
 
     dt = await grunt.get_meta(doctype)
     normalized_doctype = dt.name if dt is not None else doctype
+
+    if not await _ws_user_can_read(websocket, user_email, normalized_doctype, None):
+        await websocket.close(code=4403)
+        return
 
     channel = f"list:{normalized_doctype}"
     await manager.connect(websocket, channel, AUTH_SUBPROTOCOL)

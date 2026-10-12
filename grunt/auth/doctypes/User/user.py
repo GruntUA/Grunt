@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING, Any
 
 import anyio.to_thread
 import bcrypt
+from fastapi import HTTPException
 
 from grunt import log
 from grunt.i18n import N_, _
@@ -228,6 +229,39 @@ class User(Document):
         """Construct full_name from components."""
         parts = [self.last_name, self.first_name, self.middle_name]
         self.full_name = " ".join([p.strip() for p in parts if p and p.strip()])
+        await self._publish_avatar_file()
+
+    async def _publish_avatar_file(self) -> None:
+        """A profile photo is shown to colleagues (user pickers, comments,
+        activity), so the avatar's File must be public - otherwise, now that
+        file URLs are signed only for readers of the file, a user could not see
+        anyone else's avatar (they cannot read another user's User row). Only
+        the avatar file is published; other User attachments stay private.
+        """
+        avatar = self.data.get("avatar")
+        if not isinstance(avatar, str) or "get_content?file_id=" not in avatar:
+            return
+        import re as _re
+
+        m = _re.search(r"get_content\?file_id=([A-Za-z0-9_-]+)", avatar)
+        if not m:
+            return
+        file_id = m.group(1)
+        try:
+            row = await grunt.db.get_values("File", file_id, ["owner", "is_public"])
+            if not row:
+                return
+            # SECURITY: publish ONLY a file the saving user owns. Without this an
+            # attacker could set their own avatar to someone else's private
+            # file_id and flip it world-readable (IDOR) - re-opening the very
+            # signed-URL protection this hook relies on.
+            if row.get("owner") != self.name:
+                return
+            if not row.get("is_public"):
+                await grunt.db.set_value("File", file_id, "is_public", True)
+        except Exception:
+            # A missing/renamed file must not block saving the profile.
+            log.debug("user.avatar_publish_skipped", file_id=file_id)
 
     async def before_insert(self) -> None:
         # If a plain-text password was passed through the generic API, hash it.
@@ -496,14 +530,23 @@ async def register_failed_attempt(user: User) -> None:
     lockout_minutes = int(
         await get_setting("account_lockout_duration", _LOCKOUT_MINUTES) or _LOCKOUT_MINUTES
     )
-    new_attempts = (user.login_attempts or 0) + 1
-    updates: dict = {"login_attempts": new_attempts}
-    if new_attempts >= max_attempts:
-        updates["locked_until"] = datetime.now(UTC) + timedelta(minutes=lockout_minutes)
-        updates["login_attempts"] = 0
     assert user.name
-    async with grunt.system_context(grunt.get_session()):
+    session = grunt.get_session()
+    async with grunt.system_context(session):
+        # Fresh count, not the copy loaded at the start of the request.
+        stored = await grunt.db.get_value("User", user.name, "login_attempts")
+        new_attempts = int(stored or 0) + 1
+        updates: dict = {"login_attempts": new_attempts}
+        if new_attempts >= max_attempts:
+            updates["locked_until"] = datetime.now(UTC) + timedelta(minutes=lockout_minutes)
+            updates["login_attempts"] = 0
         await grunt.db.set_value("User", user.name, updates)
+    # Persist now: the caller rejects the sign-in by raising, and the request
+    # session is rolled back on an exception - which would otherwise undo this
+    # counter and leave guessing unlimited. Only ever called from an auth
+    # *failure* path (login / MFA), which holds no other pending writes to
+    # flush - so committing the request session here discards nothing else.
+    await session.commit()
 
 
 async def clear_failed_attempts(user: User) -> None:
@@ -686,11 +729,19 @@ async def mfa_login_api(
     if not user or not user.is_active:
         grunt.throw(_("User not found"), "UNAUTHORIZED")
 
+    # The password step already reset the failure counter, so a wrong second
+    # factor must count against the same lockout - a 6-digit code is guessable.
+    if await is_account_locked(user):
+        grunt.throw(_("Account temporarily locked. Try again later."), "TOO_MANY_REQUESTS")
     try:
         await check_mfa_code(user, code)
+    except HTTPException:
+        await register_failed_attempt(user)
+        raise
     except Exception as exc:
         log.error("auth.mfa_verify_error", error=str(exc))
         raise
+    await clear_failed_attempts(user)
 
     # honor_mfa=False: the second factor has just been proven here.
     return await issue_login(

@@ -301,7 +301,9 @@ async def get_list(
     query = File.objects.filter(**all_filters)
     query = query.order_by(f"-{order_by}" if order == "desc" else order_by)
     records = await query.limit(limit).page(page).all()
-    total = await query.count()
+    # ``records`` is row-level filtered (grunt.get_all), so the total must be
+    # too - a raw count would reveal how many files the user may NOT see.
+    total = await grunt.count("File", filters=all_filters or None, respect_permissions=True)
 
     return {
         "items": [

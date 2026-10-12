@@ -44,9 +44,17 @@ def _get_template_dirs() -> list[str]:
 
 
 def _get_jinja_env() -> Environment:
-    """Create a Jinja2 environment with all template directories."""
+    """Create a Jinja2 environment with all template directories.
+
+    Sandboxed: a PrintFormat template is stored in the DB and rendered with the
+    document's data, so even though only a System Manager authors it, a plain
+    Environment would let that template run arbitrary Python. SandboxedEnvironment
+    blocks ``__``/private attribute traversal while leaving templating intact.
+    """
+    from jinja2.sandbox import SandboxedEnvironment
+
     dirs = _get_template_dirs()
-    env = Environment(
+    env = SandboxedEnvironment(
         loader=FileSystemLoader(dirs) if dirs else BaseLoader(),
         autoescape=select_autoescape(["html"]),
     )

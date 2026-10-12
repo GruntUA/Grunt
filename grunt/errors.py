@@ -27,6 +27,7 @@ APPLICATION_ERROR_STATUS: dict[str, int] = {
     "DUPLICATE_DATA": 409,
     "VALIDATION_ERROR": 422,
     "RATE_LIMITED": 429,
+    "TOO_MANY_REQUESTS": 429,  # account lockout (login / MFA)
 }
 
 

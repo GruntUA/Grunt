@@ -47,3 +47,14 @@ def test_hsts_only_over_https() -> None:
     assert "strict-transport-security" not in _client().get("/plain").headers
     https = TestClient(_client().app, base_url="https://testserver")
     assert https.get("/plain").headers["strict-transport-security"].startswith("max-age=")
+
+
+def test_hsts_sent_behind_tls_terminating_proxy() -> None:
+    # nginx -> uvicorn: the request is plain HTTP but X-Forwarded-Proto says https.
+    resp = _client().get("/plain", headers={"x-forwarded-proto": "https"})
+    assert resp.headers["strict-transport-security"].startswith("max-age=")
+
+
+def test_hsts_absent_when_forwarded_proto_is_http() -> None:
+    resp = _client().get("/plain", headers={"x-forwarded-proto": "http"})
+    assert "strict-transport-security" not in resp.headers

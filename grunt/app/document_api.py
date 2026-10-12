@@ -467,9 +467,10 @@ class DocumentAPI:
             users = await grunt.get_all(User, filters={"active": True})
         """
         from grunt.document.base import DocumentList
+        from grunt.permissions.query import apply_permission_filter
 
         doctype: str = getattr(model_class, "doctype", model_class.__name__)
-        _, user, hidden_fields = await read_guard(doctype)
+        dt, user, hidden_fields = await read_guard(doctype)
 
         offset = max(page - 1, 0) * limit
         await fire(
@@ -486,6 +487,12 @@ class DocumentAPI:
             method="get_all",
         )
 
+        async def _scope(stmt: Any, table: Any) -> Any:
+            # Same row-level gate get_list applies (match rules, User
+            # Permissions, shares). Without it get_all would return every
+            # row the doctype-level read grant allows, ignoring `match`.
+            return await apply_permission_filter(stmt, table, user, dt.doc)
+
         rows = await self.db.get_all(
             doctype,
             filters=filters,
@@ -494,6 +501,7 @@ class DocumentAPI:
             offset=offset,
             order_by=order_by,
             order=order,
+            scope=None if dt.doc.is_virtual else _scope,
         )
         apply_hidden_fields_to_rows(rows, hidden_fields)
         await fire("after_read", doctype=doctype, user=user, data=rows, method="get_all")
