@@ -240,7 +240,9 @@ async def test_tools_act_with_callers_permissions(ctx, db_session, engine, mcp_d
             "params": {"name": name, "arguments": arguments},
         }
         async with grunt.context(db_session, engine, user):
-            return (await handle_message(msg))["result"]
+            response = await handle_message(msg)
+        assert response is not None
+        return response["result"]
 
     reader = make_user("reader@grunt.example.com", roles=["Reader"])
     nobody = make_user("nobody@grunt.example.com", roles=[])

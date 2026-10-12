@@ -20,13 +20,11 @@ import pytest
 from grunt.io.exporters.csv import CsvExporter
 from grunt.io.exporters.sanitize import escape_formula
 from grunt.io.exporters.xlsx import XlsxExporter
+from grunt.metadata.field import DocField
 
 
-class _Field:
-    def __init__(self, fieldname: str, label: str, is_physical: bool = True):
-        self.fieldname = fieldname
-        self.label = label
-        self.is_physical = is_physical
+def _field(fieldname: str, label: str) -> DocField:
+    return DocField(fieldname=fieldname, label=label, fieldtype="Data")
 
 
 DANGEROUS_VALUES = [
@@ -54,7 +52,7 @@ class TestCsvExporterEscapesFormulas:
     @pytest.mark.asyncio
     async def test_formula_value_escaped_in_csv_output(self):
         exporter = CsvExporter()
-        fields = [_Field("notes", "Notes")]
+        fields = [_field("notes", "Notes")]
         rows = [{"notes": '=HYPERLINK("http://evil.example.com","click")'}]
 
         content = await exporter.export("TestDoc", rows, fields)
@@ -69,16 +67,17 @@ class TestXlsxExporterEscapesFormulas:
     @pytest.mark.asyncio
     async def test_formula_value_is_not_a_live_formula_cell(self):
         exporter = XlsxExporter()
-        fields = [_Field("notes", "Notes")]
+        fields = [_field("notes", "Notes")]
         rows = [{"notes": '=HYPERLINK("http://evil.example.com","click")'}]
 
         content = await exporter.export("TestDoc", rows, fields)
 
         wb = openpyxl.load_workbook(io.BytesIO(content))
         ws = wb.active
+        assert ws is not None
         cell = ws.cell(row=2, column=1)
         assert cell.data_type != "f", "value must not be interpreted as a live formula"
-        assert cell.value.startswith("'")
+        assert isinstance(cell.value, str) and cell.value.startswith("'")
 
     @pytest.mark.asyncio
     async def test_numbers_and_dates_pass_through_untouched(self):
@@ -86,11 +85,12 @@ class TestXlsxExporterEscapesFormulas:
         interpreted as formulas by openpyxl regardless of value.
         """
         exporter = XlsxExporter()
-        fields = [_Field("amount", "Amount")]
+        fields = [_field("amount", "Amount")]
         rows = [{"amount": 42}]
 
         content = await exporter.export("TestDoc", rows, fields)
         wb = openpyxl.load_workbook(io.BytesIO(content))
         ws = wb.active
+        assert ws is not None
         cell = ws.cell(row=2, column=1)
         assert cell.value == 42

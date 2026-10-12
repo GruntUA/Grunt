@@ -61,14 +61,16 @@ def test_incomplete_and_null_link_rows_are_tolerated():
     """A row with no link_doctype (nulls from the editor) is dropped, not an error."""
     from grunt.metadata.doctype import DocType
 
-    dt = DocType(
-        name="X",
-        label="X",
-        module="core",
-        links=[
-            {"link_doctype": None, "link_fieldname": "asset", "group": None, "label": None},
-            {"link_doctype": "ConnOrder", "link_fieldname": "asset", "group": None},
-        ],
+    dt = DocType.model_validate(
+        {
+            "name": "X",
+            "label": "X",
+            "module": "core",
+            "links": [
+                {"link_doctype": None, "link_fieldname": "asset", "group": None, "label": None},
+                {"link_doctype": "ConnOrder", "link_fieldname": "asset", "group": None},
+            ],
+        }
     )
     dumped = dt.model_dump()["links"]
     assert len(dumped) == 1

@@ -64,6 +64,7 @@ async def test_preview_has_title_and_in_preview_fields(ctx, setup_preview, db_se
 
     async with grunt.context(db_session, engine, make_user("r@example.com", roles=["Reader"])):
         data = await Document.get_preview("PVAsset", setup_preview["asset"])
+    assert data is not None
 
     assert data["title"] == "Generator"
     assert [f["fieldname"] for f in data["fields"]] == ["serial_no", "status"]
@@ -78,6 +79,7 @@ async def test_preview_falls_back_to_required_fields(ctx, setup_preview, db_sess
 
     async with grunt.context(db_session, engine, make_user("r@example.com", roles=["Reader"])):
         data = await Document.get_preview("PVPlain", setup_preview["plain"])
+    assert data is not None
 
     assert [f["fieldname"] for f in data["fields"]] == ["code"]
     assert data["row"]["code"] == "C-1"

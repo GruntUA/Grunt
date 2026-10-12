@@ -5,11 +5,16 @@ only for a host this deployment serves; a forged origin falls back to APP_URL
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING, cast
+
 import pytest
 from starlette.datastructures import Headers
 
 from grunt.auth.doctypes.User import user as user_mod
 from grunt.config import settings
+
+if TYPE_CHECKING:
+    from starlette.requests import Request
 
 
 class _StubURL:
@@ -20,6 +25,10 @@ class _StubRequest:
     def __init__(self, headers: dict[str, str]):
         self.headers = Headers(headers)
         self.url = _StubURL()
+
+
+def _request(headers: dict[str, str]) -> Request:
+    return cast("Request", _StubRequest(headers))
 
 
 class _User:
@@ -61,7 +70,7 @@ async def test_reset_url_uses_request_origin(ctx, _patched_user, monkeypatch):
         )
         await ctx.db._session().commit()
 
-        req = _StubRequest({"origin": "https://reset.example.com"})
+        req = _request({"origin": "https://reset.example.com"})
         assert await user_mod.forgot_password_api(_User.email, request=req) is True
 
         html, text = await _queued_bodies(ctx)
@@ -81,7 +90,7 @@ async def test_reset_url_uses_host_and_forwarded_proto(ctx, _patched_user, monke
         )
         await ctx.db._session().commit()
 
-        req = _StubRequest({"host": "dev2.itmlt.win", "x-forwarded-proto": "https"})
+        req = _request({"host": "dev2.itmlt.win", "x-forwarded-proto": "https"})
         assert await user_mod.forgot_password_api(_User.email, request=req) is True
 
         _, text = await _queued_bodies(ctx)
@@ -146,7 +155,7 @@ async def test_reset_url_ignores_untrusted_origin(ctx, _patched_user, monkeypatc
         )
         await ctx.db._session().commit()
 
-        req = _StubRequest({"origin": "https://evil.example", "host": "evil.example"})
+        req = _request({"origin": "https://evil.example", "host": "evil.example"})
         assert await user_mod.forgot_password_api(_User.email, request=req) is True
 
         html, text = await _queued_bodies(ctx)

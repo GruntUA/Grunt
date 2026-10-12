@@ -73,6 +73,33 @@ def _run_python(root: Path, fix: bool) -> int:
     return 0 if ok else 1
 
 
+def _has_pyright_config(root: Path) -> bool:
+    if (root / "pyrightconfig.json").exists():
+        return True
+    pyproject = root / "pyproject.toml"
+    return pyproject.exists() and "[tool.pyright]" in pyproject.read_text(encoding="utf-8")
+
+
+def _run_pyright(root: Path) -> int:
+    """The type checker behind Pylance; only for apps that ship a pyright config."""
+    if not _has_pyright_config(root):
+        click.echo(click.style("  [skip] pyright config not found", fg="yellow"))
+        return 0
+
+    if shutil.which("pyright"):
+        cmd = ["pyright"]
+    elif shutil.which("npx"):
+        cmd = ["npx", "--yes", "pyright"]
+    else:
+        click.echo(click.style("  [skip] pyright/npx not found", fg="yellow"))
+        return 0
+
+    click.echo(click.style("── pyright ──", bold=True))
+    ok = subprocess.run(cmd, cwd=root).returncode == 0
+    _print_status("Python types (pyright)", ok)
+    return 0 if ok else 1
+
+
 def _run_frontend(root: Path) -> int:
     if not (root / "package.json").exists():
         click.echo(click.style("  [skip] package.json not found", fg="yellow"))
@@ -101,6 +128,7 @@ def _lint_app(app_root: Path, fix: bool, only_py: bool, only_js: bool) -> int:
     codes: list[int] = []
     if not only_js:
         codes.append(_run_python(app_root, fix))
+        codes.append(_run_pyright(app_root))
     if not only_py:
         codes.append(_run_frontend(app_root))
     return 1 if any(c != 0 for c in codes) else 0
@@ -184,7 +212,7 @@ def _run_bench(
     help="App to check (repeatable). Enables bench mode.",
 )
 def lint(fix: bool, only_py: bool, only_js: bool, path: str | None, apps: tuple[str, ...]) -> None:
-    """Check the code: ruff (Python) + vue-tsc (TS/Vue).
+    """Check the code: ruff + pyright (Python) + vue-tsc (TS/Vue).
 
     From the bench directory, checks all or the selected (--app) apps.
     From an app directory, checks only that app.

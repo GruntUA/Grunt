@@ -8,6 +8,7 @@ import io
 import logging
 import sys
 
+import pytest
 from sqlalchemy.exc import OperationalError
 
 from grunt.logging_config import (
@@ -57,10 +58,9 @@ def _raise_db_error() -> None:
 
 
 def test_compact_traceback_is_short_and_names_the_cause() -> None:
-    try:
+    with pytest.raises(OperationalError) as caught:
         _raise_db_error()
-    except OperationalError as e:
-        exc_info = (type(e), e, e.__traceback__)
+    exc_info = (caught.type, caught.value, caught.tb)
     out = io.StringIO()
     compact_exception_formatter(out, exc_info)
     text = out.getvalue()

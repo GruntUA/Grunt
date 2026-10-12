@@ -4,6 +4,7 @@ pages answer HEAD; sitemap and the page-view rate limit tier."""
 from __future__ import annotations
 
 import pytest
+from jinja2 import ChoiceLoader, FileSystemLoader
 
 
 def test_spa_paths():
@@ -126,6 +127,7 @@ async def test_app_hooks_resolve_paths_and_extend_context_and_templates(ctx, db_
             return None
         context = await router.page_context(request, session)
         env = router.website_registry.get_env("grunt")
+        assert env is not None
         html = await env.from_string(
             '{% extends "_base.html" %}{% block body %}hi{% endblock %}'
         ).render_async(**context)
@@ -153,12 +155,19 @@ async def test_app_hooks_resolve_paths_and_extend_context_and_templates(ctx, db_
     router.register_context_processor(processor)
     try:
         response = await router.render_page_by_route(request("/from-app"), db_session)
-        assert response is not None and response.body.decode() == "<site>ҐРУНТ|hi</site>"
+        assert response is not None and bytes(response.body).decode() == "<site>ҐРУНТ|hi</site>"
         assert await router.render_page_by_route(request("/elsewhere"), db_session) is None
     finally:
         router._page_resolvers.remove(resolver)
         router._context_processors.remove(processor)
         router._template_dirs.remove(layouts)
         for env in router.website_registry._envs.values():
-            env.cache.clear()
-            env.loader.loaders = [x for x in env.loader.loaders if str(layouts) not in x.searchpath]
+            if env.cache is not None:
+                env.cache.clear()
+            loader = env.loader
+            assert isinstance(loader, ChoiceLoader)
+            loader.loaders = [
+                x
+                for x in loader.loaders
+                if not (isinstance(x, FileSystemLoader) and str(layouts) in x.searchpath)
+            ]

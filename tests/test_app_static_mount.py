@@ -99,4 +99,4 @@ def test_app_router_routes_register_in_front_of_catch_all(tmp_path: Path) -> Non
     base = "/api/v1/app/demo_router_app/demo_router_app"
     assert client.get(f"{base}/one").json() == {"route": "one"}
     assert client.get(f"{base}/two/hello").json() == {"route": "hello"}
-    assert fastapi_app.router.routes[-1].path == "/{path:path}"
+    assert getattr(fastapi_app.router.routes[-1], "path", None) == "/{path:path}"

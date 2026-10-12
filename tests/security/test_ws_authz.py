@@ -9,9 +9,14 @@ code 4403 when it returns False.
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING, cast
+
 import pytest
 
 from tests.support import make_user  # noqa: F401  (kept for parity with other tests)
+
+if TYPE_CHECKING:
+    from starlette.websockets import WebSocket
 
 SECRET = {
     "name": "WsSecret",
@@ -27,6 +32,10 @@ SECRET = {
 class _StubWS:
     def __init__(self) -> None:
         self.headers = {"host": "__pytest__"}
+
+
+def _ws() -> WebSocket:
+    return cast("WebSocket", _StubWS())
 
 
 @pytest.fixture
@@ -75,8 +84,8 @@ async def test_non_reader_cannot_join_document_room(ctx, _secret, _point_site_ma
     from grunt.api.v1.ws import _ws_user_can_read
 
     # Owner may read it; a stranger may not.
-    assert await _ws_user_can_read(_StubWS(), "owner@grunt.example.com", "WsSecret", _secret)
-    assert not await _ws_user_can_read(_StubWS(), "stranger@grunt.example.com", "WsSecret", _secret)
+    assert await _ws_user_can_read(_ws(), "owner@grunt.example.com", "WsSecret", _secret)
+    assert not await _ws_user_can_read(_ws(), "stranger@grunt.example.com", "WsSecret", _secret)
 
 
 @pytest.mark.asyncio
@@ -84,8 +93,8 @@ async def test_non_reader_cannot_join_list_room(ctx, _secret, _point_site_manage
     from grunt.api.v1.ws import _ws_user_can_read
 
     # doc_id=None -> DocType-level read gate for the list room.
-    assert await _ws_user_can_read(_StubWS(), "owner@grunt.example.com", "WsSecret", None)
-    assert not await _ws_user_can_read(_StubWS(), "outsider@grunt.example.com", "WsSecret", None)
+    assert await _ws_user_can_read(_ws(), "owner@grunt.example.com", "WsSecret", None)
+    assert not await _ws_user_can_read(_ws(), "outsider@grunt.example.com", "WsSecret", None)
 
 
 @pytest.mark.asyncio
@@ -113,4 +122,4 @@ async def test_virtual_doctype_room_uses_doctype_level_check(ctx, _point_site_ma
     await ctx.db._session().commit()
 
     # A read grant exists for "All" -> allowed, without ever touching a table.
-    assert await _ws_user_can_read(_StubWS(), "wsv@grunt.example.com", "WsVirtual", "anything")
+    assert await _ws_user_can_read(_ws(), "wsv@grunt.example.com", "WsVirtual", "anything")

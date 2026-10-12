@@ -7,6 +7,7 @@ import grunt
 async def test_meta_helpers(ctx):
     # Fetch Meta for User DocType
     meta = await grunt.get_meta("User")
+    assert meta is not None
 
     assert meta.get_field("email") is not None
     assert meta.has_field("email") is True
@@ -24,6 +25,7 @@ async def test_meta_helpers(ctx):
 
     # Check UserRole table for testing table fields
     meta_ur = await grunt.get_meta("UserRole")
+    assert meta_ur is not None
     assert meta_ur.get_title_field() == "name"
 
     # User fields

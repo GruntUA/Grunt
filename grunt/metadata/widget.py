@@ -35,9 +35,8 @@ class WidgetType:
     # False for "activity" - it aggregates across all doctypes when none is set.
     requires_doctype: ClassVar[bool] = True
 
-    @classmethod
+    @staticmethod
     async def compute(
-        cls,
         widget: dict[str, Any],
         dt: Any,
         doctype_name: str,

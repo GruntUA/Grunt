@@ -34,10 +34,12 @@ def test_does_not_match_missing_segment():
 def test_literal_characters_are_escaped():
     rx = _pattern_regex("/a.b/{id}")
     assert rx.match("/aXb/1") is None
-    assert rx.match("/a.b/1").groupdict() == {"id": "1"}
+    m = rx.match("/a.b/1")
+    assert m is not None and m.groupdict() == {"id": "1"}
 
 
 def test_multiple_dynamic_segments():
     rx = _pattern_regex("/office/{route}/staff/{staff_id}")
     m = rx.match("/office/cnap-01/staff/42")
+    assert m is not None
     assert m.groupdict() == {"route": "cnap-01", "staff_id": "42"}

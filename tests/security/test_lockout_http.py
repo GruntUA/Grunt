@@ -55,6 +55,7 @@ async def test_wrong_mfa_codes_lock_the_account(ctx, client):
         )
         await ctx.db._session().commit()
         user = await get_user_by_email(EMAIL)
+    assert user is not None
     token = create_mfa_token(user)
     for _ in range(3):
         r = await client.post(f"{M}.mfa_login_api", json={"mfa_token": token, "code": "000000"})

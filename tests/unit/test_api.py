@@ -60,7 +60,7 @@ def _dt(name: str, permissions: list[DocPermission] | None = None) -> DocType:
     )
 
 
-def _registry_returning(dt: Mock):
+def _registry_returning(dt: Mock | DocType):
     """Patch doctype_registry.get() to resolve any doctype name to *dt*."""
     return patch("grunt.app.doctype_registry.get", new_callable=AsyncMock, return_value=dt)
 
@@ -386,6 +386,7 @@ class TestGruntAppLayerPermissions:
                 scope=ANY,
             )
             # Row-level permission filter (match rules, shares) is applied.
+            assert mock_db_get_all.await_args is not None
             assert callable(mock_db_get_all.await_args.kwargs["scope"])
             assert mock_fire.await_count == 2
 

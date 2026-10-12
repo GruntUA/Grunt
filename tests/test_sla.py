@@ -105,6 +105,18 @@ async def _status(ctx, ticket):
     return rows[0] if rows else None
 
 
+async def _row(ctx, ticket) -> dict:
+    row = await _status(ctx, ticket)
+    assert row is not None
+    return row
+
+
+def _due(value) -> datetime:
+    due = sla.as_datetime(value)
+    assert due is not None
+    return due
+
+
 async def _notified(ctx, user):
     rows = await ctx.db.get_all("Notification", filters={"user": user}, fields=["subject"])
     return [r["subject"] for r in rows]
@@ -138,38 +150,38 @@ async def test_condition_and_done_documents_are_skipped(ctx, policy):
 async def test_done_stops_the_clock(ctx, policy):
     t = await ctx.new_doc("SlaTicket", {"title": "Mouse"})
     await ctx.save_doc("SlaTicket", t["name"], {"status": "In progress"})
-    assert (await _status(ctx, t["name"]))["status"] == "On track"
+    assert (await _row(ctx, t["name"]))["status"] == "On track"
 
     await ctx.save_doc("SlaTicket", t["name"], {"status": "Closed"})
-    row = await _status(ctx, t["name"])
+    row = await _row(ctx, t["name"])
     assert row["status"] == "Met"
     assert row["met_at"]
 
     # Reopening does not restart a finished clock.
     await ctx.save_doc("SlaTicket", t["name"], {"status": "Open"})
-    assert (await _status(ctx, t["name"]))["status"] == "Met"
+    assert (await _row(ctx, t["name"]))["status"] == "Met"
 
 
 @pytest.mark.asyncio
 async def test_hand_set_deadline_moves_the_clock(ctx, policy):
     t = await ctx.new_doc("SlaTicket", {"title": "Server", "due": "2026-12-31"})
-    row = await _status(ctx, t["name"])
-    assert sla.as_datetime(row["due_at"]).astimezone(sla._tz()).date() == date(2026, 12, 31)
+    row = await _row(ctx, t["name"])
+    assert _due(row["due_at"]).astimezone(sla._tz()).date() == date(2026, 12, 31)
 
     await ctx.save_doc("SlaTicket", t["name"], {"due": "2027-01-15"})
-    row = await _status(ctx, t["name"])
-    assert sla.as_datetime(row["due_at"]).astimezone(sla._tz()).date() == date(2027, 1, 15)
+    row = await _row(ctx, t["name"])
+    assert _due(row["due_at"]).astimezone(sla._tz()).date() == date(2027, 1, 15)
 
 
 @pytest.mark.asyncio
 async def test_warning_then_breach_with_escalation(ctx, policy):
     t = await ctx.new_doc("SlaTicket", {"title": "Network", "assignee": ASSIGNEE})
-    due = sla.as_datetime((await _status(ctx, t["name"]))["due_at"])
+    due = _due((await _row(ctx, t["name"]))["due_at"])
 
     assert await sla.process_deadlines(due - timedelta(hours=48)) == {"warned": 0, "breached": 0}
 
     assert await sla.process_deadlines(due - timedelta(hours=12)) == {"warned": 1, "breached": 0}
-    row = await _status(ctx, t["name"])
+    row = await _row(ctx, t["name"])
     assert row["status"] == "At risk" and row["warned_at"]
     params = {"doctype": _("SlaTicket"), "name": t["name"]}
     warned = _("Deadline approaching: %(doctype)s %(name)s") % params
@@ -181,14 +193,14 @@ async def test_warning_then_breach_with_escalation(ctx, policy):
     assert await sla.process_deadlines(due - timedelta(hours=11)) == {"warned": 0, "breached": 0}
 
     assert await sla.process_deadlines(due + timedelta(hours=1)) == {"warned": 0, "breached": 1}
-    row = await _status(ctx, t["name"])
+    row = await _row(ctx, t["name"])
     assert row["status"] == "Breached" and row["breached_at"]
     assert await _notified(ctx, BOSS) == [missed]
     assert sorted(await _notified(ctx, ASSIGNEE)) == sorted([warned, missed])
 
     # Closing after the deadline -> "Met late".
     await ctx.save_doc("SlaTicket", t["name"], {"status": "Closed"})
-    assert (await _status(ctx, t["name"]))["status"] == "Met late"
+    assert (await _row(ctx, t["name"]))["status"] == "Met late"
 
 
 @pytest.mark.asyncio

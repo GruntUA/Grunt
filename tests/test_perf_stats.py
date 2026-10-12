@@ -5,10 +5,14 @@ from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
 from types import SimpleNamespace
+from typing import TYPE_CHECKING, cast
 
 import pytest
 
 from grunt.monitoring import perf
+
+if TYPE_CHECKING:
+    from starlette.requests import Request
 
 
 @pytest.fixture(autouse=True)
@@ -33,15 +37,16 @@ def test_bucket_and_percentile():
     hist = [0] * len(perf.HIST_FIELDS)
     hist[perf.bucket_of(30)] = 90  # 25..50 ms
     hist[perf.bucket_of(800)] = 10  # 500..1000 ms
-    assert 25 <= perf.percentile(hist, 0.5, 900) <= 50
-    assert 500 <= perf.percentile(hist, 0.95, 900) <= 900
+    assert 25 <= (perf.percentile(hist, 0.5, 900) or 0) <= 50
+    assert 500 <= (perf.percentile(hist, 0.95, 900) or 0) <= 900
     assert perf.percentile([0] * len(perf.HIST_FIELDS), 0.5, 0) is None
 
 
 def test_overflow_bucket_is_capped_by_max():
     hist = [0] * len(perf.HIST_FIELDS)
     hist[-1] = 3
-    assert perf.percentile(hist, 0.95, 42_000) <= 42_000
+    p95 = perf.percentile(hist, 0.95, 42_000)
+    assert p95 is not None and p95 <= 42_000
 
 
 @pytest.mark.asyncio
@@ -152,13 +157,14 @@ async def test_trend_list_reads_period_filter(ctx):
     assert list(day) == []
 
 
-def _request(path: str, template: str | None, method: str = "GET", **params):
+def _request(path: str, template: str | None, method: str = "GET", **params) -> Request:
     route = SimpleNamespace(path=template) if template else None
-    return SimpleNamespace(
+    stub = SimpleNamespace(
         scope={"route": route, "path_params": params},
         url=SimpleNamespace(path=path),
         method=method,
     )
+    return cast("Request", stub)
 
 
 @pytest.mark.parametrize(

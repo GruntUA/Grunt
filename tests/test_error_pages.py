@@ -48,7 +48,7 @@ def _no_error_log(monkeypatch):
 async def test_browser_gets_html_debug_page(monkeypatch):
     monkeypatch.setattr(settings, "debug", True)
     resp = await errors._generic_exception(_request("/", "text/html,*/*"), _template_error())
-    body = resp.body.decode()
+    body = bytes(resp.body).decode()
     assert resp.status_code == 500
     assert resp.media_type == "text/html"
     assert "UndefinedError" in body
@@ -60,7 +60,7 @@ async def test_browser_gets_html_debug_page(monkeypatch):
 async def test_browser_gets_html_without_debug_details(monkeypatch):
     monkeypatch.setattr(settings, "debug", False)
     resp = await errors._generic_exception(_request("/", "text/html"), _template_error())
-    body = resp.body.decode()
+    body = bytes(resp.body).decode()
     assert resp.status_code == 500
     assert "UndefinedError" not in body
     assert "Traceback" not in body
@@ -85,4 +85,4 @@ async def test_http_404_html():
     exc = HTTPException(status_code=404, detail="Office not found")
     resp = await errors._http_exception(_request("/office/x", "text/html"), exc)
     assert resp.status_code == 404
-    assert "Office not found" in resp.body.decode()
+    assert "Office not found" in bytes(resp.body).decode()

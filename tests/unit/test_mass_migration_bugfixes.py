@@ -6,6 +6,8 @@ after a dict-returning `get_doc` call.
 
 from __future__ import annotations
 
+from typing import Any
+
 import pytest
 
 import grunt
@@ -32,9 +34,8 @@ async def test_get_doc_instance_resolves_real_controller_method(ctx):
     )
 
     doc = await grunt.get_doc_instance("User", user.name)
-    handler = getattr(doc, "check_password", None)
-    assert handler is not None
-    assert callable(handler)
+    handler: Any = getattr(doc, "check_password", None)
+    assert handler is not None  # calling it below also proves it is callable
     assert await handler("secret") is True
 
 

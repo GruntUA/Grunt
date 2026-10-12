@@ -220,8 +220,10 @@ async def test_assign_spaces_moves_library_into_authors_homes(ctx, people, db_se
     import grunt
     from grunt.storage.spaces import assign_spaces
 
-    folders = (await grunt.get_meta("FileFolder")).table
-    files = (await grunt.get_meta("File")).table
+    folder_meta = await grunt.get_meta("FileFolder")
+    file_meta = await grunt.get_meta("File")
+    assert folder_meta is not None and file_meta is not None
+    folders, files = folder_meta.table, file_meta.table
     session = ctx.db._session()
     await session.execute(
         folders.insert().values(name="lib1", folder_name="Old library", owner=ANN)

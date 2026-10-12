@@ -49,6 +49,7 @@ def test_repeated_sync_does_not_creep_indentation(tmp_path):
     py = tmp_path / "Widget.py"
     py.write_text(_CONTROLLER, encoding="utf-8")
 
+    src = _CONTROLLER
     for i in range(1, 6):
         sync_controller_types(py, "Widget", _fields(i))
         src = py.read_text(encoding="utf-8")

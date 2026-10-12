@@ -51,7 +51,7 @@ async def _get(session, path: str) -> str:
         "root_path": "",
     }
     resp = await render_page_by_route(Request(scope), session)
-    return resp.body.decode() if resp is not None else ""
+    return bytes(resp.body).decode() if resp is not None else ""
 
 
 async def _sitemap() -> list[str]:

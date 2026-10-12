@@ -132,6 +132,7 @@ def test_restore_refuses_a_corrupt_copy(site):
     out = backups.backups_dir(SITE)
     (out / "20260901-020000-database.sqlite.zst").write_bytes(zstd.compress(b"not a database"))
     backup = backups.get_backup(SITE, "20260901-020000")
+    assert backup is not None
     with pytest.raises((backups.BackupError, sqlite3.DatabaseError)):
         backups.restore_backup(SITE, backup)
     assert _rows(site / "grunt.db") == ["original"]  # untouched

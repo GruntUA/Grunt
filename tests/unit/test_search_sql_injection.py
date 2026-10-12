@@ -19,7 +19,7 @@ from __future__ import annotations
 from unittest.mock import patch
 
 import pytest
-from sqlalchemy import func, select, text
+from sqlalchemy import Select, func, select, text
 from sqlalchemy.dialects import mysql
 
 from grunt.search.service import SearchIndexService, _search_index_table
@@ -34,7 +34,7 @@ async def test_mysql_branch_uses_bound_parameter_not_string_interpolation(db_ses
     carries the malicious input as a parameter, not baked into SQL text.
     """
     svc = SearchIndexService()
-    captured: dict[str, object] = {}
+    captured: dict[str, Select] = {}
 
     async def _fake_execute(stmt):
         captured["stmt"] = stmt

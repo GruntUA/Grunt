@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from typing import Any
 
 import pytest
 from fastapi import HTTPException
@@ -153,12 +154,13 @@ async def test_no_read_permission_and_bad_input(deals, as_user):
         assert exc.value.status_code == 403
 
     async with as_user("admin@grunt.example.com", ["System Manager"]):
-        for kwargs in (
+        bad_calls: list[dict[str, Any]] = [
             {"group_by": "nope"},
             {"aggregations": {"x": "sum(nope)"}},
             {"aggregations": {"x": "median(amount)"}},
             {"filters": {"nope__gt": 1}},
-        ):
+        ]
+        for kwargs in bad_calls:
             with pytest.raises(HTTPException) as exc:
                 await grunt.aggregate("AggDeal", **kwargs)
             assert exc.value.status_code == 422, kwargs
@@ -183,7 +185,9 @@ async def test_mcp_aggregate_tool(deals, db_session, engine):
         },
     }
     async with grunt.context(db_session, engine, make_user(ALICE, roles=["Seller"])):
-        result = (await handle_message(msg))["result"]
+        response = await handle_message(msg)
+    assert response is not None
+    result = response["result"]
     assert not result["isError"], result
     rows = json.loads(result["content"][0]["text"])
     assert rows == [{"status": "Won", "count": 2}]

@@ -10,9 +10,14 @@ so an escape would be stored RCE triggered in any reader's request context.
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING, cast
+
 import pytest
 
 from grunt.document.formula import _evaluate_formulas, _formula_is_safe
+
+if TYPE_CHECKING:
+    from grunt.metadata.doctype import DocType
 
 
 class _Field:
@@ -85,7 +90,7 @@ def test_legitimate_formulas_pass_the_gate(expr):
 async def test_escape_formula_does_not_execute(ctx):
     # Even driven through the evaluator, an escape attempt yields no value
     # (blocked, field left unchanged) rather than reaching os.
-    dt = _DT("().__class__.__mro__[-1].__subclasses__()")
+    dt = cast("DocType", _DT("().__class__.__mro__[-1].__subclasses__()"))
     row = {"name": "p1", "out": None}
     result = await _evaluate_formulas(dt, row, "read_formula")
     assert result["out"] is None

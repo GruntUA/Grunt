@@ -56,6 +56,7 @@ async def test_rows_readable_with_their_parent(ctx, cases, db_session, engine):
     mine, other = cases
     ann = make_user("ann@example.com", roles=["Investigator"])
     item = await grunt.get_meta("CaseItem")
+    assert item is not None
     assert await permission_checker.check(ann, item, "read", await _row(ctx, mine))
     assert not await permission_checker.check(ann, item, "read", await _row(ctx, other))
 
@@ -75,6 +76,7 @@ async def test_rows_change_only_through_the_parent(ctx, cases, action):
     _, other = cases
     editor = make_user("ed@example.com", roles=["Editor"])
     item = await grunt.get_meta("CaseItem")
+    assert item is not None
     doc = None if action == "create" else await _row(ctx, other)
     assert not await permission_checker.check(editor, item, action, doc)
 
@@ -86,4 +88,5 @@ async def test_no_parent_access_closes_child_doctype(ctx, cases):
 
     stranger = make_user("x@example.com", roles=["Nobody"])
     item = await grunt.get_meta("CaseItem")
+    assert item is not None
     assert not await permission_checker.check(stranger, item, "read")

@@ -11,9 +11,10 @@ import time
 import pytest
 from fastapi import HTTPException, UploadFile
 from starlette.datastructures import Headers
+from starlette.responses import FileResponse
 
 import grunt
-from grunt.storage import backends
+from grunt.storage import backends, read, store
 from grunt.storage.backends import FileTooLargeError, LocalStorageBackend
 from grunt.storage.doctypes.File.file import get_content, remove, upload
 from grunt.storage.gc import collect_garbage, verify
@@ -120,12 +121,12 @@ async def test_disallowed_type_is_415(ctx, storage):
 
 @pytest.mark.asyncio
 async def test_store_creates_private_file_with_url(ctx, storage):
-    doc = await grunt.storage.store(b"a,b\n1,2\n", "export.csv", "text/csv")
+    doc = await store(b"a,b\n1,2\n", "export.csv", "text/csv")
 
     assert doc["file_url"].endswith(f"file_id={doc['name']}")
     assert doc["content_hash"] == hashlib.sha256(b"a,b\n1,2\n").hexdigest()
     assert not doc["is_public"]
-    assert await grunt.storage.read(doc["name"]) == b"a,b\n1,2\n"
+    assert await read(doc["name"]) == b"a,b\n1,2\n"
 
 
 @pytest.mark.asyncio
@@ -134,6 +135,7 @@ async def test_get_content_streams_with_etag(ctx, storage):
 
     response = await get_content(up["id"])
 
+    assert isinstance(response, FileResponse)
     assert response.path == storage.path(await _key(up["id"]))
     assert response.headers["etag"] == f'"{await _key(up["id"])}"'
     assert "attachment" in response.headers["content-disposition"]

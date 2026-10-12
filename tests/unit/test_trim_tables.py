@@ -9,6 +9,7 @@ async def test_trim_tables_dry_run(ctx, engine):
     # We will test on 'User' table
     # Add a fake column to the physical table
     user_meta = await grunt.get_meta("User")
+    assert user_meta is not None
     table_name = user_meta.table_name
 
     async with engine.begin() as conn:
@@ -60,10 +61,13 @@ async def test_trim_tables_dry_run(ctx, engine):
 @pytest.mark.asyncio
 async def test_valid_columns_include_system_columns(ctx):
     """Trimming must never drop the compiler's system columns (modified_by, child links)."""
-    user = set((await grunt.get_meta("User")).get_valid_columns())
+    user_meta = await grunt.get_meta("User")
+    child_meta = await grunt.get_meta("UserRole")
+    assert user_meta is not None and child_meta is not None
+    user = set(user_meta.get_valid_columns())
     assert {"name", "owner", "created_at", "modified_at", "modified_by"} <= user
 
-    child = set((await grunt.get_meta("UserRole")).get_valid_columns())
+    child = set(child_meta.get_valid_columns())
     assert {"parent_name", "parent_doctype", "parent_field", "idx"} <= child
 
 
@@ -71,6 +75,7 @@ async def test_valid_columns_include_system_columns(ctx):
 async def test_trim_keeps_columns_of_doctypes_sharing_the_table(ctx, engine):
     """``keep`` — another DocType on the same table_name still defines the column."""
     meta = await grunt.get_meta("User")
+    assert meta is not None
     table_name = meta.table_name
     async with engine.begin() as conn:
         await conn.execute(text(f'ALTER TABLE "{table_name}" ADD COLUMN "shared_col" TEXT'))

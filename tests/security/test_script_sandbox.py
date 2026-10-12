@@ -27,6 +27,7 @@ def _run(source: str):
     result = compile_script(source)
     if result.errors:
         pytest.skip("blocked at compile (also acceptable): " + "; ".join(result.errors))
+    assert result.code is not None
     g = build_safe_globals()
     exec(result.code, g)  # noqa: S102 - exercising the sandbox boundary on purpose
     return g
