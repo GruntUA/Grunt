@@ -120,8 +120,8 @@ self.addEventListener('push', (event) => {
   event.waitUntil(
     self.registration.showNotification(payload.title, {
       body: payload.body,
-      icon: '/favicon.ico',
-      badge: '/favicon.ico',
+      icon: '/icons/pwa-192.png',
+      badge: '/icons/pwa-192.png',
       data: { url: payload.url || '/' },
       vibrate: [100, 50, 100],
       requireInteraction: false,
