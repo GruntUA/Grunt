@@ -218,16 +218,20 @@ class WebPushService:
     ) -> list[PushResult]:
         """Push to every browser *user* subscribed from; one result per subscription.
 
+        *user* is a User id or email: subscriptions are saved under the email,
+        and a user whose email changed keeps the old one as their id.
+
         Raises :class:`PushUnavailableError` when push can't be sent at all.
         """
         vapid = await self._ready_vapid()
 
+        email = await grunt.db.get_value("User", user, "email")
         # Raw read: the caller is usually the *sender* (whoever triggered the
         # notification), and PushSubscription is row-matched to its owner - a
         # guarded read would see none of the recipient's subscriptions.
         subs = await grunt.db.get_all(
             "PushSubscription",
-            filters={"user": user},
+            filters={"user__in": sorted({user, email} - {None, ""})},
             fields=["endpoint", "p256dh", "auth"],
             limit=None,
         )
