@@ -15,6 +15,7 @@ import AppIcon from '@/components/AppIcon.vue'
 import WidgetCard from '@/components/dashboard/WidgetCard.vue'
 import OnboardingChecklists from '@/components/desk/OnboardingChecklists.vue'
 import { setPageTitle } from '@/core/composables/usePageTitle'
+import { useMasonryGrid } from '@/core/composables/useMasonryGrid'
 import type { DashboardWidget } from '@/types'
 import { docUrl } from '@/core/workspaceUrl'
 
@@ -30,6 +31,8 @@ const widgets = ref<DashboardWidget[]>([])
 const widgetData = ref<Record<string, unknown>>({})
 const loading = ref(false)
 const canEdit = ref(false)
+const grid = ref<HTMLElement | null>(null)
+useMasonryGrid(grid)
 
 const dashboards = computed(() => appStore.active?.dashboards ?? [])
 /** `?page=` picks one of the app's dashboards; the home page otherwise. */
@@ -132,7 +135,7 @@ watch(
     </div>
 
     <!-- Widgets grid -->
-    <div v-else-if="hasWidgets" class="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
+    <div v-else-if="hasWidgets" ref="grid" class="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
       <WidgetCard
         v-for="widget in widgets"
         :key="widget.id"

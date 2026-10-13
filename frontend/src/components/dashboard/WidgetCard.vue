@@ -24,13 +24,11 @@ const widgetComponent = computed(() => getAsyncWidgetComponent(props.widget.widg
 const colSpanClass = computed(() => widgetColSpan(props.widget.cols))
 
 // Each widget type declares its own height in manifest.json (apps' widgets too).
-const minHeight = computed(() => getWidgetDef(props.widget.widget_type)?.minHeight ?? '220px')
-</script>
+const minHeight = computed(() => getWidgetDef(props.widget.widget_type)?.minHeight ?? '220px')</script>
 
 <template>
   <div :style="{ minHeight }" :class="[colSpanClass,
-    'group relative min-w-0 bg-card border rounded-lg shadow-sm overflow-hidden',
-    editMode ? 'ring-2 ring-primary/20 cursor-grab active:cursor-grabbing' : '',
+    'group relative min-w-0 bg-card border rounded-lg shadow-sm overflow-hidden',    editMode ? 'ring-2 ring-primary/20 cursor-grab active:cursor-grabbing' : '',
   ]">
     <!-- Edit overlay buttons -->
     <div v-if="editMode"

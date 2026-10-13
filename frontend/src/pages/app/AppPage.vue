@@ -16,6 +16,7 @@ import { getPaletteGroups, getWidgetDef, widgetColSpan } from '@/core/widgetRegi
 import type { DashboardWidget } from '@/types'
 import { useToast } from '@/core/composables/useToast'
 import { setPageTitle } from '@/core/composables/usePageTitle'
+import { useMasonryGrid } from '@/core/composables/useMasonryGrid'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { SidebarTrigger } from '@/components/ui/sidebar'
 const props = defineProps<{
@@ -24,6 +25,8 @@ const props = defineProps<{
 }>()
 
 const toast = useToast()
+const grid = ref<HTMLElement | null>(null)
+useMasonryGrid(grid)
 const { t } = useI18n()
 
 interface PageDoc {
@@ -337,8 +340,8 @@ const printPage = () => window.print()
     </div>
 
     <!-- Widgets grid (normal mode) -->
-    <div v-else-if="!editMode && (page?.widgets.length ?? 0) > 0"
-      class="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4 auto-rows-auto">
+    <div v-else-if="!editMode && (page?.widgets.length ?? 0) > 0" ref="grid"
+      class="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
       <WidgetCard
         v-for="w in page?.widgets ?? []"
         :key="w.id"
