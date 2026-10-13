@@ -21,7 +21,7 @@
  *
  * Slots: `actions` (extra command-bar buttons), `footer` (the host's buttons).
  */
-import { computed, nextTick, reactive, ref, watch } from 'vue'
+import { computed, nextTick, reactive, ref, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   ArrowLeft, ArrowRight, ArrowUp, Camera, Check, ChevronDown, ChevronRight, ClipboardPaste, Copy,
@@ -132,6 +132,8 @@ async function toggle(node: TreeNode) {
 const current = ref<string>('')
 const path = ref<TreeNode[]>([])
 const files = ref<FileItem[]>([])
+/** Files in the open folder on the server - more than the loaded page when it hit the limit. */
+const filesTotal = ref(0)
 const loading = ref(false)
 const viewMode = ref(props.view)
 const history = reactive({ stack: [] as string[], index: -1 })
@@ -226,6 +228,7 @@ async function loadFiles(folder: string) {
     limit: 500,
   })
   files.value = res.items
+  filesTotal.value = res.total
 }
 
 const canBack = computed(() => history.index > 0)
@@ -269,7 +272,61 @@ watch(target, (folder) => {
 })
 watch(selectedFiles, (list) => emit('update:selection', props.multiple ? list : list.slice(-1)))
 
+// Keyboard: the folder contents are a listbox; the active entry is announced
+// through aria-activedescendant while focus stays on the list.
+const listId = useId()
+const active = ref<string | null>(null)
+const tilesEl = ref<HTMLElement | null>(null)
+watch(entries, (list) => {
+  if (active.value && !list.some((x) => x.key === active.value)) active.value = null
+})
+
+function selectRange(key: string, keep: boolean) {
+  const keys = entries.value.map((x) => x.key)
+  const [a, b] = [keys.indexOf(anchor!), keys.indexOf(key)].sort((x, y) => x - y)
+  const next = new Set(keep ? selected.value : [])
+  for (const k of keys.slice(a, b + 1)) next.add(k)
+  selected.value = next
+}
+
+/** Arrows / Home / End move the active entry - and the selection, unless Ctrl is held. */
+function moveActive(e: KeyboardEvent): boolean {
+  const keys = entries.value.map((x) => x.key)
+  if (!keys.length) return false
+  const tiles = viewMode.value !== 'details'
+  const cols = tiles && tilesEl.value ? getComputedStyle(tilesEl.value).gridTemplateColumns.split(' ').length : 1
+  const steps: Record<string, number> = {
+    ArrowDown: cols, ArrowUp: -cols, ArrowRight: tiles ? 1 : 0, ArrowLeft: tiles ? -1 : 0,
+  }
+  const at = active.value ? keys.indexOf(active.value) : -1
+  let next: number
+  if (e.key === 'Home') next = 0
+  else if (e.key === 'End') next = keys.length - 1
+  else if (steps[e.key]) next = at < 0 ? 0 : Math.min(keys.length - 1, Math.max(0, at + steps[e.key]))
+  else return false
+
+  const key = keys[next]
+  active.value = key
+  if (e.shiftKey && anchor) selectRange(key, e.ctrlKey || e.metaKey)
+  else if (!(e.ctrlKey || e.metaKey)) {
+    selected.value = new Set([key])
+    anchor = key
+  }
+  nextTick(() => document.getElementById(`${listId}-${key}`)?.scrollIntoView({ block: 'nearest' }))
+  return true
+}
+
+function toggleActive() {
+  if (!active.value) return
+  const next = new Set(selected.value)
+  if (next.has(active.value)) next.delete(active.value)
+  else next.add(active.value)
+  selected.value = next
+  anchor = active.value
+}
+
 function select(e: MouseEvent, key: string) {
+  active.value = key
   const next = new Set(e.ctrlKey || e.metaKey ? selected.value : [])
   if (e.shiftKey && anchor) {
     const keys = entries.value.map((x) => x.key)
@@ -618,8 +675,10 @@ function onKeydown(e: KeyboardEvent) {
   else if (mod && key === 'v') paste()
   else if (e.key === 'F2') startRename()
   else if (e.key === 'Delete') askDelete()
-  else if (e.key === 'Enter' && selected.value.size === 1) {
-    const entry = entries.value.find((x) => selected.value.has(x.key))
+  else if (moveActive(e)) { /* moved */ }
+  else if (e.key === ' ' && active.value) toggleActive()
+  else if (e.key === 'Enter' && (active.value || selected.value.size === 1)) {
+    const entry = entries.value.find((x) => x.key === active.value) ?? entries.value.find((x) => selected.value.has(x.key))
     if (entry) openEntry(entry)
   } else return
   e.preventDefault()
@@ -789,7 +848,8 @@ const ROW = 'grid w-full grid-cols-[minmax(0,1fr)_9rem_5rem_5rem] items-center g
       <CameraCapture v-if="cameraOpen" @capture="onCaptured" @close="cameraOpen = false" />
 
       <!-- Contents of the open folder; a click on empty space clears the selection -->
-      <div v-else class="min-w-0 flex-1 overflow-y-auto" role="listbox" aria-multiselectable="true"
+      <div v-else class="group/list min-w-0 flex-1 overflow-y-auto outline-none" role="listbox" aria-multiselectable="true"
+        tabindex="0" :aria-activedescendant="active ? `${listId}-${active}` : undefined"
         :class="dropTarget === current && 'ring-2 ring-inset ring-primary'"
         :aria-label="title(path.at(-1))" @click.self="selected = new Set()"
         @dragover="onDragOver($event, current)" @dragleave.self="dropTarget = null" @drop="onDrop($event, current)">
@@ -808,8 +868,9 @@ const ROW = 'grid w-full grid-cols-[minmax(0,1fr)_9rem_5rem_5rem] items-center g
               @keydown.enter.prevent="commitEdit" @keydown.esc.stop.prevent="editing = null" @blur="commitEdit" />
           </div>
 
-          <div v-for="entry in entries" :key="entry.key" :data-key="entry.key" role="option" :aria-selected="selected.has(entry.key)"
+          <div v-for="entry in entries" :id="`${listId}-${entry.key}`" :key="entry.key" :data-key="entry.key" role="option" :aria-selected="selected.has(entry.key)"
             :class="[ROW, 'cursor-default select-none hover:bg-accent/60',
+                     active === entry.key && 'group-focus-visible/list:outline-2 group-focus-visible/list:-outline-offset-2 group-focus-visible/list:outline-ring',
                      selected.has(entry.key) && 'bg-accent',
                      isCut(entry.key) && 'opacity-50',
                      entry.folder && dropTarget === entry.folder.name && 'ring-2 ring-inset ring-primary']"
@@ -840,15 +901,16 @@ const ROW = 'grid w-full grid-cols-[minmax(0,1fr)_9rem_5rem_5rem] items-center g
         </template>
 
         <!-- Tiles -->
-        <div v-else class="grid grid-cols-[repeat(auto-fill,minmax(7.5rem,1fr))] gap-2 p-3" @click.self="selected = new Set()">
+        <div v-else ref="tilesEl" class="grid grid-cols-[repeat(auto-fill,minmax(7.5rem,1fr))] gap-2 p-3" @click.self="selected = new Set()">
           <div v-if="editing && editing.key === null" class="flex flex-col items-center gap-1 rounded-md p-2">
             <Folder class="size-16 text-amber-500" stroke-width="1.25" />
             <Input ref="editInput" v-model="editing.value" class="h-7"
               @keydown.enter.prevent="commitEdit" @keydown.esc.stop.prevent="editing = null" @blur="commitEdit" />
           </div>
-          <div v-for="entry in entries" :key="entry.key" :data-key="entry.key" role="option" :aria-selected="selected.has(entry.key)"
+          <div v-for="entry in entries" :id="`${listId}-${entry.key}`" :key="entry.key" :data-key="entry.key" role="option" :aria-selected="selected.has(entry.key)"
             class="relative flex cursor-default select-none flex-col items-center gap-1 rounded-md p-2 text-center hover:bg-accent/60"
             :class="[selected.has(entry.key) && 'bg-accent ring-2 ring-primary',
+                     active === entry.key && 'group-focus-visible/list:outline-2 group-focus-visible/list:outline-offset-2 group-focus-visible/list:outline-ring',
                      isCut(entry.key) && 'opacity-50',
                      entry.folder && dropTarget === entry.folder.name && 'ring-2 ring-primary']"
             draggable="true"
@@ -875,6 +937,9 @@ const ROW = 'grid w-full grid-cols-[minmax(0,1fr)_9rem_5rem_5rem] items-center g
         <p v-if="!loading && !editing && !entries.length"
           class="px-4 py-10 text-center text-muted-foreground">
           {{ t('This folder is empty') }}
+        </p>
+        <p v-else-if="!results && filesTotal > files.length" class="px-4 py-3 text-center text-sm text-muted-foreground">
+          {{ t('Showing the first {n} of {total} files', { n: files.length, total: filesTotal }) }}
         </p>
       </div>
     </div>

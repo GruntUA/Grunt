@@ -692,7 +692,7 @@ msgstr ""
 msgid "Attach an image…"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:760
+#: grunt/frontend/src/components/files/FileExplorer.vue:819
 msgid "Attach as a link"
 msgstr ""
 
@@ -769,7 +769,7 @@ msgid "B"
 msgstr ""
 
 #: grunt/frontend/src/components/app/AppSidebar.vue:203
-#: grunt/frontend/src/components/files/FileExplorer.vue:650
+#: grunt/frontend/src/components/files/FileExplorer.vue:709
 #: grunt/frontend/src/components/views/form/FormTour.vue:145
 msgid "Back"
 msgstr ""
@@ -1022,8 +1022,8 @@ msgstr ""
 #: grunt/frontend/src/components/views/FilterBar.vue:344
 #: grunt/frontend/src/components/files/CameraCapture.vue:136
 #: grunt/frontend/src/components/files/FolderPickerDialog.vue:44
-#: grunt/frontend/src/components/files/FileExplorer.vue:762
-#: grunt/frontend/src/components/files/FileExplorer.vue:889
+#: grunt/frontend/src/components/files/FileExplorer.vue:821
+#: grunt/frontend/src/components/files/FileExplorer.vue:954
 #: grunt/frontend/src/components/workflow/WorkflowActionDialog.vue:105
 #: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:545
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue:347
@@ -1350,7 +1350,7 @@ msgstr ""
 #: grunt/frontend/src/components/desk/TaskProgressPanel.vue:111
 #: grunt/frontend/src/components/views/DocSidebar.vue:75
 #: grunt/frontend/src/components/views/DocSidebar.vue:80
-#: grunt/frontend/src/components/files/FileExplorer.vue:775
+#: grunt/frontend/src/components/files/FileExplorer.vue:834
 #: grunt/frontend/src/components/ui/tree-select/TreeSelectNode.vue:65
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:395
 msgid "Collapse"
@@ -1592,7 +1592,7 @@ msgstr ""
 #: grunt/frontend/src/core/composables/useToast.ts:17
 #: grunt/frontend/src/components/desk/GruntDialog.vue:283
 #: grunt/frontend/src/components/debug/ServerErrorModal.vue:72
-#: grunt/frontend/src/components/files/FileExplorer.vue:723
+#: grunt/frontend/src/components/files/FileExplorer.vue:782
 #: grunt/frontend/src/components/views/form/FormHeader.vue:291
 #: grunt/frontend/src/components/views/form/FormHeader.vue:355
 #: grunt/frontend/src/components/fields/RichText/ui/EditorContextMenu.vue:113
@@ -1672,7 +1672,7 @@ msgstr ""
 msgid "Could not download rclone: {0}"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:553
+#: grunt/frontend/src/components/files/FileExplorer.vue:610
 msgid "Could not download the file"
 msgstr ""
 
@@ -1776,7 +1776,7 @@ msgstr ""
 
 #: grunt/frontend/src/components/desk/OnboardingChecklists.vue:49
 #: grunt/frontend/src/components/layout/OfflineQueueSheet.vue:24
-#: grunt/frontend/src/components/files/FileExplorer.vue:701
+#: grunt/frontend/src/components/files/FileExplorer.vue:760
 #: grunt/frontend/src/components/fields/Link/Link.vue:188
 msgid "Create"
 msgstr ""
@@ -1855,7 +1855,7 @@ msgstr ""
 msgid "Customize Quick Filters"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:719
+#: grunt/frontend/src/components/files/FileExplorer.vue:778
 #: grunt/frontend/src/components/fields/RichText/ui/EditorContextMenu.vue:110
 msgid "Cut"
 msgstr ""
@@ -1936,7 +1936,7 @@ msgstr ""
 msgid "Date field"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:800
+#: grunt/frontend/src/components/files/FileExplorer.vue:860
 msgid "Date modified"
 msgstr ""
 
@@ -1992,8 +1992,8 @@ msgstr ""
 #: grunt/frontend/src/components/views/BulkActionBar.vue:300
 #: grunt/frontend/src/components/dashboard/WidgetConfigPanel.vue:78
 #: grunt/frontend/src/components/dashboard/WidgetCard.vue:42
-#: grunt/frontend/src/components/files/FileExplorer.vue:736
-#: grunt/frontend/src/components/files/FileExplorer.vue:890
+#: grunt/frontend/src/components/files/FileExplorer.vue:795
+#: grunt/frontend/src/components/files/FileExplorer.vue:955
 #: grunt/frontend/src/components/dashboard/sections/FiltersSection.vue:82
 #: grunt/frontend/src/components/views/form/FormModals.vue:141
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:430
@@ -2046,7 +2046,7 @@ msgstr ""
 msgid "Delete section"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:886
+#: grunt/frontend/src/components/files/FileExplorer.vue:951
 msgid "Delete selected: {n}? Folders go with everything in them."
 msgstr ""
 
@@ -2134,7 +2134,7 @@ msgstr ""
 
 #: grunt/frontend/src/components/views/DocSidebar.vue:71
 #: grunt/frontend/src/components/views/DocSidebar.vue:99
-#: grunt/frontend/src/components/files/FileExplorer.vue:741
+#: grunt/frontend/src/components/files/FileExplorer.vue:800
 msgid "Details"
 msgstr ""
 
@@ -2312,7 +2312,7 @@ msgid "Donut"
 msgstr ""
 
 #: grunt/grunt/backups/doctypes/Backup/Backup.js:26
-#: grunt/frontend/src/components/files/FileExplorer.vue:756
+#: grunt/frontend/src/components/files/FileExplorer.vue:815
 msgid "Download"
 msgstr ""
 
@@ -2507,7 +2507,7 @@ msgstr ""
 msgid "Enter a valid email address"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:562
+#: grunt/frontend/src/components/files/FileExplorer.vue:619
 msgid "Enter an http(s) link"
 msgstr ""
 
@@ -2601,7 +2601,7 @@ msgid "Exit full screen"
 msgstr ""
 
 #: grunt/frontend/src/components/desk/TaskProgressPanel.vue:111
-#: grunt/frontend/src/components/files/FileExplorer.vue:775
+#: grunt/frontend/src/components/files/FileExplorer.vue:834
 #: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue:426
 #: grunt/frontend/src/components/ui/tree-select/TreeSelectNode.vue:65
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:395
@@ -2817,7 +2817,7 @@ msgid ""
 "Return all files), then change where or how they are stored"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:708
+#: grunt/frontend/src/components/files/FileExplorer.vue:767
 msgid "Files from the computer…"
 msgstr ""
 
@@ -2910,16 +2910,16 @@ msgid "Flags"
 msgstr ""
 
 #: grunt/grunt/storage/doctypes/File/File.js:22
-#: grunt/frontend/src/components/files/FileExplorer.vue:705
-#: grunt/frontend/src/components/files/FileExplorer.vue:831
+#: grunt/frontend/src/components/files/FileExplorer.vue:764
+#: grunt/frontend/src/components/files/FileExplorer.vue:892
 msgid "Folder"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:709
+#: grunt/frontend/src/components/files/FileExplorer.vue:768
 msgid "Folder from the computer…"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:667
+#: grunt/frontend/src/components/files/FileExplorer.vue:726
 msgid "Folder path"
 msgstr ""
 
@@ -2931,7 +2931,7 @@ msgstr ""
 msgid "Folder “%(folder)s” not found"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:767
+#: grunt/frontend/src/components/files/FileExplorer.vue:826
 msgid "Folders"
 msgstr ""
 
@@ -2980,7 +2980,7 @@ msgstr ""
 msgid "Formula"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:653
+#: grunt/frontend/src/components/files/FileExplorer.vue:712
 msgid "Forward"
 msgstr ""
 
@@ -3018,7 +3018,7 @@ msgstr ""
 msgid "From"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:711
+#: grunt/frontend/src/components/files/FileExplorer.vue:770
 msgid "From a link…"
 msgstr ""
 
@@ -3566,7 +3566,7 @@ msgstr ""
 msgid "Italic"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:899
+#: grunt/frontend/src/components/files/FileExplorer.vue:964
 msgid "Items: {n}"
 msgstr ""
 
@@ -3610,7 +3610,7 @@ msgstr ""
 msgid "Kanban"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:759
+#: grunt/frontend/src/components/files/FileExplorer.vue:818
 msgid "Keep the link to the file without downloading it"
 msgstr ""
 
@@ -3733,7 +3733,7 @@ msgstr ""
 msgid "Link text"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:754
+#: grunt/frontend/src/components/files/FileExplorer.vue:813
 #: grunt/frontend/src/components/fields/RichText/RichText.vue:84
 msgid "Link to a file"
 msgstr ""
@@ -4084,7 +4084,7 @@ msgstr ""
 #: grunt/grunt/cli/doctype.py:162 grunt/grunt/auth/doctypes/User/User.js:180
 #: grunt/frontend/src/core/composables/useFormValidation.ts:111
 #: grunt/frontend/src/core/composables/useFormValidation.ts:134
-#: grunt/frontend/src/components/files/FileExplorer.vue:799
+#: grunt/frontend/src/components/files/FileExplorer.vue:859
 #: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:321
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:246
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:263
@@ -4129,7 +4129,7 @@ msgstr ""
 msgid "New comment: “%(title)s”"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:316
+#: grunt/frontend/src/components/files/FileExplorer.vue:373
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:246
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:353
 msgid "New folder"
@@ -4501,7 +4501,7 @@ msgstr ""
 msgid "Not loaded: %(reason)s"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:402
+#: grunt/frontend/src/components/files/FileExplorer.vue:459
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:237
 msgid "Not moved: {n}"
 msgstr ""
@@ -4551,7 +4551,7 @@ msgstr ""
 msgid "Not signed"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:514
+#: grunt/frontend/src/components/files/FileExplorer.vue:571
 msgid "Not uploaded: {n}"
 msgstr ""
 
@@ -4939,7 +4939,7 @@ msgstr ""
 msgid "Passwords do not match"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:728
+#: grunt/frontend/src/components/files/FileExplorer.vue:787
 #: grunt/frontend/src/components/fields/RichText/ui/EditorContextMenu.vue:116
 msgid "Paste"
 msgstr ""
@@ -4997,7 +4997,7 @@ msgstr ""
 msgid "Photo"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:710
+#: grunt/frontend/src/components/files/FileExplorer.vue:769
 msgid "Photo from the camera"
 msgstr ""
 
@@ -5261,7 +5261,7 @@ msgstr ""
 #: grunt/grunt/metadata/doctypes/DocType/global_form.js:41
 #: grunt/grunt/metadata/doctypes/DocType/global_list.js:34
 #: grunt/frontend/src/components/dashboard/ActivityStream.vue:105
-#: grunt/frontend/src/components/files/FileExplorer.vue:686
+#: grunt/frontend/src/components/files/FileExplorer.vue:745
 #: grunt/frontend/src/pages/app/AppPage.vue:294
 #: grunt/frontend/src/pages/reports/ReportView.vue:210
 #: grunt/frontend/src/pages/desk/reports/ReportView.vue:89
@@ -5384,7 +5384,7 @@ msgid "Remove {name} from assignees?"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/global_form.js:172
-#: grunt/frontend/src/components/files/FileExplorer.vue:731
+#: grunt/frontend/src/components/files/FileExplorer.vue:790
 #: grunt/frontend/src/components/views/form/FormHeader.vue:322
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:263
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:424
@@ -5807,8 +5807,8 @@ msgstr ""
 msgid "Search across all documents"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:691
-#: grunt/frontend/src/components/files/FileExplorer.vue:692
+#: grunt/frontend/src/components/files/FileExplorer.vue:750
+#: grunt/frontend/src/components/files/FileExplorer.vue:751
 msgid "Search all files"
 msgstr ""
 
@@ -5839,7 +5839,7 @@ msgstr ""
 msgid "Search icon…"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:663
+#: grunt/frontend/src/components/files/FileExplorer.vue:722
 msgid "Search results for «{q}»"
 msgstr ""
 
@@ -5966,7 +5966,7 @@ msgstr ""
 msgid "Selected:"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:900
+#: grunt/frontend/src/components/files/FileExplorer.vue:965
 #: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue:175
 msgid "Selected: {n}"
 msgstr ""
@@ -6180,6 +6180,10 @@ msgstr ""
 msgid "Showing the first 10,000 records"
 msgstr ""
 
+#: grunt/frontend/src/components/files/FileExplorer.vue:942
+msgid "Showing the first {n} of {total} files"
+msgstr ""
+
 #: grunt/frontend/src/components/debug/ServerErrorModal.vue:152
 msgid "Shown only in debug mode · Click outside or press ESC to close"
 msgstr ""
@@ -6249,7 +6253,7 @@ msgstr ""
 #: grunt/grunt/monitoring/health.py:110
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:155
 #: grunt/grunt/backups/doctypes/Backup/Backup.js:100
-#: grunt/frontend/src/components/files/FileExplorer.vue:802
+#: grunt/frontend/src/components/files/FileExplorer.vue:862
 #: grunt/frontend/src/components/fields/RichText/ui/ImageBubble.vue:77
 msgid "Size"
 msgstr ""
@@ -6267,7 +6271,7 @@ msgid "Slow database response."
 msgstr ""
 
 #: grunt/frontend/src/components/ErrorBoundary.vue:34
-#: grunt/frontend/src/components/files/FileExplorer.vue:638
+#: grunt/frontend/src/components/files/FileExplorer.vue:697
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:333
 #: grunt/frontend/src/pages/auth/ResetPassword.vue:53
 msgid "Something went wrong"
@@ -7052,7 +7056,7 @@ msgid ""
 "code."
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:877
+#: grunt/frontend/src/components/files/FileExplorer.vue:939
 msgid "This folder is empty"
 msgstr ""
 
@@ -7112,7 +7116,7 @@ msgstr ""
 msgid "Tile {n}"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:741
+#: grunt/frontend/src/components/files/FileExplorer.vue:800
 #: grunt/frontend/src/components/dashboard/sections/TilesSection.vue:49
 msgid "Tiles"
 msgstr ""
@@ -7238,7 +7242,7 @@ msgid "Two-factor verification"
 msgstr ""
 
 #: grunt/frontend/src/components/dashboard/WidgetConfigPanel.vue:86
-#: grunt/frontend/src/components/files/FileExplorer.vue:801
+#: grunt/frontend/src/components/files/FileExplorer.vue:861
 msgid "Type"
 msgstr ""
 
@@ -7361,7 +7365,7 @@ msgstr ""
 msgid "Unsynced changes"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:656
+#: grunt/frontend/src/components/files/FileExplorer.vue:715
 msgid "Up"
 msgstr ""
 
@@ -7443,7 +7447,7 @@ msgstr ""
 msgid "Uploading to “%(name)s”"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:896
+#: grunt/frontend/src/components/files/FileExplorer.vue:961
 msgid "Uploading {done} of {total}…"
 msgstr ""
 
@@ -8672,7 +8676,7 @@ msgstr ""
 msgid "{type} report"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:904
+#: grunt/frontend/src/components/files/FileExplorer.vue:969
 msgid "{used} of {quota} used"
 msgstr ""
 
