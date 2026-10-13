@@ -58,6 +58,9 @@ const chartData = computed(() => ({
   }],
 }))
 
+// Legend items carry the value and share: "Label — 12 (34%)".
+const baseLabels = ChartJS.overrides.doughnut.plugins.legend.labels.generateLabels
+
 const chartOptions = {
   onClick,
   onHover,
@@ -67,7 +70,16 @@ const chartOptions = {
   plugins: {
     legend: {
       position: 'bottom' as const,
-      labels: { boxWidth: 10, padding: 12, font: { size: 11 } },
+      labels: {
+        boxWidth: 10,
+        padding: 12,
+        font: { size: 11 },
+        generateLabels: (chart: ChartJS<'doughnut'>) => baseLabels(chart).map((item) => {
+          const value = Number(chart.data.datasets[0]?.data[item.index!] ?? 0)
+          const pct = total.value ? Math.round((value / total.value) * 100) : 0
+          return { ...item, text: `${item.text} — ${value} (${pct}%)` }
+        }),
+      },
     },
     tooltip: { mode: 'index' as const },
   },
