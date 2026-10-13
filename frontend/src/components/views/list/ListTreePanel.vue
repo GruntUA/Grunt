@@ -342,7 +342,7 @@ function errorText(err: unknown): string {
       </span>
       <Button
         v-if="selected !== ALL && selected !== NONE"
-        variant="ghost" size="icon" class="size-6"
+        variant="ghost" size="icon-xs"
         :class="includeNested && 'bg-accent text-accent-foreground'"
         :title="includeNested ? t('Only this level') : t('Include nested')"
         @click="select(selected, !includeNested)"
@@ -350,34 +350,32 @@ function errorText(err: unknown): string {
         <Layers class="size-3.5" />
       </Button>
       <Button
-        v-if="canCreate" variant="ghost" size="icon" class="size-6" :title="t('New folder')"
+        v-if="canCreate" variant="ghost" size="icon-xs" :title="t('New folder')"
         @click="createNode(selected === ALL || selected === NONE ? null : selected)"
       >
         <FolderPlus class="size-3.5" />
       </Button>
     </div>
 
-    <button
-      type="button"
-      class="flex items-center gap-2 rounded-md px-2 py-1.5 text-left hover:bg-accent"
+    <Button
+      variant="ghost" size="sm" class="justify-start font-normal"
       :class="selected === ALL && 'bg-accent font-medium'"
       @click="select(ALL)"
     >
-      <ListTree class="size-4 shrink-0 text-muted-foreground" />
+      <ListTree class="text-muted-foreground" />
       <span class="truncate">{{ t('All') }}</span>
-    </button>
-    <button
-      type="button"
-      class="flex items-center gap-2 rounded-md px-2 py-1.5 text-left hover:bg-accent"
+    </Button>
+    <Button
+      variant="ghost" size="sm" class="justify-start font-normal"
       :class="[selected === NONE && 'bg-accent font-medium', dropTarget === NONE && 'ring-2 ring-primary']"
       @click="select(NONE)"
       @dragover="onDragOver($event, NONE)"
       @dragleave="dropTarget = null"
       @drop="onDrop($event, NONE)"
     >
-      <FolderX class="size-4 shrink-0 text-muted-foreground" />
+      <FolderX class="text-muted-foreground" />
       <span class="truncate">{{ t('Not set') }}</span>
-    </button>
+    </Button>
 
     <div
       v-for="{ node, depth } in rows"
@@ -391,15 +389,14 @@ function errorText(err: unknown): string {
       @dragleave="dropTarget = null"
       @drop="onDrop($event, node.name)"
     >
-      <button
-        type="button"
-        class="flex size-6 shrink-0 items-center justify-center text-muted-foreground"
+      <Button
+        variant="ghost" size="icon-xs" class="text-muted-foreground hover:bg-transparent"
         :class="!node.has_children && 'invisible'"
         :aria-label="expanded.has(node.name) ? t('Collapse') : t('Expand')"
         @click="toggle(node)"
       >
-        <ChevronRight class="size-3.5 transition-transform" :class="expanded.has(node.name) && 'rotate-90'" />
-      </button>
+        <ChevronRight class="transition-transform" :class="expanded.has(node.name) && 'rotate-90'" />
+      </Button>
       <button
         type="button"
         class="flex min-w-0 flex-1 items-center gap-2 py-1.5 pr-1 text-left"
@@ -415,11 +412,11 @@ function errorText(err: unknown): string {
       <DropdownMenu>
         <DropdownMenuTrigger as-child>
           <Button
-            variant="ghost" size="icon"
-            class="size-6 shrink-0 opacity-0 group-hover/node:opacity-100 data-[state=open]:opacity-100"
+            variant="ghost" size="icon-xs"
+            class="shrink-0 opacity-0 group-hover/node:opacity-100 data-[state=open]:opacity-100"
             :aria-label="t('Actions')"
           >
-            <MoreHorizontal class="size-3.5" />
+            <MoreHorizontal />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start">
@@ -430,7 +427,7 @@ function errorText(err: unknown): string {
             <RouterLink :to="docUrl(treeDoctype, node.name, workspace)">{{ t('Open') }}</RouterLink>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem class="text-destructive" @click="deleteNode(node)">{{ t('Delete') }}</DropdownMenuItem>
+          <DropdownMenuItem variant="destructive" @click="deleteNode(node)">{{ t('Delete') }}</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </div>

@@ -12,6 +12,14 @@ import {
 } from '@lucide/vue'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
+import { Field, FieldDescription, FieldLabel } from '@/components/ui/field'
+import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
+import { Item, ItemActions, ItemContent, ItemDescription, ItemTitle } from '@/components/ui/item'
+import { Label } from '@/components/ui/label'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Toggle } from '@/components/ui/toggle'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -245,27 +253,26 @@ const displayFields = computed(() => {
         <!-- Sidebar: Configuration -->
         <aside class="w-[400px] border-r flex flex-col bg-card shrink-0 shadow-sm z-20">
             <div class="p-6 border-b space-y-4">
-                <div class="space-y-1.5">
-                    <label class="font-semibold uppercase tracking-widest text-muted-foreground">{{ t('Report name') }}</label>
-                    <div class="relative">
-                        <FileBarChart class="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-primary pointer-events-none" />
-                        <Input v-model="reportTitle" :placeholder="t('Report name')"
-                            class="!pl-8 !pr-8 font-semibold text-base h-9" />
-                        <Pencil class="absolute right-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground pointer-events-none" />
-                    </div>
-                </div>
+                <Field>
+                    <FieldLabel for="report-name">{{ t('Report name') }}</FieldLabel>
+                    <InputGroup>
+                        <InputGroupAddon><FileBarChart /></InputGroupAddon>
+                        <InputGroupInput id="report-name" v-model="reportTitle" :placeholder="t('Report name')" />
+                        <InputGroupAddon align="inline-end"><Pencil /></InputGroupAddon>
+                    </InputGroup>
+                </Field>
 
-                <div class="space-y-2">
-                    <label class="font-semibold uppercase tracking-widest text-muted-foreground">{{ t('Document type') }}</label>
+                <Field>
+                    <FieldLabel for="report-doctype">{{ t('Document type') }}</FieldLabel>
                     <Select v-model="selectedDoctype">
-                      <SelectTrigger class="w-full">
+                      <SelectTrigger id="report-doctype" class="w-full">
                         <SelectValue :placeholder="t('Choose a DocType')" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem v-for="opt in doctypes" :key="opt.name" :value="opt.name">{{ opt.label }}</SelectItem>
                       </SelectContent>
                     </Select>
-                </div>
+                </Field>
             </div>
 
             <!-- Fields & Columns Tabs -->
@@ -284,24 +291,21 @@ const displayFields = computed(() => {
                             </h4>
                         </div>
 
-                        <div v-if="columns.length === 0"
-                            class="border-2 border-dashed rounded-lg p-8 text-center text-muted-foreground bg-muted/20">
-                            {{ t('Add fields from the list below') }}
-                        </div>
+                        <Empty v-if="columns.length === 0" class="border p-6">
+                            <EmptyDescription>{{ t('Add fields from the list below') }}</EmptyDescription>
+                        </Empty>
 
                         <div v-for="(col, index) in columns" :key="col.fieldname"
                             class="group flex flex-col gap-2 p-3 rounded-lg border bg-background hover:border-primary/30 transition-all shadow-sm">
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center gap-2 min-w-0">
-                                    <Badge
-                                        class="h-5 px-1.5 text-xs font-semibold uppercase opacity-50 shrink-0">{{
-                                            col.fieldtype }}</Badge>
+                                    <Badge variant="secondary" class="shrink-0">{{ col.fieldtype }}</Badge>
                                     <span class="font-semibold truncate">{{ col.label }}</span>
                                 </div>
-                                <button @click="removeColumn(index)"
-                                    class="opacity-0 group-hover:opacity-100 p-1 text-muted-foreground hover:text-destructive transition-all">
-                                    <Trash2 class="size-4" />
-                                </button>
+                                <Button variant="ghost" size="icon-sm" class="opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
+                                    :aria-label="t('Remove')" @click="removeColumn(index)">
+                                    <Trash2 />
+                                </Button>
                             </div>
 
                             <div class="flex items-center gap-2">
@@ -313,10 +317,10 @@ const displayFields = computed(() => {
                                     <SelectItem v-for="opt in AGGREGATIONS" :key="opt.value" :value="opt.value">{{ opt.label }}</SelectItem>
                                   </SelectContent>
                                 </Select>
-                                <label class="flex items-center gap-1.5 text-muted-foreground whitespace-nowrap cursor-pointer select-none">
-                                    <input type="checkbox" v-model="col.total" class="size-3.5 accent-primary" />
+                                <Label class="font-normal text-muted-foreground whitespace-nowrap">
+                                    <Checkbox v-model="col.total" />
                                     {{ t('Subtotal') }}
-                                </label>
+                                </Label>
                             </div>
                             <Select v-if="isDateColumn(col) && (!col.aggregation || col.aggregation === 'none')"
                                 :model-value="col.date_group || 'none'"
@@ -348,9 +352,9 @@ const displayFields = computed(() => {
                                         <SelectItem v-for="f in fields" :key="f.fieldname" :value="f.fieldname">{{ f.label }}</SelectItem>
                                     </SelectContent>
                                 </Select>
-                                <button @click="removeCondition(i)" class="p-1 text-muted-foreground hover:text-destructive transition-colors">
-                                    <Trash2 class="size-4" />
-                                </button>
+                                <Button variant="ghost" size="icon-sm" :aria-label="t('Remove')" @click="removeCondition(i)">
+                                    <Trash2 />
+                                </Button>
                             </div>
                             <div class="flex items-center gap-2">
                                 <Select v-model="cond.op">
@@ -408,13 +412,12 @@ const displayFields = computed(() => {
                         <div v-for="(flt, i) in filterConfigs" :key="flt.fieldname"
                             class="flex items-center justify-between gap-2 p-2 rounded-lg border bg-background">
                             <span class="flex items-center gap-2 min-w-0">
-                                <Badge class="h-5 px-1.5 text-xs font-semibold uppercase opacity-50 shrink-0">{{ flt.fieldtype }}</Badge>
+                                <Badge variant="secondary" class="shrink-0">{{ flt.fieldtype }}</Badge>
                                 <span class="truncate">{{ flt.label }}</span>
                             </span>
-                            <button @click="removeFilter(i)"
-                                class="p-1 text-muted-foreground hover:text-destructive transition-colors">
-                                <Trash2 class="size-4" />
-                            </button>
+                            <Button variant="ghost" size="icon-sm" :aria-label="t('Remove')" @click="removeFilter(i)">
+                                <Trash2 />
+                            </Button>
                         </div>
                         <Select :model-value="''" @update:model-value="v => addFilter(String(v))">
                             <SelectTrigger class="h-8 text-xs w-full">
@@ -431,11 +434,11 @@ const displayFields = computed(() => {
 
                     <!-- Chart -->
                     <div v-if="selectedDoctype" class="space-y-3">
-                        <label class="flex items-center gap-2 font-semibold uppercase text-muted-foreground cursor-pointer">
-                            <input type="checkbox" v-model="chartEnabled" class="accent-primary size-3.5" />
+                        <Label class="font-semibold uppercase text-muted-foreground">
+                            <Checkbox v-model="chartEnabled" />
                             <ChartColumn class="size-3.5" />
                             {{ t('Chart') }}
-                        </label>
+                        </Label>
 
                         <div v-if="chartEnabled" class="space-y-3 pl-1">
                             <Select v-model="chart.type">
@@ -452,27 +455,22 @@ const displayFields = computed(() => {
                                 </SelectContent>
                             </Select>
 
-                            <div>
-                                <p class="text-muted-foreground mb-1.5">{{ t('Value columns') }}</p>
+                            <Field>
+                                <FieldDescription>{{ t('Value columns') }}</FieldDescription>
                                 <div class="flex flex-wrap gap-1.5">
-                                    <button v-for="c in columns" :key="c.fieldname" type="button"
-                                        class="px-2 py-1 rounded-md border transition-colors"
-                                        :class="chart.value_fields.includes(c.fieldname)
-                                            ? 'bg-primary text-primary-foreground border-primary'
-                                            : 'bg-background hover:bg-muted'"
+                                    <Toggle v-for="c in columns" :key="c.fieldname" variant="outline" size="sm"
+                                        :model-value="chart.value_fields.includes(c.fieldname)"
                                         :disabled="c.fieldname === chart.label_field"
-                                        :title="c.fieldname === chart.label_field ? t('This is the label column') : ''"
-                                        @click="toggleChartValueField(c.fieldname)">
+                                        @update:model-value="toggleChartValueField(c.fieldname)">
                                         {{ c.label }}
-                                    </button>
+                                    </Toggle>
                                 </div>
-                            </div>
+                            </Field>
 
-                            <label v-if="chart.type === 'bar'"
-                                class="flex items-center gap-2 text-muted-foreground cursor-pointer">
-                                <input type="checkbox" v-model="chart.stacked" class="accent-primary size-3.5" />
+                            <Label v-if="chart.type === 'bar'" class="font-normal text-muted-foreground">
+                                <Checkbox v-model="chart.stacked" />
                                 {{ t('Stacked') }}
-                            </label>
+                            </Label>
                         </div>
                     </div>
 
@@ -482,22 +480,23 @@ const displayFields = computed(() => {
                             <Plus class="size-3.5" />
                             {{ t('Available fields') }}
                         </h4>
-                        <div class="relative">
-                            <Search class="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground z-10" />
-                            <Input v-model="filteredFields" :placeholder="t('Search fields...')"
-                                class="!h-9 !pl-8 !text-xs !bg-muted/20 !border-none !w-full" />
-                        </div>
+                        <InputGroup>
+                            <InputGroupAddon><Search /></InputGroupAddon>
+                            <InputGroupInput v-model="filteredFields" :placeholder="t('Search fields...')" />
+                        </InputGroup>
                         <div class="grid grid-cols-1 gap-1">
-                            <button v-for="f in displayFields" :key="f.fieldname"
-                                class="flex items-center justify-between px-3 py-2 rounded-lg text-left hover:bg-muted text-foreground/80 group transition-colors"
-                                @click="addColumn(f)" :disabled="columns.some(c => c.fieldname === f.fieldname)"
-                                :class="{ 'opacity-50 cursor-not-allowed': columns.some(c => c.fieldname === f.fieldname) }">
-                                <div class="flex flex-col min-w-0">
-                                    <span class="font-medium truncate">{{ f.label }}</span>
-                                    <span class="text-muted-foreground">{{ f.fieldname }}</span>
-                                </div>
-                                <Plus class="size-4 opacity-0 group-hover:opacity-100 text-primary transition-all" />
-                            </button>
+                            <Item v-for="f in displayFields" :key="f.fieldname" as="button" size="sm"
+                                class="group/field-item text-left hover:bg-muted disabled:pointer-events-none disabled:opacity-50"
+                                :disabled="columns.some(c => c.fieldname === f.fieldname)"
+                                @click="addColumn(f)">
+                                <ItemContent class="min-w-0">
+                                    <ItemTitle class="truncate">{{ f.label }}</ItemTitle>
+                                    <ItemDescription>{{ f.fieldname }}</ItemDescription>
+                                </ItemContent>
+                                <ItemActions>
+                                    <Plus class="size-4 opacity-0 group-hover/field-item:opacity-100" />
+                                </ItemActions>
+                            </Item>
                         </div>
                     </div>
                 </TabsContent>
@@ -506,14 +505,14 @@ const displayFields = computed(() => {
             <!-- Sidebar Footer -->
             <div class="p-4 border-t flex flex-col gap-2 bg-muted/10">
                 <Button variant="secondary" :disabled="previewLoading || !selectedDoctype || columns.length === 0" @click="runPreview" class="w-full h-10 font-semibold">
-                    <Play v-if="!previewLoading" class="size-4 mr-2" />
-                    <Spinner v-else class="!size-4 !mr-2" />
+                    <Play v-if="!previewLoading" />
+                    <Spinner v-else />
                     {{ t('Preview') }}
                 </Button>
                 <div class="flex gap-2">
                     <Button :disabled="loading || columns.length === 0" @click="saveReport"
                         class="flex-1 h-10 font-semibold">
-                        <Save class="size-4 mr-2" />
+                        <Save />
                         {{ t('Save') }}
                     </Button>
                     <Button variant="outline" class="h-10 px-3" @click="router.back()">{{ t('Cancel') }}</Button>
@@ -533,15 +532,16 @@ const displayFields = computed(() => {
             </header>
 
             <div class="flex-1 px-8 pb-8 overflow-hidden flex flex-col">
-                <div v-if="previewCols.length === 0 && !previewLoading"
-                    class="flex-1 flex flex-col items-center justify-center p-12 text-center rounded-lg border-2 border-dashed bg-card/30">
-                    <div class="size-16 rounded-full bg-primary/5 flex items-center justify-center mb-4">
-                        <Layout class="size-8 text-primary/40" />
-                    </div>
-                    <h3 class="text-xl font-semibold mb-2">{{ t('Set up the report') }}</h3>
-                    <p class="text-muted-foreground max-w-sm mb-6">{{ t('Choose a DocType and add columns in the side panel to see the result.') }}</p>
-                    <Button variant="outline" @click="selectedDoctype = doctypes[0]?.name" v-if="!selectedDoctype">{{ t('Choose the first available DocType') }}</Button>
-                </div>
+                <Empty v-if="previewCols.length === 0 && !previewLoading" class="border">
+                    <EmptyHeader>
+                        <EmptyMedia variant="icon"><Layout /></EmptyMedia>
+                        <EmptyTitle>{{ t('Set up the report') }}</EmptyTitle>
+                        <EmptyDescription>{{ t('Choose a DocType and add columns in the side panel to see the result.') }}</EmptyDescription>
+                    </EmptyHeader>
+                    <EmptyContent v-if="!selectedDoctype">
+                        <Button variant="outline" @click="selectedDoctype = doctypes[0]?.name">{{ t('Choose the first available DocType') }}</Button>
+                    </EmptyContent>
+                </Empty>
 
                 <div v-else class="flex-1 bg-card rounded-lg border shadow-sm overflow-hidden flex flex-col">
                     <!-- Table Toolbar -->
@@ -554,41 +554,37 @@ const displayFields = computed(() => {
                             <span v-if="previewMeta">{{ t('{n} rows', { n: String(previewMeta.rows) }) }}</span>
                             <span v-if="previewMeta">{{ previewMeta.time_ms }} {{ t('ms') }}</span>
                         </div>
-                        <div v-if="previewLoading" class="flex items-center gap-2">
-                            <Spinner class="!size-4" />
-                            <span
-                                class="font-semibold text-primary italic uppercase anima">{{ t('Loading...') }}</span>
+                        <div v-if="previewLoading" class="flex items-center gap-2 text-muted-foreground">
+                            <Spinner />
+                            {{ t('Loading...') }}
                         </div>
                     </div>
 
                     <!-- Results Table -->
                     <div class="flex-1 overflow-auto">
-                        <table class="w-full">
-                            <thead class="sticky top-0 bg-background/95 z-10">
-                                <tr class="border-b shadow-sm">
-                                    <th v-for="col in previewCols" :key="col.fieldname"
-                                        class="px-4 py-3 text-left font-semibold text-muted-foreground uppercase tracking-wider whitespace-nowrap">
-                                        {{ col.label }}
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr v-if="previewLoading && previewData.length === 0" v-for="i in 10" :key="i"
-                                    class="border-b last:border-0 opacity-50">
-                                    <td v-for="colIdx in previewCols.length || 5" :key="colIdx" class="px-4 py-4">
-                                        <Skeleton class="h-4 w-full" />
-                                    </td>
-                                </tr>
-                                <tr v-else v-for="(row, ri) in previewData" :key="ri"
-                                    class="border-b last:border-0 hover:bg-muted/30 transition-colors">
-                                    <td v-for="col in previewCols" :key="col.fieldname"
-                                        class="px-4 py-3 text-foreground/90 font-medium whitespace-nowrap">
-                                        {{ row[col.fieldname] === null || row[col.fieldname] === undefined ? '—' :
-                                            row[col.fieldname] }}
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        <Table>
+                            <TableHeader class="sticky top-0 bg-background z-10">
+                                <TableRow>
+                                    <TableHead v-for="col in previewCols" :key="col.fieldname">{{ col.label }}</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                <template v-if="previewLoading && previewData.length === 0">
+                                    <TableRow v-for="i in 10" :key="i">
+                                        <TableCell v-for="colIdx in previewCols.length || 5" :key="colIdx">
+                                            <Skeleton class="h-4 w-full" />
+                                        </TableCell>
+                                    </TableRow>
+                                </template>
+                                <template v-else>
+                                    <TableRow v-for="(row, ri) in previewData" :key="ri">
+                                        <TableCell v-for="col in previewCols" :key="col.fieldname">
+                                            {{ row[col.fieldname] ?? '—' }}
+                                        </TableCell>
+                                    </TableRow>
+                                </template>
+                            </TableBody>
+                        </Table>
                     </div>
                 </div>
             </div>
@@ -596,13 +592,3 @@ const displayFields = computed(() => {
     </div>
 </template>
 
-<style scoped>
-/* Hide scrollbar but keep functionality */
-.scrollbar-none::-webkit-scrollbar {
-  display: none;
-}
-.scrollbar-none {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-</style>

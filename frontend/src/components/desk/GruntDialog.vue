@@ -16,7 +16,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Field, FieldDescription, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Progress } from '@/components/ui/progress'
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select'
 import { Spinner } from '@/components/ui/spinner'
@@ -463,7 +463,7 @@ function onOpenChange(v: boolean) {
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>{{ t('Cancel') }}</AlertDialogCancel>
-          <AlertDialogAction variant="destructive" @click="resolveActionConfirm(true)">{{ t('Confirm') }}</AlertDialogAction>
+          <AlertDialogAction :class="buttonVariants({ variant: 'destructive' })" @click="resolveActionConfirm(true)">{{ t('Confirm') }}</AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
