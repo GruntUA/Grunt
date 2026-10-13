@@ -18,7 +18,7 @@ def _offline_updates(monkeypatch):
     async def unavailable(*args, **kwargs):
         raise updates.UnavailableError("offline")
 
-    for name in ("fetch", "ls_remote", "pypi_outdated", "npm_outdated"):
+    for name in ("fetch", "ls_remote", "framework_updates", "app_updates", "npm_outdated"):
         monkeypatch.setattr(updates, name, unavailable)
     updates.clear_cache()
     yield

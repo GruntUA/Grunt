@@ -22334,3 +22334,15 @@ msgstr "перевищено час очікування"
 #: grunt/grunt/monitoring/updates.py
 msgid "uv is not installed"
 msgstr "uv не встановлено"
+
+#: grunt/grunt/monitoring/updates.py
+msgid "Python %(version)s is installed - restart the server to run on it."
+msgstr "Python %(version)s встановлено — перезапустіть сервер, щоб він працював на ньому."
+
+#: grunt/grunt/monitoring/updates.py
+msgid "npm packages outside package.json"
+msgstr "npm пакети поза package.json"
+
+#: grunt/grunt/monitoring/updates.py
+msgid "Outside the ranges in package.json - change them by hand and test:"
+msgstr "Поза діапазонами package.json — змініть їх вручну й перевірте:"

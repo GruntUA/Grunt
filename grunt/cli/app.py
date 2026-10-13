@@ -101,23 +101,41 @@ def _apps_dir() -> Path:
 
 @app_group.command("deps")
 @click.argument("names", nargs=-1)
-def app_deps(names: tuple[str, ...]):
+@click.option(
+    "--upgrade",
+    is_flag=True,
+    help="Also move the packages only apps depend on to their newest versions.",
+)
+@click.option(
+    "--outdated",
+    is_flag=True,
+    help="Only list what --upgrade would move (`name old → new`, one per line).",
+)
+def app_deps(names: tuple[str, ...], upgrade: bool, outdated: bool):
     """Fetch the apps bench apps depend on, then install their Python dependencies.
 
     Clones the missing ``depends_on`` apps (from their ``url``), then installs
     apps/<app>/pyproject.toml packages. Without arguments, all apps. Runs after
     the framework's `uv sync` (so `grunt update` brings new dependencies in).
+    With --upgrade (`grunt update --upgrade-packages`), the packages not pinned
+    by the framework's uv.lock go to their newest versions.
     """
-    from grunt.apps.deps import install_app_packages
+    from grunt.apps.deps import app_updates, install_app_packages
     from grunt.apps.required import clone_missing
 
+    if outdated:
+        for line in app_updates(_apps_dir()):
+            click.echo(line)
+        return
     try:
         cloned = clone_missing(_apps_dir(), list(names) or None)
     except subprocess.CalledProcessError as e:
         raise click.ClickException(f"git clone failed: {' '.join(map(str, e.cmd))}") from e
     if cloned:
         click.echo(f"Cloned dependencies: {', '.join(cloned)}")
-    installed = install_app_packages(_apps_dir(), [*names, *cloned] if names else None)
+    installed = install_app_packages(
+        _apps_dir(), [*names, *cloned] if names else None, upgrade=upgrade
+    )
     click.echo(f"App dependencies: {', '.join(installed) or 'no apps with pyproject.toml'}")
 
 

@@ -181,3 +181,86 @@ source = {{ registry = "https://pypi.org/simple" }}
     monkeypatch.setattr(updates, "FRAMEWORK_DIR", tmp_path)
     wrong = updates.lock_mismatches()
     assert len(wrong) == 1 and wrong[0].startswith("pydantic ")
+
+
+@pytest.mark.asyncio
+async def test_framework_updates_reads_the_uv_plan(monkeypatch):
+    async def fake_run(*cmd, **kwargs):
+        assert cmd[1:4] == ("lock", "--upgrade", "--dry-run") and kwargs.get("stderr")
+        return (
+            "Resolved 130 packages in 768ms\n"
+            "Update aiohttp v3.14.4 -> v3.14.5\n"
+            "Update pydantic-core v2.50.0 -> v2.50.1\n"
+        )
+
+    monkeypatch.setattr(updates, "tool", lambda name: f"/bin/{name}")
+    monkeypatch.setattr(updates, "run", fake_run)
+    assert await updates.framework_updates() == [
+        "aiohttp 3.14.4 → 3.14.5",
+        "pydantic-core 2.50.0 → 2.50.1",
+    ]
+
+
+@pytest.mark.asyncio
+async def test_npm_outdated_splits_reachable_from_majors(monkeypatch, tmp_path):
+    (tmp_path / "node_modules").mkdir()
+
+    async def fake_run(*cmd, **kwargs):
+        return """{
+          "vue": {"current": "3.5.1", "wanted": "3.5.4", "latest": "3.5.4"},
+          "vitest": {"current": "4.1.11", "wanted": "4.1.11", "latest": "5.0.4"},
+          "pinia": {"current": "3.0.0", "wanted": "3.0.2", "latest": "4.0.0"},
+          "missing": {"wanted": "1.0.0", "latest": "1.0.0"}
+        }"""
+
+    monkeypatch.setattr(updates, "FRAMEWORK_DIR", tmp_path)
+    monkeypatch.setattr(updates, "tool", lambda name: f"/bin/{name}")
+    monkeypatch.setattr(updates, "run", fake_run)
+    reachable, majors = await updates.npm_outdated()
+    assert reachable == ["vue 3.5.1 → 3.5.4", "pinia 3.0.0 → 3.0.2"]
+    assert majors == ["vitest 4.1.11 → 5.0.4", "pinia 3.0.2 → 4.0.0"]
+
+
+@pytest.mark.asyncio
+async def test_python_row_asks_for_restart(monkeypatch):
+    _cycles(monkeypatch, [{"cycle": "3.14", "latest": "3.99.0", "eol": _future()}])
+
+    async def on_disk(*cmd, **kwargs):
+        return "3.99.0\n"
+
+    monkeypatch.setattr(updates, "run", on_disk)
+    monkeypatch.setattr(updates.platform, "python_version", lambda: "3.14.0")
+    r = await updates.python_row(CAT)
+    assert r["status"] == "Warning"
+    assert r["value"] == "3.14.0 → 3.99.0"
+    assert "3.99.0" in r["hint"]
+
+
+def test_state_key_follows_the_lock_file(tmp_path):
+    lock = tmp_path / "uv.lock"
+    lock.write_text("a")
+    before = updates._state_key(lock)
+    import os
+
+    os.utime(lock, ns=(1, 1))
+    assert updates._state_key(lock) != before
+
+
+def test_app_only_requirements(tmp_path):
+    from grunt.apps.deps import app_only_requirements
+
+    (tmp_path / "uv.lock").write_text('[[package]]\nname = "httpx2"\nversion = "1"\n')
+    shop = tmp_path / "shop"
+    shop.mkdir()
+    (shop / "pyproject.toml").write_text(
+        '[project]\nname = "shop"\ndependencies = ["HTTPX2>=1", "ijson>=3.3", "olefile",'
+        ' "crm", "Pillow[webp] >=10 ; python_version>\'3\'"]\n'
+    )
+    crm = tmp_path / "crm"
+    crm.mkdir()
+    (crm / "pyproject.toml").write_text('[project]\nname = "crm"\n')
+    assert app_only_requirements([shop, crm], tmp_path / "uv.lock") == [
+        "ijson",
+        "olefile",
+        "pillow",
+    ]

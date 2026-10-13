@@ -21,6 +21,7 @@ import os
 import platform
 import re
 import shutil
+import subprocess
 import time
 import tomllib
 from datetime import date
@@ -77,8 +78,23 @@ def clear_cache() -> None:
 
 
 def tool(name: str) -> str | None:
-    """A command-line tool, also where the services' short PATH doesn't look
-    (``~/.local/bin``, mise shims)."""
+    """A command-line tool: the version the framework's mise.toml pins (what
+    ``grunt update`` upgrades - the server's own PATH may still point at the
+    old one), else PATH, else where the services' short PATH doesn't look."""
+    mise = shutil.which("mise") or str(Path.home() / ".local/bin/mise")
+    if name != "mise" and os.access(mise, os.X_OK):
+        try:
+            found = subprocess.run(
+                [mise, "which", name],
+                cwd=FRAMEWORK_DIR,
+                capture_output=True,
+                text=True,
+                timeout=10,
+            ).stdout.strip()
+        except OSError, subprocess.SubprocessError:
+            found = ""
+        if found and os.access(found, os.X_OK):
+            return found
     found = shutil.which(name)
     if found:
         return found
@@ -92,8 +108,11 @@ def tool(name: str) -> str | None:
     return None
 
 
-async def run(*cmd: str, cwd: Path | None = None, timeout: float = TIMEOUT) -> str:
-    """stdout of ``cmd``; UnavailableError when it can't run or fails."""
+async def run(
+    *cmd: str, cwd: Path | None = None, timeout: float = TIMEOUT, stderr: bool = False
+) -> str:
+    """stdout of ``cmd`` (and its stderr with *stderr*); UnavailableError when
+    it can't run or fails."""
     env = {**os.environ, "GIT_TERMINAL_PROMPT": "0"}
     if mise := tool("mise"):
         # mise shims (node, npm) need mise itself on PATH
@@ -118,7 +137,7 @@ async def run(*cmd: str, cwd: Path | None = None, timeout: float = TIMEOUT) -> s
     if proc.returncode and not out.strip():
         lines = (err or out).decode(errors="replace").strip().splitlines()
         raise UnavailableError(lines[-1] if lines else f"exit {proc.returncode}")
-    return out.decode(errors="replace")
+    return (out + err if stderr else out).decode(errors="replace")
 
 
 async def fetch(url: str) -> str:
@@ -266,6 +285,32 @@ async def runtime_row(cat: str, name: str, product: str, current: str) -> Row:
     return row(cat, name, OK if not notes else INFO, current, " ".join(notes))
 
 
+async def python_row(cat: str) -> Row:
+    """Python of the environment on disk; when the running process is older
+    (`uv python upgrade` ran, the server didn't restart), say so."""
+    import sys
+
+    running = platform.python_version()
+    try:
+        on_disk = first_version(
+            await run(sys.executable, "-c", "import platform; print(platform.python_version())")
+        )
+    except UnavailableError:
+        on_disk = running
+    result = await runtime_row(cat, "Python", "python", on_disk)
+    if on_disk != running:
+        result = row(
+            cat,
+            "Python",
+            WARNING,
+            f"{running} → {on_disk}",
+            _("Python %(version)s is installed - restart the server to run on it.")
+            % {"version": on_disk}
+            + (" " + result["hint"] if result["status"] != OK else ""),
+        )
+    return result
+
+
 async def node_version() -> str:
     node = tool("node")
     if not node:
@@ -343,32 +388,66 @@ def lock_mismatches() -> list[str]:
     return wrong
 
 
-async def pypi_outdated() -> list[str]:
+_UV_UPDATE = re.compile(r"^Update (\S+) v(\S+) -> v(\S+)$", re.M)
+
+
+def _uv() -> str:
     uv = tool("uv")
     if not uv:
         raise UnavailableError(_("uv is not installed"))
-    import sys
+    return uv
 
+
+async def framework_updates() -> list[str]:
+    """What ``uv lock --upgrade`` would change in the framework's uv.lock -
+    newer versions the declared ranges allow (a major blocked by another
+    package's pin is not one)."""
+    # uv reports the plan on stderr
     out = await run(
-        uv, "pip", "list", "--outdated", "--format", "json", "--python", sys.executable, timeout=60
+        _uv(), "lock", "--upgrade", "--dry-run", cwd=FRAMEWORK_DIR, timeout=60, stderr=True
     )
-    return [
-        f"{p['name']} {p['version']} → {p['latest_version']}"
-        for p in json.loads(out or "[]")
-        if not p.get("editable_project_location")
-    ]
+    return [f"{n} {a} → {b}" for n, a, b in _UV_UPDATE.findall(out)]
 
 
-async def npm_outdated() -> list[str]:
+async def app_updates() -> list[str]:
+    """Newer versions of the packages only apps depend on (not in uv.lock):
+    what ``grunt app deps --upgrade`` would install."""
+    from grunt.apps.deps import app_updates as plan
+
+    try:
+        return await asyncio.to_thread(plan, site_manager.bench_dir / "apps")
+    except (OSError, subprocess.SubprocessError) as e:
+        raise UnavailableError(str(e)) from e
+
+
+async def npm_outdated() -> tuple[list[str], list[str]]:
+    """``(updates, majors)``: newer versions package.json allows (what
+    ``npm update`` takes), and newer ones only a changed range would."""
     npm = tool("npm")
     if not npm or not (FRAMEWORK_DIR / "node_modules").is_dir():
         raise UnavailableError(_("not installed"))
     out = await run(npm, "outdated", "--json", cwd=FRAMEWORK_DIR, timeout=60)
-    return [
-        f"{name} {info.get('current')} → {info.get('latest')}"
-        for name, info in json.loads(out or "{}").items()
-        if info.get("current") and info.get("current") != info.get("latest")
-    ]
+    updates, majors = [], []
+    for name, info in json.loads(out or "{}").items():
+        current, wanted, latest = info.get("current"), info.get("wanted"), info.get("latest")
+        if not current:
+            continue
+        if wanted and wanted != current:
+            updates.append(f"{name} {current} → {wanted}")
+        if latest and latest != (wanted or current):
+            majors.append(f"{name} {wanted or current} → {latest}")
+    return updates, majors
+
+
+def _state_key(*paths: Path) -> str:
+    """Changes whenever a lock file or the installed packages change - a
+    `grunt update` must not be answered from a cache made before it."""
+    import sys
+    import sysconfig
+
+    site = Path(sysconfig.get_paths()["purelib"])
+    stamps = [p.stat().st_mtime_ns if p.exists() else 0 for p in (*paths, site)]
+    return f"{sys.executable}:{stamps}"
 
 
 async def package_rows(cat: str) -> list[Row]:
@@ -389,27 +468,47 @@ async def package_rows(cat: str) -> list[Row]:
         if settings.debug
         else _("Newer versions arrive with the next framework release.")
     )
-    for name, key, fn, ok in (
-        (_("Python packages"), "pypi", pypi_outdated, not wrong),
-        (_("npm packages"), "npm", npm_outdated, True),
-    ):
-        try:
-            outdated = await cached(f"outdated:{key}", fn)
-        except UnavailableError as e:
-            rows.append(_unavailable(cat, name, "", e))
-            continue
-        if outdated:
+
+    def updates_row(name: str, updates: list[str]) -> Row:
+        if not updates:
+            return row(cat, name, OK, _("up to date"))
+        return row(
+            cat,
+            name,
+            INFO,
+            _("%(count)s newer versions") % {"count": len(updates)},
+            hint + " " + short_list(updates),
+        )
+
+    py_key = _state_key(FRAMEWORK_DIR / "uv.lock")
+    try:
+        python = await cached(f"py:{py_key}", framework_updates)
+        python += await cached(f"apps:{py_key}", app_updates)
+    except UnavailableError as e:
+        rows.append(_unavailable(cat, _("Python packages"), "", e))
+    else:
+        if not wrong or python:
+            rows.append(updates_row(_("Python packages"), python))
+
+    npm_key = _state_key(FRAMEWORK_DIR / "package-lock.json", FRAMEWORK_DIR / "node_modules")
+    try:
+        npm, majors = await cached(f"npm:{npm_key}", npm_outdated)
+    except UnavailableError as e:
+        rows.append(_unavailable(cat, _("npm packages"), "", e))
+    else:
+        rows.append(updates_row(_("npm packages"), npm))
+        if majors:
             rows.append(
                 row(
                     cat,
-                    name,
+                    _("npm packages outside package.json"),
                     INFO,
-                    _("%(count)s newer versions") % {"count": len(outdated)},
-                    hint + " " + short_list(outdated),
+                    str(len(majors)),
+                    _("Outside the ranges in package.json - change them by hand and test:")
+                    + " "
+                    + short_list(majors),
                 )
             )
-        elif ok:
-            rows.append(row(cat, name, OK, _("up to date")))
     return rows
 
 
@@ -430,7 +529,7 @@ async def check_updates() -> list[Row]:
     cat = _("Updates")
 
     async def runtimes() -> list[Row]:
-        rows = [await runtime_row(cat, "Python", "python", platform.python_version())]
+        rows = [await python_row(cat)]
         try:
             node = await node_version()
         except UnavailableError:
