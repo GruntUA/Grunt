@@ -39,6 +39,14 @@
       "description": "Tasks this worker has taken and not finished yet. On a dead worker these tasks are stuck until a live worker picks them up."
     },
     {
+      "fieldname": "current_tasks",
+      "label": "Running now",
+      "fieldtype": "Data",
+      "read_only": true,
+      "in_list_view": true,
+      "description": "Which tasks the worker is running right now (×N — several of the same task). Details are in Active Background Tasks."
+    },
+    {
       "fieldname": "last_seen",
       "label": "Last seen",
       "fieldtype": "Datetime",
@@ -47,12 +55,12 @@
       "description": "When the worker last checked the queue."
     },
     {
-      "fieldname": "last_finished_at",
-      "label": "Last task finished",
+      "fieldname": "last_taken_at",
+      "label": "Last task taken",
       "fieldtype": "Datetime",
       "read_only": true,
       "in_list_view": true,
-      "description": "When the worker last completed a task. Empty — it has not completed any yet."
+      "description": "When the worker last took a task from the queue. Empty — it has not taken any yet."
     }
   ],
   "status_config": {

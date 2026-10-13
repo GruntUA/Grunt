@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+from collections import Counter
 from datetime import UTC, datetime, timedelta
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from fastapi import HTTPException, status
 
@@ -12,11 +13,17 @@ from grunt.errors import not_found
 from grunt.i18n import N_
 from grunt.tasks.redis_introspect import (
     DEAD_CONSUMER_IDLE_MS,
+    read_task_info,
     redis_conn,
     s,
+    short_task_name,
     stream_broker,
     unavailable_message,
 )
+
+if TYPE_CHECKING:
+    from redis.asyncio import Redis
+    from taskiq_redis import RedisStreamBroker
 
 
 class BackgroundWorkerController(BaseDocument):
@@ -47,7 +54,7 @@ class BackgroundWorkerController(BaseDocument):
         rows, reason = await cls._load_all()
 
         if search:
-            rows = apply_search(rows, search, ["worker"])
+            rows = apply_search(rows, search, ["worker", "current_tasks"])
         if filters:
             rows = apply_filters(rows, filters)
         rows = apply_sort(rows, sort_by, sort_order)
@@ -99,7 +106,8 @@ class BackgroundWorkerController(BaseDocument):
                     name = s(c.get("name"))
                     pending = int(c.get("pending", 0))
                     idle_ms = int(c.get("idle", 0))
-                    # ``inactive`` (Redis 7.2+) is -1 until the first ack, absent before 7.2.
+                    # ``inactive`` (Redis 7.2+): since the consumer last read or claimed an
+                    # entry - not since an ack. -1 until the first read, absent before 7.2.
                     inactive = c.get("inactive")
                     inactive_ms = int(inactive) if inactive is not None else -1
                     rows.append(
@@ -108,8 +116,11 @@ class BackgroundWorkerController(BaseDocument):
                             "worker": name,
                             "status": _status(pending, idle_ms),
                             "pending": pending,
+                            "current_tasks": (
+                                await _current_tasks(conn, sb, name) if pending else None
+                            ),
                             "last_seen": now - timedelta(milliseconds=idle_ms),
-                            "last_finished_at": (
+                            "last_taken_at": (
                                 now - timedelta(milliseconds=inactive_ms)
                                 if inactive_ms >= 0
                                 else None
@@ -121,6 +132,27 @@ class BackgroundWorkerController(BaseDocument):
             return [], "unreachable"
 
         return rows, None
+
+
+# Enough to see what a worker is busy with - one XRANGE per entry.
+_MAX_TASKS_SHOWN = 20
+
+
+async def _current_tasks(conn: Redis, sb: RedisStreamBroker, consumer: str) -> str:
+    """``send_reminders, process_email_queue ×2`` - what *consumer* holds right now."""
+    entries = await conn.xpending_range(
+        sb.queue_name,
+        sb.consumer_group_name,
+        min="-",
+        max="+",
+        count=_MAX_TASKS_SHOWN,
+        consumername=consumer,
+    )
+    names: Counter[str] = Counter()
+    for entry in entries:
+        info = await read_task_info(conn, s(entry["message_id"]))
+        names[short_task_name(info.get("task_name")) or _("unknown task")] += 1
+    return ", ".join(f"{n} ×{c}" if c > 1 else n for n, c in names.items())
 
 
 def _status(pending: int, idle_ms: int) -> str:

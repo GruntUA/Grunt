@@ -11,8 +11,8 @@ from grunt.document.in_memory import apply_filters, apply_search, apply_sort, bu
 from grunt.errors import not_found
 from grunt.i18n import N_
 from grunt.tasks.redis_introspect import (
-    decode_message,
     entry_timestamp_ms,
+    read_task_info,
     redis_conn,
     s,
     stream_broker,
@@ -102,17 +102,7 @@ class BackgroundJobController(BaseDocument):
                     message_id = s(entry["message_id"])
                     consumer = s(entry["consumer"])
 
-                    info: dict[str, Any] = {}
-                    entries = await conn.xrange(
-                        sb.queue_name, min=message_id, max=message_id, count=1
-                    )
-                    if entries:
-                        _id, fields = entries[0]
-                        data = fields.get(b"data") if isinstance(fields, dict) else None
-                        if data is None and isinstance(fields, dict):
-                            data = fields.get("data")
-                        if data:
-                            info = decode_message(data)
+                    info = await read_task_info(conn, message_id)
 
                     ts = entry_timestamp_ms(message_id)
                     arguments = (

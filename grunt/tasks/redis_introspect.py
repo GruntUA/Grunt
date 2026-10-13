@@ -109,6 +109,28 @@ def decode_message(raw: bytes | str) -> dict[str, Any]:
     }
 
 
+async def read_task_info(conn: Redis, message_id: str) -> dict[str, Any]:
+    """Task info of the stream entry *message_id* - ``{}`` if it's gone or undecodable."""
+    sb = stream_broker()
+    if sb is None:
+        return {}
+    entries = await conn.xrange(sb.queue_name, min=message_id, max=message_id, count=1)
+    if not entries:
+        return {}
+    _id, fields = entries[0]
+    if not isinstance(fields, dict):
+        return {}
+    data = fields.get(b"data", fields.get("data"))
+    return decode_message(data) if data else {}
+
+
+def short_task_name(task_name: str | None) -> str | None:
+    """``grunt.tasks.reminders:send_reminders`` -> ``send_reminders``."""
+    if not task_name:
+        return task_name
+    return task_name.rsplit(":", 1)[-1].rsplit(".", 1)[-1]
+
+
 def entry_timestamp_ms(message_id: str) -> int | None:
     """Redis stream ids are ``<ms-timestamp>-<seq>``."""
     try:

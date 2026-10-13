@@ -17912,16 +17912,35 @@ msgid "When the worker last checked the queue."
 msgstr "Коли воркер востаннє звертався до черги."
 
 #: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
-msgctxt "meta:BackgroundWorker.last_finished_at"
-msgid "Last task finished"
-msgstr "Остання завершена задача"
+msgctxt "meta:BackgroundWorker.last_taken_at"
+msgid "Last task taken"
+msgstr "Остання взята задача"
 
 #: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
-msgctxt "help:BackgroundWorker.last_finished_at"
+msgctxt "help:BackgroundWorker.last_taken_at"
 msgid ""
-"When the worker last completed a task. Empty — it has not completed any yet."
+"When the worker last took a task from the queue. Empty — it has not taken "
+"any yet."
 msgstr ""
-"Коли воркер востаннє завершив задачу. Порожньо — ще жодної не завершив."
+"Коли воркер востаннє взяв задачу з черги. Порожньо — ще жодної не брав."
+
+#: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
+msgctxt "meta:BackgroundWorker.current_tasks"
+msgid "Running now"
+msgstr "Виконує зараз"
+
+#: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
+msgctxt "help:BackgroundWorker.current_tasks"
+msgid ""
+"Which tasks the worker is running right now (×N — several of the same task)."
+" Details are in Active Background Tasks."
+msgstr ""
+"Які задачі воркер виконує саме зараз (×N — кілька однакових). Подробиці — в "
+"«Активних фонових задачах»."
+
+#: grunt/grunt/tasks/doctypes/BackgroundWorker/background_worker.py
+msgid "unknown task"
+msgstr "невідома задача"
 
 #~ msgctxt "select:PageWidget.period"
 #~ msgid "all"
