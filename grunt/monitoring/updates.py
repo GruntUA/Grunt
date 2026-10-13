@@ -512,6 +512,131 @@ async def package_rows(cat: str) -> list[Row]:
     return rows
 
 
+# Old runtimes - what `grunt update` cleans up at its end (grunt-cli's
+# _cleanup_runtimes); the same rules, read-only.
+
+_MISE_PRUNABLE = re.compile(r"^mise (\S+?)@(\S+) is prunable", re.M)
+_SKIP_WALK = {"node_modules", ".cache", ".git", ".npm", "site-packages", "dist"}
+
+
+def _in_use() -> dict[str, str]:
+    """``{real path: who}`` - the Python of every venv in the home directory
+    and the executable of every running process."""
+    used: dict[str, str] = {}
+    home = Path.home()
+    for root, dirs, files in os.walk(home):
+        depth = len(Path(root).relative_to(home).parts)
+        dirs[:] = [d for d in dirs if d not in _SKIP_WALK and depth < 6]
+        if "pyvenv.cfg" in files:
+            venv = "~/" + str(Path(root).relative_to(home))
+            for value in _cfg_values(Path(root) / "pyvenv.cfg", "home"):
+                used.setdefault(os.path.realpath(value), _("venv %(path)s") % {"path": venv})
+    for exe in Path("/proc").glob("[0-9]*/exe"):
+        try:
+            path = os.path.realpath(exe)
+            name = (exe.parent / "comm").read_text().strip()
+        except OSError:
+            continue
+        used.setdefault(
+            path, _("process %(pid)s (%(name)s)") % {"pid": exe.parent.name, "name": name}
+        )
+    return used
+
+
+def _cfg_values(path: Path, key: str) -> list[str]:
+    try:
+        lines = path.read_text().splitlines()
+    except OSError:
+        return []
+    return [v.strip() for k, _sep, v in (ln.partition("=") for ln in lines) if k.strip() == key]
+
+
+def _cli_dir() -> Path | None:
+    """grunt-cli's checkout, from its uv tool receipt (editable install)."""
+    tools = Path(os.environ.get("UV_TOOL_DIR") or Path.home() / ".local/share/uv/tools")
+    try:
+        receipt = tomllib.loads((tools / "grunt-cli" / "uv-receipt.toml").read_text())
+        editable = receipt["tool"]["requirements"][0].get("editable")
+    except OSError, KeyError, IndexError, tomllib.TOMLDecodeError:
+        editable = None
+    if editable and Path(editable).is_dir():
+        return Path(editable)
+    default = Path.home() / ".grunt-cli"
+    return default if default.is_dir() else None
+
+
+def old_runtimes() -> tuple[list[str], list[str]]:
+    """``(free, held)``: old uv Pythons / mise tool versions `grunt update`
+    would remove, and the ones still in use (with who uses them)."""
+    import subprocess
+    import sys
+
+    used = _in_use()
+    free: list[str] = []
+    held: list[str] = []
+
+    def sort(label: str, directory: Path) -> None:
+        prefix = f"{directory}/"
+        who = next((w for p, w in used.items() if p.startswith(prefix)), None)
+        (held if who else free).append(f"{label} — {who}" if who else label)
+
+    managed = Path.home() / ".local/share/uv/python"
+    current = {Path(os.path.realpath(sys.executable)).parent.parent}
+    tools_dir = Path(os.environ.get("UV_TOOL_DIR") or Path.home() / ".local/share/uv/tools")
+    for value in _cfg_values(tools_dir / "grunt-cli" / "pyvenv.cfg", "home"):
+        current.add(Path(os.path.realpath(value)).parent)
+    if uv := tool("uv"):
+        out = subprocess.run(
+            [uv, "python", "list", "--only-installed", "--output-format", "json"],
+            capture_output=True,
+            text=True,
+            timeout=30,
+        ).stdout
+        seen: set[str] = set()
+        for py in json.loads(out or "[]"):
+            path = os.path.realpath(py.get("path") or "")
+            if not path.startswith(f"{managed}/") or py["key"] in seen:
+                continue
+            seen.add(py["key"])
+            install = managed / path.removeprefix(f"{managed}/").split("/", 1)[0]
+            if install not in current:
+                sort(f"Python {py.get('version') or py['key']} (uv)", install)
+
+    if mise := tool("mise"):
+        names: set[str] = set()
+        cli = _cli_dir()
+        for cfg in (FRAMEWORK_DIR / "mise.toml", cli and cli / "mise.toml"):
+            if cfg and cfg.is_file():
+                names.update(tomllib.loads(cfg.read_text()).get("tools", {}))
+        if names:
+            plan = subprocess.run(
+                [mise, "prune", "--dry-run", *sorted(names)],
+                capture_output=True,
+                text=True,
+                timeout=30,
+            )
+            installs = Path.home() / ".local/share/mise/installs"
+            for name, version in _MISE_PRUNABLE.findall(plan.stdout + plan.stderr):
+                sort(f"{name} {version} (mise)", installs / name / version)
+    return free, held
+
+
+async def old_runtimes_row(cat: str) -> Row:
+    check = _("Old runtime versions")
+    try:
+        free, held = await asyncio.to_thread(old_runtimes)
+    except (OSError, ValueError, subprocess.SubprocessError) as e:
+        return _unavailable(cat, check, "", e)
+    if not free and not held:
+        return row(cat, check, OK, _("none"))
+    hints = []
+    if free:
+        hints.append(_("`grunt update` removes: %(list)s.") % {"list": ", ".join(free)})
+    if held:
+        hints.append(_("Still in use, removed once free: %(list)s.") % {"list": "; ".join(held)})
+    return row(cat, check, INFO, str(len(free) + len(held)), " ".join(hints))
+
+
 # Rows
 
 
@@ -536,7 +661,7 @@ async def check_updates() -> list[Row]:
             return rows
         return [*rows, await runtime_row(cat, "Node.js", "nodejs", node)]
 
-    code, rts, tools, packages = await asyncio.gather(
-        code_rows(cat), runtimes(), tool_rows(cat), package_rows(cat)
+    code, rts, tools, packages, old = await asyncio.gather(
+        code_rows(cat), runtimes(), tool_rows(cat), package_rows(cat), old_runtimes_row(cat)
     )
-    return [*code, *rts, *tools, *packages]
+    return [*code, *rts, *tools, old, *packages]

@@ -20,6 +20,7 @@ def _offline_updates(monkeypatch):
 
     for name in ("fetch", "ls_remote", "framework_updates", "app_updates", "npm_outdated"):
         monkeypatch.setattr(updates, name, unavailable)
+    monkeypatch.setattr(updates, "old_runtimes", lambda: ([], []))
     updates.clear_cache()
     yield
     updates.clear_cache()

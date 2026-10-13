@@ -22346,3 +22346,23 @@ msgstr "npm пакети поза package.json"
 #: grunt/grunt/monitoring/updates.py
 msgid "Outside the ranges in package.json - change them by hand and test:"
 msgstr "Поза діапазонами package.json — змініть їх вручну й перевірте:"
+
+#: grunt/grunt/monitoring/updates.py
+msgid "venv %(path)s"
+msgstr "venv %(path)s"
+
+#: grunt/grunt/monitoring/updates.py
+msgid "process %(pid)s (%(name)s)"
+msgstr "процес %(pid)s (%(name)s)"
+
+#: grunt/grunt/monitoring/updates.py
+msgid "Old runtime versions"
+msgstr "Старі версії рантаймів"
+
+#: grunt/grunt/monitoring/updates.py
+msgid "`grunt update` removes: %(list)s."
+msgstr "`grunt update` видалить: %(list)s."
+
+#: grunt/grunt/monitoring/updates.py
+msgid "Still in use, removed once free: %(list)s."
+msgstr "Ще використовуються, будуть видалені, щойно звільняться: %(list)s."

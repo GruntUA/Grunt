@@ -264,3 +264,70 @@ def test_app_only_requirements(tmp_path):
         "olefile",
         "pillow",
     ]
+
+
+# Old runtimes
+
+
+def test_old_runtimes(tmp_path, monkeypatch):
+    import json
+    import sys
+    from types import SimpleNamespace
+
+    home = tmp_path / "home"
+    managed = home / ".local/share/uv/python"
+    for v in ("3.14.4", "3.14.8", "3.15.0"):
+        (managed / f"cpython-{v}-linux-x86_64-gnu" / "bin").mkdir(parents=True)
+    # this process runs on 3.15.0 - the current one, never listed
+    monkeypatch.setattr(
+        sys, "executable", str(managed / "cpython-3.15.0-linux-x86_64-gnu/bin/python3")
+    )
+    venv = home / "other/.venv"
+    venv.mkdir(parents=True)
+    (venv / "pyvenv.cfg").write_text(f"home = {managed}/cpython-3.14.8-linux-x86_64-gnu/bin\n")
+    framework = tmp_path / "grunt"
+    framework.mkdir()
+    (framework / "mise.toml").write_text('[tools]\nnode = "26"\n')
+    monkeypatch.setattr(updates.Path, "home", lambda: home)
+    monkeypatch.setattr(updates, "FRAMEWORK_DIR", framework)
+    monkeypatch.setattr(updates, "tool", lambda name: f"/bin/{name}")
+    node = home / ".local/share/mise/installs/node/26.8.1/bin/node"
+    real_in_use = updates._in_use
+    monkeypatch.setattr(
+        updates, "_in_use", lambda: {**real_in_use(), str(node): "process 7 (node)"}
+    )
+    listed = [
+        {
+            "key": f"cpython-{v}-linux-x86_64-gnu",
+            "version": v,
+            "path": f"{managed}/cpython-{v}-linux-x86_64-gnu/bin/python3",
+        }
+        for v in ("3.14.4", "3.14.8", "3.15.0")
+    ]
+
+    def fake_run(cmd, **kwargs):
+        if cmd[1:3] == ["python", "list"]:
+            return SimpleNamespace(stdout=json.dumps(listed), stderr="")
+        assert cmd == ["/bin/mise", "prune", "--dry-run", "node"]
+        return SimpleNamespace(
+            stdout="", stderr="mise node@26.8.1 is prunable: node is required at 26.11.1\n"
+        )
+
+    monkeypatch.setattr("subprocess.run", fake_run)
+    free, held = updates.old_runtimes()
+    assert free == ["Python 3.14.4 (uv)"]
+    assert held[0].startswith("Python 3.14.8 (uv) — ") and "other/.venv" in held[0]
+    assert held[1] == "node 26.8.1 (mise) — process 7 (node)"
+
+
+@pytest.mark.asyncio
+async def test_old_runtimes_row(monkeypatch):
+    monkeypatch.setattr(updates, "old_runtimes", lambda: ([], []))
+    assert (await updates.old_runtimes_row(CAT))["status"] == "OK"
+
+    monkeypatch.setattr(
+        updates, "old_runtimes", lambda: (["uv 0.11.7 (mise)"], ["Python 3.14.4 (uv) — process 1"])
+    )
+    r = await updates.old_runtimes_row(CAT)
+    assert r["status"] == "Info" and r["value"] == "2"
+    assert "uv 0.11.7 (mise)" in r["hint"] and "process 1" in r["hint"]
