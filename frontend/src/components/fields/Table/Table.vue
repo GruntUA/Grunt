@@ -1,13 +1,11 @@
 <script setup lang="ts">
 import { computed, provide, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { tn } from '@/plugins/i18n'
 import { VueDraggable } from 'vue-draggable-plus'
 import {
-  ArrowDown,
-  ArrowUp,
   Copy,
   GripVertical,
-  MoreHorizontal,
   PanelRightOpen,
   PencilLine,
   Plus,
@@ -23,20 +21,16 @@ import QuickEntryDialog from '@/components/views/QuickEntryDialog.vue'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+import { Card } from '@/components/ui/card'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import SelectListCell from '@/components/fields/Select/ListCell.vue'
 import { STATUS_CONFIG, statusConfigOf } from '@/core/status'
+import TableRowActions from './TableRowActions.vue'
 import TableRowSheet from './TableRowSheet.vue'
+import { useCardLayout } from '@/components/views/list/useCardLayout'
 import { INLINE_TYPES, cellError, isLayoutRow, useTableCell } from './useTableCell'
 import { useTableRows, type Row } from './useTableRows'
 
@@ -217,9 +211,19 @@ function addRow() {
   }
 }
 
+// Phones: one card per row, edited in the row sheet - the grid is too wide.
+const isCards = useCardLayout()
+const titleColumn = computed(() => columns.value.find((f) => f.fieldname !== statusConfig.value?.field) ?? null)
+const detailColumns = computed(() =>
+  columns.value.filter((f) => f !== titleColumn.value && f.fieldname !== statusConfig.value?.field),
+)
+function rowError(row: Row): string {
+  return fields.value.map((f) => cellError(row, f)).find(Boolean) ?? ''
+}
+
 function deleteRows(count: number) {
   if (!count) return
-  const message = count === 1 ? t('Row deleted') : `${count} ${t('rows deleted')}`
+  const message = tn('Row deleted', '{n} rows deleted', count)
   toast.info(message, t('Deleted'), { action: { label: t('Undo'), onClick: table.undoRemove } })
 }
 
@@ -282,7 +286,66 @@ function applyBulk() {
       <Badge v-if="rows.length" variant="secondary">{{ rows.length }}</Badge>
     </div>
 
-    <div class="rounded-md border">
+    <!-- Phone: cards -->
+    <div v-if="isCards" class="flex flex-col gap-2">
+      <template v-if="loading && !childDocType">
+        <Skeleton v-for="n in 2" :key="n" class="h-20 w-full" />
+      </template>
+      <p v-else-if="!rows.length" class="rounded-md border py-6 text-center text-muted-foreground">{{ t('No rows') }}</p>
+      <template v-for="item in items" v-else :key="item.key">
+        <p v-if="item.kind === 'group'" class="px-1 pt-1 font-medium text-muted-foreground">{{ item.label }}</p>
+        <Card
+          v-else
+          class="cursor-pointer gap-2 p-3"
+          :class="[
+            selected.has(item.row.__uid) && 'border-primary bg-primary/5',
+            rowHasError(item.row) && 'border-destructive',
+            isLayoutRow(item.row) && 'text-muted-foreground',
+          ]"
+          @click="openRow(item.row.__uid)"
+        >
+          <div class="flex items-start gap-2">
+            <Checkbox
+              v-if="!disabled"
+              class="mt-0.5"
+              :model-value="selected.has(item.row.__uid)"
+              :aria-label="t('Select row')"
+              @click.stop
+              @update:model-value="table.toggle(item.row.__uid)"
+            />
+            <span class="text-muted-foreground tabular-nums">{{ item.position }}</span>
+            <button type="button" class="min-w-0 flex-1 text-left font-medium break-words" @click.stop="openRow(item.row.__uid)">
+              {{ (titleColumn && cellDisplay(item.row, titleColumn)) || '—' }}
+            </button>
+            <SelectListCell
+              v-if="statusConfig?.field && item.row[statusConfig.field]"
+              :value="item.row[statusConfig.field]"
+              :row="item.row"
+              :field="columns.find((f) => f.fieldname === statusConfig!.field)!"
+              :status-config="statusConfig"
+            />
+            <TableRowActions
+              v-if="!disabled"
+              @edit="openRow(item.row.__uid)"
+              @duplicate="table.duplicate(item.row.__uid)"
+              @insert="table.insert(item.row.__uid, $event)"
+              @remove="deleteRows(table.remove(item.row.__uid))"
+            />
+          </div>
+          <dl v-if="detailColumns.length" class="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-sm">
+            <template v-for="f in detailColumns" :key="f.fieldname">
+              <template v-if="cellDisplay(item.row, f)">
+                <dt class="text-muted-foreground">{{ f.label }}</dt>
+                <dd class="min-w-0 break-words">{{ cellDisplay(item.row, f) }}</dd>
+              </template>
+            </template>
+          </dl>
+          <p v-if="rowHasError(item.row)" class="text-sm text-destructive">{{ rowError(item.row) }}</p>
+        </Card>
+      </template>
+    </div>
+
+    <div v-else class="rounded-md border">
       <Table>
         <TableHeader>
           <TableRow>
@@ -404,31 +467,13 @@ function applyBulk() {
                   >
                     <PanelRightOpen />
                   </Button>
-                  <DropdownMenu v-if="!disabled">
-                    <DropdownMenuTrigger as-child>
-                      <Button variant="ghost" size="icon" :aria-label="t('Row actions')">
-                        <MoreHorizontal />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem @click="openRow(item.row.__uid)">
-                        <PanelRightOpen /> {{ t('Edit') }}
-                      </DropdownMenuItem>
-                      <DropdownMenuItem @click="table.duplicate(item.row.__uid)">
-                        <Copy /> {{ t('Duplicate row') }}
-                      </DropdownMenuItem>
-                      <DropdownMenuItem @click="table.insert(item.row.__uid, 'above')">
-                        <ArrowUp /> {{ t('Insert row above') }}
-                      </DropdownMenuItem>
-                      <DropdownMenuItem @click="table.insert(item.row.__uid, 'below')">
-                        <ArrowDown /> {{ t('Insert row below') }}
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem variant="destructive" @click="deleteRows(table.remove(item.row.__uid))">
-                        <Trash2 /> {{ t('Delete row') }}
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  <TableRowActions
+                    v-if="!disabled"
+                    @edit="openRow(item.row.__uid)"
+                    @duplicate="table.duplicate(item.row.__uid)"
+                    @insert="table.insert(item.row.__uid, $event)"
+                    @remove="deleteRows(table.remove(item.row.__uid))"
+                  />
                 </div>
               </TableCell>
             </TableRow>
@@ -500,7 +545,7 @@ function applyBulk() {
         </Button>
         <span v-if="invalidCount" class="inline-flex items-center gap-1 text-destructive">
           <TriangleAlert class="size-4" />
-          {{ invalidCount }} {{ invalidCount === 1 ? t('row needs attention') : t('rows need attention') }}
+          {{ tn('{n} row needs attention', '{n} rows need attention', invalidCount) }}
         </span>
       </template>
     </div>

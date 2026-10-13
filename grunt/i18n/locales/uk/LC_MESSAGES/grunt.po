@@ -56,7 +56,7 @@ msgstr "Немає даних"
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:233
 #: grunt/frontend/src/components/views/list/ListGroupedView.vue:49
 #: grunt/frontend/src/components/fields/Check/FilterInput.vue:31
-#: grunt/frontend/src/components/fields/Table/Table.vue:151
+#: grunt/frontend/src/components/fields/Table/Table.vue:145
 #: grunt/frontend/src/components/fields/Table/useTableCell.ts:85
 msgid "Yes"
 msgstr "Так"
@@ -68,7 +68,7 @@ msgstr "Так"
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:233
 #: grunt/frontend/src/components/views/list/ListGroupedView.vue:49
 #: grunt/frontend/src/components/fields/Check/FilterInput.vue:32
-#: grunt/frontend/src/components/fields/Table/Table.vue:151
+#: grunt/frontend/src/components/fields/Table/Table.vue:145
 #: grunt/frontend/src/components/fields/Table/useTableCell.ts:85
 msgid "No"
 msgstr "Ні"
@@ -268,7 +268,7 @@ msgstr "Підпишіть тут"
 #: grunt/frontend/src/components/desk/OnboardingChecklists.vue:118
 #: grunt/frontend/src/components/desk/OnboardingChecklists.vue:124
 #: grunt/frontend/src/components/fields/Signature/Signature.vue:224
-#: grunt/frontend/src/components/fields/Table/Table.vue:223
+#: grunt/frontend/src/components/fields/Table/Table.vue:227
 #: grunt/frontend/src/components/fields/RichText/editor/commands.ts:69
 msgid "Undo"
 msgstr "Відмінити"
@@ -2568,7 +2568,7 @@ msgstr "Додати"
 msgid "Add a Filter"
 msgstr "Додати фільтр"
 
-#: grunt/frontend/src/components/fields/Table/Table.vue:499
+#: grunt/frontend/src/components/fields/Table/Table.vue:544
 msgid "Add row"
 msgstr "Додати рядок"
 
@@ -2590,7 +2590,7 @@ msgstr "Застосувати"
 msgid "Apply Filters"
 msgstr "Застосувати фільтри"
 
-#: grunt/frontend/src/components/fields/Table/Table.vue:479
+#: grunt/frontend/src/components/fields/Table/Table.vue:524
 msgid "Apply to"
 msgstr "Застосувати до"
 
@@ -2675,7 +2675,7 @@ msgid "Clear Filters"
 msgstr "Скинути фільтри"
 
 #: grunt/frontend/src/components/views/BulkActionBar.vue:218
-#: grunt/frontend/src/components/fields/Table/Table.vue:486
+#: grunt/frontend/src/components/fields/Table/Table.vue:531
 msgid "Clear selection"
 msgstr "Зняти виділення"
 
@@ -2684,7 +2684,7 @@ msgstr "Зняти виділення"
 msgid "Color"
 msgstr "Колір"
 
-#: grunt/frontend/src/components/fields/Table/Table.vue:455
+#: grunt/frontend/src/components/fields/Table/Table.vue:500
 msgid "Column"
 msgstr "Колонка"
 
@@ -2765,7 +2765,7 @@ msgstr "Поле дати"
 #: grunt/frontend/src/components/dashboard/sections/FiltersSection.vue:82
 #: grunt/frontend/src/components/views/form/FormModals.vue:141
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:430
-#: grunt/frontend/src/components/fields/Table/Table.vue:484
+#: grunt/frontend/src/components/fields/Table/Table.vue:529
 #: grunt/frontend/src/components/fields/RichText/editor/commands.ts:98
 #: grunt/frontend/src/components/fields/RichText/ui/BlockHandle.vue:72
 msgid "Delete"
@@ -2775,14 +2775,14 @@ msgstr "Видалити"
 msgid "Delete document?"
 msgstr "Видалити документ?"
 
-#: grunt/frontend/src/components/fields/Table/Table.vue:428
+#: grunt/frontend/src/components/fields/Table/TableRowActions.vue:36
 #: grunt/frontend/src/components/fields/RichText/editor/commands.ts:77
 msgid "Delete row"
 msgstr "Видалити рядок"
 
 #: grunt/frontend/src/core/composables/useFormActions.ts:45
 #: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:77
-#: grunt/frontend/src/components/fields/Table/Table.vue:223
+#: grunt/frontend/src/components/fields/Table/Table.vue:227
 msgid "Deleted"
 msgstr "Видалено"
 
@@ -2827,21 +2827,21 @@ msgstr "Готово"
 
 #: grunt/grunt/actions/builtin.py:21
 #: grunt/grunt/metadata/doctypes/DocType/global_form.js:110
-#: grunt/frontend/src/components/fields/Table/Table.vue:446
+#: grunt/frontend/src/components/fields/Table/Table.vue:491
 #: grunt/frontend/src/components/fields/RichText/ui/BlockHandle.vue:71
 msgid "Duplicate"
 msgstr "Дублювати"
 
-#: grunt/frontend/src/components/fields/Table/Table.vue:418
+#: grunt/frontend/src/components/fields/Table/TableRowActions.vue:26
 msgid "Duplicate row"
 msgstr "Дублювати рядок"
 
 #: grunt/grunt/metadata/doctypes/DocType/global_list.js:89
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue:139
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue:261
-#: grunt/frontend/src/components/fields/Table/Table.vue:401
-#: grunt/frontend/src/components/fields/Table/Table.vue:402
-#: grunt/frontend/src/components/fields/Table/Table.vue:415
+#: grunt/frontend/src/components/fields/Table/Table.vue:464
+#: grunt/frontend/src/components/fields/Table/Table.vue:465
+#: grunt/frontend/src/components/fields/Table/TableRowActions.vue:23
 #: grunt/frontend/src/pages/app/AppHome.vue:116
 msgid "Edit"
 msgstr "Редагувати"
@@ -2883,7 +2883,7 @@ msgstr "Поле"
 msgid "Files"
 msgstr "Файли"
 
-#: grunt/frontend/src/components/fields/Table/Table.vue:496
+#: grunt/frontend/src/components/fields/Table/Table.vue:541
 msgid "Fill in the current row first"
 msgstr "Спершу заповніть поточний рядок"
 
@@ -2923,12 +2923,12 @@ msgstr "Головна"
 msgid "Icon (lucide)"
 msgstr "Іконка (lucide)"
 
-#: grunt/frontend/src/components/fields/Table/Table.vue:421
+#: grunt/frontend/src/components/fields/Table/TableRowActions.vue:29
 #: grunt/frontend/src/components/fields/RichText/editor/commands.ts:73
 msgid "Insert row above"
 msgstr "Вставити рядок вище"
 
-#: grunt/frontend/src/components/fields/Table/Table.vue:424
+#: grunt/frontend/src/components/fields/Table/TableRowActions.vue:32
 #: grunt/frontend/src/components/fields/RichText/editor/commands.ts:74
 msgid "Insert row below"
 msgstr "Вставити рядок нижче"
@@ -3066,7 +3066,8 @@ msgstr "Немає сповіщень"
 msgid "No records"
 msgstr "Немає записів"
 
-#: grunt/frontend/src/components/fields/Table/Table.vue:319
+#: grunt/frontend/src/components/fields/Table/Table.vue:294
+#: grunt/frontend/src/components/fields/Table/Table.vue:382
 msgid "No rows"
 msgstr "Немає рядків"
 
@@ -3188,13 +3189,16 @@ msgstr "Скинути пароль"
 msgid "Retry"
 msgstr "Повторити"
 
-#: grunt/frontend/src/components/fields/Table/Table.vue:409
+#: grunt/frontend/src/components/fields/Table/TableRowActions.vue:17
 msgid "Row actions"
 msgstr "Дії з рядком"
 
-#: grunt/frontend/src/components/fields/Table/Table.vue:222
+#: grunt/frontend/src/components/fields/Table/Table.vue:226
 msgid "Row deleted"
-msgstr "Рядок видалено"
+msgid_plural "{n} rows deleted"
+msgstr[0] "Видалено {n} рядок"
+msgstr[1] "Видалено {n} рядки"
+msgstr[2] "Видалено {n} рядків"
 
 #: grunt/grunt/metadata/doctypes/DocType/global_form.js:28
 #: grunt/frontend/src/components/views/QuickEntryDialog.vue:161
@@ -3292,7 +3296,7 @@ msgstr "Оберіть DocType, щоб створити новий запис"
 msgid "Select a widget on the canvas or add a new one from the palette"
 msgstr "Оберіть віджет на полотні або додайте новий з палітри"
 
-#: grunt/frontend/src/components/fields/Table/Table.vue:293
+#: grunt/frontend/src/components/fields/Table/Table.vue:356
 msgid "Select all"
 msgstr "Виділити все"
 
@@ -3300,7 +3304,8 @@ msgstr "Виділити все"
 msgid "Select field..."
 msgstr "Оберіть поле..."
 
-#: grunt/frontend/src/components/fields/Table/Table.vue:349
+#: grunt/frontend/src/components/fields/Table/Table.vue:312
+#: grunt/frontend/src/components/fields/Table/Table.vue:412
 msgid "Select row"
 msgstr "Виділити рядок"
 
@@ -3310,11 +3315,11 @@ msgid "Select value"
 msgstr "Оберіть значення"
 
 #: grunt/frontend/src/components/desk/GruntDialog.vue:366
-#: grunt/frontend/src/components/fields/Table/Table.vue:443
+#: grunt/frontend/src/components/fields/Table/Table.vue:488
 msgid "Selected:"
 msgstr "Вибрано:"
 
-#: grunt/frontend/src/components/fields/Table/Table.vue:450
+#: grunt/frontend/src/components/fields/Table/Table.vue:495
 msgid "Set value"
 msgstr "Встановити значення"
 
@@ -3435,8 +3440,8 @@ msgid "Upload image with barcode"
 msgstr "Завантажити зображення зі штрихкодом"
 
 #: grunt/frontend/src/components/dashboard/ActivityStream.vue:148
-#: grunt/frontend/src/components/fields/Table/Table.vue:401
-#: grunt/frontend/src/components/fields/Table/Table.vue:402
+#: grunt/frontend/src/components/fields/Table/Table.vue:464
+#: grunt/frontend/src/components/fields/Table/Table.vue:465
 msgid "View"
 msgstr "Переглянути"
 
@@ -3456,18 +3461,6 @@ msgstr "Ширина"
 #: grunt/frontend/src/components/views/form/FormHeader.vue:275
 msgid "optional"
 msgstr "необов'язково"
-
-#: grunt/frontend/src/components/fields/Table/Table.vue:503
-msgid "row needs attention"
-msgstr "рядок потребує уваги"
-
-#: grunt/frontend/src/components/fields/Table/Table.vue:222
-msgid "rows deleted"
-msgstr "рядків видалено"
-
-#: grunt/frontend/src/components/fields/Table/Table.vue:503
-msgid "rows need attention"
-msgstr "рядків потребують уваги"
 
 #: grunt/frontend/src/components/dashboard/widgets/Donut/Donut.vue:72
 msgid "total"
@@ -18065,6 +18058,22 @@ msgstr ""
 "Секції - згортувані групи пунктів. Модулі - по рядку на секцію, її пункти "
 "відкриваються в панелі поруч із бічною. Авто - модулі, щойно в додатку "
 "стільки секцій, скільки задано в налаштуваннях системи"
+
+#: grunt/frontend/src/components/fields/Table/Table.vue:548
+msgid "{n} row needs attention"
+msgid_plural "{n} rows need attention"
+msgstr[0] "{n} рядок потребує уваги"
+msgstr[1] "{n} рядки потребують уваги"
+msgstr[2] "{n} рядків потребують уваги"
+
+#~ msgid "row needs attention"
+#~ msgstr "рядок потребує уваги"
+
+#~ msgid "rows deleted"
+#~ msgstr "рядків видалено"
+
+#~ msgid "rows need attention"
+#~ msgstr "рядків потребують уваги"
 
 #~ msgctxt "help:AppMenu.sidebar_style"
 #~ msgid ""
