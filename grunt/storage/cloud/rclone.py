@@ -71,16 +71,108 @@ def obscure(value: str) -> str:
     return base64.urlsafe_b64encode(data).decode().rstrip("=")
 
 
+# Where rclone is put when the server has none: per user, shared by every site.
+INSTALL_DIR = Path(os.environ.get("XDG_DATA_HOME") or Path.home() / ".local/share") / "grunt/bin"
+DOWNLOAD_URL = "https://downloads.rclone.org"
+_OS = {"linux": "linux", "darwin": "osx", "freebsd": "freebsd"}
+_ARCH = {
+    "x86_64": "amd64",
+    "amd64": "amd64",
+    "aarch64": "arm64",
+    "arm64": "arm64",
+    "armv7l": "arm-v7",
+}
+_install_lock = asyncio.Lock()
+
+
+def _find() -> str | None:
+    found = shutil.which(settings.rclone_binary)
+    if found:
+        return found
+    managed = INSTALL_DIR / "rclone"
+    return str(managed) if os.access(managed, os.X_OK) else None
+
+
 def binary() -> str:
     """Path of the rclone binary; RemoteError when it is not installed."""
-    found = shutil.which(settings.rclone_binary)
+    found = _find()
     if not found:
         raise RemoteError(_("rclone is not installed on the server (https://rclone.org/install/)"))
     return found
 
 
 def is_installed() -> bool:
-    return shutil.which(settings.rclone_binary) is not None
+    return _find() is not None
+
+
+async def ensure_installed() -> str:
+    """Path of rclone, downloading the current release into INSTALL_DIR if there is none.
+
+    The zip is checked against rclone's published SHA256SUMS before the binary
+    is unpacked. RemoteError when the platform is not supported or the
+    download fails.
+    """
+    if found := _find():
+        return found
+    async with _install_lock:
+        if found := _find():
+            return found
+        return await _install()
+
+
+async def _install() -> str:
+    import hashlib
+    import platform
+    import zipfile
+
+    import httpx2
+
+    system = _OS.get(platform.system().lower())
+    arch = _ARCH.get(platform.machine().lower())
+    if not system or not arch:
+        raise RemoteError(_("rclone is not installed on the server (https://rclone.org/install/)"))
+    log.info("cloud.rclone_install", dir=str(INSTALL_DIR))
+    INSTALL_DIR.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(dir=INSTALL_DIR) as tmp:
+        try:
+            async with httpx2.AsyncClient(timeout=60.0, follow_redirects=True) as client:
+                latest = await client.get(f"{DOWNLOAD_URL}/version.txt")
+                version = latest.raise_for_status().text.split()[-1]  # "rclone v1.75.2"
+                base = f"{DOWNLOAD_URL}/{version}"
+                zip_name = f"rclone-{version}-{system}-{arch}.zip"
+                archive = Path(tmp) / zip_name
+                sums = (await client.get(f"{base}/SHA256SUMS")).raise_for_status().text
+                digest = hashlib.sha256()
+                async with client.stream("GET", f"{base}/{zip_name}") as response:
+                    response.raise_for_status()
+                    with archive.open("wb") as f:
+                        async for chunk in response.aiter_bytes():
+                            digest.update(chunk)
+                            f.write(chunk)
+        except httpx2.HTTPError as e:
+            log.error("cloud.rclone_install_failed", error=str(e))
+            raise RemoteError(_("Could not download rclone: {0}").format(e)) from e
+        # SHA256SUMS is PGP-signed text: "<hash>  <file>" lines among the armor
+        expected = next(
+            (line.split()[0] for line in sums.splitlines() if line.split()[-1:] == [zip_name]),
+            None,
+        )
+        if expected != digest.hexdigest():
+            raise RemoteError(_("Could not download rclone: checksum mismatch"))
+
+        def unpack() -> Path:
+            with zipfile.ZipFile(archive) as z:
+                member = next(n for n in z.namelist() if n.rsplit("/", 1)[-1] == "rclone")
+                target = Path(tmp) / "rclone"
+                with z.open(member) as src, target.open("wb") as dst:
+                    shutil.copyfileobj(src, dst)
+            target.chmod(0o755)
+            return target
+
+        target = await asyncio.to_thread(unpack)
+        os.replace(target, INSTALL_DIR / "rclone")  # atomic: never a half-written binary
+    log.info("cloud.rclone_installed", path=str(INSTALL_DIR / "rclone"))
+    return str(INSTALL_DIR / "rclone")
 
 
 class _Config(configparser.ConfigParser):
@@ -198,7 +290,7 @@ class Rclone:
         A cancelled task (the progress raises) kills rclone.
         """
         cmd = [
-            binary(),
+            await ensure_installed(),
             "--config",
             str(self.config_path),
             "--use-json-log",

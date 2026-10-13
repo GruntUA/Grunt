@@ -10,6 +10,21 @@ URL = "/api/v1/docs/SystemHealthReport/SystemHealthReport"
 STATUSES = {"OK", "Warning", "Error", "Info"}
 
 
+@pytest.fixture(autouse=True)
+def _offline_updates(monkeypatch):
+    """The «Updates» rows ask git remotes, endoflife.date, PyPI and npm - not in tests."""
+    from grunt.monitoring import updates
+
+    async def unavailable(*args, **kwargs):
+        raise updates.UnavailableError("offline")
+
+    for name in ("fetch", "ls_remote", "pypi_outdated", "npm_outdated"):
+        monkeypatch.setattr(updates, name, unavailable)
+    updates.clear_cache()
+    yield
+    updates.clear_cache()
+
+
 @pytest.mark.asyncio
 async def test_report_runs_every_check(client, auth_headers):
     # English — the CHECKS categories are the (untranslated) English sources.

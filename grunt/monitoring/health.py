@@ -574,9 +574,9 @@ async def check_cloud() -> list[Row]:
             row(
                 cat,
                 "rclone",
-                ERROR,
+                WARNING,
                 _("not installed"),
-                _("Install rclone: https://rclone.org/install/"),
+                _("It will be downloaded automatically on first use."),
             )
         )
     interval = int(await get_setting("backup_interval_hours", 24) or 24)
@@ -830,6 +830,15 @@ async def check_offline_build() -> list[Row]:
     return rows
 
 
+# Updates (grunt.monitoring.updates - it imports the row helpers from here)
+
+
+async def check_updates() -> list[Row]:
+    from grunt.monitoring.updates import check_updates as updates
+
+    return await updates()
+
+
 # Runner
 
 CHECKS: list[tuple[str, Callable[[], Awaitable[list[Row]]]]] = [
@@ -846,6 +855,7 @@ CHECKS: list[tuple[str, Callable[[], Awaitable[list[Row]]]]] = [
     (N_("WebSockets"), check_realtime),
     (N_("App dependencies"), check_app_dependencies),
     (N_("Versions"), check_versions),
+    (N_("Updates"), check_updates),
     (N_("Offline mode"), check_offline_build),
 ]
 

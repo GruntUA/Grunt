@@ -22262,3 +22262,75 @@ msgstr "Весь час"
 #~ msgstr ""
 #~ "Емодзі, які можна ставити під коментарями, через пробіл. Порожньо - реакції "
 #~ "вимкнено"
+
+#: grunt/grunt/monitoring/health.py:579
+msgid "It will be downloaded automatically on first use."
+msgstr "Буде завантажено автоматично при першому використанні."
+
+#: grunt/grunt/storage/cloud/rclone.py
+msgid "Could not download rclone: {0}"
+msgstr "Не вдалося завантажити rclone: {0}"
+
+#: grunt/grunt/storage/cloud/rclone.py
+msgid "Could not download rclone: checksum mismatch"
+msgstr "Не вдалося завантажити rclone: контрольна сума не збігається"
+
+#: grunt/grunt/monitoring/updates.py
+msgid "%(count)s differ from uv.lock"
+msgstr "%(count)s не збігаються з uv.lock"
+
+#: grunt/grunt/monitoring/updates.py
+msgid "%(count)s newer versions"
+msgstr "%(count)s новіших версій"
+
+#: grunt/grunt/monitoring/updates.py
+msgid "%(name)s %(version)s is out."
+msgstr "Вийшов %(name)s %(version)s."
+
+#: grunt/grunt/monitoring/updates.py
+msgid "Could not check for updates: %(error)s"
+msgstr "Не вдалося перевірити оновлення: %(error)s"
+
+#: grunt/grunt/monitoring/updates.py
+msgid "Newer versions arrive with the next framework release."
+msgstr "Новіші версії прийдуть з наступним релізом фреймворку."
+
+#: grunt/grunt/monitoring/updates.py
+msgid "No longer supported since %(date)s."
+msgstr "Не підтримується з %(date)s."
+
+#: grunt/grunt/monitoring/updates.py
+msgid "Python packages"
+msgstr "Python пакети"
+
+#: grunt/grunt/monitoring/updates.py
+msgid "Run `grunt update`."
+msgstr "Запустіть `grunt update`."
+
+#: grunt/grunt/monitoring/updates.py
+msgid "Update available: %(target)s. Run `grunt update`."
+msgstr "Доступне оновлення: %(target)s. Запустіть `grunt update`."
+
+#: grunt/grunt/monitoring/updates.py
+msgid "Update the lock files: `grunt update --upgrade-packages`, then commit them."
+msgstr "Оновіть lock-файли: `grunt update --upgrade-packages`, потім закомітьте їх."
+
+#: grunt/grunt/monitoring/updates.py
+msgid "Updates"
+msgstr "Оновлення"
+
+#: grunt/grunt/monitoring/updates.py
+msgid "no access to the repository - run `grunt update` in a terminal to add a token"
+msgstr "немає доступу до репозиторію — запустіть `grunt update` у терміналі, щоб додати токен"
+
+#: grunt/grunt/monitoring/updates.py
+msgid "npm packages"
+msgstr "npm пакети"
+
+#: grunt/grunt/monitoring/updates.py
+msgid "timed out"
+msgstr "перевищено час очікування"
+
+#: grunt/grunt/monitoring/updates.py
+msgid "uv is not installed"
+msgstr "uv не встановлено"
