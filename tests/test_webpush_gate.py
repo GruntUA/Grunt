@@ -54,8 +54,10 @@ async def test_send_push_early_returns_when_disabled(ctx):
 @pytest.mark.asyncio
 async def test_test_action_reports_success_and_drops_expired(ctx, monkeypatch):
     import pywebpush
+    from py_vapid import Vapid
 
     from grunt.actions.builtin import webpush_test
+    from grunt.webpush.service import _generate_vapid_keys
 
     sent: list[dict] = []
 
@@ -72,7 +74,7 @@ async def test_test_action_reports_success_and_drops_expired(ctx, monkeypatch):
     async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         await _set_push(ctx, True)
         await ctx.db.set_value(
-            "SystemSettings", "SystemSettings", {"webpush_vapid_private": "fake-pem"}
+            "SystemSettings", "SystemSettings", {"webpush_vapid_private": _generate_vapid_keys()[0]}
         )
         sub = await ctx.new_doc(
             "PushSubscription",
@@ -92,6 +94,9 @@ async def test_test_action_reports_success_and_drops_expired(ctx, monkeypatch):
         )
         assert res["message"]
         assert '"title": "Hi"' in sent[0]["data"] and "/app/home" in sent[0]["data"]
+        # A parsed key, not the PEM string pywebpush can't read itself.
+        assert isinstance(sent[0]["vapid_private_key"], Vapid)
+        assert sent[0]["ttl"] > 0  # WNS rejects TTL 0
 
         class _Gone:
             status_code = 410
@@ -105,3 +110,62 @@ async def test_test_action_reports_success_and_drops_expired(ctx, monkeypatch):
             await webpush_test({"doctype": "PushSubscription", "name": sub["name"]}, args={})
         assert excinfo.value.code == "PUSH_EXPIRED"
         assert not await ctx.db.exists("PushSubscription", sub["name"])
+
+
+def test_send_to_user_action_is_admin_only():
+    from grunt.actions.registry import get_doc_action
+
+    spec = get_doc_action("webpush.send_to_user")
+    assert spec is not None
+    assert spec.doctypes == ["User"]
+    assert spec.roles == ["System Manager"]
+
+
+@pytest.mark.asyncio
+async def test_send_to_user_action_pushes_every_browser(ctx, monkeypatch):
+    import pywebpush
+
+    from grunt.actions.builtin import webpush_send_to_user
+    from grunt.webpush.service import _generate_vapid_keys
+
+    sent: list[str] = []
+
+    class _Resp:
+        status_code = 201
+        text = ""
+
+    def fake_webpush(**kwargs):
+        sent.append(kwargs["subscription_info"]["endpoint"])
+        return _Resp()
+
+    monkeypatch.setattr(pywebpush, "webpush", fake_webpush)
+
+    async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
+        await _set_push(ctx, True)
+        await ctx.db.set_value(
+            "SystemSettings", "SystemSettings", {"webpush_vapid_private": _generate_vapid_keys()[0]}
+        )
+        for i, user in enumerate(["b@example.com", "b@example.com", "other@example.com"]):
+            await ctx.new_doc(
+                "PushSubscription",
+                {
+                    "user": user,
+                    "endpoint": f"https://push.example/u{i}",
+                    "p256dh": "k",
+                    "auth": "s",
+                },
+            )
+        await ctx.db._session().commit()
+        clear_settings_cache()
+
+        res = await webpush_send_to_user(
+            {"doctype": "User", "name": "b@example.com"}, args={"title": "Hello"}
+        )
+        assert sorted(sent) == ["https://push.example/u0", "https://push.example/u1"]
+        assert "2" in res["message"]
+
+        with pytest.raises(ApplicationError) as excinfo:
+            await webpush_send_to_user(
+                {"doctype": "User", "name": "nobody@example.com"}, args={"title": "Hello"}
+            )
+        assert excinfo.value.code == "NO_PUSH_SUBSCRIPTIONS"

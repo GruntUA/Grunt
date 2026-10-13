@@ -188,34 +188,38 @@ async def report_send_now(doc: dict[str, Any], *, args: dict[str, Any]) -> dict[
     }
 
 
+# Dialog shared by the push actions below.
+_PUSH_DIALOG_FIELDS = [
+    {
+        "fieldname": "title",
+        "label": "Title",
+        "fieldtype": "Data",
+        "default": "Test notification",
+        "required": True,
+    },
+    {
+        "fieldname": "body",
+        "label": "Message",
+        "fieldtype": "Text",
+        "default": "Push notifications work in this browser.",
+    },
+    {
+        "fieldname": "url",
+        "label": "Open on click",
+        "fieldtype": "Data",
+        "default": "/",
+        "description": "Path inside the app, e.g. /app/home",
+    },
+]
+
+
 @doc_action(
     "webpush.test",
     label="Send test notification",
     doctypes=["PushSubscription"],
     icon="bell-ring",
     variant="outline",
-    fields=[
-        {
-            "fieldname": "title",
-            "label": "Title",
-            "fieldtype": "Data",
-            "default": "Test notification",
-            "required": True,
-        },
-        {
-            "fieldname": "body",
-            "label": "Message",
-            "fieldtype": "Text",
-            "default": "Push notifications work in this browser.",
-        },
-        {
-            "fieldname": "url",
-            "label": "Open on click",
-            "fieldtype": "Data",
-            "default": "/",
-            "description": "Path inside the app, e.g. /app/home",
-        },
-    ],
+    fields=_PUSH_DIALOG_FIELDS,
 )
 async def webpush_test(doc: dict[str, Any], *, args: dict[str, Any]) -> dict[str, Any]:
     """Push a test message to this one browser subscription and report the outcome."""
@@ -241,3 +245,46 @@ async def webpush_test(doc: dict[str, Any], *, args: dict[str, Any]) -> dict[str
             code="PUSH_FAILED",
         )
     return {"message": _("Test notification sent"), "refresh": False}
+
+
+@doc_action(
+    "webpush.send_to_user",
+    label="Send push notification",
+    doctypes=["User"],
+    icon="bell-ring",
+    variant="outline",
+    roles=["System Manager"],
+    # Same dialog, but a real message to a person - no test-text defaults.
+    fields=[
+        {k: v for k, v in f.items() if f["fieldname"] == "url" or k != "default"}
+        for f in _PUSH_DIALOG_FIELDS
+    ],
+)
+async def webpush_send_to_user(doc: dict[str, Any], *, args: dict[str, Any]) -> dict[str, Any]:
+    """Push a message to every browser this user subscribed from (admin tool)."""
+    from grunt.webpush.service import PushUnavailableError, webpush_service
+
+    try:
+        results = await webpush_service.send_to_user(
+            doc["name"],
+            title=args.get("title") or _("Test notification"),
+            body=args.get("body") or "",
+            url=args.get("url") or "/",
+        )
+    except PushUnavailableError as exc:
+        grunt.throw(str(exc), code="PUSH_UNAVAILABLE")
+    if not results:
+        grunt.throw(
+            _("The user has not enabled push notifications in any browser"),
+            code="NO_PUSH_SUBSCRIPTIONS",
+        )
+    sent = sum(r.ok for r in results)
+    expired = sum(r.expired for r in results)
+    failed = [r for r in results if not r.ok and not r.expired]
+    if not sent:
+        detail = failed[0].error if failed else _("all subscriptions have expired")
+        grunt.throw(_("Push was not delivered: %(error)s") % {"error": detail}, code="PUSH_FAILED")
+    message = _("Sent to %(sent)s of %(total)s browsers") % {"sent": sent, "total": len(results)}
+    if expired:
+        message += ". " + _("Expired subscriptions removed: %(n)s") % {"n": expired}
+    return {"message": message, "refresh": False}

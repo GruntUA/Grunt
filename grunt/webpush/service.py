@@ -14,14 +14,19 @@ import base64
 import importlib.util
 import json
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 import grunt
 from grunt import _, log
 from grunt.site.settings import get_setting
 
+if TYPE_CHECKING:
+    from py_vapid import Vapid
+
 _VAPID_PRIVATE_KEY_FIELD = "webpush_vapid_private"
 _VAPID_PUBLIC_KEY_FIELD = "webpush_vapid_public"
 _VAPID_CLAIMS_SUB = "mailto:system@grunt.local"
+_PUSH_TTL_SECONDS = 24 * 60 * 60
 
 
 def _generate_vapid_keys() -> tuple[str, str]:
@@ -57,6 +62,10 @@ class PushResult:
     status: int | None = None
     error: str = ""
     expired: bool = False
+
+
+class PushUnavailableError(Exception):
+    """Web Push can't be sent at all (disabled, package missing, no/invalid VAPID key)."""
 
 
 class WebPushService:
@@ -124,13 +133,33 @@ class WebPushService:
         """Delete a push subscription by endpoint URL - only if it belongs to `user`."""
         await grunt.db.delete("PushSubscription", filters={"endpoint": endpoint, "user": user})
 
-    async def _vapid_private_key(self) -> str | None:
+    async def _vapid(self) -> Vapid | None:
+        """Load the stored VAPID private key; ``None`` if keys aren't generated yet.
+
+        Stored as PEM (see :func:`_generate_vapid_keys`). It must be parsed here:
+        handed to pywebpush as a string it goes through ``Vapid.from_string``,
+        which only understands raw / bare base64-DER keys and chokes on PEM.
+        Raises ``ValueError`` when the stored key is unreadable.
+        """
+        from py_vapid import Vapid
+
         try:
-            return await grunt.get_single("SystemSettings", _VAPID_PRIVATE_KEY_FIELD) or None
+            key = await grunt.get_single("SystemSettings", _VAPID_PRIVATE_KEY_FIELD)
         except Exception:
             return None
+        if not key:
+            return None
+        try:
+            if "-----BEGIN" in key:
+                # Not Vapid.from_pem: it decodes standard base64 as URL-safe.
+                from cryptography.hazmat.primitives import serialization
 
-    async def deliver(self, sub: dict, payload: str, vapid_private: str) -> PushResult:
+                return Vapid(serialization.load_pem_private_key(key.encode(), password=None))
+            return Vapid.from_string(key)
+        except Exception as exc:
+            raise ValueError(str(exc)) from exc
+
+    async def deliver(self, sub: dict, payload: str, vapid: Vapid) -> PushResult:
         """Send one encrypted message to one subscription.
 
         Expired endpoints (404/410) are deleted. Never raises - the outcome
@@ -148,8 +177,12 @@ class WebPushService:
                     "keys": {"p256dh": sub["p256dh"], "auth": sub["auth"]},
                 },
                 data=payload,
-                vapid_private_key=vapid_private,
+                vapid_private_key=vapid,
                 vapid_claims={"sub": _VAPID_CLAIMS_SUB},
+                # pywebpush defaults to TTL 0, which WNS (Edge on Windows)
+                # rejects with a bare 400; it also drops the message for any
+                # browser that happens to be offline at that moment.
+                ttl=_PUSH_TTL_SECONDS,
                 timeout=10,
             )
             return PushResult(ok=True, status=getattr(response, "status_code", None))
@@ -164,21 +197,30 @@ class WebPushService:
         except Exception as exc:
             return PushResult(ok=False, error=str(exc))
 
-    async def send_push(
-        self,
-        user: str,
-        subject: str,
-        body: str,
-        url: str = "/",
-    ) -> None:
-        """Send a Web Push notification to all subscriptions of a user."""
+    async def _ready_vapid(self) -> Vapid:
+        """Return the signing key, or raise :class:`PushUnavailableError` with the reason."""
         if not await get_setting("enable_web_push", False):
-            return
+            raise PushUnavailableError(_("Web Push is disabled in the system settings"))
         if importlib.util.find_spec("pywebpush") is None:
-            return  # Silently skip if not installed
-        vapid_private = await self._vapid_private_key()
-        if not vapid_private:
-            return
+            raise PushUnavailableError(_("The pywebpush package is not installed"))
+        try:
+            vapid = await self._vapid()
+        except ValueError as exc:
+            raise PushUnavailableError(
+                _("The stored VAPID key is invalid: %(error)s") % {"error": exc}
+            ) from exc
+        if vapid is None:
+            raise PushUnavailableError(_("VAPID keys are not generated yet"))
+        return vapid
+
+    async def send_to_user(
+        self, user: str, *, title: str, body: str = "", url: str = "/"
+    ) -> list[PushResult]:
+        """Push to every browser *user* subscribed from; one result per subscription.
+
+        Raises :class:`PushUnavailableError` when push can't be sent at all.
+        """
+        vapid = await self._ready_vapid()
 
         # Raw read: the caller is usually the *sender* (whoever triggered the
         # notification), and PushSubscription is row-matched to its owner - a
@@ -189,33 +231,42 @@ class WebPushService:
             fields=["endpoint", "p256dh", "auth"],
             limit=None,
         )
-        if not subs:
-            return
-
-        payload = json.dumps({"title": subject, "body": body, "url": url})
+        payload = json.dumps({"title": title, "body": body, "url": url})
+        results = []
         for sub in subs:
-            result = await self.deliver(sub, payload, vapid_private)
+            result = await self.deliver(sub, payload, vapid)
             if result.expired:
                 log.info("webpush.subscription_expired", user=user, status=result.status)
             elif not result.ok:
                 log.warning(
                     "webpush.send_failed", user=user, status=result.status, error=result.error
                 )
+            results.append(result)
+        return results
+
+    async def send_push(
+        self,
+        user: str,
+        subject: str,
+        body: str,
+        url: str = "/",
+    ) -> None:
+        """Best-effort push for a notification - never raises, failures are logged."""
+        try:
+            await self.send_to_user(user, title=subject, body=body, url=url)
+        except PushUnavailableError as exc:
+            log.debug("webpush.unavailable", reason=str(exc))
 
     async def send_test(
         self, sub: dict, *, title: str, body: str = "", url: str = "/"
     ) -> PushResult:
         """Send a test message to a single subscription (the form's test action)."""
-        if not await get_setting("enable_web_push", False):
-            return PushResult(ok=False, error=_("Web Push is disabled in the system settings"))
-        if importlib.util.find_spec("pywebpush") is None:
-            return PushResult(ok=False, error=_("The pywebpush package is not installed"))
-        vapid_private = await self._vapid_private_key()
-        if not vapid_private:
-            return PushResult(ok=False, error=_("VAPID keys are not generated yet"))
-
+        try:
+            vapid = await self._ready_vapid()
+        except PushUnavailableError as exc:
+            return PushResult(ok=False, error=str(exc))
         payload = json.dumps({"title": title, "body": body, "url": url})
-        return await self.deliver(sub, payload, vapid_private)
+        return await self.deliver(sub, payload, vapid)
 
 
 webpush_service = WebPushService()

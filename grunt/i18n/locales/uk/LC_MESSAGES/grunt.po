@@ -22489,3 +22489,35 @@ msgstr "Файл не можна видалити: він прикріплени
 #, python-format
 msgid "The file can't be deleted: it is used in %(doctype)s “%(doc)s”"
 msgstr "Файл не можна видалити: він використовується в %(doctype)s «%(doc)s»"
+
+#: grunt/webpush/service.py
+#, python-format
+msgid "The stored VAPID key is invalid: %(error)s"
+msgstr "Збережений VAPID-ключ пошкоджено: %(error)s"
+
+#: grunt/actions/builtin.py
+msgid "Send push notification"
+msgstr "Надіслати push-сповіщення"
+
+#: grunt/actions/builtin.py
+msgid "The user has not enabled push notifications in any browser"
+msgstr "Користувач не ввімкнув push-сповіщення в жодному браузері"
+
+#: grunt/actions/builtin.py
+#, python-format
+msgid "Push was not delivered: %(error)s"
+msgstr "Push не доставлено: %(error)s"
+
+#: grunt/actions/builtin.py
+msgid "all subscriptions have expired"
+msgstr "усі підписки застаріли"
+
+#: grunt/actions/builtin.py
+#, python-format
+msgid "Sent to %(sent)s of %(total)s browsers"
+msgstr "Надіслано в %(sent)s з %(total)s браузерів"
+
+#: grunt/actions/builtin.py
+#, python-format
+msgid "Expired subscriptions removed: %(n)s"
+msgstr "Видалено застарілих підписок: %(n)s"

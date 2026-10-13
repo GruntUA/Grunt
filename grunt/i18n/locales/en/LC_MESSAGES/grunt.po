@@ -20411,3 +20411,35 @@ msgstr ""
 #, python-format
 msgid "The file can't be deleted: it is used in %(doctype)s “%(doc)s”"
 msgstr ""
+
+#: grunt/webpush/service.py
+#, python-format
+msgid "The stored VAPID key is invalid: %(error)s"
+msgstr "The stored VAPID key is invalid: %(error)s"
+
+#: grunt/actions/builtin.py
+msgid "Send push notification"
+msgstr "Send push notification"
+
+#: grunt/actions/builtin.py
+msgid "The user has not enabled push notifications in any browser"
+msgstr "The user has not enabled push notifications in any browser"
+
+#: grunt/actions/builtin.py
+#, python-format
+msgid "Push was not delivered: %(error)s"
+msgstr "Push was not delivered: %(error)s"
+
+#: grunt/actions/builtin.py
+msgid "all subscriptions have expired"
+msgstr "all subscriptions have expired"
+
+#: grunt/actions/builtin.py
+#, python-format
+msgid "Sent to %(sent)s of %(total)s browsers"
+msgstr "Sent to %(sent)s of %(total)s browsers"
+
+#: grunt/actions/builtin.py
+#, python-format
+msgid "Expired subscriptions removed: %(n)s"
+msgstr "Expired subscriptions removed: %(n)s"

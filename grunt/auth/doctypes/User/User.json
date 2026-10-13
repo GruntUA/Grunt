@@ -364,5 +364,11 @@
       "role": "Адміністратор порталу",
       "select": true
     }
+  ],
+  "actions": [
+    {
+      "action": "webpush.send_to_user",
+      "variant": "outline"
+    }
   ]
 }
