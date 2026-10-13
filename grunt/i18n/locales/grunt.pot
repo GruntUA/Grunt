@@ -139,7 +139,7 @@ msgstr ""
 msgid "(no value)"
 msgstr ""
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:421
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:424
 msgid "+ Add filter field"
 msgstr ""
 
@@ -147,11 +147,11 @@ msgstr ""
 msgid "1. Scan the QR code in the app"
 msgstr ""
 
-#: grunt/frontend/src/pages/app/AppPage.vue:281
+#: grunt/frontend/src/pages/app/AppPage.vue:285
 msgid "10m"
 msgstr ""
 
-#: grunt/frontend/src/pages/app/AppPage.vue:279
+#: grunt/frontend/src/pages/app/AppPage.vue:283
 msgid "1m"
 msgstr ""
 
@@ -159,11 +159,11 @@ msgstr ""
 msgid "2. Enter the 6-digit confirmation code"
 msgstr ""
 
-#: grunt/frontend/src/pages/auth/MfaVerify.vue:120
+#: grunt/frontend/src/pages/auth/MfaVerify.vue:113
 msgid "2FA is on. Save your backup codes"
 msgstr ""
 
-#: grunt/frontend/src/pages/auth/MfaVerify.vue:108
+#: grunt/frontend/src/pages/auth/MfaVerify.vue:135
 msgid "2FA setup"
 msgstr ""
 
@@ -175,11 +175,11 @@ msgstr ""
 msgid "30 days"
 msgstr ""
 
-#: grunt/frontend/src/pages/app/AppPage.vue:278
+#: grunt/frontend/src/pages/app/AppPage.vue:282
 msgid "30s"
 msgstr ""
 
-#: grunt/frontend/src/pages/app/AppPage.vue:280
+#: grunt/frontend/src/pages/app/AppPage.vue:284
 msgid "5m"
 msgstr ""
 
@@ -191,7 +191,7 @@ msgstr ""
 msgid "< 1 min"
 msgstr ""
 
-#: grunt/frontend/src/pages/studio/builder/sections/OptionsSection.vue:23
+#: grunt/frontend/src/pages/studio/builder/sections/OptionsSection.vue:28
 msgid ""
 "A Link field to Currency in this document, or a fixed ISO currency code"
 msgstr ""
@@ -248,7 +248,7 @@ msgstr ""
 msgid "A special character"
 msgstr ""
 
-#: grunt/frontend/src/pages/auth/Login.vue:170
+#: grunt/frontend/src/pages/auth/Login.vue:174
 msgid "A user with this email already exists"
 msgstr ""
 
@@ -274,7 +274,7 @@ msgstr ""
 msgid "Access"
 msgstr ""
 
-#: grunt/frontend/src/pages/auth/MfaVerify.vue:148
+#: grunt/frontend/src/pages/auth/MfaVerify.vue:154
 msgid "Access code"
 msgstr ""
 
@@ -288,7 +288,7 @@ msgstr ""
 msgid "Account temporarily locked. Try again later."
 msgstr ""
 
-#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:372
+#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:377
 msgid "Action (button text)"
 msgstr ""
 
@@ -300,11 +300,11 @@ msgstr ""
 msgid "Action “%(action)s” is not registered"
 msgstr ""
 
-#: grunt/frontend/src/components/layout/CommandPalette.vue:96
 #: grunt/frontend/src/components/layout/CommandPalette.vue:97
-#: grunt/frontend/src/components/layout/CommandPalette.vue:100
+#: grunt/frontend/src/components/layout/CommandPalette.vue:98
 #: grunt/frontend/src/components/layout/CommandPalette.vue:101
-#: grunt/frontend/src/components/views/list/ListTreePanel.vue:420
+#: grunt/frontend/src/components/layout/CommandPalette.vue:102
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:417
 #: grunt/frontend/src/components/views/actions/ActionMenu.vue:52
 msgid "Actions"
 msgstr ""
@@ -338,7 +338,7 @@ msgid "Activity feed"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/global_form.js:130
-#: grunt/frontend/src/components/layout/CommandPalette.vue:99
+#: grunt/frontend/src/components/layout/CommandPalette.vue:100
 msgid "Activity log"
 msgstr ""
 
@@ -361,11 +361,11 @@ msgstr ""
 msgid "Add at least one column"
 msgstr ""
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:366
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:370
 msgid "Add condition"
 msgstr ""
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:289
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:295
 msgid "Add fields from the list below"
 msgstr ""
 
@@ -381,7 +381,7 @@ msgstr ""
 msgid "Add images"
 msgstr ""
 
-#: grunt/frontend/src/pages/studio/builder/IndexHintsBar.vue:29
+#: grunt/frontend/src/pages/studio/builder/IndexHintsBar.vue:27
 msgid "Add index"
 msgstr ""
 
@@ -397,8 +397,12 @@ msgstr ""
 msgid "Add row"
 msgstr ""
 
-#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:302
+#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:304
 msgid "Add states with the «State» button above"
+msgstr ""
+
+#: grunt/frontend/src/pages/studio/builder/CanvasTabBar.vue:130
+msgid "Add tab"
 msgstr ""
 
 #: grunt/frontend/src/components/views/sidebar/SidebarTags.vue:89
@@ -421,8 +425,9 @@ msgstr ""
 msgid "After"
 msgstr ""
 
-#: grunt/frontend/src/components/dashboard/sections/AggregationSection.vue:25
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:310
+#: grunt/frontend/src/components/dashboard/sections/AggregationSection.vue:27
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:314
+#: grunt/frontend/src/pages/studio/builder/sections/AggregateSection.vue:39
 msgid "Aggregation"
 msgstr ""
 
@@ -456,7 +461,7 @@ msgid "Alignment"
 msgstr ""
 
 #: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:443
-#: grunt/frontend/src/components/views/list/ListTreePanel.vue:367
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:366
 #: grunt/frontend/src/pages/app/SearchResultsPage.vue:190
 msgid "All"
 msgstr ""
@@ -465,11 +470,11 @@ msgstr ""
 msgid "All eligible fields are already added"
 msgstr ""
 
-#: grunt/frontend/src/components/layout/CommandPalette.vue:340
+#: grunt/frontend/src/components/layout/CommandPalette.vue:341
 msgid "All results →"
 msgstr ""
 
-#: grunt/frontend/src/components/mobile/MobileBottomNav.vue:107
+#: grunt/frontend/src/components/mobile/MobileBottomNav.vue:110
 msgid "All sections"
 msgstr ""
 
@@ -485,11 +490,11 @@ msgstr ""
 msgid "All time"
 msgstr ""
 
-#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:377
+#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:382
 msgid "Allowed roles (comma-separated)"
 msgstr ""
 
-#: grunt/frontend/src/pages/auth/Login.vue:451
+#: grunt/frontend/src/pages/auth/Login.vue:457
 msgid "Already have an account?"
 msgstr ""
 
@@ -503,21 +508,25 @@ msgstr ""
 msgid "Alt text"
 msgstr ""
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:341
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:345
 msgid ""
 "Always applied to the report. For dates you can write today, today-30, "
 "today+7."
+msgstr ""
+
+#: grunt/frontend/src/components/ErrorBoundary.vue:35
+msgid "An unexpected error occurred."
 msgstr ""
 
 #: grunt/frontend/src/components/fields/Password/Password.vue:54
 msgid "An uppercase letter"
 msgstr ""
 
-#: grunt/frontend/src/pages/auth/Login.vue:345
+#: grunt/frontend/src/pages/auth/Login.vue:355
 msgid "Another sign-in method"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:272
+#: grunt/frontend/src/components/views/form/FormHeader.vue:270
 msgid "Anyone with the link can view this document"
 msgstr ""
 
@@ -554,7 +563,7 @@ msgstr ""
 msgid "Applied «{name}»"
 msgstr ""
 
-#: grunt/frontend/src/components/views/BulkActionBar.vue:347
+#: grunt/frontend/src/components/views/BulkActionBar.vue:344
 msgid "Apply"
 msgstr ""
 
@@ -578,8 +587,8 @@ msgstr ""
 msgid "Approximate: recorded when tracking started"
 msgstr ""
 
-#: grunt/frontend/src/components/app/AppSidebar.vue:100
-#: grunt/frontend/src/components/layout/CommandPalette.vue:159
+#: grunt/frontend/src/components/app/AppSidebar.vue:101
+#: grunt/frontend/src/components/layout/CommandPalette.vue:160
 msgid "Apps"
 msgstr ""
 
@@ -603,16 +612,16 @@ msgstr ""
 msgid "Are you sure you want to disable two-factor authentication?"
 msgstr ""
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:48
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:56
 msgid "Area"
 msgstr ""
 
-#: grunt/frontend/src/pages/desk/DocTypeList.vue:104
-#: grunt/frontend/src/pages/desk/DocTypeList.vue:118
+#: grunt/frontend/src/pages/desk/DocTypeList.vue:105
+#: grunt/frontend/src/pages/desk/DocTypeList.vue:119
 msgid "As of date"
 msgstr ""
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:387
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:391
 msgid "Ascending"
 msgstr ""
 
@@ -645,7 +654,7 @@ msgstr ""
 msgid "Assignees"
 msgstr ""
 
-#: grunt/frontend/src/pages/auth/Login.vue:426
+#: grunt/frontend/src/pages/auth/Login.vue:433
 msgid "At least 8 characters"
 msgstr ""
 
@@ -665,8 +674,8 @@ msgstr ""
 msgid "Attach a file"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/Attach/Attach.vue:35
-#: grunt/frontend/src/components/fields/Attach/Attach.vue:59
+#: grunt/frontend/src/components/fields/Attach/Attach.vue:36
+#: grunt/frontend/src/components/fields/Attach/Attach.vue:60
 msgid "Attach a file…"
 msgstr ""
 
@@ -674,12 +683,12 @@ msgstr ""
 msgid "Attach an image"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/Image/Image.vue:34
-#: grunt/frontend/src/components/fields/Image/Image.vue:49
+#: grunt/frontend/src/components/fields/Image/Image.vue:35
+#: grunt/frontend/src/components/fields/Image/Image.vue:50
 msgid "Attach an image…"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:747
+#: grunt/frontend/src/components/files/FileExplorer.vue:748
 msgid "Attach as a link"
 msgstr ""
 
@@ -707,7 +716,7 @@ msgstr ""
 #: grunt/frontend/src/components/fields/RichText/ui/FontMenus.vue:32
 #: grunt/frontend/src/components/fields/RichText/ui/FontMenus.vue:44
 #: grunt/frontend/src/components/fields/RichText/ui/ImageBubble.vue:79
-#: grunt/frontend/src/pages/app/AppPage.vue:277
+#: grunt/frontend/src/pages/app/AppPage.vue:281
 msgid "Auto"
 msgstr ""
 
@@ -723,7 +732,11 @@ msgstr ""
 msgid "Auto repeat %(rule)s failed"
 msgstr ""
 
-#: grunt/frontend/src/pages/studio/builder/sections/OptionsSection.vue:36
+#: grunt/frontend/src/pages/app/AppPage.vue:279
+msgid "Auto-refresh"
+msgstr ""
+
+#: grunt/frontend/src/pages/studio/builder/sections/OptionsSection.vue:40
 msgid "Autocomplete suggestions — one per line"
 msgstr ""
 
@@ -733,25 +746,25 @@ msgstr ""
 msgid "Automated message, please do not reply."
 msgstr ""
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:483
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:481
 msgid "Available fields"
 msgstr ""
 
-#: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:83
+#: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:85
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:223
 msgid "Average"
 msgstr ""
 
-#: grunt/frontend/src/components/dashboard/sections/AggregationSection.vue:15
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:109
+#: grunt/frontend/src/components/dashboard/sections/AggregationSection.vue:17
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:117
 msgid "Average (AVG)"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:166
+#: grunt/frontend/src/components/views/form/FormHeader.vue:169
 msgid "B"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:647
+#: grunt/frontend/src/components/files/FileExplorer.vue:648
 #: grunt/frontend/src/components/views/form/FormTour.vue:145
 msgid "Back"
 msgstr ""
@@ -760,15 +773,15 @@ msgstr ""
 msgid "Back to home page"
 msgstr ""
 
-#: grunt/frontend/src/components/app/AppSidebar.vue:235
-#: grunt/frontend/src/components/app/AppSidebar.vue:306
+#: grunt/frontend/src/components/app/AppSidebar.vue:234
+#: grunt/frontend/src/components/app/AppSidebar.vue:305
 msgid "Back to my account"
 msgstr ""
 
-#: grunt/frontend/src/pages/auth/Login.vue:293
-#: grunt/frontend/src/pages/auth/MfaVerify.vue:168
-#: grunt/frontend/src/pages/auth/ForgotPassword.vue:52
-#: grunt/frontend/src/pages/auth/ForgotPassword.vue:76
+#: grunt/frontend/src/pages/auth/Login.vue:296
+#: grunt/frontend/src/pages/auth/MfaVerify.vue:186
+#: grunt/frontend/src/pages/auth/ForgotPassword.vue:51
+#: grunt/frontend/src/pages/auth/ForgotPassword.vue:71
 msgid "Back to sign in"
 msgstr ""
 
@@ -801,7 +814,11 @@ msgstr ""
 msgid "Backup %(id)s not found in the storage"
 msgstr ""
 
-#: grunt/frontend/src/pages/auth/MfaVerify.vue:66
+#: grunt/frontend/src/pages/auth/MfaVerify.vue:154
+msgid "Backup code"
+msgstr ""
+
+#: grunt/frontend/src/pages/auth/MfaVerify.vue:74
 msgid "Backup codes copied"
 msgstr ""
 
@@ -852,7 +869,7 @@ msgstr ""
 msgid "Backups stay on this server only."
 msgstr ""
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:46
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:54
 msgid "Bar"
 msgstr ""
 
@@ -891,7 +908,7 @@ msgstr ""
 msgid "Bookmarked"
 msgstr ""
 
-#: grunt/frontend/src/pages/reports/ReportView.vue:195
+#: grunt/frontend/src/pages/reports/ReportView.vue:199
 msgid "Both"
 msgstr ""
 
@@ -917,11 +934,11 @@ msgstr ""
 msgid "Build"
 msgstr ""
 
-#: grunt/frontend/src/pages/reports/ReportView.vue:217
+#: grunt/frontend/src/pages/reports/ReportView.vue:218
 msgid "Builder"
 msgstr ""
 
-#: grunt/frontend/src/components/views/BulkActionBar.vue:313
+#: grunt/frontend/src/components/views/BulkActionBar.vue:310
 #: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:152
 msgid "Bulk Update"
 msgstr ""
@@ -930,27 +947,31 @@ msgstr ""
 msgid "Bulleted list"
 msgstr ""
 
-#: grunt/frontend/src/pages/auth/Login.vue:464
+#: grunt/frontend/src/pages/studio/builder/sections/ButtonSection.vue:26
+msgid "Button"
+msgstr ""
+
+#: grunt/frontend/src/pages/auth/Login.vue:470
 msgid "By continuing, you agree to our"
 msgstr ""
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:80
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:88
 msgid "By day"
 msgstr ""
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:380
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:384
 msgid "By grouping"
 msgstr ""
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:81
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:89
 msgid "By month"
 msgstr ""
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:82
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:90
 msgid "By quarter"
 msgstr ""
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:83
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:91
 msgid "By year"
 msgstr ""
 
@@ -966,7 +987,7 @@ msgstr ""
 msgid "Calculate for all"
 msgstr ""
 
-#: grunt/frontend/src/components/layout/CommandPalette.vue:139
+#: grunt/frontend/src/components/layout/CommandPalette.vue:140
 msgid "Calculator"
 msgstr ""
 
@@ -985,25 +1006,25 @@ msgid "Camera unavailable."
 msgstr ""
 
 #: grunt/grunt/actions/builtin.py:148
-#: grunt/frontend/src/components/desk/GruntDialog.vue:450
-#: grunt/frontend/src/components/desk/GruntDialog.vue:454
-#: grunt/frontend/src/components/desk/GruntDialog.vue:471
-#: grunt/frontend/src/components/desk/GruntDialog.vue:482
+#: grunt/frontend/src/components/desk/GruntDialog.vue:225
+#: grunt/frontend/src/components/desk/GruntDialog.vue:435
+#: grunt/frontend/src/components/desk/GruntDialog.vue:452
+#: grunt/frontend/src/components/desk/GruntDialog.vue:465
 #: grunt/frontend/src/components/views/QuickEntryDialog.vue:147
-#: grunt/frontend/src/components/views/BulkActionBar.vue:274
-#: grunt/frontend/src/components/views/BulkActionBar.vue:300
-#: grunt/frontend/src/components/views/BulkActionBar.vue:344
+#: grunt/frontend/src/components/views/BulkActionBar.vue:271
+#: grunt/frontend/src/components/views/BulkActionBar.vue:297
+#: grunt/frontend/src/components/views/BulkActionBar.vue:341
 #: grunt/frontend/src/components/views/FilterBar.vue:344
 #: grunt/frontend/src/components/files/CameraCapture.vue:136
 #: grunt/frontend/src/components/files/FolderPickerDialog.vue:44
-#: grunt/frontend/src/components/files/FileExplorer.vue:749
+#: grunt/frontend/src/components/files/FileExplorer.vue:750
 #: grunt/frontend/src/components/files/FileExplorer.vue:877
 #: grunt/frontend/src/components/workflow/WorkflowActionDialog.vue:105
 #: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:545
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue:347
-#: grunt/frontend/src/components/views/form/FormModals.vue:138
-#: grunt/frontend/src/components/views/form/FormHeader.vue:287
-#: grunt/frontend/src/components/views/form/FormHeader.vue:333
+#: grunt/frontend/src/components/views/form/FormModals.vue:139
+#: grunt/frontend/src/components/views/form/FormHeader.vue:279
+#: grunt/frontend/src/components/views/form/FormHeader.vue:319
 msgid "Cancel"
 msgstr ""
 
@@ -1040,7 +1061,7 @@ msgstr ""
 msgid "Cannot rename virtual documents"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormModals.vue:117
+#: grunt/frontend/src/components/views/form/FormModals.vue:118
 msgid "Cannot replace with the document being deleted."
 msgstr ""
 
@@ -1048,7 +1069,7 @@ msgstr ""
 msgid "Canvas"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/Password/Password.vue:92
+#: grunt/frontend/src/components/fields/Password/Password.vue:93
 msgid "Caps Lock is on"
 msgstr ""
 
@@ -1091,16 +1112,16 @@ msgid ""
 "Changes saved on this device — they will be sent once the connection is back"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:271
+#: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:231
 msgid "Change…"
 msgstr ""
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:437
-#: grunt/frontend/src/pages/reports/ReportView.vue:195
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:440
+#: grunt/frontend/src/pages/reports/ReportView.vue:199
 msgid "Chart"
 msgstr ""
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:442
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:445
 msgid "Chart type"
 msgstr ""
 
@@ -1123,12 +1144,12 @@ msgstr ""
 msgid "Check updated"
 msgstr ""
 
-#: grunt/frontend/src/pages/auth/ForgotPassword.vue:48
+#: grunt/frontend/src/pages/auth/ForgotPassword.vue:45
 msgid "Check your email"
 msgstr ""
 
-#: grunt/frontend/src/components/views/BulkActionBar.vue:239
-#: grunt/frontend/src/components/views/form/FormModals.vue:91
+#: grunt/frontend/src/components/views/BulkActionBar.vue:236
+#: grunt/frontend/src/components/views/form/FormModals.vue:92
 msgid "Checking links…"
 msgstr ""
 
@@ -1141,7 +1162,7 @@ msgstr ""
 msgid "Checking the database copy"
 msgstr ""
 
-#: grunt/frontend/src/pages/studio/builder/sections/AggregateSection.vue:66
+#: grunt/frontend/src/pages/studio/builder/sections/AggregateSection.vue:67
 msgid "Child DocType field"
 msgstr ""
 
@@ -1150,15 +1171,15 @@ msgstr ""
 msgid "Choose"
 msgstr ""
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:262
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:269
 msgid "Choose a DocType"
 msgstr ""
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:542
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:539
 msgid "Choose a DocType and add columns in the side panel to see the result."
 msgstr ""
 
-#: grunt/frontend/src/components/views/BulkActionBar.vue:321
+#: grunt/frontend/src/components/views/BulkActionBar.vue:318
 msgid "Choose a field"
 msgstr ""
 
@@ -1166,11 +1187,11 @@ msgstr ""
 msgid "Choose a folder"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormModals.vue:98
+#: grunt/frontend/src/components/views/form/FormModals.vue:99
 msgid "Choose a replacement or delete without one."
 msgstr ""
 
-#: grunt/frontend/src/pages/auth/ResetPassword.vue:67
+#: grunt/frontend/src/pages/auth/ResetPassword.vue:70
 msgid "Choose a strong password"
 msgstr ""
 
@@ -1178,11 +1199,11 @@ msgstr ""
 msgid "Choose a value from the tree"
 msgstr ""
 
-#: grunt/frontend/src/pages/app/AppPage.vue:417
+#: grunt/frontend/src/pages/app/AppPage.vue:403
 msgid "Choose a widget type"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/Icon/Icon.vue:104
+#: grunt/frontend/src/components/fields/Icon/Icon.vue:105
 msgid "Choose an icon…"
 msgstr ""
 
@@ -1191,7 +1212,7 @@ msgstr ""
 msgid "Choose at least one part to back up"
 msgstr ""
 
-#: grunt/frontend/src/components/views/list/QuickFilterSettingsDialog.vue:75
+#: grunt/frontend/src/components/views/list/QuickFilterSettingsDialog.vue:76
 msgid "Choose filters"
 msgstr ""
 
@@ -1199,8 +1220,8 @@ msgstr ""
 msgid "Choose from list"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:267
-#: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:271
+#: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:227
+#: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:231
 msgid "Choose from the tree"
 msgstr ""
 
@@ -1208,7 +1229,7 @@ msgstr ""
 msgid "Choose the date field to count from"
 msgstr ""
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:543
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:542
 msgid "Choose the first available DocType"
 msgstr ""
 
@@ -1221,16 +1242,17 @@ msgid "Choose when to remind"
 msgstr ""
 
 #: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue:340
-#: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue:183
+#: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue:177
 #: grunt/frontend/src/components/fields/Link/FilterInput.vue:213
 #: grunt/frontend/src/components/fields/Link/FilterInput.vue:214
-#: grunt/frontend/src/components/fields/Link/Link.vue:141
-#: grunt/frontend/src/components/fields/Link/Link.vue:142
-#: grunt/frontend/src/components/fields/Color/Color.vue:73
-#: grunt/frontend/src/components/fields/Select/Select.vue:111
-#: grunt/frontend/src/components/fields/Signature/Signature.vue:186
-#: grunt/frontend/src/components/fields/Signature/Signature.vue:241
-#: grunt/frontend/src/components/fields/Icon/Icon.vue:167
+#: grunt/frontend/src/components/fields/Link/Link.vue:145
+#: grunt/frontend/src/components/fields/Link/Link.vue:146
+#: grunt/frontend/src/components/fields/Color/Color.vue:76
+#: grunt/frontend/src/components/fields/Select/Select.vue:114
+#: grunt/frontend/src/components/fields/Signature/Signature.vue:183
+#: grunt/frontend/src/components/fields/Signature/Signature.vue:228
+#: grunt/frontend/src/components/fields/Icon/Icon.vue:118
+#: grunt/frontend/src/components/fields/Icon/Icon.vue:162
 msgid "Clear"
 msgstr ""
 
@@ -1240,15 +1262,16 @@ msgstr ""
 msgid "Clear Filters"
 msgstr ""
 
-#: grunt/frontend/src/components/app/AppSidebar.vue:302
+#: grunt/frontend/src/components/app/AppSidebar.vue:301
 msgid "Clear cache"
 msgstr ""
 
 #: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue:398
-#: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue:156
+#: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue:150
 msgid "Clear search"
 msgstr ""
 
+#: grunt/frontend/src/components/views/BulkActionBar.vue:218
 #: grunt/frontend/src/components/fields/Table/Table.vue:486
 msgid "Clear selection"
 msgstr ""
@@ -1270,15 +1293,15 @@ msgstr ""
 msgid "Click Test connection in the storage."
 msgstr ""
 
-#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:402
+#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:408
 msgid "Click a state or transition to edit it"
 msgstr ""
 
-#: grunt/frontend/src/pages/app/AppPage.vue:418
+#: grunt/frontend/src/pages/app/AppPage.vue:404
 msgid "Click any type in the left panel — it will appear here"
 msgstr ""
 
-#: grunt/frontend/src/core/renderer/FieldRenderer.vue:141
+#: grunt/frontend/src/core/renderer/FieldRenderer.vue:142
 msgid "Click to copy «{name}»"
 msgstr ""
 
@@ -1289,7 +1312,9 @@ msgstr ""
 
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:103
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.js:101
-#: grunt/frontend/src/components/desk/GruntDialog.vue:468
+#: grunt/frontend/src/components/pwa/PWAInstallPrompt.vue:109
+#: grunt/frontend/src/components/pwa/PWAInstallPrompt.vue:131
+#: grunt/frontend/src/components/desk/GruntDialog.vue:449
 #: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue:428
 #: grunt/frontend/src/components/views/form/FormTour.vue:137
 #: grunt/frontend/src/components/fields/Table/TableRowSheet.vue:108
@@ -1313,7 +1338,7 @@ msgstr ""
 msgid "Code block"
 msgstr ""
 
-#: grunt/frontend/src/pages/auth/Login.vue:316
+#: grunt/frontend/src/pages/auth/Login.vue:319
 msgid "Code from the email"
 msgstr ""
 
@@ -1322,15 +1347,17 @@ msgstr ""
 #: grunt/frontend/src/components/views/DocSidebar.vue:80
 #: grunt/frontend/src/components/files/FileExplorer.vue:763
 #: grunt/frontend/src/components/ui/tree-select/TreeSelectNode.vue:65
-#: grunt/frontend/src/components/views/list/ListTreePanel.vue:398
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:395
 msgid "Collapse"
 msgstr ""
 
-#: grunt/frontend/src/components/views/tree/TreeView.vue:265
+#: grunt/frontend/src/components/views/tree/TreeView.vue:266
 msgid "Collapse all"
 msgstr ""
 
-#: grunt/frontend/src/pages/studio/builder/webform/WebFormFieldPropertiesPanel.vue:38
+#: grunt/frontend/src/pages/studio/builder/CanvasSection.vue:107
+#: grunt/frontend/src/pages/studio/builder/webform/WebFormFieldPropertiesPanel.vue:39
+#: grunt/frontend/src/pages/studio/builder/sections/CollapsibleSection.vue:16
 msgid "Collapsible"
 msgstr ""
 
@@ -1338,8 +1365,8 @@ msgstr ""
 msgid "Collapsible block"
 msgstr ""
 
-#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:323
-#: grunt/frontend/src/components/dashboard/sections/ColorSection.vue:13
+#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:326
+#: grunt/frontend/src/components/dashboard/sections/ColorSection.vue:14
 msgid "Color"
 msgstr ""
 
@@ -1353,7 +1380,8 @@ msgstr ""
 
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:353
 #: grunt/frontend/src/components/views/list/ListToolbarControls.vue:102
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:274
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:281
+#: grunt/frontend/src/pages/studio/builder/CanvasSection.vue:140
 msgid "Columns"
 msgstr ""
 
@@ -1383,15 +1411,15 @@ msgstr ""
 msgid "Comments"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:448
+#: grunt/frontend/src/components/views/form/FormHeader.vue:434
 msgid "Compact"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:153
+#: grunt/frontend/src/components/views/form/FormHeader.vue:156
 msgid "Compact database (VACUUM)"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:419
+#: grunt/frontend/src/components/views/form/FormHeader.vue:405
 msgid "Compacting… the database may be locked until it finishes."
 msgstr ""
 
@@ -1407,16 +1435,16 @@ msgstr ""
 msgid "Compressing the database"
 msgstr ""
 
-#: grunt/frontend/src/pages/studio/builder/sections/FormulaSection.vue:33
+#: grunt/frontend/src/pages/studio/builder/sections/FormulaSection.vue:36
 msgid ""
 "Computed on every save. All document fields are available as variables."
 msgstr ""
 
-#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:382
+#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:387
 msgid "Condition (eval:)"
 msgstr ""
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:338
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:342
 msgid "Conditions"
 msgstr ""
 
@@ -1429,8 +1457,8 @@ msgid "Configuration (.env)"
 msgstr ""
 
 #: grunt/frontend/src/components/dashboard/WidgetCard.vue:39
-#: grunt/frontend/src/pages/app/AppPage.vue:289
-#: grunt/frontend/src/pages/app/AppPage.vue:336
+#: grunt/frontend/src/pages/app/AppPage.vue:291
+#: grunt/frontend/src/pages/app/AppPage.vue:329
 msgid "Configure"
 msgstr ""
 
@@ -1438,26 +1466,27 @@ msgstr ""
 msgid "Configure print"
 msgstr ""
 
-#: grunt/frontend/src/components/desk/GruntDialog.vue:451
-#: grunt/frontend/src/components/desk/GruntDialog.vue:483
-#: grunt/frontend/src/pages/auth/Login.vue:338
+#: grunt/frontend/src/components/desk/GruntDialog.vue:226
+#: grunt/frontend/src/components/desk/GruntDialog.vue:466
+#: grunt/frontend/src/pages/auth/Login.vue:348
 msgid "Confirm"
 msgstr ""
 
-#: grunt/frontend/src/components/views/BulkActionBar.vue:232
+#: grunt/frontend/src/components/views/BulkActionBar.vue:229
 msgid "Confirm Deletion"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.js:42
-#: grunt/frontend/src/pages/auth/ResetPassword.vue:85
+#: grunt/frontend/src/pages/auth/ResetPassword.vue:84
 msgid "Confirm password"
 msgstr ""
 
-#: grunt/frontend/src/pages/auth/MfaVerify.vue:161
+#: grunt/frontend/src/pages/auth/MfaVerify.vue:180
 msgid "Confirm sign-in"
 msgstr ""
 
 #: grunt/frontend/src/core/composables/useDialog.ts:217
+#: grunt/frontend/src/components/desk/GruntDialog.vue:461
 msgid "Confirmation"
 msgstr ""
 
@@ -1499,7 +1528,7 @@ msgstr ""
 msgid "Connection works"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/DocLinksDialog.vue:75
+#: grunt/frontend/src/components/views/form/DocLinksDialog.vue:76
 msgid "Connections"
 msgstr ""
 
@@ -1511,17 +1540,17 @@ msgstr ""
 msgid "Contains"
 msgstr ""
 
-#: grunt/frontend/src/components/dashboard/sections/TextContentSection.vue:12
+#: grunt/frontend/src/components/dashboard/sections/TextContentSection.vue:15
 msgid "Content (HTML/text)"
 msgstr ""
 
-#: grunt/frontend/src/pages/DeskPage.vue:207
+#: grunt/frontend/src/pages/DeskPage.vue:200
 #: grunt/frontend/src/core/composables/useDialog.ts:261
-#: grunt/frontend/src/pages/auth/MfaVerify.vue:133
+#: grunt/frontend/src/pages/auth/MfaVerify.vue:127
 msgid "Continue"
 msgstr ""
 
-#: grunt/frontend/src/pages/auth/Login.vue:374
+#: grunt/frontend/src/pages/auth/Login.vue:384
 msgid "Continue with {provider}"
 msgstr ""
 
@@ -1538,12 +1567,12 @@ msgstr ""
 msgid "Coordinates out of range"
 msgstr ""
 
-#: grunt/frontend/src/core/renderer/FieldRenderer.vue:143
+#: grunt/frontend/src/core/renderer/FieldRenderer.vue:144
 #: grunt/frontend/src/core/composables/useToast.ts:38
-#: grunt/frontend/src/components/desk/GruntDialog.vue:364
-#: grunt/frontend/src/components/layout/CommandPalette.vue:142
+#: grunt/frontend/src/components/desk/GruntDialog.vue:283
+#: grunt/frontend/src/components/layout/CommandPalette.vue:143
 #: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:201
-#: grunt/frontend/src/components/views/form/FormHeader.vue:460
+#: grunt/frontend/src/components/views/form/FormHeader.vue:446
 msgid "Copied"
 msgstr ""
 
@@ -1556,12 +1585,13 @@ msgid "Copied!"
 msgstr ""
 
 #: grunt/frontend/src/core/composables/useToast.ts:17
-#: grunt/frontend/src/components/desk/GruntDialog.vue:364
+#: grunt/frontend/src/components/desk/GruntDialog.vue:283
 #: grunt/frontend/src/components/debug/ServerErrorModal.vue:72
-#: grunt/frontend/src/components/files/FileExplorer.vue:710
-#: grunt/frontend/src/components/views/form/FormHeader.vue:369
+#: grunt/frontend/src/components/files/FileExplorer.vue:711
+#: grunt/frontend/src/components/views/form/FormHeader.vue:291
+#: grunt/frontend/src/components/views/form/FormHeader.vue:355
 #: grunt/frontend/src/components/fields/RichText/ui/EditorContextMenu.vue:113
-#: grunt/frontend/src/pages/app/AppPage.vue:489
+#: grunt/frontend/src/pages/app/AppPage.vue:475
 msgid "Copy"
 msgstr ""
 
@@ -1574,7 +1604,7 @@ msgstr ""
 msgid "Copy JSON"
 msgstr ""
 
-#: grunt/frontend/src/pages/auth/MfaVerify.vue:130
+#: grunt/frontend/src/pages/auth/MfaVerify.vue:124
 msgid "Copy codes"
 msgstr ""
 
@@ -1590,7 +1620,7 @@ msgstr ""
 msgid "Copy report"
 msgstr ""
 
-#: grunt/frontend/src/components/layout/CommandPalette.vue:137
+#: grunt/frontend/src/components/layout/CommandPalette.vue:138
 msgid "Copy result"
 msgstr ""
 
@@ -1625,7 +1655,7 @@ msgstr ""
 msgid "Could not copy"
 msgstr ""
 
-#: grunt/frontend/src/pages/app/AppPage.vue:140
+#: grunt/frontend/src/pages/app/AppPage.vue:149
 msgid "Could not create the page"
 msgstr ""
 
@@ -1637,7 +1667,7 @@ msgstr ""
 msgid "Could not download rclone: {0}"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:550
+#: grunt/frontend/src/components/files/FileExplorer.vue:551
 msgid "Could not download the file"
 msgstr ""
 
@@ -1653,7 +1683,7 @@ msgstr ""
 msgid "Could not import document"
 msgstr ""
 
-#: grunt/frontend/src/components/views/gantt/GanttView.vue:161
+#: grunt/frontend/src/components/views/gantt/GanttView.vue:163
 msgid "Could not load Gantt chart data"
 msgstr ""
 
@@ -1689,7 +1719,7 @@ msgstr ""
 msgid "Could not save the tag"
 msgstr ""
 
-#: grunt/frontend/src/pages/auth/Login.vue:233
+#: grunt/frontend/src/pages/auth/Login.vue:237
 msgid "Could not send the code"
 msgstr ""
 
@@ -1701,19 +1731,19 @@ msgstr ""
 msgid "Could not sign in as the user"
 msgstr ""
 
-#: grunt/frontend/src/pages/auth/Login.vue:113
+#: grunt/frontend/src/pages/auth/Login.vue:117
 msgid "Could not sign in with the external provider"
 msgstr ""
 
-#: grunt/frontend/src/pages/auth/Login.vue:200
+#: grunt/frontend/src/pages/auth/Login.vue:204
 msgid "Could not sign in with the passkey"
 msgstr ""
 
-#: grunt/frontend/src/pages/auth/MfaVerify.vue:45
+#: grunt/frontend/src/pages/auth/MfaVerify.vue:53
 msgid "Could not start 2FA setup."
 msgstr ""
 
-#: grunt/frontend/src/components/views/gantt/GanttView.vue:354
+#: grunt/frontend/src/components/views/gantt/GanttView.vue:356
 msgid "Could not update dates"
 msgstr ""
 
@@ -1725,13 +1755,13 @@ msgstr ""
 msgid "Could not validate credentials"
 msgstr ""
 
-#: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:83
+#: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:85
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:226
 msgid "Count"
 msgstr ""
 
-#: grunt/frontend/src/components/dashboard/sections/AggregationSection.vue:13
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:108
+#: grunt/frontend/src/components/dashboard/sections/AggregationSection.vue:15
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:116
 msgid "Count (COUNT)"
 msgstr ""
 
@@ -1741,8 +1771,8 @@ msgstr ""
 
 #: grunt/frontend/src/components/desk/OnboardingChecklists.vue:49
 #: grunt/frontend/src/components/layout/OfflineQueueSheet.vue:24
-#: grunt/frontend/src/components/files/FileExplorer.vue:688
-#: grunt/frontend/src/components/fields/Link/Link.vue:218
+#: grunt/frontend/src/components/files/FileExplorer.vue:689
+#: grunt/frontend/src/components/fields/Link/Link.vue:188
 msgid "Create"
 msgstr ""
 
@@ -1750,7 +1780,7 @@ msgstr ""
 msgid "Create a"
 msgstr ""
 
-#: grunt/frontend/src/pages/auth/Login.vue:53
+#: grunt/frontend/src/pages/auth/Login.vue:57
 msgid "Create an account"
 msgstr ""
 
@@ -1758,11 +1788,11 @@ msgstr ""
 msgid "Create backup"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/Link/Link.vue:222
+#: grunt/frontend/src/components/fields/Link/Link.vue:191
 msgid "Create new"
 msgstr ""
 
-#: grunt/frontend/src/components/layout/CommandPalette.vue:97
+#: grunt/frontend/src/components/layout/CommandPalette.vue:98
 msgid "Create new DocType"
 msgstr ""
 
@@ -1776,7 +1806,7 @@ msgid ""
 "Create or edit a ServerScript with script_type='Scheduler Event' instead"
 msgstr ""
 
-#: grunt/frontend/src/pages/app/AppPage.vue:324
+#: grunt/frontend/src/pages/app/AppPage.vue:318
 msgid "Create page"
 msgstr ""
 
@@ -1784,7 +1814,7 @@ msgstr ""
 msgid "Create report"
 msgstr ""
 
-#: grunt/frontend/src/components/views/tree/TreeView.vue:300
+#: grunt/frontend/src/components/views/tree/TreeView.vue:297
 msgid "Create the first one"
 msgstr ""
 
@@ -1820,12 +1850,12 @@ msgstr ""
 msgid "Customize Quick Filters"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:706
+#: grunt/frontend/src/components/files/FileExplorer.vue:707
 #: grunt/frontend/src/components/fields/RichText/ui/EditorContextMenu.vue:110
 msgid "Cut"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:375
+#: grunt/frontend/src/components/views/form/FormHeader.vue:361
 msgid "DBMS"
 msgstr ""
 
@@ -1854,12 +1884,12 @@ msgstr ""
 msgid "Daily notification digest"
 msgstr ""
 
-#: grunt/frontend/src/pages/DeskPage.vue:153
-#: grunt/frontend/src/components/app/AppSidebar.vue:284
+#: grunt/frontend/src/pages/DeskPage.vue:149
+#: grunt/frontend/src/components/app/AppSidebar.vue:283
 msgid "Dark"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:388
+#: grunt/frontend/src/components/views/form/FormHeader.vue:374
 msgid "Data"
 msgstr ""
 
@@ -1893,7 +1923,11 @@ msgstr ""
 msgid "Database migrations"
 msgstr ""
 
-#: grunt/frontend/src/components/dashboard/sections/DateRangeSection.vue:19
+#: grunt/frontend/src/pages/studio/builder/sections/DisplaySection.vue:43
+msgid "Date"
+msgstr ""
+
+#: grunt/frontend/src/components/dashboard/sections/DateRangeSection.vue:22
 msgid "Date field"
 msgstr ""
 
@@ -1905,7 +1939,7 @@ msgstr ""
 msgid "Day of month must be between 1 and 31"
 msgstr ""
 
-#: grunt/frontend/src/components/views/gantt/GanttView.vue:384
+#: grunt/frontend/src/components/views/gantt/GanttView.vue:386
 msgid "Days"
 msgstr ""
 
@@ -1913,7 +1947,7 @@ msgstr ""
 msgid "Days cannot be negative"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:412
+#: grunt/frontend/src/components/views/form/FormHeader.vue:398
 msgid "Dead rows: {n}"
 msgstr ""
 
@@ -1949,23 +1983,23 @@ msgstr ""
 #: grunt/grunt/auth/doctypes/User/User.js:187
 #: grunt/grunt/metadata/doctypes/DocType/global_form.js:182
 #: grunt/grunt/metadata/doctypes/DocType/global_list.js:98
-#: grunt/frontend/src/components/views/BulkActionBar.vue:276
-#: grunt/frontend/src/components/views/BulkActionBar.vue:303
-#: grunt/frontend/src/components/dashboard/WidgetConfigPanel.vue:77
-#: grunt/frontend/src/components/dashboard/WidgetCard.vue:48
-#: grunt/frontend/src/components/files/FileExplorer.vue:723
+#: grunt/frontend/src/components/views/BulkActionBar.vue:273
+#: grunt/frontend/src/components/views/BulkActionBar.vue:300
+#: grunt/frontend/src/components/dashboard/WidgetConfigPanel.vue:78
+#: grunt/frontend/src/components/dashboard/WidgetCard.vue:42
+#: grunt/frontend/src/components/files/FileExplorer.vue:724
 #: grunt/frontend/src/components/files/FileExplorer.vue:878
 #: grunt/frontend/src/components/dashboard/sections/FiltersSection.vue:82
-#: grunt/frontend/src/components/views/form/FormModals.vue:140
-#: grunt/frontend/src/components/views/list/ListTreePanel.vue:433
+#: grunt/frontend/src/components/views/form/FormModals.vue:141
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:430
 #: grunt/frontend/src/components/fields/Table/Table.vue:484
 #: grunt/frontend/src/components/fields/RichText/editor/commands.ts:98
 #: grunt/frontend/src/components/fields/RichText/ui/BlockHandle.vue:71
 msgid "Delete"
 msgstr ""
 
-#: grunt/frontend/src/components/views/BulkActionBar.vue:276
-#: grunt/frontend/src/components/views/form/FormModals.vue:140
+#: grunt/frontend/src/components/views/BulkActionBar.vue:273
+#: grunt/frontend/src/components/views/form/FormModals.vue:141
 msgid "Delete and reassign"
 msgstr ""
 
@@ -1978,7 +2012,7 @@ msgstr ""
 msgid "Delete comment"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormModals.vue:86
+#: grunt/frontend/src/components/views/form/FormModals.vue:87
 msgid "Delete document?"
 msgstr ""
 
@@ -2003,28 +2037,36 @@ msgstr ""
 msgid "Delete row"
 msgstr ""
 
+#: grunt/frontend/src/pages/studio/builder/CanvasSection.vue:151
+msgid "Delete section"
+msgstr ""
+
 #: grunt/frontend/src/components/files/FileExplorer.vue:874
 msgid "Delete selected: {n}? Folders go with everything in them."
 msgstr ""
 
-#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:343
+#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:346
 msgid "Delete state"
+msgstr ""
+
+#: grunt/frontend/src/pages/studio/builder/CanvasTabBar.vue:111
+msgid "Delete tab"
 msgstr ""
 
 #: grunt/frontend/src/components/fields/RichText/editor/commands.ts:79
 msgid "Delete table"
 msgstr ""
 
-#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:396
+#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:401
 msgid "Delete transition"
 msgstr ""
 
-#: grunt/frontend/src/components/views/BulkActionBar.vue:269
-#: grunt/frontend/src/components/views/form/FormModals.vue:128
+#: grunt/frontend/src/components/views/BulkActionBar.vue:266
+#: grunt/frontend/src/components/views/form/FormModals.vue:129
 msgid "Delete without replacement — {n} links will become invalid."
 msgstr ""
 
-#: grunt/frontend/src/components/views/BulkActionBar.vue:288
+#: grunt/frontend/src/components/views/BulkActionBar.vue:285
 msgid ""
 "Delete {n} records directly via SQL — no lifecycle hooks, no per-record "
 "ActivityLog."
@@ -2045,11 +2087,11 @@ msgstr ""
 msgid "Deleted the document"
 msgstr ""
 
-#: grunt/frontend/src/pages/desk/DocTypeList.vue:539
+#: grunt/frontend/src/pages/desk/DocTypeList.vue:544
 msgid "Deleting records"
 msgstr ""
 
-#: grunt/frontend/src/pages/desk/DocTypeList.vue:544
+#: grunt/frontend/src/pages/desk/DocTypeList.vue:549
 msgid "Deleting records…"
 msgstr ""
 
@@ -2061,16 +2103,24 @@ msgstr ""
 msgid "Delivery log"
 msgstr ""
 
+#: grunt/frontend/src/pages/studio/builder/sections/TextSection.vue:28
+msgid "Depends On"
+msgstr ""
+
 #: grunt/frontend/src/components/views/FilterBar.vue:202
 msgid "Descendant of"
 msgstr ""
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:388
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:392
 msgid "Descending"
 msgstr ""
 
 #: grunt/frontend/src/components/fields/RichText/ui/ImageBubble.vue:104
 msgid "Describes the image for screen readers and search engines."
+msgstr ""
+
+#: grunt/frontend/src/pages/studio/builder/sections/TextSection.vue:20
+msgid "Description"
 msgstr ""
 
 #: grunt/frontend/src/components/dashboard/sections/LinksSection.vue:105
@@ -2079,7 +2129,7 @@ msgstr ""
 
 #: grunt/frontend/src/components/views/DocSidebar.vue:71
 #: grunt/frontend/src/components/views/DocSidebar.vue:99
-#: grunt/frontend/src/components/files/FileExplorer.vue:728
+#: grunt/frontend/src/components/files/FileExplorer.vue:729
 msgid "Details"
 msgstr ""
 
@@ -2087,19 +2137,19 @@ msgstr ""
 msgid "Details in the Scheduled Job Log."
 msgstr ""
 
-#: grunt/frontend/src/components/desk/GruntDialog.vue:222
+#: grunt/frontend/src/components/desk/GruntDialog.vue:248
 msgid "Dialog"
 msgstr ""
 
-#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:387
+#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:392
 msgid "Dialog fields (comma-separated)"
 msgstr ""
 
-#: grunt/frontend/src/pages/app/AppPage.vue:482
+#: grunt/frontend/src/pages/app/AppPage.vue:472
 msgid "Direct link"
 msgstr ""
 
-#: grunt/frontend/src/components/layout/NotificationsPopover.vue:180
+#: grunt/frontend/src/components/layout/NotificationsPopover.vue:169
 msgid "Disable"
 msgstr ""
 
@@ -2120,12 +2170,16 @@ msgstr ""
 msgid "Dismiss"
 msgstr ""
 
+#: grunt/frontend/src/pages/studio/builder/sections/DisplaySection.vue:29
+msgid "Display"
+msgstr ""
+
 #: grunt/grunt/document/tree.py:89
 msgid ""
 "DocType '%(name)s' is not a tree (is_tree=false or tree_view not configured)"
 msgstr ""
 
-#: grunt/frontend/src/components/dashboard/sections/ShortcutTargetSection.vue:15
+#: grunt/frontend/src/components/dashboard/sections/ShortcutTargetSection.vue:16
 msgid "DocType (list)"
 msgstr ""
 
@@ -2168,7 +2222,7 @@ msgstr ""
 msgid "DocType “%(doctype)s” not found"
 msgstr ""
 
-#: grunt/frontend/src/components/layout/CommandPalette.vue:173
+#: grunt/frontend/src/components/layout/CommandPalette.vue:174
 msgid "DocTypes"
 msgstr ""
 
@@ -2196,7 +2250,7 @@ msgid "Document renamed"
 msgstr ""
 
 #: grunt/grunt/website/www/share/{token}.py:51
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:259
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:266
 msgid "Document type"
 msgstr ""
 
@@ -2225,11 +2279,11 @@ msgstr ""
 msgid "Documentation"
 msgstr ""
 
-#: grunt/frontend/src/components/layout/CommandPalette.vue:191
+#: grunt/frontend/src/components/layout/CommandPalette.vue:192
 msgid "Documents"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/DocLinksDialog.vue:77
+#: grunt/frontend/src/components/views/form/DocLinksDialog.vue:78
 msgid "Documents linked to"
 msgstr ""
 
@@ -2242,18 +2296,18 @@ msgid "Does not contain"
 msgstr ""
 
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:170
-#: grunt/frontend/src/components/views/form/FormHeader.vue:312
-#: grunt/frontend/src/components/views/form/FormHeader.vue:461
-#: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue:185
+#: grunt/frontend/src/components/views/form/FormHeader.vue:302
+#: grunt/frontend/src/components/views/form/FormHeader.vue:447
+#: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue:179
 msgid "Done"
 msgstr ""
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:50
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:58
 msgid "Donut"
 msgstr ""
 
 #: grunt/grunt/backups/doctypes/Backup/Backup.js:26
-#: grunt/frontend/src/components/files/FileExplorer.vue:743
+#: grunt/frontend/src/components/files/FileExplorer.vue:744
 msgid "Download"
 msgstr ""
 
@@ -2283,11 +2337,11 @@ msgstr ""
 msgid "Downloading %(n)s files"
 msgstr ""
 
-#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:277
+#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:279
 msgid "Drag from the edge of a node to another node to create a transition"
 msgstr ""
 
-#: grunt/frontend/src/pages/studio/builder/CanvasSection.vue:94
+#: grunt/frontend/src/pages/studio/builder/CanvasSection.vue:99
 msgid "Drag section"
 msgstr ""
 
@@ -2326,7 +2380,7 @@ msgstr ""
 msgid "EDRPOU"
 msgstr ""
 
-#: grunt/frontend/src/pages/auth/MfaVerify.vue:122
+#: grunt/frontend/src/pages/auth/MfaVerify.vue:115
 msgid ""
 "Each code can be used once if you lose access to your authenticator. They "
 "will not be shown again."
@@ -2355,12 +2409,12 @@ msgstr ""
 msgid "Edit link"
 msgstr ""
 
-#: grunt/frontend/src/components/app/AppSidebar.vue:208
-#: grunt/frontend/src/components/app/AppSidebar.vue:210
+#: grunt/frontend/src/components/app/AppSidebar.vue:209
+#: grunt/frontend/src/components/app/AppSidebar.vue:211
 msgid "Edit menu"
 msgstr ""
 
-#: grunt/frontend/src/pages/app/AppPage.vue:363
+#: grunt/frontend/src/pages/app/AppPage.vue:355
 msgid "Edit mode"
 msgstr ""
 
@@ -2374,11 +2428,11 @@ msgstr ""
 msgid "Email is required"
 msgstr ""
 
-#: grunt/frontend/src/pages/auth/Login.vue:386
+#: grunt/frontend/src/pages/auth/Login.vue:396
 msgid "Email me a code"
 msgstr ""
 
-#: grunt/frontend/src/components/app/AppSidebar.vue:58
+#: grunt/frontend/src/components/app/AppSidebar.vue:59
 msgid "Email settings"
 msgstr ""
 
@@ -2390,7 +2444,7 @@ msgstr ""
 msgid "Email template “%(name)s” not found or disabled"
 msgstr ""
 
-#: grunt/frontend/src/components/app/AppSidebar.vue:57
+#: grunt/frontend/src/components/app/AppSidebar.vue:58
 msgid "Emails"
 msgstr ""
 
@@ -2402,15 +2456,16 @@ msgstr ""
 msgid "Emails have been waiting over 30 min; check the worker and SMTP."
 msgstr ""
 
-#: grunt/frontend/src/pages/app/AppPage.vue:478
+#: grunt/frontend/src/pages/app/AppPage.vue:296
+#: grunt/frontend/src/pages/app/AppPage.vue:468
 msgid "Embed page"
 msgstr ""
 
-#: grunt/frontend/src/components/layout/NotificationsPopover.vue:180
+#: grunt/frontend/src/components/layout/NotificationsPopover.vue:169
 msgid "Enable"
 msgstr ""
 
-#: grunt/frontend/src/pages/auth/MfaVerify.vue:161
+#: grunt/frontend/src/pages/auth/MfaVerify.vue:180
 msgid "Enable 2FA and sign in"
 msgstr ""
 
@@ -2439,7 +2494,7 @@ msgstr ""
 msgid "End date cannot be before the start date"
 msgstr ""
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:205
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:213
 msgid "Enter a name and a document type"
 msgstr ""
 
@@ -2447,7 +2502,7 @@ msgstr ""
 msgid "Enter a valid email address"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:559
+#: grunt/frontend/src/components/files/FileExplorer.vue:560
 msgid "Enter an http(s) link"
 msgstr ""
 
@@ -2459,11 +2514,11 @@ msgstr ""
 msgid "Enter the SMTP password (for Gmail — an app password)."
 msgstr ""
 
-#: grunt/frontend/src/pages/auth/Login.vue:250
+#: grunt/frontend/src/pages/auth/Login.vue:255
 msgid "Enter the code from the email"
 msgstr ""
 
-#: grunt/frontend/src/pages/auth/Login.vue:313
+#: grunt/frontend/src/pages/auth/Login.vue:316
 msgid "Enter the code or follow the link in the email."
 msgstr ""
 
@@ -2475,7 +2530,7 @@ msgstr ""
 msgid "Enter the verification code"
 msgstr ""
 
-#: grunt/frontend/src/pages/auth/Login.vue:221
+#: grunt/frontend/src/pages/auth/Login.vue:225
 msgid "Enter your email address first"
 msgstr ""
 
@@ -2499,7 +2554,7 @@ msgstr ""
 #: grunt/frontend/src/core/composables/useToast.ts:65
 #: grunt/frontend/src/core/composables/useOfflineQueue.ts:146
 #: grunt/frontend/src/core/composables/useFormSave.ts:151
-#: grunt/frontend/src/pages/auth/Login.vue:176
+#: grunt/frontend/src/pages/auth/Login.vue:180
 msgid "Error"
 msgstr ""
 
@@ -2519,15 +2574,15 @@ msgstr ""
 msgid "Errors:"
 msgstr ""
 
-#: grunt/frontend/src/pages/desk/DocTypeList.vue:562
+#: grunt/frontend/src/pages/desk/DocTypeList.vue:563
 msgid "Errors: {n}"
 msgstr ""
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:79
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:87
 msgid "Exact date"
 msgstr ""
 
-#: grunt/frontend/src/pages/studio/builder/sections/FormulaSection.vue:34
+#: grunt/frontend/src/pages/studio/builder/sections/FormulaSection.vue:37
 msgid "Examples:"
 msgstr ""
 
@@ -2544,11 +2599,11 @@ msgstr ""
 #: grunt/frontend/src/components/files/FileExplorer.vue:763
 #: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue:426
 #: grunt/frontend/src/components/ui/tree-select/TreeSelectNode.vue:65
-#: grunt/frontend/src/components/views/list/ListTreePanel.vue:398
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:395
 msgid "Expand"
 msgstr ""
 
-#: grunt/frontend/src/components/views/tree/TreeView.vue:261
+#: grunt/frontend/src/components/views/tree/TreeView.vue:262
 msgid "Expand all"
 msgstr ""
 
@@ -2561,7 +2616,7 @@ msgstr ""
 msgid "Expired subscriptions removed: %(n)s"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:279
+#: grunt/frontend/src/components/views/form/FormHeader.vue:275
 msgid "Expires at"
 msgstr ""
 
@@ -2570,11 +2625,11 @@ msgid "Explorer"
 msgstr ""
 
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:435
-#: grunt/frontend/src/components/views/map/MapView.vue:119
+#: grunt/frontend/src/components/views/map/MapView.vue:121
 msgid "Export CSV"
 msgstr ""
 
-#: grunt/frontend/src/components/views/map/MapView.vue:118
+#: grunt/frontend/src/components/views/map/MapView.vue:120
 msgid "Export GeoJSON"
 msgstr ""
 
@@ -2582,11 +2637,11 @@ msgstr ""
 msgid "Export HTML"
 msgstr ""
 
-#: grunt/frontend/src/pages/studio/builder/sections/FormulaSection.vue:24
+#: grunt/frontend/src/pages/studio/builder/sections/FormulaSection.vue:26
 msgid "Expression (Python)"
 msgstr ""
 
-#: grunt/frontend/src/components/dashboard/sections/ShortcutTargetSection.vue:18
+#: grunt/frontend/src/components/dashboard/sections/ShortcutTargetSection.vue:19
 msgid "External URL"
 msgstr ""
 
@@ -2603,7 +2658,7 @@ msgid "Failed to load preview"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/global_list.js:108
-#: grunt/frontend/src/components/views/BulkActionBar.vue:286
+#: grunt/frontend/src/components/views/BulkActionBar.vue:283
 msgid "Fast delete"
 msgstr ""
 
@@ -2611,7 +2666,7 @@ msgstr ""
 msgid "February"
 msgstr ""
 
-#: grunt/frontend/src/pages/studio/builder/sections/FetchFromSection.vue:16
+#: grunt/frontend/src/pages/studio/builder/sections/FetchFromSection.vue:18
 msgid "Fetch From"
 msgstr ""
 
@@ -2621,10 +2676,10 @@ msgstr ""
 
 #: grunt/grunt/api/v1/docs/utils.py:90
 #: grunt/frontend/src/components/views/FilterBar.vue:256
-#: grunt/frontend/src/components/dashboard/sections/AggregationSection.vue:41
+#: grunt/frontend/src/components/dashboard/sections/AggregationSection.vue:43
 #: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:226
-#: grunt/frontend/src/components/views/list/ListHeader.vue:128
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:346
+#: grunt/frontend/src/components/views/list/ListHeader.vue:131
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:350
 msgid "Field"
 msgstr ""
 
@@ -2637,7 +2692,7 @@ msgstr ""
 msgid "Field set: {value}"
 msgstr ""
 
-#: grunt/frontend/src/pages/studio/builder/PropertiesPanel.vue:73
+#: grunt/frontend/src/pages/studio/builder/PropertiesPanel.vue:75
 msgid "Field type"
 msgstr ""
 
@@ -2701,15 +2756,19 @@ msgstr ""
 msgid "Field “{label}”: invalid value"
 msgstr ""
 
+#: grunt/frontend/src/pages/studio/builder/sections/CoreSection.vue:22
+msgid "Fieldname"
+msgstr ""
+
 #: grunt/grunt/metadata/registry.py:651
 msgid "Fieldname '%(fieldname)s' exceeds %(max)s characters"
 msgstr ""
 
-#: grunt/frontend/src/pages/studio/builder/sections/AggregateSection.vue:73
+#: grunt/frontend/src/pages/studio/builder/sections/AggregateSection.vue:74
 msgid "Fieldname of a numeric field in the child DocType"
 msgstr ""
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:406
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:410
 msgid ""
 "Fields the report viewer can filter by (the operator and value are chosen in"
 " the report itself)."
@@ -2753,7 +2812,7 @@ msgid ""
 "Return all files), then change where or how they are stored"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:695
+#: grunt/frontend/src/components/files/FileExplorer.vue:696
 msgid "Files from the computer…"
 msgstr ""
 
@@ -2773,7 +2832,7 @@ msgstr ""
 msgid "Fill in the current row first"
 msgstr ""
 
-#: grunt/frontend/src/pages/auth/Login.vue:55
+#: grunt/frontend/src/pages/auth/Login.vue:59
 msgid "Fill in the form to sign up"
 msgstr ""
 
@@ -2785,7 +2844,7 @@ msgstr ""
 msgid "Fill in the required fields: {fields}"
 msgstr ""
 
-#: grunt/frontend/src/pages/studio/builder/sections/FetchFromSection.vue:24
+#: grunt/frontend/src/pages/studio/builder/sections/FetchFromSection.vue:26
 msgid ""
 "Fill the value automatically from another document when a Link field is "
 "chosen."
@@ -2799,17 +2858,17 @@ msgstr ""
 msgid "Filter by DocType"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/Link/Link.vue:230
+#: grunt/frontend/src/components/fields/Link/Link.vue:199
 msgid "Filter:"
 msgstr ""
 
 #: grunt/frontend/src/core/io/exporters/htmlExporter.ts:323
 #: grunt/frontend/src/components/dashboard/sections/FiltersSection.vue:72
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:403
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:407
 msgid "Filters"
 msgstr ""
 
-#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:340
+#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:343
 msgid "Final state"
 msgstr ""
 
@@ -2841,17 +2900,21 @@ msgstr ""
 msgid "Fix the duplicates and try again."
 msgstr ""
 
+#: grunt/frontend/src/pages/studio/builder/sections/FlagsSection.vue:27
+msgid "Flags"
+msgstr ""
+
 #: grunt/grunt/storage/doctypes/File/File.js:22
-#: grunt/frontend/src/components/files/FileExplorer.vue:692
+#: grunt/frontend/src/components/files/FileExplorer.vue:693
 #: grunt/frontend/src/components/files/FileExplorer.vue:819
 msgid "Folder"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:696
+#: grunt/frontend/src/components/files/FileExplorer.vue:697
 msgid "Folder from the computer…"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:657
+#: grunt/frontend/src/components/files/FileExplorer.vue:658
 msgid "Folder path"
 msgstr ""
 
@@ -2863,7 +2926,7 @@ msgstr ""
 msgid "Folder “%(folder)s” not found"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:754
+#: grunt/frontend/src/components/files/FileExplorer.vue:755
 msgid "Folders"
 msgstr ""
 
@@ -2887,7 +2950,7 @@ msgstr ""
 msgid "Forbidden: %(word)s"
 msgstr ""
 
-#: grunt/frontend/src/pages/auth/Login.vue:418
+#: grunt/frontend/src/pages/auth/Login.vue:425
 msgid "Forgot password?"
 msgstr ""
 
@@ -2895,12 +2958,12 @@ msgstr ""
 msgid "Form tour not found"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/Code/Code.vue:135
+#: grunt/frontend/src/components/fields/Code/Code.vue:132
 msgid "Format"
 msgstr ""
 
-#: grunt/frontend/src/components/views/map/MapView.vue:193
-#: grunt/frontend/src/pages/studio/builder/sections/FetchFromSection.vue:25
+#: grunt/frontend/src/components/views/map/MapView.vue:195
+#: grunt/frontend/src/pages/studio/builder/sections/FetchFromSection.vue:27
 msgid "Format:"
 msgstr ""
 
@@ -2908,7 +2971,11 @@ msgstr ""
 msgid "Formatting"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:650
+#: grunt/frontend/src/pages/studio/builder/sections/FormulaSection.vue:21
+msgid "Formula"
+msgstr ""
+
+#: grunt/frontend/src/components/files/FileExplorer.vue:651
 msgid "Forward"
 msgstr ""
 
@@ -2916,7 +2983,7 @@ msgstr ""
 msgid "Free disk space"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:401
+#: grunt/frontend/src/components/views/form/FormHeader.vue:387
 msgid "Free in the database file"
 msgstr ""
 
@@ -2924,11 +2991,11 @@ msgstr ""
 msgid "Free up space: uploads and the database may stop working."
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:429
+#: grunt/frontend/src/components/views/form/FormHeader.vue:415
 msgid "Freed {size}"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:428
+#: grunt/frontend/src/components/views/form/FormHeader.vue:414
 msgid "Freed {size} in the database file"
 msgstr ""
 
@@ -2942,7 +3009,11 @@ msgstr ""
 msgid "Fri"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:698
+#: grunt/frontend/src/pages/app/AppPage.vue:271
+msgid "From"
+msgstr ""
+
+#: grunt/frontend/src/components/files/FileExplorer.vue:699
 msgid "From a link…"
 msgstr ""
 
@@ -2951,15 +3022,15 @@ msgstr ""
 msgid "From cloud storage"
 msgstr ""
 
-#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:352
+#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:357
 msgid "From state"
 msgstr ""
 
-#: grunt/frontend/src/components/dashboard/sections/WidthSection.vue:14
+#: grunt/frontend/src/components/dashboard/sections/WidthSection.vue:15
 msgid "Full"
 msgstr ""
 
-#: grunt/frontend/src/pages/auth/Login.vue:399
+#: grunt/frontend/src/pages/auth/Login.vue:406
 msgid "Full name"
 msgstr ""
 
@@ -2968,11 +3039,11 @@ msgstr ""
 msgid "Full screen"
 msgstr ""
 
-#: grunt/frontend/src/pages/studio/builder/sections/AggregateSection.vue:43
+#: grunt/frontend/src/pages/studio/builder/sections/AggregateSection.vue:44
 msgid "Function"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:167
+#: grunt/frontend/src/components/views/form/FormHeader.vue:170
 msgid "GB"
 msgstr ""
 
@@ -2982,11 +3053,11 @@ msgstr ""
 msgid "Gallery"
 msgstr ""
 
-#: grunt/frontend/src/components/views/gantt/GanttView.vue:398
+#: grunt/frontend/src/components/views/gantt/GanttView.vue:400
 msgid "Gantt chart"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:290
+#: grunt/frontend/src/components/views/form/FormHeader.vue:282
 msgid "Generate link"
 msgstr ""
 
@@ -2998,7 +3069,11 @@ msgstr ""
 msgid "Global search"
 msgstr ""
 
-#: grunt/frontend/src/components/layout/CommandPalette.vue:171
+#: grunt/frontend/src/components/ErrorBoundary.vue:39
+msgid "Go home"
+msgstr ""
+
+#: grunt/frontend/src/components/layout/CommandPalette.vue:172
 msgid "Go to list {label}"
 msgstr ""
 
@@ -3049,14 +3124,14 @@ msgstr ""
 msgid "Green"
 msgstr ""
 
-#: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:141
+#: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:142
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:274
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:387
 #: grunt/frontend/src/components/views/list/ListGroupedView.vue:95
 msgid "Group"
 msgstr ""
 
-#: grunt/frontend/src/components/dashboard/sections/GroupBySection.vue:13
+#: grunt/frontend/src/components/dashboard/sections/GroupBySection.vue:16
 #: grunt/frontend/src/components/views/list/ListToolbarControls.vue:149
 msgid "Group by"
 msgstr ""
@@ -3099,7 +3174,7 @@ msgstr ""
 msgid "Hello, %(name)s,"
 msgstr ""
 
-#: grunt/frontend/src/pages/studio/builder/webform/WebFormFieldPropertiesPanel.vue:51
+#: grunt/frontend/src/pages/studio/builder/webform/WebFormFieldPropertiesPanel.vue:52
 msgid "Help text"
 msgstr ""
 
@@ -3107,7 +3182,7 @@ msgstr ""
 msgid "Hi {name}"
 msgstr ""
 
-#: grunt/frontend/src/pages/studio/builder/webform/WebFormFieldPropertiesPanel.vue:48
+#: grunt/frontend/src/pages/studio/builder/webform/WebFormFieldPropertiesPanel.vue:49
 msgid "Hidden on the form"
 msgstr ""
 
@@ -3125,8 +3200,8 @@ msgid "Highlight"
 msgstr ""
 
 #: grunt/frontend/src/router/index.ts:191
-#: grunt/frontend/src/components/app/AppSidebar.vue:116
-#: grunt/frontend/src/components/mobile/MobileBottomNav.vue:76
+#: grunt/frontend/src/components/app/AppSidebar.vue:117
+#: grunt/frontend/src/components/mobile/MobileBottomNav.vue:78
 msgid "Home"
 msgstr ""
 
@@ -3158,6 +3233,10 @@ msgstr ""
 msgid "IBAN (international)"
 msgstr ""
 
+#: grunt/frontend/src/pages/studio/builder/sections/ButtonSection.vue:39
+msgid "Icon"
+msgstr ""
+
 #: grunt/frontend/src/components/dashboard/sections/TilesSection.vue:21
 #: grunt/frontend/src/components/dashboard/sections/IconSection.vue:15
 #: grunt/frontend/src/components/dashboard/sections/IconSection.vue:22
@@ -3168,11 +3247,11 @@ msgstr ""
 msgid "Identifier"
 msgstr ""
 
-#: grunt/frontend/src/pages/auth/ForgotPassword.vue:50
+#: grunt/frontend/src/pages/auth/ForgotPassword.vue:47
 msgid "If an account with {email} exists, we have sent a password reset link."
 msgstr ""
 
-#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:392
+#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:397
 msgid ""
 "If set, a dialog opens before the transition to fill in these document "
 "fields."
@@ -3293,7 +3372,7 @@ msgstr ""
 msgid "IndexedDB unavailable"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:392
+#: grunt/frontend/src/components/views/form/FormHeader.vue:378
 msgid "Indexes"
 msgstr ""
 
@@ -3302,7 +3381,7 @@ msgstr ""
 msgid "Info"
 msgstr ""
 
-#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:335
+#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:338
 msgid "Initial state"
 msgstr ""
 
@@ -3391,8 +3470,8 @@ msgstr ""
 msgid "Invalid code or error"
 msgstr ""
 
-#: grunt/frontend/src/pages/auth/MfaVerify.vue:58
-#: grunt/frontend/src/pages/auth/MfaVerify.vue:90
+#: grunt/frontend/src/pages/auth/MfaVerify.vue:66
+#: grunt/frontend/src/pages/auth/MfaVerify.vue:98
 msgid "Invalid code. Try again."
 msgstr ""
 
@@ -3400,7 +3479,7 @@ msgstr ""
 msgid "Invalid email format"
 msgstr ""
 
-#: grunt/frontend/src/pages/auth/Login.vue:172
+#: grunt/frontend/src/pages/auth/Login.vue:176
 msgid "Invalid email or password"
 msgstr ""
 
@@ -3430,7 +3509,7 @@ msgstr ""
 msgid "Invalid or expired MFA token"
 msgstr ""
 
-#: grunt/frontend/src/pages/auth/Login.vue:269
+#: grunt/frontend/src/pages/auth/Login.vue:274
 msgid "Invalid or expired code"
 msgstr ""
 
@@ -3443,7 +3522,7 @@ msgstr ""
 msgid "Invalid or expired reset token"
 msgstr ""
 
-#: grunt/frontend/src/pages/auth/ResetPassword.vue:26
+#: grunt/frontend/src/pages/auth/ResetPassword.vue:29
 msgid "Invalid or missing reset token."
 msgstr ""
 
@@ -3487,7 +3566,7 @@ msgstr ""
 msgid "Items: {n}"
 msgstr ""
 
-#: grunt/frontend/src/pages/studio/builder/sections/LinkSection.vue:42
+#: grunt/frontend/src/pages/studio/builder/sections/LinkSection.vue:45
 msgid "JSON object or"
 msgstr ""
 
@@ -3503,7 +3582,7 @@ msgstr ""
 msgid "Jobs are piling up faster than they are processed."
 msgstr ""
 
-#: grunt/frontend/src/pages/auth/Login.vue:400
+#: grunt/frontend/src/pages/auth/Login.vue:407
 msgid "John Smith"
 msgstr ""
 
@@ -3519,7 +3598,7 @@ msgstr ""
 msgid "Justify"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:167
+#: grunt/frontend/src/components/views/form/FormHeader.vue:170
 msgid "KB"
 msgstr ""
 
@@ -3527,7 +3606,7 @@ msgstr ""
 msgid "Kanban"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:746
+#: grunt/frontend/src/components/files/FileExplorer.vue:747
 msgid "Keep the link to the file without downloading it"
 msgstr ""
 
@@ -3545,11 +3624,12 @@ msgstr ""
 
 #: grunt/frontend/src/core/composables/useFormValidation.ts:112
 #: grunt/frontend/src/core/composables/useFormValidation.ts:135
-#: grunt/frontend/src/pages/studio/builder/webform/WebFormFieldPropertiesPanel.vue:32
+#: grunt/frontend/src/pages/studio/builder/webform/WebFormFieldPropertiesPanel.vue:33
+#: grunt/frontend/src/pages/studio/builder/sections/CoreSection.vue:18
 msgid "Label"
 msgstr ""
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:449
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:452
 msgid "Label column (X axis)"
 msgstr ""
 
@@ -3557,7 +3637,7 @@ msgstr ""
 msgid "Label is required"
 msgstr ""
 
-#: grunt/frontend/src/components/app/AppSidebar.vue:292
+#: grunt/frontend/src/components/app/AppSidebar.vue:291
 msgid "Language"
 msgstr ""
 
@@ -3592,7 +3672,7 @@ msgstr ""
 msgid "Latitude"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormModals.vue:155
+#: grunt/frontend/src/components/views/form/FormModals.vue:156
 msgid "Leave"
 msgstr ""
 
@@ -3608,8 +3688,8 @@ msgstr ""
 msgid "Less than or equal"
 msgstr ""
 
-#: grunt/frontend/src/pages/DeskPage.vue:149
-#: grunt/frontend/src/components/app/AppSidebar.vue:280
+#: grunt/frontend/src/pages/DeskPage.vue:145
+#: grunt/frontend/src/components/app/AppSidebar.vue:279
 msgid "Light"
 msgstr ""
 
@@ -3621,7 +3701,7 @@ msgstr ""
 msgid "Limit of {n} records reached — totals cover only these."
 msgstr ""
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:47
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:55
 msgid "Line"
 msgstr ""
 
@@ -3629,15 +3709,19 @@ msgstr ""
 msgid "Link"
 msgstr ""
 
+#: grunt/frontend/src/pages/studio/builder/sections/LinkSection.vue:36
+msgid "Link Filters"
+msgstr ""
+
 #: grunt/frontend/src/components/fields/RichText/ui/LinkPopover.vue:89
 msgid "Link URL"
 msgstr ""
 
-#: grunt/frontend/src/pages/app/AppPage.vue:237
+#: grunt/frontend/src/pages/app/AppPage.vue:246
 msgid "Link copied"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:307
+#: grunt/frontend/src/components/views/form/FormHeader.vue:297
 msgid "Link copied to clipboard when you click the copy button."
 msgstr ""
 
@@ -3645,7 +3729,7 @@ msgstr ""
 msgid "Link text"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:741
+#: grunt/frontend/src/components/files/FileExplorer.vue:742
 #: grunt/frontend/src/components/fields/RichText/RichText.vue:84
 msgid "Link to a file"
 msgstr ""
@@ -3655,12 +3739,16 @@ msgstr ""
 msgid "Link to a file…"
 msgstr ""
 
-#: grunt/frontend/src/components/dashboard/sections/ShortcutTargetSection.vue:70
+#: grunt/frontend/src/components/dashboard/sections/ShortcutTargetSection.vue:71
 msgid "Link type"
 msgstr ""
 
 #: grunt/frontend/src/components/dashboard/sections/LinksSection.vue:57
 msgid "Link {n}"
+msgstr ""
+
+#: grunt/frontend/src/pages/studio/builder/sections/LinkSection.vue:26
+msgid "Linked DocType"
 msgstr ""
 
 #: grunt/frontend/src/pages/studio/builder/sections/TabSection.vue:34
@@ -3682,11 +3770,11 @@ msgstr ""
 msgid "List report requires a DocType"
 msgstr ""
 
-#: grunt/frontend/src/components/views/tree/TreeView.vue:153
+#: grunt/frontend/src/components/views/tree/TreeView.vue:154
 msgid "Load error"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/DocConnections.vue:78
+#: grunt/frontend/src/components/views/form/DocConnections.vue:79
 msgid "Loading connections…"
 msgstr ""
 
@@ -3695,10 +3783,10 @@ msgid "Loading fields…"
 msgstr ""
 
 #: grunt/grunt/webhook/doctypes/OutgoingWebhook/OutgoingWebhook.js:153
-#: grunt/frontend/src/components/dashboard/MyWorkPanel.vue:77
+#: grunt/frontend/src/components/dashboard/MyWorkPanel.vue:79
 #: grunt/frontend/src/components/dashboard/ActivityStream.vue:113
-#: grunt/frontend/src/components/views/map/MapView.vue:147
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:560
+#: grunt/frontend/src/components/views/map/MapView.vue:149
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:559
 msgid "Loading..."
 msgstr ""
 
@@ -3718,8 +3806,8 @@ msgstr ""
 msgid "Locked accounts"
 msgstr ""
 
-#: grunt/frontend/src/components/app/AppSidebar.vue:310
-#: grunt/frontend/src/components/layout/CommandPalette.vue:101
+#: grunt/frontend/src/components/app/AppSidebar.vue:309
+#: grunt/frontend/src/components/layout/CommandPalette.vue:102
 msgid "Log out"
 msgstr ""
 
@@ -3736,7 +3824,7 @@ msgstr ""
 msgid "Low on space — the browser may delete the offline cache."
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:167
+#: grunt/frontend/src/components/views/form/FormHeader.vue:170
 msgid "MB"
 msgstr ""
 
@@ -3768,8 +3856,16 @@ msgstr ""
 msgid "MFA setup is unavailable"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:308
+#: grunt/frontend/src/pages/studio/builder/CanvasTabBar.vue:101
+msgid "Main"
+msgstr ""
+
+#: grunt/frontend/src/components/views/form/FormHeader.vue:298
 msgid "Manage shares"
+msgstr ""
+
+#: grunt/frontend/src/pages/studio/builder/sections/TextSection.vue:32
+msgid "Mandatory Depends On"
 msgstr ""
 
 #: grunt/frontend/src/components/dashboard/widgets/Heatmap/Heatmap.vue:176
@@ -3788,7 +3884,7 @@ msgstr ""
 msgid "March"
 msgstr ""
 
-#: grunt/frontend/src/components/layout/NotificationsPopover.vue:124
+#: grunt/frontend/src/components/layout/NotificationsPopover.vue:112
 msgid "Mark all as read"
 msgstr ""
 
@@ -3796,7 +3892,7 @@ msgstr ""
 msgid "Mark as done"
 msgstr ""
 
-#: grunt/frontend/src/components/layout/NotificationsPopover.vue:162
+#: grunt/frontend/src/components/layout/NotificationsPopover.vue:150
 msgid "Mark as read"
 msgstr ""
 
@@ -3804,22 +3900,27 @@ msgstr ""
 msgid "Marked point"
 msgstr ""
 
-#: grunt/frontend/src/components/dashboard/sections/GaugeRangeSection.vue:25
-#: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:83
+#: grunt/frontend/src/components/dashboard/sections/GaugeRangeSection.vue:29
+#: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:85
 #: grunt/frontend/src/components/fields/Table/useTableCell.ts:75
+#: grunt/frontend/src/pages/studio/builder/sections/NumberSection.vue:29
 msgid "Max"
+msgstr ""
+
+#: grunt/frontend/src/pages/studio/builder/sections/ValidationSection.vue:42
+msgid "Max Length"
 msgstr ""
 
 #: grunt/frontend/src/components/fields/Table/useTableCell.ts:63
 msgid "Max length"
 msgstr ""
 
-#: grunt/frontend/src/components/dashboard/sections/AggregationSection.vue:17
+#: grunt/frontend/src/components/dashboard/sections/AggregationSection.vue:19
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:225
 msgid "Maximum"
 msgstr ""
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:111
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:119
 msgid "Maximum (MAX)"
 msgstr ""
 
@@ -3863,18 +3964,19 @@ msgstr ""
 msgid "Milestones cannot be tracked on “%(doctype)s”"
 msgstr ""
 
-#: grunt/frontend/src/components/dashboard/sections/GaugeRangeSection.vue:16
-#: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:83
+#: grunt/frontend/src/components/dashboard/sections/GaugeRangeSection.vue:19
+#: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:85
 #: grunt/frontend/src/components/fields/Table/useTableCell.ts:74
+#: grunt/frontend/src/pages/studio/builder/sections/NumberSection.vue:20
 msgid "Min"
 msgstr ""
 
-#: grunt/frontend/src/components/dashboard/sections/AggregationSection.vue:16
+#: grunt/frontend/src/components/dashboard/sections/AggregationSection.vue:18
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:224
 msgid "Minimum"
 msgstr ""
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:110
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:118
 msgid "Minimum (MIN)"
 msgstr ""
 
@@ -3911,11 +4013,11 @@ msgstr ""
 msgid "Mon"
 msgstr ""
 
-#: grunt/frontend/src/components/views/gantt/GanttView.vue:386
+#: grunt/frontend/src/components/views/gantt/GanttView.vue:388
 msgid "Months"
 msgstr ""
 
-#: grunt/frontend/src/components/mobile/MobileBottomNav.vue:98
+#: grunt/frontend/src/components/mobile/MobileBottomNav.vue:101
 #: grunt/frontend/src/components/fields/RichText/ui/EditorContextMenu.vue:126
 #: grunt/frontend/src/components/fields/RichText/ui/MoreMenu.vue:17
 msgid "More"
@@ -3959,7 +4061,7 @@ msgstr ""
 
 #: grunt/grunt/storage/doctypes/File/File.js:24
 #: grunt/grunt/storage/doctypes/FileFolder/file_folder.py:100
-#: grunt/frontend/src/components/files/FileExplorer.vue:102
+#: grunt/frontend/src/components/files/FileExplorer.vue:103
 msgid "My files"
 msgstr ""
 
@@ -3979,7 +4081,7 @@ msgstr ""
 #: grunt/frontend/src/core/composables/useFormValidation.ts:111
 #: grunt/frontend/src/core/composables/useFormValidation.ts:134
 #: grunt/frontend/src/components/files/FileExplorer.vue:787
-#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:318
+#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:321
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:246
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:263
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:297
@@ -3988,7 +4090,7 @@ msgstr ""
 msgid "Name"
 msgstr ""
 
-#: grunt/frontend/src/components/layout/CommandPalette.vue:332
+#: grunt/frontend/src/components/layout/CommandPalette.vue:333
 #: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue:425
 msgid "Navigate"
 msgstr ""
@@ -4006,7 +4108,7 @@ msgstr ""
 #: grunt/frontend/src/components/app/AppBreadcrumb.vue:85
 #: grunt/frontend/src/components/dashboard/sections/TilesSection.vue:32
 #: grunt/frontend/src/components/dashboard/sections/LinksSection.vue:29
-#: grunt/frontend/src/pages/app/AppPage.vue:190
+#: grunt/frontend/src/pages/app/AppPage.vue:199
 #: grunt/frontend/src/pages/desk/DocTypeForm.vue:101
 msgid "New"
 msgstr ""
@@ -4015,7 +4117,7 @@ msgstr ""
 msgid "New DocType"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:325
+#: grunt/frontend/src/components/views/form/FormHeader.vue:315
 msgid "New ID"
 msgstr ""
 
@@ -4023,7 +4125,7 @@ msgstr ""
 msgid "New comment: “%(title)s”"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:313
+#: grunt/frontend/src/components/files/FileExplorer.vue:314
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:246
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:353
 msgid "New folder"
@@ -4033,26 +4135,26 @@ msgstr ""
 msgid "New key name"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:311
+#: grunt/frontend/src/components/views/form/FormHeader.vue:301
 msgid "New link"
 msgstr ""
 
 #: grunt/frontend/src/core/composables/useNotifications.ts:74
-#: grunt/frontend/src/components/layout/NotificationsPopover.vue:35
+#: grunt/frontend/src/components/layout/NotificationsPopover.vue:36
 msgid "New notification"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.js:41
-#: grunt/frontend/src/pages/auth/ResetPassword.vue:66
+#: grunt/frontend/src/pages/auth/ResetPassword.vue:68
 #: grunt/frontend/src/pages/auth/ResetPassword.vue:79
 msgid "New password"
 msgstr ""
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:36
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:44
 msgid "New report"
 msgstr ""
 
-#: grunt/frontend/src/components/views/list/ListTreePanel.vue:426
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:423
 msgid "New subfolder"
 msgstr ""
 
@@ -4060,14 +4162,15 @@ msgstr ""
 msgid "New tab"
 msgstr ""
 
-#: grunt/frontend/src/components/views/BulkActionBar.vue:332
+#: grunt/frontend/src/components/views/BulkActionBar.vue:329
 msgid "New value"
 msgstr ""
 
 #: grunt/frontend/src/core/composables/useFormDocumentView.ts:19
 #: grunt/frontend/src/core/composables/useFormDocumentView.ts:29
 #: grunt/frontend/src/components/views/QuickEntryDialog.vue:131
-#: grunt/frontend/src/components/views/form/DocConnections.vue:123
+#: grunt/frontend/src/components/views/form/DocConnections.vue:126
+#: grunt/frontend/src/components/views/form/DocConnections.vue:127
 msgid "New {doctype}"
 msgstr ""
 
@@ -4076,6 +4179,7 @@ msgid "Newer versions arrive with the next framework release."
 msgstr ""
 
 #: grunt/frontend/src/components/views/form/FormTour.vue:146
+#: grunt/frontend/src/components/views/gantt/GanttView.vue:412
 msgid "Next"
 msgstr ""
 
@@ -4095,7 +4199,7 @@ msgstr ""
 msgid "No"
 msgstr ""
 
-#: grunt/frontend/src/pages/studio/builder/sections/AggregateSection.vue:56
+#: grunt/frontend/src/pages/studio/builder/sections/AggregateSection.vue:57
 msgid "No TABLE fields in this DocType"
 msgstr ""
 
@@ -4126,7 +4230,7 @@ msgstr ""
 msgid "No access: “%(field)s” is outside your user permissions"
 msgstr ""
 
-#: grunt/frontend/src/pages/auth/Login.vue:455
+#: grunt/frontend/src/pages/auth/Login.vue:461
 msgid "No account?"
 msgstr ""
 
@@ -4138,11 +4242,11 @@ msgstr ""
 msgid "No activity yet"
 msgstr ""
 
-#: grunt/frontend/src/pages/DeskPage.vue:259
+#: grunt/frontend/src/pages/DeskPage.vue:242
 msgid "No apps installed"
 msgstr ""
 
-#: grunt/frontend/src/components/dashboard/MyWorkPanel.vue:84
+#: grunt/frontend/src/components/dashboard/MyWorkPanel.vue:87
 msgid "No assigned tasks"
 msgstr ""
 
@@ -4182,17 +4286,17 @@ msgid ""
 "automatically"
 msgstr ""
 
-#: grunt/frontend/src/App.vue:84
+#: grunt/frontend/src/App.vue:85
 msgid "No connection — viewing from cache, changes are saved on this device"
 msgstr ""
 
 #: grunt/frontend/src/components/dashboard/widgets/Donut/Donut.vue:101
 #: grunt/frontend/src/components/dashboard/widgets/Chart/Chart.vue:198
 #: grunt/frontend/src/components/dashboard/widgets/Funnel/Funnel.vue:60
-#: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:132
-#: grunt/frontend/src/pages/reports/ReportView.vue:235
-#: grunt/frontend/src/pages/reports/ReportView.vue:260
-#: grunt/frontend/src/pages/desk/reports/ReportView.vue:112
+#: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:134
+#: grunt/frontend/src/pages/reports/ReportView.vue:236
+#: grunt/frontend/src/pages/reports/ReportView.vue:261
+#: grunt/frontend/src/pages/desk/reports/ReportView.vue:118
 msgid "No data"
 msgstr ""
 
@@ -4236,12 +4340,12 @@ msgstr ""
 msgid "No keys yet. Add one below."
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/DocLinksDialog.vue:103
+#: grunt/frontend/src/components/views/form/DocLinksDialog.vue:107
 msgid "No linked documents"
 msgstr ""
 
 #: grunt/frontend/src/components/dashboard/sections/LinksSection.vue:53
-#: grunt/frontend/src/components/dashboard/widgets/Links/Links.vue:54
+#: grunt/frontend/src/components/dashboard/widgets/Links/Links.vue:56
 msgid "No links"
 msgstr ""
 
@@ -4249,11 +4353,11 @@ msgstr ""
 msgid "No longer supported since %(date)s."
 msgstr ""
 
-#: grunt/frontend/src/components/dashboard/MyWorkPanel.vue:112
+#: grunt/frontend/src/components/dashboard/MyWorkPanel.vue:116
 msgid "No new notifications"
 msgstr ""
 
-#: grunt/frontend/src/components/layout/NotificationsPopover.vue:134
+#: grunt/frontend/src/components/layout/NotificationsPopover.vue:122
 msgid "No notifications"
 msgstr ""
 
@@ -4274,9 +4378,9 @@ msgid "No recipient address specified."
 msgstr ""
 
 #: grunt/frontend/src/components/dashboard/widgets/List/List.vue:51
-#: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:354
+#: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:300
 #: grunt/frontend/src/components/fields/Link/FilterInput.vue:233
-#: grunt/frontend/src/components/fields/Link/Link.vue:197
+#: grunt/frontend/src/components/fields/Link/Link.vue:179
 msgid "No records"
 msgstr ""
 
@@ -4288,7 +4392,7 @@ msgstr ""
 msgid "No records match your filters"
 msgstr ""
 
-#: grunt/frontend/src/components/views/tree/TreeView.vue:297
+#: grunt/frontend/src/components/views/tree/TreeView.vue:294
 msgid "No records yet"
 msgstr ""
 
@@ -4312,7 +4416,7 @@ msgstr ""
 msgid "No tags"
 msgstr ""
 
-#: grunt/frontend/src/components/dashboard/widgets/ShortcutsGrid/ShortcutsGrid.vue:60
+#: grunt/frontend/src/components/dashboard/widgets/ShortcutsGrid/ShortcutsGrid.vue:66
 msgid "No tiles"
 msgstr ""
 
@@ -4341,7 +4445,7 @@ msgstr ""
 msgid "Nobody is assigned"
 msgstr ""
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:106
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:114
 msgid "None"
 msgstr ""
 
@@ -4360,6 +4464,10 @@ msgstr ""
 
 #: grunt/frontend/src/core/browserHealth.ts:106
 msgid "Not cached, e.g.: {files}. Reload the page while online."
+msgstr ""
+
+#: grunt/frontend/src/pages/studio/builder/CanvasSection.vue:107
+msgid "Not collapsible"
 msgstr ""
 
 #: grunt/grunt/storage/cloud/files.py:259
@@ -4388,7 +4496,7 @@ msgstr ""
 msgid "Not loaded: %(reason)s"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:399
+#: grunt/frontend/src/components/files/FileExplorer.vue:400
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:237
 msgid "Not moved: {n}"
 msgstr ""
@@ -4426,7 +4534,7 @@ msgstr ""
 msgid "Not permitted to use fields: %(fields)s"
 msgstr ""
 
-#: grunt/frontend/src/components/views/list/ListTreePanel.vue:379
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:377
 msgid "Not set"
 msgstr ""
 
@@ -4434,41 +4542,41 @@ msgstr ""
 msgid "Not shared with anyone"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/Signature/Signature.vue:168
+#: grunt/frontend/src/components/fields/Signature/Signature.vue:169
 msgid "Not signed"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:511
+#: grunt/frontend/src/components/files/FileExplorer.vue:512
 msgid "Not uploaded: {n}"
 msgstr ""
 
-#: grunt/frontend/src/components/dashboard/sections/DescriptionSection.vue:10
+#: grunt/frontend/src/components/dashboard/sections/DescriptionSection.vue:12
 #: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:132
 msgid "Note"
 msgstr ""
 
 #: grunt/frontend/src/components/DocTypeCombobox.vue:59
-#: grunt/frontend/src/components/desk/GruntDialog.vue:331
+#: grunt/frontend/src/components/desk/GruntDialog.vue:359
 #: grunt/frontend/src/components/ui/multi-select/MultiSelect.vue:113
 #: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue:372
 #: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue:422
-#: grunt/frontend/src/components/views/form/DocLinksDialog.vue:103
-#: grunt/frontend/src/components/views/list/QuickFilterSettingsDialog.vue:103
+#: grunt/frontend/src/components/views/form/DocLinksDialog.vue:107
+#: grunt/frontend/src/components/views/list/QuickFilterSettingsDialog.vue:104
 #: grunt/frontend/src/components/views/list/ListToolbarControls.vue:187
-#: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue:177
+#: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue:171
 #: grunt/frontend/src/components/fields/Link/FilterInput.vue:232
-#: grunt/frontend/src/components/fields/Icon/Icon.vue:132
+#: grunt/frontend/src/components/fields/Icon/Icon.vue:129
 #: grunt/frontend/src/components/fields/RichText/ui/SlashMenu.vue:45
 msgid "Nothing found"
 msgstr ""
 
-#: grunt/frontend/src/components/layout/CommandPalette.vue:312
+#: grunt/frontend/src/components/layout/CommandPalette.vue:313
 #: grunt/frontend/src/pages/app/SearchResultsPage.vue:172
 msgid "Nothing found for"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:353
-#: grunt/frontend/src/components/fields/Link/Link.vue:196
+#: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:299
+#: grunt/frontend/src/components/fields/Link/Link.vue:178
 msgid "Nothing found for “{query}”"
 msgstr ""
 
@@ -4476,9 +4584,10 @@ msgstr ""
 msgid "Nothing to back up"
 msgstr ""
 
-#: grunt/frontend/src/components/layout/NotificationsPopover.vue:103
-#: grunt/frontend/src/components/layout/NotificationsPopover.vue:117
-#: grunt/frontend/src/components/dashboard/MyWorkPanel.vue:69
+#: grunt/frontend/src/components/layout/NotificationsPopover.vue:92
+#: grunt/frontend/src/components/layout/NotificationsPopover.vue:94
+#: grunt/frontend/src/components/layout/NotificationsPopover.vue:105
+#: grunt/frontend/src/components/dashboard/MyWorkPanel.vue:71
 msgid "Notifications"
 msgstr ""
 
@@ -4487,7 +4596,7 @@ msgid "Notifications and document updates will not arrive live."
 msgstr ""
 
 #: grunt/frontend/src/core/composables/useWebPush.ts:97
-#: grunt/frontend/src/components/layout/NotificationsPopover.vue:172
+#: grunt/frontend/src/components/layout/NotificationsPopover.vue:161
 msgid "Notifications are blocked in the browser settings for this site"
 msgstr ""
 
@@ -4538,7 +4647,7 @@ msgstr ""
 msgid "Onboarding not found"
 msgstr ""
 
-#: grunt/frontend/src/pages/studio/builder/sections/OptionsSection.vue:36
+#: grunt/frontend/src/pages/studio/builder/sections/OptionsSection.vue:40
 msgid "One option per line"
 msgstr ""
 
@@ -4579,7 +4688,7 @@ msgstr ""
 #: grunt/frontend/src/components/desk/AppCard.vue:47
 #: grunt/frontend/src/components/layout/OfflineQueueSheet.vue:83
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:172
-#: grunt/frontend/src/components/views/list/ListTreePanel.vue:430
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:427
 #: grunt/frontend/src/components/views/calendar/CalendarView.vue:461
 msgid "Open"
 msgstr ""
@@ -4593,7 +4702,7 @@ msgstr ""
 msgid "Open builder"
 msgstr ""
 
-#: grunt/frontend/src/pages/reports/ReportView.vue:267
+#: grunt/frontend/src/pages/reports/ReportView.vue:269
 msgid "Open documents"
 msgstr ""
 
@@ -4615,8 +4724,8 @@ msgstr ""
 msgid "Open link"
 msgstr ""
 
-#: grunt/frontend/src/pages/DeskPage.vue:171
-#: grunt/frontend/src/components/app/AppSidebar.vue:261
+#: grunt/frontend/src/pages/DeskPage.vue:167
+#: grunt/frontend/src/components/app/AppSidebar.vue:260
 msgid "Open my profile"
 msgstr ""
 
@@ -4634,8 +4743,9 @@ msgid ""
 "available offline."
 msgstr ""
 
-#: grunt/frontend/src/components/fields/Link/Link.vue:86
-#: grunt/frontend/src/components/fields/Link/Link.vue:132
+#: grunt/frontend/src/components/fields/Link/Link.vue:90
+#: grunt/frontend/src/components/fields/Link/Link.vue:135
+#: grunt/frontend/src/components/fields/Link/Link.vue:136
 msgid "Open {doctype}"
 msgstr ""
 
@@ -4644,11 +4754,11 @@ msgid ""
 "Open «Unsynced changes» at the bottom of the screen and resolve each one."
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:154
+#: grunt/frontend/src/components/views/form/FormHeader.vue:157
 msgid "Optimize table"
 msgstr ""
 
-#: grunt/frontend/src/pages/studio/builder/sections/OptionsSection.vue:49
+#: grunt/frontend/src/pages/studio/builder/sections/OptionsSection.vue:52
 msgid "Option captions are translated; stored values stay unchanged."
 msgstr ""
 
@@ -4656,11 +4766,17 @@ msgstr ""
 msgid "Optional. Without it the task only links to the document."
 msgstr ""
 
+#: grunt/frontend/src/pages/studio/builder/sections/OptionsSection.vue:20
+#: grunt/frontend/src/pages/studio/builder/sections/OptionsSection.vue:25
+#: grunt/frontend/src/pages/studio/builder/sections/OptionsSection.vue:41
+msgid "Options"
+msgstr ""
+
 #: grunt/grunt/email/templates/email_login.html:57
 msgid "Or click the button to sign in right away:"
 msgstr ""
 
-#: grunt/frontend/src/pages/auth/MfaVerify.vue:142
+#: grunt/frontend/src/pages/auth/MfaVerify.vue:146
 msgid "Or enter the key manually:"
 msgstr ""
 
@@ -4677,16 +4793,16 @@ msgstr ""
 msgid "Original size"
 msgstr ""
 
-#: grunt/frontend/src/components/layout/CommandPalette.vue:211
-#: grunt/frontend/src/pages/studio/builder/PropertiesPanel.vue:80
+#: grunt/frontend/src/components/layout/CommandPalette.vue:212
+#: grunt/frontend/src/pages/studio/builder/PropertiesPanel.vue:82
 msgid "Other"
 msgstr ""
 
-#: grunt/frontend/src/components/views/BulkActionBar.vue:244
+#: grunt/frontend/src/components/views/BulkActionBar.vue:241
 msgid "Other documents link to the selected records"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormModals.vue:96
+#: grunt/frontend/src/components/views/form/FormModals.vue:97
 msgid "Other records link to this document"
 msgstr ""
 
@@ -4707,7 +4823,7 @@ msgstr ""
 msgid "Outside the ranges in package.json - change them by hand and test:"
 msgstr ""
 
-#: grunt/frontend/src/components/app/AppSidebar.vue:136
+#: grunt/frontend/src/components/app/AppSidebar.vue:137
 msgid "Overview"
 msgstr ""
 
@@ -4719,7 +4835,7 @@ msgstr ""
 msgid "PDF"
 msgstr ""
 
-#: grunt/frontend/src/components/dashboard/sections/ShortcutTargetSection.vue:17
+#: grunt/frontend/src/components/dashboard/sections/ShortcutTargetSection.vue:18
 msgid "Page"
 msgstr ""
 
@@ -4764,7 +4880,7 @@ msgstr ""
 msgid "Parts"
 msgstr ""
 
-#: grunt/frontend/src/pages/auth/Login.vue:364
+#: grunt/frontend/src/pages/auth/Login.vue:374
 msgid "Passkey"
 msgstr ""
 
@@ -4785,7 +4901,7 @@ msgid "Passkeys"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/user.py:72
-#: grunt/frontend/src/pages/auth/Login.vue:412
+#: grunt/frontend/src/pages/auth/Login.vue:419
 msgid "Password"
 msgstr ""
 
@@ -4793,8 +4909,8 @@ msgstr ""
 msgid "Password changed"
 msgstr ""
 
-#: grunt/frontend/src/pages/auth/ResetPassword.vue:37
-#: grunt/frontend/src/pages/auth/Login.vue:145
+#: grunt/frontend/src/pages/auth/ResetPassword.vue:40
+#: grunt/frontend/src/pages/auth/Login.vue:149
 msgid "Password must be at least 8 characters"
 msgstr ""
 
@@ -4807,17 +4923,17 @@ msgstr ""
 msgid "Password reset link (valid for 1 hour):"
 msgstr ""
 
-#: grunt/frontend/src/pages/auth/ResetPassword.vue:72
+#: grunt/frontend/src/pages/auth/ResetPassword.vue:68
 msgid "Password updated!"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.js:48
-#: grunt/frontend/src/pages/auth/ResetPassword.vue:33
-#: grunt/frontend/src/pages/auth/Login.vue:141
+#: grunt/frontend/src/pages/auth/ResetPassword.vue:36
+#: grunt/frontend/src/pages/auth/Login.vue:145
 msgid "Passwords do not match"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:715
+#: grunt/frontend/src/components/files/FileExplorer.vue:716
 #: grunt/frontend/src/components/fields/RichText/ui/EditorContextMenu.vue:116
 msgid "Paste"
 msgstr ""
@@ -4842,11 +4958,11 @@ msgstr ""
 msgid "Performance trend “%(name)s” not found"
 msgstr ""
 
-#: grunt/frontend/src/components/dashboard/sections/DateRangeSection.vue:28
+#: grunt/frontend/src/components/dashboard/sections/DateRangeSection.vue:32
 msgid "Period"
 msgstr ""
 
-#: grunt/frontend/src/components/dashboard/sections/DateRangeSection.vue:41
+#: grunt/frontend/src/components/dashboard/sections/DateRangeSection.vue:45
 msgid "Period switcher"
 msgstr ""
 
@@ -4858,7 +4974,7 @@ msgstr ""
 msgid "Persistent storage"
 msgstr ""
 
-#: grunt/frontend/src/components/views/list/QuickFilterSettingsDialog.vue:79
+#: grunt/frontend/src/components/views/list/QuickFilterSettingsDialog.vue:80
 msgid "Personal setting — only for you, on this device."
 msgstr ""
 
@@ -4875,19 +4991,19 @@ msgstr ""
 msgid "Photo"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:697
+#: grunt/frontend/src/components/files/FileExplorer.vue:698
 msgid "Photo from the camera"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:352
+#: grunt/frontend/src/components/views/form/FormHeader.vue:338
 msgid "Physical storage of this document type"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/Color/Color.vue:55
+#: grunt/frontend/src/components/fields/Color/Color.vue:56
 msgid "Pick a colour"
 msgstr ""
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:49
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:57
 msgid "Pie"
 msgstr ""
 
@@ -4896,7 +5012,11 @@ msgstr ""
 msgid "Ping → pong"
 msgstr ""
 
-#: grunt/frontend/src/pages/auth/MfaVerify.vue:114
+#: grunt/frontend/src/pages/studio/builder/sections/TextSection.vue:24
+msgid "Placeholder"
+msgstr ""
+
+#: grunt/frontend/src/pages/auth/MfaVerify.vue:139
 msgid "Please enter the 6-digit code from your app or a backup code."
 msgstr ""
 
@@ -4913,8 +5033,12 @@ msgid "Preset name"
 msgstr ""
 
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.js:96
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:511
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:510
 msgid "Preview"
+msgstr ""
+
+#: grunt/frontend/src/components/views/gantt/GanttView.vue:410
+msgid "Previous"
 msgstr ""
 
 #: grunt/frontend/src/components/views/ListPagination.vue:67
@@ -4924,15 +5048,16 @@ msgstr ""
 #: grunt/grunt/metadata/doctypes/DocType/global_form.js:54
 #: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:357
 #: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:361
-#: grunt/frontend/src/components/views/map/MapView.vue:205
+#: grunt/frontend/src/components/views/map/MapView.vue:203
+#: grunt/frontend/src/pages/app/AppPage.vue:299
 msgid "Print"
 msgstr ""
 
-#: grunt/frontend/src/components/views/map/MapView.vue:120
+#: grunt/frontend/src/components/views/map/MapView.vue:122
 msgid "Print / PDF"
 msgstr ""
 
-#: grunt/frontend/src/pages/auth/Login.vue:465
+#: grunt/frontend/src/pages/auth/Login.vue:471
 msgid "Privacy Policy"
 msgstr ""
 
@@ -4948,7 +5073,7 @@ msgstr ""
 msgid "Profiled requests are read-only"
 msgstr ""
 
-#: grunt/frontend/src/pages/auth/Login.vue:212
+#: grunt/frontend/src/pages/auth/Login.vue:216
 msgid "Provider unavailable"
 msgstr ""
 
@@ -4960,11 +5085,11 @@ msgstr ""
 msgid "Push notifications"
 msgstr ""
 
-#: grunt/frontend/src/components/layout/NotificationsPopover.vue:173
+#: grunt/frontend/src/components/layout/NotificationsPopover.vue:162
 msgid "Push notifications disabled"
 msgstr ""
 
-#: grunt/frontend/src/components/layout/NotificationsPopover.vue:173
+#: grunt/frontend/src/components/layout/NotificationsPopover.vue:162
 msgid "Push notifications enabled"
 msgstr ""
 
@@ -4993,7 +5118,11 @@ msgstr ""
 msgid "Queue"
 msgstr ""
 
-#: grunt/frontend/src/components/layout/CommandPalette.vue:298
+#: grunt/frontend/src/pages/studio/builder/sections/DisplaySection.vue:37
+msgid "Quick Filter By"
+msgstr ""
+
+#: grunt/frontend/src/components/layout/CommandPalette.vue:299
 msgid "Quick actions"
 msgstr ""
 
@@ -5001,8 +5130,8 @@ msgstr ""
 msgid "Quick add..."
 msgstr ""
 
-#: grunt/frontend/src/components/layout/CommandPalette.vue:96
-#: grunt/frontend/src/components/layout/CommandPalette.vue:288
+#: grunt/frontend/src/components/layout/CommandPalette.vue:97
+#: grunt/frontend/src/components/layout/CommandPalette.vue:289
 msgid "Quick create"
 msgstr ""
 
@@ -5028,7 +5157,8 @@ msgstr ""
 msgid "RNOKPP (individual tax number)"
 msgstr ""
 
-#: grunt/frontend/src/components/dashboard/sections/GaugeRangeSection.vue:13
+#: grunt/frontend/src/components/dashboard/sections/GaugeRangeSection.vue:16
+#: grunt/frontend/src/pages/studio/builder/sections/NumberSection.vue:17
 msgid "Range"
 msgstr ""
 
@@ -5050,7 +5180,7 @@ msgstr ""
 msgid "Read"
 msgstr ""
 
-#: grunt/frontend/src/pages/studio/builder/sections/FormulaSection.vue:41
+#: grunt/frontend/src/pages/studio/builder/sections/FormulaSection.vue:44
 msgid "Read Only (recommended)"
 msgstr ""
 
@@ -5074,7 +5204,7 @@ msgstr ""
 msgid "Recipient address"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:401
+#: grunt/frontend/src/components/views/form/FormHeader.vue:387
 msgid "Reclaimable"
 msgstr ""
 
@@ -5125,15 +5255,19 @@ msgstr ""
 #: grunt/grunt/metadata/doctypes/DocType/global_form.js:41
 #: grunt/grunt/metadata/doctypes/DocType/global_list.js:34
 #: grunt/frontend/src/components/dashboard/ActivityStream.vue:105
-#: grunt/frontend/src/components/files/FileExplorer.vue:673
-#: grunt/frontend/src/pages/app/AppPage.vue:295
-#: grunt/frontend/src/pages/reports/ReportView.vue:209
-#: grunt/frontend/src/pages/desk/reports/ReportView.vue:83
+#: grunt/frontend/src/components/files/FileExplorer.vue:674
+#: grunt/frontend/src/pages/app/AppPage.vue:294
+#: grunt/frontend/src/pages/reports/ReportView.vue:210
+#: grunt/frontend/src/pages/desk/reports/ReportView.vue:89
 msgid "Refresh"
 msgstr ""
 
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.js:117
 msgid "Refresh (Ctrl+Enter)"
+msgstr ""
+
+#: grunt/frontend/src/pages/studio/builder/sections/ValidationSection.vue:65
+msgid "Regex"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.js:103
@@ -5165,7 +5299,7 @@ msgid ""
 "Reload the page; if that does not help, check that the server serves /sw.js."
 msgstr ""
 
-#: grunt/frontend/src/components/app/AppSidebar.vue:300
+#: grunt/frontend/src/components/app/AppSidebar.vue:299
 msgid ""
 "Reload translations, menus and schemas; your settings and drafts are kept"
 msgstr ""
@@ -5195,13 +5329,17 @@ msgstr ""
 #: grunt/frontend/src/components/views/FilterBar.vue:320
 #: grunt/frontend/src/components/fields/RichText/extensions/fileBlocks.ts:133
 #: grunt/frontend/src/components/fields/RichText/extensions/fileBlocks.ts:134
+#: grunt/frontend/src/pages/app/AppPage.vue:436
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:306
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:355
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:418
 msgid "Remove"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/Attach/Attach.vue:76
-#: grunt/frontend/src/components/fields/Attach/Attach.vue:77
-#: grunt/frontend/src/components/fields/Image/Image.vue:55
-#: grunt/frontend/src/components/fields/Image/Image.vue:56
+#: grunt/frontend/src/components/fields/Attach/Attach.vue:82
+#: grunt/frontend/src/components/fields/Attach/Attach.vue:83
+#: grunt/frontend/src/components/fields/Image/Image.vue:59
+#: grunt/frontend/src/components/fields/Image/Image.vue:60
 msgid "Remove attachment"
 msgstr ""
 
@@ -5226,7 +5364,8 @@ msgstr ""
 msgid "Remove video"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:256
+#: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:219
+#: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:258
 msgid "Remove {item}"
 msgstr ""
 
@@ -5239,14 +5378,14 @@ msgid "Remove {name} from assignees?"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/global_form.js:172
-#: grunt/frontend/src/components/files/FileExplorer.vue:718
-#: grunt/frontend/src/components/views/form/FormHeader.vue:336
+#: grunt/frontend/src/components/files/FileExplorer.vue:719
+#: grunt/frontend/src/components/views/form/FormHeader.vue:322
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:263
-#: grunt/frontend/src/components/views/list/ListTreePanel.vue:427
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:424
 msgid "Rename"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:322
+#: grunt/frontend/src/components/views/form/FormHeader.vue:312
 msgid "Rename document"
 msgstr ""
 
@@ -5258,23 +5397,23 @@ msgstr ""
 msgid "Repeat"
 msgstr ""
 
-#: grunt/frontend/src/pages/auth/Login.vue:434
+#: grunt/frontend/src/pages/auth/Login.vue:440
 msgid "Repeat password"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/Attach/Attach.vue:65
-#: grunt/frontend/src/components/fields/Attach/Attach.vue:66
+#: grunt/frontend/src/components/fields/Attach/Attach.vue:69
+#: grunt/frontend/src/components/fields/Attach/Attach.vue:70
 msgid "Replace file"
 msgstr ""
 
 #: grunt/frontend/src/components/views/sidebar/SidebarImage.vue:117
-#: grunt/frontend/src/components/fields/Image/Image.vue:34
+#: grunt/frontend/src/components/fields/Image/Image.vue:35
 #: grunt/frontend/src/components/fields/RichText/ui/ImageBubble.vue:112
 msgid "Replace image"
 msgstr ""
 
-#: grunt/frontend/src/components/views/BulkActionBar.vue:255
-#: grunt/frontend/src/components/views/form/FormModals.vue:110
+#: grunt/frontend/src/components/views/BulkActionBar.vue:252
+#: grunt/frontend/src/components/views/form/FormModals.vue:111
 msgid "Replace with"
 msgstr ""
 
@@ -5288,7 +5427,7 @@ msgid "Reply"
 msgstr ""
 
 #: grunt/frontend/src/components/dashboard/sections/TilesSection.vue:90
-#: grunt/frontend/src/components/dashboard/sections/ShortcutTargetSection.vue:16
+#: grunt/frontend/src/components/dashboard/sections/ShortcutTargetSection.vue:17
 #: grunt/frontend/src/components/dashboard/sections/LinksSection.vue:78
 msgid "Report"
 msgstr ""
@@ -5301,13 +5440,13 @@ msgstr ""
 msgid "Report copied to the clipboard"
 msgstr ""
 
-#: grunt/frontend/src/pages/desk/reports/ReportView.vue:115
+#: grunt/frontend/src/pages/desk/reports/ReportView.vue:121
 msgid "Report execution error"
 msgstr ""
 
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:148
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:249
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:252
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:257
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:260
 msgid "Report name"
 msgstr ""
 
@@ -5340,18 +5479,18 @@ msgid "Report “%(name)s”, %(date)s"
 msgstr ""
 
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:409
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:529
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:528
 #: grunt/frontend/src/pages/desk/reports/ReportList.vue:36
-#: grunt/frontend/src/pages/desk/reports/ReportView.vue:69
+#: grunt/frontend/src/pages/desk/reports/ReportView.vue:71
 msgid "Reports"
 msgstr ""
 
-#: grunt/frontend/src/pages/auth/Login.vue:284
+#: grunt/frontend/src/pages/auth/Login.vue:289
 msgid "Request sent"
 msgstr ""
 
 #: grunt/frontend/src/components/fields/Table/useTableCell.ts:59
-#: grunt/frontend/src/pages/studio/builder/webform/WebFormFieldPropertiesPanel.vue:44
+#: grunt/frontend/src/pages/studio/builder/webform/WebFormFieldPropertiesPanel.vue:45
 msgid "Required"
 msgstr ""
 
@@ -5363,7 +5502,7 @@ msgstr ""
 msgid "Required fields not mapped:"
 msgstr ""
 
-#: grunt/frontend/src/pages/auth/Login.vue:342
+#: grunt/frontend/src/pages/auth/Login.vue:352
 msgid "Resend"
 msgstr ""
 
@@ -5374,7 +5513,7 @@ msgstr ""
 #: grunt/grunt/email/templates/password_reset.html:54
 #: grunt/frontend/src/router/index.ts:188
 #: grunt/frontend/src/router/index.ts:189
-#: grunt/frontend/src/pages/auth/ForgotPassword.vue:42
+#: grunt/frontend/src/pages/auth/ForgotPassword.vue:45
 msgid "Reset password"
 msgstr ""
 
@@ -5382,7 +5521,7 @@ msgstr ""
 msgid "Reset the status to \"Pending\" and run again?"
 msgstr ""
 
-#: grunt/frontend/src/components/views/list/QuickFilterSettingsDialog.vue:109
+#: grunt/frontend/src/components/views/list/QuickFilterSettingsDialog.vue:110
 msgid "Reset to defaults"
 msgstr ""
 
@@ -5429,7 +5568,7 @@ msgstr ""
 msgid "Restoring %(backend)s is not supported"
 msgstr ""
 
-#: grunt/frontend/src/components/views/list/ListHeader.vue:119
+#: grunt/frontend/src/components/views/list/ListHeader.vue:121
 msgid "Restrictions"
 msgstr ""
 
@@ -5442,7 +5581,7 @@ msgid "Retake"
 msgstr ""
 
 #: grunt/frontend/src/components/layout/OfflineQueueSheet.vue:92
-#: grunt/frontend/src/components/views/tree/TreeView.vue:290
+#: grunt/frontend/src/components/views/tree/TreeView.vue:287
 msgid "Retry"
 msgstr ""
 
@@ -5482,8 +5621,8 @@ msgstr ""
 msgid "Row {row}: {field} - {error}"
 msgstr ""
 
-#: grunt/frontend/src/components/dashboard/sections/AggregationSection.vue:60
-#: grunt/frontend/src/components/views/form/FormHeader.vue:383
+#: grunt/frontend/src/components/dashboard/sections/AggregationSection.vue:64
+#: grunt/frontend/src/components/views/form/FormHeader.vue:369
 msgid "Rows"
 msgstr ""
 
@@ -5491,7 +5630,7 @@ msgstr ""
 msgid "Rows per page"
 msgstr ""
 
-#: grunt/frontend/src/pages/desk/reports/ReportView.vue:95
+#: grunt/frontend/src/pages/desk/reports/ReportView.vue:101
 msgid "Rows: {n}"
 msgstr ""
 
@@ -5541,10 +5680,10 @@ msgstr ""
 #: grunt/grunt/metadata/doctypes/DocType/global_form.js:28
 #: grunt/frontend/src/components/views/QuickEntryDialog.vue:161
 #: grunt/frontend/src/components/files/CameraCapture.vue:133
-#: grunt/frontend/src/components/views/list/QuickFilterSettingsDialog.vue:113
+#: grunt/frontend/src/components/views/list/QuickFilterSettingsDialog.vue:114
 #: grunt/frontend/src/components/fields/Table/TableRowSheet.vue:110
-#: grunt/frontend/src/pages/app/AppPage.vue:376
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:517
+#: grunt/frontend/src/pages/app/AppPage.vue:361
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:516
 msgid "Save"
 msgstr ""
 
@@ -5566,7 +5705,7 @@ msgstr ""
 
 #: grunt/frontend/src/core/composables/useFormSave.ts:225
 #: grunt/frontend/src/components/views/QuickEntryDialog.vue:112
-#: grunt/frontend/src/pages/app/AppPage.vue:156
+#: grunt/frontend/src/pages/app/AppPage.vue:165
 msgid "Save error"
 msgstr ""
 
@@ -5652,7 +5791,7 @@ msgid "Script execution error: %(error)s"
 msgstr ""
 
 #: grunt/frontend/src/router/index.ts:196
-#: grunt/frontend/src/components/app/AppSidebar.vue:125
+#: grunt/frontend/src/components/app/AppSidebar.vue:126
 msgid "Search"
 msgstr ""
 
@@ -5660,15 +5799,15 @@ msgstr ""
 msgid "Search across all documents"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:678
 #: grunt/frontend/src/components/files/FileExplorer.vue:679
+#: grunt/frontend/src/components/files/FileExplorer.vue:680
 msgid "Search all files"
 msgstr ""
 
-#: grunt/frontend/src/pages/DeskPage.vue:195
-#: grunt/frontend/src/components/layout/CommandPalette.vue:269
+#: grunt/frontend/src/pages/DeskPage.vue:189
 #: grunt/frontend/src/components/layout/CommandPalette.vue:270
-#: grunt/frontend/src/components/layout/CommandPalette.vue:276
+#: grunt/frontend/src/components/layout/CommandPalette.vue:271
+#: grunt/frontend/src/components/layout/CommandPalette.vue:277
 msgid "Search documents, apps or actions..."
 msgstr ""
 
@@ -5680,16 +5819,15 @@ msgstr ""
 msgid "Search field..."
 msgstr ""
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:487
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:485
 msgid "Search fields..."
 msgstr ""
 
-#: grunt/frontend/src/components/fields/Icon/Icon.vue:117
-#: grunt/frontend/src/components/fields/Icon/Icon.vue:118
+#: grunt/frontend/src/components/fields/Icon/Icon.vue:116
 msgid "Search icon…"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:660
+#: grunt/frontend/src/components/files/FileExplorer.vue:661
 msgid "Search results for «{q}»"
 msgstr ""
 
@@ -5697,32 +5835,32 @@ msgstr ""
 msgid "Search user..."
 msgstr ""
 
-#: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:278
+#: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:262
 #: grunt/frontend/src/components/fields/Link/FilterInput.vue:228
-#: grunt/frontend/src/components/fields/Link/Link.vue:102
+#: grunt/frontend/src/components/fields/Link/Link.vue:120
 msgid "Search {doctype}…"
 msgstr ""
 
-#: grunt/frontend/src/components/dashboard/sections/ShortcutTargetSection.vue:89
+#: grunt/frontend/src/components/dashboard/sections/ShortcutTargetSection.vue:90
 msgid "Search {dt}..."
 msgstr ""
 
-#: grunt/frontend/src/components/app/AppSidebar.vue:127
+#: grunt/frontend/src/components/app/AppSidebar.vue:128
 #: grunt/frontend/src/components/views/DocTypeToolbar.vue:88
-#: grunt/frontend/src/components/views/form/DocLinksDialog.vue:81
-#: grunt/frontend/src/components/views/list/QuickFilterSettingsDialog.vue:84
+#: grunt/frontend/src/components/views/form/DocLinksDialog.vue:82
+#: grunt/frontend/src/components/views/list/QuickFilterSettingsDialog.vue:85
 msgid "Search..."
 msgstr ""
 
-#: grunt/frontend/src/components/layout/CommandPalette.vue:285
-#: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:352
+#: grunt/frontend/src/components/layout/CommandPalette.vue:286
+#: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:298
 #: grunt/frontend/src/components/fields/Link/FilterInput.vue:231
-#: grunt/frontend/src/components/fields/Link/Link.vue:195
+#: grunt/frontend/src/components/fields/Link/Link.vue:177
 #: grunt/frontend/src/pages/app/SearchResultsPage.vue:159
 msgid "Searching..."
 msgstr ""
 
-#: grunt/frontend/src/components/desk/GruntDialog.vue:265
+#: grunt/frontend/src/components/desk/GruntDialog.vue:299
 #: grunt/frontend/src/components/ui/multi-select/MultiSelect.vue:99
 #: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue:388
 #: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue:148
@@ -5741,6 +5879,10 @@ msgstr ""
 msgid "Section %(n)s"
 msgstr ""
 
+#: grunt/frontend/src/pages/studio/builder/CanvasSection.vue:132
+msgid "Section (double-click to rename)"
+msgstr ""
+
 #: grunt/frontend/src/core/browserHealth.ts:64
 msgid "Secure connection"
 msgstr ""
@@ -5749,17 +5891,17 @@ msgstr ""
 msgid "See the Error Log."
 msgstr ""
 
-#: grunt/frontend/src/components/layout/CommandPalette.vue:335
+#: grunt/frontend/src/components/layout/CommandPalette.vue:336
 #: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue:427
 msgid "Select"
 msgstr ""
 
-#: grunt/frontend/src/components/layout/CommandPalette.vue:276
+#: grunt/frontend/src/components/layout/CommandPalette.vue:277
 msgid "Select DocType to create a new record"
 msgstr ""
 
-#: grunt/frontend/src/pages/studio/builder/PropertiesPanel.vue:108
-#: grunt/frontend/src/pages/studio/builder/webform/WebFormFieldPropertiesPanel.vue:58
+#: grunt/frontend/src/pages/studio/builder/PropertiesPanel.vue:104
+#: grunt/frontend/src/pages/studio/builder/webform/WebFormFieldPropertiesPanel.vue:60
 msgid "Select a field to edit"
 msgstr ""
 
@@ -5767,7 +5909,7 @@ msgstr ""
 msgid "Select a type to show its fields"
 msgstr ""
 
-#: grunt/frontend/src/components/dashboard/WidgetConfigPanel.vue:70
+#: grunt/frontend/src/components/dashboard/WidgetConfigPanel.vue:71
 msgid "Select a widget on the canvas or add a new one from the palette"
 msgstr ""
 
@@ -5775,11 +5917,11 @@ msgstr ""
 msgid "Select all"
 msgstr ""
 
-#: grunt/frontend/src/components/views/BulkActionBar.vue:191
+#: grunt/frontend/src/components/views/BulkActionBar.vue:192
 msgid "Select all {n}"
 msgstr ""
 
-#: grunt/frontend/src/components/views/BulkActionBar.vue:324
+#: grunt/frontend/src/components/views/BulkActionBar.vue:321
 msgid "Select field..."
 msgstr ""
 
@@ -5794,7 +5936,7 @@ msgstr ""
 
 #: grunt/frontend/src/components/fields/Link/FilterInput.vue:183
 #: grunt/frontend/src/components/fields/Link/FilterInput.vue:206
-#: grunt/frontend/src/components/fields/Link/Link.vue:78
+#: grunt/frontend/src/components/fields/Link/Link.vue:82
 msgid "Select {doctype}…"
 msgstr ""
 
@@ -5802,17 +5944,17 @@ msgstr ""
 msgid "Select {id}"
 msgstr ""
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:283
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:290
 msgid "Selected columns"
 msgstr ""
 
-#: grunt/frontend/src/components/desk/GruntDialog.vue:339
+#: grunt/frontend/src/components/desk/GruntDialog.vue:366
 #: grunt/frontend/src/components/fields/Table/Table.vue:443
 msgid "Selected:"
 msgstr ""
 
 #: grunt/frontend/src/components/files/FileExplorer.vue:888
-#: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue:181
+#: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue:175
 msgid "Selected: {n}"
 msgstr ""
 
@@ -5919,7 +6061,7 @@ msgid ""
 "Set done statuses or a done condition - otherwise the clock never stops"
 msgstr ""
 
-#: grunt/frontend/src/pages/auth/ResetPassword.vue:100
+#: grunt/frontend/src/pages/auth/ResetPassword.vue:95
 msgid "Set new password"
 msgstr ""
 
@@ -5931,7 +6073,7 @@ msgstr ""
 msgid "Set up the column mapping first"
 msgstr ""
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:541
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:538
 msgid "Set up the report"
 msgstr ""
 
@@ -5943,10 +6085,10 @@ msgstr ""
 msgid "Set “Only for document” or enable “Apply to all documents”"
 msgstr ""
 
-#: grunt/frontend/src/components/app/AppSidebar.vue:194
-#: grunt/frontend/src/components/layout/CommandPalette.vue:98
+#: grunt/frontend/src/components/app/AppSidebar.vue:195
 #: grunt/frontend/src/components/layout/CommandPalette.vue:99
-#: grunt/frontend/src/components/dashboard/WidgetConfigPanel.vue:75
+#: grunt/frontend/src/components/layout/CommandPalette.vue:100
+#: grunt/frontend/src/components/dashboard/WidgetConfigPanel.vue:76
 msgid "Settings"
 msgstr ""
 
@@ -5964,7 +6106,8 @@ msgid "Share document"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/global_form.js:150
-#: grunt/frontend/src/components/views/form/FormHeader.vue:271
+#: grunt/frontend/src/components/views/form/FormHeader.vue:269
+#: grunt/frontend/src/components/views/form/FormHeader.vue:289
 msgid "Share link"
 msgstr ""
 
@@ -5980,7 +6123,7 @@ msgstr ""
 msgid "Shared with: {n}"
 msgstr ""
 
-#: grunt/frontend/src/components/views/list/ListTreePanel.vue:428
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:425
 msgid "Share…"
 msgstr ""
 
@@ -6004,7 +6147,7 @@ msgstr ""
 msgid "Show less"
 msgstr ""
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:393
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:397
 msgid "Show the first"
 msgstr ""
 
@@ -6016,7 +6159,7 @@ msgstr ""
 msgid "Show {n} errors"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/Icon/Icon.vue:152
+#: grunt/frontend/src/components/fields/Icon/Icon.vue:146
 msgid "Showing first {n} results"
 msgstr ""
 
@@ -6028,7 +6171,7 @@ msgstr ""
 msgid "Shown only in debug mode · Click outside or press ESC to close"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/Signature/Signature.vue:223
+#: grunt/frontend/src/components/fields/Signature/Signature.vue:220
 msgid "Sign here"
 msgstr ""
 
@@ -6036,8 +6179,8 @@ msgstr ""
 #: grunt/grunt/email/templates/email_login.html:61
 #: grunt/grunt/website/templates/_navbar.html:17
 #: grunt/grunt/website/www/login.py:11 grunt/frontend/src/router/index.ts:186
-#: grunt/frontend/src/pages/auth/Login.vue:57
-#: grunt/frontend/src/pages/auth/Login.vue:452
+#: grunt/frontend/src/pages/auth/Login.vue:61
+#: grunt/frontend/src/pages/auth/Login.vue:458
 msgid "Sign in"
 msgstr ""
 
@@ -6053,7 +6196,7 @@ msgstr ""
 msgid "Sign in through the browser"
 msgstr ""
 
-#: grunt/frontend/src/pages/auth/Login.vue:55
+#: grunt/frontend/src/pages/auth/Login.vue:59
 msgid "Sign in to your account"
 msgstr ""
 
@@ -6065,8 +6208,8 @@ msgid ""
 msgstr ""
 
 #: grunt/grunt/website/www/signup.py:11 grunt/frontend/src/router/index.ts:187
-#: grunt/frontend/src/pages/auth/Login.vue:57
-#: grunt/frontend/src/pages/auth/Login.vue:456
+#: grunt/frontend/src/pages/auth/Login.vue:61
+#: grunt/frontend/src/pages/auth/Login.vue:462
 msgid "Sign up"
 msgstr ""
 
@@ -6098,7 +6241,7 @@ msgstr ""
 msgid "Size"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:407
+#: grunt/frontend/src/components/views/form/FormHeader.vue:393
 msgid "Size is not available for this database"
 msgstr ""
 
@@ -6110,22 +6253,23 @@ msgstr ""
 msgid "Slow database response."
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:635
+#: grunt/frontend/src/components/ErrorBoundary.vue:34
+#: grunt/frontend/src/components/files/FileExplorer.vue:636
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:333
-#: grunt/frontend/src/pages/auth/ResetPassword.vue:50
+#: grunt/frontend/src/pages/auth/ResetPassword.vue:53
 msgid "Something went wrong"
 msgstr ""
 
-#: grunt/frontend/src/components/views/tree/TreeView.vue:270
+#: grunt/frontend/src/components/views/tree/TreeView.vue:268
 msgid "Sort by"
 msgstr ""
 
-#: grunt/frontend/src/components/views/tree/TreeView.vue:276
+#: grunt/frontend/src/components/views/tree/TreeView.vue:273
 msgid "Sort order"
 msgstr ""
 
 #: grunt/frontend/src/components/views/list/ListToolbarControls.vue:104
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:374
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:378
 msgid "Sorting"
 msgstr ""
 
@@ -6148,7 +6292,7 @@ msgstr ""
 msgid "SqlProfilerRequest '%(doc_id)s' not found"
 msgstr ""
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:474
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:472
 msgid "Stacked"
 msgstr ""
 
@@ -6164,8 +6308,8 @@ msgstr ""
 msgid "Starting..."
 msgstr ""
 
-#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:272
-#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:310
+#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:274
+#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:313
 #: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:183
 msgid "State"
 msgstr ""
@@ -6174,7 +6318,7 @@ msgstr ""
 msgid "Status"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormModals.vue:154
+#: grunt/frontend/src/components/views/form/FormModals.vue:155
 msgid "Stay"
 msgstr ""
 
@@ -6235,6 +6379,10 @@ msgstr ""
 msgid "Stuck emails"
 msgstr ""
 
+#: grunt/frontend/src/pages/studio/builder/sections/ButtonSection.vue:29
+msgid "Style"
+msgstr ""
+
 #: grunt/frontend/src/components/fields/RichText/editor/commands.ts:51
 msgid "Subscript"
 msgstr ""
@@ -6243,13 +6391,13 @@ msgstr ""
 msgid "Subscription error:"
 msgstr ""
 
-#: grunt/frontend/src/components/dashboard/sections/DescriptionSection.vue:10
+#: grunt/frontend/src/components/dashboard/sections/DescriptionSection.vue:12
 msgid "Subtitle"
 msgstr ""
 
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:276
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:562
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:318
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:322
 msgid "Subtotal"
 msgstr ""
 
@@ -6259,13 +6407,13 @@ msgstr ""
 msgid "Success"
 msgstr ""
 
-#: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:83
+#: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:85
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:222
 msgid "Sum"
 msgstr ""
 
-#: grunt/frontend/src/components/dashboard/sections/AggregationSection.vue:14
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:107
+#: grunt/frontend/src/components/dashboard/sections/AggregationSection.vue:16
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:115
 msgid "Sum (SUM)"
 msgstr ""
 
@@ -6296,8 +6444,8 @@ msgid_plural "Synced {n} saved changes"
 msgstr[0] ""
 msgstr[1] ""
 
-#: grunt/grunt/email/tasks.py:185 grunt/frontend/src/pages/DeskPage.vue:157
-#: grunt/frontend/src/components/app/AppSidebar.vue:288
+#: grunt/grunt/email/tasks.py:185 grunt/frontend/src/pages/DeskPage.vue:153
+#: grunt/frontend/src/components/app/AppSidebar.vue:287
 msgid "System"
 msgstr ""
 
@@ -6313,13 +6461,13 @@ msgstr ""
 msgid "System field"
 msgstr ""
 
-#: grunt/frontend/src/components/layout/CommandPalette.vue:100
+#: grunt/frontend/src/components/layout/CommandPalette.vue:101
 msgid "System settings"
 msgstr ""
 
 #: grunt/grunt/monitoring/health.py:75
 #: grunt/frontend/src/core/browserHealth.ts:55
-#: grunt/frontend/src/components/views/form/FormHeader.vue:167
+#: grunt/frontend/src/components/views/form/FormHeader.vue:170
 msgid "TB"
 msgstr ""
 
@@ -6330,20 +6478,20 @@ msgstr ""
 #: grunt/frontend/src/components/fields/RichText/editor/useRichEditor.ts:73
 #: grunt/frontend/src/components/fields/RichText/ui/EditorContextMenu.vue:163
 #: grunt/frontend/src/components/fields/RichText/ui/InsertMenu.vue:93
-#: grunt/frontend/src/pages/reports/ReportView.vue:195
+#: grunt/frontend/src/pages/reports/ReportView.vue:199
 #: grunt/frontend/src/pages/studio/builder/DesignerTab.vue:67
 msgid "Table"
 msgstr ""
 
-#: grunt/frontend/src/pages/studio/builder/sections/AggregateSection.vue:55
+#: grunt/frontend/src/pages/studio/builder/sections/AggregateSection.vue:56
 msgid "Table (TABLE field)"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:351
+#: grunt/frontend/src/components/views/form/FormHeader.vue:337
 msgid "Table info"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:366
+#: grunt/frontend/src/components/views/form/FormHeader.vue:352
 msgid "Table name"
 msgstr ""
 
@@ -6371,7 +6519,7 @@ msgstr ""
 msgid "Tap"
 msgstr ""
 
-#: grunt/frontend/src/components/dashboard/sections/ShortcutTargetSection.vue:85
+#: grunt/frontend/src/components/dashboard/sections/ShortcutTargetSection.vue:86
 msgid "Target"
 msgstr ""
 
@@ -6400,7 +6548,7 @@ msgstr ""
 msgid "Task text"
 msgstr ""
 
-#: grunt/frontend/src/components/dashboard/MyWorkPanel.vue:64
+#: grunt/frontend/src/components/dashboard/MyWorkPanel.vue:66
 msgid "Tasks"
 msgstr ""
 
@@ -6417,7 +6565,7 @@ msgstr ""
 msgid "Template error:"
 msgstr ""
 
-#: grunt/frontend/src/pages/auth/Login.vue:465
+#: grunt/frontend/src/pages/auth/Login.vue:471
 msgid "Terms of Service"
 msgstr ""
 
@@ -6446,6 +6594,10 @@ msgstr ""
 
 #: grunt/grunt/actions/builtin.py:247
 msgid "Test notification sent"
+msgstr ""
+
+#: grunt/frontend/src/pages/studio/builder/sections/TextSection.vue:17
+msgid "Text"
 msgstr ""
 
 #: grunt/frontend/src/components/fields/RichText/ui/EditorToolbar.vue:29
@@ -6667,7 +6819,7 @@ msgstr ""
 msgid "The link was not found or has been deactivated"
 msgstr ""
 
-#: grunt/frontend/src/components/views/list/ListHeader.vue:101
+#: grunt/frontend/src/components/views/list/ListHeader.vue:103
 msgid "The list is limited by your access rights"
 msgstr ""
 
@@ -6682,11 +6834,11 @@ msgstr ""
 msgid "The owner of this rule is missing or inactive"
 msgstr ""
 
-#: grunt/frontend/src/pages/app/AppPage.vue:320
+#: grunt/frontend/src/pages/app/AppPage.vue:315
 msgid "The page has not been created yet"
 msgstr ""
 
-#: grunt/frontend/src/pages/app/AppPage.vue:332
+#: grunt/frontend/src/pages/app/AppPage.vue:326
 msgid "The page is empty"
 msgstr ""
 
@@ -6723,7 +6875,7 @@ msgstr ""
 msgid "The reminder time is in the past"
 msgstr ""
 
-#: grunt/frontend/src/components/views/BulkActionBar.vue:263
+#: grunt/frontend/src/components/views/BulkActionBar.vue:260
 msgid "The replacement cannot be one of the records being deleted."
 msgstr ""
 
@@ -6772,7 +6924,7 @@ msgid "The shell is cached after the first page load with the network."
 msgstr ""
 
 #: grunt/grunt/storage/cloud/oauth.py:213
-#: grunt/frontend/src/pages/auth/Login.vue:103
+#: grunt/frontend/src/pages/auth/Login.vue:107
 msgid "The sign-in link is invalid or expired"
 msgstr ""
 
@@ -6801,11 +6953,11 @@ msgid "The system health report is read-only"
 msgstr ""
 
 #: grunt/grunt/api/v1/meta.py:258
-#: grunt/frontend/src/components/views/form/FormHeader.vue:379
+#: grunt/frontend/src/components/views/form/FormHeader.vue:365
 msgid "The table has not been created in the database yet"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:434
+#: grunt/frontend/src/components/views/form/FormHeader.vue:420
 msgid "The table is already compact — nothing to reclaim."
 msgstr ""
 
@@ -6838,8 +6990,8 @@ msgstr ""
 msgid "The “Filters (JSON)” field must contain valid JSON."
 msgstr ""
 
-#: grunt/frontend/src/pages/DeskPage.vue:141
-#: grunt/frontend/src/components/app/AppSidebar.vue:276
+#: grunt/frontend/src/pages/DeskPage.vue:137
+#: grunt/frontend/src/components/app/AppSidebar.vue:275
 msgid "Theme"
 msgstr ""
 
@@ -6871,11 +7023,11 @@ msgstr ""
 msgid "This browser does not support passkeys"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormModals.vue:134
+#: grunt/frontend/src/components/views/form/FormModals.vue:135
 msgid "This cannot be undone. All related data will be deleted permanently."
 msgstr ""
 
-#: grunt/frontend/src/components/views/BulkActionBar.vue:295
+#: grunt/frontend/src/components/views/BulkActionBar.vue:292
 msgid ""
 "This cannot be undone. before_delete / after_delete hooks do not run. Use "
 "only to bulk-clean test or imported data."
@@ -6901,10 +7053,6 @@ msgid ""
 "authorize"
 msgstr ""
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:464
-msgid "This is the label column"
-msgstr ""
-
 #: grunt/grunt/email/service.py:138
 msgid "This message is in HTML format."
 msgstr ""
@@ -6917,7 +7065,7 @@ msgstr ""
 msgid "This reaction is not available"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:443
+#: grunt/frontend/src/components/views/form/FormHeader.vue:429
 msgid "This rewrites the table under an exclusive lock. Continue?"
 msgstr ""
 
@@ -6926,7 +7074,7 @@ msgstr ""
 msgid "This storage type does not sign in through a browser"
 msgstr ""
 
-#: grunt/frontend/src/components/views/BulkActionBar.vue:315
+#: grunt/frontend/src/components/views/BulkActionBar.vue:312
 msgid "This updates the field on all {n} selected records."
 msgstr ""
 
@@ -6943,7 +7091,7 @@ msgstr ""
 msgid "Thu"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue:142
+#: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue:143
 msgid "Tick the items you need in the tree"
 msgstr ""
 
@@ -6951,7 +7099,7 @@ msgstr ""
 msgid "Tile {n}"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:728
+#: grunt/frontend/src/components/files/FileExplorer.vue:729
 #: grunt/frontend/src/components/dashboard/sections/TilesSection.vue:49
 msgid "Tiles"
 msgstr ""
@@ -6971,11 +7119,15 @@ msgstr ""
 #: grunt/grunt/actions/builtin.py:193
 #: grunt/frontend/src/components/dashboard/sections/TilesSection.vue:71
 #: grunt/frontend/src/components/dashboard/sections/LinksSection.vue:85
-#: grunt/frontend/src/components/dashboard/sections/TitleSection.vue:12
+#: grunt/frontend/src/components/dashboard/sections/TitleSection.vue:15
 msgid "Title"
 msgstr ""
 
-#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:362
+#: grunt/frontend/src/pages/app/AppPage.vue:273
+msgid "To"
+msgstr ""
+
+#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:367
 msgid "To state"
 msgstr ""
 
@@ -6992,7 +7144,7 @@ msgstr ""
 msgid "Tomorrow at 9:00"
 msgstr ""
 
-#: grunt/frontend/src/pages/auth/Login.vue:174
+#: grunt/frontend/src/pages/auth/Login.vue:178
 msgid "Too many failed attempts. The account is temporarily locked."
 msgstr ""
 
@@ -7011,15 +7163,15 @@ msgstr ""
 #: grunt/grunt/reports/engine.py:435
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:281
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:607
-#: grunt/frontend/src/pages/reports/ReportView.vue:280
+#: grunt/frontend/src/pages/reports/ReportView.vue:283
 msgid "Total"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:396
+#: grunt/frontend/src/components/views/form/FormHeader.vue:382
 msgid "Total on disk"
 msgstr ""
 
-#: grunt/frontend/src/components/views/tree/TreeView.vue:313
+#: grunt/frontend/src/components/views/tree/TreeView.vue:310
 msgid "Total: {n} records"
 msgstr ""
 
@@ -7027,14 +7179,14 @@ msgstr ""
 msgid "Totals for the current page"
 msgstr ""
 
-#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:196
-#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:216
-#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:274
-#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:349
+#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:198
+#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:218
+#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:276
+#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:354
 msgid "Transition"
 msgstr ""
 
-#: grunt/frontend/src/pages/studio/builder/sections/OptionsSection.vue:47
+#: grunt/frontend/src/pages/studio/builder/sections/OptionsSection.vue:51
 msgid "Translatable"
 msgstr ""
 
@@ -7046,6 +7198,7 @@ msgstr ""
 msgid "Try adjusting your filters to see more results."
 msgstr ""
 
+#: grunt/frontend/src/components/ErrorBoundary.vue:38
 #: grunt/frontend/src/components/files/CameraCapture.vue:122
 msgid "Try again"
 msgstr ""
@@ -7067,11 +7220,11 @@ msgstr ""
 msgid "Two-factor authentication"
 msgstr ""
 
-#: grunt/frontend/src/pages/auth/MfaVerify.vue:108
+#: grunt/frontend/src/pages/auth/MfaVerify.vue:135
 msgid "Two-factor verification"
 msgstr ""
 
-#: grunt/frontend/src/components/dashboard/WidgetConfigPanel.vue:85
+#: grunt/frontend/src/components/dashboard/WidgetConfigPanel.vue:86
 #: grunt/frontend/src/components/files/FileExplorer.vue:789
 msgid "Type"
 msgstr ""
@@ -7088,7 +7241,7 @@ msgstr ""
 msgid "Type at least 2 characters to search..."
 msgstr ""
 
-#: grunt/frontend/src/components/fields/Icon/Icon.vue:155
+#: grunt/frontend/src/components/fields/Icon/Icon.vue:149
 msgid "Type to search {n} icons"
 msgstr ""
 
@@ -7111,8 +7264,7 @@ msgstr ""
 
 #: grunt/frontend/src/components/desk/OnboardingChecklists.vue:118
 #: grunt/frontend/src/components/desk/OnboardingChecklists.vue:124
-#: grunt/frontend/src/components/fields/Signature/Signature.vue:229
-#: grunt/frontend/src/components/fields/Signature/Signature.vue:230
+#: grunt/frontend/src/components/fields/Signature/Signature.vue:224
 #: grunt/frontend/src/components/fields/Table/Table.vue:223
 #: grunt/frontend/src/components/fields/RichText/editor/commands.ts:69
 msgid "Undo"
@@ -7170,11 +7322,11 @@ msgstr ""
 msgid "Unregistered jobs"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:242
+#: grunt/frontend/src/components/views/form/FormHeader.vue:245
 msgid "Unsaved"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormModals.vue:150
+#: grunt/frontend/src/components/views/form/FormModals.vue:151
 msgid "Unsaved changes"
 msgstr ""
 
@@ -7196,7 +7348,7 @@ msgstr ""
 msgid "Unsynced changes"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:653
+#: grunt/frontend/src/components/files/FileExplorer.vue:654
 msgid "Up"
 msgstr ""
 
@@ -7223,7 +7375,7 @@ msgstr ""
 msgid "Updating..."
 msgstr ""
 
-#: grunt/frontend/src/components/views/gantt/GanttView.vue:399
+#: grunt/frontend/src/components/views/gantt/GanttView.vue:401
 #: grunt/frontend/src/components/views/calendar/CalendarView.vue:347
 msgid "Updating…"
 msgstr ""
@@ -7286,6 +7438,14 @@ msgstr ""
 msgid "Uploading…"
 msgstr ""
 
+#: grunt/frontend/src/pages/auth/MfaVerify.vue:170
+msgid "Use a backup code"
+msgstr ""
+
+#: grunt/frontend/src/pages/auth/MfaVerify.vue:170
+msgid "Use the authenticator app code"
+msgstr ""
+
 #: grunt/frontend/src/core/browserHealth.ts:176
 msgid "Used"
 msgstr ""
@@ -7325,7 +7485,7 @@ msgstr ""
 msgid "Users and security"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:440
+#: grunt/frontend/src/components/views/form/FormHeader.vue:426
 msgid ""
 "VACUUM rewrites the whole database file and blocks writes while it runs. "
 "Continue?"
@@ -7339,6 +7499,10 @@ msgstr ""
 msgid "Valid until"
 msgstr ""
 
+#: grunt/frontend/src/pages/studio/builder/sections/ValidationSection.vue:39
+msgid "Validation"
+msgstr ""
+
 #: grunt/grunt/startup/errors.py:101 grunt/grunt/startup/errors.py:130
 #: grunt/grunt/assignment/doctypes/AssignmentRule/assignment_rule.py:31
 #: grunt/frontend/src/core/composables/useFormSave.ts:219
@@ -7346,23 +7510,27 @@ msgstr ""
 msgid "Validation error"
 msgstr ""
 
+#: grunt/frontend/src/pages/studio/builder/sections/ValidationSection.vue:53
+msgid "Validator"
+msgstr ""
+
 #: grunt/grunt/api/v1/docs/utils.py:91
-#: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:85
-#: grunt/frontend/src/components/views/list/ListHeader.vue:129
+#: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:87
+#: grunt/frontend/src/components/views/list/ListHeader.vue:132
 #: grunt/frontend/src/components/fields/Default/FilterInput.vue:27
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:362
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:366
 msgid "Value"
 msgstr ""
 
-#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:313
+#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:316
 msgid "Value (for the state field)"
 msgstr ""
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:456
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:459
 msgid "Value columns"
 msgstr ""
 
-#: grunt/frontend/src/components/dashboard/sections/AggregationSection.vue:51
+#: grunt/frontend/src/components/dashboard/sections/AggregationSection.vue:54
 msgid "Value label"
 msgstr ""
 
@@ -7396,11 +7564,11 @@ msgstr ""
 msgid "View"
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/DocConnections.vue:146
+#: grunt/frontend/src/components/views/form/DocConnections.vue:150
 msgid "View all {n}"
 msgstr ""
 
-#: grunt/frontend/src/components/layout/CommandPalette.vue:98
+#: grunt/frontend/src/components/layout/CommandPalette.vue:99
 msgid "View hooks"
 msgstr ""
 
@@ -7417,8 +7585,8 @@ msgstr ""
 msgid "Viewed by:"
 msgstr ""
 
-#: grunt/frontend/src/pages/DeskPage.vue:183
-#: grunt/frontend/src/components/app/AppSidebar.vue:225
+#: grunt/frontend/src/pages/DeskPage.vue:180
+#: grunt/frontend/src/components/app/AppSidebar.vue:226
 msgid "Viewing as {name}"
 msgstr ""
 
@@ -7455,11 +7623,11 @@ msgstr ""
 msgid "We received a sign-in request for this email address."
 msgstr ""
 
-#: grunt/frontend/src/pages/auth/Login.vue:311
+#: grunt/frontend/src/pages/auth/Login.vue:314
 msgid "We sent a sign-in code and link to"
 msgstr ""
 
-#: grunt/frontend/src/pages/auth/ForgotPassword.vue:43
+#: grunt/frontend/src/pages/auth/ForgotPassword.vue:47
 msgid "We will send you a recovery link"
 msgstr ""
 
@@ -7487,19 +7655,19 @@ msgstr ""
 msgid "Weekly notification digest"
 msgstr ""
 
-#: grunt/frontend/src/components/views/gantt/GanttView.vue:385
+#: grunt/frontend/src/components/views/gantt/GanttView.vue:387
 msgid "Weeks"
 msgstr ""
 
-#: grunt/frontend/src/pages/auth/Login.vue:53
+#: grunt/frontend/src/pages/auth/Login.vue:57
 msgid "Welcome back"
 msgstr ""
 
-#: grunt/frontend/src/pages/auth/MfaVerify.vue:84
+#: grunt/frontend/src/pages/auth/MfaVerify.vue:92
 msgid "Welcome!"
 msgstr ""
 
-#: grunt/frontend/src/pages/DeskPage.vue:177
+#: grunt/frontend/src/pages/DeskPage.vue:173
 msgid "What are you planning to do today?"
 msgstr ""
 
@@ -7515,15 +7683,15 @@ msgstr ""
 msgid "Widget not found"
 msgstr ""
 
-#: grunt/frontend/src/components/dashboard/sections/TitleSection.vue:15
+#: grunt/frontend/src/components/dashboard/sections/TitleSection.vue:19
 msgid "Widget title"
 msgstr ""
 
-#: grunt/frontend/src/pages/app/AppPage.vue:388
+#: grunt/frontend/src/pages/app/AppPage.vue:373
 msgid "Widget types"
 msgstr ""
 
-#: grunt/frontend/src/components/dashboard/sections/WidthSection.vue:20
+#: grunt/frontend/src/components/dashboard/sections/WidthSection.vue:21
 msgid "Width"
 msgstr ""
 
@@ -7559,6 +7727,7 @@ msgid "YYYY-MM-DD"
 msgstr ""
 
 #: grunt/grunt/metadata/widget.py:86
+#: grunt/frontend/src/pages/studio/builder/sections/DisplaySection.vue:44
 msgid "Year"
 msgstr ""
 
@@ -7587,7 +7756,7 @@ msgstr ""
 msgid "You already reacted this way"
 msgstr ""
 
-#: grunt/frontend/src/components/views/BulkActionBar.vue:234
+#: grunt/frontend/src/components/views/BulkActionBar.vue:231
 msgid "You are about to delete {n} records. This cannot be undone."
 msgstr ""
 
@@ -7603,7 +7772,7 @@ msgstr ""
 msgid "You asked to be reminded"
 msgstr ""
 
-#: grunt/frontend/src/pages/auth/ResetPassword.vue:73
+#: grunt/frontend/src/pages/auth/ResetPassword.vue:70
 msgid "You can now sign in with your new password."
 msgstr ""
 
@@ -7631,13 +7800,13 @@ msgstr ""
 msgid "You have been assigned to %(target)s."
 msgstr ""
 
-#: grunt/frontend/src/components/views/form/FormModals.vue:152
+#: grunt/frontend/src/components/views/form/FormModals.vue:153
 msgid ""
 "You have changes that will be lost if you leave this page. Leave without "
 "saving?"
 msgstr ""
 
-#: grunt/frontend/src/components/views/list/ListHeader.vue:123
+#: grunt/frontend/src/components/views/list/ListHeader.vue:125
 msgid "You only see records matching these values."
 msgstr ""
 
@@ -7646,19 +7815,19 @@ msgstr ""
 msgid "YouTube video"
 msgstr ""
 
-#: grunt/frontend/src/pages/auth/Login.vue:286
+#: grunt/frontend/src/pages/auth/Login.vue:291
 msgid ""
 "Your account has been created and is awaiting administrator approval. You "
 "can sign in once it is approved."
 msgstr ""
 
-#: grunt/frontend/src/pages/auth/Login.vue:26
+#: grunt/frontend/src/pages/auth/Login.vue:30
 msgid ""
 "Your account is registered and awaiting administrator approval. Try signing "
 "in later."
 msgstr ""
 
-#: grunt/frontend/src/pages/DeskPage.vue:245
+#: grunt/frontend/src/pages/DeskPage.vue:228
 msgid "Your apps"
 msgstr ""
 
@@ -7670,11 +7839,11 @@ msgstr ""
 msgid "Your keys"
 msgstr ""
 
-#: grunt/frontend/src/components/layout/NotificationsPopover.vue:135
+#: grunt/frontend/src/components/layout/NotificationsPopover.vue:123
 msgid "Your latest notifications will appear here."
 msgstr ""
 
-#: grunt/frontend/src/pages/auth/MfaVerify.vue:111
+#: grunt/frontend/src/pages/auth/MfaVerify.vue:138
 msgid ""
 "Your role requires two-factor authentication. Scan the QR code in your "
 "authenticator app and enter the 6-digit code."
@@ -7700,7 +7869,7 @@ msgstr ""
 msgid "active"
 msgstr ""
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:394
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:398
 msgid "all"
 msgstr ""
 
@@ -7716,7 +7885,7 @@ msgstr ""
 msgid "allowed"
 msgstr ""
 
-#: grunt/frontend/src/pages/auth/Login.vue:465
+#: grunt/frontend/src/pages/auth/Login.vue:471
 msgid "and"
 msgstr ""
 
@@ -7740,7 +7909,7 @@ msgstr ""
 msgid "available"
 msgstr ""
 
-#: grunt/frontend/src/pages/studio/builder/sections/AggregateSection.vue:19
+#: grunt/frontend/src/pages/studio/builder/sections/AggregateSection.vue:22
 msgid "avg — average"
 msgstr ""
 
@@ -7805,7 +7974,7 @@ msgstr ""
 msgid "contain an uppercase letter"
 msgstr ""
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:70
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:78
 msgid "contains"
 msgstr ""
 
@@ -7813,7 +7982,7 @@ msgstr ""
 msgid "content is required"
 msgstr ""
 
-#: grunt/frontend/src/pages/studio/builder/sections/AggregateSection.vue:18
+#: grunt/frontend/src/pages/studio/builder/sections/AggregateSection.vue:21
 msgid "count — number of rows"
 msgstr ""
 
@@ -7821,7 +7990,7 @@ msgstr ""
 msgid "created"
 msgstr ""
 
-#: grunt/frontend/src/pages/studio/builder/sections/OptionsSection.vue:20
+#: grunt/frontend/src/pages/studio/builder/sections/OptionsSection.vue:24
 msgid "currency or UAH"
 msgstr ""
 
@@ -7858,7 +8027,7 @@ msgstr ""
 msgid "document"
 msgstr ""
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:71
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:79
 msgid "does not contain"
 msgstr ""
 
@@ -7870,15 +8039,15 @@ msgstr ""
 msgid "e.g. Work laptop"
 msgstr ""
 
-#: grunt/frontend/src/pages/studio/builder/sections/AggregateSection.vue:69
+#: grunt/frontend/src/pages/studio/builder/sections/AggregateSection.vue:71
 msgid "e.g. amount"
 msgstr ""
 
-#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:389
+#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:394
 msgid "e.g. execution_note"
 msgstr ""
 
-#: grunt/frontend/src/pages/studio/builder/sections/FetchFromSection.vue:19
+#: grunt/frontend/src/pages/studio/builder/sections/FetchFromSection.vue:22
 msgid "e.g. link_field.source_field"
 msgstr ""
 
@@ -7928,7 +8097,7 @@ msgid "in Safari"
 msgstr ""
 
 #: grunt/frontend/src/components/views/BulkActionBar.vue:66
-#: grunt/frontend/src/components/views/form/FormModals.vue:71
+#: grunt/frontend/src/components/views/form/FormModals.vue:72
 msgid "in {doctype}"
 msgstr ""
 
@@ -7940,16 +8109,16 @@ msgstr ""
 msgid "installing"
 msgstr ""
 
-#: grunt/frontend/src/pages/studio/builder/sections/FormulaSection.vue:20
-#: grunt/frontend/src/pages/studio/builder/sections/AggregateSection.vue:39
+#: grunt/frontend/src/pages/studio/builder/sections/FormulaSection.vue:22
+#: grunt/frontend/src/pages/studio/builder/sections/AggregateSection.vue:40
 msgid "is active"
 msgstr ""
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:75
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:83
 msgid "is empty"
 msgstr ""
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:74
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:82
 msgid "is set"
 msgstr ""
 
@@ -7985,11 +8154,11 @@ msgstr ""
 msgid "many"
 msgstr ""
 
-#: grunt/frontend/src/pages/studio/builder/sections/AggregateSection.vue:21
+#: grunt/frontend/src/pages/studio/builder/sections/AggregateSection.vue:24
 msgid "max — maximum"
 msgstr ""
 
-#: grunt/frontend/src/pages/studio/builder/sections/AggregateSection.vue:20
+#: grunt/frontend/src/pages/studio/builder/sections/AggregateSection.vue:23
 msgid "min — minimum"
 msgstr ""
 
@@ -8019,8 +8188,8 @@ msgstr ""
 #: grunt/frontend/src/core/browserHealth.ts:130
 #: grunt/frontend/src/core/browserHealth.ts:242
 #: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:555
-#: grunt/frontend/src/pages/reports/ReportView.vue:187
-#: grunt/frontend/src/pages/desk/reports/ReportView.vue:95
+#: grunt/frontend/src/pages/reports/ReportView.vue:190
+#: grunt/frontend/src/pages/desk/reports/ReportView.vue:101
 msgid "ms"
 msgstr ""
 
@@ -8061,7 +8230,7 @@ msgstr ""
 msgid "none"
 msgstr ""
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:73
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:81
 msgid "none of"
 msgstr ""
 
@@ -8117,7 +8286,7 @@ msgstr ""
 msgid "offline"
 msgstr ""
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:72
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:80
 msgid "one of (comma-separated)"
 msgstr ""
 
@@ -8134,15 +8303,15 @@ msgid "openpyxl is not installed"
 msgstr ""
 
 #: grunt/frontend/src/components/dashboard/sections/ActivityFilterSection.vue:18
-#: grunt/frontend/src/components/views/form/FormHeader.vue:279
+#: grunt/frontend/src/components/views/form/FormHeader.vue:275
 msgid "optional"
 msgstr ""
 
-#: grunt/frontend/src/pages/studio/builder/sections/LinkSection.vue:38
+#: grunt/frontend/src/pages/studio/builder/sections/LinkSection.vue:41
 msgid "or"
 msgstr ""
 
-#: grunt/frontend/src/pages/auth/Login.vue:394
+#: grunt/frontend/src/pages/auth/Login.vue:401
 msgid "or enter your password"
 msgstr ""
 
@@ -8151,7 +8320,7 @@ msgid "outdated"
 msgstr ""
 
 #: grunt/grunt/tasks/todo_reminders.py:112
-#: grunt/frontend/src/components/dashboard/MyWorkPanel.vue:98
+#: grunt/frontend/src/components/dashboard/MyWorkPanel.vue:100
 msgid "overdue"
 msgstr ""
 
@@ -8213,7 +8382,7 @@ msgid "row needs attention"
 msgstr ""
 
 #: grunt/grunt/io/doctypes/DataImport/DataImport.js:217
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:395
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:399
 msgid "rows"
 msgstr ""
 
@@ -8245,12 +8414,12 @@ msgstr ""
 msgid "stopped"
 msgstr ""
 
-#: grunt/frontend/src/pages/studio/builder/sections/AggregateSection.vue:17
+#: grunt/frontend/src/pages/studio/builder/sections/AggregateSection.vue:20
 msgid "sum — total"
 msgstr ""
 
-#: grunt/frontend/src/pages/DeskPage.vue:185
-#: grunt/frontend/src/components/app/AppSidebar.vue:230
+#: grunt/frontend/src/pages/DeskPage.vue:181
+#: grunt/frontend/src/components/app/AppSidebar.vue:229
 msgid "switch back"
 msgstr ""
 
@@ -8328,7 +8497,7 @@ msgstr ""
 msgid "was {n}"
 msgstr ""
 
-#: grunt/frontend/src/components/views/gantt/GanttView.vue:216
+#: grunt/frontend/src/components/views/gantt/GanttView.vue:218
 msgid "wk."
 msgstr ""
 
@@ -8349,7 +8518,7 @@ msgstr ""
 msgid "yes"
 msgstr ""
 
-#: grunt/frontend/src/pages/DeskPage.vue:201
+#: grunt/frontend/src/pages/DeskPage.vue:194
 msgid "{apps} apps · {docs} documents in the system"
 msgstr ""
 
@@ -8365,7 +8534,7 @@ msgstr ""
 msgid "{n} API responses"
 msgstr ""
 
-#: grunt/frontend/src/core/composables/useLinkField.ts:377
+#: grunt/frontend/src/core/composables/useLinkField.ts:335
 msgid "{n} available"
 msgstr ""
 
@@ -8412,11 +8581,11 @@ msgstr ""
 msgid "{n} in {days} days"
 msgstr ""
 
-#: grunt/frontend/src/pages/DeskPage.vue:247
+#: grunt/frontend/src/pages/DeskPage.vue:230
 msgid "{n} installed"
 msgstr ""
 
-#: grunt/frontend/src/components/views/map/MapView.vue:150
+#: grunt/frontend/src/components/views/map/MapView.vue:152
 msgid "{n} marker"
 msgid_plural "{n} markers"
 msgstr[0] ""
@@ -8441,7 +8610,7 @@ msgstr[1] ""
 msgid "{n} of {max}"
 msgstr ""
 
-#: grunt/frontend/src/App.vue:87
+#: grunt/frontend/src/App.vue:88
 msgid "{n} queued"
 msgstr ""
 
@@ -8452,7 +8621,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: grunt/frontend/src/core/io/exporters/htmlExporter.ts:319
-#: grunt/frontend/src/pages/reports/ReportView.vue:187
+#: grunt/frontend/src/pages/reports/ReportView.vue:190
 msgid "{n} records"
 msgstr ""
 
@@ -8476,11 +8645,11 @@ msgstr ""
 msgid "{n} selected"
 msgstr ""
 
-#: grunt/frontend/src/App.vue:97
+#: grunt/frontend/src/App.vue:98
 msgid "{n} unsynced changes"
 msgstr ""
 
-#: grunt/frontend/src/components/views/map/MapView.vue:153
+#: grunt/frontend/src/components/views/map/MapView.vue:155
 msgid "{n} without coordinates"
 msgstr ""
 
@@ -8492,11 +8661,11 @@ msgstr ""
 msgid "{size} of text width"
 msgstr ""
 
-#: grunt/frontend/src/pages/desk/reports/ReportView.vue:78
+#: grunt/frontend/src/pages/desk/reports/ReportView.vue:84
 msgid "{type} report"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:894
+#: grunt/frontend/src/components/files/FileExplorer.vue:892
 msgid "{used} of {quota} used"
 msgstr ""
 
@@ -8529,20 +8698,20 @@ msgstr ""
 msgid "— Select —"
 msgstr ""
 
-#: grunt/frontend/src/pages/studio/builder/sections/AggregateSection.vue:58
+#: grunt/frontend/src/pages/studio/builder/sections/AggregateSection.vue:59
 msgid "— choose a TABLE field —"
 msgstr ""
 
-#: grunt/frontend/src/pages/studio/builder/sections/AggregateSection.vue:16
+#: grunt/frontend/src/pages/studio/builder/sections/AggregateSection.vue:19
 msgid "— no aggregation —"
 msgstr ""
 
-#: grunt/frontend/src/pages/studio/builder/sections/ValidationSection.vue:26
-#: grunt/frontend/src/pages/studio/builder/sections/ValidationSection.vue:53
+#: grunt/frontend/src/pages/studio/builder/sections/ValidationSection.vue:28
+#: grunt/frontend/src/pages/studio/builder/sections/ValidationSection.vue:56
 msgid "— not set —"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/Select/Select.vue:91
+#: grunt/frontend/src/components/fields/Select/Select.vue:92
 #: grunt/frontend/src/components/fields/MultiSelect/MultiSelect.vue:46
 msgid "— select —"
 msgstr ""

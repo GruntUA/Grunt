@@ -41,10 +41,10 @@ msgstr "Зберегти"
 #: grunt/frontend/src/components/dashboard/widgets/Donut/Donut.vue:101
 #: grunt/frontend/src/components/dashboard/widgets/Chart/Chart.vue:198
 #: grunt/frontend/src/components/dashboard/widgets/Funnel/Funnel.vue:60
-#: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:132
-#: grunt/frontend/src/pages/reports/ReportView.vue:235
-#: grunt/frontend/src/pages/reports/ReportView.vue:260
-#: grunt/frontend/src/pages/desk/reports/ReportView.vue:112
+#: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:134
+#: grunt/frontend/src/pages/reports/ReportView.vue:236
+#: grunt/frontend/src/pages/reports/ReportView.vue:261
+#: grunt/frontend/src/pages/desk/reports/ReportView.vue:118
 msgid "No data"
 msgstr "Немає даних"
 
@@ -73,46 +73,48 @@ msgstr "Так"
 msgid "No"
 msgstr "Ні"
 
-#: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:278
+#: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:262
 #: grunt/frontend/src/components/fields/Link/FilterInput.vue:228
-#: grunt/frontend/src/components/fields/Link/Link.vue:102
+#: grunt/frontend/src/components/fields/Link/Link.vue:120
 msgid "Search {doctype}…"
 msgstr "Пошук {doctype}…"
 
 #: grunt/frontend/src/components/fields/Link/FilterInput.vue:183
 #: grunt/frontend/src/components/fields/Link/FilterInput.vue:206
-#: grunt/frontend/src/components/fields/Link/Link.vue:78
+#: grunt/frontend/src/components/fields/Link/Link.vue:82
 msgid "Select {doctype}…"
 msgstr "Оберіть {doctype}…"
 
-#: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:353
-#: grunt/frontend/src/components/fields/Link/Link.vue:196
+#: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:299
+#: grunt/frontend/src/components/fields/Link/Link.vue:178
 msgid "Nothing found for “{query}”"
 msgstr "Нічого не знайдено за запитом «{query}»"
 
-#: grunt/frontend/src/components/fields/Link/Link.vue:230
+#: grunt/frontend/src/components/fields/Link/Link.vue:199
 msgid "Filter:"
 msgstr "Фільтр:"
 
 #: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue:340
-#: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue:183
+#: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue:177
 #: grunt/frontend/src/components/fields/Link/FilterInput.vue:213
 #: grunt/frontend/src/components/fields/Link/FilterInput.vue:214
-#: grunt/frontend/src/components/fields/Link/Link.vue:141
-#: grunt/frontend/src/components/fields/Link/Link.vue:142
-#: grunt/frontend/src/components/fields/Color/Color.vue:73
-#: grunt/frontend/src/components/fields/Select/Select.vue:111
-#: grunt/frontend/src/components/fields/Signature/Signature.vue:186
-#: grunt/frontend/src/components/fields/Signature/Signature.vue:241
-#: grunt/frontend/src/components/fields/Icon/Icon.vue:167
+#: grunt/frontend/src/components/fields/Link/Link.vue:145
+#: grunt/frontend/src/components/fields/Link/Link.vue:146
+#: grunt/frontend/src/components/fields/Color/Color.vue:76
+#: grunt/frontend/src/components/fields/Select/Select.vue:114
+#: grunt/frontend/src/components/fields/Signature/Signature.vue:183
+#: grunt/frontend/src/components/fields/Signature/Signature.vue:228
+#: grunt/frontend/src/components/fields/Icon/Icon.vue:118
+#: grunt/frontend/src/components/fields/Icon/Icon.vue:162
 msgid "Clear"
 msgstr "Очистити"
 
-#: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:256
+#: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:219
+#: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:258
 msgid "Remove {item}"
 msgstr "Прибрати {item}"
 
-#: grunt/frontend/src/components/fields/Select/Select.vue:91
+#: grunt/frontend/src/components/fields/Select/Select.vue:92
 #: grunt/frontend/src/components/fields/MultiSelect/MultiSelect.vue:46
 msgid "— select —"
 msgstr "— оберіть —"
@@ -125,7 +127,7 @@ msgstr "Оцінити на {n}"
 msgid "{n} of {max}"
 msgstr "{n} з {max}"
 
-#: grunt/frontend/src/components/fields/Color/Color.vue:55
+#: grunt/frontend/src/components/fields/Color/Color.vue:56
 msgid "Pick a colour"
 msgstr "Обрати колір"
 
@@ -137,7 +139,7 @@ msgstr "Сховати"
 msgid "Show"
 msgstr "Показати"
 
-#: grunt/frontend/src/components/fields/Password/Password.vue:92
+#: grunt/frontend/src/components/fields/Password/Password.vue:93
 msgid "Caps Lock is on"
 msgstr "Увімкнено Caps Lock"
 
@@ -191,35 +193,34 @@ msgstr "Відкрити на мапі"
 msgid "Coordinates out of range"
 msgstr "Координати поза діапазоном"
 
-#: grunt/frontend/src/components/fields/Icon/Icon.vue:104
+#: grunt/frontend/src/components/fields/Icon/Icon.vue:105
 msgid "Choose an icon…"
 msgstr "Обрати іконку…"
 
-#: grunt/frontend/src/components/fields/Icon/Icon.vue:117
-#: grunt/frontend/src/components/fields/Icon/Icon.vue:118
+#: grunt/frontend/src/components/fields/Icon/Icon.vue:116
 msgid "Search icon…"
 msgstr "Пошук іконки…"
 
 #: grunt/frontend/src/components/DocTypeCombobox.vue:59
-#: grunt/frontend/src/components/desk/GruntDialog.vue:331
+#: grunt/frontend/src/components/desk/GruntDialog.vue:359
 #: grunt/frontend/src/components/ui/multi-select/MultiSelect.vue:113
 #: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue:372
 #: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue:422
-#: grunt/frontend/src/components/views/form/DocLinksDialog.vue:103
-#: grunt/frontend/src/components/views/list/QuickFilterSettingsDialog.vue:103
+#: grunt/frontend/src/components/views/form/DocLinksDialog.vue:107
+#: grunt/frontend/src/components/views/list/QuickFilterSettingsDialog.vue:104
 #: grunt/frontend/src/components/views/list/ListToolbarControls.vue:187
-#: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue:177
+#: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue:171
 #: grunt/frontend/src/components/fields/Link/FilterInput.vue:232
-#: grunt/frontend/src/components/fields/Icon/Icon.vue:132
+#: grunt/frontend/src/components/fields/Icon/Icon.vue:129
 #: grunt/frontend/src/components/fields/RichText/ui/SlashMenu.vue:45
 msgid "Nothing found"
 msgstr "Нічого не знайдено"
 
-#: grunt/frontend/src/components/fields/Icon/Icon.vue:152
+#: grunt/frontend/src/components/fields/Icon/Icon.vue:146
 msgid "Showing first {n} results"
 msgstr "Показано перші {n} результатів"
 
-#: grunt/frontend/src/components/fields/Icon/Icon.vue:155
+#: grunt/frontend/src/components/fields/Icon/Icon.vue:149
 msgid "Type to search {n} icons"
 msgstr "Введіть назву для пошуку по {n} іконках"
 
@@ -227,52 +228,51 @@ msgstr "Введіть назву для пошуку по {n} іконках"
 msgid "Point the camera at a barcode or QR code"
 msgstr "Наведіть камеру на штрих-код або QR-код"
 
-#: grunt/frontend/src/components/fields/Attach/Attach.vue:35
-#: grunt/frontend/src/components/fields/Attach/Attach.vue:59
+#: grunt/frontend/src/components/fields/Attach/Attach.vue:36
+#: grunt/frontend/src/components/fields/Attach/Attach.vue:60
 msgid "Attach a file…"
 msgstr "Прикріпити файл…"
 
-#: grunt/frontend/src/components/fields/Image/Image.vue:34
-#: grunt/frontend/src/components/fields/Image/Image.vue:49
+#: grunt/frontend/src/components/fields/Image/Image.vue:35
+#: grunt/frontend/src/components/fields/Image/Image.vue:50
 msgid "Attach an image…"
 msgstr "Прикріпити зображення…"
 
-#: grunt/frontend/src/components/fields/Attach/Attach.vue:65
-#: grunt/frontend/src/components/fields/Attach/Attach.vue:66
+#: grunt/frontend/src/components/fields/Attach/Attach.vue:69
+#: grunt/frontend/src/components/fields/Attach/Attach.vue:70
 msgid "Replace file"
 msgstr "Замінити файл"
 
 #: grunt/frontend/src/components/views/sidebar/SidebarImage.vue:117
-#: grunt/frontend/src/components/fields/Image/Image.vue:34
+#: grunt/frontend/src/components/fields/Image/Image.vue:35
 #: grunt/frontend/src/components/fields/RichText/ui/ImageBubble.vue:112
 msgid "Replace image"
 msgstr "Замінити зображення"
 
-#: grunt/frontend/src/components/fields/Attach/Attach.vue:76
-#: grunt/frontend/src/components/fields/Attach/Attach.vue:77
-#: grunt/frontend/src/components/fields/Image/Image.vue:55
-#: grunt/frontend/src/components/fields/Image/Image.vue:56
+#: grunt/frontend/src/components/fields/Attach/Attach.vue:82
+#: grunt/frontend/src/components/fields/Attach/Attach.vue:83
+#: grunt/frontend/src/components/fields/Image/Image.vue:59
+#: grunt/frontend/src/components/fields/Image/Image.vue:60
 msgid "Remove attachment"
 msgstr "Видалити вкладення"
 
-#: grunt/frontend/src/components/fields/Signature/Signature.vue:168
+#: grunt/frontend/src/components/fields/Signature/Signature.vue:169
 msgid "Not signed"
 msgstr "Не підписано"
 
-#: grunt/frontend/src/components/fields/Signature/Signature.vue:223
+#: grunt/frontend/src/components/fields/Signature/Signature.vue:220
 msgid "Sign here"
 msgstr "Підпишіть тут"
 
 #: grunt/frontend/src/components/desk/OnboardingChecklists.vue:118
 #: grunt/frontend/src/components/desk/OnboardingChecklists.vue:124
-#: grunt/frontend/src/components/fields/Signature/Signature.vue:229
-#: grunt/frontend/src/components/fields/Signature/Signature.vue:230
+#: grunt/frontend/src/components/fields/Signature/Signature.vue:224
 #: grunt/frontend/src/components/fields/Table/Table.vue:223
 #: grunt/frontend/src/components/fields/RichText/editor/commands.ts:69
 msgid "Undo"
 msgstr "Відмінити"
 
-#: grunt/frontend/src/components/fields/Code/Code.vue:135
+#: grunt/frontend/src/components/fields/Code/Code.vue:132
 msgid "Format"
 msgstr "Форматувати"
 
@@ -304,7 +304,7 @@ msgstr "За замовчуванням"
 #: grunt/frontend/src/components/fields/RichText/ui/FontMenus.vue:32
 #: grunt/frontend/src/components/fields/RichText/ui/FontMenus.vue:44
 #: grunt/frontend/src/components/fields/RichText/ui/ImageBubble.vue:79
-#: grunt/frontend/src/pages/app/AppPage.vue:277
+#: grunt/frontend/src/pages/app/AppPage.vue:281
 msgid "Auto"
 msgstr "Авто"
 
@@ -426,7 +426,7 @@ msgstr "Вертикальний текст, знизу догори"
 #: grunt/frontend/src/components/fields/RichText/editor/useRichEditor.ts:73
 #: grunt/frontend/src/components/fields/RichText/ui/EditorContextMenu.vue:163
 #: grunt/frontend/src/components/fields/RichText/ui/InsertMenu.vue:93
-#: grunt/frontend/src/pages/reports/ReportView.vue:195
+#: grunt/frontend/src/pages/reports/ReportView.vue:199
 #: grunt/frontend/src/pages/studio/builder/DesignerTab.vue:67
 msgid "Table"
 msgstr "Таблиця"
@@ -508,7 +508,7 @@ msgstr "— Не імпортувати —"
 msgid "Show first rows of the file ({n})"
 msgstr "Показати перші рядки файлу ({n})"
 
-#: grunt/frontend/src/core/composables/useLinkField.ts:377
+#: grunt/frontend/src/core/composables/useLinkField.ts:335
 msgid "{n} available"
 msgstr "{n} доступних"
 
@@ -2543,17 +2543,17 @@ msgstr "Список через кому: usb, nfc, ble, internal, hybrid"
 msgid "Access denied"
 msgstr "Доступ заборонено"
 
-#: grunt/frontend/src/components/layout/CommandPalette.vue:96
 #: grunt/frontend/src/components/layout/CommandPalette.vue:97
-#: grunt/frontend/src/components/layout/CommandPalette.vue:100
+#: grunt/frontend/src/components/layout/CommandPalette.vue:98
 #: grunt/frontend/src/components/layout/CommandPalette.vue:101
-#: grunt/frontend/src/components/views/list/ListTreePanel.vue:420
+#: grunt/frontend/src/components/layout/CommandPalette.vue:102
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:417
 #: grunt/frontend/src/components/views/actions/ActionMenu.vue:52
 msgid "Actions"
 msgstr "Дії"
 
 #: grunt/grunt/metadata/doctypes/DocType/global_form.js:130
-#: grunt/frontend/src/components/layout/CommandPalette.vue:99
+#: grunt/frontend/src/components/layout/CommandPalette.vue:100
 msgid "Activity log"
 msgstr "Журнал активності"
 
@@ -2571,16 +2571,17 @@ msgstr "Додати фільтр"
 msgid "Add row"
 msgstr "Додати рядок"
 
-#: grunt/frontend/src/components/dashboard/sections/AggregationSection.vue:25
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:310
+#: grunt/frontend/src/components/dashboard/sections/AggregationSection.vue:27
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:314
+#: grunt/frontend/src/pages/studio/builder/sections/AggregateSection.vue:39
 msgid "Aggregation"
 msgstr "Агрегація"
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:272
+#: grunt/frontend/src/components/views/form/FormHeader.vue:270
 msgid "Anyone with the link can view this document"
 msgstr "Будь-хто з посиланням може переглядати цей документ"
 
-#: grunt/frontend/src/components/views/BulkActionBar.vue:347
+#: grunt/frontend/src/components/views/BulkActionBar.vue:344
 msgid "Apply"
 msgstr "Застосувати"
 
@@ -2592,8 +2593,8 @@ msgstr "Застосувати фільтри"
 msgid "Apply to"
 msgstr "Застосувати до"
 
-#: grunt/frontend/src/components/app/AppSidebar.vue:100
-#: grunt/frontend/src/components/layout/CommandPalette.vue:159
+#: grunt/frontend/src/components/app/AppSidebar.vue:101
+#: grunt/frontend/src/components/layout/CommandPalette.vue:160
 msgid "Apps"
 msgstr "Додатки"
 
@@ -2609,8 +2610,8 @@ msgstr "Прикріпити файл"
 msgid "Attach an image"
 msgstr "Прикріпити зображення"
 
-#: grunt/frontend/src/components/dashboard/sections/AggregationSection.vue:15
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:109
+#: grunt/frontend/src/components/dashboard/sections/AggregationSection.vue:17
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:117
 msgid "Average (AVG)"
 msgstr "Середнє (AVG)"
 
@@ -2618,7 +2619,7 @@ msgstr "Середнє (AVG)"
 msgid "Barcode not found in image."
 msgstr "На зображенні не знайдено штрихкоду."
 
-#: grunt/frontend/src/components/views/BulkActionBar.vue:313
+#: grunt/frontend/src/components/views/BulkActionBar.vue:310
 #: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:152
 msgid "Bulk Update"
 msgstr "Масове оновлення"
@@ -2639,25 +2640,25 @@ msgid "Camera unavailable."
 msgstr "Камера недоступна."
 
 #: grunt/grunt/actions/builtin.py:148
-#: grunt/frontend/src/components/desk/GruntDialog.vue:450
-#: grunt/frontend/src/components/desk/GruntDialog.vue:454
-#: grunt/frontend/src/components/desk/GruntDialog.vue:471
-#: grunt/frontend/src/components/desk/GruntDialog.vue:482
+#: grunt/frontend/src/components/desk/GruntDialog.vue:225
+#: grunt/frontend/src/components/desk/GruntDialog.vue:435
+#: grunt/frontend/src/components/desk/GruntDialog.vue:452
+#: grunt/frontend/src/components/desk/GruntDialog.vue:465
 #: grunt/frontend/src/components/views/QuickEntryDialog.vue:147
-#: grunt/frontend/src/components/views/BulkActionBar.vue:274
-#: grunt/frontend/src/components/views/BulkActionBar.vue:300
-#: grunt/frontend/src/components/views/BulkActionBar.vue:344
+#: grunt/frontend/src/components/views/BulkActionBar.vue:271
+#: grunt/frontend/src/components/views/BulkActionBar.vue:297
+#: grunt/frontend/src/components/views/BulkActionBar.vue:341
 #: grunt/frontend/src/components/views/FilterBar.vue:344
 #: grunt/frontend/src/components/files/CameraCapture.vue:136
 #: grunt/frontend/src/components/files/FolderPickerDialog.vue:44
-#: grunt/frontend/src/components/files/FileExplorer.vue:749
+#: grunt/frontend/src/components/files/FileExplorer.vue:750
 #: grunt/frontend/src/components/files/FileExplorer.vue:877
 #: grunt/frontend/src/components/workflow/WorkflowActionDialog.vue:105
 #: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:545
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue:347
-#: grunt/frontend/src/components/views/form/FormModals.vue:138
-#: grunt/frontend/src/components/views/form/FormHeader.vue:287
-#: grunt/frontend/src/components/views/form/FormHeader.vue:333
+#: grunt/frontend/src/components/views/form/FormModals.vue:139
+#: grunt/frontend/src/components/views/form/FormHeader.vue:279
+#: grunt/frontend/src/components/views/form/FormHeader.vue:319
 msgid "Cancel"
 msgstr "Скасувати"
 
@@ -2672,12 +2673,13 @@ msgstr "Перевірте форму на помилки"
 msgid "Clear Filters"
 msgstr "Скинути фільтри"
 
+#: grunt/frontend/src/components/views/BulkActionBar.vue:218
 #: grunt/frontend/src/components/fields/Table/Table.vue:486
 msgid "Clear selection"
 msgstr "Зняти виділення"
 
-#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:323
-#: grunt/frontend/src/components/dashboard/sections/ColorSection.vue:13
+#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:326
+#: grunt/frontend/src/components/dashboard/sections/ColorSection.vue:14
 msgid "Color"
 msgstr "Колір"
 
@@ -2686,16 +2688,16 @@ msgid "Column"
 msgstr "Колонка"
 
 #: grunt/frontend/src/components/dashboard/WidgetCard.vue:39
-#: grunt/frontend/src/pages/app/AppPage.vue:289
-#: grunt/frontend/src/pages/app/AppPage.vue:336
+#: grunt/frontend/src/pages/app/AppPage.vue:291
+#: grunt/frontend/src/pages/app/AppPage.vue:329
 msgid "Configure"
 msgstr "Налаштувати"
 
-#: grunt/frontend/src/components/views/BulkActionBar.vue:232
+#: grunt/frontend/src/components/views/BulkActionBar.vue:229
 msgid "Confirm Deletion"
 msgstr "Підтвердьте видалення"
 
-#: grunt/frontend/src/components/dashboard/sections/TextContentSection.vue:12
+#: grunt/frontend/src/components/dashboard/sections/TextContentSection.vue:15
 msgid "Content (HTML/text)"
 msgstr "Вміст (HTML/текст)"
 
@@ -2704,32 +2706,33 @@ msgid "Conversion:"
 msgstr "Конверсія:"
 
 #: grunt/frontend/src/core/composables/useToast.ts:17
-#: grunt/frontend/src/components/desk/GruntDialog.vue:364
+#: grunt/frontend/src/components/desk/GruntDialog.vue:283
 #: grunt/frontend/src/components/debug/ServerErrorModal.vue:72
-#: grunt/frontend/src/components/files/FileExplorer.vue:710
-#: grunt/frontend/src/components/views/form/FormHeader.vue:369
+#: grunt/frontend/src/components/files/FileExplorer.vue:711
+#: grunt/frontend/src/components/views/form/FormHeader.vue:291
+#: grunt/frontend/src/components/views/form/FormHeader.vue:355
 #: grunt/frontend/src/components/fields/RichText/ui/EditorContextMenu.vue:113
-#: grunt/frontend/src/pages/app/AppPage.vue:489
+#: grunt/frontend/src/pages/app/AppPage.vue:475
 msgid "Copy"
 msgstr "Копіювати"
 
-#: grunt/frontend/src/components/dashboard/sections/AggregationSection.vue:13
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:108
+#: grunt/frontend/src/components/dashboard/sections/AggregationSection.vue:15
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:116
 msgid "Count (COUNT)"
 msgstr "Кількість (COUNT)"
 
 #: grunt/frontend/src/components/desk/OnboardingChecklists.vue:49
 #: grunt/frontend/src/components/layout/OfflineQueueSheet.vue:24
-#: grunt/frontend/src/components/files/FileExplorer.vue:688
-#: grunt/frontend/src/components/fields/Link/Link.vue:218
+#: grunt/frontend/src/components/files/FileExplorer.vue:689
+#: grunt/frontend/src/components/fields/Link/Link.vue:188
 msgid "Create"
 msgstr "Створити"
 
-#: grunt/frontend/src/components/fields/Link/Link.vue:222
+#: grunt/frontend/src/components/fields/Link/Link.vue:191
 msgid "Create new"
 msgstr "Створити новий"
 
-#: grunt/frontend/src/components/layout/CommandPalette.vue:97
+#: grunt/frontend/src/components/layout/CommandPalette.vue:98
 msgid "Create new DocType"
 msgstr "Створити новий DocType"
 
@@ -2745,29 +2748,29 @@ msgstr "Налаштувати швидкі фільтри"
 msgid "Data source"
 msgstr "Джерело даних"
 
-#: grunt/frontend/src/components/dashboard/sections/DateRangeSection.vue:19
+#: grunt/frontend/src/components/dashboard/sections/DateRangeSection.vue:22
 msgid "Date field"
 msgstr "Поле дати"
 
 #: grunt/grunt/auth/doctypes/User/User.js:187
 #: grunt/grunt/metadata/doctypes/DocType/global_form.js:182
 #: grunt/grunt/metadata/doctypes/DocType/global_list.js:98
-#: grunt/frontend/src/components/views/BulkActionBar.vue:276
-#: grunt/frontend/src/components/views/BulkActionBar.vue:303
-#: grunt/frontend/src/components/dashboard/WidgetConfigPanel.vue:77
-#: grunt/frontend/src/components/dashboard/WidgetCard.vue:48
-#: grunt/frontend/src/components/files/FileExplorer.vue:723
+#: grunt/frontend/src/components/views/BulkActionBar.vue:273
+#: grunt/frontend/src/components/views/BulkActionBar.vue:300
+#: grunt/frontend/src/components/dashboard/WidgetConfigPanel.vue:78
+#: grunt/frontend/src/components/dashboard/WidgetCard.vue:42
+#: grunt/frontend/src/components/files/FileExplorer.vue:724
 #: grunt/frontend/src/components/files/FileExplorer.vue:878
 #: grunt/frontend/src/components/dashboard/sections/FiltersSection.vue:82
-#: grunt/frontend/src/components/views/form/FormModals.vue:140
-#: grunt/frontend/src/components/views/list/ListTreePanel.vue:433
+#: grunt/frontend/src/components/views/form/FormModals.vue:141
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:430
 #: grunt/frontend/src/components/fields/Table/Table.vue:484
 #: grunt/frontend/src/components/fields/RichText/editor/commands.ts:98
 #: grunt/frontend/src/components/fields/RichText/ui/BlockHandle.vue:71
 msgid "Delete"
 msgstr "Видалити"
 
-#: grunt/frontend/src/components/views/form/FormModals.vue:86
+#: grunt/frontend/src/components/views/form/FormModals.vue:87
 msgid "Delete document?"
 msgstr "Видалити документ?"
 
@@ -2786,7 +2789,7 @@ msgstr "Видалено"
 msgid "Description (optional)"
 msgstr "Опис (необов'язково)"
 
-#: grunt/frontend/src/components/layout/NotificationsPopover.vue:180
+#: grunt/frontend/src/components/layout/NotificationsPopover.vue:169
 msgid "Disable"
 msgstr "Вимкнути"
 
@@ -2794,7 +2797,7 @@ msgstr "Вимкнути"
 msgid "Discard changes"
 msgstr "Скасувати зміни"
 
-#: grunt/frontend/src/components/dashboard/sections/ShortcutTargetSection.vue:15
+#: grunt/frontend/src/components/dashboard/sections/ShortcutTargetSection.vue:16
 msgid "DocType (list)"
 msgstr "DocType (список)"
 
@@ -2802,7 +2805,7 @@ msgstr "DocType (список)"
 msgid "DocType aggregate"
 msgstr "Агрегат DocType"
 
-#: grunt/frontend/src/components/layout/CommandPalette.vue:173
+#: grunt/frontend/src/components/layout/CommandPalette.vue:174
 msgid "DocTypes"
 msgstr "DocType-и"
 
@@ -2810,14 +2813,14 @@ msgstr "DocType-и"
 msgid "Document renamed"
 msgstr "Документ перейменовано"
 
-#: grunt/frontend/src/components/layout/CommandPalette.vue:191
+#: grunt/frontend/src/components/layout/CommandPalette.vue:192
 msgid "Documents"
 msgstr "Документи"
 
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:170
-#: grunt/frontend/src/components/views/form/FormHeader.vue:312
-#: grunt/frontend/src/components/views/form/FormHeader.vue:461
-#: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue:185
+#: grunt/frontend/src/components/views/form/FormHeader.vue:302
+#: grunt/frontend/src/components/views/form/FormHeader.vue:447
+#: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue:179
 msgid "Done"
 msgstr "Готово"
 
@@ -2847,7 +2850,7 @@ msgstr "Редагувати"
 msgid "Edit DocType"
 msgstr "Редагувати DocType"
 
-#: grunt/frontend/src/components/layout/NotificationsPopover.vue:180
+#: grunt/frontend/src/components/layout/NotificationsPopover.vue:169
 msgid "Enable"
 msgstr "Увімкнути"
 
@@ -2855,20 +2858,20 @@ msgstr "Увімкнути"
 msgid "Error: {msg}"
 msgstr "Помилка: {msg}"
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:279
+#: grunt/frontend/src/components/views/form/FormHeader.vue:275
 msgid "Expires at"
 msgstr "Діє до"
 
-#: grunt/frontend/src/components/dashboard/sections/ShortcutTargetSection.vue:18
+#: grunt/frontend/src/components/dashboard/sections/ShortcutTargetSection.vue:19
 msgid "External URL"
 msgstr "Зовнішній URL"
 
 #: grunt/grunt/api/v1/docs/utils.py:90
 #: grunt/frontend/src/components/views/FilterBar.vue:256
-#: grunt/frontend/src/components/dashboard/sections/AggregationSection.vue:41
+#: grunt/frontend/src/components/dashboard/sections/AggregationSection.vue:43
 #: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:226
-#: grunt/frontend/src/components/views/list/ListHeader.vue:128
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:346
+#: grunt/frontend/src/components/views/list/ListHeader.vue:131
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:350
 msgid "Field"
 msgstr "Поле"
 
@@ -2891,26 +2894,26 @@ msgstr "Фільтр"
 msgid "Filter by DocType"
 msgstr "Фільтр за DocType"
 
-#: grunt/frontend/src/components/dashboard/sections/WidthSection.vue:14
+#: grunt/frontend/src/components/dashboard/sections/WidthSection.vue:15
 msgid "Full"
 msgstr "Повна"
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:290
+#: grunt/frontend/src/components/views/form/FormHeader.vue:282
 msgid "Generate link"
 msgstr "Згенерувати посилання"
 
-#: grunt/frontend/src/components/layout/CommandPalette.vue:171
+#: grunt/frontend/src/components/layout/CommandPalette.vue:172
 msgid "Go to list {label}"
 msgstr "Перейти до списку {label}"
 
-#: grunt/frontend/src/components/dashboard/sections/GroupBySection.vue:13
+#: grunt/frontend/src/components/dashboard/sections/GroupBySection.vue:16
 #: grunt/frontend/src/components/views/list/ListToolbarControls.vue:149
 msgid "Group by"
 msgstr "Групувати за"
 
 #: grunt/frontend/src/router/index.ts:191
-#: grunt/frontend/src/components/app/AppSidebar.vue:116
-#: grunt/frontend/src/components/mobile/MobileBottomNav.vue:76
+#: grunt/frontend/src/components/app/AppSidebar.vue:117
+#: grunt/frontend/src/components/mobile/MobileBottomNav.vue:78
 msgid "Home"
 msgstr "Головна"
 
@@ -2934,15 +2937,15 @@ msgstr "Вставити рядок нижче"
 msgid "Invalid format"
 msgstr "Неправильний формат"
 
-#: grunt/frontend/src/components/views/form/FormModals.vue:155
+#: grunt/frontend/src/components/views/form/FormModals.vue:156
 msgid "Leave"
 msgstr "Піти"
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:307
+#: grunt/frontend/src/components/views/form/FormHeader.vue:297
 msgid "Link copied to clipboard when you click the copy button."
 msgstr "Посилання копіюється в буфер обміну натисканням кнопки копіювання."
 
-#: grunt/frontend/src/components/dashboard/sections/ShortcutTargetSection.vue:70
+#: grunt/frontend/src/components/dashboard/sections/ShortcutTargetSection.vue:71
 msgid "Link type"
 msgstr "Тип посилання"
 
@@ -2955,30 +2958,31 @@ msgstr "Посилання {n}"
 msgid "Links"
 msgstr "Зв'язки"
 
-#: grunt/frontend/src/components/views/tree/TreeView.vue:153
+#: grunt/frontend/src/components/views/tree/TreeView.vue:154
 msgid "Load error"
 msgstr "Помилка завантаження"
 
-#: grunt/frontend/src/components/app/AppSidebar.vue:310
-#: grunt/frontend/src/components/layout/CommandPalette.vue:101
+#: grunt/frontend/src/components/app/AppSidebar.vue:309
+#: grunt/frontend/src/components/layout/CommandPalette.vue:102
 msgid "Log out"
 msgstr "Вийти"
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:308
+#: grunt/frontend/src/components/views/form/FormHeader.vue:298
 msgid "Manage shares"
 msgstr "Керувати доступом"
 
-#: grunt/frontend/src/components/layout/NotificationsPopover.vue:124
+#: grunt/frontend/src/components/layout/NotificationsPopover.vue:112
 msgid "Mark all as read"
 msgstr "Позначити все як прочитане"
 
-#: grunt/frontend/src/components/layout/NotificationsPopover.vue:162
+#: grunt/frontend/src/components/layout/NotificationsPopover.vue:150
 msgid "Mark as read"
 msgstr "Позначити як прочитане"
 
-#: grunt/frontend/src/components/dashboard/sections/GaugeRangeSection.vue:25
-#: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:83
+#: grunt/frontend/src/components/dashboard/sections/GaugeRangeSection.vue:29
+#: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:85
 #: grunt/frontend/src/components/fields/Table/useTableCell.ts:75
+#: grunt/frontend/src/pages/studio/builder/sections/NumberSection.vue:29
 msgid "Max"
 msgstr "Макс."
 
@@ -2986,18 +2990,19 @@ msgstr "Макс."
 msgid "Max length"
 msgstr "Макс. довжина"
 
-#: grunt/frontend/src/components/dashboard/sections/AggregationSection.vue:17
+#: grunt/frontend/src/components/dashboard/sections/AggregationSection.vue:19
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:225
 msgid "Maximum"
 msgstr "Максимум"
 
-#: grunt/frontend/src/components/dashboard/sections/GaugeRangeSection.vue:16
-#: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:83
+#: grunt/frontend/src/components/dashboard/sections/GaugeRangeSection.vue:19
+#: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:85
 #: grunt/frontend/src/components/fields/Table/useTableCell.ts:74
+#: grunt/frontend/src/pages/studio/builder/sections/NumberSection.vue:20
 msgid "Min"
 msgstr "Мін."
 
-#: grunt/frontend/src/components/dashboard/sections/AggregationSection.vue:16
+#: grunt/frontend/src/components/dashboard/sections/AggregationSection.vue:18
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:224
 msgid "Minimum"
 msgstr "Мінімум"
@@ -3010,7 +3015,7 @@ msgstr "Має бути числом"
 #: grunt/frontend/src/core/composables/useFormValidation.ts:111
 #: grunt/frontend/src/core/composables/useFormValidation.ts:134
 #: grunt/frontend/src/components/files/FileExplorer.vue:787
-#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:318
+#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:321
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:246
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:263
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:297
@@ -3023,21 +3028,21 @@ msgstr "Назва"
 #: grunt/frontend/src/components/app/AppBreadcrumb.vue:85
 #: grunt/frontend/src/components/dashboard/sections/TilesSection.vue:32
 #: grunt/frontend/src/components/dashboard/sections/LinksSection.vue:29
-#: grunt/frontend/src/pages/app/AppPage.vue:190
+#: grunt/frontend/src/pages/app/AppPage.vue:199
 #: grunt/frontend/src/pages/desk/DocTypeForm.vue:101
 msgid "New"
 msgstr "Новий"
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:325
+#: grunt/frontend/src/components/views/form/FormHeader.vue:315
 msgid "New ID"
 msgstr "Новий ID"
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:311
+#: grunt/frontend/src/components/views/form/FormHeader.vue:301
 msgid "New link"
 msgstr "Нове посилання"
 
 #: grunt/frontend/src/core/composables/useNotifications.ts:74
-#: grunt/frontend/src/components/layout/NotificationsPopover.vue:35
+#: grunt/frontend/src/components/layout/NotificationsPopover.vue:36
 msgid "New notification"
 msgstr "Нове сповіщення"
 
@@ -3046,18 +3051,18 @@ msgid "No fields available"
 msgstr "Немає доступних полів"
 
 #: grunt/frontend/src/components/dashboard/sections/LinksSection.vue:53
-#: grunt/frontend/src/components/dashboard/widgets/Links/Links.vue:54
+#: grunt/frontend/src/components/dashboard/widgets/Links/Links.vue:56
 msgid "No links"
 msgstr "Немає посилань"
 
-#: grunt/frontend/src/components/layout/NotificationsPopover.vue:134
+#: grunt/frontend/src/components/layout/NotificationsPopover.vue:122
 msgid "No notifications"
 msgstr "Немає сповіщень"
 
 #: grunt/frontend/src/components/dashboard/widgets/List/List.vue:51
-#: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:354
+#: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:300
 #: grunt/frontend/src/components/fields/Link/FilterInput.vue:233
-#: grunt/frontend/src/components/fields/Link/Link.vue:197
+#: grunt/frontend/src/components/fields/Link/Link.vue:179
 msgid "No records"
 msgstr "Немає записів"
 
@@ -3065,7 +3070,7 @@ msgstr "Немає записів"
 msgid "No rows"
 msgstr "Немає рядків"
 
-#: grunt/frontend/src/components/dashboard/widgets/ShortcutsGrid/ShortcutsGrid.vue:60
+#: grunt/frontend/src/components/dashboard/widgets/ShortcutsGrid/ShortcutsGrid.vue:66
 msgid "No tiles"
 msgstr "Немає плиток"
 
@@ -3073,33 +3078,35 @@ msgstr "Немає плиток"
 msgid "No tiles — click «Add»"
 msgstr "Немає плиток — натисніть «Додати»"
 
-#: grunt/frontend/src/components/dashboard/sections/DescriptionSection.vue:10
+#: grunt/frontend/src/components/dashboard/sections/DescriptionSection.vue:12
 #: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:132
 msgid "Note"
 msgstr "Примітка"
 
-#: grunt/frontend/src/components/layout/CommandPalette.vue:312
+#: grunt/frontend/src/components/layout/CommandPalette.vue:313
 #: grunt/frontend/src/pages/app/SearchResultsPage.vue:172
 msgid "Nothing found for"
 msgstr "Нічого не знайдено за запитом"
 
-#: grunt/frontend/src/components/layout/NotificationsPopover.vue:103
-#: grunt/frontend/src/components/layout/NotificationsPopover.vue:117
-#: grunt/frontend/src/components/dashboard/MyWorkPanel.vue:69
+#: grunt/frontend/src/components/layout/NotificationsPopover.vue:92
+#: grunt/frontend/src/components/layout/NotificationsPopover.vue:94
+#: grunt/frontend/src/components/layout/NotificationsPopover.vue:105
+#: grunt/frontend/src/components/dashboard/MyWorkPanel.vue:71
 msgid "Notifications"
 msgstr "Сповіщення"
 
-#: grunt/frontend/src/components/fields/Link/Link.vue:86
-#: grunt/frontend/src/components/fields/Link/Link.vue:132
+#: grunt/frontend/src/components/fields/Link/Link.vue:90
+#: grunt/frontend/src/components/fields/Link/Link.vue:135
+#: grunt/frontend/src/components/fields/Link/Link.vue:136
 msgid "Open {doctype}"
 msgstr "Відкрити {doctype}"
 
-#: grunt/frontend/src/components/layout/CommandPalette.vue:211
-#: grunt/frontend/src/pages/studio/builder/PropertiesPanel.vue:80
+#: grunt/frontend/src/components/layout/CommandPalette.vue:212
+#: grunt/frontend/src/pages/studio/builder/PropertiesPanel.vue:82
 msgid "Other"
 msgstr "Інше"
 
-#: grunt/frontend/src/components/dashboard/sections/ShortcutTargetSection.vue:17
+#: grunt/frontend/src/components/dashboard/sections/ShortcutTargetSection.vue:18
 msgid "Page"
 msgstr "Сторінка"
 
@@ -3109,7 +3116,7 @@ msgstr "Сторінка"
 msgid "Page not found"
 msgstr "Сторінку не знайдено"
 
-#: grunt/frontend/src/components/dashboard/sections/DateRangeSection.vue:28
+#: grunt/frontend/src/components/dashboard/sections/DateRangeSection.vue:32
 msgid "Period"
 msgstr "Період"
 
@@ -3117,20 +3124,20 @@ msgstr "Період"
 msgid "Preset name"
 msgstr "Назва пресету"
 
-#: grunt/frontend/src/components/layout/NotificationsPopover.vue:173
+#: grunt/frontend/src/components/layout/NotificationsPopover.vue:162
 msgid "Push notifications disabled"
 msgstr "Push-сповіщення вимкнено"
 
-#: grunt/frontend/src/components/layout/NotificationsPopover.vue:173
+#: grunt/frontend/src/components/layout/NotificationsPopover.vue:162
 msgid "Push notifications enabled"
 msgstr "Push-сповіщення увімкнено"
 
-#: grunt/frontend/src/components/layout/CommandPalette.vue:298
+#: grunt/frontend/src/components/layout/CommandPalette.vue:299
 msgid "Quick actions"
 msgstr "Швидкі дії"
 
-#: grunt/frontend/src/components/layout/CommandPalette.vue:96
-#: grunt/frontend/src/components/layout/CommandPalette.vue:288
+#: grunt/frontend/src/components/layout/CommandPalette.vue:97
+#: grunt/frontend/src/components/layout/CommandPalette.vue:289
 msgid "Quick create"
 msgstr "Швидке створення"
 
@@ -3139,45 +3146,45 @@ msgstr "Швидке створення"
 #: grunt/grunt/metadata/doctypes/DocType/global_form.js:41
 #: grunt/grunt/metadata/doctypes/DocType/global_list.js:34
 #: grunt/frontend/src/components/dashboard/ActivityStream.vue:105
-#: grunt/frontend/src/components/files/FileExplorer.vue:673
-#: grunt/frontend/src/pages/app/AppPage.vue:295
-#: grunt/frontend/src/pages/reports/ReportView.vue:209
-#: grunt/frontend/src/pages/desk/reports/ReportView.vue:83
+#: grunt/frontend/src/components/files/FileExplorer.vue:674
+#: grunt/frontend/src/pages/app/AppPage.vue:294
+#: grunt/frontend/src/pages/reports/ReportView.vue:210
+#: grunt/frontend/src/pages/desk/reports/ReportView.vue:89
 msgid "Refresh"
 msgstr "Оновити"
 
 #: grunt/grunt/metadata/doctypes/DocType/global_form.js:172
-#: grunt/frontend/src/components/files/FileExplorer.vue:718
-#: grunt/frontend/src/components/views/form/FormHeader.vue:336
+#: grunt/frontend/src/components/files/FileExplorer.vue:719
+#: grunt/frontend/src/components/views/form/FormHeader.vue:322
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:263
-#: grunt/frontend/src/components/views/list/ListTreePanel.vue:427
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:424
 msgid "Rename"
 msgstr "Перейменувати"
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:322
+#: grunt/frontend/src/components/views/form/FormHeader.vue:312
 msgid "Rename document"
 msgstr "Перейменувати документ"
 
 #: grunt/frontend/src/components/dashboard/sections/TilesSection.vue:90
-#: grunt/frontend/src/components/dashboard/sections/ShortcutTargetSection.vue:16
+#: grunt/frontend/src/components/dashboard/sections/ShortcutTargetSection.vue:17
 #: grunt/frontend/src/components/dashboard/sections/LinksSection.vue:78
 msgid "Report"
 msgstr "Звіт"
 
 #: grunt/frontend/src/components/fields/Table/useTableCell.ts:59
-#: grunt/frontend/src/pages/studio/builder/webform/WebFormFieldPropertiesPanel.vue:44
+#: grunt/frontend/src/pages/studio/builder/webform/WebFormFieldPropertiesPanel.vue:45
 msgid "Required"
 msgstr "Обов'язкове"
 
 #: grunt/grunt/email/templates/password_reset.html:54
 #: grunt/frontend/src/router/index.ts:188
 #: grunt/frontend/src/router/index.ts:189
-#: grunt/frontend/src/pages/auth/ForgotPassword.vue:42
+#: grunt/frontend/src/pages/auth/ForgotPassword.vue:45
 msgid "Reset password"
 msgstr "Скинути пароль"
 
 #: grunt/frontend/src/components/layout/OfflineQueueSheet.vue:92
-#: grunt/frontend/src/components/views/tree/TreeView.vue:290
+#: grunt/frontend/src/components/views/tree/TreeView.vue:287
 msgid "Retry"
 msgstr "Повторити"
 
@@ -3192,10 +3199,10 @@ msgstr "Рядок видалено"
 #: grunt/grunt/metadata/doctypes/DocType/global_form.js:28
 #: grunt/frontend/src/components/views/QuickEntryDialog.vue:161
 #: grunt/frontend/src/components/files/CameraCapture.vue:133
-#: grunt/frontend/src/components/views/list/QuickFilterSettingsDialog.vue:113
+#: grunt/frontend/src/components/views/list/QuickFilterSettingsDialog.vue:114
 #: grunt/frontend/src/components/fields/Table/TableRowSheet.vue:110
-#: grunt/frontend/src/pages/app/AppPage.vue:376
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:517
+#: grunt/frontend/src/pages/app/AppPage.vue:361
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:516
 msgid "Save"
 msgstr "Зберегти"
 
@@ -3213,7 +3220,7 @@ msgstr "Зберегти як пресет"
 
 #: grunt/frontend/src/core/composables/useFormSave.ts:225
 #: grunt/frontend/src/components/views/QuickEntryDialog.vue:112
-#: grunt/frontend/src/pages/app/AppPage.vue:156
+#: grunt/frontend/src/pages/app/AppPage.vue:165
 msgid "Save error"
 msgstr "Помилка збереження"
 
@@ -3247,41 +3254,41 @@ msgid "Scanning is not supported in this browser. Use image upload."
 msgstr "Сканування не підтримується в цьому браузері. Завантажте зображення."
 
 #: grunt/frontend/src/router/index.ts:196
-#: grunt/frontend/src/components/app/AppSidebar.vue:125
+#: grunt/frontend/src/components/app/AppSidebar.vue:126
 msgid "Search"
 msgstr "Пошук"
 
-#: grunt/frontend/src/pages/DeskPage.vue:195
-#: grunt/frontend/src/components/layout/CommandPalette.vue:269
+#: grunt/frontend/src/pages/DeskPage.vue:189
 #: grunt/frontend/src/components/layout/CommandPalette.vue:270
-#: grunt/frontend/src/components/layout/CommandPalette.vue:276
+#: grunt/frontend/src/components/layout/CommandPalette.vue:271
+#: grunt/frontend/src/components/layout/CommandPalette.vue:277
 msgid "Search documents, apps or actions..."
 msgstr "Пошук документів, додатків або дій..."
 
-#: grunt/frontend/src/components/dashboard/sections/ShortcutTargetSection.vue:89
+#: grunt/frontend/src/components/dashboard/sections/ShortcutTargetSection.vue:90
 msgid "Search {dt}..."
 msgstr "Пошук: {dt}..."
 
-#: grunt/frontend/src/components/app/AppSidebar.vue:127
+#: grunt/frontend/src/components/app/AppSidebar.vue:128
 #: grunt/frontend/src/components/views/DocTypeToolbar.vue:88
-#: grunt/frontend/src/components/views/form/DocLinksDialog.vue:81
-#: grunt/frontend/src/components/views/list/QuickFilterSettingsDialog.vue:84
+#: grunt/frontend/src/components/views/form/DocLinksDialog.vue:82
+#: grunt/frontend/src/components/views/list/QuickFilterSettingsDialog.vue:85
 msgid "Search..."
 msgstr "Пошук..."
 
-#: grunt/frontend/src/components/layout/CommandPalette.vue:285
-#: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:352
+#: grunt/frontend/src/components/layout/CommandPalette.vue:286
+#: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:298
 #: grunt/frontend/src/components/fields/Link/FilterInput.vue:231
-#: grunt/frontend/src/components/fields/Link/Link.vue:195
+#: grunt/frontend/src/components/fields/Link/Link.vue:177
 #: grunt/frontend/src/pages/app/SearchResultsPage.vue:159
 msgid "Searching..."
 msgstr "Пошук..."
 
-#: grunt/frontend/src/components/layout/CommandPalette.vue:276
+#: grunt/frontend/src/components/layout/CommandPalette.vue:277
 msgid "Select DocType to create a new record"
 msgstr "Оберіть DocType, щоб створити новий запис"
 
-#: grunt/frontend/src/components/dashboard/WidgetConfigPanel.vue:70
+#: grunt/frontend/src/components/dashboard/WidgetConfigPanel.vue:71
 msgid "Select a widget on the canvas or add a new one from the palette"
 msgstr "Оберіть віджет на полотні або додайте новий з палітри"
 
@@ -3289,7 +3296,7 @@ msgstr "Оберіть віджет на полотні або додайте н
 msgid "Select all"
 msgstr "Виділити все"
 
-#: grunt/frontend/src/components/views/BulkActionBar.vue:324
+#: grunt/frontend/src/components/views/BulkActionBar.vue:321
 msgid "Select field..."
 msgstr "Оберіть поле..."
 
@@ -3302,7 +3309,7 @@ msgstr "Виділити рядок"
 msgid "Select value"
 msgstr "Оберіть значення"
 
-#: grunt/frontend/src/components/desk/GruntDialog.vue:339
+#: grunt/frontend/src/components/desk/GruntDialog.vue:366
 #: grunt/frontend/src/components/fields/Table/Table.vue:443
 msgid "Selected:"
 msgstr "Вибрано:"
@@ -3311,15 +3318,16 @@ msgstr "Вибрано:"
 msgid "Set value"
 msgstr "Встановити значення"
 
-#: grunt/frontend/src/components/app/AppSidebar.vue:194
-#: grunt/frontend/src/components/layout/CommandPalette.vue:98
+#: grunt/frontend/src/components/app/AppSidebar.vue:195
 #: grunt/frontend/src/components/layout/CommandPalette.vue:99
-#: grunt/frontend/src/components/dashboard/WidgetConfigPanel.vue:75
+#: grunt/frontend/src/components/layout/CommandPalette.vue:100
+#: grunt/frontend/src/components/dashboard/WidgetConfigPanel.vue:76
 msgid "Settings"
 msgstr "Налаштування"
 
 #: grunt/grunt/metadata/doctypes/DocType/global_form.js:150
-#: grunt/frontend/src/components/views/form/FormHeader.vue:271
+#: grunt/frontend/src/components/views/form/FormHeader.vue:269
+#: grunt/frontend/src/components/views/form/FormHeader.vue:289
 msgid "Share link"
 msgstr "Поділитися посиланням"
 
@@ -3327,14 +3335,14 @@ msgstr "Поділитися посиланням"
 #: grunt/grunt/email/templates/email_login.html:61
 #: grunt/grunt/website/templates/_navbar.html:17
 #: grunt/grunt/website/www/login.py:11 grunt/frontend/src/router/index.ts:186
-#: grunt/frontend/src/pages/auth/Login.vue:57
-#: grunt/frontend/src/pages/auth/Login.vue:452
+#: grunt/frontend/src/pages/auth/Login.vue:61
+#: grunt/frontend/src/pages/auth/Login.vue:458
 msgid "Sign in"
 msgstr "Увійти"
 
 #: grunt/grunt/website/www/signup.py:11 grunt/frontend/src/router/index.ts:187
-#: grunt/frontend/src/pages/auth/Login.vue:57
-#: grunt/frontend/src/pages/auth/Login.vue:456
+#: grunt/frontend/src/pages/auth/Login.vue:61
+#: grunt/frontend/src/pages/auth/Login.vue:462
 msgid "Sign up"
 msgstr "Зареєструватися"
 
@@ -3346,15 +3354,15 @@ msgstr "Зареєструватися"
 msgid "Size"
 msgstr "Розмір"
 
-#: grunt/frontend/src/components/views/tree/TreeView.vue:270
+#: grunt/frontend/src/components/views/tree/TreeView.vue:268
 msgid "Sort by"
 msgstr "Сортувати за"
 
-#: grunt/frontend/src/components/views/tree/TreeView.vue:276
+#: grunt/frontend/src/components/views/tree/TreeView.vue:273
 msgid "Sort order"
 msgstr "Порядок сортування"
 
-#: grunt/frontend/src/components/views/form/FormModals.vue:154
+#: grunt/frontend/src/components/views/form/FormModals.vue:155
 msgid "Stay"
 msgstr "Залишитися"
 
@@ -3362,20 +3370,20 @@ msgstr "Залишитися"
 msgid "Stop"
 msgstr "Зупинити"
 
-#: grunt/frontend/src/components/dashboard/sections/DescriptionSection.vue:10
+#: grunt/frontend/src/components/dashboard/sections/DescriptionSection.vue:12
 msgid "Subtitle"
 msgstr "Підзаголовок"
 
-#: grunt/frontend/src/components/dashboard/sections/AggregationSection.vue:14
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:107
+#: grunt/frontend/src/components/dashboard/sections/AggregationSection.vue:16
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:115
 msgid "Sum (SUM)"
 msgstr "Сума (SUM)"
 
-#: grunt/frontend/src/components/layout/CommandPalette.vue:100
+#: grunt/frontend/src/components/layout/CommandPalette.vue:101
 msgid "System settings"
 msgstr "Налаштування системи"
 
-#: grunt/frontend/src/components/dashboard/sections/ShortcutTargetSection.vue:85
+#: grunt/frontend/src/components/dashboard/sections/ShortcutTargetSection.vue:86
 msgid "Target"
 msgstr "Ціль"
 
@@ -3383,7 +3391,7 @@ msgstr "Ціль"
 msgid "Tile {n}"
 msgstr "Плитка {n}"
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:728
+#: grunt/frontend/src/components/files/FileExplorer.vue:729
 #: grunt/frontend/src/components/dashboard/sections/TilesSection.vue:49
 msgid "Tiles"
 msgstr "Плитки"
@@ -3391,7 +3399,7 @@ msgstr "Плитки"
 #: grunt/grunt/actions/builtin.py:193
 #: grunt/frontend/src/components/dashboard/sections/TilesSection.vue:71
 #: grunt/frontend/src/components/dashboard/sections/LinksSection.vue:85
-#: grunt/frontend/src/components/dashboard/sections/TitleSection.vue:12
+#: grunt/frontend/src/components/dashboard/sections/TitleSection.vue:15
 msgid "Title"
 msgstr "Заголовок"
 
@@ -3399,7 +3407,7 @@ msgstr "Заголовок"
 msgid "Two-factor authentication"
 msgstr "Двофакторна автентифікація"
 
-#: grunt/frontend/src/components/dashboard/WidgetConfigPanel.vue:85
+#: grunt/frontend/src/components/dashboard/WidgetConfigPanel.vue:86
 #: grunt/frontend/src/components/files/FileExplorer.vue:789
 msgid "Type"
 msgstr "Тип"
@@ -3409,11 +3417,11 @@ msgstr "Тип"
 msgid "URL or name..."
 msgstr "URL або назва..."
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:242
+#: grunt/frontend/src/components/views/form/FormHeader.vue:245
 msgid "Unsaved"
 msgstr "Не збережено"
 
-#: grunt/frontend/src/components/views/form/FormModals.vue:150
+#: grunt/frontend/src/components/views/form/FormModals.vue:151
 msgid "Unsaved changes"
 msgstr "Незбережені зміни"
 
@@ -3432,20 +3440,20 @@ msgstr "Завантажити зображення зі штрихкодом"
 msgid "View"
 msgstr "Переглянути"
 
-#: grunt/frontend/src/components/layout/CommandPalette.vue:98
+#: grunt/frontend/src/components/layout/CommandPalette.vue:99
 msgid "View hooks"
 msgstr "Переглянути хуки"
 
-#: grunt/frontend/src/components/dashboard/sections/TitleSection.vue:15
+#: grunt/frontend/src/components/dashboard/sections/TitleSection.vue:19
 msgid "Widget title"
 msgstr "Заголовок віджета"
 
-#: grunt/frontend/src/components/dashboard/sections/WidthSection.vue:20
+#: grunt/frontend/src/components/dashboard/sections/WidthSection.vue:21
 msgid "Width"
 msgstr "Ширина"
 
 #: grunt/frontend/src/components/dashboard/sections/ActivityFilterSection.vue:18
-#: grunt/frontend/src/components/views/form/FormHeader.vue:279
+#: grunt/frontend/src/components/views/form/FormHeader.vue:275
 msgid "optional"
 msgstr "необов'язково"
 
@@ -3505,12 +3513,12 @@ msgstr "JSON: {\"doctype_field\": \"payload.path.to.value\"}"
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
 msgctxt "hint:EmailAccount.email_address"
 msgid "ivan.petrenko@gmail.com"
-msgstr ""
+msgstr "ivan.petrenko@gmail.com"
 
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
 msgctxt "hint:EmailAccount.smtp_password"
 msgid "xxxx xxxx xxxx xxxx"
-msgstr ""
+msgstr "xxxx xxxx xxxx xxxx"
 
 #: grunt/grunt/auth/doctypes/ApiKey/ApiKey.json
 msgctxt "meta:ApiKey"
@@ -3630,7 +3638,7 @@ msgstr "Канбан"
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 msgctxt "meta:EmailMessage.body_html"
 msgid "HTML"
-msgstr ""
+msgstr "HTML"
 
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 msgctxt "meta:EmailMessage.message_id"
@@ -3640,7 +3648,7 @@ msgstr "Message-ID"
 #: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
 msgctxt "meta:EmailQueue.is_html"
 msgid "HTML"
-msgstr ""
+msgstr "HTML"
 
 #: grunt/grunt/monitoring/doctypes/ErrorLog/ErrorLog.json
 msgctxt "meta:ErrorLog.request_id"
@@ -3850,7 +3858,7 @@ msgstr "За спаданням"
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
 msgctxt "select:EmailAccount.provider"
 msgid "Gmail"
-msgstr ""
+msgstr "Gmail"
 
 #: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
 msgctxt "select:EmailQueue.status"
@@ -4316,14 +4324,17 @@ msgstr "Рядок"
 
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:103
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.js:101
-#: grunt/frontend/src/components/desk/GruntDialog.vue:468
+#: grunt/frontend/src/components/pwa/PWAInstallPrompt.vue:109
+#: grunt/frontend/src/components/pwa/PWAInstallPrompt.vue:131
+#: grunt/frontend/src/components/desk/GruntDialog.vue:449
 #: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue:428
 #: grunt/frontend/src/components/views/form/FormTour.vue:137
 #: grunt/frontend/src/components/fields/Table/TableRowSheet.vue:108
 msgid "Close"
 msgstr "Закрити"
 
-#: grunt/frontend/src/components/dashboard/sections/GaugeRangeSection.vue:13
+#: grunt/frontend/src/components/dashboard/sections/GaugeRangeSection.vue:16
+#: grunt/frontend/src/pages/studio/builder/sections/NumberSection.vue:17
 msgid "Range"
 msgstr "Діапазон"
 
@@ -4385,17 +4396,17 @@ msgstr ""
 #: grunt/grunt/backups/doctypes/Backup/Backup.json
 msgctxt "meta:Backup.config_url"
 msgid "config_url"
-msgstr ""
+msgstr "Конфігурація (посилання)"
 
 #: grunt/grunt/backups/doctypes/Backup/Backup.json
 msgctxt "meta:Backup.database_url"
 msgid "database_url"
-msgstr ""
+msgstr "База даних (посилання)"
 
 #: grunt/grunt/backups/doctypes/Backup/Backup.json
 msgctxt "meta:Backup.files_url"
 msgid "files_url"
-msgstr ""
+msgstr "Файли (посилання)"
 
 #: grunt/grunt/reports/doctypes/Report/Report.json
 msgctxt "meta:Report.conditions"
@@ -4511,7 +4522,7 @@ msgid "Excel (.xlsx)"
 msgstr "Excel (.xlsx)"
 
 #: grunt/grunt/metadata/doctypes/DocType/global_list.js:108
-#: grunt/frontend/src/components/views/BulkActionBar.vue:286
+#: grunt/frontend/src/components/views/BulkActionBar.vue:283
 msgid "Fast delete"
 msgstr "Швидке видалення"
 
@@ -4536,13 +4547,14 @@ msgstr "PDF"
 #: grunt/grunt/metadata/doctypes/DocType/global_form.js:54
 #: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:357
 #: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:361
-#: grunt/frontend/src/components/views/map/MapView.vue:205
+#: grunt/frontend/src/components/views/map/MapView.vue:203
+#: grunt/frontend/src/pages/app/AppPage.vue:299
 msgid "Print"
 msgstr "Друк"
 
 #: grunt/frontend/src/core/scripting/executor.ts:900
 msgid "text"
-msgstr ""
+msgstr "текст"
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgctxt "meta:DocType.public_attachments"
@@ -4754,7 +4766,7 @@ msgstr "Джерело даних недоступне"
 
 #: grunt/frontend/src/core/io/exporters/htmlExporter.ts:323
 #: grunt/frontend/src/components/dashboard/sections/FiltersSection.vue:72
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:403
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:407
 msgid "Filters"
 msgstr "Фільтри"
 
@@ -4835,68 +4847,68 @@ msgctxt "select:Language.script"
 msgid "Other"
 msgstr "Інше"
 
-#: grunt/frontend/src/pages/studio/builder/sections/OptionsSection.vue:47
+#: grunt/frontend/src/pages/studio/builder/sections/OptionsSection.vue:51
 msgid "Translatable"
 msgstr "Перекладається"
 
-#: grunt/frontend/src/pages/studio/builder/sections/OptionsSection.vue:49
+#: grunt/frontend/src/pages/studio/builder/sections/OptionsSection.vue:52
 msgid "Option captions are translated; stored values stay unchanged."
 msgstr "Підписи опцій перекладаються; збережені значення не змінюються."
 
-#: grunt/frontend/src/pages/DeskPage.vue:171
-#: grunt/frontend/src/components/app/AppSidebar.vue:261
+#: grunt/frontend/src/pages/DeskPage.vue:167
+#: grunt/frontend/src/components/app/AppSidebar.vue:260
 msgid "Open my profile"
 msgstr "Відкрити мій профіль"
 
-#: grunt/frontend/src/pages/DeskPage.vue:141
-#: grunt/frontend/src/components/app/AppSidebar.vue:276
+#: grunt/frontend/src/pages/DeskPage.vue:137
+#: grunt/frontend/src/components/app/AppSidebar.vue:275
 msgid "Theme"
 msgstr "Тема"
 
-#: grunt/frontend/src/pages/DeskPage.vue:149
-#: grunt/frontend/src/components/app/AppSidebar.vue:280
+#: grunt/frontend/src/pages/DeskPage.vue:145
+#: grunt/frontend/src/components/app/AppSidebar.vue:279
 msgid "Light"
 msgstr "Світла"
 
-#: grunt/frontend/src/pages/DeskPage.vue:153
-#: grunt/frontend/src/components/app/AppSidebar.vue:284
+#: grunt/frontend/src/pages/DeskPage.vue:149
+#: grunt/frontend/src/components/app/AppSidebar.vue:283
 msgid "Dark"
 msgstr "Темна"
 
-#: grunt/grunt/email/tasks.py:185 grunt/frontend/src/pages/DeskPage.vue:157
-#: grunt/frontend/src/components/app/AppSidebar.vue:288
+#: grunt/grunt/email/tasks.py:185 grunt/frontend/src/pages/DeskPage.vue:153
+#: grunt/frontend/src/components/app/AppSidebar.vue:287
 msgid "System"
 msgstr "Системна"
 
-#: grunt/frontend/src/components/app/AppSidebar.vue:292
+#: grunt/frontend/src/components/app/AppSidebar.vue:291
 msgid "Language"
 msgstr "Мова"
 
-#: grunt/frontend/src/components/app/AppSidebar.vue:302
+#: grunt/frontend/src/components/app/AppSidebar.vue:301
 msgid "Clear cache"
 msgstr "Очистити кеш"
 
-#: grunt/frontend/src/components/app/AppSidebar.vue:300
+#: grunt/frontend/src/components/app/AppSidebar.vue:299
 msgid ""
 "Reload translations, menus and schemas; your settings and drafts are kept"
 msgstr ""
 "Перезавантажити переклади, меню й схеми; ваші налаштування та чернетки "
 "збережуться"
 
-#: grunt/frontend/src/components/app/AppSidebar.vue:235
-#: grunt/frontend/src/components/app/AppSidebar.vue:306
+#: grunt/frontend/src/components/app/AppSidebar.vue:234
+#: grunt/frontend/src/components/app/AppSidebar.vue:305
 msgid "Back to my account"
 msgstr "Повернутися до свого облікового запису"
 
-#: grunt/frontend/src/components/app/AppSidebar.vue:57
+#: grunt/frontend/src/components/app/AppSidebar.vue:58
 msgid "Emails"
 msgstr "Листи (e-mail)"
 
-#: grunt/frontend/src/components/app/AppSidebar.vue:58
+#: grunt/frontend/src/components/app/AppSidebar.vue:59
 msgid "Email settings"
 msgstr "Пошта — налаштування"
 
-#: grunt/frontend/src/components/app/AppSidebar.vue:136
+#: grunt/frontend/src/components/app/AppSidebar.vue:137
 msgid "Overview"
 msgstr "Огляд"
 
@@ -4924,7 +4936,7 @@ msgstr "Наступна сторінка"
 msgid "Last page"
 msgstr "Остання сторінка"
 
-#: grunt/frontend/src/components/views/gantt/GanttView.vue:398
+#: grunt/frontend/src/components/views/gantt/GanttView.vue:400
 msgid "Gantt chart"
 msgstr "Діаграма Ганта"
 
@@ -4959,15 +4971,16 @@ msgstr "Активність"
 
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:353
 #: grunt/frontend/src/components/views/list/ListToolbarControls.vue:102
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:274
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:281
+#: grunt/frontend/src/pages/studio/builder/CanvasSection.vue:140
 msgid "Columns"
 msgstr "Колонки"
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:50
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:58
 msgid "Donut"
 msgstr "Кільцева"
 
-#: grunt/frontend/src/components/views/BulkActionBar.vue:332
+#: grunt/frontend/src/components/views/BulkActionBar.vue:329
 msgid "New value"
 msgstr "Нове значення"
 
@@ -4979,111 +4992,111 @@ msgstr "Відновити"
 #: grunt/grunt/reports/engine.py:435
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:281
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:607
-#: grunt/frontend/src/pages/reports/ReportView.vue:280
+#: grunt/frontend/src/pages/reports/ReportView.vue:283
 msgid "Total"
 msgstr "Разом"
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:351
+#: grunt/frontend/src/components/views/form/FormHeader.vue:337
 msgid "Table info"
 msgstr "Інформація про таблицю"
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:153
+#: grunt/frontend/src/components/views/form/FormHeader.vue:156
 msgid "Compact database (VACUUM)"
 msgstr "Стиснути базу даних (VACUUM)"
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:154
+#: grunt/frontend/src/components/views/form/FormHeader.vue:157
 msgid "Optimize table"
 msgstr "Оптимізувати таблицю"
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:166
+#: grunt/frontend/src/components/views/form/FormHeader.vue:169
 msgid "B"
 msgstr "Б"
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:167
+#: grunt/frontend/src/components/views/form/FormHeader.vue:170
 msgid "KB"
 msgstr "КБ"
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:167
+#: grunt/frontend/src/components/views/form/FormHeader.vue:170
 msgid "MB"
 msgstr "МБ"
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:167
+#: grunt/frontend/src/components/views/form/FormHeader.vue:170
 msgid "GB"
 msgstr "ГБ"
 
 #: grunt/grunt/monitoring/health.py:75
 #: grunt/frontend/src/core/browserHealth.ts:55
-#: grunt/frontend/src/components/views/form/FormHeader.vue:167
+#: grunt/frontend/src/components/views/form/FormHeader.vue:170
 msgid "TB"
 msgstr "ТБ"
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:352
+#: grunt/frontend/src/components/views/form/FormHeader.vue:338
 msgid "Physical storage of this document type"
 msgstr "Фізичне сховище цього типу документа"
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:366
+#: grunt/frontend/src/components/views/form/FormHeader.vue:352
 msgid "Table name"
 msgstr "Назва таблиці"
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:375
+#: grunt/frontend/src/components/views/form/FormHeader.vue:361
 msgid "DBMS"
 msgstr "СКБД"
 
 #: grunt/grunt/api/v1/meta.py:258
-#: grunt/frontend/src/components/views/form/FormHeader.vue:379
+#: grunt/frontend/src/components/views/form/FormHeader.vue:365
 msgid "The table has not been created in the database yet"
 msgstr "Таблиця ще не створена в базі даних"
 
-#: grunt/frontend/src/components/dashboard/sections/AggregationSection.vue:60
-#: grunt/frontend/src/components/views/form/FormHeader.vue:383
+#: grunt/frontend/src/components/dashboard/sections/AggregationSection.vue:64
+#: grunt/frontend/src/components/views/form/FormHeader.vue:369
 msgid "Rows"
 msgstr "Рядків"
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:388
+#: grunt/frontend/src/components/views/form/FormHeader.vue:374
 msgid "Data"
 msgstr "Дані"
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:392
+#: grunt/frontend/src/components/views/form/FormHeader.vue:378
 msgid "Indexes"
 msgstr "Індекси"
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:396
+#: grunt/frontend/src/components/views/form/FormHeader.vue:382
 msgid "Total on disk"
 msgstr "Разом на диску"
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:401
+#: grunt/frontend/src/components/views/form/FormHeader.vue:387
 msgid "Free in the database file"
 msgstr "Вільно у файлі БД"
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:401
+#: grunt/frontend/src/components/views/form/FormHeader.vue:387
 msgid "Reclaimable"
 msgstr "Можна вивільнити"
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:407
+#: grunt/frontend/src/components/views/form/FormHeader.vue:393
 msgid "Size is not available for this database"
 msgstr "Розмір недоступний для цієї бази даних"
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:412
+#: grunt/frontend/src/components/views/form/FormHeader.vue:398
 msgid "Dead rows: {n}"
 msgstr "«Мертвих» рядків: {n}"
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:419
+#: grunt/frontend/src/components/views/form/FormHeader.vue:405
 msgid "Compacting… the database may be locked until it finishes."
 msgstr "Виконується стиснення… база може бути заблокована до завершення."
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:428
+#: grunt/frontend/src/components/views/form/FormHeader.vue:414
 msgid "Freed {size} in the database file"
 msgstr "Звільнено {size} у файлі бази даних"
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:429
+#: grunt/frontend/src/components/views/form/FormHeader.vue:415
 msgid "Freed {size}"
 msgstr "Звільнено {size}"
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:434
+#: grunt/frontend/src/components/views/form/FormHeader.vue:420
 msgid "The table is already compact — nothing to reclaim."
 msgstr "Таблиця вже щільно упакована — вивільняти нічого."
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:440
+#: grunt/frontend/src/components/views/form/FormHeader.vue:426
 msgid ""
 "VACUUM rewrites the whole database file and blocks writes while it runs. "
 "Continue?"
@@ -5091,66 +5104,66 @@ msgstr ""
 "VACUUM перепише весь файл бази даних і на час виконання заблокує запис. "
 "Продовжити?"
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:443
+#: grunt/frontend/src/components/views/form/FormHeader.vue:429
 msgid "This rewrites the table under an exclusive lock. Continue?"
 msgstr "Операція перепише таблицю під ексклюзивним блокуванням. Продовжити?"
 
-#: grunt/frontend/src/components/views/form/FormHeader.vue:448
+#: grunt/frontend/src/components/views/form/FormHeader.vue:434
 msgid "Compact"
 msgstr "Стиснути"
 
-#: grunt/frontend/src/core/renderer/FieldRenderer.vue:143
+#: grunt/frontend/src/core/renderer/FieldRenderer.vue:144
 #: grunt/frontend/src/core/composables/useToast.ts:38
-#: grunt/frontend/src/components/desk/GruntDialog.vue:364
-#: grunt/frontend/src/components/layout/CommandPalette.vue:142
+#: grunt/frontend/src/components/desk/GruntDialog.vue:283
+#: grunt/frontend/src/components/layout/CommandPalette.vue:143
 #: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:201
-#: grunt/frontend/src/components/views/form/FormHeader.vue:460
+#: grunt/frontend/src/components/views/form/FormHeader.vue:446
 msgid "Copied"
 msgstr "Скопійовано"
 
 #: grunt/frontend/src/components/views/BulkActionBar.vue:66
-#: grunt/frontend/src/components/views/form/FormModals.vue:71
+#: grunt/frontend/src/components/views/form/FormModals.vue:72
 msgid "in {doctype}"
 msgstr "у {doctype}"
 
-#: grunt/frontend/src/components/views/BulkActionBar.vue:239
-#: grunt/frontend/src/components/views/form/FormModals.vue:91
+#: grunt/frontend/src/components/views/BulkActionBar.vue:236
+#: grunt/frontend/src/components/views/form/FormModals.vue:92
 msgid "Checking links…"
 msgstr "Перевірка посилань…"
 
-#: grunt/frontend/src/components/views/form/FormModals.vue:96
+#: grunt/frontend/src/components/views/form/FormModals.vue:97
 msgid "Other records link to this document"
 msgstr "На цей документ посилаються інші записи"
 
-#: grunt/frontend/src/components/views/form/FormModals.vue:98
+#: grunt/frontend/src/components/views/form/FormModals.vue:99
 msgid "Choose a replacement or delete without one."
 msgstr "Оберіть, чим їх замінити, або видаліть без заміни."
 
-#: grunt/frontend/src/components/views/BulkActionBar.vue:255
-#: grunt/frontend/src/components/views/form/FormModals.vue:110
+#: grunt/frontend/src/components/views/BulkActionBar.vue:252
+#: grunt/frontend/src/components/views/form/FormModals.vue:111
 msgid "Replace with"
 msgstr "Підставити замість видаленого"
 
-#: grunt/frontend/src/components/views/form/FormModals.vue:117
+#: grunt/frontend/src/components/views/form/FormModals.vue:118
 msgid "Cannot replace with the document being deleted."
 msgstr "Не можна підставити той самий документ, що видаляється."
 
-#: grunt/frontend/src/components/views/BulkActionBar.vue:269
-#: grunt/frontend/src/components/views/form/FormModals.vue:128
+#: grunt/frontend/src/components/views/BulkActionBar.vue:266
+#: grunt/frontend/src/components/views/form/FormModals.vue:129
 msgid "Delete without replacement — {n} links will become invalid."
 msgstr "Видалити без заміни — {n} посилань стануть недійсними."
 
-#: grunt/frontend/src/components/views/form/FormModals.vue:134
+#: grunt/frontend/src/components/views/form/FormModals.vue:135
 msgid "This cannot be undone. All related data will be deleted permanently."
 msgstr ""
 "Цю дію не можна скасувати. Всі пов'язані дані будуть видалені назавжди."
 
-#: grunt/frontend/src/components/views/BulkActionBar.vue:276
-#: grunt/frontend/src/components/views/form/FormModals.vue:140
+#: grunt/frontend/src/components/views/BulkActionBar.vue:273
+#: grunt/frontend/src/components/views/form/FormModals.vue:141
 msgid "Delete and reassign"
 msgstr "Видалити і перепризначити"
 
-#: grunt/frontend/src/components/views/form/FormModals.vue:152
+#: grunt/frontend/src/components/views/form/FormModals.vue:153
 msgid ""
 "You have changes that will be lost if you leave this page. Leave without "
 "saving?"
@@ -5359,23 +5372,23 @@ msgstr "всі {n}"
 msgid "selected"
 msgstr "вибрано"
 
-#: grunt/frontend/src/components/views/BulkActionBar.vue:191
+#: grunt/frontend/src/components/views/BulkActionBar.vue:192
 msgid "Select all {n}"
 msgstr "Вибрати всі {n}"
 
-#: grunt/frontend/src/components/views/BulkActionBar.vue:234
+#: grunt/frontend/src/components/views/BulkActionBar.vue:231
 msgid "You are about to delete {n} records. This cannot be undone."
 msgstr "Ви збираєтесь видалити {n} записів. Цю дію неможливо буде скасувати."
 
-#: grunt/frontend/src/components/views/BulkActionBar.vue:244
+#: grunt/frontend/src/components/views/BulkActionBar.vue:241
 msgid "Other documents link to the selected records"
 msgstr "На виділені записи посилаються інші документи"
 
-#: grunt/frontend/src/components/views/BulkActionBar.vue:263
+#: grunt/frontend/src/components/views/BulkActionBar.vue:260
 msgid "The replacement cannot be one of the records being deleted."
 msgstr "Заміна не може бути одним із записів, що видаляються."
 
-#: grunt/frontend/src/components/views/BulkActionBar.vue:288
+#: grunt/frontend/src/components/views/BulkActionBar.vue:285
 msgid ""
 "Delete {n} records directly via SQL — no lifecycle hooks, no per-record "
 "ActivityLog."
@@ -5383,7 +5396,7 @@ msgstr ""
 "Видалити {n} записів напряму через SQL — без lifecycle-хуків і ActivityLog "
 "для кожного запису."
 
-#: grunt/frontend/src/components/views/BulkActionBar.vue:295
+#: grunt/frontend/src/components/views/BulkActionBar.vue:292
 msgid ""
 "This cannot be undone. before_delete / after_delete hooks do not run. Use "
 "only to bulk-clean test or imported data."
@@ -5391,11 +5404,11 @@ msgstr ""
 "Це незворотна операція. Хуки before_delete / after_delete не виконуються. "
 "Використовуйте лише для масового очищення тестових або імпортованих даних."
 
-#: grunt/frontend/src/components/views/BulkActionBar.vue:321
+#: grunt/frontend/src/components/views/BulkActionBar.vue:318
 msgid "Choose a field"
 msgstr "Оберіть поле"
 
-#: grunt/frontend/src/components/views/BulkActionBar.vue:315
+#: grunt/frontend/src/components/views/BulkActionBar.vue:312
 msgid "This updates the field on all {n} selected records."
 msgstr "Це оновить поле для всіх {n} виділених записів."
 
@@ -5473,7 +5486,7 @@ msgid "Grouping"
 msgstr "Групування"
 
 #: grunt/frontend/src/components/views/list/ListToolbarControls.vue:104
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:374
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:378
 msgid "Sorting"
 msgstr "Сортування"
 
@@ -5490,22 +5503,23 @@ msgstr "Без групування"
 msgid "Search field..."
 msgstr "Пошук поля..."
 
-#: grunt/frontend/src/components/views/list/QuickFilterSettingsDialog.vue:75
+#: grunt/frontend/src/components/views/list/QuickFilterSettingsDialog.vue:76
 msgid "Choose filters"
 msgstr "Обрати фільтри"
 
-#: grunt/frontend/src/components/views/list/QuickFilterSettingsDialog.vue:79
+#: grunt/frontend/src/components/views/list/QuickFilterSettingsDialog.vue:80
 msgid "Personal setting — only for you, on this device."
 msgstr "Особисте налаштування — лише для вас, на цьому пристрої."
 
-#: grunt/frontend/src/components/views/list/QuickFilterSettingsDialog.vue:109
+#: grunt/frontend/src/components/views/list/QuickFilterSettingsDialog.vue:110
 msgid "Reset to defaults"
 msgstr "Скинути до типових"
 
 #: grunt/frontend/src/core/composables/useFormDocumentView.ts:19
 #: grunt/frontend/src/core/composables/useFormDocumentView.ts:29
 #: grunt/frontend/src/components/views/QuickEntryDialog.vue:131
-#: grunt/frontend/src/components/views/form/DocConnections.vue:123
+#: grunt/frontend/src/components/views/form/DocConnections.vue:126
+#: grunt/frontend/src/components/views/form/DocConnections.vue:127
 msgid "New {doctype}"
 msgstr "Новий {doctype}"
 
@@ -5519,15 +5533,15 @@ msgstr "Швидке додавання"
 msgid "more"
 msgstr "ще"
 
-#: grunt/frontend/src/pages/auth/Login.vue:311
+#: grunt/frontend/src/pages/auth/Login.vue:314
 msgid "We sent a sign-in code and link to"
 msgstr "Ми надіслали код і посилання для входу на"
 
-#: grunt/frontend/src/pages/auth/Login.vue:313
+#: grunt/frontend/src/pages/auth/Login.vue:316
 msgid "Enter the code or follow the link in the email."
 msgstr "Введіть код або перейдіть за посиланням із листа."
 
-#: grunt/frontend/src/pages/auth/Login.vue:286
+#: grunt/frontend/src/pages/auth/Login.vue:291
 msgid ""
 "Your account has been created and is awaiting administrator approval. You "
 "can sign in once it is approved."
@@ -5535,31 +5549,31 @@ msgstr ""
 "Ваш акаунт створено та очікує підтвердження адміністратора. Ви зможете "
 "увійти після підтвердження."
 
-#: grunt/frontend/src/pages/auth/Login.vue:374
+#: grunt/frontend/src/pages/auth/Login.vue:384
 msgid "Continue with {provider}"
 msgstr "Продовжити з {provider}"
 
-#: grunt/frontend/src/pages/auth/Login.vue:464
+#: grunt/frontend/src/pages/auth/Login.vue:470
 msgid "By continuing, you agree to our"
 msgstr "Продовжуючи, ви погоджуєтесь з нашими"
 
-#: grunt/frontend/src/pages/auth/Login.vue:465
+#: grunt/frontend/src/pages/auth/Login.vue:471
 msgid "Terms of Service"
 msgstr "Умовами використання"
 
-#: grunt/frontend/src/pages/auth/Login.vue:465
+#: grunt/frontend/src/pages/auth/Login.vue:471
 msgid "and"
 msgstr "та"
 
-#: grunt/frontend/src/pages/auth/Login.vue:465
+#: grunt/frontend/src/pages/auth/Login.vue:471
 msgid "Privacy Policy"
 msgstr "Політикою конфіденційності"
 
-#: grunt/frontend/src/pages/auth/ForgotPassword.vue:50
+#: grunt/frontend/src/pages/auth/ForgotPassword.vue:47
 msgid "If an account with {email} exists, we have sent a password reset link."
 msgstr "Якщо акаунт з {email} існує, ми надіслали посилання для зміни пароля."
 
-#: grunt/frontend/src/pages/auth/MfaVerify.vue:111
+#: grunt/frontend/src/pages/auth/MfaVerify.vue:138
 msgid ""
 "Your role requires two-factor authentication. Scan the QR code in your "
 "authenticator app and enter the 6-digit code."
@@ -5567,11 +5581,11 @@ msgstr ""
 "Ваша роль вимагає двофакторної автентифікації. Відскануйте QR-код у додатку-"
 "автентифікаторі та введіть 6-значний код."
 
-#: grunt/frontend/src/pages/auth/MfaVerify.vue:114
+#: grunt/frontend/src/pages/auth/MfaVerify.vue:139
 msgid "Please enter the 6-digit code from your app or a backup code."
 msgstr "Будь ласка, введіть 6-значний код з вашого додатку або резервний код."
 
-#: grunt/frontend/src/pages/auth/MfaVerify.vue:122
+#: grunt/frontend/src/pages/auth/MfaVerify.vue:115
 msgid ""
 "Each code can be used once if you lose access to your authenticator. They "
 "will not be shown again."
@@ -5579,25 +5593,25 @@ msgstr ""
 "Кожен код можна використати один раз, якщо немає доступу до автентифікатора."
 " Більше вони не показуватимуться."
 
-#: grunt/frontend/src/pages/auth/Login.vue:293
-#: grunt/frontend/src/pages/auth/MfaVerify.vue:168
-#: grunt/frontend/src/pages/auth/ForgotPassword.vue:52
-#: grunt/frontend/src/pages/auth/ForgotPassword.vue:76
+#: grunt/frontend/src/pages/auth/Login.vue:296
+#: grunt/frontend/src/pages/auth/MfaVerify.vue:186
+#: grunt/frontend/src/pages/auth/ForgotPassword.vue:51
+#: grunt/frontend/src/pages/auth/ForgotPassword.vue:71
 msgid "Back to sign in"
 msgstr "Повернутися до входу"
 
 #: grunt/grunt/auth/doctypes/User/User.js:48
-#: grunt/frontend/src/pages/auth/ResetPassword.vue:33
-#: grunt/frontend/src/pages/auth/Login.vue:141
+#: grunt/frontend/src/pages/auth/ResetPassword.vue:36
+#: grunt/frontend/src/pages/auth/Login.vue:145
 msgid "Passwords do not match"
 msgstr "Паролі не збігаються"
 
-#: grunt/frontend/src/pages/auth/ResetPassword.vue:37
-#: grunt/frontend/src/pages/auth/Login.vue:145
+#: grunt/frontend/src/pages/auth/ResetPassword.vue:40
+#: grunt/frontend/src/pages/auth/Login.vue:149
 msgid "Password must be at least 8 characters"
 msgstr "Пароль має бути не менше 8 символів"
 
-#: grunt/frontend/src/pages/auth/Login.vue:26
+#: grunt/frontend/src/pages/auth/Login.vue:30
 msgid ""
 "Your account is registered and awaiting administrator approval. Try signing "
 "in later."
@@ -5605,40 +5619,40 @@ msgstr ""
 "Ваш акаунт зареєстровано та очікує підтвердження адміністратора. Спробуйте "
 "увійти пізніше."
 
-#: grunt/frontend/src/pages/auth/Login.vue:53
+#: grunt/frontend/src/pages/auth/Login.vue:57
 msgid "Create an account"
 msgstr "Створити акаунт"
 
-#: grunt/frontend/src/pages/auth/Login.vue:53
+#: grunt/frontend/src/pages/auth/Login.vue:57
 msgid "Welcome back"
 msgstr "З поверненням"
 
-#: grunt/frontend/src/pages/auth/Login.vue:55
+#: grunt/frontend/src/pages/auth/Login.vue:59
 msgid "Fill in the form to sign up"
 msgstr "Заповніть форму для реєстрації"
 
-#: grunt/frontend/src/pages/auth/Login.vue:55
+#: grunt/frontend/src/pages/auth/Login.vue:59
 msgid "Sign in to your account"
 msgstr "Увійдіть у свій акаунт"
 
 #: grunt/grunt/storage/cloud/oauth.py:213
-#: grunt/frontend/src/pages/auth/Login.vue:103
+#: grunt/frontend/src/pages/auth/Login.vue:107
 msgid "The sign-in link is invalid or expired"
 msgstr "Посилання для входу недійсне або застаріле"
 
-#: grunt/frontend/src/pages/auth/Login.vue:113
+#: grunt/frontend/src/pages/auth/Login.vue:117
 msgid "Could not sign in with the external provider"
 msgstr "Не вдалося увійти через зовнішній провайдер"
 
-#: grunt/frontend/src/pages/auth/Login.vue:170
+#: grunt/frontend/src/pages/auth/Login.vue:174
 msgid "A user with this email already exists"
 msgstr "Користувач з таким email вже існує"
 
-#: grunt/frontend/src/pages/auth/Login.vue:172
+#: grunt/frontend/src/pages/auth/Login.vue:176
 msgid "Invalid email or password"
 msgstr "Невірний email або пароль"
 
-#: grunt/frontend/src/pages/auth/Login.vue:174
+#: grunt/frontend/src/pages/auth/Login.vue:178
 msgid "Too many failed attempts. The account is temporarily locked."
 msgstr "Забагато невдалих спроб. Акаунт тимчасово заблоковано."
 
@@ -5654,106 +5668,106 @@ msgstr "Забагато невдалих спроб. Акаунт тимчас�
 #: grunt/frontend/src/core/composables/useToast.ts:65
 #: grunt/frontend/src/core/composables/useOfflineQueue.ts:146
 #: grunt/frontend/src/core/composables/useFormSave.ts:151
-#: grunt/frontend/src/pages/auth/Login.vue:176
+#: grunt/frontend/src/pages/auth/Login.vue:180
 msgid "Error"
 msgstr "Помилка"
 
-#: grunt/frontend/src/pages/auth/Login.vue:200
+#: grunt/frontend/src/pages/auth/Login.vue:204
 msgid "Could not sign in with the passkey"
 msgstr "Не вдалося увійти за ключем доступу"
 
-#: grunt/frontend/src/pages/auth/Login.vue:212
+#: grunt/frontend/src/pages/auth/Login.vue:216
 msgid "Provider unavailable"
 msgstr "Провайдер недоступний"
 
-#: grunt/frontend/src/pages/auth/Login.vue:221
+#: grunt/frontend/src/pages/auth/Login.vue:225
 msgid "Enter your email address first"
 msgstr "Спершу введіть адресу електронної пошти"
 
-#: grunt/frontend/src/pages/auth/Login.vue:233
+#: grunt/frontend/src/pages/auth/Login.vue:237
 msgid "Could not send the code"
 msgstr "Не вдалося надіслати код"
 
-#: grunt/frontend/src/pages/auth/Login.vue:250
+#: grunt/frontend/src/pages/auth/Login.vue:255
 msgid "Enter the code from the email"
 msgstr "Введіть код з листа"
 
-#: grunt/frontend/src/pages/auth/Login.vue:269
+#: grunt/frontend/src/pages/auth/Login.vue:274
 msgid "Invalid or expired code"
 msgstr "Невірний або застарілий код"
 
-#: grunt/frontend/src/pages/auth/Login.vue:284
+#: grunt/frontend/src/pages/auth/Login.vue:289
 msgid "Request sent"
 msgstr "Заявку надіслано"
 
-#: grunt/frontend/src/pages/auth/Login.vue:316
+#: grunt/frontend/src/pages/auth/Login.vue:319
 msgid "Code from the email"
 msgstr "Код із листа"
 
-#: grunt/frontend/src/components/desk/GruntDialog.vue:451
-#: grunt/frontend/src/components/desk/GruntDialog.vue:483
-#: grunt/frontend/src/pages/auth/Login.vue:338
+#: grunt/frontend/src/components/desk/GruntDialog.vue:226
+#: grunt/frontend/src/components/desk/GruntDialog.vue:466
+#: grunt/frontend/src/pages/auth/Login.vue:348
 msgid "Confirm"
 msgstr "Підтвердити"
 
-#: grunt/frontend/src/pages/auth/Login.vue:342
+#: grunt/frontend/src/pages/auth/Login.vue:352
 msgid "Resend"
 msgstr "Надіслати ще раз"
 
-#: grunt/frontend/src/pages/auth/Login.vue:345
+#: grunt/frontend/src/pages/auth/Login.vue:355
 msgid "Another sign-in method"
 msgstr "Інший спосіб входу"
 
-#: grunt/frontend/src/pages/auth/Login.vue:364
+#: grunt/frontend/src/pages/auth/Login.vue:374
 msgid "Passkey"
 msgstr "Ключ доступу"
 
-#: grunt/frontend/src/pages/auth/Login.vue:386
+#: grunt/frontend/src/pages/auth/Login.vue:396
 msgid "Email me a code"
 msgstr "Надіслати код на пошту"
 
-#: grunt/frontend/src/pages/auth/Login.vue:394
+#: grunt/frontend/src/pages/auth/Login.vue:401
 msgid "or enter your password"
 msgstr "або введіть пароль"
 
-#: grunt/frontend/src/pages/auth/Login.vue:399
+#: grunt/frontend/src/pages/auth/Login.vue:406
 msgid "Full name"
 msgstr "Повне ім'я"
 
-#: grunt/frontend/src/pages/auth/Login.vue:400
+#: grunt/frontend/src/pages/auth/Login.vue:407
 msgid "John Smith"
 msgstr "Іваненко Іван Іванович"
 
 #: grunt/grunt/auth/doctypes/User/user.py:72
-#: grunt/frontend/src/pages/auth/Login.vue:412
+#: grunt/frontend/src/pages/auth/Login.vue:419
 msgid "Password"
 msgstr "Пароль доступу"
 
-#: grunt/frontend/src/pages/auth/Login.vue:418
+#: grunt/frontend/src/pages/auth/Login.vue:425
 msgid "Forgot password?"
 msgstr "Забули пароль?"
 
-#: grunt/frontend/src/pages/auth/Login.vue:426
+#: grunt/frontend/src/pages/auth/Login.vue:433
 msgid "At least 8 characters"
 msgstr "Мінімум 8 символів"
 
-#: grunt/frontend/src/pages/auth/Login.vue:434
+#: grunt/frontend/src/pages/auth/Login.vue:440
 msgid "Repeat password"
 msgstr "Повторіть пароль"
 
-#: grunt/frontend/src/pages/auth/Login.vue:451
+#: grunt/frontend/src/pages/auth/Login.vue:457
 msgid "Already have an account?"
 msgstr "Вже маєте акаунт?"
 
-#: grunt/frontend/src/pages/auth/Login.vue:455
+#: grunt/frontend/src/pages/auth/Login.vue:461
 msgid "No account?"
 msgstr "Немає акаунту?"
 
-#: grunt/frontend/src/pages/auth/ForgotPassword.vue:43
+#: grunt/frontend/src/pages/auth/ForgotPassword.vue:47
 msgid "We will send you a recovery link"
 msgstr "Ми надішлемо вам посилання для відновлення"
 
-#: grunt/frontend/src/pages/auth/ForgotPassword.vue:48
+#: grunt/frontend/src/pages/auth/ForgotPassword.vue:45
 msgid "Check your email"
 msgstr "Перевірте пошту"
 
@@ -5761,86 +5775,87 @@ msgstr "Перевірте пошту"
 msgid "Send link"
 msgstr "Надіслати посилання"
 
-#: grunt/frontend/src/pages/auth/MfaVerify.vue:45
+#: grunt/frontend/src/pages/auth/MfaVerify.vue:53
 msgid "Could not start 2FA setup."
 msgstr "Не вдалося розпочати налаштування 2FA."
 
-#: grunt/frontend/src/pages/auth/MfaVerify.vue:58
-#: grunt/frontend/src/pages/auth/MfaVerify.vue:90
+#: grunt/frontend/src/pages/auth/MfaVerify.vue:66
+#: grunt/frontend/src/pages/auth/MfaVerify.vue:98
 msgid "Invalid code. Try again."
 msgstr "Невірний код. Спробуйте ще раз."
 
-#: grunt/frontend/src/pages/auth/MfaVerify.vue:66
+#: grunt/frontend/src/pages/auth/MfaVerify.vue:74
 msgid "Backup codes copied"
 msgstr "Резервні коди скопійовано"
 
-#: grunt/frontend/src/pages/auth/MfaVerify.vue:84
+#: grunt/frontend/src/pages/auth/MfaVerify.vue:92
 msgid "Welcome!"
 msgstr "Вітаємо в системі!"
 
-#: grunt/frontend/src/pages/auth/MfaVerify.vue:108
+#: grunt/frontend/src/pages/auth/MfaVerify.vue:135
 msgid "2FA setup"
 msgstr "Налаштування 2FA"
 
-#: grunt/frontend/src/pages/auth/MfaVerify.vue:108
+#: grunt/frontend/src/pages/auth/MfaVerify.vue:135
 msgid "Two-factor verification"
 msgstr "Двофакторна перевірка"
 
-#: grunt/frontend/src/pages/auth/MfaVerify.vue:120
+#: grunt/frontend/src/pages/auth/MfaVerify.vue:113
 msgid "2FA is on. Save your backup codes"
 msgstr "2FA увімкнено. Збережіть резервні коди"
 
-#: grunt/frontend/src/pages/auth/MfaVerify.vue:130
+#: grunt/frontend/src/pages/auth/MfaVerify.vue:124
 msgid "Copy codes"
 msgstr "Скопіювати коди"
 
-#: grunt/frontend/src/pages/DeskPage.vue:207
+#: grunt/frontend/src/pages/DeskPage.vue:200
 #: grunt/frontend/src/core/composables/useDialog.ts:261
-#: grunt/frontend/src/pages/auth/MfaVerify.vue:133
+#: grunt/frontend/src/pages/auth/MfaVerify.vue:127
 msgid "Continue"
 msgstr "Продовжити"
 
-#: grunt/frontend/src/pages/auth/MfaVerify.vue:142
+#: grunt/frontend/src/pages/auth/MfaVerify.vue:146
 msgid "Or enter the key manually:"
 msgstr "Або введіть ключ вручну:"
 
-#: grunt/frontend/src/pages/auth/MfaVerify.vue:148
+#: grunt/frontend/src/pages/auth/MfaVerify.vue:154
 msgid "Access code"
 msgstr "Код доступу"
 
-#: grunt/frontend/src/pages/auth/MfaVerify.vue:161
+#: grunt/frontend/src/pages/auth/MfaVerify.vue:180
 msgid "Enable 2FA and sign in"
 msgstr "Увімкнути 2FA та увійти"
 
-#: grunt/frontend/src/pages/auth/MfaVerify.vue:161
+#: grunt/frontend/src/pages/auth/MfaVerify.vue:180
 msgid "Confirm sign-in"
 msgstr "Підтвердити вхід"
 
-#: grunt/frontend/src/pages/auth/ResetPassword.vue:26
+#: grunt/frontend/src/pages/auth/ResetPassword.vue:29
 msgid "Invalid or missing reset token."
 msgstr "Недійсний або відсутній токен скидання."
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:635
+#: grunt/frontend/src/components/ErrorBoundary.vue:34
+#: grunt/frontend/src/components/files/FileExplorer.vue:636
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:333
-#: grunt/frontend/src/pages/auth/ResetPassword.vue:50
+#: grunt/frontend/src/pages/auth/ResetPassword.vue:53
 msgid "Something went wrong"
 msgstr "Щось пішло не так"
 
 #: grunt/grunt/auth/doctypes/User/User.js:41
-#: grunt/frontend/src/pages/auth/ResetPassword.vue:66
+#: grunt/frontend/src/pages/auth/ResetPassword.vue:68
 #: grunt/frontend/src/pages/auth/ResetPassword.vue:79
 msgid "New password"
 msgstr "Новий пароль"
 
-#: grunt/frontend/src/pages/auth/ResetPassword.vue:67
+#: grunt/frontend/src/pages/auth/ResetPassword.vue:70
 msgid "Choose a strong password"
 msgstr "Оберіть надійний пароль"
 
-#: grunt/frontend/src/pages/auth/ResetPassword.vue:72
+#: grunt/frontend/src/pages/auth/ResetPassword.vue:68
 msgid "Password updated!"
 msgstr "Пароль оновлено!"
 
-#: grunt/frontend/src/pages/auth/ResetPassword.vue:73
+#: grunt/frontend/src/pages/auth/ResetPassword.vue:70
 msgid "You can now sign in with your new password."
 msgstr "Тепер ви можете увійти з новим паролем."
 
@@ -5849,11 +5864,11 @@ msgid "Go to sign in"
 msgstr "Перейти до входу"
 
 #: grunt/grunt/auth/doctypes/User/User.js:42
-#: grunt/frontend/src/pages/auth/ResetPassword.vue:85
+#: grunt/frontend/src/pages/auth/ResetPassword.vue:84
 msgid "Confirm password"
 msgstr "Підтвердіть пароль"
 
-#: grunt/frontend/src/pages/auth/ResetPassword.vue:100
+#: grunt/frontend/src/pages/auth/ResetPassword.vue:95
 msgid "Set new password"
 msgstr "Встановити новий пароль"
 
@@ -5900,25 +5915,25 @@ msgstr "{n} год"
 msgid "{n} d"
 msgstr "{n} дн"
 
-#: grunt/frontend/src/pages/DeskPage.vue:183
-#: grunt/frontend/src/components/app/AppSidebar.vue:225
+#: grunt/frontend/src/pages/DeskPage.vue:180
+#: grunt/frontend/src/components/app/AppSidebar.vue:226
 msgid "Viewing as {name}"
 msgstr "Перегляд як {name}"
 
-#: grunt/frontend/src/pages/DeskPage.vue:185
-#: grunt/frontend/src/components/app/AppSidebar.vue:230
+#: grunt/frontend/src/pages/DeskPage.vue:181
+#: grunt/frontend/src/components/app/AppSidebar.vue:229
 msgid "switch back"
 msgstr "повернутися до себе"
 
-#: grunt/frontend/src/pages/DeskPage.vue:201
+#: grunt/frontend/src/pages/DeskPage.vue:194
 msgid "{apps} apps · {docs} documents in the system"
 msgstr "{apps} додатків · {docs} документів у системі"
 
-#: grunt/frontend/src/pages/DeskPage.vue:247
+#: grunt/frontend/src/pages/DeskPage.vue:230
 msgid "{n} installed"
 msgstr "{n} встановлено"
 
-#: grunt/frontend/src/pages/desk/DocTypeList.vue:562
+#: grunt/frontend/src/pages/desk/DocTypeList.vue:563
 msgid "Errors: {n}"
 msgstr "Помилок: {n}"
 
@@ -5956,88 +5971,89 @@ msgstr "{views} переглядів · {viewers} користувачів"
 msgid "Viewed by:"
 msgstr "Переглянули:"
 
-#: grunt/frontend/src/pages/DeskPage.vue:177
+#: grunt/frontend/src/pages/DeskPage.vue:173
 msgid "What are you planning to do today?"
 msgstr "Що плануєте зробити сьогодні?"
 
-#: grunt/frontend/src/pages/DeskPage.vue:245
+#: grunt/frontend/src/pages/DeskPage.vue:228
 msgid "Your apps"
 msgstr "Ваші додатки"
 
-#: grunt/frontend/src/pages/DeskPage.vue:259
+#: grunt/frontend/src/pages/DeskPage.vue:242
 msgid "No apps installed"
 msgstr "Немає встановлених додатків"
 
-#: grunt/frontend/src/pages/desk/DocTypeList.vue:104
-#: grunt/frontend/src/pages/desk/DocTypeList.vue:118
+#: grunt/frontend/src/pages/desk/DocTypeList.vue:105
+#: grunt/frontend/src/pages/desk/DocTypeList.vue:119
 msgid "As of date"
 msgstr "Станом на дату"
 
-#: grunt/frontend/src/pages/desk/DocTypeList.vue:539
+#: grunt/frontend/src/pages/desk/DocTypeList.vue:544
 msgid "Deleting records"
 msgstr "Видалення записів"
 
-#: grunt/frontend/src/pages/desk/DocTypeList.vue:544
+#: grunt/frontend/src/pages/desk/DocTypeList.vue:549
 msgid "Deleting records…"
 msgstr "Видалення записів…"
 
-#: grunt/frontend/src/pages/app/AppPage.vue:140
+#: grunt/frontend/src/pages/app/AppPage.vue:149
 msgid "Could not create the page"
 msgstr "Помилка створення сторінки"
 
-#: grunt/frontend/src/pages/app/AppPage.vue:237
+#: grunt/frontend/src/pages/app/AppPage.vue:246
 msgid "Link copied"
 msgstr "Посилання скопійовано"
 
-#: grunt/frontend/src/pages/app/AppPage.vue:278
+#: grunt/frontend/src/pages/app/AppPage.vue:282
 msgid "30s"
 msgstr "30с"
 
-#: grunt/frontend/src/pages/app/AppPage.vue:279
+#: grunt/frontend/src/pages/app/AppPage.vue:283
 msgid "1m"
 msgstr "1хв"
 
-#: grunt/frontend/src/pages/app/AppPage.vue:280
+#: grunt/frontend/src/pages/app/AppPage.vue:284
 msgid "5m"
 msgstr "5хв"
 
-#: grunt/frontend/src/pages/app/AppPage.vue:281
+#: grunt/frontend/src/pages/app/AppPage.vue:285
 msgid "10m"
 msgstr "10хв"
 
-#: grunt/frontend/src/pages/app/AppPage.vue:320
+#: grunt/frontend/src/pages/app/AppPage.vue:315
 msgid "The page has not been created yet"
 msgstr "Сторінку ще не створено"
 
-#: grunt/frontend/src/pages/app/AppPage.vue:324
+#: grunt/frontend/src/pages/app/AppPage.vue:318
 msgid "Create page"
 msgstr "Створити Сторінку"
 
-#: grunt/frontend/src/pages/app/AppPage.vue:332
+#: grunt/frontend/src/pages/app/AppPage.vue:326
 msgid "The page is empty"
 msgstr "Сторінка порожня"
 
-#: grunt/frontend/src/pages/app/AppPage.vue:363
+#: grunt/frontend/src/pages/app/AppPage.vue:355
 msgid "Edit mode"
 msgstr "Режим редагування"
 
-#: grunt/frontend/src/pages/app/AppPage.vue:388
+#: grunt/frontend/src/pages/app/AppPage.vue:373
 msgid "Widget types"
 msgstr "Типи віджетів"
 
-#: grunt/frontend/src/pages/app/AppPage.vue:417
+#: grunt/frontend/src/pages/app/AppPage.vue:403
 msgid "Choose a widget type"
 msgstr "Оберіть тип віджета"
 
-#: grunt/frontend/src/pages/app/AppPage.vue:418
+#: grunt/frontend/src/pages/app/AppPage.vue:404
 msgid "Click any type in the left panel — it will appear here"
 msgstr "Натисніть на будь-який тип у лівій панелі — він з'явиться тут"
 
-#: grunt/frontend/src/pages/app/AppPage.vue:478
+#: grunt/frontend/src/pages/app/AppPage.vue:296
+#: grunt/frontend/src/pages/app/AppPage.vue:468
 msgid "Embed page"
 msgstr "Вбудувати сторінку"
 
-#: grunt/frontend/src/pages/app/AppPage.vue:482
+#: grunt/frontend/src/pages/app/AppPage.vue:472
 msgid "Direct link"
 msgstr "Пряме посилання"
 
@@ -6074,7 +6090,7 @@ msgid "Try rebuilding the index"
 msgstr "Спробувати перебудувати індекс"
 
 #: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:443
-#: grunt/frontend/src/components/views/list/ListTreePanel.vue:367
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:366
 #: grunt/frontend/src/pages/app/SearchResultsPage.vue:190
 msgid "All"
 msgstr "Усі"
@@ -6139,7 +6155,7 @@ msgstr "Завантажити"
 #: grunt/frontend/src/components/desk/AppCard.vue:47
 #: grunt/frontend/src/components/layout/OfflineQueueSheet.vue:83
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:172
-#: grunt/frontend/src/components/views/list/ListTreePanel.vue:430
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:427
 #: grunt/frontend/src/components/views/calendar/CalendarView.vue:461
 msgid "Open"
 msgstr "Відкрити"
@@ -6176,6 +6192,10 @@ msgstr "Немає активності"
 #: grunt/frontend/src/components/views/FilterBar.vue:320
 #: grunt/frontend/src/components/fields/RichText/extensions/fileBlocks.ts:133
 #: grunt/frontend/src/components/fields/RichText/extensions/fileBlocks.ts:134
+#: grunt/frontend/src/pages/app/AppPage.vue:436
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:306
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:355
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:418
 msgid "Remove"
 msgstr "Прибрати"
 
@@ -6188,18 +6208,18 @@ msgid "Choose a value from the tree"
 msgstr "Оберіть значення з дерева"
 
 #: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue:398
-#: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue:156
+#: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue:150
 msgid "Clear search"
 msgstr "Очистити пошук"
 
-#: grunt/frontend/src/components/desk/GruntDialog.vue:265
+#: grunt/frontend/src/components/desk/GruntDialog.vue:299
 #: grunt/frontend/src/components/ui/multi-select/MultiSelect.vue:99
 #: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue:388
 #: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue:148
 msgid "Search…"
 msgstr "Пошук…"
 
-#: grunt/frontend/src/components/desk/GruntDialog.vue:222
+#: grunt/frontend/src/components/desk/GruntDialog.vue:248
 msgid "Dialog"
 msgstr "Діалог"
 
@@ -6248,7 +6268,7 @@ msgid "Apply mine"
 msgstr "Застосувати мої"
 
 #: grunt/grunt/backups/doctypes/Backup/Backup.js:26
-#: grunt/frontend/src/components/files/FileExplorer.vue:743
+#: grunt/frontend/src/components/files/FileExplorer.vue:744
 msgid "Download"
 msgstr "Завантажити"
 
@@ -6259,7 +6279,8 @@ msgstr "Поле \"{label}\" є обов'язковим"
 
 #: grunt/frontend/src/core/composables/useFormValidation.ts:112
 #: grunt/frontend/src/core/composables/useFormValidation.ts:135
-#: grunt/frontend/src/pages/studio/builder/webform/WebFormFieldPropertiesPanel.vue:32
+#: grunt/frontend/src/pages/studio/builder/webform/WebFormFieldPropertiesPanel.vue:33
+#: grunt/frontend/src/pages/studio/builder/sections/CoreSection.vue:18
 msgid "Label"
 msgstr "Підпис"
 
@@ -6349,8 +6370,8 @@ msgstr "Інформація"
 msgid "Warning"
 msgstr "Увага"
 
-#: grunt/frontend/src/components/app/AppSidebar.vue:208
-#: grunt/frontend/src/components/app/AppSidebar.vue:210
+#: grunt/frontend/src/components/app/AppSidebar.vue:209
+#: grunt/frontend/src/components/app/AppSidebar.vue:211
 msgid "Edit menu"
 msgstr "Редагувати меню"
 
@@ -6362,7 +6383,7 @@ msgstr "Не включено (потребують агрегації): {column
 msgid "Applied «{name}»"
 msgstr "Застосовано «{name}»"
 
-#: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:141
+#: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:142
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:274
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:387
 #: grunt/frontend/src/components/views/list/ListGroupedView.vue:95
@@ -6381,11 +6402,11 @@ msgstr "Досягнуто ліміту {n} записів — підсумки 
 msgid "Totals for the current page"
 msgstr "Підсумки за поточною сторінкою"
 
-#: grunt/frontend/src/components/views/gantt/GanttView.vue:216
+#: grunt/frontend/src/components/views/gantt/GanttView.vue:218
 msgid "wk."
 msgstr "т."
 
-#: grunt/frontend/src/components/views/map/MapView.vue:153
+#: grunt/frontend/src/components/views/map/MapView.vue:155
 msgid "{n} without coordinates"
 msgstr "{n} без координат"
 
@@ -6427,23 +6448,23 @@ msgstr "Сб"
 msgid "Sun"
 msgstr "Нд"
 
-#: grunt/frontend/src/components/views/tree/TreeView.vue:313
+#: grunt/frontend/src/components/views/tree/TreeView.vue:310
 msgid "Total: {n} records"
 msgstr "Всього: {n} записів"
 
-#: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:83
+#: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:85
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:222
 msgid "Sum"
 msgstr "Сума"
 
-#: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:83
+#: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:85
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:226
 msgid "Count"
 msgstr "Кількість"
 
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:148
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:249
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:252
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:257
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:260
 msgid "Report name"
 msgstr "Назва звіту"
 
@@ -6467,7 +6488,7 @@ msgstr "Не вдалося відкрити звіт"
 msgid "No total"
 msgstr "Без підсумку"
 
-#: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:83
+#: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:85
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:223
 msgid "Average"
 msgstr "Середнє"
@@ -6479,7 +6500,7 @@ msgstr "Без значення"
 
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:276
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:562
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:318
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:322
 msgid "Subtotal"
 msgstr "Підсумок"
 
@@ -6492,9 +6513,9 @@ msgid "Report columns"
 msgstr "Стовпці звіту"
 
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:409
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:529
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:528
 #: grunt/frontend/src/pages/desk/reports/ReportList.vue:36
-#: grunt/frontend/src/pages/desk/reports/ReportView.vue:69
+#: grunt/frontend/src/pages/desk/reports/ReportView.vue:71
 msgid "Reports"
 msgstr "Звіти"
 
@@ -6507,7 +6528,7 @@ msgid "Save current as report…"
 msgstr "Зберегти поточний як звіт…"
 
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:435
-#: grunt/frontend/src/components/views/map/MapView.vue:119
+#: grunt/frontend/src/components/views/map/MapView.vue:121
 msgid "Export CSV"
 msgstr "Експорт CSV"
 
@@ -6515,27 +6536,27 @@ msgstr "Експорт CSV"
 msgid "Calculate for all"
 msgstr "Порахувати за всіма"
 
-#: grunt/frontend/src/components/views/gantt/GanttView.vue:161
+#: grunt/frontend/src/components/views/gantt/GanttView.vue:163
 msgid "Could not load Gantt chart data"
 msgstr "Не вдалося завантажити дані для діаграми Ганта"
 
-#: grunt/frontend/src/components/views/gantt/GanttView.vue:354
+#: grunt/frontend/src/components/views/gantt/GanttView.vue:356
 msgid "Could not update dates"
 msgstr "Не вдалося оновити дати"
 
-#: grunt/frontend/src/components/views/gantt/GanttView.vue:384
+#: grunt/frontend/src/components/views/gantt/GanttView.vue:386
 msgid "Days"
 msgstr "Дні"
 
-#: grunt/frontend/src/components/views/gantt/GanttView.vue:385
+#: grunt/frontend/src/components/views/gantt/GanttView.vue:387
 msgid "Weeks"
 msgstr "Тижні"
 
-#: grunt/frontend/src/components/views/gantt/GanttView.vue:386
+#: grunt/frontend/src/components/views/gantt/GanttView.vue:388
 msgid "Months"
 msgstr "Місяці"
 
-#: grunt/frontend/src/components/views/gantt/GanttView.vue:399
+#: grunt/frontend/src/components/views/gantt/GanttView.vue:401
 #: grunt/frontend/src/components/views/calendar/CalendarView.vue:347
 msgid "Updating…"
 msgstr "Оновлення…"
@@ -6562,62 +6583,62 @@ msgstr "Немає документів із заповненими датами
 msgid "No documents with start and end dates filled in."
 msgstr "Немає документів із заповненими датами початку та завершення."
 
-#: grunt/frontend/src/components/views/map/MapView.vue:118
+#: grunt/frontend/src/components/views/map/MapView.vue:120
 msgid "Export GeoJSON"
 msgstr "Експорт GeoJSON"
 
-#: grunt/frontend/src/components/views/map/MapView.vue:120
+#: grunt/frontend/src/components/views/map/MapView.vue:122
 msgid "Print / PDF"
 msgstr "Друк / PDF"
 
-#: grunt/frontend/src/components/views/map/MapView.vue:193
-#: grunt/frontend/src/pages/studio/builder/sections/FetchFromSection.vue:25
+#: grunt/frontend/src/components/views/map/MapView.vue:195
+#: grunt/frontend/src/pages/studio/builder/sections/FetchFromSection.vue:27
 msgid "Format:"
 msgstr "Формат:"
 
-#: grunt/frontend/src/components/views/tree/TreeView.vue:261
+#: grunt/frontend/src/components/views/tree/TreeView.vue:262
 msgid "Expand all"
 msgstr "Розгорнути все"
 
-#: grunt/frontend/src/components/views/tree/TreeView.vue:265
+#: grunt/frontend/src/components/views/tree/TreeView.vue:266
 msgid "Collapse all"
 msgstr "Згорнути все"
 
-#: grunt/frontend/src/components/views/tree/TreeView.vue:297
+#: grunt/frontend/src/components/views/tree/TreeView.vue:294
 msgid "No records yet"
 msgstr "Записів поки немає"
 
-#: grunt/frontend/src/components/views/tree/TreeView.vue:300
+#: grunt/frontend/src/components/views/tree/TreeView.vue:297
 msgid "Create the first one"
 msgstr "Створити перший"
 
-#: grunt/frontend/src/components/views/list/ListHeader.vue:101
+#: grunt/frontend/src/components/views/list/ListHeader.vue:103
 msgid "The list is limited by your access rights"
 msgstr "Список обмежено вашими правами доступу"
 
-#: grunt/frontend/src/components/views/list/ListHeader.vue:119
+#: grunt/frontend/src/components/views/list/ListHeader.vue:121
 msgid "Restrictions"
 msgstr "Обмеження"
 
-#: grunt/frontend/src/components/views/list/ListHeader.vue:123
+#: grunt/frontend/src/components/views/list/ListHeader.vue:125
 msgid "You only see records matching these values."
 msgstr "Ви бачите лише записи, що відповідають цим значенням."
 
 #: grunt/grunt/api/v1/docs/utils.py:91
-#: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:85
-#: grunt/frontend/src/components/views/list/ListHeader.vue:129
+#: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:87
+#: grunt/frontend/src/components/views/list/ListHeader.vue:132
 #: grunt/frontend/src/components/fields/Default/FilterInput.vue:27
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:362
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:366
 msgid "Value"
 msgstr "Значення"
 
 #: grunt/grunt/tasks/todo_reminders.py:112
-#: grunt/frontend/src/components/dashboard/MyWorkPanel.vue:98
+#: grunt/frontend/src/components/dashboard/MyWorkPanel.vue:100
 msgid "overdue"
 msgstr "прострочено"
 
 #: grunt/frontend/src/core/io/exporters/htmlExporter.ts:319
-#: grunt/frontend/src/pages/reports/ReportView.vue:187
+#: grunt/frontend/src/pages/reports/ReportView.vue:190
 msgid "{n} records"
 msgstr "{n} записів"
 
@@ -6627,16 +6648,16 @@ msgstr "{n} записів"
 #: grunt/frontend/src/core/browserHealth.ts:130
 #: grunt/frontend/src/core/browserHealth.ts:242
 #: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:555
-#: grunt/frontend/src/pages/reports/ReportView.vue:187
-#: grunt/frontend/src/pages/desk/reports/ReportView.vue:95
+#: grunt/frontend/src/pages/reports/ReportView.vue:190
+#: grunt/frontend/src/pages/desk/reports/ReportView.vue:101
 msgid "ms"
 msgstr "мс"
 
-#: grunt/frontend/src/pages/desk/reports/ReportView.vue:78
+#: grunt/frontend/src/pages/desk/reports/ReportView.vue:84
 msgid "{type} report"
 msgstr "{type} звіт"
 
-#: grunt/frontend/src/pages/desk/reports/ReportView.vue:95
+#: grunt/frontend/src/pages/desk/reports/ReportView.vue:101
 msgid "Rows: {n}"
 msgstr "Рядків: {n}"
 
@@ -6649,70 +6670,70 @@ msgstr "Вибрати {id}"
 msgid "Clear «{label}»"
 msgstr "Очистити «{label}»"
 
-#: grunt/frontend/src/components/views/form/DocConnections.vue:146
+#: grunt/frontend/src/components/views/form/DocConnections.vue:150
 msgid "View all {n}"
 msgstr "Переглянути всі {n}"
 
-#: grunt/frontend/src/components/views/form/DocLinksDialog.vue:77
+#: grunt/frontend/src/components/views/form/DocLinksDialog.vue:78
 msgid "Documents linked to"
 msgstr "Документи, пов'язані з"
 
-#: grunt/frontend/src/components/views/form/DocLinksDialog.vue:103
+#: grunt/frontend/src/components/views/form/DocLinksDialog.vue:107
 msgid "No linked documents"
 msgstr "Немає пов'язаних документів"
 
-#: grunt/frontend/src/components/layout/CommandPalette.vue:137
+#: grunt/frontend/src/components/layout/CommandPalette.vue:138
 msgid "Copy result"
 msgstr "Скопіювати результат"
 
-#: grunt/frontend/src/components/layout/CommandPalette.vue:139
+#: grunt/frontend/src/components/layout/CommandPalette.vue:140
 msgid "Calculator"
 msgstr "Калькулятор"
 
-#: grunt/frontend/src/components/layout/CommandPalette.vue:332
+#: grunt/frontend/src/components/layout/CommandPalette.vue:333
 #: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue:425
 msgid "Navigate"
 msgstr "Навігація"
 
-#: grunt/frontend/src/components/layout/CommandPalette.vue:335
+#: grunt/frontend/src/components/layout/CommandPalette.vue:336
 #: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue:427
 msgid "Select"
 msgstr "Вибрати"
 
-#: grunt/frontend/src/components/layout/CommandPalette.vue:340
+#: grunt/frontend/src/components/layout/CommandPalette.vue:341
 msgid "All results →"
 msgstr "Всі результати →"
 
-#: grunt/frontend/src/components/dashboard/MyWorkPanel.vue:64
+#: grunt/frontend/src/components/dashboard/MyWorkPanel.vue:66
 msgid "Tasks"
 msgstr "Задачі"
 
-#: grunt/frontend/src/components/dashboard/MyWorkPanel.vue:84
+#: grunt/frontend/src/components/dashboard/MyWorkPanel.vue:87
 msgid "No assigned tasks"
 msgstr "Немає призначених задач"
 
-#: grunt/frontend/src/components/dashboard/MyWorkPanel.vue:112
+#: grunt/frontend/src/components/dashboard/MyWorkPanel.vue:116
 msgid "No new notifications"
 msgstr "Немає нових сповіщень"
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:437
-#: grunt/frontend/src/pages/reports/ReportView.vue:195
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:440
+#: grunt/frontend/src/pages/reports/ReportView.vue:199
 msgid "Chart"
 msgstr "Графік"
 
-#: grunt/frontend/src/pages/reports/ReportView.vue:195
+#: grunt/frontend/src/pages/reports/ReportView.vue:199
 msgid "Both"
 msgstr "Обидва"
 
-#: grunt/frontend/src/pages/reports/ReportView.vue:217
+#: grunt/frontend/src/pages/reports/ReportView.vue:218
 msgid "Builder"
 msgstr "Конструктор"
 
-#: grunt/frontend/src/pages/reports/ReportView.vue:267
+#: grunt/frontend/src/pages/reports/ReportView.vue:269
 msgid "Open documents"
 msgstr "Відкрити документи"
 
-#: grunt/frontend/src/pages/desk/reports/ReportView.vue:115
+#: grunt/frontend/src/pages/desk/reports/ReportView.vue:121
 msgid "Report execution error"
 msgstr "Помилка виконання звіту"
 
@@ -6731,15 +6752,15 @@ msgstr "Власник"
 
 #: grunt/frontend/src/components/views/DocSidebar.vue:71
 #: grunt/frontend/src/components/views/DocSidebar.vue:99
-#: grunt/frontend/src/components/files/FileExplorer.vue:728
+#: grunt/frontend/src/components/files/FileExplorer.vue:729
 msgid "Details"
 msgstr "Деталі"
 
-#: grunt/frontend/src/components/views/form/DocConnections.vue:78
+#: grunt/frontend/src/components/views/form/DocConnections.vue:79
 msgid "Loading connections…"
 msgstr "Завантаження зв'язків…"
 
-#: grunt/frontend/src/components/views/form/DocLinksDialog.vue:75
+#: grunt/frontend/src/components/views/form/DocLinksDialog.vue:76
 msgid "Connections"
 msgstr "Зв'язки"
 
@@ -6751,7 +6772,7 @@ msgstr "ТАК"
 msgid "NO"
 msgstr "НІ"
 
-#: grunt/frontend/src/components/layout/NotificationsPopover.vue:135
+#: grunt/frontend/src/components/layout/NotificationsPopover.vue:123
 msgid "Your latest notifications will appear here."
 msgstr "Тут з'являться ваші останні сповіщення."
 
@@ -6937,11 +6958,11 @@ msgstr "Багато"
 msgid "No options"
 msgstr "Немає варіантів"
 
-#: grunt/frontend/src/App.vue:87
+#: grunt/frontend/src/App.vue:88
 msgid "{n} queued"
 msgstr "{n} в черзі"
 
-#: grunt/frontend/src/App.vue:97
+#: grunt/frontend/src/App.vue:98
 msgid "{n} unsynced changes"
 msgstr "{n} несинхронізованих змін"
 
@@ -6962,7 +6983,7 @@ msgstr "Створіть"
 msgid "and set it in the «Home page» field of the AppMenu settings."
 msgstr "і вкажіть її у полі «Домашня сторінка» в налаштуваннях AppMenu."
 
-#: grunt/frontend/src/core/renderer/FieldRenderer.vue:141
+#: grunt/frontend/src/core/renderer/FieldRenderer.vue:142
 msgid "Click to copy «{name}»"
 msgstr "Клацніть, щоб скопіювати «{name}»"
 
@@ -6984,17 +7005,17 @@ msgstr "Зміни збережено на пристрої — надішлем
 msgid "records"
 msgstr "записів"
 
-#: grunt/frontend/src/App.vue:84
+#: grunt/frontend/src/App.vue:85
 msgid "No connection — viewing from cache, changes are saved on this device"
 msgstr "Немає з'єднання — перегляд з кешу, зміни зберігаються на пристрої"
 
-#: grunt/frontend/src/components/mobile/MobileBottomNav.vue:98
+#: grunt/frontend/src/components/mobile/MobileBottomNav.vue:101
 #: grunt/frontend/src/components/fields/RichText/ui/EditorContextMenu.vue:126
 #: grunt/frontend/src/components/fields/RichText/ui/MoreMenu.vue:17
 msgid "More"
 msgstr "Ще"
 
-#: grunt/frontend/src/components/mobile/MobileBottomNav.vue:107
+#: grunt/frontend/src/components/mobile/MobileBottomNav.vue:110
 msgid "All sections"
 msgstr "Всі розділи"
 
@@ -7011,6 +7032,7 @@ msgid "The home page is not set up."
 msgstr "Домашня сторінка не налаштована."
 
 #: grunt/frontend/src/core/composables/useDialog.ts:217
+#: grunt/frontend/src/components/desk/GruntDialog.vue:461
 msgid "Confirmation"
 msgstr "Підтвердження"
 
@@ -7102,7 +7124,7 @@ msgstr "Виконуються задачі"
 msgid "Tasks finished"
 msgstr "Задачі завершено"
 
-#: grunt/frontend/src/pages/studio/builder/IndexHintsBar.vue:29
+#: grunt/frontend/src/pages/studio/builder/IndexHintsBar.vue:27
 msgid "Add index"
 msgstr "Додати індекс"
 
@@ -7111,7 +7133,7 @@ msgstr "Додати індекс"
 msgid "Structural"
 msgstr "Структурні"
 
-#: grunt/frontend/src/pages/studio/builder/CanvasSection.vue:94
+#: grunt/frontend/src/pages/studio/builder/CanvasSection.vue:99
 msgid "Drag section"
 msgstr "Перетягнути секцію"
 
@@ -7500,23 +7522,23 @@ msgstr ""
 "сховище» просить його цього не робити."
 
 #: grunt/grunt/website/www/share/{token}.py:51
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:259
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:266
 msgid "Document type"
 msgstr "Тип документа"
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:283
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:290
 msgid "Selected columns"
 msgstr "Вибрані стовпці"
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:338
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:342
 msgid "Conditions"
 msgstr "Умови"
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:366
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:370
 msgid "Add condition"
 msgstr "Додати умову"
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:542
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:539
 msgid "Choose a DocType and add columns in the side panel to see the result."
 msgstr ""
 "Оберіть DocType та додайте стовпці у боковій панелі, щоб побачити результат."
@@ -7525,95 +7547,95 @@ msgstr ""
 msgid "Result"
 msgstr "Результат"
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:36
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:44
 msgid "New report"
 msgstr "Новий звіт"
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:46
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:54
 msgid "Bar"
 msgstr "Стовпчиковий"
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:47
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:55
 msgid "Line"
 msgstr "Лінійний"
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:48
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:56
 msgid "Area"
 msgstr "Площа"
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:49
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:57
 msgid "Pie"
 msgstr "Кругова"
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:70
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:78
 msgid "contains"
 msgstr "містить"
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:71
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:79
 msgid "does not contain"
 msgstr "не містить"
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:72
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:80
 msgid "one of (comma-separated)"
 msgstr "одне з (через кому)"
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:73
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:81
 msgid "none of"
 msgstr "жодне з"
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:74
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:82
 msgid "is set"
 msgstr "заповнено"
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:75
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:83
 msgid "is empty"
 msgstr "порожньо"
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:79
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:87
 msgid "Exact date"
 msgstr "Точна дата"
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:80
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:88
 msgid "By day"
 msgstr "По днях"
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:81
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:89
 msgid "By month"
 msgstr "По місяцях"
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:82
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:90
 msgid "By quarter"
 msgstr "По кварталах"
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:83
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:91
 msgid "By year"
 msgstr "По роках"
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:106
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:114
 msgid "None"
 msgstr "Немає"
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:110
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:118
 msgid "Minimum (MIN)"
 msgstr "Мінімум (MIN)"
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:111
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:119
 msgid "Maximum (MAX)"
 msgstr "Максимум (MAX)"
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:205
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:213
 msgid "Enter a name and a document type"
 msgstr "Вкажіть назву та тип документа"
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:262
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:269
 msgid "Choose a DocType"
 msgstr "Оберіть DocType"
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:289
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:295
 msgid "Add fields from the list below"
 msgstr "Додайте поля зі списку нижче"
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:341
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:345
 msgid ""
 "Always applied to the report. For dates you can write today, today-30, "
 "today+7."
@@ -7621,32 +7643,32 @@ msgstr ""
 "Завжди застосовуються до звіту. Для дат можна писати today, today-30, "
 "today+7."
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:380
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:384
 msgid "By grouping"
 msgstr "За групуванням"
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:387
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:391
 msgid "Ascending"
 msgstr "За зростанням"
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:388
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:392
 msgid "Descending"
 msgstr "За спаданням"
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:393
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:397
 msgid "Show the first"
 msgstr "Показати перші"
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:394
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:398
 msgid "all"
 msgstr "усі"
 
 #: grunt/grunt/io/doctypes/DataImport/DataImport.js:217
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:395
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:399
 msgid "rows"
 msgstr "рядків"
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:406
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:410
 msgid ""
 "Fields the report viewer can filter by (the operator and value are chosen in"
 " the report itself)."
@@ -7654,122 +7676,118 @@ msgstr ""
 "Поля, за якими глядач звіту зможе фільтрувати (оператор та значення обирає в"
 " самому звіті)."
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:421
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:424
 msgid "+ Add filter field"
 msgstr "+ Додати поле-фільтр"
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:442
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:445
 msgid "Chart type"
 msgstr "Тип графіка"
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:449
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:452
 msgid "Label column (X axis)"
 msgstr "Колонка-підпис (вісь X)"
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:456
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:459
 msgid "Value columns"
 msgstr "Колонки-значення"
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:464
-msgid "This is the label column"
-msgstr "Це колонка-підпис"
-
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:474
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:472
 msgid "Stacked"
 msgstr "Накопичувальний (stacked)"
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:483
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:481
 msgid "Available fields"
 msgstr "Доступні поля"
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:487
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:485
 msgid "Search fields..."
 msgstr "Пошук полів..."
 
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.js:96
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:511
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:510
 msgid "Preview"
 msgstr "Переглянути"
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:541
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:538
 msgid "Set up the report"
 msgstr "Налаштуйте звіт"
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:543
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:542
 msgid "Choose the first available DocType"
 msgstr "Обрати перший доступний DocType"
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:647
+#: grunt/frontend/src/components/files/FileExplorer.vue:648
 #: grunt/frontend/src/components/views/form/FormTour.vue:145
 msgid "Back"
 msgstr "Назад"
 
-#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:196
-#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:216
-#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:274
-#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:349
+#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:198
+#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:218
+#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:276
+#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:354
 msgid "Transition"
 msgstr "Перехід"
 
-#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:272
-#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:310
+#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:274
+#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:313
 #: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:183
 msgid "State"
 msgstr "Стан"
 
-#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:277
+#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:279
 msgid "Drag from the edge of a node to another node to create a transition"
 msgstr "Перетягніть від краю вузла до іншого вузла, щоб створити перехід"
 
-#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:302
+#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:304
 msgid "Add states with the «State» button above"
 msgstr "Додайте стани кнопкою «Стан» вище"
 
-#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:313
+#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:316
 msgid "Value (for the state field)"
 msgstr "Значення (для поля стану)"
 
-#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:335
+#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:338
 msgid "Initial state"
 msgstr "Початковий стан"
 
-#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:340
+#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:343
 msgid "Final state"
 msgstr "Кінцевий стан"
 
-#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:343
+#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:346
 msgid "Delete state"
 msgstr "Видалити стан"
 
-#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:352
+#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:357
 msgid "From state"
 msgstr "З стану"
 
-#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:362
+#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:367
 msgid "To state"
 msgstr "У стан"
 
-#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:372
+#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:377
 msgid "Action (button text)"
 msgstr "Дія (текст кнопки)"
 
-#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:377
+#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:382
 msgid "Allowed roles (comma-separated)"
 msgstr "Дозволені ролі (через кому)"
 
-#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:382
+#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:387
 msgid "Condition (eval:)"
 msgstr "Умова (eval:)"
 
-#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:387
+#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:392
 msgid "Dialog fields (comma-separated)"
 msgstr "Поля діалогу (через кому)"
 
-#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:389
+#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:394
 msgid "e.g. execution_note"
 msgstr "напр. execution_note"
 
-#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:392
+#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:397
 msgid ""
 "If set, a dialog opens before the transition to fill in these document "
 "fields."
@@ -7777,33 +7795,33 @@ msgstr ""
 "Якщо вказано, перед переходом відкриється діалог для заповнення цих полів "
 "документа."
 
-#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:396
+#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:401
 msgid "Delete transition"
 msgstr "Видалити перехід"
 
-#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:402
+#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:408
 msgid "Click a state or transition to edit it"
 msgstr "Натисніть на стан або перехід для редагування"
 
-#: grunt/frontend/src/pages/studio/builder/sections/LinkSection.vue:38
+#: grunt/frontend/src/pages/studio/builder/sections/LinkSection.vue:41
 msgid "or"
 msgstr "або"
 
-#: grunt/frontend/src/pages/studio/builder/sections/LinkSection.vue:42
+#: grunt/frontend/src/pages/studio/builder/sections/LinkSection.vue:45
 msgid "JSON object or"
 msgstr "JSON-об'єкт або"
 
-#: grunt/frontend/src/pages/studio/builder/sections/FormulaSection.vue:33
+#: grunt/frontend/src/pages/studio/builder/sections/FormulaSection.vue:36
 msgid ""
 "Computed on every save. All document fields are available as variables."
 msgstr ""
 "Обчислюється при кожному збереженні. Доступні всі поля документа як змінні."
 
-#: grunt/frontend/src/pages/studio/builder/sections/FormulaSection.vue:34
+#: grunt/frontend/src/pages/studio/builder/sections/FormulaSection.vue:37
 msgid "Examples:"
 msgstr "Приклади:"
 
-#: grunt/frontend/src/pages/studio/builder/sections/AggregateSection.vue:56
+#: grunt/frontend/src/pages/studio/builder/sections/AggregateSection.vue:57
 msgid "No TABLE fields in this DocType"
 msgstr "Немає TABLE-полів у цьому DocType"
 
@@ -7815,7 +7833,7 @@ msgstr ""
 "Пов'язані документи (лічильники, «+ Новий») рендеряться зверху цієї вкладки."
 " Якщо вимкнено скрізь — панель показується над формою."
 
-#: grunt/frontend/src/pages/studio/builder/sections/FetchFromSection.vue:24
+#: grunt/frontend/src/pages/studio/builder/sections/FetchFromSection.vue:26
 msgid ""
 "Fill the value automatically from another document when a Link field is "
 "chosen."
@@ -7823,103 +7841,105 @@ msgstr ""
 "Автоматично заповнювати значення з іншого документа при виборі зв'язкового "
 "поля (Link)."
 
-#: grunt/frontend/src/pages/studio/builder/PropertiesPanel.vue:73
+#: grunt/frontend/src/pages/studio/builder/PropertiesPanel.vue:75
 msgid "Field type"
 msgstr "Тип поля"
 
-#: grunt/frontend/src/pages/studio/builder/PropertiesPanel.vue:108
-#: grunt/frontend/src/pages/studio/builder/webform/WebFormFieldPropertiesPanel.vue:58
+#: grunt/frontend/src/pages/studio/builder/PropertiesPanel.vue:104
+#: grunt/frontend/src/pages/studio/builder/webform/WebFormFieldPropertiesPanel.vue:60
 msgid "Select a field to edit"
 msgstr "Оберіть поле для редагування"
 
-#: grunt/frontend/src/pages/studio/builder/webform/WebFormFieldPropertiesPanel.vue:38
+#: grunt/frontend/src/pages/studio/builder/CanvasSection.vue:107
+#: grunt/frontend/src/pages/studio/builder/webform/WebFormFieldPropertiesPanel.vue:39
+#: grunt/frontend/src/pages/studio/builder/sections/CollapsibleSection.vue:16
 msgid "Collapsible"
 msgstr "Згортається"
 
-#: grunt/frontend/src/pages/studio/builder/webform/WebFormFieldPropertiesPanel.vue:48
+#: grunt/frontend/src/pages/studio/builder/webform/WebFormFieldPropertiesPanel.vue:49
 msgid "Hidden on the form"
 msgstr "Приховане на формі"
 
-#: grunt/frontend/src/pages/studio/builder/webform/WebFormFieldPropertiesPanel.vue:51
+#: grunt/frontend/src/pages/studio/builder/webform/WebFormFieldPropertiesPanel.vue:52
 msgid "Help text"
 msgstr "Підказка"
 
-#: grunt/frontend/src/pages/studio/builder/sections/ValidationSection.vue:26
-#: grunt/frontend/src/pages/studio/builder/sections/ValidationSection.vue:53
+#: grunt/frontend/src/pages/studio/builder/sections/ValidationSection.vue:28
+#: grunt/frontend/src/pages/studio/builder/sections/ValidationSection.vue:56
 msgid "— not set —"
 msgstr "— не обрано —"
 
-#: grunt/frontend/src/pages/studio/builder/sections/FormulaSection.vue:24
+#: grunt/frontend/src/pages/studio/builder/sections/FormulaSection.vue:26
 msgid "Expression (Python)"
 msgstr "Вираз (Python)"
 
-#: grunt/frontend/src/pages/studio/builder/sections/FormulaSection.vue:41
+#: grunt/frontend/src/pages/studio/builder/sections/FormulaSection.vue:44
 msgid "Read Only (recommended)"
 msgstr "Read Only (рекомендовано)"
 
-#: grunt/frontend/src/pages/studio/builder/sections/AggregateSection.vue:16
+#: grunt/frontend/src/pages/studio/builder/sections/AggregateSection.vue:19
 msgid "— no aggregation —"
 msgstr "— без агрегації —"
 
-#: grunt/frontend/src/pages/studio/builder/sections/AggregateSection.vue:17
+#: grunt/frontend/src/pages/studio/builder/sections/AggregateSection.vue:20
 msgid "sum — total"
 msgstr "sum — сума"
 
-#: grunt/frontend/src/pages/studio/builder/sections/AggregateSection.vue:18
+#: grunt/frontend/src/pages/studio/builder/sections/AggregateSection.vue:21
 msgid "count — number of rows"
 msgstr "count — кількість рядків"
 
-#: grunt/frontend/src/pages/studio/builder/sections/AggregateSection.vue:19
+#: grunt/frontend/src/pages/studio/builder/sections/AggregateSection.vue:22
 msgid "avg — average"
 msgstr "avg — середнє"
 
-#: grunt/frontend/src/pages/studio/builder/sections/AggregateSection.vue:20
+#: grunt/frontend/src/pages/studio/builder/sections/AggregateSection.vue:23
 msgid "min — minimum"
 msgstr "min — мінімум"
 
-#: grunt/frontend/src/pages/studio/builder/sections/AggregateSection.vue:21
+#: grunt/frontend/src/pages/studio/builder/sections/AggregateSection.vue:24
 msgid "max — maximum"
 msgstr "max — максимум"
 
-#: grunt/frontend/src/pages/studio/builder/sections/AggregateSection.vue:43
+#: grunt/frontend/src/pages/studio/builder/sections/AggregateSection.vue:44
 msgid "Function"
 msgstr "Функція"
 
-#: grunt/frontend/src/pages/studio/builder/sections/AggregateSection.vue:55
+#: grunt/frontend/src/pages/studio/builder/sections/AggregateSection.vue:56
 msgid "Table (TABLE field)"
 msgstr "Таблиця (TABLE поле)"
 
-#: grunt/frontend/src/pages/studio/builder/sections/AggregateSection.vue:58
+#: grunt/frontend/src/pages/studio/builder/sections/AggregateSection.vue:59
 msgid "— choose a TABLE field —"
 msgstr "— оберіть TABLE поле —"
 
-#: grunt/frontend/src/pages/studio/builder/sections/AggregateSection.vue:66
+#: grunt/frontend/src/pages/studio/builder/sections/AggregateSection.vue:67
 msgid "Child DocType field"
 msgstr "Поле дочірнього DocType"
 
-#: grunt/frontend/src/pages/studio/builder/sections/AggregateSection.vue:69
+#: grunt/frontend/src/pages/studio/builder/sections/AggregateSection.vue:71
 msgid "e.g. amount"
 msgstr "напр. amount"
 
-#: grunt/frontend/src/pages/studio/builder/sections/AggregateSection.vue:73
+#: grunt/frontend/src/pages/studio/builder/sections/AggregateSection.vue:74
 msgid "Fieldname of a numeric field in the child DocType"
 msgstr "Fieldname числового поля у дочірньому DocType"
 
-#: grunt/frontend/src/pages/studio/builder/sections/OptionsSection.vue:20
+#: grunt/frontend/src/pages/studio/builder/sections/OptionsSection.vue:24
 msgid "currency or UAH"
 msgstr "currency або UAH"
 
-#: grunt/frontend/src/pages/studio/builder/sections/OptionsSection.vue:23
+#: grunt/frontend/src/pages/studio/builder/sections/OptionsSection.vue:28
 msgid ""
 "A Link field to Currency in this document, or a fixed ISO currency code"
 msgstr ""
 "Поле-посилання на Currency у цьому документі або фіксований ISO-код валюти"
 
-#: grunt/frontend/src/pages/studio/builder/sections/OptionsSection.vue:36
+#: grunt/frontend/src/pages/studio/builder/sections/OptionsSection.vue:40
 msgid "Autocomplete suggestions — one per line"
 msgstr "Підказки автодоповнення — кожна з нового рядка"
 
-#: grunt/frontend/src/pages/studio/builder/sections/OptionsSection.vue:36
+#: grunt/frontend/src/pages/studio/builder/sections/OptionsSection.vue:40
 msgid "One option per line"
 msgstr "Кожна опція з нового рядка"
 
@@ -7943,11 +7963,11 @@ msgstr "Вкладка"
 msgid "Show the «Connections» panel in this tab"
 msgstr "Показувати панель «Зв'язки» в цій вкладці"
 
-#: grunt/frontend/src/pages/studio/builder/sections/FetchFromSection.vue:16
+#: grunt/frontend/src/pages/studio/builder/sections/FetchFromSection.vue:18
 msgid "Fetch From"
 msgstr "Отримувати з (Fetch From)"
 
-#: grunt/frontend/src/pages/studio/builder/sections/FetchFromSection.vue:19
+#: grunt/frontend/src/pages/studio/builder/sections/FetchFromSection.vue:22
 msgid "e.g. link_field.source_field"
 msgstr "напр. link_field.source_field"
 
@@ -7963,8 +7983,8 @@ msgstr "Усі придатні поля вже додано"
 msgid "Section"
 msgstr "Секція"
 
-#: grunt/frontend/src/pages/studio/builder/sections/FormulaSection.vue:20
-#: grunt/frontend/src/pages/studio/builder/sections/AggregateSection.vue:39
+#: grunt/frontend/src/pages/studio/builder/sections/FormulaSection.vue:22
+#: grunt/frontend/src/pages/studio/builder/sections/AggregateSection.vue:40
 msgid "is active"
 msgstr "активна"
 
@@ -8386,7 +8406,7 @@ msgid ""
 msgstr ""
 "Сервер не відповідає. Перевірте адресу сервера, порт і доступ до мережі."
 
-#: grunt/frontend/src/components/views/map/MapView.vue:150
+#: grunt/frontend/src/components/views/map/MapView.vue:152
 msgid "{n} marker"
 msgid_plural "{n} markers"
 msgstr[0] "{n} мітка"
@@ -8408,10 +8428,10 @@ msgstr[1] "Синхронізовано {n} збережені зміни"
 msgstr[2] "Синхронізовано {n} збережених змін"
 
 #: grunt/grunt/webhook/doctypes/OutgoingWebhook/OutgoingWebhook.js:153
-#: grunt/frontend/src/components/dashboard/MyWorkPanel.vue:77
+#: grunt/frontend/src/components/dashboard/MyWorkPanel.vue:79
 #: grunt/frontend/src/components/dashboard/ActivityStream.vue:113
-#: grunt/frontend/src/components/views/map/MapView.vue:147
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:560
+#: grunt/frontend/src/components/views/map/MapView.vue:149
+#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:559
 msgid "Loading..."
 msgstr "Завантаження..."
 
@@ -12555,7 +12575,7 @@ msgstr "Cache Storage"
 #: grunt/frontend/src/core/browserHealth.ts:242
 #: grunt/frontend/src/core/browserHealth.ts:243
 msgid "Ping → pong"
-msgstr ""
+msgstr "Ping → pong"
 
 #: grunt/frontend/src/core/browserHealth.ts:68
 #: grunt/frontend/src/core/browserHealth.ts:72
@@ -12566,7 +12586,7 @@ msgstr "Service worker"
 
 #: grunt/frontend/src/core/browserHealth.ts:232
 msgid "code 4001"
-msgstr ""
+msgstr "код 4001"
 
 #: grunt/grunt/storage/doctypes/File/file.py:324
 msgid "File not found"
@@ -12857,7 +12877,7 @@ msgstr "~{n} хв"
 #: grunt/frontend/src/components/files/FileExplorer.vue:763
 #: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue:426
 #: grunt/frontend/src/components/ui/tree-select/TreeSelectNode.vue:65
-#: grunt/frontend/src/components/views/list/ListTreePanel.vue:398
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:395
 msgid "Expand"
 msgstr "Розгорнути"
 
@@ -12866,7 +12886,7 @@ msgstr "Розгорнути"
 #: grunt/frontend/src/components/views/DocSidebar.vue:80
 #: grunt/frontend/src/components/files/FileExplorer.vue:763
 #: grunt/frontend/src/components/ui/tree-select/TreeSelectNode.vue:65
-#: grunt/frontend/src/components/views/list/ListTreePanel.vue:398
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:395
 msgid "Collapse"
 msgstr "Згорнути"
 
@@ -12939,7 +12959,7 @@ msgstr "Видалити «{name}»?"
 
 #: grunt/frontend/src/components/desk/TaskProgressPanel.vue:38
 msgid "Failed"
-msgstr ""
+msgstr "Помилка"
 
 #: grunt/grunt/storage/doctypes/File/File.js:32
 msgid "Files uploaded: {n}"
@@ -12951,23 +12971,23 @@ msgstr "З вкладеними"
 
 #: grunt/grunt/startup/errors.py:256
 msgid "Login required"
-msgstr ""
+msgstr "Потрібен вхід"
 
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:230
 msgid "Moved: {n}"
 msgstr "Переміщено: {n}"
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:313
+#: grunt/frontend/src/components/files/FileExplorer.vue:314
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:246
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:353
 msgid "New folder"
 msgstr "Нова тека"
 
-#: grunt/frontend/src/components/views/list/ListTreePanel.vue:426
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:423
 msgid "New subfolder"
 msgstr "Нова підтека"
 
-#: grunt/frontend/src/components/views/list/ListTreePanel.vue:379
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:377
 msgid "Not set"
 msgstr "Не вказано"
 
@@ -13010,6 +13030,9 @@ msgid ""
 "page with the pages filed under it (e.g. the portal: /page/<route>). The "
 "app's menu links there when no document or URL is set."
 msgstr ""
+"Адреса цього пункту як розділу сайту — додаток показує сторінку розділу зі "
+"сторінками, віднесеними до нього (напр. портал: /page/<route>). Меню додатка"
+" веде сюди, якщо не задано документ чи URL."
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgctxt "meta:DocType.list_tree_field"
@@ -13049,14 +13072,14 @@ msgstr "Рівень стиснення"
 #: grunt/site/doctypes/WebsiteMenuItem/WebsiteMenuItem.json
 msgctxt "meta:WebsiteMenuItem.route"
 msgid "Section route"
-msgstr ""
+msgstr "Маршрут розділу"
 
 #: grunt/frontend/src/core/scripting/executor.ts:792
 #: grunt/frontend/src/core/scripting/executor.ts:809
 msgid "Uploading files"
 msgstr "Завантаження файлів"
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:399
+#: grunt/frontend/src/components/files/FileExplorer.vue:400
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:237
 msgid "Not moved: {n}"
 msgstr "Не переміщено: {n}"
@@ -13071,15 +13094,15 @@ msgstr "Додати зображення"
 
 #: grunt/frontend/src/plugins/__tests__/i18n.spec.ts:17
 msgid "Hello {name}"
-msgstr ""
+msgstr "Вітаємо, {name}"
 
 #: grunt/frontend/src/plugins/i18n.ts:65
 msgid "Hi {name}"
-msgstr ""
+msgstr "Привіт, {name}"
 
 #: grunt/frontend/src/plugins/__tests__/i18n.spec.ts:21
 msgid "Saved {time}"
-msgstr ""
+msgstr "Збережено {time}"
 
 #: grunt/frontend/src/components/fields/RichText/ui/InsertMenu.vue:43
 msgid "Invalid link"
@@ -13114,21 +13137,21 @@ msgstr "Видалити галерею"
 msgid "No access: “%(field)s” is outside your user permissions"
 msgstr "Немає доступу: значення поля «%(field)s» поза вашими дозволами"
 
-#: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:271
+#: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:231
 msgid "Change…"
 msgstr "Змінити…"
 
-#: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:267
-#: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:271
+#: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:227
+#: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:231
 msgid "Choose from the tree"
 msgstr "Вибрати з дерева"
 
 #: grunt/frontend/src/components/files/FileExplorer.vue:888
-#: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue:181
+#: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue:175
 msgid "Selected: {n}"
 msgstr "Вибрано: {n}"
 
-#: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue:142
+#: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue:143
 msgid "Tick the items you need in the tree"
 msgstr "Позначте потрібні пункти в дереві"
 
@@ -13262,7 +13285,7 @@ msgstr "Відповідальний"
 
 #: grunt/frontend/src/components/workflow/WorkflowActionDialog.vue:90
 msgid "Comment"
-msgstr ""
+msgstr "Коментар"
 
 #: grunt/frontend/src/components/views/sidebar/SidebarImage.vue:58
 msgid "Could not upload the image"
@@ -13339,7 +13362,7 @@ msgstr "Завантажити з комп’ютера"
 #: grunt/frontend/src/components/views/WorkflowActions.vue:113
 #: grunt/frontend/src/components/views/WorkflowActions.vue:133
 msgid "Workflow"
-msgstr ""
+msgstr "Робочий процес"
 
 #: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:98
 msgid "created"
@@ -13579,14 +13602,14 @@ msgid "Personal space quota, MB"
 msgstr "Квота особистого простору, МБ"
 
 #: grunt/grunt/storage/doctypes/File/File.js:22
-#: grunt/frontend/src/components/files/FileExplorer.vue:692
+#: grunt/frontend/src/components/files/FileExplorer.vue:693
 #: grunt/frontend/src/components/files/FileExplorer.vue:819
 msgid "Folder"
 msgstr "Тека"
 
 #: grunt/grunt/storage/doctypes/File/File.js:24
 #: grunt/grunt/storage/doctypes/FileFolder/file_folder.py:100
-#: grunt/frontend/src/components/files/FileExplorer.vue:102
+#: grunt/frontend/src/components/files/FileExplorer.vue:103
 msgid "My files"
 msgstr "Мої файли"
 
@@ -13598,7 +13621,7 @@ msgstr "Поділитись «{name}»"
 msgid "Shared with: {n}"
 msgstr "Надано доступ: {n}"
 
-#: grunt/frontend/src/components/views/list/ListTreePanel.vue:428
+#: grunt/frontend/src/components/views/list/ListTreePanel.vue:425
 msgid "Share…"
 msgstr "Поділитись…"
 
@@ -13619,7 +13642,7 @@ msgstr "Файли: {n}"
 msgid "Upload files"
 msgstr "Завантаження файлів"
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:894
+#: grunt/frontend/src/components/files/FileExplorer.vue:892
 msgid "{used} of {quota} used"
 msgstr "Зайнято {used} з {quota}"
 
@@ -13826,15 +13849,15 @@ msgstr "Оберіть теку"
 msgid "Date modified"
 msgstr "Дата зміни"
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:657
+#: grunt/frontend/src/components/files/FileExplorer.vue:658
 msgid "Folder path"
 msgstr "Шлях до теки"
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:754
+#: grunt/frontend/src/components/files/FileExplorer.vue:755
 msgid "Folders"
 msgstr "Теки"
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:650
+#: grunt/frontend/src/components/files/FileExplorer.vue:651
 msgid "Forward"
 msgstr "Вперед"
 
@@ -13846,7 +13869,7 @@ msgstr "Елементів: {n}"
 msgid "This folder is empty"
 msgstr "Ця тека порожня"
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:653
+#: grunt/frontend/src/components/files/FileExplorer.vue:654
 msgid "Up"
 msgstr "Вгору"
 
@@ -13867,7 +13890,7 @@ msgstr "Посилання на файл…"
 msgid "Insert link"
 msgstr "Вставити посилання"
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:741
+#: grunt/frontend/src/components/files/FileExplorer.vue:742
 #: grunt/frontend/src/components/fields/RichText/RichText.vue:84
 msgid "Link to a file"
 msgstr "Посилання на файл"
@@ -13885,7 +13908,7 @@ msgctxt "file name"
 msgid "copy"
 msgstr "копія"
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:706
+#: grunt/frontend/src/components/files/FileExplorer.vue:707
 #: grunt/frontend/src/components/fields/RichText/ui/EditorContextMenu.vue:110
 msgid "Cut"
 msgstr "Вирізати"
@@ -13894,12 +13917,12 @@ msgstr "Вирізати"
 msgid "Delete selected: {n}? Folders go with everything in them."
 msgstr "Видалити вибране ({n})? Теки — разом з усім вмістом."
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:715
+#: grunt/frontend/src/components/files/FileExplorer.vue:716
 #: grunt/frontend/src/components/fields/RichText/ui/EditorContextMenu.vue:116
 msgid "Paste"
 msgstr "Вставити"
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:550
+#: grunt/frontend/src/components/files/FileExplorer.vue:551
 msgid "Could not download the file"
 msgstr "Не вдалося завантажити файл"
 
@@ -13907,15 +13930,15 @@ msgstr "Не вдалося завантажити файл"
 msgid "Could not download the file: %(error)s"
 msgstr "Не вдалося завантажити файл: %(error)s"
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:695
+#: grunt/frontend/src/components/files/FileExplorer.vue:696
 msgid "Files from the computer…"
 msgstr "Файли з комп’ютера…"
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:696
+#: grunt/frontend/src/components/files/FileExplorer.vue:697
 msgid "Folder from the computer…"
 msgstr "Теку з комп’ютера…"
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:698
+#: grunt/frontend/src/components/files/FileExplorer.vue:699
 msgid "From a link…"
 msgstr "За посиланням…"
 
@@ -13923,7 +13946,7 @@ msgstr "За посиланням…"
 msgid "Links to internal network addresses are not allowed"
 msgstr "Посилання на адреси внутрішньої мережі заборонені"
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:511
+#: grunt/frontend/src/components/files/FileExplorer.vue:512
 msgid "Not uploaded: {n}"
 msgstr "Не завантажено: {n}"
 
@@ -13931,7 +13954,7 @@ msgstr "Не завантажено: {n}"
 msgid "Only http:// and https:// links can be downloaded"
 msgstr "Завантажити можна лише посилання http:// і https://"
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:697
+#: grunt/frontend/src/components/files/FileExplorer.vue:698
 msgid "Photo from the camera"
 msgstr "Фото з камери"
 
@@ -13951,15 +13974,16 @@ msgstr "Забагато переадресацій"
 msgid "Uploading {done} of {total}…"
 msgstr "Завантаження {done} з {total}…"
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:678
 #: grunt/frontend/src/components/files/FileExplorer.vue:679
+#: grunt/frontend/src/components/files/FileExplorer.vue:680
 msgid "Search all files"
 msgstr "Пошук у всіх файлах"
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:660
+#: grunt/frontend/src/components/files/FileExplorer.vue:661
 msgid "Search results for «{q}»"
 msgstr "Результати пошуку «{q}»"
 
+#: grunt/frontend/src/components/ErrorBoundary.vue:38
 #: grunt/frontend/src/components/files/CameraCapture.vue:122
 msgid "Try again"
 msgstr "Спробувати ще раз"
@@ -14024,12 +14048,12 @@ msgstr "Тип документа"
 #: grunt/grunt/activity/doctypes/DocLike/DocLike.json
 msgctxt "meta:DocLike.reference_id"
 msgid "Document"
-msgstr ""
+msgstr "Документ"
 
 #: grunt/grunt/activity/doctypes/DocLike/DocLike.json
 msgctxt "meta:DocLike.user"
 msgid "User"
-msgstr ""
+msgstr "Користувач"
 
 #: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:449
 msgid "No changes yet"
@@ -14203,12 +14227,12 @@ msgstr "«%(name)s» не знайдено"
 msgctxt "help:DocType.definition"
 msgid ""
 "Full DocType definition - the source of truth the columns are copied from"
-msgstr ""
+msgstr "Повне визначення DocType - джерело істини, з якого копіюються колонки"
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgctxt "meta:DocType.definition"
 msgid "Definition"
-msgstr ""
+msgstr "Визначення"
 
 #: grunt/grunt/scripting/doctypes/ClientScript/ClientScript.json
 msgctxt "help:ClientScript.is_standard"
@@ -14805,7 +14829,7 @@ msgstr "Завершено, коли"
 #: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
 msgctxt "meta:ServiceLevel.sec_notify"
 msgid "Notifications"
-msgstr ""
+msgstr "Сповіщення"
 
 #: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
 msgctxt "meta:ServiceLevel.start_field"
@@ -14850,7 +14874,7 @@ msgstr "Строк"
 #: grunt/grunt/notification/doctypes/ServiceLevelStatus/ServiceLevelStatus.json
 msgctxt "meta:ServiceLevelStatus.met_at"
 msgid "Done"
-msgstr ""
+msgstr "Виконано"
 
 #: grunt/grunt/notification/doctypes/ServiceLevelStatus/ServiceLevelStatus.json
 msgctxt "meta:ServiceLevelStatus.ref_doctype"
@@ -14880,7 +14904,7 @@ msgstr "Розпочато"
 #: grunt/grunt/notification/doctypes/ServiceLevelStatus/ServiceLevelStatus.json
 msgctxt "meta:ServiceLevelStatus.status"
 msgid "Status"
-msgstr ""
+msgstr "Статус"
 
 #: grunt/grunt/notification/doctypes/ServiceLevelStatus/ServiceLevelStatus.json
 msgctxt "meta:ServiceLevelStatus.warned_at"
@@ -15373,11 +15397,11 @@ msgctxt "select:DocType.sort_order"
 msgid "desc"
 msgstr "За спаданням"
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:747
+#: grunt/frontend/src/components/files/FileExplorer.vue:748
 msgid "Attach as a link"
 msgstr "Прикріпити посиланням"
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:559
+#: grunt/frontend/src/components/files/FileExplorer.vue:560
 msgid "Enter an http(s) link"
 msgstr "Введіть посилання http(s)"
 
@@ -15385,11 +15409,11 @@ msgstr "Введіть посилання http(s)"
 msgid "Field “%(label)s” must be a file or an http(s) link"
 msgstr "Поле «%(label)s» має містити файл або посилання http(s)"
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:746
+#: grunt/frontend/src/components/files/FileExplorer.vue:747
 msgid "Keep the link to the file without downloading it"
 msgstr "Зберегти посилання на файл, не завантажуючи його"
 
-#: grunt/frontend/src/components/dashboard/sections/AggregationSection.vue:51
+#: grunt/frontend/src/components/dashboard/sections/AggregationSection.vue:54
 msgid "Value label"
 msgstr "Підпис значення"
 
@@ -15730,7 +15754,7 @@ msgstr "Записувати статистику продуктивності"
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgctxt "select:DocType.default_view"
 msgid "explorer"
-msgstr ""
+msgstr "Провідник"
 
 #: grunt/frontend/src/components/desk/OnboardingChecklists.vue:76
 msgid "Documentation"
@@ -16852,7 +16876,7 @@ msgstr "Готово - усі кроки виконано."
 
 #: grunt/grunt/monitoring/health.py:764
 msgid "Database migrations"
-msgstr ""
+msgstr "Міграції бази даних"
 
 #: grunt/frontend/src/components/desk/OnboardingChecklists.vue:80
 #: grunt/frontend/src/components/desk/OnboardingChecklists.vue:82
@@ -16865,15 +16889,15 @@ msgstr "Чеклист не знайдено"
 
 #: grunt/grunt/monitoring/health.py:780
 msgid "Pending migrations. Run `grunt migrate`."
-msgstr ""
+msgstr "Є невиконані міграції. Запустіть `grunt migrate`."
 
 #: grunt/grunt/document/validation.py:140
 msgid "Row %(idx)s: %(error)s"
-msgstr ""
+msgstr "Рядок %(idx)s: %(error)s"
 
 #: grunt/frontend/src/core/composables/useFormValidation.ts:72
 msgid "Row {row}: {field} - {error}"
-msgstr ""
+msgstr "Рядок {row}: {field} - {error}"
 
 #: grunt/frontend/src/components/desk/OnboardingChecklists.vue:50
 msgid "Set up"
@@ -16893,20 +16917,21 @@ msgstr "Крок «%(step)s»: DocType «%(doctype)s» не знайдено"
 
 #: grunt/grunt/monitoring/health.py:771
 msgid "The database was migrated by a newer release than the running code."
-msgstr ""
+msgstr "Базу даних мігровано новішою версією, ніж запущений код."
 
 #: grunt/grunt/monitoring/health.py:742
 msgid "The database was migrated with %(version)s. Run `grunt migrate`."
-msgstr ""
+msgstr "Базу даних мігровано версією %(version)s. Запустіть `grunt migrate`."
 
 #: grunt/grunt/monitoring/health.py:733
 msgid ""
 "The database was migrated with newer code (%(version)s). Restart the server."
 msgstr ""
+"Базу даних мігровано новішим кодом (%(version)s). Перезапустіть сервер."
 
 #: grunt/grunt/auth/providers/oauth.py:121
 msgid "The provider did not confirm this email address"
-msgstr ""
+msgstr "Провайдер не підтвердив цю адресу електронної пошти"
 
 #: grunt/grunt/site/onboarding.py:190
 msgid "Unknown step status"
@@ -17004,6 +17029,7 @@ msgstr "Порожньо або % - будь-яке непорожнє знач�
 msgctxt "help:Page.app"
 msgid "A published page of an app is offered as a dashboard on the app's home"
 msgstr ""
+"Опубліковану сторінку додатка пропонують як дашборд на головній додатка"
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgctxt "help:SystemSettings.comment_reactions"
@@ -17183,7 +17209,7 @@ msgstr "Спільна робота"
 msgid "No tags"
 msgstr "Тегів немає"
 
-#: grunt/frontend/src/components/dashboard/sections/DateRangeSection.vue:41
+#: grunt/frontend/src/components/dashboard/sections/DateRangeSection.vue:45
 msgid "Period switcher"
 msgstr "Перемикач періоду"
 
@@ -17218,6 +17244,7 @@ msgid "7 days"
 msgstr "7 днів"
 
 #: grunt/grunt/metadata/widget.py:86
+#: grunt/frontend/src/pages/studio/builder/sections/DisplaySection.vue:44
 msgid "Year"
 msgstr "Рік"
 
@@ -17469,7 +17496,7 @@ msgid "unknown task"
 msgstr "невідома задача"
 
 #: grunt/frontend/src/core/composables/useWebPush.ts:97
-#: grunt/frontend/src/components/layout/NotificationsPopover.vue:172
+#: grunt/frontend/src/components/layout/NotificationsPopover.vue:161
 msgid "Notifications are blocked in the browser settings for this site"
 msgstr "Сповіщення заблоковано в налаштуваннях браузера для цього сайту"
 
@@ -17549,7 +17576,7 @@ msgstr "Видалено застарілих підписок: %(n)s"
 
 #: grunt/grunt/actions/builtin.py:200
 msgid "Message"
-msgstr ""
+msgstr "Повідомлення"
 
 #: grunt/grunt/site/records/module_onboarding/system_setup/system_setup.json
 msgctxt "record:ModuleOnboarding.subtitle"
@@ -17638,6 +17665,7 @@ msgid "Form tour not found"
 msgstr "Тур не знайдено"
 
 #: grunt/frontend/src/components/views/form/FormTour.vue:146
+#: grunt/frontend/src/components/views/gantt/GanttView.vue:412
 msgid "Next"
 msgstr "Далі"
 
@@ -17796,6 +17824,155 @@ msgstr "Тур по формі"
 msgctxt "meta:OnboardingStep.form_tour"
 msgid "Form tour"
 msgstr "Тур по формі"
+
+#: grunt/frontend/src/pages/studio/builder/sections/TextSection.vue:17
+msgid "Text"
+msgstr "Текст"
+
+#: grunt/frontend/src/pages/studio/builder/CanvasTabBar.vue:130
+msgid "Add tab"
+msgstr "Додати вкладку"
+
+#: grunt/frontend/src/components/ErrorBoundary.vue:35
+msgid "An unexpected error occurred."
+msgstr "Сталася неочікувана помилка."
+
+#: grunt/frontend/src/pages/app/AppPage.vue:279
+msgid "Auto-refresh"
+msgstr "Автооновлення"
+
+#: grunt/frontend/src/pages/auth/MfaVerify.vue:154
+msgid "Backup code"
+msgstr "Резервний код"
+
+#: grunt/frontend/src/pages/studio/builder/sections/ButtonSection.vue:26
+msgid "Button"
+msgstr "Кнопка"
+
+#: grunt/frontend/src/pages/studio/builder/sections/DisplaySection.vue:43
+msgid "Date"
+msgstr "Дата"
+
+#: grunt/frontend/src/pages/studio/builder/CanvasSection.vue:151
+msgid "Delete section"
+msgstr "Видалити секцію"
+
+#: grunt/frontend/src/pages/studio/builder/CanvasTabBar.vue:111
+msgid "Delete tab"
+msgstr "Видалити вкладку"
+
+#: grunt/frontend/src/pages/studio/builder/sections/TextSection.vue:28
+msgid "Depends On"
+msgstr "Залежить від (Depends On)"
+
+#: grunt/frontend/src/pages/studio/builder/sections/TextSection.vue:20
+msgid "Description"
+msgstr "Опис"
+
+#: grunt/frontend/src/pages/studio/builder/sections/DisplaySection.vue:29
+msgid "Display"
+msgstr "Відображення"
+
+#: grunt/frontend/src/pages/studio/builder/sections/CoreSection.vue:22
+msgid "Fieldname"
+msgstr "Ім'я поля (Fieldname)"
+
+#: grunt/frontend/src/pages/studio/builder/sections/FlagsSection.vue:27
+msgid "Flags"
+msgstr "Прапорці"
+
+#: grunt/frontend/src/pages/studio/builder/sections/FormulaSection.vue:21
+msgid "Formula"
+msgstr "Формула"
+
+#: grunt/frontend/src/pages/app/AppPage.vue:271
+msgid "From"
+msgstr "Від"
+
+#: grunt/frontend/src/components/ErrorBoundary.vue:39
+msgid "Go home"
+msgstr "На головну"
+
+#: grunt/frontend/src/pages/studio/builder/sections/ButtonSection.vue:39
+msgid "Icon"
+msgstr "Іконка"
+
+#: grunt/frontend/src/pages/studio/builder/sections/LinkSection.vue:36
+msgid "Link Filters"
+msgstr "Фільтри посилання"
+
+#: grunt/frontend/src/pages/studio/builder/sections/LinkSection.vue:26
+msgid "Linked DocType"
+msgstr "Пов'язаний DocType"
+
+#: grunt/frontend/src/pages/studio/builder/CanvasTabBar.vue:101
+msgid "Main"
+msgstr "Основне"
+
+#: grunt/frontend/src/pages/studio/builder/sections/TextSection.vue:32
+msgid "Mandatory Depends On"
+msgstr "Обов'язкове, якщо (Mandatory Depends On)"
+
+#: grunt/frontend/src/pages/studio/builder/sections/ValidationSection.vue:42
+msgid "Max Length"
+msgstr "Макс. довжина"
+
+#: grunt/frontend/src/pages/studio/builder/CanvasSection.vue:107
+msgid "Not collapsible"
+msgstr "Не згортається"
+
+#: grunt/frontend/src/pages/studio/builder/sections/OptionsSection.vue:20
+#: grunt/frontend/src/pages/studio/builder/sections/OptionsSection.vue:25
+#: grunt/frontend/src/pages/studio/builder/sections/OptionsSection.vue:41
+msgid "Options"
+msgstr "Опції"
+
+#: grunt/frontend/src/pages/studio/builder/sections/TextSection.vue:24
+msgid "Placeholder"
+msgstr "Підказка в полі (Placeholder)"
+
+#: grunt/frontend/src/components/views/gantt/GanttView.vue:410
+msgid "Previous"
+msgstr "Назад"
+
+#: grunt/frontend/src/pages/studio/builder/sections/DisplaySection.vue:37
+msgid "Quick Filter By"
+msgstr "Швидкий фільтр за"
+
+#: grunt/frontend/src/pages/studio/builder/sections/ValidationSection.vue:65
+msgid "Regex"
+msgstr "Регулярний вираз"
+
+#: grunt/frontend/src/pages/studio/builder/CanvasSection.vue:132
+msgid "Section (double-click to rename)"
+msgstr "Секція (двічі клацніть, щоб перейменувати)"
+
+#: grunt/frontend/src/pages/studio/builder/sections/ButtonSection.vue:29
+msgid "Style"
+msgstr "Стиль"
+
+#: grunt/frontend/src/pages/app/AppPage.vue:273
+msgid "To"
+msgstr "До"
+
+#: grunt/frontend/src/pages/auth/MfaVerify.vue:170
+msgid "Use a backup code"
+msgstr "Використати резервний код"
+
+#: grunt/frontend/src/pages/auth/MfaVerify.vue:170
+msgid "Use the authenticator app code"
+msgstr "Використати код із застосунку"
+
+#: grunt/frontend/src/pages/studio/builder/sections/ValidationSection.vue:39
+msgid "Validation"
+msgstr "Перевірка"
+
+#: grunt/frontend/src/pages/studio/builder/sections/ValidationSection.vue:53
+msgid "Validator"
+msgstr "Валідатор"
+
+#~ msgid "This is the label column"
+#~ msgstr "Це колонка-підпис"
 
 #~ msgctxt "help:OnboardingProgress"
 #~ msgid ""
@@ -18525,9 +18702,6 @@ msgstr "Тур по формі"
 #~ msgctxt "meta:WebForm.tab_designer"
 #~ msgid "Builder"
 #~ msgstr "Конструктор"
-
-#~ msgid "Text"
-#~ msgstr "Текст"
 
 #~ msgid "Button text"
 #~ msgstr "Текст кнопки"
