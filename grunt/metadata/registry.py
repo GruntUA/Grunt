@@ -397,6 +397,19 @@ class DocTypeRegistry:
         return [f for f in doctype.fields if f.fieldname not in stored_fieldnames]
 
     @staticmethod
+    def _merge_core_actions(active_dt: DocType, doctype: DocType) -> list[str]:
+        """Append JSON action bindings missing from the stored definition.
+
+        Matched by ``action`` key: stored rows (Studio overrides of label, variant,
+        condition, ``hidden``) are left as-is, so a binding an admin doesn't want
+        should be hidden rather than deleted - a deleted one comes back here.
+        """
+        stored = {a.action for a in active_dt.actions}
+        new = [a for a in doctype.actions if a.action and a.action not in stored]
+        active_dt.actions.extend(a.model_copy() for a in new)
+        return [a.action for a in new]
+
+    @staticmethod
     def _sync_core_doctype_attrs(active_dt: DocType, doctype: DocType) -> None:
         """Overwrite ``active_dt``'s always-synced top-level attrs from the JSON source.
 
@@ -486,6 +499,10 @@ class DocTypeRegistry:
                             name=doctype.name,
                             added=[f.fieldname for f in new_fields],
                         )
+
+                new_actions = self._merge_core_actions(active_dt, doctype)
+                if new_actions and sync_db:
+                    log.info("registry.core_actions_merged", name=doctype.name, added=new_actions)
 
                 self._sync_core_doctype_attrs(active_dt, doctype)
                 self._sync_core_field_attrs(active_dt, doctype)
