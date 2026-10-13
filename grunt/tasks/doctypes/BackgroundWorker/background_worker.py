@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from fastapi import HTTPException, status
@@ -9,7 +10,13 @@ from grunt.document.base import BaseDocument, DocumentList
 from grunt.document.in_memory import apply_filters, apply_search, apply_sort, build_response
 from grunt.errors import not_found
 from grunt.i18n import N_
-from grunt.tasks.redis_introspect import redis_conn, s, stream_broker, unavailable_message
+from grunt.tasks.redis_introspect import (
+    DEAD_CONSUMER_IDLE_MS,
+    redis_conn,
+    s,
+    stream_broker,
+    unavailable_message,
+)
 
 
 class BackgroundWorkerController(BaseDocument):
@@ -31,8 +38,8 @@ class BackgroundWorkerController(BaseDocument):
         *,
         page: int = 1,
         per_page: int = 20,
-        sort_by: str = "name",
-        sort_order: str = "asc",
+        sort_by: str = "last_seen",
+        sort_order: str = "desc",
         filters: dict[str, Any] | None = None,
         search: str | None = None,
         **kwargs: Any,
@@ -40,7 +47,7 @@ class BackgroundWorkerController(BaseDocument):
         rows, reason = await cls._load_all()
 
         if search:
-            rows = apply_search(rows, search, ["name"])
+            rows = apply_search(rows, search, ["worker"])
         if filters:
             rows = apply_filters(rows, filters)
         rows = apply_sort(rows, sort_by, sort_order)
@@ -87,14 +94,26 @@ class BackgroundWorkerController(BaseDocument):
                     return [], "not_configured"
 
                 consumers = await conn.xinfo_consumers(sb.queue_name, sb.consumer_group_name)
+                now = datetime.now(UTC)
                 for c in consumers:
+                    name = s(c.get("name"))
+                    pending = int(c.get("pending", 0))
+                    idle_ms = int(c.get("idle", 0))
+                    # ``inactive`` (Redis 7.2+) is -1 until the first ack, absent before 7.2.
                     inactive = c.get("inactive")
+                    inactive_ms = int(inactive) if inactive is not None else -1
                     rows.append(
                         {
-                            "name": s(c.get("name")),
-                            "pending": int(c.get("pending", 0)),
-                            "idle_ms": int(c.get("idle", 0)),
-                            "inactive_ms": int(inactive) if inactive is not None else None,
+                            "name": name,
+                            "worker": name,
+                            "status": _status(pending, idle_ms),
+                            "pending": pending,
+                            "last_seen": now - timedelta(milliseconds=idle_ms),
+                            "last_finished_at": (
+                                now - timedelta(milliseconds=inactive_ms)
+                                if inactive_ms >= 0
+                                else None
+                            ),
                         }
                     )
         except Exception as exc:
@@ -102,3 +121,10 @@ class BackgroundWorkerController(BaseDocument):
             return [], "unreachable"
 
         return rows, None
+
+
+def _status(pending: int, idle_ms: int) -> str:
+    """Same "dead" threshold the pruner uses - see ``prune_dead_consumers``."""
+    if idle_ms >= DEAD_CONSUMER_IDLE_MS:
+        return "Dead"
+    return "Busy" if pending else "Idle"

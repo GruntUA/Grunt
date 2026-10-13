@@ -5,33 +5,64 @@
   "icon": "cpu",
   "is_virtual": true,
   "default_view": "list",
-  "description": "Consumers of the TaskIQ group in the Redis Stream — a live snapshot, nothing is stored in the DB. A worker that crashed and did not restart stays here as a 'dead' consumer until someone removes it.",
+  "title_field": "worker",
+  "sort_field": "last_seen",
+  "sort_order": "desc",
+  "description": "Background worker processes connected to the task queue — a live snapshot from Redis, nothing is stored in the DB. A running worker checks the queue every few seconds; one silent for over 10 minutes has most likely crashed or restarted under a new name, and can be deleted.",
   "fields": [
     {
+      "fieldname": "worker",
+      "label": "Worker",
+      "fieldtype": "Data",
+      "read_only": true,
+      "bold": true,
+      "in_list_view": true,
+      "description": "Consumer name the worker process registered with in the queue."
+    },
+    {
+      "fieldname": "status",
+      "label": "Status",
+      "fieldtype": "Select",
+      "options": "Busy\nIdle\nDead",
+      "translatable": true,
+      "read_only": true,
+      "in_list_view": true,
+      "in_filter": true,
+      "description": "Busy — running tasks right now; Idle — alive and waiting for tasks; Dead — has not checked the queue for over 10 minutes."
+    },
+    {
       "fieldname": "pending",
-      "label": "In progress",
+      "label": "Running tasks",
       "fieldtype": "Int",
       "read_only": true,
       "in_list_view": true,
-      "description": "How many tasks this worker currently holds (delivered, not acknowledged)."
+      "description": "Tasks this worker has taken and not finished yet. On a dead worker these tasks are stuck until a live worker picks them up."
     },
     {
-      "fieldname": "idle_ms",
-      "label": "Idle, ms",
-      "fieldtype": "Int",
+      "fieldname": "last_seen",
+      "label": "Last seen",
+      "fieldtype": "Datetime",
       "read_only": true,
       "in_list_view": true,
-      "description": "Time since the worker last interacted with the queue."
+      "description": "When the worker last checked the queue."
     },
     {
-      "fieldname": "inactive_ms",
-      "label": "Without finished tasks, ms",
-      "fieldtype": "Int",
+      "fieldname": "last_finished_at",
+      "label": "Last task finished",
+      "fieldtype": "Datetime",
       "read_only": true,
       "in_list_view": true,
-      "description": "Time since the last successfully acknowledged (ack) task."
+      "description": "When the worker last completed a task. Empty — it has not completed any yet."
     }
   ],
+  "status_config": {
+    "field": "status",
+    "indicators": [
+      { "value": "Busy", "color": "blue", "icon": "loader" },
+      { "value": "Idle", "color": "green", "icon": "circle-check" },
+      { "value": "Dead", "color": "red", "icon": "circle-x" }
+    ]
+  },
   "permissions": [
     {
       "role": "System Manager",

@@ -10249,30 +10249,6 @@ msgid ""
 "the task is most likely stuck."
 msgstr ""
 
-#: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
-msgctxt "help:BackgroundWorker"
-msgid ""
-"Consumers of the TaskIQ group in the Redis Stream — a live snapshot, nothing"
-" is stored in the DB. A worker that crashed and did not restart stays here "
-"as a 'dead' consumer until someone removes it."
-msgstr ""
-
-#: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
-msgctxt "help:BackgroundWorker.idle_ms"
-msgid "Time since the worker last interacted with the queue."
-msgstr ""
-
-#: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
-msgctxt "help:BackgroundWorker.inactive_ms"
-msgid "Time since the last successfully acknowledged (ack) task."
-msgstr ""
-
-#: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
-msgctxt "help:BackgroundWorker.pending"
-msgid ""
-"How many tasks this worker currently holds (delivered, not acknowledged)."
-msgstr ""
-
 #: grunt/grunt/backups/doctypes/Backup/Backup.json
 msgctxt "help:Backup"
 msgid ""
@@ -10745,21 +10721,6 @@ msgstr ""
 #: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
 msgctxt "meta:BackgroundWorker"
 msgid "Queue Workers"
-msgstr ""
-
-#: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
-msgctxt "meta:BackgroundWorker.idle_ms"
-msgid "Idle, ms"
-msgstr ""
-
-#: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
-msgctxt "meta:BackgroundWorker.inactive_ms"
-msgid "Without finished tasks, ms"
-msgstr ""
-
-#: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
-msgctxt "meta:BackgroundWorker.pending"
-msgid "In progress"
 msgstr ""
 
 #: grunt/grunt/backups/doctypes/Backup/Backup.json
@@ -15910,6 +15871,85 @@ msgctxt "select:DocType.default_view"
 msgid "explorer"
 msgstr ""
 
+#: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
+msgctxt "help:BackgroundWorker"
+msgid ""
+"Background worker processes connected to the task queue — a live snapshot "
+"from Redis, nothing is stored in the DB. A running worker checks the queue "
+"every few seconds; one silent for over 10 minutes has most likely crashed or"
+" restarted under a new name, and can be deleted."
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
+msgctxt "meta:BackgroundWorker.worker"
+msgid "Worker"
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
+msgctxt "help:BackgroundWorker.worker"
+msgid "Consumer name the worker process registered with in the queue."
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
+msgctxt "meta:BackgroundWorker.status"
+msgid "Status"
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
+msgctxt "help:BackgroundWorker.status"
+msgid ""
+"Busy — running tasks right now; Idle — alive and waiting for tasks; Dead — "
+"has not checked the queue for over 10 minutes."
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
+msgctxt "select:BackgroundWorker.status"
+msgid "Busy"
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
+msgctxt "select:BackgroundWorker.status"
+msgid "Idle"
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
+msgctxt "select:BackgroundWorker.status"
+msgid "Dead"
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
+msgctxt "meta:BackgroundWorker.pending"
+msgid "Running tasks"
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
+msgctxt "help:BackgroundWorker.pending"
+msgid ""
+"Tasks this worker has taken and not finished yet. On a dead worker these "
+"tasks are stuck until a live worker picks them up."
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
+msgctxt "meta:BackgroundWorker.last_seen"
+msgid "Last seen"
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
+msgctxt "help:BackgroundWorker.last_seen"
+msgid "When the worker last checked the queue."
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
+msgctxt "meta:BackgroundWorker.last_finished_at"
+msgid "Last task finished"
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
+msgctxt "help:BackgroundWorker.last_finished_at"
+msgid ""
+"When the worker last completed a task. Empty — it has not completed any yet."
+msgstr ""
+
 #~ msgctxt "help:WebsiteSettings.footer_items"
 #~ msgid "The 'Group' field sets the column heading in the footer"
 #~ msgstr ""
@@ -19522,25 +19562,6 @@ msgstr ""
 #~ "значення означає, що задача, скоріш за все, зависла."
 #~ msgstr ""
 
-#~ msgctxt "help:BackgroundWorker"
-#~ msgid ""
-#~ "Consumer'и групи TaskIQ у Redis Stream — живий знімок, нічого не "
-#~ "зберігається в БД. Воркер, що впав і не перезапустився, лишається тут як "
-#~ "'мертвий' консюмер, поки хтось його не приберe."
-#~ msgstr ""
-
-#~ msgctxt "help:BackgroundWorker.idle_ms"
-#~ msgid "Час з моменту останньої взаємодії воркера з чергою."
-#~ msgstr ""
-
-#~ msgctxt "help:BackgroundWorker.inactive_ms"
-#~ msgid "Час з моменту останньої успішно підтвердженої (ack) задачі."
-#~ msgstr ""
-
-#~ msgctxt "help:BackgroundWorker.pending"
-#~ msgid "Скільки задач цей воркер зараз тримає (доставлено, не підтверджено)."
-#~ msgstr ""
-
 #~ msgctxt "meta:BackgroundJob"
 #~ msgid "Активні фонові задачі"
 #~ msgstr ""
@@ -19575,18 +19596,6 @@ msgstr ""
 
 #~ msgctxt "meta:BackgroundWorker"
 #~ msgid "Воркери черги"
-#~ msgstr ""
-
-#~ msgctxt "meta:BackgroundWorker.idle_ms"
-#~ msgid "Простій, мс"
-#~ msgstr ""
-
-#~ msgctxt "meta:BackgroundWorker.inactive_ms"
-#~ msgid "Без завершених задач, мс"
-#~ msgstr ""
-
-#~ msgctxt "meta:BackgroundWorker.pending"
-#~ msgid "У роботі"
 #~ msgstr ""
 
 #~ msgid "Відновити"

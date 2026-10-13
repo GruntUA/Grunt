@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import os
+import socket
+import uuid
 from typing import TYPE_CHECKING, ParamSpec, TypeVar
 
 from taskiq import AsyncBroker, AsyncTaskiqDecoratedTask, InMemoryBroker, SmartRetryMiddleware
@@ -31,8 +34,18 @@ _retry_middleware = SmartRetryMiddleware(
     default_retry_label=False,  # Tasks must opt-in via retry_on_error=True label
 )
 
+
+def _consumer_name() -> str:
+    """``host:pid:suffix`` - tells which machine/process a consumer is in the
+    Queue Workers list. The random suffix keeps restarts unique: in a container
+    the pid is usually the same every time."""
+    return f"{socket.gethostname()}:{os.getpid()}:{uuid.uuid4().hex[:8]}"
+
+
 if settings.redis_url:
-    broker = RedisStreamBroker(settings.redis_url, **connection_options()).with_middlewares(
+    broker = RedisStreamBroker(
+        settings.redis_url, consumer_name=_consumer_name(), **connection_options()
+    ).with_middlewares(
         BackgroundTaskLoggingMiddleware(),
         TaskPerfMiddleware(),
         _retry_middleware,

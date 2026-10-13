@@ -52,8 +52,8 @@ DEAD_CONSUMER_IDLE_MS = 10 * 60 * 1000
 async def prune_dead_consumers(min_idle_ms: int = DEAD_CONSUMER_IDLE_MS) -> int:
     """Drop consumer-group members that stopped polling and own no pending messages.
 
-    Every worker process registers under a fresh uuid, so each restart leaves
-    the old name behind in ``XINFO CONSUMERS``. ``XGROUP DELCONSUMER`` discards
+    Every worker process registers under a fresh ``host:pid:suffix`` name, so
+    each restart leaves the old name behind in ``XINFO CONSUMERS``. ``XGROUP DELCONSUMER`` discards
     the consumer's pending entries, so one that still holds any is kept until a
     live worker ``XAUTOCLAIM``s them. Returns the number removed.
     """

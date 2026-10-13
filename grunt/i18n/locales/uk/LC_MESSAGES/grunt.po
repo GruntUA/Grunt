@@ -10963,48 +10963,6 @@ msgctxt "meta:BackgroundWorker"
 msgid "Queue Workers"
 msgstr "Воркери черги"
 
-#: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
-msgctxt "help:BackgroundWorker"
-msgid ""
-"Consumers of the TaskIQ group in the Redis Stream — a live snapshot, nothing"
-" is stored in the DB. A worker that crashed and did not restart stays here "
-"as a 'dead' consumer until someone removes it."
-msgstr ""
-"Consumer'и групи TaskIQ у Redis Stream — живий знімок, нічого не "
-"зберігається в БД. Воркер, що впав і не перезапустився, лишається тут як "
-"'мертвий' консюмер, поки хтось його не приберe."
-
-#: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
-msgctxt "meta:BackgroundWorker.pending"
-msgid "In progress"
-msgstr "У роботі"
-
-#: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
-msgctxt "help:BackgroundWorker.pending"
-msgid ""
-"How many tasks this worker currently holds (delivered, not acknowledged)."
-msgstr "Скільки задач цей воркер зараз тримає (доставлено, не підтверджено)."
-
-#: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
-msgctxt "meta:BackgroundWorker.idle_ms"
-msgid "Idle, ms"
-msgstr "Простій, мс"
-
-#: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
-msgctxt "help:BackgroundWorker.idle_ms"
-msgid "Time since the worker last interacted with the queue."
-msgstr "Час з моменту останньої взаємодії воркера з чергою."
-
-#: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
-msgctxt "meta:BackgroundWorker.inactive_ms"
-msgid "Without finished tasks, ms"
-msgstr "Без завершених задач, мс"
-
-#: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
-msgctxt "help:BackgroundWorker.inactive_ms"
-msgid "Time since the last successfully acknowledged (ack) task."
-msgstr "Час з моменту останньої успішно підтвердженої (ack) задачі."
-
 #: grunt/grunt/tasks/doctypes/ScheduledJob/ScheduledJob.json
 msgctxt "meta:ScheduledJob"
 msgid "Scheduled Jobs"
@@ -17742,6 +17700,229 @@ msgstr "Рік"
 msgid "All time"
 msgstr "Весь час"
 
+#: grunt/grunt/monitoring/health.py:579
+msgid "It will be downloaded automatically on first use."
+msgstr "Буде завантажено автоматично при першому використанні."
+
+#: grunt/grunt/storage/cloud/rclone.py
+msgid "Could not download rclone: {0}"
+msgstr "Не вдалося завантажити rclone: {0}"
+
+#: grunt/grunt/storage/cloud/rclone.py
+msgid "Could not download rclone: checksum mismatch"
+msgstr "Не вдалося завантажити rclone: контрольна сума не збігається"
+
+#: grunt/grunt/monitoring/updates.py
+msgid "%(count)s differ from uv.lock"
+msgstr "%(count)s не збігаються з uv.lock"
+
+#: grunt/grunt/monitoring/updates.py
+msgid "%(count)s newer versions"
+msgstr "%(count)s новіших версій"
+
+#: grunt/grunt/monitoring/updates.py
+msgid "%(name)s %(version)s is out."
+msgstr "Вийшов %(name)s %(version)s."
+
+#: grunt/grunt/monitoring/updates.py
+msgid "Could not check for updates: %(error)s"
+msgstr "Не вдалося перевірити оновлення: %(error)s"
+
+#: grunt/grunt/monitoring/updates.py
+msgid "Newer versions arrive with the next framework release."
+msgstr "Новіші версії прийдуть з наступним релізом фреймворку."
+
+#: grunt/grunt/monitoring/updates.py
+msgid "No longer supported since %(date)s."
+msgstr "Не підтримується з %(date)s."
+
+#: grunt/grunt/monitoring/updates.py
+msgid "Python packages"
+msgstr "Python пакети"
+
+#: grunt/grunt/monitoring/updates.py
+msgid "Run `grunt update`."
+msgstr "Запустіть `grunt update`."
+
+#: grunt/grunt/monitoring/updates.py
+msgid "Update available: %(target)s. Run `grunt update`."
+msgstr "Доступне оновлення: %(target)s. Запустіть `grunt update`."
+
+#: grunt/grunt/monitoring/updates.py
+msgid ""
+"Run `grunt update` - it offers to update the lock files; then commit them."
+msgstr ""
+"Запустіть `grunt update` — він запропонує оновити lock-файли; потім "
+"закомітьте їх."
+
+#: grunt/grunt/monitoring/updates.py
+msgid "Updates"
+msgstr "Оновлення"
+
+#: grunt/grunt/monitoring/updates.py
+msgid ""
+"no access to the repository - run `grunt update` in a terminal to add a "
+"token"
+msgstr ""
+"немає доступу до репозиторію — запустіть `grunt update` у терміналі, щоб "
+"додати токен"
+
+#: grunt/grunt/monitoring/updates.py
+msgid "npm packages"
+msgstr "npm пакети"
+
+#: grunt/grunt/monitoring/updates.py
+msgid "timed out"
+msgstr "перевищено час очікування"
+
+#: grunt/grunt/monitoring/updates.py
+msgid "uv is not installed"
+msgstr "uv не встановлено"
+
+#: grunt/grunt/monitoring/updates.py
+msgid "Python %(version)s is installed - restart the server to run on it."
+msgstr ""
+"Python %(version)s встановлено — перезапустіть сервер, щоб він працював на "
+"ньому."
+
+#: grunt/grunt/monitoring/updates.py
+msgid "npm packages outside package.json"
+msgstr "npm пакети поза package.json"
+
+#: grunt/grunt/monitoring/updates.py
+msgid "Outside the ranges in package.json - change them by hand and test:"
+msgstr "Поза діапазонами package.json — змініть їх вручну й перевірте:"
+
+#: grunt/grunt/monitoring/updates.py
+msgid "venv %(path)s"
+msgstr "venv %(path)s"
+
+#: grunt/grunt/monitoring/updates.py
+msgid "Old runtime versions"
+msgstr "Старі версії рантаймів"
+
+#: grunt/grunt/monitoring/updates.py
+msgid "`grunt update` removes: %(list)s."
+msgstr "`grunt update` видалить: %(list)s."
+
+#: grunt/grunt/monitoring/updates.py
+msgid "uv tool %(name)s"
+msgstr "uv tool %(name)s"
+
+#: grunt/grunt/monitoring/updates.py
+msgid "process %(pid)s (%(command)s, %(age)s, stopped with Ctrl+Z)"
+msgstr "процес %(pid)s (%(command)s, %(age)s, зупинений Ctrl+Z)"
+
+#: grunt/grunt/monitoring/updates.py
+msgid "process %(pid)s (%(command)s, %(age)s)"
+msgstr "процес %(pid)s (%(command)s, %(age)s)"
+
+#: grunt/grunt/monitoring/updates.py
+msgid "%(n)s d"
+msgstr "%(n)s дн"
+
+#: grunt/grunt/monitoring/updates.py
+msgid "%(n)s h"
+msgstr "%(n)s год"
+
+#: grunt/grunt/monitoring/updates.py
+msgid "%(n)s min"
+msgstr "%(n)s хв"
+
+#: grunt/grunt/monitoring/updates.py
+msgid "Still in use, removed once free (how to free it after →): %(list)s."
+msgstr ""
+"Ще використовуються, будуть видалені, щойно звільняться (як звільнити — "
+"після →): %(list)s."
+
+#: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
+msgctxt "help:BackgroundWorker"
+msgid ""
+"Background worker processes connected to the task queue — a live snapshot "
+"from Redis, nothing is stored in the DB. A running worker checks the queue "
+"every few seconds; one silent for over 10 minutes has most likely crashed or"
+" restarted under a new name, and can be deleted."
+msgstr ""
+"Фонові процеси-воркери, підключені до черги задач — живий знімок з Redis, у "
+"БД нічого не зберігається. Живий воркер перевіряє чергу кожні кілька секунд;"
+" той, що мовчить понад 10 хвилин, найімовірніше впав або перезапустився під "
+"новим іменем — його можна видалити."
+
+#: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
+msgctxt "meta:BackgroundWorker.worker"
+msgid "Worker"
+msgstr "Воркер"
+
+#: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
+msgctxt "help:BackgroundWorker.worker"
+msgid "Consumer name the worker process registered with in the queue."
+msgstr "Ім'я, під яким процес-воркер зареєструвався в черзі."
+
+#: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
+msgctxt "meta:BackgroundWorker.status"
+msgid "Status"
+msgstr "Статус"
+
+#: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
+msgctxt "help:BackgroundWorker.status"
+msgid ""
+"Busy — running tasks right now; Idle — alive and waiting for tasks; Dead — "
+"has not checked the queue for over 10 minutes."
+msgstr ""
+"Зайнятий — зараз виконує задачі; Вільний — живий і чекає на задачі; Мертвий "
+"— не звертався до черги понад 10 хвилин."
+
+#: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
+msgctxt "select:BackgroundWorker.status"
+msgid "Busy"
+msgstr "Зайнятий"
+
+#: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
+msgctxt "select:BackgroundWorker.status"
+msgid "Idle"
+msgstr "Вільний"
+
+#: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
+msgctxt "select:BackgroundWorker.status"
+msgid "Dead"
+msgstr "Мертвий"
+
+#: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
+msgctxt "meta:BackgroundWorker.pending"
+msgid "Running tasks"
+msgstr "Задач у роботі"
+
+#: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
+msgctxt "help:BackgroundWorker.pending"
+msgid ""
+"Tasks this worker has taken and not finished yet. On a dead worker these "
+"tasks are stuck until a live worker picks them up."
+msgstr ""
+"Задачі, які воркер взяв і ще не завершив. У мертвого воркера вони зависли, "
+"доки їх не підхопить живий."
+
+#: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
+msgctxt "meta:BackgroundWorker.last_seen"
+msgid "Last seen"
+msgstr "Остання активність"
+
+#: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
+msgctxt "help:BackgroundWorker.last_seen"
+msgid "When the worker last checked the queue."
+msgstr "Коли воркер востаннє звертався до черги."
+
+#: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
+msgctxt "meta:BackgroundWorker.last_finished_at"
+msgid "Last task finished"
+msgstr "Остання завершена задача"
+
+#: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
+msgctxt "help:BackgroundWorker.last_finished_at"
+msgid ""
+"When the worker last completed a task. Empty — it has not completed any yet."
+msgstr ""
+"Коли воркер востаннє завершив задачу. Порожньо — ще жодної не завершив."
+
 #~ msgctxt "select:PageWidget.period"
 #~ msgid "all"
 #~ msgstr ""
@@ -21444,25 +21625,6 @@ msgstr "Весь час"
 #~ "значення означає, що задача, скоріш за все, зависла."
 #~ msgstr ""
 
-#~ msgctxt "help:BackgroundWorker"
-#~ msgid ""
-#~ "Consumer'и групи TaskIQ у Redis Stream — живий знімок, нічого не "
-#~ "зберігається в БД. Воркер, що впав і не перезапустився, лишається тут як "
-#~ "'мертвий' консюмер, поки хтось його не приберe."
-#~ msgstr ""
-
-#~ msgctxt "help:BackgroundWorker.idle_ms"
-#~ msgid "Час з моменту останньої взаємодії воркера з чергою."
-#~ msgstr ""
-
-#~ msgctxt "help:BackgroundWorker.inactive_ms"
-#~ msgid "Час з моменту останньої успішно підтвердженої (ack) задачі."
-#~ msgstr ""
-
-#~ msgctxt "help:BackgroundWorker.pending"
-#~ msgid "Скільки задач цей воркер зараз тримає (доставлено, не підтверджено)."
-#~ msgstr ""
-
 #~ msgctxt "meta:BackgroundJob"
 #~ msgid "Активні фонові задачі"
 #~ msgstr ""
@@ -21497,18 +21659,6 @@ msgstr "Весь час"
 
 #~ msgctxt "meta:BackgroundWorker"
 #~ msgid "Воркери черги"
-#~ msgstr ""
-
-#~ msgctxt "meta:BackgroundWorker.idle_ms"
-#~ msgid "Простій, мс"
-#~ msgstr ""
-
-#~ msgctxt "meta:BackgroundWorker.inactive_ms"
-#~ msgid "Без завершених задач, мс"
-#~ msgstr ""
-
-#~ msgctxt "meta:BackgroundWorker.pending"
-#~ msgid "У роботі"
 #~ msgstr ""
 
 #~ msgid "Відновити"
@@ -22262,129 +22412,3 @@ msgstr "Весь час"
 #~ msgstr ""
 #~ "Емодзі, які можна ставити під коментарями, через пробіл. Порожньо - реакції "
 #~ "вимкнено"
-
-#: grunt/grunt/monitoring/health.py:579
-msgid "It will be downloaded automatically on first use."
-msgstr "Буде завантажено автоматично при першому використанні."
-
-#: grunt/grunt/storage/cloud/rclone.py
-msgid "Could not download rclone: {0}"
-msgstr "Не вдалося завантажити rclone: {0}"
-
-#: grunt/grunt/storage/cloud/rclone.py
-msgid "Could not download rclone: checksum mismatch"
-msgstr "Не вдалося завантажити rclone: контрольна сума не збігається"
-
-#: grunt/grunt/monitoring/updates.py
-msgid "%(count)s differ from uv.lock"
-msgstr "%(count)s не збігаються з uv.lock"
-
-#: grunt/grunt/monitoring/updates.py
-msgid "%(count)s newer versions"
-msgstr "%(count)s новіших версій"
-
-#: grunt/grunt/monitoring/updates.py
-msgid "%(name)s %(version)s is out."
-msgstr "Вийшов %(name)s %(version)s."
-
-#: grunt/grunt/monitoring/updates.py
-msgid "Could not check for updates: %(error)s"
-msgstr "Не вдалося перевірити оновлення: %(error)s"
-
-#: grunt/grunt/monitoring/updates.py
-msgid "Newer versions arrive with the next framework release."
-msgstr "Новіші версії прийдуть з наступним релізом фреймворку."
-
-#: grunt/grunt/monitoring/updates.py
-msgid "No longer supported since %(date)s."
-msgstr "Не підтримується з %(date)s."
-
-#: grunt/grunt/monitoring/updates.py
-msgid "Python packages"
-msgstr "Python пакети"
-
-#: grunt/grunt/monitoring/updates.py
-msgid "Run `grunt update`."
-msgstr "Запустіть `grunt update`."
-
-#: grunt/grunt/monitoring/updates.py
-msgid "Update available: %(target)s. Run `grunt update`."
-msgstr "Доступне оновлення: %(target)s. Запустіть `grunt update`."
-
-#: grunt/grunt/monitoring/updates.py
-msgid "Run `grunt update` - it offers to update the lock files; then commit them."
-msgstr "Запустіть `grunt update` — він запропонує оновити lock-файли; потім закомітьте їх."
-
-#: grunt/grunt/monitoring/updates.py
-msgid "Updates"
-msgstr "Оновлення"
-
-#: grunt/grunt/monitoring/updates.py
-msgid "no access to the repository - run `grunt update` in a terminal to add a token"
-msgstr "немає доступу до репозиторію — запустіть `grunt update` у терміналі, щоб додати токен"
-
-#: grunt/grunt/monitoring/updates.py
-msgid "npm packages"
-msgstr "npm пакети"
-
-#: grunt/grunt/monitoring/updates.py
-msgid "timed out"
-msgstr "перевищено час очікування"
-
-#: grunt/grunt/monitoring/updates.py
-msgid "uv is not installed"
-msgstr "uv не встановлено"
-
-#: grunt/grunt/monitoring/updates.py
-msgid "Python %(version)s is installed - restart the server to run on it."
-msgstr "Python %(version)s встановлено — перезапустіть сервер, щоб він працював на ньому."
-
-#: grunt/grunt/monitoring/updates.py
-msgid "npm packages outside package.json"
-msgstr "npm пакети поза package.json"
-
-#: grunt/grunt/monitoring/updates.py
-msgid "Outside the ranges in package.json - change them by hand and test:"
-msgstr "Поза діапазонами package.json — змініть їх вручну й перевірте:"
-
-#: grunt/grunt/monitoring/updates.py
-msgid "venv %(path)s"
-msgstr "venv %(path)s"
-
-
-#: grunt/grunt/monitoring/updates.py
-msgid "Old runtime versions"
-msgstr "Старі версії рантаймів"
-
-#: grunt/grunt/monitoring/updates.py
-msgid "`grunt update` removes: %(list)s."
-msgstr "`grunt update` видалить: %(list)s."
-
-
-#: grunt/grunt/monitoring/updates.py
-msgid "uv tool %(name)s"
-msgstr "uv tool %(name)s"
-
-#: grunt/grunt/monitoring/updates.py
-msgid "process %(pid)s (%(command)s, %(age)s, stopped with Ctrl+Z)"
-msgstr "процес %(pid)s (%(command)s, %(age)s, зупинений Ctrl+Z)"
-
-#: grunt/grunt/monitoring/updates.py
-msgid "process %(pid)s (%(command)s, %(age)s)"
-msgstr "процес %(pid)s (%(command)s, %(age)s)"
-
-#: grunt/grunt/monitoring/updates.py
-msgid "%(n)s d"
-msgstr "%(n)s дн"
-
-#: grunt/grunt/monitoring/updates.py
-msgid "%(n)s h"
-msgstr "%(n)s год"
-
-#: grunt/grunt/monitoring/updates.py
-msgid "%(n)s min"
-msgstr "%(n)s хв"
-
-#: grunt/grunt/monitoring/updates.py
-msgid "Still in use, removed once free (how to free it after →): %(list)s."
-msgstr "Ще використовуються, будуть видалені, щойно звільняться (як звільнити — після →): %(list)s."
