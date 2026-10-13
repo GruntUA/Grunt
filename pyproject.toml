@@ -7,7 +7,7 @@ name = "grunt"
 # From git tags vX.Y.Z (hatch-vcs); grunt.version computes the same at runtime.
 dynamic = ["version"]
 description = "Metadata-driven application framework"
-requires-python = ">=3.14"
+requires-python = ">=3.15"
 dependencies = [
     # Web framework
     "fastapi>=0.111.0",
@@ -72,7 +72,11 @@ mysql = [
     "pymysql>=1.1.0",        # sync driver for Alembic migrations
 ]
 redis = [
-    "redis[hiredis]>=5.0.0",
+    # Without the [hiredis] extra: hiredis (C parser) has no Python 3.15 wheels
+    # yet and a server has no compiler to build it - redis-py uses its own
+    # parser. Back to "redis[hiredis]" once https://pypi.org/project/hiredis/#files
+    # lists cp315.
+    "redis>=5.0.0",
 ]
 docs = [
     "docxtpl>=0.16.8",
@@ -116,7 +120,7 @@ asyncio_default_test_loop_scope = "session"
 testpaths = ["tests", "grunt"]
 
 [tool.ruff]
-target-version = "py314"
+target-version = "py315"
 line-length = 100
 src = ["."]
 
@@ -129,7 +133,7 @@ ignore = [
 ]
 
 [tool.mypy]
-python_version = "3.14"
+python_version = "3.15"
 plugins = ["pydantic.mypy"]
 mypy_path = "."
 explicit_package_bases = true

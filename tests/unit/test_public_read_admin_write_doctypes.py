@@ -9,8 +9,9 @@ bypassed it completely.
 Page is the sharpest case: its widgets compute aggregate data via
 `grunt.db.aggregate()`, which bypasses `doctype.permissions` entirely (a
 separate, pre-existing, wider gap — see project memory). Without this fix,
-any authenticated user could create a *published* Page with a widget aggregating a locked-down DocType (e.g. User) and read
-cross-permission-boundary aggregate data just by viewing their own page.
+any authenticated user could create a *published* Page with a widget
+aggregating a locked-down DocType (e.g. User) and read cross-permission-boundary
+aggregate data just by viewing their own page.
 
 Fixed the same way for all of them: `read` stays open (these are meant to be
 broadly/publicly visible once published), `write`/`create`/`delete` are

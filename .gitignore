@@ -15,7 +15,8 @@ venv/
 env/
 
 # ──── uv ────────────────────────────────────
-.python-version
+# .python-version is committed: it picks the Python the framework runs on
+# (`uv sync` / `grunt update` rebuild .venv when it changes).
 
 # ──── IDE ───────────────────────────────────
 .vscode/

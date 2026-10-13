@@ -50,51 +50,24 @@ def test(
         repo = site_manager.bench_dir / "apps" / (app or "grunt")
         sys.exit(_run_changed(repo, base, pytest_args))
 
-    # 1. Base test paths
-    test_paths = []
-
-    # If no filters, include base framework tests (skip silently if the dir doesn't exist)
-    if not app and not doctype:
-        base_tests = site_manager.bench_dir / "apps" / "grunt" / "tests"
-        if base_tests.is_dir():
-            test_paths.append(str(base_tests))
-
-    # 2. Discover DocType tests
     apps_dir = site_manager.bench_dir / "apps"
-
-    search_dirs = []
     if app:
-        app_path = apps_dir / app
-        if not app_path.is_dir():
-            click.echo(f"Error: App '{app}' not found at {app_path}", err=True)
+        if not (apps_dir / app).is_dir():
+            click.echo(f"Error: App '{app}' not found at {apps_dir / app}", err=True)
             raise SystemExit(1)
-        search_dirs.append(app_path)
+        roots = [apps_dir / app]
     else:
-        # Search all apps
-        for item in apps_dir.iterdir():
-            if item.is_dir() and not item.name.startswith("."):
-                search_dirs.append(item)
+        roots = [apps_dir / "grunt"] + sorted(
+            d
+            for d in apps_dir.iterdir()
+            if d.is_dir() and d.name != "grunt" and (d / "app.json").exists()
+        )
 
-    for s_dir in search_dirs:
-        for dt_dir in s_dir.rglob("doctypes"):
-            if not dt_dir.is_dir():
-                continue
-
-            if doctype:
-                # Try both original name and snake_case/lowercase
-                candidates = [doctype, doctype.lower(), doctype.replace(" ", "_").lower()]
-                for cand in candidates:
-                    target_dt = dt_dir / cand
-                    if target_dt.is_dir():
-                        _add_tests_from_dir(target_dt, test_paths)
-                        break
-            else:
-                # Add tests for all doctypes in this directory
-                for dt in dt_dir.iterdir():
-                    if dt.is_dir() and not dt.name.startswith((".", "_")):
-                        _add_tests_from_dir(dt, test_paths)
-
-    if not test_paths:
+    # One pytest session per app: each app's tests/conftest.py builds the same
+    # fixtures (grunt.testkit.make_app_fixtures) and points the shared FastAPI
+    # app at its own database - in one session the last conftest would win.
+    runs = [(root, paths) for root in roots if (paths := _test_paths(root, doctype))]
+    if not runs:
         if doctype:
             click.echo(f"No tests found for DocType '{doctype}'")
         elif app:
@@ -103,21 +76,17 @@ def test(
             click.echo("No tests found.")
         return
 
-    # 3. Handle site context if provided
-    # (Optional: set environment variable for site)
     if site:
         import os
 
         os.environ["GRUNT_SITE"] = site
 
-    # 4. Run pytest via subprocess so the correct project venv is used
+    # Run pytest via subprocess so the correct project venv is used
     import shutil
     import subprocess
 
-    bench_dir = site_manager.bench_dir
-    venv_pytest = bench_dir / ".venv" / "bin" / "pytest"
+    venv_pytest = site_manager.bench_dir / ".venv" / "bin" / "pytest"
     pytest_bin = str(venv_pytest) if venv_pytest.exists() else shutil.which("pytest") or ""
-
     if not pytest_bin:
         click.echo(
             click.style("[error] pytest not found. Install it: pip install pytest", fg="red"),
@@ -125,34 +94,60 @@ def test(
         )
         raise SystemExit(1)
 
-    # Resolve app root for the app whose conftest/pyproject.toml should anchor pytest.
-    # When a single app is targeted use its root; otherwise use the grunt framework root
-    # (which has conftest.py and pyproject.toml defining asyncio mode etc.).
-    grunt_app_root = bench_dir / "apps" / "grunt"
-    if app and (bench_dir / "apps" / app).is_dir():
-        pytest_cwd = bench_dir / "apps" / app
-    else:
-        pytest_cwd = grunt_app_root
+    results: list[tuple[str, int]] = []
+    for root, paths in runs:
+        targets = [str(p.relative_to(root)) for p in paths if p != root]
+        cmd = [pytest_bin, *targets, *pytest_args]
+        if "-v" not in cmd and "-q" not in cmd:
+            cmd.append("-v")
+        if len(runs) > 1:
+            click.echo(click.style(f"\n▶ {root.name}", bold=True))
+        else:
+            click.echo(f"Running tests for: {', '.join(map(str, paths))}")
+        # The app's own directory anchors pytest: its conftest and pyproject.
+        results.append((root.name, subprocess.run(cmd, cwd=str(root)).returncode))
 
-    click.echo(f"Running tests for: {', '.join(test_paths)}")
-    cmd = [pytest_bin] + test_paths + list(pytest_args)
-    if "-v" not in cmd and "-q" not in cmd:
-        cmd.append("-v")
+    if len(results) > 1:
+        click.echo(click.style("\nSummary", bold=True))
+        for name, code in results:
+            mark = click.style("✓", fg="green") if code == 0 else click.style("✗", fg="red")
+            click.echo(f"  {mark} {name}")
+    sys.exit(max(code for _, code in results))
 
-    result = subprocess.run(cmd, cwd=str(pytest_cwd))
-    sys.exit(result.returncode)
+
+def _test_paths(root: Path, doctype: str | None) -> list[Path]:
+    """What to run in one app (or the framework): with *doctype*, that
+    DocType's tests; otherwise ``[root]`` when it has any tests at all -
+    pytest then collects them itself (``testpaths``, ``norecursedirs``)."""
+    if not doctype:
+        has_tests = any(
+            not any(part in _SKIP_DIRS for part in f.relative_to(root).parts)
+            for f in root.rglob("test_*.py")
+        )
+        return [root] if has_tests else []
+    paths: list[Path] = []
+    for dt_dir in root.rglob("doctypes"):
+        if not dt_dir.is_dir() or any(part in _SKIP_DIRS for part in dt_dir.parts):
+            continue
+        # Try both original name and snake_case/lowercase
+        for cand in (doctype, doctype.lower(), doctype.replace(" ", "_").lower()):
+            if (dt_dir / cand).is_dir():
+                _add_tests_from_dir(dt_dir / cand, paths)
+                break
+    return paths
 
 
-def _add_tests_from_dir(dt_dir: Path, test_paths: list[str]):
+_SKIP_DIRS = {"node_modules", ".venv", "venv", "dist", ".git"}
+
+
+def _add_tests_from_dir(dt_dir: Path, test_paths: list[Path]):
     """Find tests in a DocType directory."""
     # Look for tests/ folder
-    tests_subdir = dt_dir / "tests"
-    if tests_subdir.is_dir():
-        test_paths.append(str(tests_subdir))
+    if (dt_dir / "tests").is_dir():
+        test_paths.append(dt_dir / "tests")
 
     # Look for test_*.py files in the DocType dir itself
-    for test_file in dt_dir.glob("test_*.py"):
-        test_paths.append(str(test_file))
+    test_paths.extend(sorted(dt_dir.glob("test_*.py")))
 
 
 def _run_changed(repo: Path, base: str, pytest_args: tuple[str, ...]) -> int:
