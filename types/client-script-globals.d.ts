@@ -63,7 +63,9 @@ declare global {
     readonly is_saving: boolean
     readonly is_loading: boolean
     readonly has_editable_fields: boolean
-    /** Standard ids (global_form.js): save, refresh, print…, duplicate, discard, activity, links, share, rename, delete. */
+    /** The form has tours (FormTour) the user may take. */
+    readonly has_tours: boolean
+    /** Standard ids (global_form.js): save, refresh, print…, duplicate, discard, activity, links, share, tour, rename, delete. */
     actions: GruntActions<FormProxy>
     get_selected(): Record<string, string[]>
     get_value(fieldname: string): any
@@ -78,6 +80,8 @@ declare global {
     share(): void
     show_links(): void
     toggle_activity(): void
+    /** Start a form tour - by name, or the first one. */
+    start_tour(name?: string): void
     print(format?: string, options?: { autoprint?: boolean }): void
     /** Workflow transitions allowed now (reloaded before each `on_transitions`). */
     readonly transitions: { action: string; to_state: string; prompt_fields: string[] }[]

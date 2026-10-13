@@ -74,6 +74,7 @@ function title(action: ResolvedAction) {
           :class="[slot.action.iconOnly ? '' : 'gap-1.5', compact && !slot.action.iconOnly ? 'hidden sm:inline-flex' : '', style(slot.action).className]"
           :title="title(slot.action)"
           :aria-label="slot.action.label"
+          :data-action="slot.action.id"
           :disabled="slot.action.disabled"
           @click="slot.action.run()"
         >
@@ -94,6 +95,7 @@ function title(action: ResolvedAction) {
         :variant="style(slot.items[0]).variant"
         :class="['gap-1.5', style(slot.items[0]).className]"
         :title="slot.name"
+        :data-action="slot.items[0].id"
         :disabled="slot.items[0].disabled || slot.items[0].busy"
         @click="slot.items[0].run()"
       >
@@ -138,6 +140,7 @@ function title(action: ResolvedAction) {
         :variant="style(action, 'default').variant"
         :class="['gap-1.5', style(action, 'default').className]"
         :title="title(action)"
+        :data-action="action.id"
         :disabled="action.disabled || action.busy"
         @click="action.run()"
       >

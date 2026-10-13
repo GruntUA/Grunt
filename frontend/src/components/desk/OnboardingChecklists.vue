@@ -19,7 +19,7 @@ const router = useRouter()
 const onboardings = ref<Onboarding[]>([])
 
 // These steps complete by themselves once the record / setting exists; the others when opened.
-const AUTO_ACTIONS = ['Create Entry', 'Update Settings']
+const AUTO_ACTIONS = ['Create Entry', 'Update Settings', 'Take a Tour']
 
 async function load() {
   try {
@@ -51,6 +51,7 @@ function buttonLabel(step: OnboardingStep): string {
     'View Report': t('View report'),
     'Read Docs': t('Read'),
     'Watch Video': t('Watch'),
+    'Take a Tour': t('Take the tour'),
   }
   return labels[step.action] ?? t('Open')
 }

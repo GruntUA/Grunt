@@ -9,6 +9,8 @@ Walks the bench for translatable strings and returns them as a flat list of
 * DocType JSON - ``label`` / ``description`` / ``placeholder`` / Select ``options``
   / status indicators, keyed by the ``meta:`` / ``help:`` / ``hint:`` / ``select:``
   / ``status:`` msgctxt convention
+* standard records (``records/``) - values of ``translatable`` text fields
+  (``record:<DocType>.<field>``)
 
 Consumed by ``grunt i18n extract`` (regenerates PO/POT) and by the Translate
 app's registry view. Results are cached in-process (see :func:`get_sources`).
@@ -127,6 +129,7 @@ def extract_all(
             if where not in row["occurrences"]:
                 row["occurrences"].append(where)
 
+    records: list[tuple[str, str, str]] = []
     for app_dir in sorted(p for p in apps_dir.iterdir() if p.is_dir()):
         origin = "grunt" if app_dir.name == "grunt" else app_dir.name
         if origins is not None and origin not in origins:
@@ -145,7 +148,15 @@ def extract_all(
             elif suffix in _JINJA_SUFFIXES:
                 _scan_jinja(text, rel, origin, add)
             elif suffix == ".json" and f"{path.parent.name}.json" == path.name:
-                _scan_doctype_json(text, rel, origin, add)
+                if "records" in path.parts:
+                    records.append((text, rel, origin))
+                else:
+                    _scan_doctype_json(text, rel, origin, add)
+
+    if records:
+        translatable = _translatable_fields(apps_dir)
+        for text, rel, origin in records:
+            _scan_record_json(text, rel, origin, add, translatable)
 
     return [{**row, "occurrences": ", ".join(row["occurrences"][:20])} for row in found.values()]
 
@@ -258,6 +269,50 @@ def _scan_jinja(text: str, rel: str, origin: str, add) -> None:
             add(first, "", "code", origin, where, plural_source=second)
         elif fn == "_":
             add(first, "", "code", origin, where)
+
+
+def _translatable_fields(apps_dir: Path) -> dict[str, set[str]]:
+    """``{DocType: {fieldname}}`` of the ``translatable`` text fields in every app."""
+    out: dict[str, set[str]] = {}
+    for path in apps_dir.glob("*/**/doctypes/*/*.json"):
+        if path.stem != path.parent.name or any(p in _SKIP_DIRS for p in path.parts):
+            continue
+        try:
+            dt = json.loads(path.read_text(encoding="utf-8"))
+        except OSError, ValueError:
+            continue
+        if not isinstance(dt, dict) or not dt.get("name"):
+            continue
+        out[dt["name"]] = {
+            f["fieldname"]
+            for f in dt.get("fields") or []
+            if f.get("translatable") and f.get("fieldtype") not in SELECT_FIELDTYPES
+        }
+    return out
+
+
+def _scan_record_json(
+    text: str, rel: str, origin: str, add, translatable: dict[str, set[str]]
+) -> None:
+    """Values of ``translatable`` text fields in a standard record (child rows too)."""
+    try:
+        record = json.loads(text)
+    except json.JSONDecodeError:
+        return
+
+    def walk(doc: dict[str, Any]) -> None:
+        doctype = doc.get("doctype") or ""
+        fields = translatable.get(doctype, set())
+        for key, value in doc.items():
+            if key in fields and isinstance(value, str):
+                add(value, f"record:{doctype}.{key}", "meta", origin, rel)
+            elif isinstance(value, list):
+                for row in value:
+                    if isinstance(row, dict):
+                        walk(row)
+
+    if isinstance(record, dict):
+        walk(record)
 
 
 def _scan_doctype_json(text: str, rel: str, origin: str, add) -> None:

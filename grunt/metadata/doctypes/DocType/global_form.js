@@ -7,7 +7,7 @@
  *   frm.actions.remove('duplicate')
  *
  * Ids: save · refresh · print, print_xlsx, print_pdf, print_html · open_new_tab, web_view ·
- * edit_doctype, configure_print · duplicate, discard, activity, links, share ·
+ * edit_doctype, configure_print · duplicate, discard, activity, links, share, tour ·
  * rename, delete. Labels are translation keys (English source strings).
  *
  * Orders: primary 100; toolbar — yours by default (500), refresh 900;
@@ -154,6 +154,16 @@ function on_load(frm) {
         order: 340,
         visible: _saved,
         action: (f) => f.share(),
+    })
+    actions.add({
+        id: 'tour',
+        label: __('Take a tour'),
+        icon: 'map',
+        placement: 'menu',
+        group: 'document',
+        order: 350,
+        visible: (f) => f.has_tours,
+        action: (f) => f.start_tour(),
     })
 
     // ── Menu: rename / delete ──────────────────────────────────────────────

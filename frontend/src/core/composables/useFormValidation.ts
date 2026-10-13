@@ -26,20 +26,23 @@ export function useFormValidation(params: UseFormValidationParams) {
     validationErrors.value = {}
   }
 
+  /** Open the tab that holds *fieldname* (tabs are keyed by fieldname); its element is rendered after nextTick. */
+  function revealField(fieldname: string) {
+    if (!params.activeTab || !params.dt.value) return
+    const layout = parseLayout(params.dt.value.fields)
+    const target = layout.find((t) =>
+      t.sections.some((s) => s.columns.some((c) => c.some((f) => f.fieldname === fieldname))),
+    )
+    if (target && params.activeTab.value !== target._fieldname) {
+      params.activeTab.value = target._fieldname
+    }
+  }
+
   function focusFirstError() {
     const firstKey = Object.keys(validationErrors.value)[0]
     if (!firstKey) return
 
-    // 1. Switch to the tab that contains this field (tabs are keyed by fieldname)
-    if (params.activeTab && params.dt.value) {
-      const layout = parseLayout(params.dt.value.fields)
-      const target = layout.find((t) =>
-        t.sections.some((s) => s.columns.some((c) => c.some((f) => f.fieldname === firstKey))),
-      )
-      if (target && params.activeTab.value !== target._fieldname) {
-        params.activeTab.value = target._fieldname
-      }
-    }
+    revealField(firstKey)
 
     nextTick(() => {
       const el = window.document.querySelector(`[data-fieldname="${firstKey}"]`) as HTMLElement | null
@@ -147,6 +150,7 @@ export function useFormValidation(params: UseFormValidationParams) {
   return {
     validationErrors,
     resetValidationErrors,
+    revealField,
     focusFirstError,
     validateForm,
   }

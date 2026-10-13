@@ -40,7 +40,6 @@ _MAIN_PUBLIC_DIR = _GRUNT_PKG.parent / "public"
 # paths that get the SPA shell when no server-side page claims them.
 _SPA_ROUTES = (
     "/app",
-    "/setup",
     "/login",
     "/signup",
     "/forgot-password",

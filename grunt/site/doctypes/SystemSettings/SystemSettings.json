@@ -397,13 +397,6 @@
       "label": "VAPID Private Key",
       "fieldtype": "LongText",
       "hidden": true
-    },
-    {
-      "fieldname": "is_setup_complete",
-      "label": "System configured",
-      "fieldtype": "Check",
-      "default": false,
-      "hidden": true
     }
   ],
   "permissions": [

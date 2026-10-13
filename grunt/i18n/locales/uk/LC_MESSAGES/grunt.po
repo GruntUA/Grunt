@@ -38,10 +38,10 @@ msgctxt "button"
 msgid "Save"
 msgstr "Зберегти"
 
-#: grunt/frontend/src/components/dashboard/widgets/Donut/Donut.vue:87
-#: grunt/frontend/src/components/dashboard/widgets/Chart/Chart.vue:155
+#: grunt/frontend/src/components/dashboard/widgets/Donut/Donut.vue:101
+#: grunt/frontend/src/components/dashboard/widgets/Chart/Chart.vue:198
 #: grunt/frontend/src/components/dashboard/widgets/Funnel/Funnel.vue:60
-#: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:131
+#: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:132
 #: grunt/frontend/src/pages/reports/ReportView.vue:235
 #: grunt/frontend/src/pages/reports/ReportView.vue:260
 #: grunt/frontend/src/pages/desk/reports/ReportView.vue:112
@@ -263,8 +263,8 @@ msgstr "Не підписано"
 msgid "Sign here"
 msgstr "Підпишіть тут"
 
-#: grunt/frontend/src/components/desk/OnboardingChecklists.vue:117
-#: grunt/frontend/src/components/desk/OnboardingChecklists.vue:123
+#: grunt/frontend/src/components/desk/OnboardingChecklists.vue:118
+#: grunt/frontend/src/components/desk/OnboardingChecklists.vue:124
 #: grunt/frontend/src/components/fields/Signature/Signature.vue:229
 #: grunt/frontend/src/components/fields/Signature/Signature.vue:230
 #: grunt/frontend/src/components/fields/Table/Table.vue:223
@@ -304,7 +304,7 @@ msgstr "За замовчуванням"
 #: grunt/frontend/src/components/fields/RichText/ui/FontMenus.vue:32
 #: grunt/frontend/src/components/fields/RichText/ui/FontMenus.vue:44
 #: grunt/frontend/src/components/fields/RichText/ui/ImageBubble.vue:79
-#: grunt/frontend/src/pages/app/AppPage.vue:276
+#: grunt/frontend/src/pages/app/AppPage.vue:277
 msgid "Auto"
 msgstr "Авто"
 
@@ -1730,11 +1730,6 @@ msgid "Icon (lucide)"
 msgstr "Іконка (lucide)"
 
 #: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
-msgctxt "meta:PageWidget.sequence"
-msgid "Order"
-msgstr "Порядок"
-
-#: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
 msgctxt "meta:PageWidget.link_type"
 msgid "Link type"
 msgstr "Тип посилання"
@@ -2014,11 +2009,6 @@ msgid ""
 msgstr ""
 "Генерується автоматично при першому запуску Web Push. Потрібен клієнтам для "
 "підписки."
-
-#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
-msgctxt "meta:SystemSettings.is_setup_complete"
-msgid "System configured"
-msgstr "Систему налаштовано"
 
 #: grunt/grunt/site/doctypes/WorkspaceSidebarItem/WorkspaceSidebarItem.json
 msgctxt "meta:WorkspaceSidebarItem"
@@ -2548,7 +2538,7 @@ msgctxt "help:WebAuthnCredential.transports"
 msgid "Comma-separated list: usb, nfc, ble, internal, hybrid"
 msgstr "Список через кому: usb, nfc, ble, internal, hybrid"
 
-#: grunt/grunt/startup/errors.py:257 grunt/frontend/src/router/index.ts:203
+#: grunt/grunt/startup/errors.py:257 grunt/frontend/src/router/index.ts:192
 #: grunt/frontend/src/core/api/client.ts:164
 msgid "Access denied"
 msgstr "Доступ заборонено"
@@ -2695,9 +2685,9 @@ msgstr "Колір"
 msgid "Column"
 msgstr "Колонка"
 
-#: grunt/frontend/src/components/dashboard/WidgetCard.vue:41
-#: grunt/frontend/src/pages/app/AppPage.vue:288
-#: grunt/frontend/src/pages/app/AppPage.vue:335
+#: grunt/frontend/src/components/dashboard/WidgetCard.vue:39
+#: grunt/frontend/src/pages/app/AppPage.vue:289
+#: grunt/frontend/src/pages/app/AppPage.vue:336
 msgid "Configure"
 msgstr "Налаштувати"
 
@@ -2719,7 +2709,7 @@ msgstr "Конверсія:"
 #: grunt/frontend/src/components/files/FileExplorer.vue:710
 #: grunt/frontend/src/components/views/form/FormHeader.vue:369
 #: grunt/frontend/src/components/fields/RichText/ui/EditorContextMenu.vue:113
-#: grunt/frontend/src/pages/app/AppPage.vue:488
+#: grunt/frontend/src/pages/app/AppPage.vue:489
 msgid "Copy"
 msgstr "Копіювати"
 
@@ -2760,12 +2750,12 @@ msgid "Date field"
 msgstr "Поле дати"
 
 #: grunt/grunt/auth/doctypes/User/User.js:187
-#: grunt/grunt/metadata/doctypes/DocType/global_form.js:172
+#: grunt/grunt/metadata/doctypes/DocType/global_form.js:182
 #: grunt/grunt/metadata/doctypes/DocType/global_list.js:98
 #: grunt/frontend/src/components/views/BulkActionBar.vue:276
 #: grunt/frontend/src/components/views/BulkActionBar.vue:303
 #: grunt/frontend/src/components/dashboard/WidgetConfigPanel.vue:77
-#: grunt/frontend/src/components/dashboard/WidgetCard.vue:50
+#: grunt/frontend/src/components/dashboard/WidgetCard.vue:48
 #: grunt/frontend/src/components/files/FileExplorer.vue:723
 #: grunt/frontend/src/components/files/FileExplorer.vue:878
 #: grunt/frontend/src/components/dashboard/sections/FiltersSection.vue:82
@@ -2787,7 +2777,7 @@ msgid "Delete row"
 msgstr "Видалити рядок"
 
 #: grunt/frontend/src/core/composables/useFormActions.ts:45
-#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:55
+#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:77
 #: grunt/frontend/src/components/fields/Table/Table.vue:223
 msgid "Deleted"
 msgstr "Видалено"
@@ -2796,7 +2786,7 @@ msgstr "Видалено"
 msgid "Description (optional)"
 msgstr "Опис (необов'язково)"
 
-#: grunt/frontend/src/components/layout/NotificationsPopover.vue:176
+#: grunt/frontend/src/components/layout/NotificationsPopover.vue:180
 msgid "Disable"
 msgstr "Вимкнути"
 
@@ -2816,7 +2806,7 @@ msgstr "Агрегат DocType"
 msgid "DocTypes"
 msgstr "DocType-и"
 
-#: grunt/frontend/src/pages/desk/DocTypeForm.vue:170
+#: grunt/frontend/src/pages/desk/DocTypeForm.vue:174
 msgid "Document renamed"
 msgstr "Документ перейменовано"
 
@@ -2848,7 +2838,7 @@ msgstr "Дублювати рядок"
 #: grunt/frontend/src/components/fields/Table/Table.vue:401
 #: grunt/frontend/src/components/fields/Table/Table.vue:402
 #: grunt/frontend/src/components/fields/Table/Table.vue:415
-#: grunt/frontend/src/pages/app/AppHome.vue:113
+#: grunt/frontend/src/pages/app/AppHome.vue:116
 msgid "Edit"
 msgstr "Редагувати"
 
@@ -2857,7 +2847,7 @@ msgstr "Редагувати"
 msgid "Edit DocType"
 msgstr "Редагувати DocType"
 
-#: grunt/frontend/src/components/layout/NotificationsPopover.vue:176
+#: grunt/frontend/src/components/layout/NotificationsPopover.vue:180
 msgid "Enable"
 msgstr "Увімкнути"
 
@@ -2882,7 +2872,7 @@ msgstr "Зовнішній URL"
 msgid "Field"
 msgstr "Поле"
 
-#: grunt/grunt/monitoring/health.py:377 grunt/grunt/monitoring/health.py:843
+#: grunt/grunt/monitoring/health.py:377 grunt/grunt/monitoring/health.py:852
 #: grunt/grunt/monitoring/health.py:380
 #: grunt/frontend/src/components/fields/RichText/editor/useRichEditor.ts:81
 #: grunt/frontend/src/components/fields/RichText/ui/InsertMenu.vue:89
@@ -2918,7 +2908,7 @@ msgstr "Перейти до списку {label}"
 msgid "Group by"
 msgstr "Групувати за"
 
-#: grunt/frontend/src/router/index.ts:202
+#: grunt/frontend/src/router/index.ts:191
 #: grunt/frontend/src/components/app/AppSidebar.vue:116
 #: grunt/frontend/src/components/mobile/MobileBottomNav.vue:76
 msgid "Home"
@@ -2979,16 +2969,15 @@ msgid "Manage shares"
 msgstr "Керувати доступом"
 
 #: grunt/frontend/src/components/layout/NotificationsPopover.vue:124
-#: grunt/frontend/src/components/layout/NotificationsPopover.vue:126
 msgid "Mark all as read"
 msgstr "Позначити все як прочитане"
 
-#: grunt/frontend/src/components/layout/NotificationsPopover.vue:160
+#: grunt/frontend/src/components/layout/NotificationsPopover.vue:162
 msgid "Mark as read"
 msgstr "Позначити як прочитане"
 
 #: grunt/frontend/src/components/dashboard/sections/GaugeRangeSection.vue:25
-#: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:82
+#: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:83
 #: grunt/frontend/src/components/fields/Table/useTableCell.ts:75
 msgid "Max"
 msgstr "Макс."
@@ -3003,7 +2992,7 @@ msgid "Maximum"
 msgstr "Максимум"
 
 #: grunt/frontend/src/components/dashboard/sections/GaugeRangeSection.vue:16
-#: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:82
+#: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:83
 #: grunt/frontend/src/components/fields/Table/useTableCell.ts:74
 msgid "Min"
 msgstr "Мін."
@@ -3018,8 +3007,8 @@ msgid "Must be a number"
 msgstr "Має бути числом"
 
 #: grunt/grunt/cli/doctype.py:162 grunt/grunt/auth/doctypes/User/User.js:180
-#: grunt/frontend/src/core/composables/useFormValidation.ts:108
-#: grunt/frontend/src/core/composables/useFormValidation.ts:131
+#: grunt/frontend/src/core/composables/useFormValidation.ts:111
+#: grunt/frontend/src/core/composables/useFormValidation.ts:134
 #: grunt/frontend/src/components/files/FileExplorer.vue:787
 #: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:318
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:246
@@ -3030,12 +3019,12 @@ msgstr "Має бути числом"
 msgid "Name"
 msgstr "Назва"
 
-#: grunt/frontend/src/router/index.ts:211
+#: grunt/frontend/src/router/index.ts:200
 #: grunt/frontend/src/components/app/AppBreadcrumb.vue:85
 #: grunt/frontend/src/components/dashboard/sections/TilesSection.vue:32
 #: grunt/frontend/src/components/dashboard/sections/LinksSection.vue:29
-#: grunt/frontend/src/pages/app/AppPage.vue:188
-#: grunt/frontend/src/pages/desk/DocTypeForm.vue:97
+#: grunt/frontend/src/pages/app/AppPage.vue:190
+#: grunt/frontend/src/pages/desk/DocTypeForm.vue:101
 msgid "New"
 msgstr "Новий"
 
@@ -3061,7 +3050,7 @@ msgstr "Немає доступних полів"
 msgid "No links"
 msgstr "Немає посилань"
 
-#: grunt/frontend/src/components/layout/NotificationsPopover.vue:135
+#: grunt/frontend/src/components/layout/NotificationsPopover.vue:134
 msgid "No notifications"
 msgstr "Немає сповіщень"
 
@@ -3114,10 +3103,9 @@ msgstr "Інше"
 msgid "Page"
 msgstr "Сторінка"
 
-#: grunt/grunt/startup/website.py:175 grunt/grunt/startup/website.py:161
+#: grunt/grunt/startup/website.py:174 grunt/grunt/startup/website.py:160
 #: grunt/grunt/startup/errors.py:258 grunt/grunt/api/v1/pages.py:66
-#: grunt/grunt/api/v1/dashboard.py:310 grunt/grunt/api/v1/dashboard.py:333
-#: grunt/frontend/src/router/index.ts:204
+#: grunt/grunt/api/v1/dashboard.py:223 grunt/frontend/src/router/index.ts:193
 msgid "Page not found"
 msgstr "Сторінку не знайдено"
 
@@ -3129,11 +3117,11 @@ msgstr "Період"
 msgid "Preset name"
 msgstr "Назва пресету"
 
-#: grunt/frontend/src/components/layout/NotificationsPopover.vue:170
+#: grunt/frontend/src/components/layout/NotificationsPopover.vue:173
 msgid "Push notifications disabled"
 msgstr "Push-сповіщення вимкнено"
 
-#: grunt/frontend/src/components/layout/NotificationsPopover.vue:170
+#: grunt/frontend/src/components/layout/NotificationsPopover.vue:173
 msgid "Push notifications enabled"
 msgstr "Push-сповіщення увімкнено"
 
@@ -3152,13 +3140,13 @@ msgstr "Швидке створення"
 #: grunt/grunt/metadata/doctypes/DocType/global_list.js:34
 #: grunt/frontend/src/components/dashboard/ActivityStream.vue:105
 #: grunt/frontend/src/components/files/FileExplorer.vue:673
-#: grunt/frontend/src/pages/app/AppPage.vue:294
+#: grunt/frontend/src/pages/app/AppPage.vue:295
 #: grunt/frontend/src/pages/reports/ReportView.vue:209
 #: grunt/frontend/src/pages/desk/reports/ReportView.vue:83
 msgid "Refresh"
 msgstr "Оновити"
 
-#: grunt/grunt/metadata/doctypes/DocType/global_form.js:162
+#: grunt/grunt/metadata/doctypes/DocType/global_form.js:172
 #: grunt/frontend/src/components/files/FileExplorer.vue:718
 #: grunt/frontend/src/components/views/form/FormHeader.vue:336
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:263
@@ -3182,8 +3170,8 @@ msgid "Required"
 msgstr "Обов'язкове"
 
 #: grunt/grunt/email/templates/password_reset.html:54
-#: grunt/frontend/src/router/index.ts:198
-#: grunt/frontend/src/router/index.ts:199
+#: grunt/frontend/src/router/index.ts:188
+#: grunt/frontend/src/router/index.ts:189
 #: grunt/frontend/src/pages/auth/ForgotPassword.vue:42
 msgid "Reset password"
 msgstr "Скинути пароль"
@@ -3206,7 +3194,7 @@ msgstr "Рядок видалено"
 #: grunt/frontend/src/components/files/CameraCapture.vue:133
 #: grunt/frontend/src/components/views/list/QuickFilterSettingsDialog.vue:113
 #: grunt/frontend/src/components/fields/Table/TableRowSheet.vue:110
-#: grunt/frontend/src/pages/app/AppPage.vue:375
+#: grunt/frontend/src/pages/app/AppPage.vue:376
 #: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:517
 msgid "Save"
 msgstr "Зберегти"
@@ -3225,7 +3213,7 @@ msgstr "Зберегти як пресет"
 
 #: grunt/frontend/src/core/composables/useFormSave.ts:225
 #: grunt/frontend/src/components/views/QuickEntryDialog.vue:112
-#: grunt/frontend/src/pages/app/AppPage.vue:154
+#: grunt/frontend/src/pages/app/AppPage.vue:156
 msgid "Save error"
 msgstr "Помилка збереження"
 
@@ -3258,7 +3246,7 @@ msgstr "Сканування не підтримується в цьому бр�
 msgid "Scanning is not supported in this browser. Use image upload."
 msgstr "Сканування не підтримується в цьому браузері. Завантажте зображення."
 
-#: grunt/frontend/src/router/index.ts:207
+#: grunt/frontend/src/router/index.ts:196
 #: grunt/frontend/src/components/app/AppSidebar.vue:125
 msgid "Search"
 msgstr "Пошук"
@@ -3330,11 +3318,6 @@ msgstr "Встановити значення"
 msgid "Settings"
 msgstr "Налаштування"
 
-#: grunt/frontend/src/router/index.ts:201
-#: grunt/frontend/src/pages/setup/SetupWizard.vue:65
-msgid "Setup"
-msgstr "Початкове налаштування"
-
 #: grunt/grunt/metadata/doctypes/DocType/global_form.js:150
 #: grunt/frontend/src/components/views/form/FormHeader.vue:271
 msgid "Share link"
@@ -3343,14 +3326,13 @@ msgstr "Поділитися посиланням"
 #: grunt/grunt/email/templates/email_login.html:51
 #: grunt/grunt/email/templates/email_login.html:61
 #: grunt/grunt/website/templates/_navbar.html:17
-#: grunt/grunt/website/www/login.py:11 grunt/frontend/src/router/index.ts:196
+#: grunt/grunt/website/www/login.py:11 grunt/frontend/src/router/index.ts:186
 #: grunt/frontend/src/pages/auth/Login.vue:57
 #: grunt/frontend/src/pages/auth/Login.vue:452
-#: grunt/frontend/src/pages/setup/SetupWizard.vue:197
 msgid "Sign in"
 msgstr "Увійти"
 
-#: grunt/grunt/website/www/signup.py:11 grunt/frontend/src/router/index.ts:197
+#: grunt/grunt/website/www/signup.py:11 grunt/frontend/src/router/index.ts:187
 #: grunt/frontend/src/pages/auth/Login.vue:57
 #: grunt/frontend/src/pages/auth/Login.vue:456
 msgid "Sign up"
@@ -3406,13 +3388,14 @@ msgstr "Плитка {n}"
 msgid "Tiles"
 msgstr "Плитки"
 
+#: grunt/grunt/actions/builtin.py:193
 #: grunt/frontend/src/components/dashboard/sections/TilesSection.vue:71
 #: grunt/frontend/src/components/dashboard/sections/LinksSection.vue:85
 #: grunt/frontend/src/components/dashboard/sections/TitleSection.vue:12
 msgid "Title"
 msgstr "Заголовок"
 
-#: grunt/frontend/src/router/index.ts:200
+#: grunt/frontend/src/router/index.ts:190
 msgid "Two-factor authentication"
 msgstr "Двофакторна автентифікація"
 
@@ -3434,7 +3417,7 @@ msgstr "Не збережено"
 msgid "Unsaved changes"
 msgstr "Незбережені зміни"
 
-#: grunt/frontend/src/core/scripting/executor.ts:800
+#: grunt/frontend/src/core/scripting/executor.ts:805
 #: grunt/frontend/src/components/fields/RichText/editor/useRichEditor.ts:150
 msgid "Upload failed"
 msgstr "Не вдалося завантажити"
@@ -3478,7 +3461,7 @@ msgstr "рядків видалено"
 msgid "rows need attention"
 msgstr "рядків потребують уваги"
 
-#: grunt/frontend/src/components/dashboard/widgets/Donut/Donut.vue:81
+#: grunt/frontend/src/components/dashboard/widgets/Donut/Donut.vue:95
 msgid "total"
 msgstr "усього"
 
@@ -3799,56 +3782,6 @@ msgctxt "select:Comment.comment_type"
 msgid "Warning"
 msgstr "Попередження"
 
-#: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
-msgctxt "select:Dashboard Widget.aggregation"
-msgid "avg"
-msgstr "Середнє"
-
-#: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
-msgctxt "select:Dashboard Widget.aggregation"
-msgid "count"
-msgstr "Кількість"
-
-#: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
-msgctxt "select:Dashboard Widget.aggregation"
-msgid "max"
-msgstr "Максимум"
-
-#: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
-msgctxt "select:Dashboard Widget.aggregation"
-msgid "min"
-msgstr "Мінімум"
-
-#: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
-msgctxt "select:Dashboard Widget.aggregation"
-msgid "sum"
-msgstr "Сума"
-
-#: grunt/grunt/reports/doctypes/DashboardChart/DashboardChart.json
-msgctxt "select:DashboardChart.timespan"
-msgid "all_time"
-msgstr "За весь час"
-
-#: grunt/grunt/reports/doctypes/DashboardChart/DashboardChart.json
-msgctxt "select:DashboardChart.timespan"
-msgid "last_month"
-msgstr "Останній місяць"
-
-#: grunt/grunt/reports/doctypes/DashboardChart/DashboardChart.json
-msgctxt "select:DashboardChart.timespan"
-msgid "last_quarter"
-msgstr "Останній квартал"
-
-#: grunt/grunt/reports/doctypes/DashboardChart/DashboardChart.json
-msgctxt "select:DashboardChart.timespan"
-msgid "last_week"
-msgstr "Останній тиждень"
-
-#: grunt/grunt/reports/doctypes/DashboardChart/DashboardChart.json
-msgctxt "select:DashboardChart.timespan"
-msgid "last_year"
-msgstr "Останній рік"
-
 #: grunt/grunt/io/doctypes/DataExport/DataExport.json
 msgctxt "select:DataExport.status"
 msgid "Failed"
@@ -4038,31 +3971,6 @@ msgstr "Email"
 msgctxt "select:NotificationRule.channel"
 msgid "system"
 msgstr "Система"
-
-#: grunt/grunt/reports/doctypes/NumberCard/NumberCard.json
-msgctxt "select:NumberCard.aggregation"
-msgid "avg"
-msgstr "Середнє"
-
-#: grunt/grunt/reports/doctypes/NumberCard/NumberCard.json
-msgctxt "select:NumberCard.aggregation"
-msgid "count"
-msgstr "Кількість"
-
-#: grunt/grunt/reports/doctypes/NumberCard/NumberCard.json
-msgctxt "select:NumberCard.aggregation"
-msgid "max"
-msgstr "Максимум"
-
-#: grunt/grunt/reports/doctypes/NumberCard/NumberCard.json
-msgctxt "select:NumberCard.aggregation"
-msgid "min"
-msgstr "Мінімум"
-
-#: grunt/grunt/reports/doctypes/NumberCard/NumberCard.json
-msgctxt "select:NumberCard.aggregation"
-msgid "sum"
-msgstr "Сума"
 
 #: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
 msgctxt "select:PageWidget.aggregation"
@@ -4410,6 +4318,7 @@ msgstr "Рядок"
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.js:101
 #: grunt/frontend/src/components/desk/GruntDialog.vue:468
 #: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue:428
+#: grunt/frontend/src/components/views/form/FormTour.vue:137
 #: grunt/frontend/src/components/fields/Table/TableRowSheet.vue:108
 msgid "Close"
 msgstr "Закрити"
@@ -4631,7 +4540,7 @@ msgstr "PDF"
 msgid "Print"
 msgstr "Друк"
 
-#: grunt/frontend/src/core/scripting/executor.ts:895
+#: grunt/frontend/src/core/scripting/executor.ts:900
 msgid "text"
 msgstr ""
 
@@ -4857,7 +4766,7 @@ msgstr "Записів не знайдено"
 msgid "No records match your filters"
 msgstr "Нічого не знайдено за фільтрами"
 
-#: grunt/grunt/tasks/redis_introspect.py:135
+#: grunt/grunt/tasks/redis_introspect.py:157
 #: grunt/frontend/src/components/views/ListEmptyState.vue:27
 msgid "The data source is temporarily unavailable."
 msgstr "Джерело даних тимчасово недоступне."
@@ -4880,26 +4789,6 @@ msgstr "Видалення"
 msgctxt "select:ActivityLog.action"
 msgid "Workflow"
 msgstr "Робочий процес"
-
-#: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
-msgctxt "select:Dashboard Widget.link_type"
-msgid "DocType"
-msgstr "DocType"
-
-#: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
-msgctxt "select:Dashboard Widget.link_type"
-msgid "Report"
-msgstr "Звіт"
-
-#: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
-msgctxt "select:Dashboard Widget.link_type"
-msgid "Page"
-msgstr "Сторінка"
-
-#: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
-msgctxt "select:Dashboard Widget.link_type"
-msgid "URL"
-msgstr "URL"
 
 #: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
 msgctxt "select:PageWidget.link_type"
@@ -5064,7 +4953,7 @@ msgstr[0] "{n} запис"
 msgstr[1] "{n} записи"
 msgstr[2] "{n} записів"
 
-#: grunt/frontend/src/pages/desk/DocTypeForm.vue:243
+#: grunt/frontend/src/pages/desk/DocTypeForm.vue:247
 msgid "Activity"
 msgstr "Активність"
 
@@ -5083,7 +4972,7 @@ msgid "New value"
 msgstr "Нове значення"
 
 #: grunt/grunt/actions/builtin.py:102
-#: grunt/frontend/src/pages/desk/DocTypeForm.vue:189
+#: grunt/frontend/src/pages/desk/DocTypeForm.vue:193
 msgid "Restore"
 msgstr "Відновити"
 
@@ -5329,6 +5218,7 @@ msgstr "Прибрати {name}"
 
 #: grunt/grunt/monitoring/health.py:682 grunt/grunt/monitoring/health.py:522
 #: grunt/grunt/monitoring/health.py:570 grunt/grunt/monitoring/health.py:614
+#: grunt/grunt/monitoring/updates.py:702
 msgid "none"
 msgstr "нема"
 
@@ -5624,7 +5514,7 @@ msgid "Quick entry"
 msgstr "Швидке додавання"
 
 #: grunt/frontend/src/components/views/WorkflowActions.vue:133
-#: grunt/frontend/src/components/views/actions/ActionButtons.vue:112
+#: grunt/frontend/src/components/views/actions/ActionButtons.vue:114
 #: grunt/frontend/src/components/views/calendar/CalendarView.vue:416
 msgid "more"
 msgstr "ще"
@@ -5765,7 +5655,6 @@ msgstr "Забагато невдалих спроб. Акаунт тимчас�
 #: grunt/frontend/src/core/composables/useOfflineQueue.ts:146
 #: grunt/frontend/src/core/composables/useFormSave.ts:151
 #: grunt/frontend/src/pages/auth/Login.vue:176
-#: grunt/frontend/src/pages/setup/SetupWizard.vue:42
 msgid "Error"
 msgstr "Помилка"
 
@@ -5837,7 +5726,6 @@ msgstr "Іваненко Іван Іванович"
 
 #: grunt/grunt/auth/doctypes/User/user.py:72
 #: grunt/frontend/src/pages/auth/Login.vue:412
-#: grunt/frontend/src/pages/setup/SetupWizard.vue:162
 msgid "Password"
 msgstr "Пароль доступу"
 
@@ -5846,7 +5734,6 @@ msgid "Forgot password?"
 msgstr "Забули пароль?"
 
 #: grunt/frontend/src/pages/auth/Login.vue:426
-#: grunt/frontend/src/pages/setup/SetupWizard.vue:166
 msgid "At least 8 characters"
 msgstr "Мінімум 8 символів"
 
@@ -5910,7 +5797,6 @@ msgstr "Скопіювати коди"
 #: grunt/frontend/src/pages/DeskPage.vue:207
 #: grunt/frontend/src/core/composables/useDialog.ts:261
 #: grunt/frontend/src/pages/auth/MfaVerify.vue:133
-#: grunt/frontend/src/pages/setup/SetupWizard.vue:137
 msgid "Continue"
 msgstr "Продовжити"
 
@@ -5995,7 +5881,7 @@ msgstr "Доброго вечора, {name}"
 #: grunt/frontend/src/core/datetime.ts:192
 #: grunt/frontend/src/core/datetime.ts:212
 #: grunt/frontend/src/core/datetime.ts:219
-#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:67
+#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:89
 msgid "just now"
 msgstr "щойно"
 
@@ -6040,16 +5926,16 @@ msgstr "Помилок: {n}"
 msgid "Index rebuilt: {n} documents"
 msgstr "Індекс перебудовано: {n} документів"
 
-#: grunt/frontend/src/pages/desk/DocTypeForm.vue:188
+#: grunt/frontend/src/pages/desk/DocTypeForm.vue:192
 msgid "Unsaved changes found ({time}). Restore the draft?"
 msgstr "Знайдено незбережені зміни ({time}). Відновити чернетку?"
 
 #: grunt/frontend/src/components/layout/OfflineQueueSheet.vue:101
-#: grunt/frontend/src/pages/desk/DocTypeForm.vue:190
+#: grunt/frontend/src/pages/desk/DocTypeForm.vue:194
 msgid "Discard"
 msgstr "Відкинути"
 
-#: grunt/frontend/src/pages/desk/DocTypeForm.vue:197
+#: grunt/frontend/src/pages/desk/DocTypeForm.vue:201
 msgid ""
 "This document type is deprecated. It still works, but do not use it in new "
 "code."
@@ -6057,16 +5943,16 @@ msgstr ""
 "Цей тип документа позначено як неактуальний (deprecated). Він продовжує "
 "працювати, але не використовуйте його в новому коді."
 
-#: grunt/frontend/src/pages/desk/DocTypeForm.vue:202
+#: grunt/frontend/src/pages/desk/DocTypeForm.vue:206
 msgid ""
 "Beta: this document type is still in development; its behavior may change."
 msgstr "Beta: цей тип документа ще в розробці, поведінка може змінитися."
 
-#: grunt/frontend/src/pages/desk/DocTypeForm.vue:225
+#: grunt/frontend/src/pages/desk/DocTypeForm.vue:229
 msgid "{views} views · {viewers} users"
 msgstr "{views} переглядів · {viewers} користувачів"
 
-#: grunt/frontend/src/pages/desk/DocTypeForm.vue:228
+#: grunt/frontend/src/pages/desk/DocTypeForm.vue:232
 msgid "Viewed by:"
 msgstr "Переглянули:"
 
@@ -6095,63 +5981,63 @@ msgstr "Видалення записів"
 msgid "Deleting records…"
 msgstr "Видалення записів…"
 
-#: grunt/frontend/src/pages/app/AppPage.vue:137
+#: grunt/frontend/src/pages/app/AppPage.vue:140
 msgid "Could not create the page"
 msgstr "Помилка створення сторінки"
 
-#: grunt/frontend/src/pages/app/AppPage.vue:236
+#: grunt/frontend/src/pages/app/AppPage.vue:237
 msgid "Link copied"
 msgstr "Посилання скопійовано"
 
-#: grunt/frontend/src/pages/app/AppPage.vue:277
+#: grunt/frontend/src/pages/app/AppPage.vue:278
 msgid "30s"
 msgstr "30с"
 
-#: grunt/frontend/src/pages/app/AppPage.vue:278
+#: grunt/frontend/src/pages/app/AppPage.vue:279
 msgid "1m"
 msgstr "1хв"
 
-#: grunt/frontend/src/pages/app/AppPage.vue:279
+#: grunt/frontend/src/pages/app/AppPage.vue:280
 msgid "5m"
 msgstr "5хв"
 
-#: grunt/frontend/src/pages/app/AppPage.vue:280
+#: grunt/frontend/src/pages/app/AppPage.vue:281
 msgid "10m"
 msgstr "10хв"
 
-#: grunt/frontend/src/pages/app/AppPage.vue:319
+#: grunt/frontend/src/pages/app/AppPage.vue:320
 msgid "The page has not been created yet"
 msgstr "Сторінку ще не створено"
 
-#: grunt/frontend/src/pages/app/AppPage.vue:323
+#: grunt/frontend/src/pages/app/AppPage.vue:324
 msgid "Create page"
 msgstr "Створити Сторінку"
 
-#: grunt/frontend/src/pages/app/AppPage.vue:331
+#: grunt/frontend/src/pages/app/AppPage.vue:332
 msgid "The page is empty"
 msgstr "Сторінка порожня"
 
-#: grunt/frontend/src/pages/app/AppPage.vue:362
+#: grunt/frontend/src/pages/app/AppPage.vue:363
 msgid "Edit mode"
 msgstr "Режим редагування"
 
-#: grunt/frontend/src/pages/app/AppPage.vue:387
+#: grunt/frontend/src/pages/app/AppPage.vue:388
 msgid "Widget types"
 msgstr "Типи віджетів"
 
-#: grunt/frontend/src/pages/app/AppPage.vue:416
+#: grunt/frontend/src/pages/app/AppPage.vue:417
 msgid "Choose a widget type"
 msgstr "Оберіть тип віджета"
 
-#: grunt/frontend/src/pages/app/AppPage.vue:417
+#: grunt/frontend/src/pages/app/AppPage.vue:418
 msgid "Click any type in the left panel — it will appear here"
 msgstr "Натисніть на будь-який тип у лівій панелі — він з'явиться тут"
 
-#: grunt/frontend/src/pages/app/AppPage.vue:477
+#: grunt/frontend/src/pages/app/AppPage.vue:478
 msgid "Embed page"
 msgstr "Вбудувати сторінку"
 
-#: grunt/frontend/src/pages/app/AppPage.vue:481
+#: grunt/frontend/src/pages/app/AppPage.vue:482
 msgid "Direct link"
 msgstr "Пряме посилання"
 
@@ -6193,20 +6079,20 @@ msgstr "Спробувати перебудувати індекс"
 msgid "All"
 msgstr "Усі"
 
-#: grunt/frontend/src/core/composables/useFormValidation.ts:110
-#: grunt/frontend/src/core/composables/useFormValidation.ts:133
+#: grunt/frontend/src/core/composables/useFormValidation.ts:113
+#: grunt/frontend/src/core/composables/useFormValidation.ts:136
 #: grunt/frontend/src/pages/app/SearchResultsPage.vue:214
 msgid "Module"
 msgstr "Модуль"
 
 #: grunt/frontend/src/components/dashboard/ActivityStream.vue:136
-#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:55
+#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:77
 msgid "Created"
 msgstr "Створив(ла)"
 
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.js:213
 #: grunt/frontend/src/components/dashboard/ActivityStream.vue:137
-#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:55
+#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:77
 msgid "Updated"
 msgstr "Оновив(ла)"
 
@@ -6215,7 +6101,7 @@ msgstr "Оновив(ла)"
 msgid "document"
 msgstr "документ"
 
-#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:68
+#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:90
 msgid "{n} min ago"
 msgstr "{n} хв тому"
 
@@ -6223,7 +6109,7 @@ msgstr "{n} хв тому"
 msgid "was {n}"
 msgstr "було {n}"
 
-#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:70
+#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:92
 msgid "{n} h ago"
 msgstr "{n} год тому"
 
@@ -6249,7 +6135,7 @@ msgid "Upload"
 msgstr "Завантажити"
 
 #: grunt/frontend/src/core/composables/useMapMarkers.ts:148
-#: grunt/frontend/src/components/desk/OnboardingChecklists.vue:55
+#: grunt/frontend/src/components/desk/OnboardingChecklists.vue:56
 #: grunt/frontend/src/components/desk/AppCard.vue:47
 #: grunt/frontend/src/components/layout/OfflineQueueSheet.vue:83
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:172
@@ -6270,19 +6156,19 @@ msgstr "Немає недавньої активності"
 msgid "Cancelled"
 msgstr "Скасував(ла)"
 
-#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:56
+#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:78
 msgid "Shared"
 msgstr "Поділився(-лась)"
 
-#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:56
+#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:78
 msgid "Commented"
 msgstr "Прокоментував(ла)"
 
-#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:56
+#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:78
 msgid "Moved"
 msgstr "Перевів(ла)"
 
-#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:94
+#: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:116
 msgid "No activity"
 msgstr "Немає активності"
 
@@ -6366,18 +6252,18 @@ msgstr "Застосувати мої"
 msgid "Download"
 msgstr "Завантажити"
 
-#: grunt/frontend/src/core/composables/useFormValidation.ts:100
-#: grunt/frontend/src/core/composables/useFormValidation.ts:115
+#: grunt/frontend/src/core/composables/useFormValidation.ts:103
+#: grunt/frontend/src/core/composables/useFormValidation.ts:118
 msgid "Field \"{label}\" is required"
 msgstr "Поле \"{label}\" є обов'язковим"
 
-#: grunt/frontend/src/core/composables/useFormValidation.ts:109
-#: grunt/frontend/src/core/composables/useFormValidation.ts:132
+#: grunt/frontend/src/core/composables/useFormValidation.ts:112
+#: grunt/frontend/src/core/composables/useFormValidation.ts:135
 #: grunt/frontend/src/pages/studio/builder/webform/WebFormFieldPropertiesPanel.vue:32
 msgid "Label"
 msgstr "Підпис"
 
-#: grunt/frontend/src/core/composables/useFormValidation.ts:139
+#: grunt/frontend/src/core/composables/useFormValidation.ts:142
 msgid "Fill in the required fields: {fields}"
 msgstr "Заповніть обов'язкові поля: {fields}"
 
@@ -6476,7 +6362,7 @@ msgstr "Не включено (потребують агрегації): {column
 msgid "Applied «{name}»"
 msgstr "Застосовано «{name}»"
 
-#: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:140
+#: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:141
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:274
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:387
 #: grunt/frontend/src/components/views/list/ListGroupedView.vue:95
@@ -6545,12 +6431,12 @@ msgstr "Нд"
 msgid "Total: {n} records"
 msgstr "Всього: {n} записів"
 
-#: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:82
+#: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:83
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:222
 msgid "Sum"
 msgstr "Сума"
 
-#: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:82
+#: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:83
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:226
 msgid "Count"
 msgstr "Кількість"
@@ -6581,7 +6467,7 @@ msgstr "Не вдалося відкрити звіт"
 msgid "No total"
 msgstr "Без підсумку"
 
-#: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:82
+#: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:83
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:223
 msgid "Average"
 msgstr "Середнє"
@@ -6718,7 +6604,7 @@ msgid "You only see records matching these values."
 msgstr "Ви бачите лише записи, що відповідають цим значенням."
 
 #: grunt/grunt/api/v1/docs/utils.py:91
-#: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:84
+#: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:85
 #: grunt/frontend/src/components/views/list/ListHeader.vue:129
 #: grunt/frontend/src/components/fields/Default/FilterInput.vue:27
 #: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:362
@@ -6865,7 +6751,7 @@ msgstr "ТАК"
 msgid "NO"
 msgstr "НІ"
 
-#: grunt/frontend/src/components/layout/NotificationsPopover.vue:136
+#: grunt/frontend/src/components/layout/NotificationsPopover.vue:135
 msgid "Your latest notifications will appear here."
 msgstr "Тут з'являться ваші останні сповіщення."
 
@@ -7011,23 +6897,23 @@ msgstr "Обрати"
 msgid "Add to Home Screen"
 msgstr "На екран «Домівка»"
 
-#: grunt/frontend/src/core/composables/useWebPush.ts:59
+#: grunt/frontend/src/core/composables/useWebPush.ts:87
 msgid "Your browser does not support push notifications"
 msgstr "Ваш браузер не підтримує Push-сповіщення"
 
-#: grunt/frontend/src/core/composables/useWebPush.ts:69
+#: grunt/frontend/src/core/composables/useWebPush.ts:98
 msgid "You did not allow notifications"
 msgstr "Ви не надали дозвіл на сповіщення"
 
-#: grunt/frontend/src/core/composables/useWebPush.ts:75
+#: grunt/frontend/src/core/composables/useWebPush.ts:104
 msgid "The server is not set up for push notifications (VAPID key missing)"
 msgstr "Сервер не налаштовано для Push-сповіщень (відсутній VAPID ключ)"
 
-#: grunt/frontend/src/core/composables/useWebPush.ts:81
+#: grunt/frontend/src/core/composables/useWebPush.ts:110
 msgid "Service Worker is not ready. Reload the page."
 msgstr "Service Worker не готовий. Перезавантажте сторінку."
 
-#: grunt/frontend/src/core/composables/useWebPush.ts:100
+#: grunt/frontend/src/core/composables/useWebPush.ts:124
 msgid "Push notifications enabled!"
 msgstr "Push-сповіщення успішно ввімкнено!"
 
@@ -7068,16 +6954,11 @@ msgid "Shown only in debug mode · Click outside or press ESC to close"
 msgstr ""
 "Показується лише в режимі debug · Клацніть поза вікном або ESC, щоб закрити"
 
-#: grunt/frontend/src/components/dashboard/widgets/Metric/Metric.vue:88
-#: grunt/frontend/src/components/dashboard/widgets/Metric/Metric.vue:93
-msgid "over {period}"
-msgstr "за {period}"
-
-#: grunt/frontend/src/pages/app/AppHome.vue:151
+#: grunt/frontend/src/pages/app/AppHome.vue:154
 msgid "Create a"
 msgstr "Створіть"
 
-#: grunt/frontend/src/pages/app/AppHome.vue:152
+#: grunt/frontend/src/pages/app/AppHome.vue:155
 msgid "and set it in the «Home page» field of the AppMenu settings."
 msgstr "і вкажіть її у полі «Домашня сторінка» в налаштуваннях AppMenu."
 
@@ -7121,11 +7002,11 @@ msgstr "Всі розділи"
 msgid "Copied!"
 msgstr "Скопійовано!"
 
-#: grunt/frontend/src/components/dashboard/widgets/Metric/Metric.vue:83
+#: grunt/frontend/src/components/dashboard/widgets/Metric/Metric.vue:91
 msgid "no change"
 msgstr "без змін"
 
-#: grunt/frontend/src/pages/app/AppHome.vue:149
+#: grunt/frontend/src/pages/app/AppHome.vue:152
 msgid "The home page is not set up."
 msgstr "Домашня сторінка не налаштована."
 
@@ -7165,8 +7046,8 @@ msgid ""
 msgstr ""
 "Немає з'єднання — зміни збережено на пристрої й буде надіслано автоматично"
 
-#: grunt/frontend/src/core/composables/useFormController.ts:221
-#: grunt/frontend/src/core/composables/useFormController.ts:222
+#: grunt/frontend/src/core/composables/useFormController.ts:227
+#: grunt/frontend/src/core/composables/useFormController.ts:228
 msgid "Could not apply the transition"
 msgstr "Помилка застосування переходу"
 
@@ -7174,7 +7055,7 @@ msgstr "Помилка застосування переходу"
 msgid "Delete error"
 msgstr "Помилка видалення"
 
-#: grunt/frontend/src/pages/app/AppHome.vue:151
+#: grunt/frontend/src/pages/app/AppHome.vue:154
 msgctxt "link"
 msgid "Page"
 msgstr "Сторінку"
@@ -7200,7 +7081,7 @@ msgid "Report «{name}» not found"
 msgstr "Звіт «{name}» не знайдено"
 
 #: grunt/frontend/src/core/grunt.ts:121 grunt/frontend/src/stores/auth.ts:191
-#: grunt/frontend/src/core/scripting/executor.ts:845
+#: grunt/frontend/src/core/scripting/executor.ts:850
 msgid "This browser does not support passkeys"
 msgstr "Цей браузер не підтримує ключі доступу"
 
@@ -7413,7 +7294,7 @@ msgstr "немає відповіді"
 msgid "Push notifications"
 msgstr "Push-сповіщення"
 
-#: grunt/grunt/monitoring/health.py:861
+#: grunt/grunt/monitoring/health.py:871
 #: grunt/frontend/src/core/browserHealth.ts:275
 msgid "check failed"
 msgstr "перевірка впала"
@@ -7440,7 +7321,7 @@ msgstr "Тип з'єднання"
 msgid "not connected"
 msgstr "не підключено"
 
-#: grunt/grunt/monitoring/health.py:789 grunt/grunt/monitoring/health.py:849
+#: grunt/grunt/monitoring/health.py:789 grunt/grunt/monitoring/health.py:859
 #: grunt/frontend/src/core/browserHealth.ts:34
 msgid "Offline mode"
 msgstr "Офлайн-режим"
@@ -7473,7 +7354,7 @@ msgstr "підключено"
 msgid "denied"
 msgstr "заборонено"
 
-#: grunt/grunt/monitoring/health.py:410 grunt/grunt/monitoring/health.py:846
+#: grunt/grunt/monitoring/health.py:410 grunt/grunt/monitoring/health.py:855
 #: grunt/frontend/src/core/browserHealth.ts:38
 #: grunt/frontend/src/core/browserHealth.ts:287
 msgid "WebSockets"
@@ -7557,7 +7438,7 @@ msgstr "офлайн"
 msgid "Quota"
 msgstr "Квота"
 
-#: grunt/grunt/storage/doctypes/StorageRemote/storage_remote.py:196
+#: grunt/grunt/storage/doctypes/StorageRemote/storage_remote.py:205
 #: grunt/grunt/auth/doctypes/User/User.js:181
 #: grunt/frontend/src/core/browserHealth.ts:78
 #: grunt/frontend/src/core/browserHealth.ts:165
@@ -7818,78 +7699,10 @@ msgstr "Налаштуйте звіт"
 msgid "Choose the first available DocType"
 msgstr "Обрати перший доступний DocType"
 
-#: grunt/frontend/src/pages/setup/SetupWizard.vue:39
-msgid "Welcome to {app}"
-msgstr "Ласкаво просимо до {app}"
-
-#: grunt/frontend/src/pages/setup/SetupWizard.vue:39
-msgid "System initialized!"
-msgstr "Систему ініціалізовано!"
-
-#: grunt/frontend/src/pages/setup/SetupWizard.vue:68
-msgid "Configure the key system settings for a confident start."
-msgstr "Налаштуйте ключові параметри системи для впевненого старту."
-
-#: grunt/frontend/src/pages/setup/SetupWizard.vue:79
-msgid "Basics"
-msgstr "Базові дані"
-
-#: grunt/frontend/src/pages/setup/SetupWizard.vue:80
-msgid "Name and localization"
-msgstr "Назва та локалізація"
-
-#: grunt/frontend/src/pages/setup/SetupWizard.vue:91
-msgid "Administrator"
-msgstr "Адміністратор"
-
-#: grunt/frontend/src/pages/setup/SetupWizard.vue:92
-msgid "Protect the main account"
-msgstr "Захист головного акаунту"
-
-#: grunt/frontend/src/pages/setup/SetupWizard.vue:108
-msgid "What shall we call the project?"
-msgstr "Як назвемо проект?"
-
-#: grunt/frontend/src/pages/setup/SetupWizard.vue:109
-msgid "This name appears on the home screen and in emails."
-msgstr "Ця назва буде відображатися на головному екрані та в листах."
-
-#: grunt/frontend/src/pages/setup/SetupWizard.vue:114
-msgid "System name"
-msgstr "Назва системи"
-
-#: grunt/frontend/src/pages/setup/SetupWizard.vue:117
-msgid "For example: My ERP"
-msgstr "Наприклад: My ERP"
-
-#: grunt/frontend/src/pages/setup/SetupWizard.vue:122
-msgid "Interface language"
-msgstr "Мова інтерфейсу"
-
-#: grunt/frontend/src/pages/setup/SetupWizard.vue:146
-msgid "Administrator access"
-msgstr "Доступ адміністратора"
-
-#: grunt/frontend/src/pages/setup/SetupWizard.vue:147
-msgid "Set a strong password for the main account."
-msgstr "Встановіть надійний пароль для головного акаунту."
-
 #: grunt/frontend/src/components/files/FileExplorer.vue:647
-#: grunt/frontend/src/pages/setup/SetupWizard.vue:174
+#: grunt/frontend/src/components/views/form/FormTour.vue:145
 msgid "Back"
 msgstr "Назад"
-
-#: grunt/frontend/src/pages/setup/SetupWizard.vue:176
-msgid "Finish"
-msgstr "Завершити"
-
-#: grunt/frontend/src/pages/setup/SetupWizard.vue:188
-msgid "The system is ready!"
-msgstr "Систему готово!"
-
-#: grunt/frontend/src/pages/setup/SetupWizard.vue:190
-msgid "Press the button below to sign in and start working with Grunt."
-msgstr "Тисніть кнопку нижче, щоб увійти та розпочати роботу з Grunt."
 
 #: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:196
 #: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:216
@@ -8514,13 +8327,13 @@ msgstr "Відкрити конструктор"
 msgid "View report"
 msgstr "Переглянути звіт"
 
-#: grunt/grunt/monitoring/health.py:836 grunt/grunt/monitoring/health.py:101
+#: grunt/grunt/monitoring/health.py:845 grunt/grunt/monitoring/health.py:101
 #: grunt/grunt/monitoring/health.py:110
 #: grunt/grunt/backups/doctypes/Backup/Backup.js:49
 msgid "Database"
 msgstr "База даних"
 
-#: grunt/grunt/monitoring/health.py:352 grunt/grunt/monitoring/health.py:842
+#: grunt/grunt/monitoring/health.py:352 grunt/grunt/monitoring/health.py:851
 msgid "Configuration"
 msgstr "Конфігурація"
 
@@ -8606,7 +8419,7 @@ msgstr "Завантаження..."
 msgid "Reject the registration of this user?"
 msgstr "Відхилити реєстрацію цього користувача?"
 
-#: grunt/frontend/src/core/composables/useWebPush.ts:104
+#: grunt/frontend/src/core/composables/useWebPush.ts:128
 msgid "Subscription error:"
 msgstr "Помилка підписки:"
 
@@ -10459,216 +10272,6 @@ msgctxt "meta:PrintFormat.template"
 msgid "Template"
 msgstr "Шаблон"
 
-#: grunt/grunt/reports/doctypes/Dashboard/Dashboard.json
-msgctxt "meta:Dashboard"
-msgid "Dashboard"
-msgstr "Дашборд"
-
-#: grunt/grunt/reports/doctypes/Dashboard/Dashboard.json
-msgctxt "meta:Dashboard.label"
-msgid "Name"
-msgstr "Назва"
-
-#: grunt/grunt/reports/doctypes/Dashboard/Dashboard.json
-msgctxt "meta:Dashboard.description"
-msgid "Description"
-msgstr "Опис"
-
-#: grunt/grunt/reports/doctypes/Dashboard/Dashboard.json
-msgctxt "meta:Dashboard.workspace"
-msgid "Workspace"
-msgstr "Воркспейс"
-
-#: grunt/grunt/reports/doctypes/Dashboard/Dashboard.json
-msgctxt "meta:Dashboard.is_published"
-msgid "Published"
-msgstr "Опублікований"
-
-#: grunt/grunt/reports/doctypes/Dashboard/Dashboard.json
-msgctxt "meta:Dashboard.roles"
-msgid "Roles (comma-separated)"
-msgstr "Ролі (через кому)"
-
-#: grunt/grunt/reports/doctypes/Dashboard/Dashboard.json
-msgctxt "meta:Dashboard.widgets"
-msgid "Widgets"
-msgstr "Віджети"
-
-#: grunt/grunt/reports/doctypes/DashboardChart/DashboardChart.json
-msgctxt "meta:DashboardChart"
-msgid "Dashboard Chart"
-msgstr "Графік дашборду"
-
-#: grunt/grunt/reports/doctypes/DashboardChart/DashboardChart.json
-msgctxt "meta:DashboardChart.chart_type"
-msgid "Chart type"
-msgstr "Тип графіка"
-
-#: grunt/grunt/reports/doctypes/DashboardChart/DashboardChart.json
-msgctxt "meta:DashboardChart.value_field"
-msgid "Value field"
-msgstr "Поле значення"
-
-#: grunt/grunt/reports/doctypes/DashboardChart/DashboardChart.json
-msgctxt "meta:DashboardChart.group_by"
-msgid "Group by"
-msgstr "Групувати за"
-
-#: grunt/grunt/reports/doctypes/DashboardChart/DashboardChart.json
-msgctxt "meta:DashboardChart.timespan"
-msgid "Period"
-msgstr "Період"
-
-#: grunt/grunt/reports/doctypes/DashboardChart/DashboardChart.json
-msgctxt "meta:DashboardChart.filters"
-msgid "Filters (JSON)"
-msgstr "Фільтри (JSON)"
-
-#: grunt/grunt/reports/doctypes/DashboardChart/DashboardChart.json
-msgctxt "meta:DashboardChart.color"
-msgid "Color"
-msgstr "Колір"
-
-#: grunt/grunt/reports/doctypes/DashboardChart/DashboardChart.json
-msgctxt "meta:DashboardChart.is_public"
-msgid "Public"
-msgstr "Публічний"
-
-#: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
-msgctxt "meta:Dashboard Widget"
-msgid "Dashboard Widget"
-msgstr "Віджет дашборду"
-
-#: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
-msgctxt "meta:Dashboard Widget.widget_type"
-msgid "Type"
-msgstr "Тип"
-
-#: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
-msgctxt "meta:Dashboard Widget.title"
-msgid "Title"
-msgstr "Заголовок"
-
-#: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
-msgctxt "meta:Dashboard Widget.aggregation"
-msgid "Aggregation"
-msgstr "Агрегація"
-
-#: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
-msgctxt "meta:Dashboard Widget.field"
-msgid "Field"
-msgstr "Поле"
-
-#: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
-msgctxt "meta:Dashboard Widget.group_by"
-msgid "Group by"
-msgstr "Групувати за"
-
-#: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
-msgctxt "meta:Dashboard Widget.date_field"
-msgid "Date field"
-msgstr "Поле дати"
-
-#: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
-msgctxt "meta:Dashboard Widget.period"
-msgid "Period"
-msgstr "Період"
-
-#: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
-msgctxt "meta:Dashboard Widget.filters"
-msgid "Filters"
-msgstr "Фільтри"
-
-#: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
-msgctxt "meta:Dashboard Widget.min_value"
-msgid "Min value"
-msgstr "Мін. значення"
-
-#: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
-msgctxt "meta:Dashboard Widget.max_value"
-msgid "Max value"
-msgstr "Макс. значення"
-
-#: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
-msgctxt "meta:Dashboard Widget.cols"
-msgid "Width (1-4)"
-msgstr "Ширина (1-4)"
-
-#: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
-msgctxt "meta:Dashboard Widget.color"
-msgid "Color"
-msgstr "Колір"
-
-#: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
-msgctxt "meta:Dashboard Widget.icon"
-msgid "Icon (lucide)"
-msgstr "Іконка (lucide)"
-
-#: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
-msgctxt "meta:Dashboard Widget.sequence"
-msgid "Order"
-msgstr "Порядок"
-
-#: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
-msgctxt "meta:Dashboard Widget.link_type"
-msgid "Link type"
-msgstr "Тип посилання"
-
-#: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
-msgctxt "meta:Dashboard Widget.description"
-msgid "Description / Subtitle"
-msgstr "Опис / Підзаголовок"
-
-#: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
-msgctxt "meta:Dashboard Widget.report"
-msgid "Report (chart data source)"
-msgstr "Звіт (джерело даних для графіка)"
-
-#: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
-msgctxt "meta:Dashboard Widget.content"
-msgid "Content"
-msgstr "Вміст"
-
-#: grunt/grunt/reports/doctypes/NumberCard/NumberCard.json
-msgctxt "meta:NumberCard"
-msgid "Number Card"
-msgstr "Числова картка"
-
-#: grunt/grunt/reports/doctypes/NumberCard/NumberCard.json
-msgctxt "meta:NumberCard.label"
-msgid "Name"
-msgstr "Назва"
-
-#: grunt/grunt/reports/doctypes/NumberCard/NumberCard.json
-msgctxt "meta:NumberCard.aggregation"
-msgid "Aggregation"
-msgstr "Агрегація"
-
-#: grunt/grunt/reports/doctypes/NumberCard/NumberCard.json
-msgctxt "meta:NumberCard.value_field"
-msgid "Value field"
-msgstr "Поле значення"
-
-#: grunt/grunt/reports/doctypes/NumberCard/NumberCard.json
-msgctxt "meta:NumberCard.filters"
-msgid "Filters (JSON)"
-msgstr "Фільтри (JSON)"
-
-#: grunt/grunt/reports/doctypes/NumberCard/NumberCard.json
-msgctxt "meta:NumberCard.color"
-msgid "Color"
-msgstr "Колір"
-
-#: grunt/grunt/reports/doctypes/NumberCard/NumberCard.json
-msgctxt "meta:NumberCard.icon"
-msgid "Icon"
-msgstr "Іконка"
-
-#: grunt/grunt/reports/doctypes/NumberCard/NumberCard.json
-msgctxt "meta:NumberCard.is_public"
-msgid "Public"
-msgstr "Публічний"
-
 #: grunt/grunt/reports/doctypes/Report/Report.json
 msgctxt "meta:Report"
 msgid "Report"
@@ -11658,7 +11261,7 @@ msgstr "зберігається %(days)s дн."
 msgid "log: general log retention period"
 msgstr "журнал — загальний строк зберігання логів"
 
-#: grunt/grunt/monitoring/health.py:151 grunt/grunt/monitoring/health.py:837
+#: grunt/grunt/monitoring/health.py:151 grunt/grunt/monitoring/health.py:846
 msgid "Background jobs"
 msgstr "Фонові задачі"
 
@@ -11714,7 +11317,7 @@ msgstr "%(queued)s у черзі, %(running)s виконується"
 msgid "Jobs are piling up faster than they are processed."
 msgstr "Задачі накопичуються швидше, ніж виконуються."
 
-#: grunt/grunt/monitoring/health.py:214 grunt/grunt/monitoring/health.py:838
+#: grunt/grunt/monitoring/health.py:214 grunt/grunt/monitoring/health.py:847
 #: grunt/grunt/monitoring/health.py:218
 msgid "Scheduler"
 msgstr "Планувальник"
@@ -11747,7 +11350,7 @@ msgstr "Невдалі запуски за добу"
 msgid "Details in the Scheduled Job Log."
 msgstr "Подробиці — у «Журнал запланованих задач»."
 
-#: grunt/grunt/monitoring/health.py:839 grunt/grunt/monitoring/health.py:264
+#: grunt/grunt/monitoring/health.py:848 grunt/grunt/monitoring/health.py:264
 msgid "Errors"
 msgstr "Помилки"
 
@@ -11763,7 +11366,7 @@ msgstr "Див. «Журнал помилок»."
 msgid "in 7 days"
 msgstr "за 7 днів"
 
-#: grunt/grunt/monitoring/health.py:288 grunt/grunt/monitoring/health.py:840
+#: grunt/grunt/monitoring/health.py:288 grunt/grunt/monitoring/health.py:849
 #: grunt/grunt/auth/doctypes/User/user.py:69
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:298
 msgid "Email"
@@ -11789,7 +11392,7 @@ msgstr "Застряглі листи"
 msgid "Emails have been waiting over 30 min; check the worker and SMTP."
 msgstr "Листи чекають понад 30 хв — перевірте воркер і SMTP."
 
-#: grunt/grunt/monitoring/health.py:323 grunt/grunt/monitoring/health.py:841
+#: grunt/grunt/monitoring/health.py:323 grunt/grunt/monitoring/health.py:850
 msgid "Users and security"
 msgstr "Користувачі та безпека"
 
@@ -11896,7 +11499,7 @@ msgid ""
 msgstr ""
 "Є з'єднання, але слухач не працює — повідомлення з Redis не доставляються."
 
-#: grunt/grunt/monitoring/health.py:500 grunt/grunt/monitoring/health.py:844
+#: grunt/grunt/monitoring/health.py:500 grunt/grunt/monitoring/health.py:853
 msgid "Backups"
 msgstr "Резервні копії"
 
@@ -11935,7 +11538,7 @@ msgstr "База в останній копії"
 msgid "Backups kept"
 msgstr "Зберігається копій"
 
-#: grunt/grunt/monitoring/health.py:679 grunt/grunt/monitoring/health.py:847
+#: grunt/grunt/monitoring/health.py:679 grunt/grunt/monitoring/health.py:856
 #: grunt/grunt/monitoring/health.py:658
 msgid "App dependencies"
 msgstr "Залежності додатків"
@@ -11987,7 +11590,7 @@ msgstr "застарілий"
 msgid "public/sw.js changed after the build; rebuild the frontend."
 msgstr "public/sw.js змінено після збірки — перезберіть фронтенд."
 
-#: grunt/grunt/monitoring/health.py:829
+#: grunt/grunt/monitoring/health.py:829 grunt/grunt/monitoring/updates.py:474
 msgid "up to date"
 msgstr "актуальний"
 
@@ -12142,11 +11745,11 @@ msgstr "Не можна увійти під іншим адміністрато�
 msgid "The account is disabled."
 msgstr "Обліковий запис вимкнено."
 
-#: grunt/grunt/auth/login.py:55
+#: grunt/grunt/auth/login.py:79
 msgid "Sign-in from this IP address is not allowed for your role."
 msgstr "Вхід з цієї IP-адреси заборонено для вашої ролі."
 
-#: grunt/grunt/auth/login.py:59
+#: grunt/grunt/auth/login.py:60
 msgid "The registration request was rejected by an administrator."
 msgstr "Заявку на реєстрацію відхилено адміністратором."
 
@@ -12201,8 +11804,8 @@ msgstr[1] "%(count)d непрочитані сповіщення за остан
 msgstr[2] "%(count)d непрочитаних сповіщень за останній тиждень"
 
 #: grunt/grunt/app/document_api.py:524 grunt/grunt/app/document_api.py:808
-#: grunt/grunt/metadata/registry.py:333 grunt/grunt/metadata/registry.py:584
-#: grunt/grunt/metadata/registry.py:562
+#: grunt/grunt/metadata/registry.py:333 grunt/grunt/metadata/registry.py:601
+#: grunt/grunt/metadata/registry.py:579
 #: grunt/grunt/notification/rule_index.py:53
 #: grunt/grunt/activity/__init__.py:312 grunt/grunt/actions/__init__.py:163
 #: grunt/grunt/document/connections.py:43
@@ -12475,7 +12078,7 @@ msgid "No access: %(action)s “%(doctype)s”"
 msgstr "Немає доступу: %(action)s «%(doctype)s»"
 
 #: grunt/grunt/storage/remote.py:101
-#: grunt/grunt/storage/doctypes/File/file.py:113
+#: grunt/grunt/storage/doctypes/File/file.py:199
 msgid "The file is too large (max %(size)s MB)"
 msgstr "Файл завеликий (макс. %(size)s МБ)"
 
@@ -12707,7 +12310,7 @@ msgid "If you received it, sending email through this account works."
 msgstr ""
 "Якщо ви його отримали — надсилання пошти через цей обліковий запис працює."
 
-#: grunt/grunt/activity/follow.py:44
+#: grunt/grunt/activity/follow.py:44 grunt/grunt/monitoring/updates.py:171
 msgid "and %(count)s more"
 msgstr "і ще %(count)s"
 
@@ -12735,17 +12338,9 @@ msgstr "Термін дії посилання закінчився"
 msgid "DocType not found"
 msgstr "DocType не знайдено"
 
-#: grunt/grunt/api/v1/dashboard.py:311 grunt/grunt/api/v1/dashboard.py:334
+#: grunt/grunt/api/v1/dashboard.py:227
 msgid "The page is not published"
 msgstr "Сторінку не опубліковано"
-
-#: grunt/grunt/api/v1/dashboard.py:350
-msgid "Dashboard not found"
-msgstr "Дашборд не знайдено"
-
-#: grunt/grunt/api/v1/dashboard.py:351
-msgid "The dashboard is not published"
-msgstr "Дашборд не опубліковано"
 
 #: grunt/grunt/activity/doctypes/DocFollow/doc_follow.py:37
 msgid "You are already following this document"
@@ -12764,12 +12359,12 @@ msgstr "Не знайдено"
 msgid "Too many requests. Try again later."
 msgstr "Забагато запитів. Спробуйте пізніше."
 
-#: grunt/grunt/tasks/redis_introspect.py:121
+#: grunt/grunt/tasks/redis_introspect.py:143
 msgid "Redis is not configured: REDIS_URL is not set, live monitoring is off."
 msgstr ""
 "Redis не налаштований — REDIS_URL не задано, живий моніторинг вимкнено."
 
-#: grunt/grunt/tasks/redis_introspect.py:122
+#: grunt/grunt/tasks/redis_introspect.py:144
 msgid "Redis is unreachable; check that it is running."
 msgstr "Redis недоступний — перевірте, чи він запущений."
 
@@ -12910,7 +12505,7 @@ msgstr "Це повідомлення у форматі HTML."
 msgid "Webhook not found"
 msgstr "Вебхук не знайдено"
 
-#: grunt/grunt/storage/doctypes/File/file.py:250
+#: grunt/grunt/storage/doctypes/File/file.py:336
 msgid "No access to the file"
 msgstr "Немає доступу до файлу"
 
@@ -12922,7 +12517,7 @@ msgstr "Необхідно вказати місто: оберіть зі спи
 msgid "%(user)s mentioned you in a comment"
 msgstr "%(user)s згадав вас у коментарі"
 
-#: grunt/grunt/api/v1/notifications.py:86
+#: grunt/grunt/webpush/service.py:203 grunt/grunt/api/v1/notifications.py:86
 msgid "Web Push is disabled in the system settings"
 msgstr "Web Push вимкнено в налаштуваннях системи"
 
@@ -12973,7 +12568,7 @@ msgstr "Service worker"
 msgid "code 4001"
 msgstr ""
 
-#: grunt/grunt/storage/doctypes/File/file.py:238
+#: grunt/grunt/storage/doctypes/File/file.py:324
 msgid "File not found"
 msgstr "Файл не знайдено"
 
@@ -12995,7 +12590,7 @@ msgstr "Обліковий запис тимчасово заблоковано.
 msgid "Authentication required"
 msgstr "Потрібна автентифікація"
 
-#: grunt/grunt/storage/doctypes/File/file.py:245
+#: grunt/grunt/storage/doctypes/File/file.py:331
 msgid "Authentication required to access this file"
 msgstr "Для доступу до файлу потрібна автентифікація"
 
@@ -13025,8 +12620,8 @@ msgid ""
 msgstr ""
 "DocType «%(name)s» не є деревом (is_tree=false або tree_view не налаштовано)"
 
-#: grunt/grunt/metadata/registry.py:524 grunt/grunt/metadata/registry.py:603
-#: grunt/grunt/metadata/registry.py:536 grunt/grunt/api/v1/meta.py:134
+#: grunt/grunt/metadata/registry.py:541 grunt/grunt/metadata/registry.py:620
+#: grunt/grunt/metadata/registry.py:553 grunt/grunt/api/v1/meta.py:134
 msgid "DocType “%(doctype)s” already exists"
 msgstr "DocType «%(doctype)s» вже існує"
 
@@ -13034,7 +12629,7 @@ msgstr "DocType «%(doctype)s» вже існує"
 msgid "Document with name '%(new_id)s' already exists"
 msgstr "Документ з назвою «%(new_id)s» вже існує"
 
-#: grunt/grunt/metadata/registry.py:615
+#: grunt/grunt/metadata/registry.py:632
 msgid "Duplicate fieldname '%(fieldname)s' in DocType '%(name)s'"
 msgstr "Дубльоване поле «%(fieldname)s» у DocType «%(name)s»"
 
@@ -13043,11 +12638,11 @@ msgstr "Дубльоване поле «%(fieldname)s» у DocType «%(name)s»"
 msgid "Expired or invalid WebAuthn challenge"
 msgstr "WebAuthn-виклик прострочений або недійсний"
 
-#: grunt/grunt/metadata/registry.py:634
+#: grunt/grunt/metadata/registry.py:651
 msgid "Fieldname '%(fieldname)s' exceeds %(max)s characters"
 msgstr "Назва поля «%(fieldname)s» довша за %(max)s символів"
 
-#: grunt/grunt/storage/doctypes/File/file.py:273
+#: grunt/grunt/storage/doctypes/File/file.py:359
 msgid "File not found on storage"
 msgstr "Файл не знайдено в сховищі"
 
@@ -13059,7 +12654,7 @@ msgstr "Хук «%(doc_id)s» не знайдено"
 msgid "Incorrect email or password"
 msgstr "Невірна електронна пошта або пароль"
 
-#: grunt/grunt/metadata/registry.py:624
+#: grunt/grunt/metadata/registry.py:641
 msgid ""
 "Invalid fieldname '%(fieldname)s': must start with a-z and contain only a-z,"
 " 0-9, _"
@@ -13113,7 +12708,7 @@ msgstr "Відсутня відповідь WebAuthn"
 msgid "Missing required parameters: %(items)s"
 msgstr "Бракує обов'язкових параметрів: %(items)s"
 
-#: grunt/grunt/storage/doctypes/File/file.py:93
+#: grunt/grunt/storage/doctypes/File/file.py:179
 msgid "No filename provided"
 msgstr "Не вказано назву файлу"
 
@@ -13154,12 +12749,12 @@ msgstr "Не вдалося зареєструвати ключ доступу"
 msgid "Passkey verification failed"
 msgstr "Не вдалося перевірити ключ доступу"
 
-#: grunt/grunt/tasks/doctypes/BackgroundWorker/background_worker.py:67
+#: grunt/grunt/tasks/doctypes/BackgroundWorker/background_worker.py:81
 #: grunt/grunt/tasks/doctypes/BackgroundJob/background_job.py:75
 msgid "Redis broker not configured"
 msgstr "Брокер Redis не налаштовано"
 
-#: grunt/grunt/tasks/doctypes/BackgroundWorker/background_worker.py:72
+#: grunt/grunt/tasks/doctypes/BackgroundWorker/background_worker.py:86
 #: grunt/grunt/tasks/doctypes/BackgroundJob/background_job.py:80
 msgid "Redis unavailable"
 msgstr "Redis недоступний"
@@ -13456,8 +13051,8 @@ msgctxt "meta:WebsiteMenuItem.route"
 msgid "Section route"
 msgstr ""
 
-#: grunt/frontend/src/core/scripting/executor.ts:787
-#: grunt/frontend/src/core/scripting/executor.ts:804
+#: grunt/frontend/src/core/scripting/executor.ts:792
+#: grunt/frontend/src/core/scripting/executor.ts:809
 msgid "Uploading files"
 msgstr "Завантаження файлів"
 
@@ -13685,7 +13280,7 @@ msgstr "Відпустіть, щоб замінити"
 msgid "Image actions"
 msgstr "Дії із зображенням"
 
-#: grunt/frontend/src/pages/desk/DocTypeForm.vue:144
+#: grunt/frontend/src/pages/desk/DocTypeForm.vue:148
 msgid "Image changed. Save the document to apply it."
 msgstr "Зображення змінено. Збережіть документ, щоб застосувати."
 
@@ -13872,8 +13467,8 @@ msgid "A home folder can't be moved"
 msgstr "Домашню теку не можна перемістити"
 
 #: grunt/grunt/storage/doctypes/File/file.py:62
-#: grunt/grunt/storage/doctypes/File/file.py:100
-#: grunt/grunt/storage/doctypes/File/file.py:159
+#: grunt/grunt/storage/doctypes/File/file.py:186
+#: grunt/grunt/storage/doctypes/File/file.py:245
 #: grunt/grunt/storage/doctypes/FileFolder/file_folder.py:186
 #: grunt/grunt/storage/doctypes/FileFolder/file_folder.py:48
 msgid "Folder “%(folder)s” not found"
@@ -14308,7 +13903,7 @@ msgstr "Вставити"
 msgid "Could not download the file"
 msgstr "Не вдалося завантажити файл"
 
-#: grunt/grunt/storage/doctypes/File/file.py:167
+#: grunt/grunt/storage/doctypes/File/file.py:253
 msgid "Could not download the file: %(error)s"
 msgstr "Не вдалося завантажити файл: %(error)s"
 
@@ -14562,7 +14157,7 @@ msgid ""
 "BackgroundJob is a live view of the queue — it can't be created or edited"
 msgstr "Фонові задачі — живий перегляд черги: їх не можна створити чи змінити"
 
-#: grunt/grunt/tasks/doctypes/BackgroundWorker/background_worker.py:23
+#: grunt/grunt/tasks/doctypes/BackgroundWorker/background_worker.py:37
 msgid ""
 "BackgroundWorker is a live view of the consumer group — it can't be created "
 "or edited"
@@ -14599,7 +14194,7 @@ msgstr "«%(doctype)s» не підтримує заміну посилань"
 msgid "“%(doctype)s” does not support this operation"
 msgstr "«%(doctype)s» не підтримує цю операцію"
 
-#: grunt/grunt/tasks/doctypes/BackgroundWorker/background_worker.py:61
+#: grunt/grunt/tasks/doctypes/BackgroundWorker/background_worker.py:75
 #: grunt/grunt/tasks/doctypes/BackgroundJob/background_job.py:68
 msgid "“%(name)s” not found"
 msgstr "«%(name)s» не знайдено"
@@ -14617,16 +14212,6 @@ msgstr ""
 
 #: grunt/grunt/scripting/doctypes/ClientScript/ClientScript.json
 msgctxt "help:ClientScript.is_standard"
-msgid "Ships with the app as JSON files - edits are saved to the app"
-msgstr "Постачається з додатком як JSON-файли — зміни зберігаються в додаток"
-
-#: grunt/grunt/reports/doctypes/Dashboard/Dashboard.json
-msgctxt "help:Dashboard.is_standard"
-msgid "Ships with the app as JSON files - edits are saved to the app"
-msgstr "Постачається з додатком як JSON-файли — зміни зберігаються в додаток"
-
-#: grunt/grunt/reports/doctypes/DashboardChart/DashboardChart.json
-msgctxt "help:DashboardChart.is_standard"
 msgid "Ships with the app as JSON files - edits are saved to the app"
 msgstr "Постачається з додатком як JSON-файли — зміни зберігаються в додаток"
 
@@ -14651,11 +14236,6 @@ msgstr "Постачається з додатком як JSON-файли — з
 
 #: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
 msgctxt "help:NotificationRule.is_standard"
-msgid "Ships with the app as JSON files - edits are saved to the app"
-msgstr "Постачається з додатком як JSON-файли — зміни зберігаються в додаток"
-
-#: grunt/grunt/reports/doctypes/NumberCard/NumberCard.json
-msgctxt "help:NumberCard.is_standard"
 msgid "Ships with the app as JSON files - edits are saved to the app"
 msgstr "Постачається з додатком як JSON-файли — зміни зберігаються в додаток"
 
@@ -14704,36 +14284,6 @@ msgctxt "meta:ClientScript.ref_doctype"
 msgid "Document type"
 msgstr "Тип документа"
 
-#: grunt/grunt/reports/doctypes/DashboardWidget/DashboardWidget.json
-msgctxt "meta:Dashboard Widget.ref_doctype"
-msgid "DocType"
-msgstr "DocType"
-
-#: grunt/grunt/reports/doctypes/Dashboard/Dashboard.json
-msgctxt "meta:Dashboard.app"
-msgid "App"
-msgstr "Додаток"
-
-#: grunt/grunt/reports/doctypes/Dashboard/Dashboard.json
-msgctxt "meta:Dashboard.is_standard"
-msgid "Standard"
-msgstr "Стандартний"
-
-#: grunt/grunt/reports/doctypes/DashboardChart/DashboardChart.json
-msgctxt "meta:DashboardChart.app"
-msgid "App"
-msgstr "Додаток"
-
-#: grunt/grunt/reports/doctypes/DashboardChart/DashboardChart.json
-msgctxt "meta:DashboardChart.is_standard"
-msgid "Standard"
-msgstr "Стандартний"
-
-#: grunt/grunt/reports/doctypes/DashboardChart/DashboardChart.json
-msgctxt "meta:DashboardChart.ref_doctype"
-msgid "Document type"
-msgstr "Тип документа"
-
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgctxt "meta:DocType.standard_records"
 msgid "Standard records"
@@ -14776,21 +14326,6 @@ msgstr "Стандартний"
 
 #: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
 msgctxt "meta:NotificationRule.ref_doctype"
-msgid "Document type"
-msgstr "Тип документа"
-
-#: grunt/grunt/reports/doctypes/NumberCard/NumberCard.json
-msgctxt "meta:NumberCard.app"
-msgid "App"
-msgstr "Додаток"
-
-#: grunt/grunt/reports/doctypes/NumberCard/NumberCard.json
-msgctxt "meta:NumberCard.is_standard"
-msgid "Standard"
-msgstr "Стандартний"
-
-#: grunt/grunt/reports/doctypes/NumberCard/NumberCard.json
-msgctxt "meta:NumberCard.ref_doctype"
 msgid "Document type"
 msgstr "Тип документа"
 
@@ -15255,7 +14790,7 @@ msgstr "Сповіщати"
 #: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
 msgctxt "meta:ServiceLevel.ref_doctype"
 msgid "Document type"
-msgstr ""
+msgstr "Тип документа"
 
 #: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
 msgctxt "meta:ServiceLevel.sec_deadline"
@@ -15290,7 +14825,7 @@ msgstr "Одиниця"
 #: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
 msgctxt "meta:ServiceLevel.title"
 msgid "Title"
-msgstr ""
+msgstr "Заголовок"
 
 #: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
 msgctxt "meta:ServiceLevel.warn_before"
@@ -15320,7 +14855,7 @@ msgstr ""
 #: grunt/grunt/notification/doctypes/ServiceLevelStatus/ServiceLevelStatus.json
 msgctxt "meta:ServiceLevelStatus.ref_doctype"
 msgid "Document type"
-msgstr ""
+msgstr "Тип документа"
 
 #: grunt/grunt/notification/doctypes/ServiceLevelStatus/ServiceLevelStatus.json
 msgctxt "meta:ServiceLevelStatus.ref_name"
@@ -15677,7 +15212,7 @@ msgstr "Попереднє значення"
 #: grunt/grunt/activity/doctypes/Milestone/Milestone.json
 msgctxt "meta:Milestone.ref_doctype"
 msgid "Document type"
-msgstr ""
+msgstr "Тип документа"
 
 #: grunt/grunt/activity/doctypes/Milestone/Milestone.json
 msgctxt "meta:Milestone.ref_name"
@@ -15712,7 +15247,7 @@ msgstr "Вимкнено"
 #: grunt/grunt/activity/doctypes/MilestoneTracker/MilestoneTracker.json
 msgctxt "meta:MilestoneTracker.ref_doctype"
 msgid "Document type"
-msgstr ""
+msgstr "Тип документа"
 
 #: grunt/grunt/activity/doctypes/MilestoneTracker/MilestoneTracker.json
 msgctxt "meta:MilestoneTracker.track_field"
@@ -16197,7 +15732,7 @@ msgctxt "select:DocType.default_view"
 msgid "explorer"
 msgstr ""
 
-#: grunt/frontend/src/components/desk/OnboardingChecklists.vue:75
+#: grunt/frontend/src/components/desk/OnboardingChecklists.vue:76
 msgid "Documentation"
 msgstr "Документація"
 
@@ -16250,7 +15785,7 @@ msgstr ""
 "Один браузер — один запис сесії; останні входи з нього показано всередині "
 "запису."
 
-#: grunt/grunt/storage/doctypes/StorageRemote/storage_remote.py:146
+#: grunt/grunt/storage/doctypes/StorageRemote/storage_remote.py:155
 msgid "%(free)s free of %(total)s"
 msgstr "вільно %(free)s з %(total)s"
 
@@ -16259,7 +15794,7 @@ msgid "%(n)s files could not be returned (missing or damaged in the storage)"
 msgstr ""
 "Не вдалося повернути файлів: %(n)s (у сховищі їх немає або вони пошкоджені)"
 
-#: grunt/grunt/storage/doctypes/StorageRemote/storage_remote.py:151
+#: grunt/grunt/storage/doctypes/StorageRemote/storage_remote.py:160
 msgid "%(used)s used"
 msgstr "використано %(used)s"
 
@@ -16292,7 +15827,7 @@ msgstr "Резервні копії зберігаються лише на ць�
 msgid "Click Test connection in the storage."
 msgstr "Натисніть «Перевірити з'єднання» у сховищі."
 
-#: grunt/grunt/monitoring/health.py:565 grunt/grunt/monitoring/health.py:845
+#: grunt/grunt/monitoring/health.py:565 grunt/grunt/monitoring/health.py:854
 #: grunt/grunt/backups/doctypes/Backup/Backup.js:84
 msgid "Cloud storage"
 msgstr "Хмарні сховища"
@@ -16347,7 +15882,7 @@ msgstr "Завантажити на сервер"
 msgid "Downloading %(n)s files"
 msgstr "Завантаження файлів: %(n)s"
 
-#: grunt/grunt/storage/cloud/rclone.py:101
+#: grunt/grunt/storage/cloud/rclone.py:193
 msgid "Encryption is on, but no encryption password is set"
 msgstr "Шифрування увімкнено, але пароль шифрування не задано"
 
@@ -16359,19 +15894,19 @@ msgstr "Спершу введіть Client ID і секрет свого дод�
 msgid "Enter the rclone backend type"
 msgstr "Вкажіть тип бекенда rclone"
 
-#: grunt/grunt/storage/doctypes/StorageRemote/storage_remote.py:85
+#: grunt/grunt/storage/doctypes/StorageRemote/storage_remote.py:90
 msgid "Files are already moved to “%(name)s”; only one storage can hold files"
 msgstr ""
 "Файли вже переносяться в «%(name)s»; зберігати файли може лише одне сховище"
 
-#: grunt/grunt/storage/doctypes/StorageRemote/storage_remote.py:109
+#: grunt/grunt/storage/doctypes/StorageRemote/storage_remote.py:114
 msgid ""
 "Files are kept in this storage: return them to the server before deleting it"
 msgstr ""
 "У цьому сховищі зберігаються файли: поверніть їх на сервер, перш ніж "
 "видаляти його"
 
-#: grunt/grunt/storage/doctypes/StorageRemote/storage_remote.py:100
+#: grunt/grunt/storage/doctypes/StorageRemote/storage_remote.py:105
 msgid ""
 "Files are kept in this storage: return them to the server first (Files → "
 "Return all files), then change where or how they are stored"
@@ -16388,10 +15923,6 @@ msgstr "Файли в «%(name)s»"
 #: grunt/grunt/backups/doctypes/Backup/Backup.js:82
 msgid "From cloud storage"
 msgstr "З хмарного сховища"
-
-#: grunt/grunt/monitoring/health.py:579
-msgid "Install rclone: https://rclone.org/install/"
-msgstr "Встановіть rclone: https://rclone.org/install/"
 
 #: grunt/grunt/monitoring/health.py:612
 msgid "Latest backup in “%(name)s”"
@@ -16530,7 +16061,7 @@ msgstr "Файл зі сховища пошкоджено: %(key)s"
 msgid "The redirect URI registered in your app must be exactly"
 msgstr "Redirect URI, зареєстрований у вашому додатку, має бути саме таким"
 
-#: grunt/grunt/storage/doctypes/StorageRemote/storage_remote.py:142
+#: grunt/grunt/storage/doctypes/StorageRemote/storage_remote.py:149
 msgid "The test file read back differs from what was written"
 msgstr "Прочитаний тестовий файл відрізняється від записаного"
 
@@ -16571,7 +16102,7 @@ msgstr "Вивантаження в хмарне сховище"
 msgid "Uploading to “%(name)s”"
 msgstr "Вивантаження в «%(name)s»"
 
-#: grunt/grunt/monitoring/health.py:715 grunt/grunt/monitoring/health.py:848
+#: grunt/grunt/monitoring/health.py:715 grunt/grunt/monitoring/health.py:857
 msgid "Versions"
 msgstr "Версії"
 
@@ -16579,7 +16110,9 @@ msgstr "Версії"
 msgid "not checked"
 msgstr "не перевірено"
 
-#: grunt/grunt/monitoring/health.py:578
+#: grunt/grunt/monitoring/health.py:578 grunt/grunt/monitoring/updates.py:317
+#: grunt/grunt/monitoring/updates.py:428 grunt/grunt/monitoring/updates.py:343
+#: grunt/grunt/monitoring/updates.py:350
 msgid "not installed"
 msgstr "не встановлено"
 
@@ -16587,11 +16120,12 @@ msgstr "не встановлено"
 msgid "rclone config"
 msgstr "Конфіг rclone"
 
-#: grunt/grunt/storage/cloud/rclone.py:244
+#: grunt/grunt/storage/cloud/rclone.py:336
 msgid "rclone exited with code %(code)s"
 msgstr "rclone завершився з кодом %(code)s"
 
-#: grunt/grunt/storage/cloud/rclone.py:78
+#: grunt/grunt/storage/cloud/rclone.py:100
+#: grunt/grunt/storage/cloud/rclone.py:133
 msgid "rclone is not installed on the server (https://rclone.org/install/)"
 msgstr "rclone не встановлено на сервері (https://rclone.org/install/)"
 
@@ -17312,7 +16846,7 @@ msgstr "Коментар не знайдено"
 msgid "No tags"
 msgstr "Без тегів"
 
-#: grunt/frontend/src/components/desk/OnboardingChecklists.vue:92
+#: grunt/frontend/src/components/desk/OnboardingChecklists.vue:93
 msgid "All set - every step is done."
 msgstr "Готово - усі кроки виконано."
 
@@ -17320,12 +16854,12 @@ msgstr "Готово - усі кроки виконано."
 msgid "Database migrations"
 msgstr ""
 
-#: grunt/frontend/src/components/desk/OnboardingChecklists.vue:79
-#: grunt/frontend/src/components/desk/OnboardingChecklists.vue:81
+#: grunt/frontend/src/components/desk/OnboardingChecklists.vue:80
+#: grunt/frontend/src/components/desk/OnboardingChecklists.vue:82
 msgid "Hide checklist"
 msgstr "Сховати чеклист"
 
-#: grunt/grunt/site/onboarding.py:144
+#: grunt/grunt/site/onboarding.py:171
 msgid "Onboarding not found"
 msgstr "Чеклист не знайдено"
 
@@ -17337,7 +16871,7 @@ msgstr ""
 msgid "Row %(idx)s: %(error)s"
 msgstr ""
 
-#: grunt/frontend/src/core/composables/useFormValidation.ts:69
+#: grunt/frontend/src/core/composables/useFormValidation.ts:72
 msgid "Row {row}: {field} - {error}"
 msgstr ""
 
@@ -17345,11 +16879,11 @@ msgstr ""
 msgid "Set up"
 msgstr "Налаштувати"
 
-#: grunt/frontend/src/components/desk/OnboardingChecklists.vue:111
+#: grunt/frontend/src/components/desk/OnboardingChecklists.vue:112
 msgid "Skip"
 msgstr "Пропустити"
 
-#: grunt/grunt/site/onboarding.py:162
+#: grunt/grunt/site/onboarding.py:188
 msgid "Step not found"
 msgstr "Крок не знайдено"
 
@@ -17374,7 +16908,7 @@ msgstr ""
 msgid "The provider did not confirm this email address"
 msgstr ""
 
-#: grunt/grunt/site/onboarding.py:164
+#: grunt/grunt/site/onboarding.py:190
 msgid "Unknown step status"
 msgstr "Невідомий статус кроку"
 
@@ -17425,15 +16959,6 @@ msgstr ""
 msgctxt "help:ModuleOnboarding.roles"
 msgid "Who sees the checklist; empty - everyone. System Manager always does"
 msgstr "Хто бачить чеклист; порожньо - усі. System Manager бачить завжди"
-
-#: grunt/grunt/site/doctypes/OnboardingProgress/OnboardingProgress.json
-msgctxt "help:OnboardingProgress"
-msgid ""
-"Steps marked done or skipped and checklists hidden - for the site or per "
-"user."
-msgstr ""
-"Кроки, позначені виконаними чи пропущеними, і сховані чеклисти - для сайту "
-"або для користувача."
 
 #: grunt/grunt/site/doctypes/OnboardingProgress/OnboardingProgress.json
 msgctxt "help:OnboardingProgress.step_id"
@@ -17662,7 +17187,7 @@ msgstr "Тегів немає"
 msgid "Period switcher"
 msgstr "Перемикач періоду"
 
-#: grunt/grunt/api/v1/dashboard.py:315
+#: grunt/grunt/api/v1/dashboard.py:270
 msgid "Widget not found"
 msgstr "Віджет не знайдено"
 
@@ -17704,62 +17229,63 @@ msgstr "Весь час"
 msgid "It will be downloaded automatically on first use."
 msgstr "Буде завантажено автоматично при першому використанні."
 
-#: grunt/grunt/storage/cloud/rclone.py
+#: grunt/grunt/storage/cloud/rclone.py:154
 msgid "Could not download rclone: {0}"
 msgstr "Не вдалося завантажити rclone: {0}"
 
-#: grunt/grunt/storage/cloud/rclone.py
+#: grunt/grunt/storage/cloud/rclone.py:161
 msgid "Could not download rclone: checksum mismatch"
 msgstr "Не вдалося завантажити rclone: контрольна сума не збігається"
 
-#: grunt/grunt/monitoring/updates.py
+#: grunt/grunt/monitoring/updates.py:462
 msgid "%(count)s differ from uv.lock"
 msgstr "%(count)s не збігаються з uv.lock"
 
-#: grunt/grunt/monitoring/updates.py
+#: grunt/grunt/monitoring/updates.py:479
 msgid "%(count)s newer versions"
 msgstr "%(count)s новіших версій"
 
-#: grunt/grunt/monitoring/updates.py
+#: grunt/grunt/monitoring/updates.py:270
 msgid "%(name)s %(version)s is out."
 msgstr "Вийшов %(name)s %(version)s."
 
-#: grunt/grunt/monitoring/updates.py
+#: grunt/grunt/monitoring/updates.py:724
 msgid "Could not check for updates: %(error)s"
 msgstr "Не вдалося перевірити оновлення: %(error)s"
 
-#: grunt/grunt/monitoring/updates.py
+#: grunt/grunt/monitoring/updates.py:469
 msgid "Newer versions arrive with the next framework release."
 msgstr "Новіші версії прийдуть з наступним релізом фреймворку."
 
-#: grunt/grunt/monitoring/updates.py
+#: grunt/grunt/monitoring/updates.py:280
 msgid "No longer supported since %(date)s."
 msgstr "Не підтримується з %(date)s."
 
-#: grunt/grunt/monitoring/updates.py
+#: grunt/grunt/monitoring/updates.py:460 grunt/grunt/monitoring/updates.py:488
+#: grunt/grunt/monitoring/updates.py:491
 msgid "Python packages"
 msgstr "Python пакети"
 
-#: grunt/grunt/monitoring/updates.py
+#: grunt/grunt/monitoring/updates.py:463
 msgid "Run `grunt update`."
 msgstr "Запустіть `grunt update`."
 
-#: grunt/grunt/monitoring/updates.py
+#: grunt/grunt/monitoring/updates.py:718
 msgid "Update available: %(target)s. Run `grunt update`."
 msgstr "Доступне оновлення: %(target)s. Запустіть `grunt update`."
 
-#: grunt/grunt/monitoring/updates.py
+#: grunt/grunt/monitoring/updates.py:467
 msgid ""
 "Run `grunt update` - it offers to update the lock files; then commit them."
 msgstr ""
 "Запустіть `grunt update` — він запропонує оновити lock-файли; потім "
 "закомітьте їх."
 
-#: grunt/grunt/monitoring/updates.py
+#: grunt/grunt/monitoring/health.py:858 grunt/grunt/monitoring/updates.py:728
 msgid "Updates"
 msgstr "Оновлення"
 
-#: grunt/grunt/monitoring/updates.py
+#: grunt/grunt/monitoring/updates.py:201
 msgid ""
 "no access to the repository - run `grunt update` in a terminal to add a "
 "token"
@@ -17767,69 +17293,69 @@ msgstr ""
 "немає доступу до репозиторію — запустіть `grunt update` у терміналі, щоб "
 "додати токен"
 
-#: grunt/grunt/monitoring/updates.py
+#: grunt/grunt/monitoring/updates.py:499 grunt/grunt/monitoring/updates.py:497
 msgid "npm packages"
 msgstr "npm пакети"
 
-#: grunt/grunt/monitoring/updates.py
+#: grunt/grunt/monitoring/updates.py:135
 msgid "timed out"
 msgstr "перевищено час очікування"
 
-#: grunt/grunt/monitoring/updates.py
+#: grunt/grunt/monitoring/updates.py:397
 msgid "uv is not installed"
 msgstr "uv не встановлено"
 
-#: grunt/grunt/monitoring/updates.py
+#: grunt/grunt/monitoring/updates.py:307
 msgid "Python %(version)s is installed - restart the server to run on it."
 msgstr ""
 "Python %(version)s встановлено — перезапустіть сервер, щоб він працював на "
 "ньому."
 
-#: grunt/grunt/monitoring/updates.py
+#: grunt/grunt/monitoring/updates.py:504
 msgid "npm packages outside package.json"
 msgstr "npm пакети поза package.json"
 
-#: grunt/grunt/monitoring/updates.py
+#: grunt/grunt/monitoring/updates.py:507
 msgid "Outside the ranges in package.json - change them by hand and test:"
 msgstr "Поза діапазонами package.json — змініть їх вручну й перевірте:"
 
-#: grunt/grunt/monitoring/updates.py
+#: grunt/grunt/monitoring/updates.py:557 grunt/grunt/monitoring/updates.py:560
 msgid "venv %(path)s"
 msgstr "venv %(path)s"
 
-#: grunt/grunt/monitoring/updates.py
+#: grunt/grunt/monitoring/updates.py:696
 msgid "Old runtime versions"
 msgstr "Старі версії рантаймів"
 
-#: grunt/grunt/monitoring/updates.py
+#: grunt/grunt/monitoring/updates.py:705
 msgid "`grunt update` removes: %(list)s."
 msgstr "`grunt update` видалить: %(list)s."
 
-#: grunt/grunt/monitoring/updates.py
+#: grunt/grunt/monitoring/updates.py:554
 msgid "uv tool %(name)s"
 msgstr "uv tool %(name)s"
 
-#: grunt/grunt/monitoring/updates.py
+#: grunt/grunt/monitoring/updates.py:589
 msgid "process %(pid)s (%(command)s, %(age)s, stopped with Ctrl+Z)"
 msgstr "процес %(pid)s (%(command)s, %(age)s, зупинений Ctrl+Z)"
 
-#: grunt/grunt/monitoring/updates.py
+#: grunt/grunt/monitoring/updates.py:591
 msgid "process %(pid)s (%(command)s, %(age)s)"
 msgstr "процес %(pid)s (%(command)s, %(age)s)"
 
-#: grunt/grunt/monitoring/updates.py
+#: grunt/grunt/monitoring/updates.py:608
 msgid "%(n)s d"
 msgstr "%(n)s дн"
 
-#: grunt/grunt/monitoring/updates.py
+#: grunt/grunt/monitoring/updates.py:610
 msgid "%(n)s h"
 msgstr "%(n)s год"
 
-#: grunt/grunt/monitoring/updates.py
+#: grunt/grunt/monitoring/updates.py:611
 msgid "%(n)s min"
 msgstr "%(n)s хв"
 
-#: grunt/grunt/monitoring/updates.py
+#: grunt/grunt/monitoring/updates.py:708
 msgid "Still in use, removed once free (how to free it after →): %(list)s."
 msgstr ""
 "Ще використовуються, будуть видалені, щойно звільняться (як звільнити — "
@@ -17938,9 +17464,709 @@ msgstr ""
 "Які задачі воркер виконує саме зараз (×N — кілька однакових). Подробиці — в "
 "«Активних фонових задачах»."
 
-#: grunt/grunt/tasks/doctypes/BackgroundWorker/background_worker.py
+#: grunt/grunt/tasks/doctypes/BackgroundWorker/background_worker.py:154
 msgid "unknown task"
 msgstr "невідома задача"
+
+#: grunt/frontend/src/core/composables/useWebPush.ts:97
+#: grunt/frontend/src/components/layout/NotificationsPopover.vue:172
+msgid "Notifications are blocked in the browser settings for this site"
+msgstr "Сповіщення заблоковано в налаштуваннях браузера для цього сайту"
+
+#: grunt/grunt/actions/builtin.py:216
+msgid "Send test notification"
+msgstr "Надіслати тестове сповіщення"
+
+#: grunt/grunt/actions/builtin.py:206
+msgid "Open on click"
+msgstr "Відкрити при натисканні"
+
+#: grunt/grunt/actions/builtin.py:231 grunt/grunt/actions/builtin.py:270
+msgid "Test notification"
+msgstr "Тестове сповіщення"
+
+#: grunt/grunt/actions/builtin.py:247
+msgid "Test notification sent"
+msgstr "Тестове сповіщення надіслано"
+
+#: grunt/grunt/actions/builtin.py:244
+msgid "Push service rejected the message: %(error)s"
+msgstr "Push-сервіс відхилив повідомлення: %(error)s"
+
+#: grunt/grunt/actions/builtin.py:237
+msgid ""
+"The browser no longer accepts this subscription (HTTP %(status)s); deleted "
+"it"
+msgstr "Браузер більше не приймає цю підписку (HTTP %(status)s); її видалено"
+
+#: grunt/grunt/webpush/service.py:205
+msgid "The pywebpush package is not installed"
+msgstr "Пакет pywebpush не встановлено"
+
+#: grunt/grunt/webpush/service.py:213
+msgid "VAPID keys are not generated yet"
+msgstr "VAPID-ключі ще не згенеровано"
+
+#: grunt/grunt/auth/login.py:76
+msgid "This account is disabled. Contact an administrator."
+msgstr "Цей акаунт вимкнено. Зверніться до адміністратора."
+
+#: grunt/grunt/storage/doctypes/File/file.py:85
+msgid "The file can't be deleted: it is attached to %(doctype)s “%(doc)s”"
+msgstr "Файл не можна видалити: він прикріплений до %(doctype)s «%(doc)s»"
+
+#: grunt/grunt/storage/doctypes/File/file.py:90
+msgid "The file can't be deleted: it is used in %(doctype)s “%(doc)s”"
+msgstr "Файл не можна видалити: він використовується в %(doctype)s «%(doc)s»"
+
+#: grunt/grunt/webpush/service.py:210
+msgid "The stored VAPID key is invalid: %(error)s"
+msgstr "Збережений VAPID-ключ пошкоджено: %(error)s"
+
+#: grunt/grunt/actions/builtin.py:250
+msgid "Send push notification"
+msgstr "Надіслати push-сповіщення"
+
+#: grunt/grunt/actions/builtin.py:278
+msgid "The user has not enabled push notifications in any browser"
+msgstr "Користувач не ввімкнув push-сповіщення в жодному браузері"
+
+#: grunt/grunt/actions/builtin.py:286
+msgid "Push was not delivered: %(error)s"
+msgstr "Push не доставлено: %(error)s"
+
+#: grunt/grunt/actions/builtin.py:285
+msgid "all subscriptions have expired"
+msgstr "усі підписки застаріли"
+
+#: grunt/grunt/actions/builtin.py:287
+msgid "Sent to %(sent)s of %(total)s browsers"
+msgstr "Надіслано в %(sent)s з %(total)s браузерів"
+
+#: grunt/grunt/actions/builtin.py:289
+msgid "Expired subscriptions removed: %(n)s"
+msgstr "Видалено застарілих підписок: %(n)s"
+
+#: grunt/grunt/actions/builtin.py:200
+msgid "Message"
+msgstr ""
+
+#: grunt/grunt/site/records/module_onboarding/system_setup/system_setup.json
+msgctxt "record:ModuleOnboarding.subtitle"
+msgid "A few steps to get the system ready for your team"
+msgstr "Кілька кроків, щоб підготувати систему до роботи команди"
+
+#: grunt/grunt/site/records/module_onboarding/system_setup/system_setup.json
+msgctxt "record:ModuleOnboarding.success_message"
+msgid "The system is set up. Welcome aboard!"
+msgstr "Систему налаштовано. Ласкаво просимо!"
+
+#: grunt/grunt/site/records/module_onboarding/system_setup/system_setup.json
+msgctxt "record:ModuleOnboarding.title"
+msgid "System setup"
+msgstr "Налаштування системи"
+
+#: grunt/grunt/site/records/module_onboarding/system_setup/system_setup.json
+msgctxt "record:OnboardingStep.action_label"
+msgid "Add user"
+msgstr "Додати користувача"
+
+#: grunt/grunt/site/records/module_onboarding/system_setup/system_setup.json
+msgctxt "record:OnboardingStep.action_label"
+msgid "Check"
+msgstr "Перевірити"
+
+#: grunt/grunt/site/records/module_onboarding/system_setup/system_setup.json
+msgctxt "record:OnboardingStep.description"
+msgid "Add the people who will work in the system and give them roles."
+msgstr "Додайте людей, які працюватимуть у системі, і призначте їм ролі."
+
+#: grunt/grunt/site/records/module_onboarding/system_setup/system_setup.json
+msgctxt "record:OnboardingStep.description"
+msgid ""
+"An SMTP account the system sends notifications and password resets from."
+msgstr ""
+"SMTP-скринька, з якої система надсилає сповіщення та листи для відновлення "
+"пароля."
+
+#: grunt/grunt/site/records/module_onboarding/system_setup/system_setup.json
+msgctxt "record:OnboardingStep.description"
+msgid "The default language, time zone and date format for everyone."
+msgstr "Мова, часовий пояс і формат дати за замовчуванням для всіх."
+
+#: grunt/grunt/site/records/module_onboarding/system_setup/system_setup.json
+msgctxt "record:OnboardingStep.description"
+msgid "The name shows in the sidebar, the browser tab and emails."
+msgstr "Назва показується в бічній панелі, на вкладці браузера та в листах."
+
+#: grunt/grunt/site/records/module_onboarding/system_setup/system_setup.json
+msgctxt "record:OnboardingStep.description"
+msgid "Upload your organization's logo for the sidebar and the sign-in page."
+msgstr "Завантажте логотип організації для бічної панелі та сторінки входу."
+
+#: grunt/grunt/site/records/module_onboarding/system_setup/system_setup.json
+msgctxt "record:OnboardingStep.title"
+msgid "Add a logo"
+msgstr "Додати логотип"
+
+#: grunt/grunt/site/records/module_onboarding/system_setup/system_setup.json
+msgctxt "record:OnboardingStep.title"
+msgid "Check language and time zone"
+msgstr "Перевірити мову й часовий пояс"
+
+#: grunt/grunt/site/records/module_onboarding/system_setup/system_setup.json
+msgctxt "record:OnboardingStep.title"
+msgid "Connect a mailbox"
+msgstr "Підключити поштову скриньку"
+
+#: grunt/grunt/site/records/module_onboarding/system_setup/system_setup.json
+msgctxt "record:OnboardingStep.title"
+msgid "Invite users"
+msgstr "Запросити користувачів"
+
+#: grunt/grunt/site/records/module_onboarding/system_setup/system_setup.json
+msgctxt "record:OnboardingStep.title"
+msgid "Name the system"
+msgstr "Назвати систему"
+
+#: grunt/frontend/src/components/views/form/FormTour.vue:146
+msgid "Finish"
+msgstr "Завершити"
+
+#: grunt/grunt/site/onboarding.py:268
+msgid "Form tour not found"
+msgstr "Тур не знайдено"
+
+#: grunt/frontend/src/components/views/form/FormTour.vue:146
+msgid "Next"
+msgstr "Далі"
+
+#: grunt/frontend/src/components/views/form/FormTour.vue:135
+msgid "Step {n} of {total}"
+msgstr "Крок {n} з {total}"
+
+#: grunt/grunt/site/doctypes/FormTour/form_tour.py:20
+msgid "Step “%(step)s”: field “%(field)s” not found"
+msgstr "Крок «%(step)s»: поле «%(field)s» не знайдено"
+
+#: grunt/grunt/metadata/doctypes/DocType/global_form.js:160
+msgid "Take a tour"
+msgstr "Пройти тур"
+
+#: grunt/frontend/src/components/desk/OnboardingChecklists.vue:54
+msgid "Take the tour"
+msgstr "Пройти тур"
+
+#: grunt/grunt/site/doctypes/FormTour/FormTour.json
+msgctxt "help:FormTour"
+msgid ""
+"A walk through a DocType's form: each step points at a field or an element "
+"and explains it."
+msgstr ""
+"Екскурсія формою документа: кожен крок вказує на поле чи елемент і пояснює "
+"його."
+
+#: grunt/grunt/site/doctypes/FormTour/FormTour.json
+msgctxt "help:FormTour.auto_start"
+msgid ""
+"Starts the first time a user opens the form; afterwards - from the form's "
+"menu"
+msgstr ""
+"Запускається, коли користувач уперше відкриває форму; надалі — з меню форми"
+
+#: grunt/grunt/site/doctypes/FormTour/FormTour.json
+msgctxt "help:FormTour.is_standard"
+msgid "Ships with the app as JSON files - edits are saved to the app"
+msgstr "Постачається з додатком як JSON-файли — правки зберігаються в додаток"
+
+#: grunt/grunt/site/doctypes/FormTour/FormTour.json
+msgctxt "help:FormTour.roles"
+msgid "Who sees the tour; empty - everyone. System Manager always does"
+msgstr "Хто бачить тур; порожньо — усі. System Manager бачить завжди"
+
+#: grunt/grunt/site/doctypes/FormTourStep/FormTourStep.json
+msgctxt "help:FormTourStep.element"
+msgid ""
+"Or a CSS selector of another element, e.g. [data-action=save]; neither - a "
+"step in the middle of the screen"
+msgstr ""
+"Або CSS-селектор іншого елемента, напр. [data-action=save]; без обох — крок "
+"посередині екрана"
+
+#: grunt/grunt/site/doctypes/FormTourStep/FormTourStep.json
+msgctxt "help:FormTourStep.fieldname"
+msgid "The form field to point at; its tab opens by itself"
+msgstr "Поле форми, на яке вказує крок; його вкладка відкривається сама"
+
+#: grunt/grunt/site/doctypes/OnboardingProgress/OnboardingProgress.json
+msgctxt "help:OnboardingProgress"
+msgid ""
+"Steps marked done or skipped, checklists hidden, form tours taken - for the "
+"site or per user."
+msgstr ""
+"Позначені виконаними чи пропущеними кроки, приховані чеклисти, пройдені тури"
+" — для сайту або на користувача."
+
+#: grunt/grunt/site/doctypes/OnboardingProgress/OnboardingProgress.json
+msgctxt "help:OnboardingProgress.form_tour"
+msgid "A tour the user has been through (instead of a checklist)"
+msgstr "Тур, який користувач пройшов (замість чеклиста)"
+
+#: grunt/grunt/site/doctypes/OnboardingStep/OnboardingStep.json
+msgctxt "help:OnboardingStep.reference_doctype"
+msgid "Go to Page - opens this DocType instead of an address"
+msgstr "«Перейти на сторінку» — відкриває цей DocType замість адреси"
+
+#: grunt/grunt/site/doctypes/FormTour/FormTour.json
+msgctxt "meta:FormTour"
+msgid "Form tour"
+msgstr "Тур по формі"
+
+#: grunt/grunt/site/doctypes/FormTour/FormTour.json
+msgctxt "meta:FormTour.app"
+msgid "App"
+msgstr "Додаток"
+
+#: grunt/grunt/site/doctypes/FormTour/FormTour.json
+msgctxt "meta:FormTour.auto_start"
+msgid "Start automatically"
+msgstr "Запускати автоматично"
+
+#: grunt/grunt/site/doctypes/FormTour/FormTour.json
+msgctxt "meta:FormTour.is_published"
+msgid "Published"
+msgstr "Опубліковано"
+
+#: grunt/grunt/site/doctypes/FormTour/FormTour.json
+msgctxt "meta:FormTour.is_standard"
+msgid "Standard"
+msgstr "Стандартний"
+
+#: grunt/grunt/site/doctypes/FormTour/FormTour.json
+msgctxt "meta:FormTour.reference_doctype"
+msgid "Document type"
+msgstr "Тип документа"
+
+#: grunt/grunt/site/doctypes/FormTour/FormTour.json
+msgctxt "meta:FormTour.roles"
+msgid "Roles (comma-separated)"
+msgstr "Ролі (через кому)"
+
+#: grunt/grunt/site/doctypes/FormTour/FormTour.json
+msgctxt "meta:FormTour.steps"
+msgid "Steps"
+msgstr "Кроки"
+
+#: grunt/grunt/site/doctypes/FormTour/FormTour.json
+msgctxt "meta:FormTour.title"
+msgid "Title"
+msgstr "Заголовок"
+
+#: grunt/grunt/site/doctypes/FormTourStep/FormTourStep.json
+msgctxt "meta:FormTourStep"
+msgid "Form tour step"
+msgstr "Крок туру"
+
+#: grunt/grunt/site/doctypes/FormTourStep/FormTourStep.json
+msgctxt "meta:FormTourStep.description"
+msgid "Description"
+msgstr "Опис"
+
+#: grunt/grunt/site/doctypes/FormTourStep/FormTourStep.json
+msgctxt "meta:FormTourStep.element"
+msgid "Element"
+msgstr "Елемент"
+
+#: grunt/grunt/site/doctypes/FormTourStep/FormTourStep.json
+msgctxt "meta:FormTourStep.fieldname"
+msgid "Field"
+msgstr "Поле"
+
+#: grunt/grunt/site/doctypes/FormTourStep/FormTourStep.json
+msgctxt "meta:FormTourStep.title"
+msgid "Title"
+msgstr "Заголовок"
+
+#: grunt/grunt/site/doctypes/OnboardingProgress/OnboardingProgress.json
+msgctxt "meta:OnboardingProgress.form_tour"
+msgid "Form tour"
+msgstr "Тур по формі"
+
+#: grunt/grunt/site/doctypes/OnboardingStep/OnboardingStep.json
+msgctxt "meta:OnboardingStep.form_tour"
+msgid "Form tour"
+msgstr "Тур по формі"
+
+#~ msgctxt "help:OnboardingProgress"
+#~ msgid ""
+#~ "Steps marked done or skipped and checklists hidden - for the site or per "
+#~ "user."
+#~ msgstr ""
+#~ "Кроки, позначені виконаними чи пропущеними, і сховані чеклисти - для сайту "
+#~ "або для користувача."
+
+#~ msgctxt "meta:PageWidget.sequence"
+#~ msgid "Order"
+#~ msgstr "Порядок"
+
+#~ msgctxt "meta:SystemSettings.is_setup_complete"
+#~ msgid "System configured"
+#~ msgstr "Систему налаштовано"
+
+#~ msgid "Setup"
+#~ msgstr "Початкове налаштування"
+
+#~ msgctxt "select:Dashboard Widget.aggregation"
+#~ msgid "avg"
+#~ msgstr "Середнє"
+
+#~ msgctxt "select:Dashboard Widget.aggregation"
+#~ msgid "count"
+#~ msgstr "Кількість"
+
+#~ msgctxt "select:Dashboard Widget.aggregation"
+#~ msgid "max"
+#~ msgstr "Максимум"
+
+#~ msgctxt "select:Dashboard Widget.aggregation"
+#~ msgid "min"
+#~ msgstr "Мінімум"
+
+#~ msgctxt "select:Dashboard Widget.aggregation"
+#~ msgid "sum"
+#~ msgstr "Сума"
+
+#~ msgctxt "select:DashboardChart.timespan"
+#~ msgid "all_time"
+#~ msgstr "За весь час"
+
+#~ msgctxt "select:DashboardChart.timespan"
+#~ msgid "last_month"
+#~ msgstr "Останній місяць"
+
+#~ msgctxt "select:DashboardChart.timespan"
+#~ msgid "last_quarter"
+#~ msgstr "Останній квартал"
+
+#~ msgctxt "select:DashboardChart.timespan"
+#~ msgid "last_week"
+#~ msgstr "Останній тиждень"
+
+#~ msgctxt "select:DashboardChart.timespan"
+#~ msgid "last_year"
+#~ msgstr "Останній рік"
+
+#~ msgctxt "select:NumberCard.aggregation"
+#~ msgid "avg"
+#~ msgstr "Середнє"
+
+#~ msgctxt "select:NumberCard.aggregation"
+#~ msgid "count"
+#~ msgstr "Кількість"
+
+#~ msgctxt "select:NumberCard.aggregation"
+#~ msgid "max"
+#~ msgstr "Максимум"
+
+#~ msgctxt "select:NumberCard.aggregation"
+#~ msgid "min"
+#~ msgstr "Мінімум"
+
+#~ msgctxt "select:NumberCard.aggregation"
+#~ msgid "sum"
+#~ msgstr "Сума"
+
+#~ msgctxt "select:Dashboard Widget.link_type"
+#~ msgid "DocType"
+#~ msgstr "DocType"
+
+#~ msgctxt "select:Dashboard Widget.link_type"
+#~ msgid "Report"
+#~ msgstr "Звіт"
+
+#~ msgctxt "select:Dashboard Widget.link_type"
+#~ msgid "Page"
+#~ msgstr "Сторінка"
+
+#~ msgctxt "select:Dashboard Widget.link_type"
+#~ msgid "URL"
+#~ msgstr "URL"
+
+#~ msgid "over {period}"
+#~ msgstr "за {period}"
+
+#~ msgid "Welcome to {app}"
+#~ msgstr "Ласкаво просимо до {app}"
+
+#~ msgid "System initialized!"
+#~ msgstr "Систему ініціалізовано!"
+
+#~ msgid "Configure the key system settings for a confident start."
+#~ msgstr "Налаштуйте ключові параметри системи для впевненого старту."
+
+#~ msgid "Basics"
+#~ msgstr "Базові дані"
+
+#~ msgid "Name and localization"
+#~ msgstr "Назва та локалізація"
+
+#~ msgid "Administrator"
+#~ msgstr "Адміністратор"
+
+#~ msgid "Protect the main account"
+#~ msgstr "Захист головного акаунту"
+
+#~ msgid "What shall we call the project?"
+#~ msgstr "Як назвемо проект?"
+
+#~ msgid "This name appears on the home screen and in emails."
+#~ msgstr "Ця назва буде відображатися на головному екрані та в листах."
+
+#~ msgid "System name"
+#~ msgstr "Назва системи"
+
+#~ msgid "For example: My ERP"
+#~ msgstr "Наприклад: My ERP"
+
+#~ msgid "Interface language"
+#~ msgstr "Мова інтерфейсу"
+
+#~ msgid "Administrator access"
+#~ msgstr "Доступ адміністратора"
+
+#~ msgid "Set a strong password for the main account."
+#~ msgstr "Встановіть надійний пароль для головного акаунту."
+
+#~ msgid "The system is ready!"
+#~ msgstr "Систему готово!"
+
+#~ msgid "Press the button below to sign in and start working with Grunt."
+#~ msgstr "Тисніть кнопку нижче, щоб увійти та розпочати роботу з Grunt."
+
+#~ msgctxt "meta:Dashboard"
+#~ msgid "Dashboard"
+#~ msgstr "Дашборд"
+
+#~ msgctxt "meta:Dashboard.label"
+#~ msgid "Name"
+#~ msgstr "Назва"
+
+#~ msgctxt "meta:Dashboard.description"
+#~ msgid "Description"
+#~ msgstr "Опис"
+
+#~ msgctxt "meta:Dashboard.workspace"
+#~ msgid "Workspace"
+#~ msgstr "Воркспейс"
+
+#~ msgctxt "meta:Dashboard.is_published"
+#~ msgid "Published"
+#~ msgstr "Опублікований"
+
+#~ msgctxt "meta:Dashboard.roles"
+#~ msgid "Roles (comma-separated)"
+#~ msgstr "Ролі (через кому)"
+
+#~ msgctxt "meta:Dashboard.widgets"
+#~ msgid "Widgets"
+#~ msgstr "Віджети"
+
+#~ msgctxt "meta:DashboardChart"
+#~ msgid "Dashboard Chart"
+#~ msgstr "Графік дашборду"
+
+#~ msgctxt "meta:DashboardChart.chart_type"
+#~ msgid "Chart type"
+#~ msgstr "Тип графіка"
+
+#~ msgctxt "meta:DashboardChart.value_field"
+#~ msgid "Value field"
+#~ msgstr "Поле значення"
+
+#~ msgctxt "meta:DashboardChart.group_by"
+#~ msgid "Group by"
+#~ msgstr "Групувати за"
+
+#~ msgctxt "meta:DashboardChart.timespan"
+#~ msgid "Period"
+#~ msgstr "Період"
+
+#~ msgctxt "meta:DashboardChart.filters"
+#~ msgid "Filters (JSON)"
+#~ msgstr "Фільтри (JSON)"
+
+#~ msgctxt "meta:DashboardChart.color"
+#~ msgid "Color"
+#~ msgstr "Колір"
+
+#~ msgctxt "meta:DashboardChart.is_public"
+#~ msgid "Public"
+#~ msgstr "Публічний"
+
+#~ msgctxt "meta:Dashboard Widget"
+#~ msgid "Dashboard Widget"
+#~ msgstr "Віджет дашборду"
+
+#~ msgctxt "meta:Dashboard Widget.widget_type"
+#~ msgid "Type"
+#~ msgstr "Тип"
+
+#~ msgctxt "meta:Dashboard Widget.title"
+#~ msgid "Title"
+#~ msgstr "Заголовок"
+
+#~ msgctxt "meta:Dashboard Widget.aggregation"
+#~ msgid "Aggregation"
+#~ msgstr "Агрегація"
+
+#~ msgctxt "meta:Dashboard Widget.field"
+#~ msgid "Field"
+#~ msgstr "Поле"
+
+#~ msgctxt "meta:Dashboard Widget.group_by"
+#~ msgid "Group by"
+#~ msgstr "Групувати за"
+
+#~ msgctxt "meta:Dashboard Widget.date_field"
+#~ msgid "Date field"
+#~ msgstr "Поле дати"
+
+#~ msgctxt "meta:Dashboard Widget.period"
+#~ msgid "Period"
+#~ msgstr "Період"
+
+#~ msgctxt "meta:Dashboard Widget.filters"
+#~ msgid "Filters"
+#~ msgstr "Фільтри"
+
+#~ msgctxt "meta:Dashboard Widget.min_value"
+#~ msgid "Min value"
+#~ msgstr "Мін. значення"
+
+#~ msgctxt "meta:Dashboard Widget.max_value"
+#~ msgid "Max value"
+#~ msgstr "Макс. значення"
+
+#~ msgctxt "meta:Dashboard Widget.cols"
+#~ msgid "Width (1-4)"
+#~ msgstr "Ширина (1-4)"
+
+#~ msgctxt "meta:Dashboard Widget.color"
+#~ msgid "Color"
+#~ msgstr "Колір"
+
+#~ msgctxt "meta:Dashboard Widget.icon"
+#~ msgid "Icon (lucide)"
+#~ msgstr "Іконка (lucide)"
+
+#~ msgctxt "meta:Dashboard Widget.sequence"
+#~ msgid "Order"
+#~ msgstr "Порядок"
+
+#~ msgctxt "meta:Dashboard Widget.link_type"
+#~ msgid "Link type"
+#~ msgstr "Тип посилання"
+
+#~ msgctxt "meta:Dashboard Widget.description"
+#~ msgid "Description / Subtitle"
+#~ msgstr "Опис / Підзаголовок"
+
+#~ msgctxt "meta:Dashboard Widget.report"
+#~ msgid "Report (chart data source)"
+#~ msgstr "Звіт (джерело даних для графіка)"
+
+#~ msgctxt "meta:Dashboard Widget.content"
+#~ msgid "Content"
+#~ msgstr "Вміст"
+
+#~ msgctxt "meta:NumberCard"
+#~ msgid "Number Card"
+#~ msgstr "Числова картка"
+
+#~ msgctxt "meta:NumberCard.label"
+#~ msgid "Name"
+#~ msgstr "Назва"
+
+#~ msgctxt "meta:NumberCard.aggregation"
+#~ msgid "Aggregation"
+#~ msgstr "Агрегація"
+
+#~ msgctxt "meta:NumberCard.value_field"
+#~ msgid "Value field"
+#~ msgstr "Поле значення"
+
+#~ msgctxt "meta:NumberCard.filters"
+#~ msgid "Filters (JSON)"
+#~ msgstr "Фільтри (JSON)"
+
+#~ msgctxt "meta:NumberCard.color"
+#~ msgid "Color"
+#~ msgstr "Колір"
+
+#~ msgctxt "meta:NumberCard.icon"
+#~ msgid "Icon"
+#~ msgstr "Іконка"
+
+#~ msgctxt "meta:NumberCard.is_public"
+#~ msgid "Public"
+#~ msgstr "Публічний"
+
+#~ msgid "Dashboard not found"
+#~ msgstr "Дашборд не знайдено"
+
+#~ msgid "The dashboard is not published"
+#~ msgstr "Дашборд не опубліковано"
+
+#~ msgctxt "help:Dashboard.is_standard"
+#~ msgid "Ships with the app as JSON files - edits are saved to the app"
+#~ msgstr "Постачається з додатком як JSON-файли — зміни зберігаються в додаток"
+
+#~ msgctxt "help:DashboardChart.is_standard"
+#~ msgid "Ships with the app as JSON files - edits are saved to the app"
+#~ msgstr "Постачається з додатком як JSON-файли — зміни зберігаються в додаток"
+
+#~ msgctxt "help:NumberCard.is_standard"
+#~ msgid "Ships with the app as JSON files - edits are saved to the app"
+#~ msgstr "Постачається з додатком як JSON-файли — зміни зберігаються в додаток"
+
+#~ msgctxt "meta:Dashboard Widget.ref_doctype"
+#~ msgid "DocType"
+#~ msgstr "DocType"
+
+#~ msgctxt "meta:Dashboard.app"
+#~ msgid "App"
+#~ msgstr "Додаток"
+
+#~ msgctxt "meta:Dashboard.is_standard"
+#~ msgid "Standard"
+#~ msgstr "Стандартний"
+
+#~ msgctxt "meta:DashboardChart.app"
+#~ msgid "App"
+#~ msgstr "Додаток"
+
+#~ msgctxt "meta:DashboardChart.is_standard"
+#~ msgid "Standard"
+#~ msgstr "Стандартний"
+
+#~ msgctxt "meta:DashboardChart.ref_doctype"
+#~ msgid "Document type"
+#~ msgstr "Тип документа"
+
+#~ msgctxt "meta:NumberCard.app"
+#~ msgid "App"
+#~ msgstr "Додаток"
+
+#~ msgctxt "meta:NumberCard.is_standard"
+#~ msgid "Standard"
+#~ msgstr "Стандартний"
+
+#~ msgctxt "meta:NumberCard.ref_doctype"
+#~ msgid "Document type"
+#~ msgstr "Тип документа"
+
+#~ msgid "Install rclone: https://rclone.org/install/"
+#~ msgstr "Встановіть rclone: https://rclone.org/install/"
 
 #~ msgctxt "select:PageWidget.period"
 #~ msgid "all"
@@ -22432,92 +22658,8 @@ msgstr "невідома задача"
 #~ "Емодзі, які можна ставити під коментарями, через пробіл. Порожньо - реакції "
 #~ "вимкнено"
 
-#: grunt/frontend/src/core/composables/useWebPush.ts
-msgid "Notifications are blocked in the browser settings for this site"
-msgstr "Сповіщення заблоковано в налаштуваннях браузера для цього сайту"
+#~ msgid "Path inside the app, e.g. /app/home"
+#~ msgstr "Шлях у застосунку, напр. /app/home"
 
-#: grunt/actions/builtin.py
-msgid "Send test notification"
-msgstr "Надіслати тестове сповіщення"
-
-#: grunt/actions/builtin.py
-msgid "Open on click"
-msgstr "Відкрити при натисканні"
-
-#: grunt/actions/builtin.py
-msgid "Path inside the app, e.g. /app/home"
-msgstr "Шлях у застосунку, напр. /app/home"
-
-#: grunt/actions/builtin.py
-msgid "Test notification"
-msgstr "Тестове сповіщення"
-
-#: grunt/actions/builtin.py
-msgid "Push notifications work in this browser."
-msgstr "Push-сповіщення працюють у цьому браузері."
-
-#: grunt/actions/builtin.py
-msgid "Test notification sent"
-msgstr "Тестове сповіщення надіслано"
-
-#: grunt/actions/builtin.py
-msgid "Push service rejected the message: %(error)s"
-msgstr "Push-сервіс відхилив повідомлення: %(error)s"
-
-#: grunt/actions/builtin.py
-msgid "The browser no longer accepts this subscription (HTTP %(status)s); deleted it"
-msgstr "Браузер більше не приймає цю підписку (HTTP %(status)s); її видалено"
-
-#: grunt/actions/builtin.py
-msgid "The pywebpush package is not installed"
-msgstr "Пакет pywebpush не встановлено"
-
-#: grunt/actions/builtin.py
-msgid "VAPID keys are not generated yet"
-msgstr "VAPID-ключі ще не згенеровано"
-
-#: grunt/grunt/auth/login.py:57
-msgid "This account is disabled. Contact an administrator."
-msgstr "Цей акаунт вимкнено. Зверніться до адміністратора."
-
-#: grunt/grunt/storage/doctypes/File/file.py
-#, python-format
-msgid "The file can't be deleted: it is attached to %(doctype)s “%(doc)s”"
-msgstr "Файл не можна видалити: він прикріплений до %(doctype)s «%(doc)s»"
-
-#: grunt/grunt/storage/doctypes/File/file.py
-#, python-format
-msgid "The file can't be deleted: it is used in %(doctype)s “%(doc)s”"
-msgstr "Файл не можна видалити: він використовується в %(doctype)s «%(doc)s»"
-
-#: grunt/webpush/service.py
-#, python-format
-msgid "The stored VAPID key is invalid: %(error)s"
-msgstr "Збережений VAPID-ключ пошкоджено: %(error)s"
-
-#: grunt/actions/builtin.py
-msgid "Send push notification"
-msgstr "Надіслати push-сповіщення"
-
-#: grunt/actions/builtin.py
-msgid "The user has not enabled push notifications in any browser"
-msgstr "Користувач не ввімкнув push-сповіщення в жодному браузері"
-
-#: grunt/actions/builtin.py
-#, python-format
-msgid "Push was not delivered: %(error)s"
-msgstr "Push не доставлено: %(error)s"
-
-#: grunt/actions/builtin.py
-msgid "all subscriptions have expired"
-msgstr "усі підписки застаріли"
-
-#: grunt/actions/builtin.py
-#, python-format
-msgid "Sent to %(sent)s of %(total)s browsers"
-msgstr "Надіслано в %(sent)s з %(total)s браузерів"
-
-#: grunt/actions/builtin.py
-#, python-format
-msgid "Expired subscriptions removed: %(n)s"
-msgstr "Видалено застарілих підписок: %(n)s"
+#~ msgid "Push notifications work in this browser."
+#~ msgstr "Push-сповіщення працюють у цьому браузері."

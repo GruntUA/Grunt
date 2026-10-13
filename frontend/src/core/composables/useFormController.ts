@@ -24,6 +24,7 @@ import { useFetchFrom } from '@/core/composables/useFetchFrom'
 import { useQueryClient } from '@tanstack/vue-query'
 
 import { useFormValidation } from './useFormValidation'
+import { useFormTour } from './useFormTour'
 import { useFormDocWatcher } from './useFormDocWatcher'
 import { useFormNavigation } from './useFormNavigation'
 import { useFormSave } from './useFormSave'
@@ -81,6 +82,9 @@ export function useFormController(
   // Document data + CRUD primitives
   const { document, form, isLoading, isError, isDirty, isSaving, save, remove, rename, markClean } =
     useDocument(doctype, id)
+
+  // Form tours (FormTour): started from ?tour=, automatically, or the form's menu
+  const tour = useFormTour(doctype, computed(() => !!dt.value && !isLoading.value))
 
   // Unsaved-changes draft (survives accidental reload/close)
   const { pendingDraft, checkForDraft, restoreDraft, discardDraft } = useFormDraft({
@@ -165,6 +169,7 @@ export function useFormController(
       isSaving: isSaving.value,
       isLoading: isLoading.value,
       hasEditableFields: (dt.value?.fields ?? []).some((f) => !LAYOUT_TYPES.has(f.fieldtype) && !f.read_only),
+      hasTours: tour.hasTours.value,
     }),
     ui: {
       delete: () => { showDeleteModal.value = true },
@@ -175,6 +180,7 @@ export function useFormController(
       showLinks: () => { showLinksDialog.value = true },
       toggleActivity: () => { showActivityLog.value = !showActivityLog.value },
       applyTransition: (action) => applyTransition(action),
+      startTour: (name) => tour.start(name),
     },
   })
   let _duplicateHandler: (() => void | Promise<void>) | null = null
@@ -232,7 +238,7 @@ export function useFormController(
   )
 
   // Validation
-  const { validationErrors, focusFirstError, validateForm } = useFormValidation({
+  const { validationErrors, revealField, focusFirstError, validateForm } = useFormValidation({
     doctype,
     dt,
     form,
@@ -399,6 +405,9 @@ export function useFormController(
     docTitle,
     activeTab,
     isLoading,
+    activeTour: tour.active,
+    finishTour: tour.finish,
+    revealField,
     isError,
     isDirty,
     isSaving,

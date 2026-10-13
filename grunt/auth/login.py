@@ -53,14 +53,8 @@ async def issue_login(
         create_mfa_token,
     )
 
-    # A disabled account would otherwise get tokens that every request (and
-    # refresh) rejects with 401 - the client just bounces back to the login page.
-    if not user.is_active:
-        throw(_("This account is disabled. Contact an administrator."), "UNAUTHORIZED")
-
-    if not await sign_in_ip_allowed(user, ip_address):
-        throw(_("Sign-in from this IP address is not allowed for your role."), "PERMISSION_DENIED")
-
+    # Signup approval first: a pending account is also inactive, but it waits
+    # for an admin rather than being switched off.
     state = getattr(user, "signup_state", None) or "approved"
     if state == "rejected":
         throw(_("The registration request was rejected by an administrator."), "UNAUTHORIZED")
@@ -75,6 +69,14 @@ async def issue_login(
             "mfa_required": False,
             "approval_pending": True,
         }
+
+    # A disabled account would otherwise get tokens that every request (and
+    # refresh) rejects with 401 - the client just bounces back to the login page.
+    if not user.is_active:
+        throw(_("This account is disabled. Contact an administrator."), "UNAUTHORIZED")
+
+    if not await sign_in_ip_allowed(user, ip_address):
+        throw(_("Sign-in from this IP address is not allowed for your role."), "PERMISSION_DENIED")
 
     if honor_mfa and await mfa_setup_required(user):
         return {

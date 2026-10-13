@@ -19,6 +19,7 @@ import SidebarTimeline from '@/components/views/sidebar/SidebarTimeline.vue'
 
 import FormHeader from '@/components/views/form/FormHeader.vue'
 import FormModals from '@/components/views/form/FormModals.vue'
+import FormTour from '@/components/views/form/FormTour.vue'
 import { Spinner } from '@/components/ui/spinner'
 import { docUrl } from '@/core/workspaceUrl'
 
@@ -39,6 +40,9 @@ const {
   document,
   docTitle,
   activeTab,
+  activeTour,
+  finishTour,
+  revealField,
   isLoading,
   isDirty,
   isSaving,
@@ -261,6 +265,7 @@ const initials = (email: string) => email.slice(0, 2).toUpperCase()
       mode="link" @close="closeQuickEntry" @saved="onQuickEntrySaved" />
 
     <!-- Modals -->
+    <FormTour v-if="activeTour" :key="activeTour.name" :tour="activeTour" :reveal="revealField" @close="finishTour" />
     <FormModals v-model:show-delete="showDeleteModal" v-model:show-leave="showLeaveModal" :doctype="doctype"
       :doc-id="id" @confirm-delete="handleDelete" @confirm-leave="confirmLeave" @cancel-leave="cancelLeave" />
   </div>

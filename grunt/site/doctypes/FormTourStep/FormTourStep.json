@@ -1,0 +1,26 @@
+{
+  "name": "FormTourStep",
+  "label": "Form tour step",
+  "module": "site",
+  "is_child": true,
+  "hide_from_activity_feed": true,
+  "title_field": "title",
+  "fields": [
+    {"fieldname": "title", "label": "Title", "fieldtype": "Data", "required": true, "in_list_view": true, "translatable": true},
+    {"fieldname": "description", "label": "Description", "fieldtype": "Text", "translatable": true},
+    {
+      "fieldname": "fieldname",
+      "label": "Field",
+      "fieldtype": "Data",
+      "in_list_view": true,
+      "description": "The form field to point at; its tab opens by itself"
+    },
+    {
+      "fieldname": "element",
+      "label": "Element",
+      "fieldtype": "Data",
+      "depends_on": "eval: !doc.fieldname",
+      "description": "Or a CSS selector of another element, e.g. [data-action=save]; neither - a step in the middle of the screen"
+    }
+  ]
+}

@@ -49,16 +49,6 @@ const router = createRouter({
       name: 'desk',
       component: () => import('@/pages/DeskPage.vue'),
     },
-
-
-
-    // Setup Wizard
-    {
-      path: '/setup',
-      name: 'setup-wizard',
-      component: () => import('@/pages/setup/SetupWizard.vue'),
-      meta: { public: true },
-    },
     {
       path: '/app/:workspaceName',
       component: () => import('@/pages/app/AppLayout.vue'),
@@ -198,7 +188,6 @@ function routeTitle(to: RouteLocationNormalized): string {
     case 'forgot-password': return t('Reset password')
     case 'reset-password': return t('Reset password')
     case 'mfa-verify': return t('Two-factor authentication')
-    case 'setup-wizard': return t('Setup')
     case 'desk': return t('Home')
     case 'forbidden': return t('Access denied')
     case 'not-found': return t('Page not found')

@@ -1,21 +1,28 @@
 {
   "name": "OnboardingProgress",
   "label": "Onboarding progress",
-  "description": "Steps marked done or skipped and checklists hidden - for the site or per user.",
+  "description": "Steps marked done or skipped, checklists hidden, form tours taken - for the site or per user.",
   "module": "site",
   "autoname": "hash",
   "track_changes": false,
   "track_activity": false,
   "hide_from_activity_feed": true,
-  "indexes": [["onboarding", "user"]],
+  "indexes": [["onboarding", "user"], ["form_tour", "user"]],
   "fields": [
     {
       "fieldname": "onboarding",
       "label": "Onboarding",
       "fieldtype": "Link",
       "options": "ModuleOnboarding",
-      "required": true,
       "in_list_view": true
+    },
+    {
+      "fieldname": "form_tour",
+      "label": "Form tour",
+      "fieldtype": "Link",
+      "options": "FormTour",
+      "in_list_view": true,
+      "description": "A tour the user has been through (instead of a checklist)"
     },
     {
       "fieldname": "step_id",

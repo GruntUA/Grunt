@@ -8,8 +8,8 @@
   "autoname": "prompt",
   "title_field": "title",
   "fields": [
-    {"fieldname": "title", "label": "Title", "fieldtype": "Data", "required": true, "in_list_view": true},
-    {"fieldname": "subtitle", "label": "Subtitle", "fieldtype": "Text"},
+    {"fieldname": "title", "label": "Title", "fieldtype": "Data", "required": true, "in_list_view": true, "translatable": true},
+    {"fieldname": "subtitle", "label": "Subtitle", "fieldtype": "Text", "translatable": true},
     {
       "fieldname": "app",
       "label": "App",
@@ -40,7 +40,7 @@
       "default": "Site",
       "description": "Site - one shared checklist (system setup). User - everyone goes through it on their own (a step counts their own records)"
     },
-    {"fieldname": "success_message", "label": "Success message", "fieldtype": "Text"},
+    {"fieldname": "success_message", "label": "Success message", "fieldtype": "Text", "translatable": true},
     {"fieldname": "documentation_url", "label": "Documentation URL", "fieldtype": "Data"},
     {"fieldname": "steps", "label": "Steps", "fieldtype": "Table", "options": "OnboardingStep"},
     {

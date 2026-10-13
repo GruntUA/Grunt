@@ -80,8 +80,25 @@ export interface OnboardingStep {
   action: string
   action_label?: string | null
   /** Where the button leads (`appUrl` link); `type: 'URL'` - a desk path or a full URL. */
-  target: { type: string; name: string; id?: string } | null
+  target: { type: string; name: string; id?: string; query?: Record<string, string> } | null
   status: OnboardingStepStatus
+}
+
+export interface FormTourStep {
+  title: string
+  description?: string | null
+  /** The form field to point at, or `element` - a CSS selector; neither - a centred step. */
+  fieldname?: string | null
+  element?: string | null
+}
+
+export interface FormTour {
+  name: string
+  title: string
+  auto_start: boolean
+  /** The user has finished or closed it before. */
+  taken: boolean
+  steps: FormTourStep[]
 }
 
 export interface Onboarding {
@@ -154,5 +171,14 @@ export const workspaceApi = {
 
   hideOnboarding: async (onboarding: string): Promise<void> => {
     await client.post('/api/v1/method/grunt.site.onboarding.hide_onboarding', { onboarding })
+  },
+
+  getFormTours: async (doctype: string): Promise<FormTour[]> => {
+    const r = await client.get('/api/v1/method/grunt.site.onboarding.get_form_tours', { params: { doctype } })
+    return r.data.data ?? []
+  },
+
+  completeFormTour: async (tour: string): Promise<void> => {
+    await client.post('/api/v1/method/grunt.site.onboarding.complete_form_tour', { tour })
   },
 }

@@ -49,7 +49,7 @@ const sections = computed(() => {
 <template>
   <DropdownMenu v-if="actions.length || narrowOnly.length">
     <DropdownMenuTrigger as-child>
-      <Button :variant="triggerVariant ?? 'outline'" size="icon-sm" :class="{ 'sm:hidden': !actions.length }" :aria-label="t('Actions')">
+      <Button :variant="triggerVariant ?? 'outline'" size="icon-sm" :class="{ 'sm:hidden': !actions.length }" :aria-label="t('Actions')" data-action="menu">
         <EllipsisVertical class="size-4" />
       </Button>
     </DropdownMenuTrigger>

@@ -397,6 +397,8 @@ export interface FormProxyState {
   isSaving: boolean
   isLoading: boolean
   hasEditableFields: boolean
+  /** The form has tours (FormTour) the user may take. */
+  hasTours?: boolean
 }
 
 export interface FormProxyUi {
@@ -408,6 +410,7 @@ export interface FormProxyUi {
   showLinks: () => void
   toggleActivity: () => void
   applyTransition: (action: string) => Promise<void>
+  startTour: (name?: string) => void
 }
 
 export function createFormProxy(
@@ -455,6 +458,7 @@ export function createFormProxy(
     get is_saving() { return state().isSaving },
     get is_loading() { return state().isLoading },
     get has_editable_fields() { return state().hasEditableFields },
+    get has_tours() { return !!state().hasTours },
     get transitions() { return state().transitions },
 
     get_value(fieldname: string) {
@@ -496,6 +500,7 @@ export function createFormProxy(
     share() { callbacks.ui?.share?.() },
     show_links() { callbacks.ui?.showLinks?.() },
     toggle_activity() { callbacks.ui?.toggleActivity?.() },
+    start_tour(name?: string) { callbacks.ui?.startTour?.(name) },
     async apply_transition(action: string) { await callbacks.ui?.applyTransition?.(action) },
 
     print(format = 'html', options: { autoprint?: boolean } = {}) {

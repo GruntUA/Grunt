@@ -10,9 +10,9 @@ from jinja2 import ChoiceLoader, FileSystemLoader
 def test_spa_paths():
     from grunt.startup.website import _is_spa_path
 
-    for path in ("/", "/app", "/app/letter/IncomingLetter/1", "/login", "/403", "/setup/"):
+    for path in ("/", "/app", "/app/letter/IncomingLetter/1", "/login", "/403", "/login/"):
         assert _is_spa_path(path), path
-    for path in ("/wp-login.php", "/news/some-slug", "/application", "/apple"):
+    for path in ("/wp-login.php", "/news/some-slug", "/application", "/apple", "/setup"):
         assert not _is_spa_path(path), path
 
 

@@ -1,0 +1,60 @@
+{
+  "name": "FormTour",
+  "label": "Form tour",
+  "description": "A walk through a DocType's form: each step points at a field or an element and explains it.",
+  "module": "site",
+  "standard_records": true,
+  "hide_from_activity_feed": true,
+  "autoname": "prompt",
+  "title_field": "title",
+  "fields": [
+    {"fieldname": "title", "label": "Title", "fieldtype": "Data", "required": true, "in_list_view": true, "translatable": true},
+    {
+      "fieldname": "reference_doctype",
+      "label": "Document type",
+      "fieldtype": "Link",
+      "options": "DocType",
+      "required": true,
+      "in_list_view": true,
+      "in_filter": true
+    },
+    {
+      "fieldname": "app",
+      "label": "App",
+      "fieldtype": "Link",
+      "options": "GruntInstalledApp",
+      "in_filter": true
+    },
+    {
+      "fieldname": "is_published",
+      "label": "Published",
+      "fieldtype": "Check",
+      "default": true,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "auto_start",
+      "label": "Start automatically",
+      "fieldtype": "Check",
+      "description": "Starts the first time a user opens the form; afterwards - from the form's menu"
+    },
+    {
+      "fieldname": "roles",
+      "label": "Roles (comma-separated)",
+      "fieldtype": "Text",
+      "description": "Who sees the tour; empty - everyone. System Manager always does"
+    },
+    {"fieldname": "steps", "label": "Steps", "fieldtype": "Table", "options": "FormTourStep"},
+    {
+      "fieldname": "is_standard",
+      "label": "Standard",
+      "fieldtype": "Check",
+      "in_filter": true,
+      "description": "Ships with the app as JSON files - edits are saved to the app"
+    }
+  ],
+  "permissions": [
+    {"role": "All", "read": true},
+    {"role": "System Manager", "write": true, "create": true, "delete": true}
+  ]
+}

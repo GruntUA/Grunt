@@ -132,3 +132,44 @@ def test_skips_vendor_and_test_dirs(tmp_path):
 
     assert ("nope", "") not in keyed
     assert ("also nope", "") not in keyed
+
+
+def test_extracts_translatable_texts_of_standard_records(tmp_path):
+    def write(path, data):
+        path.mkdir(parents=True)
+        (path / f"{path.name}.json").write_text(json.dumps(data), encoding="utf-8")
+
+    doctypes = tmp_path / "apps" / "grunt" / "grunt" / "site" / "doctypes"
+    write(
+        doctypes / "Checklist",
+        {
+            "name": "Checklist",
+            "fields": [
+                {"fieldname": "title", "fieldtype": "Data", "translatable": True},
+                {"fieldname": "code", "fieldtype": "Data"},
+                {"fieldname": "steps", "fieldtype": "Table", "options": "Step"},
+            ],
+        },
+    )
+    write(
+        doctypes / "Step",
+        {
+            "name": "Step",
+            "fields": [{"fieldname": "title", "fieldtype": "Data", "translatable": True}],
+        },
+    )
+    write(
+        tmp_path / "apps" / "myapp" / "myapp" / "records" / "checklist" / "setup",
+        {
+            "doctype": "Checklist",
+            "name": "setup",
+            "title": "Get started",
+            "code": "not-a-label",
+            "steps": [{"doctype": "Step", "title": "Add a user"}],
+        },
+    )
+
+    keyed = {(r["source"], r["context"]): r for r in extract_all(tmp_path)}
+    assert keyed[("Get started", "record:Checklist.title")]["origin"] == "myapp"
+    assert ("Add a user", "record:Step.title") in keyed
+    assert not any(source == "not-a-label" for source, _ in keyed)

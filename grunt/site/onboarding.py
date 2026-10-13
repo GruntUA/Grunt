@@ -1,25 +1,30 @@
 """Module onboarding - "first steps" checklists (``ModuleOnboarding``).
 
 A step is done when the fact it asks for is true, checked on every read:
-Create Entry - a record of the DocType exists (the user's own, for a per-user
-checklist); Update Settings - the singleton's field is filled in (or equals
-``value_to_validate``). The other actions only lead somewhere, so they count
-once opened. Done-by-hand, skipped steps and hidden checklists are
-``OnboardingProgress`` rows - with an empty ``user`` for a site checklist.
+Create Entry - someone created a record of the DocType (the user, for a
+per-user checklist; records the system seeded don't count); Update Settings -
+the singleton's field is set to something other than its default (or equals
+``value_to_validate``); Take a Tour - the ``FormTour`` has been taken. The
+other actions only lead somewhere, so they count once opened. Done-by-hand,
+skipped steps and hidden checklists are ``OnboardingProgress`` rows - with an
+empty ``user`` for a site checklist; so are the tours a user has taken.
 """
 
 from __future__ import annotations
 
+import copy
 from typing import TYPE_CHECKING, Any
 
 import grunt
 from grunt import _
 from grunt.api.v1.dashboard import page_visible
+from grunt.auth.doctypes.User.user import SYSTEM_USER
+from grunt.i18n.meta import translate_record
 
 if TYPE_CHECKING:
     from grunt.auth.doctypes.User.user import User
 
-AUTO_ACTIONS = ("Create Entry", "Update Settings")
+AUTO_ACTIONS = ("Create Entry", "Update Settings", "Take a Tour")
 _MARKS = ("Completed", "Skipped")
 
 
@@ -55,25 +60,46 @@ async def _progress(onboarding: dict[str, Any], user: User) -> tuple[dict[str, s
 
 async def _fact(step: dict[str, Any], user: str) -> bool:
     """Whether an auto step's condition holds right now."""
+    if step.get("action") == "Take a Tour":
+        taken = {"form_tour": step.get("form_tour") or "", "status": "Completed"}
+        return (
+            await grunt.db.count(
+                "OnboardingProgress", {**taken, **({"user": user} if user else {})}
+            )
+            > 0
+        )
     doctype = step.get("reference_doctype") or ""
-    if not doctype or await grunt.get_meta(doctype) is None:
+    meta = await grunt.get_meta(doctype) if doctype else None
+    if meta is None:
         return False
     if step.get("action") == "Create Entry":
-        return await grunt.db.count(doctype, {"owner": user} if user else None) > 0
+        owner = {"owner": user} if user else {"owner__ne": SYSTEM_USER.email}
+        return await grunt.db.count(doctype, owner) > 0
+    fieldname = step.get("field") or ""
     rows = await grunt.db.get_all(doctype, fields=None, limit=1)
-    value = rows[0].get(step.get("field") or "") if rows else None
+    value = rows[0].get(fieldname) if rows else None
     expected = (step.get("value_to_validate") or "").strip()
     if expected in ("", "%"):
-        return value not in (None, "", 0, False, [])
+        field = meta.get_field(fieldname)
+        default = field.default if field else None
+        return value not in (None, "", 0, False, []) and str(value) != str(default)
     return str(value) == expected
 
 
-def _target(step: dict[str, Any]) -> dict[str, Any] | None:
+async def _target(step: dict[str, Any]) -> dict[str, Any] | None:
     """Where the step's button leads - an ``appUrl`` link for the desk."""
     action = step.get("action")
+    if action == "Take a Tour":
+        tour = step.get("form_tour") or ""
+        doctype = await grunt.db.get_value("FormTour", tour, "reference_doctype")
+        meta = await grunt.get_meta(doctype) if doctype else None
+        if meta is None:
+            return None
+        target = {"type": "DocType", "name": doctype, "query": {"tour": tour}}
+        return target if meta.doc.is_singleton else {**target, "id": "new"}
     if action == "Create Entry":
         return {"type": "DocType", "name": step.get("reference_doctype"), "id": "new"}
-    if action == "Update Settings":
+    if action == "Update Settings" or (step.get("reference_doctype") and not step.get("route")):
         return {"type": "DocType", "name": step.get("reference_doctype")}
     if action == "View Report":
         return {"type": "Report", "name": step.get("report")}
@@ -97,6 +123,7 @@ async def _summary(onboarding: dict[str, Any], user: User) -> dict[str, Any] | N
     marks, hidden = await _progress(onboarding, user)
     if hidden:
         return None
+    onboarding = await translate_record(copy.deepcopy(onboarding))
     owner = _scope_user(onboarding, user)
     steps = []
     for step in onboarding.get("steps") or []:
@@ -110,7 +137,7 @@ async def _summary(onboarding: dict[str, Any], user: User) -> dict[str, Any] | N
                 "description": step.get("description"),
                 "action": step.get("action"),
                 "action_label": step.get("action_label"),
-                "target": _target(step),
+                "target": await _target(step),
                 "status": status,
             }
         )
@@ -144,8 +171,7 @@ async def _require(onboarding: str, user: User) -> dict[str, Any]:
     grunt.throw(_("Onboarding not found"), "NOT_FOUND")
 
 
-async def _set(onboarding: str, step_id: str, user: str, status: str | None) -> None:
-    key = {"onboarding": onboarding, "step_id": step_id, "user": user}
+async def _set(key: dict[str, str], status: str | None) -> None:
     async with grunt.system_context(grunt.get_session()):
         for name in await grunt.db.get_all("OnboardingProgress", filters=key, pluck="name"):
             await grunt.delete_doc("OnboardingProgress", name)
@@ -162,7 +188,8 @@ async def mark_step(onboarding: str, step_id: str, status: str = "Completed") ->
         grunt.throw(_("Step not found"), "NOT_FOUND")
     if status not in (*_MARKS, "Pending"):
         grunt.throw(_("Unknown step status"))
-    await _set(onboarding, step_id, _scope_user(o, user), None if status == "Pending" else status)
+    key = {"onboarding": onboarding, "step_id": step_id, "user": _scope_user(o, user)}
+    await _set(key, None if status == "Pending" else status)
     async with grunt.system_context(grunt.get_session()):
         summary = await _summary(o, user)
     return summary or {}
@@ -173,4 +200,70 @@ async def hide_onboarding(onboarding: str) -> None:
     """Hide the checklist for the current user."""
     user = grunt.get_user()
     await _require(onboarding, user)
-    await _set(onboarding, "", user.email, "Hidden")
+    await _set({"onboarding": onboarding, "step_id": "", "user": user.email}, "Hidden")
+
+
+# Form tours - the published ones of a form whose roles fit the user; taking
+# one is a ``Completed`` progress row of that user.
+
+
+async def _tours(doctype: str, user: User) -> list[dict[str, Any]]:
+    names = await grunt.db.get_all(
+        "FormTour",
+        filters={"is_published": True, "reference_doctype": doctype},
+        pluck="name",
+        order_by="name",
+        limit=None,
+    )
+    docs = [await grunt.get_doc("FormTour", n) for n in names]
+    return [d for d in docs if page_visible({**d, "is_published": True}, user)]
+
+
+@grunt.whitelist()
+async def get_form_tours(doctype: str) -> list[dict[str, Any]]:
+    """Tours of *doctype*'s form the user sees, and whether they have taken each."""
+    user = grunt.get_user()
+    async with grunt.system_context(grunt.get_session()):
+        tours = await _tours(doctype, user)
+        taken = set(
+            await grunt.db.get_all(
+                "OnboardingProgress",
+                filters={"user": user.email, "form_tour__in": [t["name"] for t in tours]},
+                pluck="form_tour",
+                limit=None,
+            )
+            if tours
+            else []
+        )
+        tours = [await translate_record(copy.deepcopy(t)) for t in tours]
+    return [
+        {
+            "name": t["name"],
+            "title": t.get("title"),
+            "auto_start": bool(t.get("auto_start")),
+            "taken": t["name"] in taken,
+            "steps": [
+                {
+                    "title": s.get("title"),
+                    "description": s.get("description"),
+                    "fieldname": s.get("fieldname") or None,
+                    "element": s.get("element") or None,
+                }
+                for s in t.get("steps") or []
+            ],
+        }
+        for t in tours
+        if t.get("steps")
+    ]
+
+
+@grunt.whitelist()
+async def complete_form_tour(tour: str) -> None:
+    """Note that the user has taken *tour* (finished or closed it)."""
+    user = grunt.get_user()
+    async with grunt.system_context(grunt.get_session()):
+        doctype = await grunt.db.get_value("FormTour", tour, "reference_doctype")
+        visible = bool(doctype) and any(t["name"] == tour for t in await _tours(doctype, user))
+    if not visible:
+        grunt.throw(_("Form tour not found"), "NOT_FOUND")
+    await _set({"form_tour": tour, "step_id": "", "user": user.email}, "Completed")

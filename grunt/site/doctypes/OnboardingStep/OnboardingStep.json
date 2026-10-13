@@ -6,13 +6,13 @@
   "hide_from_activity_feed": true,
   "title_field": "title",
   "fields": [
-    {"fieldname": "title", "label": "Title", "fieldtype": "Data", "required": true, "in_list_view": true},
-    {"fieldname": "description", "label": "Description", "fieldtype": "Text"},
+    {"fieldname": "title", "label": "Title", "fieldtype": "Data", "required": true, "in_list_view": true, "translatable": true},
+    {"fieldname": "description", "label": "Description", "fieldtype": "Text", "translatable": true},
     {
       "fieldname": "action",
       "label": "Action",
       "fieldtype": "Select",
-      "options": "Create Entry\nUpdate Settings\nGo to Page\nView Report\nRead Docs\nWatch Video",
+      "options": "Create Entry\nUpdate Settings\nGo to Page\nTake a Tour\nView Report\nRead Docs\nWatch Video",
       "default": "Create Entry",
       "required": true,
       "in_list_view": true,
@@ -24,8 +24,17 @@
       "fieldtype": "Link",
       "options": "DocType",
       "in_list_view": true,
-      "depends_on": "eval: ['Create Entry', 'Update Settings'].includes(doc.action)",
-      "mandatory_depends_on": "eval: ['Create Entry', 'Update Settings'].includes(doc.action)"
+      "depends_on": "eval: ['Create Entry', 'Update Settings', 'Go to Page'].includes(doc.action)",
+      "mandatory_depends_on": "eval: ['Create Entry', 'Update Settings'].includes(doc.action)",
+      "description": "Go to Page - opens this DocType instead of an address"
+    },
+    {
+      "fieldname": "form_tour",
+      "label": "Form tour",
+      "fieldtype": "Link",
+      "options": "FormTour",
+      "depends_on": "eval: doc.action === 'Take a Tour'",
+      "mandatory_depends_on": "eval: doc.action === 'Take a Tour'"
     },
     {
       "fieldname": "field",
@@ -55,10 +64,10 @@
       "label": "Address",
       "fieldtype": "Data",
       "depends_on": "eval: ['Go to Page', 'Read Docs', 'Watch Video'].includes(doc.action)",
-      "mandatory_depends_on": "eval: ['Go to Page', 'Read Docs', 'Watch Video'].includes(doc.action)",
+      "mandatory_depends_on": "eval: ['Read Docs', 'Watch Video'].includes(doc.action) || (doc.action === 'Go to Page' && !doc.reference_doctype)",
       "description": "Desk path (/app/...) or a full URL"
     },
-    {"fieldname": "action_label", "label": "Button label", "fieldtype": "Data"},
+    {"fieldname": "action_label", "label": "Button label", "fieldtype": "Data", "translatable": true},
     {
       "fieldname": "step_id",
       "label": "Step ID",

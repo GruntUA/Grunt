@@ -11,6 +11,8 @@ so a translator (or the Translate app) can target a specific field:
     hint:<DocType>.<fieldname>    -> a field placeholder
     select:<DocType>.<fieldname>  -> one option caption of a ``translatable`` Select
     status:<DocType>              -> a status-indicator label
+    record:<DocType>.<fieldname>  -> the value of a ``translatable`` text field in
+                                     a standard record (see :func:`translate_record`)
 
 label / description / placeholder each get their own context so they never share
 a row in the Translate registry. ``pgettext`` also falls back to a context-free
@@ -75,3 +77,28 @@ def option_labels(options: Any, ctx: str, lang: str) -> dict[str, str]:
         if caption != value:
             labels[value] = caption
     return labels
+
+
+async def translate_record(doc: dict[str, Any], lang: str | None = None) -> dict[str, Any]:
+    """Translate the ``translatable`` text fields of *doc* and its child rows in place.
+
+    For records an app ships in English (standard records): the extractor
+    collects these values from the record files, the reader shows them in the
+    user's language.
+    """
+    import grunt
+
+    meta = await grunt.get_meta(doc.get("doctype") or "")
+    if meta is None:
+        return doc
+    lang = lang or translation_service.get_lang()
+    name = meta.doc.name
+    for field in meta.doc.fields:
+        value = doc.get(field.fieldname)
+        if field.fieldname in meta.get_table_fieldnames() and isinstance(value, list):
+            for row in value:
+                if isinstance(row, dict):
+                    await translate_record(row, lang)
+        elif field.translatable and field.fieldtype not in SELECT_FIELDTYPES:
+            doc[field.fieldname] = _tr(f"record:{name}.{field.fieldname}", value, lang)
+    return doc
