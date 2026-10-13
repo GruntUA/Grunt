@@ -1,0 +1,60 @@
+{
+  "doctype": "ModuleOnboarding",
+  "name": "system_setup",
+  "title": "System setup",
+  "subtitle": "A few steps to get the system ready for your team",
+  "app": "grunt",
+  "is_published": true,
+  "roles": "System Manager",
+  "progress_scope": "Site",
+  "success_message": "The system is set up. Welcome aboard!",
+  "steps": [
+    {
+      "doctype": "OnboardingStep",
+      "step_id": "app-name",
+      "title": "Name the system",
+      "description": "The name shows in the sidebar, the browser tab and emails.",
+      "action": "Update Settings",
+      "reference_doctype": "SystemSettings",
+      "field": "app_name",
+      "value_to_validate": "%"
+    },
+    {
+      "doctype": "OnboardingStep",
+      "step_id": "app-logo",
+      "title": "Add a logo",
+      "description": "Upload your organization's logo for the sidebar and the sign-in page.",
+      "action": "Update Settings",
+      "reference_doctype": "SystemSettings",
+      "field": "app_logo",
+      "value_to_validate": "%"
+    },
+    {
+      "doctype": "OnboardingStep",
+      "step_id": "regional",
+      "title": "Check language and time zone",
+      "description": "The default language, time zone and date format for everyone.",
+      "action": "Go to Page",
+      "reference_doctype": "SystemSettings",
+      "action_label": "Check"
+    },
+    {
+      "doctype": "OnboardingStep",
+      "step_id": "email-account",
+      "title": "Connect a mailbox",
+      "description": "An SMTP account the system sends notifications and password resets from.",
+      "action": "Create Entry",
+      "reference_doctype": "EmailAccount"
+    },
+    {
+      "doctype": "OnboardingStep",
+      "step_id": "users",
+      "title": "Invite users",
+      "description": "Add the people who will work in the system and give them roles.",
+      "action": "Create Entry",
+      "reference_doctype": "User",
+      "action_label": "Add user"
+    }
+  ],
+  "is_standard": true
+}
