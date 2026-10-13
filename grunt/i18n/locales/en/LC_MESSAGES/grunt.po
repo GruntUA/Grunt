@@ -20353,3 +20353,7 @@ msgstr ""
 
 #~ msgid "Вебхук"
 #~ msgstr "Webhook"
+
+#: grunt/grunt/auth/login.py:57
+msgid "This account is disabled. Contact an administrator."
+msgstr ""

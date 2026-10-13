@@ -94,3 +94,16 @@ async def test_mfa_lockout_not_reset_by_re_entering_password(ctx, client):
             locked = True
             break
     assert locked, "account never locked despite repeated wrong MFA codes"
+
+
+@pytest.mark.asyncio
+async def test_disabled_account_gets_no_tokens(ctx, client):
+    """A disabled user with the right password must be refused at sign-in, not
+    handed tokens that every following request rejects with 401."""
+    await _setup(ctx)
+    async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
+        await ctx.db.set_value("User", EMAIL, "is_active", False)
+        await ctx.db._session().commit()
+    r = await client.post(f"{M}.login_api", json={"email": EMAIL, "password": "Correct-horse-1"})
+    assert r.status_code == 401, r.text
+    assert "access_token" not in r.text

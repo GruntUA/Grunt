@@ -32,6 +32,8 @@ async def issue_login(
     complete ``mfa_login_api``. Pass ``honor_mfa=False`` from the MFA step
     itself (the factor has already been proven).
 
+    A disabled user (``is_active`` off) is refused outright.
+
     A role with ``Role.allowed_ips`` refuses sign-in from any other address.
 
     When one of the user's roles has ``Role.require_mfa`` but MFA is off, the
@@ -50,6 +52,11 @@ async def issue_login(
         create_mfa_setup_token,
         create_mfa_token,
     )
+
+    # A disabled account would otherwise get tokens that every request (and
+    # refresh) rejects with 401 - the client just bounces back to the login page.
+    if not user.is_active:
+        throw(_("This account is disabled. Contact an administrator."), "UNAUTHORIZED")
 
     if not await sign_in_ip_allowed(user, ip_address):
         throw(_("Sign-in from this IP address is not allowed for your role."), "PERMISSION_DENIED")

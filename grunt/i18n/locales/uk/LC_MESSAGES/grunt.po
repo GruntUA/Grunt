@@ -22431,3 +22431,7 @@ msgstr "невідома задача"
 #~ msgstr ""
 #~ "Емодзі, які можна ставити під коментарями, через пробіл. Порожньо - реакції "
 #~ "вимкнено"
+
+#: grunt/grunt/auth/login.py:57
+msgid "This account is disabled. Contact an administrator."
+msgstr "Цей акаунт вимкнено. Зверніться до адміністратора."
