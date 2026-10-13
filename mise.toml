@@ -22,7 +22,11 @@ description = "Full project setup: install runtimes, sync packages, and migrate 
 [tasks.backend]
 run = """
 trap 'kill $CHILD 2>/dev/null; exit 0' TERM INT
-uv run uvicorn grunt.main:app --host ${HOST:-0.0.0.0} --port ${PORT:-8000} ${RELOAD} &
+# Sync like `uv run` would, then start from .venv directly: `uv run` stays the
+# parent for the server's whole life and holds the uv cache lock all along,
+# so `uv cache prune` (grunt update) could never run while serving.
+uv sync --inexact --quiet
+.venv/bin/uvicorn grunt.main:app --host ${HOST:-0.0.0.0} --port ${PORT:-8000} ${RELOAD} &
 CHILD=$!
 wait $CHILD
 """
@@ -50,7 +54,8 @@ if [ -n "$RELOAD" ]; then
     [ "$name" != grunt ] && [ -d "$app$name" ] && RELOAD_ARGS="$RELOAD_ARGS --reload-dir $app$name"
   done
 fi
-uv run taskiq worker grunt.tasks.worker:broker --workers ${WORKERS:-1} --no-configure-logging $RELOAD_ARGS &
+uv sync --inexact --quiet
+.venv/bin/taskiq worker grunt.tasks.worker:broker --workers ${WORKERS:-1} --no-configure-logging $RELOAD_ARGS &
 CHILD=$!
 wait $CHILD
 """
