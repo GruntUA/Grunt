@@ -47,6 +47,7 @@ import { getExporters } from '@/core/io/exporters/registry'
 import { LIST_BULK_UI, type BulkRequest } from '@/core/composables/useListBulkUi'
 import { LIST_FILTER_RESET } from '@/core/composables/useListFilterReset'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
+import { Progress } from '@/components/ui/progress'
 
 const { t } = useI18n()
 const props = defineProps<{ doctype: string; workspace?: string }>()
@@ -397,6 +398,10 @@ const { deleteProgress, bulkDelete, bulkFastDelete } = useBulkDeleteProgress({
   onUserEvent,
   offUserEvent,
 })
+const deletePercent = computed(() => {
+  const { done, total } = deleteProgress.value
+  return total ? Math.round(done / total * 100) : 0
+})
 
 function navigateToDoc(row: Record<string, unknown>) {
   const docId = row.id ?? row.name
@@ -547,14 +552,10 @@ watch(() => props.doctype, async (newDoctype) => {
 
         <!-- Progress bar -->
         <div class="flex flex-col gap-1.5">
-          <div class="h-2 w-full rounded-full bg-muted overflow-hidden">
-            <div class="h-full rounded-full bg-destructive transition-all duration-300"
-              :style="{ width: `${deleteProgress.total ? Math.round(deleteProgress.done / deleteProgress.total * 100) : 0}%` }" />
-          </div>
+          <Progress :model-value="deletePercent" class="h-2 *:data-[slot=progress-indicator]:bg-destructive" />
           <div class="flex justify-between text-muted-foreground tabular-nums">
             <span>{{ deleteProgress.done }} / {{ deleteProgress.total }}</span>
-            <span>{{ deleteProgress.total ? Math.round(deleteProgress.done / deleteProgress.total * 100) : 0
-            }}%</span>
+            <span>{{ deletePercent }}%</span>
           </div>
         </div>
 

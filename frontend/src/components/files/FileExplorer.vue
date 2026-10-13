@@ -37,6 +37,7 @@ import { formatDateTime } from '@/core/datetime'
 import { useAuthStore } from '@/stores/auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Progress } from '@/components/ui/progress'
 import CameraCapture from '@/components/files/CameraCapture.vue'
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
@@ -888,9 +889,7 @@ const ROW = 'grid w-full grid-cols-[minmax(0,1fr)_9rem_5rem_5rem] items-center g
           <template v-if="selected.size"> · {{ t('Selected: {n}', { n: selected.size }) }}</template>
         </span>
         <div v-if="usage?.quota" class="flex min-w-40 items-center gap-2" :class="overQuota ? 'text-destructive' : 'text-muted-foreground'">
-          <div class="h-1.5 w-24 overflow-hidden rounded-full bg-muted">
-            <div class="h-full" :class="overQuota ? 'bg-destructive' : 'bg-primary'" :style="{ width: `${usagePercent}%` }" />
-          </div>
+          <Progress :model-value="usagePercent" class="h-1.5 w-24" :class="overQuota && '*:data-[slot=progress-indicator]:bg-destructive'" />
           <span>{{ t('{used} of {quota} used', { used: formatFileSize(usage.used), quota: formatFileSize(usage.quota) }) }}</span>
         </div>
         <div class="ml-auto flex gap-2">

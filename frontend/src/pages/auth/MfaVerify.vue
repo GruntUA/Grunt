@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
+import { REGEXP_ONLY_DIGITS } from 'vue-input-otp'
 import { onMounted, ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ShieldCheck, ArrowRight, ArrowLeft, Copy } from '@lucide/vue'
@@ -8,6 +9,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useToast } from '@/core/composables/useToast'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from '@/components/ui/input-otp'
 import { Spinner } from '@/components/ui/spinner'
 
 const { t } = useI18n()
@@ -18,6 +20,8 @@ const authStore = useAuthStore()
 const toast = useToast()
 
 const code = ref('')
+// Verify accepts a 10-character backup code instead of the 6-digit TOTP.
+const useBackupCode = ref(false)
 const loading = ref(false)
 const error = ref('')
 
@@ -47,7 +51,7 @@ onMounted(async () => {
 })
 
 async function handleEnroll() {
-  if (!code.value || code.value.length < 6) return
+  if (loading.value || !code.value || code.value.length < 6) return
   error.value = ''
   loading.value = true
   try {
@@ -67,7 +71,7 @@ async function copyBackupCodes() {
 }
 
 async function handleVerify() {
-  if (!code.value || code.value.length < 6) return
+  if (loading.value || !code.value || code.value.length < 6) return
   error.value = ''
   loading.value = true
 
@@ -146,9 +150,22 @@ async function handleVerify() {
         <form class="flex flex-col gap-6" @submit.prevent="isSetup ? handleEnroll() : handleVerify()">
           <div class="flex flex-col gap-2 text-center">
             <label class="font-semibold text-muted-foreground uppercase tracking-widest">{{ t('Access code') }}</label>
-            <Input v-model="code" type="text" inputmode="numeric" autocomplete="one-time-code"
-              placeholder="000 000" maxlength="8" required autofocus
-              class="h-16 text-center text-3xl font-mono tracking-[0.3em] !border-2 focus:!ring-primary/20 bg-background/50" />
+            <Input v-if="useBackupCode" v-model="code" autocomplete="off" maxlength="10" required autofocus
+              class="text-center font-mono uppercase" />
+            <InputOTP v-else v-model="code" :maxlength="6" :pattern="REGEXP_ONLY_DIGITS" autocomplete="one-time-code"
+              autofocus class="justify-center" @complete="isSetup ? handleEnroll() : handleVerify()">
+              <InputOTPGroup>
+                <InputOTPSlot v-for="i in 3" :key="i" :index="i - 1" />
+              </InputOTPGroup>
+              <InputOTPSeparator />
+              <InputOTPGroup>
+                <InputOTPSlot v-for="i in 3" :key="i" :index="i + 2" />
+              </InputOTPGroup>
+            </InputOTP>
+            <Button v-if="!isSetup" variant="link" type="button" size="sm" class="text-muted-foreground"
+              @click="useBackupCode = !useBackupCode; code = ''">
+              {{ useBackupCode ? t('Use the authenticator app code') : t('Use a backup code') }}
+            </Button>
           </div>
 
           <div v-if="error"

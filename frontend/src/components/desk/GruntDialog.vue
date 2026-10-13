@@ -8,8 +8,13 @@ import LinkField from '@/components/fields/Link/Link.vue'
 import DateField from '@/components/fields/Date/Date.vue'
 import DatetimeField from '@/components/fields/Datetime/Datetime.vue'
 import PasswordField from '@/components/fields/Password/Password.vue'
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
+  AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
+import { Progress } from '@/components/ui/progress'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select'
@@ -202,7 +207,20 @@ function onOpenChange(v: boolean) {
 </script>
 
 <template>
-  <Dialog :open="state.open" @update:open="(v: boolean) => { state.open = v; if (!v) onOpenChange(false) }">
+  <AlertDialog :open="state.open && state.type === 'confirm'" @update:open="(v: boolean) => { if (!v) onCancel() }">
+    <AlertDialogContent>
+      <AlertDialogHeader>
+        <AlertDialogTitle>{{ state.title }}</AlertDialogTitle>
+        <AlertDialogDescription class="whitespace-pre-line">{{ state.message }}</AlertDialogDescription>
+      </AlertDialogHeader>
+      <AlertDialogFooter>
+        <AlertDialogCancel>{{ t('Cancel') }}</AlertDialogCancel>
+        <AlertDialogAction @click="onConfirm">{{ t('Confirm') }}</AlertDialogAction>
+      </AlertDialogFooter>
+    </AlertDialogContent>
+  </AlertDialog>
+
+  <Dialog :open="state.open && state.type !== 'confirm'" @update:open="(v: boolean) => { state.open = v; if (!v) onOpenChange(false) }">
     <DialogContent
       class="p-0 px-6 pb-4 pt-2"
       :class="{
@@ -230,9 +248,6 @@ function onOpenChange(v: boolean) {
             <div class="text-foreground/85 leading-relaxed whitespace-pre-wrap [&_a]:font-medium [&_a]:text-primary [&_a]:underline [&_a]:underline-offset-2"
                 v-html="state.message" />
         </div>
-
-        <!-- Confirm -->
-        <p v-else-if="state.type === 'confirm'" class="text-muted-foreground py-2">{{ state.message }}</p>
 
         <!-- Prompt -->
         <div v-else-if="state.type === 'prompt'" class="space-y-2 py-2">
@@ -427,10 +442,7 @@ function onOpenChange(v: boolean) {
 
         <!-- Progress -->
         <div v-else-if="state.type === 'progress'" class="space-y-2 py-2">
-            <div class="w-full h-2.5 bg-muted rounded-full overflow-hidden">
-                <div class="h-full bg-primary rounded-full transition-all duration-300"
-                    :style="{ width: `${state.progress.percent}%` }" />
-            </div>
+            <Progress :model-value="state.progress.percent" />
             <div class="flex items-center justify-between text-muted-foreground">
                 <span v-if="state.progress.description">{{ state.progress.description }}</span>
                 <span class="tabular-nums ml-auto">{{ state.progress.percent }}%</span>
@@ -445,10 +457,6 @@ function onOpenChange(v: boolean) {
     >
         <template v-if="state.type === 'msgprint'">
             <Button @click="close()">OK</Button>
-        </template>
-        <template v-else-if="state.type === 'confirm'">
-            <Button variant="outline" @click="onCancel">{{ t('Cancel') }}</Button>
-            <Button @click="onConfirm">{{ t('Confirm') }}</Button>
         </template>
         <template v-else-if="state.type === 'prompt'">
             <Button variant="outline" @click="onCancel">{{ t('Cancel') }}</Button>
@@ -473,17 +481,19 @@ function onOpenChange(v: boolean) {
         </template>
     </DialogFooter>
 
-    <!-- In-dialog confirm overlay (ctx.confirm from an action button) -->
-    <div v-if="state.actionConfirm"
-        class="absolute inset-0 z-20 flex items-center justify-center rounded-lg bg-background/70 backdrop-blur-[2px] p-6">
-        <div class="w-full max-w-xs rounded-lg border bg-card p-4 shadow-lg flex flex-col gap-3">
-            <p class="text-foreground leading-relaxed">{{ state.actionConfirm.message }}</p>
-            <div class="flex justify-end gap-2">
-                <Button variant="outline" size="sm" @click="resolveActionConfirm(false)">{{ t('Cancel') }}</Button>
-                <Button variant="destructive" size="sm" @click="resolveActionConfirm(true)">{{ t('Confirm') }}</Button>
-            </div>
-        </div>
-    </div>
+    <!-- ctx.confirm from an action button, stacked over this dialog -->
+    <AlertDialog :open="!!state.actionConfirm" @update:open="(v: boolean) => { if (!v) resolveActionConfirm(false) }">
+      <AlertDialogContent size="sm">
+        <AlertDialogHeader>
+          <AlertDialogTitle>{{ t('Confirmation') }}</AlertDialogTitle>
+          <AlertDialogDescription>{{ state.actionConfirm?.message }}</AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>{{ t('Cancel') }}</AlertDialogCancel>
+          <AlertDialogAction variant="destructive" @click="resolveActionConfirm(true)">{{ t('Confirm') }}</AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
     </DialogContent>
   </Dialog>
 </template>

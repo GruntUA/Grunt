@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
+import { REGEXP_ONLY_DIGITS } from 'vue-input-otp'
 import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { Fingerprint, Mail } from '@lucide/vue'
@@ -11,6 +12,7 @@ import AppBrand from '@/components/app/AppBrand.vue'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from '@/components/ui/input-otp'
 import { Spinner } from '@/components/ui/spinner'
 
 const { t } = useI18n()
@@ -245,6 +247,7 @@ function resetEmailLogin() {
 }
 
 async function verifyEmailCode() {
+  if (emailVerifying.value) return
   error.value = ''
   if (emailCode.value.trim().length < 4) {
     error.value = t('Enter the code from the email')
@@ -312,17 +315,24 @@ async function verifyEmailCode() {
               <span class="text-foreground font-medium">{{ emailTarget }}</span>.
               {{ t('Enter the code or follow the link in the email.') }}
             </p>
-            <div class="flex flex-col gap-1.5">
+            <div class="flex flex-col items-center gap-1.5">
               <label for="email-code" class="font-medium">{{ t('Code from the email') }}</label>
-              <Input
+              <InputOTP
                 id="email-code"
                 v-model="emailCode"
-                inputmode="numeric"
+                :maxlength="6"
+                :pattern="REGEXP_ONLY_DIGITS"
                 autocomplete="one-time-code"
-                placeholder="000000"
-                required
-                class="w-full tracking-[0.3em] text-center"
-              />
+                @complete="verifyEmailCode"
+              >
+                <InputOTPGroup>
+                  <InputOTPSlot v-for="i in 3" :key="i" :index="i - 1" />
+                </InputOTPGroup>
+                <InputOTPSeparator />
+                <InputOTPGroup>
+                  <InputOTPSlot v-for="i in 3" :key="i" :index="i + 2" />
+                </InputOTPGroup>
+              </InputOTP>
             </div>
 
             <p v-if="notice" class="text-foreground bg-muted rounded-lg px-3 py-2 text-center border border-border">

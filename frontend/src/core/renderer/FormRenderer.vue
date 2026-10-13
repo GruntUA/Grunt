@@ -8,6 +8,7 @@ import type { LayoutSection, LayoutTab } from '@/core/composables/useFormLayout'
 import type { PresenceUser } from '@/core/composables/usePresence'
 import { initials } from '@/core/composables/usePresence'
 import { ChevronDown, ChevronLeft, ChevronRight } from '@lucide/vue'
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import AppIcon from '@/components/AppIcon.vue'
 import FieldRenderer from './FieldRenderer.vue'
@@ -226,21 +227,23 @@ function getVisibleSections(tab: LayoutTab): LayoutSection[] {
           :model-value="modelValue" @update:model-value="emit('update:modelValue', $event)" />
       </template>
       <template v-else>
-        <div v-for="section in getVisibleSections(tab)" :key="section._fieldname"
-          :class="[section.label ? 'form-section' : '', '@container mb-3 last:mb-0']">
+        <Collapsible v-for="section in getVisibleSections(tab)" :key="section._fieldname"
+          :open="!isCollapsed(section)" :disabled="!section.collapsible"
+          :class="[section.label ? 'form-section' : '', '@container mb-3 last:mb-0']"
+          @update:open="toggleSection(section)">
 
           <!-- Section header -->
-          <div v-if="section.label" class="form-section-header"
-            :class="{ 'cursor-pointer select-none': section.collapsible }" @click="toggleSection(section)">
+          <CollapsibleTrigger v-if="section.label" class="form-section-header w-full text-left enabled:cursor-pointer">
             <ChevronDown v-if="section.collapsible"
               class="size-3.5 text-muted-foreground transition-transform duration-200"
               :class="{ '-rotate-90': isCollapsed(section) }" />
             <span>{{ section.label }}</span>
-          </div>
+          </CollapsibleTrigger>
 
           <!-- Fields layout -->
-          <Transition name="section">
-            <div v-if="!isCollapsed(section)" class="grid grid-cols-1 gap-x-5 gap-y-5"
+          <CollapsibleContent
+            :class="section.collapsible && 'overflow-hidden data-open:animate-collapsible-down data-closed:animate-collapsible-up'">
+            <div class="grid grid-cols-1 gap-x-5 gap-y-5"
               :class="[section.label ? 'form-section-body' : '', sectionGridClass(section)]">
               <div v-for="(col, ci) in section.columns" :key="ci" class="flex-1 flex flex-col gap-3 min-w-0">
                 <div v-for="f in col" v-show="overrides?.[f.fieldname] !== false" :key="f.fieldname"
@@ -263,32 +266,14 @@ function getVisibleSections(tab: LayoutTab): LayoutSection[] {
                 </div>
               </div>
             </div>
-          </Transition>
-        </div>
+          </CollapsibleContent>
+        </Collapsible>
       </template>
     </TabsContent>
   </Tabs>
 </template>
 
 <style scoped>
-.section-enter-active,
-.section-leave-active {
-  transition: opacity 200ms ease, max-height 200ms ease;
-  overflow: hidden;
-}
-
-.section-enter-from,
-.section-leave-to {
-  opacity: 0;
-  max-height: 0;
-}
-
-.section-enter-to,
-.section-leave-from {
-  opacity: 1;
-  max-height: 2000px;
-}
-
 /* Hide scrollbar but keep functionality */
 .scrollbar-none::-webkit-scrollbar {
   display: none;
