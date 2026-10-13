@@ -1,16 +1,12 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { Doughnut } from 'vue-chartjs'
-import {
-  Chart as ChartJS,
-  ArcElement,
-  Tooltip,
-} from 'chart.js'
+import { VisDonut, VisSingleContainer } from '@unovis/vue'
 import type { DashboardWidget } from '@/types'
+import { ChartContainer } from '@/components/ui/chart'
+import { Skeleton } from '@/components/ui/skeleton'
+import { accentColor } from '@/core/charts'
 import { filteredListUrl } from '@/pages/reports/drilldown'
-
-ChartJS.register(ArcElement, Tooltip)
 
 const props = defineProps<{
   widget: DashboardWidget
@@ -29,17 +25,7 @@ function open() {
   router.push(filteredListUrl(props.widget.ref_doctype, props.data!.filters!, props.workspaceName))
 }
 
-const colorAccents: Record<string, string> = {
-  primary: '#2D6A4F',
-  blue:    '#3b82f6',
-  green:   '#10b981',
-  amber:   '#f59e0b',
-  red:     '#ef4444',
-  violet:  '#8b5cf6',
-  cyan:    '#06b6d4',
-}
-
-const accent = computed(() => colorAccents[props.widget.color] ?? colorAccents.primary)
+const accent = computed(() => accentColor(props.widget.color))
 
 const minVal = computed(() => props.widget.min_value ?? 0)
 const maxVal = computed(() => props.widget.max_value ?? 100)
@@ -51,27 +37,9 @@ const pct = computed(() => {
   return Math.max(0, Math.min(1, (value.value - minVal.value) / range))
 })
 
-const chartData = computed(() => ({
-  datasets: [{
-    data: [pct.value, 1 - pct.value],
-    backgroundColor: [accent.value, 'rgba(0,0,0,0.07)'],
-    borderWidth: 0,
-    hoverOffset: 0,
-  }],
-}))
-
-const chartOptions = computed(() => ({
-  circumference: 180,
-  rotation: 270,
-  cutout: '76%',
-  responsive: true,
-  maintainAspectRatio: false,
-  animation: { duration: 600 },
-  plugins: {
-    legend:  { display: false },
-    tooltip: { enabled: false },
-  },
-}))
+// The filled share, then the rest of the scale in the muted track colour.
+const arcs = computed(() => [pct.value, 1 - pct.value])
+const arcColor = (_: number, i: number) => (i === 0 ? accent.value : 'var(--muted)')
 
 const formattedValue = computed(() => {
   const v = value.value
@@ -91,12 +59,24 @@ const trendPos = computed(() => (trend.value ?? 0) > 0)
     <p class="text-muted-foreground font-medium">{{ widget.title }}</p>
 
     <!-- Skeleton -->
-    <div v-if="loading" class="flex-1 bg-muted animate-pulse rounded" />
+    <Skeleton v-if="loading" class="flex-1" />
 
     <div v-else class="flex-1 relative flex flex-col items-center justify-center" style="min-height:140px">
-      <!-- Half-doughnut canvas - top 55% of the area -->
-      <div class="w-full" style="height:55%">
-        <Doughnut :data="chartData" :options="(chartOptions as any)" />
+      <!-- Half ring: a full-size donut drawn over the top half (angleRange), the
+           box shows only its upper half -->
+      <div class="w-full overflow-hidden" style="height:55%">
+        <ChartContainer :config="{}" class="aspect-auto h-[200%]">
+          <VisSingleContainer :data="arcs">
+            <VisDonut
+              :value="(d: number) => d"
+              :color="arcColor"
+              :angle-range="[-Math.PI / 2, Math.PI / 2]"
+              :arc-width="18"
+              :corner-radius="4"
+              :show-empty-segments="true"
+            />
+          </VisSingleContainer>
+        </ChartContainer>
       </div>
 
       <!-- Value overlay centered below the arc -->

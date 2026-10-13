@@ -2,14 +2,13 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import { Doughnut } from 'vue-chartjs'
-import { Chart as ChartJS, ArcElement, Tooltip } from 'chart.js'
-import type { ActiveElement, ChartEvent } from 'chart.js'
+import { VisDonut, VisDonutSelectors, VisSingleContainer } from '@unovis/vue'
 import type { DashboardWidget } from '@/types'
+import { ChartContainer, ChartTooltip } from '@/components/ui/chart'
+import { Skeleton } from '@/components/ui/skeleton'
+import { seriesColor, seriesConfig, tooltipHtml } from '@/core/charts'
 import { formatNumber } from '@/core/currency'
 import { filteredListUrl, groupFilter } from '@/pages/reports/drilldown'
-
-ChartJS.register(ArcElement, Tooltip)
 
 const { t } = useI18n()
 
@@ -36,20 +35,6 @@ function open(index: number) {
   ))
 }
 
-function onClick(_e: ChartEvent, els: ActiveElement[]) {
-  if (els.length) open(els[0].index)
-}
-
-function onHover(e: ChartEvent, els: ActiveElement[]) {
-  const canvas = e.native?.target as HTMLElement | undefined
-  if (canvas) canvas.style.cursor = canOpen.value && els.length ? 'pointer' : 'default'
-}
-
-const PALETTE = [
-  '#2D6A4F', '#3b82f6', '#f59e0b', '#ef4444',
-  '#8b5cf6', '#06b6d4', '#10b981', '#f97316',
-]
-
 const total = computed(() => props.data?.values.reduce((a, b) => a + b, 0) ?? 0)
 
 /** The legend: every group with its value and share (`<1%` rather than a misleading `0%`). */
@@ -60,31 +45,23 @@ const items = computed(() => (props.data?.labels ?? []).map((label, i) => {
     label,
     value: formatNumber(value),
     share: share > 0 && share < 1 ? '<1%' : `${Math.round(share)}%`,
-    color: PALETTE[i % PALETTE.length],
+    color: seriesColor(i),
   }
 }))
 
-const chartData = computed(() => ({
-  labels: props.data?.labels ?? [],
-  datasets: [{
-    data: props.data?.values ?? [],
-    backgroundColor: PALETTE,
-    borderWidth: 2,
-    borderColor: getComputedStyle(document.documentElement).getPropertyValue('--card').trim() || '#ffffff',
-    hoverOffset: 4,
-  }],
-}))
+interface Segment { index: number; value: number }
 
-const chartOptions = {
-  onClick,
-  onHover,
-  responsive: true,
-  maintainAspectRatio: false,
-  cutout: '70%',
-  plugins: {
-    legend: { display: false },
-    tooltip: { mode: 'index' as const },
-  },
+const segments = computed<Segment[]>(() => (props.data?.values ?? []).map((value, index) => ({ index, value })))
+const config = computed(() => seriesConfig(props.data?.labels ?? [], segments.value.map((s) => seriesColor(s.index))))
+
+// unovis passes the arc datum (`{ data: Segment }`) to segment events and tooltips.
+type Arc = { data: Segment }
+const segmentEvents = {
+  [VisDonutSelectors.segment]: { click: (d: Arc) => open(d.data.index) },
+}
+const triggers = {
+  [VisDonutSelectors.segment]: (d: Arc) =>
+    tooltipHtml({ payload: { [`s${d.data.index}`]: d.data.value }, config: config.value, hideLabel: true }),
 }
 </script>
 
@@ -95,16 +72,26 @@ const chartOptions = {
       <span v-if="total" class="text-muted-foreground tabular-nums shrink-0">{{ formatNumber(total) }} {{ t('total') }}</span>
     </div>
 
-    <div v-if="loading" class="flex-1 bg-muted animate-pulse rounded" />
+    <Skeleton v-if="loading" class="flex-1" />
 
     <div v-else-if="!data?.labels?.length" class="flex-1 flex items-center justify-center text-muted-foreground">
       {{ t('No data') }}
     </div>
 
     <template v-else>
-      <div class="h-36 shrink-0">
-        <Doughnut :data="chartData" :options="chartOptions" />
-      </div>
+      <ChartContainer :config="config" class="aspect-auto h-36 shrink-0" :class="canOpen && 'cursor-pointer'">
+        <VisSingleContainer :data="segments">
+          <VisDonut
+            :value="(d: Segment) => d.value"
+            :color="(d: Segment) => seriesColor(d.index)"
+            :arc-width="24"
+            :pad-angle="0.02"
+            :corner-radius="2"
+            :events="segmentEvents"
+          />
+          <ChartTooltip :triggers="triggers" />
+        </VisSingleContainer>
+      </ChartContainer>
 
       <ul class="flex flex-col">
         <li

@@ -55,8 +55,8 @@ const viewMode = ref<'table' | 'chart' | 'both'>('table')
 watch(chartConfig, (c) => { viewMode.value = c ? 'both' : 'table' })
 
 const chartRef = ref<InstanceType<typeof ReportChart> | null>(null)
-function exportChartPng() {
-    const url = chartRef.value?.toPng()
+async function exportChartPng() {
+    const url = await chartRef.value?.toPng()
     if (!url) return
     const a = document.createElement('a')
     a.href = url

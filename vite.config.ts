@@ -159,7 +159,7 @@ export default defineConfig({
                         || id.includes('@lezer/lr')
                     ) return 'vendor-codemirror'
                     if (id.includes('@tiptap') || id.includes('/tiptap/')) return 'vendor-editor'
-                    if (id.includes('chart.js') || id.includes('vue-chartjs')) return 'vendor-charts'
+                    if (id.includes('@unovis')) return 'vendor-charts'
                     if (id.includes('@vue-flow')) return 'vendor-flow'
                 },
             },
