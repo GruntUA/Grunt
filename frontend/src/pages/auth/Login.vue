@@ -9,8 +9,10 @@ import { useSiteConfig } from '@/core/composables/useSiteConfig'
 import { authApi, type AuthMethod } from '@/core/api/auth'
 import { isWebAuthnSupported } from '@/core/composables/useWebAuthn'
 import AppBrand from '@/components/app/AppBrand.vue'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
+import { Field, FieldDescription, FieldLabel, FieldSeparator } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from '@/components/ui/input-otp'
 import { Spinner } from '@/components/ui/spinner'
@@ -288,13 +290,9 @@ async function verifyEmailCode() {
           <p class="text-muted-foreground leading-relaxed">
             {{ t('Your account has been created and is awaiting administrator approval. You can sign in once it is approved.') }}
           </p>
-          <button
-            type="button"
-            class="text-primary hover:underline font-medium mt-2"
-            @click="signupDone = false; switchMode('signin')"
-          >
+          <Button type="button" variant="link" @click="signupDone = false; switchMode('signin')">
             {{ t('Back to sign in') }}
-          </button>
+          </Button>
         </div>
       </Card>
 
@@ -315,8 +313,8 @@ async function verifyEmailCode() {
               <span class="text-foreground font-medium">{{ emailTarget }}</span>.
               {{ t('Enter the code or follow the link in the email.') }}
             </p>
-            <div class="flex flex-col items-center gap-1.5">
-              <label for="email-code" class="font-medium">{{ t('Code from the email') }}</label>
+            <Field class="items-center">
+              <FieldLabel for="email-code">{{ t('Code from the email') }}</FieldLabel>
               <InputOTP
                 id="email-code"
                 v-model="emailCode"
@@ -333,27 +331,27 @@ async function verifyEmailCode() {
                   <InputOTPSlot v-for="i in 3" :key="i" :index="i + 2" />
                 </InputOTPGroup>
               </InputOTP>
-            </div>
+            </Field>
 
-            <p v-if="notice" class="text-foreground bg-muted rounded-lg px-3 py-2 text-center border border-border">
-              {{ notice }}
-            </p>
-            <p v-if="error" class="text-destructive bg-destructive/10 rounded-lg px-3 py-2 text-center border border-destructive/20">
-              {{ error }}
-            </p>
+            <Alert v-if="notice">
+              <AlertDescription>{{ notice }}</AlertDescription>
+            </Alert>
+            <Alert v-if="error" variant="destructive">
+              <AlertDescription>{{ error }}</AlertDescription>
+            </Alert>
 
             <div class="flex flex-col gap-3">
               <Button type="submit" :disabled="emailVerifying" class="w-full">
-                <Spinner v-if="emailVerifying" class="size-4 mr-2" />
+                <Spinner v-if="emailVerifying" />
                 {{ t('Confirm') }}
               </Button>
-              <div class="flex items-center justify-between text-muted-foreground">
-                <button type="button" class="hover:underline" :disabled="emailSending" @click="startEmailLogin">
+              <div class="flex items-center justify-between">
+                <Button type="button" variant="link" size="sm" class="px-0 text-muted-foreground" :disabled="emailSending" @click="startEmailLogin">
                   {{ t('Resend') }}
-                </button>
-                <button type="button" class="hover:underline" @click="resetEmailLogin">
+                </Button>
+                <Button type="button" variant="link" size="sm" class="px-0 text-muted-foreground" @click="resetEmailLogin">
                   {{ t('Another sign-in method') }}
-                </button>
+                </Button>
               </div>
             </div>
           </form>
@@ -397,29 +395,26 @@ async function verifyEmailCode() {
               </Button>
             </div>
 
-            <div v-if="hasAlternatives" class="relative text-center">
-              <div class="absolute inset-0 flex items-center" aria-hidden="true">
-                <span class="w-full border-t border-border"></span>
-              </div>
-              <span class="bg-card text-muted-foreground relative px-2">{{ t('or enter your password') }}</span>
-            </div>
+            <FieldSeparator v-if="hasAlternatives" class="*:data-[slot=field-separator-content]:bg-card">
+              {{ t('or enter your password') }}
+            </FieldSeparator>
 
             <!-- Full name (signup only) -->
-            <div v-if="isSignup" class="flex flex-col gap-1.5">
-              <label for="full-name" class="font-medium">{{ t('Full name') }}</label>
-              <Input id="full-name" v-model="fullName" type="text" autocomplete="name" :placeholder="t('John Smith')" required class="w-full" />
-            </div>
+            <Field v-if="isSignup">
+              <FieldLabel for="full-name">{{ t('Full name') }}</FieldLabel>
+              <Input id="full-name" v-model="fullName" type="text" autocomplete="name" :placeholder="t('John Smith')" required />
+            </Field>
 
             <!-- Email -->
-            <div class="flex flex-col gap-1.5">
-              <label for="email" class="font-medium">Email</label>
-              <Input id="email" v-model="email" type="email" autocomplete="username" placeholder="admin@grunt.local" required class="w-full" />
-            </div>
+            <Field>
+              <FieldLabel for="email">Email</FieldLabel>
+              <Input id="email" v-model="email" type="email" autocomplete="username" placeholder="admin@grunt.local" required />
+            </Field>
 
             <!-- Password -->
-            <div class="flex flex-col gap-1.5">
+            <Field>
               <div class="flex items-center">
-                <label for="password" class="font-medium">{{ t('Password') }}</label>
+                <FieldLabel for="password">{{ t('Password') }}</FieldLabel>
                 <router-link
                   v-if="!isSignup"
                   to="/forgot-password"
@@ -435,36 +430,35 @@ async function verifyEmailCode() {
                 :autocomplete="isSignup ? 'new-password' : 'current-password'"
                 :placeholder="isSignup ? t('At least 8 characters') : '••••••••'"
                 required
-                class="w-full"
               />
-            </div>
+            </Field>
 
             <!-- Confirm password (signup only) -->
-            <div v-if="isSignup" class="flex flex-col gap-1.5">
-              <label for="password-confirm" class="font-medium">{{ t('Repeat password') }}</label>
-              <Input id="password-confirm" v-model="passwordConfirm" type="password" autocomplete="new-password" placeholder="••••••••" required class="w-full" />
-            </div>
+            <Field v-if="isSignup">
+              <FieldLabel for="password-confirm">{{ t('Repeat password') }}</FieldLabel>
+              <Input id="password-confirm" v-model="passwordConfirm" type="password" autocomplete="new-password" placeholder="••••••••" required />
+            </Field>
 
-            <p v-if="notice" class="text-foreground bg-muted rounded-lg px-3 py-2 text-center border border-border">
-              {{ notice }}
-            </p>
-            <p v-if="error" class="text-destructive bg-destructive/10 rounded-lg px-3 py-2 text-center border border-destructive/20">
-              {{ error }}
-            </p>
+            <Alert v-if="notice">
+              <AlertDescription>{{ notice }}</AlertDescription>
+            </Alert>
+            <Alert v-if="error" variant="destructive">
+              <AlertDescription>{{ error }}</AlertDescription>
+            </Alert>
 
             <div class="flex flex-col gap-3">
               <Button type="submit" :disabled="loading" class="w-full">
-                <Spinner v-if="loading" class="size-4 mr-2" />
+                <Spinner v-if="loading" />
                 {{ submitLabel }}
               </Button>
-              <p v-if="isSignup" class="text-center text-muted-foreground">
+              <FieldDescription v-if="isSignup" class="text-center">
                 {{ t('Already have an account?') }}
-                <button type="button" class="text-primary hover:underline font-medium" @click="switchMode('signin')">{{ t('Sign in') }}</button>
-              </p>
-              <p v-else-if="allowRegistration" class="text-center text-muted-foreground">
+                <Button type="button" variant="link" class="h-auto p-0" @click="switchMode('signin')">{{ t('Sign in') }}</Button>
+              </FieldDescription>
+              <FieldDescription v-else-if="allowRegistration" class="text-center">
                 {{ t('No account?') }}
-                <button type="button" class="text-primary hover:underline font-medium" @click="switchMode('signup')">{{ t('Sign up') }}</button>
-              </p>
+                <Button type="button" variant="link" class="h-auto p-0" @click="switchMode('signup')">{{ t('Sign up') }}</Button>
+              </FieldDescription>
             </div>
           </form>
         </div>

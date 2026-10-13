@@ -13,12 +13,17 @@ import {
   AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
+import { Field, FieldDescription, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Progress } from '@/components/ui/progress'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select'
 import { Spinner } from '@/components/ui/spinner'
+import {
+  Table, TableBody, TableCell, TableEmpty, TableHead, TableHeader, TableRow,
+} from '@/components/ui/table'
+import { Textarea } from '@/components/ui/textarea'
 import { DialogFooter } from '@/components/ui/dialog'
 
 const { t } = useI18n()
@@ -118,6 +123,9 @@ function toggleAll(f: any) {
 function selectedCount(f: any): number {
   const v = formValues.value[f.fieldname]
   return Array.isArray(v) ? v.length : v ? 1 : 0
+}
+function isCopyable(f: any): boolean {
+  return (f.fieldtype === 'LongText' || f.fieldtype === 'Code') && !!f.read_only
 }
 function isSelectable(f: any): boolean {
   return f.selectable === undefined ? f.multiple !== false : !!f.selectable
@@ -250,152 +258,128 @@ function onOpenChange(v: boolean) {
         </div>
 
         <!-- Prompt -->
-        <div v-else-if="state.type === 'prompt'" class="space-y-2 py-2">
-            <div v-for="field in state.fields" :key="field.fieldname" class="space-y-2">
-                <label :for="field.fieldname" class="font-medium text-foreground">{{ field.label }}</label>
-                <div v-if="field.fieldtype === 'HTML'" v-html="field.default" class="rounded border p-2 bg-muted/30" />
+        <FieldGroup v-else-if="state.type === 'prompt'" class="py-2">
+            <Field v-for="field in state.fields" :key="field.fieldname">
+                <FieldLabel :for="field.fieldname">{{ field.label }}</FieldLabel>
+                <div v-if="field.fieldtype === 'HTML'" v-html="field.default" class="rounded-md border p-2 bg-muted/30" />
                 <Input v-else :id="field.fieldname" v-model="promptValue" :placeholder="field.placeholder"
                     :type="field.fieldtype === 'Int' || field.fieldtype === 'Float' ? 'number' : 'text'"
-                    class="w-full"
                     @keydown.enter="onConfirm" />
-            </div>
-        </div>
+            </Field>
+        </FieldGroup>
 
         <!-- Custom Dialog (grunt.form) -->
-        <div v-else-if="state.type === 'dialog'" class="space-y-4 py-2">
-            <div v-for="field in state.fields" :key="field.fieldname" class="space-y-2">
-                <template v-if="field.fieldtype === 'HTML'">
-                    <label v-if="field.label" class="mb-1 block font-medium text-foreground">{{ field.label }}</label>
-                    <div v-if="field.plain" v-html="String(field.default || '')"
-                        class="text-foreground/85 leading-relaxed [&_a]:text-primary [&_a]:underline" />
-                    <div v-else v-html="String(field.default || '').replace(/<\?xml.*\?>/g, '')"
-                        class="rounded-lg border-2 border-dashed p-6 flex justify-center bg-muted shadow-inner min-h-[240px] items-center [&>svg]:block [&>svg]:max-w-full [&>svg]:h-auto" />
+        <FieldGroup v-else-if="state.type === 'dialog'" class="py-2">
+            <Field v-for="field in state.fields" :key="field.fieldname"
+                :orientation="field.fieldtype === 'Check' ? 'horizontal' : 'vertical'">
+                <template v-if="field.fieldtype === 'Check'">
+                    <Checkbox :id="field.fieldname" v-model="formValues[field.fieldname]" />
+                    <FieldLabel :for="field.fieldname" class="font-normal">{{ field.label }}</FieldLabel>
                 </template>
-                <template v-else-if="field.fieldtype === 'Table'">
-                    <label v-if="field.label" class="font-medium text-foreground">{{ field.label }}</label>
-                    <p v-if="field.description" class="text-muted-foreground -mt-1">{{ field.description }}</p>
-                    <Input
-                        v-if="field.searchable !== false"
-                        v-model="tableSearch[field.fieldname]"
-                        :placeholder="t('Search…')"
-                        class="w-full mb-2"
-                    />
-                    <div class="rounded-md border border-border overflow-hidden">
-                        <div class="overflow-auto" :style="{ maxHeight: field.maxHeight || '320px' }">
-                            <table class="w-full text-sm border-collapse">
-                                <thead class="bg-muted/60 sticky top-0 z-10">
-                                    <tr>
-                                        <th v-if="isSelectable(field)" class="w-9 px-2 py-2">
-                                            <Checkbox
-                                                v-if="field.multiple !== false"
-                                                :model-value="allSelected(field)"
-                                                @update:model-value="toggleAll(field)"
-                                            />
-                                        </th>
-                                        <th
-                                            v-for="c in field.columns"
-                                            :key="c.key"
-                                            class="px-3 py-2 font-medium text-muted-foreground whitespace-nowrap"
-                                            :style="{ textAlign: c.align || 'left', width: c.width }"
-                                        >{{ c.label }}</th>
-                                        <th v-if="field.rowActions?.length" class="w-px px-3 py-2"></th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr
-                                        v-for="row in filteredRows(field)"
-                                        :key="rowKeyOf(field, row)"
-                                        class="border-t border-border transition-colors"
-                                        :class="[
-                                            isSelectable(field) ? 'cursor-pointer hover:bg-muted/40' : '',
-                                            isRowSelected(field, row) ? 'bg-primary/5' : '',
-                                        ]"
-                                        @click="isSelectable(field) && toggleRow(field, row)"
-                                    >
-                                        <td v-if="isSelectable(field)" class="px-2 py-1.5 text-center" @click.stop>
-                                            <Checkbox
-                                                :model-value="isRowSelected(field, row)"
-                                                @update:model-value="toggleRow(field, row)"
-                                            />
-                                        </td>
-                                        <td
-                                            v-for="c in field.columns"
-                                            :key="c.key"
-                                            class="px-3 py-2 align-top"
-                                            :style="{ textAlign: c.align || 'left' }"
+                <template v-else>
+                    <div v-if="isCopyable(field)" class="flex items-center justify-between gap-2">
+                        <FieldLabel :for="field.fieldname">{{ field.label }}</FieldLabel>
+                        <Button variant="outline" size="xs" @click="copyToClipboard(field.fieldname, String(formValues[field.fieldname] ?? ''))">
+                            {{ copiedField === field.fieldname ? t('Copied') + ' ✓' : t('Copy') }}
+                        </Button>
+                    </div>
+                    <FieldLabel v-else-if="field.label" :for="field.fieldname">{{ field.label }}</FieldLabel>
+                    <FieldDescription v-if="field.description">{{ field.description }}</FieldDescription>
+
+                    <template v-if="field.fieldtype === 'HTML'">
+                        <div v-if="field.plain" v-html="String(field.default || '')"
+                            class="text-foreground/85 leading-relaxed [&_a]:text-primary [&_a]:underline" />
+                        <div v-else v-html="String(field.default || '').replace(/<\?xml.*\?>/g, '')"
+                            class="rounded-lg border-2 border-dashed p-6 flex justify-center bg-muted shadow-inner min-h-[240px] items-center [&>svg]:block [&>svg]:max-w-full [&>svg]:h-auto" />
+                    </template>
+                    <template v-else-if="field.fieldtype === 'Table'">
+                        <Input
+                            v-if="field.searchable !== false"
+                            v-model="tableSearch[field.fieldname]"
+                            :placeholder="t('Search…')"
+                        />
+                        <div class="rounded-md border">
+                            <div class="overflow-auto" :style="{ maxHeight: field.maxHeight || '320px' }">
+                                <Table>
+                                    <TableHeader class="bg-muted sticky top-0 z-10">
+                                        <TableRow>
+                                            <TableHead v-if="isSelectable(field)" class="w-9">
+                                                <Checkbox
+                                                    v-if="field.multiple !== false"
+                                                    :model-value="allSelected(field)"
+                                                    @update:model-value="toggleAll(field)"
+                                                />
+                                            </TableHead>
+                                            <TableHead
+                                                v-for="c in field.columns"
+                                                :key="c.key"
+                                                :style="{ textAlign: c.align || 'left', width: c.width }"
+                                            >{{ c.label }}</TableHead>
+                                            <TableHead v-if="field.rowActions?.length" class="w-px" />
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        <TableRow
+                                            v-for="row in filteredRows(field)"
+                                            :key="rowKeyOf(field, row)"
+                                            :data-state="isRowSelected(field, row) ? 'selected' : undefined"
+                                            :class="isSelectable(field) && 'cursor-pointer'"
+                                            @click="isSelectable(field) && toggleRow(field, row)"
                                         >
-                                            <span v-if="c.format" v-html="c.format(row[c.key], row)" />
-                                            <template v-else>{{ row[c.key] ?? '—' }}</template>
-                                        </td>
-                                        <td v-if="field.rowActions?.length" class="px-3 py-1.5 text-right whitespace-nowrap" @click.stop>
-                                            <Button
-                                                v-for="(act, ai) in field.rowActions"
-                                                :key="ai"
-                                                :variant="act.variant ?? 'ghost'"
-                                                size="sm"
-                                                :disabled="state.busyButton !== null"
-                                                :class="act.danger ? 'text-destructive hover:bg-destructive/10 hover:text-destructive' : ''"
-                                                @click="handleRowAction(field, row, ai)"
-                                            >{{ act.label }}</Button>
-                                        </td>
-                                    </tr>
-                                    <tr v-if="!filteredRows(field).length">
-                                        <td
+                                            <TableCell v-if="isSelectable(field)" @click.stop>
+                                                <Checkbox
+                                                    :model-value="isRowSelected(field, row)"
+                                                    @update:model-value="toggleRow(field, row)"
+                                                />
+                                            </TableCell>
+                                            <TableCell
+                                                v-for="c in field.columns"
+                                                :key="c.key"
+                                                class="align-top whitespace-normal"
+                                                :style="{ textAlign: c.align || 'left' }"
+                                            >
+                                                <span v-if="c.format" v-html="c.format(row[c.key], row)" />
+                                                <template v-else>{{ row[c.key] ?? '—' }}</template>
+                                            </TableCell>
+                                            <TableCell v-if="field.rowActions?.length" class="text-right" @click.stop>
+                                                <Button
+                                                    v-for="(act, ai) in field.rowActions"
+                                                    :key="ai"
+                                                    :variant="act.variant ?? (act.danger ? 'destructive' : 'ghost')"
+                                                    size="sm"
+                                                    :disabled="state.busyButton !== null"
+                                                    @click="handleRowAction(field, row, ai)"
+                                                >{{ act.label }}</Button>
+                                            </TableCell>
+                                        </TableRow>
+                                        <TableEmpty
+                                            v-if="!filteredRows(field).length"
                                             :colspan="(field.columns?.length || 1) + (isSelectable(field) ? 1 : 0) + (field.rowActions?.length ? 1 : 0)"
-                                            class="px-3 py-8 text-center text-muted-foreground"
-                                        >{{ field.emptyText || t('Nothing found') }}</td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                                            class="text-muted-foreground"
+                                        >{{ field.emptyText || t('Nothing found') }}</TableEmpty>
+                                    </TableBody>
+                                </Table>
+                            </div>
+                            <div
+                                v-if="isSelectable(field) && field.multiple !== false"
+                                class="border-t bg-muted/30 px-3 py-1.5 text-muted-foreground"
+                            >{{ t('Selected:') }} {{ selectedCount(field) }}</div>
                         </div>
-                        <div
-                            v-if="isSelectable(field) && field.multiple !== false"
-                            class="border-t border-border bg-muted/30 px-3 py-1.5 text-muted-foreground"
-                        >{{ t('Selected:') }} {{ selectedCount(field) }}</div>
-                    </div>
-                </template>
-                <template v-else-if="field.fieldtype === 'Check'">
-                    <div class="flex items-center space-x-2 py-1">
-                        <Checkbox :id="field.fieldname" v-model="formValues[field.fieldname]" />
-                        <label :for="field.fieldname" class="cursor-pointer">{{ field.label }}</label>
-                    </div>
-                </template>
-                <template v-else-if="field.fieldtype === 'Select'">
-                    <label :for="field.fieldname" class="font-medium text-foreground">{{ field.label }}</label>
-                    <p v-if="field.description" class="text-muted-foreground -mt-1">{{ field.description }}</p>
-                    <NativeSelect :id="field.fieldname" v-model="formValues[field.fieldname]" class="w-full">
+                    </template>
+                    <NativeSelect v-else-if="field.fieldtype === 'Select'" :id="field.fieldname" v-model="formValues[field.fieldname]" class="w-full">
                         <NativeSelectOption v-for="opt in selectOptions(field)" :key="opt" :value="opt">{{ opt }}</NativeSelectOption>
                     </NativeSelect>
-                </template>
-                <template v-else-if="field.fieldtype === 'LongText' || field.fieldtype === 'Code'">
-                    <div class="flex items-center justify-between gap-2">
-                        <label :for="field.fieldname" class="font-medium text-foreground">{{ field.label }}</label>
-                        <button
-                            v-if="field.read_only"
-                            type="button"
-                            class="shrink-0 px-2 py-0.5 rounded border border-border text-muted-foreground hover:text-foreground hover:border-foreground transition-colors"
-                            @click="copyToClipboard(field.fieldname, String(formValues[field.fieldname] ?? ''))"
-                        >
-                            {{ copiedField === field.fieldname ? t('Copied') + ' ✓' : t('Copy') }}
-                        </button>
-                    </div>
-                    <p v-if="field.description" class="text-muted-foreground -mt-1">{{ field.description }}</p>
-                    <textarea
+                    <Textarea
+                        v-else-if="field.fieldtype === 'LongText' || field.fieldtype === 'Code'"
                         :id="field.fieldname"
                         v-model="formValues[field.fieldname]"
                         :readonly="field.read_only"
                         rows="12"
-                        :class="[
-                            'w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none',
-                            field.fieldtype === 'Code' ? 'font-mono' : '',
-                            field.read_only ? 'bg-muted/40 cursor-default' : '',
-                        ]"
+                        class="field-sizing-fixed"
+                        :class="field.fieldtype === 'Code' && 'font-mono'"
                     />
-                </template>
-                <template v-else-if="field.fieldtype === 'Password'">
-                    <label :for="field.fieldname" class="font-medium text-foreground">{{ field.label }}</label>
-                    <p v-if="field.description" class="text-muted-foreground -mt-1">{{ field.description }}</p>
                     <PasswordField
+                        v-else-if="field.fieldtype === 'Password'"
                         :field="{
                             fieldname: field.fieldname,
                             fieldtype: 'Password',
@@ -408,37 +392,26 @@ function onOpenChange(v: boolean) {
                         :model-value="formValues[field.fieldname]"
                         @update:model-value="formValues[field.fieldname] = $event"
                     />
-                </template>
-                <template v-else-if="field.fieldtype === 'Date' || field.fieldtype === 'Datetime'">
-                    <label :for="field.fieldname" class="font-medium text-foreground">{{ field.label }}</label>
-                    <p v-if="field.description" class="text-muted-foreground -mt-1">{{ field.description }}</p>
                     <component
                         :is="field.fieldtype === 'Date' ? DateField : DatetimeField"
+                        v-else-if="field.fieldtype === 'Date' || field.fieldtype === 'Datetime'"
                         :field="{ fieldname: field.fieldname, fieldtype: field.fieldtype, label: field.label }"
                         :model-value="formValues[field.fieldname]"
                         @update:model-value="formValues[field.fieldname] = $event"
                     />
-                </template>
-                <template v-else-if="field.fieldtype === 'Link'">
-                    <label :for="field.fieldname" class="font-medium text-foreground">{{ field.label }}</label>
-                    <p v-if="field.description" class="text-muted-foreground -mt-1">{{ field.description }}</p>
                     <LinkField
+                        v-else-if="field.fieldtype === 'Link'"
                         :field="{ fieldname: field.fieldname, fieldtype: 'Link', options: field.options, label: field.label }"
                         :model-value="formValues[field.fieldname]"
                         @update:model-value="formValues[field.fieldname] = $event"
                         @create-new="() => {}"
                     />
-                </template>
-                <template v-else>
-                    <label :for="field.fieldname" class="font-medium text-foreground">{{ field.label }}</label>
-                    <p v-if="field.description" class="text-muted-foreground -mt-1">{{ field.description }}</p>
-                    <Input :id="field.fieldname" v-model="formValues[field.fieldname]" :placeholder="field.placeholder"
+                    <Input v-else :id="field.fieldname" v-model="formValues[field.fieldname]" :placeholder="field.placeholder"
                         :type="field.fieldtype === 'Int' || field.fieldtype === 'Float' ? 'number' : 'text'"
-                        class="w-full"
                         @keydown.enter="onConfirm" />
                 </template>
-            </div>
-        </div>
+            </Field>
+        </FieldGroup>
 
         <!-- Progress -->
         <div v-else-if="state.type === 'progress'" class="space-y-2 py-2">

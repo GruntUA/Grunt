@@ -17,7 +17,16 @@ import type { DashboardWidget } from '@/types'
 import { useToast } from '@/core/composables/useToast'
 import { setPageTitle } from '@/core/composables/usePageTitle'
 import { useMasonryGrid } from '@/core/composables/useMasonryGrid'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
+import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
+import { Input } from '@/components/ui/input'
+import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Spinner } from '@/components/ui/spinner'
+import { Textarea } from '@/components/ui/textarea'
 import { SidebarTrigger } from '@/components/ui/sidebar'
 const props = defineProps<{
   workspaceName: string
@@ -259,83 +268,67 @@ const printPage = () => window.print()
         <!-- Date filter -->
         <div v-if="page && !editMode" class="flex items-center gap-1.5">
           <Calendar class="w-4 h-4 text-muted-foreground shrink-0" />
-          <input v-model="dateFrom" type="date"
-            class="h-8 px-2 rounded-lg border bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
-            @change="refresh" />
+          <Input v-model="dateFrom" type="date" class="h-8 w-auto" :aria-label="t('From')" @change="refresh" />
           <span class="text-muted-foreground">—</span>
-          <input v-model="dateTo" type="date"
-            class="h-8 px-2 rounded-lg border bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
-            @change="refresh" />
+          <Input v-model="dateTo" type="date" class="h-8 w-auto" :aria-label="t('To')" @change="refresh" />
         </div>
 
         <!-- Auto-refresh -->
         <div v-if="page && !editMode" class="flex items-center gap-1.5">
           <Timer class="w-4 h-4 text-muted-foreground shrink-0" />
-          <select v-model.number="autoRefreshInterval"
-            class="h-8 px-2 rounded-lg border bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
+          <NativeSelect v-model.number="autoRefreshInterval" size="sm" :aria-label="t('Auto-refresh')"
             @change="startAutoRefresh(autoRefreshInterval)">
-            <option :value="0">{{ t('Auto') }}</option>
-            <option :value="30">{{ t('30s') }}</option>
-            <option :value="60">{{ t('1m') }}</option>
-            <option :value="300">{{ t('5m') }}</option>
-            <option :value="600">{{ t('10m') }}</option>
-          </select>
+            <NativeSelectOption :value="0">{{ t('Auto') }}</NativeSelectOption>
+            <NativeSelectOption :value="30">{{ t('30s') }}</NativeSelectOption>
+            <NativeSelectOption :value="60">{{ t('1m') }}</NativeSelectOption>
+            <NativeSelectOption :value="300">{{ t('5m') }}</NativeSelectOption>
+            <NativeSelectOption :value="600">{{ t('10m') }}</NativeSelectOption>
+          </NativeSelect>
         </div>
 
         <template v-if="!editMode">
-          <button
-            class="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-dashed border-primary/40 text-primary bg-primary/5 hover:bg-primary/10 transition-colors"
-            @click="enterEdit">
-            <Pencil class="w-4 h-4" /> {{ t('Configure') }}
-          </button>
-          <button
-            class="flex items-center gap-2 px-3 py-1.5 rounded-lg border hover:bg-muted transition-colors"
-            :disabled="refreshing || loading"
-            @click="refresh">
-            <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': refreshing }" /> {{ t('Refresh') }}
-          </button>
-          <button v-if="page"
-            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border hover:bg-muted transition-colors"
-            @click="showEmbedModal = true">
-            <Link2 class="w-4 h-4" />
-          </button>
-          <button v-if="page"
-            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border hover:bg-muted transition-colors"
-            @click="printPage">
-            <Printer class="w-4 h-4" />
-          </button>
+          <Button variant="outline" size="sm" @click="enterEdit">
+            <Pencil /> {{ t('Configure') }}
+          </Button>
+          <Button variant="outline" size="sm" :disabled="refreshing || loading" @click="refresh">
+            <RefreshCw :class="{ 'animate-spin': refreshing }" /> {{ t('Refresh') }}
+          </Button>
+          <Button v-if="page" variant="outline" size="icon-sm" :aria-label="t('Embed page')" @click="showEmbedModal = true">
+            <Link2 />
+          </Button>
+          <Button v-if="page" variant="outline" size="icon-sm" :aria-label="t('Print')" @click="printPage">
+            <Printer />
+          </Button>
         </template>
       </div>
     </div>
 
     <!-- Skeleton -->
     <div v-if="loading" class="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
-      <div v-for="i in 6" :key="i" class="h-36 bg-muted animate-pulse rounded-lg" />
+      <Skeleton v-for="i in 6" :key="i" class="h-36" />
     </div>
 
     <!-- Empty: no page -->
-    <div v-else-if="!page"
-      class="flex flex-col items-center justify-center py-24 text-muted-foreground">
-      <LayoutDashboard class="w-12 h-12 mb-3 opacity-30" />
-      <p class="mb-4">{{ t('The page has not been created yet') }}</p>
-      <button
-        class="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary/10 text-primary font-medium hover:bg-primary/20 transition-colors"
-        @click="createPage">
-        <Plus class="w-4 h-4" /> {{ t('Create page') }}
-      </button>
-    </div>
+    <Empty v-else-if="!page">
+      <EmptyHeader>
+        <EmptyMedia variant="icon"><LayoutDashboard /></EmptyMedia>
+        <EmptyTitle>{{ t('The page has not been created yet') }}</EmptyTitle>
+      </EmptyHeader>
+      <EmptyContent>
+        <Button @click="createPage"><Plus /> {{ t('Create page') }}</Button>
+      </EmptyContent>
+    </Empty>
 
     <!-- Empty: no widgets -->
-    <div v-else-if="!editMode && (page?.widgets.length ?? 0) === 0"
-      class="flex flex-col items-center justify-center py-24 text-muted-foreground">
-      <LayoutDashboard class="w-12 h-12 mb-3 opacity-30" />
-      <p class="mb-4">{{ t('The page is empty') }}</p>
-      <button
-        class="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary/10 text-primary font-medium hover:bg-primary/20 transition-colors"
-        @click="enterEdit">
-        <Pencil class="w-4 h-4" /> {{ t('Configure') }}
-      </button>
-    </div>
+    <Empty v-else-if="!editMode && (page?.widgets.length ?? 0) === 0">
+      <EmptyHeader>
+        <EmptyMedia variant="icon"><LayoutDashboard /></EmptyMedia>
+        <EmptyTitle>{{ t('The page is empty') }}</EmptyTitle>
+      </EmptyHeader>
+      <EmptyContent>
+        <Button @click="enterEdit"><Pencil /> {{ t('Configure') }}</Button>
+      </EmptyContent>
+    </Empty>
 
     <!-- Widgets grid (normal mode) -->
     <div v-else-if="!editMode && (page?.widgets.length ?? 0) > 0" ref="grid"
@@ -359,22 +352,14 @@ const printPage = () => window.print()
       <div class="flex items-center gap-3 px-4 py-2.5 border-b border-border bg-card shrink-0">
         <LayoutDashboard class="size-4 text-muted-foreground" />
         <span class="font-semibold">{{ page?.label ?? pageName }}</span>
-        <span class="font-medium bg-warning/10 text-warning border border-warning/30 px-2 py-0.5 rounded">
-          {{ t('Edit mode') }}
-        </span>
+        <Badge variant="outline">{{ t('Edit mode') }}</Badge>
         <div class="ml-auto flex items-center gap-2">
-          <button
-            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border hover:bg-muted transition-colors"
-            @click="cancelEdit">
-            <X class="w-4 h-4" /> {{ t('Cancel') }}
-          </button>
-          <button
-            class="flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors"
-            :class="{ 'opacity-50': saving }"
-            :disabled="saving"
-            @click="savePage">
-            <Save class="w-4 h-4" :class="{ 'animate-pulse': saving }" /> {{ t('Save') }}
-          </button>
+          <Button variant="outline" size="sm" @click="cancelEdit">
+            <X /> {{ t('Cancel') }}
+          </Button>
+          <Button size="sm" :disabled="saving" @click="savePage">
+            <Spinner v-if="saving" /><Save v-else /> {{ t('Save') }}
+          </Button>
         </div>
       </div>
 
@@ -390,16 +375,17 @@ const printPage = () => window.print()
             <div v-for="group in WIDGET_GROUPS" :key="group.category" class="mb-3">
               <p class="text-muted-foreground/70 px-1 mb-1">{{ group.category }}</p>
               <div class="space-y-0.5">
-                <button
+                <Button
                   v-for="wt in group.widgets"
                   :key="wt.type"
-                  class="w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-left hover:bg-background transition-colors border border-transparent hover:border-border"
+                  variant="ghost"
+                  class="w-full justify-start"
                   @click="addWidget(wt.type)"
                 >
-                  <AppIcon :icon="wt.icon" class="size-4 shrink-0 text-muted-foreground" />
-                  <span>{{ t(wt.label) }}</span>
-                  <Plus class="size-3 ml-auto text-muted-foreground opacity-0 group-hover:opacity-100" />
-                </button>
+                  <AppIcon :icon="wt.icon" class="text-muted-foreground" />
+                  {{ t(wt.label) }}
+                  <Plus class="ml-auto text-muted-foreground opacity-0 group-hover/button:opacity-100" />
+                </Button>
               </div>
             </div>
           </div>
@@ -411,12 +397,13 @@ const printPage = () => window.print()
           @click.self="selectedWidgetId = null"
         >
           <!-- Empty canvas hint -->
-          <div v-if="page && page.widgets.length === 0"
-            class="flex flex-col items-center justify-center py-20 border-2 border-dashed border-primary/20 rounded-lg bg-primary/5 text-center">
-            <div class="text-4xl mb-3">👈</div>
-            <h3 class="text-base font-semibold text-primary mb-1">{{ t('Choose a widget type') }}</h3>
-            <p class="text-muted-foreground max-w-xs">{{ t('Click any type in the left panel — it will appear here') }}</p>
-          </div>
+          <Empty v-if="page && page.widgets.length === 0" class="border">
+            <EmptyHeader>
+              <EmptyMedia variant="icon"><Plus /></EmptyMedia>
+              <EmptyTitle>{{ t('Choose a widget type') }}</EmptyTitle>
+              <EmptyDescription>{{ t('Click any type in the left panel — it will appear here') }}</EmptyDescription>
+            </EmptyHeader>
+          </Empty>
 
           <VueDraggable
             v-else-if="page"
@@ -442,12 +429,15 @@ const printPage = () => window.print()
                 <GripVertical class="size-3.5 text-muted-foreground" />
               </div>
               <!-- Remove button -->
-              <button
-                class="absolute top-1.5 right-1.5 z-10 p-1 rounded bg-background/80 border opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive hover:text-destructive-foreground hover:border-destructive"
+              <Button
+                variant="destructive"
+                size="icon-xs"
+                class="absolute top-1.5 right-1.5 z-10 opacity-0 group-hover:opacity-100"
+                :aria-label="t('Remove')"
                 @click.stop="removeWidget(element)"
               >
-                <X class="size-3" />
-              </button>
+                <X />
+              </Button>
               <!-- Widget preview -->
               <WidgetCard
                 :widget="element"
@@ -473,32 +463,28 @@ const printPage = () => window.print()
 
   <!-- Embed dialog -->
   <Dialog v-model:open="showEmbedModal">
-    <DialogContent class="sm:max-w-[500px] p-0 px-6 pb-6 pt-2">
-    <DialogHeader>
-      <DialogTitle>{{ t('Embed page') }}</DialogTitle>
-    </DialogHeader>
-    <div class="space-y-4">
-        <div class="space-y-1.5">
-          <label class="font-medium text-muted-foreground uppercase tracking-wide">{{ t('Direct link') }}</label>
+    <DialogContent class="sm:max-w-lg">
+      <DialogHeader>
+        <DialogTitle>{{ t('Embed page') }}</DialogTitle>
+      </DialogHeader>
+      <FieldGroup>
+        <Field>
+          <FieldLabel for="embed-url">{{ t('Direct link') }}</FieldLabel>
           <div class="flex gap-2">
-            <input :value="embedUrl" readonly
-              class="flex-1 h-9 px-3 rounded-lg border bg-muted font-mono focus:outline-none" />
-            <button
-              class="px-3 h-9 rounded-lg border hover:bg-muted transition-colors"
-              @click="copyEmbedUrl">
-              {{ t('Copy') }}
-            </button>
+            <Input id="embed-url" :model-value="embedUrl" readonly class="font-mono" />
+            <Button variant="outline" @click="copyEmbedUrl">{{ t('Copy') }}</Button>
           </div>
-        </div>
-        <div class="space-y-1.5">
-          <label class="font-medium text-muted-foreground uppercase tracking-wide">iframe</label>
-          <textarea
-            :value="`<iframe src=&quot;${embedUrl}&quot; width=&quot;100%&quot; height=&quot;600&quot; frameborder=&quot;0&quot;></iframe>`"
+        </Field>
+        <Field>
+          <FieldLabel for="embed-iframe">iframe</FieldLabel>
+          <Textarea
+            id="embed-iframe"
+            :model-value="`<iframe src=&quot;${embedUrl}&quot; width=&quot;100%&quot; height=&quot;600&quot; frameborder=&quot;0&quot;></iframe>`"
             readonly rows="3"
-            class="w-full px-3 py-2 rounded-lg border bg-muted font-mono focus:outline-none resize-none"
+            class="font-mono field-sizing-fixed"
           />
-        </div>
-      </div>
+        </Field>
+      </FieldGroup>
     </DialogContent>
   </Dialog>
 </div>
