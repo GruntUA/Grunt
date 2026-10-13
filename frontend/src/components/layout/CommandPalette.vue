@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref, watch, computed, nextTick, onMounted, onUnmounted } from 'vue'
+import { ref, watch, computed, nextTick, onMounted, onUnmounted, defineComponent } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { ListboxFilter, injectListboxRootContext } from 'reka-ui'
 import { useAuthStore } from '@/stores/auth'
 import { useDocTypeStore } from '@/stores/doctype'
 import { useAppStore } from '@/stores/app'
@@ -41,9 +42,6 @@ const search = ref('')
 const results = ref<any[]>([])
 const loading = ref(false)
 const quickCreateOpen = ref(false)
-const activeIndex = ref(0)
-const inputRef = ref<HTMLInputElement | null>(null)
-const listRef = ref<any>(null)
 
 // Global shortcut: Mod+K
 useShortcut('Mod+K', () => uiStore.toggleCommandPalette(), { preventDefault: true, allowInInput: true })
@@ -75,8 +73,6 @@ watch(() => uiStore.isCommandPaletteOpen, (open) => {
     if (open) {
         search.value = ''
         results.value = []
-        activeIndex.value = 0
-        nextTick(() => inputRef.value?.focus())
     } else {
         quickCreateOpen.value = false
     }
@@ -215,53 +211,26 @@ const groupedResults = computed(() => {
     return groups
 })
 
-// Manual keyboard highlight
-// shadcn's <Command> filters its own *static* children; this palette builds
-// results asynchronously, so its built-in filter is bypassed entirely
-// (no <CommandInput> -> filterState.search stays empty -> every item renders)
-// and we drive arrow-key navigation ourselves over the flat result list.
-const flatList = computed<any[]>(() => {
-    if (quickCreateOpen.value) {
-        return quickCreateDoctypes.value.map((dt: any) => ({ id: `qc-${dt.name}`, run: () => createDoc(dt) }))
-    }
+// Keyboard navigation is the Command (reka Listbox) itself. The search box is
+// the bare ListboxFilter rather than <CommandInput>: CommandInput drives the
+// Command's client-side text filter, which would hide server hits that don't
+// contain the query (fuzzy/field matches, calculator results). Results arrive
+// after typing, so the first one is re-highlighted whenever the list changes -
+// Enter then opens it.
+const flatList = computed<unknown[]>(() => {
+    if (quickCreateOpen.value) return quickCreateDoctypes.value
     if (!search.value.trim()) return staticActions.value
     return results.value
 })
 
-const activeId = computed(() => flatList.value[activeIndex.value]?.id)
-
-watch([search, results, quickCreateOpen], () => { activeIndex.value = 0 })
-
-function scrollActiveIntoView() {
-    nextTick(() => {
-        listRef.value?.$el?.querySelector?.('[data-active="true"]')?.scrollIntoView({ block: 'nearest' })
-    })
-}
-
-function moveActive(delta: number) {
-    const n = flatList.value.length
-    if (!n) return
-    activeIndex.value = (activeIndex.value + delta + n) % n
-    scrollActiveIntoView()
-}
-
-function setActive(id: string) {
-    const i = flatList.value.findIndex(x => x.id === id)
-    if (i >= 0) activeIndex.value = i
-}
-
-function onInputKeydown(e: KeyboardEvent) {
-    if (e.key === 'ArrowDown') {
-        e.preventDefault()
-        moveActive(1)
-    } else if (e.key === 'ArrowUp') {
-        e.preventDefault()
-        moveActive(-1)
-    } else if (e.key === 'Enter') {
-        e.preventDefault()
-        flatList.value[activeIndex.value]?.run?.()
-    }
-}
+const HighlightFirst = defineComponent({
+    props: { items: { type: Array, required: true } },
+    setup(props) {
+        const listbox = injectListboxRootContext()
+        watch(() => props.items, () => nextTick(() => listbox.highlightFirstItem()), { immediate: true })
+        return () => null
+    },
+})
 </script>
 
 <template>
@@ -270,37 +239,31 @@ function onInputKeydown(e: KeyboardEvent) {
             <DialogTitle class="sr-only">{{ t('Search documents, apps or actions...') }}</DialogTitle>
             <DialogDescription class="sr-only">{{ t('Search documents, apps or actions...') }}</DialogDescription>
 
-            <Command :highlight-on-hover="false">
-                <div class="flex h-11 items-center gap-2 border-b px-3">
+            <Command>
+                <HighlightFirst :items="flatList" />
+                <div data-slot="command-input-wrapper" class="flex h-11 items-center gap-2 border-b px-3">
                     <Search class="size-4 shrink-0 opacity-50" />
-                    <input ref="inputRef" v-model="search"
+                    <ListboxFilter v-model="search" auto-focus
                         :placeholder="quickCreateOpen ? t('Select DocType to create a new record') : t('Search documents, apps or actions...')"
-                        class="placeholder:text-muted-foreground flex h-10 w-full bg-transparent py-3 text-sm outline-none"
-                        @keydown="onInputKeydown" />
+                        class="placeholder:text-muted-foreground flex h-10 w-full rounded-md bg-transparent py-3 text-sm outline-hidden" />
                     <Kbd>Esc</Kbd>
                 </div>
 
-                <CommandList ref="listRef" class="max-h-[400px]">
+                <CommandList class="max-h-[400px]">
                     <div v-if="loading && results.length === 0"
                         class="py-6 text-center text-sm text-muted-foreground">
                         {{ t('Searching...') }}
                     </div>
 
                     <CommandGroup v-if="quickCreateOpen" :heading="t('Quick create')">
-                        <CommandItem v-for="dt in quickCreateDoctypes" :key="dt.name" :value="`qc-${dt.name}`"
-                            :data-active="activeId === `qc-${dt.name}` ? 'true' : undefined"
-                            :class="activeId === `qc-${dt.name}` && 'bg-accent text-accent-foreground'"
-                            @mouseenter="setActive(`qc-${dt.name}`)" @select="createDoc(dt)">
+                        <CommandItem v-for="dt in quickCreateDoctypes" :key="dt.name" :value="`qc-${dt.name}`" @select="createDoc(dt)">
                             <FilePlus />
                             <span>{{ dt.label || dt.name }}</span>
                         </CommandItem>
                     </CommandGroup>
 
                     <CommandGroup v-else-if="!search" :heading="t('Quick actions')">
-                        <CommandItem v-for="action in staticActions" :key="action.id" :value="action.id"
-                            :data-active="activeId === action.id ? 'true' : undefined"
-                            :class="activeId === action.id && 'bg-accent text-accent-foreground'"
-                            @mouseenter="setActive(action.id)" @select="action.run()">
+                        <CommandItem v-for="action in staticActions" :key="action.id" :value="action.id" @select="action.run()">
                             <component :is="action.icon" />
                             <span>{{ action.title }}</span>
                             <CommandShortcut v-if="action.shortcut">{{ formatShortcut(action.shortcut) }}</CommandShortcut>
@@ -313,10 +276,7 @@ function onInputKeydown(e: KeyboardEvent) {
                             {{ t('Nothing found for') }} "{{ search }}"
                         </div>
                         <CommandGroup v-for="(items, category) in groupedResults" :key="category" :heading="category">
-                            <CommandItem v-for="item in items" :key="item.id" :value="item.id"
-                                :data-active="activeId === item.id ? 'true' : undefined"
-                                :class="activeId === item.id && 'bg-accent text-accent-foreground'"
-                                @mouseenter="setActive(item.id)" @select="item.run()">
+                            <CommandItem v-for="item in items" :key="item.id" :value="item.id" @select="item.run()">
                                 <component :is="item.icon" />
                                 <span class="flex-1 truncate">{{ item.title }}</span>
                                 <span v-if="item.subtitle" class="truncate text-xs text-muted-foreground">
