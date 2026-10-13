@@ -217,7 +217,7 @@ async def _load_widgets(
     date_from: str | None,
     date_to: str | None,
 ) -> tuple[list[dict[str, Any]], datetime | None, datetime | None]:
-    """A visible Page's widgets (in sequence order) and the parsed global date range."""
+    """A visible Page's widgets (in row order) and the parsed global date range."""
     doc = await grunt.find_doc("Page", name)
     if doc is None:
         grunt.throw(_("Page not found"), "NOT_FOUND")
@@ -226,10 +226,7 @@ async def _load_widgets(
     if not page_visible(page, grunt.get_user()):
         grunt.throw(_("The page is not published"), "PERMISSION_DENIED")
 
-    widgets: list[dict[str, Any]] = sorted(
-        page.get("widgets") or [],
-        key=lambda w: w.get("sequence") or 0,
-    )
+    widgets: list[dict[str, Any]] = page.get("widgets") or []
 
     global_since: datetime | None = None
     global_until: datetime | None = None

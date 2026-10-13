@@ -3,12 +3,13 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { Doughnut } from 'vue-chartjs'
-import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js'
+import { Chart as ChartJS, ArcElement, Tooltip } from 'chart.js'
 import type { ActiveElement, ChartEvent } from 'chart.js'
 import type { DashboardWidget } from '@/types'
+import { formatNumber } from '@/core/currency'
 import { filteredListUrl, groupFilter } from '@/pages/reports/drilldown'
 
-ChartJS.register(ArcElement, Tooltip, Legend)
+ChartJS.register(ArcElement, Tooltip)
 
 const { t } = useI18n()
 
@@ -24,15 +25,19 @@ const router = useRouter()
 // Report-sourced donuts carry no `keys`/`filters` and stay non-clickable.
 const canOpen = computed(() => !!props.widget.ref_doctype && !!props.widget.group_by && !!props.data?.keys)
 
-/** Segment -> the widget's list filtered to that group. */
-function onClick(_e: ChartEvent, els: ActiveElement[]) {
+/** Group -> the widget's list filtered to it. */
+function open(index: number) {
   const { widget, data } = props
-  if (!canOpen.value || !els.length) return
+  if (!canOpen.value) return
   router.push(filteredListUrl(
     widget.ref_doctype,
-    { ...data!.filters, ...groupFilter(widget.group_by!, data!.keys![els[0].index]) },
+    { ...data!.filters, ...groupFilter(widget.group_by!, data!.keys![index]) },
     props.workspaceName,
   ))
+}
+
+function onClick(_e: ChartEvent, els: ActiveElement[]) {
+  if (els.length) open(els[0].index)
 }
 
 function onHover(e: ChartEvent, els: ActiveElement[]) {
@@ -47,6 +52,18 @@ const PALETTE = [
 
 const total = computed(() => props.data?.values.reduce((a, b) => a + b, 0) ?? 0)
 
+/** The legend: every group with its value and share (`<1%` rather than a misleading `0%`). */
+const items = computed(() => (props.data?.labels ?? []).map((label, i) => {
+  const value = props.data!.values[i] ?? 0
+  const share = total.value ? (value / total.value) * 100 : 0
+  return {
+    label,
+    value: formatNumber(value),
+    share: share > 0 && share < 1 ? '<1%' : `${Math.round(share)}%`,
+    color: PALETTE[i % PALETTE.length],
+  }
+}))
+
 const chartData = computed(() => ({
   labels: props.data?.labels ?? [],
   datasets: [{
@@ -54,43 +71,28 @@ const chartData = computed(() => ({
     backgroundColor: PALETTE,
     borderWidth: 2,
     borderColor: getComputedStyle(document.documentElement).getPropertyValue('--card').trim() || '#ffffff',
-    hoverOffset: 6,
+    hoverOffset: 4,
   }],
 }))
-
-// Legend items carry the value and share: "Label — 12 (34%)".
-const baseLabels = ChartJS.overrides.doughnut.plugins.legend.labels.generateLabels
 
 const chartOptions = {
   onClick,
   onHover,
   responsive: true,
   maintainAspectRatio: false,
-  cutout: '68%',
+  cutout: '70%',
   plugins: {
-    legend: {
-      position: 'bottom' as const,
-      labels: {
-        boxWidth: 10,
-        padding: 12,
-        font: { size: 11 },
-        generateLabels: (chart: ChartJS<'doughnut'>) => baseLabels(chart).map((item) => {
-          const value = Number(chart.data.datasets[0]?.data[item.index!] ?? 0)
-          const pct = total.value ? Math.round((value / total.value) * 100) : 0
-          return { ...item, text: `${item.text} — ${value} (${pct}%)` }
-        }),
-      },
-    },
+    legend: { display: false },
     tooltip: { mode: 'index' as const },
   },
 }
 </script>
 
 <template>
-  <div class="flex flex-col gap-2 p-5 h-full">
-    <div class="flex items-start justify-between">
+  <div class="flex flex-col gap-3 p-5 h-full">
+    <div class="flex items-start justify-between gap-2">
       <p class="text-muted-foreground font-medium">{{ widget.title }}</p>
-      <span v-if="total" class="text-muted-foreground tabular-nums">{{ total }} {{ t('total') }}</span>
+      <span v-if="total" class="text-muted-foreground tabular-nums shrink-0">{{ formatNumber(total) }} {{ t('total') }}</span>
     </div>
 
     <div v-if="loading" class="flex-1 bg-muted animate-pulse rounded" />
@@ -99,8 +101,23 @@ const chartOptions = {
       {{ t('No data') }}
     </div>
 
-    <div v-else class="flex-1 min-h-0" style="min-height:160px">
-      <Doughnut :data="chartData" :options="chartOptions" />
-    </div>
+    <template v-else>
+      <div class="h-36 shrink-0">
+        <Doughnut :data="chartData" :options="chartOptions" />
+      </div>
+
+      <ul class="flex flex-col">
+        <li
+          v-for="(item, i) in items" :key="item.label"
+          :class="['flex items-center gap-2 py-1 rounded', canOpen && 'cursor-pointer hover:bg-muted/40']"
+          @click="open(i)"
+        >
+          <span class="size-2.5 rounded-[2px] shrink-0" :style="{ background: item.color }" />
+          <span class="flex-1 min-w-0 truncate">{{ item.label }}</span>
+          <span class="tabular-nums font-medium">{{ item.value }}</span>
+          <span class="w-10 text-right tabular-nums text-muted-foreground">{{ item.share }}</span>
+        </li>
+      </ul>
+    </template>
   </div>
 </template>

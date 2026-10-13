@@ -16,7 +16,8 @@ import {
 } from 'chart.js'
 import type { ActiveElement, ChartEvent, Chart as ChartInstance } from 'chart.js'
 import type { DashboardWidget } from '@/types'
-import { filteredListUrl, periodRange } from '@/pages/reports/drilldown'
+import { filteredListUrl } from '@/pages/reports/drilldown'
+import { formatIntl } from '@/core/datetime'
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, PointElement, LineElement, Filler, Tooltip, Legend)
 
@@ -55,14 +56,51 @@ const accent = computed(() => colorAccents[props.widget.color] ?? colorAccents.p
 
 const isGrouped = computed(() => !!props.data?.groups && Object.keys(props.data.groups).length > 0)
 
+// Day labels (`YYYY-MM-DD`) are re-bucketed: missing days become zeros, and a
+// series longer than ~3 months is summed per week (Monday) - daily points over a
+// year are a saw of spikes. Report-sourced labels (not dates) pass through as is.
+const DAY_MS = 86_400_000
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
+const isoDay = (ms: number) => new Date(ms).toISOString().slice(0, 10)
+const dayMs = (label: string) => Date.parse(`${label}T00:00:00Z`)
+
+const series = computed(() => {
+  const labels = props.data?.labels ?? []
+  const raw: number[][] = isGrouped.value
+    ? Object.values(props.data!.groups!)
+    : [props.data?.values ?? []]
+  if (!labels.length || !labels.every((l) => DATE_RE.test(l))) {
+    return { keys: labels, step: 0, values: raw }
+  }
+  const first = dayMs(labels[0])
+  const last = dayMs(labels[labels.length - 1])
+  const step = last - first > 92 * DAY_MS ? 7 : 1
+  // Bucket start: the day itself, or its week's Monday.
+  const start = (ms: number) => step === 1 ? ms : ms - ((new Date(ms).getUTCDay() + 6) % 7) * DAY_MS
+  const keys: string[] = []
+  for (let ms = start(first); ms <= last; ms += step * DAY_MS) keys.push(isoDay(ms))
+  const index = new Map(keys.map((k, i) => [k, i]))
+  const values = raw.map((vals) => {
+    const out = new Array<number>(keys.length).fill(0)
+    labels.forEach((l, i) => { out[index.get(isoDay(start(dayMs(l))))!] += Number(vals[i] ?? 0) })
+    return out
+  })
+  return { keys, step, values }
+})
+
+/** `13 жовт.` for a day/week bucket; the raw label otherwise. */
+function displayLabel(key: string): string {
+  return series.value.step ? formatIntl(new Date(dayMs(key)), { day: 'numeric', month: 'short', timeZone: 'UTC' }) : key
+}
+
 const chartData = computed(() => {
   if (isGrouped.value) {
-    const groups = props.data!.groups!
+    const names = Object.keys(props.data!.groups!)
     return {
-      labels: props.data?.labels ?? [],
-      datasets: Object.entries(groups).map(([name, values], i) => ({
+      labels: series.value.keys.map(displayLabel),
+      datasets: names.map((name, i) => ({
         label: name,
-        data: values,
+        data: series.value.values[i],
         backgroundColor: props.widget.widget_type === 'chart_area'
           ? PALETTE[i % PALETTE.length] + '44'
           : PALETTE[i % PALETTE.length] + 'cc',
@@ -70,16 +108,17 @@ const chartData = computed(() => {
         borderWidth: 2,
         borderRadius: props.widget.widget_type === 'chart_bar' ? 4 : 0,
         fill: props.widget.widget_type === 'chart_area',
-        tension: 0.4,
-        pointRadius: 3,
+        tension: 0.3,
+        pointRadius: 0,
+        pointHoverRadius: 4,
       })),
     }
   }
   return {
-    labels: props.data?.labels ?? [],
+    labels: series.value.keys.map(displayLabel),
     datasets: [{
       label: props.widget.title,
-      data: props.data?.values ?? [],
+      data: series.value.values[0],
       backgroundColor: props.widget.widget_type === 'chart_area'
         ? accent.value + '33'
         : accent.value + 'cc',
@@ -87,14 +126,16 @@ const chartData = computed(() => {
       borderWidth: 2,
       borderRadius: props.widget.widget_type === 'chart_bar' ? 4 : 0,
       fill: props.widget.widget_type === 'chart_area',
-      tension: 0.4,
-      pointRadius: 3,
+      tension: 0.3,
+      pointRadius: 0,
+      pointHoverRadius: 4,
     }],
   }
 })
 
 // Report-sourced charts carry no `filters` and stay non-clickable.
-const canOpen = computed(() => !!props.widget.ref_doctype && !!props.widget.date_field && !!props.data?.filters)
+const canOpen = computed(() =>
+  !!props.widget.ref_doctype && !!props.widget.date_field && !!props.data?.filters && !!series.value.step)
 
 /** The day column under the pointer (and, for a grouped chart, the nearest series). */
 function hit(e: ChartEvent, chart: ChartInstance): ActiveElement | undefined {
@@ -102,14 +143,16 @@ function hit(e: ChartEvent, chart: ChartInstance): ActiveElement | undefined {
   return chart.getElementsAtEventForMode(e as unknown as Event, mode, { intersect: false }, false)[0]
 }
 
-/** Day (and group) -> the widget's list filtered to it. */
+/** Day/week (and group) -> the widget's list filtered to it. */
 function onClick(e: ChartEvent, _els: ActiveElement[], chart: ChartInstance) {
   const { widget, data } = props
   const el = canOpen.value ? hit(e, chart) : undefined
-  const range = el && periodRange('day', data!.labels[el.index])
-  if (!el || !range) return
+  if (!el) return
+  const { keys, step } = series.value
+  const from = keys[el.index]
+  const to = isoDay(dayMs(from) + step * DAY_MS)
   const df = widget.date_field!
-  const filters: Record<string, unknown> = { ...data!.filters, [`${df}__gte`]: range[0], [`${df}__lt`]: range[1] }
+  const filters: Record<string, unknown> = { ...data!.filters, [`${df}__gte`]: from, [`${df}__lt`]: to }
   if (isGrouped.value && widget.group_by) {
     filters[widget.group_by] = Object.keys(data!.groups!)[el.datasetIndex]
   }

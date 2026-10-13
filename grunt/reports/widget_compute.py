@@ -130,17 +130,17 @@ async def _widget_metric(widget, dt, doctype_name, since, until, days, base_filt
             doctype_name, filters=filters if filters else None, aggregations={"val": agg_expr}
         )
         val = curr_data[0].get("val") or 0
-        if date_field:
-            prev_data = await grunt.aggregate(
-                doctype_name, filters=prev_filters, aggregations={"val": agg_expr}
-            )
-            prev_val = prev_data[0].get("val") or 0
-            trend = round((val - prev_val) / prev_val * 100, 1) if prev_val else None
-        else:
-            trend = None
-        # `filters` = exactly what the value was counted over, so the card can
-        # drill down into the same rows of the list view.
-        return {"value": val, "trend": trend, "filters": filters}
+        if not date_field:
+            # `filters` = exactly what the value was counted over, so the card can
+            # drill down into the same rows of the list view.
+            return {"value": val, "trend": None, "filters": filters}
+        prev_data = await grunt.aggregate(
+            doctype_name, filters=prev_filters, aggregations={"val": agg_expr}
+        )
+        prev_val = prev_data[0].get("val") or 0
+        trend = round((val - prev_val) / prev_val * 100, 1) if prev_val else None
+        # `previous` lets the card compare even when there is no percentage (0 before).
+        return {"value": val, "trend": trend, "previous": prev_val, "filters": filters}
     except Exception:
         _log_widget_failed(doctype_name, widget.get("widget_type") or "metric")
         return {"value": 0, "trend": None}
@@ -364,7 +364,8 @@ async def _widget_table(widget, dt, doctype_name, since, until, days, base_filte
             order="desc",
             limit=min(max(int(widget.get("row_limit") or 20), 1), 100),
         )
-        group_field = Meta(dt).get_field(group_by)
+        meta = Meta(dt)
+        group_field = meta.get_field(group_by)
         by_title = group_by in ("name", dt.title_field)
         return {
             "rows": [
@@ -379,6 +380,10 @@ async def _widget_table(widget, dt, doctype_name, since, until, days, base_filte
             "aggregation": agg,
             "field": value_field,
             "group_label": getattr(group_field, "label", None),
+            # A sum/avg/... column is headed by the field it aggregates ("Views", not "Sum").
+            "value_label": getattr(meta.get_field(value_field), "label", None)
+            if agg != "count" and value_field
+            else None,
             "link_doctype": group_field.options
             if group_field and group_field.fieldtype == "Link"
             else None,
@@ -397,9 +402,24 @@ async def _widget_activity(widget, dt, doctype_name, since, until, days, base_fi
             filters["ref_doctype"] = doctype_name
         else:
             filters["ref_doctype__nin"] = sorted(await feed_hidden_doctypes())
-        items = await grunt.get_list(
-            "ActivityLog", filters=filters, order_by="created_at", order="desc", limit=20
+        limit = min(max(int(widget.get("row_limit") or 8), 1), 50)
+        rows = await grunt.get_list(
+            "ActivityLog", filters=filters, order_by="created_at", order="desc", limit=limit * 5
         )
+        # A save and its workflow move land as separate entries back to back -
+        # one user's consecutive entries on one document read as a single item
+        # (the latest) listing all its actions.
+        items: list[dict[str, Any]] = []
+        for row in rows:
+            last = items[-1] if items else None
+            key = (row.get("user"), row.get("ref_doctype"), row.get("doc_id"))
+            if last and key == (last.get("user"), last.get("ref_doctype"), last.get("doc_id")):
+                if row.get("action") not in last["actions"]:
+                    last["actions"].append(row.get("action"))
+                continue
+            if len(items) == limit:
+                break
+            items.append({**row, "actions": [row.get("action")]})
         await attach_titles(items)
         await attach_user_names(items)
         return {"items": items}

@@ -24,6 +24,7 @@ interface TableData {
   aggregation?: string
   field?: string | null
   group_label?: string | null
+  value_label?: string | null
   link_doctype?: string | null
   filters?: Record<string, unknown>
 }
@@ -140,7 +141,7 @@ function formatVal(v: number): string {
               {{ tableData?.group_label || widget.group_by || t('Group') }}
             </th>
             <th class="w-24 px-4 py-2 text-right font-medium text-muted-foreground">
-              {{ widget.value_label || aggLabel }}
+              {{ widget.value_label || tableData?.value_label || aggLabel }}
             </th>
           </tr>
         </thead>

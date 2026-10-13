@@ -111,12 +111,6 @@
       "fieldtype": "Text"
     },
     {
-      "fieldname": "sequence",
-      "label": "Order",
-      "fieldtype": "Int",
-      "default": 0
-    },
-    {
       "fieldname": "link_type",
       "label": "Link type",
       "fieldtype": "Select",

@@ -334,3 +334,47 @@ async def test_metric_widget_expands_child_of_filter(ctx):
     )
     assert result["value"] == 2
     assert result["filters"] == {"node__child_of": root["name"]}
+
+
+@pytest.mark.asyncio
+async def test_activity_widget_merges_consecutive_entries_on_one_doc(monkeypatch):
+    """A save and its workflow move are one feed item; the limit counts items."""
+    from grunt.reports import widget_compute
+
+    def entry(i: int, doc: str, action: str, user: str = "u1") -> dict:
+        return {
+            "name": f"a{i}",
+            "ref_doctype": "Page",
+            "doc_id": doc,
+            "user": user,
+            "action": action,
+        }
+
+    rows = [
+        entry(1, "p1", "workflow"),
+        entry(2, "p1", "update"),
+        entry(3, "p1", "workflow"),
+        entry(4, "p1", "update", user="u2"),
+        entry(5, "p2", "create"),
+        entry(6, "p3", "update"),
+    ]
+
+    async def fake_get_list(*_a, **_kw):
+        return rows
+
+    async def noop(_items):
+        return None
+
+    monkeypatch.setattr(widget_compute.grunt, "get_list", fake_get_list)
+    monkeypatch.setattr(widget_compute, "attach_titles", noop)
+    monkeypatch.setattr(widget_compute, "attach_user_names", noop)
+
+    result = await widget_compute._widget_activity(
+        {"row_limit": 3}, None, "Page", None, None, 0, {}
+    )
+    items = result["items"]
+    assert [(i["doc_id"], i["user"], i["actions"]) for i in items] == [
+        ("p1", "u1", ["workflow", "update"]),
+        ("p1", "u2", ["update"]),
+        ("p2", "u1", ["create"]),
+    ]

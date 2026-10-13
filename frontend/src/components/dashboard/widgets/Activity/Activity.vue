@@ -3,6 +3,8 @@ import { useI18n } from 'vue-i18n'
 import type { DashboardWidget } from '@/types'
 import { FileText, Plus, RefreshCcw, Trash2, Share2, MessageSquare, GitBranch } from '@lucide/vue'
 import { useRouter } from 'vue-router'
+import { watchEffect } from 'vue'
+import { useDocTypeStore } from '@/stores/doctype'
 import { formatDayMonth } from '@/core/datetime'
 import { docUrl } from '@/core/workspaceUrl'
 
@@ -21,12 +23,32 @@ interface ActivityItem {
   doc_id: string
   title?: string
   action: string
+  /** Consecutive actions of one user on this document, latest first */
+  actions?: string[]
   user: string
   user_name?: string
   created_at: string
 }
 
 const router = useRouter()
+const dtStore = useDocTypeStore()
+
+// Human DocType labels ("Публікація", not "MltPage"); unknown/forbidden keep their name.
+watchEffect(() => {
+  for (const name of new Set((props.data?.items ?? []).map((i) => i.ref_doctype))) {
+    if (name) dtStore.get(name).catch(() => {})
+  }
+})
+
+function doctypeLabel(name: string): string {
+  return dtStore.cache.get(name)?.label || name
+}
+
+/** `Перевів(ла), оновив(ла)` - every action of a grouped item, first one capitalised. */
+function actionsLabel(item: ActivityItem): string {
+  const text = (item.actions?.length ? item.actions : [item.action]).map(getActionLabel).join(', ')
+  return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase()
+}
 
 function getActionIcon(action: string) {
   switch (action?.toLowerCase()) {
@@ -95,7 +117,7 @@ function goToDoc(item: ActivityItem) {
     </div>
 
     <!-- Feed -->
-    <div v-else class="flex-1 overflow-auto divide-y divide-border/50">
+    <div v-else class="flex-1 overflow-y-auto overflow-x-hidden divide-y divide-border/50">
       <div
         v-for="item in data.items"
         :key="item.id"
@@ -113,11 +135,11 @@ function goToDoc(item: ActivityItem) {
             <span class="font-semibold text-foreground truncate">{{ item.user_name || item.user }}</span>
             <span class="text-muted-foreground tabular-nums shrink-0">{{ formatTime(item.created_at) }}</span>
           </div>
-          <p class="text-muted-foreground mt-0.5 leading-snug">
-            <span class="text-foreground/80">{{ getActionLabel(item.action) }}</span>
-            <span class="font-medium text-foreground/60 ml-1">{{ item.ref_doctype }}</span>
-            <span class="text-primary font-medium ml-1 truncate">{{ item.title || item.doc_id }}</span>
+          <p class="text-muted-foreground mt-0.5 leading-snug truncate">
+            <span class="text-foreground/80">{{ actionsLabel(item) }}</span>
+            <span class="font-medium text-foreground/60 ml-1">{{ doctypeLabel(item.ref_doctype) }}</span>
           </p>
+          <p class="text-primary font-medium truncate" :title="item.title || item.doc_id">{{ item.title || item.doc_id }}</p>
         </div>
       </div>
     </div>

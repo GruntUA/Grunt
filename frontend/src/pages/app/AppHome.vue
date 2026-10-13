@@ -62,7 +62,7 @@ async function loadPage(pageName: string) {
     const doc = await docsApi.get('Page', pageName) as { widgets?: DashboardWidget[] } & Record<string, unknown>
     const data = await getPageData(pageName)
     if (seq !== loadSeq) return
-    widgets.value = [...(doc.widgets ?? [])].sort((a, b) => (a.sequence || 0) - (b.sequence || 0))
+    widgets.value = doc.widgets ?? []
     canEdit.value = !!(doc[PERMS_KEY] as { write?: boolean } | undefined)?.write
     widgetData.value = data
   } catch {

@@ -6219,6 +6219,10 @@ msgstr "документ"
 msgid "{n} min ago"
 msgstr "{n} хв тому"
 
+#: grunt/frontend/src/components/dashboard/widgets/Metric/Metric.vue:96
+msgid "was {n}"
+msgstr "було {n}"
+
 #: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue:70
 msgid "{n} h ago"
 msgstr "{n} год тому"

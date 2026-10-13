@@ -497,20 +497,6 @@ export interface DashboardWidget {
   /** For chart_bar/chart_area/donut: draw data from this saved Report (report_name) instead of a doctype aggregate. */
   report?: string | null
   content?: string | null
-  sequence: number
-}
-
-export interface Dashboard {
-  id: string
-  name: string
-  label: string
-  description: string
-  workspace?: string | null
-  roles: string
-  is_published: boolean
-  created_at?: string
-  modified_at?: string
-  widgets: DashboardWidget[]
 }
 
 export interface Page {

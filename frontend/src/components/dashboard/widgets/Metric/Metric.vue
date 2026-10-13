@@ -5,13 +5,14 @@ import { useRouter } from 'vue-router'
 import type { DashboardWidget } from '@/types'
 import { filteredListUrl } from '@/pages/reports/drilldown'
 import { useLucideIcons } from '@/core/composables/useLucideIcons'
+import { formatNumber } from '@/core/currency'
 import { TrendingUp, TrendingDown, Minus } from '@lucide/vue'
 
 const { t } = useI18n()
 
 const props = defineProps<{
   widget: DashboardWidget
-  data: { value: number; trend?: number | null; filters?: Record<string, unknown> } | null
+  data: { value: number; trend?: number | null; previous?: number; filters?: Record<string, unknown> } | null
   loading?: boolean
   workspaceName?: string
 }>()
@@ -41,12 +42,15 @@ const colorMap: Record<string, string> = {
 
 const iconBg = computed(() => colorMap[props.widget.color] ?? colorMap.primary)
 
-const formattedValue = computed(() => {
-  const v = props.data?.value ?? 0
-  if (v >= 1_000_000) return (v / 1_000_000).toFixed(1) + 'M'
-  if (v >= 1_000) return (v / 1_000).toFixed(1) + 'K'
-  return Number.isInteger(v) ? v.toString() : v.toFixed(2)
-})
+// Exact up to 10 000 (`2 498`), compact above (`577,5 тис.`).
+function fmt(v: number): string {
+  return Math.abs(v) < 10_000
+    ? formatNumber(v, { maximumFractionDigits: 2 })
+    : formatNumber(v, { notation: 'compact', maximumFractionDigits: 1 })
+}
+
+const formattedValue = computed(() => fmt(props.data?.value ?? 0))
+const previous = computed(() => props.data?.previous ?? null)
 
 const trend = computed(() => props.data?.trend ?? null)
 const trendPositive = computed(() => (trend.value ?? 0) > 0)
@@ -74,24 +78,22 @@ const trendNeutral = computed(() => trend.value === null || trend.value === 0)
     <!-- Value -->
     <template v-else>
       <p class="text-2xl sm:text-3xl font-semibold tabular-nums tracking-tight text-foreground">{{ formattedValue }}</p>
-      <p v-if="widget.description" class="-mt-2 text-muted-foreground">{{ widget.description }}</p>
-
-      <!-- Trend badge -->
-      <div v-if="trend !== null" class="flex flex-wrap items-center gap-1">
-        <template v-if="trendNeutral">
-          <Minus class="w-3.5 h-3.5 text-muted-foreground" />
-          <span class="text-muted-foreground">{{ t('no change') }}</span>
+      <!-- Description and the comparison with the previous period share one line,
+           so a card with a trend is no taller than its neighbours. -->
+      <div v-if="widget.description || trend !== null || previous !== null"
+        class="-mt-2 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-muted-foreground">
+        <span v-if="widget.description">{{ widget.description }}</span>
+        <span v-if="widget.description && (trend !== null || previous !== null)" aria-hidden="true">·</span>
+        <template v-if="trend !== null">
+          <Minus v-if="trendNeutral" class="w-3.5 h-3.5" />
+          <TrendingUp v-else-if="trendPositive" class="w-3.5 h-3.5 text-emerald-500" />
+          <TrendingDown v-else class="w-3.5 h-3.5 text-red-500" />
+          <span v-if="trendNeutral">{{ t('no change') }}</span>
+          <span v-else :class="['font-medium', trendPositive ? 'text-emerald-600' : 'text-red-600']">
+            {{ trendPositive ? '+' : '' }}{{ trend }}%
+          </span>
         </template>
-        <template v-else-if="trendPositive">
-          <TrendingUp class="w-3.5 h-3.5 text-emerald-500" />
-          <span class="text-emerald-600 font-medium">+{{ trend }}%</span>
-          <span class="text-muted-foreground">{{ t('over {period}', { period: String(widget.period) }) }}</span>
-        </template>
-        <template v-else>
-          <TrendingDown class="w-3.5 h-3.5 text-red-500" />
-          <span class="text-red-600 font-medium">{{ trend }}%</span>
-          <span class="text-muted-foreground">{{ t('over {period}', { period: String(widget.period) }) }}</span>
-        </template>
+        <span v-if="previous !== null">{{ t('was {n}', { n: fmt(previous) }) }}</span>
       </div>
     </template>
   </div>

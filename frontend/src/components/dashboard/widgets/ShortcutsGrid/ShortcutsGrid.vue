@@ -44,19 +44,19 @@ function navigate(tile: ShortcutItem) {
     <div v-if="widget.title" class="px-5 pt-4 pb-2">
       <p class="text-muted-foreground font-medium">{{ widget.title }}</p>
     </div>
-    <div class="flex-1 grid grid-cols-2 gap-2 p-3">
+    <div class="grid grid-cols-[repeat(auto-fit,minmax(11rem,1fr))] gap-2 p-3">
       <button
         v-for="(tile, i) in tiles"
         :key="i"
-        class="flex flex-col items-start gap-1.5 p-3 rounded-lg border hover:bg-muted/50 transition-colors text-left"
+        class="flex items-center gap-2.5 px-3 py-2 rounded-lg border hover:bg-muted/50 transition-colors text-left min-w-0"
         @click="navigate(tile)">
-        <div :class="['p-1.5 rounded-md', colorMap[tile.color ?? 'primary'] ?? colorMap.primary]">
+        <div :class="['shrink-0 p-1.5 rounded-md', colorMap[tile.color ?? 'primary'] ?? colorMap.primary]">
           <component :is="iconFor(tile.icon, ExternalLink) ?? 'span'" class="block w-3.5 h-3.5" />
         </div>
-        <span class="font-medium leading-tight text-foreground">{{ tile.title }}</span>
+        <span class="font-medium leading-tight text-foreground truncate">{{ tile.title }}</span>
       </button>
       <div v-if="tiles.length === 0"
-        class="col-span-2 flex items-center justify-center text-muted-foreground py-4">
+        class="col-span-full flex items-center justify-center text-muted-foreground py-4">
         {{ t('No tiles') }}
       </div>
     </div>

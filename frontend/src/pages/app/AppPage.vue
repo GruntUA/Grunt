@@ -147,7 +147,6 @@ async function createPage() {
 async function savePage() {
   if (!page.value) return
   saving.value = true
-  page.value.widgets.forEach((w, i) => { w.sequence = i })
   try {
     await docsApi.update('Page', page.value.name, { widgets: page.value.widgets })
     exitEdit()
@@ -198,7 +197,6 @@ function addWidget(type: string) {
     filters: undefined,
     group_by: '',
     date_field: '',
-    sequence: page.value.widgets.length,
     icon: '',
     link_type: null,
     description: null,
