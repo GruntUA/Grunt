@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { DragHandle } from '@tiptap/extension-drag-handle-vue-3'
 import type { Node as PmNode } from '@tiptap/pm/model'
 import { Copy, GripVertical, Trash2 } from '@lucide/vue'
+import { Button } from '@/components/ui/button'
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
@@ -52,13 +53,13 @@ function remove() {
       <DropdownMenuTrigger as-child>
         <span class="pointer-events-none absolute inset-0" aria-hidden="true" />
       </DropdownMenuTrigger>
-      <button
-        type="button" :title="t('Drag to move, click for options')" :aria-label="t('Block options')"
-        class="flex h-6 w-5 cursor-grab items-center justify-center rounded-sm text-muted-foreground hover:bg-accent hover:text-foreground"
+      <Button
+        type="button" variant="ghost" size="icon-xs" class="w-5 cursor-grab text-muted-foreground"
+        :title="t('Drag to move, click for options')" :aria-label="t('Block options')"
         @click="setMenuOpen(true)"
       >
-        <GripVertical class="size-4" />
-      </button>
+        <GripVertical />
+      </Button>
       <DropdownMenuContent align="start" side="left" class="w-52" @close-auto-focus="refocus">
         <template v-if="block?.node.isTextblock">
           <DropdownMenuLabel class="text-muted-foreground">{{ t('Turn into') }}</DropdownMenuLabel>

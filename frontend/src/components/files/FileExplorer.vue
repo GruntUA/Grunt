@@ -38,6 +38,8 @@ import { useAuthStore } from '@/stores/auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Progress } from '@/components/ui/progress'
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
+import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
 import CameraCapture from '@/components/files/CameraCapture.vue'
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
@@ -654,31 +656,41 @@ const ROW = 'grid w-full grid-cols-[minmax(0,1fr)_9rem_5rem_5rem] items-center g
       <Button variant="ghost" size="icon-sm" :disabled="!parentOfCurrent" :title="t('Up')" @click="up">
         <ArrowUp />
       </Button>
-      <nav class="flex h-8 min-w-0 flex-1 items-center gap-0.5 overflow-hidden rounded-md border bg-background px-1.5"
-        :aria-label="t('Folder path')">
+      <!-- Address bar: the folder path, each crumb also a drop target for moving files -->
+      <div class="flex h-8 min-w-0 flex-1 items-center gap-1.5 overflow-hidden rounded-md border bg-background px-2">
         <template v-if="results">
           <Search class="size-4 shrink-0 text-muted-foreground" />
-          <span class="truncate px-1.5">{{ t('Search results for «{q}»', { q: query.trim() }) }}</span>
+          <span class="truncate">{{ t('Search results for «{q}»', { q: query.trim() }) }}</span>
         </template>
-        <component :is="isOwnHome(path[0]) ? House : Users" v-else class="size-4 shrink-0 text-muted-foreground" />
-        <template v-for="(node, i) in results ? [] : path" :key="node.name">
-          <ChevronRight v-if="i > 0" class="size-3.5 shrink-0 text-muted-foreground" />
-          <button type="button" class="truncate rounded px-1.5 py-0.5 hover:bg-accent"
-            :class="[i === path.length - 1 && 'font-medium', dropTarget === node.name && 'ring-2 ring-primary']"
-            @click="open(node.name)"
-            @dragover="onDragOver($event, node.name)" @dragleave="dropTarget = null" @drop="onDrop($event, node.name)">
-            {{ title(node) }}
-          </button>
+        <template v-else>
+          <component :is="isOwnHome(path[0]) ? House : Users" class="size-4 shrink-0 text-muted-foreground" />
+          <Breadcrumb class="min-w-0" :aria-label="t('Folder path')">
+            <BreadcrumbList class="flex-nowrap gap-1 sm:gap-1">
+              <template v-for="(node, i) in path" :key="node.name">
+                <BreadcrumbSeparator v-if="i > 0" />
+                <BreadcrumbItem
+                  class="min-w-0 rounded px-1"
+                  :class="dropTarget === node.name && 'ring-2 ring-primary'"
+                  @dragover="onDragOver($event, node.name)" @dragleave="dropTarget = null" @drop="onDrop($event, node.name)"
+                >
+                  <BreadcrumbPage v-if="i === path.length - 1" class="truncate">{{ title(node) }}</BreadcrumbPage>
+                  <BreadcrumbLink v-else as-child>
+                    <button type="button" class="truncate" @click="open(node.name)">{{ title(node) }}</button>
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+              </template>
+            </BreadcrumbList>
+          </Breadcrumb>
         </template>
-      </nav>
+      </div>
       <Button variant="ghost" size="icon-sm" :title="t('Refresh')" @click="reload">
         <RefreshCw :class="(loading || busy) && 'animate-spin'" />
       </Button>
-      <div class="relative w-64 shrink-0">
-        <Search class="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-        <Input v-model="query" type="search" class="h-8 pl-8" :placeholder="t('Search all files')"
+      <InputGroup class="h-8 w-64 shrink-0">
+        <InputGroupAddon><Search /></InputGroupAddon>
+        <InputGroupInput v-model="query" type="search" :placeholder="t('Search all files')"
           :aria-label="t('Search all files')" @keydown.esc="query && ($event.stopPropagation(), query = '')" />
-      </div>
+      </InputGroup>
     </div>
 
     <!-- Command bar -->
