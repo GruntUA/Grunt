@@ -140,6 +140,26 @@ async def test_table_widget_groups_and_sums(ctx, widget_source):
 
 
 @pytest.mark.asyncio
+async def test_all_time_period_has_no_lower_bound(ctx, widget_source):
+    """0 days means "all time" - not an empty range starting now."""
+    from grunt.api.v1.dashboard import _compute_widget_data
+
+    for period in ("all", "all_time"):
+        result = await _compute_widget_data(
+            _widget(
+                "table",
+                group_by="status",
+                aggregation="sum",
+                field="amount",
+                date_field="created_at",
+                period=period,
+            )
+        )
+        rows = {r["label"]: r["value"] for r in result["rows"]}
+        assert rows == {"Active": 30.0, "Draft": 5.0}
+
+
+@pytest.mark.asyncio
 async def test_unknown_widget_type_returns_none(ctx, widget_source):
     from grunt.api.v1.dashboard import _compute_widget_data
 
@@ -232,6 +252,44 @@ async def test_get_dashboard_data_matches_get_page_data_shape(ctx, widget_source
 
     result = await get_dashboard_data("Test Dashboard")
     assert list(result.values()) == [{"count": 3}]
+
+
+@pytest.mark.asyncio
+async def test_get_page_widget_data_overrides_period(ctx, widget_source):
+    from grunt.api.messages import ApplicationError
+    from grunt.api.v1.dashboard import get_page_data, get_page_widget_data
+
+    await ctx.new_doc(
+        "Page",
+        {
+            "name": "Period Page",
+            "label": "Period Page",
+            "is_published": True,
+            "widgets": [
+                {
+                    "widget_type": "table",
+                    "ref_doctype": "WidgetSourceItem",
+                    "group_by": "status",
+                    "date_field": "created_at",
+                    "period": "7d",
+                    "period_switch": 1,
+                },
+            ],
+        },
+    )
+    await ctx.db._session().commit()
+
+    [widget_name] = (await get_page_data("Period Page")).keys()
+    result = await get_page_widget_data("Period Page", widget_name, period="all")
+    assert result["filters"]["created_at__gte"].startswith("1970-01-01")
+    assert {r["label"]: r["value"] for r in result["rows"]} == {"Active": 2.0, "Draft": 1.0}
+
+    # An unknown period keeps the configured one.
+    result = await get_page_widget_data("Period Page", widget_name, period="bogus")
+    assert not result["filters"]["created_at__gte"].startswith("1970")
+
+    with pytest.raises(ApplicationError):
+        await get_page_widget_data("Period Page", "no-such-widget")
 
 
 @pytest.mark.asyncio

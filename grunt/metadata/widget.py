@@ -6,7 +6,7 @@ import importlib.util
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, ClassVar
 
-from grunt import log
+from grunt import _, log
 from grunt.metadata.dynamic_options import register_option_provider
 
 if TYPE_CHECKING:
@@ -72,6 +72,25 @@ def get_registered_widget_types() -> list[str]:
 WIDGET_TYPE_SOURCE = "grunt.widget_type"
 register_option_provider(WIDGET_TYPE_SOURCE, get_registered_widget_types)
 
+# PageWidget.period / DashboardWidget.period: how many days back a widget looks
+# (0 = all time), and the captions the period pickers show.
+WIDGET_PERIOD_SOURCE = "grunt.widget_period"
+WIDGET_PERIOD_DAYS = {"7d": 7, "30d": 30, "90d": 90, "365d": 365, "all": 0}
+
+
+def get_widget_periods() -> list[tuple[str, str]]:
+    labels = {
+        "7d": _("7 days"),
+        "30d": _("30 days"),
+        "90d": _("3 months"),
+        "365d": _("Year"),
+        "all": _("All time"),
+    }
+    return [(value, labels[value]) for value in WIDGET_PERIOD_DAYS]
+
+
+register_option_provider(WIDGET_PERIOD_SOURCE, get_widget_periods)
+
 
 # Discovery
 
@@ -79,7 +98,7 @@ register_option_provider(WIDGET_TYPE_SOURCE, get_registered_widget_types)
 def _find_bench_dir_for_widgets(start: Path) -> Path | None:
     """Walk up from *start* looking for a directory that contains apps/."""
     check = start if start.is_dir() else start.parent
-    for _ in range(8):
+    for _attempt in range(8):
         if (check / "apps").is_dir():
             return check
         if check == check.parent:

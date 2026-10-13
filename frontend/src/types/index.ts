@@ -454,7 +454,8 @@ export interface ApiError {
 // Dashboard
 
 export type WidgetAggregation = 'count' | 'sum' | 'avg' | 'min' | 'max'
-export type WidgetPeriod = '7d' | '30d' | '90d' | '365d'
+/** One of the options of PageWidget.period (7d, 30d, ..., all). */
+export type WidgetPeriod = string
 export type WidgetCols = 1 | 2 | 3 | 4
 
 export type LinkType = 'DocType' | 'Report' | 'Page' | 'URL'
@@ -479,6 +480,8 @@ export interface DashboardWidget {
   group_by?: string | null
   date_field?: string | null
   period: WidgetPeriod
+  /** table: viewers can switch the period on the widget itself. */
+  period_switch?: boolean | number
   filters?: Record<string, string>
   min_value?: number | null
   max_value?: number | null

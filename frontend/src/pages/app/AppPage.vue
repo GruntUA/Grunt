@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, provide } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AppIcon from '@/components/AppIcon.vue'
 import {
@@ -8,7 +8,8 @@ import {
 } from '@lucide/vue'
 import { VueDraggable } from 'vue-draggable-plus'
 import { docsApi } from '@/core/api/docs'
-import { getPageData } from '@/core/api/pages'
+import { getPageData, getPageWidgetData } from '@/core/api/pages'
+import { WIDGET_PERIOD_LOADER } from '@/core/widgetPeriod'
 import WidgetCard from '@/components/dashboard/WidgetCard.vue'
 import WidgetConfigPanel from '@/components/dashboard/WidgetConfigPanel.vue'
 import { getPaletteGroups, getWidgetDef, widgetColSpan } from '@/core/widgetRegistry'
@@ -78,6 +79,11 @@ async function loadData() {
     })
   } catch { /* silent */ }
 }
+
+provide(WIDGET_PERIOD_LOADER, (widget, period) => getPageWidgetData(props.pageName, widget.id, period, {
+  dateFrom: dateFrom.value || undefined,
+  dateTo:   dateTo.value   || undefined,
+}))
 
 async function load() {
   loading.value = true

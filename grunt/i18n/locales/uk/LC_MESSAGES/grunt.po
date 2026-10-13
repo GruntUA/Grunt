@@ -41,7 +41,7 @@ msgstr "Зберегти"
 #: grunt/frontend/src/components/dashboard/widgets/Donut/Donut.vue:87
 #: grunt/frontend/src/components/dashboard/widgets/Chart/Chart.vue:155
 #: grunt/frontend/src/components/dashboard/widgets/Funnel/Funnel.vue:60
-#: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:83
+#: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:131
 #: grunt/frontend/src/pages/reports/ReportView.vue:235
 #: grunt/frontend/src/pages/reports/ReportView.vue:260
 #: grunt/frontend/src/pages/desk/reports/ReportView.vue:112
@@ -304,7 +304,7 @@ msgstr "За замовчуванням"
 #: grunt/frontend/src/components/fields/RichText/ui/FontMenus.vue:32
 #: grunt/frontend/src/components/fields/RichText/ui/FontMenus.vue:44
 #: grunt/frontend/src/components/fields/RichText/ui/ImageBubble.vue:79
-#: grunt/frontend/src/pages/app/AppPage.vue:270
+#: grunt/frontend/src/pages/app/AppPage.vue:276
 msgid "Auto"
 msgstr "Авто"
 
@@ -2548,18 +2548,6 @@ msgctxt "help:WebAuthnCredential.transports"
 msgid "Comma-separated list: usb, nfc, ble, internal, hybrid"
 msgstr "Список через кому: usb, nfc, ble, internal, hybrid"
 
-#: grunt/frontend/src/components/dashboard/sections/DateRangeSection.vue:15
-msgid "3 months"
-msgstr "3 місяці"
-
-#: grunt/frontend/src/components/dashboard/sections/DateRangeSection.vue:14
-msgid "30 days"
-msgstr "30 днів"
-
-#: grunt/frontend/src/components/dashboard/sections/DateRangeSection.vue:13
-msgid "7 days"
-msgstr "7 днів"
-
 #: grunt/grunt/startup/errors.py:257 grunt/frontend/src/router/index.ts:203
 #: grunt/frontend/src/core/api/client.ts:164
 msgid "Access denied"
@@ -2708,8 +2696,8 @@ msgid "Column"
 msgstr "Колонка"
 
 #: grunt/frontend/src/components/dashboard/WidgetCard.vue:41
-#: grunt/frontend/src/pages/app/AppPage.vue:282
-#: grunt/frontend/src/pages/app/AppPage.vue:329
+#: grunt/frontend/src/pages/app/AppPage.vue:288
+#: grunt/frontend/src/pages/app/AppPage.vue:335
 msgid "Configure"
 msgstr "Налаштувати"
 
@@ -2731,7 +2719,7 @@ msgstr "Конверсія:"
 #: grunt/frontend/src/components/files/FileExplorer.vue:710
 #: grunt/frontend/src/components/views/form/FormHeader.vue:369
 #: grunt/frontend/src/components/fields/RichText/ui/EditorContextMenu.vue:113
-#: grunt/frontend/src/pages/app/AppPage.vue:482
+#: grunt/frontend/src/pages/app/AppPage.vue:488
 msgid "Copy"
 msgstr "Копіювати"
 
@@ -2767,7 +2755,7 @@ msgstr "Налаштувати швидкі фільтри"
 msgid "Data source"
 msgstr "Джерело даних"
 
-#: grunt/frontend/src/components/dashboard/sections/DateRangeSection.vue:23
+#: grunt/frontend/src/components/dashboard/sections/DateRangeSection.vue:19
 msgid "Date field"
 msgstr "Поле дати"
 
@@ -2860,7 +2848,7 @@ msgstr "Дублювати рядок"
 #: grunt/frontend/src/components/fields/Table/Table.vue:401
 #: grunt/frontend/src/components/fields/Table/Table.vue:402
 #: grunt/frontend/src/components/fields/Table/Table.vue:415
-#: grunt/frontend/src/pages/app/AppHome.vue:107
+#: grunt/frontend/src/pages/app/AppHome.vue:113
 msgid "Edit"
 msgstr "Редагувати"
 
@@ -3000,7 +2988,7 @@ msgid "Mark as read"
 msgstr "Позначити як прочитане"
 
 #: grunt/frontend/src/components/dashboard/sections/GaugeRangeSection.vue:25
-#: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:41
+#: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:82
 #: grunt/frontend/src/components/fields/Table/useTableCell.ts:75
 msgid "Max"
 msgstr "Макс."
@@ -3015,7 +3003,7 @@ msgid "Maximum"
 msgstr "Максимум"
 
 #: grunt/frontend/src/components/dashboard/sections/GaugeRangeSection.vue:16
-#: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:41
+#: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:82
 #: grunt/frontend/src/components/fields/Table/useTableCell.ts:74
 msgid "Min"
 msgstr "Мін."
@@ -3046,7 +3034,7 @@ msgstr "Назва"
 #: grunt/frontend/src/components/app/AppBreadcrumb.vue:85
 #: grunt/frontend/src/components/dashboard/sections/TilesSection.vue:32
 #: grunt/frontend/src/components/dashboard/sections/LinksSection.vue:29
-#: grunt/frontend/src/pages/app/AppPage.vue:182
+#: grunt/frontend/src/pages/app/AppPage.vue:188
 #: grunt/frontend/src/pages/desk/DocTypeForm.vue:97
 msgid "New"
 msgstr "Новий"
@@ -3128,11 +3116,12 @@ msgstr "Сторінка"
 
 #: grunt/grunt/startup/website.py:175 grunt/grunt/startup/website.py:161
 #: grunt/grunt/startup/errors.py:258 grunt/grunt/api/v1/pages.py:66
-#: grunt/grunt/api/v1/dashboard.py:288 grunt/frontend/src/router/index.ts:204
+#: grunt/grunt/api/v1/dashboard.py:310 grunt/grunt/api/v1/dashboard.py:333
+#: grunt/frontend/src/router/index.ts:204
 msgid "Page not found"
 msgstr "Сторінку не знайдено"
 
-#: grunt/frontend/src/components/dashboard/sections/DateRangeSection.vue:32
+#: grunt/frontend/src/components/dashboard/sections/DateRangeSection.vue:28
 msgid "Period"
 msgstr "Період"
 
@@ -3163,7 +3152,7 @@ msgstr "Швидке створення"
 #: grunt/grunt/metadata/doctypes/DocType/global_list.js:34
 #: grunt/frontend/src/components/dashboard/ActivityStream.vue:105
 #: grunt/frontend/src/components/files/FileExplorer.vue:673
-#: grunt/frontend/src/pages/app/AppPage.vue:288
+#: grunt/frontend/src/pages/app/AppPage.vue:294
 #: grunt/frontend/src/pages/reports/ReportView.vue:209
 #: grunt/frontend/src/pages/desk/reports/ReportView.vue:83
 msgid "Refresh"
@@ -3217,7 +3206,7 @@ msgstr "Рядок видалено"
 #: grunt/frontend/src/components/files/CameraCapture.vue:133
 #: grunt/frontend/src/components/views/list/QuickFilterSettingsDialog.vue:113
 #: grunt/frontend/src/components/fields/Table/TableRowSheet.vue:110
-#: grunt/frontend/src/pages/app/AppPage.vue:369
+#: grunt/frontend/src/pages/app/AppPage.vue:375
 #: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:517
 msgid "Save"
 msgstr "Зберегти"
@@ -3236,7 +3225,7 @@ msgstr "Зберегти як пресет"
 
 #: grunt/frontend/src/core/composables/useFormSave.ts:225
 #: grunt/frontend/src/components/views/QuickEntryDialog.vue:112
-#: grunt/frontend/src/pages/app/AppPage.vue:148
+#: grunt/frontend/src/pages/app/AppPage.vue:154
 msgid "Save error"
 msgstr "Помилка збереження"
 
@@ -3471,10 +3460,6 @@ msgstr "Заголовок віджета"
 #: grunt/frontend/src/components/dashboard/sections/WidthSection.vue:20
 msgid "Width"
 msgstr "Ширина"
-
-#: grunt/frontend/src/components/dashboard/sections/DateRangeSection.vue:16
-msgid "Year"
-msgstr "Рік"
 
 #: grunt/frontend/src/components/dashboard/sections/ActivityFilterSection.vue:18
 #: grunt/frontend/src/components/views/form/FormHeader.vue:279
@@ -6110,63 +6095,63 @@ msgstr "Видалення записів"
 msgid "Deleting records…"
 msgstr "Видалення записів…"
 
-#: grunt/frontend/src/pages/app/AppPage.vue:131
+#: grunt/frontend/src/pages/app/AppPage.vue:137
 msgid "Could not create the page"
 msgstr "Помилка створення сторінки"
 
-#: grunt/frontend/src/pages/app/AppPage.vue:230
+#: grunt/frontend/src/pages/app/AppPage.vue:236
 msgid "Link copied"
 msgstr "Посилання скопійовано"
 
-#: grunt/frontend/src/pages/app/AppPage.vue:271
+#: grunt/frontend/src/pages/app/AppPage.vue:277
 msgid "30s"
 msgstr "30с"
 
-#: grunt/frontend/src/pages/app/AppPage.vue:272
+#: grunt/frontend/src/pages/app/AppPage.vue:278
 msgid "1m"
 msgstr "1хв"
 
-#: grunt/frontend/src/pages/app/AppPage.vue:273
+#: grunt/frontend/src/pages/app/AppPage.vue:279
 msgid "5m"
 msgstr "5хв"
 
-#: grunt/frontend/src/pages/app/AppPage.vue:274
+#: grunt/frontend/src/pages/app/AppPage.vue:280
 msgid "10m"
 msgstr "10хв"
 
-#: grunt/frontend/src/pages/app/AppPage.vue:313
+#: grunt/frontend/src/pages/app/AppPage.vue:319
 msgid "The page has not been created yet"
 msgstr "Сторінку ще не створено"
 
-#: grunt/frontend/src/pages/app/AppPage.vue:317
+#: grunt/frontend/src/pages/app/AppPage.vue:323
 msgid "Create page"
 msgstr "Створити Сторінку"
 
-#: grunt/frontend/src/pages/app/AppPage.vue:325
+#: grunt/frontend/src/pages/app/AppPage.vue:331
 msgid "The page is empty"
 msgstr "Сторінка порожня"
 
-#: grunt/frontend/src/pages/app/AppPage.vue:356
+#: grunt/frontend/src/pages/app/AppPage.vue:362
 msgid "Edit mode"
 msgstr "Режим редагування"
 
-#: grunt/frontend/src/pages/app/AppPage.vue:381
+#: grunt/frontend/src/pages/app/AppPage.vue:387
 msgid "Widget types"
 msgstr "Типи віджетів"
 
-#: grunt/frontend/src/pages/app/AppPage.vue:410
+#: grunt/frontend/src/pages/app/AppPage.vue:416
 msgid "Choose a widget type"
 msgstr "Оберіть тип віджета"
 
-#: grunt/frontend/src/pages/app/AppPage.vue:411
+#: grunt/frontend/src/pages/app/AppPage.vue:417
 msgid "Click any type in the left panel — it will appear here"
 msgstr "Натисніть на будь-який тип у лівій панелі — він з'явиться тут"
 
-#: grunt/frontend/src/pages/app/AppPage.vue:471
+#: grunt/frontend/src/pages/app/AppPage.vue:477
 msgid "Embed page"
 msgstr "Вбудувати сторінку"
 
-#: grunt/frontend/src/pages/app/AppPage.vue:475
+#: grunt/frontend/src/pages/app/AppPage.vue:481
 msgid "Direct link"
 msgstr "Пряме посилання"
 
@@ -6487,7 +6472,7 @@ msgstr "Не включено (потребують агрегації): {column
 msgid "Applied «{name}»"
 msgstr "Застосовано «{name}»"
 
-#: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:92
+#: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:140
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:274
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:387
 #: grunt/frontend/src/components/views/list/ListGroupedView.vue:95
@@ -6556,12 +6541,12 @@ msgstr "Нд"
 msgid "Total: {n} records"
 msgstr "Всього: {n} записів"
 
-#: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:41
+#: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:82
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:222
 msgid "Sum"
 msgstr "Сума"
 
-#: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:41
+#: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:82
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:226
 msgid "Count"
 msgstr "Кількість"
@@ -6592,7 +6577,7 @@ msgstr "Не вдалося відкрити звіт"
 msgid "No total"
 msgstr "Без підсумку"
 
-#: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:41
+#: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:82
 #: grunt/frontend/src/components/views/report/ReportGridView.vue:223
 msgid "Average"
 msgstr "Середнє"
@@ -6729,7 +6714,7 @@ msgid "You only see records matching these values."
 msgstr "Ви бачите лише записи, що відповідають цим значенням."
 
 #: grunt/grunt/api/v1/docs/utils.py:91
-#: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:43
+#: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:84
 #: grunt/frontend/src/components/views/list/ListHeader.vue:129
 #: grunt/frontend/src/components/fields/Default/FilterInput.vue:27
 #: grunt/frontend/src/pages/reports/QueryReportBuilder.vue:362
@@ -7084,11 +7069,11 @@ msgstr ""
 msgid "over {period}"
 msgstr "за {period}"
 
-#: grunt/frontend/src/pages/app/AppHome.vue:145
+#: grunt/frontend/src/pages/app/AppHome.vue:151
 msgid "Create a"
 msgstr "Створіть"
 
-#: grunt/frontend/src/pages/app/AppHome.vue:146
+#: grunt/frontend/src/pages/app/AppHome.vue:152
 msgid "and set it in the «Home page» field of the AppMenu settings."
 msgstr "і вкажіть її у полі «Домашня сторінка» в налаштуваннях AppMenu."
 
@@ -7136,7 +7121,7 @@ msgstr "Скопійовано!"
 msgid "no change"
 msgstr "без змін"
 
-#: grunt/frontend/src/pages/app/AppHome.vue:143
+#: grunt/frontend/src/pages/app/AppHome.vue:149
 msgid "The home page is not set up."
 msgstr "Домашня сторінка не налаштована."
 
@@ -7185,7 +7170,7 @@ msgstr "Помилка застосування переходу"
 msgid "Delete error"
 msgstr "Помилка видалення"
 
-#: grunt/frontend/src/pages/app/AppHome.vue:145
+#: grunt/frontend/src/pages/app/AppHome.vue:151
 msgctxt "link"
 msgid "Page"
 msgstr "Сторінку"
@@ -12788,15 +12773,15 @@ msgstr "Термін дії посилання закінчився"
 msgid "DocType not found"
 msgstr "DocType не знайдено"
 
-#: grunt/grunt/api/v1/dashboard.py:289
+#: grunt/grunt/api/v1/dashboard.py:311 grunt/grunt/api/v1/dashboard.py:334
 msgid "The page is not published"
 msgstr "Сторінку не опубліковано"
 
-#: grunt/grunt/api/v1/dashboard.py:305
+#: grunt/grunt/api/v1/dashboard.py:350
 msgid "Dashboard not found"
 msgstr "Дашборд не знайдено"
 
-#: grunt/grunt/api/v1/dashboard.py:306
+#: grunt/grunt/api/v1/dashboard.py:351
 msgid "The dashboard is not published"
 msgstr "Дашборд не опубліковано"
 
@@ -17707,6 +17692,62 @@ msgctxt "meta:SystemSettings.sec_collaboration"
 msgid "Collaboration"
 msgstr "Спільна робота"
 
+#: grunt/frontend/src/components/views/sidebar/SidebarTags.vue:76
+msgid "No tags"
+msgstr "Тегів немає"
+
+#: grunt/frontend/src/components/dashboard/sections/DateRangeSection.vue:41
+msgid "Period switcher"
+msgstr "Перемикач періоду"
+
+#: grunt/grunt/api/v1/dashboard.py:315
+msgid "Widget not found"
+msgstr "Віджет не знайдено"
+
+#: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
+msgctxt "help:PageWidget.period_switch"
+msgid ""
+"Let viewers switch the period (week/month/year/all time) on the widget "
+"itself"
+msgstr ""
+"Глядачі можуть перемикати період (тиждень/місяць/рік/весь час) прямо на "
+"віджеті"
+
+#: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
+msgctxt "meta:PageWidget.period_switch"
+msgid "Period switcher"
+msgstr "Перемикач періоду"
+
+#: grunt/grunt/metadata/widget.py:85
+msgid "3 months"
+msgstr "3 місяці"
+
+#: grunt/grunt/metadata/widget.py:84
+msgid "30 days"
+msgstr "30 днів"
+
+#: grunt/grunt/metadata/widget.py:83
+msgid "7 days"
+msgstr "7 днів"
+
+#: grunt/grunt/metadata/widget.py:86
+msgid "Year"
+msgstr "Рік"
+
+#: grunt/grunt/metadata/widget.py:87
+msgid "All time"
+msgstr "Весь час"
+
+#~ msgctxt "select:PageWidget.period"
+#~ msgid "all"
+#~ msgstr ""
+
+#~ msgid "Month"
+#~ msgstr "Місяць"
+
+#~ msgid "Week"
+#~ msgstr "Тиждень"
+
 #~ msgctxt "help:Backup"
 #~ msgid ""
 #~ "Site backups in sites/<site>/backups/: database, uploaded files, "
@@ -18536,9 +18577,6 @@ msgstr "Спільна робота"
 
 #~ msgid "Create \"{tag}\""
 #~ msgstr "Створити «{tag}»"
-
-#~ msgid "No tags"
-#~ msgstr "Тегів немає"
 
 #~ msgid "No tags yet"
 #~ msgstr "Тегів ще немає"

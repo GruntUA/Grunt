@@ -53,7 +53,7 @@
       "fieldname": "period",
       "label": "Period",
       "fieldtype": "Select",
-      "options": "7d\n30d\n90d\n365d",
+      "options_source": "grunt.widget_period",
       "default": "30d"
     },
     {

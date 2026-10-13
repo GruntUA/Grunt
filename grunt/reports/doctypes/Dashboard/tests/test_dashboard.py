@@ -17,6 +17,7 @@ class TestTimespanConfig:
             "30d",
             "90d",
             "365d",
+            "all",
         }
         assert set(_TIMESPAN_DAYS.keys()) == expected
 

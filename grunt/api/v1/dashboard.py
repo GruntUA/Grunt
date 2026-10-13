@@ -11,7 +11,7 @@ from typing import Any
 import grunt
 from grunt import _, log
 from grunt.document.query import _expand_child_of_filters
-from grunt.metadata.widget import get_widget_type_class
+from grunt.metadata.widget import WIDGET_PERIOD_DAYS, get_widget_type_class
 from grunt.permissions.rbac import permission_checker
 from grunt.reports.widget_compute import _widget_report_series
 
@@ -21,11 +21,8 @@ _TIMESPAN_DAYS = {
     "last_quarter": 90,
     "last_year": 365,
     "all_time": 0,
-    # Short aliases
-    "7d": 7,
-    "30d": 30,
-    "90d": 90,
-    "365d": 365,
+    # The values PageWidget/DashboardWidget.period offer
+    **WIDGET_PERIOD_DAYS,
 }
 
 
@@ -178,7 +175,9 @@ async def _compute_widget_data(
     period_key = widget.get("period") or "last_month"
     days = _TIMESPAN_DAYS.get(period_key, 30)
     now = datetime.now(UTC)
-    since = global_since if global_since is not None else now - timedelta(days=days)
+    # 0 days = all time: from the epoch, not "since now" (an empty range).
+    default_since = now - timedelta(days=days) if days else datetime(1970, 1, 1, tzinfo=UTC)
+    since = global_since if global_since is not None else default_since
     until = global_until if global_until is not None else now
     base_filters = await _resolve_context_tokens(_widget_filters(widget))
     tree_filters = {k: v for k, v in base_filters.items() if k.endswith("__child_of")}
@@ -213,7 +212,7 @@ def page_visible(page: dict[str, Any], user: Any) -> bool:
     return not allowed or bool(allowed & roles)
 
 
-async def _get_widget_data(
+async def _load_widgets(
     entity_doctype: str,
     name: str,
     date_from: str | None,
@@ -221,14 +220,9 @@ async def _get_widget_data(
     *,
     not_found_msg: str,
     unpublished_msg: str,
-) -> dict[str, Any]:
-    """Compute all widget values for a Page/Dashboard document.
-
-    Shared by get_page_data/get_dashboard_data - identical widget-computation
-    pipeline for both entity types, differing only in which doctype to load
-    and the (localized) error messages.
-    """
-
+) -> tuple[list[dict[str, Any]], datetime | None, datetime | None]:
+    """A visible Page/Dashboard's widgets (in sequence order) and the parsed
+    global date range."""
     doc = await grunt.find_doc(entity_doctype, name)
     if doc is None:
         grunt.throw(not_found_msg, "NOT_FOUND")
@@ -250,27 +244,78 @@ async def _get_widget_data(
     if date_to:
         with contextlib.suppress(ValueError):
             global_until = datetime.fromisoformat(date_to).replace(tzinfo=UTC)
+    return widgets, global_since, global_until
 
-    async def _safe_compute(w_dict: dict[str, Any]) -> tuple[str, Any]:
-        try:
-            result = await _compute_widget_data(
-                w_dict, global_since=global_since, global_until=global_until
-            )
-        except Exception:
-            log.warning(
-                "dashboard.widget_compute_failed",
-                widget=w_dict.get("name"),
-                exc_info=True,
-            )
-            result = None
-        return w_dict["name"], result
 
+async def _safe_compute(
+    w_dict: dict[str, Any], global_since: datetime | None, global_until: datetime | None
+) -> Any:
+    try:
+        return await _compute_widget_data(
+            w_dict, global_since=global_since, global_until=global_until
+        )
+    except Exception:
+        log.warning(
+            "dashboard.widget_compute_failed",
+            widget=w_dict.get("name"),
+            exc_info=True,
+        )
+        return None
+
+
+async def _get_widget_data(
+    entity_doctype: str,
+    name: str,
+    date_from: str | None,
+    date_to: str | None,
+    *,
+    not_found_msg: str,
+    unpublished_msg: str,
+) -> dict[str, Any]:
+    """Compute all widget values for a Page/Dashboard document.
+
+    Shared by get_page_data/get_dashboard_data - identical widget-computation
+    pipeline for both entity types, differing only in which doctype to load
+    and the (localized) error messages.
+    """
+    widgets, global_since, global_until = await _load_widgets(
+        entity_doctype,
+        name,
+        date_from,
+        date_to,
+        not_found_msg=not_found_msg,
+        unpublished_msg=unpublished_msg,
+    )
     # Sequential, not asyncio.gather: all widgets share the request-scoped
     # AsyncSession, which SQLAlchemy does not allow to be driven from
     # concurrent coroutines - gathering here races queries onto the same
     # session and raises IllegalStateChangeError under load.
-    pairs = [await _safe_compute(w) for w in widgets]
-    return dict(pairs)
+    return {w["name"]: await _safe_compute(w, global_since, global_until) for w in widgets}
+
+
+async def get_page_widget_data(
+    name: str,
+    widget: str,
+    period: str | None = None,
+    date_from: str | None = None,
+    date_to: str | None = None,
+) -> Any:
+    """Recompute one widget of a Page, optionally for another ``period`` -
+    the widget's own period switcher (e.g. a table's week/month/year/all)."""
+    widgets, global_since, global_until = await _load_widgets(
+        "Page",
+        name,
+        date_from,
+        date_to,
+        not_found_msg=_("Page not found"),
+        unpublished_msg=_("The page is not published"),
+    )
+    w_dict = next((w for w in widgets if w.get("name") == widget), None)
+    if w_dict is None:
+        grunt.throw(_("Widget not found"), "NOT_FOUND")
+    if period in _TIMESPAN_DAYS:
+        w_dict = {**w_dict, "period": period}
+    return await _safe_compute(w_dict, global_since, global_until)
 
 
 @grunt.whitelist()

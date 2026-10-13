@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, provide } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { PencilLine } from '@lucide/vue'
 import { useAppStore } from '@/stores/app'
@@ -9,7 +9,8 @@ import { Button } from '@/components/ui/button'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { PERMS_KEY } from '@/core/permissions'
 import { docsApi } from '@/core/api/docs'
-import { getPageData } from '@/core/api/pages'
+import { getPageData, getPageWidgetData } from '@/core/api/pages'
+import { WIDGET_PERIOD_LOADER } from '@/core/widgetPeriod'
 import AppIcon from '@/components/AppIcon.vue'
 import WidgetCard from '@/components/dashboard/WidgetCard.vue'
 import OnboardingChecklists from '@/components/desk/OnboardingChecklists.vue'
@@ -43,6 +44,11 @@ function selectPage(name: string | number) {
   const page = String(name)
   router.replace({ query: { ...route.query, page: page === appStore.active?.home_page ? undefined : page } })
 }
+
+provide(WIDGET_PERIOD_LOADER, async (widget, period) => {
+  if (!currentPage.value) return null
+  return getPageWidgetData(currentPage.value, widget.id, period)
+})
 
 let loadSeq = 0
 

@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { computed } from 'vue'
+import { computed, inject, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import type { DashboardWidget } from '@/types'
+import type { DashboardWidget, WidgetPeriod } from '@/types'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import { WIDGET_PERIOD_LOADER, useWidgetPeriods } from '@/core/widgetPeriod'
 import { docUrl } from '@/core/workspaceUrl'
 import { filteredListUrl, groupFilter } from '@/pages/reports/drilldown'
 
@@ -17,30 +19,69 @@ interface Row {
   doc?: string | null
 }
 
+interface TableData {
+  rows: Row[]
+  aggregation?: string
+  field?: string | null
+  group_label?: string | null
+  link_doctype?: string | null
+  filters?: Record<string, unknown>
+}
+
 const props = defineProps<{
   widget: DashboardWidget
-  data: {
-    rows: Row[]
-    aggregation?: string
-    field?: string | null
-    group_label?: string | null
-    link_doctype?: string | null
-    filters?: Record<string, unknown>
-  } | null
+  data: TableData | null
   loading?: boolean
   workspaceName?: string
 }>()
 
 const router = useRouter()
 
-const rows = computed(() => props.data?.rows ?? [])
+// Period switcher: the page's data is for the configured period; any other
+// period is fetched for this widget alone.
+const loadPeriod = inject(WIDGET_PERIOD_LOADER, null)
+const PERIODS = useWidgetPeriods()
+const showSwitch = computed(() =>
+  !!props.widget.period_switch && !!props.widget.date_field && !!loadPeriod && PERIODS.value.length > 0)
+const period = ref<WidgetPeriod>(props.widget.period)
+const periodData = ref<TableData | null>(null)
+const switching = ref(false)
+let periodSeq = 0
+
+async function fetchPeriod(p: WidgetPeriod) {
+  const seq = ++periodSeq // a quick re-click must not show the previous period's answer
+  if (p === props.widget.period || !loadPeriod) {
+    periodData.value = null
+    switching.value = false
+    return
+  }
+  switching.value = true
+  try {
+    const result = await loadPeriod(props.widget, p) as TableData | null
+    if (seq === periodSeq) periodData.value = result ?? { rows: [] }
+  } catch { /* keep the rows shown */ } finally {
+    if (seq === periodSeq) switching.value = false
+  }
+}
+
+function selectPeriod(p: unknown) {
+  if (!p || p === period.value) return
+  period.value = p as WidgetPeriod
+  void fetchPeriod(period.value)
+}
+
+// A page refresh brings fresh data for the configured period only.
+watch(() => props.data, () => { if (period.value !== props.widget.period) void fetchPeriod(period.value) })
+
+const tableData = computed(() => periodData.value ?? props.data)
+const rows = computed(() => tableData.value?.rows ?? [])
 const maxValue = computed(() => Math.max(...rows.value.map(r => r.value), 1))
 
 const aggLabel = computed(() => {
   const map: Record<string, string> = {
     count: t('Count'), sum: t('Sum'), avg: t('Average'), min: t('Min'), max: t('Max'),
   }
-  return map[props.data?.aggregation ?? 'count'] ?? t('Value')
+  return map[tableData.value?.aggregation ?? 'count'] ?? t('Value')
 })
 
 function barWidth(value: number): number {
@@ -49,7 +90,8 @@ function barWidth(value: number): number {
 
 /** Single-row group -> that document; Link group -> the linked record; else the filtered list. */
 function open(row: Row) {
-  const { widget, data } = props
+  const { widget } = props
+  const data = tableData.value
   if (row.doc) return router.push(docUrl(widget.ref_doctype, row.doc))
   const isNull = row.key === null || row.key === undefined
   if (data?.link_doctype && !isNull) return router.push(docUrl(data.link_doctype, row.key))
@@ -67,9 +109,15 @@ function formatVal(v: number): string {
 <template>
   <div class="flex flex-col h-full">
     <!-- Header -->
-    <div class="px-4 pt-3 pb-2 shrink-0">
-      <p class="font-medium text-muted-foreground">{{ widget.title }}</p>
-      <p v-if="widget.description" class="text-muted-foreground/80">{{ widget.description }}</p>
+    <div class="px-4 pt-3 pb-2 shrink-0 flex flex-wrap items-start justify-between gap-2">
+      <div class="min-w-0">
+        <p class="font-medium text-muted-foreground">{{ widget.title }}</p>
+        <p v-if="widget.description" class="text-muted-foreground/80">{{ widget.description }}</p>
+      </div>
+      <ToggleGroup v-if="showSwitch" type="single" variant="outline" size="sm"
+        :model-value="period" @update:model-value="selectPeriod">
+        <ToggleGroupItem v-for="p in PERIODS" :key="p.value" :value="p.value" class="px-2.5">{{ p.label }}</ToggleGroupItem>
+      </ToggleGroup>
     </div>
 
     <!-- Skeleton -->
@@ -84,12 +132,12 @@ function formatVal(v: number): string {
     </div>
 
     <!-- Table -->
-    <div v-else class="flex-1 overflow-auto">
+    <div v-else :class="['flex-1 overflow-auto transition-opacity', switching && 'opacity-50']">
       <table class="w-full table-fixed">
         <thead class="sticky top-0 bg-card border-b">
           <tr>
             <th class="px-4 py-2 text-left font-medium text-muted-foreground">
-              {{ data?.group_label || widget.group_by || t('Group') }}
+              {{ tableData?.group_label || widget.group_by || t('Group') }}
             </th>
             <th class="w-24 px-4 py-2 text-right font-medium text-muted-foreground">
               {{ widget.value_label || aggLabel }}

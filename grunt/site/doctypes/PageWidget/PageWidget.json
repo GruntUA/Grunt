@@ -65,8 +65,15 @@
       "fieldname": "period",
       "label": "Period",
       "fieldtype": "Select",
-      "options": "7d\n30d\n90d\n365d",
+      "options_source": "grunt.widget_period",
       "default": "30d"
+    },
+    {
+      "fieldname": "period_switch",
+      "label": "Period switcher",
+      "fieldtype": "Check",
+      "default": 0,
+      "description": "Let viewers switch the period (week/month/year/all time) on the widget itself"
     },
     {
       "fieldname": "filters",

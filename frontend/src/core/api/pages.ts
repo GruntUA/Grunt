@@ -28,3 +28,17 @@ export async function getPageData(
   const r = await client.get(`/api/v1/page-data/${name}`, { params })
   return r.data.data
 }
+
+/** Recompute one widget of a Page for another period (the widget's period switcher). */
+export async function getPageWidgetData(
+  name: string,
+  widget: string,
+  period: string,
+  opts?: { dateFrom?: string; dateTo?: string },
+): Promise<unknown> {
+  const params: Record<string, string> = { period }
+  if (opts?.dateFrom) params.date_from = opts.dateFrom
+  if (opts?.dateTo)   params.date_to   = opts.dateTo
+  const r = await client.get(`/api/v1/page-data/${name}/${widget}`, { params })
+  return r.data.data
+}
