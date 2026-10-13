@@ -8,7 +8,7 @@ from fastapi import Query
 
 import grunt
 from grunt.api.router import GruntRouter
-from grunt.api.v1.dashboard import get_dashboard_data, get_page_data, get_page_widget_data
+from grunt.api.v1.dashboard import get_page_data, get_page_widget_data
 from grunt.api.v1.schemas.response import ok
 
 router = GruntRouter()
@@ -45,15 +45,4 @@ async def page_widget_data(
     data = await get_page_widget_data(
         name, widget, period=period, date_from=date_from, date_to=date_to
     )
-    return ok(await _sign(data))
-
-
-@router.get("/dashboard-data/{name}")
-async def dashboard_data(
-    name: str,
-    date_from: str | None = Query(None),
-    date_to: str | None = Query(None),
-) -> dict[str, Any]:
-    """Return computed widget data for a Dashboard."""
-    data = await get_dashboard_data(name, date_from=date_from, date_to=date_to)
     return ok(await _sign(data))

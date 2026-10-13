@@ -167,33 +167,6 @@
     {
       "section": "Розробка",
       "type": "DocType",
-      "label": "Дашборди",
-      "icon": "layout-dashboard",
-      "link_to": "Dashboard",
-      "show_count": true,
-      "sequence": 43
-    },
-    {
-      "section": "Розробка",
-      "type": "DocType",
-      "label": "Графіки",
-      "icon": "bar-chart-2",
-      "link_to": "DashboardChart",
-      "show_count": true,
-      "sequence": 44
-    },
-    {
-      "section": "Розробка",
-      "type": "DocType",
-      "label": "Числові картки",
-      "icon": "hash",
-      "link_to": "NumberCard",
-      "show_count": true,
-      "sequence": 45
-    },
-    {
-      "section": "Розробка",
-      "type": "DocType",
       "label": "Сторінки",
       "icon": "file",
       "link_to": "Page",

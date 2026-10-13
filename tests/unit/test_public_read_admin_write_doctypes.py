@@ -1,16 +1,15 @@
-"""Regression: Page, AppMenu, Dashboard, NumberCard, DashboardChart (and the
-CMS's WebPage) used to have no `permissions` at all. All of them had a dedicated
-whitelisted method gating create/delete to System Manager (register_page/
-delete_page, save_workspace/delete_workspace, ...) or no dedicated writer at
-all (Dashboard/NumberCard/DashboardChart/WebPage are managed purely through
-the generic docs CRUD) — either way, that admin-only intent was never
-actually enforced, since the generic docs CRUD bypassed it completely.
+"""Regression: Page, AppMenu (and the CMS's WebPage) used to have no
+`permissions` at all. All of them had a dedicated whitelisted method gating
+create/delete to System Manager (register_page/delete_page,
+save_workspace/delete_workspace, ...) or no dedicated writer at all (WebPage
+is managed purely through the generic docs CRUD) — either way, that
+admin-only intent was never actually enforced, since the generic docs CRUD
+bypassed it completely.
 
-Page and Dashboard are the sharpest case: their widgets compute aggregate
-data via `grunt.db.aggregate()`, which bypasses `doctype.permissions`
-entirely (a separate, pre-existing, wider gap — see project memory). Without
-this fix, any authenticated user could create a *published* Page/Dashboard
-with a widget aggregating a locked-down DocType (e.g. User) and read
+Page is the sharpest case: its widgets compute aggregate data via
+`grunt.db.aggregate()`, which bypasses `doctype.permissions` entirely (a
+separate, pre-existing, wider gap — see project memory). Without this fix,
+any authenticated user could create a *published* Page with a widget aggregating a locked-down DocType (e.g. User) and read
 cross-permission-boundary aggregate data just by viewing their own page.
 
 Fixed the same way for all of them: `read` stays open (these are meant to be
@@ -38,9 +37,6 @@ _GRUNT_ROOT = Path(__file__).resolve().parents[2] / "grunt"
 _DOCTYPE_JSON = {
     "Page": _GRUNT_ROOT / "site/doctypes/Page/Page.json",
     "AppMenu": _GRUNT_ROOT / "site/doctypes/AppMenu/AppMenu.json",
-    "Dashboard": _GRUNT_ROOT / "reports/doctypes/Dashboard/Dashboard.json",
-    "NumberCard": _GRUNT_ROOT / "reports/doctypes/NumberCard/NumberCard.json",
-    "DashboardChart": _GRUNT_ROOT / "reports/doctypes/DashboardChart/DashboardChart.json",
 }
 
 
@@ -74,7 +70,7 @@ async def test_any_authenticated_user_can_read(doctype_name):
 @pytest.mark.parametrize("action", ["write", "create", "delete"])
 @pytest.mark.asyncio
 async def test_plain_user_cannot_write_create_or_delete(doctype_name, action):
-    """The exact exploit: a plain user creating a published Page/Dashboard
+    """The exact exploit: a plain user creating a published Page
     with a widget targeting a locked-down DocType to read its aggregate
     data via the grunt.db.aggregate() permission-bypass.
     """

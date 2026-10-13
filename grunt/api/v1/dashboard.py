@@ -201,7 +201,7 @@ async def _compute_widget_data(
 
 
 def page_visible(page: dict[str, Any], user: Any) -> bool:
-    """A Page (or Dashboard) is shown to a user when it is published and, if it
+    """A Page is shown to a user when it is published and, if it
     lists roles, the user has one of them. System Manager sees every page."""
     roles = set(user.roles or [])
     if "System Manager" in roles:
@@ -213,26 +213,21 @@ def page_visible(page: dict[str, Any], user: Any) -> bool:
 
 
 async def _load_widgets(
-    entity_doctype: str,
     name: str,
     date_from: str | None,
     date_to: str | None,
-    *,
-    not_found_msg: str,
-    unpublished_msg: str,
 ) -> tuple[list[dict[str, Any]], datetime | None, datetime | None]:
-    """A visible Page/Dashboard's widgets (in sequence order) and the parsed
-    global date range."""
-    doc = await grunt.find_doc(entity_doctype, name)
+    """A visible Page's widgets (in sequence order) and the parsed global date range."""
+    doc = await grunt.find_doc("Page", name)
     if doc is None:
-        grunt.throw(not_found_msg, "NOT_FOUND")
-    dashboard = dict(doc)
+        grunt.throw(_("Page not found"), "NOT_FOUND")
+    page = dict(doc)
 
-    if not page_visible(dashboard, grunt.get_user()):
-        grunt.throw(unpublished_msg, "PERMISSION_DENIED")
+    if not page_visible(page, grunt.get_user()):
+        grunt.throw(_("The page is not published"), "PERMISSION_DENIED")
 
     widgets: list[dict[str, Any]] = sorted(
-        dashboard.get("widgets") or [],
+        page.get("widgets") or [],
         key=lambda w: w.get("sequence") or 0,
     )
 
@@ -263,36 +258,6 @@ async def _safe_compute(
         return None
 
 
-async def _get_widget_data(
-    entity_doctype: str,
-    name: str,
-    date_from: str | None,
-    date_to: str | None,
-    *,
-    not_found_msg: str,
-    unpublished_msg: str,
-) -> dict[str, Any]:
-    """Compute all widget values for a Page/Dashboard document.
-
-    Shared by get_page_data/get_dashboard_data - identical widget-computation
-    pipeline for both entity types, differing only in which doctype to load
-    and the (localized) error messages.
-    """
-    widgets, global_since, global_until = await _load_widgets(
-        entity_doctype,
-        name,
-        date_from,
-        date_to,
-        not_found_msg=not_found_msg,
-        unpublished_msg=unpublished_msg,
-    )
-    # Sequential, not asyncio.gather: all widgets share the request-scoped
-    # AsyncSession, which SQLAlchemy does not allow to be driven from
-    # concurrent coroutines - gathering here races queries onto the same
-    # session and raises IllegalStateChangeError under load.
-    return {w["name"]: await _safe_compute(w, global_since, global_until) for w in widgets}
-
-
 async def get_page_widget_data(
     name: str,
     widget: str,
@@ -302,14 +267,7 @@ async def get_page_widget_data(
 ) -> Any:
     """Recompute one widget of a Page, optionally for another ``period`` -
     the widget's own period switcher (e.g. a table's week/month/year/all)."""
-    widgets, global_since, global_until = await _load_widgets(
-        "Page",
-        name,
-        date_from,
-        date_to,
-        not_found_msg=_("Page not found"),
-        unpublished_msg=_("The page is not published"),
-    )
+    widgets, global_since, global_until = await _load_widgets(name, date_from, date_to)
     w_dict = next((w for w in widgets if w.get("name") == widget), None)
     if w_dict is None:
         grunt.throw(_("Widget not found"), "NOT_FOUND")
@@ -325,28 +283,9 @@ async def get_page_data(
     date_to: str | None = None,
 ) -> dict[str, Any]:
     """Return computed data for all widgets of a Page document."""
-    return await _get_widget_data(
-        "Page",
-        name,
-        date_from,
-        date_to,
-        not_found_msg=_("Page not found"),
-        unpublished_msg=_("The page is not published"),
-    )
-
-
-@grunt.whitelist()
-async def get_dashboard_data(
-    name: str,
-    date_from: str | None = None,
-    date_to: str | None = None,
-) -> dict[str, Any]:
-    """Return computed data for all widgets of a Dashboard document."""
-    return await _get_widget_data(
-        "Dashboard",
-        name,
-        date_from,
-        date_to,
-        not_found_msg=_("Dashboard not found"),
-        unpublished_msg=_("The dashboard is not published"),
-    )
+    widgets, global_since, global_until = await _load_widgets(name, date_from, date_to)
+    # Sequential, not asyncio.gather: all widgets share the request-scoped
+    # AsyncSession, which SQLAlchemy does not allow to be driven from
+    # concurrent coroutines - gathering here races queries onto the same
+    # session and raises IllegalStateChangeError under load.
+    return {w["name"]: await _safe_compute(w, global_since, global_until) for w in widgets}

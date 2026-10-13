@@ -2,9 +2,8 @@
 
 No prior coverage existed for this module before _compute_widget_data's
 10-branch if/elif chain was split into a widget_type -> handler dispatch
-table, and get_page_data/get_dashboard_data were unified into a shared
-_get_widget_data(). These tests exercise a representative widget type per
-handler family plus both entry points end-to-end.
+table. These tests exercise a representative widget type per handler family
+plus the get_page_data entry point end-to-end.
 """
 
 from __future__ import annotations
@@ -230,28 +229,6 @@ async def test_get_page_data_computes_all_widgets_by_name(ctx, widget_source):
     values = sorted(result.values(), key=str)
     assert {"value": 3, "trend": None, "filters": {}} in values
     assert {"count": 3} in values
-
-
-@pytest.mark.asyncio
-async def test_get_dashboard_data_matches_get_page_data_shape(ctx, widget_source):
-    """Both entry points go through the same _get_widget_data — same result shape."""
-    from grunt.api.v1.dashboard import get_dashboard_data
-
-    await ctx.new_doc(
-        "Dashboard",
-        {
-            "name": "Test Dashboard",
-            "label": "Test Dashboard",
-            "is_published": True,
-            "widgets": [
-                {"widget_type": "shortcut", "ref_doctype": "WidgetSourceItem"},
-            ],
-        },
-    )
-    await ctx.db._session().commit()
-
-    result = await get_dashboard_data("Test Dashboard")
-    assert list(result.values()) == [{"count": 3}]
 
 
 @pytest.mark.asyncio
