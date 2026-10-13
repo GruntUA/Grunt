@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import type { DocField } from '@/types'
-import { Input } from '@/components/ui/input'
+import {
+  NumberField, NumberFieldContent, NumberFieldDecrement, NumberFieldIncrement, NumberFieldInput,
+} from '@/components/ui/number-field'
+import { fieldNumber, localeTag, onDecimalKey } from '@/core/composables/useNumberField'
 
-const props = defineProps<{
+defineProps<{
   field: DocField
   modelValue: number | null | undefined
   disabled?: boolean
@@ -11,34 +14,32 @@ const props = defineProps<{
 
 const emit = defineEmits<{ 'update:modelValue': [value: number | null] }>()
 
-function onUpdate(v: string | number) {
-  if (v === '' || v == null) return emit('update:modelValue', null)
-  const n = Number(v)
-  emit('update:modelValue', Number.isFinite(n) ? n : null)
-}
-
-// A focused number input changes its value when you scroll over it - silent
-// data corruption. Swallow the wheel while focused; page scroll still works
-// when the field isn't focused.
-function onWheel(e: WheelEvent) {
-  if (document.activeElement === e.target) e.preventDefault()
-}
+const formatOptions: Intl.NumberFormatOptions = { maximumFractionDigits: 10 }
 </script>
 
 <template>
-  <Input
-    type="number"
-    step="any"
-    inputmode="decimal"
-    :model-value="modelValue ?? ''"
-    :placeholder="field.placeholder ?? '0.0'"
-    :required="field.required"
+  <!-- The wheel doesn't change a focused value: silent data corruption on scroll. -->
+  <NumberField
+    :model-value="modelValue ?? null"
+    :locale="localeTag()"
+    :format-options="formatOptions"
+    :step-snapping="false"
+    :min="field.min_value ?? undefined"
+    :max="field.max_value ?? undefined"
     :disabled="disabled || field.read_only"
-    :min="field.min_value"
-    :max="field.max_value"
-    :aria-invalid="error ? true : undefined"
-    :class="['w-full tabular-nums', field.bold && 'font-medium']"
-    @wheel="onWheel"
-    @update:model-value="onUpdate"
-  />
+    disable-wheel-change
+    @update:model-value="emit('update:modelValue', fieldNumber($event))"
+  >
+    <NumberFieldContent>
+      <NumberFieldDecrement />
+      <NumberFieldInput
+        :placeholder="field.placeholder ?? '0.0'"
+        :required="field.required"
+        :aria-invalid="error ? true : undefined"
+        :class="['tabular-nums', field.bold && 'font-medium']"
+        @keydown="onDecimalKey"
+      />
+      <NumberFieldIncrement />
+    </NumberFieldContent>
+  </NumberField>
 </template>

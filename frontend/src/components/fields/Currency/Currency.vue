@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { DocField } from '@/types'
-import { Input } from '@/components/ui/input'
-import { currencyCode, currencySymbol } from '@/core/currency'
+import { NumberField, NumberFieldContent, NumberFieldInput } from '@/components/ui/number-field'
+import { currencyCode } from '@/core/currency'
+import { fieldNumber, localeTag, onDecimalKey } from '@/core/composables/useNumberField'
 
 const props = defineProps<{
   field: DocField
@@ -14,42 +15,44 @@ const props = defineProps<{
 
 const emit = defineEmits<{ 'update:modelValue': [value: number | null] }>()
 
-const symbol = computed(() => currencySymbol(currencyCode(props.field, props.doc)))
+// The currency is shown by the formatter (`1 234,50 ₴`); without a code - two decimals.
+const formatOptions = computed<Intl.NumberFormatOptions>(() => {
+  const code = currencyCode(props.field, props.doc)
+  const plain = { minimumFractionDigits: 2, maximumFractionDigits: 2 }
+  if (!code) return plain
+  try {
+    new Intl.NumberFormat(localeTag(), { style: 'currency', currency: code })
+    return { ...plain, style: 'currency', currency: code, currencyDisplay: 'narrowSymbol' }
+  } catch {
+    return plain // unknown code
+  }
+})
 
-function onUpdate(v: string | number) {
-  if (v === '' || v == null) return emit('update:modelValue', null)
-  const n = Number(v)
-  emit('update:modelValue', Number.isFinite(n) ? Math.round(n * 100) / 100 : null)
-}
-
-// A focused number input changes its value when you scroll over it - silent
-// data corruption. Swallow the wheel while focused; page scroll still works
-// when the field isn't focused.
-function onWheel(e: WheelEvent) {
-  if (document.activeElement === e.target) e.preventDefault()
-}
+const toCents = (n: number) => Math.round(n * 100) / 100
 </script>
 
 <template>
-  <div class="relative">
-    <Input
-      type="number"
-      step="0.01"
-      inputmode="decimal"
-      :model-value="modelValue ?? ''"
-      :placeholder="field.placeholder ?? '0.00'"
-      :required="field.required"
-      :disabled="disabled || field.read_only"
-      :min="field.min_value"
-      :max="field.max_value"
-      :aria-invalid="error ? true : undefined"
-      :class="['w-full tabular-nums', symbol && 'pr-10', field.bold && 'font-medium']"
-      @wheel="onWheel"
-      @update:model-value="onUpdate"
-    />
-    <span
-      v-if="symbol"
-      class="pointer-events-none absolute inset-y-0 right-2.5 flex items-center text-muted-foreground"
-    >{{ symbol }}</span>
-  </div>
+  <!-- No +/- buttons: stepping an amount by 1 is rarely what anyone wants.
+       The wheel doesn't change a focused value: silent data corruption on scroll. -->
+  <NumberField
+    :model-value="modelValue ?? null"
+    :locale="localeTag()"
+    :format-options="formatOptions"
+    :step-snapping="false"
+    :min="field.min_value ?? undefined"
+    :max="field.max_value ?? undefined"
+    :disabled="disabled || field.read_only"
+    disable-wheel-change
+    @update:model-value="emit('update:modelValue', fieldNumber($event, toCents))"
+  >
+    <NumberFieldContent>
+      <NumberFieldInput
+        :placeholder="field.placeholder ?? '0.00'"
+        :required="field.required"
+        :aria-invalid="error ? true : undefined"
+        :class="['text-right tabular-nums', field.bold && 'font-medium']"
+        @keydown="onDecimalKey"
+      />
+    </NumberFieldContent>
+  </NumberField>
 </template>
