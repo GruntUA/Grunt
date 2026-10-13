@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import contextlib
+import uuid
 from typing import Any
 
 from fastapi import HTTPException
@@ -23,7 +25,10 @@ _LOCATION_FIELDS = (
     "encryption_salt",
     "rclone_type",
 )
-_PROBE = ".grunt-connection-test"
+# A fresh name per run: Drive keeps several files under one name, and a probe
+# left behind by an earlier run (a retried upload, a failed delete) would be
+# read back together with this one.
+_PROBE = ".grunt-connection-test-{}"
 
 
 class StorageRemote(Document):
@@ -137,10 +142,14 @@ async def test_connection(name: str) -> dict[str, Any]:
     try:
         async with Rclone(remote) as rc:
             await rc.mkdir()
-            await rc.put_bytes(b"grunt", _PROBE)
-            if await rc.cat(_PROBE) != b"grunt":
-                raise RemoteError(_("The test file read back differs from what was written"))
-            await rc.delete_file(_PROBE)
+            probe = _PROBE.format(uuid.uuid4().hex)
+            try:
+                await rc.put_bytes(b"grunt", probe)
+                if await rc.cat(probe) != b"grunt":
+                    raise RemoteError(_("The test file read back differs from what was written"))
+            finally:
+                with contextlib.suppress(RemoteError):
+                    await rc.delete_file(probe)
             about = await rc.about()
         if about and about.get("total"):
             quota = _("%(free)s free of %(total)s") % {
