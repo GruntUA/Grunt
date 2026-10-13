@@ -300,10 +300,10 @@ msgstr ""
 msgid "Action “%(action)s” is not registered"
 msgstr ""
 
+#: grunt/frontend/src/components/layout/CommandPalette.vue:93
+#: grunt/frontend/src/components/layout/CommandPalette.vue:94
 #: grunt/frontend/src/components/layout/CommandPalette.vue:97
 #: grunt/frontend/src/components/layout/CommandPalette.vue:98
-#: grunt/frontend/src/components/layout/CommandPalette.vue:101
-#: grunt/frontend/src/components/layout/CommandPalette.vue:102
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:417
 #: grunt/frontend/src/components/views/actions/ActionMenu.vue:52
 msgid "Actions"
@@ -338,7 +338,7 @@ msgid "Activity feed"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/global_form.js:130
-#: grunt/frontend/src/components/layout/CommandPalette.vue:100
+#: grunt/frontend/src/components/layout/CommandPalette.vue:96
 msgid "Activity log"
 msgstr ""
 
@@ -466,11 +466,15 @@ msgstr ""
 msgid "All"
 msgstr ""
 
+#: grunt/frontend/src/components/app/AppSidebar.vue:167
+msgid "All apps"
+msgstr ""
+
 #: grunt/frontend/src/pages/studio/builder/webform/WebFormFieldPalette.vue:64
 msgid "All eligible fields are already added"
 msgstr ""
 
-#: grunt/frontend/src/components/layout/CommandPalette.vue:341
+#: grunt/frontend/src/components/layout/CommandPalette.vue:301
 msgid "All results →"
 msgstr ""
 
@@ -587,8 +591,8 @@ msgstr ""
 msgid "Approximate: recorded when tracking started"
 msgstr ""
 
-#: grunt/frontend/src/components/app/AppSidebar.vue:101
-#: grunt/frontend/src/components/layout/CommandPalette.vue:160
+#: grunt/frontend/src/components/app/AppSidebar.vue:145
+#: grunt/frontend/src/components/layout/CommandPalette.vue:156
 msgid "Apps"
 msgstr ""
 
@@ -688,7 +692,7 @@ msgstr ""
 msgid "Attach an image…"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:748
+#: grunt/frontend/src/components/files/FileExplorer.vue:760
 msgid "Attach as a link"
 msgstr ""
 
@@ -764,7 +768,8 @@ msgstr ""
 msgid "B"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:648
+#: grunt/frontend/src/components/app/AppSidebar.vue:203
+#: grunt/frontend/src/components/files/FileExplorer.vue:650
 #: grunt/frontend/src/components/views/form/FormTour.vue:145
 msgid "Back"
 msgstr ""
@@ -773,8 +778,8 @@ msgstr ""
 msgid "Back to home page"
 msgstr ""
 
-#: grunt/frontend/src/components/app/AppSidebar.vue:234
-#: grunt/frontend/src/components/app/AppSidebar.vue:305
+#: grunt/frontend/src/components/app/AppSidebar.vue:330
+#: grunt/frontend/src/components/app/AppSidebar.vue:401
 msgid "Back to my account"
 msgstr ""
 
@@ -886,7 +891,7 @@ msgid ""
 "Beta: this document type is still in development; its behavior may change."
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/ui/BlockHandle.vue:56
+#: grunt/frontend/src/components/fields/RichText/ui/BlockHandle.vue:58
 msgid "Block options"
 msgstr ""
 
@@ -987,7 +992,7 @@ msgstr ""
 msgid "Calculate for all"
 msgstr ""
 
-#: grunt/frontend/src/components/layout/CommandPalette.vue:140
+#: grunt/frontend/src/components/layout/CommandPalette.vue:136
 msgid "Calculator"
 msgstr ""
 
@@ -1017,8 +1022,8 @@ msgstr ""
 #: grunt/frontend/src/components/views/FilterBar.vue:344
 #: grunt/frontend/src/components/files/CameraCapture.vue:136
 #: grunt/frontend/src/components/files/FolderPickerDialog.vue:44
-#: grunt/frontend/src/components/files/FileExplorer.vue:750
-#: grunt/frontend/src/components/files/FileExplorer.vue:877
+#: grunt/frontend/src/components/files/FileExplorer.vue:762
+#: grunt/frontend/src/components/files/FileExplorer.vue:889
 #: grunt/frontend/src/components/workflow/WorkflowActionDialog.vue:105
 #: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue:545
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue:347
@@ -1262,7 +1267,7 @@ msgstr ""
 msgid "Clear Filters"
 msgstr ""
 
-#: grunt/frontend/src/components/app/AppSidebar.vue:301
+#: grunt/frontend/src/components/app/AppSidebar.vue:397
 msgid "Clear cache"
 msgstr ""
 
@@ -1345,7 +1350,7 @@ msgstr ""
 #: grunt/frontend/src/components/desk/TaskProgressPanel.vue:111
 #: grunt/frontend/src/components/views/DocSidebar.vue:75
 #: grunt/frontend/src/components/views/DocSidebar.vue:80
-#: grunt/frontend/src/components/files/FileExplorer.vue:763
+#: grunt/frontend/src/components/files/FileExplorer.vue:775
 #: grunt/frontend/src/components/ui/tree-select/TreeSelectNode.vue:65
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:395
 msgid "Collapse"
@@ -1570,7 +1575,7 @@ msgstr ""
 #: grunt/frontend/src/core/renderer/FieldRenderer.vue:144
 #: grunt/frontend/src/core/composables/useToast.ts:38
 #: grunt/frontend/src/components/desk/GruntDialog.vue:283
-#: grunt/frontend/src/components/layout/CommandPalette.vue:143
+#: grunt/frontend/src/components/layout/CommandPalette.vue:139
 #: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue:201
 #: grunt/frontend/src/components/views/form/FormHeader.vue:446
 msgid "Copied"
@@ -1587,7 +1592,7 @@ msgstr ""
 #: grunt/frontend/src/core/composables/useToast.ts:17
 #: grunt/frontend/src/components/desk/GruntDialog.vue:283
 #: grunt/frontend/src/components/debug/ServerErrorModal.vue:72
-#: grunt/frontend/src/components/files/FileExplorer.vue:711
+#: grunt/frontend/src/components/files/FileExplorer.vue:723
 #: grunt/frontend/src/components/views/form/FormHeader.vue:291
 #: grunt/frontend/src/components/views/form/FormHeader.vue:355
 #: grunt/frontend/src/components/fields/RichText/ui/EditorContextMenu.vue:113
@@ -1620,7 +1625,7 @@ msgstr ""
 msgid "Copy report"
 msgstr ""
 
-#: grunt/frontend/src/components/layout/CommandPalette.vue:138
+#: grunt/frontend/src/components/layout/CommandPalette.vue:134
 msgid "Copy result"
 msgstr ""
 
@@ -1667,7 +1672,7 @@ msgstr ""
 msgid "Could not download rclone: {0}"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:551
+#: grunt/frontend/src/components/files/FileExplorer.vue:553
 msgid "Could not download the file"
 msgstr ""
 
@@ -1771,7 +1776,7 @@ msgstr ""
 
 #: grunt/frontend/src/components/desk/OnboardingChecklists.vue:49
 #: grunt/frontend/src/components/layout/OfflineQueueSheet.vue:24
-#: grunt/frontend/src/components/files/FileExplorer.vue:689
+#: grunt/frontend/src/components/files/FileExplorer.vue:701
 #: grunt/frontend/src/components/fields/Link/Link.vue:188
 msgid "Create"
 msgstr ""
@@ -1792,7 +1797,7 @@ msgstr ""
 msgid "Create new"
 msgstr ""
 
-#: grunt/frontend/src/components/layout/CommandPalette.vue:98
+#: grunt/frontend/src/components/layout/CommandPalette.vue:94
 msgid "Create new DocType"
 msgstr ""
 
@@ -1850,7 +1855,7 @@ msgstr ""
 msgid "Customize Quick Filters"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:707
+#: grunt/frontend/src/components/files/FileExplorer.vue:719
 #: grunt/frontend/src/components/fields/RichText/ui/EditorContextMenu.vue:110
 msgid "Cut"
 msgstr ""
@@ -1885,7 +1890,7 @@ msgid "Daily notification digest"
 msgstr ""
 
 #: grunt/frontend/src/pages/DeskPage.vue:149
-#: grunt/frontend/src/components/app/AppSidebar.vue:283
+#: grunt/frontend/src/components/app/AppSidebar.vue:379
 msgid "Dark"
 msgstr ""
 
@@ -1931,7 +1936,7 @@ msgstr ""
 msgid "Date field"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:788
+#: grunt/frontend/src/components/files/FileExplorer.vue:800
 msgid "Date modified"
 msgstr ""
 
@@ -1987,14 +1992,14 @@ msgstr ""
 #: grunt/frontend/src/components/views/BulkActionBar.vue:300
 #: grunt/frontend/src/components/dashboard/WidgetConfigPanel.vue:78
 #: grunt/frontend/src/components/dashboard/WidgetCard.vue:42
-#: grunt/frontend/src/components/files/FileExplorer.vue:724
-#: grunt/frontend/src/components/files/FileExplorer.vue:878
+#: grunt/frontend/src/components/files/FileExplorer.vue:736
+#: grunt/frontend/src/components/files/FileExplorer.vue:890
 #: grunt/frontend/src/components/dashboard/sections/FiltersSection.vue:82
 #: grunt/frontend/src/components/views/form/FormModals.vue:141
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:430
 #: grunt/frontend/src/components/fields/Table/Table.vue:484
 #: grunt/frontend/src/components/fields/RichText/editor/commands.ts:98
-#: grunt/frontend/src/components/fields/RichText/ui/BlockHandle.vue:71
+#: grunt/frontend/src/components/fields/RichText/ui/BlockHandle.vue:72
 msgid "Delete"
 msgstr ""
 
@@ -2041,7 +2046,7 @@ msgstr ""
 msgid "Delete section"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:874
+#: grunt/frontend/src/components/files/FileExplorer.vue:886
 msgid "Delete selected: {n}? Folders go with everything in them."
 msgstr ""
 
@@ -2129,7 +2134,7 @@ msgstr ""
 
 #: grunt/frontend/src/components/views/DocSidebar.vue:71
 #: grunt/frontend/src/components/views/DocSidebar.vue:99
-#: grunt/frontend/src/components/files/FileExplorer.vue:729
+#: grunt/frontend/src/components/files/FileExplorer.vue:741
 msgid "Details"
 msgstr ""
 
@@ -2222,7 +2227,7 @@ msgstr ""
 msgid "DocType “%(doctype)s” not found"
 msgstr ""
 
-#: grunt/frontend/src/components/layout/CommandPalette.vue:174
+#: grunt/frontend/src/components/layout/CommandPalette.vue:170
 msgid "DocTypes"
 msgstr ""
 
@@ -2279,7 +2284,7 @@ msgstr ""
 msgid "Documentation"
 msgstr ""
 
-#: grunt/frontend/src/components/layout/CommandPalette.vue:192
+#: grunt/frontend/src/components/layout/CommandPalette.vue:188
 msgid "Documents"
 msgstr ""
 
@@ -2307,7 +2312,7 @@ msgid "Donut"
 msgstr ""
 
 #: grunt/grunt/backups/doctypes/Backup/Backup.js:26
-#: grunt/frontend/src/components/files/FileExplorer.vue:744
+#: grunt/frontend/src/components/files/FileExplorer.vue:756
 msgid "Download"
 msgstr ""
 
@@ -2345,7 +2350,7 @@ msgstr ""
 msgid "Drag section"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/ui/BlockHandle.vue:56
+#: grunt/frontend/src/components/fields/RichText/ui/BlockHandle.vue:58
 msgid "Drag to move, click for options"
 msgstr ""
 
@@ -2364,7 +2369,7 @@ msgstr ""
 #: grunt/grunt/actions/builtin.py:21
 #: grunt/grunt/metadata/doctypes/DocType/global_form.js:110
 #: grunt/frontend/src/components/fields/Table/Table.vue:446
-#: grunt/frontend/src/components/fields/RichText/ui/BlockHandle.vue:70
+#: grunt/frontend/src/components/fields/RichText/ui/BlockHandle.vue:71
 msgid "Duplicate"
 msgstr ""
 
@@ -2409,8 +2414,8 @@ msgstr ""
 msgid "Edit link"
 msgstr ""
 
-#: grunt/frontend/src/components/app/AppSidebar.vue:209
-#: grunt/frontend/src/components/app/AppSidebar.vue:211
+#: grunt/frontend/src/components/app/AppSidebar.vue:305
+#: grunt/frontend/src/components/app/AppSidebar.vue:307
 msgid "Edit menu"
 msgstr ""
 
@@ -2432,7 +2437,7 @@ msgstr ""
 msgid "Email me a code"
 msgstr ""
 
-#: grunt/frontend/src/components/app/AppSidebar.vue:59
+#: grunt/frontend/src/components/app/AppSidebar.vue:68
 msgid "Email settings"
 msgstr ""
 
@@ -2444,7 +2449,7 @@ msgstr ""
 msgid "Email template “%(name)s” not found or disabled"
 msgstr ""
 
-#: grunt/frontend/src/components/app/AppSidebar.vue:58
+#: grunt/frontend/src/components/app/AppSidebar.vue:67
 msgid "Emails"
 msgstr ""
 
@@ -2502,7 +2507,7 @@ msgstr ""
 msgid "Enter a valid email address"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:560
+#: grunt/frontend/src/components/files/FileExplorer.vue:562
 msgid "Enter an http(s) link"
 msgstr ""
 
@@ -2596,7 +2601,7 @@ msgid "Exit full screen"
 msgstr ""
 
 #: grunt/frontend/src/components/desk/TaskProgressPanel.vue:111
-#: grunt/frontend/src/components/files/FileExplorer.vue:763
+#: grunt/frontend/src/components/files/FileExplorer.vue:775
 #: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue:426
 #: grunt/frontend/src/components/ui/tree-select/TreeSelectNode.vue:65
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:395
@@ -2812,7 +2817,7 @@ msgid ""
 "Return all files), then change where or how they are stored"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:696
+#: grunt/frontend/src/components/files/FileExplorer.vue:708
 msgid "Files from the computer…"
 msgstr ""
 
@@ -2905,16 +2910,16 @@ msgid "Flags"
 msgstr ""
 
 #: grunt/grunt/storage/doctypes/File/File.js:22
-#: grunt/frontend/src/components/files/FileExplorer.vue:693
-#: grunt/frontend/src/components/files/FileExplorer.vue:819
+#: grunt/frontend/src/components/files/FileExplorer.vue:705
+#: grunt/frontend/src/components/files/FileExplorer.vue:831
 msgid "Folder"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:697
+#: grunt/frontend/src/components/files/FileExplorer.vue:709
 msgid "Folder from the computer…"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:658
+#: grunt/frontend/src/components/files/FileExplorer.vue:667
 msgid "Folder path"
 msgstr ""
 
@@ -2926,7 +2931,7 @@ msgstr ""
 msgid "Folder “%(folder)s” not found"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:755
+#: grunt/frontend/src/components/files/FileExplorer.vue:767
 msgid "Folders"
 msgstr ""
 
@@ -2975,7 +2980,7 @@ msgstr ""
 msgid "Formula"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:651
+#: grunt/frontend/src/components/files/FileExplorer.vue:653
 msgid "Forward"
 msgstr ""
 
@@ -3013,7 +3018,7 @@ msgstr ""
 msgid "From"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:699
+#: grunt/frontend/src/components/files/FileExplorer.vue:711
 msgid "From a link…"
 msgstr ""
 
@@ -3073,7 +3078,7 @@ msgstr ""
 msgid "Go home"
 msgstr ""
 
-#: grunt/frontend/src/components/layout/CommandPalette.vue:172
+#: grunt/frontend/src/components/layout/CommandPalette.vue:168
 msgid "Go to list {label}"
 msgstr ""
 
@@ -3200,7 +3205,6 @@ msgid "Highlight"
 msgstr ""
 
 #: grunt/frontend/src/router/index.ts:191
-#: grunt/frontend/src/components/app/AppSidebar.vue:117
 #: grunt/frontend/src/components/mobile/MobileBottomNav.vue:78
 msgid "Home"
 msgstr ""
@@ -3562,7 +3566,7 @@ msgstr ""
 msgid "Italic"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:887
+#: grunt/frontend/src/components/files/FileExplorer.vue:899
 msgid "Items: {n}"
 msgstr ""
 
@@ -3606,7 +3610,7 @@ msgstr ""
 msgid "Kanban"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:747
+#: grunt/frontend/src/components/files/FileExplorer.vue:759
 msgid "Keep the link to the file without downloading it"
 msgstr ""
 
@@ -3637,7 +3641,7 @@ msgstr ""
 msgid "Label is required"
 msgstr ""
 
-#: grunt/frontend/src/components/app/AppSidebar.vue:291
+#: grunt/frontend/src/components/app/AppSidebar.vue:387
 msgid "Language"
 msgstr ""
 
@@ -3689,7 +3693,7 @@ msgid "Less than or equal"
 msgstr ""
 
 #: grunt/frontend/src/pages/DeskPage.vue:145
-#: grunt/frontend/src/components/app/AppSidebar.vue:279
+#: grunt/frontend/src/components/app/AppSidebar.vue:375
 msgid "Light"
 msgstr ""
 
@@ -3729,7 +3733,7 @@ msgstr ""
 msgid "Link text"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:742
+#: grunt/frontend/src/components/files/FileExplorer.vue:754
 #: grunt/frontend/src/components/fields/RichText/RichText.vue:84
 msgid "Link to a file"
 msgstr ""
@@ -3806,8 +3810,8 @@ msgstr ""
 msgid "Locked accounts"
 msgstr ""
 
-#: grunt/frontend/src/components/app/AppSidebar.vue:309
-#: grunt/frontend/src/components/layout/CommandPalette.vue:102
+#: grunt/frontend/src/components/app/AppSidebar.vue:405
+#: grunt/frontend/src/components/layout/CommandPalette.vue:98
 msgid "Log out"
 msgstr ""
 
@@ -4061,7 +4065,7 @@ msgstr ""
 
 #: grunt/grunt/storage/doctypes/File/File.js:24
 #: grunt/grunt/storage/doctypes/FileFolder/file_folder.py:100
-#: grunt/frontend/src/components/files/FileExplorer.vue:103
+#: grunt/frontend/src/components/files/FileExplorer.vue:105
 msgid "My files"
 msgstr ""
 
@@ -4080,7 +4084,7 @@ msgstr ""
 #: grunt/grunt/cli/doctype.py:162 grunt/grunt/auth/doctypes/User/User.js:180
 #: grunt/frontend/src/core/composables/useFormValidation.ts:111
 #: grunt/frontend/src/core/composables/useFormValidation.ts:134
-#: grunt/frontend/src/components/files/FileExplorer.vue:787
+#: grunt/frontend/src/components/files/FileExplorer.vue:799
 #: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue:321
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:246
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:263
@@ -4090,7 +4094,7 @@ msgstr ""
 msgid "Name"
 msgstr ""
 
-#: grunt/frontend/src/components/layout/CommandPalette.vue:333
+#: grunt/frontend/src/components/layout/CommandPalette.vue:293
 #: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue:425
 msgid "Navigate"
 msgstr ""
@@ -4125,7 +4129,7 @@ msgstr ""
 msgid "New comment: “%(title)s”"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:314
+#: grunt/frontend/src/components/files/FileExplorer.vue:316
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:246
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:353
 msgid "New folder"
@@ -4290,8 +4294,8 @@ msgstr ""
 msgid "No connection — viewing from cache, changes are saved on this device"
 msgstr ""
 
-#: grunt/frontend/src/components/dashboard/widgets/Donut/Donut.vue:101
-#: grunt/frontend/src/components/dashboard/widgets/Chart/Chart.vue:198
+#: grunt/frontend/src/components/dashboard/widgets/Donut/Donut.vue:78
+#: grunt/frontend/src/components/dashboard/widgets/Chart/Chart.vue:126
 #: grunt/frontend/src/components/dashboard/widgets/Funnel/Funnel.vue:60
 #: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue:134
 #: grunt/frontend/src/pages/reports/ReportView.vue:236
@@ -4496,7 +4500,7 @@ msgstr ""
 msgid "Not loaded: %(reason)s"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:400
+#: grunt/frontend/src/components/files/FileExplorer.vue:402
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:237
 msgid "Not moved: {n}"
 msgstr ""
@@ -4546,7 +4550,7 @@ msgstr ""
 msgid "Not signed"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:512
+#: grunt/frontend/src/components/files/FileExplorer.vue:514
 msgid "Not uploaded: {n}"
 msgstr ""
 
@@ -4556,6 +4560,7 @@ msgid "Note"
 msgstr ""
 
 #: grunt/frontend/src/components/DocTypeCombobox.vue:59
+#: grunt/frontend/src/components/app/AppSidebar.vue:144
 #: grunt/frontend/src/components/desk/GruntDialog.vue:359
 #: grunt/frontend/src/components/ui/multi-select/MultiSelect.vue:113
 #: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue:372
@@ -4570,7 +4575,7 @@ msgstr ""
 msgid "Nothing found"
 msgstr ""
 
-#: grunt/frontend/src/components/layout/CommandPalette.vue:313
+#: grunt/frontend/src/components/layout/CommandPalette.vue:276
 #: grunt/frontend/src/pages/app/SearchResultsPage.vue:172
 msgid "Nothing found for"
 msgstr ""
@@ -4725,7 +4730,7 @@ msgid "Open link"
 msgstr ""
 
 #: grunt/frontend/src/pages/DeskPage.vue:167
-#: grunt/frontend/src/components/app/AppSidebar.vue:260
+#: grunt/frontend/src/components/app/AppSidebar.vue:356
 msgid "Open my profile"
 msgstr ""
 
@@ -4793,7 +4798,7 @@ msgstr ""
 msgid "Original size"
 msgstr ""
 
-#: grunt/frontend/src/components/layout/CommandPalette.vue:212
+#: grunt/frontend/src/components/layout/CommandPalette.vue:208
 #: grunt/frontend/src/pages/studio/builder/PropertiesPanel.vue:82
 msgid "Other"
 msgstr ""
@@ -4823,7 +4828,7 @@ msgstr ""
 msgid "Outside the ranges in package.json - change them by hand and test:"
 msgstr ""
 
-#: grunt/frontend/src/components/app/AppSidebar.vue:137
+#: grunt/frontend/src/components/app/AppSidebar.vue:190
 msgid "Overview"
 msgstr ""
 
@@ -4933,7 +4938,7 @@ msgstr ""
 msgid "Passwords do not match"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:716
+#: grunt/frontend/src/components/files/FileExplorer.vue:728
 #: grunt/frontend/src/components/fields/RichText/ui/EditorContextMenu.vue:116
 msgid "Paste"
 msgstr ""
@@ -4991,7 +4996,7 @@ msgstr ""
 msgid "Photo"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:698
+#: grunt/frontend/src/components/files/FileExplorer.vue:710
 msgid "Photo from the camera"
 msgstr ""
 
@@ -5122,7 +5127,7 @@ msgstr ""
 msgid "Quick Filter By"
 msgstr ""
 
-#: grunt/frontend/src/components/layout/CommandPalette.vue:299
+#: grunt/frontend/src/components/layout/CommandPalette.vue:265
 msgid "Quick actions"
 msgstr ""
 
@@ -5130,8 +5135,8 @@ msgstr ""
 msgid "Quick add..."
 msgstr ""
 
-#: grunt/frontend/src/components/layout/CommandPalette.vue:97
-#: grunt/frontend/src/components/layout/CommandPalette.vue:289
+#: grunt/frontend/src/components/layout/CommandPalette.vue:93
+#: grunt/frontend/src/components/layout/CommandPalette.vue:258
 msgid "Quick create"
 msgstr ""
 
@@ -5255,7 +5260,7 @@ msgstr ""
 #: grunt/grunt/metadata/doctypes/DocType/global_form.js:41
 #: grunt/grunt/metadata/doctypes/DocType/global_list.js:34
 #: grunt/frontend/src/components/dashboard/ActivityStream.vue:105
-#: grunt/frontend/src/components/files/FileExplorer.vue:674
+#: grunt/frontend/src/components/files/FileExplorer.vue:686
 #: grunt/frontend/src/pages/app/AppPage.vue:294
 #: grunt/frontend/src/pages/reports/ReportView.vue:210
 #: grunt/frontend/src/pages/desk/reports/ReportView.vue:89
@@ -5299,7 +5304,7 @@ msgid ""
 "Reload the page; if that does not help, check that the server serves /sw.js."
 msgstr ""
 
-#: grunt/frontend/src/components/app/AppSidebar.vue:299
+#: grunt/frontend/src/components/app/AppSidebar.vue:395
 msgid ""
 "Reload translations, menus and schemas; your settings and drafts are kept"
 msgstr ""
@@ -5378,7 +5383,7 @@ msgid "Remove {name} from assignees?"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/global_form.js:172
-#: grunt/frontend/src/components/files/FileExplorer.vue:719
+#: grunt/frontend/src/components/files/FileExplorer.vue:731
 #: grunt/frontend/src/components/views/form/FormHeader.vue:322
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:263
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:424
@@ -5791,7 +5796,7 @@ msgid "Script execution error: %(error)s"
 msgstr ""
 
 #: grunt/frontend/src/router/index.ts:196
-#: grunt/frontend/src/components/app/AppSidebar.vue:126
+#: grunt/frontend/src/components/app/AppSidebar.vue:179
 msgid "Search"
 msgstr ""
 
@@ -5799,15 +5804,19 @@ msgstr ""
 msgid "Search across all documents"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:679
-#: grunt/frontend/src/components/files/FileExplorer.vue:680
+#: grunt/frontend/src/components/files/FileExplorer.vue:691
+#: grunt/frontend/src/components/files/FileExplorer.vue:692
 msgid "Search all files"
 msgstr ""
 
+#: grunt/frontend/src/components/app/AppSidebar.vue:142
+msgid "Search apps..."
+msgstr ""
+
 #: grunt/frontend/src/pages/DeskPage.vue:189
-#: grunt/frontend/src/components/layout/CommandPalette.vue:270
-#: grunt/frontend/src/components/layout/CommandPalette.vue:271
-#: grunt/frontend/src/components/layout/CommandPalette.vue:277
+#: grunt/frontend/src/components/layout/CommandPalette.vue:239
+#: grunt/frontend/src/components/layout/CommandPalette.vue:240
+#: grunt/frontend/src/components/layout/CommandPalette.vue:247
 msgid "Search documents, apps or actions..."
 msgstr ""
 
@@ -5827,7 +5836,7 @@ msgstr ""
 msgid "Search icon…"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:661
+#: grunt/frontend/src/components/files/FileExplorer.vue:663
 msgid "Search results for «{q}»"
 msgstr ""
 
@@ -5845,14 +5854,14 @@ msgstr ""
 msgid "Search {dt}..."
 msgstr ""
 
-#: grunt/frontend/src/components/app/AppSidebar.vue:128
+#: grunt/frontend/src/components/app/AppSidebar.vue:181
 #: grunt/frontend/src/components/views/DocTypeToolbar.vue:88
 #: grunt/frontend/src/components/views/form/DocLinksDialog.vue:82
 #: grunt/frontend/src/components/views/list/QuickFilterSettingsDialog.vue:85
 msgid "Search..."
 msgstr ""
 
-#: grunt/frontend/src/components/layout/CommandPalette.vue:286
+#: grunt/frontend/src/components/layout/CommandPalette.vue:255
 #: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue:298
 #: grunt/frontend/src/components/fields/Link/FilterInput.vue:231
 #: grunt/frontend/src/components/fields/Link/Link.vue:177
@@ -5891,12 +5900,12 @@ msgstr ""
 msgid "See the Error Log."
 msgstr ""
 
-#: grunt/frontend/src/components/layout/CommandPalette.vue:336
+#: grunt/frontend/src/components/layout/CommandPalette.vue:296
 #: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue:427
 msgid "Select"
 msgstr ""
 
-#: grunt/frontend/src/components/layout/CommandPalette.vue:277
+#: grunt/frontend/src/components/layout/CommandPalette.vue:247
 msgid "Select DocType to create a new record"
 msgstr ""
 
@@ -5953,7 +5962,7 @@ msgstr ""
 msgid "Selected:"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:888
+#: grunt/frontend/src/components/files/FileExplorer.vue:900
 #: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue:175
 msgid "Selected: {n}"
 msgstr ""
@@ -6085,9 +6094,9 @@ msgstr ""
 msgid "Set “Only for document” or enable “Apply to all documents”"
 msgstr ""
 
-#: grunt/frontend/src/components/app/AppSidebar.vue:195
-#: grunt/frontend/src/components/layout/CommandPalette.vue:99
-#: grunt/frontend/src/components/layout/CommandPalette.vue:100
+#: grunt/frontend/src/components/app/AppSidebar.vue:291
+#: grunt/frontend/src/components/layout/CommandPalette.vue:95
+#: grunt/frontend/src/components/layout/CommandPalette.vue:96
 #: grunt/frontend/src/components/dashboard/WidgetConfigPanel.vue:76
 msgid "Settings"
 msgstr ""
@@ -6236,7 +6245,7 @@ msgstr ""
 #: grunt/grunt/monitoring/health.py:110
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js:155
 #: grunt/grunt/backups/doctypes/Backup/Backup.js:100
-#: grunt/frontend/src/components/files/FileExplorer.vue:790
+#: grunt/frontend/src/components/files/FileExplorer.vue:802
 #: grunt/frontend/src/components/fields/RichText/ui/ImageBubble.vue:77
 msgid "Size"
 msgstr ""
@@ -6254,7 +6263,7 @@ msgid "Slow database response."
 msgstr ""
 
 #: grunt/frontend/src/components/ErrorBoundary.vue:34
-#: grunt/frontend/src/components/files/FileExplorer.vue:636
+#: grunt/frontend/src/components/files/FileExplorer.vue:638
 #: grunt/frontend/src/components/views/list/ListTreePanel.vue:333
 #: grunt/frontend/src/pages/auth/ResetPassword.vue:53
 msgid "Something went wrong"
@@ -6445,7 +6454,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: grunt/grunt/email/tasks.py:185 grunt/frontend/src/pages/DeskPage.vue:153
-#: grunt/frontend/src/components/app/AppSidebar.vue:287
+#: grunt/frontend/src/components/app/AppSidebar.vue:383
 msgid "System"
 msgstr ""
 
@@ -6461,7 +6470,7 @@ msgstr ""
 msgid "System field"
 msgstr ""
 
-#: grunt/frontend/src/components/layout/CommandPalette.vue:101
+#: grunt/frontend/src/components/layout/CommandPalette.vue:97
 msgid "System settings"
 msgstr ""
 
@@ -6991,7 +7000,7 @@ msgid "The “Filters (JSON)” field must contain valid JSON."
 msgstr ""
 
 #: grunt/frontend/src/pages/DeskPage.vue:137
-#: grunt/frontend/src/components/app/AppSidebar.vue:275
+#: grunt/frontend/src/components/app/AppSidebar.vue:371
 msgid "Theme"
 msgstr ""
 
@@ -7039,7 +7048,7 @@ msgid ""
 "code."
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:865
+#: grunt/frontend/src/components/files/FileExplorer.vue:877
 msgid "This folder is empty"
 msgstr ""
 
@@ -7099,7 +7108,7 @@ msgstr ""
 msgid "Tile {n}"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:729
+#: grunt/frontend/src/components/files/FileExplorer.vue:741
 #: grunt/frontend/src/components/dashboard/sections/TilesSection.vue:49
 msgid "Tiles"
 msgstr ""
@@ -7212,7 +7221,7 @@ msgstr ""
 msgid "Tue"
 msgstr ""
 
-#: grunt/frontend/src/components/fields/RichText/ui/BlockHandle.vue:64
+#: grunt/frontend/src/components/fields/RichText/ui/BlockHandle.vue:65
 msgid "Turn into"
 msgstr ""
 
@@ -7225,7 +7234,7 @@ msgid "Two-factor verification"
 msgstr ""
 
 #: grunt/frontend/src/components/dashboard/WidgetConfigPanel.vue:86
-#: grunt/frontend/src/components/files/FileExplorer.vue:789
+#: grunt/frontend/src/components/files/FileExplorer.vue:801
 msgid "Type"
 msgstr ""
 
@@ -7348,7 +7357,7 @@ msgstr ""
 msgid "Unsynced changes"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:654
+#: grunt/frontend/src/components/files/FileExplorer.vue:656
 msgid "Up"
 msgstr ""
 
@@ -7430,7 +7439,7 @@ msgstr ""
 msgid "Uploading to “%(name)s”"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:884
+#: grunt/frontend/src/components/files/FileExplorer.vue:896
 msgid "Uploading {done} of {total}…"
 msgstr ""
 
@@ -7568,7 +7577,7 @@ msgstr ""
 msgid "View all {n}"
 msgstr ""
 
-#: grunt/frontend/src/components/layout/CommandPalette.vue:99
+#: grunt/frontend/src/components/layout/CommandPalette.vue:95
 msgid "View hooks"
 msgstr ""
 
@@ -7586,7 +7595,7 @@ msgid "Viewed by:"
 msgstr ""
 
 #: grunt/frontend/src/pages/DeskPage.vue:180
-#: grunt/frontend/src/components/app/AppSidebar.vue:226
+#: grunt/frontend/src/components/app/AppSidebar.vue:322
 msgid "Viewing as {name}"
 msgstr ""
 
@@ -8419,7 +8428,7 @@ msgid "sum — total"
 msgstr ""
 
 #: grunt/frontend/src/pages/DeskPage.vue:181
-#: grunt/frontend/src/components/app/AppSidebar.vue:229
+#: grunt/frontend/src/components/app/AppSidebar.vue:325
 msgid "switch back"
 msgstr ""
 
@@ -8451,7 +8460,7 @@ msgstr ""
 msgid "token rejected"
 msgstr ""
 
-#: grunt/frontend/src/components/dashboard/widgets/Donut/Donut.vue:95
+#: grunt/frontend/src/components/dashboard/widgets/Donut/Donut.vue:72
 msgid "total"
 msgstr ""
 
@@ -8665,7 +8674,7 @@ msgstr ""
 msgid "{type} report"
 msgstr ""
 
-#: grunt/frontend/src/components/files/FileExplorer.vue:892
+#: grunt/frontend/src/components/files/FileExplorer.vue:904
 msgid "{used} of {quota} used"
 msgstr ""
 
@@ -8769,6 +8778,21 @@ msgstr ""
 #: grunt/grunt/geo/doctypes/Address/Address.json
 msgctxt "help:Address.full_address"
 msgid "Built automatically from the address fields"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/AppMenu/AppMenu.json
+msgctxt "help:AppMenu.sections"
+msgid ""
+"Icons of the sidebar sections (shown in the modules style). A section not "
+"listed here takes the icon of its first item"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/AppMenu/AppMenu.json
+msgctxt "help:AppMenu.sidebar_style"
+msgid ""
+"Sections - collapsible groups of items. Modules - one row per section, its "
+"items open in a panel beside the sidebar. Auto - modules once the app has as"
+" many sections as set in System settings"
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
@@ -10427,6 +10451,13 @@ msgid "After how many minutes of inactivity a re-login is required."
 msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgctxt "help:SystemSettings.sidebar_modules_after"
+msgid ""
+"An app with at least this many sidebar sections shows them as modules (items"
+" open in a panel beside the sidebar) when its sidebar style is Auto"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgctxt "help:SystemSettings.timezone"
 msgid "Used to display dates and times."
 msgstr ""
@@ -10642,6 +10673,11 @@ msgctxt "help:WorkflowTransition.require_comment"
 msgid ""
 "Ask for a comment before applying; it is added to the document comments and "
 "the notification"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/WorkspaceSection/WorkspaceSection.json
+msgctxt "help:WorkspaceSection.section"
+msgid "Same text as the Section of the sidebar items it groups"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
@@ -10872,6 +10908,11 @@ msgid "Roles (comma-separated)"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/AppMenu/AppMenu.json
+msgctxt "meta:AppMenu.sections"
+msgid "Sections"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/AppMenu/AppMenu.json
 msgctxt "meta:AppMenu.sequence"
 msgid "Order"
 msgstr ""
@@ -10879,6 +10920,11 @@ msgstr ""
 #: grunt/grunt/site/doctypes/AppMenu/AppMenu.json
 msgctxt "meta:AppMenu.sidebar_items"
 msgid "Sidebar items"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/AppMenu/AppMenu.json
+msgctxt "meta:AppMenu.sidebar_style"
+msgid "Sidebar style"
 msgstr ""
 
 #: grunt/grunt/assignment/doctypes/AssignmentLog/AssignmentLog.json
@@ -15507,6 +15553,11 @@ msgid "Files"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgctxt "meta:SystemSettings.sec_interface"
+msgid "Interface"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgctxt "meta:SystemSettings.sec_maintenance"
 msgid "Logs & maintenance"
 msgstr ""
@@ -15549,6 +15600,11 @@ msgstr ""
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgctxt "meta:SystemSettings.session_timeout"
 msgid "Session lifetime, min"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgctxt "meta:SystemSettings.sidebar_modules_after"
+msgid "Sidebar: modules from"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
@@ -16401,6 +16457,21 @@ msgctxt "meta:WorkflowTransition.to_state"
 msgid "To state"
 msgstr ""
 
+#: grunt/grunt/site/doctypes/WorkspaceSection/WorkspaceSection.json
+msgctxt "meta:WorkspaceSection"
+msgid "App menu section"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/WorkspaceSection/WorkspaceSection.json
+msgctxt "meta:WorkspaceSection.icon"
+msgid "Icon"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/WorkspaceSection/WorkspaceSection.json
+msgctxt "meta:WorkspaceSection.section"
+msgid "Section"
+msgstr ""
+
 #: grunt/grunt/site/doctypes/WorkspaceSidebarItem/WorkspaceSidebarItem.json
 msgctxt "meta:WorkspaceSidebarItem"
 msgid "App menu item"
@@ -16620,6 +16691,21 @@ msgstr ""
 #: grunt/grunt/geo/doctypes/Address/Address.json
 msgctxt "select:Address.address_type"
 msgid "Registered"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/AppMenu/AppMenu.json
+msgctxt "select:AppMenu.sidebar_style"
+msgid "Auto"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/AppMenu/AppMenu.json
+msgctxt "select:AppMenu.sidebar_style"
+msgid "Modules"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/AppMenu/AppMenu.json
+msgctxt "select:AppMenu.sidebar_style"
+msgid "Sections"
 msgstr ""
 
 #: grunt/grunt/assignment/doctypes/AssignmentLog/AssignmentLog.json

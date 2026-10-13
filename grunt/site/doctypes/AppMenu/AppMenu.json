@@ -63,6 +63,22 @@
       "options": "Page"
     },
     {
+      "fieldname": "sidebar_style",
+      "label": "Sidebar style",
+      "fieldtype": "Select",
+      "options": "Auto\nSections\nModules",
+      "translatable": true,
+      "default": "Auto",
+      "description": "Sections - collapsible groups of items. Modules - one row per section, its items open in a panel beside the sidebar. Auto - modules once the app has as many sections as set in System settings"
+    },
+    {
+      "fieldname": "sections",
+      "label": "Sections",
+      "fieldtype": "Table",
+      "options": "WorkspaceSection",
+      "description": "Icons of the sidebar sections (shown in the modules style). A section not listed here takes the icon of its first item"
+    },
+    {
       "fieldname": "sidebar_items",
       "label": "Sidebar items",
       "fieldtype": "Table",

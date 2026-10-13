@@ -151,6 +151,19 @@
       "description": "Emoji people can put under comments, separated by spaces. Empty - reactions are off"
     },
     {
+      "fieldname": "sec_interface",
+      "label": "Interface",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "sidebar_modules_after",
+      "label": "Sidebar: modules from",
+      "fieldtype": "Int",
+      "default": 6,
+      "min_value": 1,
+      "description": "An app with at least this many sidebar sections shows them as modules (items open in a panel beside the sidebar) when its sidebar style is Auto"
+    },
+    {
       "fieldname": "tab_security",
       "label": "Security",
       "fieldtype": "Tab",

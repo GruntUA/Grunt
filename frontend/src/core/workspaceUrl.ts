@@ -92,3 +92,11 @@ export function appUrl(link: AppLink): string {
 export function docUrl(doctype: string, id?: unknown, workspace?: string | null): string {
   return appUrl({ name: doctype, id, workspace })
 }
+
+/** Is the sidebar link the page the route shows? */
+export function isLinkActive(item: { type: string; link_to: string }, params: Record<string, unknown>): boolean {
+  if (item.type === 'DocType') return params.doctype === item.link_to
+  if (item.type === 'Report') return params.reportName === item.link_to
+  if (item.type === 'Page') return params.pageName === item.link_to
+  return false
+}

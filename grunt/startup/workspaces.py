@@ -25,6 +25,7 @@ async def _upsert_workspace(
     create_fields: dict[str, Any],
     update_fields: dict[str, Any],
     sidebar_rows: list[dict[str, Any]],
+    section_rows: list[dict[str, Any]] | None = None,
 ) -> bool:
     """Create or update one AppMenu workspace, then replace its sidebar items.
 
@@ -49,6 +50,22 @@ async def _upsert_workspace(
         ws = await grunt.new_doc("AppMenu", {"name": ws_name, **create_fields})
         ws_id = ws["name"]
 
+    if section_rows is not None:
+        await grunt.db.delete("WorkspaceSection", {"parent_name": ws_id})
+        if section_rows:
+            await grunt.bulk_insert(
+                "WorkspaceSection",
+                [
+                    {
+                        "parent_name": ws_id,
+                        "parent_doctype": "AppMenu",
+                        "parent_field": "sections",
+                        **row,
+                    }
+                    for row in section_rows
+                ],
+            )
+
     await grunt.db.delete("WorkspaceSidebarItem", {"parent_name": ws_id})
     if sidebar_rows:
         await grunt.bulk_insert(
@@ -65,6 +82,14 @@ async def _upsert_workspace(
         )
 
     return updated
+
+
+def _section_rows(data: dict[str, Any]) -> list[dict[str, Any]] | None:
+    """Fixture ``sections`` (section + icon) as WorkspaceSection rows; None when
+    the fixture has no such key, so sections edited on the site are kept."""
+    if "sections" not in data:
+        return None
+    return [{"section": s["section"], "icon": s.get("icon", "")} for s in data["sections"]]
 
 
 def _sidebar_rows_from_items(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -121,6 +146,7 @@ async def seed_grunt_workspace(session: AsyncSession, eng: Any) -> None:
                 "home_page": data.get("home_page", ""),
                 "is_hidden": data.get("is_hidden", False),
                 "roles": data.get("roles", ""),
+                "sidebar_style": data.get("sidebar_style", "Auto"),
             },
             update_fields={
                 "label": data.get("label"),
@@ -129,8 +155,10 @@ async def seed_grunt_workspace(session: AsyncSession, eng: Any) -> None:
                 "description": data.get("description"),
                 "sequence": data.get("sequence"),
                 "home_page": data.get("home_page"),
+                "sidebar_style": data.get("sidebar_style"),
             },
             sidebar_rows=_sidebar_rows_from_items(data.get("sidebar_items", [])),
+            section_rows=_section_rows(data),
         )
         if updated:
             log.info("startup.grunt_workspace_updating")
@@ -158,6 +186,7 @@ async def _apply_workspace_fixture(
             "sequence": rec.get("sequence", 10),
             "is_hidden": rec.get("is_hidden", False),
             "roles": rec.get("roles", ""),
+            "sidebar_style": rec.get("sidebar_style", "Auto"),
         }
         # home_page is a Link - omit rather than send "" when unset
         if rec.get("home_page"):
@@ -175,8 +204,10 @@ async def _apply_workspace_fixture(
                 "roles": rec.get("roles"),
                 "is_hidden": rec.get("is_hidden"),
                 "home_page": rec.get("home_page"),
+                "sidebar_style": rec.get("sidebar_style"),
             },
             sidebar_rows=_sidebar_rows_from_items(rec.get("sidebar_items", rec.get("items", []))),
+            section_rows=_section_rows(rec),
         )
 
         applied = True

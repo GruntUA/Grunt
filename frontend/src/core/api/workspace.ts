@@ -37,6 +37,10 @@ export interface Workspace {
   /** Pages offered on the app's home (home page first), only those the user may open. */
   dashboards: { name: string; label: string }[]
   items: WorkspaceLink[]
+  /** Sidebar sections in item order with their icons (AppMenu.sections, else the first item's). */
+  sections: { section: string; icon: string }[]
+  /** Resolved AppMenu.sidebar_style: collapsible groups, or one row per section opening its items beside the sidebar. */
+  sidebar_mode: 'sections' | 'modules'
 }
 
 export interface SearchResult {

@@ -1,25 +1,28 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import i18n, { N_ } from '@/plugins/i18n'
-import { useAppStore } from '@/stores/app'
+import { useAppStore, type SidebarGroup as SidebarGroupT } from '@/stores/app'
 import AppIcon from '@/components/AppIcon.vue'
 import ShortcutKbd from '@/components/ShortcutKbd.vue'
 import NotificationsPopover from '@/components/layout/NotificationsPopover.vue'
 import SidebarItem from './SidebarItem.vue'
+import SidebarModule from './SidebarModule.vue'
 import { useColorMode } from '@/core/composables/useColorMode'
 import { useSiteConfig } from '@/core/composables/useSiteConfig'
 import { clearClientCache } from '@/core/clearCache'
 import type { Theme } from '@/core/composables/useColorMode'
 import { useSidebar } from '@/components/ui/sidebar'
 import {
-  ArrowLeft, Check, ChevronRight, ChevronsUpDown, Sun, Moon, Monitor,
+  ArrowLeft, ChevronRight, ChevronsUpDown, LayoutGrid, Sun, Moon, Monitor,
   Settings2, Search, Activity,
   Mail, LogOut, Languages, Eye, RefreshCw,
 } from '@lucide/vue'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator } from '@/components/ui/command'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarMenuSub, SidebarSeparator } from '@/components/ui/sidebar'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -38,6 +41,12 @@ const { t } = useI18n()
 
 // Actions
 function goToDesk() { router.push('/app') }
+const switcherOpen = ref(false)
+function openApp(name: string | null) {
+  switcherOpen.value = false
+  if (name) router.push(appUrl({ type: 'Workspace', name }))
+  else goToDesk()
+}
 function goToProfile() { if (auth.user) router.push(`/app/grunt/User/${auth.user.id}`) }
 function triggerSearch() { window.dispatchEvent(new CustomEvent('toggle-search')) }
 function initials(name: string) { return name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() }
@@ -77,6 +86,36 @@ onUnmounted(() => {
 })
 
 watch(() => router.currentRoute.value.path, () => { if (appStore.active) appStore.refreshCounts() })
+
+// Modules mode (AppMenu sidebar_mode): sections become one row each, their items
+// open beside the sidebar (SidebarModule); runs of sections form one menu block.
+type Block =
+  | { kind: 'divider' }
+  | { kind: 'plain'; items: SidebarGroupT['items'] }
+  | { kind: 'modules'; groups: SidebarGroupT[] }
+
+const modulesMode = computed(() => appStore.active?.sidebar_mode === 'modules')
+const blocks = computed<Block[]>(() => {
+  const out: Block[] = []
+  for (const g of appStore.groupedItems) {
+    if (g.section === '__divider__') out.push({ kind: 'divider' })
+    else if (!g.section) out.push({ kind: 'plain', items: g.items })
+    else {
+      const last = out.at(-1)
+      if (last?.kind === 'modules') last.groups.push(g)
+      else out.push({ kind: 'modules', groups: [g] })
+    }
+  }
+  return out
+})
+function sectionIcon(section: string) {
+  return appStore.active?.sections?.find((s) => s.section === section)?.icon ?? ''
+}
+
+// On mobile the sidebar is a sheet: a module opens in place, with a way back.
+const drill = ref<string | null>(null)
+const drillGroup = computed(() => appStore.groupedItems.find((g) => g.section === drill.value) ?? null)
+watch(() => appStore.active?.name, () => { drill.value = null })
 </script>
 
 <template>
@@ -84,9 +123,10 @@ watch(() => router.currentRoute.value.path, () => { if (appStore.active) appStor
     <SidebarHeader>
       <SidebarMenu>
         <SidebarMenuItem>
-          <DropdownMenu>
-            <DropdownMenuTrigger as-child>
-              <SidebarMenuButton size="lg" class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
+          <!-- App switcher: a searchable grid of the apps, like the desk -->
+          <Popover v-model:open="switcherOpen">
+            <PopoverTrigger as-child>
+<SidebarMenuButton size="lg" class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
                 <div class="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
                   <AppIcon :icon="appStore.active?.icon || 'folder'" class="size-4" />
                 </div>
@@ -96,28 +136,41 @@ watch(() => router.currentRoute.value.path, () => { if (appStore.active) appStor
                 </div>
                 <ChevronsUpDown class="ml-auto" />
               </SidebarMenuButton>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent class="w-(--reka-dropdown-menu-trigger-width) min-w-56 rounded-lg" align="start" side="bottom" :side-offset="4">
-              <DropdownMenuLabel class="text-xs text-muted-foreground">{{ t('Apps') }}</DropdownMenuLabel>
-              <DropdownMenuItem
-                v-for="ws in appStore.workspaces" :key="ws.name" class="gap-2 p-2"
-                @click="router.push(appUrl({ type: 'Workspace', name: ws.name }))"
-              >
-                <div class="flex size-6 items-center justify-center rounded-md border">
-                  <AppIcon :icon="ws.icon" class="size-3.5 shrink-0" />
-                </div>
-                <span class="truncate">{{ ws.label }}</span>
-                <Check v-if="ws.name === appStore.active?.name" class="ml-auto size-4" />
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem class="gap-2 p-2" @click="goToDesk">
-                <div class="flex size-6 items-center justify-center rounded-md border bg-background">
-                  <ArrowLeft class="size-4" />
-                </div>
-                <div class="font-medium text-muted-foreground">{{ t('Home') }}</div>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+            </PopoverTrigger>
+            <PopoverContent class="w-80 p-0" align="start" :side-offset="4">
+              <Command>
+                <CommandInput :placeholder="t('Search apps...')" />
+                <CommandList class="max-h-96">
+                  <CommandEmpty>{{ t('Nothing found') }}</CommandEmpty>
+                  <CommandGroup :heading="t('Apps')">
+                    <div class="grid grid-cols-3 gap-1">
+                      <CommandItem
+                        v-for="ws in appStore.workspaces" :key="ws.name" :value="ws.name"
+                        class="flex-col gap-1.5 py-3 text-center"
+                        :data-current="ws.name === appStore.active?.name || undefined"
+                        @select="openApp(ws.name)"
+                      >
+                        <div
+                          class="flex size-9 items-center justify-center rounded-md border bg-background"
+                          :class="ws.name === appStore.active?.name && 'ring-2 ring-ring'"
+                        >
+                          <AppIcon :icon="ws.icon" class="size-4" />
+                        </div>
+                        <span class="w-full truncate text-xs">{{ ws.label }}</span>
+                      </CommandItem>
+                    </div>
+                  </CommandGroup>
+                  <CommandSeparator />
+                  <CommandGroup>
+                    <CommandItem value="__desk" @select="openApp(null)">
+                      <LayoutGrid />
+                      {{ t('All apps') }}
+                    </CommandItem>
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
         </SidebarMenuItem>
       </SidebarMenu>
 
@@ -141,8 +194,51 @@ watch(() => router.currentRoute.value.path, () => { if (appStore.active) appStor
     </SidebarHeader>
 
     <SidebarContent>
-      <!-- Workspace groups -->
-      <template v-for="(group, gi) in appStore.groupedItems" :key="gi">
+      <!-- Modules mode, mobile: inside one module -->
+      <SidebarGroup v-if="modulesMode && isMobile && drillGroup">
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton @click="drill = null">
+              <ArrowLeft />
+              <span>{{ t('Back') }}</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+        <SidebarGroupLabel>{{ drillGroup.section }}</SidebarGroupLabel>
+        <SidebarGroupContent>
+          <SidebarMenu>
+            <SidebarItem v-for="item in drillGroup.items" :key="item.link_to + item.sequence" :item="item"
+              :workspace-name="workspaceName" :count="appStore.counts[item.count_key || item.link_to] ?? 0"
+              :color="appStore.active?.color" />
+          </SidebarMenu>
+        </SidebarGroupContent>
+      </SidebarGroup>
+
+      <!-- Modules mode: one row per section -->
+      <template v-else-if="modulesMode">
+        <template v-for="(block, bi) in blocks" :key="bi">
+          <SidebarSeparator v-if="block.kind === 'divider'" />
+          <SidebarGroup v-else>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <template v-if="block.kind === 'plain'">
+                  <SidebarItem v-for="item in block.items" :key="item.link_to + item.sequence" :item="item"
+                    :workspace-name="workspaceName" :count="appStore.counts[item.count_key || item.link_to] ?? 0"
+                    :color="appStore.active?.color" />
+                </template>
+                <SidebarModule
+                  v-for="g in block.groups" v-else :key="g.section"
+                  :section="g.section" :icon="sectionIcon(g.section)" :items="g.items" :workspace-name="workspaceName"
+                  @drill="drill = g.section"
+                />
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </template>
+      </template>
+
+      <!-- Sections mode: collapsible groups -->
+      <template v-for="(group, gi) in modulesMode ? [] : appStore.groupedItems" :key="gi">
         <SidebarSeparator v-if="group.section === '__divider__'" />
 
         <SidebarGroup v-else-if="!group.section">

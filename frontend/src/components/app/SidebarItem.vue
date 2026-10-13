@@ -4,7 +4,7 @@ import { computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import type { WorkspaceLink } from '@/core/api/workspace'
 import AppIcon from '@/components/AppIcon.vue'
-import { appUrl } from '@/core/workspaceUrl'
+import { appUrl, isLinkActive } from '@/core/workspaceUrl'
 import { SidebarMenuBadge, SidebarMenuButton, SidebarMenuItem, SidebarMenuSubButton, SidebarMenuSubItem } from '@/components/ui/sidebar'
 
 const props = defineProps<{
@@ -14,17 +14,14 @@ const props = defineProps<{
   color?: string
   /** Render as a SidebarMenuSubItem (nested inside a Collapsible group) instead of a top-level SidebarMenuItem. */
   nested?: boolean
+  /** Inside a module's flyout panel: the label is always shown, so no tooltip on a collapsed sidebar. */
+  flyout?: boolean
 }>()
 
 const router = useRouter()
 const route = useRoute()
 
-const isActive = computed(() => {
-  if (props.item.type === 'DocType') return route.params.doctype === props.item.link_to
-  if (props.item.type === 'Report') return route.params.reportName === props.item.link_to
-  if (props.item.type === 'Page') return route.params.pageName === props.item.link_to
-  return false
-})
+const isActive = computed(() => isLinkActive(props.item, route.params))
 
 
 /**
@@ -91,7 +88,7 @@ const displayCount = computed(() => {
   </SidebarMenuSubItem>
 
   <SidebarMenuItem v-else>
-    <SidebarMenuButton as-child :is-active="isActive" :tooltip="item.label" :class="displayCount ? 'pr-14' : undefined">
+    <SidebarMenuButton as-child :is-active="isActive" :tooltip="flyout ? undefined : item.label" :class="displayCount ? 'pr-14' : undefined">
       <a
         :href="itemHref"
         :target="item.type === 'URL' ? '_blank' : undefined"

@@ -1,0 +1,25 @@
+{
+  "name": "WorkspaceSection",
+  "label": "App menu section",
+  "module": "site",
+  "is_child": true,
+  "title_field": "section",
+  "table_name": "grunt_workspace_section",
+  "hide_from_activity_feed": true,
+  "fields": [
+    {
+      "fieldname": "section",
+      "label": "Section",
+      "fieldtype": "Data",
+      "required": true,
+      "in_list_view": true,
+      "description": "Same text as the Section of the sidebar items it groups"
+    },
+    {
+      "fieldname": "icon",
+      "label": "Icon",
+      "fieldtype": "Icon",
+      "in_list_view": true
+    }
+  ]
+}

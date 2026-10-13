@@ -10,6 +10,40 @@
   "home_page": "grunt-home",
   "is_hidden": false,
   "roles": "",
+  "sections": [
+    {
+      "section": "Метадані",
+      "icon": "database"
+    },
+    {
+      "section": "Користувачі та безпека",
+      "icon": "shield-check"
+    },
+    {
+      "section": "Пошта та сповіщення",
+      "icon": "mail"
+    },
+    {
+      "section": "Автоматизація",
+      "icon": "workflow"
+    },
+    {
+      "section": "Розробка",
+      "icon": "code"
+    },
+    {
+      "section": "Документи та файли",
+      "icon": "folder-open"
+    },
+    {
+      "section": "Налаштування",
+      "icon": "settings"
+    },
+    {
+      "section": "Моніторинг",
+      "icon": "activity"
+    }
+  ],
   "sidebar_items": [
     {
       "section": "Метадані",

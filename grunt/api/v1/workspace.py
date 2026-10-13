@@ -10,6 +10,7 @@ from grunt.api.v1.dashboard import page_visible
 from grunt.document.titles import resolve_reference_titles
 from grunt.metadata.registry import doctype_registry
 from grunt.site.doctypes.AppMenu.app_menu import AppMenu, count_key, parse_count_filters
+from grunt.site.settings import get_setting
 
 
 async def _visible_pages() -> list[dict[str, Any]]:
@@ -33,6 +34,32 @@ def _dashboards(ws_data: Any, pages: list[dict[str, Any]]) -> list[dict[str, str
     picked = [p for p in pages if p["name"] == home]
     picked += [p for p in pages if app and p.get("app") == app and p["name"] != home]
     return [{"name": p["name"], "label": p.get("label") or p["name"]} for p in picked]
+
+
+def _sections(ws_data: Any, items: list[dict[str, Any]]) -> list[dict[str, str]]:
+    """The sidebar sections in item order, each with its icon: the one set in
+    the app's Sections table, else the icon of the section's first item."""
+    icons = {
+        (row.get("section") or "").strip(): row.get("icon") or ""
+        for row in ws_data.get("sections") or []
+    }
+    sections: list[dict[str, str]] = []
+    for item in items:
+        name = item["section"]
+        if name and item["type"] != "Divider" and all(s["section"] != name for s in sections):
+            sections.append({"section": name, "icon": icons.get(name) or item["icon"]})
+    return sections
+
+
+async def _sidebar_mode(ws_data: Any, sections: list[dict[str, str]]) -> str:
+    """Sidebar mode: "sections" (collapsible groups) or "modules" (items open
+    beside the sidebar). Auto picks modules from SystemSettings.sidebar_modules_after
+    sections on."""
+    style = ws_data.get("sidebar_style") or "Auto"
+    if style == "Auto":
+        threshold = int(await get_setting("sidebar_modules_after", 6) or 6)
+        return "modules" if len(sections) >= threshold else "sections"
+    return "modules" if style == "Modules" else "sections"
 
 
 async def _workspace_to_dict(
@@ -84,6 +111,7 @@ async def _workspace_to_dict(
             }
         )
 
+    sections = _sections(ws_data, items)
     return {
         "name": ws_data.get("name"),
         "label": ws_data.get("label"),
@@ -97,6 +125,8 @@ async def _workspace_to_dict(
         "home_page": ws_data.get("home_page") or None,
         "dashboards": _dashboards(ws_data, pages),
         "items": items,
+        "sections": sections,
+        "sidebar_mode": await _sidebar_mode(ws_data, sections),
     }
 
 
