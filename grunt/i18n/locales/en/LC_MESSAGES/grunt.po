@@ -20357,3 +20357,13 @@ msgstr ""
 #: grunt/grunt/auth/login.py:57
 msgid "This account is disabled. Contact an administrator."
 msgstr ""
+
+#: grunt/grunt/storage/doctypes/File/file.py
+#, python-format
+msgid "The file can't be deleted: it is attached to %(doctype)s “%(doc)s”"
+msgstr ""
+
+#: grunt/grunt/storage/doctypes/File/file.py
+#, python-format
+msgid "The file can't be deleted: it is used in %(doctype)s “%(doc)s”"
+msgstr ""

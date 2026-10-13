@@ -69,6 +69,92 @@ class File(Document):
         if folder["space_user"] != prev_space:
             await quota.ensure_room(folder["space_user"], self.file_size or 0)
 
+    async def before_delete(self) -> None:
+        """A file that a document still uses can't be deleted.
+
+        Used means attached to an existing document or linked from any
+        document's field (an image in an article's text, a cover, ...):
+        deleting it would break that document. Approved by the site owner
+        (maks4a@gmail.com), 2026-10-13."""
+        if (
+            self.attached_to_doctype
+            and self.attached_to_id
+            and await grunt.db.exists(self.attached_to_doctype, self.attached_to_id)
+        ):
+            grunt.throw(
+                _("The file can't be deleted: it is attached to %(doctype)s “%(doc)s”")
+                % {"doctype": self.attached_to_doctype, "doc": self.attached_to_id}
+            )
+        if used_in := await _documents_using(str(self.id)):
+            grunt.throw(
+                _("The file can't be deleted: it is used in %(doctype)s “%(doc)s”")
+                % {"doctype": used_in[0], "doc": used_in[1]}
+            )
+
+
+# Fields that may hold a file's URL: file fields and free text / markup.
+_REF_FIELD_TYPES = frozenset(
+    {"Attach", "Image", "RichText", "HTMLEditor", "Text", "LongText", "Code", "JSON", "Data"}
+)
+# History and logs only remember a link - they don't keep a file in use.
+_NOT_USERS = frozenset(
+    {
+        "File",
+        "DocVersion",
+        "DeletedDocument",
+        "ActivityLog",
+        "ViewLog",
+        "AssignmentLog",
+        "ErrorLog",
+        "EmailQueue",
+        "Notification",
+        "ScheduledJobLog",
+        "WebhookLog",
+        "IncomingWebhookLog",
+    }
+)
+
+
+async def _documents_using(file_id: str) -> tuple[str, str] | None:
+    """(DocType, id) of some document whose field links *file_id*, or ``None``.
+
+    A child-table row is reported as its parent document.
+    """
+    from sqlalchemy import String, cast, or_, select
+
+    from grunt.document.meta import Meta
+    from grunt.metadata.registry import doctype_registry
+    from grunt.storage.references import file_ids_in
+
+    session = grunt.get_session()
+    pattern = f"%file_id={file_id}%"
+    for dt in await doctype_registry.list_all():
+        if dt.name in _NOT_USERS or dt.is_virtual:
+            continue
+        meta = Meta(dt)
+        table = meta.table
+        columns = [
+            table.c[f.fieldname]
+            for f in meta.fields
+            if f.fieldtype in _REF_FIELD_TYPES and f.fieldname in table.c
+        ]
+        if not columns:
+            continue
+        child = bool(dt.is_child)
+        extra = [table.c.parent_doctype, table.c.parent_name] if child else []
+        rows = await session.execute(
+            select(table.c.name, *extra, *columns).where(
+                or_(*(cast(c, String).like(pattern) for c in columns))
+            )
+        )
+        for row in rows:
+            values = row[1 + len(extra) :]
+            # LIKE also matches a longer id that starts with this one.
+            if not any(file_id in file_ids_in(str(v)) for v in values if v is not None):
+                continue
+            return (str(row[1]), str(row[2])) if child else (dt.name, str(row[0]))
+    return None
+
 
 @whitelist()
 async def upload(

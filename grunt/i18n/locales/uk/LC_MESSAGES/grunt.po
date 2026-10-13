@@ -22435,3 +22435,13 @@ msgstr "невідома задача"
 #: grunt/grunt/auth/login.py:57
 msgid "This account is disabled. Contact an administrator."
 msgstr "Цей акаунт вимкнено. Зверніться до адміністратора."
+
+#: grunt/grunt/storage/doctypes/File/file.py
+#, python-format
+msgid "The file can't be deleted: it is attached to %(doctype)s “%(doc)s”"
+msgstr "Файл не можна видалити: він прикріплений до %(doctype)s «%(doc)s»"
+
+#: grunt/grunt/storage/doctypes/File/file.py
+#, python-format
+msgid "The file can't be deleted: it is used in %(doctype)s “%(doc)s”"
+msgstr "Файл не можна видалити: він використовується в %(doctype)s «%(doc)s»"
