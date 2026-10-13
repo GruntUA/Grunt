@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import shutil
 import subprocess
 from pathlib import Path
@@ -35,10 +36,25 @@ _CUSTOM_COMPONENTS = frozenset(
     {
         "date-picker",
         "multi-select",
-        "native-select",
         "tree-select",
     }
 )
+
+# Values of `style` accepted by https://shadcn-vue.com/schema.json. "new-york"
+# resolves to the new-york-v4 registry under Tailwind v4; "default" is
+# Tailwind v3-only and left out.
+_STYLES = (
+    "new-york",
+    "reka-vega",
+    "reka-nova",
+    "reka-mira",
+    "reka-maia",
+    "reka-lyra",
+    "reka-luma",
+)
+
+# Defines the data-open:/data-checked:/… variants the reka-* components use.
+_SHADCN_CSS_IMPORT = '@import "shadcn-vue/tailwind.css";'
 
 
 def _installed_components(ui_dir: Path) -> list[str]:
@@ -122,6 +138,56 @@ def ui_update(components: tuple[str, ...]) -> None:
         raise click.ClickException(f"shadcn-vue exited with code {code}")
 
     click.echo(click.style("\n✔ Update complete", fg="green"))
+
+
+@ui_group.command("style")
+@click.argument("style", required=False, type=click.Choice(_STYLES))
+def ui_style(style: str | None) -> None:
+    """Show or switch the shadcn-vue style of every component in ui/.
+
+    Writes `style` to components.json and reinstalls the installed components
+    from that style's registry.
+
+    \b
+    Examples:
+      grunt ui style                # current style and the choices
+      grunt ui style reka-nova      # switch
+    """
+    app_dir = _app_dir()
+    config_path = app_dir / "components.json"
+    config = json.loads(config_path.read_text())
+    current = config.get("style", "")
+
+    if style is None:
+        click.echo(f"Current style: {click.style(current, bold=True)}\n")
+        for name in _STYLES:
+            click.echo(f"  {'•' if name == current else ' '} {name}")
+        return
+
+    ui_dir = app_dir / "frontend" / "src" / "components" / "ui"
+    targets = _installed_components(ui_dir)
+    if not targets:
+        raise click.ClickException(f"No components found in {ui_dir}")
+
+    css_path = app_dir / config["tailwind"]["css"]
+    css = css_path.read_text()
+    if _SHADCN_CSS_IMPORT not in css:
+        lines = css.splitlines(keepends=True)
+        last_import = max(i for i, line in enumerate(lines) if line.startswith("@import"))
+        lines.insert(last_import + 1, _SHADCN_CSS_IMPORT + "\n")
+        css_path.write_text("".join(lines))
+        click.echo(f"── Added {_SHADCN_CSS_IMPORT} to {config['tailwind']['css']}")
+
+    config_path.write_text(
+        json.dumps({**config, "style": style}, indent=4, ensure_ascii=False) + "\n"
+    )
+
+    click.echo(f"── {current} → {style}: reinstalling {len(targets)} component(s)")
+    code = _shadcn(app_dir, ["add", *targets, "--overwrite", "--yes"])
+    if code != 0:
+        raise click.ClickException(f"shadcn-vue exited with code {code}; rerun to finish")
+
+    click.echo(click.style(f"\n✔ Style switched to {style}", fg="green"))
 
 
 @ui_group.command("list")

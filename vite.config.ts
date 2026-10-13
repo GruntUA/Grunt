@@ -136,7 +136,6 @@ export default defineConfig({
                     // stays auto-split — a manual chunk would pull the full icon set
                     // (lazy-loaded by useLucideIcons) into the initial load.
                     if (id.includes('@lucide/vue')) return
-                    if (id.includes('@radix-icons/vue')) return 'vendor-icons'
                     if (isVueVendorModule(id)) return 'vendor-vue'
                     if (id.includes('@tanstack/vue-query')) return 'vendor-query'
                     if (id.includes('/clsx/') || id.includes('tailwind-merge')) return 'vendor-ui'

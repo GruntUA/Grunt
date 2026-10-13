@@ -1,6 +1,6 @@
 {
     "$schema": "https://shadcn-vue.com/schema.json",
-    "style": "new-york",
+    "style": "reka-luma",
     "typescript": true,
     "tailwind": {
         "config": "",
@@ -16,5 +16,6 @@
         "ui": "@/components/ui",
         "lib": "@/lib"
     },
-    "registries": {}
+    "registries": {},
+    "iconLibrary": "lucide"
 }
