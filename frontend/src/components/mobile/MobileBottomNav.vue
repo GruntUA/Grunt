@@ -13,7 +13,7 @@ import { useAppStore } from '@/stores/app'
 import AppIcon from '@/components/AppIcon.vue'
 import { MoreHorizontal, Home } from '@lucide/vue'
 import { Button } from '@/components/ui/button'
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
 import { appUrl } from '@/core/workspaceUrl'
 
 const { t } = useI18n()
@@ -103,12 +103,12 @@ function goHome() {
     </div>
   </nav>
 
-  <!-- Overflow sheet -->
-  <Sheet :open="showOverflow" @update:open="(v: boolean) => (showOverflow = v)">
-    <SheetContent side="bottom" class="md:hidden p-0 rounded-t-lg" style="padding-bottom: env(safe-area-inset-bottom)">
-      <SheetHeader>
-        <SheetTitle>{{ t('All sections') }}</SheetTitle>
-      </SheetHeader>
+  <!-- Overflow drawer (swipe down to close) -->
+  <Drawer v-model:open="showOverflow">
+    <DrawerContent class="md:hidden" style="padding-bottom: env(safe-area-inset-bottom)">
+      <DrawerHeader>
+        <DrawerTitle>{{ t('All sections') }}</DrawerTitle>
+      </DrawerHeader>
       <div class="max-h-72 overflow-y-auto px-3 pb-4">
         <Button
           v-for="item in overflowItems"
@@ -123,6 +123,6 @@ function goHome() {
           <span class="truncate">{{ item.label }}</span>
         </Button>
       </div>
-    </SheetContent>
-  </Sheet>
+    </DrawerContent>
+  </Drawer>
 </template>
