@@ -519,28 +519,96 @@ _MISE_PRUNABLE = re.compile(r"^mise (\S+?)@(\S+) is prunable", re.M)
 _SKIP_WALK = {"node_modules", ".cache", ".git", ".npm", "site-packages", "dist"}
 
 
-def _in_use() -> dict[str, str]:
-    """``{real path: who}`` - the Python of every venv in the home directory
+def _in_use() -> dict[str, list[str]]:
+    """``{real path: [who]}`` - the Python of every venv in the home directory
     and the executable of every running process."""
-    used: dict[str, str] = {}
+    used: dict[str, list[str]] = {}
     home = Path.home()
     for root, dirs, files in os.walk(home):
         depth = len(Path(root).relative_to(home).parts)
         dirs[:] = [d for d in dirs if d not in _SKIP_WALK and depth < 6]
         if "pyvenv.cfg" in files:
-            venv = "~/" + str(Path(root).relative_to(home))
             for value in _cfg_values(Path(root) / "pyvenv.cfg", "home"):
-                used.setdefault(os.path.realpath(value), _("venv %(path)s") % {"path": venv})
+                used.setdefault(os.path.realpath(value), []).append(_venv_user(Path(root)))
     for exe in Path("/proc").glob("[0-9]*/exe"):
         try:
             path = os.path.realpath(exe)
-            name = (exe.parent / "comm").read_text().strip()
         except OSError:
             continue
-        used.setdefault(
-            path, _("process %(pid)s (%(name)s)") % {"pid": exe.parent.name, "name": name}
-        )
+        used.setdefault(path, []).append(_process_user(exe.parent))
     return used
+
+
+def _home_path(path: Path) -> str:
+    home = Path.home()
+    return "~/" + str(path.relative_to(home)) if path.is_relative_to(home) else str(path)
+
+
+def _venv_user(venv: Path) -> str:
+    """ "venv ~/x → `the command that moves it to the current Python`"."""
+    import sys
+
+    py = f"{sys.version_info.major}.{sys.version_info.minor}"
+    tools = Path(os.environ.get("UV_TOOL_DIR") or Path.home() / ".local/share/uv/tools")
+    if venv.parent == tools:
+        who = _("uv tool %(name)s") % {"name": venv.name}
+        fix = f"uv tool install --reinstall --python {py} {venv.name}"
+    elif (venv.parent / "pyproject.toml").is_file():
+        who = _("venv %(path)s") % {"path": _home_path(venv)}
+        fix = f"cd {_home_path(venv.parent)} && uv sync --python {py}"
+    else:
+        who = _("venv %(path)s") % {"path": _home_path(venv)}
+        # A standalone venv: its packages are recorded nowhere but in it -
+        # save the list, recreate, install it back.
+        shown = _home_path(venv)
+        reqs = f"/tmp/{venv.name.lstrip('.') or 'venv'}-requirements.txt"
+        fix = (
+            f"uv pip freeze --python {shown} > {reqs}"
+            f" && uv venv --clear --python {py} {shown}"
+            f" && uv pip install --python {shown} -r {reqs}"
+        )
+    return f"{who} → `{fix}`"
+
+
+def _process_user(proc: Path) -> str:
+    """ "process 123 (grunt serve, 6 d) → `kill 123`"."""
+    try:
+        raw = (proc / "cmdline").read_bytes().split(b"\0")
+        stat = (proc / "stat").read_text().rsplit(")", 1)[1].split()
+    except OSError:
+        raw, stat = [], []
+    argv = [a.decode(errors="replace") for a in raw if a]
+    # python /path/bin/grunt serve → grunt serve
+    if len(argv) > 1 and Path(argv[0]).name.startswith("python"):
+        argv = argv[1:]
+    command = " ".join([Path(argv[0]).name, *argv[1:3]]) if argv else "?"
+    pid = proc.name
+    params = {"pid": pid, "command": command, "age": _age(stat)}
+    if stat and stat[0] == "T":
+        # Stopped (Ctrl+Z): ignores SIGTERM until woken up.
+        who = _("process %(pid)s (%(command)s, %(age)s, stopped with Ctrl+Z)") % params
+        return f"{who} → `kill {pid} && kill -CONT {pid}`"
+    return f"{_('process %(pid)s (%(command)s, %(age)s)') % params} → `kill {pid}`"
+
+
+def _age(stat: list[str]) -> str:
+    try:
+        start = int(stat[19])
+        # btime, not /proc/uptime: in a container (LXC) uptime counts from the
+        # container's start, the process start time - from the host's boot.
+        btime = next(
+            int(line.split()[1])
+            for line in Path("/proc/stat").read_text().splitlines()
+            if line.startswith("btime ")
+        )
+    except OSError, ValueError, IndexError, StopIteration:
+        return "?"
+    seconds = time.time() - (btime + start / os.sysconf("SC_CLK_TCK"))
+    if seconds >= 86400:
+        return _("%(n)s d") % {"n": int(seconds // 86400)}
+    if seconds >= 3600:
+        return _("%(n)s h") % {"n": int(seconds // 3600)}
+    return _("%(n)s min") % {"n": max(int(seconds // 60), 1)}
 
 
 def _cfg_values(path: Path, key: str) -> list[str]:
@@ -577,8 +645,11 @@ def old_runtimes() -> tuple[list[str], list[str]]:
 
     def sort(label: str, directory: Path) -> None:
         prefix = f"{directory}/"
-        who = next((w for p, w in used.items() if p.startswith(prefix)), None)
-        (held if who else free).append(f"{label} — {who}" if who else label)
+        users = [w for path, who in used.items() if path.startswith(prefix) for w in who]
+        if users:
+            held.append(f"{label} — {', '.join(users)}")
+        else:
+            free.append(label)
 
     managed = Path.home() / ".local/share/uv/python"
     current = {Path(os.path.realpath(sys.executable)).parent.parent}
@@ -633,7 +704,10 @@ async def old_runtimes_row(cat: str) -> Row:
     if free:
         hints.append(_("`grunt update` removes: %(list)s.") % {"list": ", ".join(free)})
     if held:
-        hints.append(_("Still in use, removed once free: %(list)s.") % {"list": "; ".join(held)})
+        hints.append(
+            _("Still in use, removed once free (how to free it after →): %(list)s.")
+            % {"list": "; ".join(held)}
+        )
     return row(cat, check, INFO, str(len(free) + len(held)), " ".join(hints))
 
 

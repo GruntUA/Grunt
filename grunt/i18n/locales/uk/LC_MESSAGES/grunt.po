@@ -22351,9 +22351,6 @@ msgstr "Поза діапазонами package.json — змініть їх в�
 msgid "venv %(path)s"
 msgstr "venv %(path)s"
 
-#: grunt/grunt/monitoring/updates.py
-msgid "process %(pid)s (%(name)s)"
-msgstr "процес %(pid)s (%(name)s)"
 
 #: grunt/grunt/monitoring/updates.py
 msgid "Old runtime versions"
@@ -22363,6 +22360,31 @@ msgstr "Старі версії рантаймів"
 msgid "`grunt update` removes: %(list)s."
 msgstr "`grunt update` видалить: %(list)s."
 
+
 #: grunt/grunt/monitoring/updates.py
-msgid "Still in use, removed once free: %(list)s."
-msgstr "Ще використовуються, будуть видалені, щойно звільняться: %(list)s."
+msgid "uv tool %(name)s"
+msgstr "uv tool %(name)s"
+
+#: grunt/grunt/monitoring/updates.py
+msgid "process %(pid)s (%(command)s, %(age)s, stopped with Ctrl+Z)"
+msgstr "процес %(pid)s (%(command)s, %(age)s, зупинений Ctrl+Z)"
+
+#: grunt/grunt/monitoring/updates.py
+msgid "process %(pid)s (%(command)s, %(age)s)"
+msgstr "процес %(pid)s (%(command)s, %(age)s)"
+
+#: grunt/grunt/monitoring/updates.py
+msgid "%(n)s d"
+msgstr "%(n)s дн"
+
+#: grunt/grunt/monitoring/updates.py
+msgid "%(n)s h"
+msgstr "%(n)s год"
+
+#: grunt/grunt/monitoring/updates.py
+msgid "%(n)s min"
+msgstr "%(n)s хв"
+
+#: grunt/grunt/monitoring/updates.py
+msgid "Still in use, removed once free (how to free it after →): %(list)s."
+msgstr "Ще використовуються, будуть видалені, щойно звільняться (як звільнити — після →): %(list)s."

@@ -282,9 +282,16 @@ def test_old_runtimes(tmp_path, monkeypatch):
     monkeypatch.setattr(
         sys, "executable", str(managed / "cpython-3.15.0-linux-x86_64-gnu/bin/python3")
     )
+    # 3.14.8 is held by two venvs at once - both are shown, each with its fix
+    old_home = f"home = {managed}/cpython-3.14.8-linux-x86_64-gnu/bin\n"
     venv = home / "other/.venv"
     venv.mkdir(parents=True)
-    (venv / "pyvenv.cfg").write_text(f"home = {managed}/cpython-3.14.8-linux-x86_64-gnu/bin\n")
+    (venv / "pyvenv.cfg").write_text(old_home)
+    (home / "other/pyproject.toml").write_text("")
+    tool_venv = home / ".local/share/uv/tools/deptry"
+    tool_venv.mkdir(parents=True)
+    (tool_venv / "pyvenv.cfg").write_text(old_home)
+    monkeypatch.delenv("UV_TOOL_DIR", raising=False)
     framework = tmp_path / "grunt"
     framework.mkdir()
     (framework / "mise.toml").write_text('[tools]\nnode = "26"\n')
@@ -294,7 +301,7 @@ def test_old_runtimes(tmp_path, monkeypatch):
     node = home / ".local/share/mise/installs/node/26.8.1/bin/node"
     real_in_use = updates._in_use
     monkeypatch.setattr(
-        updates, "_in_use", lambda: {**real_in_use(), str(node): "process 7 (node)"}
+        updates, "_in_use", lambda: {**real_in_use(), str(node): ["process 7 (node)"]}
     )
     listed = [
         {
@@ -316,7 +323,10 @@ def test_old_runtimes(tmp_path, monkeypatch):
     monkeypatch.setattr("subprocess.run", fake_run)
     free, held = updates.old_runtimes()
     assert free == ["Python 3.14.4 (uv)"]
-    assert held[0].startswith("Python 3.14.8 (uv) — ") and "other/.venv" in held[0]
+    py = f"{sys.version_info.major}.{sys.version_info.minor}"
+    assert held[0].startswith("Python 3.14.8 (uv) — ")
+    assert f"venv ~/other/.venv → `cd ~/other && uv sync --python {py}`" in held[0]
+    assert f"uv tool deptry → `uv tool install --reinstall --python {py} deptry`" in held[0]
     assert held[1] == "node 26.8.1 (mise) — process 7 (node)"
 
 
@@ -331,3 +341,32 @@ async def test_old_runtimes_row(monkeypatch):
     r = await updates.old_runtimes_row(CAT)
     assert r["status"] == "Info" and r["value"] == "2"
     assert "uv 0.11.7 (mise)" in r["hint"] and "process 1" in r["hint"]
+
+
+def test_process_user(tmp_path, monkeypatch):
+    import os
+    import time
+
+    proc = tmp_path / "proc" / "42"
+    proc.mkdir(parents=True)
+    (proc / "cmdline").write_bytes(b"/x/bin/python3\0/home/u/.local/bin/grunt\0serve\0")
+    clk = os.sysconf("SC_CLK_TCK")
+    btime = int(time.time()) - 10 * 86400
+    started = 4 * 86400 * clk  # 4 days after boot -> 6 days ago
+    fields = ["T", *["0"] * 18, str(started)]
+    (proc / "stat").write_text(f"42 (python3) {' '.join(fields)}\n")
+    real_read = updates.Path.read_text
+
+    def read_text(self, *a, **kw):
+        if str(self) == "/proc/stat":
+            return f"cpu 0\nbtime {btime}\n"
+        return real_read(self, *a, **kw)
+
+    monkeypatch.setattr(updates.Path, "read_text", read_text)
+    who = updates._process_user(proc)
+    assert "42 (grunt serve, 6 " in who and "Ctrl+Z)" in who
+    assert who.endswith("→ `kill 42 && kill -CONT 42`")
+
+    (proc / "stat").write_text(f"42 (python3) S {' '.join(fields[1:])}\n")
+    running = updates._process_user(proc)
+    assert "Ctrl+Z" not in running and running.endswith(") → `kill 42`")
