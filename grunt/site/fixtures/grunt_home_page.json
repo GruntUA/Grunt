@@ -16,8 +16,7 @@
           "filters": { "is_active": true },
           "cols": 1,
           "color": "primary",
-          "icon": "Users",
-          "sequence": 10
+          "icon": "Users"
         },
         {
           "widget_type": "metric",
@@ -29,8 +28,7 @@
           "period": "7d",
           "cols": 1,
           "color": "blue",
-          "icon": "Activity",
-          "sequence": 20
+          "icon": "Activity"
         },
         {
           "widget_type": "metric",
@@ -43,8 +41,7 @@
           "period": "7d",
           "cols": 1,
           "color": "red",
-          "icon": "TriangleAlert",
-          "sequence": 30
+          "icon": "TriangleAlert"
         },
         {
           "widget_type": "metric",
@@ -55,8 +52,7 @@
           "filters": { "status": "Pending" },
           "cols": 1,
           "color": "amber",
-          "icon": "Mail",
-          "sequence": 40
+          "icon": "Mail"
         },
         {
           "widget_type": "chart_area",
@@ -65,8 +61,7 @@
           "date_field": "created_at",
           "period": "30d",
           "cols": 2,
-          "color": "blue",
-          "sequence": 50
+          "color": "blue"
         },
         {
           "widget_type": "donut",
@@ -74,8 +69,7 @@
           "ref_doctype": "ActivityLog",
           "group_by": "action",
           "cols": 1,
-          "color": "violet",
-          "sequence": 60
+          "color": "violet"
         },
         {
           "widget_type": "donut",
@@ -83,15 +77,13 @@
           "ref_doctype": "ErrorLog",
           "group_by": "context",
           "cols": 1,
-          "color": "cyan",
-          "sequence": 70
+          "color": "cyan"
         },
         {
           "widget_type": "activity",
           "title": "Остання активність",
           "cols": 2,
-          "color": "primary",
-          "sequence": 80
+          "color": "primary"
         },
         {
           "widget_type": "table",
@@ -102,8 +94,7 @@
           "date_field": "created_at",
           "period": "30d",
           "cols": 2,
-          "color": "blue",
-          "sequence": 90
+          "color": "blue"
         },
         {
           "widget_type": "heatmap",
@@ -112,15 +103,13 @@
           "date_field": "created_at",
           "period": "365d",
           "cols": 4,
-          "color": "primary",
-          "sequence": 100
+          "color": "primary"
         },
         {
           "widget_type": "shortcuts_grid",
           "title": "Швидкі переходи",
           "cols": 4,
           "color": "primary",
-          "sequence": 110,
           "content": "[{\"title\":\"DocTypes\",\"icon\":\"Package\",\"link_type\":\"DocType\",\"link_to\":\"DocType\",\"color\":\"violet\"},{\"title\":\"Користувачі\",\"icon\":\"Users\",\"link_type\":\"DocType\",\"link_to\":\"User\",\"color\":\"blue\"},{\"title\":\"Ролі\",\"icon\":\"Shield\",\"link_type\":\"DocType\",\"link_to\":\"Role\",\"color\":\"primary\"},{\"title\":\"Системні налаштування\",\"icon\":\"Settings\",\"link_type\":\"DocType\",\"link_to\":\"SystemSettings\",\"color\":\"cyan\"},{\"title\":\"Лог помилок\",\"icon\":\"TriangleAlert\",\"link_type\":\"DocType\",\"link_to\":\"ErrorLog\",\"color\":\"red\"},{\"title\":\"Лог активності\",\"icon\":\"ClipboardList\",\"link_type\":\"DocType\",\"link_to\":\"ActivityLog\",\"color\":\"blue\"},{\"title\":\"Заплановані завдання\",\"icon\":\"Calendar\",\"link_type\":\"DocType\",\"link_to\":\"ScheduledJob\",\"color\":\"violet\"}]"
         }
       ]

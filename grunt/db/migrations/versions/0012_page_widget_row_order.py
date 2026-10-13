@@ -34,9 +34,7 @@ def _table(conn: sa.Connection, tables: set[str]) -> str:
     """The table from the stored definition, else the default name."""
     if _META in tables:
         meta = sa.table(_META, sa.column("name"), sa.column("table_name"))
-        stored = conn.execute(
-            sa.select(meta.c.table_name).where(meta.c.name == _DOCTYPE)
-        ).scalar()
+        stored = conn.execute(sa.select(meta.c.table_name).where(meta.c.name == _DOCTYPE)).scalar()
         if stored:
             return stored
     return get_table_name("site", _DOCTYPE)
@@ -70,18 +68,14 @@ def upgrade() -> None:
 
     if _META in tables:
         meta = sa.table(_META, sa.column("name"), sa.column("definition", sa.JSON()))
-        raw = conn.execute(
-            sa.select(meta.c.definition).where(meta.c.name == _DOCTYPE)
-        ).scalar()
+        raw = conn.execute(sa.select(meta.c.definition).where(meta.c.name == _DOCTYPE)).scalar()
         data = json.loads(raw) if isinstance(raw, str) else raw
         if data:
             fields = data.get("fields") or []
             kept = [f for f in fields if f.get("fieldname") != _FIELD]
             if len(kept) != len(fields):
                 data["fields"] = kept
-                conn.execute(
-                    sa.update(meta).where(meta.c.name == _DOCTYPE).values(definition=data)
-                )
+                conn.execute(sa.update(meta).where(meta.c.name == _DOCTYPE).values(definition=data))
 
 
 def downgrade() -> None:
