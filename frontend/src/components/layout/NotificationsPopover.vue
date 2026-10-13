@@ -2,11 +2,11 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { Bell, Check, BellOff, BellRing } from '@lucide/vue'
+import { Bell, Check, CheckCheck, BellOff, BellRing } from '@lucide/vue'
 import { formatIntl } from '@/core/datetime'
 import { useWebPush } from '@/core/composables/useWebPush'
 
-const { isSupported: pushSupported, isSubscribed: pushSubscribed, isLoading: pushLoading, subscribe: pushSubscribe, unsubscribe: pushUnsubscribe } = useWebPush()
+const { isSupported: pushSupported, isSubscribed: pushSubscribed, isLoading: pushLoading, permissionState: pushPermission, subscribe: pushSubscribe, unsubscribe: pushUnsubscribe } = useWebPush()
 
 import { type NotificationItem, notificationsApi } from '@/core/api/notifications'
 import { useWebSocket } from '@/core/composables/useWebSocket'
@@ -109,7 +109,7 @@ onUnmounted(() => {
 
         <Popover v-model:open="isOpen">
             <PopoverAnchor :reference="anchorEl ?? undefined" />
-            <PopoverContent align="start" class="w-80 p-0">
+            <PopoverContent align="start" class="w-96 max-w-[calc(100vw-2rem)] p-0">
                 <div class="flex flex-col overflow-hidden">
                     <!-- Header -->
                     <div class="flex items-center justify-between px-3 py-2 border-b">
@@ -119,11 +119,10 @@ onUnmounted(() => {
                                 {{ unreadCount }}
                             </Badge>
                         </div>
-                        <Button v-if="unreadCount > 0" variant="ghost" size="sm"
-                            class="h-6 gap-1 px-1.5 text-muted-foreground" @click="markAllAsRead"
-                            :title="t('Mark all as read')">
-                            <Check class="size-3.5" />
-                            {{ t('Mark all as read') }}
+                        <Button v-if="unreadCount > 0" variant="ghost" size="icon"
+                            class="size-7 text-muted-foreground" @click="markAllAsRead"
+                            :title="t('Mark all as read')" :aria-label="t('Mark all as read')">
+                            <CheckCheck class="size-4" />
                         </Button>
                     </div>
 
@@ -143,16 +142,19 @@ onUnmounted(() => {
                                 <span class="mt-1.5 size-1.5 shrink-0 rounded-full"
                                     :class="n.is_read ? 'bg-transparent' : 'bg-primary'" />
                                 <div class="flex-1 min-w-0">
-                                    <p class="font-semibold leading-snug line-clamp-2"
+                                    <p class="font-medium leading-snug line-clamp-2"
                                         :class="n.is_read ? 'text-muted-foreground' : 'text-foreground'">
                                         {{ n.subject }}
                                     </p>
                                     <p v-if="n.message" class="text-muted-foreground line-clamp-2 leading-snug mt-0.5">
                                         {{ n.message }}
                                     </p>
-                                    <div class="flex items-center gap-2 mt-1 text-muted-foreground/70">
-                                        <span>{{ formatDate(n.created_at) }}</span>
-                                        <span v-if="n.ref_doctype" class="uppercase tracking-wide">{{ n.ref_doctype }}</span>
+                                    <div class="flex items-center gap-1.5 mt-1 text-xs text-muted-foreground/70 min-w-0">
+                                        <span class="shrink-0">{{ formatDate(n.created_at) }}</span>
+                                        <template v-if="n.ref_doctype">
+                                            <span aria-hidden="true">·</span>
+                                            <span class="truncate">{{ n.ref_doctype }}</span>
+                                        </template>
                                     </div>
                                 </div>
                                 <button v-if="!n.is_read"
@@ -165,14 +167,16 @@ onUnmounted(() => {
                     </div>
 
                     <!-- Push subscribe footer -->
-                    <div v-if="pushSupported" class="px-3 py-2 border-t flex items-center justify-between">
-                        <span class="text-muted-foreground">
-                            {{ pushSubscribed ? t('Push notifications enabled') : t('Push notifications disabled') }}
+                    <div v-if="pushSupported" class="flex items-center justify-between gap-2 border-t bg-muted/30 px-3 py-2">
+                        <span class="text-xs text-muted-foreground">
+                            <template v-if="pushPermission === 'denied'">{{ t('Notifications are blocked in the browser settings for this site') }}</template>
+                            <template v-else>{{ pushSubscribed ? t('Push notifications enabled') : t('Push notifications disabled') }}</template>
                         </span>
-                        <Button variant="ghost" size="sm" class="h-6 px-2" :disabled="pushLoading"
+                        <Button v-if="pushPermission !== 'denied'" :variant="pushSubscribed ? 'ghost' : 'outline'" size="sm"
+                            class="h-7 shrink-0 gap-1.5 px-2.5" :disabled="pushLoading"
                             @click="pushSubscribed ? pushUnsubscribe() : pushSubscribe()">
-                            <BellOff v-if="pushSubscribed" class="size-3 mr-1" />
-                            <BellRing v-else class="size-3 mr-1" />
+                            <BellOff v-if="pushSubscribed" class="size-3.5" />
+                            <BellRing v-else class="size-3.5" />
                             {{ pushSubscribed ? t('Disable') : t('Enable') }}
                         </Button>
                     </div>

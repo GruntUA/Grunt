@@ -20353,3 +20353,47 @@ msgstr ""
 
 #~ msgid "Вебхук"
 #~ msgstr "Webhook"
+
+#: grunt/frontend/src/core/composables/useWebPush.ts
+msgid "Notifications are blocked in the browser settings for this site"
+msgstr "Notifications are blocked in the browser settings for this site"
+
+#: grunt/actions/builtin.py
+msgid "Send test notification"
+msgstr "Send test notification"
+
+#: grunt/actions/builtin.py
+msgid "Open on click"
+msgstr "Open on click"
+
+#: grunt/actions/builtin.py
+msgid "Path inside the app, e.g. /app/home"
+msgstr "Path inside the app, e.g. /app/home"
+
+#: grunt/actions/builtin.py
+msgid "Test notification"
+msgstr "Test notification"
+
+#: grunt/actions/builtin.py
+msgid "Push notifications work in this browser."
+msgstr "Push notifications work in this browser."
+
+#: grunt/actions/builtin.py
+msgid "Test notification sent"
+msgstr "Test notification sent"
+
+#: grunt/actions/builtin.py
+msgid "Push service rejected the message: %(error)s"
+msgstr "Push service rejected the message: %(error)s"
+
+#: grunt/actions/builtin.py
+msgid "The browser no longer accepts this subscription (HTTP %(status)s); deleted it"
+msgstr "The browser no longer accepts this subscription (HTTP %(status)s); deleted it"
+
+#: grunt/actions/builtin.py
+msgid "The pywebpush package is not installed"
+msgstr "The pywebpush package is not installed"
+
+#: grunt/actions/builtin.py
+msgid "VAPID keys are not generated yet"
+msgstr "VAPID keys are not generated yet"

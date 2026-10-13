@@ -37,36 +37,65 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array<ArrayBuffer> {
   return new Uint8Array([...raw].map(c => c.charCodeAt(0))) as Uint8Array<ArrayBuffer>
 }
 
-async function getRegistration(): Promise<ServiceWorkerRegistration | null> {
+/**
+ * The SW is registered in main.ts (prod only). `serviceWorker.ready` never
+ * settles when nothing is registered, so register on demand and bound the wait.
+ */
+async function getRegistration(timeoutMs = 10000): Promise<ServiceWorkerRegistration | null> {
   if (!isSupported) return null
   try {
-    return await navigator.serviceWorker.ready
-  } catch {
+    if (!(await navigator.serviceWorker.getRegistration())) {
+      await navigator.serviceWorker.register('/sw.js')
+    }
+    return await Promise.race([
+      navigator.serviceWorker.ready,
+      new Promise<null>(resolve => setTimeout(() => resolve(null), timeoutMs)),
+    ])
+  } catch (error) {
+    console.error('Service worker registration failed', error)
     return null
   }
 }
 
+async function saveSubscription(sub: PushSubscription): Promise<void> {
+  const keys = sub.toJSON().keys as { p256dh: string; auth: string }
+  await client.post('/api/v1/method/grunt.api.v1.notifications.subscribe_push', {
+    endpoint: sub.endpoint,
+    p256dh: keys.p256dh,
+    auth: keys.auth,
+    user_agent: navigator.userAgent,
+  })
+}
+
 async function checkSubscription(): Promise<void> {
+  if (!isSupported || !(await navigator.serviceWorker.getRegistration())) {
+    isSubscribed.value = false
+    return
+  }
   const reg = await getRegistration()
-  if (!reg) { isSubscribed.value = false; return }
-  const sub = await reg.pushManager.getSubscription()
+  const sub = await reg?.pushManager.getSubscription()
   isSubscribed.value = !!sub
+  // Re-send an existing browser subscription: the server copy may be gone
+  // (expired endpoint cleanup, DB restore) while the browser still has it.
+  if (sub && permissionState.value === 'granted') {
+    saveSubscription(sub).catch(() => { isSubscribed.value = false })
+  }
 }
 
 async function subscribe(): Promise<boolean> {
-
   if (!isSupported) {
     toast.error(t('Your browser does not support push notifications'))
     return false
   }
-  
+
   isLoading.value = true
   try {
-    // Request permission
     const permission = await Notification.requestPermission()
     permissionState.value = permission
     if (permission !== 'granted') {
-      toast.error(t('You did not allow notifications'))
+      toast.error(permission === 'denied'
+        ? t('Notifications are blocked in the browser settings for this site')
+        : t('You did not allow notifications'))
       return false
     }
 
@@ -82,26 +111,21 @@ async function subscribe(): Promise<boolean> {
       return false
     }
 
-    const sub = await reg.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(vapidKey),
-    })
+    const applicationServerKey = urlBase64ToUint8Array(vapidKey)
+    // A subscription made with an older VAPID key makes subscribe() throw
+    // InvalidStateError - drop it first.
+    const existing = await reg.pushManager.getSubscription()
+    if (existing) await existing.unsubscribe()
 
-    const json = sub.toJSON()
-    const keys = json.keys as { p256dh: string; auth: string }
-
-    await client.post('/api/v1/method/grunt.api.v1.notifications.subscribe_push', {
-      endpoint: sub.endpoint,
-      p256dh: keys.p256dh,
-      auth: keys.auth,
-    })
+    const sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey })
+    await saveSubscription(sub)
 
     isSubscribed.value = true
     toast.success(t('Push notifications enabled!'))
     return true
   } catch (e) {
     console.error('Push subscribe failed', e)
-    toast.error(t('Subscription error:') + ' ' + String(e))
+    toast.error(t('Subscription error:') + ' ' + (e instanceof Error ? e.message : String(e)))
     return false
   } finally {
     isLoading.value = false
@@ -116,7 +140,6 @@ async function unsubscribe(): Promise<void> {
     const sub = await reg.pushManager.getSubscription()
     if (!sub) return
 
-    // const json = sub.toJSON()
     await client.post('/api/v1/method/grunt.api.v1.notifications.unsubscribe_push', {
       endpoint: sub.endpoint
     })

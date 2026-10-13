@@ -22431,3 +22431,47 @@ msgstr "невідома задача"
 #~ msgstr ""
 #~ "Емодзі, які можна ставити під коментарями, через пробіл. Порожньо - реакції "
 #~ "вимкнено"
+
+#: grunt/frontend/src/core/composables/useWebPush.ts
+msgid "Notifications are blocked in the browser settings for this site"
+msgstr "Сповіщення заблоковано в налаштуваннях браузера для цього сайту"
+
+#: grunt/actions/builtin.py
+msgid "Send test notification"
+msgstr "Надіслати тестове сповіщення"
+
+#: grunt/actions/builtin.py
+msgid "Open on click"
+msgstr "Відкрити при натисканні"
+
+#: grunt/actions/builtin.py
+msgid "Path inside the app, e.g. /app/home"
+msgstr "Шлях у застосунку, напр. /app/home"
+
+#: grunt/actions/builtin.py
+msgid "Test notification"
+msgstr "Тестове сповіщення"
+
+#: grunt/actions/builtin.py
+msgid "Push notifications work in this browser."
+msgstr "Push-сповіщення працюють у цьому браузері."
+
+#: grunt/actions/builtin.py
+msgid "Test notification sent"
+msgstr "Тестове сповіщення надіслано"
+
+#: grunt/actions/builtin.py
+msgid "Push service rejected the message: %(error)s"
+msgstr "Push-сервіс відхилив повідомлення: %(error)s"
+
+#: grunt/actions/builtin.py
+msgid "The browser no longer accepts this subscription (HTTP %(status)s); deleted it"
+msgstr "Браузер більше не приймає цю підписку (HTTP %(status)s); її видалено"
+
+#: grunt/actions/builtin.py
+msgid "The pywebpush package is not installed"
+msgstr "Пакет pywebpush не встановлено"
+
+#: grunt/actions/builtin.py
+msgid "VAPID keys are not generated yet"
+msgstr "VAPID-ключі ще не згенеровано"

@@ -186,3 +186,58 @@ async def report_send_now(doc: dict[str, Any], *, args: dict[str, Any]) -> dict[
         "message": _("Report queued for %(count)s recipients") % {"count": sent},
         "refresh": True,
     }
+
+
+@doc_action(
+    "webpush.test",
+    label="Send test notification",
+    doctypes=["PushSubscription"],
+    icon="bell-ring",
+    variant="outline",
+    fields=[
+        {
+            "fieldname": "title",
+            "label": "Title",
+            "fieldtype": "Data",
+            "default": "Test notification",
+            "required": True,
+        },
+        {
+            "fieldname": "body",
+            "label": "Message",
+            "fieldtype": "Text",
+            "default": "Push notifications work in this browser.",
+        },
+        {
+            "fieldname": "url",
+            "label": "Open on click",
+            "fieldtype": "Data",
+            "default": "/",
+            "description": "Path inside the app, e.g. /app/home",
+        },
+    ],
+)
+async def webpush_test(doc: dict[str, Any], *, args: dict[str, Any]) -> dict[str, Any]:
+    """Push a test message to this one browser subscription and report the outcome."""
+    from grunt.webpush.service import webpush_service
+
+    sub = await grunt.get_doc("PushSubscription", doc["name"])
+    result = await webpush_service.send_test(
+        sub,
+        title=args.get("title") or _("Test notification"),
+        body=args.get("body") or "",
+        url=args.get("url") or "/",
+    )
+    if result.expired:
+        grunt.throw(
+            _("The browser no longer accepts this subscription (HTTP %(status)s); deleted it")
+            % {"status": result.status},
+            code="PUSH_EXPIRED",
+        )
+    if not result.ok:
+        status = f"HTTP {result.status}: " if result.status else ""
+        grunt.throw(
+            _("Push service rejected the message: %(error)s") % {"error": status + result.error},
+            code="PUSH_FAILED",
+        )
+    return {"message": _("Test notification sent"), "refresh": False}

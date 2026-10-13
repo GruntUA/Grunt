@@ -47,5 +47,11 @@
       "delete": true,
       "match": "user == user"
     }
+  ],
+  "actions": [
+    {
+      "action": "webpush.test",
+      "variant": "outline"
+    }
   ]
 }

@@ -9,12 +9,14 @@ all other notification channels (in-app, email) continue to work.
 
 from __future__ import annotations
 
+import asyncio
 import base64
 import importlib.util
 import json
+from dataclasses import dataclass
 
 import grunt
-from grunt import log
+from grunt import _, log
 from grunt.site.settings import get_setting
 
 _VAPID_PRIVATE_KEY_FIELD = "webpush_vapid_private"
@@ -47,6 +49,14 @@ def _generate_vapid_keys() -> tuple[str, str]:
     public_b64 = base64.urlsafe_b64encode(raw_pub).decode().strip("=")
 
     return private_pem, public_b64
+
+
+@dataclass(frozen=True)
+class PushResult:
+    ok: bool
+    status: int | None = None
+    error: str = ""
+    expired: bool = False
 
 
 class WebPushService:
@@ -114,6 +124,46 @@ class WebPushService:
         """Delete a push subscription by endpoint URL - only if it belongs to `user`."""
         await grunt.db.delete("PushSubscription", filters={"endpoint": endpoint, "user": user})
 
+    async def _vapid_private_key(self) -> str | None:
+        try:
+            return await grunt.get_single("SystemSettings", _VAPID_PRIVATE_KEY_FIELD) or None
+        except Exception:
+            return None
+
+    async def deliver(self, sub: dict, payload: str, vapid_private: str) -> PushResult:
+        """Send one encrypted message to one subscription.
+
+        Expired endpoints (404/410) are deleted. Never raises - the outcome
+        is returned so callers can log it or show it to the user.
+        """
+        from pywebpush import WebPushException, webpush
+
+        try:
+            # pywebpush is a blocking HTTP call - keep it off the event loop.
+            # No "aud" claim: pywebpush derives scheme://host from the endpoint.
+            response = await asyncio.to_thread(
+                webpush,
+                subscription_info={
+                    "endpoint": sub["endpoint"],
+                    "keys": {"p256dh": sub["p256dh"], "auth": sub["auth"]},
+                },
+                data=payload,
+                vapid_private_key=vapid_private,
+                vapid_claims={"sub": _VAPID_CLAIMS_SUB},
+                timeout=10,
+            )
+            return PushResult(ok=True, status=getattr(response, "status_code", None))
+        except WebPushException as exc:
+            status = getattr(exc.response, "status_code", None)
+            expired = status in (404, 410)
+            if expired:
+                # Browser dropped the subscription - forget it.
+                await grunt.db.delete("PushSubscription", filters={"endpoint": sub["endpoint"]})
+            detail = getattr(exc.response, "text", "") or str(exc)
+            return PushResult(ok=False, status=status, error=detail[:500], expired=expired)
+        except Exception as exc:
+            return PushResult(ok=False, error=str(exc))
+
     async def send_push(
         self,
         user: str,
@@ -124,38 +174,48 @@ class WebPushService:
         """Send a Web Push notification to all subscriptions of a user."""
         if not await get_setting("enable_web_push", False):
             return
-
-        try:
-            from pywebpush import webpush
-        except ImportError:
+        if importlib.util.find_spec("pywebpush") is None:
             return  # Silently skip if not installed
-
-        # Get VAPID private key
-        try:
-            vapid_private = await grunt.get_single("SystemSettings", _VAPID_PRIVATE_KEY_FIELD)
-            if not vapid_private:
-                return
-        except Exception:
+        vapid_private = await self._vapid_private_key()
+        if not vapid_private:
             return
 
-        # Get subscriptions for this user
-        subs = await grunt.get_list("PushSubscription", filters={"user": user})
+        # Raw read: the caller is usually the *sender* (whoever triggered the
+        # notification), and PushSubscription is row-matched to its owner - a
+        # guarded read would see none of the recipient's subscriptions.
+        subs = await grunt.db.get_all(
+            "PushSubscription",
+            filters={"user": user},
+            fields=["endpoint", "p256dh", "auth"],
+            limit=None,
+        )
+        if not subs:
+            return
 
         payload = json.dumps({"title": subject, "body": body, "url": url})
-
         for sub in subs:
-            try:
-                webpush(
-                    subscription_info={
-                        "endpoint": sub["endpoint"],
-                        "keys": {"p256dh": sub["p256dh"], "auth": sub["auth"]},
-                    },
-                    data=payload,
-                    vapid_private_key=vapid_private,
-                    vapid_claims={"sub": _VAPID_CLAIMS_SUB, "aud": sub["endpoint"].split("/")[2]},
+            result = await self.deliver(sub, payload, vapid_private)
+            if result.expired:
+                log.info("webpush.subscription_expired", user=user, status=result.status)
+            elif not result.ok:
+                log.warning(
+                    "webpush.send_failed", user=user, status=result.status, error=result.error
                 )
-            except Exception as exc:
-                log.warning("webpush.send_failed", user=user, error=str(exc))
+
+    async def send_test(
+        self, sub: dict, *, title: str, body: str = "", url: str = "/"
+    ) -> PushResult:
+        """Send a test message to a single subscription (the form's test action)."""
+        if not await get_setting("enable_web_push", False):
+            return PushResult(ok=False, error=_("Web Push is disabled in the system settings"))
+        if importlib.util.find_spec("pywebpush") is None:
+            return PushResult(ok=False, error=_("The pywebpush package is not installed"))
+        vapid_private = await self._vapid_private_key()
+        if not vapid_private:
+            return PushResult(ok=False, error=_("VAPID keys are not generated yet"))
+
+        payload = json.dumps({"title": title, "body": body, "url": url})
+        return await self.deliver(sub, payload, vapid_private)
 
 
 webpush_service = WebPushService()
