@@ -101,6 +101,30 @@ def install_app_packages(
     return [d.name for d in targets]
 
 
+def package_name(app_dir: Path) -> str | None:
+    """``[project].name`` of the app's pyproject.toml, None when it isn't a package."""
+    pyproject = app_dir / "pyproject.toml"
+    if not pyproject.exists():
+        return None
+    return tomllib.loads(pyproject.read_text()).get("project", {}).get("name") or app_dir.name
+
+
+def uninstall_command(packages: list[str]) -> list[str]:
+    uv = uv_binary()
+    if uv:
+        return [uv, "pip", "uninstall", "--python", sys.executable, *packages]
+    return [sys.executable, "-m", "pip", "uninstall", "-y", *packages]
+
+
+def uninstall_app_package(app_dir: Path) -> str | None:
+    """Remove the app's editable package from this environment (its own
+    dependencies stay - other apps may share them). Returns the package name."""
+    name = package_name(app_dir)
+    if name:
+        subprocess.run(uninstall_command([name]), check=True)
+    return name
+
+
 _PLAN = re.compile(r"^ ([-+]) ([A-Za-z0-9_.-]+)==(\S+)$", re.M)
 
 

@@ -56,6 +56,15 @@ def dependencies(app_dir: Path) -> list[Dependency]:
     return [d for d in deps if d.name != CORE_APP]
 
 
+def dependents(apps_dir: Path, name: str) -> list[str]:
+    """Bench apps whose ``depends_on`` names *name* (directly)."""
+    return sorted(
+        d.name
+        for d in apps_dir.iterdir()
+        if d.is_dir() and d.name != name and any(dep.name == name for dep in dependencies(d))
+    )
+
+
 def with_dependencies(apps_dir: Path, installed: list[str]) -> list[str]:
     """*installed* plus the apps they depend on, each dependency before its first user.
 

@@ -394,6 +394,85 @@ def app_uninstall(name: str, site: str | None, keep_data: bool, assume_yes: bool
     )
 
 
+def _archive_path(name: str) -> Path:
+    """archive/apps/<name>-<date> in the bench, unused (time added on a clash)."""
+    from datetime import datetime
+
+    from grunt.site.manager import site_manager
+
+    now = datetime.now()
+    base = site_manager.bench_dir / "archive" / "apps"
+    target = base / f"{name}-{now:%Y-%m-%d}"
+    if target.exists():
+        target = base / f"{name}-{now:%Y-%m-%d-%H%M%S}"
+    return target
+
+
+@app_group.command("remove")
+@click.argument("name")
+@click.option(
+    "--no-archive",
+    is_flag=True,
+    default=False,
+    help="Delete the app directory instead of moving it to archive/apps/",
+)
+@click.option(
+    "--force",
+    is_flag=True,
+    default=False,
+    help="Remove even if a site has it installed or another app depends on it",
+)
+@click.option("--yes", "-y", "assume_yes", is_flag=True, default=False, help="No confirmation")
+def app_remove(name: str, no_archive: bool, force: bool, assume_yes: bool):
+    """Remove an app from the bench (like `bench remove-app`).
+
+    Uninstalls its Python package and moves apps/NAME to archive/apps/.
+    The sites must not have it installed - run `grunt app uninstall NAME` first.
+    """
+    import shutil
+
+    from grunt.apps.deps import uninstall_app_package
+    from grunt.apps.required import CORE_APP, dependents
+    from grunt.site.manager import site_manager
+
+    if name == CORE_APP:
+        raise click.ClickException("the base grunt app cannot be removed.")
+    app_dir = _apps_dir() / name
+    if not app_dir.is_dir():
+        raise click.ClickException(f"app '{name}' is not in the bench ({app_dir}).")
+
+    problems = [
+        f"installed on site {site} - `grunt app uninstall {name} --site {site}`"
+        for site in site_manager.get_sites()
+        if name in site_manager.get_installed_apps(site)
+    ]
+    problems += [f"app '{user}' depends on it" for user in dependents(_apps_dir(), name)]
+    if problems:
+        details = "\n".join(f"  • {p}" for p in problems)
+        if not force:
+            raise click.ClickException(f"cannot remove '{name}':\n{details}")
+        click.echo(click.style(f"Removing anyway (--force):\n{details}", fg="yellow"))
+
+    target = None if no_archive else _archive_path(name)
+    action = "delete" if target is None else f"move to {target}"
+    if not assume_yes and not click.confirm(f"Remove app '{name}' ({action})?"):
+        raise SystemExit("Cancelled.")
+
+    try:
+        package = uninstall_app_package(app_dir)
+    except subprocess.CalledProcessError as e:
+        raise click.ClickException(f"package uninstall failed: {' '.join(map(str, e.cmd))}") from e
+    if package:
+        click.echo(f"  Python package {package} uninstalled")
+
+    if target is None:
+        shutil.rmtree(app_dir)
+    else:
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.move(app_dir, target)
+    click.echo(f"✓ App '{name}' removed" + ("" if target is None else f", archived to {target}"))
+
+
 @app_group.command("list")
 @click.option("--site", default=None, help="Site name")
 def app_list(site: str | None):
