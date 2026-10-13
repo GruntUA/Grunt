@@ -22312,8 +22312,8 @@ msgid "Update available: %(target)s. Run `grunt update`."
 msgstr "Доступне оновлення: %(target)s. Запустіть `grunt update`."
 
 #: grunt/grunt/monitoring/updates.py
-msgid "Update the lock files: `grunt update --upgrade-packages`, then commit them."
-msgstr "Оновіть lock-файли: `grunt update --upgrade-packages`, потім закомітьте їх."
+msgid "Run `grunt update` - it offers to update the lock files; then commit them."
+msgstr "Запустіть `grunt update` — він запропонує оновити lock-файли; потім закомітьте їх."
 
 #: grunt/grunt/monitoring/updates.py
 msgid "Updates"
