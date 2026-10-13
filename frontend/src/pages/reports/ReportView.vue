@@ -10,6 +10,9 @@ import { metaApi } from '@/core/api/meta'
 import { useAuthStore } from '@/stores/auth'
 import type { ActiveFilter, DocField, ReportChartConfig } from '@/types'
 import { Download, RefreshCw, Settings2, FileBarChart2, FileX, ImageDown } from '@lucide/vue'
+import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
+import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -190,22 +193,20 @@ function openBuilder() {
             </div>
             
             <div class="flex items-center gap-2">
-                <div v-if="chartConfig" class="flex rounded-md border overflow-hidden mr-1 font-medium">
-                    <button
+                <ToggleGroup v-if="chartConfig" type="single" variant="outline" size="sm" class="mr-1"
+                    :model-value="viewMode" @update:model-value="(v) => v && (viewMode = v as typeof viewMode)">
+                    <ToggleGroupItem
                         v-for="m in ([['table', t('Table')], ['chart', t('Chart')], ['both', t('Both')]] as const)"
-                        :key="m[0]"
-                        class="px-2.5 py-1.5 transition-colors"
-                        :class="viewMode === m[0] ? 'bg-primary text-primary-foreground' : 'bg-card hover:bg-muted text-muted-foreground'"
-                        @click="viewMode = m[0]">
+                        :key="m[0]" :value="m[0]">
                         {{ m[1] }}
-                    </button>
-                </div>
+                    </ToggleGroupItem>
+                </ToggleGroup>
                 <Button v-if="chartConfig && viewMode !== 'table'" variant="outline" size="sm" @click="exportChartPng">
-                    <ImageDown class="size-4 mr-2" />
+                    <ImageDown />
                     PNG
                 </Button>
                 <Button variant="outline" size="sm" @click="fetchReport" :disabled="loading">
-                    <RefreshCw class="size-4 mr-2" :class="{ 'animate-spin': loading }" />
+                    <RefreshCw :class="{ 'animate-spin': loading }" />
                     {{ t('Refresh') }}
                 </Button>
                 <Button variant="outline" size="sm" as="a" :href="reportsApi.exportXlsxUrl(reportName)" download>
@@ -237,52 +238,53 @@ function openBuilder() {
         </div>
 
         <!-- Table -->
-        <div v-show="viewMode !== 'chart'" class="border rounded-lg overflow-hidden shadow-sm bg-card">
-            <div class="overflow-x-auto">
-                <table class="w-full">
-                    <thead>
-                        <tr class="border-b bg-muted/30">
-                            <th v-for="col in columns" :key="col.fieldname" class="px-4 py-3 text-left font-semibold text-muted-foreground uppercase tracking-wider">
-                                {{ col.label }}
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-if="loading && data.length === 0" v-for="i in 5" :key="i" class="border-b last:border-0">
-                            <td v-for="col in columns.length || 5" :key="col" class="px-4 py-4">
+        <div v-show="viewMode !== 'chart'" class="rounded-lg border bg-card">
+            <Table>
+                <TableHeader>
+                    <TableRow>
+                        <TableHead v-for="col in columns" :key="col.fieldname">{{ col.label }}</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    <template v-if="loading && data.length === 0">
+                        <TableRow v-for="i in 5" :key="i">
+                            <TableCell v-for="col in columns.length || 5" :key="col">
                                 <Skeleton class="h-4 w-full" />
-                            </td>
-                        </tr>
-                        <tr v-else-if="data.length === 0" class="h-64">
-                            <td :colspan="columns.length" class="text-center py-12">
-                                <div class="flex flex-col items-center gap-2 text-muted-foreground">
-                                    <FileX class="size-12 opacity-20" />
-                                    <p>{{ t('No data') }}</p>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr v-else v-for="(row, ri) in data" :key="ri"
-                            class="border-b last:border-0 hover:bg-muted/30 transition-colors"
+                            </TableCell>
+                        </TableRow>
+                    </template>
+                    <TableRow v-else-if="data.length === 0" class="hover:bg-transparent">
+                        <TableCell :colspan="columns.length">
+                            <Empty>
+                                <EmptyHeader>
+                                    <EmptyMedia variant="icon"><FileX /></EmptyMedia>
+                                    <EmptyTitle>{{ t('No data') }}</EmptyTitle>
+                                </EmptyHeader>
+                            </Empty>
+                        </TableCell>
+                    </TableRow>
+                    <template v-else>
+                        <TableRow v-for="(row, ri) in data" :key="ri"
                             :class="{ 'cursor-pointer': drilldownQuery(row) }"
                             :title="drilldownQuery(row) ? t('Open documents') : undefined"
                             @click="openDrilldown(row)">
-                            <td v-for="col in columns" :key="col.fieldname" class="px-4 py-3 text-foreground/90 font-medium whitespace-nowrap">
+                            <TableCell v-for="col in columns" :key="col.fieldname">
                                 {{ formatCell(row[col.fieldname], col.fieldtype) }}
-                            </td>
-                        </tr>
-                    </tbody>
-                    <tfoot v-if="totalsRow && data.length">
-                        <tr class="border-t-2 bg-muted/30 font-semibold text-foreground">
-                            <td v-for="(col, ci) in columns" :key="col.fieldname" class="px-4 py-3 whitespace-nowrap">
-                                <template v-if="totalsRow?.[col.fieldname] !== undefined">
-                                    {{ formatCell(totalsRow?.[col.fieldname], col.fieldtype) }}
-                                </template>
-                                <template v-else-if="ci === 0">{{ t('Total') }}</template>
-                            </td>
-                        </tr>
-                    </tfoot>
-                </table>
-            </div>
+                            </TableCell>
+                        </TableRow>
+                    </template>
+                </TableBody>
+                <TableFooter v-if="totalsRow && data.length">
+                    <TableRow>
+                        <TableCell v-for="(col, ci) in columns" :key="col.fieldname">
+                            <template v-if="totalsRow?.[col.fieldname] !== undefined">
+                                {{ formatCell(totalsRow?.[col.fieldname], col.fieldtype) }}
+                            </template>
+                            <template v-else-if="ci === 0">{{ t('Total') }}</template>
+                        </TableCell>
+                    </TableRow>
+                </TableFooter>
+            </Table>
         </div>
     </div>
 </template>

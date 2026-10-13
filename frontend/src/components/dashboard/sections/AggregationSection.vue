@@ -1,12 +1,14 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import { Field, FieldLabel } from '@/components/ui/field'
 import { useWidgetPropertyEditor } from '@/core/composables/useWidgetPropertyEditor'
 
 const { t } = useI18n()
+const id = useId()
 const { widget, updateWidget } = useWidgetPropertyEditor()
 
 const AGGREGATIONS = computed(() => [
@@ -37,28 +39,31 @@ const needsField = computed(() => ['sum', 'avg', 'min', 'max'].includes(widget.v
       <ToggleGroupItem v-for="a in AGGREGATIONS" :key="a.value" :value="a.value" class="w-full justify-start">{{ a.label }}</ToggleGroupItem>
     </ToggleGroup>
   </div>
-  <div v-if="needsField" class="flex flex-col gap-1.5 mb-4">
-    <label class="font-medium">{{ t('Field') }}</label>
+  <Field v-if="needsField" class="mb-4">
+    <FieldLabel :for="`${id}-1`">{{ t('Field') }}</FieldLabel>
     <Input
+      :id="`${id}-1`"
       :model-value="widget.field ?? ''"
       placeholder="fieldname"
       class="w-full"
       @update:model-value="updateWidget('field', $event)"
     />
-  </div>
+  </Field>
   <template v-if="widget.widget_type === 'table'">
-    <div class="flex flex-col gap-1.5 mb-4">
-      <label class="font-medium">{{ t('Value label') }}</label>
+    <Field class="mb-4">
+      <FieldLabel :for="`${id}-2`">{{ t('Value label') }}</FieldLabel>
       <Input
+        :id="`${id}-2`"
         :model-value="widget.value_label ?? ''"
         :placeholder="AGGREGATIONS.find((a) => a.value === widget.aggregation)?.label"
         class="w-full"
         @update:model-value="updateWidget('value_label', $event || null)"
       />
-    </div>
-    <div class="flex flex-col gap-1.5 mb-4">
-      <label class="font-medium">{{ t('Rows') }}</label>
+    </Field>
+    <Field class="mb-4">
+      <FieldLabel :for="`${id}-3`">{{ t('Rows') }}</FieldLabel>
       <Input
+        :id="`${id}-3`"
         type="number"
         min="1"
         max="100"
@@ -67,6 +72,6 @@ const needsField = computed(() => ['sum', 'avg', 'min', 'max'].includes(widget.v
         class="w-full"
         @update:model-value="updateWidget('row_limit', $event ? Number($event) : null)"
       />
-    </div>
+    </Field>
   </template>
 </template>

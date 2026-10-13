@@ -194,7 +194,7 @@ onUnmounted(() => clearTimeout(debounceTimer))
     ignore-filter
     @update:model-value="onPick"
   >
-    <ComboboxAnchor as-child>
+    <ComboboxAnchor as-child class="w-full">
       <InputGroup class="w-full">
         <ComboboxTrigger as-child>
           <button

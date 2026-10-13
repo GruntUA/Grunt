@@ -5,6 +5,7 @@ import { useRouter } from 'vue-router'
 import type { DashboardWidget } from '@/types'
 import { appUrl } from '@/core/workspaceUrl'
 import type { WorkspaceLinkItem } from '@/core/api/workspace'
+import { Item, ItemContent, ItemDescription, ItemGroup, ItemMedia, ItemTitle } from '@/components/ui/item'
 
 const props = defineProps<{
   widget: DashboardWidget
@@ -34,22 +35,23 @@ function navigate(link: WorkspaceLinkItem) {
       {{ widget.title }}
     </h3>
 
-    <div v-if="links.length" class="grid grid-cols-2 sm:grid-cols-3 gap-2">
-      <button
+    <ItemGroup v-if="links.length" class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+      <Item
         v-for="link in links"
         :key="link.link_to"
-        class="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-border bg-background hover:border-primary hover:bg-accent text-left transition-colors group"
+        as="button"
+        variant="outline"
+        size="sm"
+        class="text-left hover:bg-accent"
         @click="navigate(link)"
       >
-        <span v-if="link.icon" class="text-lg shrink-0">{{ link.icon }}</span>
-        <div class="min-w-0">
-          <p class="font-medium text-foreground truncate">{{ link.label }}</p>
-          <p v-if="link.description" class="text-muted-foreground truncate">
-            {{ link.description }}
-          </p>
-        </div>
-      </button>
-    </div>
+        <ItemMedia v-if="link.icon" class="text-lg">{{ link.icon }}</ItemMedia>
+        <ItemContent class="min-w-0">
+          <ItemTitle class="w-full truncate">{{ link.label }}</ItemTitle>
+          <ItemDescription v-if="link.description" class="truncate">{{ link.description }}</ItemDescription>
+        </ItemContent>
+      </Item>
+    </ItemGroup>
 
     <p v-else class="text-muted-foreground/60 italic">{{ t('No links') }}</p>
   </div>

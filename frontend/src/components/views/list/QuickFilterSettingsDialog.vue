@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { Search } from '@lucide/vue'
 import type { DocType } from '@/types'
 import { SUPPORTED_FIELD_TYPES } from '@/core/quickFilters'
+import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -89,16 +90,16 @@ function handleReset() {
       </p>
 
       <div class="grid grid-cols-2 gap-x-4 gap-y-2 max-h-[320px] overflow-y-auto">
-        <label
+        <Label
           v-for="f in filteredFields" :key="f.fieldname"
-          class="flex items-center gap-2 cursor-pointer"
+          class="font-normal"
         >
           <Checkbox
             :model-value="selected.has(f.fieldname)"
             @update:model-value="toggle(f.fieldname)"
           />
           {{ f.label }}
-        </label>
+        </Label>
         <p v-if="!filteredFields.length" class="col-span-2 text-muted-foreground text-center py-4">
           {{ t('Nothing found') }}
         </p>

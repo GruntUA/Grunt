@@ -14,6 +14,8 @@ import { useMapLifecycle } from '@/core/composables/useMapLifecycle'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { docUrl } from '@/core/workspaceUrl'
+import { Separator } from '@/components/ui/separator'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 
 const { t } = useI18n()
 
@@ -189,21 +191,17 @@ const { map, markerLayer, browserPrint } = useMapLifecycle({
         <div class="absolute inset-0 z-[2000] select-none" @mousedown.self.prevent>
 
           <!-- Format selector bar -->
-          <div class="absolute top-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-3 px-4 py-2 bg-foreground/90 text-background rounded-lg shadow-md border border-white/10">
-            <span class="opacity-60 font-semibold uppercase tracking-wider">{{ t('Format:') }}</span>
-            <div class="flex bg-background/10 p-1 rounded-lg gap-1">
-              <button v-for="(fmt, key) in PRINT_FORMATS" :key="key"
-                      class="px-3 py-1 rounded-lg transition-all font-semibold uppercase tracking-wide"
-                      :class="printFormat === key
-                        ? 'bg-background text-foreground shadow-sm'
-                        : 'opacity-50 hover:opacity-100 hover:bg-background/5'"
-                      @click="printFormat = key">
+          <div class="absolute top-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2 rounded-lg border bg-background p-2 shadow-md">
+            <span class="px-1 text-sm text-muted-foreground">{{ t('Format:') }}</span>
+            <ToggleGroup type="single" variant="outline" size="sm" :model-value="printFormat"
+              @update:model-value="(v) => v && (printFormat = v as typeof printFormat)">
+              <ToggleGroupItem v-for="(fmt, key) in PRINT_FORMATS" :key="key" :value="key">
                 {{ fmt.label.split(' ')[0] }}
-              </button>
-            </div>
-            <div class="w-px h-6 bg-background/20 mx-1" />
-            <Button size="sm" @click="confirmPrint" class="!text-xs !font-semibold">{{ t('Print') }}</Button>
-            <Button variant="ghost" size="sm" @click="cancelPrint" class="!text-background !text-xs">{{ t('Cancel') }}</Button>
+              </ToggleGroupItem>
+            </ToggleGroup>
+            <Separator orientation="vertical" class="mx-1 h-6" />
+            <Button size="sm" @click="confirmPrint">{{ t('Print') }}</Button>
+            <Button variant="ghost" size="sm" @click="cancelPrint">{{ t('Cancel') }}</Button>
           </div>
 
           <!-- Selection rectangle -->

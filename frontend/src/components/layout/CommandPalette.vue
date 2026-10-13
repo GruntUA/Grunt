@@ -26,6 +26,7 @@ import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/compone
 import { appUrl, docUrl } from '@/core/workspaceUrl'
 import { Command, CommandList, CommandGroup, CommandItem, CommandShortcut } from '@/components/ui/command'
 import { Kbd } from '@/components/ui/kbd'
+import { Button } from '@/components/ui/button'
 import { formatShortcut } from '@/core/shortcuts'
 
 const { t } = useI18n()
@@ -335,10 +336,10 @@ function onInputKeydown(e: KeyboardEvent) {
                             <Kbd>↵</Kbd> {{ t('Select') }}
                         </span>
                     </div>
-                    <button v-if="search.trim().length >= 2" class="font-medium text-foreground hover:underline"
+                    <Button v-if="search.trim().length >= 2" variant="link" size="xs" class="h-auto p-0 text-foreground"
                         @click="navigateTo(`/grunt/search?q=${encodeURIComponent(search)}`)">
                         {{ t('All results →') }}
-                    </button>
+                    </Button>
                     <Kbd v-else>Esc</Kbd>
                 </div>
             </Command>

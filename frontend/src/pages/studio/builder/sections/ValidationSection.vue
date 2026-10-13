@@ -1,15 +1,17 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, useId } from 'vue'
 import { usePropertyEditor } from '@/core/composables/usePropertyEditor'
 import { metaApi, type ValidatorInfo } from '@/core/api/meta'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
+import { Field, FieldGroup, FieldLabel, FieldLegend, FieldSet } from '@/components/ui/field'
 
 const { t } = useI18n()
 
 const { field, updateField } = usePropertyEditor()
+const id = useId()
 
 const allValidators = ref<ValidatorInfo[]>([])
 onMounted(async () => {
@@ -33,39 +35,41 @@ const hasValidators = computed(() => validatorOptions.value.length > 1)
 
 <template>
   <Separator class="!mb-3" />
-  <p class="font-semibold text-muted-foreground uppercase tracking-wide mb-3">Validation</p>
-  <div class="flex flex-col gap-3 mb-4">
-    <div v-if="['Text', 'LongText'].includes(field.fieldtype)" class="flex flex-col gap-1.5">
-      <label class="font-medium">Max Length</label>
-      <Input
-        type="number"
-        :model-value="field.max_length ?? ''"
-        placeholder="255"
-        class="w-full"
-        @update:model-value="(v: string | number) => updateField('max_length', v === '' ? undefined : Number(v))"
-      />
-    </div>
+  <FieldSet class="mb-4">
+    <FieldLegend variant="label">{{ t('Validation') }}</FieldLegend>
+    <FieldGroup class="gap-3">
+      <Field v-if="['Text', 'LongText'].includes(field.fieldtype)">
+        <FieldLabel :for="`${id}-max-length`">{{ t('Max Length') }}</FieldLabel>
+        <Input
+          :id="`${id}-max-length`"
+          type="number"
+          :model-value="field.max_length ?? ''"
+          placeholder="255"
+          @update:model-value="(v: string | number) => updateField('max_length', v === '' ? undefined : Number(v))"
+        />
+      </Field>
 
-    <div v-if="hasValidators" class="flex flex-col gap-1.5">
-      <label class="font-medium">Validator</label>
-      <Select :model-value="field.validator || '__none__'" @update:model-value="updateField('validator', $event === '__none__' ? undefined : $event)">
-        <SelectTrigger class="w-full">
-          <SelectValue :placeholder="t('— not set —')" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem v-for="opt in validatorOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</SelectItem>
-        </SelectContent>
-      </Select>
-    </div>
+      <Field v-if="hasValidators">
+        <FieldLabel :for="`${id}-validator`">{{ t('Validator') }}</FieldLabel>
+        <Select :model-value="field.validator || '__none__'" @update:model-value="updateField('validator', $event === '__none__' ? undefined : $event)">
+          <SelectTrigger :id="`${id}-validator`" class="w-full">
+            <SelectValue :placeholder="t('— not set —')" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem v-for="opt in validatorOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</SelectItem>
+          </SelectContent>
+        </Select>
+      </Field>
 
-    <div class="flex flex-col gap-1.5">
-      <label class="font-medium">Regex</label>
-      <Input
-        :model-value="field.regex ?? ''"
-        placeholder="^[A-Z].*"
-        class="w-full"
-        @update:model-value="updateField('regex', $event || undefined)"
-      />
-    </div>
-  </div>
+      <Field>
+        <FieldLabel :for="`${id}-regex`">{{ t('Regex') }}</FieldLabel>
+        <Input
+          :id="`${id}-regex`"
+          :model-value="field.regex ?? ''"
+          placeholder="^[A-Z].*"
+          @update:model-value="updateField('regex', $event || undefined)"
+        />
+      </Field>
+    </FieldGroup>
+  </FieldSet>
 </template>

@@ -2,6 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Loader2 } from '@lucide/vue'
+import { Field, FieldError, FieldLabel } from '@/components/ui/field'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -106,28 +107,28 @@ function confirm() {
             </li>
           </ul>
 
-          <div class="flex flex-col gap-1.5">
-            <label class="font-medium">{{ t('Replace with') }}</label>
+          <Field :data-invalid="replaceIsSelf || undefined">
+            <FieldLabel>{{ t('Replace with') }}</FieldLabel>
             <LinkField
               :field="replaceField"
               :model-value="replaceWith"
               @update:model-value="replaceWith = ($event as string) ?? ''"
             />
-            <p v-if="replaceIsSelf" class="text-destructive">
+            <FieldError v-if="replaceIsSelf">
               {{ t('Cannot replace with the document being deleted.') }}
-            </p>
-          </div>
+            </FieldError>
+          </Field>
 
-          <label v-if="!canReassign" class="flex items-start gap-2 cursor-pointer">
+          <Field v-if="!canReassign" orientation="horizontal">
             <Checkbox
+              id="delete-ack-dangling"
               :model-value="ackDangling"
-              class="mt-0.5"
               @update:model-value="ackDangling = $event === true"
             />
-            <span class="text-muted-foreground">
+            <FieldLabel for="delete-ack-dangling" class="font-normal text-muted-foreground">
               {{ t('Delete without replacement — {n} links will become invalid.', { n: String(impact!.total) }) }}
-            </span>
-          </label>
+            </FieldLabel>
+          </Field>
         </template>
 
         <p v-else class="text-muted-foreground">

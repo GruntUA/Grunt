@@ -1,9 +1,14 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { ref } from 'vue'
+import { Plus, X } from '@lucide/vue'
 import { VueDraggable } from 'vue-draggable-plus'
 import type { LayoutTab } from '@/core/composables/useFormLayout'
 import { useBuilderStore } from '@/stores/builder'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 
+const { t } = useI18n()
 const builder = useBuilderStore()
 
 const props = defineProps<{
@@ -81,10 +86,9 @@ function cancelRename() {
       >
         <!-- Editing mode -->
         <template v-if="editingTab === tab._fieldname">
-          <input
+          <Input
             v-model="editLabel"
-            type="text"
-            class="font-medium bg-transparent border-b border-primary outline-none w-24 px-0 py-0"
+            class="h-7 w-28"
             @blur="finishRename(tab)"
             @keydown.enter="finishRename(tab)"
             @keydown.escape="cancelRename"
@@ -94,17 +98,21 @@ function cancelRename() {
         </template>
         <template v-else>
           <span class="font-medium whitespace-nowrap">
-            {{ tab.label || 'Main' }}
+            {{ tab.label || t('Main') }}
           </span>
         </template>
 
         <!-- Delete tab (only for explicit tabs, not the default one) -->
-        <button
+        <Button
           v-if="tab._field && tabs.length > 1"
-          type="button"
-          class="text-muted-foreground/70 hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity ml-1"
+          variant="ghost"
+          size="icon-xs"
+          class="text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
+          :aria-label="t('Delete tab')"
           @click.stop="emit('deleteTab', tab._fieldname)"
-        >×</button>
+        >
+          <X />
+        </Button>
 
         <!-- Active indicator -->
         <div
@@ -115,11 +123,14 @@ function cancelRename() {
     </VueDraggable>
 
     <!-- Add tab button -->
-    <button
-      type="button"
-      class="px-3 py-2.5 text-muted-foreground/70 hover:text-primary transition-colors shrink-0"
-      title="Add tab"
+    <Button
+      variant="ghost"
+      size="icon-sm"
+      class="mx-1 shrink-0 text-muted-foreground"
+      :aria-label="t('Add tab')"
       @click="emit('addTab')"
-    >+</button>
+    >
+      <Plus />
+    </Button>
   </div>
 </template>

@@ -7,6 +7,7 @@ import { ChevronRight, ChevronDown, Plus, FolderOpen, AlertCircle } from '@lucid
 import type { DocType, QuickFilter, ActiveFilter } from '@/types'
 import QuickEntryDialog from '@/components/views/QuickEntryDialog.vue'
 import { useQuickFilters } from '@/core/composables/useQuickFilters'
+import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select'
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
 import { docUrl } from '@/core/workspaceUrl'
@@ -257,22 +258,18 @@ const totalCount = computed(() => {
     <!-- Tree controls -->
     <div class="flex items-center gap-2 mb-4 flex-wrap">
       <Button variant="ghost" size="sm" @click="expandAll()">
-        <ChevronDown class="size-3.5 mr-1" />
+        <ChevronDown />
         {{ t('Expand all') }}
       </Button>
       <Button variant="ghost" size="sm" @click="collapseAll">
-        <ChevronRight class="size-3.5 mr-1" />
+        <ChevronRight />
         {{ t('Collapse all') }}
       </Button>
-      <select
-        v-model="sortBy"
-        class="h-8 rounded-md border border-border bg-background px-2 text-foreground"
-        :title="t('Sort by')"
-      >
-        <option v-for="field in sortFieldOptions" :key="field" :value="field">
+      <NativeSelect v-model="sortBy" size="sm" :aria-label="t('Sort by')">
+        <NativeSelectOption v-for="field in sortFieldOptions" :key="field" :value="field">
           {{ sortFieldLabel[field] ?? field }}
-        </option>
-      </select>
+        </NativeSelectOption>
+      </NativeSelect>
       <Button variant="ghost" size="sm" @click="toggleSortOrder" :title="t('Sort order')">
         {{ sortOrder === 'asc' ? 'A-Z' : 'Z-A' }}
       </Button>

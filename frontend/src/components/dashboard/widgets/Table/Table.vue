@@ -7,6 +7,8 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { WIDGET_PERIOD_LOADER, useWidgetPeriods } from '@/core/widgetPeriod'
 import { docUrl } from '@/core/workspaceUrl'
 import { filteredListUrl, groupFilter } from '@/pages/reports/drilldown'
+import { Progress } from '@/components/ui/progress'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 
 const { t } = useI18n()
 
@@ -134,36 +136,25 @@ function formatVal(v: number): string {
 
     <!-- Table -->
     <div v-else :class="['flex-1 overflow-auto transition-opacity', switching && 'opacity-50']">
-      <table class="w-full table-fixed">
-        <thead class="sticky top-0 bg-card border-b">
-          <tr>
-            <th class="px-4 py-2 text-left font-medium text-muted-foreground">
-              {{ tableData?.group_label || widget.group_by || t('Group') }}
-            </th>
-            <th class="w-24 px-4 py-2 text-right font-medium text-muted-foreground">
-              {{ widget.value_label || tableData?.value_label || aggLabel }}
-            </th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-border/40">
-          <tr v-for="row in rows" :key="row.label"
-            class="hover:bg-muted/30 transition-colors group/row cursor-pointer" @click="open(row)">
-            <td class="px-4 py-2">
+      <Table class="table-fixed">
+        <TableHeader class="sticky top-0 bg-card">
+          <TableRow>
+            <TableHead>{{ tableData?.group_label || widget.group_by || t('Group') }}</TableHead>
+            <TableHead class="w-24 text-right">{{ widget.value_label || tableData?.value_label || aggLabel }}</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          <TableRow v-for="row in rows" :key="row.label" class="cursor-pointer" @click="open(row)">
+            <TableCell>
               <div class="flex items-center gap-2">
-                <!-- Bar -->
-                <div class="w-20 shrink-0 h-1.5 bg-muted/50 rounded-full overflow-hidden">
-                  <div class="h-full bg-primary/60 rounded-full transition-all"
-                    :style="{ width: barWidth(row.value) + '%' }" />
-                </div>
-                <span class="min-w-0 truncate text-foreground/80 group-hover/row:text-primary" :title="row.label">{{ row.label }}</span>
+                <Progress :model-value="barWidth(row.value)" class="h-1.5 w-20 shrink-0" />
+                <span class="min-w-0 truncate" :title="row.label">{{ row.label }}</span>
               </div>
-            </td>
-            <td class="px-4 py-2 text-right font-semibold tabular-nums text-foreground">
-              {{ formatVal(row.value) }}
-            </td>
-          </tr>
-        </tbody>
-      </table>
+            </TableCell>
+            <TableCell class="text-right font-semibold tabular-nums">{{ formatVal(row.value) }}</TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
     </div>
   </div>
 </template>

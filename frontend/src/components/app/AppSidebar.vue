@@ -26,6 +26,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { DropdownMenuRadioGroup, DropdownMenuRadioItem } from '@/components/ui/dropdown-menu'
 import { SidebarFooter, SidebarRail } from '@/components/ui/sidebar'
 import { appUrl } from '@/core/workspaceUrl'
+import { Button } from '@/components/ui/button'
 const props = defineProps<{ workspaceName: string }>()
 
 const appStore = useAppStore()
@@ -224,11 +225,9 @@ watch(() => router.currentRoute.value.path, () => { if (appStore.active) appStor
               <Eye class="size-3.5 shrink-0" />
               <span class="truncate">{{ t('Viewing as {name}', { name: auth.user?.full_name ?? '' }) }}</span>
             </div>
-            <button
-              class="mt-1.5 w-full rounded bg-violet-600 px-2 py-1 font-semibold text-white transition-colors hover:bg-violet-700"
-              @click="exitImpersonation">
+            <Button size="xs" class="mt-1.5 w-full" @click="exitImpersonation">
               {{ t('switch back') }}
-            </button>
+            </Button>
           </div>
           <SidebarMenuButton
             class="hidden text-violet-600 group-data-[collapsible=icon]:flex dark:text-violet-400"

@@ -6,6 +6,8 @@ import { getFieldDef, getPaletteGroups, getLayoutTypeSet } from '@/core/fieldReg
 import { getPropertySection } from '@/core/propertySectionRegistry'
 import { describeTypeChange, type TypeChangeNote } from '@/core/fieldStorage'
 import { PROPERTY_FIELD_KEY, PROPERTY_UPDATE_KEY } from '@/core/composables/usePropertyEditor'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Field, FieldLabel } from '@/components/ui/field'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 // Register all core sections (side-effect import)
@@ -69,10 +71,10 @@ function changeType(next: unknown) {
       </p>
 
       <!-- Field type -->
-      <div v-if="!isLayoutField" class="flex flex-col gap-1.5 mb-4">
-        <label class="font-medium">{{ t('Field type') }}</label>
+      <Field v-if="!isLayoutField" class="mb-4">
+        <FieldLabel for="builder-field-type">{{ t('Field type') }}</FieldLabel>
         <Select :model-value="field.fieldtype" @update:model-value="changeType">
-          <SelectTrigger class="w-full">
+          <SelectTrigger id="builder-field-type" class="w-full">
             <SelectValue :placeholder="field.fieldtype" />
           </SelectTrigger>
           <SelectContent>
@@ -84,16 +86,10 @@ function changeType(next: unknown) {
             </SelectGroup>
           </SelectContent>
         </Select>
-        <p
-          v-if="typeNote"
-          class="rounded-md border px-2 py-1.5"
-          :class="typeNote.severity === 'danger'
-            ? 'border-destructive/30 bg-destructive/5 text-destructive'
-            : 'border-amber-400/40 bg-amber-50 text-amber-700 dark:bg-amber-950/20 dark:text-amber-400'"
-        >
-          {{ typeNote.message }}
-        </p>
-      </div>
+        <Alert v-if="typeNote" :variant="typeNote.severity === 'danger' ? 'destructive' : 'default'">
+          <AlertDescription>{{ typeNote.message }}</AlertDescription>
+        </Alert>
+      </Field>
 
       <!-- Registered sections -->
       <component

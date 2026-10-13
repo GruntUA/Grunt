@@ -41,7 +41,7 @@ const emit = defineEmits<{ 'update:modelValue': [value: string] }>()
     :disabled="disabled"
     @update:model-value="(v) => emit('update:modelValue', (v as string | null) ?? '')"
   >
-    <ComboboxAnchor as-child>
+    <ComboboxAnchor as-child class="w-full">
       <ComboboxTrigger as-child>
         <Button
           variant="outline"

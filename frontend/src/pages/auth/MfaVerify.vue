@@ -3,11 +3,15 @@ import { useI18n } from 'vue-i18n'
 import { REGEXP_ONLY_DIGITS } from 'vue-input-otp'
 import { onMounted, ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { ShieldCheck, ArrowRight, ArrowLeft, Copy } from '@lucide/vue'
+import { ArrowRight, ArrowLeft, Copy } from '@lucide/vue'
 import { authApi } from '@/core/api'
 import { useAuthStore } from '@/stores/auth'
 import { useToast } from '@/core/composables/useToast'
+import AppBrand from '@/components/app/AppBrand.vue'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from '@/components/ui/input-otp'
 import { Spinner } from '@/components/ui/spinner'
@@ -100,96 +104,92 @@ async function handleVerify() {
 </script>
 
 <template>
-  <div
-    class="min-h-screen flex items-center justify-center bg-muted/30 relative overflow-hidden p-6">
-    <div class="relative w-full max-w-[420px]">
-      <div class="text-center mb-10 flex flex-col items-center">
-        <div
-          class="inline-flex items-center justify-center w-16 h-16 rounded-lg bg-primary text-primary-foreground mb-4 shadow-sm">
-          <ShieldCheck class="w-8 h-8" />
-        </div>
-        <h1 class="text-2xl font-semibold text-foreground tracking-tight">
-          {{ isSetup ? t('2FA setup') : t('Two-factor verification') }}
-        </h1>
-        <p v-if="isSetup" class="text-muted-foreground mt-2 max-w-[320px] mx-auto leading-relaxed">
-          {{ t('Your role requires two-factor authentication. Scan the QR code in your authenticator app and enter the 6-digit code.') }}
-        </p>
-        <p v-else class="text-muted-foreground mt-2 max-w-[280px] mx-auto leading-relaxed">
-          {{ t('Please enter the 6-digit code from your app or a backup code.') }}
-        </p>
-      </div>
+  <div class="bg-muted flex min-h-svh flex-col items-center justify-center gap-6 p-6 md:p-10">
+    <div class="flex w-full max-w-sm flex-col gap-6">
+      <AppBrand class="self-center" />
 
-      <div v-if="backupCodes.length" class="bg-card border border-border shadow-sm rounded-lg p-8 flex flex-col gap-6">
-        <div class="flex flex-col gap-2">
-          <p class="font-semibold">{{ t('2FA is on. Save your backup codes') }}</p>
-          <p class="text-muted-foreground">
+      <Card v-if="backupCodes.length">
+        <CardHeader class="text-center">
+          <CardTitle class="text-xl">{{ t('2FA is on. Save your backup codes') }}</CardTitle>
+          <CardDescription>
             {{ t('Each code can be used once if you lose access to your authenticator. They will not be shown again.') }}
-          </p>
-        </div>
-        <ul class="grid grid-cols-2 gap-2 font-mono text-sm text-center">
-          <li v-for="c in backupCodes" :key="c" class="rounded-md bg-muted py-1.5">{{ c }}</li>
-        </ul>
-        <Button variant="outline" type="button" @click="copyBackupCodes">
-          <Copy class="mr-2 h-4 w-4" />
-          {{ t('Copy codes') }}
-        </Button>
-        <Button type="button" class="w-full h-12" @click="router.push({ name: 'desk' })">
-          {{ t('Continue') }}
-          <ArrowRight class="ml-2 h-5 w-5" />
-        </Button>
-      </div>
-
-      <div v-else class="bg-card border border-border shadow-sm rounded-lg p-8">
-        <div v-if="isSetup && setupInfo" class="flex flex-col items-center gap-3 mb-6">
-          <div class="rounded-md bg-white p-2 [&>svg]:size-44" v-html="setupInfo.qr_svg" />
-          <p class="text-muted-foreground text-center">
-            {{ t('Or enter the key manually:') }}
-            <span class="block font-mono text-foreground break-all select-all">{{ setupInfo.secret }}</span>
-          </p>
-        </div>
-        <form class="flex flex-col gap-6" @submit.prevent="isSetup ? handleEnroll() : handleVerify()">
-          <div class="flex flex-col gap-2 text-center">
-            <label class="font-semibold text-muted-foreground uppercase tracking-widest">{{ t('Access code') }}</label>
-            <Input v-if="useBackupCode" v-model="code" autocomplete="off" maxlength="10" required autofocus
-              class="text-center font-mono uppercase" />
-            <InputOTP v-else v-model="code" :maxlength="6" :pattern="REGEXP_ONLY_DIGITS" autocomplete="one-time-code"
-              autofocus class="justify-center" @complete="isSetup ? handleEnroll() : handleVerify()">
-              <InputOTPGroup>
-                <InputOTPSlot v-for="i in 3" :key="i" :index="i - 1" />
-              </InputOTPGroup>
-              <InputOTPSeparator />
-              <InputOTPGroup>
-                <InputOTPSlot v-for="i in 3" :key="i" :index="i + 2" />
-              </InputOTPGroup>
-            </InputOTP>
-            <Button v-if="!isSetup" variant="link" type="button" size="sm" class="text-muted-foreground"
-              @click="useBackupCode = !useBackupCode; code = ''">
-              {{ useBackupCode ? t('Use the authenticator app code') : t('Use a backup code') }}
-            </Button>
-          </div>
-
-          <div v-if="error"
-            class="text-destructive bg-destructive/5 border border-destructive/10 rounded-lg px-4 py-3 text-center font-medium animate-in fade-in zoom-in duration-200">
-            {{ error }}
-          </div>
-
-          <Button type="submit" :disabled="loading || code.length < 6"
-            class="w-full h-14 text-lg font-semibold shadow-sm">
-            <span>{{ isSetup ? t('Enable 2FA and sign in') : t('Confirm sign-in') }}</span>
-            <Spinner v-if="loading" class="ml-2 h-5 w-5 order-last" />
-            <ArrowRight v-else class="ml-2 h-5 w-5 order-last" />
+          </CardDescription>
+        </CardHeader>
+        <CardContent class="flex flex-col gap-4">
+          <ul class="grid grid-cols-2 gap-2 font-mono text-sm text-center">
+            <li v-for="c in backupCodes" :key="c" class="rounded-md bg-muted py-1.5">{{ c }}</li>
+          </ul>
+          <Button variant="outline" type="button" @click="copyBackupCodes">
+            <Copy />
+            {{ t('Copy codes') }}
           </Button>
-
-          <Button variant="ghost" type="button" class="h-10 text-muted-foreground hover:text-foreground text-xs" @click="router.push('/login')">
-            <ArrowLeft class="mr-2 h-3 w-3" />
-            {{ t('Back to sign in') }}
+          <Button type="button" @click="router.push({ name: 'desk' })">
+            {{ t('Continue') }}
+            <ArrowRight />
           </Button>
-        </form>
-      </div>
+        </CardContent>
+      </Card>
 
-      <p class="text-center text-muted-foreground/40 mt-10 uppercase tracking-[0.2em] font-semibold">
-        Grunt Security Engine
-      </p>
+      <Card v-else>
+        <CardHeader class="text-center">
+          <CardTitle class="text-xl">{{ isSetup ? t('2FA setup') : t('Two-factor verification') }}</CardTitle>
+          <CardDescription>
+            {{ isSetup
+              ? t('Your role requires two-factor authentication. Scan the QR code in your authenticator app and enter the 6-digit code.')
+              : t('Please enter the 6-digit code from your app or a backup code.') }}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div v-if="isSetup && setupInfo" class="flex flex-col items-center gap-3 mb-6">
+            <div class="rounded-md bg-white p-2 [&>svg]:size-44" v-html="setupInfo.qr_svg" />
+            <p class="text-muted-foreground text-center text-sm">
+              {{ t('Or enter the key manually:') }}
+              <span class="block font-mono text-foreground break-all select-all">{{ setupInfo.secret }}</span>
+            </p>
+          </div>
+          <form @submit.prevent="isSetup ? handleEnroll() : handleVerify()">
+            <FieldGroup>
+              <Field class="items-center">
+                <FieldLabel :for="useBackupCode ? 'mfa-backup-code' : 'mfa-code'">
+                  {{ useBackupCode ? t('Backup code') : t('Access code') }}
+                </FieldLabel>
+                <Input v-if="useBackupCode" id="mfa-backup-code" v-model="code" autocomplete="off" maxlength="10" required autofocus
+                  class="text-center font-mono uppercase" />
+                <InputOTP v-else id="mfa-code" v-model="code" :maxlength="6" :pattern="REGEXP_ONLY_DIGITS" autocomplete="one-time-code"
+                  autofocus @complete="isSetup ? handleEnroll() : handleVerify()">
+                  <InputOTPGroup>
+                    <InputOTPSlot v-for="i in 3" :key="i" :index="i - 1" />
+                  </InputOTPGroup>
+                  <InputOTPSeparator />
+                  <InputOTPGroup>
+                    <InputOTPSlot v-for="i in 3" :key="i" :index="i + 2" />
+                  </InputOTPGroup>
+                </InputOTP>
+                <Button v-if="!isSetup" variant="link" type="button" size="sm" class="text-muted-foreground"
+                  @click="useBackupCode = !useBackupCode; code = ''">
+                  {{ useBackupCode ? t('Use the authenticator app code') : t('Use a backup code') }}
+                </Button>
+              </Field>
+
+              <Alert v-if="error" variant="destructive">
+                <AlertDescription>{{ error }}</AlertDescription>
+              </Alert>
+
+              <Field>
+                <Button type="submit" :disabled="loading || code.length < 6">
+                  {{ isSetup ? t('Enable 2FA and sign in') : t('Confirm sign-in') }}
+                  <Spinner v-if="loading" />
+                  <ArrowRight v-else />
+                </Button>
+                <Button variant="ghost" type="button" @click="router.push('/login')">
+                  <ArrowLeft />
+                  {{ t('Back to sign in') }}
+                </Button>
+              </Field>
+            </FieldGroup>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   </div>
 </template>

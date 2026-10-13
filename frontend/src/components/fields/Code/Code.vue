@@ -5,6 +5,7 @@ import { Codemirror } from 'vue-codemirror'
 import { Sparkles } from '@lucide/vue'
 import { oneDark } from '@codemirror/theme-one-dark'
 import { EditorState } from '@codemirror/state'
+import { Button } from '@/components/ui/button'
 import type { Extension } from '@codemirror/state'
 import type { DocField } from '@/types'
 import { useColorMode } from '@/core/composables/useColorMode'
@@ -126,14 +127,10 @@ async function formatNow() {
       v-if="canFormat && !isReadonly"
       class="flex justify-end border-b border-border bg-muted/40 px-1.5 py-1"
     >
-      <button
-        type="button"
-        class="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-        @click="formatNow"
-      >
-        <Sparkles class="size-3" />
+      <Button type="button" variant="ghost" size="xs" class="text-muted-foreground" @click="formatNow">
+        <Sparkles />
         {{ t('Format') }}
-      </button>
+      </Button>
     </div>
     <Codemirror
       :model-value="buffer"

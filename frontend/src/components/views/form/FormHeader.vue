@@ -10,7 +10,6 @@ import ActionButtons from '@/components/views/actions/ActionButtons.vue'
 import ActionMenu from '@/components/views/actions/ActionMenu.vue'
 import {
   Loader2,
-  Share2,
   Copy as CopyIcon,
   Database,
   Check,
@@ -24,7 +23,11 @@ import DocLinksDialog from './DocLinksDialog.vue'
 import WorkflowActions, { type WorkflowUi } from '@/components/views/WorkflowActions.vue'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Field, FieldLabel } from '@/components/ui/field'
+import { Input } from '@/components/ui/input'
+import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from '@/components/ui/input-group'
+import { Spinner } from '@/components/ui/spinner'
 import { docUrl } from '@/core/workspaceUrl'
 const props = defineProps<{
   dt: DocType | null
@@ -263,53 +266,40 @@ const statusBadge = computed(() => resolveStatusBadge(props.dt, props.document))
   <Dialog :open="showShareDialog" @update:open="(v: boolean) => showShareDialog = v">
     <DialogContent class="max-w-md">
       <DialogHeader>
-        <div class="flex items-center gap-2">
-          <div class="size-9 rounded-lg bg-primary/10 flex items-center justify-center">
-            <Share2 class="size-4.5 text-primary" />
-          </div>
-          <div>
-            <DialogTitle class="text-base font-semibold">{{ t('Share link') }}</DialogTitle>
-            <p class="text-muted-foreground">{{ t('Anyone with the link can view this document') }}</p>
-          </div>
-        </div>
+        <DialogTitle>{{ t('Share link') }}</DialogTitle>
+        <DialogDescription>{{ t('Anyone with the link can view this document') }}</DialogDescription>
       </DialogHeader>
 
       <template v-if="!shareLink">
-        <div>
-          <label class="font-medium text-muted-foreground block mb-1.5">{{ t('Expires at') }} ({{ t('optional') }})</label>
-          <input
-            v-model="shareExpires"
-            type="datetime-local"
-            class="w-full h-9 px-3 rounded-md border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
-          />
-        </div>
+        <Field>
+          <FieldLabel for="share-expires">{{ t('Expires at') }} ({{ t('optional') }})</FieldLabel>
+          <Input id="share-expires" v-model="shareExpires" type="datetime-local" />
+        </Field>
         <DialogFooter>
-          <Button variant="outline" size="sm" @click="showShareDialog = false">{{ t('Cancel') }}</Button>
-          <Button size="sm" :disabled="shareLoading" @click="createShare">
-            <Loader2 v-if="shareLoading" class="size-3.5 mr-1.5 animate-spin" />
+          <Button variant="outline" @click="showShareDialog = false">{{ t('Cancel') }}</Button>
+          <Button :disabled="shareLoading" @click="createShare">
+            <Spinner v-if="shareLoading" />
             {{ t('Generate link') }}
           </Button>
         </DialogFooter>
       </template>
 
       <template v-else>
-        <div class="flex gap-2">
-          <input
-            :value="shareLink"
-            readonly
-            class="flex-1 h-9 px-3 rounded-md border border-border bg-muted font-mono focus:outline-none"
-          />
-          <Button variant="outline" size="sm" @click="copyShareLink" class="shrink-0">
-            <CopyIcon class="size-3.5" />
-          </Button>
-        </div>
-        <p class="text-muted-foreground">
+        <InputGroup>
+          <InputGroupInput :model-value="shareLink" readonly class="font-mono" :aria-label="t('Share link')" />
+          <InputGroupAddon align="inline-end">
+            <InputGroupButton type="button" size="icon-xs" :aria-label="t('Copy')" @click="copyShareLink">
+              <CopyIcon />
+            </InputGroupButton>
+          </InputGroupAddon>
+        </InputGroup>
+        <p class="text-sm text-muted-foreground">
           {{ t('Link copied to clipboard when you click the copy button.') }}
           <a :href="docUrl('DocumentShare', null, props.workspace)" target="_blank" class="text-primary hover:underline ml-1">{{ t('Manage shares') }} →</a>
         </p>
         <DialogFooter>
-          <Button variant="outline" size="sm" @click="shareLink = null; shareExpires = ''">{{ t('New link') }}</Button>
-          <Button size="sm" @click="showShareDialog = false">{{ t('Done') }}</Button>
+          <Button variant="outline" @click="shareLink = null; shareExpires = ''">{{ t('New link') }}</Button>
+          <Button @click="showShareDialog = false">{{ t('Done') }}</Button>
         </DialogFooter>
       </template>
     </DialogContent>
@@ -319,20 +309,16 @@ const statusBadge = computed(() => resolveStatusBadge(props.dt, props.document))
   <Dialog :open="showRenameDialog" @update:open="(v: boolean) => showRenameDialog = v">
     <DialogContent class="max-w-md">
       <DialogHeader>
-        <DialogTitle class="text-lg font-semibold">{{ t('Rename document') }}</DialogTitle>
+        <DialogTitle>{{ t('Rename document') }}</DialogTitle>
       </DialogHeader>
-      <div>
-        <label class="font-medium text-muted-foreground block mb-1.5">{{ t('New ID') }}</label>
-        <input
-          v-model="newDocId"
-          class="w-full h-10 px-3 rounded-md border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
-          @keyup.enter="handleRename"
-        />
-      </div>
+      <Field>
+        <FieldLabel for="rename-doc-id">{{ t('New ID') }}</FieldLabel>
+        <Input id="rename-doc-id" v-model="newDocId" @keyup.enter="handleRename" />
+      </Field>
       <DialogFooter>
-        <Button variant="outline" size="sm" @click="showRenameDialog = false">{{ t('Cancel') }}</Button>
-        <Button size="sm" :disabled="isRenaming || !newDocId || newDocId === props.id" @click="handleRename">
-          <Loader2 v-if="isRenaming" class="size-3.5 mr-1.5 animate-spin" />
+        <Button variant="outline" @click="showRenameDialog = false">{{ t('Cancel') }}</Button>
+        <Button :disabled="isRenaming || !newDocId || newDocId === props.id" @click="handleRename">
+          <Spinner v-if="isRenaming" />
           {{ t('Rename') }}
         </Button>
       </DialogFooter>

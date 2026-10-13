@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { computed } from 'vue'
+import { computed, useId } from 'vue'
 import { useBuilderStore } from '@/stores/builder'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Checkbox } from '@/components/ui/checkbox'
+import { Empty, EmptyDescription } from '@/components/ui/empty'
+import { Field, FieldGroup, FieldLabel, FieldLegend, FieldSet } from '@/components/ui/field'
 
 const { t } = useI18n()
+const id = useId()
 
 const builder = useBuilderStore()
 const field = computed(() => builder.selectedField)
@@ -23,39 +26,38 @@ function update(patch: Record<string, unknown>) {
 
 <template>
   <div class="h-full overflow-y-auto p-4 border-l border-border bg-card">
-    <template v-if="field">
-      <p class="font-semibold text-muted-foreground uppercase tracking-wide mb-4">
-        {{ isLayout ? field.fieldtype : field.fieldname }}
-      </p>
+    <FieldSet v-if="field">
+      <FieldLegend variant="label">{{ isLayout ? field.fieldtype : field.fieldname }}</FieldLegend>
+      <FieldGroup class="gap-4">
+        <Field>
+          <FieldLabel :for="`${id}-label`">{{ t('Label') }}</FieldLabel>
+          <Input :id="`${id}-label`" :model-value="field.label" @update:model-value="update({ label: $event })" />
+        </Field>
 
-      <div class="flex flex-col gap-1.5 mb-4">
-        <label class="font-medium">{{ t('Label') }}</label>
-        <Input :model-value="field.label" class="w-full" @update:model-value="update({ label: $event })" />
-      </div>
+        <Field v-if="isSection" orientation="horizontal">
+          <Checkbox :id="`${id}-collapsible`" :model-value="!!field.collapsible" @update:model-value="update({ collapsible: !!$event })" />
+          <FieldLabel :for="`${id}-collapsible`" class="font-normal">{{ t('Collapsible') }}</FieldLabel>
+        </Field>
 
-      <div v-if="isSection" class="flex items-center gap-2 mb-4">
-        <Checkbox :model-value="!!field.collapsible" @update:model-value="update({ collapsible: !!$event })" />
-        <label class="font-medium">{{ t('Collapsible') }}</label>
-      </div>
+        <template v-if="!isLayout">
+          <Field orientation="horizontal">
+            <Checkbox :id="`${id}-required`" :model-value="!!field.required" @update:model-value="update({ required: !!$event })" />
+            <FieldLabel :for="`${id}-required`" class="font-normal">{{ t('Required') }}</FieldLabel>
+          </Field>
+          <Field orientation="horizontal">
+            <Checkbox :id="`${id}-hidden`" :model-value="!!field.hidden" @update:model-value="update({ hidden: !!$event })" />
+            <FieldLabel :for="`${id}-hidden`" class="font-normal">{{ t('Hidden on the form') }}</FieldLabel>
+          </Field>
+          <Field>
+            <FieldLabel :for="`${id}-description`">{{ t('Help text') }}</FieldLabel>
+            <Textarea :id="`${id}-description`" :model-value="field.description" @update:model-value="update({ description: $event })" />
+          </Field>
+        </template>
+      </FieldGroup>
+    </FieldSet>
 
-      <template v-if="!isLayout">
-        <div class="flex items-center gap-2 mb-3">
-          <Checkbox :model-value="!!field.required" @update:model-value="update({ required: !!$event })" />
-          <label class="font-medium">{{ t('Required') }}</label>
-        </div>
-        <div class="flex items-center gap-2 mb-4">
-          <Checkbox :model-value="!!field.hidden" @update:model-value="update({ hidden: !!$event })" />
-          <label class="font-medium">{{ t('Hidden on the form') }}</label>
-        </div>
-        <div class="flex flex-col gap-1.5 mb-4">
-          <label class="font-medium">{{ t('Help text') }}</label>
-          <Textarea :model-value="field.description" class="w-full" @update:model-value="update({ description: $event })" />
-        </div>
-      </template>
-    </template>
-
-    <div v-else class="flex items-center justify-center h-32 text-muted-foreground">
-      {{ t('Select a field to edit') }}
-    </div>
+    <Empty v-else>
+      <EmptyDescription>{{ t('Select a field to edit') }}</EmptyDescription>
+    </Empty>
   </div>
 </template>

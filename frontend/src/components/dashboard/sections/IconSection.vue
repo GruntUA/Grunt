@@ -18,12 +18,12 @@ const iconField = computed<DocField>(() => ({
 </script>
 
 <template>
-  <div class="flex flex-col gap-1.5 mb-4">
-    <label class="font-medium">{{ t('Icon (lucide)') }}</label>
+  <Field class="mb-4">
+    <FieldLabel>{{ t('Icon (lucide)') }}</FieldLabel>
     <IconPicker
       :field="iconField"
       :model-value="widget.icon ?? null"
       @update:model-value="updateWidget('icon', $event ?? undefined)"
     />
-  </div>
+  </Field>
 </template>

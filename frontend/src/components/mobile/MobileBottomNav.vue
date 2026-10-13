@@ -12,6 +12,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { useAppStore } from '@/stores/app'
 import AppIcon from '@/components/AppIcon.vue'
 import { MoreHorizontal, Home } from '@lucide/vue'
+import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { appUrl } from '@/core/workspaceUrl'
 
@@ -70,6 +71,7 @@ function goHome() {
       <button
         class="flex-1 flex flex-col items-center justify-center gap-0.5 text-muted-foreground transition-colors"
         :class="route.path === '/' ? 'text-primary' : 'hover:text-foreground'"
+        :aria-current="route.path === '/' ? 'page' : undefined"
         @click="goHome"
       >
         <Home class="w-5 h-5" />
@@ -82,6 +84,7 @@ function goHome() {
         :key="item.link_to"
         class="flex-1 flex flex-col items-center justify-center gap-0.5 transition-colors"
         :class="isActive(item.link_to) ? 'text-primary' : 'text-muted-foreground hover:text-foreground'"
+        :aria-current="isActive(item.link_to) ? 'page' : undefined"
         @click="navigate(item)"
       >
         <AppIcon :icon="item.icon || 'file'" class="size-5" />
@@ -103,24 +106,22 @@ function goHome() {
   <!-- Overflow sheet -->
   <Sheet :open="showOverflow" @update:open="(v: boolean) => (showOverflow = v)">
     <SheetContent side="bottom" class="md:hidden p-0 rounded-t-lg" style="padding-bottom: env(safe-area-inset-bottom)">
-      <SheetHeader class="flex-row items-center justify-between px-5 pt-4 pb-2 gap-0 space-y-0">
+      <SheetHeader>
         <SheetTitle>{{ t('All sections') }}</SheetTitle>
       </SheetHeader>
-      <div class="max-h-72 overflow-y-auto">
-        <div class="px-3 pb-4 space-y-0.5">
-          <button
-            v-for="item in overflowItems"
-            :key="item.link_to"
-            class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
-            :class="isActive(item.link_to)
-              ? 'bg-primary/10 text-primary font-medium'
-              : 'text-foreground hover:bg-muted'"
-            @click="navigate(item)"
-          >
-            <AppIcon :icon="item.icon || 'file'" class="size-5 shrink-0 opacity-80" />
-            <span class="flex-1 text-left truncate">{{ item.label }}</span>
-          </button>
-        </div>
+      <div class="max-h-72 overflow-y-auto px-3 pb-4">
+        <Button
+          v-for="item in overflowItems"
+          :key="item.link_to"
+          :variant="isActive(item.link_to) ? 'secondary' : 'ghost'"
+          size="lg"
+          class="w-full justify-start"
+          :aria-current="isActive(item.link_to) ? 'page' : undefined"
+          @click="navigate(item)"
+        >
+          <AppIcon :icon="item.icon || 'file'" />
+          <span class="truncate">{{ item.label }}</span>
+        </Button>
       </div>
     </SheetContent>
   </Sheet>

@@ -2,7 +2,7 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { Bell, Check, CheckCheck, BellOff, BellRing } from '@lucide/vue'
+import { Bell, BellDot, Check, CheckCheck, BellOff, BellRing } from '@lucide/vue'
 import { formatIntl } from '@/core/datetime'
 import { useWebPush } from '@/core/composables/useWebPush'
 
@@ -15,6 +15,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover'
 import { docUrl } from '@/core/workspaceUrl'
+import { SidebarMenuBadge, SidebarMenuButton } from '@/components/ui/sidebar'
 
 const props = defineProps<{
     workspace?: string
@@ -88,24 +89,11 @@ onUnmounted(() => {
 
 <template>
     <div>
-        <button class="relative w-full flex items-center justify-between px-3 py-2 rounded-lg transition-all group"
-            :class="unreadCount > 0 ? 'bg-primary/5 hover:bg-primary/10 text-primary' : 'hover:bg-muted/50 text-muted-foreground hover:text-foreground'"
-            @click="toggle">
-            <div class="flex items-center gap-2.5 min-w-0">
-                <div class="relative flex items-center justify-center shrink-0">
-                    <Bell class="size-4 transition-colors" />
-                    <span v-if="unreadCount > 0" class="absolute -top-1 -right-1 flex h-2 w-2">
-                        <span
-                            class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                        <span class="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
-                    </span>
-                </div>
-                <span class="font-medium truncate">{{ t('Notifications') }}</span>
-            </div>
-            <Badge v-if="unreadCount > 0" class="h-5 px-1.5 font-semibold tabular-nums">
-                {{ unreadCount }}
-            </Badge>
-        </button>
+        <SidebarMenuButton :tooltip="t('Notifications')" @click="toggle">
+            <component :is="unreadCount > 0 ? BellDot : Bell" />
+            <span>{{ t('Notifications') }}</span>
+        </SidebarMenuButton>
+        <SidebarMenuBadge v-if="unreadCount > 0">{{ unreadCount }}</SidebarMenuBadge>
 
         <Popover v-model:open="isOpen">
             <PopoverAnchor :reference="anchorEl ?? undefined" />
@@ -157,11 +145,12 @@ onUnmounted(() => {
                                         </template>
                                     </div>
                                 </div>
-                                <button v-if="!n.is_read"
-                                    class="shrink-0 rounded-md p-1 text-muted-foreground opacity-0 transition-opacity hover:bg-muted hover:text-foreground group-hover:opacity-100"
-                                    @click.stop="markAsRead(n.id)" :title="t('Mark as read')">
-                                    <Check class="size-3.5" />
-                                </button>
+                                <Button v-if="!n.is_read" variant="ghost" size="icon-xs"
+                                    class="text-muted-foreground opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
+                                    :title="t('Mark as read')" :aria-label="t('Mark as read')"
+                                    @click.stop="markAsRead(n.id)">
+                                    <Check />
+                                </Button>
                             </div>
                         </div>
                     </div>

@@ -1,32 +1,39 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
+import { useId } from 'vue'
 import { usePropertyEditor } from '@/core/composables/usePropertyEditor'
 import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
+import { Field, FieldLabel, FieldLegend, FieldSet } from '@/components/ui/field'
 
 const { field, updateField } = usePropertyEditor()
+const { t } = useI18n()
+const id = useId()
 </script>
 
 <template>
   <Separator class="!mb-3" />
-  <p class="font-semibold text-muted-foreground uppercase tracking-wide mb-3">Range</p>
-  <div class="flex gap-2 mb-4">
-    <div class="flex-1 flex flex-col gap-1.5">
-      <label class="font-medium">Min</label>
-      <Input
-        type="number"
-        :model-value="field.min_value ?? ''"
-        class="w-full"
-        @update:model-value="(v: string | number) => updateField('min_value', v === '' ? undefined : Number(v))"
-      />
+  <FieldSet class="mb-4">
+    <FieldLegend variant="label">{{ t('Range') }}</FieldLegend>
+    <div class="flex gap-2">
+      <Field>
+        <FieldLabel :for="`${id}-min`">{{ t('Min') }}</FieldLabel>
+        <Input
+          :id="`${id}-min`"
+          type="number"
+          :model-value="field.min_value ?? ''"
+          @update:model-value="(v: string | number) => updateField('min_value', v === '' ? undefined : Number(v))"
+        />
+      </Field>
+      <Field>
+        <FieldLabel :for="`${id}-max`">{{ t('Max') }}</FieldLabel>
+        <Input
+          :id="`${id}-max`"
+          type="number"
+          :model-value="field.max_value ?? ''"
+          @update:model-value="(v: string | number) => updateField('max_value', v === '' ? undefined : Number(v))"
+        />
+      </Field>
     </div>
-    <div class="flex-1 flex flex-col gap-1.5">
-      <label class="font-medium">Max</label>
-      <Input
-        type="number"
-        :model-value="field.max_value ?? ''"
-        class="w-full"
-        @update:model-value="(v: string | number) => updateField('max_value', v === '' ? undefined : Number(v))"
-      />
-    </div>
-  </div>
+  </FieldSet>
 </template>

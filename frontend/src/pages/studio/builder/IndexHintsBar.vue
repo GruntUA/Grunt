@@ -3,6 +3,7 @@ import { useI18n } from 'vue-i18n'
 import { TriangleAlert } from '@lucide/vue'
 import { useBuilderStore } from '@/stores/builder'
 import type { IndexHint } from '@/types'
+import { Button } from '@/components/ui/button'
 
 const { t } = useI18n()
 
@@ -22,11 +23,9 @@ function applyHint(hint: IndexHint) {
       <TriangleAlert class="size-4 shrink-0 mt-px" />
       <div class="flex-1">
         <span>{{ hint.reason }}</span>
-        <button
-          type="button"
-          class="ml-2 font-semibold underline underline-offset-2 hover:opacity-75"
-          @click="applyHint(hint)"
-        >{{ t('Add index') }}</button>
+        <Button type="button" variant="link" size="xs" class="ml-1 h-auto p-0 text-inherit" @click="applyHint(hint)">
+          {{ t('Add index') }}
+        </Button>
       </div>
     </div>
   </div>

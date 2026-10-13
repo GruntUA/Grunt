@@ -6,6 +6,7 @@ import type { LinkSearchItem } from '@/core/api/docs'
 import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import { Field, FieldLabel } from '@/components/ui/field'
 import { useWidgetPropertyEditor } from '@/core/composables/useWidgetPropertyEditor'
 
 const { t } = useI18n()
@@ -81,8 +82,8 @@ function selectLink(item: LinkSearchItem) {
     </ToggleGroup>
   </div>
 
-  <div class="flex flex-col gap-1.5 mb-4">
-    <label class="font-medium">{{ t('Target') }}</label>
+  <Field class="mb-4">
+    <FieldLabel>{{ t('Target') }}</FieldLabel>
     <div v-if="linkSearchDoctype" class="relative">
       <Input
         :model-value="linkQuery"
@@ -113,5 +114,5 @@ function selectLink(item: LinkSearchItem) {
       class="w-full"
       @update:model-value="updateWidget('ref_doctype', $event)"
     />
-  </div>
+  </Field>
 </template>

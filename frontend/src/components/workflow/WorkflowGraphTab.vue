@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { ref, computed, nextTick, watch } from 'vue'
+import { ref, computed, nextTick, watch, useId } from 'vue'
 import { VueFlow, useVueFlow, Position, MarkerType } from '@vue-flow/core'
 import { Controls } from '@vue-flow/controls'
 import { Background } from '@vue-flow/background'
@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Checkbox } from '@/components/ui/checkbox'
+import { Field, FieldDescription, FieldGroup, FieldLabel, FieldLegend, FieldSet } from '@/components/ui/field'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Plus, Trash2 } from '@lucide/vue'
 
@@ -18,6 +19,7 @@ import '@vue-flow/core/dist/theme-default.css'
 import '@vue-flow/controls/dist/style.css'
 
 const { t } = useI18n()
+const id = useId()
 
 interface WorkflowStateRow {
   state: string
@@ -307,95 +309,99 @@ function removeSelectedTransition() {
     <!-- Properties panel -->
     <div class="w-72 shrink-0 border-l border-border overflow-y-auto p-4">
       <template v-if="selectedState">
-        <p class="font-semibold text-muted-foreground uppercase tracking-wide mb-3">{{ t('State') }}</p>
-        <div class="flex flex-col gap-3">
-          <div class="flex flex-col gap-1.5">
-            <label class="font-medium">{{ t('Value (for the state field)') }}</label>
-            <Input :model-value="selectedState.state"
-              @update:model-value="updateSelectedState({ state: String($event) })" />
-          </div>
-          <div class="flex flex-col gap-1.5">
-            <label class="font-medium">{{ t('Name') }}</label>
-            <Input :model-value="selectedState.label ?? ''"
-              @update:model-value="updateSelectedState({ label: String($event) })" />
-          </div>
-          <div class="flex flex-col gap-1.5">
-            <label class="font-medium">{{ t('Color') }}</label>
-            <Select :model-value="selectedState.color ?? 'gray'"
-              @update:model-value="updateSelectedState({ color: String($event) })">
-              <SelectTrigger class="w-full"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem v-for="c in Object.keys(COLOR_SCHEMES)" :key="c" :value="c">{{ c }}</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div class="flex items-center gap-2">
-            <Checkbox :model-value="!!selectedState.is_initial"
-              @update:model-value="updateSelectedState({ is_initial: !!$event })" />
-            <label class="font-medium">{{ t('Initial state') }}</label>
-          </div>
-          <div class="flex items-center gap-2">
-            <Checkbox :model-value="!!selectedState.is_final"
-              @update:model-value="updateSelectedState({ is_final: !!$event })" />
-            <label class="font-medium">{{ t('Final state') }}</label>
-          </div>
-          <Button variant="destructive" size="sm" class="mt-2" @click="removeSelectedState">
-            <Trash2 class="size-3.5" />{{ t('Delete state') }}
-          </Button>
-        </div>
+        <FieldSet>
+          <FieldLegend variant="label">{{ t('State') }}</FieldLegend>
+          <FieldGroup class="gap-3">
+            <Field>
+              <FieldLabel :for="`${id}-1`">{{ t('Value (for the state field)') }}</FieldLabel>
+              <Input :id="`${id}-1`" :model-value="selectedState.state"
+                @update:model-value="updateSelectedState({ state: String($event) })" />
+            </Field>
+            <Field>
+              <FieldLabel :for="`${id}-2`">{{ t('Name') }}</FieldLabel>
+              <Input :id="`${id}-2`" :model-value="selectedState.label ?? ''"
+                @update:model-value="updateSelectedState({ label: String($event) })" />
+            </Field>
+            <Field>
+              <FieldLabel :for="`${id}-3`">{{ t('Color') }}</FieldLabel>
+              <Select :model-value="selectedState.color ?? 'gray'"
+                @update:model-value="updateSelectedState({ color: String($event) })">
+                <SelectTrigger :id="`${id}-3`" class="w-full"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem v-for="c in Object.keys(COLOR_SCHEMES)" :key="c" :value="c">{{ c }}</SelectItem>
+                </SelectContent>
+              </Select>
+            </Field>
+            <Field orientation="horizontal">
+              <Checkbox :id="`${id}-10`" :model-value="!!selectedState.is_initial"
+                @update:model-value="updateSelectedState({ is_initial: !!$event })" />
+              <FieldLabel :for="`${id}-10`" class="font-normal">{{ t('Initial state') }}</FieldLabel>
+            </Field>
+            <Field orientation="horizontal">
+              <Checkbox :id="`${id}-11`" :model-value="!!selectedState.is_final"
+                @update:model-value="updateSelectedState({ is_final: !!$event })" />
+              <FieldLabel :for="`${id}-11`" class="font-normal">{{ t('Final state') }}</FieldLabel>
+            </Field>
+            <Button variant="destructive" size="sm" class="mt-2" @click="removeSelectedState">
+              <Trash2 class="size-3.5" />{{ t('Delete state') }}
+            </Button>
+          </FieldGroup>
+        </FieldSet>
       </template>
 
       <template v-else-if="selectedTransition">
-        <p class="font-semibold text-muted-foreground uppercase tracking-wide mb-3">{{ t('Transition') }}</p>
-        <div class="flex flex-col gap-3">
-          <div class="flex flex-col gap-1.5">
-            <label class="font-medium">{{ t('From state') }}</label>
-            <Select :model-value="selectedTransition.from_state"
-              @update:model-value="updateSelectedTransition({ from_state: String($event) })">
-              <SelectTrigger class="w-full"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem v-for="s in states" :key="s.state" :value="s.state">{{ s.label || s.state }}</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div class="flex flex-col gap-1.5">
-            <label class="font-medium">{{ t('To state') }}</label>
-            <Select :model-value="selectedTransition.to_state"
-              @update:model-value="updateSelectedTransition({ to_state: String($event) })">
-              <SelectTrigger class="w-full"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem v-for="s in states" :key="s.state" :value="s.state">{{ s.label || s.state }}</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div class="flex flex-col gap-1.5">
-            <label class="font-medium">{{ t('Action (button text)') }}</label>
-            <Input :model-value="selectedTransition.action"
-              @update:model-value="updateSelectedTransition({ action: String($event) })" />
-          </div>
-          <div class="flex flex-col gap-1.5">
-            <label class="font-medium">{{ t('Allowed roles (comma-separated)') }}</label>
-            <Input :model-value="selectedTransition.allowed_roles ?? ''"
-              @update:model-value="updateSelectedTransition({ allowed_roles: String($event) })" />
-          </div>
-          <div class="flex flex-col gap-1.5">
-            <label class="font-medium">{{ t('Condition (eval:)') }}</label>
-            <Textarea :model-value="selectedTransition.condition ?? ''" rows="3"
-              @update:model-value="updateSelectedTransition({ condition: String($event) || null })" />
-          </div>
-          <div class="flex flex-col gap-1.5">
-            <label class="font-medium">{{ t('Dialog fields (comma-separated)') }}</label>
-            <Input :model-value="selectedTransition.prompt_fields ?? ''"
-              :placeholder="t('e.g. execution_note')"
-              @update:model-value="updateSelectedTransition({ prompt_fields: String($event) || null })" />
-            <p class="text-muted-foreground text-xs">
-              {{ t('If set, a dialog opens before the transition to fill in these document fields.') }}
-            </p>
-          </div>
-          <Button variant="destructive" size="sm" class="mt-2" @click="removeSelectedTransition">
-            <Trash2 class="size-3.5" />{{ t('Delete transition') }}
-          </Button>
-        </div>
+        <FieldSet>
+          <FieldLegend variant="label">{{ t('Transition') }}</FieldLegend>
+          <FieldGroup class="gap-3">
+            <Field>
+              <FieldLabel :for="`${id}-4`">{{ t('From state') }}</FieldLabel>
+              <Select :model-value="selectedTransition.from_state"
+                @update:model-value="updateSelectedTransition({ from_state: String($event) })">
+                <SelectTrigger :id="`${id}-4`" class="w-full"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem v-for="s in states" :key="s.state" :value="s.state">{{ s.label || s.state }}</SelectItem>
+                </SelectContent>
+              </Select>
+            </Field>
+            <Field>
+              <FieldLabel :for="`${id}-5`">{{ t('To state') }}</FieldLabel>
+              <Select :model-value="selectedTransition.to_state"
+                @update:model-value="updateSelectedTransition({ to_state: String($event) })">
+                <SelectTrigger :id="`${id}-5`" class="w-full"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem v-for="s in states" :key="s.state" :value="s.state">{{ s.label || s.state }}</SelectItem>
+                </SelectContent>
+              </Select>
+            </Field>
+            <Field>
+              <FieldLabel :for="`${id}-6`">{{ t('Action (button text)') }}</FieldLabel>
+              <Input :id="`${id}-6`" :model-value="selectedTransition.action"
+                @update:model-value="updateSelectedTransition({ action: String($event) })" />
+            </Field>
+            <Field>
+              <FieldLabel :for="`${id}-7`">{{ t('Allowed roles (comma-separated)') }}</FieldLabel>
+              <Input :id="`${id}-7`" :model-value="selectedTransition.allowed_roles ?? ''"
+                @update:model-value="updateSelectedTransition({ allowed_roles: String($event) })" />
+            </Field>
+            <Field>
+              <FieldLabel :for="`${id}-8`">{{ t('Condition (eval:)') }}</FieldLabel>
+              <Textarea :id="`${id}-8`" :model-value="selectedTransition.condition ?? ''" rows="3"
+                @update:model-value="updateSelectedTransition({ condition: String($event) || null })" />
+            </Field>
+            <Field>
+              <FieldLabel :for="`${id}-9`">{{ t('Dialog fields (comma-separated)') }}</FieldLabel>
+              <Input :id="`${id}-9`" :model-value="selectedTransition.prompt_fields ?? ''"
+                :placeholder="t('e.g. execution_note')"
+                @update:model-value="updateSelectedTransition({ prompt_fields: String($event) || null })" />
+              <FieldDescription>
+                {{ t('If set, a dialog opens before the transition to fill in these document fields.') }}
+              </FieldDescription>
+            </Field>
+            <Button variant="destructive" size="sm" class="mt-2" @click="removeSelectedTransition">
+              <Trash2 class="size-3.5" />{{ t('Delete transition') }}
+            </Button>
+          </FieldGroup>
+        </FieldSet>
       </template>
 
       <p v-else class="text-muted-foreground text-center mt-8">

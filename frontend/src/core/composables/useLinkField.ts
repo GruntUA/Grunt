@@ -6,7 +6,6 @@ import { docsApi, metaApi } from '@/core/api'
 import type { LinkSearchItem } from '@/core/api/docs'
 import type { TreeNode } from '@/components/ui/tree-select'
 import { escapeHtml } from '@/lib/utils'
-import { useAnchoredDropdown } from '@/core/composables/useAnchoredDropdown'
 import { docUrl } from '@/core/workspaceUrl'
 
 export type LinkFiltersFn = (fieldname: string, doc: Record<string, unknown>) => Record<string, string | string[]>
@@ -29,7 +28,6 @@ export function useLinkField(props: {
   const results = ref<LinkSearchItem[]>([])
   const isOpen = ref(false)
   const isLoading = ref(false)
-  const activeIdx = ref(-1)
   const titleField = ref<string>('name')
 
   // Tree mode
@@ -41,7 +39,6 @@ export function useLinkField(props: {
   const displayCache = new Map<string, string>()
 
   let debounceTimer: ReturnType<typeof setTimeout>
-  let blurTimer: ReturnType<typeof setTimeout>
 
   // Monotonic tokens so a slow response can't overwrite a newer one.
   let searchSeq = 0
@@ -49,14 +46,7 @@ export function useLinkField(props: {
 
   const getScriptFilters = inject<LinkFiltersFn>('getLinkFilters', () => ({}))
 
-  // Teleported dropdown, kept anchored to the input on scroll / resize.
-  const containerRef = ref<HTMLElement | null>(null)
-  const { dropdownStyle, reposition: computeDropdownStyle } = useAnchoredDropdown(isOpen, containerRef)
-
-  onUnmounted(() => {
-    clearTimeout(debounceTimer)
-    clearTimeout(blurTimer)
-  })
+  onUnmounted(() => clearTimeout(debounceTimer))
 
   // `link_filters` rarely changes, but resolveFilters() is called on every
   // search, on every activeFilterChips recompute and inside a JSON.stringify
@@ -224,8 +214,6 @@ export function useLinkField(props: {
       const hits = await docsApi.linkSearch(props.field.options, val, resolveFilters())
       if (seq !== searchSeq) return // a newer search already superseded this one
       results.value = hits
-      activeIdx.value = -1
-      isOpen.value = true
     } catch {
       if (seq === searchSeq) results.value = []
     } finally {
@@ -234,25 +222,20 @@ export function useLinkField(props: {
   }
 
   function onInput(val: string) {
+    if (val === query.value) return
     query.value = val
     clearTimeout(debounceTimer)
     debounceTimer = setTimeout(() => search(val), val ? 300 : 0)
   }
 
-  function onFocus() {
-    clearTimeout(blurTimer)
-    computeDropdownStyle()
+  function onOpenChange(open: boolean) {
+    isOpen.value = open
     // When a value is already picked, `query` holds its label - searching for
     // that exact string just echoes the one row back. Open the default list
-    // instead so the user can switch to another record.
-    if (!isOpen.value) search(isSelected.value ? '' : query.value)
-  }
-
-  function onBlur() {
-    blurTimer = setTimeout(() => {
-      isOpen.value = false
-      syncQueryFromValue(props.modelValue)
-    }, 200)
+    // instead so the user can switch to another record. On close, drop any
+    // half-typed text and show the picked record again.
+    if (open) search(isSelected.value ? '' : query.value)
+    else syncQueryFromValue(props.modelValue)
   }
 
   // When the typed text already names an existing record (by label or id),
@@ -270,13 +253,11 @@ export function useLinkField(props: {
     !hasExactMatch.value
   )
 
-  const totalItems = computed(() => results.value.length + (canCreate.value ? 1 : 0))
-
-  function select(item: LinkSearchItem) {
-    displayCache.set(item.name, item.title)
-    query.value = item.title
-    emit('update:modelValue', item.name)
-    isOpen.value = false
+  function select(name: string) {
+    const item = results.value.find((r) => r.name === name)
+    if (item) displayCache.set(item.name, item.title)
+    query.value = item?.title ?? name
+    emit('update:modelValue', name)
   }
 
   function clear() {
@@ -289,29 +270,6 @@ export function useLinkField(props: {
     if (!props.field.options) return
     isOpen.value = false
     emit('create-new', props.field.options, query.value)
-  }
-
-  function onKeydown(e: KeyboardEvent) {
-    if (!isOpen.value) return
-
-    if (e.key === 'ArrowDown') {
-      e.preventDefault()
-      activeIdx.value = Math.min(activeIdx.value + 1, totalItems.value - 1)
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault()
-      activeIdx.value = Math.max(activeIdx.value - 1, -1)
-    } else if (e.key === 'Enter') {
-      e.preventDefault()
-      if (activeIdx.value === results.value.length && canCreate.value) {
-        createNew()
-      } else if (activeIdx.value >= 0 && results.value[activeIdx.value]) {
-        select(results.value[activeIdx.value])
-      }
-    } else if (e.key === 'Escape') {
-      e.preventDefault()
-      isOpen.value = false
-      syncQueryFromValue(props.modelValue)
-    }
   }
 
   // Returns an HTML string for v-html: the source text is always HTML-escaped
@@ -398,9 +356,6 @@ export function useLinkField(props: {
     results,
     isOpen,
     isLoading,
-    activeIdx,
-    containerRef,
-    dropdownStyle,
     isTree,
     treeNodes,
     treeLoading,
@@ -410,9 +365,7 @@ export function useLinkField(props: {
     linkedDocUrl,
     onTreeSelect,
     onInput,
-    onFocus,
-    onBlur,
-    onKeydown,
+    onOpenChange,
     select,
     clear,
     createNew,

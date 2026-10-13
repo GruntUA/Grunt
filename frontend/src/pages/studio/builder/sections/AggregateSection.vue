@@ -1,15 +1,18 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { computed } from 'vue'
+import { computed, useId } from 'vue'
 import { useBuilderStore } from '@/stores/builder'
 import { usePropertyEditor } from '@/core/composables/usePropertyEditor'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
+import { Field, FieldDescription, FieldGroup, FieldLabel, FieldLegend, FieldSet } from '@/components/ui/field'
+import { Badge } from '@/components/ui/badge'
 
 const { t } = useI18n()
 
 const { field, updateField } = usePropertyEditor()
+const id = useId()
 const builder = useBuilderStore()
 
 const AGGREGATE_FUNCTIONS = [
@@ -31,47 +34,46 @@ const tableFields = computed(() =>
 
 <template>
   <Separator class="!mb-3" />
-  <div class="flex items-center justify-between mb-3">
-    <p class="font-semibold text-muted-foreground uppercase tracking-wide">Aggregation</p>
-    <span
-      v-if="field.aggregate_function"
-      class="font-mono text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 px-1.5 py-0.5 rounded"
-    >∑ {{ t('is active') }}</span>
-  </div>
-  <div class="flex flex-col gap-3 mb-4">
-    <div class="flex flex-col gap-1.5">
-      <label class="font-medium">{{ t('Function') }}</label>
-      <Select :model-value="field.aggregate_function ?? '__none__'" @update:model-value="updateField('aggregate_function', $event === '__none__' ? null : $event)">
-        <SelectTrigger class="w-full">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem v-for="opt in AGGREGATE_FUNCTIONS" :key="opt.value" :value="opt.value">{{ opt.label }}</SelectItem>
-        </SelectContent>
-      </Select>
+  <FieldSet class="mb-4">
+    <div class="flex items-center justify-between">
+      <FieldLegend variant="label" class="mb-0">{{ t('Aggregation') }}</FieldLegend>
+      <Badge v-if="field.aggregate_function" variant="secondary" class="font-mono">∑ {{ t('is active') }}</Badge>
     </div>
-    <template v-if="field.aggregate_function">
-      <div class="flex flex-col gap-1.5">
-        <label class="font-medium">{{ t('Table (TABLE field)') }}</label>
-        <Select :model-value="field.aggregate_table ?? ''" :empty-message="t('No TABLE fields in this DocType')" @update:model-value="updateField('aggregate_table', $event || null)">
-          <SelectTrigger class="w-full">
-            <SelectValue :placeholder="t('— choose a TABLE field —')" />
+    <FieldGroup class="gap-3">
+      <Field>
+        <FieldLabel :for="`${id}-function`">{{ t('Function') }}</FieldLabel>
+        <Select :model-value="field.aggregate_function ?? '__none__'" @update:model-value="updateField('aggregate_function', $event === '__none__' ? null : $event)">
+          <SelectTrigger :id="`${id}-function`" class="w-full">
+            <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem v-for="opt in tableFields" :key="opt.value" :value="opt.value">{{ opt.label }}</SelectItem>
+            <SelectItem v-for="opt in AGGREGATE_FUNCTIONS" :key="opt.value" :value="opt.value">{{ opt.label }}</SelectItem>
           </SelectContent>
         </Select>
-      </div>
-      <div v-if="field.aggregate_function !== 'count'" class="flex flex-col gap-1.5">
-        <label class="font-medium">{{ t('Child DocType field') }}</label>
-        <Input
-          :model-value="field.aggregate_field ?? ''"
-          :placeholder="t('e.g. amount')"
-          class="w-full"
-          @update:model-value="updateField('aggregate_field', $event || null)"
-        />
-        <p class="text-muted-foreground">{{ t('Fieldname of a numeric field in the child DocType') }}</p>
-      </div>
-    </template>
-  </div>
+      </Field>
+      <template v-if="field.aggregate_function">
+        <Field>
+          <FieldLabel :for="`${id}-table`">{{ t('Table (TABLE field)') }}</FieldLabel>
+          <Select :model-value="field.aggregate_table ?? ''" :empty-message="t('No TABLE fields in this DocType')" @update:model-value="updateField('aggregate_table', $event || null)">
+            <SelectTrigger :id="`${id}-table`" class="w-full">
+              <SelectValue :placeholder="t('— choose a TABLE field —')" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem v-for="opt in tableFields" :key="opt.value" :value="opt.value">{{ opt.label }}</SelectItem>
+            </SelectContent>
+          </Select>
+        </Field>
+        <Field v-if="field.aggregate_function !== 'count'">
+          <FieldLabel :for="`${id}-field`">{{ t('Child DocType field') }}</FieldLabel>
+          <Input
+            :id="`${id}-field`"
+            :model-value="field.aggregate_field ?? ''"
+            :placeholder="t('e.g. amount')"
+            @update:model-value="updateField('aggregate_field', $event || null)"
+          />
+          <FieldDescription>{{ t('Fieldname of a numeric field in the child DocType') }}</FieldDescription>
+        </Field>
+      </template>
+    </FieldGroup>
+  </FieldSet>
 </template>

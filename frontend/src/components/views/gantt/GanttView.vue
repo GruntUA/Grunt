@@ -24,6 +24,8 @@ import { useToast } from '@/core/composables/useToast'
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
 import { ChartGantt, ChevronLeft, ChevronRight } from '@lucide/vue'
+import { ButtonGroup } from '@/components/ui/button-group'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 
 const { t } = useI18n()
 
@@ -400,18 +402,16 @@ const zoomOptions: { value: Zoom; label: string }[] = [
       </div>
 
       <div class="flex items-center gap-2">
-        <div class="flex items-center rounded-md border border-border/50 bg-background p-0.5">
-          <button v-for="opt in zoomOptions" :key="opt.value"
-            class="px-2.5 h-7 font-medium rounded transition-colors"
-            :class="zoom === opt.value ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'"
-            @click="zoom = opt.value">{{ opt.label }}</button>
-        </div>
-        <div class="flex items-center rounded-md border border-border/50 bg-background p-0.5">
-          <Button variant="ghost" size="sm" class="!h-7 !px-2" @click="nudge(-1)"><ChevronLeft class="size-4" /></Button>
-          <Button variant="ghost" size="sm" class="!h-7 !px-3 !text-xs" @click="scrollToToday">{{ t('Today') }}</Button>
-          <Button variant="ghost" size="sm" class="!h-7 !px-2" @click="nudge(1)"><ChevronRight class="size-4" /></Button>
-        </div>
-        <Spinner v-if="isLoading" class="!size-5" strokeWidth="6" />
+        <ToggleGroup type="single" variant="outline" size="sm" :model-value="zoom"
+          @update:model-value="(v) => v && (zoom = v as typeof zoom)">
+          <ToggleGroupItem v-for="opt in zoomOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</ToggleGroupItem>
+        </ToggleGroup>
+        <ButtonGroup>
+          <Button variant="outline" size="icon-sm" :aria-label="t('Previous')" @click="nudge(-1)"><ChevronLeft /></Button>
+          <Button variant="outline" size="sm" @click="scrollToToday">{{ t('Today') }}</Button>
+          <Button variant="outline" size="icon-sm" :aria-label="t('Next')" @click="nudge(1)"><ChevronRight /></Button>
+        </ButtonGroup>
+        <Spinner v-if="isLoading" />
       </div>
     </div>
 

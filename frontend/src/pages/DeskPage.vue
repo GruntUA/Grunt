@@ -2,7 +2,6 @@
 import { formatNumber } from '@/core/currency'
 import { useI18n } from 'vue-i18n'
 import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useAppStore } from '@/stores/app'
 import { useUIStore } from '@/stores/ui'
@@ -13,7 +12,9 @@ import ActivityStream from '@/components/dashboard/ActivityStream.vue'
 import MyWorkPanel from '@/components/dashboard/MyWorkPanel.vue'
 import { readRecent, looksLikeId, type RecentDoc } from '@/core/recentDocs'
 import { useColorMode, type Theme } from '@/core/composables/useColorMode'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
+import { Item, ItemActions, ItemContent, ItemDescription, ItemGroup, ItemMedia, ItemTitle } from '@/components/ui/item'
 import ShortcutKbd from '@/components/ShortcutKbd.vue'
 import {
   DropdownMenu,
@@ -44,7 +45,6 @@ async function exitImpersonation() {
 }
 const appStore = useAppStore()
 const uiStore = useUIStore()
-const router = useRouter()
 const colorMode = useColorMode()
 async function onThemeChange(theme: unknown) { await auth.setTheme(theme as Theme) }
 
@@ -106,10 +106,6 @@ function timeAgo(ts: number): string {
   if (hours < 24) return t('{n} h', { n: String(hours) })
   const days = Math.floor(hours / 24)
   return t('{n} d', { n: String(days) })
-}
-
-function findWorkspaceForDoc(doc: RecentDoc) {
-  return appStore.workspaces.find(w => w.name === doc.workspace)
 }
 
 // Returns a human-readable display title for a document.
@@ -177,25 +173,22 @@ function docInitials(doc: RecentDoc): string {
           <p class="text-muted-foreground">{{ t('What are you planning to do today?') }}</p>
         </div>
 
-        <div v-if="auth.isImpersonating"
-          class="flex items-center justify-center gap-2 rounded-lg border border-warning/30 bg-warning/10 px-3 py-2 text-warning">
-          <Eye class="size-3.5 shrink-0" />
-          <span>{{ t('Viewing as {name}', { name: auth.user?.full_name ?? '' }) }} —
-            <button type="button" class="font-semibold underline underline-offset-2" @click="exitImpersonation">
-              {{ t('switch back') }}
-            </button>
-          </span>
-        </div>
+        <Alert v-if="auth.isImpersonating" class="text-left">
+          <Eye />
+          <AlertDescription>
+            <span>
+              {{ t('Viewing as {name}', { name: auth.user?.full_name ?? '' }) }} —
+              <Button variant="link" class="h-auto p-0" @click="exitImpersonation">{{ t('switch back') }}</Button>
+            </span>
+          </AlertDescription>
+        </Alert>
 
-        <button type="button"
-          class="flex w-full items-center gap-3 rounded-lg border bg-card px-4 py-3 text-left shadow-xs transition-colors hover:border-primary/40"
+        <Button variant="outline" size="lg" class="w-full justify-start font-normal text-muted-foreground"
           @click="uiStore.openCommandPalette">
-          <Search class="size-4 shrink-0 text-muted-foreground" />
-          <span class="flex-1 text-muted-foreground">
-            {{ t('Search documents, apps or actions...') }}
-          </span>
-          <ShortcutKbd shortcut="Mod+K" class="hidden shrink-0 sm:inline-flex" />
-        </button>
+          <Search />
+          <span class="flex-1 text-left">{{ t('Search documents, apps or actions...') }}</span>
+          <ShortcutKbd shortcut="Mod+K" class="hidden sm:inline-flex" />
+        </Button>
 
         <p class="text-muted-foreground">
           {{ t('{apps} apps · {docs} documents in the system', { apps: String(appStore.workspaces.length), docs: formatNumber(totalDocsCount) }) }}
@@ -205,28 +198,18 @@ function docInitials(doc: RecentDoc): string {
       <!-- CONTINUE: recent documents strip -->
       <section v-if="recentDocs.length" class="space-y-3 pb-10">
         <h2 class="font-medium text-foreground">{{ t('Continue') }}</h2>
-        <div class="-mx-1 flex gap-3 overflow-x-auto px-1 pb-1">
-          <button v-for="doc in recentDocs.slice(0, 10)" :key="doc.id"
-            class="group flex w-56 shrink-0 flex-col gap-2.5 rounded-lg border bg-card p-3 text-left transition-colors hover:border-primary/40"
-            @click="router.push(docUrl(doc.doctype, doc.id, doc.workspace))">
-            <div class="flex items-center justify-between">
-              <div class="flex size-8 shrink-0 items-center justify-center rounded-md font-semibold"
-                :style="{
-                  backgroundColor: `color-mix(in srgb, ${findWorkspaceForDoc(doc)?.color ?? 'var(--primary)'} 15%, transparent)`,
-                  color: findWorkspaceForDoc(doc)?.color ?? 'var(--primary)'
-                }">
-                {{ docInitials(doc) }}
-              </div>
-              <span class="font-mono text-muted-foreground/70">{{ timeAgo(doc.ts) }}</span>
-            </div>
-            <div class="min-w-0">
-              <p class="truncate font-semibold text-foreground transition-colors group-hover:text-primary">
-                {{ docDisplayTitle(doc) }}
-              </p>
-              <p class="truncate font-mono text-muted-foreground/70">{{ doc.doctype }}</p>
-            </div>
-          </button>
-        </div>
+        <ItemGroup class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <Item v-for="doc in recentDocs.slice(0, 9)" :key="doc.id" variant="outline" size="sm" as-child>
+            <RouterLink :to="docUrl(doc.doctype, doc.id, doc.workspace)">
+              <ItemMedia variant="icon" class="text-xs font-semibold">{{ docInitials(doc) }}</ItemMedia>
+              <ItemContent class="min-w-0">
+                <ItemTitle class="w-full truncate">{{ docDisplayTitle(doc) }}</ItemTitle>
+                <ItemDescription class="truncate">{{ doc.doctype }}</ItemDescription>
+              </ItemContent>
+              <ItemActions class="text-xs text-muted-foreground">{{ timeAgo(doc.ts) }}</ItemActions>
+            </RouterLink>
+          </Item>
+        </ItemGroup>
       </section>
 
       <!-- First steps (ModuleOnboarding) - until done or hidden -->

@@ -6,6 +6,7 @@ import { ExternalLink } from '@lucide/vue'
 import { useRouter } from 'vue-router'
 import { appUrl } from '@/core/workspaceUrl'
 import { useLucideIcons } from '@/core/composables/useLucideIcons'
+import { Item, ItemContent, ItemMedia, ItemTitle } from '@/components/ui/item'
 
 const props = defineProps<{
   widget: DashboardWidget
@@ -45,16 +46,21 @@ function navigate(tile: ShortcutItem) {
       <p class="text-muted-foreground font-medium">{{ widget.title }}</p>
     </div>
     <div class="grid grid-cols-[repeat(auto-fit,minmax(11rem,1fr))] gap-2 p-3">
-      <button
+      <Item
         v-for="(tile, i) in tiles"
         :key="i"
-        class="flex items-center gap-2.5 px-3 py-2 rounded-lg border hover:bg-muted/50 transition-colors text-left min-w-0"
+        as="button"
+        variant="outline"
+        size="sm"
+        class="min-w-0 text-left hover:bg-accent"
         @click="navigate(tile)">
-        <div :class="['shrink-0 p-1.5 rounded-md', colorMap[tile.color ?? 'primary'] ?? colorMap.primary]">
-          <component :is="iconFor(tile.icon, ExternalLink) ?? 'span'" class="block w-3.5 h-3.5" />
-        </div>
-        <span class="font-medium leading-tight text-foreground truncate">{{ tile.title }}</span>
-      </button>
+        <ItemMedia variant="icon" :class="['border-0', colorMap[tile.color ?? 'primary'] ?? colorMap.primary]">
+          <component :is="iconFor(tile.icon, ExternalLink) ?? 'span'" />
+        </ItemMedia>
+        <ItemContent class="min-w-0">
+          <ItemTitle class="w-full truncate">{{ tile.title }}</ItemTitle>
+        </ItemContent>
+      </Item>
       <div v-if="tiles.length === 0"
         class="col-span-full flex items-center justify-center text-muted-foreground py-4">
         {{ t('No tiles') }}

@@ -2,7 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { BaseFieldProps } from '@/types'
-import { Input } from '@/components/ui/input'
+import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from '@/components/ui/input-group'
 import { Check, Circle, Eye, EyeOff } from '@lucide/vue'
 import client from '@/core/api/client'
 
@@ -61,8 +61,8 @@ const checks = computed(() => {
 
 <template>
   <div>
-    <div class="relative">
-      <Input
+    <InputGroup>
+      <InputGroupInput
         :model-value="String(modelValue ?? '')"
         :type="revealed ? 'text' : 'password'"
         :placeholder="field.placeholder ?? undefined"
@@ -71,24 +71,25 @@ const checks = computed(() => {
         :aria-invalid="error ? true : undefined"
         :aria-label="field.label"
         autocomplete="new-password"
-        class="w-full pr-9"
         @update:model-value="emit('update:modelValue', $event)"
         @keydown="onKey"
         @keyup="onKey"
         @blur="capsLock = false"
       />
-      <button
-        type="button"
-        class="absolute inset-y-0 right-0 flex items-center px-2.5 text-muted-foreground hover:text-foreground disabled:opacity-50"
-        :aria-label="revealed ? t('Hide') : t('Show')"
-        :aria-pressed="revealed"
-        :disabled="disabled || field.read_only"
-        tabindex="-1"
-        @click="revealed = !revealed"
-      >
-        <component :is="revealed ? EyeOff : Eye" class="size-4" />
-      </button>
-    </div>
+      <InputGroupAddon align="inline-end">
+        <InputGroupButton
+          type="button"
+          size="icon-xs"
+          :aria-label="revealed ? t('Hide') : t('Show')"
+          :aria-pressed="revealed"
+          :disabled="disabled || field.read_only"
+          tabindex="-1"
+          @click="revealed = !revealed"
+        >
+          <component :is="revealed ? EyeOff : Eye" />
+        </InputGroupButton>
+      </InputGroupAddon>
+    </InputGroup>
     <p v-if="capsLock" class="mt-1 text-warning">{{ t('Caps Lock is on') }}</p>
     <ul v-if="checks.length" class="mt-1.5 space-y-1">
       <li

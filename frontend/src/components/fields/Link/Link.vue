@@ -1,8 +1,14 @@
 <script setup lang="ts">
-import { computed, useId } from 'vue'
 import { RouterLink } from 'vue-router'
+import { ComboboxInput } from 'reka-ui'
 import type { DocField } from '@/types'
-import { Search, X, Loader2, Plus, ArrowUpRight } from '@lucide/vue'
+import { ArrowUpRight, Plus, X } from '@lucide/vue'
+import {
+  Combobox, ComboboxAnchor, ComboboxGroup, ComboboxItem, ComboboxList, ComboboxSeparator,
+} from '@/components/ui/combobox'
+import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from '@/components/ui/input-group'
+import { Badge } from '@/components/ui/badge'
+import { Spinner } from '@/components/ui/spinner'
 import { TreeSelect } from '@/components/ui/tree-select'
 import { cn } from '@/lib/utils'
 import { useLinkField } from '@/core/composables/useLinkField'
@@ -22,31 +28,27 @@ const props = defineProps<{
   cell?: boolean
 }>()
 
-// Base classes for the regular-mode <input>; `pr-*` is appended in the template.
-const inputClass = computed(() =>
-  props.cell
-    ? 'w-full h-8 rounded-none border border-transparent border-b-border/30 bg-transparent pl-8 text-foreground placeholder:text-muted-foreground shadow-none outline-none hover:border-input focus-visible:ring-0 focus-visible:border-ring disabled:cursor-not-allowed disabled:opacity-60 transition-colors'
-    : 'w-full rounded-md border border-input bg-transparent dark:bg-input/30 pl-8 py-2 text-sm text-foreground ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:border-ring disabled:bg-muted/50 disabled:cursor-not-allowed disabled:opacity-60 transition-colors',
-)
-
 const emit = defineEmits<{
   'update:modelValue': [value: unknown]
   'create-new': [doctype: string, preset: string]
 }>()
 
-// Stable ids to wire the combobox input to its teleported listbox for a11y.
-const listboxId = useId()
-const optionId = (i: number) => `${listboxId}-opt-${i}`
+// Value of the "Create …" row; picking it runs createNew instead of selecting.
+const CREATE = '__create__'
 
-const linkField = useLinkField(props, emit)
+// Handled on the item's own select event, before the combobox closes and
+// restores the input to the picked record's label.
+function onCreate(event: Event) {
+  event.preventDefault()
+  createNew()
+}
+
 const {
   t,
   query,
   results,
   isOpen,
   isLoading,
-  activeIdx,
-  dropdownStyle,
   isTree,
   treeNodes,
   treeLoading,
@@ -56,15 +58,17 @@ const {
   linkedDocUrl,
   onTreeSelect,
   onInput,
-  onFocus,
-  onBlur,
-  onKeydown,
+  onOpenChange,
   select,
   clear,
   createNew,
   highlight,
   openLinkedDoc,
-} = linkField
+} = useLinkField(props, emit)
+
+function onPick(value: unknown) {
+  if (value != null && value !== CREATE) select(String(value))
+}
 </script>
 
 <template>
@@ -92,152 +96,110 @@ const {
     </template>
   </TreeSelect>
 
-  <!-- Regular mode: custom input + dropdown -->
-  <div v-else :ref="(el) => { linkField.containerRef.value = el as HTMLElement | null }" class="relative">
-    <div class="relative">
-      <Search class="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
-
-      <input
-        :value="query"
-        :placeholder="field.placeholder ?? t('Search {doctype}…', { doctype: field.options ?? '' })"
-        :disabled="disabled || field.read_only"
-        :class="[
-          inputClass,
-          isSelected && linkedDocUrl ? 'pr-16' : 'pr-8',
-          error ? 'border-destructive focus-visible:ring-destructive' : '',
-        ]"
-        autocomplete="off"
-        :data-preview-doctype="isSelected && field.options ? field.options : undefined"
-        :data-preview-name="isSelected ? String(modelValue) : undefined"
-        role="combobox"
-        aria-autocomplete="list"
-        :aria-label="field.label"
-        :aria-expanded="isOpen"
-        :aria-controls="listboxId"
-        :aria-activedescendant="isOpen && activeIdx >= 0 ? optionId(activeIdx) : undefined"
-        :aria-invalid="error ? true : undefined"
-        @input="onInput(($event.target as HTMLInputElement).value)"
-        @focus="onFocus"
-        @blur="onBlur"
-        @keydown="onKeydown"
-      />
-
-      <div class="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
-        <Loader2 v-if="isLoading" class="size-4 text-muted-foreground animate-spin" />
-        <template v-else-if="isSelected">
-          <button
-            v-if="linkedDocUrl"
-            type="button"
-            class="text-muted-foreground hover:text-primary transition-colors"
-            :title="t('Open {doctype}', { doctype: field.options ?? '' })"
-            @mousedown.prevent="openLinkedDoc"
-          >
-            <ArrowUpRight class="size-4" />
-          </button>
-          <button
-            v-if="!disabled && !field.read_only"
-            type="button"
-            class="text-muted-foreground hover:text-foreground transition-colors"
-            :title="t('Clear')"
-            :aria-label="t('Clear')"
-            @mousedown.prevent="clear"
-          >
-            <X class="size-4" />
-          </button>
-        </template>
-      </div>
-    </div>
-
-    <Teleport to="body">
-    <div
-      v-if="isOpen"
-      :id="listboxId"
-      data-link-dropdown
-      role="listbox"
-      :aria-label="field.label"
-      :style="dropdownStyle"
-      class="pointer-events-auto bg-popover border border-border rounded-lg shadow-md overflow-hidden"
-    >
-      <div v-if="results.length" class="max-h-52 overflow-y-auto py-1">
-        <button
-          v-for="(item, i) in results"
-          :key="item.id"
-          type="button"
-          role="option"
-          :id="optionId(i)"
-          :aria-selected="i === activeIdx"
-          :class="[
-            'w-full text-left px-3 py-2 text-sm transition-colors flex flex-col gap-0.5',
-            i === activeIdx ? 'bg-accent text-accent-foreground' : 'hover:bg-accent/50',
-          ]"
-          @mousedown.prevent="select(item)"
-          @mouseover="activeIdx = i"
-        >
-          <span v-html="highlight(item.title)" />
-          <span
-            v-if="item.fields?.length"
-            class="flex flex-wrap gap-x-2 gap-y-0.5 text-xs text-muted-foreground"
-          >
-            <span v-for="f in item.fields" :key="f.fieldname">
-              <span class="opacity-60">{{ f.label }}:</span>
-              <span class="ml-1" v-html="highlight(f.value)" />
-            </span>
-          </span>
-          <span
-            v-else-if="item.subtitle"
-            class="text-xs text-muted-foreground"
-            v-html="highlight(item.subtitle)"
+  <!-- Regular mode: type to search on the server, so the combobox doesn't filter itself -->
+  <Combobox
+    v-else
+    :model-value="(modelValue as string) || undefined"
+    :open="isOpen"
+    :disabled="disabled || field.read_only"
+    ignore-filter
+    open-on-focus
+    open-on-click
+    :reset-search-term-on-blur="false"
+    :reset-search-term-on-select="false"
+    @update:open="onOpenChange"
+    @update:model-value="onPick"
+  >
+    <ComboboxAnchor as-child class="w-full">
+      <InputGroup
+        :class="cell && 'h-8 rounded-none border-transparent border-b-border/30 bg-transparent shadow-none hover:border-input dark:bg-transparent has-[[data-slot=input-group-control]:focus-visible]:ring-0'"
+      >
+        <ComboboxInput as-child :model-value="query" :display-value="() => query" @update:model-value="onInput">
+          <InputGroupInput
+            :model-value="query"
+            :placeholder="field.placeholder ?? t('Search {doctype}…', { doctype: field.options ?? '' })"
+            :aria-label="field.label"
+            :aria-invalid="error ? true : undefined"
+            autocomplete="off"
+            :data-preview-doctype="isSelected && field.options ? field.options : undefined"
+            :data-preview-name="isSelected ? String(modelValue) : undefined"
           />
-        </button>
-      </div>
+        </ComboboxInput>
+        <InputGroupAddon align="inline-end">
+          <Spinner v-if="isLoading" class="text-muted-foreground" />
+          <template v-else-if="isSelected">
+            <InputGroupButton
+              v-if="linkedDocUrl"
+              type="button"
+              size="icon-xs"
+              :title="t('Open {doctype}', { doctype: field.options ?? '' })"
+              :aria-label="t('Open {doctype}', { doctype: field.options ?? '' })"
+              @mousedown.prevent="openLinkedDoc"
+            >
+              <ArrowUpRight />
+            </InputGroupButton>
+            <InputGroupButton
+              v-if="!disabled && !field.read_only"
+              type="button"
+              size="icon-xs"
+              :title="t('Clear')"
+              :aria-label="t('Clear')"
+              @mousedown.prevent="clear"
+            >
+              <X />
+            </InputGroupButton>
+          </template>
+        </InputGroupAddon>
+      </InputGroup>
+    </ComboboxAnchor>
 
-      <div v-else class="px-3 py-3 text-muted-foreground text-center">
+    <ComboboxList
+      class="w-(--reka-popper-anchor-width) min-w-56 p-0"
+      align="start"
+      data-link-dropdown
+      @open-auto-focus.prevent
+    >
+      <ComboboxGroup v-if="results.length" class="max-h-52 overflow-y-auto p-1">
+        <ComboboxItem v-for="item in results" :key="item.id" :value="item.name">
+          <div class="flex min-w-0 flex-col gap-0.5">
+            <span v-html="highlight(item.title)" />
+            <span v-if="item.fields?.length" class="flex flex-wrap gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
+              <span v-for="f in item.fields" :key="f.fieldname">
+                <span class="opacity-60">{{ f.label }}:</span>
+                <span class="ml-1" v-html="highlight(f.value)" />
+              </span>
+            </span>
+            <span v-else-if="item.subtitle" class="text-xs text-muted-foreground" v-html="highlight(item.subtitle)" />
+          </div>
+        </ComboboxItem>
+      </ComboboxGroup>
+      <div v-else class="py-6 text-center text-sm text-muted-foreground">
         <span v-if="isLoading">{{ t('Searching...') }}</span>
         <span v-else-if="query">{{ t('Nothing found for “{query}”', { query }) }}</span>
         <span v-else>{{ t('No records') }}</span>
       </div>
 
       <template v-if="canCreate">
-        <div class="border-t border-border" />
-        <button
-          type="button"
-          role="option"
-          :id="optionId(results.length)"
-          :aria-selected="activeIdx === results.length"
-          :class="[
-            'w-full flex items-center gap-2 px-3 py-2 text-sm transition-colors',
-            activeIdx === results.length
-              ? 'bg-accent text-accent-foreground'
-              : 'text-primary hover:bg-accent/50',
-          ]"
-          @mousedown.prevent="createNew"
-          @mouseover="activeIdx = results.length"
-        >
-          <Plus class="size-3.5 shrink-0" />
-          <span v-if="query">
-            {{ t('Create') }} <strong>{{ query }}</strong>
-            <span class="text-xs text-muted-foreground ml-1">({{ field.options }})</span>
-          </span>
-          <span v-else class="text-muted-foreground">
-            {{ t('Create new') }} {{ field.options }}
-          </span>
-        </button>
+        <ComboboxSeparator />
+        <ComboboxGroup class="p-1">
+          <ComboboxItem :value="CREATE" @select="onCreate">
+            <Plus />
+            <span v-if="query">
+              {{ t('Create') }} <strong>{{ query }}</strong>
+              <span class="ml-1 text-xs text-muted-foreground">({{ field.options }})</span>
+            </span>
+            <span v-else class="text-muted-foreground">{{ t('Create new') }} {{ field.options }}</span>
+          </ComboboxItem>
+        </ComboboxGroup>
       </template>
 
       <template v-if="activeFilterChips.length">
-        <div class="border-t border-border" />
-        <div class="px-3 py-1.5 flex items-center gap-1.5 flex-wrap">
+        <ComboboxSeparator />
+        <div class="flex flex-wrap items-center gap-1.5 px-3 py-1.5 text-xs">
           <span class="text-muted-foreground">{{ t('Filter:') }}</span>
-          <span
-            v-for="chip in activeFilterChips"
-            :key="chip.key"
-            class="inline-flex items-center bg-primary/10 text-primary rounded px-1.5 py-0.5 font-medium"
-          >
-            {{ chip.display }}
-          </span>
+          <Badge v-for="chip in activeFilterChips" :key="chip.key" variant="secondary">{{ chip.display }}</Badge>
         </div>
       </template>
-    </div>
-    </Teleport>
-  </div>
+    </ComboboxList>
+  </Combobox>
 </template>

@@ -3,6 +3,7 @@ import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { X } from '@lucide/vue'
 import type { BaseFieldProps } from '@/types'
+import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
 const props = defineProps<BaseFieldProps>()
@@ -66,14 +67,16 @@ function onHexInput(raw: string) {
       class="flex-1 font-mono uppercase"
       @update:model-value="onHexInput(String($event))"
     />
-    <button
+    <Button
       v-if="clearable"
       type="button"
-      class="shrink-0 rounded-sm p-1 text-muted-foreground transition-colors hover:text-foreground"
+      variant="ghost"
+      size="icon-sm"
+      class="text-muted-foreground"
       :aria-label="t('Clear')"
       @click="commit(null)"
     >
-      <X class="size-4" />
-    </button>
+      <X />
+    </Button>
   </div>
 </template>

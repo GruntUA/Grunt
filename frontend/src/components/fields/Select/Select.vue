@@ -6,6 +6,7 @@ import type { BaseFieldProps } from '@/types'
 import { parseSelectOptions, resolveOptionIcons } from '@/lib/selectOptions'
 import { STATUS_CONFIG, statusToneClass } from '@/core/status'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import {
   Select as ShadcnSelect,
   SelectContent,
@@ -104,15 +105,17 @@ const clearable = computed(() => !readonly.value && !props.field.required && cur
       </SelectContent>
     </ShadcnSelect>
 
-    <button
+    <Button
       v-if="clearable"
       type="button"
-      class="absolute inset-y-0 right-8 flex items-center px-1 text-muted-foreground transition-colors hover:text-foreground"
+      variant="ghost"
+      size="icon-xs"
+      class="absolute top-1/2 right-8 -translate-y-1/2 text-muted-foreground"
       :aria-label="t('Clear')"
       tabindex="-1"
       @pointerdown.stop.prevent="emit('update:modelValue', null)"
     >
-      <X class="size-4" />
-    </button>
+      <X />
+    </Button>
   </div>
 </template>

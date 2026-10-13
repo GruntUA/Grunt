@@ -7,12 +7,13 @@ import { useI18n } from 'vue-i18n'
  */
 import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { Loader2 } from '@lucide/vue'
 import { docsApi, type BacklinkItem } from '@/core/api/docs'
 import { useDocTypeStore } from '@/stores/doctype'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { docUrl } from '@/core/workspaceUrl'
 import { Input } from '@/components/ui/input'
+import { Item, ItemActions, ItemContent, ItemTitle } from '@/components/ui/item'
+import { Spinner } from '@/components/ui/spinner'
 
 const { t } = useI18n()
 
@@ -81,25 +82,28 @@ function goTo(l: BacklinkItem) {
       <Input v-if="links.length > 10" v-model="query" :placeholder="t('Search...')" />
 
       <div class="flex flex-col gap-3 min-h-0 overflow-y-auto -mx-6 px-6">
-        <Loader2 v-if="loading" class="size-5 animate-spin text-muted-foreground mx-auto my-6" />
+        <Spinner v-if="loading" class="mx-auto my-6 text-muted-foreground" />
         <template v-else>
           <div v-for="g in groups" :key="g.doctype" class="shrink-0 rounded-md border">
             <div class="flex items-center justify-between px-3 py-1.5 rounded-t-md bg-muted text-muted-foreground">
               <span>{{ doctypeLabel(g.doctype) }}</span>
               <span class="tabular-nums">{{ g.items.length }}</span>
             </div>
-            <button
+            <Item
               v-for="l in g.items"
               :key="`${l.source_id}-${l.link_fieldname}`"
-              type="button"
-              class="w-full flex items-baseline gap-3 text-left px-3 py-2 border-t hover:bg-accent transition-colors last:rounded-b-md"
+              as="button"
+              size="sm"
+              class="w-full rounded-none border-0 border-t text-left last:rounded-b-md hover:bg-accent"
               @click="goTo(l)"
             >
-              <span class="font-medium truncate">{{ l.title }}</span>
-              <span v-if="l.title !== l.source_id" class="ml-auto shrink-0 font-mono text-muted-foreground">{{ l.source_id }}</span>
-            </button>
+              <ItemContent class="min-w-0">
+                <ItemTitle class="w-full truncate">{{ l.title }}</ItemTitle>
+              </ItemContent>
+              <ItemActions v-if="l.title !== l.source_id" class="font-mono text-muted-foreground">{{ l.source_id }}</ItemActions>
+            </Item>
           </div>
-          <span v-if="!groups.length" class="text-muted-foreground py-6 text-center">
+          <span v-if="!groups.length" class="text-muted-foreground py-6 text-center text-sm">
             {{ links.length ? t('Nothing found') : t('No linked documents') }}
           </span>
         </template>

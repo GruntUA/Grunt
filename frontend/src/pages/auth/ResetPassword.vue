@@ -3,8 +3,11 @@ import { useI18n } from 'vue-i18n'
 import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { authApi } from '@/core/api/auth-admin'
-import { Sprout } from '@lucide/vue'
+import AppBrand from '@/components/app/AppBrand.vue'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Spinner } from '@/components/ui/spinner'
 
@@ -56,51 +59,45 @@ async function handleSubmit() {
 </script>
 
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-muted/30 relative overflow-hidden">
+  <div class="bg-muted flex min-h-svh flex-col items-center justify-center gap-6 p-6 md:p-10">
+    <div class="flex w-full max-w-sm flex-col gap-6">
+      <AppBrand class="self-center" />
 
-    <div class="relative w-full max-w-[420px] mx-4">
-      <div class="text-center mb-8 flex flex-col items-center">
-        <div class="inline-flex items-center justify-center w-14 h-14 rounded-lg bg-primary text-primary-foreground mb-4 shadow-sm">
-          <Sprout class="w-7 h-7" />
-        </div>
-        <h1 class="text-2xl font-semibold text-foreground tracking-tight">{{ t('New password') }}</h1>
-        <p class="text-muted-foreground mt-1">{{ t('Choose a strong password') }}</p>
-      </div>
+      <Card>
+        <CardHeader class="text-center">
+          <CardTitle class="text-xl">{{ done ? t('Password updated!') : t('New password') }}</CardTitle>
+          <CardDescription>
+            {{ done ? t('You can now sign in with your new password.') : t('Choose a strong password') }}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button v-if="done" class="w-full" @click="router.push('/login')">{{ t('Go to sign in') }}</Button>
 
-      <div class="bg-card rounded-lg shadow-sm border border-border p-8">
-        <div v-if="done" class="text-center py-4 flex flex-col items-center gap-3">
-          <p class="text-foreground font-medium">{{ t('Password updated!') }}</p>
-          <p class="text-muted-foreground mb-2">{{ t('You can now sign in with your new password.') }}</p>
-          <Button class="w-full h-11" @click="router.push('/login')">{{ t('Go to sign in') }}</Button>
-        </div>
+          <form v-else @submit.prevent="handleSubmit">
+            <FieldGroup>
+              <Field>
+                <FieldLabel for="reset-password">{{ t('New password') }}</FieldLabel>
+                <Input id="reset-password" v-model="newPassword" type="password" autocomplete="new-password"
+                  placeholder="••••••••" required />
+              </Field>
+              <Field>
+                <FieldLabel for="reset-password-confirm">{{ t('Confirm password') }}</FieldLabel>
+                <Input id="reset-password-confirm" v-model="confirmPassword" type="password" autocomplete="new-password"
+                  placeholder="••••••••" required />
+              </Field>
 
-        <form v-else class="flex flex-col gap-5" @submit.prevent="handleSubmit">
-          <div class="flex flex-col gap-1.5">
-            <label class="font-medium">{{ t('New password') }} <span class="text-destructive">*</span></label>
-            <Input v-model="newPassword" type="password" autocomplete="new-password"
-              placeholder="••••••••" required class="h-11 w-full" />
-          </div>
+              <Alert v-if="error" variant="destructive">
+                <AlertDescription>{{ error }}</AlertDescription>
+              </Alert>
 
-          <div class="flex flex-col gap-1.5">
-            <label class="font-medium">{{ t('Confirm password') }} <span class="text-destructive">*</span></label>
-            <Input v-model="confirmPassword" type="password" autocomplete="new-password"
-              placeholder="••••••••" required class="h-11 w-full" />
-          </div>
-
-          <p v-if="error" class="text-destructive bg-destructive/10 rounded-lg px-3 py-2 text-center border border-destructive/20">
-            {{ error }}
-          </p>
-
-          <Button
-            type="submit"
-            :disabled="loading || !token"
-            class="w-full h-11 mt-1 font-medium"
-          >
-            <Spinner v-if="loading" class="size-4 mr-2" />
-            {{ t('Set new password') }}
-          </Button>
-        </form>
-      </div>
+              <Button type="submit" :disabled="loading || !token">
+                <Spinner v-if="loading" />
+                {{ t('Set new password') }}
+              </Button>
+            </FieldGroup>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   </div>
 </template>

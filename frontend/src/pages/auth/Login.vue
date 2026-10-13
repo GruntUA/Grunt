@@ -11,7 +11,7 @@ import { isWebAuthnSupported } from '@/core/composables/useWebAuthn'
 import AppBrand from '@/components/app/AppBrand.vue'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Field, FieldDescription, FieldLabel, FieldSeparator } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from '@/components/ui/input-otp'
@@ -285,23 +285,25 @@ async function verifyEmailCode() {
 
       <!-- Registration submitted, awaiting approval -->
       <Card v-if="signupDone">
-        <div class="flex flex-col items-center gap-2 px-6 text-center">
-          <h3 class="font-semibold text-xl">{{ t('Request sent') }}</h3>
-          <p class="text-muted-foreground leading-relaxed">
+        <CardHeader class="text-center">
+          <CardTitle class="text-xl">{{ t('Request sent') }}</CardTitle>
+          <CardDescription>
             {{ t('Your account has been created and is awaiting administrator approval. You can sign in once it is approved.') }}
-          </p>
-          <Button type="button" variant="link" @click="signupDone = false; switchMode('signin')">
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button type="button" variant="outline" class="w-full" @click="signupDone = false; switchMode('signin')">
             {{ t('Back to sign in') }}
           </Button>
-        </div>
+        </CardContent>
       </Card>
 
       <Card v-else>
-        <div class="flex flex-col items-center gap-1.5 px-6 text-center">
-          <h3 class="font-semibold text-xl">{{ title }}</h3>
-          <p class="text-muted-foreground">{{ subtitle }}</p>
-        </div>
-        <div class="px-6">
+        <CardHeader class="text-center">
+          <CardTitle class="text-xl">{{ title }}</CardTitle>
+          <CardDescription>{{ subtitle }}</CardDescription>
+        </CardHeader>
+        <CardContent>
           <!-- Passwordless email: enter the code from the mail -->
           <form
             v-if="emailStage === 'code'"
@@ -461,7 +463,7 @@ async function verifyEmailCode() {
               </FieldDescription>
             </div>
           </form>
-        </div>
+        </CardContent>
       </Card>
 
       <p class="px-6 text-center text-muted-foreground leading-relaxed">

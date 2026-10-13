@@ -22,6 +22,7 @@ import { useTaskTracker } from '@/core/composables/useTaskTracker'
 import { CloudUpload, WifiOff } from '@lucide/vue'
 import { Toaster } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
+import { Button } from '@/components/ui/button'
 
 const { t } = useI18n()
 
@@ -90,12 +91,12 @@ onUnmounted(() => {
       </Transition>
 
       <!-- Online again but changes still waiting (conflicts / refused) -->
-      <button v-if="!isDisconnected && pendingCount > 0" type="button"
-        class="fixed bottom-20 left-4 z-50 flex items-center gap-2 rounded-full border bg-card px-3 py-1.5 font-medium shadow-md md:bottom-4"
+      <Button v-if="!isDisconnected && pendingCount > 0" variant="outline"
+        class="fixed bottom-20 left-4 z-50 rounded-full shadow-md md:bottom-4"
         @click="queueOpen = true">
-        <CloudUpload class="size-4 text-primary" />
+        <CloudUpload class="text-primary" />
         {{ t('{n} unsynced changes', { n: String(pendingCount) }) }}
-      </button>
+      </Button>
       <OfflineQueueSheet v-model:open="queueOpen" />
 
       <RouterView />

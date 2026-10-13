@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import { Field, FieldLabel } from '@/components/ui/field'
 import { useWidgetPropertyEditor } from '@/core/composables/useWidgetPropertyEditor'
 import { WIDGET_COLORS, WIDGET_COLOR_LABEL_KEYS } from './widgetHelpers'
 
@@ -9,8 +10,8 @@ const { widget, updateWidget } = useWidgetPropertyEditor()
 </script>
 
 <template>
-  <div class="flex flex-col gap-1.5 mb-4">
-    <label class="font-medium">{{ t('Color') }}</label>
+  <Field class="mb-4">
+    <FieldLabel>{{ t('Color') }}</FieldLabel>
     <ToggleGroup
       type="single"
       variant="outline"
@@ -27,5 +28,5 @@ const { widget, updateWidget } = useWidgetPropertyEditor()
         <span class="size-4 rounded-full" :style="{ background: c.bg }" />
       </ToggleGroupItem>
     </ToggleGroup>
-  </div>
+  </Field>
 </template>

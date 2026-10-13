@@ -7,6 +7,7 @@ import { validateFieldValue } from '@/core/validators'
 import { evalDependsOn } from '@/core/dependsOn'
 import { FORM_ERRORS } from './formErrors'
 import type { DocField } from '@/types'
+import { Label } from '@/components/ui/label'
 
 const { t } = useI18n()
 
@@ -112,10 +113,10 @@ async function copyFieldname() {
       'bg-destructive/[0.03] ring-1 ring-destructive/20': displayError,
       'hover:bg-muted/30': !displayError
     }">
-    <label v-if="!hasOwnLabel" :id="labelId" class="font-medium text-foreground/90 flex items-center gap-1">
+    <Label v-if="!hasOwnLabel" :id="labelId" class="gap-1">
       {{ field.label }}
-      <span v-if="field.required" class="text-destructive font-semibold" aria-hidden="true">*</span>
-    </label>
+      <span v-if="field.required" class="text-destructive" aria-hidden="true">*</span>
+    </Label>
 
     <component
       :is="component"

@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import { ref, onMounted, computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { reportsApi } from '@/core/api/reports'
 import type { ReportDetail, ReportResult, ReportColumn } from '@/types'
 import { Loader2 } from '@lucide/vue'
 
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -13,7 +14,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 const { t } = useI18n()
 
 const route = useRoute()
-const router = useRouter()
 const reportName = route.params.name as string
 
 const report = ref<ReportDetail | null>(null)
@@ -65,11 +65,17 @@ onMounted(load)
 <template>
   <div class="p-8 max-w-6xl">
     <!-- Breadcrumb -->
-    <div class="flex items-center gap-2 text-muted-foreground mb-6">
-      <button class="hover:text-primary" @click="router.push('/reports')">{{ t('Reports') }}</button>
-      <span>/</span>
-      <span class="text-foreground font-medium">{{ reportName }}</span>
-    </div>
+    <Breadcrumb class="mb-6">
+      <BreadcrumbList>
+        <BreadcrumbItem>
+          <BreadcrumbLink as-child><RouterLink to="/reports">{{ t('Reports') }}</RouterLink></BreadcrumbLink>
+        </BreadcrumbItem>
+        <BreadcrumbSeparator />
+        <BreadcrumbItem>
+          <BreadcrumbPage>{{ reportName }}</BreadcrumbPage>
+        </BreadcrumbItem>
+      </BreadcrumbList>
+    </Breadcrumb>
 
     <div class="flex items-center justify-between mb-6">
       <div>

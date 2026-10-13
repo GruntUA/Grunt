@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { Button } from '@/components/ui/button'
 import type { BaseFieldProps } from '@/types'
 import { ImageIcon, X } from '@lucide/vue'
 import { cn } from '@/lib/utils'
@@ -49,16 +50,18 @@ function openPicker() {
         {{ filename ?? (field.placeholder || t('Attach an image…')) }}
       </span>
 
-      <button
+      <Button
         v-if="currentUrl && !isDisabled"
         type="button"
+        variant="ghost"
+        size="icon-xs"
+        class="text-muted-foreground hover:text-destructive"
         :title="t('Remove attachment')"
         :aria-label="t('Remove attachment')"
-        class="shrink-0 text-muted-foreground transition-colors hover:text-destructive"
         @click.stop="remove"
       >
-        <X class="size-3.5" />
-      </button>
+        <X />
+      </Button>
     </div>
 
     <AttachPicker

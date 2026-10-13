@@ -13,7 +13,16 @@ const api = vi.hoisted(() => ({
     },
     { id: 'economy', label: 'Економіка' },
   ]),
-  linkSearch: vi.fn(async () => []),
+  linkSearch: vi.fn(async (_dt: string, q: string, filters?: Record<string, unknown>) => {
+    const all = [
+      { id: 'a', name: 'a', title: 'Alpha' },
+      { id: 'b', name: 'b', title: 'Bravo' },
+      { id: 'c', name: 'c', title: 'Charlie' },
+    ]
+    const names = filters?.name__in as string[] | undefined
+    if (names) return all.filter((r) => names.includes(r.name))
+    return all.filter((r) => !q || r.title.toLowerCase().includes(q.toLowerCase()))
+  }),
 }))
 
 vi.mock('@/core/api', () => ({
@@ -81,5 +90,69 @@ describe('MultiLink on a tree DocType', () => {
     await flushPromises()
     expect(w.find('input').exists()).toBe(true)
     expect(w.find('button[aria-label="Choose from the tree"]').exists()).toBe(false)
+  })
+})
+
+describe('MultiLink on a flat DocType', () => {
+  const options = () => [...document.body.querySelectorAll<HTMLElement>('[role="option"]')]
+  const option = (text: string) => options().find((el) => el.textContent?.includes(text))!
+
+  function mountFlat(modelValue: string[] = []) {
+    api.isTree = false
+    w = mount(MultiLink, { props: { field, modelValue }, attachTo: document.body, global })
+    return w
+  }
+
+  it('shows tags with titles, not ids', async () => {
+    mountFlat(['a', 'b'])
+    await flushPromises()
+    expect(w!.text()).toContain('Alpha')
+    expect(w!.text()).toContain('Bravo')
+    // ComboboxAnchor's default w-[200px] must not reach the field.
+    expect(w!.find('[data-slot="combobox-anchor"]').classes()).not.toContain('w-[200px]')
+  })
+
+  it('adds a picked record and keeps the list open for the next pick', async () => {
+    mountFlat(['a'])
+    await flushPromises()
+    await w!.find('input').trigger('focus')
+    await flushPromises()
+    expect(options().map((o) => o.textContent?.trim())).toEqual(['Bravo', 'Charlie']) // picked ones hidden
+    option('Charlie').click()
+    await flushPromises()
+    expect(w!.emitted('update:modelValue')!.at(-1)).toEqual([['a', 'c']])
+    expect(options().length).toBeGreaterThan(0)
+  })
+
+  it('picks the highlighted record with Enter', async () => {
+    mountFlat()
+    await flushPromises()
+    const input = w!.find('input')
+    await input.trigger('focus')
+    await flushPromises()
+    await input.trigger('keydown', { key: 'ArrowDown' })
+    await input.trigger('keydown', { key: 'Enter' })
+    await flushPromises()
+    expect(w!.emitted('update:modelValue')!.at(-1)![0]).toHaveLength(1)
+  })
+
+  it('never turns typed text into a tag', async () => {
+    mountFlat(['a'])
+    await flushPromises()
+    const input = w!.find('input')
+    ;(input.element as HTMLInputElement).value = 'zzz'
+    await input.trigger('input')
+    await input.trigger('keydown', { key: ',' })
+    await input.trigger('keydown', { key: 'Enter' })
+    await flushPromises()
+    expect(w!.emitted('update:modelValue')).toBeUndefined()
+  })
+
+  it('removes a tag with its delete button', async () => {
+    mountFlat(['a', 'b'])
+    await flushPromises()
+    // The × of the first tag ("Alpha").
+    await w!.findAll('[data-reka-collection-item] button')[0].trigger('click')
+    expect(w!.emitted('update:modelValue')!.at(-1)).toEqual([['b']])
   })
 })

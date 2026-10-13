@@ -3,6 +3,7 @@ import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Undo2 } from '@lucide/vue'
 import type { BaseFieldProps } from '@/types'
+import { Button } from '@/components/ui/button'
 
 const props = defineProps<BaseFieldProps>()
 const emit = defineEmits<{ 'update:modelValue': [value: unknown] }>()
@@ -178,13 +179,9 @@ function clear() {
       <!-- Saved signature with option to re-sign -->
       <template v-if="safeSignature && !strokes.length && !currentStroke.length">
         <div class="h-32 p-2 [&>svg]:block [&>svg]:h-full" v-html="safeSignature" />
-        <button
-          type="button"
-          class="absolute right-1.5 top-1.5 rounded border border-border bg-background/90 px-2 py-0.5 text-muted-foreground transition-colors hover:border-destructive hover:text-destructive"
-          @click="clear"
-        >
+        <Button type="button" variant="outline" size="xs" class="absolute right-1.5 top-1.5" @click="clear">
           {{ t('Clear') }}
-        </button>
+        </Button>
       </template>
 
       <!-- Drawing canvas -->
@@ -224,22 +221,12 @@ function clear() {
         </div>
 
         <div v-if="strokes.length" class="absolute right-1.5 top-1.5 flex gap-1">
-          <button
-            type="button"
-            :title="t('Undo')"
-            :aria-label="t('Undo')"
-            class="rounded border border-border bg-background/90 p-1 text-muted-foreground transition-colors hover:text-foreground"
-            @click="undo"
-          >
-            <Undo2 class="size-3.5" />
-          </button>
-          <button
-            type="button"
-            class="rounded border border-border bg-background/90 px-2 py-0.5 text-muted-foreground transition-colors hover:border-destructive hover:text-destructive"
-            @click="clear"
-          >
+          <Button type="button" variant="outline" size="icon-xs" :title="t('Undo')" :aria-label="t('Undo')" @click="undo">
+            <Undo2 />
+          </Button>
+          <Button type="button" variant="outline" size="xs" @click="clear">
             {{ t('Clear') }}
-          </button>
+          </Button>
         </div>
       </template>
     </div>

@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/collapsible'
 import type { DocType, DocConnectionsResult } from '@/types'
 import { appUrl, docUrl } from '@/core/workspaceUrl'
+import { Button } from '@/components/ui/button'
 
 const { t } = useI18n()
 
@@ -116,15 +117,18 @@ const hasAny = computed(() => (result.value?.groups ?? []).some((g) => g.links.l
               </Badge>
             </CollapsibleTrigger>
 
-            <button
+            <Button
               v-if="!link.via_child"
               type="button"
-              class="size-5 rounded-md hover:bg-primary/10 text-muted-foreground hover:text-primary flex items-center justify-center transition-colors border border-transparent hover:border-primary/20 -mr-1"
+              variant="ghost"
+              size="icon-xs"
+              class="-mr-1 text-muted-foreground"
               :title="t('New {doctype}', { doctype: link.link_doctype })"
+              :aria-label="t('New {doctype}', { doctype: link.link_doctype })"
               @click="handleAdd(link)"
             >
-              <Plus class="size-3.5" />
-            </button>
+              <Plus />
+            </Button>
           </div>
 
           <CollapsibleContent>

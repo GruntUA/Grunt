@@ -1,8 +1,11 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { ref, onErrorCaptured } from 'vue'
 import { useRouter } from 'vue-router'
 import ErrorLayout from '@/pages/errors/ErrorLayout.vue'
+import { Button } from '@/components/ui/button'
 
+const { t } = useI18n()
 const router = useRouter()
 const hasError = ref(false)
 const errorMessage = ref('')
@@ -28,22 +31,12 @@ function goHome() {
   <ErrorLayout
     v-if="hasError"
     code="500"
-    title="Something went wrong"
-    :message="errorMessage || 'An unexpected error occurred.'"
+    :title="t('Something went wrong')"
+    :message="errorMessage || t('An unexpected error occurred.')"
   >
     <template #actions>
-      <button
-        class="px-4 py-2 rounded-md border border-input bg-background hover:bg-muted transition-colors"
-        @click="reset"
-      >
-        Try again
-      </button>
-      <button
-        class="px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
-        @click="goHome"
-      >
-        Go home
-      </button>
+      <Button variant="outline" @click="reset">{{ t('Try again') }}</Button>
+      <Button @click="goHome">{{ t('Go home') }}</Button>
     </template>
   </ErrorLayout>
   <slot v-else />

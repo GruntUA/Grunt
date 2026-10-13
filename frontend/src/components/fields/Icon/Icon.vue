@@ -5,6 +5,7 @@ import type { Component } from 'vue'
 import type { DocField } from '@/types'
 import { Search, X } from '@lucide/vue'
 import { Button } from '@/components/ui/button'
+import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from '@/components/ui/input-group'
 import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover'
 import { Spinner } from '@/components/ui/spinner'
 import { loadLucideLib } from '@/lib/lucide'
@@ -106,47 +107,40 @@ onMounted(() => {
 
     <Popover v-model:open="isOpen">
       <PopoverAnchor :reference="anchorEl ?? undefined" />
-      <PopoverContent class="w-auto p-0 border-border/50">
+      <PopoverContent class="w-auto p-0">
         <div class="w-80 flex flex-col overflow-hidden">
             <!-- Search -->
-            <div class="flex items-center gap-2 px-3 py-2.5 border-b border-border/60">
-                <Search class="size-3.5 shrink-0 text-muted-foreground" />
-                <input
-                    v-model="search"
-                    class="flex-1 bg-transparent outline-none placeholder:text-muted-foreground/60"
-                    :placeholder="t('Search icon…')"
-                    :aria-label="t('Search icon…')"
-                    autofocus
-                />
-                <button v-if="search" type="button" @click="search = ''" class="text-muted-foreground hover:text-foreground">
-                    <X class="size-3.5" />
-                </button>
+            <div class="border-b p-2">
+                <InputGroup>
+                    <InputGroupAddon><Search /></InputGroupAddon>
+                    <InputGroupInput v-model="search" :placeholder="t('Search icon…')" :aria-label="t('Search icon…')" autofocus />
+                    <InputGroupAddon v-if="search" align="inline-end">
+                        <InputGroupButton type="button" size="icon-xs" :aria-label="t('Clear')" @click="search = ''"><X /></InputGroupButton>
+                    </InputGroupAddon>
+                </InputGroup>
             </div>
 
             <!-- Grid -->
             <div class="h-64 overflow-y-auto p-2">
                 <div v-if="!allNames.length" class="flex items-center justify-center h-full text-muted-foreground">
-                    <Spinner class="!size-6" />
+                    <Spinner />
                 </div>
                 <div v-else-if="!filtered.length" class="flex items-center justify-center h-full text-muted-foreground">
                     {{ t('Nothing found') }}
                 </div>
                 <div v-else class="grid grid-cols-8 gap-0.5">
-                    <button
+                    <Button type="button"
                         v-for="name in filtered"
                         :key="name"
-                        type="button"
-                        class="flex items-center justify-center rounded p-1.5 transition-colors size-9"
-                        :class="toKebab(name) === currentName
-                            ? 'bg-primary text-primary-foreground'
-                            : 'hover:bg-muted text-foreground'"
+                        :variant="toKebab(name) === currentName ? 'default' : 'ghost'"
+                        size="icon"
                         :title="toKebab(name)"
                         :aria-label="toKebab(name)"
                         :aria-pressed="toKebab(name) === currentName"
                         @click="select(name)"
                     >
-                        <component :is="allIcons[name]" class="size-4" />
-                    </button>
+                        <component :is="allIcons[name]" />
+                    </Button>
                 </div>
                 <p v-if="filtered.length === 200 && search" class="text-center text-muted-foreground mt-2">
                     {{ t('Showing first {n} results', { n: 200 }) }}
@@ -160,14 +154,15 @@ onMounted(() => {
     </Popover>
 
     <!-- Clear button -->
-    <button
+    <Button type="button"
       v-if="currentName && !disabled && !field.read_only"
-      type="button"
-      class="text-muted-foreground hover:text-foreground transition-colors"
+      variant="ghost"
+      size="icon-sm"
+      class="text-muted-foreground"
       :aria-label="t('Clear')"
       @click="clear"
     >
-      <X class="size-4" />
-    </button>
+      <X />
+    </Button>
   </div>
 </template>

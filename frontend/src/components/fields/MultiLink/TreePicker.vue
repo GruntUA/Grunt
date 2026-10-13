@@ -15,6 +15,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from '@/components/ui/input-group'
 
 const props = defineProps<{
   doctype: string
@@ -141,26 +142,19 @@ function confirm() {
         <DialogTitle>{{ title }}</DialogTitle>
         <DialogDescription>{{ t('Tick the items you need in the tree') }}</DialogDescription>
       </DialogHeader>
-      <div class="flex h-10 items-center gap-2 border-y px-3">
-        <Search class="size-4 shrink-0 opacity-50" />
-        <input
-          v-model="search"
-          :placeholder="t('Search…')"
-          autocomplete="off"
-          class="h-full w-full bg-transparent text-sm outline-hidden placeholder:text-muted-foreground"
-        >
-        <button
-          v-if="search"
-          type="button"
-          class="shrink-0 text-muted-foreground hover:text-foreground"
-          :aria-label="t('Clear search')"
-          @click="search = ''"
-        >
-          <X class="size-4" />
-        </button>
+      <div class="border-y px-4 py-2">
+        <InputGroup>
+          <InputGroupAddon><Search /></InputGroupAddon>
+          <InputGroupInput v-model="search" :placeholder="t('Search…')" :aria-label="t('Search…')" autocomplete="off" />
+          <InputGroupAddon v-if="search" align="inline-end">
+            <InputGroupButton type="button" size="icon-xs" :aria-label="t('Clear search')" @click="search = ''">
+              <X />
+            </InputGroupButton>
+          </InputGroupAddon>
+        </InputGroup>
       </div>
       <div role="tree" aria-multiselectable="true" :aria-label="title" class="h-[min(70vh,40rem)] overflow-y-auto p-1">
-        <div v-if="loading" class="flex justify-center py-10"><Spinner class="size-5" /></div>
+        <div v-if="loading" class="flex justify-center py-10"><Spinner /></div>
         <template v-else>
           <TreeSelectNode
             v-for="node in visibleNodes"

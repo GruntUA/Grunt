@@ -68,8 +68,8 @@ function removeKept(key: string) {
 </script>
 
 <template>
-  <div v-if="!isReportSourced(widget) && dt" class="flex flex-col gap-1.5 mb-4">
-    <label class="font-medium">{{ t('Filters') }}</label>
+  <Field v-if="!isReportSourced(widget) && dt" class="mb-4">
+    <FieldLabel>{{ t('Filters') }}</FieldLabel>
     <FilterBar
       :key="`${widget.id}:${dt.name}`"
       :fields="dt.fields"
@@ -83,5 +83,5 @@ function removeKept(key: string) {
         <X class="size-3" />
       </button>
     </div>
-  </div>
+  </Field>
 </template>

@@ -3,6 +3,8 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { DashboardWidget } from '@/types'
 import { getAsyncWidgetComponent, getWidgetDef, widgetColSpan } from '@/core/widgetRegistry'
+import { Pencil, Trash2 } from '@lucide/vue'
+import { Button } from '@/components/ui/button'
 
 const props = defineProps<{
   widget: DashboardWidget
@@ -34,24 +36,12 @@ const minHeight = computed(() => getWidgetDef(props.widget.widget_type)?.minHeig
     <div v-if="editMode"
       class="absolute top-2 right-2 z-10 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
       @click.stop>
-      <button
-        class="p-1.5 rounded-md bg-card border hover:bg-muted transition-colors"
-        :title="t('Configure')"
-        @click="emit('edit', widget)">
-        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
-          <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
-        </svg>
-      </button>
-      <button
-        class="p-1.5 rounded-md bg-card border hover:bg-destructive hover:text-destructive-foreground transition-colors"
-        :title="t('Delete')"
-        @click="emit('remove', widget)">
-        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/>
-          <path d="M10 11v6m4-6v6"/><path d="M9 6V4h6v2"/>
-        </svg>
-      </button>
+      <Button variant="outline" size="icon-xs" :title="t('Configure')" :aria-label="t('Configure')" @click="emit('edit', widget)">
+        <Pencil />
+      </Button>
+      <Button variant="outline" size="icon-xs" class="hover:text-destructive" :title="t('Delete')" :aria-label="t('Delete')" @click="emit('remove', widget)">
+        <Trash2 />
+      </Button>
     </div>
 
     <!-- Widget render (drill-down clicks off while arranging the dashboard) -->

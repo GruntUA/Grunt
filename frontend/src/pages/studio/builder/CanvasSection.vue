@@ -4,6 +4,10 @@ import { ref, watch, nextTick } from 'vue'
 import type { DocField } from '@/types'
 import { useBuilderStore } from '@/stores/builder'
 import type { LayoutSection } from '@/core/composables/useFormLayout'
+import { ChevronDown, GripVertical, Minus, X } from '@lucide/vue'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import CanvasColumn from './CanvasColumn.vue'
 
 const { t } = useI18n()
@@ -89,29 +93,29 @@ function selectSection() {
       @click="selectSection"
     >
       <!-- Drag handle -->
-      <span
-        class="section-drag-handle text-muted-foreground/30 hover:text-muted-foreground/70 cursor-grab active:cursor-grabbing shrink-0 select-none"
-        :title="t('Drag section')"
+      <GripVertical
+        class="section-drag-handle size-4 shrink-0 text-muted-foreground/50 hover:text-muted-foreground cursor-grab active:cursor-grabbing"
+        role="img"
+        :aria-label="t('Drag section')"
         @click.stop
-      >⠿</span>
+      />
 
       <!-- Collapsible indicator -->
-      <button
+      <Button
         v-if="section._field"
-        type="button"
-        class="text-muted-foreground/70 hover:text-muted-foreground w-4 shrink-0"
-        :title="section.collapsible ? 'Collapsible' : 'Not collapsible'"
+        variant="ghost" size="icon-xs" class="text-muted-foreground"
+        :aria-label="section.collapsible ? t('Collapsible') : t('Not collapsible')"
         @click.stop="toggleCollapsible"
       >
-        {{ section.collapsible ? '▼' : '━' }}
-      </button>
+        <ChevronDown v-if="section.collapsible" />
+        <Minus v-else />
+      </Button>
 
       <!-- Label (editable) -->
       <template v-if="isEditingLabel">
-        <input
+        <Input
           v-model="editLabel"
-          type="text"
-          class="flex-1 font-semibold tracking-wide bg-transparent border-b border-primary outline-none text-foreground px-0 py-0"
+          class="h-7 flex-1"
           @blur="finishEditLabel"
           @keydown.enter="finishEditLabel"
           @keydown.escape="isEditingLabel = false"
@@ -125,33 +129,30 @@ function selectSection() {
           :class="{ 'text-muted-foreground/70 italic': !section.label }"
           @dblclick.stop="startEditLabel"
         >
-          {{ section.label || 'Section (double-click to rename)' }}
+          {{ section.label || t('Section (double-click to rename)') }}
         </span>
       </template>
 
       <!-- Column count buttons -->
-      <div class="flex items-center gap-0.5 shrink-0">
-        <button
-          v-for="n in 4"
-          :key="n"
-          type="button"
-          class="w-5 h-5 rounded flex items-center justify-center transition-colors"
-          :class="section.columns.length === n
-            ? 'bg-primary text-white'
-            : 'text-muted-foreground/70 hover:bg-border'"
-          :title="`${n} column${n > 1 ? 's' : ''}`"
-          @click.stop="setColumns(n)"
-        >{{ n }}</button>
-      </div>
+      <ToggleGroup
+        type="single" size="sm" class="shrink-0"
+        :model-value="String(section.columns.length)"
+        :aria-label="t('Columns')"
+        @update:model-value="(v) => v && setColumns(Number(v))"
+        @click.stop
+      >
+        <ToggleGroupItem v-for="n in 4" :key="n" :value="String(n)" class="px-2">{{ n }}</ToggleGroupItem>
+      </ToggleGroup>
 
       <!-- Delete section -->
-      <button
+      <Button
         v-if="section._field"
-        type="button"
-        class="text-muted-foreground/70 hover:text-destructive shrink-0 px-1"
-        title="Delete section"
+        variant="ghost" size="icon-xs" class="text-muted-foreground hover:text-destructive"
+        :aria-label="t('Delete section')"
         @click.stop="emit('delete')"
-      >×</button>
+      >
+        <X />
+      </Button>
     </div>
 
     <!-- Columns grid -->

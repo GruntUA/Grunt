@@ -12,11 +12,13 @@ import { permissionsApi, type ActiveRestriction } from '@/core/api/permissions'
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
 import { getRegisteredViews, getViewDef } from '@/core/viewRegistry'
 import { ChevronDown, Check, Ban } from '@lucide/vue'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import type { ActionRegistry } from '@/core/actions'
@@ -119,23 +121,25 @@ watch(() => props.doctype, loadRestrictions)
           {{ t('Restrictions') }}
         </DialogTitle>
       </DialogHeader>
-      <p class="text-muted-foreground -mt-1">
+      <DialogDescription>
         {{ t('You only see records matching these values.') }}
-      </p>
-      <table class="w-full text-sm border border-border rounded-md overflow-hidden">
-        <thead>
-          <tr class="bg-muted/50 text-muted-foreground">
-            <th class="text-left font-medium px-3 py-2 border-b border-border">{{ t('Field') }}</th>
-            <th class="text-left font-medium px-3 py-2 border-b border-border">{{ t('Value') }}</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="(r, i) in restrictions" :key="i" class="border-b border-border last:border-0">
-            <td class="px-3 py-2">{{ r.field }}</td>
-            <td class="px-3 py-2 font-medium">{{ r.value }}</td>
-          </tr>
-        </tbody>
-      </table>
+      </DialogDescription>
+      <div class="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>{{ t('Field') }}</TableHead>
+              <TableHead>{{ t('Value') }}</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            <TableRow v-for="(r, i) in restrictions" :key="i">
+              <TableCell>{{ r.field }}</TableCell>
+              <TableCell class="font-medium">{{ r.value }}</TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </div>
     </DialogContent>
   </Dialog>
 </template>

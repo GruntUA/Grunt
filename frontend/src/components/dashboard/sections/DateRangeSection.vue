@@ -1,13 +1,16 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
+import { useId } from 'vue'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import { Field, FieldLabel } from '@/components/ui/field'
 import { useWidgetPropertyEditor } from '@/core/composables/useWidgetPropertyEditor'
 import { isReportSourced } from './widgetHelpers'
 import { useWidgetPeriods } from '@/core/widgetPeriod'
 
 const { t } = useI18n()
+const id = useId()
 const { widget, updateWidget } = useWidgetPropertyEditor()
 
 const PERIODS = useWidgetPeriods()
@@ -15,17 +18,18 @@ const PERIODS = useWidgetPeriods()
 
 <template>
   <template v-if="!isReportSourced(widget)">
-    <div class="flex flex-col gap-1.5 mb-4">
-      <label class="font-medium">{{ t('Date field') }}</label>
+    <Field class="mb-4">
+      <FieldLabel :for="`${id}-1`">{{ t('Date field') }}</FieldLabel>
       <Input
+        :id="`${id}-1`"
         :model-value="widget.date_field ?? ''"
         placeholder="created_at"
         class="w-full"
         @update:model-value="updateWidget('date_field', $event)"
       />
-    </div>
-    <div class="flex flex-col gap-1.5 mb-4">
-      <label class="font-medium">{{ t('Period') }}</label>
+    </Field>
+    <Field class="mb-4">
+      <FieldLabel>{{ t('Period') }}</FieldLabel>
       <ToggleGroup
         type="single"
         variant="outline"
@@ -36,13 +40,14 @@ const PERIODS = useWidgetPeriods()
       >
         <ToggleGroupItem v-for="p in PERIODS" :key="p.value" :value="p.value" class="flex-1">{{ p.label }}</ToggleGroupItem>
       </ToggleGroup>
-    </div>
-    <label v-if="widget.widget_type === 'table'" class="flex items-center justify-between gap-2 mb-4">
-      <span class="font-medium">{{ t('Period switcher') }}</span>
+    </Field>
+    <Field v-if="widget.widget_type === 'table'" orientation="horizontal" class="mb-4 justify-between">
+      <FieldLabel :for="`${id}-period-switch`">{{ t('Period switcher') }}</FieldLabel>
       <Switch
+        :id="`${id}-period-switch`"
         :model-value="!!widget.period_switch"
         @update:model-value="updateWidget('period_switch', $event)"
       />
-    </label>
+    </Field>
   </template>
 </template>

@@ -182,14 +182,15 @@ async function submitUpdate() {
         <div class="h-4 w-px bg-border" />
 
         <!-- Select all -->
-        <button
+        <Button
           v-if="isFullPage && total && total > count"
           type="button"
-          class="font-semibold text-primary hover:underline underline-offset-2 transition-all whitespace-nowrap"
+          variant="link"
+          class="h-auto p-0"
           @click="emit('selectAll')"
         >
           {{ t('Select all {n}', { n: String(total) }) }}
-        </button>
+        </Button>
 
         <!-- Actions (core/actions.ts, placement: bulk) -->
         <div class="flex items-center gap-1">
@@ -214,13 +215,9 @@ async function submitUpdate() {
         <div class="h-4 w-px bg-border" />
 
         <!-- Close -->
-        <button
-          type="button"
-          class="size-6 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
-          @click="emit('clear')"
-        >
-          <X class="size-3.5" />
-        </button>
+        <Button type="button" variant="ghost" size="icon-xs" class="text-muted-foreground" :aria-label="t('Clear selection')" @click="emit('clear')">
+          <X />
+        </Button>
       </div>
     </Transition>
   </Teleport>

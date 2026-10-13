@@ -10,6 +10,8 @@ import { Badge } from '@/components/ui/badge'
 import { Spinner } from '@/components/ui/spinner'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { docUrl } from '@/core/workspaceUrl'
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia } from '@/components/ui/empty'
+import { Item, ItemContent, ItemDescription, ItemGroup, ItemTitle } from '@/components/ui/item'
 
 const { t } = useI18n()
 
@@ -73,53 +75,56 @@ onMounted(async () => {
       </div>
 
       <div v-if="loading" class="flex items-center justify-center gap-3 py-10 text-muted-foreground">
-        <Spinner class="size-4" />
+        <Spinner />
         {{ t('Loading...') }}
       </div>
 
       <template v-else>
         <TabsContent value="tasks" class="mt-0">
-          <div v-if="!data?.assigned.length" class="flex flex-col items-center justify-center gap-2 py-10 text-center">
-            <CheckSquare class="size-5 text-muted-foreground/40" />
-            <p class="text-muted-foreground">{{ t('No assigned tasks') }}</p>
-          </div>
-          <button v-for="t in data!.assigned.slice(0, 8)" :key="t.id"
-            class="group flex w-full items-start gap-3 border-b px-4 py-3 text-left transition-colors last:border-0 hover:bg-accent"
-            @click="openTask(t)">
-            <div class="min-w-0 flex-1">
-              <p class="truncate font-medium text-foreground transition-colors group-hover:text-primary">
-                {{ t.title }}
-              </p>
-              <p v-if="taskNote(t)" class="truncate text-muted-foreground">{{ taskNote(t) }}</p>
-              <div class="flex items-center gap-1.5 text-muted-foreground/70">
-                <span class="font-mono">{{ t.reference_doctype }}</span>
-                <template v-if="t.overdue">
-                  <span>·</span>
-                  <span class="font-medium text-destructive">{{ $t('overdue') }}</span>
-                </template>
-                <template v-else-if="t.due_date">
-                  <span>·</span>
-                  <span class="tabular-nums">{{ formatDue(t.due_date) }}</span>
-                </template>
-              </div>
-            </div>
-          </button>
+          <Empty v-if="!data?.assigned.length">
+            <EmptyHeader>
+              <EmptyMedia variant="icon"><CheckSquare /></EmptyMedia>
+              <EmptyDescription>{{ t('No assigned tasks') }}</EmptyDescription>
+            </EmptyHeader>
+          </Empty>
+          <ItemGroup v-else>
+            <Item v-for="t in data!.assigned.slice(0, 8)" :key="t.id" as="button" size="sm"
+              class="w-full text-left hover:bg-accent" @click="openTask(t)">
+              <ItemContent class="min-w-0">
+                <ItemTitle class="w-full truncate">{{ t.title }}</ItemTitle>
+                <ItemDescription v-if="taskNote(t)" class="truncate">{{ taskNote(t) }}</ItemDescription>
+                <ItemDescription class="flex items-center gap-1.5">
+                  <span class="font-mono">{{ t.reference_doctype }}</span>
+                  <template v-if="t.overdue">
+                    <span>·</span>
+                    <span class="font-medium text-destructive">{{ $t('overdue') }}</span>
+                  </template>
+                  <template v-else-if="t.due_date">
+                    <span>·</span>
+                    <span class="tabular-nums">{{ formatDue(t.due_date) }}</span>
+                  </template>
+                </ItemDescription>
+              </ItemContent>
+            </Item>
+          </ItemGroup>
         </TabsContent>
 
         <TabsContent value="notifications" class="mt-0">
-          <div v-if="!data?.notifications.length" class="flex flex-col items-center justify-center gap-2 py-10 text-center">
-            <Bell class="size-5 text-muted-foreground/40" />
-            <p class="text-muted-foreground">{{ t('No new notifications') }}</p>
-          </div>
-          <button v-for="n in data!.notifications.slice(0, 8)" :key="n.name"
-            class="group flex w-full items-start gap-3 border-b px-4 py-3 text-left transition-colors last:border-0 hover:bg-accent"
-            :class="{ 'cursor-default': !n.ref_doctype }"
-            @click="openNotification(n)">
-            <div class="mt-1.5 size-1.5 shrink-0 rounded-full bg-info" />
-            <p class="min-w-0 flex-1 text-foreground transition-colors group-hover:text-primary">
-              {{ n.subject }}
-            </p>
-          </button>
+          <Empty v-if="!data?.notifications.length">
+            <EmptyHeader>
+              <EmptyMedia variant="icon"><Bell /></EmptyMedia>
+              <EmptyDescription>{{ t('No new notifications') }}</EmptyDescription>
+            </EmptyHeader>
+          </Empty>
+          <ItemGroup v-else>
+            <Item v-for="n in data!.notifications.slice(0, 8)" :key="n.name" as="button" size="sm"
+              class="w-full text-left hover:bg-accent" :class="{ 'cursor-default': !n.ref_doctype }"
+              @click="openNotification(n)">
+              <ItemContent class="min-w-0">
+                <ItemTitle class="w-full">{{ n.subject }}</ItemTitle>
+              </ItemContent>
+            </Item>
+          </ItemGroup>
         </TabsContent>
       </template>
     </Tabs>

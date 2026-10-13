@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import { Field, FieldLabel } from '@/components/ui/field'
 import { useWidgetPropertyEditor } from '@/core/composables/useWidgetPropertyEditor'
 
 const { t } = useI18n()
@@ -16,8 +17,8 @@ const COLS = computed(() => [
 </script>
 
 <template>
-  <div class="flex flex-col gap-1.5 mb-4">
-    <label class="font-medium">{{ t('Width') }}</label>
+  <Field class="mb-4">
+    <FieldLabel>{{ t('Width') }}</FieldLabel>
     <ToggleGroup
       type="single"
       variant="outline"
@@ -28,5 +29,5 @@ const COLS = computed(() => [
     >
       <ToggleGroupItem v-for="c in COLS" :key="c.value" :value="String(c.value)" class="flex-1">{{ c.label }}</ToggleGroupItem>
     </ToggleGroup>
-  </div>
+  </Field>
 </template>

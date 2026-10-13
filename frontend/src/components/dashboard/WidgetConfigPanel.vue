@@ -6,6 +6,7 @@ import { useDocTypeStore } from '@/stores/doctype'
 import { getWidgetDef, getPaletteGroups } from '@/core/widgetRegistry'
 import { getWidgetSection } from '@/core/widgetSectionRegistry'
 import { WIDGET_FIELD_KEY, WIDGET_UPDATE_KEY } from '@/core/composables/useWidgetPropertyEditor'
+import { Field, FieldLabel } from '@/components/ui/field'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
 import AppIcon from '@/components/AppIcon.vue'
@@ -81,10 +82,10 @@ function changeType(next: unknown) {
     <div class="flex-1 overflow-y-auto p-4">
 
       <!-- Widget type -->
-      <div class="flex flex-col gap-1.5 mb-4">
-        <label class="font-medium">{{ t('Type') }}</label>
+      <Field class="mb-4">
+        <FieldLabel for="widget-type">{{ t('Type') }}</FieldLabel>
         <Select :model-value="draft.widget_type" @update:model-value="changeType">
-          <SelectTrigger class="w-full">
+          <SelectTrigger id="widget-type" class="w-full">
             <SelectValue>
               <span class="flex items-center gap-2">
                 <AppIcon v-if="def" :icon="def.icon" class="size-4 shrink-0 text-muted-foreground" />
@@ -104,7 +105,7 @@ function changeType(next: unknown) {
             </SelectGroup>
           </SelectContent>
         </Select>
-      </div>
+      </Field>
 
       <!-- Registered sections -->
       <component

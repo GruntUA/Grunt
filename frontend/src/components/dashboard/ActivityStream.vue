@@ -144,10 +144,10 @@ watch(() => auth.isLoggedIn, (loggedIn) => {
                             <div class="flex items-center justify-between">
                                 <span class="rounded bg-muted px-1.5 py-0.5 font-mono uppercase text-muted-foreground">{{
                                     formatDate(item.created_at) }}</span>
-                                <button type="button" class="flex items-center gap-1 font-semibold uppercase tracking-wider text-primary opacity-0 transition-opacity group-hover:opacity-100" @click="goToDoc(item)">
+                                <Button type="button" variant="link" size="xs" class="h-auto p-0 opacity-0 group-hover:opacity-100 focus-visible:opacity-100" @click="goToDoc(item)">
                                     {{ t('View') }}
-                                    <ExternalLink class="size-3" />
-                                </button>
+                                    <ExternalLink />
+                                </Button>
                             </div>
                         </div>
                     </div>

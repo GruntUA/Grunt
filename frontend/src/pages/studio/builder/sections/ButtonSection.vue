@@ -1,9 +1,13 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { usePropertyEditor } from '@/core/composables/usePropertyEditor'
 import IconPicker from '@/components/fields/Icon/Icon.vue'
 import { Separator } from '@/components/ui/separator'
+import { Field, FieldGroup, FieldLabel, FieldLegend, FieldSet } from '@/components/ui/field'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 
 const { field, updateField } = usePropertyEditor()
+const { t } = useI18n()
 
 const VARIANTS = [
   { value: 'default',     label: 'Primary' },
@@ -18,34 +22,27 @@ const current = () => field.value.options ?? 'default'
 
 <template>
   <Separator class="!mb-3" />
-  <p class="font-semibold text-muted-foreground uppercase tracking-wide mb-3">Button</p>
-
-  <!-- Style -->
-  <div class="mb-4 flex flex-col gap-2">
-    <label class="font-semibold text-muted-foreground uppercase tracking-widest">Style</label>
-    <div class="flex flex-wrap gap-1.5">
-      <button
-        v-for="v in VARIANTS"
-        :key="v.value"
-        type="button"
-        class="px-2.5 py-1 rounded border transition-colors font-medium"
-        :class="current() === v.value
-          ? 'bg-primary text-primary-foreground border-primary shadow-sm'
-          : 'bg-background text-muted-foreground border-border hover:border-primary/50 hover:text-foreground'"
-        @click="updateField('options', v.value)"
-      >
-        {{ v.label }}
-      </button>
-    </div>
-  </div>
-
-  <!-- Icon -->
-  <div class="mb-4 flex flex-col gap-2">
-    <label class="font-semibold text-muted-foreground uppercase tracking-widest">Icon</label>
-    <IconPicker
-      :field="field"
-      :model-value="field.icon ?? null"
-      @update:model-value="updateField('icon', $event ?? undefined)"
-    />
-  </div>
+  <FieldSet class="mb-4">
+    <FieldLegend variant="label">{{ t('Button') }}</FieldLegend>
+    <FieldGroup class="gap-3">
+      <Field>
+        <FieldLabel>{{ t('Style') }}</FieldLabel>
+        <ToggleGroup
+          type="single" variant="outline" size="sm" class="flex-wrap"
+          :model-value="current()"
+          @update:model-value="(v) => v && updateField('options', v)"
+        >
+          <ToggleGroupItem v-for="v in VARIANTS" :key="v.value" :value="v.value">{{ t(v.label) }}</ToggleGroupItem>
+        </ToggleGroup>
+      </Field>
+      <Field>
+        <FieldLabel>{{ t('Icon') }}</FieldLabel>
+        <IconPicker
+          :field="field"
+          :model-value="field.icon ?? null"
+          @update:model-value="updateField('icon', $event ?? undefined)"
+        />
+      </Field>
+    </FieldGroup>
+  </FieldSet>
 </template>

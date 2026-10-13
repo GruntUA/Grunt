@@ -106,9 +106,9 @@ function dismiss() {
       </div>
       <div class="flex items-center gap-1.5 shrink-0">
         <Button size="sm" @click="install">{{ t('Yes') }}</Button>
-        <button class="p-1.5 rounded-md hover:bg-muted transition-colors" @click="dismiss">
-          <X class="w-4 h-4 text-muted-foreground" />
-        </button>
+        <Button variant="ghost" size="icon-sm" class="text-muted-foreground" :aria-label="t('Close')" @click="dismiss">
+          <X />
+        </Button>
       </div>
     </div>
   </Transition>
@@ -128,9 +128,9 @@ function dismiss() {
     >
       <div class="flex items-start justify-between mb-3">
         <p class="font-semibold text-foreground">{{ t('Install on iPhone / iPad') }}</p>
-        <button class="p-1 rounded-md hover:bg-muted transition-colors" @click="dismiss">
-          <X class="w-4 h-4 text-muted-foreground" />
-        </button>
+        <Button variant="ghost" size="icon-xs" class="text-muted-foreground" :aria-label="t('Close')" @click="dismiss">
+          <X />
+        </Button>
       </div>
       <ol class="space-y-2 text-muted-foreground">
         <li class="flex items-center gap-2">

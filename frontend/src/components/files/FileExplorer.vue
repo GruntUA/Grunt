@@ -645,13 +645,13 @@ const ROW = 'grid w-full grid-cols-[minmax(0,1fr)_9rem_5rem_5rem] items-center g
   <div class="flex min-h-0 flex-1 flex-col outline-none" tabindex="-1" @keydown="onKeydown">
     <!-- Address bar -->
     <div class="flex items-center gap-1 border-t px-2 py-1.5">
-      <Button variant="ghost" size="icon" class="size-8" :disabled="!canBack" :title="t('Back')" @click="back">
+      <Button variant="ghost" size="icon-sm" :disabled="!canBack" :title="t('Back')" @click="back">
         <ArrowLeft />
       </Button>
-      <Button variant="ghost" size="icon" class="size-8" :disabled="!canForward" :title="t('Forward')" @click="forward">
+      <Button variant="ghost" size="icon-sm" :disabled="!canForward" :title="t('Forward')" @click="forward">
         <ArrowRight />
       </Button>
-      <Button variant="ghost" size="icon" class="size-8" :disabled="!parentOfCurrent" :title="t('Up')" @click="up">
+      <Button variant="ghost" size="icon-sm" :disabled="!parentOfCurrent" :title="t('Up')" @click="up">
         <ArrowUp />
       </Button>
       <nav class="flex h-8 min-w-0 flex-1 items-center gap-0.5 overflow-hidden rounded-md border bg-background px-1.5"
@@ -671,7 +671,7 @@ const ROW = 'grid w-full grid-cols-[minmax(0,1fr)_9rem_5rem_5rem] items-center g
           </button>
         </template>
       </nav>
-      <Button variant="ghost" size="icon" class="size-8" :title="t('Refresh')" @click="reload">
+      <Button variant="ghost" size="icon-sm" :title="t('Refresh')" @click="reload">
         <RefreshCw :class="(loading || busy) && 'animate-spin'" />
       </Button>
       <div class="relative w-64 shrink-0">
@@ -704,19 +704,19 @@ const ROW = 'grid w-full grid-cols-[minmax(0,1fr)_9rem_5rem_5rem] items-center g
       <input ref="dirInput" type="file" webkitdirectory class="hidden" @change="onPicked" />
       <input ref="cameraInput" type="file" accept="image/*" capture="environment" class="hidden" @change="onPicked" />
       <span class="mx-1 h-5 w-px bg-border" />
-      <Button variant="ghost" size="icon" class="size-8" :disabled="!hasSelection" :title="t('Cut') + ' (Ctrl+X)'"
+      <Button variant="ghost" size="icon-sm" :disabled="!hasSelection" :title="t('Cut') + ' (Ctrl+X)'"
         @click="toClipboard('cut')">
         <Scissors />
       </Button>
-      <Button variant="ghost" size="icon" class="size-8" :disabled="!hasSelection" :title="t('Copy') + ' (Ctrl+C)'"
+      <Button variant="ghost" size="icon-sm" :disabled="!hasSelection" :title="t('Copy') + ' (Ctrl+C)'"
         @click="toClipboard('copy')">
         <Copy />
       </Button>
-      <Button variant="ghost" size="icon" class="size-8" :disabled="!fileClipboard.mode || busy"
+      <Button variant="ghost" size="icon-sm" :disabled="!fileClipboard.mode || busy"
         :title="t('Paste') + ' (Ctrl+V)'" @click="paste">
         <ClipboardPaste />
       </Button>
-      <Button variant="ghost" size="icon" class="size-8" :disabled="selected.size !== 1" :title="t('Rename') + ' (F2)'"
+      <Button variant="ghost" size="icon-sm" :disabled="selected.size !== 1" :title="t('Rename') + ' (F2)'"
         @click="startRename">
         <TextCursorInput />
       </Button>
@@ -725,7 +725,7 @@ const ROW = 'grid w-full grid-cols-[minmax(0,1fr)_9rem_5rem_5rem] items-center g
         <Trash2 />
       </Button>
       <span class="mx-1 h-5 w-px bg-border" />
-      <Button variant="ghost" size="icon" class="size-8"
+      <Button variant="ghost" size="icon-sm"
         :title="viewMode === 'tiles' ? t('Details') : t('Tiles')"
         @click="viewMode = viewMode === 'tiles' ? 'details' : 'tiles'">
         <component :is="viewMode === 'tiles' ? List : LayoutGrid" />
@@ -758,13 +758,12 @@ const ROW = 'grid w-full grid-cols-[minmax(0,1fr)_9rem_5rem_5rem] items-center g
           :class="[current === node.name && 'bg-accent font-medium', dropTarget === node.name && 'ring-2 ring-primary']"
           :style="{ paddingLeft: `${depth * 12}px` }"
           @dragover="onDragOver($event, node.name)" @dragleave="dropTarget = null" @drop="onDrop($event, node.name)">
-          <button type="button"
-            class="flex size-6 shrink-0 items-center justify-center text-muted-foreground"
+          <Button variant="ghost" size="icon-xs" class="text-muted-foreground hover:bg-transparent"
             :class="!node.has_children && 'invisible'"
             :aria-label="expanded.has(node.name) ? t('Collapse') : t('Expand')"
             @click="toggle(node)">
-            <ChevronRight class="size-3.5 transition-transform" :class="expanded.has(node.name) && 'rotate-90'" />
-          </button>
+            <ChevronRight class="transition-transform" :class="expanded.has(node.name) && 'rotate-90'" />
+          </Button>
           <button type="button" class="flex min-w-0 flex-1 items-center gap-2 py-1.5 pr-1 text-left" @click="open(node.name)">
             <component
               :is="depth === 0 ? (isOwnHome(node) ? House : Users) : current === node.name ? FolderOpen : Folder"
