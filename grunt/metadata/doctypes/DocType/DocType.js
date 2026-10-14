@@ -36,6 +36,14 @@ const VIEWS = [
     ['list', 'LayoutList', () => true],
     ['report', 'Table2', () => true],
     ['gallery', 'Image', () => true],
+    ['explorer', 'FolderOpen', ({ doc }) => {
+        if (doc.default_view === 'explorer') return true
+        const fields = doc.fields || []
+        const field = doc.list_tree_field
+            ? fields.find(f => f.fieldname === doc.list_tree_field)
+            : fields.find(f => f.fieldtype === 'Link' && f.options === 'FileFolder')
+        return !!(field && field.fieldtype === 'Link' && field.options === 'FileFolder')
+    }],
     ['kanban', 'LayoutGrid', ({ selects }) => selects.length > 0],
     ['calendar', 'CalendarDays', ({ dates }) => dates.length > 0],
     ['gantt', 'ChartGantt', ({ dates }) => dates.length > 1],
@@ -135,7 +143,7 @@ async function on_load(frm) {
 
 async function on_change(frm, fieldname) {
     // Refresh field selects whenever the fields table changes
-    if (fieldname === 'fields' || fieldname === 'is_tree') {
+    if (fieldname === 'fields' || fieldname === 'is_tree' || fieldname === 'list_tree_field') {
         _refresh_field_selects(frm)
         return
     }
