@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import {
@@ -16,7 +16,6 @@ import { useElementSize } from '@vueuse/core'
 import type { FormDashboardState } from '@/core/scripting/formDashboard'
 import { appUrl } from '@/core/workspaceUrl'
 import { formatIntl } from '@/core/datetime'
-import client from '@/core/api/client'
 
 const { t } = useI18n()
 const router = useRouter()
