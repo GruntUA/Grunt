@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { computed, ref, watch } from 'vue'
+import { computed, inject, ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
 import { ChevronRight, Plus } from '@lucide/vue'
 
@@ -14,8 +14,11 @@ import {
 import type { DocType, DocConnectionsResult } from '@/types'
 import { appUrl, docUrl } from '@/core/workspaceUrl'
 import { Button } from '@/components/ui/button'
+import { FORM_DASHBOARD, type FormDashboardState } from '@/core/scripting/formDashboard'
 
 const { t } = useI18n()
+
+const dashboardState = inject<FormDashboardState | null>(FORM_DASHBOARD, null)
 
 const props = defineProps<{
   dt: DocType
@@ -29,6 +32,17 @@ const emit = defineEmits<{
 
 const result = ref<DocConnectionsResult | null>(null)
 const loading = ref(false)
+
+function linkBadge(link: { link_doctype: string; count: number }) {
+  const override = dashboardState?.badges?.[link.link_doctype]
+  const count = override?.count !== undefined ? override.count : link.count
+  const openCount = override?.open_count
+  return {
+    count,
+    openCount,
+    display: openCount !== undefined ? `${openCount} / ${count}` : String(count),
+  }
+}
 
 function docLinkValue(): string {
   const v = props.dt.is_tree ? props.document?.id : (props.document?.name ?? props.document?.id)
@@ -72,6 +86,11 @@ function handleAdd(link: { link_doctype: string; fieldname: string; via_child: b
 }
 
 const hasAny = computed(() => (result.value?.groups ?? []).some((g) => g.links.length > 0))
+
+/** Total document count across all links in a group (for the group-level badge). */
+function groupTotal(group: { links: { count: number }[] }): number {
+  return group.links.reduce((sum, l) => sum + (l.count ?? 0), 0)
+}
 </script>
 
 <template>
@@ -85,9 +104,16 @@ const hasAny = computed(() => (result.value?.groups ?? []).some((g) => g.links.l
     >
       <span
         v-if="group.name"
-        class="font-semibold text-muted-foreground/80 uppercase tracking-wider px-0.5"
+        class="flex items-center gap-2 font-semibold text-muted-foreground/80 uppercase tracking-wider px-0.5"
       >
         {{ group.name }}
+        <Badge
+          v-if="groupTotal(group) > 0"
+          variant="secondary"
+          class="rounded-md font-mono text-xs h-4.5 px-1.5 min-w-[20px] flex items-center justify-center bg-muted/50 border-none normal-case tracking-normal"
+        >
+          {{ groupTotal(group) }}
+        </Badge>
       </span>
 
       <div class="flex flex-wrap gap-2">
@@ -98,7 +124,7 @@ const hasAny = computed(() => (result.value?.groups ?? []).some((g) => g.links.l
         >
           <div class="inline-flex items-center gap-2.5 px-3 py-1.5 group/link">
             <CollapsibleTrigger
-              :disabled="!link.count"
+              :disabled="!linkBadge(link).count"
               class="flex items-center gap-2.5 disabled:cursor-default"
             >
               <ChevronRight
@@ -113,7 +139,7 @@ const hasAny = computed(() => (result.value?.groups ?? []).some((g) => g.links.l
                 variant="secondary"
                 class="rounded-md font-mono text-xs h-4.5 px-1.5 min-w-[20px] flex items-center justify-center bg-muted/50 border-none"
               >
-                {{ link.count }}
+                {{ linkBadge(link).display }}
               </Badge>
             </CollapsibleTrigger>
 

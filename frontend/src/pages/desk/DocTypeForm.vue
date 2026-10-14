@@ -20,6 +20,8 @@ import SidebarTimeline from '@/components/views/sidebar/SidebarTimeline.vue'
 import FormHeader from '@/components/views/form/FormHeader.vue'
 import FormModals from '@/components/views/form/FormModals.vue'
 import FormTour from '@/components/views/form/FormTour.vue'
+import FormDashboard from '@/components/views/form/FormDashboard.vue'
+import { isDashboardEmpty } from '@/core/scripting/formDashboard'
 import { Spinner } from '@/components/ui/spinner'
 import { docUrl } from '@/core/workspaceUrl'
 
@@ -65,6 +67,7 @@ const {
   reqdOverrides,
   dfPropOverrides,
   sidebarHidden,
+  dashboard,
   presenceUsers,
   fieldLocks,
   focusField,
@@ -209,6 +212,16 @@ const initials = (email: string) => email.slice(0, 2).toUpperCase()
       <div class="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-5">
         <!-- Left Column -->
         <div class="min-w-0 flex flex-col gap-4">
+          <!-- Form Dashboard -->
+          <FormDashboard
+            v-if="dashboard && !isDashboardEmpty(dashboard)"
+            :dashboard="dashboard"
+            :doctype="dt || doctype"
+            :document="form"
+            :workspace="workspace"
+            @create-new="handleCreateNew"
+          />
+
           <!-- Main Form Card -->
           <!-- overflow-clip, not -hidden: keeps sticky children (RichText toolbar) working; offset = FormHeader height -->
           <div class="bg-card border border-border rounded-md shadow-sm p-5 overflow-clip [--richtext-sticky-top:3.25rem]">

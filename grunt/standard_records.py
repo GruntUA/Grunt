@@ -197,7 +197,12 @@ async def sync_files(event: str, **kwargs: Any) -> None:
 
     async with grunt.system_context(grunt.get_session()):
         doc = await grunt.get_doc(doctype, str(name))
-    folder = await export_record(meta, doc) if doc.get("is_standard") and doc.get("app") else None
+    if doc.get("is_standard") and not doc.get("app"):
+        # Nowhere to write it - but that's no reason to delete the files it has
+        # (a test saving a shipped record with app=None used to wipe them).
+        log.warning("standard_records.no_app", doctype=doctype, name=name)
+        return
+    folder = await export_record(meta, doc) if doc.get("is_standard") else None
     remove_record(doctype, str(name), keep=folder)
     if folder is not None:
         log.info("standard_records.exported", doctype=doctype, name=name, path=str(folder))

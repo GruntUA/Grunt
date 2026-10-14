@@ -17,6 +17,7 @@ import type { DialogSize } from '@/core/composables/useDialog'
 import type { ActionsApi } from '@/core/actions'
 import { i18n, N_ } from '@/plugins/i18n'
 import type { DocPerms } from '@/core/permissions'
+import { createFormDashboard, type FormDashboardApi } from '@/core/scripting/formDashboard'
 
 // Types
 
@@ -58,6 +59,17 @@ export interface FormProxy {
    * ```
    */
   actions: ActionsApi<FormProxy>
+  /**
+   * The area above the form - headline, indicators, progress, chart, heatmap,
+   * custom sections, connection badge counts. Reset before every `on_load`.
+   *
+   * ```js
+   * frm.dashboard.set_headline('Прострочено', 'red')
+   * frm.dashboard.add_indicator('Оплачено: 12 000 ₴', 'green')
+   * frm.dashboard.add_progress('Виконання', 65)
+   * ```
+   */
+  dashboard: FormDashboardApi
   /** What the user may do with this document (the server's `__perms`). */
   readonly perm: DocPerms
   /** The document's name, or null while it is new. */
@@ -429,6 +441,7 @@ export function createFormProxy(
   } = {},
   isNew: boolean = false,
   actions: ActionsApi<FormProxy> = NO_ACTIONS,
+  dashboard: FormDashboardApi = createFormDashboard(),
 ): FormProxy {
   const state = (): FormProxyState =>
     callbacks.state?.() ?? {
@@ -446,6 +459,7 @@ export function createFormProxy(
     fields,
     is_new: isNew,
     actions,
+    dashboard,
     _display: {},
     _reqd: {},
     _df_props: {},

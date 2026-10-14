@@ -100,12 +100,18 @@ async function networkFirst(request, cacheName) {
 async function cacheFirst(request, cacheName) {
   const cached = await caches.match(request)
   if (cached) return cached
-  const response = await fetch(request)
-  if (response.ok) {
-    const cache = await caches.open(cacheName)
-    cache.put(request, response.clone())
+  try {
+    const response = await fetch(request)
+    if (response.ok) {
+      const cache = await caches.open(cacheName)
+      cache.put(request, response.clone())
+    }
+    return response
+  } catch {
+    // Asset not in cache and network unreachable — return a minimal offline response
+    // rather than letting the promise reject (which surfaces as a noisy console error).
+    return new Response('', { status: 503, statusText: 'Offline' })
   }
-  return response
 }
 
 // ── Push notifications ────────────────────────────────────────────────────────

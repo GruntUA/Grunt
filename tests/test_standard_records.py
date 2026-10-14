@@ -134,6 +134,15 @@ async def test_unmarking_or_deleting_removes_the_folder(ctx, sr_doctype, demo_ap
 
 
 @pytest.mark.asyncio
+async def test_saving_without_an_app_keeps_the_files(ctx, sr_doctype, demo_app):
+    # An app's test inserts its shipped record with app=None: nowhere to export,
+    # and its files on disk must survive.
+    await _save(ctx, code="kept", title="Kept", is_standard=True, app="demo")
+    await _save(ctx, code="kept", title="Kept", is_standard=True, app=None)
+    assert (demo_app / "kept" / "kept.json").is_file()
+
+
+@pytest.mark.asyncio
 async def test_no_files_outside_developer_mode(ctx, sr_doctype, demo_app, monkeypatch):
     from grunt.config import settings
 

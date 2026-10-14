@@ -22,7 +22,7 @@
  *   // Render scripts.actions (core/actions.ts) in the header
  */
 
-import { ref, reactive, watch } from 'vue'
+import { provide, ref, reactive, watch } from 'vue'
 import type { Ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useDialog } from '@/core/composables/useDialog'
@@ -40,6 +40,7 @@ import {
   type GruntProxy,
   type ClientScriptEvent,
 } from '@/core/scripting/executor'
+import { FORM_DASHBOARD } from '@/core/scripting/formDashboard'
 
 export interface UseClientScriptsOptions {
   getDoc: () => Record<string, unknown>
@@ -124,6 +125,9 @@ export function useClientScripts(doctype: string, options: UseClientScriptsOptio
   })
   frm.actions = actions
 
+  // frm.dashboard state is reactive itself; DocConnections reads its badge overrides
+  provide(FORM_DASHBOARD, frm.dashboard.state)
+
   function ensureGrunt(): GruntProxy {
     if (!gruntProxy) {
       gruntProxy = createGruntProxy({
@@ -169,6 +173,8 @@ export function useClientScripts(doctype: string, options: UseClientScriptsOptio
     // doc is live via Proxy - just update fields and is_new
     frm.fields = options.getFields()
     frm.is_new = options.isNew()
+    // Like Frappe's refresh: each (re)load starts from an empty dashboard
+    if (event === 'on_load') frm.dashboard.reset()
 
     const result = await executeClientScripts(doctype, event, frm, grunt, changedField)
 
@@ -216,6 +222,7 @@ export function useClientScripts(doctype: string, options: UseClientScriptsOptio
   return {
     actions,
     frm,
+    dashboard: frm.dashboard.state,
     displayOverrides,
     reqdOverrides,
     dfPropOverrides,
