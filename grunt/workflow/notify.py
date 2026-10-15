@@ -49,6 +49,7 @@ async def notify_transition(
     title = _doc_title(meta, doc)
     subject = f"{active.action}: {title}"
     message = await _message(active, user, meta)
+    desk_url = _desk_url(meta, active.doc_id)
     session = grunt.get_session()
     for recipient in recipients:
         try:
@@ -60,6 +61,7 @@ async def notify_transition(
                 subject=subject,
                 message=message,
                 email=active.transition.notify_email,
+                url=desk_url,
             )
         except Exception:
             log.exception("workflow.notify_failed", recipient=recipient, doctype=active.doctype)
@@ -159,12 +161,17 @@ async def _state_label(doctype: str, state: str | None) -> str:
     return (found.label if found and found.label else state) or "—"
 
 
+def _desk_url(meta: Any, doc_id: str) -> str:
+    """The document's form path in the desk."""
+    app = getattr(meta.doc, "app", None) or getattr(meta.doc, "module", None) or "grunt"
+    return f"/app/{app}/{meta.doc.name}/{doc_id}"
+
+
 async def _form_url(meta: Any, doc_id: str) -> str:
     """The document's form in the desk - absolute when the site is named by its domain."""
-    from grunt.api.v1.meta import _get_app_name_for_module
     from grunt.site.manager import current_site
 
-    app = await _get_app_name_for_module(meta.doc.module or "") or "grunt"
+    path = _desk_url(meta, doc_id)
     site = current_site.get()
     base = f"https://{site}" if "." in site else ""
-    return f"{base}/app/{app}/{meta.doc.name}/{doc_id}"
+    return f"{base}{path}"

@@ -179,6 +179,7 @@ class NotificationService:
         subject: str,
         message: str,
         email: bool = False,
+        url: str | None = None,
     ) -> str | None:
         """Deliver one notification to *user* directly (bypasses NotificationRule).
 
@@ -195,6 +196,7 @@ class NotificationService:
             doc_id=doc_id,
             subject=subject,
             message=message,
+            url=url,
         )
         if email:
             await self._queue_email(session, user, subject, message)
@@ -212,6 +214,7 @@ class NotificationService:
         subject: str,
         message: str,
         rule: str | None = None,
+        url: str | None = None,
     ) -> str:
         notif_name = f"notif-{user}-{secrets.token_urlsafe(6)}"
         now = datetime.now(UTC)
@@ -233,11 +236,21 @@ class NotificationService:
                     "notification_rule": rule,
                 },
             )
+        if not url and doctype and doc_id:
+            try:
+                from grunt.metadata.registry import doctype_registry
+
+                dt = doctype_registry._doctypes.get(doctype)
+                if dt:
+                    app = getattr(dt, "app", None) or getattr(dt, "module", None) or "grunt"
+                    url = f"/app/{app}/{doctype}/{doc_id}"
+            except Exception:
+                url = "/"
         # Send Web Push (best-effort)
         try:
             from grunt.webpush.service import webpush_service
 
-            await webpush_service.send_push(user, subject, message)
+            await webpush_service.send_push(user, subject, message, url=url or "/")
         except Exception:
             log.exception("suppressed_error")
 
