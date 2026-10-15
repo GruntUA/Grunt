@@ -1,6 +1,6 @@
 import { shallowRef, type Component } from 'vue'
 
-import { loadLucideLib } from '@/lib/lucide'
+import { loadLucideLib, toPascal } from '@/lib/lucide'
 
 // Module-level: one reactive handle on the shared icon set for every caller.
 const icons = shallowRef<Record<string, Component> | null>(null)
@@ -16,6 +16,8 @@ function load() {
  * Resolves Lucide icons by the name stored in metadata. The whole icon set is
  * a separate lazy chunk, so `iconFor` returns `null` until it arrives and
  * re-evaluates reactively once it does; unknown names yield `fallback`.
+ *
+ * Accepts both kebab-case ("alert-circle") and PascalCase ("AlertCircle").
  */
 export function useLucideIcons() {
   load()
@@ -23,7 +25,7 @@ export function useLucideIcons() {
   function iconFor(name?: string | null, fallback: Component | null = null): Component | null {
     if (!name) return fallback
     if (!icons.value) return null
-    return icons.value[name] ?? fallback
+    return icons.value[name] ?? icons.value[toPascal(name)] ?? fallback
   }
 
   return { iconFor }

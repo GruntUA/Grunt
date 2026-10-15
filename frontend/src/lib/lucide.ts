@@ -21,7 +21,8 @@ export function loadLucideLib(): Promise<LucideModule> {
   return modPromise
 }
 
-function toPascal(name: string): string {
+export function toPascal(name: string): string {
+  if (!name) return ''
   return name.includes('-')
     ? name.split('-').map((s) => s.charAt(0).toUpperCase() + s.slice(1)).join('')
     : name.charAt(0).toUpperCase() + name.slice(1)

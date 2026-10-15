@@ -30,7 +30,8 @@ const minHeight = computed(() => getWidgetDef(props.widget.widget_type)?.minHeig
 
 <template>
   <div :style="{ minHeight }" :class="[colSpanClass,
-    'group relative min-w-0 bg-card border rounded-lg shadow-sm overflow-hidden',    editMode ? 'ring-2 ring-primary/20 cursor-grab active:cursor-grabbing' : '',
+    'group relative min-w-0 bg-card border rounded-xl shadow-sm overflow-hidden',
+    editMode ? 'ring-2 ring-primary/20 cursor-grab active:cursor-grabbing' : '',
   ]">
     <!-- Edit overlay buttons -->
     <div v-if="editMode"
