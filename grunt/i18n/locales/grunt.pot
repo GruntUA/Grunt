@@ -8267,6 +8267,10 @@ msgstr ""
 #: grunt/grunt/monitoring/health.py:578 grunt/grunt/monitoring/updates.py:317
 #: grunt/grunt/monitoring/updates.py:428 grunt/grunt/monitoring/updates.py:343
 #: grunt/grunt/monitoring/updates.py:350
+#: grunt/grunt/monitoring/updates.py
+msgid "no release found"
+msgstr ""
+
 msgid "not installed"
 msgstr ""
 

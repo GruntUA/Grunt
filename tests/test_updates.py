@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import importlib.metadata
+import json
 import subprocess
-from datetime import date, timedelta
+from datetime import UTC, date, datetime, timedelta
 
 import pytest
 
@@ -41,6 +42,32 @@ async def test_runtime_newer_patch_is_a_warning(monkeypatch):
     assert r["status"] == "Warning"
     assert r["value"] == "3.14.4 → 3.14.8"
     assert "grunt update" in r["hint"]
+
+
+@pytest.mark.asyncio
+async def test_mise_skips_releases_younger_than_a_day(monkeypatch):
+    # mise self-update doesn't take a release younger than 24h - neither does the row
+    now = datetime.now(UTC)
+    releases = [
+        {"tag_name": "v2026.10.12", "published_at": (now - timedelta(hours=3)).isoformat()},
+        {"tag_name": "v2026.10.11", "published_at": (now - timedelta(days=2)).isoformat()},
+    ]
+
+    async def fake_fetch(url):
+        assert "jdx/mise" in url
+        return json.dumps(releases)
+
+    async def fake_run(*cmd, **kwargs):
+        return "2026.10.11 linux-x64"
+
+    from grunt.storage.cloud import rclone
+
+    monkeypatch.setattr(rclone, "is_installed", lambda: False)
+    monkeypatch.setattr(updates, "tool", lambda name: "/bin/mise" if name == "mise" else None)
+    monkeypatch.setattr(updates, "run", fake_run)
+    monkeypatch.setattr(updates, "fetch", fake_fetch)
+    rows = await updates.tool_rows(CAT)
+    assert [(r["check"], r["status"], r["value"]) for r in rows] == [("mise", "OK", "2026.10.11")]
 
 
 @pytest.mark.asyncio

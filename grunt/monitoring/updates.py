@@ -24,7 +24,7 @@ import shutil
 import subprocess
 import time
 import tomllib
-from datetime import date
+from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -45,6 +45,8 @@ CACHE_TTL = 6 * 3600
 CACHE_TTL_FAILED = 30 * 60
 TIMEOUT = 20.0
 LIST_MAX = 8
+# `mise self-update` skips releases younger than this (its minimum_release_age default)
+MISE_RELEASE_AGE = timedelta(hours=24)
 
 _RELEASE_TAG = re.compile(r"^v(\d+)\.(\d+)\.(\d+)$")
 _cache: dict[str, tuple[float, Any]] = {}
@@ -211,14 +213,17 @@ async def repo_update(path: Path) -> str | None:
     branch = (await run(*git, "rev-parse", "--abbrev-ref", "HEAD")).strip()
     if branch == "HEAD":  # detached - on a release tag
         here = [
-            t for t in (await run(*git, "tag", "--points-at", "HEAD")).split() if _release_key(t)
+            key
+            for t in (await run(*git, "tag", "--points-at", "HEAD")).split()
+            if (key := _release_key(t))
         ]
         out = await ls_remote(path, "--tags", "--refs", "origin", "v*")
         remote = [r.rsplit("/", 1)[-1] for r in out.split() if r.startswith("refs/tags/")]
-        releases = sorted((t for t in remote if _release_key(t)), key=_release_key)
+        releases = {key: t for t in remote if (key := _release_key(t))}
         if not here or not releases:
             return None
-        return releases[-1] if _release_key(releases[-1]) > _release_key(here[0]) else None
+        newest = max(releases)
+        return releases[newest] if newest > here[0] else None
     out = await ls_remote(path, "origin", f"refs/heads/{branch}")
     if not out.strip():
         return None
@@ -357,7 +362,17 @@ async def tool_rows(cat: str) -> list[Row]:
         return json.loads(await fetch("https://pypi.org/pypi/uv/json"))["info"]["version"]
 
     async def mise_latest() -> str:
-        return first_version(await fetch("https://mise.jdx.dev/VERSION"))
+        """The newest release `mise self-update` would take - not one younger
+        than MISE_RELEASE_AGE."""
+        releases = json.loads(await fetch("https://api.github.com/repos/jdx/mise/releases"))
+        cutoff = datetime.now(UTC) - MISE_RELEASE_AGE
+        for release in releases:
+            published = release.get("published_at")
+            if release.get("draft") or release.get("prerelease") or not published:
+                continue
+            if datetime.fromisoformat(published) <= cutoff:
+                return first_version(release["tag_name"])
+        raise UnavailableError(_("no release found"))
 
     rows = await asyncio.gather(
         tool_row(cat, "rclone", rclone_version, rclone_latest),
