@@ -55,3 +55,40 @@ describe('useDialog.select', () => {
     await promise
   })
 })
+
+describe('useDialog.prompt', () => {
+  it('is a one-field form that resolves the field value', async () => {
+    const d = useDialog()
+    const promise = d.prompt({ label: 'Дата', fieldtype: 'Date', default: '2026-01-01' })
+    expect(d.state.type).toBe('dialog')
+    expect(d.state.fields).toHaveLength(1)
+    expect(d.state.fields[0]).toMatchObject({ fieldname: 'value', fieldtype: 'Date', default: '2026-01-01' })
+    d.close({ value: '2026-02-03' })
+    await expect(promise).resolves.toBe('2026-02-03')
+  })
+
+  it('resolves null on cancel or an empty value', async () => {
+    const d = useDialog()
+    const cancelled = d.prompt('Name')
+    d.close(undefined)
+    await expect(cancelled).resolves.toBeNull()
+    const empty = d.prompt('Name')
+    d.close({ value: '' })
+    await expect(empty).resolves.toBeNull()
+  })
+})
+
+describe('useDialog.warn', () => {
+  it('is a destructive confirm with its own primary label', async () => {
+    const d = useDialog()
+    const promise = d.warn('Увага', 'Видалити всі записи?', 'Видалити')
+    expect(d.state.type).toBe('confirm')
+    expect(d.state.destructive).toBe(true)
+    expect(d.state.primaryLabel).toBe('Видалити')
+    d.close(false)
+    await expect(promise).resolves.toBe(false)
+    d.confirm('x')
+    expect(d.state.destructive).toBe(false)
+    d.close(true)
+  })
+})

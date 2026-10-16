@@ -76,7 +76,7 @@ export function useListClientScripts(params: UseListClientScriptsParams) {
         else params.toast.info(msg)
       },
       prompt: (labelOrOpts, title) => params.dialog.prompt(labelOrOpts, title),
-      warn: (title, message, primaryLabel) => params.dialog.confirm(`${title}\n${message}`, primaryLabel),
+      warn: (title, message, primaryLabel) => params.dialog.warn(title, message, primaryLabel),
       form: (opts) => params.dialog.form(opts),
       select: (opts) => params.dialog.select(opts as any),
       showProgress: (title, count, total, description) =>

@@ -132,7 +132,8 @@ export interface PromptOptions {
 
 export type DialogSize = 'small' | 'large' | 'extra-large'
 
-export type DialogType = 'msgprint' | 'confirm' | 'prompt' | 'warn' | 'dialog' | 'progress'
+/** `prompt`/`select` are `dialog` underneath, `warn` is a destructive `confirm`. */
+export type DialogType = 'msgprint' | 'confirm' | 'dialog' | 'progress'
 
 export interface DialogOptions {
   title: string
@@ -151,19 +152,20 @@ export interface DialogState {
   indicator: string | null
   fields: DialogField[]
   primaryLabel: string
+  /** confirm only: paint the primary button destructive (`warn`). */
+  destructive: boolean
   size: DialogSize
   buttons: DialogActionButton[]
   busyButton: number | null
   /** Transient yes/no overlay for an in-dialog action (see DialogActionButton.confirm). */
   actionConfirm: { message: string; resolve: (v: boolean) => void } | null
-  proceedAction: (() => void | Promise<void>) | null
   progress: { count: number; total: number; percent: number; description: string | null }
   resolve: ((value: unknown) => void) | null
 }
 
 // Singleton state
 
-const DEFAULT_STATE: Omit<DialogState, 'resolve' | 'proceedAction'> = {
+const DEFAULT_STATE: Omit<DialogState, 'resolve'> = {
   open: false,
   type: 'msgprint',
   title: '',
@@ -171,6 +173,7 @@ const DEFAULT_STATE: Omit<DialogState, 'resolve' | 'proceedAction'> = {
   indicator: null,
   fields: [],
   primaryLabel: 'OK',
+  destructive: false,
   size: 'small',
   buttons: [],
   busyButton: null,
@@ -178,14 +181,10 @@ const DEFAULT_STATE: Omit<DialogState, 'resolve' | 'proceedAction'> = {
   progress: { count: 0, total: 0, percent: 0, description: null },
 }
 
-const state = reactive<DialogState>({
-  ...DEFAULT_STATE,
-  proceedAction: null,
-  resolve: null,
-})
+const state = reactive<DialogState>({ ...DEFAULT_STATE, resolve: null })
 
 function reset() {
-  Object.assign(state, DEFAULT_STATE, { resolve: null, proceedAction: null })
+  Object.assign(state, DEFAULT_STATE, { resolve: null })
 }
 
 // Public API
@@ -216,6 +215,7 @@ export function useDialog() {
       state.type = 'confirm'
       state.title = title ?? t('Confirmation')
       state.message = message
+      state.primaryLabel = t('Confirm')
       state.resolve = resolve as (value: unknown) => void
       state.open = true
     })
@@ -226,24 +226,22 @@ export function useDialog() {
    * Resolves with the entered value, or null if cancelled.
    */
   function prompt(labelOrOpts: string | PromptOptions, title?: string): Promise<string | null> {
-    return new Promise((resolve) => {
-      const opts: PromptOptions = typeof labelOrOpts === 'string'
-        ? { label: labelOrOpts }
-        : labelOrOpts
-      reset()
-      state.type = 'prompt'
-      state.title = opts.title ?? title ?? ''
-      state.fields = [{
-        fieldname: opts.fieldname ?? 'value',
+    const opts: PromptOptions = typeof labelOrOpts === 'string' ? { label: labelOrOpts } : labelOrOpts
+    const fieldname = opts.fieldname ?? 'value'
+    return form({
+      title: opts.title ?? title ?? '',
+      fields: [{
+        fieldname,
         label: opts.label,
         fieldtype: opts.fieldtype ?? 'Text',
-        required: opts.required ?? false,
+        required: opts.required,
         default: opts.default,
         options: opts.options,
         placeholder: opts.placeholder,
-      }]
-      state.resolve = resolve as (value: unknown) => void
-      state.open = true
+      }],
+    }).then((v) => {
+      const value = v?.[fieldname]
+      return value == null || value === '' ? null : String(value)
     })
   }
 
@@ -262,11 +260,11 @@ export function useDialog() {
   ): Promise<boolean> {
     return new Promise((resolve) => {
       reset()
-      state.type = 'warn'
+      state.type = 'confirm'
       state.title = title
       state.message = message
-      state.indicator = 'orange'
       state.primaryLabel = primaryLabel
+      state.destructive = true
       state.resolve = resolve as (value: unknown) => void
       state.open = true
     })
