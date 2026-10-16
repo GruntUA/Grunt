@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import importlib.util
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 
 import click
@@ -50,20 +52,21 @@ def _print_status(name: str, ok: bool) -> None:
 
 
 def _run_python(root: Path, fix: bool) -> int:
-    if shutil.which("ruff") is None:
+    # Run from the interpreter's own venv: `grunt` delegates here without .venv/bin on PATH.
+    if importlib.util.find_spec("ruff") is None:
         click.echo(click.style("  [skip] ruff is not installed", fg="yellow"))
         return 0
 
     results = []
 
     click.echo(click.style("── ruff check ──", bold=True))
-    cmd = ["ruff", "check", "."]
+    cmd = [sys.executable, "-m", "ruff", "check", "."]
     if fix:
         cmd.append("--fix")
     results.append(subprocess.run(cmd, cwd=root).returncode)
 
     click.echo(click.style("── ruff format ──", bold=True))
-    cmd = ["ruff", "format", "."]
+    cmd = [sys.executable, "-m", "ruff", "format", "."]
     if not fix:
         cmd.append("--check")
     results.append(subprocess.run(cmd, cwd=root).returncode)
