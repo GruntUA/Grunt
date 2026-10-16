@@ -3,13 +3,12 @@ import { computed, reactive, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { setPageTitle } from '@/core/composables/usePageTitle'
-import { useQuery } from '@tanstack/vue-query'
 import { useToast } from '@/core/composables/useToast'
 import { useFormController } from '@/core/composables/useFormController'
-import { docsApi } from '@/core/api/docs'
 import { formatRelative } from '@/core/datetime'
 import type { GruntDocument } from '@/types'
-import { Activity, Eye, TriangleAlert, FlaskConical, History } from '@lucide/vue'
+import { Activity, TriangleAlert, FlaskConical, History } from '@lucide/vue'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 
 import FormRenderer from '@/core/renderer/FormRenderer.vue'
@@ -21,6 +20,7 @@ import FormHeader from '@/components/views/form/FormHeader.vue'
 import FormModals from '@/components/views/form/FormModals.vue'
 import FormTour from '@/components/views/form/FormTour.vue'
 import FormDashboard from '@/components/views/form/FormDashboard.vue'
+import FormViewInfo from '@/components/views/form/FormViewInfo.vue'
 import { isDashboardEmpty } from '@/core/scripting/formDashboard'
 import { Spinner } from '@/components/ui/spinner'
 import { docUrl } from '@/core/workspaceUrl'
@@ -34,7 +34,6 @@ const emit = defineEmits<{
 const router = useRouter()
 const toast = useToast()
 const { t } = useI18n()
-
 
 const {
   dt,
@@ -107,6 +106,16 @@ watch(
   { immediate: true },
 )
 
+async function onRename(newId: string) {
+  try {
+    await rename(newId)
+    router.push(docUrl(props.doctype, newId, props.workspace))
+    toast.success(t('Document renamed'))
+  } catch (e: any) {
+    toast.error(e.response?.data?.detail || e.message)
+  }
+}
+
 // Workflow bar state (the transitions themselves are actions - global_form.js).
 const workflowUi = reactive({
   transitions,
@@ -142,26 +151,13 @@ const sidebarVisible = computed(() => showSidebar.value && (props.id ? !!documen
 async function setSidebarImage(url: string | null) {
   const field = imageField.value?.fieldname
   if (!field) return
-  if (!props.id) {
-    onFormUpdate({ [field]: url })
-    return
-  }
   const wasDirty = isDirty.value
   onFormUpdate({ [field]: url })
+  if (!props.id) return
   if (wasDirty) toast.info(t('Image changed. Save the document to apply it.'))
   else await handleSave()
 }
 
-// Seen / views (only fetched when the DocType opts into track_seen / track_views)
-const tracksViews = computed(() => !!(dt.value?.track_seen || dt.value?.track_views))
-const { data: viewInfo } = useQuery({
-  queryKey: computed(() => ['view-info', props.doctype, props.id]),
-  queryFn: () => docsApi.getViewInfo(props.doctype, props.id!),
-  enabled: computed(() => !!props.id && tracksViews.value),
-})
-const seenList = computed<string[]>(() => viewInfo.value?.seen ?? [])
-const seenShown = computed(() => seenList.value.slice(0, 6))
-const initials = (email: string) => email.slice(0, 2).toUpperCase()
 </script>
 
 <template>
@@ -170,16 +166,7 @@ const initials = (email: string) => email.slice(0, 2).toUpperCase()
     <FormHeader :doc-title="docTitle || doctype" :dt="dt" :doctype="doctype" :id="id" :workspace="workspace" :document="form" :actions="actions" :workflow="workflowUi" :is-dirty="isDirty"
       :is-loading="isLoading" :hide-panel-toggle="!sidebarVisible"
       v-model:share-open="showShareDialog" v-model:rename-open="showRenameDialog" v-model:links-open="showLinksDialog"
-      @rename="async (newId) => {
-        try {
-          await rename(newId)
-          router.push(docUrl(doctype, newId, workspace))
-          toast.success(t('Document renamed'))
-        } catch (e: any) {
-          toast.error(e.response?.data?.detail || e.message)
-        }
-      }"
- />
+      @rename="onRename" />
 
     <div class="flex flex-1 flex-col gap-5 p-4 sm:p-6 lg:p-8 animate-in fade-in duration-500">
     <!-- Loading -->
@@ -198,16 +185,15 @@ const initials = (email: string) => email.slice(0, 2).toUpperCase()
       </div>
 
       <!-- Lifecycle markers -->
-      <div v-if="dt?.deprecated"
-        class="flex items-start gap-2 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-amber-900 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-200">
-        <TriangleAlert class="size-4 mt-0.5 shrink-0" />
-        <span>{{ t('This document type is deprecated. It still works, but do not use it in new code.') }}</span>
-      </div>
-      <div v-if="dt?.beta"
-        class="flex items-start gap-2 rounded-md border border-border bg-muted/50 px-3 py-2 text-muted-foreground">
-        <FlaskConical class="size-4 mt-0.5 shrink-0" />
-        <span>{{ t('Beta: this document type is still in development; its behavior may change.') }}</span>
-      </div>
+      <Alert v-if="dt.deprecated"
+        class="border-amber-300 bg-amber-50 text-amber-900 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-200">
+        <TriangleAlert />
+        <AlertDescription class="text-current">{{ t('This document type is deprecated. It still works, but do not use it in new code.') }}</AlertDescription>
+      </Alert>
+      <Alert v-if="dt.beta" class="bg-muted/50">
+        <FlaskConical />
+        <AlertDescription>{{ t('Beta: this document type is still in development; its behavior may change.') }}</AlertDescription>
+      </Alert>
 
       <div class="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-5">
         <!-- Left Column -->
@@ -216,7 +202,7 @@ const initials = (email: string) => email.slice(0, 2).toUpperCase()
           <FormDashboard
             v-if="dashboard && !isDashboardEmpty(dashboard)"
             :dashboard="dashboard"
-            :doctype="dt || doctype"
+            :doctype="dt"
             :document="form"
             :workspace="workspace"
             @create-new="handleCreateNew"
@@ -226,32 +212,15 @@ const initials = (email: string) => email.slice(0, 2).toUpperCase()
           <!-- overflow-clip, not -hidden: keeps sticky children (RichText toolbar) working; offset = FormHeader height -->
           <div class="bg-card border border-border rounded-md shadow-sm p-5 overflow-clip [--richtext-sticky-top:3.25rem]">
             <FormRenderer :doctype="dt" :model-value="form" :disabled="isSaving || !perms.write" :errors="validationErrors"
-              v-model:active-tab="activeTab" :workspace="props.workspace"
+              v-model:active-tab="activeTab" :workspace="workspace"
               :overrides="displayOverrides" :reqd-overrides="reqdOverrides" :df-prop-overrides="dfPropOverrides" :field-locks="fieldLocks"
-              @update:model-value="onFormUpdate($event)" @field-focus="focusField($event)"
-              @field-blur="blurField($event)" @create-new="handleCreateNew"
+              @update:model-value="onFormUpdate" @field-focus="focusField"
+              @field-blur="blurField" @create-new="handleCreateNew"
               @table-selection-change="({ fieldname, rowNames }) => setTableSelection(fieldname, rowNames)" />
           </div>
 
 
-          <!-- Seen / views -->
-          <div v-if="id && tracksViews && viewInfo"
-            class="flex flex-wrap items-center gap-x-4 gap-y-1.5 px-1 text-muted-foreground">
-            <span v-if="dt?.track_views" class="inline-flex items-center gap-1.5">
-              <Eye class="size-3.5" />
-              {{ t('{views} views · {viewers} users', { views: String(viewInfo.views), viewers: String(viewInfo.viewers) }) }}
-            </span>
-            <span v-if="dt?.track_seen && seenList.length" class="inline-flex items-center gap-1.5">
-              {{ t('Viewed by:') }}
-              <span class="flex -space-x-1.5">
-                <span v-for="email in seenShown" :key="email" :title="email"
-                  class="inline-flex size-5 items-center justify-center rounded-full border border-background bg-muted text-[9px] font-medium text-foreground">
-                  {{ initials(email) }}
-                </span>
-              </span>
-              <span v-if="seenList.length > seenShown.length">+{{ seenList.length - seenShown.length }}</span>
-            </span>
-          </div>
+          <FormViewInfo v-if="id" :dt="dt" :id="id" />
 
           <!-- Activity timeline -->
           <div v-if="showActivityLog && id && document" class="form-section">
@@ -284,26 +253,3 @@ const initials = (email: string) => email.slice(0, 2).toUpperCase()
   </div>
 </template>
 
-<style>
-@keyframes field-shake {
-
-  0%,
-  100% {
-    transform: translateX(0);
-  }
-
-  20%,
-  60% {
-    transform: translateX(-4px);
-  }
-
-  40%,
-  80% {
-    transform: translateX(4px);
-  }
-}
-
-.field-shake {
-  animation: field-shake 0.4s ease;
-}
-</style>

@@ -49,8 +49,8 @@ export function useFormValidation(params: UseFormValidationParams) {
       if (!el) return
 
       el.scrollIntoView({ behavior: 'smooth', block: 'center' })
-      el.classList.add('field-shake')
-      el.addEventListener('animationend', () => el.classList.remove('field-shake'), { once: true })
+      el.classList.add('animate-field-shake')
+      el.addEventListener('animationend', () => el.classList.remove('animate-field-shake'), { once: true })
 
       const input = el.querySelector('input, textarea, select, [contenteditable]') as HTMLElement | null
       input?.focus()
