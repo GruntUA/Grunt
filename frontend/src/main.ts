@@ -36,4 +36,7 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
   navigator.serviceWorker.register(`/sw.js?v=${swVersion}`).catch(() => {
     // SW registration is best-effort; push won't work but app still runs
   })
+} else if ('serviceWorker' in navigator) {
+  // A worker left over from a prod build on the same origin would serve stale dev modules.
+  void navigator.serviceWorker.getRegistrations().then((regs) => regs.forEach((r) => r.unregister()))
 }

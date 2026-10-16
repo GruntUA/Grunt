@@ -9,12 +9,16 @@
  *    copy (lists, documents, metadata, whoami). Files (get_content) and the
  *    websocket are never cached. The page wipes this cache on logout
  *    (message `clear-user-data`) — it holds one user's data.
- *  - other same-origin GETs (hashed assets, fonts, icons): cache first.
+ *  - built static files (/assets/, /fonts/, /icons/, /js/): cache first.
+ *    Anything else (Vite dev modules /src/*, /node_modules/.vite/deps/*?v=…)
+ *    goes straight to the network: a cached dev module pins an outdated
+ *    optimized-dep hash and Vite answers it with 504 forever.
  *
  * Mutations are never touched here — the page's offline queue handles them.
  */
 
-const SHELL_CACHE = 'grunt-shell-v3'
+const SHELL_CACHE = 'grunt-shell-v4'
+const STATIC_PREFIXES = ['/assets/', '/fonts/', '/icons/', '/js/']
 const API_CACHE = 'grunt-api-v1'
 const SHELL_KEY = '/__offline_shell__'
 
@@ -64,7 +68,9 @@ self.addEventListener('fetch', (event) => {
     return
   }
 
-  event.respondWith(cacheFirst(request, SHELL_CACHE))
+  if (STATIC_PREFIXES.some((p) => url.pathname.startsWith(p))) {
+    event.respondWith(cacheFirst(request, SHELL_CACHE))
+  }
 })
 
 async function navigation(request) {
