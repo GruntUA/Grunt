@@ -182,9 +182,16 @@ function toggleSection(section: LayoutSection) {
 
 function isSectionVisible(section: LayoutSection): boolean {
   const sectionField = section._field
-  if (!sectionField) return true
-  if (sectionField.hidden) return false
-  return evalDependsOn(sectionField.depends_on, props.modelValue ?? {})
+  if (sectionField?.hidden) return false
+  if (sectionField && !evalDependsOn(sectionField.depends_on, props.modelValue ?? {})) return false
+  // A section whose fields are all hidden would render as an empty gap.
+  return section.columns.some((col) => col.some(isFieldVisible))
+}
+
+function isFieldVisible(f: DocField): boolean {
+  if (props.overrides?.[f.fieldname] === false) return false
+  const field = mergedField(f)
+  return !field.hidden && evalDependsOn(field.depends_on, props.modelValue ?? {})
 }
 
 function getVisibleSections(tab: LayoutTab): LayoutSection[] {

@@ -36,6 +36,7 @@
       "fieldname": "overall_status",
       "label": "Overall status",
       "fieldtype": "Select",
+      "hidden": true,
       "options": "OK\nWarning\nError",
       "translatable": true,
       "read_only": true
@@ -44,28 +45,33 @@
       "fieldname": "checked_at",
       "label": "Checked",
       "fieldtype": "Datetime",
+      "hidden": true,
       "read_only": true
     },
     {
       "fieldname": "col_summary",
-      "fieldtype": "Column"
+      "fieldtype": "Column",
+      "hidden": true
     },
     {
       "fieldname": "ok_count",
       "label": "Good",
       "fieldtype": "Int",
+      "hidden": true,
       "read_only": true
     },
     {
       "fieldname": "warning_count",
       "label": "Warning",
       "fieldtype": "Int",
+      "hidden": true,
       "read_only": true
     },
     {
       "fieldname": "error_count",
       "label": "Problems",
       "fieldtype": "Int",
+      "hidden": true,
       "read_only": true
     },
     {

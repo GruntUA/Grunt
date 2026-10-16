@@ -39,6 +39,9 @@ function _renderDashboard(frm) {
     frm.dashboard.add_indicator(`${__('Добре')}: ${ok}`, 'green')
     frm.dashboard.add_indicator(`${__('Попередження')}: ${warn}`, warn > 0 ? 'orange' : 'gray')
     frm.dashboard.add_indicator(`${__('Проблеми')}: ${err}`, err > 0 ? 'red' : 'gray')
+    if (frm.doc.checked_at) {
+        frm.dashboard.add_indicator(`${__('Checked')}: ${new Date(frm.doc.checked_at).toLocaleString()}`, 'gray')
+    }
 
     // 3. Health Score progress bar (multi-segmented)
     const okPct = Math.round((ok / total) * 100)
