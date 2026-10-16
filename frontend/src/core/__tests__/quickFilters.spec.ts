@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildQuickFilterForField } from '@/core/quickFilters'
+import { buildQuickFilterForField, withAsOfDateFilter } from '@/core/quickFilters'
 import type { DocField } from '@/types'
 
 const dateField = (extra: Partial<DocField> = {}): DocField =>
@@ -22,5 +22,31 @@ describe('buildQuickFilterForField', () => {
   it('year mode applies to Datetime but not to other field types', () => {
     expect(buildQuickFilterForField(dateField({ fieldtype: 'Datetime', quick_filter_mode: 'year' })).operator).toBe('year')
     expect(buildQuickFilterForField(dateField({ fieldtype: 'Int', quick_filter_mode: 'year' })).operator).toBe('eq')
+  })
+})
+
+describe('withAsOfDateFilter', () => {
+  const validFrom = dateField({ fieldname: 'valid_from', label: 'Valid from' })
+
+  it('leaves filters alone without an as-of field', () => {
+    const filters = [buildQuickFilterForField(dateField())]
+    expect(withAsOfDateFilter(filters, { fields: [dateField()] }, 'As of')).toBe(filters)
+  })
+
+  it('appends a tree-only as_of_date filter when none covers the field', () => {
+    const [ff] = withAsOfDateFilter([], { fields: [validFrom] }, 'As of')
+    expect(ff).toMatchObject({ id: 'as_of_date', field: 'valid_from', operator: 'lte_or_null', enabled_in: ['tree'] })
+  })
+
+  it('converts an existing quick filter on that field and enables it in the tree', () => {
+    const qf = { ...buildQuickFilterForField(validFrom), enabled_in: ['list'] as Array<'list' | 'tree'> }
+    const result = withAsOfDateFilter([qf], { fields: [validFrom] }, 'As of')
+    expect(result).toHaveLength(1)
+    expect(result[0]).toMatchObject({ id: 'as_of_date', operator: 'lte_or_null', label: 'Valid from', enabled_in: ['list', 'tree'] })
+  })
+
+  it('prefers tree_as_of_date_field over valid_from', () => {
+    const [ff] = withAsOfDateFilter([], { fields: [validFrom, dateField()], tree_as_of_date_field: 'signed_on' }, 'As of')
+    expect(ff.field).toBe('signed_on')
   })
 })

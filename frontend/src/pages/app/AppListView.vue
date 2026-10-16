@@ -25,6 +25,6 @@ watch(() => props.doctype, async (doctype) => {
 </script>
 
 <template>
-  <AppFormView v-if="isSingleton" :key="doctype" :workspace-name="workspaceName" :doctype="doctype" :id="doctype" />
-  <DocTypeList v-else-if="isSingleton === false" :doctype="doctype" :workspace="workspaceName" />
+  <AppFormView v-if="isSingleton" :key="`form:${doctype}`" :workspace-name="workspaceName" :doctype="doctype" :id="doctype" />
+  <DocTypeList v-else-if="isSingleton === false" :key="`list:${doctype}`" :doctype="doctype" :workspace="workspaceName" />
 </template>

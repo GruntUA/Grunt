@@ -1,4 +1,4 @@
-import type { DocField, QuickFilter } from '@/types'
+import type { DocField, DocType, QuickFilter } from '@/types'
 
 export const SUPPORTED_FIELD_TYPES = new Set([
   'Text', 'Data', 'LongText',
@@ -73,4 +73,46 @@ export function applyFieldSelection(
   return selectedFieldnames
     .map(fieldname => byField.get(fieldname) ?? (fieldByName.has(fieldname) ? buildQuickFilterForField(fieldByName.get(fieldname)!) : null))
     .filter((ff): ff is QuickFilter => ff !== null)
+}
+
+/**
+ * Turn the DocType's as-of date field (tree_as_of_date_field, else a Date
+ * `valid_from`) into the `as_of_date` quick filter: `lte_or_null`, also shown
+ * in the tree. Appended as tree-only when no quick filter covers that field.
+ */
+export function withAsOfDateFilter(
+  filters: QuickFilter[],
+  dt: Pick<DocType, 'fields' | 'tree_as_of_date_field'>,
+  label: string,
+): QuickFilter[] {
+  const asOfField = dt.tree_as_of_date_field
+    ?? dt.fields.find(f => f.fieldname === 'valid_from' && (f.fieldtype === 'Date' || f.fieldtype === 'Datetime'))?.fieldname
+  if (!asOfField) return filters
+
+  let covered = false
+  const result = filters.map((ff): QuickFilter => {
+    if (ff.id === 'as_of_date') covered = true
+    if (ff.field !== asOfField) return ff
+    covered = true
+    if (ff.operator === 'lte_or_null') return ff
+    return {
+      ...ff,
+      id: 'as_of_date',
+      label: ff.label ?? label,
+      operator: 'lte_or_null',
+      input_type: 'date',
+      enabled_in: ff.enabled_in.includes('tree') ? ff.enabled_in : [...ff.enabled_in, 'tree'],
+    }
+  })
+  if (covered) return result
+
+  return [...result, {
+    id: 'as_of_date',
+    field: asOfField,
+    operator: 'lte_or_null',
+    label,
+    input_type: 'date',
+    on_change: { mode: 'local', debounce_ms: 150 },
+    enabled_in: ['tree'],
+  }]
 }
