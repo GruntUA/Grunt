@@ -66,7 +66,9 @@ const props = withDefaults(defineProps<{
   focusFile?: string | null
   /** «From a link» can also hand the link back as is, without downloading it (an Attach field). */
   linkAsIs?: boolean
-}>(), { mode: 'folder', folder: null, view: 'details', incomingSize: 0, uploads: true })
+  /** The address bar's Refresh button - off when the host has its own (the list header). */
+  refreshButton?: boolean
+}>(), { mode: 'folder', folder: null, view: 'details', incomingSize: 0, uploads: true, refreshButton: true })
 
 const emit = defineEmits<{
   /** Folder mode: where things would go now. */
@@ -742,7 +744,7 @@ const ROW = 'grid w-full grid-cols-[minmax(0,1fr)_9rem_5rem_5rem] items-center g
           </Breadcrumb>
         </template>
       </div>
-      <Button variant="ghost" size="icon-sm" :title="t('Refresh')" @click="reload">
+      <Button v-if="refreshButton" variant="ghost" size="icon-sm" :title="t('Refresh')" @click="reload">
         <RefreshCw :class="(loading || busy) && 'animate-spin'" />
       </Button>
       <InputGroup class="h-8 w-64 shrink-0">

@@ -162,6 +162,11 @@ export interface ViewDefinition {
    */
   fillsViewport?: boolean
   /**
+   * The view has its own search and navigation (the file explorer) and ignores
+   * the list's search and filters, so DocTypeList hides the shared toolbar.
+   */
+  ownToolbar?: boolean
+  /**
    * Detects the field that enables this view for a given DocType.
    * The toolbar button is hidden when this returns null.
    * Omit entirely for views that are always available (list, gallery).

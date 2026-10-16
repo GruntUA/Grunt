@@ -25,6 +25,6 @@ function openFile(file: FileItem) {
 
 <template>
   <div class="flex h-full flex-col overflow-hidden rounded-md border bg-card shadow-sm [&>*>:first-child]:border-t-0">
-    <FileExplorer ref="explorer" mode="file" multiple view="tiles" @activate="openFile" />
+    <FileExplorer ref="explorer" mode="file" multiple view="tiles" :refresh-button="false" @activate="openFile" />
   </div>
 </template>

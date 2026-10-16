@@ -274,6 +274,7 @@ watch(
 const ownScrollView = computed(() => getViewDef(viewMode.value)?.managesOwnScroll ?? false)
 // Page is bounded to the viewport; the view scrolls inside it (pager may still show).
 const boundedView = computed(() => ownScrollView.value || (getViewDef(viewMode.value)?.fillsViewport ?? false))
+const ownToolbar = computed(() => getViewDef(viewMode.value)?.ownToolbar ?? false)
 
 const { applyRouteState, setGroupByInRoute, applySort } = useListRouteSync({
   route,
@@ -396,7 +397,7 @@ watch(() => props.doctype, async (newDoctype) => {
 
     <!-- Toolbar -->
     <DocTypeToolbar
-      v-if="colState"
+      v-if="colState && !ownToolbar"
       v-model:view-mode="viewMode"
       v-model:inline-search="inlineSearch"
       v-model:active-filters="activeFilters"

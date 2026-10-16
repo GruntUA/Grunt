@@ -9,8 +9,10 @@ const def: ViewDefinition = {
   order: 5,
   // The personal file spaces (File, browsed by its FileFolder tree) in the same
   // Explorer as the attach picker. It shows its own folders and fetches its own
-  // data, so the list's pager steps aside.
+  // data, so the list's pager steps aside; it searches on its own, so the
+  // list's search and filters step aside too.
   managesOwnScroll: true,
+  ownToolbar: true,
 
   resolveField: (dt) => dt.fields.find((f) => f.fieldtype === 'Link' && f.options === 'FileFolder') ?? null,
 
