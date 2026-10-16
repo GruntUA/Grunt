@@ -17,7 +17,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import ShortcutKbd from '@/components/ShortcutKbd.vue'
+import { Kbd, KbdGroup } from '@/components/ui/kbd'
+import { shortcutKeys } from '@/core/shortcuts'
 import { actionButtonStyle, type ResolvedAction } from '@/core/actions'
 import ActionIcon from './ActionIcon.vue'
 
@@ -85,7 +86,7 @@ function title(action: ResolvedAction) {
       </TooltipTrigger>
       <TooltipContent v-if="slot.action.shortcut" class="flex items-center gap-2">
         {{ slot.action.label }}
-        <ShortcutKbd :shortcut="slot.action.shortcut" />
+        <KbdGroup><Kbd v-for="key in shortcutKeys(slot.action.shortcut)" :key="key">{{ key }}</Kbd></KbdGroup>
       </TooltipContent>
     </Tooltip>
 
@@ -151,7 +152,7 @@ function title(action: ResolvedAction) {
     </TooltipTrigger>
     <TooltipContent v-if="action.shortcut" class="flex items-center gap-2">
       {{ action.label }}
-      <ShortcutKbd :shortcut="action.shortcut" />
+      <KbdGroup><Kbd v-for="key in shortcutKeys(action.shortcut)" :key="key">{{ key }}</Kbd></KbdGroup>
     </TooltipContent>
   </Tooltip>
 </template>

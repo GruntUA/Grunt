@@ -6,7 +6,8 @@ import { useAuthStore } from '@/stores/auth'
 import i18n, { N_ } from '@/plugins/i18n'
 import { useAppStore, type SidebarGroup as SidebarGroupT } from '@/stores/app'
 import AppIcon from '@/components/AppIcon.vue'
-import ShortcutKbd from '@/components/ShortcutKbd.vue'
+import { Kbd, KbdGroup } from '@/components/ui/kbd'
+import { shortcutKeys } from '@/core/shortcuts'
 import NotificationsPopover from '@/components/layout/NotificationsPopover.vue'
 import SidebarItem from './SidebarItem.vue'
 import SidebarModule from './SidebarModule.vue'
@@ -179,7 +180,7 @@ watch(() => appStore.active?.name, () => { drill.value = null })
           <SidebarMenuButton :tooltip="t('Search')" @click="triggerSearch">
             <Search />
             <span>{{ t('Search...') }}</span>
-            <ShortcutKbd shortcut="Mod+K" class="ml-auto group-data-[collapsible=icon]:hidden" />
+            <KbdGroup class="ml-auto group-data-[collapsible=icon]:hidden"><Kbd v-for="key in shortcutKeys('Mod+K')" :key="key">{{ key }}</Kbd></KbdGroup>
           </SidebarMenuButton>
         </SidebarMenuItem>
         <SidebarMenuItem>

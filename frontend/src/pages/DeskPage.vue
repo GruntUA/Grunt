@@ -15,7 +15,8 @@ import { useColorMode, type Theme } from '@/core/composables/useColorMode'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Item, ItemActions, ItemContent, ItemDescription, ItemGroup, ItemMedia, ItemTitle } from '@/components/ui/item'
-import ShortcutKbd from '@/components/ShortcutKbd.vue'
+import { Kbd, KbdGroup } from '@/components/ui/kbd'
+import { shortcutKeys } from '@/core/shortcuts'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -187,7 +188,7 @@ function docInitials(doc: RecentDoc): string {
           @click="uiStore.openCommandPalette">
           <Search />
           <span class="flex-1 text-left">{{ t('Search documents, apps or actions...') }}</span>
-          <ShortcutKbd shortcut="Mod+K" class="hidden sm:inline-flex" />
+          <KbdGroup class="hidden sm:inline-flex"><Kbd v-for="key in shortcutKeys('Mod+K')" :key="key">{{ key }}</Kbd></KbdGroup>
         </Button>
 
         <p class="text-muted-foreground">
