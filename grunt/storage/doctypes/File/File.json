@@ -139,6 +139,5 @@
       "create": true,
       "delete": true
     }
-  ],
-  "list_tree_field": "folder"
+  ]
 }

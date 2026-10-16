@@ -38,11 +38,7 @@ const VIEWS = [
     ['gallery', 'Image', () => true],
     ['explorer', 'FolderOpen', ({ doc }) => {
         if (doc.default_view === 'explorer') return true
-        const fields = doc.fields || []
-        const field = doc.list_tree_field
-            ? fields.find(f => f.fieldname === doc.list_tree_field)
-            : fields.find(f => f.fieldtype === 'Link' && f.options === 'FileFolder')
-        return !!(field && field.fieldtype === 'Link' && field.options === 'FileFolder')
+        return (doc.fields || []).some(f => f.fieldtype === 'Link' && f.options === 'FileFolder')
     }],
     ['kanban', 'LayoutGrid', ({ selects }) => selects.length > 0],
     ['calendar', 'CalendarDays', ({ dates }) => dates.length > 0],
@@ -84,7 +80,6 @@ function _refresh_field_selects(frm) {
     frm.set_df_property('status_field', 'options', opt(allFieldnames))
     frm.set_df_property('kanban_column_field', 'options', opt(selectFieldnames))
     frm.set_df_property('tree_parent_field', 'options', opt(linkFieldnames))
-    frm.set_df_property('list_tree_field', 'options', opt(linkFieldnames))
     frm.set_df_property('tree_title_field', 'options', opt(allFieldnames))
     frm.set_df_property('tree_as_of_date_field', 'options', opt(dateFieldnames))
     frm.set_df_property('tree_sort_by', 'options', opt(allFieldnames))
@@ -143,7 +138,7 @@ async function on_load(frm) {
 
 async function on_change(frm, fieldname) {
     // Refresh field selects whenever the fields table changes
-    if (fieldname === 'fields' || fieldname === 'is_tree' || fieldname === 'list_tree_field') {
+    if (fieldname === 'fields' || fieldname === 'is_tree') {
         _refresh_field_selects(frm)
         return
     }

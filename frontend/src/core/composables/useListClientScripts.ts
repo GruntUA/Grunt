@@ -127,15 +127,6 @@ export function useListClientScripts(params: UseListClientScriptsParams) {
     gruntProxy.value = gp
     actions.clear()
     await executeListSetup(params.doctype, lv, gp)
-    canDropFiles.value = typeof lv.drop_files === 'function'
-  }
-
-  // Files dragged in from the desktop - only when a script set `listview.drop_files`.
-  const canDropFiles = ref(false)
-  async function dropFiles(files: File[], target: string | null) {
-    const lv = listviewProxy.value
-    if (!lv?.drop_files || !files.length) return
-    await lv.drop_files(lv, files, target)
   }
 
   async function runQuickFilterOnChange(change: ListQuickFilterChange) {
@@ -152,7 +143,5 @@ export function useListClientScripts(params: UseListClientScriptsParams) {
     actions,
     runListClientSetup,
     runQuickFilterOnChange,
-    canDropFiles,
-    dropFiles,
   }
 }

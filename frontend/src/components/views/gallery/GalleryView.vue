@@ -12,7 +12,6 @@ import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
 import ListEmptyState from '@/components/views/ListEmptyState.vue'
 import { docUrl } from '@/core/workspaceUrl'
-import { useRowDrag } from '@/core/composables/useRowDrag'
 
 const { t } = useI18n()
 
@@ -33,8 +32,6 @@ const props = defineProps<{
 }>()
 
 const router = useRouter()
-// Cards drag onto the list's tree panel (DocType.list_tree_field).
-const rowDrag = useRowDrag()
 
 const fieldMap = computed(() => {
   const m: Record<string, DocField> = {}
@@ -121,8 +118,6 @@ function formatDate(val: unknown, type: string): string {
         :class="selection?.isSelected(String(row.id))
           ? 'border-primary ring-2 ring-primary'
           : 'hover:border-primary/40'"
-        :draggable="rowDrag.draggable.value"
-        @dragstart="rowDrag.onDragStart($event, String(row.id))"
         @click="onCardClick($event, row)"
       >
         <!-- Selection checkbox -->

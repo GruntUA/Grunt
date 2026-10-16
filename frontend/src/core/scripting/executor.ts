@@ -183,15 +183,6 @@ export interface ListViewProxy {
   set_quick_filter_value: (id: string, value: string) => void
   /** Replace all quick-filter values at once. */
   set_quick_filters: (values: Record<string, string>) => void
-  /**
-   * Set it to accept files dragged in from the desktop - onto the list or onto
-   * a node of the tree panel (`target` is that node, else `null`).
-   *
-   * ```js
-   * listview.drop_files = (lv, files, target) => grunt.upload_files({ files, folder: target })
-   * ```
-   */
-  drop_files?: (listview: ListViewProxy, files: File[], target: string | null) => unknown
 }
 
 export interface ListQuickFilterChange {

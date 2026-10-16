@@ -39,8 +39,6 @@ import QuickFilterSettingsDialog from '@/components/views/list/QuickFilterSettin
 import DocTypeToolbar from '@/components/views/DocTypeToolbar.vue'
 import ListViewRouter from '@/components/views/list/ListViewRouter.vue'
 import ListPagination from '@/components/views/ListPagination.vue'
-import ListTreePanel from '@/components/views/list/ListTreePanel.vue'
-import { provideRowDrag } from '@/core/composables/useRowDrag'
 import { docUrl } from '@/core/workspaceUrl'
 import { roleAllows } from '@/core/permissions'
 import { getExporters } from '@/core/io/exporters/registry'
@@ -153,8 +151,6 @@ const {
   actions: listActions,
   runListClientSetup,
   runQuickFilterOnChange,
-  canDropFiles,
-  dropFiles,
 } = useListClientScripts({
   doctype: props.doctype,
   activeFilters,
@@ -278,45 +274,6 @@ watch(
 const ownScrollView = computed(() => getViewDef(viewMode.value)?.managesOwnScroll ?? false)
 // Page is bounded to the viewport; the view scrolls inside it (pager may still show).
 const boundedView = computed(() => ownScrollView.value || (getViewDef(viewMode.value)?.fillsViewport ?? false))
-
-// Tree navigation (DocType.list_tree_field)
-// A Link to an `is_tree` DocType shown as a panel beside the list: its node is
-// a filter; rows dragged onto a node are re-linked. Views that manage their own
-// scroll (kanban, calendar…) keep the full width.
-const treeNavField = computed(() => {
-  const name = dt.value?.list_tree_field
-  const f = name ? dt.value?.fields.find(ff => ff.fieldname === name && ff.fieldtype === 'Link') : null
-  return f?.options ? f : null
-})
-const showTreeNav = computed(() => !!treeNavField.value && !ownScrollView.value)
-provideRowDrag({ doctype: props.doctype, enabled: showTreeNav, selectedIds })
-
-// Files dragged in from the desktop (DocType script sets `listview.drop_files`)
-const filesOver = ref(false)
-function draggingFiles(e: DragEvent): boolean {
-  return canDropFiles.value && !!e.dataTransfer?.types.includes('Files')
-}
-function onFilesDragOver(e: DragEvent) {
-  if (!draggingFiles(e)) return
-  e.preventDefault()
-  if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy'
-  filesOver.value = true
-}
-function onFilesDragLeave(e: DragEvent) {
-  const to = e.relatedTarget as Node | null
-  if (!to || !(e.currentTarget as HTMLElement).contains(to)) filesOver.value = false
-}
-function onFilesDrop(e: DragEvent) {
-  filesOver.value = false
-  if (!draggingFiles(e)) return
-  e.preventDefault()
-  dropFiles(Array.from(e.dataTransfer?.files ?? []), null)
-}
-
-function onTreeRowsMoved() {
-  clearSelection()
-  queryClient.invalidateQueries({ queryKey: ['documents', props.doctype] })
-}
 
 const { applyRouteState, setGroupByInRoute, applySort } = useListRouteSync({
   route,
@@ -461,19 +418,7 @@ watch(() => props.doctype, async (newDoctype) => {
       @sort="onSort"
     />
 
-    <div class="flex min-h-0 flex-1 gap-4" :class="boundedView && 'overflow-hidden'">
-    <aside v-if="showTreeNav && dt && treeNavField"
-      class="hidden w-56 shrink-0 md:block">
-      <div class="sticky top-4 max-h-[calc(100vh-6rem)] overflow-y-auto pr-1">
-        <ListTreePanel :dt="dt" :field="treeNavField" :workspace="workspace" :filters="activeFilters"
-          :accepts-files="canDropFiles" :refresh-key="refreshKey"
-          @update:filters="activeFilters = $event" @moved="onTreeRowsMoved"
-          @drop-files="(target, files) => dropFiles(files, target)" />
-      </div>
-    </aside>
-    <div class="flex min-h-0 min-w-0 flex-1 flex-col gap-3 rounded-md"
-      :class="filesOver && 'ring-2 ring-primary ring-offset-2'"
-      @dragover="onFilesDragOver" @dragleave="onFilesDragLeave" @drop="onFilesDrop">
+    <div class="flex min-h-0 min-w-0 flex-1 flex-col gap-3" :class="boundedView && 'overflow-hidden'">
     <ListViewRouter
       v-if="dt && colState"
       :view-mode="viewMode"
@@ -529,8 +474,6 @@ watch(() => props.doctype, async (newDoctype) => {
         @update:page="page = $event"
         @update:per-page="perPage = $event"
       />
-    </div>
-
     </div>
     </div>
 

@@ -296,18 +296,6 @@
       "depends_on": "eval:doc.sort_field"
     },
     {
-      "fieldname": "col_lv_2",
-      "label": "",
-      "fieldtype": "Column"
-    },
-    {
-      "fieldname": "list_tree_field",
-      "label": "Tree navigation field",
-      "fieldtype": "Select",
-      "options": "",
-      "description": "Link field to a hierarchical DocType (e.g. a folder or department). The list shows that tree on the side: pick a node to filter, drag records onto a node to move them."
-    },
-    {
       "fieldname": "sec_status_config",
       "label": "Statuses",
       "fieldtype": "Section"

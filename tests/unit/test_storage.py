@@ -246,9 +246,7 @@ async def _home() -> str:
 
 
 @pytest.mark.asyncio
-async def test_file_list_navigates_by_folder_tree(ctx):
-    meta = await grunt.get_meta("File")
-    assert meta is not None and meta.list_tree_field == "folder"
+async def test_file_folders_form_a_tree(ctx):
     folder_meta = await grunt.get_meta("FileFolder")
     assert folder_meta is not None and folder_meta.is_tree
 
