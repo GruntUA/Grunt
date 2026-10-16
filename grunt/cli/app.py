@@ -394,18 +394,38 @@ def app_uninstall(name: str, site: str | None, keep_data: bool, assume_yes: bool
     )
 
 
+# Regenerable by `grunt app get`/`uv sync`/`npm install` - not worth archiving.
+_ARCHIVE_SKIP = {".venv", "node_modules", "__pycache__", ".pytest_cache", ".ruff_cache", "dist"}
+
+
 def _archive_path(name: str) -> Path:
-    """archive/apps/<name>-<date> in the bench, unused (time added on a clash)."""
+    """archive/apps/<name>-<date>.tar.zst in the bench, unused (time added on a clash)."""
     from datetime import datetime
 
     from grunt.site.manager import site_manager
 
     now = datetime.now()
     base = site_manager.bench_dir / "archive" / "apps"
-    target = base / f"{name}-{now:%Y-%m-%d}"
+    target = base / f"{name}-{now:%Y-%m-%d}.tar.zst"
     if target.exists():
-        target = base / f"{name}-{now:%Y-%m-%d-%H%M%S}"
+        target = base / f"{name}-{now:%Y-%m-%d-%H%M%S}.tar.zst"
     return target
+
+
+def _archive_app(app_dir: Path, target: Path) -> None:
+    """Pack *app_dir* into a zstd tarball (unpacks to <name>/)."""
+    import tarfile
+
+    from grunt.backups import DEFAULT_COMPRESSION_LEVEL, zstd_options
+
+    def _skip(info: tarfile.TarInfo) -> tarfile.TarInfo | None:
+        return None if Path(info.name).name in _ARCHIVE_SKIP else info
+
+    target.parent.mkdir(parents=True, exist_ok=True)
+    partial = target.with_name(target.name + ".part")
+    with tarfile.open(partial, "w:zst", options=zstd_options(DEFAULT_COMPRESSION_LEVEL)) as tar:
+        tar.add(app_dir, arcname=app_dir.name, filter=_skip)
+    partial.rename(target)
 
 
 @app_group.command("remove")
@@ -414,7 +434,7 @@ def _archive_path(name: str) -> Path:
     "--no-archive",
     is_flag=True,
     default=False,
-    help="Delete the app directory instead of moving it to archive/apps/",
+    help="Delete the app directory instead of packing it into archive/apps/",
 )
 @click.option(
     "--force",
@@ -426,7 +446,8 @@ def _archive_path(name: str) -> Path:
 def app_remove(name: str, no_archive: bool, force: bool, assume_yes: bool):
     """Remove an app from the bench (like `bench remove-app`).
 
-    Uninstalls its Python package and moves apps/NAME to archive/apps/.
+    Uninstalls its Python package and packs apps/NAME into
+    archive/apps/NAME-<date>.tar.zst (unpack: tar --zstd -xf FILE -C apps/).
     The sites must not have it installed - run `grunt app uninstall NAME` first.
     """
     import shutil
@@ -454,7 +475,7 @@ def app_remove(name: str, no_archive: bool, force: bool, assume_yes: bool):
         click.echo(click.style(f"Removing anyway (--force):\n{details}", fg="yellow"))
 
     target = None if no_archive else _archive_path(name)
-    action = "delete" if target is None else f"move to {target}"
+    action = "delete" if target is None else f"pack into {target}"
     if not assume_yes and not click.confirm(f"Remove app '{name}' ({action})?"):
         raise SystemExit("Cancelled.")
 
@@ -465,11 +486,9 @@ def app_remove(name: str, no_archive: bool, force: bool, assume_yes: bool):
     if package:
         click.echo(f"  Python package {package} uninstalled")
 
-    if target is None:
-        shutil.rmtree(app_dir)
-    else:
-        target.parent.mkdir(parents=True, exist_ok=True)
-        shutil.move(app_dir, target)
+    if target is not None:
+        _archive_app(app_dir, target)
+    shutil.rmtree(app_dir)
     click.echo(f"✓ App '{name}' removed" + ("" if target is None else f", archived to {target}"))
 
 

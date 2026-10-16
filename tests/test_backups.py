@@ -97,8 +97,8 @@ async def test_failed_backup_leaves_nothing_behind(site, monkeypatch):
 
 def test_compression_level_is_clamped():
     level = backups.zstd.CompressionParameter.compression_level
-    assert backups._zstd_options(0)[level] == 1
-    assert backups._zstd_options(22)[level] == backups.MAX_COMPRESSION_LEVEL
+    assert backups.zstd_options(0)[level] == 1
+    assert backups.zstd_options(22)[level] == backups.MAX_COMPRESSION_LEVEL
 
 
 def test_rotation_keeps_the_newest(site):

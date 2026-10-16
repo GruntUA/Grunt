@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import tarfile
 
 import pytest
 from click.testing import CliRunner
@@ -22,6 +23,8 @@ def bench(tmp_path, monkeypatch, uninstalls):
         meta = {"name": name, "depends_on": depends_on}
         (tmp_path / "apps" / name / "app.json").write_text(json.dumps(meta))
     (tmp_path / "apps" / "hrm" / "pyproject.toml").write_text('[project]\nname = "grunt-hrm"\n')
+    (tmp_path / "apps" / "hrm" / "__pycache__").mkdir()
+    (tmp_path / "apps" / "hrm" / "__pycache__" / "x.pyc").write_bytes(b"")
     monkeypatch.setattr(site_manager, "bench_dir", tmp_path)
     monkeypatch.setattr(site_manager, "sites_dir", tmp_path / "sites")
     return tmp_path
@@ -69,7 +72,11 @@ def test_archives_and_uninstalls_package(bench, uninstalls):
     assert not (bench / "apps" / "hrm").exists()
     [archived] = (bench / "archive" / "apps").iterdir()
     assert archived.name.startswith("hrm-")
-    assert (archived / "app.json").exists()
+    assert archived.name.endswith(".tar.zst")
+    with tarfile.open(archived, "r:zst") as tar:
+        names = tar.getnames()
+    assert "hrm/app.json" in names
+    assert not any("__pycache__" in n for n in names)
     assert uninstalls == [
         ["/bin/uv", "pip", "uninstall", "--python", deps.sys.executable, "grunt-hrm"]
     ]

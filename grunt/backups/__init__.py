@@ -126,7 +126,7 @@ def rotate(site: str, keep: int) -> list[str]:
 # Making a backup
 
 
-def _zstd_options(level: int) -> dict:
+def zstd_options(level: int) -> dict:
     """Compression *level* (clamped) on half the cores - the site keeps serving meanwhile."""
     options = {
         zstd.CompressionParameter.compression_level: min(max(level, 1), MAX_COMPRESSION_LEVEL)
@@ -164,7 +164,7 @@ def _backup_sqlite(db_path: Path, dest: Path, level: int, progress: Progress) ->
         progress.set(done=base + snapshot.stat().st_size, stage=_("Compressing the database"))
         with (
             snapshot.open("rb") as fin,
-            zstd.open(dest, "wb", options=_zstd_options(level)) as fout,
+            zstd.open(dest, "wb", options=zstd_options(level)) as fout,
         ):
             while chunk := fin.read(1024 * 1024):
                 fout.write(chunk)
@@ -214,7 +214,7 @@ _SKIPPED_UPLOADS = ("uploads/tmp/", "uploads/cache/")
 
 def _backup_files(uploads: Path, dest: Path, level: int, progress: Progress) -> None:
     progress.set(stage=_("Archiving files"))
-    with _CountingTarFile.open(dest, "w:zst", options=_zstd_options(level)) as tar:
+    with _CountingTarFile.open(dest, "w:zst", options=zstd_options(level)) as tar:
         tar.progress = progress
         # Uploads still in flight (tmp/) are not files yet; cache/ holds copies
         # of files kept in cloud storage (grunt.storage.cloud.files) - they
