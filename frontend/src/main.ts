@@ -3,7 +3,7 @@ import { createPinia } from 'pinia'
 import { VueQueryPlugin } from '@tanstack/vue-query'
 import App from './App.vue'
 import router from './router'
-import i18n from './plugins/i18n'
+import i18n, { loadRemoteTranslations } from './plugins/i18n'
 import { vueQueryOptions } from './plugins/vueQuery'
 import { grunt } from '@/core/grunt'
 import { useAuthStore } from '@/stores/auth'
@@ -27,6 +27,7 @@ useAuthStore().prefetchMe()
 loadSiteConfig()
 app.use(router)
 app.use(i18n)
+loadRemoteTranslations()
 app.use(VueQueryPlugin, vueQueryOptions)
 app.mount('#app')
 

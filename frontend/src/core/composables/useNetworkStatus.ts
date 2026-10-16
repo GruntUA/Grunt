@@ -10,7 +10,7 @@
  * Coming back (either signal) sends the offline change queue; while the
  * server is away or changes are waiting, sending is retried every 30 s.
  *
- * Call useNetworkStatus() once in App.vue; the refs are module-level singletons.
+ * Called once by OfflineIndicator.vue; the refs are module-level singletons.
  */
 
 import { computed, onMounted, onUnmounted, ref } from 'vue'

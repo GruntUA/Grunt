@@ -174,7 +174,11 @@ export async function flush(): Promise<number> {
     }
   }
   await refreshQueue()
-  if (synced) window.dispatchEvent(new CustomEvent('grunt:offline-synced', { detail: synced }))
+  if (synced) {
+    // Cached lists / documents predate the replayed changes.
+    const { queryClient } = await import('@/plugins/vueQuery')
+    void queryClient.invalidateQueries()
+  }
   return synced
 }
 
