@@ -5,13 +5,12 @@ import { useRouter, useRoute } from 'vue-router'
 import type { WorkspaceLink } from '@/core/api/workspace'
 import AppIcon from '@/components/AppIcon.vue'
 import { appUrl, isLinkActive } from '@/core/workspaceUrl'
+import { useAppStore } from '@/stores/app'
 import { SidebarMenuBadge, SidebarMenuButton, SidebarMenuItem, SidebarMenuSubButton, SidebarMenuSubItem } from '@/components/ui/sidebar'
 
 const props = defineProps<{
   item: WorkspaceLink
   workspaceName: string
-  count?: number
-  color?: string
   /** Render as a SidebarMenuSubItem (nested inside a Collapsible group) instead of a top-level SidebarMenuItem. */
   nested?: boolean
   /** Inside a module's flyout panel: the label is always shown, so no tooltip on a collapsed sidebar. */
@@ -20,9 +19,9 @@ const props = defineProps<{
 
 const router = useRouter()
 const route = useRoute()
+const appStore = useAppStore()
 
 const isActive = computed(() => isLinkActive(props.item, route.params))
-
 
 /**
  * A DocType item's `count_filters` also filters the list it opens - the badge
@@ -56,7 +55,7 @@ function navigate(e: MouseEvent) {
 }
 
 const displayCount = computed(() => {
-  const n = props.count ?? 0
+  const n = appStore.counts[props.item.count_key || props.item.link_to] ?? 0
   if (n <= 0) return ''
   // Show the real grouped number below 100k, then compact it: 123 456 -> "123K", 1 200 000 -> "1.2M".
   if (n < 100_000) return formatNumber(n)

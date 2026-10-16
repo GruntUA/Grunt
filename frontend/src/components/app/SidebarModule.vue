@@ -4,7 +4,6 @@ import { useRoute } from 'vue-router'
 import { ChevronRight } from '@lucide/vue'
 import type { WorkspaceLink } from '@/core/api/workspace'
 import { isLinkActive } from '@/core/workspaceUrl'
-import { useAppStore } from '@/stores/app'
 import AppIcon from '@/components/AppIcon.vue'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from '@/components/ui/sidebar'
@@ -22,7 +21,6 @@ const props = defineProps<{
 
 const emit = defineEmits<{ drill: [] }>()
 
-const appStore = useAppStore()
 const route = useRoute()
 const { isMobile } = useSidebar()
 
@@ -53,9 +51,7 @@ watch(() => route.fullPath, () => { open.value = false })
         <p class="px-2 pb-1.5 text-xs font-medium text-muted-foreground">{{ section }}</p>
         <SidebarMenu>
           <SidebarItem
-            v-for="item in items" :key="item.link_to + item.sequence" :item="item" flyout
-            :workspace-name="workspaceName" :count="appStore.counts[item.count_key || item.link_to] ?? 0"
-            :color="appStore.active?.color"
+            v-for="item in items" :key="item.link_to + item.sequence" :item="item" flyout :workspace-name="workspaceName"
           />
         </SidebarMenu>
       </PopoverContent>

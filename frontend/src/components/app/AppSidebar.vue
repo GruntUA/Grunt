@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
-import i18n, { N_ } from '@/plugins/i18n'
+import i18n from '@/plugins/i18n'
 import { useAppStore, type SidebarGroup as SidebarGroupT } from '@/stores/app'
 import AppIcon from '@/components/AppIcon.vue'
 import { Kbd, KbdGroup } from '@/components/ui/kbd'
@@ -11,27 +11,30 @@ import { shortcutKeys } from '@/core/shortcuts'
 import NotificationsPopover from '@/components/layout/NotificationsPopover.vue'
 import SidebarItem from './SidebarItem.vue'
 import SidebarModule from './SidebarModule.vue'
-import { useColorMode } from '@/core/composables/useColorMode'
+import SidebarUser from './SidebarUser.vue'
+import { useColorMode, type Theme } from '@/core/composables/useColorMode'
 import { useSiteConfig } from '@/core/composables/useSiteConfig'
 import { clearClientCache } from '@/core/clearCache'
-import type { Theme } from '@/core/composables/useColorMode'
-import { useSidebar } from '@/components/ui/sidebar'
+import { appUrl } from '@/core/workspaceUrl'
+import { useEventListener } from '@vueuse/core'
 import {
-  ArrowLeft, ChevronRight, ChevronsUpDown, LayoutGrid, Sun, Moon, Monitor,
-  Settings2, Search, Activity,
-  Mail, LogOut, Languages, Eye, RefreshCw,
+  ArrowLeft, ChevronRight, ChevronsUpDown, LayoutDashboard, LayoutGrid, Sun, Moon, Monitor,
+  Settings2, Search, LogOut, Languages, Eye, RefreshCw,
 } from '@lucide/vue'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator } from '@/components/ui/command'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarMenuSub, SidebarSeparator } from '@/components/ui/sidebar'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { DropdownMenuRadioGroup, DropdownMenuRadioItem } from '@/components/ui/dropdown-menu'
-import { SidebarFooter, SidebarRail } from '@/components/ui/sidebar'
-import { appUrl } from '@/core/workspaceUrl'
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuRadioGroup,
+  DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import {
+  Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader,
+  SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarMenuSub, SidebarRail, SidebarSeparator, useSidebar,
+} from '@/components/ui/sidebar'
 import { Button } from '@/components/ui/button'
-const props = defineProps<{ workspaceName: string }>()
+
+defineProps<{ workspaceName: string }>()
 
 const appStore = useAppStore()
 const auth = useAuthStore()
@@ -40,17 +43,13 @@ const colorMode = useColorMode()
 const { isMobile } = useSidebar()
 const { t } = useI18n()
 
-// Actions
-function goToDesk() { router.push('/app') }
 const switcherOpen = ref(false)
 function openApp(name: string | null) {
   switcherOpen.value = false
-  if (name) router.push(appUrl({ type: 'Workspace', name }))
-  else goToDesk()
+  router.push(name ? appUrl({ type: 'Workspace', name }) : '/app')
 }
 function goToProfile() { if (auth.user) router.push(`/app/grunt/User/${auth.user.id}`) }
 function triggerSearch() { window.dispatchEvent(new CustomEvent('toggle-search')) }
-function initials(name: string) { return name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() }
 async function onThemeChange(theme: unknown) { await auth.setTheme(theme as Theme) }
 const currentLanguage = computed(() => auth.user?.language || i18n.global.locale.value)
 const { languages } = useSiteConfig()
@@ -62,38 +61,20 @@ async function exitImpersonation() {
   window.location.href = '/'
 }
 
-// Admin shortcuts
-const adminLinks = [
-  { to: '/grunt/ActivityLog', icon: Activity, label: 'Activity log' },
-  { to: '/grunt/EmailMessage', icon: Mail, label: N_('Emails') },
-  { to: '/grunt/EmailAccount', icon: Mail, label: N_('Email settings') },
-]
-
-// Lifecycle
-const _onQuickCreate = () => {
+useEventListener(window, 'grunt_recent_docs_changed', () => appStore.refreshCounts())
+useEventListener(window, 'open-quick-create', () => {
   window.dispatchEvent(new CustomEvent('toggle-search'))
   window.dispatchEvent(new CustomEvent('command-palette-open-quick-create'))
-}
-const _onRecentDocsChanged = () => appStore.refreshCounts()
-
-onMounted(() => {
-  window.addEventListener('grunt_recent_docs_changed', _onRecentDocsChanged)
-  window.addEventListener('open-quick-create', _onQuickCreate)
 })
-
-onUnmounted(() => {
-  window.removeEventListener('grunt_recent_docs_changed', _onRecentDocsChanged)
-  window.removeEventListener('open-quick-create', _onQuickCreate)
-})
-
 watch(() => router.currentRoute.value.path, () => { if (appStore.active) appStore.refreshCounts() })
 
-// Modules mode (AppMenu sidebar_mode): sections become one row each, their items
-// open beside the sidebar (SidebarModule); runs of sections form one menu block.
+// Sidebar items as blocks: dividers, items outside any section, and runs of
+// sections. A run renders as collapsible groups, or in modules mode (AppMenu
+// sidebar_mode) as one row per section whose items open beside the sidebar.
 type Block =
   | { kind: 'divider' }
   | { kind: 'plain'; items: SidebarGroupT['items'] }
-  | { kind: 'modules'; groups: SidebarGroupT[] }
+  | { kind: 'sections'; groups: SidebarGroupT[] }
 
 const modulesMode = computed(() => appStore.active?.sidebar_mode === 'modules')
 const blocks = computed<Block[]>(() => {
@@ -103,8 +84,8 @@ const blocks = computed<Block[]>(() => {
     else if (!g.section) out.push({ kind: 'plain', items: g.items })
     else {
       const last = out.at(-1)
-      if (last?.kind === 'modules') last.groups.push(g)
-      else out.push({ kind: 'modules', groups: [g] })
+      if (last?.kind === 'sections') last.groups.push(g)
+      else out.push({ kind: 'sections', groups: [g] })
     }
   }
   return out
@@ -127,7 +108,7 @@ watch(() => appStore.active?.name, () => { drill.value = null })
           <!-- App switcher: a searchable grid of the apps, like the desk -->
           <Popover v-model:open="switcherOpen">
             <PopoverTrigger as-child>
-<SidebarMenuButton size="lg" class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
+              <SidebarMenuButton size="lg" class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
                 <div class="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
                   <AppIcon :icon="appStore.active?.icon || 'folder'" class="size-4" />
                 </div>
@@ -186,11 +167,16 @@ watch(() => appStore.active?.name, () => { drill.value = null })
         <SidebarMenuItem>
           <NotificationsPopover :workspace="appStore.active?.name" />
         </SidebarMenuItem>
-        <RouterLink :to="appUrl({ type: 'Workspace', name: workspaceName })" custom v-slot="{ navigate }">
-          <SidebarItem
-            :item="{ type: 'DocType', link_to: '', label: t('Overview'), icon: 'layout-dashboard', section: '', sequence: 0, show_count: false, roles: '' }"
-            :workspace-name="workspaceName" @click="navigate" />
-        </RouterLink>
+        <SidebarMenuItem>
+          <RouterLink :to="appUrl({ type: 'Workspace', name: workspaceName })" custom v-slot="{ isExactActive, href, navigate }">
+            <SidebarMenuButton as-child :is-active="isExactActive" :tooltip="t('Overview')">
+              <a :href="href" @click="navigate">
+                <LayoutDashboard />
+                <span>{{ t('Overview') }}</span>
+              </a>
+            </SidebarMenuButton>
+          </RouterLink>
+        </SidebarMenuItem>
       </SidebarMenu>
     </SidebarHeader>
 
@@ -208,108 +194,80 @@ watch(() => appStore.active?.name, () => { drill.value = null })
         <SidebarGroupLabel>{{ drillGroup.section }}</SidebarGroupLabel>
         <SidebarGroupContent>
           <SidebarMenu>
-            <SidebarItem v-for="item in drillGroup.items" :key="item.link_to + item.sequence" :item="item"
-              :workspace-name="workspaceName" :count="appStore.counts[item.count_key || item.link_to] ?? 0"
-              :color="appStore.active?.color" />
+            <SidebarItem v-for="item in drillGroup.items" :key="item.link_to + item.sequence" :item="item" :workspace-name="workspaceName" />
           </SidebarMenu>
         </SidebarGroupContent>
       </SidebarGroup>
 
-      <!-- Modules mode: one row per section -->
-      <template v-else-if="modulesMode">
+      <template v-else>
         <template v-for="(block, bi) in blocks" :key="bi">
           <SidebarSeparator v-if="block.kind === 'divider'" />
-          <SidebarGroup v-else>
+
+          <SidebarGroup v-else-if="block.kind === 'plain'">
             <SidebarGroupContent>
               <SidebarMenu>
-                <template v-if="block.kind === 'plain'">
-                  <SidebarItem v-for="item in block.items" :key="item.link_to + item.sequence" :item="item"
-                    :workspace-name="workspaceName" :count="appStore.counts[item.count_key || item.link_to] ?? 0"
-                    :color="appStore.active?.color" />
-                </template>
+                <SidebarItem v-for="item in block.items" :key="item.link_to + item.sequence" :item="item" :workspace-name="workspaceName" />
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+
+          <!-- Modules mode: one row per section -->
+          <SidebarGroup v-else-if="modulesMode">
+            <SidebarGroupContent>
+              <SidebarMenu>
                 <SidebarModule
-                  v-for="g in block.groups" v-else :key="g.section"
+                  v-for="g in block.groups" :key="g.section"
                   :section="g.section" :icon="sectionIcon(g.section)" :items="g.items" :workspace-name="workspaceName"
                   @drill="drill = g.section"
                 />
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
-        </template>
-      </template>
 
-      <!-- Sections mode: collapsible groups -->
-      <template v-for="(group, gi) in modulesMode ? [] : appStore.groupedItems" :key="gi">
-        <SidebarSeparator v-if="group.section === '__divider__'" />
+          <!-- Sections mode: collapsible groups -->
+          <template v-else>
+            <template v-for="group in block.groups" :key="group.section">
+              <!-- Розгорнута панель: секція, що згортається -->
+              <Collapsible default-open class="group-data-[collapsible=icon]:hidden">
+                <SidebarGroup>
+                  <SidebarGroupLabel as-child>
+                    <CollapsibleTrigger class="group flex w-full cursor-pointer items-center">
+                      <span class="truncate">{{ group.section }}</span>
+                      <ChevronRight class="ml-auto size-4 shrink-0 transition-transform group-data-[state=open]:rotate-90" />
+                    </CollapsibleTrigger>
+                  </SidebarGroupLabel>
+                  <CollapsibleContent>
+                    <SidebarGroupContent>
+                      <SidebarMenuSub>
+                        <SidebarItem v-for="item in group.items" :key="item.link_to + item.sequence" nested :item="item" :workspace-name="workspaceName" />
+                      </SidebarMenuSub>
+                    </SidebarGroupContent>
+                  </CollapsibleContent>
+                </SidebarGroup>
+              </Collapsible>
 
-        <SidebarGroup v-else-if="!group.section">
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarItem v-for="item in group.items" :key="item.link_to + item.sequence" :item="item"
-                :workspace-name="workspaceName" :count="appStore.counts[item.count_key || item.link_to] ?? 0"
-                :color="appStore.active?.color" />
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <template v-else>
-          <!-- Розгорнута панель: секція, що згортається -->
-          <Collapsible default-open class="group-data-[collapsible=icon]:hidden">
-            <SidebarGroup>
-              <SidebarGroupLabel as-child>
-                <CollapsibleTrigger class="group flex w-full cursor-pointer items-center">
-                  <span class="truncate">{{ group.section }}</span>
-                  <ChevronRight class="ml-auto size-4 shrink-0 transition-transform group-data-[state=open]:rotate-90" />
-                </CollapsibleTrigger>
-              </SidebarGroupLabel>
-              <CollapsibleContent>
+              <!-- Згорнута панель: плоский список іконок (підменю shadcn ховається в icon-режимі) -->
+              <SidebarGroup class="hidden group-data-[collapsible=icon]:flex">
                 <SidebarGroupContent>
-                  <SidebarMenuSub>
-                    <SidebarItem v-for="item in group.items" :key="item.link_to + item.sequence" nested :item="item"
-                      :workspace-name="workspaceName" :count="appStore.counts[item.count_key || item.link_to] ?? 0"
-                      :color="appStore.active?.color" />
-                  </SidebarMenuSub>
+                  <SidebarMenu>
+                    <SidebarItem v-for="item in group.items" :key="item.link_to + item.sequence" :item="item" :workspace-name="workspaceName" />
+                  </SidebarMenu>
                 </SidebarGroupContent>
-              </CollapsibleContent>
-            </SidebarGroup>
-          </Collapsible>
-
-          <!-- Згорнута панель: плоский список іконок (підменю shadcn ховається в icon-режимі) -->
-          <SidebarGroup class="hidden group-data-[collapsible=icon]:flex">
-            <SidebarGroupContent>
-              <SidebarMenu>
-                <SidebarItem v-for="item in group.items" :key="item.link_to + item.sequence" :item="item"
-                  :workspace-name="workspaceName" :count="appStore.counts[item.count_key || item.link_to] ?? 0"
-                  :color="appStore.active?.color" />
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
+              </SidebarGroup>
+            </template>
+          </template>
         </template>
       </template>
 
-      <!-- Admin shortcuts -->
       <SidebarGroup v-if="auth.isSystemManager" class="mt-auto">
-        <SidebarGroupLabel>{{ t('Settings') }}</SidebarGroupLabel>
-        <SidebarGroupContent>
-          <SidebarMenu>
-            <SidebarMenuItem v-for="link in adminLinks" :key="link.to">
-              <RouterLink :to="link.to" custom v-slot="{ isActive, href, navigate }">
-                <SidebarMenuButton as-child :is-active="isActive" :tooltip="t(link.label)">
-                  <a :href="href" @click="navigate">
-                    <component :is="link.icon" />
-                    <span>{{ t(link.label) }}</span>
-                  </a>
-                </SidebarMenuButton>
-              </RouterLink>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton :tooltip="t('Edit menu')" @click="router.push(`/app/grunt/AppMenu/${appStore.active?.name}`)">
-                <Settings2 />
-                <span>{{ t('Edit menu') }}</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarGroupContent>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton :tooltip="t('Edit menu')" @click="router.push(`/app/grunt/AppMenu/${appStore.active?.name}`)">
+              <Settings2 />
+              <span>{{ t('Edit menu') }}</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
       </SidebarGroup>
     </SidebarContent>
 
@@ -337,16 +295,7 @@ watch(() => appStore.active?.name, () => { drill.value = null })
           <DropdownMenu>
             <DropdownMenuTrigger as-child>
               <SidebarMenuButton size="lg" class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground" :tooltip="auth.user?.full_name">
-                <Avatar class="size-8 rounded-lg">
-                  <AvatarImage v-if="auth.user?.avatar" :src="auth.user.avatar" alt="" />
-                  <AvatarFallback class="rounded-lg">
-                    {{ auth.user ? initials(auth.user.full_name) : '?' }}
-                  </AvatarFallback>
-                </Avatar>
-                <div class="grid flex-1 text-left leading-tight">
-                  <span class="truncate font-medium">{{ auth.user?.full_name }}</span>
-                  <span class="truncate text-muted-foreground">{{ auth.user?.email }}</span>
-                </div>
+                <SidebarUser />
                 <ChevronsUpDown class="ml-auto" />
               </SidebarMenuButton>
             </DropdownMenuTrigger>
@@ -356,16 +305,7 @@ watch(() => appStore.active?.name, () => { drill.value = null })
             >
               <DropdownMenuItem class="p-0 font-normal focus:bg-sidebar-accent" :title="t('Open my profile')" @click="goToProfile">
                 <div class="flex w-full items-center gap-2 px-1 py-1.5 text-left">
-                  <Avatar class="size-8 rounded-lg">
-                    <AvatarImage v-if="auth.user?.avatar" :src="auth.user.avatar" alt="" />
-                    <AvatarFallback class="rounded-lg">
-                      {{ auth.user ? initials(auth.user.full_name) : '?' }}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div class="grid flex-1 text-left leading-tight">
-                    <span class="truncate font-semibold">{{ auth.user?.full_name }}</span>
-                    <span class="truncate text-muted-foreground">{{ auth.user?.email }}</span>
-                  </div>
+                  <SidebarUser />
                 </div>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
@@ -396,10 +336,6 @@ watch(() => appStore.active?.name, () => { drill.value = null })
               <DropdownMenuItem class="gap-2 p-2" :title="t('Reload translations, menus and schemas; your settings and drafts are kept')" @click="clearClientCache">
                 <RefreshCw class="size-4 shrink-0" />
                 <span>{{ t('Clear cache') }}</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem v-if="auth.isImpersonating" class="gap-2 p-2 text-violet-600 focus:text-violet-700 dark:text-violet-400" @click="exitImpersonation">
-                <Eye class="size-4 shrink-0" />
-                <span>{{ t('Back to my account') }}</span>
               </DropdownMenuItem>
               <DropdownMenuItem class="gap-2 p-2" @click="handleLogout">
                 <LogOut class="size-4 shrink-0" />
