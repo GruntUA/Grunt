@@ -15,6 +15,7 @@ import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from '@/components/ui/input-otp'
 import { Spinner } from '@/components/ui/spinner'
+import { afterLoginTarget } from '@/core/loginRedirect'
 
 const { t } = useI18n()
 
@@ -91,7 +92,7 @@ async function handleVerify() {
 
     toast.success(t('Welcome!'))
     setTimeout(() => {
-      router.push({ name: 'desk' })
+      router.push(afterLoginTarget())
     }, 200)
   } catch (e: any) {
     console.error('MFA Verify Error:', e)
@@ -123,7 +124,7 @@ async function handleVerify() {
             <Copy />
             {{ t('Copy codes') }}
           </Button>
-          <Button type="button" @click="router.push({ name: 'desk' })">
+          <Button type="button" @click="router.push(afterLoginTarget())">
             {{ t('Continue') }}
             <ArrowRight />
           </Button>

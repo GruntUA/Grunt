@@ -2,6 +2,7 @@ import axios from 'axios'
 import { markServerReachable } from '@/core/composables/useNetworkStatus'
 import type { AxiosInstance, InternalAxiosRequestConfig } from 'axios'
 import i18n from '@/plugins/i18n'
+import { loginLocation } from '@/core/loginRedirect'
 
 const t = (key: string, params: Record<string, unknown> = {}): string => i18n.global.t(key, params)
 
@@ -37,7 +38,8 @@ const PUBLIC_AUTH_PATHS = new Set([
 
 async function redirectToRoute(name: 'login' | 'forbidden') {
   const { default: router } = await import('@/router')
-  window.location.href = router.resolve({ name }).href
+  const target = name === 'login' ? loginLocation(router.currentRoute.value.fullPath) : { name }
+  window.location.href = router.resolve(target).href
 }
 
 function isPublicAuthPath(pathname: string): boolean {

@@ -8,6 +8,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useSiteConfig } from '@/core/composables/useSiteConfig'
 import { authApi, type AuthMethod } from '@/core/api/auth'
 import { isWebAuthnSupported } from '@/core/composables/useWebAuthn'
+import { afterLoginTarget, rememberLoginRedirect } from '@/core/loginRedirect'
 import AppBrand from '@/components/app/AppBrand.vue'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
@@ -71,6 +72,7 @@ const hasAlternatives = computed(
 )
 
 onMounted(async () => {
+  rememberLoginRedirect(route.query.redirect)
   if (mode.value === 'signup' && !allowRegistration.value) router.replace('/login')
   await consumeExternalRedirect()
   try {
@@ -101,7 +103,7 @@ async function consumeExternalRedirect() {
       const res = await auth.completeEmailLogin({ token: p.get('email_login_token')! })
       if (res.approval_pending) notice.value = PENDING_MSG
       else if (res.mfa_required) router.push({ name: 'mfa-verify', query: { token: res.mfa_token } })
-      else router.push({ name: 'desk' })
+      else router.push(afterLoginTarget())
     } catch (e: any) {
       error.value =
         e?.response?.data?.error?.message || t('The sign-in link is invalid or expired')
@@ -125,7 +127,7 @@ async function consumeExternalRedirect() {
   const rt = p.get('refresh_token')
   if (at && rt) {
     await auth.setSession(at, rt)
-    router.push({ name: 'desk' })
+    router.push(afterLoginTarget())
   }
 }
 
@@ -167,7 +169,7 @@ async function handleSubmit() {
     const res = await auth.login(email.value, password.value)
     if (res.approval_pending) notice.value = PENDING_MSG
     else if (res.mfa_required) toMfa(res)
-    else router.push({ name: 'desk' })
+    else router.push(afterLoginTarget())
   } catch (e: any) {
     const status = e?.response?.status
     if (status === 409) {
@@ -190,7 +192,7 @@ async function loginWithPasskey() {
   passkeyLoading.value = true
   try {
     await auth.loginWithPasskey(email.value || undefined)
-    router.push({ name: 'desk' })
+    router.push(afterLoginTarget())
   } catch (e: any) {
     if (e?.message === 'approval_pending') {
       notice.value = PENDING_MSG
@@ -267,7 +269,7 @@ async function verifyEmailCode() {
     } else if (res.mfa_required) {
       toMfa({ mfa_token: res.mfa_token })
     } else {
-      router.push({ name: 'desk' })
+      router.push(afterLoginTarget())
     }
   } catch (e: any) {
     error.value =

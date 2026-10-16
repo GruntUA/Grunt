@@ -4,6 +4,7 @@ import { loadSiteConfig } from '@/core/composables/useSiteConfig'
 import { setPageTitle } from '@/core/composables/usePageTitle'
 import { i18n } from '@/plugins/i18n'
 import { useDocTypeStore } from '@/stores/doctype'
+import { afterLoginTarget, loginLocation, rememberLoginRedirect } from '@/core/loginRedirect'
 
 const router = createRouter({
   history: createWebHistory('/'),
@@ -149,16 +150,19 @@ router.beforeEach(async (to) => {
   // confirms the token is still valid server-side (and clears it on 401/403).
   if ((to.name === 'login' || to.name === 'register') && auth.isLoggedIn) {
     if (!auth.user) await auth.fetchMe()
-    if (auth.isLoggedIn) return { name: 'desk' }
+    if (auth.isLoggedIn) {
+      rememberLoginRedirect(to.query.redirect)
+      return afterLoginTarget()
+    }
   }
 
   if (to.meta.public) return true
-  if (!auth.isLoggedIn) return { name: 'login' }
+  if (!auth.isLoggedIn) return loginLocation(to.fullPath)
   if (!auth.user) await auth.fetchMe()
   // fetchMe clears a stale session (expired refresh token, 401/403 on whoami) -
   // go to the login page now instead of rendering the protected page, letting
   // its API calls fail and only then bouncing to /login from the 401 handler.
-  if (!auth.isLoggedIn) return { name: 'login' }
+  if (!auth.isLoggedIn) return loginLocation(to.fullPath)
 
   // A singleton's only document lives at /app/<ws>/<DocType>; a long
   // /<DocType>/<id> URL (old bookmarks, links from the server) collapses to it.
