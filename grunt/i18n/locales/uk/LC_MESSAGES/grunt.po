@@ -17904,6 +17904,10 @@ msgstr "Фільтри посилання"
 msgid "Linked DocType"
 msgstr "Пов'язаний DocType"
 
+#: grunt/frontend/src/core/renderer/FormRenderer.vue:220
+msgid "Editing..."
+msgstr "редагує..."
+
 #: grunt/frontend/src/pages/studio/builder/CanvasTabBar.vue:101
 msgid "Main"
 msgstr "Основне"
