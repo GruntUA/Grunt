@@ -17297,9 +17297,10 @@ msgstr "Доступне оновлення: %(target)s. Запустіть `gru
 
 #: grunt/grunt/monitoring/updates.py:467
 msgid ""
-"Run `grunt update` - it offers to update the lock files; then commit them."
+"Run `grunt update --upgrade-packages` - it updates the lock files; then "
+"commit them."
 msgstr ""
-"Запустіть `grunt update` — він запропонує оновити lock-файли; потім "
+"Запустіть `grunt update --upgrade-packages` — він оновить lock-файли; потім "
 "закомітьте їх."
 
 #: grunt/grunt/monitoring/health.py:858 grunt/grunt/monitoring/updates.py:728

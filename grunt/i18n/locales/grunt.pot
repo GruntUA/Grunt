@@ -5648,7 +5648,8 @@ msgstr ""
 
 #: grunt/grunt/monitoring/updates.py:467
 msgid ""
-"Run `grunt update` - it offers to update the lock files; then commit them."
+"Run `grunt update --upgrade-packages` - it updates the lock files; then "
+"commit them."
 msgstr ""
 
 #: grunt/grunt/monitoring/updates.py:463
