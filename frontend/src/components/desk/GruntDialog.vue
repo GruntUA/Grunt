@@ -9,13 +9,13 @@ import { parseSelectOptions } from '@/lib/selectOptions'
 import type { DocField } from '@/types'
 import DialogTableField from './DialogTableField.vue'
 import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
+  AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
   AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Field, FieldDescription, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Progress } from '@/components/ui/progress'
-import { Button, buttonVariants, type ButtonVariants } from '@/components/ui/button'
+import { Button, type ButtonVariants } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
 
 const { t } = useI18n()
@@ -172,9 +172,11 @@ const footerButtons = computed<FooterButton[]>(() => {
       </AlertDialogHeader>
       <AlertDialogFooter>
         <AlertDialogCancel>{{ t('Cancel') }}</AlertDialogCancel>
-        <AlertDialogAction :class="state.destructive && buttonVariants({ variant: 'destructive' })" @click="onConfirm">
+        <!-- Not AlertDialogAction: it closes the dialog itself first, and
+             @update:open would resolve the confirm as cancelled. -->
+        <Button :variant="state.destructive ? 'destructive' : 'default'" @click="onConfirm">
           {{ state.primaryLabel }}
-        </AlertDialogAction>
+        </Button>
       </AlertDialogFooter>
     </AlertDialogContent>
   </AlertDialog>
@@ -265,7 +267,7 @@ const footerButtons = computed<FooterButton[]>(() => {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{{ t('Cancel') }}</AlertDialogCancel>
-            <AlertDialogAction :class="buttonVariants({ variant: 'destructive' })" @click="resolveActionConfirm(true)">{{ t('Confirm') }}</AlertDialogAction>
+            <Button variant="destructive" @click="resolveActionConfirm(true)">{{ t('Confirm') }}</Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

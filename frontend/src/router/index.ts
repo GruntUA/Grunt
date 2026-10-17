@@ -214,4 +214,19 @@ router.afterEach((to) => {
   setPageTitle(routeTitle(to))
 })
 
+// A lazy route chunk failed to load (network blip, or a deploy replaced the hashed
+// files). Do a full page load of the target once; the timestamp guard stops a reload loop.
+const CHUNK_RELOAD_KEY = 'grunt:chunk-reload'
+router.onError((error, to) => {
+  if (!/dynamically imported module|Importing a module script failed|error loading dynamically/i.test(String(error?.message))) return
+  try {
+    const last = Number(sessionStorage.getItem(CHUNK_RELOAD_KEY) || 0)
+    if (Date.now() - last < 10_000) return
+    sessionStorage.setItem(CHUNK_RELOAD_KEY, String(Date.now()))
+  } catch {
+    return
+  }
+  window.location.assign(to.fullPath)
+})
+
 export default router
