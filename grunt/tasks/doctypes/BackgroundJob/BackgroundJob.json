@@ -66,8 +66,9 @@
     },
     {
       "fieldname": "idle_ms",
-      "label": "Without ack, ms",
-      "fieldtype": "Int",
+      "label": "Without ack",
+      "fieldtype": "Duration",
+      "options": "ms",
       "read_only": true,
       "in_list_view": true,
       "description": "Time since the worker last did anything with this task. A large value means the task is most likely stuck."

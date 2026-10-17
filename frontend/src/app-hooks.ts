@@ -36,6 +36,7 @@ registerFilterConfig('LongText', { operators: TEXT_OPS, filterInput: DefaultFilt
 registerFilterConfig('Int', { operators: NUM_OPS, filterInput: DefaultFilterInput })
 registerFilterConfig('Float', { operators: NUM_OPS, filterInput: DefaultFilterInput })
 registerFilterConfig('Currency', { operators: NUM_OPS, filterInput: DefaultFilterInput })
+registerFilterConfig('Duration', { operators: NUM_OPS, filterInput: DefaultFilterInput })
 registerFilterConfig('Rating', { operators: NUM_OPS, filterInput: DefaultFilterInput })
 registerFilterConfig('Date', { operators: DATE_OPS, filterInput: DateFilterInput })
 registerFilterConfig('Datetime', { operators: DATE_OPS, filterInput: DatetimeFilterInput })
@@ -56,6 +57,7 @@ import IconListCell from '@/components/fields/Icon/ListCell.vue'
 import LinkListCell from '@/components/fields/Link/ListCell.vue'
 import ImageListCell from '@/components/fields/Image/ListCell.vue'
 import CurrencyListCell from '@/components/fields/Currency/ListCell.vue'
+import DurationListCell from '@/components/fields/Duration/ListCell.vue'
 
 registerListCell('Check', CheckListCell)
 registerListCell('Select', SelectListCell)
@@ -67,6 +69,7 @@ registerListCell('Icon', IconListCell)
 registerListCell('Link', LinkListCell)
 registerListCell('Image', ImageListCell)
 registerListCell('Currency', CurrencyListCell)
+registerListCell('Duration', DurationListCell)
 
 // Exporters
 import { registerExporter } from '@/core/io'

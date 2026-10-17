@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { formatNumber } from '@/core/currency'
+import { durationUnit, formatDuration } from '@/core/duration'
 import { useI18n } from 'vue-i18n'
 import { ref, computed, onMounted, watch } from 'vue'
 import { formatDate, formatDateTime } from '@/core/datetime'
@@ -129,10 +130,11 @@ const totalsRow = computed<Record<string, number> | null>(() => {
     return acc
 })
 
-function formatCell(val: any, fieldtype: string): string {
+function formatCell(val: any, fieldtype: string, options?: string): string {
     if (val === null || val === undefined || val === '') return '—'
     if (fieldtype === 'Date') return formatDate(val)
     if (fieldtype === 'Datetime') return formatDateTime(val)
+    if (fieldtype === 'Duration') return formatDuration(val, durationUnit({ options }))
     if (fieldtype === 'Float' || fieldtype === 'Int' || fieldtype === 'Currency') return typeof val === 'number' ? formatNumber(val) : String(val)
     return String(val)
 }
@@ -269,7 +271,7 @@ function openBuilder() {
                             :title="drilldownQuery(row) ? t('Open documents') : undefined"
                             @click="openDrilldown(row)">
                             <TableCell v-for="col in columns" :key="col.fieldname">
-                                {{ formatCell(row[col.fieldname], col.fieldtype) }}
+                                {{ formatCell(row[col.fieldname], col.fieldtype, col.options) }}
                             </TableCell>
                         </TableRow>
                     </template>
@@ -278,7 +280,7 @@ function openBuilder() {
                     <TableRow>
                         <TableCell v-for="(col, ci) in columns" :key="col.fieldname">
                             <template v-if="totalsRow?.[col.fieldname] !== undefined">
-                                {{ formatCell(totalsRow?.[col.fieldname], col.fieldtype) }}
+                                {{ formatCell(totalsRow?.[col.fieldname], col.fieldtype, col.options) }}
                             </template>
                             <template v-else-if="ci === 0">{{ t('Total') }}</template>
                         </TableCell>

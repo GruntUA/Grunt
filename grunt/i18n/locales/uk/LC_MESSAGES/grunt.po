@@ -18115,6 +18115,27 @@ msgstr "Крок %(step)s з %(steps)s"
 msgid "The task has already finished"
 msgstr "Задача вже завершилась"
 
+msgid "{n} ms"
+msgstr "{n} мс"
+
+msgid "Seconds"
+msgstr "Секунди"
+
+msgid "Milliseconds"
+msgstr "Мілісекунди"
+
+msgid "Minutes"
+msgstr "Хвилини"
+
+msgid "Hours"
+msgstr "Години"
+
+msgid "Unit of the stored number"
+msgstr "Одиниця збереженого числа"
+
+msgid "Without ack"
+msgstr "Без підтвердження"
+
 #~ msgid "row needs attention"
 #~ msgstr "рядок потребує уваги"
 

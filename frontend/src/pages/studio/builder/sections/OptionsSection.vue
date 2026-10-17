@@ -4,6 +4,7 @@ import { useId } from 'vue'
 import { usePropertyEditor } from '@/core/composables/usePropertyEditor'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
 import { Textarea } from '@/components/ui/textarea'
 import HTMLEditor from '@/components/fields/HTMLEditor/HTMLEditor.vue'
@@ -26,6 +27,19 @@ const { t } = useI18n()
         @update:model-value="(v: string | number) => updateField('options', String(v))"
       />
       <FieldDescription>{{ t('A Link field to Currency in this document, or a fixed ISO currency code') }}</FieldDescription>
+    </Field>
+    <Field v-else-if="field.fieldtype === 'Duration'">
+      <Select
+        :model-value="field.options?.trim() === 'ms' ? 'ms' : 's'"
+        @update:model-value="(v) => updateField('options', v === 'ms' ? 'ms' : '')"
+      >
+        <SelectTrigger class="w-full" :aria-label="t('Unit')"><SelectValue /></SelectTrigger>
+        <SelectContent>
+          <SelectItem value="s">{{ t('Seconds') }}</SelectItem>
+          <SelectItem value="ms">{{ t('Milliseconds') }}</SelectItem>
+        </SelectContent>
+      </Select>
+      <FieldDescription>{{ t('Unit of the stored number') }}</FieldDescription>
     </Field>
     <HTMLEditor
       v-else-if="field.fieldtype === 'HTML'"

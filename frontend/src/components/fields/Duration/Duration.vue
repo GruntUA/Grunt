@@ -3,6 +3,11 @@ import { useI18n } from 'vue-i18n'
 import { computed } from 'vue'
 import type { DocField } from '@/types'
 import { Input } from '@/components/ui/input'
+import {
+  NumberField, NumberFieldContent, NumberFieldDecrement, NumberFieldIncrement, NumberFieldInput,
+} from '@/components/ui/number-field'
+import { durationUnit, formatDuration, splitDuration } from '@/core/duration'
+import { localeTag } from '@/core/composables/useNumberField'
 
 const { t } = useI18n()
 
@@ -15,55 +20,75 @@ const props = defineProps<{
 
 const emit = defineEmits<{ 'update:modelValue': [value: number | null] }>()
 
-function onUpdate(v: string | number) {
-  if (v === '' || v == null) return emit('update:modelValue', null)
-  const n = Number(v)
-  emit('update:modelValue', Number.isFinite(n) ? n : null)
-}
+const unit = computed(() => durationUnit(props.field))
+const readable = computed(() => formatDuration(props.modelValue, unit.value))
+// Nothing to type when locked - show just the readable value, raw on hover.
+const locked = computed(() => props.disabled || props.field.read_only)
 
-// A focused number input changes its value when you scroll over it - silent
-// data corruption. Swallow the wheel while focused; page scroll still works
-// when the field isn't focused.
-function onWheel(e: WheelEvent) {
-  if (document.activeElement === e.target) e.preventDefault()
-}
-
-// Stored value is seconds - show a human-readable breakdown alongside the
-// raw number so entering e.g. "9000" is legible without doing the math.
-const readable = computed(() => {
-  const total = props.modelValue
-  if (total == null || !Number.isFinite(total)) return ''
-  const s = Math.abs(Math.round(total))
-  const days = Math.floor(s / 86400)
-  const hours = Math.floor((s % 86400) / 3600)
-  const minutes = Math.floor((s % 3600) / 60)
-  const seconds = s % 60
-  const parts: string[] = []
-  if (days) parts.push(t('{n} d', { n: String(days) }))
-  if (hours) parts.push(t('{n} h', { n: String(hours) }))
-  if (minutes) parts.push(t('{n} min', { n: String(minutes) }))
-  if (seconds || !parts.length) parts.push(t('{n} s', { n: String(seconds) }))
-  return parts.join(' ')
+const total = computed(() => {
+  const n = Number(props.modelValue)
+  return props.modelValue == null || !Number.isFinite(n) ? 0 : n
 })
+const segments = computed(() => splitDuration(total.value, unit.value))
+
+/**
+ * A segment edit shifts the total by the difference, so the value carries
+ * and borrows across units: `−` on `1 h 0 min` gives `59 min`, typing `90`
+ * minutes gives `1 h 30 min` once the segments re-derive from the total.
+ */
+function onSegment(index: number, value: number | null | undefined) {
+  const seg = segments.value[index]
+  if (!seg) return
+  const next = Number.isFinite(value) ? Math.trunc(value as number) : 0
+  let result = total.value + (next - seg.count) * seg.size
+  result = Math.max(0, result)
+  if (props.field.max_value != null) result = Math.min(result, props.field.max_value)
+  emit('update:modelValue', result)
+}
+
+const formatOptions: Intl.NumberFormatOptions = { maximumFractionDigits: 0, useGrouping: false }
 </script>
 
 <template>
-  <div>
-    <Input
-      type="number"
-      step="1"
-      min="0"
-      inputmode="numeric"
-      :model-value="modelValue ?? ''"
-      :placeholder="field.placeholder ?? '0'"
-      :required="field.required"
-      :disabled="disabled || field.read_only"
-      :max="field.max_value"
-      :aria-invalid="error ? true : undefined"
-      :class="['w-full tabular-nums', field.bold && 'font-medium']"
-      @wheel="onWheel"
-      @update:model-value="onUpdate"
-    />
-    <p v-if="readable" class="mt-1 text-muted-foreground tabular-nums">{{ readable }}</p>
+  <Input
+    v-if="locked"
+    disabled
+    :model-value="readable"
+    :title="modelValue != null ? String(modelValue) : undefined"
+    :placeholder="field.placeholder ?? ''"
+    :class="['w-full tabular-nums', field.bold && 'font-medium']"
+  />
+  <div
+    v-else
+    role="group"
+    :aria-label="field.label"
+    :aria-invalid="error ? true : undefined"
+    :class="['grid gap-2', segments.length > 4 ? 'grid-cols-3 sm:grid-cols-5' : 'grid-cols-2 sm:grid-cols-4']"
+  >
+    <!-- An empty value shows zeros: from null, reka's `+` jumps to `min`, not 1.
+         Below one unit there is nothing to borrow from - `−` stops at zero. -->
+    <NumberField
+      v-for="(seg, i) in segments"
+      :key="seg.key"
+      :model-value="seg.count"
+      :locale="localeTag()"
+      :format-options="formatOptions"
+      :step-snapping="false"
+      :min="total < seg.size ? 0 : undefined"
+      disable-wheel-change
+      class="gap-1"
+      @update:model-value="onSegment(i, $event)"
+    >
+      <NumberFieldContent>
+        <NumberFieldDecrement />
+        <NumberFieldInput
+          placeholder="0"
+          :aria-label="t(seg.label)"
+          :class="['tabular-nums', field.bold && 'font-medium']"
+        />
+        <NumberFieldIncrement />
+      </NumberFieldContent>
+      <span class="text-center text-xs text-muted-foreground">{{ t(seg.label) }}</span>
+    </NumberField>
   </div>
 </template>
