@@ -1,0 +1,375 @@
+{
+  "name": "User",
+  "label": "User",
+  "module": "auth",
+  "app": "grunt",
+  "beta": true,
+  "fields": [
+    {
+      "fieldname": "tab_general",
+      "label": "General",
+      "fieldtype": "Tab"
+    },
+    {
+      "fieldname": "sec_name_fields",
+      "label": "Last name, First name, Patronymic",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "last_name",
+      "label": "Last name",
+      "fieldtype": "Text",
+      "required": true,
+      "in_list_view": true,
+      "in_filter": true
+    },
+    {
+      "fieldname": "col_n1",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "first_name",
+      "label": "First name",
+      "fieldtype": "Text",
+      "required": true,
+      "in_list_view": true,
+      "in_filter": true
+    },
+    {
+      "fieldname": "col_n2",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "middle_name",
+      "label": "Patronymic",
+      "fieldtype": "Text"
+    },
+    {
+      "fieldname": "sec_full_display",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "full_name",
+      "label": "Full name",
+      "fieldtype": "Text",
+      "read_only": true,
+      "in_list_view": true,
+      "in_filter": true
+    },
+    {
+      "fieldname": "col_f1",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "avatar",
+      "label": "Profile photo",
+      "fieldtype": "Image",
+      "in_list_view": true
+    },
+    {
+      "fieldname": "sec_contact",
+      "label": "Contacts",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "email",
+      "label": "Email",
+      "fieldtype": "Text",
+      "required": true,
+      "unique": true,
+      "in_list_view": true,
+      "in_filter": true
+    },
+    {
+      "fieldname": "col_c1",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "phone",
+      "label": "Phone",
+      "fieldtype": "Text"
+    },
+    {
+      "fieldname": "sec_personal",
+      "label": "Advanced",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "birth_date",
+      "label": "Date of birth",
+      "fieldtype": "Date"
+    },
+    {
+      "fieldname": "col_p1",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "gender",
+      "label": "Gender",
+      "fieldtype": "Select",
+      "options": "Male\nFemale\nOther",
+      "translatable": true
+    },
+    {
+      "fieldname": "col_p2",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "timezone",
+      "label": "Time zone",
+      "fieldtype": "Data",
+      "default": "Europe/Kyiv"
+    },
+    {
+      "fieldname": "col_p3",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "last_login",
+      "label": "Last login",
+      "fieldtype": "Datetime",
+      "read_only": true
+    },
+    {
+      "fieldname": "sec_bio",
+      "label": "About",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "bio",
+      "label": "Short bio",
+      "fieldtype": "LongText"
+    },
+    {
+      "fieldname": "tab_security",
+      "label": "Security",
+      "fieldtype": "Tab"
+    },
+    {
+      "fieldname": "sec_security",
+      "label": "Access",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "is_active",
+      "label": "Active",
+      "fieldtype": "Check",
+      "in_list_view": true,
+      "in_filter": true,
+      "default": true
+    },
+    {
+      "fieldname": "signup_state",
+      "label": "Registration state",
+      "fieldtype": "Select",
+      "read_only": true,
+      "in_list_view": true,
+      "in_filter": true,
+      "options": "approved\npending\nrejected",
+      "translatable": true,
+      "default": "approved",
+      "description": "pending — a self-registered user is waiting for administrator approval and cannot sign in."
+    },
+    {
+      "fieldname": "col_security",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "password",
+      "label": "Set password",
+      "fieldtype": "Text",
+      "description": "Enter a new password. Only its hash is stored in the database."
+    },
+    {
+      "fieldname": "hashed_password",
+      "label": "Password hash",
+      "fieldtype": "LongText",
+      "hidden": true
+    },
+    {
+      "fieldname": "sec_roles",
+      "label": "Roles",
+      "fieldtype": "Section",
+      "description": "The user's roles. Only a System Manager can edit these."
+    },
+    {
+      "fieldname": "roles",
+      "label": "Roles",
+      "fieldtype": "Table",
+      "options": "UserRole"
+    },
+    {
+      "fieldname": "sec_storage",
+      "label": "Files",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "storage_quota_mb",
+      "label": "Personal space quota, MB",
+      "fieldtype": "Int",
+      "description": "Empty - the system default (System Settings → Files)"
+    },
+    {
+      "fieldname": "sec_mfa",
+      "label": "MFA & lockout",
+      "fieldtype": "Section",
+      "collapsible": true
+    },
+    {
+      "fieldname": "mfa_enabled",
+      "label": "MFA enabled",
+      "fieldtype": "Check",
+      "read_only": true,
+      "default": false
+    },
+    {
+      "fieldname": "mfa_setup_button",
+      "label": "MFA management",
+      "fieldtype": "Button"
+    },
+    {
+      "fieldname": "mfa_secret",
+      "label": "MFA secret",
+      "fieldtype": "LongText",
+      "hidden": true
+    },
+    {
+      "fieldname": "mfa_backup_codes",
+      "label": "Backup code hashes",
+      "fieldtype": "JSON",
+      "hidden": true
+    },
+    {
+      "fieldname": "mfa_backup_display",
+      "label": "Backup codes",
+      "fieldtype": "SmallText",
+      "read_only": true,
+      "description": "These codes are shown only once, at activation. You see this field because MFA is enabled."
+    },
+    {
+      "fieldname": "col_mfa",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "login_attempts",
+      "label": "Failed login attempts",
+      "fieldtype": "Int",
+      "read_only": true,
+      "default": 0
+    },
+    {
+      "fieldname": "locked_until",
+      "label": "Account locked until",
+      "fieldtype": "Datetime",
+      "read_only": true
+    },
+    {
+      "fieldname": "sec_passkeys",
+      "label": "Passkeys",
+      "fieldtype": "Section",
+      "collapsible": true
+    },
+    {
+      "fieldname": "passkeys_button",
+      "label": "Manage passkeys",
+      "fieldtype": "Button",
+      "description": "Add or remove a passkey (WebAuthn) for passwordless sign-in."
+    },
+    {
+      "fieldname": "tab_preferences",
+      "label": "Preferences",
+      "fieldtype": "Tab"
+    },
+    {
+      "fieldname": "sec_preferences",
+      "label": "Interface",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "theme",
+      "label": "Theme",
+      "fieldtype": "Select",
+      "options": "light\ndark\nsystem",
+      "translatable": true,
+      "default": "system"
+    },
+    {
+      "fieldname": "col_preferences",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "language",
+      "label": "Language",
+      "fieldtype": "Select",
+      "options_source": "grunt.i18n.language",
+      "description": "Interface language. Empty = the site default."
+    },
+    {
+      "fieldname": "sec_tokens",
+      "label": "Session tokens",
+      "fieldtype": "Section",
+      "hidden": true
+    },
+    {
+      "fieldname": "col_tokens",
+      "fieldtype": "Column",
+      "hidden": true
+    },
+    {
+      "fieldname": "reset_token",
+      "label": "Password reset token",
+      "fieldtype": "Text",
+      "hidden": true
+    },
+    {
+      "fieldname": "reset_token_expires_at",
+      "label": "Reset token expiry",
+      "fieldtype": "Datetime",
+      "hidden": true
+    }
+  ],
+  "default_view": "list",
+  "actions": [
+    {
+      "action": "webpush.send_to_user",
+      "variant": "outline"
+    }
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "read": true,
+      "write": true,
+      "create": true,
+      "delete": true
+    },
+    {
+      "role": "All",
+      "read": true,
+      "write": true,
+      "match": "name == user",
+      "hidden_fields": [
+        "hashed_password",
+        "mfa_secret",
+        "mfa_backup_codes",
+        "reset_token",
+        "reset_token_expires_at"
+      ]
+    },
+    {
+      "role": "Діловод",
+      "select": true
+    },
+    {
+      "role": "Інвентаризатор",
+      "select": true
+    },
+    {
+      "role": "Адміністратор порталу",
+      "select": true
+    }
+  ],
+  "autoname": "field:email",
+  "title_field": "full_name",
+  "image_field": "avatar"
+}
