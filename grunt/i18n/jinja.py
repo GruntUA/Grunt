@@ -5,14 +5,9 @@ Strings resolve against the current language (request, or a
 picked up by the extractor from ``.html`` / ``.j2`` / ``.jinja`` files.
 """
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
+from jinja2 import Environment
 
 from grunt.i18n.service import _, ngettext, pgettext, translation_service
-
-if TYPE_CHECKING:
-    from jinja2 import Environment
 
 
 def install(env: Environment) -> Environment:

@@ -1,8 +1,6 @@
 """inherit_permission_from: comments / tags / attachments follow the read access
 of the document they belong to."""
 
-from __future__ import annotations
-
 import pytest
 from fastapi import HTTPException
 

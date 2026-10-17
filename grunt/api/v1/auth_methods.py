@@ -12,8 +12,6 @@ Redirect-style providers (OIDC) also keep their dedicated callback routes in
 :mod:`grunt.api.v1.oauth`.
 """
 
-from __future__ import annotations
-
 from typing import Any
 
 from fastapi import Body, Depends, Request

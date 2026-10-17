@@ -1,7 +1,5 @@
 """Available updates in the health report (grunt.monitoring.updates)."""
 
-from __future__ import annotations
-
 import importlib.metadata
 import json
 import subprocess

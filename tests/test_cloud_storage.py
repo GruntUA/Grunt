@@ -5,8 +5,6 @@ cache, secrets never handed out, OAuth helpers.
 Runs against rclone's ``local`` backend («Server folder») - no network.
 """
 
-from __future__ import annotations
-
 import hashlib
 import json
 import shutil

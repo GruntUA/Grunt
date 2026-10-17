@@ -2,8 +2,6 @@
 overwriting newer data, and a retried create with the same Idempotency-Key
 does not create a second document."""
 
-from __future__ import annotations
-
 import pytest
 
 DOCS = "/api/v1/docs/Role"

@@ -4,16 +4,13 @@ Client scripts are stored in the database and served to the frontend per DocType
 The frontend executor runs them in the form context (on_load, on_change, validate, etc.).
 """
 
-from __future__ import annotations
+from typing import Any
 
-from typing import TYPE_CHECKING, Any
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from grunt import log
 from grunt.app import GruntDB
 from grunt.local import _session_ctx
-
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession
 
 
 async def get_client_scripts(

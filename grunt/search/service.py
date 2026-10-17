@@ -8,10 +8,8 @@ Index is updated on every document save/delete through direct calls from
 the document pipeline (no hook overhead, always consistent).
 """
 
-from __future__ import annotations
-
 import re
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from sqlalchemy import (
     Column,
@@ -28,17 +26,13 @@ from sqlalchemy import (
 )
 from sqlalchemy.dialects.mysql import insert as mysql_insert
 from sqlalchemy.dialects.postgresql import insert as pg_insert
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 from grunt import log
 from grunt.document.meta import Meta
 from grunt.metadata.compiler import compile_doctype_to_table
 from grunt.metadata.registry import doctype_registry
-
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
-
-    from grunt.metadata.doctype import DocType
-
+lazy from grunt.metadata.doctype import DocType
 
 _INDEX_TABLE_NAME = "grunt_search_index"
 _INDEX_META = MetaData()

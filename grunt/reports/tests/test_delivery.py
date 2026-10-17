@@ -1,7 +1,5 @@
 """Scheduled report delivery: due-date rules and the queued XLSX email."""
 
-from __future__ import annotations
-
 import io
 from datetime import UTC, date, datetime
 

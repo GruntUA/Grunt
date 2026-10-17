@@ -20,18 +20,14 @@ document and returns the rows, or ``None``/``[]`` to hide the section. A row is
 A section that raises is logged and left out - it never breaks the sidebar.
 """
 
-from __future__ import annotations
-
 import inspect
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 import grunt
 from grunt import _, log
 from grunt.permissions.roles import user_has_roles
-
-if TYPE_CHECKING:
-    from collections.abc import Callable
 
 _ROW_KEYS = ("label", "value", "link", "indicator")
 

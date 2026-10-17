@@ -9,8 +9,6 @@
   attacker's domain (reset poisoning -> account takeover).
 """
 
-from __future__ import annotations
-
 import pytest
 
 from grunt.auth.doctypes.User.user import create_user

@@ -3,18 +3,14 @@
 only for a host this deployment serves; a forged origin falls back to APP_URL
 (otherwise the victim is mailed a real token on the attacker's domain)."""
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING, cast
+from typing import cast
 
 import pytest
 from starlette.datastructures import Headers
+from starlette.requests import Request
 
 from grunt.auth.doctypes.User import user as user_mod
 from grunt.config import settings
-
-if TYPE_CHECKING:
-    from starlette.requests import Request
 
 
 class _StubURL:

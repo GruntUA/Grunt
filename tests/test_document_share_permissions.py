@@ -17,8 +17,6 @@ every other read path goes through, and applying regardless of whether the
 row is created via create_share() or the generic docs CRUD directly.
 """
 
-from __future__ import annotations
-
 import pytest
 from fastapi import HTTPException
 

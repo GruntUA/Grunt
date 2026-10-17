@@ -4,8 +4,6 @@ Exposes the in-memory profiler ring buffer as a standard Grunt DocType.
 Read-only: list + load. Insert/update/delete are not supported.
 """
 
-from __future__ import annotations
-
 from typing import Any
 
 from grunt import _

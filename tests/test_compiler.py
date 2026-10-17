@@ -1,7 +1,5 @@
 """Tests for the DocType Compiler."""
 
-from __future__ import annotations
-
 import pytest
 from sqlalchemy import inspect
 from sqlalchemy.ext.asyncio import create_async_engine

@@ -1,7 +1,5 @@
 """Webhook API - management via methods, public receiver via router."""
 
-from __future__ import annotations
-
 from typing import Any
 
 from fastapi import HTTPException, Request

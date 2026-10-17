@@ -5,18 +5,14 @@ column name plus an optional ``__<op>`` suffix (see ``FILTER_OPS``); all
 conditions are ANDed. Shared by ``grunt.db`` and document list queries.
 """
 
-from __future__ import annotations
-
 import operator
+from collections.abc import Callable
 from datetime import date, datetime
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from sqlalchemy import Date, String, and_, cast, false, or_
 
 from grunt.db.types import UtcDateTime
-
-if TYPE_CHECKING:
-    from collections.abc import Callable
 
 # Operators a filter key may end with (``field__<op>``; no suffix = ``eq``).
 # Shared with in-memory filtering of virtual DocTypes (grunt.document.in_memory).

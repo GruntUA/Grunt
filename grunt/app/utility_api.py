@@ -1,17 +1,13 @@
 """Utility API mixin for GruntApp facade."""
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from grunt.local import require_user
 from grunt.metadata.registry import doctype_registry
 from grunt.site.manager import site_manager
 from grunt.tasks.doc_method import enqueue_doc_method
 from grunt.utils.templates import render_template as _render_template
-
-if TYPE_CHECKING:
-    from grunt.document.meta import Meta
+lazy from grunt.document.meta import Meta
 
 
 class UtilityAPI:

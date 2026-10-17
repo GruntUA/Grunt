@@ -1,8 +1,6 @@
 """CommentReaction: toggle an emoji on a comment, summaries in the timeline, only
 configured emoji, only on readable documents; reactions die with the comment."""
 
-from __future__ import annotations
-
 import pytest
 from fastapi import HTTPException
 

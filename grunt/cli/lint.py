@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import importlib.util
 import shutil
 import subprocess
@@ -80,7 +78,7 @@ def _has_pyright_config(root: Path) -> bool:
     if (root / "pyrightconfig.json").exists():
         return True
     pyproject = root / "pyproject.toml"
-    return pyproject.exists() and "[tool.pyright]" in pyproject.read_text(encoding="utf-8")
+    return pyproject.exists() and "[tool.pyright]" in pyproject.read_text()
 
 
 def _run_pyright(root: Path) -> int:

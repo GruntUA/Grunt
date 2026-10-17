@@ -17,19 +17,18 @@ previous row. The row also holds the code's keyed HMAC, so nothing brute-forceab
 ever leaves the server.
 """
 
-from __future__ import annotations
-
 import hashlib
 import hmac
 import re
 import secrets
 from datetime import UTC, datetime, timedelta
-from typing import TYPE_CHECKING, Any, ClassVar
+from typing import Any, ClassVar
 
 import grunt
 from grunt import _, log
 from grunt.api.messages import throw
 from grunt.auth.doctypes.User.user import (
+    User,
     _apply_signup_approval,
     _guard_registration,
     get_user_by_email,
@@ -42,10 +41,6 @@ from grunt.auth.providers.registry import register
 from grunt.auth.service import create_challenge_token, verify_challenge_token
 from grunt.config import settings
 from grunt.email.service import email_service
-
-if TYPE_CHECKING:
-    from grunt.auth.doctypes.User.user import User
-
 
 _CODE_PURPOSE = "email-login-code"
 _LINK_PURPOSE = "email-login-link"
@@ -212,7 +207,6 @@ class EmailLoginProvider(AuthProvider):
         return user
 
     async def _send_mail(self, email: str, code: str, login_url: str) -> None:
-        from grunt import _
 
         # Rendered in the request language - the person asking is the recipient.
         plain = "\n\n".join(

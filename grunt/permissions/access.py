@@ -20,15 +20,10 @@ get admin rights" - it's what lets the framework itself write to doctypes
 (like ErrorLog) that intentionally grant no write access to any real role.
 """
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from grunt.auth.doctypes.User.user import User
-    from grunt.document.meta import Meta
-    from grunt.metadata.doctype import DocType
-    from grunt.metadata.permission import DocPermission
+lazy from grunt.auth.doctypes.User.user import SYSTEM_USER, User
+lazy from grunt.document.meta import Meta
+lazy from grunt.metadata.doctype import DocType
+lazy from grunt.metadata.permission import DocPermission
 
 
 class RoleAccess:
@@ -74,7 +69,6 @@ class RoleAccess:
     def is_unrestricted(self) -> bool:
         """True only for the internal SYSTEM_USER identity - never for a human
         role, System Manager included (see module docstring)."""
-        from grunt.auth.doctypes.User.user import SYSTEM_USER
 
         return self.user is not None and getattr(self.user, "email", None) == SYSTEM_USER.email
 

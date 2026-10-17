@@ -1,20 +1,14 @@
-from __future__ import annotations
-
 import importlib
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from grunt import log
 from grunt.db.session import async_session_factory
 from grunt.email.tasks import send_notification_digest
 from grunt.scripting.server_script import ServerScriptRunner
-
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession
-
 
 # Global scheduler instance
 scheduler = AsyncIOScheduler()

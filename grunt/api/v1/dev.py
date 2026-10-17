@@ -1,12 +1,20 @@
 """SQL profiler and query-cache RPC (System Manager only)."""
 
-from __future__ import annotations
-
 from typing import Any
 
 import grunt
 from grunt.config import settings
-from grunt.db.profiler import clear_buffers, get_recent_requests, get_stats
+from grunt.db.profiler import (
+    clear_buffers,
+    get_recent_requests,
+    get_settings,
+    get_stats,
+    set_enabled,
+    set_n1_threshold,
+    set_request_db_threshold,
+    set_request_threshold,
+    set_threshold,
+)
 
 
 def _require_debug() -> None:
@@ -57,7 +65,6 @@ async def clear_profiler() -> bool:
 async def get_profiler_settings() -> dict[str, Any]:
     """Return current profiler runtime settings."""
     _require_profiler()
-    from grunt.db.profiler import get_settings
 
     return get_settings()
 
@@ -72,14 +79,6 @@ async def update_profiler_settings(
 ) -> dict[str, Any]:
     """Update profiler thresholds at runtime."""
     _require_profiler()
-    from grunt.db.profiler import (
-        get_settings,
-        set_enabled,
-        set_n1_threshold,
-        set_request_db_threshold,
-        set_request_threshold,
-        set_threshold,
-    )
 
     if enabled is not None:
         set_enabled(str(enabled).lower() == "true")

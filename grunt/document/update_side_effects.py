@@ -4,27 +4,25 @@ Extracted from ``DocumentWriteMixin`` to keep write pipeline orchestration thin
 while preserving existing behavior.
 """
 
-from __future__ import annotations
-
 import uuid
 from collections.abc import Awaitable, Callable
 from datetime import UTC, datetime
 from itertools import islice
-from typing import TYPE_CHECKING, Any
+from typing import Any
+
+from sqlalchemy import select as sa_select
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 import grunt
 from grunt import _, log
 from grunt.document.registry import document_registry
 from grunt.document.serde import audit_fields
-from grunt.document.versioning import version_service
+from grunt.document.versioning import _SKIP_FIELDS, version_service
 from grunt.errors import ApplicationError
 from grunt.search.service import search_index_service
 from grunt.webhook.service import webhook_service
-
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
-
-    from grunt.auth.doctypes.User.user import User
+lazy from grunt.auth.doctypes.User.user import User
+lazy from grunt.document.base import new_document
 
 ProgressCallback = Callable[[int], Awaitable[None]]
 
@@ -61,8 +59,6 @@ async def record_update_changes(
             log.exception("version.create_error", doctype=doctype_name, doc_id=real_id)
 
     if diff_changes:
-        from grunt.document.versioning import _SKIP_FIELDS
-
         changed_fields = [
             item["field"] for item in diff_changes if item["field"] not in _SKIP_FIELDS
         ]
@@ -211,7 +207,6 @@ async def bulk_delete_one_by_one(
 ) -> tuple[int, list[str]]:
     """Delete documents one at a time through the delete pipeline - for a
     controller without a table to batch the DELETE on. Aggregates errors."""
-    from grunt.document.base import new_document
 
     deleted = 0
     errors: list[str] = []
@@ -252,7 +247,6 @@ async def collect_bulk_delete_candidates(
 
     The SELECT is chunked to stay within SQLite's 999-parameter limit.
     """
-    from sqlalchemy import select as sa_select
 
     existing_rows: dict[str, dict[str, Any]] = {}
     it = iter(ids)

@@ -4,8 +4,6 @@ engine (``grunt/website/www/share/``), which replaced the former
 ``grunt.api.v1.share.get_shared_document`` service.
 """
 
-from __future__ import annotations
-
 import pytest
 
 SHARE_PAGE_OWNER_DOCTYPE = {

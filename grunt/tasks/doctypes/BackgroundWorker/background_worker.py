@@ -1,10 +1,10 @@
-from __future__ import annotations
-
 from collections import Counter
 from datetime import UTC, datetime, timedelta
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from fastapi import HTTPException, status
+from redis.asyncio import Redis
+from taskiq_redis import RedisStreamBroker
 
 from grunt import _, log
 from grunt.document.base import BaseDocument, DocumentList
@@ -20,10 +20,6 @@ from grunt.tasks.redis_introspect import (
     stream_broker,
     unavailable_message,
 )
-
-if TYPE_CHECKING:
-    from redis.asyncio import Redis
-    from taskiq_redis import RedisStreamBroker
 
 
 class BackgroundWorkerController(BaseDocument):

@@ -3,23 +3,19 @@
 Uses in-memory storage always and Redis (optional) when configured.
 """
 
-from __future__ import annotations
-
 import hashlib
 import json
 import time
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from typing import TYPE_CHECKING, Any
+from typing import Any
+
+from redis.asyncio import Redis
 
 from grunt import log
-
-if TYPE_CHECKING:
-    from collections.abc import AsyncGenerator
-
-    from redis.asyncio import Redis
-
 from grunt.config import settings
 from grunt.document.base import DocumentList
+lazy from grunt.utils.redis import connect
 
 
 class QueryCache:
@@ -109,8 +105,6 @@ class QueryCache:
             yield None
             return
         if self._redis_client is None:
-            from grunt.utils.redis import connect
-
             self._redis_client = connect(socket_connect_timeout=1)
         yield self._redis_client
 

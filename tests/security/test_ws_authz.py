@@ -7,16 +7,12 @@ WS-capable client the suite doesn't have); the handlers call it and close with
 code 4403 when it returns False.
 """
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING, cast
+from typing import cast
 
 import pytest
+from starlette.websockets import WebSocket
 
 from tests.support import make_user  # noqa: F401  (kept for parity with other tests)
-
-if TYPE_CHECKING:
-    from starlette.websockets import WebSocket
 
 SECRET = {
     "name": "WsSecret",

@@ -1,7 +1,5 @@
 """Shared test fixtures — single test engine and session override."""
 
-from __future__ import annotations
-
 import logging
 import os
 
@@ -102,7 +100,7 @@ async def setup_db():
         _dt_files = sorted(f for d in _find_doctype_dirs() for f in d.glob("**/*.json"))
         for _dt_file in _dt_files:
             try:
-                _dt_data = json.loads(_dt_file.read_text(encoding="utf-8"))
+                _dt_data = json.loads(_dt_file.read_text())
                 _dt_obj = _DocType.model_validate(_dt_data)
                 compile_doctype_to_table(_dt_obj)
                 doctype_registry._doctypes[_dt_obj.name] = _dt_obj

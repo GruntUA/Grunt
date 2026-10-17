@@ -3,8 +3,6 @@
 The recording itself lives in :mod:`grunt.activity.milestones`.
 """
 
-from __future__ import annotations
-
 import grunt
 from grunt import _
 from grunt.activity import milestones

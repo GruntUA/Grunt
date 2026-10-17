@@ -20,20 +20,15 @@ already covered elsewhere:
   grunt/assignment/service.py:_create_todo.
 """
 
-from __future__ import annotations
-
 import json
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 import pytest
 
 from grunt.metadata.doctype import DocType
 from grunt.permissions.rbac import permission_checker
 from tests.support import make_user
-
-if TYPE_CHECKING:
-    from grunt.auth.doctypes.User.user import User
+lazy from grunt.auth.doctypes.User.user import User
 
 _GRUNT_ROOT = Path(__file__).resolve().parents[2] / "grunt"
 
@@ -43,7 +38,7 @@ _TODO_JSON = _GRUNT_ROOT / "tasks/doctypes/ToDo/ToDo.json"
 
 
 def _load(path: Path) -> DocType:
-    return DocType.model_validate(json.loads(path.read_text(encoding="utf-8")))
+    return DocType.model_validate(json.loads(path.read_text()))
 
 
 def _user(email: str, roles: list[str] | None = None) -> User:

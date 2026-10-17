@@ -7,8 +7,6 @@ See :mod:`grunt.auth.providers.base` for the contract and
 ``docs/auth-providers.md`` for a walk-through of adding one.
 """
 
-from __future__ import annotations
-
 from grunt.auth.providers.base import AuthFlowContext, AuthProvider, ProviderKind
 from grunt.auth.providers.registry import (
     all_providers,

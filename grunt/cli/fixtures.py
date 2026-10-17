@@ -4,6 +4,10 @@ import importlib
 import click
 
 from grunt.cli.utils import _site_session
+lazy import grunt
+lazy from grunt.apps.loader import _ensure_on_syspath, _hooks_import_path
+lazy from grunt.fixtures import export_fixtures, parse_fixture_specs
+lazy from grunt.site.manager import site_manager
 
 
 @click.group("fixtures")
@@ -22,10 +26,6 @@ def fixtures_export(app: str, site: str | None):
     """
 
     async def _run():
-        import grunt
-        from grunt.apps.loader import _ensure_on_syspath, _hooks_import_path
-        from grunt.fixtures import export_fixtures, parse_fixture_specs
-        from grunt.site.manager import site_manager
 
         app_dir = site_manager.bench_dir / "apps" / app
         if not app_dir.is_dir():

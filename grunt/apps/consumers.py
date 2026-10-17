@@ -12,12 +12,13 @@ The framework itself ("app zero", :mod:`grunt.core_hooks`) is loaded through
 this exact path.
 """
 
-from __future__ import annotations
-
 import importlib
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any
+from pathlib import Path
+from typing import Any
+
+from fastapi import FastAPI
 
 from grunt import log
 from grunt.actions import load_app_doc_actions
@@ -32,12 +33,7 @@ from grunt.website.router import (
     register_page_resolver,
     register_sitemap_source,
 )
-
-if TYPE_CHECKING:
-    from collections.abc import Awaitable
-    from pathlib import Path
-
-    from fastapi import FastAPI
+lazy from grunt.document.sidebar import SidebarSection, register_sidebar_section
 
 
 @dataclass(frozen=True, slots=True)
@@ -185,7 +181,6 @@ def _mcp_tools(value: list[str], ctx: LoadContext) -> None:
 
 @consumer("sidebar_sections")
 def _sidebar_sections(value: list[dict[str, Any]], ctx: LoadContext) -> None:
-    from grunt.document.sidebar import SidebarSection, register_sidebar_section
 
     for spec in value:
         try:

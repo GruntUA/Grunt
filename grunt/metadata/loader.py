@@ -1,12 +1,8 @@
-from __future__ import annotations
-
 import json
-from typing import TYPE_CHECKING, Any
+from pathlib import Path
+from typing import Any
 
 from grunt.startup.doctypes import _find_doctype_dirs
-
-if TYPE_CHECKING:
-    from pathlib import Path
 
 
 def load_doctype_from_file(doctype: str) -> dict[str, Any]:
@@ -42,7 +38,7 @@ def load_doctype_from_file(doctype: str) -> dict[str, Any]:
     if file_path is None:
         raise FileNotFoundError(f"{doctype}.json not found for DocType {doctype}")
 
-    with open(file_path, encoding="utf-8") as f:
+    with open(file_path) as f:
         txt = json.loads(f.read())
 
     # Add doctype classification for fields and permissions

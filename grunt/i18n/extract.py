@@ -16,8 +16,6 @@ Consumed by ``grunt i18n extract`` (regenerates PO/POT) and by the Translate
 app's registry view. Results are cached in-process (see :func:`get_sources`).
 """
 
-from __future__ import annotations
-
 import ast
 import json
 import re
@@ -26,6 +24,7 @@ from pathlib import Path
 from typing import Any, TypeGuard
 
 from grunt.i18n.meta import SELECT_FIELDTYPES, option_values
+lazy from grunt.site.manager import site_manager
 
 _PY_FUNCS = {"_", "gettext", "pgettext", "ngettext", "N_", "NP_"}
 # Registration calls whose keyword strings are shown in the UI and translated
@@ -92,8 +91,6 @@ def extract_all(
 ) -> list[dict[str, Any]]:
     """Scan every app under ``<bench>/apps`` (or just those in *origins*)."""
     if bench_dir is None:
-        from grunt.site.manager import site_manager
-
         bench_dir = site_manager.bench_dir
     apps_dir = Path(bench_dir) / "apps"
 
@@ -138,7 +135,7 @@ def extract_all(
             rel = str(path.relative_to(apps_dir))
             suffix = path.suffix.lower()
             try:
-                text = path.read_text(encoding="utf-8")
+                text = path.read_text()
             except OSError, UnicodeDecodeError:
                 continue
             if suffix == ".py":
@@ -278,7 +275,7 @@ def _translatable_fields(apps_dir: Path) -> dict[str, set[str]]:
         if path.stem != path.parent.name or any(p in _SKIP_DIRS for p in path.parts):
             continue
         try:
-            dt = json.loads(path.read_text(encoding="utf-8"))
+            dt = json.loads(path.read_text())
         except OSError, ValueError:
             continue
         if not isinstance(dt, dict) or not dt.get("name"):

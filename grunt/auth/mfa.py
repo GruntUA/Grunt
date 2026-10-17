@@ -4,26 +4,20 @@ Provides Time-based One-Time Password (TOTP) setup and verification,
 backed by the ``mfa_secret`` and ``mfa_backup_codes`` fields on the User DocType.
 """
 
-from __future__ import annotations
-
 import contextlib
 import hashlib
 import io
 import json
 import os
-from typing import TYPE_CHECKING
 
 import pyotp
 from fastapi import HTTPException
+from sqlalchemy.ext.asyncio import AsyncSession
 
 import grunt
 from grunt import _, log
-
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession
-
-    from grunt.auth.doctypes.User.user import User
-
+lazy from grunt.auth.doctypes.User.user import User
+lazy from grunt.site.manager import site_manager
 
 _APP_NAME = "Grunt"
 _BACKUP_CODE_COUNT = 8
@@ -193,8 +187,6 @@ async def check_mfa_code(user: User, code: str, session: AsyncSession | None = N
     is already set by middleware.
     """
     if session is not None:
-        from grunt.site.manager import site_manager
-
         eng = site_manager.get_engine(site_manager.get_active_site())
         ctx = grunt.system_context(session, eng)
     else:

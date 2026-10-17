@@ -18,8 +18,6 @@ compression level. An hourly job
 (:func:`grunt.backups.tasks.scheduled_backup`) makes a backup when one is due.
 """
 
-from __future__ import annotations
-
 import asyncio
 import contextlib
 import fcntl
@@ -30,18 +28,15 @@ import sqlite3
 import subprocess
 import tarfile
 import tempfile
+from collections.abc import Callable, Sequence
 from compression import zstd
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 from grunt import _, log
 from grunt.progress import Progress
 from grunt.site.manager import site_manager
-
-if TYPE_CHECKING:
-    from collections.abc import Callable, Sequence
 
 KINDS = ("database", "files", "config")
 # zstd 9: ~40% smaller than gzip 6 and faster; 19 squeezes more at ~25× the time.

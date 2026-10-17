@@ -15,20 +15,15 @@ Example field definition (in the parent DocType JSON):
     }
 """
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from sqlalchemy import func, select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 import grunt
 from grunt import log
 from grunt.document.meta import Meta
-
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession
-
-    from grunt.metadata.doctype import DocType
+lazy from grunt.metadata.doctype import DocType
 
 
 async def compute_aggregations(

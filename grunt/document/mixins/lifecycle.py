@@ -13,21 +13,21 @@ adds to the pipeline - ``Document`` fills them in with its table work (naming
 series, child tables, search index, versions).
 """
 
-from __future__ import annotations
-
+from collections.abc import Awaitable, Callable
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING, Any, ClassVar
+from typing import Any, ClassVar
 
 from fastapi import HTTPException, status
 from sqlalchemy.exc import IntegrityError
 
+import grunt
 from grunt import _, log
 from grunt.db.errors import friendly_integrity_error
 from grunt.document.fetch import apply_fetch_from
 from grunt.document.relations import apply_field_values
 from grunt.document.serde import audit_fields, serialize_datetimes, with_doctype
 from grunt.document.validation import _validate_data, validate_child_rows
-from grunt.errors import ApplicationError
+from grunt.errors import ApplicationError, not_found
 from grunt.events import fire
 from grunt.naming import naming_service
 from grunt.naming.patterns import has_counter, parse_pattern
@@ -37,15 +37,13 @@ from grunt.permissions.reference import reference_readable
 from grunt.permissions.user_permissions import doc_violation
 from grunt.storage.signing import strip_file_signatures
 from grunt.webhook.service import webhook_service
-from grunt.workflow.engine import _active
-from grunt.workflow.guard import check_delete, check_update
+from grunt.workflow.engine import _active, workflow_engine
+from grunt.workflow.guard import check_create, check_delete, check_update
 from grunt.workflow.registry import get_active_workflow
-
-if TYPE_CHECKING:
-    from collections.abc import Awaitable, Callable
-
-    from grunt.auth.doctypes.User.user import User
-    from grunt.document.base import DocumentList
+lazy from grunt.auth.doctypes.User.user import User
+lazy from grunt.document.base import DocumentList, load_document
+lazy from grunt.document.meta import Meta
+lazy from grunt.metadata.registry import doctype_registry
 
 PROTECTED_FIELDS = frozenset({"name", "owner", "created_at"})
 
@@ -121,7 +119,6 @@ class DocumentLifecycleMixin:
         **kwargs: Any,
     ) -> DocumentList:
         """A page of the documents *user* may see. Without storage - none."""
-        from grunt.document.base import DocumentList
 
         return DocumentList(data=[], meta={"total": 0, "page": page, "per_page": per_page})
 
@@ -191,10 +188,6 @@ class DocumentLifecycleMixin:
 
     async def _resolve_dt(self, doctype_name: str) -> Any:
         """Return the freshest DocType definition, forcing a lazy reload if needed."""
-        import grunt
-        from grunt.document.meta import Meta
-        from grunt.errors import not_found
-        from grunt.metadata.registry import doctype_registry
 
         fresh = await doctype_registry._lazy_load(doctype_name)
         if fresh is not None:
@@ -239,7 +232,6 @@ class DocumentLifecycleMixin:
 
     async def _load_existing(self, doc_id: str | None) -> dict[str, Any]:
         """The stored document *doc_id*, read like ``grunt.get_doc`` reads it."""
-        from grunt.document.base import load_document
 
         doc = await load_document(
             self.doctype, doc_id, session=self.session, engine=self.engine, user=self.user
@@ -290,8 +282,6 @@ class DocumentLifecycleMixin:
 
         workflow = await get_active_workflow(dt.name)
         if workflow:
-            from grunt.workflow.guard import check_create
-
             await check_create(dt.name, data, user)
             sf = workflow.state_field
             if sf in data:
@@ -491,8 +481,6 @@ class DocumentLifecycleMixin:
             self._reset_grunt_context(tokens)
 
         if auto_transition:
-            from grunt.workflow.engine import workflow_engine
-
             await workflow_engine.finish_transition(auto_transition, result, user, self.session)
         return result
 

@@ -29,21 +29,16 @@ If evaluation raises an exception the field is left unchanged and a warning
 is logged.  This ensures a bad formula never blocks a save.
 """
 
-from __future__ import annotations
-
 import ast
 from datetime import UTC, datetime
 from functools import lru_cache
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 import grunt
 from grunt import log
 from grunt.document.meta import Meta
 from grunt.metadata.field import get_storage_class
-
-if TYPE_CHECKING:
-    from grunt.metadata.doctype import DocType
-
+lazy from grunt.metadata.doctype import DocType
 
 _SAFE_BUILTINS: dict[str, Any] = {
     "__builtins__": {},

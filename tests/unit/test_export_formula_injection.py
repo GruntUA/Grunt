@@ -10,8 +10,6 @@ execution — e.g. data exfiltration via HYPERLINK() — in whoever (often an
 admin) opens an export of user-submitted data.
 """
 
-from __future__ import annotations
-
 import io
 
 import openpyxl

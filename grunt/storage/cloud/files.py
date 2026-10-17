@@ -13,8 +13,6 @@ its hash). The nightly garbage collection trims the cache to the remote's
 size, oldest-used first, and deletes remote blobs nothing refers to any more.
 """
 
-from __future__ import annotations
-
 import asyncio
 import hashlib
 import json
@@ -25,18 +23,16 @@ import uuid
 from collections import defaultdict
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 import grunt
 from grunt import _, log
 from grunt.site.manager import site_manager
-from grunt.storage.backends import CHUNK_SIZE, get_storage_backend
+from grunt.storage.backends import CHUNK_SIZE, LocalStorageBackend, get_storage_backend
 from grunt.storage.cloud import RemoteError, files_remote, load_remote, record_status
 from grunt.storage.cloud.rclone import Rclone
-
-if TYPE_CHECKING:
-    from grunt.progress import Progress
-    from grunt.storage.backends import LocalStorageBackend
+lazy from grunt.monitoring.health import human_size
+lazy from grunt.progress import Progress
 
 # One night moves at most this many blobs; the rest go the next night.
 MAX_BLOBS_PER_RUN = 5000
@@ -301,7 +297,6 @@ async def recall(remote: dict[str, Any], progress: Progress | None = None) -> di
 
 
 async def _update_stats(remote: dict[str, Any]) -> None:
-    from grunt.monitoring.health import human_size
 
     [agg] = await grunt.db.aggregate(
         "File",

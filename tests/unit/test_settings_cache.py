@@ -1,7 +1,5 @@
 """The SystemSettings cache is invalidated when the singleton is saved."""
 
-from __future__ import annotations
-
 import pytest
 
 from grunt.site.settings import get_setting

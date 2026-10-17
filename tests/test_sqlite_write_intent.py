@@ -3,8 +3,6 @@
 upgrade a stale snapshot; busy_timeout is not consulted). Work that intends to
 write starts with BEGIN IMMEDIATE instead and simply waits for the lock."""
 
-from __future__ import annotations
-
 import asyncio
 
 import pytest

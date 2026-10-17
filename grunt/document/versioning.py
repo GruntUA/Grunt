@@ -4,21 +4,17 @@ Each version records which fields changed, their old and new values,
 and supports restoring a document to any previous version.
 """
 
-from __future__ import annotations
-
-from datetime import UTC, datetime
-from typing import TYPE_CHECKING, Any
+from datetime import UTC, date, datetime
+from typing import Any
 
 from sqlalchemy import func, select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 import grunt
 from grunt import _, log
 from grunt.document.meta import Meta
 from grunt.metadata.registry import doctype_registry
-
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession
-
+lazy from grunt.errors import not_found
 
 # Fields that should not be tracked in version diffs
 _SKIP_FIELDS = frozenset({"modified_at", "modified_by"})
@@ -55,8 +51,6 @@ class VersionService:
 
         dt_version = await grunt.get_meta("DocVersion")
         if dt_version is None:
-            from grunt.errors import not_found
-
             raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": "DocVersion"})
         table = dt_version.table
 
@@ -106,8 +100,6 @@ class VersionService:
         """Get all versions for a document, newest first."""
         dt_version = await grunt.get_meta("DocVersion")
         if dt_version is None:
-            from grunt.errors import not_found
-
             raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": "DocVersion"})
         table = dt_version.table
         stmt = (
@@ -212,8 +204,6 @@ class VersionService:
         """Get a specific version by ID."""
         dt_version = await grunt.get_meta("DocVersion")
         if dt_version is None:
-            from grunt.errors import not_found
-
             raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": "DocVersion"})
         table = dt_version.table
         stmt = select(table).where(table.c.name == version_id)
@@ -294,7 +284,6 @@ class VersionService:
     @staticmethod
     def _serialize(value: Any) -> Any:
         """Serialize a value for JSON storage (recurses into list/dict)."""
-        from datetime import date, datetime
 
         if isinstance(value, (datetime, date)):
             return value.isoformat()

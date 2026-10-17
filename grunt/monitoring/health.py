@@ -7,8 +7,6 @@ browser half of the report (service worker, offline cache and queue) runs in
 the page itself: ``frontend/src/core/browserHealth.ts``.
 """
 
-from __future__ import annotations
-
 import asyncio
 import importlib.metadata
 import json
@@ -17,9 +15,10 @@ import shutil
 import time
 import tomllib
 import uuid
+from collections.abc import Awaitable, Callable
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from packaging.version import InvalidVersion, Version
 from sqlalchemy import text
@@ -31,15 +30,17 @@ from grunt.apps.deps import app_packages
 from grunt.backups import list_backups
 from grunt.i18n import N_, _
 from grunt.metadata.registry import doctype_registry
-from grunt.site.manager import site_manager
+from grunt.site.manager import current_site, site_manager
 from grunt.site.settings import get_setting
 from grunt.tasks.redis_introspect import DEAD_CONSUMER_IDLE_MS, redis_conn, s, stream_broker
 from grunt.tasks.scheduler import failed_jobs, scheduler
 from grunt.utils.redis import connect
 from grunt.version import app_version, compatibility_error
-
-if TYPE_CHECKING:
-    from collections.abc import Awaitable, Callable
+lazy from grunt.config import DEFAULT_SECRET_KEY, settings
+lazy from grunt.db.alembic_utils import migration_state
+lazy from grunt.monitoring.updates import check_updates as updates
+lazy from grunt.storage.cloud import rclone
+lazy from grunt.storage.cloud.files import cache_root
 
 OK, WARNING, ERROR, INFO = "OK", "Warning", "Error", "Info"
 
@@ -347,7 +348,6 @@ async def check_users() -> list[Row]:
 
 
 async def check_config() -> list[Row]:
-    from grunt.config import DEFAULT_SECRET_KEY, settings
 
     cat = _("Configuration")
     return [
@@ -405,7 +405,6 @@ REDIS_ROUNDTRIP_TIMEOUT = 2.0
 async def check_realtime() -> list[Row]:
     """Connections of this process + the Redis pub/sub relay that carries
     realtime messages between processes (web workers, the task worker)."""
-    from grunt.config import settings
 
     cat = _("WebSockets")
     channels = manager._connections
@@ -559,8 +558,6 @@ async def check_backups() -> list[Row]:
 
 
 async def check_cloud() -> list[Row]:
-    from grunt.storage.cloud.files import cache_root
-    from grunt.storage.cloud.rclone import is_installed
 
     cat = _("Cloud storage")
     remotes = await grunt.db.get_all(
@@ -569,7 +566,7 @@ async def check_cloud() -> list[Row]:
     if not remotes:
         return [row(cat, _("Storages"), INFO, _("none"), _("Backups stay on this server only."))]
     rows = []
-    if not is_installed():
+    if not rclone.is_installed():
         rows.append(
             row(
                 cat,
@@ -755,8 +752,6 @@ async def check_versions() -> list[Row]:
 
 
 async def _migrations_row(cat: str) -> Row:
-    from grunt.db.alembic_utils import migration_state
-    from grunt.site.manager import current_site
 
     state = await asyncio.to_thread(
         migration_state, site_manager.get_database_url(current_site.get())
@@ -834,7 +829,6 @@ async def check_offline_build() -> list[Row]:
 
 
 async def check_updates() -> list[Row]:
-    from grunt.monitoring.updates import check_updates as updates
 
     return await updates()
 

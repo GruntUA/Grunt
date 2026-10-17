@@ -1,7 +1,5 @@
 """AutoRepeat - schedule arithmetic, rule validation and the daily copy job."""
 
-from __future__ import annotations
-
 from datetime import date, timedelta
 
 import pytest

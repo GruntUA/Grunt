@@ -11,16 +11,15 @@ DocType no longer exists; rows whose document was deleted are hidden (as they
 are from lists).
 """
 
-from __future__ import annotations
+from typing import Any
 
-from typing import TYPE_CHECKING, Any
+from sqlalchemy import ColumnElement, Table, and_, false, or_, select
 
-from sqlalchemy import and_, false, or_, select
-
-if TYPE_CHECKING:
-    from sqlalchemy import ColumnElement, Table
-
-    from grunt.auth.doctypes.User.user import User
+lazy import grunt
+lazy from grunt.auth.doctypes.User.user import User
+lazy from grunt.permissions.query import apply_permission_filter
+lazy from grunt.permissions.rbac import permission_checker
+lazy from grunt.permissions.user_permissions import build_conditions
 
 # (doctype field, id field) for a dynamic reference; (None, link field) for a Link.
 Source = tuple[str | None, str]
@@ -49,8 +48,6 @@ async def reference_readable(user: User, doctype: Any, doc: dict[str, Any]) -> b
     ``None`` when *doc* points at nothing (or only at a removed DocType): the
     role's own rules decide then (see module doc).
     """
-    import grunt
-    from grunt.permissions.rbac import permission_checker
 
     bound = False
     for dt_field, id_field in reference_sources(doctype):
@@ -71,9 +68,6 @@ async def reference_readable(user: User, doctype: Any, doc: dict[str, Any]) -> b
 
 async def readable_names(user: User, parent_meta: Any) -> Any | None:
     """``SELECT name`` of the *parent_meta* rows *user* may read, or ``None``."""
-    from grunt.permissions.query import apply_permission_filter
-    from grunt.permissions.rbac import permission_checker
-    from grunt.permissions.user_permissions import build_conditions
 
     if not await permission_checker.check(user, parent_meta, "read"):
         return None
@@ -90,7 +84,6 @@ async def reference_conditions(
 ) -> tuple[ColumnElement[bool], ColumnElement[bool]] | None:
     """``(points at nothing, points at a readable document)`` for list queries,
     or ``None`` when *doctype* doesn't inherit access."""
-    import grunt
 
     sources = [
         (dt_field, id_field)

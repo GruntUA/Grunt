@@ -1,10 +1,8 @@
 """XLSX exporter - produces a styled Excel workbook."""
 
-from __future__ import annotations
-
 import io
 from datetime import date, datetime
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 import openpyxl
 from openpyxl.styles import Alignment, Font, PatternFill
@@ -12,10 +10,7 @@ from openpyxl.utils import get_column_letter
 
 from grunt.io.exporters.registry import Exporter
 from grunt.io.exporters.sanitize import escape_formula
-
-if TYPE_CHECKING:
-    from grunt.metadata.field import DocField
-
+lazy from grunt.metadata.field import DocField
 
 # Header style
 _HEADER_FONT = Font(bold=True, color="FFFFFF")

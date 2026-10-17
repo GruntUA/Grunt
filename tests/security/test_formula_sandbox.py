@@ -8,16 +8,12 @@ A ``formula`` is System-Manager-authored, but read_formula runs on every read,
 so an escape would be stored RCE triggered in any reader's request context.
 """
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING, cast
+from typing import cast
 
 import pytest
 
 from grunt.document.formula import _evaluate_formulas, _formula_is_safe
-
-if TYPE_CHECKING:
-    from grunt.metadata.doctype import DocType
+lazy from grunt.metadata.doctype import DocType
 
 
 class _Field:

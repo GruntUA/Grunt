@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import asyncio
 import base64
 import email
@@ -10,19 +8,17 @@ from datetime import UTC, datetime
 from email.header import decode_header, make_header
 from email.message import EmailMessage, Message
 from email.utils import make_msgid, parsedate_to_datetime
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 import aioimaplib
 import aiosmtplib
+from sqlalchemy import event
+from sqlalchemy.ext.asyncio import AsyncSession
 
 import grunt
 from grunt import _, log
 from grunt.site.settings import get_setting
 from grunt.storage import store
-
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession
-
 
 # Placeholder returned instead of a stored SMTP password on every read by a
 # non-System-Manager (see grunt.email.hooks.mask_smtp_password). Saving the
@@ -56,7 +52,6 @@ def _kick_queue_after_commit(session: AsyncSession) -> None:
     never triggers a send. Repeated ``queue_email`` calls in one transaction
     share a single hook.
     """
-    from sqlalchemy import event
 
     sync_session = session.sync_session
     if sync_session.info.get("grunt_email_kick_armed"):

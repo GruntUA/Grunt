@@ -11,8 +11,6 @@ Revises: 0006
 Create Date: 2026-10-07
 """
 
-from __future__ import annotations
-
 import json
 from datetime import UTC, datetime
 

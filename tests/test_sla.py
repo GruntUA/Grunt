@@ -1,7 +1,5 @@
 """Service levels - deadline arithmetic, clock tracking, warnings and escalation."""
 
-from __future__ import annotations
-
 from datetime import UTC, date, datetime, timedelta
 
 import pytest

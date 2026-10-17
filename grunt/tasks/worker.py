@@ -12,8 +12,6 @@ sites, DocType registry, installed apps' hooks) - minus the scheduler, which
 runs in the web process and only enqueues.
 """
 
-from __future__ import annotations
-
 import asyncio
 import importlib
 import re
@@ -47,7 +45,7 @@ def _task_modules(package_dir: Path) -> list[str]:
         if _SKIP_DIRS & set(rel.parts) or path.name.startswith("test_"):
             continue
         try:
-            if _TASK_DECORATOR.search(path.read_text(encoding="utf-8")):
+            if _TASK_DECORATOR.search(path.read_text()):
                 found.append(".".join(rel.with_suffix("").parts))
         except OSError, UnicodeDecodeError:
             continue

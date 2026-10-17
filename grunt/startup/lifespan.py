@@ -12,11 +12,10 @@ Kept out of :mod:`grunt.main` so the entry point stays a thin assembly of
 Steps 1–3 are :func:`boot`, which the task worker runs too.
 """
 
-from __future__ import annotations
-
 import asyncio
 from contextlib import asynccontextmanager, suppress
-from typing import TYPE_CHECKING
+
+from fastapi import FastAPI
 
 import grunt
 from grunt import log
@@ -31,9 +30,6 @@ from grunt.site.settings import get_setting
 from grunt.startup import load_validators
 from grunt.tasks.broker import broker
 from grunt.tasks.scheduler import start_scheduler, stop_scheduler
-
-if TYPE_CHECKING:
-    from fastapi import FastAPI
 
 
 def _configure() -> None:

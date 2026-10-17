@@ -1,7 +1,5 @@
 """URL slugs - Cyrillic transliterated by the KMU 55/2010 table, then ``[a-z0-9-]+``."""
 
-from __future__ import annotations
-
 import re
 
 # fmt: off

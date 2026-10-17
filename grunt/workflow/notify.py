@@ -14,16 +14,17 @@ The actor is never notified. A system notification (with web push) always;
 an email too with ``notify_email``.
 """
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 import grunt
 from grunt import _, log
-
-if TYPE_CHECKING:
-    from grunt.auth.doctypes.User.user import User
-    from grunt.workflow.engine import ActiveTransition
+lazy from grunt.auth.doctypes.User.user import User, get_user_by_id
+lazy from grunt.notification.service import notification_service
+lazy from grunt.permissions.rbac import permission_checker
+lazy from grunt.permissions.user_permissions import doc_passes
+lazy from grunt.site.manager import current_site
+lazy from grunt.workflow.engine import ActiveTransition, user_may_take
+lazy from grunt.workflow.registry import get_active_workflow
 
 
 async def notify_transition(
@@ -42,8 +43,6 @@ async def notify_transition(
     recipients = [r for r in dict.fromkeys(recipients) if r and r != user.email]
     if not recipients:
         return
-
-    from grunt.notification.service import notification_service
 
     meta = await grunt.get_meta(active.doctype)
     title = _doc_title(meta, doc)
@@ -69,11 +68,6 @@ async def notify_transition(
 
 async def next_actors(doctype: str, doc: dict[str, Any]) -> list[str]:
     """Users who can take a button transition out of *doc*'s current state."""
-    from grunt.auth.doctypes.User.user import get_user_by_id
-    from grunt.permissions.rbac import permission_checker
-    from grunt.permissions.user_permissions import doc_passes
-    from grunt.workflow.engine import user_may_take
-    from grunt.workflow.registry import get_active_workflow
 
     workflow = await get_active_workflow(doctype)
     if not workflow:
@@ -154,7 +148,6 @@ async def _message(active: ActiveTransition, user: User, meta: Any) -> str:
 
 
 async def _state_label(doctype: str, state: str | None) -> str:
-    from grunt.workflow.registry import get_active_workflow
 
     workflow = await get_active_workflow(doctype)
     found = next((s for s in workflow.states if s.state == state), None) if workflow else None
@@ -169,7 +162,6 @@ def _desk_url(meta: Any, doc_id: str) -> str:
 
 async def _form_url(meta: Any, doc_id: str) -> str:
     """The document's form in the desk - absolute when the site is named by its domain."""
-    from grunt.site.manager import current_site
 
     path = _desk_url(meta, doc_id)
     site = current_site.get()

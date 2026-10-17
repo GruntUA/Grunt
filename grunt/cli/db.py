@@ -2,6 +2,28 @@ import asyncio
 from contextlib import suppress
 
 import click
+from taskiq import InMemoryBroker
+
+lazy import grunt
+lazy from grunt.apps.required import DependencyCycleError, MissingAppError
+lazy from grunt.backups import BackupError, create_backup, get_backup, list_backups, restore_backup
+lazy from grunt.cli.utils import _site_session
+lazy from grunt.metadata.compiler import SA_METADATA, sync_table
+lazy from grunt.metadata.registry import doctype_registry
+lazy from grunt.monitoring.health import human_size
+lazy from grunt.site.manager import current_site, site_manager
+lazy from grunt.startup import (
+    apply_doctype_overrides,
+    load_core_doctypes,
+    load_core_fixtures,
+    seed_grunt_workspace,
+    seed_system_settings,
+    sync_installed_apps,
+)
+lazy from grunt.startup.app_install import record_migrated_versions
+lazy from grunt.storage.cloud import Rclone, RemoteError, load_remote
+lazy from grunt.storage.cloud.backups import fetch_backup, list_remote_backups, upload_backup
+lazy from grunt.tasks.broker import broker
 
 
 @click.group("db")
@@ -25,25 +47,8 @@ def db_migrate(dry_run: bool, site: str | None, no_alembic: bool) -> None:
     - Installing new apps with DocTypes
     - Changes to fixture files (00_workspace.json etc.)
     """
-    import asyncio
 
     async def _run() -> list[str]:
-        from taskiq import InMemoryBroker
-
-        from grunt.apps.required import DependencyCycleError, MissingAppError
-        from grunt.metadata.compiler import SA_METADATA, sync_table
-        from grunt.metadata.registry import doctype_registry
-        from grunt.site.manager import current_site, site_manager
-        from grunt.startup import (
-            apply_doctype_overrides,
-            load_core_doctypes,
-            load_core_fixtures,
-            seed_grunt_workspace,
-            seed_system_settings,
-            sync_installed_apps,
-        )
-        from grunt.startup.app_install import record_migrated_versions
-        from grunt.tasks.broker import broker
 
         broker_started = False
         failed: list[str] = []
@@ -186,13 +191,8 @@ def db_migrate(dry_run: bool, site: str | None, no_alembic: bool) -> None:
 @click.option("--site", default=None, help="Site name")
 def db_trim_tables(doctype: str | None, dry_run: bool, quiet: bool, site: str | None) -> None:
     """Drop table columns that are not in the metadata (DocType)."""
-    import asyncio
-
-    from grunt.site.manager import current_site, site_manager
 
     async def _run() -> None:
-        import grunt
-        from grunt.metadata.registry import doctype_registry
 
         sites = [site] if site else site_manager.get_sites()
         if not sites:
@@ -254,7 +254,6 @@ def db_trim_tables(doctype: str | None, dry_run: bool, quiet: bool, site: str | 
 
 
 def _resolve_site(site: str | None) -> str:
-    from grunt.site.manager import site_manager
 
     return site or site_manager.get_active_site()
 
@@ -266,7 +265,6 @@ def _resolve_site(site: str | None) -> str:
 @click.option("--no-config", is_flag=True, help="Without the site .env")
 def db_backup(site: str | None, no_database: bool, no_files: bool, no_config: bool):
     """Back up the site to sites/<site>/backups/ (database, files, .env)."""
-    from grunt.backups import BackupError, create_backup
 
     try:
         backup = asyncio.run(
@@ -287,8 +285,6 @@ def db_backup(site: str | None, no_database: bool, no_files: bool, no_config: bo
 @click.option("--site", default=None, help="Site name")
 def db_backups(site: str | None):
     """Show the site's backups (newest first)."""
-    from grunt.backups import list_backups
-    from grunt.monitoring.health import human_size
 
     for backup in list_backups(_resolve_site(site)):
         kinds = ", ".join(sorted(backup.files))
@@ -307,7 +303,6 @@ def db_restore(backup_id: str, site: str | None, with_files: bool, yes: bool):
     --with-files) are moved to backups/pre-restore-<time>/, so the restore
     can be rolled back.
     """
-    from grunt.backups import BackupError, get_backup, restore_backup
 
     target = _resolve_site(site)
     backup = get_backup(target, backup_id)
@@ -328,11 +323,8 @@ def db_restore(backup_id: str, site: str | None, with_files: bool, yes: bool):
 
 def _cloud_remote(site: str, name: str):
     """Run *fn(remote, session)* inside the site's context - see the cloud commands."""
-    from grunt.cli.utils import _site_session
 
     async def run(fn):
-        import grunt
-        from grunt.storage.cloud import load_remote
 
         async with _site_session(site) as (session, eng), grunt.system_context(session, eng):
             remote = await load_remote(name)
@@ -349,9 +341,6 @@ def _cloud_remote(site: str, name: str):
 @click.option("--site", default=None, help="Site name")
 def db_cloud_backups(remote: str, site: str | None):
     """Show the backups kept in the cloud storage REMOTE (a StorageRemote name)."""
-    from grunt.monitoring.health import human_size
-    from grunt.storage.cloud import Rclone, RemoteError
-    from grunt.storage.cloud.backups import list_remote_backups
 
     target = _resolve_site(site)
 
@@ -379,8 +368,6 @@ def db_fetch_backup(remote: str, backup_id: str, site: str | None):
     database (no StorageRemote to read), use plain rclone with the config
     saved from the storage's «Show rclone config».
     """
-    from grunt.storage.cloud import RemoteError
-    from grunt.storage.cloud.backups import fetch_backup
 
     target = _resolve_site(site)
     try:
@@ -399,9 +386,6 @@ def db_fetch_backup(remote: str, backup_id: str, site: str | None):
 @click.option("--site", default=None, help="Site name")
 def db_upload_backup(remote: str, backup_id: str | None, site: str | None):
     """Upload a backup (the newest by default) to the cloud storage REMOTE."""
-    from grunt.backups import get_backup, list_backups
-    from grunt.storage.cloud import RemoteError
-    from grunt.storage.cloud.backups import upload_backup
 
     target = _resolve_site(site)
     backup = get_backup(target, backup_id) if backup_id else next(iter(list_backups(target)), None)

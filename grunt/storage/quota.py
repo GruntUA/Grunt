@@ -9,18 +9,11 @@ Document attachments and not-yet-filed uploads live outside any space and
 don't count.
 """
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
-
-from sqlalchemy import func, select
+from sqlalchemy import Table, func, select
 
 import grunt
 from grunt import _
 from grunt.site.settings import get_setting
-
-if TYPE_CHECKING:
-    from sqlalchemy import Table
 
 _MB = 1024 * 1024
 

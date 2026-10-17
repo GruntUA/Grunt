@@ -1,16 +1,11 @@
 """A www/ page controller may return a Response (e.g. a redirect) instead of a context."""
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
+from pathlib import Path
 
 import pytest
 from starlette.requests import Request
 
 from grunt.website.router import WebsiteRegistry, render_page, website_registry
-
-if TYPE_CHECKING:
-    from pathlib import Path
 
 
 def _request(path: str) -> Request:

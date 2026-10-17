@@ -4,8 +4,6 @@ An author drafts and sends for review; a reviewer publishes or sends back with
 a comment; an author's edit of a published article sends it back to review.
 """
 
-from __future__ import annotations
-
 import pytest
 import pytest_asyncio
 from fastapi import HTTPException

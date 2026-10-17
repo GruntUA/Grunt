@@ -1,8 +1,6 @@
 """DocType.retention_days: old documents are deleted — business documents
 through the normal delete (trash snapshot), logs in bulk."""
 
-from __future__ import annotations
-
 from datetime import UTC, datetime, timedelta
 
 import pytest

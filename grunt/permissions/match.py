@@ -18,22 +18,16 @@ once (one failed open, the other silently treated "can't translate" as
 one place makes that kind of drift structurally harder to reintroduce.
 """
 
-from __future__ import annotations
-
 import re
-from typing import TYPE_CHECKING
+
+from sqlalchemy import Table, select
+from sqlalchemy.sql import ColumnElement
 
 import grunt
 from grunt import log
-
-if TYPE_CHECKING:
-    from sqlalchemy import Table
-    from sqlalchemy.sql import ColumnElement
-
-    from grunt.auth.doctypes.User.user import User
-    from grunt.document.meta import Meta
-    from grunt.metadata.doctype import DocType
-
+lazy from grunt.auth.doctypes.User.user import User
+lazy from grunt.document.meta import Meta
+lazy from grunt.metadata.doctype import DocType
 
 # "<field> == <value>" / "<field> != <value>".
 #   <field>  a document field, or "<link_field>.<target_field>" for a single
@@ -126,8 +120,6 @@ class PermissionMatch:
         _target_name, target_table = resolved
         if sub_fn not in target_table.c:
             return None
-
-        from sqlalchemy import select
 
         subq = select(target_table.c.name).where(target_table.c[sub_fn] == value)
         col = table.c[link_fn]

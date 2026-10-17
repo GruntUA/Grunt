@@ -1,8 +1,6 @@
 """Personal file spaces: a home folder per user, folders and files inside it
 private to the owner, sharing a folder shares its subtree, quotas."""
 
-from __future__ import annotations
-
 import io
 
 import pytest

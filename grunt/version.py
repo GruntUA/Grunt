@@ -10,8 +10,6 @@ back to its installed package metadata and an app to ``version`` in its
 ``app.json``.
 """
 
-from __future__ import annotations
-
 import importlib.metadata
 import json
 import re

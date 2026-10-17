@@ -1,8 +1,6 @@
 """Website catch-all: Desk routes get the SPA shell, anything else a real 404;
 pages answer HEAD; sitemap and the page-view rate limit tier."""
 
-from __future__ import annotations
-
 import pytest
 from jinja2 import ChoiceLoader, FileSystemLoader
 

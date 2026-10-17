@@ -7,27 +7,30 @@ signed, single-purpose JWT (:func:`grunt.auth.service.create_challenge_token`)
 rather than server state, so the flow stays stateless.
 """
 
-from __future__ import annotations
-
 import json
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING, Any, ClassVar
+from typing import Any, ClassVar
 from urllib.parse import urlparse
 
 import webauthn
+lazy from webauthn.helpers.structs import (
+    AuthenticatorAttachment,
+    AuthenticatorSelectionCriteria,
+    AuthenticatorTransport,
+    PublicKeyCredentialDescriptor,
+    ResidentKeyRequirement,
+    UserVerificationRequirement,
+)
 
 import grunt
 from grunt import _, log
 from grunt.api.messages import throw
-from grunt.auth.doctypes.User.user import get_user_by_email, get_user_by_id
+from grunt.auth.doctypes.User.user import User, get_user_by_email, get_user_by_id
 from grunt.auth.providers.base import AuthFlowContext, AuthProvider
 from grunt.auth.providers.registry import register
 from grunt.auth.service import create_challenge_token, verify_challenge_token
 from grunt.config import settings
-
-if TYPE_CHECKING:
-    from grunt.auth.doctypes.User.user import User
-
+lazy from grunt.utils.http import public_base_url
 
 _AUTH_PURPOSE = "webauthn-auth"
 _REG_PURPOSE = "webauthn-reg"
@@ -51,7 +54,6 @@ def _origin_from_request(request: Any) -> str | None:
     # arbitrary client-supplied Origin/Host as the expected ceremony origin.
     if request is None:
         return None
-    from grunt.utils.http import public_base_url
 
     return public_base_url(request)
 
@@ -109,10 +111,6 @@ async def _credential_by_id(credential_id: str) -> dict | None:
 
 
 def _descriptors(rows: list[dict]) -> list[Any]:
-    from webauthn.helpers.structs import (
-        AuthenticatorTransport,
-        PublicKeyCredentialDescriptor,
-    )
 
     def _transports(raw: str | None) -> list[Any] | None:
         out: list[Any] = []
@@ -146,7 +144,6 @@ class WebAuthnProvider(AuthProvider):
     # sign in
 
     async def begin(self, ctx: AuthFlowContext) -> dict[str, Any]:
-        from webauthn.helpers.structs import UserVerificationRequirement
 
         # "cross-device" = sign in with a passkey on a phone (QR/Bluetooth hybrid
         # transport). It must be a discoverable-credential request - the phone
@@ -230,12 +227,6 @@ class WebAuthnProvider(AuthProvider):
     # enrol a passkey for the signed-in user
 
     async def enroll_begin(self, ctx: AuthFlowContext) -> dict[str, Any]:
-        from webauthn.helpers.structs import (
-            AuthenticatorAttachment,
-            AuthenticatorSelectionCriteria,
-            ResidentKeyRequirement,
-            UserVerificationRequirement,
-        )
 
         user = ctx.user
         if user is None or not user.id:

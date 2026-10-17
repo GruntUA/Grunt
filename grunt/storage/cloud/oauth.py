@@ -16,8 +16,6 @@ The token is kept in rclone's format (``access_token``, ``refresh_token``,
 writes the new one back.
 """
 
-from __future__ import annotations
-
 import base64
 import hashlib
 import hmac

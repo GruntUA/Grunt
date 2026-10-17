@@ -1,26 +1,20 @@
 """Field type enum and DocField model for DocType metadata."""
 
-from __future__ import annotations
-
 import functools
 import importlib.util
+from collections.abc import Callable
 from pathlib import Path
 from types import SimpleNamespace
-from typing import TYPE_CHECKING, Any, ClassVar, Literal
+from typing import Any, ClassVar, Literal
 
 from pydantic import BaseModel
 from sqlalchemy import JSON as SAJSON
 from sqlalchemy import Boolean, Column, Date, Double, Integer, Numeric, String, Text, Time
 from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.types import TypeEngine
 
 from grunt import log
 from grunt.db.types import UtcDateTime
-
-if TYPE_CHECKING:
-    from collections.abc import Callable
-
-    from sqlalchemy.types import TypeEngine
-
 
 # sa_type_name (column_spec's first tuple element) -> SQLAlchemy column type
 # builder. Shared by every DocField.to_sa_column() call instead of being

@@ -10,8 +10,6 @@ Syncing the framework must therefore never prune packages outside its lock:
 ``uv sync --inexact`` (see ``mise.toml`` -> ``deps``), then ``grunt app deps``.
 """
 
-from __future__ import annotations
-
 import re
 import shutil
 import subprocess

@@ -15,8 +15,6 @@ Logs are automatically routed to the appropriate file based on the calling
 module (e.g. hrm.* -> logs/apps/hrm/hrm.log, grunt.* -> logs/system/grunt.log).
 """
 
-from __future__ import annotations
-
 import os
 import sys
 

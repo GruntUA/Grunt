@@ -1,10 +1,21 @@
 import asyncio
+import json
 from pathlib import Path
 
 import click
 
 from grunt.cli.utils import _site_session
 from grunt.utils.strings import to_snake_case
+lazy from grunt.metadata import store
+lazy from grunt.metadata.doctype import DocType
+lazy from grunt.metadata.registry import doctype_registry
+lazy from grunt.site.manager import site_manager
+lazy from grunt.startup.doctypes import _find_doctype_dirs
+lazy from grunt.utils.codegen import (
+    build_controller_context,
+    render_template,
+    sync_controller_types,
+)
 
 
 @click.group("doctype")
@@ -20,11 +31,6 @@ def doctype_sync(name: str, site: str | None):
     """Sync a DocType: re-read its JSON from disk, update the database and the table schema."""
 
     async def _run():
-        import json
-
-        from grunt.metadata.doctype import DocType
-        from grunt.metadata.registry import doctype_registry
-        from grunt.startup.doctypes import _find_doctype_dirs
 
         # Find JSON file across all grunt/*/doctypes/ and app doctypes/, tracking
         # which app owns each search dir so we can both stamp DocType.app (core
@@ -32,7 +38,6 @@ def doctype_sync(name: str, site: str | None):
         # refuse to silently push one app's definition over another's.
         json_file = None
         owning_app = "grunt"
-        from grunt.site.manager import site_manager
 
         search_dirs: list[tuple[Path, str]] = [(d, "grunt") for d in _find_doctype_dirs()]
         # Also search installed app doctypes
@@ -63,14 +68,12 @@ def doctype_sync(name: str, site: str | None):
             click.echo(f"Error: JSON file for '{name}' not found.", err=True)
             raise SystemExit(1)
 
-        dt_data = json.loads(json_file.read_text(encoding="utf-8"))
+        dt_data = json.loads(json_file.read_text())
         dt = DocType.model_validate(dt_data)
         if not dt.app:
             dt.app = owning_app
 
         async with _site_session(site) as (session, eng):
-            from grunt.metadata import store
-
             # The DocType table itself may lag behind DocType.json (new property
             # columns) when only alembic ran - bring it up to date first.
             await store.ensure_table(session)
@@ -103,7 +106,6 @@ def doctype_list(site: str | None):
     """List all DocTypes."""
 
     async def _run():
-        from grunt.metadata.registry import doctype_registry
 
         async with _site_session(site) as (session, _eng):
             all_dts = await doctype_registry.list_all()
@@ -133,15 +135,10 @@ def doctype_scaffold(name: str, app: str, module: str | None, force: bool):
             ├── {Name}.js            # client script
             └── __init__.py
     """
-    import json
-
-    from grunt.utils.codegen import build_controller_context, render_template
 
     if not name or name[0].islower():
         click.echo("Error: the DocType name must start with an uppercase letter.", err=True)
         raise SystemExit(1)
-
-    from grunt.site.manager import site_manager
 
     app_path = site_manager.bench_dir / "apps" / app
     if not app_path.exists():
@@ -170,23 +167,19 @@ def doctype_scaffold(name: str, app: str, module: str | None, force: bool):
         "fields": initial_fields,
     }
     json_file = doctype_dir / f"{to_snake_case(name)}.json"
-    json_file.write_text(
-        json.dumps(json_content, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
-    )
+    json_file.write_text(json.dumps(json_content, ensure_ascii=False, indent=2) + "\n")
 
     # 2. Python controller via Jinja template
     py_ctx = build_controller_context(name, initial_fields)
     py_file = doctype_dir / f"{to_snake_case(name)}.py"
-    py_file.write_text(render_template("doctype/controller.py.jinja", py_ctx), encoding="utf-8")
+    py_file.write_text(render_template("doctype/controller.py.jinja", py_ctx))
 
     # 3. JS client script via Jinja template
     js_file = doctype_dir / f"{to_snake_case(name)}.js"
-    js_file.write_text(
-        render_template("doctype/client_script.js.jinja", {"name": name}), encoding="utf-8"
-    )
+    js_file.write_text(render_template("doctype/client_script.js.jinja", {"name": name}))
 
     # 4. __init__.py
-    (doctype_dir / "__init__.py").write_text("", encoding="utf-8")
+    (doctype_dir / "__init__.py").write_text("")
 
     try:
         rel_path = doctype_dir.relative_to(Path.cwd())
@@ -222,10 +215,6 @@ def doctype_sync_types(name: str, app: str, all_doctypes: bool):
       grunt doctype sync-types Invoice --app crm
       grunt doctype sync-types --all --app crm
     """
-    import json
-
-    from grunt.site.manager import site_manager
-    from grunt.utils.codegen import sync_controller_types
 
     app_path = site_manager.bench_dir / "apps" / app
 
@@ -238,7 +227,7 @@ def doctype_sync_types(name: str, app: str, all_doctypes: bool):
             if not py_file.exists():
                 continue
             try:
-                fields = json.loads(json_file.read_text(encoding="utf-8")).get("fields", [])
+                fields = json.loads(json_file.read_text()).get("fields", [])
                 changed = sync_controller_types(py_file, dt_name, fields)
                 if changed:
                     click.echo(f"  ✓ {dt_name}")
@@ -260,7 +249,7 @@ def doctype_sync_types(name: str, app: str, all_doctypes: bool):
         click.echo(f"Error: {py_file} not found.", err=True)
         raise SystemExit(1)
 
-    fields = json.loads(json_file.read_text(encoding="utf-8")).get("fields", [])
+    fields = json.loads(json_file.read_text()).get("fields", [])
     changed = sync_controller_types(py_file, name, fields)
     if changed:
         click.echo(f"✓ Types updated: {py_file}")

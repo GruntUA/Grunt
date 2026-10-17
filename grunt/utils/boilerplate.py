@@ -5,21 +5,15 @@ Provides interactive scaffolding for new Grunt applications.
 Called by: grunt create-app <name>
 """
 
-from __future__ import annotations
-
 import email.headerregistry
 import json
 import re
 import subprocess
-from typing import TYPE_CHECKING
+from pathlib import Path
 
 import click
 
 from grunt.utils.codegen import render_template
-
-if TYPE_CHECKING:
-    from pathlib import Path
-
 
 # Validation
 
@@ -184,7 +178,6 @@ def _create_app_boilerplate(dest: Path, hooks: dict, no_git: bool = False) -> No
 def _write_grunt_app_py(app_dir: Path, module: str, h: dict) -> None:
     (app_dir / "grunt_app.py").write_text(
         render_template("app/app.py.jinja", {**h, "module": module}),
-        encoding="utf-8",
     )
 
 
@@ -203,65 +196,57 @@ def _write_app_json(app_dir: Path, module: str, h: dict) -> None:
     }
     (app_dir / "app.json").write_text(
         json.dumps(data, ensure_ascii=False, indent=2) + "\n",
-        encoding="utf-8",
     )
 
 
 def _write_install_py(app_dir: Path, h: dict) -> None:
     (app_dir / "install.py").write_text(
         render_template("app/install.py.jinja", h),
-        encoding="utf-8",
     )
 
 
 def _write_readme(app_dir: Path, h: dict) -> None:
     (app_dir / "README.md").write_text(
         render_template("app/README.md.jinja", h),
-        encoding="utf-8",
     )
 
 
 def _write_gitignore(app_dir: Path) -> None:
     (app_dir / ".gitignore").write_text(
         render_template("app/.gitignore.jinja", {}),
-        encoding="utf-8",
     )
 
 
 def _write_module_init(app_dir: Path, module: str, h: dict) -> None:
     (app_dir / module / "__init__.py").write_text(
         f'''"""Module {module} for {h["title"]}."""\n''',
-        encoding="utf-8",
     )
 
 
 def _write_hooks_py(app_dir: Path, module: str, h: dict) -> None:
     (app_dir / module / "hooks.py").write_text(
         render_template("app/hooks.py.jinja", h),
-        encoding="utf-8",
     )
 
 
 def _write_tasks_py(app_dir: Path, module: str, h: dict) -> None:
     (app_dir / module / "tasks.py").write_text(
         render_template("app/tasks.py.jinja", h),
-        encoding="utf-8",
     )
 
 
 def _write_routes_py(app_dir: Path, module: str, h: dict) -> None:
     (app_dir / module / "routes.py").write_text(
         render_template("app/routes.py.jinja", h),
-        encoding="utf-8",
     )
 
 
 def _write_doctypes_init(app_dir: Path, module: str) -> None:
-    (app_dir / module / "doctypes" / "__init__.py").write_text("", encoding="utf-8")
+    (app_dir / module / "doctypes" / "__init__.py").write_text("")
 
 
 def _write_fixtures_init(app_dir: Path, module: str) -> None:
-    (app_dir / module / "fixtures" / "__init__.py").write_text("", encoding="utf-8")
+    (app_dir / module / "fixtures" / "__init__.py").write_text("")
 
 
 def _write_workspace_fixture(app_dir: Path, module: str, h: dict) -> None:
@@ -277,21 +262,18 @@ def _write_workspace_fixture(app_dir: Path, module: str, h: dict) -> None:
     ]
     (app_dir / module / "fixtures" / "00_workspace.json").write_text(
         json.dumps(data, ensure_ascii=False, indent=2) + "\n",
-        encoding="utf-8",
     )
 
 
 def _write_jsconfig(app_dir: Path, module: str) -> None:
     (app_dir / "jsconfig.json").write_text(
         render_template("app/jsconfig.json.jinja", {"module": module}),
-        encoding="utf-8",
     )
 
 
 def _write_types_dts(app_dir: Path, module: str) -> None:
     (app_dir / module / "types.d.ts").write_text(
         render_template("app/types.d.ts.jinja", {}),
-        encoding="utf-8",
     )
 
 

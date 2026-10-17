@@ -1,11 +1,12 @@
 """Bulk document operations shared by API handlers."""
 
-from __future__ import annotations
-
 import uuid
 from collections.abc import Awaitable, Callable, Sequence
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING, Any, cast
+from typing import Any, cast
+
+from sqlalchemy import delete as sa_delete
+from sqlalchemy.engine import CursorResult
 
 import grunt
 from grunt import _, log
@@ -14,10 +15,7 @@ from grunt.db.filters import apply_filters
 from grunt.db.session import async_session_factory
 from grunt.metadata.compiler import MULTI_LINK_TABLE
 from grunt.search.service import _search_index_table
-
-if TYPE_CHECKING:
-    from grunt.auth.doctypes.User.user import User
-
+lazy from grunt.auth.doctypes.User.user import User
 
 ProgressCallback = Callable[[int, int, int], Awaitable[None]]
 
@@ -249,8 +247,6 @@ class BulkDeleteTask:
         3. DELETE FROM grunt_search_index WHERE doctype = doctype
         4. Write one summary ActivityLog entry
         """
-        from sqlalchemy import delete as sa_delete
-        from sqlalchemy.engine import CursorResult
 
         if "System Manager" not in (getattr(user, "roles", None) or []):
             await self._manager.send_to_user(

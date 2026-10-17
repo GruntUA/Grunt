@@ -3,8 +3,6 @@ migration onto `Document.objects`/typed `get_doc` after auth/doctypes/User/user.
 (see ADR 004). Not covered by test_file_permissions.py/test_file_delete.py, which
 only exercise the DocType permissions and the before_delete hook."""
 
-from __future__ import annotations
-
 import io
 
 import pytest

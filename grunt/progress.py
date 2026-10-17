@@ -30,25 +30,21 @@ Manager can cancel it there (:func:`cancel_job`). Outside a task and without a
 *user* nothing is published; the calls are no-ops.
 """
 
-from __future__ import annotations
-
 import asyncio
 import contextlib
 import contextvars
 import json
 import time
 import uuid
+from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from typing import TYPE_CHECKING, Any, Literal
+from typing import Any, Literal
 
 import grunt
 from grunt import log, whitelist
 from grunt.api.v1.ws import manager
 from grunt.config import settings
 from grunt.utils.redis import connect
-
-if TYPE_CHECKING:
-    from collections.abc import AsyncIterator
 
 FLUSH_SECONDS = 0.5
 _TTL_SECONDS = 24 * 3600  # a crashed worker's entry fades away by itself

@@ -1,7 +1,5 @@
 """Date buckets - group a date/datetime column by day, month, quarter or year."""
 
-from __future__ import annotations
-
 from typing import Any
 
 from sqlalchemy import Integer, String, cast, func

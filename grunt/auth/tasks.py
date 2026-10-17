@@ -1,11 +1,11 @@
 """Auth tasks - run by the task worker."""
 
-from __future__ import annotations
-
 import grunt
 from grunt import log
 from grunt.site.manager import site_manager
 from grunt.tasks.broker import retryable_task
+lazy from grunt.auth.doctypes.UserSession.user_session import deactivate_expired
+lazy from grunt.auth.service import session_ttl_minutes
 
 
 @retryable_task()
@@ -15,8 +15,6 @@ async def close_idle_sessions() -> None:
     Sign-in and the session listing close a user's own idle sessions too;
     this catches devices nobody signs in from again.
     """
-    from grunt.auth.doctypes.UserSession.user_session import deactivate_expired
-    from grunt.auth.service import session_ttl_minutes
 
     site = site_manager.get_active_site()
     maker = site_manager.get_session_maker(site)

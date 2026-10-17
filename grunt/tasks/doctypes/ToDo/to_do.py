@@ -11,8 +11,6 @@ note in ``description``.
                      ``owner``); reopening clears the stamp
 """
 
-from __future__ import annotations
-
 from datetime import UTC, datetime
 from typing import Any
 

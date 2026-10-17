@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any
 
 import dotenv
-from sqlalchemy import event
+from sqlalchemy import event, func
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
@@ -17,6 +17,8 @@ from sqlalchemy.ext.asyncio import (
 from grunt import log
 from grunt.config import settings
 from grunt.db.write_intent import begin_statement
+lazy from grunt.db.profiler import attach_query_profiler
+lazy from grunt.monitoring.perf import attach_sql_counter
 
 _UK_ALPHABET = "абвгґдеєжзиіїйклмнопрстуфхцчшщьюя"
 _UK_ORDER = {ch: i for i, ch in enumerate(_UK_ALPHABET)}
@@ -57,7 +59,6 @@ def text_sort_expr(col: Any, dialect_name: str) -> Any:
     * MySQL - ``CONVERT(col USING utf8mb4) COLLATE utf8mb4_unicode_ci``
                 gives good case-insensitive, accent-sensitive ordering.
     """
-    from sqlalchemy import func  # noqa: PLC0415
 
     if dialect_name == "sqlite":
         return func.uk_sort_key(col)
@@ -129,7 +130,7 @@ class SiteManager:
         if not site_file.exists():
             return {}
         try:
-            return json.loads(site_file.read_text(encoding="utf-8"))
+            return json.loads(site_file.read_text())
         except (OSError, ValueError) as exc:
             log.error("site_manager.config_read_error", site=site_name, error=str(exc))
             return {}
@@ -268,13 +269,9 @@ class SiteManager:
                     # IMMEDIATE for work that will write - see grunt/db/write_intent.py.
                     conn.exec_driver_sql(begin_statement())
 
-            from grunt.monitoring.perf import attach_sql_counter  # noqa: PLC0415
-
             attach_sql_counter(engine)
 
             if settings.sql_profiler_enabled:
-                from grunt.db.profiler import attach_query_profiler  # noqa: PLC0415
-
                 attach_query_profiler(engine, threshold_ms=settings.slow_query_threshold_ms)
 
             self.engines[site_name] = engine

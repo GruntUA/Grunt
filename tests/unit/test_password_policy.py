@@ -1,7 +1,5 @@
 """Password policy enforcement driven by SystemSettings."""
 
-from __future__ import annotations
-
 import pytest
 
 from grunt.api.messages import ApplicationError

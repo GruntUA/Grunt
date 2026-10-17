@@ -1,8 +1,6 @@
 """DocFollow: followers are notified about updates and comments, never about
 their own actions; you can follow only what you can read; follows die with the doc."""
 
-from __future__ import annotations
-
 import pytest
 from fastapi import HTTPException
 

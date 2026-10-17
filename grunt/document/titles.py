@@ -4,8 +4,6 @@ Shared by activity feeds, workspace widgets, and anywhere else that needs to
 turn a raw document reference into a display label without one query per row.
 """
 
-from __future__ import annotations
-
 import grunt
 from grunt import log
 

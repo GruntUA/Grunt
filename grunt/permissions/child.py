@@ -6,17 +6,16 @@ Table field) is. Rows are never changed directly - only by saving the parent,
 where its controller validates them (e.g. User guards its ``roles``).
 """
 
-from __future__ import annotations
+from typing import Any
 
-from typing import TYPE_CHECKING, Any
+from sqlalchemy import ColumnElement, Table, and_, false, or_
 
-from sqlalchemy import and_, false, or_
-
-if TYPE_CHECKING:
-    from sqlalchemy import ColumnElement, Table
-
-    from grunt.auth.doctypes.User.user import User
-    from grunt.permissions.types import PermissionAction
+lazy import grunt
+lazy from grunt.auth.doctypes.User.user import User
+lazy from grunt.metadata.registry import doctype_registry
+lazy from grunt.permissions.rbac import permission_checker
+lazy from grunt.permissions.reference import readable_names
+lazy from grunt.permissions.types import PermissionAction
 
 
 def is_child(doctype: Any) -> bool:
@@ -25,8 +24,6 @@ def is_child(doctype: Any) -> bool:
 
 async def parent_doctypes(child_name: str) -> list[Any]:
     """Metas of the DocTypes whose Table fields hold *child_name* rows."""
-    import grunt
-    from grunt.metadata.registry import doctype_registry
 
     names = {
         dt.name
@@ -41,8 +38,6 @@ async def parent_doctypes(child_name: str) -> list[Any]:
 async def child_allowed(
     user: User, doctype: Any, action: PermissionAction, doc: dict | None
 ) -> bool:
-    import grunt
-    from grunt.permissions.rbac import permission_checker
 
     if action not in ("read", "select"):
         return False
@@ -65,7 +60,6 @@ async def child_allowed(
 
 async def child_conditions(table: Table, user: User, doctype: Any) -> ColumnElement[bool]:
     """Rows whose parent document *user* may read, for list queries."""
-    from grunt.permissions.reference import readable_names
 
     if "parent_doctype" not in table.c or "parent_name" not in table.c:
         return false()

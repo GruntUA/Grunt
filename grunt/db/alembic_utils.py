@@ -6,8 +6,6 @@ version history is applied alongside the metadata/table sync. Standalone
 when no explicit URL is handed in through ``config.attributes["target_db_url"]``.
 """
 
-from __future__ import annotations
-
 from pathlib import Path
 from typing import NamedTuple
 

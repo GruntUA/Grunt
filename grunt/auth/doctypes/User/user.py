@@ -5,22 +5,16 @@ JWT access tokens live in ``grunt.auth.service``; per-device sessions and their
 refresh tokens in ``grunt.auth.doctypes.UserSession``.
 """
 
-from __future__ import annotations
-
+import re as _re
 from datetime import UTC, datetime, timedelta
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 import anyio.to_thread
 import bcrypt
-from fastapi import HTTPException
-
-from grunt import log
-from grunt.i18n import N_, _
-
-if TYPE_CHECKING:
-    from fastapi import Request
+from fastapi import HTTPException, Request
 
 import grunt
+from grunt import log
 from grunt.auth.doctypes.Role.role import Role
 from grunt.auth.doctypes.UserRole.user_role import get_user_roles
 from grunt.auth.doctypes.UserSession.user_session import (
@@ -46,6 +40,7 @@ from grunt.auth.service import (
 from grunt.config import settings
 from grunt.document.base import Document
 from grunt.document.schema import Schema
+from grunt.i18n import N_, _, translation_service
 from grunt.permissions.roles import user_has_roles
 from grunt.site.manager import site_manager
 from grunt.site.settings import get_setting
@@ -242,7 +237,6 @@ class User(Document):
         avatar = self.data.get("avatar")
         if not isinstance(avatar, str) or "get_content?file_id=" not in avatar:
             return
-        import re as _re
 
         m = _re.search(r"get_content\?file_id=([A-Za-z0-9_-]+)", avatar)
         if not m:
@@ -271,7 +265,6 @@ class User(Document):
             if not await _is_internal_context():
                 # Interactive create (admin form / import) - hold it to policy.
                 # The register_* endpoints already checked before reaching here.
-                from grunt.auth.password_policy import enforce_password_policy
 
                 await enforce_password_policy(str(raw))
             self.hashed_password = await hash_password(str(raw))
@@ -844,8 +837,6 @@ async def update_me_api(
             grunt.throw(_("Invalid theme value"), "VALIDATION_ERROR")
         values["theme"] = theme
     if language is not None:
-        from grunt.i18n import translation_service
-
         # "" clears the preference (follow the site default).
         if language and language not in translation_service.ui_languages():
             grunt.throw(_("Invalid language value"), "VALIDATION_ERROR")

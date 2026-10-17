@@ -7,8 +7,6 @@ translations, adding new empty entries, marking removed ones obsolete).
 are still Cyrillic - i.e. not yet moved to English in the code.
 """
 
-from __future__ import annotations
-
 import json
 from pathlib import Path
 
@@ -210,7 +208,7 @@ def flip_module(
     touched: list[str] = []
 
     for path in _doctype_json_paths(module):
-        dt = json.loads(path.read_text(encoding="utf-8"))
+        dt = json.loads(path.read_text())
         if "fields" not in dt:
             continue
         changed = False
@@ -227,7 +225,7 @@ def flip_module(
                 changed = True
         if changed:
             touched.append(str(path.relative_to(_GRUNT_PKG.parent)))
-            path.write_text(json.dumps(dt, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+            path.write_text(json.dumps(dt, ensure_ascii=False, indent=2) + "\n")
 
     if apply and po_entries:
         _merge_uk_entries(po_entries)

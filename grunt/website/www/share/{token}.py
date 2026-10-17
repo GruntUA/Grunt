@@ -1,9 +1,12 @@
-from __future__ import annotations
-
 from typing import Any
 
+from fastapi import HTTPException
+
+import grunt
 from grunt import _
 from grunt.website.doc_layout import FlatField, build_tabs, fmt_dt
+lazy from grunt.api.messages import ApplicationError
+lazy from grunt.api.v1.share import get_shared_document
 
 
 async def get_context(context: dict[str, Any]) -> dict[str, Any]:
@@ -12,10 +15,6 @@ async def get_context(context: dict[str, Any]) -> dict[str, Any]:
     :func:`grunt.api.v1.share.get_shared_document` service directly, then lays
     the fields out with the target DocType's own Tab/Section/Column structure.
     """
-    from fastapi import HTTPException
-
-    from grunt.api.messages import ApplicationError
-    from grunt.api.v1.share import get_shared_document
 
     token = (context.get("path_params") or {}).get("token", "")
     context["title"] = _("Document view")
@@ -34,7 +33,6 @@ async def get_context(context: dict[str, Any]) -> dict[str, Any]:
 
     all_fields: list[Any] = []
     title_field = "name"
-    import grunt
 
     dt = await grunt.get_meta(share["doctype"])
     if dt is None:  # metadata unavailable - fall back to a flat single section

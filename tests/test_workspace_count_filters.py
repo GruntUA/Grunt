@@ -1,7 +1,5 @@
 """A sidebar item's count_filters reach the client together with its count key."""
 
-from __future__ import annotations
-
 import pytest
 
 from grunt.site.doctypes.AppMenu.app_menu import count_key, parse_count_filters

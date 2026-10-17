@@ -11,8 +11,6 @@ answers "how long do letters stay in each status" - with the viewer's
 permissions, since milestone rows inherit read access from their document.
 """
 
-from __future__ import annotations
-
 import time
 from datetime import UTC, datetime
 from typing import Any

@@ -7,8 +7,6 @@ input, but a plain Environment would make them instant SSTI->RCE the moment a
 caller forwards untrusted text; the sandbox removes that whole class of risk.
 """
 
-from __future__ import annotations
-
 import pytest
 
 ESCAPE = "{{ doc.__class__.__init__.__globals__ }}"

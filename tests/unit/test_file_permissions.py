@@ -15,26 +15,21 @@ match-on-existing-doc) is proven separately, against a disposable test-only
 DocType, by test_permission_row_level.py's write/delete tests.
 """
 
-from __future__ import annotations
-
 import json
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 import pytest
 
 from grunt.metadata.doctype import DocType
 from grunt.permissions.rbac import permission_checker
 from tests.support import make_user
-
-if TYPE_CHECKING:
-    from grunt.auth.doctypes.User.user import User
+lazy from grunt.auth.doctypes.User.user import User
 
 _FILE_JSON = Path(__file__).resolve().parents[2] / "grunt/storage/doctypes/File/File.json"
 
 
 def _load_file_doctype() -> DocType:
-    data = json.loads(_FILE_JSON.read_text(encoding="utf-8"))
+    data = json.loads(_FILE_JSON.read_text())
     return DocType.model_validate(data)
 
 

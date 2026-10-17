@@ -14,26 +14,21 @@ doesn't fully close that read gap, only the same-doctype-CRUD one), write/
 delete are scoped to the comment's own author.
 """
 
-from __future__ import annotations
-
 import json
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 import pytest
 
 from grunt.metadata.doctype import DocType
 from grunt.permissions.rbac import permission_checker
 from tests.support import make_user
-
-if TYPE_CHECKING:
-    from grunt.auth.doctypes.User.user import User
+lazy from grunt.auth.doctypes.User.user import User
 
 _COMMENT_JSON = Path(__file__).resolve().parents[2] / "grunt/document/doctypes/Comment/Comment.json"
 
 
 def _load_comment_doctype() -> DocType:
-    data = json.loads(_COMMENT_JSON.read_text(encoding="utf-8"))
+    data = json.loads(_COMMENT_JSON.read_text())
     return DocType.model_validate(data)
 
 

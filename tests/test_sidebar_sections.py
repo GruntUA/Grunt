@@ -1,8 +1,6 @@
 """Document sidebar: app sections from the ``sidebar_sections`` hook and the
 ``perms`` that tell the desk which add buttons to show."""
 
-from __future__ import annotations
-
 import pytest
 
 from grunt.apps.consumers import HOOK_CONSUMERS, LoadContext

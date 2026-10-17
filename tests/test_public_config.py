@@ -1,7 +1,5 @@
 """grunt.api.v1.site_config.get_public_config — guest-accessible SPA bootstrap."""
 
-from __future__ import annotations
-
 import pytest
 
 from grunt.site.settings import clear_settings_cache

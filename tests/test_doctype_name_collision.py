@@ -7,8 +7,6 @@ no warning. Found via a real collision: cms's WebPage/WebsiteSettings share
 a name with grunt core's own built-in WebPage/WebsiteSettings doctypes.
 """
 
-from __future__ import annotations
-
 import json
 
 import pytest
@@ -36,7 +34,7 @@ async def test_app_doctype_name_collision_is_refused(
     dt_dir = app_dir / "collidingapp" / "doctypes" / "CollisionTarget"
     dt_dir.mkdir(parents=True)
     (app_dir / "app.json").write_text(
-        json.dumps({"name": "collidingapp", "modules": ["collidingapp"]}), encoding="utf-8"
+        json.dumps({"name": "collidingapp", "modules": ["collidingapp"]})
     )
     (dt_dir / "CollisionTarget.json").write_text(
         json.dumps(
@@ -47,15 +45,12 @@ async def test_app_doctype_name_collision_is_refused(
                 "fields": [{"fieldname": "title", "label": "Title", "fieldtype": "Text"}],
             }
         ),
-        encoding="utf-8",
     )
 
     sites_dir = tmp_path / "sites"
     site_dir = sites_dir / "testsite"
     site_dir.mkdir(parents=True)
-    (site_dir / "grunt.site").write_text(
-        json.dumps({"installed_apps": ["collidingapp"]}), encoding="utf-8"
-    )
+    (site_dir / "grunt.site").write_text(json.dumps({"installed_apps": ["collidingapp"]}))
 
     monkeypatch.setattr(site_manager, "bench_dir", tmp_path)
     monkeypatch.setattr(site_manager, "sites_dir", sites_dir)

@@ -8,8 +8,6 @@ stray indent onto the first method below the block. After enough saves the
 controller no longer parsed (`IndentationError`).
 """
 
-from __future__ import annotations
-
 import ast
 import textwrap
 
@@ -47,12 +45,12 @@ def _fields(n: int) -> list[dict]:
 
 def test_repeated_sync_does_not_creep_indentation(tmp_path):
     py = tmp_path / "Widget.py"
-    py.write_text(_CONTROLLER, encoding="utf-8")
+    py.write_text(_CONTROLLER)
 
     src = _CONTROLLER
     for i in range(1, 6):
         sync_controller_types(py, "Widget", _fields(i))
-        src = py.read_text(encoding="utf-8")
+        src = py.read_text()
         ast.parse(src)  # must stay valid every iteration
 
     lines = src.splitlines()
@@ -67,10 +65,10 @@ def test_sync_normalises_an_already_crept_block(tmp_path):
         "    # begin: auto-generated types", "            # begin: auto-generated types"
     )
     py = tmp_path / "Widget.py"
-    py.write_text(crept, encoding="utf-8")
+    py.write_text(crept)
 
     sync_controller_types(py, "Widget", _fields(2))
-    src = py.read_text(encoding="utf-8")
+    src = py.read_text()
 
     ast.parse(src)
     assert "    # begin: auto-generated types" in src.splitlines()
@@ -94,19 +92,19 @@ def test_fresh_controller_render_is_valid_python_with_one_field_per_line(tmp_pat
 
 def test_sync_adds_missing_datetime_import(tmp_path):
     py = tmp_path / "Widget.py"
-    py.write_text(_CONTROLLER, encoding="utf-8")
+    py.write_text(_CONTROLLER)
     fields = [
         {"fieldname": "start", "fieldtype": "Date"},
         {"fieldname": "at", "fieldtype": "Time"},
     ]
 
     sync_controller_types(py, "Widget", fields)
-    src = py.read_text(encoding="utf-8")
+    src = py.read_text()
     assert "from datetime import date, time\n\nfrom grunt.document.base" in src
 
     fields.append({"fieldname": "stamp", "fieldtype": "Datetime"})
     sync_controller_types(py, "Widget", fields)
-    src = py.read_text(encoding="utf-8")
+    src = py.read_text()
     assert src.count("from datetime import") == 1
     assert "from datetime import date, datetime, time\n" in src
     assert sync_controller_types(py, "Widget", fields) is False

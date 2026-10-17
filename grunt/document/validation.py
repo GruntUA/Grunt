@@ -1,17 +1,14 @@
 """Validation and type coercion for Documents."""
 
-from __future__ import annotations
-
 import re
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from grunt import _, log
 from grunt.document.validators import validate_field_value
 from grunt.metadata.field import get_field_type_class, is_physical_fieldtype
-
-if TYPE_CHECKING:
-    from grunt.metadata.doctype import DocType
-
+lazy from grunt.document.meta import Meta
+lazy from grunt.metadata.doctype import DocType
+lazy from grunt.metadata.registry import doctype_registry
 
 # "file" fields (Attach / Image) hold a stored file (a site-relative URL) or a
 # link to a file elsewhere, kept as is without downloading it. Nothing else - a
@@ -117,8 +114,6 @@ async def validate_child_rows(
     """Validate the rows of every child table present in *data* against the
     child DocType - each error is reported on the table field with its row
     number (``items: Row 2: Field “Qty” is required``)."""
-    from grunt.document.meta import Meta
-    from grunt.metadata.registry import doctype_registry
 
     errors: list[str] = []
     for field in Meta(doctype).get_child_table_fields():

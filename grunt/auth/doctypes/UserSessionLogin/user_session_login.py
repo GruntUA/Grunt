@@ -1,13 +1,8 @@
 """UserSessionLogin DocType controller - child table of ``UserSession.logins``."""
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
+from datetime import datetime
 
 from grunt.document.base import Document
-
-if TYPE_CHECKING:
-    from datetime import datetime
 
 
 class UserSessionLogin(Document):

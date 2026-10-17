@@ -1,8 +1,8 @@
 """Meta whitelisted methods for DocType management."""
 
-from __future__ import annotations
-
 from typing import Any
+
+import sqlalchemy as sa
 
 import grunt
 from grunt import _, log
@@ -15,6 +15,7 @@ from grunt.metadata.dynamic_options import get_option_labels, get_schemas, resol
 from grunt.metadata.registry import doctype_registry
 from grunt.metadata.scaffold import export_doctype_files
 from grunt.workflow.registry import get_active_workflow
+lazy from grunt.i18n.meta import translate_doctype_meta
 
 
 async def _dump_doctype(dt: DocType, *, translate: bool = False) -> dict[str, Any]:
@@ -60,8 +61,6 @@ async def _dump_doctype(dt: DocType, *, translate: bool = False) -> dict[str, An
     enrich_doctype_actions(data)
 
     if translate:
-        from grunt.i18n.meta import translate_doctype_meta
-
         translate_doctype_meta(data)
         for fdata in data["fields"]:
             for variant in (fdata.get("dynamic_schemas") or {}).values():
@@ -91,8 +90,6 @@ async def get_doctype(name: str, raw: bool = False) -> dict[str, Any]:
     await doctype_registry.get(name)  # ensure it exists (raises 404 if not)
     fresh = await doctype_registry._lazy_load(name)
     if fresh is None:
-        from grunt.errors import not_found
-
         meta = await grunt.get_meta(name)
         if meta is None:
             raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": name})
@@ -177,7 +174,6 @@ def _compaction_footprint_bytes(conn: Any, table_name: str, dialect: str) -> int
     the whole database file for SQLite (``VACUUM`` is file-wide), the single
     relation for PostgreSQL/MySQL. Returns None when the dialect is unknown.
     """
-    import sqlalchemy as sa
 
     if dialect == "sqlite":
         page_count = int(conn.execute(sa.text("PRAGMA page_count")).scalar() or 0)
@@ -217,7 +213,6 @@ async def compact_table(name: str) -> dict[str, Any]:
     inside a transaction. Returns before/after byte figures and ``freed_bytes``
     (clamped at 0 - a table can legitimately grow slightly after a rewrite).
     """
-    import sqlalchemy as sa
 
     dt = await grunt.get_meta(name)
     if dt is None:
@@ -301,7 +296,6 @@ async def table_info(name: str) -> dict[str, Any]:
     When the backend can't report sizes, ``size_supported`` is False and the
     byte fields stay null.
     """
-    import sqlalchemy as sa
 
     dt = await grunt.get_meta(name)
     if dt is None:

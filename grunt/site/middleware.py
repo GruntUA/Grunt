@@ -1,7 +1,4 @@
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
-
+from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from grunt import log
@@ -10,9 +7,6 @@ from grunt.metadata.compiler import clear_table_cache
 from grunt.metadata.registry import get_registry
 from grunt.scripting.file_scripts import FILE_CLIENT_SCRIPT_REGISTRY, _client_script_scanned
 from grunt.site.manager import current_site, site_manager
-
-if TYPE_CHECKING:
-    from fastapi import Request
 
 
 async def _apply_hot_reload_if_triggered(site: str) -> None:

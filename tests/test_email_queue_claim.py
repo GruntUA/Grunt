@@ -1,8 +1,6 @@
 """process_email_queue claims each row atomically so overlapping runs
 (the on-commit kick racing the */5 cron) can't send a message twice."""
 
-from __future__ import annotations
-
 import asyncio
 from datetime import UTC, datetime, timedelta
 

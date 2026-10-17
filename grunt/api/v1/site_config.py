@@ -5,8 +5,6 @@ presentation, whether self-registration is open.
 Call via: /api/v1/method/grunt.api.v1.site_config.get_public_config
 """
 
-from __future__ import annotations
-
 from typing import Any
 
 import grunt

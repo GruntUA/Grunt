@@ -2,8 +2,6 @@
 re-encoded (WebP or the original format), EXIF kept with the rotation applied,
 and only when that makes the file smaller."""
 
-from __future__ import annotations
-
 import io
 import random
 

@@ -6,8 +6,6 @@ registered AND bound on that DocType, so the runnable set per DocType is
 exactly what the metadata declares.
 """
 
-from __future__ import annotations
-
 import pytest
 
 from grunt.actions import (

@@ -1,7 +1,5 @@
 """Tests for app startup and workspace seeding functionality."""
 
-from __future__ import annotations
-
 import json
 
 from grunt.startup.fixtures import _load_app_meta

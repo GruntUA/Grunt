@@ -12,8 +12,6 @@ every one is cached for a few hours per process, and a source that can't be
 reached gives an ``Info`` row instead of failing the report.
 """
 
-from __future__ import annotations
-
 import asyncio
 import importlib.metadata
 import json
@@ -22,12 +20,16 @@ import platform
 import re
 import shutil
 import subprocess
+import sys
+import sysconfig
 import time
 import tomllib
+from collections.abc import Awaitable, Callable
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
+import httpx2
 from packaging.version import InvalidVersion, Version
 
 import grunt
@@ -37,9 +39,8 @@ from grunt.i18n import _
 from grunt.monitoring.health import ERROR, INFO, OK, WARNING, Row, row
 from grunt.site.manager import site_manager
 from grunt.version import FRAMEWORK_DIR, app_version
-
-if TYPE_CHECKING:
-    from collections.abc import Awaitable, Callable
+lazy from grunt.apps.deps import app_updates as plan
+lazy from grunt.storage.cloud import rclone
 
 CACHE_TTL = 6 * 3600
 CACHE_TTL_FAILED = 30 * 60
@@ -143,7 +144,6 @@ async def run(
 
 
 async def fetch(url: str) -> str:
-    import httpx2
 
     try:
         async with httpx2.AsyncClient(timeout=TIMEOUT, follow_redirects=True) as client:
@@ -293,7 +293,6 @@ async def runtime_row(cat: str, name: str, product: str, current: str) -> Row:
 async def python_row(cat: str) -> Row:
     """Python of the environment on disk; when the running process is older
     (`uv python upgrade` ran, the server didn't restart), say so."""
-    import sys
 
     running = platform.python_version()
     try:
@@ -341,7 +340,6 @@ async def tool_row(
 
 
 async def tool_rows(cat: str) -> list[Row]:
-    from grunt.storage.cloud.rclone import DOWNLOAD_URL, is_installed
 
     async def version_of(binary: str | None, *args: str) -> str:
         if not binary:
@@ -349,14 +347,13 @@ async def tool_rows(cat: str) -> list[Row]:
         return first_version(await run(binary, *args, cwd=FRAMEWORK_DIR))
 
     async def rclone_version() -> str:
-        from grunt.storage.cloud.rclone import binary
 
-        if not is_installed():
+        if not rclone.is_installed():
             raise UnavailableError(_("not installed"))
-        return await version_of(binary(), "version")
+        return await version_of(rclone.binary(), "version")
 
     async def rclone_latest() -> str:
-        return first_version(await fetch(f"{DOWNLOAD_URL}/version.txt"))
+        return first_version(await fetch(f"{rclone.DOWNLOAD_URL}/version.txt"))
 
     async def uv_latest() -> str:
         return json.loads(await fetch("https://pypi.org/pypi/uv/json"))["info"]["version"]
@@ -427,7 +424,6 @@ async def framework_updates() -> list[str]:
 async def app_updates() -> list[str]:
     """Newer versions of the packages only apps depend on (not in uv.lock):
     what ``grunt app deps --upgrade`` would install."""
-    from grunt.apps.deps import app_updates as plan
 
     try:
         return await asyncio.to_thread(plan, site_manager.bench_dir / "apps")
@@ -457,8 +453,6 @@ async def npm_outdated() -> tuple[list[str], list[str]]:
 def _state_key(*paths: Path) -> str:
     """Changes whenever a lock file or the installed packages change - a
     `grunt update` must not be answered from a cache made before it."""
-    import sys
-    import sysconfig
 
     site = Path(sysconfig.get_paths()["purelib"])
     stamps = [p.stat().st_mtime_ns if p.exists() else 0 for p in (*paths, site)]
@@ -561,7 +555,6 @@ def _home_path(path: Path) -> str:
 
 def _venv_user(venv: Path) -> str:
     """ "venv ~/x → `the command that moves it to the current Python`"."""
-    import sys
 
     py = f"{sys.version_info.major}.{sys.version_info.minor}"
     tools = Path(os.environ.get("UV_TOOL_DIR") or Path.home() / ".local/share/uv/tools")
@@ -651,8 +644,6 @@ def _cli_dir() -> Path | None:
 def old_runtimes() -> tuple[list[str], list[str]]:
     """``(free, held)``: old uv Pythons / mise tool versions `grunt update`
     would remove, and the ones still in use (with who uses them)."""
-    import subprocess
-    import sys
 
     used = _in_use()
     free: list[str] = []

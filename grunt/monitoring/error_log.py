@@ -11,18 +11,14 @@ Callers:
 * application code via :func:`grunt.log_error` (see ``grunt/__init__.py``).
 """
 
-from __future__ import annotations
-
 import traceback as _tb
-from typing import TYPE_CHECKING, Any
+from typing import Any
+
+from sqlalchemy.ext.asyncio import AsyncSession
 
 import grunt
 from grunt.log import log
 from grunt.site.manager import site_manager
-
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession
-
 
 _TITLE_MAX = 200
 _MESSAGE_MAX = 8000

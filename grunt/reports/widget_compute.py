@@ -12,8 +12,6 @@ Every query runs as the viewer: ``grunt.aggregate`` / ``grunt.get_list`` /
 numbers about rows its viewer could not open.
 """
 
-from __future__ import annotations
-
 import json
 import sys
 from datetime import datetime, timedelta

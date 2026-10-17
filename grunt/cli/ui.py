@@ -1,7 +1,5 @@
 """grunt ui - керування shadcn-vue компонентами."""
 
-from __future__ import annotations
-
 import json
 import shutil
 import subprocess

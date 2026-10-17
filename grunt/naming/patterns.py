@@ -15,9 +15,8 @@ Pattern tokens:
   .####.  -> zero-padded counter (width = number of #)
 """
 
-from __future__ import annotations
-
 import re
+import uuid
 from datetime import UTC, datetime
 from typing import Any
 
@@ -115,8 +114,6 @@ def resolve_simple(pattern: str, data: dict[str, Any]) -> str | None:
         return str(value) if value else None
 
     if pattern == "hash":
-        import uuid
-
         return uuid.uuid4().hex[:10]
 
     if pattern == "prompt":

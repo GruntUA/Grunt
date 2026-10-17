@@ -19,8 +19,6 @@ The ``links`` table is authoritative: a DocType that declares no rows shows
 no connection chips. Backlinks are never derived from reverse Link fields.
 """
 
-from __future__ import annotations
-
 from typing import Any
 
 from sqlalchemy import distinct, func, select

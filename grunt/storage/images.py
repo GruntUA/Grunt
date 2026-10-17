@@ -20,19 +20,21 @@ deterministic, so the same upload gives the same bytes - content-addressed
 deduplication keeps working.
 """
 
-from __future__ import annotations
-
 import asyncio
 import io
 from dataclasses import dataclass
 from pathlib import PurePath
-from typing import TYPE_CHECKING
 
+lazy from PIL import Image, ImageOps
+
+import grunt
 from grunt import _, log, whitelist
 from grunt.site.settings import get_setting
-
-if TYPE_CHECKING:
-    from grunt.progress import Progress
+lazy from grunt.progress import Progress
+lazy from grunt.storage import files
+lazy from grunt.storage.backends import get_storage_backend
+lazy from grunt.storage.cloud.files import read_blob
+lazy from grunt.storage.tasks import compress_images
 
 OPTIMIZABLE = frozenset({"image/jpeg", "image/png", "image/webp"})
 # Re-encoding an image of the right size must save at least this share.
@@ -81,7 +83,6 @@ def renamed(filename: str, content_type: str) -> str:
 
 
 def _optimize(content: bytes, content_type: str, opts: ImageOptions) -> Optimized | None:
-    from PIL import Image, ImageOps
 
     with Image.open(io.BytesIO(content)) as source:
         if getattr(source, "n_frames", 1) > 1 or source.mode == "CMYK":
@@ -158,10 +159,6 @@ async def compress_existing(
     compressed, sizes in bytes. *progress* counts the blobs (and is where a
     cancel lands - between two blobs, so what's done stays done).
     """
-    import grunt
-    from grunt.storage import files
-    from grunt.storage.backends import get_storage_backend
-    from grunt.storage.cloud.files import read_blob
 
     report = {"blobs": 0, "files": 0, "before": 0, "after": 0}
     opts = await image_options()
@@ -238,8 +235,6 @@ async def compress_existing(
 async def start_compression() -> dict:
     """Queue :func:`compress_existing` for the whole site (System Settings →
     Files); whoever started it follows it in the task panel."""
-    import grunt
-    from grunt.storage.tasks import compress_images
 
     if await image_options() is None:
         grunt.throw(_("Image compression is turned off in System Settings"))

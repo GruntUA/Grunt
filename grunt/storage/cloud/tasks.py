@@ -5,11 +5,10 @@ the network transfers (see grunt.backups.tasks._end_transaction: a worker's
 SQLite transaction holds the write lock from its first statement).
 """
 
-from __future__ import annotations
-
 import contextlib
+from collections.abc import AsyncIterator
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 import grunt
 from grunt import _
@@ -18,9 +17,10 @@ from grunt.progress import track_progress
 from grunt.site.manager import site_manager
 from grunt.storage.cloud import RemoteError, files_remote, load_remote, record_status
 from grunt.tasks.broker import task
-
-if TYPE_CHECKING:
-    from collections.abc import AsyncIterator
+lazy from grunt.backups import list_backups
+lazy from grunt.storage.cloud.backups import fetch_backup as fetch
+lazy from grunt.storage.cloud.backups import upload_backup
+lazy from grunt.storage.cloud.files import offload, recall
 
 
 @contextlib.asynccontextmanager
@@ -43,8 +43,6 @@ async def _tracked(title: str, user: str | None, lang: str | None):
 @task
 async def upload_latest_backup(name: str, user: str | None = None) -> str | None:
     """Upload the newest local backup set to the remote *name* (form button)."""
-    from grunt.backups import list_backups
-    from grunt.storage.cloud.backups import upload_backup
 
     async with _site() as site:
         remote = await load_remote(name)
@@ -69,7 +67,6 @@ async def upload_latest_backup(name: str, user: str | None = None) -> str | None
 @task
 async def fetch_backup(name: str, backup_id: str, user: str | None = None) -> str:
     """Download the set *backup_id* from the remote *name* into ``backups/``."""
-    from grunt.storage.cloud.backups import fetch_backup as fetch
 
     async with _site() as site:
         remote = await load_remote(name)
@@ -81,7 +78,6 @@ async def fetch_backup(name: str, backup_id: str, user: str | None = None) -> st
 
 
 async def _offload(remote: dict[str, Any], progress=None) -> dict[str, int]:
-    from grunt.storage.cloud.files import offload
 
     try:
         report = await offload(remote, progress)
@@ -115,7 +111,6 @@ async def offload_now(name: str, user: str | None = None) -> dict[str, int]:
 
 @task
 async def recall_files(name: str, user: str | None = None) -> dict[str, int]:
-    from grunt.storage.cloud.files import recall
 
     async with _site():
         remote = await load_remote(name)

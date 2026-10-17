@@ -5,17 +5,13 @@ App-install orchestration (DocTypes, fixtures, print formats) lives in
 ``AppMenu``/``WorkspaceSidebarItem`` records themselves.
 """
 
-from __future__ import annotations
-
 import json
-from typing import TYPE_CHECKING, Any
+from typing import Any
+
+from sqlalchemy.ext.asyncio import AsyncSession
 
 import grunt
 from grunt import log
-
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession
-
 
 _FIXTURES_DIR = __import__("pathlib").Path(__file__).parent.parent / "fixtures"
 
@@ -117,7 +113,7 @@ async def seed_grunt_workspace(session: AsyncSession, eng: Any) -> None:
         log.warning("startup.grunt_workspace_fixture_missing", path=str(fixture_file))
         return
 
-    data: dict[str, Any] = json.loads(fixture_file.read_text(encoding="utf-8"))
+    data: dict[str, Any] = json.loads(fixture_file.read_text())
     ws_name: str = data["name"]
 
     async with grunt.system_context(session, eng):

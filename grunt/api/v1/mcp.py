@@ -7,8 +7,6 @@ servers that never push messages. Authentication is the regular API auth
 header-only, so a DNS-rebinding page cannot ride on browser credentials.
 """
 
-from __future__ import annotations
-
 import json
 
 from fastapi import Request, Response, status

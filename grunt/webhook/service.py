@@ -7,22 +7,18 @@ The ``X-Grunt-Signature`` header contains: ``sha256=<hex_digest>``
 Recipients can verify it with their copy of the secret.
 """
 
-from __future__ import annotations
-
 import hashlib
 import hmac
 import json
 import time
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 import httpx2
+from sqlalchemy.ext.asyncio import AsyncSession
 
 import grunt
 from grunt import _, log
 from grunt.metadata.registry import doctype_registry
-
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class WebhookService:

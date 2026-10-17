@@ -1,15 +1,11 @@
 """XLSX importer."""
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING, Any
+from pathlib import Path
+from typing import Any
 
 import openpyxl
 
 from grunt.io.importers.registry import Importer
-
-if TYPE_CHECKING:
-    from pathlib import Path
 
 
 class XlsxImporter(Importer):

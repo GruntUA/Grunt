@@ -7,8 +7,6 @@ download_template() had the same gap for the (much lower severity) template
 metadata endpoint.
 """
 
-from __future__ import annotations
-
 import pytest
 from fastapi import HTTPException
 

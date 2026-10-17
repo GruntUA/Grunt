@@ -1,8 +1,6 @@
 """Integration: ``Document.get_field_years`` — the options of a year quick filter
 are the years actually present in the field, under the list's read permissions."""
 
-from __future__ import annotations
-
 import pytest
 from fastapi import HTTPException
 

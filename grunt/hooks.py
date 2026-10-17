@@ -27,17 +27,13 @@ Usage in app hooks.py:
     }
 """
 
-from __future__ import annotations
-
 import importlib
 import inspect
 from collections import defaultdict
-from typing import TYPE_CHECKING, Any, TypedDict
+from collections.abc import Callable
+from typing import Any, TypedDict
 
 from grunt import log
-
-if TYPE_CHECKING:
-    from collections.abc import Callable
 
 
 class HookDefinition(TypedDict):

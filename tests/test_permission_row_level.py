@@ -16,17 +16,11 @@ opt-in grunt.has_permission() helper:
    their own.
 """
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
-
 import pytest
 from fastapi import HTTPException
 
 from tests.support import make_user
-
-if TYPE_CHECKING:
-    from grunt.auth.doctypes.User.user import User
+lazy from grunt.auth.doctypes.User.user import User
 
 TICKET_DOCTYPE = {
     "name": "PermTestTicket",

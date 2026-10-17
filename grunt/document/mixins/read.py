@@ -1,24 +1,17 @@
 """Read side of the table storage: ``Document.load_from_db``."""
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from fastapi import HTTPException, status
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from grunt import _
-
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession
-
-    from grunt.document.multi_link import MultiLinkService
-
-
 from grunt.document.formula import evaluate_read_formulas
 from grunt.document.mixins.lifecycle import DocumentLifecycleMixin
 from grunt.document.relations import _load_child_tables, attach_multi_link_values
 from grunt.document.serde import serialize_datetimes
+lazy from grunt.document.multi_link import MultiLinkService
 
 
 class DocumentReadMixin(DocumentLifecycleMixin):

@@ -13,17 +13,19 @@ For every such document a ``ServiceLevelStatus`` row tracks the clock:
   breach escalations.
 """
 
-from __future__ import annotations
-
 import time
 from datetime import UTC, date, datetime, timedelta
 from typing import Any
 from zoneinfo import ZoneInfo
 
+lazy from simpleeval import simple_eval
+
 import grunt
 from grunt import _, log
 from grunt.config import settings
 from grunt.tasks.broker import retryable_task
+lazy from grunt.notification.service import notification_service
+lazy from grunt.site.manager import site_manager
 
 POLICY = "ServiceLevel"
 STATUS = "ServiceLevelStatus"
@@ -114,7 +116,6 @@ def _eval(expr: str | None, doc: dict[str, Any]) -> bool | None:
     """Evaluate a policy expression; ``None`` when empty, ``False`` when it fails."""
     if not (expr or "").strip():
         return None
-    from simpleeval import simple_eval
 
     try:
         return bool(simple_eval(expr, names={"doc": doc}))
@@ -253,7 +254,6 @@ async def on_document_deleted(**kwargs: Any) -> None:
 
 async def _recipients(spec: str | None, doctype: str, doc: dict[str, Any]) -> set[str]:
     """Resolve a recipients spec (NotificationRule syntax + ``{field:link.field}``)."""
-    from grunt.notification.service import notification_service
 
     plain: list[str] = []
     emails: set[str] = set()
@@ -279,7 +279,6 @@ async def _recipients(spec: str | None, doctype: str, doc: dict[str, Any]) -> se
 
 
 async def _notify(policy: dict[str, Any], row: dict[str, Any], *, breached: bool) -> None:
-    from grunt.notification.service import notification_service
 
     doctype, name = row["ref_doctype"], row["ref_name"]
     doc = await grunt.db.get_doc(doctype, name)
@@ -348,7 +347,6 @@ async def process_deadlines(now: datetime | None = None) -> dict[str, int]:
 @retryable_task()
 async def check_deadlines() -> dict[str, int]:
     """Scheduler entry point (every 10 minutes)."""
-    from grunt.site.manager import site_manager
 
     site = site_manager.get_active_site()
     maker = site_manager.get_session_maker(site)

@@ -6,18 +6,13 @@ key also adds it to the dynamic-options registry so ``DocTypeAction.action``'s
 Select dropdown reflects the live set.
 """
 
-from __future__ import annotations
-
 import inspect
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from grunt import log
 from grunt.metadata.dynamic_options import register_option
-
-if TYPE_CHECKING:
-    from collections.abc import Awaitable, Callable
-
 
 DOC_ACTION_SOURCE = "grunt.doc_action"
 

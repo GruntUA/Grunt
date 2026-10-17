@@ -6,8 +6,6 @@ Supports:
 - Output formats: HTML, PDF (headless Chromium via Playwright), DOCX (docxtpl), XLSX (openpyxl)
 """
 
-from __future__ import annotations
-
 import base64
 import io
 import re
@@ -18,13 +16,19 @@ from typing import Any
 
 from jinja2 import BaseLoader, Environment, FileSystemLoader, TemplateNotFound, select_autoescape
 from markupsafe import Markup
+lazy from docxtpl import DocxTemplate
+lazy from jinja2.sandbox import SandboxedEnvironment
 
+import grunt
 from grunt import log
 from grunt.app import GruntDB
 from grunt.i18n.jinja import install as install_i18n
 from grunt.local import _session_ctx
 from grunt.print.filters import JINJA_FILTERS
 from grunt.site.manager import site_manager
+lazy from grunt.config import settings
+lazy from grunt.storage import files
+lazy from grunt.storage.references import file_ids_in
 
 # Core templates directory
 _CORE_TEMPLATE_DIR = Path(__file__).parent / "templates"
@@ -50,7 +54,6 @@ def _get_jinja_env() -> Environment:
     Environment would let that template run arbitrary Python. SandboxedEnvironment
     blocks ``__``/private attribute traversal while leaving templating intact.
     """
-    from jinja2.sandbox import SandboxedEnvironment
 
     dirs = _get_template_dirs()
     env = SandboxedEnvironment(
@@ -143,8 +146,6 @@ async def _image_data_uri(url: str | None) -> str | None:
 
     Print HTML must be self-contained - the PDF engine loads no URLs.
     """
-    from grunt.storage import files
-    from grunt.storage.references import file_ids_in
 
     ids = file_ids_in(url or "")
     if not ids:
@@ -177,7 +178,6 @@ async def load_letter_head(name: str | None = None) -> dict[str, Any] | None:
 
 def render_letter_head(letter_head: dict[str, Any], doc: dict[str, Any]) -> dict[str, Any]:
     """Render a letterhead's header/footer against *doc* -> ``letter_head`` context."""
-    from grunt.config import settings
 
     ctx = {
         "doc": doc,
@@ -224,7 +224,6 @@ async def render_print_html(
     A template that mentions ``letter_head`` places ``letter_head.header`` /
     ``letter_head.footer`` itself; any other gets them inserted around the body.
     """
-    import grunt
 
     meta = await grunt.get_meta(doctype)
     if meta is None:
@@ -279,7 +278,6 @@ def render_docx(template_path: str, doc: dict[str, Any]) -> bytes:
     Returns:
         DOCX file content as bytes.
     """
-    from docxtpl import DocxTemplate
 
     tpl = DocxTemplate(template_path)
     tpl.render({"doc": doc, "now": datetime.now(UTC)})

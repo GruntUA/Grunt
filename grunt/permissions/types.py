@@ -5,8 +5,6 @@ RBAC checker, the request guards, and the facade - so the literal set is not
 repeated (and stays in sync) at every call site.
 """
 
-from __future__ import annotations
-
 from typing import Literal
 
 # Every permission action understood by the RBAC checker.

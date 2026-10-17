@@ -11,10 +11,6 @@ Three collaborating pieces, previously in three separate files:
   SQL filter, which composes the two above.
 """
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
-
 import pytest
 from sqlalchemy import Column, MetaData, String, Table, false, select
 
@@ -24,9 +20,7 @@ from grunt.permissions.access import RoleAccess
 from grunt.permissions.match import PermissionMatch
 from grunt.permissions.query import apply_permission_filter
 from tests.support import make_user
-
-if TYPE_CHECKING:
-    from grunt.auth.doctypes.User.user import User
+lazy from grunt.auth.doctypes.User.user import User
 
 
 @pytest.fixture(autouse=True)

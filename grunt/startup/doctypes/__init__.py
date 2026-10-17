@@ -1,17 +1,11 @@
 """Startup - DocType registry bootstrap and population."""
 
-from __future__ import annotations
-
+import json
 from pathlib import Path
-from typing import TYPE_CHECKING
+
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 from grunt import log
-
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
-
-import json
-
 from grunt.hooks import DOCTYPE_OVERRIDES
 from grunt.metadata import store
 from grunt.metadata.compiler import DuplicateDataError, sync_table
@@ -96,7 +90,7 @@ async def load_core_doctypes(session: AsyncSession, sync_db: bool = False) -> No
 
     for dt_file in dt_files:
         try:
-            dt_data = json.loads(dt_file.read_text(encoding="utf-8"))
+            dt_data = json.loads(dt_file.read_text())
             dt_name = dt_data.get("name", "")
             if not dt_name:
                 continue

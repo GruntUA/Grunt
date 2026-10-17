@@ -11,8 +11,6 @@ becomes formula execution - data exfiltration via ``=HYPERLINK(...)``, or
 worse, in whoever's spreadsheet application opens the export.
 """
 
-from __future__ import annotations
-
 _FORMULA_TRIGGER_CHARS = ("=", "+", "-", "@", "\t", "\r")
 
 

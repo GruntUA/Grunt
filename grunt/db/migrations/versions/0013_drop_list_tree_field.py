@@ -10,8 +10,6 @@ Revises: 0012
 Create Date: 2026-10-16
 """
 
-from __future__ import annotations
-
 import json
 
 import sqlalchemy as sa

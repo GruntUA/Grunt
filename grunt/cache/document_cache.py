@@ -15,20 +15,15 @@ backstop for a write path that bypasses that hook (or a Redis outage), not the
 primary freshness mechanism - invalidation is.
 """
 
-from __future__ import annotations
-
 import json
 import time
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from typing import TYPE_CHECKING, Any
+from typing import Any
+
+from redis.asyncio import Redis
 
 from grunt import log
-
-if TYPE_CHECKING:
-    from collections.abc import AsyncGenerator
-
-    from redis.asyncio import Redis
-
 from grunt.config import settings
 from grunt.utils.redis import connect
 

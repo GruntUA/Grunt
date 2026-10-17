@@ -4,8 +4,6 @@ docs/adr/004-api-v2-primitives.md): dead `if not doc:` checks after `get_doc`
 after a dict-returning `get_doc` call.
 """
 
-from __future__ import annotations
-
 from typing import Any
 
 import pytest

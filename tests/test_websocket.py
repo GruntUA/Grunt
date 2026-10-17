@@ -1,21 +1,17 @@
 """WebSockets: the user channel handshake, ping/pong, and exactly-once delivery
 of server pushes (the «Стан системи» report checks the same in the browser)."""
 
-from __future__ import annotations
-
 import json
-from typing import TYPE_CHECKING, cast
+from typing import cast
 
 import jwt
 import pytest
 from starlette.testclient import TestClient
+from starlette.websockets import WebSocket
 
 from grunt.api.v1.ws import AUTH_SUBPROTOCOL, manager
 from grunt.config import settings
 from grunt.main import app
-
-if TYPE_CHECKING:
-    from starlette.websockets import WebSocket
 
 
 def _token(sub: str) -> str:

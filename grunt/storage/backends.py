@@ -20,8 +20,6 @@ one - but by :func:`grunt.storage.gc.collect_garbage`, which drops those no
 row (nor a trashed row) refers to any more.
 """
 
-from __future__ import annotations
-
 import asyncio
 import hashlib
 import io
@@ -29,15 +27,13 @@ import os
 import re
 import uuid
 from abc import ABC, abstractmethod
+from collections.abc import Iterator
 from pathlib import Path
-from typing import TYPE_CHECKING, BinaryIO
+from typing import BinaryIO
 
 from grunt import log
 from grunt.config import settings
 from grunt.site.manager import site_manager
-
-if TYPE_CHECKING:
-    from collections.abc import Iterator
 
 CHUNK_SIZE = 1024 * 1024
 _KEY_RE = re.compile(r"^[0-9a-f]{64}$")

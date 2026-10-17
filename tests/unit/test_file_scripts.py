@@ -10,8 +10,6 @@ and registered as a bogus "API (auto)" server script under its snake_case
 filename.
 """
 
-from __future__ import annotations
-
 from grunt.scripting import file_scripts
 from grunt.scripting.file_scripts import (
     FILE_SCRIPT_REGISTRY,

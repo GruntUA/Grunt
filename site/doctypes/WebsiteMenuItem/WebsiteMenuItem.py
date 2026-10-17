@@ -18,8 +18,6 @@ Access fields:
   self.session             — async SQLAlchemy session (for advanced queries)
 """
 
-from __future__ import annotations
-
 from grunt.document.base import Document
 
 

@@ -5,20 +5,16 @@ updated (with the changed fields) or commented on. The author of the change is
 never notified about their own action. Follows are dropped with the document.
 """
 
-from __future__ import annotations
+from collections.abc import Callable
+from typing import Any
 
-from typing import TYPE_CHECKING, Any
+from sqlalchemy.ext.asyncio import AsyncSession
 
 import grunt
 from grunt import _, log
 from grunt.document.titles import resolve_reference_titles
 from grunt.i18n import language_of, use_language
 from grunt.notification.service import notification_service
-
-if TYPE_CHECKING:
-    from collections.abc import Callable
-
-    from sqlalchemy.ext.asyncio import AsyncSession
 
 # How many changed field labels a notification spells out before "і ще N".
 _MAX_FIELDS = 5

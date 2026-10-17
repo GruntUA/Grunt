@@ -1,8 +1,6 @@
 """DocLike and list badges: toggle like, per-page comment/like counts, only for
 readable documents; likes die with the document."""
 
-from __future__ import annotations
-
 import pytest
 from fastapi import HTTPException
 

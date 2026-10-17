@@ -1,8 +1,6 @@
 """File previews: WebP thumbnails for images and PDFs, made at upload and served
 through the same signed get_content URL."""
 
-from __future__ import annotations
-
 import io
 from urllib.parse import parse_qs, urlparse
 

@@ -4,17 +4,11 @@
 Entries are single addresses or CIDR networks, separated by commas or newlines.
 """
 
-from __future__ import annotations
-
 import ipaddress
 import re
-from typing import TYPE_CHECKING
 
 import grunt
-
-if TYPE_CHECKING:
-    from grunt.auth.doctypes.User.user import User
-
+lazy from grunt.auth.doctypes.User.user import User
 
 # https://www.cloudflare.com/ips/ - edge ranges that set CF-Connecting-IP.
 CLOUDFLARE_RANGES = frozenset(

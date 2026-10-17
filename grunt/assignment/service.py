@@ -1,12 +1,14 @@
 """Assignment Service - orchestration for automatic document assignment."""
 
-from __future__ import annotations
-
 import json
 from typing import Any
 
 import grunt
 from grunt import log
+lazy from grunt.assignment.doctypes.AssignmentLog.assignment_log import AssignmentLog
+lazy from grunt.assignment.doctypes.AssignmentRule.assignment_rule import AssignmentRule
+lazy from grunt.auth.doctypes.User.user import get_user_by_id
+lazy from grunt.tasks.doctypes.ToDo.to_do import auto_assign_note
 
 
 class AssignmentService:
@@ -40,9 +42,6 @@ class AssignmentService:
         doc: dict[str, Any],
     ) -> None:
         """Apply all matching assignment rules for a document."""
-        from grunt.assignment.doctypes.AssignmentRule.assignment_rule import (
-            AssignmentRule,
-        )
 
         for rule_data in rules:
             rule = AssignmentRule("AssignmentRule", rule_data)
@@ -70,10 +69,6 @@ class AssignmentService:
 
     async def preview_rule(self, rule_id: str, test_doc: dict[str, Any]) -> dict[str, Any]:
         """Evaluate a rule against a sample document and return preview details."""
-        from grunt.assignment.doctypes.AssignmentRule.assignment_rule import (
-            AssignmentRule,
-        )
-        from grunt.auth.doctypes.User.user import get_user_by_id
 
         rule = await grunt.get_doc(AssignmentRule, rule_id)
 
@@ -161,9 +156,6 @@ class AssignmentService:
         user_email: str,
         rule_id: str | None,
     ) -> None:
-        from grunt.assignment.doctypes.AssignmentLog.assignment_log import (
-            AssignmentLog,
-        )
 
         try:
             await self._create_todo(doctype, doc, user_email)
@@ -193,10 +185,6 @@ class AssignmentService:
         role: str,
         rule_id: str | None,
     ) -> None:
-        from grunt.assignment.doctypes.AssignmentLog.assignment_log import (
-            AssignmentLog,
-        )
-        from grunt.auth.doctypes.User.user import get_user_by_id
 
         try:
             async with grunt.system_context(grunt.get_session()):
@@ -258,7 +246,6 @@ class AssignmentService:
             )
             if already:
                 return
-            from grunt.tasks.doctypes.ToDo.to_do import auto_assign_note
 
             await grunt.new_doc(
                 "ToDo",

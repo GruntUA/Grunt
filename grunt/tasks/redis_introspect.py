@@ -7,25 +7,21 @@ isn't Redis-backed (local dev's ``InMemoryBroker``) or Redis is unreachable -
 these are monitoring views, never a hard dependency.
 """
 
-from __future__ import annotations
-
+from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from typing import TYPE_CHECKING, Any
+from typing import Any
+
+from redis.asyncio import Redis
+from redis.asyncio import Redis as AsyncRedis
+from taskiq_redis import RedisStreamBroker
 
 from grunt import log
 from grunt.i18n import N_, _
 from grunt.tasks.broker import broker
 
-if TYPE_CHECKING:
-    from collections.abc import AsyncIterator
-
-    from redis.asyncio import Redis
-    from taskiq_redis import RedisStreamBroker
-
 
 def stream_broker() -> RedisStreamBroker | None:
     """The active broker, if it's Redis Stream-backed - ``None`` for InMemoryBroker."""
-    from taskiq_redis import RedisStreamBroker
 
     return broker if isinstance(broker, RedisStreamBroker) else None
 
@@ -37,8 +33,6 @@ async def redis_conn() -> AsyncIterator[Redis | None]:
     if sb is None:
         yield None
         return
-
-    from redis.asyncio import Redis as AsyncRedis
 
     async with AsyncRedis(connection_pool=sb.connection_pool) as conn:
         yield conn

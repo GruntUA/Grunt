@@ -6,12 +6,7 @@ hit double-import issues from that (see conftest.py:db_session docstring).
 A regular module avoids that entirely: import it like any other.
 """
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from grunt.auth.doctypes.User.user import User
+lazy from grunt.auth.doctypes.User.user import User
 
 
 def make_user(email: str, roles: list[str] | None = None, is_superadmin: bool = False) -> User:

@@ -5,8 +5,6 @@ In developer mode a ``standard_records`` DocType's record marked
 ``apply_records`` (run by migrate) reads the folders back into the database.
 """
 
-from __future__ import annotations
-
 import json
 
 import pytest
@@ -104,7 +102,7 @@ async def test_save_writes_document_json_and_code_files(ctx, sr_doctype, demo_ap
     )
 
     folder = demo_app / "welcome_page"
-    data = json.loads((folder / "welcome_page.json").read_text(encoding="utf-8"))
+    data = json.loads((folder / "welcome_page.json").read_text())
     assert data == {
         "doctype": "SrConfig",
         "name": "welcome",
@@ -114,7 +112,7 @@ async def test_save_writes_document_json_and_code_files(ctx, sr_doctype, demo_ap
         "is_standard": True,
         "app": "demo",
     }
-    assert (folder / "body.html").read_text(encoding="utf-8") == "<h1>Hi</h1>"
+    assert (folder / "body.html").read_text() == "<h1>Hi</h1>"
 
 
 @pytest.mark.asyncio
@@ -169,9 +167,8 @@ async def test_apply_records_inserts_and_updates_from_files(
                 "rows": [{"doctype": "SrConfigRow", "label": "r1"}],
             }
         ),
-        encoding="utf-8",
     )
-    (folder / "body.html").write_text("<p>v1</p>", encoding="utf-8")
+    (folder / "body.html").write_text("<p>v1</p>")
 
     assert await apply_records("demo", db_session, engine) == 1
     await db_session.commit()
@@ -184,7 +181,7 @@ async def test_apply_records_inserts_and_updates_from_files(
     )
     assert [r["label"] for r in doc["rows"]] == ["r1"]
 
-    (folder / "body.html").write_text("<p>v2</p>", encoding="utf-8")
+    (folder / "body.html").write_text("<p>v2</p>")
     await apply_records("demo", db_session, engine)
     await db_session.commit()
     updated = await ctx.get_doc("SrConfig", "shipped")

@@ -4,8 +4,6 @@ Export turns DB records into portable fixture JSON; a ``"sync": true`` file
 updates existing records on load, a plain seed file only inserts missing ones.
 """
 
-from __future__ import annotations
-
 import json
 
 import pytest
@@ -84,7 +82,7 @@ async def test_export_strips_system_and_password_fields(ctx, fx_doctype, tmp_pat
     [(path, count)] = await export_fixtures([FixtureSpec("FxConfig")], tmp_path)
 
     assert count == 1
-    data = json.loads(path.read_text(encoding="utf-8"))
+    data = json.loads(path.read_text())
     assert data["doctype"] == "FxConfig"
     assert data["sync"] is True
     [rec] = data["records"]

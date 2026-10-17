@@ -19,19 +19,15 @@ Providers that can also *enrol* a new factor for an already-signed-in user
 ``supports_enrollment = True``.
 """
 
-from __future__ import annotations
-
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any, ClassVar, Literal
+from typing import Any, ClassVar, Literal
+
+from fastapi import Request
 
 from grunt import _
 from grunt.utils.http import public_base_url
-
-if TYPE_CHECKING:
-    from fastapi import Request
-
-    from grunt.auth.doctypes.User.user import User
+lazy from grunt.auth.doctypes.User.user import User
 
 ProviderKind = Literal["redirect", "challenge"]
 """How the frontend has to drive the ceremony.

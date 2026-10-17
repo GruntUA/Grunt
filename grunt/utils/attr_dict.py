@@ -5,8 +5,6 @@ keys (so optional fields read cleanly). Used as
 the ``as_dict`` return type of :meth:`grunt.db.api.GruntDB.get_value`.
 """
 
-from __future__ import annotations
-
 from typing import Any
 
 

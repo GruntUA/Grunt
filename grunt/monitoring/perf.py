@@ -16,29 +16,25 @@ process has flushed.
 are still collected - it costs a dict update per call - but discarded).
 """
 
-from __future__ import annotations
-
 import asyncio
 import functools
 import hashlib
 import time
+from collections.abc import Generator
 from contextlib import contextmanager
 from contextvars import ContextVar
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from sqlalchemy import bindparam, event, select
+from sqlalchemy.ext.asyncio import AsyncEngine
 
 import grunt
 from grunt import log
 from grunt.db.write_intent import set_write_intent
 from grunt.site.manager import current_site, site_manager
-
-if TYPE_CHECKING:
-    from collections.abc import Generator
-
-    from sqlalchemy.ext.asyncio import AsyncEngine
+lazy from grunt.site.settings import get_setting
 
 KINDS = ("HTTP", "RPC", "Page", "Document", "Task", "Span")
 
@@ -297,7 +293,6 @@ async def persist(stats: dict[Key, Stat]) -> int:
 
 
 async def _write_site(site: str, stats: dict[Key, Stat]) -> None:
-    from grunt.site.settings import get_setting
 
     token = current_site.set(site)
     try:

@@ -10,8 +10,6 @@ of hourly ones.
 window and is never matched against rows.
 """
 
-from __future__ import annotations
-
 import hashlib
 from datetime import UTC, datetime, timedelta
 from typing import Any

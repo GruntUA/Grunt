@@ -1,13 +1,10 @@
 """Exporter registry - pluggable document export formats."""
 
-from __future__ import annotations
-
 from abc import ABC, abstractmethod
 from datetime import datetime
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
-if TYPE_CHECKING:
-    from grunt.metadata.field import DocField
+lazy from grunt.metadata.field import DocField
 
 
 class Exporter(ABC):

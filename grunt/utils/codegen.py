@@ -6,8 +6,6 @@ Provides:
   - Fieldtype -> Python type mapping helpers
 """
 
-from __future__ import annotations
-
 import ast
 import sys
 from pathlib import Path
@@ -191,7 +189,7 @@ def sync_controller_types(py_path: Path, name: str, fields: list[dict]) -> bool:
 
     Returns True if the file was modified, False if already up-to-date.
     """
-    source = py_path.read_text(encoding="utf-8")
+    source = py_path.read_text()
     new_block = _render_type_block(fields, indent="    ")
 
     def _find_class_insert_offset(text: str) -> int | None:
@@ -254,7 +252,7 @@ def sync_controller_types(py_path: Path, name: str, fields: list[dict]) -> bool:
     if new_source == source:
         return False
 
-    py_path.write_text(new_source, encoding="utf-8")
+    py_path.write_text(new_source)
     return True
 
 

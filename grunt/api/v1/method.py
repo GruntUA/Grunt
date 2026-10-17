@@ -1,12 +1,12 @@
-from __future__ import annotations
-
 import importlib
 import inspect
 import json
 from inspect import iscoroutinefunction
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
+from fastapi.encoders import jsonable_encoder
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 import grunt
 from grunt import _, log
@@ -14,9 +14,8 @@ from grunt.auth.dependencies import _oauth2_scheme_optional, optional_user
 from grunt.auth.dependencies import current_user as get_current_user
 from grunt.db.session import get_engine as get_engine_dep
 from grunt.db.session import get_session
-
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
+lazy from grunt.errors import forbidden
+lazy from grunt.storage.signing import sign_authorized_file_urls
 
 router = APIRouter()
 
@@ -104,7 +103,6 @@ def get_whitelisted_method(method_path: str) -> Any:
     is_whitelisted = getattr(method, "_whitelisted", False)
     if not is_whitelisted:
         log.warning("method.not_whitelisted", method_path=method_path)
-        from grunt.errors import forbidden
 
         raise forbidden(
             _("Method %(method_path)s is not whitelisted") % {"method_path": method_path}
@@ -142,7 +140,6 @@ async def _invoke_with_context(
         # (@grunt.whitelist(roles=..., require=...) enforcement happens inside
         # `method` itself now - see grunt.api.context.whitelist - so it applies
         # uniformly whether `method` is called via this dispatcher or directly.)
-        import inspect
 
         sig = inspect.signature(method)
 
@@ -164,8 +161,6 @@ async def _invoke_with_context(
                 detail=_("Missing required parameters: %(items)s") % {"items": ", ".join(missing)},
             )
 
-        from grunt.storage.signing import sign_authorized_file_urls
-
         result = await method(**args) if iscoroutinefunction(method) else method(**args)
         # Sign file URLs the caller is authorized to read (never blanket-sign:
         # that turns any echoed field into a signing oracle). A Response is
@@ -178,8 +173,6 @@ async def _invoke_with_context(
         # is JSON-serialised into the envelope below regardless).
         _walkable = (str, dict, list, tuple, bool, int, float)
         if result is not None and not isinstance(result, _walkable):
-            from fastapi.encoders import jsonable_encoder
-
             result = jsonable_encoder(result)
         return await sign_authorized_file_urls(result, user)
 

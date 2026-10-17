@@ -1,12 +1,13 @@
-from __future__ import annotations
-
+import os
+import shutil
+import subprocess
 import sys
-from typing import TYPE_CHECKING
+from pathlib import Path
 
 import click
 
-if TYPE_CHECKING:
-    from pathlib import Path
+lazy from grunt.cli.changed_tests import changed_files, select
+lazy from grunt.site.manager import site_manager
 
 # pytest-xdist; a file stays on one worker, so tests sharing state within a
 # file keep their order.
@@ -39,7 +40,6 @@ def test(
 
     The full suite runs in CI (GitHub Actions); locally use --changed.
     """
-    from grunt.site.manager import site_manager
 
     # If app starts with '-', treat it as a pytest arg
     if app and app.startswith("-"):
@@ -77,13 +77,9 @@ def test(
         return
 
     if site:
-        import os
-
         os.environ["GRUNT_SITE"] = site
 
     # Run pytest via subprocess so the correct project venv is used
-    import shutil
-    import subprocess
 
     venv_pytest = site_manager.bench_dir / ".venv" / "bin" / "pytest"
     pytest_bin = str(venv_pytest) if venv_pytest.exists() else shutil.which("pytest") or ""
@@ -151,10 +147,6 @@ def _add_tests_from_dir(dt_dir: Path, test_paths: list[Path]):
 
 
 def _run_changed(repo: Path, base: str, pytest_args: tuple[str, ...]) -> int:
-    import shutil
-    import subprocess
-
-    from grunt.cli.changed_tests import changed_files, select
 
     if not (repo / ".git").exists():
         click.echo(f"Error: {repo} is not a git repository", err=True)

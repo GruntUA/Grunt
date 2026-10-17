@@ -1,8 +1,6 @@
 """``__perms`` on a document: what the current user may do with it, computed by
 the same checks the write paths enforce — roles, row-level match, shares."""
 
-from __future__ import annotations
-
 import pytest
 
 from grunt.permissions.doc_perms import doc_permissions

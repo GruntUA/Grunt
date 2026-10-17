@@ -7,8 +7,6 @@ These tests exercise all three call sites' create and update paths, plus the
 sidebar "replace: delete old, insert new" step.
 """
 
-from __future__ import annotations
-
 import pytest
 
 from grunt.startup.workspaces import _apply_workspace_fixture, _auto_seed_workspace

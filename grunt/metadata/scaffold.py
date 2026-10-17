@@ -9,22 +9,15 @@ the colocated file structure to disk::
         {Name}.js - Client script (only if missing)
 """
 
-from __future__ import annotations
-
 import json
-from typing import TYPE_CHECKING
+from pathlib import Path
 
 from grunt import log
 from grunt.document.base import SYS_FIELDS
-from grunt.metadata.field import get_python_type, has_trait, is_physical_fieldtype
+from grunt.metadata.field import DocField, get_python_type, has_trait, is_physical_fieldtype
 from grunt.site.manager import site_manager
 from grunt.utils.codegen import render_template, sync_controller_types
-
-if TYPE_CHECKING:
-    from pathlib import Path
-
-    from grunt.metadata.doctype import DocType
-    from grunt.metadata.field import DocField
+lazy from grunt.metadata.doctype import DocType
 
 
 def _build_scaffold_context(doctype_name: str, fields: list[DocField]) -> dict:
@@ -151,7 +144,6 @@ def export_doctype_files(dt: DocType, app_name: str | None = None) -> str | None
     json_file = dt_dir / f"{dt.name}.json"
     json_file.write_text(
         json.dumps(dt.model_dump(exclude_defaults=True), ensure_ascii=False, indent=2) + "\n",
-        encoding="utf-8",
     )
 
     # Controller - create if missing, otherwise only sync the auto-generated type block
@@ -162,7 +154,6 @@ def export_doctype_files(dt: DocType, app_name: str | None = None) -> str | None
         context = _build_scaffold_context(dt.name, dt.fields)
         py_file.write_text(
             render_template("doctype/controller.py.jinja", context),
-            encoding="utf-8",
         )
 
     # Client script - only create if missing
@@ -170,7 +161,6 @@ def export_doctype_files(dt: DocType, app_name: str | None = None) -> str | None
     if not js_file.exists():
         js_file.write_text(
             render_template("doctype/client_script.js.jinja", {"name": dt.name}),
-            encoding="utf-8",
         )
 
     log.info("scaffold.exported", doctype=dt.name, path=str(dt_dir))

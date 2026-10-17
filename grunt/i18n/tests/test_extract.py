@@ -1,7 +1,5 @@
 """Source-string extractor."""
 
-from __future__ import annotations
-
 import json
 
 from grunt.i18n.extract import extract_all
@@ -15,7 +13,6 @@ def test_extracts_python_calls(tmp_path):
         '_("Hello")\n'
         'pgettext("button", "Save")\n'
         'ngettext("%(n)d item", "%(n)d items", n)\n',
-        encoding="utf-8",
     )
     keyed = {(r["source"], r["context"]): r for r in extract_all(tmp_path)}
 
@@ -31,7 +28,6 @@ def test_extracts_ts_and_context_pipe(tmp_path):
     fe.mkdir(parents=True)
     (fe / "C.vue").write_text(
         "<template>{{ t('World') }} {{ $t('meta:Widget.note|Нотатка') }}</template>",
-        encoding="utf-8",
     )
     keyed = {(r["source"], r["context"]) for r in extract_all(tmp_path)}
 
@@ -63,7 +59,6 @@ def test_extracts_doctype_json(tmp_path):
                 "status_indicators": [{"value": "Новий", "label": "Новий"}],
             }
         ),
-        encoding="utf-8",
     )
     rows = extract_all(tmp_path)
     keyed = {(r["source"], r["context"]) for r in rows}
@@ -112,7 +107,6 @@ def test_skips_numbers_and_codes(tmp_path):
                 ],
             }
         ),
-        encoding="utf-8",
     )
     sources = {r["source"] for r in extract_all(tmp_path)}
 
@@ -125,9 +119,9 @@ def test_skips_numbers_and_codes(tmp_path):
 def test_skips_vendor_and_test_dirs(tmp_path):
     pkg = tmp_path / "apps" / "grunt" / "grunt"
     (pkg / "node_modules").mkdir(parents=True)
-    (pkg / "node_modules" / "junk.py").write_text('_("nope")', encoding="utf-8")
+    (pkg / "node_modules" / "junk.py").write_text('_("nope")')
     (pkg / "tests").mkdir(parents=True)
-    (pkg / "tests" / "test_x.py").write_text('_("also nope")', encoding="utf-8")
+    (pkg / "tests" / "test_x.py").write_text('_("also nope")')
     keyed = {(r["source"], r["context"]) for r in extract_all(tmp_path)}
 
     assert ("nope", "") not in keyed
@@ -137,7 +131,7 @@ def test_skips_vendor_and_test_dirs(tmp_path):
 def test_extracts_translatable_texts_of_standard_records(tmp_path):
     def write(path, data):
         path.mkdir(parents=True)
-        (path / f"{path.name}.json").write_text(json.dumps(data), encoding="utf-8")
+        (path / f"{path.name}.json").write_text(json.dumps(data))
 
     doctypes = tmp_path / "apps" / "grunt" / "grunt" / "site" / "doctypes"
     write(

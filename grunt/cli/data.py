@@ -13,8 +13,6 @@ Rows are copied table-to-table, without controllers/hooks: this is a transfer of
 existing data, not new input. DocTypes with child tables are refused.
 """
 
-from __future__ import annotations
-
 import asyncio
 import base64
 import contextlib
@@ -28,9 +26,13 @@ from pathlib import Path
 from typing import Any
 
 import click
-from sqlalchemy import text
+from sqlalchemy import bindparam, inspect, text
 
 from grunt.cli.utils import _site_session
+lazy import grunt
+lazy from grunt.db.write_intent import set_process_default
+lazy from grunt.storage.backends import get_storage_backend
+lazy from grunt.storage.cloud.files import blob_path
 
 FORMAT_VERSION = 1
 
@@ -65,15 +67,10 @@ def data_export(output: Path, specs: tuple[str, ...], site: str | None):
           --doctype "WebsiteMenuItem:menu=mlt_portal"
     """
 
-    from grunt.db.write_intent import set_process_default
-
     # Only reads here - don't take the write lock at BEGIN like other commands.
     set_process_default(False)
 
     async def _collect():
-        import grunt
-        from grunt.storage.backends import get_storage_backend
-        from grunt.storage.cloud.files import blob_path
 
         async with _site_session(site) as (session, eng), grunt.system_context(session, eng):
             doctypes = []
@@ -177,8 +174,6 @@ def data_import(bundle: Path, site: str | None, yes: bool):
         raise SystemExit(1)
 
     async def _run():
-        import grunt
-        from grunt.storage.backends import get_storage_backend
 
         async with _site_session(site) as (session, eng), grunt.system_context(session, eng):
             # Files first, outside any write transaction (they are content-addressed:
@@ -234,7 +229,6 @@ def _describe(filters: dict[str, str]) -> str:
 
 
 async def _table(doctype: str) -> str:
-    import grunt
 
     meta = await grunt.get_meta(doctype)
     if meta is None:
@@ -251,7 +245,6 @@ def _check_ident(name: str) -> str:
 
 
 def _expanding(name: str):
-    from sqlalchemy import bindparam
 
     return bindparam(name, expanding=True)
 
@@ -287,7 +280,6 @@ async def _delete(session, table: str, filters: dict) -> int:
 
 async def _columns(session, table: str) -> set[str]:
     def _inspect(conn):
-        from sqlalchemy import inspect
 
         return {c["name"] for c in inspect(conn).get_columns(table)}
 

@@ -1,7 +1,5 @@
 """Sidebar sections reach the client with icons and the resolved sidebar mode (modules/sections)."""
 
-from __future__ import annotations
-
 from unittest.mock import AsyncMock, patch
 
 import pytest

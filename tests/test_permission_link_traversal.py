@@ -7,17 +7,11 @@ real read pipeline (``grunt.get_list`` / ``grunt.get_doc``), the row-level SQL
 filter and the per-document check both.
 """
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
-
 import pytest
 from fastapi import HTTPException
 
 from tests.support import make_user
-
-if TYPE_CHECKING:
-    from grunt.auth.doctypes.User.user import User
+lazy from grunt.auth.doctypes.User.user import User
 
 HOLDER_DOCTYPE = {
     "name": "PermTestHolder",

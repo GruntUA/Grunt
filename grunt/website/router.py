@@ -2,22 +2,30 @@
 Website page rendering engine - Enhanced routing for Grunt apps.
 """
 
-from __future__ import annotations
-
 import importlib.util
 import inspect
 import re
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from types import ModuleType
+from typing import Any
+lazy from xml.sax.saxutils import escape
 
 from fastapi import Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse, PlainTextResponse, Response
 from jinja2 import ChoiceLoader, Environment, FileSystemLoader, select_autoescape
 
+import grunt
 from grunt import log
-
-if TYPE_CHECKING:
-    from types import ModuleType
+lazy from grunt.apps.loader import primary_web_app
+lazy from grunt.auth.doctypes.User.user import SYSTEM_USER
+lazy from grunt.config import settings
+lazy from grunt.db.session import get_session
+lazy from grunt.i18n.jinja import install as install_i18n
+lazy from grunt.site.manager import site_manager
+lazy from grunt.site.settings import get_setting
+lazy from grunt.storage.files import image_srcset, sized_url
+lazy from grunt.website.generator import _template_envs, render_doc_page, sitemap_urls
+lazy from grunt.website.spa import spa_assets
 
 # www/*.py controllers by path: (mtime, module)
 _controllers: dict[Path, tuple[float, ModuleType]] = {}
@@ -126,15 +134,11 @@ class WebsiteRegistry:
             autoescape=select_autoescape(["html"]),
             enable_async=True,
         )
-        from grunt.i18n.jinja import install as install_i18n
 
         install_i18n(env)
 
-        from grunt.website.spa import spa_assets
-
         env.globals["spa_assets"] = spa_assets
         # <img src="{{ image_url(doc.image, 960) }}" srcset="{{ image_srcset(doc.image) }}">
-        from grunt.storage.files import image_srcset, sized_url
 
         env.globals["image_url"] = sized_url
         env.globals["image_srcset"] = image_srcset
@@ -193,7 +197,6 @@ class WebsiteRegistry:
             # A template loaded before would keep coming from the old place.
             if env.cache is not None:
                 env.cache.clear()
-        from grunt.website.generator import _template_envs
 
         _template_envs.clear()
 
@@ -214,8 +217,6 @@ website_registry = WebsiteRegistry()
 async def page_context(request: Request, session: Any, **extra: Any) -> dict[str, Any]:
     """The context every page starts from, context processors applied (the
     caller holds a grunt context)."""
-    from grunt.config import settings
-    from grunt.site.settings import get_setting
 
     context: dict[str, Any] = {
         "request": request,
@@ -250,8 +251,6 @@ async def render_page(
     A controller may return a ``Response`` instead of a context dict (e.g. a
     ``RedirectResponse``) - it is sent as is.
     """
-    import grunt
-    from grunt.auth.doctypes.User.user import SYSTEM_USER
 
     async with grunt.context(session, user=SYSTEM_USER):
         context = await page_context(request, session, path_params=path_params or {})
@@ -355,7 +354,6 @@ async def render_page_by_route(
             return await render_page(page, request, m.groupdict(), session=session)
 
     # 2. Documents of web-view DocTypes (grunt.website.generator)
-    from grunt.website.generator import render_doc_page
 
     try:
         response = await render_doc_page(request, session)
@@ -384,7 +382,6 @@ async def render_not_found(request: Request, session: Any) -> Response | None:
     controller) of the app the path belongs to - the one mounted at
     ``/<app>/...``, else the primary web app. ``None`` when that app has none.
     """
-    from grunt.apps.loader import primary_web_app
 
     first = request.url.path.strip("/").split("/", 1)[0]
     for app in (first, primary_web_app()):
@@ -405,7 +402,6 @@ async def render_not_found(request: Request, session: Any) -> Response | None:
 
 def make_website_handler(page: WebsitePage):
     """Return a FastAPI route handler for the given WebsitePage."""
-    from grunt.db.session import get_session
 
     async def _handler(
         request: Request,
@@ -445,7 +441,6 @@ def _lastmod(value: Any) -> str:
 async def sitemap_entries() -> list[SitemapEntry]:
     """Every listed page: www pages, web view documents and every app's
     ``website_sitemap`` source (caller holds a grunt context)."""
-    from grunt.website.generator import sitemap_urls
 
     entries: list[SitemapEntry] = [p.url_pattern for p in website_registry.pages if p.in_sitemap]
     entries.extend(await sitemap_urls())
@@ -459,7 +454,6 @@ async def sitemap_entries() -> list[SitemapEntry]:
 
 def render_sitemap(base: str, entries: list[SitemapEntry]) -> str:
     """sitemap.xml of *entries* (duplicates dropped, at most ``SITEMAP_LIMIT``)."""
-    from xml.sax.saxutils import escape
 
     seen: set[str] = set()
     lines: list[str] = []
@@ -484,9 +478,6 @@ def render_sitemap(base: str, entries: list[SitemapEntry]) -> str:
 
 async def sitemap_xml(request: Request) -> Response:
     """Generate /sitemap.xml (see :func:`sitemap_entries`)."""
-    import grunt
-    from grunt.auth.doctypes.User.user import SYSTEM_USER
-    from grunt.site.manager import site_manager
 
     site = site_manager.get_active_site()
     maker = site_manager.get_session_maker(site)

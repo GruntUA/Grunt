@@ -1,18 +1,12 @@
 """Tests for the Auth system (whitelisted methods + HTTP surface)."""
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
-
 import pytest
+from httpx2 import AsyncClient
 
 from grunt.api.messages import ApplicationError
 from grunt.auth.login import find_or_create_external_user
 from grunt.auth.service import create_access_token
 from grunt.site.settings import clear_settings_cache
-
-if TYPE_CHECKING:
-    from httpx2 import AsyncClient
 
 
 @pytest.mark.asyncio

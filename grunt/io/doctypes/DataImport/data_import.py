@@ -8,6 +8,8 @@ from grunt import _, log
 from grunt.document.base import Document
 from grunt.io.exporters.registry import get_exporter
 from grunt.io.importers.registry import get_importer_for_file
+lazy from grunt.errors import not_found
+lazy from grunt.storage.cloud.files import blob_path
 
 
 class DataImport(Document):
@@ -19,8 +21,6 @@ class DataImport(Document):
         data = self._read_file(file_path, file_name, limit=6)  # header + 5 rows
         dt = await self.grunt.get_meta(self.doctype_name)
         if dt is None:
-            from grunt.errors import not_found
-
             raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": self.doctype_name})
 
         headers = [str(h) if h is not None else "" for h in (data[0] if data else [])]
@@ -220,8 +220,6 @@ class DataImport(Document):
         if file_id:
             doc = await self.grunt.find_doc("File", file_id)
             if doc and doc.get("content_hash"):
-                from grunt.storage.cloud.files import blob_path
-
                 path = await blob_path(doc["content_hash"])
                 if path.exists():
                     # Blobs carry no extension - the importer goes by the name.

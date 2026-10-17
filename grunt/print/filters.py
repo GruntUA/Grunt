@@ -1,17 +1,15 @@
 """Jinja2 filters for print templates."""
 
-from __future__ import annotations
-
 import functools
 import json
 import re
 from datetime import date, datetime
-from typing import TYPE_CHECKING, Any, cast
+from typing import Any, cast
 
 from markupsafe import Markup
-
-if TYPE_CHECKING:
-    from shevchenko import GenderDetectionInput
+lazy import pymorphy3
+lazy import segno
+lazy from shevchenko import GenderDetectionInput
 
 # Regex to detect adjective-form Ukrainian surnames (-ський/-зький/etc.)
 # shevchenko 1.0.0 incorrectly declines these to "-ию" instead of "-ому/-ьому".
@@ -305,7 +303,6 @@ def _decline_word_morph(word: str, case: str) -> str | None:
 @functools.cache
 def _morph_uk() -> Any:
     """Return a cached pymorphy3 MorphAnalyzer for Ukrainian."""
-    import pymorphy3
 
     return pymorphy3.MorphAnalyzer(lang="uk")
 
@@ -331,7 +328,6 @@ def qr(value: Any, size: str = "30mm", border: int = 1) -> Markup:
     ``{{ "https://example.com/doc/42" | qr }}``, ``{{ doc.reg_number | qr("20mm") }}``.
     Empty values render nothing.
     """
-    import segno
 
     text = "" if value is None else str(value)
     if not text:

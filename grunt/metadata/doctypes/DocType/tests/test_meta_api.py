@@ -1,8 +1,6 @@
 """Tests for the Meta API - DocType CRUD, sync, and schema export (migrated to
 whitelisted methods)."""
 
-from __future__ import annotations
-
 import pytest
 
 from grunt.api.messages import ApplicationError

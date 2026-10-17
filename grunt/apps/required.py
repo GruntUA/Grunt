@@ -12,14 +12,10 @@ to ``installed_apps`` ahead of the app that needs them, and ``grunt update``
 clones the ones the bench lacks.
 """
 
-from __future__ import annotations
-
 import json
 import subprocess
-from typing import TYPE_CHECKING, NamedTuple
-
-if TYPE_CHECKING:
-    from pathlib import Path
+from pathlib import Path
+from typing import NamedTuple
 
 CORE_APP = "grunt"
 
@@ -44,7 +40,7 @@ class DependencyCycleError(Exception):
 def dependencies(app_dir: Path) -> list[Dependency]:
     """The app's ``depends_on``, both entry forms as :class:`Dependency`."""
     try:
-        meta = json.loads((app_dir / "app.json").read_text(encoding="utf-8"))
+        meta = json.loads((app_dir / "app.json").read_text())
     except FileNotFoundError:
         return []
     deps = []
@@ -99,13 +95,13 @@ def ensure_site_dependencies(site_file: Path, apps_dir: Path) -> list[str]:
 
     Returns the added app names; ``grunt.site`` is rewritten only if any.
     """
-    config = json.loads(site_file.read_text(encoding="utf-8"))
+    config = json.loads(site_file.read_text())
     installed = config.get("installed_apps", [])
     resolved = with_dependencies(apps_dir, installed)
     added = [name for name in resolved if name not in installed]
     if added:
         config["installed_apps"] = resolved
-        site_file.write_text(json.dumps(config, ensure_ascii=False, indent=2), encoding="utf-8")
+        site_file.write_text(json.dumps(config, ensure_ascii=False, indent=2))
     return added
 
 

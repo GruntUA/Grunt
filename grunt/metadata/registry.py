@@ -12,14 +12,12 @@ Startup behaviour
 This keeps startup fast regardless of how many DocTypes an application has.
 """
 
-from __future__ import annotations
-
 import asyncio
 import re
-from typing import TYPE_CHECKING
 
 from fastapi import HTTPException, status
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 from grunt import _, log
 from grunt.local import _session_ctx
@@ -29,12 +27,7 @@ from grunt.metadata.doctype import DocType
 from grunt.metadata.field import DocField
 from grunt.permissions.rbac import invalidate_permission_cache
 from grunt.site.manager import current_site, site_manager
-
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
-
-    from grunt.document.meta import Meta
-
+lazy from grunt.document.meta import Meta
 
 _FIELDNAME_RE = re.compile(r"^[a-z][a-z0-9_]*$")
 _MAX_FIELDNAME_LEN = 64
@@ -257,8 +250,6 @@ class DocTypeRegistry:
         if active_session is not None:
             definition = await store.get_definition(active_session, name)
         else:
-            from grunt.site.manager import site_manager
-
             # Fail closed on ANY failure in this path - not just resolving
             # site_name/maker, but opening the connection and running the
             # query too (engine creation is lazy, so a nonexistent/misconfigured
@@ -347,7 +338,6 @@ class DocTypeRegistry:
         a ``None`` check, so the choice is explicit at each call site instead of
         implicit in this shared accessor.
         """
-        from grunt.document.meta import Meta
 
         try:
             dt = await self.get(name)

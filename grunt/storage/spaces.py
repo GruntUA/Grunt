@@ -7,8 +7,6 @@ uploader's. Quotas are not applied - an over-quota space just can't take new
 files until it is cleaned up.
 """
 
-from __future__ import annotations
-
 from typing import Any
 
 from sqlalchemy import or_, select

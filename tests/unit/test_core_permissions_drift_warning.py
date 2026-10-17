@@ -8,8 +8,6 @@ log a loud warning whenever the JSON and stored permissions disagree, while
 still leaving the stored (Studio-owned) value untouched.
 """
 
-from __future__ import annotations
-
 import pytest
 
 

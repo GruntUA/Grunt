@@ -6,14 +6,26 @@ ends here so the response shape, the MFA gate and session tracking stay in a
 single implementation.
 """
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from grunt import _
-
-if TYPE_CHECKING:
-    from grunt.auth.doctypes.User.user import User
+lazy from grunt.api.messages import throw
+lazy from grunt.auth.doctypes.User.user import (
+    User,
+    _auth_user_dump,
+    clear_failed_attempts,
+    create_user,
+    get_user_by_email,
+)
+lazy from grunt.auth.doctypes.UserSession.user_session import open_session
+lazy from grunt.auth.ip_policy import sign_in_ip_allowed
+lazy from grunt.auth.mfa import mfa_setup_required
+lazy from grunt.auth.service import (
+    access_token_minutes,
+    create_access_token,
+    create_mfa_setup_token,
+    create_mfa_token,
+)
 
 
 async def issue_login(
@@ -41,17 +53,6 @@ async def issue_login(
     ``mfa_setup`` token - the client enrolls via ``mfa_enroll_begin`` /
     ``mfa_enroll_complete`` instead of verifying. No tokens until then.
     """
-    from grunt.api.messages import throw
-    from grunt.auth.doctypes.User.user import _auth_user_dump
-    from grunt.auth.doctypes.UserSession.user_session import open_session
-    from grunt.auth.ip_policy import sign_in_ip_allowed
-    from grunt.auth.mfa import mfa_setup_required
-    from grunt.auth.service import (
-        access_token_minutes,
-        create_access_token,
-        create_mfa_setup_token,
-        create_mfa_token,
-    )
 
     # Signup approval first: a pending account is also inactive, but it waits
     # for an admin rather than being switched off.
@@ -105,7 +106,6 @@ async def issue_login(
     # attempt counter: clearing it at the password step would let a known
     # password reset the counter that wrong MFA codes increment, defeating the
     # lockout on the 6-digit second factor.
-    from grunt.auth.doctypes.User.user import clear_failed_attempts
 
     await clear_failed_attempts(user)
 
@@ -133,7 +133,6 @@ async def find_or_create_external_user(email: str, full_name: str) -> User:
     (``set_user_password_api`` treats a null hash as a first-time set, so no
     "current password" is asked for).
     """
-    from grunt.auth.doctypes.User.user import create_user, get_user_by_email
 
     user = await get_user_by_email(email)
     if user is not None:

@@ -14,8 +14,6 @@ MySQL branch used raw text interpolation). Fixed with a bound parameter
 (`text("(:search_q IN BOOLEAN MODE)").bindparams(search_q=q)`).
 """
 
-from __future__ import annotations
-
 from unittest.mock import patch
 
 import pytest

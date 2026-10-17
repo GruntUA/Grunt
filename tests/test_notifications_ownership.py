@@ -4,8 +4,6 @@ belonged to the calling user — any authenticated user could mark someone
 else's notification as read, or unsubscribe someone else's push endpoint.
 """
 
-from __future__ import annotations
-
 import pytest
 
 from tests.support import make_user

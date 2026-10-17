@@ -1,8 +1,6 @@
 """Integration: ``Document.get_preview`` — the link hover card of a DocType with
 ``show_preview_popup`` (title, image, in_preview fields, read permissions)."""
 
-from __future__ import annotations
-
 import pytest
 
 from tests.support import make_user

@@ -2,8 +2,6 @@
 document write from queuing a notification-evaluation worker task.
 """
 
-from __future__ import annotations
-
 import pytest
 
 from grunt.notification import rule_index

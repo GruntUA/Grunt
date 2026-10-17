@@ -1,13 +1,7 @@
 """Tests for the global search endpoint — GET /api/v1/method/grunt.api.v1.search.global_search."""
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
-
 import pytest
-
-if TYPE_CHECKING:
-    from httpx2 import AsyncClient
+from httpx2 import AsyncClient
 
 # Direct API
 

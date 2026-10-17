@@ -7,11 +7,8 @@ small in-memory cache so ``workflow/engine.py`` and the write pipeline don't
 hit the DB on every read.
 """
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
-
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 import grunt
 from grunt import _
@@ -21,9 +18,7 @@ from grunt.hooks import on_doc
 from grunt.local import _session_ctx
 from grunt.metadata.doctype import WorkflowState, WorkflowTransition
 from grunt.site.manager import site_manager
-
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession
+lazy from grunt.errors import not_found
 
 
 class ResolvedWorkflow:
@@ -111,8 +106,6 @@ async def get_active_workflow(document_type: str) -> ResolvedWorkflow | None:
 
     meta = await grunt.get_meta("Workflow")
     if meta is None:
-        from grunt.errors import not_found
-
         raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": "Workflow"})
     dt = meta.doc  # _load_child_tables below is typed to take the raw DocType
     table = meta.table

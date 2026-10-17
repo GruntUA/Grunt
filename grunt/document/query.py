@@ -1,16 +1,12 @@
 """Query and filter building for document list queries."""
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from sqlalchemy import or_, select
 
 import grunt
 from grunt.document.meta import Meta
-
-if TYPE_CHECKING:
-    from grunt.metadata.doctype import DocType
+lazy from grunt.metadata.doctype import DocType
 
 # Filter-clause building lives in grunt.db.filters.apply_filters - this module
 # used to have a second, same-named function here that just wrapped
@@ -35,16 +31,12 @@ async def _expand_child_of_filters(
 
         fieldname = key[: -len("__child_of")]
 
-        from grunt.document.meta import Meta
-
         field = Meta(dt).get_field(fieldname)
         if not field or not getattr(field, "options", None):
             result[f"{fieldname}__eq"] = value
             continue
 
         linked_doctype: str = field.options  # type: ignore[assignment]
-
-        import grunt
 
         linked_dt = await grunt.get_meta(linked_doctype)
         if linked_dt is None:

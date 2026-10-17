@@ -1,15 +1,9 @@
 """Tests for System Manager impersonation ("view as another user")."""
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
-
 import pytest
+from httpx2 import AsyncClient
 
 from grunt.auth.doctypes.User.user import create_user
-
-if TYPE_CHECKING:
-    from httpx2 import AsyncClient
 
 _START = "/api/v1/method/grunt.auth.doctypes.User.user.start_impersonation_api"
 _STOP = "/api/v1/method/grunt.auth.doctypes.User.user.stop_impersonation_api"

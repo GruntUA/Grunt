@@ -1,18 +1,14 @@
 """Persistent perf stats: in-memory buckets → hourly ``PerfStat`` rows →
 period comparison in the virtual ``PerfTrend``."""
 
-from __future__ import annotations
-
 from datetime import UTC, datetime, timedelta
 from types import SimpleNamespace
-from typing import TYPE_CHECKING, cast
+from typing import cast
 
 import pytest
+from starlette.requests import Request
 
 from grunt.monitoring import perf
-
-if TYPE_CHECKING:
-    from starlette.requests import Request
 
 
 @pytest.fixture(autouse=True)

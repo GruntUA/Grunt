@@ -16,8 +16,6 @@ All accessors expect an active grunt context with a session (the callers -
 auth, email, webpush - all run inside one).
 """
 
-from __future__ import annotations
-
 import time
 from typing import Any
 

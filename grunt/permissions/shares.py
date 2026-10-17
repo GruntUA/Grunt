@@ -7,19 +7,12 @@ Shares only *add* access on top of role permissions (see
 create or delete, and never apply to a different document.
 """
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
-
-from sqlalchemy import select
+from sqlalchemy import ColumnElement, Table, select
 
 import grunt
 from grunt.local import _session_ctx
-
-if TYPE_CHECKING:
-    from sqlalchemy import ColumnElement, Table
-
-    from grunt.auth.doctypes.User.user import User
+lazy from grunt.auth.doctypes.User.user import User
+lazy from grunt.permissions.user_permissions import expand_tree_values
 
 # action -> share levels that grant it
 _LEVELS: dict[str, tuple[str, ...]] = {
@@ -87,8 +80,6 @@ async def shared_names_clause(table: Table, user: User, doctype: str) -> ColumnE
     )
     if await _subtree_parent_field(doctype) is None:
         return table.c.name.in_(shared)
-
-    from grunt.permissions.user_permissions import expand_tree_values
 
     roots = set((await grunt.get_session().execute(shared)).scalars().all())
     return table.c.name.in_(await expand_tree_values(doctype, roots)) if roots else None

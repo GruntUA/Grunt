@@ -6,8 +6,6 @@ low-level ``create_user()`` is deliberately *not* guarded so that first-admin
 bootstrap (``grunt site create`` / setup wizard) is never blocked.
 """
 
-from __future__ import annotations
-
 import grunt
 from grunt import _
 from grunt.site.settings import get_setting

@@ -1,14 +1,10 @@
 """HTTP request helpers."""
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
 from urllib.parse import urlparse
 
-from grunt.config import settings
+from fastapi import Request
 
-if TYPE_CHECKING:
-    from fastapi import Request
+from grunt.config import settings
 
 
 def _is_trusted_host(host: str | None) -> bool:

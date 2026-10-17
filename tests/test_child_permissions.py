@@ -1,7 +1,5 @@
 """Child-table rows follow the access of their parent document."""
 
-from __future__ import annotations
-
 import pytest
 
 from tests.support import make_user

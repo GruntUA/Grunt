@@ -6,10 +6,10 @@ RPC: grunt.document.base.Document.get_tree_ancestors - path from node up to the 
 RPC: grunt.document.base.Document.move_tree_node - re-parent a node
 """
 
-from __future__ import annotations
-
 from datetime import date
 from typing import Any
+
+from sqlalchemy import and_, select
 
 import grunt
 from grunt import _
@@ -64,7 +64,6 @@ async def _tree_row_scope(dt: Any, restricted: list[str] | None) -> Any | None:
     """
     if restricted is not None:
         return None
-    from sqlalchemy import and_, select
 
     user = grunt.get_user()
     table = dt.table

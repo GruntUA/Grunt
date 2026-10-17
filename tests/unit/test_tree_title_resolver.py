@@ -8,8 +8,6 @@ itself (using a fake resolver) — Department's own resolver logic was moved
 verbatim and isn't re-tested here.
 """
 
-from __future__ import annotations
-
 import pytest
 
 from grunt.document.tree import TREE_TITLE_RESOLVERS, register_tree_title_resolver

@@ -6,12 +6,7 @@ which are always doctype+action shaped. This is the primitive behind
 single doctype.
 """
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from grunt.auth.doctypes.User.user import User
+lazy from grunt.auth.doctypes.User.user import User
 
 
 def user_has_roles(user: User | None, roles: list[str]) -> bool:

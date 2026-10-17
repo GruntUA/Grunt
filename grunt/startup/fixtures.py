@@ -1,22 +1,22 @@
 """Startup - fixture loading utilities for DocTypes and Workspaces."""
 
-from __future__ import annotations
-
 import json
+import re as _re
 from datetime import UTC
+from datetime import date as _date
+from datetime import datetime as _datetime
+from datetime import time as _time
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import Any
+
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 import grunt
 from grunt import log
 from grunt.fixtures import clean_record, to_json_compatible
 from grunt.version import app_version
-
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
-
-    from grunt.document.meta import Meta
-
+lazy from grunt.document.meta import Meta
+lazy from grunt.standard_records import apply_records
 
 _GRUNT_ROOT = Path(__file__).parent.parent  # grunt/startup/../ = grunt/
 
@@ -31,7 +31,7 @@ async def load_core_fixtures(session: AsyncSession, eng: AsyncEngine) -> None:
     for fixtures_dir in sorted(_GRUNT_ROOT.glob("*/fixtures")):
         for fx_file in sorted(fixtures_dir.glob("*.json")):
             try:
-                fx = json.loads(fx_file.read_text(encoding="utf-8"))
+                fx = json.loads(fx_file.read_text())
                 fx_doctype = fx.get("doctype", "")
                 records = fx.get("records", [])
                 if not fx_doctype or not records:
@@ -42,8 +42,6 @@ async def load_core_fixtures(session: AsyncSession, eng: AsyncEngine) -> None:
                 log.info("startup.core_fixture_applied", file=fx_file.name, doctype=fx_doctype)
             except Exception as e:
                 log.warning("startup.core_fixture_failed", file=fx_file.name, error=str(e))
-
-    from grunt.standard_records import apply_records
 
     await apply_records("grunt", session, eng)
 
@@ -118,8 +116,6 @@ def _coerce_fixture_value(fieldtype: str, value: object) -> object:
     if value is None:
         return None
     if fieldtype == "Time" and isinstance(value, str):
-        from datetime import time as _time
-
         parts = value.split(":")
         try:
             h, m = int(parts[0]), int(parts[1])
@@ -127,19 +123,13 @@ def _coerce_fixture_value(fieldtype: str, value: object) -> object:
             return _time(h, m, s)
         except ValueError, IndexError:
             return None
-    if fieldtype == "Date" and isinstance(value, str):
-        import re as _re
-        from datetime import date as _date
-
-        if _re.match(r"^\d{4}-\d{2}-\d{2}$", value):
-            try:
-                y, mo, d = value.split("-")
-                return _date(int(y), int(mo), int(d))
-            except ValueError:
-                return None
+    if fieldtype == "Date" and isinstance(value, str) and _re.match(r"^\d{4}-\d{2}-\d{2}$", value):
+        try:
+            y, mo, d = value.split("-")
+            return _date(int(y), int(mo), int(d))
+        except ValueError:
+            return None
     if fieldtype == "Datetime" and isinstance(value, str):
-        from datetime import datetime as _datetime
-
         try:
             dt = _datetime.fromisoformat(value.replace("Z", "+00:00"))
             if dt.tzinfo is None:

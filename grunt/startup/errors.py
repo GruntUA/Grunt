@@ -4,14 +4,13 @@ All in one place and wired by :func:`register_exception_handlers`, called
 once from :mod:`grunt.main` after the routers are mounted.
 """
 
-from __future__ import annotations
-
 import traceback
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
-from fastapi import HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse, Response
+from jinja2 import Environment
 from pydantic import ValidationError
 
 from grunt import _, log
@@ -19,10 +18,6 @@ from grunt.api.messages import ApplicationError
 from grunt.config import settings
 from grunt.errors import error_body
 from grunt.logging_config import mark_logged
-
-if TYPE_CHECKING:
-    from fastapi import FastAPI
-    from jinja2 import Environment
 
 _TEMPLATES_DIR = Path(__file__).resolve().parent.parent / "website" / "templates"
 _error_env: Environment | None = None

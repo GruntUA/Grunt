@@ -12,24 +12,20 @@ The catch-all must be registered last (after every router and app page), so
 this is called at the very end of :mod:`grunt.main`.
 """
 
-from __future__ import annotations
-
 from pathlib import Path
-from typing import TYPE_CHECKING
 
-from fastapi import HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
+import grunt
 from grunt import _, log
 from grunt.config import settings
 from grunt.site.manager import site_manager
 from grunt.website import make_website_handler, robots_txt, sitemap_xml, website_registry
 from grunt.website.router import PAGE_METHODS, render_not_found, render_page_by_route
 from grunt.website.spa import DIST_DIR, static_file
-
-if TYPE_CHECKING:
-    from fastapi import FastAPI
-
+lazy from grunt.auth.doctypes.User.user import SYSTEM_USER
 
 _GRUNT_PKG = Path(__file__).resolve().parent.parent  # grunt/startup/website.py -> grunt/
 _CORE_WEBSITE_DIR = _GRUNT_PKG / "website"
@@ -61,8 +57,6 @@ async def _legacy_workspace_url(request: Request, session) -> str | None:
     the workspace is often named after the app) only ``/<app>/<DocType>/...``
     is taken for a bookmark - the rest is that site's 404.
     """
-    import grunt
-    from grunt.auth.doctypes.User.user import SYSTEM_USER
 
     first, _sep, rest = request.url.path.strip("/").partition("/")
     if not first:
@@ -126,7 +120,6 @@ def register_website_routes(app: FastAPI) -> None:
 
 async def _website_catch_all(request: Request):
     """Dynamic DB pages: root static file -> server-side page -> SPA fallback."""
-    from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 
     # 1. Serve root-level static files (replaces a StaticFiles mount at "/").
     #    In production the built SPA (dist/) comes first - Vite serves it in dev.

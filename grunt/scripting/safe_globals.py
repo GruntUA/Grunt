@@ -37,8 +37,6 @@ the old sandbox used for *those* names - the difference here is attribute
 traversal, not name lookup, was always the real gap).
 """
 
-from __future__ import annotations
-
 import json
 import math
 import re

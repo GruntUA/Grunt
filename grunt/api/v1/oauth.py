@@ -24,8 +24,6 @@ Flow:
    fragment, stores the pair and strips it from the URL.
 """
 
-from __future__ import annotations
-
 import hmac
 from urllib.parse import urlencode
 

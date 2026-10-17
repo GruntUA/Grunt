@@ -5,12 +5,11 @@ in the grunt_doc_link table. This allows querying "which documents reference
 this one" efficiently.
 """
 
-from __future__ import annotations
-
-from datetime import UTC
-from typing import TYPE_CHECKING, Any
+from datetime import UTC, datetime
+from typing import Any
 
 from sqlalchemy import and_, delete, func, select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 import grunt
 from grunt import _, log
@@ -18,9 +17,6 @@ from grunt.document.meta import Meta
 from grunt.errors import not_found
 from grunt.metadata.compiler import MULTI_LINK_TABLE
 from grunt.metadata.registry import doctype_registry
-
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession
 
 
 def _child_owner_map(all_dts: list[Any]) -> dict[str, str]:
@@ -81,7 +77,6 @@ class LinkService:
                 continue
 
             link_name = f"{doctype}-{doc_id}-{field.fieldname}"
-            from datetime import datetime
 
             now = datetime.now(UTC)
             await session.execute(

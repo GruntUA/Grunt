@@ -37,8 +37,6 @@ the client (``message`` is toasted, ``refresh`` truthy reloads the form), or a
 bare string (treated as ``{"message": ...}``), or nothing.
 """
 
-from __future__ import annotations
-
 import importlib
 
 import grunt
@@ -52,7 +50,8 @@ from grunt.actions.registry import (
     get_doc_action,
     register_doc_action,
 )
-from grunt.errors import not_found
+from grunt.errors import forbidden, not_found
+lazy from grunt.permissions.roles import user_has_roles
 
 __all__ = [
     "DOC_ACTION_SOURCE",
@@ -174,12 +173,8 @@ async def run(doctype: str, action: str, doc_id: str, args: dict | None = None) 
         grunt.throw(_("Action “%(action)s” is not registered") % {"action": action}, "NOT_FOUND")
 
     if spec.roles:
-        from grunt.permissions.roles import user_has_roles
-
         user = grunt.get_user()
         if not user_has_roles(user, [*spec.roles, "System Manager"]):
-            from grunt.errors import forbidden
-
             raise forbidden(_("Not permitted to run this action"))
 
     doc = await grunt.get_doc(doctype, doc_id)  # enforces read permission

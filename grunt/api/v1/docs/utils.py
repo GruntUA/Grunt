@@ -1,22 +1,18 @@
 """Utility functions and dependencies for Document API."""
 
-from __future__ import annotations
-
 import io
 from datetime import date, datetime
 from html import escape
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 import openpyxl
+from fastapi import Request
 from openpyxl.styles import Alignment, Font, PatternFill
 
 import grunt
 from grunt import _
 from grunt.document.meta import Meta
 from grunt.io.exporters.sanitize import escape_formula
-
-if TYPE_CHECKING:
-    from fastapi import Request
 
 
 async def default_sort(

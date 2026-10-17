@@ -11,15 +11,10 @@ all, so removing this file would silently stop seeding SystemSettings on
 ``site create`` unless that call is added there too.
 """
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 import grunt
 from grunt import log
-
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 
 async def seed_system_settings(session: AsyncSession, engine: AsyncEngine) -> None:

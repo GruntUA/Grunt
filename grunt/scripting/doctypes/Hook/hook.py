@@ -7,8 +7,6 @@ can be browsed through the normal ListView instead of a bespoke admin page.
 Read-only: list + load. Insert/update/delete are not supported.
 """
 
-from __future__ import annotations
-
 from typing import Any
 
 import grunt

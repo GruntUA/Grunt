@@ -1,7 +1,5 @@
 """Tests for grunt.api.v1.meta.table_info — physical storage info for a DocType."""
 
-from __future__ import annotations
-
 import pytest
 
 TABLE_INFO_DOCTYPE = {

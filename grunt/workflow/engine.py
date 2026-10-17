@@ -17,28 +17,24 @@ the document, notifications (``notify``, grunt/workflow/notify.py), the
 ``on_transition`` hook and a websocket broadcast.
 """
 
-from __future__ import annotations
-
 import contextlib
 from contextvars import ContextVar
 from dataclasses import dataclass
 from datetime import datetime
 from html import escape
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from fastapi import HTTPException, status
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 import grunt
 from grunt import _, log
 from grunt.events import fire as fire_hook
 from grunt.workflow.notify import notify_transition, previous_actor
 from grunt.workflow.registry import get_active_workflow
-
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
-
-    from grunt.auth.doctypes.User.user import User
-    from grunt.metadata.doctype import DocType, WorkflowState, WorkflowTransition
+lazy from grunt.api.v1.ws import manager
+lazy from grunt.auth.doctypes.User.user import User
+lazy from grunt.metadata.doctype import DocType, WorkflowState, WorkflowTransition
 
 # Values key carrying the dialog's comment for a `require_comment` transition.
 COMMENT_KEY = "__comment"
@@ -244,8 +240,6 @@ class WorkflowEngine:
             log.exception("hook.on_transition_error")
 
         with contextlib.suppress(Exception):
-            from grunt.api.v1.ws import manager
-
             await manager.broadcast_doc(
                 active.doctype,
                 active.doc_id,

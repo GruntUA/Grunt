@@ -1,7 +1,5 @@
 """Controller for EmailAccount."""
 
-from __future__ import annotations
-
 from grunt.document.base import Document
 from grunt.email.service import SMTP_PASSWORD_MASK
 

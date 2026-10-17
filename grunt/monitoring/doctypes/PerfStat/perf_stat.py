@@ -5,14 +5,9 @@ writes, no lifecycle); nobody is granted ``write``/``create``. This class only
 gives the record a typed shape.
 """
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
+from datetime import datetime
 
 from grunt.document.base import Document
-
-if TYPE_CHECKING:
-    from datetime import datetime
 
 
 class PerfStat(Document):

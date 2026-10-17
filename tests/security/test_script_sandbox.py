@@ -12,8 +12,6 @@ exposed module. It FAILS against the current implementation (the escape is
 live); it must pass once the modules are no longer exposed as raw objects.
 """
 
-from __future__ import annotations
-
 import pytest
 
 

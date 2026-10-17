@@ -7,11 +7,10 @@ goes through the same registry and :func:`grunt.auth.login.issue_login` as
 every other method.
 """
 
-from __future__ import annotations
-
 import secrets
-from typing import TYPE_CHECKING, Any, ClassVar
+from typing import Any, ClassVar
 
+import httpx2
 from authlib.integrations.httpx_client import AsyncOAuth2Client
 
 from grunt import _
@@ -20,9 +19,12 @@ from grunt.auth.login import find_or_create_external_user
 from grunt.auth.providers.base import AuthFlowContext, AuthProvider
 from grunt.auth.providers.registry import register
 from grunt.config import settings
-
-if TYPE_CHECKING:
-    from grunt.auth.doctypes.User.user import User
+lazy from grunt.auth.doctypes.User.user import (
+    User,
+    _apply_signup_approval,
+    _guard_registration,
+    get_user_by_email,
+)
 
 _GOOGLE_CONF_URL = "https://accounts.google.com/.well-known/openid-configuration"
 _MICROSOFT_CONF_URL = (
@@ -61,7 +63,6 @@ class OIDCProvider(AuthProvider):
     # OIDC helpers
 
     async def _discover(self) -> dict:
-        import httpx2
 
         async with httpx2.AsyncClient() as http:
             resp = await http.get(self._discovery_url())
@@ -124,11 +125,6 @@ class OIDCProvider(AuthProvider):
         # Same rules as the other sign-in methods (see email_link._resolve_user):
         # an existing account must be active; a new one is subject to the
         # registration switch and admin approval, not provisioned silently.
-        from grunt.auth.doctypes.User.user import (
-            _apply_signup_approval,
-            _guard_registration,
-            get_user_by_email,
-        )
 
         existing = await get_user_by_email(email)
         if existing is not None:

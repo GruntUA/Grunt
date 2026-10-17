@@ -1,8 +1,6 @@
 """Signed file URLs: attachments are private, the API hands out signed URLs, and
 a signed URL opens the file without a bearer token (e.g. from ``<img src>``)."""
 
-from __future__ import annotations
-
 import time
 from urllib.parse import parse_qs, urlparse
 

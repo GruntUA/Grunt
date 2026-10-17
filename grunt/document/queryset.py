@@ -15,15 +15,11 @@ Filter keys support the same operator suffixes as ``grunt.db`` (``__gt``, ``__gt
 - they are passed straight through to ``build_clauses``, nothing extra to learn.
 """
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 import grunt
-from grunt.local import require_user
-
-if TYPE_CHECKING:
-    from grunt.document.base import BaseDocument
+from grunt.local import _user_ctx, require_user
+lazy from grunt.document.base import BaseDocument
 
 
 class QuerySet[T: BaseDocument]:
@@ -105,7 +101,6 @@ class QuerySet[T: BaseDocument]:
         # restricted user's total would include rows the list hides. With no
         # user in context (background task, bootstrap) fall back to a raw count
         # rather than raising, mirroring the old behaviour there.
-        from grunt.local import _user_ctx
 
         respect = _user_ctx.get() is not None
         return await grunt.count(

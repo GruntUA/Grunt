@@ -1,8 +1,6 @@
 """Comment threads: replies are one level deep, stay on their document, notify
 the thread's author, and a thread with others' replies is deleted only by an admin."""
 
-from __future__ import annotations
-
 import pytest
 from fastapi import HTTPException
 

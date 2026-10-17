@@ -1,8 +1,30 @@
 import asyncio
+import json
+import shutil
 import subprocess
+from datetime import datetime
 from pathlib import Path
+lazy import tarfile
 
 import click
+from sqlalchemy import func, select
+
+lazy import grunt
+lazy from grunt.apps.deps import app_updates, install_app_packages, uninstall_app_package
+lazy from grunt.apps.required import (
+    CORE_APP,
+    DependencyCycleError,
+    MissingAppError,
+    clone_missing,
+    dependents,
+)
+lazy from grunt.backups import DEFAULT_COMPRESSION_LEVEL, zstd_options
+lazy from grunt.metadata.compiler import SA_METADATA, compile_doctype_to_table
+lazy from grunt.metadata.registry import doctype_registry
+lazy from grunt.site.manager import current_site, site_manager
+lazy from grunt.startup import load_core_doctypes, sync_installed_apps
+lazy from grunt.utils.app_helpers import load_app_hook_module
+lazy from grunt.utils.boilerplate import make_boilerplate
 
 
 @click.group("app")
@@ -24,8 +46,6 @@ def create_app(name: str, no_git: bool, dest: str | None):
 
     NAME is the app name (snake_case), e.g. my_crm
     """
-    from grunt.site.manager import site_manager
-    from grunt.utils.boilerplate import make_boilerplate
 
     dest_path = Path(dest) if dest else site_manager.bench_dir / "apps"
     dest_path.mkdir(parents=True, exist_ok=True)
@@ -34,13 +54,6 @@ def create_app(name: str, no_git: bool, dest: str | None):
 
 async def _do_install(name: str, site: str | None = None) -> None:
     """Встановлює додаток: реєструє в grunt.site, завантажує DocTypes, fixtures, after_install."""
-    import json
-
-    import grunt
-    from grunt.metadata.compiler import SA_METADATA
-    from grunt.metadata.registry import doctype_registry
-    from grunt.site.manager import current_site, site_manager
-    from grunt.startup import load_core_doctypes, sync_installed_apps
 
     _sites = site_manager.get_sites()
     target_site = site or (_sites[0] if _sites else None)
@@ -54,18 +67,16 @@ async def _do_install(name: str, site: str | None = None) -> None:
     if not app_json.exists():
         raise SystemExit(f"Error: '{app_json}' not found.")
 
-    app_meta = json.loads(app_json.read_text(encoding="utf-8"))
+    app_meta = json.loads(app_json.read_text())
 
     # Реєструємо в grunt.site
     site_file = site_manager.sites_dir / target_site / "grunt.site"
-    site_config = json.loads(site_file.read_text(encoding="utf-8"))
+    site_config = json.loads(site_file.read_text())
     installed = site_config.get("installed_apps", [])
     if name not in installed:
         installed.append(name)
         site_config["installed_apps"] = installed
-        site_file.write_text(
-            json.dumps(site_config, ensure_ascii=False, indent=2), encoding="utf-8"
-        )
+        site_file.write_text(json.dumps(site_config, ensure_ascii=False, indent=2))
 
     # Завантажуємо DocTypes, fixtures, workspace, after_install
     token = current_site.set(target_site)
@@ -94,7 +105,6 @@ async def _do_install(name: str, site: str | None = None) -> None:
 
 
 def _apps_dir() -> Path:
-    from grunt.site.manager import site_manager
 
     return site_manager.bench_dir / "apps"
 
@@ -120,8 +130,6 @@ def app_deps(names: tuple[str, ...], upgrade: bool, outdated: bool):
     With --upgrade (`grunt update --upgrade-packages`), the packages not pinned
     by the framework's uv.lock go to their newest versions.
     """
-    from grunt.apps.deps import app_updates, install_app_packages
-    from grunt.apps.required import clone_missing
 
     if outdated:
         for line in app_updates(_apps_dir()):
@@ -144,8 +152,6 @@ def app_deps(names: tuple[str, ...], upgrade: bool, outdated: bool):
 @click.option("--site", default=None, help="Site name")
 def app_install(name: str, site: str | None):
     """Install an app (and the apps it depends_on) and register its workspace right away."""
-    from grunt.apps.deps import install_app_packages
-    from grunt.apps.required import DependencyCycleError, MissingAppError, clone_missing
 
     cloned = clone_missing(_apps_dir(), [name])
     if cloned:
@@ -164,9 +170,6 @@ async def _plan_app_uninstall(session, app_doctypes: list) -> list:
     when the table doesn't exist (or can't be counted), used later to skip
     the DROP TABLE step for it.
     """
-    from sqlalchemy import func, select
-
-    from grunt.metadata.compiler import compile_doctype_to_table
 
     plan = []
     for dt in app_doctypes:
@@ -199,8 +202,6 @@ def _print_uninstall_plan(
 
 async def _run_before_uninstall_hook(session, target_site: str, name: str) -> None:
     """Call apps/<name>/install.py:before_uninstall(session, site), if defined."""
-    from grunt.site.manager import site_manager
-    from grunt.utils.app_helpers import load_app_hook_module
 
     install_mod = load_app_hook_module(site_manager.bench_dir / "apps" / name, name)
     if install_mod is not None and hasattr(install_mod, "before_uninstall"):
@@ -209,7 +210,6 @@ async def _run_before_uninstall_hook(session, target_site: str, name: str) -> No
 
 async def _delete_naming_series_counters(session, app_doctypes: list) -> None:
     """Clear NamingSeries prefix counters derived from this app's autoname doctypes."""
-    import grunt
 
     ns_dt = await grunt.get_meta("NamingSeries")
     if ns_dt is None:
@@ -227,7 +227,6 @@ async def _delete_naming_series_counters(session, app_doctypes: list) -> None:
 async def _delete_workspace_and_registration(
     *, name: str, has_workspace: bool, has_installed_row: bool
 ) -> None:
-    import grunt
 
     if has_workspace:
         await grunt.db.delete("WorkspaceSidebarItem", {"parent_name": name})
@@ -263,11 +262,6 @@ async def _do_uninstall(
     GruntInstalledApp. З ``keep_data=True`` лише знімає реєстрацію в
     grunt.site, не торкаючись БД.
     """
-    import json
-
-    import grunt
-    from grunt.metadata.registry import doctype_registry
-    from grunt.site.manager import current_site, site_manager
 
     _sites = site_manager.get_sites()
     target_site = site or (_sites[0] if _sites else None)
@@ -277,7 +271,7 @@ async def _do_uninstall(
         raise SystemExit("Error: the base grunt app cannot be removed.")
 
     site_file = site_manager.sites_dir / target_site / "grunt.site"
-    site_config = json.loads(site_file.read_text(encoding="utf-8"))
+    site_config = json.loads(site_file.read_text())
     installed: list[str] = site_config.get("installed_apps", [])
     is_registered = name in installed
 
@@ -285,9 +279,7 @@ async def _do_uninstall(
         if name in installed:
             installed.remove(name)
             site_config["installed_apps"] = installed
-            site_file.write_text(
-                json.dumps(site_config, ensure_ascii=False, indent=2), encoding="utf-8"
-            )
+            site_file.write_text(json.dumps(site_config, ensure_ascii=False, indent=2))
 
     if keep_data:
         if not is_registered:
@@ -301,7 +293,7 @@ async def _do_uninstall(
     app_modules = [name]
     app_json = site_manager.bench_dir / "apps" / name / "app.json"
     if app_json.exists():
-        app_modules = json.loads(app_json.read_text(encoding="utf-8")).get("modules") or [name]
+        app_modules = json.loads(app_json.read_text()).get("modules") or [name]
 
     token = current_site.set(target_site)
     try:
@@ -400,9 +392,6 @@ _ARCHIVE_SKIP = {".venv", "node_modules", "__pycache__", ".pytest_cache", ".ruff
 
 def _archive_path(name: str) -> Path:
     """archive/apps/<name>-<date>.tar.zst in the bench, unused (time added on a clash)."""
-    from datetime import datetime
-
-    from grunt.site.manager import site_manager
 
     now = datetime.now()
     base = site_manager.bench_dir / "archive" / "apps"
@@ -414,9 +403,6 @@ def _archive_path(name: str) -> Path:
 
 def _archive_app(app_dir: Path, target: Path) -> None:
     """Pack *app_dir* into a zstd tarball (unpacks to <name>/)."""
-    import tarfile
-
-    from grunt.backups import DEFAULT_COMPRESSION_LEVEL, zstd_options
 
     def _skip(info: tarfile.TarInfo) -> tarfile.TarInfo | None:
         return None if Path(info.name).name in _ARCHIVE_SKIP else info
@@ -450,11 +436,6 @@ def app_remove(name: str, no_archive: bool, force: bool, assume_yes: bool):
     archive/apps/NAME-<date>.tar.zst (unpack: tar --zstd -xf FILE -C apps/).
     The sites must not have it installed - run `grunt app uninstall NAME` first.
     """
-    import shutil
-
-    from grunt.apps.deps import uninstall_app_package
-    from grunt.apps.required import CORE_APP, dependents
-    from grunt.site.manager import site_manager
 
     if name == CORE_APP:
         raise click.ClickException("the base grunt app cannot be removed.")
@@ -496,9 +477,6 @@ def app_remove(name: str, no_archive: bool, force: bool, assume_yes: bool):
 @click.option("--site", default=None, help="Site name")
 def app_list(site: str | None):
     """Show installed apps."""
-    import json
-
-    from grunt.site.manager import site_manager
 
     _sites = site_manager.get_sites()
     target_site: str | None = site or (_sites[0] if _sites else None)
@@ -507,7 +485,7 @@ def app_list(site: str | None):
         raise SystemExit(1)
 
     site_file = site_manager.sites_dir / target_site / "grunt.site"
-    site_config = json.loads(site_file.read_text(encoding="utf-8"))
+    site_config = json.loads(site_file.read_text())
     apps = site_config.get("installed_apps", [])
     click.echo(f"Site: {target_site}")
     for a in apps:
@@ -521,9 +499,6 @@ def app_doctor(name: str | None):
 
     Without NAME, checks all apps.
     """
-    import subprocess
-
-    from grunt.site.manager import site_manager
 
     apps_dir = site_manager.bench_dir / "apps"
     target_apps = (
@@ -547,7 +522,7 @@ def app_doctor(name: str | None):
                 gitignore = app_path / ".gitignore"
                 if not gitignore.exists():
                     content = "__pycache__/\n*.py[cod]\n.env\n.venv/\nnode_modules/\ndist/\n"
-                    gitignore.write_text(content, encoding="utf-8")
+                    gitignore.write_text(content)
 
                 click.echo(f"  {click.style('✓', fg='green')} Git repository created.")
             except Exception as e:
@@ -557,7 +532,6 @@ def app_doctor(name: str | None):
         app_json = app_path / "app.json"
         if not app_json.exists():
             click.echo(f"  [!] app.json is missing. {click.style('Creating...', fg='yellow')}")
-            import json
 
             basic_meta = {
                 "name": app_name,
@@ -565,9 +539,7 @@ def app_doctor(name: str | None):
                 "description": f"App {app_name}",
                 "version": "0.1.0",
             }
-            app_json.write_text(
-                json.dumps(basic_meta, indent=2, ensure_ascii=False), encoding="utf-8"
-            )
+            app_json.write_text(json.dumps(basic_meta, indent=2, ensure_ascii=False))
             click.echo(f"  {click.style('✓', fg='green')} app.json created.")
 
         # 3. Перевірка пакету (__init__.py)

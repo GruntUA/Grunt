@@ -1,7 +1,5 @@
 """Tests for grunt.utils.sanitize and the RichText field that applies it on write."""
 
-from __future__ import annotations
-
 import pytest
 
 from grunt.metadata.field import get_field_type_class

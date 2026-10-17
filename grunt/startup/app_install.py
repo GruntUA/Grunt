@@ -4,17 +4,24 @@ Runs on every ``grunt migrate`` / ``grunt app install`` / ``grunt site create``:
 re-reads each installed app's metadata from disk and applies it to the DB.
 """
 
-from __future__ import annotations
-
+import json
 import sys
-from typing import TYPE_CHECKING, Any
+from pathlib import Path
+from typing import Any
 
+from sqlalchemy.ext.asyncio import AsyncSession
+
+import grunt
 from grunt import log
-
-if TYPE_CHECKING:
-    from pathlib import Path
-
-    from sqlalchemy.ext.asyncio import AsyncSession
+lazy from grunt.apps.required import ensure_site_dependencies
+lazy from grunt.document.registry import document_registry
+lazy from grunt.metadata.doctype import DocType
+lazy from grunt.metadata.registry import doctype_registry
+lazy from grunt.site.manager import site_manager
+lazy from grunt.standard_records import apply_records
+lazy from grunt.startup.fixtures import _apply_doctype_fixture, _load_app_meta
+lazy from grunt.startup.workspaces import _apply_workspace_fixture, _auto_seed_workspace
+lazy from grunt.version import app_version, framework_version
 
 
 def _ensure_on_syspath(path: Path) -> None:
@@ -25,8 +32,6 @@ def _ensure_on_syspath(path: Path) -> None:
 
 def _installed_version(app_name: str) -> str:
     """Version of the code of ``app_name`` that is on disk now (git tag or app.json)."""
-    from grunt.site.manager import site_manager
-    from grunt.version import app_version, framework_version
 
     if app_name == "grunt":
         return framework_version()
@@ -37,7 +42,6 @@ async def record_migrated_versions() -> None:
     """Store in each GruntInstalledApp row the code version the site's database
     was just migrated with - "Стан системи" compares it with the running code.
     Runs inside a grunt context."""
-    import grunt
 
     for row in await grunt.get_list("GruntInstalledApp", fields=["name", "version"]):
         version = _installed_version(row["name"])
@@ -50,7 +54,6 @@ async def _register_app_if_new(app_name: str, app_meta: dict) -> bool:
 
     Returns True if this was the first install (the row didn't exist yet).
     """
-    import grunt
 
     is_first_install = await grunt.exists("GruntInstalledApp", {"name": app_name}) is None
     if is_first_install:
@@ -71,10 +74,6 @@ async def _register_app_doctypes(
     session: AsyncSession, eng: Any, app_dir: Any, app_name: str, app_modules: set[str]
 ) -> None:
     """Auto-register/update DocTypes found in the app's ``<module>/doctypes/`` dirs."""
-    import json
-
-    from grunt.metadata.doctype import DocType
-    from grunt.metadata.registry import doctype_registry
 
     for module in app_modules:
         doctypes_dir = app_dir / module / "doctypes"
@@ -87,7 +86,7 @@ async def _register_app_doctypes(
             if not dt_file.exists():
                 continue
             try:
-                dt_data = json.loads(dt_file.read_text(encoding="utf-8"))
+                dt_data = json.loads(dt_file.read_text())
                 dt_name = dt_data.get("name", "")
                 if not dt_name:
                     continue
@@ -140,10 +139,6 @@ async def _apply_app_fixtures(
     AppMenu fixtures are deferred to the end: they may reference records
     created by other fixtures or standard records (e.g. home_page -> Page).
     """
-    import json
-
-    from grunt.startup.fixtures import _apply_doctype_fixture
-    from grunt.startup.workspaces import _apply_workspace_fixture
 
     workspace_from_fixture = False
     deferred_menus: list[tuple[Any, list]] = []
@@ -153,7 +148,7 @@ async def _apply_app_fixtures(
             continue
         for fx_file in sorted(fixtures_dir.glob("*.json")):
             try:
-                fx = json.loads(fx_file.read_text(encoding="utf-8"))
+                fx = json.loads(fx_file.read_text())
                 fx_doctype = fx.get("doctype", "")
                 records = fx.get("records", [])
 
@@ -167,8 +162,6 @@ async def _apply_app_fixtures(
                 log.info("startup.fixture_applied", app=app_name, file=fx_file.name)
             except Exception as e:
                 log.warning("startup.fixture_failed", app=app_name, file=fx_file.name, error=str(e))
-
-    from grunt.standard_records import apply_records
 
     count = await apply_records(app_name, session, eng)
     if count:
@@ -192,8 +185,6 @@ async def _seed_app_singletons(app_name: str) -> None:
     fixture that ships the row wins; an existing row is never touched (a field
     added later gets its default via the column backfill in the compiler).
     """
-    import grunt
-    from grunt.metadata.registry import doctype_registry
 
     for dt in await doctype_registry.list_all():
         if dt.app != app_name or not dt.is_singleton or dt.is_virtual:
@@ -214,8 +205,6 @@ async def _seed_app_workspace_from_registry(
     app_name: str, app_meta: dict, app_modules: set[str]
 ) -> None:
     """Auto-seed the workspace from registered DocTypes when no fixture provided one."""
-    from grunt.metadata.registry import doctype_registry
-    from grunt.startup.workspaces import _auto_seed_workspace
 
     all_doctypes = await doctype_registry.list_all()
     app_doctypes = [dt for dt in all_doctypes if dt.module in app_modules and not dt.is_child]
@@ -247,19 +236,10 @@ async def sync_installed_apps(session: AsyncSession, site_name: str) -> None:
     standard records, then creates/updates a workspace with the app's DocTypes
     as sidebar items.
     """
-    import json
-
-    import grunt
-    from grunt.document.registry import document_registry
-    from grunt.metadata.registry import doctype_registry
-    from grunt.site.manager import site_manager
-    from grunt.startup.fixtures import _load_app_meta
 
     site_file = site_manager.sites_dir / site_name / "grunt.site"
     if not site_file.exists():
         return
-
-    from grunt.apps.required import ensure_site_dependencies
 
     for app_name in ensure_site_dependencies(site_file, site_manager.bench_dir / "apps"):
         log.info("startup.app_dependency_added", site=site_name, app=app_name)

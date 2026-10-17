@@ -1,7 +1,5 @@
 """SecurityHeadersMiddleware sets defaults — an endpoint's own header wins."""
 
-from __future__ import annotations
-
 from fastapi import FastAPI, Response
 from fastapi.testclient import TestClient
 

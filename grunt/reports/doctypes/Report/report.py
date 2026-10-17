@@ -14,8 +14,6 @@ print scripting) - see project notes for why that identifier was kept rather
 than switched to the internal id.
 """
 
-from __future__ import annotations
-
 from typing import Any
 
 from fastapi.responses import Response

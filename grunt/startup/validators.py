@@ -5,8 +5,6 @@ Scans:
   2. {bench}/apps/{app}/{app}/validators/ - per-app custom validators
 """
 
-from __future__ import annotations
-
 from pathlib import Path
 
 from grunt import log

@@ -2,17 +2,11 @@
 DocType (name / title / search fields) without granting ``read`` — no list
 access, no full-document read, no field unmasking."""
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
-
 import pytest
 from fastapi import HTTPException
 
 from tests.support import make_user
-
-if TYPE_CHECKING:
-    from grunt.auth.doctypes.User.user import User
+lazy from grunt.auth.doctypes.User.user import User
 
 CATALOG = {
     "name": "LSCatalog",

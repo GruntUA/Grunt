@@ -4,8 +4,6 @@ Each due row is claimed atomically (``notified`` False -> True) before the
 notification goes out, so overlapping runs never remind twice.
 """
 
-from __future__ import annotations
-
 from datetime import UTC, datetime
 from typing import Any
 
@@ -13,13 +11,15 @@ import grunt
 from grunt import _, log
 from grunt.i18n import language_of, use_language
 from grunt.tasks.broker import retryable_task
+lazy from grunt.document.titles import resolve_reference_titles
+lazy from grunt.notification.service import notification_service
+lazy from grunt.site.manager import site_manager
 
 
 async def _title(row: dict[str, Any]) -> str:
     doctype, name = row.get("reference_doctype"), row.get("reference_name")
     if not doctype or not name:
         return ""
-    from grunt.document.titles import resolve_reference_titles
 
     titles = await resolve_reference_titles([(doctype, str(name))])
     return titles.get((doctype, str(name))) or str(name)
@@ -27,7 +27,6 @@ async def _title(row: dict[str, Any]) -> str:
 
 async def deliver(row: dict[str, Any]) -> bool:
     """Claim and send one reminder; False when another run already took it."""
-    from grunt.notification.service import notification_service
 
     claimed = await grunt.db.bulk_update(
         "Reminder", {"name": row["name"], "notified": False}, {"notified": True}
@@ -79,7 +78,6 @@ async def process_due(now: datetime | None = None) -> int:
 @retryable_task()
 async def send_reminders() -> int:
     """Scheduler entry point (every minute)."""
-    from grunt.site.manager import site_manager
 
     site = site_manager.get_active_site()
     maker = site_manager.get_session_maker(site)

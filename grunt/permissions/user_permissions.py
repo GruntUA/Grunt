@@ -24,25 +24,18 @@ write path also checks the *new* values of a created / updated document, so a
 restricted user cannot insert or move a record outside their scope.
 """
 
-from __future__ import annotations
+from typing import Any
 
-from typing import TYPE_CHECKING, Any
-
-from sqlalchemy import and_, false, or_
+from sqlalchemy import Table, and_, false, or_
+from sqlalchemy.sql import ColumnElement
 
 import grunt
 from grunt import _
 from grunt.errors import not_found
 from grunt.site.settings import get_setting
-
-if TYPE_CHECKING:
-    from sqlalchemy import Table
-    from sqlalchemy.sql import ColumnElement
-
-    from grunt.auth.doctypes.User.user import User
-    from grunt.document.meta import Meta
-    from grunt.metadata.doctype import DocType
-
+lazy from grunt.auth.doctypes.User.user import User
+lazy from grunt.document.meta import Meta
+lazy from grunt.metadata.doctype import DocType
 
 # {user_email: {allow_doctype: {scope: set(for_value)}}}  scope = "*" | applicable_for
 _UP_CACHE: dict[str, dict[str, dict[str, set[str]]]] = {}

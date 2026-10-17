@@ -10,8 +10,6 @@ A rule notifies about a document at most once per day, so a rerun of the job
 (restart, second worker) sends nothing twice.
 """
 
-from __future__ import annotations
-
 import calendar
 from datetime import UTC, date, datetime, time, timedelta
 from typing import Any
@@ -21,6 +19,8 @@ import grunt
 from grunt import log
 from grunt.config import settings
 from grunt.tasks.broker import retryable_task
+lazy from grunt.notification.service import notification_service
+lazy from grunt.site.manager import site_manager
 
 DATE_EVENTS = ("days_before", "days_after")
 MAX_DOCS_PER_RULE = 100_000
@@ -103,7 +103,6 @@ async def due_documents(rule: dict[str, Any], today: date) -> list[dict[str, Any
 
 async def run_rule(rule: dict[str, Any], today: date) -> int:
     """Notify about every due document not yet handled today; returns notifications sent."""
-    from grunt.notification.service import notification_service
 
     session = grunt.get_session()
     since, _ = _day_bounds(today)
@@ -128,7 +127,6 @@ async def run_rule(rule: dict[str, Any], today: date) -> int:
 @retryable_task()
 async def check_date_rules(today: str | None = None) -> int:
     """Daily job (08:00): run every enabled date-based rule. Returns notifications sent."""
-    from grunt.site.manager import site_manager
 
     run_date = date.fromisoformat(today) if today else local_today()
     site = site_manager.get_active_site()

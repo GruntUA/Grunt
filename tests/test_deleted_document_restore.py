@@ -3,8 +3,6 @@
 child rows, and refuses a second restore.
 """
 
-from __future__ import annotations
-
 import pytest
 
 _TRASH_DOCTYPE = {

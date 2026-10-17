@@ -4,11 +4,11 @@
 Результат зберігається як File-документ і прикріплюється до запису.
 """
 
-from __future__ import annotations
-
 import io
 import json
 from typing import Any
+
+lazy import openpyxl
 
 from grunt import log
 from grunt.document.base import Document
@@ -84,7 +84,6 @@ class DataExport(Document):
 
     @staticmethod
     def _count_xlsx_rows(file_bytes: bytes) -> int:
-        import openpyxl
 
         try:
             wb = openpyxl.load_workbook(io.BytesIO(file_bytes), read_only=True)

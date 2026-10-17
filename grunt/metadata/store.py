@@ -10,23 +10,18 @@ before a single row can be read, so its shape always comes from the bundled
 ``DocType.json``, never from the database.
 """
 
-from __future__ import annotations
-
 import json
 from datetime import UTC, datetime
 from functools import cache
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
-from sqlalchemy import delete, insert, select, update
+from sqlalchemy import Table, delete, insert, select, update
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from grunt.local import _user_ctx
 from grunt.metadata.compiler import compile_doctype_to_table, sync_table
 from grunt.metadata.doctype import DocType
-
-if TYPE_CHECKING:
-    from sqlalchemy import Table
-    from sqlalchemy.ext.asyncio import AsyncSession
 
 DEFINITION = "definition"
 
@@ -36,7 +31,7 @@ _DOCTYPE_JSON = Path(__file__).parent / "doctypes" / "DocType" / "DocType.json"
 @cache
 def bootstrap_doctype() -> DocType:
     """The DocType DocType as bundled with the framework."""
-    dt = DocType.model_validate(json.loads(_DOCTYPE_JSON.read_text(encoding="utf-8")))
+    dt = DocType.model_validate(json.loads(_DOCTYPE_JSON.read_text()))
     dt.app = dt.app or "grunt"
     return dt
 

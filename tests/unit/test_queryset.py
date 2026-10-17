@@ -1,7 +1,5 @@
 """Unit tests for `Document.objects` (grunt.document.queryset.QuerySet)."""
 
-from __future__ import annotations
-
 import pytest
 
 from grunt.auth.doctypes.User.user import User

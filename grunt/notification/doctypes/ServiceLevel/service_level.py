@@ -3,8 +3,6 @@
 The tracking itself lives in :mod:`grunt.notification.sla`.
 """
 
-from __future__ import annotations
-
 import grunt
 from grunt import _
 from grunt.document.base import Document

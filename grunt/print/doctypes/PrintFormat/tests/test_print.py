@@ -1,8 +1,8 @@
 """Tests for the print template renderer."""
 
 from datetime import UTC, date, datetime
-from types import SimpleNamespace
 
+from grunt.metadata.field import DocField
 from grunt.print.filters import JINJA_FILTERS, date_format, datetime_format, striptags
 from grunt.print.renderer import (
     _get_jinja_env,
@@ -122,7 +122,7 @@ class TestRenderFromString:
 
 
 def _make_field(fieldtype="Text", fieldname="title", label="Title", hidden=False):
-    return SimpleNamespace(fieldtype=fieldtype, fieldname=fieldname, label=label, hidden=hidden)
+    return DocField(fieldtype=fieldtype, fieldname=fieldname, label=label, hidden=hidden)
 
 
 class TestRenderStandard:

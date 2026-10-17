@@ -16,14 +16,15 @@ an idle timeout, not an absolute one: an active client keeps refreshing its
 short-lived access token and each refresh moves ``last_active_at`` forward.
 """
 
-from __future__ import annotations
-
 import hashlib
 import re
 import secrets
 import uuid
 from datetime import UTC, datetime, timedelta
-from typing import TYPE_CHECKING, Any
+from typing import Any
+
+from fastapi import Request
+from starlette.requests import HTTPConnection
 
 import grunt
 from grunt import _
@@ -31,11 +32,6 @@ from grunt.auth.ip_policy import CLOUDFLARE_RANGES, ip_allowed
 from grunt.auth.service import session_ttl_minutes
 from grunt.config import settings
 from grunt.site.settings import get_setting
-
-if TYPE_CHECKING:
-    from fastapi import Request
-    from starlette.requests import HTTPConnection
-
 
 DEVICE_COOKIE = "grunt_device"
 _DEVICE_ID = re.compile(r"[0-9a-f]{32}")

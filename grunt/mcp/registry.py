@@ -9,16 +9,12 @@ Tools run inside the caller's grunt context, as the authenticated user, so
 everything they call through the SDK is permission-checked as usual.
 """
 
-from __future__ import annotations
-
 import re
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
-if TYPE_CHECKING:
-    from collections.abc import Awaitable, Callable
-
-    ToolHandler = Callable[..., Awaitable[Any]]
+type ToolHandler = Callable[..., Awaitable[Any]]
 
 # MCP spec: tool names are 1-128 chars of [A-Za-z0-9_.-].
 _NAME_RE = re.compile(r"^[A-Za-z0-9_.-]{1,128}$")

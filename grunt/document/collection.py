@@ -6,15 +6,14 @@ document. Single-document CRUD lives on
 :class:`~grunt.document.base.Document`.
 """
 
-from __future__ import annotations
-
 import base64
 import math
 from datetime import datetime
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from fastapi import HTTPException, status
 from sqlalchemy import and_, func, select, update
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 import grunt
 from grunt import _, log
@@ -48,12 +47,8 @@ from grunt.permissions.query import apply_permission_filter
 from grunt.permissions.rbac import permission_checker
 from grunt.permissions.user_permissions import build_conditions, get_user_permissions_for
 from grunt.search.service import search_index_service
-
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
-
-    from grunt.auth.doctypes.User.user import User
-
+lazy from grunt.auth.doctypes.User.user import User
+lazy from grunt.site.manager import text_sort_expr
 
 _CURSOR_SEP = "||"  # separator unlikely to appear in sort values
 
@@ -158,8 +153,6 @@ def _resolve_sort(
     sort_col = table.c.get(sort_by, table.c.modified_at)
     col_type = str(sort_col.type).upper()
     if any(t in col_type for t in _TEXT_SQL_TYPES):
-        from grunt.site.manager import text_sort_expr
-
         dialect_name = session.bind.dialect.name if session.bind else "sqlite"
         sort_expr = text_sort_expr(sort_col, dialect_name)
     else:

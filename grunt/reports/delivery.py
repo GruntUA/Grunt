@@ -10,24 +10,19 @@ would for that user in the UI (falls back to the system user when the owner is
 not a real, active account - e.g. fixture-created reports).
 """
 
-from __future__ import annotations
-
 import re
 from datetime import UTC, date, datetime
-from typing import TYPE_CHECKING, Any
+from typing import Any
+
+from sqlalchemy.ext.asyncio import AsyncSession
 
 import grunt
 from grunt import _, log
-from grunt.auth.doctypes.User.user import SYSTEM_USER, get_user_by_email
+from grunt.auth.doctypes.User.user import SYSTEM_USER, User, get_user_by_email
 from grunt.email.service import email_service
 from grunt.reports.engine import report_engine
 from grunt.site.manager import site_manager
 from grunt.tasks.broker import retryable_task
-
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession
-
-    from grunt.auth.doctypes.User.user import User
 
 XLSX_MIMETYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 

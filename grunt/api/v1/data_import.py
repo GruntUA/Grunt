@@ -1,20 +1,18 @@
 """Data Import / Export whitelisted methods."""
 
-from __future__ import annotations
-
 import asyncio
 import base64
 import json
-from typing import TYPE_CHECKING, Any, cast
+from typing import Any, cast
+
+from taskiq import InMemoryBroker
 
 import grunt
 from grunt import _
 from grunt.data_import.tasks import run_data_import
 from grunt.permissions.guards import read_guard, write_guard
 from grunt.tasks.broker import broker
-
-if TYPE_CHECKING:
-    from grunt.io.doctypes.DataImport.data_import import DataImport
+lazy from grunt.io.doctypes.DataImport.data_import import DataImport
 
 
 @grunt.whitelist()
@@ -55,7 +53,6 @@ async def run_import_job(data_import_id: str) -> dict[str, Any]:
     exactly this reason, but nothing enforced that restriction on the one
     action that actually executes the write.
     """
-    from taskiq import InMemoryBroker
 
     await write_guard("DataImport", "write")
 
@@ -71,7 +68,6 @@ async def run_import_job(data_import_id: str) -> dict[str, Any]:
 @grunt.whitelist()
 async def download_template(doctype: str, fmt: str = "csv") -> dict[str, Any]:
     """Return template data (base64) and filename."""
-    from grunt.io.doctypes.DataImport.data_import import DataImport
 
     await read_guard(doctype)
 
@@ -97,7 +93,6 @@ async def export_quick(
     limit: int = 10000,
 ) -> dict[str, Any]:
     """Quick one-shot export returning base64 content."""
-    from grunt.io.doctypes.DataImport.data_import import DataImport
 
     parsed_filters = json.loads(filters) if filters else None
     parsed_fields = [f.strip() for f in fields.split(",")] if fields else None

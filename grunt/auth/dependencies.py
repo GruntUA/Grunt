@@ -1,11 +1,11 @@
 """FastAPI dependencies for authentication."""
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING, Any
+from collections.abc import AsyncGenerator
+from typing import Any
 
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 import grunt
 from grunt import _, log
@@ -19,11 +19,9 @@ from grunt.db.session import get_engine, get_session
 from grunt.i18n.middleware import apply_user_language
 from grunt.local import _messages_ctx
 from grunt.permissions.roles import user_has_roles
+lazy from grunt.auth.api_key_service import authenticate_api_key
+lazy from grunt.auth.doctypes.UserSession.user_session import client_ip
 
-if TYPE_CHECKING:
-    from collections.abc import AsyncGenerator
-
-    from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 oauth2_scheme = OAuth2PasswordBearer(
     tokenUrl="/api/v1/method/grunt.auth.doctypes.User.user.login_api"
 )
@@ -63,9 +61,6 @@ async def current_user(
     # 1. API Key
     api_key_header = request.headers.get("X-Api-Key")
     if api_key_header:
-        from grunt.auth.api_key_service import authenticate_api_key
-        from grunt.auth.doctypes.UserSession.user_session import client_ip
-
         user = await authenticate_api_key(api_key_header, session, client_ip(request))
         if user is None:
             raise credentials_exception

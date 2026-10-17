@@ -23,8 +23,6 @@ File-based scripts are treated as **trusted** - they bypass sandbox
 validation (no import blocking), since they are part of the app code.
 """
 
-from __future__ import annotations
-
 import re
 from pathlib import Path
 from typing import Any
@@ -168,7 +166,7 @@ def _load_doctype_dir_scripts(dt_dir: Path, app_name: str) -> None:
         # Skip the controller file - handled by document registry, not here.
         if py_file.stem in _controller_stems:
             continue
-        source = py_file.read_text(encoding="utf-8")
+        source = py_file.read_text()
         meta = _parse_script_meta(source)
         script_type = meta.get("script_type", "").lower()
         script_name = f"{app_name}:{py_file.name}"
@@ -241,7 +239,7 @@ def get_file_client_scripts(doctype: str) -> list[dict[str, str]]:
                     results.append(
                         {
                             "name": f"{app_name}:{rel.name}",
-                            "script": global_script.read_text(encoding="utf-8"),
+                            "script": global_script.read_text(),
                         }
                     )
 
@@ -276,7 +274,7 @@ def get_file_client_scripts(doctype: str) -> list[dict[str, str]]:
                 pass
 
         if js_file.exists():
-            source = js_file.read_text(encoding="utf-8")
+            source = js_file.read_text()
             results.append({"name": f"{app_name}:{doctype}.js", "script": source})
             log.debug(
                 "file_scripts.client_loaded", app=app_name, doctype=doctype, file=str(js_file)

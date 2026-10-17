@@ -1,8 +1,6 @@
 """Content-addressed file storage: blobs keyed by SHA-256, shared by File rows,
 freed by the garbage collector (grunt.storage.backends / files / gc)."""
 
-from __future__ import annotations
-
 import hashlib
 import io
 import os

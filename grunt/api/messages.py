@@ -18,6 +18,7 @@ from grunt.errors import ApplicationError
 from grunt.local import _messages_ctx
 from grunt.notification.service import NotificationService
 from grunt.publish import notify as _notify
+lazy import grunt
 
 
 def msgprint(message: str, title: str = "", msg_type: str = "info") -> None:
@@ -83,8 +84,6 @@ async def notify_all(
     if roles:
         emails = await svc._resolve_role_recipients(roles, session)
     else:
-        import grunt
-
         rows = await grunt.db.get_all(
             "User",
             filters={"is_active": True},

@@ -7,8 +7,6 @@ and as worked examples of the ``@doc_action`` contract.
 `run()` guarantees ``doc["doctype"]`` and ``doc["name"]`` are always set.
 """
 
-from __future__ import annotations
-
 from typing import Any
 
 import grunt
@@ -16,6 +14,7 @@ from grunt import _
 from grunt.actions.registry import doc_action
 from grunt.activity.doctypes.DeletedDocument.deleted_document import restore
 from grunt.reports.delivery import send_report_now
+lazy from grunt.webpush.service import PushUnavailableError, webpush_service
 
 
 @doc_action(
@@ -223,7 +222,6 @@ _PUSH_DIALOG_FIELDS = [
 )
 async def webpush_test(doc: dict[str, Any], *, args: dict[str, Any]) -> dict[str, Any]:
     """Push a test message to this one browser subscription and report the outcome."""
-    from grunt.webpush.service import webpush_service
 
     sub = await grunt.get_doc("PushSubscription", doc["name"])
     result = await webpush_service.send_test(
@@ -262,7 +260,6 @@ async def webpush_test(doc: dict[str, Any], *, args: dict[str, Any]) -> dict[str
 )
 async def webpush_send_to_user(doc: dict[str, Any], *, args: dict[str, Any]) -> dict[str, Any]:
     """Push a message to every browser this user subscribed from (admin tool)."""
-    from grunt.webpush.service import PushUnavailableError, webpush_service
 
     try:
         results = await webpush_service.send_to_user(

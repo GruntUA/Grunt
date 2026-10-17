@@ -14,8 +14,6 @@ Results are exposed via /api/v1/dev/profiler. The hooks are installed when
 "Start recording" (``set_enabled(True)``) - the flag is per worker process.
 """
 
-from __future__ import annotations
-
 import functools
 import inspect
 import threading
@@ -25,13 +23,13 @@ from collections.abc import AsyncGenerator, Callable, Generator
 from contextlib import asynccontextmanager, contextmanager
 from contextvars import ContextVar
 from dataclasses import asdict, dataclass, field
-from typing import TYPE_CHECKING, Any, TypeVar
+from typing import Any, TypeVar
+
+from sqlalchemy import event
+from sqlalchemy.ext.asyncio import AsyncEngine
 
 from grunt import log
-
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncEngine
-
+lazy from grunt.monitoring import perf
 
 F = TypeVar("F", bound=Callable[..., Any])
 
@@ -282,7 +280,6 @@ def attach_query_profiler(engine: AsyncEngine, threshold_ms: float = 200.0) -> N
       - Added to the global ring buffer
       - Logged at WARNING if slow
     """
-    from sqlalchemy import event
 
     sync = engine.sync_engine
 
@@ -350,7 +347,6 @@ async def profile_span(name: str) -> AsyncGenerator[None]:
         async with profile_span("grunt.get_doc"):
             doc = await session.execute(...)
     """
-    from grunt.monitoring import perf
 
     start = time.perf_counter()
     with perf.measure("Span", name):

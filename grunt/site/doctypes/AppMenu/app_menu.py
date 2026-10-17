@@ -3,8 +3,6 @@
 Encapsulates logic for workspace navigation and sidebar counts.
 """
 
-from __future__ import annotations
-
 import json
 from typing import Any
 

@@ -10,17 +10,11 @@ seeded at startup from the active ``geo.Language`` rows (see
 ``grunt.startup.lifespan``) and refreshed when a ``Language`` row changes.
 """
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
-
 from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request
+from starlette.responses import Response
 
 from grunt.i18n.service import _current_lang, translation_service
-
-if TYPE_CHECKING:
-    from starlette.requests import Request
-    from starlette.responses import Response
 
 
 class LanguageMiddleware(BaseHTTPMiddleware):

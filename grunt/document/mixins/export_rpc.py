@@ -6,8 +6,6 @@ RPC: grunt.document.base.Document.preview - render an ad-hoc Jinja2 template
 RPC: grunt.document.base.Document.export_file - bulk export via io registry (any registered format)
 """
 
-from __future__ import annotations
-
 import csv as csv_module
 import io
 from datetime import datetime
@@ -19,6 +17,18 @@ from fastapi.responses import Response, StreamingResponse
 import grunt
 from grunt import _
 from grunt.io import get_exporter, get_exporters
+lazy from grunt.api.v1.docs.utils import _generate_xlsx_single, _non_layout_fields
+lazy from grunt.print.pdf import PdfEngineError, html_to_pdf
+lazy from grunt.print.renderer import (
+    apply_letter_head,
+    get_print_format_template,
+    load_letter_head,
+    render_docx,
+    render_from_string,
+    render_letter_head,
+    render_print_html,
+)
+lazy from grunt.storage.signing import sign_authorized_file_urls
 
 _AUTOPRINT_SCRIPT = (
     "<script>"
@@ -42,8 +52,6 @@ async def _export_via_registry(
             detail=_("Unknown format “%(format)s”. Available: %(available)s")
             % {"format": fmt, "available": ", ".join(available)},
         )
-
-    from grunt.api.v1.docs.utils import _non_layout_fields
 
     dt = await grunt.get_meta(doctype)
     if dt is None:
@@ -134,8 +142,6 @@ class DocumentExportRPCMixin:
         session = grunt.get_session()
 
         if fmt == "xlsx":
-            from grunt.api.v1.docs.utils import _generate_xlsx_single
-
             content = _generate_xlsx_single(dt.doc, doc)
             return Response(
                 content=content,
@@ -146,12 +152,8 @@ class DocumentExportRPCMixin:
             )
 
         if fmt == "docx":
-            from grunt.print.renderer import get_print_format_template
-
             pf = await get_print_format_template(session, doctype, print_format)
             if pf and pf[1] == "docx":
-                from grunt.print.renderer import render_docx
-
                 try:
                     docx_bytes = render_docx(pf[0], doc)
                     return Response(
@@ -178,12 +180,8 @@ class DocumentExportRPCMixin:
             )
 
         if fmt in ("pdf", "html"):
-            from grunt.print.renderer import render_print_html
-
             # PrintFormat (or the standard template) + letterhead.
             html = await render_print_html(doctype, doc, print_format)
-
-            from grunt.storage.signing import sign_authorized_file_urls
 
             html = await sign_authorized_file_urls(html, grunt.get_user())
             if fmt == "html":
@@ -192,7 +190,6 @@ class DocumentExportRPCMixin:
                 return Response(content=html, media_type="text/html")
 
             # PDF via headless Chromium (Playwright)
-            from grunt.print.pdf import PdfEngineError, html_to_pdf
 
             try:
                 pdf_bytes = await html_to_pdf(html)
@@ -227,7 +224,6 @@ class DocumentExportRPCMixin:
         Like the real print, the letterhead (``letter_head`` or the default one)
         is added unless ``no_letter_head``.
         """
-        from grunt.print.renderer import render_from_string
 
         template_str = (template or "").strip()
         if not template_str:
@@ -251,8 +247,6 @@ class DocumentExportRPCMixin:
                 doc: dict[str, str | None] = {f.fieldname: None for f in dt.fields}
                 doc.setdefault("name", _("Sample"))
 
-        from grunt.print.renderer import apply_letter_head, load_letter_head, render_letter_head
-
         lh = None if no_letter_head else await load_letter_head(letter_head or None)
         rendered_lh = render_letter_head(lh, doc) if lh else None
         try:
@@ -268,8 +262,6 @@ class DocumentExportRPCMixin:
         else:
             if rendered_lh and "letter_head" not in template_str:
                 html = apply_letter_head(html, rendered_lh)
-
-        from grunt.storage.signing import sign_authorized_file_urls
 
         signed = await sign_authorized_file_urls(html, grunt.get_user())
         return Response(content=signed, media_type="text/html")

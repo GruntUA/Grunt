@@ -3,8 +3,6 @@
 Registered from ``grunt/main.py`` via ``register_doc_events``.
 """
 
-from __future__ import annotations
-
 from typing import Any
 
 from grunt.email.service import SMTP_PASSWORD_MASK

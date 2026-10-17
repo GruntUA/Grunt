@@ -4,12 +4,8 @@ List and count query that table directly; single documents are read from
 and written through the registry, which validates and syncs physical tables.
 """
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING, Any
-
-if TYPE_CHECKING:
-    from collections.abc import Mapping
+from collections.abc import Mapping
+from typing import Any
 
 import grunt
 from grunt import _

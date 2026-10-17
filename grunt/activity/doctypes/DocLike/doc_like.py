@@ -1,7 +1,5 @@
 """DocLike controller - you like documents for yourself, and only ones you can read."""
 
-from __future__ import annotations
-
 from grunt import _
 from grunt.document.base import Document
 from grunt.permissions.rbac import permission_checker

@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from grunt import log
 from grunt.auth.doctypes.User.user import SYSTEM_USER
 from grunt.data_import.service import DataImportService

@@ -13,19 +13,15 @@
   DocType per night, oldest first.
 """
 
-from __future__ import annotations
-
 from datetime import UTC, datetime, timedelta
-from typing import TYPE_CHECKING
 
 import grunt
 from grunt import log
 from grunt.metadata.registry import doctype_registry
 from grunt.site.manager import site_manager
 from grunt.tasks.broker import retryable_task
-
-if TYPE_CHECKING:
-    from grunt.metadata.doctype import DocType
+lazy from grunt.metadata.doctype import DocType
+lazy from grunt.site.settings import get_setting
 
 DEFAULT_LOG_RETENTION_DAYS = 30
 MAX_DELETES_PER_RUN = 1000
@@ -92,8 +88,6 @@ async def purge_expired_documents() -> None:
     now = datetime.now(UTC)
 
     async with maker() as session, grunt.system_context(session, eng):
-        from grunt.site.settings import get_setting
-
         log_default = await get_setting("log_retention_days", DEFAULT_LOG_RETENTION_DAYS)
 
         total = 0

@@ -1,7 +1,5 @@
 """HTML mail must be delivered as ``text/html``, not raw markup in a plain body."""
 
-from __future__ import annotations
-
 import pytest
 
 from grunt.email.service import EmailService, email_service

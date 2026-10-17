@@ -6,8 +6,6 @@ grunt.api.context.whitelist for why a passive dispatcher-only check was not
 enough (a direct call bypassed it entirely).
 """
 
-from __future__ import annotations
-
 import pytest
 
 import grunt

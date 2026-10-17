@@ -1,8 +1,6 @@
 """«Create → From a link»: the server downloads only public http(s) addresses,
 follows redirects with the same check, and files the download like an upload."""
 
-from __future__ import annotations
-
 import httpx2
 import pytest
 

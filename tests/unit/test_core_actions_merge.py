@@ -1,7 +1,5 @@
 """Core DocType sync (`_inject_core`) merges new action bindings from the JSON source."""
 
-from __future__ import annotations
-
 from grunt.metadata.doctype import DocType
 from grunt.metadata.registry import DocTypeRegistry
 

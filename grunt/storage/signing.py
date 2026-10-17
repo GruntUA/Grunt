@@ -13,8 +13,6 @@ The expiry is rounded up to the hour, so a URL stays byte-identical for an
 hour and the browser cache keeps working.
 """
 
-from __future__ import annotations
-
 import hashlib
 import hmac
 import re
@@ -22,6 +20,8 @@ import time
 from typing import Any
 
 from grunt.config import settings
+lazy import grunt
+lazy from grunt.permissions.rbac import permission_checker
 
 # How long a signed URL stays usable (plus up to one hour of rounding).
 SIGNED_URL_TTL_SECONDS = 12 * 3600
@@ -130,7 +130,6 @@ async def _authorized_file_ids(ids: set[str], user: Any) -> set[str]:
     same check ``get_content`` falls back to - so ``match`` rules, inherited
     access (attachment / folder) and shares all apply. No user -> only public.
     """
-    import grunt
 
     authorized: set[str] = set()
     rows = await grunt.db.get_all(
@@ -166,7 +165,6 @@ async def _authorized_file_ids(ids: set[str], user: Any) -> set[str]:
         if doc.get("owner") == user_email:
             authorized.add(fid)  # File grants read to its owner
             continue
-        from grunt.permissions.rbac import permission_checker
 
         assert user is not None  # user_email was set, so user is a real User
         if meta is None:

@@ -1,15 +1,11 @@
 """Development-only route wiring."""
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
+import httpx2
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import StreamingResponse
 
 from grunt import log
 from grunt.config import settings
-
-if TYPE_CHECKING:
-    from fastapi import FastAPI
-
 
 VITE_SERVER_URL = "http://localhost:5173"
 
@@ -22,10 +18,6 @@ def register_dev_proxy(app: FastAPI) -> None:
     """
     if not settings.debug:
         return
-
-    import httpx2
-    from fastapi import HTTPException, Request
-    from fastapi.responses import StreamingResponse
 
     @app.get("/frontend/{path:path}")
     @app.get("/@vite/{path:path}")

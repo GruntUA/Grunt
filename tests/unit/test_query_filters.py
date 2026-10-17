@@ -11,8 +11,6 @@ directly (see grunt.document.collection/tree/bulk_ops), so there's a single
 implementation, not two that could drift apart again.
 """
 
-from __future__ import annotations
-
 import pytest
 from sqlalchemy import Column, Date, Integer, MetaData, String, Table, select
 

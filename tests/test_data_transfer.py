@@ -1,22 +1,17 @@
 """grunt data export/import — helpers (the end-to-end run needs a real site)."""
 
-from __future__ import annotations
-
 import io
 import json
 import tarfile
 from datetime import UTC, date, datetime
 from decimal import Decimal
-from typing import TYPE_CHECKING
+from pathlib import Path
 
 import click
 import pytest
 
 from grunt.cli.data import _decode, _encode, _parse_spec, _place_files
 from grunt.storage.backends import LocalStorageBackend
-
-if TYPE_CHECKING:
-    from pathlib import Path
 
 
 def test_parse_spec() -> None:

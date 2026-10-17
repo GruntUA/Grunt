@@ -9,8 +9,6 @@ Two layers live here:
   single builder for the JSON error envelope used by every error response.
 """
 
-from __future__ import annotations
-
 from typing import Any
 
 from fastapi import HTTPException

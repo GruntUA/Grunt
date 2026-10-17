@@ -10,8 +10,6 @@ Missed days (server down) are caught up, at most :data:`MAX_CATCH_UP` copies
 per rule per run.
 """
 
-from __future__ import annotations
-
 import calendar
 from datetime import UTC, date, datetime, timedelta
 from typing import Any
@@ -19,6 +17,10 @@ from typing import Any
 import grunt
 from grunt import _, log
 from grunt.tasks.broker import retryable_task
+lazy from grunt.auth.doctypes.User.user import get_auth_context_user
+lazy from grunt.notification.service import notification_service
+lazy from grunt.site.manager import site_manager
+lazy from grunt.workflow.registry import get_active_workflow
 
 MONTHS_BY_FREQUENCY = {"Monthly": 1, "Quarterly": 3, "Half-yearly": 6, "Yearly": 12}
 FREQUENCIES = ("Daily", "Weekly", *MONTHS_BY_FREQUENCY)
@@ -98,7 +100,6 @@ def status_for(rule: dict[str, Any], next_on: date | None) -> str:
 
 async def create_copy(rule: dict[str, Any], on_date: date) -> dict[str, Any]:
     """Insert one copy of the rule's template document, as the current user."""
-    from grunt.workflow.registry import get_active_workflow
 
     doctype = rule["reference_doctype"]
     template = await grunt.get_doc(doctype, rule["reference_document"])
@@ -118,7 +119,6 @@ async def create_copy(rule: dict[str, Any], on_date: date) -> dict[str, Any]:
 
 
 async def _owner(email: str) -> Any:
-    from grunt.auth.doctypes.User.user import get_auth_context_user
 
     user = await get_auth_context_user(email)
     return user if user is not None and user.is_active else None
@@ -127,7 +127,6 @@ async def _owner(email: str) -> Any:
 async def _notify(rule: dict[str, Any], subject: str, message: str) -> None:
     if not rule.get("notify") or not rule.get("owner"):
         return
-    from grunt.notification.service import notification_service
 
     try:
         await notification_service.notify(
@@ -207,7 +206,6 @@ async def process_rule(name: str, today: date) -> int:
 @retryable_task()
 async def run_auto_repeats(today: str | None = None) -> int:
     """Daily job: process every active rule that is due. Returns copies created."""
-    from grunt.site.manager import site_manager
 
     run_date = as_date(today) or date.today()
     site = site_manager.get_active_site()

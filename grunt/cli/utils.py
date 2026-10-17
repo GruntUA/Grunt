@@ -1,16 +1,15 @@
-from __future__ import annotations
-
 from contextlib import asynccontextmanager
 
 import click
+
+lazy from grunt.document.registry import document_registry
+lazy from grunt.metadata.registry import doctype_registry
+lazy from grunt.site.manager import current_site, site_manager
 
 
 @asynccontextmanager
 async def _site_session(site: str | None):
     """Async context manager: initialise site, load DocType registry, yield session."""
-    from grunt.document.registry import document_registry
-    from grunt.metadata.registry import doctype_registry
-    from grunt.site.manager import current_site, site_manager
 
     _sites = site_manager.get_sites()
     target_site: str | None = site

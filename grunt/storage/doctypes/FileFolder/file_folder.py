@@ -1,6 +1,6 @@
-from __future__ import annotations
-
 from typing import Any
+
+from sqlalchemy import func, select
 
 import grunt
 from grunt import _
@@ -9,7 +9,8 @@ from grunt.document.base import Document
 from grunt.i18n import pgettext
 from grunt.permissions.roles import user_has_roles
 from grunt.permissions.user_permissions import expand_tree_values
-from grunt.storage import quota
+from grunt.storage import files, quota
+lazy from grunt.permissions.rbac import permission_checker
 
 
 class FileFolder(Document):
@@ -113,7 +114,6 @@ class FileFolder(Document):
 async def require_folder_write(folder: dict[str, Any]) -> None:
     """403 unless the current user may put things into *folder* (their own
     space, a folder shared with them for writing, or System Manager)."""
-    from grunt.permissions.rbac import permission_checker
 
     meta = await grunt.get_meta("FileFolder")
     assert meta is not None
@@ -125,7 +125,6 @@ async def require_folder_write(folder: dict[str, Any]) -> None:
 
 
 async def _subtree_size(folder: str) -> int:
-    from sqlalchemy import func, select
 
     subtree = await expand_tree_values("FileFolder", {folder})
     files = await quota.table_of("File")
@@ -197,7 +196,6 @@ async def copy_items(
 
 
 async def _copy_file(row: dict[str, Any], target: str) -> None:
-    from grunt.storage import files
 
     taken = {
         r["file_name"]

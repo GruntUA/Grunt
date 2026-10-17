@@ -7,8 +7,6 @@ by hand (at most five), each hop checked the same way. The body is streamed
 into a temporary file up to the upload limit, then stored like an upload.
 """
 
-from __future__ import annotations
-
 import asyncio
 import ipaddress
 import mimetypes

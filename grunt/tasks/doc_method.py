@@ -1,7 +1,5 @@
 """Background execution of DocType controller methods via grunt.enqueue_doc()."""
 
-from __future__ import annotations
-
 from typing import Any
 
 import grunt

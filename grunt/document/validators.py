@@ -21,19 +21,13 @@ Programmatic registration:
     register_validator(PostalCodeValidator)
 """
 
-from __future__ import annotations
-
 import importlib
 import importlib.util
 import inspect
-from typing import TYPE_CHECKING
+from pathlib import Path
 
 from grunt import _, log
 from grunt.validators.base import Validator
-
-if TYPE_CHECKING:
-    from pathlib import Path
-
 
 # name -> Validator instance (singleton per class)
 _REGISTRY: dict[str, Validator] = {}

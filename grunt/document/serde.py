@@ -5,8 +5,6 @@ A document is a JSON object that names its own DocType - ``{"doctype":
 that object is enough to recreate it (``grunt.get_doc(data).insert()``).
 """
 
-from __future__ import annotations
-
 import json
 from datetime import date, datetime, time
 from decimal import Decimal

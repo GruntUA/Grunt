@@ -6,9 +6,9 @@ calls. ``PermissionAPI`` keeps thin method wrappers around these for backward
 compatibility.
 """
 
-from __future__ import annotations
+from typing import Any
 
-from typing import TYPE_CHECKING, Any
+from sqlalchemy.ext.asyncio import AsyncSession
 
 import grunt
 from grunt import _
@@ -16,11 +16,8 @@ from grunt.errors import not_found
 from grunt.local import require_user
 from grunt.permissions.rbac import permission_checker
 from grunt.permissions.types import PermissionAction, WriteAction
-
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession
-
-    from grunt.auth.doctypes.User.user import User
+lazy from grunt.auth.doctypes.User.user import User
+lazy from grunt.document.base import is_table_backed
 
 
 def apply_hidden_fields_to_doc(
@@ -76,7 +73,6 @@ async def doc_guard(doctype: str, doc_id: str, action: PermissionAction = "read"
     if dt is None:
         raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
     user = require_user()
-    from grunt.document.base import is_table_backed
 
     if not is_table_backed(dt):
         # No table to look the row up in - the DocType-level check is all there is.

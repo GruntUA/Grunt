@@ -1,7 +1,5 @@
 """Apps' ``depends_on``: missing dependencies join the site, absent ones get cloned."""
 
-from __future__ import annotations
-
 import json
 
 import pytest
@@ -14,7 +12,7 @@ CMS_URL = "https://example.com/cms.git"
 def _app(apps, name, depends_on=()):
     (apps / name).mkdir(parents=True)
     meta = {"name": name, "depends_on": list(depends_on)}
-    (apps / name / "app.json").write_text(json.dumps(meta), encoding="utf-8")
+    (apps / name / "app.json").write_text(json.dumps(meta))
 
 
 def test_both_entry_forms(tmp_path):
@@ -58,10 +56,10 @@ def test_site_file_gets_the_dependency(tmp_path):
     _app(apps, "cms")
     _app(apps, "portal", ["cms"])
     site_file = tmp_path / "grunt.site"
-    site_file.write_text(json.dumps({"installed_apps": ["grunt", "portal"]}), encoding="utf-8")
+    site_file.write_text(json.dumps({"installed_apps": ["grunt", "portal"]}))
 
     assert required.ensure_site_dependencies(site_file, apps) == ["cms"]
-    config = json.loads(site_file.read_text(encoding="utf-8"))
+    config = json.loads(site_file.read_text())
     assert config["installed_apps"] == ["grunt", "cms", "portal"]
     assert required.ensure_site_dependencies(site_file, apps) == []
 

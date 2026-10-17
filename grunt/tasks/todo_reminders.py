@@ -5,8 +5,6 @@ and overdue tasks. Runs from the framework scheduler - see
 ``grunt.tasks.scheduler._register_framework_jobs``.
 """
 
-from __future__ import annotations
-
 from collections import defaultdict
 from datetime import UTC, date, datetime
 from typing import Any
@@ -16,6 +14,8 @@ from grunt import _, log
 from grunt.i18n import language_of, ngettext, use_language
 from grunt.site.manager import site_manager
 from grunt.tasks.broker import retryable_task
+lazy from grunt.document.titles import resolve_reference_titles
+lazy from grunt.notification.service import notification_service
 
 _OPEN_STATES = ["Open", "In Progress"]
 
@@ -47,8 +47,6 @@ async def send_due_reminders() -> None:
             log.info("todo_reminders.none_due")
             return
 
-        from grunt.document.titles import resolve_reference_titles
-
         titles = await resolve_reference_titles(
             [(t.get("reference_doctype") or "", t.get("reference_id") or "") for t in todos]
         )
@@ -56,8 +54,6 @@ async def send_due_reminders() -> None:
         by_user: dict[str, list[dict[str, Any]]] = defaultdict(list)
         for t in todos:
             by_user[t["assigned_to"].strip()].append(t)
-
-        from grunt.notification.service import notification_service
 
         for user, items in by_user.items():
             overdue = sum(1 for t in items if _as_date(t.get("due_date")) < today)

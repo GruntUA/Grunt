@@ -5,8 +5,6 @@ The update used to write the payload value whenever the hook's result equalled
 the stored one - a form saved with an empty SMTP password wiped it.
 """
 
-from __future__ import annotations
-
 import pytest
 
 

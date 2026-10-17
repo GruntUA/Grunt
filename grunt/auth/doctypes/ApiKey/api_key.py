@@ -1,19 +1,14 @@
 """ApiKey DocType controller and whitelisted API key methods."""
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING, Any
+from datetime import datetime
+from typing import Any
 
 import grunt
 from grunt import _
 from grunt.auth.api_key_service import generate_api_key
 from grunt.document.base import Document
 from grunt.errors import forbidden
-
-if TYPE_CHECKING:
-    from datetime import datetime
-
-    from grunt.auth.doctypes.User.user import User
+lazy from grunt.auth.doctypes.User.user import User
 
 
 class ApiKey(Document):

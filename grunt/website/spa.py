@@ -5,8 +5,6 @@ With ``debug`` off there is no Vite dev server: the website catch-all serves
 ``dist/index.html`` via the ``spa_assets()`` Jinja global.
 """
 
-from __future__ import annotations
-
 import re
 from pathlib import Path
 
@@ -35,7 +33,7 @@ def spa_assets() -> Markup:
         log.error("website.spa.not_built", dist=str(DIST_DIR))
         return Markup("")
     if _cache is None or _cache[0] != mtime:
-        html = index.read_text(encoding="utf-8")
+        html = index.read_text()
         # Only local assets - anything external belongs in _spa.html itself.
         tags = [t for t in _ASSET_TAG_RE.findall(html) if "://" not in t]
         _cache = (mtime, Markup("\n".join(tags)))

@@ -1,8 +1,6 @@
 """SharedWith grants: sharing one document gives one user access to it — and
 nothing more (not other documents, not create/delete)."""
 
-from __future__ import annotations
-
 import pytest
 from fastapi import HTTPException
 

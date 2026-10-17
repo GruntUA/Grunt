@@ -6,8 +6,6 @@ RPC: grunt.document.base.Document.get_activity_log
 RPC: grunt.document.base.Document.get_timeline
 """
 
-from __future__ import annotations
-
 from typing import Any
 
 from fastapi import HTTPException
@@ -18,6 +16,8 @@ from grunt.activity import record_activity
 from grunt.document.versioning import version_service
 from grunt.errors import not_found
 from grunt.permissions.guards import doc_guard
+lazy from grunt.activity.reactions import reactions_for
+lazy from grunt.auth.doctypes.User.user import get_users_by_emails
 
 
 class DocumentHistoryRPCMixin:
@@ -150,8 +150,6 @@ class DocumentHistoryRPCMixin:
             )
 
         if track_changes:
-            from grunt.document.versioning import version_service
-
             versions = await version_service.get_versions(grunt.get_session(), doctype, doc_id)
             for v in versions:
                 items.append(
@@ -178,8 +176,6 @@ class DocumentHistoryRPCMixin:
                 }
             )
 
-        from grunt.activity.reactions import reactions_for
-
         reactions = await reactions_for([str(r["name"]) for r in comment_rows])
         for i in items:
             if i["type"] == "comment":
@@ -188,8 +184,6 @@ class DocumentHistoryRPCMixin:
         # Display names/avatars of the authors, so the UI needn't list all users.
         emails = {i["user"] for i in items if i.get("user")}
         if emails:
-            from grunt.auth.doctypes.User.user import get_users_by_emails
-
             users = await get_users_by_emails(list(emails), fields=["email", "full_name", "avatar"])
             people = {u.email: (getattr(u, "full_name", None), u.data.get("avatar")) for u in users}
             for i in items:

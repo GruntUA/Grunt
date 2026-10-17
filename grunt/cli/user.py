@@ -3,6 +3,13 @@ import asyncio
 import click
 
 from grunt.cli.utils import _site_session
+lazy import grunt
+lazy from grunt.auth.doctypes.User.user import (
+    create_user,
+    get_user_by_email,
+    hash_password,
+    list_users,
+)
 
 
 @click.group("users")
@@ -20,8 +27,6 @@ def users_create(email, password, full_name, site):
     """Create a new user."""
 
     async def _run():
-        import grunt
-        from grunt.auth.doctypes.User.user import create_user, get_user_by_email
 
         name_parts = full_name.strip().split()
         first_name = name_parts[0] if name_parts else full_name.strip()
@@ -56,8 +61,6 @@ def users_list(site):
     """List all users."""
 
     async def _run():
-        import grunt
-        from grunt.auth.doctypes.User.user import list_users
 
         async with (
             _site_session(site) as (session, _eng),
@@ -86,11 +89,6 @@ def users_set_password(email, password, site):
     """Change a user's password."""
 
     async def _run():
-        import grunt
-        from grunt.auth.doctypes.User.user import (
-            get_user_by_email,
-            hash_password,
-        )
 
         async with (
             _site_session(site) as (session, eng),

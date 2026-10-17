@@ -1,13 +1,12 @@
 """Write side of the table storage: ``Document``'s steps of the pipeline."""
 
-from __future__ import annotations
-
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from fastapi import HTTPException, status
 from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.ext.asyncio import AsyncEngine
 
 from grunt import _
 from grunt.document.aggregate import compute_aggregations
@@ -29,9 +28,7 @@ from grunt.document.update_side_effects import (
 from grunt.search.service import search_index_service
 from grunt.webhook.service import webhook_service
 from grunt.website.generator import fill_route
-
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncEngine
+lazy from grunt.document.collection import repoint_references, validate_replacement
 
 
 class DocumentWriteMixin(DocumentReadMixin):
@@ -219,7 +216,6 @@ class DocumentWriteMixin(DocumentReadMixin):
         )
 
     async def _repoint_references(self, dt: Any, real_id: str, replace_with: str) -> None:
-        from grunt.document.collection import repoint_references, validate_replacement
 
         await validate_replacement(self.session, dt, real_id, replace_with)
         try:

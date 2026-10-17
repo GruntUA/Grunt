@@ -6,9 +6,7 @@ behind the catch-all and every ``/assets/<app>/...`` request got the SPA
 shell (text/html) instead of the file.
 """
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
@@ -20,9 +18,6 @@ from grunt.apps.loader import (
     _mount_app_static,
     _move_before_catch_all,
 )
-
-if TYPE_CHECKING:
-    from pathlib import Path
 
 
 def test_app_assets_mount_in_front_of_catch_all(tmp_path: Path) -> None:

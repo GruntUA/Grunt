@@ -16,13 +16,15 @@ Both funnel each app's ``hooks.py`` through :data:`HOOK_CONSUMERS`
 consumer registration, not a change here.
 """
 
-from __future__ import annotations
-
 import importlib
 import inspect
 import sys
+from collections.abc import Iterator
 from pathlib import Path
-from typing import TYPE_CHECKING
+from types import ModuleType
+
+from fastapi import FastAPI
+lazy from fastapi.staticfiles import StaticFiles
 
 from grunt import core_hooks, log
 from grunt.apps.consumers import HOOK_CONSUMERS, LoadContext, _resolve
@@ -39,13 +41,6 @@ from grunt.startup.doctypes import _find_doctype_dirs
 from grunt.version import compatibility_error
 from grunt.website import make_website_handler, website_registry
 from grunt.website.router import PAGE_METHODS
-
-if TYPE_CHECKING:
-    from collections.abc import Iterator
-    from types import ModuleType
-
-    from fastapi import FastAPI
-
 
 CORE_APP = "grunt"
 _GRUNT_PKG = Path(__file__).resolve().parent.parent  # grunt/apps/loader.py -> grunt/
@@ -259,7 +254,6 @@ def _mount_app_static(ctx: LoadContext) -> None:
     public_dir = ctx.app_dir / "public"
     if not public_dir.is_dir():
         return
-    from fastapi.staticfiles import StaticFiles
 
     ctx.fastapi_app.mount(
         f"/assets/{ctx.app_name}",

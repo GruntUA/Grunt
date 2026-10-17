@@ -1,7 +1,5 @@
 """Bench apps' Python dependencies are installed as editable packages."""
 
-from __future__ import annotations
-
 from grunt.apps import deps
 
 

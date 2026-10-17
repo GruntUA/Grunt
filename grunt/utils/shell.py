@@ -16,18 +16,17 @@ Objects in the REPL::
 Piped input works too: ``echo 'print(get_list("User"))' | grunt shell``.
 """
 
-from __future__ import annotations
-
 import asyncio
 import code
 import sys
 from typing import Any
 
+lazy from grunt.site.manager import current_site, site_manager
+lazy from grunt.startup.lifespan import boot
+
 
 async def _bootstrap(site: str | None) -> tuple[str, Any, Any, Any]:
     import grunt.main  # noqa: F401 - wires the framework's own hooks (load_core)
-    from grunt.site.manager import current_site, site_manager
-    from grunt.startup.lifespan import boot
 
     await boot(None)
     sites = site_manager.get_sites()

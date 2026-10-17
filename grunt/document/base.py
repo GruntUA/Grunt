@@ -10,11 +10,11 @@ Field values live in ``self.data``; ``__getattr__``/``__setattr__`` route
 there for IDEs and type checkers.
 """
 
-from __future__ import annotations
-
 import contextlib
 import copy
-from typing import TYPE_CHECKING, Any, ClassVar
+from typing import Any, ClassVar
+
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 import grunt
 from grunt import _, log
@@ -34,12 +34,9 @@ from grunt.document.serde import to_json, with_doctype
 from grunt.errors import not_found
 from grunt.local import require_engine, require_user
 from grunt.monitoring import perf
-
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
-
-    from grunt.auth.doctypes.User.user import User
-
+lazy from grunt.auth.doctypes.User.user import User
+lazy from grunt.document.collection import table_count, table_list
+lazy from grunt.document.multi_link import MultiLinkService
 
 # Real instance attributes; everything else is routed into self.data.
 _RESERVED = frozenset(
@@ -252,8 +249,6 @@ class BaseDocument(DocumentLifecycleMixin):
             with contextlib.suppress(RuntimeError):
                 self.user = require_user()
         if self._ml is None and self.session is not None:
-            from grunt.document.multi_link import MultiLinkService
-
             self._ml = MultiLinkService(self.session)
 
     def _set_grunt_context(self, user: User) -> tuple:
@@ -435,7 +430,6 @@ class Document(
         **kwargs: Any,
     ) -> DocumentList:
         """A page of the documents *user* may see, read from the DocType's table."""
-        from grunt.document.collection import table_list
 
         return await table_list(
             session,
@@ -463,7 +457,6 @@ class Document(
         search: str | None = None,
     ) -> int:
         """How many documents *user* may see, under the same rules as :meth:`get_list`."""
-        from grunt.document.collection import table_count
 
         return await table_count(
             session, await _meta(doctype), user, filters=filters, search=search

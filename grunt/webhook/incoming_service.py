@@ -21,8 +21,6 @@ Dotted paths are resolved against the parsed JSON payload.  Literal values can
 be prefixed with ``=``, e.g. ``{"status": "=Active"}``.
 """
 
-from __future__ import annotations
-
 import hashlib
 import hmac
 import json

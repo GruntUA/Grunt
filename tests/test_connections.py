@@ -5,8 +5,6 @@ Covers the two link shapes and the rule that the ``links`` table is
 authoritative: a DocType with no declared rows shows no connection chips.
 """
 
-from __future__ import annotations
-
 import pytest
 
 ASSET_DT = {

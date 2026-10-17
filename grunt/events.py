@@ -19,11 +19,10 @@ Adding a stage means appending an :class:`EventSubscriber` - never editing
 :func:`fire`.
 """
 
-from __future__ import annotations
-
 import inspect
+from collections.abc import Awaitable, Callable, Iterable
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from grunt import log
 from grunt.assignment import assignment_service
@@ -35,9 +34,6 @@ from grunt.notification import rule_index
 from grunt.notification.tasks import evaluate_notification_rules_task
 from grunt.scripting import server_script_runner
 from grunt.storage.references import claim_referenced_files
-
-if TYPE_CHECKING:
-    from collections.abc import Awaitable, Callable, Iterable
 
 
 @dataclass(frozen=True, slots=True)

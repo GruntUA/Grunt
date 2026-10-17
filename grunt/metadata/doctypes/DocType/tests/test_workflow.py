@@ -5,8 +5,6 @@ documents reference the DocType they govern via `document_type`, instead of
 being embedded in that DocType's own definition.
 """
 
-from __future__ import annotations
-
 import pytest
 
 import grunt

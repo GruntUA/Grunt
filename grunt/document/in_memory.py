@@ -5,16 +5,12 @@ table (a ring buffer, an API response, Redis).
 virtual DocType's list view filters like any other.
 """
 
-from __future__ import annotations
-
 import math
-from typing import TYPE_CHECKING, Any
+from collections.abc import Callable
+from typing import Any
 
 from grunt.db.filters import as_list, is_truthy, split_key
 from grunt.document.base import DocumentList
-
-if TYPE_CHECKING:
-    from collections.abc import Callable
 
 
 def _contains(raw: Any, val: Any) -> bool:

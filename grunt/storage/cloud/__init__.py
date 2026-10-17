@@ -16,14 +16,13 @@ the controller keeps the stored value when a save sends the mask back.
 Backend code reads rows with :func:`load_remote` (``grunt.db``, no hooks).
 """
 
-from __future__ import annotations
-
 from datetime import UTC, datetime
 from typing import Any
 
 import grunt
 from grunt import _, log, log_error
 from grunt.storage.cloud.rclone import Rclone, RemoteError
+lazy from grunt.notification.service import notification_service
 
 __all__ = [
     "MASK",
@@ -119,7 +118,6 @@ async def record_status(
 
 
 async def _notify_managers(name: str, message: str) -> None:
-    from grunt.notification.service import notification_service
 
     session = grunt.get_session()
     try:

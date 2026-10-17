@@ -1,7 +1,5 @@
 """Dashboard widgets compute as the viewer: no numbers about rows they cannot read."""
 
-from __future__ import annotations
-
 import pytest
 
 from tests.test_aggregate import ALICE, as_user, deals  # noqa: F401  (fixtures)

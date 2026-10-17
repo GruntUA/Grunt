@@ -1,7 +1,5 @@
 """CommentReaction controller - you react for yourself, on comments you can read."""
 
-from __future__ import annotations
-
 from grunt import _
 from grunt.activity.reactions import reaction_choices
 from grunt.document.base import Document

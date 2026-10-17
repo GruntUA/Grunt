@@ -4,9 +4,11 @@ from pathlib import Path
 
 import click
 
+lazy from grunt.site.manager import site_manager
+
 
 def _parse_skill_name(skill_md: Path) -> str | None:
-    content = skill_md.read_text(encoding="utf-8")
+    content = skill_md.read_text()
     lines = content.splitlines()
     if not lines or lines[0].strip() != "---":
         return None
@@ -29,9 +31,7 @@ def _install_app_skills(app_dir: Path) -> list[str]:
 
     lock_file = app_dir / "skills-lock.json"
     lock: dict = (
-        json.loads(lock_file.read_text(encoding="utf-8"))
-        if lock_file.exists()
-        else {"version": 1, "skills": {}}
+        json.loads(lock_file.read_text()) if lock_file.exists() else {"version": 1, "skills": {}}
     )
 
     claude_skills = _claude_skills_dir()
@@ -65,7 +65,7 @@ def _install_app_skills(app_dir: Path) -> list[str]:
         click.echo(f"  {click.style('✓', fg='green')} {name}  →  {target}")
 
     if installed:
-        lock_file.write_text(json.dumps(lock, indent=2, ensure_ascii=False), encoding="utf-8")
+        lock_file.write_text(json.dumps(lock, indent=2, ensure_ascii=False))
 
     return installed
 
@@ -83,7 +83,6 @@ def skills_install(app_name: str | None):
 
     APP_NAME is the app name (optional). Without it, all apps are scanned.
     """
-    from grunt.site.manager import site_manager
 
     apps_dir = site_manager.bench_dir / "apps"
 
@@ -114,7 +113,6 @@ def skills_install(app_name: str | None):
 @click.argument("skill_name")
 def skills_uninstall(skill_name: str):
     """Remove an installed skill (deletes the symlink)."""
-    from grunt.site.manager import site_manager
 
     target = _claude_skills_dir() / skill_name
     if not target.exists() and not target.is_symlink():
@@ -128,10 +126,10 @@ def skills_uninstall(skill_name: str):
         lock_file = app_dir / "skills-lock.json"
         if not lock_file.exists():
             continue
-        lock = json.loads(lock_file.read_text(encoding="utf-8"))
+        lock = json.loads(lock_file.read_text())
         if skill_name in lock.get("skills", {}):
             del lock["skills"][skill_name]
-            lock_file.write_text(json.dumps(lock, indent=2, ensure_ascii=False), encoding="utf-8")
+            lock_file.write_text(json.dumps(lock, indent=2, ensure_ascii=False))
 
     click.echo(f"{click.style('✓', fg='green')} Skill '{skill_name}' removed.")
 
@@ -139,7 +137,6 @@ def skills_uninstall(skill_name: str):
 @skills_group.command("list")
 def skills_list():
     """Show local skills from all apps."""
-    from grunt.site.manager import site_manager
 
     apps_dir = site_manager.bench_dir / "apps"
     found = False
@@ -147,7 +144,7 @@ def skills_list():
         lock_file = app_dir / "skills-lock.json"
         if not lock_file.exists():
             continue
-        lock = json.loads(lock_file.read_text(encoding="utf-8"))
+        lock = json.loads(lock_file.read_text())
         local_skills = {
             k: v for k, v in lock.get("skills", {}).items() if v.get("sourceType") == "local"
         }

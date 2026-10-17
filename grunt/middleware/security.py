@@ -1,14 +1,8 @@
 """Security headers middleware."""
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
-
 from starlette.middleware.base import BaseHTTPMiddleware
-
-if TYPE_CHECKING:
-    from starlette.requests import Request
-    from starlette.responses import Response
+from starlette.requests import Request
+from starlette.responses import Response
 
 # A year; sent over HTTPS only (a plain-HTTP response can't pin anything).
 HSTS = "max-age=31536000"

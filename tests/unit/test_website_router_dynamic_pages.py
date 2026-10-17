@@ -8,8 +8,6 @@ dynamic ("{param}") file-based page for those apps; this covers the regex
 it builds from a page's url_pattern.
 """
 
-from __future__ import annotations
-
 from grunt.website.router import _pattern_regex
 
 

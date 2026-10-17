@@ -3,8 +3,6 @@
 The copying itself lives in :mod:`grunt.tasks.auto_repeat` (daily job).
 """
 
-from __future__ import annotations
-
 from datetime import date
 from typing import Any
 

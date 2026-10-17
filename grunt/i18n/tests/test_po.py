@@ -1,7 +1,5 @@
 """`grunt i18n` PO/POT generation (grunt.i18n.po)."""
 
-from __future__ import annotations
-
 import json
 import json as _json
 
@@ -24,9 +22,8 @@ def bench(tmp_path):
                 "fields": [{"fieldname": "nm", "label": "Назва", "fieldtype": "Data"}],
             }
         ),
-        encoding="utf-8",
     )
-    (pkg / "svc.py").write_text('from grunt.i18n import _\n_("Save changes")\n', encoding="utf-8")
+    (pkg / "svc.py").write_text('from grunt.i18n import _\n_("Save changes")\n')
     return tmp_path
 
 
@@ -101,7 +98,6 @@ def flip_pkg(tmp_path, monkeypatch):
                 ],
             }
         ),
-        encoding="utf-8",
     )
     monkeypatch.setattr(po, "_GRUNT_PKG", pkg)
     monkeypatch.setattr(po, "_LOCALE_DIR", tmp_path / "locales")
@@ -127,7 +123,7 @@ def test_flip_module_apply_rewrites_json_and_fills_uk_po(flip_pkg):
     assert r["unmapped"] == []
     assert r["entries"] == 5
 
-    dt = _json.loads(flip_pkg.read_text(encoding="utf-8"))
+    dt = _json.loads(flip_pkg.read_text())
     assert dt["label"] == "Widget"
     assert dt["fields"][0]["label"] == "Name"
     assert dt["fields"][1]["options"] == "Draft\nDone"
@@ -147,6 +143,6 @@ def test_flip_module_leaves_select_values_by_default(flip_pkg):
         "demo", {"Віджет": "Widget", "Назва": "Name", "Статус": "Status"}, apply=True
     )
     assert r["unmapped"] == []  # option values are not even asked for
-    dt = _json.loads(flip_pkg.read_text(encoding="utf-8"))
+    dt = _json.loads(flip_pkg.read_text())
     assert dt["fields"][1]["label"] == "Status"
     assert dt["fields"][1]["options"] == "Чернетка\nГотово"  # stored values untouched

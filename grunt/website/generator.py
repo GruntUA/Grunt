@@ -23,23 +23,25 @@ Pages without ``allow_guest_to_view`` are never served: the site has no login
 cookie, so a signed-in reader can't be told apart from a guest.
 """
 
-from __future__ import annotations
-
 import inspect
-from typing import TYPE_CHECKING, Any
+from pathlib import Path
+from typing import Any
 from urllib.parse import quote, unquote
 
+from fastapi import Request
+from fastapi.responses import HTMLResponse
 from jinja2 import BaseLoader, ChoiceLoader, Environment, FileSystemLoader
 from sqlalchemy import select
 
+import grunt
 from grunt import log
 from grunt.utils.slug import slugify
-
-if TYPE_CHECKING:
-    from pathlib import Path
-
-    from fastapi import Request
-    from fastapi.responses import HTMLResponse
+lazy from grunt.apps.loader import CORE_APP, primary_web_app
+lazy from grunt.auth.doctypes.User.user import SYSTEM_USER
+lazy from grunt.document.registry import document_registry
+lazy from grunt.metadata.registry import doctype_registry
+lazy from grunt.website.doc_layout import build_tabs
+lazy from grunt.website.router import page_context, website_registry
 
 WEB_URL_KEY = "__web_url"
 ROUTE_FIELD = "route"
@@ -66,7 +68,6 @@ def is_public(dt: Any) -> bool:
 def app_mount(app: str | None) -> str:
     """Where *app*'s pages live: ``""`` for the core and the primary web app,
     ``/<app>`` for every other app (the www/ rule)."""
-    from grunt.apps.loader import CORE_APP, primary_web_app
 
     return "" if not app or app in (CORE_APP, primary_web_app()) else f"/{app}"
 
@@ -95,8 +96,6 @@ def web_url(dt: Any, doc: dict[str, Any]) -> str | None:
 
 async def with_web_url(doctype: str, doc: Any) -> Any:
     """*doc* (an API response dict) with ``__web_url`` added when it has a page."""
-    import grunt
-    from grunt.document.registry import document_registry
 
     if not isinstance(doc, dict):
         return doc
@@ -142,8 +141,6 @@ async def _find_page(path: str) -> tuple[Any, str | None] | None:
     """``(DocType, document name)`` for a page *path*. The name is ``None`` when
     *path* is under a web view DocType's prefix but no published document is
     there; ``None`` overall when no DocType claims the path."""
-    import grunt
-    from grunt.metadata.registry import doctype_registry
 
     claimed = None
     for dt in await doctype_registry.list_all():
@@ -166,7 +163,6 @@ async def _find_page(path: str) -> tuple[Any, str | None] | None:
 
 def _template_env(app: str | None, template_dir: Path) -> Environment | None:
     """The app's www/ env, searching *template_dir* first."""
-    from grunt.website.router import website_registry
 
     env = _template_envs.get(template_dir)
     if env is None:
@@ -190,11 +186,6 @@ async def render_doc_page(request: Request, session: Any) -> HTMLResponse | None
     404 in the app's own layout); without that hook it falls through like any
     unknown path.
     """
-    import grunt
-    from grunt.auth.doctypes.User.user import SYSTEM_USER
-    from grunt.document.registry import document_registry
-    from grunt.website.doc_layout import build_tabs
-    from grunt.website.router import page_context
 
     path = request.url.path.rstrip("/")
     async with grunt.context(session, user=SYSTEM_USER):
@@ -250,10 +241,6 @@ async def _apply(result: Any, context: dict[str, Any]) -> None:
 
 
 async def _render(dt: Any, context: dict[str, Any]) -> HTMLResponse | None:
-    from fastapi.responses import HTMLResponse
-
-    from grunt.document.registry import document_registry
-    from grunt.website.router import website_registry
 
     dt_dir = document_registry.doctype_dir(dt.name)
     template_dir = dt_dir / "templates" if dt_dir else None
@@ -275,8 +262,6 @@ async def _render(dt: Any, context: dict[str, Any]) -> HTMLResponse | None:
 
 async def sitemap_urls() -> list[tuple[str, Any]]:
     """``(path, modified)`` of every indexed web view page (caller holds a grunt context)."""
-    import grunt
-    from grunt.metadata.registry import doctype_registry
 
     urls: list[tuple[str, Any]] = []
     for dt in await doctype_registry.list_all():

@@ -3,6 +3,11 @@ import asyncio
 import click
 
 from grunt.cli.utils import _site_session
+lazy import grunt
+lazy from grunt.storage.doctypes.File.file import generate_missing_thumbnails
+lazy from grunt.storage.gc import collect_garbage, verify
+lazy from grunt.storage.images import compress_existing
+lazy from grunt.storage.spaces import assign_spaces
 
 
 @click.group("files")
@@ -18,8 +23,6 @@ def files_thumbnails(site: str | None, limit: int):
     """Create thumbnails (images, PDF) for files uploaded without them."""
 
     async def _run():
-        import grunt
-        from grunt.storage.doctypes.File.file import generate_missing_thumbnails
 
         async with _site_session(site) as (session, eng), grunt.system_context(session, eng):
             made = await generate_missing_thumbnails(limit)
@@ -38,8 +41,6 @@ def files_gc(site: str | None, grace: int):
     """Delete stored files no File record (nor the trash) refers to."""
 
     async def _run():
-        import grunt
-        from grunt.storage.gc import collect_garbage
 
         async with _site_session(site) as (session, eng), grunt.system_context(session, eng):
             report = await collect_garbage(grace)
@@ -58,8 +59,6 @@ def files_verify(site: str | None, rehash: bool):
     """Check File records against the stored files."""
 
     async def _run():
-        import grunt
-        from grunt.storage.gc import verify
 
         async with _site_session(site) as (session, eng), grunt.system_context(session, eng):
             report = await verify(rehash)
@@ -87,8 +86,6 @@ def files_compress(site: str | None, apply: bool, limit: int | None):
     """Compress images uploaded before compression was on (System Settings → Files)."""
 
     async def _run():
-        import grunt
-        from grunt.storage.images import compress_existing
 
         async with _site_session(site) as (session, eng), grunt.system_context(session, eng):
             report = await compress_existing(apply=apply, limit=limit)
@@ -112,8 +109,6 @@ def files_assign_spaces(site: str | None, apply: bool, fallback_owner: str | Non
     """Move library folders and unfiled files into their authors' personal spaces."""
 
     async def _run():
-        import grunt
-        from grunt.storage.spaces import assign_spaces
 
         async with _site_session(site) as (session, eng), grunt.system_context(session, eng):
             report = await assign_spaces(apply=apply, fallback_owner=fallback_owner)

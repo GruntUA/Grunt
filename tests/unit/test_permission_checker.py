@@ -1,7 +1,5 @@
 """Tests for RBAC permission checker (migrated integration parts)."""
 
-from __future__ import annotations
-
 import pytest
 
 from grunt.metadata.doctype import DocType

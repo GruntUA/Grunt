@@ -18,8 +18,6 @@ Which work intends to write:
 PostgreSQL ignores all of this.
 """
 
-from __future__ import annotations
-
 from contextvars import ContextVar
 
 _write_intent: ContextVar[bool | None] = ContextVar("sqlite_write_intent", default=None)

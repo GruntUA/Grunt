@@ -5,13 +5,12 @@ an empty setting turns reactions off. The timeline gets the summaries with its
 comments (``reactions_for``), so reading them needs no extra round trip.
 """
 
-from __future__ import annotations
-
 from typing import Any
 
 import grunt
 from grunt.permissions.guards import doc_guard
 from grunt.site.settings import get_setting
+lazy from grunt.auth.doctypes.User.user import get_users_by_emails
 
 DEFAULT_REACTIONS = "👍 ✅ ❓ 🎉 👀"
 
@@ -55,8 +54,6 @@ async def reactions_for(comment_ids: list[str]) -> dict[str, list[dict[str, Any]
         chip["mine"] = chip["mine"] or r["user"] == me
         chip["users"].append(r["user"])
     if rows:
-        from grunt.auth.doctypes.User.user import get_users_by_emails
-
         emails = list({r["user"] for r in rows})
         users = await get_users_by_emails(emails, fields=["email", "full_name"])
         names = {u.email: getattr(u, "full_name", None) for u in users}

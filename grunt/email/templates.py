@@ -7,16 +7,13 @@ NotificationRule templates - rather than reaching for a templating engine for
 what is normally a handful of substitutions.
 """
 
-from __future__ import annotations
+from typing import Any
 
-from typing import TYPE_CHECKING, Any
+from sqlalchemy.ext.asyncio import AsyncSession
 
 import grunt
 from grunt import _
 from grunt.email.service import email_service
-
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class EmailTemplateError(Exception):

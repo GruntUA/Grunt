@@ -1,11 +1,11 @@
 """`grunt i18n` - framework translation catalogs (PO/POT)."""
 
-from __future__ import annotations
-
 import json
 from pathlib import Path
 
 import click
+
+lazy from grunt.i18n import po
 
 
 @click.group("i18n")
@@ -24,7 +24,6 @@ def i18n_group() -> None:
 )
 def extract_cmd(locales: tuple[str, ...]) -> None:
     """Regenerate grunt.pot from the source; optionally msgmerge locale catalogs."""
-    from grunt.i18n import po
 
     pot = po.build_pot()
     po.pot_path().parent.mkdir(parents=True, exist_ok=True)
@@ -48,7 +47,6 @@ def extract_cmd(locales: tuple[str, ...]) -> None:
 )
 def stats_cmd(locales: tuple[str, ...], show_missing: bool, fail_under: float | None) -> None:
     """Coverage per locale + how many source strings are still Cyrillic."""
-    from grunt.i18n import po
 
     targets = list(locales) or sorted({po.SOURCE_LOCALE, *po.existing_locales(), "uk"})
     worst = 100.0
@@ -95,11 +93,10 @@ def flip_cmd(module: str, map_path: str | None, apply: bool, options: bool) -> N
     Run without --map to list the strings that need translating. Provide those in
     a JSON map, re-run with --apply, then `grunt i18n extract -l uk -l en`.
     """
-    from grunt.i18n import po
 
     mapping: dict[str, str] = {}
     if map_path:
-        mapping = json.loads(Path(map_path).read_text(encoding="utf-8"))
+        mapping = json.loads(Path(map_path).read_text())
 
     r = po.flip_module(module, mapping, apply=apply, options=options)
 

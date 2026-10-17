@@ -10,13 +10,14 @@ Modelled on :mod:`grunt.workflow.registry`: a process-local snapshot kept fresh 
 other worker/web processes pick up rule changes without a restart.
 """
 
-from __future__ import annotations
-
 import time
+
+from sqlalchemy import select
 
 import grunt
 from grunt import _, log
 from grunt.local import _session_ctx
+lazy from grunt.errors import not_found
 
 # Upper bound on how long a process keeps serving a stale snapshot when the rule
 # change happened in *another* process (the invalidation hook only fires in the
@@ -40,7 +41,6 @@ def invalidate_on_change(**_kwargs: object) -> None:
 
 async def _load() -> frozenset[tuple[str, str]] | None:
     """Read every enabled rule's ``(doctype, event)``; ``None`` if no session bound."""
-    from sqlalchemy import select
 
     session = _session_ctx.get()
     if session is None:
@@ -48,8 +48,6 @@ async def _load() -> frozenset[tuple[str, str]] | None:
 
     dt = await grunt.get_meta("NotificationRule")
     if dt is None:
-        from grunt.errors import not_found
-
         raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": "NotificationRule"})
     table = dt.table
     result = await session.execute(

@@ -1,7 +1,5 @@
 """The worker process must know every task the web app can enqueue."""
 
-from __future__ import annotations
-
 from pathlib import Path
 
 from grunt.tasks.worker import _task_modules, broker, import_task_modules

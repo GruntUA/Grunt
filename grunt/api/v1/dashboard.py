@@ -1,7 +1,5 @@
 """Dashboard whitelisted methods for widget computation."""
 
-from __future__ import annotations
-
 import contextlib
 import json
 import re

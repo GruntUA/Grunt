@@ -4,8 +4,6 @@ Each test plays the attacker (an ordinary signed-in user, no roles) against a
 victim's private upload. A passing test means the attack is blocked.
 """
 
-from __future__ import annotations
-
 from urllib.parse import parse_qs, urlparse
 
 import pytest

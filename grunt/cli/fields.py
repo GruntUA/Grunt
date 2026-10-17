@@ -1,9 +1,9 @@
-from __future__ import annotations
-
 import json
 from pathlib import Path
 
 import click
+
+lazy from grunt.metadata.field import get_manifest_attrs, get_registered_fieldtypes
 
 # Discovery helpers
 
@@ -43,7 +43,6 @@ def sync_manifests(check: bool) -> None:
     Run this after adding a field type or changing its column_spec / traits, so
     manifest.json never has to be hand-edited to match.
     """
-    from grunt.metadata.field import get_manifest_attrs, get_registered_fieldtypes
 
     bench_root = _find_bench_root(Path.cwd())
     if bench_root is None:
@@ -60,7 +59,7 @@ def sync_manifests(check: bool) -> None:
             skipped.append(fieldtype)
             continue
 
-        data = json.loads(manifest_path.read_text(encoding="utf-8"))
+        data = json.loads(manifest_path.read_text())
         # traits is dropped when the type has none, so start from data without it.
         synced = {k: v for k, v in data.items() if k != "traits"} | get_manifest_attrs(fieldtype)
         if synced == data:
@@ -69,7 +68,7 @@ def sync_manifests(check: bool) -> None:
         changed.append(fieldtype)
         if not check:
             data = synced
-            manifest_path.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+            manifest_path.write_text(json.dumps(data, ensure_ascii=False))
 
     if changed:
         verb = "out of sync" if check else "updated"

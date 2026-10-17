@@ -7,15 +7,13 @@ its options as typed - any of rclone's ~70 backends works that way.
 wins over the generated values.
 """
 
-from __future__ import annotations
-
+import json
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from grunt import _
-
-if TYPE_CHECKING:
-    from collections.abc import Callable
+lazy from grunt.storage.cloud.rclone import RemoteError, obscure
 
 
 @dataclass(frozen=True)
@@ -37,7 +35,6 @@ class Provider:
 
 
 def _secret(remote: dict[str, Any], fieldname: str) -> str:
-    from grunt.storage.cloud.rclone import obscure
 
     value = remote.get(fieldname) or ""
     return obscure(value) if value else ""
@@ -64,8 +61,6 @@ def _dropbox(remote: dict[str, Any]) -> dict[str, Any]:
 def _onedrive(remote: dict[str, Any]) -> dict[str, Any]:
     extra = remote.get("oauth_extra") or {}
     if isinstance(extra, str):
-        import json
-
         try:
             extra = json.loads(extra)
         except ValueError:
@@ -134,8 +129,6 @@ def _local(remote: dict[str, Any]) -> dict[str, Any]:
 
 def _other(remote: dict[str, Any]) -> dict[str, Any]:
     if not remote.get("rclone_type"):
-        from grunt.storage.cloud.rclone import RemoteError
-
         raise RemoteError(_("Enter the rclone backend type"))
     return {"type": remote["rclone_type"], **_oauth(remote)}
 
@@ -178,8 +171,6 @@ PROVIDERS: dict[str, Provider] = {
 def get_provider(name: str | None) -> Provider:
     provider = PROVIDERS.get(name or "")
     if provider is None:
-        from grunt.storage.cloud.rclone import RemoteError
-
         raise RemoteError(_("Unknown storage type: %(name)s") % {"name": name})
     return provider
 

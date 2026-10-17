@@ -1,7 +1,5 @@
 """Backup tasks - run by the task worker."""
 
-from __future__ import annotations
-
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
@@ -19,6 +17,7 @@ from grunt.progress import TaskCancelledError, track_progress
 from grunt.site.manager import site_manager
 from grunt.site.settings import get_setting
 from grunt.tasks.broker import task
+lazy from grunt.storage.cloud.backups import upload_to_remotes
 
 # A backup counts as due a little early, so a job that fires on the hour
 # doesn't skip a whole interval because the previous run took a minute.
@@ -74,7 +73,6 @@ async def _run(site: str, *, keep: int, **options: Any) -> str:
         log.info("backup.rotated", site=site, removed=removed)
     # Copies in cloud storage (StorageRemote «Upload backups here»); a failing
     # remote is recorded there and never fails the backup itself.
-    from grunt.storage.cloud.backups import upload_to_remotes
 
     await upload_to_remotes(site, backup, progress)
     return backup.id

@@ -18,13 +18,12 @@ someone's private folder included; it stays out of other people's lists).
 With ``is_published_field`` set, only a published document does that.
 """
 
-from __future__ import annotations
-
 import re
 from typing import Any
 
 import grunt
 from grunt import log
+lazy from grunt.permissions.rbac import permission_checker
 
 # RichText holds any number of file URLs in its HTML ("file" fields hold one).
 _FILE_HTML_TYPES = frozenset({"RichText"})
@@ -86,7 +85,6 @@ async def claim_referenced_files(**kwargs: Any) -> None:
 
 async def _publish(ids: set[str], user: Any) -> None:
     """Make the private files among *ids* that *user* may read public."""
-    from grunt.permissions.rbac import permission_checker
 
     meta = await grunt.get_meta("File")
     if meta is None:

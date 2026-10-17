@@ -16,18 +16,13 @@ Revises: 0003
 Create Date: 2026-09-28
 """
 
-from __future__ import annotations
-
 import hashlib
 import json
 import os
-from typing import TYPE_CHECKING
+from pathlib import Path
 
 import sqlalchemy as sa
 from alembic import op
-
-if TYPE_CHECKING:
-    from pathlib import Path
 
 revision = "0004"
 down_revision = "0003"

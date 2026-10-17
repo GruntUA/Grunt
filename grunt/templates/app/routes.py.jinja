@@ -5,8 +5,6 @@ the prefix below a route lives at /api/v1/app/{{ app_name }}/{{ app_name }}/...
 Use it for endpoints that are not covered by the generic /docs/* CRUD API.
 """
 
-from __future__ import annotations
-
 from grunt.api.router import GruntRouter
 
 # GruntRouter puts the grunt context (DB session, user) around every endpoint;

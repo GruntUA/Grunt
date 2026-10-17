@@ -4,19 +4,16 @@ User CRUD, password hashing, and authentication logic live in the
 User DocType controller: ``grunt.core.doctypes.User.User``.
 """
 
-from __future__ import annotations
-
 import uuid
 from datetime import UTC, datetime, timedelta
-from typing import TYPE_CHECKING
 
 import jwt
 
 from grunt.config import settings
-
-if TYPE_CHECKING:
-    from grunt.auth.doctypes.User.user import User
-
+lazy import grunt
+lazy from grunt.auth.doctypes.User.user import User, hash_password
+lazy from grunt.auth.doctypes.UserSession.user_session import end_all_sessions
+lazy from grunt.site.settings import get_setting
 
 # JWT
 
@@ -47,7 +44,6 @@ def decode_access_token(token: str) -> dict | None:
 
 async def session_ttl_minutes() -> int:
     """Idle timeout of a UserSession, from ``SystemSettings.session_timeout``."""
-    from grunt.site.settings import get_setting
 
     minutes = await get_setting("session_timeout", settings.access_token_expire_minutes)
     try:
@@ -171,7 +167,6 @@ async def _find_and_invalidate_token(
     Returns the matched row (with at least ``"name"``), or None if the token
     doesn't exist or has expired.
     """
-    import grunt
 
     now = datetime.now(UTC)
 
@@ -201,7 +196,6 @@ async def _find_and_invalidate_token(
 
 async def create_password_reset_token(user_id: str) -> str:
     """Create a 1-hour password reset token. Invalidates prior unused tokens."""
-    import grunt
 
     token = uuid.uuid4().hex + uuid.uuid4().hex  # 64-char hex
     expires_at = datetime.now(UTC) + timedelta(hours=1)
@@ -219,9 +213,6 @@ async def consume_password_reset_token(token: str, new_password: str) -> bool:
     if user_data is None:
         return False
 
-    import grunt
-    from grunt.auth.doctypes.User.user import hash_password
-
     async with grunt.system_context(grunt.get_session()):
         await grunt.db.set_value(
             "User",
@@ -231,7 +222,6 @@ async def consume_password_reset_token(token: str, new_password: str) -> bool:
         )
 
     # A password reset may be a response to a stolen account - sign out everywhere.
-    from grunt.auth.doctypes.UserSession.user_session import end_all_sessions
 
     await end_all_sessions(user_data["name"])
     return True

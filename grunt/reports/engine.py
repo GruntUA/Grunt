@@ -1,12 +1,13 @@
 """Report engine - runs Query/Script/List reports."""
 
-from __future__ import annotations
-
 import time
-from typing import TYPE_CHECKING, Any, cast
+from collections.abc import Callable
+from typing import Any, cast
 
 from fastapi import HTTPException
-from sqlalchemy import func, select, text
+from sqlalchemy import and_, func, select, text
+from sqlalchemy.ext.asyncio import AsyncSession
+lazy from openpyxl.cell import Cell
 
 import grunt
 from grunt import _, log
@@ -20,14 +21,7 @@ from grunt.permissions.rbac import permission_checker
 from grunt.permissions.user_permissions import build_conditions
 from grunt.reports.list_options import compile_conditions
 from grunt.scripting.safe_globals import build_safe_globals, compile_script
-
-if TYPE_CHECKING:
-    from collections.abc import Callable
-
-    from openpyxl.cell import Cell
-    from sqlalchemy.ext.asyncio import AsyncSession
-
-    from grunt.auth.doctypes.User.user import User
+lazy from grunt.auth.doctypes.User.user import User
 
 
 class ReportEngine:
@@ -349,8 +343,6 @@ class ReportEngine:
         stmt = await apply_permission_filter(stmt, table, user, dt)
         up_conds = await build_conditions(table, user, dt)
         if up_conds:
-            from sqlalchemy import and_
-
             stmt = stmt.where(and_(*up_conds))
 
         if group_by_cols:

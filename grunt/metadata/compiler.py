@@ -1,6 +1,4 @@
-from __future__ import annotations
-
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from sqlalchemy import (
     JSON,
@@ -15,17 +13,14 @@ from sqlalchemy import (
     text,
     update,
 )
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 from grunt import _, log
 from grunt.db.types import UtcDateTime
 from grunt.metadata.field import NON_PHYSICAL_FIELDS, get_storage_class
 from grunt.utils.strings import to_snake_case
-
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
-
-    from grunt.metadata.doctype import DocType
-
+lazy from grunt.metadata.doctype import DocType
+lazy from grunt.metadata.registry import _resolve_site_key
 
 # SA MetaData for fixed-shape infrastructure tables that never vary by
 # DocType or by site (currently just MULTI_LINK_TABLE below). Kept as a
@@ -53,7 +48,6 @@ def get_compiled_metadata(site: str | None = None) -> MetaData:
     Defaults to the ambient current site (see
     ``grunt.metadata.registry._resolve_site_key``). Created lazily and cached.
     """
-    from grunt.metadata.registry import _resolve_site_key
 
     key = site or _resolve_site_key()
     return _SA_METADATA.setdefault(key, MetaData())
@@ -100,7 +94,6 @@ class DuplicateDataError(Exception):
 
 def invalidate_table_cache(doctype_name: str) -> None:
     """Remove a cached Table for the given DocType (call on update/delete)."""
-    from grunt.metadata.registry import _resolve_site_key
 
     _TABLE_CACHE.get(_resolve_site_key(), {}).pop(doctype_name, None)
 
@@ -199,7 +192,6 @@ def compile_doctype_to_table(doctype: DocType) -> Table:
     the new definition is picked up.
     """
     metadata = get_compiled_metadata()
-    from grunt.metadata.registry import _resolve_site_key
 
     cache = _TABLE_CACHE.setdefault(_resolve_site_key(), {})
     cached = cache.get(doctype.name)

@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import shutil
 from datetime import UTC, datetime
 from pathlib import Path

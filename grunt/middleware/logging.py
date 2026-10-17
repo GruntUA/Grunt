@@ -1,22 +1,24 @@
 """Request logging middleware - adds request_id, duration_ms, status_code to logs."""
 
-from __future__ import annotations
-
 import re
 import time
 import uuid
-from typing import TYPE_CHECKING
 
 import structlog
 from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request
+from starlette.responses import Response
 
 from grunt.config import settings
 from grunt.logging_config import _safe_logger_name
 from grunt.monitoring import perf
-
-if TYPE_CHECKING:
-    from starlette.requests import Request
-    from starlette.responses import Response
+lazy from grunt.db.profiler import (
+    collect_for_request,
+    finish_request,
+    set_request_db_threshold,
+    set_request_threshold,
+)
+lazy from grunt.site.manager import current_site
 
 logger = structlog.get_logger(__name__)
 
@@ -91,8 +93,6 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         response.headers["X-Request-ID"] = request_id
 
         if path not in _SKIP_PATHS:
-            from grunt.site.manager import current_site
-
             site = current_site.get(None)
             access_logger = (
                 structlog.get_logger(f"grunt.web.{_safe_logger_name(site)}") if site else logger
@@ -123,13 +123,6 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
     ) -> Response:
         if not use_profiler:
             return await call_next(request)
-
-        from grunt.db.profiler import (
-            collect_for_request,
-            finish_request,
-            set_request_db_threshold,
-            set_request_threshold,
-        )
 
         set_request_db_threshold(settings.slow_request_db_ms)
         set_request_threshold(settings.slow_request_ms)

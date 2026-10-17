@@ -1,16 +1,11 @@
 """Production (``debug`` off) wiring: the root web app comes from ``grunt.site``
 and the built SPA (``dist/``) is served by the backend itself."""
 
-from __future__ import annotations
-
 import json
-from typing import TYPE_CHECKING
+from pathlib import Path
 
 from grunt.site.manager import SiteManager
 from grunt.website import spa
-
-if TYPE_CHECKING:
-    from pathlib import Path
 
 
 def _site(sites_dir: Path, name: str, **config: object) -> None:

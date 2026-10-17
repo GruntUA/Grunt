@@ -4,8 +4,6 @@ Each tool is a thin wrapper over the grunt SDK, which applies the caller's
 permissions (DocType RBAC, row-level rules, permission-hidden fields).
 """
 
-from __future__ import annotations
-
 from typing import Any
 
 import grunt
@@ -14,6 +12,7 @@ from grunt.mcp.registry import mcp_tool
 from grunt.metadata.registry import doctype_registry
 from grunt.permissions.guards import read_guard
 from grunt.permissions.rbac import permission_checker
+lazy from grunt.api.v1.search import global_search
 
 # Besides layout fields, these only shape the form and carry no data.
 _UI_FIELDTYPES = frozenset({"Button", "HTML"})
@@ -286,7 +285,6 @@ async def aggregate(
     read_only=True,
 )
 async def search(query: str, doctype: str | None = None, limit: int = 10) -> list[dict]:
-    from grunt.api.v1.search import global_search
 
     return await global_search(q=query, doctype=doctype, limit=limit)
 

@@ -18,15 +18,13 @@ Access fields:
   self.session             — async SQLAlchemy session (for advanced queries)
 """
 
-from __future__ import annotations
-
 from datetime import date, datetime
+from typing import Any
 
 from grunt.document.base import Document
 
 
 class User(Document):
-
     # begin: auto-generated types
     # This code is auto-generated. Do not modify anything in this block.
 

@@ -5,15 +5,10 @@ import cycles between ``grunt.app`` / the ``User`` controller / the providers.
 Apps can add their own by calling :func:`register` from their ``hooks.py``.
 """
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
-
+import grunt
 from grunt import _, log
-
-if TYPE_CHECKING:
-    from grunt.auth.providers.base import AuthProvider
-
+lazy from grunt.auth.providers import email_link, oauth, webauthn
+lazy from grunt.auth.providers.base import AuthProvider
 
 _PROVIDERS: dict[str, AuthProvider] = {}
 _BOOTSTRAPPED = False
@@ -30,7 +25,6 @@ def _bootstrap() -> None:
     if _BOOTSTRAPPED:
         return
     _BOOTSTRAPPED = True  # set first: a failing import must not retry every call
-    from grunt.auth.providers import email_link, oauth, webauthn
 
     webauthn.register_provider()
     oauth.register_providers()
@@ -42,8 +36,6 @@ def get(name: str) -> AuthProvider:
     _bootstrap()
     provider = _PROVIDERS.get(name)
     if provider is None:
-        import grunt
-
         grunt.throw(_("Unknown auth provider: %(name)s") % {"name": name}, "NOT_FOUND")
     return provider
 

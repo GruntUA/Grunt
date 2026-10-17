@@ -5,8 +5,6 @@ with every child row naming its DocType too, and that JSON is enough to build
 the document again: ``grunt.get_doc(data)`` gives an unsaved controller.
 """
 
-from __future__ import annotations
-
 import json
 
 import pytest

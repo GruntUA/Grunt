@@ -8,24 +8,19 @@ network round-trip on every page load. A set can be fetched back into
 ``backups/`` from any remote; restoring stays ``grunt db restore``.
 """
 
-from __future__ import annotations
-
 import contextlib
 import json
 import os
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING, Any
+from pathlib import Path
+from typing import Any
 
 import grunt
 from grunt import _, log
-from grunt.backups import _NAME, BackupSet, backups_dir, get_backup
+from grunt.backups import _NAME, BackupSet, backups_dir, get_backup, list_backups
 from grunt.storage.cloud import RemoteError, backup_remotes, record_status
 from grunt.storage.cloud.rclone import Rclone
-
-if TYPE_CHECKING:
-    from pathlib import Path
-
-    from grunt.progress import Progress
+lazy from grunt.progress import Progress
 
 STATE_FILE = ".cloud.json"
 
@@ -105,7 +100,6 @@ async def list_remote_backups(rc: Rclone, site: str) -> list[dict[str, Any]]:
 
 
 def _local_sets(site: str) -> list[BackupSet]:
-    from grunt.backups import list_backups
 
     return list_backups(site)
 

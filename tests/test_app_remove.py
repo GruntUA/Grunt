@@ -1,7 +1,5 @@
 """`grunt app remove`: the app leaves the bench - package uninstalled, directory archived."""
 
-from __future__ import annotations
-
 import json
 import tarfile
 

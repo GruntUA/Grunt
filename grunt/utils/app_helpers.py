@@ -1,15 +1,10 @@
 """Internal helpers for GruntApp."""
 
-from __future__ import annotations
-
 import importlib.util
 from pathlib import Path
-from typing import TYPE_CHECKING
+from types import ModuleType
 
 from grunt.site.manager import site_manager
-
-if TYPE_CHECKING:
-    from types import ModuleType
 
 
 def load_app_hook_module(

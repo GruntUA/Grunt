@@ -5,20 +5,15 @@ Covers the DocType shape (append-only log, opt-in seen tracking), the
 opt-in operational log, and the settings-driven retention fallback.
 """
 
-from __future__ import annotations
-
 import json
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 import pytest
 
 from grunt.metadata.doctype import DocType
 from grunt.permissions.rbac import permission_checker
 from tests.support import make_user
-
-if TYPE_CHECKING:
-    from grunt.auth.doctypes.User.user import User
+lazy from grunt.auth.doctypes.User.user import User
 
 _ERROR_LOG_JSON = (
     Path(__file__).resolve().parents[2] / "grunt/monitoring/doctypes/ErrorLog/ErrorLog.json"
@@ -26,7 +21,7 @@ _ERROR_LOG_JSON = (
 
 
 def _load() -> DocType:
-    return DocType.model_validate(json.loads(_ERROR_LOG_JSON.read_text(encoding="utf-8")))
+    return DocType.model_validate(json.loads(_ERROR_LOG_JSON.read_text()))
 
 
 def _plain_user() -> User:

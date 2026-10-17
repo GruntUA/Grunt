@@ -9,8 +9,6 @@ per-form configuration. A form only opts in via its own flag (e.g.
 site hasn't configured a provider at all, even if a form asks for it.
 """
 
-from __future__ import annotations
-
 from dataclasses import dataclass
 
 import httpx2

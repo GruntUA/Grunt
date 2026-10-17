@@ -11,8 +11,6 @@ Provides a dedicated search API optimised for Link field dropdowns:
     dropdown can show the data the user searched by.
 """
 
-from __future__ import annotations
-
 from typing import Any
 
 from sqlalchemy import or_, select
@@ -23,6 +21,7 @@ from grunt.errors import not_found
 from grunt.local import require_user
 from grunt.permissions.access import RoleAccess
 from grunt.permissions.rbac import permission_checker
+lazy from grunt.document.base import controller_class
 
 
 async def _identifier_search(
@@ -118,8 +117,6 @@ class DocumentLinkRPCMixin:
 
         # Virtual DocType - delegate to its controller's get_list
         if dt.is_virtual:
-            from grunt.document.base import controller_class
-
             result = await controller_class(dt).get_list(
                 doctype,
                 session=grunt.get_session(),

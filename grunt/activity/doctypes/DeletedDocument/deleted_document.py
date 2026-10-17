@@ -5,8 +5,6 @@ This module holds the controller plus the whitelisted :func:`restore` /
 :func:`bulk_restore` RPCs the trash-bin UI calls.
 """
 
-from __future__ import annotations
-
 import json
 from datetime import UTC, datetime
 from typing import Any

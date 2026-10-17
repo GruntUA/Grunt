@@ -1,16 +1,10 @@
 """WebAuthn provider - registry wiring + a full (crypto-mocked) passkey ceremony."""
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
-
 import pytest
+from httpx2 import AsyncClient
 
 from grunt.auth.doctypes.User.user import create_user
 from grunt.auth.service import verify_challenge_token
-
-if TYPE_CHECKING:
-    from httpx2 import AsyncClient
 
 _METHODS = "/api/v1/auth/methods"
 

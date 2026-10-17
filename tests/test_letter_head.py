@@ -1,7 +1,5 @@
 """Letterheads on printed documents, and the ``qr`` print filter."""
 
-from __future__ import annotations
-
 import pytest
 
 from grunt.print.filters import qr

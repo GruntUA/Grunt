@@ -9,14 +9,14 @@ In-process memory: correct for a single worker (the current deployment); with
 several workers a repeat that lands on another worker is executed again.
 """
 
-from __future__ import annotations
-
 import time
 from collections import OrderedDict
 
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import Response
+
+lazy from grunt.auth.service import decode_access_token
 
 _TTL_SECONDS = 24 * 3600
 _MAX_ENTRIES = 5000
@@ -31,7 +31,6 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
         auth = request.headers.get("authorization") or ""
         if not auth.lower().startswith("bearer "):
             return None
-        from grunt.auth.service import decode_access_token
 
         payload = decode_access_token(auth[7:])
         return payload.get("sub") if payload else None

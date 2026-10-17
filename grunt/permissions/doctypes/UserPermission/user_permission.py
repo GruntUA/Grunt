@@ -9,8 +9,6 @@ Enforcement lives in :mod:`grunt.permissions.user_permissions`, wired into
 ``PermissionChecker.check`` (single-document read / write / delete).
 """
 
-from __future__ import annotations
-
 import grunt
 from grunt import _
 from grunt.document.base import Document

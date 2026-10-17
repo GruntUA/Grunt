@@ -16,8 +16,6 @@ So Python always sees aware-UTC and every serialiser downstream emits an
 explicit ``+00:00`` the client can localise.
 """
 
-from __future__ import annotations
-
 from datetime import UTC, datetime
 from typing import Any
 

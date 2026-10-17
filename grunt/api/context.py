@@ -7,18 +7,17 @@ So app code reads ``grunt.get_user()`` / ``grunt.get_session()`` without
 passing session/user/engine through every call.
 """
 
-from __future__ import annotations
+import functools
+import inspect as _inspect
 
-from typing import TYPE_CHECKING
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
-from grunt.errors import forbidden
+from grunt.errors import ApplicationError, forbidden
 from grunt.local import _engine_ctx, _messages_ctx, _session_ctx, _site_ctx, _user_ctx, require_user
 from grunt.permissions.roles import user_has_roles
-
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
-
-    from grunt.auth.doctypes.User.user import User
+lazy from grunt.auth.doctypes.User.user import User
+lazy from grunt.i18n import _
+lazy from grunt.site.manager import site_manager
 
 
 def set_session(session: AsyncSession) -> None:
@@ -51,9 +50,6 @@ def get_user() -> User:
     """
     user = _user_ctx.get()
     if user is None:
-        from grunt.errors import ApplicationError
-        from grunt.i18n import _
-
         raise ApplicationError(_("Authentication required"), code="UNAUTHORIZED")
     return user
 
@@ -67,8 +63,6 @@ def get_engine() -> AsyncEngine:
     """Get the current engine."""
     engine = _engine_ctx.get()
     if engine is None:
-        from grunt.site.manager import site_manager
-
         site = get_site()
         engine = site_manager.get_engine(site)
         return engine
@@ -84,8 +78,6 @@ def get_site() -> str:
     """Get the current site."""
     site = _site_ctx.get()
     if site is None:
-        from grunt.site.manager import site_manager
-
         site = site_manager.get_active_site()
         return site
     return site
@@ -126,8 +118,6 @@ def whitelist(allow_guest: bool = False, *, roles: list[str] | None = None, requ
 
     def decorator(fn):
         if roles or require is not None:
-            import functools
-            import inspect as _inspect
 
             @functools.wraps(fn)
             async def wrapper(*args, **kwargs):

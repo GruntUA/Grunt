@@ -1,7 +1,5 @@
 """WebSocket endpoints for real-time document updates and user notifications."""
 
-from __future__ import annotations
-
 import asyncio
 import json
 from typing import Any
@@ -11,6 +9,10 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 import grunt
 from grunt import log
 from grunt.auth.doctypes.UserSession.user_session import client_ip
+lazy from grunt.auth.doctypes.User.user import get_user_by_email
+lazy from grunt.local import _site_ctx
+lazy from grunt.permissions.rbac import permission_checker
+lazy from grunt.site.manager import site_manager
 
 router = APIRouter()
 
@@ -286,7 +288,6 @@ def _ws_site(websocket: WebSocket) -> str:
     Mirrors ``SiteContextMiddleware``: the Host header if it names a known site,
     otherwise the active-site fallback.
     """
-    from grunt.site.manager import site_manager
 
     host = (websocket.headers.get("host") or "").split(":")[0]
     if host and host in site_manager.get_sites():
@@ -303,10 +304,6 @@ async def _ws_user_can_read(
     A realtime room carries document data (``doc_change``) and other users'
     presence, so joining it must require read access, not just a valid login.
     """
-    from grunt.auth.doctypes.User.user import get_user_by_email
-    from grunt.local import _site_ctx
-    from grunt.permissions.rbac import permission_checker
-    from grunt.site.manager import site_manager
 
     site = _ws_site(websocket)
     site_token = _site_ctx.set(site)

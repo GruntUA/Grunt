@@ -2,8 +2,6 @@
 plus its scalar properties in columns, which the DocType list queries like
 any regular table."""
 
-from __future__ import annotations
-
 import pytest
 
 from grunt.auth.doctypes.User.user import SYSTEM_USER

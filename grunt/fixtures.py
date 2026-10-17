@@ -21,20 +21,15 @@ site. Child rows keep their ``doctype`` and data fields only - the parent
 re-creates them.
 """
 
-from __future__ import annotations
-
 import json
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any
+from pathlib import Path
+from typing import Any
 
 import grunt
 from grunt.document.serde import to_json, with_doctype
 from grunt.utils.strings import to_snake_case
-
-if TYPE_CHECKING:
-    from pathlib import Path
-
-    from grunt.document.meta import Meta
+lazy from grunt.document.meta import Meta
 
 
 @dataclass(frozen=True, slots=True)
@@ -138,6 +133,6 @@ async def export_fixtures(specs: list[FixtureSpec], fixtures_dir: Path) -> list[
         records = await export_records(spec)
         path = fixtures_dir / spec.filename
         payload = {"doctype": spec.doctype, "sync": True, "records": records}
-        path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n")
         written.append((path, len(records)))
     return written

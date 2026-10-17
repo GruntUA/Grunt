@@ -81,7 +81,7 @@ def fixture_catalog(tmp_path, monkeypatch):
     for lang, text in (("uk", _UK_PO), ("en", _EN_PO)):
         po_dir = tmp_path / lang / "LC_MESSAGES"
         po_dir.mkdir(parents=True)
-        (po_dir / "grunt.po").write_text(text, encoding="utf-8")
+        (po_dir / "grunt.po").write_text(text)
 
     monkeypatch.setattr(svc, "_LOCALE_DIR", tmp_path)
     monkeypatch.setattr(svc, "_app_locale_po_files", lambda _lang: [])
@@ -342,7 +342,7 @@ class TestUiLanguages:
     def test_discovered_from_po_catalogs(self, fixture_catalog):
         assert translation_service.ui_languages() == ["en", "uk"]
         (fixture_catalog / "pl" / "LC_MESSAGES").mkdir(parents=True)
-        (fixture_catalog / "pl" / "LC_MESSAGES" / "grunt.po").write_text(_EN_PO, encoding="utf-8")
+        (fixture_catalog / "pl" / "LC_MESSAGES" / "grunt.po").write_text(_EN_PO)
         translation_service.reload()
         assert translation_service.ui_languages() == ["en", "pl", "uk"]
         assert "pl" in translation_service.supported_langs()

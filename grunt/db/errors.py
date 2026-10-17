@@ -1,7 +1,5 @@
 """Translate low-level database errors into user-friendly HTTP responses."""
 
-from __future__ import annotations
-
 import re
 from typing import Any
 

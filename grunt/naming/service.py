@@ -8,12 +8,11 @@ Supports:
   - ""  (empty)                  -> falls back to "hash"
 """
 
-from __future__ import annotations
-
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from sqlalchemy import select, update
+from sqlalchemy.ext.asyncio import AsyncSession
 
 import grunt
 from grunt import _, log
@@ -25,9 +24,6 @@ from grunt.naming.patterns import (
     parse_pattern,
     resolve_simple,
 )
-
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class NamingService:

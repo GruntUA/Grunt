@@ -10,19 +10,14 @@ skipped steps and hidden checklists are ``OnboardingProgress`` rows - with an
 empty ``user`` for a site checklist; so are the tours a user has taken.
 """
 
-from __future__ import annotations
-
 import copy
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 import grunt
 from grunt import _
 from grunt.api.v1.dashboard import page_visible
-from grunt.auth.doctypes.User.user import SYSTEM_USER
+from grunt.auth.doctypes.User.user import SYSTEM_USER, User
 from grunt.i18n.meta import translate_record
-
-if TYPE_CHECKING:
-    from grunt.auth.doctypes.User.user import User
 
 AUTO_ACTIONS = ("Create Entry", "Update Settings", "Take a Tour")
 _MARKS = ("Completed", "Skipped")

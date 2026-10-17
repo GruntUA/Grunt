@@ -1,7 +1,5 @@
 """grunt.aggregate - permission-aware GROUP BY, and the MCP ``aggregate`` tool."""
 
-from __future__ import annotations
-
 import json
 from typing import Any
 

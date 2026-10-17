@@ -1,16 +1,11 @@
 """MultiLink service - manages many-to-many relationships via junction table."""
 
-from __future__ import annotations
-
 from itertools import islice
-from typing import TYPE_CHECKING
 
 from sqlalchemy import delete, select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from grunt.metadata.compiler import MULTI_LINK_TABLE
-
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class MultiLinkService:

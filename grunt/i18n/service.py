@@ -19,22 +19,18 @@ Usage:
     ngettext("%(count)d document", "%(count)d documents", count) % {"count": count}
 """
 
-from __future__ import annotations
-
 import gettext as _gettext
 import secrets
+from collections.abc import Callable, Iterator
 from contextlib import contextmanager
 from contextvars import ContextVar, Token
 from pathlib import Path
-from typing import TYPE_CHECKING
+
+lazy import polib
 
 import grunt
 from grunt.i18n.plurals import plural_index
 from grunt.log import log
-
-if TYPE_CHECKING:
-    from collections.abc import Callable, Iterator
-
 
 # Directory containing locale files (uk/LC_MESSAGES/grunt.po)
 _LOCALE_DIR = Path(__file__).parent / "locales"
@@ -112,7 +108,7 @@ def _load_translations(lang: str) -> _gettext.GNUTranslations | _gettext.NullTra
 
 def _parse_po_file(path: Path) -> dict[str, str]:
     """Parse a PO *file*. See :func:`parse_po_string` for the format notes."""
-    with open(path, encoding="utf-8") as f:
+    with open(path) as f:
         return parse_po_string(f.read())
 
 
@@ -124,7 +120,6 @@ def parse_po_string(text: str) -> dict[str, str]:
     Multi-line (wrapped) strings are joined; obsolete, fuzzy and untranslated
     entries are skipped - the same set ``msgfmt`` would compile.
     """
-    import polib
 
     catalog: dict[str, str] = {}
     for entry in polib.pofile(text):

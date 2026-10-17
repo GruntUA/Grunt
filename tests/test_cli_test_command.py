@@ -1,7 +1,5 @@
 """`grunt test`: the framework and every app run in their own pytest session."""
 
-from __future__ import annotations
-
 import importlib
 from types import SimpleNamespace
 
@@ -46,9 +44,7 @@ def test_paths(tmp_path):
 @pytest.fixture
 def bench(tmp_path, monkeypatch):
     root = _bench(tmp_path)
-    import grunt.site.manager as manager
-
-    monkeypatch.setattr(manager, "site_manager", SimpleNamespace(bench_dir=root))
+    monkeypatch.setattr(cli_test, "site_manager", SimpleNamespace(bench_dir=root))
     return root
 
 

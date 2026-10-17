@@ -18,8 +18,6 @@ producing real shell command output. This test must always fail loudly
 succeeding), the sandbox has regressed.
 """
 
-from __future__ import annotations
-
 import pytest
 
 from grunt.scripting.safe_globals import build_safe_globals, compile_script, validate_script

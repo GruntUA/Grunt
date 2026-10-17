@@ -1,15 +1,11 @@
 """Realtime API mixin for GruntApp facade."""
 
-from __future__ import annotations
+from typing import Any
 
-from typing import TYPE_CHECKING, Any
-
+from grunt.publish import MessageType
 from grunt.publish import broadcast as _broadcast
 from grunt.publish import notify as _notify
 from grunt.publish import publish as _publish
-
-if TYPE_CHECKING:
-    from grunt.publish import MessageType
 
 
 class RealtimeAPI:

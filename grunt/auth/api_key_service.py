@@ -10,23 +10,16 @@ Security notes:
   - The key_prefix is public and allows O(1) DB lookup without scanning all keys.
 """
 
-from __future__ import annotations
-
 import hashlib
 import secrets
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING
+
+from sqlalchemy.ext.asyncio import AsyncSession
 
 import grunt
 from grunt import log
-from grunt.auth.doctypes.User.user import get_user_by_id
+from grunt.auth.doctypes.User.user import User, get_user_by_id
 from grunt.auth.ip_policy import ip_allowed, parse_ip_list
-
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession
-
-    from grunt.auth.doctypes.User.user import User
-
 
 _KEY_PREFIX = "grnt_"
 _KEY_BYTES = 32  # 64 hex chars

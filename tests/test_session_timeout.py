@@ -1,7 +1,5 @@
 """SystemSettings.session_timeout is the idle timeout of a UserSession."""
 
-from __future__ import annotations
-
 from datetime import UTC, datetime
 
 import jwt

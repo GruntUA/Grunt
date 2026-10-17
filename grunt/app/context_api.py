@@ -1,24 +1,17 @@
 """Context/session API mixin for GruntApp facade."""
 
-from __future__ import annotations
-
 import contextlib
-from typing import TYPE_CHECKING
+from collections.abc import AsyncGenerator
 
-from grunt.auth.doctypes.User.user import SYSTEM_USER
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
+
+from grunt.auth.doctypes.User.user import SYSTEM_USER, User
 from grunt.local import (
     _bootstrap_ctx,
     _engine_ctx,
     _session_ctx,
     _user_ctx,
 )
-
-if TYPE_CHECKING:
-    from collections.abc import AsyncGenerator
-
-    from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
-
-    from grunt.auth.doctypes.User.user import User
 
 
 class ContextAPI:

@@ -19,12 +19,11 @@ a row in the Translate registry. ``pgettext`` also falls back to a context-free
 translation of the same string, so a term needs translating only once.
 """
 
-from __future__ import annotations
-
 from typing import Any
 
 from grunt.i18n.service import translation_service
 from grunt.metadata.field import fieldtypes_with
+lazy import grunt
 
 # Types whose value is picked from ``options`` - their choices get translated.
 SELECT_FIELDTYPES = fieldtypes_with("options")
@@ -88,7 +87,6 @@ async def translate_record(doc: dict[str, Any], lang: str | None = None) -> dict
     collects these values from the record files, the reader shows them in the
     user's language.
     """
-    import grunt
 
     meta = await grunt.get_meta(doc.get("doctype") or "")
     if meta is None:

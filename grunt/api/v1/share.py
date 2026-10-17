@@ -1,12 +1,11 @@
 """Document share whitelisted methods."""
 
-from __future__ import annotations
-
 from datetime import UTC, datetime
 from typing import Any
 
 import grunt
 from grunt import _, log
+lazy from grunt.storage.signing import sign_all_file_urls
 
 
 @grunt.whitelist(allow_guest=True)
@@ -64,8 +63,6 @@ async def get_shared_document(token: str) -> dict[str, Any]:
 
     doc_out = {k: (str(v) if v is not None else None) for k, v in doc.items()}
     await _inject_top_level_link_labels(meta, doc_out)
-
-    from grunt.storage.signing import sign_all_file_urls
 
     # The share token authorises this whole document (and its attachments) for a
     # guest who has no user to permission-check per file, so sign every file URL

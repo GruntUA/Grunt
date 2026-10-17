@@ -1,17 +1,12 @@
 """UserSession — one row per signed-in device, holding its refresh token."""
 
-from __future__ import annotations
-
 from datetime import UTC, datetime, timedelta
-from typing import TYPE_CHECKING
 
 import jwt
 import pytest
+from httpx2 import AsyncClient
 
 from grunt.config import settings as cfg
-
-if TYPE_CHECKING:
-    from httpx2 import AsyncClient
 
 _M = "/api/v1/method/grunt.auth.doctypes"
 _LOGIN = f"{_M}.User.user.login_api"

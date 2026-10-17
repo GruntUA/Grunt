@@ -11,8 +11,6 @@ Blobs moved to cloud storage (grunt.storage.cloud.files) are collected there
 the same way, and the local cache of fetched copies is trimmed.
 """
 
-from __future__ import annotations
-
 import asyncio
 import hashlib
 import json
@@ -22,6 +20,7 @@ from typing import Any
 import grunt
 from grunt import log
 from grunt.storage.backends import CHUNK_SIZE, get_storage_backend
+lazy from grunt.storage.cloud.files import collect_remote_garbage, remote_listing
 
 GRACE_SECONDS = 3600
 
@@ -79,7 +78,6 @@ async def collect_garbage(grace_seconds: int = GRACE_SECONDS) -> dict[str, Any]:
     tmp_removed = await asyncio.to_thread(storage.sweep_tmp, cutoff)
 
     report = {"freed_blobs": freed, "freed_bytes": freed_bytes, "tmp_removed": tmp_removed}
-    from grunt.storage.cloud.files import collect_remote_garbage
 
     report |= await collect_remote_garbage(grace_seconds)
     log.info("storage.gc", **report)
@@ -98,7 +96,6 @@ async def verify(rehash: bool = False) -> dict[str, list[str]]:
     """Find ``File`` rows whose blob is missing, unreferenced blobs, and - with
     *rehash* - blobs whose bytes no longer match their name (disk corruption).
     """
-    from grunt.storage.cloud.files import remote_listing
 
     storage = get_storage_backend()
     rows = await grunt.db.get_all(

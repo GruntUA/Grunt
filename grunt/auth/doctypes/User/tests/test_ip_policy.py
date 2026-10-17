@@ -1,19 +1,13 @@
 """Role.allowed_ips: sign-in only from listed addresses; forwarded-IP headers are
 trusted only from settings.trusted_proxies."""
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
-
 import pytest
+from httpx2 import AsyncClient
 from starlette.requests import Request
 
 from grunt.auth.doctypes.User.user import create_user
 from grunt.auth.doctypes.UserSession.user_session import client_ip
 from grunt.auth.ip_policy import ip_allowed, parse_ip_list
-
-if TYPE_CHECKING:
-    from httpx2 import AsyncClient
 
 M = "/api/v1/method/grunt.auth.doctypes.User.user"
 EMAIL = "root@grunt.example.com"

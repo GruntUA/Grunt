@@ -1,7 +1,5 @@
 """UserRole DocType controller - child table of ``User.roles``."""
 
-from __future__ import annotations
-
 import grunt
 from grunt.document.base import Document
 

@@ -1,8 +1,6 @@
 """Module onboarding: steps that complete by the facts they ask for, manual
 marks and skips, site vs per-user progress, roles, hiding, stable step ids."""
 
-from __future__ import annotations
-
 import pytest
 from fastapi import HTTPException
 

@@ -1,8 +1,6 @@
 """DocType web view: documents of an opted-in DocType are served as public
 pages at ``/<web_route>/<route>`` (grunt.website.generator)."""
 
-from __future__ import annotations
-
 import pytest
 
 ARTICLE = {

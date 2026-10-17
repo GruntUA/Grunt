@@ -14,8 +14,6 @@ The full suite runs in CI; locally only what the change can break:
 Frontend files are handed to ``vitest related``, which follows imports itself.
 """
 
-from __future__ import annotations
-
 import re
 import subprocess
 from dataclasses import dataclass, field

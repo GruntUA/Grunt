@@ -7,8 +7,6 @@ so the generic CRUD API already keeps the journal append-only; this controller
 only exists to give the record a typed shape.
 """
 
-from __future__ import annotations
-
 from grunt.document.base import Document
 
 

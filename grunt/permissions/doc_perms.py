@@ -5,8 +5,6 @@ Permissions, DocShare grants), evaluated up front so the UI hides actions the
 server would refuse instead of letting the user edit and then answering 403.
 """
 
-from __future__ import annotations
-
 from typing import Any
 
 import grunt

@@ -2,8 +2,6 @@
 public files (e.g. avatars, website images) from being signed and served to
 anyone - otherwise cross-user avatar display breaks."""
 
-from __future__ import annotations
-
 from urllib.parse import parse_qs, urlparse
 
 import pytest

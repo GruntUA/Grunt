@@ -1,17 +1,12 @@
 """Dashboard widget type registry - the WidgetType counterpart of grunt.metadata.field."""
 
-from __future__ import annotations
-
 import importlib.util
+from datetime import datetime
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, ClassVar
+from typing import Any, ClassVar
 
 from grunt import _, log
 from grunt.metadata.dynamic_options import register_option_provider
-
-if TYPE_CHECKING:
-    from datetime import datetime
-
 
 # WidgetType base class
 

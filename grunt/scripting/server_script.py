@@ -24,23 +24,22 @@ Available in scripts::
     grunt.log("debug info")            # captured stdout
 """
 
-from __future__ import annotations
-
 import asyncio
 import contextlib
 import functools
 import io
-from datetime import UTC
-from typing import TYPE_CHECKING, Any, NoReturn, TypeVar
+from collections.abc import Awaitable, Callable, Coroutine
+from datetime import UTC, datetime
+from typing import Any, NoReturn, TypeVar
 
+from sqlalchemy.ext.asyncio import AsyncSession
+
+import grunt
 from grunt import log
 from grunt.scripting.safe_globals import build_safe_globals, compile_script, validate_script
-
-if TYPE_CHECKING:
-    from collections.abc import Awaitable, Callable, Coroutine
-
-    from sqlalchemy.ext.asyncio import AsyncSession
-
+lazy from grunt.app import GruntDB
+lazy from grunt.local import _session_ctx
+lazy from grunt.publish import notify as _notify
 
 _T = TypeVar("_T")
 
@@ -116,7 +115,6 @@ class _DBProxy:
         self._session = session
 
     async def _run_with_session(self, action: Callable[[], Awaitable[_T]]) -> _T:
-        from grunt.local import _session_ctx
 
         token = _session_ctx.set(self._session)
         try:
@@ -127,7 +125,6 @@ class _DBProxy:
     @_bridged
     async def get_value(self, doctype: str, filters: str | dict[str, Any], fieldname: str) -> Any:
         """Get a single field value from a document."""
-        from grunt.app import GruntDB
 
         return await self._run_with_session(
             lambda: GruntDB().get_value(doctype, filters, fieldname)
@@ -136,14 +133,12 @@ class _DBProxy:
     @_bridged
     async def set_value(self, doctype: str, doc_id: str, fieldname: str, value: Any) -> None:
         """Update a single field value on a document."""
-        from grunt.app import GruntDB
 
         await self._run_with_session(lambda: GruntDB().set_value(doctype, doc_id, fieldname, value))
 
     @_bridged
     async def exists(self, doctype: str, filters: str | dict[str, Any]) -> str | None:
         """Return document name if it exists, else None."""
-        from grunt.app import GruntDB
 
         return await self._run_with_session(lambda: GruntDB().exists(doctype, filters))
 
@@ -159,7 +154,6 @@ class _DBProxy:
         order: str = "desc",
     ) -> list[dict[str, Any]]:
         """Fetch a list of documents as plain dicts."""
-        from grunt.app import GruntDB
 
         return await self._run_with_session(
             lambda: GruntDB().get_all(
@@ -218,7 +212,6 @@ class ScriptContext:
         return self._session
 
     async def _run_with_session(self, action: Callable[[], Awaitable[_T]]) -> _T:
-        from grunt.local import _session_ctx
 
         token = _session_ctx.set(self._get_session())
         try:
@@ -279,7 +272,6 @@ class ScriptContext:
     async def _get_doc_impl(
         self, doctype: str, filters_or_id: str | dict[str, Any]
     ) -> dict[str, Any] | None:
-        from grunt.app import GruntDB
 
         async def _action() -> dict[str, Any] | None:
             db = GruntDB()
@@ -316,7 +308,6 @@ class ScriptContext:
         fields: list[str] | None,
         limit: int,
     ) -> list[dict[str, Any]]:
-        from grunt.app import GruntDB
 
         return await self._run_with_session(
             lambda: GruntDB().get_all(
@@ -337,7 +328,6 @@ class ScriptContext:
         return self._run_or_raise(self._new_doc_impl(doctype, data), "new_doc")
 
     async def _new_doc_impl(self, doctype: str, data: dict[str, Any]) -> dict[str, Any]:
-        import grunt
 
         return await self._run_with_session(lambda: grunt.new_doc(doctype, data))
 
@@ -353,9 +343,6 @@ class ScriptContext:
     async def _save_doc_impl(
         self, doctype: str, id_or_name: str, data: dict[str, Any]
     ) -> dict[str, Any]:
-        from datetime import datetime
-
-        from grunt.app import GruntDB
 
         async def _action() -> dict[str, Any]:
             update_data = dict(data)
@@ -377,7 +364,6 @@ class ScriptContext:
         self._run_or_raise(self._delete_doc_impl(doctype, id_or_name), "delete_doc")
 
     async def _delete_doc_impl(self, doctype: str, id_or_name: str) -> None:
-        from grunt.app import GruntDB
 
         async def _action() -> None:
             deleted = await GruntDB().delete(doctype, {"id": id_or_name})
@@ -396,7 +382,6 @@ class ScriptContext:
         return self._run_or_default(self._count_impl(doctype, filters), 0)
 
     async def _count_impl(self, doctype: str, filters: dict[str, Any] | None) -> int:
-        from grunt.app import GruntDB
 
         return await self._run_with_session(lambda: GruntDB().count(doctype, filters=filters))
 
@@ -424,7 +409,6 @@ class ScriptContext:
         doctype: str | None,
         doc_id: str | None,
     ) -> list[str]:
-        from grunt.publish import notify as _notify
 
         return await _notify(
             users=users,
@@ -462,8 +446,6 @@ class ServerScriptRunner:
         self, session: AsyncSession, doctype: str, event: str
     ) -> list[dict[str, Any]]:
         """Load enabled server scripts for a specific DocType event."""
-        from grunt.app import GruntDB
-        from grunt.local import _session_ctx
 
         token = _session_ctx.set(session)
         try:
@@ -504,8 +486,6 @@ class ServerScriptRunner:
 
     async def load_api_script(self, session: AsyncSession, method: str) -> dict[str, Any] | None:
         """Load an API-type server script by method name."""
-        from grunt.app import GruntDB
-        from grunt.local import _session_ctx
 
         token = _session_ctx.set(session)
         try:
@@ -536,8 +516,6 @@ class ServerScriptRunner:
 
     async def load_scheduler_scripts(self, session: AsyncSession) -> list[dict[str, Any]]:
         """Load all enabled scheduler-type server scripts."""
-        from grunt.app import GruntDB
-        from grunt.local import _session_ctx
 
         token = _session_ctx.set(session)
         try:

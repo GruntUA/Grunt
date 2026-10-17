@@ -17,12 +17,13 @@ record is inserted, an existing one updated to match - the files are the
 source of truth - and an unchanged one is not touched.
 """
 
-from __future__ import annotations
-
 import hashlib
 import json
 import shutil
-from typing import TYPE_CHECKING, Any
+from pathlib import Path
+from typing import Any
+
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 import grunt
 from grunt import log
@@ -32,13 +33,8 @@ from grunt.fixtures import clean_record
 from grunt.site.manager import site_manager
 from grunt.utils.slug import slugify
 from grunt.utils.strings import to_snake_case
-
-if TYPE_CHECKING:
-    from pathlib import Path
-
-    from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
-
-    from grunt.document.meta import Meta
+lazy from grunt.document.meta import Meta
+lazy from grunt.startup.fixtures import _GRUNT_ROOT, _apply_doctype_fixture, _load_app_meta
 
 RECORDS_DIR = "records"
 
@@ -64,7 +60,6 @@ def _code_extension(options: str | None) -> str:
 
 def _app_root(app: str) -> Path | None:
     """The package directory of *app* that holds its ``records/`` folder."""
-    from grunt.startup.fixtures import _GRUNT_ROOT, _load_app_meta
 
     if app == "grunt":
         return _GRUNT_ROOT
@@ -80,7 +75,6 @@ def _app_root(app: str) -> Path | None:
 
 def _records_dirs(app: str) -> list[Path]:
     """Every ``records/`` folder of *app* (core: one per module)."""
-    from grunt.startup.fixtures import _GRUNT_ROOT, _load_app_meta
 
     if app == "grunt":
         return sorted(_GRUNT_ROOT.glob(f"*/{RECORDS_DIR}"))
@@ -90,12 +84,7 @@ def _records_dirs(app: str) -> list[Path]:
 
 
 def _doctype_dir(app: str, meta: Meta) -> Path | None:
-    if app == "grunt":
-        from grunt.startup.fixtures import _GRUNT_ROOT
-
-        root = _GRUNT_ROOT / meta.doc.module
-    else:
-        root = _app_root(app)
+    root = _GRUNT_ROOT / meta.doc.module if app == "grunt" else _app_root(app)
     if root is None or not root.is_dir():
         return None
     return root / RECORDS_DIR / to_snake_case(meta.doc.name.replace(" ", ""))
@@ -103,7 +92,7 @@ def _doctype_dir(app: str, meta: Meta) -> Path | None:
 
 def _record_name(folder: Path) -> str | None:
     try:
-        data = json.loads((folder / f"{folder.name}.json").read_text(encoding="utf-8"))
+        data = json.loads((folder / f"{folder.name}.json").read_text())
     except OSError, ValueError:
         return None
     return data.get("name") if isinstance(data, dict) else None
@@ -134,8 +123,8 @@ def _folders_of(doctype: str, name: str) -> list[Path]:
 
 
 def _write(path: Path, text: str) -> None:
-    if not path.exists() or path.read_text(encoding="utf-8") != text:
-        path.write_text(text, encoding="utf-8")
+    if not path.exists() or path.read_text() != text:
+        path.write_text(text)
 
 
 async def export_record(meta: Meta, doc: dict[str, Any]) -> Path | None:
@@ -211,7 +200,7 @@ async def sync_files(event: str, **kwargs: Any) -> None:
 def read_record(folder: Path) -> dict[str, Any] | None:
     """The document JSON in *folder*, with its Code fields read back in."""
     try:
-        record = json.loads((folder / f"{folder.name}.json").read_text(encoding="utf-8"))
+        record = json.loads((folder / f"{folder.name}.json").read_text())
     except OSError, ValueError:
         return None
     if not isinstance(record, dict) or not record.get("doctype") or not record.get("name"):
@@ -219,7 +208,7 @@ def read_record(folder: Path) -> dict[str, Any] | None:
     for path in folder.iterdir():
         stem = path.name.split(".", 1)[0]
         if path.is_file() and path.name != f"{folder.name}.json" and stem not in record:
-            record[stem] = path.read_text(encoding="utf-8")
+            record[stem] = path.read_text()
     return record
 
 
@@ -239,7 +228,6 @@ async def apply_records(app: str, session: AsyncSession, eng: AsyncEngine) -> in
 
 
 async def _apply_folder(app: str, folder: Path, session: AsyncSession, eng: AsyncEngine) -> int:
-    from grunt.startup.fixtures import _apply_doctype_fixture
 
     record = read_record(folder)
     if record is None:

@@ -9,8 +9,6 @@
   ``2026-09``, ``2026-Q3``, ``2026``.
 """
 
-from __future__ import annotations
-
 import re
 from datetime import date, timedelta
 from typing import Any

@@ -2,8 +2,6 @@
 facade resolves the calling module cheaply, and re-configuring replaces the
 console handler instead of stacking a second one."""
 
-from __future__ import annotations
-
 import io
 import logging
 import sys

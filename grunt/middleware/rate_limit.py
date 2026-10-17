@@ -14,28 +14,23 @@ JWT is decoded lightly - only to extract email + roles claims.
 The signature IS verified (same secret_key) so the tier cannot be spoofed.
 """
 
-from __future__ import annotations
-
 import asyncio
 import time
 from collections import defaultdict
 from html import escape
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 import jwt
 from fastapi import status
 from fastapi.responses import HTMLResponse, JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request
+from starlette.responses import Response
 
 from grunt import _, log
 from grunt.auth.doctypes.UserSession.user_session import client_ip
 from grunt.config import settings
 from grunt.errors import error_body
-
-if TYPE_CHECKING:
-    from starlette.requests import Request
-    from starlette.responses import Response
-
 
 # Paths that are always exempt from rate limiting (public assets, health checks)
 _EXEMPT_PREFIXES = ("/assets/", "/api/docs", "/api/redoc", "/openapi.json", "/health")

@@ -1,11 +1,7 @@
 """Database layer - engine, session, and high-level helpers."""
 
-from typing import TYPE_CHECKING
-
 from grunt.db.session import get_engine, get_session
-
-if TYPE_CHECKING:
-    from grunt.db.api import GruntDB
+lazy from grunt.db.api import GruntDB
 
 __all__ = [
     "GruntDB",

@@ -2,10 +2,6 @@
 sees/touches - lists, counts, single-doc read/write, the Restrictions popup
 payload, is_default form defaults, and strict mode."""
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
-
 import pytest
 from fastapi import HTTPException
 
@@ -14,9 +10,7 @@ from grunt.api.v1.meta import save_doctype
 from grunt.permissions.user_permissions import get_active_restrictions
 from grunt.site.settings import clear_settings_cache
 from tests.support import make_user
-
-if TYPE_CHECKING:
-    from grunt.auth.doctypes.User.user import User
+lazy from grunt.auth.doctypes.User.user import User
 
 POST_DOCTYPE = {
     "name": "UPTestPost",

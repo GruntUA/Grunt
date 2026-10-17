@@ -1,8 +1,6 @@
 """``grunt version`` and ``grunt release``: versions come from git tags ``vX.Y.Z``
 (see :mod:`grunt.version`)."""
 
-from __future__ import annotations
-
 import re
 import subprocess
 from datetime import date
@@ -10,6 +8,9 @@ from pathlib import Path
 
 import click
 from packaging.version import InvalidVersion, Version
+
+lazy from grunt.site.manager import site_manager
+lazy from grunt.version import app_version, compatibility_error, framework_version
 
 CHANGELOG = "CHANGELOG.md"
 _CONVENTIONAL = re.compile(
@@ -21,7 +22,6 @@ _SECTION_ORDER = ("Breaking changes", "Features", "Fixes", "Performance", "Other
 
 
 def _apps_dir() -> Path:
-    from grunt.site.manager import site_manager
 
     return site_manager.bench_dir / "apps"
 
@@ -112,7 +112,6 @@ def prepend_changelog(path: Path, section: str) -> None:
 @click.command("version")
 def version() -> None:
     """Show the framework and app versions."""
-    from grunt.version import app_version, compatibility_error, framework_version
 
     click.echo(f"grunt {framework_version()}")
     for app_dir in sorted(_apps_dir().iterdir()):

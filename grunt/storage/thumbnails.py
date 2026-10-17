@@ -8,10 +8,11 @@ full-size originals, and PDFs finally get a real preview instead of an icon.
 PDFs are rendered with pypdfium2 (PDFium, Apache/BSD - no AGPL dependency).
 """
 
-from __future__ import annotations
-
 import asyncio
 import io
+
+lazy import pypdfium2 as pdfium
+lazy from PIL import Image
 
 from grunt import log
 
@@ -28,7 +29,6 @@ def can_thumbnail(content_type: str | None) -> bool:
 
 
 def _to_webp(image, width: int) -> bytes:  # PIL.Image.Image
-    from PIL import Image
 
     if image.mode not in ("RGB", "RGBA"):
         image = image.convert("RGBA" if "A" in image.getbands() else "RGB")
@@ -40,8 +40,6 @@ def _to_webp(image, width: int) -> bytes:  # PIL.Image.Image
 
 def _render(content: bytes, content_type: str, width: int) -> bytes:
     if content_type == "application/pdf":
-        import pypdfium2 as pdfium
-
         pdf = pdfium.PdfDocument(content)
         try:
             page = pdf[0]
@@ -49,8 +47,6 @@ def _render(content: bytes, content_type: str, width: int) -> bytes:
             return _to_webp(page.render(scale=scale).to_pil(), width)
         finally:
             pdf.close()
-
-    from PIL import Image
 
     with Image.open(io.BytesIO(content)) as image:
         image.seek(0)  # first frame of an animated GIF / WebP

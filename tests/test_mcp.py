@@ -1,7 +1,5 @@
 """MCP server at /api/v1/mcp - JSON-RPC protocol, auth and the core tools."""
 
-from __future__ import annotations
-
 import json
 
 import pytest

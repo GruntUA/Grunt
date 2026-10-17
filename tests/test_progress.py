@@ -1,4 +1,4 @@
-from __future__ import annotations
+import inspect
 
 import pytest
 
@@ -102,7 +102,7 @@ def _as_user(monkeypatch, email):
 
 
 # The System Manager check lives in the whitelist wrapper; tests call the body.
-_cancel_job = progress_mod.cancel_job.__wrapped__
+_cancel_job = inspect.unwrap(progress_mod.cancel_job)
 
 
 @pytest.mark.asyncio

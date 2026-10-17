@@ -4,8 +4,6 @@ RPC: grunt.document.base.Document.get_workflow_transitions
 RPC: grunt.document.base.Document.apply_workflow_transition
 """
 
-from __future__ import annotations
-
 from typing import Any
 
 import grunt

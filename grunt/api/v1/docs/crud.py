@@ -1,7 +1,5 @@
 """CRUD operations for Documents."""
 
-from __future__ import annotations
-
 import asyncio
 from typing import Any
 
@@ -18,13 +16,13 @@ from grunt.document.bulk_ops import BulkDeleteTask
 from grunt.permissions.doc_perms import PERMS_KEY, with_permissions
 from grunt.site.manager import current_site
 from grunt.website.generator import WEB_URL_KEY, with_web_url
+lazy from grunt.storage.signing import sign_authorized_file_urls
 
 router = GruntRouter()
 
 
 async def _decorate(doctype: str, doc: Any) -> Any:
     """The form's computed extras: ``__perms`` and, for a web page, ``__web_url``."""
-    from grunt.storage.signing import sign_authorized_file_urls
 
     decorated = await with_web_url(doctype, await with_permissions(doctype, doc))
     return await sign_authorized_file_urls(decorated, grunt.get_user())
@@ -59,7 +57,6 @@ async def list_documents(
         search=search,
         cursor=cursor,
     )
-    from grunt.storage.signing import sign_authorized_file_urls
 
     payload = await sign_authorized_file_urls(result.to_dict(), user)
     return ok(**payload)

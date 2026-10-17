@@ -1,7 +1,5 @@
 """«Стан системи»: a live, read-only virtual singleton of health checks."""
 
-from __future__ import annotations
-
 import pytest
 
 from grunt.monitoring import health

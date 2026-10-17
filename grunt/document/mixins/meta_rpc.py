@@ -6,12 +6,21 @@ RPC: grunt.document.base.Document.get_preview
 RPC: grunt.document.base.Document.get_field_years
 """
 
-from __future__ import annotations
-
 from typing import Any
+
+from fastapi import HTTPException
 
 import grunt
 from grunt.i18n import _
+lazy from grunt.activity.milestones import history as milestone_history
+lazy from grunt.auth.doctypes.User.user import get_users_by_emails
+lazy from grunt.document import collection
+lazy from grunt.document.links import link_service
+lazy from grunt.document.sidebar import collect_sections
+lazy from grunt.document.titles import resolve_reference_titles
+lazy from grunt.permissions.guards import doc_guard, read_guard
+lazy from grunt.permissions.rbac import permission_checker
+lazy from grunt.permissions.types import PermissionAction
 
 
 def _iso(value: Any) -> str | None:
@@ -26,7 +35,6 @@ async def _optional(coro: Any, fallback: Any) -> Any:
     just get an empty section - not a failed sidebar and a stray "access
     denied" toast.
     """
-    from fastapi import HTTPException
 
     try:
         return await coro
@@ -43,8 +51,6 @@ class DocumentMetaRPCMixin:
     @grunt.whitelist()
     async def get_field_years(doctype: str, fieldname: str) -> list[int]:
         """Years present in a Date/Datetime field, newest first (year quick filter)."""
-        from grunt.document import collection
-        from grunt.permissions.guards import read_guard
 
         _dt, user, hidden_fields = await read_guard(doctype)
         if fieldname in hidden_fields:
@@ -63,9 +69,6 @@ class DocumentMetaRPCMixin:
         # Permission verification
         await grunt.get_doc(doctype, doc_id)
 
-        from grunt.document.links import link_service
-        from grunt.document.titles import resolve_reference_titles
-
         rows = await link_service.get_backlinks(grunt.get_session(), doctype, doc_id)
         refs = [(r["source_doctype"], r["source_id"]) for r in rows]
         titles = await resolve_reference_titles(refs)
@@ -82,13 +85,10 @@ class DocumentMetaRPCMixin:
         doc_ids: list[str] | None = None,
     ) -> dict[str, Any]:
         """Summarise what references the given document(s) - see LinkService."""
-        from grunt.permissions.guards import doc_guard
 
         ids = list(doc_ids) if doc_ids else ([doc_id] if doc_id else [])
         for one in ids:
             await doc_guard(doctype, one)  # permission check per id
-
-        from grunt.document.links import link_service
 
         return await link_service.get_delete_impact(grunt.get_session(), doctype, ids)
 
@@ -219,8 +219,6 @@ class DocumentMetaRPCMixin:
             [],
         )
 
-        from grunt.activity.milestones import history as milestone_history
-
         milestones = await _optional(milestone_history(doctype, doc_id), [])
 
         reminders = await _optional(
@@ -240,10 +238,6 @@ class DocumentMetaRPCMixin:
             ),
             [],
         )
-
-        from grunt.document.sidebar import collect_sections
-        from grunt.permissions.rbac import permission_checker
-        from grunt.permissions.types import PermissionAction
 
         user = grunt.get_user()
         dt = await grunt.get_meta(doctype)
@@ -278,8 +272,6 @@ class DocumentMetaRPCMixin:
 
         people: dict[str, dict[str, Any]] = {}
         if emails:
-            from grunt.auth.doctypes.User.user import get_users_by_emails
-
             users = await get_users_by_emails(list(emails), fields=["email", "full_name", "avatar"])
             for u in users:
                 email = u.email

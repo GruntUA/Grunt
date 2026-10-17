@@ -1,17 +1,12 @@
 """Alembic history of a site against the running code: stamp, up to date, and a
 database migrated by a newer release (the code was rolled back past a migration)."""
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
+from pathlib import Path
 
 import pytest
 import sqlalchemy as sa
 
 from grunt.db.alembic_utils import DatabaseAheadError, migration_state, sync_site
-
-if TYPE_CHECKING:
-    from pathlib import Path
 
 
 def test_rolled_back_code_refuses_to_migrate(tmp_path: Path):

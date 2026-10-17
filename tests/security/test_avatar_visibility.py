@@ -2,8 +2,6 @@
 avatar publishes that one file, so a *different* user can load it - while other
 attachments on a User stay private (see test_signed_file_urls)."""
 
-from __future__ import annotations
-
 from urllib.parse import parse_qs, urlparse
 
 import pytest

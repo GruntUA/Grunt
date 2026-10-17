@@ -8,16 +8,13 @@ cannot be renewed and expires on its own after
 ``User`` row, so their own live session is untouched.
 """
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from grunt import _, log
 from grunt.permissions.roles import user_has_roles
-
-if TYPE_CHECKING:
-    from grunt.auth.doctypes.User.user import User
-
+lazy from grunt.api.messages import throw
+lazy from grunt.auth.doctypes.User.user import User, _auth_user_dump, get_user_by_id
+lazy from grunt.auth.service import create_access_token
 
 #: How long an impersonation access token stays valid.
 IMPERSONATION_TTL_MINUTES = 30
@@ -29,9 +26,6 @@ async def start_impersonation(actor: User, target_user_id: str) -> dict[str, Any
     Returns the same shape as a login payload minus the refresh token, plus an
     ``impersonated_by`` block naming *actor*.
     """
-    from grunt.api.messages import throw
-    from grunt.auth.doctypes.User.user import _auth_user_dump, get_user_by_id
-    from grunt.auth.service import create_access_token
 
     if not user_has_roles(actor, ["System Manager"]):
         throw(_("System Manager rights are required."), "PERMISSION_DENIED")

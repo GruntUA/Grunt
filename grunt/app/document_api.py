@@ -1,7 +1,5 @@
 """Document CRUD and query API mixin for GruntApp facade."""
 
-from __future__ import annotations
-
 import copy
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any, overload
@@ -14,7 +12,7 @@ from grunt.config import settings
 from grunt.db.profiler import profile
 from grunt.document import collection
 from grunt.document.update_side_effects import write_bulk_delete_activity_log
-from grunt.errors import not_found
+from grunt.errors import forbidden, not_found, unprocessable
 from grunt.events import fire
 from grunt.local import require_engine, require_user
 from grunt.naming import naming_service
@@ -26,12 +24,13 @@ from grunt.permissions.guards import (
 )
 from grunt.permissions.rbac import permission_checker
 from grunt.workflow.engine import workflow_engine
-
-if TYPE_CHECKING:
-    from grunt.cache.document_cache import DocumentCache
-    from grunt.cache.query_cache import QueryCache
-    from grunt.db import GruntDB
-    from grunt.document.base import BaseDocument, DocumentList
+lazy from grunt.cache.document_cache import DocumentCache
+lazy from grunt.cache.query_cache import QueryCache
+lazy from grunt.db import GruntDB
+lazy from grunt.db.api import _GROUP_FN_RE, _parse_aggregation_expr
+lazy from grunt.db.filters import FILTER_OPS
+lazy from grunt.document.base import BaseDocument, DocumentList, load_document, new_document
+lazy from grunt.permissions.query import apply_permission_filter
 
 
 class DocumentAPI:
@@ -89,7 +88,6 @@ class DocumentAPI:
     async def _load(
         self, doctype: str, id_or_name: str | None, user: Any, expand: list[str] | None = None
     ) -> BaseDocument:
-        from grunt.document.base import load_document
 
         return await load_document(
             doctype,
@@ -101,7 +99,6 @@ class DocumentAPI:
         )
 
     async def _new(self, doctype: str, data: dict[str, Any], user: Any) -> BaseDocument:
-        from grunt.document.base import new_document
 
         return await new_document(
             doctype, data, user=user, session=grunt.get_session(), engine=require_engine()
@@ -194,7 +191,6 @@ class DocumentAPI:
 
     async def find_doc(self, doctype, id_or_name=None, *, expand=None):
         """Like :meth:`get_doc`, but returns ``None`` instead of raising 404."""
-        from fastapi import HTTPException
 
         try:
             if isinstance(doctype, type):
@@ -421,8 +417,6 @@ class DocumentAPI:
             result = await cache.get_list(cache_key)
 
         if result is None:
-            from grunt.document import collection
-
             result = await collection.list_documents(
                 grunt.get_session(),
                 doctype,
@@ -466,8 +460,6 @@ class DocumentAPI:
 
             users = await grunt.get_all(User, filters={"active": True})
         """
-        from grunt.document.base import DocumentList
-        from grunt.permissions.query import apply_permission_filter
 
         doctype: str = getattr(model_class, "doctype", model_class.__name__)
         dt, user, hidden_fields = await read_guard(doctype)
@@ -641,10 +633,6 @@ class DocumentAPI:
                 aggregations={"total": "sum(amount)", "n": "count()"},
             )
         """
-        from grunt.db.api import _GROUP_FN_RE, _parse_aggregation_expr
-        from grunt.db.filters import FILTER_OPS
-        from grunt.errors import forbidden, unprocessable
-        from grunt.permissions.query import apply_permission_filter
 
         dt, user, hidden = await read_guard(doctype)
         if dt.doc.is_virtual:

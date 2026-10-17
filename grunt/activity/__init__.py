@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
@@ -9,6 +7,8 @@ from grunt import _, log
 from grunt.document.titles import resolve_reference_titles
 from grunt.document.versioning import _SKIP_FIELDS
 from grunt.metadata.registry import doctype_registry
+lazy from grunt.auth.doctypes.User.user import GUEST_USER
+lazy from grunt.errors import not_found
 
 
 async def should_log_activity(doctype: str) -> bool | None:
@@ -249,8 +249,6 @@ async def record_view(
     if not (dt.track_seen or dt.track_views):
         return
 
-    from grunt.auth.doctypes.User.user import GUEST_USER
-
     user_email = getattr(user, "email", None) or str(user or "")
     if not user_email or user_email in (GUEST_USER, "system", "Guest"):
         return
@@ -307,8 +305,6 @@ async def get_view_info(doctype: str, doc_id: str) -> dict[str, Any]:
     """
     dt = await grunt.get_meta(doctype)
     if dt is None:
-        from grunt.errors import not_found
-
         raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
     out: dict[str, Any] = {"seen": [], "views": 0, "viewers": 0}
 

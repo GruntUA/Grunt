@@ -10,8 +10,6 @@ a list of these) and edited in the Studio DocType builder's "Дозволи" tab
 the ``DocPermission`` child schema. There is no standalone permission store.
 """
 
-from __future__ import annotations
-
 from pydantic import BaseModel, ConfigDict
 
 

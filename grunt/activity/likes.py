@@ -5,8 +5,6 @@ the badges of the whole page in one call; documents the caller cannot read are
 left out, so the counts never leak through ids picked by hand.
 """
 
-from __future__ import annotations
-
 from typing import Any
 
 from sqlalchemy import func, select

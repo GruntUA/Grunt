@@ -1,17 +1,12 @@
-from __future__ import annotations
-
 import importlib
 import importlib.util
 import inspect
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 from grunt import log
 from grunt.startup.doctypes import _find_doctype_dirs
 from grunt.utils.strings import to_snake_case
-
-if TYPE_CHECKING:
-    from grunt.document.base import BaseDocument
+lazy from grunt.document.base import BaseDocument, Document
 
 
 class DocumentRegistry:
@@ -49,7 +44,6 @@ class DocumentRegistry:
 
     def get(self, doctype: str) -> type[BaseDocument]:
         """Return the controller for a DocType, importing it on first access."""
-        from grunt.document.base import Document
 
         if doctype not in self._controllers and doctype in self._index:
             self._import_controller(doctype, self._index[doctype])
@@ -74,7 +68,6 @@ class DocumentRegistry:
 
         A controller is a subclass of ``Document`` or ``BaseDocument``.
         """
-        from grunt.document.base import BaseDocument, Document
 
         def _is_controller(obj) -> bool:
             return (

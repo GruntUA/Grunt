@@ -6,8 +6,6 @@ size limit, content-addressed blob (grunt.storage.backends), ``File`` row,
 its URL and preview. Readers use :func:`read` by ``File`` id.
 """
 
-from __future__ import annotations
-
 from dataclasses import dataclass
 from typing import Any, BinaryIO
 
@@ -17,6 +15,8 @@ from grunt.config import settings
 from grunt.storage.backends import get_storage_backend
 from grunt.storage.images import OPTIMIZABLE, optimize_image, renamed
 from grunt.storage.thumbnails import THUMB_WIDTH, WEB_WIDTHS, can_thumbnail, make_thumbnail
+lazy from grunt.local import _user_ctx
+lazy from grunt.storage.cloud.files import read_blob
 
 CONTENT_URL = "/api/v1/method/grunt.storage.doctypes.File.file.get_content?file_id={}"
 
@@ -78,7 +78,6 @@ async def ensure_thumbnail(key: str, content_type: str | None, width: int | None
     storage = get_storage_backend()
     if storage.thumbnail_path(key, width).exists():
         return True
-    from grunt.storage.cloud.files import read_blob
 
     try:
         content = await read_blob(key)  # may be fetched from cloud storage
@@ -131,8 +130,6 @@ async def create_file(
     of an upload that many bytes long.
     """
     if uploaded_by is None:
-        from grunt.local import _user_ctx
-
         uploaded_by = getattr(_user_ctx.get(), "email", None)
     doc = await grunt.new_doc(
         "File",
@@ -245,6 +242,5 @@ async def read(file_id: str) -> bytes:
     key = await grunt.db.get_value("File", file_id, "content_hash")
     if not key:
         raise FileNotFoundError(f"File not found: {file_id}")
-    from grunt.storage.cloud.files import read_blob
 
     return await read_blob(key)

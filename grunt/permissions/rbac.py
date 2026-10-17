@@ -1,9 +1,5 @@
 """Role-based access control."""
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
-
 from grunt.errors import forbidden
 from grunt.i18n import NP_, _, pgettext
 from grunt.permissions import shares
@@ -11,6 +7,11 @@ from grunt.permissions.access import RoleAccess
 from grunt.permissions.child import child_allowed, is_child
 from grunt.permissions.match import PermissionMatch
 from grunt.permissions.types import PermissionAction
+lazy from grunt.auth.doctypes.User.user import User
+lazy from grunt.document.meta import Meta
+lazy from grunt.metadata.doctype import DocType
+lazy from grunt.permissions.reference import reference_readable, reference_sources
+lazy from grunt.permissions.user_permissions import doc_passes
 
 # Human-readable action names for the "insufficient permissions" message, so a
 # toast says *which* DocType and *which* operation was denied instead of a bare
@@ -24,10 +25,6 @@ _ACTION_VERBS: dict[str, str] = {
     "report": NP_("permission", "reports"),
 }
 
-if TYPE_CHECKING:
-    from grunt.auth.doctypes.User.user import User
-    from grunt.document.meta import Meta
-    from grunt.metadata.doctype import DocType
 
 # _PERM_CACHE key: (user_email, frozenset(roles), doctype_name, id(permissions_list), action)
 # _HIDDEN_CACHE key: (user_email, frozenset(roles), doctype_name, id(permissions_list))
@@ -102,11 +99,8 @@ class PermissionChecker:
         # at a document is readable exactly when that document is - the
         # role's `match` only governs rows that point at nothing.
         inherited: bool | None = None
-        if doc is not None and action in ("read", "select"):
-            from grunt.permissions.reference import reference_readable, reference_sources
-
-            if reference_sources(doctype):
-                inherited = await reference_readable(user, doctype, doc)
+        if doc is not None and action in ("read", "select") and reference_sources(doctype):
+            inherited = await reference_readable(user, doctype, doc)
 
         result = False
         for perm in access.matching_permissions():
@@ -128,11 +122,8 @@ class PermissionChecker:
 
         # Row-level User Permissions narrow the role grant for a specific doc.
         # (doc=None list/count checks are filtered in apply_permission_filter.)
-        if result and doc is not None:
-            from grunt.permissions.user_permissions import doc_passes
-
-            if not await doc_passes(user, doctype, doc):
-                result = False
+        if result and doc is not None and not await doc_passes(user, doctype, doc):
+            result = False
 
         if inherited is False:
             result = False

@@ -13,34 +13,34 @@ Called from grunt/document/mixins/write.py. Outside a transition (see
 The internal system user (fixtures, imports, migrations) is exempt from all of it.
 """
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING, Any
+from datetime import date, datetime
+from typing import Any
 
 from fastapi import HTTPException, status
 
 import grunt
 from grunt import _
 from grunt.errors import not_found
-
-if TYPE_CHECKING:
-    from grunt.auth.doctypes.User.user import User
-    from grunt.workflow.engine import ActiveTransition
+lazy from grunt.auth.doctypes.User.user import SYSTEM_USER, User
+lazy from grunt.workflow.engine import (
+    ActiveTransition,
+    current_transition,
+    state_updates,
+    workflow_engine,
+)
+lazy from grunt.workflow.registry import get_active_workflow
 
 # Never compared when deciding whether an edit changed the document.
 _SYSTEM_FIELDS = frozenset({"name", "owner", "created_at", "modified_at", "modified_by", "idx"})
 
 
 def _exempt(user: User) -> bool:
-    from grunt.auth.doctypes.User.user import SYSTEM_USER
-    from grunt.workflow.engine import current_transition
 
     return current_transition() is not None or user.email == SYSTEM_USER.email
 
 
 def _norm(value: Any) -> str:
     """Comparable form of a field value as the DB returns it or a form sends it back."""
-    from datetime import date, datetime
 
     if value is None:
         return ""
@@ -68,7 +68,6 @@ def _label(workflow: Any, state: str | None) -> str:
 
 async def check_create(doctype: str, data: dict[str, Any], user: User | None) -> None:
     """A new document starts in the initial state - no other state on create."""
-    from grunt.workflow.registry import get_active_workflow
 
     workflow = await get_active_workflow(doctype)
     if not workflow or user is None or _exempt(user):
@@ -91,8 +90,6 @@ async def check_update(
     For an ``on_edit`` transition, *data* gets the new state (and its
     ``update_field``) - the caller saves it as part of the same update.
     """
-    from grunt.workflow.engine import ActiveTransition, state_updates, workflow_engine
-    from grunt.workflow.registry import get_active_workflow
 
     workflow = await get_active_workflow(doctype)
     if not workflow or user is None or _exempt(user):
@@ -133,8 +130,6 @@ async def check_update(
 async def check_delete(doctype: str, existing: dict[str, Any], user: User | None) -> None:
     """``edit_roles`` govern deletion too; so does ``on_edit`` - whose edits go
     to review can't remove the document without it either."""
-    from grunt.workflow.engine import workflow_engine
-    from grunt.workflow.registry import get_active_workflow
 
     workflow = await get_active_workflow(doctype)
     if not workflow or user is None or _exempt(user):

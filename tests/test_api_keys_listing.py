@@ -7,8 +7,6 @@ result back. Since admin rights are granted purely through that role now
 there is no longer a further tier above it to distinguish.
 """
 
-from __future__ import annotations
-
 import pytest
 
 from tests.support import make_user

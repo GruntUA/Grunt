@@ -12,14 +12,10 @@ method builds its response::
         return UserPublic.dump(grunt.current_user())
 """
 
-from __future__ import annotations
+from collections.abc import Iterable
+from typing import Any, ClassVar
 
-from typing import TYPE_CHECKING, Any, ClassVar
-
-if TYPE_CHECKING:
-    from collections.abc import Iterable
-
-    from grunt.document.base import Document
+lazy from grunt.document.base import Document
 
 
 class Schema:

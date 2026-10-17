@@ -1,8 +1,6 @@
 """Child-table rows are validated against the child DocType on save, each
 error reported on the table field with the row number."""
 
-from __future__ import annotations
-
 import pytest
 from fastapi import HTTPException
 

@@ -1,7 +1,5 @@
 """HTML vs JSON error responses (grunt.startup.errors)."""
 
-from __future__ import annotations
-
 import json
 
 import pytest

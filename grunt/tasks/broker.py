@@ -1,18 +1,13 @@
-from __future__ import annotations
-
 import os
 import socket
 import uuid
-from typing import TYPE_CHECKING, ParamSpec, TypeVar
+from collections.abc import Callable
+from typing import ParamSpec, TypeVar
 
 from taskiq import AsyncBroker, AsyncTaskiqDecoratedTask, InMemoryBroker, SmartRetryMiddleware
-
-from grunt import log
-
-if TYPE_CHECKING:
-    from collections.abc import Callable
 from taskiq_redis import RedisStreamBroker
 
+from grunt import log
 from grunt.config import settings
 from grunt.tasks.middleware import (
     BackgroundTaskLoggingMiddleware,

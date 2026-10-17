@@ -2,8 +2,6 @@
 before a migration kept its old columns: a dropped column failed every SELECT
 («no such column: grunt_storage_file.path»), a new one was never read."""
 
-from __future__ import annotations
-
 import pytest
 
 from grunt.metadata.compiler import compile_doctype_to_table

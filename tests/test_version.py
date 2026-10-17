@@ -1,11 +1,9 @@
 """Versions from git tags, required_grunt, `grunt release` and `grunt test --changed`."""
 
-from __future__ import annotations
-
 import json
 import subprocess
 from datetime import date
-from typing import TYPE_CHECKING
+from pathlib import Path
 
 import click
 import pytest
@@ -14,9 +12,6 @@ from packaging.version import Version
 from grunt import version as versions
 from grunt.cli.changed_tests import select
 from grunt.cli.release import changelog_section, new_migrations, next_version, prepend_changelog
-
-if TYPE_CHECKING:
-    from pathlib import Path
 
 
 def git(repo: Path, *args: str) -> None:

@@ -1,21 +1,26 @@
-from __future__ import annotations
-
 from typing import Any
 
 import httpx2
 from fastapi import HTTPException, Request, Response, UploadFile
 from fastapi.responses import FileResponse
+from sqlalchemy import String, cast, or_, select
 
 import grunt
 from grunt import _
 from grunt.api.context import whitelist
 from grunt.document.base import Document
 from grunt.local import _user_ctx
-from grunt.storage import files
+from grunt.storage import files, quota
 from grunt.storage.backends import FileTooLargeError, get_storage_backend
 from grunt.storage.cloud.files import blob_path
 from grunt.storage.signing import verify
 from grunt.storage.thumbnails import THUMB_MIMETYPE, THUMB_WIDTH, WEB_WIDTHS, can_thumbnail
+lazy from grunt.document.meta import Meta
+lazy from grunt.metadata.registry import doctype_registry
+lazy from grunt.permissions.rbac import permission_checker
+lazy from grunt.storage.doctypes.FileFolder.file_folder import require_folder_write
+lazy from grunt.storage.references import file_ids_in
+lazy from grunt.storage.remote import RemoteFileError, fetch_file
 
 
 class File(Document):
@@ -56,8 +61,6 @@ class File(Document):
             self._prev_folder = await grunt.db.get_value("File", self.id, "folder") or ""
         if self.folder == self._prev_folder:
             return
-        from grunt.storage import quota
-        from grunt.storage.doctypes.FileFolder.file_folder import require_folder_write
 
         folder = await grunt.db.get_value("FileFolder", self.folder, "*")
         if folder is None:
@@ -122,11 +125,6 @@ async def _documents_using(file_id: str) -> tuple[str, str] | None:
 
     A child-table row is reported as its parent document.
     """
-    from sqlalchemy import String, cast, or_, select
-
-    from grunt.document.meta import Meta
-    from grunt.metadata.registry import doctype_registry
-    from grunt.storage.references import file_ids_in
 
     session = grunt.get_session()
     pattern = f"%file_id={file_id}%"
@@ -181,7 +179,6 @@ async def upload(
         raise HTTPException(400, _("No filename provided"))
     if folder:
         # Fail before streaming the body; File.before_save re-checks with the size.
-        from grunt.storage.doctypes.FileFolder.file_folder import require_folder_write
 
         row = await grunt.db.get_value("FileFolder", folder, "*")
         if row is None:
@@ -239,11 +236,8 @@ async def upload(
 async def upload_from_url(url: str, folder: str | None = None) -> dict[str, Any]:
     """Whitelisted method: download a file from the internet into *folder*
     (see :mod:`grunt.storage.remote` for what links are allowed)."""
-    from grunt.storage.remote import RemoteFileError, fetch_file
 
     if folder:
-        from grunt.storage.doctypes.FileFolder.file_folder import require_folder_write
-
         row = await grunt.db.get_value("FileFolder", folder, "*")
         if row is None:
             raise HTTPException(404, _("Folder “%(folder)s” not found") % {"folder": folder})
@@ -333,7 +327,6 @@ async def get_content(
         user = _user_ctx.get()
         if user is None:
             raise HTTPException(401, _("Authentication required to access this file"))
-        from grunt.permissions.rbac import permission_checker
 
         meta = await grunt.get_meta("File")
         if meta is None or not await permission_checker.check(user, meta, "read", doc):

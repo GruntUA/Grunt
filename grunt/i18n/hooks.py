@@ -4,8 +4,6 @@ Wired from :mod:`grunt.core_hooks` - keeps the request-language negotiator's
 accepted-language set in sync with the ``geo.Language`` table.
 """
 
-from __future__ import annotations
-
 import grunt
 from grunt.i18n import translation_service
 from grunt.log import log

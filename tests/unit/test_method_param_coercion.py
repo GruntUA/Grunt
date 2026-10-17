@@ -2,8 +2,6 @@
 explicitly annotated ``str`` must keep its raw value, so a Link search for a
 numeric term ("12345") doesn't arrive as an int."""
 
-from __future__ import annotations
-
 from typing import Any
 
 from grunt.api.v1.method import _process_params

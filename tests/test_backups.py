@@ -1,8 +1,6 @@
 """Site backups: consistent SQLite snapshot + files + config, rotation, restore,
 signed downloads, and the «Стан системи» check."""
 
-from __future__ import annotations
-
 import sqlite3
 import stat
 from compression import zstd

@@ -19,28 +19,30 @@ Usage::
         entries = await rc.list("backups/site")
 """
 
-from __future__ import annotations
-
 import asyncio
 import base64
 import configparser
 import contextlib
+import hashlib
+import io
 import json
 import os
+import platform
 import shutil
 import tempfile
+import zipfile
+from collections.abc import Callable, Iterable
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
+import httpx2
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 
+import grunt
 from grunt import _, log
 from grunt.config import settings
-
-if TYPE_CHECKING:
-    from collections.abc import Callable, Iterable
-
-    from grunt.progress import Progress
+lazy from grunt.progress import Progress
+lazy from grunt.storage.cloud.providers import provider_section
 
 # rclone's fixed key for "obscured" config values (lib/obscure). Obscuring is
 # not encryption - it only keeps secrets from being read over a shoulder -
@@ -121,11 +123,6 @@ async def ensure_installed() -> str:
 
 
 async def _install() -> str:
-    import hashlib
-    import platform
-    import zipfile
-
-    import httpx2
 
     system = _OS.get(platform.system().lower())
     arch = _ARCH.get(platform.machine().lower())
@@ -184,7 +181,6 @@ class _Config(configparser.ConfigParser):
 
 def build_config(remote: dict[str, Any]) -> configparser.ConfigParser:
     """The rclone config of *remote* (a ``StorageRemote`` row with real secrets)."""
-    from grunt.storage.cloud.providers import provider_section
 
     config = _Config(interpolation=None)
     config[BASE] = {k: str(v) for k, v in provider_section(remote).items() if v not in (None, "")}
@@ -211,7 +207,6 @@ def root_folder(remote: dict[str, Any]) -> str:
 
 def config_text(remote: dict[str, Any]) -> str:
     """The config as rclone.conf text - to keep somewhere safe for disaster recovery."""
-    import io
 
     out = io.StringIO()
     build_config(remote).write(out)
@@ -265,7 +260,6 @@ class Rclone:
         name = self.remote.get("name")
         if not token or token == self._token or not name:
             return
-        import grunt
 
         await grunt.db.set_value("StorageRemote", name, {"oauth_token": token})
         self._token = self.remote["oauth_token"] = token

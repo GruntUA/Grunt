@@ -1,10 +1,7 @@
 """Row-level security query filters."""
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
-
-from sqlalchemy import Table, and_, false, or_, true
+from sqlalchemy import ColumnElement, Table, and_, false, or_, true
+from sqlalchemy.sql import Select
 
 from grunt import log
 from grunt.permissions.access import RoleAccess
@@ -12,14 +9,9 @@ from grunt.permissions.child import child_conditions, is_child
 from grunt.permissions.match import PermissionMatch
 from grunt.permissions.reference import reference_conditions
 from grunt.permissions.shares import shared_names_clause
-
-if TYPE_CHECKING:
-    from sqlalchemy import ColumnElement
-    from sqlalchemy.sql import Select
-
-    from grunt.auth.doctypes.User.user import User
-    from grunt.document.meta import Meta
-    from grunt.metadata.doctype import DocType
+lazy from grunt.auth.doctypes.User.user import User
+lazy from grunt.document.meta import Meta
+lazy from grunt.metadata.doctype import DocType
 
 
 async def apply_permission_filter(

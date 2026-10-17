@@ -7,21 +7,19 @@ If ``pywebpush`` is not installed the service silently skips sending -
 all other notification channels (in-app, email) continue to work.
 """
 
-from __future__ import annotations
-
 import asyncio
 import base64
 import importlib.util
 import json
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+
+from cryptography.hazmat.primitives import serialization
+lazy import pywebpush
+lazy from py_vapid import Vapid
 
 import grunt
 from grunt import _, log
 from grunt.site.settings import get_setting
-
-if TYPE_CHECKING:
-    from py_vapid import Vapid
 
 _VAPID_PRIVATE_KEY_FIELD = "webpush_vapid_private"
 _VAPID_PUBLIC_KEY_FIELD = "webpush_vapid_public"
@@ -31,8 +29,6 @@ _PUSH_TTL_SECONDS = 24 * 60 * 60
 
 def _generate_vapid_keys() -> tuple[str, str]:
     """Generate a new VAPID key pair. Returns (private_pem, public_b64url)."""
-    from cryptography.hazmat.primitives import serialization
-    from py_vapid import Vapid
 
     v = Vapid()
     v.generate_keys()
@@ -141,7 +137,6 @@ class WebPushService:
         which only understands raw / bare base64-DER keys and chokes on PEM.
         Raises ``ValueError`` when the stored key is unreadable.
         """
-        from py_vapid import Vapid
 
         try:
             key = await grunt.get_single("SystemSettings", _VAPID_PRIVATE_KEY_FIELD)
@@ -165,13 +160,12 @@ class WebPushService:
         Expired endpoints (404/410) are deleted. Never raises - the outcome
         is returned so callers can log it or show it to the user.
         """
-        from pywebpush import WebPushException, webpush
 
         try:
             # pywebpush is a blocking HTTP call - keep it off the event loop.
             # No "aud" claim: pywebpush derives scheme://host from the endpoint.
             response = await asyncio.to_thread(
-                webpush,
+                pywebpush.webpush,
                 subscription_info={
                     "endpoint": sub["endpoint"],
                     "keys": {"p256dh": sub["p256dh"], "auth": sub["auth"]},
@@ -186,7 +180,7 @@ class WebPushService:
                 timeout=10,
             )
             return PushResult(ok=True, status=getattr(response, "status_code", None))
-        except WebPushException as exc:
+        except pywebpush.WebPushException as exc:
             status = getattr(exc.response, "status_code", None)
             expired = status in (404, 410)
             if expired:

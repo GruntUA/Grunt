@@ -1,9 +1,10 @@
 """Jinja template rendering helpers for Grunt."""
 
-from __future__ import annotations
-
 from datetime import UTC, datetime
 from typing import Any
+
+from jinja2 import DictLoader, FileSystemLoader, select_autoescape
+lazy from jinja2.sandbox import SandboxedEnvironment
 
 from grunt.i18n.jinja import install as install_i18n
 from grunt.local import _user_ctx
@@ -18,8 +19,6 @@ async def render_template(
     autoescape: bool = True,
 ) -> str:
     """Render a Jinja2 template using current Grunt app/session context."""
-    from jinja2 import DictLoader, FileSystemLoader, select_autoescape
-    from jinja2.sandbox import SandboxedEnvironment
 
     ctx = context or {}
     file_extensions = (".html", ".txt", ".md", ".xml", ".jinja", ".j2")

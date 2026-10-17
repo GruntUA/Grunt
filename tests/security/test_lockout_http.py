@@ -3,8 +3,6 @@ path. The endpoint raises after recording a failure, and the request session is
 rolled back on an exception - a counter written in that same transaction would
 be undone, leaving password and MFA guessing unlimited."""
 
-from __future__ import annotations
-
 import pytest
 
 from grunt.auth.doctypes.User.user import create_user

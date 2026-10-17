@@ -1,7 +1,5 @@
 """An app's home offers every Page of the app the user may open as a dashboard."""
 
-from __future__ import annotations
-
 from types import SimpleNamespace
 
 from grunt.api.v1.dashboard import page_visible

@@ -6,8 +6,6 @@ database session, engine, and user are automatically injected via ContextVars th
 are set by the framework at the start of each request / lifecycle hook call.
 """
 
-from __future__ import annotations
-
 from grunt.app.context_api import ContextAPI
 from grunt.app.document_api import DocumentAPI
 from grunt.app.permission_api import PermissionAPI

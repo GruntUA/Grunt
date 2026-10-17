@@ -23,20 +23,15 @@ grunt.new_doc/save_doc would trip DocTypeRegistry._lazy_load()'s live-site
 fetch mid-test.
 """
 
-from __future__ import annotations
-
 import json
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 import pytest
 
 from grunt.metadata.doctype import DocType
 from grunt.permissions.rbac import permission_checker
 from tests.support import make_user
-
-if TYPE_CHECKING:
-    from grunt.auth.doctypes.User.user import User
+lazy from grunt.auth.doctypes.User.user import User
 
 _GRUNT_ROOT = Path(__file__).resolve().parents[2] / "grunt"
 
@@ -49,7 +44,7 @@ _USER_SESSION_JSON = _GRUNT_ROOT / "auth/doctypes/UserSession/UserSession.json"
 
 
 def _load(doctype_name: str) -> DocType:
-    data = json.loads(_DOCTYPE_JSON[doctype_name].read_text(encoding="utf-8"))
+    data = json.loads(_DOCTYPE_JSON[doctype_name].read_text())
     return DocType.model_validate(data)
 
 
@@ -86,7 +81,7 @@ async def test_other_user_cannot_access_row(doctype_name):
 
 
 def _load_user_session() -> DocType:
-    data = json.loads(_USER_SESSION_JSON.read_text(encoding="utf-8"))
+    data = json.loads(_USER_SESSION_JSON.read_text())
     return DocType.model_validate(data)
 
 

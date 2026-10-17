@@ -1,7 +1,5 @@
 """Application settings powered by pydantic-settings."""
 
-from __future__ import annotations
-
 import os
 
 from pydantic import model_validator

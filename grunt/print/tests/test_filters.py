@@ -1,7 +1,5 @@
 """Tests for grunt.print.filters - name formatting and Ukrainian declension."""
 
-from __future__ import annotations
-
 from grunt.print.filters import (
     decline_dept_genitive,
     decline_name,

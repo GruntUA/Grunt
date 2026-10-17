@@ -21,24 +21,19 @@ Public API
     Re-parent a node; prevents cycles.
 """
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING, Any
+from collections.abc import Awaitable, Callable
+from typing import Any
 
 from fastapi import HTTPException, status
-from sqlalchemy import literal, select
+from sqlalchemy import literal, or_, select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.sql import Select
 
+import grunt
 from grunt import _, log
 from grunt.document.registry import document_registry
-
-if TYPE_CHECKING:
-    from collections.abc import Awaitable, Callable
-
-    from sqlalchemy.ext.asyncio import AsyncSession
-    from sqlalchemy.sql import Select
-
-    from grunt.document.base import Document
-
+lazy from grunt.db.filters import apply_filters
+lazy from grunt.document.base import Document
 
 # doctype -> async fn(session, nodes, as_of_date) -> {node_id: display_title}
 #
@@ -117,7 +112,6 @@ class TreeService:
         ``scope`` - a ``SELECT name`` of the nodes the caller may see (row-level
         permissions); a visible node whose parent is outside it counts as a root.
         """
-        import grunt
 
         dt = await grunt.get_meta(doctype)
         if dt is None:
@@ -195,8 +189,6 @@ class TreeService:
         for row in rows:
             row["has_children"] = row["name"] in child_parent_ids
 
-        from grunt.document.base import Document
-
         ctrl_cls = _tree_controller(doctype)
         if ctrl_cls.tree_sort_children is not Document.tree_sort_children:
             rows = await ctrl_cls.tree_sort_children(
@@ -232,8 +224,6 @@ class TreeService:
         permissions); the rest are dropped, ancestors included, and a visible
         node whose parent is hidden is returned as a root.
         """
-        import grunt
-        from grunt.document.base import Document
 
         dt = await grunt.get_meta(doctype)
         if dt is None:
@@ -336,8 +326,6 @@ class TreeService:
         walks an in-memory parent lookup to keep ancestors so the returned
         tree stays connected/readable instead of showing orphaned matches.
         """
-        from grunt.db.filters import apply_filters
-        from grunt.document.base import Document
 
         # Build parent lookup from the flat result set (avoids extra DB round-trip)
         parent_lookup: dict[str, str | None] = {
@@ -351,8 +339,6 @@ class TreeService:
         filtered_q = apply_filters(filtered_q, table, filters)
 
         if search:
-            from sqlalchemy import or_
-
             candidate_fields: list[str] = []
             if dt is not None:
                 title_field = _title_field(dt)
@@ -411,7 +397,6 @@ class TreeService:
         ``scope`` - a ``SELECT name`` of the nodes the caller may see; hidden
         ancestors are left out of the path.
         """
-        import grunt
 
         dt = await grunt.get_meta(doctype)
         if dt is None:
@@ -462,7 +447,6 @@ class TreeService:
 
         Prevents cycles: new_parent must not be in the node's own subtree.
         """
-        import grunt
 
         dt = await grunt.get_meta(doctype)
         if dt is None:
@@ -527,7 +511,6 @@ class TreeService:
         fallback_if_missing: bool,
         controller_cls: type,
     ) -> tuple[str | None, str]:
-        from grunt.document.base import Document
 
         tree_view = dt.get_tree_view()
         default_sort_by = tree_view.sort_by if tree_view else None
@@ -656,7 +639,6 @@ tree_service = TreeService()
 
 def _tree_controller(doctype: str) -> type[Document]:
     """The controller whose tree hooks apply - a tree is always a table's."""
-    from grunt.document.base import Document
 
     controller_cls = document_registry.get(doctype)
     return controller_cls if issubclass(controller_cls, Document) else Document

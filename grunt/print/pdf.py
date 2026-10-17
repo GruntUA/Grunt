@@ -12,8 +12,6 @@ size; page margins are forced to zero so the template's own padding is the
 single source of whitespace.
 """
 
-from __future__ import annotations
-
 _INSTALL_HINT = (
     "PDF generation is unavailable: Playwright / Chromium or its system libraries "
     "are not installed. Run `pip install playwright`, `playwright install chromium` "

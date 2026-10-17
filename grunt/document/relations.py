@@ -1,27 +1,20 @@
 """Child table and MultiLink relationship management for Documents."""
 
-from __future__ import annotations
-
 import re
-from typing import TYPE_CHECKING, Any
+from datetime import datetime
+from typing import Any
 from urllib.parse import unquote, urlsplit
 
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from grunt import log
 from grunt.document.meta import Meta
 from grunt.document.serde import audit_fields, serialize_datetimes
 from grunt.metadata.field import get_storage_class
 from grunt.metadata.registry import doctype_registry
-
-if TYPE_CHECKING:
-    from datetime import datetime
-
-    from sqlalchemy.ext.asyncio import AsyncSession
-
-    from grunt.auth.doctypes.User.user import User
-    from grunt.metadata.doctype import DocType
-
+lazy from grunt.auth.doctypes.User.user import User
+lazy from grunt.metadata.doctype import DocType
 
 # Target-doctype fields auto-injected alongside a Link field's __label (as
 # __color/__icon) when the target defines them - list-cell badges and map

@@ -5,8 +5,6 @@ renders the value, so neither a crafted API call nor a row written before
 sanitization existed can put script into a page.
 """
 
-from __future__ import annotations
-
 import nh3
 
 # ammonia's safe default tag/attribute set covers everything the tiptap editor

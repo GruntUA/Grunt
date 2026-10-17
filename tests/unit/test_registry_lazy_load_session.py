@@ -12,8 +12,6 @@ currently has bound) and only fall back to site_manager when nothing is
 bound at all.
 """
 
-from __future__ import annotations
-
 import pytest
 
 

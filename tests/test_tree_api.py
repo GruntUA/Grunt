@@ -4,8 +4,6 @@ Verifies that filter[field__op]=value params correctly prune the tree
 to matching nodes + their ancestors.
 """
 
-from __future__ import annotations
-
 import pytest
 
 from tests.support import make_user

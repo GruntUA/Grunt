@@ -4,8 +4,6 @@ storage_class mirrors FieldType.column_spec, traits mirror FieldType.traits.
 See grunt.cli.fields.sync_manifests — run `grunt fields sync-manifests` to fix drift.
 """
 
-from __future__ import annotations
-
 import json
 from pathlib import Path
 
@@ -22,7 +20,7 @@ def test_manifest_matches_field_type():
             continue
 
         expected = get_manifest_attrs(fieldtype)
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest = json.loads(manifest_path.read_text())
         actual = {key: manifest[key] for key in ("storage_class", "traits") if key in manifest}
         if actual != expected:
             drifted.append(f"{fieldtype}: manifest={actual!r} backend={expected!r}")

@@ -1,7 +1,5 @@
 """LetterHead controller - keeps a single default letterhead."""
 
-from __future__ import annotations
-
 import grunt
 from grunt.document.base import Document
 

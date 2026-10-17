@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from datetime import UTC, datetime, timedelta
 
 import grunt
@@ -207,8 +205,6 @@ async def send_notification_digest(period: str = "daily") -> None:
     since = datetime.now(UTC) - timedelta(hours=hours)
 
     async with maker() as session:
-        import grunt
-
         sent = 0
         async with grunt.system_context(session):
             user_rows = await grunt.db.get_all(

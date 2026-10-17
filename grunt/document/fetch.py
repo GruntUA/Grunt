@@ -10,14 +10,10 @@ A value is (re)fetched when the Link changed or the field is still empty -
 an explicitly entered value under an unchanged Link is kept, as in the form.
 """
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 import grunt
-
-if TYPE_CHECKING:
-    from grunt.metadata.doctype import DocType
+lazy from grunt.metadata.doctype import DocType
 
 
 async def apply_fetch_from(

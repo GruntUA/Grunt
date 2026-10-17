@@ -3,18 +3,14 @@
 Provides convenient access and caching for metadata operations.
 """
 
-from __future__ import annotations
+from collections.abc import Iterable
+from typing import Any
 
-from typing import TYPE_CHECKING, Any
+from sqlalchemy import inspect, text
 
 from grunt.metadata.compiler import compile_doctype_to_table, get_table_name
-from grunt.metadata.field import get_field_type_class, get_registered_fieldtypes
-
-if TYPE_CHECKING:
-    from collections.abc import Iterable
-
-    from grunt.metadata.doctype import DocType, DocTypeTreeView
-    from grunt.metadata.field import DocField
+from grunt.metadata.field import DocField, get_field_type_class, get_registered_fieldtypes
+lazy from grunt.metadata.doctype import DocType, DocTypeTreeView
 
 # Layout-only fieldtypes that carry no value (FieldType.is_layout). This is the
 # base set shared by every "skip non-data fields" filter in the codebase (Meta,
@@ -230,8 +226,6 @@ class Meta:
         """
         if self.doc.is_virtual:
             return
-
-        from sqlalchemy import inspect, text
 
         table_name = self.doc.table_name or get_table_name(self.doc.module, self.doc.name)
 

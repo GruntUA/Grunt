@@ -1,7 +1,5 @@
 """Controller for StorageRemote - a connection to external storage (grunt.storage.cloud)."""
 
-from __future__ import annotations
-
 import contextlib
 import uuid
 from typing import Any
@@ -14,6 +12,10 @@ from grunt.document.base import Document
 from grunt.site.manager import site_manager
 from grunt.storage.cloud import MASK, SECRET_FIELDS, RemoteError, load_remote, record_status
 from grunt.storage.cloud.rclone import Rclone, config_text
+lazy from grunt.monitoring.health import human_size
+lazy from grunt.storage.cloud.backups import forget_remote, list_remote_backups
+lazy from grunt.storage.cloud.providers import get_provider
+lazy from grunt.storage.cloud.tasks import upload_latest_backup
 
 # Changing any of these makes what is already in the storage unreachable
 # (another place, another key) - not while files live there.
@@ -115,7 +117,6 @@ class StorageRemote(Document):
             )
 
     async def after_delete(self) -> None:
-        from grunt.storage.cloud.backups import forget_remote
 
         forget_remote(site_manager.get_active_site(), str(self.name))
 
@@ -134,7 +135,6 @@ async def _remote(name: str) -> dict[str, Any]:
 @whitelist(roles=["System Manager"])
 async def test_connection(name: str) -> dict[str, Any]:
     """Create the root folder, write + delete a probe file, read the quota."""
-    from grunt.monitoring.health import human_size
 
     remote = await _remote(name)
     await grunt.get_session().commit()
@@ -177,7 +177,6 @@ async def show_config(name: str) -> dict[str, str]:
 @whitelist(roles=["System Manager"])
 async def oauth_help(name: str) -> dict[str, str]:
     """The ``rclone authorize`` command for this remote's provider."""
-    from grunt.storage.cloud.providers import get_provider
 
     remote = await _remote(name)
     return {"command": get_provider(remote.get("provider")).authorize_command}
@@ -186,8 +185,6 @@ async def oauth_help(name: str) -> dict[str, str]:
 @whitelist(roles=["System Manager"])
 async def list_backups(name: str) -> list[dict[str, Any]]:
     """Backup sets kept in the remote (newest first)."""
-    from grunt.monitoring.health import human_size
-    from grunt.storage.cloud.backups import list_remote_backups
 
     remote = await _remote(name)
     await grunt.get_session().commit()
@@ -219,7 +216,6 @@ async def fetch_backup(name: str, backup_id: str) -> dict[str, bool]:
 
 @whitelist(roles=["System Manager"])
 async def upload_latest(name: str) -> dict[str, bool]:
-    from grunt.storage.cloud.tasks import upload_latest_backup
 
     await _remote(name)
     await upload_latest_backup.kiq(name, user=_user())

@@ -1,7 +1,5 @@
 """DocumentShare DocType controller."""
 
-from __future__ import annotations
-
 import secrets
 
 import grunt

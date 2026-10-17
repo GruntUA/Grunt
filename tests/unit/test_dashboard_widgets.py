@@ -6,8 +6,6 @@ table. These tests exercise a representative widget type per handler family
 plus the get_page_data entry point end-to-end.
 """
 
-from __future__ import annotations
-
 import re
 
 import pytest

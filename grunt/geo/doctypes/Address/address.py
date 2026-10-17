@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from grunt import _
 from grunt.document.base import Document
 

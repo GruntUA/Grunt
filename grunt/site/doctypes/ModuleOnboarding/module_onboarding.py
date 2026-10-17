@@ -5,8 +5,6 @@ so their ``name`` can't key the progress. ``step_id`` is set once from the
 title and kept (and exported with the record) when the title changes later.
 """
 
-from __future__ import annotations
-
 from grunt import _
 from grunt.document.base import Document
 from grunt.utils.slug import slugify

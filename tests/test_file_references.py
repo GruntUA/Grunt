@@ -2,8 +2,6 @@
 document on save when one of its Attach / Image / RichText fields points at
 them; library files and other DocTypes' uploads are left alone."""
 
-from __future__ import annotations
-
 from urllib.parse import parse_qs, urlparse
 
 import pytest

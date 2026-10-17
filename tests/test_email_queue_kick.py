@@ -1,7 +1,5 @@
 """queue_email nudges process_email_queue on commit, not on rollback."""
 
-from __future__ import annotations
-
 import asyncio
 
 import pytest

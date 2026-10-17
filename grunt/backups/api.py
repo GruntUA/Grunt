@@ -5,8 +5,6 @@ token), so the list hands out URLs signed for DOWNLOAD_TTL_SECONDS; only a
 System Manager ever sees them.
 """
 
-from __future__ import annotations
-
 import hashlib
 import hmac
 import time

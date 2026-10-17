@@ -18,13 +18,12 @@ Usage, in the app's ``tests/conftest.py``::
     globals().update(make_app_fixtures(Path(__file__).parent.parent, "tsnap"))
 """
 
-from __future__ import annotations
-
 import json
 import logging
 import os
 import sys
-from typing import TYPE_CHECKING, Any
+from pathlib import Path
+from typing import Any
 
 import pytest
 import pytest_asyncio
@@ -50,9 +49,7 @@ from grunt.metadata.registry import doctype_registry
 from grunt.search.service import search_index_service
 from grunt.site.manager import current_site
 from grunt.startup.doctypes import _find_doctype_dirs
-
-if TYPE_CHECKING:
-    from pathlib import Path
+lazy from grunt.apps.loader import load_app
 
 settings.rate_limit_enabled = False
 
@@ -67,7 +64,7 @@ _TEST_SITE = "__pytest__"
 
 def _app_meta(app_dir: Path) -> dict[str, Any]:
     try:
-        return json.loads((app_dir / "app.json").read_text(encoding="utf-8"))
+        return json.loads((app_dir / "app.json").read_text())
     except FileNotFoundError:
         return {}
 
@@ -139,7 +136,6 @@ def make_app_fixtures(app_dir: Path, app_name: str) -> dict[str, Any]:
         nonlocal dependencies_loaded
         if dependencies_loaded:
             return
-        from grunt.apps.loader import load_app
 
         for path in app_dirs[:-1]:
             await load_app(app, path)
@@ -169,7 +165,7 @@ def make_app_fixtures(app_dir: Path, app_name: str) -> dict[str, Any]:
             dt_files = sorted(f for d in dt_dirs for f in d.glob("**/*.json"))
             for dt_file in dt_files:
                 try:
-                    dt_data = json.loads(dt_file.read_text(encoding="utf-8"))
+                    dt_data = json.loads(dt_file.read_text())
                     dt_obj = DocType.model_validate(dt_data)
                     if not dt_obj.app:
                         owner = next((a for a in app_dirs if dt_file.is_relative_to(a)), None)

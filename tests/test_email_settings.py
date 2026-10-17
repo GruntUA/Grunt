@@ -1,7 +1,5 @@
 """queue_email honours SystemSettings.default_email_account + email_footer."""
 
-from __future__ import annotations
-
 import pytest
 
 from grunt.email.service import email_service

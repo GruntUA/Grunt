@@ -1,7 +1,5 @@
 """FormTour controller - every step points at a field the DocType has."""
 
-from __future__ import annotations
-
 from grunt import _
 from grunt.document.base import Document
 

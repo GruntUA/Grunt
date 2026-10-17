@@ -13,8 +13,6 @@ app process, e.g. a `.env` with SECRET_KEY) would be "imported" and its
 contents surfaced back through get_import_preview()'s headers/rows.
 """
 
-from __future__ import annotations
-
 import pytest
 
 from grunt.io.doctypes.DataImport.data_import import DataImport

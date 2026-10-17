@@ -1,7 +1,5 @@
 """Passwordless "sign in with email" provider — code + magic-link ceremony."""
 
-from __future__ import annotations
-
 import re
 
 import pytest

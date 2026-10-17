@@ -10,23 +10,18 @@ After that, all structlog.get_logger(name) calls are routed automatically:
   grunt.*  (catch-all)          -> logs/system/grunt.log       (system)
 """
 
-from __future__ import annotations
-
 import contextlib
 import logging
 import logging.handlers
 import re
 import sysconfig
 import traceback
+from collections.abc import MutableMapping
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, TextIO
+from typing import Any, TextIO
 
 import structlog
-
-if TYPE_CHECKING:
-    from collections.abc import MutableMapping
-
-    from structlog.typing import ExcInfo
+from structlog.typing import ExcInfo
 
 _LOG_SUBDIRS = ("system", "web", "apps", "sites", "db", "scheduler")
 

@@ -8,13 +8,27 @@ Usage:
     grunt site use <name>
 """
 
-from __future__ import annotations
-
 import asyncio
+import re
+import secrets
 import shutil
 from pathlib import Path
 
 import click
+import dotenv
+
+lazy import grunt
+lazy from grunt.auth.doctypes.User.user import create_user, get_user_by_email
+lazy from grunt.metadata.compiler import SA_METADATA, sync_table
+lazy from grunt.metadata.registry import doctype_registry
+lazy from grunt.site.manager import current_site, site_manager
+lazy from grunt.startup import (
+    apply_doctype_overrides,
+    load_core_doctypes,
+    seed_grunt_workspace,
+    seed_system_settings,
+    sync_installed_apps,
+)
 
 
 def _get_sites_dir() -> Path:
@@ -84,8 +98,6 @@ def site_list():
         env_path = sites_dir / name / ".env"
         db_url = ""
         if env_path.exists():
-            import dotenv
-
             env = dotenv.dotenv_values(env_path)
             db_url = env.get("DATABASE_URL", "sqlite (default)")
 
@@ -118,8 +130,6 @@ def site_info(name: str):
 
     env_path = site_path / ".env"
     if env_path.exists():
-        import dotenv
-
         env = dotenv.dotenv_values(env_path)
         click.echo(f"\n  .env ({env_path}):")
         for key, val in sorted(env.items()):
@@ -172,8 +182,6 @@ def site_create(
     no_migrate: bool,
 ) -> None:
     """Create a new site."""
-    import re
-    import secrets
 
     if not re.match(r"^[a-zA-Z0-9._-]+$", name):
         click.echo(
@@ -246,16 +254,6 @@ def _run_migrate_for_site(site_name: str) -> None:
     """Run DB migration for a single site (reuses migrate logic inline)."""
 
     async def _migrate() -> None:
-        from grunt.metadata.compiler import SA_METADATA, sync_table
-        from grunt.metadata.registry import doctype_registry
-        from grunt.site.manager import current_site, site_manager
-        from grunt.startup import (
-            apply_doctype_overrides,
-            load_core_doctypes,
-            seed_grunt_workspace,
-            seed_system_settings,
-            sync_installed_apps,
-        )
 
         token = current_site.set(site_name)
         try:
@@ -295,9 +293,6 @@ def _run_migrate_for_site(site_name: str) -> None:
 
 
 async def _create_admin(site_name: str, email: str, password: str) -> None:
-    import grunt
-    from grunt.auth.doctypes.User.user import create_user, get_user_by_email
-    from grunt.site.manager import current_site, site_manager
 
     token = current_site.set(site_name)
     try:

@@ -1,7 +1,5 @@
 """enable_web_push in SystemSettings gates the Web Push surface."""
 
-from __future__ import annotations
-
 import pytest
 
 from grunt.api.messages import ApplicationError

@@ -1,7 +1,5 @@
 """NotificationRule controller - checks date-based rules against their DocType."""
 
-from __future__ import annotations
-
 import grunt
 from grunt import _
 from grunt.document.base import Document

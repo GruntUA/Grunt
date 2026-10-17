@@ -2,8 +2,6 @@
 update and delete go to the controller, and the document events fire around
 them just as for a table-backed DocType."""
 
-from __future__ import annotations
-
 from typing import Any
 
 import pytest

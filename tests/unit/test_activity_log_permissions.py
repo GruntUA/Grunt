@@ -15,20 +15,15 @@ grunt.system_context() (SYSTEM_USER), so it keeps working regardless of the
 acting user's role while the generic CRUD path is now actually closed.
 """
 
-from __future__ import annotations
-
 import json
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 import pytest
 
 from grunt.metadata.doctype import DocType
 from grunt.permissions.rbac import permission_checker
 from tests.support import make_user
-
-if TYPE_CHECKING:
-    from grunt.auth.doctypes.User.user import User
+lazy from grunt.auth.doctypes.User.user import User
 
 _ACTIVITY_LOG_JSON = (
     Path(__file__).resolve().parents[2] / "grunt/activity/doctypes/ActivityLog/ActivityLog.json"
@@ -36,7 +31,7 @@ _ACTIVITY_LOG_JSON = (
 
 
 def _load() -> DocType:
-    data = json.loads(_ACTIVITY_LOG_JSON.read_text(encoding="utf-8"))
+    data = json.loads(_ACTIVITY_LOG_JSON.read_text())
     return DocType.model_validate(data)
 
 

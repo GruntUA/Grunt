@@ -1,7 +1,5 @@
 """Tests for the Document API — dynamic CRUD for DocType instances."""
 
-from __future__ import annotations
-
 import pytest
 
 TEST_DOCTYPE = {

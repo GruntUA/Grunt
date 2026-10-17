@@ -5,18 +5,15 @@ trigger rule evaluation. Matching rules create system notifications and optional
 queue emails.
 """
 
-from __future__ import annotations
-
 import secrets
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING, Any
+from typing import Any
+
+from sqlalchemy.ext.asyncio import AsyncSession
 
 import grunt
 from grunt import log
 from grunt.api.v1.ws import manager
-
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class NotificationService:

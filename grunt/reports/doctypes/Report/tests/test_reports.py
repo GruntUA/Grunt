@@ -12,8 +12,6 @@ function calls under the ``ctx`` fixture (SYSTEM_USER), matching the
 pre-existing style for that part of the module.
 """
 
-from __future__ import annotations
-
 import io
 
 import pytest

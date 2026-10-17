@@ -1,7 +1,5 @@
 """Date-based notification rules: N days before/after a date, yearly, once a day."""
 
-from __future__ import annotations
-
 from datetime import date, datetime, time, timedelta
 
 import pytest

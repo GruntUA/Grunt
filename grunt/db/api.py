@@ -1,11 +1,11 @@
 """Grunt database API helpers."""
 
-from __future__ import annotations
-
 import re
-from typing import TYPE_CHECKING, Any, Literal, cast, overload
+from collections.abc import Awaitable, Callable
+from typing import Any, Literal, cast, overload
 
-from sqlalchemy import CursorResult, func, or_, select, update
+from sqlalchemy import CursorResult, Select, Table, func, or_, select, update
+from sqlalchemy.ext.asyncio import AsyncSession
 
 import grunt
 from grunt import _
@@ -14,12 +14,6 @@ from grunt.db.filters import apply_filters, build_clauses
 from grunt.errors import not_found
 from grunt.local import _session_ctx
 from grunt.utils.attr_dict import AttrDict
-
-if TYPE_CHECKING:
-    from collections.abc import Awaitable, Callable
-
-    from sqlalchemy import Select, Table
-    from sqlalchemy.ext.asyncio import AsyncSession
 
 # "sum(amount)" / "count()" - see _parse_aggregation_expr.
 _AGG_EXPR_RE = re.compile(r"^([a-z_]+)(?:\((.*)\))?$")

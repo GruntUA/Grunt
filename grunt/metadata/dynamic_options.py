@@ -8,14 +8,9 @@ existing consumers of `DocField.options` (frontend Select.vue included)
 never need to know a source is dynamic.
 """
 
-from __future__ import annotations
+from collections.abc import Callable, Sequence
 
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from collections.abc import Callable, Sequence
-
-    from grunt.metadata.field import DocField
+lazy from grunt.metadata.field import DocField
 
 _REGISTRY: dict[str, list[str]] = {}
 # Computed sources: called at schema-serve time; items are values or (value, label).

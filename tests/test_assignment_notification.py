@@ -1,7 +1,5 @@
 """Creating a ToDo (an assignment) notifies the person it lands on."""
 
-from __future__ import annotations
-
 import pytest
 
 ASSIGNEE = "assignee@example.com"
@@ -350,6 +348,9 @@ async def test_sidebar_shows_in_progress_and_overdue_assignees(ctx):
                 "status": "Closed",
             },
         )
+        # Commit like the other tests here: a background task sharing the test
+        # connection may roll back whatever is still pending under a busy run.
+        await ctx.db._session().commit()
 
         bundle = await Document.get_sidebar("Role", role["name"])
 

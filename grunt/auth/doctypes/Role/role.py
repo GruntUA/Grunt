@@ -1,7 +1,5 @@
 """Role DocType controller."""
 
-from __future__ import annotations
-
 from grunt.document.base import Document
 
 

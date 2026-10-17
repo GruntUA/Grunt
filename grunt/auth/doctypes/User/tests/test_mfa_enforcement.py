@@ -1,18 +1,12 @@
 """``Role.require_mfa``: users holding such a role must enroll 2FA at sign-in
 before any tokens are issued, and open sessions end on the next refresh."""
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
-
 import pyotp
 import pytest
+from httpx2 import AsyncClient
 
 from grunt.auth.doctypes.User.user import create_user, get_user_by_email
 from grunt.auth.service import create_mfa_token
-
-if TYPE_CHECKING:
-    from httpx2 import AsyncClient
 
 M = "/api/v1/method/grunt.auth.doctypes.User.user"
 EMAIL = "root@grunt.example.com"

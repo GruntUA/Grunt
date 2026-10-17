@@ -2,8 +2,6 @@
 for the server-rendered read-only views (``/share/{token}``, web view pages).
 """
 
-from __future__ import annotations
-
 from typing import Any
 
 from grunt import _

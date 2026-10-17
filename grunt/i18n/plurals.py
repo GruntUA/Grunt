@@ -5,12 +5,7 @@ the 0-based form to use for cardinal ``n``. English has 2 forms (one / other);
 Ukrainian, Russian and Polish have the classic Slavic 3.
 """
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from collections.abc import Callable
+from collections.abc import Callable
 
 DEFAULT_LANG = "en"
 
