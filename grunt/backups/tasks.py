@@ -7,7 +7,13 @@ from typing import Any
 
 import grunt
 from grunt import _, log, log_error
-from grunt.backups import DEFAULT_COMPRESSION_LEVEL, create_backup, list_backups, rotate
+from grunt.backups import (
+    DEFAULT_COMPRESSION_LEVEL,
+    BackupBusyError,
+    create_backup,
+    list_backups,
+    rotate,
+)
 from grunt.i18n import language_of, use_language
 from grunt.progress import TaskCancelledError, track_progress
 from grunt.site.manager import site_manager
@@ -57,6 +63,9 @@ async def _run(site: str, *, keep: int, **options: Any) -> str:
     except TaskCancelledError:
         log.info("backup.cancelled", site=site)
         raise
+    except BackupBusyError:
+        log.info("backup.busy", site=site)
+        raise
     except Exception as exc:
         await log_error(exc=exc, title="Backup failed", context="Background Task")
         raise
@@ -81,17 +90,20 @@ async def scheduled_backup() -> str | None:
         await _end_transaction(session)
         if not cfg["enabled"] or not is_due(site, cfg["interval"]):
             return None
-        # No user to notify: the progress shows in «Active Background Tasks».
-        async with track_progress(
-            _("Backup"), user=None, unit="bytes", doctype="Backup", cancellable=True
-        ) as progress:
-            return await _run(
-                site,
-                keep=cfg["keep"],
-                with_files=cfg["with_files"],
-                level=cfg["level"],
-                progress=progress,
-            )
+        try:
+            # No user to notify: the progress shows in «Active Background Tasks».
+            async with track_progress(
+                _("Backup"), user=None, unit="bytes", doctype="Backup", cancellable=True
+            ) as progress:
+                return await _run(
+                    site,
+                    keep=cfg["keep"],
+                    with_files=cfg["with_files"],
+                    level=cfg["level"],
+                    progress=progress,
+                )
+        except BackupBusyError:  # a job that waited in the queue while that one ran
+            return None
         return None  # cancelled
 
 

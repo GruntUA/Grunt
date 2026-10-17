@@ -20443,3 +20443,11 @@ msgstr "Sent to %(sent)s of %(total)s browsers"
 #, python-format
 msgid "Expired subscriptions removed: %(n)s"
 msgstr "Expired subscriptions removed: %(n)s"
+
+#: grunt/grunt/backups/__init__.py:272
+msgid "Another backup is being made right now"
+msgstr ""
+
+#: grunt/grunt/backups/__init__.py:301
+msgid "Not enough disk space for a backup: %(need)s needed, %(free)s free"
+msgstr ""
