@@ -41,7 +41,7 @@ from grunt.progress import Progress
 from grunt.site.manager import site_manager
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Callable, Sequence
 
 KINDS = ("database", "files", "config")
 # zstd 9: ~40% smaller than gzip 6 and faster; 19 squeezes more at ~25× the time.
@@ -280,13 +280,15 @@ def _exclusive(site: str):
 _SPACE_MARGIN = 1.1
 
 
-def _space_needed(steps: list[tuple[int, Path, Callable[[Path], object]]], latest, sqlite_size):
+def _space_needed(steps: Sequence[tuple[int, Path, Callable[[Path], object]]], latest, sqlite_size):
     """Bytes the new set needs on disk: as big as the latest set of the same parts
     (or what it reads, if there is none), plus the SQLite snapshot that lives
     uncompressed while it is being compressed."""
     need = 0
     for size, dest, _make in steps:
-        kind = _NAME.match(dest.name).group(2)
+        match = _NAME.match(dest.name)
+        assert match is not None, dest.name  # create_backup names every part to fit
+        kind = match.group(2)
         if latest and kind in latest.files:
             need += latest.size(kind)
         else:
@@ -344,15 +346,17 @@ def _create_backup_sync(
     # it), every uploaded file; pg_dump's size is unknown - it shows its stage only.
     progress.set(stage=_("Preparing"))
     steps: list[tuple[int, Path, Callable[[Path], object]]] = []
+    sqlite_size = 0
     if with_config and env.exists():
         steps.append(
             (0, out / f"{backup_id}-config.env", lambda part: _backup_config(env, part, progress))
         )
     if with_database and backend == "sqlite":
         db_path = _sqlite_path(url)
+        sqlite_size = db_path.stat().st_size
         steps.append(
             (
-                2 * db_path.stat().st_size,
+                2 * sqlite_size,
                 out / f"{backup_id}-database.sqlite.zst",
                 lambda part: _backup_sqlite(db_path, part, level, progress),
             )
@@ -378,7 +382,6 @@ def _create_backup_sync(
 
     _remove_stale_parts(out)
     backups = list_backups(site)
-    sqlite_size = db_path.stat().st_size if with_database and backend == "sqlite" else 0
     _check_space(out, _space_needed(steps, backups[0] if backups else None, sqlite_size))
     made: list[Path] = []  # the final paths; each is written as its _part() first
     try:

@@ -316,6 +316,7 @@ async def test_backup_is_refused_without_disk_space(site, monkeypatch):
 @pytest.mark.asyncio
 async def test_space_needed_follows_the_latest_set(site):
     first = await backups.create_backup(SITE)
-    steps = [(10**9, backups.backups_dir(SITE) / "20990101-000000-files.tar.zst", None)]
+    # _space_needed only sizes the steps - the make callable is never run.
+    steps = [(10**9, backups.backups_dir(SITE) / "20990101-000000-files.tar.zst", lambda p: None)]
     assert backups._space_needed(steps, first, 0) == int(first.size("files") * 1.1)
     assert backups._space_needed(steps, None, 0) == int(10**9 * 1.1)
