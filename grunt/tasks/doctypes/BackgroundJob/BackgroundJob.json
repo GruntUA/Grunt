@@ -5,7 +5,7 @@
   "icon": "loader",
   "is_virtual": true,
   "default_view": "list",
-  "description": "Tasks a worker currently holds (delivered, not yet acknowledged) — a live snapshot from the Redis Stream, nothing is stored in the DB. Finished tasks are not shown here; see the Error Log for failures.",
+  "description": "Tasks a worker currently holds (delivered, not yet acknowledged) — a live snapshot from the Redis Stream, nothing is stored in the DB. A task that reports progress (e.g. a backup) shows its percent and current stage. Finished tasks are not shown here; see the Error Log for failures.",
   "fields": [
     {
       "fieldname": "task_name",
@@ -21,6 +21,33 @@
       "fieldtype": "Data",
       "read_only": true,
       "in_list_view": true
+    },
+    {
+      "fieldname": "progress",
+      "label": "Progress, %",
+      "fieldtype": "Int",
+      "read_only": true,
+      "in_list_view": true,
+      "description": "Only for tasks that report progress; empty for the rest."
+    },
+    {
+      "fieldname": "stage",
+      "label": "Stage",
+      "fieldtype": "Data",
+      "read_only": true,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "processed",
+      "label": "Processed",
+      "fieldtype": "Data",
+      "read_only": true
+    },
+    {
+      "fieldname": "cancellable",
+      "label": "Can be cancelled",
+      "fieldtype": "Check",
+      "read_only": true
     },
     {
       "fieldname": "consumer",

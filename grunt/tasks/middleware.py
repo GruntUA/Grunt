@@ -93,3 +93,23 @@ class TaskPerfMiddleware(TaskiqMiddleware):
         from grunt.monitoring import perf
 
         perf.record("Task", message.task_name, result.execution_time * 1000, error=result.is_err)
+
+
+class TaskProgressMiddleware(TaskiqMiddleware):
+    """Exposes the running task's id to :mod:`grunt.progress` (``current_job``).
+
+    taskiq runs ``pre_execute`` and an async task in the same asyncio task, so
+    the context var reaches ``track_progress`` - which then keeps the progress
+    under this id for the «Active Background Tasks» list.
+    """
+
+    def pre_execute(self, message: TaskiqMessage) -> TaskiqMessage:
+        from grunt.progress import current_job
+
+        current_job.set(message.task_id)
+        return message
+
+    def post_execute(self, message: TaskiqMessage, result: TaskiqResult[Any]) -> None:
+        from grunt.progress import current_job
+
+        current_job.set(None)

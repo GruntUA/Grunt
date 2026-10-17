@@ -72,6 +72,9 @@ class FakeRedis:
     async def exists(self, key):
         return int(key in self.store)
 
+    async def mget(self, keys):
+        return [self.store.get(k) for k in keys]
+
     async def delete(self, *keys):
         for key in keys:
             self.store.pop(key, None)
@@ -96,6 +99,10 @@ def _as_user(monkeypatch, email):
     from tests.support import make_user
 
     monkeypatch.setattr(grunt, "get_user", lambda: make_user(email))
+
+
+# The System Manager check lives in the whitelist wrapper; tests call the body.
+_cancel_job = progress_mod.cancel_job.__wrapped__
 
 
 @pytest.mark.asyncio
@@ -124,3 +131,53 @@ async def test_someone_elses_task_cannot_be_cancelled(sent, redis_store, monkeyp
 async def test_without_redis_a_task_is_not_cancellable(sent):
     async with track_progress("Backup", user="a@x", cancellable=True) as p:
         assert p.payload()["cancellable"] is False
+
+
+@pytest.mark.asyncio
+async def test_a_scheduled_task_keeps_its_progress_under_the_job_id(sent, redis_store, monkeypatch):
+    token = progress_mod.current_job.set("job-1")
+    try:
+        async with track_progress("Backup", user=None, total=100, cancellable=True) as p:
+            p.set(stage="Archiving files")
+            p.advance(40)
+            await progress_mod.asyncio.sleep(0)
+            state = await progress_mod.job_progress(["job-1", "job-2"])
+            assert list(state) == ["job-1"]
+            assert state["job-1"]["percent"] == 40
+            assert state["job-1"]["description"] == "Archiving files"
+            assert await _cancel_job("job-1") is True
+            await progress_mod.asyncio.sleep(progress_mod.FLUSH_SECONDS + 0.05)
+            p.advance(1)
+            raise AssertionError("not reached")  # pragma: no cover
+    finally:
+        progress_mod.current_job.reset(token)
+    assert sent == []  # nobody to notify over the WebSocket
+    assert redis_store == {}
+
+
+@pytest.mark.asyncio
+async def test_an_unknown_job_cannot_be_cancelled(redis_store):
+    assert await _cancel_job("nope") is False
+
+
+def test_background_job_progress_columns():
+    from grunt.tasks.doctypes.BackgroundJob.background_job import _progress_fields
+
+    assert _progress_fields(None)["progress"] is None
+    row = _progress_fields(
+        {
+            "title": "Backup",
+            "description": "Archiving files",
+            "percent": 50,
+            "count": 1024,
+            "total": 2048,
+            "unit": "bytes",
+            "step": 2,
+            "steps": 3,
+            "cancellable": True,
+        }
+    )
+    assert row["progress"] == 50
+    assert row["stage"].endswith("· Archiving files")
+    assert row["processed"].startswith("1.0 ") and " / 2.0 " in row["processed"]
+    assert row["cancellable"] == 1

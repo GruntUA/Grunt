@@ -10515,12 +10515,14 @@ msgstr "Активні фонові задачі"
 msgctxt "help:BackgroundJob"
 msgid ""
 "Tasks a worker currently holds (delivered, not yet acknowledged) — a live "
-"snapshot from the Redis Stream, nothing is stored in the DB. Finished tasks "
-"are not shown here; see the Error Log for failures."
+"snapshot from the Redis Stream, nothing is stored in the DB. A task that "
+"reports progress (e.g. a backup) shows its percent and current stage. "
+"Finished tasks are not shown here; see the Error Log for failures."
 msgstr ""
 "Задачі, які воркер зараз тримає в роботі (доставлені, ще не підтверджені) — "
-"живий знімок з Redis Stream, нічого не зберігається в БД. Завершені задачі "
-"тут не показуються; помилки дивіться в Журналі помилок."
+"живий знімок з Redis Stream, нічого не зберігається в БД. Задача, що звітує "
+"прогрес (напр. резервна копія), показує відсоток і поточний етап. Завершені "
+"задачі тут не показуються; помилки дивіться в Журналі помилок."
 
 #: grunt/grunt/tasks/doctypes/BackgroundJob/BackgroundJob.json
 msgctxt "meta:BackgroundJob.task_name"
@@ -10574,6 +10576,31 @@ msgstr ""
 msgctxt "meta:BackgroundJob.arguments"
 msgid "Arguments"
 msgstr "Аргументи"
+
+#: grunt/grunt/tasks/doctypes/BackgroundJob/BackgroundJob.json
+msgctxt "meta:BackgroundJob.progress"
+msgid "Progress, %"
+msgstr "Прогрес, %"
+
+#: grunt/grunt/tasks/doctypes/BackgroundJob/BackgroundJob.json
+msgctxt "help:BackgroundJob.progress"
+msgid "Only for tasks that report progress; empty for the rest."
+msgstr "Лише для задач, що звітують прогрес; для решти порожньо."
+
+#: grunt/grunt/tasks/doctypes/BackgroundJob/BackgroundJob.json
+msgctxt "meta:BackgroundJob.stage"
+msgid "Stage"
+msgstr "Етап"
+
+#: grunt/grunt/tasks/doctypes/BackgroundJob/BackgroundJob.json
+msgctxt "meta:BackgroundJob.processed"
+msgid "Processed"
+msgstr "Оброблено"
+
+#: grunt/grunt/tasks/doctypes/BackgroundJob/BackgroundJob.json
+msgctxt "meta:BackgroundJob.cancellable"
+msgid "Can be cancelled"
+msgstr "Можна скасувати"
 
 #: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
 msgctxt "meta:BackgroundWorker"
@@ -18078,6 +18105,15 @@ msgstr[2] "{n} рядків потребують уваги"
 #: grunt/frontend/src/components/files/FileExplorer.vue:942
 msgid "Showing the first {n} of {total} files"
 msgstr "Показано перші {n} з {total} файлів"
+
+
+#: grunt/grunt/tasks/doctypes/BackgroundJob/background_job.py
+msgid "Step %(step)s of %(steps)s"
+msgstr "Крок %(step)s з %(steps)s"
+
+#: grunt/grunt/tasks/doctypes/BackgroundJob/BackgroundJob.js
+msgid "The task has already finished"
+msgstr "Задача вже завершилась"
 
 #~ msgid "row needs attention"
 #~ msgstr "рядок потребує уваги"

@@ -14,7 +14,11 @@ if TYPE_CHECKING:
 from taskiq_redis import RedisStreamBroker
 
 from grunt.config import settings
-from grunt.tasks.middleware import BackgroundTaskLoggingMiddleware, TaskPerfMiddleware
+from grunt.tasks.middleware import (
+    BackgroundTaskLoggingMiddleware,
+    TaskPerfMiddleware,
+    TaskProgressMiddleware,
+)
 from grunt.utils.redis import connection_options
 
 _P = ParamSpec("_P")
@@ -48,6 +52,7 @@ if settings.redis_url:
     ).with_middlewares(
         BackgroundTaskLoggingMiddleware(),
         TaskPerfMiddleware(),
+        TaskProgressMiddleware(),
         _retry_middleware,
     )
     log.debug("tasks.broker_initialized", type="redis_stream", url=settings.redis_url)
@@ -56,6 +61,7 @@ else:
     broker = InMemoryBroker().with_middlewares(
         BackgroundTaskLoggingMiddleware(),
         TaskPerfMiddleware(),
+        TaskProgressMiddleware(),
         _retry_middleware,
     )
     log.warning("tasks.broker_initialized", type="in_memory", reason="REDIS_URL not set")

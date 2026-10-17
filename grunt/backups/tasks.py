@@ -81,7 +81,18 @@ async def scheduled_backup() -> str | None:
         await _end_transaction(session)
         if not cfg["enabled"] or not is_due(site, cfg["interval"]):
             return None
-        return await _run(site, keep=cfg["keep"], with_files=cfg["with_files"], level=cfg["level"])
+        # No user to notify: the progress shows in «Active Background Tasks».
+        async with track_progress(
+            _("Backup"), user=None, unit="bytes", doctype="Backup", cancellable=True
+        ) as progress:
+            return await _run(
+                site,
+                keep=cfg["keep"],
+                with_files=cfg["with_files"],
+                level=cfg["level"],
+                progress=progress,
+            )
+        return None  # cancelled
 
 
 @task

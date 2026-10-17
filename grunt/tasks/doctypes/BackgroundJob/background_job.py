@@ -10,6 +10,8 @@ from grunt.document.base import BaseDocument, DocumentList
 from grunt.document.in_memory import apply_filters, apply_search, apply_sort, build_response
 from grunt.errors import not_found
 from grunt.i18n import N_
+from grunt.monitoring.health import human_size
+from grunt.progress import job_progress
 from grunt.tasks.redis_introspect import (
     entry_timestamp_ms,
     read_task_info,
@@ -125,4 +127,25 @@ class BackgroundJobController(BaseDocument):
             log.warning("background_job.list_failed", error=str(exc))
             return [], "unreachable"
 
+        tracked = await job_progress([r["task_id"] for r in rows if r["task_id"]])
+        for row in rows:
+            row.update(_progress_fields(tracked.get(row["task_id"])))
         return rows, None
+
+
+def _progress_fields(state: dict[str, Any] | None) -> dict[str, Any]:
+    """The list's progress columns from a ``grunt.progress`` payload (all empty if none)."""
+    if not state:
+        return {"progress": None, "stage": None, "processed": None, "cancellable": 0}
+    stage = state.get("description") or state.get("title")
+    if state.get("steps", 0) > 1:
+        step = _("Step %(step)s of %(steps)s") % {"step": state["step"], "steps": state["steps"]}
+        stage = f"{step} · {stage}" if stage else step
+    fmt = human_size if state.get("unit") == "bytes" else str
+    count, total = state.get("count", 0), state.get("total", 0)
+    return {
+        "progress": state.get("percent", 0) if total else None,
+        "stage": stage,
+        "processed": f"{fmt(count)} / {fmt(total)}" if total else (fmt(count) if count else None),
+        "cancellable": int(bool(state.get("cancellable"))),
+    }
