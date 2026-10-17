@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import fcntl
 import os
 import re
 import shutil
@@ -52,6 +53,10 @@ _NAME = re.compile(r"^(\d{8}-\d{6})-(database|files|config)(\.[A-Za-z0-9.]+)$")
 
 class BackupError(RuntimeError):
     pass
+
+
+class BackupBusyError(BackupError):
+    """Another backup of the site is being made right now."""
 
 
 @dataclass
@@ -252,6 +257,56 @@ def _remove_stale_parts(out: Path) -> None:
                 shutil.rmtree(path) if path.is_dir() else path.unlink()
 
 
+@contextlib.contextmanager
+def _exclusive(site: str):
+    """One backup of a site at a time - across the worker's threads and the CLI.
+
+    Hourly jobs that piled up while the worker was busy all start together
+    once it is free again; without this each would make its own full set
+    side by side and fill the disk.
+    """
+    with (site_dir(site) / ".backup.lock").open("a") as lock:
+        try:
+            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            raise BackupBusyError(_("Another backup is being made right now")) from None
+        try:
+            yield
+        finally:
+            fcntl.flock(lock, fcntl.LOCK_UN)
+
+
+# Room for one more set besides the ones rotation keeps until it succeeds
+_SPACE_MARGIN = 1.1
+
+
+def _space_needed(steps: list[tuple[int, Path, Callable[[Path], object]]], latest, sqlite_size):
+    """Bytes the new set needs on disk: as big as the latest set of the same parts
+    (or what it reads, if there is none), plus the SQLite snapshot that lives
+    uncompressed while it is being compressed."""
+    need = 0
+    for size, dest, _make in steps:
+        kind = _NAME.match(dest.name).group(2)
+        if latest and kind in latest.files:
+            need += latest.size(kind)
+        else:
+            need += size // 2 if kind == "database" else size  # a SQLite file counts twice
+    return int((need + sqlite_size) * _SPACE_MARGIN)
+
+
+def _check_space(out: Path, need: int) -> None:
+    free = shutil.disk_usage(out).free
+    if free < need:
+        raise BackupError(
+            _("Not enough disk space for a backup: %(need)s needed, %(free)s free")
+            % {"need": _gb(need), "free": _gb(free)}
+        )
+
+
+def _gb(size: int) -> str:
+    return f"{size / 1024**3:.1f} GB"
+
+
 def _tree_size(path: Path) -> int:
     """Bytes the files archive reads - what _backup_files skips doesn't count."""
     skipped = tuple(path / p.removeprefix("uploads/") for p in _SKIPPED_UPLOADS)
@@ -322,6 +377,9 @@ def _create_backup_sync(
     progress.set(total=sum(size for size, _dest, _make in steps), steps=len(steps))
 
     _remove_stale_parts(out)
+    backups = list_backups(site)
+    sqlite_size = db_path.stat().st_size if with_database and backend == "sqlite" else 0
+    _check_space(out, _space_needed(steps, backups[0] if backups else None, sqlite_size))
     made: list[Path] = []  # the final paths; each is written as its _part() first
     try:
         for step, (_size, dest, make) in enumerate(steps, 1):
@@ -343,6 +401,11 @@ def _create_backup_sync(
     return backup
 
 
+def _locked_create_backup(site: str, *args) -> BackupSet:
+    with _exclusive(site):
+        return _create_backup_sync(site, *args)
+
+
 async def create_backup(
     site: str,
     *,
@@ -359,7 +422,7 @@ async def create_backup(
     started = datetime.now(UTC)
     progress = progress or Progress("", user=None)
     backup = await asyncio.to_thread(
-        _create_backup_sync, site, with_database, with_files, with_config, level, progress
+        _locked_create_backup, site, with_database, with_files, with_config, level, progress
     )
     log.info(
         "backup.created",

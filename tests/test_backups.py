@@ -279,3 +279,40 @@ async def test_parts_are_made_quickest_first(site, monkeypatch):
     await backups.create_backup(SITE)
     # the test uploads are a few bytes, smaller than the database
     assert order == ["config", "files", "database"]
+
+
+@pytest.mark.asyncio
+async def test_only_one_backup_at_a_time(site):
+    with backups._exclusive(SITE), pytest.raises(backups.BackupBusyError):
+        await backups.create_backup(SITE)
+    assert list(backups.backups_dir(SITE).iterdir()) == []
+    assert await backups.create_backup(SITE)  # the lock is free again
+
+
+@pytest.mark.asyncio
+async def test_queued_scheduled_backup_skips_a_running_one(site, monkeypatch):
+    async def busy(*a, **kw):
+        raise backups.BackupBusyError("busy")
+
+    monkeypatch.setattr(tasks, "create_backup", busy)
+    with pytest.raises(backups.BackupBusyError):
+        await tasks._run(SITE, keep=3)
+
+
+@pytest.mark.asyncio
+async def test_backup_is_refused_without_disk_space(site, monkeypatch):
+    from collections import namedtuple
+
+    usage = namedtuple("usage", "total used free")
+    monkeypatch.setattr(backups.shutil, "disk_usage", lambda p: usage(100, 100, 0))
+    with pytest.raises(backups.BackupError, match="disk space"):
+        await backups.create_backup(SITE)
+    assert list(backups.backups_dir(SITE).iterdir()) == []
+
+
+@pytest.mark.asyncio
+async def test_space_needed_follows_the_latest_set(site):
+    first = await backups.create_backup(SITE)
+    steps = [(10**9, backups.backups_dir(SITE) / "20990101-000000-files.tar.zst", None)]
+    assert backups._space_needed(steps, first, 0) == int(first.size("files") * 1.1)
+    assert backups._space_needed(steps, None, 0) == int(10**9 * 1.1)

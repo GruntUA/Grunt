@@ -22961,3 +22961,11 @@ msgstr "Показано перші {n} з {total} файлів"
 
 #~ msgid "Push notifications work in this browser."
 #~ msgstr "Push-сповіщення працюють у цьому браузері."
+
+#: grunt/grunt/backups/__init__.py:272
+msgid "Another backup is being made right now"
+msgstr "Інша резервна копія вже створюється"
+
+#: grunt/grunt/backups/__init__.py:301
+msgid "Not enough disk space for a backup: %(need)s needed, %(free)s free"
+msgstr "Замало місця на диску для резервної копії: потрібно %(need)s, вільно %(free)s"
