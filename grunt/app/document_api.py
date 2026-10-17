@@ -2,7 +2,7 @@
 
 import copy
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING, Any, overload
+from typing import Any, overload
 
 from fastapi import HTTPException
 
@@ -42,10 +42,9 @@ class DocumentAPI:
     :class:`~grunt.app.GruntApp` so type checkers can resolve them.
     """
 
-    if TYPE_CHECKING:
-        db: GruntDB
-        query_cache: QueryCache
-        doc_cache: DocumentCache
+    db: GruntDB
+    query_cache: QueryCache
+    doc_cache: DocumentCache
 
     def _is_read_only_doctype(self, dt: Any) -> bool:
         """True when DocType has explicit permissions and none allow mutation."""

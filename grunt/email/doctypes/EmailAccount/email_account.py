@@ -6,21 +6,23 @@ from grunt.email.service import SMTP_PASSWORD_MASK
 
 class EmailAccount(Document):
     # begin: auto-generated types
-    from typing import TYPE_CHECKING
+    # This code is auto-generated. Do not modify anything in this block.
 
-    if TYPE_CHECKING:
-        email_address: str | None
-        provider: str | None
-        enable_outgoing: bool | None
-        smtp_server: str | None
-        smtp_port: int | None
-        use_tls: bool | None
-        smtp_user: str | None
-        smtp_password: str | None
-        enable_incoming: bool | None
-        imap_server: str | None
-        imap_port: int | None
-        use_ssl: bool | None
+    provider: str | None  # Mail service
+    email_address: str | None  # Email address
+    open_app_passwords: None  # Open the Google app passwords page
+    smtp_user: str | None  # SMTP user
+    smtp_password: str | None  # SMTP password (app password)
+    test_connection: None  # Test connection (SMTP)
+    test_send: None  # Send test email
+    enable_outgoing: bool | None  # Enable outgoing mail
+    smtp_server: str | None  # SMTP server
+    smtp_port: int | None  # SMTP port
+    use_tls: bool | None  # Use TLS
+    enable_incoming: bool | None  # Enable incoming mail
+    imap_server: str | None  # IMAP server
+    imap_port: int | None  # IMAP port
+    use_ssl: bool | None  # Use SSL
 
     # end: auto-generated types
 

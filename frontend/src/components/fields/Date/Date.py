@@ -1,4 +1,4 @@
-from __future__ import annotations
+from datetime import date
 
 from grunt.metadata.field import FieldType, register_field_type_class
 
@@ -11,7 +11,6 @@ class DateField(FieldType):
 
     @classmethod
     def parse(cls, value):
-        from datetime import date
 
         if isinstance(value, str):
             return date.fromisoformat(value[:10])

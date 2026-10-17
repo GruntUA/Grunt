@@ -1,4 +1,5 @@
 from grunt.metadata.field import FieldType, register_field_type_class
+lazy from grunt.utils.sanitize import sanitize_html
 
 
 class RichTextField(FieldType):
@@ -12,7 +13,6 @@ class RichTextField(FieldType):
     def parse(cls, value):
         if not isinstance(value, str):
             return value
-        from grunt.utils.sanitize import sanitize_html
 
         return sanitize_html(value)
 

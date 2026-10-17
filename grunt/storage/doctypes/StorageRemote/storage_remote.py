@@ -2,6 +2,7 @@
 
 import contextlib
 import uuid
+from datetime import datetime
 from typing import Any
 
 from fastapi import HTTPException
@@ -35,43 +36,59 @@ _PROBE = ".grunt-connection-test-{}"
 
 class StorageRemote(Document):
     # begin: auto-generated types
-    from typing import TYPE_CHECKING
+    # This code is auto-generated. Do not modify anything in this block.
 
-    if TYPE_CHECKING:
-        title: str
-        provider: str
-        enabled: bool | None
-        root_folder: str | None
-        oauth_account: str | None
-        client_id: str | None
-        client_secret: str | None
-        oauth_token: str | None
-        oauth_extra: str | None
-        s3_provider: str | None
-        endpoint: str | None
-        region: str | None
-        webdav_vendor: str | None
-        host: str | None
-        port: int | None
-        domain: str | None
-        access_key_id: str | None
-        secret_access_key: str | None
-        username: str | None
-        password: str | None
-        ssh_private_key: str | None
-        rclone_type: str | None
-        rclone_options: str | None
-        encrypt: bool | None
-        encryption_password: str | None
-        encryption_salt: str | None
-        use_for_backups: bool | None
-        backup_keep: int | None
-        use_for_files: bool | None
-        offload_after_days: int | None
-        offload_min_size_kb: int | None
-        offload_public: bool | None
-        offload_doctypes: str | None
-        cache_size_mb: int | None
+    title: str | None  # Name
+    provider: str | None  # Storage type
+    enabled: bool | None  # Enabled
+    root_folder: str | None  # Root folder
+    oauth_account: str | None  # Connected account
+    oauth_connected_at: datetime | None  # Connected at
+    paste_token: None  # Paste a token from rclone
+    client_id: str | None  # Client ID
+    client_secret: str | None  # Client secret
+    authorize: None  # Sign in through the browser
+    oauth_token: str | None  # OAuth token
+    oauth_extra: str | None  # OAuth extra
+    s3_provider: str | None  # S3 provider
+    endpoint: str | None  # Address (URL)
+    region: str | None  # Region
+    webdav_vendor: str | None  # WebDAV server
+    host: str | None  # Host
+    port: int | None  # Port
+    domain: str | None  # Domain
+    access_key_id: str | None  # Access key ID
+    secret_access_key: str | None  # Secret access key
+    username: str | None  # User
+    password: str | None  # Password
+    ssh_private_key: str | None  # SSH private key
+    rclone_type: str | None  # rclone backend
+    rclone_options: str | None  # rclone options
+    encrypt: bool | None  # Encrypt before sending
+    encryption_password: str | None  # Encryption password
+    encryption_salt: str | None  # Second password (salt)
+    test_connection: None  # Test connection
+    show_config: None  # Show rclone config
+    last_status: str | None  # Status
+    last_check_at: datetime | None  # Last checked
+    quota: str | None  # Space
+    last_error: str | None  # Last error
+    use_for_backups: bool | None  # Upload backups here
+    backup_keep: int | None  # Copies to keep here
+    upload_latest: None  # Upload the latest backup now
+    browse_backups: None  # Backups in this storage
+    last_backup_at: datetime | None  # Last upload
+    last_backup_id: str | None  # Last uploaded set
+    use_for_files: bool | None  # Move old files here
+    offload_after_days: int | None  # Older than, days
+    offload_min_size_kb: int | None  # Larger than, KB
+    offload_public: bool | None  # Public files too
+    offload_doctypes: str | None  # Only files of
+    cache_size_mb: int | None  # Local cache, MB
+    offloaded_files: int | None  # Files in the storage
+    offloaded_size: str | None  # Their size
+    offload_now: None  # Move files now
+    recall_files: None  # Return all files to the server
 
     # end: auto-generated types
 
