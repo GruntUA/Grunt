@@ -118,7 +118,8 @@ async def test_public_image_serves_sized_previews_cacheable(client, auth_headers
     again = await client.get(url + "&w=960", headers={"If-None-Match": r.headers["etag"]})
     assert again.status_code == 304
 
-    # A width outside WEB_WIDTHS gets the original.
+    # A width outside WEB_WIDTHS gets the original (stored compressed, as WebP).
     original = await client.get(url + "&w=123")
     assert original.status_code == 200
-    assert original.headers["content-type"] == "image/png"
+    assert original.headers["content-type"] == "image/webp"
+    assert _size(original.content) == (1600, 900)

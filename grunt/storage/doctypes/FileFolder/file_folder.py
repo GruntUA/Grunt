@@ -211,6 +211,7 @@ async def _copy_file(row: dict[str, Any], target: str) -> None:
         _free_name(row["file_name"], taken),
         row["content_type"],
         folder=target,
+        original_size=row.get("original_size") if row.get("is_compressed") else None,
     )
 
 
@@ -229,7 +230,15 @@ async def _copy_folder(row: dict[str, Any], target: str) -> int:
     for file in await grunt.get_list(
         "File",
         filters={"folder": row["name"]},
-        fields=["name", "file_name", "file_size", "content_type", "content_hash"],
+        fields=[
+            "name",
+            "file_name",
+            "file_size",
+            "content_type",
+            "content_hash",
+            "is_compressed",
+            "original_size",
+        ],
         limit=_MANY,
     ):
         await _copy_file(file, copy["name"])

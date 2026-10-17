@@ -23026,3 +23026,122 @@ msgstr "Інша резервна копія вже створюється"
 #: grunt/grunt/backups/__init__.py:301
 msgid "Not enough disk space for a backup: %(need)s needed, %(free)s free"
 msgstr "Замало місця на диску для резервної копії: потрібно %(need)s, вільно %(free)s"
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgctxt "meta:SystemSettings.optimize_images"
+msgid "Compress uploaded images"
+msgstr "Стискати завантажені зображення"
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgctxt "help:SystemSettings.optimize_images"
+msgid ""
+"Photos (JPEG, PNG, WebP) are re-encoded on upload without visible loss of "
+"quality: large ones are scaled down, the file is kept only if it got smaller. "
+"Existing files: grunt files compress"
+msgstr ""
+"Фото (JPEG, PNG, WebP) під час завантаження перекодовуються без видимої втрати "
+"якості: великі зменшуються, файл замінюється, лише якщо став меншим. Наявні "
+"файли: grunt files compress"
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgctxt "meta:SystemSettings.image_format"
+msgid "Store images as"
+msgstr "Зберігати зображення як"
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgctxt "help:SystemSettings.image_format"
+msgid ""
+"WebP - the smallest files (PNG become lossless WebP); Original - JPEG stays "
+"JPEG, PNG stays PNG"
+msgstr ""
+"WebP — найменші файли (PNG стають WebP без втрат); Оригінальний — JPEG "
+"лишається JPEG, PNG лишається PNG"
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgctxt "select:SystemSettings.image_format"
+msgid "WebP"
+msgstr "WebP"
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgctxt "select:SystemSettings.image_format"
+msgid "Original"
+msgstr "Оригінальний"
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgctxt "meta:SystemSettings.image_max_size"
+msgid "Max image size, px"
+msgstr "Макс. розмір зображення, px"
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgctxt "help:SystemSettings.image_max_size"
+msgid "Longer side; larger images are scaled down. 0 - never"
+msgstr "За довшою стороною; більші зображення зменшуються. 0 — ніколи"
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgctxt "meta:SystemSettings.image_quality"
+msgid "Image quality"
+msgstr "Якість зображень"
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgctxt "help:SystemSettings.image_quality"
+msgid "1-100; 85 is indistinguishable from the original for photos"
+msgstr "1–100; для фото 85 не відрізнити від оригіналу"
+
+#: grunt/grunt/storage/doctypes/File/File.json
+msgctxt "meta:File.is_compressed"
+msgid "Compressed"
+msgstr "Стиснено"
+
+#: grunt/grunt/storage/doctypes/File/File.json
+msgctxt "help:File.is_compressed"
+msgid ""
+"The image was re-encoded on upload to take less space (System Settings → "
+"Files); the original was not kept."
+msgstr ""
+"Зображення під час завантаження перекодовано, щоб займало менше місця "
+"(Налаштування системи → Файли); оригінал не збережено."
+
+#: grunt/grunt/storage/doctypes/File/File.json
+msgctxt "meta:File.original_size"
+msgid "Original size (bytes)"
+msgstr "Розмір оригіналу (байти)"
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgctxt "meta:SystemSettings.compress_existing_images"
+msgid "Compress existing images"
+msgstr "Стиснути наявні зображення"
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgctxt "help:SystemSettings.compress_existing_images"
+msgid ""
+"Runs in the background: images uploaded before compression was on are re-"
+"encoded with the saved settings above. The progress is in the task panel; it "
+"can be cancelled - what's done stays done."
+msgstr ""
+"Виконується у фоні: зображення, завантажені до ввімкнення стиснення, "
+"перекодовуються зі збереженими налаштуваннями вище. Перебіг — на панелі "
+"задач; задачу можна скасувати, зроблене лишиться."
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.js
+msgid ""
+"Images uploaded before compression was on will be re-encoded in the "
+"background with the saved settings. The originals are not kept. Continue?"
+msgstr ""
+"Зображення, завантажені до ввімкнення стиснення, буде перекодовано у фоні "
+"зі збереженими налаштуваннями. Оригінали не зберігаються. Продовжити?"
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.js
+msgid "Image compression started - follow it in the task panel."
+msgstr "Стиснення зображень запущено — перебіг на панелі задач."
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.js
+msgid "Could not start the task"
+msgstr "Не вдалося запустити задачу"
+
+#: grunt/grunt/storage/images.py
+msgid "Image compression is turned off in System Settings"
+msgstr "Стиснення зображень вимкнено в налаштуваннях системи"
+
+#: grunt/grunt/storage/tasks.py
+msgid "Compressing images"
+msgstr "Стиснення зображень"

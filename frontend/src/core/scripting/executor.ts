@@ -914,6 +914,19 @@ function translate(text: string, params?: Record<string, unknown>): string {
 // Execution
 
 /**
+ * The body of a client script's `new Function`: the script, then *call*.
+ * In development a `//# sourceURL` names it, so it shows up in DevTools →
+ * Sources as `clientscript/<DocType>/<script>.js` and takes breakpoints like
+ * a normal file (otherwise it is an anonymous VM script).
+ */
+function scriptBody(doctype: string, entry: ClientScriptEntry, call: string): string {
+  const body = `${entry.script};\n${call}`
+  if (!import.meta.env.DEV) return body
+  const name = entry.name.replace(/[^\w.-]+/g, '/').replace(/^\/+/, '')
+  return `${body}\n//# sourceURL=clientscript/${doctype}/${name}${name.endsWith('.js') ? '' : '.js'}`
+}
+
+/**
  * Execute all client scripts for a DocType, filtering by event.
  *
  * Scripts should define handler functions matching the event name:
@@ -943,10 +956,13 @@ export async function executeClientScripts(
         'frm',
         'grunt',
         '__',
-        `${entry.script};\n` +
-        `if (typeof ${event} === 'function') {\n` +
-        `  return ${event}(cur_frm${event === 'on_change' ? `, '${changedField ?? ''}'` : ''});\n` +
-        `}`
+        scriptBody(
+          doctype,
+          entry,
+          `if (typeof ${event} === 'function') {\n` +
+          `  return ${event}(cur_frm${event === 'on_change' ? `, '${changedField ?? ''}'` : ''});\n` +
+          `}`,
+        ),
       )
 
       const result = await fn(frm, frm, gruntProxy, translate)
@@ -1049,8 +1065,7 @@ export async function executeListSetup(
         'listview',
         'grunt',
         '__',
-        `${entry.script};\n` +
-        `if (typeof setup_list === 'function') { return setup_list(listview); }`,
+        scriptBody(doctype, entry, `if (typeof setup_list === 'function') { return setup_list(listview); }`),
       )
       await fn(listview, gruntProxy, translate)
     } catch (err) {
@@ -1087,8 +1102,11 @@ export async function executeListQuickFilterOnChange(
         'grunt',
         'change',
         '__',
-        `${entry.script};\n` +
-        `if (typeof on_quick_filter_change === 'function') { return on_quick_filter_change(listview, change); }`,
+        scriptBody(
+          doctype,
+          entry,
+          `if (typeof on_quick_filter_change === 'function') { return on_quick_filter_change(listview, change); }`,
+        ),
       )
       await fn(listview, gruntProxy, change, translate)
     } catch (err) {

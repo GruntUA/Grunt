@@ -12,7 +12,7 @@ import { reactive } from 'vue'
 export interface FolderPickerOptions {
   /** The files about to be uploaded - shown in the header. */
   files?: File[]
-  /** The folder to open first; «My files» when omitted. */
+  /** The folder to open first; the last one opened (else «My files») when omitted. */
   folder?: string | null
 }
 
@@ -40,6 +40,29 @@ export function useFolderPicker() {
   }
 
   return { state, pick, close }
+}
+
+/**
+ * The folder the user last opened in any file explorer - the next one starts
+ * there instead of «My files». Per user, in this browser.
+ */
+const LAST_FOLDER_KEY = 'grunt_last_folder:'
+
+export function lastFolder(user: string): string | null {
+  try {
+    return localStorage.getItem(LAST_FOLDER_KEY + user)
+  } catch {
+    return null
+  }
+}
+
+export function rememberFolder(user: string, folder: string | null): void {
+  try {
+    if (folder) localStorage.setItem(LAST_FOLDER_KEY + user, folder)
+    else localStorage.removeItem(LAST_FOLDER_KEY + user)
+  } catch {
+    // best-effort, like the other UI memories
+  }
 }
 
 /**

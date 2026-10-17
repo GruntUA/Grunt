@@ -38,6 +38,8 @@ class File(Document):
     attached_to_id: str | None
     folder: str | None
     storage_remote: str | None
+    is_compressed: bool
+    original_size: int | None
 
     _prev_folder: str | None = None
 
@@ -202,14 +204,15 @@ async def upload(
         raise HTTPException(415, str(exc)) from exc
     finally:
         await file.close()
+    blob = await files.compress_stored(key, size, file.filename, content_type)
 
     # The blob is stored once whatever happens; this only decides whether a
     # re-upload of the same name + bytes by the same user for the same target
     # reuses its File row instead of listing a second one. A different name -
     # or the same bytes for a *different* document - gets its own row.
     existing = await File.objects.filter(
-        file_name=file.filename,
-        content_hash=key,
+        file_name=blob.filename,
+        content_hash=blob.key,
         uploaded_by=grunt.get_user().email,
         attached_to_doctype=attached_to_doctype or None,
         attached_to_id=attached_to_id or None,
@@ -219,14 +222,15 @@ async def upload(
         return _upload_payload(existing.as_dict(), deduped=True)
 
     doc = await files.create_file(
-        key,
-        size,
-        file.filename,
-        content_type,
+        blob.key,
+        blob.size,
+        blob.filename,
+        blob.content_type,
         attached_to_doctype=attached_to_doctype,
         attached_to_id=attached_to_id,
         folder=folder,
         is_public=is_public,
+        original_size=blob.original_size,
     )
     return _upload_payload(doc, deduped=False)
 

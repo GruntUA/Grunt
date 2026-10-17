@@ -57,6 +57,21 @@
       "in_filter": true
     },
     {
+      "fieldname": "is_compressed",
+      "label": "Compressed",
+      "fieldtype": "Check",
+      "read_only": true,
+      "in_filter": true,
+      "description": "The image was re-encoded on upload to take less space (System Settings → Files); the original was not kept."
+    },
+    {
+      "fieldname": "original_size",
+      "label": "Original size (bytes)",
+      "fieldtype": "Int",
+      "read_only": true,
+      "depends_on": "eval: doc.is_compressed"
+    },
+    {
       "fieldname": "content_hash",
       "label": "Content hash (SHA-256)",
       "fieldtype": "Data",

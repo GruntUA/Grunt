@@ -139,6 +139,53 @@
       "description": "How much each user's “My files” may hold; 0 - no limit. A user's own quota (User → Security) overrides it"
     },
     {
+      "fieldname": "optimize_images",
+      "label": "Compress uploaded images",
+      "fieldtype": "Check",
+      "default": true,
+      "description": "Photos (JPEG, PNG, WebP) are re-encoded on upload without visible loss of quality: large ones are scaled down, the file is kept only if it got smaller. Existing files: grunt files compress"
+    },
+    {
+      "fieldname": "image_format",
+      "label": "Store images as",
+      "fieldtype": "Select",
+      "options": "WebP\nOriginal",
+      "default": "WebP",
+      "columns": 4,
+      "depends_on": "eval: doc.optimize_images",
+      "description": "WebP - the smallest files (PNG become lossless WebP); Original - JPEG stays JPEG, PNG stays PNG"
+    },
+    {
+      "fieldname": "image_max_size",
+      "label": "Max image size, px",
+      "fieldtype": "Int",
+      "default": 2560,
+      "min_value": 0,
+      "columns": 4,
+      "depends_on": "eval: doc.optimize_images",
+      "description": "Longer side; larger images are scaled down. 0 - never"
+    },
+    {
+      "fieldname": "image_quality",
+      "label": "Image quality",
+      "fieldtype": "Int",
+      "default": 85,
+      "min_value": 1,
+      "max_value": 100,
+      "columns": 4,
+      "depends_on": "eval: doc.optimize_images",
+      "description": "1-100; 85 is indistinguishable from the original for photos"
+    },
+    {
+      "fieldname": "compress_existing_images",
+      "label": "Compress existing images",
+      "fieldtype": "Button",
+      "options": "outline",
+      "icon": "image-down",
+      "depends_on": "eval: doc.optimize_images",
+      "description": "Runs in the background: images uploaded before compression was on are re-encoded with the saved settings above. The progress is in the task panel; it can be cancelled - what's done stays done."
+    },
+    {
       "fieldname": "sec_collaboration",
       "label": "Collaboration",
       "fieldtype": "Section"

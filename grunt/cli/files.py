@@ -79,6 +79,31 @@ def files_verify(site: str | None, rehash: bool):
     asyncio.run(_run())
 
 
+@files_group.command("compress")
+@click.option("--site", default=None, help="Site name")
+@click.option("--apply", is_flag=True, help="Replace the files (default: only measure)")
+@click.option("--limit", default=None, type=int, help="Maximum stored images per run")
+def files_compress(site: str | None, apply: bool, limit: int | None):
+    """Compress images uploaded before compression was on (System Settings → Files)."""
+
+    async def _run():
+        import grunt
+        from grunt.storage.images import compress_existing
+
+        async with _site_session(site) as (session, eng), grunt.system_context(session, eng):
+            report = await compress_existing(apply=apply, limit=limit)
+        mb = 1024 * 1024
+        saved = report["before"] - report["after"]
+        click.echo(
+            f"Images: {report['blobs']} ({report['files']} File record(s)), "
+            f"{report['before'] / mb:.1f} MB -> {report['after'] / mb:.1f} MB, "
+            f"{'saved' if apply else 'would save'} {saved / mb:.1f} MB"
+            + ("; the old copies go with `grunt files gc`" if apply else " - dry run, pass --apply")
+        )
+
+    asyncio.run(_run())
+
+
 @files_group.command("assign-spaces")
 @click.option("--site", default=None, help="Site name")
 @click.option("--apply", is_flag=True, help="Carry out the move (default: only show it)")

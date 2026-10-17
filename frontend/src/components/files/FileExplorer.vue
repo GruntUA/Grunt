@@ -30,7 +30,7 @@ import {
 } from '@lucide/vue'
 import { docsApi, type TreeNode } from '@/core/api/docs'
 import { filesApi, type FileItem } from '@/core/api/files'
-import { fileClipboard } from '@/core/composables/useFolderPicker'
+import { fileClipboard, lastFolder, rememberFolder } from '@/core/composables/useFolderPicker'
 import { useToast } from '@/core/composables/useToast'
 import { formatFileSize, fileTypeLabel, isImageType, previewUrl } from '@/core/fileUtils'
 import { formatDateTime } from '@/core/datetime'
@@ -50,7 +50,7 @@ const DRAG_MIME = 'application/x-grunt-explorer'
 
 const props = withDefaults(defineProps<{
   mode?: 'folder' | 'file'
-  /** The folder to open first; «My files» when omitted. */
+  /** The folder to open first; the one the user was in last (else «My files») when omitted. */
   folder?: string | null
   /** File mode: pick several files. */
   multiple?: boolean
@@ -187,8 +187,9 @@ const entries = computed<Entry[]>(() => results.value
       ...files.value.map((file) => ({ key: `f:${file.id}`, file })),
     ])
 
-async function open(folder: string, { record = true } = {}) {
-  if (!folder) return
+/** Open *folder*; false when it can't be (gone, no access) - `quiet` skips the error toast. */
+async function open(folder: string, { record = true, quiet = false } = {}): Promise<boolean> {
+  if (!folder) return false
   query.value = ''
   results.value = null
   loading.value = true
@@ -214,8 +215,11 @@ async function open(folder: string, { record = true } = {}) {
       history.stack.splice(history.index + 1, Infinity, folder)
       history.index = history.stack.length - 1
     }
+    rememberFolder(me.value, folder)
+    return true
   } catch (err) {
-    toast.error(errorText(err))
+    if (!quiet) toast.error(errorText(err))
+    return false
   } finally {
     loading.value = false
   }
@@ -652,7 +656,9 @@ async function start() {
   expanded.clear()
   const [home] = await Promise.all([filesApi.homeFolder(), loadChildren(''), loadUsage()])
   if (!childrenOf.get('')?.some((n) => n.name === home.name)) await loadChildren('')
-  await open(props.folder || home.name)
+  // Where the user was last, unless told where; a folder deleted or no longer shared falls back to home.
+  const last = props.folder ? null : lastFolder(me.value)
+  if (!(last && await open(last, { quiet: true }))) await open(props.folder || home.name)
   if (props.focusFile && files.value.some((f) => f.id === props.focusFile)) {
     const key = `f:${props.focusFile}`
     selected.value = new Set([key])

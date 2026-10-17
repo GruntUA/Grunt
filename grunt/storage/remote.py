@@ -49,7 +49,15 @@ async def fetch_file(url: str, *, folder: str | None = None) -> dict[str, Any]:
         except ValueError as exc:
             raise RemoteFileError(str(exc)) from exc
         key, size = await get_storage_backend().put(cast("BinaryIO", buffer), max_bytes=limit)
-    return await files.create_file(key, size, name, content_type, folder=folder)
+    blob = await files.compress_stored(key, size, name, content_type)
+    return await files.create_file(
+        blob.key,
+        blob.size,
+        blob.filename,
+        blob.content_type,
+        folder=folder,
+        original_size=blob.original_size,
+    )
 
 
 async def _download(url: str, buffer: Any, limit: int) -> tuple[httpx2.Headers, str]:

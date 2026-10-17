@@ -8,11 +8,14 @@ its URL and preview. Readers use :func:`read` by ``File`` id.
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from typing import Any, BinaryIO
 
 import grunt
+from grunt import log
 from grunt.config import settings
 from grunt.storage.backends import get_storage_backend
+from grunt.storage.images import OPTIMIZABLE, optimize_image, renamed
 from grunt.storage.thumbnails import THUMB_WIDTH, WEB_WIDTHS, can_thumbnail, make_thumbnail
 
 CONTENT_URL = "/api/v1/method/grunt.storage.doctypes.File.file.get_content?file_id={}"
@@ -120,8 +123,13 @@ async def create_file(
     folder: str | None = None,
     is_public: bool = False,
     uploaded_by: str | None = None,
+    original_size: int | None = None,
 ) -> dict[str, Any]:
-    """Create the ``File`` row for an already stored blob; return it."""
+    """Create the ``File`` row for an already stored blob; return it.
+
+    *original_size* - the blob is a compressed copy (:func:`compress_stored`)
+    of an upload that many bytes long.
+    """
     if uploaded_by is None:
         from grunt.local import _user_ctx
 
@@ -139,6 +147,8 @@ async def create_file(
             "attached_to_doctype": attached_to_doctype or None,
             "attached_to_id": attached_to_id or None,
             "folder": folder or None,
+            "is_compressed": original_size is not None,
+            "original_size": original_size,
         },
     )
     file_id = str(doc["name"])
@@ -152,6 +162,42 @@ async def create_file(
     return doc
 
 
+@dataclass(frozen=True)
+class StoredBlob:
+    """A stored blob about to get its ``File`` row."""
+
+    key: str
+    size: int
+    filename: str
+    content_type: str
+    original_size: int | None = None  # set when this is a compressed copy
+
+
+async def compress_stored(key: str, size: int, filename: str, content_type: str) -> StoredBlob:
+    """Swap a stored image for its compressed copy (grunt.storage.images).
+
+    Returns the new blob - its extension following a format change, and
+    ``original_size`` set - or the given one when the image stays as it is.
+    The original blob is left to the garbage collector.
+    """
+    blob = StoredBlob(key, size, filename, content_type)
+    if content_type not in OPTIMIZABLE:
+        return blob
+    storage = get_storage_backend()
+    optimized = await optimize_image(await storage.get(key), content_type)
+    if optimized is None:
+        return blob
+    new_key, new_size = await storage.put(optimized.content)
+    log.info("storage.image_compressed", before=size, after=new_size, type=optimized.content_type)
+    return StoredBlob(
+        new_key,
+        new_size,
+        renamed(filename, optimized.content_type),
+        optimized.content_type,
+        original_size=size,
+    )
+
+
 async def store(
     content: bytes | BinaryIO,
     filename: str,
@@ -163,25 +209,34 @@ async def store(
     is_public: bool = False,
     uploaded_by: str | None = None,
     max_bytes: int | None = None,
+    compress: bool = True,
 ) -> dict[str, Any]:
     """Store *content* (bytes or a binary stream) as a new ``File``; return the row.
 
     Raises FileTypeNotAllowedError / FileTooLargeError (both ValueError) before anything
     is written. Private by default - pass ``is_public`` for website content.
+    Photos are compressed per the site's settings (grunt.storage.images) -
+    pass ``compress=False`` to keep the exact bytes.
     """
     content_type = content_type or "application/octet-stream"
     validate_mime_type(content_type)
     key, size = await get_storage_backend().put(content, max_bytes=max_bytes)
+    blob = (
+        await compress_stored(key, size, filename, content_type)
+        if compress
+        else StoredBlob(key, size, filename, content_type)
+    )
     return await create_file(
-        key,
-        size,
-        filename,
-        content_type,
+        blob.key,
+        blob.size,
+        blob.filename,
+        blob.content_type,
         attached_to_doctype=attached_to_doctype,
         attached_to_id=attached_to_id,
         folder=folder,
         is_public=is_public,
         uploaded_by=uploaded_by,
+        original_size=blob.original_size,
     )
 
 
