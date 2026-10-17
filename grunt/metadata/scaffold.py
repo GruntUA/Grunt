@@ -16,7 +16,7 @@ from typing import TYPE_CHECKING
 
 from grunt import log
 from grunt.document.base import SYS_FIELDS
-from grunt.metadata.field import get_python_type, is_physical_fieldtype
+from grunt.metadata.field import get_python_type, has_trait, is_physical_fieldtype
 from grunt.site.manager import site_manager
 from grunt.utils.codegen import render_template, sync_controller_types
 
@@ -47,7 +47,7 @@ def _build_scaffold_context(doctype_name: str, fields: list[DocField]) -> dict:
         if fieldname in SYS_FIELDS:
             continue
 
-        if fieldtype in ("Table", "Table MultiSelect"):
+        if has_trait(fieldtype, "table"):
             table_fields.append({"fieldname": fieldname, "options": options})
         elif is_physical_fieldtype(fieldtype):
             physical_fields.append(

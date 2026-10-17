@@ -7,6 +7,7 @@ import type { LinkSearchItem } from '@/core/api/docs'
 import type { TreeNode } from '@/components/ui/tree-select'
 import { escapeHtml } from '@/lib/utils'
 import { docUrl } from '@/core/workspaceUrl'
+import { hasTrait } from '@/core/fieldRegistry'
 
 export type LinkFiltersFn = (fieldname: string, doc: Record<string, unknown>) => Record<string, string | string[]>
 
@@ -309,7 +310,7 @@ export function useLinkField(props: {
       try {
         const meta = await metaApi.get(props.field.options)
         const filterField = meta.fields.find((f) => f.fieldname === key)
-        if (filterField?.fieldtype === 'Link' && filterField.options) {
+        if (filterField && hasTrait(filterField.fieldtype, 'link') && filterField.options) {
           const hits = await docsApi.linkSearch(filterField.options, String(value), {}, 5)
           const match = hits.find(r => r.name === String(value) || r.id === String(value))
           if (match) {

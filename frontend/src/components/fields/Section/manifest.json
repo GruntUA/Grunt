@@ -1,1 +1,15 @@
-{"type": "Section", "label": "Section", "icon": "separator-horizontal", "category": "", "is_layout": true, "non_groupable": true, "propertySections": ["core", "collapsible", "text"], "storage_class": "none"}
+{
+    "type": "Section",
+    "label": "Section",
+    "icon": "separator-horizontal",
+    "category": "",
+    "is_layout": true,
+    "non_groupable": true,
+    "propertySections": [
+        "core",
+        "collapsible",
+        "text"
+    ],
+    "storage_class": "none",
+    "own_label": true
+}

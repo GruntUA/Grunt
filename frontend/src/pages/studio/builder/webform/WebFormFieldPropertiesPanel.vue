@@ -2,6 +2,7 @@
 import { useI18n } from 'vue-i18n'
 import { computed, useId } from 'vue'
 import { useBuilderStore } from '@/stores/builder'
+import { getLayoutTypeSet } from '@/core/fieldRegistry'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -14,7 +15,7 @@ const id = useId()
 const builder = useBuilderStore()
 const field = computed(() => builder.selectedField)
 
-const LAYOUT_TYPES = new Set(['Tab', 'Section', 'Column'])
+const LAYOUT_TYPES = getLayoutTypeSet()
 const isLayout = computed(() => !!field.value && LAYOUT_TYPES.has(field.value.fieldtype))
 const isSection = computed(() => field.value?.fieldtype === 'Section')
 

@@ -1,5 +1,6 @@
-"""Guards against storage_class drifting between FieldType.column_spec and manifest.json.
+"""Guards against manifest.json drifting from the backend FieldType definitions.
 
+storage_class mirrors FieldType.column_spec, traits mirror FieldType.traits.
 See grunt.cli.fields.sync_manifests — run `grunt fields sync-manifests` to fix drift.
 """
 
@@ -8,24 +9,25 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from grunt.metadata.field import get_registered_fieldtypes, get_storage_class
+from grunt.metadata.field import get_manifest_attrs, get_registered_fieldtypes
 
 _FIELDS_DIR = Path(__file__).resolve().parents[1] / "frontend" / "src" / "components" / "fields"
 
 
-def test_manifest_storage_class_matches_column_spec():
+def test_manifest_matches_field_type():
     drifted = []
     for fieldtype in get_registered_fieldtypes():
         manifest_path = _FIELDS_DIR / fieldtype / "manifest.json"
         if not manifest_path.exists():
             continue
 
-        expected = get_storage_class(fieldtype)
-        actual = json.loads(manifest_path.read_text(encoding="utf-8")).get("storage_class")
+        expected = get_manifest_attrs(fieldtype)
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        actual = {key: manifest[key] for key in ("storage_class", "traits") if key in manifest}
         if actual != expected:
-            drifted.append(f"{fieldtype}: manifest={actual!r} column_spec={expected!r}")
+            drifted.append(f"{fieldtype}: manifest={actual!r} backend={expected!r}")
 
     assert not drifted, (
-        "manifest.json storage_class out of sync with column_spec "
+        "manifest.json out of sync with the backend FieldType "
         "(run `grunt fields sync-manifests`):\n" + "\n".join(drifted)
     )

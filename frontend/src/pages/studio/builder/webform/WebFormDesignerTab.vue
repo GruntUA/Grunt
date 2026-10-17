@@ -3,6 +3,7 @@ import { useI18n } from 'vue-i18n'
 import { onMounted, ref, watch } from 'vue'
 import { useBuilderStore } from '@/stores/builder'
 import { metaApi } from '@/core/api/meta'
+import { getLayoutTypeSet } from '@/core/fieldRegistry'
 import type { DocField, DocType } from '@/types'
 import BuilderCanvas from '../BuilderCanvas.vue'
 import WebFormFieldPalette from './WebFormFieldPalette.vue'
@@ -31,7 +32,7 @@ const loading = ref(false)
 const loadError = ref<string | null>(null)
 const targetFieldsByName = ref<Record<string, DocField>>({})
 
-const LAYOUT_TYPES = new Set(['Tab', 'Section', 'Column'])
+const LAYOUT_TYPES = getLayoutTypeSet()
 
 function buildMergedFields(targetFields: DocField[], rows: Record<string, any>[]): DocField[] {
   const targetByName = Object.fromEntries(targetFields.map((f) => [f.fieldname, f]))

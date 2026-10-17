@@ -1,1 +1,19 @@
-{"type": "Image", "label": "Image", "icon": "image", "category": "Медіа", "non_groupable": true, "propertySections": ["core", "flags", "display", "text", "default", "fetch_from"], "storage_class": "text"}
+{
+    "type": "Image",
+    "label": "Image",
+    "icon": "image",
+    "category": "Медіа",
+    "non_groupable": true,
+    "propertySections": [
+        "core",
+        "flags",
+        "display",
+        "text",
+        "default",
+        "fetch_from"
+    ],
+    "storage_class": "text",
+    "traits": [
+        "file"
+    ]
+}

@@ -1,1 +1,18 @@
-{"type": "Password", "label": "Password", "icon": "lock", "category": "Базові", "propertySections": ["core", "flags", "display", "default", "validation", "fetch_from"], "storage_class": "text"}
+{
+    "type": "Password",
+    "label": "Password",
+    "icon": "lock",
+    "category": "Базові",
+    "propertySections": [
+        "core",
+        "flags",
+        "display",
+        "default",
+        "validation",
+        "fetch_from"
+    ],
+    "storage_class": "text",
+    "traits": [
+        "sensitive"
+    ]
+}

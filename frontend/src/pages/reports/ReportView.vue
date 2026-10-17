@@ -1,9 +1,7 @@
 <script setup lang="ts">
-import { formatNumber } from '@/core/currency'
-import { durationUnit, formatDuration } from '@/core/duration'
+import { formatValue } from '@/core/formatValue'
 import { useI18n } from 'vue-i18n'
 import { ref, computed, onMounted, watch } from 'vue'
-import { formatDate, formatDateTime } from '@/core/datetime'
 import { useRouter } from 'vue-router'
 import { reportsApi } from '@/core/api/reports'
 import { addUrlFilters, periodRange } from './drilldown'
@@ -130,13 +128,8 @@ const totalsRow = computed<Record<string, number> | null>(() => {
     return acc
 })
 
-function formatCell(val: any, fieldtype: string, options?: string): string {
-    if (val === null || val === undefined || val === '') return '—'
-    if (fieldtype === 'Date') return formatDate(val)
-    if (fieldtype === 'Datetime') return formatDateTime(val)
-    if (fieldtype === 'Duration') return formatDuration(val, durationUnit({ options }))
-    if (fieldtype === 'Float' || fieldtype === 'Int' || fieldtype === 'Currency') return typeof val === 'number' ? formatNumber(val) : String(val)
-    return String(val)
+function formatCell(val: unknown, fieldtype: string, options?: string): string {
+    return formatValue({ fieldtype, options }, val)
 }
 
 /**

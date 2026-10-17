@@ -657,7 +657,7 @@ async def _rename_child_and_link_refs(
             )
 
         for f in other_meta.get_link_fields():
-            if f.fieldtype == "Link" and f.options == doctype_name:
+            if f.options == doctype_name:
                 ref_table = other_meta.table
                 await session.execute(
                     ref_table.update()

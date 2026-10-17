@@ -1,6 +1,6 @@
 import { nextTick, ref, type Ref } from 'vue'
 
-import { getNonPhysicalTypeSet } from '@/core/fieldRegistry'
+import { getNonPhysicalTypeSet, hasTrait } from '@/core/fieldRegistry'
 import { parseLayout } from '@/core/composables/useFormLayout'
 import { cellError } from '@/components/fields/Table/useTableCell'
 import { useDocTypeStore } from '@/stores/doctype'
@@ -86,7 +86,7 @@ export function useFormValidation(params: UseFormValidationParams) {
     const tableErrors: Record<string, string> = {}
     for (const field of params.dt.value.fields) {
       if (params.displayOverrides[field.fieldname] === false) continue
-      if (field.fieldtype === 'Table') {
+      if (hasTrait(field.fieldtype, 'table')) {
         const error = tableError(field, params.form.value[field.fieldname], nonPhysicalTypes)
         if (error) tableErrors[field.fieldname] = error
       }

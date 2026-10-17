@@ -2,6 +2,7 @@ import { N_ } from '@/plugins/i18n'
 import { GitBranch } from '@lucide/vue'
 import type { ViewDefinition } from '@/core/viewRegistry'
 import type { DocType, DocField, ActiveFilter } from '@/types'
+import { hasTrait } from '@/core/fieldRegistry'
 
 const def: ViewDefinition = {
   type: 'tree',
@@ -13,7 +14,7 @@ const def: ViewDefinition = {
     if (dt.tree_parent_field) {
       return dt.fields.find((f) => f.fieldname === dt.tree_parent_field) ?? null
     }
-    return dt.fields.find((f) => f.fieldtype === 'Link' && f.options === dt.name) ?? null
+    return dt.fields.find((f) => hasTrait(f.fieldtype, 'link') && f.options === dt.name) ?? null
   },
 
   component: () => import('./TreeView.vue').then((m) => m.default),

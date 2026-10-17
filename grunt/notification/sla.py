@@ -263,7 +263,7 @@ async def _recipients(spec: str | None, doctype: str, doc: dict[str, Any]) -> se
             link_field, target_field = part[7:-1].split(".", 1)
             meta = await grunt.get_meta(doctype)
             fdef = meta.get_field(link_field) if meta else None
-            if fdef and fdef.fieldtype == "Link" and fdef.options and doc.get(link_field):
+            if fdef and fdef.has_trait("link") and fdef.options and doc.get(link_field):
                 value = await grunt.db.get_value(fdef.options, doc[link_field], target_field)
                 if isinstance(value, str) and "@" in value:
                     emails.add(value)

@@ -18,7 +18,7 @@ from sqlalchemy import (
 
 from grunt import _, log
 from grunt.db.types import UtcDateTime
-from grunt.metadata.field import NON_PHYSICAL_FIELDS
+from grunt.metadata.field import NON_PHYSICAL_FIELDS, get_storage_class
 from grunt.utils.strings import to_snake_case
 
 if TYPE_CHECKING:
@@ -309,7 +309,7 @@ def _backfill_default(field: Any) -> Any:
     Date/time defaults are skipped: they are tokens like ``"Today"`` meaning
     "at creation", not a value to stamp on rows that already exist.
     """
-    if field.default is None or field.fieldtype in ("Date", "Datetime", "Time"):
+    if field.default is None or get_storage_class(field.fieldtype) in ("date", "datetime", "time"):
         return None
     try:
         return field.coerce(field.default)

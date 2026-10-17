@@ -91,7 +91,7 @@ async def _inject_top_level_link_labels(meta: Any, doc: dict[str, Any]) -> None:
     labels itself (unlike the app's ``Link`` field component), so it needs the
     display label baked into the response.
     """
-    link_fields = [f for f in meta.doc.fields if f.fieldtype == "Link" and f.options]
+    link_fields = [f for f in meta.doc.fields if f.has_trait("link") and f.options]
     for lf in link_fields:
         raw = doc.get(lf.fieldname)
         if not raw:

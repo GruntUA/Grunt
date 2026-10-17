@@ -11,6 +11,7 @@ from sqlalchemy import select
 from grunt import log
 from grunt.document.meta import Meta
 from grunt.document.serde import audit_fields, serialize_datetimes
+from grunt.metadata.field import get_storage_class
 from grunt.metadata.registry import doctype_registry
 
 if TYPE_CHECKING:
@@ -27,6 +28,18 @@ if TYPE_CHECKING:
 # markers render a linked record's color/icon without a separate fetch.
 # See frontend/src/components/fields/Link/ListCell.vue and useMapMarkers.ts.
 _EXTRA_INJECT = ("color", "icon")
+
+# apply_field_values(fill_empty=True): value written for an absent field, by
+# storage class - anything not listed (text columns) gets "".
+_EMPTY_BY_STORAGE: dict[str, Any] = {
+    "int": 0,
+    "float": 0,
+    "bool": False,
+    "date": None,
+    "datetime": None,
+    "time": None,
+    "json": None,
+}
 
 # Extracts the ?file_id=... query param from an Attach field's stored URL
 # (grunt.storage.doctypes.File.file.get_content?file_id=...). Mirrors
@@ -57,7 +70,7 @@ async def _resolve_link_labels(
     if not rows:
         return
 
-    link_fields = [f for f in dt.fields if f.fieldtype == "Link" and f.options]
+    link_fields = [f for f in dt.fields if f.has_trait("link") and f.options]
     present_keys = set(rows[0].keys())
     link_fields = [f for f in link_fields if f.fieldname in present_keys]
 
@@ -306,12 +319,7 @@ def apply_field_values(
         elif field.fieldtype == "Check":
             row[field.fieldname] = False
         elif fill_empty:
-            if field.fieldtype in ("Int", "Float", "Currency"):
-                row[field.fieldname] = 0
-            elif field.fieldtype in ("Date", "Datetime", "Time"):
-                row[field.fieldname] = None
-            else:
-                row[field.fieldname] = ""
+            row[field.fieldname] = _EMPTY_BY_STORAGE.get(get_storage_class(field.fieldtype), "")
 
 
 async def _load_child_tables(

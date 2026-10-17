@@ -385,7 +385,7 @@ async def _widget_table(widget, dt, doctype_name, since, until, days, base_filte
             if agg != "count" and value_field
             else None,
             "link_doctype": group_field.options
-            if group_field and group_field.fieldtype == "Link"
+            if group_field and group_field.has_trait("link")
             else None,
             "filters": filters,
         }

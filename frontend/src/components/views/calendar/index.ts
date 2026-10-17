@@ -1,6 +1,7 @@
 import { CalendarDays } from '@lucide/vue'
 import type { ViewDefinition } from '@/core/viewRegistry'
 import type { DocType, DocField } from '@/types'
+import { isDateType } from '@/core/fieldRegistry'
 
 const def: ViewDefinition = {
   type: 'calendar',
@@ -19,7 +20,7 @@ const def: ViewDefinition = {
     if (configured) {
       return dt.fields.find((f) => f.fieldname === configured) ?? null
     }
-    return dt.fields.find((f) => f.fieldtype === 'Date' || f.fieldtype === 'Datetime') ?? null
+    return dt.fields.find((f) => isDateType(f.fieldtype)) ?? null
   },
 
   component: () => import('./CalendarView.vue').then((m) => m.default),

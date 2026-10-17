@@ -25,7 +25,7 @@ from grunt.utils.strings import to_snake_case
 _BEGIN_MARKER = "# begin: auto-generated types"
 _END_MARKER = "# end: auto-generated types"
 
-_NON_PHYSICAL = LAYOUT_FIELDTYPES | {"Empty"}
+_NON_PHYSICAL = LAYOUT_FIELDTYPES
 
 _DATETIME_NAMES = ("date", "datetime", "time")
 
@@ -303,7 +303,6 @@ def build_test_context(dt: dict) -> dict[str, Any]:
         "Column",
         "Tab",
         "Table",
-        "Empty",
         "Attach",
         "Image",
         "MultiLink",

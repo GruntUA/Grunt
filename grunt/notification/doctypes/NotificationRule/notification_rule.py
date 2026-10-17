@@ -29,7 +29,7 @@ class NotificationRule(Document):
             return
         meta = await grunt.get_meta(self.ref_doctype)
         fdef = meta.get_field(field) if meta else None
-        if fdef is None or fdef.fieldtype not in ("Date", "Datetime"):
+        if fdef is None or not fdef.is_date:
             grunt.throw(
                 _("“%(field)s” is not a date field of %(doctype)s")
                 % {"field": field, "doctype": self.ref_doctype},

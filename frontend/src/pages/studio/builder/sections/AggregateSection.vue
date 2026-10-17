@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Separator } from '@/components/ui/separator'
 import { Field, FieldDescription, FieldGroup, FieldLabel, FieldLegend, FieldSet } from '@/components/ui/field'
 import { Badge } from '@/components/ui/badge'
+import { hasTrait } from '@/core/fieldRegistry'
 
 const { t } = useI18n()
 
@@ -25,7 +26,7 @@ const AGGREGATE_FUNCTIONS = [
 ]
 
 const tableFields = computed(() =>
-  (builder.doctype?.fields ?? []).filter((f) => f.fieldtype === 'Table').map(f => ({
+  (builder.doctype?.fields ?? []).filter((f) => hasTrait(f.fieldtype, 'table')).map(f => ({
     value: f.fieldname,
     label: `${f.label || f.fieldname} (${f.fieldname})`,
   }))

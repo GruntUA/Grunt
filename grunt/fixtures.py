@@ -96,7 +96,7 @@ async def clean_record(meta: Meta, data: dict[str, Any], *, child: bool = False)
         elif f.fieldname in multilink_fieldnames:
             if value:
                 out[f.fieldname] = list(value)
-        elif f.is_physical and f.fieldtype != "Password":
+        elif f.is_physical and not f.has_trait("sensitive"):
             out[f.fieldname] = value
 
     return to_json_compatible(out)

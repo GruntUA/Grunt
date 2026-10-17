@@ -5,12 +5,12 @@ class RichTextField(FieldType):
     """HTML from the tiptap editor - sanitized on every write (grunt.utils.sanitize)."""
 
     name = "RichText"
-    column_spec = staticmethod(lambda f: ("Text",))
+    column_spec = ("Text",)
     python_type = "str | None"
 
     @classmethod
-    def coerce(cls, value):
-        if not isinstance(value, str) or not value:
+    def parse(cls, value):
+        if not isinstance(value, str):
             return value
         from grunt.utils.sanitize import sanitize_html
 

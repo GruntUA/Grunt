@@ -15,8 +15,8 @@ from grunt.metadata.registry import doctype_registry
 from grunt.permissions.guards import read_guard
 from grunt.permissions.rbac import permission_checker
 
-# Field types that only shape the form layout and carry no data.
-_LAYOUT_FIELDTYPES = frozenset({"Tab", "Section", "Column", "Button", "HTML"})
+# Besides layout fields, these only shape the form and carry no data.
+_UI_FIELDTYPES = frozenset({"Button", "HTML"})
 
 _MAX_LIMIT = 100
 
@@ -34,7 +34,7 @@ _DOCTYPE_ARG = {
 
 
 def _field_info(field: Any, hidden: frozenset[str]) -> dict[str, Any] | None:
-    if field.fieldtype in _LAYOUT_FIELDTYPES or field.fieldname in hidden:
+    if field.is_layout or field.fieldtype in _UI_FIELDTYPES or field.fieldname in hidden:
         return None
     info: dict[str, Any] = {
         "fieldname": field.fieldname,

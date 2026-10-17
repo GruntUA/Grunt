@@ -1,22 +1,15 @@
-from grunt.metadata.field import FieldType, register_field_type_class
+from grunt.metadata.field import FieldType, parse_int, register_field_type_class
 
 
 class IntField(FieldType):
     name = "Int"
-    column_spec = staticmethod(lambda f: ("Integer",))
+    column_spec = ("Integer",)
     empty_as_null = True
     python_type = "int | None"
 
     @classmethod
-    def coerce(cls, value):
-        if value is None or value == "":
-            return None
-        if isinstance(value, str):
-            try:
-                return int(float(value))  # handles "1.0" -> 1
-            except ValueError:
-                return None
-        return value
+    def parse(cls, value):
+        return parse_int(value)
 
 
 def register():

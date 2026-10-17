@@ -13,10 +13,9 @@ if TYPE_CHECKING:
     from grunt.metadata.doctype import DocType
 
 
-# Attach / Image hold a stored file (a site-relative URL) or a link to a file
-# elsewhere, kept as is without downloading it. Nothing else - a stored
-# ``javascript:`` value would become a clickable link in the form.
-_FILE_URL_TYPES = frozenset({"Attach", "Image"})
+# "file" fields (Attach / Image) hold a stored file (a site-relative URL) or a
+# link to a file elsewhere, kept as is without downloading it. Nothing else - a
+# stored ``javascript:`` value would become a clickable link in the form.
 _FILE_URL = re.compile(r"^(?:/(?!/)|https?://[^\s/]+)", re.IGNORECASE)
 
 
@@ -48,7 +47,7 @@ def _validate_data(
                 )
 
         if (
-            field.fieldtype in _FILE_URL_TYPES
+            field.has_trait("file")
             and isinstance(value, str)
             and value
             and not _FILE_URL.match(value)
@@ -66,9 +65,9 @@ def _validate_data(
                 errors.append(f"{field.fieldname}: {error}")
 
         if value is not None and value != "":
-            column_spec = get_field_type_class(field.fieldtype).column_spec
+            column_spec = get_field_type_class(field.fieldtype).column_for(field)
             if column_spec is not None:
-                sa_type_name, *args = column_spec(field)
+                sa_type_name, *args = column_spec
                 # SQLite doesn't enforce VARCHAR length - check it ourselves so a
                 # value that "fits" in dev doesn't fail only once deployed on
                 # Postgres/MySQL, where VARCHAR(n) is a hard limit.

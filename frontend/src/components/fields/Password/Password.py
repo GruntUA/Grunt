@@ -1,7 +1,4 @@
-from grunt.metadata.field import FieldType, register_field_type_class
-
-_MIN_VARCHAR = 64
-_MAX_VARCHAR = 1000
+from grunt.metadata.field import FieldType, register_field_type_class, varchar_spec
 
 
 class PasswordField(FieldType):
@@ -13,9 +10,8 @@ class PasswordField(FieldType):
     """
 
     name = "Password"
-    column_spec = staticmethod(
-        lambda f: ("String", max(_MIN_VARCHAR, min(f.max_length or 255, _MAX_VARCHAR)))
-    )
+    traits = frozenset({"sensitive"})
+    column_spec = staticmethod(varchar_spec)
     python_type = "str | None"
     searchable = False
     empty_as_null = True

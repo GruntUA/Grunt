@@ -5,16 +5,14 @@ from grunt.metadata.field import FieldType, register_field_type_class
 
 class DatetimeField(FieldType):
     name = "Datetime"
-    column_spec = staticmethod(lambda f: ("DateTime",))
+    column_spec = ("DateTime",)
     empty_as_null = True
     python_type = "datetime | None"
 
     @classmethod
-    def coerce(cls, value):
+    def parse(cls, value):
         from datetime import datetime
 
-        if value is None or value == "":
-            return None
         if isinstance(value, str):
             return datetime.fromisoformat(value.replace(" ", "T"))
         return value

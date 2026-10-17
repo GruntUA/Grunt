@@ -24,8 +24,10 @@ from __future__ import annotations
 from typing import Any
 
 from grunt.i18n.service import translation_service
+from grunt.metadata.field import fieldtypes_with
 
-SELECT_FIELDTYPES = frozenset({"Select", "MultiSelect"})
+# Types whose value is picked from ``options`` - their choices get translated.
+SELECT_FIELDTYPES = fieldtypes_with("options")
 
 
 def _tr(ctx: str, text: Any, lang: str) -> Any:

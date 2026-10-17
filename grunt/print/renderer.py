@@ -21,7 +21,6 @@ from markupsafe import Markup
 
 from grunt import log
 from grunt.app import GruntDB
-from grunt.document.meta import LAYOUT_FIELDTYPES
 from grunt.i18n.jinja import install as install_i18n
 from grunt.local import _session_ctx
 from grunt.print.filters import JINJA_FILTERS
@@ -301,7 +300,7 @@ def _render_fallback(doctype_label: str, fields: list[Any], doc: dict[str, Any])
     """
     rows = ""
     for field in fields:
-        if field.fieldtype in LAYOUT_FIELDTYPES or field.fieldtype == "Table":
+        if field.is_layout or field.has_trait("table"):
             continue
         if field.hidden:
             continue

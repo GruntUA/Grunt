@@ -133,7 +133,7 @@ async def _apply_search(query: Any, table: Any, dt: DocType, search: str) -> Any
             if col is None:
                 continue
             field = meta.get_field(fname)
-            if field is not None and field.fieldtype == "Link":
+            if field is not None and field.has_trait("link"):
                 link_condition = await _link_field_search_condition(dt, field, table, search)
                 if link_condition is not None:
                     conditions.append(link_condition)

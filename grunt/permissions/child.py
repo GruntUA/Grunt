@@ -32,7 +32,7 @@ async def parent_doctypes(child_name: str) -> list[Any]:
         dt.name
         for dt in await doctype_registry.list_all()
         if not dt.is_child
-        and any(f.fieldtype == "Table" and f.options == child_name for f in dt.fields)
+        and any(f.has_trait("table") and f.options == child_name for f in dt.fields)
     }
     metas = [await grunt.get_meta(name) for name in sorted(names)]
     return [m for m in metas if m is not None]

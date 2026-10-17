@@ -1,6 +1,7 @@
 import { ChartGantt } from '@lucide/vue'
 import type { ViewDefinition } from '@/core/viewRegistry'
 import type { DocType, DocField, ActiveFilter } from '@/types'
+import { isDateType } from '@/core/fieldRegistry'
 
 const SYSTEM_DATE_FIELDS = new Set(['created_at', 'modified_at'])
 
@@ -20,7 +21,7 @@ const def: ViewDefinition = {
     if (configured) {
       return dt.fields.find((f) => f.fieldname === configured) ?? null
     }
-    const dateFields = dt.fields.filter((f) => f.fieldtype === 'Date' || f.fieldtype === 'Datetime')
+    const dateFields = dt.fields.filter((f) => isDateType(f.fieldtype))
     return dateFields.length >= 2 ? dateFields[0] : null
   },
 

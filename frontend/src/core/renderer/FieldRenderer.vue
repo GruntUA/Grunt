@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import { computed, inject, ref, useId } from 'vue'
-import { getAsyncFieldComponent } from '@/core/fieldRegistry'
+import { getAsyncFieldComponent, getFieldDef } from '@/core/fieldRegistry'
 import { useDevMode } from '@/core/composables/useDevMode'
 import { validateFieldValue } from '@/core/validators'
 import { evalDependsOn } from '@/core/dependsOn'
@@ -12,15 +12,6 @@ import { Label } from '@/components/ui/label'
 const { t } = useI18n()
 
 const { isDev, altPressed } = useDevMode()
-
-const INLINE_LABEL_TYPES = new Set(['Check', 'Button', 'HTML', 'Section', 'Column', 'Tab', 'Table'])
-
-// Only some field components actually emit these - wiring the listener
-// unconditionally on every field type makes Vue warn about an extraneous
-// non-emits listener for the rest (worse for components whose root is a
-// fragment, which can't auto-inherit fallthrough attrs at all).
-const CREATE_NEW_TYPES = new Set(['Link', 'DynamicLink'])
-const SELECTION_CHANGE_TYPES = new Set(['Table'])
 
 const props = defineProps<{
   field: DocField
@@ -56,21 +47,27 @@ const injectedError = computed(() =>
 const displayError = computed(() => props.error || injectedError.value || validatorError.value || null)
 
 const component = computed(() => getAsyncFieldComponent(props.field.fieldtype))
+const fieldDef = computed(() => getFieldDef(props.field.fieldtype))
 
+// Only wire the events a field type declares in its manifest (`emits`) - a
+// listener on every field type makes Vue warn about an extraneous non-emits
+// listener for the rest (worse for components whose root is a fragment, which
+// can't auto-inherit fallthrough attrs at all).
 const fieldListeners = computed(() => {
   const listeners: Record<string, (...args: any[]) => void> = {}
-  if (CREATE_NEW_TYPES.has(props.field.fieldtype)) {
+  const emits = fieldDef.value?.emits ?? []
+  if (emits.includes('create-new')) {
     listeners['create-new'] = (doctype: string, preset: string) =>
       emit('create-new', doctype, preset, props.field.fieldname)
   }
-  if (SELECTION_CHANGE_TYPES.has(props.field.fieldtype)) {
+  if (emits.includes('selection-change')) {
     listeners['selection-change'] = (rowNames: string[]) =>
       emit('table-selection-change', props.field.fieldname, rowNames)
   }
   return listeners
 })
 
-const hasOwnLabel = computed(() => INLINE_LABEL_TYPES.has(props.field.fieldtype))
+const hasOwnLabel = computed(() => !!fieldDef.value?.own_label)
 
 // A11y wiring: the label / description / error <p>s are separate siblings of
 // the control, so tie them together. Fields render many different root

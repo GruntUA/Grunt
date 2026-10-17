@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import functools
 import importlib.util
 from pathlib import Path
 from types import SimpleNamespace
@@ -52,28 +53,86 @@ class FieldType:
     ``register_field_type_class(MyFieldType)`` (or define a ``register()``
     function that does so) inside the field type's Python file.
 
-    Override :meth:`coerce` for types that need custom value conversion.
+    Override :meth:`parse` for types that need custom value conversion.
     """
 
     name: ClassVar[str] = ""
-    column_spec: ClassVar[Any] = None  # Callable[[DocField], tuple] | None
+    # The column: a tuple ``("String", 255)`` / ``("Double",)``, a callable taking
+    # the DocField for sizes that depend on it (see varchar_spec), or None for a
+    # type without a column of its own. Read it through column_for().
+    column_spec: ClassVar[tuple[Any, ...] | Callable[[Any], tuple[Any, ...]] | None] = None
     searchable: ClassVar[bool] = True
     empty_as_null: ClassVar[bool] = False
     python_type: ClassVar[str] = "Any | None"
     is_layout: ClassVar[bool] = False  # Tab / Section / Column - structure, no value
+    # What the rest of the system may assume about this type's value - see TRAITS.
+    # Consumers ask has_trait() instead of listing fieldtype names, so a plugin type
+    # that declares e.g. "link" gets permissions, fetch_from, relations... for free.
+    traits: ClassVar[frozenset[str]] = frozenset()
+
+    @classmethod
+    def column_for(cls, field: Any) -> tuple[Any, ...] | None:
+        """Resolve :attr:`column_spec` for *field* - ``(sa_type_name, *args)`` or None."""
+        spec = cls.column_spec
+        return spec(field) if callable(spec) else spec
 
     @classmethod
     def coerce(cls, value: Any) -> Any:
         """Convert a raw input value to the appropriate Python type.
 
-        The default implementation converts ``None`` / ``""`` to ``None``
-        when ``empty_as_null`` is True, and returns the value unchanged
-        otherwise.  Subclasses override this for numeric, date, and other
-        types that need explicit parsing.
+        ``None`` / ``""`` become ``None`` when ``empty_as_null`` is True and are
+        kept as is otherwise; anything else goes through :meth:`parse`.
         """
         if value is None or value == "":
             return None if cls.empty_as_null else value
+        return cls.parse(value)
+
+    @classmethod
+    def parse(cls, value: Any) -> Any:
+        """Convert a non-empty raw value. The default keeps it unchanged."""
         return value
+
+
+# Helpers shared by field type implementations
+
+_MIN_VARCHAR = 64
+_MAX_VARCHAR = 1000
+
+
+def varchar_spec(field: Any) -> tuple[Any, ...]:
+    """``column_spec`` for a VARCHAR sized by the field's ``max_length`` (default 255)."""
+    return ("String", max(_MIN_VARCHAR, min(field.max_length or 255, _MAX_VARCHAR)))
+
+
+def parse_float(value: Any) -> Any:
+    """``parse`` for float types - a numeric string becomes a float, junk None."""
+    if isinstance(value, str):
+        try:
+            return float(value)
+        except ValueError:
+            return None
+    return value
+
+
+def parse_int(value: Any) -> Any:
+    """``parse`` for integer types - ``"1.0"`` becomes 1, junk None."""
+    if isinstance(value, str):
+        try:
+            return int(float(value))
+        except ValueError:
+            return None
+    return value
+
+
+# Traits a FieldType may declare. Numeric / date-ness is NOT a trait - it follows
+# from column_spec (see is_numeric_fieldtype / is_date_fieldtype).
+TRAITS: dict[str, str] = {
+    "link": "value is the name of a document of the DocType in `options`",
+    "table": "child rows of the DocType in `options`, no column of its own",
+    "file": "value is a single file URL",
+    "sensitive": "secret - never exported, listed or shown in dashboards",
+    "options": "value is one or more of the newline-separated choices in `options`",
+}
 
 
 # Registry
@@ -88,7 +147,11 @@ _FIELD_TYPE_REGISTRY: dict[str, type[FieldType]] = {}
 
 def register_field_type_class(cls: type[FieldType]) -> None:
     """Register a :class:`FieldType` subclass by its ``name`` attribute."""
+    unknown = cls.traits - TRAITS.keys()
+    if unknown:
+        log.warning("field.unknown_traits", fieldtype=cls.name, traits=sorted(unknown))
     _FIELD_TYPE_REGISTRY[cls.name] = cls
+    get_storage_class.cache_clear()
 
 
 def get_field_type_class(fieldtype: str) -> type[FieldType]:
@@ -121,6 +184,7 @@ _SA_TYPE_STORAGE_CLASS: dict[str, str] = {
 }
 
 
+@functools.cache
 def get_storage_class(fieldtype: str) -> str:
     """Return the coarse storage class ('text', 'int', ..., 'none') for *fieldtype*.
 
@@ -131,11 +195,49 @@ def get_storage_class(fieldtype: str) -> str:
     Consumed by ``grunt fields sync-manifests`` to keep each field type's frontend
     manifest.json in sync instead of that mapping being hand-copied there.
     """
-    cls = get_field_type_class(fieldtype)
-    if cls.column_spec is None:
+    spec = get_field_type_class(fieldtype).column_for(SimpleNamespace(max_length=None))
+    if spec is None:
         return "none"
-    sa_type_name = cls.column_spec(SimpleNamespace(max_length=None))[0]
-    return _SA_TYPE_STORAGE_CLASS.get(sa_type_name, "text")
+    return _SA_TYPE_STORAGE_CLASS.get(spec[0], "text")
+
+
+def get_manifest_attrs(fieldtype: str) -> dict[str, Any]:
+    """Backend-owned keys of *fieldtype*'s frontend manifest.json.
+
+    Written by ``grunt fields sync-manifests`` (and checked by a test) so the
+    frontend reads the same storage class and traits without a round-trip and
+    without them being hand-copied. ``traits`` is left out when there are none.
+    """
+    attrs: dict[str, Any] = {"storage_class": get_storage_class(fieldtype)}
+    traits = get_field_type_class(fieldtype).traits
+    if traits:
+        attrs["traits"] = sorted(traits)
+    return attrs
+
+
+def is_numeric_fieldtype(fieldtype: str) -> bool:
+    """Return True if *fieldtype* stores a number (Int, Float, Currency, Duration, ...)."""
+    return get_storage_class(fieldtype) in ("int", "float")
+
+
+def is_date_fieldtype(fieldtype: str) -> bool:
+    """Return True if *fieldtype* stores a calendar date (Date or Datetime)."""
+    return get_storage_class(fieldtype) in ("date", "datetime")
+
+
+def has_trait(fieldtype: str, trait: str) -> bool:
+    """Return True if *fieldtype* declares *trait* (see :data:`TRAITS`)."""
+    return trait in get_field_type_class(fieldtype).traits
+
+
+def fieldtypes_with(trait: str) -> frozenset[str]:
+    """Return every registered field type that declares *trait*."""
+    return frozenset(name for name, cls in _FIELD_TYPE_REGISTRY.items() if trait in cls.traits)
+
+
+def is_layout_fieldtype(fieldtype: str) -> bool:
+    """Return True if *fieldtype* is a layout separator (Tab / Section / Column)."""
+    return get_field_type_class(fieldtype).is_layout
 
 
 def get_python_type(fieldtype: str) -> str:
@@ -341,6 +443,25 @@ class DocField(BaseModel):
         """Convert a raw value to the appropriate Python type for this field."""
         return get_field_type_class(self.fieldtype).coerce(value)
 
+    def has_trait(self, trait: str) -> bool:
+        """Return True if this field's type declares *trait* (see :data:`TRAITS`)."""
+        return has_trait(self.fieldtype, trait)
+
+    @property
+    def is_layout(self) -> bool:
+        """Return True if this field is a layout separator (Tab / Section / Column)."""
+        return is_layout_fieldtype(self.fieldtype)
+
+    @property
+    def is_numeric(self) -> bool:
+        """Return True if this field stores a number."""
+        return is_numeric_fieldtype(self.fieldtype)
+
+    @property
+    def is_date(self) -> bool:
+        """Return True if this field stores a calendar date (Date or Datetime)."""
+        return is_date_fieldtype(self.fieldtype)
+
     @property
     def is_physical(self) -> bool:
         """Return True if this field stores a value in a database column."""
@@ -360,7 +481,7 @@ class DocField(BaseModel):
 
     def to_sa_column(self) -> Column:
         """Return a SQLAlchemy :class:`Column` for this field."""
-        column_spec = get_field_type_class(self.fieldtype).column_spec
+        column_spec = get_field_type_class(self.fieldtype).column_for(self)
         if column_spec is None:
             raise ValueError(
                 f"Field type '{self.fieldtype}' is virtual"
@@ -368,6 +489,6 @@ class DocField(BaseModel):
                 else f"Field type '{self.fieldtype}' is non-physical or has no SA mapping"
             )
 
-        sa_type_name, *args = column_spec(self)
+        sa_type_name, *args = column_spec
         sa_type = _SA_TYPE_BUILDERS[sa_type_name](args)
         return Column(self.fieldname, sa_type)  # type: ignore[arg-type]

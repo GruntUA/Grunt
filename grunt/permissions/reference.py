@@ -40,7 +40,7 @@ def reference_sources(doctype: Any) -> list[Source]:
 def _link_target(doctype: Any, fieldname: str) -> str | None:
     meta = getattr(doctype, "doc", doctype)
     field = next((f for f in meta.fields if f.fieldname == fieldname), None)
-    return field.options if field is not None and field.fieldtype == "Link" else None
+    return field.options if field is not None and field.has_trait("link") else None
 
 
 async def reference_readable(user: User, doctype: Any, doc: dict[str, Any]) -> bool | None:

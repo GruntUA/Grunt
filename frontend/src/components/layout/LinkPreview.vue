@@ -14,7 +14,6 @@ import { useDocTypeStore } from '@/stores/doctype'
 import { getListCell } from '@/core/listCellRegistry'
 import { docUrl } from '@/core/workspaceUrl'
 import { initials } from '@/core/composables/usePresence'
-import DefaultListCell from '@/components/fields/Default/ListCell.vue'
 import type { DocField } from '@/types'
 
 const SHOW_DELAY = 700
@@ -180,7 +179,7 @@ onBeforeUnmount(() => {
           <dt class="text-muted-foreground">{{ f.label }}</dt>
           <dd class="mt-0.5 break-words">
             <component
-              :is="getListCell(f.fieldtype) ?? DefaultListCell"
+              :is="getListCell(f.fieldtype)"
               v-if="hasValue(preview.row[f.fieldname])"
               :value="preview.row[f.fieldname]"
               :row="preview.row"

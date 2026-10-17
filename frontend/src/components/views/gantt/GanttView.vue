@@ -26,6 +26,7 @@ import { Spinner } from '@/components/ui/spinner'
 import { ChartGantt, ChevronLeft, ChevronRight } from '@lucide/vue'
 import { ButtonGroup } from '@/components/ui/button-group'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import { isDateType } from '@/core/fieldRegistry'
 
 const { t } = useI18n()
 
@@ -63,7 +64,7 @@ const depsField = computed(() => cfg.value?.dependencies_field || '')
 
 const autoDates = computed(() =>
   props.doctype.fields
-    .filter((f) => f.fieldtype === 'Date' || f.fieldtype === 'Datetime')
+    .filter((f) => isDateType(f.fieldtype))
     .map((f) => f.fieldname),
 )
 const isConfigured = computed(() => !!startField.value && !!endField.value)

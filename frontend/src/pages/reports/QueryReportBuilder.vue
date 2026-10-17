@@ -26,6 +26,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Skeleton } from '@/components/ui/skeleton'
 import { Spinner } from '@/components/ui/spinner'
 import { appUrl } from '@/core/workspaceUrl'
+import { isDateType } from '@/core/fieldRegistry'
 
 const { t } = useI18n()
 
@@ -91,7 +92,7 @@ const DATE_GROUPS = [
     { value: 'year', label: t('By year') },
 ]
 function isDateColumn(col: any) {
-    return col.fieldtype === 'Date' || col.fieldtype === 'Datetime'
+    return isDateType(col.fieldtype)
 }
 function addCondition() {
     conditions.value.push({ fieldname: '', op: '=', value: '' })

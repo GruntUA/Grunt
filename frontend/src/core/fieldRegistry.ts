@@ -21,6 +21,14 @@
  *   - FieldPalette (designer)
  *   - FieldRenderer (runtime form)
  *   - PropertiesPanel (designer)
+ *
+ * Built-in types are discovered from components/fields/<Type>/ by file name:
+ *   manifest.json        - the definition below (storage_class / traits are
+ *                          written by `grunt fields sync-manifests`)
+ *   <Type>.vue           - the form component
+ *   DesignerPreview.vue  - optional canvas preview
+ *   ListCell.vue         - optional list / report cell (see listCellRegistry)
+ *   FilterInput.vue      - optional filter value input (see filterRegistry)
  */
 
 import { defineAsyncComponent, type Component } from 'vue'
@@ -47,6 +55,19 @@ export type StorageClass =
   | 'time'
   | 'json' // JSON blob column
   | 'none' // no column of its own (layout, Table, MultiLink, Button, …)
+
+/**
+ * What the rest of the UI may assume about a type's value - mirrors
+ * FieldType.traits / TRAITS in grunt/metadata/field.py. Ask hasTrait() instead
+ * of listing fieldtype names. Numeric / date-ness is not a trait: it follows
+ * from storage_class (isNumericType / isDateType).
+ */
+export type FieldTrait =
+  | 'link' // value is the name of a document of the DocType in `options`
+  | 'table' // child rows of the DocType in `options`
+  | 'file' // value is a single file URL
+  | 'sensitive' // secret - never exported or shown
+  | 'options' // value is one or more of the newline-separated `options`
 
 // Keep in sync with the sections registered in
 // pages/studio/builder/sections/index.ts
@@ -103,6 +124,12 @@ export interface FieldDefinition {
   non_groupable?: boolean
   /** How this field's value is stored in the DB column. Unknown / plugin types default to 'text'. */
   storage_class?: StorageClass
+  /** Value traits - synced from the backend FieldType. */
+  traits?: FieldTrait[]
+  /** The component renders its own label, so FieldRenderer doesn't add one. */
+  own_label?: boolean
+  /** Extra events the component emits that FieldRenderer forwards (e.g. 'create-new'). */
+  emits?: string[]
 }
 
 // Internal registry
@@ -161,6 +188,23 @@ export function getStorageClass(type: string): StorageClass {
   return getFieldDef(type)?.storage_class ?? 'text'
 }
 
+/** True if the field type declares `trait`. */
+export function hasTrait(type: string, trait: FieldTrait): boolean {
+  return !!getFieldDef(type)?.traits?.includes(trait)
+}
+
+/** True if the field type stores a number (Int, Float, Currency, Percent, Duration, Rating…). */
+export function isNumericType(type: string): boolean {
+  const sc = getStorageClass(type)
+  return sc === 'int' || sc === 'float'
+}
+
+/** True if the field type stores a calendar date (Date or Datetime). */
+export function isDateType(type: string): boolean {
+  const sc = getStorageClass(type)
+  return sc === 'date' || sc === 'datetime'
+}
+
 /**
  * Backward-compatible shim for PropertiesPanel.
  * @deprecated Use getFieldDef() directly.
@@ -170,6 +214,15 @@ export function getFieldConfig(type: string): { label: string; sections: PropSec
   return def ? { label: def.label, sections: def.propertySections } : null
 }
 
+
+/**
+ * Key an `import.meta.glob` result over components/fields/<Type>/<file> by field
+ * type (its folder name) - for registries discovering optional per-type files
+ * such as ListCell.vue / FilterInput.vue / format.ts.
+ */
+export function byFieldType<T>(modules: Record<string, T>): Map<string, T> {
+  return new Map(Object.entries(modules).map(([path, mod]) => [path.split('/').at(-2)!, mod]))
+}
 
 /** Fallback component loader for unrecognised field types. */
 export const FallbackFieldLoader = (): Promise<Component> =>
@@ -204,7 +257,7 @@ function isValidManifest(v: unknown): v is Omit<FieldDefinition, 'component' | '
     && Array.isArray((v as any).propertySections)
 }
 
-async function discoverFields() {
+function discoverFields() {
   const manifests = import.meta.glob('@/components/fields/*/manifest.json', { eager: true })
   const allVues = import.meta.glob('@/components/fields/*/*.vue')
 

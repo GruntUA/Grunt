@@ -64,7 +64,7 @@ async def _resolve_link_target(doctype: DocType | Meta, link_fn: str) -> tuple[s
     *doctype*, or ``None`` when *link_fn* is not a Link (or its target DocType
     can't be loaded)."""
     field = next((f for f in doctype.fields if f.fieldname == link_fn), None)
-    if field is None or field.fieldtype != "Link" or not field.options:
+    if field is None or not field.has_trait("link") or not field.options:
         return None
 
     target_dt = await grunt.get_meta(field.options)

@@ -38,7 +38,8 @@ from typing import TYPE_CHECKING, Any
 
 import grunt
 from grunt import log
-from grunt.document.meta import NUMERIC_FIELDTYPES, Meta
+from grunt.document.meta import Meta
+from grunt.metadata.field import get_storage_class
 
 if TYPE_CHECKING:
     from grunt.metadata.doctype import DocType
@@ -181,11 +182,7 @@ async def _evaluate_formulas(dt: DocType, row: dict[str, Any], attr: str) -> dic
             # Coerce result to the field's target type
             coerced = _coerce_result(result, field.fieldtype)
             row[field.fieldname] = coerced
-            ns[field.fieldname] = (
-                _to_number_if_possible(coerced)
-                if field.fieldtype in NUMERIC_FIELDTYPES
-                else coerced
-            )
+            ns[field.fieldname] = _to_number_if_possible(coerced) if field.is_numeric else coerced
         except Exception as exc:
             log.warning(
                 "formula.eval_error",
@@ -218,19 +215,20 @@ def _coerce_result(value: Any, fieldtype: str) -> Any:
     """Coerce the formula result to match the field type."""
     if value is None:
         return None
-    if fieldtype in ("Int",):
+    storage = get_storage_class(fieldtype)
+    if storage == "int":
         try:
             return int(round(float(value)))
         except TypeError, ValueError:
             return value
-    if fieldtype in ("Float", "Currency", "Percent"):
+    if storage == "float":
         try:
             return float(value)
         except TypeError, ValueError:
             return value
-    if fieldtype == "Check":
+    if storage == "bool":
         return bool(value)
     # Data, Text, etc. - convert to string
-    if fieldtype in ("Data", "Text", "LongText", "SmallText"):
+    if fieldtype in ("Data", "Text", "LongText"):
         return str(value)
     return value

@@ -28,7 +28,7 @@ def _child_owner_map(all_dts: list[Any]) -> dict[str, str]:
     owner: dict[str, str] = {}
     for dt in all_dts:
         for field in dt.fields:
-            if field.fieldtype == "Table" and field.options:
+            if field.has_trait("table") and field.options:
                 owner.setdefault(field.options, dt.name)
     return owner
 
@@ -71,7 +71,7 @@ class LinkService:
         # Find all Link fields and create new backlinks
         count = 0
         for field in dt.fields:
-            if field.fieldtype != "Link":
+            if not field.has_trait("link"):
                 continue
             target_id = doc.get(field.fieldname)
             if not target_id:
@@ -177,7 +177,7 @@ class LinkService:
             ref_table = other_meta.table
             in_child = bool(getattr(other_dt, "is_child", False))
             for field in other_meta.get_link_fields():
-                if field.fieldtype != "Link" or field.options != doctype:
+                if field.options != doctype:
                     continue
                 if field.fieldname not in ref_table.c:
                     continue

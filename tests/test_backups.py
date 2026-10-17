@@ -303,9 +303,12 @@ async def test_queued_scheduled_backup_skips_a_running_one(site, monkeypatch):
 async def test_backup_is_refused_without_disk_space(site, monkeypatch):
     from collections import namedtuple
 
+    from grunt.i18n import use_language
+
     usage = namedtuple("usage", "total used free")
     monkeypatch.setattr(backups.shutil, "disk_usage", lambda p: usage(100, 100, 0))
-    with pytest.raises(backups.BackupError, match="disk space"):
+    # The message is matched in English
+    with use_language("en"), pytest.raises(backups.BackupError, match="disk space"):
         await backups.create_backup(SITE)
     assert list(backups.backups_dir(SITE).iterdir()) == []
 

@@ -9,7 +9,6 @@ import { docUrl } from '@/core/workspaceUrl'
 import { useAuthStore } from '@/stores/auth'
 import { useListBadges } from '@/core/composables/useListBadges'
 import ListRowMeta from '@/components/views/list/ListRowMeta.vue'
-import DefaultListCell from '@/components/fields/Default/ListCell.vue'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -76,7 +75,7 @@ function field(col: ListColumn): DocField {
 }
 
 function cellOf(col: ListColumn) {
-  return getListCell(field(col).fieldtype) ?? DefaultListCell
+  return getListCell(field(col).fieldtype)
 }
 
 function isEmpty(v: unknown): boolean {

@@ -3,7 +3,7 @@ from grunt.metadata.field import FieldType, register_field_type_class
 
 class CheckField(FieldType):
     name = "Check"
-    column_spec = staticmethod(lambda f: ("Boolean",))
+    column_spec = ("Boolean",)
     empty_as_null = True
     python_type = "bool | None"
 

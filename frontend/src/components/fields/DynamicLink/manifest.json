@@ -1,1 +1,18 @@
-{"type": "DynamicLink", "label": "Dynamic Link", "icon": "link-2", "category": "Вибір і зв'язки", "propertySections": ["core", "flags", "display", "default", "link", "fetch_from"], "storage_class": "text"}
+{
+    "type": "DynamicLink",
+    "label": "Dynamic Link",
+    "icon": "link-2",
+    "category": "Вибір і зв'язки",
+    "propertySections": [
+        "core",
+        "flags",
+        "display",
+        "default",
+        "link",
+        "fetch_from"
+    ],
+    "storage_class": "text",
+    "emits": [
+        "create-new"
+    ]
+}

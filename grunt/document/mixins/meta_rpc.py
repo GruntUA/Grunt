@@ -105,7 +105,7 @@ class DocumentMetaRPCMixin:
         if meta is None or not meta.doc.show_preview_popup:
             return None
 
-        physical = [f for f in meta.get_physical_fields() if f.fieldtype != "Password"]
+        physical = [f for f in meta.get_physical_fields() if not f.has_trait("sensitive")]
         fields = [f for f in physical if f.in_preview] or [f for f in physical if f.required]
         title_field = meta.get_title_field()
         image_field = meta.get_image_field()

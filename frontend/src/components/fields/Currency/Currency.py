@@ -9,14 +9,12 @@ class CurrencyField(FieldType):
     """
 
     name = "Currency"
-    column_spec = staticmethod(lambda f: ("Numeric", 18, 2))
+    column_spec = ("Numeric", 18, 2)
     empty_as_null = True
     python_type = "float | None"
 
     @classmethod
-    def coerce(cls, value):
-        if value is None or value == "":
-            return None
+    def parse(cls, value):
         try:
             return round(float(value), 2)
         except TypeError, ValueError:

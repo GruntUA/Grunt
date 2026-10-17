@@ -11,14 +11,14 @@ from grunt.utils.sanitize import sanitize_html
 
 # Framework bookkeeping fields never shown in the read-only share view.
 _SKIP_FIELDS = {"id", "name", "owner", "created_at", "modified_at", "modified_by"}
-_MULTILINE = {"LongText", "Text", "HTML", "Code", "Markdown"}
+_MULTILINE = {"LongText", "Text", "HTML", "Code"}
 # Rendered as markup (``row.html``) - sanitized again here, for rows written
 # before RichText was sanitized on save.
 _RICH = {"RichText"}
-_IMAGE_TYPES = {"Image", "Attach Image"}
+_IMAGE_TYPES = {"Image"}
 _IMAGE_EXTS = (".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg", ".avif", ".bmp")
 # Non-data fieldtypes that carry no value to show in a read-only layout.
-_NON_DATA = {"Tab", "Section", "Column", "HTML", "Button", "Fold"}
+_NON_DATA = {"Tab", "Section", "Column", "HTML", "Button"}
 
 
 def _is_image_value(fieldtype: str, raw: Any) -> bool:

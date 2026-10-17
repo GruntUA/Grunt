@@ -155,7 +155,7 @@ def _link_fieldnames(doctype: DocType | Meta, allow: str) -> list[str]:
     names.extend(
         f.fieldname
         for f in doctype.fields
-        if f.fieldtype == "Link"
+        if f.has_trait("link")
         and f.options == allow
         and not getattr(f, "ignore_user_permissions", False)
     )

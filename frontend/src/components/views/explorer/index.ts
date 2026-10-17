@@ -1,6 +1,7 @@
 import { N_ } from '@/plugins/i18n'
 import { FolderOpen } from '@lucide/vue'
 import type { ViewDefinition } from '@/core/viewRegistry'
+import { hasTrait } from '@/core/fieldRegistry'
 
 const def: ViewDefinition = {
   type: 'explorer',
@@ -14,7 +15,7 @@ const def: ViewDefinition = {
   managesOwnScroll: true,
   ownToolbar: true,
 
-  resolveField: (dt) => dt.fields.find((f) => f.fieldtype === 'Link' && f.options === 'FileFolder') ?? null,
+  resolveField: (dt) => dt.fields.find((f) => hasTrait(f.fieldtype, 'link') && f.options === 'FileFolder') ?? null,
 
   component: () => import('./ExplorerView.vue').then((m) => m.default),
 

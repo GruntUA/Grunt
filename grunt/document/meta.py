@@ -8,6 +8,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 from grunt.metadata.compiler import compile_doctype_to_table, get_table_name
+from grunt.metadata.field import get_field_type_class, get_registered_fieldtypes
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
@@ -15,14 +16,13 @@ if TYPE_CHECKING:
     from grunt.metadata.doctype import DocType, DocTypeTreeView
     from grunt.metadata.field import DocField
 
-# Fieldtypes whose values are treated as numbers in formula/expression contexts.
-NUMERIC_FIELDTYPES: frozenset[str] = frozenset({"Int", "Float", "Currency", "Percent"})
-
-# Layout-only fieldtypes that carry no value. This is the base set shared by
-# every "skip non-data fields" filter in the codebase (Meta, TS codegen, print
-# fallback rendering); each caller unions in whatever else it needs to exclude
-# so the fieldtypes actually in common don't drift out of sync between them.
-LAYOUT_FIELDTYPES: frozenset[str] = frozenset({"Section", "Column", "Tab"})
+# Layout-only fieldtypes that carry no value (FieldType.is_layout). This is the
+# base set shared by every "skip non-data fields" filter in the codebase (Meta,
+# TS codegen, print fallback rendering); each caller unions in whatever else it
+# needs to exclude. Per-field checks should prefer ``DocField.is_layout``.
+LAYOUT_FIELDTYPES: frozenset[str] = frozenset(
+    name for name in get_registered_fieldtypes() if get_field_type_class(name).is_layout
+)
 
 
 class Meta:
@@ -33,8 +33,6 @@ class Meta:
     """
 
     # Static properties cache so we don't recalculate multiple times
-    _table_fields: list[DocField] | None = None
-    _link_fields: list[DocField] | None = None
     _data_fields: list[DocField] | None = None
     _valid_columns: list[str] | None = None
     _search_fields: list[str] | None = None
@@ -51,6 +49,7 @@ class Meta:
 
     def __init__(self, doctype_obj: DocType) -> None:
         self.doc = doctype_obj
+        self._fields_with: dict[str, list[DocField]] = {}
         # Forward direct dot accesses for DocType properties like meta.name, meta.module
         self._fields_by_name = {f.fieldname: f for f in self.doc.fields}
 
@@ -85,27 +84,29 @@ class Meta:
         f = self._fields_by_name.get(fieldname)
         return (f.label or fieldname) if f else fieldname
 
+    def fields_with(self, trait: str) -> list[DocField]:
+        """Return fields whose type declares *trait* (see grunt.metadata.field.TRAITS)."""
+        fields = self._fields_with.get(trait)
+        if fields is None:
+            fields = self._fields_with[trait] = [f for f in self.doc.fields if f.has_trait(trait)]
+        return fields
+
     def get_link_fields(self) -> list[DocField]:
-        """Return all Link and Dynamic Link fields."""
-        if self._link_fields is None:
-            self._link_fields = [
-                f for f in self.doc.fields if f.fieldtype in ("Link", "Dynamic Link")
-            ]
-        return self._link_fields
+        """Return all fields that link to a document (``link`` trait)."""
+        return self.fields_with("link")
 
     def get_table_fields(self) -> list[DocField]:
-        """Return all child table fields (Table, Table MultiSelect)."""
-        if self._table_fields is None:
-            self._table_fields = [
-                f for f in self.doc.fields if f.fieldtype in ("Table", "Table MultiSelect")
-            ]
-        return self._table_fields
+        """Return all child table fields (``table`` trait)."""
+        return self.fields_with("table")
 
     def get_data_fields(self) -> list[DocField]:
         """Return data fields (fields that store values)."""
         if self._data_fields is None:
-            ui_fieldtypes = LAYOUT_FIELDTYPES | {"HTML", "Tab Break", "Button"}
-            self._data_fields = [f for f in self.doc.fields if f.fieldtype not in ui_fieldtypes]
+            self._data_fields = [
+                f
+                for f in self.doc.fields
+                if not f.is_layout and f.fieldtype not in ("HTML", "Button")
+            ]
         return self._data_fields
 
     def get_title_field(self) -> str:
@@ -161,9 +162,7 @@ class Meta:
     def get_visible_fields(self) -> list[DocField]:
         """Return fields that are not layout-only (Section/Column/Tab) and not hidden."""
         if self._visible_fields is None:
-            self._visible_fields = [
-                f for f in self.doc.fields if f.fieldtype not in LAYOUT_FIELDTYPES and not f.hidden
-            ]
+            self._visible_fields = [f for f in self.doc.fields if not f.is_layout and not f.hidden]
         return self._visible_fields
 
     def get_multilink_fields(self) -> list[DocField]:
@@ -175,13 +174,11 @@ class Meta:
     def get_child_table_fields(self) -> list[DocField]:
         """Return Table fields that point at a child DocType (options set).
 
-        Unlike :meth:`get_table_fields`, this excludes "Table MultiSelect"
-        fields, which don't carry child-row semantics (parent linkage, idx, ...).
+        Unlike :meth:`get_table_fields`, this skips Table fields without
+        ``options`` (no child DocType to carry parent linkage, idx, ...).
         """
         if self._child_table_fields is None:
-            self._child_table_fields = [
-                f for f in self.doc.fields if f.fieldtype == "Table" and f.options
-            ]
+            self._child_table_fields = [f for f in self.get_table_fields() if f.options]
         return self._child_table_fields
 
     def get_table_fieldnames(self) -> set[str]:
@@ -205,11 +202,9 @@ class Meta:
         return [f for f in self.doc.fields if getattr(f, attr, None)]
 
     def get_numeric_fieldnames(self) -> set[str]:
-        """Return fieldnames whose values are numeric (Int/Float/Currency/Percent)."""
+        """Return fieldnames whose values are numeric (int / float column)."""
         if self._numeric_fieldnames is None:
-            self._numeric_fieldnames = {
-                f.fieldname for f in self.doc.fields if f.fieldtype in NUMERIC_FIELDTYPES
-            }
+            self._numeric_fieldnames = {f.fieldname for f in self.doc.fields if f.is_numeric}
         return self._numeric_fieldnames
 
     def get_list_view_fields(self) -> list[DocField]:

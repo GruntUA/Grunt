@@ -26,8 +26,8 @@ from typing import Any
 import grunt
 from grunt import log
 
-# Attach / Image store a file URL; RichText holds any number of them in HTML.
-_FILE_FIELD_TYPES = frozenset({"Attach", "Image", "RichText"})
+# RichText holds any number of file URLs in its HTML ("file" fields hold one).
+_FILE_HTML_TYPES = frozenset({"RichText"})
 _FILE_ID = re.compile(r"get_content\?file_id=([A-Za-z0-9_-]+)")
 
 
@@ -44,9 +44,9 @@ async def referenced_file_ids(doctype: str, doc: dict[str, Any]) -> set[str]:
     ids: set[str] = set()
     for field in meta.fields:
         value = doc.get(field.fieldname)
-        if field.fieldtype in _FILE_FIELD_TYPES:
+        if field.has_trait("file") or field.fieldtype in _FILE_HTML_TYPES:
             ids |= file_ids_in(value)
-        elif field.fieldtype == "Table" and field.options and isinstance(value, list):
+        elif field.has_trait("table") and field.options and isinstance(value, list):
             for row in value:
                 if isinstance(row, dict):
                     ids |= await referenced_file_ids(field.options, row)

@@ -1,4 +1,5 @@
 import type { DocField, DocType, QuickFilter } from '@/types'
+import { isDateType } from '@/core/fieldRegistry'
 
 export const SUPPORTED_FIELD_TYPES = new Set([
   'Text', 'Data', 'LongText',
@@ -9,7 +10,7 @@ export const SUPPORTED_FIELD_TYPES = new Set([
 ])
 
 function isYearFilter(field: DocField): boolean {
-  return (field.fieldtype === 'Date' || field.fieldtype === 'Datetime') && field.quick_filter_mode === 'year'
+  return isDateType(field.fieldtype) && field.quick_filter_mode === 'year'
 }
 
 function inferInputType(field: DocField): QuickFilter['input_type'] {
@@ -86,7 +87,7 @@ export function withAsOfDateFilter(
   label: string,
 ): QuickFilter[] {
   const asOfField = dt.tree_as_of_date_field
-    ?? dt.fields.find(f => f.fieldname === 'valid_from' && (f.fieldtype === 'Date' || f.fieldtype === 'Datetime'))?.fieldname
+    ?? dt.fields.find(f => f.fieldname === 'valid_from' && isDateType(f.fieldtype))?.fieldname
   if (!asOfField) return filters
 
   let covered = false

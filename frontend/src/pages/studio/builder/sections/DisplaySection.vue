@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Separator } from '@/components/ui/separator'
 import { Field, FieldGroup, FieldLabel, FieldLegend, FieldSet } from '@/components/ui/field'
 import type { DocField } from '@/types'
+import { isDateType } from '@/core/fieldRegistry'
 
 const { field, updateField } = usePropertyEditor()
 const { t } = useI18n()
@@ -20,7 +21,7 @@ const FLAGS: { key: keyof DocField; label: string }[] = [
   { key: 'in_preview', label: 'In Preview' },
 ]
 
-const isDateField = computed(() => field.value.fieldtype === 'Date' || field.value.fieldtype === 'Datetime')
+const isDateField = computed(() => isDateType(field.value.fieldtype))
 </script>
 
 <template>

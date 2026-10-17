@@ -3,7 +3,8 @@ from grunt.metadata.field import FieldType, register_field_type_class
 
 class MultiSelectField(FieldType):
     name = "MultiSelect"
-    column_spec = staticmethod(lambda f: ("JSON",))
+    traits = frozenset({"options"})
+    column_spec = ("JSON",)
     searchable = False
     python_type = "list[str] | None"
 

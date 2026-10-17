@@ -33,7 +33,7 @@ async def apply_fetch_from(
     if not by_link:
         return
 
-    links = {f.fieldname: f for f in dt.fields if f.fieldtype == "Link" and f.options}
+    links = {f.fieldname: f for f in dt.fields if f.has_trait("link") and f.options}
     for link, targets in by_link.items():
         link_field = links.get(link)
         value = data.get(link)

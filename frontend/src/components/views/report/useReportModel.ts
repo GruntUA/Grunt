@@ -1,7 +1,7 @@
 import { ref, computed, watch } from 'vue'
 import type { DocType, DocField } from '@/types'
 import type { ListColumn } from '@/core/composables/useListColumns'
-import { getNonPhysicalTypeSet } from '@/core/fieldRegistry'
+import { getNonPhysicalTypeSet, isNumericType } from '@/core/fieldRegistry'
 
 /**
  * One entry of a `Report` (type=List) `columns` JSON - the same shape the
@@ -28,12 +28,10 @@ export interface ReportListColumn {
 
 export type AggFn = 'none' | 'sum' | 'avg' | 'min' | 'max' | 'count'
 
-/** Field types whose values can be summed / averaged. */
-const NUMERIC = new Set(['Int', 'Float', 'Currency', 'Percent', 'Duration', 'Rating'])
 const STRUCTURAL = getNonPhysicalTypeSet()
 
 export function isNumericField(f: DocField | undefined): boolean {
-  return !!f && NUMERIC.has(f.fieldtype)
+  return !!f && isNumericType(f.fieldtype)
 }
 
 /** Default aggregate for a freshly shown numeric column. */
@@ -137,7 +135,7 @@ export function useReportModel(opts: ReportModelOptions) {
 
   const groupableFields = computed<DocField[]>(() =>
     (opts.dt()?.fields ?? []).filter(
-      (f) => !STRUCTURAL.has(f.fieldtype) && !f.hidden && !NUMERIC.has(f.fieldtype),
+      (f) => !STRUCTURAL.has(f.fieldtype) && !f.hidden && !isNumericType(f.fieldtype),
     ),
   )
 

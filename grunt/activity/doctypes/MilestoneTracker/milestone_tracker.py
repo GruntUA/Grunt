@@ -41,7 +41,7 @@ class MilestoneTracker(Document):
                 "VALIDATION_ERROR",
             )
         fdef = meta.get_field(field)
-        if fdef is None or not fdef.is_physical or fdef.fieldtype == "Table":
+        if fdef is None or not fdef.is_physical or fdef.has_trait("table"):
             grunt.throw(
                 _("“%(field)s” is not a field of %(doctype)s that can be tracked")
                 % {"field": field, "doctype": dt.name},

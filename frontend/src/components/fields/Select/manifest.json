@@ -1,1 +1,19 @@
-{"type": "Select", "label": "Select", "icon": "chevron-down", "category": "Вибір і зв'язки", "propertySections": ["core", "flags", "display", "text", "default", "options", "fetch_from"], "storage_class": "text"}
+{
+    "type": "Select",
+    "label": "Select",
+    "icon": "chevron-down",
+    "category": "Вибір і зв'язки",
+    "propertySections": [
+        "core",
+        "flags",
+        "display",
+        "text",
+        "default",
+        "options",
+        "fetch_from"
+    ],
+    "storage_class": "text",
+    "traits": [
+        "options"
+    ]
+}

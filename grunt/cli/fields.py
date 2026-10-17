@@ -36,14 +36,14 @@ def fields_group() -> None:
     help="Exit non-zero if a manifest is out of sync instead of fixing it.",
 )
 def sync_manifests(check: bool) -> None:
-    """Sync each field type's storage_class in its frontend manifest.json.
+    """Sync each field type's storage_class and traits in its frontend manifest.json.
 
-    storage_class mirrors FieldType.column_spec (grunt/metadata/field.py) so the
-    DocType builder can warn about DB retypes without a backend round-trip.
-    Run this after adding a field type or changing its column_spec, so manifest.json
-    never has to be hand-edited to match.
+    storage_class mirrors FieldType.column_spec and traits mirror FieldType.traits
+    (grunt/metadata/field.py), so the frontend knows them without a backend round-trip.
+    Run this after adding a field type or changing its column_spec / traits, so
+    manifest.json never has to be hand-edited to match.
     """
-    from grunt.metadata.field import get_registered_fieldtypes, get_storage_class
+    from grunt.metadata.field import get_manifest_attrs, get_registered_fieldtypes
 
     bench_root = _find_bench_root(Path.cwd())
     if bench_root is None:
@@ -60,14 +60,15 @@ def sync_manifests(check: bool) -> None:
             skipped.append(fieldtype)
             continue
 
-        storage_class = get_storage_class(fieldtype)
         data = json.loads(manifest_path.read_text(encoding="utf-8"))
-        if data.get("storage_class") == storage_class:
+        # traits is dropped when the type has none, so start from data without it.
+        synced = {k: v for k, v in data.items() if k != "traits"} | get_manifest_attrs(fieldtype)
+        if synced == data:
             continue
 
         changed.append(fieldtype)
         if not check:
-            data["storage_class"] = storage_class
+            data = synced
             manifest_path.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
 
     if changed:

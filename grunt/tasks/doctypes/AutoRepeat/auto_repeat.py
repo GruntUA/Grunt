@@ -96,7 +96,7 @@ class AutoRepeat(Document):
         self.date_field = date_field or None
         if date_field:
             field = meta.get_field(date_field)
-            if field is None or field.fieldtype not in ("Date", "Datetime"):
+            if field is None or not field.is_date:
                 grunt.throw(
                     _("“%(field)s” is not a date field of %(doctype)s")
                     % {"field": date_field, "doctype": dt.name},

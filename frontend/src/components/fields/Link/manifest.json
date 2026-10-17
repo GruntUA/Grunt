@@ -1,1 +1,22 @@
-{"type": "Link", "label": "Link", "icon": "link", "category": "Вибір і зв'язки", "propertySections": ["core", "flags", "display", "text", "default", "link", "fetch_from"], "storage_class": "text"}
+{
+    "type": "Link",
+    "label": "Link",
+    "icon": "link",
+    "category": "Вибір і зв'язки",
+    "propertySections": [
+        "core",
+        "flags",
+        "display",
+        "text",
+        "default",
+        "link",
+        "fetch_from"
+    ],
+    "storage_class": "text",
+    "traits": [
+        "link"
+    ],
+    "emits": [
+        "create-new"
+    ]
+}

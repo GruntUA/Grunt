@@ -1,5 +1,7 @@
 import type { Exporter, ExportContext } from './registry'
-import { formatDate, formatDateTime, formatFull, localeTag } from '@/core/datetime'
+import { formatFull, localeTag } from '@/core/datetime'
+import { EMPTY_VALUE, formatValue, type FormatField } from '@/core/formatValue'
+import { escapeHtml } from '@/lib/utils'
 import i18n, { N_ } from '@/plugins/i18n'
 
 const t = (key: string, params: Record<string, unknown> = {}): string => i18n.global.t(key, params)
@@ -24,14 +26,6 @@ const STATUS_COLORS: Record<string, { bg: string; text: string; border: string }
   pink: { bg: '#fdf2f8', text: '#be185d', border: '#f9a8d4' },
 }
 
-function escapeHtml(s: string): string {
-  return s
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-}
-
 function buildBadge(label: string, colorName: string): string {
   const c = STATUS_COLORS[colorName] ?? STATUS_COLORS.secondary
   return `<span style="display:inline-block;padding:2px 10px;border-radius:9999px;font-size:11px;font-weight:500;border:1px solid ${c.border};background:${c.bg};color:${c.text}">${escapeHtml(label)}</span>`
@@ -41,18 +35,20 @@ function buildSelectChip(label: string): string {
   return `<span style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;background:#f3f4f6;border:1px solid #e5e7eb;color:#374151">${escapeHtml(label)}</span>`
 }
 
+// Types drawn with markup below; everything else is formatValue()'s plain text.
 function formatCellHtml(
   value: unknown,
-  fieldtype: string,
+  field: FormatField,
   fieldname: string,
   statusField: string | null,
   indicatorMap: Map<string, { color: string; label?: string | null }>,
 ): string {
   if (value === null || value === undefined || value === '') {
-    return '<span style="color:#d1d5db">—</span>'
+    return `<span style="color:#d1d5db">${EMPTY_VALUE}</span>`
   }
 
   const str = String(value)
+  const fieldtype = field.fieldtype
 
   // Status field with configured indicator
   if (statusField === fieldname) {
@@ -64,14 +60,6 @@ function formatCellHtml(
     return str === '1' || str === 'true'
       ? '<span style="color:#16a34a;font-size:14px">✓</span>'
       : '<span style="color:#d1d5db;font-size:14px">✗</span>'
-  }
-
-  if (fieldtype === 'Date') {
-    return escapeHtml(formatDate(str))
-  }
-
-  if (fieldtype === 'Datetime') {
-    return escapeHtml(formatDateTime(str))
   }
 
   if (fieldtype === 'Rating') {
@@ -103,20 +91,20 @@ function formatCellHtml(
     return `<span style="display:inline-flex;align-items:center;gap:6px"><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${escapeHtml(str)};border:1px solid rgba(0,0,0,.15)"></span>${escapeHtml(str)}</span>`
   }
 
-  return escapeHtml(str)
+  return escapeHtml(formatValue(field, value))
 }
 
 function renderRows(
   rows: Record<string, unknown>[],
   columns: ExportContext['columns'],
-  fieldMap: Map<string, { fieldtype: string }>,
+  fieldMap: Map<string, FormatField>,
   statusField: string | null,
   indicatorMap: Map<string, { color: string; label?: string | null }>,
 ): string {
   return rows.map((row, ri) => {
     const cells = columns.map((col, ci) => {
-      const ft = fieldMap.get(col.key)?.fieldtype ?? 'Text'
-      const html = formatCellHtml(row[col.key], ft, col.key, statusField, indicatorMap)
+      const field = fieldMap.get(col.key) ?? { fieldtype: 'Text' }
+      const html = formatCellHtml(row[col.key], field, col.key, statusField, indicatorMap)
       const firstCol = ci === 0 ? ' style="font-weight:600;color:#111827"' : ''
       return `<td${firstCol}>${html}</td>`
     }).join('')

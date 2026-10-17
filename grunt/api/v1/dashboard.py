@@ -87,7 +87,7 @@ async def _resolve_context_tokens(filters: dict[str, Any]) -> dict[str, Any]:
             meta is not None
             and meta.is_singleton
             and field is not None
-            and field.fieldtype != "Password"
+            and not field.has_trait("sensitive")
             and await permission_checker.check(grunt.get_user(), meta, "read")
         )
         resolved[key] = await grunt.get_single(doctype, fieldname) if allowed else None

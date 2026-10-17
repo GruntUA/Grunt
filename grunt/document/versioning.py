@@ -149,9 +149,7 @@ class VersionService:
         Link resolution already done for regular document reads
         (see ``grunt.document.relations``).
         """
-        link_fields = {
-            f.fieldname: f for f in dt.get_link_fields() if f.fieldtype == "Link" and f.options
-        }
+        link_fields = {f.fieldname: f for f in dt.get_link_fields() if f.options}
         if not link_fields:
             return
 

@@ -65,7 +65,7 @@ async def compute_aggregations(
 
         # Find the TABLE field in the parent DocType to get child doctype name
         table_field = meta.get_field(table_fieldname)
-        if table_field is None or table_field.fieldtype != "Table" or not table_field.options:
+        if table_field is None or not table_field.has_trait("table") or not table_field.options:
             log.warning(
                 "aggregate.table_field_not_found",
                 doctype=dt.name,

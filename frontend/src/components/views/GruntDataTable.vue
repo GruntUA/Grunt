@@ -6,7 +6,6 @@ import type { DocField, DocTypeStatusConfig, PaginationMeta } from '@/types'
 import type { ListColumn } from '@/core/composables/useListColumns'
 import { getListCell } from '@/core/listCellRegistry'
 import { useAuthStore } from '@/stores/auth'
-import DefaultListCell from '@/components/fields/Default/ListCell.vue'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Table, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Input } from '@/components/ui/input'
@@ -131,7 +130,7 @@ function colField(col: ListColumn): DocField {
 }
 
 function colCell(col: ListColumn) {
-  return getListCell(colField(col).fieldtype) ?? DefaultListCell
+  return getListCell(colField(col).fieldtype)
 }
 
 function rowHref(row: Record<string, unknown>): string | null {
