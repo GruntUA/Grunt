@@ -6,7 +6,7 @@ refresh tokens in ``grunt.auth.doctypes.UserSession``.
 """
 
 import re as _re
-from datetime import date, datetime, UTC, timedelta
+from datetime import UTC, date, datetime, timedelta
 from typing import Any
 
 import anyio.to_thread
@@ -115,7 +115,6 @@ AUTH_CONTEXT_FIELDS: list[str] = [
 
 
 class User(Document):
-
     # begin: auto-generated types
     # This code is auto-generated. Do not modify anything in this block.
 
@@ -137,13 +136,11 @@ class User(Document):
     hashed_password: str | None  # Password hash
     storage_quota_mb: int | None  # Personal space quota, MB
     mfa_enabled: bool | None  # MFA enabled
-    mfa_setup_button: None  # MFA management
     mfa_secret: str | None  # MFA secret
     mfa_backup_codes: dict | None  # Backup code hashes
     mfa_backup_display: str | None  # Backup codes
     login_attempts: int | None  # Failed login attempts
     locked_until: datetime | None  # Account locked until
-    passkeys_button: None  # Manage passkeys
     theme: str | None  # Theme
     language: str | None  # Language
     reset_token: str | None  # Password reset token

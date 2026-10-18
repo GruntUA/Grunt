@@ -14,16 +14,13 @@ from typing import Any
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from grunt.document.base import SYS_FIELDS
-from grunt.document.meta import LAYOUT_FIELDTYPES
-from grunt.metadata.field import get_python_type
+from grunt.metadata.field import get_python_type, is_physical_fieldtype
 from grunt.utils.strings import to_snake_case
 
 # Constants
 
 _BEGIN_MARKER = "# begin: auto-generated types"
 _END_MARKER = "# end: auto-generated types"
-
-_NON_PHYSICAL = LAYOUT_FIELDTYPES
 
 _DATETIME_NAMES = ("date", "datetime", "time")
 
@@ -73,13 +70,23 @@ def render_template(
 # Field helpers
 
 
+def _is_typed(f: dict) -> bool:
+    """A field that holds a value of its own (a column or a child table)."""
+    fieldtype = f.get("fieldtype") or ""
+    return f.get("fieldname") not in SYS_FIELDS and (
+        is_physical_fieldtype(fieldtype) or fieldtype == "Table"
+    )
+
+
+def _import_key(name: str) -> tuple[int, str]:
+    """isort/ruff order-by-type: CONSTANTS, then Classes, then the rest."""
+    kind = 0 if name.isupper() and len(name) > 1 else 1 if name[0].isupper() else 2
+    return kind, name.lower()
+
+
 def build_controller_context(name: str, fields: list[dict]) -> dict[str, Any]:
     """Prepare the template context for doctype/controller.py.jinja."""
-    physical = [
-        f
-        for f in fields
-        if f.get("fieldtype") not in _NON_PHYSICAL and f.get("fieldname") not in SYS_FIELDS
-    ]
+    physical = [f for f in fields if _is_typed(f)]
 
     needs_datetime = any("datetime" in get_python_type(f["fieldtype"]) for f in physical)
 
@@ -104,16 +111,8 @@ def build_controller_context(name: str, fields: list[dict]) -> dict[str, Any]:
 
 def _render_type_block(fields: list[dict], indent: str = "    ") -> str:
     """Render only the auto-generated types block for insertion inside class body."""
-    physical = [
-        f
-        for f in fields
-        if f.get("fieldtype") not in _NON_PHYSICAL
-        and f.get("fieldtype") != "Table"
-        and f.get("fieldname") not in SYS_FIELDS
-    ]
-    table_fields = [
-        f for f in fields if f.get("fieldtype") == "Table" and f.get("fieldname") not in SYS_FIELDS
-    ]
+    physical = [f for f in fields if _is_typed(f) and f.get("fieldtype") != "Table"]
+    table_fields = [f for f in fields if _is_typed(f) and f.get("fieldtype") == "Table"]
 
     field_lines: list[str] = []
     for f in physical:
@@ -138,11 +137,7 @@ def _render_type_block(fields: list[dict], indent: str = "    ") -> str:
 
 def _ensure_datetime_import(source: str, fields: list[dict]) -> str:
     """Make sure `from datetime import ...` covers the date types the block annotates."""
-    used = {
-        get_python_type(f["fieldtype"]).split(" ", 1)[0]
-        for f in fields
-        if f.get("fieldtype") not in _NON_PHYSICAL and f.get("fieldname") not in SYS_FIELDS
-    }
+    used = {get_python_type(f["fieldtype"]).split(" ", 1)[0] for f in fields if _is_typed(f)}
     needed = [n for n in _DATETIME_NAMES if n in used]
     if not needed:
         return source
@@ -160,8 +155,7 @@ def _ensure_datetime_import(source: str, fields: list[dict]) -> str:
                 return source
             if node.end_lineno != node.lineno or any(a.asname for a in node.names):
                 return source
-            merged = [n for n in _DATETIME_NAMES if n in have or n in needed]
-            merged += [n for n in have if n not in merged]
+            merged = sorted({*have, *needed}, key=_import_key)
             lines[node.lineno - 1] = f"from datetime import {', '.join(merged)}\n"
             return "".join(lines)
 
@@ -217,7 +211,7 @@ def sync_controller_types(py_path: Path, name: str, fields: list[dict]) -> bool:
         rest = text[insert_at:]
         if rest.startswith("\n"):
             rest = rest[1:]
-        return text[:insert_at] + "\n" + block + "\n\n" + rest
+        return text[:insert_at] + block + "\n\n" + rest
 
     begin_idx = source.find(_BEGIN_MARKER)
     end_idx = source.find(_END_MARKER)

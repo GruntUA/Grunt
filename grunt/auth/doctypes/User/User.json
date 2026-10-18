@@ -3,6 +3,7 @@
   "label": "User",
   "module": "auth",
   "app": "grunt",
+  "icon": "lucide-file-user",
   "fields": [
     {
       "fieldname": "tab_general",
