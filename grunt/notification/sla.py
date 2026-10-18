@@ -26,15 +26,15 @@ from grunt.cache.bus import fanout
 from grunt.config import settings
 from grunt.tasks.broker import retryable_task
 lazy from grunt.notification.service import notification_service
-lazy from grunt.site.manager import site_manager
+lazy from grunt.site.manager import current_site, site_manager
 
 POLICY = "ServiceLevel"
 STATUS = "ServiceLevelStatus"
 OPEN_STATES = ("On track", "At risk", "Breached")
 
 _CACHE_TTL = 60.0
-_policies: dict[str, list[dict[str, Any]]] | None = None
-_loaded_at = 0.0
+# site -> (loaded at, {ref_doctype: enabled policies})
+_policies: dict[str, tuple[float, dict[str, list[dict[str, Any]]]]] = {}
 
 
 # Policy cache
@@ -43,23 +43,23 @@ _loaded_at = 0.0
 @fanout
 def invalidate(**_kwargs: object) -> None:
     """Doc-event hook for ServiceLevel changes; also the test reset."""
-    global _policies
-    _policies = None
+    _policies.pop(current_site.get(), None)
 
 
 async def policies_for(doctype: str) -> list[dict[str, Any]]:
     """Enabled policies of *doctype* - cached, so the hook on every save is cheap."""
-    global _policies, _loaded_at
     if doctype in (POLICY, STATUS):
         return []
-    if _policies is None or time.monotonic() - _loaded_at > _CACHE_TTL:
+    site = current_site.get()
+    hit = _policies.get(site)
+    if hit is None or time.monotonic() - hit[0] > _CACHE_TTL:
         async with grunt.system_context(grunt.get_session()):
             rows = await grunt.db.get_all(POLICY, filters={"is_enabled": True}, limit=10_000)
         grouped: dict[str, list[dict[str, Any]]] = {}
         for row in rows:
             grouped.setdefault(row["ref_doctype"], []).append(dict(row))
-        _policies, _loaded_at = grouped, time.monotonic()
-    return _policies.get(doctype, [])
+        hit = _policies[site] = (time.monotonic(), grouped)
+    return hit[1].get(doctype, [])
 
 
 # Time arithmetic

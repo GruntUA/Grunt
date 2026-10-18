@@ -18,7 +18,7 @@ from grunt.document.serde import serialize_datetimes
 from grunt.hooks import on_doc
 from grunt.local import _session_ctx
 from grunt.metadata.doctype import WorkflowState, WorkflowTransition
-from grunt.site.manager import site_manager
+from grunt.site.manager import current_site, site_manager
 lazy from grunt.errors import not_found
 
 
@@ -40,14 +40,18 @@ class ResolvedWorkflow:
         self.transitions = transitions
 
 
-# document_type -> resolved workflow, or None if it has no active workflow.
-_CACHE: dict[str, ResolvedWorkflow | None] = {}
+# site -> {document_type -> resolved workflow, or None if it has no active one}
+_CACHE: dict[str, dict[str, ResolvedWorkflow | None]] = {}
+
+
+def _site_cache() -> dict[str, ResolvedWorkflow | None]:
+    return _CACHE.setdefault(current_site.get(), {})
 
 
 @fanout
 def invalidate(document_type: str) -> None:
-    """Drop the cached resolution for *document_type*, if any."""
-    _CACHE.pop(document_type, None)
+    """Drop the site's cached resolution for *document_type*, if any."""
+    _site_cache().pop(document_type, None)
 
 
 def clear_cache() -> None:
@@ -96,8 +100,9 @@ async def _get_session() -> AsyncSession | None:
 
 async def get_active_workflow(document_type: str) -> ResolvedWorkflow | None:
     """Return the active ``Workflow`` for *document_type*, cached in memory."""
-    if document_type in _CACHE:
-        return _CACHE[document_type]
+    cache = _site_cache()
+    if document_type in cache:
+        return cache[document_type]
 
     session = await _get_session()
     if session is None:
@@ -122,7 +127,7 @@ async def get_active_workflow(document_type: str) -> ResolvedWorkflow | None:
     )
     row = result.mappings().one_or_none()
     if row is None:
-        _CACHE[document_type] = None
+        cache[document_type] = None
         return None
 
     doc = dict(row)
@@ -136,5 +141,5 @@ async def get_active_workflow(document_type: str) -> ResolvedWorkflow | None:
         states=[WorkflowState.model_validate(s) for s in doc.get("states", [])],
         transitions=[WorkflowTransition.model_validate(t) for t in doc.get("transitions", [])],
     )
-    _CACHE[document_type] = resolved
+    cache[document_type] = resolved
     return resolved

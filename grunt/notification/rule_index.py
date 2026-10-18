@@ -5,9 +5,9 @@ notification-rule evaluation to a background worker. Without the check *every*
 document write in the system enqueues a worker task, even when no rule could
 ever match it.
 
-Modelled on :mod:`grunt.workflow.registry`: a process-local snapshot kept fresh by
-``NotificationRule`` change hooks (wired in ``grunt.main``), with a short TTL so
-other worker/web processes pick up rule changes without a restart.
+Modelled on :mod:`grunt.workflow.registry`: a process-local snapshot per site,
+kept fresh by ``NotificationRule`` change hooks (wired in ``grunt.core_hooks``)
+in every process via :mod:`grunt.cache.bus`, with a short TTL as the backstop.
 """
 
 import time
@@ -18,22 +18,21 @@ import grunt
 from grunt import _, log
 from grunt.cache.bus import fanout
 from grunt.local import _session_ctx
+from grunt.site.manager import current_site
 lazy from grunt.errors import not_found
 
-# Upper bound on how long a process keeps serving a stale snapshot when the rule
-# change happened in *another* process (the invalidation hook only fires in the
-# one that handled the edit).
+# Upper bound on how long a process keeps serving a stale snapshot when the
+# invalidation from another process got lost.
 _TTL_SECONDS = 60.0
 
-_pairs: frozenset[tuple[str, str]] | None = None
-_loaded_at = 0.0
+# site -> (loaded at, enabled (doctype, event) pairs)
+_snapshots: dict[str, tuple[float, frozenset[tuple[str, str]]]] = {}
 
 
 @fanout
 def invalidate() -> None:
-    """Drop the cached snapshot; the next :func:`has_rules` call reloads it."""
-    global _pairs
-    _pairs = None
+    """Drop the site's cached snapshot; the next :func:`has_rules` call reloads it."""
+    _snapshots.pop(current_site.get(), None)
 
 
 def invalidate_on_change(**_kwargs: object) -> None:
@@ -64,9 +63,10 @@ async def has_rules(doctype: str, event: str) -> bool:
     Fails open: if the snapshot cannot be loaded (no session bound, DB error) it
     returns ``True`` so the background worker still gets a chance to evaluate.
     """
-    global _pairs, _loaded_at
+    site = current_site.get()
     now = time.monotonic()
-    if _pairs is None or now - _loaded_at > _TTL_SECONDS:
+    hit = _snapshots.get(site)
+    if hit is None or now - hit[0] > _TTL_SECONDS:
         try:
             loaded = await _load()
         except Exception:
@@ -74,6 +74,5 @@ async def has_rules(doctype: str, event: str) -> bool:
             return True
         if loaded is None:
             return True
-        _pairs = loaded
-        _loaded_at = now
-    return (doctype, event) in _pairs
+        hit = _snapshots[site] = (now, loaded)
+    return (doctype, event) in hit[1]

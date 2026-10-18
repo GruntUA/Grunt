@@ -10,10 +10,8 @@ from grunt.notification import rule_index
 @pytest.fixture(autouse=True)
 def _reset_index():
     rule_index.invalidate()
-    rule_index._loaded_at = 0.0
     yield
     rule_index.invalidate()
-    rule_index._loaded_at = 0.0
 
 
 @pytest.mark.asyncio
@@ -80,3 +78,24 @@ async def test_fails_open_on_load_error(monkeypatch):
 
     monkeypatch.setattr(rule_index, "_load", fake_load)
     assert await rule_index.has_rules("Order", "after_save") is True
+
+
+@pytest.mark.asyncio
+async def test_snapshot_is_per_site(monkeypatch):
+    from grunt.site.manager import current_site
+
+    rules = {"a.example": frozenset({("Order", "after_save")}), "b.example": frozenset()}
+
+    async def fake_load():
+        return rules[current_site.get()]
+
+    monkeypatch.setattr(rule_index, "_load", fake_load)
+    for site, expected in (("a.example", True), ("b.example", False), ("a.example", True)):
+        token = current_site.set(site)
+        try:
+            assert await rule_index.has_rules("Order", "after_save") is expected
+            if site == "b.example":
+                rule_index.invalidate()  # drops b only
+                assert "a.example" in rule_index._snapshots
+        finally:
+            current_site.reset(token)

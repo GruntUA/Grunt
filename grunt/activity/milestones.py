@@ -18,29 +18,30 @@ from typing import Any
 import grunt
 from grunt import log
 from grunt.cache.bus import fanout
+from grunt.site.manager import current_site
 
 TRACKER = "MilestoneTracker"
 MILESTONE = "Milestone"
 MAX_SEED = 100_000
 
 _CACHE_TTL = 60.0
-_trackers: dict[str, list[str]] | None = None
-_loaded_at = 0.0
+# site -> (loaded at, {ref_doctype: tracked fields})
+_trackers: dict[str, tuple[float, dict[str, list[str]]]] = {}
 
 
 @fanout
 def invalidate(**_kwargs: object) -> None:
     """Doc-event hook for MilestoneTracker changes; also the test reset."""
-    global _trackers
-    _trackers = None
+    _trackers.pop(current_site.get(), None)
 
 
 async def tracked_fields(doctype: str) -> list[str]:
     """Fields tracked on *doctype* (cached - the save hook runs on every DocType)."""
-    global _trackers, _loaded_at
     if doctype in (TRACKER, MILESTONE):
         return []
-    if _trackers is None or time.monotonic() - _loaded_at > _CACHE_TTL:
+    site = current_site.get()
+    hit = _trackers.get(site)
+    if hit is None or time.monotonic() - hit[0] > _CACHE_TTL:
         async with grunt.system_context(grunt.get_session()):
             rows = await grunt.db.get_all(
                 TRACKER,
@@ -51,8 +52,8 @@ async def tracked_fields(doctype: str) -> list[str]:
         grouped: dict[str, list[str]] = {}
         for row in rows:
             grouped.setdefault(row["ref_doctype"], []).append(row["track_field"])
-        _trackers, _loaded_at = grouped, time.monotonic()
-    return _trackers.get(doctype, [])
+        hit = _trackers[site] = (time.monotonic(), grouped)
+    return hit[1].get(doctype, [])
 
 
 def _value(doc: dict[str, Any], field: str) -> str:
