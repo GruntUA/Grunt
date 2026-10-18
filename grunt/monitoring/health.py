@@ -21,7 +21,7 @@ from pathlib import Path
 from typing import Any
 
 from packaging.version import InvalidVersion, Version
-from sqlalchemy import text
+from sqlalchemy import inspect, text
 
 import grunt
 from grunt import log, whitelist
@@ -29,6 +29,7 @@ from grunt.api.v1.ws import manager
 from grunt.apps.deps import app_packages
 from grunt.backups import list_backups
 from grunt.i18n import N_, _
+from grunt.metadata.compiler import get_table_name
 from grunt.metadata.registry import doctype_registry
 from grunt.site.manager import current_site, site_manager
 from grunt.site.settings import get_setting
@@ -50,6 +51,7 @@ STUCK_EMAIL_AFTER = timedelta(minutes=30)
 DISK_WARN_FREE = 0.10
 DISK_ERROR_FREE = 0.05
 TOP_N = 10
+COUNT_CHUNK = 200
 
 _ROOT = Path(__file__).resolve().parents[2]  # apps/grunt
 FRONTEND_DIST = _ROOT / "dist"
@@ -123,16 +125,26 @@ async def _database_size(session, dialect: str) -> int | None:
 
 async def largest_tables() -> list[Row]:
     """Top DocTypes by row count - what grows (logs usually) and may need retention."""
+    session = _session()
+    existing = await session.run_sync(lambda s: set(inspect(s.connection()).get_table_names()))
+    tables = [
+        (dt.name, table)
+        for dt in await doctype_registry.list_all()
+        if not (dt.is_virtual or dt.is_singleton)
+        and (table := dt.table_name or get_table_name(dt.module, dt.name)) in existing
+    ]
+    # One UNION ALL per chunk instead of a count per DocType (SQLite caps a
+    # compound SELECT at 500 terms).
+    quote = session.get_bind().dialect.identifier_preparer.quote
     counts: list[tuple[str, int]] = []
-    for dt in await doctype_registry.list_all():
-        if dt.is_virtual or dt.is_singleton:
-            continue
-        try:
-            async with _session().begin_nested():  # keep a failure from aborting the tx
-                n = await grunt.db.count(dt.name)
-        except Exception:  # noqa: BLE001 - a DocType whose table isn't synced yet
-            continue
-        counts.append((dt.name, n))
+    for start in range(0, len(tables), COUNT_CHUNK):
+        chunk = tables[start : start + COUNT_CHUNK]
+        sql = " union all ".join(
+            f"select {i} as i, count(*) as n from {quote(table)}"
+            for i, (_name, table) in enumerate(chunk)
+        )
+        for i, n in (await session.execute(text(sql))).all():
+            counts.append((chunk[i][0], n))
     counts.sort(key=lambda c: c[1], reverse=True)
     items = []
     for name, n in counts[:TOP_N]:

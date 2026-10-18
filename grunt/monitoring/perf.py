@@ -162,16 +162,23 @@ def sql_tally() -> Generator[SqlTally]:
         _sql_tally.reset(token)
 
 
+def _client_error(exc: Exception) -> bool:
+    status = getattr(exc, "status_code", None)
+    return isinstance(status, int) and 400 <= status < 500
+
+
 @contextmanager
 def measure(kind: str, endpoint: str, ref_doctype: str | None = None) -> Generator[None]:
-    """Time the block and :func:`record` it; an exception counts as an error."""
+    """Time the block and :func:`record` it; an exception counts as an error
+    unless it is a client one (a 4xx ``HTTPException`` / ``ApplicationError`` -
+    a missing document or a denied permission is not a failure of the code)."""
     start = time.perf_counter()
     error = False
     with sql_tally() as tally:
         try:
             yield
-        except Exception:
-            error = True
+        except Exception as exc:
+            error = not _client_error(exc)
             raise
         finally:
             ms = (time.perf_counter() - start) * 1000

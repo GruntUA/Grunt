@@ -59,6 +59,32 @@ async def test_measure_counts_sql_and_errors(ctx):
     assert stat.sql_calls >= 2
 
 
+def test_client_errors_are_not_counted():
+    from fastapi import HTTPException
+
+    from grunt.errors import ApplicationError, not_found
+
+    for exc in (not_found(), HTTPException(403), ApplicationError("bad", "VALIDATION")):
+        with pytest.raises(type(exc)), perf.measure("Span", "probe"):
+            raise exc
+    with pytest.raises(HTTPException), perf.measure("Span", "probe"):
+        raise HTTPException(503)
+
+    (stat,) = _site_stats().values()
+    assert stat.calls == 4
+    assert stat.errors == 1
+
+
+@pytest.mark.asyncio
+async def test_document_pipelines_are_measured(ctx):
+    doc = await ctx.new_doc("ToDo", {"description": "perf probe"})
+    await ctx.save_doc("ToDo", doc["name"], {"description": "perf probe 2"})
+    await ctx.delete_doc("ToDo", doc["name"])
+
+    ops = {k[2] for k in _site_stats() if k[1] == "Document" and k[3] == "ToDo"}
+    assert ops == {"insert", "save", "delete"}
+
+
 @pytest.mark.asyncio
 async def test_nested_measurements_both_count_sql(ctx):
     with perf.measure("HTTP", "outer"):

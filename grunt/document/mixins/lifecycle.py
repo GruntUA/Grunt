@@ -13,9 +13,10 @@ adds to the pipeline - ``Document`` fills them in with its table work (naming
 series, child tables, search index, versions).
 """
 
+import functools
 from collections.abc import Awaitable, Callable
 from datetime import UTC, datetime
-from typing import Any, ClassVar
+from typing import Any, ClassVar, Concatenate
 
 from fastapi import HTTPException, status
 from sqlalchemy.exc import IntegrityError
@@ -29,6 +30,7 @@ from grunt.document.serde import audit_fields, serialize_datetimes, with_doctype
 from grunt.document.validation import _validate_data, validate_child_rows
 from grunt.errors import ApplicationError, not_found
 from grunt.events import fire
+from grunt.monitoring import perf
 from grunt.naming import naming_service
 from grunt.naming.patterns import has_counter, parse_pattern
 from grunt.permissions.access import RoleAccess
@@ -46,6 +48,27 @@ lazy from grunt.document.meta import Meta
 lazy from grunt.metadata.registry import doctype_registry
 
 PROTECTED_FIELDS = frozenset({"name", "owner", "created_at"})
+
+
+type _Pipeline[**P, R] = Callable[Concatenate[Any, P], Awaitable[R]]
+
+
+def _timed[**P, R](op: str) -> Callable[[_Pipeline[P, R]], _Pipeline[P, R]]:
+    """Record the pipeline in perf stats as ``Document <op>`` of the DocType.
+
+    On the pipeline itself, not on ``insert``/``save``/``delete``: the REST API
+    and ``grunt.new_doc`` call the pipelines directly.
+    """
+
+    def decorator(fn: _Pipeline[P, R]) -> _Pipeline[P, R]:
+        @functools.wraps(fn)
+        async def wrapper(self: Any, /, *args: P.args, **kwargs: P.kwargs) -> R:
+            with perf.measure("Document", op, self.doctype):
+                return await fn(self, *args, **kwargs)
+
+        return wrapper
+
+    return decorator
 
 
 class DocumentLifecycleMixin:
@@ -319,6 +342,7 @@ class DocumentLifecycleMixin:
             update_data["modified_by"] = self.user.email
         return update_data
 
+    @_timed("insert")
     async def _insert(self, *, ignore_required: bool = False) -> dict[str, Any]:
         """Create ``self.data`` as a new document - the insert pipeline.
 
@@ -378,6 +402,7 @@ class DocumentLifecycleMixin:
         await self._fire_write_hooks("after_insert", created)
         return created
 
+    @_timed("save")
     async def _update(
         self, doc_id: str, data: dict[str, Any], *, ignore_required: bool = False
     ) -> dict[str, Any]:
@@ -484,6 +509,7 @@ class DocumentLifecycleMixin:
             await workflow_engine.finish_transition(auto_transition, result, user, self.session)
         return result
 
+    @_timed("delete")
     async def _delete(self, *, replace_with: str | None = None) -> None:
         """Delete the stored document ``self.name`` - the delete pipeline.
 

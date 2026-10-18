@@ -154,3 +154,13 @@ async def test_version_the_database_was_migrated_with(ctx):
     await record_migrated_versions()
     [fresh] = [r for r in await health.check_versions() if r["check"] == "grunt"]
     assert fresh["status"] == "Info" and fresh["value"] == grunt.__version__
+
+
+@pytest.mark.asyncio
+async def test_largest_tables_counts_rows(ctx):
+    await ctx.new_doc("ToDo", {"description": "count me"})
+    counts = {r["label"]: r["count"] for r in await health.largest_tables()}
+    assert counts, "every synced DocType table is counted"
+    assert all(n >= 0 for n in counts.values())
+    if "ToDo" in counts:
+        assert counts["ToDo"] >= 1
