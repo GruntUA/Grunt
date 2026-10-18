@@ -1,5 +1,6 @@
 {
   "doctype": "Page",
+  "sync": true,
   "records": [
     {
       "name": "grunt-home",
