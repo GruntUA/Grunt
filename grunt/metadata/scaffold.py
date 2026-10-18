@@ -3,7 +3,7 @@
 When a DocType is created or updated via the API, this module writes
 the colocated file structure to disk::
 
-    {app}/{module}/doctypes/{Name}/
+    {package}/{module}/doctypes/{Name}/
         {Name}.json - DocType metadata (always overwritten)
         {Name}.py - Python controller with auto-generated types
         {Name}.js - Client script (only if missing)
@@ -17,6 +17,7 @@ from grunt.document.base import SYS_FIELDS
 from grunt.metadata.field import DocField, get_python_type, has_trait, is_physical_fieldtype
 from grunt.site.manager import site_manager
 from grunt.utils.codegen import render_template, sync_controller_types
+from grunt.utils.strings import to_snake_case
 lazy from grunt.metadata.doctype import DocType
 
 
@@ -61,80 +62,79 @@ def _build_scaffold_context(doctype_name: str, fields: list[DocField]) -> dict:
 
 # Helpers
 
+_GRUNT_ROOT = Path(__file__).parent.parent  # grunt/metadata/ -> grunt/
 
-def _find_app_dir(module: str, app_name: str | None = None) -> Path | None:
-    """Find the app directory that owns a given module name.
 
-    If *app_name* is given, we look for ``bench_dir/apps/{app_name}`` directly.
+def _package_root(app_name: str) -> Path | None:
+    """Python package of *app_name*: ``grunt/`` for the core, else ``apps/{app}/{app}/``."""
+    if app_name == "grunt":
+        return _GRUNT_ROOT
+    root = site_manager.bench_dir / "apps" / app_name / app_name
+    return root if root.is_dir() else None
 
-    Otherwise scans all app directories for:
-    1. apps/{app}/{module} - module-based structure
-    2. apps/{app} - flat structure where app == module
+
+def _doctypes_dir(root: Path, module: str) -> Path:
+    """``doctypes/`` of *module* - the package's own when the module is the app itself."""
+    return root / "doctypes" if module in ("", root.name) else root / module / "doctypes"
+
+
+def _find_doctype_dir(dt: DocType, app_name: str | None = None) -> Path | None:
+    """Directory for *dt*'s files: where its JSON already lives, else its module's ``doctypes/``.
+
+    Without *app_name* every app package is scanned for the module.
     """
-    apps_dir = site_manager.bench_dir / "apps"
-
-    # Fast path: app name known
     if app_name:
-        if apps_dir.is_dir():
-            candidate = apps_dir / app_name
-            if candidate.is_dir():
-                return candidate
-        return None
+        roots = [_package_root(app_name)]
+    else:
+        apps_dir = site_manager.bench_dir / "apps"
+        app_dirs = sorted(apps_dir.iterdir()) if apps_dir.is_dir() else []
+        roots = [_package_root(d.name) for d in app_dirs if d.is_dir()]
 
-    # Fallback: scan all app directories
-    if apps_dir.is_dir():
-        for app_dir in apps_dir.iterdir():
-            if not app_dir.is_dir() or app_dir.name.startswith((".", "_")):
-                continue
-            if (app_dir / module).is_dir():
-                return app_dir
-            if app_dir.name == module:
-                return app_dir
+    for root in filter(None, roots):
+        existing = next(root.glob(f"**/doctypes/{dt.name}/{dt.name}.json"), None)
+        if existing:
+            return existing.parent
 
+    for root in filter(None, roots):
+        doctypes_dir = _doctypes_dir(root, dt.module)
+        if app_name or doctypes_dir.parent.is_dir():
+            return doctypes_dir / dt.name
     return None
+
+
+def _controller_file(dt_dir: Path, name: str) -> Path:
+    """Existing controller (``{snake}.py`` or ``{Name}.py``), else ``{Name}.py`` to create."""
+    snake = dt_dir / f"{to_snake_case(name)}.py"
+    return snake if snake.exists() else dt_dir / f"{name}.py"
 
 
 def export_doctype_files(dt: DocType, app_name: str | None = None) -> str | None:
     """Write DocType metadata and scaffold files to disk.
 
-    Creates ``{app}/{doctype_dir}/`` with:
+    Creates ``{package}/{module}/doctypes/{Name}/`` (``{package}/doctypes/{Name}/``
+    when the module is the app package itself) with:
     - ``{Name}.json`` - always overwritten with current metadata
     - ``{Name}.py`` - controller with auto-generated type hints
     - ``{Name}.js`` - client script (only if missing)
 
-    Supports two directory structures:
-    - apps/{app}/{module}/doctypes/{Name}/   (module-based)
-    - apps/{app}/doctypes/{Name}/            (flat app structure)
+    An existing ``{Name}.json`` anywhere in the app package wins over the
+    computed location, so a DocType is never duplicated in a second folder.
 
-    *app_name* - when provided, used to locate the app directory directly
+    *app_name* - when provided, used to locate the app package directly
     instead of scanning for a matching module subdirectory.  Pass this when
     the module directory may not yet exist on disk (e.g. freshly created).
 
     Returns the absolute path to the written JSON file, or ``None`` if export
     was skipped (module directory not found).
     """
-    app_dir = _find_app_dir(dt.module, app_name=app_name)
-    if not app_dir:
+    dt_dir = _find_doctype_dir(dt, app_name=app_name)
+    if not dt_dir:
         log.warning(
             "scaffold.export_skip",
             doctype=dt.name,
             reason=f"module '{dt.module}' not found in apps",
         )
         return None
-
-    # Determine path based on app structure.
-    # If the module directory already exists, use module-based layout.
-    # If not but app_name was provided, create the module directory now.
-    module_dir = app_dir / dt.module
-    if module_dir.is_dir():
-        dt_dir = module_dir / "doctypes" / dt.name
-    elif app_name:
-        # Module dir doesn't exist yet - create it (new module)
-        module_dir.mkdir(parents=True, exist_ok=True)
-        dt_dir = module_dir / "doctypes" / dt.name
-    else:
-        # Flat structure: apps/{app}/doctypes/
-        dt_dir = app_dir / "doctypes" / dt.name
 
     dt_dir.mkdir(parents=True, exist_ok=True)
 
@@ -147,7 +147,7 @@ def export_doctype_files(dt: DocType, app_name: str | None = None) -> str | None
     )
 
     # Controller - create if missing, otherwise only sync the auto-generated type block
-    py_file = dt_dir / f"{dt.name}.py"
+    py_file = _controller_file(dt_dir, dt.name)
     if py_file.exists():
         sync_controller_types(py_file, dt.name, [f.model_dump() for f in dt.fields])
     else:
