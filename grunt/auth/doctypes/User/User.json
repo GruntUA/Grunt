@@ -2,10 +2,7 @@
   "name": "User",
   "label": "User",
   "module": "auth",
-  "is_child": false,
-  "autoname": "field:email",
-  "title_field": "full_name",
-  "image_field": "avatar",
+  "app": "grunt",
   "fields": [
     {
       "fieldname": "tab_general",
@@ -156,20 +153,20 @@
       "fieldname": "is_active",
       "label": "Active",
       "fieldtype": "Check",
-      "default": true,
       "in_list_view": true,
-      "in_filter": true
+      "in_filter": true,
+      "default": true
     },
     {
       "fieldname": "signup_state",
       "label": "Registration state",
       "fieldtype": "Select",
-      "options": "approved\npending\nrejected",
-      "translatable": true,
-      "default": "approved",
       "read_only": true,
       "in_list_view": true,
       "in_filter": true,
+      "options": "approved\npending\nrejected",
+      "translatable": true,
+      "default": "approved",
       "description": "pending — a self-registered user is waiting for administrator approval and cannot sign in."
     },
     {
@@ -180,7 +177,6 @@
       "fieldname": "password",
       "label": "Set password",
       "fieldtype": "Text",
-      "hidden": false,
       "description": "Enter a new password. Only its hash is stored in the database."
     },
     {
@@ -222,8 +218,8 @@
       "fieldname": "mfa_enabled",
       "label": "MFA enabled",
       "fieldtype": "Check",
-      "default": false,
-      "read_only": true
+      "read_only": true,
+      "default": false
     },
     {
       "fieldname": "mfa_setup_button",
@@ -257,8 +253,8 @@
       "fieldname": "login_attempts",
       "label": "Failed login attempts",
       "fieldtype": "Int",
-      "default": 0,
-      "read_only": true
+      "read_only": true,
+      "default": 0
     },
     {
       "fieldname": "locked_until",
@@ -331,6 +327,12 @@
       "hidden": true
     }
   ],
+  "actions": [
+    {
+      "action": "webpush.send_to_user",
+      "variant": "outline"
+    }
+  ],
   "permissions": [
     {
       "role": "System Manager",
@@ -365,10 +367,7 @@
       "select": true
     }
   ],
-  "actions": [
-    {
-      "action": "webpush.send_to_user",
-      "variant": "outline"
-    }
-  ]
+  "autoname": "field:email",
+  "title_field": "full_name",
+  "image_field": "avatar"
 }

@@ -2,23 +2,25 @@
   "name": "NamingSeries",
   "label": "Naming Series",
   "module": "naming",
+  "app": "grunt",
   "hide_from_activity_feed": true,
   "fields": [
     {
       "fieldname": "prefix",
       "label": "Prefix",
       "fieldtype": "Text",
+      "required": true,
       "unique": true,
-      "required": true
+      "in_list_view": true
     },
     {
       "fieldname": "current",
       "label": "Current value",
       "fieldtype": "Int",
+      "in_list_view": true,
       "default": "0"
     }
   ],
-  "autoname": "field:prefix",
   "permissions": [
     {
       "role": "System Manager",
@@ -27,5 +29,6 @@
       "create": true,
       "delete": true
     }
-  ]
+  ],
+  "autoname": "field:prefix"
 }

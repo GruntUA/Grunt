@@ -6,7 +6,7 @@ refresh tokens in ``grunt.auth.doctypes.UserSession``.
 """
 
 import re as _re
-from datetime import UTC, datetime, timedelta
+from datetime import date, datetime, UTC, timedelta
 from typing import Any
 
 import anyio.to_thread
@@ -115,6 +115,43 @@ AUTH_CONTEXT_FIELDS: list[str] = [
 
 
 class User(Document):
+
+    # begin: auto-generated types
+    # This code is auto-generated. Do not modify anything in this block.
+
+    last_name: str | None  # Last name
+    first_name: str | None  # First name
+    middle_name: str | None  # Patronymic
+    full_name: str | None  # Full name
+    avatar: str | None  # Profile photo
+    email: str | None  # Email
+    phone: str | None  # Phone
+    birth_date: date | None  # Date of birth
+    gender: str | None  # Gender
+    timezone: str | None  # Time zone
+    last_login: datetime | None  # Last login
+    bio: str | None  # Short bio
+    is_active: bool | None  # Active
+    signup_state: str | None  # Registration state
+    password: str | None  # Set password
+    hashed_password: str | None  # Password hash
+    storage_quota_mb: int | None  # Personal space quota, MB
+    mfa_enabled: bool | None  # MFA enabled
+    mfa_setup_button: None  # MFA management
+    mfa_secret: str | None  # MFA secret
+    mfa_backup_codes: dict | None  # Backup code hashes
+    mfa_backup_display: str | None  # Backup codes
+    login_attempts: int | None  # Failed login attempts
+    locked_until: datetime | None  # Account locked until
+    passkeys_button: None  # Manage passkeys
+    theme: str | None  # Theme
+    language: str | None  # Language
+    reset_token: str | None  # Password reset token
+    reset_token_expires_at: datetime | None  # Reset token expiry
+    roles: list[dict]  # Table: UserRole
+
+    # end: auto-generated types
+
     """DocType controller for User.
 
     Handles lifecycle hooks when User documents are created or updated
