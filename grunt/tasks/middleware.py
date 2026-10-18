@@ -7,8 +7,23 @@ from taskiq import TaskiqMessage, TaskiqMiddleware, TaskiqResult
 from grunt import log
 lazy from grunt.monitoring import perf
 lazy from grunt.progress import current_job
+lazy from grunt.tasks.job_log import LOG_LABEL, close_job_log
 
 _ARGS_PREVIEW_MAX = 2000
+
+
+def _retry_info(message: TaskiqMessage) -> tuple[bool, int, int, float]:
+    """Return (will_retry, attempt_number, max_retries, delay_seconds) for this failure."""
+    retry_on_error = message.labels.get("retry_on_error", False)
+    if isinstance(retry_on_error, str):
+        retry_on_error = retry_on_error.lower() == "true"
+
+    attempt = int(message.labels.get("_retries", 0)) + 1
+    max_retries = int(message.labels.get("max_retries", 3))
+    delay = float(message.labels.get("delay", 60))
+
+    will_retry = bool(retry_on_error) and attempt < max_retries
+    return will_retry, attempt, max_retries, delay
 
 
 class BackgroundTaskLoggingMiddleware(TaskiqMiddleware):
@@ -23,24 +38,11 @@ class BackgroundTaskLoggingMiddleware(TaskiqMiddleware):
     errors ever reach the DB (their ``Error Log``).
     """
 
-    def _retry_info(self, message: TaskiqMessage) -> tuple[bool, int, int, float]:
-        """Return (will_retry, attempt_number, max_retries, delay_seconds) for this failure."""
-        retry_on_error = message.labels.get("retry_on_error", False)
-        if isinstance(retry_on_error, str):
-            retry_on_error = retry_on_error.lower() == "true"
-
-        attempt = int(message.labels.get("_retries", 0)) + 1
-        max_retries = int(message.labels.get("max_retries", 3))
-        delay = float(message.labels.get("delay", 60))
-
-        will_retry = bool(retry_on_error) and attempt < max_retries
-        return will_retry, attempt, max_retries, delay
-
     async def on_error(
         self, message: TaskiqMessage, result: TaskiqResult[Any], exception: BaseException
     ) -> None:
         """Called if an unhandled error occurs."""
-        will_retry, attempt, _, delay = self._retry_info(message)
+        will_retry, attempt, _, delay = _retry_info(message)
 
         if will_retry:
             next_attempt = datetime.now(UTC) + timedelta(seconds=delay)
@@ -110,3 +112,21 @@ class TaskProgressMiddleware(TaskiqMiddleware):
     def post_execute(self, message: TaskiqMessage, result: TaskiqResult[Any]) -> None:
 
         current_job.set(None)
+
+
+class ScheduledJobLogMiddleware(TaskiqMiddleware):
+    """Closes the ScheduledJobLog row of a task the scheduler enqueued.
+
+    The scheduler opens the row and passes its id in the ``scheduled_job_log``
+    label; a failure that will be retried leaves the row Running for the
+    next attempt (the retry re-sends the same labels).
+    """
+
+    async def post_execute(self, message: TaskiqMessage, result: TaskiqResult[Any]) -> None:
+        log_id = message.labels.get(LOG_LABEL)
+        if not log_id:
+            return
+        if not result.is_err:
+            await close_job_log(str(log_id))
+        elif not _retry_info(message)[0]:
+            await close_job_log(str(log_id), error=result.error or "Task failed")

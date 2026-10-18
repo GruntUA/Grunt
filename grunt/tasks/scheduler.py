@@ -1,14 +1,15 @@
 import importlib
-from datetime import UTC, datetime
+from collections.abc import Awaitable, Callable
+from typing import Any
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from grunt import log
 from grunt.db.session import async_session_factory
 from grunt.email.tasks import send_notification_digest
 from grunt.scripting.server_script import ServerScriptRunner
+from grunt.tasks.job_log import LOG_LABEL, close_job_log, fail_stale_job_logs, open_job_log
 
 # Global scheduler instance
 scheduler = AsyncIOScheduler()
@@ -74,17 +75,9 @@ def _add_scheduled_job(path: str, cron_expr: str) -> None:
         module = importlib.import_module(module_path)
         task_fn = getattr(module, func_name)
 
-        # We don't call the task directly, we send it to TaskIQ broker
-        # This assumes the function is decorated with @task (wrapped in TaskIQ task)
-
         async def trigger_task():
             log.info("scheduler.triggering_task", path=path)
-            if hasattr(task_fn, "kiq"):
-                # TaskIQ-decorated task - send to worker
-                await task_fn.kiq()
-            else:
-                # Plain async function - call directly
-                await task_fn()
+            await _run_logged(path, cron_expr, task_fn)
 
         scheduler.add_job(
             trigger_task,
@@ -104,6 +97,7 @@ async def start_scheduler() -> None:
     if not scheduler.running:
         scheduler.start()
         log.info("scheduler.started")
+    await fail_stale_job_logs()
     _register_framework_jobs()
     await _register_server_script_jobs()
 
@@ -118,10 +112,10 @@ def _register_framework_jobs() -> None:
     _add_scheduled_job("grunt.tasks.reminders.send_reminders", "* * * * *")  # every minute
 
     async def _daily_digest():
-        await send_notification_digest.kiq(period="daily")
+        await _run_logged("grunt.digest.daily", "0 8 * * *", send_notification_digest, "daily")
 
     async def _weekly_digest():
-        await send_notification_digest.kiq(period="weekly")
+        await _run_logged("grunt.digest.weekly", "0 8 * * 1", send_notification_digest, "weekly")
 
     scheduler.add_job(
         _daily_digest,
@@ -174,39 +168,17 @@ async def _register_server_script_jobs() -> None:
 def _register_server_script_cron(name: str, script: str, cron_expr: str) -> None:
     """Register a single server script as an APScheduler cron job."""
 
+    async def _execute() -> None:
+        async with async_session_factory() as session:
+            result = await ServerScriptRunner().execute(
+                script, session=session, trusted=True, user_email="system"
+            )
+        if result.output:
+            log.debug("scheduler.server_script_output", name=name, output=result.output)
+
     async def _run() -> None:
         log.info("scheduler.server_script_run", name=name)
-        started_at = datetime.now(UTC)
-
-        async with async_session_factory() as session:
-            log_id = await _write_job_log(
-                session,
-                job_name=name,
-                started_at=started_at,
-                status="Running",
-                cron_expression=cron_expr,
-            )
-
-        try:
-            async with async_session_factory() as session:
-                runner = ServerScriptRunner()
-                result = await runner.execute(
-                    script, session=session, trusted=True, user_email="system"
-                )
-            if result.output:
-                log.debug("scheduler.server_script_output", name=name, output=result.output)
-
-            if log_id:
-                async with async_session_factory() as session:
-                    await _update_job_log(session, log_id=log_id, status="Success")
-
-        except Exception as exc:
-            log.error("scheduler.server_script_error", name=name, error=str(exc))
-            if log_id:
-                async with async_session_factory() as session:
-                    await _update_job_log(
-                        session, log_id=log_id, status="Failed", error_message=str(exc)
-                    )
+        await _run_logged(name, cron_expr, _execute)
 
     try:
         scheduler.add_job(
@@ -220,53 +192,30 @@ def _register_server_script_cron(name: str, script: str, cron_expr: str) -> None
         log.warning("scheduler.server_script_register_failed", name=name, error=str(exc))
 
 
-async def _write_job_log(
-    session: AsyncSession,
-    *,
-    job_name: str,
-    started_at: datetime,
-    status: str,
-    cron_expression: str,
-) -> str | None:
-    """Insert a new ScheduledJobLog record. Returns the generated name, or None on failure."""
-    try:
-        import grunt
-
-        async with grunt.system_context(session):
-            doc = await grunt.new_doc(
-                "ScheduledJobLog",
-                {
-                    "job_name": job_name,
-                    "started_at": started_at,
-                    "status": status,
-                    "cron_expression": cron_expression,
-                },
-            )
-            return str(doc.get("name", ""))
-    except Exception as exc:
-        log.warning("scheduler.log_write_failed", job_name=job_name, error=str(exc))
-        return None
-
-
-async def _update_job_log(
-    session: AsyncSession,
-    *,
-    log_id: str,
-    status: str,
-    error_message: str | None = None,
+async def _run_logged(
+    job_name: str, cron_expr: str, task_fn: Callable[..., Awaitable[Any]], *args: Any
 ) -> None:
-    """Update a ScheduledJobLog record after job completion via Grunt ORM."""
+    """Run one scheduler firing with a ScheduledJobLog row around it.
+
+    A TaskIQ task is only enqueued here: the row id rides in its labels and
+    ``ScheduledJobLogMiddleware`` closes the row once a worker has run it.
+    """
+    log_id = await open_job_log(job_name, cron_expr)
+    kicker = getattr(task_fn, "kicker", None)
     try:
-        import grunt
-
-        values: dict = {"status": status, "finished_at": datetime.now(UTC)}
-        if error_message is not None:
-            values["error_message"] = error_message
-
-        async with grunt.system_context(session):
-            await grunt.db.set_value("ScheduledJobLog", log_id, values)
+        if kicker is None:
+            await task_fn(*args)
+        else:
+            enqueue = kicker().with_labels(**{LOG_LABEL: log_id}) if log_id else kicker()
+            await enqueue.kiq(*args)
+            return
     except Exception as exc:
-        log.warning("scheduler.log_update_failed", log_id=log_id, error=str(exc))
+        log.error("scheduler.job_failed", job_name=job_name, error=str(exc))
+        if log_id:
+            await close_job_log(log_id, error=exc)
+        return
+    if log_id:
+        await close_job_log(log_id)
 
 
 async def stop_scheduler() -> None:

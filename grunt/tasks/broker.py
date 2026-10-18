@@ -11,6 +11,7 @@ from grunt import log
 from grunt.config import settings
 from grunt.tasks.middleware import (
     BackgroundTaskLoggingMiddleware,
+    ScheduledJobLogMiddleware,
     TaskPerfMiddleware,
     TaskProgressMiddleware,
 )
@@ -46,6 +47,7 @@ if settings.redis_url:
         settings.redis_url, consumer_name=_consumer_name(), **connection_options()
     ).with_middlewares(
         BackgroundTaskLoggingMiddleware(),
+        ScheduledJobLogMiddleware(),
         TaskPerfMiddleware(),
         TaskProgressMiddleware(),
         _retry_middleware,
@@ -55,6 +57,7 @@ else:
     # Fallback to In-Memory broker for local dev without Redis
     broker = InMemoryBroker().with_middlewares(
         BackgroundTaskLoggingMiddleware(),
+        ScheduledJobLogMiddleware(),
         TaskPerfMiddleware(),
         TaskProgressMiddleware(),
         _retry_middleware,

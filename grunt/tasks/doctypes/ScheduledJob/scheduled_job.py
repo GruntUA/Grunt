@@ -80,6 +80,7 @@ class ScheduledJobController(BaseDocument):
         try:
             logs = await grunt.db.get_all(
                 "ScheduledJobLog",
+                filters={"job_name__in": job_names},
                 fields=["job_name", "status", "finished_at", "error_message"],
                 order_by="started_at",
                 order="desc",
@@ -87,7 +88,7 @@ class ScheduledJobController(BaseDocument):
             )
             count_rows = await grunt.db.aggregate(
                 "ScheduledJobLog",
-                filters={"status": {"__in": ["Success", "Failed"]}},
+                filters={"job_name__in": job_names, "status__in": ["Success", "Failed"]},
                 group_by="job_name",
                 aggregations={"run_count": "count()"},
             )
