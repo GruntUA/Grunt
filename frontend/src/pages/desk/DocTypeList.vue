@@ -14,7 +14,7 @@ import { useWebSocket } from '@/core/composables/useWebSocket'
 import { useNotifications } from '@/core/composables/useNotifications'
 import { useListColumns } from '@/core/composables/useListColumns'
 import { useListViewState } from '@/core/composables/useListViewState'
-import { useListSearch } from '@/core/composables/useListSearch'
+import { useListSearch, SEARCH_DEBOUNCE_MS } from '@/core/composables/useListSearch'
 import { useGrouping } from '@/core/composables/useGrouping'
 import { useListClientScripts } from '@/core/composables/useListClientScripts'
 import { useQuickFilters } from '@/core/composables/useQuickFilters'
@@ -226,12 +226,16 @@ watch(quickFilterValues, (next, prev = {}) => {
   }
 })
 
-// Any change to the result set (sort, filters, page size, grouping) resets to page 1.
+// Any change to the result set (sort, filters, search, page size, grouping) resets
+// to page 1 - but not while the list hydrates: a page restored from `?page=` (e.g.
+// coming back from a document) belongs to the state restored with it, and that
+// state settles in steps (doctype meta, URL filters, debounced search/quick filters).
+let hydrated = false
 watch(
-  [sortKey, sortOrder, groupBy, perPage,
+  [sortKey, sortOrder, groupBy, perPage, debouncedSearch,
     () => JSON.stringify(activeFilters.value),
     () => JSON.stringify(debouncedQuickFilters.value)],
-  () => { page.value = 1 },
+  () => { if (hydrated) page.value = 1 },
 )
 
 const { applyRouteState, setGroupByInRoute, applySort } = useListRouteSync({
@@ -245,6 +249,7 @@ const { applyRouteState, setGroupByInRoute, applySort } = useListRouteSync({
   quickFilterValues,
   search: inlineSearch,
   debouncedSearch,
+  page,
   validViews: getRegisteredViews().map((d) => d.type),
   getDefaultView: () => dt.value?.default_view ?? 'list',
   dt,
@@ -346,6 +351,9 @@ void (async () => {
   setPageTitle(dt.value?.label || props.doctype)
   applyRouteState()
   await runListClientSetup()
+  // Let the debounced search / quick filters restored above land before user
+  // changes start resetting the page.
+  setTimeout(() => { hydrated = true }, Math.max(quickFilterDebounceMs.value, SEARCH_DEBOUNCE_MS) + 50)
 })()
 </script>
 

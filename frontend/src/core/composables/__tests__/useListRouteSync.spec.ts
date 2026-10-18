@@ -16,6 +16,7 @@ describe('useListRouteSync', () => {
     const dt = ref<DocType | null>(null)
     const search = ref('')
     const debouncedSearch = ref('')
+    const page = ref(1)
     replace.mockReset()
 
     const route = { query } as RouteLocationNormalizedLoaded
@@ -31,6 +32,7 @@ describe('useListRouteSync', () => {
       activeFilters,
       search,
       debouncedSearch,
+      page,
       validViews: ['list', 'kanban', 'calendar'],
       getDefaultView: () => 'list',
       dt,
@@ -45,6 +47,7 @@ describe('useListRouteSync', () => {
       activeFilters,
       search,
       debouncedSearch,
+      page,
       dt,
     }
   }
@@ -67,6 +70,26 @@ describe('useListRouteSync', () => {
     expect(groupBy.value).toBe('status')
     expect(sortKey.value).toBe('name')
     expect(sortOrder.value).toBe('desc')
+  })
+
+  it('restores the page from ?page=', () => {
+    const { page } = setup({ page: '4' })
+    expect(page.value).toBe(4)
+  })
+
+  it('ignores an invalid ?page=', () => {
+    const { page } = setup({ page: 'abc' })
+    expect(page.value).toBe(1)
+  })
+
+  it('writes the page to the URL, leaving page 1 out', async () => {
+    const { page } = setup()
+    page.value = 3
+    await nextTick()
+    expect(replace).toHaveBeenLastCalledWith({ query: { page: '3' } })
+    page.value = 1
+    await nextTick()
+    expect(replace).toHaveBeenLastCalledWith({ query: {} })
   })
 
   it('falls back to default view for invalid mode', () => {

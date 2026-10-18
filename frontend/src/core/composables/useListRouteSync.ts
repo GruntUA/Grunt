@@ -17,6 +17,8 @@ interface UseListRouteSyncOptions {
   search?: Ref<string>
   /** Debounced copy of `search` - written to `?q=` so typing doesn't spam history replaces. */
   debouncedSearch?: Ref<string>
+  /** Current pager page - kept in `?page=` so Back from a document returns to it. */
+  page?: Ref<number>
   validViews: readonly string[]
   getDefaultView: () => string
   dt: Ref<DocType | null>
@@ -31,7 +33,7 @@ export function useListRouteSync(options: UseListRouteSyncOptions) {
   let _syncingToUrl = false
 
   // Sync state -> URL
-  watch([options.viewMode, options.activeFilters, options.quickFilterValues, options.debouncedSearch], () => {
+  watch([options.viewMode, options.activeFilters, options.quickFilterValues, options.debouncedSearch, options.page], () => {
     _syncingToUrl = true
 
     const query = { ...options.route.query }
@@ -64,6 +66,12 @@ export function useListRouteSync(options: UseListRouteSyncOptions) {
       const q = options.debouncedSearch.value.trim()
       if (q) query.q = q
       else delete query.q
+    }
+
+    // Page (1 is the default, left out)
+    if (options.page) {
+      if (options.page.value > 1) query.page = String(options.page.value)
+      else delete query.page
     }
 
     options.router.replace({ query })
@@ -140,6 +148,12 @@ export function useListRouteSync(options: UseListRouteSyncOptions) {
     const urlSearch = options.route.query.q
     if (typeof urlSearch === 'string' && urlSearch && options.search && options.search.value.trim() !== urlSearch) {
       options.search.value = urlSearch
+    }
+
+    // Page: page=N
+    const urlPage = Number(options.route.query.page)
+    if (options.page && Number.isInteger(urlPage) && urlPage >= 1 && options.page.value !== urlPage) {
+      options.page.value = urlPage
     }
   }
 
