@@ -23,6 +23,7 @@ from taskiq import TaskiqEvents, TaskiqState
 
 import grunt
 from grunt import log
+from grunt.cache import bus
 from grunt.db.write_intent import set_process_default
 from grunt.monitoring import perf
 from grunt.site.manager import site_manager
@@ -89,6 +90,7 @@ set_process_default(True)
 @broker.on_event(TaskiqEvents.WORKER_STARTUP)
 async def _boot_worker(state: TaskiqState) -> None:
     await boot()
+    bus.start()
     try:
         if removed := await prune_dead_consumers():
             log.info("worker.dead_consumers_pruned", count=removed)
@@ -104,6 +106,7 @@ async def _stop_worker(state: TaskiqState) -> None:
         flush.cancel()
         with suppress(asyncio.CancelledError):
             await flush
+    await bus.stop()
     try:
         await unregister_consumer()
     except Exception as e:  # noqa: BLE001

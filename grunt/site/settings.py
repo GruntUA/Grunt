@@ -8,9 +8,11 @@ the whole settings row.
 The cache is invalidated two ways:
 
 * explicitly - the ``SystemSettings`` controller calls :func:`clear_settings_cache`
-  from ``after_save`` (see ``grunt/site/doctypes/SystemSettings/SystemSettings.py``);
-* by TTL - a 60s backstop so that a settings change made in another worker
-  process (production runs several) is picked up without a restart.
+  from ``after_save`` (see ``grunt/site/doctypes/SystemSettings/SystemSettings.py``),
+  which reaches the other worker processes through :mod:`grunt.cache.bus`;
+* by TTL - a 60s backstop for a lost bus message (or no Redis).
+
+The cache is per site: one process serves every site of the bench.
 
 All accessors expect an active grunt context with a session (the callers -
 auth, email, webpush - all run inside one).
@@ -20,12 +22,14 @@ import time
 from typing import Any
 
 import grunt
+from grunt.cache.bus import fanout
+from grunt.site.manager import current_site
 
 _SINGLETON = "SystemSettings"
 _TTL_SECONDS = 60.0
 
-_cache: dict[str, Any] | None = None
-_cache_ts: float = 0.0
+# site -> (loaded at, the settings row)
+_cache: dict[str, tuple[float, dict[str, Any]]] = {}
 
 
 async def get_system_settings(*, fresh: bool = False) -> dict[str, Any]:
@@ -34,17 +38,17 @@ async def get_system_settings(*, fresh: bool = False) -> dict[str, Any]:
     Returns an empty dict if the singleton row does not exist yet (e.g. very
     early in a fresh install, before ``seed_system_settings`` has run).
     """
-    global _cache, _cache_ts
-
-    if not fresh and _cache is not None and (time.monotonic() - _cache_ts) < _TTL_SECONDS:
-        return _cache
+    site = current_site.get()
+    hit = _cache.get(site)
+    if not fresh and hit is not None and (time.monotonic() - hit[0]) < _TTL_SECONDS:
+        return hit[1]
 
     # A singleton has exactly one row; read it positionally rather than by name
     # (the row may be autonamed to a hash on some sites).
     rows = await grunt.db.get_all(_SINGLETON, fields=None, limit=1)
-    _cache = rows[0] if rows else {}
-    _cache_ts = time.monotonic()
-    return _cache
+    row = rows[0] if rows else {}
+    _cache[site] = (time.monotonic(), row)
+    return row
 
 
 async def get_setting(field: str, default: Any = None) -> Any:
@@ -58,8 +62,7 @@ async def get_setting(field: str, default: Any = None) -> Any:
     return default if value is None else value
 
 
+@fanout
 def clear_settings_cache() -> None:
-    """Drop the cached settings row so the next read hits the DB."""
-    global _cache, _cache_ts
-    _cache = None
-    _cache_ts = 0.0
+    """Drop the cached settings rows so the next read hits the DB."""
+    _cache.clear()

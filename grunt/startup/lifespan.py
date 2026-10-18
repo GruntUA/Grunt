@@ -7,7 +7,8 @@ Kept out of :mod:`grunt.main` so the entry point stays a thin assembly of
 2. bring every site up (search index table, DocType *names* only - full
    definitions and schema sync are `grunt migrate`'s job, not boot's)
 3. load external apps installed on at least one site
-4. the task broker, the scheduler and the perf-stats flush loop
+4. the cache-invalidation listener, the task broker, the scheduler (fires
+   jobs only in the leader process) and the perf-stats flush loop
 
 Steps 1–3 are :func:`boot`, which the task worker runs too.
 """
@@ -20,6 +21,7 @@ from fastapi import FastAPI
 import grunt
 from grunt import log
 from grunt.apps import load_external_apps
+from grunt.cache import bus
 from grunt.config import settings
 from grunt.i18n import translation_service
 from grunt.logging_config import configure_logging
@@ -30,6 +32,7 @@ from grunt.site.settings import get_setting
 from grunt.startup import load_validators
 from grunt.tasks.broker import broker
 from grunt.tasks.scheduler import start_scheduler, stop_scheduler
+from grunt.utils.redis import shared
 
 
 def _configure() -> None:
@@ -132,6 +135,7 @@ async def boot(app: FastAPI | None = None) -> None:
 async def lifespan(app: FastAPI):
     # Startup
     await boot(app)
+    bus.start()
     await broker.startup()
     await start_scheduler()
     perf_flush = asyncio.create_task(perf.run_flush_loop())
@@ -144,8 +148,9 @@ async def lifespan(app: FastAPI):
         await perf_flush
     await stop_scheduler()
     await broker.shutdown()
+    await bus.stop()
 
-    await grunt.query_cache.aclose()
+    await shared.aclose()
     for eng in site_manager.engines.values():
         await eng.dispose()
     log.info("grunt.shutdown")

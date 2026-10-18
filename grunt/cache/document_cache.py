@@ -10,22 +10,25 @@ can use it the same way.
 
 Same in-memory-always / Redis-when-configured layering as ``QueryCache``, and
 invalidated through the same choke point (``DocumentAPI._invalidate_list_cache``,
-which already runs on every write to keep ``QueryCache`` fresh). The TTL is a
+which already runs on every write to keep ``QueryCache`` fresh). The other
+processes drop their memory copy via :mod:`grunt.cache.bus`. The TTL is a
 backstop for a write path that bypasses that hook (or a Redis outage), not the
 primary freshness mechanism - invalidation is.
+
+Keys carry the site: one bench serves several sites from one Redis, and
+``User`` names (emails) repeat across them.
 """
 
 import json
 import time
-from collections.abc import AsyncGenerator
-from contextlib import asynccontextmanager
 from typing import Any
 
-from redis.asyncio import Redis
-
-from grunt import log
+from grunt.cache import bus
 from grunt.config import settings
-from grunt.utils.redis import connect
+from grunt.site.manager import current_site
+from grunt.utils.redis import shared
+
+_DROP = "doc_cache.drop"
 
 
 class DocumentCache:
@@ -34,13 +37,13 @@ class DocumentCache:
     def __init__(self, *, ttl_seconds: int | None = None) -> None:
         self._ttl_seconds = int(ttl_seconds or settings.doc_cache_ttl_seconds)
         self._memory: dict[str, tuple[float, dict[str, Any]]] = {}
-        self._redis_failed = False
+
+    def _key_prefix(self, doctype: str | None = None) -> str:
+        site_prefix = f"doccache:{current_site.get()}:"
+        return f"{site_prefix}{doctype}:" if doctype else site_prefix
 
     def _key(self, doctype: str, name: str) -> str:
-        return f"doccache:{doctype}:{name}"
-
-    def _key_prefix(self, doctype: str) -> str:
-        return f"doccache:{doctype}:"
+        return f"{self._key_prefix(doctype)}{name}"
 
     def _get_memory(self, key: str) -> dict[str, Any] | None:
         item = self._memory.get(key)
@@ -55,17 +58,42 @@ class DocumentCache:
     def _set_memory(self, key: str, payload: dict[str, Any]) -> None:
         self._memory[key] = (time.time() + self._ttl_seconds, payload)
 
-    @asynccontextmanager
-    async def _redis(self) -> AsyncGenerator[Redis | None]:
-        if self._redis_failed or not settings.redis_url:
-            yield None
+    def drop_memory(self, doctype: str | None = None, name: str | None = None) -> None:
+        """Forget this process's copies: one document, a doctype, or the site's all."""
+        if doctype and name:
+            self._memory.pop(self._key(doctype, name), None)
             return
+        prefix = self._key_prefix(doctype)
+        for k in [k for k in self._memory if k.startswith(prefix)]:
+            self._memory.pop(k, None)
 
-        r = connect(socket_connect_timeout=1)
-        try:
-            yield r
-        finally:
-            await r.aclose()
+    async def _drop(self, doctype: str | None = None, name: str | None = None) -> None:
+        """Drop here, in Redis and (via the bus) in every other process.
+
+        Redis is purged now and once more after the commit: in between another
+        process may have cached the not-yet-committed old row again.
+        """
+        self.drop_memory(doctype, name)
+        bus.publish(_DROP, doctype=doctype, name=name)
+        pattern = None if doctype and name else f"{self._key_prefix(doctype)}*"
+        key = self._key(doctype, name) if doctype and name else None
+
+        async def purge() -> None:
+            r = shared.get()
+            if r is None:
+                return
+            try:
+                if key is not None:
+                    await r.delete(key)
+                else:
+                    keys = [k async for k in r.scan_iter(match=pattern)]
+                    if keys:
+                        await r.delete(*keys)
+            except Exception as exc:
+                shared.failed("doc_cache.redis_invalidate_failed", exc)
+
+        await purge()
+        bus.after_commit(purge)
 
     async def get(self, doctype: str, name: str) -> dict[str, Any] | None:
         key = self._key(doctype, name)
@@ -73,19 +101,16 @@ class DocumentCache:
         if payload is not None:
             return payload
 
+        r = shared.get()
+        if r is None:
+            return None
         try:
-            async with self._redis() as r:
-                if r is None:
-                    return None
-                raw = await r.get(key)
+            raw = await r.get(key)
         except Exception as exc:
-            self._redis_failed = True
-            log.warning("doc_cache.redis_get_failed", error=str(exc))
+            shared.failed("doc_cache.redis_get_failed", exc)
             return None
         if not raw:
             return None
-        if isinstance(raw, bytes):
-            raw = raw.decode()
         payload = json.loads(raw)
         self._set_memory(key, payload)
         return payload
@@ -98,61 +123,29 @@ class DocumentCache:
         raw = json.dumps(payload, separators=(",", ":"), default=str)
         key = self._key(doctype, name)
         self._set_memory(key, json.loads(raw))
+        r = shared.get()
+        if r is None:
+            return
         try:
-            async with self._redis() as r:
-                if r is None:
-                    return
-                await r.setex(key, self._ttl_seconds, raw)
+            await r.set(key, raw, ex=self._ttl_seconds)
         except Exception as exc:
-            self._redis_failed = True
-            log.warning("doc_cache.redis_set_failed", error=str(exc))
+            shared.failed("doc_cache.redis_set_failed", exc)
 
     async def invalidate(self, doctype: str, name: str) -> None:
-        key = self._key(doctype, name)
-        self._memory.pop(key, None)
-        try:
-            async with self._redis() as r:
-                if r is None:
-                    return
-                await r.delete(key)
-        except Exception as exc:
-            self._redis_failed = True
-            log.warning("doc_cache.redis_invalidate_failed", error=str(exc))
+        await self._drop(doctype, name)
 
     async def invalidate_doctype(self, doctype: str) -> None:
         """Drop every cached document of this doctype - used when a write
         touches an unknown set of names (e.g. a filtered bulk update)."""
-        prefix = self._key_prefix(doctype)
-        stale = [k for k in self._memory if k.startswith(prefix)]
-        for k in stale:
-            self._memory.pop(k, None)
-
-        try:
-            async with self._redis() as r:
-                if r is None:
-                    return
-                keys = await r.keys(f"{prefix}*")
-                if keys:
-                    await r.delete(*keys)
-        except Exception as exc:
-            self._redis_failed = True
-            log.warning(
-                "doc_cache.redis_invalidate_doctype_failed", error=str(exc), doctype=doctype
-            )
+        await self._drop(doctype)
 
     async def invalidate_all(self) -> None:
-        """Drop every cached document of every doctype (test/dev reset)."""
-        self._memory.clear()
-        try:
-            async with self._redis() as r:
-                if r is None:
-                    return
-                keys = await r.keys("doccache:*")
-                if keys:
-                    await r.delete(*keys)
-        except Exception as exc:
-            self._redis_failed = True
-            log.warning("doc_cache.redis_invalidate_all_failed", error=str(exc))
+        """Drop every cached document of the current site (test/dev reset)."""
+        await self._drop()
 
     def clear(self) -> None:
         self._memory.clear()
+
+    def subscribe(self) -> None:
+        """Let the other processes' invalidations reach this cache's memory."""
+        bus.subscribe(_DROP, self.drop_memory)

@@ -16,6 +16,7 @@ from sqlalchemy import select
 
 import grunt
 from grunt import _, log
+from grunt.cache.bus import fanout
 from grunt.local import _session_ctx
 lazy from grunt.errors import not_found
 
@@ -28,6 +29,7 @@ _pairs: frozenset[tuple[str, str]] | None = None
 _loaded_at = 0.0
 
 
+@fanout
 def invalidate() -> None:
     """Drop the cached snapshot; the next :func:`has_rules` call reloads it."""
     global _pairs

@@ -25,6 +25,7 @@ def _dt(*fieldnames: str) -> DocType:
 async def test_reload_meta_recompiles_tables(tmp_path, monkeypatch):
     site = "__pytest__"
     monkeypatch.setattr(site_manager, "sites_dir", tmp_path)
+    monkeypatch.setattr(middleware, "_applied", {})
     (tmp_path / site).mkdir()
 
     before = compile_doctype_to_table(_dt("kept", "dropped"))
@@ -38,4 +39,7 @@ async def test_reload_meta_recompiles_tables(tmp_path, monkeypatch):
     after = compile_doctype_to_table(_dt("kept", "added"))
     assert "dropped" not in after.c
     assert "added" in after.c
-    assert not (tmp_path / site / ".reload_meta").exists()
+    # Kept for the other web processes; this one remembers it already applied it.
+    trigger = tmp_path / site / ".reload_meta"
+    assert trigger.exists()
+    assert middleware._applied[site] == trigger.stat().st_mtime

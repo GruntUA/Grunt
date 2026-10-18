@@ -22,6 +22,7 @@ lazy from simpleeval import simple_eval
 
 import grunt
 from grunt import _, log
+from grunt.cache.bus import fanout
 from grunt.config import settings
 from grunt.tasks.broker import retryable_task
 lazy from grunt.notification.service import notification_service
@@ -39,6 +40,7 @@ _loaded_at = 0.0
 # Policy cache
 
 
+@fanout
 def invalidate(**_kwargs: object) -> None:
     """Doc-event hook for ServiceLevel changes; also the test reset."""
     global _policies

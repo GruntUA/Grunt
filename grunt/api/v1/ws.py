@@ -9,12 +9,24 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 import grunt
 from grunt import log
 from grunt.auth.doctypes.UserSession.user_session import client_ip
+from grunt.cache.bus import SENDER
 lazy from grunt.auth.doctypes.User.user import get_user_by_email
 lazy from grunt.local import _site_ctx
 lazy from grunt.permissions.rbac import permission_checker
 lazy from grunt.site.manager import site_manager
+lazy from grunt.utils.redis import shared
 
 router = APIRouter()
+
+_PRESENCE_KEY = "grunt:presence:"
+# Heartbeat of a web process with presence entries; its entries die with it.
+_ALIVE_KEY = "grunt:ws-alive:"
+_ALIVE_TTL = 30
+
+
+def _text(value: str | bytes) -> str:
+    return value.decode() if isinstance(value, bytes) else value
+
 
 # The browser WebSocket API can't set headers, so the client offers the JWT as
 # the second subprotocol: ``Sec-WebSocket-Protocol: grunt.auth, <jwt>``. Unlike
@@ -33,10 +45,12 @@ class ConnectionManager:
     Channel naming:
       ``grunt:ws:<channel>``  ->  delivered to all connections on that channel
 
-    Presence / field-lock state is kept **in-process** (per worker).
-    For multi-worker deployments the presence_update event is published via
-    Redis so all instances stay in sync, but each instance maintains its own
-    view of who is connected locally.
+    Presence (who has a document open) lives in a Redis hash per channel, one
+    field per connection, so every web worker lists the viewers of all of
+    them; entries of a process whose heartbeat expired (it crashed) are
+    dropped when the list is read. Field locks are per connection here, and
+    their lock/unlock events go through Redis like any other message. Without
+    Redis both are in-process.
     """
 
     def __init__(self) -> None:
@@ -49,6 +63,7 @@ class ConnectionManager:
         # listener task can be garbage-collected mid-flight - realtime then
         # silently stops relaying.
         self._redis_listener_task: asyncio.Task[None] | None = None
+        self._heartbeat_task: asyncio.Task[None] | None = None
 
     def _total_connections(self) -> int:
         return sum(len(v) for v in self._connections.values())
@@ -79,19 +94,14 @@ class ConnectionManager:
 
     async def _redis_publish(self, channel: str, message: str) -> bool:
         """Publish a message to a Redis channel (best-effort); True if published."""
+        r = shared.get()
+        if r is None:
+            return False
         try:
-            from grunt.config import settings
-
-            if not settings.redis_url:
-                return False
-            from grunt.utils.redis import connect
-
-            r = connect(socket_connect_timeout=1)
             await r.publish(f"grunt:ws:{channel}", message)
-            await r.aclose()
             return True
-        except Exception:
-            log.exception("suppressed_error")
+        except Exception as exc:
+            shared.failed("ws.redis_publish_failed", exc)
             return False
 
     async def _deliver(self, channel: str, message: str) -> None:
@@ -190,14 +200,69 @@ class ConnectionManager:
     def _presence_list(self, channel: str) -> list[dict[str, str]]:
         return list(self._presence.get(channel, {}).values())
 
+    async def _presence_all(self, channel: str) -> list[dict[str, str]]:
+        """Viewers of *channel* across every web process (this one's without Redis)."""
+        r = shared.get()
+        if r is None:
+            return self._presence_list(channel)
+        key = _PRESENCE_KEY + channel
+        try:
+            entries = {_text(f): v for f, v in (await r.hgetall(key)).items()}
+            processes = sorted({f.split(":", 1)[0] for f in entries})
+            alive = await r.mget([_ALIVE_KEY + p for p in processes]) if processes else []
+            dead = {p for p, flag in zip(processes, alive, strict=True) if not flag}
+            if stale := [f for f in entries if f.split(":", 1)[0] in dead]:
+                await r.hdel(key, *stale)
+            return [json.loads(v) for f, v in entries.items() if f not in stale]
+        except Exception as exc:
+            shared.failed("ws.presence_read_failed", exc)
+            return self._presence_list(channel)
+
+    async def _presence_store(
+        self, channel: str, ws: WebSocket, user_info: dict[str, str] | None
+    ) -> None:
+        """Add (or with ``None`` remove) this connection's entry in Redis."""
+        r = shared.get()
+        if r is None:
+            return
+        key, field = _PRESENCE_KEY + channel, f"{SENDER}:{id(ws)}"
+        try:
+            if user_info is None:
+                await r.hdel(key, field)
+                return
+            await r.set(_ALIVE_KEY + SENDER, 1, ex=_ALIVE_TTL)
+            await r.hset(key, field, json.dumps(user_info))
+            # Bounds a forgotten channel; the heartbeat filter handles a crash.
+            await r.expire(key, 24 * 3600)
+        except Exception as exc:
+            shared.failed("ws.presence_write_failed", exc)
+        self._ensure_heartbeat()
+
+    def _ensure_heartbeat(self) -> None:
+        task = self._heartbeat_task
+        if task is None or task.done():
+            self._heartbeat_task = asyncio.create_task(self._heartbeat_loop())
+
+    async def _heartbeat_loop(self) -> None:
+        while any(self._presence.values()):
+            r = shared.get()
+            if r is not None:
+                try:
+                    await r.set(_ALIVE_KEY + SENDER, 1, ex=_ALIVE_TTL)
+                except Exception as exc:
+                    shared.failed("ws.heartbeat_failed", exc)
+            await asyncio.sleep(_ALIVE_TTL / 3)
+
+    async def _presence_broadcast(self, channel: str) -> None:
+        users = await self._presence_all(channel)
+        await self._deliver(
+            channel, json.dumps({"event": "presence_update", "data": {"users": users}})
+        )
+
     async def presence_join(self, channel: str, ws: WebSocket, user_info: dict[str, str]) -> None:
         self._presence.setdefault(channel, {})[id(ws)] = user_info
-        await self._send(
-            channel,
-            json.dumps(
-                {"event": "presence_update", "data": {"users": self._presence_list(channel)}}
-            ),
-        )
+        await self._presence_store(channel, ws, user_info)
+        await self._presence_broadcast(channel)
 
     async def presence_leave(self, channel: str, ws: WebSocket) -> None:
         presence = self._presence.get(channel, {})
@@ -205,23 +270,19 @@ class ConnectionManager:
         user_info = presence.pop(ws_id, None)
         if user_info is None:
             return
+        await self._presence_store(channel, ws, None)
 
         # Release all field locks held by this connection
         locks = self._field_locks.get(channel, {})
         released = [f for f, u in list(locks.items()) if u.get("email") == user_info.get("email")]
         for field in released:
             locks.pop(field, None)
-            await self._send(
+            await self._deliver(
                 channel,
                 json.dumps({"event": "field_unlocked", "data": {"field": field}}),
             )
 
-        await self._send(
-            channel,
-            json.dumps(
-                {"event": "presence_update", "data": {"users": self._presence_list(channel)}}
-            ),
-        )
+        await self._presence_broadcast(channel)
 
     async def field_focus(self, channel: str, ws: WebSocket, fieldname: str) -> None:
         presence = self._presence.get(channel, {})
@@ -229,7 +290,7 @@ class ConnectionManager:
         if user_info is None:
             return
         self._field_locks.setdefault(channel, {})[fieldname] = user_info
-        await self._send(
+        await self._deliver(
             channel,
             json.dumps({"event": "field_locked", "data": {"field": fieldname, "user": user_info}}),
         )
@@ -238,7 +299,7 @@ class ConnectionManager:
         locks = self._field_locks.get(channel, {})
         if fieldname in locks:
             locks.pop(fieldname)
-            await self._send(
+            await self._deliver(
                 channel,
                 json.dumps({"event": "field_unlocked", "data": {"field": fieldname}}),
             )

@@ -5,10 +5,12 @@ accepted-language set in sync with the ``geo.Language`` table.
 """
 
 import grunt
+from grunt.cache.bus import fanout
 from grunt.i18n import translation_service
 from grunt.log import log
 
 
+@fanout
 async def refresh_supported_languages(**_kwargs: object) -> None:
     """Re-read active ``Language`` codes into the i18n negotiator.
 

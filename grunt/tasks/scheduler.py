@@ -1,18 +1,61 @@
+"""Cron jobs of the framework and the apps (APScheduler).
+
+The scheduler lives in the web server. With several web processes exactly one
+of them - the leader - fires the jobs: it holds the Redis key
+``grunt:scheduler:leader`` and renews it every few seconds; the others keep the
+same jobs registered but paused and take over within ``LEADER_TTL`` seconds
+once the leader stops renewing (crash, restart). Without Redis there is a single
+process and it simply runs the scheduler.
+"""
+
+import asyncio
 import importlib
+import os
+import socket
 from collections.abc import Awaitable, Callable
+from contextlib import suppress
 from typing import Any
+from uuid import uuid4
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.schedulers.base import STATE_STOPPED
 from apscheduler.triggers.cron import CronTrigger
 
 from grunt import log
+from grunt.config import settings
 from grunt.db.session import async_session_factory
 from grunt.email.tasks import send_notification_digest
 from grunt.scripting.server_script import ServerScriptRunner
 from grunt.tasks.job_log import LOG_LABEL, close_job_log, fail_stale_job_logs, open_job_log
+from grunt.utils.redis import connect
 
 # Global scheduler instance
 scheduler = AsyncIOScheduler()
+
+LEADER_KEY = "grunt:scheduler:leader"
+LEADER_TTL = 30
+_RENEW_EVERY = 10
+
+# Who holds the leader key: shown by «Стан системи»; the suffix keeps a reused
+# pid (containers) from looking like the previous holder.
+IDENTITY = f"{socket.gethostname()}:{os.getpid()}:{uuid4().hex[:6]}"
+
+# Extend / delete the key only while it is still ours.
+_RENEW = """
+if redis.call('get', KEYS[1]) == ARGV[1] then
+    return redis.call('expire', KEYS[1], ARGV[2])
+end
+return 0
+"""
+_RELEASE = """
+if redis.call('get', KEYS[1]) == ARGV[1] then
+    return redis.call('del', KEYS[1])
+end
+return 0
+"""
+
+is_leader = False
+_election: asyncio.Task[None] | None = None
 
 # Handlers from hooks' scheduler_events that could not be registered
 # (path -> error) - shown by the «Стан системи» report instead of only a log line.
@@ -94,12 +137,74 @@ def _add_scheduled_job(path: str, cron_expr: str) -> None:
 
 
 async def start_scheduler() -> None:
-    if not scheduler.running:
-        scheduler.start()
-        log.info("scheduler.started")
-    await fail_stale_job_logs()
+    """Register the jobs; run them here if this process is (or becomes) the leader."""
+    global _election
     _register_framework_jobs()
     await _register_server_script_jobs()
+    if not settings.redis_url:
+        await _lead()
+        return
+    if _election is None or _election.done():
+        _election = asyncio.create_task(_elect())
+
+
+async def _lead() -> None:
+    global is_leader
+    is_leader = True
+    if scheduler.state == STATE_STOPPED:
+        scheduler.start()
+    else:
+        scheduler.resume()
+    log.info("scheduler.started", identity=IDENTITY)
+    await fail_stale_job_logs()
+
+
+def _step_down() -> None:
+    global is_leader
+    is_leader = False
+    if scheduler.running:
+        scheduler.pause()
+    log.warning("scheduler.leadership_lost", identity=IDENTITY)
+
+
+async def _elect() -> None:
+    """Hold (or wait for) the leader key until cancelled.
+
+    While Redis is unreachable a leader keeps running - no other process can
+    take the key either. When Redis is back and the key expired meanwhile,
+    whoever sets it first leads and a former leader whose renewal fails
+    steps down, so jobs overlap for at most ``_RENEW_EVERY`` seconds.
+    """
+    client = connect(socket_connect_timeout=2, socket_timeout=5)
+    try:
+        while True:
+            try:
+                if is_leader:
+                    if not await client.eval(_RENEW, 1, LEADER_KEY, IDENTITY, LEADER_TTL):  # pyright: ignore[reportGeneralTypeIssues]
+                        _step_down()
+                elif await client.set(LEADER_KEY, IDENTITY, nx=True, ex=LEADER_TTL):
+                    await _lead()
+            except Exception as exc:  # noqa: BLE001 - retried on the next round
+                log.warning("scheduler.election_failed", error=str(exc))
+            await asyncio.sleep(_RENEW_EVERY)
+    finally:
+        if is_leader:
+            with suppress(Exception):
+                await client.eval(_RELEASE, 1, LEADER_KEY, IDENTITY)  # pyright: ignore[reportGeneralTypeIssues]
+        with suppress(Exception):
+            await client.aclose()
+
+
+async def current_leader() -> str | None:
+    """Identity of the process running the jobs (None: nobody)."""
+    if not settings.redis_url:
+        return IDENTITY if is_leader else None
+    client = connect(socket_connect_timeout=1, socket_timeout=2)
+    try:
+        value = await client.get(LEADER_KEY)
+    finally:
+        await client.aclose()
+    return value.decode() if isinstance(value, bytes) else value
 
 
 def _register_framework_jobs() -> None:
@@ -219,6 +324,14 @@ async def _run_logged(
 
 
 async def stop_scheduler() -> None:
+    global _election, is_leader
+    if _election is not None:
+        # Cancelling releases the key, so another process takes over at once.
+        _election.cancel()
+        with suppress(asyncio.CancelledError):
+            await _election
+        _election = None
+    is_leader = False
     if scheduler.running:
         scheduler.shutdown()
         log.info("scheduler.stopped")

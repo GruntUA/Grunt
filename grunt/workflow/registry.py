@@ -12,6 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 import grunt
 from grunt import _
+from grunt.cache.bus import fanout
 from grunt.document.relations import _load_child_tables
 from grunt.document.serde import serialize_datetimes
 from grunt.hooks import on_doc
@@ -43,6 +44,7 @@ class ResolvedWorkflow:
 _CACHE: dict[str, ResolvedWorkflow | None] = {}
 
 
+@fanout
 def invalidate(document_type: str) -> None:
     """Drop the cached resolution for *document_type*, if any."""
     _CACHE.pop(document_type, None)

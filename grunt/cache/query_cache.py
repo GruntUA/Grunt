@@ -1,21 +1,22 @@
 """Query-level cache for read-heavy list endpoints.
 
-Uses in-memory storage always and Redis (optional) when configured.
+Uses in-memory storage always and Redis (optional) when configured. Keys carry
+the site; an invalidation also drops the memory layer of every other process
+(:mod:`grunt.cache.bus`).
 """
 
 import hashlib
 import json
 import time
-from collections.abc import AsyncGenerator
-from contextlib import asynccontextmanager
 from typing import Any
 
-from redis.asyncio import Redis
-
-from grunt import log
+from grunt.cache import bus
 from grunt.config import settings
 from grunt.document.base import DocumentList
-lazy from grunt.utils.redis import connect
+from grunt.site.manager import current_site
+lazy from grunt.utils.redis import shared
+
+_DROP = "query_cache.drop"
 
 
 class QueryCache:
@@ -26,14 +27,12 @@ class QueryCache:
         self._memory: dict[str, tuple[float, dict[str, Any]]] = {}
         self._hits = 0
         self._misses = 0
-        self._redis_failed = False
-        self._redis_client: Redis | None = None
 
     def _key_prefix(self, doctype: str) -> str:
-        return f"qcache:list:{doctype}:"
+        return f"qcache:{current_site.get()}:list:{doctype}:"
 
     def _count_key_prefix(self, doctype: str) -> str:
-        return f"qcache:count:{doctype}:"
+        return f"qcache:{current_site.get()}:count:{doctype}:"
 
     def build_key(
         self,
@@ -90,55 +89,25 @@ class QueryCache:
     def _set_memory(self, key: str, payload: dict[str, Any]) -> None:
         self._memory[key] = (time.time() + self._ttl_seconds, payload)
 
-    @asynccontextmanager
-    async def _redis(self) -> AsyncGenerator[Redis | None]:
-        """Yield the shared Redis client, or None when Redis isn't usable.
-
-        The client wraps its own connection pool and is safe to reuse across
-        concurrent calls, so it's created once and kept for the cache's
-        lifetime instead of opening/closing a fresh connection on every single
-        get/set - ``_get_redis``/``_set_redis``/``invalidate_doctype`` all
-        share this one "skip if disabled or previously failed, else hand back
-        the live client" path.
-        """
-        if self._redis_failed or not settings.redis_url:
-            yield None
-            return
-        if self._redis_client is None:
-            self._redis_client = connect(socket_connect_timeout=1)
-        yield self._redis_client
-
-    async def aclose(self) -> None:
-        """Close the shared Redis client, if one was ever opened."""
-        if self._redis_client is not None:
-            await self._redis_client.aclose()
-            self._redis_client = None
-
     async def _get_redis(self, key: str) -> dict[str, Any] | None:
+        r = shared.get()
+        if r is None:
+            return None
         try:
-            async with self._redis() as r:
-                if r is None:
-                    return None
-                raw = await r.get(key)
+            raw = await r.get(key)
         except Exception as exc:
-            self._redis_failed = True
-            log.warning("query_cache.redis_get_failed", error=str(exc))
+            shared.failed("query_cache.redis_get_failed", exc)
             return None
-        if not raw:
-            return None
-        if isinstance(raw, bytes):
-            raw = raw.decode()
-        return json.loads(raw)
+        return json.loads(raw) if raw else None
 
     async def _set_redis(self, key: str, payload: dict[str, Any]) -> None:
+        r = shared.get()
+        if r is None:
+            return
         try:
-            async with self._redis() as r:
-                if r is None:
-                    return
-                await r.setex(key, self._ttl_seconds, json.dumps(payload, separators=(",", ":")))
+            await r.set(key, json.dumps(payload, separators=(",", ":")), ex=self._ttl_seconds)
         except Exception as exc:
-            self._redis_failed = True
-            log.warning("query_cache.redis_set_failed", error=str(exc))
+            shared.failed("query_cache.redis_set_failed", exc)
 
     async def get_list(self, key: str) -> DocumentList | None:
         payload = self._get_memory(key)
@@ -184,6 +153,12 @@ class QueryCache:
         self._set_memory(key, payload)
         await self._set_redis(key, payload)
 
+    def drop_memory(self, doctype: str) -> None:
+        """Forget this process's cached pages and counts of ``doctype``."""
+        prefixes = (self._key_prefix(doctype), self._count_key_prefix(doctype))
+        for k in [k for k in self._memory if k.startswith(prefixes)]:
+            self._memory.pop(k, None)
+
     async def invalidate_doctype(self, doctype: str) -> None:
         """Drop every cached list page and count for ``doctype``.
 
@@ -191,23 +166,30 @@ class QueryCache:
         the same event (a doc of this type was created/updated/deleted) - a
         caller never needs to invalidate one without the other.
         """
+        self.drop_memory(doctype)
+        bus.publish(_DROP, doctype=doctype)
         prefixes = (self._key_prefix(doctype), self._count_key_prefix(doctype))
-        stale = [k for k in self._memory if k.startswith(prefixes)]
-        for k in stale:
-            self._memory.pop(k, None)
 
-        try:
-            async with self._redis() as r:
-                if r is None:
-                    return
-                keys: list[bytes | str] = []
+        # Now and once more after the commit - see DocumentCache._drop.
+        async def purge() -> None:
+            r = shared.get()
+            if r is None:
+                return
+            try:
+                keys = []
                 for prefix in prefixes:
-                    keys.extend(await r.keys(f"{prefix}*"))
+                    keys.extend([k async for k in r.scan_iter(match=f"{prefix}*")])
                 if keys:
                     await r.delete(*keys)
-        except Exception as exc:
-            self._redis_failed = True
-            log.warning("query_cache.redis_invalidate_failed", error=str(exc), doctype=doctype)
+            except Exception as exc:
+                shared.failed("query_cache.redis_invalidate_failed", exc)
+
+        await purge()
+        bus.after_commit(purge)
+
+    def subscribe(self) -> None:
+        """Let the other processes' invalidations reach this cache's memory."""
+        bus.subscribe(_DROP, self.drop_memory)
 
     def clear(self) -> None:
         self._memory.clear()

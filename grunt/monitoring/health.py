@@ -32,8 +32,8 @@ from grunt.i18n import N_, _
 from grunt.metadata.registry import doctype_registry
 from grunt.site.manager import current_site, site_manager
 from grunt.site.settings import get_setting
+from grunt.tasks import scheduler as cron
 from grunt.tasks.redis_introspect import DEAD_CONSUMER_IDLE_MS, redis_conn, s, stream_broker
-from grunt.tasks.scheduler import failed_jobs, scheduler
 from grunt.utils.redis import connect
 from grunt.version import app_version, compatibility_error
 lazy from grunt.config import DEFAULT_SECRET_KEY, settings
@@ -213,19 +213,28 @@ async def check_background_jobs() -> list[Row]:
 
 async def check_scheduler() -> list[Row]:
     cat = _("Scheduler")
-    rows = [
-        row(
+    if cron.is_leader:
+        state = row(
             cat,
             _("Scheduler"),
-            OK if scheduler.running else ERROR,
-            _("running, %(count)s jobs") % {"count": len(scheduler.get_jobs())}
-            if scheduler.running
-            else _("stopped"),
-            ""
-            if scheduler.running
-            else _("Scheduled jobs (mailings, cleanup, digests) are not running."),
+            OK,
+            _("running in this process, %(count)s jobs")
+            % {"count": len(cron.scheduler.get_jobs())},
         )
-    ]
+    elif leader := await cron.current_leader():
+        state = row(
+            cat, _("Scheduler"), OK, _("running in process %(process)s") % {"process": leader}
+        )
+    else:
+        state = row(
+            cat,
+            _("Scheduler"),
+            ERROR,
+            _("stopped"),
+            _("Scheduled jobs (mailings, cleanup, digests) are not running."),
+        )
+    rows = [state]
+    failed_jobs = cron.failed_jobs
     rows.append(
         row(
             cat,

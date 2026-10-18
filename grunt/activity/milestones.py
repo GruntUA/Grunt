@@ -17,6 +17,7 @@ from typing import Any
 
 import grunt
 from grunt import log
+from grunt.cache.bus import fanout
 
 TRACKER = "MilestoneTracker"
 MILESTONE = "Milestone"
@@ -27,6 +28,7 @@ _trackers: dict[str, list[str]] | None = None
 _loaded_at = 0.0
 
 
+@fanout
 def invalidate(**_kwargs: object) -> None:
     """Doc-event hook for MilestoneTracker changes; also the test reset."""
     global _trackers

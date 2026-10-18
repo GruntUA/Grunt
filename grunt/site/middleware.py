@@ -1,3 +1,5 @@
+import time
+
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 
@@ -8,10 +10,20 @@ from grunt.metadata.registry import get_registry
 from grunt.scripting.file_scripts import FILE_CLIENT_SCRIPT_REGISTRY, _client_script_scanned
 from grunt.site.manager import current_site, site_manager
 
+_STARTED_AT = time.time()
+
+# site -> mtime of the `.reload_meta` this process has already applied
+_applied: dict[str, float] = {}
+
 
 async def _apply_hot_reload_if_triggered(site: str) -> None:
-    """Refresh *this site's* in-memory DocType cache if `.reload_meta` is
-    present (written by `grunt migrate` / `grunt doctype sync`).
+    """Refresh *this site's* in-memory DocType cache if `.reload_meta` was
+    touched (by `grunt migrate` / `grunt doctype sync`) since this process
+    last looked.
+
+    The file is never deleted: every web process (and there are several) has
+    to see it, so each one remembers the mtime it last applied. A process
+    started after the touch already loaded the new definitions.
 
     Clearing the DocType cache makes the next lazy-load re-read the DocType's
     *stored* JSON definition (DocType table), which is the single source of
@@ -24,18 +36,19 @@ async def _apply_hot_reload_if_triggered(site: str) -> None:
     sites, and migrating site A must never evict site B's warm cache too.
     """
     reload_file = site_manager.sites_dir / site / ".reload_meta"
-    if not reload_file.exists():
+    try:
+        touched = reload_file.stat().st_mtime
+    except OSError:
         return
+    if touched <= _applied.get(site, _STARTED_AT):
+        return
+    _applied[site] = touched
 
     get_registry(site).clear_cache()
     clear_table_cache(site)  # Tables compiled from the old definitions
     FILE_CLIENT_SCRIPT_REGISTRY.clear()
     _client_script_scanned.clear()
-
-    try:
-        reload_file.unlink()
-    except Exception:
-        log.exception("suppressed_error")
+    log.info("site.meta_reloaded", site=site)
 
 
 class SiteContextMiddleware(BaseHTTPMiddleware):

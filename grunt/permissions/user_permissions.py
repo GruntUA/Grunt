@@ -31,6 +31,7 @@ from sqlalchemy.sql import ColumnElement
 
 import grunt
 from grunt import _
+from grunt.cache.bus import fanout
 from grunt.errors import not_found
 from grunt.site.settings import get_setting
 lazy from grunt.auth.doctypes.User.user import User
@@ -41,6 +42,7 @@ lazy from grunt.metadata.doctype import DocType
 _UP_CACHE: dict[str, dict[str, dict[str, set[str]]]] = {}
 
 
+@fanout
 def invalidate_user_permission_cache(user_id: str | None = None) -> None:
     """Drop cached rows for one user (or all). Called from the UserPermission
     controller's after_save / after_delete."""

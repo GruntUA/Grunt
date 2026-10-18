@@ -8,7 +8,9 @@ Tiers (configurable via settings):
   public form submissions (IP) - settings.rate_limit_forms  (default 10 req/min)
 
 Algorithm: fixed-window per 60-second bucket.
-Storage:   in-memory dict (no Redis dependency; use Redis for multi-process).
+Storage:   Redis when configured (INCR per key and window - the limit holds
+           across every web worker); otherwise, or while Redis is down, an
+           in-process dict.
 
 JWT is decoded lightly - only to extract email + roles claims.
 The signature IS verified (same secret_key) so the tier cannot be spoofed.
@@ -31,6 +33,10 @@ from grunt import _, log
 from grunt.auth.doctypes.UserSession.user_session import client_ip
 from grunt.config import settings
 from grunt.errors import error_body
+from grunt.utils.redis import shared
+
+# Memory fallback: sweep expired windows once this many keys pile up.
+_SWEEP_AT = 10_000
 
 # Paths that are always exempt from rate limiting (public assets, health checks)
 _EXEMPT_PREFIXES = ("/assets/", "/api/docs", "/api/redoc", "/openapi.json", "/health")
@@ -145,7 +151,25 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         Returns:
             (allowed, remaining, reset_in_seconds)
         """
+        r = shared.get()
+        if r is not None:
+            now = time.time()
+            window = int(now // self._window)
+            redis_key = f"rl:{key}:{window}"
+            try:
+                async with r.pipeline(transaction=True) as pipe:
+                    pipe.incr(redis_key)
+                    pipe.expire(redis_key, self._window)
+                    count, _ = await pipe.execute()
+            except Exception as exc:
+                shared.failed("rate_limit.redis_failed", exc)
+            else:
+                reset_in = max(0, int((window + 1) * self._window - now))
+                return count <= limit, max(0, limit - count), reset_in
+
         now = time.monotonic()
+        if len(self._counters) > _SWEEP_AT:
+            await self._cleanup()
         async with self._lock:
             win = self._counters[key]
             if now >= win.reset_at:

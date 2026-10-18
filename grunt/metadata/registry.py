@@ -20,6 +20,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 from grunt import _, log
+from grunt.cache import bus
 from grunt.local import _session_ctx
 from grunt.metadata import store
 from grunt.metadata.compiler import invalidate_table_cache, sync_table
@@ -173,6 +174,20 @@ class DocTypeRegistry:
         self._known_names.clear()
         self._lower_index.clear()
         self._known_lower.clear()
+
+    def forget(self, name: str, *, deleted: bool = False) -> None:
+        """Drop the cached definition of *name* so the next :meth:`get`
+        re-reads it from the DB - another process changed (or deleted) it."""
+        self._doctypes.pop(name, None)
+        self._index_remove(name)
+        if deleted:
+            self._known_names.discard(name)
+            self._known_index_remove(name)
+        else:
+            self._known_names.add(name)
+            self._known_index_add(name)
+        invalidate_table_cache(name)
+        invalidate_permission_cache(name)
 
     # Read
 
@@ -551,6 +566,7 @@ class DocTypeRegistry:
         self._index_add(doctype.name)
         self._known_names.discard(doctype.name)
         self._known_index_remove(doctype.name)
+        bus.publish(_CHANGED, name=doctype.name)
         log.info("registry.registered", name=doctype.name)
 
     async def update(
@@ -580,6 +596,7 @@ class DocTypeRegistry:
         await sync_table(doctype, async_engine, session=session)
         self._doctypes[doctype.name] = doctype
         self._index_add(doctype.name)
+        bus.publish(_CHANGED, name=doctype.name)
         log.info("registry.updated", name=doctype.name)
 
     async def delete(self, name: str, session: AsyncSession) -> None:
@@ -597,6 +614,7 @@ class DocTypeRegistry:
         self._known_index_remove(name)
         invalidate_table_cache(name)
         invalidate_permission_cache(name)
+        bus.publish(_CHANGED, name=name, deleted=True)
         log.info("registry.deleted", name=name)
 
     # Validation helpers
@@ -666,6 +684,15 @@ def _resolve_site_key() -> str:
         return site_manager.get_active_site()
     except Exception:
         return _DEFAULT_KEY
+
+
+def _forget_changed(name: str, deleted: bool = False) -> None:
+    get_registry().forget(name, deleted=deleted)
+
+
+# A DocType created, edited or deleted in another process (grunt.cache.bus).
+_CHANGED = "registry.doctype_changed"
+bus.subscribe(_CHANGED, _forget_changed)
 
 
 def get_registry(site: str | None = None) -> DocTypeRegistry:

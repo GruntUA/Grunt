@@ -61,6 +61,8 @@ class GruntApp(ContextAPI, RealtimeAPI, PermissionAPI, DocumentAPI, UtilityAPI):
         self.db = GruntDB()
         self.query_cache = QueryCache()
         self.doc_cache = DocumentCache()
+        self.query_cache.subscribe()
+        self.doc_cache.subscribe()
 
 
 # Module-level singleton
