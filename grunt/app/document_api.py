@@ -552,7 +552,7 @@ class DocumentAPI:
         user = require_user()
 
         update_values = dict(values)
-        update_values["modified_at"] = datetime.now(UTC).isoformat()
+        update_values["modified_at"] = datetime.now(UTC)
         update_values["modified_by"] = user.email
 
         row_count = await self.db.bulk_update(doctype, filters, update_values)
