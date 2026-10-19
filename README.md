@@ -18,7 +18,7 @@ source ~/.bashrc
 ### 2. Розгортання проєкту з 0
 Склонуйте репозиторій та запустіть підготовку прямо з кореня:
 ```bash
-git clone https://github.com/rareMaxim/grunt && cd grunt
+git clone https://github.com/GruntUA/Grunt.git grunt && cd grunt
 
 # Встановлення рантаймів, пакетів та ініціалізація БД
 mise run setup
