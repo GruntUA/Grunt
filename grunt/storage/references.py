@@ -16,6 +16,12 @@ it publishes the file - every referenced file the saving user can read becomes
 ``is_public``, so site visitors can download it by its plain URL (a file from
 someone's private folder included; it stays out of other people's lists).
 With ``is_published_field`` set, only a published document does that.
+
+When an edit drops a file from those fields (a replaced cover, an image cut
+from the text), the file stops being the document's: it is detached and stays
+in the library, where it can be deleted (``File.before_delete`` refuses files
+attached to an existing document). Version history only remembers the link.
+Attachments the document never referenced from a field are left alone.
 """
 
 import re
@@ -81,6 +87,31 @@ async def claim_referenced_files(**kwargs: Any) -> None:
     )
     if claimed:
         log.debug("storage.files_claimed", doctype=doctype, doc_id=doc["name"], count=claimed)
+
+
+async def release_dropped_files(
+    doctype: str, before: dict[str, Any], after: dict[str, Any]
+) -> None:
+    """Detach the files *before* referenced and *after* no longer does.
+
+    Called after an update; only files attached to this very document move.
+    """
+    if doctype == "File" or not before.get("name"):
+        return
+    dropped = await referenced_file_ids(doctype, before) - await referenced_file_ids(doctype, after)
+    if not dropped:
+        return
+    released = await grunt.db.bulk_update(
+        "File",
+        {
+            "name__in": sorted(dropped),
+            "attached_to_doctype": doctype,
+            "attached_to_id": str(before["name"]),
+        },
+        {"attached_to_doctype": None, "attached_to_id": None},
+    )
+    if released:
+        log.debug("storage.files_released", doctype=doctype, doc_id=before["name"], count=released)
 
 
 async def _publish(ids: set[str], user: Any) -> None:

@@ -98,3 +98,50 @@ async def test_save_claims_referenced_pending_uploads(ctx, client, auth_headers)
     )
     assert resp.status_code == 200, resp.text
     assert await _attached_to(client, auth_headers, stray_id) == ("FileRefArticle", page)
+
+
+@pytest.mark.asyncio
+async def test_replaced_file_is_released_and_deletable(ctx, client, auth_headers):
+    from grunt.api.v1.meta import save_doctype
+
+    await save_doctype(doctype_data={**ARTICLE, "name": "FileRefCover", "__is_new": True})
+    await ctx.db._session().commit()
+    old_url, old_id = await _upload(client, auth_headers, "old.txt", "FileRefCover")
+    resp = await client.post(
+        "/api/v1/docs/FileRefCover",
+        json={"title": "Cover", "cover": old_url},
+        headers=auth_headers,
+    )
+    assert resp.status_code in (200, 201), resp.text
+    page = resp.json()["data"]["name"]
+    assert await _attached_to(client, auth_headers, old_id) == ("FileRefCover", page)
+
+    # An attachment added from the sidebar - never referenced from a field.
+    up = await client.post(
+        f"{M}.upload",
+        files={"file": ("side.txt", b"side", "text/plain")},
+        data={"attached_to_doctype": "FileRefCover", "attached_to_id": page},
+        headers=auth_headers,
+    )
+    assert up.status_code == 200, up.text
+    side_id = parse_qs(urlparse(up.json()["data"]["url"]).query)["file_id"][0]
+
+    # Still used → can't be deleted.
+    resp = await client.delete(f"/api/v1/docs/File/{old_id}", headers=auth_headers)
+    assert resp.status_code >= 400, resp.text
+
+    new_url, new_id = await _upload(client, auth_headers, "new.txt", "FileRefCover")
+    resp = await client.put(
+        f"/api/v1/docs/FileRefCover/{page}",
+        json={"cover": new_url},
+        headers=auth_headers,
+    )
+    assert resp.status_code == 200, resp.text
+
+    assert await _attached_to(client, auth_headers, new_id) == ("FileRefCover", page)
+    assert (await _attached_to(client, auth_headers, old_id)) in ((None, None), ("", ""))
+    assert await _attached_to(client, auth_headers, side_id) == ("FileRefCover", page)
+
+    # The replaced cover stays in the history only - it can be deleted now.
+    resp = await client.delete(f"/api/v1/docs/File/{old_id}", headers=auth_headers)
+    assert resp.status_code in (200, 202, 204), resp.text

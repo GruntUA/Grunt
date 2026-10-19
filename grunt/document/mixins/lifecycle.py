@@ -37,6 +37,7 @@ from grunt.permissions.access import RoleAccess
 from grunt.permissions.rbac import permission_checker
 from grunt.permissions.reference import reference_readable
 from grunt.permissions.user_permissions import doc_violation
+from grunt.storage.references import release_dropped_files
 from grunt.storage.signing import strip_file_signatures
 from grunt.webhook.service import webhook_service
 from grunt.workflow.engine import _active, workflow_engine
@@ -492,6 +493,7 @@ class DocumentLifecycleMixin:
 
             result = await self._output(dt, reload_children=True)
             await self._record_update(dt, existing, result)
+            await release_dropped_files(self.doctype, existing, result)
 
             self.data = result
             await self._run_lifecycle_hooks("after_save")
