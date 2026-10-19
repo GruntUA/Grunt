@@ -20,8 +20,8 @@ async def test_apply_workspace_fixture_creates_new_workspace(ctx):
             "label": "Test App",
             "icon": "🧪",
             "sidebar_items": [
-                {"label": "Item A", "link_to": "ItemA", "sequence": 1},
-                {"label": "Item B", "link_to": "ItemB", "sequence": 2},
+                {"label": "Item A", "link_to": "ItemA"},
+                {"label": "Item B", "link_to": "ItemB"},
             ],
         }
     ]
@@ -44,6 +44,33 @@ async def test_apply_workspace_fixture_creates_new_workspace(ctx):
         order="asc",
     )
     assert [i["label"] for i in items] == ["Item A", "Item B"]
+
+
+@pytest.mark.asyncio
+async def test_sidebar_order_is_list_order_not_sequence(ctx):
+    # Пункти меню впорядковуються позицією у фікстурі; застарілий
+    # "sequence" (як у старих фікстурах) нічого не перевизначає.
+    records = [
+        {
+            "name": "order_app",
+            "label": "Order",
+            "items": [
+                {"label": "Перший", "link_to": "A", "sequence": 30},
+                {"label": "Другий", "link_to": "B", "sequence": 10},
+                {"label": "Третій", "link_to": "C"},
+            ],
+        }
+    ]
+    await _apply_workspace_fixture(records, "order_app", {})
+
+    items = await ctx.get_list(
+        "WorkspaceSidebarItem",
+        filters={"parent_name": "order_app"},
+        fields=["label"],
+        order_by="idx",
+        order="asc",
+    )
+    assert [i["label"] for i in items] == ["Перший", "Другий", "Третій"]
 
 
 @pytest.mark.asyncio

@@ -89,10 +89,14 @@ def _section_rows(data: dict[str, Any]) -> list[dict[str, Any]] | None:
 
 
 def _sidebar_rows_from_items(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    """Normalise fixture ``sidebar_items``/``items`` entries into WorkspaceSidebarItem rows."""
+    """Normalise fixture ``sidebar_items``/``items`` entries into WorkspaceSidebarItem rows.
+
+    Order is the order of the list in the fixture (then of the table rows in the
+    UI) - items carry no ``sequence`` of their own.
+    """
     return [
         {
-            "idx": item.get("sequence", i),
+            "idx": i,
             "section": item.get("section", ""),
             "type": item.get("type", "DocType"),
             "label": item.get("label", ""),

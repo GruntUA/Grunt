@@ -51,8 +51,7 @@
       "label": "DocTypes",
       "icon": "package",
       "link_to": "DocType",
-      "show_count": true,
-      "sequence": 1
+      "show_count": true
     },
     {
       "section": "Користувачі та безпека",
@@ -60,8 +59,7 @@
       "label": "Користувачі",
       "icon": "users",
       "link_to": "User",
-      "show_count": true,
-      "sequence": 10
+      "show_count": true
     },
     {
       "section": "Користувачі та безпека",
@@ -69,8 +67,7 @@
       "label": "Ролі",
       "icon": "shield",
       "link_to": "Role",
-      "show_count": true,
-      "sequence": 11
+      "show_count": true
     },
     {
       "section": "Користувачі та безпека",
@@ -78,8 +75,7 @@
       "label": "Дозволи користувачів",
       "icon": "ban",
       "link_to": "UserPermission",
-      "show_count": true,
-      "sequence": 12
+      "show_count": true
     },
     {
       "section": "Користувачі та безпека",
@@ -87,8 +83,7 @@
       "label": "API ключі",
       "icon": "key",
       "link_to": "ApiKey",
-      "show_count": true,
-      "sequence": 13
+      "show_count": true
     },
     {
       "section": "Пошта та сповіщення",
@@ -96,8 +91,7 @@
       "label": "Email акаунти",
       "icon": "mail",
       "link_to": "EmailAccount",
-      "show_count": true,
-      "sequence": 20
+      "show_count": true
     },
     {
       "section": "Пошта та сповіщення",
@@ -105,8 +99,7 @@
       "label": "Черга листів",
       "icon": "send",
       "link_to": "EmailQueue",
-      "show_count": true,
-      "sequence": 21
+      "show_count": true
     },
     {
       "section": "Пошта та сповіщення",
@@ -114,8 +107,7 @@
       "label": "Правила нотифікацій",
       "icon": "bell",
       "link_to": "NotificationRule",
-      "show_count": true,
-      "sequence": 22
+      "show_count": true
     },
     {
       "section": "Пошта та сповіщення",
@@ -123,8 +115,7 @@
       "label": "Нотифікації",
       "icon": "inbox",
       "link_to": "Notification",
-      "show_count": true,
-      "sequence": 23
+      "show_count": true
     },
     {
       "section": "Пошта та сповіщення",
@@ -132,8 +123,7 @@
       "label": "Вихідні вебхуки",
       "icon": "link",
       "link_to": "OutgoingWebhook",
-      "show_count": true,
-      "sequence": 24
+      "show_count": true
     },
     {
       "section": "Пошта та сповіщення",
@@ -141,8 +131,7 @@
       "label": "Вхідні вебхуки",
       "icon": "arrow-down-circle",
       "link_to": "IncomingWebhook",
-      "show_count": true,
-      "sequence": 25
+      "show_count": true
     },
     {
       "section": "Пошта та сповіщення",
@@ -150,8 +139,7 @@
       "label": "Push підписки",
       "icon": "smartphone",
       "link_to": "PushSubscription",
-      "show_count": true,
-      "sequence": 26
+      "show_count": true
     },
     {
       "section": "Автоматизація",
@@ -159,8 +147,7 @@
       "label": "Правила призначення",
       "icon": "git-branch",
       "link_to": "AssignmentRule",
-      "show_count": true,
-      "sequence": 35
+      "show_count": true
     },
     {
       "section": "Автоматизація",
@@ -168,8 +155,7 @@
       "label": "Завдання",
       "icon": "check-square",
       "link_to": "ToDo",
-      "show_count": true,
-      "sequence": 36
+      "show_count": true
     },
     {
       "section": "Розробка",
@@ -177,8 +163,7 @@
       "label": "Серверні скрипти",
       "icon": "monitor",
       "link_to": "ServerScript",
-      "show_count": true,
-      "sequence": 40
+      "show_count": true
     },
     {
       "section": "Розробка",
@@ -186,8 +171,7 @@
       "label": "Клієнтські скрипти",
       "icon": "scroll",
       "link_to": "ClientScript",
-      "show_count": true,
-      "sequence": 41
+      "show_count": true
     },
     {
       "section": "Розробка",
@@ -195,8 +179,7 @@
       "label": "Звіти",
       "icon": "trending-up",
       "link_to": "Report",
-      "show_count": true,
-      "sequence": 42
+      "show_count": true
     },
     {
       "section": "Розробка",
@@ -204,8 +187,7 @@
       "label": "Сторінки",
       "icon": "file",
       "link_to": "Page",
-      "show_count": true,
-      "sequence": 47
+      "show_count": true
     },
     {
       "section": "Документи та файли",
@@ -213,8 +195,7 @@
       "label": "Файли",
       "icon": "folder",
       "link_to": "File",
-      "show_count": true,
-      "sequence": 50
+      "show_count": true
     },
     {
       "section": "Документи та файли",
@@ -222,8 +203,7 @@
       "label": "Формати друку",
       "icon": "printer",
       "link_to": "PrintFormat",
-      "show_count": true,
-      "sequence": 51
+      "show_count": true
     },
     {
       "section": "Документи та файли",
@@ -231,8 +211,7 @@
       "label": "Імпорт даних",
       "icon": "upload",
       "link_to": "DataImport",
-      "show_count": true,
-      "sequence": 52
+      "show_count": true
     },
     {
       "section": "Документи та файли",
@@ -240,8 +219,7 @@
       "label": "Експорт даних",
       "icon": "download",
       "link_to": "DataExport",
-      "show_count": true,
-      "sequence": 53
+      "show_count": true
     },
     {
       "section": "Документи та файли",
@@ -249,8 +227,7 @@
       "label": "Версії документів",
       "icon": "refresh-cw",
       "link_to": "DocVersion",
-      "show_count": true,
-      "sequence": 54
+      "show_count": true
     },
     {
       "section": "Налаштування",
@@ -258,8 +235,7 @@
       "label": "Системні налаштування",
       "icon": "settings",
       "link_to": "SystemSettings",
-      "show_count": false,
-      "sequence": 60
+      "show_count": false
     },
     {
       "section": "Налаштування",
@@ -267,8 +243,7 @@
       "label": "Серії нумерації",
       "icon": "list-ordered",
       "link_to": "NamingSeries",
-      "show_count": true,
-      "sequence": 61
+      "show_count": true
     },
     {
       "section": "Налаштування",
@@ -276,8 +251,7 @@
       "label": "Переклади",
       "icon": "globe",
       "link_to": "Translation",
-      "show_count": true,
-      "sequence": 62
+      "show_count": true
     },
     {
       "section": "Налаштування",
@@ -285,8 +259,7 @@
       "label": "Встановлені додатки",
       "icon": "box",
       "link_to": "GruntInstalledApp",
-      "show_count": true,
-      "sequence": 63
+      "show_count": true
     },
     {
       "section": "Моніторинг",
@@ -294,8 +267,7 @@
       "label": "Стан системи",
       "icon": "heart-pulse",
       "link_to": "SystemHealthReport",
-      "show_count": false,
-      "sequence": 69
+      "show_count": false
     },
     {
       "section": "Моніторинг",
@@ -303,8 +275,7 @@
       "label": "Резервні копії",
       "icon": "archive",
       "link_to": "Backup",
-      "show_count": false,
-      "sequence": 69
+      "show_count": false
     },
     {
       "section": "Моніторинг",
@@ -312,8 +283,7 @@
       "label": "Хмарні сховища",
       "icon": "cloud",
       "link_to": "StorageRemote",
-      "show_count": false,
-      "sequence": 69
+      "show_count": false
     },
     {
       "section": "Моніторинг",
@@ -321,8 +291,7 @@
       "label": "Лог активності",
       "icon": "clipboard-list",
       "link_to": "ActivityLog",
-      "show_count": true,
-      "sequence": 70
+      "show_count": true
     },
     {
       "section": "Моніторинг",
@@ -330,8 +299,7 @@
       "label": "Заплановані завдання",
       "icon": "calendar",
       "link_to": "ScheduledJob",
-      "show_count": true,
-      "sequence": 72
+      "show_count": true
     },
     {
       "section": "Моніторинг",
@@ -339,8 +307,7 @@
       "label": "Лог завдань",
       "icon": "file-text",
       "link_to": "ScheduledJobLog",
-      "show_count": true,
-      "sequence": 73
+      "show_count": true
     },
     {
       "section": "Моніторинг",
@@ -348,8 +315,7 @@
       "label": "Лог призначень",
       "icon": "user-check",
       "link_to": "AssignmentLog",
-      "show_count": true,
-      "sequence": 74
+      "show_count": true
     },
     {
       "section": "Моніторинг",
@@ -357,8 +323,7 @@
       "label": "Лог вебхуків",
       "icon": "activity",
       "link_to": "IncomingWebhookLog",
-      "show_count": true,
-      "sequence": 75
+      "show_count": true
     },
     {
       "section": "Моніторинг",
@@ -366,8 +331,7 @@
       "label": "Лог вихідних вебхуків",
       "icon": "zap",
       "link_to": "WebhookLog",
-      "show_count": true,
-      "sequence": 76
+      "show_count": true
     },
     {
       "section": "Моніторинг",
@@ -375,8 +339,7 @@
       "label": "Сесії користувачів",
       "icon": "monitor",
       "link_to": "UserSession",
-      "show_count": true,
-      "sequence": 77
+      "show_count": true
     },
     {
       "section": "Моніторинг",
@@ -384,8 +347,7 @@
       "label": "Профілювання SQL",
       "icon": "database",
       "link_to": "SqlProfilerRequest",
-      "show_count": true,
-      "sequence": 78
+      "show_count": true
     },
     {
       "section": "Моніторинг",
@@ -393,8 +355,7 @@
       "label": "Динаміка продуктивності",
       "icon": "trending-up",
       "link_to": "PerfTrend",
-      "show_count": false,
-      "sequence": 78
+      "show_count": false
     },
     {
       "section": "Моніторинг",
@@ -402,8 +363,7 @@
       "label": "Статистика продуктивності",
       "icon": "gauge",
       "link_to": "PerfStat",
-      "show_count": false,
-      "sequence": 78
+      "show_count": false
     },
     {
       "section": "Моніторинг",
@@ -411,8 +371,7 @@
       "label": "Активні фонові задачі",
       "icon": "loader",
       "link_to": "BackgroundJob",
-      "show_count": true,
-      "sequence": 79
+      "show_count": true
     },
     {
       "section": "Моніторинг",
@@ -420,8 +379,7 @@
       "label": "Воркери черги",
       "icon": "cpu",
       "link_to": "BackgroundWorker",
-      "show_count": true,
-      "sequence": 80
+      "show_count": true
     }
   ]
 }
