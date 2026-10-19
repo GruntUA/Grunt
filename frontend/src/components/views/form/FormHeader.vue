@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { formatNumber } from '@/core/currency'
+import { formatBytes } from '@/core/bytes'
 import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
@@ -162,19 +163,6 @@ function copyTableName() {
   navigator.clipboard.writeText(tableInfo.value.table_name)
   tableNameCopied.value = true
   setTimeout(() => { tableNameCopied.value = false }, 1500)
-}
-
-function formatBytes(bytes: number | null | undefined): string {
-  if (bytes === null || bytes === undefined) return '—'
-  if (bytes < 1024) return `${bytes} ${t('B')}`
-  const units = [t('KB'), t('MB'), t('GB'), t('TB')]
-  let value = bytes / 1024
-  let i = 0
-  while (value >= 1024 && i < units.length - 1) {
-    value /= 1024
-    i++
-  }
-  return `${value.toFixed(value < 10 ? 1 : 0)} ${units[i]}`
 }
 
 async function createShare() {

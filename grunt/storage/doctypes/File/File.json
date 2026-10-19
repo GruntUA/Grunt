@@ -43,8 +43,9 @@
     },
     {
       "fieldname": "file_size",
-      "label": "Size (bytes)",
+      "label": "Size",
       "fieldtype": "Int",
+      "options": "Bytes",
       "read_only": true,
       "in_list_view": true
     },
