@@ -7,15 +7,17 @@ its URL and preview. Readers use :func:`read` by ``File`` id.
 """
 
 from dataclasses import dataclass
+from pathlib import PurePath
 from typing import Any, BinaryIO
 
 import grunt
-from grunt import log
+from grunt import _, log
 from grunt.config import settings
 from grunt.storage.backends import get_storage_backend
 from grunt.storage.images import OPTIMIZABLE, optimize_image, renamed
 from grunt.storage.thumbnails import THUMB_WIDTH, WEB_WIDTHS, can_thumbnail, make_thumbnail
 lazy from grunt.local import _user_ctx
+lazy from grunt.site.settings import get_setting
 lazy from grunt.storage.cloud.files import read_blob
 
 CONTENT_URL = "/api/v1/method/grunt.storage.doctypes.File.file.get_content?file_id={}"
@@ -49,7 +51,44 @@ def validate_mime_type(content_type: str) -> None:
     """Raise FileTypeNotAllowedError if the MIME type is not in the allowlist."""
     base_type = content_type.split(";")[0].strip().lower()
     if base_type not in ALLOWED_MIME_TYPES:
-        raise FileTypeNotAllowedError(f"File type '{base_type}' is not allowed")
+        raise FileTypeNotAllowedError(
+            _("File type “%(type)s” is not allowed") % {"type": base_type}
+        )
+
+
+def parse_file_types(value: str | None) -> set[str]:
+    """``".exe, msi application/x-msdownload"`` -> ``{".exe", ".msi", "application/x-msdownload"}``.
+
+    Entries are split by commas, semicolons or whitespace (one per line is
+    fine). One with a ``/`` is a MIME type, anything else - a file extension.
+    """
+    types: set[str] = set()
+    for raw in (value or "").replace(",", "\n").replace(";", "\n").split():
+        item = raw.strip().lower()
+        if item:
+            types.add(item if "/" in item or item.startswith(".") else f".{item}")
+    return types
+
+
+async def validate_file_type(content_type: str, filename: str | None = None) -> None:
+    """Like :func:`validate_mime_type`, plus the site's own extra types.
+
+    ``SystemSettings.extra_file_types`` lists extensions (``.exe``) or MIME
+    types an admin allows on top of ALLOWED_MIME_TYPES. An extension is
+    matched by the file name: browsers send an ``.exe`` as
+    ``application/x-msdownload``, ``application/x-msdos-program`` or a bare
+    ``application/octet-stream``. Such files are always served as a download
+    (``Content-Disposition: attachment``), never rendered inline.
+    """
+    base_type = content_type.split(";")[0].strip().lower()
+    if base_type in ALLOWED_MIME_TYPES:
+        return
+    extra = parse_file_types(await get_setting("extra_file_types", ""))
+    suffix = PurePath(filename).suffix.lower() if filename else ""
+    if base_type not in extra and not (suffix and suffix in extra):
+        raise FileTypeNotAllowedError(
+            _("File type “%(type)s” is not allowed") % {"type": suffix or base_type}
+        )
 
 
 def upload_limit() -> int:
@@ -216,7 +255,7 @@ async def store(
     pass ``compress=False`` to keep the exact bytes.
     """
     content_type = content_type or "application/octet-stream"
-    validate_mime_type(content_type)
+    await validate_file_type(content_type, filename)
     key, size = await get_storage_backend().put(content, max_bytes=max_bytes)
     blob = (
         await compress_stored(key, size, filename, content_type)

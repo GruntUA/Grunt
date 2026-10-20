@@ -12,7 +12,7 @@ from starlette.datastructures import Headers
 from starlette.responses import FileResponse
 
 import grunt
-from grunt.storage import backends, read, store
+from grunt.storage import backends, files, read, store
 from grunt.storage.backends import FileTooLargeError, LocalStorageBackend
 from grunt.storage.doctypes.File.file import get_content, remove, upload
 from grunt.storage.gc import collect_garbage, verify
@@ -115,6 +115,51 @@ async def test_disallowed_type_is_415(ctx, storage):
     with pytest.raises(HTTPException) as exc:
         await upload(bad)
     assert exc.value.status_code == 415
+
+
+def _extra_types(monkeypatch, value: str) -> None:
+    """``SystemSettings.extra_file_types`` = *value* for this test."""
+
+    async def fake(field, default=None):
+        return value if field == "extra_file_types" else default
+
+    monkeypatch.setattr(files, "get_setting", fake)
+
+
+def test_parse_file_types_normalises_extensions_and_mime():
+    assert files.parse_file_types(" .EXE, msi;\napplication/x-msdownload ") == {
+        ".exe",
+        ".msi",
+        "application/x-msdownload",
+    }
+    assert files.parse_file_types(None) == set()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("content_type", ["application/x-msdownload", "application/octet-stream"])
+async def test_extension_allowed_by_site_settings(ctx, storage, monkeypatch, content_type):
+    _extra_types(monkeypatch, ".exe")
+    exe = UploadFile(
+        file=io.BytesIO(b"MZ"),
+        filename="agent.exe",
+        headers=Headers({"content-type": content_type}),
+    )
+
+    result = await upload(exe)
+
+    assert result["filename"] == "agent.exe"
+    # Another extension with the same generic type is still refused.
+    with pytest.raises(files.FileTypeNotAllowedError):
+        await files.validate_file_type(content_type, "setup.msi")
+
+
+@pytest.mark.asyncio
+async def test_mime_type_allowed_by_site_settings(ctx, storage, monkeypatch):
+    _extra_types(monkeypatch, "application/x-msdownload")
+
+    doc = await store(b"MZ", "tool.bin", "application/x-msdownload")
+
+    assert doc["file_name"] == "tool.bin"
 
 
 @pytest.mark.asyncio

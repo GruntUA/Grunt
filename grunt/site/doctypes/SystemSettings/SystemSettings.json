@@ -139,6 +139,13 @@
       "description": "How much each user's “My files” may hold; 0 - no limit. A user's own quota (User → Security) overrides it"
     },
     {
+      "fieldname": "extra_file_types",
+      "label": "Additional allowed file types",
+      "fieldtype": "Text",
+      "placeholder": ".exe, .msi",
+      "description": "Extensions (.exe) or MIME types, separated by commas, accepted on top of the built-in list (images, PDF, office documents, text, CSV, JSON, ZIP). Such files are only ever downloaded, never opened in the browser"
+    },
+    {
       "fieldname": "optimize_images",
       "label": "Compress uploaded images",
       "fieldtype": "Check",

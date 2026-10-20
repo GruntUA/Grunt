@@ -187,7 +187,7 @@ async def upload(
 
     content_type = file.content_type or "application/octet-stream"
     try:
-        files.validate_mime_type(content_type)
+        await files.validate_file_type(content_type, file.filename)
         # Streamed to disk while hashing - never held in memory whole.
         key, size = await get_storage_backend().put(file.file, max_bytes=files.upload_limit())
     except FileTooLargeError:

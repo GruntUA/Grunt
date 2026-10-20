@@ -43,7 +43,7 @@ async def fetch_file(url: str, *, folder: str | None = None) -> dict[str, Any]:
             # Servers often send documents as a bare byte stream - go by the name.
             content_type = mimetypes.guess_type(name)[0] or "application/octet-stream"
         try:
-            files.validate_mime_type(content_type)
+            await files.validate_file_type(content_type, name)
         except ValueError as exc:
             raise RemoteFileError(str(exc)) from exc
         key, size = await get_storage_backend().put(cast("BinaryIO", buffer), max_bytes=limit)
