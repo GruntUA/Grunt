@@ -12,28 +12,32 @@
   "roles": "",
   "sections": [
     {
-      "section": "Метадані",
-      "icon": "database"
+      "section": "Користувачі та доступ",
+      "icon": "shield-check"
     },
     {
-      "section": "Користувачі та безпека",
-      "icon": "shield-check"
+      "section": "Конструктор",
+      "icon": "blocks"
+    },
+    {
+      "section": "Скрипти та інтеграції",
+      "icon": "code"
     },
     {
       "section": "Пошта та сповіщення",
       "icon": "mail"
     },
     {
-      "section": "Автоматизація",
-      "icon": "workflow"
+      "section": "Завдання та автоматизація",
+      "icon": "list-checks"
     },
     {
-      "section": "Розробка",
-      "icon": "code"
-    },
-    {
-      "section": "Документи та файли",
+      "section": "Дані та файли",
       "icon": "folder-open"
+    },
+    {
+      "section": "Довідники",
+      "icon": "globe"
     },
     {
       "section": "Налаштування",
@@ -42,343 +46,463 @@
     {
       "section": "Моніторинг",
       "icon": "activity"
+    },
+    {
+      "section": "Обслуговування",
+      "icon": "wrench"
+    },
+    {
+      "section": "Журнали",
+      "icon": "scroll-text"
     }
   ],
   "sidebar_items": [
     {
-      "section": "Метадані",
-      "type": "DocType",
-      "label": "DocTypes",
-      "icon": "package",
-      "link_to": "DocType",
-      "show_count": true
-    },
-    {
-      "section": "Користувачі та безпека",
+      "section": "Користувачі та доступ",
       "type": "DocType",
       "label": "Користувачі",
-      "icon": "users",
       "link_to": "User",
+      "icon": "users",
       "show_count": true
     },
     {
-      "section": "Користувачі та безпека",
+      "section": "Користувачі та доступ",
       "type": "DocType",
       "label": "Ролі",
-      "icon": "shield",
       "link_to": "Role",
+      "icon": "shield",
       "show_count": true
     },
     {
-      "section": "Користувачі та безпека",
+      "section": "Користувачі та доступ",
       "type": "DocType",
       "label": "Дозволи користувачів",
-      "icon": "ban",
       "link_to": "UserPermission",
+      "icon": "ban",
       "show_count": true
     },
     {
-      "section": "Користувачі та безпека",
+      "section": "Користувачі та доступ",
       "type": "DocType",
       "label": "API ключі",
-      "icon": "key",
       "link_to": "ApiKey",
+      "icon": "key",
+      "show_count": true
+    },
+    {
+      "section": "Користувачі та доступ",
+      "type": "DocType",
+      "label": "Сесії користувачів",
+      "link_to": "UserSession",
+      "icon": "monitor",
+      "show_count": true
+    },
+    {
+      "section": "Конструктор",
+      "type": "DocType",
+      "label": "DocTypes",
+      "link_to": "DocType",
+      "icon": "package",
+      "show_count": true
+    },
+    {
+      "section": "Конструктор",
+      "type": "DocType",
+      "label": "Робочі процеси",
+      "link_to": "Workflow",
+      "icon": "workflow",
+      "show_count": true
+    },
+    {
+      "section": "Конструктор",
+      "type": "DocType",
+      "label": "Серії нумерації",
+      "link_to": "NamingSeries",
+      "icon": "list-ordered",
+      "show_count": true
+    },
+    {
+      "section": "Конструктор",
+      "type": "DocType",
+      "label": "Звіти",
+      "link_to": "Report",
+      "icon": "trending-up",
+      "show_count": true
+    },
+    {
+      "section": "Конструктор",
+      "type": "DocType",
+      "label": "Сторінки",
+      "link_to": "Page",
+      "icon": "file",
+      "show_count": true
+    },
+    {
+      "section": "Конструктор",
+      "type": "DocType",
+      "label": "Формати друку",
+      "link_to": "PrintFormat",
+      "icon": "printer",
+      "show_count": true
+    },
+    {
+      "section": "Конструктор",
+      "type": "DocType",
+      "label": "Бланки",
+      "link_to": "LetterHead",
+      "icon": "stamp",
+      "show_count": true
+    },
+    {
+      "section": "Конструктор",
+      "type": "DocType",
+      "label": "Меню додатків",
+      "link_to": "AppMenu",
+      "icon": "panel-left",
+      "show_count": true
+    },
+    {
+      "section": "Скрипти та інтеграції",
+      "type": "DocType",
+      "label": "Серверні скрипти",
+      "link_to": "ServerScript",
+      "icon": "file-code",
+      "show_count": true
+    },
+    {
+      "section": "Скрипти та інтеграції",
+      "type": "DocType",
+      "label": "Клієнтські скрипти",
+      "link_to": "ClientScript",
+      "icon": "code",
+      "show_count": true
+    },
+    {
+      "section": "Скрипти та інтеграції",
+      "type": "DocType",
+      "label": "Вихідні вебхуки",
+      "link_to": "OutgoingWebhook",
+      "icon": "link",
+      "show_count": true
+    },
+    {
+      "section": "Скрипти та інтеграції",
+      "type": "DocType",
+      "label": "Вхідні вебхуки",
+      "link_to": "IncomingWebhook",
+      "icon": "arrow-down-circle",
       "show_count": true
     },
     {
       "section": "Пошта та сповіщення",
       "type": "DocType",
       "label": "Email акаунти",
-      "icon": "mail",
       "link_to": "EmailAccount",
+      "icon": "mail",
+      "show_count": true
+    },
+    {
+      "section": "Пошта та сповіщення",
+      "type": "DocType",
+      "label": "Шаблони листів",
+      "link_to": "EmailTemplate",
+      "icon": "layout-template",
       "show_count": true
     },
     {
       "section": "Пошта та сповіщення",
       "type": "DocType",
       "label": "Черга листів",
-      "icon": "send",
       "link_to": "EmailQueue",
+      "icon": "send",
       "show_count": true
     },
     {
       "section": "Пошта та сповіщення",
       "type": "DocType",
       "label": "Правила нотифікацій",
-      "icon": "bell",
       "link_to": "NotificationRule",
+      "icon": "bell",
       "show_count": true
     },
     {
       "section": "Пошта та сповіщення",
       "type": "DocType",
       "label": "Нотифікації",
-      "icon": "inbox",
       "link_to": "Notification",
-      "show_count": true
-    },
-    {
-      "section": "Пошта та сповіщення",
-      "type": "DocType",
-      "label": "Вихідні вебхуки",
-      "icon": "link",
-      "link_to": "OutgoingWebhook",
-      "show_count": true
-    },
-    {
-      "section": "Пошта та сповіщення",
-      "type": "DocType",
-      "label": "Вхідні вебхуки",
-      "icon": "arrow-down-circle",
-      "link_to": "IncomingWebhook",
+      "icon": "inbox",
       "show_count": true
     },
     {
       "section": "Пошта та сповіщення",
       "type": "DocType",
       "label": "Push підписки",
-      "icon": "smartphone",
       "link_to": "PushSubscription",
+      "icon": "smartphone",
       "show_count": true
     },
     {
-      "section": "Автоматизація",
-      "type": "DocType",
-      "label": "Правила призначення",
-      "icon": "git-branch",
-      "link_to": "AssignmentRule",
-      "show_count": true
-    },
-    {
-      "section": "Автоматизація",
+      "section": "Завдання та автоматизація",
       "type": "DocType",
       "label": "Завдання",
-      "icon": "check-square",
       "link_to": "ToDo",
+      "icon": "check-square",
       "show_count": true
     },
     {
-      "section": "Розробка",
+      "section": "Завдання та автоматизація",
       "type": "DocType",
-      "label": "Серверні скрипти",
-      "icon": "monitor",
-      "link_to": "ServerScript",
+      "label": "Правила призначення",
+      "link_to": "AssignmentRule",
+      "icon": "git-branch",
       "show_count": true
     },
     {
-      "section": "Розробка",
+      "section": "Завдання та автоматизація",
       "type": "DocType",
-      "label": "Клієнтські скрипти",
-      "icon": "scroll",
-      "link_to": "ClientScript",
+      "label": "Нагадування",
+      "link_to": "Reminder",
+      "icon": "alarm-clock",
       "show_count": true
     },
     {
-      "section": "Розробка",
+      "section": "Завдання та автоматизація",
       "type": "DocType",
-      "label": "Звіти",
-      "icon": "trending-up",
-      "link_to": "Report",
+      "label": "Автоповтор",
+      "link_to": "AutoRepeat",
+      "icon": "repeat",
       "show_count": true
     },
     {
-      "section": "Розробка",
-      "type": "DocType",
-      "label": "Сторінки",
-      "icon": "file",
-      "link_to": "Page",
-      "show_count": true
-    },
-    {
-      "section": "Документи та файли",
+      "section": "Дані та файли",
       "type": "DocType",
       "label": "Файли",
-      "icon": "folder",
       "link_to": "File",
+      "icon": "folder",
       "show_count": true
     },
     {
-      "section": "Документи та файли",
-      "type": "DocType",
-      "label": "Формати друку",
-      "icon": "printer",
-      "link_to": "PrintFormat",
-      "show_count": true
-    },
-    {
-      "section": "Документи та файли",
+      "section": "Дані та файли",
       "type": "DocType",
       "label": "Імпорт даних",
-      "icon": "upload",
       "link_to": "DataImport",
+      "icon": "upload",
       "show_count": true
     },
     {
-      "section": "Документи та файли",
+      "section": "Дані та файли",
       "type": "DocType",
       "label": "Експорт даних",
-      "icon": "download",
       "link_to": "DataExport",
+      "icon": "download",
       "show_count": true
     },
     {
-      "section": "Документи та файли",
+      "section": "Дані та файли",
       "type": "DocType",
       "label": "Версії документів",
-      "icon": "refresh-cw",
       "link_to": "DocVersion",
+      "icon": "refresh-cw",
+      "show_count": true
+    },
+    {
+      "section": "Дані та файли",
+      "type": "DocType",
+      "label": "Кошик",
+      "link_to": "DeletedDocument",
+      "icon": "trash-2",
+      "show_count": true
+    },
+    {
+      "section": "Довідники",
+      "type": "DocType",
+      "label": "Країни",
+      "link_to": "Country",
+      "icon": "flag",
+      "show_count": true
+    },
+    {
+      "section": "Довідники",
+      "type": "DocType",
+      "label": "Регіони",
+      "link_to": "Region",
+      "icon": "map",
+      "show_count": true
+    },
+    {
+      "section": "Довідники",
+      "type": "DocType",
+      "label": "Міста",
+      "link_to": "City",
+      "icon": "building-2",
+      "show_count": true
+    },
+    {
+      "section": "Довідники",
+      "type": "DocType",
+      "label": "Мови",
+      "link_to": "Language",
+      "icon": "languages",
+      "show_count": true
+    },
+    {
+      "section": "Довідники",
+      "type": "DocType",
+      "label": "Валюти",
+      "link_to": "Currency",
+      "icon": "coins",
+      "show_count": true
+    },
+    {
+      "section": "Довідники",
+      "type": "DocType",
+      "label": "Часові пояси",
+      "link_to": "Timezone",
+      "icon": "clock",
       "show_count": true
     },
     {
       "section": "Налаштування",
       "type": "DocType",
       "label": "Системні налаштування",
-      "icon": "settings",
       "link_to": "SystemSettings",
+      "icon": "settings",
       "show_count": false
     },
     {
       "section": "Налаштування",
       "type": "DocType",
-      "label": "Серії нумерації",
-      "icon": "list-ordered",
-      "link_to": "NamingSeries",
+      "label": "Встановлені додатки",
+      "link_to": "GruntInstalledApp",
+      "icon": "box",
       "show_count": true
     },
     {
       "section": "Налаштування",
       "type": "DocType",
       "label": "Переклади",
-      "icon": "globe",
       "link_to": "Translation",
-      "show_count": true
-    },
-    {
-      "section": "Налаштування",
-      "type": "DocType",
-      "label": "Встановлені додатки",
-      "icon": "box",
-      "link_to": "GruntInstalledApp",
+      "icon": "book-a",
       "show_count": true
     },
     {
       "section": "Моніторинг",
       "type": "DocType",
       "label": "Стан системи",
-      "icon": "heart-pulse",
       "link_to": "SystemHealthReport",
-      "show_count": false
-    },
-    {
-      "section": "Моніторинг",
-      "type": "DocType",
-      "label": "Резервні копії",
-      "icon": "archive",
-      "link_to": "Backup",
-      "show_count": false
-    },
-    {
-      "section": "Моніторинг",
-      "type": "DocType",
-      "label": "Хмарні сховища",
-      "icon": "cloud",
-      "link_to": "StorageRemote",
-      "show_count": false
-    },
-    {
-      "section": "Моніторинг",
-      "type": "DocType",
-      "label": "Лог активності",
-      "icon": "clipboard-list",
-      "link_to": "ActivityLog",
-      "show_count": true
-    },
-    {
-      "section": "Моніторинг",
-      "type": "DocType",
-      "label": "Заплановані завдання",
-      "icon": "calendar",
-      "link_to": "ScheduledJob",
-      "show_count": true
-    },
-    {
-      "section": "Моніторинг",
-      "type": "DocType",
-      "label": "Лог завдань",
-      "icon": "file-text",
-      "link_to": "ScheduledJobLog",
-      "show_count": true
-    },
-    {
-      "section": "Моніторинг",
-      "type": "DocType",
-      "label": "Лог призначень",
-      "icon": "user-check",
-      "link_to": "AssignmentLog",
-      "show_count": true
-    },
-    {
-      "section": "Моніторинг",
-      "type": "DocType",
-      "label": "Лог вебхуків",
-      "icon": "activity",
-      "link_to": "IncomingWebhookLog",
-      "show_count": true
-    },
-    {
-      "section": "Моніторинг",
-      "type": "DocType",
-      "label": "Лог вихідних вебхуків",
-      "icon": "zap",
-      "link_to": "WebhookLog",
-      "show_count": true
-    },
-    {
-      "section": "Моніторинг",
-      "type": "DocType",
-      "label": "Сесії користувачів",
-      "icon": "monitor",
-      "link_to": "UserSession",
-      "show_count": true
-    },
-    {
-      "section": "Моніторинг",
-      "type": "DocType",
-      "label": "Профілювання SQL",
-      "icon": "database",
-      "link_to": "SqlProfilerRequest",
-      "show_count": true
-    },
-    {
-      "section": "Моніторинг",
-      "type": "DocType",
-      "label": "Динаміка продуктивності",
-      "icon": "trending-up",
-      "link_to": "PerfTrend",
-      "show_count": false
-    },
-    {
-      "section": "Моніторинг",
-      "type": "DocType",
-      "label": "Статистика продуктивності",
-      "icon": "gauge",
-      "link_to": "PerfStat",
+      "icon": "heart-pulse",
       "show_count": false
     },
     {
       "section": "Моніторинг",
       "type": "DocType",
       "label": "Активні фонові задачі",
-      "icon": "loader",
       "link_to": "BackgroundJob",
+      "icon": "loader",
       "show_count": true
     },
     {
       "section": "Моніторинг",
       "type": "DocType",
       "label": "Воркери черги",
-      "icon": "cpu",
       "link_to": "BackgroundWorker",
+      "icon": "cpu",
+      "show_count": true
+    },
+    {
+      "section": "Моніторинг",
+      "type": "DocType",
+      "label": "Статистика продуктивності",
+      "link_to": "PerfStat",
+      "icon": "gauge",
+      "show_count": false
+    },
+    {
+      "section": "Моніторинг",
+      "type": "DocType",
+      "label": "Динаміка продуктивності",
+      "link_to": "PerfTrend",
+      "icon": "chart-line",
+      "show_count": false
+    },
+    {
+      "section": "Моніторинг",
+      "type": "DocType",
+      "label": "Профілювання SQL",
+      "link_to": "SqlProfilerRequest",
+      "icon": "database",
+      "show_count": true
+    },
+    {
+      "section": "Обслуговування",
+      "type": "DocType",
+      "label": "Резервні копії",
+      "link_to": "Backup",
+      "icon": "archive",
+      "show_count": false
+    },
+    {
+      "section": "Обслуговування",
+      "type": "DocType",
+      "label": "Хмарні сховища",
+      "link_to": "StorageRemote",
+      "icon": "cloud",
+      "show_count": false
+    },
+    {
+      "section": "Обслуговування",
+      "type": "DocType",
+      "label": "Заплановані завдання",
+      "link_to": "ScheduledJob",
+      "icon": "calendar",
+      "show_count": true
+    },
+    {
+      "section": "Журнали",
+      "type": "DocType",
+      "label": "Журнал помилок",
+      "link_to": "ErrorLog",
+      "icon": "bug",
+      "show_count": true
+    },
+    {
+      "section": "Журнали",
+      "type": "DocType",
+      "label": "Лог активності",
+      "link_to": "ActivityLog",
+      "icon": "clipboard-list",
+      "show_count": true
+    },
+    {
+      "section": "Журнали",
+      "type": "DocType",
+      "label": "Лог завдань",
+      "link_to": "ScheduledJobLog",
+      "icon": "file-text",
+      "show_count": true
+    },
+    {
+      "section": "Журнали",
+      "type": "DocType",
+      "label": "Лог призначень",
+      "link_to": "AssignmentLog",
+      "icon": "user-check",
+      "show_count": true
+    },
+    {
+      "section": "Журнали",
+      "type": "DocType",
+      "label": "Лог вебхуків",
+      "link_to": "IncomingWebhookLog",
+      "icon": "activity",
+      "show_count": true
+    },
+    {
+      "section": "Журнали",
+      "type": "DocType",
+      "label": "Лог вихідних вебхуків",
+      "link_to": "WebhookLog",
+      "icon": "zap",
       "show_count": true
     }
   ]
