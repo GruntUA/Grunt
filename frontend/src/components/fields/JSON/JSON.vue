@@ -3,6 +3,7 @@ import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { BaseFieldProps } from '@/types'
 import { Textarea } from '@/components/ui/textarea'
+import CodeView from '../Code/CodeView.vue'
 
 const props = defineProps<BaseFieldProps>()
 const emit = defineEmits<{ 'update:modelValue': [value: unknown] }>()
@@ -60,10 +61,10 @@ function onBlur() {
 </script>
 
 <template>
-  <div class="flex flex-col gap-1">
+  <CodeView v-if="disabled || field.read_only" :code="text" language="json" />
+  <div v-else class="flex flex-col gap-1">
     <Textarea
       :model-value="text"
-      :disabled="disabled || field.read_only"
       :aria-invalid="(error || localError) ? true : undefined"
       :aria-label="field.label"
       rows="6"

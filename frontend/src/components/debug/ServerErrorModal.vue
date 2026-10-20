@@ -1,17 +1,27 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useServerError } from '@/core/composables/useServerError'
-import { X, Copy, ChevronDown } from '@lucide/vue'
-import { ref } from 'vue'
+import { X, ChevronDown } from '@lucide/vue'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
+import {
+  CodeBlock,
+  CodeBlockActions,
+  CodeBlockContent,
+  CodeBlockCopyButton,
+  CodeBlockFooter,
+  CodeBlockHeader,
+  CodeBlockLine,
+  CodeBlockTitle,
+  CodeBlockToken,
+  useHighlightedCode,
+} from '@/components/ui/code-block'
 
 const { t } = useI18n()
 
 const { state, close } = useServerError()
 
 const showFullTraceback = ref(false)
-const copied = ref(false)
 
 const tracebackLines = computed(() => {
   const tb = state.value.debug?.traceback ?? ''
@@ -24,10 +34,16 @@ const visibleLines = computed(() =>
   showFullTraceback.value ? tracebackLines.value : tracebackLines.value.slice(-PREVIEW_LINES)
 )
 
-function copyAll() {
+const sqlLines = useHighlightedCode(() => state.value.debug?.sql ?? '', 'sql')
+
+// Shared look of every block on the modal's fixed dark-red palette
+const blockClass = 'border-red-900/20 bg-black/40 text-red-100/90 dark:bg-black/40'
+const titleClass = 'font-mono text-xs font-normal uppercase tracking-wider text-red-400/60'
+
+const reportText = computed(() => {
   const d = state.value.debug
-  if (!d) return
-  const text = [
+  if (!d) return ''
+  return [
     `${state.value.status} ${d.exc_type}: ${d.message}`,
     d.fields?.length
       ? `\nFields:\n${d.fields.map(f => `  ${f.loc}: ${f.msg} (got ${f.input})`).join('\n')}`
@@ -35,20 +51,26 @@ function copyAll() {
     d.sql ? `\nSQL:\n${d.sql}` : '',
     d.sql_params ? `\nParams: ${d.sql_params}` : '',
     d.db_error ? `\nDB Error: ${d.db_error}` : '',
-    `\nTraceback:\n${visibleLines.value.join('\n')}`,
+    `\nTraceback:\n${tracebackLines.value.join('\n')}`,
   ].join('')
-  navigator.clipboard.writeText(text).then(() => {
-    copied.value = true
-    setTimeout(() => { copied.value = false }, 2000)
-  })
+})
+
+function tracebackLineClass(line: string, idx: number) {
+  const trimmed = line.trim()
+  if (idx === visibleLines.value.length - 1 && !showFullTraceback.value)
+    return 'bg-red-900/20 font-semibold text-red-200/90'
+  if (line.startsWith('  File')) return 'text-red-300/50'
+  if (trimmed.startsWith('raise') || trimmed.startsWith('return')) return 'text-yellow-200/70'
+  return 'text-red-100/80'
 }
 </script>
 
 <template>
   <Dialog :open="state.open" @update:open="(v: boolean) => { if (!v) close() }">
+    <!-- `dark` keeps highlight tokens and ui primitives on dark colors in both app themes -->
     <DialogContent
       :show-close-button="false"
-      class="w-full max-w-3xl max-h-[90vh] flex flex-col rounded-lg overflow-hidden shadow-md border border-red-900/40 bg-[#1a0a0a] p-0 gap-0"
+      class="dark w-full max-w-3xl max-h-[90vh] flex flex-col rounded-lg overflow-hidden shadow-md border border-red-900/40 bg-[#1a0a0a] p-0 gap-0"
     >
           <!-- Header -->
           <div class="flex items-start gap-3 px-5 py-4 border-b border-red-900/30 bg-[#1f0c0c]">
@@ -66,13 +88,14 @@ function copyAll() {
               <p class="text-red-300/80" v-else>{{ state.plainMessage }}</p>
             </div>
             <div class="flex items-center gap-2 shrink-0">
-              <button
-                @click="copyAll"
-                class="p-1.5 rounded text-red-400/60 hover:text-red-300 hover:bg-red-900/30 transition-colors"
-                :title="copied ? t('Copied!') : t('Copy')"
-              >
-                <Copy class="size-4" />
-              </button>
+              <CodeBlockCopyButton
+                v-if="state.debug"
+                :value="reportText"
+                size="icon-sm"
+                class="text-red-400/60 hover:text-red-300 hover:bg-red-900/30 [&_svg:not([class*='size-'])]:size-4"
+                :aria-label="t('Copy')"
+                :title="t('Copy')"
+              />
               <button
                 @click="close"
                 class="p-1.5 rounded text-red-400/60 hover:text-red-300 hover:bg-red-900/30 transition-colors"
@@ -101,50 +124,66 @@ function copyAll() {
 
             <!-- SQL block -->
             <template v-if="state.debug?.sql">
-              <div>
-                <div class="text-red-400/60 uppercase tracking-wider mb-2">SQL Query</div>
-                <pre class="bg-black/40 border border-red-900/20 rounded-lg p-4 text-red-100/90 overflow-x-auto leading-relaxed whitespace-pre-wrap break-all">{{ state.debug.sql }}</pre>
-              </div>
-              <div v-if="state.debug.sql_params">
-                <div class="text-red-400/60 uppercase tracking-wider mb-2">Parameters</div>
-                <pre class="bg-black/40 border border-red-900/20 rounded-lg p-3 text-yellow-200/80 overflow-x-auto">{{ state.debug.sql_params }}</pre>
-              </div>
-              <div v-if="state.debug.db_error">
-                <div class="text-red-400/60 uppercase tracking-wider mb-2">Database Error</div>
-                <pre class="bg-black/40 border border-red-900/20 rounded-lg p-3 text-orange-300/90 overflow-x-auto">{{ state.debug.db_error }}</pre>
-              </div>
+              <CodeBlock size="sm" :class="blockClass">
+                <CodeBlockHeader>
+                  <CodeBlockTitle :class="titleClass">SQL Query</CodeBlockTitle>
+                  <CodeBlockActions>
+                    <CodeBlockCopyButton
+                      :value="state.debug.sql"
+                      class="text-red-400/60 hover:text-red-300 hover:bg-red-900/30"
+                      :aria-label="t('Copy')"
+                    />
+                  </CodeBlockActions>
+                </CodeBlockHeader>
+                <CodeBlockContent wrap>
+                  <CodeBlockLine v-for="(line, i) in sqlLines" :key="i">
+                    <CodeBlockToken v-for="(token, j) in line" :key="j" :token="token" />
+                  </CodeBlockLine>
+                </CodeBlockContent>
+              </CodeBlock>
+              <CodeBlock v-if="state.debug.sql_params" size="sm" :class="blockClass">
+                <CodeBlockHeader>
+                  <CodeBlockTitle :class="titleClass">Parameters</CodeBlockTitle>
+                </CodeBlockHeader>
+                <CodeBlockContent class="text-yellow-200/80">{{ state.debug.sql_params }}</CodeBlockContent>
+              </CodeBlock>
+              <CodeBlock v-if="state.debug.db_error" size="sm" :class="blockClass">
+                <CodeBlockHeader>
+                  <CodeBlockTitle :class="titleClass">Database Error</CodeBlockTitle>
+                </CodeBlockHeader>
+                <CodeBlockContent wrap class="text-orange-300/90">{{ state.debug.db_error }}</CodeBlockContent>
+              </CodeBlock>
               <div class="border-t border-red-900/20" />
             </template>
 
             <!-- Traceback -->
-            <div v-if="state.debug?.traceback">
-              <div class="text-red-400/60 uppercase tracking-wider mb-2">Traceback</div>
-              <div class="bg-black/40 border border-red-900/20 rounded-lg overflow-hidden">
-                <div class="overflow-x-auto">
-                  <div
-                    v-for="(line, idx) in visibleLines"
-                    :key="idx"
-                    class="px-4 py-0.5 leading-5 whitespace-pre"
-                    :class="{
-                      'text-red-300/50': line.startsWith('  File'),
-                      'text-yellow-200/70': line.trim().startsWith('raise') || line.trim().startsWith('return'),
-                      'text-red-200/90 font-semibold bg-red-900/20': idx === visibleLines.length - 1 && !showFullTraceback,
-                      'text-red-100/80': !line.startsWith('  File') && !line.trim().startsWith('raise'),
-                    }"
-                  >{{ line }}</div>
-                </div>
+            <CodeBlock v-if="state.debug?.traceback" size="sm" :class="blockClass">
+              <CodeBlockHeader>
+                <CodeBlockTitle :class="titleClass">Traceback</CodeBlockTitle>
+              </CodeBlockHeader>
+              <CodeBlockContent>
+                <CodeBlockLine
+                  v-for="(line, idx) in visibleLines"
+                  :key="idx"
+                  :variant="idx === visibleLines.length - 1 && !showFullTraceback ? 'highlighted' : 'default'"
+                  :class="tracebackLineClass(line, idx)"
+                >{{ line }}</CodeBlockLine>
+              </CodeBlockContent>
 
-                <!-- Show more -->
+              <!-- Show more -->
+              <CodeBlockFooter
+                v-if="!showFullTraceback && tracebackLines.length > PREVIEW_LINES"
+                class="border-t border-red-900/20 p-0 group-data-[size=sm]/code-block:p-0"
+              >
                 <button
-                  v-if="!showFullTraceback && tracebackLines.length > PREVIEW_LINES"
                   @click="showFullTraceback = true"
-                  class="w-full flex items-center justify-center gap-1.5 px-4 py-2 text-red-400/60 hover:text-red-300 hover:bg-red-900/20 transition-colors border-t border-red-900/20"
+                  class="w-full flex items-center justify-center gap-1.5 px-4 py-2 text-red-400/60 hover:text-red-300 hover:bg-red-900/20 transition-colors"
                 >
                   <ChevronDown class="size-3" />
                   {{ t('Show all {n} lines', { n: String(tracebackLines.length) }) }}
                 </button>
-              </div>
-            </div>
+              </CodeBlockFooter>
+            </CodeBlock>
           </div>
 
           <!-- Footer hint -->

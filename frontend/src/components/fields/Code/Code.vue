@@ -1,14 +1,13 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, shallowRef, watch } from 'vue'
+import { computed, defineAsyncComponent, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Codemirror } from 'vue-codemirror'
 import { Sparkles } from '@lucide/vue'
-import { oneDark } from '@codemirror/theme-one-dark'
-import { EditorState } from '@codemirror/state'
 import { Button } from '@/components/ui/button'
-import type { Extension } from '@codemirror/state'
 import type { DocField } from '@/types'
-import { useColorMode } from '@/core/composables/useColorMode'
+import CodeView from './CodeView.vue'
+
+// CodeMirror is only fetched for editable fields.
+const CodeEditor = defineAsyncComponent(() => import('./CodeEditor.vue'))
 
 const props = defineProps<{
   field: DocField
@@ -20,48 +19,10 @@ const props = defineProps<{
 const emit = defineEmits<{ 'update:modelValue': [value: string] }>()
 
 const { t } = useI18n()
-const { isDark } = useColorMode()
-
-// Each grammar is its own chunk - a SQL field never pulls the Python/HTML/… parsers.
-const LANG_LOADERS: Record<string, () => Promise<Extension>> = {
-  sql: () => import('@codemirror/lang-sql').then((m) => m.sql()),
-  js: () => import('@codemirror/lang-javascript').then((m) => m.javascript()),
-  javascript: () => import('@codemirror/lang-javascript').then((m) => m.javascript()),
-  ts: () => import('@codemirror/lang-javascript').then((m) => m.javascript({ typescript: true })),
-  typescript: () => import('@codemirror/lang-javascript').then((m) => m.javascript({ typescript: true })),
-  py: () => import('@codemirror/lang-python').then((m) => m.python()),
-  python: () => import('@codemirror/lang-python').then((m) => m.python()),
-  html: () => import('@codemirror/lang-html').then((m) => m.html()),
-  css: () => import('@codemirror/lang-css').then((m) => m.css()),
-  json: () => import('@codemirror/lang-json').then((m) => m.json()),
-}
 
 const lang = computed(() => (props.field.options ?? '').toLowerCase().trim())
 const canFormat = computed(() => lang.value === 'sql' || lang.value === 'json')
 const isReadonly = computed(() => !!props.disabled || !!props.field.read_only)
-
-// Populated asynchronously - the editor renders immediately, highlighting snaps
-// in once the grammar chunk resolves.
-const langExt = shallowRef<Extension | null>(null)
-watch(
-  lang,
-  (l, _prev, onCleanup) => {
-    let cancelled = false
-    onCleanup(() => { cancelled = true })
-    const loader = LANG_LOADERS[l]
-    if (!loader) { langExt.value = null; return }
-    loader().then((ext) => { if (!cancelled) langExt.value = ext })
-  },
-  { immediate: true },
-)
-
-const extensions = computed<Extension[]>(() => {
-  const exts: Extension[] = []
-  if (isDark.value) exts.push(oneDark) // default (light) theme otherwise
-  if (langExt.value) exts.push(langExt.value)
-  if (isReadonly.value) exts.push(EditorState.readOnly.of(true))
-  return exts
-})
 
 function fromModel(v: unknown): string {
   if (v === null || v === undefined || v === '') return ''
@@ -119,12 +80,14 @@ async function formatNow() {
 </script>
 
 <template>
+  <CodeView v-if="isReadonly" :code="buffer" :language="lang" />
   <div
+    v-else
     class="overflow-hidden rounded-md border"
     :class="error ? 'border-destructive' : 'border-input'"
   >
     <div
-      v-if="canFormat && !isReadonly"
+      v-if="canFormat"
       class="flex justify-end border-b border-border bg-muted/40 px-1.5 py-1"
     >
       <Button type="button" variant="ghost" size="xs" class="text-muted-foreground" @click="formatNow">
@@ -132,13 +95,6 @@ async function formatNow() {
         {{ t('Format') }}
       </Button>
     </div>
-    <Codemirror
-      :model-value="buffer"
-      :extensions="extensions"
-      :indent-with-tab="true"
-      :tab-size="2"
-      :style="{ minHeight: '120px' }"
-      @update:model-value="onChange"
-    />
+    <CodeEditor :model-value="buffer" :lang="lang" @update:model-value="onChange" />
   </div>
 </template>
