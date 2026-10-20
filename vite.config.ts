@@ -50,13 +50,29 @@ function discoverAllowedHosts() {
     return Array.from(hosts)
 }
 
-function isVueVendorModule(id: string): boolean {
-    const isVueRouter = id.includes('vue-router')
-    const isPinia = id.includes('/pinia/')
-    const isCoreVueButNotVueScopedPackage = id.includes('/vue/') && !id.includes('vue-')
+// Vue core packages only, matched by exact package dir. A looser `/vue/` test
+// also caught bindings such as `@unovis/vue`, and each group pulls in its
+// modules' dependencies - so d3/unovis ended up in the initial vendor-vue chunk.
+const VUE_CORE = /\/node_modules\/(vue|@vue\/[^/]+|vue-router|pinia)\//
 
-    return isVueRouter || isPinia || isCoreVueButNotVueScopedPackage
+function isVueVendorModule(id: string): boolean {
+    return VUE_CORE.test(id)
 }
+
+const CODEMIRROR_CORE = [
+    'vue-codemirror',
+    '@codemirror/state',
+    '@codemirror/view',
+    '@codemirror/language',
+    '@codemirror/commands',
+    '@codemirror/autocomplete',
+    '@codemirror/search',
+    '@codemirror/lint',
+    '@codemirror/theme-one-dark',
+    '@lezer/common',
+    '@lezer/highlight',
+    '@lezer/lr',
+]
 
 const appAliases = discoverAppAliases()
 // Bench apps/ - apps ship frontend pieces the core discovers by glob (e.g.
@@ -129,38 +145,29 @@ export default defineConfig({
         },
     },
     build: {
-        rollupOptions: {
+        rolldownOptions: {
             output: {
-                manualChunks(id) {
-                    // Before vendor-vue: these also match its `/vue/` test. `@lucide/vue`
-                    // stays auto-split — a manual chunk would pull the full icon set
-                    // (lazy-loaded by useLucideIcons) into the initial load.
-                    if (id.includes('@lucide/vue')) return
-                    if (isVueVendorModule(id)) return 'vendor-vue'
-                    if (id.includes('@tanstack/vue-query')) return 'vendor-query'
-                    if (id.includes('/clsx/') || id.includes('tailwind-merge')) return 'vendor-ui'
-                    if (id.includes('reka-ui')) return 'vendor-reka'
-                    if (id.includes('vue-i18n') || id.includes('@intlify')) return 'vendor-i18n'
-                    // CodeMirror runtime core only — the `@codemirror/lang-*` grammars
-                    // (and their heavy `@lezer/<language>` parser tables) are dynamically
-                    // imported per language in Code.vue, so leave them to auto-splitting.
-                    if (
-                        id.includes('vue-codemirror')
-                        || id.includes('@codemirror/state')
-                        || id.includes('@codemirror/view')
-                        || id.includes('@codemirror/language')
-                        || id.includes('@codemirror/commands')
-                        || id.includes('@codemirror/autocomplete')
-                        || id.includes('@codemirror/search')
-                        || id.includes('@codemirror/lint')
-                        || id.includes('@codemirror/theme-one-dark')
-                        || id.includes('@lezer/common')
-                        || id.includes('@lezer/highlight')
-                        || id.includes('@lezer/lr')
-                    ) return 'vendor-codemirror'
-                    if (id.includes('@tiptap') || id.includes('/tiptap/')) return 'vendor-editor'
-                    if (id.includes('@unovis')) return 'vendor-charts'
-                    if (id.includes('@vue-flow')) return 'vendor-flow'
+                // Explicit groups rather than `manualChunks`: Rolldown turns that into a
+                // single group that also captures each module's dependencies, so the
+                // Vue runtime (a dependency of vue-codemirror) landed in
+                // vendor-codemirror and every page preloaded CodeMirror. Separate groups
+                // are matched in order, and a module taken by an earlier group is
+                // removed from the later ones.
+                codeSplitting: {
+                    groups: [
+                        { name: 'vendor-vue', test: isVueVendorModule },
+                        { name: 'vendor-query', test: (id) => id.includes('@tanstack/vue-query') },
+                        { name: 'vendor-ui', test: (id) => id.includes('/clsx/') || id.includes('tailwind-merge') },
+                        { name: 'vendor-reka', test: (id) => id.includes('reka-ui') },
+                        { name: 'vendor-i18n', test: (id) => id.includes('vue-i18n') || id.includes('@intlify') },
+                        // CodeMirror runtime core only — the `@codemirror/lang-*` grammars
+                        // (and their heavy `@lezer/<language>` parser tables) are dynamically
+                        // imported per language in CodeEditor.vue, so leave them to auto-splitting.
+                        { name: 'vendor-codemirror', test: (id) => CODEMIRROR_CORE.some((p) => id.includes(p)) },
+                        { name: 'vendor-editor', test: (id) => id.includes('@tiptap') || id.includes('/tiptap/') },
+                        { name: 'vendor-charts', test: (id) => id.includes('@unovis') },
+                        { name: 'vendor-flow', test: (id) => id.includes('@vue-flow') },
+                    ],
                 },
             },
         },
