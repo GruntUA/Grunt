@@ -3,9 +3,10 @@ import { computed, defineAsyncComponent, nextTick, provide, ref, watch, type Com
 import { useI18n } from 'vue-i18n'
 import { useResizeObserver } from '@vueuse/core'
 import type { DocField, DocType } from '@/types'
-import { parseLayout } from '@/core/composables/useFormLayout'
+import { columnWidths, parseLayout } from '@/core/composables/useFormLayout'
 import { evalDependsOn } from '@/core/dependsOn'
 import { FORM_ERRORS } from './formErrors'
+import { columnTemplate, fieldSpanClass, hasFieldWidths, sectionGridClass } from './formGrid'
 import type { LayoutSection, LayoutTab } from '@/core/composables/useFormLayout'
 import type { PresenceUser } from '@/core/composables/usePresence'
 import { initials } from '@/core/composables/usePresence'
@@ -176,14 +177,13 @@ function onTableSelectionChange(fieldname: string, rowNames: string[]) {
 
 // Columns collapse by the section's own width (container query), not the
 // viewport - a form squeezed by the sidebar stacks just like on a phone.
-const SECTION_GRID_CLASS: Record<number, string> = {
-  2: '@lg:grid-cols-2',
-  3: '@lg:grid-cols-2 @3xl:grid-cols-3',
-  4: '@lg:grid-cols-2 @4xl:grid-cols-4',
+function sectionClass(section: LayoutSection): string {
+  return sectionGridClass(columnWidths(section), section.columns.length)
 }
 
-function sectionGridClass(section: LayoutSection): string {
-  return SECTION_GRID_CLASS[Math.min(section.columns.length, 4)] ?? ''
+function sectionStyle(section: LayoutSection): Record<string, string> | undefined {
+  const template = columnTemplate(columnWidths(section), section.columns.length)
+  return template ? { '--form-cols': template } : undefined
 }
 
 // A collapsible section starts folded when every field in it is empty. Decided
@@ -270,10 +270,17 @@ function toggleSection(section: LayoutSection) {
           <CollapsibleContent
             :class="section.collapsible && 'overflow-hidden data-open:animate-collapsible-down data-closed:animate-collapsible-up'">
             <div class="grid grid-cols-1 gap-x-5 gap-y-5"
-              :class="[section.label ? 'form-section-body' : '', sectionGridClass(section)]">
-              <div v-for="(col, ci) in section.columns" :key="ci" class="flex-1 flex flex-col gap-3 min-w-0">
-                <div v-for="f in col" v-show="overrides?.[f.fieldname] !== false" :key="f.fieldname"
-                  class="relative group" @focusin="emit('field-focus', f.fieldname)"
+              :class="[section.label ? 'form-section-body' : '', sectionClass(section)]"
+              :style="sectionStyle(section)">
+              <!-- Fields with a width (`columns` < 12) share rows on a 12-part grid of their column -->
+              <div v-for="(col, ci) in section.columns" :key="ci" class="min-w-0"
+                :class="hasFieldWidths(col)
+                  ? '@container grid grid-cols-12 content-start gap-x-4 gap-y-3'
+                  : 'flex flex-1 flex-col gap-3'">
+                <div v-for="f in col" v-show="hasFieldWidths(col) ? isFieldVisible(f) : overrides?.[f.fieldname] !== false"
+                  :key="f.fieldname"
+                  class="relative group" :class="hasFieldWidths(col) && fieldSpanClass(f)"
+                  @focusin="emit('field-focus', f.fieldname)"
                   @focusout="emit('field-blur', f.fieldname)">
 
                   <!-- Field lock badge -->

@@ -23165,3 +23165,19 @@ msgstr ""
 #: grunt/grunt/storage/files.py
 msgid "File type “%(type)s” is not allowed"
 msgstr "Тип файлу «%(type)s» не дозволено"
+
+#: grunt/frontend/src/pages/studio/builder/sections/CoreSection.vue
+msgid "Full width"
+msgstr "На всю ширину"
+
+#: grunt/frontend/src/pages/studio/builder/sections/CoreSection.vue
+msgid "Share of the section; columns without a width split the rest"
+msgstr "Частка розділу; колонки без ширини ділять решту порівну"
+
+#: grunt/frontend/src/pages/studio/builder/sections/CoreSection.vue
+msgid "Share of its column; narrow fields stand side by side"
+msgstr "Частка своєї колонки; вузькі поля стають поруч"
+
+#: grunt/frontend/src/pages/studio/builder/CanvasSection.vue
+msgid "Column width"
+msgstr "Ширина колонки"

@@ -174,6 +174,23 @@ describe('builder store — sections & columns', () => {
     expect(names(b)).toEqual(['sec_a', 'f1', 'f2'])
   })
 
+  it('setColumnWidth keeps the width on the Column field', () => {
+    const b = useBuilderStore()
+    b.doctype = seed([
+      { fieldname: 'sec_a', label: 'A', fieldtype: 'Section' },
+      { fieldname: 'f1', label: 'F1', fieldtype: 'Data' },
+      { fieldname: 'col_b', label: '', fieldtype: 'Column' },
+      { fieldname: 'f2', label: 'F2', fieldtype: 'Data' },
+    ])
+
+    b.setColumnWidth('sec_a', 1, 4)
+    b.setColumnWidth('sec_a', 0, 8)
+
+    const cols = b.doctype!.fields.filter((f) => f.fieldtype === 'Column')
+    expect(cols.map((c) => c.columns)).toEqual([8, 4])
+    expect(b.doctype!.fields.map((f) => f.fieldname)).toEqual(['sec_a', cols[0].fieldname, 'f1', 'col_b', 'f2'])
+  })
+
   it('addFieldToColumn inserts into the target column and selects the new field', () => {
     const b = useBuilderStore()
     b.doctype = seed([

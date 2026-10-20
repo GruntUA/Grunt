@@ -68,6 +68,7 @@ export const useBuilderStore = defineStore('builder', () => {
     promoteImplicitSection,
     removeSection,
     setSectionColumns,
+    setColumnWidth,
     addFieldToColumn,
   } = useBuilderLayout({ doctype, selectField })
 
@@ -140,6 +141,7 @@ export const useBuilderStore = defineStore('builder', () => {
     promoteImplicitSection,
     removeSection,
     setSectionColumns,
+    setColumnWidth,
     addFieldToColumn,
   }
 })

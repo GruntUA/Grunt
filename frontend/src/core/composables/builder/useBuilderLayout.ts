@@ -144,6 +144,28 @@ export function useBuilderLayout({ doctype, selectField }: UseBuilderLayoutParam
     })
   }
 
+  /** Width of one column in twelfths (12 - share equally), kept on its Column field. */
+  function setColumnWidth(sectionFieldname: string, columnIndex: number, width: number) {
+    commit((layout) => {
+      for (const tab of layout) {
+        for (const section of tab.sections) {
+          if (section._fieldname !== sectionFieldname) continue
+          if (columnIndex < 0 || columnIndex >= section.columns.length) return
+          const colFields = (section._columnFields ??= [])
+          let col = colFields[columnIndex]
+          const breakName = columnIndex > 0 ? section._columnFieldnames[columnIndex - 1] : undefined
+          if (!col || (columnIndex > 0 && col.fieldname !== breakName)) {
+            // The first column gets a Column of its own at the top of the section.
+            const fieldname = breakName ?? generateFieldname('Column', section._columnFieldnames)
+            col = { fieldname, label: '', fieldtype: 'Column' }
+          }
+          colFields[columnIndex] = { ...col, columns: width }
+          return
+        }
+      }
+    })
+  }
+
   function addFieldToColumn(
     fieldtype: FieldType,
     sectionFieldname: string,
@@ -180,6 +202,7 @@ export function useBuilderLayout({ doctype, selectField }: UseBuilderLayoutParam
     promoteImplicitSection,
     removeSection,
     setSectionColumns,
+    setColumnWidth,
     addFieldToColumn,
   }
 }

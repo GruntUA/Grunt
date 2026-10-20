@@ -19,6 +19,17 @@ export interface LayoutSection {
   _field: DocField | null // null for the implicit default section
   _columnFieldnames: string[] // fieldnames of Column break fields (first column has none)
   columns: DocField[][] // each inner array is one column's fields
+  /**
+   * The Column fields themselves, by column index (the first column's only when
+   * the section opens with one) - kept so their properties (`columns`, label)
+   * survive a builder round trip.
+   */
+  _columnFields?: (DocField | undefined)[]
+}
+
+/** Width of each column in twelfths, from its Column field's `columns` (12 = not set). */
+export function columnWidths(section: LayoutSection): number[] {
+  return section.columns.map((_, ci) => section._columnFields?.[ci]?.columns ?? 12)
 }
 
 export type FormLayout = LayoutTab[]
@@ -102,11 +113,14 @@ export function parseLayout(fields: DocField[]): FormLayout {
     } else if (f.fieldtype === 'Column') {
       const lastCol = currentSection.columns[currentSection.columns.length - 1]
       // If the ONLY current column is empty, just name it. Otherwise start new.
-      if (lastCol.length === 0 && currentSection.columns.length === 1) {
-        currentSection._columnFieldnames = [f.fieldname]
+      const colFields = (currentSection._columnFields ??= [])
+      if (lastCol.length === 0 && currentSection.columns.length === 1 && !colFields[0]) {
+        // A Column opening the section just describes its first column.
+        colFields[0] = f
       } else {
         currentSection._columnFieldnames.push(f.fieldname)
         currentSection.columns.push([])
+        colFields[currentSection.columns.length - 1] = f
       }
     } else {
       const lastCol = currentSection.columns[currentSection.columns.length - 1]
@@ -145,9 +159,13 @@ export function flattenLayout(layout: FormLayout): DocField[] {
       }
 
       for (let ci = 0; ci < section.columns.length; ci++) {
-        // Emit Column break for columns after the first
-        if (ci > 0 && section._columnFieldnames[ci - 1]) {
-          const colFieldname = section._columnFieldnames[ci - 1]
+        // The column's own Column field as parsed (keeps its properties); a
+        // column the builder added gets a bare break with the generated name.
+        const kept = section._columnFields?.[ci]
+        const colFieldname = ci > 0 ? section._columnFieldnames[ci - 1] : undefined
+        if (kept && (ci === 0 || kept.fieldname === colFieldname)) {
+          result.push(kept)
+        } else if (colFieldname) {
           result.push({
             fieldname: colFieldname,
             label: '',

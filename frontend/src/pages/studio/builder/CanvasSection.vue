@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { ref, watch, nextTick } from 'vue'
+import { computed, ref, watch, nextTick } from 'vue'
 import type { DocField } from '@/types'
 import { useBuilderStore } from '@/stores/builder'
-import type { LayoutSection } from '@/core/composables/useFormLayout'
+import { columnWidths, type LayoutSection } from '@/core/composables/useFormLayout'
+import { columnTemplate } from '@/core/renderer/formGrid'
 import { ChevronDown, GripVertical, Minus, X } from '@lucide/vue'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -55,6 +56,24 @@ function finishEditLabel() {
 
 function setColumns(count: number) {
   builder.setSectionColumns(props.section._fieldname, count)
+}
+
+// Column widths in twelfths (`columns` on the Column field); 12 = share equally.
+const COLUMN_WIDTHS = [12, 3, 4, 6, 8, 9]
+const widths = computed(() => columnWidths(props.section))
+const gridTemplate = computed(
+  () => columnTemplate(widths.value, props.section.columns.length)
+    ?? `repeat(${props.section.columns.length}, minmax(0, 1fr))`,
+)
+
+function widthLabel(w: number): string {
+  if (w === 12) return t('Auto')
+  const known: Record<number, string> = { 3: '1/4', 4: '1/3', 6: '1/2', 8: '2/3', 9: '3/4' }
+  return known[w] ?? `${w}/12`
+}
+
+function setWidth(ci: number, value: unknown) {
+  builder.setColumnWidth(props.section._fieldname, ci, Number(value))
 }
 
 let _pendingEmit = false
@@ -158,14 +177,26 @@ function selectSection() {
     <!-- Columns grid -->
     <div
       class="p-2 gap-2"
-      :style="{ display: 'grid', gridTemplateColumns: `repeat(${section.columns.length}, 1fr)` }"
+      :style="{ display: 'grid', gridTemplateColumns: gridTemplate }"
     >
-      <CanvasColumn
-        v-for="(col, ci) in section.columns"
-        :key="ci"
-        :fields="col"
-        @update:fields="updateColumnFields(ci, $event)"
-      />
+      <div v-for="(col, ci) in section.columns" :key="ci" class="min-w-0">
+        <!-- Column width (only meaningful next to another column) -->
+        <div v-if="section.columns.length > 1" class="flex justify-end px-1.5 pb-1">
+          <select
+            class="h-6 rounded border border-input bg-background px-1 text-xs text-muted-foreground"
+            :aria-label="t('Column width')"
+            :value="widths[ci]"
+            @change="setWidth(ci, ($event.target as HTMLSelectElement).value)"
+          >
+            <option v-for="w in COLUMN_WIDTHS.includes(widths[ci]) ? COLUMN_WIDTHS : [...COLUMN_WIDTHS, widths[ci]]"
+              :key="w" :value="w">{{ widthLabel(w) }}</option>
+          </select>
+        </div>
+        <CanvasColumn
+          :fields="col"
+          @update:fields="updateColumnFields(ci, $event)"
+        />
+      </div>
     </div>
   </div>
 </template>
