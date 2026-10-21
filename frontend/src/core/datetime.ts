@@ -15,6 +15,13 @@
  * reloading the SPA is enough - no rebuild.
  */
 
+import {
+  CalendarDate,
+  getDayOfWeek,
+  parseDate,
+  type CalendarDateTime,
+  type DateDuration,
+} from '@internationalized/date'
 import { siteConfigState } from '@/core/composables/useSiteConfig'
 import i18n from '@/plugins/i18n'
 
@@ -217,4 +224,47 @@ export function formatAge(value: DateInput): string {
     }
   }
   return t('just now')
+}
+
+// Calendar dates
+// Day-granular views (Calendar, Gantt) work on `CalendarDate` - a bare
+// year/month/day with no time zone, so a day never shifts at midnight UTC.
+
+/** "2026-10-21" or "2026-10-21 09:30:00" -> that day; null if unparsable. */
+export function toCalendarDay(value: unknown): CalendarDate | null {
+  const s = String(value ?? '').slice(0, 10)
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return null
+  try {
+    return parseDate(s)
+  } catch {
+    return null // 2026-02-30 and the like
+  }
+}
+
+/** Whole days from `a` to `b` - negative when `b` is earlier. */
+export function daysBetween(a: CalendarDate, b: CalendarDate): number {
+  return b.compare(a)
+}
+
+/** `start`, `start + step`, … up to and including `end`. */
+export function eachDate(start: CalendarDate, end: CalendarDate, step: DateDuration = { days: 1 }): CalendarDate[] {
+  const out: CalendarDate[] = []
+  for (let d = start; d.compare(end) <= 0; d = d.add(step)) out.push(d)
+  return out
+}
+
+/** ISO-8601 week number: weeks start on Monday, week 1 holds the year's first Thursday. */
+export function isoWeek(d: CalendarDate): number {
+  const thursday = d.add({ days: 3 - getDayOfWeek(d, 'en-GB', 'mon') })
+  return Math.floor(daysBetween(new CalendarDate(thursday.year, 1, 1), thursday) / 7) + 1
+}
+
+/** Locale-formatted calendar date (or naive date-time) - no time-zone conversion. */
+export function formatCalendarDate(d: CalendarDate | CalendarDateTime, opts: Intl.DateTimeFormatOptions): string {
+  return new Intl.DateTimeFormat(localeTag(), { ...opts, timeZone: 'UTC' }).format(d.toDate('UTC'))
+}
+
+/** "жовтень 2026" - without the "р." that `Intl` appends to a month + year. */
+export function formatMonthYear(d: CalendarDate): string {
+  return `${formatCalendarDate(d, { month: 'long' })} ${d.year}`
 }

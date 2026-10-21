@@ -8,7 +8,13 @@ import {
   formatAge,
   formatSpan,
   EMPTY_DATE,
+  toCalendarDay,
+  daysBetween,
+  eachDate,
+  isoWeek,
+  formatMonthYear,
 } from '@/core/datetime'
+import { CalendarDate } from '@internationalized/date'
 
 function setConfig(over: Partial<ReturnType<typeof siteConfigState>>) {
   Object.assign(siteConfigState(), over)
@@ -105,5 +111,39 @@ describe('core/datetime', () => {
     expect(parts[0]).toBe('3')
     expect(parts).toContain('4')
     expect(parts).not.toContain('10')
+  })
+})
+
+describe('core/datetime calendar dates', () => {
+  const D = (y: number, m: number, d: number) => new CalendarDate(y, m, d)
+
+  it('parses the day part of Date and Datetime values', () => {
+    expect(toCalendarDay('2026-10-21')?.toString()).toBe('2026-10-21')
+    expect(toCalendarDay('2026-10-21 23:59:00')?.toString()).toBe('2026-10-21')
+    expect(toCalendarDay('2026-02-30')).toBeNull()
+    expect(toCalendarDay('')).toBeNull()
+    expect(toCalendarDay(null)).toBeNull()
+  })
+
+  it('counts days across months and years', () => {
+    expect(daysBetween(D(2026, 1, 31), D(2026, 3, 1))).toBe(29)
+    expect(daysBetween(D(2026, 12, 31), D(2027, 1, 1))).toBe(1)
+    expect(daysBetween(D(2026, 3, 1), D(2026, 1, 31))).toBe(-29)
+  })
+
+  it('steps through a range inclusively', () => {
+    expect(eachDate(D(2026, 10, 30), D(2026, 11, 2)).map(String))
+      .toEqual(['2026-10-30', '2026-10-31', '2026-11-01', '2026-11-02'])
+    expect(eachDate(D(2026, 1, 15), D(2026, 3, 1), { months: 1 }).length).toBe(2)
+  })
+
+  it('numbers ISO weeks', () => {
+    expect(isoWeek(D(2026, 1, 1))).toBe(1) // Thursday
+    expect(isoWeek(D(2027, 1, 1))).toBe(53) // Friday - still 2026's last week
+    expect(isoWeek(D(2026, 10, 21))).toBe(43)
+  })
+
+  it('formats month and year without the "р." suffix', () => {
+    expect(formatMonthYear(D(2026, 10, 1))).toBe('жовтень 2026')
   })
 })

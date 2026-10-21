@@ -1,23 +1,22 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, shallowRef, computed, onMounted, watch } from 'vue'
 import {
-  format,
-  startOfMonth,
   endOfMonth,
-  startOfWeek,
   endOfWeek,
-  eachDayOfInterval,
+  getLocalTimeZone,
   isSameMonth,
-  addMonths,
-  subMonths,
-  parseISO,
   isToday,
-} from 'date-fns'
-import { uk, enUS } from 'date-fns/locale'
-import { CalendarDate, getLocalTimeZone, type DateValue } from '@internationalized/date'
+  parseDateTime,
+  startOfMonth,
+  startOfWeek,
+  toCalendarDate,
+  today,
+  type CalendarDate,
+  type DateValue,
+} from '@internationalized/date'
 import type { DocType } from '@/types'
-import { siteConfigState } from '@/core/composables/useSiteConfig'
+import { eachDate, formatCalendarDate, formatMonthYear, localeTag, toCalendarDay } from '@/core/datetime'
 import { docsApi } from '@/core/api/docs'
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Plus, ExternalLink } from '@lucide/vue'
 import { useRouter } from 'vue-router'
@@ -38,19 +37,18 @@ const props = defineProps<{
 }>()
 
 const router = useRouter()
-const dfLocale = computed(() => (siteConfigState().language.toLowerCase().startsWith('en') ? enUS : uk))
-const currentMonth = ref(new Date())
+const currentMonth = shallowRef<CalendarDate>(today(getLocalTimeZone()))
 const isLoading = ref(true)
 const isRescheduling = ref(false)
 
 const calendarDays = computed(() => {
-  const start = startOfWeek(startOfMonth(currentMonth.value), { weekStartsOn: 1 })
-  const end = endOfWeek(endOfMonth(currentMonth.value), { weekStartsOn: 1 })
-  return eachDayOfInterval({ start, end })
+  const start = startOfWeek(startOfMonth(currentMonth.value), localeTag(), 'mon')
+  const end = endOfWeek(endOfMonth(currentMonth.value), localeTag(), 'mon')
+  return eachDate(start, end)
 })
 
 const monthLabel = computed(() => {
-  const label = format(currentMonth.value, 'LLLL yyyy', { locale: dfLocale.value })
+  const label = formatMonthYear(currentMonth.value)
   return label.charAt(0).toUpperCase() + label.slice(1)
 })
 
@@ -98,10 +96,11 @@ function getBirthdayAge(rawDate: string, targetYear: number) {
 async function loadDocuments() {
   isLoading.value = true
   try {
-    const startM = startOfMonth(currentMonth.value)
-    const endM = endOfMonth(currentMonth.value)
-    const endStr = format(endM, 'yyyy-MM-dd')
-    const currentYear = currentMonth.value.getFullYear()
+    const endStr = endOfMonth(currentMonth.value).toString()
+    const currentYear = currentMonth.value.year
+    // The visible grid: whole weeks around the month, as 'yyyy-mm-dd' (compares as text).
+    const gridStart = calendarDays.value[0].toString()
+    const gridEnd = calendarDays.value[calendarDays.value.length - 1].toString()
 
     const endField = props.doctype.calendar_end_date_field
     const primaryFields = new Set(['name', props.dateField, props.doctype.title_field || 'name'])
@@ -132,11 +131,9 @@ async function loadDocuments() {
     const overlaps = (start: string, end?: string, recurring?: boolean) => {
       if (!start) return false
       if (recurring) return true
-      const s = parseISO(start.slice(0, 10))
-      const e = end ? parseISO(end.slice(0, 10)) : s
-      const mS = startOfWeek(startM, { weekStartsOn: 1 })
-      const mE = endOfWeek(endM, { weekStartsOn: 1 })
-      return s <= mE && e >= mS
+      const s = start.slice(0, 10)
+      const e = end ? end.slice(0, 10) : s
+      return s <= gridEnd && e >= gridStart
     }
 
     if (primaryResp.data) {
@@ -198,9 +195,9 @@ async function loadDocuments() {
   }
 }
 
-function getEventsForDay(day: Date) {
-  const dStr = format(day, 'yyyy-MM-dd')
-  const mDStr = format(day, 'MM-dd')
+function getEventsForDay(day: CalendarDate) {
+  const dStr = day.toString()
+  const mDStr = dStr.slice(5)
   return events.value.filter(event => {
     if (!event.date) return false
     if (event.recurring) return event.date.includes(mDStr)
@@ -213,34 +210,40 @@ function getEventsForDay(day: Date) {
 // Cap the chips rendered inside a day cell; the rest collapse into a "+N ще"
 // popover so a busy day never overflows the grid.
 const MAX_VISIBLE_EVENTS = 3
-function hiddenEventCount(day: Date) {
+function hiddenEventCount(day: CalendarDate) {
   return Math.max(0, getEventsForDay(day).length - MAX_VISIBLE_EVENTS)
 }
-function dayFullLabel(day: Date) {
-  return format(day, 'd MMMM', { locale: dfLocale.value })
+function dayFullLabel(day: CalendarDate) {
+  return formatCalendarDate(day, { day: 'numeric', month: 'long' })
 }
 
-function nextMonth() { currentMonth.value = addMonths(currentMonth.value, 1) }
-function prevMonth() { currentMonth.value = subMonths(currentMonth.value, 1) }
-function setToday() { currentMonth.value = new Date() }
+function nextMonth() { currentMonth.value = currentMonth.value.add({ months: 1 }) }
+function prevMonth() { currentMonth.value = currentMonth.value.subtract({ months: 1 }) }
+function setToday() { currentMonth.value = today(getLocalTimeZone()) }
 
 // Month picker (replaces the native <input type="month">)
 const isPickerOpen = ref(false)
 const pickerValue = computed<DateValue | null>({
   get() {
-    const d = currentMonth.value
-    return new CalendarDate(d.getFullYear(), d.getMonth() + 1, d.getDate())
+    return currentMonth.value
   },
   set(val) {
     if (!val) return
-    currentMonth.value = startOfMonth(val.toDate(getLocalTimeZone()))
+    currentMonth.value = startOfMonth(toCalendarDate(val))
     isPickerOpen.value = false
   },
 })
 
 function fmtDate(d: string | null) {
-  if (!d) return ''
-  return format(parseISO(d.slice(0, 19)), 'dd MMMM yyyy, HH:mm', { locale: dfLocale.value })
+  const opts: Intl.DateTimeFormatOptions = { day: '2-digit', month: 'long', year: 'numeric' }
+  // A Datetime value shows its wall-clock time as stored; a bare Date shows no time.
+  if (d && /^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}/.test(d)) {
+    return formatCalendarDate(parseDateTime(d.slice(0, 19).replace(' ', 'T')), {
+      ...opts, hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
+    })
+  }
+  const day = toCalendarDay(d)
+  return day ? formatCalendarDate(day, opts) : ''
 }
 
 onMounted(loadDocuments)
@@ -277,11 +280,11 @@ function onDragEnd() {
   dragOverDay.value = null
 }
 
-function onDragOver(day: Date) {
-  dragOverDay.value = day.toISOString()
+function onDragOver(day: CalendarDate) {
+  dragOverDay.value = day.toString()
 }
 
-async function onDrop(e: DragEvent, day: Date) {
+async function onDrop(e: DragEvent, day: CalendarDate) {
   dragOverDay.value = null
   const data = e.dataTransfer?.getData('application/json')
   if (!data) return
@@ -294,7 +297,7 @@ async function onDrop(e: DragEvent, day: Date) {
 
   if (!dateField) return
 
-  const newDate = format(day, 'yyyy-MM-dd') + (event.date.includes('T') ? 'T' + event.date.split('T')[1] : ' 00:00:00')
+  const newDate = day.toString() + (event.date.includes('T') ? 'T' + event.date.split('T')[1] : ' 00:00:00')
   const oldDate = event.date
   event.date = newDate // Optimistic
 
@@ -310,13 +313,13 @@ async function onDrop(e: DragEvent, day: Date) {
   }
 }
 
-function onDayClick(day: Date) {
+function onDayClick(day: CalendarDate) {
   const path = docUrl(props.doctype.name, 'new', props.workspace)
 
   router.push({
     path,
     state: {
-      initial_data: JSON.stringify({ [props.dateField]: format(day, 'yyyy-MM-dd') })
+      initial_data: JSON.stringify({ [props.dateField]: day.toString() })
     }
   })
 }
@@ -369,21 +372,21 @@ const weekDays = [t('Mon'), t('Tue'), t('Wed'), t('Thu'), t('Fri'), t('Sat'), t(
 
       <!-- Days grid -->
       <div class="flex-1 grid grid-cols-7 auto-rows-fr overflow-y-auto custom-scrollbar bg-border/60 gap-px">
-        <div v-for="day in calendarDays" :key="day.toISOString()"
+        <div v-for="day in calendarDays" :key="day.toString()"
           class="min-h-32 bg-card p-1.5 flex flex-col gap-1 relative group cursor-default transition-colors"
           :class="{
             'bg-muted/30 text-muted-foreground': !isSameMonth(day, currentMonth),
-            'ring-2 ring-inset ring-primary/60 bg-primary/5 z-10': dragOverDay === day.toISOString()
+            'ring-2 ring-inset ring-primary/60 bg-primary/5 z-10': dragOverDay === day.toString()
           }" @dragover.prevent="onDragOver(day)" @drop="onDrop($event, day)" @click.self="onDayClick(day)">
 
           <!-- Day header -->
           <div class="flex justify-between items-center">
             <span class="font-medium size-6 flex items-center justify-center rounded-md" :class="[
-              isToday(day)
+              isToday(day, getLocalTimeZone())
                 ? 'bg-primary text-primary-foreground'
                 : isSameMonth(day, currentMonth) ? 'text-foreground' : 'text-muted-foreground/50'
             ]">
-              {{ format(day, 'd') }}
+              {{ day.day }}
             </span>
 
             <Button variant="ghost" size="icon" class="size-6 opacity-0 group-hover:opacity-100 text-muted-foreground" @click.stop="onDayClick(day)"><Plus class="size-4" /></Button>

@@ -1,24 +1,26 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { ref, computed, onMounted, watch, nextTick } from 'vue'
+import { ref, shallowRef, triggerRef, computed, onMounted, watch, nextTick } from 'vue'
 import {
-  format,
-  parseISO,
-  startOfDay,
-  addDays,
-  differenceInCalendarDays,
-  eachDayOfInterval,
-  eachWeekOfInterval,
-  eachMonthOfInterval,
+  getLocalTimeZone,
   isWeekend,
-  min as minDate,
-  max as maxDate,
-} from 'date-fns'
-import { uk, enUS } from 'date-fns/locale'
+  startOfMonth,
+  startOfWeek,
+  today,
+  type CalendarDate,
+} from '@internationalized/date'
 import { useRouter } from 'vue-router'
 import { docUrl } from '@/core/workspaceUrl'
 import type { DocType } from '@/types'
-import { siteConfigState } from '@/core/composables/useSiteConfig'
+import {
+  daysBetween,
+  eachDate,
+  formatCalendarDate,
+  formatMonthYear,
+  isoWeek,
+  localeTag,
+  toCalendarDay,
+} from '@/core/datetime'
 import { docsApi } from '@/core/api/docs'
 import { useToast } from '@/core/composables/useToast'
 import { Button } from '@/components/ui/button'
@@ -40,7 +42,6 @@ const props = defineProps<{
 
 const router = useRouter()
 const toast = useToast()
-const dfLocale = computed(() => (siteConfigState().language.toLowerCase().startsWith('en') ? enUS : uk))
 
 // Config (assembled from the flat gantt_* fields)
 const cfg = computed(() => ({
@@ -84,14 +85,15 @@ interface GanttTask {
   id: string
   name: string
   title: string
-  start: Date
-  end: Date
+  start: CalendarDate
+  end: CalendarDate
   progress: number
   color: string
   deps: string[]
 }
 
-const tasks = ref<GanttTask[]>([])
+// shallowRef: CalendarDate is an immutable value - no deep proxies; mutations call triggerRef.
+const tasks = shallowRef<GanttTask[]>([])
 const isLoading = ref(true)
 const scrollEl = ref<HTMLElement | null>(null)
 
@@ -133,10 +135,10 @@ async function load() {
       const rawStart = row[startField.value]
       const rawEnd = row[endField.value]
       if (!rawStart || !rawEnd) continue
-      const start = startOfDay(parseISO(String(rawStart).slice(0, 19)))
-      let end = startOfDay(parseISO(String(rawEnd).slice(0, 19)))
-      if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) continue
-      if (end < start) end = start
+      const start = toCalendarDay(rawStart)
+      let end = toCalendarDay(rawEnd)
+      if (!start || !end) continue
+      if (end.compare(start) < 0) end = start
       const rawProg = progressField.value ? Number(row[progressField.value]) : 0
       const progress = Number.isFinite(rawProg)
         ? Math.max(0, Math.min(100, rawProg <= 1 && rawProg > 0 ? rawProg * 100 : rawProg))
@@ -157,7 +159,7 @@ async function load() {
           : [],
       })
     }
-    out.sort((a, b) => a.start.getTime() - b.start.getTime())
+    out.sort((a, b) => a.start.compare(b.start))
     tasks.value = out
   } catch (e) {
     console.error('Gantt: failed to load', e)
@@ -178,23 +180,28 @@ watch(() => props.doctype.name, load)
 
 // Timeline range
 const range = computed(() => {
-  const today = startOfDay(new Date())
+  const now = todayDate()
   if (!tasks.value.length) {
-    return { start: addDays(today, -14), end: addDays(today, 30) }
+    return { start: now.subtract({ days: 14 }), end: now.add({ days: 30 }) }
   }
-  const starts = tasks.value.map((t) => t.start)
-  const ends = tasks.value.map((t) => t.end)
-  const lo = minDate([...starts, today])
-  const hi = maxDate([...ends, today])
-  return { start: addDays(startOfDay(lo), -7), end: addDays(startOfDay(hi), 14) }
+  let lo = now
+  let hi = now
+  for (const task of tasks.value) {
+    if (task.start.compare(lo) < 0) lo = task.start
+    if (task.end.compare(hi) > 0) hi = task.end
+  }
+  return { start: lo.subtract({ days: 7 }), end: hi.add({ days: 14 }) }
 })
 
-const totalDays = computed(() => differenceInCalendarDays(range.value.end, range.value.start) + 1)
+const totalDays = computed(() => daysBetween(range.value.start, range.value.end) + 1)
 const chartWidth = computed(() => totalDays.value * dayWidth.value)
 const chartHeight = computed(() => Math.max(tasks.value.length * ROW_H, ROW_H * 3))
 
-function xFor(d: Date): number {
-  return differenceInCalendarDays(startOfDay(d), range.value.start) * dayWidth.value
+function todayDate(): CalendarDate {
+  return today(getLocalTimeZone())
+}
+function xFor(d: CalendarDate): number {
+  return daysBetween(range.value.start, d) * dayWidth.value
 }
 function rowMid(i: number): number {
   return i * ROW_H + ROW_H / 2
@@ -205,36 +212,36 @@ interface Tick { x: number; label: string; sub?: string; width: number }
 const ticks = computed<Tick[]>(() => {
   const { start, end } = range.value
   if (zoom.value === 'day') {
-    return eachDayOfInterval({ start, end }).map((d) => ({
+    return eachDate(start, end).map((d) => ({
       x: xFor(d),
-      label: format(d, 'd', { locale: dfLocale.value }),
-      sub: format(d, 'EEEEEE', { locale: dfLocale.value }),
+      label: String(d.day),
+      sub: formatCalendarDate(d, { weekday: 'short' }),
       width: dayWidth.value,
     }))
   }
   if (zoom.value === 'week') {
-    return eachWeekOfInterval({ start, end }, { weekStartsOn: 1 }).map((d) => ({
+    return eachDate(startOfWeek(start, localeTag(), 'mon'), end, { weeks: 1 }).map((d) => ({
       x: xFor(d),
-      label: format(d, 'd MMM', { locale: dfLocale.value }),
-      sub: format(d, `'${t('wk.')}'w`, { locale: dfLocale.value }),
+      label: formatCalendarDate(d, { day: 'numeric', month: 'short' }),
+      sub: `${t('wk.')}${isoWeek(d)}`,
       width: dayWidth.value * 7,
     }))
   }
-  return eachMonthOfInterval({ start, end }).map((d) => ({
+  return eachDate(startOfMonth(start), end, { months: 1 }).map((d) => ({
     x: xFor(d),
-    label: format(d, 'LLLL yyyy', { locale: dfLocale.value }),
+    label: formatMonthYear(d),
     width: dayWidth.value * 31,
   }))
 })
 
 const gridLines = computed(() => ticks.value.map((t) => t.x))
-const todayX = computed(() => xFor(new Date()))
+const todayX = computed(() => xFor(todayDate()))
 const showToday = computed(() => todayX.value >= 0 && todayX.value <= chartWidth.value)
 
 const weekendBands = computed(() => {
   if (zoom.value !== 'day') return [] as number[]
-  return eachDayOfInterval(range.value)
-    .filter((d) => isWeekend(d))
+  return eachDate(range.value.start, range.value.end)
+    .filter((d) => isWeekend(d, localeTag()))
     .map((d) => xFor(d))
 })
 
@@ -288,13 +295,13 @@ function barStyle(task: GanttTask, i: number) {
   let e = task.end
   if (drag.value?.id === task.id) {
     const dd = drag.value.deltaDays
-    if (drag.value.mode === 'move') { s = addDays(s, dd); e = addDays(e, dd) }
-    else if (drag.value.mode === 'resize-start') s = addDays(s, dd)
-    else e = addDays(e, dd)
-    if (e < s) { if (drag.value.mode === 'resize-start') s = e; else e = s }
+    if (drag.value.mode === 'move') { s = s.add({ days: dd }); e = e.add({ days: dd }) }
+    else if (drag.value.mode === 'resize-start') s = s.add({ days: dd })
+    else e = e.add({ days: dd })
+    if (e.compare(s) < 0) { if (drag.value.mode === 'resize-start') s = e; else e = s }
   }
   const left = xFor(s)
-  const width = Math.max((differenceInCalendarDays(e, s) + 1) * dayWidth.value, dayWidth.value)
+  const width = Math.max((daysBetween(s, e) + 1) * dayWidth.value, dayWidth.value)
   return {
     transform: `translateX(${left}px)`,
     width: `${width}px`,
@@ -335,19 +342,20 @@ async function onDragEnd() {
 
   const patch: Record<string, string> = {}
   if (d.mode === 'move' || d.mode === 'resize-start') {
-    const ns = addDays(task.start, dd)
+    const ns = task.start.add({ days: dd })
     patch[startField.value] = serialize(ns, d.raw.start, fieldType(startField.value))
   }
   if (d.mode === 'move' || d.mode === 'resize-end') {
-    const ne = addDays(task.end, dd)
+    const ne = task.end.add({ days: dd })
     patch[endField.value] = serialize(ne, d.raw.end, fieldType(endField.value))
   }
 
   // optimistic
-  if (d.mode === 'move') { task.start = addDays(task.start, dd); task.end = addDays(task.end, dd) }
-  else if (d.mode === 'resize-start') task.start = addDays(task.start, dd)
-  else task.end = addDays(task.end, dd)
-  if (task.end < task.start) task.end = task.start
+  if (d.mode === 'move') { task.start = task.start.add({ days: dd }); task.end = task.end.add({ days: dd }) }
+  else if (d.mode === 'resize-start') task.start = task.start.add({ days: dd })
+  else task.end = task.end.add({ days: dd })
+  if (task.end.compare(task.start) < 0) task.end = task.start
+  triggerRef(tasks)
 
   try {
     isSaving.value = true
@@ -362,12 +370,10 @@ async function onDragEnd() {
 }
 
 function rawOf(task: GanttTask, which: 'start' | 'end'): string {
-  return which === 'start'
-    ? format(task.start, "yyyy-MM-dd'T'00:00:00")
-    : format(task.end, "yyyy-MM-dd'T'00:00:00")
+  return `${task[which].toString()}T00:00:00`
 }
-function serialize(d: Date, original: unknown, ftype: string): string {
-  const day = format(d, 'yyyy-MM-dd')
+function serialize(d: CalendarDate, original: unknown, ftype: string): string {
+  const day = d.toString()
   if (ftype !== 'Datetime') return day
   const orig = String(original ?? '')
   const timePart = orig.includes('T') ? orig.split('T')[1] : orig.slice(11) || '00:00:00'
@@ -380,7 +386,8 @@ function openTask(task: GanttTask) {
 }
 
 function fmtSpan(task: GanttTask) {
-  return `${format(task.start, 'dd.MM.yy')} → ${format(task.end, 'dd.MM.yy')}`
+  const short = (d: CalendarDate) => formatCalendarDate(d, { day: '2-digit', month: '2-digit', year: '2-digit' })
+  return `${short(task.start)} → ${short(task.end)}`
 }
 
 const zoomOptions: { value: Zoom; label: string }[] = [
