@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import { EditorContent } from '@tiptap/vue-3'
-// Geist is the editor typeface only - loaded with this (lazy) chunk, not app-wide.
-import '@fontsource-variable/geist'
 import type { DocField } from '@/types'
 import type { AttachmentResult } from '@/components/fields/Attach/attachment'
 import AttachPicker from '@/components/fields/Attach/AttachPicker.vue'

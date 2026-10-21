@@ -2,7 +2,7 @@
 .richtext-content .tiptap {
   outline: none;
   min-height: 96px;
-  font-family: 'Geist Variable', 'Inter', ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-sans);
 }
 .richtext-content .tiptap > :first-child { margin-top: 0; }
 

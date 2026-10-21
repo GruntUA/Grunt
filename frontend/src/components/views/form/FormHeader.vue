@@ -3,7 +3,7 @@ import { formatNumber } from '@/core/currency'
 import { formatBytes } from '@/core/bytes'
 import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useAuthStore } from '@/stores/auth'
+import client from '@/core/api/client'
 import type { DocType } from '@/types'
 import type { ActionRegistry } from '@/core/actions'
 import type { FormProxy } from '@/core/scripting/executor'
@@ -56,7 +56,6 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
-const auth = useAuthStore()
 const { open: panelOpen, isMobile: panelIsMobile, toggle: togglePanel } = useDocPanel()
 
 const shareLink = ref<string | null>(null)
@@ -169,23 +168,16 @@ async function createShare() {
   if (!props.id || !props.doctype) return
   shareLoading.value = true
   try {
-    const resp = await fetch('/api/v1/method/grunt.api.v1.share.create_share', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${auth.token}`,
-      },
-      body: JSON.stringify({
-        doctype_name: props.doctype,
-        doc_id: props.id,
-        expires_at: shareExpires.value || null,
-      }),
+    const res = await client.post('/api/v1/method/grunt.api.v1.share.create_share', {
+      doctype_name: props.doctype,
+      doc_id: props.id,
+      expires_at: shareExpires.value || null,
     })
-    const json = await resp.json()
-    if (json?.data?.token) {
+    const token = res.data?.data?.token
+    if (token) {
       // /share/:token is a server-rendered website page (grunt/website/www/share/),
       // not an SPA route - build the URL directly.
-      shareLink.value = `${window.location.origin}/share/${json.data.token}`
+      shareLink.value = `${window.location.origin}/share/${token}`
     }
   } finally {
     shareLoading.value = false
