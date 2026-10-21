@@ -2971,6 +2971,14 @@ msgstr "Вийти"
 msgid "Manage shares"
 msgstr "Керувати доступом"
 
+#: grunt/frontend/src/components/layout/NotificationsPopover.vue:82
+msgid "Mute notification sound"
+msgstr "Вимкнути звук сповіщень"
+
+#: grunt/frontend/src/components/layout/NotificationsPopover.vue:82
+msgid "Unmute notification sound"
+msgstr "Увімкнути звук сповіщень"
+
 #: grunt/frontend/src/components/layout/NotificationsPopover.vue:112
 msgid "Mark all as read"
 msgstr "Позначити все як прочитане"

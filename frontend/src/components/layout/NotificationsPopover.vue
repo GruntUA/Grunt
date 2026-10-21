@@ -1,17 +1,15 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { Bell, BellDot, Check, CheckCheck, BellOff, BellRing } from '@lucide/vue'
+import { Bell, BellDot, Check, CheckCheck, BellOff, BellRing, Volume2, VolumeOff } from '@lucide/vue'
 import { formatIntl } from '@/core/datetime'
 import { useWebPush } from '@/core/composables/useWebPush'
 
 const { isSupported: pushSupported, isSubscribed: pushSubscribed, isLoading: pushLoading, permissionState: pushPermission, subscribe: pushSubscribe, unsubscribe: pushUnsubscribe } = useWebPush()
 
-import { type NotificationItem, notificationsApi } from '@/core/api/notifications'
-import { useWebSocket } from '@/core/composables/useWebSocket'
-import { useToast } from '@/core/composables/useToast'
-import { useAudio } from '@/core/composables/useAudio'
+import { useNotifications } from '@/core/composables/useNotifications'
+import type { GruntNotification } from '@/types'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover'
@@ -24,42 +22,19 @@ const props = defineProps<{
 
 const { t } = useI18n()
 const router = useRouter()
-const toast = useToast()
-const audio = useAudio()
-const notifications = ref<NotificationItem[]>([])
-const unreadCount = ref(0)
+// The user WebSocket channel, the list and the unread count are shared - see useNotifications.
+const {
+    notifications,
+    unreadCount,
+    markRead: markAsRead,
+    markAllRead: markAllAsRead,
+    soundEnabled,
+    setSoundEnabled,
+} = useNotifications()
 const isOpen = ref(false)
 const anchorEl = ref<HTMLElement | null>(null)
 
-// WebSocket for real-time notifications
-const ws = useWebSocket('/api/v1/ws/user')
-ws.onEvent('notification', (data: any) => {
-    fetchNotifications()
-    toast.info(data.subject || t('New notification'))
-    audio.play('chime')
-})
-
-async function fetchNotifications() {
-    try {
-        const list = await notificationsApi.list({ limit: 50 })
-        notifications.value = list
-        unreadCount.value = list.filter(n => !n.is_read).length
-    } catch (error) {
-        console.error('Failed to fetch notifications', error)
-    }
-}
-
-async function markAllAsRead() {
-    await notificationsApi.markAllRead()
-    await fetchNotifications()
-}
-
-async function markAsRead(id: string) {
-    await notificationsApi.markRead(id)
-    await fetchNotifications()
-}
-
-function handleNotificationClick(n: NotificationItem) {
+function handleNotificationClick(n: GruntNotification) {
     if (!n.is_read) {
         markAsRead(n.id)
     }
@@ -70,7 +45,7 @@ function handleNotificationClick(n: NotificationItem) {
     }
 }
 
-function formatDate(val: string) {
+function formatDate(val: string | null) {
     return formatIntl(val, {
         day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
     })
@@ -80,15 +55,6 @@ function toggle(event: Event) {
     anchorEl.value = event.currentTarget as HTMLElement
     isOpen.value = !isOpen.value
 }
-
-onMounted(() => {
-    fetchNotifications()
-    audio.preload('chime')
-})
-
-onUnmounted(() => {
-    // ws handles itself via useWebSocket onUnmounted
-})
 </script>
 
 <template>
@@ -111,11 +77,21 @@ onUnmounted(() => {
                                 {{ unreadCount }}
                             </Badge>
                         </div>
-                        <Button v-if="unreadCount > 0" variant="ghost" size="icon"
-                            class="size-7 text-muted-foreground" @click="markAllAsRead"
-                            :title="t('Mark all as read')" :aria-label="t('Mark all as read')">
-                            <CheckCheck class="size-4" />
-                        </Button>
+                        <div class="flex items-center gap-0.5">
+                            <Button variant="ghost" size="icon" class="size-7 text-muted-foreground"
+                                :title="soundEnabled ? t('Mute notification sound') : t('Unmute notification sound')"
+                                :aria-label="soundEnabled ? t('Mute notification sound') : t('Unmute notification sound')"
+                                :aria-pressed="soundEnabled"
+                                @click="setSoundEnabled(!soundEnabled)">
+                                <Volume2 v-if="soundEnabled" class="size-4" />
+                                <VolumeOff v-else class="size-4" />
+                            </Button>
+                            <Button v-if="unreadCount > 0" variant="ghost" size="icon"
+                                class="size-7 text-muted-foreground" @click="markAllAsRead"
+                                :title="t('Mark all as read')" :aria-label="t('Mark all as read')">
+                                <CheckCheck class="size-4" />
+                            </Button>
+                        </div>
                     </div>
 
                     <!-- List -->

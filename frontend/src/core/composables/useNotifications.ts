@@ -3,6 +3,7 @@ import { notificationsApi } from '@/core/api/notifications'
 import { toast } from '@/core/composables/useToast'
 import { useDialog } from '@/core/composables/useDialog'
 import { useTaskTracker } from '@/core/composables/useTaskTracker'
+import { useAudio } from '@/core/composables/useAudio'
 import { WebSocketChannel } from '@/core/ws/WebSocketChannel'
 import type { GruntNotification, RealtimeEvent } from '@/types'
 import i18n from '@/plugins/i18n'
@@ -14,6 +15,18 @@ const t = (key: string, params: Record<string, unknown> = {}): string => i18n.gl
 const notifications = ref<GruntNotification[]>([])
 const unreadCount = ref(0)
 const loading = ref(false)
+
+// Notification sound - a per-browser preference, on by default.
+const SOUND_KEY = 'grunt_notification_sound'
+function readSoundPref(): boolean {
+  try {
+    return localStorage.getItem(SOUND_KEY) !== 'off'
+  } catch {
+    return true
+  }
+}
+const soundEnabled = ref(readSoundPref())
+const audio = useAudio()
 
 // Custom event handler registry for user-channel WS events
 type UserEventHandler = (data: Record<string, unknown>) => void
@@ -57,21 +70,10 @@ function handleRealtimeEvent(msg: RealtimeEvent) {
 
   switch (msg.event) {
     case 'notification': {
-      // Persistent notification pushed from server - refresh list
-      unreadCount.value++
-      if (msg.data.subject) {
-        notifications.value.unshift({
-          id: String(Date.now()),
-          subject: msg.data.subject ?? '',
-          message: msg.data.message ?? '',
-          ref_doctype: msg.data.ref_doctype ?? null,
-          doc_id: msg.data.doc_id ?? null,
-          is_read: false,
-          created_at: new Date().toISOString(),
-        })
-      }
-      // Show a toast for the notification
+      // Persistent notification pushed from server - reload so the new item has its real id
+      void loadNotifications()
       toast.info(msg.data.subject ?? msg.data.message ?? t('New notification'))
+      if (soundEnabled.value) audio.play('chime')
       break
     }
 
@@ -137,21 +139,35 @@ function handleRealtimeEvent(msg: RealtimeEvent) {
   }
 }
 
+async function loadNotifications() {
+  loading.value = true
+  try {
+    const [items, count] = await Promise.all([
+      notificationsApi.list({ limit: 50 }),
+      notificationsApi.unreadCount(),
+    ])
+    notifications.value = items
+    unreadCount.value = count
+  } catch (error) {
+    console.error('Failed to fetch notifications', error)
+  } finally {
+    loading.value = false
+  }
+}
+
 // Public composable
 
 export function useNotifications() {
-  async function load() {
-    loading.value = true
+  const load = loadNotifications
+
+  function setSoundEnabled(on: boolean) {
+    soundEnabled.value = on
     try {
-      const [items, count] = await Promise.all([
-        notificationsApi.list({ limit: 20 }),
-        notificationsApi.unreadCount(),
-      ])
-      notifications.value = items
-      unreadCount.value = count
-    } finally {
-      loading.value = false
+      localStorage.setItem(SOUND_KEY, on ? 'on' : 'off')
+    } catch {
+      // storage unavailable - the choice lasts for this tab only
     }
+    if (on) audio.play('chime')
   }
 
   async function markRead(id: string) {
@@ -174,7 +190,8 @@ export function useNotifications() {
     refCount++
     if (refCount === 1) {
       connectWs()
-      load()
+      void load()
+      audio.preload('chime')
     }
   })
 
@@ -199,6 +216,8 @@ export function useNotifications() {
     notifications: computed(() => notifications.value),
     unreadCount: computed(() => unreadCount.value),
     loading: computed(() => loading.value),
+    soundEnabled: computed(() => soundEnabled.value),
+    setSoundEnabled,
     load,
     markRead,
     markAllRead,
