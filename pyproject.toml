@@ -21,14 +21,12 @@ dependencies = [
     # Validation
     "pydantic>=2.14.1",
     "pydantic-settings>=2.16.0",
-    "email-validator>=2.3.0",
     "python-dotenv>=1.2.4",
     # Auth
     "pyjwt>=2.15.1",
-    "passlib[bcrypt]>=1.7.4",
+    "bcrypt>=5.0.0",
     "python-multipart>=0.0.32",
     "pyotp>=2.10.0",              # MFA / TOTP
-    "qrcode[pil]>=8.2",        # MFA QR codes
     "authlib>=1.9.1",            # OIDC / OAuth login providers
     "webauthn>=3.0.1",           # passkeys / WebAuthn
     # Logging
@@ -46,7 +44,6 @@ dependencies = [
     "aiosmtplib>=5.1.3",
     "aioimaplib>=2.0.3",
     "pywebpush>=2.5.0",
-    "pandas>=3.0.6",
     "jinja2>=3.1.6",
     "docxtpl>=0.20.2",
     "playwright>=1.64.0",   # HTML→PDF via headless Chromium (grunt/print/pdf.py)
@@ -57,9 +54,11 @@ dependencies = [
     "pymorphy3-dicts-uk>=2.4.1.1.1663094765",
     "restrictedpython>=8.5",
     "polib>=1.2.0",              # PO/POT read/write for `grunt i18n` (i18n/extract.py)
+    "pillow>=13.0.0",           # image compression and thumbnails (grunt/storage/)
     "pypdfium2>=5.14.0",
     "nh3>=0.3.7",
-    "segno>=1.6.6",             # QR codes in print templates (grunt/print/filters.py)
+    "segno>=1.6.6",             # QR codes: print templates and MFA setup
+    "sqlparse>=0.6.0",          # SQL formatting in reports (grunt/reports/engine.py)
 ]
 
 [project.optional-dependencies]
@@ -77,12 +76,6 @@ redis = [
     # parser. Back to "redis[hiredis]" once https://pypi.org/project/hiredis/#files
     # lists cp315.
     "redis>=8.1.0",
-]
-docs = [
-    "docxtpl>=0.20.2",
-    "playwright>=1.64.0",
-    "openpyxl>=3.1.5",
-    "sqlparse>=0.6.0",
 ]
 
 # Dev tooling lives in a dependency-group (PEP 735), NOT an extra: `uv sync`

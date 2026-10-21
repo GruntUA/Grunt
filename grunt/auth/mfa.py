@@ -6,13 +6,13 @@ backed by the ``mfa_secret`` and ``mfa_backup_codes`` fields on the User DocType
 
 import contextlib
 import hashlib
-import io
 import json
 import os
 
 import pyotp
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
+lazy import segno
 
 import grunt
 from grunt import _, log
@@ -37,31 +37,9 @@ def get_totp_uri(secret: str, email: str) -> str:
 
 
 def get_qr_code_svg(secret: str, email: str) -> str:
-    """Return an SVG string of the QR code for the given TOTP URI.
-
-    Falls back to a plain URI string if the ``qrcode`` library is not installed.
-    """
-    uri = get_totp_uri(secret, email)
-    try:
-        import qrcode
-        import qrcode.image.svg
-
-        factory = qrcode.image.svg.SvgPathImage
-        qr = qrcode.make(uri, image_factory=factory)
-        buf = io.BytesIO()
-        qr.save(buf)
-        svg = buf.getvalue().decode("utf-8").strip()
-        if svg.startswith("<?xml"):
-            svg = svg[svg.find("?>") + 2 :].strip()
-        # Remove fixed width/height so CSS can scale it
-        import re
-
-        svg = re.sub(r'width="[^"]+"', 'width="100%"', svg, count=1)
-        svg = re.sub(r'height="[^"]+"', 'height="100%"', svg, count=1)
-        return svg
-    except ImportError:
-        # qrcode not installed - return the raw URI so the frontend can render it
-        return uri
+    """Return an inline SVG string of the QR code for the given TOTP URI."""
+    # No width/height, only a viewBox - CSS scales it to the container.
+    return segno.make(get_totp_uri(secret, email), error="m").svg_inline(omitsize=True)
 
 
 def _generate_backup_codes() -> list[str]:
