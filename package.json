@@ -12,7 +12,6 @@
     "build": "vue-tsc --noEmit && vite build",
     "preview": "vite preview",
     "test": "vitest",
-    "test:e2e": "playwright test",
     "typecheck": "vue-tsc --noEmit"
   },
   "dependencies": {
@@ -36,7 +35,6 @@
     "@tiptap/extension-file-handler": "^3.32.0",
     "@tiptap/extension-highlight": "^3.32.0",
     "@tiptap/extension-image": "^3.32.0",
-    "@tiptap/extension-link": "^3.32.0",
     "@tiptap/extension-node-range": "^3.32.0",
     "@tiptap/extension-subscript": "^3.32.0",
     "@tiptap/extension-superscript": "^3.32.0",
@@ -80,7 +78,6 @@
     "vue-sonner": "^2.0.9"
   },
   "devDependencies": {
-    "@playwright/test": "^1.64.1",
     "@tailwindcss/vite": "^4.3.3",
     "@types/leaflet": "^1.9.22",
     "@types/node": "^26.6.5",
@@ -90,7 +87,7 @@
     "shadcn-vue": "^2.8.2",
     "tailwindcss": "^4.3.3",
     "typescript": "^6.0.3",
-    "vite": "^8.3.4",
+    "vite": "^8.3.5",
     "vitest": "^5.0.4",
     "vue-tsc": "^3.3.13"
   },
