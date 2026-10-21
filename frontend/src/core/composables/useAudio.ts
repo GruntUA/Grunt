@@ -34,14 +34,9 @@ function getAudio(name: string): HTMLAudioElement {
   if (audioCache.has(name)) {
     return audioCache.get(name)!
   }
-  // Try .mp3 first, fall back to .wav
-  const ext = name.includes('.') ? '' : '.mp3'
-  const audio = new Audio(`/assets/sounds/${name}${ext}`)
-  audio.addEventListener('error', () => {
-    if (!name.includes('.') && ext === '.mp3') {
-      audio.src = `/assets/sounds/${name}.wav`
-    }
-  }, { once: true })
+  // A bare name is a .wav from public/assets/sounds/; pass 'name.mp3' for other formats.
+  const file = name.includes('.') ? name : `${name}.wav`
+  const audio = new Audio(`/assets/sounds/${file}`)
   audio.preload = 'auto'
   audioCache.set(name, audio)
   return audio

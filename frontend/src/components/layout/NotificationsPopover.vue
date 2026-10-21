@@ -11,6 +11,7 @@ const { isSupported: pushSupported, isSubscribed: pushSubscribed, isLoading: pus
 import { type NotificationItem, notificationsApi } from '@/core/api/notifications'
 import { useWebSocket } from '@/core/composables/useWebSocket'
 import { useToast } from '@/core/composables/useToast'
+import { useAudio } from '@/core/composables/useAudio'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover'
@@ -24,6 +25,7 @@ const props = defineProps<{
 const { t } = useI18n()
 const router = useRouter()
 const toast = useToast()
+const audio = useAudio()
 const notifications = ref<NotificationItem[]>([])
 const unreadCount = ref(0)
 const isOpen = ref(false)
@@ -34,6 +36,7 @@ const ws = useWebSocket('/api/v1/ws/user')
 ws.onEvent('notification', (data: any) => {
     fetchNotifications()
     toast.info(data.subject || t('New notification'))
+    audio.play('chime')
 })
 
 async function fetchNotifications() {
@@ -80,6 +83,7 @@ function toggle(event: Event) {
 
 onMounted(() => {
     fetchNotifications()
+    audio.preload('chime')
 })
 
 onUnmounted(() => {
