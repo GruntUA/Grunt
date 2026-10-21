@@ -24,6 +24,7 @@ from apscheduler.triggers.cron import CronTrigger
 from grunt import log
 from grunt.config import settings
 from grunt.db.session import async_session_factory
+from grunt.db.write_intent import write_intent
 from grunt.email.tasks import send_notification_digest
 from grunt.scripting.server_script import ServerScriptRunner
 from grunt.tasks.job_log import LOG_LABEL, close_job_log, fail_stale_job_logs, open_job_log
@@ -304,23 +305,29 @@ async def _run_logged(
 
     A TaskIQ task is only enqueued here: the row id rides in its labels and
     ``ScheduledJobLogMiddleware`` closes the row once a worker has run it.
+
+    Runs in the web process, which defaults to a deferred ``BEGIN``: on SQLite
+    the log row and inline jobs write, so take the write lock up front
+    (grunt/db/write_intent.py) - else a concurrent request's commit fails
+    them with "database is locked".
     """
-    log_id = await open_job_log(job_name, cron_expr)
-    kicker = getattr(task_fn, "kicker", None)
-    try:
-        if kicker is None:
-            await task_fn(*args)
-        else:
-            enqueue = kicker().with_labels(**{LOG_LABEL: log_id}) if log_id else kicker()
-            await enqueue.kiq(*args)
+    with write_intent():
+        log_id = await open_job_log(job_name, cron_expr)
+        kicker = getattr(task_fn, "kicker", None)
+        try:
+            if kicker is None:
+                await task_fn(*args)
+            else:
+                enqueue = kicker().with_labels(**{LOG_LABEL: log_id}) if log_id else kicker()
+                await enqueue.kiq(*args)
+                return
+        except Exception as exc:
+            log.error("scheduler.job_failed", job_name=job_name, error=str(exc))
+            if log_id:
+                await close_job_log(log_id, error=exc)
             return
-    except Exception as exc:
-        log.error("scheduler.job_failed", job_name=job_name, error=str(exc))
         if log_id:
-            await close_job_log(log_id, error=exc)
-        return
-    if log_id:
-        await close_job_log(log_id)
+            await close_job_log(log_id)
 
 
 async def stop_scheduler() -> None:

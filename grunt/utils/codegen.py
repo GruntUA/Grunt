@@ -78,6 +78,14 @@ def _is_typed(f: dict) -> bool:
     )
 
 
+def _field_type(f: dict) -> str:
+    """Python type of a field; a required one is never None once saved."""
+    py_type = get_python_type(f["fieldtype"])
+    if f.get("required") and py_type.endswith(" | None"):
+        py_type = py_type.removesuffix(" | None")
+    return py_type
+
+
 def _import_key(name: str) -> tuple[int, str]:
     """isort/ruff order-by-type: CONSTANTS, then Classes, then the rest."""
     kind = 0 if name.isupper() and len(name) > 1 else 1 if name[0].isupper() else 2
@@ -95,7 +103,7 @@ def build_controller_context(name: str, fields: list[dict]) -> dict[str, Any]:
         enriched.append(
             {
                 **f,
-                "py_type": get_python_type(f["fieldtype"]),
+                "py_type": _field_type(f),
             }
         )
 
@@ -116,7 +124,7 @@ def _render_type_block(fields: list[dict], indent: str = "    ") -> str:
 
     field_lines: list[str] = []
     for f in physical:
-        py_type = get_python_type(f["fieldtype"])
+        py_type = _field_type(f)
         comment = f"  # {f['label']}" if f.get("label") and f["label"] != f["fieldname"] else ""
         field_lines.append(f"{indent}{f['fieldname']}: {py_type}{comment}")
     for f in table_fields:

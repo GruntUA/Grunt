@@ -75,7 +75,7 @@ def users_list(site):
         click.echo(f"{'Email':<35} {'Name':<25} Roles")
         click.echo("-" * 90)
         for u in users:
-            roles = ", ".join(u.roles) or "—"
+            roles = ", ".join(u.role_names) or "—"
             click.echo(f"{u.email:<35} {u.full_name:<25} {roles}")
 
     asyncio.run(_run())

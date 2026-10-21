@@ -45,7 +45,7 @@ def make_boilerplate(dest: Path, app_name: str, no_git: bool = False) -> None:
         )
         raise SystemExit(1)
 
-    hooks = _get_user_inputs(app_name)
+    hooks = _get_user_inputs(app_name, ask_git=not no_git)
     _create_app_boilerplate(dest, hooks, no_git=no_git)
 
 
@@ -67,7 +67,7 @@ def _prompt_validated(
         click.echo(f"  ! {error_msg}", err=True)
 
 
-def _get_user_inputs(app_name: str) -> dict:
+def _get_user_inputs(app_name: str, ask_git: bool = True) -> dict:
     """Gather app configuration interactively."""
     default_title = app_name.replace("_", " ").title()
     default_module = app_name
@@ -102,7 +102,7 @@ def _get_user_inputs(app_name: str) -> dict:
         default=default_module,
     )
 
-    use_git = click.confirm("\nInitialize a git repository?", default=True)
+    use_git = ask_git and click.confirm("\nInitialize a git repository?", default=True)
 
     return {
         "app_name": app_name,
@@ -154,6 +154,8 @@ def _create_app_boilerplate(dest: Path, hooks: dict, no_git: bool = False) -> No
     _write_workspace_fixture(app_dir, module, hooks)
     _write_jsconfig(app_dir, module)
     _write_types_dts(app_dir, module)
+    _write_pyproject(app_dir, module, hooks)
+    _write_pyrightconfig(app_dir, module)
 
     # Git
     if not no_git and hooks.get("use_git", True):
@@ -250,16 +252,19 @@ def _write_fixtures_init(app_dir: Path, module: str) -> None:
 
 
 def _write_workspace_fixture(app_dir: Path, module: str, h: dict) -> None:
-    data = [
-        {
-            "name": h["app_name"],
-            "label": h["title"],
-            "icon": h["icon"],
-            "color": h["color"],
-            "description": h["description"],
-            "items": [],
-        }
-    ]
+    data = {
+        "doctype": "AppMenu",
+        "records": [
+            {
+                "name": h["app_name"],
+                "label": h["title"],
+                "icon": h["icon"],
+                "color": h["color"],
+                "description": h["description"],
+                "items": [],
+            }
+        ],
+    }
     (app_dir / module / "fixtures" / "00_workspace.json").write_text(
         json.dumps(data, ensure_ascii=False, indent=2) + "\n",
     )
@@ -275,6 +280,38 @@ def _write_types_dts(app_dir: Path, module: str) -> None:
     (app_dir / module / "types.d.ts").write_text(
         render_template("app/types.d.ts.jinja", {}),
     )
+
+
+def _write_pyproject(app_dir: Path, module: str, h: dict) -> None:
+    description = json.dumps(h["description"], ensure_ascii=False)
+    (app_dir / "pyproject.toml").write_text(
+        "[build-system]\n"
+        'requires = ["hatchling"]\n'
+        'build-backend = "hatchling.build"\n\n'
+        "[project]\n"
+        f'name = "{h["app_name"]}"\n'
+        f'version = "{h["version"]}"\n'
+        f"description = {description}\n"
+        'requires-python = ">=3.15"\n'
+        "dependencies = []\n\n"
+        "[tool.hatch.build.targets.wheel]\n"
+        f'packages = ["{module}"]\n\n'
+        "[tool.pytest.ini_options]\n"
+        'asyncio_mode = "auto"\n'
+        'asyncio_default_fixture_loop_scope = "session"\n'
+        'asyncio_default_test_loop_scope = "session"\n'
+    )
+
+
+def _write_pyrightconfig(app_dir: Path, module: str) -> None:
+    config = {
+        "include": [module],
+        "extraPaths": [".", "../grunt"],
+        "venvPath": "../grunt",
+        "venv": ".venv",
+        "pythonVersion": "3.15",
+    }
+    (app_dir / "pyrightconfig.json").write_text(json.dumps(config, indent=2) + "\n")
 
 
 # Git

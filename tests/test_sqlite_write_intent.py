@@ -31,6 +31,19 @@ def test_process_default_applies_without_explicit_intent(monkeypatch):
     assert fresh.run(write_intent.begin_statement) == "BEGIN IMMEDIATE"
 
 
+def test_write_intent_context_restores_previous(monkeypatch):
+    import contextvars
+
+    monkeypatch.setattr(write_intent, "_process_default", False)
+
+    def run():
+        with write_intent.write_intent():
+            assert write_intent.begin_statement() == "BEGIN IMMEDIATE"
+        return write_intent.begin_statement()
+
+    assert contextvars.Context().run(run) == "BEGIN"
+
+
 def _engine(path):
     eng = create_async_engine(f"sqlite+aiosqlite:///{path}", connect_args={"timeout": 5})
 

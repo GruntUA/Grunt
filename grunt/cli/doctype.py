@@ -198,11 +198,20 @@ def doctype_scaffold(name: str, app: str, module: str | None, force: bool):
     click.echo("3. Run: grunt serve --reload")
 
 
+def _controller_file(json_file: Path) -> Path | None:
+    """The DocType's controller: <Name>.py in apps, <name_snake>.py in the core."""
+    for candidate in (json_file.stem, to_snake_case(json_file.stem)):
+        py_file = json_file.parent / f"{candidate}.py"
+        if py_file.exists():
+            return py_file
+    return None
+
+
 @doctype_group.command("sync-types")
-@click.argument("name")
-@click.option("--app", default="web", help="App folder containing the DocType")
+@click.argument("name", required=False)
+@click.option("--app", required=True, help="App folder containing the DocType")
 @click.option("--all", "all_doctypes", is_flag=True, help="Update all DocTypes in the app")
-def doctype_sync_types(name: str, app: str, all_doctypes: bool):
+def doctype_sync_types(name: str | None, app: str, all_doctypes: bool):
     """Update the auto-generated types in the controller from the JSON metadata.
 
     Replaces only the block between:
@@ -217,14 +226,19 @@ def doctype_sync_types(name: str, app: str, all_doctypes: bool):
     """
 
     app_path = site_manager.bench_dir / "apps" / app
+    # DocTypes live in the app's modules: apps/<app>/<module>/doctypes/<Name>/
+    # (the framework's own one level deeper: apps/grunt/grunt/<module>/doctypes/).
+    json_files = sorted(
+        [*app_path.glob("*/doctypes/*/*.json"), *app_path.glob("*/*/doctypes/*/*.json")]
+    )
 
     if all_doctypes:
         updated = 0
         skipped = 0
-        for json_file in sorted(app_path.glob("doctypes/*/*.json")):
+        for json_file in json_files:
             dt_name = json_file.stem
-            py_file = json_file.parent / f"{dt_name}.py"
-            if not py_file.exists():
+            py_file = _controller_file(json_file)
+            if py_file is None:
                 continue
             try:
                 fields = json.loads(json_file.read_text()).get("fields", [])
@@ -239,12 +253,14 @@ def doctype_sync_types(name: str, app: str, all_doctypes: bool):
         click.echo(f"\nUpdated: {updated}, unchanged: {skipped}")
         return
 
-    json_file = app_path / "doctypes" / name / f"{name}.json"
-    py_file = app_path / "doctypes" / name / f"{name}.py"
-
-    if not json_file.exists():
-        click.echo(f"Error: {json_file} not found.", err=True)
+    if not name:
+        click.echo("Error: give a DocType name or --all.", err=True)
         raise SystemExit(1)
+    json_file = next((f for f in json_files if f.stem == name and f.parent.name == name), None)
+    if json_file is None:
+        click.echo(f"Error: DocType {name} not found in {app_path}/*/doctypes/.", err=True)
+        raise SystemExit(1)
+    py_file = _controller_file(json_file) or json_file.parent / f"{name}.py"
     if not py_file.exists():
         click.echo(f"Error: {py_file} not found.", err=True)
         raise SystemExit(1)

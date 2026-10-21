@@ -60,6 +60,22 @@ async def test_inline_job_success(setup_db):
 
 
 @pytest.mark.asyncio
+async def test_inline_job_takes_write_lock_up_front(setup_db, monkeypatch):
+    """Scheduler runs in the web process (deferred BEGIN) - its firings write."""
+    from grunt.db import write_intent
+
+    monkeypatch.setattr(write_intent, "_process_default", False)
+    seen = []
+
+    async def job():
+        seen.append(write_intent.begin_statement())
+
+    await scheduler._run_logged("test.intent", "* * * * *", job)
+
+    assert seen == ["BEGIN IMMEDIATE"]
+
+
+@pytest.mark.asyncio
 async def test_inline_job_failure(setup_db):
     async def job():
         raise RuntimeError("boom")

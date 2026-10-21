@@ -70,9 +70,19 @@ class ConnectionManager:
 
     async def connect(self, ws: WebSocket, channel: str, subprotocol: str | None = None) -> None:
         await ws.accept(subprotocol=subprotocol)
-        self._connections.setdefault(channel, []).append(ws)
-        await self.ensure_redis_listener()
+        await self.subscribe(ws, channel)
         log.debug("ws.connect", channel=channel, ip=client_ip(ws), total=self._total_connections())
+
+    async def subscribe(self, ws: WebSocket, channel: str) -> None:
+        """Add an already-accepted connection to one more *channel*.
+
+        One socket can then follow several channels (an app multiplexing its
+        own rooms); ``disconnect(ws, channel)`` drops just that one.
+        """
+        conns = self._connections.setdefault(channel, [])
+        if ws not in conns:
+            conns.append(ws)
+        await self.ensure_redis_listener()
 
     def disconnect(self, ws: WebSocket, channel: str) -> None:
         conns = self._connections.get(channel, [])
@@ -315,7 +325,7 @@ def _subprotocol_token(websocket: WebSocket) -> str | None:
     return None
 
 
-async def _authenticate_ws(websocket: WebSocket) -> str | None:
+async def authenticate_ws(websocket: WebSocket) -> str | None:
     """Validate the JWT offered via ``Sec-WebSocket-Protocol``.
 
     Returns the user email (subject) on success, or None on failure.
@@ -343,7 +353,7 @@ async def _authenticate_ws(websocket: WebSocket) -> str | None:
         return None
 
 
-def _ws_site(websocket: WebSocket) -> str:
+def resolve_ws_site(websocket: WebSocket) -> str:
     """Resolve the site for a WebSocket (no SiteContextMiddleware on WS scope).
 
     Mirrors ``SiteContextMiddleware``: the Host header if it names a known site,
@@ -366,7 +376,7 @@ async def _ws_user_can_read(
     presence, so joining it must require read access, not just a valid login.
     """
 
-    site = _ws_site(websocket)
+    site = resolve_ws_site(websocket)
     site_token = _site_ctx.set(site)
     try:
         maker = site_manager.get_session_maker(site)
@@ -425,7 +435,7 @@ async def ws_user(
     websocket: WebSocket,
 ) -> None:
     """Per-user channel for notifications and realtime messages."""
-    user_email = await _authenticate_ws(websocket)
+    user_email = await authenticate_ws(websocket)
     if not user_email:
         return
     await _run_simple_channel(websocket, f"user:{user_email}", AUTH_SUBPROTOCOL)
@@ -439,7 +449,7 @@ async def ws_site(
 
     Declared before ``/ws/{doctype}`` so the literal path wins the match.
     """
-    user_email = await _authenticate_ws(websocket)
+    user_email = await authenticate_ws(websocket)
     if not user_email:
         return
     await _run_simple_channel(websocket, "site", AUTH_SUBPROTOCOL)
@@ -478,7 +488,7 @@ async def ws_document(
       { "event": "field_locked",     "data": { "field": "...", "user": { ... } } }
       { "event": "field_unlocked",   "data": { "field": "..." } }
     """
-    user_email = await _authenticate_ws(websocket)
+    user_email = await authenticate_ws(websocket)
     if not user_email:
         return
 
@@ -528,7 +538,7 @@ async def ws_list(
     doctype: str,
 ) -> None:
     """Subscribe to list-level changes for a DocType."""
-    user_email = await _authenticate_ws(websocket)
+    user_email = await authenticate_ws(websocket)
     if not user_email:
         return
 

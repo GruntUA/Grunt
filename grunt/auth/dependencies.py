@@ -44,7 +44,7 @@ async def current_user(
     3. ``?token=<jwt>`` query parameter - for direct-navigation downloads
        (e.g. the xlsx export link) where the browser can't attach a header.
        WebSocket routes do NOT use this: they authenticate independently via
-       ``api/v1/ws.py::_authenticate_ws``, which reads its own ``token`` query
+       ``api/v1/ws.py::authenticate_ws``, which reads its own ``token`` query
        param directly rather than going through this dependency.
 
     The JWT identifies the user, while mutable authorization attributes (roles

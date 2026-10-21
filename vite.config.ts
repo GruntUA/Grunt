@@ -196,9 +196,12 @@ export default defineConfig({
     preview: {
         proxy: {
             '/api/v1/ws': { target: 'http://localhost:8000', ws: true },
-            '/api': { target: 'http://localhost:8000', changeOrigin: true },
+            '/api': { target: 'http://localhost:8000', changeOrigin: false },
         },
     },
+    // Every proxy keeps the browser's Host header (changeOrigin: false): the
+    // backend picks the site by Host, and a rewritten `localhost:8000` sent
+    // all sites of the bench to the active-site fallback.
     server: {
         port: 5173,
         host: true,
@@ -208,9 +211,9 @@ export default defineConfig({
         hmr: {
             // When accessed through a reverse proxy / tunnel (e.g. dev2.itmlt.win),
             // tell the browser to connect HMR WebSocket on the standard HTTPS port
-            // so the proxy doesn't need to expose port 5173 externally.
+            // so the proxy doesn't need to expose port 5173 externally. No fixed
+            // host: the client uses the page's own, so every site's domain works.
             path: 'vite-hmr',
-            host: 'dev2.itmlt.win',
             clientPort: 443,
             protocol: 'wss',
         },
@@ -220,20 +223,22 @@ export default defineConfig({
                 target: 'http://localhost:8000',
                 ws: true,
             },
-            // REST API
+            // REST API, and WebSockets apps mount under their own routes
+            // (e.g. /api/v1/app/lagoo/lagoo/ws)
             '/api': {
                 target: 'http://localhost:8000',
-                changeOrigin: true,
+                changeOrigin: false,
+                ws: true,
             },
             // Static assets from app public/ directories
             '/assets': {
                 target: 'http://localhost:8000',
-                changeOrigin: true,
+                changeOrigin: false,
             },
             // Public www pages: proxy clean URLs (no file extension) to backend
             [CLEAN_URL_PROXY_REGEX]: {
                 target: 'http://localhost:8000',
-                changeOrigin: true,
+                changeOrigin: false,
                 bypass(req) {
                     const urlPath = (req.url ?? '').split('?')[0]
                     // Return the path to let Vite serve static files (public/ dir, source files, etc.)

@@ -13,11 +13,14 @@ Which work intends to write:
 * HTTP requests other than GET/HEAD/OPTIONS (``SiteContextMiddleware``);
 * everything in the task worker (``grunt.tasks.worker`` sets the process
   default) - so a task must not hold a transaction open across slow network
-  I/O (SMTP, IMAP): commit before it.
+  I/O (SMTP, IMAP): commit before it;
+* scheduler firings inside the web process (``grunt.tasks.scheduler``).
 
 PostgreSQL ignores all of this.
 """
 
+from collections.abc import Iterator
+from contextlib import contextmanager
 from contextvars import ContextVar
 
 _write_intent: ContextVar[bool | None] = ContextVar("sqlite_write_intent", default=None)
@@ -29,6 +32,16 @@ READ_ONLY_METHODS = frozenset({"GET", "HEAD", "OPTIONS"})
 def set_write_intent(value: bool) -> None:
     """Mark the current context (request, task) as going to write - or not."""
     _write_intent.set(value)
+
+
+@contextmanager
+def write_intent() -> Iterator[None]:
+    """Mark the enclosed work as going to write, restoring the previous mark after."""
+    token = _write_intent.set(True)
+    try:
+        yield
+    finally:
+        _write_intent.reset(token)
 
 
 def set_process_default(value: bool) -> None:

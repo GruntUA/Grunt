@@ -29,7 +29,7 @@ async def run_server_script(method: str, params: dict[str, Any] | None = None) -
         extra_context={"params": params or {}},
         trusted=script.get("trusted", False),
         user_email=user.email,
-        user_roles=user.roles,
+        user_roles=user.role_names,
     )
 
     if not result.success:

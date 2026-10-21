@@ -118,12 +118,12 @@ class User(Document):
     # begin: auto-generated types
     # This code is auto-generated. Do not modify anything in this block.
 
-    last_name: str | None  # Last name
-    first_name: str | None  # First name
+    last_name: str  # Last name
+    first_name: str  # First name
     middle_name: str | None  # Patronymic
     full_name: str | None  # Full name
     avatar: str | None  # Profile photo
-    email: str | None  # Email
+    email: str  # Email
     phone: str | None  # Phone
     birth_date: date | None  # Date of birth
     gender: str | None  # Gender
@@ -155,29 +155,12 @@ class User(Document):
     through the generic document API (form, import, etc.).
     """
 
-    # Field annotations for IDE support - values live in self.data at runtime.
-    email: str
-    first_name: str
-    last_name: str
-    middle_name: str | None
-    full_name: str
-    avatar: str | None
-    phone: str | None
-    birth_date: str | None
-    gender: str | None
-    timezone: str | None
-    bio: str | None
-    is_active: bool
-    signup_state: str
-    password: str | None
-    hashed_password: str | None
-    theme: str
-    language: str | None
-    login_attempts: int
-    locked_until: datetime | None
-    last_login: datetime | None
-    mfa_enabled: bool
-    mfa_secret: str | None
+    @property
+    def role_names(self) -> list[str]:
+        """Role names, whether ``roles`` holds the loaded names (an authenticated
+        user) or the UserRole child rows (a document being saved)."""
+        rows = self.data.get("roles") or []
+        return [r if isinstance(r, str) else r.get("role_name", "") for r in rows]
 
     def has_role(self, *roles: str) -> bool:
         """True if the user holds any of *roles*."""
@@ -719,7 +702,8 @@ async def register_full_name_api(email: str, password: str, full_name: str) -> d
 
     name_parts = full_name.split(maxsplit=1)
     first_name = name_parts[0] if name_parts else ""
-    last_name = name_parts[1] if len(name_parts) > 1 else ""
+    # last_name is required on User: a one-word name (a nickname) fills both.
+    last_name = name_parts[1] if len(name_parts) > 1 else first_name
     user = await create_user(email, password, first_name, last_name, None)
     await _assign_default_role(user.id)
     pending = await _apply_signup_approval(user)

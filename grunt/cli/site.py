@@ -9,6 +9,7 @@ Usage:
 """
 
 import asyncio
+import json
 import re
 import secrets
 import shutil
@@ -198,7 +199,7 @@ def site_create(
 
     # Create directory structure
     site_path.mkdir(parents=True, exist_ok=True)
-    (site_path / "grunt.site").write_text(f"site={name}\n")
+    (site_path / "grunt.site").write_text(json.dumps({"installed_apps": ["grunt"]}, indent=2))
 
     # Generate secret key
     secret_key = secrets.token_hex(32)
@@ -209,8 +210,6 @@ def site_create(
     env_content = (
         f"DATABASE_URL={resolved_db_url}\n"
         f"SECRET_KEY={secret_key}\n"
-        f"ADMIN_EMAIL={admin_email}\n"
-        f"SITE_NAME={name}\n"
     )
     (site_path / ".env").write_text(env_content)
 
@@ -303,7 +302,7 @@ async def _create_admin(site_name: str, email: str, password: str) -> None:
                     if await get_user_by_email(email) is not None:
                         click.echo("  [info] Admin already exists, skipping")
                         return
-                    await create_user(email, password, "Administrator", "", None)
+                    await create_user(email, password, "Site", "Administrator", None)
                 await session.commit()
                 click.echo("  ✓ Administrator created")
             except Exception as e:

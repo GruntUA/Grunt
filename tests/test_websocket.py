@@ -16,7 +16,7 @@ from grunt.main import app
 
 def _token(sub: str) -> str:
     # A real session access token carries typ="access"; a challenge token does
-    # not, and _authenticate_ws rejects anything that isn't an access token.
+    # not, and authenticate_ws rejects anything that isn't an access token.
     from grunt.auth.service import ACCESS_TOKEN_TYPE
 
     return jwt.encode(
@@ -114,3 +114,27 @@ async def test_failed_redis_publish_falls_back_to_local(user_socket, monkeypatch
     monkeypatch.setattr(manager, "_redis_publish", failed_publish)
     await manager.send_to_user("admin@grunt.example.com", {"event": "x"})
     assert user_socket.sent == [{"event": "x"}]
+
+
+@pytest.mark.asyncio
+async def test_manager_subscribe_adds_extra_channel_once():
+    from grunt.api.v1.ws import ConnectionManager
+
+    class _WS:
+        def __init__(self) -> None:
+            self.sent: list[str] = []
+
+        async def send_text(self, text: str) -> None:
+            self.sent.append(text)
+
+    mgr = ConnectionManager()
+    ws = _WS()
+    await mgr.subscribe(ws, "room:a")  # type: ignore[arg-type]
+    await mgr.subscribe(ws, "room:a")  # type: ignore[arg-type]
+    await mgr.subscribe(ws, "room:b")  # type: ignore[arg-type]
+    await mgr._send("room:a", "hi")
+    await mgr._send("room:b", "yo")
+    assert ws.sent == ["hi", "yo"]
+    mgr.disconnect(ws, "room:a")  # type: ignore[arg-type]
+    await mgr._send("room:a", "gone")
+    assert ws.sent == ["hi", "yo"]

@@ -6,6 +6,7 @@ from datetime import UTC, datetime, timedelta
 
 from grunt import log
 from grunt.db.session import async_session_factory
+from grunt.db.write_intent import write_intent
 
 # TaskIQ label carrying the ScheduledJobLog id from the scheduler to the worker.
 LOG_LABEL = "scheduled_job_log"
@@ -55,11 +56,12 @@ async def fail_stale_job_logs() -> None:
     try:
         import grunt
 
-        async with async_session_factory() as session, grunt.system_context(session):
-            await grunt.db.bulk_update(
-                "ScheduledJobLog",
-                {"status": "Running", "started_at__lt": datetime.now(UTC) - STALE_AFTER},
-                {"status": "Failed", "error_message": "Interrupted: the job never finished"},
-            )
+        with write_intent():
+            async with async_session_factory() as session, grunt.system_context(session):
+                await grunt.db.bulk_update(
+                    "ScheduledJobLog",
+                    {"status": "Running", "started_at__lt": datetime.now(UTC) - STALE_AFTER},
+                    {"status": "Failed", "error_message": "Interrupted: the job never finished"},
+                )
     except Exception as exc:
         log.warning("scheduler.stale_logs_failed", error=str(exc))
