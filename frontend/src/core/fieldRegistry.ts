@@ -99,6 +99,8 @@ export interface FieldDefinition {
   emits?: string[]
   /** Edited right in a Table grid cell; otherwise only in the row sheet. */
   table_inline?: boolean
+  /** QuickFilter.input_type for this type ('text', 'date', 'select', …); absent - not offered as a quick filter. */
+  quick_filter?: string
 }
 
 // Internal registry
@@ -155,6 +157,11 @@ export function getNonPhysicalTypeSet(): Set<string> {
 /** Types edited right in a Table grid cell - per manifest table_inline. */
 export function getTableInlineTypeSet(): Set<string> {
   return new Set([..._registry.values()].filter((d) => !!d.table_inline).map((d) => d.type))
+}
+
+/** Types that can be offered as a quick filter - per manifest quick_filter. */
+export function getQuickFilterTypeSet(): Set<string> {
+  return new Set([..._registry.values()].filter((d) => !!d.quick_filter).map((d) => d.type))
 }
 
 /** Storage class for a field type. Unknown / plugin types are assumed text. */

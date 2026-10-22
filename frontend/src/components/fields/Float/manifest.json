@@ -16,5 +16,6 @@
         "fetch_from"
     ],
     "storage_class": "float",
-    "table_inline": true
+    "table_inline": true,
+    "quick_filter": "number"
 }

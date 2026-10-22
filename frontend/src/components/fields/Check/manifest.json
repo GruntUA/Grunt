@@ -13,5 +13,6 @@
     ],
     "storage_class": "bool",
     "own_label": true,
-    "table_inline": true
+    "table_inline": true,
+    "quick_filter": "check"
 }

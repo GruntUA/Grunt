@@ -12,5 +12,6 @@
         "fetch_from"
     ],
     "storage_class": "datetime",
-    "table_inline": true
+    "table_inline": true,
+    "quick_filter": "date"
 }

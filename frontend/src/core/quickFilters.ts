@@ -1,13 +1,5 @@
 import type { DocField, DocType, QuickFilter } from '@/types'
-import { isDateType } from '@/core/fieldRegistry'
-
-export const SUPPORTED_FIELD_TYPES = new Set([
-  'Data', 'LongText',
-  'Date', 'Datetime', 'Time',
-  'Select', 'Check',
-  'Int', 'Float', 'Currency',
-  'Link',
-])
+import { getFieldDef, getQuickFilterTypeSet, getStorageClass, isDateType } from '@/core/fieldRegistry'
 
 function isYearFilter(field: DocField): boolean {
   return isDateType(field.fieldtype) && field.quick_filter_mode === 'year'
@@ -15,30 +7,13 @@ function isYearFilter(field: DocField): boolean {
 
 function inferInputType(field: DocField): QuickFilter['input_type'] {
   if (isYearFilter(field)) return 'year'
-  switch (field.fieldtype) {
-    case 'Date':
-    case 'Datetime':
-      return 'date'
-    case 'Select':
-      return 'select'
-    case 'Check':
-      return 'check'
-    case 'Int':
-    case 'Float':
-    case 'Currency':
-      return 'number'
-    case 'Link':
-      return 'link'
-    default:
-      return 'text'
-  }
+  return getFieldDef(field.fieldtype)?.quick_filter ?? 'text'
 }
 
-function inferOperator(field: DocField): string {
+function inferOperator(field: DocField, inputType: QuickFilter['input_type']): string {
   if (isYearFilter(field)) return 'year'
-  if (field.fieldtype === 'Data' || field.fieldtype === 'LongText') {
-    return 'ilike'
-  }
+  // Substring match for free text; Time also uses a text input but matches exactly.
+  if (inputType === 'text' && getStorageClass(field.fieldtype) === 'text') return 'ilike'
   return 'eq'
 }
 
@@ -49,7 +24,7 @@ export function buildQuickFilterForField(field: DocField): QuickFilter {
   return {
     id: `qf_${field.fieldname}`,
     field: field.fieldname,
-    operator: inferOperator(field),
+    operator: inferOperator(field, inputType),
     label: field.label || field.fieldname,
     input_type: inputType,
     on_change: { mode: 'local', debounce_ms: debounceMs },
@@ -58,8 +33,9 @@ export function buildQuickFilterForField(field: DocField): QuickFilter {
 }
 
 export function buildQuickFiltersFromFields(fields: DocField[]): QuickFilter[] {
+  const supported = getQuickFilterTypeSet()
   return fields
-    .filter(f => !!f.in_quick_filter && SUPPORTED_FIELD_TYPES.has(f.fieldtype) && !!f.fieldname)
+    .filter(f => !!f.in_quick_filter && supported.has(f.fieldtype) && !!f.fieldname)
     .map(buildQuickFilterForField)
 }
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildQuickFilterForField, withAsOfDateFilter } from '@/core/quickFilters'
+import { buildQuickFilterForField, buildQuickFiltersFromFields, withAsOfDateFilter } from '@/core/quickFilters'
 import type { DocField } from '@/types'
 
 const dateField = (extra: Partial<DocField> = {}): DocField =>
@@ -48,5 +48,21 @@ describe('withAsOfDateFilter', () => {
   it('prefers tree_as_of_date_field over valid_from', () => {
     const [ff] = withAsOfDateFilter([], { fields: [validFrom, dateField()], tree_as_of_date_field: 'signed_on' }, 'As of')
     expect(ff.field).toBe('signed_on')
+  })
+})
+
+describe('quick_filter from the field manifest', () => {
+  const field = (fieldtype: string) => dateField({ fieldname: 'f', fieldtype })
+
+  it('maps the manifest input type and picks the operator', () => {
+    expect(buildQuickFilterForField(field('Data'))).toMatchObject({ input_type: 'text', operator: 'ilike' })
+    expect(buildQuickFilterForField(field('Time'))).toMatchObject({ input_type: 'text', operator: 'eq' })
+    expect(buildQuickFilterForField(field('Currency'))).toMatchObject({ input_type: 'number', operator: 'eq' })
+    expect(buildQuickFilterForField(field('Link'))).toMatchObject({ input_type: 'link', operator: 'eq' })
+  })
+
+  it('skips types without quick_filter', () => {
+    const fields = ['Data', 'Table', 'Percent'].map(t => ({ ...field(t), fieldname: t }))
+    expect(buildQuickFiltersFromFields(fields).map(ff => ff.field)).toEqual(['Data'])
   })
 })

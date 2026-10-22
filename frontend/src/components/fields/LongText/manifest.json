@@ -1,1 +1,18 @@
-{"type": "LongText", "label": "Long Text", "icon": "align-left", "category": "Базові", "non_groupable": true, "propertySections": ["core", "flags", "display", "text", "default", "validation", "fetch_from"], "storage_class": "text"}
+{
+    "type": "LongText",
+    "label": "Long Text",
+    "icon": "align-left",
+    "category": "Базові",
+    "non_groupable": true,
+    "propertySections": [
+        "core",
+        "flags",
+        "display",
+        "text",
+        "default",
+        "validation",
+        "fetch_from"
+    ],
+    "storage_class": "text",
+    "quick_filter": "text"
+}

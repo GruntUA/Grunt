@@ -3,7 +3,7 @@ import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Search } from '@lucide/vue'
 import type { DocType } from '@/types'
-import { SUPPORTED_FIELD_TYPES } from '@/core/quickFilters'
+import { getQuickFilterTypeSet } from '@/core/fieldRegistry'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -35,9 +35,10 @@ watch(() => props.open, (isOpen) => {
   }
 })
 
-const eligibleFields = computed(() =>
-  props.dt.fields.filter((f) => SUPPORTED_FIELD_TYPES.has(f.fieldtype))
-)
+const eligibleFields = computed(() => {
+  const supported = getQuickFilterTypeSet()
+  return props.dt.fields.filter((f) => supported.has(f.fieldtype))
+})
 
 const filteredFields = computed(() => {
   const q = search.value.trim().toLowerCase()
