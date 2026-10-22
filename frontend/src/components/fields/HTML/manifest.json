@@ -7,7 +7,7 @@
         "core",
         "display",
         "text",
-        "html"
+        "HTML"
     ],
     "storage_class": "none",
     "own_label": true

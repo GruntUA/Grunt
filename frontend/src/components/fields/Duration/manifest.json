@@ -8,7 +8,7 @@
         "flags",
         "display",
         "text",
-        "duration_unit",
+        "Duration",
         "formula",
         "default",
         "number",

@@ -1,7 +1,6 @@
 import { registerPropertySection } from '@/core/propertySectionRegistry'
 
 registerPropertySection('core', () => import('./CoreSection.vue').then(m => m.default))
-registerPropertySection('collapsible', () => import('./CollapsibleSection.vue').then(m => m.default))
 registerPropertySection('flags', () => import('./FlagsSection.vue').then(m => m.default))
 registerPropertySection('display', () => import('./DisplaySection.vue').then(m => m.default))
 registerPropertySection('text', () => import('./TextSection.vue').then(m => m.default))
@@ -11,13 +10,7 @@ registerPropertySection('validation', () => import('./ValidationSection.vue').th
 registerPropertySection('formula', () => import('./FormulaSection.vue').then(m => m.default))
 registerPropertySection('aggregate', () => import('./AggregateSection.vue').then(m => m.default))
 registerPropertySection('options', () => import('./OptionsSection.vue').then(m => m.default))
-registerPropertySection('currency', () => import('./CurrencySection.vue').then(m => m.default))
-registerPropertySection('duration_unit', () => import('./DurationUnitSection.vue').then(m => m.default))
-registerPropertySection('html', () => import('./HtmlSection.vue').then(m => m.default))
 registerPropertySection('max_length', () => import('./MaxLengthSection.vue').then(m => m.default))
 registerPropertySection('link', () => import('./LinkSection.vue').then(m => m.default))
 registerPropertySection('fetch_from', () => import('./FetchFromSection.vue').then(m => m.default))
-registerPropertySection('table', () => import('./TableSection.vue').then(m => m.default))
 registerPropertySection('icon', () => import('./IconSection.vue').then(m => m.default))
-registerPropertySection('button', () => import('./ButtonSection.vue').then(m => m.default))
-registerPropertySection('tab', () => import('./TabSection.vue').then(m => m.default))

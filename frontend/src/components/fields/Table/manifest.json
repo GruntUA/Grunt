@@ -8,7 +8,7 @@
         "flags",
         "display",
         "text",
-        "table"
+        "Table"
     ],
     "storage_class": "none",
     "traits": [

@@ -8,7 +8,7 @@
     "propertySections": [
         "core",
         "icon",
-        "tab"
+        "Tab"
     ],
     "storage_class": "none",
     "own_label": true

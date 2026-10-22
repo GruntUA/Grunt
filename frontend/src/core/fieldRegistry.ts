@@ -29,6 +29,7 @@
  *   DesignerPreview.vue  - optional canvas preview
  *   ListCell.vue         - optional list / report cell (see listCellRegistry)
  *   FilterInput.vue      - optional filter value input (see filterRegistry)
+ *   PropertySection.vue  - optional designer section of its own (see propertySectionRegistry)
  */
 
 import { defineAsyncComponent, type Component } from 'vue'

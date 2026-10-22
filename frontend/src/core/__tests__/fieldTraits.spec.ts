@@ -70,3 +70,20 @@ describe('filter / list-cell registries', async () => {
     expect(getFilterConfig('Percent').filterInput).toBe(DefaultFilterInput)
   })
 })
+
+describe('property sections', async () => {
+  await import('@/pages/studio/builder/sections/index')
+  const { getPropertySection } = await import('@/core/propertySectionRegistry')
+  const { getAllFieldTypes } = await import('@/core/fieldRegistry')
+
+  it('discovers PropertySection.vue under the field type name', () => {
+    expect(getPropertySection('Currency')).toBeDefined()
+    expect(getPropertySection('currency')).toBeUndefined()
+  })
+
+  it('resolves every section a manifest lists', () => {
+    const missing = getAllFieldTypes().flatMap(type =>
+      (getFieldDef(type)?.propertySections ?? []).filter(s => !getPropertySection(s)).map(s => `${type}: ${s}`))
+    expect(missing).toEqual([])
+  })
+})

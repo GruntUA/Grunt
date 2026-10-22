@@ -115,6 +115,8 @@ components/fields/{FieldName}/
   FilterInput.vue          ← (опційно) компонент фільтра в List View
   ListCell.vue             ← (опційно) відображення у стовпці таблиці
   DesignerPreview.vue      ← (опційно) спрощений preview у Form Builder
+  PropertySection.vue      ← (опційно) власна секція PropertiesPanel, реєструється під назвою типу
+  format.ts                ← (опційно) текстове форматування значення (formatValue)
 ```
 
 ### manifest.json
@@ -135,8 +137,14 @@ components/fields/{FieldName}/
 | `label` | `string` | Назва у Form Builder palette |
 | `icon` | `string` | kebab-case Lucide-іконка або emoji |
 | `category` | `string` | Група у palette (напр. "Базові", "Медіа", "Вибір і зв'язки") |
-| `propertySections` | `string[]` | Секції у PropertiesPanel, в порядку відображення |
+| `propertySections` | `string[]` | Секції у PropertiesPanel, в порядку відображення. Спільні — з `pages/studio/builder/sections/`, власна секція типу — `"<Type>"` (його `PropertySection.vue`) |
 | `is_layout` | `boolean?` | `true` для Section / Column / Tab (не зберігаються в БД) |
+| `storage_class`, `traits` | | Синхронізуються з бекенду (`grunt fields sync-manifests`), вручну не редагувати |
+| `table_inline` | `boolean?` | Редагується прямо в клітинці Table-гріда |
+| `list_inline` | `boolean?` | Сире значення редагується як текст подвійним кліком у списку |
+| `quick_filter` | `string?` | `QuickFilter.input_type` для типу; без нього тип не пропонується як швидкий фільтр |
+| `default_agg` | `string?` | Агрегат колонки звіту за замовчуванням (`sum`, якщо не задано) |
+| `webform` | `boolean?` | `false` — не пропонується в палітрі Web Form |
 
 ### Авто-реєстрація
 

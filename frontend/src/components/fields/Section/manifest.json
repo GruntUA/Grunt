@@ -7,7 +7,7 @@
     "non_groupable": true,
     "propertySections": [
         "core",
-        "collapsible",
+        "Section",
         "text"
     ],
     "storage_class": "none",

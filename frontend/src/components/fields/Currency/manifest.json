@@ -8,7 +8,7 @@
         "flags",
         "display",
         "text",
-        "currency",
+        "Currency",
         "formula",
         "aggregate",
         "default",
