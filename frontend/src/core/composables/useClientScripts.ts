@@ -24,6 +24,7 @@
 
 import { provide, ref, reactive, watch } from 'vue'
 import type { Ref } from 'vue'
+import type { DocType } from '@/types'
 import { useRouter } from 'vue-router'
 import { useDialog } from '@/core/composables/useDialog'
 import { useToast } from '@/core/composables/useToast'
@@ -45,6 +46,8 @@ import { FORM_DASHBOARD } from '@/core/scripting/formDashboard'
 export interface UseClientScriptsOptions {
   getDoc: () => Record<string, unknown>
   getFields: () => Record<string, unknown>[]
+  /** The DocType definition behind frm.meta. */
+  getMeta?: () => DocType | null
   isNew: () => boolean
   setValue: (field: string, value: unknown) => void
   refreshField?: (field: string) => void
@@ -113,6 +116,7 @@ export function useClientScripts(doctype: string, options: UseClientScriptsOptio
       markClean: options.markClean,
       state: options.state,
       ui: options.ui,
+      meta: options.getMeta,
     },
     options.isNew(),
   )
@@ -152,6 +156,7 @@ export function useClientScripts(doctype: string, options: UseClientScriptsOptio
         prompt: (labelOrOpts, title) => dialog.prompt(labelOrOpts as any, title),
         form: (opts) => dialog.form(opts as any),
         select: (opts) => dialog.select(opts as any),
+        component: (opts) => dialog.component(opts),
         navigateTo: (href, inNewTab) => {
           if (inNewTab) {
             window.open(href, '_blank')

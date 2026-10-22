@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest'
+import { defineComponent } from 'vue'
 import { useDialog } from '@/core/composables/useDialog'
 
 describe('useDialog.select', () => {
@@ -90,5 +91,27 @@ describe('useDialog.warn', () => {
     d.confirm('x')
     expect(d.state.destructive).toBe(false)
     d.close(true)
+  })
+})
+
+describe('useDialog.component', () => {
+  it('shows a component with props and resolves with what it closes with', async () => {
+    const d = useDialog()
+    const Body = defineComponent({ props: { doc: String }, render: () => null })
+    const promise = d.component({ title: 'Підпис', component: Body, props: { doc: 'X-1' } })
+    expect(d.state.type).toBe('component')
+    expect(d.state.size).toBe('large')
+    expect(d.state.componentProps).toEqual({ doc: 'X-1' })
+    expect(d.state.component).toBe(Body)
+    d.close({ signed: true })
+    await expect(promise).resolves.toEqual({ signed: true })
+    expect(d.state.component).toBeNull()
+  })
+
+  it('wraps a loader function into an async component', () => {
+    const d = useDialog()
+    d.component({ component: () => Promise.resolve(defineComponent({ render: () => null })) })
+    expect(d.state.component).toMatchObject({ name: 'AsyncComponentWrapper' })
+    d.close()
   })
 })

@@ -241,6 +241,13 @@ const footerButtons = computed<FooterButton[]>(() => {
         </Field>
       </FieldGroup>
 
+      <component
+        :is="state.component"
+        v-else-if="state.type === 'component' && state.component"
+        v-bind="state.componentProps"
+        @close="close"
+      />
+
       <div v-else-if="state.type === 'progress'" class="space-y-2 py-2">
         <Progress :model-value="state.progress.percent" />
         <div class="flex items-center justify-between text-muted-foreground">

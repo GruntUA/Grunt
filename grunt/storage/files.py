@@ -22,38 +22,9 @@ lazy from grunt.storage.cloud.files import read_blob
 
 CONTENT_URL = "/api/v1/method/grunt.storage.doctypes.File.file.get_content?file_id={}"
 
-# MIME type allowlist
-ALLOWED_MIME_TYPES: set[str] = {
-    "image/jpeg",
-    "image/png",
-    "image/gif",
-    "image/webp",
-    "image/svg+xml",
-    "application/pdf",
-    "application/msword",
-    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    "application/vnd.ms-excel",
-    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    "application/vnd.ms-powerpoint",
-    "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-    "text/plain",
-    "text/csv",
-    "application/json",
-    "application/zip",
-}
-
 
 class FileTypeNotAllowedError(ValueError):
-    """The content type is not in ALLOWED_MIME_TYPES."""
-
-
-def validate_mime_type(content_type: str) -> None:
-    """Raise FileTypeNotAllowedError if the MIME type is not in the allowlist."""
-    base_type = content_type.split(";")[0].strip().lower()
-    if base_type not in ALLOWED_MIME_TYPES:
-        raise FileTypeNotAllowedError(
-            _("File type “%(type)s” is not allowed") % {"type": base_type}
-        )
+    """The file type is not in ``SystemSettings.allowed_file_types``."""
 
 
 def parse_file_types(value: str | None) -> set[str]:
@@ -70,22 +41,30 @@ def parse_file_types(value: str | None) -> set[str]:
     return types
 
 
-async def validate_file_type(content_type: str, filename: str | None = None) -> None:
-    """Like :func:`validate_mime_type`, plus the site's own extra types.
+async def allowed_file_types() -> set[str]:
+    """``SystemSettings.allowed_file_types``, parsed; the field's default
+    until the settings row has a value."""
+    value = await get_setting("allowed_file_types")
+    if value is None:
+        meta = await grunt.get_meta("SystemSettings")
+        field = meta.get_field("allowed_file_types") if meta else None
+        value = field.default if field else None
+    return parse_file_types(value)
 
-    ``SystemSettings.extra_file_types`` lists extensions (``.exe``) or MIME
-    types an admin allows on top of ALLOWED_MIME_TYPES. An extension is
-    matched by the file name: browsers send an ``.exe`` as
-    ``application/x-msdownload``, ``application/x-msdos-program`` or a bare
-    ``application/octet-stream``. Such files are always served as a download
-    (``Content-Disposition: attachment``), never rendered inline.
+
+async def validate_file_type(content_type: str, filename: str | None = None) -> None:
+    """Raise FileTypeNotAllowedError unless the site allows the file.
+
+    ``SystemSettings.allowed_file_types`` lists MIME types and extensions
+    (``.exe``). An extension is matched by the file name: browsers send an
+    ``.exe`` as ``application/x-msdownload``, ``application/x-msdos-program``
+    or a bare ``application/octet-stream``. Every file is served as a
+    download (``Content-Disposition: attachment``), never rendered inline.
     """
     base_type = content_type.split(";")[0].strip().lower()
-    if base_type in ALLOWED_MIME_TYPES:
-        return
-    extra = parse_file_types(await get_setting("extra_file_types", ""))
     suffix = PurePath(filename).suffix.lower() if filename else ""
-    if base_type not in extra and not (suffix and suffix in extra):
+    allowed = await allowed_file_types()
+    if base_type not in allowed and not (suffix and suffix in allowed):
         raise FileTypeNotAllowedError(
             _("File type “%(type)s” is not allowed") % {"type": suffix or base_type}
         )

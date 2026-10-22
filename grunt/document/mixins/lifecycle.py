@@ -25,6 +25,7 @@ import grunt
 from grunt import _, log
 from grunt.db.errors import friendly_integrity_error
 from grunt.document.fetch import apply_fetch_from
+from grunt.document.guards import check_write
 from grunt.document.relations import apply_field_values
 from grunt.document.serde import audit_fields, serialize_datetimes, with_doctype
 from grunt.document.validation import _validate_data, validate_child_rows
@@ -461,6 +462,7 @@ class DocumentLifecycleMixin:
         # an `on_edit` transition (then *data* carries the new state).
         data = dict(data)
         auto_transition = await check_update(self.doctype, existing, data, user)
+        await check_write("update", self.doctype, existing, data, user)
 
         errors = _validate_data(dt, data, partial=True, ignore_required=ignore_required)
         errors += await validate_child_rows(dt, data, ignore_required=ignore_required)
@@ -535,6 +537,7 @@ class DocumentLifecycleMixin:
         await permission_checker.require(user, dt, "delete", existing)
 
         await check_delete(self.doctype, existing, user)
+        await check_write("delete", self.doctype, existing, {}, user)
 
         real_id = existing["name"]
 

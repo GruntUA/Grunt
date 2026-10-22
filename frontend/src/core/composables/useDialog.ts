@@ -21,7 +21,8 @@
  *   dialog.progress('Імпорт', 50, 200, 'Обробка рядків...')
  */
 
-import { reactive } from 'vue'
+import { defineAsyncComponent, markRaw, reactive } from 'vue'
+import type { Component } from 'vue'
 import i18n from '@/plugins/i18n'
 import type { FieldType } from '@/types'
 
@@ -132,7 +133,7 @@ export interface PromptOptions {
 export type DialogSize = 'small' | 'large' | 'extra-large'
 
 /** `prompt`/`select` are `dialog` underneath, `warn` is a destructive `confirm`. */
-export type DialogType = 'msgprint' | 'confirm' | 'dialog' | 'progress'
+export type DialogType = 'msgprint' | 'confirm' | 'dialog' | 'progress' | 'component'
 
 export interface DialogOptions {
   title: string
@@ -141,6 +142,18 @@ export interface DialogOptions {
   size?: DialogSize
   /** Extra in-dialog action buttons (see {@link DialogActionButton}). */
   buttons?: DialogActionButton[]
+}
+
+/**
+ * A dialog whose body is a component - an app's own UI (see core/appDialogs.ts).
+ * The component gets `props` and closes the dialog by emitting `close`
+ * with the value `component()` resolves with.
+ */
+export interface ComponentDialogOptions {
+  title?: string
+  component: Component | (() => Promise<Component>)
+  props?: Record<string, unknown>
+  size?: DialogSize
 }
 
 export interface DialogState {
@@ -159,6 +172,8 @@ export interface DialogState {
   /** Transient yes/no overlay for an in-dialog action (see DialogActionButton.confirm). */
   actionConfirm: { message: string; resolve: (v: boolean) => void } | null
   progress: { count: number; total: number; percent: number; description: string | null }
+  component: Component | null
+  componentProps: Record<string, unknown>
   resolve: ((value: unknown) => void) | null
 }
 
@@ -178,6 +193,8 @@ const DEFAULT_STATE: Omit<DialogState, 'resolve'> = {
   busyButton: null,
   actionConfirm: null,
   progress: { count: 0, total: 0, percent: 0, description: null },
+  component: null,
+  componentProps: {},
 }
 
 const state = reactive<DialogState>({ ...DEFAULT_STATE, resolve: null })
@@ -377,6 +394,28 @@ export function useDialog() {
   }
 
   /** Close the current dialog and resolve with a value. */
+  /**
+   * Show a component as the dialog body. Resolves with what it emits as
+   * `close` (undefined when the user dismisses the dialog).
+   */
+  function component(opts: ComponentDialogOptions): Promise<unknown> {
+    return new Promise((resolve) => {
+      reset()
+      state.type = 'component'
+      state.title = opts.title ?? ''
+      state.size = opts.size ?? 'large'
+      // A function is a loader (`() => import(...)`), not a functional component.
+      state.component = markRaw(
+        typeof opts.component === 'function'
+          ? defineAsyncComponent(opts.component as () => Promise<Component>)
+          : opts.component,
+      )
+      state.componentProps = opts.props ?? {}
+      state.resolve = resolve
+      state.open = true
+    })
+  }
+
   function close(value?: unknown) {
     const r = state.resolve
     reset()
@@ -392,6 +431,7 @@ export function useDialog() {
     form,
     select,
     progress,
+    component,
     close,
   }
 }

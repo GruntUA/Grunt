@@ -53,6 +53,11 @@ _GLOBAL_SCRIPT_PATHS = (
     Path("DocType") / "global_list.js",
 )
 
+# Apps' client scripts for DocTypes they don't own (``doctype_js`` in hooks.py):
+# {DocType or "*": [(app, path)]}. Run after the global scripts, before the
+# DocType's own script.
+_DOCTYPE_JS: dict[str, list[tuple[str, Path]]] = {}
+
 _HEADER_RE = re.compile(r"^#\s*(\w[\w\s]+\w)\s*:\s*(.+)$", re.MULTILINE)
 
 
@@ -72,6 +77,28 @@ def register_client_script_dir(app_name: str, doctypes_dir: str | Path) -> None:
     Scripts are read from disk only when first requested per DocType.
     """
     _client_script_dirs.append((app_name, Path(doctypes_dir)))
+
+
+def register_doctype_js(app_name: str, doctype: str, path: str | Path) -> None:
+    """Add an app's client script to *doctype*'s forms ("*" - every DocType)."""
+    entry = (app_name, Path(path))
+    scripts = _DOCTYPE_JS.setdefault(doctype, [])
+    if entry not in scripts:
+        scripts.append(entry)
+    FILE_CLIENT_SCRIPT_REGISTRY.clear()
+    _client_script_scanned.clear()
+
+
+def _doctype_js_scripts(doctype: str) -> list[dict[str, str]]:
+    out = []
+    for app_name, path in [*_DOCTYPE_JS.get("*", []), *_DOCTYPE_JS.get(doctype, [])]:
+        try:
+            out.append({"name": f"{app_name}:{path.name}", "script": path.read_text()})
+        except OSError as e:
+            log.warning(
+                "file_scripts.doctype_js_missing", app=app_name, path=str(path), error=str(e)
+            )
+    return out
 
 
 def _iter_doctype_dirs(root_dir: Path) -> list[Path]:
@@ -228,6 +255,7 @@ def get_file_client_scripts(doctype: str) -> list[dict[str, str]]:
 
     _client_script_scanned.add(doctype)
     results: list[dict[str, str]] = []
+    globals_count = 0
 
     log.debug("file_scripts.scan_start", doctype=doctype, dirs_count=len(_client_script_dirs))
 
@@ -242,6 +270,7 @@ def get_file_client_scripts(doctype: str) -> list[dict[str, str]]:
                             "script": global_script.read_text(),
                         }
                     )
+                    globals_count += 1
 
         # Try exact match first (e.g. HromsStaffingTable/HromsStaffingTable.js)
         js_file = doctypes_dir / doctype / f"{doctype}.js"
@@ -279,6 +308,8 @@ def get_file_client_scripts(doctype: str) -> list[dict[str, str]]:
             log.debug(
                 "file_scripts.client_loaded", app=app_name, doctype=doctype, file=str(js_file)
             )
+
+    results[globals_count:globals_count] = _doctype_js_scripts(doctype)
 
     if not settings.debug:
         # Cache result (including empty - to avoid repeated disk reads)

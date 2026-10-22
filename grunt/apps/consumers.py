@@ -22,10 +22,12 @@ from fastapi import FastAPI
 
 from grunt import log
 from grunt.actions import load_app_doc_actions
+from grunt.document.guards import register_write_guard
 from grunt.document.registry import document_registry
 from grunt.document.tree import register_tree_title_resolver
 from grunt.hooks import register_doc_events, register_doctype_overrides
 from grunt.io import register_exporter, register_importer
+from grunt.scripting.file_scripts import register_doctype_js
 from grunt.tasks.scheduler import register_scheduler_events
 from grunt.website import website_registry
 from grunt.website.router import (
@@ -93,6 +95,24 @@ def _doc_events(value: dict, ctx: LoadContext) -> None:
 @consumer("doctype_overrides")
 def _doctype_overrides(value: dict, ctx: LoadContext) -> None:
     register_doctype_overrides(value)
+
+
+@consumer("doctype_js")
+def _doctype_js(value: dict[str, str | list[str]], ctx: LoadContext) -> None:
+    """Client scripts (paths relative to the app dir) for other apps' DocTypes.
+
+    ``{"Sales Order": "public/sales_order.js", "*": ["public/every_form.js"]}``
+    - "*" adds the script to every DocType's form.
+    """
+    for doctype, paths in value.items():
+        for path in [paths] if isinstance(paths, str) else paths:
+            register_doctype_js(ctx.app_name, doctype, ctx.app_dir / path)
+
+
+@consumer("write_guards")
+def _write_guards(value: list[str], ctx: LoadContext) -> None:
+    for path in value:
+        register_write_guard(_resolve(path))
 
 
 @consumer("override_doctype_class")

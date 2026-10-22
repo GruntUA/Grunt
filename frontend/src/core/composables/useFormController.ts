@@ -153,6 +153,7 @@ export function useFormController(
   } = useClientScripts(doctype, {
     getDoc: () => form.value,
     getFields: () => (dt.value?.fields ?? []) as Record<string, unknown>[],
+    getMeta: () => dt.value ?? null,
     isNew: () => !id,
     setValue: (field, value) => {
       form.value[field] = value

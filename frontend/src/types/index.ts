@@ -226,6 +226,8 @@ export interface DocType {
   track_views?: boolean
   quick_entry?: boolean
   show_preview_popup?: boolean
+  /** Documents can carry qualified electronic signatures (an e-signature app adds the UI). */
+  is_signable?: boolean
   beta?: boolean
   deprecated?: boolean
   table_name?: string | null

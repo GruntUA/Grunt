@@ -13,10 +13,12 @@ import client from '@/core/api/client'
 import { useAuthStore } from '@/stores/auth'
 import { grunt as appGrunt } from '@/core/grunt'
 import { appUrl } from '@/core/workspaceUrl'
-import type { DialogSize } from '@/core/composables/useDialog'
+import type { ComponentDialogOptions, DialogSize } from '@/core/composables/useDialog'
+import { appDialog } from '@/core/appDialogs'
 import type { ActionsApi } from '@/core/actions'
 import { i18n, N_ } from '@/plugins/i18n'
 import type { DocPerms } from '@/core/permissions'
+import type { DocType } from '@/types'
 import { createFormDashboard, type FormDashboardApi } from '@/core/scripting/formDashboard'
 
 // Types
@@ -31,6 +33,8 @@ export interface FormProxy {
   doctype: string
   doc: Record<string, unknown>
   fields: Record<string, unknown>[]
+  /** The DocType definition (flags such as `is_signable`, views, …); null until loaded. */
+  readonly meta: DocType | null
   is_new: boolean
   get_value: (fieldname: string) => unknown
   set_value: (fieldname: string, value: unknown) => void
@@ -260,6 +264,17 @@ export interface GruntProxy {
   }) => Promise<Record<string, unknown>[] | Record<string, unknown> | null>
   show_progress: (title: string, count: number, total: number, description?: string) => void
   /**
+   * Open an app's dialog component (bench/apps/<app>/desk/dialogs/<Name>.vue).
+   * Resolves with the value the component emits as `close`.
+   *
+   * ```js
+   * const signed = await grunt.open_dialog('esign/SignDialog', {
+   *   title: __('Sign'), props: { doctype: frm.doctype, name: frm.name },
+   * })
+   * ```
+   */
+  open_dialog: (name: string, opts?: { title?: string; props?: Record<string, unknown>; size?: DialogSize }) => Promise<unknown>
+  /**
    * Let the user pick files and upload them as File records (with progress).
    * Resolves with the uploaded files - empty when cancelled.
    *
@@ -429,6 +444,7 @@ export function createFormProxy(
     /** Live form state behind frm.perm / is_dirty / … (read on every access, so reactive). */
     state?: () => FormProxyState
     ui?: Partial<FormProxyUi>
+    meta?: () => DocType | null
   } = {},
   isNew: boolean = false,
   actions: ActionsApi<FormProxy> = NO_ACTIONS,
@@ -458,6 +474,7 @@ export function createFormProxy(
     _selected_rows: {},
 
     get perm() { return state().perm },
+    get meta() { return callbacks.meta?.() ?? null },
     get name() { return proxy.is_new ? null : ((proxy.doc.name as string | undefined) ?? null) },
     get is_dirty() { return state().isDirty },
     get is_saving() { return state().isSaving },
@@ -577,6 +594,7 @@ export function createGruntProxy(
     form?: (opts: { title: string; fields: unknown[]; primaryLabel?: string; size?: DialogSize }) => Promise<Record<string, unknown> | null>
     select?: (opts: Record<string, unknown>) => Promise<unknown>
     showProgress?: (title: string, count: number, total: number, description?: string) => void
+    component?: (opts: ComponentDialogOptions) => Promise<unknown>
     navigateTo?: (href: string, inNewTab: boolean) => void
   } = {},
   // Internal registry populated by useClientScripts when a WS message arrives
@@ -778,6 +796,12 @@ export function createGruntProxy(
 
     show_progress(title: string, count: number, total: number, description?: string) {
       callbacks.showProgress?.(title, count, total, description)
+    },
+
+    async open_dialog(name, opts = {}) {
+      const component = appDialog(name)
+      if (!component) throw new Error(`Unknown dialog "${name}"`)
+      return callbacks.component?.({ ...opts, component })
     },
 
     async upload_files(opts = {}) {

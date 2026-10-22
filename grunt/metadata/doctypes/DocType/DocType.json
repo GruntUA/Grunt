@@ -518,6 +518,13 @@
       "description": "Files uploaded to these documents are public by default (website content: news covers, page images). Otherwise attachments are private and readable only with the document"
     },
     {
+      "fieldname": "is_signable",
+      "label": "Electronic signature",
+      "fieldtype": "Check",
+      "description": "Documents can be signed with a qualified electronic signature (needs an e-signature app, e.g. esign)",
+      "depends_on": "eval:!doc.is_child && !doc.is_singleton"
+    },
+    {
       "fieldname": "shares_cover_subtree",
       "label": "Sharing covers subtree",
       "fieldtype": "Check",

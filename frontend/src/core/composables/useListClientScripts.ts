@@ -81,6 +81,7 @@ export function useListClientScripts(params: UseListClientScriptsParams) {
       select: (opts) => params.dialog.select(opts as any),
       showProgress: (title, count, total, description) =>
         params.dialog.progress(title, count, total, description),
+      component: (opts) => params.dialog.component(opts),
       navigateTo: (href, inNewTab) => {
         if (inNewTab) {
           window.open(href, '_blank')

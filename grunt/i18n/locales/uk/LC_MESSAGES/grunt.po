@@ -4563,6 +4563,20 @@ msgid "Public attachments"
 msgstr "Публічні вкладення"
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgctxt "meta:DocType.is_signable"
+msgid "Electronic signature"
+msgstr "Електронний підпис"
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgctxt "help:DocType.is_signable"
+msgid ""
+"Documents can be signed with a qualified electronic signature (needs an e-"
+"signature app, e.g. esign)"
+msgstr ""
+"Документи можна підписувати кваліфікованим електронним підписом (потрібен "
+"додаток електронного підпису, напр. esign)"
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgctxt "help:DocType.public_attachments"
 msgid ""
 "Files uploaded to these documents are public by default (website content: "
@@ -23147,20 +23161,21 @@ msgid "Compressing images"
 msgstr "Стиснення зображень"
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
-msgctxt "meta:SystemSettings.extra_file_types"
-msgid "Additional allowed file types"
-msgstr "Додаткові дозволені типи файлів"
+msgctxt "meta:SystemSettings.allowed_file_types"
+msgid "Allowed file types"
+msgstr "Дозволені типи файлів"
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
-msgctxt "help:SystemSettings.extra_file_types"
+msgctxt "help:SystemSettings.allowed_file_types"
 msgid ""
-"Extensions (.exe) or MIME types, separated by commas, accepted on top of the "
-"built-in list (images, PDF, office documents, text, CSV, JSON, ZIP). Such "
-"files are only ever downloaded, never opened in the browser"
+"One per line or separated by commas: MIME types (application/pdf) or "
+"extensions (.exe); an extension is matched by the file name. Files of any "
+"other type are refused. Files are only ever downloaded, never opened in the "
+"browser"
 msgstr ""
-"Розширення (.exe) або MIME-типи через кому, які приймаються на додачу до "
-"вбудованого переліку (зображення, PDF, офісні документи, текст, CSV, JSON, "
-"ZIP). Такі файли лише завантажуються, у браузері не відкриваються"
+"По одному на рядок або через кому: MIME-типи (application/pdf) чи розширення "
+"(.exe); розширення звіряється з іменем файлу. Файли інших типів не "
+"приймаються. Файли лише завантажуються, у браузері не відкриваються"
 
 #: grunt/grunt/storage/files.py
 msgid "File type “%(type)s” is not allowed"

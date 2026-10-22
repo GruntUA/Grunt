@@ -275,6 +275,10 @@ class DocType(BaseModel):
     # True -> files uploaded to these documents default to is_public (public
     # website content); otherwise an attachment is private to its document.
     public_attachments: bool = False
+    # True -> documents can carry qualified electronic signatures (КЕП). The
+    # framework only declares it; an e-signature app (esign) adds the «Sign»
+    # action, stores the signatures and guards signed documents.
+    is_signable: bool = False
     # True -> a record marked is_standard ships with its app as JSON files
     # (grunt.standard_records): written on save in developer mode, applied by
     # `grunt migrate`. Adds the is_standard / app fields when missing.

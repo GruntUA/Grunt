@@ -117,11 +117,11 @@ async def test_disallowed_type_is_415(ctx, storage):
     assert exc.value.status_code == 415
 
 
-def _extra_types(monkeypatch, value: str) -> None:
-    """``SystemSettings.extra_file_types`` = *value* for this test."""
+def _allowed_types(monkeypatch, value: str) -> None:
+    """``SystemSettings.allowed_file_types`` = *value* for this test."""
 
     async def fake(field, default=None):
-        return value if field == "extra_file_types" else default
+        return value if field == "allowed_file_types" else default
 
     monkeypatch.setattr(files, "get_setting", fake)
 
@@ -138,7 +138,7 @@ def test_parse_file_types_normalises_extensions_and_mime():
 @pytest.mark.asyncio
 @pytest.mark.parametrize("content_type", ["application/x-msdownload", "application/octet-stream"])
 async def test_extension_allowed_by_site_settings(ctx, storage, monkeypatch, content_type):
-    _extra_types(monkeypatch, ".exe")
+    _allowed_types(monkeypatch, ".exe")
     exe = UploadFile(
         file=io.BytesIO(b"MZ"),
         filename="agent.exe",
@@ -155,7 +155,7 @@ async def test_extension_allowed_by_site_settings(ctx, storage, monkeypatch, con
 
 @pytest.mark.asyncio
 async def test_mime_type_allowed_by_site_settings(ctx, storage, monkeypatch):
-    _extra_types(monkeypatch, "application/x-msdownload")
+    _allowed_types(monkeypatch, "application/x-msdownload")
 
     doc = await store(b"MZ", "tool.bin", "application/x-msdownload")
 

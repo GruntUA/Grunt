@@ -138,6 +138,10 @@ export default defineConfig({
         precacheManifest(),
     ],
     resolve: {
+        // App frontend pieces (@apps/<app>/desk/…, dashboard_widgets) live
+        // outside this package and have no node_modules of their own: their
+        // bare imports resolve to the framework's copies.
+        dedupe: ['vue', 'vue-router', 'pinia', 'vue-i18n', 'reka-ui', '@lucide/vue'],
         alias: {
             '@': path.resolve(import.meta.dirname, './frontend/src'),
             '@apps': appsDir,

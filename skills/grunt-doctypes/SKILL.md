@@ -257,15 +257,14 @@ class ExternalCustomer(BaseDocument):
 | `Icon` | String | Вибір Lucide іконки |
 | `Signature` | Text | Електронний підпис (canvas) |
 
-**Які файли можна прикріпити.** Ядро приймає вбудований перелік MIME
-(`grunt.storage.files.ALLOWED_MIME_TYPES`: зображення, PDF, офісні документи,
-text/csv/json, zip). Решту (`.exe`, `.msi`…) адмін дозволяє для сайту в
-«Системні налаштування → Файли → Додаткові дозволені типи файлів»
-(`SystemSettings.extra_file_types`): розширення або MIME через кому.
+**Які файли можна прикріпити.** Перелік задає адмін сайту в «Системні
+налаштування → Файли → Дозволені типи файлів» (`SystemSettings.allowed_file_types`,
+дефолт — зображення, PDF, офісні документи, text/csv/json, zip, підписи/сертифікати):
+MIME-типи або розширення (`.exe`), по одному на рядок чи через кому.
 Розширення звіряється з іменем файлу, бо браузер шле `.exe` то як
 `application/x-msdownload`, то як `application/octet-stream`. Серверний код
 перевіряє тип через `await files.validate_file_type(content_type, filename)`
-(його ж викликає `files.store`). Такі файли завжди віддаються як завантаження.
+(його ж викликає `files.store`). Файли завжди віддаються як завантаження.
 
 ### Структуровані дані
 
