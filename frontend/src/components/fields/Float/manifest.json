@@ -1,1 +1,20 @@
-{"type": "Float", "label": "Float", "icon": "sigma", "category": "Базові", "propertySections": ["core", "flags", "display", "text", "formula", "aggregate", "default", "number", "validation", "fetch_from"], "storage_class": "float"}
+{
+    "type": "Float",
+    "label": "Float",
+    "icon": "sigma",
+    "category": "Базові",
+    "propertySections": [
+        "core",
+        "flags",
+        "display",
+        "text",
+        "formula",
+        "aggregate",
+        "default",
+        "number",
+        "validation",
+        "fetch_from"
+    ],
+    "storage_class": "float",
+    "table_inline": true
+}

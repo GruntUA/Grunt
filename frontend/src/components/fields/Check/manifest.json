@@ -12,5 +12,6 @@
         "fetch_from"
     ],
     "storage_class": "bool",
-    "own_label": true
+    "own_label": true,
+    "table_inline": true
 }

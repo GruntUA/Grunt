@@ -5,7 +5,7 @@
  */
 import i18n from '@/plugins/i18n'
 import type { DocField } from '@/types'
-import { getLayoutTypeSet } from '@/core/fieldRegistry'
+import { getLayoutTypeSet, getTableInlineTypeSet } from '@/core/fieldRegistry'
 import { validateFieldValue } from '@/core/validators'
 import { currencyCode, formatCurrency } from '@/core/currency'
 import { durationUnit, formatDuration } from '@/core/duration'
@@ -13,19 +13,8 @@ import { selectOptionLabel } from '@/lib/selectOptions'
 
 const LAYOUT_TYPES = getLayoutTypeSet()
 
-/** Field types edited right in the grid cell; the rest only in the row sheet. */
-export const INLINE_TYPES = new Set([
-  'Data',
-  'Int',
-  'Float',
-  'Currency',
-  'Check',
-  'Select',
-  'Date',
-  'Datetime',
-  'Time',
-  'Link',
-])
+/** Field types edited right in the grid cell (manifest table_inline); the rest only in the row sheet. */
+export const INLINE_TYPES = getTableInlineTypeSet()
 
 /** Structural rows (Tab / Section / Column… in a DocField table) hold no data. */
 export function isLayoutRow(row: Record<string, unknown>): boolean {

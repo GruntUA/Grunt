@@ -130,6 +130,8 @@ export interface FieldDefinition {
   own_label?: boolean
   /** Extra events the component emits that FieldRenderer forwards (e.g. 'create-new'). */
   emits?: string[]
+  /** Edited right in a Table grid cell; otherwise only in the row sheet. */
+  table_inline?: boolean
 }
 
 // Internal registry
@@ -181,6 +183,11 @@ export function getLayoutTypeSet(): Set<string> {
 /** Types with no DB column of their own (layout, Table, MultiLink, Button, HTML…) - per manifest storage_class. */
 export function getNonPhysicalTypeSet(): Set<string> {
   return new Set([..._registry.values()].filter((d) => !!d.is_layout || d.storage_class === 'none').map((d) => d.type))
+}
+
+/** Types edited right in a Table grid cell - per manifest table_inline. */
+export function getTableInlineTypeSet(): Set<string> {
+  return new Set([..._registry.values()].filter((d) => !!d.table_inline).map((d) => d.type))
 }
 
 /** Storage class for a field type. Unknown / plugin types are assumed text. */

@@ -1,1 +1,16 @@
-{"type": "Time", "label": "Time", "icon": "clock", "category": "Дата і час", "propertySections": ["core", "flags", "display", "text", "default", "fetch_from"], "storage_class": "time"}
+{
+    "type": "Time",
+    "label": "Time",
+    "icon": "clock",
+    "category": "Дата і час",
+    "propertySections": [
+        "core",
+        "flags",
+        "display",
+        "text",
+        "default",
+        "fetch_from"
+    ],
+    "storage_class": "time",
+    "table_inline": true
+}

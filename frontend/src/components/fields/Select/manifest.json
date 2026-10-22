@@ -15,5 +15,6 @@
     "storage_class": "text",
     "traits": [
         "options"
-    ]
+    ],
+    "table_inline": true
 }

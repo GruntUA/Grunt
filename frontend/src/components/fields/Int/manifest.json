@@ -1,1 +1,20 @@
-{"type": "Int", "label": "Integer", "icon": "hash", "category": "Базові", "propertySections": ["core", "flags", "display", "text", "formula", "aggregate", "default", "number", "validation", "fetch_from"], "storage_class": "int"}
+{
+    "type": "Int",
+    "label": "Integer",
+    "icon": "hash",
+    "category": "Базові",
+    "propertySections": [
+        "core",
+        "flags",
+        "display",
+        "text",
+        "formula",
+        "aggregate",
+        "default",
+        "number",
+        "validation",
+        "fetch_from"
+    ],
+    "storage_class": "int",
+    "table_inline": true
+}
