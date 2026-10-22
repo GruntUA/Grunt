@@ -1,1 +1,15 @@
-{"type": "BarCode", "label": "Barcode / QR", "icon": "barcode", "category": "Спеціальні", "propertySections": ["core", "flags", "display", "text", "fetch_from"], "storage_class": "text"}
+{
+    "type": "BarCode",
+    "label": "Barcode / QR",
+    "icon": "barcode",
+    "category": "Спеціальні",
+    "propertySections": [
+        "core",
+        "flags",
+        "display",
+        "text",
+        "fetch_from"
+    ],
+    "storage_class": "text",
+    "list_inline": true
+}

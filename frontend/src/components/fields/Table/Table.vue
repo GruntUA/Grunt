@@ -15,7 +15,7 @@ import {
 } from '@lucide/vue'
 import type { DocField, DocType } from '@/types'
 import { useDocTypeStore } from '@/stores/doctype'
-import { getAsyncFieldComponent, getLayoutTypeSet } from '@/core/fieldRegistry'
+import { getAsyncFieldComponent, getLayoutTypeSet, isNumericType } from '@/core/fieldRegistry'
 import { toast } from '@/core/composables/useToast'
 import QuickEntryDialog from '@/components/views/QuickEntryDialog.vue'
 import { Badge } from '@/components/ui/badge'
@@ -196,8 +196,7 @@ const CELL_WIDTH: Record<string, string> = {
 }
 
 /** Numbers line up by their last digit - right-aligned in the grid only, not in forms. */
-const NUMERIC = new Set(['Int', 'Float', 'Currency', 'Percent', 'Duration'])
-const alignOf = (f: DocField) => (NUMERIC.has(f.fieldtype) ? 'text-right [&_input]:text-right' : '')
+const alignOf = (f: DocField) => (isNumericType(f.fieldtype) ? 'text-right [&_input]:text-right' : '')
 
 const colSpan = computed(() => columns.value.length + (props.disabled ? 2 : 3))
 

@@ -5,6 +5,7 @@ import { ChevronUp, ChevronDown, ArrowUpDown } from '@lucide/vue'
 import type { DocField, DocTypeStatusConfig, PaginationMeta } from '@/types'
 import type { ListColumn } from '@/core/composables/useListColumns'
 import { getListCell } from '@/core/listCellRegistry'
+import { getListInlineTypeSet, getStorageClass, hasTrait } from '@/core/fieldRegistry'
 import { useAuthStore } from '@/stores/auth'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Table, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -72,7 +73,8 @@ function seenState(row: Record<string, unknown>): 'off' | 'seen' | 'unseen' {
 
 /** First-column (title) class - dim once the current user has opened the row. */
 function firstColClass(row: Record<string, unknown>, key: string): string {
-  if (['Image', 'Attach', 'Check'].includes(getFieldType(key))) return ''
+  const type = getFieldType(key)
+  if (hasTrait(type, 'file') || getStorageClass(type) === 'bool') return ''
   switch (seenState(row)) {
     case 'seen':
       return 'font-normal text-muted-foreground hover:underline'
@@ -90,14 +92,14 @@ const inlineEdit = ref<InlineEdit | null>(null)
 // instance's $el is the DOM node we focus.
 const inlineInput = ref<{ $el?: HTMLInputElement } | null>(null)
 
-const INLINE_SKIP = new Set(['Check', 'Select', 'Date', 'Datetime', 'Image', 'Attach', 'RichText', 'JSON', 'Code', 'Signature', 'Link', 'Rating', 'Icon'])
+const INLINE_TYPES = getListInlineTypeSet()
 
 function isEditing(rowId: string, field: string) {
   return inlineEdit.value?.rowId === rowId && inlineEdit.value?.field === field
 }
 
 async function startEdit(row: any, field: string, fieldtype: string) {
-  if (INLINE_SKIP.has(fieldtype) || props.fields.find(f => f.fieldname === field)?.read_only) return
+  if (!INLINE_TYPES.has(fieldtype) || props.fields.find(f => f.fieldname === field)?.read_only) return
   inlineEdit.value = { rowId: String(row.id ?? row.name ?? ''), field, value: String(row[field] ?? '') }
   await nextTick()
   inlineInput.value?.$el?.focus()

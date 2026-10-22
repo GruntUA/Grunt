@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n'
 import { Filter, X, Bookmark, Plus } from '@lucide/vue'
 import type { DocField, ActiveFilter } from '@/types'
 import { getFilterConfig } from '@/core/filterRegistry'
+import { getNonPhysicalTypeSet } from '@/core/fieldRegistry'
 import { MULTI_VALUE_OPS, NO_VALUE_OPS } from '@/core/api/docs'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -87,11 +88,12 @@ function deletePreset(name: string) {
 // Field list
 // A field already filtered on (e.g. a dashboard drill-down URL) stays pickable
 // even without `in_filter`, so its row renders and can be edited.
+const NON_PHYSICAL = getNonPhysicalTypeSet()
 const filterableFields = computed(() => {
   const used = new Set([...activeFilters.value, ...draftRows.value].map(f => f.fieldname))
   return props.fields.filter(f =>
     (props.allFields || f.in_filter || used.has(f.fieldname))
-    && !['Section', 'Column', 'Tab', 'Table', 'HTML', 'Button'].includes(f.fieldtype),
+    && !NON_PHYSICAL.has(f.fieldtype),
   )
 })
 

@@ -2,6 +2,7 @@ import { N_ } from '@/plugins/i18n'
 import { LayoutGrid } from '@lucide/vue'
 import type { ViewDefinition } from '@/core/viewRegistry'
 import type { DocType, DocField } from '@/types'
+import { isChoiceType } from '@/core/fieldRegistry'
 
 const def: ViewDefinition = {
   type: 'kanban',
@@ -12,11 +13,11 @@ const def: ViewDefinition = {
 
   resolveField: (dt: DocType): DocField | null => {
     const configured = dt.kanban_column_field
-      ? dt.fields.find((f) => f.fieldname === dt.kanban_column_field && f.fieldtype === 'Select')
+      ? dt.fields.find((f) => f.fieldname === dt.kanban_column_field && isChoiceType(f.fieldtype))
       : null
     return (
       configured ??
-      dt.fields.find((f) => f.fieldtype === 'Select' && f.in_list_view && !f.hidden) ??
+      dt.fields.find((f) => isChoiceType(f.fieldtype) && f.in_list_view && !f.hidden) ??
       null
     )
   },

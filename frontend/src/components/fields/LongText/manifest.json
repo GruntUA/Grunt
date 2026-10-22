@@ -14,5 +14,6 @@
         "fetch_from"
     ],
     "storage_class": "text",
-    "quick_filter": "text"
+    "quick_filter": "text",
+    "list_inline": true
 }

@@ -5,10 +5,10 @@
  */
 import i18n from '@/plugins/i18n'
 import type { DocField } from '@/types'
-import { getLayoutTypeSet, getTableInlineTypeSet } from '@/core/fieldRegistry'
+import { getLayoutTypeSet, getStorageClass, getTableInlineTypeSet, isNumericType } from '@/core/fieldRegistry'
 import { validateFieldValue } from '@/core/validators'
 import { currencyCode, formatCurrency } from '@/core/currency'
-import { durationUnit, formatDuration } from '@/core/duration'
+import { formatValue } from '@/core/formatValue'
 import { selectOptionLabel } from '@/lib/selectOptions'
 
 const LAYOUT_TYPES = getLayoutTypeSet()
@@ -57,7 +57,7 @@ export function cellError(
       /* bad regex in metadata - ignore */
     }
   }
-  if (f.fieldtype === 'Int' || f.fieldtype === 'Float' || f.fieldtype === 'Currency') {
+  if (isNumericType(f.fieldtype)) {
     const n = Number(v)
     if (Number.isNaN(n)) return t('Must be a number')
     if (f.min_value != null && n < f.min_value) return `${t('Min')}: ${f.min_value}`
@@ -71,13 +71,12 @@ export function useTableCell() {
   function cellDisplay(row: Record<string, unknown>, f: DocField): string {
     const v = row[f.fieldname]
     if (isEmpty(v)) return ''
-    if (f.fieldtype === 'Check') return v ? t('Yes') : t('No')
+    if (getStorageClass(f.fieldtype) === 'bool') return v ? t('Yes') : t('No')
     if (f.fieldtype === 'Currency') return formatCurrency(v, currencyCode(f, row))
-    if (f.fieldtype === 'Duration') return formatDuration(v, durationUnit(f))
     if (f.fieldtype === 'Select') return selectOptionLabel(f, v)
     const label = row[`${f.fieldname}__label`]
     if (!isEmpty(label)) return String(label)
-    return typeof v === 'object' ? JSON.stringify(v) : String(v)
+    return formatValue(f, v)
   }
 
   return { cellError, cellDisplay }

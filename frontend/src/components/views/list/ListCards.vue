@@ -4,6 +4,7 @@ import { computed } from 'vue'
 import type { DocField, DocType, PaginationMeta } from '@/types'
 import type { ListColumn } from '@/core/composables/useListColumns'
 import { getListCell } from '@/core/listCellRegistry'
+import { getStorageClass, isChoiceType } from '@/core/fieldRegistry'
 import { resolveStatusBadge, statusConfigOf } from '@/core/status'
 import { docUrl } from '@/core/workspaceUrl'
 import { useAuthStore } from '@/stores/auth'
@@ -51,7 +52,7 @@ const statusOf = (row: Record<string, unknown>) => resolveStatusBadge(props.dt, 
 const statusField = computed(() => props.dt?.status_field || 'status')
 
 /** Badge-like types make a poor card title (e.g. a "Document type" Select). */
-const NOT_A_TITLE = new Set(['Select', 'Check'])
+const notATitle = (type: string) => isChoiceType(type) || getStorageClass(type) === 'bool'
 
 /** The DocType title field if the list shows it, else the first text-like column. */
 const titleColumn = computed<ListColumn | null>(() => {
@@ -59,7 +60,7 @@ const titleColumn = computed<ListColumn | null>(() => {
   const titleField = props.dt?.title_field
   return (
     cols.find((c) => c.key === titleField) ??
-    cols.find((c) => !NOT_A_TITLE.has(fieldMap.value[c.key]?.fieldtype ?? '')) ??
+    cols.find((c) => !notATitle(fieldMap.value[c.key]?.fieldtype ?? 'Data')) ??
     cols[0] ??
     null
   )

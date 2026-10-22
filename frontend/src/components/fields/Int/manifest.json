@@ -17,5 +17,6 @@
     ],
     "storage_class": "int",
     "table_inline": true,
-    "quick_filter": "number"
+    "quick_filter": "number",
+    "list_inline": true
 }

@@ -4,6 +4,7 @@ import { computed } from 'vue'
 import { formatDate as fmtDate, formatDateTime as fmtDateTime } from '@/core/datetime'
 import { useRouter } from 'vue-router'
 import type { DocField } from '@/types'
+import { hasTrait } from '@/core/fieldRegistry'
 import type { ListColumn } from '@/core/composables/useListColumns'
 
 import { FileX, ImageIcon } from '@lucide/vue'
@@ -42,7 +43,7 @@ const fieldMap = computed(() => {
 // Image field to use as card thumbnail
 const imageField = computed<string | null>(() => {
   if (props.imageField) return props.imageField
-  const f = props.fields.find(f => f.fieldtype === 'Image' || f.fieldtype === 'Attach')
+  const f = props.fields.find(f => hasTrait(f.fieldtype, 'file'))
   return f?.fieldname ?? null
 })
 

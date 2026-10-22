@@ -99,6 +99,8 @@ export interface FieldDefinition {
   emits?: string[]
   /** Edited right in a Table grid cell; otherwise only in the row sheet. */
   table_inline?: boolean
+  /** Its raw value is edited as plain text by double-click in a list cell. */
+  list_inline?: boolean
   /** QuickFilter.input_type for this type ('text', 'date', 'select', …); absent - not offered as a quick filter. */
   quick_filter?: string
 }
@@ -159,6 +161,11 @@ export function getTableInlineTypeSet(): Set<string> {
   return new Set([..._registry.values()].filter((d) => !!d.table_inline).map((d) => d.type))
 }
 
+/** Types edited as plain text right in a list cell - per manifest list_inline. */
+export function getListInlineTypeSet(): Set<string> {
+  return new Set([..._registry.values()].filter((d) => !!d.list_inline).map((d) => d.type))
+}
+
 /** Types that can be offered as a quick filter - per manifest quick_filter. */
 export function getQuickFilterTypeSet(): Set<string> {
   return new Set([..._registry.values()].filter((d) => !!d.quick_filter).map((d) => d.type))
@@ -178,6 +185,11 @@ export function hasTrait(type: string, trait: FieldTrait): boolean {
 export function isNumericType(type: string): boolean {
   const sc = getStorageClass(type)
   return sc === 'int' || sc === 'float'
+}
+
+/** True if the field type holds a single choice from its `options` (Select) - MultiSelect's list is not. */
+export function isChoiceType(type: string): boolean {
+  return hasTrait(type, 'options') && getStorageClass(type) === 'text'
 }
 
 /** True if the field type stores a calendar date (Date or Datetime). */

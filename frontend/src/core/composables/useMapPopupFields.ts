@@ -1,21 +1,15 @@
 import { computed, type Ref } from 'vue'
 import type { DocField } from '@/types'
+import { getNonPhysicalTypeSet, getStorageClass, hasTrait } from '@/core/fieldRegistry'
 
-const POPUP_SKIP_TYPES = new Set([
-  'Section',
-  'Column',
-  'Tab',
-  'Table',
-  'MultiLink',
-  'LongText',
-  'RichText',
-  'Code',
-  'Geolocation',
-  'Attach',
-  'Image',
-  'Signature',
-  'JSON',
-])
+const NON_PHYSICAL = getNonPhysicalTypeSet()
+/** Long text that doesn't fit a popup line. */
+const LONG_TEXT_TYPES = new Set(['LongText', 'RichText', 'Code', 'Signature'])
+
+function skipInPopup(type: string): boolean {
+  return NON_PHYSICAL.has(type) || LONG_TEXT_TYPES.has(type)
+    || hasTrait(type, 'file') || getStorageClass(type) === 'json'
+}
 
 interface UseMapPopupFieldsParams {
   doctypeName: Ref<string>
@@ -30,7 +24,7 @@ export function useMapPopupFields({ doctypeName, fields, geoField }: UseMapPopup
     const savedKeys: string[] | null = saved ? (JSON.parse(saved) as string[]) : null
 
     const allFields = fields.value.filter(
-      (f) => !POPUP_SKIP_TYPES.has(f.fieldtype) && !f.hidden && f.fieldname !== geoField.value,
+      (f) => !skipInPopup(f.fieldtype) && !f.hidden && f.fieldname !== geoField.value,
     )
 
     if (savedKeys?.length) {

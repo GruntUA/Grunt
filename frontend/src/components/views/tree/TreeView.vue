@@ -3,6 +3,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { docsApi } from '@/core/api/docs'
+import { getNonPhysicalTypeSet } from '@/core/fieldRegistry'
 import { ChevronRight, ChevronDown, Plus, FolderOpen, AlertCircle } from '@lucide/vue'
 import type { DocType, QuickFilter, ActiveFilter } from '@/types'
 import QuickEntryDialog from '@/components/views/QuickEntryDialog.vue'
@@ -70,6 +71,7 @@ watch(() => props.doctype.name, () => {
   sortOrder.value = defaultSortOrder.value
 })
 
+const NON_PHYSICAL = getNonPhysicalTypeSet()
 const sortFieldOptions = computed(() => {
   const base = [
     'name',
@@ -79,7 +81,7 @@ const sortFieldOptions = computed(() => {
   ].filter((v): v is string => Boolean(v && v.trim()))
 
   const metadata = props.doctype.fields
-    .filter((f) => !['Section', 'Column', 'Tab', 'Table'].includes(f.fieldtype))
+    .filter((f) => !NON_PHYSICAL.has(f.fieldtype))
     .map((f) => f.fieldname)
 
   return Array.from(new Set([...base, ...metadata]))

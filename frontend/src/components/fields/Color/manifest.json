@@ -1,1 +1,16 @@
-{"type": "Color", "label": "Color", "icon": "palette", "category": "Базові", "propertySections": ["core", "flags", "display", "text", "default", "fetch_from"], "storage_class": "text"}
+{
+    "type": "Color",
+    "label": "Color",
+    "icon": "palette",
+    "category": "Базові",
+    "propertySections": [
+        "core",
+        "flags",
+        "display",
+        "text",
+        "default",
+        "fetch_from"
+    ],
+    "storage_class": "text",
+    "list_inline": true
+}

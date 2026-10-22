@@ -4,7 +4,7 @@ import { ref, computed, watch } from 'vue'
 import type { Component } from 'vue'
 import { AlertCircle, AlertTriangle, CheckCircle2, Info } from '@lucide/vue'
 import { useDialog, type DialogField } from '@/core/composables/useDialog'
-import { getAsyncFieldComponent } from '@/core/fieldRegistry'
+import { getAsyncFieldComponent, getFieldDef, getStorageClass, isNumericType } from '@/core/fieldRegistry'
 import { parseSelectOptions } from '@/lib/selectOptions'
 import type { DocField } from '@/types'
 import DialogTableField from './DialogTableField.vue'
@@ -37,15 +37,19 @@ const msgIndicator = computed(() => MSG_ICON_MAP[String(state.indicator ?? '')] 
 const SIZE_CLASS = { small: 'sm:max-w-md', large: 'sm:max-w-lg', 'extra-large': 'sm:max-w-2xl' }
 
 // HTML and Table are drawn here; every other type is the regular form field
-// component. These render their label inline, so the dialog skips its own.
-const OWN_LABEL = new Set(['Check'])
+// component, and one that renders its own label (manifest own_label) skips the dialog's.
+function hasOwnLabel(f: DialogField): boolean {
+  const type = f.fieldtype ?? 'Data'
+  return type !== 'HTML' && type !== 'Table' && !!getFieldDef(type)?.own_label
+}
 
 const formValues = ref<Record<string, any>>({})
 
 function emptyValue(f: DialogField): unknown {
   if (f.fieldtype === 'Table') return f.multiple === false ? null : []
-  if (f.fieldtype === 'Check') return false
-  if (f.fieldtype === 'Int' || f.fieldtype === 'Float') return null
+  const type = f.fieldtype ?? 'Data'
+  if (getStorageClass(type) === 'bool') return false
+  if (isNumericType(type)) return null
   return ''
 }
 
@@ -203,7 +207,7 @@ const footerButtons = computed<FooterButton[]>(() => {
       <!-- form() / prompt() / select() -->
       <FieldGroup v-else-if="state.type === 'dialog'" class="py-2" @keydown.enter="onFieldsEnter">
         <Field v-for="field in state.fields" :key="field.fieldname">
-          <template v-if="!OWN_LABEL.has(field.fieldtype ?? '')">
+          <template v-if="!hasOwnLabel(field)">
             <div v-if="isCopyable(field)" class="flex items-center justify-between gap-2">
               <FieldLabel>{{ field.label }}</FieldLabel>
               <Button variant="outline" size="xs" @click="copyToClipboard(field.fieldname)">
