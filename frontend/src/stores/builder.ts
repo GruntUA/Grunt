@@ -3,7 +3,7 @@ import { defineStore } from 'pinia'
 import type { DocType, DocField, FieldType } from '@/types'
 import { parseLayout } from '@/core/composables/useFormLayout'
 import type { FormLayout } from '@/core/composables/useFormLayout'
-import { useBuilderLayout } from '@/core/composables/builder/useBuilderLayout'
+import { useBuilderLayout, newDesignerField } from '@/core/composables/builder/useBuilderLayout'
 import { computeIndexHints } from '@/core/indexHints'
 import type { IndexHint } from '@/types'
 
@@ -110,11 +110,7 @@ export const useBuilderStore = defineStore('builder', () => {
 
   function addField(fieldtype: FieldType) {
     if (!doctype.value) return
-    const newField: DocField = {
-      fieldname: generateFieldname(fieldtype),
-      label: fieldtype,
-      fieldtype,
-    }
+    const newField = newDesignerField(generateFieldname(fieldtype), fieldtype)
     doctype.value = {
       ...doctype.value,
       fields: [...doctype.value.fields, newField],

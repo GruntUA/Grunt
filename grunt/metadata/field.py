@@ -352,7 +352,7 @@ class DocField(BaseModel):
 
     # Display
     in_list_view: bool = False
-    in_filter: bool = False
+    in_filter: bool = True
     in_preview: bool = False  # shown in the link hover card (DocType.show_preview_popup)
     bold: bool = False
     # Edit this column inline in the Report (spreadsheet) grid view. Ignored

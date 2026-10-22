@@ -2,6 +2,14 @@ import type { Ref } from 'vue'
 import { parseLayout, flattenLayout } from '@/core/composables/useFormLayout'
 import type { FormLayout, LayoutSection, LayoutTab } from '@/core/composables/useFormLayout'
 import type { DocType, DocField, FieldType } from '@/types'
+import { getNonPhysicalTypeSet } from '@/core/fieldRegistry'
+
+/** A fresh designer field - data fields start filterable (`in_filter`). */
+export function newDesignerField(fieldname: string, fieldtype: FieldType): DocField {
+  const field: DocField = { fieldname, label: fieldtype, fieldtype }
+  if (!getNonPhysicalTypeSet().has(fieldtype)) field.in_filter = true
+  return field
+}
 
 interface UseBuilderLayoutParams {
   doctype: Ref<DocType | null>
@@ -172,7 +180,7 @@ export function useBuilderLayout({ doctype, selectField }: UseBuilderLayoutParam
     columnIndex: number,
   ) {
     const fieldname = generateFieldname(fieldtype)
-    const newField: DocField = { fieldname, label: fieldtype, fieldtype }
+    const newField = newDesignerField(fieldname, fieldtype)
 
     const inserted = commit((layout) => {
       for (const tab of layout) {
