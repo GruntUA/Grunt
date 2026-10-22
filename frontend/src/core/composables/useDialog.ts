@@ -23,12 +23,11 @@
 
 import { reactive } from 'vue'
 import i18n from '@/plugins/i18n'
+import type { FieldType } from '@/types'
 
 const t = (key: string, params: Record<string, unknown> = {}): string => i18n.global.t(key, params)
 
 // Types
-
-export type DialogFieldType = 'Data' | 'LongText' | 'Code' | 'Int' | 'Float' | 'Date' | 'Datetime' | 'Select' | 'Check' | 'HTML' | 'Link' | 'Table' | 'Password'
 
 export interface DialogTableColumn {
   /** Row property to read. */
@@ -58,7 +57,7 @@ export interface DialogTableRowAction {
 export interface DialogField {
   fieldname: string
   label: string
-  fieldtype?: DialogFieldType
+  fieldtype?: FieldType
   required?: boolean
   default?: unknown
   options?: string // for Select: newline-separated; for Link: DocType name
@@ -122,7 +121,7 @@ export interface MsgprintOptions {
 export interface PromptOptions {
   label: string
   fieldname?: string
-  fieldtype?: DialogFieldType
+  fieldtype?: FieldType
   required?: boolean
   default?: unknown
   options?: string

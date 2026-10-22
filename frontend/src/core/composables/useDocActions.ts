@@ -12,7 +12,6 @@ import { unref, watch } from 'vue'
 import type { MaybeRefOrGetter, Ref } from 'vue'
 
 import client from '@/core/api/client'
-import type { DialogField } from '@/core/composables/useDialog'
 import { useDialog } from '@/core/composables/useDialog'
 import { toast } from '@/core/composables/useToast'
 import type { DocActionField, DocType } from '@/types'
@@ -87,7 +86,7 @@ export function useDocActions(options: UseDocActionsOptions) {
     if (fields.length) {
       const values = await useDialog().form({
         title: label,
-        fields: fields as DialogField[],
+        fields,
         primaryLabel: label,
       })
       if (values === null) return
