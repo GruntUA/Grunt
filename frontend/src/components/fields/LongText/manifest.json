@@ -10,6 +10,7 @@
         "display",
         "text",
         "default",
+        "max_length",
         "validation",
         "fetch_from"
     ],

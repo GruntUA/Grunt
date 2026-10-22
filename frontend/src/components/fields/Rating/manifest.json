@@ -1,1 +1,17 @@
-{"type": "Rating", "label": "Рейтинг", "icon": "star", "category": "Базові", "propertySections": ["core", "flags", "display", "default", "number", "validation", "fetch_from"], "storage_class": "float"}
+{
+    "type": "Rating",
+    "label": "Рейтинг",
+    "icon": "star",
+    "category": "Базові",
+    "propertySections": [
+        "core",
+        "flags",
+        "display",
+        "default",
+        "number",
+        "validation",
+        "fetch_from"
+    ],
+    "storage_class": "float",
+    "default_agg": "avg"
+}

@@ -17,5 +17,6 @@
     "own_label": true,
     "emits": [
         "selection-change"
-    ]
+    ],
+    "webform": false
 }

@@ -13,5 +13,6 @@
         "options",
         "fetch_from"
     ],
-    "storage_class": "text"
+    "storage_class": "text",
+    "webform": false
 }

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { hasTrait, isDateType, isNumericType } from '@/core/fieldRegistry'
+import { getFieldDef, getListInlineTypeSet, getQuickFilterTypeSet, hasTrait, isChoiceType, isDateType, isNumericType } from '@/core/fieldRegistry'
 
 // The discovered ListCell / FilterInput components drag in stores that need a
 // real browser - stand them in with stubs, the registries only key them by type.
@@ -22,6 +22,22 @@ describe('field traits (synced from the backend FieldType)', () => {
     expect(isDateType('Date')).toBe(true)
     expect(isDateType('Datetime')).toBe(true)
     expect(isDateType('Time')).toBe(false)
+  })
+})
+
+describe('manifest flags', () => {
+  it('single choice is Select-like, not MultiSelect', () => {
+    expect(isChoiceType('Select')).toBe(true)
+    expect(isChoiceType('MultiSelect')).toBe(false)
+    expect(isChoiceType('Data')).toBe(false)
+  })
+
+  it('reads list_inline / quick_filter / default_agg / webform', () => {
+    expect(getListInlineTypeSet().has('Data')).toBe(true)
+    expect(getListInlineTypeSet().has('Password')).toBe(false)
+    expect(getQuickFilterTypeSet().has('Link')).toBe(true)
+    expect(getFieldDef('Percent')?.default_agg).toBe('avg')
+    expect(getFieldDef('Table')?.webform).toBe(false)
   })
 })
 

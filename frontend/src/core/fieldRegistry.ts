@@ -101,6 +101,10 @@ export interface FieldDefinition {
   table_inline?: boolean
   /** Its raw value is edited as plain text by double-click in a list cell. */
   list_inline?: boolean
+  /** Aggregate a report starts a column with ('sum' when absent) - e.g. 'avg' for Percent. */
+  default_agg?: string
+  /** false - not offered in the Web Form designer palette (needs UI a plain form lacks). Default: true */
+  webform?: boolean
   /** QuickFilter.input_type for this type ('text', 'date', 'select', …); absent - not offered as a quick filter. */
   quick_filter?: string
 }

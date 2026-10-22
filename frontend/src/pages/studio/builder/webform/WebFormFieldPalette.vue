@@ -4,6 +4,7 @@ import { computed } from 'vue'
 import { VueDraggable } from 'vue-draggable-plus'
 import { useBuilderStore } from '@/stores/builder'
 import type { DocField } from '@/types'
+import { getFieldDef, getLayoutTypeSet } from '@/core/fieldRegistry'
 
 const { t } = useI18n()
 
@@ -15,8 +16,9 @@ const builder = useBuilderStore()
 
 // Tab/Section/Column are the *target* DocType's own layout scaffolding, not
 // data fields - dragging one in would just add a meaningless empty marker.
-// Table needs UI a plain <form> can't provide; JSON/Code are raw data fields.
-const EXCLUDED_TYPES = new Set(['Tab', 'Section', 'Column', 'Table', 'JSON', 'Code'])
+// Types with manifest webform: false (Table, JSON, Code…) need UI a plain <form> lacks.
+const LAYOUT_TYPES = getLayoutTypeSet()
+const excluded = (type: string) => LAYOUT_TYPES.has(type) || getFieldDef(type)?.webform === false
 
 const addedNames = computed(
   () => new Set((builder.doctype?.fields ?? []).map((f) => f.fieldname)),
@@ -24,7 +26,7 @@ const addedNames = computed(
 
 const available = computed(() =>
   props.targetFields.filter(
-    (f) => !addedNames.value.has(f.fieldname) && !EXCLUDED_TYPES.has(f.fieldtype),
+    (f) => !addedNames.value.has(f.fieldname) && !excluded(f.fieldtype),
   ),
 )
 

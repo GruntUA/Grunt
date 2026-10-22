@@ -1,1 +1,19 @@
-{"type": "Duration", "label": "Duration", "icon": "timer", "category": "Базові", "propertySections": ["core", "flags", "display", "text", "options", "formula", "default", "number", "validation", "fetch_from"], "storage_class": "float"}
+{
+    "type": "Duration",
+    "label": "Duration",
+    "icon": "timer",
+    "category": "Базові",
+    "propertySections": [
+        "core",
+        "flags",
+        "display",
+        "text",
+        "duration_unit",
+        "formula",
+        "default",
+        "number",
+        "validation",
+        "fetch_from"
+    ],
+    "storage_class": "float"
+}

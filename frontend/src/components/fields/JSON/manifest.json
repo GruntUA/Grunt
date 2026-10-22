@@ -1,1 +1,17 @@
-{"type": "JSON", "label": "JSON", "icon": "braces", "category": "Текст", "non_groupable": true, "propertySections": ["core", "flags", "display", "text", "default", "fetch_from"], "storage_class": "json"}
+{
+    "type": "JSON",
+    "label": "JSON",
+    "icon": "braces",
+    "category": "Текст",
+    "non_groupable": true,
+    "propertySections": [
+        "core",
+        "flags",
+        "display",
+        "text",
+        "default",
+        "fetch_from"
+    ],
+    "storage_class": "json",
+    "webform": false
+}

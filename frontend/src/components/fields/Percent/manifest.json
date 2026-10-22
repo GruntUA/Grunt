@@ -15,5 +15,6 @@
         "fetch_from"
     ],
     "storage_class": "float",
-    "list_inline": true
+    "list_inline": true,
+    "default_agg": "avg"
 }

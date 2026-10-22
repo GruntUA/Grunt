@@ -11,6 +11,7 @@
         "options",
         "formula",
         "default",
+        "max_length",
         "validation",
         "fetch_from"
     ],

@@ -38,17 +38,6 @@ const hasValidators = computed(() => validatorOptions.value.length > 1)
   <FieldSet class="mb-4">
     <FieldLegend variant="label">{{ t('Validation') }}</FieldLegend>
     <FieldGroup class="gap-3">
-      <Field v-if="['Data', 'LongText'].includes(field.fieldtype)">
-        <FieldLabel :for="`${id}-max-length`">{{ t('Max Length') }}</FieldLabel>
-        <Input
-          :id="`${id}-max-length`"
-          type="number"
-          :model-value="field.max_length ?? ''"
-          placeholder="255"
-          @update:model-value="(v: string | number) => updateField('max_length', v === '' ? undefined : Number(v))"
-        />
-      </Field>
-
       <Field v-if="hasValidators">
         <FieldLabel :for="`${id}-validator`">{{ t('Validator') }}</FieldLabel>
         <Select :model-value="field.validator || '__none__'" @update:model-value="updateField('validator', $event === '__none__' ? undefined : $event)">

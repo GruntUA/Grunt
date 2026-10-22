@@ -1,7 +1,7 @@
 import { ref, computed, watch } from 'vue'
 import type { DocType, DocField } from '@/types'
 import type { ListColumn } from '@/core/composables/useListColumns'
-import { getNonPhysicalTypeSet, isNumericType } from '@/core/fieldRegistry'
+import { getFieldDef, getNonPhysicalTypeSet, isNumericType } from '@/core/fieldRegistry'
 
 /**
  * One entry of a `Report` (type=List) `columns` JSON - the same shape the
@@ -36,7 +36,7 @@ export function isNumericField(f: DocField | undefined): boolean {
 
 /** Default aggregate for a freshly shown numeric column. */
 function defaultAgg(f: DocField): AggFn {
-  return f.fieldtype === 'Percent' || f.fieldtype === 'Rating' ? 'avg' : 'sum'
+  return (getFieldDef(f.fieldtype ?? '')?.default_agg as AggFn | undefined) ?? 'sum'
 }
 
 interface PersistShape {
