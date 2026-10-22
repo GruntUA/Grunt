@@ -23189,3 +23189,31 @@ msgstr "Записів: %(n)s"
 #: grunt/grunt/io/exporters/templates/list_export.html
 msgid "%(shown)s of %(total)s records"
 msgstr "Записів: %(shown)s з %(total)s"
+
+#: grunt/frontend/src/components/views/list/ListToolbarControls.vue
+msgid "View settings"
+msgstr "Налаштування вигляду"
+
+#: grunt/frontend/src/components/views/list/ListToolbarControls.vue
+msgid "Choose which columns to show, how to group and sort the records"
+msgstr "Оберіть, які стовпці показувати, як групувати та сортувати записи"
+
+#: grunt/frontend/src/components/views/list/ListToolbarControls.vue
+msgid "Shown"
+msgstr "Показані"
+
+#: grunt/frontend/src/components/views/list/ListToolbarControls.vue
+msgid "Show all"
+msgstr "Показати всі"
+
+#: grunt/frontend/src/components/views/list/ListToolbarControls.vue
+msgid "All columns are shown"
+msgstr "Усі стовпці вже показані"
+
+#: grunt/frontend/src/components/views/list/ListToolbarControls.vue
+msgid "Drag to change the order of columns"
+msgstr "Перетягуйте, щоб змінити порядок стовпців"
+
+#: grunt/frontend/src/components/views/list/ListToolbarControls.vue
+msgid "Reset to default"
+msgstr "Скинути до типових"

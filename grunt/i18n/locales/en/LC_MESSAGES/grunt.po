@@ -20445,3 +20445,31 @@ msgstr ""
 #: grunt/grunt/backups/__init__.py:301
 msgid "Not enough disk space for a backup: %(need)s needed, %(free)s free"
 msgstr ""
+
+#: grunt/frontend/src/components/views/list/ListToolbarControls.vue
+msgid "View settings"
+msgstr ""
+
+#: grunt/frontend/src/components/views/list/ListToolbarControls.vue
+msgid "Choose which columns to show, how to group and sort the records"
+msgstr ""
+
+#: grunt/frontend/src/components/views/list/ListToolbarControls.vue
+msgid "Shown"
+msgstr ""
+
+#: grunt/frontend/src/components/views/list/ListToolbarControls.vue
+msgid "Show all"
+msgstr ""
+
+#: grunt/frontend/src/components/views/list/ListToolbarControls.vue
+msgid "All columns are shown"
+msgstr ""
+
+#: grunt/frontend/src/components/views/list/ListToolbarControls.vue
+msgid "Drag to change the order of columns"
+msgstr ""
+
+#: grunt/frontend/src/components/views/list/ListToolbarControls.vue
+msgid "Reset to default"
+msgstr ""

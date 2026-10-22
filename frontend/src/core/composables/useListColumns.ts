@@ -67,8 +67,19 @@ export function useListColumns(doctype: string, fields: () => DocField[], titleF
     localStorage.setItem(storageKey, JSON.stringify(current))
   }
 
+  function setVisibleKeys(keys: string[]) {
+    _savedKeys.value = keys
+    localStorage.setItem(storageKey, JSON.stringify(keys))
+  }
+
+  // Back to in_list_view defaults
+  function resetCols() {
+    _savedKeys.value = null
+    localStorage.removeItem(storageKey)
+  }
+
   // True when the user has saved a custom selection (differs from defaults)
   const isCustomized = computed(() => _savedKeys.value !== null)
 
-  return { allAvailableColumns, visibleColumns, visibleKeys, defaultKeys, isVisible, toggleCol, reorderCols, isCustomized }
+  return { allAvailableColumns, visibleColumns, visibleKeys, defaultKeys, isVisible, toggleCol, reorderCols, setVisibleKeys, resetCols, isCustomized }
 }
