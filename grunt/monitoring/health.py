@@ -40,6 +40,7 @@ from grunt.version import app_version, compatibility_error
 lazy from grunt.config import DEFAULT_SECRET_KEY, settings
 lazy from grunt.db.alembic_utils import migration_state
 lazy from grunt.monitoring.updates import check_updates as updates
+lazy from grunt.print.pdf import PdfEngineError, check_engine
 lazy from grunt.storage.cloud import rclone
 lazy from grunt.storage.cloud.files import cache_root
 
@@ -705,6 +706,32 @@ def stray_venvs_row(apps_dir: Path) -> Row:
     )
 
 
+# PDF
+
+
+async def check_pdf() -> list[Row]:
+    """Chromium for print-to-PDF launches. A new Playwright release wants a
+    new Chromium build, which `grunt update` installs."""
+    check = _("Chromium (Playwright)")
+    try:
+        version = await check_engine()
+    except PdfEngineError:
+        return [
+            row(
+                _("PDF"),
+                check,
+                ERROR,
+                _("not installed"),
+                _(
+                    "Printing to PDF and signing print formats do not work. Run `grunt update` "
+                    "or `.venv/bin/python -m playwright install --only-shell chromium` in "
+                    "apps/grunt; on a new server also `playwright install-deps chromium` as root."
+                ),
+            )
+        ]
+    return [row(_("PDF"), check, OK, f"Playwright {version}")]
+
+
 # Versions
 
 
@@ -869,6 +896,7 @@ CHECKS: list[tuple[str, Callable[[], Awaitable[list[Row]]]]] = [
     (N_("Cloud storage"), check_cloud),
     (N_("WebSockets"), check_realtime),
     (N_("App dependencies"), check_app_dependencies),
+    (N_("PDF"), check_pdf),
     (N_("Versions"), check_versions),
     (N_("Updates"), check_updates),
     (N_("Offline mode"), check_offline_build),

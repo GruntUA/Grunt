@@ -12,15 +12,54 @@ size; page margins are forced to zero so the template's own padding is the
 single source of whitespace.
 """
 
+import importlib.metadata
+
 _INSTALL_HINT = (
     "PDF generation is unavailable: Playwright / Chromium or its system libraries "
-    "are not installed. Run `pip install playwright`, `playwright install chromium` "
-    "and, on a server (as root), `playwright install-deps chromium`."
+    "are not installed. Run `grunt update` (it runs `playwright install --only-shell "
+    "chromium`) and, on a server (as root), `playwright install-deps chromium`."
+)
+
+_MISSING = (
+    "executable doesn't exist",
+    "error while loading shared libraries",
+    "host system is missing dependencies",
 )
 
 
 class PdfEngineError(RuntimeError):
     """Playwright or its Chromium build is not installed."""
+
+
+def _engine_error(exc: Exception) -> PdfEngineError | None:
+    """*exc* as a missing-engine error, or None for any other failure."""
+    msg = str(exc).lower()
+    if any(m in msg for m in _MISSING):
+        return PdfEngineError(_INSTALL_HINT)
+    return None
+
+
+async def check_engine() -> str:
+    """Launch and close Chromium; return the Playwright version.
+
+    Raises :class:`PdfEngineError` when Playwright, its Chromium build (a new
+    Playwright release wants a new one) or the system libraries are missing.
+    """
+    try:
+        from playwright.async_api import Error as PlaywrightError
+        from playwright.async_api import async_playwright
+    except ModuleNotFoundError as exc:  # pragma: no cover - env-dependent
+        raise PdfEngineError(_INSTALL_HINT) from exc
+
+    try:
+        async with async_playwright() as pw:
+            browser = await pw.chromium.launch(args=["--no-sandbox"])
+            await browser.close()
+    except PlaywrightError as exc:
+        if err := _engine_error(exc):
+            raise err from exc
+        raise
+    return importlib.metadata.version("playwright")
 
 
 async def html_to_pdf(html: str) -> bytes:
@@ -51,11 +90,6 @@ async def html_to_pdf(html: str) -> bytes:
             finally:
                 await browser.close()
     except PlaywrightError as exc:
-        msg = str(exc).lower()
-        if (
-            "executable doesn't exist" in msg
-            or "error while loading shared libraries" in msg
-            or "host system is missing dependencies" in msg
-        ):
-            raise PdfEngineError(_INSTALL_HINT) from exc
+        if err := _engine_error(exc):
+            raise err from exc
         raise
