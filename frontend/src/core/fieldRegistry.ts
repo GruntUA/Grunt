@@ -34,61 +34,28 @@
 import { defineAsyncComponent, type Component } from 'vue'
 
 /**
- * Storage-class hints for the DocType «Конструктор».
- *
- * Mirrors the backend `column_spec` column mapping (grunt/metadata/field.py) closely
- * enough to tell the user, when they change a field's `fieldtype` in the builder,
- * whether the underlying database column will be retyped - or added / dropped -
- * during the next `doctype sync`. Declared per field type in its own manifest.json,
- * same as `is_layout` - not in a separate lookup table.
- *
- * This is a UI heads-up only. Nothing here mutates the field: existing values
- * are kept as-is and the authoritative migration still runs on sync.
+ * How a field type's value is stored in the DB column ('text', 'int', 'float',
+ * 'bool', 'date', 'datetime', 'time', 'json', or 'none' for types with no column
+ * of their own). Derived from FieldType.column_spec - see get_storage_class() in
+ * grunt/metadata/field.py - and written to each manifest.json by
+ * `grunt fields sync-manifests`; not listed here.
  */
-export type StorageClass =
-  | 'text' // String / Text column
-  | 'int' // Integer column
-  | 'float' // Float / Numeric column
-  | 'bool' // Boolean column
-  | 'date'
-  | 'datetime'
-  | 'time'
-  | 'json' // JSON blob column
-  | 'none' // no column of its own (layout, Table, MultiLink, Button, …)
+export type StorageClass = string
 
 /**
- * What the rest of the UI may assume about a type's value - mirrors
- * FieldType.traits / TRAITS in grunt/metadata/field.py. Ask hasTrait() instead
- * of listing fieldtype names. Numeric / date-ness is not a trait: it follows
- * from storage_class (isNumericType / isDateType).
+ * What the rest of the UI may assume about a type's value ('link', 'table',
+ * 'file', …). The vocabulary is TRAITS in grunt/metadata/field.py, synced into
+ * each manifest.json - ask hasTrait() instead of listing fieldtype names.
+ * Numeric / date-ness is not a trait: it follows from storage_class
+ * (isNumericType / isDateType).
  */
-export type FieldTrait =
-  | 'link' // value is the name of a document of the DocType in `options`
-  | 'table' // child rows of the DocType in `options`
-  | 'file' // value is a single file URL
-  | 'sensitive' // secret - never exported or shown
-  | 'options' // value is one or more of the newline-separated `options`
+export type FieldTrait = string
 
-// Keep in sync with the sections registered in
-// pages/studio/builder/sections/index.ts
-export type PropSection =
-  | 'core'
-  | 'flags'
-  | 'display'
-  | 'text'
-  | 'formula'
-  | 'validation'
-  | 'default'
-  | 'options'
-  | 'link'
-  | 'fetch_from'
-  | 'table'
-  | 'number'
-  | 'collapsible'
-  | 'aggregate'
-  | 'icon'
-  | 'button'
-  | 'tab'
+/**
+ * PropertiesPanel section name - whatever registerPropertySection() registered
+ * (core sections: pages/studio/builder/sections/index.ts; plugins add their own).
+ */
+export type PropSection = string
 
 export interface FieldDefinition {
   /** Unique identifier - matches DocField.fieldtype */
@@ -211,16 +178,6 @@ export function isDateType(type: string): boolean {
   const sc = getStorageClass(type)
   return sc === 'date' || sc === 'datetime'
 }
-
-/**
- * Backward-compatible shim for PropertiesPanel.
- * @deprecated Use getFieldDef() directly.
- */
-export function getFieldConfig(type: string): { label: string; sections: PropSection[] } | null {
-  const def = _registry.get(type)
-  return def ? { label: def.label, sections: def.propertySections } : null
-}
-
 
 /**
  * Key an `import.meta.glob` result over components/fields/<Type>/<file> by field
