@@ -47,43 +47,19 @@ async def load_core_fixtures(session: AsyncSession, eng: AsyncEngine) -> None:
 
 
 def _load_app_meta(app_dir: Path) -> dict | None:
-    """Load app metadata from app.json and/or grunt_app.py with fallback merging.
+    """Load app metadata from app.json on top of defaults.
 
-    Priority: app.json values override grunt_app.py values.
-    Guarantees presence of: name, title, version, modules, icon, color, description.
+    Guarantees presence of: name, title, version, modules, description.
     """
     app_json = app_dir / "app.json"
-    grunt_app = app_dir / "grunt_app.py"
 
     result: dict[str, Any] = {
         "name": app_dir.name,
         "title": app_dir.name,
-        "version": "0.1.0",
         "description": "",
         "author": "",
         "modules": [],
-        "icon": "📦",
-        "color": "#2D6A4F",
     }
-
-    if grunt_app.exists():
-        ns: dict = {}
-        try:
-            exec(grunt_app.read_text(), ns)
-            result.update(
-                {
-                    "name": ns.get("APP_NAME", result["name"]),
-                    "title": ns.get("APP_TITLE", result["title"]),
-                    "version": ns.get("APP_VERSION", result["version"]),
-                    "description": ns.get("APP_DESCRIPTION", result["description"]),
-                    "author": ns.get("APP_AUTHOR", result["author"]),
-                    "modules": ns.get("MODULES", result["modules"]),
-                    "icon": ns.get("APP_ICON", result["icon"]),
-                    "color": ns.get("APP_COLOR", result["color"]),
-                }
-            )
-        except Exception:
-            log.exception("suppressed_error")
 
     if app_json.exists():
         try:
@@ -91,19 +67,16 @@ def _load_app_meta(app_dir: Path) -> dict | None:
             for key in (
                 "name",
                 "title",
-                "version",
                 "description",
                 "author",
                 "modules",
-                "icon",
-                "color",
             ):
                 if key in app_data:
                     result[key] = app_data[key]
         except Exception:
             log.exception("suppressed_error")
 
-    result["version"] = app_version(app_dir, result["version"])
+    result["version"] = app_version(app_dir)
     return result
 
 

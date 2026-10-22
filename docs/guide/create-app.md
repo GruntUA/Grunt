@@ -19,8 +19,7 @@ apps/my_crm/
 │   │       └── Customer.py
 │   ├── tasks.py          ← Background tasks
 │   └── hooks.py          ← Event hooks
-├── grunt_app.py          ← App manifest + hooks entrypoint
-└── app.json
+└── app.json            ← App manifest
 ```
 
 ## App manifest (`app.json`)
@@ -28,12 +27,18 @@ apps/my_crm/
 ```json
 {
   "name": "my_crm",
-  "label": "My CRM",
-  "version": "0.1.0",
+  "title": "My CRM",
   "description": "Customer Relationship Management",
-  "author": "Your Name"
+  "author": "Your Name",
+  "modules": ["my_crm"],
+  "depends_on": []
 }
 ```
+
+The version comes from git tags `vX.Y.Z` (`grunt release --app my_crm`); an
+untagged repository reports `0.1.devN+g<hash>`. The sidebar icon (a Lucide
+name) and colour live in the `AppMenu` record of `fixtures/00_workspace.json`;
+without a colour one is picked from a palette by the workspace name.
 
 ## Defining DocTypes
 

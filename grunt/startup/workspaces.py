@@ -12,6 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 import grunt
 from grunt import log
+lazy from grunt.site.doctypes.AppMenu.app_menu import default_color
 
 _FIXTURES_DIR = __import__("pathlib").Path(__file__).parent.parent / "fixtures"
 
@@ -180,8 +181,8 @@ async def _apply_workspace_fixture(
         create_fields: dict[str, Any] = {
             "label": rec.get("label", ws_name),
             "app": rec.get("app", app_name),
-            "icon": rec.get("icon", app_meta.get("icon", "📦")),
-            "color": rec.get("color", app_meta.get("color", "#2D6A4F")),
+            "icon": rec.get("icon", "package"),
+            "color": rec.get("color", ""),
             "description": rec.get("description", ""),
             "sequence": rec.get("sequence", 10),
             "is_hidden": rec.get("is_hidden", False),
@@ -198,7 +199,7 @@ async def _apply_workspace_fixture(
             update_fields={
                 "label": rec.get("label"),
                 "icon": rec.get("icon"),
-                "color": rec.get("color"),
+                "color": rec.get("color") or default_color(ws_name),
                 "description": rec.get("description"),
                 "sequence": rec.get("sequence"),
                 "roles": rec.get("roles"),
@@ -226,8 +227,7 @@ async def _auto_seed_workspace(
         create_fields={
             "label": app_meta.get("title", app_name),
             "app": app_name,
-            "icon": app_meta.get("icon", "📦"),
-            "color": app_meta.get("color", "#2D6A4F"),
+            "icon": "package",
             "description": app_meta.get("description", ""),
             "sequence": app_meta.get("sequence", 10),
             "is_hidden": False,
@@ -235,8 +235,6 @@ async def _auto_seed_workspace(
         },
         update_fields={
             "label": app_meta.get("title", app_name),
-            "icon": app_meta.get("icon", "📦"),
-            "color": app_meta.get("color", "#2D6A4F"),
             "description": app_meta.get("description", ""),
         },
         sidebar_rows=[

@@ -25,7 +25,7 @@
       "fieldname": "color",
       "label": "Colour",
       "fieldtype": "Color",
-      "default": "#2D6A4F"
+      "description": "Empty = derived from the workspace name"
     },
     {
       "fieldname": "description",

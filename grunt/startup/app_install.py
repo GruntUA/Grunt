@@ -31,7 +31,7 @@ def _ensure_on_syspath(path: Path) -> None:
 
 
 def _installed_version(app_name: str) -> str:
-    """Version of the code of ``app_name`` that is on disk now (git tag or app.json)."""
+    """Version of the code of ``app_name`` that is on disk now (from git)."""
 
     if app_name == "grunt":
         return framework_version()
@@ -231,7 +231,7 @@ async def sync_installed_apps(session: AsyncSession, site_name: str) -> None:
 
     Reads ``grunt.site`` -> ``installed_apps`` (first adding the apps they
     ``depends_on``, see :mod:`grunt.apps.required`), loads each app's metadata
-    (``grunt_app.py`` or ``app.json``), auto-registers DocTypes from the app's
+    (``app.json``), auto-registers DocTypes from the app's
     ``doctypes/`` directories if not yet in the registry, applies fixtures and
     standard records, then creates/updates a workspace with the app's DocTypes
     as sidebar items.

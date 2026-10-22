@@ -91,9 +91,7 @@ def _get_user_inputs(app_name: str, ask_git: bool = True) -> dict:
         error_msg="Invalid email format.",
     )
 
-    version = click.prompt("Version", default="0.1.0")
-    icon = click.prompt("Icon (emoji)", default="📦")
-    color = click.prompt("Accent color (hex)", default="#2D6A4F")
+    icon = click.prompt("Icon (Lucide name, lucide.dev/icons)", default="package")
 
     module = _prompt_validated(
         "Module name (snake_case)",
@@ -110,9 +108,7 @@ def _get_user_inputs(app_name: str, ask_git: bool = True) -> dict:
         "description": description,
         "author": author,
         "email": email,
-        "version": version,
         "icon": icon,
-        "color": color,
         "module": module,
         "use_git": use_git,
     }
@@ -140,7 +136,6 @@ def _create_app_boilerplate(dest: Path, hooks: dict, no_git: bool = False) -> No
         subdir.mkdir(parents=True)
 
     # Write files
-    _write_grunt_app_py(app_dir, module, hooks)
     _write_app_json(app_dir, module, hooks)
     _write_install_py(app_dir, hooks)
     _write_readme(app_dir, hooks)
@@ -177,22 +172,13 @@ def _create_app_boilerplate(dest: Path, hooks: dict, no_git: bool = False) -> No
 # File writers
 
 
-def _write_grunt_app_py(app_dir: Path, module: str, h: dict) -> None:
-    (app_dir / "grunt_app.py").write_text(
-        render_template("app/app.py.jinja", {**h, "module": module}),
-    )
-
-
 def _write_app_json(app_dir: Path, module: str, h: dict) -> None:
     data = {
         "name": h["app_name"],
         "title": h["title"],
-        "version": h["version"],
         "description": h["description"],
         "author": h["author"],
         "email": h["email"],
-        "icon": h["icon"],
-        "color": h["color"],
         "modules": [module],
         "depends_on": [],
     }
@@ -259,7 +245,6 @@ def _write_workspace_fixture(app_dir: Path, module: str, h: dict) -> None:
                 "name": h["app_name"],
                 "label": h["title"],
                 "icon": h["icon"],
-                "color": h["color"],
                 "description": h["description"],
                 "items": [],
             }
@@ -286,14 +271,18 @@ def _write_pyproject(app_dir: Path, module: str, h: dict) -> None:
     description = json.dumps(h["description"], ensure_ascii=False)
     (app_dir / "pyproject.toml").write_text(
         "[build-system]\n"
-        'requires = ["hatchling"]\n'
+        'requires = ["hatchling", "hatch-vcs"]\n'
         'build-backend = "hatchling.build"\n\n'
         "[project]\n"
         f'name = "{h["app_name"]}"\n'
-        f'version = "{h["version"]}"\n'
+        "# From git tags vX.Y.Z (grunt release).\n"
+        'dynamic = ["version"]\n'
         f"description = {description}\n"
         'requires-python = ">=3.15"\n'
         "dependencies = []\n\n"
+        "[tool.hatch.version]\n"
+        'source = "vcs"\n'
+        'raw-options = { fallback_version = "0.0.0" }\n\n'
         "[tool.hatch.build.targets.wheel]\n"
         f'packages = ["{module}"]\n\n'
         "[tool.pytest.ini_options]\n"

@@ -3,6 +3,7 @@
 Encapsulates logic for workspace navigation and sidebar counts.
 """
 
+import hashlib
 import json
 from typing import Any
 
@@ -31,6 +32,20 @@ def count_key(doctype: str, filters: dict[str, Any]) -> str:
     return f"{doctype}_{suffix}"
 
 
+# Tailwind 600 shades: distinct from one another and readable under a white icon.
+_PALETTE = (
+    "#DC2626", "#EA580C", "#D97706", "#CA8A04", "#65A30D", "#16A34A",
+    "#059669", "#0D9488", "#0891B2", "#0284C7", "#2563EB", "#4F46E5",
+    "#7C3AED", "#9333EA", "#C026D3", "#DB2777", "#E11D48",
+)  # fmt: skip
+
+
+def default_color(name: str) -> str:
+    """Accent colour picked from the palette by a hash of the workspace name,
+    so it stays the same across restarts and sites."""
+    return _PALETTE[int(hashlib.blake2b(name.encode()).hexdigest(), 16) % len(_PALETTE)]
+
+
 class AppMenu(Document):
     """Controller for AppMenu DocType."""
 
@@ -52,6 +67,10 @@ class AppMenu(Document):
         "Report": "Report",
         "Page": "Page",
     }
+
+    async def validate(self) -> None:
+        if not self.color:
+            self.color = default_color(self.name)
 
     async def on_load(self) -> None:
         for item in self.get("sidebar_items", []):

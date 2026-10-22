@@ -11,9 +11,7 @@ HOOKS = {
     "description": "Test App — Grunt app",
     "author": "Tester",
     "email": "t@example.com",
-    "version": "0.1.0",
-    "icon": "📦",
-    "color": "#2D6A4F",
+    "icon": "package",
     "module": "core",
 }
 
@@ -39,5 +37,5 @@ def test_create_app_scaffolding(tmp_path):
     pyright = json.loads((app_dir / "pyrightconfig.json").read_text())
     assert pyright["include"] == ["core"]
 
-    for rel in ("grunt_app.py", "install.py", "core/hooks.py", "core/routes.py", "core/doctypes"):
+    for rel in ("install.py", "core/hooks.py", "core/routes.py", "core/doctypes"):
         assert (app_dir / rel).exists(), rel

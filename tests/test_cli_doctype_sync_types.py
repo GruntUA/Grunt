@@ -7,14 +7,14 @@ from click.testing import CliRunner
 
 from grunt.cli import doctype as doctype_cli
 
-CONTROLLER = '''from grunt.document.base import Document
+CONTROLLER = """from grunt.document.base import Document
 
 
 class Thing(Document):
     # begin: auto-generated types
     # end: auto-generated types
     pass
-'''
+"""
 
 
 def _bench(tmp_path):

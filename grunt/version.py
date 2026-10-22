@@ -5,9 +5,9 @@ version is the next patch as a dev release, the way hatch-vcs builds the
 package metadata: ``v0.4.2`` + 3 commits -> ``0.4.3.dev3+gabc1234``, with
 ``.dYYYYMMDD`` added when the working tree has uncommitted changes.
 
-Without a tag (or without git, e.g. an unpacked archive) the framework falls
-back to its installed package metadata and an app to ``version`` in its
-``app.json``.
+A repository without a tag counts from ``0.1``, also like hatch-vcs:
+``0.1.dev12+gabc1234``. Without git (e.g. an unpacked archive) the framework
+falls back to its installed package metadata and an app to ``0.0.0``.
 """
 
 import importlib.metadata
@@ -25,26 +25,13 @@ FRAMEWORK_DIR = Path(__file__).resolve().parent.parent  # apps/grunt
 
 TAG_PATTERN = "v[0-9]*"
 _DESCRIBE = re.compile(r"^v(?P<tag>.+)-(?P<distance>\d+)-g(?P<node>[0-9a-f]+)(?P<dirty>-dirty)?$")
+_UNTAGGED = re.compile(r"^(?P<node>[0-9a-f]+)(?P<dirty>-dirty)?$")
 
 
-def git_version(repo: Path) -> str | None:
-    """Version of the checkout at ``repo`` from its latest ``v*`` tag, or None."""
-    if not (repo / ".git").exists():
-        return None
+def _git(repo: Path, *args: str) -> str | None:
     try:
-        out = subprocess.run(
-            [
-                "git",
-                "-C",
-                str(repo),
-                "describe",
-                "--tags",
-                "--long",
-                "--dirty",
-                "--abbrev=7",
-                "--match",
-                TAG_PATTERN,
-            ],
+        return subprocess.run(
+            ["git", "-C", str(repo), *args],
             capture_output=True,
             text=True,
             timeout=5,
@@ -52,19 +39,46 @@ def git_version(repo: Path) -> str | None:
         ).stdout.strip()
     except OSError, subprocess.SubprocessError:
         return None
+
+
+def git_version(repo: Path) -> str | None:
+    """Version of the checkout at ``repo`` from its latest ``v*`` tag, or None
+    without git or commits."""
+    if not (repo / ".git").exists():
+        return None
+    out = _git(
+        repo,
+        "describe",
+        "--tags",
+        "--long",
+        "--dirty",
+        "--always",
+        "--abbrev=7",
+        "--match",
+        TAG_PATTERN,
+    )
+    if not out:
+        return None
     m = _DESCRIBE.match(out)
-    if not m:
-        return None
-    try:
-        tag = Version(m["tag"])
-    except InvalidVersion:
-        return None
-    distance, dirty = int(m["distance"]), bool(m["dirty"])
-    if not distance and not dirty:
-        return str(tag)
-    major, minor, patch = (*tag.release, 0, 0)[:3]
+    if m:
+        try:
+            tag = Version(m["tag"])
+        except InvalidVersion:
+            return None
+        distance, dirty = int(m["distance"]), bool(m["dirty"])
+        if not distance and not dirty:
+            return str(tag)
+        major, minor, patch = (*tag.release, 0, 0)[:3]
+        base = f"{major}.{minor}.{patch + 1}"
+    else:
+        m = _UNTAGGED.match(out)
+        count = _git(repo, "rev-list", "--count", "HEAD")
+        if not m or not count:
+            return None
+        distance, dirty = int(count), bool(m["dirty"])
+        base = "0.1"
     local = f"g{m['node']}" + (f".d{date.today():%Y%m%d}" if dirty else "")
-    return f"{major}.{minor}.{patch + 1}.dev{distance}+{local}"
+    return f"{base}.dev{distance}+{local}"
 
 
 @cache
@@ -87,12 +101,11 @@ def _app_json(app_dir: Path) -> dict:
 
 
 @cache
-def app_version(app_dir: Path, default: str | None = None) -> str:
-    """Version of the app at ``apps/<name>``: its own git tags, else ``default``
-    or the app.json version."""
+def app_version(app_dir: Path) -> str:
+    """Version of the app at ``apps/<name>`` from its own git tags."""
     if app_dir.resolve() == FRAMEWORK_DIR:
         return framework_version()
-    return git_version(app_dir) or default or str(_app_json(app_dir).get("version") or "0.0.0")
+    return git_version(app_dir) or "0.0.0"
 
 
 def required_framework(app_dir: Path) -> str:

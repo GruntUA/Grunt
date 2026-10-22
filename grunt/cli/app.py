@@ -537,7 +537,6 @@ def app_doctor(name: str | None):
                 "name": app_name,
                 "title": app_name.replace("_", " ").title(),
                 "description": f"App {app_name}",
-                "version": "0.1.0",
             }
             app_json.write_text(json.dumps(basic_meta, indent=2, ensure_ascii=False))
             click.echo(f"  {click.style('✓', fg='green')} app.json created.")

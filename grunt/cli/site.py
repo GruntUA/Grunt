@@ -207,10 +207,7 @@ def site_create(
 
     # Write .env
     resolved_db_url = db_url or "sqlite+aiosqlite:///./grunt.db"
-    env_content = (
-        f"DATABASE_URL={resolved_db_url}\n"
-        f"SECRET_KEY={secret_key}\n"
-    )
+    env_content = f"DATABASE_URL={resolved_db_url}\nSECRET_KEY={secret_key}\n"
     (site_path / ".env").write_text(env_content)
 
     click.echo(f"✓ Site '{name}' created: {site_path}")

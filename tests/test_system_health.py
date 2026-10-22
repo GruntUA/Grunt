@@ -164,3 +164,25 @@ async def test_largest_tables_counts_rows(ctx):
     assert all(n >= 0 for n in counts.values())
     if "ToDo" in counts:
         assert counts["ToDo"] >= 1
+
+
+@pytest.mark.asyncio
+async def test_pdf_row_without_chromium(monkeypatch):
+    from grunt.print.pdf import PdfEngineError
+
+    async def missing():
+        raise PdfEngineError("no chromium")
+
+    monkeypatch.setattr(health, "check_engine", missing)
+    [pdf] = await health.check_pdf()
+    assert pdf["status"] == "Error" and "grunt update" in pdf["hint"]
+
+
+@pytest.mark.asyncio
+async def test_pdf_row_with_chromium(monkeypatch):
+    async def installed():
+        return "1.64.0"
+
+    monkeypatch.setattr(health, "check_engine", installed)
+    [pdf] = await health.check_pdf()
+    assert pdf["status"] == "OK" and pdf["value"] == "Playwright 1.64.0"

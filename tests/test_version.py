@@ -31,8 +31,9 @@ def repo(tmp_path: Path) -> Path:
     return tmp_path
 
 
-def test_untagged_repo_has_no_git_version(repo: Path):
-    assert versions.git_version(repo) is None
+def test_untagged_repo_counts_from_0_1(repo: Path):
+    found = versions.git_version(repo)
+    assert found is not None and found.startswith("0.1.dev1+g")
 
 
 def test_version_on_tag(repo: Path):
@@ -53,12 +54,12 @@ def test_version_after_tag_is_next_patch_dev(repo: Path):
 
 def test_non_version_tags_are_ignored(repo: Path):
     git(repo, "tag", "-a", "release-candidate", "-m", "x")
-    assert versions.git_version(repo) is None
+    assert versions.git_version(repo).startswith("0.1.dev1+g")  # type: ignore[union-attr]
 
 
-def test_app_version_falls_back_to_app_json(tmp_path: Path):
-    (tmp_path / "app.json").write_text(json.dumps({"version": "0.3.0"}))
-    assert versions.app_version(tmp_path) == "0.3.0"
+def test_app_version_without_git(tmp_path: Path):
+    (tmp_path / "app.json").write_text("{}")
+    assert versions.app_version(tmp_path) == "0.0.0"
 
 
 @pytest.mark.parametrize(
