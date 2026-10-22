@@ -17,7 +17,7 @@ POST_DOCTYPE = {
     "label": "UP Test Post",
     "module": "core",
     "fields": [
-        {"fieldname": "title", "label": "Title", "fieldtype": "Text"},
+        {"fieldname": "title", "label": "Title", "fieldtype": "Data"},
         {"fieldname": "team", "label": "Team", "fieldtype": "Link", "options": "Role"},
     ],
     "permissions": [
@@ -155,7 +155,7 @@ TREE_ASSET_DOCTYPE = {
     "label": "UP Test Unit Asset",
     "module": "core",
     "fields": [
-        {"fieldname": "title", "label": "Title", "fieldtype": "Text"},
+        {"fieldname": "title", "label": "Title", "fieldtype": "Data"},
         {"fieldname": "unit", "label": "Unit", "fieldtype": "Link", "options": "UPTestUnit"},
     ],
     "permissions": [{"role": "Employee", "read": True}],

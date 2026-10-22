@@ -153,7 +153,7 @@ class ExternalCustomer(BaseDocument):
 ```json
 { "fieldname": "agent_file", "fieldtype": "Attach", "columns": 8 },
 { "fieldname": "file_size",  "fieldtype": "Int", "options": "Bytes", "columns": 4 },
-{ "fieldname": "checksum",   "fieldtype": "Text" }
+{ "fieldname": "checksum",   "fieldtype": "Data" }
 ```
 
 Часто ширини полів у одній колонці дають кращий результат, ніж кілька
@@ -169,7 +169,7 @@ class ExternalCustomer(BaseDocument):
   { "fieldname": "tab_main",    "label": "Основне",    "fieldtype": "Tab", "icon": "file-text" },
 
   { "fieldname": "sec_header",  "label": "",            "fieldtype": "Section" },
-  { "fieldname": "title",       "label": "Назва",       "fieldtype": "Text",   "required": true, "bold": true },
+  { "fieldname": "title",       "label": "Назва",       "fieldtype": "Data",   "required": true, "bold": true },
 
   { "fieldname": "sec_info",    "label": "Деталі",      "fieldtype": "Section" },
   { "fieldname": "col_a",       "fieldtype": "Column" },
@@ -192,10 +192,11 @@ class ExternalCustomer(BaseDocument):
 
 | fieldtype | БД | Опис |
 |-----------|----|------|
-| `Text` | String(255) | Короткий текст, 1 рядок |
+| `Data` | String(`max_length`, 255) | Короткий текст, 1 рядок. `options` — автопідказки (по одній на рядок), значення будь-яке |
 | `LongText` | Text | Довгий текст, багаторядковий textarea |
 | `RichText` | Text | HTML-редактор з форматуванням |
-| `Code` | Text | Код з підсвічуванням (JSON / Python / SQL) |
+| `HTMLView` | Text | Розмітка, яку формує сервер (зведена таблиця, звіт): у формі рендериться як HTML, не редагується. Санітизується при кожному записі (і через `set_value`). Значення екрануйте `html.escape` |
+| `Code` | Text | Код з підсвічуванням; мова в `options`: `json` / `python` / `sql` / `html` / `css` / `js` |
 
 ### Числа
 
@@ -292,7 +293,7 @@ text/csv/json, zip). Решту (`.exe`, `.msi`…) адмін дозволяє 
 ### Обов'язкові
 
 ```json
-{ "fieldname": "title", "label": "Назва", "fieldtype": "Text" }
+{ "fieldname": "title", "label": "Назва", "fieldtype": "Data" }
 ```
 
 ### Відображення в списку
@@ -410,7 +411,7 @@ text/csv/json, zip). Решту (`.exe`, `.msi`…) адмін дозволяє 
 ```json
 {
   "fieldname": "full_name",
-  "fieldtype": "Text",
+  "fieldtype": "Data",
   "is_virtual": true,
   "read_formula": "f\"{last_name} {first_name} {middle_name or ''}\".strip()"
 }
@@ -421,7 +422,7 @@ text/csv/json, zip). Решту (`.exe`, `.msi`…) адмін дозволяє 
 Формат: `link_field.field_name_in_linked_doctype`.
 
 ```json
-{ "fieldname": "employee_position", "fieldtype": "Text", "fetch_from": "employee.position", "read_only": true }
+{ "fieldname": "employee_position", "fieldtype": "Data", "fetch_from": "employee.position", "read_only": true }
 ```
 
 При зміні поля `employee` (Link) — автоматично підтягується `position` з Employee.
@@ -534,7 +535,7 @@ text/csv/json, zip). Решту (`.exe`, `.msi`…) адмін дозволяє 
 
 ```json
 [
-  { "fieldname": "number",  "label": "Номер",  "fieldtype": "Text",   "read_only": true, "bold": true, "in_list_view": true },
+  { "fieldname": "number",  "label": "Номер",  "fieldtype": "Data",   "read_only": true, "bold": true, "in_list_view": true },
   { "fieldname": "date",    "label": "Дата",   "fieldtype": "Date",   "required": true,  "default": "Today", "in_list_view": true },
   { "fieldname": "col_h",   "fieldtype": "Column" },
   { "fieldname": "status",  "label": "Статус", "fieldtype": "Select", "required": true,  "default": "Чернетка", "in_list_view": true, "in_filter": true }
@@ -558,8 +559,8 @@ text/csv/json, zip). Решту (`.exe`, `.msi`…) адмін дозволяє 
 [
   { "fieldname": "is_legal_entity", "label": "Юридична особа", "fieldtype": "Check" },
   { "fieldname": "sec_legal",       "label": "Реквізити",      "fieldtype": "Section", "depends_on": "eval: doc.is_legal_entity" },
-  { "fieldname": "edrpou",          "label": "ЄДРПОУ",         "fieldtype": "Text", "mandatory_depends_on": "eval: doc.is_legal_entity" },
-  { "fieldname": "iban",            "label": "IBAN",            "fieldtype": "Text" }
+  { "fieldname": "edrpou",          "label": "ЄДРПОУ",         "fieldtype": "Data", "mandatory_depends_on": "eval: doc.is_legal_entity" },
+  { "fieldname": "iban",            "label": "IBAN",            "fieldtype": "Data" }
 ]
 ```
 

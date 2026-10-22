@@ -1,1 +1,1 @@
-{"type": "RichText", "label": "Rich Text", "icon": "file-pen", "category": "Текст", "non_groupable": true, "propertySections": ["core", "flags", "display", "text", "default", "fetch_from"], "storage_class": "text"}
+{"type": "RichText", "label": "Rich Text", "icon": "file-pen", "category": "Текст", "non_groupable": true, "propertySections": ["core", "flags", "display", "text", "default", "fetch_from"], "storage_class": "text", "traits": ["html"]}

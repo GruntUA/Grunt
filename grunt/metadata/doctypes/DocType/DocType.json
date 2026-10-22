@@ -29,7 +29,7 @@
     {
       "fieldname": "label",
       "label": "Name",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "required": true,
       "in_list_view": true,
       "in_filter": true,
@@ -38,7 +38,7 @@
     {
       "fieldname": "description",
       "label": "Description",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "in_list_view": true,
       "description": "Short DocType description (shown under the list and in the DocType list)"
     },
@@ -126,7 +126,7 @@
     {
       "fieldname": "autoname",
       "label": "Autoname",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "description": "Series (CONTR-.YYYY.-.####), field:fieldname, prompt or hash"
     },
     {

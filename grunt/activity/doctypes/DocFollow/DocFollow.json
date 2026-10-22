@@ -20,14 +20,14 @@
     {
       "fieldname": "reference_id",
       "label": "Document",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "required": true,
       "in_list_view": true
     },
     {
       "fieldname": "user",
       "label": "User",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "in_list_view": true
     }
   ],

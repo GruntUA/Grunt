@@ -17,14 +17,14 @@
     {
       "fieldname": "label",
       "label": "Label",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "in_list_view": true,
       "description": "Optional — overrides the registered button label"
     },
     {
       "fieldname": "group",
       "label": "Group",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "in_list_view": true,
       "description": "Optional — groups buttons into a dropdown under this name"
     },

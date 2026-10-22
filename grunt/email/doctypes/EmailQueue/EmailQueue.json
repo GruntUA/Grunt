@@ -8,19 +8,19 @@
     {
       "fieldname": "sender",
       "label": "Sender",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "in_list_view": true
     },
     {
       "fieldname": "recipient",
       "label": "Recipient",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "in_list_view": true
     },
     {
       "fieldname": "subject",
       "label": "Subject",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "in_list_view": true
     },
     {

@@ -13,7 +13,7 @@ SETTINGS_DT = {
     "module": "core",
     "is_singleton": True,
     "fields": [
-        {"fieldname": "current_period", "label": "Period", "fieldtype": "Text"},
+        {"fieldname": "current_period", "label": "Period", "fieldtype": "Data"},
         {"fieldname": "secret", "label": "Secret", "fieldtype": "Password"},
     ],
     "permissions": [{"role": "Reader", "read": True}],

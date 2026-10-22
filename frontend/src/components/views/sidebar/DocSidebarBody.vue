@@ -129,7 +129,7 @@ async function remindMe() {
     primaryLabel: t('Remind me'),
     fields: [
       { fieldname: 'remind_at', label: t('When'), fieldtype: 'Datetime', required: true, default: tomorrow.toISOString() },
-      { fieldname: 'description', label: t('Note'), fieldtype: 'Text' },
+      { fieldname: 'description', label: t('Note'), fieldtype: 'Data' },
     ],
     buttons: [preset(t('In an hour'), inAnHour), preset(t('Tomorrow at 9:00'), tomorrow)],
   })

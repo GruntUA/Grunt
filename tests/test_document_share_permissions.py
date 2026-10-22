@@ -27,7 +27,7 @@ SECRET_DOCTYPE = {
     "label": "Share Test Secret",
     "module": "core",
     "fields": [
-        {"fieldname": "title", "label": "Title", "fieldtype": "Text"},
+        {"fieldname": "title", "label": "Title", "fieldtype": "Data"},
     ],
     "permissions": [
         {

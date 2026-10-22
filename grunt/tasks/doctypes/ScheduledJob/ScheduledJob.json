@@ -48,7 +48,7 @@
     {
       "fieldname": "last_error",
       "label": "Last error",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "read_only": 1
     },
     {

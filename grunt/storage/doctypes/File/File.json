@@ -16,7 +16,7 @@
     {
       "fieldname": "file_name",
       "label": "File name",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "required": true,
       "in_list_view": true,
       "search": true
@@ -32,7 +32,7 @@
     {
       "fieldname": "file_url",
       "label": "File URL",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "read_only": true
     },
     {
@@ -52,7 +52,7 @@
     {
       "fieldname": "content_type",
       "label": "Content type",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "read_only": true,
       "in_list_view": true,
       "in_filter": true

@@ -60,7 +60,7 @@
     {
       "fieldname": "recipients",
       "label": "Recipients",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "required": true
     },
     {
@@ -71,7 +71,7 @@
     {
       "fieldname": "subject_template",
       "label": "Subject template",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "default": "{doctype}: {name}"
     },
     {

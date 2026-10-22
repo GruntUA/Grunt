@@ -199,7 +199,7 @@ _PUSH_DIALOG_FIELDS = [
     {
         "fieldname": "body",
         "label": "Message",
-        "fieldtype": "Text",
+        "fieldtype": "Data",
         "default": "Push notifications work in this browser.",
     },
     {

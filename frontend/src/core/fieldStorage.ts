@@ -49,7 +49,7 @@ const SAFE_WIDENINGS = new Set<string>([
 /**
  * Describe what a `from` -> `to` fieldtype change does to already-stored data.
  * Returns `null` when the column is untouched (same storage class, e.g.
- * `Data` ↔ `Text` ↔ `Select`, or `from === to`).
+ * `Data` ↔ `LongText` ↔ `Select`, or `from === to`).
  */
 export function describeTypeChange(from: string, to: string): TypeChangeNote | null {
   if (from === to) return null

@@ -7,21 +7,21 @@
     {
       "fieldname": "from_state",
       "label": "From state",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "required": true,
       "in_list_view": true
     },
     {
       "fieldname": "to_state",
       "label": "To state",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "required": true,
       "in_list_view": true
     },
     {
       "fieldname": "action",
       "label": "Action (button text)",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "required": true,
       "in_list_view": true
     },
@@ -33,7 +33,7 @@
     {
       "fieldname": "condition",
       "label": "Condition (eval:)",
-      "fieldtype": "Text"
+      "fieldtype": "Data"
     },
     {
       "fieldname": "prompt_fields",

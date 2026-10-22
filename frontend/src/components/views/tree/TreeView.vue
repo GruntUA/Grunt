@@ -174,7 +174,7 @@ const forceExpandAll = computed(() => Boolean(props.search?.trim()))
 const titleField = computed(() =>
   props.doctype.tree_title_field
   ?? props.doctype.title_field
-  ?? props.doctype.fields.find(f => f.fieldtype === 'Text' && f.in_list_view)?.fieldname
+  ?? props.doctype.fields.find(f => f.fieldtype === 'Data' && f.in_list_view)?.fieldname
   ?? 'name'
 )
 

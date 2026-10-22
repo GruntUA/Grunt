@@ -7,7 +7,7 @@ TABLE_INFO_DOCTYPE = {
     "label": "Storage Probe",
     "module": "core",
     "fields": [
-        {"fieldname": "title", "label": "Title", "fieldtype": "Text", "required": True},
+        {"fieldname": "title", "label": "Title", "fieldtype": "Data", "required": True},
         {"fieldname": "note", "label": "Note", "fieldtype": "LongText"},
     ],
     "search_fields": ["title"],
@@ -59,7 +59,7 @@ async def test_table_info_rejects_virtual_doctype(ctx):
             "label": "Virtual Probe",
             "module": "core",
             "is_virtual": True,
-            "fields": [{"fieldname": "title", "label": "Title", "fieldtype": "Text"}],
+            "fields": [{"fieldname": "title", "label": "Title", "fieldtype": "Data"}],
             "__is_new": True,
         }
     )

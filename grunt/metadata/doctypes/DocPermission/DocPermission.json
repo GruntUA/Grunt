@@ -8,7 +8,7 @@
     {
       "fieldname": "role",
       "label": "Role",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "required": true,
       "in_list_view": true,
       "in_filter": true
@@ -66,7 +66,7 @@
     {
       "fieldname": "match",
       "label": "Match condition (eval:)",
-      "fieldtype": "Text"
+      "fieldtype": "Data"
     },
     {
       "fieldname": "hidden_fields",

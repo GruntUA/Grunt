@@ -122,7 +122,7 @@ const fieldMap = computed(() => {
 })
 
 function getFieldType(key: string): string {
-  return fieldMap.value[key]?.fieldtype ?? 'Text'
+  return fieldMap.value[key]?.fieldtype ?? 'Data'
 }
 
 function colField(col: ListColumn): DocField {

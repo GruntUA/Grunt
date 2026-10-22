@@ -11,7 +11,7 @@ describe('computeIndexHints', () => {
     const hints = computeIndexHints(dt({
       fields: [
         { fieldname: 'reference_doctype', label: 'Ref type', fieldtype: 'Link' },
-        { fieldname: 'reference_id', label: 'Ref id', fieldtype: 'Text' },
+        { fieldname: 'reference_id', label: 'Ref id', fieldtype: 'Data' },
       ],
     }))
     expect(hints).toHaveLength(1)
@@ -22,7 +22,7 @@ describe('computeIndexHints', () => {
     const hints = computeIndexHints(dt({
       fields: [
         { fieldname: 'reference_doctype', label: 'Ref type', fieldtype: 'Link' },
-        { fieldname: 'reference_id', label: 'Ref id', fieldtype: 'Text' },
+        { fieldname: 'reference_id', label: 'Ref id', fieldtype: 'Data' },
       ],
       indexes: [['reference_doctype', 'reference_id']],
     }))
@@ -40,9 +40,9 @@ describe('computeIndexHints', () => {
     const hints = computeIndexHints(dt({
       fields: [
         { fieldname: 'source_doctype', label: 'Src type', fieldtype: 'Link' },
-        { fieldname: 'source_id', label: 'Src id', fieldtype: 'Text' },
+        { fieldname: 'source_id', label: 'Src id', fieldtype: 'Data' },
         { fieldname: 'target_doctype', label: 'Tgt type', fieldtype: 'Link' },
-        { fieldname: 'target_id', label: 'Tgt id', fieldtype: 'Text' },
+        { fieldname: 'target_id', label: 'Tgt id', fieldtype: 'Data' },
       ],
     }))
     expect(hints.map((h) => h.field).sort()).toEqual([
@@ -54,7 +54,7 @@ describe('computeIndexHints', () => {
   it('does not flag a doctype with no polymorphic pairs at all', () => {
     const hints = computeIndexHints(dt({
       fields: [
-        { fieldname: 'title', label: 'Title', fieldtype: 'Text', in_filter: true },
+        { fieldname: 'title', label: 'Title', fieldtype: 'Data', in_filter: true },
         { fieldname: 'owner_link', label: 'Owner', fieldtype: 'Link', in_filter: true },
       ],
     }))
@@ -66,7 +66,7 @@ describe('computeIndexHints', () => {
       is_virtual: true,
       fields: [
         { fieldname: 'reference_doctype', label: 'Ref type', fieldtype: 'Link' },
-        { fieldname: 'reference_id', label: 'Ref id', fieldtype: 'Text' },
+        { fieldname: 'reference_id', label: 'Ref id', fieldtype: 'Data' },
       ],
     }))
     expect(hints).toHaveLength(0)

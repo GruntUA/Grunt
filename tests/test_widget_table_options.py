@@ -11,7 +11,7 @@ DT = {
     "label": "Wt Item",
     "module": "core",
     "fields": [
-        {"fieldname": "title", "label": "Title", "fieldtype": "Text"},
+        {"fieldname": "title", "label": "Title", "fieldtype": "Data"},
         {"fieldname": "points", "label": "Points", "fieldtype": "Float"},
     ],
 }

@@ -11,7 +11,7 @@
     {
       "fieldname": "label",
       "label": "Name",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "required": true,
       "in_list_view": true
     },
@@ -30,7 +30,7 @@
     {
       "fieldname": "description",
       "label": "Description",
-      "fieldtype": "Text"
+      "fieldtype": "Data"
     },
     {
       "fieldname": "sequence",
@@ -48,7 +48,7 @@
     {
       "fieldname": "roles",
       "label": "Roles (comma-separated)",
-      "fieldtype": "Text"
+      "fieldtype": "Data"
     },
     {
       "fieldname": "app",

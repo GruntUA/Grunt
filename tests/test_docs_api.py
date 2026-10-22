@@ -10,7 +10,7 @@ TEST_DOCTYPE = {
         {
             "fieldname": "title",
             "label": "Title",
-            "fieldtype": "Text",
+            "fieldtype": "Data",
             "required": True,
             "in_list_view": True,
         },
@@ -215,7 +215,7 @@ async def test_get_list_query_cache_read_only_invalidation(ctx):
                 {
                     "fieldname": "title",
                     "label": "Title",
-                    "fieldtype": "Text",
+                    "fieldtype": "Data",
                     "required": True,
                 },
             ],
@@ -303,7 +303,7 @@ async def test_get_document_expand_multilink(ctx):
                 {
                     "fieldname": "title",
                     "label": "Title",
-                    "fieldtype": "Text",
+                    "fieldtype": "Data",
                     "required": True,
                 },
                 {
@@ -498,7 +498,7 @@ LINK_TARGET_DOCTYPE = {
     "title_field": "title",
     "image_field": "photo",
     "fields": [
-        {"fieldname": "title", "label": "Title", "fieldtype": "Text", "required": True},
+        {"fieldname": "title", "label": "Title", "fieldtype": "Data", "required": True},
         {"fieldname": "color", "label": "Color", "fieldtype": "Color"},
         {"fieldname": "icon", "label": "Icon", "fieldtype": "Icon"},
         {"fieldname": "photo", "label": "Photo", "fieldtype": "Attach"},
@@ -886,7 +886,7 @@ async def test_lifecycle_hooks_see_submitted_multilink(ctx):
             "label": "Hook Watch Item",
             "module": "core",
             "fields": [
-                {"fieldname": "title", "label": "Title", "fieldtype": "Text"},
+                {"fieldname": "title", "label": "Title", "fieldtype": "Data"},
                 {
                     "fieldname": "watchers",
                     "label": "Watchers",

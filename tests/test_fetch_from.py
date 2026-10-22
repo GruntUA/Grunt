@@ -16,9 +16,9 @@ CITY_DT = {
     "module": "core",
     "autoname": "field:title",
     "fields": [
-        {"fieldname": "title", "label": "Title", "fieldtype": "Text", "required": True},
-        {"fieldname": "region", "label": "Region", "fieldtype": "Text"},
-        {"fieldname": "code", "label": "Code", "fieldtype": "Text"},
+        {"fieldname": "title", "label": "Title", "fieldtype": "Data", "required": True},
+        {"fieldname": "region", "label": "Region", "fieldtype": "Data"},
+        {"fieldname": "code", "label": "Code", "fieldtype": "Data"},
     ],
 }
 
@@ -31,10 +31,10 @@ CUSTOMER_DT = {
         {
             "fieldname": "region",
             "label": "Region",
-            "fieldtype": "Text",
+            "fieldtype": "Data",
             "fetch_from": "city.region",
         },
-        {"fieldname": "code", "label": "Code", "fieldtype": "Text", "fetch_from": "city.code"},
+        {"fieldname": "code", "label": "Code", "fieldtype": "Data", "fetch_from": "city.code"},
     ],
 }
 

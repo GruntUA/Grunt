@@ -1,5 +1,5 @@
 /**
- * Plain text out of stored rich text (comments, RichText / HTMLEditor values)
+ * Plain text out of stored rich text (comments, RichText / HTML-coded values)
  * for places that show it as text - never rendered as HTML.
  */
 

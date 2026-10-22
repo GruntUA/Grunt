@@ -27,7 +27,7 @@ TICKET_DOCTYPE = {
     "label": "Perm Test Ticket",
     "module": "core",
     "fields": [
-        {"fieldname": "title", "label": "Title", "fieldtype": "Text"},
+        {"fieldname": "title", "label": "Title", "fieldtype": "Data"},
     ],
     "permissions": [
         {

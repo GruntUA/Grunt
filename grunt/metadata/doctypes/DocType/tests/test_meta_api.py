@@ -14,7 +14,7 @@ SAMPLE_DOCTYPE = {
         {
             "fieldname": "title",
             "label": "Назва",
-            "fieldtype": "Text",
+            "fieldtype": "Data",
             "required": True,
             "in_list_view": True,
         },

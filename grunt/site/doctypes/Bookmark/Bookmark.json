@@ -15,13 +15,13 @@
     {
       "fieldname": "reference_id",
       "label": "Document ID",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "required": true
     },
     {
       "fieldname": "title",
       "label": "Name",
-      "fieldtype": "Text"
+      "fieldtype": "Data"
     }
   ],
   "permissions": [

@@ -16,7 +16,6 @@ const LAYOUT_TYPES = getLayoutTypeSet()
 /** Field types edited right in the grid cell; the rest only in the row sheet. */
 export const INLINE_TYPES = new Set([
   'Data',
-  'Text',
   'Int',
   'Float',
   'Currency',
@@ -39,9 +38,9 @@ function isEmpty(v: unknown): boolean {
 
 const t = (key: string): string => i18n.global.t(key)
 
-/** VARCHAR length of a Data / Text column - mirrors the server's column_spec. */
+/** VARCHAR length of a Data column - mirrors the server's column_spec. */
 function textLimit(f: DocField): number | null {
-  if (f.fieldtype !== 'Data' && f.fieldtype !== 'Text') return f.max_length || null
+  if (f.fieldtype !== 'Data') return f.max_length || null
   return Math.max(64, Math.min(f.max_length || 255, 1000))
 }
 

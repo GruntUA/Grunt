@@ -10,7 +10,7 @@
     {
       "fieldname": "report_name",
       "label": "Name",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "required": true,
       "unique": true,
       "in_list_view": true

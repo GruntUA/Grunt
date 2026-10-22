@@ -42,7 +42,7 @@ async def test_app_doctype_name_collision_is_refused(
                 "name": "CollisionTarget",
                 "label": "App Owned",
                 "module": "collidingapp",
-                "fields": [{"fieldname": "title", "label": "Title", "fieldtype": "Text"}],
+                "fields": [{"fieldname": "title", "label": "Title", "fieldtype": "Data"}],
             }
         ),
     )

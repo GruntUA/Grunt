@@ -18,13 +18,13 @@
     {
       "fieldname": "title",
       "label": "Title",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "in_list_view": true
     },
     {
       "fieldname": "ref_doctype",
       "label": "DocType",
-      "fieldtype": "Text"
+      "fieldtype": "Data"
     },
     {
       "fieldname": "aggregation",
@@ -37,12 +37,12 @@
     {
       "fieldname": "field",
       "label": "Field",
-      "fieldtype": "Text"
+      "fieldtype": "Data"
     },
     {
       "fieldname": "value_label",
       "label": "Value label",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "description": "Heading of the value column (default: the aggregation, e.g. Sum)"
     },
     {
@@ -54,12 +54,12 @@
     {
       "fieldname": "group_by",
       "label": "Group by",
-      "fieldtype": "Text"
+      "fieldtype": "Data"
     },
     {
       "fieldname": "date_field",
       "label": "Date field",
-      "fieldtype": "Text"
+      "fieldtype": "Data"
     },
     {
       "fieldname": "period",
@@ -108,7 +108,7 @@
     {
       "fieldname": "icon",
       "label": "Icon (lucide)",
-      "fieldtype": "Text"
+      "fieldtype": "Data"
     },
     {
       "fieldname": "link_type",
@@ -120,12 +120,12 @@
     {
       "fieldname": "description",
       "label": "Description / Subtitle",
-      "fieldtype": "Text"
+      "fieldtype": "Data"
     },
     {
       "fieldname": "report",
       "label": "Report (chart data source)",
-      "fieldtype": "Text"
+      "fieldtype": "Data"
     },
     {
       "fieldname": "content",

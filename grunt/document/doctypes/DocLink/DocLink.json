@@ -19,7 +19,7 @@
     {
       "fieldname": "source_doctype",
       "label": "Source type",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "required": true,
       "in_list_view": true,
       "in_filter": true
@@ -27,14 +27,14 @@
     {
       "fieldname": "source_id",
       "label": "Source ID",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "required": true,
       "in_list_view": true
     },
     {
       "fieldname": "target_doctype",
       "label": "Target type",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "required": true,
       "in_list_view": true,
       "in_filter": true
@@ -42,14 +42,14 @@
     {
       "fieldname": "target_id",
       "label": "Target ID",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "required": true,
       "in_list_view": true
     },
     {
       "fieldname": "link_fieldname",
       "label": "Link field",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "required": true
     }
   ],

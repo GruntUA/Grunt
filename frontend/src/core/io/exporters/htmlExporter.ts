@@ -103,7 +103,7 @@ function renderRows(
 ): string {
   return rows.map((row, ri) => {
     const cells = columns.map((col, ci) => {
-      const field = fieldMap.get(col.key) ?? { fieldtype: 'Text' }
+      const field = fieldMap.get(col.key) ?? { fieldtype: 'Data' }
       const html = formatCellHtml(row[col.key], field, col.key, statusField, indicatorMap)
       const firstCol = ci === 0 ? ' style="font-weight:600;color:#111827"' : ''
       return `<td${firstCol}>${html}</td>`

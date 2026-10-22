@@ -13,7 +13,7 @@
     {
       "fieldname": "value",
       "label": "Field value",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "required": true,
       "in_list_view": true,
       "bold": true,
@@ -38,7 +38,7 @@
     {
       "fieldname": "label",
       "label": "Label",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "in_list_view": true,
       "description": "Display label; if empty, the field value is used"
     }

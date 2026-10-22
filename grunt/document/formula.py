@@ -224,6 +224,6 @@ def _coerce_result(value: Any, fieldtype: str) -> Any:
     if storage == "bool":
         return bool(value)
     # Data, Text, etc. - convert to string
-    if fieldtype in ("Data", "Text", "LongText"):
+    if fieldtype in ("Data", "LongText"):
         return str(value)
     return value

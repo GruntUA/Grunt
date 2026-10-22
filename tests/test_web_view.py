@@ -13,12 +13,12 @@ ARTICLE = {
     "web_route": "articles",
     "is_published_field": "published",
     "fields": [
-        {"fieldname": "title", "label": "Title", "fieldtype": "Text"},
-        {"fieldname": "route", "label": "Route", "fieldtype": "Text"},
+        {"fieldname": "title", "label": "Title", "fieldtype": "Data"},
+        {"fieldname": "route", "label": "Route", "fieldtype": "Data"},
         {"fieldname": "published", "label": "Published", "fieldtype": "Check"},
         {"fieldname": "sec_body", "label": "Story", "fieldtype": "Section"},
         {"fieldname": "body", "label": "Body", "fieldtype": "RichText"},
-        {"fieldname": "secret", "label": "Secret", "fieldtype": "Text", "hidden": True},
+        {"fieldname": "secret", "label": "Secret", "fieldtype": "Data", "hidden": True},
     ],
     "permissions": [{"role": "System Manager", "read": True, "write": True, "create": True}],
 }

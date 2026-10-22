@@ -8,13 +8,13 @@
     {
       "fieldname": "label",
       "label": "Label",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "in_list_view": true
     },
     {
       "fieldname": "fieldname",
       "label": "Fieldname",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "in_list_view": true,
       "required": true
     },
@@ -24,7 +24,7 @@
       "fieldtype": "Select",
       "in_list_view": true,
       "required": true,
-      "options": "Data\nText\nLongText\nRichText\nHTMLEditor\nCode\nJSON\nPassword\nInt\nFloat\nCurrency\nPercent\nDuration\nRating\nCheck\nDate\nDatetime\nTime\nSelect\nMultiSelect\nLink\nDynamicLink\nMultiLink\nTable\nEmbeddedForm\nAttach\nImage\nSignature\nGeolocation\nBarCode\nColor\nIcon\nColumnMapping\nButton\nHTML\nSection\nColumn\nTab"
+      "options": "Data\nLongText\nRichText\nHTMLView\nCode\nJSON\nPassword\nInt\nFloat\nCurrency\nPercent\nDuration\nRating\nCheck\nDate\nDatetime\nTime\nSelect\nMultiSelect\nLink\nDynamicLink\nMultiLink\nTable\nEmbeddedForm\nAttach\nImage\nSignature\nGeolocation\nBarCode\nColor\nIcon\nColumnMapping\nButton\nHTML\nSection\nColumn\nTab"
     },
     {
       "fieldname": "options",

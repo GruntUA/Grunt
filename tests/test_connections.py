@@ -13,7 +13,7 @@ ASSET_DT = {
     "module": "core",
     "title_field": "title",
     "fields": [
-        {"fieldname": "title", "label": "Title", "fieldtype": "Text", "required": True},
+        {"fieldname": "title", "label": "Title", "fieldtype": "Data", "required": True},
     ],
 }
 
@@ -23,7 +23,7 @@ ORDER_DT = {
     "module": "core",
     "title_field": "title",
     "fields": [
-        {"fieldname": "title", "label": "Title", "fieldtype": "Text", "required": True},
+        {"fieldname": "title", "label": "Title", "fieldtype": "Data", "required": True},
         {"fieldname": "asset", "label": "Asset", "fieldtype": "Link", "options": "ConnAsset"},
     ],
 }

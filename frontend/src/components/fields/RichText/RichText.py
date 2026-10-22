@@ -8,6 +8,7 @@ class RichTextField(FieldType):
     name = "RichText"
     column_spec = ("Text",)
     python_type = "str | None"
+    traits = frozenset({"html"})
 
     @classmethod
     def parse(cls, value):

@@ -30,7 +30,7 @@ GEAR_DOCTYPE = {
     "label": "Perm Test Gear",
     "module": "core",
     "fields": [
-        {"fieldname": "title", "label": "Title", "fieldtype": "Text"},
+        {"fieldname": "title", "label": "Title", "fieldtype": "Data"},
         {
             "fieldname": "holder",
             "label": "Holder",

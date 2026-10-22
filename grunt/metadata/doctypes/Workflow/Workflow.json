@@ -30,7 +30,7 @@
     {
       "fieldname": "workflow_state_field",
       "label": "State field",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "default": "status",
       "required": true,
       "description": "Name of the field on the target DocType that stores the current state"

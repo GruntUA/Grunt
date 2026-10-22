@@ -18,7 +18,7 @@
     {
       "fieldname": "label",
       "label": "Display name",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "in_list_view": true,
       "description": "For example: (UTC+2) Kyiv"
     },

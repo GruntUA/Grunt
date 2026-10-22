@@ -1,0 +1,1 @@
+{"type": "HTMLView", "label": "HTML View", "icon": "table-properties", "category": "Текст", "non_groupable": true, "propertySections": ["core", "display", "text"], "storage_class": "text", "traits": ["html"]}

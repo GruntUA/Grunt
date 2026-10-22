@@ -229,7 +229,7 @@ const footerButtons = computed<FooterButton[]>(() => {
             @row-action="(row, i) => handleRowAction(field, row, i)"
           />
           <component
-            :is="getAsyncFieldComponent(field.fieldtype ?? 'Text')"
+            :is="getAsyncFieldComponent(field.fieldtype ?? 'Data')"
             v-else
             v-model="formValues[field.fieldname]"
             :field="field as DocField"

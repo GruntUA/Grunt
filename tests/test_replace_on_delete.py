@@ -19,7 +19,7 @@ TARGET_DT = {
     "tree_parent_field": "parent_rpl",
     "title_field": "title",
     "fields": [
-        {"fieldname": "title", "label": "Title", "fieldtype": "Text", "required": True},
+        {"fieldname": "title", "label": "Title", "fieldtype": "Data", "required": True},
         {"fieldname": "parent_rpl", "label": "Parent", "fieldtype": "Link", "options": "RplTarget"},
     ],
 }

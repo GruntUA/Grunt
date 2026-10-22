@@ -27,7 +27,7 @@ describe('storageClassOf', () => {
 describe('describeTypeChange', () => {
   it('returns null when the column is untouched', () => {
     expect(describeTypeChange('Data', 'Data')).toBeNull()
-    expect(describeTypeChange('Data', 'Text')).toBeNull()
+    expect(describeTypeChange('Data', 'LongText')).toBeNull()
     expect(describeTypeChange('Data', 'Select')).toBeNull()
     expect(describeTypeChange('Link', 'Data')).toBeNull()
     expect(describeTypeChange('Attach', 'Image')).toBeNull()

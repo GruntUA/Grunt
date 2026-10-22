@@ -224,9 +224,12 @@ export function byFieldType<T>(modules: Record<string, T>): Map<string, T> {
   return new Map(Object.entries(modules).map(([path, mod]) => [path.split('/').at(-2)!, mod]))
 }
 
-/** Fallback component loader for unrecognised field types. */
-export const FallbackFieldLoader = (): Promise<Component> =>
-  import('@/components/fields/Text/Text.vue').then((m) => m.default as Component)
+/** Component loader for a field type - throws for a type nobody registered. */
+export function getFieldLoader(type: string): () => Promise<Component> {
+  const loader = getFieldDef(type)?.component
+  if (!loader) throw new Error(`[FieldRegistry] Unknown field type "${type}"`)
+  return loader
+}
 
 const _asyncComponentCache = new Map<string, Component>()
 
@@ -234,8 +237,7 @@ const _asyncComponentCache = new Map<string, Component>()
 export function getAsyncFieldComponent(type: string): Component {
   let comp = _asyncComponentCache.get(type)
   if (!comp) {
-    const loader = getFieldDef(type)?.component ?? FallbackFieldLoader
-    comp = defineAsyncComponent(loader)
+    comp = defineAsyncComponent(getFieldLoader(type))
     _asyncComponentCache.set(type, comp)
   }
   return comp

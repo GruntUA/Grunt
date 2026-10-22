@@ -5,14 +5,12 @@ for the server-rendered read-only views (``/share/{token}``, web view pages).
 from typing import Any
 
 from grunt import _
+from grunt.metadata.field import has_trait
 from grunt.utils.sanitize import sanitize_html
 
 # Framework bookkeeping fields never shown in the read-only share view.
 _SKIP_FIELDS = {"id", "name", "owner", "created_at", "modified_at", "modified_by"}
-_MULTILINE = {"LongText", "Text", "HTML", "Code"}
-# Rendered as markup (``row.html``) - sanitized again here, for rows written
-# before RichText was sanitized on save.
-_RICH = {"RichText"}
+_MULTILINE = {"LongText", "HTML", "Code"}
 _IMAGE_TYPES = {"Image"}
 _IMAGE_EXTS = (".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg", ".avif", ".bmp")
 # Non-data fieldtypes that carry no value to show in a read-only layout.
@@ -47,7 +45,9 @@ def _row(
         value = _("Yes") if str(raw) in ("1", "true", "True") else _("No")
     elif fieldtype == "Link" and display not in (None, ""):
         value = display
-    elif fieldtype in _RICH:
+    elif has_trait(fieldtype, "html"):
+        # Rendered as markup (``row.html``) - sanitized again here, for rows
+        # written before RichText was sanitized on save.
         value = sanitize_html(str(raw))
     else:
         value = raw
@@ -55,7 +55,7 @@ def _row(
         "label": label,
         "value": value,
         "multiline": fieldtype in _MULTILINE,
-        "html": fieldtype in _RICH and raw not in (None, ""),
+        "html": has_trait(fieldtype, "html") and raw not in (None, ""),
         "description": description,
     }
 

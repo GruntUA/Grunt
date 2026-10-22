@@ -30,7 +30,7 @@
     {
       "fieldname": "key_hash",
       "label": "Key hash",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "hidden": true
     },
     {
@@ -56,7 +56,7 @@
     {
       "fieldname": "allowed_ips",
       "label": "Allowed IPs (comma-separated)",
-      "fieldtype": "Text"
+      "fieldtype": "Data"
     }
   ],
   "permissions": [

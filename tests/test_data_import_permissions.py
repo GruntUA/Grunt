@@ -17,7 +17,7 @@ GUARDED_IMPORT_TARGET = {
     "label": "Import Target Secret",
     "module": "core",
     "fields": [
-        {"fieldname": "title", "label": "Title", "fieldtype": "Text"},
+        {"fieldname": "title", "label": "Title", "fieldtype": "Data"},
     ],
     "permissions": [{"role": "DataOwner", "read": True, "write": True, "create": True}],
 }

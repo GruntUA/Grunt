@@ -8,15 +8,15 @@ function makeField(overrides: Partial<DocField>): DocField {
   return {
     fieldname: 'test_field',
     label: 'Test Field',
-    fieldtype: 'Text',
+    fieldtype: 'Data',
     required: false,
     ...overrides,
   }
 }
 
-const titleField = makeField({ fieldname: 'title', label: 'Title', fieldtype: 'Text', in_list_view: true })
+const titleField = makeField({ fieldname: 'title', label: 'Title', fieldtype: 'Data', in_list_view: true })
 const statusField = makeField({ fieldname: 'status', label: 'Status', fieldtype: 'Select', in_list_view: true })
-const hiddenField = makeField({ fieldname: 'secret', label: 'Secret', fieldtype: 'Text', hidden: true })
+const hiddenField = makeField({ fieldname: 'secret', label: 'Secret', fieldtype: 'Data', hidden: true })
 const sectionField = makeField({ fieldname: 'section_1', label: 'Section', fieldtype: 'Section' })
 const tableField = makeField({ fieldname: 'items', label: 'Items', fieldtype: 'Table' })
 const extraField = makeField({ fieldname: 'notes', label: 'Notes', fieldtype: 'LongText', in_list_view: false })

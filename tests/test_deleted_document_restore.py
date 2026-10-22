@@ -10,7 +10,7 @@ _TRASH_DOCTYPE = {
     "label": "Trash Item",
     "module": "core",
     "fields": [
-        {"fieldname": "title", "label": "Title", "fieldtype": "Text", "required": True},
+        {"fieldname": "title", "label": "Title", "fieldtype": "Data", "required": True},
         {"fieldname": "qty", "label": "Qty", "fieldtype": "Int"},
         {
             "fieldname": "rows",
@@ -28,7 +28,7 @@ _TRASH_CHILD_DOCTYPE = {
     "module": "core",
     "is_child": True,
     "fields": [
-        {"fieldname": "label", "label": "Label", "fieldtype": "Text"},
+        {"fieldname": "label", "label": "Label", "fieldtype": "Data"},
         {"fieldname": "amount", "label": "Amount", "fieldtype": "Int"},
     ],
 }

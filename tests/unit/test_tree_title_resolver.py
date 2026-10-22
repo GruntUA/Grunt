@@ -20,7 +20,7 @@ RESOLVER_TREE_DOCTYPE = {
     "tree_parent_field": "parent_node",
     "tree_title_field": "title",
     "fields": [
-        {"fieldname": "title", "label": "Title", "fieldtype": "Text", "required": True},
+        {"fieldname": "title", "label": "Title", "fieldtype": "Data", "required": True},
         {
             "fieldname": "parent_node",
             "label": "Parent",

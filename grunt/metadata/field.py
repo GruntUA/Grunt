@@ -126,6 +126,7 @@ TRAITS: dict[str, str] = {
     "file": "value is a single file URL",
     "sensitive": "secret - never exported, listed or shown in dashboards",
     "options": "value is one or more of the newline-separated choices in `options`",
+    "html": "value is markup sanitized on write (grunt.utils.sanitize) - rendered as is",
 }
 
 

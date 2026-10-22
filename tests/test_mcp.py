@@ -12,7 +12,7 @@ MCP_DOCTYPE = {
     "module": "core",
     "description": "A record used by MCP tests",
     "fields": [
-        {"fieldname": "title", "label": "Title", "fieldtype": "Text", "required": True},
+        {"fieldname": "title", "label": "Title", "fieldtype": "Data", "required": True},
         {
             "fieldname": "status",
             "label": "Status",

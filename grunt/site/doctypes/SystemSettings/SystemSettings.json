@@ -24,7 +24,7 @@
     {
       "fieldname": "app_name",
       "label": "App name",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "required": true,
       "default": "Grunt Framework",
       "bold": true,
@@ -141,7 +141,7 @@
     {
       "fieldname": "extra_file_types",
       "label": "Additional allowed file types",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "placeholder": ".exe, .msi",
       "description": "Extensions (.exe) or MIME types, separated by commas, accepted on top of the built-in list (images, PDF, office documents, text, CSV, JSON, ZIP). Such files are only ever downloaded, never opened in the browser"
     },
@@ -323,7 +323,7 @@
     {
       "fieldname": "captcha_site_key",
       "label": "Site key",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "columns": 4,
       "depends_on": "eval: doc.captcha_provider"
     },
@@ -454,7 +454,7 @@
     {
       "fieldname": "webpush_vapid_public",
       "label": "VAPID Public Key",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "read_only": true,
       "columns": 12,
       "description": "Generated automatically on the first Web Push run. Clients need it to subscribe."

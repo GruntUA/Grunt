@@ -21,7 +21,7 @@ from grunt.metadata.field import DocField
 def _make_test_doctype(name: str = "TestDoc", **kwargs) -> DocType:
     """Helper to build a DocType with 8 different field types."""
     fields = [
-        DocField(fieldname="title", label="Title", fieldtype="Text", in_list_view=True),
+        DocField(fieldname="title", label="Title", fieldtype="Data", in_list_view=True),
         DocField(fieldname="description", label="Description", fieldtype="LongText"),
         DocField(fieldname="quantity", label="Quantity", fieldtype="Int"),
         DocField(fieldname="price", label="Price", fieldtype="Float"),
@@ -135,7 +135,7 @@ async def test_sync_table_adds_new_column(async_engine):
     await sync_table(dt, async_engine)
 
     # Add a new field
-    dt.fields.append(DocField(fieldname="extra_col", label="Extra", fieldtype="Text"))
+    dt.fields.append(DocField(fieldname="extra_col", label="Extra", fieldtype="Data"))
     # Must clear both the compiled Table object and the compile cache so
     # sync_table rebuilds the Table with the new column.
     compiled_metadata = get_compiled_metadata()
@@ -165,9 +165,9 @@ async def test_new_column_backfills_static_default(async_engine):
     dt.fields += [
         DocField(fieldname="enabled", label="On", fieldtype="Check", default=1),
         DocField(fieldname="term", label="Term", fieldtype="Int", default="30"),
-        DocField(fieldname="note", label="Note", fieldtype="Text", default="hi"),
+        DocField(fieldname="note", label="Note", fieldtype="Data", default="hi"),
         DocField(fieldname="since", label="Since", fieldtype="Date", default="Today"),
-        DocField(fieldname="plain", label="Plain", fieldtype="Text"),
+        DocField(fieldname="plain", label="Plain", fieldtype="Data"),
     ]
     compiled_metadata = get_compiled_metadata()
     compiled_metadata.remove(compiled_metadata.tables["grunt_test_sync_backfill"])

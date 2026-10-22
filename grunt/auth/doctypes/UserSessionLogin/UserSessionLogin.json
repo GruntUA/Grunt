@@ -14,13 +14,13 @@
     {
       "fieldname": "ip_address",
       "label": "IP address",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "in_list_view": true
     },
     {
       "fieldname": "method",
       "label": "Method",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "in_list_view": true
     },
     {

@@ -52,7 +52,7 @@
     {
       "fieldname": "note",
       "label": "Note",
-      "fieldtype": "Text"
+      "fieldtype": "Data"
     }
   ],
   "permissions": [

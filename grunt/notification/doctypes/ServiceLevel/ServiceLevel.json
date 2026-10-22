@@ -103,7 +103,7 @@
     {
       "fieldname": "done_states",
       "label": "Done statuses",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "description": "One status per line; reaching any of them stops the clock"
     },
     {
@@ -125,14 +125,14 @@
     {
       "fieldname": "notify",
       "label": "Notify",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "default": "owner",
       "description": "Warned before and on breach. Comma-separated: owner, role:Manager, user@example.com, {field:assigned_to}, {field:executor.user_id} (follows a Link)"
     },
     {
       "fieldname": "escalate_to",
       "label": "Escalate to",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "description": "Also notified on breach - same syntax"
     },
     {

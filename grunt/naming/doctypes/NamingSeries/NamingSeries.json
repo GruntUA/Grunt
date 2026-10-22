@@ -8,7 +8,7 @@
     {
       "fieldname": "prefix",
       "label": "Prefix",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "required": true,
       "unique": true,
       "in_list_view": true

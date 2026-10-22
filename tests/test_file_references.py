@@ -47,7 +47,7 @@ ARTICLE = {
     "label": "File Ref Article",
     "module": "core",
     "fields": [
-        {"fieldname": "title", "label": "Title", "fieldtype": "Text"},
+        {"fieldname": "title", "label": "Title", "fieldtype": "Data"},
         {"fieldname": "content", "label": "Content", "fieldtype": "RichText"},
         {"fieldname": "cover", "label": "Cover", "fieldtype": "Image"},
     ],

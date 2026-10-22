@@ -65,3 +65,10 @@ def test_richtext_coerce_sanitizes():
     assert coerce('<p onclick="x()">hi</p>') == "<p>hi</p>"
     assert coerce(None) is None
     assert coerce("") == ""
+
+
+def test_htmlview_coerce_sanitizes_and_keeps_tables():
+    coerce = get_field_type_class("HTMLView").coerce
+    html = '<table><tr><td onclick="x()">a</td></tr></table><script>alert(1)</script>'
+    assert coerce(html) == "<table><tbody><tr><td>a</td></tr></tbody></table>"
+    assert coerce(None) is None

@@ -22,7 +22,7 @@
     {
       "fieldname": "secret",
       "label": "Secret (HMAC)",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "description": "If set, requests without a valid signature are rejected"
     },
     {

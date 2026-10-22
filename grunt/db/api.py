@@ -199,6 +199,13 @@ class GruntDB:
             raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
         table = dt.table
         values = fieldname if isinstance(fieldname, dict) else {fieldname: value}
+        # A raw write skips coerce (NULLs stay NULL), but markup is still sanitized.
+        values = {
+            key: field.coerce(val)
+            if (field := dt.get_field(key)) and field.has_trait("html")
+            else val
+            for key, val in values.items()
+        }
         await self._session().execute(table.update().where(table.c.name == doc_id).values(values))
         await self._session().flush()
 

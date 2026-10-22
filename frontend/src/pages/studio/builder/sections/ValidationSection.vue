@@ -38,7 +38,7 @@ const hasValidators = computed(() => validatorOptions.value.length > 1)
   <FieldSet class="mb-4">
     <FieldLegend variant="label">{{ t('Validation') }}</FieldLegend>
     <FieldGroup class="gap-3">
-      <Field v-if="['Text', 'LongText'].includes(field.fieldtype)">
+      <Field v-if="['Data', 'LongText'].includes(field.fieldtype)">
         <FieldLabel :for="`${id}-max-length`">{{ t('Max Length') }}</FieldLabel>
         <Input
           :id="`${id}-max-length`"

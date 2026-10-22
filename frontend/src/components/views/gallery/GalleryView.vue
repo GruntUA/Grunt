@@ -80,7 +80,7 @@ function displayValue(row: Record<string, unknown>, key: string): string {
 }
 
 function getFieldType(key: string): string {
-  return fieldMap.value[key]?.fieldtype ?? 'Text'
+  return fieldMap.value[key]?.fieldtype ?? 'Data'
 }
 
 function formatDate(val: unknown, type: string): string {

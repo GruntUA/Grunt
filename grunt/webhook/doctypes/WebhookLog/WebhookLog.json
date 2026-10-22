@@ -24,7 +24,7 @@
     {
       "fieldname": "url",
       "label": "URL",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "in_list_view": true
     },
     {
@@ -53,7 +53,7 @@
     {
       "fieldname": "error",
       "label": "Error",
-      "fieldtype": "Text"
+      "fieldtype": "Data"
     },
     {
       "fieldname": "is_test",

@@ -12,7 +12,7 @@ SORTED_DT = {
     "sort_field": "rank",
     "sort_order": "asc",
     "fields": [
-        {"fieldname": "title", "label": "Title", "fieldtype": "Text", "in_list_view": True},
+        {"fieldname": "title", "label": "Title", "fieldtype": "Data", "in_list_view": True},
         {"fieldname": "rank", "label": "Rank", "fieldtype": "Int"},
     ],
     "permissions": [{"role": "All", "read": True}],

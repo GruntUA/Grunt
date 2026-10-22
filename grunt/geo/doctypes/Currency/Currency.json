@@ -18,14 +18,14 @@
     {
       "fieldname": "title",
       "label": "Name (English)",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "required": true,
       "in_list_view": true
     },
     {
       "fieldname": "title_uk",
       "label": "Name (Ukrainian)",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "in_list_view": true
     },
     {

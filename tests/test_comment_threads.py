@@ -11,7 +11,7 @@ BOX = {
     "name": "ThreadBox",
     "label": "Thread Box",
     "module": "core",
-    "fields": [{"fieldname": "title", "label": "Title", "fieldtype": "Text"}],
+    "fields": [{"fieldname": "title", "label": "Title", "fieldtype": "Data"}],
     "permissions": [
         {"role": "System Manager", "read": True, "write": True, "create": True, "delete": True},
         {"role": "Editor", "read": True, "write": True},

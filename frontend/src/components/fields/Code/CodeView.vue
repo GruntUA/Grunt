@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // Read-only code display (Shiki highlighting, line numbers, copy). Used by the
-// Code, JSON and HTMLEditor fields when disabled / read_only.
+// Code and JSON fields when disabled / read_only.
 import { useI18n } from 'vue-i18n'
 import {
   CodeBlock,

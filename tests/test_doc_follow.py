@@ -11,7 +11,7 @@ BOX = {
     "label": "Follow Box",
     "module": "core",
     "fields": [
-        {"fieldname": "title", "label": "Title", "fieldtype": "Text"},
+        {"fieldname": "title", "label": "Title", "fieldtype": "Data"},
         {"fieldname": "qty", "label": "Quantity", "fieldtype": "Int"},
     ],
     "permissions": [

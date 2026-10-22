@@ -74,7 +74,7 @@
     {
       "fieldname": "error",
       "label": "Error",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "read_only": true
     }
   ],

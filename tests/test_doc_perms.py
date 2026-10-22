@@ -10,7 +10,7 @@ BOX = {
     "name": "PermBox",
     "label": "Perm Box",
     "module": "core",
-    "fields": [{"fieldname": "title", "label": "Title", "fieldtype": "Text"}],
+    "fields": [{"fieldname": "title", "label": "Title", "fieldtype": "Data"}],
     "permissions": [
         {"role": "System Manager", "read": True, "write": True, "create": True, "delete": True},
         {"role": "Reader", "read": True},

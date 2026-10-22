@@ -19,7 +19,7 @@ TREE_DOCTYPE = {
         {
             "fieldname": "title",
             "label": "Title",
-            "fieldtype": "Text",
+            "fieldtype": "Data",
             "required": True,
             "in_list_view": True,
             "in_filter": True,
@@ -374,7 +374,7 @@ GUARDED_TREE_DOCTYPE = {
     "tree_parent_field": "parent_category",
     "tree_title_field": "title",
     "fields": [
-        {"fieldname": "title", "label": "Title", "fieldtype": "Text", "required": True},
+        {"fieldname": "title", "label": "Title", "fieldtype": "Data", "required": True},
         {
             "fieldname": "parent_category",
             "label": "Parent Category",

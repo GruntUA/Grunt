@@ -19,7 +19,7 @@ class Validator:
     message: ClassVar[str] = N_("Field “{label}”: invalid value")
     # Field types for which this validator is relevant (shown in Studio dropdown).
     # Override in subclasses to restrict or expand.
-    field_types: ClassVar[list[str]] = ["Data", "Text", "LongText"]
+    field_types: ClassVar[list[str]] = ["Data", "LongText"]
 
     def check(self, value: str) -> bool:
         """Return True if *value* is valid. Must be overridden."""

@@ -90,7 +90,7 @@ def test_enrich_exposes_input_fields():
     and in the catalog, so the toolbar can prompt before running."""
     prompt_fields = [
         {"fieldname": "qty", "label": "How many", "fieldtype": "Float", "required": True},
-        {"fieldname": "note", "label": "Note", "fieldtype": "Text"},
+        {"fieldname": "note", "label": "Note", "fieldtype": "Data"},
     ]
     register_doc_action(
         DocAction(

@@ -35,7 +35,7 @@
     {
       "fieldname": "handler",
       "label": "Handler / Script",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "in_list_view": true,
       "read_only": true
     },

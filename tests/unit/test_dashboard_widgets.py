@@ -15,7 +15,7 @@ WIDGET_SOURCE_DOCTYPE = {
     "label": "Widget Source Item",
     "module": "core",
     "fields": [
-        {"fieldname": "title", "label": "Title", "fieldtype": "Text", "required": True},
+        {"fieldname": "title", "label": "Title", "fieldtype": "Data", "required": True},
         {
             "fieldname": "status",
             "label": "Status",
@@ -284,7 +284,7 @@ TREE_NODE_DOCTYPE = {
     "tree_parent_field": "parent_node",
     "tree_title_field": "title",
     "fields": [
-        {"fieldname": "title", "label": "Title", "fieldtype": "Text", "required": True},
+        {"fieldname": "title", "label": "Title", "fieldtype": "Data", "required": True},
         {
             "fieldname": "parent_node",
             "label": "Parent",
@@ -299,7 +299,7 @@ TREE_ITEM_DOCTYPE = {
     "label": "Widget Tree Item",
     "module": "core",
     "fields": [
-        {"fieldname": "title", "label": "Title", "fieldtype": "Text", "required": True},
+        {"fieldname": "title", "label": "Title", "fieldtype": "Data", "required": True},
         {"fieldname": "node", "label": "Node", "fieldtype": "Link", "options": "WidgetTreeNode"},
     ],
 }

@@ -20,7 +20,7 @@ async def test_app_singleton_row_seeded_from_defaults(ctx, db_session, engine):
         fields=[
             DocField(fieldname="enabled", label="On", fieldtype="Check", default=1),
             DocField(fieldname="term", label="Term", fieldtype="Int", default=30),
-            DocField(fieldname="note", label="Note", fieldtype="Text"),
+            DocField(fieldname="note", label="Note", fieldtype="Data"),
         ],
     )
     await doctype_registry.register(dt, db_session, engine)

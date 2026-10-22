@@ -28,7 +28,7 @@
     {
       "fieldname": "email_address",
       "label": "Email address",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "required": true,
       "in_list_view": true,
       "placeholder": "ivan.petrenko@gmail.com",
@@ -60,7 +60,7 @@
     {
       "fieldname": "smtp_user",
       "label": "SMTP user",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "description": "SMTP login. Usually the same as the email address; filled in automatically for Gmail."
     },
     {
@@ -110,7 +110,7 @@
     {
       "fieldname": "smtp_server",
       "label": "SMTP server",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "default": "smtp.gmail.com",
       "depends_on": "eval: (doc.provider || 'Gmail') !== 'Gmail'",
       "description": "For Gmail: smtp.gmail.com — filled in automatically."
@@ -154,7 +154,7 @@
     {
       "fieldname": "imap_server",
       "label": "IMAP server",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "default": "imap.gmail.com",
       "depends_on": "eval: doc.enable_incoming && (doc.provider || 'Gmail') !== 'Gmail'"
     },

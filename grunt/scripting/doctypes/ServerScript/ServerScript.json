@@ -32,12 +32,12 @@
     {
       "fieldname": "api_method",
       "label": "API method",
-      "fieldtype": "Text"
+      "fieldtype": "Data"
     },
     {
       "fieldname": "cron",
       "label": "Cron expression",
-      "fieldtype": "Text"
+      "fieldtype": "Data"
     },
     {
       "fieldname": "script",

@@ -54,7 +54,7 @@
     {
       "fieldname": "error",
       "label": "Error",
-      "fieldtype": "Text"
+      "fieldtype": "Data"
     }
   ],
   "permissions": [

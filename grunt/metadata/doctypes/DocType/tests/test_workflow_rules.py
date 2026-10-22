@@ -26,8 +26,8 @@ ARTICLE = {
     "label": "Article",
     "module": "crm",
     "fields": [
-        {"fieldname": "title", "label": "Title", "fieldtype": "Text"},
-        {"fieldname": "status", "label": "Status", "fieldtype": "Text"},
+        {"fieldname": "title", "label": "Title", "fieldtype": "Data"},
+        {"fieldname": "status", "label": "Status", "fieldtype": "Data"},
         {"fieldname": "published", "label": "Published", "fieldtype": "Check"},
     ],
     "permissions": [

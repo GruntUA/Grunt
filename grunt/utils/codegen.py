@@ -262,7 +262,6 @@ def sync_controller_types(py_path: Path, name: str, fields: list[dict]) -> bool:
 
 _FAKE_VALUES: dict[str, object] = {
     "Data": "Test Value",
-    "Text": "Test text value",
     "LongText": "Long text content",
     "Int": 42,
     "Float": 3.14,
@@ -310,7 +309,7 @@ def build_test_context(dt: dict) -> dict[str, Any]:
         "Geolocation",
         "Signature",
         "BarCode",
-        "HTMLEditor",
+        "HTMLView",
     }
     skip_names = {
         "name",

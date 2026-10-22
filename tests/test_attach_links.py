@@ -12,7 +12,7 @@ DT = {
     "label": "Al Doc",
     "module": "core",
     "fields": [
-        {"fieldname": "title", "label": "Title", "fieldtype": "Text", "in_list_view": True},
+        {"fieldname": "title", "label": "Title", "fieldtype": "Data", "in_list_view": True},
         {"fieldname": "doc_file", "label": "File", "fieldtype": "Attach", "in_list_view": True},
         {"fieldname": "photo", "label": "Photo", "fieldtype": "Image"},
     ],

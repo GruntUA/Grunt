@@ -25,14 +25,14 @@
     {
       "fieldname": "url",
       "label": "Webhook URL",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "required": true,
       "in_list_view": true
     },
     {
       "fieldname": "secret",
       "label": "Secret (HMAC)",
-      "fieldtype": "Text"
+      "fieldtype": "Data"
     },
     {
       "fieldname": "headers",

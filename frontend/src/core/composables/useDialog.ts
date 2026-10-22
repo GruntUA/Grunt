@@ -28,7 +28,7 @@ const t = (key: string, params: Record<string, unknown> = {}): string => i18n.gl
 
 // Types
 
-export type DialogFieldType = 'Text' | 'LongText' | 'Code' | 'Int' | 'Float' | 'Date' | 'Datetime' | 'Select' | 'Check' | 'HTML' | 'Link' | 'Table' | 'Password'
+export type DialogFieldType = 'Data' | 'LongText' | 'Code' | 'Int' | 'Float' | 'Date' | 'Datetime' | 'Select' | 'Check' | 'HTML' | 'Link' | 'Table' | 'Password'
 
 export interface DialogTableColumn {
   /** Row property to read. */
@@ -233,7 +233,7 @@ export function useDialog() {
       fields: [{
         fieldname,
         label: opts.label,
-        fieldtype: opts.fieldtype ?? 'Text',
+        fieldtype: opts.fieldtype ?? 'Data',
         required: opts.required,
         default: opts.default,
         options: opts.options,
@@ -278,8 +278,8 @@ export function useDialog() {
    * const values = await dialog.form({
    *   title: 'Новий клієнт',
    *   fields: [
-   *     { fieldname: 'name',  label: 'Назва',  fieldtype: 'Text',   required: true },
-   *     { fieldname: 'email', label: 'Email',  fieldtype: 'Text' },
+   *     { fieldname: 'name',  label: 'Назва',  fieldtype: 'Data',   required: true },
+   *     { fieldname: 'email', label: 'Email',  fieldtype: 'Data' },
    *     { fieldname: 'type',  label: 'Тип',    fieldtype: 'Select', options: 'Фіз. особа\nЮр. особа' },
    *   ],
    *   primaryLabel: 'Створити',

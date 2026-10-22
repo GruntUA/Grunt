@@ -30,7 +30,7 @@ const fakeDocType: DocType = {
   label: 'Order',
   module: 'crm',
   fields: [
-    { fieldname: 'title', label: 'Title', fieldtype: 'Text', required: true },
+    { fieldname: 'title', label: 'Title', fieldtype: 'Data', required: true },
     { fieldname: 'status', label: 'Status', fieldtype: 'Select', options: 'Open\nClosed' },
   ],
   permissions: [],

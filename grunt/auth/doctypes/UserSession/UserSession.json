@@ -19,19 +19,19 @@
     {
       "fieldname": "refresh_token_hash",
       "label": "Refresh token hash",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "hidden": true
     },
     {
       "fieldname": "device_id",
       "label": "Device ID",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "hidden": true
     },
     {
       "fieldname": "ip_address",
       "label": "IP address",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "in_list_view": true
     },
     {

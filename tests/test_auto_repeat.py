@@ -44,7 +44,7 @@ ITEM = {
     "label": "Repeat Item",
     "module": "core",
     "fields": [
-        {"fieldname": "title", "label": "Title", "fieldtype": "Text", "required": True},
+        {"fieldname": "title", "label": "Title", "fieldtype": "Data", "required": True},
         {"fieldname": "posting_date", "label": "Posting date", "fieldtype": "Date"},
         {"fieldname": "auto_repeat", "label": "Auto repeat", "fieldtype": "Data"},
     ],

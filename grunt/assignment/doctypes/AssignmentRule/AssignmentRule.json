@@ -59,7 +59,7 @@
     {
       "fieldname": "description",
       "label": "Description",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "help": "Для чого це правило"
     }
   ],

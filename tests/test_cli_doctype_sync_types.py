@@ -20,7 +20,7 @@ class Thing(Document):
 def _bench(tmp_path):
     dt_dir = tmp_path / "apps" / "shop" / "shop" / "doctypes" / "Thing"
     dt_dir.mkdir(parents=True)
-    fields = [{"fieldname": "title", "label": "Title", "fieldtype": "Text"}]
+    fields = [{"fieldname": "title", "label": "Title", "fieldtype": "Data"}]
     (dt_dir / "Thing.json").write_text(json.dumps({"name": "Thing", "fields": fields}))
     (dt_dir / "Thing.py").write_text(CONTROLLER)
     return dt_dir / "Thing.py"
@@ -50,8 +50,8 @@ def test_required_fields_are_not_optional(tmp_path, monkeypatch):
     dt_dir = tmp_path / "apps" / "shop" / "shop" / "doctypes" / "Order"
     dt_dir.mkdir(parents=True)
     fields = [
-        {"fieldname": "code", "label": "Code", "fieldtype": "Text", "required": True},
-        {"fieldname": "note", "label": "Note", "fieldtype": "Text"},
+        {"fieldname": "code", "label": "Code", "fieldtype": "Data", "required": True},
+        {"fieldname": "note", "label": "Note", "fieldtype": "Data"},
     ]
     (dt_dir / "Order.json").write_text(json.dumps({"name": "Order", "fields": fields}))
     # framework-style snake_case controller file

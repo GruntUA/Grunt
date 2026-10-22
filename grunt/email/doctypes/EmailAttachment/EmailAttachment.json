@@ -7,7 +7,7 @@
     {
       "fieldname": "filename",
       "label": "File name",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "in_list_view": true
     },
     {
@@ -25,7 +25,7 @@
     {
       "fieldname": "mimetype",
       "label": "Type",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "in_list_view": true
     }
   ]

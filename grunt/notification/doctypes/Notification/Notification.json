@@ -10,7 +10,7 @@
     {
       "fieldname": "user",
       "label": "User",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "required": true,
       "in_list_view": true,
       "in_filter": true,
@@ -19,7 +19,7 @@
     {
       "fieldname": "subject",
       "label": "Subject",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "required": true,
       "in_list_view": true
     },
@@ -32,13 +32,13 @@
     {
       "fieldname": "ref_doctype",
       "label": "Document type",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "in_list_view": true
     },
     {
       "fieldname": "doc_id",
       "label": "Document ID",
-      "fieldtype": "Text"
+      "fieldtype": "Data"
     },
     {
       "fieldname": "is_read",

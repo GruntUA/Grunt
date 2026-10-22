@@ -2,7 +2,7 @@
 import { defineAsyncComponent, shallowRef, watchEffect } from 'vue'
 import type { Component } from 'vue'
 import type { DocField } from '@/types'
-import { getFieldDef, FallbackFieldLoader } from '@/core/fieldRegistry'
+import { getFieldDef, getFieldLoader } from '@/core/fieldRegistry'
 
 const props = defineProps<{
   field: DocField
@@ -17,8 +17,7 @@ const emit = defineEmits<{
 // Recreate async component only when fieldtype changes
 const previewComponent = shallowRef<Component | null>(null)
 watchEffect(() => {
-  const def = getFieldDef(props.field.fieldtype)
-  const loader = def?.designerPreview ?? def?.component ?? FallbackFieldLoader
+  const loader = getFieldDef(props.field.fieldtype)?.designerPreview ?? getFieldLoader(props.field.fieldtype)
   previewComponent.value = defineAsyncComponent({ loader, timeout: 5000 })
 })
 </script>

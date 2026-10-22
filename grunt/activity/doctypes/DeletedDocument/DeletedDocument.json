@@ -29,7 +29,7 @@
     {
       "fieldname": "deleted_name",
       "label": "Document ID",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "required": true,
       "read_only": true,
       "in_list_view": true,
@@ -39,14 +39,14 @@
     {
       "fieldname": "title",
       "label": "Name",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "read_only": true,
       "in_list_view": true
     },
     {
       "fieldname": "deleted_by",
       "label": "Deleted by",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "read_only": true,
       "in_list_view": true,
       "in_filter": true,
@@ -78,7 +78,7 @@
     {
       "fieldname": "restored_to",
       "label": "Restored as",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "read_only": true
     },
     {

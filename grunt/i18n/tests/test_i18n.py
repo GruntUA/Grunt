@@ -239,7 +239,7 @@ class TestMetaTranslation:
                     "translatable": True,
                 },
                 {"fieldname": "kind", "fieldtype": "Select", "options": "Новий|Star\nІнший"},
-                {"fieldname": "note", "label": "Нотатка", "fieldtype": "Text"},
+                {"fieldname": "note", "label": "Нотатка", "fieldtype": "Data"},
             ],
             "status_indicators": [{"value": "Новий", "label": "Новий"}],
         }

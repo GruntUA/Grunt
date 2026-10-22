@@ -27,7 +27,7 @@
     {
       "fieldname": "doc_id",
       "label": "Document ID",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "required": true,
       "in_list_view": true,
       "index": true
@@ -35,7 +35,7 @@
     {
       "fieldname": "viewed_by",
       "label": "Viewed by",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "required": true,
       "in_list_view": true,
       "in_filter": true,

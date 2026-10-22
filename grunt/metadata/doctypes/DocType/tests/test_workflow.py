@@ -18,8 +18,8 @@ DOCTYPE_PAYLOAD = {
     "label": "Договір",
     "module": "crm",
     "fields": [
-        {"fieldname": "title", "label": "Назва", "fieldtype": "Text"},
-        {"fieldname": "status", "label": "Статус", "fieldtype": "Text"},
+        {"fieldname": "title", "label": "Назва", "fieldtype": "Data"},
+        {"fieldname": "status", "label": "Статус", "fieldtype": "Data"},
     ],
 }
 
@@ -133,8 +133,8 @@ GUARDED_WORKFLOW_DOCTYPE = {
     "label": "Guarded Contract",
     "module": "crm",
     "fields": [
-        {"fieldname": "title", "label": "Назва", "fieldtype": "Text"},
-        {"fieldname": "status", "label": "Статус", "fieldtype": "Text"},
+        {"fieldname": "title", "label": "Назва", "fieldtype": "Data"},
+        {"fieldname": "status", "label": "Статус", "fieldtype": "Data"},
     ],
     "permissions": [
         {"role": "ContractReader", "read": True},
@@ -213,8 +213,8 @@ PROMPT_FIELD_DOCTYPE = {
     "label": "Task ticket",
     "module": "crm",
     "fields": [
-        {"fieldname": "title", "label": "Назва", "fieldtype": "Text"},
-        {"fieldname": "status", "label": "Статус", "fieldtype": "Text"},
+        {"fieldname": "title", "label": "Назва", "fieldtype": "Data"},
+        {"fieldname": "status", "label": "Статус", "fieldtype": "Data"},
         {"fieldname": "resolution_note", "label": "Виконані роботи", "fieldtype": "LongText"},
     ],
 }

@@ -121,7 +121,7 @@ class TestRenderFromString:
 # render_standard tests
 
 
-def _make_field(fieldtype="Text", fieldname="title", label="Title", hidden=False):
+def _make_field(fieldtype="Data", fieldname="title", label="Title", hidden=False):
     return DocField(fieldtype=fieldtype, fieldname=fieldname, label=label, hidden=hidden)
 
 

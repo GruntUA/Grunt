@@ -9,7 +9,7 @@ ITEM = {
     "label": "Case Item",
     "module": "core",
     "is_child": True,
-    "fields": [{"fieldname": "note", "label": "Note", "fieldtype": "Text"}],
+    "fields": [{"fieldname": "note", "label": "Note", "fieldtype": "Data"}],
 }
 
 CASE = {
@@ -17,7 +17,7 @@ CASE = {
     "label": "Guarded Case",
     "module": "core",
     "fields": [
-        {"fieldname": "title", "label": "Title", "fieldtype": "Text"},
+        {"fieldname": "title", "label": "Title", "fieldtype": "Data"},
         {"fieldname": "items", "label": "Items", "fieldtype": "Table", "options": "CaseItem"},
     ],
     "permissions": [

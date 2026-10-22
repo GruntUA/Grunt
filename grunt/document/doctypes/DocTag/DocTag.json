@@ -17,7 +17,7 @@
     {
       "fieldname": "reference_doctype",
       "label": "Document type",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "required": true,
       "in_list_view": true,
       "in_filter": true
@@ -25,14 +25,14 @@
     {
       "fieldname": "reference_id",
       "label": "Document ID",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "required": true,
       "in_filter": true
     },
     {
       "fieldname": "tag",
       "label": "Tag",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "required": true,
       "in_list_view": true,
       "in_filter": true

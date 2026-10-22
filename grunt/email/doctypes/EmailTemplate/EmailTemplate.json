@@ -12,7 +12,7 @@
     {
       "fieldname": "label",
       "label": "Name",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "required": true,
       "in_list_view": true,
       "bold": true,
@@ -34,7 +34,7 @@
     {
       "fieldname": "subject",
       "label": "Email subject",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "required": true,
       "description": "Value substitution — {field_name} from the context passed by the caller"
     },
@@ -48,7 +48,8 @@
     {
       "fieldname": "body_html",
       "label": "Text (HTML)",
-      "fieldtype": "HTMLEditor",
+      "fieldtype": "Code",
+      "options": "html",
       "description": "Optional. If set, the email is sent as HTML with the text version as a fallback"
     },
     {

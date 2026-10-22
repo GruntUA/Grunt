@@ -46,9 +46,9 @@ Create a JSON file in `my_crm/doctypes/Customer/`:
   "module": "my_crm",
   "title_field": "full_name",
   "fields": [
-    {"fieldname": "full_name", "label": "Full Name", "fieldtype": "Text", "required": true, "in_list_view": true},
-    {"fieldname": "email", "label": "Email", "fieldtype": "Text", "in_list_view": true},
-    {"fieldname": "phone", "label": "Phone", "fieldtype": "Text"},
+    {"fieldname": "full_name", "label": "Full Name", "fieldtype": "Data", "required": true, "in_list_view": true},
+    {"fieldname": "email", "label": "Email", "fieldtype": "Data", "in_list_view": true},
+    {"fieldname": "phone", "label": "Phone", "fieldtype": "Data"},
     {"fieldname": "status", "label": "Status", "fieldtype": "Select",
      "options": "Lead\nProspect\nCustomer\nInactive", "in_list_view": true}
   ],

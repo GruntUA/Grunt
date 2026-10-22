@@ -8,14 +8,14 @@
     {
       "fieldname": "title",
       "label": "Title",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "required": true,
       "in_list_view": true
     },
     {
       "fieldname": "version",
       "label": "Version",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "in_list_view": true,
       "default": "0.1.0"
     },

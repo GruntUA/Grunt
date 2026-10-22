@@ -24,7 +24,7 @@ const expanded = ref(false)
 
 const fieldMap = computed(() => new Map(props.fields.map((f) => [f.fieldname, f])))
 
-const TEXT_TYPES = new Set(['Text', 'LongText', 'RichText', 'HTMLEditor', 'HTML', 'Code', 'JSON'])
+const TEXT_TYPES = new Set(['LongText', 'RichText', 'HTMLView', 'HTML', 'Code', 'JSON'])
 const IMAGE_TYPES = new Set(['Image', 'Signature'])
 
 type Kind = 'text' | 'image' | 'plain'

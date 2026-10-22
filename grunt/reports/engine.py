@@ -117,7 +117,7 @@ class ReportEngine:
         # column metadata - labels, fieldtypes, `total` flag. Match it to the
         # SQL result keys by fieldname; fall back to a plain text column.
         declared = {c["fieldname"]: c for c in (declared_columns or []) if c.get("fieldname")}
-        columns = [declared.get(k, {"fieldname": k, "label": k, "fieldtype": "Text"}) for k in keys]
+        columns = [declared.get(k, {"fieldname": k, "label": k, "fieldtype": "Data"}) for k in keys]
         return {
             "columns": columns,
             "data": rows,
@@ -217,7 +217,7 @@ class ReportEngine:
             )
 
         columns = result.get("columns") or [
-            {"fieldname": k, "label": k, "fieldtype": "Text"}
+            {"fieldname": k, "label": k, "fieldtype": "Data"}
             for k in (result["data"][0].keys() if result["data"] else [])
         ]
         return {
@@ -290,7 +290,7 @@ class ReportEngine:
             fn = col_def["fieldname"]
             label = col_def.get("label", fn)
             agg = (col_def.get("aggregation") or "").lower()
-            fieldtype = col_def.get("fieldtype", "Text")
+            fieldtype = col_def.get("fieldtype", "Data")
 
             sa_col = table.c.get(fn)
             if sa_col is None:

@@ -18,7 +18,7 @@ SECRET = {
     "name": "WsSecret",
     "label": "Ws Secret",
     "module": "core",
-    "fields": [{"fieldname": "title", "label": "Title", "fieldtype": "Text"}],
+    "fields": [{"fieldname": "title", "label": "Title", "fieldtype": "Data"}],
     "permissions": [
         {"role": "Owner", "read": True, "write": True, "create": True, "match": "owner == user"},
     ],
@@ -108,7 +108,7 @@ async def test_virtual_doctype_room_uses_doctype_level_check(ctx, _point_site_ma
             "label": "Ws Virtual",
             "module": "core",
             "is_virtual": True,
-            "fields": [{"fieldname": "title", "label": "T", "fieldtype": "Text"}],
+            "fields": [{"fieldname": "title", "label": "T", "fieldtype": "Data"}],
             "permissions": [{"role": "All", "read": True}],
             "__is_new": True,
         }

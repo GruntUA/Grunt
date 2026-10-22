@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
 import { Textarea } from '@/components/ui/textarea'
-import HTMLEditor from '@/components/fields/HTMLEditor/HTMLEditor.vue'
+import Code from '@/components/fields/Code/Code.vue'
 import { Field, FieldContent, FieldDescription, FieldGroup, FieldLabel, FieldLegend, FieldSet } from '@/components/ui/field'
 
 const { field, updateField } = usePropertyEditor()
@@ -41,9 +41,9 @@ const { t } = useI18n()
       </Select>
       <FieldDescription>{{ t('Unit of the stored number') }}</FieldDescription>
     </Field>
-    <HTMLEditor
+    <Code
       v-else-if="field.fieldtype === 'HTML'"
-      :field="field"
+      :field="{ ...field, options: 'html' }"
       :model-value="field.options ?? ''"
       @update:model-value="(v: string) => updateField('options', v)"
     />

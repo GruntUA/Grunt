@@ -12,7 +12,7 @@ SHARE_PAGE_OWNER_DOCTYPE = {
     "module": "core",
     "title_field": "full_name",
     "fields": [
-        {"fieldname": "full_name", "label": "Full Name", "fieldtype": "Text"},
+        {"fieldname": "full_name", "label": "Full Name", "fieldtype": "Data"},
     ],
     "permissions": [
         {"role": "System Manager", "read": True, "write": True, "create": True},
@@ -26,7 +26,7 @@ SHARE_PAGE_DOCTYPE = {
     "fields": [
         {"fieldname": "main_tab", "label": "Overview", "fieldtype": "Tab"},
         {"fieldname": "sec_a", "label": "Summary", "fieldtype": "Section"},
-        {"fieldname": "title", "label": "Title", "fieldtype": "Text"},
+        {"fieldname": "title", "label": "Title", "fieldtype": "Data"},
         {
             "fieldname": "owner_ref",
             "label": "Owner",
@@ -36,8 +36,8 @@ SHARE_PAGE_DOCTYPE = {
         {"fieldname": "col_b", "fieldtype": "Column"},
         {"fieldname": "photo", "label": "Photo", "fieldtype": "Image"},
         {"fieldname": "details_tab", "label": "Details", "fieldtype": "Tab"},
-        {"fieldname": "notes", "label": "Notes", "fieldtype": "Text"},
-        {"fieldname": "secret", "label": "Secret", "fieldtype": "Text", "hidden": True},
+        {"fieldname": "notes", "label": "Notes", "fieldtype": "Data"},
+        {"fieldname": "secret", "label": "Secret", "fieldtype": "Data", "hidden": True},
     ],
     "permissions": [
         {"role": "System Manager", "read": True, "write": True, "create": True},

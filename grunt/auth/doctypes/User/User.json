@@ -18,7 +18,7 @@
     {
       "fieldname": "last_name",
       "label": "Last name",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "required": true,
       "in_list_view": true,
       "in_filter": true
@@ -30,7 +30,7 @@
     {
       "fieldname": "first_name",
       "label": "First name",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "required": true,
       "in_list_view": true,
       "in_filter": true
@@ -42,7 +42,7 @@
     {
       "fieldname": "middle_name",
       "label": "Patronymic",
-      "fieldtype": "Text"
+      "fieldtype": "Data"
     },
     {
       "fieldname": "sec_full_display",
@@ -51,7 +51,7 @@
     {
       "fieldname": "full_name",
       "label": "Full name",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "read_only": true,
       "in_list_view": true,
       "in_filter": true
@@ -74,7 +74,7 @@
     {
       "fieldname": "email",
       "label": "Email",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "required": true,
       "unique": true,
       "in_list_view": true,
@@ -87,7 +87,7 @@
     {
       "fieldname": "phone",
       "label": "Phone",
-      "fieldtype": "Text"
+      "fieldtype": "Data"
     },
     {
       "fieldname": "sec_personal",
@@ -177,7 +177,7 @@
     {
       "fieldname": "password",
       "label": "Set password",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "description": "Enter a new password. Only its hash is stored in the database."
     },
     {
@@ -242,7 +242,7 @@
     {
       "fieldname": "mfa_backup_display",
       "label": "Backup codes",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "read_only": true,
       "description": "These codes are shown only once, at activation. You see this field because MFA is enabled."
     },
@@ -318,7 +318,7 @@
     {
       "fieldname": "reset_token",
       "label": "Password reset token",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "hidden": true
     },
     {

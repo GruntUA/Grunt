@@ -98,9 +98,7 @@ class File(Document):
 
 
 # Fields that may hold a file's URL: file fields and free text / markup.
-_REF_FIELD_TYPES = frozenset(
-    {"Attach", "Image", "RichText", "HTMLEditor", "Text", "LongText", "Code", "JSON", "Data"}
-)
+_REF_FIELD_TYPES = frozenset({"Attach", "Image", "RichText", "LongText", "Code", "JSON", "Data"})
 # History and logs only remember a link - they don't keep a file in use.
 _NOT_USERS = frozenset(
     {

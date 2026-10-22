@@ -46,7 +46,7 @@ SIMPLE_DOCTYPE = {
     "label": "Документ",
     "module": "test",
     "fields": [
-        {"fieldname": "title", "label": "Назва", "fieldtype": "Text", "in_list_view": True},
+        {"fieldname": "title", "label": "Назва", "fieldtype": "Data", "in_list_view": True},
         {"fieldname": "content", "label": "Зміст", "fieldtype": "LongText"},
     ],
     "title_field": "title",
@@ -196,8 +196,8 @@ async def test_search_finds_by_search_fields(ctx):
     doctype = {
         **SIMPLE_DOCTYPE,
         "fields": [
-            {"fieldname": "title", "label": "Назва", "fieldtype": "Text"},
-            {"fieldname": "code", "label": "Код", "fieldtype": "Text"},
+            {"fieldname": "title", "label": "Назва", "fieldtype": "Data"},
+            {"fieldname": "code", "label": "Код", "fieldtype": "Data"},
         ],
         "search_fields": ["title", "code"],
     }
@@ -250,7 +250,7 @@ async def test_display_title_falls_back_to_name(ctx):
         "module": "test",
         "autoname": "prompt",
         "fields": [
-            {"fieldname": "info", "label": "Info", "fieldtype": "Text"},
+            {"fieldname": "info", "label": "Info", "fieldtype": "Data"},
         ],
         # no title_field, no search_fields
     }
@@ -310,14 +310,14 @@ async def test_search_across_multiple_doctypes(ctx):
         "name": "Клієнт",
         "label": "Клієнт",
         "module": "crm",
-        "fields": [{"fieldname": "name_ua", "label": "Назва", "fieldtype": "Text"}],
+        "fields": [{"fieldname": "name_ua", "label": "Назва", "fieldtype": "Data"}],
         "search_fields": ["name_ua"],
     }
     doctype_b = {
         "name": "Договір",
         "label": "Договір",
         "module": "crm",
-        "fields": [{"fieldname": "subject", "label": "Тема", "fieldtype": "Text"}],
+        "fields": [{"fieldname": "subject", "label": "Тема", "fieldtype": "Data"}],
         "search_fields": ["subject"],
         "title_field": "subject",
     }
@@ -343,7 +343,7 @@ async def test_search_total_limit_across_doctypes(ctx):
             "name": dt_name,
             "label": dt_name,
             "module": module,
-            "fields": [{"fieldname": "title", "label": "T", "fieldtype": "Text"}],
+            "fields": [{"fieldname": "title", "label": "T", "fieldtype": "Data"}],
             "search_fields": ["title"],
         }
         await create_and_sync(ctx, dt)
@@ -371,7 +371,7 @@ async def test_child_doctype_excluded_from_search(ctx):
         "label": "Рядок таблиці",
         "module": "test",
         "is_child": True,
-        "fields": [{"fieldname": "item", "label": "Елемент", "fieldtype": "Text"}],
+        "fields": [{"fieldname": "item", "label": "Елемент", "fieldtype": "Data"}],
         "search_fields": ["item"],
     }
     await create_and_sync(ctx, child_dt)
@@ -408,7 +408,7 @@ async def test_search_restricted_doctype_hidden_from_regular_user(ctx):
         "name": "СекретнийДок",
         "label": "Секретний",
         "module": "test",
-        "fields": [{"fieldname": "title", "label": "Назва", "fieldtype": "Text"}],
+        "fields": [{"fieldname": "title", "label": "Назва", "fieldtype": "Data"}],
         "search_fields": ["title"],
         "permissions": [{"role": "Manager", "read": True}],
     }
@@ -431,7 +431,7 @@ async def test_search_restricted_doctype_visible_to_system_manager(ctx):
         "name": "АдмінДок",
         "label": "Адмін",
         "module": "test",
-        "fields": [{"fieldname": "title", "label": "Назва", "fieldtype": "Text"}],
+        "fields": [{"fieldname": "title", "label": "Назва", "fieldtype": "Data"}],
         "search_fields": ["title"],
         "permissions": [{"role": "Manager", "read": True}],
     }
@@ -458,7 +458,7 @@ async def test_search_skips_doctype_without_table(ctx):
             "name": "БезТаблиці",
             "label": "Без таблиці",
             "module": "test",
-            "fields": [{"fieldname": "title", "fieldtype": "Text", "label": "T"}],
+            "fields": [{"fieldname": "title", "fieldtype": "Data", "label": "T"}],
             "search_fields": ["title"],
         }
     )

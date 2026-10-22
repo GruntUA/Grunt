@@ -1,5 +1,5 @@
 <script setup lang="ts">
-// CodeMirror wrapper shared by the Code and HTMLEditor fields. Loaded only for
+// CodeMirror wrapper shared by the Code and JSON fields. Loaded only for
 // editable fields - read-only ones render CodeView instead.
 import { computed, shallowRef, watch } from 'vue'
 import { Codemirror } from 'vue-codemirror'
@@ -13,7 +13,7 @@ const props = withDefaults(defineProps<{
   minHeight?: string
 }>(), { minHeight: '120px' })
 
-const emit = defineEmits<{ 'update:modelValue': [value: string] }>()
+const emit = defineEmits<{ 'update:modelValue': [value: string]; blur: [] }>()
 
 const { isDark } = useColorMode()
 
@@ -62,5 +62,6 @@ const extensions = computed<Extension[]>(() => {
     :tab-size="2"
     :style="{ minHeight }"
     @update:model-value="(v: string) => emit('update:modelValue', v)"
+    @blur="emit('blur')"
   />
 </template>

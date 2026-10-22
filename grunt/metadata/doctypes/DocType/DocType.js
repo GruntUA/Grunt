@@ -57,7 +57,7 @@ function _refresh_field_selects(frm) {
     const IMAGE_TYPES = new Set(['Image', 'Attach', 'AttachImage'])
     const DATE_TYPES = new Set(['Date', 'Datetime'])
     const NUMBER_TYPES = new Set(['Float', 'Int', 'Percent'])
-    const TEXT_TYPES = new Set(['Data', 'Text', 'SmallText', 'LongText', 'Select', 'Link', 'Code', 'JSON'])
+    const TEXT_TYPES = new Set(['Data', 'LongText', 'Select', 'Link', 'Code', 'JSON'])
 
     const fields = frm.doc.fields || []
     const named = fields.filter(f => f.fieldname)

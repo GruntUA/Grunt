@@ -12,7 +12,7 @@ BOX = {
     "label": "Retain Box",
     "module": "core",
     "fields": [
-        {"fieldname": "title", "label": "Title", "fieldtype": "Text"},
+        {"fieldname": "title", "label": "Title", "fieldtype": "Data"},
         {"fieldname": "closed_on", "label": "Closed on", "fieldtype": "Date"},
     ],
     "permissions": [{"role": "System Manager", "read": True, "delete": True, "create": True}],

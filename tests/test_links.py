@@ -5,7 +5,7 @@ from types import SimpleNamespace
 from grunt.document.links import LinkService
 
 
-def _make_field(fieldname, fieldtype="Text", options=None):
+def _make_field(fieldname, fieldtype="Data", options=None):
     return SimpleNamespace(fieldname=fieldname, fieldtype=fieldtype, options=options)
 
 
@@ -19,7 +19,7 @@ class TestLinkExtraction:
     def test_find_link_fields(self):
         """Verify we can identify Link fields from DocType definition."""
         fields = [
-            _make_field("title", "Text"),
+            _make_field("title", "Data"),
             _make_field("customer", "Link", options="Customer"),
             _make_field("supplier", "Link", options="Supplier"),
             _make_field("notes", "LongText"),
@@ -58,7 +58,7 @@ class TestLinkExtraction:
     def test_no_link_fields(self):
         """DocType with no Link fields should produce zero links."""
         fields = [
-            _make_field("title", "Text"),
+            _make_field("title", "Data"),
             _make_field("amount", "Float"),
         ]
         link_fields = [f for f in fields if f.fieldtype == "Link"]

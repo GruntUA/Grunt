@@ -2,7 +2,7 @@ import type { DocField, DocType, QuickFilter } from '@/types'
 import { isDateType } from '@/core/fieldRegistry'
 
 export const SUPPORTED_FIELD_TYPES = new Set([
-  'Text', 'Data', 'LongText',
+  'Data', 'LongText',
   'Date', 'Datetime', 'Time',
   'Select', 'Check',
   'Int', 'Float', 'Currency',
@@ -36,7 +36,7 @@ function inferInputType(field: DocField): QuickFilter['input_type'] {
 
 function inferOperator(field: DocField): string {
   if (isYearFilter(field)) return 'year'
-  if (field.fieldtype === 'Text' || field.fieldtype === 'Data' || field.fieldtype === 'LongText') {
+  if (field.fieldtype === 'Data' || field.fieldtype === 'LongText') {
     return 'ilike'
   }
   return 'eq'

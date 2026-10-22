@@ -17,7 +17,7 @@
     {
       "fieldname": "link_fieldname",
       "label": "Link field",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "required": true,
       "in_list_view": true,
       "description": "Name of the Link field on the related DocType (or child row) that points at this document"
@@ -25,7 +25,7 @@
     {
       "fieldname": "group",
       "label": "Group",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "in_list_view": true,
       "description": "Optional — a section on the links panel"
     },
@@ -37,7 +37,7 @@
     {
       "fieldname": "label",
       "label": "Label",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "description": "Optional — overrides the label (default: the related DocType's label)"
     },
     {
@@ -63,7 +63,7 @@
     {
       "fieldname": "table_fieldname",
       "label": "Table field",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "description": "Name of the Table field on the related DocType that holds those child rows"
     }
   ]

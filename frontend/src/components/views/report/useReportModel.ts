@@ -236,7 +236,7 @@ export function useReportModel(opts: ReportModelOptions) {
         columns: cols.map((c) => ({
           fieldname: c.key,
           label: c.label,
-          fieldtype: fieldMap.value[c.key]?.fieldtype ?? 'Text',
+          fieldtype: fieldMap.value[c.key]?.fieldtype ?? 'Data',
         })),
         droppedColumns: [],
       }

@@ -7,7 +7,7 @@
   "title_field": "title",
   "fields": [
     {"fieldname": "title", "label": "Title", "fieldtype": "Data", "required": true, "in_list_view": true, "translatable": true},
-    {"fieldname": "description", "label": "Description", "fieldtype": "Text", "translatable": true},
+    {"fieldname": "description", "label": "Description", "fieldtype": "Data", "translatable": true},
     {
       "fieldname": "fieldname",
       "label": "Field",

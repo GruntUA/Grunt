@@ -9,7 +9,7 @@
     {
       "fieldname": "user",
       "label": "User",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "required": true,
       "in_list_view": true,
       "in_filter": true
@@ -29,13 +29,13 @@
     {
       "fieldname": "auth",
       "label": "Auth key",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "required": true
     },
     {
       "fieldname": "user_agent",
       "label": "User Agent",
-      "fieldtype": "Text"
+      "fieldtype": "Data"
     }
   ],
   "permissions": [

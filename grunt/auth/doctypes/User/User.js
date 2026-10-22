@@ -195,7 +195,7 @@ async function on_change(frm, fieldname) {
             },
           ],
         },
-        { fieldname: "new_label", label: __('New key name'), fieldtype: "Text", placeholder: __('e.g. Work laptop') },
+        { fieldname: "new_label", label: __('New key name'), fieldtype: "Data", placeholder: __('e.g. Work laptop') },
       ],
       buttons: [
         { label: __('＋ Add key'), variant: "default", action: addKey },
@@ -225,7 +225,7 @@ async function on_change(frm, fieldname) {
             {
               fieldname: "code",
               label: __('2. Enter the 6-digit confirmation code'),
-              fieldtype: "Text",
+              fieldtype: "Data",
               placeholder: "123456",
               required: true
             }

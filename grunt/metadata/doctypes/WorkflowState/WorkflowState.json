@@ -7,7 +7,7 @@
     {
       "fieldname": "state",
       "label": "Value",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "required": true,
       "in_list_view": true,
       "description": "The value stored in the target document's state field"
@@ -15,7 +15,7 @@
     {
       "fieldname": "label",
       "label": "Name",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "in_list_view": true
     },
     {
@@ -49,13 +49,13 @@
     {
       "fieldname": "update_field",
       "label": "Set field",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "description": "On entering this state, write “Field value” into this field of the document (e.g. published)"
     },
     {
       "fieldname": "update_value",
       "label": "Field value",
-      "fieldtype": "Text",
+      "fieldtype": "Data",
       "depends_on": "eval:doc.update_field"
     }
   ]

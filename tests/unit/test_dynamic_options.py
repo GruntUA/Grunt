@@ -35,7 +35,7 @@ def test_resolve_field_options_falls_back_to_static_options():
 
 def test_register_schema_and_get_schemas():
     source = "test.dynamic_options.schema"
-    fields_a = [{"fieldname": "foo", "label": "Foo", "fieldtype": "Text"}]
+    fields_a = [{"fieldname": "foo", "label": "Foo", "fieldtype": "Data"}]
     fields_b = [{"fieldname": "bar", "label": "Bar", "fieldtype": "Int"}]
     register_schema(source, "a", fields_a)
     register_schema(source, "b", fields_b)
