@@ -6698,16 +6698,10 @@ msgstr ""
 msgid "The database backup is corrupted: %(result)s"
 msgstr ""
 
-#: grunt/frontend/src/core/fieldStorage.ts:71
+#: grunt/frontend/src/core/fieldStorage.ts:55
 msgid ""
-"The database column type changes during migration. Existing values are "
-"compatible and kept."
-msgstr ""
-
-#: grunt/frontend/src/core/fieldStorage.ts:77
-msgid ""
-"The database column type changes during migration. Values that cannot be "
-"converted to the new type may be lost — check existing data."
+"The database column type changes during migration. Make sure existing values"
+" can be converted to the new type, otherwise the migration fails."
 msgstr ""
 
 #: grunt/grunt/backups/__init__.py:167
@@ -6812,7 +6806,7 @@ msgstr ""
 msgid "The list is limited by your access rights"
 msgstr ""
 
-#: grunt/frontend/src/core/fieldStorage.ts:64
+#: grunt/frontend/src/core/fieldStorage.ts:47
 msgid ""
 "The new type stores values differently (a separate column or a child table)."
 " Existing data of this field is not moved automatically — export it before "

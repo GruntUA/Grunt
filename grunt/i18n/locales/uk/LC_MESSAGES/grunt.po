@@ -6317,7 +6317,7 @@ msgstr "Невірний код ЄДРПОУ (8 або 10 цифр)"
 msgid "Invalid RNOKPP (10 digits)"
 msgstr "Невірний РНОКПП (10 цифр)"
 
-#: grunt/frontend/src/core/fieldStorage.ts:64
+#: grunt/frontend/src/core/fieldStorage.ts:47
 msgid ""
 "The new type stores values differently (a separate column or a child table)."
 " Existing data of this field is not moved automatically — export it before "
@@ -6327,21 +6327,13 @@ msgstr ""
 "Наявні дані цього поля не переносяться автоматично — вивантажте їх до "
 "міграції."
 
-#: grunt/frontend/src/core/fieldStorage.ts:71
+#: grunt/frontend/src/core/fieldStorage.ts:55
 msgid ""
-"The database column type changes during migration. Existing values are "
-"compatible and kept."
+"The database column type changes during migration. Make sure existing values"
+" can be converted to the new type, otherwise the migration fails."
 msgstr ""
-"Тип колонки в БД зміниться під час міграції. Наявні значення сумісні й "
-"зберігаються."
-
-#: grunt/frontend/src/core/fieldStorage.ts:77
-msgid ""
-"The database column type changes during migration. Values that cannot be "
-"converted to the new type may be lost — check existing data."
-msgstr ""
-"Тип колонки в БД зміниться під час міграції. Значення, які не вдасться "
-"привести до нового типу, можуть не зберегтися — перевірте наявні дані."
+"Тип колонки в БД зміниться під час міграції. Переконайтеся, що наявні "
+"значення можна привести до нового типу, інакше міграція не пройде."
 
 #: grunt/frontend/src/core/datetime.ts:144
 msgid "YYYY-MM-DD"

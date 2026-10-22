@@ -34,26 +34,15 @@ describe('describeTypeChange', () => {
     expect(describeTypeChange('Float', 'Rating')).toBeNull()
   })
 
-  it('flags lossless widenings as info', () => {
-    expect(describeTypeChange('Int', 'Float')).toEqual(
-      expect.objectContaining({ severity: 'info' }),
-    )
-    expect(describeTypeChange('Check', 'Int')).toEqual(
-      expect.objectContaining({ severity: 'info' }),
-    )
-    expect(describeTypeChange('Date', 'Datetime')).toEqual(
-      expect.objectContaining({ severity: 'info' }),
-    )
-    expect(describeTypeChange('Int', 'Data')).toEqual(
-      expect.objectContaining({ severity: 'info' }),
-    )
-  })
-
-  it('flags risky retypes as danger', () => {
-    expect(describeTypeChange('Data', 'Int')?.severity).toBe('danger')
-    expect(describeTypeChange('Datetime', 'Date')?.severity).toBe('danger')
-    expect(describeTypeChange('Float', 'Int')?.severity).toBe('danger')
-    expect(describeTypeChange('Data', 'JSON')?.severity).toBe('danger')
+  it('gives one generic note for any column retype', () => {
+    for (const [from, to] of [
+      ['Int', 'Float'], ['Check', 'Int'], ['Date', 'Datetime'], ['Int', 'Data'],
+      ['Data', 'Int'], ['Datetime', 'Date'], ['Float', 'Int'], ['Data', 'JSON'],
+    ]) {
+      expect(describeTypeChange(from, to)).toEqual(
+        expect.objectContaining({ severity: 'info', message: expect.stringContaining('column type changes') }),
+      )
+    }
   })
 
   it('flags moves to / from a non-physical type as danger', () => {

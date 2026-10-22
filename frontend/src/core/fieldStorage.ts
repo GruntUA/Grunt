@@ -30,23 +30,6 @@ export interface TypeChangeNote {
 }
 
 /**
- * Retypes the database can widen losslessly - every existing value survives the
- * implicit cast. Keyed `"<from>-><to>"` on storage class.
- */
-const SAFE_WIDENINGS = new Set<string>([
-  'int->float',
-  'int->text',
-  'bool->int',
-  'bool->float',
-  'bool->text',
-  'float->text',
-  'date->datetime',
-  'date->text',
-  'datetime->text',
-  'time->text',
-])
-
-/**
  * Describe what a `from` -> `to` fieldtype change does to already-stored data.
  * Returns `null` when the column is untouched (same storage class, e.g.
  * `Data` ↔ `LongText` ↔ `Select`, or `from === to`).
@@ -65,15 +48,10 @@ export function describeTypeChange(from: string, to: string): TypeChangeNote | n
     }
   }
 
-  if (SAFE_WIDENINGS.has(`${a}->${b}`)) {
-    return {
-      severity: 'info',
-      message: t('The database column type changes during migration. Existing values are compatible and kept.'),
-    }
-  }
-
+  // Which retypes keep the data is up to the database (sync runs a plain
+  // ALTER COLUMN TYPE), so the builder doesn't try to guess - it just says so.
   return {
-    severity: 'danger',
-    message: t('The database column type changes during migration. Values that cannot be converted to the new type may be lost — check existing data.'),
+    severity: 'info',
+    message: t('The database column type changes during migration. Make sure existing values can be converted to the new type, otherwise the migration fails.'),
   }
 }
