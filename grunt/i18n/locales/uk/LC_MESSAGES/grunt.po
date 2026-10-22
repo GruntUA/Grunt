@@ -23181,3 +23181,11 @@ msgstr "Частка своєї колонки; вузькі поля стают
 #: grunt/frontend/src/pages/studio/builder/CanvasSection.vue
 msgid "Column width"
 msgstr "Ширина колонки"
+
+#: grunt/grunt/io/exporters/templates/list_export.html
+msgid "%(n)s records"
+msgstr "Записів: %(n)s"
+
+#: grunt/grunt/io/exporters/templates/list_export.html
+msgid "%(shown)s of %(total)s records"
+msgstr "Записів: %(shown)s з %(total)s"

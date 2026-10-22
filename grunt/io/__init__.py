@@ -10,6 +10,7 @@ External apps add their own via hooks.py:
 
 from grunt.io.exporters.registry import (
     Exporter,
+    ListExportContext,
     get_exporter,
     get_exporters,
     register_exporter,
@@ -23,6 +24,7 @@ from grunt.io.importers.registry import (
 
 __all__ = [
     "Exporter",
+    "ListExportContext",
     "register_exporter",
     "get_exporter",
     "get_exporters",

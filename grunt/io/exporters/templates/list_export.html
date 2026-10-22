@@ -1,0 +1,309 @@
+{#- List view export (HtmlExporter, grunt/io/exporters/html.py).
+
+Context:
+  doctype_name, doctype_label   - DocType id / translated label
+  columns                       - visible fields: {fieldname, label, fieldtype, options, option_labels}
+  rows                          - documents, when not grouped
+  groups                        - [{key, rows}] when grouped by `group_by`
+  group_by, group_by_label      - grouping field and its label (or none)
+  status_field, indicators      - DocType status field and {value: {color, label}}
+  row_count, total, is_partial  - exported / matching documents; true when the export was capped
+  filter_summary                - active filters as text (or none)
+  generated_at                  - export time, already formatted
+Filters: fmt(field) - plain-text value the way the desk shows it; css_color.
+-#}
+
+{%- set tones = {
+  "default": ("#f9fafb", "#6b7280", "#d1d5db"),
+  "secondary": ("#f9fafb", "#6b7280", "#d1d5db"),
+  "success": ("#f0fdf4", "#15803d", "#86efac"),
+  "info": ("#eff6ff", "#1d4ed8", "#93c5fd"),
+  "warn": ("#fffbeb", "#a16207", "#fcd34d"),
+  "danger": ("#fef2f2", "#b91c1c", "#fca5a5"),
+  "contrast": ("#111827", "#f9fafb", "#374151"),
+  "gray": ("#f9fafb", "#6b7280", "#d1d5db"),
+  "blue": ("#eff6ff", "#1d4ed8", "#93c5fd"),
+  "green": ("#f0fdf4", "#15803d", "#86efac"),
+  "yellow": ("#fffbeb", "#a16207", "#fcd34d"),
+  "orange": ("#fffbeb", "#a16207", "#fcd34d"),
+  "red": ("#fef2f2", "#b91c1c", "#fca5a5"),
+  "purple": ("#f5f3ff", "#6d28d9", "#c4b5fd"),
+  "pink": ("#fdf2f8", "#be185d", "#f9a8d4"),
+} -%}
+
+{%- macro badge(label, color) -%}
+  {%- set bg, fg, border = tones.get(color, tones.secondary) -%}
+  <span class="badge" style="border-color:{{ border }};background:{{ bg }};color:{{ fg }}">{{ label }}</span>
+{%- endmacro -%}
+
+{%- macro cell(value, field) -%}
+  {%- set ind = indicators.get(value | string) if field.fieldname == status_field else none -%}
+  {%- if value is none or value == "" -%}
+    <span class="empty">—</span>
+  {%- elif ind -%}
+    {{ badge(ind.label or value, ind.color) }}
+  {%- elif field.fieldtype == "Check" -%}
+    {%- if value in (true, 1, "1", "true") -%}<span class="check-yes">✓</span>
+    {%- else -%}<span class="check-no">✗</span>{%- endif -%}
+  {%- elif field.fieldtype == "Rating" and (value | string | float(-1)) >= 0 -%}
+    {%- set n = [value | float | round | int, 5] | min -%}
+    <span class="star-on">{{ "★" * n }}</span><span class="star-off">{{ "☆" * (5 - n) }}</span>
+  {%- elif field.fieldtype == "Select" -%}
+    <span class="option">{{ field.option_labels.get(value | string, value) }}</span>
+  {%- elif field.fieldtype == "Geolocation" and value is mapping and "lat" in value and "lng" in value -%}
+    <a class="geo" href="https://www.google.com/maps?q={{ value | fmt(field) | replace(' ', '') }}" target="_blank" rel="noopener noreferrer" title="{{ _('Open in Google Maps') }}">
+      <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>{{ value | fmt(field) }}</a>
+  {%- elif field.fieldtype == "Color" -%}
+    <span class="color"><span class="swatch" style="background:{{ value | css_color }}"></span>{{ value }}</span>
+  {%- else -%}
+    {{ value | fmt(field) }}
+  {%- endif -%}
+{%- endmacro -%}
+
+{%- macro body_rows(items) -%}
+  {%- for row in items %}
+        <tr{% if loop.index is even %} class="alt"{% endif %}>
+          {%- for field in columns %}<td>{{ cell(row.get(field.fieldname), field) }}</td>{% endfor -%}
+        </tr>
+  {%- endfor %}
+{%- endmacro -%}
+
+<!DOCTYPE html>
+<html lang="{{ current_language() }}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ doctype_label }} — {{ generated_at }}</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+      color: #374151;
+      background: #f9fafb;
+      padding: 32px 40px;
+    }
+
+    header { margin-bottom: 28px; }
+
+    h1 {
+      font-size: 26px;
+      font-weight: 800;
+      color: #111827;
+      letter-spacing: -0.025em;
+      margin-bottom: 8px;
+    }
+
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      font-size: 12px;
+      color: #6b7280;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 10px;
+      background: #e5e7eb;
+      border-radius: 9999px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #374151;
+    }
+
+    .chip.warning { background: #fef9c3; color: #854d0e; }
+
+    .sep { color: #d1d5db; }
+
+    .meta strong { color: #6b7280; font-weight: 600; }
+
+    .table-wrap {
+      background: #ffffff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+      border: 1px solid #e5e7eb;
+    }
+
+    table { width: 100%; border-collapse: collapse; }
+
+    thead {
+      background: #f3f4f6;
+      border-bottom: 2px solid #e5e7eb;
+    }
+
+    th {
+      padding: 10px 16px;
+      text-align: left;
+      font-size: 10.5px;
+      font-weight: 700;
+      color: #6b7280;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 9px 16px;
+      color: #374151;
+      border-top: 1px solid #f3f4f6;
+      vertical-align: top;
+      max-width: 320px;
+      word-break: break-word;
+    }
+
+    tr:first-child td { border-top: none; }
+    tr:not(.group-header) td:first-child { font-weight: 600; color: #111827; }
+    tr.alt td { background: #fafafa; }
+    tr:hover td { background: #f0f9ff !important; }
+
+    tr.group-header td {
+      background: #f3f4f6;
+      border-top: 2px solid #e5e7eb;
+      padding: 8px 16px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #374151;
+    }
+
+    .group-title { display: flex; align-items: center; gap: 8px; }
+
+    .group-count {
+      display: inline-flex;
+      align-items: center;
+      padding: 1px 8px;
+      background: #e5e7eb;
+      border-radius: 9999px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #6b7280;
+      margin-left: 6px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 9999px;
+      font-size: 11px;
+      font-weight: 500;
+      border: 1px solid;
+    }
+
+    .option {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      background: #f3f4f6;
+      border: 1px solid #e5e7eb;
+      color: #374151;
+    }
+
+    .empty, .check-no, .star-off { color: #d1d5db; }
+    .check-yes { color: #16a34a; }
+    .check-yes, .check-no { font-size: 14px; }
+    .star-on { color: #f59e0b; }
+
+    .geo {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-family: monospace;
+      font-size: 11px;
+      color: #1d4ed8;
+      text-decoration: none;
+    }
+
+    .color { display: inline-flex; align-items: center; gap: 6px; }
+
+    .swatch {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      border: 1px solid rgba(0,0,0,.15);
+    }
+
+    footer {
+      margin-top: 16px;
+      font-size: 11px;
+      color: #9ca3af;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    @media print {
+      body { background: white; padding: 16px; font-size: 11px; }
+      .table-wrap { box-shadow: none; }
+      tr.alt td { background: #fafafa !important; }
+      tr:hover td { background: inherit !important; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>{{ doctype_label }}</h1>
+    <div class="meta">
+      <span class="chip">
+        {%- if is_partial -%}
+          {{ _("%(shown)s of %(total)s records") % {"shown": row_count, "total": total} }}
+        {%- else -%}
+          {{ _("%(n)s records") % {"n": row_count} }}
+        {%- endif -%}
+      </span>
+      {%- if is_partial %}
+      <span class="chip warning">⚠ {{ _("Showing the first 10,000 records") }}</span>
+      {%- endif %}
+      <span class="sep">·</span>
+      <span>{{ generated_at }}</span>
+      {%- if filter_summary %}
+      <span class="sep">·</span><span><strong>{{ _("Filters") }}:</strong> {{ filter_summary }}</span>
+      {%- endif %}
+      {%- if group_by %}
+      <span class="sep">·</span><span><strong>{{ _("Grouping") }}:</strong> {{ group_by_label }}</span>
+      {%- endif %}
+    </div>
+  </header>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>{% for field in columns %}<th>{{ field.label }}</th>{% endfor %}</tr>
+      </thead>
+      <tbody>
+      {%- if groups is not none %}
+        {%- for group in groups %}
+        {%- set ind = indicators.get(group.key) if group_by == status_field else none %}
+        <tr class="group-header">
+          <td colspan="{{ columns | length }}">
+            <div class="group-title">
+              {%- if ind -%}
+                {{ badge(ind.label or group.key or _("(no value)"), ind.color) }}
+              {%- else -%}
+                <strong>{{ group.key or _("(no value)") }}</strong>
+              {%- endif -%}
+              <span class="group-count">{{ group.rows | length }}</span>
+            </div>
+          </td>
+        </tr>
+        {{- body_rows(group.rows) }}
+        {%- endfor %}
+      {%- else %}
+        {{- body_rows(rows) }}
+      {%- endif %}
+      </tbody>
+    </table>
+  </div>
+
+  <footer>
+    <span>{{ doctype_name }}</span>
+    <span>Grunt · {{ generated_at }}</span>
+  </footer>
+</body>
+</html>

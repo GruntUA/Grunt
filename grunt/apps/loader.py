@@ -31,6 +31,7 @@ from grunt.apps.consumers import HOOK_CONSUMERS, LoadContext, _resolve
 from grunt.document.registry import document_registry
 from grunt.io import register_exporter, register_importer
 from grunt.io.exporters.csv import CsvExporter
+from grunt.io.exporters.html import HtmlExporter
 from grunt.io.exporters.xlsx import XlsxExporter
 from grunt.io.importers.csv import CsvImporter
 from grunt.io.importers.xlsx import XlsxImporter
@@ -67,6 +68,7 @@ def load_core(fastapi_app: FastAPI | None = None) -> None:
 
     register_exporter(XlsxExporter())
     register_exporter(CsvExporter())
+    register_exporter(HtmlExporter())
     register_importer(CsvImporter())
     register_importer(XlsxImporter())
 

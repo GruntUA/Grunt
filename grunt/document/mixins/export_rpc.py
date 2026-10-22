@@ -16,8 +16,8 @@ from fastapi.responses import Response, StreamingResponse
 
 import grunt
 from grunt import _
-from grunt.io import get_exporter, get_exporters
-lazy from grunt.api.v1.docs.utils import _generate_xlsx_single, _non_layout_fields
+from grunt.io import ListExportContext, get_exporter, get_exporters
+lazy from grunt.api.v1.docs.utils import _generate_xlsx_single, _non_layout_fields, default_sort
 lazy from grunt.print.pdf import PdfEngineError, html_to_pdf
 lazy from grunt.print.renderer import (
     apply_letter_head,
@@ -41,7 +41,15 @@ _AUTOPRINT_SCRIPT = (
 
 
 async def _export_via_registry(
-    doctype: str, fmt: str, filters: dict[str, Any] | None = None
+    doctype: str,
+    fmt: str,
+    filters: dict[str, Any] | None = None,
+    columns: list[str] | None = None,
+    search: str | None = None,
+    sort_by: str | None = None,
+    sort_order: str | None = None,
+    group_by: str | None = None,
+    filter_summary: str | None = None,
 ) -> Response:
 
     exporter = get_exporter(fmt)
@@ -59,16 +67,33 @@ async def _export_via_registry(
             status_code=404, detail=_("DocType “%(doctype)s” not found") % {"doctype": doctype}
         )
     fields = _non_layout_fields(dt.doc)
+    if columns:
+        by_name = {f.fieldname: f for f in fields}
+        fields = [by_name[c] for c in columns if c in by_name] or fields
     field_names = [f.fieldname for f in fields]
+    if group_by and group_by not in field_names:
+        field_names.append(group_by)
 
+    # Grouped lists are ordered by the group field, like the list view.
+    order_by, order = (
+        (group_by, "asc") if group_by else await default_sort(doctype, sort_by, sort_order)
+    )
     rows = await grunt.get_list(
         doctype,
         limit=10_000,
         filters=filters if filters else None,
         fields=field_names,
+        order_by=order_by,
+        order=order,
+        search=search,
     )
 
-    content = await exporter.export(doctype, rows, fields)
+    ctx = ListExportContext(
+        total=rows.meta.get("total") or len(rows),
+        group_by=group_by,
+        filter_summary=filter_summary,
+    )
+    content = await exporter.export_list(doctype, rows, fields, ctx)
     filename = exporter.filename(doctype)
 
     return Response(
@@ -272,7 +297,29 @@ class DocumentExportRPCMixin:
         doctype: str,
         fmt: str = "xlsx",
         filters: dict[str, Any] | None = None,
+        # Plain `str` so the dispatcher keeps them raw (a numeric search stays a string).
+        fields: str = "",
+        search: str = "",
+        sort_by: str = "",
+        sort_order: str = "",
+        group_by: str = "",
+        filter_summary: str = "",
         token: str | None = None,  # unused: absorbs ?token= consumed by auth, not by us
     ) -> Response:
-        """Bulk-export all documents (up to 10 000) for a DocType via the io registry."""
-        return await _export_via_registry(doctype, fmt=fmt, filters=filters)
+        """Bulk-export all documents (up to 10 000) for a DocType via the io registry.
+
+        The optional params mirror the list view: ``fields`` - visible columns
+        in order (comma-separated), ``search`` / ``sort_*``, ``group_by`` and the
+        filters as display text for the export's header.
+        """
+        return await _export_via_registry(
+            doctype,
+            fmt=fmt,
+            filters=filters,
+            columns=[c.strip() for c in fields.split(",") if c.strip()],
+            search=search or None,
+            sort_by=sort_by or None,
+            sort_order=sort_order or None,
+            group_by=group_by or None,
+            filter_summary=filter_summary or None,
+        )

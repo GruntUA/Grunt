@@ -15,6 +15,10 @@ export interface ExportContext {
   total: number
   /** Field to group rows by (mirrors list view grouping, null = no grouping) */
   groupBy: string | null
+  /** List view search text and sort - for exporters that query the backend themselves */
+  search?: string
+  sortKey?: string
+  sortOrder?: 'asc' | 'desc'
   /** Fetches all matching records respecting current filters, search & sort */
   getAll: () => Promise<Record<string, unknown>[]>
 }

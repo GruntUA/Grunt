@@ -73,6 +73,9 @@ export function useDocTypeListData(options: UseDocTypeListDataOptions) {
     statusConfig: statusConfigOf(options.dt.value),
     total: meta.value?.total ?? rows.value.length,
     groupBy: options.groupBy.value,
+    search: options.debouncedSearch.value || undefined,
+    sortKey: options.sortKey.value || undefined,
+    sortOrder: options.sortOrder.value,
     getAll: async () => {
       const total = meta.value?.total ?? 0
       const result = await docsApi.list(options.doctype, {

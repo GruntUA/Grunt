@@ -1,10 +1,26 @@
 """Exporter registry - pluggable document export formats."""
 
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
 
 lazy from grunt.metadata.field import DocField
+
+
+@dataclass
+class ListExportContext:
+    """What the list view showed when the export was asked for.
+
+    Exporters that only need the rows ignore it (the default ``export_list``).
+    """
+
+    #: Matching documents in total - more than ``len(rows)`` when the export was capped.
+    total: int
+    #: Field the list was grouped by.
+    group_by: str | None = None
+    #: The active filters as display text (``Status = Open · ...``).
+    filter_summary: str | None = None
 
 
 class Exporter(ABC):
@@ -50,6 +66,16 @@ class Exporter(ABC):
         Returns:
             Raw bytes ready to be streamed to the client.
         """
+
+    async def export_list(
+        self,
+        doctype: str,
+        rows: list[dict[str, Any]],
+        fields: list[DocField],
+        ctx: ListExportContext,
+    ) -> bytes:
+        """Export from the list view - override to use grouping / filters / totals."""
+        return await self.export(doctype, rows, fields)
 
     def filename(self, doctype: str) -> str:
         """Generate a default download filename."""
