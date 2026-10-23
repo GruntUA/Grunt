@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { ref } from 'vue'
 import type { QueryClient } from '@tanstack/vue-query'
 import type { ActiveFilter } from '@/types'
-import { useListActions } from '../useListActions'
+import { SELECT_ALL_LIMIT, useListActions } from '../useListActions'
 import { docsApi } from '@/core/api/docs'
 
 vi.mock('@/core/api/docs', () => ({
@@ -26,7 +26,6 @@ describe('useListActions', () => {
     const { bulkUpdate } = useListActions({
       doctype: 'Task',
       selectedIds: ref(['a', 'b']),
-      allSelected: ref(false),
       debouncedSearch: ref(''),
       activeFilters: ref([]),
       clearSelection,
@@ -40,42 +39,41 @@ describe('useListActions', () => {
     expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ['documents', 'Task'] })
   })
 
-  it('loads ids first when allSelected is active', async () => {
+  it('loads every matching id with filters, quick filters and search', async () => {
     const activeFilters = ref<ActiveFilter[]>([
-      {
-        fieldname: 'status',
-        label: 'Status',
-        op: '=',
-        value: 'Open',
-      },
+      { fieldname: 'status', label: 'Status', op: '=', value: 'Open' },
     ])
-
     vi.mocked(docsApi.list).mockResolvedValue({
       data: [{ name: '1' }, { name: '2' }],
-      meta: {},
+      meta: { total: 12000 },
     } as never)
 
-    const { bulkUpdate } = useListActions({
+    const { loadAllIds } = useListActions({
       doctype: 'Task',
       selectedIds: ref([]),
-      allSelected: ref(true),
       debouncedSearch: ref('john'),
       activeFilters,
+      quickFilters: ref({ priority__eq: 'High' }),
       clearSelection,
       queryClient,
     })
 
-    await bulkUpdate('priority', 'High')
+    const result = await loadAllIds()
 
-    expect(docsApi.list).toHaveBeenCalled()
-    expect(docsApi.bulkUpdate).toHaveBeenCalledWith('Task', ['1', '2'], 'priority', 'High')
+    expect(docsApi.list).toHaveBeenCalledWith('Task', expect.objectContaining({
+      per_page: SELECT_ALL_LIMIT,
+      fields: 'name',
+      search: 'john',
+      filters: activeFilters.value,
+      quickFilters: { priority__eq: 'High' },
+    }))
+    expect(result).toEqual({ ids: ['1', '2'], total: 12000 })
   })
 
   it('updates a single row inline', async () => {
     const { inlineUpdate } = useListActions({
       doctype: 'Task',
       selectedIds: ref([]),
-      allSelected: ref(false),
       debouncedSearch: ref(''),
       activeFilters: ref([]),
       clearSelection,

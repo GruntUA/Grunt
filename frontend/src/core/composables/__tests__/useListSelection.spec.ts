@@ -12,11 +12,6 @@ describe('useListSelection', () => {
       expect(selectedIds.value).toEqual([])
     })
 
-    it('allSelected is false', () => {
-      const { allSelected } = setup()
-      expect(allSelected.value).toBe(false)
-    })
-
     it('count is 0', () => {
       const { count } = setup()
       expect(count.value).toBe(0)
@@ -37,20 +32,11 @@ describe('useListSelection', () => {
       expect(selectedIds.value).not.toContain('a')
     })
 
-    it('selects multiple ids', () => {
-      const { selectedIds, toggle } = setup()
-      toggle('a')
+    it('unticks one id of a «select all» selection, keeping the rest', () => {
+      const { selectedIds, setSelected, toggle } = setup()
+      setSelected(['a', 'b', 'c'])
       toggle('b')
-      expect(selectedIds.value).toHaveLength(2)
-    })
-
-    it('when allSelected is active, clears allSelected and selectedIds', () => {
-      const { allSelected, selectedIds, selectAllDocuments, toggle } = setup()
-      selectAllDocuments()
-      expect(allSelected.value).toBe(true)
-      toggle('a')
-      expect(allSelected.value).toBe(false)
-      expect(selectedIds.value).toEqual([])
+      expect(selectedIds.value).toEqual(['a', 'c'])
     })
   })
 
@@ -65,53 +51,43 @@ describe('useListSelection', () => {
       toggle('x')
       expect(isSelected('x')).toBe(true)
     })
-
-    it('returns true for any id when allSelected is true', () => {
-      const { selectAllDocuments, isSelected } = setup()
-      selectAllDocuments()
-      expect(isSelected('anything')).toBe(true)
-    })
   })
 
   describe('toggleAll', () => {
-    it('selects all ids when none are selected', () => {
+    it('selects the page ids when none are selected', () => {
       const { selectedIds, toggleAll } = setup()
       toggleAll(['a', 'b', 'c'])
       expect(selectedIds.value).toEqual(['a', 'b', 'c'])
     })
 
-    it('deselects all when all are already selected', () => {
-      const { selectedIds, toggleAll } = setup()
+    it('adds the page ids to a selection from other pages', () => {
+      const { selectedIds, toggle, toggleAll } = setup()
+      toggle('x')
       toggleAll(['a', 'b'])
-      toggleAll(['a', 'b'])
-      expect(selectedIds.value).toEqual([])
+      expect(selectedIds.value).toEqual(['x', 'a', 'b'])
     })
 
-    it('does not set allSelected flag', () => {
-      const { allSelected, toggleAll } = setup()
+    it('completes a partly ticked page', () => {
+      const { selectedIds, toggle, toggleAll } = setup()
+      toggle('a')
       toggleAll(['a', 'b'])
-      expect(allSelected.value).toBe(false)
+      expect(selectedIds.value).toEqual(['a', 'b'])
+    })
+
+    it('clears the selection once every page id is ticked', () => {
+      const { selectedIds, setSelected, toggleAll } = setup()
+      setSelected(['a', 'b', 'c', 'd'])
+      toggleAll(['a', 'b'])
+      expect(selectedIds.value).toEqual([])
     })
   })
 
-  describe('selectAllDocuments', () => {
-    it('sets allSelected to true', () => {
-      const { allSelected, selectAllDocuments } = setup()
-      selectAllDocuments()
-      expect(allSelected.value).toBe(true)
-    })
-
-    it('count returns -1 when allSelected', () => {
-      const { count, selectAllDocuments } = setup()
-      selectAllDocuments()
-      expect(count.value).toBe(-1)
-    })
-
-    it('clears selectedIds', () => {
-      const { selectedIds, toggle, selectAllDocuments } = setup()
-      toggle('a')
-      selectAllDocuments()
-      expect(selectedIds.value).toEqual([])
+  describe('setSelected', () => {
+    it('replaces the selection', () => {
+      const { selectedIds, toggle, setSelected } = setup()
+      toggle('x')
+      setSelected(['a', 'b'])
+      expect(selectedIds.value).toEqual(['a', 'b'])
     })
   })
 
@@ -122,13 +98,6 @@ describe('useListSelection', () => {
       toggle('b')
       clear()
       expect(selectedIds.value).toEqual([])
-    })
-
-    it('resets allSelected', () => {
-      const { allSelected, selectAllDocuments, clear } = setup()
-      selectAllDocuments()
-      clear()
-      expect(allSelected.value).toBe(false)
     })
   })
 

@@ -33,7 +33,7 @@ const props = defineProps<{
   dt: DocType | null
   actions: ActionRegistry<ListViewProxy>
   viewMode: string
-  selection?: { count: number; allSelected: boolean; total?: number; pageCount?: number }
+  selection?: { count: number; total?: number; pageCount?: number }
 }>()
 
 const emit = defineEmits<{
@@ -49,7 +49,7 @@ const primaryActions = props.actions.resolved('primary')
 const menuActions = props.actions.resolved('menu')
 const bulkActions = props.actions.resolved('bulk')
 
-const hasSelection = computed(() => !!props.selection && (props.selection.count > 0 || props.selection.allSelected))
+const hasSelection = computed(() => (props.selection?.count ?? 0) > 0)
 
 // View switcher ("List View ▾" dropdown)
 
@@ -122,7 +122,6 @@ watch(() => props.doctype, loadRestrictions)
         :actions="bulkActions"
         :count="selection!.count"
         :total="selection!.total"
-        :all-selected="selection!.allSelected"
         :page-count="selection!.pageCount"
         @select-all="emit('selectAll')"
         @clear="emit('clearSelection')"

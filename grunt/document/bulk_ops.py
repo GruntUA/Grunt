@@ -11,7 +11,6 @@ from sqlalchemy.engine import CursorResult
 import grunt
 from grunt import _, log
 from grunt.api.v1.ws import manager
-from grunt.db.filters import apply_filters
 from grunt.db.session import async_session_factory
 from grunt.metadata.compiler import MULTI_LINK_TABLE
 from grunt.search.service import _search_index_table
@@ -36,7 +35,7 @@ class BulkDeleteTask:
     +---------------------+------------------+----------+-------------------------+
     | run()                | explicit id list | yes      | one delete per id       |
     | run_delete_all()     | filters/search   | yes      | batched, iterative      |
-    | run_fast_delete_all()| filters          | **no**   | raw SQL, System Manager only|
+    | run_fast_delete_all()| filters/search   | **no**   | raw SQL, System Manager only|
     +---------------------+------------------+----------+-------------------------+
 
     ``run_fast_delete_all`` is the only one that bypasses the document
@@ -232,20 +231,23 @@ class BulkDeleteTask:
         doctype: str,
         *,
         filters: dict[str, str] | None,
+        search: str | None = None,
         user: User,
         user_email: str,
         engine: Any,
+        batch_size: int = _DELETE_ALL_BATCH,
     ) -> None:
         """Delete records directly via SQL - no lifecycle hooks, no per-row overhead.
 
         ~100× faster than ``run_delete_all()`` for large datasets.
         Only System Manager may call this method.
 
-        Steps:
-        1. DELETE FROM <doctype table> [WHERE <filters>]
-        2. DELETE FROM grunt_multi_links WHERE parent_doctype = doctype
-        3. DELETE FROM grunt_search_index WHERE doctype = doctype
-        4. Write one summary ActivityLog entry
+        The rows are exactly what the list shows for *filters*/*search*
+        (``grunt.get_list``: permissions, child_of, search fields), taken in
+        batches of *batch_size*; for each batch:
+        1. DELETE FROM <doctype table> WHERE name IN (batch)
+        2. DELETE their MultiLinks and search-index entries
+        Then one summary ActivityLog entry.
         """
 
         if "System Manager" not in (getattr(user, "roles", None) or []):
@@ -269,22 +271,47 @@ class BulkDeleteTask:
                     raise ValueError(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
                 table = dt.table
 
-                # 1. Delete main rows
-                del_stmt = sa_delete(table)
-                if filters:
-                    del_stmt = apply_filters(del_stmt, table, filters)
-                result = cast("CursorResult", await session.execute(del_stmt))
-                deleted: int = result.rowcount or 0
+                deleted = 0
+                while True:
+                    rows = await grunt.get_list(
+                        doctype,
+                        filters=filters,
+                        search=search,
+                        fields=["name"],
+                        limit=batch_size,
+                        page=1,
+                    )
+                    names = [str(r["name"]) for r in rows]
+                    if not names:
+                        break
 
-                # 2. Delete MultiLinks
-                await session.execute(
-                    sa_delete(MULTI_LINK_TABLE).where(MULTI_LINK_TABLE.c.parent_doctype == doctype)
-                )
+                    # 1. Main rows
+                    result = cast(
+                        "CursorResult",
+                        await session.execute(sa_delete(table).where(table.c.name.in_(names))),
+                    )
+                    # 2. Their MultiLinks and search-index entries
+                    await session.execute(
+                        sa_delete(MULTI_LINK_TABLE).where(
+                            MULTI_LINK_TABLE.c.parent_doctype == doctype,
+                            MULTI_LINK_TABLE.c.parent_name.in_(names),
+                        )
+                    )
+                    await session.execute(
+                        sa_delete(_search_index_table).where(
+                            _search_index_table.c.doctype == doctype,
+                            _search_index_table.c.doc_id.in_(names),
+                        )
+                    )
+                    batch_deleted = result.rowcount or 0
+                    deleted += batch_deleted
 
-                # 3. Delete search index
-                await session.execute(
-                    sa_delete(_search_index_table).where(_search_index_table.c.doctype == doctype)
-                )
+                    await self._manager.send_to_user(
+                        user_email,
+                        {"event": "bulk_delete_progress", "data": {"done": deleted, "errors": 0}},
+                    )
+                    if batch_deleted == 0 or len(names) < batch_size:
+                        break
 
                 # 4. Summary ActivityLog entry
                 try:

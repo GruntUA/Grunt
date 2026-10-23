@@ -15,7 +15,6 @@ const { t } = useI18n()
 
 interface SelectionState {
   selectedIds: string[]
-  allSelected: boolean
   isSelected: (id: string) => boolean
   toggle: (id: string) => void
   toggleAll: (ids: string[]) => void
@@ -120,7 +119,6 @@ function handleSelectGroup(items: Record<string, unknown>[]) {
                 :columns="columns"
                 :is-loading="false"
                 :selected-ids="selection?.selectedIds || []"
-                :all-selected="selection?.allSelected || false"
                 @select="selection?.toggle"
                 @row-click="emit('rowClick', $event)"
               />
@@ -135,7 +133,6 @@ function handleSelectGroup(items: Record<string, unknown>[]) {
                 :sort-key="sortKey"
                 :sort-order="sortOrder"
                 :selected-ids="selection?.selectedIds || []"
-                :all-selected="selection?.allSelected || false"
                 :status-config="statusConfigOf(dt)"
                 :hide-header="true"
                 @select="selection?.toggle"

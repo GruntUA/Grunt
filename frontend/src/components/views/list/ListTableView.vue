@@ -4,7 +4,6 @@ import type { DocType, DocField } from '@/types'
 import type { ListColumn } from '@/core/composables/useListColumns'
 import type { GroupedRowBucket } from '@/core/composables/useGrouping'
 import GruntDataTable from '@/components/views/GruntDataTable.vue'
-import BulkActionDialogs from '@/components/views/BulkActionDialogs.vue'
 import ListGroupedView from '@/components/views/list/ListGroupedView.vue'
 import ListCards from '@/components/views/list/ListCards.vue'
 import { useCardLayout } from '@/components/views/list/useCardLayout'
@@ -21,7 +20,6 @@ interface TableMeta {
 
 interface SelectionState {
   selectedIds: string[]
-  allSelected: boolean
   isSelected: (id: string) => boolean
   toggle: (id: string) => void
   toggleAll: (ids: string[]) => void
@@ -50,14 +48,10 @@ const emit = defineEmits<{
   'sort': [key: string]
   'row-click': [row: Record<string, unknown>]
   'inline-update': [rowId: string, field: string, value: string]
-  'delete': [replaceWith?: string]
-  'fast-delete': []
-  'update': [field: string, value: unknown]
   'toggle-group': [key: string]
 }>()
 
 const cardLayout = useCardLayout()
-const selectionCount = computed(() => props.selection.selectedIds.length)
 const normalizedSortKey = computed(() => props.sortKey || '')
 
 function rowDocId(row: Record<string, unknown>): string {
@@ -68,19 +62,6 @@ function rowDocId(row: Record<string, unknown>): string {
 <template>
   <!-- Bounded to the page height: rows scroll here, header/toolbar/pager stay put. -->
   <div class="flex h-full min-h-0 flex-col">
-    <!-- Bulk dialogs, opened by «Дії ▾» in the list header -->
-    <BulkActionDialogs
-      :count="selectionCount"
-      :total="meta?.total"
-      :all-selected="selection.allSelected"
-      :editable-fields="dt?.fields"
-      :doctype="doctype"
-      :selected-ids="selection.selectedIds"
-      @delete="(rw) => emit('delete', rw)"
-      @fast-delete="emit('fast-delete')"
-      @update="(field, value) => emit('update', field, value)"
-    />
-
     <!-- List Content -->
     <div class="flex min-h-0 flex-1 flex-col">
       <!-- Grouped View -->
@@ -115,7 +96,6 @@ function rowDocId(row: Record<string, unknown>): string {
         :columns="columns"
         :is-loading="isLoading"
         :selected-ids="selection.selectedIds"
-        :all-selected="selection.allSelected"
         :meta="meta"
         @select="(id) => selection.toggle(id)"
         @row-click="(row) => emit('row-click', row)"
@@ -138,7 +118,6 @@ function rowDocId(row: Record<string, unknown>): string {
             :sort-key="normalizedSortKey"
             :sort-order="sortOrder"
             :selected-ids="selection.selectedIds"
-            :all-selected="selection.allSelected"
             :status-config="statusConfigOf(dt)"
             @sort="(key) => emit('sort', key)"
             @select="(id) => selection.toggle(id)"

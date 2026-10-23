@@ -159,6 +159,7 @@ async def bulk_delete(
                 await task.run_fast_delete_all(
                     doctype,
                     filters=filters,
+                    search=search,
                     user=user,
                     user_email=user_email,
                     engine=engine,

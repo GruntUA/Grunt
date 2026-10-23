@@ -196,7 +196,6 @@ components/views/
     index.ts
   gallery/
     GalleryView.vue
-    GalleryViewWrapper.vue
     index.ts
   map/
     MapView.vue

@@ -32,7 +32,6 @@ const props = defineProps<{
   columns: ListColumn[]
   isLoading: boolean
   selectedIds: string[]
-  allSelected?: boolean
   meta?: Pick<PaginationMeta, 'unavailable' | 'unavailable_message'>
 }>()
 
@@ -88,7 +87,7 @@ function rowId(row: Record<string, unknown>): string {
 }
 
 function isSelected(row: Record<string, unknown>): boolean {
-  return !!props.allSelected || props.selectedIds.includes(rowId(row))
+  return props.selectedIds.includes(rowId(row))
 }
 
 // track_seen: `_seen` lists who opened the document - flag the unopened ones.

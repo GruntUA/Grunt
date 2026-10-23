@@ -94,7 +94,6 @@ declare global {
     actions: GruntActions<ListViewProxy>
     readonly perm: GruntDocPerms
     readonly selected: string[]
-    readonly all_selected: boolean
     readonly is_fetching: boolean
     readonly can_export: boolean
     readonly exporters: { id: string; label: string }[]

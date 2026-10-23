@@ -1,22 +1,18 @@
 import { ref, computed } from 'vue'
 
+/**
+ * The list's selection - always explicit document ids, across pages.
+ * «Select all N» loads the ids of every matching document into it (see
+ * DocTypeList), so bulk actions act on exactly what was selected.
+ */
 export function useListSelection() {
   const selectedIds = ref<string[]>([])
-  /** When true, ALL documents (across pages) are selected, not just visible ones */
-  const allSelected = ref(false)
 
   function isSelected(id: string) {
-    return allSelected.value || selectedIds.value.includes(id)
+    return selectedIds.value.includes(id)
   }
 
   function toggle(id: string) {
-    // If "select all" is active, switching to manual mode excluding this one
-    if (allSelected.value) {
-      allSelected.value = false
-      // Can't easily exclude one from "all" - just deselect all
-      selectedIds.value = []
-      return
-    }
     if (selectedIds.value.includes(id)) {
       selectedIds.value = selectedIds.value.filter((s) => s !== id)
     } else {
@@ -24,30 +20,24 @@ export function useListSelection() {
     }
   }
 
-  function toggleAll(allIds: string[]) {
-    if (selectedIds.value.length === allIds.length) {
-      selectedIds.value = []
-      allSelected.value = false
+  /** Header checkbox: ticks the given (page) ids, or - once all of them are ticked - clears the selection. */
+  function toggleAll(pageIds: string[]) {
+    if (pageIds.length && pageIds.every((id) => selectedIds.value.includes(id))) {
+      clear()
     } else {
-      selectedIds.value = [...allIds]
-      allSelected.value = false
+      selectedIds.value = [...new Set([...selectedIds.value, ...pageIds])]
     }
   }
 
-  function selectAllDocuments() {
-    allSelected.value = true
-    selectedIds.value = []
+  function setSelected(ids: string[]) {
+    selectedIds.value = [...ids]
   }
 
   function clear() {
     selectedIds.value = []
-    allSelected.value = false
   }
 
-  const count = computed(() => {
-    if (allSelected.value) return -1 // signals "all"
-    return selectedIds.value.length
-  })
+  const count = computed(() => selectedIds.value.length)
 
-  return { selectedIds, allSelected, count, isSelected, toggle, toggleAll, selectAllDocuments, clear }
+  return { selectedIds, count, isSelected, toggle, toggleAll, setSelected, clear }
 }

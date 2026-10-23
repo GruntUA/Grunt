@@ -1,8 +1,8 @@
 <script setup lang="ts">
 /**
- * The bulk dialogs of a list - edit, delete (with replace-on-delete), fast
- * delete. The `bulk` actions in the list header's «Дії ▾» open them through
- * LIST_BULK_UI; the results go back to the list page as events.
+ * The bulk dialogs of a list - edit and delete (with replace-on-delete) of the
+ * selection, and fast delete of every matching row. The list actions («Дії ▾»,
+ * «⋯») open them through LIST_BULK_UI; the results go back as events.
  */
 import { ref, computed, watch, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -20,8 +20,8 @@ import { LIST_BULK_UI } from '@/core/composables/useListBulkUi'
 
 const props = defineProps<{
   count: number
+  /** Rows the list matches - what fast delete removes. */
   total?: number
-  allSelected?: boolean
   editableFields?: DocField[]
   doctype?: string
   selectedIds?: string[]
@@ -43,7 +43,7 @@ const replaceWith = ref<string>('')
 const ackDangling = ref(false)
 
 const canReplace = computed(() =>
-  !props.allSelected && !!props.doctype && (props.selectedIds?.length ?? 0) > 0,
+  !!props.doctype && (props.selectedIds?.length ?? 0) > 0,
 )
 const hasRefs = computed(() => (impact.value?.total ?? 0) > 0)
 const replaceField = computed<DocField>(() => ({
@@ -96,9 +96,6 @@ const updateField = ref('')
 const updateValue = ref<unknown>(null)
 const updateSaving = ref(false)
 
-const displayCount = computed(() =>
-  props.allSelected && props.total ? props.total : props.count
-)
 
 const NON_PHYSICAL = getNonPhysicalTypeSet()
 const updatableFields = computed(() =>
@@ -158,7 +155,7 @@ async function submitUpdate() {
       <DialogHeader>
         <DialogTitle>{{ t('Confirm Deletion') }}</DialogTitle>
         <DialogDescription>
-          {{ t('You are about to delete {n} records. This cannot be undone.', { n: String(displayCount) }) }}
+          {{ t('You are about to delete {n} records. This cannot be undone.', { n: String(count) }) }}
         </DialogDescription>
       </DialogHeader>
 
@@ -212,7 +209,7 @@ async function submitUpdate() {
       <DialogHeader>
         <DialogTitle>{{ t('Fast delete') }}</DialogTitle>
         <DialogDescription>
-          {{ t('Delete {n} records directly via SQL — no lifecycle hooks, no per-record ActivityLog.', { n: String(displayCount) }) }}
+          {{ t('Delete {n} records directly via SQL — no lifecycle hooks, no per-record ActivityLog.', { n: String(total ?? 0) }) }}
         </DialogDescription>
       </DialogHeader>
 
@@ -239,7 +236,7 @@ async function submitUpdate() {
       <DialogHeader>
         <DialogTitle>{{ t('Bulk Update') }}</DialogTitle>
         <DialogDescription>
-          {{ t('This updates the field on all {n} selected records.', { n: String(displayCount) }) }}
+          {{ t('This updates the field on all {n} selected records.', { n: String(count) }) }}
         </DialogDescription>
       </DialogHeader>
 

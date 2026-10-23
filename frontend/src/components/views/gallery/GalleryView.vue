@@ -26,7 +26,6 @@ const props = defineProps<{
   isLoading?: boolean
   selection?: {
     selectedIds: string[]
-    allSelected: boolean
     isSelected: (id: string) => boolean
     toggle: (id: string) => void
   }
@@ -55,7 +54,7 @@ const bodyColumns = computed(() =>
   props.columns.slice(1).filter(c => c.key !== imageField.value).slice(0, 4)
 )
 
-const hasSelection = computed(() => !!props.selection?.selectedIds?.length || !!props.selection?.allSelected)
+const hasSelection = computed(() => !!props.selection?.selectedIds?.length)
 
 function onCardClick(e: MouseEvent, row: Record<string, unknown>) {
   if (props.selection && (hasSelection.value || e.ctrlKey || e.metaKey)) {

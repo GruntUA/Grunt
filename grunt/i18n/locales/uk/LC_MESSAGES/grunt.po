@@ -23384,3 +23384,11 @@ msgstr "Списки пакетів востаннє оновлювались %(
 #: grunt/grunt/monitoring/updates.py
 msgid "Restart the server to finish an OS update."
 msgstr "Перезавантажте сервер, щоб завершити оновлення ОС."
+
+#: grunt/grunt/metadata/doctypes/DocType/global_list.js:109
+msgid "Fast delete all matching"
+msgstr "Швидко видалити всі за фільтром"
+
+#: grunt/frontend/src/pages/desk/DocTypeList.vue
+msgid "Selected the first {n} of {total} records - narrow the filter to select the rest."
+msgstr "Вибрано перші {n} з {total} записів — звузьте фільтр, щоб вибрати решту."

@@ -29,6 +29,7 @@ import { useDialog } from '@/core/composables/useDialog'
 import { useToast } from '@/core/composables/useToast'
 import { setPageTitle } from '@/core/composables/usePageTitle'
 import QuickEntryDialog from '@/components/views/QuickEntryDialog.vue'
+import BulkActionDialogs from '@/components/views/BulkActionDialogs.vue'
 import ListHeader from '@/components/views/list/ListHeader.vue'
 import AppBreadcrumb from '@/components/app/AppBreadcrumb.vue'
 import QuickFilterSettingsDialog from '@/components/views/list/QuickFilterSettingsDialog.vue'
@@ -108,11 +109,10 @@ const debouncedQuickFilters = useDebounce(rawQuickFilters, quickFilterDebounceMs
 
 const {
   selectedIds,
-  allSelected,
   isSelected,
   toggle: toggleSelection,
   toggleAll,
-  selectAllDocuments,
+  setSelected,
   clear: clearSelection,
   count: selectionCount,
 } = useListSelection()
@@ -157,7 +157,6 @@ const {
         delete: roleAllows(dt.value, 'delete', roles),
       },
       selected: selectedIds.value,
-      allSelected: allSelected.value,
       isFetching: isFetching.value,
       exporters: getExporters().map((e) => ({ id: e.id, label: t(e.label) })),
       canExport: !!exportCtx.value,
@@ -286,12 +285,12 @@ async function resolveLinkFilterTitles() {
 watch(activeFilters, resolveLinkFilterTitles, { deep: true })
 watch(dt, resolveLinkFilterTitles)
 
-const { bulkUpdate, inlineUpdate } = useListActions({
+const { loadAllIds, bulkUpdate, inlineUpdate } = useListActions({
   doctype: props.doctype,
   selectedIds,
-  allSelected,
   debouncedSearch,
   activeFilters,
+  quickFilters: debouncedQuickFilters,
   clearSelection,
   queryClient,
 })
@@ -320,14 +319,25 @@ const { deleteProgress, bulkDelete, bulkFastDelete } = useBulkDeleteProgress({
   doctype: props.doctype,
   metaTotal: computed(() => meta.value?.total ?? 0),
   selectedIds,
-  allSelected,
   activeFilters,
+  quickFilters: debouncedQuickFilters,
   debouncedSearch,
   clearSelection,
   queryClient,
   onUserEvent,
   offUserEvent,
 })
+/** «Select all N»: the ids of every matching document, up to SELECT_ALL_LIMIT. */
+async function selectAllDocuments() {
+  const { ids, total } = await loadAllIds()
+  setSelected(ids)
+  if (total > ids.length) {
+    toast.warning(t('Selected the first {n} of {total} records - narrow the filter to select the rest.', {
+      n: String(ids.length), total: String(total),
+    }))
+  }
+}
+
 const deletePercent = computed(() => {
   const { done, total } = deleteProgress.value
   return total ? Math.round(done / total * 100) : 0
@@ -369,7 +379,7 @@ void (async () => {
           :doctype="doctype"
           :dt="dt"
           :actions="listActions"
-          :selection="{ count: selectionCount, allSelected, total: meta?.total, pageCount: rows.length }"
+          :selection="{ count: selectionCount, total: meta?.total, pageCount: rows.length }"
           @select-all="selectAllDocuments"
           @clear-selection="clearSelection"
         />
@@ -413,7 +423,7 @@ void (async () => {
         :is-loading="isLoading"
         :has-data="!!data"
         :selection-count="selectionCount"
-        :selection="{ selectedIds, allSelected, isSelected, toggle: toggleSelection, toggleAll }"
+        :selection="{ selectedIds, isSelected, toggle: toggleSelection, toggleAll }"
         :image-field="dt.image_field ?? undefined"
         :group-by="groupBy"
         :grouped-rows="groupedRows"
@@ -432,11 +442,6 @@ void (async () => {
         @sort="applySort"
         @row-click="navigateToDoc"
         @inline-update="inlineUpdate"
-        @update="bulkUpdate"
-        @delete="bulkDelete"
-        @fast-delete="bulkFastDelete"
-        @clear="clearSelection"
-        @select-all="selectAllDocuments"
         @toggle-group="toggleGroup"
         @register-menu-items="registerMapMenuItems"
         @unregister-menu-items="unregisterMapMenuItems"
@@ -454,6 +459,17 @@ void (async () => {
         @update:page="page = $event"
       />
     </div>
+
+    <BulkActionDialogs
+      :count="selectionCount"
+      :total="meta?.total"
+      :editable-fields="dt?.fields"
+      :doctype="doctype"
+      :selected-ids="selectedIds"
+      @update="bulkUpdate"
+      @delete="bulkDelete"
+      @fast-delete="bulkFastDelete"
+    />
 
     <QuickEntryDialog
       v-if="showQuickEntry && dt"

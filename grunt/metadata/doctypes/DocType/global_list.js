@@ -8,7 +8,7 @@
  *   listview.actions.update('add', { label: 'Новий запис' })
  *
  * Ids: add · refresh · export:<exporter> · edit_doctype, customize_quick_filters ·
- * create_report · bulk_edit, bulk_delete, fast_delete. Labels are translation
+ * create_report, fast_delete · bulk_edit, bulk_delete. Labels are translation
  * keys (English source strings).
  *
  * @param {ListViewProxy} listview
@@ -103,15 +103,16 @@ function setup_list(listview) {
         visible: (lv) => lv.perm.delete,
         action: (lv) => lv.bulk_delete(),
     })
+    // Not the selection: every row the list matches (filters, search).
     actions.add({
         id: 'fast_delete',
-        label: __('Fast delete'),
+        label: __('Fast delete all matching'),
         icon: 'zap',
-        placement: 'bulk',
-        order: 210,
+        placement: 'menu',
+        group: 'danger',
+        order: 900,
         variant: 'destructive',
-        // Every matching row, without per-document hooks — System Manager only.
-        visible: (lv) => lv.all_selected && lv.perm.delete && _isSystemManager(),
+        visible: (lv) => lv.perm.delete && _isSystemManager(),
         action: (lv) => lv.fast_delete(),
     })
 }

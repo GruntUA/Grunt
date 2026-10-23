@@ -48,7 +48,6 @@ import type { GroupedRowBucket } from '@/core/composables/useGrouping'
 
 export interface SelectionState {
   selectedIds: string[]
-  allSelected: boolean
   isSelected: (id: string) => boolean
   toggle: (id: string) => void
   toggleAll: (ids: string[]) => void
@@ -59,11 +58,6 @@ export interface ViewEmit {
   sort(key: string): void
   rowClick(row: Record<string, unknown>): void
   inlineUpdate(rowId: string, field: string, value: string): void
-  delete(replaceWith?: string): void
-  fastDelete(): void
-  clear(): void
-  selectAll(): void
-  update(field: string, value: unknown): void
   toggleGroup(key: string): void
   page(page: number): void
   setPerPage(perPage: number): void

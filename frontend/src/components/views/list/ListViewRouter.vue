@@ -46,11 +46,6 @@ const emit = defineEmits<{
   sort: [key: string]
   'row-click': [row: Record<string, unknown>]
   'inline-update': [rowId: string, field: string, value: string]
-  delete: [replaceWith?: string]
-  'fast-delete': []
-  clear: []
-  'select-all': []
-  update: [field: string, value: unknown]
   'toggle-group': [key: string]
   page: [page: number]
   'set-per-page': [perPage: number]
@@ -106,11 +101,6 @@ const ctx = computed((): ViewContext => ({
     sort: (key) => emit('sort', key),
     rowClick: (row) => emit('row-click', row),
     inlineUpdate: (id, field, value) => emit('inline-update', id, field, value),
-    delete: (replaceWith) => emit('delete', replaceWith),
-    fastDelete: () => emit('fast-delete'),
-    clear: () => emit('clear'),
-    selectAll: () => emit('select-all'),
-    update: (field, value) => emit('update', field, value),
     toggleGroup: (key) => emit('toggle-group', key),
     page: (p) => emit('page', p),
     setPerPage: (n) => emit('set-per-page', n),

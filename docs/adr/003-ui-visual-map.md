@@ -308,6 +308,7 @@ AppListView.vue                ← pages/app/
       MapView.vue
       TreeView.vue
     ListHeader.vue
+      BulkActionsMenu.vue      ← components/views/actions/ («Дії ▾» while rows are selected)
     BulkActionDialogs.vue
     ListPagination.vue
     QuickEntryDialog.vue

@@ -20525,3 +20525,11 @@ msgstr ""
 #: grunt/grunt/monitoring/updates.py
 msgid "Restart the server to finish an OS update."
 msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocType/global_list.js:109
+msgid "Fast delete all matching"
+msgstr ""
+
+#: grunt/frontend/src/pages/desk/DocTypeList.vue
+msgid "Selected the first {n} of {total} records - narrow the filter to select the rest."
+msgstr ""

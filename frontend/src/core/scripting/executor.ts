@@ -152,8 +152,6 @@ export interface ListViewProxy {
   readonly perm: DocPerms
   /** Names of the selected rows. */
   readonly selected: string[]
-  /** «Select all N» is on - the selection is every row matching the filters. */
-  readonly all_selected: boolean
   readonly is_fetching: boolean
   /** Registered exporters (CSV, Excel…) - usable when `can_export`. */
   readonly exporters: ListExporterInfo[]
@@ -169,7 +167,7 @@ export interface ListViewProxy {
   bulk_edit: () => void
   /** Delete the selection (with the impact dialog). */
   bulk_delete: () => void
-  /** Delete every matching row without per-document hooks (System Manager). */
+  /** Delete every row the list matches (filters, search) without per-document hooks (System Manager). */
   fast_delete: () => void
   export: (exporterId: string) => void
   customize_quick_filters: () => void
@@ -1011,7 +1009,6 @@ export async function executeClientScripts(
 export interface ListViewState {
   perm: DocPerms
   selected: string[]
-  allSelected: boolean
   isFetching: boolean
   exporters: ListExporterInfo[]
   canExport: boolean
@@ -1040,7 +1037,6 @@ export function createListViewProxy(
     callbacks.state?.() ?? {
       perm: { write: false, delete: false, create: false },
       selected: [],
-      allSelected: false,
       isFetching: false,
       exporters: [],
       canExport: false,
@@ -1051,7 +1047,6 @@ export function createListViewProxy(
     actions,
     get perm() { return state().perm },
     get selected() { return state().selected },
-    get all_selected() { return state().allSelected },
     get is_fetching() { return state().isFetching },
     get exporters() { return state().exporters },
     get can_export() { return state().canExport },

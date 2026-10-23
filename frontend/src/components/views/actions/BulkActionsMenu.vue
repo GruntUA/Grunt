@@ -16,13 +16,13 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import type { ResolvedAction } from '@/core/actions'
+import { SELECT_ALL_LIMIT } from '@/core/composables/useListActions'
 import ActionIcon from './ActionIcon.vue'
 
 const props = defineProps<{
   actions: ResolvedAction[]
   count: number
   total?: number
-  allSelected?: boolean
   /** Rows on the current page - «select all N» is offered once all of them are selected. */
   pageCount?: number
 }>()
@@ -35,8 +35,8 @@ const emit = defineEmits<{
 const { t } = useI18n()
 
 const canSelectAll = computed(() =>
-  !props.allSelected && !!props.total && props.pageCount != null
-  && props.count >= props.pageCount && props.total > props.count,
+  !!props.total && props.pageCount != null
+  && props.count >= props.pageCount && props.count < Math.min(props.total, SELECT_ALL_LIMIT),
 )
 </script>
 
@@ -51,7 +51,7 @@ const canSelectAll = computed(() =>
     <DropdownMenuContent class="w-56" align="end">
       <DropdownMenuLabel class="font-normal text-muted-foreground">
         <span class="font-semibold text-foreground tabular-nums">
-          {{ allSelected ? t('all {n}', { n: String(total ?? count) }) : count }}
+          {{ count }}
         </span>
         {{ t('selected') }}
       </DropdownMenuLabel>
@@ -70,7 +70,7 @@ const canSelectAll = computed(() =>
       <DropdownMenuSeparator v-if="actions.length" />
       <DropdownMenuItem v-if="canSelectAll" @click="emit('selectAll')">
         <CheckCheck class="size-4" />
-        <span>{{ t('Select all {n}', { n: String(total) }) }}</span>
+        <span>{{ t('Select all {n}', { n: String(Math.min(total!, SELECT_ALL_LIMIT)) }) }}</span>
       </DropdownMenuItem>
       <DropdownMenuItem @click="emit('clear')">
         <X class="size-4" />

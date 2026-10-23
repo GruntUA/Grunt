@@ -26,7 +26,6 @@ const props = defineProps<{
   sortKey: string
   sortOrder: 'asc' | 'desc'
   selectedIds: string[]
-  allSelected?: boolean
   statusConfig?: DocTypeStatusConfig | null
   hideHeader?: boolean
   hideBody?: boolean
@@ -149,12 +148,15 @@ function onRowAnchorClick(event: MouseEvent, row: Record<string, unknown>) {
   emit('rowClick', row)
 }
 
-function isAllSelected(): boolean {
-  return !!(props.allSelected || (props.rows.length > 0 && props.selectedIds.length === props.rows.length))
+/** Header checkbox: every row of this page ticked, some of them, or none. */
+function isAllSelected(): boolean | 'indeterminate' {
+  const ticked = props.rows.filter((row) => isRowSelected(row)).length
+  if (ticked && ticked === props.rows.length) return true
+  return ticked ? 'indeterminate' : false
 }
 
 function isRowSelected(row: Record<string, unknown>): boolean {
-  return !!props.allSelected || props.selectedIds.includes(getRowDocId(row) ?? '')
+  return props.selectedIds.includes(getRowDocId(row) ?? '')
 }
 </script>
 

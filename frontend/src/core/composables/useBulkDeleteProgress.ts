@@ -7,8 +7,9 @@ interface UseBulkDeleteProgressParams {
   doctype: string
   metaTotal: Ref<number>
   selectedIds: Ref<string[]>
-  allSelected: Ref<boolean>
   activeFilters: Ref<ActiveFilter[]>
+  /** Quick-filter values in backend format - part of what fast delete's «all matching» means. */
+  quickFilters?: Ref<Record<string, string>>
   debouncedSearch: Ref<string>
   clearSelection: () => void
   queryClient: QueryClient
@@ -18,6 +19,11 @@ interface UseBulkDeleteProgressParams {
 
 export function useBulkDeleteProgress(params: UseBulkDeleteProgressParams) {
   const deleteProgress = ref({ active: false, total: 0, done: 0, errors: 0 })
+
+  /** What the list shows: quick filters, then filters (they win). */
+  function listFilters(): Record<string, string> {
+    return { ...(params.quickFilters?.value ?? {}), ...filtersToRaw(params.activeFilters.value) }
+  }
 
   let deleteProgressHandler: ((d: Record<string, unknown>) => void) | null = null
   let deleteDoneHandler: ((d: Record<string, unknown>) => void) | null = null
@@ -66,30 +72,23 @@ export function useBulkDeleteProgress(params: UseBulkDeleteProgressParams) {
     }
   }
 
-  /** Normal bulk delete - respects lifecycle hooks, streams batch progress. */
+  /** Normal bulk delete of the selected ids - respects lifecycle hooks, streams batch progress. */
   async function bulkDelete(replaceWith?: string) {
-    const ids = params.allSelected.value ? [] : params.selectedIds.value
-    if (!params.allSelected.value && !ids.length) return
+    const ids = params.selectedIds.value
+    if (!ids.length) return
 
-    const total = params.allSelected.value ? params.metaTotal.value : ids.length
-    const unsubscribe = _subscribeProgress(total)
-
+    const unsubscribe = _subscribeProgress(ids.length)
     try {
-      if (params.allSelected.value) {
-        await docsApi.bulkDelete(params.doctype, [], {
-          deleteAll: true,
-          rawFilters: filtersToRaw(params.activeFilters.value),
-          search: params.debouncedSearch.value || undefined,
-        })
-      } else {
-        await docsApi.bulkDelete(params.doctype, ids, { replaceWith })
-      }
+      await docsApi.bulkDelete(params.doctype, ids, { replaceWith })
     } catch {
       unsubscribe()
     }
   }
 
-  /** Fast delete - direct SQL, no hooks, System Manager only. Near-instant for large datasets. */
+  /**
+   * Fast delete of every document the list matches (not the selection) - direct
+   * SQL, no hooks, System Manager only. Near-instant for large datasets.
+   */
   async function bulkFastDelete() {
     const total = params.metaTotal.value
     const unsubscribe = _subscribeProgress(total)
@@ -97,7 +96,7 @@ export function useBulkDeleteProgress(params: UseBulkDeleteProgressParams) {
     try {
       await docsApi.bulkDelete(params.doctype, [], {
         deleteAll: true,
-        rawFilters: filtersToRaw(params.activeFilters.value),
+        rawFilters: listFilters(),
         search: params.debouncedSearch.value || undefined,
         fast: true,
       })
