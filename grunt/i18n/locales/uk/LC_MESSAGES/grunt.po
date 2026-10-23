@@ -17076,6 +17076,14 @@ msgstr "Запустіть `grunt update`."
 msgid "Update available: %(target)s. Run `grunt update`."
 msgstr "Доступне оновлення: %(target)s. Запустіть `grunt update`."
 
+#: grunt/grunt/monitoring/updates.py
+msgid ""
+"Python %(version)s is out - `grunt update` installs it once uv supports it"
+" (with the next uv release)."
+msgstr ""
+"Вийшов Python %(version)s — `grunt update` поставить його, щойно uv його "
+"підтримає (з наступним релізом uv)."
+
 #: grunt/grunt/monitoring/updates.py:476
 msgid ""
 "Run `grunt update --upgrade-packages` - it updates the lock files; then "

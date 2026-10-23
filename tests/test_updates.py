@@ -69,6 +69,40 @@ async def test_mise_skips_releases_younger_than_a_day(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_uv_skips_releases_younger_than_a_day(monkeypatch):
+    # mise.toml has uv = "latest": `mise upgrade` waits a day too
+    now = datetime.now(UTC)
+
+    def uploaded(**age):
+        return [{"upload_time_iso_8601": (now - timedelta(**age)).isoformat()}]
+
+    pypi = {
+        "releases": {
+            "0.13.5": uploaded(hours=23),
+            "0.14.0rc1": uploaded(days=3),
+            "0.13.4": uploaded(days=2),
+            "0.13.3": uploaded(days=9),
+        }
+    }
+
+    async def fake_fetch(url):
+        assert "pypi.org/pypi/uv" in url
+        return json.dumps(pypi)
+
+    async def fake_run(*cmd, **kwargs):
+        return "uv 0.13.4 (x86_64-unknown-linux-gnu)"
+
+    from grunt.storage.cloud import rclone
+
+    monkeypatch.setattr(rclone, "is_installed", lambda: False)
+    monkeypatch.setattr(updates, "tool", lambda name: "/bin/uv" if name == "uv" else None)
+    monkeypatch.setattr(updates, "run", fake_run)
+    monkeypatch.setattr(updates, "fetch", fake_fetch)
+    rows = await updates.tool_rows(CAT)
+    assert [(r["check"], r["status"], r["value"]) for r in rows] == [("uv", "OK", "0.13.4")]
+
+
+@pytest.mark.asyncio
 async def test_runtime_up_to_date_mentions_newer_line(monkeypatch):
     _cycles(
         monkeypatch,
@@ -259,6 +293,28 @@ async def test_python_row_asks_for_restart(monkeypatch):
     assert r["status"] == "Warning"
     assert r["value"] == "3.14.0 → 3.99.0"
     assert "3.99.0" in r["hint"]
+
+
+@pytest.mark.parametrize(
+    ("downloads", "status"),
+    [(["3.14.4", "3.14.8"], "Warning"), (["3.14.4"], "Info")],
+)
+@pytest.mark.asyncio
+async def test_python_patch_waits_for_uv(monkeypatch, downloads, status):
+    # `uv python upgrade` takes only a patch the installed uv knows
+    _cycles(monkeypatch, [{"cycle": "3.14", "latest": "3.14.8", "eol": _future()}])
+
+    async def fake_run(*cmd, **kwargs):
+        if "--only-downloads" in cmd:
+            return json.dumps([{"version": v} for v in downloads])
+        return "3.14.4\n"
+
+    monkeypatch.setattr(updates, "run", fake_run)
+    monkeypatch.setattr(updates, "tool", lambda name: "/bin/uv" if name == "uv" else None)
+    monkeypatch.setattr(updates.platform, "python_version", lambda: "3.14.4")
+    r = await updates.python_row(CAT)
+    assert r["status"] == status
+    assert "3.14.8" in (r["value"] if status == "Warning" else r["hint"])
 
 
 def test_state_key_follows_the_lock_file(tmp_path):

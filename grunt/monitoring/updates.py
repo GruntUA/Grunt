@@ -47,7 +47,8 @@ CACHE_TTL = 6 * 3600
 CACHE_TTL_FAILED = 30 * 60
 TIMEOUT = 20.0
 LIST_MAX = 8
-# `mise self-update` skips releases younger than this (its minimum_release_age default)
+# `mise self-update` / `mise upgrade` skip releases younger than this (its
+# minimum_release_age default)
 MISE_RELEASE_AGE = timedelta(hours=24)
 
 _RELEASE_TAG = re.compile(r"^v(\d+)\.(\d+)\.(\d+)$")
@@ -291,6 +292,30 @@ async def runtime_row(cat: str, name: str, product: str, current: str) -> Row:
     return row(cat, name, OK if not notes else INFO, current, " ".join(notes))
 
 
+async def uv_python_latest(current: str) -> str:
+    """The newest patch of *current*'s line the installed uv can download -
+    what `uv python upgrade` takes. A patch newer than that arrives with a
+    newer uv."""
+    v = Version(current)
+    out = await run(
+        _uv(),
+        "python",
+        "list",
+        f"{v.major}.{v.minor}",
+        "--only-downloads",
+        "--output-format",
+        "json",
+        cwd=FRAMEWORK_DIR,
+    )
+    try:
+        versions = [str(py["version"]) for py in json.loads(out or "[]") if py.get("version")]
+    except (ValueError, TypeError, AttributeError) as e:
+        raise UnavailableError(out.strip()[:100]) from e
+    if not versions:
+        raise UnavailableError(_("no release found"))
+    return max(versions, key=Version)
+
+
 async def python_row(cat: str) -> Row:
     """Python of the environment on disk; when the running process is older
     (`uv python upgrade` ran, the server didn't restart), say so."""
@@ -303,6 +328,28 @@ async def python_row(cat: str) -> Row:
     except UnavailableError:
         on_disk = running
     result = await runtime_row(cat, "Python", "python", on_disk)
+    if result["status"] == WARNING:
+        # endoflife.date knows a newer patch - `grunt update` installs it only
+        # once uv can download it
+        try:
+            # keyed by the uv binary: a newer uv knows newer patches
+            key = f"uv-python:{on_disk}:{os.path.realpath(tool('uv') or '')}"
+            installable = await cached(key, lambda: uv_python_latest(on_disk))
+        except UnavailableError:
+            installable = None
+        if installable and not newer(on_disk, installable):
+            latest = result["value"].rsplit(" → ", 1)[-1]
+            result = row(
+                cat,
+                "Python",
+                INFO,
+                on_disk,
+                _(
+                    "Python %(version)s is out - `grunt update` installs it once uv supports it"
+                    " (with the next uv release)."
+                )
+                % {"version": latest},
+            )
     if on_disk != running:
         result = row(
             cat,
@@ -357,7 +404,24 @@ async def tool_rows(cat: str) -> list[Row]:
         return first_version(await fetch(f"{rclone.DOWNLOAD_URL}/version.txt"))
 
     async def uv_latest() -> str:
-        return json.loads(await fetch("https://pypi.org/pypi/uv/json"))["info"]["version"]
+        """The newest release `mise upgrade` would take (mise.toml: uv = "latest")
+        - not one younger than MISE_RELEASE_AGE."""
+        releases = json.loads(await fetch("https://pypi.org/pypi/uv/json"))["releases"]
+        cutoff = datetime.now(UTC) - MISE_RELEASE_AGE
+        settled = []
+        for version, files in releases.items():
+            try:
+                parsed = Version(version)
+            except InvalidVersion:
+                continue
+            uploaded = [f["upload_time_iso_8601"] for f in files if not f.get("yanked")]
+            if parsed.is_prerelease or not uploaded:
+                continue
+            if datetime.fromisoformat(min(uploaded)) <= cutoff:
+                settled.append(parsed)
+        if not settled:
+            raise UnavailableError(_("no release found"))
+        return str(max(settled))
 
     async def mise_latest() -> str:
         """The newest release `mise self-update` would take - not one younger
