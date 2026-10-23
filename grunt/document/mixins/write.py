@@ -46,7 +46,9 @@ class DocumentWriteMixin(DocumentReadMixin):
     async def db_insert(self) -> None:
         """INSERT ``self.data`` with its child tables, aggregates and MultiLink values.
 
-        Child-table rows and MultiLink lists are taken from the submitted values.
+        Child-table rows come from ``self.data`` (as on update), so rows a
+        lifecycle hook filled in are stored too; MultiLink lists - from the
+        submitted values.
         """
         dt = self._dt
         table = dt.table
@@ -58,7 +60,7 @@ class DocumentWriteMixin(DocumentReadMixin):
         # Flush so the parent row exists before the child rows reference it.
         await self.session.flush()
         now = row.get("created_at") or datetime.now(UTC)
-        await _save_child_tables(self.session, dt.doc, doc_id, data, self.user, now)
+        await _save_child_tables(self.session, dt.doc, doc_id, row, self.user, now)
         await self._apply_aggregations(dt, table, doc_id, row)
         await self._sync_multi_links(dt, doc_id, data)
 
