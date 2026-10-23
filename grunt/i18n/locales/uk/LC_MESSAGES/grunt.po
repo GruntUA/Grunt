@@ -23332,3 +23332,31 @@ msgstr ""
 
 #~ msgid "Full width"
 #~ msgstr "На всю ширину"
+
+#: grunt/grunt/monitoring/health.py
+msgid "Checking…"
+msgstr "Перевіряється…"
+
+#: grunt/grunt/monitoring/health.py
+msgid "Checking… {done} of {total} sections ready"
+msgstr "Перевіряється… готово {done} з {total} розділів"
+
+#: grunt/grunt/monitoring/health.py
+msgid "Unknown section of the report: %(key)s"
+msgstr "Невідомий розділ звіту: %(key)s"
+
+#: grunt/grunt/monitoring/health.py
+msgid "Framework and apps"
+msgstr "Фреймворк і додатки"
+
+#: grunt/grunt/monitoring/health.py
+msgid "Runtimes"
+msgstr "Середовища виконання"
+
+#: grunt/grunt/monitoring/health.py
+msgid "Tools"
+msgstr "Інструменти"
+
+#: grunt/grunt/monitoring/health.py
+msgid "Packages"
+msgstr "Пакети"

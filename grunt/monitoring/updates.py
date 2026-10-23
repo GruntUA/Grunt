@@ -795,18 +795,27 @@ def _unavailable(cat: str, name: str, current: str, e: Exception) -> Row:
     return row(cat, name, INFO, current, _("Could not check for updates: %(error)s") % {"error": e})
 
 
-async def check_updates() -> list[Row]:
-    cat = _("Updates")
+# Sections of the health report (health.CHECKS); the framework and apps rows
+# (code_rows) go into health.check_versions next to the migrated versions.
 
-    async def runtimes() -> list[Row]:
-        rows = [await python_row(cat)]
+
+async def check_runtimes() -> list[Row]:
+    cat = _("Runtimes")
+
+    async def node() -> list[Row]:
         try:
-            node = await node_version()
+            current = await node_version()
         except UnavailableError:
-            return rows
-        return [*rows, await runtime_row(cat, "Node.js", "nodejs", node)]
+            return []
+        return [await runtime_row(cat, "Node.js", "nodejs", current)]
 
-    code, rts, tools, packages, old = await asyncio.gather(
-        code_rows(cat), runtimes(), tool_rows(cat), package_rows(cat), old_runtimes_row(cat)
-    )
-    return [*code, *rts, *tools, old, *packages]
+    python, nodejs, old = await asyncio.gather(python_row(cat), node(), old_runtimes_row(cat))
+    return [python, *nodejs, old]
+
+
+async def check_tools() -> list[Row]:
+    return await tool_rows(_("Tools"))
+
+
+async def check_packages() -> list[Row]:
+    return await package_rows(_("Packages"))

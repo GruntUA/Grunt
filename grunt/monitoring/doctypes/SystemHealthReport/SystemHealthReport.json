@@ -49,28 +49,9 @@
       "read_only": true
     },
     {
-      "fieldname": "col_summary",
-      "fieldtype": "Column",
-      "hidden": true
-    },
-    {
-      "fieldname": "ok_count",
-      "label": "Good",
-      "fieldtype": "Int",
-      "hidden": true,
-      "read_only": true
-    },
-    {
-      "fieldname": "warning_count",
-      "label": "Warning",
-      "fieldtype": "Int",
-      "hidden": true,
-      "read_only": true
-    },
-    {
-      "fieldname": "error_count",
-      "label": "Problems",
-      "fieldtype": "Int",
+      "fieldname": "sections",
+      "label": "Sections",
+      "fieldtype": "JSON",
       "hidden": true,
       "read_only": true
     },
@@ -80,11 +61,9 @@
       "fieldtype": "Section"
     },
     {
-      "fieldname": "checks",
+      "fieldname": "report",
       "label": "Checks",
-      "fieldtype": "Table",
-      "options": "SystemHealthCheck",
-      "group_by": "category",
+      "fieldtype": "HTMLView",
       "read_only": true
     },
     {
@@ -95,8 +74,7 @@
     {
       "fieldname": "top_errors",
       "label": "Most frequent errors (7 days)",
-      "fieldtype": "Table",
-      "options": "SystemHealthItem",
+      "fieldtype": "HTMLView",
       "read_only": true
     },
     {
@@ -106,8 +84,7 @@
     {
       "fieldname": "largest_tables",
       "label": "Largest tables",
-      "fieldtype": "Table",
-      "options": "SystemHealthItem",
+      "fieldtype": "HTMLView",
       "read_only": true
     },
     {
@@ -116,11 +93,9 @@
       "fieldtype": "Tab"
     },
     {
-      "fieldname": "browser_checks",
+      "fieldname": "browser_report",
       "label": "Checks of this browser",
-      "fieldtype": "Table",
-      "options": "SystemHealthCheck",
-      "group_by": "category",
+      "fieldtype": "HTMLView",
       "read_only": true,
       "description": "Run in the browser this page is opened in: service worker, offline cache, queue of unsynced changes, storage."
     }

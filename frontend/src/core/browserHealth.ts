@@ -5,7 +5,7 @@
  * is waiting in the offline queue, how much storage is left.
  *
  * Rows use the same shape as the server checks (grunt/monitoring/health.py),
- * so both render in the same SystemHealthCheck table.
+ * so both render in the same table (grunt/monitoring/templates/system_health.html).
  */
 import client from '@/core/api/client'
 import { queue, refreshQueue } from '@/core/composables/useOfflineQueue'

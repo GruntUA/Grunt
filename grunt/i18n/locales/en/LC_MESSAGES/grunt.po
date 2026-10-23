@@ -20473,3 +20473,31 @@ msgstr ""
 #: grunt/frontend/src/components/views/list/ListToolbarControls.vue
 msgid "Reset to default"
 msgstr ""
+
+#: grunt/grunt/monitoring/health.py
+msgid "Checking…"
+msgstr ""
+
+#: grunt/grunt/monitoring/health.py
+msgid "Checking… {done} of {total} sections ready"
+msgstr ""
+
+#: grunt/grunt/monitoring/health.py
+msgid "Unknown section of the report: %(key)s"
+msgstr ""
+
+#: grunt/grunt/monitoring/health.py
+msgid "Framework and apps"
+msgstr ""
+
+#: grunt/grunt/monitoring/health.py
+msgid "Runtimes"
+msgstr ""
+
+#: grunt/grunt/monitoring/health.py
+msgid "Tools"
+msgstr ""
+
+#: grunt/grunt/monitoring/health.py
+msgid "Packages"
+msgstr ""

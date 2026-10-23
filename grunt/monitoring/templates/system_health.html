@@ -1,0 +1,66 @@
+{#- «Стан системи» markup (grunt/monitoring/health.py: render_*).
+
+kind="report"  - the checks table: one <tbody data-health="key"> per section,
+                 a pending one until the page swaps in what run_section returns
+kind="section" - one such <tbody> with its rows
+kind="items"   - a label / count / note table (top errors, largest tables)
+
+Rendered into HTMLView fields; inline styles - Tailwind does not scan this file.
+-#}
+{%- macro status(s) -%}
+<span style="display:inline-flex;align-items:center;gap:.4em;white-space:nowrap">
+<span style="width:.55em;height:.55em;border-radius:9999px;background:{{ STATUS_COLORS.get(s, STATUS_COLORS.Info) }}"></span>
+{{- _(STATUS_LABELS.get(s, s)) -}}
+</span>
+{%- endmacro -%}
+
+{%- macro section(key, groups, pending_label=None) -%}
+<tbody data-health="{{ key }}">
+{%- if pending_label %}
+<tr><th colspan="4" style="padding-top:1em">{{ pending_label }}</th></tr>
+<tr><td colspan="4" style="color:var(--muted-foreground)">{{ _("Checking…") }}</td></tr>
+{%- endif %}
+{%- for category, rows in groups %}
+<tr><th colspan="4" style="padding-top:1em">{{ category }}</th></tr>
+{%- for r in rows %}
+<tr>
+<td>{{ r.check }}</td>
+<td>{{ status(r.status) }}</td>
+<td>{{ r.value }}</td>
+<td style="color:var(--muted-foreground)">{{ r.hint }}</td>
+</tr>
+{%- endfor %}
+{%- endfor %}
+</tbody>
+{%- endmacro -%}
+
+{%- if kind == "report" -%}
+<table>
+<thead><tr><th>{{ _("Check") }}</th><th>{{ _("State") }}</th><th>{{ _("Value") }}</th><th>{{ _("What to do") }}</th></tr></thead>
+{%- for s in sections %}
+{{ section(s.key, [], s.label) }}
+{%- endfor %}
+</table>
+{%- elif kind == "section" -%}
+{{ section(key, groups) }}
+{%- elif kind == "checks" -%}
+<table>
+<thead><tr><th>{{ _("Check") }}</th><th>{{ _("State") }}</th><th>{{ _("Value") }}</th><th>{{ _("What to do") }}</th></tr></thead>
+{{ section("browser", groups) }}
+</table>
+{%- elif kind == "items" -%}
+<table>
+<thead><tr><th>{{ _("Name") }}</th><th style="text-align:right">{{ _("Count") }}</th><th>{{ _("Note") }}</th></tr></thead>
+<tbody data-health="{{ key }}">
+{%- if pending %}
+<tr><td colspan="3" style="color:var(--muted-foreground)">{{ _("Checking…") }}</td></tr>
+{%- else %}
+{%- for r in rows %}
+<tr><td>{{ r.label }}</td><td style="text-align:right;font-variant-numeric:tabular-nums">{{ r.count }}</td><td style="color:var(--muted-foreground)">{{ r.details }}</td></tr>
+{%- else %}
+<tr><td colspan="3" style="color:var(--muted-foreground)">—</td></tr>
+{%- endfor %}
+{%- endif %}
+</tbody>
+</table>
+{%- endif -%}

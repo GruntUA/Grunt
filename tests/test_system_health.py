@@ -6,11 +6,12 @@ from grunt.monitoring import health
 
 URL = "/api/v1/docs/SystemHealthReport/SystemHealthReport"
 STATUSES = {"OK", "Warning", "Error", "Info"}
+METHOD = "/api/v1/method/grunt.monitoring.health"
 
 
 @pytest.fixture(autouse=True)
 def _offline_updates(monkeypatch):
-    """The «Updates» rows ask git remotes, endoflife.date, PyPI and npm - not in tests."""
+    """The update checks ask git remotes, endoflife.date, PyPI and npm - not in tests."""
     from grunt.monitoring import updates
 
     async def unavailable(*args, **kwargs):
@@ -25,22 +26,60 @@ def _offline_updates(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_report_runs_every_check(client, auth_headers):
-    # English — the CHECKS categories are the (untranslated) English sources.
+async def test_report_opens_on_a_skeleton(client, auth_headers, monkeypatch):
+    async def never(*args, **kwargs):
+        raise AssertionError("opening the report must not run the checks")
+
+    monkeypatch.setattr(health, "_safe", never)
     r = await client.get(URL, headers={**auth_headers, "X-Grunt-Lang": "en"})
     assert r.status_code == 200, r.text
     doc = r.json()["data"]
 
-    checks = doc["checks"]
-    assert {c["category"] for c in checks} >= {c for c, _ in health.CHECKS}
-    assert all(c["status"] in STATUSES for c in checks)
-    crashed = [c for c in checks if c["value"] == "check failed"]
-    assert not crashed, crashed
+    keys = [s["key"] for s in doc["sections"]]
+    assert keys == [*health._CHECKS, *health._ITEMS]
+    for key in health._CHECKS:
+        assert f'<tbody data-health="{key}">' in doc["report"]
+    assert "Checking…" in doc["top_errors"]
+    assert "<table>" in doc["browser_report"]
 
-    assert doc["overall_status"] in {"OK", "Warning", "Error"}
-    assert doc["ok_count"] + doc["warning_count"] + doc["error_count"] <= len(checks)
-    assert doc["largest_tables"] and doc["largest_tables"][0]["count"] >= 0
-    assert doc["browser_checks"] == []  # filled in by the page, in the browser
+
+@pytest.mark.asyncio
+async def test_every_section_runs(client, auth_headers):
+    """What the page does after opening: one request per section."""
+    headers = {**auth_headers, "X-Grunt-Lang": "en"}
+    for key in health._CHECKS:
+        r = await client.post(f"{METHOD}.run_section", json={"key": key}, headers=headers)
+        assert r.status_code == 200, (key, r.text)
+        data = r.json()["data"]
+        assert data["rows"] and all(c["status"] in STATUSES for c in data["rows"])
+        crashed = [c for c in data["rows"] if c["value"] == "check failed"]
+        assert not crashed, crashed
+        assert data["html"].startswith(f'<tbody data-health="{key}">')
+
+    r = await client.post(f"{METHOD}.run_section", json={"key": "largest_tables"}, headers=headers)
+    rows = r.json()["data"]["rows"]
+    assert rows and rows[0]["count"] >= 0
+
+    r = await client.post(f"{METHOD}.run_section", json={"key": "nope"}, headers=headers)
+    assert r.status_code == 404, r.text
+
+
+def test_rendered_rows_are_escaped():
+    html = health.render(
+        "section",
+        key="x",
+        groups=health._groups([health.row("<b>cat</b>", "<script>", "Error", "<i>v</i>")]),
+    )
+    assert "<script>" not in html and "&lt;script&gt;" in html
+    assert "&lt;b&gt;cat&lt;/b&gt;" in html and "var(--destructive)" in html
+
+
+@pytest.mark.asyncio
+async def test_browser_rows_render(client, auth_headers):
+    rows = [{"category": "Network", "check": "Server", "status": "OK", "value": "1 ms", "hint": ""}]
+    r = await client.post(f"{METHOD}.render_checks", json={"rows": rows}, headers=auth_headers)
+    assert r.status_code == 200, r.text
+    assert "1 ms" in r.json()["data"] and 'data-health="browser"' in r.json()["data"]
 
 
 @pytest.mark.asyncio
@@ -76,10 +115,10 @@ class _NoSession:
 async def test_virtual_child_without_controller_lists_empty(client, auth_headers):
     """Opening the list of a controller-less virtual child DocType is an empty
     list, not a 500 (it used to raise NotImplementedError)."""
-    r = await client.get("/api/v1/docs/SystemHealthCheck", headers=auth_headers)
+    r = await client.get("/api/v1/docs/SqlProfilerQuery", headers=auth_headers)
     assert r.status_code == 200, r.text
     assert r.json()["data"] == []
-    r = await client.get("/api/v1/docs/SystemHealthCheck/x", headers=auth_headers)
+    r = await client.get("/api/v1/docs/SqlProfilerQuery/x", headers=auth_headers)
     assert r.status_code == 404
 
 
@@ -154,6 +193,25 @@ async def test_version_the_database_was_migrated_with(ctx):
     await record_migrated_versions()
     [fresh] = [r for r in await health.check_versions() if r["check"] == "grunt"]
     assert fresh["status"] == "Info" and fresh["value"] == grunt.__version__
+
+
+def test_version_and_update_rows_merge():
+    cat = "Framework and apps"
+    local = [
+        health.row(cat, "grunt", "Info", "1.2.0"),
+        health.row(cat, "hrm", "Warning", "0.3.0", "Run `grunt migrate`."),
+        health.row(cat, "Database migrations", "OK", "0017"),
+    ]
+    available = [
+        health.row(cat, "grunt", "OK", "1.2.0"),
+        health.row(cat, "hrm", "Warning", "0.3.0 → 0.4.0", "Run `grunt update`."),
+        health.row(cat, "Python", "OK", "3.15.1"),
+    ]
+    grunt_row, hrm, migrations, python = health._merge_by_check(local, available)
+    assert grunt_row["status"] == "OK"
+    assert hrm["value"] == "0.3.0 → 0.4.0"
+    assert hrm["hint"] == "Run `grunt migrate`. Run `grunt update`."
+    assert migrations["check"] == "Database migrations" and python["check"] == "Python"
 
 
 @pytest.mark.asyncio

@@ -20,6 +20,7 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
+from jinja2 import Environment, FileSystemLoader
 from packaging.version import InvalidVersion, Version
 from sqlalchemy import inspect, text
 
@@ -30,6 +31,7 @@ from grunt.apps.deps import app_packages
 from grunt.apps.manifest import is_app
 from grunt.backups import list_backups
 from grunt.i18n import N_, _
+from grunt.i18n.jinja import install as install_i18n
 from grunt.metadata.compiler import get_table_name
 from grunt.metadata.registry import doctype_registry
 from grunt.site.manager import current_site, site_manager
@@ -40,7 +42,7 @@ from grunt.utils.redis import connect
 from grunt.version import app_version, compatibility_error
 lazy from grunt.config import DEFAULT_SECRET_KEY, settings
 lazy from grunt.db.alembic_utils import migration_state
-lazy from grunt.monitoring.updates import check_updates as updates
+lazy from grunt.monitoring import updates
 lazy from grunt.print.pdf import PdfEngineError, check_engine
 lazy from grunt.storage.cloud import rclone
 lazy from grunt.storage.cloud.files import cache_root
@@ -755,10 +757,16 @@ def _older(code: str, db: str) -> bool:
 
 async def check_versions() -> list[Row]:
     """Framework and app versions (git tags) next to the versions this site's
-    database was last migrated with, the Alembic migration state, and apps
-    whose ``required_grunt`` the running framework does not satisfy - those
-    are not loaded."""
-    cat = _("Versions")
+    database was last migrated with and the newest release (one row per app),
+    the Alembic migration state, and apps whose ``required_grunt`` the running
+    framework does not satisfy - those are not loaded."""
+    cat = _("Framework and apps")
+    # code_rows() asks the network and never the database - safe next to the session.
+    rows, available = await asyncio.gather(_version_rows(cat), updates.code_rows(cat))
+    return _merge_by_check(rows, available)
+
+
+async def _version_rows(cat: str) -> list[Row]:
     migrated = {
         r["name"]: r.get("version") or ""
         for r in await grunt.get_list("GruntInstalledApp", fields=["name", "version"])
@@ -798,6 +806,24 @@ async def check_versions() -> list[Row]:
         rows.append(version_row(app_dir.name, app_version(app_dir), compatibility_error(app_dir)))
     rows.append(await _migrations_row(cat))
     return rows
+
+
+_RANK = {INFO: 0, OK: 1, WARNING: 2, ERROR: 3}
+
+
+def _merge_by_check(rows: list[Row], extra: list[Row]) -> list[Row]:
+    """``rows`` with the ``extra`` row of the same check folded in (the worse
+    status, the extra's value, both hints), then the rest of ``extra``."""
+    by_check = {r["check"]: r for r in extra}
+    merged = []
+    for r in rows:
+        if (other := by_check.pop(r["check"], None)) is None:
+            merged.append(r)
+            continue
+        status = max(r["status"], other["status"], key=lambda s: _RANK.get(s, 0))
+        hint = " ".join(h for h in (r["hint"], other["hint"]) if h)
+        merged.append({**r, "status": status, "value": other["value"] or r["value"], "hint": hint})
+    return merged + [r for r in extra if r["check"] in by_check]
 
 
 async def _migrations_row(cat: str) -> Row:
@@ -874,12 +900,20 @@ async def check_offline_build() -> list[Row]:
     return rows
 
 
-# Updates (grunt.monitoring.updates - it imports the row helpers from here)
+# Updates (grunt.monitoring.updates - it imports the row helpers from here, so
+# it is reached only when a check runs)
 
 
-async def check_updates() -> list[Row]:
+async def check_runtimes() -> list[Row]:
+    return await updates.check_runtimes()
 
-    return await updates()
+
+async def check_tools() -> list[Row]:
+    return await updates.check_tools()
+
+
+async def check_packages() -> list[Row]:
+    return await updates.check_packages()
 
 
 # Runner
@@ -898,8 +932,10 @@ CHECKS: list[tuple[str, Callable[[], Awaitable[list[Row]]]]] = [
     (N_("WebSockets"), check_realtime),
     (N_("App dependencies"), check_app_dependencies),
     (N_("PDF"), check_pdf),
-    (N_("Versions"), check_versions),
-    (N_("Updates"), check_updates),
+    (N_("Framework and apps"), check_versions),
+    (N_("Runtimes"), check_runtimes),
+    (N_("Tools"), check_tools),
+    (N_("Packages"), check_packages),
     (N_("Offline mode"), check_offline_build),
 ]
 
@@ -924,19 +960,81 @@ async def _items(fn: Callable[[], Awaitable[list[Row]]]) -> list[Row]:
         return []
 
 
-async def build_report() -> dict[str, Any]:
-    checks: list[Row] = []
-    for category, fn in CHECKS:
-        checks.extend(await _safe(category, fn))
-    tally = {s: sum(1 for c in checks if c["status"] == s) for s in (OK, WARNING, ERROR)}
-    overall = ERROR if tally[ERROR] else WARNING if tally[WARNING] else OK
+# Report page - SystemHealthReport opens on a skeleton (sections()), then the
+# page asks for every section in parallel (run_section): one request each, so
+# each on its own DB session, and a slow one (the update checks ask the
+# network) holds up only its own rows.
+
+ITEMS: list[tuple[str, Callable[[], Awaitable[list[Row]]]]] = [
+    (N_("Most frequent errors (7 days)"), top_errors),
+    (N_("Largest tables"), largest_tables),
+]
+_CHECKS = {fn.__name__.removeprefix("check_"): (category, fn) for category, fn in CHECKS}
+_ITEMS = {fn.__name__: (label, fn) for label, fn in ITEMS}
+
+STATUS_LABELS = {OK: N_("Good"), WARNING: N_("Warning"), ERROR: N_("Problem"), INFO: N_("Info")}
+STATUS_COLORS = {
+    OK: "var(--success)",
+    WARNING: "var(--warning)",
+    ERROR: "var(--destructive)",
+    INFO: "var(--muted-foreground)",
+}
+
+_templates = Environment(
+    loader=FileSystemLoader(Path(__file__).parent / "templates"),
+    autoescape=True,
+    trim_blocks=True,
+)
+install_i18n(_templates)
+_templates.globals.update(STATUS_LABELS=STATUS_LABELS, STATUS_COLORS=STATUS_COLORS)
+
+
+def render(kind: str, **context: Any) -> str:
+    return _templates.get_template("system_health.html").render(kind=kind, **context)
+
+
+def _groups(rows: list[Row]) -> list[tuple[str, list[Row]]]:
+    """Rows by category, in the order the categories first appear."""
+    groups: dict[str, list[Row]] = {}
+    for r in rows:
+        groups.setdefault(str(r.get("category") or ""), []).append(r)
+    return list(groups.items())
+
+
+def sections() -> list[dict[str, str]]:
+    return [
+        {"key": key, "label": _(category), "kind": "checks"}
+        for key, (category, _fn) in _CHECKS.items()
+    ] + [{"key": key, "label": _(label), "kind": "items"} for key, (label, _fn) in _ITEMS.items()]
+
+
+def skeleton() -> dict[str, Any]:
+    """The report before any check ran - every section shown as pending."""
+    checks = [s for s in sections() if s["kind"] == "checks"]
     return {
-        "overall_status": overall,
         "checked_at": datetime.now(UTC),
-        "ok_count": tally[OK],
-        "warning_count": tally[WARNING],
-        "error_count": tally[ERROR],
-        "checks": checks,
-        "top_errors": await _items(top_errors),
-        "largest_tables": await _items(largest_tables),
+        "sections": sections(),
+        "report": render("report", sections=checks),
+        **{key: render("items", key=key, pending=True) for key in _ITEMS},
+        "browser_report": render("checks", groups=[]),
     }
+
+
+@whitelist(roles=["System Manager"])
+async def run_section(key: str) -> dict[str, Any]:
+    """One section of the report: its rows and their markup."""
+    if key in _CHECKS:
+        category, fn = _CHECKS[key]
+        rows = await _safe(category, fn)
+        return {"key": key, "rows": rows, "html": render("section", key=key, groups=_groups(rows))}
+    if key in _ITEMS:
+        rows = await _items(_ITEMS[key][1])
+        return {"key": key, "rows": rows, "html": render("items", key=key, rows=rows)}
+    grunt.throw(_("Unknown section of the report: %(key)s") % {"key": key}, code="NOT_FOUND")
+
+
+@whitelist(roles=["System Manager"])
+async def render_checks(rows: list[dict[str, Any]]) -> str:
+    """Markup for the browser's own checks (frontend/src/core/browserHealth.ts) -
+    the same table as the server sections."""
+    return render("checks", groups=_groups(rows))
