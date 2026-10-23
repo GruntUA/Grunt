@@ -27,6 +27,7 @@ from grunt.document.registry import document_registry
 from grunt.document.tree import register_tree_title_resolver
 from grunt.hooks import register_doc_events, register_doctype_overrides
 from grunt.io import register_exporter, register_importer
+from grunt.middleware.rate_limit import register_path_limit
 from grunt.scripting.file_scripts import register_doctype_js
 from grunt.tasks.scheduler import register_scheduler_events
 from grunt.website import website_registry
@@ -113,6 +114,13 @@ def _doctype_js(value: dict[str, str | list[str]], ctx: LoadContext) -> None:
 def _write_guards(value: list[str], ctx: LoadContext) -> None:
     for path in value:
         register_write_guard(_resolve(path))
+
+
+@consumer("rate_limits")
+def _rate_limits(value: dict[str, int], ctx: LoadContext) -> None:
+    """``{"/api/v1/method/app.api.x": 300}`` - own per-IP limit/minute for a path."""
+    for path, limit in value.items():
+        register_path_limit(path, limit)
 
 
 @consumer("override_doctype_class")

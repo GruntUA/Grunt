@@ -60,6 +60,16 @@ _AUTH_METHODS_LIMIT = 20
 
 _FILE_CONTENT_PATH = "/api/v1/method/grunt.storage.doctypes.File.file.get_content"
 
+# Per-IP limits (requests/minute) that apps set for their own paths through
+# ``rate_limits`` in hooks.py - a bucket of its own instead of the user /
+# anonymous tier (e.g. a guest proxy a browser library calls dozens of times).
+_PATH_LIMITS: dict[str, int] = {}
+
+
+def register_path_limit(path: str, limit: int) -> None:
+    """Give *path* its own per-IP limit/minute (the ``rate_limits`` hook)."""
+    _PATH_LIMITS[path] = int(limit)
+
 
 def _is_file_content_request(request: Request) -> bool:
     """File downloads (signed private files and public ones alike).
@@ -220,6 +230,16 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             if not allowed:
                 log.warning("rate_limit.auth_exceeded", path=path, ip=ip)
                 return _too_many_requests(path, reset_in, {})
+
+        # A limit an app set for this very path: its own per-IP bucket
+        path_limit = _PATH_LIMITS.get(path)
+        if path_limit is not None:
+            ip = self._client_ip(request)
+            allowed, remaining, reset_in = await self._check(f"path:{path}:{ip}", path_limit)
+            if not allowed:
+                log.warning("rate_limit.path_exceeded", path=path, ip=ip, limit=path_limit)
+                return _too_many_requests(path, reset_in, {})
+            return await call_next(request)
 
         # Strict IP-based limit for public form submissions
         if _is_form_submit(path, request.method):
