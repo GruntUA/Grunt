@@ -2,8 +2,11 @@
 
 import importlib.metadata
 import json
+import os
 import subprocess
+import time
 from datetime import UTC, date, datetime, timedelta
+from types import SimpleNamespace
 
 import pytest
 
@@ -451,3 +454,60 @@ def test_process_user(tmp_path, monkeypatch):
     (proc / "stat").write_text(f"42 (python3) S {' '.join(fields[1:])}\n")
     running = updates._process_user(proc)
     assert "Ctrl+Z" not in running and running.endswith(") → `kill 42`")
+
+
+_UPGRADABLE = """Listing...
+openssl/trixie-security 3.5.1-1+deb13u1 amd64 [upgradable from: 3.5.1-1]
+curl/trixie 8.14.1-2 amd64 [upgradable from: 8.14.1-1]
+"""
+
+
+@pytest.fixture
+def apt(monkeypatch, tmp_path):
+    """A fake apt: ``apt.listing`` is what `apt list --upgradable` prints."""
+    state = SimpleNamespace(listing="Listing...\n")
+
+    async def fake_run(*cmd, **kwargs):
+        assert cmd[:2] == ("apt", "list")
+        return state.listing
+
+    monkeypatch.setattr(updates.shutil, "which", lambda name: f"/usr/bin/{name}")
+    monkeypatch.setattr(updates, "run", fake_run)
+    monkeypatch.setattr(updates, "os_name", lambda: "Debian GNU/Linux 13 (trixie)")
+    monkeypatch.setattr(updates, "APT_LISTS", tmp_path)
+    monkeypatch.setattr(updates, "REBOOT_REQUIRED", tmp_path / "reboot-required")
+    state.dir = tmp_path
+    return state
+
+
+@pytest.mark.asyncio
+async def test_os_up_to_date(apt):
+    (apt.dir / "deb.debian.org_dists_trixie_InRelease").touch()
+    r = await updates.os_row(CAT)
+    assert r["status"] == "OK" and r["value"] == "Debian GNU/Linux 13 (trixie)"
+
+
+@pytest.mark.asyncio
+async def test_os_security_updates_are_an_error(apt):
+    apt.listing = _UPGRADABLE
+    r = await updates.os_row(CAT)
+    assert r["status"] == "Error"
+    assert "openssl, curl" in r["hint"] and "sudo apt upgrade" in r["hint"]  # security first
+
+
+@pytest.mark.asyncio
+async def test_os_stale_lists_and_reboot(apt):
+    old = apt.dir / "deb.debian.org_dists_trixie_InRelease"
+    old.touch()
+    ten_days_ago = time.time() - 10 * 86400
+    os.utime(old, (ten_days_ago, ten_days_ago))
+    (apt.dir / "reboot-required").touch()
+    r = await updates.os_row(CAT)
+    assert r["status"] == "Warning"
+    assert "10" in r["hint"] and "grunt update" in r["hint"]
+
+
+@pytest.mark.asyncio
+async def test_no_apt_no_os_row(monkeypatch):
+    monkeypatch.setattr(updates.shutil, "which", lambda name: None)
+    assert await updates.os_row(CAT) is None

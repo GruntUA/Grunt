@@ -23360,3 +23360,27 @@ msgstr "Інструменти"
 #: grunt/grunt/monitoring/health.py
 msgid "Packages"
 msgstr "Пакети"
+
+#: grunt/grunt/monitoring/updates.py
+msgid "Operating system"
+msgstr "Операційна система"
+
+#: grunt/grunt/monitoring/updates.py
+msgid "Packages to update: %(count)s, security: %(security)s - %(names)s."
+msgstr "Пакетів до оновлення: %(count)s, з них безпекових: %(security)s — %(names)s."
+
+#: grunt/grunt/monitoring/updates.py
+msgid "Packages to update: %(count)s - %(names)s."
+msgstr "Пакетів до оновлення: %(count)s — %(names)s."
+
+#: grunt/grunt/monitoring/updates.py
+msgid "Run `sudo apt upgrade`."
+msgstr "Запустіть `sudo apt upgrade`."
+
+#: grunt/grunt/monitoring/updates.py
+msgid "The package lists were last refreshed %(days)s days ago - run `grunt update`."
+msgstr "Списки пакетів востаннє оновлювались %(days)s дн. тому — запустіть `grunt update`."
+
+#: grunt/grunt/monitoring/updates.py
+msgid "Restart the server to finish an OS update."
+msgstr "Перезавантажте сервер, щоб завершити оновлення ОС."

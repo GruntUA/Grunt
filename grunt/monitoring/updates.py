@@ -114,11 +114,15 @@ def tool(name: str) -> str | None:
 
 
 async def run(
-    *cmd: str, cwd: Path | None = None, timeout: float = TIMEOUT, stderr: bool = False
+    *cmd: str,
+    cwd: Path | None = None,
+    timeout: float = TIMEOUT,
+    stderr: bool = False,
+    env: dict[str, str] | None = None,
 ) -> str:
     """stdout of ``cmd`` (and its stderr with *stderr*); UnavailableError when
     it can't run or fails."""
-    env = {**os.environ, "GIT_TERMINAL_PROMPT": "0"}
+    env = {**os.environ, "GIT_TERMINAL_PROMPT": "0", **(env or {})}
     if mise := tool("mise"):
         # mise shims (node, npm) need mise itself on PATH
         env["PATH"] = f"{Path(mise).parent}:{env.get('PATH', '')}"
@@ -799,6 +803,75 @@ def _unavailable(cat: str, name: str, current: str, e: Exception) -> Row:
 # (code_rows) go into health.check_versions next to the migrated versions.
 
 
+# Operating system - `grunt update` refreshes the package lists (apt-get update,
+# needs sudo); the report only reads them, as they are.
+
+APT_LISTS = Path("/var/lib/apt/lists")
+REBOOT_REQUIRED = Path("/var/run/reboot-required")
+APT_LISTS_STALE = timedelta(days=7)
+
+
+def os_name() -> str:
+    return platform.freedesktop_os_release().get("PRETTY_NAME") or platform.platform()
+
+
+def apt_upgradable(listing: str) -> list[tuple[str, bool]]:
+    """Packages in ``apt list --upgradable``: (name, from a security repository).
+
+    ``openssl/trixie-security 3.5.1-1+deb13u1 amd64 [upgradable from: 3.5.1-1]``"""
+    packages = []
+    for line in listing.splitlines():
+        if "[upgradable from:" not in line or "/" not in line:
+            continue
+        name, rest = line.split("/", 1)
+        origins = rest.split(" ", 1)[0].split(",")
+        packages.append((name, any(o.endswith("-security") for o in origins)))
+    return packages
+
+
+def _apt_lists_age() -> timedelta | None:
+    stamps = [p.stat().st_mtime for p in APT_LISTS.glob("*Release")]
+    if not stamps:
+        return None
+    return datetime.now(UTC) - datetime.fromtimestamp(max(stamps), UTC)
+
+
+async def os_row(cat: str) -> Row | None:
+    """Upgradable OS packages (Debian/Ubuntu); None without apt."""
+    if not shutil.which("apt"):
+        return None
+    check, name = _("Operating system"), os_name()
+    try:
+        listing = await run("apt", "list", "--upgradable", env={"LANG": "C", "LC_ALL": "C"})
+    except UnavailableError as e:
+        return _unavailable(cat, check, name, e)
+    packages = apt_upgradable(listing)
+    security = [p for p, is_security in packages if is_security]
+    hints = []
+    if packages:
+        names = security + [p for p, is_security in packages if not is_security]
+        counts = {"count": len(packages), "security": len(security), "names": short_list(names)}
+        if security:
+            hints.append(
+                _("Packages to update: %(count)s, security: %(security)s - %(names)s.") % counts
+            )
+        else:
+            hints.append(_("Packages to update: %(count)s - %(names)s.") % counts)
+        hints.append(_("Run `sudo apt upgrade`."))
+    age = _apt_lists_age()
+    if age and age > APT_LISTS_STALE:
+        hints.append(
+            _("The package lists were last refreshed %(days)s days ago - run `grunt update`.")
+            % {"days": age.days}
+        )
+    if REBOOT_REQUIRED.exists():
+        hints.append(_("Restart the server to finish an OS update."))
+    status = ERROR if security else WARNING if packages or REBOOT_REQUIRED.exists() else OK
+    if status == OK and hints:
+        status = INFO
+    return row(cat, check, status, name, " ".join(hints))
+
+
 async def check_runtimes() -> list[Row]:
     cat = _("Runtimes")
 
@@ -809,8 +882,10 @@ async def check_runtimes() -> list[Row]:
             return []
         return [await runtime_row(cat, "Node.js", "nodejs", current)]
 
-    python, nodejs, old = await asyncio.gather(python_row(cat), node(), old_runtimes_row(cat))
-    return [python, *nodejs, old]
+    system, python, nodejs, old = await asyncio.gather(
+        os_row(cat), python_row(cat), node(), old_runtimes_row(cat)
+    )
+    return [*([system] if system else []), python, *nodejs, old]
 
 
 async def check_tools() -> list[Row]:
