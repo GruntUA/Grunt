@@ -83,7 +83,7 @@ function setup_list(listview) {
         action: (lv) => lv.create_report(),
     })
 
-    // ── Selection bar ──────────────────────────────────────────────────────
+    // ── «Actions» menu (selected rows) ──────────────────────────────────────────────────────
     actions.add({
         id: 'bulk_edit',
         label: __('Edit'),

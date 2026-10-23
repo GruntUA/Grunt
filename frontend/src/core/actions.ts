@@ -32,7 +32,7 @@ export interface ActionDef<C = any> {
   id: string
   label: string | ((ctx: C) => string)
   /** primary - the main button (right-most); toolbar - buttons; menu - the «⋯» menu;
-   *  workflow - the workflow bar (transitions); bulk - list selection bar. Default: toolbar. */
+   *  workflow - the workflow bar (transitions); bulk - the list header «Actions» menu while rows are selected. Default: toolbar. */
   placement?: ActionPlacement
   /** Lucide icon name (kebab-case), e.g. `save`, `trash-2`. */
   icon?: string

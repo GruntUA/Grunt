@@ -3,7 +3,8 @@
  * List page header. The view switcher and the «restrictions» indicator are
  * page chrome; every action - refresh, «Додати», export, the «⋯» menu, script
  * buttons - comes from the list's action registry (core/actions.ts), filled by
- * global_list.js, the DocType's script and ClientScripts.
+ * global_list.js, the DocType's script and ClientScripts. While rows are
+ * selected, «Дії ▾» (the `bulk` actions) takes the primary button's place.
  */
 import { computed, ref, onMounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -25,16 +26,20 @@ import type { ActionRegistry } from '@/core/actions'
 import type { ListViewProxy } from '@/core/scripting/executor'
 import ActionButtons from '@/components/views/actions/ActionButtons.vue'
 import ActionMenu from '@/components/views/actions/ActionMenu.vue'
+import BulkActionsMenu from '@/components/views/actions/BulkActionsMenu.vue'
 
 const props = defineProps<{
   doctype: string
   dt: DocType | null
   actions: ActionRegistry<ListViewProxy>
   viewMode: string
+  selection?: { count: number; allSelected: boolean; total?: number; pageCount?: number }
 }>()
 
 const emit = defineEmits<{
   (e: 'update:viewMode', val: string): void
+  (e: 'selectAll'): void
+  (e: 'clearSelection'): void
 }>()
 
 const { t } = useI18n()
@@ -42,6 +47,9 @@ const { t } = useI18n()
 const toolbarActions = props.actions.resolved('toolbar')
 const primaryActions = props.actions.resolved('primary')
 const menuActions = props.actions.resolved('menu')
+const bulkActions = props.actions.resolved('bulk')
+
+const hasSelection = computed(() => !!props.selection && (props.selection.count > 0 || props.selection.allSelected))
 
 // View switcher ("List View ▾" dropdown)
 
@@ -109,7 +117,17 @@ watch(() => props.doctype, loadRestrictions)
         <ActionMenu :actions="menuActions" :toolbar="toolbarActions" />
       </div>
 
-      <ActionButtons :toolbar="[]" :primary="primaryActions" />
+      <BulkActionsMenu
+        v-if="hasSelection"
+        :actions="bulkActions"
+        :count="selection!.count"
+        :total="selection!.total"
+        :all-selected="selection!.allSelected"
+        :page-count="selection!.pageCount"
+        @select-all="emit('selectAll')"
+        @clear="emit('clearSelection')"
+      />
+      <ActionButtons v-else :toolbar="[]" :primary="primaryActions" />
     </div>
   </div>
 

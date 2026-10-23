@@ -70,7 +70,7 @@ const page = ref(1)
 const refreshKey = ref(0)
 const showQuickEntry = ref(false)
 const showQuickFilterDialog = ref(false)
-// Bulk dialogs the selection bar opens on listview.bulk_edit() / bulk_delete() / fast_delete().
+// Bulk dialogs (BulkActionDialogs) listview.bulk_edit() / bulk_delete() / fast_delete() open.
 const bulkRequest = ref<BulkRequest>(null)
 
 const { viewMode, sortKey, sortOrder, groupBy, activeFilters, quickFilterValues, search, perPage } = useListViewState(props.doctype)
@@ -192,7 +192,7 @@ const {
   },
 })
 
-provide(LIST_BULK_UI, { actions: listActions.resolved('bulk'), request: bulkRequest })
+provide(LIST_BULK_UI, { request: bulkRequest })
 provide(LIST_FILTER_RESET, {
   active: computed(() =>
     !!inlineSearch.value
@@ -364,7 +364,15 @@ void (async () => {
   >
     <AppBreadcrumb :workspace-name="workspace" :doctype="doctype" :count="meta?.total ?? null">
       <template #actions>
-        <ListHeader v-model:view-mode="viewMode" :doctype="doctype" :dt="dt" :actions="listActions" />
+        <ListHeader
+          v-model:view-mode="viewMode"
+          :doctype="doctype"
+          :dt="dt"
+          :actions="listActions"
+          :selection="{ count: selectionCount, allSelected, total: meta?.total, pageCount: rows.length }"
+          @select-all="selectAllDocuments"
+          @clear-selection="clearSelection"
+        />
       </template>
     </AppBreadcrumb>
 

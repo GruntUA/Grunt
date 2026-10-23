@@ -64,6 +64,7 @@
     {
       "role": "All",
       "read": true,
+      "delete": true,
       "match": "user == user",
       "hidden_fields": [
         "refresh_token_hash"

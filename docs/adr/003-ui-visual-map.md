@@ -308,7 +308,7 @@ AppListView.vue                ← pages/app/
       MapView.vue
       TreeView.vue
     ListHeader.vue
-    BulkActionBar.vue
+    BulkActionDialogs.vue
     ListPagination.vue
     QuickEntryDialog.vue
 ```

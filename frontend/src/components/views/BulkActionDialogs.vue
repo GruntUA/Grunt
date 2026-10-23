@@ -1,7 +1,12 @@
 <script setup lang="ts">
+/**
+ * The bulk dialogs of a list - edit, delete (with replace-on-delete), fast
+ * delete. The `bulk` actions in the list header's «Дії ▾» open them through
+ * LIST_BULK_UI; the results go back to the list page as events.
+ */
 import { ref, computed, watch, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Loader2, CheckCircle, AlertTriangle, X, Zap } from '@lucide/vue'
+import { Loader2, AlertTriangle, Zap } from '@lucide/vue'
 import type { DocField } from '@/types'
 import { getNonPhysicalTypeSet, getAsyncFieldComponent } from '@/core/fieldRegistry'
 import { Button } from '@/components/ui/button'
@@ -12,13 +17,11 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { docsApi, type DeleteImpact } from '@/core/api/docs'
 import { LIST_BULK_UI } from '@/core/composables/useListBulkUi'
-import ActionIcon from '@/components/views/actions/ActionIcon.vue'
 
 const props = defineProps<{
   count: number
   total?: number
   allSelected?: boolean
-  pageCount?: number
   editableFields?: DocField[]
   doctype?: string
   selectedIds?: string[]
@@ -26,8 +29,6 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'delete', replaceWith?: string): void
-  (e: 'clear'): void
-  (e: 'selectAll'): void
   (e: 'update', field: string, value: unknown): void
   (e: 'fastDelete'): void
 }>()
@@ -95,10 +96,6 @@ const updateField = ref('')
 const updateValue = ref<unknown>(null)
 const updateSaving = ref(false)
 
-const isFullPage = computed(() =>
-  !props.allSelected && props.pageCount != null && props.count >= props.pageCount && props.count > 0
-)
-
 const displayCount = computed(() =>
   props.allSelected && props.total ? props.total : props.count
 )
@@ -121,10 +118,9 @@ const valueComponent = computed(() =>
 // fieldtype is meaningless for the next.
 watch(updateField, () => { updateValue.value = null })
 
-// The `bulk` actions (global_list.js + scripts) and the dialogs they ask for -
-// listview.bulk_edit() / bulk_delete() / fast_delete() - from the list page.
+// The dialogs the `bulk` actions ask for - listview.bulk_edit() /
+// bulk_delete() / fast_delete() - from the list page.
 const bulkUi = inject(LIST_BULK_UI, null)
-const bulkActions = computed(() => bulkUi?.actions.value ?? [])
 
 watch(
   () => bulkUi?.request.value,
@@ -156,72 +152,6 @@ async function submitUpdate() {
 </script>
 
 <template>
-  <Teleport to="body">
-    <Transition
-      enter-active-class="transition duration-200 ease-out"
-      enter-from-class="translate-y-4 opacity-0"
-      enter-to-class="translate-y-0 opacity-100"
-      leave-active-class="transition duration-150 ease-in"
-      leave-from-class="translate-y-0 opacity-100"
-      leave-to-class="translate-y-4 opacity-0"
-    >
-      <div v-if="count > 0 || allSelected"
-        class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-4 py-2.5 rounded-lg border border-primary/25 bg-background/90 shadow-md">
-
-        <!-- Count -->
-        <div class="flex items-center gap-2 shrink-0">
-          <div class="size-5 rounded-full bg-primary/20 flex items-center justify-center">
-            <CheckCircle class="size-3 text-primary" />
-          </div>
-          <span class="font-semibold text-foreground tabular-nums">
-            {{ allSelected ? t('all {n}', { n: String(total ?? count) }) : count }}
-          </span>
-          <span class="text-muted-foreground">{{ t('selected') }}</span>
-        </div>
-
-        <div class="h-4 w-px bg-border" />
-
-        <!-- Select all -->
-        <Button
-          v-if="isFullPage && total && total > count"
-          type="button"
-          variant="link"
-          class="h-auto p-0"
-          @click="emit('selectAll')"
-        >
-          {{ t('Select all {n}', { n: String(total) }) }}
-        </Button>
-
-        <!-- Actions (core/actions.ts, placement: bulk) -->
-        <div class="flex items-center gap-1">
-          <Button
-            v-for="action in bulkActions"
-            :key="action.id"
-            variant="ghost" size="sm"
-            :class="[
-              '!px-2.5 !h-7 !text-xs !font-semibold gap-1.5',
-              action.variant === 'destructive'
-                ? 'text-destructive hover:text-destructive hover:!bg-destructive/10'
-                : 'hover:!bg-muted/60',
-            ]"
-            :disabled="action.disabled"
-            @click="action.run()"
-          >
-            <ActionIcon v-if="action.icon" :name="action.icon" class="size-3" />
-            {{ action.label }}
-          </Button>
-        </div>
-
-        <div class="h-4 w-px bg-border" />
-
-        <!-- Close -->
-        <Button type="button" variant="ghost" size="icon-xs" class="text-muted-foreground" :aria-label="t('Clear selection')" @click="emit('clear')">
-          <X />
-        </Button>
-      </div>
-    </Transition>
-  </Teleport>
-
   <!-- Delete confirmation -->
   <Dialog v-model:open="showDeleteModal">
     <DialogContent class="sm:max-w-md">

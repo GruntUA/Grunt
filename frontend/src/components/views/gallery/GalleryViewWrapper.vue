@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { DocField } from '@/types'
 import type { ListColumn } from '@/core/composables/useListColumns'
-import BulkActionBar from '@/components/views/BulkActionBar.vue'
+import BulkActionDialogs from '@/components/views/BulkActionDialogs.vue'
 import GalleryView from './GalleryView.vue'
 
 const props = defineProps<{
@@ -25,24 +25,19 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   delete: [replaceWith?: string]
-  clear: []
-  selectAll: []
   update: [field: string, value: unknown]
 }>()
 </script>
 
 <template>
-  <BulkActionBar
+  <BulkActionDialogs
     :count="selectionCount"
     :total="meta?.total"
     :all-selected="selection.allSelected"
-    :page-count="rows.length"
     :editable-fields="editableFields"
     :doctype="doctype"
     :selected-ids="selection.selectedIds"
     @delete="(rw) => emit('delete', rw)"
-    @clear="emit('clear')"
-    @select-all="emit('selectAll')"
     @update="(field, value) => emit('update', field, value)"
   />
   <GalleryView

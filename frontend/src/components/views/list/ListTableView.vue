@@ -4,7 +4,7 @@ import type { DocType, DocField } from '@/types'
 import type { ListColumn } from '@/core/composables/useListColumns'
 import type { GroupedRowBucket } from '@/core/composables/useGrouping'
 import GruntDataTable from '@/components/views/GruntDataTable.vue'
-import BulkActionBar from '@/components/views/BulkActionBar.vue'
+import BulkActionDialogs from '@/components/views/BulkActionDialogs.vue'
 import ListGroupedView from '@/components/views/list/ListGroupedView.vue'
 import ListCards from '@/components/views/list/ListCards.vue'
 import { useCardLayout } from '@/components/views/list/useCardLayout'
@@ -52,8 +52,6 @@ const emit = defineEmits<{
   'inline-update': [rowId: string, field: string, value: string]
   'delete': [replaceWith?: string]
   'fast-delete': []
-  'clear': []
-  'select-all': []
   'update': [field: string, value: unknown]
   'toggle-group': [key: string]
 }>()
@@ -70,19 +68,16 @@ function rowDocId(row: Record<string, unknown>): string {
 <template>
   <!-- Bounded to the page height: rows scroll here, header/toolbar/pager stay put. -->
   <div class="flex h-full min-h-0 flex-col">
-    <!-- Action Bar -->
-    <BulkActionBar
+    <!-- Bulk dialogs, opened by «Дії ▾» in the list header -->
+    <BulkActionDialogs
       :count="selectionCount"
       :total="meta?.total"
       :all-selected="selection.allSelected"
-      :page-count="rows?.length || 0"
       :editable-fields="dt?.fields"
       :doctype="doctype"
       :selected-ids="selection.selectedIds"
       @delete="(rw) => emit('delete', rw)"
       @fast-delete="emit('fast-delete')"
-      @clear="emit('clear')"
-      @select-all="emit('select-all')"
       @update="(field, value) => emit('update', field, value)"
     />
 
