@@ -112,15 +112,19 @@ function precacheManifest(): Plugin {
  * While the backend is starting or reloading every proxied request fails with
  * ECONNREFUSED and Vite prints a full stack per request. Collapse those into
  * one short line per outage window; other errors pass through untouched.
+ * `grunt serve` starts Vite and the backend together, so refusals during the
+ * first seconds are expected and stay silent.
  */
 function quietBackendDownLogger() {
     const logger = createLogger()
     const error = logger.error.bind(logger)
+    const startupGraceUntil = Date.now() + 15_000
     let lastNotice = 0
     logger.error = (msg, options) => {
         const code = (options?.error as NodeJS.ErrnoException | undefined)?.code
         if (code !== 'ECONNREFUSED') return error(msg, options)
         const now = Date.now()
+        if (now < startupGraceUntil) return
         if (now - lastNotice > 10_000) {
             lastNotice = now
             logger.warn('backend :8000 is not reachable yet (ECONNREFUSED) - proxied requests fail until it is up', { timestamp: true })
