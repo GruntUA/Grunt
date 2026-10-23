@@ -111,7 +111,7 @@ async def load_external_apps(
     for app_dir in sorted(ext_apps_dir.iterdir()):
         if not _is_loadable_app(app_dir, installed_apps):
             continue
-        # required_grunt in app.json: an app written for another framework
+        # required_grunt in the app manifest: an app written for another framework
         # version stays unloaded instead of failing somewhere at runtime.
         incompatible = compatibility_error(app_dir)
         if incompatible:

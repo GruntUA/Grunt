@@ -1,6 +1,5 @@
 """Versions from git tags, required_grunt, `grunt release` and `grunt test --changed`."""
 
-import json
 import subprocess
 from datetime import date
 from pathlib import Path
@@ -12,6 +11,7 @@ from packaging.version import Version
 from grunt import version as versions
 from grunt.cli.changed_tests import select
 from grunt.cli.release import changelog_section, new_migrations, next_version, prepend_changelog
+from grunt.testkit import write_app_manifest
 
 
 def git(repo: Path, *args: str) -> None:
@@ -58,7 +58,7 @@ def test_non_version_tags_are_ignored(repo: Path):
 
 
 def test_app_version_without_git(tmp_path: Path):
-    (tmp_path / "app.json").write_text("{}")
+    write_app_manifest(tmp_path)
     assert versions.app_version(tmp_path) == "0.0.0"
 
 
@@ -72,13 +72,13 @@ def test_app_version_without_git(tmp_path: Path):
     ],
 )
 def test_required_grunt(tmp_path: Path, monkeypatch, spec: str, running: str, ok: bool):
-    (tmp_path / "app.json").write_text(json.dumps({"required_grunt": spec}))
+    write_app_manifest(tmp_path, required_grunt=spec)
     monkeypatch.setattr(versions, "framework_version", lambda: running)
     assert (versions.compatibility_error(tmp_path) is None) is ok
 
 
 def test_malformed_required_grunt_is_reported(tmp_path: Path):
-    (tmp_path / "app.json").write_text(json.dumps({"required_grunt": "newest"}))
+    write_app_manifest(tmp_path, required_grunt="newest")
     assert "invalid" in (versions.compatibility_error(tmp_path) or "")
 
 

@@ -3,6 +3,7 @@
 import json
 import tomllib
 
+from grunt.apps.manifest import read_manifest
 from grunt.utils.boilerplate import _create_app_boilerplate
 
 HOOKS = {
@@ -20,9 +21,13 @@ def test_create_app_scaffolding(tmp_path):
     _create_app_boilerplate(tmp_path, HOOKS, no_git=True)
     app_dir = tmp_path / "test_app"
 
-    app_json = json.loads((app_dir / "app.json").read_text())
-    assert app_json["name"] == "test_app"
-    assert app_json["modules"] == ["core"]
+    assert not (app_dir / "app.json").exists()
+    manifest = read_manifest(app_dir)
+    assert manifest["name"] == "test_app"
+    assert manifest["title"] == "Test App"
+    assert manifest["author"] == "Tester"
+    assert manifest["email"] == "t@example.com"
+    assert manifest["modules"] == ["core"]
 
     # Fixture files use the {doctype, records} shape the fixture loader reads.
     workspace = json.loads((app_dir / "core" / "fixtures" / "00_workspace.json").read_text())

@@ -6,6 +6,8 @@ from types import SimpleNamespace
 import pytest
 from click.testing import CliRunner
 
+from grunt.testkit import write_app_manifest
+
 # grunt.cli re-exports the `test` command under the module's own name
 cli_test = importlib.import_module("grunt.cli.test")
 
@@ -16,7 +18,7 @@ def _bench(tmp_path):
     (apps / "grunt" / "tests" / "test_core.py").write_text("")
     shop = apps / "shop"
     (shop / "tests").mkdir(parents=True)
-    (shop / "app.json").write_text("{}")
+    write_app_manifest(shop)
     (shop / "tests" / "test_shop.py").write_text("")
     dt = shop / "shop" / "doctypes" / "Order" / "tests"
     dt.mkdir(parents=True)
@@ -25,7 +27,7 @@ def _bench(tmp_path):
     (shop / "node_modules" / "x" / "test_vendor.py").write_text("")
     empty = apps / "letter"
     empty.mkdir()
-    (empty / "app.json").write_text("{}")
+    write_app_manifest(empty)
     return tmp_path
 
 

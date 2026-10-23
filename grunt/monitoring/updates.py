@@ -34,6 +34,7 @@ from packaging.version import InvalidVersion, Version
 
 import grunt
 from grunt import log
+from grunt.apps.manifest import is_app
 from grunt.config import settings
 from grunt.i18n import _
 from grunt.monitoring.health import ERROR, INFO, OK, WARNING, Row, row
@@ -181,7 +182,7 @@ def _git_dirs() -> list[tuple[str, Path]]:
     apps_dir = site_manager.bench_dir / "apps"
     dirs = [("grunt", FRAMEWORK_DIR)]
     for app in sorted(apps_dir.iterdir() if apps_dir.is_dir() else []):
-        if app.name != "grunt" and (app / "app.json").exists() and (app / ".git").exists():
+        if app.name != "grunt" and is_app(app) and (app / ".git").exists():
             dirs.append((app.name, app))
     return dirs
 

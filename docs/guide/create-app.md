@@ -19,20 +19,27 @@ apps/my_crm/
 │   │       └── Customer.py
 │   ├── tasks.py          ← Background tasks
 │   └── hooks.py          ← Event hooks
-└── app.json            ← App manifest
+└── pyproject.toml      ← Package + app manifest ([tool.grunt])
 ```
 
-## App manifest (`app.json`)
+## App manifest (`pyproject.toml`)
 
-```json
-{
-  "name": "my_crm",
-  "title": "My CRM",
-  "description": "Customer Relationship Management",
-  "author": "Your Name",
-  "modules": ["my_crm"],
-  "depends_on": []
-}
+The standard `[project]` table holds the name, description and authors;
+`[tool.grunt]` adds what only Grunt needs. A directory under `apps/` is an app
+when its `pyproject.toml` has `[tool.grunt]`.
+
+```toml
+[project]
+name = "my_crm"
+dynamic = ["version"]
+description = "Customer Relationship Management"
+authors = [{ name = "Your Name", email = "you@example.com" }]
+
+[tool.grunt]
+title = "My CRM"
+depends_on = []                 # app names or { name = "cms", url = "https://..." }
+# required_grunt = ">=0.5"      # PEP 440 specifier; an incompatible app is not loaded
+# modules = ["my_crm"]          # default: [<app directory name>]
 ```
 
 The version comes from git tags `vX.Y.Z` (`grunt release --app my_crm`); an
@@ -296,12 +303,12 @@ async def sync_customers_from_crm():
     pass
 ```
 
-Register the task schedule in `app.json`:
+Register the task schedule in `my_crm/hooks.py`:
 
-```json
-{
-  "scheduled_tasks": [
-    {"task": "my_crm.tasks.tasks.sync_customers_from_crm", "cron": "0 */6 * * *"}
-  ]
+```python
+scheduler_events = {
+    "cron": [
+        {"handler": "my_crm.tasks.sync_customers_from_crm", "expression": "0 */6 * * *"},
+    ],
 }
 ```

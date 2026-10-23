@@ -12,6 +12,7 @@ import json
 import pytest
 
 from grunt.metadata.doctype import DocType
+from grunt.testkit import write_app_manifest
 
 
 @pytest.mark.asyncio
@@ -33,9 +34,7 @@ async def test_app_doctype_name_collision_is_refused(
     app_dir = tmp_path / "apps" / "collidingapp"
     dt_dir = app_dir / "collidingapp" / "doctypes" / "CollisionTarget"
     dt_dir.mkdir(parents=True)
-    (app_dir / "app.json").write_text(
-        json.dumps({"name": "collidingapp", "modules": ["collidingapp"]})
-    )
+    write_app_manifest(app_dir, {"name": "collidingapp"})
     (dt_dir / "CollisionTarget.json").write_text(
         json.dumps(
             {

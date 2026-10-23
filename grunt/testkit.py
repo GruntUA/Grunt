@@ -36,6 +36,7 @@ from sqlalchemy.ext.asyncio import (
 )
 
 import grunt
+from grunt.apps.manifest import read_manifest
 from grunt.apps.required import dependencies
 from grunt.auth.doctypes.User.user import SYSTEM_USER
 from grunt.config import settings
@@ -62,11 +63,21 @@ logger = logging.getLogger(__name__)
 _TEST_SITE = "__pytest__"
 
 
-def _app_meta(app_dir: Path) -> dict[str, Any]:
-    try:
-        return json.loads((app_dir / "app.json").read_text())
-    except FileNotFoundError:
-        return {}
+def _toml(value: Any) -> str:
+    if isinstance(value, dict):
+        return "{ " + ", ".join(f"{k} = {_toml(v)}" for k, v in value.items()) + " }"
+    if isinstance(value, list):
+        return "[" + ", ".join(_toml(v) for v in value) + "]"
+    return json.dumps(value, ensure_ascii=False)
+
+
+def write_app_manifest(app_dir: Path, project: dict[str, Any] | None = None, **tool: Any) -> None:
+    """Write a minimal pyproject.toml that makes *app_dir* a Grunt app: ``project``
+    goes to ``[project]``, keyword arguments to ``[tool.grunt]``."""
+    lines = ["[project]", *(f"{k} = {_toml(v)}" for k, v in (project or {}).items())]
+    lines += ["", "[tool.grunt]", *(f"{k} = {_toml(v)}" for k, v in tool.items())]
+    app_dir.mkdir(parents=True, exist_ok=True)
+    (app_dir / "pyproject.toml").write_text("\n".join(lines) + "\n")
 
 
 def _with_dependencies(app_dir: Path) -> list[Path]:
@@ -85,7 +96,7 @@ def _with_dependencies(app_dir: Path) -> list[Path]:
 
 
 def _app_doctype_dirs(app_dir: Path) -> list[Path]:
-    modules = _app_meta(app_dir).get("modules", [app_dir.name])
+    modules = read_manifest(app_dir)["modules"]
     return [d for m in modules if (d := app_dir / m / "doctypes").is_dir()]
 
 

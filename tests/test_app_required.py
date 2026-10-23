@@ -5,14 +5,13 @@ import json
 import pytest
 
 from grunt.apps import required
+from grunt.testkit import write_app_manifest
 
 CMS_URL = "https://example.com/cms.git"
 
 
 def _app(apps, name, depends_on=()):
-    (apps / name).mkdir(parents=True)
-    meta = {"name": name, "depends_on": list(depends_on)}
-    (apps / name / "app.json").write_text(json.dumps(meta))
+    write_app_manifest(apps / name, depends_on=list(depends_on))
 
 
 def test_both_entry_forms(tmp_path):

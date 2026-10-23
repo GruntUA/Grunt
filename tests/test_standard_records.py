@@ -9,6 +9,8 @@ import json
 
 import pytest
 
+from grunt.testkit import write_app_manifest
+
 _PARENT = {
     "name": "SrConfig",
     "label": "Sr Config",
@@ -52,7 +54,7 @@ def demo_app(tmp_path, monkeypatch):
 
     module = tmp_path / "apps" / "demo" / "demo"
     module.mkdir(parents=True)
-    (tmp_path / "apps" / "demo" / "app.json").write_text(json.dumps({"modules": ["demo"]}))
+    write_app_manifest(tmp_path / "apps" / "demo")
     monkeypatch.setattr(site_manager, "bench_dir", tmp_path)
     monkeypatch.setattr(site_manager, "get_all_installed_apps", lambda: {"demo"})
     monkeypatch.setattr(settings, "debug", True)

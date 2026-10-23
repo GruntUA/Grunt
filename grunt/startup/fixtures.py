@@ -14,7 +14,6 @@ from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 import grunt
 from grunt import log
 from grunt.fixtures import clean_record, to_json_compatible
-from grunt.version import app_version
 lazy from grunt.document.meta import Meta
 lazy from grunt.standard_records import apply_records
 
@@ -44,40 +43,6 @@ async def load_core_fixtures(session: AsyncSession, eng: AsyncEngine) -> None:
                 log.warning("startup.core_fixture_failed", file=fx_file.name, error=str(e))
 
     await apply_records("grunt", session, eng)
-
-
-def _load_app_meta(app_dir: Path) -> dict | None:
-    """Load app metadata from app.json on top of defaults.
-
-    Guarantees presence of: name, title, version, modules, description.
-    """
-    app_json = app_dir / "app.json"
-
-    result: dict[str, Any] = {
-        "name": app_dir.name,
-        "title": app_dir.name,
-        "description": "",
-        "author": "",
-        "modules": [],
-    }
-
-    if app_json.exists():
-        try:
-            app_data = json.loads(app_json.read_text())
-            for key in (
-                "name",
-                "title",
-                "description",
-                "author",
-                "modules",
-            ):
-                if key in app_data:
-                    result[key] = app_data[key]
-        except Exception:
-            log.exception("suppressed_error")
-
-    result["version"] = app_version(app_dir)
-    return result
 
 
 def _coerce_fixture_value(fieldtype: str, value: object) -> object:

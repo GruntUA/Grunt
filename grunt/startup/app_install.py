@@ -13,13 +13,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 import grunt
 from grunt import log
+lazy from grunt.apps.manifest import is_app, read_manifest
 lazy from grunt.apps.required import ensure_site_dependencies
 lazy from grunt.document.registry import document_registry
 lazy from grunt.metadata.doctype import DocType
 lazy from grunt.metadata.registry import doctype_registry
 lazy from grunt.site.manager import site_manager
 lazy from grunt.standard_records import apply_records
-lazy from grunt.startup.fixtures import _apply_doctype_fixture, _load_app_meta
+lazy from grunt.startup.fixtures import _apply_doctype_fixture
 lazy from grunt.startup.workspaces import _apply_workspace_fixture, _auto_seed_workspace
 lazy from grunt.version import app_version, framework_version
 
@@ -231,7 +232,7 @@ async def sync_installed_apps(session: AsyncSession, site_name: str) -> None:
 
     Reads ``grunt.site`` -> ``installed_apps`` (first adding the apps they
     ``depends_on``, see :mod:`grunt.apps.required`), loads each app's metadata
-    (``app.json``), auto-registers DocTypes from the app's
+    (pyproject.toml), auto-registers DocTypes from the app's
     ``doctypes/`` directories if not yet in the registry, applies fixtures and
     standard records, then creates/updates a workspace with the app's DocTypes
     as sidebar items.
@@ -258,10 +259,10 @@ async def sync_installed_apps(session: AsyncSession, site_name: str) -> None:
                 continue  # already handled by seed_grunt_workspace
 
             app_dir = site_manager.bench_dir / "apps" / app_name
-            app_meta = _load_app_meta(app_dir)
-            if app_meta is None:
+            if not is_app(app_dir):
                 log.warning("startup.app_meta_not_found", app=app_name)
                 continue
+            app_meta = read_manifest(app_dir)
 
             # Controllers must be importable (sys.path) and their
             # doctype->module mapping indexed *before* fixtures run below -

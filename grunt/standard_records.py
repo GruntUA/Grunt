@@ -33,8 +33,9 @@ from grunt.fixtures import clean_record
 from grunt.site.manager import site_manager
 from grunt.utils.slug import slugify
 from grunt.utils.strings import to_snake_case
+lazy from grunt.apps.manifest import read_manifest
 lazy from grunt.document.meta import Meta
-lazy from grunt.startup.fixtures import _GRUNT_ROOT, _apply_doctype_fixture, _load_app_meta
+lazy from grunt.startup.fixtures import _GRUNT_ROOT, _apply_doctype_fixture
 
 RECORDS_DIR = "records"
 
@@ -66,8 +67,7 @@ def _app_root(app: str) -> Path | None:
     app_dir = site_manager.bench_dir / "apps" / app
     if not app_dir.is_dir():
         return None
-    meta = _load_app_meta(app_dir) or {}
-    for module in [*(meta.get("modules") or []), app]:
+    for module in [*read_manifest(app_dir)["modules"], app]:
         if (app_dir / module).is_dir():
             return app_dir / module
     return None
@@ -79,7 +79,7 @@ def _records_dirs(app: str) -> list[Path]:
     if app == "grunt":
         return sorted(_GRUNT_ROOT.glob(f"*/{RECORDS_DIR}"))
     app_dir = site_manager.bench_dir / "apps" / app
-    modules = (_load_app_meta(app_dir) or {}).get("modules") or [app]
+    modules = read_manifest(app_dir)["modules"]
     return [app_dir / m / RECORDS_DIR for m in modules if (app_dir / m / RECORDS_DIR).is_dir()]
 
 

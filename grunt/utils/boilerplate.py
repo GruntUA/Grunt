@@ -136,7 +136,6 @@ def _create_app_boilerplate(dest: Path, hooks: dict, no_git: bool = False) -> No
         subdir.mkdir(parents=True)
 
     # Write files
-    _write_app_json(app_dir, module, hooks)
     _write_install_py(app_dir, hooks)
     _write_readme(app_dir, hooks)
     _write_gitignore(app_dir)
@@ -170,21 +169,6 @@ def _create_app_boilerplate(dest: Path, hooks: dict, no_git: bool = False) -> No
 
 
 # File writers
-
-
-def _write_app_json(app_dir: Path, module: str, h: dict) -> None:
-    data = {
-        "name": h["app_name"],
-        "title": h["title"],
-        "description": h["description"],
-        "author": h["author"],
-        "email": h["email"],
-        "modules": [module],
-        "depends_on": [],
-    }
-    (app_dir / "app.json").write_text(
-        json.dumps(data, ensure_ascii=False, indent=2) + "\n",
-    )
 
 
 def _write_install_py(app_dir: Path, h: dict) -> None:
@@ -268,23 +252,31 @@ def _write_types_dts(app_dir: Path, module: str) -> None:
 
 
 def _write_pyproject(app_dir: Path, module: str, h: dict) -> None:
-    description = json.dumps(h["description"], ensure_ascii=False)
+    def q(value: str) -> str:
+        return json.dumps(value, ensure_ascii=False)
+
+    modules = "" if module == h["app_name"] else f"modules = [{q(module)}]\n"
     (app_dir / "pyproject.toml").write_text(
         "[build-system]\n"
         'requires = ["hatchling", "hatch-vcs"]\n'
         'build-backend = "hatchling.build"\n\n'
         "[project]\n"
-        f'name = "{h["app_name"]}"\n'
+        f"name = {q(h['app_name'])}\n"
         "# From git tags vX.Y.Z (grunt release).\n"
         'dynamic = ["version"]\n'
-        f"description = {description}\n"
+        f"description = {q(h['description'])}\n"
+        f"authors = [{{ name = {q(h['author'])}, email = {q(h['email'])} }}]\n"
         'requires-python = ">=3.15"\n'
         "dependencies = []\n\n"
+        "[tool.grunt]\n"
+        f"title = {q(h['title'])}\n"
+        "depends_on = []\n"
+        f"{modules}\n"
         "[tool.hatch.version]\n"
         'source = "vcs"\n'
         'raw-options = { fallback_version = "0.0.0" }\n\n'
         "[tool.hatch.build.targets.wheel]\n"
-        f'packages = ["{module}"]\n\n'
+        f"packages = [{q(module)}]\n\n"
         "[tool.pytest.ini_options]\n"
         'asyncio_mode = "auto"\n'
         'asyncio_default_fixture_loop_scope = "session"\n'

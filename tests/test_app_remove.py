@@ -9,6 +9,7 @@ from click.testing import CliRunner
 from grunt.apps import deps
 from grunt.cli import app as app_cli
 from grunt.site.manager import site_manager
+from grunt.testkit import write_app_manifest
 
 
 @pytest.fixture
@@ -17,10 +18,8 @@ def bench(tmp_path, monkeypatch, uninstalls):
     (tmp_path / "sites" / "site1").mkdir(parents=True)
     _site(tmp_path, ["grunt", "hrm"])
     for name, depends_on in [("grunt", []), ("hrm", []), ("cms", []), ("portal", ["cms"])]:
-        (tmp_path / "apps" / name).mkdir()
-        meta = {"name": name, "depends_on": depends_on}
-        (tmp_path / "apps" / name / "app.json").write_text(json.dumps(meta))
-    (tmp_path / "apps" / "hrm" / "pyproject.toml").write_text('[project]\nname = "grunt-hrm"\n')
+        project = {"name": "grunt-hrm" if name == "hrm" else name}
+        write_app_manifest(tmp_path / "apps" / name, project, depends_on=depends_on)
     (tmp_path / "apps" / "hrm" / "__pycache__").mkdir()
     (tmp_path / "apps" / "hrm" / "__pycache__" / "x.pyc").write_bytes(b"")
     monkeypatch.setattr(site_manager, "bench_dir", tmp_path)
@@ -73,7 +72,7 @@ def test_archives_and_uninstalls_package(bench, uninstalls):
     assert archived.name.endswith(".tar.zst")
     with tarfile.open(archived, "r:zst") as tar:
         names = tar.getnames()
-    assert "hrm/app.json" in names
+    assert "hrm/pyproject.toml" in names
     assert not any("__pycache__" in n for n in names)
     assert uninstalls == [
         ["/bin/uv", "pip", "uninstall", "--python", deps.sys.executable, "grunt-hrm"]
@@ -85,7 +84,9 @@ def test_no_archive_deletes(bench, uninstalls):
     assert result.exit_code == 0, result.output
     assert not (bench / "apps" / "portal").exists()
     assert not (bench / "archive").exists()
-    assert uninstalls == []  # no pyproject.toml - nothing to uninstall
+    assert uninstalls == [
+        ["/bin/uv", "pip", "uninstall", "--python", deps.sys.executable, "portal"]
+    ]
 
 
 def test_force_overrides_checks(bench):

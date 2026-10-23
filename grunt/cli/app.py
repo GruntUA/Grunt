@@ -11,6 +11,7 @@ from sqlalchemy import func, select
 
 lazy import grunt
 lazy from grunt.apps.deps import app_updates, install_app_packages, uninstall_app_package
+lazy from grunt.apps.manifest import is_app, read_manifest
 lazy from grunt.apps.required import (
     CORE_APP,
     DependencyCycleError,
@@ -61,13 +62,12 @@ async def _do_install(name: str, site: str | None = None) -> None:
         raise SystemExit("Error: site not found.")
 
     app_dir = site_manager.bench_dir / "apps" / name
-    app_json = app_dir / "app.json"
     if not app_dir.is_dir():
         raise SystemExit(f"Error: directory '{app_dir}' does not exist.")
-    if not app_json.exists():
-        raise SystemExit(f"Error: '{app_json}' not found.")
+    if not is_app(app_dir):
+        raise SystemExit(f"Error: '{app_dir / 'pyproject.toml'}' has no [tool.grunt] section.")
 
-    app_meta = json.loads(app_json.read_text())
+    app_meta = read_manifest(app_dir)
 
     # Реєструємо в grunt.site
     site_file = site_manager.sites_dir / target_site / "grunt.site"
@@ -99,7 +99,7 @@ async def _do_install(name: str, site: str | None = None) -> None:
     finally:
         current_site.reset(token)
 
-    title = app_meta.get("title", name)
+    title = app_meta["title"]
     print(f"✓ App {title} installed on site {target_site}")
     print(f"  Apps: {', '.join(site_manager.get_installed_apps(target_site))}")
 
@@ -289,11 +289,8 @@ async def _do_uninstall(
         click.echo(f"  Apps: {', '.join(installed)}")
         return
 
-    # Модулі додатку - з app.json; якщо директорії вже немає, fallback на name
-    app_modules = [name]
-    app_json = site_manager.bench_dir / "apps" / name / "app.json"
-    if app_json.exists():
-        app_modules = json.loads(app_json.read_text()).get("modules") or [name]
+    # Модулі додатку - з маніфесту; якщо директорії вже немає, це [name]
+    app_modules = read_manifest(site_manager.bench_dir / "apps" / name)["modules"]
 
     token = current_site.set(target_site)
     try:
@@ -528,18 +525,16 @@ def app_doctor(name: str | None):
             except Exception as e:
                 click.echo(f"  {click.style('✗', fg='red')} Git initialization failed: {e}")
 
-        # 2. Перевірка app.json
-        app_json = app_path / "app.json"
-        if not app_json.exists():
-            click.echo(f"  [!] app.json is missing. {click.style('Creating...', fg='yellow')}")
-
-            basic_meta = {
-                "name": app_name,
-                "title": app_name.replace("_", " ").title(),
-                "description": f"App {app_name}",
-            }
-            app_json.write_text(json.dumps(basic_meta, indent=2, ensure_ascii=False))
-            click.echo(f"  {click.style('✓', fg='green')} app.json created.")
+        # 2. Перевірка маніфесту ([tool.grunt] у pyproject.toml)
+        pyproject = app_path / "pyproject.toml"
+        if not pyproject.exists():
+            click.echo(f"  {click.style('✗', fg='red')} pyproject.toml is missing.")
+        elif not is_app(app_path):
+            click.echo(f"  [!] [tool.grunt] is missing. {click.style('Adding...', fg='yellow')}")
+            title = json.dumps(app_name.replace("_", " ").title(), ensure_ascii=False)
+            text = pyproject.read_text().rstrip("\n")
+            pyproject.write_text(f"{text}\n\n[tool.grunt]\ntitle = {title}\n")
+            click.echo(f"  {click.style('✓', fg='green')} [tool.grunt] added.")
 
         # 3. Перевірка пакету (__init__.py)
         pkg_dir = app_path / app_name

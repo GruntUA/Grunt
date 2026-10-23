@@ -1,10 +1,10 @@
-"""Apps an app needs - ``depends_on`` in its ``app.json``.
+"""Apps an app needs - ``depends_on`` in ``[tool.grunt]`` of its pyproject.toml.
 
-An entry is an app name or ``{"name": ..., "url": ...}``, the git repository
+An entry is an app name or ``{ name = ..., url = ... }``, the git repository
 to clone it from when the bench doesn't have it yet (like ``required_apps`` in
 Frappe)::
 
-    "depends_on": ["hrm", {"name": "cms", "url": "https://github.com/GruntUA/cms.git"}]
+    depends_on = ["hrm", { name = "cms", url = "https://github.com/GruntUA/cms.git" }]
 
 A site never runs an app without its dependencies: ``sync_installed_apps``
 (``grunt migrate`` / ``app install`` / ``site create``) adds the missing ones
@@ -16,6 +16,8 @@ import json
 import subprocess
 from pathlib import Path
 from typing import NamedTuple
+
+from grunt.apps.manifest import read_manifest
 
 CORE_APP = "grunt"
 
@@ -39,12 +41,8 @@ class DependencyCycleError(Exception):
 
 def dependencies(app_dir: Path) -> list[Dependency]:
     """The app's ``depends_on``, both entry forms as :class:`Dependency`."""
-    try:
-        meta = json.loads((app_dir / "app.json").read_text())
-    except FileNotFoundError:
-        return []
     deps = []
-    for entry in meta.get("depends_on") or []:
+    for entry in read_manifest(app_dir)["depends_on"]:
         if isinstance(entry, str):
             deps.append(Dependency(entry))
         else:

@@ -70,7 +70,7 @@ class AppMenu(Document):
 
     async def validate(self) -> None:
         if not self.color:
-            self.color = default_color(self.name)
+            self.color = default_color(self.name or self.label or "")
 
     async def on_load(self) -> None:
         for item in self.get("sidebar_items", []):

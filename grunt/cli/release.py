@@ -9,6 +9,7 @@ from pathlib import Path
 import click
 from packaging.version import InvalidVersion, Version
 
+lazy from grunt.apps.manifest import is_app
 lazy from grunt.site.manager import site_manager
 lazy from grunt.version import app_version, compatibility_error, framework_version
 
@@ -115,7 +116,7 @@ def version() -> None:
 
     click.echo(f"grunt {framework_version()}")
     for app_dir in sorted(_apps_dir().iterdir()):
-        if app_dir.name == "grunt" or not (app_dir / "app.json").exists():
+        if app_dir.name == "grunt" or not is_app(app_dir):
             continue
         problem = compatibility_error(app_dir)
         suffix = click.style(f"  ({problem})", fg="red") if problem else ""

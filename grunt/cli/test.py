@@ -6,6 +6,7 @@ from pathlib import Path
 
 import click
 
+lazy from grunt.apps.manifest import is_app
 lazy from grunt.cli.changed_tests import changed_files, select
 lazy from grunt.site.manager import site_manager
 
@@ -58,9 +59,7 @@ def test(
         roots = [apps_dir / app]
     else:
         roots = [apps_dir / "grunt"] + sorted(
-            d
-            for d in apps_dir.iterdir()
-            if d.is_dir() and d.name != "grunt" and (d / "app.json").exists()
+            d for d in apps_dir.iterdir() if d.is_dir() and d.name != "grunt" and is_app(d)
         )
 
     # One pytest session per app: each app's tests/conftest.py builds the same

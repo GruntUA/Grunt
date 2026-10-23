@@ -11,7 +11,6 @@ falls back to its installed package metadata and an app to ``0.0.0``.
 """
 
 import importlib.metadata
-import json
 import re
 import subprocess
 from datetime import date
@@ -20,6 +19,8 @@ from pathlib import Path
 
 from packaging.specifiers import InvalidSpecifier, SpecifierSet
 from packaging.version import InvalidVersion, Version
+
+lazy from grunt.apps.manifest import read_manifest
 
 FRAMEWORK_DIR = Path(__file__).resolve().parent.parent  # apps/grunt
 
@@ -93,13 +94,6 @@ def framework_version() -> str:
         return "0.0.0"
 
 
-def _app_json(app_dir: Path) -> dict:
-    try:
-        return json.loads((app_dir / "app.json").read_text())
-    except OSError, ValueError:
-        return {}
-
-
 @cache
 def app_version(app_dir: Path) -> str:
     """Version of the app at ``apps/<name>`` from its own git tags."""
@@ -109,8 +103,8 @@ def app_version(app_dir: Path) -> str:
 
 
 def required_framework(app_dir: Path) -> str:
-    """The ``required_grunt`` specifier from the app's app.json (``""`` = any)."""
-    return str(_app_json(app_dir).get("required_grunt") or "")
+    """The app's ``required_grunt`` specifier (``""`` = any)."""
+    return str(read_manifest(app_dir)["required_grunt"])
 
 
 def compatibility_error(app_dir: Path) -> str | None:

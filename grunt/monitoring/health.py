@@ -27,6 +27,7 @@ import grunt
 from grunt import log, whitelist
 from grunt.api.v1.ws import manager
 from grunt.apps.deps import app_packages
+from grunt.apps.manifest import is_app
 from grunt.backups import list_backups
 from grunt.i18n import N_, _
 from grunt.metadata.compiler import get_table_name
@@ -792,7 +793,7 @@ async def check_versions() -> list[Row]:
     rows = [version_row("grunt", grunt.__version__)]
     apps_dir = site_manager.bench_dir / "apps"
     for app_dir in sorted(apps_dir.iterdir() if apps_dir.is_dir() else []):
-        if app_dir.name == "grunt" or not (app_dir / "app.json").exists():
+        if app_dir.name == "grunt" or not is_app(app_dir):
             continue
         rows.append(version_row(app_dir.name, app_version(app_dir), compatibility_error(app_dir)))
     rows.append(await _migrations_row(cat))
