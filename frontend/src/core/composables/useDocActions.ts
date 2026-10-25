@@ -91,7 +91,7 @@ export function useDocActions(options: UseDocActionsOptions) {
       })
       if (values === null) return
       args = values
-    } else if (confirmMsg && !window.confirm(confirmMsg)) {
+    } else if (confirmMsg && !(await useDialog().confirm(confirmMsg, label))) {
       return
     }
     const doc = (typeof options.form === 'function' ? options.form() : unref(options.form)) ?? {}
