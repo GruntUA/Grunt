@@ -58,6 +58,17 @@ def _bound(dt: Any, date_field: str, when: datetime, *, upper: bool = False) -> 
     return when.strftime("%Y-%m-%dT%H:%M")
 
 
+def _agg_expr(widget: Any) -> str:
+    """``aggregation`` + ``field`` of a widget → an aggregate expression.
+
+    ``count`` (the default, or any aggregation without a ``field``) counts rows;
+    ``sum``/``avg``/``min``/``max`` aggregate the numeric ``field``.
+    """
+    agg = widget.get("aggregation") or "count"
+    field = widget.get("field")
+    return f"{agg}({field})" if agg != "count" and field else "count"
+
+
 def _as_number(value: Any) -> float:
     """Best-effort numeric coercion for report cell values."""
     if isinstance(value, int | float):
@@ -145,12 +156,17 @@ async def _widget_metric(widget, dt, doctype_name, since, until, days, base_filt
 
 
 async def _widget_chart(widget, dt, doctype_name, since, until, days, base_filters) -> Any:
-    """chart_area/chart_bar - a time series, optionally split into groups."""
+    """chart_area/chart_bar - a time series, optionally split into groups.
+
+    Counts documents per day, or - with ``aggregation`` + ``field`` - sums
+    (averages, ...) that field per day.
+    """
     date_field = widget.get("date_field")
     if not date_field:
         return {"labels": [], "values": []}
     group_by = widget.get("group_by") or ""
     date_expr = f"date({date_field})"
+    agg_expr = _agg_expr(widget)
     try:
         filters = {
             **base_filters,
@@ -162,7 +178,7 @@ async def _widget_chart(widget, dt, doctype_name, since, until, days, base_filte
                 doctype_name,
                 filters=filters,
                 group_by=[date_expr, group_by],
-                aggregations={"cnt": "count"},
+                aggregations={"cnt": agg_expr},
                 order_by=date_expr,
                 order="asc",
             )
@@ -171,9 +187,10 @@ async def _widget_chart(widget, dt, doctype_name, since, until, days, base_filte
             group_values: list[str] = sorted(
                 {str(r.get(group_by)) for r in rows if r.get(group_by) is not None}
             )
-            # build lookup: (date, group) -> count
-            lookup: dict[tuple[str, str], int] = {
-                (str(r.get(date_expr)), str(r.get(group_by))): int(r.get("cnt") or 0) for r in rows
+            # build lookup: (date, group) -> count / aggregated value
+            lookup: dict[tuple[str, str], float] = {
+                (str(r.get(date_expr)), str(r.get(group_by))): _as_number(r.get("cnt") or 0)
+                for r in rows
             }
             groups = {gv: [lookup.get((lbl, gv), 0) for lbl in all_labels] for gv in group_values}
             return {"labels": all_labels, "groups": groups, "filters": filters}
@@ -182,13 +199,13 @@ async def _widget_chart(widget, dt, doctype_name, since, until, days, base_filte
                 doctype_name,
                 filters=filters,
                 group_by=date_expr,
-                aggregations={"cnt": "count"},
+                aggregations={"cnt": agg_expr},
                 order_by=date_expr,
                 order="asc",
             )
             return {
                 "labels": [str(r.get(date_expr)) for r in rows],
-                "values": [r.get("cnt") for r in rows],
+                "values": [_as_number(r.get("cnt") or 0) for r in rows],
                 "filters": filters,
             }
     except Exception:
@@ -197,7 +214,7 @@ async def _widget_chart(widget, dt, doctype_name, since, until, days, base_filte
 
 
 async def _widget_donut(widget, dt, doctype_name, since, until, days, base_filters) -> Any:
-    """donut - top N groups by count."""
+    """donut - top N groups by count (or by ``aggregation`` of ``field``)."""
     group_by = widget.get("group_by")
     if not group_by:
         return {"labels": [], "values": []}
@@ -206,14 +223,14 @@ async def _widget_donut(widget, dt, doctype_name, since, until, days, base_filte
             doctype_name,
             filters=base_filters or None,
             group_by=group_by,
-            aggregations={"cnt": "count"},
+            aggregations={"cnt": _agg_expr(widget)},
             order_by="cnt",
             order="desc",
             limit=8,
         )
         return {
             "labels": [str(r.get(group_by)) for r in rows],
-            "values": [r.get("cnt") for r in rows],
+            "values": [_as_number(r.get("cnt") or 0) for r in rows],
             # Raw group values (labels stringify NULL) + base filters, for drill-down.
             "keys": [r.get(group_by) for r in rows],
             "filters": base_filters,
@@ -345,7 +362,7 @@ async def _widget_table(widget, dt, doctype_name, since, until, days, base_filte
 
         agg = widget.get("aggregation") or "count"
         value_field = widget.get("field")
-        agg_expr = f"{agg}({value_field})" if agg != "count" and value_field else "count"
+        agg_expr = _agg_expr(widget)
         filters = dict(base_filters)
         date_field = widget.get("date_field")
         if date_field:

@@ -54,3 +54,28 @@ async def test_hidden_fields_and_no_access(deals, as_user):  # noqa: F811
     async with as_user("nobody@grunt.example.com", []):
         assert await _compute(_widget("metric", aggregation="count")) is None
         assert await _compute(_widget("shortcut")) is None
+
+
+@pytest.mark.asyncio
+async def test_donut_and_chart_sum_a_field(deals, as_user):  # noqa: F811
+    async with as_user(ALICE, ["Seller"]):  # лише її 3 угоди
+        donut = await _compute(
+            _widget("donut", group_by="status", aggregation="sum", field="amount")
+        )
+        assert dict(zip(donut["labels"], donut["values"], strict=True)) == {
+            "Won": 300.0,
+            "Open": 100.0,
+        }
+
+        chart = await _compute(
+            _widget(
+                "chart_area",
+                date_field="deal_date",
+                period="all",
+                aggregation="sum",
+                field="amount",
+            )
+        )
+        assert sum(chart["values"]) == 400.0  # сума, а не кількість (3)
+        counted = await _compute(_widget("chart_area", date_field="deal_date", period="all"))
+        assert sum(counted["values"]) == 3
