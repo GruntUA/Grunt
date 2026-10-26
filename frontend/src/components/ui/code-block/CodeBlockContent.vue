@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { HTMLAttributes, VNode } from "vue"
-import { cn } from "@/lib/utils"
+import { cn } from "cn"
 import { Primitive } from "reka-ui"
 import { Comment, Fragment, Text, useSlots } from "vue"
 import CodeBlockLine from "./CodeBlockLine.vue"

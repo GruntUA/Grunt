@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { HTMLAttributes, VNode } from "vue"
 import type { CodeBlockLineVariants } from "."
-import { cn } from "@/lib/utils"
+import { cn } from "cn"
 import { Comment, Fragment, Text, useSlots } from "vue"
 import { codeBlockLineVariants } from "."
 
