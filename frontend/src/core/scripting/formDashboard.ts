@@ -44,6 +44,10 @@ export interface DashboardGraph {
   labels: string[]
   datasets: { name: string; values: number[] }[]
   colors?: string[]
+  /** ISO code (`UAH`) - values shown as money: `125 тис.` on the axis, `125 000,00 ₴` in tooltips. */
+  currency?: string | null
+  /** Chart height in px (default: proportional to the width). */
+  height?: number
 }
 
 export interface DashboardHeatmap {
@@ -97,6 +101,10 @@ export interface GraphArgs {
   title?: string
   type?: 'line' | 'bar' | 'area'
   colors?: string[]
+  /** ISO currency code: format values as money (`125 000,00 ₴`). */
+  currency?: string
+  /** Chart height in px. */
+  height?: number
   data: { labels: string[]; datasets: { name?: string; values: number[] }[] }
 }
 
@@ -246,6 +254,8 @@ export function createFormDashboard(): FormDashboardApi {
         title: args.title,
         type: args.type ?? 'line',
         colors: args.colors,
+        currency: args.currency ?? null,
+        height: args.height,
         labels: (args.data?.labels ?? []).map(String),
         datasets: datasets.map((d, i) => ({ name: d.name || String(i + 1), values: d.values.map(Number) })),
       }

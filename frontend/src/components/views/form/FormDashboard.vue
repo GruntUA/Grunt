@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import {
@@ -16,6 +16,7 @@ import { useElementSize } from '@vueuse/core'
 import type { FormDashboardState } from '@/core/scripting/formDashboard'
 import { appUrl } from '@/core/workspaceUrl'
 import { formatIntl } from '@/core/datetime'
+import { formatCurrency, formatNumber } from '@/core/currency'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -219,7 +220,35 @@ const graphColors = [
   '#ef4444',
   '#06b6d4',
   '#ec4899',
+  '#84cc16',
+  '#f97316',
+  '#6366f1',
+  '#14b8a6',
+  '#a855f7',
 ]
+
+// Series hidden by clicking their legend entry (indices into graph.datasets).
+const hiddenSeries = ref(new Set<number>())
+watch(
+  () => props.dashboard.graph,
+  () => { hiddenSeries.value = new Set() },
+)
+function toggleSeries(index: number) {
+  const next = new Set(hiddenSeries.value)
+  if (next.has(index)) next.delete(index)
+  else next.add(index)
+  hiddenSeries.value = next
+}
+
+/** Tooltip value: money when the graph names a currency, else a localized number. */
+function formatGraphValue(v: number): string {
+  const code = graphData.value?.currency
+  return code ? formatCurrency(v, code) : formatNumber(v, { maximumFractionDigits: 2 })
+}
+/** Axis value: compact (`125 тис.`) so large sums fit the gutter. */
+function formatAxisValue(v: number): string {
+  return formatNumber(v, { notation: 'compact', maximumFractionDigits: 1 })
+}
 
 function getSeriesColor(index: number): string {
   const custom = graphData.value?.colors
@@ -232,15 +261,16 @@ const { width: containerWidth } = useElementSize(chartContainerRef)
 
 /** Cap width so wide-screen charts don't look overly stretched. */
 const chartWidth = computed(() => Math.min(900, Math.max(340, Math.round(containerWidth.value) || 700)))
-const chartHeight = computed(() => Math.round(chartWidth.value * 0.28))
-const chartPadding = { top: 16, right: 28, bottom: 36, left: 38 }
+const chartHeight = computed(() => graphData.value?.height || Math.round(chartWidth.value * 0.28))
+const chartPadding = { top: 16, right: 28, bottom: 36, left: 48 }
 const chartViewBox = computed(() => `0 0 ${chartWidth.value} ${chartHeight.value}`)
 
 const chartPoints = computed(() => {
   const g = graphData.value
   if (!g || !g.labels.length || !g.datasets.length) return null
 
-  const allVals = g.datasets.flatMap((d) => d.values)
+  const visible = g.datasets.map((_, i) => i).filter((i) => !hiddenSeries.value.has(i))
+  const allVals = visible.flatMap((i) => g.datasets[i].values)
   const maxVal = Math.max(1, ...allVals)
   const minVal = 0
   const valRange = maxVal - minVal || 1
@@ -252,19 +282,20 @@ const chartPoints = computed(() => {
   const n = g.labels.length
   const xStep = isBar ? usableW / n : (n > 1 ? usableW / (n - 1) : usableW / 2)
 
-  const numSeries = Math.max(1, g.datasets.length)
+  const numSeries = Math.max(1, visible.length)
   const barGap = 4
   const slotWidth = isBar ? Math.min(80, Math.max(24, xStep * 0.6)) : 20
   const singleBarWidth = isBar ? Math.max(8, Math.min(32, (slotWidth - (numSeries - 1) * barGap) / numSeries)) : 0
   const actualGroupWidth = numSeries * singleBarWidth + (numSeries - 1) * barGap
 
   const series = g.datasets.map((dataset, dsIdx) => {
+    const slot = Math.max(0, visible.indexOf(dsIdx)) // position among visible bars
     const pts = dataset.values.map((v, i) => {
       const centerX = isBar
         ? chartPadding.left + i * xStep + xStep / 2
         : chartPadding.left + (n > 1 ? i * xStep : usableW / 2)
       const y = chartPadding.top + usableH - ((Math.max(0, v) - minVal) / valRange) * usableH
-      const barX = centerX - actualGroupWidth / 2 + dsIdx * (singleBarWidth + barGap)
+      const barX = centerX - actualGroupWidth / 2 + slot * (singleBarWidth + barGap)
       const barH = Math.max(0, chartPadding.top + usableH - y)
 
       return {
@@ -280,6 +311,7 @@ const chartPoints = computed(() => {
     return {
       name: dataset.name,
       color: getSeriesColor(dsIdx),
+      hidden: hiddenSeries.value.has(dsIdx),
       pts,
       path: pts.length
         ? pts.reduce((acc, p, i) => `${acc} ${i === 0 ? 'M' : 'L'} ${p.x.toFixed(1)},${p.y.toFixed(1)}`, '')
@@ -291,9 +323,9 @@ const chartPoints = computed(() => {
   })
 
   // Horizontal guide lines
-  const gridLines = [0, 0.5, 1].map((pct) => ({
+  const gridLines = [0, 0.25, 0.5, 0.75, 1].map((pct) => ({
     y: chartPadding.top + usableH * (1 - pct),
-    val: Math.round(minVal + valRange * pct),
+    val: formatAxisValue(minVal + valRange * pct),
   }))
 
   const h = chartHeight.value
@@ -491,14 +523,19 @@ function createNewTransaction(linkDoctype: string) {
         </h4>
         <!-- Legend -->
         <div class="flex flex-wrap items-center gap-3 text-xs ml-auto">
-          <div
+          <button
             v-for="(ds, di) in chartPoints.series"
             :key="di"
-            class="inline-flex items-center gap-1.5 text-muted-foreground"
+            type="button"
+            class="inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground"
+            :class="{ 'opacity-50 line-through': ds.hidden }"
+            :aria-pressed="!ds.hidden"
+            :title="ds.hidden ? t('Show') : t('Hide')"
+            @click="toggleSeries(di)"
           >
             <span class="size-2 rounded-full" :style="{ backgroundColor: ds.color }" />
             <span>{{ ds.name }}</span>
-          </div>
+          </button>
         </div>
       </div>
 
@@ -551,7 +588,7 @@ function createNewTransaction(linkDoctype: string) {
 
           <!-- Bar Chart Type -->
           <template v-if="dashboard.graph.type === 'bar'">
-            <g v-for="(ds, di) in chartPoints.series" :key="`bars-${di}`">
+            <g v-for="(ds, di) in chartPoints.series" v-show="!ds.hidden" :key="`bars-${di}`">
               <rect
                 v-for="(p, pi) in ds.pts"
                 :key="`bar-${pi}`"
@@ -563,24 +600,28 @@ function createNewTransaction(linkDoctype: string) {
                 rx="3"
                 class="transition-all hover:opacity-80"
               >
-                <title>{{ `${ds.name} (${p.label}): ${p.value}` }}</title>
+                <title>{{ `${ds.name} (${p.label}): ${formatGraphValue(p.value)}` }}</title>
               </rect>
             </g>
           </template>
 
           <!-- Line / Area Chart Type -->
           <template v-else>
-            <!-- Area Fill -->
-            <path
-              v-for="(ds, di) in chartPoints.series"
-              :key="`area-${di}`"
-              :d="ds.areaPath"
-              :fill="`url(#area-grad-${di})`"
-            />
+            <!-- Area Fill (only for type 'area'; 'line' is a bare stroke) -->
+            <template v-if="dashboard.graph.type === 'area'">
+              <path
+                v-for="(ds, di) in chartPoints.series"
+                v-show="!ds.hidden"
+                :key="`area-${di}`"
+                :d="ds.areaPath"
+                :fill="`url(#area-grad-${di})`"
+              />
+            </template>
 
             <!-- Stroke Path -->
             <path
               v-for="(ds, di) in chartPoints.series"
+              v-show="!ds.hidden"
               :key="`line-${di}`"
               :d="ds.path"
               fill="none"
@@ -591,7 +632,7 @@ function createNewTransaction(linkDoctype: string) {
             />
 
             <!-- Data Dots -->
-            <g v-for="(ds, di) in chartPoints.series" :key="`dots-${di}`">
+            <g v-for="(ds, di) in chartPoints.series" v-show="!ds.hidden" :key="`dots-${di}`">
               <circle
                 v-for="(p, pi) in ds.pts"
                 :key="`dot-${pi}`"
@@ -601,7 +642,7 @@ function createNewTransaction(linkDoctype: string) {
                 :fill="ds.color"
                 class="stroke-background stroke-2 transition-transform hover:scale-150 cursor-pointer"
               >
-                <title>{{ `${ds.name} (${p.label}): ${p.value}` }}</title>
+                <title>{{ `${ds.name} (${p.label}): ${formatGraphValue(p.value)}` }}</title>
               </circle>
             </g>
           </template>
