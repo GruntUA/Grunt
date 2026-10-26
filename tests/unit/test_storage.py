@@ -184,6 +184,16 @@ async def test_get_content_streams_with_etag(ctx, storage):
     assert "attachment" in response.headers["content-disposition"]
 
 
+@pytest.mark.asyncio
+async def test_get_content_inline_only_for_safe_types(ctx, storage):
+    text = await upload(_upload_file("notes.txt", b"hello"))
+    table = await store(b"a,b\n1,2\n", "export.csv", "text/csv")
+
+    assert "inline" in (await get_content(text["id"], inline=True)).headers["content-disposition"]
+    response = await get_content(table["name"], inline=True)
+    assert "attachment" in response.headers["content-disposition"]
+
+
 # ── garbage collection ───────────────────────────────────────────────────
 
 

@@ -286,6 +286,13 @@ async def generate_missing_thumbnails(limit: int = 500) -> int:
     return made
 
 
+# Types a browser shows itself without running the file's own scripts - never
+# HTML or SVG, which would execute on our origin.
+INLINE_TYPES = frozenset(
+    {"application/pdf", "image/png", "image/jpeg", "image/gif", "image/webp", "text/plain"}
+)
+
+
 @whitelist(allow_guest=True)
 async def get_content(
     file_id: str,
@@ -293,10 +300,12 @@ async def get_content(
     sig: str | None = None,
     thumb: bool = False,
     w: int | None = None,
+    inline: bool = False,
     request: Request | None = None,
 ) -> Response:
     """Whitelisted method: Stream file content from storage (``thumb`` - its preview,
-    ``w`` - a preview that wide, one of ``WEB_WIDTHS``, for ``srcset`` on pages).
+    ``w`` - a preview that wide, one of ``WEB_WIDTHS``, for ``srcset`` on pages,
+    ``inline`` - open in the browser instead of downloading, for ``INLINE_TYPES``).
 
     A private file needs either a valid signature (``exp`` + ``sig``, appended
     to every file URL the API hands out) or a user allowed to read it.
@@ -359,7 +368,9 @@ async def get_content(
         path,
         media_type=doc.get("content_type"),
         filename=doc.get("file_name") or "file",
-        content_disposition_type="attachment",
+        content_disposition_type=(
+            "inline" if inline and doc.get("content_type") in INLINE_TYPES else "attachment"
+        ),
         headers=headers,
     )
 
