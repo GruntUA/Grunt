@@ -549,3 +549,22 @@ def app_doctor(name: str | None):
                 click.echo(f"  {click.style('✓', fg='green')} __init__.py created.")
 
     click.echo(f"\n{click.style('Doctor finished!', bold=True)}")
+
+
+@app_group.command("export")
+@click.argument("name")
+def app_export(name: str) -> None:
+    """Copy the app's DocType JSON files to apps/<name>/exported_doctypes/ (no server needed)."""
+    app_dir = site_manager.bench_dir / "apps" / name
+    if not app_dir.is_dir():
+        click.echo(f"Error: app '{name}' not found ({app_dir}).", err=True)
+        raise SystemExit(1)
+    dt_files = sorted(app_dir.glob("*/doctypes/*/*.json"))
+    if not dt_files:
+        click.echo(f"No DocType JSON found in {app_dir}.")
+        return
+    out_dir = app_dir / "exported_doctypes"
+    out_dir.mkdir(exist_ok=True)
+    for dt_file in dt_files:
+        shutil.copyfile(dt_file, out_dir / dt_file.name)
+    click.echo(f"✓ Exported {len(dt_files)} DocType(s) to {out_dir}")

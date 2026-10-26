@@ -12,7 +12,7 @@
     "build": "vue-tsc --noEmit && vite build",
     "preview": "vite preview",
     "test": "vitest",
-    "typecheck": "vue-tsc --noEmit"
+    "typecheck": "vue-tsc --noEmit --incremental --tsBuildInfoFile node_modules/.cache/tsc/tsbuildinfo"
   },
   "dependencies": {
     "@codemirror/lang-css": "^6.3.1",
@@ -83,6 +83,7 @@
     "@vitejs/plugin-vue": "^6.0.10",
     "@vue/test-utils": "^2.5.1",
     "jsdom": "^30.1.2",
+    "pyright": "1.1.414",
     "shadcn-vue": "^2.8.2",
     "tailwindcss": "^4.3.3",
     "typescript": "^6.0.3",

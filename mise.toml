@@ -90,8 +90,8 @@ run = "npm test -- --run"
 description = "Run Vitest frontend tests"
 
 [tasks.lint]
-run = "uv run ruff check . --fix && npm run lint 2>/dev/null || true"
-description = "Run linting for Python and JavaScript"
+run = "uv run python -m grunt.cli.main lint --fix"
+description = "grunt lint --fix for this app: ruff + pyright + vue-tsc"
 
 [tasks.typecheck]
 run = "npx -y pyright@1.1.414 grunt && npm run typecheck"

@@ -18,6 +18,7 @@ from pathlib import Path
 import click
 import dotenv
 
+from grunt.cli.utils import AliasedGroup
 lazy import grunt
 lazy from grunt.auth.doctypes.User.user import create_user, get_user_by_email
 lazy from grunt.metadata.compiler import SA_METADATA, sync_table
@@ -61,7 +62,7 @@ def _write_currentsite(sites_dir: Path, name: str) -> None:
 # Group
 
 
-@click.group("site")
+@click.group("site", cls=AliasedGroup, aliases={"new": "create", "drop": "delete"})
 def site_group():
     """Manage Grunt sites."""
     pass
@@ -313,7 +314,7 @@ async def _create_admin(site_name: str, email: str, password: str) -> None:
 
 @site_group.command("delete")
 @click.argument("name")
-@click.option("--yes", "-y", is_flag=True, help="Do not ask for confirmation")
+@click.option("--yes", "-y", "--force", is_flag=True, help="Do not ask for confirmation")
 def site_delete(name: str, yes: bool) -> None:
     """Delete a site and all its data."""
     site_path = _site_path(name)

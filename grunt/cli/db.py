@@ -6,8 +6,14 @@ from taskiq import InMemoryBroker
 
 lazy import grunt
 lazy from grunt.apps.required import DependencyCycleError, MissingAppError
-lazy from grunt.backups import BackupError, create_backup, get_backup, list_backups, restore_backup
-lazy from grunt.cli.utils import _site_session
+lazy from grunt.backups import (
+    BackupError,
+    create_backup,
+    get_backup,
+    list_backups,
+    restore_backup,
+)
+lazy from grunt.cli.utils import _site_session, resolve_site
 lazy from grunt.metadata.compiler import SA_METADATA, sync_table
 lazy from grunt.metadata.registry import doctype_registry
 lazy from grunt.monitoring.health import human_size
@@ -23,7 +29,11 @@ lazy from grunt.startup import (
 )
 lazy from grunt.startup.app_install import record_migrated_versions
 lazy from grunt.storage.cloud import Rclone, RemoteError, load_remote
-lazy from grunt.storage.cloud.backups import fetch_backup, list_remote_backups, upload_backup
+lazy from grunt.storage.cloud.backups import (
+    fetch_backup,
+    list_remote_backups,
+    upload_backup,
+)
 lazy from grunt.tasks.broker import broker
 
 
@@ -423,3 +433,27 @@ def db_upload_backup(remote: str, backup_id: str | None, site: str | None):
     except RemoteError as e:
         raise click.ClickException(str(e)) from e
     click.echo(f"Uploaded {backup.id} to {remote}")
+
+
+@db_group.command("rollback")
+@click.argument("steps", default=1, type=click.IntRange(min=1))
+@click.option("--site", default=None, help="Site name (default: the active site)")
+def db_rollback(steps: int, site: str | None) -> None:
+    """Roll back the last STEPS Alembic migrations of a site."""
+    # alembic_utils first: it quiets alembic's plugin-setup chatter before alembic loads
+    from grunt.db.alembic_utils import make_config  # isort: skip
+    from alembic import command
+
+    site_name = resolve_site(site)
+    click.echo(f"Site: {site_name}")
+    command.downgrade(make_config(site_manager.get_database_url(site_name)), f"-{steps}")
+
+
+@db_group.command("history")
+def db_history() -> None:
+    """Show the Alembic migration history (shared by all sites)."""
+    # alembic_utils first: it quiets alembic's plugin-setup chatter before alembic loads
+    from grunt.db.alembic_utils import make_config  # isort: skip
+    from alembic import command
+
+    command.history(make_config(), verbose=True)

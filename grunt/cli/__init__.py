@@ -12,17 +12,19 @@ from grunt.cli.fixtures import fixtures_group
 from grunt.cli.i18n import i18n_group
 from grunt.cli.lint import lint
 from grunt.cli.release import release, version
-from grunt.cli.server import init, serve, worker
+from grunt.cli.server import worker
+from grunt.cli.shell import shell
 from grunt.cli.site import site_group
 from grunt.cli.skills import skills_group
 from grunt.cli.test import test
 from grunt.cli.ui import ui_group
 from grunt.cli.user import users_group
+from grunt.cli.utils import AliasedGroup
 from grunt.db.write_intent import set_process_default
 from grunt.version import framework_version
 
 
-@click.group()
+@click.group(cls=AliasedGroup, aliases={"sites": "site"})
 @click.version_option(framework_version(), prog_name="grunt")
 def cli():
     """Grunt CLI: the framework management tool."""
@@ -52,9 +54,8 @@ def _load_plugins() -> None:
 
 
 # Register built-in commands
-cli.add_command(init)
-cli.add_command(serve)
 cli.add_command(test)
+cli.add_command(shell)
 cli.add_command(worker)
 cli.add_command(users_group)
 cli.add_command(db_group)

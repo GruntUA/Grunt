@@ -39,7 +39,7 @@ mkdir my_project && cd my_project
 grunt init
 
 # 3. Start the development server
-grunt serve --reload
+grunt serve
 ```
 
 ## Environment variables

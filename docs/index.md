@@ -61,7 +61,7 @@ grunt init
 grunt app create my_crm
 
 # Start the server
-grunt serve --reload
+grunt serve
 ```
 
 Open [http://localhost:8000](http://localhost:8000) in your browser.

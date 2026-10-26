@@ -165,7 +165,7 @@ def _create_app_boilerplate(dest: Path, hooks: dict, no_git: bool = False) -> No
 
     click.echo("\nNext steps:")
     click.echo(f"  grunt app install {app_name}")
-    click.echo("  grunt serve --reload")
+    click.echo("  grunt serve")
 
 
 # File writers
