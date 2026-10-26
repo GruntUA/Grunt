@@ -78,6 +78,14 @@ def _doctypes_dir(root: Path, module: str) -> Path:
     return root / "doctypes" if module in ("", root.name) else root / module / "doctypes"
 
 
+def _json_module(path: Path) -> str | None:
+    """``module`` declared in a DocType JSON file (None if unreadable or absent)."""
+    try:
+        return json.loads(path.read_text(encoding="utf-8")).get("module")
+    except OSError, ValueError:
+        return None
+
+
 def _find_doctype_dir(dt: DocType, app_name: str | None = None) -> Path | None:
     """Directory for *dt*'s files: where its JSON already lives, else its module's ``doctypes/``.
 
@@ -91,9 +99,10 @@ def _find_doctype_dir(dt: DocType, app_name: str | None = None) -> Path | None:
         roots = [_package_root(d.name) for d in app_dirs if d.is_dir()]
 
     for root in filter(None, roots):
-        existing = next(root.glob(f"**/doctypes/{dt.name}/{dt.name}.json"), None)
-        if existing:
-            return existing.parent
+        for existing in root.glob(f"**/doctypes/{dt.name}/{dt.name}.json"):
+            # A same-named DocType of another module is not ours - never overwrite it.
+            if _json_module(existing) in (None, dt.module):
+                return existing.parent
 
     for root in filter(None, roots):
         doctypes_dir = _doctypes_dir(root, dt.module)
