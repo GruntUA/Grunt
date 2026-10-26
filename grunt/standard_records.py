@@ -213,7 +213,10 @@ def read_record(folder: Path) -> dict[str, Any] | None:
 
 
 async def apply_records(app: str, session: AsyncSession, eng: AsyncEngine) -> int:
-    """Insert or update every standard record shipped in *app*'s files."""
+    """Insert or update every standard record shipped in *app*'s files.
+
+    Returns how many records were inserted or updated.
+    """
     folders = [
         json_file.parent
         for records_dir in _records_dirs(app)
@@ -240,8 +243,7 @@ async def _apply_folder(app: str, folder: Path, session: AsyncSession, eng: Asyn
     record = {k: v for k, v in record.items() if k == "name" or meta.has_field(k)}
     record.update(is_standard=True, app=app)
     try:
-        await _apply_doctype_fixture(meta.doc.name, [record], session, eng, sync=True)
+        return await _apply_doctype_fixture(meta.doc.name, [record], session, eng, sync=True)
     except Exception as e:
         log.warning("standard_records.apply_failed", path=str(folder), error=str(e))
         return 0
-    return 1

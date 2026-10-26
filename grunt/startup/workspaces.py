@@ -33,21 +33,36 @@ async def _upsert_workspace(
     aren't derived from one another here), but the upsert mechanics and the
     "replace sidebar: delete then bulk-insert" step are identical in all three.
 
-    Returns True if an existing workspace was updated, False if created.
+    Nothing is written for a part that already matches - ``grunt migrate``
+    runs this for every app on every run.
+
+    Returns True if anything was written (and logs what).
     """
     existing = await grunt.get_list("AppMenu", filters={"name": ws_name}, fields=["name"], limit=1)
-    updated = bool(existing)
+    written = False
 
     if existing:
         ws_id = existing[0]["name"]
-        clean_update = {k: v for k, v in update_fields.items() if v is not None}
+        current = await grunt.get_doc("AppMenu", ws_id)
+        clean_update = {
+            k: v
+            for k, v in update_fields.items()
+            if v is not None and _norm(current.get(k)) != _norm(v)
+        }
         if clean_update:
             await grunt.save_doc("AppMenu", ws_id, clean_update)
+            written = True
+        if section_rows is not None and _rows_match(current.get("sections") or [], section_rows):
+            section_rows = None
+        sidebar_same = _rows_match(current.get("sidebar_items") or [], sidebar_rows)
     else:
         ws = await grunt.new_doc("AppMenu", {"name": ws_name, **create_fields})
         ws_id = ws["name"]
+        sidebar_same = False
+        log.info("startup.workspace_created", workspace=ws_id)
 
     if section_rows is not None:
+        written = True
         await grunt.db.delete("WorkspaceSection", {"parent_name": ws_id})
         if section_rows:
             await grunt.bulk_insert(
@@ -63,6 +78,16 @@ async def _upsert_workspace(
                 ],
             )
 
+    if not sidebar_same:
+        written = True
+        await _replace_sidebar(ws_id, sidebar_rows)
+
+    if written and existing:
+        log.info("startup.workspace_updated", workspace=ws_id)
+    return written or not existing
+
+
+async def _replace_sidebar(ws_id: str, sidebar_rows: list[dict[str, Any]]) -> None:
     await grunt.db.delete("WorkspaceSidebarItem", {"parent_name": ws_id})
     if sidebar_rows:
         await grunt.bulk_insert(
@@ -78,7 +103,26 @@ async def _upsert_workspace(
             ],
         )
 
-    return updated
+
+def _norm(value: Any) -> Any:
+    """Stored and fixture values compared loosely: None == "", True == 1."""
+    if value is None:
+        return ""
+    if isinstance(value, bool):
+        return int(value)
+    return value
+
+
+def _rows_match(current: list[dict[str, Any]], desired: list[dict[str, Any]]) -> bool:
+    """Child rows already stored as *desired*, in order (``idx`` aside - row order is it)."""
+    if len(current) != len(desired):
+        return False
+    return all(
+        _norm(cur.get(k)) == _norm(v)
+        for cur, row in zip(current, desired, strict=True)
+        for k, v in row.items()
+        if k != "idx"
+    )
 
 
 def _section_rows(data: dict[str, Any]) -> list[dict[str, Any]] | None:
@@ -135,7 +179,7 @@ async def seed_grunt_workspace(session: AsyncSession, eng: Any) -> None:
             )
             log.info("startup.grunt_app_registered")
 
-        updated = await _upsert_workspace(
+        await _upsert_workspace(
             ws_name,
             create_fields={
                 "label": data["label"],
@@ -161,10 +205,6 @@ async def seed_grunt_workspace(session: AsyncSession, eng: Any) -> None:
             sidebar_rows=_sidebar_rows_from_items(data.get("sidebar_items", [])),
             section_rows=_section_rows(data),
         )
-        if updated:
-            log.info("startup.grunt_workspace_updating")
-
-    log.info("startup.grunt_workspace_seeded")
 
 
 async def _apply_workspace_fixture(

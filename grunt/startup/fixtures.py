@@ -9,6 +9,7 @@ from datetime import time as _time
 from pathlib import Path
 from typing import Any
 
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 import grunt
@@ -35,14 +36,22 @@ async def load_core_fixtures(session: AsyncSession, eng: AsyncEngine) -> None:
                 records = fx.get("records", [])
                 if not fx_doctype or not records:
                     continue
-                await _apply_doctype_fixture(
+                written = await _apply_doctype_fixture(
                     fx_doctype, records, session, eng, sync=bool(fx.get("sync"))
                 )
-                log.info("startup.core_fixture_applied", file=fx_file.name, doctype=fx_doctype)
+                if written:
+                    log.info(
+                        "startup.core_fixture_applied",
+                        file=fx_file.name,
+                        doctype=fx_doctype,
+                        count=written,
+                    )
             except Exception as e:
                 log.warning("startup.core_fixture_failed", file=fx_file.name, error=str(e))
 
-    await apply_records("grunt", session, eng)
+    count = await apply_records("grunt", session, eng)
+    if count:
+        log.info("startup.standard_records_applied", app="grunt", count=count)
 
 
 def _coerce_fixture_value(fieldtype: str, value: object) -> object:
@@ -85,17 +94,21 @@ async def _apply_doctype_fixture(
     eng: AsyncEngine,
     *,
     sync: bool = False,
-) -> None:
+) -> int:
     """Apply fixture records for a regular DocType.
 
     Missing records are inserted. Existing ones are skipped - unless *sync*
     (a file written by ``grunt fixtures export``), then they are updated to
     match the file whenever the stored values differ.
+
+    Returns how many records were inserted or updated.
     """
     dt = await grunt.get_meta(doctype_name)
     if dt is None:
         log.warning("startup.fixture_doctype_not_found", doctype=doctype_name)
-        return
+        return 0
+
+    written = 0
 
     physical_fields = dt.get_physical_fields()
 
@@ -107,8 +120,8 @@ async def _apply_doctype_fixture(
 
             existing_id = await grunt.exists(doctype_name, {"name": name_val})
             if existing_id:
-                if sync:
-                    await _sync_fixture_record(dt, doctype_name, existing_id, rec)
+                if sync and await _sync_fixture_record(dt, doctype_name, existing_id, rec):
+                    written += 1
                 continue
 
             payload: dict[str, object] = dict(rec)
@@ -123,17 +136,17 @@ async def _apply_doctype_fixture(
                 elif field.default is not None:
                     payload[field.fieldname] = _coerce_fixture_value(field.fieldtype, field.default)
 
+            # A savepoint per record: an IntegrityError rolls back this insert
+            # only, not everything the caller did earlier in the session.
             try:
-                await grunt.new_doc(doctype_name, payload)
-            except Exception as _insert_exc:
-                from sqlalchemy.exc import IntegrityError as _IntegrityError
-
-                if isinstance(_insert_exc, _IntegrityError):
-                    await session.rollback()
-                    continue
-                raise
+                async with session.begin_nested():
+                    await grunt.new_doc(doctype_name, payload)
+                written += 1
+            except IntegrityError:
+                log.warning("startup.fixture_record_conflict", doctype=doctype_name, name=name_val)
 
     await session.flush()
+    return written
 
 
 def _without_doctype(value: Any) -> Any:
@@ -159,7 +172,7 @@ def _matches(current: Any, desired: Any) -> bool:
     return current == desired
 
 
-async def _sync_fixture_record(dt: Meta, doctype_name: str, doc_id: str, rec: dict) -> None:
+async def _sync_fixture_record(dt: Meta, doctype_name: str, doc_id: str, rec: dict) -> bool:
     """Update an existing record to the fixture's values - only if they differ.
 
     Compared in exported form (:func:`grunt.fixtures.clean_record`), so an
@@ -171,7 +184,7 @@ async def _sync_fixture_record(dt: Meta, doctype_name: str, doc_id: str, rec: di
     desired = _without_doctype(to_json_compatible(rec))
     changed = {k: v for k, v in desired.items() if k != "name" and not _matches(current.get(k), v)}
     if not changed:
-        return
+        return False
 
     fieldtypes = {f.fieldname: f.fieldtype for f in dt.get_physical_fields()}
     payload = {
@@ -182,3 +195,4 @@ async def _sync_fixture_record(dt: Meta, doctype_name: str, doc_id: str, rec: di
     log.info(
         "startup.fixture_synced", doctype=doctype_name, name=rec.get("name"), fields=sorted(changed)
     )
+    return True

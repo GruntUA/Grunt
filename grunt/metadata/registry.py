@@ -461,6 +461,7 @@ class DocTypeRegistry:
         on upgrades). If False, only merges new fields in memory.
         """
         existing = await store.get_definition(session, doctype.name)
+        written = False
 
         if existing:
             # Load the stored definition (preserves Studio customisations).
@@ -476,7 +477,10 @@ class DocTypeRegistry:
                 active_dt = doctype
                 if sync_db:
                     await store.update_doctype(session, doctype)
+                    written = True
             else:
+                stored_state = active_dt.model_dump(mode="json")
+
                 # `permissions` is deliberately excluded from
                 # _CORE_SYNCED_DOCTYPE_ATTRS (a Studio customisation, seeded
                 # once and never overwritten automatically) - but that means
@@ -513,22 +517,25 @@ class DocTypeRegistry:
                 self._sync_core_field_attrs(active_dt, doctype)
                 self._reorder_core_fields(active_dt, doctype)
 
-                if sync_db:
+                # Unchanged against the stored row - nothing to write.
+                if sync_db and active_dt.model_dump(mode="json") != stored_state:
                     await store.update_doctype(session, active_dt)
                     await session.flush()
+                    written = True
         else:
             # First run: seed from the bundled JSON file.
             active_dt = doctype
             if sync_db:
                 await store.insert_doctype(session, doctype)
                 await session.flush()
+                written = True
 
         self._doctypes[active_dt.name] = active_dt
         self._index_add(active_dt.name)
-        if sync_db:
+        if written:
             log.info("registry.core_injected", name=active_dt.name)
         else:
-            log.info("registry.core_loaded", name=active_dt.name)
+            log.debug("registry.core_loaded", name=active_dt.name)
 
     async def register(
         self,

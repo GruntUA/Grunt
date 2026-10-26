@@ -30,7 +30,9 @@ if not db_url:
     db_url = async_url_to_sync(db_url)
 config.set_main_option("sqlalchemy.url", db_url)
 
-if config.config_file_name is not None:
+# Run from grunt (make_config) the process' logging is already set up -
+# fileConfig would replace it and turn alembic's INFO chatter on.
+if config.config_file_name is not None and config.attributes.get("configure_logger", True):
     fileConfig(config.config_file_name)
 
 target_metadata = None

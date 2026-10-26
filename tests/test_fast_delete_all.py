@@ -41,12 +41,20 @@ async def test_fast_delete_respects_filters_and_search(ctx, db_session, engine, 
     await db_session.commit()
 
     names = {}
-    for title, kind in (("alpha one", "a"), ("alpha two", "a"), ("beta", "a"), ("alpha three", "b")):
+    for title, kind in (
+        ("alpha one", "a"),
+        ("alpha two", "a"),
+        ("beta", "a"),
+        ("alpha three", "b"),
+    ):
         doc = await ctx.new_doc("FastDelItem", {"title": title, "kind": kind})
         names[title] = doc["name"]
         await db_session.execute(
             _search_index_table.insert().values(
-                idx_id=f"fastdel-test:{doc['name']}", doctype="FastDelItem", doc_id=doc["name"], title=title,
+                idx_id=f"fastdel-test:{doc['name']}",
+                doctype="FastDelItem",
+                doc_id=doc["name"],
+                title=title,
             )
         )
     await db_session.commit()
@@ -57,7 +65,8 @@ async def test_fast_delete_respects_filters_and_search(ctx, db_session, engine, 
 
     monkeypatch.setattr(bulk_ops, "async_session_factory", _session)
     task = bulk_ops.BulkDeleteTask()
-    task._manager = _Manager()
+    fake_manager = _Manager()
+    monkeypatch.setattr(task, "_manager", fake_manager)
 
     await task.run_fast_delete_all(
         "FastDelItem",
@@ -79,6 +88,6 @@ async def test_fast_delete_respects_filters_and_search(ctx, db_session, engine, 
     }
     assert indexed == {names["beta"], names["alpha three"]}
 
-    done = task._manager.sent[-1]
+    done = fake_manager.sent[-1]
     assert done["event"] == "bulk_delete_done"
     assert done["data"]["deleted"] == 2

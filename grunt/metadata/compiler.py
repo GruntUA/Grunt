@@ -309,7 +309,7 @@ def _backfill_default(field: Any) -> Any:
         return None
 
 
-def _sync_columns(insp: Any, connection: Any, table: Table) -> None:
+def _sync_columns(insp: Any, connection: Any, table: Table) -> int:
     """Add missing columns and ALTER type-changed ones (non-SQLite only).
 
     A new column is added as NULL (safe on tables with rows), then existing
@@ -317,6 +317,7 @@ def _sync_columns(insp: Any, connection: Any, table: Table) -> None:
     e.g. a new Check "enabled by default" on a settings singleton reads as on.
     """
     existing_col_map = {c["name"]: c["type"] for c in insp.get_columns(table.name)}
+    changes = 0
 
     for col in table.columns:
         if col.name not in existing_col_map:
@@ -326,6 +327,7 @@ def _sync_columns(insp: Any, connection: Any, table: Table) -> None:
                 text(f'ALTER TABLE "{table.name}" ADD COLUMN "{col.name}" {col_type} NULL')
             )
             log.info("compiler.column_added", table=table.name, column=col.name)
+            changes += 1
             if "backfill_default" in col.info:
                 connection.execute(
                     update(table)
@@ -368,19 +370,23 @@ def _sync_columns(insp: Any, connection: Any, table: Table) -> None:
                 column=col.name,
                 new_type=desired_type,
             )
+            changes += 1
+    return changes
 
 
-def _sync_unique_constraints(insp: Any, connection: Any, table: Table) -> None:
+def _sync_unique_constraints(insp: Any, connection: Any, table: Table) -> int:
     """Add missing per-field unique indexes, drop stale ones (our naming prefix only)."""
     # SQLite exposes unique indexes via get_indexes (not get_unique_constraints),
     # so merge both sources for a complete picture.
     existing_uq: set[str] = {ix["name"] for ix in insp.get_unique_constraints(table.name)}
-    existing_uq |= {ix["name"] for ix in insp.get_indexes(table.name) if ix.get("unique")}
+    unique_indexes = {ix["name"] for ix in insp.get_indexes(table.name) if ix.get("unique")}
+    existing_uq |= unique_indexes
     desired_uq: dict[str, UniqueConstraint] = {
         str(c.name): c for c in table.constraints if isinstance(c, UniqueConstraint) and c.name
     }
     uq_prefix = f"uq_{table.name}_"
     is_sqlite = connection.dialect.name == "sqlite"
+    changes = 0
 
     for name, uq in desired_uq.items():
         if name not in existing_uq:
@@ -419,11 +425,19 @@ def _sync_unique_constraints(insp: Any, connection: Any, table: Table) -> None:
                 )
             )
             log.info("compiler.unique_added", table=table.name, constraint=name)
+            changes += 1
 
     # Drop stale per-field unique indexes (those with our naming prefix only)
     for name in existing_uq:
         if name and name.startswith(uq_prefix) and name not in desired_uq:
             if is_sqlite:
+                if name not in unique_indexes:
+                    # Declared inline in CREATE TABLE - SQLite can't drop it
+                    # without rebuilding the table; DROP INDEX is a no-op.
+                    log.warning(
+                        "compiler.unique_inline_not_dropped", table=table.name, constraint=name
+                    )
+                    continue
                 connection.execute(text(f'DROP INDEX IF EXISTS "{name}"'))
             else:
                 # Index may have been created via CREATE UNIQUE INDEX or ADD CONSTRAINT
@@ -434,22 +448,27 @@ def _sync_unique_constraints(insp: Any, connection: Any, table: Table) -> None:
                         text(f'ALTER TABLE "{table.name}" DROP CONSTRAINT IF EXISTS "{name}"')
                     )
             log.info("compiler.unique_dropped", table=table.name, constraint=name)
+            changes += 1
+    return changes
 
 
-def _sync_indexes(insp: Any, connection: Any, table: Table) -> None:
+def _sync_indexes(insp: Any, connection: Any, table: Table) -> int:
     """Create indexes defined on *table* that don't exist yet in the DB."""
     existing_indexes = {ix["name"] for ix in insp.get_indexes(table.name)}
+    changes = 0
     for index in table.indexes:
         if index.name and index.name not in existing_indexes:
             index.create(connection)
             log.info("compiler.index_created", table=table.name, index=index.name)
+            changes += 1
+    return changes
 
 
 async def sync_table(
     doctype: DocType,
     async_engine: AsyncEngine | None,
     session: AsyncSession | None = None,
-) -> None:
+) -> bool:
     """Apply DocType changes to the physical database.
 
     1. Compile DocType -> SA Table.
@@ -461,31 +480,33 @@ async def sync_table(
        - Add missing indexes.
        Columns are **never** dropped.
 
+    Returns True if anything in the database was changed.
+
     When *session* is provided, uses its underlying connection instead of
     opening a new one (avoids SQLite "database is locked" errors).
     """
     if doctype.is_virtual:
         log.debug("compiler.skip_virtual", doctype=doctype.name)
-        return
+        return False
 
     table = compile_doctype_to_table(doctype)
 
-    def _sync(connection):
+    def _sync(connection) -> bool:
         insp = inspect(connection)
         if not insp.has_table(table.name):
             table.metadata.create_all(connection, tables=[table])
             log.info("compiler.table_created", table=table.name)
-            return
+            return True
 
-        _sync_columns(insp, connection, table)
-        _sync_unique_constraints(insp, connection, table)
-        _sync_indexes(insp, connection, table)
+        changes = _sync_columns(insp, connection, table)
+        changes += _sync_unique_constraints(insp, connection, table)
+        changes += _sync_indexes(insp, connection, table)
+        return changes > 0
 
     if session is not None:
         conn = await session.connection()
-        await conn.run_sync(_sync)
-    else:
-        if async_engine is None:
-            raise ValueError("sync_table needs an engine or a session")
-        async with async_engine.begin() as conn:
-            await conn.run_sync(_sync)
+        return await conn.run_sync(_sync)
+    if async_engine is None:
+        raise ValueError("sync_table needs an engine or a session")
+    async with async_engine.begin() as conn:
+        return await conn.run_sync(_sync)

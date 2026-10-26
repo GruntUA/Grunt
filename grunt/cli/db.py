@@ -100,7 +100,9 @@ def db_migrate(dry_run: bool, site: str | None, no_alembic: bool) -> None:
                         await apply_doctype_overrides(session, eng, sync_db=True)
                         # Hydrate Studio-created DocTypes too - list_all()'s
                         # lazy branch only fires once _known_names is populated.
-                        await doctype_registry.load_all(session)
+                        # (register_installed_app_doctypes below does it otherwise.)
+                        if dry_run:
+                            await doctype_registry.load_all(session)
 
                         # App DocTypes changed in JSON: register/update syncs
                         # their tables from the new definition right here, so
@@ -108,13 +110,20 @@ def db_migrate(dry_run: bool, site: str | None, no_alembic: bool) -> None:
                         # stale stored one first.
                         from_json: set[str] = set()
                         if not dry_run:
-                            from_json = await register_installed_app_doctypes(session, site_name)
+                            try:
+                                from_json = await register_installed_app_doctypes(
+                                    session, site_name
+                                )
+                            except (MissingAppError, DependencyCycleError) as e:
+                                failed.append(f"{site_name}: {e}")
+                                click.echo(f"    [error] {e}", err=True)
+                                continue
                             for name in sorted(from_json):
                                 click.echo(f"    synced (from JSON): {name}")
 
                         all_dts = await doctype_registry.list_all()
 
-                        synced = len(from_json)
+                        checked = changed = len(from_json)
                         skipped = 0
                         for dt in all_dts:
                             try:
@@ -125,17 +134,20 @@ def db_migrate(dry_run: bool, site: str | None, no_alembic: bool) -> None:
                                     continue
                                 if dry_run:
                                     click.echo(f"    [dry-run] would sync: {dt.name}")
-                                else:
-                                    await sync_table(dt, eng, session=session)
+                                elif await sync_table(dt, eng, session=session):
                                     click.echo(f"    synced: {dt.name}")
-                                synced += 1
+                                    changed += 1
+                                checked += 1
                             except Exception as e:
                                 failed.append(f"{site_name}: {dt.name}")
                                 click.echo(f"    [error] {dt.name}: {e}", err=True)
 
                         await session.commit()
 
-                    click.echo(f"  Done: {synced} synced, {skipped} skipped (virtual).")
+                    click.echo(
+                        f"  Done: {checked} checked, {changed} changed,"
+                        f" {skipped} skipped (virtual)."
+                    )
 
                     # 4. Seed fixtures (skip on dry-run)
                     if dry_run:
@@ -150,7 +162,9 @@ def db_migrate(dry_run: bool, site: str | None, no_alembic: bool) -> None:
 
                         try:
                             async with maker() as session:
-                                await sync_installed_apps(session, site_name)
+                                await sync_installed_apps(
+                                    session, site_name, doctypes_registered=True
+                                )
                                 await session.commit()
                             click.echo("  Fixtures applied.")
                         except (MissingAppError, DependencyCycleError) as e:

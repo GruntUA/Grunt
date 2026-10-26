@@ -146,7 +146,8 @@ async def register_installed_app_doctypes(session: AsyncSession, site_name: str)
     if not site_file.exists():
         return set()
 
-    ensure_site_dependencies(site_file, site_manager.bench_dir / "apps")
+    for app_name in ensure_site_dependencies(site_file, site_manager.bench_dir / "apps"):
+        log.info("startup.app_dependency_added", site=site_name, app=app_name)
     installed_apps = json.loads(site_file.read_text()).get("installed_apps", [])
     eng = site_manager.get_engine(site_name)
 
@@ -193,10 +194,13 @@ async def _apply_app_fixtures(
                     deferred_menus.append((fx_file, records))
                     continue
 
-                await _apply_doctype_fixture(
+                written = await _apply_doctype_fixture(
                     fx_doctype, records, session, eng, sync=bool(fx.get("sync"))
                 )
-                log.info("startup.fixture_applied", app=app_name, file=fx_file.name)
+                if written:
+                    log.info(
+                        "startup.fixture_applied", app=app_name, file=fx_file.name, count=written
+                    )
             except Exception as e:
                 log.warning("startup.fixture_failed", app=app_name, file=fx_file.name, error=str(e))
 
@@ -207,7 +211,6 @@ async def _apply_app_fixtures(
     for fx_file, records in deferred_menus:
         try:
             workspace_from_fixture = await _apply_workspace_fixture(records, app_name, app_meta)
-            log.info("startup.fixture_applied", app=app_name, file=fx_file.name)
         except Exception as e:
             log.warning("startup.fixture_failed", app=app_name, file=fx_file.name, error=str(e))
 
@@ -263,7 +266,9 @@ async def _run_after_install_hook(
         log.warning("startup.after_install_failed", app=app_name, error=str(e))
 
 
-async def sync_installed_apps(session: AsyncSession, site_name: str) -> None:
+async def sync_installed_apps(
+    session: AsyncSession, site_name: str, *, doctypes_registered: bool = False
+) -> None:
     """Sync DocTypes, fixtures, standard records and the workspace for every installed app.
 
     Reads ``grunt.site`` -> ``installed_apps`` (first adding the apps they
@@ -272,6 +277,10 @@ async def sync_installed_apps(session: AsyncSession, site_name: str) -> None:
     ``doctypes/`` directories if not yet in the registry, applies fixtures and
     standard records, then creates/updates a workspace with the app's DocTypes
     as sidebar items.
+
+    ``doctypes_registered``: :func:`register_installed_app_doctypes` already
+    ran in this process (``grunt migrate``) - skip reloading the registry and
+    re-reading every app's DocType JSON.
     """
 
     site_file = site_manager.sites_dir / site_name / "grunt.site"
@@ -288,7 +297,8 @@ async def sync_installed_apps(session: AsyncSession, site_name: str) -> None:
     _ensure_on_syspath(site_manager.bench_dir / "apps")
 
     async with grunt.system_context(session, eng):
-        await doctype_registry.load_all(session)
+        if not doctypes_registered:
+            await doctype_registry.load_all(session)
 
         for app_name in installed_apps:
             if app_name == "grunt":
@@ -311,7 +321,8 @@ async def sync_installed_apps(session: AsyncSession, site_name: str) -> None:
             is_first_install = await _register_app_if_new(app_name, app_meta)
             app_modules = set(app_meta.get("modules", []))
 
-            await _register_app_doctypes(session, eng, app_dir, app_name, app_modules)
+            if not doctypes_registered:
+                await _register_app_doctypes(session, eng, app_dir, app_name, app_modules)
             workspace_from_fixture = await _apply_app_fixtures(
                 session, eng, app_dir, app_name, app_modules, app_meta
             )
@@ -322,5 +333,3 @@ async def sync_installed_apps(session: AsyncSession, site_name: str) -> None:
 
             if is_first_install:
                 await _run_after_install_hook(session, site_name, app_dir, app_name)
-
-            log.info("startup.app_workspace_seeded", app=app_name)

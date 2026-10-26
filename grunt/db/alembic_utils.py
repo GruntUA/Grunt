@@ -6,15 +6,22 @@ version history is applied alongside the metadata/table sync. Standalone
 when no explicit URL is handed in through ``config.attributes["target_db_url"]``.
 """
 
+import logging
+from collections.abc import Generator
+from contextlib import contextmanager
 from pathlib import Path
 from typing import NamedTuple
 
 import sqlalchemy as sa
-from alembic import command
-from alembic.config import Config
-from alembic.runtime.migration import MigrationContext
-from alembic.script import ScriptDirectory
-from alembic.util.exc import CommandError
+lazy from alembic import command
+lazy from alembic.config import Config
+lazy from alembic.runtime.migration import MigrationContext
+lazy from alembic.script import ScriptDirectory
+lazy from alembic.util.exc import CommandError
+
+# Importing alembic sets up its plugins with one INFO line each; the imports
+# above are lazy, so this runs before alembic is actually loaded.
+logging.getLogger("alembic.runtime.plugins").setLevel(logging.WARNING)
 
 # apps/grunt/alembic.ini
 _ALEMBIC_INI = Path(__file__).resolve().parents[2] / "alembic.ini"
@@ -24,6 +31,19 @@ _ASYNC_TO_SYNC = {
     "+asyncpg": "+psycopg2",
     "+aiomysql": "+pymysql",
 }
+
+
+@contextmanager
+def _quiet_alembic() -> Generator[None]:
+    """Hide alembic's INFO chatter (plugin setup, "Context impl ...") while
+    only inspecting state - a real upgrade/stamp keeps its own output."""
+    logger = logging.getLogger("alembic")
+    level = logger.level
+    logger.setLevel(logging.WARNING)
+    try:
+        yield
+    finally:
+        logger.setLevel(level)
 
 
 def async_url_to_sync(db_url: str) -> str:
@@ -44,6 +64,7 @@ def async_url_to_sync(db_url: str) -> str:
 def make_config(db_url: str | None = None) -> Config:
     """Build an Alembic ``Config`` bound to ``db_url`` (already sync or async)."""
     cfg = Config(str(_ALEMBIC_INI))
+    cfg.attributes["configure_logger"] = False
     if db_url:
         cfg.attributes["target_db_url"] = async_url_to_sync(db_url)
     return cfg
@@ -113,20 +134,20 @@ def sync_site(db_url: str) -> str:
     Returns ``"no migrations"``, ``"stamped"``, ``"up to date"`` or ``"upgraded"``.
     """
     cfg = make_config(db_url)
-    script = ScriptDirectory.from_config(cfg)
+    with _quiet_alembic():
+        script = ScriptDirectory.from_config(cfg)
+        if not list(script.walk_revisions()):
+            return "no migrations"
 
-    if not list(script.walk_revisions()):
-        return "no migrations"
+        sync_url = async_url_to_sync(db_url)
+        engine = sa.create_engine(sync_url, poolclass=sa.pool.NullPool)
+        try:
+            has_version = sa.inspect(engine).has_table("alembic_version")
+        finally:
+            engine.dispose()
+        state = migration_state(db_url) if has_version else None
 
-    sync_url = async_url_to_sync(db_url)
-    engine = sa.create_engine(sync_url, poolclass=sa.pool.NullPool)
-    try:
-        has_version = sa.inspect(engine).has_table("alembic_version")
-    finally:
-        engine.dispose()
-
-    if has_version:
-        state = migration_state(db_url)
+    if state is not None:
         if not state.known:
             raise DatabaseAheadError(str(state.current))
         if state.current == state.head:

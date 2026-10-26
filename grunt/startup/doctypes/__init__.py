@@ -98,8 +98,6 @@ async def load_core_doctypes(session: AsyncSession, sync_db: bool = False) -> No
             if not dt_obj.app:
                 dt_obj.app = "grunt"
             await doctype_registry._inject_core(dt_obj, session, sync_db=sync_db)
-            if sync_db:
-                log.info("startup.core_doctype_injected", doctype=dt_name)
         except Exception as e:
             # Boot tolerates a broken file; a sync (migrate) must not report
             # success with the DocType table left stale.

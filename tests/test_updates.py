@@ -3,9 +3,12 @@
 import importlib.metadata
 import json
 import os
+import platform
+import shutil
 import subprocess
 import time
 from datetime import UTC, date, datetime, timedelta
+from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
@@ -291,7 +294,7 @@ async def test_python_row_asks_for_restart(monkeypatch):
         return "3.99.0\n"
 
     monkeypatch.setattr(updates, "run", on_disk)
-    monkeypatch.setattr(updates.platform, "python_version", lambda: "3.14.0")
+    monkeypatch.setattr(platform, "python_version", lambda: "3.14.0")
     r = await updates.python_row(CAT)
     assert r["status"] == "Warning"
     assert r["value"] == "3.14.0 → 3.99.0"
@@ -314,7 +317,7 @@ async def test_python_patch_waits_for_uv(monkeypatch, downloads, status):
 
     monkeypatch.setattr(updates, "run", fake_run)
     monkeypatch.setattr(updates, "tool", lambda name: "/bin/uv" if name == "uv" else None)
-    monkeypatch.setattr(updates.platform, "python_version", lambda: "3.14.4")
+    monkeypatch.setattr(platform, "python_version", lambda: "3.14.4")
     r = await updates.python_row(CAT)
     assert r["status"] == status
     assert "3.14.8" in (r["value"] if status == "Warning" else r["hint"])
@@ -379,7 +382,7 @@ def test_old_runtimes(tmp_path, monkeypatch):
     framework = tmp_path / "grunt"
     framework.mkdir()
     (framework / "mise.toml").write_text('[tools]\nnode = "26"\n')
-    monkeypatch.setattr(updates.Path, "home", lambda: home)
+    monkeypatch.setattr(Path, "home", lambda: home)
     monkeypatch.setattr(updates, "FRAMEWORK_DIR", framework)
     monkeypatch.setattr(updates, "tool", lambda name: f"/bin/{name}")
     node = home / ".local/share/mise/installs/node/26.8.1/bin/node"
@@ -439,14 +442,14 @@ def test_process_user(tmp_path, monkeypatch):
     started = 4 * 86400 * clk  # 4 days after boot -> 6 days ago
     fields = ["T", *["0"] * 18, str(started)]
     (proc / "stat").write_text(f"42 (python3) {' '.join(fields)}\n")
-    real_read = updates.Path.read_text
+    real_read = Path.read_text
 
     def read_text(self, *a, **kw):
         if str(self) == "/proc/stat":
             return f"cpu 0\nbtime {btime}\n"
         return real_read(self, *a, **kw)
 
-    monkeypatch.setattr(updates.Path, "read_text", read_text)
+    monkeypatch.setattr(Path, "read_text", read_text)
     who = updates._process_user(proc)
     assert "42 (grunt serve, 6 " in who and "Ctrl+Z)" in who
     assert who.endswith("→ `kill 42 && kill -CONT 42`")
@@ -471,7 +474,7 @@ def apt(monkeypatch, tmp_path):
         assert cmd[:2] == ("apt", "list")
         return state.listing
 
-    monkeypatch.setattr(updates.shutil, "which", lambda name: f"/usr/bin/{name}")
+    monkeypatch.setattr(shutil, "which", lambda name: f"/usr/bin/{name}")
     monkeypatch.setattr(updates, "run", fake_run)
     monkeypatch.setattr(updates, "os_name", lambda: "Debian GNU/Linux 13 (trixie)")
     monkeypatch.setattr(updates, "APT_LISTS", tmp_path)
@@ -484,6 +487,7 @@ def apt(monkeypatch, tmp_path):
 async def test_os_up_to_date(apt):
     (apt.dir / "deb.debian.org_dists_trixie_InRelease").touch()
     r = await updates.os_row(CAT)
+    assert r is not None
     assert r["status"] == "OK" and r["value"] == "Debian GNU/Linux 13 (trixie)"
 
 
@@ -491,6 +495,7 @@ async def test_os_up_to_date(apt):
 async def test_os_security_updates_are_an_error(apt):
     apt.listing = _UPGRADABLE
     r = await updates.os_row(CAT)
+    assert r is not None
     assert r["status"] == "Error"
     assert "openssl, curl" in r["hint"] and "sudo apt upgrade" in r["hint"]  # security first
 
@@ -503,11 +508,12 @@ async def test_os_stale_lists_and_reboot(apt):
     os.utime(old, (ten_days_ago, ten_days_ago))
     (apt.dir / "reboot-required").touch()
     r = await updates.os_row(CAT)
+    assert r is not None
     assert r["status"] == "Warning"
     assert "10" in r["hint"] and "grunt update" in r["hint"]
 
 
 @pytest.mark.asyncio
 async def test_no_apt_no_os_row(monkeypatch):
-    monkeypatch.setattr(updates.shutil, "which", lambda name: None)
+    monkeypatch.setattr(shutil, "which", lambda name: None)
     assert await updates.os_row(CAT) is None
