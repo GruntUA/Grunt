@@ -114,9 +114,15 @@ function onPick(value: unknown) {
       <InputGroup
         :class="cell && 'h-8 rounded-none border-transparent border-b-border/30 bg-transparent shadow-none hover:border-input dark:bg-transparent has-[[data-slot=input-group-control]:focus-visible]:ring-0'"
       >
+        <!--
+          Input keeps its own v-model, so listen to it too: in a real browser a
+          microtask runs between the input listeners, and Input re-renders with
+          the stale `value` from ComboboxInput before reka reads the typed text.
+        -->
         <ComboboxInput as-child :model-value="query" :display-value="() => query" @update:model-value="onInput">
           <InputGroupInput
             :model-value="query"
+            @update:model-value="onInput"
             :placeholder="field.placeholder ?? t('Search {doctype}…', { doctype: field.options ?? '' })"
             :aria-label="field.label"
             :aria-invalid="error ? true : undefined"
