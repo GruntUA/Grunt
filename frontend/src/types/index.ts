@@ -239,6 +239,9 @@ export interface DocType {
   indexes?: string[][]
   autoname?: string | null
   default_view?: string | null
+  /** List order when none is chosen (backend falls back to modified_at desc). */
+  sort_field?: string | null
+  sort_order?: 'asc' | 'desc'
   form_show_sidebar?: boolean
   kanban_column_field?: string | null
   calendar_date_field?: string | null

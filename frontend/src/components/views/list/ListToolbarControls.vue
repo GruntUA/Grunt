@@ -52,6 +52,8 @@ const props = defineProps<{
   sortKey: string
   sortOrder: 'asc' | 'desc'
   sortableColumns: ListColumn[]
+  defaultSortKey?: string
+  defaultSortOrder?: 'asc' | 'desc'
 }>()
 
 const emit = defineEmits(['update:groupBy', 'sort'])
@@ -129,10 +131,19 @@ const filteredSortOptions = computed(() =>
   allSortOptions.value.filter((o) => matches(o.label, sortSearch.value)),
 )
 
-// applySort toggles direction when the same key is sent again
+// No explicit sort -> the list uses the DocType default (sort_field / sort_order)
+const effectiveSortKey = computed(() => props.sortKey || props.defaultSortKey || '')
+const effectiveSortOrder = computed(() =>
+  props.sortKey ? props.sortOrder : (props.defaultSortOrder ?? 'desc'),
+)
+
+// applySort toggles direction when the same key is sent again; from the
+// default state the first emit pins the key with 'asc'
 function setSortOrder(order: 'asc' | 'desc') {
-  if (!props.sortKey || props.sortOrder === order) return
-  emit('sort', props.sortKey)
+  const key = effectiveSortKey.value
+  if (!key || effectiveSortOrder.value === order) return
+  emit('sort', key)
+  if (!props.sortKey && order === 'desc') emit('sort', key)
 }
 
 function resetAll() {
@@ -289,12 +300,12 @@ const rowClass = 'group flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-
         <TabsContent value="sort" class="space-y-3 px-6 py-4">
           <div class="flex items-center justify-between gap-3">
             <span class="text-muted-foreground">{{ t('Sort order') }}</span>
-            <div class="inline-flex rounded-md border p-0.5" :class="{ 'pointer-events-none opacity-50': !sortKey }">
+            <div class="inline-flex rounded-md border p-0.5" :class="{ 'pointer-events-none opacity-50': !effectiveSortKey }">
               <Button
                 variant="ghost"
                 size="sm"
                 class="h-7 gap-1.5"
-                :class="sortKey && sortOrder === 'asc' && 'bg-accent text-accent-foreground'"
+                :class="effectiveSortKey && effectiveSortOrder === 'asc' && 'bg-accent text-accent-foreground'"
                 @click="setSortOrder('asc')"
               >
                 <ArrowUp class="size-3.5" />{{ t('Ascending') }}
@@ -303,7 +314,7 @@ const rowClass = 'group flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-
                 variant="ghost"
                 size="sm"
                 class="h-7 gap-1.5"
-                :class="sortKey && sortOrder === 'desc' && 'bg-accent text-accent-foreground'"
+                :class="effectiveSortKey && effectiveSortOrder === 'desc' && 'bg-accent text-accent-foreground'"
                 @click="setSortOrder('desc')"
               >
                 <ArrowDown class="size-3.5" />{{ t('Descending') }}
@@ -318,21 +329,21 @@ const rowClass = 'group flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-
               </div>
             </div>
             <div class="max-h-72 overflow-y-auto p-1">
-              <div :class="[rowClass, 'cursor-pointer']" @click="emit('sort', '')">
-                <Check class="size-4 shrink-0" :class="{ invisible: sortKey }" />
-                <span class="flex-1 text-muted-foreground">{{ t('Default') }}</span>
-              </div>
               <div
                 v-for="opt in filteredSortOptions"
                 :key="opt.key"
                 :class="[rowClass, 'cursor-pointer']"
                 @click="emit('sort', opt.key)"
               >
-                <Check class="size-4 shrink-0" :class="{ invisible: sortKey !== opt.key }" />
-                <span class="flex-1 truncate" :class="{ 'font-medium': sortKey === opt.key }">{{ opt.label }}</span>
+                <Check class="size-4 shrink-0" :class="{ invisible: effectiveSortKey !== opt.key }" />
+                <span class="flex-1 truncate" :class="{ 'font-medium': effectiveSortKey === opt.key }">{{ opt.label }}</span>
+                <span
+                  v-if="opt.key === defaultSortKey"
+                  class="shrink-0 rounded bg-muted px-1.5 py-0.5 text-xs text-muted-foreground"
+                >{{ t('Default') }}</span>
                 <component
-                  :is="sortOrder === 'asc' ? ArrowUp : ArrowDown"
-                  v-if="sortKey === opt.key"
+                  :is="effectiveSortOrder === 'asc' ? ArrowUp : ArrowDown"
+                  v-if="effectiveSortKey === opt.key"
                   class="size-3.5 shrink-0"
                 />
               </div>

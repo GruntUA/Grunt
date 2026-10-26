@@ -403,6 +403,8 @@ void (async () => {
         sortKey,
         sortOrder,
         sortableColumns: colState.allAvailableColumns.value,
+        defaultSortKey: dt?.sort_field || 'modified_at',
+        defaultSortOrder: dt?.sort_field ? (dt.sort_order ?? 'desc') : 'desc',
       }"
       @update:group-by="setGroupBy"
       @sort="applySort"
