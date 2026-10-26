@@ -16,6 +16,7 @@ lazy from grunt.startup import (
     apply_doctype_overrides,
     load_core_doctypes,
     load_core_fixtures,
+    register_installed_app_doctypes,
     seed_grunt_workspace,
     seed_system_settings,
     sync_installed_apps,
@@ -101,12 +102,24 @@ def db_migrate(dry_run: bool, site: str | None, no_alembic: bool) -> None:
                         # lazy branch only fires once _known_names is populated.
                         await doctype_registry.load_all(session)
 
+                        # App DocTypes changed in JSON: register/update syncs
+                        # their tables from the new definition right here, so
+                        # the loop below skips them instead of syncing the
+                        # stale stored one first.
+                        from_json: set[str] = set()
+                        if not dry_run:
+                            from_json = await register_installed_app_doctypes(session, site_name)
+                            for name in sorted(from_json):
+                                click.echo(f"    synced (from JSON): {name}")
+
                         all_dts = await doctype_registry.list_all()
 
-                        synced = 0
+                        synced = len(from_json)
                         skipped = 0
                         for dt in all_dts:
                             try:
+                                if dt.name in from_json:
+                                    continue
                                 if dt.is_virtual:
                                     skipped += 1
                                     continue

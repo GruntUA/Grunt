@@ -3,7 +3,7 @@
 Called once during application lifespan startup.
 """
 
-from grunt.startup.app_install import sync_installed_apps
+from grunt.startup.app_install import register_installed_app_doctypes, sync_installed_apps
 from grunt.startup.doctypes import (
     apply_doctype_overrides,
     load_core_doctypes,
@@ -20,6 +20,7 @@ __all__ = [
     "sync_all_doctypes",
     "seed_system_settings",
     "seed_grunt_workspace",
+    "register_installed_app_doctypes",
     "sync_installed_apps",
     "load_core_fixtures",
     "load_validators",

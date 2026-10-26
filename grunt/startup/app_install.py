@@ -73,9 +73,13 @@ async def _register_app_if_new(app_name: str, app_meta: dict) -> bool:
 
 async def _register_app_doctypes(
     session: AsyncSession, eng: Any, app_dir: Any, app_name: str, app_modules: set[str]
-) -> None:
-    """Auto-register/update DocTypes found in the app's ``<module>/doctypes/`` dirs."""
+) -> set[str]:
+    """Auto-register/update DocTypes found in the app's ``<module>/doctypes/`` dirs.
 
+    Returns the names whose table was synced by the register/update call.
+    """
+
+    synced: set[str] = set()
     for module in app_modules:
         doctypes_dir = app_dir / module / "doctypes"
         if not doctypes_dir.exists():
@@ -97,6 +101,7 @@ async def _register_app_doctypes(
                 if dt_name not in doctype_registry._doctypes:
                     async with session.begin_nested():
                         await doctype_registry.register(dt_obj, session, eng)
+                    synced.add(dt_name)
                     log.info("startup.app_doctype_registered", app=app_name, doctype=dt_name)
                 else:
                     existing_dt = doctype_registry._doctypes[dt_name]
@@ -116,6 +121,7 @@ async def _register_app_doctypes(
                     if existing_dt.model_dump(mode="json") != dt_obj.model_dump(mode="json"):
                         async with session.begin_nested():
                             await doctype_registry.update(dt_obj, session, eng)
+                        synced.add(dt_name)
                         log.info("startup.app_doctype_updated", app=app_name, doctype=dt_name)
             except Exception as e:
                 log.warning(
@@ -124,6 +130,36 @@ async def _register_app_doctypes(
                     file=dt_file.name,
                     error=str(e),
                 )
+    return synced
+
+
+async def register_installed_app_doctypes(session: AsyncSession, site_name: str) -> set[str]:
+    """Register/update the DocTypes of every installed app from their JSON files.
+
+    ``grunt migrate`` calls this before its table sync loop, so a changed app
+    DocType is synced once, from its JSON - not first from the stale stored
+    definition and then again by :func:`sync_installed_apps`. Returns the names
+    already synced here, for the loop to skip.
+    """
+
+    site_file = site_manager.sites_dir / site_name / "grunt.site"
+    if not site_file.exists():
+        return set()
+
+    ensure_site_dependencies(site_file, site_manager.bench_dir / "apps")
+    installed_apps = json.loads(site_file.read_text()).get("installed_apps", [])
+    eng = site_manager.get_engine(site_name)
+
+    synced: set[str] = set()
+    async with grunt.system_context(session, eng):
+        await doctype_registry.load_all(session)
+        for app_name in installed_apps:
+            app_dir = site_manager.bench_dir / "apps" / app_name
+            if app_name == "grunt" or not is_app(app_dir):
+                continue
+            app_modules = set(read_manifest(app_dir).get("modules", []))
+            synced |= await _register_app_doctypes(session, eng, app_dir, app_name, app_modules)
+    return synced
 
 
 async def _apply_app_fixtures(
