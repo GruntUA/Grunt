@@ -19,7 +19,8 @@ description: Довідник по всіх типах полів, налашт�
   "track_changes": true,
   "default_view": "list",
   "fields": [ ... ],
-  "status_config": { ... },
+  "status_field": "status",
+  "status_indicators": [ ... ],
   "list_view": { ... },
   "form_view": { ... }
 }
@@ -451,24 +452,33 @@ MIME-типи або розширення (`.exe`), по одному на ря�
 
 ---
 
-## status_config
+## Статуси: status_field + status_indicators
+
+Select-поле статусу показується кольоровим бейджем з іконкою (список, шапка форми,
+бічна панель, канбан, експорт у HTML).
 
 ```json
 {
-  "status_config": {
-    "field": "status",
-    "indicators": [
-      { "value": "Чернетка",    "color": "gray",   "icon": "circle"       },
-      { "value": "Активний",    "color": "green",  "icon": "circle-check" },
-      { "value": "На розгляді", "color": "yellow", "icon": "loader"       },
-      { "value": "Скасовано",   "color": "red",    "icon": "circle-x"     }
-    ]
-  }
+  "status_field": "status",
+  "status_indicators": [
+    { "value": "Чернетка",    "color": "secondary", "icon": "pencil-line"  },
+    { "value": "На розгляді", "color": "info",      "icon": "loader"       },
+    { "value": "Активний",    "color": "success",   "icon": "circle-check" },
+    { "value": "Призупинено", "color": "warn",      "icon": "circle-pause" },
+    { "value": "Скасовано",   "color": "danger",    "icon": "circle-x"     }
+  ]
 }
 ```
 
-Кольори: `gray`, `blue`, `green`, `yellow`, `orange`, `red`.
-Іконки — Lucide (lowercase, дефіс): `circle`, `circle-check`, `circle-x`, `loader`, `pen`, `archive`, `shield`.
+- `status_field` — fieldname Select-поля (будь-яке, напр. `list_status`); без нього
+  бейдж береться з поля `status`.
+- `value` — точне значення опції; `label` — інший підпис (перекладається, як і `value`).
+- Кольори (`StatusIndicator.color`): `secondary` (сірий, за замовчуванням), `info` (синій),
+  `success` (зелений), `warn` (жовтий), `danger` (червоний), `contrast`. Старі назви
+  `gray`/`blue`/`green`/`yellow`/`orange`/`red`/`purple`/`pink` теж працюють.
+- Іконки — Lucide (lowercase, дефіс): `circle`, `circle-check`, `circle-x`, `loader`,
+  `pencil-line`, `archive`, `eye-off`, `circle-slash`, `shield`.
+- Бейдж малюється для Select; для «Активний/Неактивний» з бейджем — Select, не Check.
 
 ---
 
