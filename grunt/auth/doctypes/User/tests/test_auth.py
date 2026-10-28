@@ -29,7 +29,7 @@ async def test_deactivation_takes_effect_immediately_despite_auth_cache(ctx, cli
     headers = {"Authorization": f"Bearer {login.json()['data']['access_token']}"}
 
     # Warm the auth cache for this uid.
-    warm = await client.get("/api/v1/method/grunt.auth.doctypes.User.user.me_api", headers=headers)
+    warm = await client.get("/api/v1/method/grunt.auth.doctypes.User.user.whoami", headers=headers)
     assert warm.status_code == 200
 
     # Deactivate through the generic document API - the same path an admin's
@@ -40,7 +40,7 @@ async def test_deactivation_takes_effect_immediately_despite_auth_cache(ctx, cli
         await ctx.db._session().commit()
 
     blocked = await client.get(
-        "/api/v1/method/grunt.auth.doctypes.User.user.me_api", headers=headers
+        "/api/v1/method/grunt.auth.doctypes.User.user.whoami", headers=headers
     )
     assert blocked.status_code == 401
 

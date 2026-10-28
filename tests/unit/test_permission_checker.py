@@ -146,7 +146,7 @@ async def test_list_users_requires_system_manager(ctx):
     """list_users requires the System Manager role (contextual check)."""
 
     import grunt
-    from grunt.auth.doctypes.User.user import User, list_users_api
+    from grunt.auth.doctypes.User.user import User, list_users_detailed_api
 
     # 1. Create a regular user
     reg_user_data = {
@@ -166,20 +166,20 @@ async def test_list_users_requires_system_manager(ctx):
 
     async with grunt.context(ctx.db._session(), ctx.get_engine(), reg_user_obj):
         with pytest.raises(APIError) as excinfo:
-            await list_users_api()
+            await list_users_detailed_api()
         assert excinfo.value.status_code == 403
 
 
 @pytest.mark.asyncio
 async def test_list_users_as_system_manager(ctx):
     """list_users works for System Manager."""
-    from grunt.auth.doctypes.User.user import list_users_api, register
+    from grunt.auth.doctypes.User.user import list_users_detailed_api, register
 
     # Register at least one user to list
     await register(email="admin@example.com", password="pass", first_name="Admin", last_name="User")
     await ctx.db._session().commit()
 
-    users = await list_users_api()
+    users = await list_users_detailed_api()
     assert isinstance(users, list)
     assert len(users) >= 1
 
@@ -187,7 +187,7 @@ async def test_list_users_as_system_manager(ctx):
 @pytest.mark.asyncio
 async def test_user_roles_child_table(ctx):
     """Roles are managed through the ``User.roles`` child table."""
-    from grunt.auth.doctypes.User.user import list_users_api
+    from grunt.auth.doctypes.User.user import list_users_detailed_api
 
     await ctx.new_doc("Role", {"role_name": "Manager"})
     target_data = {
@@ -204,16 +204,16 @@ async def test_user_roles_child_table(ctx):
     await ctx.save_doc("User", target_id, {"roles": [{"role_name": "Manager"}]})
     await ctx.db._session().commit()
 
-    users = await list_users_api()
-    user_data = next(u for u in users if u["name"] == target_id)
+    users = await list_users_detailed_api()
+    user_data = next(u for u in users if u["id"] == target_id)
     assert "Manager" in user_data["roles"]
 
     # Clear roles
     await ctx.save_doc("User", target_id, {"roles": []})
     await ctx.db._session().commit()
 
-    users = await list_users_api()
-    user_data = next(u for u in users if u["name"] == target_id)
+    users = await list_users_detailed_api()
+    user_data = next(u for u in users if u["id"] == target_id)
     assert "Manager" not in user_data["roles"]
 
 

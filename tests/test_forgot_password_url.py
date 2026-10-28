@@ -9,7 +9,7 @@ import pytest
 from starlette.datastructures import Headers
 from starlette.requests import Request
 
-from grunt.auth.doctypes.User import user as user_mod
+from grunt.auth import user_api as user_mod
 from grunt.config import settings
 
 
