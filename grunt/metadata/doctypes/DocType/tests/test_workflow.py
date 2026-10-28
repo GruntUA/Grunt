@@ -9,7 +9,7 @@ import pytest
 
 import grunt
 from grunt.api.v1.meta import save_doctype
-from grunt.api.v1.workflow import get_transitions
+from grunt.document.base import Document
 
 # Helpers
 
@@ -74,7 +74,7 @@ async def test_workflow_transitions_empty_for_no_workflow(ctx):
     doc_id = doc["name"]
 
     # Check transitions
-    transitions = await get_transitions("Note", doc_id)
+    transitions = await Document.get_workflow_transitions("Note", doc_id)
     assert transitions == []
 
 
@@ -91,7 +91,7 @@ async def test_workflow_initial_transitions(ctx):
     doc_id = doc["name"]
 
     # Get transitions
-    transitions = await get_transitions("Contract", doc_id)
+    transitions = await Document.get_workflow_transitions("Contract", doc_id)
     assert any(t["action"] == "Submit" for t in transitions)
 
 
@@ -249,7 +249,7 @@ async def test_workflow_prompt_fields_shown_before_values_filled(ctx):
     doc = await ctx.new_doc("TaskTicket", {"title": "Test", "status": "Open"})
     doc_id = doc["name"]
 
-    transitions = await get_transitions("TaskTicket", doc_id)
+    transitions = await Document.get_workflow_transitions("TaskTicket", doc_id)
     assert len(transitions) == 1
     assert transitions[0]["prompt_fields"] == ["resolution_note"]
 

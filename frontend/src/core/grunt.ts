@@ -89,7 +89,7 @@ export const grunt = {
       return data?.data
     } catch (err: unknown) {
       const e = err as { response?: { data?: { detail?: string } } }
-      throw new Error(e?.response?.data?.detail || 'Server error')
+      throw new Error(e?.response?.data?.detail || 'Server error', { cause: err })
     }
   },
 

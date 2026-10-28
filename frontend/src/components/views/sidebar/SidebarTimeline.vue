@@ -328,7 +328,7 @@ function onCommentInput(e: Event) {
   const val = ta.value
   const pos = ta.selectionStart ?? val.length
   const before = val.slice(0, pos)
-  const match = before.match(/@([\w.+\-]*)$/)
+  const match = before.match(/@([\w.+-]*)$/)
   if (match) {
     mentionQuery.value = match[1].toLowerCase()
     ensureUsers().then(() => {

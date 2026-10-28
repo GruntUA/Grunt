@@ -227,7 +227,7 @@ const HighlightFirst = defineComponent({
     props: { items: { type: Array, required: true } },
     setup(props) {
         const listbox = injectListboxRootContext()
-        watch(() => props.items, () => nextTick(() => listbox.highlightFirstItem()), { immediate: true })
+        watch(() => props.items, () => { nextTick(() => listbox.highlightFirstItem()) }, { immediate: true })
         return () => null
     },
 })

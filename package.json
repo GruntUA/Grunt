@@ -12,7 +12,9 @@
     "build": "vue-tsc --noEmit && vite build",
     "preview": "vite preview",
     "test": "vitest",
-    "typecheck": "vue-tsc --noEmit --incremental --tsBuildInfoFile node_modules/.cache/tsc/tsbuildinfo"
+    "typecheck": "vue-tsc --noEmit --incremental --tsBuildInfoFile node_modules/.cache/tsc/tsbuildinfo",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
   },
   "dependencies": {
     "@codemirror/lang-css": "^6.3.1",
@@ -78,16 +80,21 @@
     "vue-sonner": "^2.0.9"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@tailwindcss/vite": "^4.3.3",
     "@types/leaflet": "^1.9.22",
     "@types/node": "^26.6.5",
     "@vitejs/plugin-vue": "^6.0.10",
     "@vue/test-utils": "^2.5.1",
+    "eslint": "^10.13.0",
+    "eslint-plugin-vue": "^10.12.0",
+    "globals": "^17.13.0",
     "jsdom": "^30.1.2",
     "pyright": "1.1.414",
     "shadcn-vue": "^2.8.2",
     "tailwindcss": "^4.3.3",
     "typescript": "^6.0.3",
+    "typescript-eslint": "^8.72.1",
     "vite": "^8.3.5",
     "vitest": "^5.0.4",
     "vue-tsc": "^3.3.13"

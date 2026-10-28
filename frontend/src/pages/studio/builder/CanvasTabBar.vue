@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input'
 const { t } = useI18n()
 const builder = useBuilderStore()
 
-const props = defineProps<{
+defineProps<{
   tabs: LayoutTab[]
   activeIndex: number
 }>()

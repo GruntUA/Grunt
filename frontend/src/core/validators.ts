@@ -14,7 +14,7 @@ interface ValidatorDef {
   message: string
 }
 
-const EMAIL = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/
+const EMAIL = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
 const PHONE = /^\+?[\d\s\-()]{7,20}$/
 const URL = /^https?:\/\/[^\s/$.?#].[^\s]*/i
 const IBAN_UA = /^UA\d{27}$/

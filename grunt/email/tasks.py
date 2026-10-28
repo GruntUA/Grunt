@@ -3,6 +3,7 @@ from datetime import UTC, datetime, timedelta
 import grunt
 from grunt import _, log
 from grunt.auth.doctypes.User.user import SYSTEM_USER
+from grunt.email.inbound import apply_report, pull_emails
 from grunt.email.service import EmailService, decode_attachments, email_service
 from grunt.i18n import ngettext, pgettext, use_language
 from grunt.site.manager import site_manager
@@ -93,7 +94,7 @@ async def pull_from_accounts():
             await session.commit()  # no transaction (write lock) across IMAP
 
             for account in accounts:
-                emails = await EmailService.pull_emails(account)
+                emails = await pull_emails(account)
                 for email_data in emails:
                     # Trigger hook for inbound email
                     # Apps can register to this hook to create Support Tickets, Leads, etc.
@@ -113,7 +114,7 @@ async def pull_from_accounts():
                     report = email_data.get("report")
                     if report:
                         try:
-                            await EmailService.apply_report(report, session=session)
+                            await apply_report(report, session=session)
                         except Exception:
                             log.exception("email.apply_report_failed")
                         await session.commit()

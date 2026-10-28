@@ -29,7 +29,7 @@ const { t } = useI18n()
 
 const rich = useRichEditor(props, (_, v) => emit('update:modelValue', v))
 provideRichEditor(rich)
-const { editor, editable, maxLength, picker, onPicked } = rich
+const { editor, editable, maxLength: charLimit, picker, onPicked } = rich
 
 const documentStyle = props.field.options === 'document'
 const fullscreen = useFullscreen(() => editor.value?.commands.focus())
@@ -69,7 +69,7 @@ const words = () => editor.value?.storage.characterCount.words() ?? 0
 
         <!-- Error is rendered by FieldRenderer -->
         <p v-if="editor" class="self-end text-muted-foreground tabular-nums" aria-live="off">
-          <template v-if="maxLength()">{{ characters() }} / {{ maxLength() }}</template>
+          <template v-if="charLimit()">{{ characters() }} / {{ charLimit() }}</template>
           <template v-else>{{ t('{words} w · {chars} ch', { words: words(), chars: characters() }) }}</template>
         </p>
 

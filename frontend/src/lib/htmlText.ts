@@ -18,7 +18,7 @@ export function htmlToText(html: string): string {
   const text = new DOMParser().parseFromString(marked, 'text/html').body.textContent ?? ''
   return text
     .split('\n')
-    .map((line) => line.replace(/[ \t ]+/g, ' ').trim())
+    .map((line) => line.replace(/[ \t\u00a0]+/g, ' ').trim())
     .filter(Boolean)
     .join('\n')
 }

@@ -2,7 +2,7 @@
 import { useRouter } from 'vue-router'
 import { Button } from '@/components/ui/button'
 
-const props = withDefaults(defineProps<{
+withDefaults(defineProps<{
   code?: string | number
   title: string
   message: string

@@ -33,7 +33,7 @@ function setValue(star: number) {
 function onKeydown(e: KeyboardEvent) {
   if (readonly.value) return
   const cur = value.value || 0
-  let next = cur
+  let next: number
   if (e.key === 'ArrowRight' || e.key === 'ArrowUp') next = Math.min(maxStars.value, cur + 1)
   else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') next = Math.max(0, cur - 1)
   else if (e.key === 'Home') next = 1

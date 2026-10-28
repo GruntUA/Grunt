@@ -51,7 +51,7 @@ const labelAt = (i: number) => labels.value[Math.round(i)] ?? ''
 
 // Pie/donut: one segment per row, coloured in turn; the first value field is the size.
 const segmentColors = computed(() => props.data.map((_, i) => seriesColor(i)))
-const config = computed(() => isPieLike.value
+const chartConfig = computed(() => isPieLike.value
   ? seriesConfig(labels.value, segmentColors.value)
   : seriesConfig(valueFields.value.map(labelFor), colors.value))
 
@@ -59,12 +59,12 @@ const config = computed(() => isPieLike.value
 const showLegend = computed(() => isPieLike.value || valueFields.value.length > 1)
 
 function crosshair(d: Row) {
-  return tooltipHtml({ payload: d, config: config.value, x: d.idx, labelFormatter: (i) => labelAt(Number(i)) })
+  return tooltipHtml({ payload: d, config: chartConfig.value, x: d.idx, labelFormatter: (i) => labelAt(Number(i)) })
 }
 type Arc = { data: Row }
 const triggers = {
   [VisDonutSelectors.segment]: (d: Arc) =>
-    tooltipHtml({ payload: { [`s${d.data.idx}`]: d.data.s0 }, config: config.value, hideLabel: true }),
+    tooltipHtml({ payload: { [`s${d.data.idx}`]: d.data.s0 }, config: chartConfig.value, hideLabel: true }),
 }
 
 const root = ref<HTMLElement | null>(null)
@@ -79,7 +79,7 @@ defineExpose({ toPng })
 
 <template>
   <div ref="root" class="h-[360px] w-full">
-    <ChartContainer :config="config" class="aspect-auto">
+    <ChartContainer :config="chartConfig" class="aspect-auto">
       <VisSingleContainer v-if="isPieLike" :data="rows">
         <VisDonut
           :value="(d: Row) => d.s0"

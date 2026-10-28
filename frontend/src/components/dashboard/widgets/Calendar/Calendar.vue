@@ -28,7 +28,7 @@ const calendarDays = computed(() => {
   const lastDay = new Date(year, month + 1, 0)
 
   // Monday-first offset (0=Mon, 6=Sun)
-  let startOffset = (firstDay.getDay() + 6) % 7
+  const startOffset = (firstDay.getDay() + 6) % 7
   const days: Array<{ date: string; day: number; count: number; isToday: boolean } | null> = []
 
   // Leading nulls

@@ -126,8 +126,11 @@ function resolveProgressSegmentColor(color?: string): string {
   return color.startsWith('#') || color.startsWith('rgb') ? '' : 'bg-primary'
 }
 
+// `dashboard` is the shared reactive state the form's client scripts also
+// write to (core/scripting/formDashboard.ts) - mutating it here is intended.
 function dismissHeadline() {
   if (props.dashboard.headline && !props.dashboard.headline.permanent) {
+    // eslint-disable-next-line vue/no-mutating-props
     props.dashboard.headline = null
   }
 }
@@ -135,6 +138,7 @@ function dismissHeadline() {
 function dismissComment(idx: number) {
   const c = props.dashboard.comments[idx]
   if (c && !c.permanent) {
+    // eslint-disable-next-line vue/no-mutating-props
     props.dashboard.comments.splice(idx, 1)
   }
 }

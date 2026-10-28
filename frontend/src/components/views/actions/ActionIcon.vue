@@ -12,6 +12,8 @@ const component = computed(() => {
   const raw = String(props.name ?? '').trim()
   if (!raw) return null
   if (!icons.value) {
+    // Lazy-load the icon set once; the computed re-runs when `icons` fills in.
+    // eslint-disable-next-line vue/no-async-in-computed-properties
     loading ??= loadLucideLib().then((lib) => {
       icons.value = lib
     })

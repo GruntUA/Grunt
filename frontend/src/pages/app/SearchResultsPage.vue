@@ -16,7 +16,7 @@ import { docUrl } from '@/core/workspaceUrl'
 
 const { t } = useI18n()
 
-const props = defineProps<{ workspaceName?: string }>()
+defineProps<{ workspaceName?: string }>()
 
 const route = useRoute()
 const router = useRouter()
