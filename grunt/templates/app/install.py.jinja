@@ -5,14 +5,11 @@ Use this file for setup that fixtures cannot cover (e.g. role creation,
 initial settings, computed seed data).
 """
 
-import structlog
-
+from grunt import log
 lazy from sqlalchemy.ext.asyncio import AsyncSession
-
-logger = structlog.get_logger()
 
 
 async def after_install(session: AsyncSession, site_name: str) -> None:
     """Run once when the app is first installed on a site."""
-    logger.info("{{ app_name }}.install", site=site_name, status="ok")
+    log.info("{{ app_name }}.install", site=site_name, status="ok")
     # TODO: add roles, settings, or other one-time setup here
