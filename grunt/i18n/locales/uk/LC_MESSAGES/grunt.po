@@ -23460,3 +23460,23 @@ msgstr "Розмістити перед"
 msgctxt "help:WorkspaceSection.anchor_before"
 msgid "Section name or item link of the base menu to place this before"
 msgstr "Секція або посилання пункту базового меню, перед яким розмістити"
+
+#: grunt/frontend/src/pages/studio/builder/PropertiesPanel.vue
+msgid "Belongs to app"
+msgstr "Належить додатку"
+
+#: grunt/frontend/src/pages/studio/builder/PropertiesPanel.vue
+msgid "This DocType ({app})"
+msgstr "Цьому DocType ({app})"
+
+#: grunt/frontend/src/pages/studio/builder/PropertiesPanel.vue
+msgid "This DocType"
+msgstr "Цьому DocType"
+
+#: grunt/frontend/src/pages/studio/builder/PropertiesPanel.vue
+msgid ""
+"Another app's field is saved into that app's doctype_ext/ file and leaves "
+"with it."
+msgstr ""
+"Поле іншого додатка зберігається в його файл doctype_ext/ і зникає разом із "
+"ним."

@@ -421,6 +421,10 @@ class DocField(BaseModel):
     # grunt.metadata.extensions) - never in a DocType's own JSON.
     source_app: str | None = None
     insert_after: str | None = None
+    # Attributes other apps' ``doctype_ext/`` ``properties`` changed on this
+    # field: app -> {attribute: the DocType's own value} (restored on export
+    # and when the app goes).
+    ext_base: dict[str, dict[str, Any]] | None = None
 
     is_virtual: bool = False
     read_formula: str | None = None

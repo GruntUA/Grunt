@@ -7,7 +7,8 @@ An extension lives in the app that adds the fields, one file per DocType::
       "fields": [
         {"fieldname": "cf_card", "label": "Картка ОЗ", "fieldtype": "Link",
          "options": "CrystalFinanceCard", "insert_after": "inventory_number"}
-      ]
+      ],
+      "properties": {"inventory_number": {"required": true}}
     }
 
 The DocType that ``grunt migrate`` stores is its own JSON plus the extensions
@@ -17,12 +18,22 @@ of ``installed_apps`` (dependencies first). Merged fields carry
 :func:`without_extensions` gives what belongs in the base app's JSON file, and
 uninstalling the extending app removes its fields.
 
+``properties`` change attributes of fields the DocType already has; the
+field keeps the values they replaced in ``ext_base`` (per app), so the base
+JSON is exported with its own values and the change is undone with the app.
+
 A fieldname the DocType already has - its own or another extension's - is
-refused (logged, skipped), like a DocType name owned by another app.
+refused (logged, skipped), like a DocType name owned by another app; so is an
+attribute another extension already changes, and a change of ``fieldname`` /
+``fieldtype``.
+
+In developer mode, saving the DocType (Studio) writes the fields and
+properties back to the files of the apps they belong to (:func:`export_extensions`).
 """
 
 import json
 from dataclasses import dataclass
+from dataclasses import field as dc_field
 from pathlib import Path
 from typing import Any
 
@@ -41,6 +52,7 @@ class DoctypeExtension:
     app: str
     doctype: str
     fields: tuple[dict[str, Any], ...]
+    properties: dict[str, dict[str, Any]] = dc_field(default_factory=dict)
 
 
 def app_extensions(app_dir: Path, app_name: str) -> list[DoctypeExtension]:
@@ -54,7 +66,8 @@ def app_extensions(app_dir: Path, app_name: str) -> list[DoctypeExtension]:
                 log.error("doctype_ext.unreadable", app=app_name, file=str(path), error=str(e))
                 continue
             fields = tuple(f for f in data.get("fields", []) if isinstance(f, dict))
-            found.append(DoctypeExtension(app_name, path.stem, fields))
+            props = {k: v for k, v in (data.get("properties") or {}).items() if isinstance(v, dict)}
+            found.append(DoctypeExtension(app_name, path.stem, fields, props))
     return found
 
 
@@ -86,7 +99,8 @@ def extensions_for_site(site_name: str | None) -> dict[str, list[DoctypeExtensio
 
 
 def apply_extensions(dt: DocType, extensions: list[DoctypeExtension] | None) -> DocType:
-    """A copy of *dt* with the extensions' fields merged in (*dt* itself when none).
+    """A copy of *dt* with the extensions' fields and properties merged in
+    (*dt* itself when none).
 
     A field goes right after its ``insert_after`` field (which may be one an
     earlier extension added), else at the end.
@@ -120,7 +134,65 @@ def apply_extensions(dt: DocType, extensions: list[DoctypeExtension] | None) -> 
                 continue
             merged.fields.insert(_position(merged, field, ext.app), field)
             owners[fieldname] = ext.app
+    for ext in extensions:
+        for fieldname, attrs in ext.properties.items():
+            _apply_properties(merged, fieldname, attrs, ext.app)
     return merged
+
+
+# Attributes ``properties`` may not change: what a field is, and the extension bookkeeping.
+_FIXED = frozenset({"fieldname", "fieldtype", "source_app", "insert_after", "ext_base"})
+
+
+def _apply_properties(dt: DocType, fieldname: str, attrs: dict[str, Any], app: str) -> None:
+    index = next((i for i, f in enumerate(dt.fields) if f.fieldname == fieldname), None)
+    if index is None:
+        log.warning("doctype_ext.property_field_missing", doctype=dt.name, field=fieldname, app=app)
+        return
+    field = dt.fields[index]
+    for attr, value in attrs.items():
+        owner = next((a for a, vals in (field.ext_base or {}).items() if attr in vals), None)
+        if attr in _FIXED or attr not in DocField.model_fields or (owner and owner != app):
+            log.error(
+                "doctype_ext.property_refused",
+                doctype=dt.name,
+                field=fieldname,
+                attribute=attr,
+                app=app,
+                changed_by=owner,
+            )
+            continue
+        ext_base = {a: dict(v) for a, v in (field.ext_base or {}).items()}
+        ext_base.setdefault(app, {}).setdefault(attr, getattr(field, attr))
+        try:
+            field = DocField(**{**field.model_dump(), attr: value, "ext_base": ext_base})
+        except ValidationError as e:
+            log.error(
+                "doctype_ext.property_invalid",
+                doctype=dt.name,
+                field=fieldname,
+                attribute=attr,
+                app=app,
+                error=str(e),
+            )
+            continue
+        dt.fields[index] = field
+
+
+def revert_properties(field: DocField, app: str | None = None) -> DocField:
+    """*field* with the values *app*'s properties replaced (all apps' when None) back."""
+    if not field.ext_base:
+        return field
+    restore: dict[str, Any] = {}
+    rest = {}
+    for owner, vals in field.ext_base.items():
+        if app is None or owner == app:
+            restore.update(vals)
+        else:
+            rest[owner] = vals
+    if not restore:
+        return field
+    return field.model_copy(update={**restore, "ext_base": rest or None})
 
 
 def _position(dt: DocType, field: DocField, app: str) -> int:
@@ -140,13 +212,85 @@ def _position(dt: DocType, field: DocField, app: str) -> int:
 
 
 def without_extensions(dt: DocType) -> DocType:
-    """*dt* without the fields other apps added - what its own app's JSON holds."""
-    if not any(_foreign(dt, f) for f in dt.fields):
+    """*dt* without what other apps added (fields) or changed (properties) - what
+    its own app's JSON holds."""
+    if not any(_foreign(dt, f) or f.ext_base for f in dt.fields):
         return dt
     base = dt.model_copy(deep=True)
-    base.fields = [f for f in base.fields if not _foreign(dt, f)]
+    base.fields = [revert_properties(f) for f in base.fields if not _foreign(dt, f)]
     return base
 
 
 def _foreign(dt: DocType, field: DocField) -> bool:
     return bool(field.source_app) and field.source_app != dt.app
+
+
+def export_extensions(dt: DocType) -> list[Path]:
+    """Write the fields and properties other apps have in *dt* into their
+    ``doctype_ext/<DocType>.json`` (Studio's "Customize": mark a field with the
+    app it belongs to and save). Returns the files written or removed.
+
+    A field goes after the field it follows in *dt* now. The file of an app
+    installed on the site that has nothing left in *dt* is removed - otherwise
+    ``grunt migrate`` would bring back what was deleted in Studio.
+    """
+    from grunt.site.manager import site_manager
+
+    fields: dict[str, list[dict[str, Any]]] = {}
+    props: dict[str, dict[str, dict[str, Any]]] = {}
+    previous: str | None = None
+    for f in dt.fields:
+        if _foreign(dt, f) and f.source_app:
+            spec = f.model_dump(
+                mode="json",
+                exclude_defaults=True,
+                exclude={"source_app", "ext_base", "insert_after"},
+            )
+            if previous:
+                spec["insert_after"] = previous
+            fields.setdefault(f.source_app, []).append(spec)
+        for app, vals in (f.ext_base or {}).items():
+            if app != dt.app:
+                current = f.model_dump(mode="json", include=set(vals))
+                props.setdefault(app, {})[f.fieldname] = current
+        previous = f.fieldname
+
+    apps_dir = site_manager.bench_dir / "apps"
+    try:
+        installed = site_manager.get_installed_apps(site_manager.get_active_site())
+    except Exception:  # noqa: BLE001 - no site (tests, scripts): only write, never remove
+        installed = []
+    changed: list[Path] = []
+    for app in sorted({*fields, *props, *(a for a in installed if a != dt.app)}):
+        app_dir = apps_dir / app
+        if app == "grunt" or not is_app(app_dir):
+            continue
+        path = _ext_file(app_dir, dt.name)
+        data: dict[str, Any] = {}
+        if fields.get(app):
+            data["fields"] = fields[app]
+        if props.get(app):
+            data["properties"] = props[app]
+        if not data:
+            if path.exists():
+                path.unlink()
+                changed.append(path)
+            continue
+        text = json.dumps(data, ensure_ascii=False, indent=2) + "\n"
+        if not path.exists() or path.read_text() != text:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(text)
+            changed.append(path)
+    for path in changed:
+        log.info("doctype_ext.exported", doctype=dt.name, path=str(path))
+    return changed
+
+
+def _ext_file(app_dir: Path, doctype: str) -> Path:
+    """The app's extension file for *doctype*: an existing one, else in its first module."""
+    modules = read_manifest(app_dir)["modules"]
+    for module in modules:
+        path = app_dir / module / EXT_DIR / f"{doctype}.json"
+        if path.exists():
+            return path
+    return app_dir / modules[0] / EXT_DIR / f"{doctype}.json"

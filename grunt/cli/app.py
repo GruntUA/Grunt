@@ -21,7 +21,7 @@ lazy from grunt.apps.required import (
 )
 lazy from grunt.backups import DEFAULT_COMPRESSION_LEVEL, zstd_options
 lazy from grunt.metadata.compiler import SA_METADATA, compile_doctype_to_table
-lazy from grunt.metadata.extensions import extensions_for_site
+lazy from grunt.metadata.extensions import extensions_for_site, revert_properties
 lazy from grunt.metadata.field import is_physical_fieldtype
 lazy from grunt.metadata.registry import doctype_registry
 lazy from grunt.site.manager import current_site, site_manager
@@ -206,8 +206,12 @@ def _print_uninstall_plan(
     if contributed_rows:
         click.echo(f"  • {contributed_rows} menu rows it added to other apps' menus")
     for dt, fields in ext_fields or []:
-        names = ", ".join(f.fieldname for f in fields)
-        click.echo(f"  • Fields it added to DocType {dt.name}: {names}")
+        if fields:
+            names = ", ".join(f.fieldname for f in fields)
+            click.echo(f"  • Fields it added to DocType {dt.name}: {names}")
+        changed = [f.fieldname for f in dt.fields if name in (f.ext_base or {})]
+        if changed:
+            click.echo(f"  • Its changes to DocType {dt.name} fields: {', '.join(changed)}")
     for doctype, record in shipped or []:
         click.echo(f"  • {doctype} '{record}' it shipped")
     if has_installed_row:
@@ -256,11 +260,14 @@ async def _delete_workspace_and_registration(
 
 
 def _extension_fields(name: str, doctypes: list, skip: set[str]) -> list:
-    """``[(doctype, [fields])]`` - fields *name* added to other DocTypes (``doctype_ext/``)."""
+    """``[(doctype, [fields])]`` - fields *name* added to other DocTypes
+    (``doctype_ext/``), and those DocTypes where it only changed properties
+    (with no fields of its own there)."""
     found = []
     for dt in doctypes:
         mine = [f for f in dt.fields if f.source_app == name]
-        if mine and dt.name not in skip:
+        changed = any(name in (f.ext_base or {}) for f in dt.fields)
+        if (mine or changed) and dt.name not in skip:
             found.append((dt, mine))
     return found
 
@@ -311,11 +318,15 @@ async def _delete_shipped_records(records: list[tuple[str, str]]) -> None:
         await grunt.db.delete(doctype, {"name": record})
 
 
-async def _strip_extension_fields(session, eng, ext_fields: list) -> None:
+async def _strip_extension_fields(session, eng, ext_fields: list, name: str = "") -> None:
     for dt, fields in ext_fields:
         base = dt.model_copy(deep=True)
         drop = {f.fieldname for f in fields}
-        base.fields = [f for f in base.fields if f.fieldname not in drop]
+        base.fields = [
+            revert_properties(f, name) if name else f
+            for f in base.fields
+            if f.fieldname not in drop
+        ]
         await doctype_registry.update(base, session, eng)
 
 
@@ -473,7 +484,7 @@ async def _do_uninstall(
 
                 for dt in app_doctypes:
                     await doctype_registry.delete(dt.name, session)
-                await _strip_extension_fields(session, eng, ext_fields)
+                await _strip_extension_fields(session, eng, ext_fields, name)
                 await _delete_shipped_records(shipped)
 
             await session.commit()

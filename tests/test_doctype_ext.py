@@ -237,12 +237,188 @@ async def test_update_without_source_app_keeps_the_mark(ctx, db_session, engine,
     bench("extbase", "extaddon")
     await _migrate(db_session)
 
-    edited = doctype_registry._doctypes["ExtTarget"].model_copy(deep=True)
-    for field in edited.fields:
-        field.source_app = None  # an editor that doesn't know the attribute
-    edited.label = "Edited"
-    await doctype_registry.update(edited, db_session, engine)
+    # an editor that doesn't know the attribute: sends the fields without it
+    data = doctype_registry._doctypes["ExtTarget"].model_dump(
+        exclude={"fields": {"__all__": {"source_app"}}}
+    )
+    await doctype_registry.update(DocType(**{**data, "label": "Edited"}), db_session, engine)
 
     fields = {f.fieldname: f for f in doctype_registry._doctypes["ExtTarget"].fields}
     assert fields["addon_ref"].source_app == "extaddon"
     assert fields["title"].source_app is None
+
+    # Studio, "Belongs to app" set back to this DocType: an explicit null wins
+    data = doctype_registry._doctypes["ExtTarget"].model_dump()
+    for f in data["fields"]:
+        f["source_app"] = None
+    await doctype_registry.update(DocType(**data), db_session, engine)
+    fields = {f.fieldname: f for f in doctype_registry._doctypes["ExtTarget"].fields}
+    assert fields["addon_ref"].source_app is None
+
+
+# Properties: attributes of fields the DocType already has
+
+
+def _props(app, doctype="ExtTarget", **by_field):
+    return DoctypeExtension(app, doctype, (), by_field)
+
+
+def test_properties_change_attributes_and_remember_the_base():
+    merged = apply_extensions(
+        _dt(TITLE, CODE),
+        [
+            _props("a", title={"required": True, "label": "Name"}),
+            _props("b", title={"required": False}, code={"read_only": True, "fieldtype": "Int"}),
+            _props("b", nope={"hidden": True}, code={"bogus": 1}),
+        ],
+    )
+    title, code = merged.fields
+    assert (title.required, title.label) == (True, "Name")
+    assert title.ext_base == {"a": {"required": False, "label": "Title"}}  # b refused: a owns it
+    assert (code.read_only, code.fieldtype) == (True, "Data")  # fieldtype can't change
+    assert code.ext_base == {"b": {"read_only": False}}
+
+    base = without_extensions(merged)
+    assert [(f.label, f.required, f.read_only, f.ext_base) for f in base.fields] == [
+        ("Title", False, False, None),
+        ("Code", False, False, None),
+    ]
+
+
+def test_invalid_property_value_is_refused():
+    merged = apply_extensions(_dt(TITLE), [_props("a", title={"columns": "wide"})])
+    assert merged.fields[0].columns == 12 and merged.fields[0].ext_base is None
+
+
+@pytest.mark.asyncio
+async def test_properties_survive_migrate_and_leave_with_their_app(ctx, db_session, engine, bench):
+    from pathlib import Path
+
+    from grunt.metadata.registry import doctype_registry
+    from grunt.site.manager import site_manager
+
+    ext = Path(site_manager.bench_dir) / "apps/extaddon/extaddon/doctype_ext/ExtTarget.json"
+    data = json.loads(ext.read_text())
+    ext.write_text(json.dumps({**data, "properties": {"title": {"required": True}}}))
+    bench("extbase", "extaddon")
+
+    assert await _migrate(db_session) == {"ExtTarget"}
+    assert await _migrate(db_session) == set()
+    title = doctype_registry._doctypes["ExtTarget"].fields[0]
+    assert title.required and title.ext_base == {"extaddon": {"required": False}}
+
+    bench("extbase")
+    await _migrate(db_session)
+    title = doctype_registry._doctypes["ExtTarget"].fields[0]
+    assert not title.required and title.ext_base is None
+
+
+@pytest.mark.asyncio
+async def test_core_properties_apply_over_studio_values(ctx, db_session):
+    from grunt.metadata import store
+    from grunt.metadata.registry import doctype_registry
+
+    core = _dt(TITLE, name="ExtCorePropTarget", app="grunt")
+    ext = DoctypeExtension("extaddon", "ExtCorePropTarget", (), {"title": {"required": True}})
+
+    await doctype_registry._inject_core(core, db_session, sync_db=True)
+    stored = doctype_registry._doctypes["ExtCorePropTarget"]
+    stored.fields[0].description = "set in Studio"
+    await store.update_doctype(db_session, stored)
+
+    for _ in range(2):  # a second migrate changes nothing
+        await doctype_registry._inject_core(apply_extensions(core, [ext]), db_session, sync_db=True)
+    title = doctype_registry._doctypes["ExtCorePropTarget"].fields[0]
+    assert (title.required, title.description) == (True, "set in Studio")
+    assert title.ext_base == {"extaddon": {"required": False}}
+
+    await doctype_registry._inject_core(core, db_session, sync_db=True)
+    title = doctype_registry._doctypes["ExtCorePropTarget"].fields[0]
+    assert (title.required, title.description, title.ext_base) == (False, "set in Studio", None)
+
+
+@pytest.mark.asyncio
+async def test_update_keeps_ext_base_only_while_values_hold(ctx, db_session, engine, bench):
+    from grunt.metadata.registry import doctype_registry
+
+    bench("extbase", "extaddon")
+    await _migrate(db_session)
+    current = doctype_registry._doctypes["ExtTarget"]
+    current.fields[0] = current.fields[0].model_copy(
+        update={"required": True, "ext_base": {"extaddon": {"required": False}}}
+    )
+
+    # an editor that doesn't send it back
+    data = current.model_dump(exclude={"fields": {"__all__": {"ext_base"}}})
+    await doctype_registry.update(DocType(**data), db_session, engine)
+    assert doctype_registry._doctypes["ExtTarget"].fields[0].ext_base
+
+    undone = doctype_registry._doctypes["ExtTarget"].model_copy(deep=True)
+    undone.fields[0] = undone.fields[0].model_copy(update={"required": False, "ext_base": None})
+    await doctype_registry.update(undone, db_session, engine)
+    assert doctype_registry._doctypes["ExtTarget"].fields[0].ext_base is None
+
+
+# Studio "Customize": saving the DocType writes the other apps' parts to their files
+
+
+def test_export_writes_extension_files(tmp_path, monkeypatch):
+    from grunt.metadata.extensions import export_extensions
+    from grunt.site.manager import site_manager
+
+    apps = tmp_path / "apps"
+    for name in ("extaddon", "other"):
+        write_app_manifest(apps / name, {"name": name})
+    stale = apps / "other" / "other" / "doctype_ext" / "ExtTarget.json"
+    stale.parent.mkdir(parents=True)
+    stale.write_text('{"fields": [{"fieldname": "gone", "fieldtype": "Data"}]}')
+    monkeypatch.setattr(site_manager, "bench_dir", tmp_path)
+    monkeypatch.setattr(site_manager, "get_active_site", lambda: "s")
+    monkeypatch.setattr(
+        site_manager, "get_installed_apps", lambda site: ["extbase", "extaddon", "other"]
+    )
+
+    dt = apply_extensions(
+        _dt(TITLE, CODE),
+        [_props("extaddon", code={"required": True})],
+    )
+    # added in Studio, marked as belonging to extaddon, placed after "title"
+    dt.fields.insert(1, DocField(fieldname="addon_new", fieldtype="Data", source_app="extaddon"))
+    # edited in Studio: the label is the DocType's own, "required" stays extaddon's
+    dt.fields[2] = dt.fields[2].model_copy(update={"label": "Code!"})
+
+    export_extensions(dt)
+
+    saved = json.loads(
+        (apps / "extaddon" / "extaddon" / "doctype_ext" / "ExtTarget.json").read_text()
+    )
+    assert saved == {
+        "fields": [{"fieldname": "addon_new", "fieldtype": "Data", "insert_after": "title"}],
+        "properties": {"code": {"required": True}},
+    }
+    assert not stale.exists()  # "other" is installed and has nothing left here
+    base = without_extensions(dt)
+    assert [(f.fieldname, f.label, f.required) for f in base.fields] == [
+        ("title", "Title", False),
+        ("code", "Code!", False),
+    ]
+
+
+@pytest.mark.asyncio
+async def test_uninstall_reverts_properties(ctx, db_session, engine, bench):
+    from grunt.cli.app import _extension_fields, _strip_extension_fields
+    from grunt.metadata.registry import doctype_registry
+
+    bench("extbase", "extaddon")
+    await _migrate(db_session)
+    dt = doctype_registry._doctypes["ExtTarget"]
+    dt.fields[0] = dt.fields[0].model_copy(
+        update={"required": True, "ext_base": {"extaddon": {"required": False}}}
+    )
+
+    ext_fields = _extension_fields("extaddon", [dt], skip=set())
+    await _strip_extension_fields(db_session, engine, ext_fields, "extaddon")
+
+    title = doctype_registry._doctypes["ExtTarget"].fields[0]
+    assert (title.required, title.ext_base) == (False, None)
+    assert _names(doctype_registry._doctypes["ExtTarget"]) == ["title"]

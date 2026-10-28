@@ -25,6 +25,7 @@ from grunt.local import _session_ctx
 from grunt.metadata import store
 from grunt.metadata.compiler import invalidate_table_cache, sync_table
 from grunt.metadata.doctype import DocType
+from grunt.metadata.extensions import revert_properties
 from grunt.metadata.field import DocField
 from grunt.permissions.rbac import invalidate_permission_cache
 from grunt.site.manager import current_site, site_manager
@@ -445,30 +446,57 @@ class DocTypeRegistry:
     @staticmethod
     def _keep_source_app(doctype: DocType, previous: DocType | None) -> None:
         """A field that came from another app's ``doctype_ext/`` stays marked so
-        when an editor (Studio) sends it back without ``source_app`` - otherwise
-        the next export would write it into this DocType's own JSON."""
+        when an editor (Studio) sends it back without ``source_app`` /
+        ``ext_base`` - otherwise the next export would write it (or the values
+        another app's properties set) into this DocType's own JSON."""
         if previous is None:
             return
-        owners = {f.fieldname: f.source_app for f in previous.fields if f.source_app}
+        before = {f.fieldname: f for f in previous.fields}
         for field in doctype.fields:
-            if not field.source_app and field.fieldname in owners:
-                field.source_app = owners[field.fieldname]
+            old = before.get(field.fieldname)
+            if old is None:
+                continue
+            if not field.source_app and old.source_app:
+                field.source_app = old.source_app
+            if field.ext_base is None and old.ext_base:
+                # Only while the field still has the values those properties set -
+                # changed back (an app's uninstall), the change is gone indeed.
+                kept = {
+                    app: vals
+                    for app, vals in old.ext_base.items()
+                    if all(getattr(field, a) == getattr(old, a) for a in vals)
+                }
+                field.ext_base = kept or None
 
     @staticmethod
     def _sync_extension_fields(active_dt: DocType, doctype: DocType) -> None:
         """Fields installed apps add (``source_app``, merged into *doctype* by
         :func:`grunt.metadata.extensions.apply_extensions`) come from their
         extension files as a whole; one whose app no longer provides it is dropped.
+        Properties they change are applied from *doctype* on top of the stored
+        (maybe Studio-customised) values - :meth:`_inject_core` has undone the old ones.
 
         Studio-added fields have no ``source_app`` and stay, like any local field.
         """
-        from_ext = {f.fieldname: f for f in doctype.fields if f.source_app}
+        merged = {f.fieldname: f for f in doctype.fields}
         fields = []
         for field in active_dt.fields:
-            if field.fieldname in from_ext:
-                fields.append(from_ext[field.fieldname].model_copy())
-            elif not field.source_app:
-                fields.append(field)
+            source = merged.get(field.fieldname)
+            if source is not None and source.source_app:
+                fields.append(source.model_copy())
+                continue
+            if field.source_app:
+                continue
+            if source is not None and source.ext_base:
+                ext_base = {
+                    app: {attr: getattr(field, attr) for attr in vals}
+                    for app, vals in source.ext_base.items()
+                }
+                changed = {
+                    attr: getattr(source, attr) for vals in ext_base.values() for attr in vals
+                }
+                field = field.model_copy(update={**changed, "ext_base": ext_base})
+            fields.append(field)
         active_dt.fields = fields
 
     @staticmethod
@@ -527,7 +555,15 @@ class DocTypeRegistry:
                         hint=f"run `grunt doctype sync {doctype.name}` to apply",
                     )
 
-                # Merge logic
+                # Merge logic - on the DocType's own values: other apps'
+                # properties are undone here and applied again at the end.
+                active_dt.fields = [revert_properties(f) for f in active_dt.fields]
+                merged, doctype = (
+                    doctype,
+                    doctype.model_copy(
+                        update={"fields": [revert_properties(f) for f in doctype.fields]}
+                    ),
+                )
                 new_fields = self._merge_core_fields(active_dt, doctype)
                 if new_fields:
                     active_dt.fields.extend(new_fields)
@@ -544,8 +580,8 @@ class DocTypeRegistry:
 
                 self._sync_core_doctype_attrs(active_dt, doctype)
                 self._sync_core_field_attrs(active_dt, doctype)
-                self._sync_extension_fields(active_dt, doctype)
-                self._reorder_core_fields(active_dt, doctype)
+                self._sync_extension_fields(active_dt, merged)
+                self._reorder_core_fields(active_dt, merged)
 
                 # Unchanged against the stored row - nothing to write.
                 if sync_db and active_dt.model_dump(mode="json") != stored_state:

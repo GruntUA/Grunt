@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { computed, provide, watch, defineAsyncComponent } from 'vue'
+import { computed, onMounted, provide, ref, watch, defineAsyncComponent } from 'vue'
 import { useBuilderStore } from '@/stores/builder'
+import { appsApi, type GruntApp } from '@/core/api'
 import { getFieldDef, getPaletteGroups, getLayoutTypeSet } from '@/core/fieldRegistry'
 import { getPropertySection } from '@/core/propertySectionRegistry'
 import { describeTypeChange, type TypeChangeNote } from '@/core/fieldStorage'
 import { PROPERTY_FIELD_KEY, PROPERTY_UPDATE_KEY } from '@/core/composables/usePropertyEditor'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Field, FieldLabel } from '@/components/ui/field'
+import { Field, FieldDescription, FieldLabel } from '@/components/ui/field'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 // Register all core sections (side-effect import)
@@ -60,6 +61,27 @@ function changeType(next: unknown) {
   if (!next || next === field.value?.fieldtype) return
   updateField('fieldtype', String(next))
 }
+
+// Which app the field belongs to ("Customize"): another app's field is saved
+// into that app's doctype_ext/<DocType>.json, not into this DocType's JSON.
+const OWN = '__own__'
+const apps = ref<GruntApp[]>([])
+onMounted(async () => {
+  try {
+    apps.value = await appsApi.list()
+  } catch {
+    apps.value = []
+  }
+})
+const ownApp = computed(() => builder.doctype?.app || '')
+const otherApps = computed(() => apps.value.filter(a => a.name !== ownApp.value && a.name !== 'grunt'))
+const fieldApp = computed(() => {
+  const app = field.value?.source_app
+  return app && app !== ownApp.value ? app : OWN
+})
+function changeApp(next: unknown) {
+  updateField('source_app', next === OWN || !next ? null : String(next))
+}
 </script>
 
 <template>
@@ -97,6 +119,25 @@ function changeType(next: unknown) {
         v-for="(component, i) in sectionComponents"
         :key="sections[i]"
       />
+
+      <!-- Owner app -->
+      <Field v-if="otherApps.length" class="mt-4">
+        <FieldLabel for="builder-field-app">{{ t('Belongs to app') }}</FieldLabel>
+        <Select :model-value="fieldApp" @update:model-value="changeApp">
+          <SelectTrigger id="builder-field-app" class="w-full">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem :value="OWN">{{ ownApp ? t('This DocType ({app})', { app: ownApp }) : t('This DocType') }}</SelectItem>
+            <SelectItem v-for="app in otherApps" :key="app.name" :value="app.name">
+              {{ app.title || app.name }}
+            </SelectItem>
+          </SelectContent>
+        </Select>
+        <FieldDescription>
+          {{ t("Another app's field is saved into that app's doctype_ext/ file and leaves with it.") }}
+        </FieldDescription>
+      </Field>
     </template>
 
     <!-- No selection -->

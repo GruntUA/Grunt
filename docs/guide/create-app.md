@@ -117,6 +117,24 @@ its `insert_after` field, else at the end. Merged fields carry `source_app`:
 * uninstalling the app removes them and drops their columns; with
   `--keep-data` they leave the DocType on the next `migrate`, the columns stay.
 
+`properties` change attributes of fields the DocType already has:
+
+```json
+{"properties": {"inventory_number": {"required": true, "label": "Інв. №"}}}
+```
+
+The field remembers the values they replaced (`ext_base`), so the base JSON
+is still exported with its own values, and the change is undone when the app
+goes. `fieldname` / `fieldtype` can't be changed this way, and an attribute
+another app already changes is refused (`doctype_ext.property_refused`).
+
+**Customize in Studio.** In developer mode saving a DocType writes every part
+to the app it belongs to: pick **Belongs to app** in a field's properties and
+the field is saved into that app's `doctype_ext/<DocType>.json` (placed after
+the field it now follows), not into the DocType's JSON; edits of an attribute
+another app's `properties` set go to that app's file. The file of an installed
+app that has nothing left in the DocType is removed.
+
 Works for core DocTypes too (`User`, ...). Before adding fields to someone
 else's table, consider a DocType of your own with a Link to it - shown on its
 form as a connection or a sidebar section; a field in the base table is worth

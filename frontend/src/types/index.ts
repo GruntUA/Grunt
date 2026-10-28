@@ -88,6 +88,8 @@ export interface DocField {
   tab_component?: string
   /** App whose `doctype_ext/` added this field to another app's DocType. */
   source_app?: string | null
+  /** Values of this field that other apps' properties replaced: app -> {attribute: own value}. */
+  ext_base?: Record<string, Record<string, unknown>> | null
   insert_after?: string | null
   // Virtual
   is_virtual?: boolean

@@ -7,7 +7,7 @@
 пунктами меню, полями й поведінкою його DocType — і чисто зніматися з сайту.
 **Пілот:** Crystal Finance виноситься з `inventory` в окремий додаток `apps/crystal_finance`.
 
-Оновлено: 2026-10-28 (етап 4)
+Оновлено: 2026-10-28 (усе)
 
 ---
 
@@ -107,8 +107,17 @@ adopts = ["CrystalFinanceItem", "..."]  # DocType, що переходять в�
       а `grunt migrate` у CLI взагалі не завантажує `hooks.py` зовнішніх додатків, тож для них він
       ніколи не працював. `apply_doctype_overrides` / `DOCTYPE_OVERRIDES` видалено.
 - [x] Тести: `tests/test_doctype_ext.py` (9). Документація: `docs/guide/create-app.md`.
-- [ ] Відкладено: `properties` (зміна властивостей наявних полів, як Property Setter) і режим
-      «Customize» в Studio, що пише в `doctype_ext/` власника поля. Для пілота CF не потрібні.
+- [x] `properties` у `doctype_ext/` (як Property Setter): `DocField.ext_base` = {app: {атрибут: власне
+      значення}}; експорт бази — з власними значеннями, відкат при знятті додатка (для ядра —
+      `_inject_core`: спершу відкат, мердж із JSON без властивостей, наприкінці — властивості поверх
+      значень зі Studio), uninstall відкочує свої атрибути. Не можна: `fieldname`/`fieldtype` і атрибут,
+      який уже міняє інший додаток (`doctype_ext.property_refused`).
+- [x] «Customize» в Studio: «Належить додатку» у властивостях поля (`source_app`); `export_doctype_files`
+      → `export_extensions` пише поля й властивості інших додатків у їхні `doctype_ext/` (`insert_after` —
+      за поточним місцем), порожній файл встановленого додатка видаляє. `registry.update` повертає
+      `source_app`/`ext_base` лише якщо редактор їх не надіслав (явний `null` — знято); `ext_base` —
+      лише поки значення ті, що виставило розширення. Файли CF переведено в канонічну форму експорту
+      (за змістом ідентичні) — збереження Asset/Contract/AssetMovementHistory у Studio їх не змінить.
 
 ## Етап 3 — поведінка
 
@@ -130,7 +139,7 @@ adopts = ["CrystalFinanceItem", "..."]  # DocType, що переходять в�
       (`startup.app_doctype_adopted`); якщо при цьому змінилась би назва таблиці — відмова
       (`startup.app_doctype_adopt_table_changed`). CF DocType мають `module/app = crystal_finance`
       і явний `table_name = grunt_inventory_crystal_finance_*` — дані не рухаються.
-- [x] `apps/crystal_finance` (окремий git, без коміту): модулі без префікса `cf_` —
+- [x] `apps/crystal_finance` (окремий git, `git init` без коміту): модулі без префікса `cf_` —
       `client` (cf), `replica` (crystal_finance), `cards`, `contracts`, `docs`, `extra`, `history`,
       `settings`, `sync`, `bundle` (cfsync_bundle); `cfsync/` (Go), DocType `CrystalFinance*`, тести.
       Дії: `crystal_finance.sync_now / create_contract / refresh_log`; cron `crystal_finance.tasks.crystal_finance_sync`.
@@ -173,8 +182,11 @@ adopts = ["CrystalFinanceItem", "..."]  # DocType, що переходять в�
   додатків, що були на старті, — після встановлення нового додатка його треба перезапустити.
 - 2026-10-28 — сторінки розширень: власник у `Page.app`, перемикач за `extends`, uninstall прибирає
   записи, які додаток поставив у DocType ядра (раніше не прибирав жодних — і не лише в розширень).
+- 2026-10-28 — `properties` і «Customize» в Studio. `apps/crystal_finance` отримав `git init`
+  (раніше помилково вважався ініціалізованим). Попутно: `test_offline_sync` падав при повторному
+  прогоні протягом доби — фіксовані Idempotency-Key у спільному Redis; ключі тепер унікальні.
 
 ## Наступний крок
 
-Пілот завершено. Відкриті хвости: відкладені `properties` / «Customize» з етапу 2, новий
-cfsync.exe для `-push`.
+Усе з плану зроблено. Лишилось поза кодом: новий cfsync.exe на сервері CF для `-push`
+(кладе користувач), перезапуск `grunt serve`, щоб він стежив за `apps/crystal_finance`.

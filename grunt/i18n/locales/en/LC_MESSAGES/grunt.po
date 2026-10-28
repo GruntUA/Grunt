@@ -20597,3 +20597,21 @@ msgstr ""
 msgctxt "help:WorkspaceSection.anchor_before"
 msgid "Section name or item link of the base menu to place this before"
 msgstr ""
+
+#: grunt/frontend/src/pages/studio/builder/PropertiesPanel.vue
+msgid "Belongs to app"
+msgstr ""
+
+#: grunt/frontend/src/pages/studio/builder/PropertiesPanel.vue
+msgid "This DocType ({app})"
+msgstr ""
+
+#: grunt/frontend/src/pages/studio/builder/PropertiesPanel.vue
+msgid "This DocType"
+msgstr ""
+
+#: grunt/frontend/src/pages/studio/builder/PropertiesPanel.vue
+msgid ""
+"Another app's field is saved into that app's doctype_ext/ file and leaves "
+"with it."
+msgstr ""
