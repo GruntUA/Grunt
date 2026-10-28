@@ -46,6 +46,7 @@ from grunt.document.registry import document_registry
 from grunt.main import app
 from grunt.metadata.compiler import SA_METADATA, compile_doctype_to_table, get_compiled_metadata
 from grunt.metadata.doctype import DocType
+from grunt.metadata.extensions import app_extensions, apply_extensions
 from grunt.metadata.registry import doctype_registry
 from grunt.search.service import search_index_service
 from grunt.site.manager import current_site
@@ -174,6 +175,11 @@ def make_app_fixtures(app_dir: Path, app_name: str) -> dict[str, Any]:
 
             dt_dirs = [*_find_doctype_dirs(), *(d for a in app_dirs for d in _app_doctype_dirs(a))]
             dt_files = sorted(f for d in dt_dirs for f in d.glob("**/*.json"))
+            # Fields the apps add to each other's (and core) DocTypes, as `migrate` merges them.
+            extensions: dict[str, list] = {}
+            for path in app_dirs:
+                for ext in app_extensions(path, path.name):
+                    extensions.setdefault(ext.doctype, []).append(ext)
             for dt_file in dt_files:
                 try:
                     dt_data = json.loads(dt_file.read_text())
@@ -181,6 +187,7 @@ def make_app_fixtures(app_dir: Path, app_name: str) -> dict[str, Any]:
                     if not dt_obj.app:
                         owner = next((a for a in app_dirs if dt_file.is_relative_to(a)), None)
                         dt_obj.app = owner.name if owner else "grunt"
+                    dt_obj = apply_extensions(dt_obj, extensions.get(dt_obj.name))
                     compile_doctype_to_table(dt_obj)
                     doctype_registry._doctypes[dt_obj.name] = dt_obj
                 except Exception as exc:

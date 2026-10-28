@@ -1,6 +1,7 @@
 import importlib
 import importlib.util
 import inspect
+from collections.abc import Mapping, Sequence
 from pathlib import Path
 
 from grunt import log
@@ -69,7 +70,7 @@ class DocumentRegistry:
             self._index[doctype] = path
             self._forget(doctype)
 
-    def register_mixins(self, mixins: dict[str, list[str] | str], app: str = "") -> None:
+    def register_mixins(self, mixins: Mapping[str, Sequence[str] | str], app: str = "") -> None:
         """Register mixin classes for DocType controllers (DocType -> 'module.Class' paths).
 
         Resolved lazily, when the controller is first needed.

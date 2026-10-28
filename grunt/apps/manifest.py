@@ -19,6 +19,7 @@ An app that only extends others has no position of its own in the app list::
     [tool.grunt]
     extends = ["inventory"]  # contributes menu items (fixtures) to these apps; implies depends_on
     workspace = false        # no AppMenu of its own; default: false when extends is set
+    adopts = ["CrystalFinanceItem"]  # DocTypes taken over from an app it depends on
 
 A directory is a Grunt app when its pyproject.toml has ``[tool.grunt]``.
 The version is not here - it comes from git tags (:mod:`grunt.version`).
@@ -47,7 +48,7 @@ def read_manifest(app_dir: Path) -> dict[str, Any]:
     """The app's manifest with defaults filled in; empty values for a missing file.
 
     Keys: name, title, description, author, email, modules, depends_on, extends,
-    workspace, required_grunt.
+    workspace, adopts, required_grunt.
     """
     data = _pyproject(app_dir)
     project = data.get("project", {})
@@ -67,6 +68,7 @@ def read_manifest(app_dir: Path) -> dict[str, Any]:
         "depends_on": depends_on,
         "extends": extends,
         "workspace": bool(tool.get("workspace", not extends)),
+        "adopts": list(tool.get("adopts") or []),
         "required_grunt": tool.get("required_grunt") or "",
     }
 

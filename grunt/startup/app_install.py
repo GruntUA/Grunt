@@ -16,6 +16,7 @@ from grunt import log
 lazy from grunt.apps.manifest import is_app, read_manifest
 lazy from grunt.apps.required import ensure_site_dependencies
 lazy from grunt.document.registry import document_registry
+lazy from grunt.metadata.compiler import get_table_name
 lazy from grunt.metadata.doctype import DocType
 lazy from grunt.metadata.extensions import DoctypeExtension, apply_extensions, site_extensions
 lazy from grunt.metadata.registry import doctype_registry
@@ -89,6 +90,9 @@ async def _register_app_doctypes(
     Returns the names whose table was synced by the register/update call.
     """
 
+    manifest = read_manifest(app_dir)
+    adopts = set(manifest["adopts"])
+    dependencies = {d if isinstance(d, str) else d.get("name") for d in manifest["depends_on"]}
     synced: set[str] = set()
     for module in app_modules:
         doctypes_dir = app_dir / module / "doctypes"
@@ -116,7 +120,31 @@ async def _register_app_doctypes(
                     log.info("startup.app_doctype_registered", app=app_name, doctype=dt_name)
                 else:
                     existing_dt = doctype_registry._doctypes[dt_name]
-                    if existing_dt.app and existing_dt.app != app_name:
+                    adopted = (
+                        existing_dt.app != app_name
+                        and dt_name in adopts
+                        and existing_dt.app in dependencies
+                    )
+                    if adopted and _table(existing_dt) != _table(dt_obj):
+                        # The rows would be left behind in the old table.
+                        log.error(
+                            "startup.app_doctype_adopt_table_changed",
+                            app=app_name,
+                            doctype=dt_name,
+                            table=_table(existing_dt),
+                            hint=f'set "table_name": "{_table(existing_dt)}" in its JSON',
+                        )
+                        continue
+                    if adopted:
+                        # A DocType moving to this app from one it depends on
+                        # (``adopts``) - its table and rows stay.
+                        log.info(
+                            "startup.app_doctype_adopted",
+                            app=app_name,
+                            doctype=dt_name,
+                            from_app=existing_dt.app,
+                        )
+                    elif existing_dt.app and existing_dt.app != app_name:
                         # Name collision with a doctype owned by a different
                         # app (or grunt core) - updating here would silently
                         # overwrite it, and whichever app's sync runs last
@@ -142,6 +170,10 @@ async def _register_app_doctypes(
                     error=str(e),
                 )
     return synced
+
+
+def _table(dt: DocType) -> str:
+    return dt.table_name or get_table_name(dt.module, dt.name)
 
 
 async def register_installed_app_doctypes(session: AsyncSession, site_name: str) -> set[str]:
