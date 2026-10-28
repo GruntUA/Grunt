@@ -361,6 +361,11 @@ class DocType(BaseModel):
 
     # Business logic
     permissions: list[DocPermission] = []
+    # Core DocTypes: `permissions` as last taken from the bundled JSON (None -
+    # unknown). Stored permissions still equal to it were never customised, so
+    # a JSON change may replace them; see DocTypeRegistry._inject_core().
+    # Database-only - never exported to the JSON file.
+    permissions_base: list[DocPermission] | None = None
 
     # Naming / display
     autoname: str | None = None  # "CONTR-.YYYY.-.####" or "field:title"

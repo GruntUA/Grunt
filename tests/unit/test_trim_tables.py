@@ -87,3 +87,28 @@ async def test_trim_keeps_columns_of_doctypes_sharing_the_table(ctx, engine):
             lambda c: {col["name"] for col in inspect(c).get_columns(table_name)}
         )
     assert "shared_col" in cols
+
+
+@pytest.mark.asyncio
+async def test_trim_drops_indexed_column(ctx, engine):
+    """SQLite cannot DROP COLUMN under an index — trim removes the index first."""
+    meta = await grunt.get_meta("User")
+    assert meta is not None
+    table_name = meta.table_name
+    async with engine.begin() as conn:
+        await conn.execute(text(f'ALTER TABLE "{table_name}" ADD COLUMN "indexed_col" TEXT'))
+        await conn.execute(
+            text(f'CREATE INDEX "ix_{table_name}_indexed_col" ON "{table_name}" ("indexed_col")')
+        )
+
+    await meta.trim_table(engine, quiet=True)
+
+    async with engine.begin() as conn:
+        cols, indexes = await conn.run_sync(
+            lambda c: (
+                {col["name"] for col in inspect(c).get_columns(table_name)},
+                {ix["name"] for ix in inspect(c).get_indexes(table_name)},
+            )
+        )
+    assert "indexed_col" not in cols
+    assert f"ix_{table_name}_indexed_col" not in indexes

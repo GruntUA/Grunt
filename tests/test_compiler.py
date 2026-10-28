@@ -211,3 +211,60 @@ def test_float_is_double_and_currency_is_exact_numeric():
     assert not _type_changed(flt, DOUBLE_PRECISION(), pg)
     assert _type_changed(cur.to_sa_column().type, DOUBLE_PRECISION(), pg)  # Float → Currency
     assert not _type_changed(cur.to_sa_column().type, NUMERIC(18, 2), pg)
+
+
+@pytest.mark.asyncio
+async def test_sqlite_inline_unique_dropped_by_table_rebuild(async_engine):
+    """A unique field turned off drops its constraint even when SQLite declared it
+    inline in CREATE TABLE - the table is rebuilt, rows, other constraints and
+    indexes kept."""
+    from sqlalchemy import text
+    from sqlalchemy.exc import IntegrityError
+
+    dt = DocType(
+        name="InlineUq",
+        label="Inline",
+        module="test",
+        fields=[
+            DocField(fieldname="title", label="Title", fieldtype="Data", unique=True),
+            DocField(fieldname="route", label="Route", fieldtype="Data", unique=True),
+            DocField(fieldname="kind", label="Kind", fieldtype="Data", index=True),
+        ],
+    )
+    await sync_table(dt, async_engine)
+    async with async_engine.begin() as conn:
+        await conn.execute(
+            text(
+                "INSERT INTO grunt_test_inline_uq (name, owner, title, route, kind) "
+                "VALUES ('a', 'x', 'T', 'r1', 'k')"
+            )
+        )
+
+    dt.fields[0].unique = False
+    compiled_metadata = get_compiled_metadata()
+    compiled_metadata.remove(compiled_metadata.tables["grunt_test_inline_uq"])
+    invalidate_table_cache("InlineUq")
+    assert await sync_table(dt, async_engine)
+
+    async with async_engine.begin() as conn:
+        await conn.execute(
+            text(
+                "INSERT INTO grunt_test_inline_uq (name, owner, title, route) "
+                "VALUES ('b', 'x', 'T', 'r2')"
+            )
+        )
+        rows = (await conn.execute(text("SELECT name, kind FROM grunt_test_inline_uq"))).all()
+        indexes = await conn.run_sync(
+            lambda c: {ix["name"] for ix in inspect(c).get_indexes("grunt_test_inline_uq")}
+        )
+    assert sorted(rows) == [("a", "k"), ("b", None)]
+    assert any("kind" in name for name in indexes)
+
+    with pytest.raises(IntegrityError):
+        async with async_engine.begin() as conn:
+            await conn.execute(
+                text(
+                    "INSERT INTO grunt_test_inline_uq (name, owner, title, route) "
+                    "VALUES ('c', 'x', 'U', 'r1')"
+                )
+            )

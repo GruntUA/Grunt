@@ -1,3 +1,4 @@
+import re
 from typing import Any
 
 from sqlalchemy import (
@@ -428,15 +429,13 @@ def _sync_unique_constraints(insp: Any, connection: Any, table: Table) -> int:
             changes += 1
 
     # Drop stale per-field unique indexes (those with our naming prefix only)
+    inline: list[str] = []
     for name in existing_uq:
         if name and name.startswith(uq_prefix) and name not in desired_uq:
             if is_sqlite:
                 if name not in unique_indexes:
-                    # Declared inline in CREATE TABLE - SQLite can't drop it
-                    # without rebuilding the table; DROP INDEX is a no-op.
-                    log.warning(
-                        "compiler.unique_inline_not_dropped", table=table.name, constraint=name
-                    )
+                    # Declared inline in CREATE TABLE - DROP INDEX can't reach it.
+                    inline.append(name)
                     continue
                 connection.execute(text(f'DROP INDEX IF EXISTS "{name}"'))
             else:
@@ -449,7 +448,63 @@ def _sync_unique_constraints(insp: Any, connection: Any, table: Table) -> int:
                     )
             log.info("compiler.unique_dropped", table=table.name, constraint=name)
             changes += 1
+    if inline:
+        changes += _drop_sqlite_inline_constraints(connection, table.name, sorted(inline))
     return changes
+
+
+def _drop_sqlite_inline_constraints(connection: Any, table_name: str, names: list[str]) -> int:
+    """Drop named constraints declared inside SQLite's CREATE TABLE.
+
+    SQLite has no ``DROP CONSTRAINT``: the table is rebuilt from its own stored
+    ``CREATE TABLE`` minus those clauses (so every column, type and the other
+    constraints stay as they are), rows copied over, indexes and triggers
+    recreated. Done in a savepoint - on any failure nothing changes and the
+    constraint is reported instead.
+    """
+    sql = connection.execute(
+        text("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = :t"),
+        {"t": table_name},
+    ).scalar_one()
+    for name in names:
+        clause = re.compile(rf',\s*CONSTRAINT\s+"?{re.escape(name)}"?\s+UNIQUE\s*\([^)]*\)')
+        sql, found = clause.subn("", sql)
+        if not found:
+            for n in names:
+                log.warning("compiler.unique_inline_not_dropped", table=table_name, constraint=n)
+            return 0
+
+    tmp = f"{table_name}__rebuild"
+    create_tmp = re.sub(
+        rf'^CREATE TABLE\s+"?{re.escape(table_name)}"?', f'CREATE TABLE "{tmp}"', sql, count=1
+    )
+    extras = connection.execute(
+        text(
+            "SELECT sql FROM sqlite_master WHERE tbl_name = :t "
+            "AND type IN ('index', 'trigger') AND sql IS NOT NULL"
+        ),
+        {"t": table_name},
+    ).scalars().all()
+    try:
+        with connection.begin_nested():
+            connection.execute(text(create_tmp))
+            connection.execute(text(f'INSERT INTO "{tmp}" SELECT * FROM "{table_name}"'))
+            connection.execute(text(f'DROP TABLE "{table_name}"'))
+            connection.execute(text(f'ALTER TABLE "{tmp}" RENAME TO "{table_name}"'))
+            for statement in extras:
+                connection.execute(text(statement))
+    except Exception as exc:
+        for name in names:
+            log.warning(
+                "compiler.unique_inline_not_dropped",
+                table=table_name,
+                constraint=name,
+                error=str(exc),
+            )
+        return 0
+    for name in names:
+        log.info("compiler.unique_dropped", table=table_name, constraint=name, rebuilt=True)
+    return len(names)
 
 
 def _sync_indexes(insp: Any, connection: Any, table: Table) -> int:

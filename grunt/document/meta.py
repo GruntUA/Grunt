@@ -239,6 +239,7 @@ class Meta:
             valid_cols = set(self.get_valid_columns()) | set(keep)
 
             to_drop = db_cols - valid_cols
+            indexes = insp.get_indexes(table_name) if to_drop else []
 
             for col in to_drop:
                 if dry_run:
@@ -246,6 +247,10 @@ class Meta:
                         print(f"[dry-run] would DROP COLUMN '{col}' from TABLE '{table_name}'")
                 else:
                     try:
+                        # SQLite refuses DROP COLUMN while an index references it.
+                        for ix in indexes:
+                            if col in ix["column_names"]:
+                                connection.execute(text(f'DROP INDEX IF EXISTS "{ix["name"]}"'))
                         connection.execute(text(f'ALTER TABLE "{table_name}" DROP COLUMN "{col}"'))
                         if not quiet:
                             print(f"Dropped column '{col}' from table '{table_name}'")

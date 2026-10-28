@@ -159,7 +159,12 @@ def export_doctype_files(dt: DocType, app_name: str | None = None) -> str | None
     # readable and diffs are meaningful (no noise from False/0/"" defaults).
     json_file = dt_dir / f"{dt.name}.json"
     json_file.write_text(
-        json.dumps(dt.model_dump(exclude_defaults=True), ensure_ascii=False, indent=2) + "\n",
+        json.dumps(
+            dt.model_dump(exclude_defaults=True, exclude={"permissions_base"}),
+            ensure_ascii=False,
+            indent=2,
+        )
+        + "\n",
     )
 
     # Controller - create if missing, otherwise only sync the auto-generated type block

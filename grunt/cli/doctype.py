@@ -87,6 +87,8 @@ async def _sync_one(name: str, session, eng) -> bool:
     dt = DocType.model_validate(json.loads(json_file.read_text()))
     if not dt.app:
         dt.app = owning_app
+    # Permissions now equal the JSON again - later JSON changes apply on their own.
+    dt.permissions_base = list(dt.permissions)
 
     existing_data = await store.get_definition(session, dt.name)
     if existing_data is not None:

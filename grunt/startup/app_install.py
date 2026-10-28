@@ -112,6 +112,7 @@ async def _register_app_doctypes(
                 dt_obj = DocType.model_validate(dt_data)
                 if not dt_obj.app:
                     dt_obj.app = app_name
+                dt_obj.permissions_base = list(dt_obj.permissions)
                 dt_obj = apply_extensions(dt_obj, (extensions or {}).get(dt_name))
                 if dt_name not in doctype_registry._doctypes:
                     async with session.begin_nested():

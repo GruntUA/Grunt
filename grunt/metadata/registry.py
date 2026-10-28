@@ -27,6 +27,7 @@ from grunt.metadata.compiler import invalidate_table_cache, sync_table
 from grunt.metadata.doctype import DocType
 from grunt.metadata.extensions import revert_properties
 from grunt.metadata.field import DocField
+from grunt.metadata.permission import DocPermission
 from grunt.permissions.rbac import invalidate_permission_cache
 from grunt.site.manager import current_site, site_manager
 lazy from grunt.document.meta import Meta
@@ -500,6 +501,37 @@ class DocTypeRegistry:
         active_dt.fields = fields
 
     @staticmethod
+    def _sync_core_permissions(active_dt: DocType, doctype: DocType) -> None:
+        """Take a core DocType's JSON `permissions` unless Studio changed them.
+
+        `permissions` is not in _CORE_SYNCED_DOCTYPE_ATTRS: Studio edits must
+        survive upgrades. `permissions_base` records what the JSON said when
+        the stored value was last taken from it - stored permissions still
+        equal to it were never customised and follow the JSON. Customised ones
+        (or ones of unknown origin, stored before `permissions_base` existed)
+        stay as they are, with a loud warning instead of a silent drift.
+        """
+
+        def dump(perms: list[DocPermission] | None) -> list[dict] | None:
+            return None if perms is None else [p.model_dump() for p in perms]
+
+        source = dump(doctype.permissions)
+        stored = dump(active_dt.permissions)
+        if stored == source:
+            active_dt.permissions_base = list(doctype.permissions)
+        elif stored == dump(active_dt.permissions_base):
+            active_dt.permissions = list(doctype.permissions)
+            active_dt.permissions_base = list(doctype.permissions)
+            log.info("registry.core_permissions_updated", name=doctype.name)
+        else:
+            log.warning(
+                "registry.core_permissions_drifted",
+                name=doctype.name,
+                hint=f"permissions differ from the JSON (customised?) - "
+                f"run `grunt doctype sync {doctype.name}` to reset them to it",
+            )
+
+    @staticmethod
     def _reorder_core_fields(active_dt: DocType, doctype: DocType) -> None:
         """Position JSON-defined fields per JSON order; locally-added fields sort last."""
         json_order = {f.fieldname: i for i, f in enumerate(doctype.fields)}
@@ -538,22 +570,7 @@ class DocTypeRegistry:
             else:
                 stored_state = active_dt.model_dump(mode="json")
 
-                # `permissions` is deliberately excluded from
-                # _CORE_SYNCED_DOCTYPE_ATTRS (a Studio customisation, seeded
-                # once and never overwritten automatically) - but that means
-                # a permissions change committed to the JSON source silently
-                # sits inert on every existing site until someone remembers
-                # to run `grunt doctype sync <Name>`. Surface the drift
-                # loudly instead of leaving it to be discovered by a random
-                # test failure or an access-control gap nobody noticed.
-                if [p.model_dump() for p in doctype.permissions] != [
-                    p.model_dump() for p in active_dt.permissions
-                ]:
-                    log.warning(
-                        "registry.core_permissions_drifted",
-                        name=doctype.name,
-                        hint=f"run `grunt doctype sync {doctype.name}` to apply",
-                    )
+                self._sync_core_permissions(active_dt, doctype)
 
                 # Merge logic - on the DocType's own values: other apps'
                 # properties are undone here and applied again at the end.
@@ -591,6 +608,7 @@ class DocTypeRegistry:
         else:
             # First run: seed from the bundled JSON file.
             active_dt = doctype
+            active_dt.permissions_base = list(doctype.permissions)
             if sync_db:
                 await store.insert_doctype(session, doctype)
                 await session.flush()
@@ -611,6 +629,8 @@ class DocTypeRegistry:
     ) -> None:
         """Validate, persist, sync table, and cache a new DocType."""
         self._validate_new(doctype)
+        if doctype.permissions_base is None:
+            doctype.permissions_base = list(doctype.permissions)
 
         # Registry may be partially lazy-loaded; always re-check DB uniqueness.
         if await store.exists(session, doctype.name):
@@ -659,7 +679,11 @@ class DocTypeRegistry:
                 )
             await self._lazy_load(doctype.name)
         self._validate_fields(doctype)
-        self._keep_source_app(doctype, self._doctypes.get(doctype.name))
+        previous = self._doctypes.get(doctype.name)
+        self._keep_source_app(doctype, previous)
+        # Editors (Studio) don't send it back - the JSON baseline stays.
+        if doctype.permissions_base is None and previous is not None:
+            doctype.permissions_base = previous.permissions_base
 
         await store.update_doctype(session, doctype)
         await session.flush()
