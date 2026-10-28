@@ -20,6 +20,7 @@ from grunt.tasks.broker import retryable_task
 lazy from grunt.auth.doctypes.User.user import get_auth_context_user
 lazy from grunt.notification.service import notification_service
 lazy from grunt.site.manager import site_manager
+lazy from grunt.tasks.doctypes.AutoRepeat.auto_repeat import AutoRepeat
 lazy from grunt.workflow.registry import get_active_workflow
 
 MONTHS_BY_FREQUENCY = {"Monthly": 1, "Quarterly": 3, "Half-yearly": 6, "Yearly": 12}
@@ -118,8 +119,9 @@ async def create_copy(rule: dict[str, Any], on_date: date) -> dict[str, Any]:
     return await grunt.new_doc(doctype, data)
 
 
-async def _owner(email: str) -> Any:
-
+async def _owner(email: str | None) -> Any:
+    if not email:
+        return None
     user = await get_auth_context_user(email)
     return user if user is not None and user.is_active else None
 
@@ -148,17 +150,17 @@ async def process_rule(name: str, today: date) -> int:
     copy is committed on its own, so one failure keeps the earlier ones.
     """
     session = grunt.get_session()
-    rule = await grunt.get_doc("AutoRepeat", name)
-    frequency = rule["frequency"]
-    day, last_day = anchor_day(rule), bool(rule.get("repeat_on_last_day"))
-    end = as_date(rule.get("end_date"))
-    next_on = as_date(rule.get("next_schedule_date"))
+    rule = await grunt.get_doc(AutoRepeat, name)
+    frequency = rule.frequency
+    day, last_day = anchor_day(rule.data), bool(rule.repeat_on_last_day)
+    end = as_date(rule.end_date)
+    next_on = as_date(rule.next_schedule_date)
 
     updates: dict[str, Any] = {"last_run_at": datetime.now(UTC)}
     created = 0
     error: str | None = None
 
-    owner = await _owner(rule["owner"])
+    owner = await _owner(rule.owner)
     if owner is None:
         error = _("The owner of this rule is missing or inactive")
 
@@ -171,7 +173,7 @@ async def process_rule(name: str, today: date) -> int:
     ):
         try:
             async with grunt.context(session, grunt.get_engine(), owner):
-                copy = await create_copy(rule, next_on)
+                copy = await create_copy(rule.data, next_on)
             await session.commit()
         except Exception as e:
             await session.rollback()
@@ -182,20 +184,20 @@ async def process_rule(name: str, today: date) -> int:
         updates["last_document"] = copy["name"]
         log.info("auto_repeat.copy_created", rule=name, doc=copy["name"], on=str(next_on))
         await _notify(
-            rule,
+            rule.data,
             _("Created %(doctype)s %(name)s")
-            % {"doctype": _(rule["reference_doctype"]), "name": copy["name"]},
+            % {"doctype": _(rule.reference_doctype), "name": copy["name"]},
             _("Auto repeat %(rule)s") % {"rule": name},
         )
         next_on = next_date(next_on, frequency, day, last_day)
 
     if error:
-        await _notify(rule, _("Auto repeat %(rule)s failed") % {"rule": name}, error)
+        await _notify(rule.data, _("Auto repeat %(rule)s failed") % {"rule": name}, error)
 
     updates.update(
         next_schedule_date=next_on,
-        status=status_for(rule, next_on),
-        created_count=int(rule.get("created_count") or 0) + created,
+        status=status_for(rule.data, next_on),
+        created_count=int(rule.created_count or 0) + created,
         last_error=error,
     )
     await grunt.db.set_value("AutoRepeat", name, updates)

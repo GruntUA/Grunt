@@ -14,6 +14,7 @@ from grunt import _
 from grunt.actions.registry import doc_action
 from grunt.activity.doctypes.DeletedDocument.deleted_document import restore
 from grunt.reports.delivery import send_report_now
+lazy from grunt.webpush.doctypes.PushSubscription.push_subscription import PushSubscription
 lazy from grunt.webpush.service import PushUnavailableError, webpush_service
 
 
@@ -223,9 +224,9 @@ _PUSH_DIALOG_FIELDS = [
 async def webpush_test(doc: dict[str, Any], *, args: dict[str, Any]) -> dict[str, Any]:
     """Push a test message to this one browser subscription and report the outcome."""
 
-    sub = await grunt.get_doc("PushSubscription", doc["name"])
+    sub = await grunt.get_doc(PushSubscription, doc["name"])
     result = await webpush_service.send_test(
-        sub,
+        sub.data,
         title=args.get("title") or _("Test notification"),
         body=args.get("body") or "",
         url=args.get("url") or "/",

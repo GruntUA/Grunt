@@ -10,6 +10,7 @@ from grunt.io.exporters.registry import get_exporter
 from grunt.io.importers.registry import get_importer_for_file
 lazy from grunt.errors import not_found
 lazy from grunt.storage.cloud.files import blob_path
+lazy from grunt.storage.doctypes.File.file import File
 
 
 class DataImport(Document):
@@ -218,12 +219,12 @@ class DataImport(Document):
         """
         file_id = parse_qs(urlparse(self.file).query).get("file_id", [None])[0]
         if file_id:
-            doc = await self.grunt.find_doc("File", file_id)
-            if doc and doc.get("content_hash"):
-                path = await blob_path(doc["content_hash"])
+            doc = await self.grunt.find_doc(File, file_id)
+            if doc and doc.content_hash:
+                path = await blob_path(doc.content_hash)
                 if path.exists():
                     # Blobs carry no extension - the importer goes by the name.
-                    return path, doc["file_name"]
+                    return path, doc.file_name
 
         raise FileNotFoundError(f"Import file not found: {self.file}")
 

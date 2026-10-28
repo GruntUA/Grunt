@@ -46,6 +46,10 @@ class DocTypeController(BaseDocument):
     """Single DocTypes are read from and written through the registry; lists
     and counts query the DocType table like any table-backed DocType."""
 
+    # The class can't be named DocType (that's the metadata model imported
+    # above), so grunt.get_doc(DocTypeController, ...) takes the name from here.
+    doctype = "DocType"
+
     @classmethod
     async def get_list(cls, doctype: str, **kwargs: Any) -> DocumentList:
         return await Document.get_list(doctype, **kwargs)

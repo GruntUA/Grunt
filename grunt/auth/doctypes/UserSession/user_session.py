@@ -31,11 +31,25 @@ from grunt import _
 from grunt.auth.ip_policy import CLOUDFLARE_RANGES, ip_allowed
 from grunt.auth.service import session_ttl_minutes
 from grunt.config import settings
+from grunt.document.base import Document
 from grunt.site.settings import get_setting
 
 DEVICE_COOKIE = "grunt_device"
 _DEVICE_ID = re.compile(r"[0-9a-f]{32}")
 DEFAULT_LOGIN_HISTORY = 20
+
+
+class UserSession(Document):
+    """DocType controller for UserSession."""
+
+    # "user" field: read it as self.data["user"] - self.user is the session user.
+    refresh_token_hash: str | None
+    device_id: str | None
+    ip_address: str | None
+    user_agent: str | None
+    last_active_at: datetime | None
+    is_active: bool | None
+    logins: list[dict[str, Any]]  # Table: UserSessionLogin
 
 
 def _hash(token: str) -> str:
@@ -160,8 +174,8 @@ async def open_session(
 
         sid = rows[0]["name"]
         keep = await get_setting("session_login_history", DEFAULT_LOGIN_HISTORY)
-        doc = await grunt.get_doc("UserSession", sid)
-        logins = [{key: row.get(key) for key in login} for row in doc.get("logins") or []]
+        doc = await grunt.get_doc(UserSession, sid)
+        logins = [{key: row.get(key) for key in login} for row in doc.logins or []]
         logins = [*logins, login][-max(int(keep or 1), 1) :]
         await grunt.save_doc("UserSession", sid, {**values, "logins": logins})
     return sid, refresh_token

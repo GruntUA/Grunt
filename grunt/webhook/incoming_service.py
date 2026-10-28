@@ -32,6 +32,7 @@ from grunt import log
 from grunt.auth.doctypes.User.user import SYSTEM_USER
 from grunt.metadata.registry import doctype_registry
 from grunt.scripting.server_script import ServerScriptRunner
+lazy from grunt.scripting.doctypes.ServerScript.server_script import ServerScript
 
 _MAX_PAYLOAD = 5 * 1024 * 1024  # 5 MB
 
@@ -191,12 +192,12 @@ class IncomingWebhookService:
 
         session = grunt.get_session()
         async with grunt.system_context(session):
-            script_doc = await grunt.find_doc("ServerScript", script_id)
+            script_doc = await grunt.find_doc(ServerScript, script_id)
 
         if not script_doc:
             return "run_server_script", f"ServerScript '{script_id}' not found"
 
-        source = script_doc.get("script") or ""
+        source = script_doc.script or ""
         result = await server_script_engine.execute(
             source=source,
             doc={},

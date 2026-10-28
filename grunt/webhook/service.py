@@ -19,6 +19,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 import grunt
 from grunt import _, log
 from grunt.metadata.registry import doctype_registry
+lazy from grunt.webhook.doctypes.OutgoingWebhook.outgoing_webhook import OutgoingWebhook
 
 
 class WebhookService:
@@ -92,15 +93,15 @@ class WebhookService:
     ) -> dict[str, Any]:
         """Send a test payload for the given webhook and return the log entry."""
         async with grunt.system_context(session):
-            wh_data = await grunt.find_doc("OutgoingWebhook", webhook_id)
+            wh_data = await grunt.find_doc(OutgoingWebhook, webhook_id)
 
         if not wh_data:
             return {"success": False, "error": _("Webhook not found")}
 
         payload_str = json.dumps(
             {
-                "event": wh_data.get("event", "test"),
-                "doctype": wh_data.get("doctype_name", ""),
+                "event": wh_data.event or "test",
+                "doctype": wh_data.doctype_name or "",
                 "doc": {"id": "test-doc-id", "name": "test-document", "_test": True},
                 "timestamp": int(time.time()),
                 "is_test": True,
@@ -111,12 +112,12 @@ class WebhookService:
         log = await self._send_and_log(
             session=session,
             webhook_id=webhook_id,
-            event=wh_data.get("event", "test"),
-            url=str(wh_data["url"]),
+            event=wh_data.event or "test",
+            url=str(wh_data.url),
             payload=payload_str,
-            secret=wh_data.get("secret") or "",
-            extra_headers=wh_data.get("headers") or "",
-            timeout=int(wh_data.get("timeout") or 10),
+            secret=wh_data.secret or "",
+            extra_headers=wh_data.headers or "",
+            timeout=int(wh_data.timeout or 10),
             is_test=True,
         )
         return log

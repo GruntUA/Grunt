@@ -14,12 +14,37 @@ print scripting) - see project notes for why that identifier was kept rather
 than switched to the internal id.
 """
 
+from datetime import datetime
 from typing import Any
 
 from fastapi.responses import Response
 
 import grunt
+from grunt.document.base import Document
 from grunt.reports.engine import report_engine
+
+
+class Report(Document):
+    """DocType controller for Report."""
+
+    report_name: str | None
+    report_type: str | None
+    ref_doctype: str | None
+    columns: dict | None
+    filters_config: dict | None
+    chart_config: dict | None
+    conditions: dict | None
+    sort_by: str | None
+    sort_order: str | None
+    row_limit: int | None
+    query: str | None
+    script: str | None
+    is_standard: bool | None
+    app: str | None
+    schedule_frequency: str | None
+    schedule_recipients: str | None
+    schedule_filters: dict | None
+    last_sent_at: datetime | None
 
 
 @grunt.whitelist()

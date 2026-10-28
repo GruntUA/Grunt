@@ -12,6 +12,7 @@ from grunt.document.query import _expand_child_of_filters
 from grunt.metadata.widget import WIDGET_PERIOD_DAYS, get_widget_type_class
 from grunt.permissions.rbac import permission_checker
 from grunt.reports.widget_compute import _widget_report_series
+lazy from grunt.site.doctypes.Page.page import Page
 
 _TIMESPAN_DAYS = {
     "last_week": 7,
@@ -216,10 +217,10 @@ async def _load_widgets(
     date_to: str | None,
 ) -> tuple[list[dict[str, Any]], datetime | None, datetime | None]:
     """A visible Page's widgets (in row order) and the parsed global date range."""
-    doc = await grunt.find_doc("Page", name)
+    doc = await grunt.find_doc(Page, name)
     if doc is None:
         grunt.throw(_("Page not found"), "NOT_FOUND")
-    page = dict(doc)
+    page = dict(doc.data)
 
     if not page_visible(page, grunt.get_user()):
         grunt.throw(_("The page is not published"), "PERMISSION_DENIED")

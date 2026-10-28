@@ -37,7 +37,8 @@ def _require_system_manager() -> None:
         grunt.throw(_("Only a System Manager can restore documents"), code="FORBIDDEN")
 
 
-def _snapshot_payload(snap: dict[str, Any]) -> dict[str, Any]:
+def _snapshot_payload(snap: DeletedDocument) -> dict[str, Any]:
+    # The field is called ``data`` too - ``snap.data`` is the whole record.
     raw = snap.get("data")
     if isinstance(raw, str):
         try:
@@ -62,14 +63,14 @@ async def restore(name: str, allow_rename: bool = False) -> dict[str, Any]:
     """
     _require_system_manager()
 
-    snap = await grunt.get_doc("DeletedDocument", name)
-    if snap.get("restored"):
+    snap = await grunt.get_doc(DeletedDocument, name)
+    if snap.restored:
         grunt.throw(
-            _("Already restored as “%(name)s”") % {"name": snap.get("restored_to") or "?"},
+            _("Already restored as “%(name)s”") % {"name": snap.restored_to or "?"},
             code="ALREADY_RESTORED",
         )
 
-    target_dt = snap["deleted_doctype"]
+    target_dt = snap.deleted_doctype
     try:
         await doctype_registry.get(target_dt)
     except Exception:
@@ -79,7 +80,7 @@ async def restore(name: str, allow_rename: bool = False) -> dict[str, Any]:
         )
 
     payload = _snapshot_payload(snap)
-    orig_name = str(snap["deleted_name"])
+    orig_name = str(snap.deleted_name)
 
     if await grunt.db.exists(target_dt, orig_name):
         if not allow_rename:

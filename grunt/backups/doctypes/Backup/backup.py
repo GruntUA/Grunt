@@ -33,7 +33,7 @@ def _row(site: str, backup: BackupSet, cloud: dict[str, dict[str, str]]) -> dict
     }
 
 
-class BackupController(BaseDocument):
+class Backup(BaseDocument):
     """The backup sets on disk - made by the scheduler or «Створити зараз».
 
     Created only by the Create now button and never changed: insert and

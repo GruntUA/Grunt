@@ -288,7 +288,7 @@ async def delete_items(
 
 
 async def _delete_folder(name: str) -> int:
-    await grunt.get_doc("FileFolder", name)  # 403 / 404 before touching anything inside
+    await grunt.get_doc(FileFolder, name)  # 403 / 404 before touching anything inside
     deleted = 0
     for sub in await grunt.db.get_all(
         "FileFolder", filters={"parent_folder": name}, fields=["name"], limit=_MANY

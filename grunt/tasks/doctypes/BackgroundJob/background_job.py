@@ -20,7 +20,7 @@ from grunt.tasks.redis_introspect import (
 )
 
 
-class BackgroundJobController(BaseDocument):
+class BackgroundJob(BaseDocument):
     """Live view of in-flight (delivered, not yet acked) Redis Stream entries.
 
     Read-only except for ``delete``, which acks a stuck entry off the pending

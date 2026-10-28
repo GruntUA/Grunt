@@ -177,8 +177,8 @@ async def list_workspaces() -> list[dict[str, Any]]:
 
     for ws_brief in all_ws:
         try:
-            ws_data = await grunt.get_doc("AppMenu", ws_brief["name"])
-            if ws_data.get("is_hidden") and "System Manager" not in (user.roles or []):
+            ws_data = await grunt.get_doc(AppMenu, ws_brief["name"])
+            if ws_data.is_hidden and "System Manager" not in (user.roles or []):
                 continue
             # Basic role check could be added here
             data.append(await _workspace_to_dict(ws_data, pages))

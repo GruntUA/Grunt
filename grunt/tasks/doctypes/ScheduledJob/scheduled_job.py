@@ -11,7 +11,7 @@ from grunt.errors import not_found
 from grunt.i18n import N_
 
 
-class ScheduledJobController(BaseDocument):
+class ScheduledJob(BaseDocument):
     """Scheduled Jobs - ServerScripts of the Scheduler Event type.
 
     No insert or update: the underlying ServerScript row also requires a

@@ -22,7 +22,7 @@ from grunt.tasks.redis_introspect import (
 )
 
 
-class BackgroundWorkerController(BaseDocument):
+class BackgroundWorker(BaseDocument):
     """Live view of the TaskIQ consumer group's members (``XINFO CONSUMERS``).
 
     Read-only except for ``delete``, which drops a dead consumer's

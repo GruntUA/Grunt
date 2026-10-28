@@ -8,9 +8,9 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
 import grunt
 from grunt import log
-from grunt.auth.doctypes.UserSession.user_session import client_ip
 from grunt.cache.bus import SENDER
 lazy from grunt.auth.doctypes.User.user import get_user_by_email
+lazy from grunt.auth.doctypes.UserSession.user_session import client_ip
 lazy from grunt.local import _site_ctx
 lazy from grunt.permissions.rbac import permission_checker
 lazy from grunt.site.manager import site_manager

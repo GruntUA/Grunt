@@ -26,16 +26,16 @@ async def get_import_preview(data_import_id: str) -> dict[str, Any]:
 @grunt.whitelist()
 async def get_import_status(data_import_id: str) -> dict[str, Any]:
     """Return the current status and progress of a DataImport record."""
-    doc = await grunt.find_doc("DataImport", data_import_id)
+    doc = await grunt.find_doc(DataImport, data_import_id)
     if not doc:
         grunt.throw(_("DataImport not found"), "NOT_FOUND")
     return {
-        "name": doc["name"],
-        "status": doc.get("status"),
-        "total_rows": doc.get("total_rows") or 0,
-        "processed_rows": doc.get("processed_rows") or 0,
-        "error_count": doc.get("error_count") or 0,
-        "error_log": doc.get("error_log") or [],
+        "name": doc.name,
+        "status": doc.status,
+        "total_rows": doc.total_rows or 0,
+        "processed_rows": doc.processed_rows or 0,
+        "error_count": doc.error_count or 0,
+        "error_log": doc.error_log or [],
     }
 
 

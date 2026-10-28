@@ -104,7 +104,7 @@ async def update_api_key(
 ) -> dict[str, Any]:
     """Update label, active state, allowed IPs, or expiry of a key."""
     user = user or grunt.get_user()
-    key_doc = await grunt.get_doc("ApiKey", key_id)
+    key_doc = await grunt.get_doc(ApiKey, key_id)
     _require_key_owner(key_doc, user)
 
     updates: dict[str, Any] = {}
@@ -138,13 +138,13 @@ async def update_api_key(
 async def revoke_api_key(key_id: str, user: User | None = None) -> bool:
     """Permanently revoke (delete) an API key."""
     user = user or grunt.get_user()
-    key_doc = await grunt.get_doc("ApiKey", key_id)
+    key_doc = await grunt.get_doc(ApiKey, key_id)
     _require_key_owner(key_doc, user)
     await grunt.delete_doc("ApiKey", key_id)
     return True
 
 
-def _require_key_owner(key_doc: dict[str, Any], user: User) -> None:
+def _require_key_owner(key_doc: ApiKey, user: User) -> None:
     """Raise 403 if user doesn't own the key and isn't System Manager."""
-    if "System Manager" not in (user.roles or []) and key_doc.get("user_id") != user.id:
+    if "System Manager" not in (user.roles or []) and key_doc.user_id != user.id:
         raise forbidden(_("No access to this key"))

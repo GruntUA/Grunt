@@ -6,7 +6,7 @@ from grunt.i18n import N_
 from grunt.monitoring.health import skeleton
 
 
-class SystemHealthReportController(BaseDocument):
+class SystemHealthReport(BaseDocument):
     """«Стан системи» - computed live on every open, nothing is stored (read-only).
 
     Opens at once on a skeleton: every section pending. The page's client

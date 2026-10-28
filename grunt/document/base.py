@@ -573,3 +573,9 @@ async def load_document(
         await doc.on_load()
     doc.data = with_doctype(doctype, doc.data)
     return doc
+
+
+def is_shadowed_field(fieldname: str) -> bool:
+    """Whether a controller attribute hides the field - ``doc.user`` is the
+    session user, ``doc.delete`` a method - so it is read as ``doc.data[...]``."""
+    return fieldname not in SYS_FIELDS and (fieldname in _RESERVED or hasattr(Document, fieldname))

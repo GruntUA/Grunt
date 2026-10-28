@@ -108,3 +108,23 @@ def test_sync_adds_missing_datetime_import(tmp_path):
     assert src.count("from datetime import") == 1
     assert "from datetime import date, datetime, time\n" in src
     assert sync_controller_types(py, "Widget", fields) is False
+
+
+def test_fields_hidden_by_controller_attributes_are_not_annotated(tmp_path):
+    """``doc.user`` is the session user and ``doc.delete`` a method: annotating
+    such fields would tell the type checker the opposite of what happens."""
+    py = tmp_path / "widget.py"
+    py.write_text(_CONTROLLER)
+    fields = [
+        {"fieldname": "user", "fieldtype": "Link", "options": "User"},
+        {"fieldname": "delete", "fieldtype": "Check"},
+        {"fieldname": "title", "fieldtype": "Data"},
+    ]
+
+    sync_controller_types(py, "Widget", fields)
+    src = py.read_text()
+    assert "    title: str | None\n" in src
+    assert "    user:" not in src
+    assert "    delete:" not in src
+    assert 'read it as self.data["user"]' in src
+    assert 'read it as self.data["delete"]' in src

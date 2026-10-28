@@ -13,7 +13,7 @@ from typing import Any
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
-from grunt.document.base import SYS_FIELDS
+from grunt.document.base import SYS_FIELDS, is_shadowed_field
 from grunt.metadata.field import get_python_type, is_physical_fieldtype
 from grunt.utils.strings import to_snake_case
 
@@ -123,6 +123,15 @@ def _render_type_block(fields: list[dict], indent: str = "    ") -> str:
     table_fields = [f for f in fields if _is_typed(f) and f.get("fieldtype") == "Table"]
 
     field_lines: list[str] = []
+    for f in physical + table_fields:
+        if is_shadowed_field(f["fieldname"]):
+            name = f["fieldname"]
+            field_lines.append(
+                f'{indent}# "{name}" field: read it as self.data["{name}"] - '
+                f"self.{name} is taken by the controller."
+            )
+    physical = [f for f in physical if not is_shadowed_field(f["fieldname"])]
+    table_fields = [f for f in table_fields if not is_shadowed_field(f["fieldname"])]
     for f in physical:
         py_type = _field_type(f)
         comment = f"  # {f['label']}" if f.get("label") and f["label"] != f["fieldname"] else ""

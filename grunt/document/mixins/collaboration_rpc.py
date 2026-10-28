@@ -17,6 +17,7 @@ import grunt
 from grunt import _
 from grunt.i18n import language_of, use_language
 from grunt.permissions.guards import doc_guard
+lazy from grunt.document.doctypes.Comment.comment import Comment
 
 
 class DocumentCollaborationRPCMixin:
@@ -125,9 +126,9 @@ class DocumentCollaborationRPCMixin:
     async def delete_comment(doctype: str, doc_id: str, comment_id: str) -> None:
         """Delete a comment."""
 
-        comment = await grunt.get_doc("Comment", comment_id)
+        comment = await grunt.get_doc(Comment, comment_id)
         user = grunt.get_user()
-        if comment.get("owner") != user.email and not user.has_role("System Manager"):
+        if comment.owner != user.email and not user.has_role("System Manager"):
             raise HTTPException(status.HTTP_403_FORBIDDEN, detail=_("Not allowed"))
 
         await grunt.delete_doc("Comment", comment_id)
