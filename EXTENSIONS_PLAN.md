@@ -7,7 +7,7 @@
 пунктами меню, полями й поведінкою його DocType — і чисто зніматися з сайту.
 **Пілот:** Crystal Finance виноситься з `inventory` в окремий додаток `apps/crystal_finance`.
 
-Оновлено: 2026-10-28 (етап 3)
+Оновлено: 2026-10-28 (етап 4)
 
 ---
 
@@ -79,8 +79,11 @@ adopts = ["CrystalFinanceItem", "..."]  # DocType, що переходять в�
       у пунктах і секціях `after` / `before` (пункт — `link_to` або label, секція — назва секції).
 - [x] Порядок при читанні — `order_menu` у `_workspace_to_dict` (див. рішення).
 - [x] Uninstall: видалити рядки `source_app = X` в чужих AppMenu (і показати їх у плані видалення).
-- [ ] Дашборди: `Page` розширення з `app = <база>` вже потрапляє в перемикач дашбордів бази;
-      лишилось, щоб uninstall розширення прибирав такі сторінки (потрібен власник у Page).
+- [x] Дашборди: `Page.app` — власник сторінки; перемикач дашбордів додатка показує й сторінки
+      додатків, що його `extends` (`_dashboards` → `manifest.extenders`, кеш на процес).
+      Uninstall прибирає стандартні записи додатка (`app` = він) і записи з його фікстур у
+      DocType зі `standard_records` (Page, Report, PrintFormat, ...) — напряму через БД, з
+      дочірніми рядками, бо `delete_doc` у dev-режимі видалив би й теки записів у файлах додатка.
 - [x] Тести: `tests/unit/test_menu_contributions.py`, `tests/test_app_manifest.py::TestExtends`.
 - [x] Документація: `docs/guide/create-app.md` → «Extending another app».
 
@@ -123,19 +126,32 @@ adopts = ["CrystalFinanceItem", "..."]  # DocType, що переходять в�
 
 ## Етап 4 — пілот: Crystal Finance окремим додатком
 
-- [ ] Передача власності DocType: `adopts` у маніфесті → `_register_app_doctypes` змінює `DocType.app`
-      замість `app_doctype_name_collision`, якщо поточний власник — у `depends_on`. Таблиці й дані не рухаються.
-- [ ] Перенести: DocType `CrystalFinance*`, `cf*.py`, `crystal_finance.py`, `cfsync/`, `cfsync_bundle.py`,
-      cron `crystal_finance_sync`, тести `test_cf_*`.
-- [ ] Меню: секція «Crystal Finance» (після «Агенти») і «Налаштування Crystal Finance»
-      (після `InventorySettings`) — фікстурою-внеском; прибрати з `inventory/fixtures/00_workspace.json`.
-- [ ] Поля `Asset.cf_item/cf_card/cf_card_status`, `Contract.cf_contract`,
-      `AssetMovementHistory.cf_move` → `crystal_finance/doctype_ext/`.
-- [ ] CF-код з `Asset.py`, `Contract.py` → mixin / `doc_events`.
-- [ ] Розв'язати залежності inventory → CF у `movement.py`, `movement_view.py`, `routes.py`,
-      `actions.py`, `fixtures/01_home_page.json` (віджети) — inventory не має імпортувати CF.
-- [ ] Встановити на dev2 (ключ CF там, див. пам'ять cfsync); перевірити, що дані на місці.
-- [ ] Сайт без CF: inventory ставиться й працює без жодного `cf_`.
+- [x] `adopts` у маніфесті: `_register_app_doctypes` передає DocType від додатка з `depends_on`
+      (`startup.app_doctype_adopted`); якщо при цьому змінилась би назва таблиці — відмова
+      (`startup.app_doctype_adopt_table_changed`). CF DocType мають `module/app = crystal_finance`
+      і явний `table_name = grunt_inventory_crystal_finance_*` — дані не рухаються.
+- [x] `apps/crystal_finance` (окремий git, без коміту): модулі без префікса `cf_` —
+      `client` (cf), `replica` (crystal_finance), `cards`, `contracts`, `docs`, `extra`, `history`,
+      `settings`, `sync`, `bundle` (cfsync_bundle); `cfsync/` (Go), DocType `CrystalFinance*`, тести.
+      Дії: `crystal_finance.sync_now / create_contract / refresh_log`; cron `crystal_finance.tasks.crystal_finance_sync`.
+- [x] Меню: `fixtures/00_menu.json` (`extends: inventory`, секція після «Агенти», налаштування після
+      `InventorySettings`). Дашборд: окрема сторінка `crystal-finance` (`app = inventory`) з 8 CF-віджетами.
+- [x] Поля `Asset.cf_item/cf_card/cf_card_status`, `Contract.cf_contract`, `AssetMovementHistory.cf_move` →
+      `crystal_finance/doctype_ext/`.
+- [x] Поведінка — мікcини `AssetFinance` (звірка, історія, `after_split`, «Рух активу») і
+      `ContractFinance` (реквізити з Crystal). Inventory відкрив точки розширення в `Asset`:
+      `after_split`, `movement_summary`, `movement_cells`, `movement_extra`.
+- [x] Inventory без CF: жодного імпорту/поля/пункту; `movement.clean_row` переносить усі поля рядка,
+      крім службових (раніше — білий список із `cf_move`). Тести inventory (28) проходять без CF.
+- [x] hrm: `PayrollKind` ліниво імпортує `crystal_finance.replica.upsert_rows`.
+- [x] Харнес тестів додатків (`testkit.make_app_fixtures`) застосовує `doctype_ext/`.
+- [x] dev2: бекап `backups/grunt-before-cf-app-20261028.db`, `grunt app install crystal_finance`,
+      усі 15 лічильників (таблиці CF, заповнені `cf_*`) до/після збігаються, два `migrate` поспіль без змін.
+- [ ] cfsync `-push` (лише ручні відправки): URL тепер `/api/v1/app/crystal_finance/...`. Новий exe
+      збереться при наступному «cfsync (.zip)», на сервер CF його кладуть вручну; pull не зачеплено.
+- [x] Сторінка `crystal-finance` — `app = crystal_finance` (на dev2 виправлено напряму, фікстура без `sync`).
+      План uninstall CF на dev2 (без виконання): 10 DocType, 5 полів у чужих DocType, ця сторінка,
+      9 пунктів і 1 секція меню.
 
 ## Журнал
 
@@ -152,8 +168,13 @@ adopts = ["CrystalFinanceItem", "..."]  # DocType, що переходять в�
   `test_multi_worker` з `-n 4`).
 - 2026-10-28 — етап 3: `doctype_mixins`, конфлікт `override_doctype_class`, `get_doc(Клас)` через реєстр.
   Тести ядра (1453) та inventory (62) проходять.
+- 2026-10-28 — етап 4: CF перенесено в `apps/crystal_finance` і встановлено на dev2 без втрати даних.
+  Тести: ядро 1456, inventory 28, crystal_finance 35, hrm 7. `grunt serve` стежить лише за каталогами
+  додатків, що були на старті, — після встановлення нового додатка його треба перезапустити.
+- 2026-10-28 — сторінки розширень: власник у `Page.app`, перемикач за `extends`, uninstall прибирає
+  записи, які додаток поставив у DocType ядра (раніше не прибирав жодних — і не лише в розширень).
 
 ## Наступний крок
 
-Етап 4 (пілот CF). Спершу `adopts` у маніфесті — передача власності DocType `CrystalFinance*`
-від inventory без перенесення даних; потім перенесення коду в `apps/crystal_finance`.
+Пілот завершено. Відкриті хвости: відкладені `properties` / «Customize» з етапу 2, новий
+cfsync.exe для `-push`.

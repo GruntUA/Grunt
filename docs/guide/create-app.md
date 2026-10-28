@@ -86,6 +86,12 @@ removes them. Placement, worked out when the menu is read:
 
 Several apps contributing to one menu are placed in app-name order.
 
+A dashboard of your own (`Page` with `"app": "<your app>"`) appears in the
+dashboard switcher of every app you extend. `grunt app uninstall` removes the
+records an app shipped into core DocTypes - its standard records (`app` = the
+app) and its fixture records of DocTypes with `standard_records` (Page,
+Report, Print Format, ...) - without touching the files in the app.
+
 ### Adding fields to another app's DocType
 
 One file per DocType in a module's `doctype_ext/`, named after the DocType:

@@ -1,10 +1,12 @@
 """Workspace whitelisted methods."""
 
 from datetime import date
+from functools import cache
 from typing import Any
 
 import grunt
 from grunt.api.v1.dashboard import page_visible
+from grunt.apps.manifest import extenders
 from grunt.document.titles import resolve_reference_titles
 from grunt.metadata.registry import doctype_registry
 from grunt.site.doctypes.AppMenu.app_menu import (
@@ -13,6 +15,7 @@ from grunt.site.doctypes.AppMenu.app_menu import (
     order_menu,
     parse_count_filters,
 )
+from grunt.site.manager import site_manager
 from grunt.site.settings import get_setting
 
 
@@ -31,12 +34,26 @@ async def _visible_pages() -> list[dict[str, Any]]:
 
 def _dashboards(ws_data: Any, pages: list[dict[str, Any]]) -> list[dict[str, str]]:
     """The app's dashboards for the switcher on its home: the home page first,
-    then the other pages of the same app, each only if the user may open it."""
+    then the other pages of the same app and of the apps that extend it
+    (``extends`` in their manifest), each only if the user may open it."""
     home = ws_data.get("home_page")
     app = ws_data.get("app")
+    apps = {app, *_extenders(app)} if app else set()
     picked = [p for p in pages if p["name"] == home]
-    picked += [p for p in pages if app and p.get("app") == app and p["name"] != home]
+    picked += [p for p in pages if p.get("app") in apps and p["name"] != home]
     return [{"name": p["name"], "label": p.get("label") or p["name"]} for p in picked]
+
+
+def _extenders(app: str) -> list[str]:
+    site = site_manager.get_active_site()
+    installed = tuple(site_manager.get_installed_apps(site)) if site else ()
+    return _extenders_of(installed, app)
+
+
+@cache
+def _extenders_of(installed: tuple[str, ...], app: str) -> list[str]:
+    # Manifests are read once per process - they change only with a restart anyway.
+    return extenders(site_manager.bench_dir / "apps", list(installed), app)
 
 
 def _sections(ws_data: Any, items: list[dict[str, Any]]) -> list[dict[str, str]]:

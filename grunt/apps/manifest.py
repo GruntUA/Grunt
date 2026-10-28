@@ -75,3 +75,8 @@ def read_manifest(app_dir: Path) -> dict[str, Any]:
 
 def _dep_name(entry: str | dict[str, Any]) -> str:
     return entry if isinstance(entry, str) else entry.get("name", "")
+
+
+def extenders(apps_dir: Path, installed: list[str], app: str) -> list[str]:
+    """The *installed* apps whose manifest ``extends`` *app*."""
+    return [name for name in installed if app in read_manifest(apps_dir / name)["extends"]]

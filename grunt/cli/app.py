@@ -195,6 +195,7 @@ def _print_uninstall_plan(
     has_installed_row: bool,
     contributed_rows: int = 0,
     ext_fields: list | None = None,
+    shipped: list | None = None,
 ) -> None:
     click.echo(f"Site: {target_site}. Will be removed:")
     for dt_name, table, cnt in plan:
@@ -207,6 +208,8 @@ def _print_uninstall_plan(
     for dt, fields in ext_fields or []:
         names = ", ".join(f.fieldname for f in fields)
         click.echo(f"  • Fields it added to DocType {dt.name}: {names}")
+    for doctype, record in shipped or []:
+        click.echo(f"  • {doctype} '{record}' it shipped")
     if has_installed_row:
         click.echo(f"  • GruntInstalledApp record '{name}'")
 
@@ -260,6 +263,52 @@ def _extension_fields(name: str, doctypes: list, skip: set[str]) -> list:
         if mine and dt.name not in skip:
             found.append((dt, mine))
     return found
+
+
+async def _shipped_records(name: str, app_dir: Path, skip: set[str]) -> list[tuple[str, str]]:
+    """``[(doctype, name)]`` of the records the app shipped into other apps' (or
+    core) DocTypes that have ``standard_records`` - Pages, Reports, Print
+    Formats, ...: its standard records (``app`` = it) and its fixture records.
+
+    Its own DocTypes are skipped - their tables are dropped anyway.
+    """
+    doctypes = {
+        dt.name: dt
+        for dt in await doctype_registry.list_all()
+        if dt.standard_records and dt.name not in skip
+    }
+    found: list[tuple[str, str]] = []
+    for doctype in sorted(doctypes):
+        rows = await grunt.db.get_all(doctype, filters={"app": name}, fields=["name"], limit=None)
+        found += [(doctype, str(r["name"])) for r in rows]
+    if app_dir.is_dir():
+        for module in read_manifest(app_dir)["modules"]:
+            for fx_file in sorted((app_dir / module / "fixtures").glob("*.json")):
+                try:
+                    fx = json.loads(fx_file.read_text())
+                except OSError, ValueError:
+                    continue
+                if fx.get("doctype") not in doctypes:
+                    continue
+                for rec in fx.get("records", []):
+                    key = (fx["doctype"], str(rec.get("name") or ""))
+                    if key[1] and key not in found and await grunt.exists(*key):
+                        found.append(key)
+    return found
+
+
+async def _delete_shipped_records(records: list[tuple[str, str]]) -> None:
+    """Delete them with their child rows, without lifecycle hooks: in developer
+    mode deleting a standard record also deletes its folder in the app's files
+    (``standard_records.sync_files``) - the app's source must stay."""
+    for doctype, record in records:
+        meta = await grunt.get_meta(doctype)
+        for field in meta.doc.fields if meta else []:
+            if field.fieldtype == "Table" and field.options:
+                await grunt.db.delete(
+                    field.options, {"parent_name": record, "parent_doctype": doctype}
+                )
+        await grunt.db.delete(doctype, {"name": record})
 
 
 async def _strip_extension_fields(session, eng, ext_fields: list) -> None:
@@ -378,6 +427,11 @@ async def _do_uninstall(
                     await doctype_registry.list_all(),
                     skip={dt.name for dt in app_doctypes},
                 )
+                shipped = await _shipped_records(
+                    name,
+                    site_manager.bench_dir / "apps" / name,
+                    skip={dt.name for dt in app_doctypes},
+                )
 
                 if not (
                     is_registered
@@ -386,6 +440,7 @@ async def _do_uninstall(
                     or has_workspace
                     or contributed_rows
                     or ext_fields
+                    or shipped
                 ):
                     raise SystemExit(
                         f"Error: app '{name}' is not installed and has no traces in the database."
@@ -400,6 +455,7 @@ async def _do_uninstall(
                     has_installed_row=has_installed_row,
                     contributed_rows=contributed_rows,
                     ext_fields=ext_fields,
+                    shipped=shipped,
                 )
 
                 if not assume_yes and not click.confirm(
@@ -418,6 +474,7 @@ async def _do_uninstall(
                 for dt in app_doctypes:
                     await doctype_registry.delete(dt.name, session)
                 await _strip_extension_fields(session, eng, ext_fields)
+                await _delete_shipped_records(shipped)
 
             await session.commit()
 
