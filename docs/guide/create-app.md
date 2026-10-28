@@ -47,6 +47,109 @@ untagged repository reports `0.1.devN+g<hash>`. The sidebar icon (a Lucide
 name) and colour live in the `AppMenu` record of `fixtures/00_workspace.json`;
 without a colour one is picked from a palette by the workspace name.
 
+## Extending another app
+
+An app can live inside another app's menu instead of having its own entry in
+the app list (an integration, an add-on module):
+
+```toml
+[tool.grunt]
+title = "Crystal Finance"
+extends = ["inventory"]   # implies depends_on = ["inventory"]
+# workspace = false       # default when extends is set: no AppMenu of its own
+```
+
+Its menu items go into an `AppMenu` fixture with `extends` instead of `name`:
+
+```json
+{
+  "doctype": "AppMenu",
+  "records": [{
+    "extends": "inventory",
+    "sections": [{"section": "Crystal Finance", "icon": "landmark", "after": "Агенти"}],
+    "items": [
+      {"section": "Crystal Finance", "label": "Картки ОЗ", "link_to": "CrystalFinanceCard", "show_count": true},
+      {"section": "Налаштування", "link_to": "CrystalFinanceSettings", "after": "InventorySettings"}
+    ]
+  }]
+}
+```
+
+The rows are stored with `source_app` set to the contributing app: the base
+app's own sync on `grunt migrate` leaves them alone, and `grunt app uninstall`
+removes them. Placement, worked out when the menu is read:
+
+* an item's `after`/`before` - next to the item with that `link_to` (or label);
+* otherwise at the end of its section, if the base menu has that section;
+* a new section goes after/before the section named in its `sections` entry;
+* anything left goes to the end of the menu.
+
+Several apps contributing to one menu are placed in app-name order.
+
+### Adding fields to another app's DocType
+
+One file per DocType in a module's `doctype_ext/`, named after the DocType:
+
+```json
+// crystal_finance/doctype_ext/Asset.json
+{
+  "fields": [
+    {"fieldname": "cf_card", "label": "Картка ОЗ", "fieldtype": "Link",
+     "options": "CrystalFinanceCard", "insert_after": "inventory_number"}
+  ]
+}
+```
+
+`grunt migrate` stores each DocType as its own JSON plus the extension fields
+of the site's installed apps (in dependency order); a field goes right after
+its `insert_after` field, else at the end. Merged fields carry `source_app`:
+
+* a fieldname the DocType already has (its own or another extension's) is
+  refused with a `doctype_ext.field_collision` error - prefix your fields
+  (`cf_card`, not `card`);
+* saving the base DocType in Studio never writes them into its JSON file;
+* uninstalling the app removes them and drops their columns; with
+  `--keep-data` they leave the DocType on the next `migrate`, the columns stay.
+
+Works for core DocTypes too (`User`, ...). Before adding fields to someone
+else's table, consider a DocType of your own with a Link to it - shown on its
+form as a connection or a sidebar section; a field in the base table is worth
+it when it must be filtered or shown in the base list.
+
+### Extending another app's behaviour
+
+Every hook below works on any app's DocType, not only your own:
+
+| `hooks.py` name | What it adds |
+| --- | --- |
+| `doc_events` | handlers for lifecycle events (`validate`, `on_update`, ...), several apps, by `priority` |
+| `doctype_mixins` | methods on the controller class, several apps |
+| `override_doctype_class` | a replacement controller class - one app per DocType |
+| `doc_actions` | toolbar buttons (`@doc_action(doctypes=[...])`) |
+| `doctype_js` | client scripts for the form |
+| `sidebar_sections` | panels in the form sidebar |
+| `scheduler_events` | background jobs |
+
+```python title="crystal_finance/hooks.py"
+doctype_mixins = {"Asset": ["crystal_finance.asset.AssetFinance"]}
+```
+
+```python title="crystal_finance/asset.py"
+class AssetFinance:
+    async def validate(self) -> None:
+        await super().validate()  # the rest of the chain: other mixins, the Asset controller
+        ...
+
+    def card_status(self) -> str: ...
+```
+
+The registry builds `class Asset(<mixins>, Asset)` the first time the
+controller is needed, the mixin of the app loaded last in front; a mixin
+method that calls `super()` keeps the base behaviour and the other apps'
+mixins. `grunt.get_doc(Asset, name)` returns the extended class too. Prefer
+mixins (or `doc_events`) to `override_doctype_class`: a second app overriding
+the same DocType is refused with a `document.override_conflict` error.
+
 ## Defining DocTypes
 
 Create a JSON file in `my_crm/doctypes/Customer/`:

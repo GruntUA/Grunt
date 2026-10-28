@@ -417,6 +417,11 @@ class DocField(BaseModel):
     aggregate_table: str | None = None
     aggregate_field: str | None = None
 
+    # Set on fields another app's ``doctype_ext/`` merged in (see
+    # grunt.metadata.extensions) - never in a DocType's own JSON.
+    source_app: str | None = None
+    insert_after: str | None = None
+
     is_virtual: bool = False
     read_formula: str | None = None
 

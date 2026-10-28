@@ -56,3 +56,35 @@ class TestReadManifest:
         assert is_app(tmp_path / "app")
         assert not is_app(tmp_path / "lib")
         assert not is_app(tmp_path / "missing")
+
+
+class TestExtends:
+    def test_extends_implies_dependency_and_no_workspace(self, tmp_path):
+        app_dir = tmp_path / "crystal"
+        write_app_manifest(app_dir, extends=["inventory"], depends_on=["hrm"])
+
+        meta = read_manifest(app_dir)
+
+        assert meta["extends"] == ["inventory"]
+        assert meta["depends_on"] == ["hrm", "inventory"]
+        assert meta["workspace"] is False
+
+    def test_extends_already_in_depends_on_not_duplicated(self, tmp_path):
+        app_dir = tmp_path / "crystal"
+        write_app_manifest(
+            app_dir,
+            extends=["inventory"],
+            depends_on=[{"name": "inventory", "url": "https://example.com/inventory.git"}],
+            workspace=True,
+        )
+
+        meta = read_manifest(app_dir)
+
+        assert len(meta["depends_on"]) == 1
+        assert meta["workspace"] is True
+
+    def test_plain_app_has_workspace(self, tmp_path):
+        write_app_manifest(tmp_path / "app")
+        meta = read_manifest(tmp_path / "app")
+        assert meta["extends"] == []
+        assert meta["workspace"] is True

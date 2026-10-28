@@ -7,7 +7,7 @@ from pathlib import Path
 lazy import tarfile
 
 import click
-from sqlalchemy import func, select
+from sqlalchemy import func, inspect, select
 
 lazy import grunt
 lazy from grunt.apps.deps import app_updates, install_app_packages, uninstall_app_package
@@ -21,6 +21,8 @@ lazy from grunt.apps.required import (
 )
 lazy from grunt.backups import DEFAULT_COMPRESSION_LEVEL, zstd_options
 lazy from grunt.metadata.compiler import SA_METADATA, compile_doctype_to_table
+lazy from grunt.metadata.extensions import extensions_for_site
+lazy from grunt.metadata.field import is_physical_fieldtype
 lazy from grunt.metadata.registry import doctype_registry
 lazy from grunt.site.manager import current_site, site_manager
 lazy from grunt.startup import load_core_doctypes, sync_installed_apps
@@ -91,7 +93,9 @@ async def _do_install(name: str, site: str | None = None) -> None:
             # New app: seed its core DocTypes into the DocType table so the
             # server can lazy-load them without ever touching the JSON files
             # again (sync_db=True - same as `grunt migrate`).
-            await load_core_doctypes(session, sync_db=True)
+            await load_core_doctypes(
+                session, sync_db=True, extensions=extensions_for_site(target_site)
+            )
             await doctype_registry.load_all(session)
             async with grunt.system_context(session, eng):
                 await sync_installed_apps(session, target_site)
@@ -189,6 +193,8 @@ def _print_uninstall_plan(
     name: str,
     has_workspace: bool,
     has_installed_row: bool,
+    contributed_rows: int = 0,
+    ext_fields: list | None = None,
 ) -> None:
     click.echo(f"Site: {target_site}. Will be removed:")
     for dt_name, table, cnt in plan:
@@ -196,6 +202,11 @@ def _print_uninstall_plan(
         click.echo(f"  • DocType {dt_name} ({getattr(table, 'name', '?')}: {rows})")
     if has_workspace:
         click.echo(f"  • Workspace '{name}' with its menu items")
+    if contributed_rows:
+        click.echo(f"  • {contributed_rows} menu rows it added to other apps' menus")
+    for dt, fields in ext_fields or []:
+        names = ", ".join(f.fieldname for f in fields)
+        click.echo(f"  • Fields it added to DocType {dt.name}: {names}")
     if has_installed_row:
         click.echo(f"  • GruntInstalledApp record '{name}'")
 
@@ -224,15 +235,62 @@ async def _delete_naming_series_counters(session, app_doctypes: list) -> None:
             await session.execute(ns_table.delete().where(ns_table.c.prefix.like(f"{head}%")))
 
 
+_MENU_CHILDREN = ("WorkspaceSidebarItem", "WorkspaceSection")
+
+
 async def _delete_workspace_and_registration(
     *, name: str, has_workspace: bool, has_installed_row: bool
 ) -> None:
 
+    # Sections and items the app contributed to other apps' menus (source_app).
+    for child in _MENU_CHILDREN:
+        await grunt.db.delete(child, {"source_app": name})
     if has_workspace:
         await grunt.db.delete("WorkspaceSidebarItem", {"parent_name": name})
         await grunt.delete_doc("AppMenu", name)
     if has_installed_row:
         await grunt.delete_doc("GruntInstalledApp", name)
+
+
+def _extension_fields(name: str, doctypes: list, skip: set[str]) -> list:
+    """``[(doctype, [fields])]`` - fields *name* added to other DocTypes (``doctype_ext/``)."""
+    found = []
+    for dt in doctypes:
+        mine = [f for f in dt.fields if f.source_app == name]
+        if mine and dt.name not in skip:
+            found.append((dt, mine))
+    return found
+
+
+async def _strip_extension_fields(session, eng, ext_fields: list) -> None:
+    for dt, fields in ext_fields:
+        base = dt.model_copy(deep=True)
+        drop = {f.fieldname for f in fields}
+        base.fields = [f for f in base.fields if f.fieldname not in drop]
+        await doctype_registry.update(base, session, eng)
+
+
+async def _drop_extension_columns(eng, ext_fields: list) -> None:
+    """DROP COLUMN for the removed extension fields (with their indexes first -
+    SQLite refuses to drop an indexed column). A failure is reported, not fatal:
+    the field is already gone from the DocType, only its data stays."""
+    prep = eng.dialect.identifier_preparer
+    for dt, fields in ext_fields:
+        table = compile_doctype_to_table(dt).name  # cached Table may already lack the columns
+        for field in fields:
+            if not is_physical_fieldtype(field.fieldtype):
+                continue
+            try:
+                async with eng.begin() as conn:
+                    indexes = await conn.run_sync(lambda c, t=table: inspect(c).get_indexes(t))
+                    for index in indexes:
+                        if field.fieldname in index["column_names"]:
+                            await conn.exec_driver_sql(f"DROP INDEX {prep.quote(index['name'])}")
+                    await conn.exec_driver_sql(
+                        f"ALTER TABLE {prep.quote(table)} DROP COLUMN {prep.quote(field.fieldname)}"
+                    )
+            except Exception as e:
+                click.echo(f"  ! {table}.{field.fieldname} not dropped: {e}", err=True)
 
 
 async def _drop_app_tables(eng, plan: list) -> None:
@@ -297,6 +355,7 @@ async def _do_uninstall(
         eng = site_manager.get_engine(target_site)
         maker = site_manager.get_session_maker(target_site)
         plan: list = []
+        ext_fields: list = []
 
         async with maker() as session:
             # Uninstalling: the app's DocTypes already exist in
@@ -311,8 +370,23 @@ async def _do_uninstall(
             async with grunt.system_context(session, eng):
                 has_installed_row = bool(await grunt.exists("GruntInstalledApp", {"name": name}))
                 has_workspace = bool(await grunt.exists("AppMenu", {"name": name}))
+                contributed_rows = sum(
+                    [await grunt.db.count(c, {"source_app": name}) for c in _MENU_CHILDREN]
+                )
+                ext_fields = _extension_fields(
+                    name,
+                    await doctype_registry.list_all(),
+                    skip={dt.name for dt in app_doctypes},
+                )
 
-                if not (is_registered or app_doctypes or has_installed_row or has_workspace):
+                if not (
+                    is_registered
+                    or app_doctypes
+                    or has_installed_row
+                    or has_workspace
+                    or contributed_rows
+                    or ext_fields
+                ):
                     raise SystemExit(
                         f"Error: app '{name}' is not installed and has no traces in the database."
                     )
@@ -324,6 +398,8 @@ async def _do_uninstall(
                     name=name,
                     has_workspace=has_workspace,
                     has_installed_row=has_installed_row,
+                    contributed_rows=contributed_rows,
+                    ext_fields=ext_fields,
                 )
 
                 if not assume_yes and not click.confirm(
@@ -341,11 +417,13 @@ async def _do_uninstall(
 
                 for dt in app_doctypes:
                     await doctype_registry.delete(dt.name, session)
+                await _strip_extension_fields(session, eng, ext_fields)
 
             await session.commit()
 
         # DDL після коміту, окремим з'єднанням - інакше SQLite тримає lock
         await _drop_app_tables(eng, plan)
+        await _drop_extension_columns(eng, ext_fields)
 
         if vacuum and eng.dialect.name == "sqlite":
             # VACUUM не має SQLAlchemy-еквівалента і вимагає autocommit

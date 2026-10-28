@@ -44,7 +44,7 @@ async def test_sync_installed_apps_skips_registered_doctypes(
 
     calls: list[str] = []
 
-    async def _register(session, eng, app_dir, app_name, app_modules):
+    async def _register(session, eng, app_dir, app_name, app_modules, extensions=None):
         calls.append(app_name)
         return set()
 

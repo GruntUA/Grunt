@@ -6,11 +6,10 @@ from pathlib import Path
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 from grunt import log
-from grunt.hooks import DOCTYPE_OVERRIDES
 from grunt.metadata import store
 from grunt.metadata.compiler import DuplicateDataError, sync_table
 from grunt.metadata.doctype import DocType
-from grunt.metadata.field import DocField
+from grunt.metadata.extensions import DoctypeExtension, apply_extensions
 from grunt.metadata.registry import doctype_registry
 
 _GRUNT_ROOT = Path(__file__).parent.parent.parent  # grunt/startup/doctypes/ -> grunt/
@@ -22,66 +21,17 @@ def _find_doctype_dirs(_root=None):
     return [p for p in root.glob("*/doctypes") if p.is_dir()]
 
 
-async def apply_doctype_overrides(
-    session: AsyncSession, engine: AsyncEngine, sync_db: bool = False
+async def load_core_doctypes(
+    session: AsyncSession,
+    sync_db: bool = False,
+    extensions: dict[str, list[DoctypeExtension]] | None = None,
 ) -> None:
-    """Apply field extensions registered by apps via ``doctype_overrides`` in hooks.py.
-
-    For each DocType listed in ``hooks.DOCTYPE_OVERRIDES``, new fields that are
-    not yet present are appended to the DocType definition.
-
-    Physical table changes (ALTER TABLE) are NOT applied here - run
-    ``grunt migrate`` to synchronise DB schema with DocType definitions.
-
-    Only called from ``grunt migrate`` (with ``sync_db=True``, so the
-    merged result is persisted into the DocType table - the server never
-    re-runs this merge at boot, so without persistence the added fields would
-    be lost the moment the DocType is next lazy-loaded from a fresh process).
-    """
-    if not DOCTYPE_OVERRIDES:
-        return
-
-    for doctype_name, spec in DOCTYPE_OVERRIDES.items():
-        dt = await doctype_registry.get_or_none(doctype_name)
-        if dt is None:
-            log.warning("startup.override_doctype_not_found", doctype=doctype_name)
-            continue
-
-        existing_fieldnames = {f.fieldname for f in dt.fields}
-        added: list[str] = []
-
-        for field_def in spec.get("add_fields", []):
-            fname = field_def.get("fieldname")
-            if not fname or fname in existing_fieldnames:
-                continue
-            try:
-                dt.fields.append(DocField(**field_def))
-                existing_fieldnames.add(fname)
-                added.append(fname)
-            except Exception as e:
-                log.warning(
-                    "startup.override_field_invalid",
-                    doctype=doctype_name,
-                    field=fname,
-                    error=str(e),
-                )
-
-        if added:
-            log.info(
-                "startup.doctype_overrides_applied",
-                doctype=doctype_name,
-                added_fields=added,
-            )
-            if sync_db:
-                await store.update_doctype(session, dt)
-                await session.flush()
-
-
-async def load_core_doctypes(session: AsyncSession, sync_db: bool = False) -> None:
     """Register DocTypes defined as JSON files in grunt/*/doctypes/.
 
     Scans all module-level doctypes/ directories within the grunt package.
-    Uses _inject_core to bypass user-facing validation.
+    Uses _inject_core to bypass user-facing validation. *extensions* - the
+    fields installed apps add to core DocTypes (``extensions_for_site``),
+    merged into the JSON before it is compared with the stored definition.
     """
     if sync_db:
         await store.ensure_table(session)
@@ -97,6 +47,7 @@ async def load_core_doctypes(session: AsyncSession, sync_db: bool = False) -> No
             dt_obj = DocType.model_validate(dt_data)
             if not dt_obj.app:
                 dt_obj.app = "grunt"
+            dt_obj = apply_extensions(dt_obj, (extensions or {}).get(dt_name))
             await doctype_registry._inject_core(dt_obj, session, sync_db=sync_db)
         except Exception as e:
             # Boot tolerates a broken file; a sync (migrate) must not report

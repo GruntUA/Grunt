@@ -17,6 +17,7 @@ lazy from grunt.apps.manifest import is_app, read_manifest
 lazy from grunt.apps.required import ensure_site_dependencies
 lazy from grunt.document.registry import document_registry
 lazy from grunt.metadata.doctype import DocType
+lazy from grunt.metadata.extensions import DoctypeExtension, apply_extensions, site_extensions
 lazy from grunt.metadata.registry import doctype_registry
 lazy from grunt.site.manager import site_manager
 lazy from grunt.standard_records import apply_records
@@ -72,9 +73,18 @@ async def _register_app_if_new(app_name: str, app_meta: dict) -> bool:
 
 
 async def _register_app_doctypes(
-    session: AsyncSession, eng: Any, app_dir: Any, app_name: str, app_modules: set[str]
+    session: AsyncSession,
+    eng: Any,
+    app_dir: Any,
+    app_name: str,
+    app_modules: set[str],
+    extensions: dict[str, list[DoctypeExtension]] | None = None,
 ) -> set[str]:
     """Auto-register/update DocTypes found in the app's ``<module>/doctypes/`` dirs.
+
+    Each one is its JSON plus the fields other installed apps add to it
+    (*extensions*, see :mod:`grunt.metadata.extensions`) - merged before the
+    comparison with the stored definition, so they neither vanish nor flap.
 
     Returns the names whose table was synced by the register/update call.
     """
@@ -98,6 +108,7 @@ async def _register_app_doctypes(
                 dt_obj = DocType.model_validate(dt_data)
                 if not dt_obj.app:
                     dt_obj.app = app_name
+                dt_obj = apply_extensions(dt_obj, (extensions or {}).get(dt_name))
                 if dt_name not in doctype_registry._doctypes:
                     async with session.begin_nested():
                         await doctype_registry.register(dt_obj, session, eng)
@@ -150,6 +161,7 @@ async def register_installed_app_doctypes(session: AsyncSession, site_name: str)
         log.info("startup.app_dependency_added", site=site_name, app=app_name)
     installed_apps = json.loads(site_file.read_text()).get("installed_apps", [])
     eng = site_manager.get_engine(site_name)
+    extensions = site_extensions(site_manager.bench_dir / "apps", installed_apps)
 
     synced: set[str] = set()
     async with grunt.system_context(session, eng):
@@ -159,7 +171,9 @@ async def register_installed_app_doctypes(session: AsyncSession, site_name: str)
             if app_name == "grunt" or not is_app(app_dir):
                 continue
             app_modules = set(read_manifest(app_dir).get("modules", []))
-            synced |= await _register_app_doctypes(session, eng, app_dir, app_name, app_modules)
+            synced |= await _register_app_doctypes(
+                session, eng, app_dir, app_name, app_modules, extensions
+            )
     return synced
 
 
@@ -293,6 +307,7 @@ async def sync_installed_apps(
     site_config = json.loads(site_file.read_text())
     installed_apps = site_config.get("installed_apps", [])
     eng = site_manager.get_engine(site_name)
+    extensions = site_extensions(site_manager.bench_dir / "apps", installed_apps)
 
     _ensure_on_syspath(site_manager.bench_dir / "apps")
 
@@ -322,13 +337,16 @@ async def sync_installed_apps(
             app_modules = set(app_meta.get("modules", []))
 
             if not doctypes_registered:
-                await _register_app_doctypes(session, eng, app_dir, app_name, app_modules)
+                await _register_app_doctypes(
+                    session, eng, app_dir, app_name, app_modules, extensions
+                )
             workspace_from_fixture = await _apply_app_fixtures(
                 session, eng, app_dir, app_name, app_modules, app_meta
             )
             await _seed_app_singletons(app_name)
 
-            if not workspace_from_fixture:
+            # An app that only extends others (workspace = false) gets no menu of its own.
+            if not workspace_from_fixture and app_meta.get("workspace", True):
                 await _seed_app_workspace_from_registry(app_name, app_meta, app_modules)
 
             if is_first_install:

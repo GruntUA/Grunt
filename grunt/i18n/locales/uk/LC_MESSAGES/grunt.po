@@ -23392,3 +23392,71 @@ msgstr "Швидко видалити всі за фільтром"
 #: grunt/frontend/src/pages/desk/DocTypeList.vue
 msgid "Selected the first {n} of {total} records - narrow the filter to select the rest."
 msgstr "Вибрано перші {n} з {total} записів — звузьте фільтр, щоб вибрати решту."
+
+#: grunt/grunt/site/doctypes/WorkspaceSidebarItem/WorkspaceSidebarItem.json
+msgctxt "meta:WorkspaceSidebarItem.source_app"
+msgid "Added by app"
+msgstr "Додано додатком"
+
+#: grunt/grunt/site/doctypes/WorkspaceSidebarItem/WorkspaceSidebarItem.json
+msgctxt "help:WorkspaceSidebarItem.source_app"
+msgid ""
+"App that contributed this row to another app's menu; empty for the menu's own"
+" rows"
+msgstr ""
+"Додаток, що додав цей рядок у меню іншого додатка; порожньо для власних "
+"рядків меню"
+
+#: grunt/grunt/site/doctypes/WorkspaceSidebarItem/WorkspaceSidebarItem.json
+msgctxt "meta:WorkspaceSidebarItem.anchor_after"
+msgid "Place after"
+msgstr "Розмістити після"
+
+#: grunt/grunt/site/doctypes/WorkspaceSidebarItem/WorkspaceSidebarItem.json
+msgctxt "help:WorkspaceSidebarItem.anchor_after"
+msgid "Section name or item link of the base menu to place this after"
+msgstr "Секція або посилання пункту базового меню, після якого розмістити"
+
+#: grunt/grunt/site/doctypes/WorkspaceSidebarItem/WorkspaceSidebarItem.json
+msgctxt "meta:WorkspaceSidebarItem.anchor_before"
+msgid "Place before"
+msgstr "Розмістити перед"
+
+#: grunt/grunt/site/doctypes/WorkspaceSidebarItem/WorkspaceSidebarItem.json
+msgctxt "help:WorkspaceSidebarItem.anchor_before"
+msgid "Section name or item link of the base menu to place this before"
+msgstr "Секція або посилання пункту базового меню, перед яким розмістити"
+
+#: grunt/grunt/site/doctypes/WorkspaceSection/WorkspaceSection.json
+msgctxt "meta:WorkspaceSection.source_app"
+msgid "Added by app"
+msgstr "Додано додатком"
+
+#: grunt/grunt/site/doctypes/WorkspaceSection/WorkspaceSection.json
+msgctxt "help:WorkspaceSection.source_app"
+msgid ""
+"App that contributed this row to another app's menu; empty for the menu's own"
+" rows"
+msgstr ""
+"Додаток, що додав цей рядок у меню іншого додатка; порожньо для власних "
+"рядків меню"
+
+#: grunt/grunt/site/doctypes/WorkspaceSection/WorkspaceSection.json
+msgctxt "meta:WorkspaceSection.anchor_after"
+msgid "Place after"
+msgstr "Розмістити після"
+
+#: grunt/grunt/site/doctypes/WorkspaceSection/WorkspaceSection.json
+msgctxt "help:WorkspaceSection.anchor_after"
+msgid "Section name or item link of the base menu to place this after"
+msgstr "Секція або посилання пункту базового меню, після якого розмістити"
+
+#: grunt/grunt/site/doctypes/WorkspaceSection/WorkspaceSection.json
+msgctxt "meta:WorkspaceSection.anchor_before"
+msgid "Place before"
+msgstr "Розмістити перед"
+
+#: grunt/grunt/site/doctypes/WorkspaceSection/WorkspaceSection.json
+msgctxt "help:WorkspaceSection.anchor_before"
+msgid "Section name or item link of the base menu to place this before"
+msgstr "Секція або посилання пункту базового меню, перед яким розмістити"

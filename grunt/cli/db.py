@@ -15,11 +15,11 @@ lazy from grunt.backups import (
 )
 lazy from grunt.cli.utils import _site_session, resolve_site
 lazy from grunt.metadata.compiler import SA_METADATA, sync_table
+lazy from grunt.metadata.extensions import extensions_for_site
 lazy from grunt.metadata.registry import doctype_registry
 lazy from grunt.monitoring.health import human_size
 lazy from grunt.site.manager import current_site, site_manager
 lazy from grunt.startup import (
-    apply_doctype_overrides,
     load_core_doctypes,
     load_core_fixtures,
     register_installed_app_doctypes,
@@ -106,8 +106,9 @@ def db_migrate(dry_run: bool, site: str | None, no_alembic: bool) -> None:
                     # 3. DocType tables
                     click.echo("  [3/4] DocType tables (sync_table)...")
                     async with maker() as session:
-                        await load_core_doctypes(session, sync_db=True)
-                        await apply_doctype_overrides(session, eng, sync_db=True)
+                        await load_core_doctypes(
+                            session, sync_db=True, extensions=extensions_for_site(site_name)
+                        )
                         # Hydrate Studio-created DocTypes too - list_all()'s
                         # lazy branch only fires once _known_names is populated.
                         # (register_installed_app_doctypes below does it otherwise.)

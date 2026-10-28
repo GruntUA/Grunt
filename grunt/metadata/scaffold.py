@@ -19,6 +19,7 @@ from grunt.site.manager import site_manager
 from grunt.utils.codegen import render_template, sync_controller_types
 from grunt.utils.strings import to_snake_case
 lazy from grunt.metadata.doctype import DocType
+lazy from grunt.metadata.extensions import without_extensions
 
 
 def _build_scaffold_context(doctype_name: str, fields: list[DocField]) -> dict:
@@ -135,7 +136,11 @@ def export_doctype_files(dt: DocType, app_name: str | None = None) -> str | None
 
     Returns the absolute path to the written JSON file, or ``None`` if export
     was skipped (module directory not found).
+
+    Fields other apps add (``doctype_ext/``) belong to their files, not to
+    this DocType's own JSON or controller types - they are left out.
     """
+    dt = without_extensions(dt)
     dt_dir = _find_doctype_dir(dt, app_name=app_name)
     if not dt_dir:
         log.warning(

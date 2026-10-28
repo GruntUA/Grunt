@@ -25,7 +25,7 @@ from grunt.actions import load_app_doc_actions
 from grunt.document.guards import register_write_guard
 from grunt.document.registry import document_registry
 from grunt.document.tree import register_tree_title_resolver
-from grunt.hooks import register_doc_events, register_doctype_overrides
+from grunt.hooks import register_doc_events
 from grunt.io import register_exporter, register_importer
 from grunt.middleware.rate_limit import register_path_limit
 from grunt.scripting.file_scripts import register_doctype_js
@@ -93,11 +93,6 @@ def _doc_events(value: dict, ctx: LoadContext) -> None:
     register_doc_events(value)
 
 
-@consumer("doctype_overrides")
-def _doctype_overrides(value: dict, ctx: LoadContext) -> None:
-    register_doctype_overrides(value)
-
-
 @consumer("doctype_js")
 def _doctype_js(value: dict[str, str | list[str]], ctx: LoadContext) -> None:
     """Client scripts (paths relative to the app dir) for other apps' DocTypes.
@@ -125,7 +120,14 @@ def _rate_limits(value: dict[str, int], ctx: LoadContext) -> None:
 
 @consumer("override_doctype_class")
 def _override_doctype_class(value: dict, ctx: LoadContext) -> None:
-    document_registry.register_overrides(value)
+    document_registry.register_overrides(value, app=ctx.app_name)
+
+
+@consumer("doctype_mixins")
+def _doctype_mixins(value: dict[str, str | list[str]], ctx: LoadContext) -> None:
+    """``{"Asset": ["crystal_finance.asset.AssetCF"]}`` - classes added in front of
+    another app's controller (see :class:`grunt.document.registry.DocumentRegistry`)."""
+    document_registry.register_mixins(value, app=ctx.app_name)
 
 
 @consumer("scheduler_events")

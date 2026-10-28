@@ -32,6 +32,63 @@ def count_key(doctype: str, filters: dict[str, Any]) -> str:
     return f"{doctype}_{suffix}"
 
 
+def order_menu(items: list[dict[str, Any]], sections: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Sidebar rows in display order.
+
+    The menu's own rows keep their ``idx`` order. Rows other apps contributed
+    (``source_app`` set) are then placed one by one, per app in their own order:
+
+    * ``anchor_after``/``anchor_before`` - next to the item with that ``link_to`` or label;
+    * else at the end of their section, when it is already in the menu;
+    * else, for a new section, after/before the section its WorkspaceSection row
+      anchors to;
+    * else at the end of the menu.
+
+    Rows aren't renumbered in the DB: the base app's sync rewrites its own rows
+    on every ``migrate``, so positions computed then would go stale.
+    """
+
+    def idx(row: dict[str, Any]) -> int:
+        return row.get("idx") or 0
+
+    own = sorted((r for r in items if not r.get("source_app")), key=idx)
+    contributed = sorted(
+        (r for r in items if r.get("source_app")), key=lambda r: (r["source_app"], idx(r))
+    )
+    section_anchors = {
+        s.get("section"): (s.get("anchor_after") or "", s.get("anchor_before") or "")
+        for s in sections
+        if s.get("source_app")
+    }
+    result = list(own)
+
+    def place(ref: str, *, after: bool, in_section: bool = False) -> int | None:
+        """Index next to the rows matching *ref* (a section, or an item's link/label)."""
+        hits = [
+            i
+            for i, r in enumerate(result)
+            if ref
+            and (
+                r.get("section") == ref if in_section else ref in (r.get("link_to"), r.get("label"))
+            )
+        ]
+        if not hits:
+            return None
+        return hits[-1] + 1 if after else hits[0]
+
+    for row in contributed:
+        after, before = row.get("anchor_after") or "", row.get("anchor_before") or ""
+        section = row.get("section") or ""
+        at = place(after or before, after=bool(after))
+        if at is None and section:
+            at = place(section, after=True, in_section=True)
+        if at is None and section in section_anchors:
+            s_after, s_before = section_anchors[section]
+            at = place(s_after or s_before, after=bool(s_after), in_section=True)
+        result.insert(len(result) if at is None else at, row)
+    return result
+
+
 # Tailwind 600 shades: distinct from one another and readable under a white icon.
 _PALETTE = (
     "#DC2626", "#EA580C", "#D97706", "#CA8A04", "#65A30D", "#16A34A",

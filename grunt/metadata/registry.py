@@ -443,6 +443,35 @@ class DocTypeRegistry:
                     setattr(stored_field, attr, getattr(json_field, attr, None))
 
     @staticmethod
+    def _keep_source_app(doctype: DocType, previous: DocType | None) -> None:
+        """A field that came from another app's ``doctype_ext/`` stays marked so
+        when an editor (Studio) sends it back without ``source_app`` - otherwise
+        the next export would write it into this DocType's own JSON."""
+        if previous is None:
+            return
+        owners = {f.fieldname: f.source_app for f in previous.fields if f.source_app}
+        for field in doctype.fields:
+            if not field.source_app and field.fieldname in owners:
+                field.source_app = owners[field.fieldname]
+
+    @staticmethod
+    def _sync_extension_fields(active_dt: DocType, doctype: DocType) -> None:
+        """Fields installed apps add (``source_app``, merged into *doctype* by
+        :func:`grunt.metadata.extensions.apply_extensions`) come from their
+        extension files as a whole; one whose app no longer provides it is dropped.
+
+        Studio-added fields have no ``source_app`` and stay, like any local field.
+        """
+        from_ext = {f.fieldname: f for f in doctype.fields if f.source_app}
+        fields = []
+        for field in active_dt.fields:
+            if field.fieldname in from_ext:
+                fields.append(from_ext[field.fieldname].model_copy())
+            elif not field.source_app:
+                fields.append(field)
+        active_dt.fields = fields
+
+    @staticmethod
     def _reorder_core_fields(active_dt: DocType, doctype: DocType) -> None:
         """Position JSON-defined fields per JSON order; locally-added fields sort last."""
         json_order = {f.fieldname: i for i, f in enumerate(doctype.fields)}
@@ -515,6 +544,7 @@ class DocTypeRegistry:
 
                 self._sync_core_doctype_attrs(active_dt, doctype)
                 self._sync_core_field_attrs(active_dt, doctype)
+                self._sync_extension_fields(active_dt, doctype)
                 self._reorder_core_fields(active_dt, doctype)
 
                 # Unchanged against the stored row - nothing to write.
@@ -593,6 +623,7 @@ class DocTypeRegistry:
                 )
             await self._lazy_load(doctype.name)
         self._validate_fields(doctype)
+        self._keep_source_app(doctype, self._doctypes.get(doctype.name))
 
         await store.update_doctype(session, doctype)
         await session.flush()

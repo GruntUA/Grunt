@@ -22,10 +22,10 @@ from grunt.cli.utils import AliasedGroup
 lazy import grunt
 lazy from grunt.auth.doctypes.User.user import create_user, get_user_by_email
 lazy from grunt.metadata.compiler import SA_METADATA, sync_table
+lazy from grunt.metadata.extensions import extensions_for_site
 lazy from grunt.metadata.registry import doctype_registry
 lazy from grunt.site.manager import current_site, site_manager
 lazy from grunt.startup import (
-    apply_doctype_overrides,
     load_core_doctypes,
     seed_grunt_workspace,
     seed_system_settings,
@@ -264,8 +264,9 @@ def _run_migrate_for_site(site_name: str) -> None:
                 # New site: seed core DocTypes into the DocType table so the
                 # server can lazy-load them without ever touching the JSON
                 # files again (sync_db=True - same as `grunt migrate`).
-                await load_core_doctypes(session, sync_db=True)
-                await apply_doctype_overrides(session, eng, sync_db=True)
+                await load_core_doctypes(
+                    session, sync_db=True, extensions=extensions_for_site(site_name)
+                )
                 await doctype_registry.load_all(session)
 
                 for dt in await doctype_registry.list_all():

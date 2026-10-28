@@ -86,6 +86,9 @@ export interface DocField {
   icon?: string
   /** Tab fields only - mount a bespoke component as the tab body (e.g. "DesignerTab"). */
   tab_component?: string
+  /** App whose `doctype_ext/` added this field to another app's DocType. */
+  source_app?: string | null
+  insert_after?: string | null
   // Virtual
   is_virtual?: boolean
   read_formula?: string | null

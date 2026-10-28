@@ -7,7 +7,12 @@ import grunt
 from grunt.api.v1.dashboard import page_visible
 from grunt.document.titles import resolve_reference_titles
 from grunt.metadata.registry import doctype_registry
-from grunt.site.doctypes.AppMenu.app_menu import AppMenu, count_key, parse_count_filters
+from grunt.site.doctypes.AppMenu.app_menu import (
+    AppMenu,
+    count_key,
+    order_menu,
+    parse_count_filters,
+)
 from grunt.site.settings import get_setting
 
 
@@ -71,7 +76,7 @@ async def _workspace_to_dict(
 
     items = []
     sidebar_items = ws_data.get("sidebar_items") or []
-    for item in sorted(sidebar_items, key=lambda i: i.get("idx", 0)):
+    for position, item in enumerate(order_menu(sidebar_items, ws_data.get("sections") or [])):
         item_roles = item.get("roles", "")
         if "System Manager" not in (user.roles or []) and item_roles:
             allowed = {r.strip() for r in item_roles.split(",") if r.strip()}
@@ -104,7 +109,7 @@ async def _workspace_to_dict(
                 "count_filters": item.get("count_filters") or "",
                 "count_key": count_key(link_to, parse_count_filters(item)),
                 "roles": item_roles,
-                "sequence": item.get("idx", 0),
+                "sequence": position,
                 "is_singleton": is_singleton,
             }
         )

@@ -17740,3 +17740,67 @@ msgstr ""
 #: grunt/frontend/src/pages/desk/DocTypeList.vue
 msgid "Selected the first {n} of {total} records - narrow the filter to select the rest."
 msgstr ""
+
+#: grunt/grunt/site/doctypes/WorkspaceSidebarItem/WorkspaceSidebarItem.json
+msgctxt "meta:WorkspaceSidebarItem.source_app"
+msgid "Added by app"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/WorkspaceSidebarItem/WorkspaceSidebarItem.json
+msgctxt "help:WorkspaceSidebarItem.source_app"
+msgid ""
+"App that contributed this row to another app's menu; empty for the menu's own"
+" rows"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/WorkspaceSidebarItem/WorkspaceSidebarItem.json
+msgctxt "meta:WorkspaceSidebarItem.anchor_after"
+msgid "Place after"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/WorkspaceSidebarItem/WorkspaceSidebarItem.json
+msgctxt "help:WorkspaceSidebarItem.anchor_after"
+msgid "Section name or item link of the base menu to place this after"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/WorkspaceSidebarItem/WorkspaceSidebarItem.json
+msgctxt "meta:WorkspaceSidebarItem.anchor_before"
+msgid "Place before"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/WorkspaceSidebarItem/WorkspaceSidebarItem.json
+msgctxt "help:WorkspaceSidebarItem.anchor_before"
+msgid "Section name or item link of the base menu to place this before"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/WorkspaceSection/WorkspaceSection.json
+msgctxt "meta:WorkspaceSection.source_app"
+msgid "Added by app"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/WorkspaceSection/WorkspaceSection.json
+msgctxt "help:WorkspaceSection.source_app"
+msgid ""
+"App that contributed this row to another app's menu; empty for the menu's own"
+" rows"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/WorkspaceSection/WorkspaceSection.json
+msgctxt "meta:WorkspaceSection.anchor_after"
+msgid "Place after"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/WorkspaceSection/WorkspaceSection.json
+msgctxt "help:WorkspaceSection.anchor_after"
+msgid "Section name or item link of the base menu to place this after"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/WorkspaceSection/WorkspaceSection.json
+msgctxt "meta:WorkspaceSection.anchor_before"
+msgid "Place before"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/WorkspaceSection/WorkspaceSection.json
+msgctxt "help:WorkspaceSection.anchor_before"
+msgid "Section name or item link of the base menu to place this before"
+msgstr ""

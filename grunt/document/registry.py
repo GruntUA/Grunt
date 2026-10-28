@@ -15,38 +15,116 @@ class DocumentRegistry:
     Controllers are never imported at startup. Instead, ``index_*`` methods
     build a name->module_path map, and the actual import happens the first
     time ``get(doctype)`` is called for that DocType.
+
+    Other apps change a controller two ways (their ``hooks.py``):
+
+    * ``override_doctype_class`` - replace it; one app per DocType, a second
+      one is refused;
+    * ``doctype_mixins`` - add to it; any number of apps, each mixin class goes
+      in front of the controller (``class Asset(MixinB, MixinA, AssetBase)``,
+      the later-loaded app first), so a mixin method that calls ``super()``
+      runs the rest of the chain.
     """
 
     def __init__(self) -> None:
         self._controllers: dict[str, type[BaseDocument]] = {}
+        # The registered class before mixins - recomposed when mixins change.
+        self._bases: dict[str, type[BaseDocument]] = {}
         # Lazy index: doctype name -> dotted module path to import
         self._index: dict[str, str] = {}
         self._overrides: dict[str, str] = {}
+        self._override_apps: dict[str, str] = {}
+        # doctype -> [(app, "module.MixinClass")], in registration order
+        self._mixins: dict[str, list[tuple[str, str]]] = {}
 
     # Eager registration (used for explicit overrides from hooks)
 
     def register(self, doctype: str, controller: type[BaseDocument]) -> None:
-        """Register an already-imported controller class."""
-        self._controllers[doctype] = controller
+        """Register an already-imported controller class (its mixins are added)."""
+        self._bases[doctype] = controller
+        self._controllers[doctype] = self._with_mixins(doctype, controller)
         log.debug("document.registered", doctype=doctype, controller=controller.__name__)
 
-    def register_overrides(self, overrides: dict[str, str]) -> None:
+    def register_overrides(self, overrides: dict[str, str], app: str = "") -> None:
         """Register controller overrides (mapping: DocType -> 'module.ClassName').
 
-        Overrides are resolved lazily - the module is NOT imported here.
+        Overrides are resolved lazily - the module is NOT imported here. A
+        DocType another app already overrides keeps that override (logged as
+        an error): two replacements of one class can't both win.
         """
-        self._overrides.update(overrides)
         for doctype, path in overrides.items():
+            owner = self._override_apps.get(doctype)
+            if owner is not None and owner != app and self._overrides.get(doctype) != path:
+                log.error(
+                    "document.override_conflict",
+                    doctype=doctype,
+                    app=app,
+                    overridden_by=owner,
+                    hint="extend the controller with doctype_mixins instead",
+                )
+                continue
+            self._overrides[doctype] = path
+            self._override_apps[doctype] = app
             # Store as lazy index entry; the class name is embedded in the path
             self._index[doctype] = path
+            self._forget(doctype)
+
+    def register_mixins(self, mixins: dict[str, list[str] | str], app: str = "") -> None:
+        """Register mixin classes for DocType controllers (DocType -> 'module.Class' paths).
+
+        Resolved lazily, when the controller is first needed.
+        """
+        for doctype, paths in mixins.items():
+            entries = self._mixins.setdefault(doctype, [])
+            for path in [paths] if isinstance(paths, str) else paths:
+                if (app, path) not in entries:
+                    entries.append((app, path))
+            if doctype in self._bases:
+                self._controllers[doctype] = self._with_mixins(doctype, self._bases[doctype])
+
+    def _forget(self, doctype: str) -> None:
+        self._controllers.pop(doctype, None)
+        self._bases.pop(doctype, None)
+
+    def _with_mixins(self, doctype: str, controller: type[BaseDocument]) -> type[BaseDocument]:
+        """*controller* with the DocType's mixins in front, or as is without any."""
+        mixins: list[type] = []
+        for app, path in reversed(self._mixins.get(doctype, [])):
+            try:
+                module_path, class_name = path.rsplit(".", 1)
+                mixin = getattr(importlib.import_module(module_path), class_name)
+            except (ImportError, AttributeError, ValueError) as e:
+                log.error(
+                    "document.mixin_load_failed", doctype=doctype, app=app, mixin=path, error=str(e)
+                )
+                continue
+            if not inspect.isclass(mixin):
+                log.error("document.mixin_not_a_class", doctype=doctype, app=app, mixin=path)
+                continue
+            if mixin not in mixins and not issubclass(controller, mixin):
+                mixins.append(mixin)
+        if not mixins:
+            return controller
+        try:
+            return type(
+                controller.__name__,
+                (*mixins, controller),
+                {"__module__": controller.__module__, "__qualname__": controller.__qualname__},
+            )
+        except TypeError as e:  # inconsistent MRO, metaclass conflict
+            log.error("document.mixins_incompatible", doctype=doctype, error=str(e))
+            return controller
 
     # Lazy get
 
     def get(self, doctype: str) -> type[BaseDocument]:
         """Return the controller for a DocType, importing it on first access."""
 
-        if doctype not in self._controllers and doctype in self._index:
-            self._import_controller(doctype, self._index[doctype])
+        if doctype not in self._controllers:
+            if doctype in self._index:
+                self._import_controller(doctype, self._index[doctype])
+            if doctype not in self._controllers and doctype in self._mixins:
+                self.register(doctype, Document)
         return self._controllers.get(doctype, Document)
 
     def doctype_dir(self, doctype: str) -> Path | None:

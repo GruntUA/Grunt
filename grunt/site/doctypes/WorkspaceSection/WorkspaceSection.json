@@ -20,6 +20,27 @@
       "label": "Icon",
       "fieldtype": "Icon",
       "in_list_view": true
+    },
+    {
+      "fieldname": "source_app",
+      "label": "Added by app",
+      "fieldtype": "Data",
+      "read_only": true,
+      "description": "App that contributed this row to another app's menu; empty for the menu's own rows"
+    },
+    {
+      "fieldname": "anchor_after",
+      "label": "Place after",
+      "fieldtype": "Data",
+      "depends_on": "eval:doc.source_app",
+      "description": "Section name or item link of the base menu to place this after"
+    },
+    {
+      "fieldname": "anchor_before",
+      "label": "Place before",
+      "fieldtype": "Data",
+      "depends_on": "eval:doc.source_app",
+      "description": "Section name or item link of the base menu to place this before"
     }
   ]
 }

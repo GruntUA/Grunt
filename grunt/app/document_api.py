@@ -30,6 +30,7 @@ lazy from grunt.db import GruntDB
 lazy from grunt.db.api import _GROUP_FN_RE, _parse_aggregation_expr
 lazy from grunt.db.filters import FILTER_OPS
 lazy from grunt.document.base import BaseDocument, DocumentList, load_document, new_document
+lazy from grunt.document.registry import document_registry
 lazy from grunt.permissions.query import apply_permission_filter
 
 
@@ -160,7 +161,11 @@ class DocumentAPI:
             await permission_checker.require(user, dt, "read", data)
             data = apply_hidden_fields_to_doc(data, hidden_fields)
             await fire("after_read", doctype=name, user=user, doc=data)
-            return doctype(doctype=name, data=data, user=user, session=grunt.get_session())
+            # The registered controller, when it extends the class asked for
+            # (doctype_mixins / override_doctype_class of other apps).
+            controller = document_registry.get(name)
+            cls = controller if issubclass(controller, doctype) else doctype
+            return cls(doctype=name, data=data, user=user, session=grunt.get_session())
 
         dt, user, hidden_fields = await read_guard(doctype)
         await fire("before_read", doctype=doctype, user=user, doc_id=id_or_name)
