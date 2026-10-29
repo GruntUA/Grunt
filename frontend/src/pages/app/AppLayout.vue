@@ -39,7 +39,8 @@ watch(() => props.workspaceName, async (name) => {
 
 <template>
   <NotFound v-if="notFound" />
-  <SidebarProvider v-else-if="ready" :key="contentKey" class="relative h-screen overflow-hidden">
+  <!-- h-dvh, not h-screen: on phones 100vh ignores the browser toolbars, so the bottom of the page sat under them -->
+  <SidebarProvider v-else-if="ready" :key="contentKey" class="relative h-dvh overflow-hidden">
     <!-- Background pattern -->
     <div class="absolute inset-0 pointer-events-none opacity-[0.03] dark:opacity-[0.05] z-0">
       <svg class="h-full w-full" xmlns="http://www.w3.org/2000/svg">
@@ -55,7 +56,7 @@ watch(() => props.workspaceName, async (name) => {
     <AppSidebar :workspace-name="workspaceName" />
 
     <SidebarInset class="relative z-10 overflow-hidden">
-      <div class="flex-1 overflow-y-auto pb-14 md:pb-0">
+      <div class="flex-1 overflow-y-auto pb-[calc(3.5rem+env(safe-area-inset-bottom))] md:pb-0">
         <RouterView v-slot="{ Component }" :key="route.path">
           <Transition name="fade" mode="out-in">
             <component :is="Component" />

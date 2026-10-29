@@ -128,7 +128,7 @@ function docInitials(doc: RecentDoc): string {
 </script>
 
 <template>
-  <div class="h-screen overflow-y-auto bg-background">
+  <div class="h-dvh overflow-y-auto bg-background">
     <main class="mx-auto max-w-6xl px-6 py-10 md:py-14">
 
       <!-- TOP BAR: theme toggle -->

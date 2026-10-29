@@ -250,7 +250,7 @@ const displayFields = computed(() => {
 </script>
 
 <template>
-    <div class="flex h-screen overflow-hidden bg-background">
+    <div class="flex h-dvh overflow-hidden bg-background">
         <!-- Sidebar: Configuration -->
         <aside class="w-[400px] border-r flex flex-col bg-card shrink-0 shadow-sm z-20">
             <div class="p-6 border-b space-y-4">
