@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, reactive, watch } from 'vue'
+import { computed, reactive, useTemplateRef, watch } from 'vue'
+import { useElementSize } from '@vueuse/core'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { setPageTitle } from '@/core/composables/usePageTitle'
@@ -34,6 +35,15 @@ const emit = defineEmits<{
 const router = useRouter()
 const toast = useToast()
 const { t } = useI18n()
+
+// The sticky FormHeader wraps onto two rows on phones, so the RichText toolbar
+// offset under it is measured rather than hard-coded.
+const rootEl = useTemplateRef<HTMLElement>('rootEl')
+const { height: headerHeight } = useElementSize(
+  () => rootEl.value?.firstElementChild as HTMLElement | undefined,
+  undefined,
+  { box: 'border-box' },
+)
 
 const {
   dt,
@@ -161,14 +171,14 @@ async function setSidebarImage(url: string | null) {
 </script>
 
 <template>
-  <div class="flex flex-1 flex-col">
+  <div ref="rootEl" class="flex flex-1 flex-col" :style="{ '--richtext-sticky-top': `${headerHeight}px` }">
     <!-- Sticky header: breadcrumb + actions + document title -->
     <FormHeader :doc-title="docTitle || doctype" :dt="dt" :doctype="doctype" :id="id" :workspace="workspace" :document="form" :actions="actions" :workflow="workflowUi" :is-dirty="isDirty"
       :is-loading="isLoading" :hide-panel-toggle="!sidebarVisible"
       v-model:share-open="showShareDialog" v-model:rename-open="showRenameDialog" v-model:links-open="showLinksDialog"
       @rename="onRename" />
 
-    <div class="flex flex-1 flex-col gap-5 p-4 sm:p-6 lg:p-8 animate-in fade-in duration-500">
+    <div class="flex flex-1 flex-col gap-4 sm:gap-5 p-3 sm:p-6 lg:p-8 animate-in fade-in duration-500">
     <!-- Loading -->
     <div v-if="isLoading || !dt" class="flex justify-center py-24">
       <Spinner class="!size-10" />
@@ -210,7 +220,7 @@ async function setSidebarImage(url: string | null) {
 
           <!-- Main Form Card -->
           <!-- overflow-clip, not -hidden: keeps sticky children (RichText toolbar) working; offset = FormHeader height -->
-          <div class="bg-card border border-border rounded-md shadow-sm p-5 overflow-clip [--richtext-sticky-top:3.25rem]">
+          <div class="bg-card border border-border rounded-md shadow-sm p-3 sm:p-5 overflow-clip">
             <FormRenderer :doctype="dt" :model-value="form" :disabled="isSaving || !perms.write" :errors="validationErrors"
               v-model:active-tab="activeTab" :workspace="workspace"
               :overrides="displayOverrides" :reqd-overrides="reqdOverrides" :df-prop-overrides="dfPropOverrides" :field-locks="fieldLocks"

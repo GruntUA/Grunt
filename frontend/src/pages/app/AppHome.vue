@@ -102,18 +102,18 @@ watch(
 <template>
   <div class="flex flex-1 flex-col gap-4 p-4 md:p-5 animate-in fade-in duration-500">
     <!-- Header -->
-    <div v-if="appStore.active" class="flex items-center gap-3 mb-6">
+    <div v-if="appStore.active" class="flex items-center gap-3 mb-2 sm:mb-6">
       <SidebarTrigger class="shrink-0 -ml-1.5 text-muted-foreground/80" />
-      <AppIcon :icon="appStore.active.icon || 'folder'" class="size-8 shrink-0" />
+      <AppIcon :icon="appStore.active.icon || 'folder'" class="size-6 sm:size-8 shrink-0" />
       <div class="min-w-0 flex-1">
         <h1 class="text-xl font-semibold text-foreground">{{ appStore.active.label }}</h1>
-        <p v-if="appStore.active.description" class="text-muted-foreground">
+        <p v-if="appStore.active.description" class="text-muted-foreground line-clamp-2">
           {{ appStore.active.description }}
         </p>
       </div>
       <Button v-if="canEdit && currentPage" variant="outline" size="sm" as-child>
-        <router-link :to="docUrl('Page', currentPage, workspaceName)">
-          <PencilLine /> {{ t('Edit') }}
+        <router-link :to="docUrl('Page', currentPage, workspaceName)" :aria-label="t('Edit')">
+          <PencilLine /> <span class="hidden sm:inline">{{ t('Edit') }}</span>
         </router-link>
       </Button>
     </div>

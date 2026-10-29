@@ -90,8 +90,9 @@ const items = computed(() => {
 </script>
 
 <template>
-  <div class="flex items-center justify-between gap-4 mb-2 px-0 py-0 md:bg-transparent md:border-none">
-    <div class="flex items-center gap-3 overflow-hidden">
+  <!-- Actions drop to a second row on phones rather than squeezing the title to nothing -->
+  <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 mb-2 px-0 py-0 md:bg-transparent md:border-none">
+    <div class="flex items-center gap-3 overflow-hidden flex-1" :class="$slots.actions ? 'min-w-40' : 'min-w-0'">
     <SidebarTrigger class="shrink-0" />
 
     <Breadcrumb class="hidden sm:flex min-w-0">
@@ -122,10 +123,10 @@ const items = computed(() => {
     </Breadcrumb>
 
     <!-- Mobile breadcrumb fallback -->
-    <Breadcrumb class="flex sm:hidden">
-      <BreadcrumbList>
-        <BreadcrumbItem>
-          <span class="font-semibold text-foreground truncate max-w-[200px]">{{ items[items.length - 1].label }}</span>
+    <Breadcrumb class="flex sm:hidden min-w-0">
+      <BreadcrumbList class="min-w-0">
+        <BreadcrumbItem class="min-w-0">
+          <span class="font-semibold text-foreground truncate">{{ items[items.length - 1].label }}</span>
         </BreadcrumbItem>
       </BreadcrumbList>
     </Breadcrumb>
@@ -135,7 +136,7 @@ const items = computed(() => {
     </Badge>
     </div>
 
-    <div v-if="$slots.actions" class="flex items-center shrink-0">
+    <div v-if="$slots.actions" class="flex items-center shrink-0 ml-auto">
       <slot name="actions" />
     </div>
   </div>

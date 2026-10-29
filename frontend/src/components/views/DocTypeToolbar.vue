@@ -79,11 +79,12 @@ const toolbarControlsEvents = computed(() =>
 <template>
   <div class="flex flex-col gap-0">
     <!-- Main row: search + filters + view-controls + view switcher -->
-    <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+    <!-- Phones: the left group dissolves (contents) so the filter button and view controls share a row -->
+    <div class="flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 sm:gap-3">
 
       <!-- Left: search + fast filters + active filters + reset -->
-      <div class="flex flex-1 flex-wrap items-center gap-2">
-        <div class="relative w-full max-w-[260px]">
+      <div class="contents sm:flex sm:flex-1 sm:flex-wrap sm:items-center sm:gap-2">
+        <div class="relative w-full sm:max-w-[260px]">
           <Search class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <Input v-model="localSearch" class="pl-9" :placeholder="t('Search...')" />
         </div>

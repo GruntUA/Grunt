@@ -151,12 +151,13 @@ watch(
 </script>
 
 <template>
-  <div v-if="activeDefs.length" class="flex flex-wrap items-center gap-2">
+  <!-- Two per row on phones; their natural widths from sm up -->
+  <div v-if="activeDefs.length" class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
     <template v-for="ff in activeDefs" :key="ff.id">
       <!-- Link: pick the linked document (the filter compares its id, not typed text); has its own ✕ -->
       <div
         v-if="ff.input_type === 'link' && getField(ff)"
-        class="w-[200px]"
+        class="w-[calc(50%-0.25rem)] sm:w-[200px]"
       >
         <LinkFilterInput
           :field="getField(ff)!"
@@ -171,7 +172,7 @@ watch(
 
       <InputGroup
         v-else
-        class="w-auto has-[[data-slot=select-trigger]:focus-visible]:border-ring has-[[data-slot=select-trigger]:focus-visible]:ring-3 has-[[data-slot=select-trigger]:focus-visible]:ring-ring/50"
+        class="w-[calc(50%-0.25rem)] sm:w-auto has-[[data-slot=select-trigger]:focus-visible]:border-ring has-[[data-slot=select-trigger]:focus-visible]:ring-3 has-[[data-slot=select-trigger]:focus-visible]:ring-ring/50"
       >
         <!-- Select / Check / Year: the chevron gives way to ✕ once a value is chosen -->
         <Select
@@ -182,7 +183,7 @@ watch(
           <SelectTrigger
             :id="`ff-${ff.id}`"
             :aria-label="getLabel(ff)"
-            class="h-full min-w-[150px] flex-1 border-0 bg-transparent shadow-none focus-visible:ring-0 dark:bg-transparent"
+            class="h-full min-w-0 sm:min-w-[150px] flex-1 border-0 bg-transparent shadow-none focus-visible:ring-0 dark:bg-transparent"
             :class="getValue(ff) && '[&>svg:last-child]:hidden'"
           >
             <SelectValue :placeholder="getLabel(ff)" />
@@ -203,7 +204,7 @@ watch(
               :id="`ff-${ff.id}`"
               type="button"
               data-slot="input-group-control"
-              class="flex h-full w-[150px] items-center gap-2 rounded-md px-3 text-left outline-none"
+              class="flex h-full min-w-0 flex-1 sm:w-[150px] sm:flex-none items-center gap-2 rounded-md px-3 text-left outline-none"
               :class="!getValue(ff) && 'text-muted-foreground'"
             >
               <CalendarIcon class="size-4 shrink-0 text-muted-foreground" />
@@ -228,7 +229,7 @@ watch(
           :model-value="getValue(ff)"
           :placeholder="getLabel(ff)"
           class="h-full"
-          :class="ff.input_type === 'number' ? 'w-[130px]' : 'w-[150px]'"
+          :class="ff.input_type === 'number' ? 'sm:w-[130px]' : 'sm:w-[150px]'"
           @update:model-value="(v: string | number) => onInput(ff, String(v))"
         />
 

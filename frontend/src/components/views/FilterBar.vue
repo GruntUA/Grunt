@@ -247,14 +247,14 @@ function keepOpenForLinkDropdown(e: CustomEvent<{ originalEvent?: Event }>) {
     <Popover :open="isFilterOpen" @update:open="(v: boolean) => { isFilterOpen = v }">
       <PopoverAnchor :reference="filterAnchorEl ?? undefined" />
       <PopoverContent
-        class="w-[560px]" align="start"
+        class="w-[min(560px,calc(100vw-2rem))]" align="start"
         @pointer-down-outside="keepOpenForLinkDropdown"
         @focus-outside="keepOpenForLinkDropdown"
       >
         <div class="-m-1 flex max-h-80 flex-col gap-2 overflow-y-auto p-1">
-          <div v-for="(row, i) in draftRows" :key="i" class="flex items-center gap-2">
+          <div v-for="(row, i) in draftRows" :key="i" class="flex flex-wrap sm:flex-nowrap items-center gap-2">
             <Select :model-value="row.fieldname" @update:model-value="(v: unknown) => onFieldChange(row, String(v))">
-              <SelectTrigger class="w-36 shrink-0">
+              <SelectTrigger class="w-[calc(50%-1.75rem)] sm:w-36 shrink-0">
                 <SelectValue :placeholder="t('Field')" />
               </SelectTrigger>
               <SelectContent>
@@ -263,7 +263,7 @@ function keepOpenForLinkDropdown(e: CustomEvent<{ originalEvent?: Event }>) {
             </Select>
 
             <Select :model-value="row.op" @update:model-value="(v: unknown) => onOpChange(row, String(v))">
-              <SelectTrigger class="w-36 shrink-0">
+              <SelectTrigger class="w-[calc(50%-1.75rem)] sm:w-36 shrink-0">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -274,7 +274,7 @@ function keepOpenForLinkDropdown(e: CustomEvent<{ originalEvent?: Event }>) {
               </SelectContent>
             </Select>
 
-            <div class="flex-1 min-w-0">
+            <div class="order-last basis-full sm:order-none sm:basis-auto flex-1 min-w-0">
               <component
                 :is="getFilterConfig(fieldFor(row.fieldname)?.fieldtype ?? '_default').filterInput"
                 v-if="fieldFor(row.fieldname) && !(row.op in NO_VALUE_OPS)"
@@ -328,7 +328,7 @@ function keepOpenForLinkDropdown(e: CustomEvent<{ originalEvent?: Event }>) {
 
         <Separator class="my-3" />
 
-        <div class="flex items-center justify-between gap-2">
+        <div class="flex flex-wrap items-center justify-between gap-2">
           <div class="flex items-center gap-1">
             <Button variant="ghost" class="text-muted-foreground" @click="clearAll">
               {{ t('Clear Filters') }}
@@ -352,7 +352,7 @@ function keepOpenForLinkDropdown(e: CustomEvent<{ originalEvent?: Event }>) {
               </Button>
             </template>
           </div>
-          <Button @click="applyDraft">
+          <Button class="ml-auto" @click="applyDraft">
             {{ t('Apply Filters') }}
           </Button>
         </div>

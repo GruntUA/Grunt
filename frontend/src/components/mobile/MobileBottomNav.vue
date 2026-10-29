@@ -69,36 +69,36 @@ function goHome() {
     <div class="flex items-stretch h-14">
       <!-- Home -->
       <button
-        class="flex-1 flex flex-col items-center justify-center gap-0.5 text-muted-foreground transition-colors"
+        class="flex-1 min-w-0 flex flex-col items-center justify-center gap-1 text-muted-foreground transition-colors"
         :class="route.path === '/' ? 'text-primary' : 'hover:text-foreground'"
         :aria-current="route.path === '/' ? 'page' : undefined"
         @click="goHome"
       >
         <Home class="w-5 h-5" />
-        <span class="font-medium leading-none">{{ t('Home') }}</span>
+        <span class="text-[11px] font-medium leading-none">{{ t('Home') }}</span>
       </button>
 
       <!-- Top workspace items -->
       <button
         v-for="item in navItems"
         :key="item.link_to"
-        class="flex-1 flex flex-col items-center justify-center gap-0.5 transition-colors"
+        class="flex-1 min-w-0 flex flex-col items-center justify-center gap-1 transition-colors"
         :class="isActive(item.link_to) ? 'text-primary' : 'text-muted-foreground hover:text-foreground'"
         :aria-current="isActive(item.link_to) ? 'page' : undefined"
         @click="navigate(item)"
       >
         <AppIcon :icon="item.icon || 'file'" class="size-5" />
-        <span class="font-medium leading-none truncate max-w-[52px]">{{ item.label }}</span>
+        <span class="text-[11px] font-medium leading-none truncate max-w-full px-0.5">{{ item.label }}</span>
       </button>
 
       <!-- More button (when overflow items exist) -->
       <button
         v-if="overflowItems.length > 0"
-        class="flex-1 flex flex-col items-center justify-center gap-0.5 text-muted-foreground hover:text-foreground transition-colors"
+        class="flex-1 min-w-0 flex flex-col items-center justify-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
         @click="showOverflow = true"
       >
         <MoreHorizontal class="w-5 h-5" />
-        <span class="font-medium leading-none">{{ t('More') }}</span>
+        <span class="text-[11px] font-medium leading-none">{{ t('More') }}</span>
       </button>
     </div>
   </nav>

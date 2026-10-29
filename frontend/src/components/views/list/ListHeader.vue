@@ -85,9 +85,9 @@ watch(() => props.doctype, loadRestrictions)
         <!-- View switcher -->
         <DropdownMenu v-if="availableViews.length > 1">
           <DropdownMenuTrigger as-child>
-            <Button variant="outline" size="sm" class="gap-1.5">
+            <Button variant="outline" size="sm" class="gap-1.5" :aria-label="currentView ? t(currentView.label) : undefined">
               <component :is="currentView?.icon" v-if="currentView" class="size-4" />
-              {{ currentView ? t(currentView.label) : '' }}
+              <span class="hidden sm:inline">{{ currentView ? t(currentView.label) : '' }}</span>
               <ChevronDown class="size-3.5 opacity-60" />
             </Button>
           </DropdownMenuTrigger>

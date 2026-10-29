@@ -122,12 +122,12 @@ async function reindex() {
 </script>
 
 <template>
-  <div class="flex flex-col gap-6 p-6 max-w-5xl mx-auto w-full">
+  <div class="flex flex-col gap-4 sm:gap-6 p-4 sm:p-6 max-w-5xl mx-auto w-full">
 
     <!-- Header -->
-    <div class="flex items-center justify-between">
+    <div class="flex flex-wrap items-center justify-between gap-3">
       <div>
-        <h1 class="text-2xl font-semibold text-foreground">{{ t('Global search') }}</h1>
+        <h1 class="text-xl sm:text-2xl font-semibold text-foreground">{{ t('Global search') }}</h1>
         <p class="text-muted-foreground mt-0.5">{{ t('Search across all documents') }}</p>
       </div>
       <Button

@@ -208,8 +208,9 @@ const statusBadge = computed(() => resolveStatusBadge(props.dt, props.document))
 <template>
   <div class="sticky top-0 z-30 bg-background/95 backdrop-blur-sm border-b border-border/60 transition-all duration-300">
     <!-- Single row: breadcrumb (with document title as the last crumb) + primary actions -->
-    <div class="flex items-center justify-between gap-3 px-4 py-2.5">
-      <div class="flex items-center gap-2 min-w-0 flex-1">
+    <!-- Wraps onto a second row when the actions don't fit (phones) instead of pushing the title off-screen -->
+    <div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 px-3 sm:px-4 py-2 sm:py-2.5">
+      <div class="flex items-center gap-2 flex-1 min-w-[min(100%,20rem)]">
         <AppBreadcrumb
           :workspace-name="workspace ?? 'grunt'"
           :doctype="doctype"
@@ -218,14 +219,14 @@ const statusBadge = computed(() => resolveStatusBadge(props.dt, props.document))
           :is-new="id === null"
           class="mb-0! min-w-0 flex-1"
         />
-        <Badge v-if="statusBadge && (hidePanelToggle || !panelOpen || panelIsMobile)" variant="outline" :class="['animate-in fade-in slide-in-from-left-2 duration-300', statusBadge.class]">
+        <Badge v-if="statusBadge && (hidePanelToggle || !panelOpen || panelIsMobile)" variant="outline" :class="['animate-in fade-in slide-in-from-left-2 duration-300 shrink-0', statusBadge.class]">
           {{ statusBadge.label }}
         </Badge>
         <Badge v-if="isDirty" variant="secondary" class="animate-in fade-in slide-in-from-left-2 duration-300 text-xs h-5 px-1.5 shrink-0">
           {{ t('Unsaved') }}
         </Badge>
       </div>
-      <div class="flex items-center gap-2 shrink-0">
+      <div class="flex items-center gap-2 shrink-0 ml-auto">
         <!-- Actions: global_form.js + the DocType's script + ClientScripts (core/actions.ts) -->
         <ActionButtons :toolbar="toolbarActions" compact />
 

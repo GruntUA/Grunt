@@ -254,23 +254,23 @@ const printPage = () => window.print()
 <template>
 <div>
   <!-- Normal view -->
-  <div class="p-6">
-    <!-- Header -->
-    <div class="flex items-center justify-between mb-4">
-      <div class="flex items-center gap-2">
+  <div class="p-3 sm:p-6">
+    <!-- Header: controls wrap under the title on narrow screens -->
+    <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 mb-4">
+      <div class="flex items-center gap-2 min-w-0">
         <SidebarTrigger class="shrink-0 -ml-1.5 text-muted-foreground/80" />
         <LayoutDashboard class="w-5 h-5 text-muted-foreground" />
         <h1 class="text-lg font-semibold">{{ page?.label ?? pageName }}</h1>
-        <p v-if="page?.description" class="text-muted-foreground ml-2">{{ page.description }}</p>
+        <p v-if="page?.description" class="hidden sm:block text-muted-foreground ml-2 truncate">{{ page.description }}</p>
       </div>
 
-      <div class="flex items-center gap-2">
+      <div class="flex flex-wrap items-center gap-2">
         <!-- Date filter -->
-        <div v-if="page && !editMode" class="flex items-center gap-1.5">
+        <div v-if="page && !editMode" class="flex w-full sm:w-auto items-center gap-1.5">
           <Calendar class="w-4 h-4 text-muted-foreground shrink-0" />
-          <Input v-model="dateFrom" type="date" class="h-8 w-auto" :aria-label="t('From')" @change="refresh" />
+          <Input v-model="dateFrom" type="date" class="h-8 min-w-0 flex-1 sm:w-auto sm:flex-none" :aria-label="t('From')" @change="refresh" />
           <span class="text-muted-foreground">—</span>
-          <Input v-model="dateTo" type="date" class="h-8 w-auto" :aria-label="t('To')" @change="refresh" />
+          <Input v-model="dateTo" type="date" class="h-8 min-w-0 flex-1 sm:w-auto sm:flex-none" :aria-label="t('To')" @change="refresh" />
         </div>
 
         <!-- Auto-refresh -->
@@ -287,11 +287,11 @@ const printPage = () => window.print()
         </div>
 
         <template v-if="!editMode">
-          <Button variant="outline" size="sm" @click="enterEdit">
-            <Pencil /> {{ t('Configure') }}
+          <Button variant="outline" size="sm" :aria-label="t('Configure')" @click="enterEdit">
+            <Pencil /> <span class="hidden sm:inline">{{ t('Configure') }}</span>
           </Button>
-          <Button variant="outline" size="sm" :disabled="refreshing || loading" @click="refresh">
-            <RefreshCw :class="{ 'animate-spin': refreshing }" /> {{ t('Refresh') }}
+          <Button variant="outline" size="sm" :aria-label="t('Refresh')" :disabled="refreshing || loading" @click="refresh">
+            <RefreshCw :class="{ 'animate-spin': refreshing }" /> <span class="hidden sm:inline">{{ t('Refresh') }}</span>
           </Button>
           <Button v-if="page" variant="outline" size="icon-sm" :aria-label="t('Embed page')" @click="showEmbedModal = true">
             <Link2 />
