@@ -12,7 +12,8 @@
  *
  * or one-off updates with `grunt.publish.show_progress(...)`. The frontend
  * picks up the WS events and shows the panel; `restore()` brings back the
- * tasks still running after a page reload.
+ * tasks still running after a page reload, and - called again while tasks
+ * run - closes the ones whose `task_done` was missed (WebSocket reconnect).
  */
 
 import { computed, ref } from 'vue'
@@ -43,6 +44,8 @@ export interface TaskEntry {
   cancellable?: boolean
   /** Cancel was requested, the task hasn't stopped yet. */
   cancelling?: boolean
+  /** Kept on the server by `track_progress` (has `started_at`) - `restore()` reconciles it. */
+  tracked?: boolean
   /** «Step N of M» when the task has distinct parts (0 = none). */
   step?: number
   steps?: number
@@ -131,6 +134,7 @@ function update(data: {
     cancelling: existing?.cancelling,
     step: data.step ?? existing?.step,
     steps: data.steps ?? existing?.steps,
+    tracked: data.started_at != null || existing?.tracked,
     etaSeconds: _eta(id, now, count, total),
     status: percent >= 100 ? 'done' : 'active',
     startedAt: data.started_at ? data.started_at * 1000 : (existing?.startedAt ?? now),
@@ -197,13 +201,25 @@ function _scheduleRemoval(id: string, delayMs: number) {
   _removalTimers.set(id, t)
 }
 
-/** Pick up the tasks still running on the server (after a page reload). */
+/**
+ * Pick up the tasks still running on the server (after a page reload). A tracked
+ * task the server no longer has finished while its `task_done` was lost - it is
+ * closed here; how it ended is in the notification the task sends.
+ */
 async function restore() {
+  let running: Parameters<typeof update>[0][]
   try {
     const { data } = await client.post('/api/v1/method/grunt.progress.active_tasks', {})
-    for (const task of (data?.data ?? []) as Parameters<typeof update>[0][]) update(task)
+    running = data?.data ?? []
   } catch {
-    // not signed in / no Redis - nothing to restore
+    return // not signed in / no Redis - nothing to restore
+  }
+  for (const task of running) update(task)
+  const ids = new Set(running.map(task => task.task_id))
+  for (const task of _tasks.value.values()) {
+    if (task.status === 'active' && task.tracked && !ids.has(task.id)) {
+      done({ task_id: task.id, status: 'done', message: t('Finished - see notifications') })
+    }
   }
 }
 

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useElementSize } from '@vueuse/core'
 import { useQueryClient } from '@tanstack/vue-query'
 import { CircleCheck, CircleAlert, CircleX, ChevronDown, ChevronUp, X } from '@lucide/vue'
@@ -27,6 +27,16 @@ watch(height, (h) => { tracker.panelHeight.value = panel.value ? h : 0 })
 onMounted(() => {
   if (localStorage.getItem('grunt_token')) void tracker.restore()
 })
+
+// A missed `task_done` (WebSocket reconnect) would leave a task spinning forever:
+// while tasks run, check them against the server now and then.
+const RECONCILE_MS = 15_000
+let reconcileTimer: ReturnType<typeof setInterval> | undefined
+watch(tracker.hasActive, (running) => {
+  clearInterval(reconcileTimer)
+  reconcileTimer = running ? setInterval(() => void tracker.restore(), RECONCILE_MS) : undefined
+})
+onUnmounted(() => clearInterval(reconcileTimer))
 
 // A finished task refreshes its DocType's list; a failed one also leaves a toast.
 const reported = new Set<string>()

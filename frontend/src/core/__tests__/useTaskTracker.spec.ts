@@ -44,3 +44,26 @@ describe('useTaskTracker ETA', () => {
     expect(tracker.tasks.value[0]).toMatchObject({ step: 2, steps: 3 })
   })
 })
+
+vi.mock('@/core/api/client', () => ({ default: { post: vi.fn() } }))
+
+describe('useTaskTracker restore', () => {
+  afterEach(() => {
+    for (const id of ['lost', 'running', 'oneoff']) useTaskTracker().dismiss(id)
+  })
+
+  it('closes a tracked task the server no longer runs, keeps the rest', async () => {
+    const client = (await import('@/core/api/client')).default as unknown as { post: ReturnType<typeof vi.fn> }
+    const tracker = useTaskTracker()
+    tracker.update({ task_id: 'lost', title: 'Check', count: 1, total: 3, started_at: 1 })
+    tracker.update({ task_id: 'oneoff', title: 'Import', count: 1, total: 3 }) // show_progress, not in Redis
+    client.post.mockResolvedValueOnce({
+      data: { data: [{ task_id: 'running', title: 'Backup', count: 1, total: 3, started_at: 2 }] },
+    })
+
+    await tracker.restore()
+
+    const status = Object.fromEntries(tracker.tasks.value.map(t => [t.id, t.status]))
+    expect(status).toEqual({ lost: 'done', running: 'active', oneoff: 'active' })
+  })
+})

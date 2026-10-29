@@ -6968,6 +6968,10 @@ msgstr "Виконуються задачі"
 msgid "Tasks finished"
 msgstr "Задачі завершено"
 
+#: grunt/frontend/src/core/composables/useTaskTracker.ts
+msgid "Finished - see notifications"
+msgstr "Завершено — підсумок у сповіщеннях"
+
 #: grunt/frontend/src/pages/studio/builder/IndexHintsBar.vue:27
 msgid "Add index"
 msgstr "Додати індекс"

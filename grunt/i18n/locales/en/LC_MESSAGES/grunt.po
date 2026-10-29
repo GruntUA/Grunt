@@ -8740,6 +8740,10 @@ msgstr ""
 msgid "Tasks finished"
 msgstr ""
 
+#: grunt/frontend/src/core/composables/useTaskTracker.ts
+msgid "Finished - see notifications"
+msgstr ""
+
 #: grunt/frontend/src/components/desk/TaskProgressPanel.vue:109
 msgid "Tasks running"
 msgstr ""
