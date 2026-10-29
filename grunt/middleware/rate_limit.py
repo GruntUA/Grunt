@@ -67,8 +67,24 @@ _PATH_LIMITS: dict[str, int] = {}
 
 
 def register_path_limit(path: str, limit: int) -> None:
-    """Give *path* its own per-IP limit/minute (the ``rate_limits`` hook)."""
+    """Give *path* its own per-IP limit/minute (the ``rate_limits`` hook).
+
+    A path ending in ``*`` is a prefix: every path under it shares one per-IP
+    bucket (an app's public API - ``/api/v1/app/opendata/opendata/*``). An exact
+    path wins over a prefix, a longer prefix over a shorter one.
+    """
     _PATH_LIMITS[path] = int(limit)
+
+
+def _path_limit(path: str) -> tuple[str, int] | None:
+    """``(bucket, limit)`` an app set for *path*, exactly or by prefix."""
+    if (limit := _PATH_LIMITS.get(path)) is not None:
+        return path, limit
+    prefixes = [k for k in _PATH_LIMITS if k.endswith("*") and path.startswith(k[:-1])]
+    if not prefixes:
+        return None
+    longest = max(prefixes, key=len)
+    return longest, _PATH_LIMITS[longest]
 
 
 def _is_file_content_request(request: Request) -> bool:
@@ -232,10 +248,11 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                 return _too_many_requests(path, reset_in, {})
 
         # A limit an app set for this very path: its own per-IP bucket
-        path_limit = _PATH_LIMITS.get(path)
-        if path_limit is not None:
+        app_limit = _path_limit(path)
+        if app_limit is not None:
+            bucket, path_limit = app_limit
             ip = self._client_ip(request)
-            allowed, remaining, reset_in = await self._check(f"path:{path}:{ip}", path_limit)
+            allowed, remaining, reset_in = await self._check(f"path:{bucket}:{ip}", path_limit)
             if not allowed:
                 log.warning("rate_limit.path_exceeded", path=path, ip=ip, limit=path_limit)
                 return _too_many_requests(path, reset_in, {})
