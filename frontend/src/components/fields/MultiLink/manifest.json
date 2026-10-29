@@ -1,1 +1,1 @@
-{"type": "MultiLink", "label": "Multi Link", "icon": "link-2", "category": "Вибір і зв'язки", "non_groupable": true, "propertySections": ["core", "flags", "display", "text", "default", "link", "fetch_from"], "storage_class": "none"}
+{"type": "MultiLink", "label": "Multi Link", "icon": "link-2", "category": "Вибір і зв'язки", "non_groupable": true, "propertySections": ["core", "flags", "display", "text", "default", "link", "fetch_from"], "storage_class": "none", "quick_filter": "link", "filter_ops": ["=", "!=", "in", "not in", "is set", "is not set"]}

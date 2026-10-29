@@ -108,6 +108,10 @@ export interface FieldDefinition {
   webform?: boolean
   /** QuickFilter.input_type for this type ('text', 'date', 'select', …); absent - not offered as a quick filter. */
   quick_filter?: string
+  /** Filter operators, when the ones derived from storage_class / traits don't fit. A type with
+   *  no column of its own (storage_class 'none') is offered in the filter bar only with these -
+   *  e.g. MultiLink, which the backend filters through its junction table. */
+  filter_ops?: string[]
 }
 
 // Internal registry
@@ -159,6 +163,13 @@ export function getLayoutTypeSet(): Set<string> {
 /** Types with no DB column of their own (layout, Table, MultiLink, Button, HTML…) - per manifest storage_class. */
 export function getNonPhysicalTypeSet(): Set<string> {
   return new Set([..._registry.values()].filter((d) => !!d.is_layout || d.storage_class === 'none').map((d) => d.type))
+}
+
+/** Types the filter bar offers - with a DB column, or with explicit manifest filter_ops. */
+export function isFilterableType(type: string): boolean {
+  const def = _registry.get(type)
+  if (def?.filter_ops?.length) return true
+  return !getNonPhysicalTypeSet().has(type)
 }
 
 /** Types edited right in a Table grid cell - per manifest table_inline. */

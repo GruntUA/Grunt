@@ -43,7 +43,7 @@ import { LIST_BULK_UI, type BulkRequest } from '@/core/composables/useListBulkUi
 import { LIST_FILTER_RESET } from '@/core/composables/useListFilterReset'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { Progress } from '@/components/ui/progress'
-import { hasTrait } from '@/core/fieldRegistry'
+import { getFieldDef, hasTrait } from '@/core/fieldRegistry'
 
 // The parent keys this component by doctype, so `props.doctype` is fixed for
 // its lifetime and composables take it as a plain string.
@@ -264,7 +264,8 @@ async function resolveLinkFilterTitles() {
   await Promise.all(activeFilters.value.map(async (f) => {
     if (f.displayValue || !f.value || MULTI_VALUE_OPS.includes(f.op) || f.op in NO_VALUE_OPS) return
     const field = fieldByName.get(f.fieldname)
-    if (!field || !hasTrait(field.fieldtype, 'link') || !field.options) return
+    const linkLike = field && (hasTrait(field.fieldtype, 'link') || getFieldDef(field.fieldtype)?.quick_filter === 'link')
+    if (!field || !linkLike || !field.options) return
     const key = `${field.options}\0${f.value}`
     if (resolvingTitles.has(key)) return
     resolvingTitles.add(key)

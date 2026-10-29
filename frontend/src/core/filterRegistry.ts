@@ -27,7 +27,7 @@
 
 import type { Component } from 'vue'
 import DefaultFilterInput from '@/components/fields/Default/FilterInput.vue'
-import { byFieldType, getStorageClass, hasTrait, isChoiceType } from '@/core/fieldRegistry'
+import { byFieldType, getFieldDef, getStorageClass, hasTrait, isChoiceType } from '@/core/fieldRegistry'
 
 const _discovered = byFieldType(
   import.meta.glob<Component>('@/components/fields/*/FilterInput.vue', { eager: true, import: 'default' }),
@@ -48,6 +48,8 @@ const CHOICE_OPS = ['=', '!=', ...LIST_OPS, ...EMPTY_OPS]
 const LINK_OPS = ['=', '!=', ...LIST_OPS, 'child_of', ...EMPTY_OPS]
 
 function operatorsFor(fieldtype: string): string[] {
+  const declared = getFieldDef(fieldtype)?.filter_ops
+  if (declared?.length) return declared
   const storage = getStorageClass(fieldtype)
   if (hasTrait(fieldtype, 'link')) return LINK_OPS
   // MultiSelect's JSON list stays text-matched.

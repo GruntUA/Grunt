@@ -136,7 +136,7 @@ async def _apply_where(
     if extra_clause is not None:
         query = query.where(extra_clause)
     if filters:
-        query = apply_filters(query, table, filters)
+        query = apply_filters(query, table, filters, dt)
     if search:
         query = await _apply_search(query, table, dt.doc, search)
     return query

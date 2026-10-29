@@ -336,7 +336,7 @@ class TreeService:
         # scoped only to the nodes already present in this subtree.
         tree_ids = [r["name"] for r in all_rows]
         filtered_q = select(table.c.name)
-        filtered_q = apply_filters(filtered_q, table, filters)
+        filtered_q = apply_filters(filtered_q, table, filters, dt)
 
         if search:
             candidate_fields: list[str] = []

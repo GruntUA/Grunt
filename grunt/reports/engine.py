@@ -329,13 +329,13 @@ class ReportEngine:
         # equality. Empty values are dropped so an untouched filter is a no-op.
 
         active_filters = {k: v for k, v in filters.items() if v not in (None, "", [])}
-        for clause in build_clauses(table, active_filters):
+        for clause in build_clauses(table, active_filters, dt):
             stmt = stmt.where(clause)
 
         # Fixed report conditions (always on, unlike the viewer's filters).
         conditions = compile_conditions(report.get("conditions"))
         for condition in conditions:
-            for clause in build_clauses(table, condition):
+            for clause in build_clauses(table, condition, dt):
                 stmt = stmt.where(clause)
 
         # Row-level security

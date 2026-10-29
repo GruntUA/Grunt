@@ -3,6 +3,11 @@
 ``{"status": "Open", "amount__gte": 10, "title__is": "set"}`` - a key is a
 column name plus an optional ``__<op>`` suffix (see ``FILTER_OPS``); all
 conditions are ANDed. Shared by ``grunt.db`` and document list queries.
+
+Given the DocType's ``meta``, a MultiLink field (no column of its own - its
+values live in ``grunt_core_multi_link``) filters too: ``tags=a`` / ``tags__in``
+match documents linking any of the values, ``__ne`` / ``__nin`` those linking
+none of them, ``__is`` / ``__isnull`` - having any link at all.
 """
 
 import operator
@@ -10,9 +15,10 @@ from collections.abc import Callable
 from datetime import date, datetime
 from typing import Any
 
-from sqlalchemy import Date, String, and_, cast, false, or_
+from sqlalchemy import Date, String, and_, cast, exists, false, or_
 
 from grunt.db.types import UtcDateTime
+lazy from grunt.metadata.compiler import MULTI_LINK_TABLE
 
 # Operators a filter key may end with (``field__<op>``; no suffix = ``eq``).
 # Shared with in-memory filtering of virtual DocTypes (grunt.document.in_memory).
@@ -149,17 +155,49 @@ _CLAUSES: dict[str, Callable[[Any, Any], Any]] = {
 }
 
 
-def build_clauses(table: Any, filters: dict[str, Any]) -> list[Any]:
+def _multilink_clause(doctype: str, table: Any, fieldname: str, op: str, value: Any) -> Any:
+    """``EXISTS`` over the junction rows of one MultiLink field; ``None`` - op unsupported."""
+    ml = MULTI_LINK_TABLE
+
+    def linked(values: list[Any] | None = None) -> Any:
+        conds = [
+            ml.c.parent_doctype == doctype,
+            ml.c.parent_field == fieldname,
+            ml.c.parent_name == table.c.name,
+        ]
+        if values is not None:
+            conds.append(ml.c.link_name.in_([str(v) for v in values]))
+        return exists().where(*conds)
+
+    if op in ("eq", "in"):
+        return linked(as_list(value) if op == "in" else [value])
+    if op in ("ne", "neq", "nin"):
+        return ~linked(as_list(value) if op == "nin" else [value])
+    if op == "isnull":
+        return ~linked() if is_truthy(value) else linked()
+    if op == "is":
+        return ~linked() if str(value).strip().lower() == "not set" else linked()
+    return None
+
+
+def build_clauses(table: Any, filters: dict[str, Any], meta: Any = None) -> list[Any]:
     """WHERE clauses for a filter dict. Unknown columns are skipped.
 
+    ``meta`` (the DocType's :class:`~grunt.document.meta.Meta`) enables
+    MultiLink filters - without it they are skipped like unknown columns.
     Virtual DocTypes filter in memory with the same syntax, see
     ``grunt.document.in_memory.apply_filters``.
     """
+    multilinks = {f.fieldname for f in meta.get_multilink_fields()} if meta is not None else set()
     clauses: list[Any] = []
     for key, value in filters.items():
         fieldname, op = split_key(key)
         col = table.c.get(fieldname)
         if col is None:
+            if fieldname in multilinks:
+                clause = _multilink_clause(meta.name, table, fieldname, op, value)
+                if clause is not None:
+                    clauses.append(clause)
             continue
         if op in _COMPARISONS:
             value = _coerce_for_column(col, value)
@@ -167,11 +205,13 @@ def build_clauses(table: Any, filters: dict[str, Any]) -> list[Any]:
     return clauses
 
 
-def apply_filters(stmt: Any, table: Any, filters: str | dict[str, Any] | None) -> Any:
+def apply_filters(
+    stmt: Any, table: Any, filters: str | dict[str, Any] | None, meta: Any = None
+) -> Any:
     """AND the filters onto ``stmt``: a bare string matches ``name``, a dict goes
     through ``build_clauses``."""
     if isinstance(filters, str):
         return stmt.where(table.c.name == filters)
-    for clause in build_clauses(table, filters or {}):
+    for clause in build_clauses(table, filters or {}, meta):
         stmt = stmt.where(clause)
     return stmt

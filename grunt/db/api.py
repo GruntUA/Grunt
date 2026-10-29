@@ -14,6 +14,8 @@ from grunt.db.filters import apply_filters, build_clauses
 from grunt.errors import not_found
 from grunt.local import _session_ctx
 from grunt.utils.attr_dict import AttrDict
+lazy from grunt.document.multi_link import MultiLinkService
+lazy from grunt.metadata.compiler import MULTI_LINK_TABLE
 
 # "sum(amount)" / "count()" - see _parse_aggregation_expr.
 _AGG_EXPR_RE = re.compile(r"^([a-z_]+)(?:\((.*)\))?$")
@@ -161,7 +163,7 @@ class GruntDB:
         table = dt.table
 
         async def _fetch_row(columns: list[Any]) -> Any:
-            stmt = apply_filters(select(*columns), table, filters).limit(1)
+            stmt = apply_filters(select(*columns), table, filters, dt).limit(1)
             return (await self._session().execute(stmt)).first()
 
         # Whole-document fetch (``"*"``) - always returns an attribute-dict.
@@ -193,12 +195,23 @@ class GruntDB:
         fieldname: str | dict[str, Any],
         value: Any = None,
     ) -> None:
-        """Update one or more fields on a document."""
+        """Update one or more fields on a document.
+
+        A MultiLink field takes a list of linked names and replaces its junction rows.
+        """
         dt = await grunt.get_meta(doctype)
         if dt is None:
             raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
         table = dt.table
         values = fieldname if isinstance(fieldname, dict) else {fieldname: value}
+        multilinks = {f.fieldname: f for f in dt.get_multilink_fields() if f.fieldname in values}
+        if multilinks:
+            service = MultiLinkService(self._session())
+            for key, field in multilinks.items():
+                await service.set_values(
+                    dt.name, doc_id, key, field.options or "", list(values[key] or [])
+                )
+            values = {k: v for k, v in values.items() if k not in multilinks}
         # A raw write skips coerce (NULLs stay NULL), but markup is still sanitized.
         values = {
             key: field.coerce(val)
@@ -206,7 +219,10 @@ class GruntDB:
             else val
             for key, val in values.items()
         }
-        await self._session().execute(table.update().where(table.c.name == doc_id).values(values))
+        if values:
+            await self._session().execute(
+                table.update().where(table.c.name == doc_id).values(values)
+            )
         await self._session().flush()
 
     async def exists(
@@ -220,7 +236,7 @@ class GruntDB:
             raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
         table = dt.table
         stmt = select(table.c.name)
-        stmt = apply_filters(stmt, table, filters)
+        stmt = apply_filters(stmt, table, filters, dt)
         stmt = stmt.limit(1)
         result = await self._session().execute(stmt)
         row = result.first()
@@ -277,7 +293,8 @@ class GruntDB:
         No permission checks on its own - ``grunt.get_all`` is the
         permission-aware variant. ``scope`` lets a caller narrow the
         statement (row-level rules) before sort/pagination, the same way
-        ``aggregate`` does.
+        ``aggregate`` does. A MultiLink field in ``fields`` comes back as a
+        list of linked names (one extra query for the whole page).
         """
         dt = await grunt.get_meta(doctype)
         if dt is None:
@@ -285,17 +302,24 @@ class GruntDB:
         table = dt.table
 
         select_fields = [pluck] if pluck else fields
+        multilinks = (
+            [f.fieldname for f in dt.get_multilink_fields() if f.fieldname in fields]
+            if fields and not pluck
+            else []
+        )
         if select_fields:
             cols = [table.c[f] for f in select_fields if f in table.c]
+            if multilinks and "name" not in select_fields:
+                cols.append(table.c.name)  # key for the MultiLink values, dropped below
             stmt = select(*cols) if cols else select(table)
         else:
             stmt = select(table)
 
         if filters:
-            stmt = apply_filters(stmt, table, filters)
+            stmt = apply_filters(stmt, table, filters, dt)
 
         if or_filters:
-            or_clauses = build_clauses(table, or_filters)
+            or_clauses = build_clauses(table, or_filters, dt)
             if or_clauses:
                 stmt = stmt.where(or_(*or_clauses))
 
@@ -317,7 +341,34 @@ class GruntDB:
 
         if pluck:
             return [row[0] for row in rows]
-        return [dict(row._mapping) for row in rows]
+        docs = [dict(row._mapping) for row in rows]
+        if multilinks:
+            await self._attach_multilinks(dt.name, docs, multilinks, keep_name="name" in fields)
+        return docs
+
+    async def _attach_multilinks(
+        self, doctype: str, docs: list[dict[str, Any]], fieldnames: list[str], *, keep_name: bool
+    ) -> None:
+        """Set ``doc[field]`` to its linked names (in ``idx`` order) for each MultiLink field."""
+        values: dict[tuple[str, str], list[str]] = {}
+        names = [d["name"] for d in docs]
+        ml = MULTI_LINK_TABLE
+        for start in range(0, len(names), 500):
+            result = await self._session().execute(
+                select(ml.c.parent_name, ml.c.parent_field, ml.c.link_name)
+                .where(
+                    ml.c.parent_doctype == doctype,
+                    ml.c.parent_field.in_(fieldnames),
+                    ml.c.parent_name.in_(names[start : start + 500]),
+                )
+                .order_by(ml.c.parent_name, ml.c.parent_field, ml.c.idx)
+            )
+            for parent, field, link in result.fetchall():
+                values.setdefault((parent, field), []).append(link)
+        for doc in docs:
+            name = doc["name"] if keep_name else doc.pop("name")
+            for field in fieldnames:
+                doc[field] = values.get((name, field), [])
 
     async def get_values(
         self,
@@ -335,7 +386,7 @@ class GruntDB:
             return None
 
         stmt = select(*cols)
-        stmt = apply_filters(stmt, table, filters)
+        stmt = apply_filters(stmt, table, filters, dt)
         stmt = stmt.limit(1)
         result = await self._session().execute(stmt)
         row = result.first()
@@ -385,9 +436,9 @@ class GruntDB:
         table = dt.table
         stmt = select(func.count()).select_from(table)
         if filters:
-            stmt = apply_filters(stmt, table, filters)
+            stmt = apply_filters(stmt, table, filters, dt)
         if or_filters:
-            or_clauses = build_clauses(table, or_filters)
+            or_clauses = build_clauses(table, or_filters, dt)
             if or_clauses:
                 stmt = stmt.where(or_(*or_clauses))
         result = await self._session().execute(stmt)
@@ -408,7 +459,7 @@ class GruntDB:
         table = dt.table
 
         stmt = table.delete()
-        stmt = apply_filters(stmt, table, filters)
+        stmt = apply_filters(stmt, table, filters, dt)
 
         result = await self._session().execute(stmt)
         await self._session().flush()
@@ -458,7 +509,7 @@ class GruntDB:
             return 0
 
         stmt = update(table).values(**update_values)
-        stmt = apply_filters(stmt, table, filters)
+        stmt = apply_filters(stmt, table, filters, dt)
 
         result = await self._session().execute(stmt)
         await self._session().flush()
@@ -516,7 +567,7 @@ class GruntDB:
         # select(func.count()) has no FROM clause and returns a single row.
         stmt = select(*select_exprs).select_from(table)
         if filters:
-            stmt = apply_filters(stmt, table, filters)
+            stmt = apply_filters(stmt, table, filters, dt)
         if scope is not None:
             stmt = await scope(stmt, table)
 
