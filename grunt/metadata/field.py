@@ -9,12 +9,12 @@ from typing import Any, ClassVar, Literal
 
 from pydantic import BaseModel
 from sqlalchemy import JSON as SAJSON
-from sqlalchemy import Boolean, Column, Date, Double, Integer, Numeric, String, Text, Time
+from sqlalchemy import Boolean, Column, Double, Integer, Numeric, String, Text, Time
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.types import TypeEngine
 
 from grunt import log
-from grunt.db.types import UtcDateTime
+from grunt.db.types import IsoDate, UtcDateTime
 
 # sa_type_name (column_spec's first tuple element) -> SQLAlchemy column type
 # builder. Shared by every DocField.to_sa_column() call instead of being
@@ -29,7 +29,7 @@ _SA_TYPE_BUILDERS: dict[str, Callable[[list[Any]], TypeEngine]] = {
     # so formulas/aggregates/JSON don't have to learn Decimal.
     "Numeric": lambda a: Numeric(*a, asdecimal=False),
     "Boolean": lambda a: Boolean(),
-    "Date": lambda a: Date(),
+    "Date": lambda a: IsoDate(),
     "DateTime": lambda a: UtcDateTime(),
     "Time": lambda a: Time(),
     # JSONB on Postgres - indexable/queryable; SQLite and MySQL keep plain JSON.

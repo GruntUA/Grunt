@@ -51,6 +51,21 @@ async def redis(monkeypatch):
     await shared.aclose()
 
 
+async def _own_message(pubsub, timeout: float):
+    """The next message this process published, or None.
+
+    Pub/sub ignores the database number, so under xdist the channel also carries
+    other workers' messages - skip those.
+    """
+    loop = asyncio.get_running_loop()
+    deadline = loop.time() + timeout
+    while (left := deadline - loop.time()) > 0:
+        msg = await pubsub.get_message(timeout=left)
+        if msg and msg["type"] == "message" and json.loads(msg["data"])["sender"] == bus.SENDER:
+            return msg
+    return None
+
+
 async def test_message_from_another_process_runs_the_handler(monkeypatch):
     calls = []
     monkeypatch.setitem(bus._handlers, "t.probe", lambda **kw: calls.append(kw))
@@ -98,16 +113,16 @@ async def test_message_waits_for_the_commit_and_dies_with_a_rollback(redis):
             await session.begin()
             bus.publish("t.committed")
             await bus.drain()
-            assert await pubsub.get_message(timeout=0.2) is None  # not before the commit
+            assert await _own_message(pubsub, 0.2) is None  # not before the commit
             await session.commit()
             await bus.drain()
         finally:
             _session_ctx.reset(token)
     await engine.dispose()
 
-    msg = await pubsub.get_message(timeout=1)
+    msg = await _own_message(pubsub, 1)
     assert msg is not None and json.loads(msg["data"])["topic"] == "t.committed"
-    assert await pubsub.get_message(timeout=0.2) is None
+    assert await _own_message(pubsub, 0.2) is None
     await pubsub.aclose()
 
 
@@ -135,7 +150,7 @@ async def test_doc_cache_invalidation_drops_other_processes_memory(redis, monkey
     await there.set("User", "x@example.com", {"v": 1})
     await here.invalidate("User", "x@example.com")
     await bus.drain()
-    msg = await pubsub.get_message(timeout=1)
+    msg = await _own_message(pubsub, 1)
     await pubsub.aclose()
     assert msg is not None
 

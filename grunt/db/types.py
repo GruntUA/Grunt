@@ -14,13 +14,30 @@ This decorator closes the gap on both ends:
 
 So Python always sees aware-UTC and every serialiser downstream emits an
 explicit ``+00:00`` the client can localise.
+
+``IsoDate`` / ``UtcDateTime`` also take an ISO string on bind. A loaded
+document holds its dates as ISO strings, so a hook that copies one back into
+``self.data`` would otherwise hit the plain bind processors, which reject a
+``str`` (SQLite: ``TypeError``).
 """
 
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from typing import Any
 
-from sqlalchemy import DateTime
+from sqlalchemy import Date, DateTime
 from sqlalchemy.types import TypeDecorator
+
+
+class IsoDate(TypeDecorator):
+    """A ``Date`` that also binds an ISO string (a datetime one is cut to its date)."""
+
+    impl = Date
+    cache_ok = True
+
+    def process_bind_param(self, value: Any, dialect: Any) -> Any:
+        if isinstance(value, str):
+            return date.fromisoformat(value[:10]) if value else None
+        return value
 
 
 class UtcDateTime(TypeDecorator):
@@ -30,6 +47,10 @@ class UtcDateTime(TypeDecorator):
     cache_ok = True
 
     def process_bind_param(self, value: Any, dialect: Any) -> Any:
+        if isinstance(value, str):
+            if not value:
+                return None
+            value = datetime.fromisoformat(value.replace(" ", "T"))
         if not isinstance(value, datetime):
             return value
         if value.tzinfo is None:

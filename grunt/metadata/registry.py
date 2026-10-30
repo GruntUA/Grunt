@@ -449,7 +449,8 @@ class DocTypeRegistry:
         """A field that came from another app's ``doctype_ext/`` stays marked so
         when an editor (Studio) sends it back without ``source_app`` /
         ``ext_base`` - otherwise the next export would write it (or the values
-        another app's properties set) into this DocType's own JSON."""
+        another app's properties set) into this DocType's own JSON. An explicit
+        ``source_app: null`` (Studio's "Belongs to app" set back) is not restored."""
         if previous is None:
             return
         before = {f.fieldname: f for f in previous.fields}
@@ -457,7 +458,7 @@ class DocTypeRegistry:
             old = before.get(field.fieldname)
             if old is None:
                 continue
-            if not field.source_app and old.source_app:
+            if "source_app" not in field.model_fields_set and old.source_app:
                 field.source_app = old.source_app
             if field.ext_base is None and old.ext_base:
                 # Only while the field still has the values those properties set -

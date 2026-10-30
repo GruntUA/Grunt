@@ -15,9 +15,9 @@ from collections.abc import Callable
 from datetime import date, datetime
 from typing import Any
 
-from sqlalchemy import Date, String, and_, cast, exists, false, or_
+from sqlalchemy import String, and_, cast, exists, false, or_
 
-from grunt.db.types import UtcDateTime
+from grunt.db.types import IsoDate, UtcDateTime
 lazy from grunt.metadata.compiler import MULTI_LINK_TABLE
 
 # Operators a filter key may end with (``field__<op>``; no suffix = ``eq``).
@@ -80,30 +80,6 @@ def _is_set_clause(col: Any, value: Any) -> Any:
     return empty if str(value).strip().lower() == "not set" else ~empty
 
 
-def _coerce_for_column(col: Any, value: Any) -> Any:
-    """Parse an ISO date/datetime string filter value to match its column's type.
-
-    Callers build filter dicts from Python code (dashboard widgets computing
-    ``since``/``until`` as ISO strings, query params, JSON) rather than always
-    handing over real ``date``/``datetime`` objects. SQLAlchemy's bind
-    processors for ``Date``/``UtcDateTime`` only accept the real object and
-    raise ``TypeError`` on a bare string, so comparisons silently blow up
-    (caught by the widget's own try/except, surfacing as an empty chart) -
-    coerce once, here, instead of at every call site.
-    """
-    if not isinstance(value, str):
-        return value
-    col_type = getattr(col, "type", None)
-    try:
-        if isinstance(col_type, UtcDateTime):
-            return datetime.fromisoformat(value)
-        if isinstance(col_type, Date):
-            return date.fromisoformat(value[:10])
-    except ValueError:
-        return value
-    return value
-
-
 def _year_clause(col: Any, value: Any) -> Any:
     """``field__year=2022`` - a date/datetime within that calendar year.
 
@@ -119,7 +95,7 @@ def _year_clause(col: Any, value: Any) -> Any:
     col_type = getattr(col, "type", None)
     if isinstance(col_type, UtcDateTime):
         lo, hi = datetime(year, 1, 1), datetime(year + 1, 1, 1)
-    elif isinstance(col_type, Date):
+    elif isinstance(col_type, IsoDate):
         lo, hi = start, end
     else:  # ISO text - compares lexically
         lo, hi = start.isoformat(), end.isoformat()
@@ -130,10 +106,6 @@ def _as_text(col: Any) -> Any:
     """LIKE needs a string column - a number or date is matched by its text."""
     return col if isinstance(col.type, String) else cast(col, String)
 
-
-# Operators whose value is compared with the column, so ISO date strings
-# have to be parsed into date/datetime first.
-_COMPARISONS = frozenset({"eq", "ne", "neq", "gt", "gte", "lt", "lte", "lte_or_null"})
 
 _CLAUSES: dict[str, Callable[[Any, Any], Any]] = {
     "eq": operator.eq,
@@ -199,8 +171,6 @@ def build_clauses(table: Any, filters: dict[str, Any], meta: Any = None) -> list
                 if clause is not None:
                     clauses.append(clause)
             continue
-        if op in _COMPARISONS:
-            value = _coerce_for_column(col, value)
         clauses.append(_CLAUSES[op](col, value))
     return clauses
 
