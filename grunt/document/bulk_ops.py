@@ -12,6 +12,7 @@ import grunt
 from grunt import _, log
 from grunt.api.v1.ws import manager
 from grunt.db.session import async_session_factory
+from grunt.document.update_side_effects import delete_child_rows
 from grunt.metadata.compiler import MULTI_LINK_TABLE
 from grunt.search.service import _search_index_table
 lazy from grunt.auth.doctypes.User.user import User
@@ -290,7 +291,8 @@ class BulkDeleteTask:
                         "CursorResult",
                         await session.execute(sa_delete(table).where(table.c.name.in_(names))),
                     )
-                    # 2. Their MultiLinks and search-index entries
+                    # 2. Their child rows, MultiLinks and search-index entries
+                    await delete_child_rows(session, dt, names)
                     await session.execute(
                         sa_delete(MULTI_LINK_TABLE).where(
                             MULTI_LINK_TABLE.c.parent_doctype == doctype,

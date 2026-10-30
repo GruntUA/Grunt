@@ -12,6 +12,7 @@ _TRASH_DOCTYPE = {
     "fields": [
         {"fieldname": "title", "label": "Title", "fieldtype": "Data", "required": True},
         {"fieldname": "qty", "label": "Qty", "fieldtype": "Int"},
+        {"fieldname": "due", "label": "Due", "fieldtype": "Date"},
         {
             "fieldname": "rows",
             "label": "Rows",
@@ -30,8 +31,13 @@ _TRASH_CHILD_DOCTYPE = {
     "fields": [
         {"fieldname": "label", "label": "Label", "fieldtype": "Data"},
         {"fieldname": "amount", "label": "Amount", "fieldtype": "Int"},
+        {"fieldname": "on_date", "label": "On Date", "fieldtype": "Date"},
     ],
 }
+
+
+async def _child_rows(ctx, parent: str) -> list[dict]:
+    return await ctx.db.get_all("TrashItemRow", filters={"parent_name": parent}, fields=["name"])
 
 
 @pytest.fixture
@@ -94,6 +100,54 @@ async def test_delete_creates_snapshot_and_restore_round_trips(ctx, setup_trash_
 
     with pytest.raises(ApplicationError):
         await restore(snap["name"])
+
+
+@pytest.mark.asyncio
+async def test_delete_removes_child_rows_and_snapshots_dates(ctx, setup_trash_doctype):
+    doc = await ctx.new_doc(
+        "TrashItem",
+        {
+            "title": "Dated",
+            "due": "2026-05-04",
+            "rows": [{"label": "a", "amount": 1, "on_date": "2026-05-05"}],
+        },
+    )
+    name = doc["name"]
+    await ctx.db._session().commit()
+    assert len(await _child_rows(ctx, name)) == 1
+
+    await ctx.delete_doc("TrashItem", name)
+    await ctx.db._session().commit()
+    assert await _child_rows(ctx, name) == []
+
+    snaps = await ctx.get_list(
+        "DeletedDocument", filters={"deleted_doctype": "TrashItem", "deleted_name": name}
+    )
+    assert len(snaps) == 1
+    assert snaps[0]["data"]["due"] == "2026-05-04"
+    assert snaps[0]["data"]["rows"][0]["on_date"] == "2026-05-05"
+
+    from grunt.activity.doctypes.DeletedDocument.deleted_document import restore
+
+    await restore(snaps[0]["name"])
+    await ctx.db._session().commit()
+    fresh = await ctx.get_doc("TrashItem", name)
+    assert str(fresh["due"])[:10] == "2026-05-04"
+    assert [str(r["on_date"])[:10] for r in fresh["rows"]] == ["2026-05-05"]
+
+
+@pytest.mark.asyncio
+async def test_bulk_delete_removes_child_rows(ctx, setup_trash_doctype):
+    doc = await ctx.new_doc("TrashItem", {"title": "Bulk", "rows": [{"label": "a"}]})
+    other = await ctx.new_doc("TrashItem", {"title": "Stays", "rows": [{"label": "b"}]})
+    await ctx.db._session().commit()
+
+    deleted, errors = await ctx.bulk_delete_docs("TrashItem", [doc["name"]])
+    await ctx.db._session().commit()
+
+    assert (deleted, errors) == (1, [])
+    assert await _child_rows(ctx, doc["name"]) == []
+    assert len(await _child_rows(ctx, other["name"])) == 1
 
 
 @pytest.mark.asyncio

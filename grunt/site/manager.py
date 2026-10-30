@@ -17,6 +17,7 @@ from sqlalchemy.ext.asyncio import (
 from grunt import log
 from grunt.config import settings
 from grunt.db.write_intent import begin_statement
+from grunt.document.serde import to_json
 lazy from grunt.db.profiler import attach_query_profiler
 lazy from grunt.monitoring.perf import attach_sql_counter
 
@@ -236,7 +237,8 @@ class SiteManager:
                     {"pool_size": 5, "max_overflow": 5, "connect_args": {"timeout": 30}}
                 )
 
-            engine = create_async_engine(db_url, **engine_kwargs)
+            # to_json: документи тримають date/Decimal, а типовий json.dumps їх не вміє
+            engine = create_async_engine(db_url, json_serializer=to_json, **engine_kwargs)
 
             if "sqlite" in db_url:
 

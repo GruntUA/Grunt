@@ -43,6 +43,7 @@ from grunt.config import settings
 from grunt.db.session import get_engine as _get_engine_dep
 from grunt.db.session import get_session
 from grunt.document.registry import document_registry
+from grunt.document.serde import to_json
 from grunt.main import app
 from grunt.metadata.compiler import SA_METADATA, compile_doctype_to_table, get_compiled_metadata
 from grunt.metadata.doctype import DocType
@@ -119,7 +120,7 @@ def make_app_fixtures(app_dir: Path, app_name: str) -> dict[str, Any]:
             sys.path.insert(0, str(path))
 
     test_db_url = os.environ.get("TEST_DATABASE_URL", "sqlite+aiosqlite://")
-    test_engine = create_async_engine(test_db_url, echo=False)
+    test_engine = create_async_engine(test_db_url, echo=False, json_serializer=to_json)
     TestSessionLocal = async_sessionmaker(  # noqa: N806 - sessionmaker factory, PascalCase by convention
         test_engine, class_=AsyncSession, expire_on_commit=False
     )

@@ -607,6 +607,7 @@ async def bulk_delete(
         await run_bulk_delete_writes(
             session=session,
             ml=ml,
+            dt=dt,
             table=table,
             doctype_name=doctype_name,
             final_ids=final_ids,

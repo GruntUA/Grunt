@@ -107,10 +107,11 @@ class DocumentWriteMixin(DocumentReadMixin):
         await self.session.flush()
 
     async def db_delete(self) -> None:
-        """DELETE the row and its MultiLink relations."""
+        """DELETE the row, its child rows and its MultiLink relations."""
         await delete_row_and_links(
             session=self.session,
             ml=self._ml,
+            dt=self._dt,
             table=self._dt.table,
             doctype_name=self.doctype,
             real_id=self.data["name"],
