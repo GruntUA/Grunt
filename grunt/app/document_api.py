@@ -32,6 +32,7 @@ lazy from grunt.db.filters import FILTER_OPS
 lazy from grunt.document.base import BaseDocument, DocumentList, load_document, new_document
 lazy from grunt.document.registry import document_registry
 lazy from grunt.permissions.query import apply_permission_filter
+lazy from grunt.workflow.registry import get_active_workflow
 
 
 class DocumentAPI:
@@ -818,13 +819,19 @@ class DocumentAPI:
         """Create a copy of a document and return it.
 
         Copies every field except ``id`` / ``name`` / ``created_at`` (child
-        tables included), then inserts a fresh document. Pass ``overrides`` to
-        change specific fields on the copy::
+        tables included), then inserts a fresh document. The workflow state
+        and the fields its states set aren't copied - the copy starts in the
+        initial state. Pass ``overrides`` to change specific fields on the copy::
 
             draft = await grunt.copy_doc("Invoice", original_id, overrides={"status": "Draft"})
         """
         original = await self.get_doc(doctype, id_or_name)
-        data = {k: v for k, v in original.items() if k not in ("id", "name", "created_at")}
+        skip = {"id", "name", "created_at"}
+        workflow = await get_active_workflow(doctype)
+        if workflow:
+            skip.add(workflow.state_field)
+            skip.update(s.update_field for s in workflow.states if s.update_field)
+        data = {k: v for k, v in original.items() if k not in skip}
         if overrides:
             data.update(overrides)
         return await self.new_doc(doctype, data)

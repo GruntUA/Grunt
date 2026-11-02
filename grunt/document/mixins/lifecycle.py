@@ -42,7 +42,7 @@ from grunt.storage.references import release_dropped_files
 from grunt.storage.signing import strip_file_signatures
 from grunt.webhook.service import webhook_service
 from grunt.workflow.engine import _active, workflow_engine
-from grunt.workflow.guard import check_create, check_delete, check_update
+from grunt.workflow.guard import check_create, check_delete, check_update, is_exempt
 from grunt.workflow.registry import get_active_workflow
 lazy from grunt.auth.doctypes.User.user import User
 lazy from grunt.document.base import DocumentList, load_document
@@ -311,13 +311,16 @@ class DocumentLifecycleMixin:
             sf = workflow.state_field
             if sf in data:
                 row[sf] = data[sf]
-            elif sf not in row:
-                initial = next((s for s in workflow.states if s.is_initial), None)
-                if initial:
-                    row[sf] = initial.state
-                    target = dt.get_field(initial.update_field or "")
-                    if target is not None and target.fieldname not in data:
-                        row[target.fieldname] = target.coerce(initial.update_value)
+            initial = next((s for s in workflow.states if s.is_initial), None)
+            if initial and row.get(sf) in (None, "", initial.state):
+                row[sf] = initial.state
+                # The state's update_field belongs to the workflow like the state
+                # itself: a duplicated published page must not stay published.
+                target = dt.get_field(initial.update_field or "")
+                if target is not None and (
+                    target.fieldname not in data or user is None or not is_exempt(user)
+                ):
+                    row[target.fieldname] = target.coerce(initial.update_value)
 
         return row
 

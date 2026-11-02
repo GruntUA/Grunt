@@ -179,6 +179,23 @@ async def test_edit_of_published_goes_back_to_review(article, db_session, engine
 
 
 @pytest.mark.asyncio
+async def test_copy_of_published_starts_as_draft(article, db_session, engine):
+    async with grunt.context(db_session, engine, _as(REVIEWER, E)):
+        doc = await grunt.new_doc("Article", {"title": "Live"})
+        await grunt.submit("Article", doc["name"], "Publish")
+        copy = await grunt.copy_doc("Article", doc["name"])
+    assert await _state(copy["name"]) == ("Draft", 0)
+
+    # The form's Duplicate sends the original's fields, the state reset to the default.
+    async with grunt.context(db_session, engine, _as(AUTHOR, W)):
+        same = await grunt.get_doc("Article", doc["name"])
+        dup = await grunt.new_doc(
+            "Article", {"title": same["title"], "status": "Draft", "published": same["published"]}
+        )
+    assert await _state(dup["name"]) == ("Draft", 0)
+
+
+@pytest.mark.asyncio
 async def test_controller_sees_current_transition(article, db_session, engine):
     seen: list[tuple[str | None, str]] = []
 

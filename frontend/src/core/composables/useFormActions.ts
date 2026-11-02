@@ -12,6 +12,8 @@ interface UseFormActionsParams {
   id: string | null
   workspace?: string
   form: Ref<Record<string, unknown>>
+  /** The DocType's workflow state field - a copy starts in the initial state. */
+  stateField: () => string | null | undefined
   showDeleteModal: Ref<boolean>
   remove: (replaceWith?: string) => Promise<unknown>
   goToList: () => void
@@ -56,6 +58,8 @@ export function useFormActions(params: UseFormActionsParams) {
     PROTECTED_DUPLICATE_FIELDS.forEach((field) => {
       delete clone[field]
     })
+    const stateField = params.stateField()
+    if (stateField) delete clone[stateField]
 
     const path = docUrl(params.doctype, 'new', params.workspace)
 

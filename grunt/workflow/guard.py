@@ -34,7 +34,7 @@ lazy from grunt.workflow.registry import get_active_workflow
 _SYSTEM_FIELDS = frozenset({"name", "owner", "created_at", "modified_at", "modified_by", "idx"})
 
 
-def _exempt(user: User) -> bool:
+def is_exempt(user: User) -> bool:
 
     return current_transition() is not None or user.email == SYSTEM_USER.email
 
@@ -70,7 +70,7 @@ async def check_create(doctype: str, data: dict[str, Any], user: User | None) ->
     """A new document starts in the initial state - no other state on create."""
 
     workflow = await get_active_workflow(doctype)
-    if not workflow or user is None or _exempt(user):
+    if not workflow or user is None or is_exempt(user):
         return
     value = data.get(workflow.state_field)
     initial = next((s.state for s in workflow.states if s.is_initial), None)
@@ -92,7 +92,7 @@ async def check_update(
     """
 
     workflow = await get_active_workflow(doctype)
-    if not workflow or user is None or _exempt(user):
+    if not workflow or user is None or is_exempt(user):
         return None
     field = workflow.state_field
     state = existing.get(field)
@@ -132,7 +132,7 @@ async def check_delete(doctype: str, existing: dict[str, Any], user: User | None
     to review can't remove the document without it either."""
 
     workflow = await get_active_workflow(doctype)
-    if not workflow or user is None or _exempt(user):
+    if not workflow or user is None or is_exempt(user):
         return
     state = existing.get(workflow.state_field)
     _check_edit_roles(workflow, state, user)

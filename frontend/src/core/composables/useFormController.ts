@@ -337,6 +337,7 @@ export function useFormController(
     id,
     workspace,
     form,
+    stateField: () => dt.value?.workflow_state_field,
     showDeleteModal,
     remove,
     goToList,
