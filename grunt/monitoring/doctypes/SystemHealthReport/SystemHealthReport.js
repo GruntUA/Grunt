@@ -155,21 +155,17 @@ function _renderDashboard(frm) {
             if (c.status === 'OK') entry.ok += 1
             else entry.issues += 1
         }
+        // Categories arrive already translated (health.py `_(category)`), so the
+        // map is keyed by the translated full name.
         const shortCat = (cat) => {
             const map = {
-                'Користувачі та безпека': 'Безпека',
-                'Users and security': 'Security',
-                'Фонові задачі': 'Фон. задачі',
-                'Background jobs': 'Jobs',
-                'Електронна пошта': 'Пошта',
-                'Email': 'Email',
-                'Залежності додатків': 'Залежності',
-                'App dependencies': 'Deps',
-                'Хмарне сховище': 'Хмара',
-                'Cloud storage': 'Cloud',
-                'Фреймворк і додатки': 'Додатки',
-                'Framework and apps': 'Apps',
-                'Середовища виконання': 'Середовища',
+                [__('Users and security')]: __('short|Security'),
+                [__('Background jobs')]: __('short|Jobs'),
+                [__('Email')]: __('short|Email'),
+                [__('App dependencies')]: __('short|Deps'),
+                [__('Cloud storage')]: __('short|Cloud'),
+                [__('Framework and apps')]: __('short|Apps'),
+                [__('Runtimes')]: __('short|Runtimes'),
             }
             return map[cat] || cat
         }

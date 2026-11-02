@@ -5,9 +5,18 @@ merges it into every ``locales/<lang>/LC_MESSAGES/grunt.po`` (keeping existing
 translations, adding new empty entries, marking removed ones obsolete).
 ``grunt i18n stats`` reports per-locale coverage plus how many source strings
 are still Cyrillic - i.e. not yet moved to English in the code.
+
+One translation per term: DocType metadata (``meta:`` / ``help:`` / ``hint:`` /
+``select:`` / ``status:`` / ``record:`` contexts) goes into the catalogs as a
+context-free entry, which ``pgettext`` falls back to - ``Name`` is translated
+once, not per field of every DocType. A contextual entry stays in a locale's PO
+only as an *override* whose translation differs (``Active`` -> «Активна» for a
+session). Contexts written in code (``button|Save``, ``short|Jobs``) are kept.
 """
 
 import json
+import re
+from collections import Counter
 from pathlib import Path
 
 import polib
@@ -21,6 +30,15 @@ _GRUNT_PKG = Path(__file__).parent.parent  # …/grunt
 #: Language the framework's source strings are written in. Its "coverage" is
 #: really the flip progress (how many msgids are already English).
 SOURCE_LOCALE = "en"
+
+
+#: Metadata contexts (see grunt.i18n.meta) shared through one context-free entry.
+SHARED_CONTEXTS = ("meta", "help", "hint", "select", "status", "record")
+
+
+def is_shared_context(ctx: str | None) -> bool:
+    prefix, sep, _ = (ctx or "").partition(":")
+    return bool(sep) and prefix in SHARED_CONTEXTS
 
 
 def _has_cyrillic(s: str) -> bool:
@@ -78,7 +96,14 @@ def _entry(row: dict, locale: str) -> polib.POEntry:
     return polib.POEntry(**kw)
 
 
-def build_pot(origins: tuple[str, ...] = ("grunt",), bench_dir: Path | None = None) -> polib.POFile:
+def build_pot(
+    origins: tuple[str, ...] = ("grunt",),
+    bench_dir: Path | None = None,
+    *,
+    rows: list[dict] | None = None,
+) -> polib.POFile:
+    """The template: one entry per (code context, source); metadata contexts
+    collapse into the context-free entry (their occurrences merged)."""
     pot = polib.POFile(check_for_duplicates=False)
     pot.metadata = {
         "Project-Id-Version": "Grunt",
@@ -86,14 +111,22 @@ def build_pot(origins: tuple[str, ...] = ("grunt",), bench_dir: Path | None = No
         "Content-Type": "text/plain; charset=UTF-8",
         "Content-Transfer-Encoding": "8bit",
     }
-    seen: set[tuple[str, str]] = set()
-    rows = extract_all(bench_dir, set(origins))
-    for row in sorted(rows, key=lambda r: (r["context"], r["source"])):
-        key = (row["context"], row["source"])
-        if key in seen:
+    if rows is None:
+        rows = extract_all(bench_dir, set(origins))
+    merged: dict[tuple[str, str], dict] = {}
+    for row in rows:
+        ctx = "" if is_shared_context(row["context"]) else row["context"]
+        key = (ctx, row["source"])
+        have = merged.get(key)
+        if have is None:
+            merged[key] = {**row, "context": ctx}
             continue
-        seen.add(key)
-        pot.append(_entry(row, "en"))
+        if row.get("occurrences"):
+            have["occurrences"] = ", ".join(filter(None, [have["occurrences"], row["occurrences"]]))
+        if row.get("plural_source") and not have.get("plural_source"):
+            have["plural_source"] = row["plural_source"]
+    for key in sorted(merged):
+        pot.append(_entry(merged[key], "en"))
     return pot
 
 
@@ -102,19 +135,28 @@ def merge_locale(
     origins: tuple[str, ...] = ("grunt",),
     bench_dir: Path | None = None,
     *,
-    pot: polib.POFile | None = None,
+    rows: list[dict] | None = None,
     drop_obsolete: bool = False,
     dry_run: bool = False,
 ) -> dict:
     """msgmerge: keep existing msgstr, add new empty, mark obsolete removed.
 
+    A metadata-context entry (``meta:User.email``) survives only as an override:
+    its source is still there and its translation differs from the shared
+    context-free one. An empty shared entry is first seeded with the most common
+    translation of its contextual twins, so no translation is lost.
+
     ``added`` / ``removed`` list the ``(msgctxt, msgid)`` keys that this merge
-    adds or newly obsoletes - the part worth reviewing before committing.
-    *drop_obsolete* deletes ``#~`` entries instead of keeping them (git keeps
-    history); *dry_run* computes the result without writing the file.
+    adds or newly obsoletes - the part worth reviewing before committing;
+    ``overrides`` - the contextual entries kept, ``folded`` - how many were
+    merged into their shared entry. *drop_obsolete* deletes ``#~``
+    entries instead of keeping them (git keeps history); *dry_run* computes the
+    result without writing the file.
     """
-    if pot is None:
-        pot = build_pot(origins, bench_dir)
+    if rows is None:
+        rows = extract_all(bench_dir, set(origins))
+    pot = build_pot(rows=rows)
+    live = {(r["context"], r["source"]): r for r in rows if is_shared_context(r["context"])}
     path = po_path(locale)
 
     if path.exists():
@@ -127,6 +169,9 @@ def merge_locale(
             "Plural-Forms": _PLURAL_EXPR.get(plural_form_count(locale), _PLURAL_EXPR[2]),
         }
     before = {_key(e) for e in po if not e.obsolete}
+    contextual = [
+        e for e in po if not e.obsolete and is_shared_context(e.msgctxt) and not e.msgid_plural
+    ]
     po.merge(pot)
     # A hand-added entry can duplicate an existing one; polib keeps both and the
     # second translation silently wins at runtime. Keep the first, report the rest.
@@ -137,6 +182,28 @@ def merge_locale(
             duplicates.append(_key(e))
             po.remove(e)
         seen.add(_key(e))
+
+    shared = {e.msgid: e for e in po if not e.obsolete and not e.msgctxt and not e.msgid_plural}
+    votes: dict[str, Counter] = {}
+    for e in contextual:
+        if e.msgstr and e.msgid in shared:
+            votes.setdefault(e.msgid, Counter())[e.msgstr] += 1
+    for msgid, counter in votes.items():
+        if not shared[msgid].msgstr:
+            shared[msgid].msgstr = counter.most_common(1)[0][0]
+    overrides: list[tuple[str, str]] = []
+    for e in contextual:
+        row = live.get(_key(e))
+        twin = shared.get(e.msgid)
+        if row is not None and e.msgstr and twin is not None and e.msgstr != twin.msgstr:
+            e.obsolete = False
+            e.occurrences = _occurrences(row)
+            overrides.append(_key(e))
+        elif row is not None:
+            po.remove(e)  # same as the shared entry (or empty) - nothing to keep
+    # A stable order: polib appends new entries at the end, so files would drift.
+    po.sort(key=lambda e: (e.obsolete, e.msgctxt or "", e.msgid))
+
     if drop_obsolete:
         for e in po.obsolete_entries():
             po.remove(e)
@@ -150,13 +217,67 @@ def merge_locale(
         "translated": len(po.translated_entries()),
         "obsolete": len(po.obsolete_entries()),
         "added": sorted(after - before),
-        "removed": sorted(before - after),
+        # a contextual entry folded into its shared twin is not "gone from source"
+        "removed": sorted(k for k in before - after if k not in live),
+        "folded": len([k for k in before - after if k in live]),
+        "overrides": sorted(overrides),
         "duplicates": duplicates,
     }
 
 
 def _key(e: polib.POEntry) -> tuple[str, str]:
     return (e.msgctxt or "", e.msgid)
+
+
+_TYPOGRAPHY = str.maketrans(
+    {"…": "...", "—": "-", "–": "-", "’": "'", "‘": "'", "“": '"', "”": '"'}
+)
+
+
+def _similar_key(s: str) -> str:
+    """``Attach a file…`` / ``attach a file`` / ``Attach a file:`` -> one key."""
+    s = s.translate(_TYPOGRAPHY).lower().replace("colour", "color")
+    s = re.sub(r"\s+", " ", s).strip()
+    return re.sub(r"[\s.:!?]+$", "", s)
+
+
+def similar(
+    locale: str = "uk", origins: tuple[str, ...] = ("grunt",), bench_dir: Path | None = None
+) -> list[dict]:
+    """Source strings that differ only by case / trailing punctuation / typography.
+
+    Each group is one term written several ways in the code - unify the source
+    (keep punctuation in the template, not the msgid) and it is translated once.
+    Groups whose translations differ in wording (not just case / punctuation)
+    come first: those show in the UI as two names for one thing.
+    """
+    pot = build_pot(origins, bench_dir)
+    path = po_path(locale)
+    tr: dict[tuple[str, str], str] = {}
+    if path.exists():
+        tr = {_key(e): e.msgstr for e in polib.pofile(str(path)) if not e.obsolete}
+    groups: dict[str, list[polib.POEntry]] = {}
+    for e in pot:
+        # a context written in code (``permission|read``) asks for its own wording
+        if not e.msgid_plural and not e.msgctxt:
+            groups.setdefault(_similar_key(e.msgid), []).append(e)
+    out = []
+    for entries in groups.values():
+        if len(entries) < 2:
+            continue
+        items = [
+            {
+                "context": e.msgctxt or "",
+                "source": e.msgid,
+                "translation": tr.get(_key(e), ""),
+                "files": [path for path, _line in e.occurrences],
+            }
+            for e in entries
+        ]
+        # "Yes" -> «Так» and "yes" -> «так» agree; only a different wording counts
+        wordings = {_similar_key(i["translation"]) for i in items}
+        out.append({"items": items, "translations": len(wordings)})
+    return sorted(out, key=lambda g: (-g["translations"], g["items"][0]["source"].lower()))
 
 
 def coverage(
