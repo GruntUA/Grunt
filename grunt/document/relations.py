@@ -2,6 +2,7 @@
 
 import re
 from datetime import datetime
+from types import SimpleNamespace
 from typing import Any
 from urllib.parse import unquote, urlsplit
 
@@ -21,6 +22,9 @@ lazy from grunt.metadata.doctype import DocType
 # markers render a linked record's color/icon without a separate fetch.
 # See frontend/src/components/fields/Link/ListCell.vue and useMapMarkers.ts.
 _EXTRA_INJECT = ("color", "icon")
+
+# System columns that store the acting user's id, resolved like a Link to User.
+_USER_AUDIT_COLS = ("owner", "modified_by")
 
 # apply_field_values(fill_empty=True): value written for an absent field, by
 # storage class - anything not listed (text columns) gets "".
@@ -69,6 +73,14 @@ async def _resolve_link_labels(
 
     for lf in link_fields:
         await _inject_link_field_labels(session, lf, rows)
+
+    # Audit columns hold a User id (email) - label them like Link fields so a
+    # list column "Created by" / "Last updated by" shows a name and avatar.
+    for fieldname in _USER_AUDIT_COLS:
+        if fieldname in present_keys:
+            await _inject_link_field_labels(
+                session, SimpleNamespace(fieldname=fieldname, options="User"), rows
+            )
 
 
 async def _inject_link_field_labels(

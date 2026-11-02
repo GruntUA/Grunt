@@ -3,7 +3,7 @@ import { useI18n } from 'vue-i18n'
 import { computed, ref, nextTick } from 'vue'
 import { ChevronUp, ChevronDown, ArrowUpDown } from '@lucide/vue'
 import type { DocField, DocTypeStatusConfig, PaginationMeta } from '@/types'
-import type { ListColumn } from '@/core/composables/useListColumns'
+import { systemListFields, type ListColumn } from '@/core/composables/useListColumns'
 import { getListCell } from '@/core/listCellRegistry'
 import { getListInlineTypeSet, getStorageClass, hasTrait } from '@/core/fieldRegistry'
 import { useAuthStore } from '@/stores/auth'
@@ -118,7 +118,7 @@ function cancelEdit() {
 
 const fieldMap = computed(() => {
   const m: Record<string, DocField> = {}
-  props.fields.forEach(f => { m[f.fieldname] = f })
+  for (const f of [...systemListFields(), ...props.fields]) m[f.fieldname] = f
   return m
 })
 

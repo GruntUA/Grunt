@@ -606,7 +606,7 @@ msgid "Apps"
 msgstr ""
 
 #: grunt/grunt/monitoring/health.py:702
-msgid "Apps use apps/grunt/.venv. Delete: %(paths)s"
+msgid "Apps use apps/grunt/.venv. Delete: %(paths)s and add [tool.uv] managed = false to their pyproject.toml"
 msgstr ""
 
 #: grunt/grunt/monitoring/health.py:678
@@ -17821,4 +17821,12 @@ msgstr ""
 msgid ""
 "Another app's field is saved into that app's doctype_ext/ file and leaves "
 "with it."
+msgstr ""
+
+#: grunt/frontend/src/core/composables/useListColumns.ts:23
+msgid "Created by"
+msgstr ""
+
+#: grunt/frontend/src/core/composables/useListColumns.ts:24
+msgid "Last updated by"
 msgstr ""

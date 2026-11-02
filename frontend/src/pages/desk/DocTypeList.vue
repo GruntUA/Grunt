@@ -12,7 +12,7 @@ import { useDocTypeStore } from '@/stores/doctype'
 import { useAuthStore } from '@/stores/auth'
 import { useWebSocket } from '@/core/composables/useWebSocket'
 import { useNotifications } from '@/core/composables/useNotifications'
-import { useListColumns } from '@/core/composables/useListColumns'
+import { systemListFields, useListColumns } from '@/core/composables/useListColumns'
 import { useListViewState } from '@/core/composables/useListViewState'
 import { useListSearch, SEARCH_DEBOUNCE_MS } from '@/core/composables/useListSearch'
 import { useGrouping } from '@/core/composables/useGrouping'
@@ -117,7 +117,11 @@ const {
   count: selectionCount,
 } = useListSelection()
 
-const colState = useListColumns(props.doctype, () => dt.value?.fields ?? [], () => dt.value?.title_field)
+const colState = useListColumns(
+  props.doctype,
+  () => (dt.value ? [...dt.value.fields, ...systemListFields()] : []),
+  () => dt.value?.title_field,
+)
 
 const { data, isLoading, isFetching, meta, rows, exportCtx } = useDocTypeListData({
   doctype: props.doctype,

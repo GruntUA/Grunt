@@ -15598,8 +15598,8 @@ msgid "%(used)s used"
 msgstr "використано %(used)s"
 
 #: grunt/grunt/monitoring/health.py:702
-msgid "Apps use apps/grunt/.venv. Delete: %(paths)s"
-msgstr "Додатки використовують apps/grunt/.venv. Видаліть: %(paths)s"
+msgid "Apps use apps/grunt/.venv. Delete: %(paths)s and add [tool.uv] managed = false to their pyproject.toml"
+msgstr "Додатки використовують apps/grunt/.venv. Видаліть: %(paths)s і додайте [tool.uv] managed = false у їхній pyproject.toml"
 
 #: grunt/grunt/storage/cloud/backups.py:188
 msgid "Backup %(id)s is already on the server"
@@ -18228,6 +18228,14 @@ msgstr ""
 msgctxt "help:AppMenu.color"
 msgid "Empty = derived from the workspace name"
 msgstr ""
+
+#: grunt/frontend/src/core/composables/useListColumns.ts:23
+msgid "Created by"
+msgstr "Автор"
+
+#: grunt/frontend/src/core/composables/useListColumns.ts:24
+msgid "Last updated by"
+msgstr "Хто оновив"
 
 #~ msgid "Search icon…"
 #~ msgstr "Пошук іконки…"

@@ -2,7 +2,7 @@
 import { useI18n } from 'vue-i18n'
 import { computed } from 'vue'
 import type { DocField, DocType, PaginationMeta } from '@/types'
-import type { ListColumn } from '@/core/composables/useListColumns'
+import { systemListFields, type ListColumn } from '@/core/composables/useListColumns'
 import { getListCell } from '@/core/listCellRegistry'
 import { getStorageClass, isChoiceType } from '@/core/fieldRegistry'
 import { resolveStatusBadge, statusConfigOf } from '@/core/status'
@@ -44,7 +44,7 @@ const emit = defineEmits<{
 const MAX_DETAILS = 4
 
 const fieldMap = computed(() =>
-  Object.fromEntries((props.dt?.fields ?? []).map((f) => [f.fieldname, f])),
+  Object.fromEntries([...systemListFields(), ...(props.dt?.fields ?? [])].map((f) => [f.fieldname, f])),
 )
 const statusConfig = computed(() => statusConfigOf(props.dt))
 const statusOf = (row: Record<string, unknown>) => resolveStatusBadge(props.dt, row)

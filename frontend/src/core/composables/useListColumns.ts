@@ -1,6 +1,7 @@
 import { ref, computed } from 'vue'
 import type { DocField } from '@/types'
 import { getNonPhysicalTypeSet } from '@/core/fieldRegistry'
+import i18n from '@/plugins/i18n'
 
 export interface ListColumn {
   key: string
@@ -9,6 +10,22 @@ export interface ListColumn {
 }
 
 const STRUCTURAL = getNonPhysicalTypeSet()
+
+/**
+ * Audit columns every DocType table has. Offered in the column picker after the
+ * DocType's own fields; the API labels owner / modified_by like a Link to User.
+ */
+export function systemListFields(): DocField[] {
+  const t = i18n.global.t
+  const sys = (fieldname: string, label: string, fieldtype: DocField['fieldtype'], options?: string): DocField =>
+    ({ fieldname, label, fieldtype, options, required: false, read_only: true })
+  return [
+    sys('owner', t('Created by'), 'Link', 'User'),
+    sys('modified_by', t('Last updated by'), 'Link', 'User'),
+    sys('created_at', t('Created on'), 'Datetime'),
+    sys('modified_at', t('Last updated'), 'Datetime'),
+  ]
+}
 
 export function useListColumns(doctype: string, fields: () => DocField[], titleField?: () => string | undefined) {
   const storageKey = `grunt_columns_v2_${doctype}`
