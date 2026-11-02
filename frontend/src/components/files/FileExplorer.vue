@@ -108,13 +108,14 @@ function title(node: TreeNode | undefined): string {
   return String(node.display_title || node.folder_name || node.name)
 }
 
-interface NavRow { node: TreeNode; depth: number }
+interface NavRow { node: TreeNode; depth: number; open: boolean }
 const navRows = computed<NavRow[]>(() => {
   const out: NavRow[] = []
   const walk = (parent: string, depth: number) => {
     for (const node of childrenOf.get(parent) ?? []) {
-      out.push({ node, depth })
-      if (expanded.has(node.name)) walk(node.name, depth + 1)
+      const open = expanded.has(node.name)
+      out.push({ node, depth, open })
+      if (open) walk(node.name, depth + 1)
     }
   }
   walk('', 0)
@@ -832,16 +833,16 @@ const ROW = 'grid w-full grid-cols-[minmax(0,1fr)_9rem_5rem_5rem] items-center g
     <div class="flex min-h-0 flex-1">
       <!-- Navigation pane -->
       <nav class="hidden w-56 shrink-0 overflow-y-auto border-r p-1.5 sm:block" :aria-label="t('Folders')">
-        <div v-for="{ node, depth } in navRows" :key="node.name"
+        <div v-for="{ node, depth, open: isOpen } in navRows" :key="node.name"
           class="flex items-center rounded-md hover:bg-accent"
           :class="[current === node.name && 'bg-accent font-medium', dropTarget === node.name && 'ring-2 ring-primary']"
           :style="{ paddingLeft: `${depth * 12}px` }"
           @dragover="onDragOver($event, node.name)" @dragleave="dropTarget = null" @drop="onDrop($event, node.name)">
           <Button variant="ghost" size="icon-xs" class="text-muted-foreground hover:bg-transparent"
             :class="!node.has_children && 'invisible'"
-            :aria-label="expanded.has(node.name) ? t('Collapse') : t('Expand')"
+            :aria-label="isOpen ? t('Collapse') : t('Expand')"
             @click="toggle(node)">
-            <ChevronRight class="transition-transform" :class="expanded.has(node.name) && 'rotate-90'" />
+            <ChevronRight class="transition-transform" :class="isOpen && 'rotate-90'" />
           </Button>
           <button type="button" class="flex min-w-0 flex-1 items-center gap-2 py-1.5 pr-1 text-left" @click="open(node.name)">
             <component

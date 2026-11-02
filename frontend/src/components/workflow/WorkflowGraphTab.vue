@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { ref, computed, nextTick, watch, useId } from 'vue'
+import { ref, shallowRef, computed, nextTick, watch, useId } from 'vue'
 import { VueFlow, useVueFlow, Position, MarkerType } from '@vue-flow/core'
 import { Controls } from '@vue-flow/controls'
 import { Background } from '@vue-flow/background'
@@ -97,8 +97,8 @@ const selectedTransition = computed(() =>
 
 const { getNodes, fitView } = useVueFlow({ id: 'workflow-graph-tab' })
 
-const flowNodes = ref<Node[]>([])
-const flowEdges = ref<Edge[]>([])
+const flowNodes = shallowRef<Node[]>([])
+const flowEdges = shallowRef<Edge[]>([])
 
 function resolvePosition(stateValue: string, idx: number): { x: number; y: number } {
   const existing = getNodes.value.find(n => n.id === stateValue)
