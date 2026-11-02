@@ -14,9 +14,9 @@ so a translator (or the Translate app) can target a specific field:
     record:<DocType>.<fieldname>  -> the value of a ``translatable`` text field in
                                      a standard record (see :func:`translate_record`)
 
-label / description / placeholder each get their own context so they never share
-a row in the Translate registry. ``pgettext`` also falls back to a context-free
-translation of the same string, so a term needs translating only once.
+``pgettext`` falls back to a context-free translation of the same string, so a
+term is translated once (see :data:`SHARED_CONTEXTS`); a context is there to
+*override* it for one field (``Active`` -> «Активна»).
 """
 
 from typing import Any
@@ -27,6 +27,16 @@ lazy import grunt
 
 # Types whose value is picked from ``options`` - their choices get translated.
 SELECT_FIELDTYPES = fieldtypes_with("options")
+
+#: Metadata contexts translated through one shared context-free entry: the PO
+#: catalogs (grunt.i18n.po) and the Translate registry keep a contextual row only
+#: as an override whose translation differs.
+SHARED_CONTEXTS = ("meta", "help", "hint", "select", "status", "record")
+
+
+def is_shared_context(ctx: str | None) -> bool:
+    prefix, sep, _ = (ctx or "").partition(":")
+    return bool(sep) and prefix in SHARED_CONTEXTS
 
 
 def _tr(ctx: str, text: Any, lang: str) -> Any:

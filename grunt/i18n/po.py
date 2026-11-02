@@ -22,6 +22,7 @@ from pathlib import Path
 import polib
 
 from grunt.i18n.extract import extract_all
+from grunt.i18n.meta import is_shared_context
 from grunt.i18n.plurals import plural_form_count
 
 _LOCALE_DIR = Path(__file__).parent / "locales"
@@ -30,15 +31,6 @@ _GRUNT_PKG = Path(__file__).parent.parent  # …/grunt
 #: Language the framework's source strings are written in. Its "coverage" is
 #: really the flip progress (how many msgids are already English).
 SOURCE_LOCALE = "en"
-
-
-#: Metadata contexts (see grunt.i18n.meta) shared through one context-free entry.
-SHARED_CONTEXTS = ("meta", "help", "hint", "select", "status", "record")
-
-
-def is_shared_context(ctx: str | None) -> bool:
-    prefix, sep, _ = (ctx or "").partition(":")
-    return bool(sep) and prefix in SHARED_CONTEXTS
 
 
 def _has_cyrillic(s: str) -> bool:
