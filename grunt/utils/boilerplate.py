@@ -272,6 +272,10 @@ def _write_pyproject(app_dir: Path, module: str, h: dict) -> None:
         f"title = {q(h['title'])}\n"
         "depends_on = []\n"
         f"{modules}\n"
+        "# Installed into apps/grunt/.venv by `grunt app deps`: uv must not create\n"
+        "# a .venv or uv.lock here (`uv run` in this folder would).\n"
+        "[tool.uv]\n"
+        "managed = false\n\n"
         "[tool.hatch.version]\n"
         'source = "vcs"\n'
         'raw-options = { fallback_version = "0.0.0" }\n\n'

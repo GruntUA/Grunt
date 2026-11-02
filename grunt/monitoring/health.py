@@ -702,7 +702,10 @@ def stray_venvs_row(apps_dir: Path) -> Row:
         _("Separate app environments"),
         WARNING if stray else OK,
         ", ".join(stray) if stray else _("none"),
-        _("Apps use apps/grunt/.venv. Delete: %(paths)s")
+        _(
+            "Apps use apps/grunt/.venv. Delete: %(paths)s and add "
+            "[tool.uv] managed = false to their pyproject.toml"
+        )
         % {"paths": " ".join(f"apps/{name}/.venv" for name in stray)}
         if stray
         else "",

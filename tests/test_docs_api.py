@@ -560,6 +560,20 @@ async def test_get_list_link_label_falls_back_to_raw_id_for_dangling_link(ctx, l
 
 
 @pytest.mark.asyncio
+async def test_get_list_labels_owner_and_modified_by_like_user_links(ctx, link_label_doctypes):
+    """owner / modified_by get a User __label (full name, else the email) for list columns."""
+    await ctx.new_doc("LinkLabelSource", {"target": "x"})
+    await ctx.db._session().commit()
+
+    rows = await ctx.get_list("LinkLabelSource", fields=["owner", "modified_by"])
+    row = rows[0]
+    users = await ctx.get_list("User", filters={"name": row["owner"]}, fields=["full_name"])
+    expected = (users[0].get("full_name") if users else None) or row["owner"]
+    assert row["owner__label"] == expected
+    assert row["modified_by__label"] == expected
+
+
+@pytest.mark.asyncio
 async def test_rename_document_cascades_to_link_fields(ctx, link_label_doctypes):
     """rename_doc updates the main row and every Link field pointing at it."""
     target = await ctx.new_doc("LinkLabelTarget", {"title": "Widget"})
