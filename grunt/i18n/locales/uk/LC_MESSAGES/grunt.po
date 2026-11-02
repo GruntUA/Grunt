@@ -3058,6 +3058,7 @@ msgstr "Сповіщення"
 msgid "Open {doctype}"
 msgstr "Відкрити {doctype}"
 
+#: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
 #: grunt/frontend/src/components/layout/CommandPalette.vue
 #: grunt/frontend/src/pages/studio/builder/PropertiesPanel.vue
 msgid "Other"
@@ -16287,10 +16288,6 @@ msgstr "Ви вже залишили таку реакцію"
 msgid "Comment not found"
 msgstr "Коментар не знайдено"
 
-#: grunt/frontend/src/components/views/sidebar/SidebarTags.vue:76
-msgid "No tags"
-msgstr "Без тегів"
-
 #: grunt/frontend/src/components/desk/OnboardingChecklists.vue
 msgid "All set - every step is done."
 msgstr "Готово - усі кроки виконано."
@@ -17730,7 +17727,7 @@ msgstr "Скинути до типових"
 
 #: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
 msgid "Checked"
-msgstr ""
+msgstr "Перевірено"
 
 #: grunt/grunt/monitoring/health.py
 msgid "Chromium (Playwright)"
@@ -17738,15 +17735,15 @@ msgstr "Chromium (Playwright)"
 
 #: grunt/frontend/src/components/fields/Icon/Icon.vue
 msgid "Icon categories"
-msgstr ""
+msgstr "Категорії іконок"
 
 #: grunt/frontend/src/components/views/form/FormDashboard.vue
 msgid "Less"
-msgstr ""
+msgstr "Менше"
 
 #: grunt/frontend/src/components/fields/Icon/Icon.vue
 msgid "No icons found"
-msgstr ""
+msgstr "Іконок не знайдено"
 
 #: grunt/grunt/monitoring/health.py
 msgid ""
@@ -17761,81 +17758,31 @@ msgstr ""
 
 #: grunt/frontend/src/components/fields/Icon/Icon.vue
 msgid "Results"
-msgstr ""
+msgstr "Результати"
 
 #: grunt/frontend/src/components/fields/Icon/Icon.vue
 msgid "Search icons…"
-msgstr ""
+msgstr "Пошук іконок…"
 
 #: grunt/frontend/src/core/scripting/types.ts
 msgid "Sign"
-msgstr ""
+msgstr "Підписати"
 
 #: grunt/frontend/src/components/fields/Icon/Icon.vue
 msgid "Type to search all {n} icons"
-msgstr ""
+msgstr "Почніть вводити, щоб шукати серед усіх {n} іконок"
 
 #: grunt/frontend/src/components/fields/Duration/PropertySection.vue
 msgid "Unit"
-msgstr ""
+msgstr "Одиниця"
 
 #: grunt/grunt/monitoring/health.py
 msgid "running in process %(process)s"
-msgstr ""
+msgstr "працює в процесі %(process)s"
 
 #: grunt/grunt/monitoring/health.py
 msgid "running in this process, %(count)s jobs"
-msgstr ""
-
-#: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
-msgid "Індекс готовності системи"
-msgstr ""
-
-#: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
-msgid "Інше"
-msgstr ""
-
-#: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
-msgid ""
-"Всі компоненти системи працюють у штатному режимі. Помилок чи зауважень "
-"немає."
-msgstr ""
-
-#: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
-msgid "Добре"
-msgstr ""
-
-#: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
-msgid "Зауваження"
-msgstr ""
-
-#: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
-msgid "Пов’язані системні журнали"
-msgstr ""
-
-#: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
-msgid "Попередження"
-msgstr ""
-
-#: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
-msgid "Проблеми"
-msgstr ""
-
-#: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
-msgid "Результати перевірок за категоріями"
-msgstr ""
-
-#: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
-msgid ""
-"Система функціонує, але виявлено {count} попереджень. Рекомендовано "
-"переглянути перевірки."
-msgstr ""
-
-#: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
-msgid ""
-"Увага: у системі виявлено критичні проблеми ({count}), що потребують "
-"втручання адміністратора."
-msgstr ""
+msgstr "працює в цьому процесі, завдань: %(count)s"
 
 #: grunt/grunt/tasks/doctypes/ScheduledJobLog/ScheduledJobLog.json
 msgctxt "help:ScheduledJobLog"
@@ -17843,6 +17790,9 @@ msgid ""
 "One row per scheduled job run - framework tasks, app scheduler_events and "
 "Scheduler Event server scripts. Old entries are deleted automatically."
 msgstr ""
+"Один рядок на кожен запуск запланованого завдання — задачі фреймворку, "
+"scheduler_events додатків і серверні скрипти Scheduler Event. Старі записи "
+"видаляються автоматично."
 
 #: grunt/grunt/tasks/doctypes/BackgroundJob/BackgroundJob.json
 msgctxt "meta:BackgroundJob.idle_ms"
@@ -17852,12 +17802,12 @@ msgstr "Без підтвердження"
 #: grunt/grunt/storage/doctypes/File/File.json
 msgctxt "meta:File.file_size"
 msgid "Size"
-msgstr ""
+msgstr "Розмір"
 
 #: grunt/grunt/site/doctypes/AppMenu/AppMenu.json
 msgctxt "help:AppMenu.color"
 msgid "Empty = derived from the workspace name"
-msgstr ""
+msgstr "Порожньо — визначається з назви робочого простору"
 
 #: grunt/frontend/src/core/composables/useListColumns.ts
 msgid "Created by"
@@ -18028,16 +17978,17 @@ msgid "Check"
 msgstr "Перевірка"
 
 #: grunt/grunt/monitoring/health.py
+#: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
 msgid "Good"
 msgstr "Добре"
 
 #: grunt/grunt/monitoring/health.py
 msgid "Largest tables"
-msgstr ""
+msgstr "Найбільші таблиці"
 
 #: grunt/grunt/monitoring/health.py
 msgid "Most frequent errors (7 days)"
-msgstr ""
+msgstr "Найчастіші помилки (7 днів)"
 
 #: grunt/grunt/monitoring/health.py
 msgid "Problem"
@@ -18069,7 +18020,90 @@ msgstr "Перевірки"
 #: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.json
 msgctxt "meta:SystemHealthReport.sections"
 msgid "Sections"
+msgstr "Розділи"
+
+#: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
+msgid "All system components are working normally. No errors or warnings."
 msgstr ""
+"Всі компоненти системи працюють у штатному режимі. Помилок чи зауважень "
+"немає."
+
+#: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
+msgid ""
+"Attention: critical problems found ({count}) that need an administrator."
+msgstr ""
+"Увага: у системі виявлено критичні проблеми ({count}), що потребують "
+"втручання адміністратора."
+
+#: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
+msgid "Check results by category"
+msgstr "Результати перевірок за категоріями"
+
+#: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
+msgid "Issues"
+msgstr "Зауваження"
+
+#: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
+msgid "Problems"
+msgstr "Проблеми"
+
+#: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
+msgid "Related system logs"
+msgstr "Пов’язані системні журнали"
+
+#: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
+msgid "System readiness score"
+msgstr "Індекс готовності системи"
+
+#: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
+msgid ""
+"The system is running, but {count} warnings were found. Review the checks."
+msgstr ""
+"Система функціонує, але виявлено {count} попереджень. Рекомендовано "
+"переглянути перевірки."
+
+#: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
+msgid "Warnings"
+msgstr "Попередження"
+
+#~ msgid "Індекс готовності системи"
+#~ msgstr ""
+
+#~ msgid "Інше"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "Всі компоненти системи працюють у штатному режимі. Помилок чи зауважень "
+#~ "немає."
+#~ msgstr ""
+
+#~ msgid "Добре"
+#~ msgstr ""
+
+#~ msgid "Зауваження"
+#~ msgstr ""
+
+#~ msgid "Пов’язані системні журнали"
+#~ msgstr ""
+
+#~ msgid "Попередження"
+#~ msgstr ""
+
+#~ msgid "Проблеми"
+#~ msgstr ""
+
+#~ msgid "Результати перевірок за категоріями"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "Система функціонує, але виявлено {count} попереджень. Рекомендовано "
+#~ "переглянути перевірки."
+#~ msgstr ""
+
+#~ msgid ""
+#~ "Увага: у системі виявлено критичні проблеми ({count}), що потребують "
+#~ "втручання адміністратора."
+#~ msgstr ""
 
 #~ msgctxt "select:SystemHealthCheck.status"
 #~ msgid "Error"

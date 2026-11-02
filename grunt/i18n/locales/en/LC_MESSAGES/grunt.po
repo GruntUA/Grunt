@@ -843,6 +843,7 @@ msgstr ""
 msgid "Open {doctype}"
 msgstr ""
 
+#: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
 #: grunt/frontend/src/components/layout/CommandPalette.vue
 #: grunt/frontend/src/pages/studio/builder/PropertiesPanel.vue
 msgid "Other"
@@ -14942,10 +14943,6 @@ msgstr ""
 msgid "No tags"
 msgstr ""
 
-#: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
-msgid "Інше"
-msgstr "Other"
-
 #: grunt/frontend/src/core/composables/useWebPush.ts
 #: grunt/frontend/src/components/layout/NotificationsPopover.vue
 msgid "Notifications are blocked in the browser settings for this site"
@@ -15514,6 +15511,7 @@ msgid "Go home"
 msgstr ""
 
 #: grunt/grunt/monitoring/health.py
+#: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
 msgid "Good"
 msgstr ""
 
@@ -16137,52 +16135,6 @@ msgid "{n} row needs attention"
 msgid_plural "{n} rows need attention"
 msgstr[0] ""
 msgstr[1] ""
-
-#: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
-msgid "Індекс готовності системи"
-msgstr ""
-
-#: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
-msgid ""
-"Всі компоненти системи працюють у штатному режимі. Помилок чи зауважень "
-"немає."
-msgstr ""
-
-#: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
-msgid "Добре"
-msgstr ""
-
-#: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
-msgid "Зауваження"
-msgstr ""
-
-#: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
-msgid "Пов’язані системні журнали"
-msgstr ""
-
-#: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
-msgid "Попередження"
-msgstr ""
-
-#: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
-msgid "Проблеми"
-msgstr ""
-
-#: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
-msgid "Результати перевірок за категоріями"
-msgstr ""
-
-#: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
-msgid ""
-"Система функціонує, але виявлено {count} попереджень. Рекомендовано "
-"переглянути перевірки."
-msgstr ""
-
-#: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
-msgid ""
-"Увага: у системі виявлено критичні проблеми ({count}), що потребують "
-"втручання адміністратора."
-msgstr ""
 
 #: grunt/grunt/site/doctypes/AppMenu/AppMenu.json
 msgctxt "help:AppMenu.color"
@@ -17585,6 +17537,83 @@ msgstr ""
 msgctxt "select:StorageRemote.provider"
 msgid "WebDAV"
 msgstr ""
+
+#: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
+msgid "All system components are working normally. No errors or warnings."
+msgstr ""
+
+#: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
+msgid ""
+"Attention: critical problems found ({count}) that need an administrator."
+msgstr ""
+
+#: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
+msgid "Check results by category"
+msgstr ""
+
+#: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
+msgid "Issues"
+msgstr ""
+
+#: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
+msgid "Problems"
+msgstr ""
+
+#: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
+msgid "Related system logs"
+msgstr ""
+
+#: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
+msgid "System readiness score"
+msgstr ""
+
+#: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
+msgid ""
+"The system is running, but {count} warnings were found. Review the checks."
+msgstr ""
+
+#: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
+msgid "Warnings"
+msgstr ""
+
+#~ msgid "Інше"
+#~ msgstr "Other"
+
+#~ msgid "Індекс готовності системи"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "Всі компоненти системи працюють у штатному режимі. Помилок чи зауважень "
+#~ "немає."
+#~ msgstr ""
+
+#~ msgid "Добре"
+#~ msgstr ""
+
+#~ msgid "Зауваження"
+#~ msgstr ""
+
+#~ msgid "Пов’язані системні журнали"
+#~ msgstr ""
+
+#~ msgid "Попередження"
+#~ msgstr ""
+
+#~ msgid "Проблеми"
+#~ msgstr ""
+
+#~ msgid "Результати перевірок за категоріями"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "Система функціонує, але виявлено {count} попереджень. Рекомендовано "
+#~ "переглянути перевірки."
+#~ msgstr ""
+
+#~ msgid ""
+#~ "Увага: у системі виявлено критичні проблеми ({count}), що потребують "
+#~ "втручання адміністратора."
+#~ msgstr ""
 
 #~ msgid "Search icon…"
 #~ msgstr ""

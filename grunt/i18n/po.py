@@ -128,6 +128,15 @@ def merge_locale(
         }
     before = {_key(e) for e in po if not e.obsolete}
     po.merge(pot)
+    # A hand-added entry can duplicate an existing one; polib keeps both and the
+    # second translation silently wins at runtime. Keep the first, report the rest.
+    seen: set[tuple[str, str]] = set()
+    duplicates: list[tuple[str, str]] = []
+    for e in [e for e in po if not e.obsolete]:
+        if _key(e) in seen:
+            duplicates.append(_key(e))
+            po.remove(e)
+        seen.add(_key(e))
     if drop_obsolete:
         for e in po.obsolete_entries():
             po.remove(e)
@@ -142,6 +151,7 @@ def merge_locale(
         "obsolete": len(po.obsolete_entries()),
         "added": sorted(after - before),
         "removed": sorted(before - after),
+        "duplicates": duplicates,
     }
 
 

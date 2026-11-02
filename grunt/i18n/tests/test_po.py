@@ -94,6 +94,21 @@ def test_merge_locale_dry_run_and_drop_obsolete(bench, locale_dir):
     assert not polib.pofile(str(p)).obsolete_entries()
 
 
+def test_merge_locale_drops_duplicate_entries(bench, locale_dir):
+    p = po.po_path("uk")
+    p.parent.mkdir(parents=True, exist_ok=True)
+    pf = polib.POFile(check_for_duplicates=False)
+    pf.append(polib.POEntry(msgid="Save changes", msgstr="Зберегти зміни"))
+    pf.append(polib.POEntry(msgid="Save changes", msgstr="Зберегти"))
+    pf.save(str(p))
+
+    r = po.merge_locale("uk", bench_dir=bench)
+
+    kept = [e for e in polib.pofile(str(p)) if e.msgid == "Save changes"]
+    assert [e.msgstr for e in kept] == ["Зберегти зміни"]
+    assert r["duplicates"] == [("", "Save changes")]
+
+
 def test_pot_references_are_file_only(bench):
     (bench / "apps" / "grunt" / "grunt" / "svc.py").write_text(
         'from grunt.i18n import _\n_("Save changes")\n\n_("Save changes")\n'

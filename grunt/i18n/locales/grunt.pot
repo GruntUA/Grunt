@@ -490,6 +490,10 @@ msgstr ""
 msgid "All synced"
 msgstr ""
 
+#: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
+msgid "All system components are working normally. No errors or warnings."
+msgstr ""
+
 #: grunt/grunt/metadata/widget.py
 msgid "All time"
 msgstr ""
@@ -696,6 +700,11 @@ msgstr ""
 
 #: grunt/frontend/src/components/files/FileExplorer.vue
 msgid "Attach as a link"
+msgstr ""
+
+#: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
+msgid ""
+"Attention: critical problems found ({count}) that need an administrator."
 msgstr ""
 
 #: grunt/frontend/src/components/dashboard/widgets/Calendar/Calendar.vue
@@ -1126,6 +1135,10 @@ msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
 msgid "Check again"
+msgstr ""
+
+#: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
+msgid "Check results by category"
 msgstr ""
 
 #: grunt/frontend/src/core/browserHealth.ts
@@ -3063,6 +3076,7 @@ msgid "Go to the app"
 msgstr ""
 
 #: grunt/grunt/monitoring/health.py
+#: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
 msgid "Good"
 msgstr ""
 
@@ -3542,6 +3556,10 @@ msgstr ""
 
 #: grunt/frontend/src/components/views/FilterBar.vue
 msgid "Is set"
+msgstr ""
+
+#: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
+msgid "Issues"
 msgstr ""
 
 #: grunt/grunt/monitoring/health.py
@@ -4776,6 +4794,7 @@ msgstr ""
 msgid "Original size"
 msgstr ""
 
+#: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
 #: grunt/frontend/src/components/layout/CommandPalette.vue
 #: grunt/frontend/src/pages/studio/builder/PropertiesPanel.vue
 msgid "Other"
@@ -5065,6 +5084,10 @@ msgstr ""
 msgid "Problem"
 msgstr ""
 
+#: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
+msgid "Problems"
+msgstr ""
+
 #: grunt/grunt/io/doctypes/DataImport/DataImport.js
 msgid "Processed:"
 msgstr ""
@@ -5297,6 +5320,10 @@ msgstr ""
 
 #: grunt/frontend/src/components/layout/OfflineQueueSheet.vue
 msgid "Rejected"
+msgstr ""
+
+#: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
+msgid "Related system logs"
 msgstr ""
 
 #: grunt/frontend/src/core/browserHealth.ts
@@ -6473,6 +6500,10 @@ msgstr ""
 msgid "System field"
 msgstr ""
 
+#: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
+msgid "System readiness score"
+msgstr ""
+
 #: grunt/frontend/src/components/layout/CommandPalette.vue
 msgid "System settings"
 msgstr ""
@@ -6951,6 +6982,11 @@ msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/SystemHealthReport/system_health_report.py
 msgid "The system health report is read-only"
+msgstr ""
+
+#: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
+msgid ""
+"The system is running, but {count} warnings were found. Review the checks."
 msgstr ""
 
 #: grunt/grunt/api/v1/meta.py
@@ -7610,6 +7646,10 @@ msgstr ""
 #: grunt/grunt/monitoring/health.py
 #: grunt/frontend/src/core/composables/useToast.ts
 msgid "Warning"
+msgstr ""
+
+#: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
+msgid "Warnings"
 msgstr ""
 
 #: grunt/frontend/src/components/desk/OnboardingChecklists.vue
@@ -8651,56 +8691,6 @@ msgstr ""
 
 #: grunt/frontend/src/components/desk/TaskProgressPanel.vue
 msgid "~{n} min"
-msgstr ""
-
-#: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
-msgid "Індекс готовності системи"
-msgstr ""
-
-#: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
-msgid "Інше"
-msgstr ""
-
-#: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
-msgid ""
-"Всі компоненти системи працюють у штатному режимі. Помилок чи зауважень "
-"немає."
-msgstr ""
-
-#: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
-msgid "Добре"
-msgstr ""
-
-#: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
-msgid "Зауваження"
-msgstr ""
-
-#: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
-msgid "Пов’язані системні журнали"
-msgstr ""
-
-#: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
-msgid "Попередження"
-msgstr ""
-
-#: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
-msgid "Проблеми"
-msgstr ""
-
-#: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
-msgid "Результати перевірок за категоріями"
-msgstr ""
-
-#: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
-msgid ""
-"Система функціонує, але виявлено {count} попереджень. Рекомендовано "
-"переглянути перевірки."
-msgstr ""
-
-#: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
-msgid ""
-"Увага: у системі виявлено критичні проблеми ({count}), що потребують "
-"втручання адміністратора."
 msgstr ""
 
 #: grunt/frontend/src/components/dashboard/sections/ActivityFilterSection.vue

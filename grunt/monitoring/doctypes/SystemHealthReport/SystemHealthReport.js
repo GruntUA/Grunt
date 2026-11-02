@@ -107,25 +107,25 @@ function _renderDashboard(frm) {
         )
     } else if (err > 0) {
         frm.dashboard.set_headline(
-            __('Увага: у системі виявлено критичні проблеми ({count}), що потребують втручання адміністратора.', { count: err }),
+            __('Attention: critical problems found ({count}) that need an administrator.', { count: err }),
             'red'
         )
     } else if (warn > 0) {
         frm.dashboard.set_headline(
-            __('Система функціонує, але виявлено {count} попереджень. Рекомендовано переглянути перевірки.', { count: warn }),
+            __('The system is running, but {count} warnings were found. Review the checks.', { count: warn }),
             'orange'
         )
     } else {
         frm.dashboard.set_headline(
-            __('Всі компоненти системи працюють у штатному режимі. Помилок чи зауважень немає.'),
+            __('All system components are working normally. No errors or warnings.'),
             'green'
         )
     }
 
     // 2. Stat indicators
-    frm.dashboard.add_indicator(`${__('Добре')}: ${ok}`, 'green')
-    frm.dashboard.add_indicator(`${__('Попередження')}: ${warn}`, warn > 0 ? 'orange' : 'gray')
-    frm.dashboard.add_indicator(`${__('Проблеми')}: ${err}`, err > 0 ? 'red' : 'gray')
+    frm.dashboard.add_indicator(`${__('Good')}: ${ok}`, 'green')
+    frm.dashboard.add_indicator(`${__('Warnings')}: ${warn}`, warn > 0 ? 'orange' : 'gray')
+    frm.dashboard.add_indicator(`${__('Problems')}: ${err}`, err > 0 ? 'red' : 'gray')
     if (frm.doc.checked_at) {
         frm.dashboard.add_indicator(`${__('Checked')}: ${new Date(frm.doc.checked_at).toLocaleString()}`, 'gray')
     }
@@ -136,11 +136,11 @@ function _renderDashboard(frm) {
     const errPct = Math.max(0, 100 - okPct - warnPct)
 
     frm.dashboard.add_progress(
-        __('Індекс готовності системи'),
+        __('System readiness score'),
         [
-            { title: __('Добре'), width: okPct, color: 'green' },
-            { title: __('Попередження'), width: warnPct, color: 'orange' },
-            { title: __('Проблеми'), width: errPct, color: 'red' },
+            { title: __('Good'), width: okPct, color: 'green' },
+            { title: __('Warnings'), width: warnPct, color: 'orange' },
+            { title: __('Problems'), width: errPct, color: 'red' },
         ],
         `${ok}/${total} (${okPct}%)`
     )
@@ -149,7 +149,7 @@ function _renderDashboard(frm) {
     if (checks.length) {
         const catMap = new Map()
         for (const c of checks) {
-            const cat = c.category || __('Інше')
+            const cat = c.category || __('Other')
             if (!catMap.has(cat)) catMap.set(cat, { ok: 0, issues: 0 })
             const entry = catMap.get(cat)
             if (c.status === 'OK') entry.ok += 1
@@ -180,14 +180,14 @@ function _renderDashboard(frm) {
 
         if (topCats.length) {
             frm.dashboard.render_graph({
-                title: __('Результати перевірок за категоріями'),
+                title: __('Check results by category'),
                 type: 'bar',
                 colors: ['#10b981', '#f59e0b'],
                 data: {
                     labels: topCats.map(([cat]) => shortCat(cat)),
                     datasets: [
-                        { name: __('Добре'), values: topCats.map(([, stats]) => stats.ok) },
-                        { name: __('Зауваження'), values: topCats.map(([, stats]) => stats.issues) },
+                        { name: __('Good'), values: topCats.map(([, stats]) => stats.ok) },
+                        { name: __('Issues'), values: topCats.map(([, stats]) => stats.issues) },
                     ],
                 },
             })
@@ -196,7 +196,7 @@ function _renderDashboard(frm) {
 
     // 5. Related system DocTypes
     frm.dashboard.add_transactions({
-        label: __('Пов’язані системні журнали'),
+        label: __('Related system logs'),
         items: ['ErrorLog', 'BackgroundJob', 'ScheduledJob', 'ActivityLog'],
     })
 }

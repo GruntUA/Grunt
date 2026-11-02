@@ -52,6 +52,8 @@ def extract_cmd(locales: tuple[str, ...], dry_run: bool, no_obsolete: bool, verb
         obsolete = f", {r['obsolete']} obsolete" if r["obsolete"] else ""
         click.echo(f"  {loc:6} {r['translated']}/{r['total']} translated{obsolete} → {r['path']}")
         click.echo(f"         +{len(r['added'])} new, -{len(r['removed'])} no longer in source")
+        for ctx, msg in r["duplicates"]:
+            click.echo(f"      ! duplicate dropped (kept the first): {(ctx or '—')} {msg[:70]}")
         if dry_run or verbose:
             for sign, keys in (("+", r["added"]), ("-", r["removed"])):
                 for ctx, msg in keys[:limit]:
