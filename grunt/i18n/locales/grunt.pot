@@ -9356,9 +9356,7 @@ msgid "Run `grunt app deps`. Missing:"
 msgstr ""
 
 #: grunt/grunt/monitoring/updates.py
-msgid ""
-"Run `grunt update --upgrade-packages` - it updates the lock files; then "
-"commit them."
+msgid "Run `grunt upgrade` - it updates the lock files; then commit them."
 msgstr ""
 
 #: grunt/grunt/monitoring/updates.py

@@ -131,7 +131,7 @@ def app_deps(names: tuple[str, ...], upgrade: bool, outdated: bool):
     Clones the missing ``depends_on`` apps (from their ``url``), then installs
     apps/<app>/pyproject.toml packages. Without arguments, all apps. Runs after
     the framework's `uv sync` (so `grunt update` brings new dependencies in).
-    With --upgrade (`grunt update --upgrade-packages`), the packages not pinned
+    With --upgrade (`grunt upgrade`), the packages not pinned
     by the framework's uv.lock go to their newest versions.
     """
 

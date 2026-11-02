@@ -9685,12 +9685,8 @@ msgid "Run `grunt app deps`. Missing:"
 msgstr "Виконайте `grunt app deps`. Бракує:"
 
 #: grunt/grunt/monitoring/updates.py
-msgid ""
-"Run `grunt update --upgrade-packages` - it updates the lock files; then "
-"commit them."
-msgstr ""
-"Запустіть `grunt update --upgrade-packages` — він оновить lock-файли; потім "
-"закомітьте їх."
+msgid "Run `grunt upgrade` - it updates the lock files; then commit them."
+msgstr "Запустіть `grunt upgrade` — він оновить lock-файли; потім закомітьте їх."
 
 #: grunt/grunt/monitoring/updates.py
 msgid "Run `grunt update`."
