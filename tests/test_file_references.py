@@ -1,6 +1,7 @@
 """Pending uploads (``attached_to_doctype`` set, no id yet) are bound to the
 document on save when one of its Attach / Image / RichText fields points at
-them; library files and other DocTypes' uploads are left alone."""
+them, and so are the user's own library files attached to nothing; other
+DocTypes' uploads are left alone."""
 
 from urllib.parse import parse_qs, urlparse
 
@@ -86,8 +87,10 @@ async def test_save_claims_referenced_pending_uploads(ctx, client, auth_headers)
     assert await _attached_to(client, auth_headers, cover_id) == ("FileRefArticle", page)
     # Not referenced → still pending.
     assert (await _attached_to(client, auth_headers, stray_id))[1] in (None, "")
-    # Library file and another DocType's pending upload are only referenced.
-    assert (await _attached_to(client, auth_headers, lib_id)) in ((None, None), ("", ""))
+    # The user's own unattached library file is claimed too - its readers are
+    # the document's readers now.
+    assert await _attached_to(client, auth_headers, lib_id) == ("FileRefArticle", page)
+    # Another DocType's pending upload is only referenced.
     assert (await _attached_to(client, auth_headers, other_id))[1] in (None, "")
 
     # A later edit claims newly referenced pending uploads too.

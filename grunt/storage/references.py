@@ -8,8 +8,11 @@ saved, every pending file of that DocType that one of its file-bearing fields
 it, so the file shows among the document's attachments and inherits its
 permissions.
 
-Only the saving user's own pending uploads are claimed: library files, files
-of another document and someone else's uploads are merely *referenced*.
+The saving user's own library files that are attached to nothing are claimed
+the same way (they stay in their folder): otherwise a file picked from one's
+library into a letter would stay private to the uploader, and the letter's
+readers would get a link they can't open. Files of another document, another
+DocType's pending uploads and someone else's files are merely *referenced*.
 
 A DocType with ``public_attachments`` is website content: linking a file from
 it publishes the file - every referenced file the saving user can read becomes
@@ -84,6 +87,17 @@ async def claim_referenced_files(**kwargs: Any) -> None:
             "uploaded_by": email,
         },
         {"attached_to_id": str(doc["name"])},
+    )
+    # The user's own library files that no document holds yet.
+    claimed += await grunt.db.bulk_update(
+        "File",
+        {
+            "name__in": sorted(ids),
+            "attached_to_doctype__is": "not set",
+            "attached_to_id__is": "not set",
+            "uploaded_by": email,
+        },
+        {"attached_to_doctype": doctype, "attached_to_id": str(doc["name"])},
     )
     if claimed:
         log.debug("storage.files_claimed", doctype=doctype, doc_id=doc["name"], count=claimed)

@@ -15,6 +15,7 @@ from sqlalchemy.ext.asyncio import (
 from grunt.config import settings
 from grunt.db.session import get_engine as _get_engine_dep
 from grunt.db.session import get_session
+from grunt.document.serde import to_json
 from grunt.main import app
 from grunt.metadata.compiler import SA_METADATA, compile_doctype_to_table, get_compiled_metadata
 from grunt.metadata.registry import doctype_registry
@@ -39,7 +40,7 @@ _TEST_SITE = "__pytest__"
 
 TEST_DB_URL = os.environ.get("TEST_DATABASE_URL", "sqlite+aiosqlite://")
 
-test_engine = create_async_engine(TEST_DB_URL, echo=False)
+test_engine = create_async_engine(TEST_DB_URL, echo=False, json_serializer=to_json)
 TestSessionLocal = async_sessionmaker(test_engine, class_=AsyncSession, expire_on_commit=False)
 
 
