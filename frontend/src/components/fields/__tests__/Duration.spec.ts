@@ -22,12 +22,10 @@ function mountDuration(modelValue: number | null, extra: Partial<DocField> = {})
   return w
 }
 
-/** Presses the −/+ button of segment `i` (d, h, min, s[, ms]). */
-async function press(w: VueWrapper, i: number, slot: 'increment' | 'decrement') {
+/** Presses ArrowUp/ArrowDown in segment `i` (d, h, min, s[, ms]). */
+async function press(w: VueWrapper, i: number, key: 'ArrowUp' | 'ArrowDown') {
   await flushPromises()
-  const btn = w.findAll(`[data-slot="${slot}"]`)[i]!
-  await btn.trigger('pointerdown')
-  await btn.trigger('pointerup')
+  await w.findAll('input')[i]!.trigger('keydown', { key })
   await flushPromises()
 }
 const emitted = (w: VueWrapper) => w.emitted('update:modelValue')?.at(-1)?.[0]
@@ -39,21 +37,21 @@ describe('Duration field', () => {
     expect(inputs).toEqual(['0', '2', '30', '0'])
   })
 
-  it('+ adds one unit to the total', async () => {
+  it('ArrowUp adds one unit to the total', async () => {
     const w = mountDuration(9000)
-    await press(w, 2, 'increment') // minutes
+    await press(w, 2, 'ArrowUp') // minutes
     expect(emitted(w)).toBe(9060)
   })
 
-  it('− borrows from the larger unit', async () => {
+  it('ArrowDown borrows from the larger unit', async () => {
     const w = mountDuration(3600) // 1 h 0 min
-    await press(w, 2, 'decrement')
+    await press(w, 2, 'ArrowDown')
     expect(emitted(w)).toBe(3540)
   })
 
   it('starts an empty value from zero', async () => {
     const w = mountDuration(null)
-    await press(w, 1, 'increment') // hours
+    await press(w, 1, 'ArrowUp') // hours
     expect(emitted(w)).toBe(3600)
   })
 

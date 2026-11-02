@@ -3,9 +3,7 @@ import { useI18n } from 'vue-i18n'
 import { computed } from 'vue'
 import type { DocField } from '@/types'
 import { Input } from '@/components/ui/input'
-import {
-  NumberField, NumberFieldContent, NumberFieldDecrement, NumberFieldIncrement, NumberFieldInput,
-} from '@/components/ui/number-field'
+import { NumberField, NumberFieldContent, NumberFieldInput } from '@/components/ui/number-field'
 import { durationUnit, formatDuration, splitDuration } from '@/core/duration'
 import { localeTag } from '@/core/composables/useNumberField'
 
@@ -65,8 +63,8 @@ const formatOptions: Intl.NumberFormatOptions = { maximumFractionDigits: 0, useG
     :aria-invalid="error ? true : undefined"
     :class="['grid gap-2', segments.length > 4 ? 'grid-cols-3 sm:grid-cols-5' : 'grid-cols-2 sm:grid-cols-4']"
   >
-    <!-- An empty value shows zeros: from null, reka's `+` jumps to `min`, not 1.
-         Below one unit there is nothing to borrow from - `−` stops at zero. -->
+    <!-- An empty value shows zeros: from null, reka's ArrowUp jumps to `min`, not 1.
+         Below one unit there is nothing to borrow from - ArrowDown stops at zero. -->
     <NumberField
       v-for="(seg, i) in segments"
       :key="seg.key"
@@ -80,13 +78,11 @@ const formatOptions: Intl.NumberFormatOptions = { maximumFractionDigits: 0, useG
       @update:model-value="onSegment(i, $event)"
     >
       <NumberFieldContent>
-        <NumberFieldDecrement />
         <NumberFieldInput
           placeholder="0"
           :aria-label="t(seg.label)"
           :class="['tabular-nums', field.bold && 'font-medium']"
         />
-        <NumberFieldIncrement />
       </NumberFieldContent>
       <span class="text-center text-xs text-muted-foreground">{{ t(seg.label) }}</span>
     </NumberField>

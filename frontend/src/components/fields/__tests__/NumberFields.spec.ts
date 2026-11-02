@@ -81,11 +81,10 @@ describe('number fields on NumberField', () => {
     expect(last()).toBeNull()
   })
 
-  it('the +/- buttons step the value', async () => {
-    mountField(Int, { field: field('Int'), modelValue: 5 })
+  it('ArrowUp steps the value', async () => {
+    const input = mountField(Int, { field: field('Int'), modelValue: 5 })
     await flushPromises()
-    await w!.find('[data-slot="increment"]').trigger('pointerdown')
-    await w!.find('[data-slot="increment"]').trigger('pointerup')
+    await input.trigger('keydown', { key: 'ArrowUp' })
     await flushPromises()
     expect(last()).toBe(6)
   })

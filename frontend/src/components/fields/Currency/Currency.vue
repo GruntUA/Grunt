@@ -50,7 +50,7 @@ const toCents = (n: number) => Math.round(n * 100) / 100
         :placeholder="field.placeholder ?? '0.00'"
         :required="field.required"
         :aria-invalid="error ? true : undefined"
-        :class="['text-right tabular-nums', field.bold && 'font-medium']"
+        :class="['tabular-nums', field.bold && 'font-medium']"
         @keydown="onDecimalKey"
       />
     </NumberFieldContent>

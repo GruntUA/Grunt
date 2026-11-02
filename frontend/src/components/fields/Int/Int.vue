@@ -2,9 +2,7 @@
 import { computed } from 'vue'
 import i18n from '@/plugins/i18n'
 import type { DocField } from '@/types'
-import {
-  NumberField, NumberFieldContent, NumberFieldDecrement, NumberFieldIncrement, NumberFieldInput,
-} from '@/components/ui/number-field'
+import { NumberField, NumberFieldContent, NumberFieldInput } from '@/components/ui/number-field'
 import { fieldNumber, localeTag, onDecimalKey } from '@/core/composables/useNumberField'
 import { formatBytes, isBytesField } from '@/core/bytes'
 import { formatNumber } from '@/core/currency'
@@ -52,7 +50,6 @@ const hasValue = computed(() => props.modelValue !== null && props.modelValue !=
       @update:model-value="emit('update:modelValue', fieldNumber($event, Math.trunc))"
     >
       <NumberFieldContent>
-        <NumberFieldDecrement />
         <NumberFieldInput
           :placeholder="field.placeholder ?? '0'"
           :required="field.required"
@@ -60,7 +57,6 @@ const hasValue = computed(() => props.modelValue !== null && props.modelValue !=
           :class="['tabular-nums', field.bold && 'font-medium']"
           @keydown="onDecimalKey"
         />
-        <NumberFieldIncrement />
       </NumberFieldContent>
     </NumberField>
     <span v-if="isBytes && hasValue" class="shrink-0 text-sm text-muted-foreground tabular-nums">

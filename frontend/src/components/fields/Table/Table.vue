@@ -15,7 +15,7 @@ import {
 } from '@lucide/vue'
 import type { DocField, DocType } from '@/types'
 import { useDocTypeStore } from '@/stores/doctype'
-import { getAsyncFieldComponent, getLayoutTypeSet, isNumericType } from '@/core/fieldRegistry'
+import { getAsyncFieldComponent, getLayoutTypeSet } from '@/core/fieldRegistry'
 import { toast } from '@/core/composables/useToast'
 import QuickEntryDialog from '@/components/views/QuickEntryDialog.vue'
 import { Badge } from '@/components/ui/badge'
@@ -195,9 +195,6 @@ const CELL_WIDTH: Record<string, string> = {
   LongText: 'min-w-64 whitespace-normal',
 }
 
-/** Numbers line up by their last digit - right-aligned in the grid only, not in forms. */
-const alignOf = (f: DocField) => (isNumericType(f.fieldtype) ? 'text-right [&_input]:text-right' : '')
-
 const colSpan = computed(() => columns.value.length + (props.disabled ? 2 : 3))
 
 // Row actions
@@ -360,7 +357,6 @@ function applyBulk() {
             <TableHead
               v-for="f in columns"
               :key="f.fieldname"
-              :class="alignOf(f)"
               :title="f.description || undefined"
             >
               {{ f.label }}<span v-if="f.required" class="text-destructive"> *</span>
@@ -423,7 +419,7 @@ function applyBulk() {
               <TableCell
                 v-for="f in columns"
                 :key="f.fieldname"
-                :class="[CELL_WIDTH[f.fieldtype] ?? 'min-w-40', alignOf(f), !isInline(item.row, f) && 'whitespace-pre-line break-words']"
+                :class="[CELL_WIDTH[f.fieldtype] ?? 'min-w-40', !isInline(item.row, f) && 'whitespace-pre-line break-words']"
                 :title="cellError(item.row, f) || undefined"
               >
                 <Checkbox

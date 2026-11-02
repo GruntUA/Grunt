@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import type { DocField } from '@/types'
-import {
-  NumberField, NumberFieldContent, NumberFieldDecrement, NumberFieldIncrement, NumberFieldInput,
-} from '@/components/ui/number-field'
+import { NumberField, NumberFieldContent, NumberFieldInput } from '@/components/ui/number-field'
 import { fieldNumber, localeTag, onDecimalKey } from '@/core/composables/useNumberField'
 
 defineProps<{
@@ -31,7 +29,6 @@ const formatOptions: Intl.NumberFormatOptions = { style: 'unit', unit: 'percent'
     @update:model-value="emit('update:modelValue', fieldNumber($event))"
   >
     <NumberFieldContent>
-      <NumberFieldDecrement />
       <NumberFieldInput
         :placeholder="field.placeholder ?? '0%'"
         :required="field.required"
@@ -39,7 +36,6 @@ const formatOptions: Intl.NumberFormatOptions = { style: 'unit', unit: 'percent'
         :class="['tabular-nums', field.bold && 'font-medium']"
         @keydown="onDecimalKey"
       />
-      <NumberFieldIncrement />
     </NumberFieldContent>
   </NumberField>
 </template>
