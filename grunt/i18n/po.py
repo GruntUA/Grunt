@@ -49,13 +49,20 @@ def existing_locales() -> list[str]:
 
 
 def _occurrences(row: dict) -> list[tuple[str, str]]:
+    """``#:`` references - file paths only, deduped (like ``--add-location=file``).
+
+    Line numbers would rewrite thousands of ``#:`` lines on every extract after
+    any edit; the Translate app shows exact lines from the live extractor anyway.
+    """
     out: list[tuple[str, str]] = []
     for token in (row.get("occurrences") or "").split(", "):
         token = token.strip()
         if not token:
             continue
         path, _, line = token.rpartition(":")
-        out.append((path or token, line if line.isdigit() else ""))
+        path = path if path and line.isdigit() else token
+        if (path, "") not in out:
+            out.append((path, ""))
     return out
 
 
@@ -91,10 +98,23 @@ def build_pot(origins: tuple[str, ...] = ("grunt",), bench_dir: Path | None = No
 
 
 def merge_locale(
-    locale: str, origins: tuple[str, ...] = ("grunt",), bench_dir: Path | None = None
+    locale: str,
+    origins: tuple[str, ...] = ("grunt",),
+    bench_dir: Path | None = None,
+    *,
+    pot: polib.POFile | None = None,
+    drop_obsolete: bool = False,
+    dry_run: bool = False,
 ) -> dict:
-    """msgmerge: keep existing msgstr, add new empty, mark obsolete removed."""
-    pot = build_pot(origins, bench_dir)
+    """msgmerge: keep existing msgstr, add new empty, mark obsolete removed.
+
+    ``added`` / ``removed`` list the ``(msgctxt, msgid)`` keys that this merge
+    adds or newly obsoletes - the part worth reviewing before committing.
+    *drop_obsolete* deletes ``#~`` entries instead of keeping them (git keeps
+    history); *dry_run* computes the result without writing the file.
+    """
+    if pot is None:
+        pot = build_pot(origins, bench_dir)
     path = po_path(locale)
 
     if path.exists():
@@ -106,15 +126,27 @@ def merge_locale(
             "Language": locale,
             "Plural-Forms": _PLURAL_EXPR.get(plural_form_count(locale), _PLURAL_EXPR[2]),
         }
+    before = {_key(e) for e in po if not e.obsolete}
     po.merge(pot)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    po.save(str(path))
+    if drop_obsolete:
+        for e in po.obsolete_entries():
+            po.remove(e)
+    if not dry_run:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        po.save(str(path))
+    after = {_key(e) for e in po if not e.obsolete}
     return {
         "path": str(path),
-        "total": len([e for e in po if not e.obsolete]),
+        "total": len(after),
         "translated": len(po.translated_entries()),
         "obsolete": len(po.obsolete_entries()),
+        "added": sorted(after - before),
+        "removed": sorted(before - after),
     }
+
+
+def _key(e: polib.POEntry) -> tuple[str, str]:
+    return (e.msgctxt or "", e.msgid)
 
 
 def coverage(

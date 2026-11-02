@@ -74,6 +74,33 @@ def test_merge_locale_keeps_translations_and_marks_obsolete(bench, locale_dir):
     assert ("meta:Foo.nm", "Назва") in by  # new, empty
     assert any(e.msgctxt == "meta:Gone" for e in merged.obsolete_entries())
     assert r["translated"] >= 1
+    assert ("meta:Gone", "Старе") in r["removed"]
+    assert ("meta:Foo.nm", "Назва") in r["added"]
+
+
+def test_merge_locale_dry_run_and_drop_obsolete(bench, locale_dir):
+    p = po.po_path("uk")
+    p.parent.mkdir(parents=True, exist_ok=True)
+    pf = polib.POFile()
+    pf.append(polib.POEntry(msgctxt="meta:Gone", msgid="Старе", msgstr="Old"))
+    pf.save(str(p))
+    original = p.read_text()
+
+    r = po.merge_locale("uk", bench_dir=bench, dry_run=True)
+    assert p.read_text() == original  # nothing written
+    assert r["removed"] == [("meta:Gone", "Старе")]
+
+    po.merge_locale("uk", bench_dir=bench, drop_obsolete=True)
+    assert not polib.pofile(str(p)).obsolete_entries()
+
+
+def test_pot_references_are_file_only(bench):
+    (bench / "apps" / "grunt" / "grunt" / "svc.py").write_text(
+        'from grunt.i18n import _\n_("Save changes")\n\n_("Save changes")\n'
+    )
+    pot = po.build_pot(bench_dir=bench)
+    entry = next(e for e in pot if e.msgid == "Save changes")
+    assert entry.occurrences == [("grunt/grunt/svc.py", "")]  # no line numbers, deduped
 
 
 @pytest.fixture

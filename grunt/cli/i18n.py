@@ -22,18 +22,42 @@ def i18n_group() -> None:
     help="msgmerge grunt.pot into these locale catalogs (keeps translations, "
     "marks removed strings obsolete). Omit to only regenerate grunt.pot.",
 )
-def extract_cmd(locales: tuple[str, ...]) -> None:
-    """Regenerate grunt.pot from the source; optionally msgmerge locale catalogs."""
+@click.option(
+    "--dry-run",
+    is_flag=True,
+    help="Show which strings would be added / obsoleted per locale; write nothing.",
+)
+@click.option(
+    "--no-obsolete",
+    is_flag=True,
+    help="Delete obsolete (#~) entries instead of keeping them in the catalogs.",
+)
+@click.option("--verbose", "-v", is_flag=True, help="List every added / obsoleted string.")
+def extract_cmd(locales: tuple[str, ...], dry_run: bool, no_obsolete: bool, verbose: bool) -> None:
+    """Regenerate grunt.pot from the source; optionally msgmerge locale catalogs.
+
+    Strings whose source is gone (e.g. a removed DocType's labels and Select
+    options) become obsolete; run with --dry-run first to review them.
+    """
 
     pot = po.build_pot()
-    po.pot_path().parent.mkdir(parents=True, exist_ok=True)
-    pot.save(str(po.pot_path()))
-    click.echo(f"grunt.pot — {len(pot)} strings → {po.pot_path()}")
+    if not dry_run:
+        po.pot_path().parent.mkdir(parents=True, exist_ok=True)
+        pot.save(str(po.pot_path()))
+    click.echo(f"grunt.pot — {len(pot)} strings → {po.pot_path()}{' (dry run)' if dry_run else ''}")
 
+    limit = None if verbose else 15
     for loc in locales:
-        r = po.merge_locale(loc)
+        r = po.merge_locale(loc, pot=pot, drop_obsolete=no_obsolete, dry_run=dry_run)
         obsolete = f", {r['obsolete']} obsolete" if r["obsolete"] else ""
         click.echo(f"  {loc:6} {r['translated']}/{r['total']} translated{obsolete} → {r['path']}")
+        click.echo(f"         +{len(r['added'])} new, -{len(r['removed'])} no longer in source")
+        if dry_run or verbose:
+            for sign, keys in (("+", r["added"]), ("-", r["removed"])):
+                for ctx, msg in keys[:limit]:
+                    click.echo(f"      {sign} {(ctx or '—'):40} {msg[:70]}")
+                if limit is not None and len(keys) > limit:
+                    click.echo(f"      {sign} … +{len(keys) - limit} more (-v to list all)")
 
 
 @i18n_group.command("stats")
