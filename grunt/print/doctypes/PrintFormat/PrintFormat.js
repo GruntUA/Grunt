@@ -188,7 +188,7 @@ async function _refreshPreview(frm) {
     return
   }
 
-  _setStatus(__('Updating...'))
+  _setStatus(__('Updating…'))
 
   const token = localStorage.getItem('grunt_token')
   const headers = { 'Content-Type': 'application/json' }

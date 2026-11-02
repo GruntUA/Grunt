@@ -237,7 +237,7 @@ const rowClass = 'group flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-
               <div class="flex h-11 items-center gap-2 border-b px-2">
                 <div class="relative flex-1">
                   <Search class="absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
-                  <Input v-model="colSearch" class="h-8 border-0 pl-8 shadow-none focus-visible:ring-0" :placeholder="t('Search field...')" />
+                  <Input v-model="colSearch" class="h-8 border-0 pl-8 shadow-none focus-visible:ring-0" :placeholder="t('Search field…')" />
                 </div>
                 <Button
                   v-if="hiddenColumns.length"
@@ -274,7 +274,7 @@ const rowClass = 'group flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-
             <div v-if="groupableFields.length > 8" class="border-b p-1">
               <div class="relative">
                 <Search class="absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
-                <Input v-model="groupSearch" class="h-8 border-0 pl-8 shadow-none focus-visible:ring-0" :placeholder="t('Search field...')" />
+                <Input v-model="groupSearch" class="h-8 border-0 pl-8 shadow-none focus-visible:ring-0" :placeholder="t('Search field…')" />
               </div>
             </div>
             <div class="max-h-80 overflow-y-auto p-1">
@@ -325,7 +325,7 @@ const rowClass = 'group flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-
             <div class="border-b p-1">
               <div class="relative">
                 <Search class="absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
-                <Input v-model="sortSearch" class="h-8 border-0 pl-8 shadow-none focus-visible:ring-0" :placeholder="t('Search field...')" />
+                <Input v-model="sortSearch" class="h-8 border-0 pl-8 shadow-none focus-visible:ring-0" :placeholder="t('Search field…')" />
               </div>
             </div>
             <div class="max-h-72 overflow-y-auto p-1">

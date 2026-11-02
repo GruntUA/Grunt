@@ -236,15 +236,15 @@ const HighlightFirst = defineComponent({
 <template>
     <Dialog :open="uiStore.isCommandPaletteOpen" @update:open="(v) => { if (!v) uiStore.closeCommandPalette() }">
         <DialogContent class="max-w-xl overflow-hidden p-0" :show-close-button="false">
-            <DialogTitle class="sr-only">{{ t('Search documents, apps or actions...') }}</DialogTitle>
-            <DialogDescription class="sr-only">{{ t('Search documents, apps or actions...') }}</DialogDescription>
+            <DialogTitle class="sr-only">{{ t('Search documents, apps or actions…') }}</DialogTitle>
+            <DialogDescription class="sr-only">{{ t('Search documents, apps or actions…') }}</DialogDescription>
 
             <Command>
                 <HighlightFirst :items="flatList" />
                 <div data-slot="command-input-wrapper" class="flex h-11 items-center gap-2 border-b px-3">
                     <Search class="size-4 shrink-0 opacity-50" />
                     <ListboxFilter v-model="search" auto-focus
-                        :placeholder="quickCreateOpen ? t('Select DocType to create a new record') : t('Search documents, apps or actions...')"
+                        :placeholder="quickCreateOpen ? t('Select DocType to create a new record') : t('Search documents, apps or actions…')"
                         class="placeholder:text-muted-foreground flex h-10 w-full rounded-md bg-transparent py-3 text-sm outline-hidden" />
                     <Kbd>Esc</Kbd>
                 </div>
@@ -252,7 +252,7 @@ const HighlightFirst = defineComponent({
                 <CommandList class="max-h-[400px]">
                     <div v-if="loading && results.length === 0"
                         class="py-6 text-center text-sm text-muted-foreground">
-                        {{ t('Searching...') }}
+                        {{ t('Searching…') }}
                     </div>
 
                     <CommandGroup v-if="quickCreateOpen" :heading="t('Quick create')">

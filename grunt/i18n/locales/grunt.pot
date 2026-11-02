@@ -2118,18 +2118,15 @@ msgstr ""
 msgid "Collapsible block"
 msgstr ""
 
-#: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
-#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue
-#: grunt/frontend/src/components/dashboard/sections/ColorSection.vue
-msgid "Color"
-msgstr ""
-
 #: grunt/grunt/site/doctypes/AppMenu/AppMenu.json
 #: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
+#: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
 #: grunt/grunt/metadata/doctypes/WorkflowState/WorkflowState.json
 #: grunt/grunt/metadata/doctypes/DocTypeStatusIndicator/DocTypeStatusIndicator.json
 #: grunt/grunt/metadata/doctypes/DocTypeCalendarSource/DocTypeCalendarSource.json
-msgid "Colour"
+#: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue
+#: grunt/frontend/src/components/dashboard/sections/ColorSection.vue
+msgid "Color"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
@@ -2359,7 +2356,7 @@ msgid "Connected at"
 msgstr ""
 
 #: grunt/frontend/src/components/files/CameraCapture.vue
-msgid "Connecting to the camera..."
+msgid "Connecting to the camera…"
 msgstr ""
 
 #: grunt/grunt/monitoring/health.py
@@ -3857,7 +3854,7 @@ msgid "Edit roles (comma-separated)"
 msgstr ""
 
 #: grunt/frontend/src/core/renderer/FormRenderer.vue
-msgid "Editing..."
+msgid "Editing…"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
@@ -5605,7 +5602,7 @@ msgid "Import from Word (.docx)"
 msgstr ""
 
 #: grunt/grunt/io/doctypes/DataImport/DataImport.js
-msgid "Import in progress..."
+msgid "Import in progress…"
 msgstr ""
 
 #: grunt/grunt/io/doctypes/DataImport/DataImport.js
@@ -6123,6 +6120,7 @@ msgid "Label field"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/WebAuthnCredential/web_authn_credential.py
+#: grunt/grunt/auth/doctypes/ApiKey/api_key.py
 msgid "Label is required"
 msgstr ""
 
@@ -6450,9 +6448,6 @@ msgstr ""
 #: grunt/frontend/src/components/dashboard/ActivityStream.vue
 #: grunt/frontend/src/components/views/map/MapView.vue
 #: grunt/frontend/src/pages/reports/QueryReportBuilder.vue
-msgid "Loading..."
-msgstr ""
-
 #: grunt/frontend/src/pages/studio/builder/webform/WebFormDesignerTab.vue
 msgid "Loading…"
 msgstr ""
@@ -6962,10 +6957,6 @@ msgstr ""
 msgid "My reminders"
 msgstr ""
 
-#: grunt/frontend/src/components/views/gallery/GalleryView.vue
-msgid "NO"
-msgstr ""
-
 #: grunt/grunt/cli/doctype.py
 #: grunt/grunt/monitoring/templates/system_health.html
 #: grunt/grunt/auth/doctypes/User/User.js
@@ -7157,6 +7148,7 @@ msgstr ""
 #: grunt/frontend/src/components/views/sidebar/TimelineChanges.vue
 #: grunt/frontend/src/components/views/report/ReportGridView.vue
 #: grunt/frontend/src/components/views/list/ListGroupedView.vue
+#: grunt/frontend/src/components/views/gallery/GalleryView.vue
 #: grunt/frontend/src/components/fields/Check/FilterInput.vue
 #: grunt/frontend/src/components/fields/Table/Table.vue
 #: grunt/frontend/src/components/fields/Table/useTableCell.ts
@@ -8561,12 +8553,9 @@ msgstr ""
 msgid "Push notifications disabled"
 msgstr ""
 
+#: grunt/frontend/src/core/composables/useWebPush.ts
 #: grunt/frontend/src/components/layout/NotificationsPopover.vue
 msgid "Push notifications enabled"
-msgstr ""
-
-#: grunt/frontend/src/core/composables/useWebPush.ts
-msgid "Push notifications enabled!"
 msgstr ""
 
 #: grunt/grunt/actions/builtin.py
@@ -8624,7 +8613,7 @@ msgid "Quick actions"
 msgstr ""
 
 #: grunt/frontend/src/components/views/kanban/KanbanView.vue
-msgid "Quick add..."
+msgid "Quick add…"
 msgstr ""
 
 #: grunt/frontend/src/components/layout/CommandPalette.vue
@@ -9711,20 +9700,16 @@ msgid "Search all files"
 msgstr ""
 
 #: grunt/frontend/src/components/app/AppSidebar.vue
-msgid "Search apps..."
+msgid "Search apps…"
 msgstr ""
 
 #: grunt/frontend/src/pages/DeskPage.vue
 #: grunt/frontend/src/components/layout/CommandPalette.vue
-msgid "Search documents, apps or actions..."
+msgid "Search documents, apps or actions…"
 msgstr ""
 
 #: grunt/frontend/src/pages/app/SearchResultsPage.vue
 msgid "Search error"
-msgstr ""
-
-#: grunt/frontend/src/components/views/list/ListToolbarControls.vue
-msgid "Search field..."
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
@@ -9732,7 +9717,11 @@ msgid "Search fields"
 msgstr ""
 
 #: grunt/frontend/src/pages/reports/QueryReportBuilder.vue
-msgid "Search fields..."
+msgid "Search fields…"
+msgstr ""
+
+#: grunt/frontend/src/components/views/list/ListToolbarControls.vue
+msgid "Search field…"
 msgstr ""
 
 #: grunt/frontend/src/components/fields/Icon/Icon.vue
@@ -9744,7 +9733,7 @@ msgid "Search results for «{q}»"
 msgstr ""
 
 #: grunt/frontend/src/components/views/sidebar/SidebarUserCommand.vue
-msgid "Search user..."
+msgid "Search user…"
 msgstr ""
 
 #: grunt/frontend/src/components/fields/MultiLink/MultiLink.vue
@@ -9754,14 +9743,7 @@ msgid "Search {doctype}…"
 msgstr ""
 
 #: grunt/frontend/src/components/dashboard/sections/ShortcutTargetSection.vue
-msgid "Search {dt}..."
-msgstr ""
-
-#: grunt/frontend/src/components/app/AppSidebar.vue
-#: grunt/frontend/src/components/views/DocTypeToolbar.vue
-#: grunt/frontend/src/components/views/form/DocLinksDialog.vue
-#: grunt/frontend/src/components/views/list/QuickFilterSettingsDialog.vue
-msgid "Search..."
+msgid "Search {dt}…"
 msgstr ""
 
 #: grunt/frontend/src/components/layout/CommandPalette.vue
@@ -9769,12 +9751,16 @@ msgstr ""
 #: grunt/frontend/src/components/fields/Link/FilterInput.vue
 #: grunt/frontend/src/components/fields/Link/Link.vue
 #: grunt/frontend/src/pages/app/SearchResultsPage.vue
-msgid "Searching..."
+msgid "Searching…"
 msgstr ""
 
+#: grunt/frontend/src/components/app/AppSidebar.vue
 #: grunt/frontend/src/components/desk/DialogTableField.vue
+#: grunt/frontend/src/components/views/DocTypeToolbar.vue
 #: grunt/frontend/src/components/ui/multi-select/MultiSelect.vue
 #: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue
+#: grunt/frontend/src/components/views/form/DocLinksDialog.vue
+#: grunt/frontend/src/components/views/list/QuickFilterSettingsDialog.vue
 #: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue
 msgid "Search…"
 msgstr ""
@@ -9894,7 +9880,7 @@ msgid ""
 msgstr ""
 
 #: grunt/frontend/src/components/views/BulkActionDialogs.vue
-msgid "Select field..."
+msgid "Select field…"
 msgstr ""
 
 #: grunt/frontend/src/components/fields/Table/Table.vue
@@ -9981,7 +9967,7 @@ msgid "Sending errors in 7 days"
 msgstr ""
 
 #: grunt/grunt/webhook/doctypes/OutgoingWebhook/OutgoingWebhook.js
-msgid "Sending..."
+msgid "Sending…"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
@@ -10372,12 +10358,8 @@ msgstr ""
 msgid "Sign-in failed"
 msgstr ""
 
-#: grunt/grunt/auth/user_api.py
+#: grunt/grunt/auth/login.py grunt/grunt/auth/user_api.py
 msgid "Sign-in from this IP address is not allowed for your role"
-msgstr ""
-
-#: grunt/grunt/auth/login.py
-msgid "Sign-in from this IP address is not allowed for your role."
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/UserSession/UserSession.json
@@ -10614,7 +10596,7 @@ msgid "Started"
 msgstr ""
 
 #: grunt/grunt/io/doctypes/DataImport/DataImport.js
-msgid "Starting..."
+msgid "Starting…"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/FormTour/FormTour.json
@@ -12011,7 +11993,7 @@ msgid "Type at least 2 characters to search"
 msgstr ""
 
 #: grunt/frontend/src/pages/app/SearchResultsPage.vue
-msgid "Type at least 2 characters to search..."
+msgid "Type at least 2 characters to search…"
 msgstr ""
 
 #: grunt/frontend/src/components/fields/Icon/Icon.vue
@@ -12034,7 +12016,7 @@ msgstr ""
 
 #: grunt/frontend/src/components/dashboard/sections/TilesSection.vue
 #: grunt/frontend/src/components/dashboard/sections/LinksSection.vue
-msgid "URL or name..."
+msgid "URL or name…"
 msgstr ""
 
 #: grunt/grunt/webhook/doctypes/IncomingWebhook/IncomingWebhook.json
@@ -12208,9 +12190,6 @@ msgid "Updated the document"
 msgstr ""
 
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.js
-msgid "Updating..."
-msgstr ""
-
 #: grunt/frontend/src/components/views/gantt/GanttView.vue
 #: grunt/frontend/src/components/views/calendar/CalendarView.vue
 msgid "Updating…"
@@ -12357,16 +12336,12 @@ msgstr ""
 msgid "User Permission"
 msgstr ""
 
-#: grunt/grunt/auth/user_api.py
+#: grunt/grunt/auth/user_api.py grunt/grunt/auth/impersonation.py
 msgid "User not found"
 msgstr ""
 
 #: grunt/grunt/auth/providers/webauthn.py
 msgid "User not found or inactive"
-msgstr ""
-
-#: grunt/grunt/auth/impersonation.py
-msgid "User not found."
 msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
@@ -12845,7 +12820,7 @@ msgid "Write a comment... @ to mention"
 msgstr ""
 
 #: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
-msgid "Write a reply..."
+msgid "Write a reply…"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
@@ -12853,10 +12828,6 @@ msgid ""
 "Write an ActivityLog entry on create/update/delete. Turn off for high-"
 "frequency system churn (sessions, queues, logs) — never for ordinary "
 "business records"
-msgstr ""
-
-#: grunt/frontend/src/components/views/gallery/GalleryView.vue
-msgid "YES"
 msgstr ""
 
 #: grunt/frontend/src/core/datetime.ts
@@ -12883,6 +12854,7 @@ msgstr ""
 #: grunt/frontend/src/components/views/sidebar/TimelineChanges.vue
 #: grunt/frontend/src/components/views/report/ReportGridView.vue
 #: grunt/frontend/src/components/views/list/ListGroupedView.vue
+#: grunt/frontend/src/components/views/gallery/GalleryView.vue
 #: grunt/frontend/src/components/fields/Check/FilterInput.vue
 #: grunt/frontend/src/components/fields/Table/Table.vue
 #: grunt/frontend/src/components/fields/Table/useTableCell.ts
@@ -13353,10 +13325,6 @@ msgstr ""
 msgid "label cannot be empty"
 msgstr ""
 
-#: grunt/grunt/auth/doctypes/ApiKey/api_key.py
-msgid "label is required"
-msgstr ""
-
 #: grunt/grunt/auth/doctypes/User/User.json
 msgid "light"
 msgstr ""
@@ -13577,7 +13545,7 @@ msgid "p95, ms"
 msgstr ""
 
 #: grunt/frontend/src/components/fields/Default/FilterInput.vue
-msgid "part of the text..."
+msgid "part of the text…"
 msgstr ""
 
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
@@ -14005,6 +13973,8 @@ msgstr ""
 #: grunt/frontend/src/components/ui/multi-select/MultiSelect.vue
 #: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue
 #: grunt/frontend/src/components/dashboard/sections/DataSourceSection.vue
+#: grunt/frontend/src/components/fields/Select/Select.vue
+#: grunt/frontend/src/components/fields/MultiSelect/MultiSelect.vue
 msgid "— Select —"
 msgstr ""
 
@@ -14018,11 +13988,6 @@ msgstr ""
 
 #: grunt/frontend/src/pages/studio/builder/sections/ValidationSection.vue
 msgid "— not set —"
-msgstr ""
-
-#: grunt/frontend/src/components/fields/Select/Select.vue
-#: grunt/frontend/src/components/fields/MultiSelect/MultiSelect.vue
-msgid "— select —"
 msgstr ""
 
 #: grunt/grunt/document/mixins/lifecycle.py

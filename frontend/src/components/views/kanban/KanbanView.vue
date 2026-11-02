@@ -167,7 +167,7 @@ watch(() => props.refreshKey, (_v, old) => { if (old !== undefined) loadCards() 
           <div class="p-2">
             <div class="relative">
               <Plus class="absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
-              <Input v-model="quickAddInputs[col]" :placeholder="t('Quick add...')" class="h-8 pl-8"
+              <Input v-model="quickAddInputs[col]" :placeholder="t('Quick add…')" class="h-8 pl-8"
                 @keyup.enter="quickAdd(col)" />
             </div>
           </div>

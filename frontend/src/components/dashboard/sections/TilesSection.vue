@@ -102,7 +102,7 @@ function updateTile(i: number, key: keyof ShortcutItem, value: string) {
       <Input
         v-else
         :model-value="tile.link_to"
-        :placeholder="t('URL or name...')"
+        :placeholder="t('URL or name…')"
         class="w-full"
         @update:model-value="updateTile(i, 'link_to', String($event))"
       />

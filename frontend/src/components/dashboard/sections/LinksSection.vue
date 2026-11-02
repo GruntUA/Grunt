@@ -96,7 +96,7 @@ function updateLink(i: number, key: keyof WorkspaceLinkItem, value: string) {
       <Input
         v-else
         :model-value="link.link_to"
-        :placeholder="t('URL or name...')"
+        :placeholder="t('URL or name…')"
         class="w-full"
         @update:model-value="updateLink(i, 'link_to', String($event))"
       />

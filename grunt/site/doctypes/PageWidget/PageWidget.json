@@ -100,7 +100,7 @@
     },
     {
       "fieldname": "color",
-      "label": "Colour",
+      "label": "Color",
       "fieldtype": "Select",
       "options": "primary\nblue\namber\nred\nviolet\ncyan",
       "default": "primary"

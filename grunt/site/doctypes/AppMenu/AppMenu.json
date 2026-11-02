@@ -23,7 +23,7 @@
     },
     {
       "fieldname": "color",
-      "label": "Colour",
+      "label": "Color",
       "fieldtype": "Color",
       "description": "Empty = derived from the workspace name"
     },

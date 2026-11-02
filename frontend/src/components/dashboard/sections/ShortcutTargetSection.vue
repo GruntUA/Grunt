@@ -87,7 +87,7 @@ function selectLink(item: LinkSearchItem) {
     <div v-if="linkSearchDoctype" class="relative">
       <Input
         :model-value="linkQuery"
-        :placeholder="t('Search {dt}...', { dt: linkSearchDoctype })"
+        :placeholder="t('Search {dt}…', { dt: linkSearchDoctype })"
         autocomplete="off"
         class="w-full"
         @update:model-value="onLinkInput(String($event))"

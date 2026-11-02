@@ -86,7 +86,7 @@ const toolbarControlsEvents = computed(() =>
       <div class="contents sm:flex sm:flex-1 sm:flex-wrap sm:items-center sm:gap-2">
         <div class="relative w-full sm:max-w-[260px]">
           <Search class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-          <Input v-model="localSearch" class="pl-9" :placeholder="t('Search...')" />
+          <Input v-model="localSearch" class="pl-9" :placeholder="t('Search…')" />
         </div>
         <!-- Quick filters render inline for every view (labels carried by placeholders). -->
         <QuickFilterBar

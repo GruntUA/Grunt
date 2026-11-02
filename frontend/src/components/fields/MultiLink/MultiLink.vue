@@ -295,7 +295,7 @@ onUnmounted(() => clearTimeout(debounceTimer))
         </ComboboxItem>
       </ComboboxGroup>
       <div v-else class="py-6 text-center text-sm text-muted-foreground">
-        <span v-if="isLoading">{{ t('Searching...') }}</span>
+        <span v-if="isLoading">{{ t('Searching…') }}</span>
         <span v-else-if="query">{{ t('Nothing found for “{query}”', { query }) }}</span>
         <span v-else>{{ t('No records') }}</span>
       </div>

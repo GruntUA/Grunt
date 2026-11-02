@@ -146,7 +146,7 @@ const { map, markerLayer, browserPrint } = useMapLifecycle({
         </div>
         <div class="flex flex-col">
           <span v-if="isLoading" class="flex items-center gap-2 font-semibold text-foreground/80">
-            <Loader2 class="size-3.5 animate-spin text-primary" /> {{ t('Loading...') }}
+            <Loader2 class="size-3.5 animate-spin text-primary" /> {{ t('Loading…') }}
           </span>
           <span v-else class="font-semibold text-foreground/80 lowercase">
             {{ tn('{n} marker', '{n} markers', markerCount) }}

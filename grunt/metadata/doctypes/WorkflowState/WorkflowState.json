@@ -20,7 +20,7 @@
     },
     {
       "fieldname": "color",
-      "label": "Colour",
+      "label": "Color",
       "fieldtype": "Select",
       "options": "gray\nblue\ngreen\nyellow\norange\nred",
       "default": "gray",

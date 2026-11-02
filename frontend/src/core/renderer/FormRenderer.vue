@@ -288,7 +288,7 @@ function toggleSection(section: LayoutSection) {
                     class="mb-1 flex items-center gap-1 self-start rounded-full px-2 py-0.5 font-semibold text-white shadow-sm ring-2 ring-background"
                     :style="{ backgroundColor: fieldLocks[f.fieldname].color }">
                     <span class="opacity-80">{{ initials(fieldLocks[f.fieldname].full_name) }}</span>
-                    <span>{{ t('Editing...') }}</span>
+                    <span>{{ t('Editing…') }}</span>
                   </div>
 
                   <FieldRenderer :field="mergedField(f)" :model-value="modelValue[f.fieldname]"

@@ -10,13 +10,7 @@ from typing import Any
 
 from grunt import _
 lazy from grunt.api.messages import throw
-lazy from grunt.auth.doctypes.User.user import (
-    User,
-    _auth_user_dump,
-    clear_failed_attempts,
-    create_user,
-    get_user_by_email,
-)
+lazy from grunt.auth.doctypes.User.user import User
 lazy from grunt.auth.doctypes.UserSession.user_session import open_session
 lazy from grunt.auth.ip_policy import sign_in_ip_allowed
 lazy from grunt.auth.mfa import mfa_setup_required
@@ -25,6 +19,12 @@ lazy from grunt.auth.service import (
     create_access_token,
     create_mfa_setup_token,
     create_mfa_token,
+)
+lazy from grunt.auth.users import (
+    _auth_user_dump,
+    clear_failed_attempts,
+    create_user,
+    get_user_by_email,
 )
 
 
@@ -77,7 +77,7 @@ async def issue_login(
         throw(_("This account is disabled. Contact an administrator."), "UNAUTHORIZED")
 
     if not await sign_in_ip_allowed(user, ip_address):
-        throw(_("Sign-in from this IP address is not allowed for your role."), "PERMISSION_DENIED")
+        throw(_("Sign-in from this IP address is not allowed for your role"), "PERMISSION_DENIED")
 
     if honor_mfa and await mfa_setup_required(user):
         return {

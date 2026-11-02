@@ -228,7 +228,7 @@ onUnmounted(() => clearTimeout(debounceTimer))
         :placeholder="t('Search {doctype}…', { doctype: field.options ?? '' })"
       />
       <div v-if="!results.length" class="flex items-center justify-center gap-2 py-6 text-center text-sm text-muted-foreground">
-        <template v-if="isLoading"><Spinner /> {{ t('Searching...') }}</template>
+        <template v-if="isLoading"><Spinner /> {{ t('Searching…') }}</template>
         <template v-else-if="query">{{ t('Nothing found') }}</template>
         <template v-else>{{ t('No records') }}</template>
       </div>

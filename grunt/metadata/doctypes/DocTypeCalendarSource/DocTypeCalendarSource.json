@@ -35,7 +35,7 @@
     },
     {
       "fieldname": "color",
-      "label": "Colour",
+      "label": "Color",
       "fieldtype": "Data",
       "in_list_view": true,
       "description": "#hex or var(--…)"

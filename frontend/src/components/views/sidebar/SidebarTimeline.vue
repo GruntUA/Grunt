@@ -540,7 +540,7 @@ onMounted(loadTimeline)
           </ol>
           <div v-if="replyTo === item.id" class="flex flex-col gap-2 pl-3">
             <Textarea v-model="replyInput" rows="2" autofocus class="resize-none"
-              :placeholder="t('Write a reply...')" @keydown="onReplyKeydown" />
+              :placeholder="t('Write a reply…')" @keydown="onReplyKeydown" />
             <div class="flex justify-end gap-2">
               <Button size="sm" variant="ghost" @click="replyTo = null">{{ t('Cancel') }}</Button>
               <Button size="sm" :disabled="!replyInput.trim() || replySending" @click="sendReply">

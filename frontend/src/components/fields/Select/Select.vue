@@ -89,7 +89,7 @@ const clearable = computed(() => !readonly.value && !props.field.required && cur
           <component :is="currentOption.icon" v-if="currentOption.icon" class="size-4 text-muted-foreground" />
           {{ currentOption.label }}
         </span>
-        <span v-else class="text-muted-foreground">{{ field.placeholder ?? t('— select —') }}</span>
+        <span v-else class="text-muted-foreground">{{ field.placeholder ?? t('— Select —') }}</span>
       </SelectTrigger>
       <SelectContent>
         <SelectItem v-for="opt in resolvedOptions" :key="opt.value" :value="opt.value">

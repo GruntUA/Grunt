@@ -43,7 +43,7 @@ const triggerClass = computed(() =>
     option-label="label"
     option-value="value"
     :disabled="disabled || field.read_only"
-    :placeholder="field.placeholder ?? t('— select —')"
+    :placeholder="field.placeholder ?? t('— Select —')"
     :aria-invalid="error ? true : undefined"
     :aria-label="field.label"
     :class="triggerClass"

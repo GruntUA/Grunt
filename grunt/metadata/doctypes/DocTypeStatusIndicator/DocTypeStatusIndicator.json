@@ -21,7 +21,7 @@
     },
     {
       "fieldname": "color",
-      "label": "Colour",
+      "label": "Color",
       "fieldtype": "Select",
       "options": "secondary\nsuccess\ninfo\nwarn\ndanger\ncontrast\nprimary\ndefault",
       "required": true,

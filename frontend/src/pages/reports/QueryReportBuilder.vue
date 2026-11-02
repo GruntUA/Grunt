@@ -483,7 +483,7 @@ const displayFields = computed(() => {
                         </h4>
                         <InputGroup>
                             <InputGroupAddon><Search /></InputGroupAddon>
-                            <InputGroupInput v-model="filteredFields" :placeholder="t('Search fields...')" />
+                            <InputGroupInput v-model="filteredFields" :placeholder="t('Search fields…')" />
                         </InputGroup>
                         <div class="grid grid-cols-1 gap-1">
                             <Item v-for="f in displayFields" :key="f.fieldname" as="button" size="sm"
@@ -557,7 +557,7 @@ const displayFields = computed(() => {
                         </div>
                         <div v-if="previewLoading" class="flex items-center gap-2 text-muted-foreground">
                             <Spinner />
-                            {{ t('Loading...') }}
+                            {{ t('Loading…') }}
                         </div>
                     </div>
 

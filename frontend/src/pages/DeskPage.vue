@@ -187,7 +187,7 @@ function docInitials(doc: RecentDoc): string {
         <Button variant="outline" size="lg" class="w-full justify-start font-normal text-muted-foreground"
           @click="uiStore.openCommandPalette">
           <Search />
-          <span class="flex-1 text-left">{{ t('Search documents, apps or actions...') }}</span>
+          <span class="flex-1 text-left">{{ t('Search documents, apps or actions…') }}</span>
           <KbdGroup class="hidden sm:inline-flex"><Kbd v-for="key in shortcutKeys('Mod+K')" :key="key">{{ key }}</Kbd></KbdGroup>
         </Button>
 

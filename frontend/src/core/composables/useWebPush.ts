@@ -121,7 +121,7 @@ async function subscribe(): Promise<boolean> {
     await saveSubscription(sub)
 
     isSubscribed.value = true
-    toast.success(t('Push notifications enabled!'))
+    toast.success(t('Push notifications enabled'))
     return true
   } catch (e) {
     console.error('Push subscribe failed', e)

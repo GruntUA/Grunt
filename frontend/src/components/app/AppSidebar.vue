@@ -121,7 +121,7 @@ watch(() => appStore.active?.name, () => { drill.value = null })
             </PopoverTrigger>
             <PopoverContent class="w-80 p-0" align="start" :side-offset="4">
               <Command>
-                <CommandInput :placeholder="t('Search apps...')" />
+                <CommandInput :placeholder="t('Search apps…')" />
                 <CommandList class="max-h-96">
                   <CommandEmpty>{{ t('Nothing found') }}</CommandEmpty>
                   <CommandGroup :heading="t('Apps')">
@@ -160,7 +160,7 @@ watch(() => appStore.active?.name, () => { drill.value = null })
         <SidebarMenuItem>
           <SidebarMenuButton :tooltip="t('Search')" @click="triggerSearch">
             <Search />
-            <span>{{ t('Search...') }}</span>
+            <span>{{ t('Search…') }}</span>
             <KbdGroup class="ml-auto group-data-[collapsible=icon]:hidden"><Kbd v-for="key in shortcutKeys('Mod+K')" :key="key">{{ key }}</Kbd></KbdGroup>
           </SidebarMenuButton>
         </SidebarMenuItem>

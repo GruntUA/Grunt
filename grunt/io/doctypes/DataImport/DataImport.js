@@ -58,7 +58,7 @@ async function _runImport(frm) {
   await frm.save()
 
   const btn = _findBtn(__('Run import'))
-  if (btn) { btn.disabled = true; btn.textContent = '⏳ ' + __('Starting...') }
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ ' + __('Starting…') }
 
   // Show progress bar before the request so it's visible even if the task finishes fast
   const progressEl = _createProgressBar()
@@ -199,7 +199,7 @@ function _createProgressBar() {
     box-shadow:0 8px 24px rgba(0,0,0,0.12);z-index:9999;font-size:13px;
   `
   el.innerHTML = `
-    <div style="margin-bottom:8px;font-weight:600">${__('Import in progress...')}</div>
+    <div style="margin-bottom:8px;font-weight:600">${__('Import in progress…')}</div>
     <div style="background:#e5e7eb;border-radius:999px;height:6px;overflow:hidden">
       <div id="grunt-di-bar" style="background:var(--color-primary,#6366f1);height:100%;width:0%;transition:width .4s"></div>
     </div>

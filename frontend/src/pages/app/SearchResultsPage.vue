@@ -144,7 +144,7 @@ async function reindex() {
       <Search class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
       <Input
         v-model="inputQ"
-        :placeholder="t('Type at least 2 characters to search...')"
+        :placeholder="t('Type at least 2 characters to search…')"
         class="w-full h-11 pl-9 pr-9"
         autofocus
       />
@@ -156,7 +156,7 @@ async function reindex() {
       <div class="h-[3px] w-full overflow-hidden rounded-full bg-primary/20">
         <div class="h-full w-1/3 rounded-full bg-primary animate-progress-indeterminate" />
       </div>
-      <p class="text-muted-foreground text-center">{{ t('Searching...') }}</p>
+      <p class="text-muted-foreground text-center">{{ t('Searching…') }}</p>
     </div>
 
     <!-- Too short -->

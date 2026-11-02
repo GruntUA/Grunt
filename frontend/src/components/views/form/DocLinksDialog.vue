@@ -79,7 +79,7 @@ function goTo(l: BacklinkItem) {
         </DialogDescription>
       </DialogHeader>
 
-      <Input v-if="links.length > 10" v-model="query" :placeholder="t('Search...')" />
+      <Input v-if="links.length > 10" v-model="query" :placeholder="t('Search…')" />
 
       <div class="flex flex-col gap-3 min-h-0 overflow-y-auto -mx-6 px-6">
         <Spinner v-if="loading" class="mx-auto my-6 text-muted-foreground" />

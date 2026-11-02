@@ -114,7 +114,7 @@ onBeforeUnmount(() => {
       <video v-show="state === 'live'" ref="video" muted playsinline class="max-h-full max-w-full" />
       <img v-if="state === 'taken' && photo" :src="photo.url" :alt="t('Photo')" class="max-h-full max-w-full" />
       <div v-if="state === 'starting'" class="flex items-center gap-2 text-white/80">
-        <Spinner />{{ t('Connecting to the camera...') }}
+        <Spinner />{{ t('Connecting to the camera…') }}
       </div>
       <div v-if="state === 'error'" class="flex max-w-sm flex-col items-center gap-3 p-6 text-center text-white/90">
         <AlertCircle class="size-8" />

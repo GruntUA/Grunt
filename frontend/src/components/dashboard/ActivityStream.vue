@@ -110,7 +110,7 @@ watch(() => auth.isLoggedIn, (loggedIn) => {
         <div class="flex-1 overflow-y-auto">
             <div v-if="loading" class="flex flex-col items-center justify-center gap-3 py-12">
                 <Spinner class="size-5 text-muted-foreground" />
-                <span class="text-muted-foreground">{{ t('Loading...') }}</span>
+                <span class="text-muted-foreground">{{ t('Loading…') }}</span>
             </div>
 
             <div v-else-if="activities.length === 0" class="flex flex-col items-center justify-center gap-2 py-12 text-center">

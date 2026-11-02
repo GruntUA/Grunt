@@ -32,7 +32,7 @@ function initials(u: Colleague): string {
 
 <template>
   <Command>
-    <CommandInput :placeholder="t('Search user...')" />
+    <CommandInput :placeholder="t('Search user…')" />
     <CommandList class="max-h-64">
       <CommandEmpty>{{ t('No users found') }}</CommandEmpty>
       <CommandGroup>

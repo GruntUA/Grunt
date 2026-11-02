@@ -13,8 +13,9 @@ from typing import Any
 from grunt import _, log
 from grunt.permissions.roles import user_has_roles
 lazy from grunt.api.messages import throw
-lazy from grunt.auth.doctypes.User.user import User, _auth_user_dump, get_user_by_id
+lazy from grunt.auth.doctypes.User.user import User
 lazy from grunt.auth.service import create_access_token
+lazy from grunt.auth.users import _auth_user_dump, get_user_by_id
 
 #: How long an impersonation access token stays valid.
 IMPERSONATION_TTL_MINUTES = 30
@@ -32,7 +33,7 @@ async def start_impersonation(actor: User, target_user_id: str) -> dict[str, Any
 
     target = await get_user_by_id(target_user_id)
     if target is None:
-        throw(_("User not found."), "NOT_FOUND")
+        throw(_("User not found"), "NOT_FOUND")
     if target.id == actor.id:
         throw(_("You cannot impersonate your own account."), "VALIDATION_ERROR")
     if user_has_roles(target, ["System Manager"]):

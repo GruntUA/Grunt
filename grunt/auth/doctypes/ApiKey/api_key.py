@@ -38,7 +38,7 @@ async def create_api_key(
     user = user or grunt.get_user()
     clean_label = label.strip()
     if not clean_label:
-        grunt.throw(_("label is required"), "VALIDATION")
+        grunt.throw(_("Label is required"), "VALIDATION")
 
     assert user.id is not None
     full_key, key_prefix, key_hash = generate_api_key()

@@ -76,7 +76,7 @@ onMounted(async () => {
 
       <div v-if="loading" class="flex items-center justify-center gap-3 py-10 text-muted-foreground">
         <Spinner />
-        {{ t('Loading...') }}
+        {{ t('Loading…') }}
       </div>
 
       <template v-else>

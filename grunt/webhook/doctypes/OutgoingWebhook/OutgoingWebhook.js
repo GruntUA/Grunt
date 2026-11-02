@@ -34,7 +34,7 @@ async function _runTest(frm) {
 
   const btn = document.querySelector('[data-grunt-btn="Test"]')
     || [...document.querySelectorAll('button')].find(b => b.textContent.trim() === __('Test'))
-  if (btn) { btn.disabled = true; btn.textContent = '⏳ ' + __('Sending...') }
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ ' + __('Sending…') }
 
   const token = localStorage.getItem('grunt_token')
   const headers = { 'Content-Type': 'application/json' }
@@ -150,7 +150,7 @@ async function _loadLogs(frm) {
   const body = document.getElementById('gwl-body')
   if (!body) return
 
-  body.innerHTML = '<div style="padding:20px;text-align:center;color:#9ca3af;font-size:13px">' + __('Loading...') + '</div>'
+  body.innerHTML = '<div style="padding:20px;text-align:center;color:#9ca3af;font-size:13px">' + __('Loading…') + '</div>'
 
   const token = localStorage.getItem('grunt_token')
   const headers = token ? { 'Authorization': 'Bearer ' + token } : {}

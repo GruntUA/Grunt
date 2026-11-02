@@ -167,7 +167,7 @@ function formatDate(val: unknown, type: string): string {
                 </template>
                 <Badge v-else-if="getFieldType(col.key) === 'Check'"
                   :variant="row[col.key] ? 'default' : 'secondary'">
-                  {{ row[col.key] ? t('YES') : t('NO') }}
+                  {{ row[col.key] ? t('Yes') : t('No') }}
                 </Badge>
                 <template v-else>
                   {{ displayValue(row, col.key) }}

@@ -245,7 +245,7 @@ async function submitUpdate() {
           <Label>{{ t('Choose a field') }}</Label>
           <Select v-model="updateField">
             <SelectTrigger class="w-full">
-              <SelectValue :placeholder="t('Select field...')" />
+              <SelectValue :placeholder="t('Select field…')" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem v-for="opt in updatableFields" :key="opt.fieldname" :value="opt.fieldname">{{ opt.label }}</SelectItem>
