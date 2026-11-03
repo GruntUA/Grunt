@@ -30,6 +30,8 @@ export function useLinkField(props: {
   const isOpen = ref(false)
   const isLoading = ref(false)
   const titleField = ref<string>('name')
+  // Human label of the target DocType for placeholders ("Select Site menu item…").
+  const doctypeLabel = ref<string>(props.field.options ?? '')
 
   // Tree mode
   const isTree = ref(false)
@@ -184,9 +186,11 @@ export function useLinkField(props: {
 
   watch(() => props.field.options, async (doctype) => {
     if (!doctype) return
+    doctypeLabel.value = doctype
     try {
       const meta = await metaApi.get(doctype)
       titleField.value = meta.title_field || 'name'
+      doctypeLabel.value = meta.label || doctype
       isTree.value = !!meta.is_tree
       if (isTree.value) {
         await loadTree()
@@ -353,6 +357,7 @@ export function useLinkField(props: {
 
   return {
     t,
+    doctypeLabel,
     query,
     results,
     isOpen,

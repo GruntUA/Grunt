@@ -59,11 +59,14 @@ const isTree = ref(false)
 const treeNodes = ref<TreeNode[]>([])
 const treeLoading = ref(false)
 const titleField = ref('name')
+const doctypeLabel = ref(props.field.options ?? '')
 
 watch(() => props.field.options, async (doctype) => {
   if (!doctype) return
+  doctypeLabel.value = doctype
   try {
     const meta = await metaApi.get(doctype)
+    doctypeLabel.value = meta.label || doctype
     isTree.value = !!meta.is_tree
     titleField.value = meta.title_field || 'name'
     if (isTree.value) loadTree()
@@ -180,7 +183,7 @@ onUnmounted(() => clearTimeout(debounceTimer))
     :model-value="modelValue || null"
     :options="treeNodes"
     :loading="treeLoading"
-    :placeholder="placeholder ?? t('Select {doctype}…', { doctype: field.options ?? '' })"
+    :placeholder="placeholder ?? t('Select {doctype}…', { doctype: doctypeLabel })"
     class="w-full"
     @update:model-value="onTreeSelect"
   />
@@ -203,7 +206,7 @@ onUnmounted(() => clearTimeout(debounceTimer))
             class="flex h-full min-w-0 flex-1 items-center rounded-md px-3 text-left text-sm outline-none"
             :class="!values.length && 'text-muted-foreground'"
           >
-            <span class="truncate">{{ triggerLabel || placeholder || t('Select {doctype}…', { doctype: field.options ?? '' }) }}</span>
+            <span class="truncate">{{ triggerLabel || placeholder || t('Select {doctype}…', { doctype: doctypeLabel }) }}</span>
           </button>
         </ComboboxTrigger>
         <InputGroupAddon align="inline-end">
@@ -225,7 +228,7 @@ onUnmounted(() => clearTimeout(debounceTimer))
       <ComboboxInput
         v-model="query"
         :display-value="() => ''"
-        :placeholder="t('Search {doctype}…', { doctype: field.options ?? '' })"
+        :placeholder="t('Search {doctype}…', { doctype: doctypeLabel })"
       />
       <div v-if="!results.length" class="flex items-center justify-center gap-2 py-6 text-center text-sm text-muted-foreground">
         <template v-if="isLoading"><Spinner /> {{ t('Searching…') }}</template>

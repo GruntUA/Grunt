@@ -45,6 +45,7 @@ function onCreate(event: Event) {
 
 const {
   t,
+  doctypeLabel,
   query,
   results,
   isOpen,
@@ -79,7 +80,7 @@ function onPick(value: unknown) {
     :options="treeNodes"
     :loading="treeLoading"
     :disabled="disabled || field.read_only"
-    :placeholder="field.placeholder ?? t('Select {doctype}…', { doctype: field.options ?? '' })"
+    :placeholder="field.placeholder ?? t('Select {doctype}…', { doctype: doctypeLabel })"
     :class="cn('w-full', error && 'border-destructive')"
     @update:model-value="onTreeSelect"
   >
@@ -87,7 +88,7 @@ function onPick(value: unknown) {
       <RouterLink
         :to="linkedDocUrl"
         class="text-muted-foreground hover:text-primary transition-colors"
-        :title="t('Open {doctype}', { doctype: field.options ?? '' })"
+        :title="t('Open {doctype}', { doctype: doctypeLabel })"
         @click.stop
         @mousedown.stop
       >
@@ -123,7 +124,7 @@ function onPick(value: unknown) {
           <InputGroupInput
             :model-value="query"
             @update:model-value="onInput"
-            :placeholder="field.placeholder ?? t('Search {doctype}…', { doctype: field.options ?? '' })"
+            :placeholder="field.placeholder ?? t('Search {doctype}…', { doctype: doctypeLabel })"
             :aria-label="field.label"
             :aria-invalid="error ? true : undefined"
             autocomplete="off"
@@ -138,8 +139,8 @@ function onPick(value: unknown) {
               v-if="linkedDocUrl"
               type="button"
               size="icon-xs"
-              :title="t('Open {doctype}', { doctype: field.options ?? '' })"
-              :aria-label="t('Open {doctype}', { doctype: field.options ?? '' })"
+              :title="t('Open {doctype}', { doctype: doctypeLabel })"
+              :aria-label="t('Open {doctype}', { doctype: doctypeLabel })"
               @mousedown.prevent="openLinkedDoc"
             >
               <ArrowUpRight />
@@ -192,9 +193,9 @@ function onPick(value: unknown) {
             <Plus />
             <span v-if="query">
               {{ t('Create') }} <strong>{{ query }}</strong>
-              <span class="ml-1 text-xs text-muted-foreground">({{ field.options }})</span>
+              <span class="ml-1 text-xs text-muted-foreground">({{ doctypeLabel }})</span>
             </span>
-            <span v-else class="text-muted-foreground">{{ t('Create new') }} {{ field.options }}</span>
+            <span v-else class="text-muted-foreground">{{ t('Create new') }} {{ doctypeLabel }}</span>
           </ComboboxItem>
         </ComboboxGroup>
       </template>
